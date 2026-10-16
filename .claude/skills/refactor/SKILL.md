@@ -1,6 +1,7 @@
 ---
 name: refactor
 description: The refactor check every pull request gets before pr-reviewer runs. Runs a six-point checklist twice over the branch's diff, code and docs alike, reports every finding, then verifies. Use before opening a pull request, or when Craig asks for a refactor pass or "one more pass".
+allowed-tools: Bash(git diff:*)
 ---
 
 # The refactor check
@@ -24,7 +25,7 @@ file the task already touches.
 3. **Naming:** the glossary's words (`SPEC.md`); a test named for its action and its outcome.
 4. **Debloat:** comments that restate the code, the same explanation in two places, anything not
    carrying its weight. A first draft usually cuts to a third or a half.
-5. **Rule of three:** anything written three times is lifted; two copies stay (`PHILOSOPHY.md`).
+5. **Rule of three:** anything written three times is lifted; two copies stay (`PHILOSOPHY.md`: "the same pattern 3 times").
    An abstraction with one use goes. Code copied from epl-draft stays copied.
 6. **Right home:** FPL's fixed rules as constants, a league's rules as data, the football layer
    behind its one seam (`ARCHITECTURE.md`).

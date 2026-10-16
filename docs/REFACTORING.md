@@ -47,7 +47,8 @@ back, names drift, docs desync. The drift pass is a scheduled step back.
 - before the mini beta, and before the draft goes live;
 - a file passes 300 lines (the line-ceiling hook will say when, `ARCHITECTURE.md`).
 
-**What:** `/refactor`'s checklist, across everything merged since the last pass; and whether each
+**What:** `/refactor`'s checklist, across everything merged since the last pass (the skill diffs only
+the current branch, so give it the range from the last `Self-review:` commit to `main`); and whether each
 thing lives in the right place.
 
 The drift pass is a task of its own, so fixing older files there keeps `CLAUDE.md`'s rule that
