@@ -13,6 +13,7 @@ Craig hasn't picked says so.
 | The shortlist | scouting | A season-long watchlist; Mail files when a shortlisted player is dropped or clears waivers |
 | Scouting, a strong focus | its own section | "It's a more detailed league." Scouting advises, Mail never does (`spec/16`): settle where advice is allowed |
 | Awards | history, Mail | Manager of the Month, Team of the Week, Player of the Season |
+| Our own home stadiums | the pitch view, the matchup | Each team names its ground, and the pitch view shows it with the team's logo. Later, a way in for sponsors (boards, the stadium's name), with Payments (SPEC, *Later*). The head-to-head fixtures have no home and away yet (`spec/09`): settle whether the matchup is played at the home team's ground |
 | The real league | its own section | The Premier League's table, fixtures and results, clubs, the gameweek. Built so another competition can plug in (SPEC, *Later*). `spec/12`'s "table and fixtures" may mean the fantasy league's: settle which |
 
 ## Sections suggested, not yet picked
