@@ -16,6 +16,7 @@ Our league moves to it from Fantrax; the companion app lives in `cBallGitWork/ep
 - FPL's rules are fixed, so they can be constants. The league's rules are data, never hardcoded.
 - Persist FPL's season-stable `code`, never the per-season `id`.
 - Football-layer code is copied from epl-draft's `packages/core` when it's needed, not shared.
+- The stack is in `ARCHITECTURE.md`: Craig picks services, Claude picks libraries, both with a reason.
 
 ## Working
 
