@@ -62,7 +62,7 @@ Features 13 and 15 get their file from their own `/grill`.
 - **Licensed data**: before signups open to anyone, check FPL's and the Premier League's terms,
   and switch to a licensed feed if they don't allow a public product.
 - **Traits** (what a player does in real life), if a source for them turns up.
-- **The platform's own scoring sets**, designed once the starter set has been played.
+- **The platform's own scoring sets**, designed once the first scoring set has been played.
 - **A landing page** for the public, when signups open to anyone; its own `/grill` then.
 
 ## Out of scope
