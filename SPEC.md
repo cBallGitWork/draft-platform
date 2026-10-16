@@ -13,8 +13,9 @@ which Craig sets the leagues up; long term, anyone can. Live by August 2027 woul
 it can go live at any time. The Tim Hortons Pro League is the first league on it. A goal: a mini
 beta over the last three or four weeks of the 2026/27 season, to iron out kinks: a quick league
 of about four, with players assigned to teams rather than drafted, for the basics. By then:
-features 1, 2, 3, 5, 6, 7, 10, 12, 14 and 16, and the admin tool that assigns players to teams
-(15). The draft (4) waits for the summer.
+features 1, 2, 3, 5, 6, 7, 10, 12, 14 and 16, and the mini beta's admin tools
+(15: creating a league, inviting managers, assigning players, a score override, positions, the
+feeds page). The draft (4) waits for the summer.
 
 ## Features
 
@@ -36,10 +37,10 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 12 | [Screens](spec/12-screens.md) | not built | a signed-in manager lands on My team, with Mail's unread count in the menu |
 | 13 | Setting up a league | to grill | — |
 | 14 | [Scoring categories](spec/14-scoring-categories.md) | not built | a match's stats priced under a set of rules give each category's points and the total, by the slot's area |
-| 15 | Admin tools | to grill | — |
+| 15 | [Admin tools](spec/15-admin-tools.md) | not built | a commissioner's assignment puts the player on the team and files a Mail letter to the league |
 | 16 | [Mail](spec/16-mail.md) | not built | a claim, a drop and a trade each file one letter for every manager in the league |
 
-Features 13 and 15 get their file from their own `/grill`.
+Feature 13 gets its file from its own `/grill`.
 
 ## Second release
 
@@ -76,6 +77,7 @@ Features 13 and 15 get their file from their own `/grill`.
 - Injured reserve.
 - A limit on auto-subs, or a switch to turn them off.
 - Public league pages: no league is visible without signing in.
+- Co-commissioners (a league has one commissioner).
 - FPL's bonus points, and a ready-made FPL-style or Fantrax-copy scoring set.
 - A lock at each player's kickoff: there is one deadline per gameweek.
 
@@ -84,6 +86,9 @@ Features 13 and 15 get their file from their own `/grill`.
 | Term | Meaning | Avoid |
 |---|---|---|
 | team | a fantasy side: a manager's draft team | |
+| manager | the person who runs a team | player (for a person) |
+| admin | Craig, running the whole platform | |
+| commissioner | the manager who runs one league | |
 | club | a real Premier League club | team |
 | position | where a player can play in real life (CB, CAM) | |
 | role | what you tell him to do in your slot, which changes his points | |
