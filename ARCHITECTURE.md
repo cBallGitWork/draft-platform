@@ -71,6 +71,8 @@ to land in the pull request that adds the first code, not later:
 - [ ] **The reviewer in CI**: sideband's `review.yml`, which needs the Claude GitHub app and a
       `CLAUDE_CODE_OAUTH_TOKEN` secret from Craig (`claude setup-token`).
 - [ ] **`.env.example`** from the services above.
+- [ ] **One-command start**: clone, fill the env, run one command; the README says how
+      (`docs/PHILOSOPHY.md`, *Knowledge Is Shared*).
 - [ ] **Bug hunts as we go**: a hunt scoped to each feature as it lands, and a full one (split by
       area, a skeptic per finding, a token budget) at the mini beta.
 - [ ] **One design skill tested**: Impeccable or the Taste skill run once against R3·1, kept only if

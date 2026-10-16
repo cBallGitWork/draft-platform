@@ -21,8 +21,8 @@ Our league moves to it from Fantrax; the companion app lives in `cBallGitWork/ep
 
 ## Working
 
-- How we build, in spirit: `docs/PHILOSOPHY.md` (ship small, keep it simple, never cut tests, no silent errors). The lines below are the enforced part.
-- Never commit on `main`. One branch and one PR per task, squash-merged.
+- How we build, in spirit: `docs/PHILOSOPHY.md` (ship small, keep it simple, never cut tests, no silent errors). The lines below are the enforced part. Two readings of it are fixed: tidying is fine only inside files the task already touches, and anything else becomes an issue; "some breakage is acceptable" covers the look and screens, never scoring, the draft or saved league data.
+- Never commit on `main`. One branch and one PR per task, squash-merged. Branches start `feat/`, `fix/`, `refactor/`, `docs/` or `chore/`.
 - Stage named paths; never stage everything.
 - Both are enforced by `.claude/hooks/guard_bash.py`; `.claude/hooks/test.sh` checks every hook.
 - Before a pull request opens, run the `pr-reviewer` agent on the branch and paste its verdict into the template.
