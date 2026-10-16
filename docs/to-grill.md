@@ -6,17 +6,51 @@ Craig hasn't picked says so.
 
 ## Picked by Craig
 
-| What | Where it would go | Notes |
-|---|---|---|
-| Captain and set-piece takers (penalties, free kicks, corners) | tactics, `spec/05` | Role-style adjustments. FPL's `bootstrap-static` gives each player `penalties_order`, `direct_freekicks_order` and `corners_and_indirect_freekicks_order`; grouped by club, they are its takers |
-| CM-style text commentary | live matchday, `spec/10` | Feed check is #37. Goals, shots, corners, cards and subs carry a minute; key passes and tackles come only as totals |
-| The shortlist | scouting | A season-long watchlist; Mail files when a shortlisted player is dropped or clears waivers |
-| Scouting, a strong focus | its own section | "It's a more detailed league." Scouting advises, Mail never does (`spec/16`): settle where advice is allowed |
-| Awards | history, Mail | Manager of the Month, Team of the Week, Player of the Season |
-| Our own home stadiums | the pitch view, the matchup | Each team names its ground, and the pitch view shows it with the team's logo. Later, a way in for sponsors (boards, the stadium's name), with Payments (SPEC, *Later*). The head-to-head fixtures have no home and away yet (`spec/09`): settle whether the matchup is played at the home team's ground |
-| The real league | its own section | The Premier League's table, fixtures and results, clubs, the gameweek. Built so another competition can plug in (SPEC, *Later*). `spec/12`'s "table and fixtures" may mean the fantasy league's: settle which |
+Each with the questions its grill starts from. The questions are Claude's.
 
-## Sections suggested, not yet picked
+**Captain and set-piece takers** (penalties, free kicks, corners): tactics, `spec/05`.
+- Role-style adjustments, paid through the engine roles already use.
+- FPL's `bootstrap-static` gives each player `penalties_order`, `direct_freekicks_order` and
+  `corners_and_indirect_freekicks_order`; grouped by club, they are its takers. FPL's choice as
+  the default, or the manager's own pick?
+- What the captain's armband pays.
+
+**CM-style text commentary**: live matchday, `spec/10`.
+- Feed check is #37: the Premier League's stream is proven on a finished match only.
+- Goals (with the assister), shots, corners, cards and subs carry a minute; key passes and
+  tackles come only as match totals, so a line can't show them as they happen.
+
+**The shortlist**: scouting.
+- A season-long watchlist. Mail already files every claim and drop (`spec/16`); the new part is
+  the personal list and a letter when a shortlisted player is dropped or clears waivers.
+
+**Scouting, a strong focus**: its own section. "It's a more detailed league."
+- Scouting advises; Mail never does (`spec/16`). Settle where advice is allowed.
+- Whether the Players screen (`spec/12`) becomes part of it.
+- Scout reports, and comparing two players side by side.
+
+**Awards**: history, Mail.
+- Manager of the Month, Team of the Week, Player of the Season. Where they live once Mail has
+  filed them (see History, below).
+
+**Our own home stadiums**: the pitch view, the matchup.
+- Each team names its ground; the pitch view shows it with the team's logo.
+- Where the logo goes on the pitch: the centre circle, or boards along the touchline.
+- Room for sponsors later, on those boards and the stadium's name: shown with the team's or the
+  league's own logo until then, so the pitch needn't be redrawn. Money goes with Payments (SPEC,
+  *Later*).
+- The head-to-head fixtures have no home and away yet (`spec/09`). Is a matchup played at the
+  home team's ground?
+- A team's own logo: nothing covers one. Uploading it means storing files, a stack question for
+  `ARCHITECTURE.md`.
+
+**The real league**: its own section.
+- The Premier League's table, fixtures and results, clubs (squad, who owns whom in your league,
+  set-piece takers, doubts) and the gameweek (deadline, double and blank gameweeks, commentary).
+- Built so another competition can plug in (SPEC, *Later*).
+- `spec/12`'s "table and fixtures" may mean the fantasy league's: settle which.
+
+## Suggested, not yet picked
 
 | What | Why |
 |---|---|
@@ -24,6 +58,13 @@ Craig hasn't picked says so.
 | The manager's profile | A record across every league on the platform |
 | The rules, readable by every manager | Only the commissioner's settings screen shows them now. With a glossary of what each category counts |
 | Your account | Display name, email preferences, your leagues; leaving a league; deleting the account |
+| Going on holiday | CM's holiday: the manager switches the auto team on himself until a gameweek he names (`spec/09` lets him switch it on, with no end) |
+| Match rating and Man of the Match | CM's Av R and MoM: a 1–10 rating from his points against his area; MoM the top scorer in each head-to-head |
+| Saved tactics | FM's: a few formations kept to switch between, say one for a double gameweek |
+
+Thought of and set aside, as they clash with what's settled: board confidence and the sack
+(storylines are out of scope), counter-tactics (your tactics never touch your opponent's points),
+loans (wait for the market).
 
 ## Smaller pages, from Fantrax
 
@@ -53,3 +94,7 @@ be tabs on screens `spec/12` already lists rather than pages of their own.
 
 - **League** means two things: a fantasy league and the Premier League. Suggested: *competition*
   for the real one (epl-draft's `packages/core` already uses it).
+
+## Keeping this list
+
+- Nothing yet makes a grill delete its line here; a step in `/grill` could.
