@@ -8,12 +8,12 @@ Craig hasn't picked says so.
 
 | What | Where it would go | Notes |
 |---|---|---|
-| Captain and set-piece takers (penalties, free kicks, corners) | tactics, `spec/05` | Role-style adjustments. FPL lists each club's takers: `penalties_order`, `direct_freekicks_order`, `corners_and_indirect_freekicks_order` |
+| Captain and set-piece takers (penalties, free kicks, corners) | tactics, `spec/05` | Role-style adjustments. FPL's `bootstrap-static` gives each player `penalties_order`, `direct_freekicks_order` and `corners_and_indirect_freekicks_order`; grouped by club, they are its takers |
 | CM-style text commentary | live matchday, `spec/10` | Feed check is #37. Goals, shots, corners, cards and subs carry a minute; key passes and tackles come only as totals |
 | The shortlist | scouting | A season-long watchlist; Mail files when a shortlisted player is dropped or clears waivers |
 | Scouting, a strong focus | its own section | "It's a more detailed league." Scouting advises, Mail never does (`spec/16`): settle where advice is allowed |
 | Awards | history, Mail | Manager of the Month, Team of the Week, Player of the Season |
-| The real league | its own section | The Premier League's table, fixtures and results, clubs, the gameweek. Built so another competition can plug in (SPEC, *Later*) |
+| The real league | its own section | The Premier League's table, fixtures and results, clubs, the gameweek. Built so another competition can plug in (SPEC, *Later*). `spec/12`'s "table and fixtures" may mean the fantasy league's: settle which |
 
 ## Sections suggested, not yet picked
 
@@ -28,7 +28,8 @@ Craig hasn't picked says so.
 
 From Fantrax's page list (16 Oct 2026), less what the spec already covers: joining (`spec/15`),
 handing a team on and the auto team (`spec/09`), and a log of commissioner actions (Mail files
-every one, `spec/15`). Suggested, not yet picked. Most useful first.
+every one, `spec/15`). Suggested, not yet picked; ranked by Claude, most useful first. Some may
+be tabs on screens `spec/12` already lists rather than pages of their own.
 
 | Page | Why |
 |---|---|
