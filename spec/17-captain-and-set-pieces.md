@@ -10,6 +10,8 @@ takers` (16 Oct 2026). It sits on tactics ([5](05-tactics.md)).
   as a league rule. He gains for playing the full 90 and for his club winning; he loses more than
   usual for a yellow card, and far more for a red. The defaults are priced against last season, as
   roles are, so the armband pays only on a captain who suits it.
+- His club's result is not a per-player stat in the feeds: it comes from the match's score, so
+  scoring takes it in as a new category (`spec/14`).
 - There is no points multiplier.
 - The vice-captain takes the armband when the captain's match ends with him on 0 minutes: the same
   trigger as an auto-sub (`spec/05`).

@@ -39,7 +39,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 14 | [Scoring categories](spec/14-scoring-categories.md) | not built | a match's stats priced under a set of rules give each category's points and the total, by the slot's area |
 | 15 | [Admin tools](spec/15-admin-tools.md) | not built | a commissioner's assignment puts the player on the team and files a Mail letter to the league |
 | 16 | [Mail](spec/16-mail.md) | not built | a claim, a drop and a trade each file one letter for every manager in the league |
-| 17 | [Captain and set pieces](spec/17-captain-and-set-pieces.md) | after the MVP | the first on a set-piece list who plays is paid for the duty for the whole match, and no one else on the list is |
+| 17 | [Captain and set pieces](spec/17-captain-and-set-pieces.md) | after the mini beta | the first on a set-piece list who plays is paid for the duty for the whole match, and no one else on the list is |
 
 Feature 13 gets its file from its own `/grill`.
 
