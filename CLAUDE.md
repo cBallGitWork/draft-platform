@@ -21,5 +21,5 @@ The companion app lives in `cBallGitWork/epl-draft`; this repo starts clean (Cra
 
 - Never commit on `main`. One branch and one PR per task, squash-merged.
 - Stage named paths; never stage everything.
-- Both are enforced by `.claude/hooks/guard_bash.sh`; `.claude/hooks/test.sh` checks every hook.
+- Both are enforced by `.claude/hooks/guard_bash.py`; `.claude/hooks/test.sh` checks every hook.
 - Add a rule here only after Claude gets something wrong, and add a hook rather than a rule where possible. `/retro` before clearing the chat finds those moments.
