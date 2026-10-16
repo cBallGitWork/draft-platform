@@ -78,6 +78,10 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - In a double gameweek, a starter who plays in either match is not subbed.
 - Auto-subs are always on, and there is no limit on them, ever.
 
+## Captain and set pieces
+
+- The captain, the vice-captain and the set-piece lists: [17](17-captain-and-set-pieces.md).
+
 ## Squad numbers
 
 - A manager can give his players numbers, shown on their shirts. They start from each player's
