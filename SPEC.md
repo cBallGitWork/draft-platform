@@ -72,7 +72,7 @@ Features 13–15 get their file from their own `/grill`.
 - Two roles per player (in and out of possession, as in FM26).
 - A role penalty for playing out of position.
 - Injured reserve.
-- A limit on auto-subs.
+- A limit on auto-subs, or a switch to turn them off.
 - A lock at each player's kickoff: there is one deadline per gameweek.
 
 ## Glossary
