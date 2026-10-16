@@ -52,3 +52,26 @@ Supabase was the runner-up.
   for other leagues (SPEC, Later).
 - Players are keyed on FPL's season-stable `code`, never the per-season `id`.
 - League rules are rows, never constants; FPL's own rules can be constants.
+
+## With the first code
+
+Craig's picks from the guide videos (16 Oct 2026; [docs/research/guide-videos.md](docs/research/guide-videos.md)),
+to land in the pull request that adds the first code, not later:
+
+- [ ] **Stop gate**: a session can't finish while the tests fail (copy sideband's
+      `.claude/hooks/gate_on_stop.py`), and a `/verify` skill that runs every gate and reports the
+      count (epl-draft's).
+- [ ] **Line ceiling**: a note when a file passes 250 and 300 lines (epl-draft's
+      `.claude/hooks/line_ceiling.sh`).
+- [ ] **UI rules by path**: `docs/design/plate.md`'s "Never" list in `.claude/rules/` so it loads
+      only when screen files are touched, and a UI verifier agent that shoots a screen at 390 and
+      1440 and looks (epl-draft's `ui-verifier`).
+- [ ] **MCPs**: Convex and Playwright, with the Convex test above.
+- [ ] **The reviewer in CI**: sideband's `review.yml`, which needs the Claude GitHub app and a
+      `CLAUDE_CODE_OAUTH_TOKEN` secret from Craig (`claude setup-token`).
+- [ ] **`.env.example`** from the services above.
+- [ ] **Bug hunts as we go**: a hunt scoped to each feature as it lands, and a full one (split by
+      area, a skeptic per finding, a token budget) at the mini beta.
+- [ ] **One design skill tested**: Impeccable or the Taste skill run once against R3·1, kept only if
+      it beats what we have.
+- [ ] After a few build sessions: `/fewer-permission-prompts` to pre-approve safe commands.
