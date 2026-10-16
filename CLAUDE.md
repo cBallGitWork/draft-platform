@@ -21,6 +21,7 @@ Our league moves to it from Fantrax; the companion app lives in `cBallGitWork/ep
 
 ## Working
 
+- How we build, in spirit: `docs/PHILOSOPHY.md` (ship small, keep it simple, never cut tests, no silent errors). The lines below are the enforced part.
 - Never commit on `main`. One branch and one PR per task, squash-merged.
 - Stage named paths; never stage everything.
 - Both are enforced by `.claude/hooks/guard_bash.py`; `.claude/hooks/test.sh` checks every hook.
