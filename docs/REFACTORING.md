@@ -60,20 +60,28 @@ back, names drift, docs desync. The drift pass is a scheduled step back.
 **What:** the per-PR checks above, across everything merged since the last pass; and whether each
 thing lives in the right place.
 
+The drift pass is a task of its own, so fixing older files there keeps `CLAUDE.md`'s rule that
+tidying stays inside the files a task touches.
+
 **How:** fresh eyes, never the author's own: `pr-reviewer` over the range, or `/code-review`.
 Fixes go in on a `refactor/` branch, and its pull request title starts `refactor: drift pass`.
 A pass that finds nothing is a success; say so and stop. Never invent changes to look busy.
 
-**Record**, in the squash commit, so history counts the passes:
+**Record**, in a commit message on the drift pass's branch. The repo's squash merge keeps every
+commit's message, so the line reaches `main`:
 `Self-review: <range>: <what was checked>; <what changed, or "clean, no changes">`, with the
 counts, including what was declined ("3 things written three times: 2 lifted, 1 only similar").
-`git log --grep '^Self-review:' main` lists them.
+`git log --grep '^Self-review:' main` lists the passes. Each merged pull request is one commit on
+`main`, so the count since the last pass is
+`git rev-list --count $(git log -1 --format=%H --grep '^Self-review:' main)..main`; before the
+first pass, `git rev-list --count main`.
 
 ## Proving nothing changed
 
 - The Vitest suite and the type check pass before and after.
-- Scoring: a recorded gameweek, scored before and after, gives identical points for every player
-  and every head-to-head (the recorded-match replay from #28, once it exists).
+- Scoring: a recorded gameweek replayed through scoring, before and after, gives identical points
+  for every player and every head-to-head, once such a test exists (#28's replayed match, for
+  live points, is the nearest so far).
 - The Convex schema is unchanged.
 - A test that still passes with the fix deleted pins the wrong thing: delete it, run it, see.
 
@@ -88,6 +96,7 @@ numbers, not "looks fine".
 
 ## Toolkit
 
+- `/simplify` and `/code-review` are Claude Code's own skills.
 - `/simplify`: reuse and simplification cleanups, applied. The driver for mode 1.
 - `/code-review`: a correctness pass; run it after an untangle.
 - `pr-reviewer` (`.claude/agents/`): the fresh-eyes reviewer for every pull request and the drift
