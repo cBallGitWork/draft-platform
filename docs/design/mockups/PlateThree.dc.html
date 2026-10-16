@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My team — Plate, pitch first</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700&amp;family=IBM+Plex+Sans+Condensed:wght@400;600;700&amp;family=Sofia+Sans+Semi+Condensed:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:#ffe600}
+</style>
+</helmet>
+<div style="min-height: 980px; background: {{P.ground}}; color: {{P.text}}; font-family: {{font}}; font-size: 13px;">
+
+  <header style="background: {{P.plate}}; box-shadow: inset 0 1px 0 {{P.plateHi}}, inset 0 -1px 0 {{P.plateLo}};">
+    <div style="display: flex; flex-wrap: wrap; align-items: stretch;">
+      <div style="display: flex; align-items: center; gap: 6px; padding: 0 12px; background: {{P.stepper}}; color: {{P.figure}}; font-weight: 700; font-size: 15px;">
+        <button type="button" aria-label="Previous gameweek" style="font: inherit; color: inherit; background: transparent; border: 0; padding: 8px 2px; cursor: pointer;">◄</button>
+        <span>GW9</span>
+        <button type="button" aria-label="Next gameweek" style="font: inherit; color: inherit; background: transparent; border: 0; padding: 8px 2px; cursor: pointer;">►</button>
+      </div>
+      <div style="display: flex; align-items: center; padding: 0 16px; font-weight: 700; font-size: 15px; letter-spacing: 0.04em;">DRAFT MANAGER</div>
+      <nav aria-label="Main" style="display: flex; flex-wrap: wrap; font-weight: 600; font-size: 15px;">
+        <a href="#" style="text-decoration: none; padding: 10px 16px; border-left: 1px solid {{P.sep}};">Home</a>
+        <a href="#" style="text-decoration: none; padding: 10px 16px; border-left: 1px solid {{P.sep}}; background: {{P.panel}}; box-shadow: inset 0 -3px 0 {{P.figure}};">My team</a>
+        <a href="#" style="text-decoration: none; padding: 10px 16px; border-left: 1px solid {{P.sep}};">Matchup</a>
+        <a href="#" style="text-decoration: none; padding: 10px 16px; border-left: 1px solid {{P.sep}};">Table</a>
+        <a href="#" style="text-decoration: none; padding: 10px 16px; border-left: 1px solid {{P.sep}};">Players</a>
+        <a href="#" style="text-decoration: none; padding: 10px 16px; border-left: 1px solid {{P.sep}};">Trades</a>
+        <a href="#" style="text-decoration: none; padding: 10px 16px; border-left: 1px solid {{P.sep}}; border-right: 1px solid {{P.sep}};">Mail <span style="background: {{P.event}}; color: {{P.ground}}; font-weight: 700; padding: 0 5px; margin-left: 4px;">3</span></a>
+      </nav>
+      <span style="flex-grow: 1;"></span>
+      <div style="display: flex; align-items: center; padding: 0 14px; color: {{P.derived}};">Locks Sat 11:00</div>
+      <a href="#" style="text-decoration: none; display: flex; align-items: center; background: {{P.figure}}; color: {{P.ground}}; font-weight: 700; font-size: 15px; padding: 0 22px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -3px 0 rgba(0,0,0,0.35);">CONTINUE</a>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; background: {{P.panel}}; box-shadow: inset 0 1px 0 {{P.panelHi}};">
+      <a href="#" style="text-decoration: none; padding: 6px 16px; color: {{P.figure}}; font-weight: 700;">Tactics</a>
+      <a href="#" style="text-decoration: none; padding: 6px 16px; border-left: 1px solid {{P.sep2}};">Squad</a>
+      <a href="#" style="text-decoration: none; padding: 6px 16px; border-left: 1px solid {{P.sep2}};">Fixtures</a>
+      <a href="#" style="text-decoration: none; padding: 6px 16px; border-left: 1px solid {{P.sep2}}; border-right: 1px solid {{P.sep2}};">Transactions</a>
+    </div>
+  </header>
+
+  <main style="padding: 10px; display: flex; flex-direction: column; gap: 6px;">
+    <div style="display: flex; flex-wrap: wrap; align-items: stretch; background: {{P.panel}}; box-shadow: inset 0 1px 0 {{P.panelHi}}, inset 0 -1px 0 {{P.panelLo}};">
+      <h1 style="margin: 0; padding: 6px 14px; font-size: 26px; font-weight: 700; background: {{P.plate}};">Craig's XI</h1>
+      <div style="display: flex; align-items: center; gap: 6px; padding: 0 14px; border-left: 1px solid {{P.sep2}};"><span>Season</span><b style="color: {{P.figure}}; font-size: 16px;">812</b></div>
+      <div style="display: flex; align-items: center; gap: 6px; padding: 0 14px; border-left: 1px solid {{P.sep2}};"><span>Position</span><b style="color: {{P.figure}}; font-size: 16px;">3rd</b></div>
+      <div style="display: flex; align-items: center; gap: 6px; padding: 0 14px; border-left: 1px solid {{P.sep2}};"><span>Record</span><b style="color: {{P.figure}}; font-size: 16px;">W5 D1 L2</b></div>
+      <div style="display: flex; align-items: center; gap: 6px; padding: 0 14px; border-left: 1px solid {{P.sep2}};"><span>Last GW</span><b style="color: {{P.figure}}; font-size: 16px;">86</b></div>
+      <div style="display: flex; align-items: center; gap: 6px; padding: 0 14px; border-left: 1px solid {{P.sep2}};"><span>Next</span><b>Rovers XI</b><span style="color: {{P.derived}};">(6th)</span></div>
+      <div style="display: flex; align-items: center; gap: 6px; padding: 0 14px; border-left: 1px solid {{P.sep2}};"><span>Formation</span><b style="color: {{P.figure}};">4-2-3-1</b></div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+      <section aria-label="Pitch" style="flex: {{L.pitchFlex}}; min-width: 0; background: {{P.panel}}; box-shadow: inset 0 1px 0 {{P.panelHi}}, inset 0 -1px 0 {{P.panelLo}};">
+        <div style="background: {{P.plate}}; padding: 4px 10px; font-weight: 700; display: flex; justify-content: space-between;"><span>TACTICS</span><span style="color: {{P.derived}}; font-weight: 400;">Preset 4-2-3-1</span></div>
+        <div style="padding: 8px;">
+          <div style="position: relative; height: {{L.pitchH}}px; max-width: {{L.pitchMax}}; margin: 0 auto; background: repeating-linear-gradient(180deg, {{P.pitchA}} 0px, {{P.pitchA}} 60px, {{P.pitchB}} 60px, {{P.pitchB}} 120px); border: 2px solid {{P.line}};">
+            <div style="position: absolute; left: 0; right: 0; top: 50%; border-top: 2px solid {{P.line}};"></div>
+            <div style="position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; margin: -60px 0 0 -60px; border: 2px solid {{P.line}}; border-radius: 50%;"></div>
+            <div style="position: absolute; left: 25%; right: 25%; top: 0; height: 92px; border: 2px solid {{P.line}}; border-top: 0;"></div>
+            <div style="position: absolute; left: 25%; right: 25%; bottom: 0; height: 92px; border: 2px solid {{P.line}}; border-bottom: 0;"></div>
+            <sc-for list="{{xi}}" as="p" hint-placeholder-count="11">
+              <div style="position: absolute; left: {{p.x}}%; top: {{p.y}}%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; width: 130px;">
+                <div style="position: relative; width: 40px; height: 40px;">
+                  <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><path d="M13 4 L7 7 L2 13 L7 18 L10 16 L10 37 L30 37 L30 16 L33 18 L38 13 L33 7 L27 4 Q20 10 13 4 Z" fill="{{p.c1}}" stroke="#050a30"></path></svg>
+                  <span style="position: absolute; left: 0; right: 0; top: 13px; text-align: center; font-weight: 700; font-size: 13px; color: {{p.c2}};">{{p.num}}</span>
+                </div>
+                <div style="background: {{P.namePlate}}; padding: 1px 6px; font-weight: 600; font-size: 15px; white-space: nowrap;">{{p.n}}</div>
+                <div style="color: {{P.derived}}; white-space: nowrap;">{{p.role}}</div>
+                <div style="display: flex; gap: 1px;">
+                  <sc-for list="{{p.starList}}" as="s" hint-placeholder-count="5">
+                    <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M5 0.5 L6.3 3.6 L9.6 3.8 L7.1 6 L7.9 9.3 L5 7.5 L2.1 9.3 L2.9 6 L0.4 3.8 L3.7 3.6 Z" fill="{{s.fill}}"></path></svg>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+
+      <section aria-label="Squad" style="flex: {{L.tableFlex}}; min-width: 0; background: {{P.panel}}; box-shadow: inset 0 1px 0 {{P.panelHi}}, inset 0 -1px 0 {{P.panelLo}};">
+        <div style="background: {{P.plate}}; padding: 4px 10px; font-weight: 700; display: flex; justify-content: space-between;"><span>SQUAD</span><span style="font-weight: 400;">15 players</span></div>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; white-space: nowrap;">
+            <thead>
+              <tr style="background: {{P.head}}; color: {{P.headInk}}; text-align: left;">
+                <th style="padding: 2px 6px;">No</th><th style="padding: 2px 6px;">Pos</th><th style="padding: 2px 6px;">Player</th><th style="padding: 2px 6px;">Club</th><th style="padding: 2px 6px;">Role</th><th style="padding: 2px 6px;">Fit</th><th style="padding: 2px 6px;">Next</th><th style="padding: 2px 6px; text-align: right;">Last</th><th style="padding: 2px 6px; text-align: right;">Form</th><th style="padding: 2px 6px; text-align: right;">Season</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{squad}}" as="p" hint-placeholder-count="15">
+                <tr style="height: {{rowH}}px; color: {{p.ink}};">
+                  <td style="padding: 1px 6px;">{{p.num}}</td>
+                  <td style="padding: 1px 6px;">{{p.pos}}</td>
+                  <td style="padding: 1px 6px; font-weight: 600;">{{p.n}}</td>
+                  <td style="padding: 1px 6px;">{{p.club}}</td>
+                  <td style="padding: 1px 6px; color: {{p.roleInk}};">{{p.role}}</td>
+                  <td style="padding: 1px 6px;"><span style="display: inline-flex; gap: 1px;"><sc-for list="{{p.starList}}" as="s" hint-placeholder-count="5"><svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M5 0.5 L6.3 3.6 L9.6 3.8 L7.1 6 L7.9 9.3 L5 7.5 L2.1 9.3 L2.9 6 L0.4 3.8 L3.7 3.6 Z" fill="{{s.fill}}"></path></svg></sc-for></span></td>
+                  <td style="padding: 1px 6px;"><span style="display: inline-block; width: 64px; padding: 0 4px; background: {{p.fdrBg}}; color: {{p.fdrInk}};">{{p.opp}}</span></td>
+                  <td style="padding: 1px 6px; text-align: right; color: {{p.figInk}};">{{p.last}}</td>
+                  <td style="padding: 1px 6px; text-align: right; color: {{p.figInk}};">{{p.form}}</td>
+                  <td style="padding: 1px 6px; text-align: right; color: {{p.figInk}};">{{p.season}}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <sc-if value="{{L.showMail}}" hint-placeholder-val="{{false}}">
+        <section aria-label="Mail" style="flex: 1 1 300px; min-width: 0; background: {{P.panel}}; box-shadow: inset 0 1px 0 {{P.panelHi}}, inset 0 -1px 0 {{P.panelLo}};">
+          <div style="background: {{P.plate}}; padding: 4px 10px; font-weight: 700; display: flex; justify-content: space-between;"><span>MAIL</span><span style="font-weight: 400;">3 unread</span></div>
+          <sc-for list="{{mail}}" as="m" hint-placeholder-count="6">
+            <a href="#" style="text-decoration: none; display: grid; grid-template-columns: 66px minmax(0, 1fr); gap: 8px; padding: 6px 10px; border-bottom: 1px solid {{P.sep2}};">
+              <span style="background: {{P.plate}}; color: {{P.text}}; text-align: center; padding: 1px 0; align-self: start;">{{m.when}}</span>
+              <span style="color: {{m.ink}}; font-weight: {{m.weight}};">{{m.headline}}</span>
+            </a>
+          </sc-for>
+        </section>
+      </sc-if>
+    </div>
+  </main>
+
+  <footer style="display: flex; flex-wrap: wrap; background: {{P.namePlate}}; border-top: 1px solid {{P.panel}};">
+    <span style="padding: 5px 14px; color: {{P.event}};">Saka has a knock, 75% to play</span>
+    <span style="padding: 5px 14px; border-left: 1px solid {{P.panel}};">Waivers run Fri 09:00</span>
+    <span style="padding: 5px 14px; border-left: 1px solid {{P.panel}};">Rovers XI offered a trade</span>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"layout":{"editor":"enum","options":["Pitch beside squad","With Mail","Pitch first"],"default":"Pitch first"},"palette":{"editor":"enum","options":["CM 99/00 blue","CM 01/02 night","Modern ink"],"default":"Modern ink"},"typeface":{"editor":"enum","options":["Archivo Narrow","IBM Plex Sans Condensed","Sofia Sans Semi Condensed"],"default":"Sofia Sans Semi Condensed"},"rowHeight":{"editor":"enum","options":["18","20","24","28"],"default":"28"},"$preview":{"width":1440,"height":1400}}'>
+const DEFAULTS = {layout:'Pitch first',palette:'Modern ink',typeface:'Sofia Sans Semi Condensed',rowHeight:'28'};
+const PALETTES = {
+  'CM 99/00 blue': {ground:'#0a1240',panel:'#16238a',plate:'#0030a6',plateHi:'#4a74e0',plateLo:'#001a5e',panelHi:'#3d4fc4',panelLo:'#050a30',stepper:'#1f13a7',head:'#b9bcc4',headInk:'#0a1240',text:'#ffffff',figure:'#ffe600',derived:'#6bfdfa',event:'#ff9b3d',muted:'#9aa4b8',starOff:'#2a3a8a',pitchA:'#2a7a2f',pitchB:'#276f2c',line:'#e6f2e6',namePlate:'#050a30',sep:'#001a5e',sep2:'#0a1240'},
+  'CM 01/02 night': {ground:'#070b18',panel:'#121a33',plate:'#1d2a52',plateHi:'#3a4c85',plateLo:'#050814',panelHi:'#2a3766',panelLo:'#03050c',stepper:'#2b1d6e',head:'#9ea6b8',headInk:'#070b18',text:'#f2f4f8',figure:'#ffd23f',derived:'#5fe3ff',event:'#ff9b3d',muted:'#8a93a8',starOff:'#2a3354',pitchA:'#24672a',pitchB:'#215f27',line:'#dce8dc',namePlate:'#03050c',sep:'#050814',sep2:'#070b18'},
+  'Modern ink': {ground:'#0c0e12',panel:'#15181e',plate:'#1d2129',plateHi:'#2c323d',plateLo:'#08090c',panelHi:'#232831',panelLo:'#050608',stepper:'#262b35',head:'#c9ccd2',headInk:'#0c0e12',text:'#eef0f3',figure:'#ffe14d',derived:'#6fe6e0',event:'#ff9b5c',muted:'#8b919c',starOff:'#2a2f38',pitchA:'#1f5a2a',pitchB:'#1c5226',line:'#dfe6df',namePlate:'#08090c',sep:'#08090c',sep2:'#0c0e12'}
+};
+const LAYOUTS = {
+  'Pitch beside squad': {pitchFlex:'1 1 440px',tableFlex:'999 1 560px',pitchH:600,pitchMax:'none',showMail:false},
+  'With Mail': {pitchFlex:'1 1 400px',tableFlex:'2 1 520px',pitchH:600,pitchMax:'none',showMail:true},
+  'Pitch first': {pitchFlex:'1 1 100%',tableFlex:'1 1 100%',pitchH:640,pitchMax:'900px',showMail:false}
+};
+const SQUAD = [
+  {n:'Pickford',pos:'GK',club:'EVE',c1:'#274488',c2:'#ffffff',role:'Shot-stopper',st:4,opp:'BOU (H)',fdr:2,last:6,form:'5.2',season:58,x:50,y:89,num:1,xi:true},
+  {n:'Gvardiol',pos:'LB',club:'MCI',c1:'#6CABDD',c2:'#1c2c5b',role:'Defensive full-back',st:3,opp:'ARS (A)',fdr:5,last:2,form:'4.1',season:47,x:13,y:68,num:24,xi:true},
+  {n:'Gabriel',pos:'CB',club:'ARS',c1:'#EF0107',c2:'#ffffff',role:'Stopper',st:5,opp:'MCI (H)',fdr:4,last:9,form:'6.8',season:71,x:37,y:73,num:6,xi:true},
+  {n:'Van Dijk',pos:'CB',club:'LIV',c1:'#C8102E',c2:'#ffffff',role:'Ball-playing CB',st:4,opp:'CRY (A)',fdr:2,last:6,form:'5.0',season:55,x:63,y:73,num:4,xi:true},
+  {n:'Porro',pos:'RB',club:'TOT',c1:'#ffffff',c2:'#132257',role:'Attacking full-back',st:5,opp:'WHU (H)',fdr:2,last:12,form:'7.4',season:76,x:87,y:68,num:23,xi:true},
+  {n:'Caicedo',pos:'CDM',club:'CHE',c1:'#034694',c2:'#ffffff',role:'Ball-winner',st:5,opp:'NFO (A)',fdr:3,last:7,form:'5.9',season:62,x:36,y:52,num:25,xi:true},
+  {n:'Rice',pos:'CDM',club:'ARS',c1:'#EF0107',c2:'#ffffff',role:'Box-to-box',st:4,opp:'MCI (H)',fdr:4,last:5,form:'5.5',season:60,x:64,y:52,num:41,xi:true},
+  {n:'Rogers',pos:'LW',club:'AVL',c1:'#670E36',c2:'#95BFE5',role:'Inside forward',st:3,opp:'BRE (H)',fdr:2,last:3,form:'4.6',season:49,x:13,y:31,num:27,xi:true},
+  {n:'Palmer',pos:'CAM',club:'CHE',c1:'#034694',c2:'#ffffff',role:'Playmaker',st:5,opp:'NFO (A)',fdr:3,last:15,form:'8.1',season:88,x:50,y:34,num:10,xi:true},
+  {n:'Saka',pos:'RW',club:'ARS',c1:'#EF0107',c2:'#ffffff',role:'Inside forward',st:4,opp:'MCI (H)',fdr:4,last:8,form:'6.6',season:70,x:87,y:31,num:7,xi:true},
+  {n:'Haaland',pos:'ST',club:'MCI',c1:'#6CABDD',c2:'#1c2c5b',role:'Poacher',st:5,opp:'ARS (A)',fdr:5,last:13,form:'9.0',season:97,x:50,y:12,num:9,xi:true},
+  {n:'Henderson',pos:'GK',club:'CRY',c1:'#1B458F',c2:'#C4122E',role:'Sub',st:3,opp:'LIV (H)',fdr:4,last:2,form:'3.8',season:31,num:30,xi:false},
+  {n:'Murillo',pos:'CB',club:'NFO',c1:'#DD0000',c2:'#ffffff',role:'Sub',st:4,opp:'CHE (H)',fdr:4,last:1,form:'4.0',season:40,num:5,xi:false},
+  {n:'Mbeumo',pos:'RW',club:'MUN',c1:'#DA291C',c2:'#ffffff',role:'Sub',st:4,opp:'SUN (A)',fdr:2,last:9,form:'6.0',season:66,num:19,xi:false},
+  {n:'Watkins',pos:'ST',club:'AVL',c1:'#670E36',c2:'#95BFE5',role:'Sub',st:4,opp:'BRE (H)',fdr:2,last:4,form:'5.1',season:52,num:11,xi:false}
+];
+const MAIL = [
+  {when:'Thu 14:02',headline:'Rovers XI have offered you a trade',unread:true},
+  {when:'Thu 09:10',headline:'Saka has a knock and is 75% to play',unread:true},
+  {when:'Wed 21:40',headline:'Rovers XI sign Wissa (NEW), release Gakpo',unread:true},
+  {when:'Tue 18:30',headline:'You beat City Boys 86–71 in gameweek 8',unread:false},
+  {when:'Mon 10:00',headline:'Gameweek 9 lineups lock at 11:00 on Saturday',unread:false},
+  {when:'Mon 09:00',headline:'Your waiver claim for Murillo (NFO) went through',unread:false}
+];
+const FDR = [null,['#00b050','#04130a'],['#8fd36a','#0c1a06'],['#c9ccd4','#0a1240'],['#ff4f6d','#1a0208'],['#8c1236','#ffffff']];
+const FONTS = {'Archivo Narrow':"'Archivo Narrow', sans-serif",'IBM Plex Sans Condensed':"'IBM Plex Sans Condensed', sans-serif",'Sofia Sans Semi Condensed':"'Sofia Sans Semi Condensed', sans-serif"};
+class Component extends DCLogic {
+  renderVals() {
+    const P = PALETTES[this.props.palette ?? DEFAULTS.palette] ?? PALETTES[DEFAULTS.palette];
+    const L = LAYOUTS[this.props.layout ?? DEFAULTS.layout] ?? LAYOUTS[DEFAULTS.layout];
+    const squad = SQUAD.map((p) => ({
+      ...p,
+      starList: [1, 2, 3, 4, 5].map((k) => ({ fill: k <= p.st ? P.figure : P.starOff })),
+      fdrBg: FDR[p.fdr][0], fdrInk: FDR[p.fdr][1],
+      ink: p.xi ? P.text : P.muted,
+      roleInk: p.xi ? P.derived : P.muted,
+      figInk: p.xi ? P.figure : P.muted
+    }));
+    const mail = MAIL.map((m) => ({ ...m, ink: m.unread ? P.text : P.muted, weight: m.unread ? '600' : '400' }));
+    return {
+      P, L, mail, squad, xi: squad.filter((p) => p.xi),
+      font: FONTS[this.props.typeface ?? DEFAULTS.typeface] ?? FONTS[DEFAULTS.typeface],
+      rowH: Number(this.props.rowHeight ?? DEFAULTS.rowHeight)
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My team — Floodlit</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&amp;family=Archivo:wght@400;500;700&amp;family=DotGothic16&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#060807}
+a{color:#e9f5ec}a:hover{color:#ffffff}
+</style>
+</helmet>
+<div style="min-height: 980px; background: #060807; color: #e9f5ec; font-family: 'Archivo', sans-serif; font-size: 14px;">
+
+  <header style="max-width: 1440px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 28px; padding: 18px 28px;">
+    <span style="font-family: 'Big Shoulders Display', sans-serif; font-weight: 900; font-size: 30px; text-transform: uppercase; letter-spacing: 0.02em;">Draft<span style="color: {{accent}};">/</span>Manager</span>
+    <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 6px;">
+      <a href="#" style="text-decoration: none; color: #8fa596; padding: 8px 14px;">Home</a>
+      <a href="#" style="text-decoration: none; color: #060807; background: #e9f5ec; padding: 8px 14px; border-radius: 999px; font-weight: 700;">My team</a>
+      <a href="#" style="text-decoration: none; color: #8fa596; padding: 8px 14px;">Matchup</a>
+      <a href="#" style="text-decoration: none; color: #8fa596; padding: 8px 14px;">Table</a>
+      <a href="#" style="text-decoration: none; color: #8fa596; padding: 8px 14px;">Players</a>
+      <a href="#" style="text-decoration: none; color: #8fa596; padding: 8px 14px;">Trades</a>
+    </nav>
+    <span style="flex-grow: 1;"></span>
+    <span style="color: #8fa596;">Tim Hortons Pro League</span>
+  </header>
+
+  <main style="max-width: 1440px; margin: 0 auto; padding: 0 28px 28px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
+
+    <aside style="flex: 1 1 250px; min-width: 0; display: flex; flex-direction: column; gap: 14px;">
+      <div>
+        <div style="color: #8fa596; text-transform: uppercase; font-size: 12px; letter-spacing: 0.12em;">My team</div>
+        <h1 style="margin: 4px 0 0; font-family: 'Big Shoulders Display', sans-serif; font-weight: 900; font-size: 56px; line-height: 0.9; text-transform: uppercase;">Craig's XI</h1>
+      </div>
+      <div style="background: #000000; border: 1px solid #1d2a22; border-radius: 6px; padding: 16px;">
+        <div style="color: #8fa596; text-transform: uppercase; font-size: 11px; letter-spacing: 0.12em;">Gameweek 9 · kick-off Sat 15:00</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px;">
+          <span style="font-weight: 700; text-transform: uppercase;">Craig's XI</span>
+          <span style="color: #8fa596;">v</span>
+          <span style="font-weight: 700; text-transform: uppercase;">Rovers XI</span>
+        </div>
+        <div style="font-family: 'DotGothic16', monospace; font-size: 44px; text-align: center; color: #ffe27a; letter-spacing: 0.08em; margin-top: 6px;">1D 17H 22M</div>
+        <div style="text-align: center; color: #8fa596; font-size: 12px;">until lineups lock</div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+        <div style="border: 1px solid #1d2a22; border-radius: 6px; padding: 12px;">
+          <div style="color: #8fa596; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;">Season</div>
+          <div style="font-family: 'DotGothic16', monospace; font-size: 32px;">812</div>
+        </div>
+        <div style="border: 1px solid #1d2a22; border-radius: 6px; padding: 12px;">
+          <div style="color: #8fa596; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;">Position</div>
+          <div style="font-family: 'DotGothic16', monospace; font-size: 32px;">3RD</div>
+        </div>
+        <div style="border: 1px solid #1d2a22; border-radius: 6px; padding: 12px;">
+          <div style="color: #8fa596; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;">Last GW</div>
+          <div style="font-family: 'DotGothic16', monospace; font-size: 32px;">86</div>
+        </div>
+        <div style="border: 1px solid #1d2a22; border-radius: 6px; padding: 12px;">
+          <div style="color: #8fa596; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;">Record</div>
+          <div style="font-family: 'DotGothic16', monospace; font-size: 26px;">5-1-2</div>
+        </div>
+      </div>
+    </aside>
+
+    <section aria-label="Pitch" style="flex: 2 1 520px; min-width: 0;">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 10px;">
+        <span style="font-family: 'Big Shoulders Display', sans-serif; font-weight: 900; font-size: 26px; text-transform: uppercase;">4-2-3-1</span>
+        <span style="color: #8fa596;">preset · drag to place freely</span>
+        <span style="flex-grow: 1;"></span>
+        <button type="button" style="font: inherit; color: #060807; background: {{accent}}; border: 0; border-radius: 999px; padding: 8px 16px; font-weight: 700;">Save lineup</button>
+      </div>
+      <div style="position: relative; height: 760px; border-radius: 8px; overflow: hidden; background: repeating-linear-gradient(180deg, #164a2c 0px, #164a2c 76px, #123f25 76px, #123f25 152px);">
+        <div style="position: absolute; inset: 18px; border: 2px solid #e9f5ec;"></div>
+        <div style="position: absolute; left: 18px; right: 18px; top: 50%; border-top: 2px solid #e9f5ec;"></div>
+        <div style="position: absolute; left: 50%; top: 50%; width: 150px; height: 150px; margin: -75px 0 0 -75px; border: 2px solid #e9f5ec; border-radius: 50%;"></div>
+        <div style="position: absolute; left: 24%; right: 24%; top: 18px; height: 110px; border: 2px solid #e9f5ec; border-top: 0;"></div>
+        <div style="position: absolute; left: 24%; right: 24%; bottom: 18px; height: 110px; border: 2px solid #e9f5ec; border-bottom: 0;"></div>
+        <sc-for list="{{xi}}" as="p" hint-placeholder-count="11">
+          <div style="position: absolute; left: {{p.x}}%; top: {{p.y}}%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; width: 140px;">
+            <svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true"><path d="M13 4 L7 7 L2 13 L7 18 L10 16 L10 37 L30 37 L30 16 L33 18 L38 13 L33 7 L27 4 Q20 10 13 4 Z" fill="{{p.c1}}" stroke="{{p.c2}}"></path></svg>
+            <div style="background: #060807; padding: 3px 10px; font-weight: 700; text-transform: uppercase; font-size: 13px; letter-spacing: 0.04em; white-space: nowrap;">{{p.n}}</div>
+            <div style="display: flex; gap: 6px; align-items: center; background: rgba(6,8,7,0.82); padding: 2px 8px;">
+              <span style="font-size: 11px; color: #b9cdbf; white-space: nowrap;">{{p.role}}</span>
+              <span style="font-size: 11px; color: #ffe27a;">{{p.stars}}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section aria-label="Squad" style="flex: 1 1 300px; min-width: 0;">
+      <div style="font-family: 'Big Shoulders Display', sans-serif; font-weight: 900; font-size: 26px; text-transform: uppercase; margin-bottom: 10px;">Squad</div>
+      <div style="display: flex; flex-direction: column;">
+        <sc-for list="{{squad}}" as="p" hint-placeholder-count="15">
+          <div style="display: grid; grid-template-columns: 42px minmax(0, 1fr) 58px 40px; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid #16211b; opacity: {{p.dim}};">
+            <span style="color: #8fa596; font-size: 12px;">{{p.pos}}</span>
+            <span style="min-width: 0;">
+              <span style="display: block; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{p.n}}</span>
+              <span style="display: block; color: #8fa596; font-size: 12px; white-space: nowrap;">{{p.club}} · <span style="color: {{p.fdrInk}};">{{p.opp}}</span></span>
+            </span>
+            <span style="color: #ffe27a; font-size: 11px;">{{p.stars}}</span>
+            <span style="font-family: 'DotGothic16', monospace; font-size: 20px; text-align: right;">{{p.last}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="color: #8fa596; font-size: 12px; margin-top: 10px;">Last gameweek's points · opponent coloured by difficulty</div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#3ddc84","options":["#3ddc84","#ffe27a","#7fd6ff","#ff7a59"]},"$preview":{"width":1440,"height":980}}'>
+const SQUAD = [
+  {n:'Pickford',pos:'GK',club:'EVE',c1:'#274488',c2:'#ffffff',role:'Shot-stopper',st:4,opp:'BOU (H)',fdr:2,last:6,x:50,y:90,xi:true},
+  {n:'Gvardiol',pos:'LB',club:'MCI',c1:'#6CABDD',c2:'#1c2c5b',role:'Defensive full-back',st:3,opp:'ARS (A)',fdr:5,last:2,x:14,y:69,xi:true},
+  {n:'Gabriel',pos:'CB',club:'ARS',c1:'#EF0107',c2:'#ffffff',role:'Stopper',st:5,opp:'MCI (H)',fdr:4,last:9,x:37,y:74,xi:true},
+  {n:'Van Dijk',pos:'CB',club:'LIV',c1:'#C8102E',c2:'#ffffff',role:'Ball-playing CB',st:4,opp:'CRY (A)',fdr:2,last:6,x:63,y:74,xi:true},
+  {n:'Porro',pos:'RB',club:'TOT',c1:'#ffffff',c2:'#132257',role:'Attacking full-back',st:5,opp:'WHU (H)',fdr:2,last:12,x:86,y:69,xi:true},
+  {n:'Caicedo',pos:'CDM',club:'CHE',c1:'#034694',c2:'#ffffff',role:'Ball-winner',st:5,opp:'NFO (A)',fdr:3,last:7,x:36,y:53,xi:true},
+  {n:'Rice',pos:'CDM',club:'ARS',c1:'#EF0107',c2:'#ffffff',role:'Box-to-box',st:4,opp:'MCI (H)',fdr:4,last:5,x:64,y:53,xi:true},
+  {n:'Rogers',pos:'LW',club:'AVL',c1:'#670E36',c2:'#95BFE5',role:'Inside forward',st:3,opp:'BRE (H)',fdr:2,last:3,x:14,y:32,xi:true},
+  {n:'Palmer',pos:'CAM',club:'CHE',c1:'#034694',c2:'#ffffff',role:'Playmaker',st:5,opp:'NFO (A)',fdr:3,last:15,x:50,y:35,xi:true},
+  {n:'Saka',pos:'RW',club:'ARS',c1:'#EF0107',c2:'#ffffff',role:'Inside forward',st:4,opp:'MCI (H)',fdr:4,last:8,x:86,y:32,xi:true},
+  {n:'Haaland',pos:'ST',club:'MCI',c1:'#6CABDD',c2:'#1c2c5b',role:'Poacher',st:5,opp:'ARS (A)',fdr:5,last:13,x:50,y:12,xi:true},
+  {n:'Henderson',pos:'GK',club:'CRY',c1:'#1B458F',c2:'#C4122E',role:'Bench',st:3,opp:'LIV (H)',fdr:4,last:2,xi:false},
+  {n:'Murillo',pos:'CB',club:'NFO',c1:'#DD0000',c2:'#ffffff',role:'Bench',st:4,opp:'CHE (H)',fdr:4,last:1,xi:false},
+  {n:'Mbeumo',pos:'RW',club:'MUN',c1:'#DA291C',c2:'#ffffff',role:'Bench',st:4,opp:'SUN (A)',fdr:2,last:9,xi:false},
+  {n:'Watkins',pos:'ST',club:'AVL',c1:'#670E36',c2:'#95BFE5',role:'Bench',st:4,opp:'BRE (H)',fdr:2,last:4,xi:false}
+];
+const FDR_INK = [null,'#3ddc84','#a6e36d','#d6dcd8','#ff9a6b','#ff5a6e'];
+class Component extends DCLogic {
+  renderVals() {
+    const squad = SQUAD.map((p) => ({
+      ...p,
+      stars: '★★★★★'.slice(0, p.st) + '☆☆☆☆☆'.slice(0, 5 - p.st),
+      fdrInk: FDR_INK[p.fdr],
+      dim: p.xi ? '1' : '0.6'
+    }));
+    return { accent: this.props.accent ?? '#3ddc84', squad, xi: squad.filter((p) => p.xi) };
+  }
+}
+</script>
+</body>
+</html>

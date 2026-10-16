@@ -5,6 +5,8 @@ are **background, never the product.** A screen in here is not a feature request
 The product is whatever `SPEC.md` says, and this folder only helps put a look
 into words ("denser, like CM's squad list", "cards like FM's portal").
 
+**Contents:** [`fm26/`: Football Manager 26 (released Nov 2025)](#fm26-football-manager-26-released-nov-2025) · [`cm/`: classic Championship Manager](#cm-classic-championship-manager) · [Patterns across them](#patterns-across-them) · [`fpl/`: Fantasy Premier League (classic game)](#fpl-fantasy-premier-league-classic-game) · [`fpl-draft/`: FPL Draft (draft.premierleague.com)](#fpl-draft-fpl-draft-draftpremierleaguecom) · [`sleeper/`: Sleeper (NFL-first; also runs EPL "Sleeper FC" leagues)](#sleeper-sleeper-nfl-first-also-runs-epl-sleeper-fc-leagues) · [What FPL does for a fantasy game](#what-fpl-does-for-a-fantasy-game) · [What Sleeper does differently](#what-sleeper-does-differently)
+
 The look we've decided on is *modern, with Championship Manager as a homage*. So
 there are two sets for the look: modern Football Manager (`fm26/`) and classic
 Championship Manager (`cm/`). Three more sets show how fantasy games present

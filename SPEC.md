@@ -1,6 +1,6 @@
 # SPEC
 
-Craig's answers from the first `/grill` (16 Oct 2026), and nothing else. A feature's detail is
+Craig's answers from his `/grill` sessions (from 16 Oct 2026), and nothing else. A feature's detail is
 settled by its own `/grill` before it is built, and lands here.
 
 ## What it is
@@ -12,8 +12,9 @@ it is the first thing cut if scope has to shrink. Web first, free for now, and a
 which Craig sets the leagues up; long term, anyone can. Live by August 2027 would be nice, but
 it can go live at any time. The Tim Hortons Pro League is the first league on it. A goal: a mini
 beta over the last three or four weeks of the 2026/27 season, to iron out kinks: a quick league
-of about four, with players assigned to teams rather than drafted, for the basics. Features 1–7
-and 10 work by then.
+of about four, with players assigned to teams rather than drafted, for the basics. By then:
+features 1, 2, 3, 5, 6, 7, 10, 12, 14 and 16, and the admin tool that assigns players to teams
+(15). The draft (4) waits for the summer.
 
 ## Features
 
@@ -52,7 +53,7 @@ Features 13–15 get their file from their own `/grill`.
 - **The salary cap**, the first thing cut if scope must shrink.
 - **The market**, its own feature with its own `/grill` when the salary cap comes in. Craig's
   ideas so far, not decisions: free agents take a signing-on fee and higher wages, waivers take a
-  fee, trades can involve money, and the market could take a more footballing shape, like a
+  fee, trades can involve money, and the market could take a more footballing form, like a
   transfer market. Auction drafts and bidding waivers go with it.
 - **Payments**, its own feature.
 - **Other leagues**: Scotland and the rest of Europe. None has a free public feed like the
@@ -61,18 +62,19 @@ Features 13–15 get their file from their own `/grill`.
 - **Licensed data**: before signups open to anyone, check FPL's and the Premier League's terms,
   and switch to a licensed feed if they don't allow a public product.
 - **Traits** (what a player does in real life), if a source for them turns up.
+- **A landing page** for the public, when signups open to anyone; its own `/grill` then.
 
 ## Out of scope
 
 - The paper, cups and player intel from the companion. It is a new product, not a companion app.
 - Chat. Managers talk elsewhere.
 - Push notifications and native apps.
-- Payments, for now.
 - Storylines (morale, contracts, conduct).
 - Two roles per player (in and out of possession, as in FM26).
 - A role penalty for playing out of position.
 - Injured reserve.
 - A limit on auto-subs, or a switch to turn them off.
+- Public league pages: no league is visible without signing in.
 - A lock at each player's kickoff: there is one deadline per gameweek.
 
 ## Glossary
@@ -88,6 +90,13 @@ Features 13–15 get their file from their own `/grill`.
 | area | a band of the pitch a formation is built from: goalkeeper, defence, defensive midfield, midfield, attacking midfield, attack | line |
 | lane | one of five columns across an area: left, left-centre, centre, right-centre, right | |
 | deadline | the one moment each gameweek that locks every lineup | lock time |
+| formation | how a lineup stands on the pitch's grid, preset or placed freely | shape |
+| preset | a ready-made formation, such as 4-2-3-1 | |
+| lineup | a team's starters and bench for one gameweek | |
+| squad | every player a team owns | |
+| starter | a player in the lineup's eleven | |
+| bench | the lineup's players who don't start, in the order auto-subs use | subs |
+| gameweek | one round of Premier League fixtures, as FPL numbers them | period |
 | best match | in a double gameweek, only his higher-scoring match counts | best ball |
 | auto team | the app setting an absent manager's lineup | |
 | super sub | a bench player who scores extra if he comes on in the real match | |

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My team — Terminal</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000000}
+a{color:#ffb000}a:hover{color:#ffd480}
+</style>
+</helmet>
+<div style="min-height: 980px; background: #000000; color: {{amber}}; font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.45;">
+
+  <div style="background: {{amber}}; color: #000000; padding: 3px 12px; display: flex; flex-wrap: wrap; gap: 24px; font-weight: 700; white-space: nowrap; overflow: hidden;">
+    <span>DRAFT MANAGER</span>
+    <span>THPL GW09</span>
+    <span>LOCK SAT 11:00 · T-1D17H22M</span>
+    <span>WAIVERS FRI 09:00</span>
+    <span>SAKA KNOCK 75%</span>
+    <span>OFFER RCVD: ROVERS XI</span>
+  </div>
+
+  <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 6px 12px; border-bottom: 1px solid #5c4000;">
+    <a href="#" style="text-decoration: none; padding: 2px 8px;">F1 HOME</a>
+    <a href="#" style="text-decoration: none; padding: 2px 8px; background: {{amber}}; color: #000000; font-weight: 700;">F2 TEAM</a>
+    <a href="#" style="text-decoration: none; padding: 2px 8px;">F3 MATCH</a>
+    <a href="#" style="text-decoration: none; padding: 2px 8px;">F4 TABLE</a>
+    <a href="#" style="text-decoration: none; padding: 2px 8px;">F5 PLAYERS</a>
+    <a href="#" style="text-decoration: none; padding: 2px 8px;">F6 TRADES</a>
+    <span style="flex-grow: 1;"></span>
+    <span style="color: #b07a00;">16 OCT 2026 14:38 BST</span>
+  </nav>
+
+  <main style="padding: 12px; display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+      <section aria-label="Summary" style="flex: 1 1 260px; border: 1px solid #5c4000;">
+        <div style="background: #2a1d00; padding: 2px 8px; font-weight: 700;">CRAIG'S XI  &lt;TEAM&gt;</div>
+        <div style="padding: 8px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 16px; font-variant-numeric: tabular-nums;">
+          <span style="color: #b07a00;">SEASON PTS</span><span style="text-align: right; color: #ffffff;">812</span>
+          <span style="color: #b07a00;">POSITION</span><span style="text-align: right; color: #ffffff;">3 / 10</span>
+          <span style="color: #b07a00;">RECORD</span><span style="text-align: right; color: #ffffff;">W5 D1 L2</span>
+          <span style="color: #b07a00;">LAST GW</span><span style="text-align: right; color: #ffffff;">86</span>
+          <span style="color: #b07a00;">NEXT</span><span style="text-align: right; color: #ffffff;">ROVERS XI (6)</span>
+          <span style="color: #b07a00;">FORMATION</span><span style="text-align: right; color: #ffffff;">4-2-3-1</span>
+        </div>
+      </section>
+
+      <section aria-label="Formation" style="flex: 3 1 640px; min-width: 0; border: 1px solid #5c4000;">
+        <div style="background: #2a1d00; padding: 2px 8px; font-weight: 700; display: flex; gap: 16px;"><span>SHAPE  &lt;4-2-3-1&gt;</span><span style="flex-grow: 1;"></span><span style="color: #b07a00;">ROLE · FIT · NEXT</span></div>
+        <div style="padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+          <sc-for list="{{lines}}" as="line" hint-placeholder-count="5">
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+              <sc-for list="{{line.players}}" as="p" hint-placeholder-count="3">
+                <div style="border: 1px solid {{amber}}; padding: 4px 8px; min-width: 150px; flex: 0 1 180px;">
+                  <div style="display: flex; justify-content: space-between;"><span style="color: #ffffff; font-weight: 700;">{{p.pos}} {{p.upper}}</span><span>{{p.last}}</span></div>
+                  <div style="color: {{cyan}};">{{p.roleCode}} {{p.fit}}</div>
+                  <div style="color: {{p.fdrInk}};">{{p.opp}}</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </div>
+
+    <section aria-label="Squad" style="border: 1px solid #5c4000;">
+      <div style="background: #2a1d00; padding: 2px 8px; font-weight: 700;">SQUAD  &lt;15&gt;  SORT: POS</div>
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; white-space: nowrap;">
+          <thead>
+            <tr style="color: #b07a00; text-align: right;">
+              <th style="padding: 3px 8px; text-align: left;">#</th><th style="padding: 3px 8px; text-align: left;">POS</th><th style="padding: 3px 8px; text-align: left;">PLAYER</th><th style="padding: 3px 8px; text-align: left;">CLB</th><th style="padding: 3px 8px; text-align: left;">ROLE</th><th style="padding: 3px 8px; text-align: left;">FIT</th><th style="padding: 3px 8px; text-align: left;">NEXT</th><th style="padding: 3px 8px;">MIN</th><th style="padding: 3px 8px;">G</th><th style="padding: 3px 8px;">A</th><th style="padding: 3px 8px;">CS</th><th style="padding: 3px 8px;">KP</th><th style="padding: 3px 8px;">DEF</th><th style="padding: 3px 8px;">LAST</th><th style="padding: 3px 8px;">FORM</th><th style="padding: 3px 8px;">PTS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <sc-for list="{{squad}}" as="p" hint-placeholder-count="15">
+              <tr style="text-align: right; background: {{p.rowBg}}; color: {{p.rowInk}};">
+                <td style="padding: 2px 8px; text-align: left; color: #b07a00;">{{p.idx}}</td>
+                <td style="padding: 2px 8px; text-align: left;">{{p.pos}}</td>
+                <td style="padding: 2px 8px; text-align: left; color: #ffffff;">{{p.upper}}</td>
+                <td style="padding: 2px 8px; text-align: left;">{{p.club}}</td>
+                <td style="padding: 2px 8px; text-align: left; color: {{cyan}};">{{p.roleCode}}</td>
+                <td style="padding: 2px 8px; text-align: left;">{{p.fit}}</td>
+                <td style="padding: 2px 8px; text-align: left; color: {{p.fdrInk}};">{{p.opp}}</td>
+                <td style="padding: 2px 8px;">{{p.min}}</td>
+                <td style="padding: 2px 8px;">{{p.g}}</td>
+                <td style="padding: 2px 8px;">{{p.a}}</td>
+                <td style="padding: 2px 8px;">{{p.cs}}</td>
+                <td style="padding: 2px 8px;">{{p.kp}}</td>
+                <td style="padding: 2px 8px;">{{p.def}}</td>
+                <td style="padding: 2px 8px; color: #ffffff;">{{p.last}}</td>
+                <td style="padding: 2px 8px;">{{p.form}}</td>
+                <td style="padding: 2px 8px; color: #ffffff; font-weight: 700;">{{p.season}}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <label style="display: flex; align-items: center; gap: 8px; border: 1px solid #5c4000; padding: 6px 8px;">
+      <span style="font-weight: 700;">&gt;</span>
+      <input type="text" value="SWAP MBEUMO SAKA" aria-label="Command" style="flex-grow: 1; background: transparent; border: 0; color: #ffffff; font: inherit; outline: none;">
+      <span style="color: #b07a00;">ENTER to run · ? for help</span>
+    </label>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"amber":{"editor":"color","default":"#ffb000","options":["#ffb000","#33ff66","#e8e8e8"]},"cyan":{"editor":"color","default":"#4fd1ff"},"$preview":{"width":1440,"height":980}}'>
+const SQUAD = [
+  {n:'Pickford',pos:'GK',club:'EVE',role:'SHOT-STOPPER',st:4,opp:'BOU (H)',fdr:2,last:6,form:'5.2',season:58,min:720,g:0,a:0,cs:3,kp:0,def:31,line:4,xi:true},
+  {n:'Gvardiol',pos:'LB',club:'MCI',role:'DEF FULL-BACK',st:3,opp:'ARS (A)',fdr:5,last:2,form:'4.1',season:47,min:651,g:1,a:0,cs:2,kp:4,def:58,line:3,xi:true},
+  {n:'Gabriel',pos:'CB',club:'ARS',role:'STOPPER',st:5,opp:'MCI (H)',fdr:4,last:9,form:'6.8',season:71,min:720,g:2,a:0,cs:4,kp:2,def:77,line:3,xi:true},
+  {n:'Van Dijk',pos:'CB',club:'LIV',role:'BALL-PLAYING CB',st:4,opp:'CRY (A)',fdr:2,last:6,form:'5.0',season:55,min:720,g:1,a:0,cs:2,kp:3,def:69,line:3,xi:true},
+  {n:'Porro',pos:'RB',club:'TOT',role:'ATT FULL-BACK',st:5,opp:'WHU (H)',fdr:2,last:12,form:'7.4',season:76,min:702,g:1,a:4,cs:2,kp:19,def:44,line:3,xi:true},
+  {n:'Caicedo',pos:'CDM',club:'CHE',role:'BALL-WINNER',st:5,opp:'NFO (A)',fdr:3,last:7,form:'5.9',season:62,min:715,g:0,a:1,cs:3,kp:6,def:92,line:2,xi:true},
+  {n:'Rice',pos:'CDM',club:'ARS',role:'BOX-TO-BOX',st:4,opp:'MCI (H)',fdr:4,last:5,form:'5.5',season:60,min:690,g:2,a:2,cs:4,kp:14,def:51,line:2,xi:true},
+  {n:'Rogers',pos:'LW',club:'AVL',role:'INSIDE FWD',st:3,opp:'BRE (H)',fdr:2,last:3,form:'4.6',season:49,min:604,g:2,a:2,cs:1,kp:12,def:18,line:1,xi:true},
+  {n:'Palmer',pos:'CAM',club:'CHE',role:'PLAYMAKER',st:5,opp:'NFO (A)',fdr:3,last:15,form:'8.1',season:88,min:688,g:5,a:4,cs:3,kp:27,def:12,line:1,xi:true},
+  {n:'Saka',pos:'RW',club:'ARS',role:'INSIDE FWD',st:4,opp:'MCI (H)',fdr:4,last:8,form:'6.6',season:70,min:640,g:4,a:3,cs:4,kp:21,def:15,line:1,xi:true},
+  {n:'Haaland',pos:'ST',club:'MCI',role:'POACHER',st:5,opp:'ARS (A)',fdr:5,last:13,form:'9.0',season:97,min:701,g:10,a:1,cs:2,kp:5,def:6,line:0,xi:true},
+  {n:'Henderson',pos:'GK',club:'CRY',role:'BENCH',st:3,opp:'LIV (H)',fdr:4,last:2,form:'3.8',season:31,min:450,g:0,a:0,cs:1,kp:0,def:22,xi:false},
+  {n:'Murillo',pos:'CB',club:'NFO',role:'BENCH',st:4,opp:'CHE (H)',fdr:4,last:1,form:'4.0',season:40,min:610,g:0,a:0,cs:2,kp:1,def:63,xi:false},
+  {n:'Mbeumo',pos:'RW',club:'MUN',role:'BENCH',st:4,opp:'SUN (A)',fdr:2,last:9,form:'6.0',season:66,min:670,g:5,a:2,cs:2,kp:16,def:11,xi:false},
+  {n:'Watkins',pos:'ST',club:'AVL',role:'BENCH',st:4,opp:'BRE (H)',fdr:2,last:4,form:'5.1',season:52,min:612,g:4,a:1,cs:1,kp:7,def:8,xi:false}
+];
+const FDR_INK = [null,'#33ff66','#9cff57','#e8e8e8','#ff8c42','#ff4d4d'];
+class Component extends DCLogic {
+  renderVals() {
+    const squad = SQUAD.map((p, i) => ({
+      ...p,
+      idx: String(i + 1).padStart(2, '0'),
+      upper: p.n.toUpperCase(),
+      roleCode: p.role,
+      fit: '■'.repeat(p.st) + '□'.repeat(5 - p.st),
+      fdrInk: FDR_INK[p.fdr],
+      rowBg: p.xi ? (i % 2 ? '#0d0900' : '#000000') : '#000000',
+      rowInk: p.xi ? (this.props.amber ?? '#ffb000') : '#8a6000'
+    }));
+    const lines = [0, 1, 2, 3, 4].map((l) => ({ players: squad.filter((p) => p.xi && p.line === l) }));
+    return { amber: this.props.amber ?? '#ffb000', cyan: this.props.cyan ?? '#4fd1ff', squad, lines };
+  }
+}
+</script>
+</body>
+</html>

@@ -7,7 +7,8 @@ letters, newest first. It reports; it never advises.
 
 - Its own screen, and also down the side of My team.
 - An unread count in the menu.
-- It files: the next deadline; your results; injury doubts, yours and your next opponent's;
+- It files: the next deadline; your results; injury doubts, yours and your next opponent's (from FPL's player news and
+  chance of playing);
   every claim, drop and trade in the league; trade offers to and from you; waiver results;
   draft-day letters (on the clock, pick made).
 - Real-life news, once there is a source for it.

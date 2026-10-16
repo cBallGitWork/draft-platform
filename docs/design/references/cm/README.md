@@ -1,10 +1,14 @@
 # Championship Manager — the reference library
 
+*Copied from epl-draft (16 Oct 2026); the paths it names (`docs/rules/…`, `docs/record/…`) are that repo's.*
+
 **This folder is the work base.** `docs/rules/DESIGN.md` §2 and the 29 Aug handover both say
 the CM reference was "studied from the game's own screenshots… not from memory of
 it" — and then nobody committed the screenshots. Every session since has been
 building from a prose summary of pixels it could not see, which is how a bevel
 gets bolted to a modern layout and the result "looks nothing like CM".
+
+**Contents:** [Measured geometry](#measured-geometry) · [Measured palette](#measured-palette) · [Three corrections to `docs/record/HANDOVER.md` §3](#three-corrections-to-docsrecordhandovermd-3) · [Two things CM did that we deliberately will not](#two-things-cm-did-that-we-deliberately-will-not) · [What the screenshots settle about structure](#what-the-screenshots-settle-about-structure) · [Index](#index) · [The screens, catalogued — 31 Aug 2026](#the-screens-catalogued--31-aug-2026) · [The rail is master buttons plus context buttons](#the-rail-is-master-buttons-plus-context-buttons) · [The title bar has two treatments](#the-title-bar-has-two-treatments) · [Both galleries are exhausted, and a second source exists](#both-galleries-are-exhausted-and-a-second-source-exists)
 
 **No CM claim in a commit message, a doc or a code comment may cite memory. It
 cites a numbered shot in here.**

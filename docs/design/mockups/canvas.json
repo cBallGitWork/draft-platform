@@ -1,0 +1,28 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-10-16T18:00:00Z"},
+  "title": "Draft Manager — My Team directions",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 980, "title": "A · CM revival", "expand": "fill"},
+    "Broadcast.dc.html": {"x": 1520, "y": 0, "w": 1440, "h": 980, "title": "B · Broadcast (FM26 family)", "expand": "fill"},
+    "Floodlit.dc.html": {"x": 3040, "y": 0, "w": 1440, "h": 980, "title": "C · Floodlit", "expand": "fill"},
+    "Terminal.dc.html": {"x": 0, "y": 1100, "w": 1440, "h": 980, "title": "D · Terminal", "expand": "fill"},
+    "KitRoom.dc.html": {"x": 1520, "y": 1100, "w": 1440, "h": 980, "title": "E · Kit room", "expand": "fill"},
+    "Elite.dc.html": {"x": 3040, "y": 1100, "w": 1440, "h": 980, "title": "F · Elite broadcast (Sky TV style)", "expand": "fill"},
+    "Plate.dc.html": {"x": 0, "y": 2500, "w": 1440, "h": 980, "title": "R2·1 · Plate", "expand": "fill"},
+    "Dugout.dc.html": {"x": 1520, "y": 2500, "w": 1440, "h": 980, "title": "R2·2 · Dugout", "expand": "fill"},
+    "TeamSheet.dc.html": {"x": 3040, "y": 2500, "w": 1440, "h": 980, "title": "R2·3 · Team Sheet", "expand": "fill"},
+    "PlateOne.dc.html": {"x": 0, "y": 3900, "w": 1440, "h": 980, "title": "R3·1 · Plate, chosen: Mail beside, CM 99/00 blue", "expand": "fill", "is_interactive": true},
+    "PlateTwo.dc.html": {"x": 1520, "y": 3900, "w": 1440, "h": 980, "title": "R3·2 · Plate: with Mail, CM 01/02 night", "expand": "fill", "is_interactive": true},
+    "PlateThree.dc.html": {"x": 3040, "y": 3900, "w": 1440, "h": 1400, "title": "R3·3 · Plate: pitch first, modern ink", "expand": "fill", "is_interactive": true}
+  },
+  "order": ["Main.dc.html", "Broadcast.dc.html", "Floodlit.dc.html", "Terminal.dc.html", "KitRoom.dc.html", "Elite.dc.html", "Plate.dc.html", "Dugout.dc.html", "TeamSheet.dc.html", "PlateOne.dc.html", "PlateTwo.dc.html", "PlateThree.dc.html"],
+  "notes": {
+    "head": {"x": 0, "y": -300, "text": "Draft Manager · My team — six directions, same data", "kind": "title1", "maxW": 4480},
+    "round2": {"x": 0, "y": 2200, "text": "Round 2 — the designer's three, from your verdicts", "kind": "title1", "maxW": 4480},
+    "round3": {"x": 0, "y": 3600, "text": "Round 3 — Plate, three ways (open Tweaks on any to mix)", "kind": "title1", "maxW": 4480}
+  },
+  "designSystems": []
+}

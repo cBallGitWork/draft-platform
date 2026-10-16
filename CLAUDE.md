@@ -5,13 +5,13 @@ Our league moves to it from Fantrax; the companion app lives in `cBallGitWork/ep
 
 ## The product is SPEC.md
 
-- `SPEC.md` holds only Craig's answers. A feature marked `to grill`, or any detail it doesn't settle, gets a `/grill` before it is built.
-- Don't assume features. Generic fantasy-app research is background, never the product.
-- Storylines (morale, contracts, conduct) are off for now.
+- `SPEC.md` is the index and `spec/NN-*.md` each feature; both hold only Craig's answers. A feature marked `to grill`, or any detail it doesn't settle, gets a `/grill` before it is built.
+- The build queue is the GitHub issues each grill ends in (`/grill` step 6).
+- Don't assume features. Generic fantasy-app research is background, never the product (`docs/research/`).
 
 ## Decided
 
-- Opus plans and builds. Only a reviewer runs on a different model.
+- Opus plans and builds. The reviewer runs on a different model from the builder.
 - The look is modern, with Championship Manager as a homage, not the rulebook.
 - FPL's rules are fixed, so they can be constants. The league's rules are data, never hardcoded.
 - Persist FPL's season-stable `code`, never the per-season `id`.
@@ -23,7 +23,7 @@ Our league moves to it from Fantrax; the companion app lives in `cBallGitWork/ep
 
 - Never commit on `main`. One branch and one PR per task, squash-merged.
 - Stage named paths; never stage everything.
+- Both are enforced by `.claude/hooks/guard_bash.py`; `.claude/hooks/test.sh` checks every hook.
 - Before a pull request opens, run the `pr-reviewer` agent on the branch and paste its verdict into the template.
 - A doc over 100 lines opens with a contents list.
-- Both are enforced by `.claude/hooks/guard_bash.py`; `.claude/hooks/test.sh` checks every hook.
-- Add a rule here only after Claude gets something wrong, and add a hook rather than a rule where possible. `/retro` before clearing the chat finds those moments.
+- Add a rule here only after Claude gets something wrong, and add a hook rather than a rule where possible. `/retro` before clearing the chat finds those moments; `/wait-what` re-says a reply that didn't land.
