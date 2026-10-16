@@ -19,7 +19,7 @@ values are Claude's, from the designer's round-2 brief and the reviewer's pass o
 | figure | `#ffe600` | a number that is a figure: points, form, stars. Never a button or tab |
 | derived reading | `#6bfdfa` | something worked out: a countdown, a formation's preset name |
 | event | `#ff9b3d` | something that happened or needs you: a doubt, unread mail |
-| muted / unavailable | `#9aa4b8` | secondary labels, subs, read mail |
+| muted / unavailable | `#9aa4b8` | secondary labels, the bench, read mail |
 | role text | `#c9d1ff` | the role under a name on the pitch |
 | pitch | stripes `#2f8535` / `#276f2c`, lines 2px `#e6f2e6` | |
 | action | fill `#ffffff`, ink `#0a1240`, bevel `#b9bcc4` | Continue; hover `#c9d1ff`, pressed `#b9bcc4` (bevel flipped); `#ff9b3d` (hover `#ffb36b`, pressed `#e07f1f`) when the deadline is near; with nothing to do, no fill, 1px `#9aa4b8` border, "Nothing needs you" |
@@ -28,7 +28,8 @@ values are Claude's, from the designer's round-2 brief and the reviewer's pass o
 | focus | 2px outline `#6bfdfa`, offset 2px | every control |
 | link | `#ffffff`, 1px underline; hover underline `#6bfdfa` | |
 
-**Fixture difficulty** fills the whole cell, CM style, with no digit (Craig). The fills fall in
+**Fixture difficulty** fills the whole cell, CM style, with no digit (Craig), so colour carries it on screen by choice; the labels below carry it for
+screen readers. The fills fall in
 lightness from easiest to hardest, so the order survives red-green colour blindness:
 1 `#57e08a` ink `#04130a` · 2 `#93b83a` ink `#0c1a06` · 3 `#8a90a0` ink `#0a1240` ·
 4 `#c9304f` ink `#ffffff` · 5 `#8c1236` ink `#ffffff`. Each cell carries `title` and `aria-label`
@@ -37,7 +38,7 @@ hard), a five-step legend sits above the table, and rows keep a 1px `#0a1240` ga
 
 The pairs the reviewer computed meet WCAG 2.1 AA (muted on panel 5.1:1, every difficulty ink on
 its fill 5.2:1 or better, the unread badge 8.5:1); check any new pair before using it. Cyan never
-sits straight on the pitch: it fails there (4.35:1).
+sits straight on the pitch: it fails there (3.77:1 on the light stripe).
 
 ## Type
 
@@ -59,7 +60,7 @@ on the desk. Figures use tabular numerals.
   labelled "Role fit 4 of 5".
 - **A doubt**: an orange square with a bar, on the name plate and the squad row, labelled "Doubt".
 - **Unread**: a 3px orange bar down the letter's left edge, and "Unread" for screen readers.
-- **Subs**: their own "Subs" plate in the table, below the eleven.
+- **The bench**: its own "Bench" plate in the table, below the eleven.
 
 ## Never
 

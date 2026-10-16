@@ -28,7 +28,7 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
 - A real pitch with shirts. The shirts are our own, drawn in club colours (not FPL's kit images),
   with the player's squad number on the shirt.
 - The number leads; a verdict sits beside it only where there is a real one (role stars, fixture
-  difficulty). (Craig left this to Claude.)
+  difficulty, shown as a coloured cell). (Craig left this to Claude.)
 - Not liked, so not used: no pitch view (Terminal, Kit room), a terminal look, the first broadcast
   look's generic-AI tells, a strip of position slots, and the pitch-first layout.
 
