@@ -31,7 +31,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 8 | [Between gameweeks](spec/08-between-gameweeks.md) | not built | waiver claims resolve in priority order before free agency opens |
 | 9 | [Season admin](spec/09-season-admin.md) | not built | an illegal lineup at lock is fixed by the auto team |
 | 10 | [Live matchday](spec/10-live-matchday.md) | not built | points move during a match and are marked provisional until it is final |
-| 11 | [Email](spec/11-email.md) | not built | the manager on the clock gets one email per pick |
+| 11 | [Email](spec/11-email.md) | not built | on a pick clock over 10 minutes the manager on the clock gets one email; under it, none |
 | 12 | Screens | to grill | — |
 | 13 | Setting up a league | to grill | — |
 | 14 | Scoring categories | to grill | — |
