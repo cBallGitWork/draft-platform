@@ -35,7 +35,8 @@ file the task already touches.
 6. **Right home, nothing hardcoded:** no bare number or string that means something in a
    function body; each goes to its shared file, one home for each kind of thing. FPL's fixed
    rules are constants; a league's rules are data, never a constant; the feeds' endpoints sit
-   behind the football layer's one seam (`ARCHITECTURE.md`). Setup a test repeats goes in a shared helper, not the test body.
+   behind the football layer's one seam (`ARCHITECTURE.md`). Setup a test repeats goes in a
+   shared helper, not the test body.
 
 Report every finding from each pass with its file and line, including the ones you chose not to
 act on. A pass that finds nothing is a valid result; never invent changes to look busy. A green
