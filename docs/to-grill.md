@@ -1,6 +1,6 @@
 # To grill
 
-**Contents:** [Picked by Craig](#picked-by-craig) · [Suggested, not yet picked](#suggested-not-yet-picked) · [Smaller pages, from Fantrax](#smaller-pages-from-fantrax) · [Words to settle](#words-to-settle) · [Keeping this list](#keeping-this-list)
+**Contents:** [Picked by Craig](#picked-by-craig) · [Suggested, not yet picked](#suggested-not-yet-picked) · [Smaller pages, from Fantrax](#smaller-pages-from-fantrax) · [Keeping this list](#keeping-this-list)
 
 Things Craig wants, or might, that no `/grill` has settled yet (from 16 Oct 2026). None of it is
 the product until a grill puts it in [SPEC.md](../SPEC.md); then its line here goes. A suggestion
@@ -34,12 +34,7 @@ Each with the questions its grill starts from. The questions are Claude's.
 - A team's own logo: nothing covers one. Uploading it means storing files, a stack question for
   `ARCHITECTURE.md`.
 
-**The real league**: its own section.
-- The Premier League's table, fixtures and results, clubs (squad, who owns whom in your league,
-  set-piece takers, doubts) and the gameweek (deadline, double and blank gameweeks). One match's
-  own page is `spec/10`'s.
-- Built so another competition can plug in (SPEC, *Later*).
-- `spec/12`'s "table and fixtures" may mean the fantasy league's: settle which.
+**Premier League club pages**: `spec/18`, *Later*.
 
 ## Suggested, not yet picked
 
@@ -80,11 +75,6 @@ be tabs on screens `spec/12` already lists rather than pages of their own.
 | Commissioner fixes | Block one team from trading or claiming; adjust the standings |
 | Polls | A league vote on a rule change. Check it isn't the chat that's out of scope |
 | Help | How the game works, for a new manager |
-
-## Words to settle
-
-- **League** means two things: a fantasy league and the Premier League. Suggested: *competition*
-  for the real one (epl-draft's `packages/core` already uses it).
 
 ## Keeping this list
 

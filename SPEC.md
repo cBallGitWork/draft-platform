@@ -13,7 +13,7 @@ which Craig sets the leagues up; long term, anyone can. Live by August 2027 woul
 it can go live at any time. The Tim Hortons Pro League is the first league on it. A goal: a mini
 beta over the last three or four weeks of the 2026/27 season, to iron out kinks: a quick league
 of about four, with players assigned to teams rather than drafted, for the basics. By then:
-features 1, 2, 3, 5, 6, 7, 10, 12, 14 and 16, and the mini beta's admin tools
+features 1, 2, 3, 5, 6, 7, 10, 12, 14, 16 and 18, and the mini beta's admin tools
 (15: creating a league, inviting managers, assigning players, a score override, positions, the
 feeds page). Live commentary and the match page (10) are in it if the live stream is proven,
 and among the first things dropped if late. The draft (4) waits for the summer.
@@ -41,6 +41,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 15 | [Admin tools](spec/15-admin-tools.md) | not built | a commissioner's assignment puts the player on the team and files a Mail letter to the league |
 | 16 | [Mail](spec/16-mail.md) | not built | a claim, a drop and a trade each file one letter for every manager in the league |
 | 17 | [Captain and set pieces](spec/17-captain-and-set-pieces.md) | after the mini beta | the first on a set-piece list who plays is paid for the duty for the whole match, and no one else on the list is |
+| 18 | [Premier League](spec/18-premier-league.md) | not built | a goal in a live match moves the Premier League table at once, marked provisional |
 
 Feature 13 gets its file from its own `/grill`.
 
@@ -108,6 +109,8 @@ Feature 13 gets its file from its own `/grill`.
 | squad | every player a team owns | |
 | starter | a player in the lineup's eleven | |
 | bench | the lineup's players who don't start, in the order auto-subs use | subs |
+| draft league | a league on the platform, such as the Tim Hortons Pro League; on screen, "draft league" wherever the Premier League could be meant. "League" alone in the spec means one | fantasy league |
+| Premier League | the real competition, and the menu section of that name | league (alone) |
 | match | a real Premier League match | |
 | matchup | a head-to-head between two teams in one gameweek | match |
 | commentary | the short lines that report a match or a matchup as it is played | feed (that is the data source) |

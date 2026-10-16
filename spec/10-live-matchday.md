@@ -20,7 +20,7 @@ commentary` (16 Oct 2026).
   (shots, shots on target, possession, corners, cards), and commentary for every event in it.
 - Every player owned in the league shows his team and his live points.
 - From the lineups, about an hour before kickoff, to full time; kept afterwards.
-- Opened from a player's status on the matchup, and from the gameweek's fixtures.
+- Opened from a player's status on the matchup, and from the Premier League's fixtures (`spec/18`).
 
 ## The commentary
 
