@@ -28,13 +28,14 @@ file the task already touches.
    for its action and its outcome, and checks what its name says.
 4. **Debloat:** comments that restate the code, the same explanation in two places, anything not
    carrying its weight. A first draft usually cuts to a third or a half.
-5. **Rule of 2/3:** a value (a number, a string, a path, a URL) written twice is lifted; logic
-   written three times is lifted (`PHILOSOPHY.md`: "the same pattern 3 times"). Two copies of
-   logic stay. An abstraction with one use goes. Code copied from epl-draft stays copied.
-6. **Right home, nothing hardcoded:** no bare number or string in a function body; each goes to
-   its shared file, one home for each kind of thing. FPL's fixed rules are constants; a league's
-   rules are data, never a constant; the feeds' endpoints sit behind the football layer's one seam
-   (`ARCHITECTURE.md`). Setup a test repeats goes in a shared helper, not the test body.
+5. **Rule of 2/3:** a value (a number, a string, a path, a URL) written twice is lifted (Craig's
+   QA-repo practice); logic written three times is lifted, unless it's only similar
+   (`PHILOSOPHY.md`: "the same pattern 3 times"). Two copies of logic stay. An abstraction with
+   one use goes. Code copied from epl-draft stays copied.
+6. **Right home, nothing hardcoded:** no bare number or string that means something in a
+   function body; each goes to its shared file, one home for each kind of thing. FPL's fixed
+   rules are constants; a league's rules are data, never a constant; the feeds' endpoints sit
+   behind the football layer's one seam (`ARCHITECTURE.md`). Setup a test repeats goes in a shared helper, not the test body.
 
 Report every finding from each pass with its file and line, including the ones you chose not to
 act on. A pass that finds nothing is a valid result; never invent changes to look busy. A green
