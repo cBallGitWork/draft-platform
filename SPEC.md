@@ -111,6 +111,7 @@ Feature 13 gets its file from its own `/grill`.
 | match | a real Premier League match | |
 | matchup | a head-to-head between two teams in one gameweek | match |
 | commentary | the short lines that report a match or a matchup as it is played | feed (that is the data source) |
+| vidiprinter | the matchup's running list of commentary, newest first | |
 | gameweek | one round of Premier League fixtures, as FPL numbers them | period |
 | best match | in a double gameweek, only his higher-scoring match counts | best ball |
 | auto team | the app setting an absent manager's lineup | |
