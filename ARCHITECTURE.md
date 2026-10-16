@@ -26,7 +26,8 @@ Supabase was the runner-up.
 
 - Vercel Hobby is for non-commercial use: payments, ads, a donate button or anyone paid to work on
   it means Pro ($20 a month), and arguably so does opening signups to the public.
-- Resend's 100 a day: a busy waiver night across several leagues, or a slow draft's emails,
+- Resend's 100 a day: sign-in links, a busy waiver night across several leagues, or a slow
+  draft's emails,
   means Resend Pro or another sender.
 - Before signups open to anyone, FPL's and the Premier League's terms are checked (SPEC, Later).
 

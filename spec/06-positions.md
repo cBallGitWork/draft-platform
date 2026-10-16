@@ -4,7 +4,7 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers.
 
 - Modern position labels (RB, CB, CDM, CAM, LW, ST and so on), not FPL's four, which can be wrong.
 - Taken from where players actually lined up in real matches (the Premier League's formation
-  lines), not from a scraped site. A new signing with no matches is set by an admin.
+  data), not from a scraped site. A new signing with no matches is set by an admin.
 - A player can have more than one position.
 - Support striker (SS) is a position. Lineups alone can't tell him from a number 10, so an admin
   marks him, as with a new signing.

@@ -52,8 +52,7 @@ one line of meaning, and the words to avoid.
 ## 5. Done is an empty frontier and a yes
 
 Write no code while the frontier has a question on it. When it is empty, ask once: "same page?"
-On yes, write or update the spec. `SPEC.md` at the repo root is the index (a hook looks for it
-there):
+On yes, write or update the spec. `SPEC.md` at the repo root is the index:
 
 - **What it is**, in Craig's words, a paragraph.
 - **Features**, a numbered table, each with a status (`not built` to start), the one place a

@@ -1,6 +1,6 @@
 # SPEC
 
-Craig's answers from the first `/grill` (16 Oct 2026), and nothing else. A feature's detail is
+Craig's answers from his `/grill` sessions (from 16 Oct 2026), and nothing else. A feature's detail is
 settled by its own `/grill` before it is built, and lands here.
 
 ## What it is
@@ -67,7 +67,6 @@ Features 13–15 get their file from their own `/grill`.
 - The paper, cups and player intel from the companion. It is a new product, not a companion app.
 - Chat. Managers talk elsewhere.
 - Push notifications and native apps.
-- Payments, for now.
 - Storylines (morale, contracts, conduct).
 - Two roles per player (in and out of possession, as in FM26).
 - A role penalty for playing out of position.

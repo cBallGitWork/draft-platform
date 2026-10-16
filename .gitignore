@@ -1,5 +1,5 @@
 node_modules/
-.next/
+dist/
 .env*
 .DS_Store
 .claude/settings.local.json

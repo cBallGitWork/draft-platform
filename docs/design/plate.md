@@ -2,7 +2,7 @@
 
 The values behind [spec/12-screens.md](../../spec/12-screens.md). Craig chose the look; the
 values are Claude's, from the designer's round-2 brief and the reviewer's pass on R3·1
-(16 Oct 2026). The reference mock-up is "R3·1 · Plate, chosen" on
+(16 Oct 2026). The reference mock-up is "R3·1 · Plate, chosen" (source: `docs/design/mockups/PlateOne.dc.html`) on
 <https://claude.ai/artifact/Qz9zn3FrMHgPB189UtbjoB>. Every screen is drawn from this file.
 
 ## Colour roles (CM 99/00 blue)

@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My team — Elite broadcast</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:ital,wght@0,600;0,800;1,800;1,900&amp;family=Saira:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#040a1c}
+a{color:#ffffff}a:hover{color:#bfefff}
+</style>
+</helmet>
+<div style="min-height: 980px; background: #040a1c; color: #f3f6ff; font-family: 'Saira', sans-serif; font-size: 14px;">
+
+  <header style="max-width: 1440px; margin: 0 auto; padding: 18px 28px 0; display: flex; flex-wrap: wrap; align-items: stretch; gap: 0;">
+    <div style="background: #f3f6ff; color: #040a1c; padding: 8px 34px 8px 18px; clip-path: polygon(0 0, 100% 0, calc(100% - 18px) 100%, 0 100%); font-family: 'Saira Condensed', sans-serif; font-weight: 900; font-style: italic; font-size: 26px; text-transform: uppercase; display: flex; align-items: center;">Draft Manager</div>
+    <div style="background: {{accent}}; color: #040a1c; padding: 8px 34px 8px 30px; margin-left: -14px; clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%); font-family: 'Saira Condensed', sans-serif; font-weight: 800; font-style: italic; font-size: 20px; text-transform: uppercase; display: flex; align-items: center;">Gameweek 9</div>
+    <div style="background: #ff2f55; color: #ffffff; padding: 8px 30px; margin-left: -14px; clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%); font-family: 'Saira Condensed', sans-serif; font-weight: 800; font-style: italic; font-size: 18px; text-transform: uppercase; display: flex; align-items: center;">Locks Sat 11:00</div>
+    <span style="flex-grow: 1;"></span>
+    <nav aria-label="Main" style="display: flex; flex-wrap: wrap; align-items: center; gap: 22px; font-family: 'Saira Condensed', sans-serif; font-weight: 800; font-style: italic; font-size: 19px; text-transform: uppercase;">
+      <a href="#" style="text-decoration: none; color: #8d9bc4;">Home</a>
+      <a href="#" style="text-decoration: none; color: #ffffff; border-bottom: 3px solid {{accent}};">My team</a>
+      <a href="#" style="text-decoration: none; color: #8d9bc4;">Matchup</a>
+      <a href="#" style="text-decoration: none; color: #8d9bc4;">Table</a>
+      <a href="#" style="text-decoration: none; color: #8d9bc4;">Players</a>
+      <a href="#" style="text-decoration: none; color: #8d9bc4;">Trades</a>
+    </nav>
+  </header>
+
+  <main style="max-width: 1440px; margin: 0 auto; padding: 20px 28px 28px; display: flex; flex-wrap: wrap; gap: 20px;">
+    <section aria-label="Pitch" style="flex: 3 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px;">
+        <h1 style="margin: 0; font-family: 'Saira Condensed', sans-serif; font-weight: 900; font-style: italic; font-size: 54px; line-height: 0.9; text-transform: uppercase;">Craig's XI</h1>
+        <span style="font-family: 'Saira Condensed', sans-serif; font-weight: 800; font-style: italic; font-size: 22px; color: {{accent}};">4-2-3-1</span>
+        <span style="flex-grow: 1;"></span>
+        <span style="color: #8d9bc4;">v Rovers XI · Sat 15:00</span>
+      </div>
+      <div style="position: relative; height: 640px; background: #071433; border: 1px solid #16285a; overflow: hidden;">
+        <div style="position: absolute; inset: 20px; border: 1px solid {{accent}}; opacity: 0.55;"></div>
+        <div style="position: absolute; left: 20px; right: 20px; top: 50%; border-top: 1px solid {{accent}}; opacity: 0.55;"></div>
+        <div style="position: absolute; left: 50%; top: 50%; width: 140px; height: 140px; margin: -70px 0 0 -70px; border: 1px solid {{accent}}; border-radius: 50%; opacity: 0.55;"></div>
+        <div style="position: absolute; left: 26%; right: 26%; top: 20px; height: 96px; border: 1px solid {{accent}}; border-top: 0; opacity: 0.55;"></div>
+        <div style="position: absolute; left: 26%; right: 26%; bottom: 20px; height: 96px; border: 1px solid {{accent}}; border-bottom: 0; opacity: 0.55;"></div>
+        <sc-for list="{{xi}}" as="p" hint-placeholder-count="11">
+          <div style="position: absolute; left: {{p.x}}%; top: {{p.y}}%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; width: 150px;">
+            <svg width="44" height="44" viewBox="0 0 40 40" aria-hidden="true"><path d="M13 4 L7 7 L2 13 L7 18 L10 16 L10 37 L30 37 L30 16 L33 18 L38 13 L33 7 L27 4 Q20 10 13 4 Z" fill="{{p.c1}}" stroke="{{p.c2}}"></path></svg>
+            <div style="display: flex; align-items: stretch; margin-top: -4px;">
+              <span style="background: {{accent}}; color: #040a1c; font-family: 'Saira Condensed', sans-serif; font-weight: 800; font-style: italic; padding: 2px 8px; clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%);">{{p.last}}</span>
+              <span style="background: #f3f6ff; color: #040a1c; font-family: 'Saira Condensed', sans-serif; font-weight: 800; font-style: italic; text-transform: uppercase; padding: 2px 12px 2px 10px; margin-left: -4px; clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); white-space: nowrap;">{{p.n}}</span>
+            </div>
+            <span style="font-size: 11px; color: #bcc7ea; background: rgba(4,10,28,0.85); padding: 1px 6px; white-space: nowrap;">{{p.role}} <span style="color: #ffd34d;">{{p.stars}}</span></span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <aside style="flex: 2 1 400px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+      <div style="background: #0a1a42; border-left: 4px solid {{accent}}; padding: 14px 16px;">
+        <div style="font-family: 'Saira Condensed', sans-serif; font-weight: 800; font-style: italic; text-transform: uppercase; color: {{accent}}; font-size: 15px;">Team instructions</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+          <button type="button" style="font: inherit; font-weight: 600; color: #040a1c; background: #f3f6ff; border: 0; padding: 8px 14px;">High press</button>
+          <button type="button" style="font: inherit; color: #f3f6ff; background: transparent; border: 1px solid #2a3d75; padding: 8px 14px;">Mid block</button>
+          <button type="button" style="font: inherit; color: #f3f6ff; background: transparent; border: 1px solid #2a3d75; padding: 8px 14px;">Low block</button>
+        </div>
+        <div style="color: #bcc7ea; margin-top: 8px; font-size: 13px;">High press: forwards score more for tackles won and interceptions.</div>
+      </div>
+
+      <div style="background: #0a1a42; padding: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <span style="font-family: 'Saira Condensed', sans-serif; font-weight: 800; font-style: italic; text-transform: uppercase; color: {{accent}}; font-size: 15px;">Player spotlight</span>
+          <span style="color: #8d9bc4;">CAM · CHE</span>
+        </div>
+        <div style="font-family: 'Saira Condensed', sans-serif; font-weight: 900; font-style: italic; font-size: 40px; text-transform: uppercase; line-height: 1;">Cole Palmer</div>
+        <div style="color: #bcc7ea;">Playmaker <span style="color: #ffd34d;">★★★★★</span> · next NFO (A)</div>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+          <sc-for list="{{spot}}" as="s" hint-placeholder-count="4">
+            <div style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 44px; gap: 10px; align-items: center;">
+              <span style="color: #bcc7ea; font-size: 13px;">{{s.label}}</span>
+              <div style="height: 10px; background: #16285a;"><div style="height: 10px; width: {{s.pct}}%; background: {{accent}};"></div></div>
+              <span style="text-align: right; font-family: 'Saira Condensed', sans-serif; font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums;">{{s.val}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="background: #0a1a42; padding: 12px 16px; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; white-space: nowrap;">
+          <thead>
+            <tr style="font-family: 'Saira Condensed', sans-serif; font-weight: 800; font-style: italic; text-transform: uppercase; color: #8d9bc4; text-align: left;">
+              <th style="padding: 4px 6px;">Pos</th><th style="padding: 4px 6px;">Player</th><th style="padding: 4px 6px;">Next</th><th style="padding: 4px 6px; text-align: right;">Last</th><th style="padding: 4px 6px; text-align: right;">Season</th>
+            </tr>
+          </thead>
+          <tbody>
+            <sc-for list="{{squad}}" as="p" hint-placeholder-count="15">
+              <tr style="border-top: 1px solid #16285a; color: {{p.ink}};">
+                <td style="padding: 4px 6px; color: #8d9bc4;">{{p.pos}}</td>
+                <td style="padding: 4px 6px; font-weight: 600;">{{p.n}} <span style="color: #8d9bc4; font-weight: 400;">{{p.club}}</span></td>
+                <td style="padding: 4px 6px;"><span style="display: inline-block; width: 8px; height: 8px; background: {{p.fdrBg}}; margin-right: 6px;"></span>{{p.opp}}</td>
+                <td style="padding: 4px 6px; text-align: right;">{{p.last}}</td>
+                <td style="padding: 4px 6px; text-align: right; font-family: 'Saira Condensed', sans-serif; font-weight: 800; font-size: 16px;">{{p.season}}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </aside>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#00d7ff","options":["#00d7ff","#ffd34d","#ff2f55","#7dff9b"]},"$preview":{"width":1440,"height":980}}'>
+const SQUAD = [
+  {n:'Pickford',pos:'GK',club:'EVE',c1:'#274488',c2:'#ffffff',role:'Shot-stopper',st:4,opp:'BOU (H)',fdr:2,last:6,season:58,x:50,y:89,xi:true},
+  {n:'Gvardiol',pos:'LB',club:'MCI',c1:'#6CABDD',c2:'#1c2c5b',role:'Defensive full-back',st:3,opp:'ARS (A)',fdr:5,last:2,season:47,x:14,y:68,xi:true},
+  {n:'Gabriel',pos:'CB',club:'ARS',c1:'#EF0107',c2:'#ffffff',role:'Stopper',st:5,opp:'MCI (H)',fdr:4,last:9,season:71,x:37,y:73,xi:true},
+  {n:'Van Dijk',pos:'CB',club:'LIV',c1:'#C8102E',c2:'#ffffff',role:'Ball-playing CB',st:4,opp:'CRY (A)',fdr:2,last:6,season:55,x:63,y:73,xi:true},
+  {n:'Porro',pos:'RB',club:'TOT',c1:'#ffffff',c2:'#132257',role:'Attacking full-back',st:5,opp:'WHU (H)',fdr:2,last:12,season:76,x:86,y:68,xi:true},
+  {n:'Caicedo',pos:'CDM',club:'CHE',c1:'#034694',c2:'#ffffff',role:'Ball-winner',st:5,opp:'NFO (A)',fdr:3,last:7,season:62,x:36,y:52,xi:true},
+  {n:'Rice',pos:'CDM',club:'ARS',c1:'#EF0107',c2:'#ffffff',role:'Box-to-box',st:4,opp:'MCI (H)',fdr:4,last:5,season:60,x:64,y:52,xi:true},
+  {n:'Rogers',pos:'LW',club:'AVL',c1:'#670E36',c2:'#95BFE5',role:'Inside forward',st:3,opp:'BRE (H)',fdr:2,last:3,season:49,x:14,y:31,xi:true},
+  {n:'Palmer',pos:'CAM',club:'CHE',c1:'#034694',c2:'#ffffff',role:'Playmaker',st:5,opp:'NFO (A)',fdr:3,last:15,season:88,x:50,y:34,xi:true},
+  {n:'Saka',pos:'RW',club:'ARS',c1:'#EF0107',c2:'#ffffff',role:'Inside forward',st:4,opp:'MCI (H)',fdr:4,last:8,season:70,x:86,y:31,xi:true},
+  {n:'Haaland',pos:'ST',club:'MCI',c1:'#6CABDD',c2:'#1c2c5b',role:'Poacher',st:5,opp:'ARS (A)',fdr:5,last:13,season:97,x:50,y:12,xi:true},
+  {n:'Henderson',pos:'GK',club:'CRY',c1:'#1B458F',c2:'#C4122E',role:'Bench',st:3,opp:'LIV (H)',fdr:4,last:2,season:31,xi:false},
+  {n:'Murillo',pos:'CB',club:'NFO',c1:'#DD0000',c2:'#ffffff',role:'Bench',st:4,opp:'CHE (H)',fdr:4,last:1,season:40,xi:false},
+  {n:'Mbeumo',pos:'RW',club:'MUN',c1:'#DA291C',c2:'#ffffff',role:'Bench',st:4,opp:'SUN (A)',fdr:2,last:9,season:66,xi:false},
+  {n:'Watkins',pos:'ST',club:'AVL',c1:'#670E36',c2:'#95BFE5',role:'Bench',st:4,opp:'BRE (H)',fdr:2,last:4,season:52,xi:false}
+];
+const FDR = [null,'#2fe08a','#9be36a','#c9d2ee','#ff9a5c','#ff2f55'];
+class Component extends DCLogic {
+  renderVals() {
+    const squad = SQUAD.map((p) => ({
+      ...p,
+      stars: '★★★★★'.slice(0, p.st) + '☆☆☆☆☆'.slice(0, 5 - p.st),
+      fdrBg: FDR[p.fdr],
+      ink: p.xi ? '#f3f6ff' : '#8d9bc4'
+    }));
+    const spot = [
+      { label: 'Goals', val: 5, pct: 50 },
+      { label: 'Assists', val: 4, pct: 40 },
+      { label: 'Key passes', val: 27, pct: 90 },
+      { label: 'Form', val: '8.1', pct: 81 }
+    ];
+    return { accent: this.props.accent ?? '#00d7ff', squad, xi: squad.filter((p) => p.xi), spot };
+  }
+}
+</script>
+</body>
+</html>

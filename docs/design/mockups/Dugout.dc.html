@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My team — Dugout</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Extra+Condensed:wght@800&amp;family=Sofia+Sans+Semi+Condensed:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0b1714}
+a{color:#e8efe9}a:hover{color:#ffffff}
+</style>
+</helmet>
+<div style="min-height: 980px; background: #0b1714; color: #e8efe9; font-family: 'Sofia Sans Semi Condensed', sans-serif; font-size: 14px; font-variant-numeric: tabular-nums;">
+
+  <header>
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 28px; padding: 12px 28px 8px;">
+      <span style="font-family: 'Sofia Sans Extra Condensed', sans-serif; font-weight: 800; font-size: 28px; text-transform: uppercase; letter-spacing: 0.01em;">Draft Manager</span>
+      <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 24px; font-family: 'Sofia Sans Extra Condensed', sans-serif; font-weight: 800; font-size: 20px; text-transform: uppercase;">
+        <a href="#" style="text-decoration: none; color: #8fa79c;">Home</a>
+        <a href="#" style="text-decoration: none; color: {{accent}};">My team</a>
+        <a href="#" style="text-decoration: none; color: #8fa79c;">Matchup</a>
+        <a href="#" style="text-decoration: none; color: #8fa79c;">Table</a>
+        <a href="#" style="text-decoration: none; color: #8fa79c;">Players</a>
+        <a href="#" style="text-decoration: none; color: #8fa79c;">Trades</a>
+        <a href="#" style="text-decoration: none; color: #8fa79c;">Mail <span style="color: #0b1714; background: #ffd84a; padding: 0 5px; border-radius: 2px;">3</span></a>
+      </nav>
+      <span style="flex-grow: 1;"></span>
+      <span style="color: #8fa79c;">GW9 locks <b style="color: #e8efe9;">Sat 11:00</b></span>
+      <a href="#" style="text-decoration: none; background: {{accent}}; color: #0b1714; font-family: 'Sofia Sans Extra Condensed', sans-serif; font-weight: 800; font-size: 20px; text-transform: uppercase; padding: 8px 24px; border-radius: 2px;">Continue</a>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 22px; padding: 0 28px 8px;">
+      <a href="#" style="text-decoration: none; color: #e8efe9; font-weight: 600; box-shadow: inset 0 -2px 0 {{accent}}; padding-bottom: 3px;">Tactics</a>
+      <a href="#" style="text-decoration: none; color: #8fa79c;">Squad</a>
+      <a href="#" style="text-decoration: none; color: #8fa79c;">Fixtures</a>
+      <a href="#" style="text-decoration: none; color: #8fa79c;">Transactions</a>
+    </div>
+    <div aria-hidden="true" style="height: 3px; display: flex;"><span style="flex: 1 1 0; background: {{leagueA}};"></span><span style="flex: 1 1 0; background: {{leagueB}};"></span><span style="flex: 1 1 0; background: {{leagueA}};"></span></div>
+  </header>
+
+  <main style="padding: 18px 28px 28px; display: flex; flex-direction: column; gap: 22px;">
+    <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 28px; border-bottom: 1px solid #24423a; padding-bottom: 12px;">
+      <h1 style="margin: 0; font-family: 'Sofia Sans Extra Condensed', sans-serif; font-weight: 800; font-size: 34px; text-transform: uppercase;">Craig's XI</h1>
+      <span style="color: #8fa79c;">Season <b style="color: #ffd84a; font-size: 18px;">812</b></span>
+      <span style="color: #8fa79c;">Position <b style="color: #ffd84a; font-size: 18px;">3rd</b></span>
+      <span style="color: #8fa79c;">Record <b style="color: #e8efe9;">W5 D1 L2</b></span>
+      <span style="color: #8fa79c;">Last gameweek <b style="color: #ffd84a; font-size: 18px;">86</b></span>
+      <span style="color: #8fa79c;">Next <b style="color: #e8efe9;">Rovers XI</b> <span style="color: #7fe3d4;">6th</span></span>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 28px;">
+      <section aria-label="Team shape" style="flex: 1 1 460px; min-width: 0;">
+        <div style="display: flex; align-items: baseline; gap: 12px; border-top: 1px solid #24423a; padding-top: 6px; margin-bottom: 10px;">
+          <span style="font-family: 'Sofia Sans Extra Condensed', sans-serif; font-weight: 800; font-size: 22px; text-transform: uppercase;">Team shape</span>
+          <span style="color: #7fe3d4;">4-2-3-1</span>
+          <span style="flex-grow: 1;"></span>
+          <button type="button" style="font: inherit; color: #e8efe9; background: transparent; border: 1px solid #24423a; border-radius: 2px; padding: 4px 10px;">Presets</button>
+        </div>
+        <div style="position: relative; height: 620px; background: repeating-linear-gradient(180deg, #145c34 0px, #145c34 62px, #11522e 62px, #11522e 124px);">
+          <div style="position: absolute; inset: 0; border: 2px solid #d8e6dc;"></div>
+          <div style="position: absolute; left: 0; right: 0; top: 50%; border-top: 2px solid #d8e6dc;"></div>
+          <div style="position: absolute; left: 50%; top: 50%; width: 124px; height: 124px; margin: -62px 0 0 -62px; border: 2px solid #d8e6dc; border-radius: 50%;"></div>
+          <div style="position: absolute; left: 26%; right: 26%; top: 0; height: 92px; border: 2px solid #d8e6dc; border-top: 0;"></div>
+          <div style="position: absolute; left: 26%; right: 26%; bottom: 0; height: 92px; border: 2px solid #d8e6dc; border-bottom: 0;"></div>
+          <sc-for list="{{xi}}" as="p" hint-placeholder-count="11">
+            <div style="position: absolute; left: {{p.x}}%; top: {{p.y}}%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; width: 130px;">
+              <div style="position: relative; width: 46px; height: 46px;">
+                <svg width="46" height="46" viewBox="0 0 40 40" aria-hidden="true"><path d="M13 4 L7 7 L2 13 L7 18 L10 16 L10 37 L30 37 L30 16 L33 18 L38 13 L33 7 L27 4 Q20 10 13 4 Z" fill="{{p.c1}}" stroke="{{p.c2}}"></path></svg>
+                <span style="position: absolute; left: 0; right: 0; top: 15px; text-align: center; font-weight: 600; font-size: 14px; color: {{p.c2}};">{{p.num}}</span>
+              </div>
+              <div style="display: flex; align-items: stretch; background: #0b1714;">
+                <span style="padding: 1px 5px; font-weight: 600; font-size: 11px; background: {{p.lineBg}}; color: {{p.lineInk}};">{{p.code}}</span>
+                <span style="padding: 1px 7px; font-weight: 600; white-space: nowrap;">{{p.n}}</span>
+              </div>
+              <div style="display: flex; gap: 1px; margin-top: 2px;">
+                <sc-for list="{{p.starList}}" as="s" hint-placeholder-count="5">
+                  <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M5 0.5 L6.3 3.6 L9.6 3.8 L7.1 6 L7.9 9.3 L5 7.5 L2.1 9.3 L2.9 6 L0.4 3.8 L3.7 3.6 Z" fill="{{s.fill}}"></path></svg>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section aria-label="Selection" style="flex: 999 1 560px; min-width: 0;">
+        <div style="display: flex; align-items: baseline; gap: 12px; border-top: 1px solid #24423a; padding-top: 6px; margin-bottom: 10px;">
+          <span style="font-family: 'Sofia Sans Extra Condensed', sans-serif; font-weight: 800; font-size: 22px; text-transform: uppercase;">Selection</span>
+          <span style="color: #8fa79c;">11 start, 4 subs</span>
+        </div>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; white-space: nowrap;">
+            <thead>
+              <tr style="text-align: left; color: #8fa79c; font-weight: 600;">
+                <th style="padding: 4px 8px 6px 0;">No</th><th style="padding: 4px 8px 6px;">Role</th><th style="padding: 4px 8px 6px;">Player</th><th style="padding: 4px 8px 6px;">Fit</th><th style="padding: 4px 8px 6px;">Next</th><th style="padding: 4px 8px 6px; text-align: right;">Last</th><th style="padding: 4px 8px 6px; text-align: right;">Form</th><th style="padding: 4px 0 6px 8px; text-align: right;">Season</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{squad}}" as="p" hint-placeholder-count="15">
+                <tr style="height: 30px; border-top: 1px solid #1a302a; color: {{p.ink}};">
+                  <td style="padding: 0 8px 0 0; color: #8fa79c;">{{p.num}}</td>
+                  <td style="padding: 0 8px;"><span style="display: inline-block; min-width: 34px; text-align: center; padding: 1px 4px; font-weight: 600; font-size: 12px; border-radius: 2px; background: {{p.lineBg}}; color: {{p.lineInk}};">{{p.code}}</span> <span style="color: #7fe3d4;">{{p.role}}</span></td>
+                  <td style="padding: 0 8px;"><b style="font-weight: 600;">{{p.n}}</b> <span style="color: #8fa79c;">{{p.club}}</span></td>
+                  <td style="padding: 0 8px;"><span style="display: inline-flex; gap: 1px;"><sc-for list="{{p.starList}}" as="s" hint-placeholder-count="5"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M5 0.5 L6.3 3.6 L9.6 3.8 L7.1 6 L7.9 9.3 L5 7.5 L2.1 9.3 L2.9 6 L0.4 3.8 L3.7 3.6 Z" fill="{{s.fill}}"></path></svg></sc-for></span></td>
+                  <td style="padding: 0 8px;"><span style="display: inline-block; width: 4px; height: 12px; vertical-align: -1px; margin-right: 6px; background: {{p.fdrBg}};"></span>{{p.opp}}</td>
+                  <td style="padding: 0 8px; text-align: right; color: {{p.figInk}};">{{p.last}}</td>
+                  <td style="padding: 0 8px; text-align: right;">{{p.form}}</td>
+                  <td style="padding: 0 0 0 8px; text-align: right; color: {{p.figInk}}; font-weight: 600;">{{p.season}}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#c6f432","options":["#c6f432","#ffd84a","#7fe3d4","#f2766b"]},"leagueA":{"editor":"color","default":"#c8102e","section":"League colours"},"leagueB":{"editor":"color","default":"#f4efe6","section":"League colours"},"$preview":{"width":1440,"height":980}}'>
+const SQUAD = [
+  {n:'Pickford',pos:'GK',code:'SS',club:'EVE',c1:'#274488',c2:'#ffffff',role:'Shot-stopper',st:4,opp:'BOU (H)',fdr:2,last:6,form:'5.2',season:58,x:50,y:89,num:1,xi:true},
+  {n:'Gvardiol',pos:'LB',code:'DFB',club:'MCI',c1:'#6CABDD',c2:'#1c2c5b',role:'Defensive full-back',st:3,opp:'ARS (A)',fdr:5,last:2,form:'4.1',season:47,x:13,y:68,num:24,xi:true},
+  {n:'Gabriel',pos:'CB',code:'STP',club:'ARS',c1:'#EF0107',c2:'#ffffff',role:'Stopper',st:5,opp:'MCI (H)',fdr:4,last:9,form:'6.8',season:71,x:37,y:73,num:6,xi:true},
+  {n:'Van Dijk',pos:'CB',code:'BPD',club:'LIV',c1:'#C8102E',c2:'#ffffff',role:'Ball-playing CB',st:4,opp:'CRY (A)',fdr:2,last:6,form:'5.0',season:55,x:63,y:73,num:4,xi:true},
+  {n:'Porro',pos:'RB',code:'AFB',club:'TOT',c1:'#ffffff',c2:'#132257',role:'Attacking full-back',st:5,opp:'WHU (H)',fdr:2,last:12,form:'7.4',season:76,x:87,y:68,num:23,xi:true},
+  {n:'Caicedo',pos:'CDM',code:'BWM',club:'CHE',c1:'#034694',c2:'#ffffff',role:'Ball-winner',st:5,opp:'NFO (A)',fdr:3,last:7,form:'5.9',season:62,x:36,y:52,num:25,xi:true},
+  {n:'Rice',pos:'CDM',code:'B2B',club:'ARS',c1:'#EF0107',c2:'#ffffff',role:'Box-to-box',st:4,opp:'MCI (H)',fdr:4,last:5,form:'5.5',season:60,x:64,y:52,num:41,xi:true},
+  {n:'Rogers',pos:'LW',code:'IF',club:'AVL',c1:'#670E36',c2:'#95BFE5',role:'Inside forward',st:3,opp:'BRE (H)',fdr:2,last:3,form:'4.6',season:49,x:13,y:31,num:27,xi:true},
+  {n:'Palmer',pos:'CAM',code:'PM',club:'CHE',c1:'#034694',c2:'#ffffff',role:'Playmaker',st:5,opp:'NFO (A)',fdr:3,last:15,form:'8.1',season:88,x:50,y:34,num:10,xi:true},
+  {n:'Saka',pos:'RW',code:'IF',club:'ARS',c1:'#EF0107',c2:'#ffffff',role:'Inside forward',st:4,opp:'MCI (H)',fdr:4,last:8,form:'6.6',season:70,x:87,y:31,num:7,xi:true},
+  {n:'Haaland',pos:'ST',code:'P',club:'MCI',c1:'#6CABDD',c2:'#1c2c5b',role:'Poacher',st:5,opp:'ARS (A)',fdr:5,last:13,form:'9.0',season:97,x:50,y:12,num:9,xi:true},
+  {n:'Henderson',pos:'GK',code:'S1',club:'CRY',c1:'#1B458F',c2:'#C4122E',role:'Sub',st:3,opp:'LIV (H)',fdr:4,last:2,form:'3.8',season:31,num:30,xi:false},
+  {n:'Murillo',pos:'CB',code:'S2',club:'NFO',c1:'#DD0000',c2:'#ffffff',role:'Sub',st:4,opp:'CHE (H)',fdr:4,last:1,form:'4.0',season:40,num:5,xi:false},
+  {n:'Mbeumo',pos:'RW',code:'S3',club:'MUN',c1:'#DA291C',c2:'#ffffff',role:'Sub',st:4,opp:'SUN (A)',fdr:2,last:9,form:'6.0',season:66,num:19,xi:false},
+  {n:'Watkins',pos:'ST',code:'S4',club:'AVL',c1:'#670E36',c2:'#95BFE5',role:'Sub',st:4,opp:'BRE (H)',fdr:2,last:4,form:'5.1',season:52,num:11,xi:false}
+];
+const FDR = [null,'#2fd17a','#a3d977','#3a4a44','#f2766b','#c22b4a'];
+const LINE = {GK:['#d9b23a','#1a1405'],LB:['#3aa98f','#04140f'],CB:['#3aa98f','#04140f'],RB:['#3aa98f','#04140f'],CDM:['#5b8def','#050c1f'],CAM:['#5b8def','#050c1f'],LW:['#e0645a','#1f0503'],RW:['#e0645a','#1f0503'],ST:['#e0645a','#1f0503']};
+class Component extends DCLogic {
+  renderVals() {
+    const squad = SQUAD.map((p) => ({
+      ...p,
+      starList: [1, 2, 3, 4, 5].map((k) => ({ fill: k <= p.st ? '#ffd84a' : '#24423a' })),
+      fdrBg: FDR[p.fdr],
+      lineBg: p.xi ? LINE[p.pos][0] : '#24423a', lineInk: p.xi ? LINE[p.pos][1] : '#e8efe9',
+      ink: p.xi ? '#e8efe9' : '#8fa79c',
+      figInk: p.xi ? '#ffd84a' : '#8fa79c'
+    }));
+    return {
+      accent: this.props.accent ?? '#c6f432',
+      leagueA: this.props.leagueA ?? '#c8102e',
+      leagueB: this.props.leagueB ?? '#f4efe6',
+      squad, xi: squad.filter((p) => p.xi)
+    };
+  }
+}
+</script>
+</body>
+</html>

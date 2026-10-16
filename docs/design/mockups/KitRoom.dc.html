@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My team — Kit room</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Hanken+Grotesk:wght@400;600;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0a0a0a}
+a{color:#ffffff}a:hover{color:#cfcfcf}
+</style>
+</helmet>
+<div style="min-height: 980px; background: #0a0a0a; color: #ffffff; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px;">
+
+  <header style="max-width: 1440px; margin: 0 auto; padding: 22px 32px 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 28px; border-bottom: 1px solid #2a2a2a; padding-bottom: 14px;">
+    <span style="font-weight: 800; font-size: 15px; letter-spacing: 0.18em; text-transform: uppercase;">Draft Manager</span>
+    <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 22px; font-weight: 600;">
+      <a href="#" style="text-decoration: none; color: #8a8a8a;">Home</a>
+      <a href="#" style="text-decoration: none; color: #ffffff; border-bottom: 3px solid {{accent}}; padding-bottom: 2px;">My team</a>
+      <a href="#" style="text-decoration: none; color: #8a8a8a;">Matchup</a>
+      <a href="#" style="text-decoration: none; color: #8a8a8a;">Table</a>
+      <a href="#" style="text-decoration: none; color: #8a8a8a;">Players</a>
+      <a href="#" style="text-decoration: none; color: #8a8a8a;">Trades</a>
+    </nav>
+    <span style="flex-grow: 1;"></span>
+    <span style="color: #8a8a8a;">GW9 locks Sat 11:00</span>
+  </header>
+
+  <main style="max-width: 1440px; margin: 0 auto; padding: 24px 32px 32px; display: flex; flex-wrap: wrap; gap: 32px;">
+    <div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 18px;">
+      <div style="font-family: 'Anton', sans-serif; font-size: 168px; line-height: 0.82; letter-spacing: -0.01em;">4-2-<br>3-1</div>
+      <h1 style="margin: 0; font-weight: 800; font-size: 34px; line-height: 1; text-transform: uppercase;">Craig's XI</h1>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid #2a2a2a;">
+        <div style="padding: 10px 0; border-bottom: 1px solid #2a2a2a;"><div style="color: #8a8a8a; font-size: 12px;">Season</div><div style="font-family: 'Anton', sans-serif; font-size: 40px;">812</div></div>
+        <div style="padding: 10px 0; border-bottom: 1px solid #2a2a2a;"><div style="color: #8a8a8a; font-size: 12px;">Position</div><div style="font-family: 'Anton', sans-serif; font-size: 40px;">3RD</div></div>
+        <div style="padding: 10px 0; border-bottom: 1px solid #2a2a2a;"><div style="color: #8a8a8a; font-size: 12px;">Last gameweek</div><div style="font-family: 'Anton', sans-serif; font-size: 40px;">86</div></div>
+        <div style="padding: 10px 0; border-bottom: 1px solid #2a2a2a;"><div style="color: #8a8a8a; font-size: 12px;">Next</div><div style="font-family: 'Anton', sans-serif; font-size: 28px; padding-top: 8px;">ROVERS XI</div></div>
+      </div>
+      <div style="color: #8a8a8a; line-height: 1.6;">Tim Hortons Pro League · W5 D1 L2</div>
+    </div>
+
+    <div style="flex: 3 1 760px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+      <sc-for list="{{lines}}" as="line" hint-placeholder-count="5">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+          <sc-for list="{{line.players}}" as="p" hint-placeholder-count="3">
+            <div style="flex: 0 1 196px; min-width: 150px; background: {{p.bg}}; color: {{p.ink}}; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-height: 108px;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; font-weight: 800; font-size: 12px; letter-spacing: 0.08em;"><span>{{p.pos}}</span><span>{{p.club}}</span></div>
+              <div style="font-family: 'Anton', sans-serif; font-size: 44px; line-height: 1;">{{p.last}}</div>
+              <div style="font-weight: 800; font-size: 16px; text-transform: uppercase; line-height: 1.1;">{{p.n}}</div>
+              <div style="font-size: 12px; display: flex; justify-content: space-between; gap: 6px;"><span>{{p.role}}</span><span style="letter-spacing: 1px;">{{p.stars}}</span></div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+      <div style="color: #8a8a8a; font-size: 12px; text-align: center; margin-top: 2px;">Big number: last gameweek's points</div>
+
+      <div style="margin-top: 14px; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; white-space: nowrap;">
+          <thead>
+            <tr style="text-align: left; color: #8a8a8a; font-size: 12px; border-bottom: 1px solid #ffffff;">
+              <th style="padding: 6px 8px 6px 0;">Bench</th><th style="padding: 6px 8px;">Club</th><th style="padding: 6px 8px;">Pos</th><th style="padding: 6px 8px;">Fit</th><th style="padding: 6px 8px;">Next</th><th style="padding: 6px 8px; text-align: right;">Last</th><th style="padding: 6px 0 6px 8px; text-align: right;">Season</th>
+            </tr>
+          </thead>
+          <tbody>
+            <sc-for list="{{bench}}" as="p" hint-placeholder-count="4">
+              <tr style="border-bottom: 1px solid #2a2a2a;">
+                <td style="padding: 8px 8px 8px 0; font-weight: 800; text-transform: uppercase;"><span style="display: inline-block; width: 10px; height: 10px; background: {{p.bg}}; margin-right: 8px;"></span>{{p.n}}</td>
+                <td style="padding: 8px;">{{p.club}}</td>
+                <td style="padding: 8px;">{{p.pos}}</td>
+                <td style="padding: 8px; letter-spacing: 1px;">{{p.stars}}</td>
+                <td style="padding: 8px;">{{p.opp}}</td>
+                <td style="padding: 8px; text-align: right;">{{p.last}}</td>
+                <td style="padding: 8px 0 8px 8px; text-align: right; font-family: 'Anton', sans-serif; font-size: 18px;">{{p.season}}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#ffe600","options":["#ffe600","#ff3d2e","#ffffff","#2ee6a8"]},"$preview":{"width":1440,"height":980}}'>
+const SQUAD = [
+  {n:'Haaland',pos:'ST',club:'MCI',bg:'#6CABDD',ink:'#0b1c3d',role:'Poacher',st:5,opp:'ARS (A)',last:13,season:97,line:0,xi:true},
+  {n:'Rogers',pos:'LW',club:'AVL',bg:'#670E36',ink:'#cfe4f7',role:'Inside forward',st:3,opp:'BRE (H)',last:3,season:49,line:1,xi:true},
+  {n:'Palmer',pos:'CAM',club:'CHE',bg:'#034694',ink:'#ffffff',role:'Playmaker',st:5,opp:'NFO (A)',last:15,season:88,line:1,xi:true},
+  {n:'Saka',pos:'RW',club:'ARS',bg:'#C8102E',ink:'#ffffff',role:'Inside forward',st:4,opp:'MCI (H)',last:8,season:70,line:1,xi:true},
+  {n:'Caicedo',pos:'CDM',club:'CHE',bg:'#034694',ink:'#ffffff',role:'Ball-winner',st:5,opp:'NFO (A)',last:7,season:62,line:2,xi:true},
+  {n:'Rice',pos:'CDM',club:'ARS',bg:'#C8102E',ink:'#ffffff',role:'Box-to-box',st:4,opp:'MCI (H)',last:5,season:60,line:2,xi:true},
+  {n:'Gvardiol',pos:'LB',club:'MCI',bg:'#6CABDD',ink:'#0b1c3d',role:'Defensive FB',st:3,opp:'ARS (A)',last:2,season:47,line:3,xi:true},
+  {n:'Gabriel',pos:'CB',club:'ARS',bg:'#C8102E',ink:'#ffffff',role:'Stopper',st:5,opp:'MCI (H)',last:9,season:71,line:3,xi:true},
+  {n:'Van Dijk',pos:'CB',club:'LIV',bg:'#A50E26',ink:'#ffffff',role:'Ball-playing CB',st:4,opp:'CRY (A)',last:6,season:55,line:3,xi:true},
+  {n:'Porro',pos:'RB',club:'TOT',bg:'#f2f2f2',ink:'#132257',role:'Attacking FB',st:5,opp:'WHU (H)',last:12,season:76,line:3,xi:true},
+  {n:'Pickford',pos:'GK',club:'EVE',bg:'#274488',ink:'#ffffff',role:'Shot-stopper',st:4,opp:'BOU (H)',last:6,season:58,line:4,xi:true},
+  {n:'Henderson',pos:'GK',club:'CRY',bg:'#1B458F',ink:'#ffffff',role:'Bench',st:3,opp:'LIV (H)',last:2,season:31,xi:false},
+  {n:'Murillo',pos:'CB',club:'NFO',bg:'#DD0000',ink:'#ffffff',role:'Bench',st:4,opp:'CHE (H)',last:1,season:40,xi:false},
+  {n:'Mbeumo',pos:'RW',club:'MUN',bg:'#C4201A',ink:'#ffffff',role:'Bench',st:4,opp:'SUN (A)',last:9,season:66,xi:false},
+  {n:'Watkins',pos:'ST',club:'AVL',bg:'#670E36',ink:'#cfe4f7',role:'Bench',st:4,opp:'BRE (H)',last:4,season:52,xi:false}
+];
+class Component extends DCLogic {
+  renderVals() {
+    const squad = SQUAD.map((p) => ({ ...p, stars: '★★★★★'.slice(0, p.st) + '☆☆☆☆☆'.slice(0, 5 - p.st) }));
+    const lines = [0, 1, 2, 3, 4].map((l) => ({ players: squad.filter((p) => p.xi && p.line === l) }));
+    return { accent: this.props.accent ?? '#ffe600', lines, bench: squad.filter((p) => !p.xi) };
+  }
+}
+</script>
+</body>
+</html>

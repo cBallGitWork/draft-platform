@@ -1,7 +1,7 @@
 # Fantrax's league options
 
 Background, never the product (CLAUDE.md). Scanned 16 Oct 2026 for the options SPEC.md did not
-yet cover. Craig decided the shape-changing ones in round 10 of the first `/grill`; the rest are
+yet cover. Craig decided the shape-changing ones in the first `/grill`; the rest are
 here for each feature's own `/grill` to put to him or drop.
 
 **(live: x)** is the Tim Hortons Pro League's own value, from its public settings page. Fantrax's
@@ -24,10 +24,8 @@ mostly baseball: "unconfirmed" marks where soccer may differ.
 - A youth or academy slot (live: not used).
 - One player on several teams (live: not used).
 - Who may change lineups: managers, or only the commissioner.
-- A lock offset before kickoff (live: 5 minutes per game on the settings page; the companion
-  recorded a single deadline 15 minutes before the first kickoff, so it is unresolved).
-- Auto-subs: managers rank their own bench (live: yes); a sub may change position or fill an
-  empty slot (live: yes); a maximum per gameweek (live: 4).
+- ~~A lock offset before kickoff~~: settled, one deadline per gameweek (spec/05).
+- ~~Auto-subs: bench order, changing position, a maximum per gameweek~~: settled (spec/05).
 
 **Scoring** (features 7, 14)
 - A 0–0 head-to-head counts as a tie (live: yes).
