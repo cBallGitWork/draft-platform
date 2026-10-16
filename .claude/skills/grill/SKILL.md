@@ -52,13 +52,18 @@ one line of meaning, and the words to avoid.
 ## 5. Done is an empty frontier and a yes
 
 Write no code while the frontier has a question on it. When it is empty, ask once: "same page?"
-On yes, write or update `SPEC.md` at the repo root:
+On yes, write or update the spec. `SPEC.md` at the repo root is the index (a hook looks for it
+there):
 
 - **What it is**, in Craig's words, a paragraph.
-- **Features**, numbered, each with a status (`not built` to start) and the one place a test
-  will check it.
+- **Features**, a numbered table, each with a status (`not built` to start), the one place a
+  test will check it, and a link to its file. The status lives only in this table.
 - **Out of scope**: everything Craig said no to, so it isn't re-asked.
 - **Glossary**.
+
+Each feature's detail is its own file, `spec/NN-name.md`, so a session building one feature reads
+the index and that file, not the whole spec. A feature `/grill` writes or rewrites its file and
+its table row.
 
 Only Craig's answers go in. A recommendation he didn't take stays out. SPEC.md goes in on its
 own branch and PR, like any change.
