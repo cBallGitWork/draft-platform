@@ -1,10 +1,10 @@
 # To grill
 
+**Contents:** [Picked by Craig](#picked-by-craig) · [Suggested, not yet picked](#suggested-not-yet-picked) · [Smaller pages, from Fantrax](#smaller-pages-from-fantrax) · [Words to settle](#words-to-settle) · [Keeping this list](#keeping-this-list)
+
 Things Craig wants, or might, that no `/grill` has settled yet (from 16 Oct 2026). None of it is
 the product until a grill puts it in [SPEC.md](../SPEC.md); then its line here goes. A suggestion
 Craig hasn't picked says so.
-
-**Contents:** [Picked by Craig](#picked-by-craig) · [Suggested, not yet picked](#suggested-not-yet-picked) · [Smaller pages, from Fantrax](#smaller-pages-from-fantrax) · [Words to settle](#words-to-settle) · [Keeping this list](#keeping-this-list)
 
 ## Picked by Craig
 
@@ -19,8 +19,9 @@ Each with the questions its grill starts from. The questions are Claude's.
 
 **CM-style text commentary**: live matchday, `spec/10`.
 - Feed check is #37: the Premier League's stream is proven on a finished match only.
-- Goals (with the assister), shots, corners, cards and subs carry a minute; key passes and
-  tackles come only as match totals, so a line can't show them as they happen.
+- Goals (with the assister), shots, corners, cards and subs carry a minute in that stream. Key
+  passes and tackles are, as far as Claude's check (16 Oct 2026) found, only in FPL's match
+  totals, so a line can't show them as they happen.
 
 **The shortlist**: scouting.
 - A season-long watchlist. Mail already files every claim and drop (`spec/16`); the new part is
@@ -60,7 +61,7 @@ Each with the questions its grill starts from. The questions are Claude's.
 | The manager's profile | A record across every league on the platform |
 | The rules, readable by every manager | Only the commissioner's settings screen shows them now. With a glossary of what each category counts |
 | Your account | Display name, email preferences, your leagues; leaving a league; deleting the account |
-| Going on holiday | CM's holiday: the manager switches the auto team on himself until a gameweek he names (`spec/09` lets him switch it on, with no end) |
+| Going on holiday | CM's holiday: the manager switches the auto team on himself until a gameweek he names (`spec/09` lets him switch it on; the end date is the new part) |
 | Match rating and Man of the Match | CM's Av R and MoM: a 1–10 rating from his points against his area; MoM the top scorer in each head-to-head |
 | Saved tactics | FM's: a few formations kept to switch between, say one for a double gameweek |
 
