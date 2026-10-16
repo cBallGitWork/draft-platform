@@ -17,7 +17,7 @@ and head-to-head fixtures are a different screen (`spec/12`, "table and fixtures
 - P W D L GF GA GD Pts, worked out from the results.
 - Live during matches, provisional until they are final.
 
-## Later
+## After the mini beta
 
 - Club pages (the squad, who owns whom in the draft league, set-piece takers, doubts) come after
   the mini beta.

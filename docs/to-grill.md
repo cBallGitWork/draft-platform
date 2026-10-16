@@ -34,7 +34,7 @@ Each with the questions its grill starts from. The questions are Claude's.
 - A team's own logo: nothing covers one. Uploading it means storing files, a stack question for
   `ARCHITECTURE.md`.
 
-**Premier League club pages**: `spec/18`, *Later*.
+**Premier League club pages**: `spec/18`, *After the mini beta*.
 
 ## Suggested, not yet picked
 

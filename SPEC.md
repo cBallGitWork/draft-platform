@@ -77,6 +77,8 @@ Feature 13 gets its file from its own `/grill`.
 - Storylines (morale, contracts, conduct).
 - Two roles per player (in and out of possession, as in FM26).
 - A captain's points multiplier: the captain leads by example instead (spec/17).
+- A line in the commentary for an auto-sub: whether a player played is known only after his match (spec/10).
+- Fixture-difficulty colours, and a count of owned players, on the Premier League's fixtures (spec/18).
 - A role penalty for playing out of position.
 - Injured reserve.
 - A limit on auto-subs, or a switch to turn them off.
