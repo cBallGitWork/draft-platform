@@ -10,12 +10,6 @@ Craig hasn't picked says so.
 
 Each with the questions its grill starts from. The questions are Claude's.
 
-**CM-style text commentary**: live matchday, `spec/10`.
-- Feed check is #37: the Premier League's stream is proven on a finished match only.
-- Goals (with the assister), shots, corners, cards and subs carry a minute in that stream. Key
-  passes and tackles are, as far as Claude's check (16 Oct 2026) found, only in FPL's match
-  totals, so a line can't show them as they happen.
-
 **The shortlist**: scouting.
 - A season-long watchlist. Mail already files every claim and drop (`spec/16`); the new part is
   the personal list and a letter when a shortlisted player is dropped or clears waivers.
@@ -42,7 +36,8 @@ Each with the questions its grill starts from. The questions are Claude's.
 
 **The real league**: its own section.
 - The Premier League's table, fixtures and results, clubs (squad, who owns whom in your league,
-  set-piece takers, doubts) and the gameweek (deadline, double and blank gameweeks, commentary).
+  set-piece takers, doubts) and the gameweek (deadline, double and blank gameweeks). One match's
+  own page is `spec/10`'s.
 - Built so another competition can plug in (SPEC, *Later*).
 - `spec/12`'s "table and fixtures" may mean the fantasy league's: settle which.
 
