@@ -1,11 +1,11 @@
 # draft-platform
 
-Our own fantasy draft platform for the league, for 2027/28. It replaces Fantrax.
-The companion app lives in `cBallGitWork/epl-draft`; this repo starts clean (Craig, 14 Oct 2026).
+A new fantasy draft product for the Premier League, made for many leagues (Craig, 16 Oct 2026).
+Our league moves to it from Fantrax; the companion app lives in `cBallGitWork/epl-draft` and this repo starts clean (14 Oct 2026).
 
-## The product is not defined yet
+## The product is SPEC.md
 
-- The first session is an interview (`/grill`): Claude asks, Craig answers, and only his answers go into `SPEC.md`. Until `SPEC.md` exists a hook blocks writing anything but docs and `.claude/`.
+- `SPEC.md` holds only Craig's answers. A feature marked `to grill`, or any detail it doesn't settle, gets a `/grill` before it is built.
 - Don't assume features. Generic fantasy-app research is background, never the product.
 - Storylines (morale, contracts, conduct) are off for now.
 
