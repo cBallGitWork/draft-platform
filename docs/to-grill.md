@@ -10,13 +10,6 @@ Craig hasn't picked says so.
 
 Each with the questions its grill starts from. The questions are Claude's.
 
-**Captain and set-piece takers** (penalties, free kicks, corners): tactics, `spec/05`.
-- Role-style adjustments, paid through the engine roles already use.
-- FPL's `bootstrap-static` gives each player `penalties_order`, `direct_freekicks_order` and
-  `corners_and_indirect_freekicks_order`; grouped by club, they are its takers. FPL's choice as
-  the default, or the manager's own pick?
-- What the captain's armband pays.
-
 **CM-style text commentary**: live matchday, `spec/10`.
 - Feed check is #37: the Premier League's stream is proven on a finished match only.
 - Goals (with the assister), shots, corners, cards and subs carry a minute in that stream. Key

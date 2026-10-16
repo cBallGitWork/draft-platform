@@ -39,6 +39,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 14 | [Scoring categories](spec/14-scoring-categories.md) | not built | a match's stats priced under a set of rules give each category's points and the total, by the slot's area |
 | 15 | [Admin tools](spec/15-admin-tools.md) | not built | a commissioner's assignment puts the player on the team and files a Mail letter to the league |
 | 16 | [Mail](spec/16-mail.md) | not built | a claim, a drop and a trade each file one letter for every manager in the league |
+| 17 | [Captain and set pieces](spec/17-captain-and-set-pieces.md) | after the mini beta | the first on a set-piece list who plays is paid for the duty for the whole match, and no one else on the list is |
 
 Feature 13 gets its file from its own `/grill`.
 
@@ -73,6 +74,7 @@ Feature 13 gets its file from its own `/grill`.
 - Push notifications and native apps.
 - Storylines (morale, contracts, conduct).
 - Two roles per player (in and out of possession, as in FM26).
+- A captain's points multiplier: the captain leads by example instead (spec/17).
 - A role penalty for playing out of position.
 - Injured reserve.
 - A limit on auto-subs, or a switch to turn them off.
@@ -112,4 +114,9 @@ Feature 13 gets its file from its own `/grill`.
 | the market | money in the game: salaries, fees, wages, money in trades | |
 | Mail | the inbox in the app | email |
 | email | a message sent to a manager's own inbox | Mail |
+| captain | the starter a manager picks to lead by example, whose own scoring the armband changes | skipper; armband (for the person) |
+| vice-captain | the starter who takes the armband if the captain doesn't play | |
+| club captain | the real club's captain, shown as a hint | captain (for the real one) |
+| set-piece list | a manager's order of up to three players for one duty: penalties, free kicks or corners | |
+| set-piece taker | the player holding a duty in a match: the first on its list who plays | |
 | squad number | the number a manager gives a player, shown on his shirt ("shirt number" means the same) | |
