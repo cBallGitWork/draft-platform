@@ -27,8 +27,9 @@ values are Claude's, from the designer's round-2 brief and the reviewer's pass o
 1 `#00b050` ink `#04130a` · 2 `#8fd36a` ink `#0c1a06` · 3 `#c9ccd4` ink `#0a1240` ·
 4 `#ff4f6d` ink `#1a0208` · 5 `#8c1236` ink `#ffffff`.
 
-Every text pair above meets WCAG 2.1 AA on its own ground (the reviewer computed them).
-Cyan never sits straight on the pitch: it fails there.
+The pairs the reviewer computed meet WCAG 2.1 AA (muted on panel 5.1:1, every difficulty ink on
+its fill 6.2:1 or better, the unread badge 8.5:1); check any new pair before using it. Cyan never
+sits straight on the pitch: it fails there (4.35:1).
 
 ## Type
 
