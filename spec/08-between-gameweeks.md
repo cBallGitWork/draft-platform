@@ -2,7 +2,7 @@
 
 Feature 8 of [SPEC.md](../SPEC.md). Only Craig's answers.
 
-- Waivers in priority order (reverse standings), then free agents, first come first served,
-  until lock.
-- Trades between managers: players only, plus next season's draft picks in keeper and dynasty
-  leagues. A trade goes through after the league's veto window unless the commissioner vetoes it.
+- Waivers in the league's waiver order, then free agents, first come first served, until lock.
+- Trades between managers: players and picks in the current draft, plus next season's picks in
+  keeper and dynasty leagues.
+- Trade review is a league setting: none, a commissioner veto, or a league vote.

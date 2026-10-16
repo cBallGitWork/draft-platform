@@ -11,7 +11,9 @@ scores, so a player's value depends on the team he is in. A salary cap is part o
 it is the first thing cut if scope has to shrink. Web first, free for now, and a closed beta in
 which Craig sets the leagues up; long term, anyone can. Live by August 2027 would be nice, but
 it can go live at any time. The Tim Hortons Pro League is the first league on it. A goal: a mini
-beta over the last three or four weeks of the 2026/27 season, to iron out kinks.
+beta over the last three or four weeks of the 2026/27 season, to iron out kinks: a quick league
+of about four, with players assigned to teams rather than drafted, for the basics. Features 1–7
+and 10 work by then.
 
 ## Features
 
@@ -67,6 +69,7 @@ Features 12–15 get their file from their own `/grill`.
 - Storylines (morale, contracts, conduct).
 - Two roles per player (in and out of possession, as in FM26).
 - A role penalty for playing out of position.
+- Injured reserve.
 
 ## Glossary
 
