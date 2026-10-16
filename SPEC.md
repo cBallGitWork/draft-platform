@@ -35,11 +35,11 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 11 | [Email](spec/11-email.md) | not built | on a pick clock over 10 minutes the manager on the clock gets one email; under it, none |
 | 12 | [Screens](spec/12-screens.md) | not built | a signed-in manager lands on My team, with Mail's unread count in the menu |
 | 13 | Setting up a league | to grill | — |
-| 14 | Scoring categories | to grill | — |
+| 14 | [Scoring categories](spec/14-scoring-categories.md) | not built | a match's stats priced under a set of rules give each category's points and the total, by the slot's area |
 | 15 | Admin tools | to grill | — |
 | 16 | [Mail](spec/16-mail.md) | not built | a claim, a drop and a trade each file one letter for every manager in the league |
 
-Features 13–15 get their file from their own `/grill`.
+Features 13 and 15 get their file from their own `/grill`.
 
 ## Second release
 
@@ -62,6 +62,7 @@ Features 13–15 get their file from their own `/grill`.
 - **Licensed data**: before signups open to anyone, check FPL's and the Premier League's terms,
   and switch to a licensed feed if they don't allow a public product.
 - **Traits** (what a player does in real life), if a source for them turns up.
+- **The platform's own scoring sets**, designed once the first scoring set has been played.
 - **A landing page** for the public, when signups open to anyone; its own `/grill` then.
 
 ## Out of scope
@@ -75,6 +76,7 @@ Features 13–15 get their file from their own `/grill`.
 - Injured reserve.
 - A limit on auto-subs, or a switch to turn them off.
 - Public league pages: no league is visible without signing in.
+- FPL's bonus points, and a ready-made FPL-style or Fantrax-copy scoring set.
 - A lock at each player's kickoff: there is one deadline per gameweek.
 
 ## Glossary
@@ -92,6 +94,8 @@ Features 13–15 get their file from their own `/grill`.
 | deadline | the one moment each gameweek that locks every lineup | lock time |
 | formation | how a lineup stands on the pitch's grid, preset or placed freely | shape |
 | preset | a ready-made formation, such as 4-2-3-1 | |
+| category | one stat a league can score, such as goals or tackles won | |
+| short code | a category's abbreviation in dense tables: G, A, CS, KP, TW | |
 | lineup | a team's starters and bench for one gameweek | |
 | squad | every player a team owns | |
 | starter | a player in the lineup's eleven | |
