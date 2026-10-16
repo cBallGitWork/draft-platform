@@ -5,7 +5,7 @@ The companion app lives in `cBallGitWork/epl-draft`; this repo starts clean (Cra
 
 ## The product is not defined yet
 
-- The first session is an interview: Claude asks, Craig answers, and only his answers go into `SPEC.md`.
+- The first session is an interview (`/grill`): Claude asks, Craig answers, and only his answers go into `SPEC.md`. Until `SPEC.md` exists a hook blocks writing anything but docs and `.claude/`.
 - Don't assume features. Generic fantasy-app research is background, never the product.
 - Storylines (morale, contracts, conduct) are off for now.
 
@@ -21,4 +21,5 @@ The companion app lives in `cBallGitWork/epl-draft`; this repo starts clean (Cra
 
 - Never commit on `main`. One branch and one PR per task, squash-merged.
 - Stage named paths; never stage everything.
-- Add a rule here only after Claude gets something wrong, and add a hook rather than a rule where possible.
+- Both are enforced by `.claude/hooks/guard_bash.sh`; `.claude/hooks/test.sh` checks every hook.
+- Add a rule here only after Claude gets something wrong, and add a hook rather than a rule where possible. `/retro` before clearing the chat finds those moments.

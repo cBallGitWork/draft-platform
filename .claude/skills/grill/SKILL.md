@@ -1,0 +1,64 @@
+---
+name: grill
+description: Interview Craig about the product, or one feature of it, before any code exists. Maps the decisions, asks the open ones in numbered rounds with a recommended answer each, settles the words, and writes only his answers into SPEC.md. Craig starts it.
+argument-hint: "[the product, or one feature in a sentence]"
+disable-model-invocation: true
+---
+
+# Grill before building
+
+A one-sentence ask leaves gaps, and an agent fills every gap with a silent guess. This skill
+turns those guesses into questions Craig answers before the first line is written.
+Adapted from epl-draft's `/grill`, itself from Matt Pocock's `grill-me` (skills v1.3, Oct 2026).
+
+## 1. Map the decisions
+
+Draw the ask as a tree: the ask at the top, every decision it implies underneath, and the
+decisions those imply. A decision belongs here when two reasonable builds would differ on it.
+
+**The frontier** is every decision whose parent is settled. Ask only the frontier.
+
+## 2. Facts are yours, decisions are Craig's
+
+Never ask Craig a fact you can look up: FPL's rules, what epl-draft's `packages/core` already
+does, what CLAUDE.md or SPEC.md already settles. Quote a settled answer; do not re-ask it.
+
+What other fantasy apps do is background, never the product. Don't put a feature on the tree
+because Sleeper or Fantrax has it; ask whether Craig wants it, and only if his answers lead there.
+
+## 3. One numbered round at a time
+
+```
+Round 2 — 4 open
+
+1. A question, in one line.
+   Recommend: an answer — one clause of why.
+2. ...
+```
+
+Every question carries your recommendation, so most answers are "yes, yes, no, 3: the other
+one". When you have no grounds to recommend, say so rather than invent one. Past about thirty
+questions on one feature, it is two features; say so.
+
+Some questions don't settle by talking, usually what a screen looks like. Offer two or three
+throwaway mock-ups that look nothing alike, and let Craig pick.
+
+## 4. One word for one thing
+
+When Craig uses two words for what might be one thing, or one word for two, stop and ask:
+"is a *swap* the same as a *transfer*?" Record the answer in SPEC.md's glossary: the term,
+one line of meaning, and the words to avoid.
+
+## 5. Done is an empty frontier and a yes
+
+Write no code while the frontier has a question on it. When it is empty, ask once: "same page?"
+On yes, write or update `SPEC.md` at the repo root:
+
+- **What it is**, in Craig's words, a paragraph.
+- **Features**, numbered, each with a status (`not built` to start) and the one place a test
+  will check it.
+- **Out of scope**: everything Craig said no to, so it isn't re-asked.
+- **Glossary**.
+
+Only Craig's answers go in. A recommendation he didn't take stays out. SPEC.md goes in on its
+own branch and PR, like any change.
