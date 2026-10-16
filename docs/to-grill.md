@@ -4,6 +4,8 @@ Things Craig wants, or might, that no `/grill` has settled yet (from 16 Oct 2026
 the product until a grill puts it in [SPEC.md](../SPEC.md); then its line here goes. A suggestion
 Craig hasn't picked says so.
 
+**Contents:** [Picked by Craig](#picked-by-craig) · [Suggested, not yet picked](#suggested-not-yet-picked) · [Smaller pages, from Fantrax](#smaller-pages-from-fantrax) · [Words to settle](#words-to-settle) · [Keeping this list](#keeping-this-list)
+
 ## Picked by Craig
 
 Each with the questions its grill starts from. The questions are Claude's.
