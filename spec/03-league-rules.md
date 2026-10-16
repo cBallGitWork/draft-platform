@@ -11,7 +11,9 @@ The league's rules are data. Among them:
   a maximum per club.
 - Carry-over: redraft, keeper (the league sets how many each team keeps; keeping costs nothing)
   or dynasty (the whole squad carries over).
-- Lineup lock: each player at his own kickoff, or the whole squad at the gameweek deadline.
+- The deadline: when it falls, as a time before the gameweek's first kickoff, starting at FPL's
+  own deadline (see [5. Tactics](05-tactics.md)).
+- Each area's minimum and maximum on the pitch, and the formation presets.
 - Auto-subs from the bench.
 - Double gameweeks: both matches count (the default), or best match.
 - Waivers: when they run, set by the league; can be more than once a week. The waiver order:
