@@ -6,11 +6,16 @@ The product is whatever `SPEC.md` says, and this folder only helps put a look
 into words ("denser, like CM's squad list", "cards like FM's portal").
 
 The look we've decided on is *modern, with Championship Manager as a homage*. So
-there are two sets: modern Football Manager (`fm26/`) and classic Championship
-Manager (`cm/`).
+there are two sets for the look: modern Football Manager (`fm26/`) and classic
+Championship Manager (`cm/`). Three more sets show how fantasy games present
+themselves: official Fantasy Premier League (`fpl/`), FPL Draft (`fpl-draft/`), and
+Sleeper (`sleeper/`), a mobile-first draft app that also runs Premier League leagues.
+They show how other games solve the same screens. They are not a feature list.
 
 **Every image here is third-party** (© Sports Interactive / SEGA, and Eidos for
-the CM titles). They are kept for internal reference only. Don't ship them,
+the CM titles; © The Football Association Premier League for FPL and FPL Draft;
+© Blitz Studios for Sleeper; some FPL shots were cropped by the fan sites named
+against them). They are kept for internal reference only. Don't ship them,
 redistribute them or put them in the app.
 
 Collected 16 Oct 2026. Every file was checked with `file` as a real image before it was saved.
@@ -178,3 +183,139 @@ bottom.
   attribute grid, the two-sided match-stats comparison, numbered discs on a flat
   pitch, the club-coloured scoreboard, and a date-indexed news list. FM26 still
   draws every one of them; it only reskins them.
+
+---
+
+## `fpl/`: Fantasy Premier League (classic game)
+
+There are 11 shots. Since 2025 the FPL app has been folded into the Premier League
+app, so the App Store listing ("Premier League - Scores, News", id `1138895159`)
+has only one fantasy screen. The rest come from @OfficialFPL promo video stills,
+Fantasy Football Scout and Fantasy Football Hub guides (often crops), and a 2022
+Substack write-up that has full-screen app captures. PNGs were converted to JPEG.
+Nothing was scaled except where noted.
+
+| File | Source | Screen | What's notable |
+|---|---|---|---|
+| `01-pick-team.jpg` | [App Store](https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/32/1e/ab/321eab57-cec7-6cc3-5b3b-bd10e573b7c7/myPL_1290x2796px_6pt9Display_AppleAppStore_02.png/1242x2688bb.jpg) | Pick Team, pitch view (app, 2026) | A **chip row** across the top (Bench Boost, Triple Captain: `Play`; Wildcard, Free Hit: `Unavailable`), a Pitch/List toggle, then a bright green perspective pitch with `Fantasy` hoardings. Each player is a **shirt image with a white name plate and a position tag**. A `C` or `V` disc marks captain and vice. Purple-to-magenta marketing frame. |
+| `02-pick-team-opponent-view.jpg` | [@OfficialFPL video still](https://pbs.twimg.com/amplify_video_thumb/2079543722526556160/img/hxk87xOlUsl0n3pI.jpg) ([post](https://x.com/OfficialFPL/status/2079544474724667841), 21 Jul 2026) | Pick Team with the 2026/27 "Opponent" view | Same pitch, but the plate under each shirt now shows the **next fixture** (`CHE (A)`) instead of the position. An `Opponent ▾` dropdown picks what the plate shows. A numbered bench strip (`GKP`, `1. DEF`, `2. MID`, `3. FWD`) sits on a darker green band. A purple hint banner explains captaincy. |
+| `03-list-view-fixtures.jpg` | [Fantasy Football Scout](https://cdn.fantasyfootballscout.co.uk/wp-content/uploads/2026/07/fpl-2026-27-new-ways-to-view-your-fpl-squad.jpg) ([article](https://www.fantasyfootballscout.co.uk/2026/07/21/fpl-2026-27-new-ways-to-view-your-fpl-squad)) | Squad list view with the next five fixtures (web) | White rows grouped under bold position heads (Goalkeepers, Defenders). Kit icon, name, club, position, an italic `i` info button, then **five fixture pills coloured by difficulty** (green easy, grey middling, red/magenta hard) and a round × to remove. |
+| `04-points-pitch.jpg` | [Fantasy Football Scout](https://cdn.fantasyfootballscout.co.uk/wp-content/uploads/2026/07/image-140.png) ([article](https://www.fantasyfootballscout.co.uk/2026/07/20/fpl-2026-27-5-rule-changes-new-features-announced)) | Points page, pitch (crop) | It's the Pick Team pitch again, but each plate has a **dark-purple strip with the gameweek points** (`9`, `7`, `1`) under the name. The points live inside the player tile rather than in a separate table. |
+| `05-fantasy-home.jpg` | [Substack](https://abhilashpani.substack.com/p/fpl-draft-feature-prd) (app capture, Nov 2022) | Fantasy tab home in the old PL app | The gameweek score is the hero: **`61` big and bold in a pale tile, with `53 Average` and `123 Highest` either side**. Below it, the next deadline and a 2×3 grid of buttons (Pick Team, Transfers in green; Fixtures, FDR, Player Statistics, Set Piece Takers in white). Then a purple "Fantasy DRAFT Play Now" banner. Cyan-to-lilac gradient ground. |
+| `06-transfers.jpg` | [Substack](https://abhilashpani.substack.com/p/fpl-draft-feature-prd) (app capture, Nov 2022) | Transfers, squad pitch | Four stat chips across the top (Free Transfers `0`, Wildcard `Played`, Cost `0`, Bank `£5.1m`), then all 15 on one pitch with the **price on each plate** (`£12.7`). The player being swapped is lifted out as a white card with a swap icon. A yellow plate flags a doubt. At the bottom: `Add Player` (cyan) and `Next` (purple). |
+| `07-squad-selection-web.jpg` | [Fantasy Football Hub](https://cdn.sanity.io/images/th0o92af/production/0b99aa648650e9f88dd5949c2fa365aea74253a2-890x358.jpg) ([article](https://www.fantasyfootballhub.co.uk/articles/making-transfers-in-fantasy-premier-league)) | Squad selection header (web, 2022/23) | A gradient card with a deadline line, then two **green counter pills**: `15 / 15` players selected and `0.0` money remaining. There are Auto Pick and Reset buttons and a purple banner saying transfers are unlimited before GW1. |
+| `08-fixture-difficulty.jpg` | [premierleague.com](https://resources.premierleague.pulselive.com/photo-resources/2025/06/18/dfe2d525-6155-47d7-8562-a7e7d30f3d5d/GW1-19-v3.jpeg?width=1920) ([article](https://www.premierleague.com/news/4324765)) | FDR grid, GW1–19 of 2025/26 | 20 clubs down the side by 19 gameweeks across, each cell an opponent code with `(H)`/`(A)`. It uses a **five-step colour scale**: bright green, pale green, grey, pink-red, dark maroon. It's a published graphic, not the live screen, but it uses the same scale as the in-game FDR. |
+| `09-entry-history.jpg` | [Fantasy Football Scout](https://cdn.fantasyfootballscout.co.uk/wp-content/uploads/2026/07/image-80.png) ([article](https://www.fantasyfootballscout.co.uk/2026/07/20/fpl-2026-27-5-rule-changes-new-features-announced)) | Entry History, "This Season" (web) | A plain table with no row fills: GW, OR, a green-up/red-down **rank-movement disc**, % Rank (the column the article highlights in orange), OP, GWR, GWP, PB, TM, TC, £m. It uses abbreviated column heads, CM-style. |
+| `10-leagues-and-cups.jpg` | [Fantasy Football Scout](https://cdn.fantasyfootballscout.co.uk/wp-content/uploads/2026/07/image-185.png) ([article](https://www.fantasyfootballscout.co.uk/2026/07/20/how-to-join-and-create-an-fpl-mini-league-2)) | Leagues & Cups landing (web) | It shows the web site's top nav (Home, Pick Team, Transfers, Leagues & Cups, Fixtures, The Scout…) on a purple-to-cyan gradient, a Leagues/Cups segmented toggle, and three **dark-purple pill buttons** with icons (Join, Create, Renew). It doesn't show a standings table. |
+| `11-squad-help-promo.jpg` | [Fantasy Football Scout](https://cdn.fantasyfootballscout.co.uk/wp-content/uploads/2026/07/image-178.png) ([article](https://www.fantasyfootballscout.co.uk/2026/07/23/fpl-2026-27-game-updating-as-fpl-introduce-squad-picking-help)) | "Help with creating your squad" (FPL's own 2026/27 feature graphic) | Three white question cards with radio options (help or go solo, favourite club, position focus), each with one plain-English line of consequence under it. It's onboarding as a short quiz, with the brand gradient and a heavy all-caps headline. |
+
+---
+
+## `fpl-draft/`: FPL Draft (draft.premierleague.com)
+
+There are 8 shots, and they're the thinnest set. FPL Draft has no app of its own any
+more, it lives inside the PL app, so the store listings show none of it. The live
+screens come from a Fantasy Six Pack 2026/27 guide (crops of the web game), an
+older premierleague.com explainer, and a 2021 Substack post. PNGs were converted
+to JPEG; nothing was scaled.
+
+| File | Source | Screen | What's notable |
+|---|---|---|---|
+| `01-draft-room-2017.jpg` | [premierleague.com](https://resources.premierleague.pulselive.com/photo-resources/2017/07/07/e7841c70-b6b9-4cd1-aa90-4f75a4623997/FPL_Draft_image1.png?width=1920) ([article](https://www.premierleague.com/news/427772)) | Draft Room after the draft, launch-year design | **Old branding** (bright green header with diagonal stripes, EA Sports). The page has two panes. On the left, a pink/purple status slab ("Draft has ended!"), a ticker line ("Sean Creamer SC picked: Ayew"), search/view/sort and an All / Watchlist / Drafted toggle over a list of Player, Points, Round, Pick and Manager initials. On the right, **"Drafted Teams"**: a manager dropdown, `15 / 15`, then the squad under coloured position bands (`2 / 2 Goalkeepers` in yellow, `5 / 5 Defenders` in green) with each player's next fixture. |
+| `02-enter-draft-room.jpg` | [Fantasy Six Pack](https://fantasysixpack.net/wp-content/uploads/2026/08/Enter-Draft-Room-optimized.png) ([article](https://fantasysixpack.net/fpl-draft-strategy/)) | Lobby call to action (tiny crop) | The one way in from the lobby: a single green-to-cyan gradient button, "Enter the Draft Room", on the dark-purple ground. |
+| `03-draft-results-mobile.jpg` | [Substack](https://fantasygaffer.substack.com/p/draft-fpl-the-basics) (Jul 2021) | Draft Room, Drafted tab, mobile web | The same list as 01 in the newer purple skin. Pink-accented search and dropdowns sit over a purple header, with an `All players / Watchlist / Drafted` segmented control in lilac. Rows are kit icon, name, club, position, then DR (draft rank), Round, Pick, and a **grey initials chip for the manager** (`MY`, `JW`). |
+| `04-player-list-draft-rank.jpg` | [Fantasy Six Pack](https://fantasysixpack.net/wp-content/uploads/2026/08/Watchlist-optimized.png) ([article](https://fantasysixpack.net/fpl-draft-strategy/)) | Pre-draft player list, sorted by draft rank (2026/27) | A purple filter header (Search, View, Sort = Draft rank) and `565 players shown` in green. Each row has an `i`, kit, name, club/position, `DR`, the next three fixtures as plain text, a grey eye button for Watchlist and a **cyan `+` button to sign**. There are no prices anywhere, because the draft has no budget. |
+| `05-free-agents.jpg` | [Fantasy Six Pack](https://fantasysixpack.net/wp-content/uploads/2026/08/FA-optimized.png) ([article](https://fantasysixpack.net/fpl-draft-strategy/)) | Transactions: free agents with "Show available" ticked | The same list grammar as 04, but the actions are words: a grey `Watch` button and a **cyan `Sign` button** on every row. A magenta checkbox filters to available players. The tabs are `All players / Watchlist (3) / Proposed (2)`. |
+| `06-waivers-proposed.jpg` | [Fantasy Six Pack](https://fantasysixpack.net/wp-content/uploads/2026/08/Transactions-optimized.png) ([article](https://fantasysixpack.net/fpl-draft-strategy/)) | Transactions: proposed waivers | `2 proposed waivers shown`. Each claim is one row: a drag handle and a **priority number** (1, 2), a green-ruled IN cell and a pink-ruled OUT cell (a red warning triangle on a doubtful player), and a cyan `Cancel` button. Under it, `0 proposed trades shown`. Waivers and trades share one page. |
+| `07-trades.jpg` | [Fantasy Six Pack](https://fantasysixpack.net/wp-content/uploads/2026/08/Trades-optimized.png) ([article](https://fantasysixpack.net/fpl-draft-strategy/)) | Trades: "Current Gameweek Trades" | A `Current team` dropdown, then a `My Trades / League Trades` toggle on a holographic cyan-lilac card. The table goes Offered by (initials chip), Trade, Offered to, Status. Inside each trade, **OFFERED** (green caps) and **REQUESTED** (pink caps) label the two halves. Status is a plain word (`Offered`). |
+| `08-launch-graphic.jpg` | [premierleague.com](https://resources.premierleague.pulselive.com/photo-resources/2025/07/31/c9bf0a5d-1a64-4eeb-888b-607a591a39ff/FPL-Draft-lead-graphic.png?width=1920) ([article](https://www.premierleague.com/en/news/4363847/fpl-draft-is-live-see-whats-new-for-202526)) | "Fantasy Draft IS LIVE" 2025/26 lead graphic | Marketing art, not UI. It's here for the brand: the "Fantasy Draft" lockup, a frosted-glass panel, a **fanned stack of blank position cards** (`GKP`, `DEF`, `FWD`) and the cyan-to-purple gradient. |
+
+---
+
+## `sleeper/`: Sleeper (NFL-first; also runs EPL "Sleeper FC" leagues)
+
+There are 12 shots. Three come from the current App Store listing (iPad set,
+basketball/NFL season art), one from Fantasy Football Scout's Sleeper piece, and
+the rest from Sleeper's own help centre (support.sleeper.com). **Many of the help
+captures have red dashed boxes drawn on them by Sleeper's support team**; those
+boxes aren't UI. Shots 03, 04 and 08 are Premier League leagues. PNGs were
+converted to JPEG. `11` was scaled from 6912 to 1920 wide.
+
+| File | Source | Screen | What's notable |
+|---|---|---|---|
+| `01-draft-board.jpg` | [App Store](https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/ec/09/69/ec09694f-3b19-c732-f853-db01909e530c/07_APP_IPAD_PRO_3GEN_129.png/1920x1440bb.jpg) | Live draft board (marketing comp) | `YOUR TURN` and a `00:01:00` countdown over a row of manager avatars. Below is the **board: one column per manager, one row per round, and each pick a tile coloured by position** (QB pink, RB teal, WR blue, TE orange) with a `1.1` pick number and a snake arrow. An `ON THE CLOCK` tile is dark. The tabs are players / queue / team / chat. |
+| `02-draft-room-your-turn.jpg` | [Sleeper help](https://downloads.intercomcdn.com/i/o/xstxtwfr/2680223822/d985b01b4893fc35ea14e341ba1b/image.png) ([article](https://support.sleeper.com/en/articles/4029085-how-does-the-draft-timer-work)) | Draft room on a phone, timer expired | The same board compressed to the top half. The bottom half is the pick list: position filter discs with counts (`QB 0/1`), and rows with a **cyan `DRAFT` pill**, rank, name, PTS and ROST %. The suggested pick is called out inline (`PROJ PICK: ROUND 1 OVERALL #4`). A timer pill reads "Times up!". |
+| `03-mock-draft-epl.jpg` | [Sleeper help](https://downloads.intercomcdn.com/i/o/1135071564/56926499857751e88b3058d2/MockBoard2.jpg) ([article](https://support.sleeper.com/en/articles/9657119-how-to-conduct-a-mock-draft)) | EPL mock draft room, before the start | A football version of 02, with position filters FWD / MID / DEF / GK and ADP, SOT and INT columns (Haaland, Palmer, De Bruyne). The empty board has `CLAIM` buttons for open seats, plus a violet `START MOCK DRAFT` pill and an "Invite friends" strip. |
+| `04-team-pitch-epl.jpg` | [Fantasy Football Scout](https://cdn.fantasyfootballscout.co.uk/wp-content/uploads/2024/08/what-is-sleeper-how-can-you-join-our-free-pickem-league-2.jpg) ([article](https://www.fantasyfootballscout.co.uk/2024/08/14/how-to-conduct-a-draft-on-sleeper)) | Sleeper FC team tab, lineup on a pitch (promo art) | A dark navy app over a **dark striped pitch**. Each player is a round headshot with a **position pill coloured by line** (FWD red, MID purple, DEF blue), with the fixture and score (`2-0 vs BRH`) above and points below. Formation chips (`4-4-2`, `4-3-3`, `4-5-1`) sit above the pitch, and a chat strip is docked at the bottom. |
+| `05-team-roster.jpg` | [Sleeper help](https://downloads.intercomcdn.com/i/o/xstxtwfr/2680171186/62d222d69bb3ad9b1007671d681a/image.png) ([article](https://support.sleeper.com/en/articles/3188802-how-to-trade)) | League → Team tab, starters list | The league header carries four tabs (MATCH TEAM PLAYERS LEAGUE). The team card has a win-probability bar (`44% WIN`) and quick actions (sched., trade, trans., news). Starters are 2-line rows: a **coloured position block**, the name, `% Rostered / % Start` and the fixture with opponent rank, and the projection on the right. A chat ticker sits above the tab bar. |
+| `06-matchup.jpg` | [App Store](https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/88/a1/5a/88a15a10-1742-85ac-986d-fe0303230112/03_APP_IPAD_PRO_3GEN_129.png/1920x1440bb.jpg) | Head-to-head matchup, live (marketing comp) | Two avatars, two big scores (`100.35` vs `55.44`), projected totals underneath and **win % in coloured bars (85% / 15%)**. Starters are paired across a centre column of position chips (QB, RB), each side showing score, projection and a live stat line. The leading side's cell is lit. |
+| `07-waiver-claim.jpg` | [Sleeper help](https://downloads.intercomcdn.com/i/o/xstxtwfr/2690778387/6ebfcfa7422ab9e20022f3e3db2b/image.png) ([article](https://support.sleeper.com/en/articles/12111984-suggested-faab-bids)) | Waiver claim with a FAAB bid | It's one flow on one sheet: "Add Drew Lock", a **bid stepper (`$ 10`, `$100 remaining`)**, a "Suggested Bid: $3 – $8" strip, then "Select player to drop" with radio rows of the current roster and a cyan `NEXT`. A yellow warning reads "Your roster is full". |
+| `08-trade-propose-epl.jpg` | [Sleeper help](https://downloads.intercomcdn.com/i/o/1135322143/f48654647980857c8711e60d/IMG_6108.png) ([article](https://support.sleeper.com/en/articles/9701146-welcome-to-a-new-trading-experience)) | Sleeper FC "Propose a Trade" | **One column per manager**, each a stack of rectangular player cards **filled by position** (FWD coral, MID purple, DEF cyan) with a radio circle. Your own column is outlined only. A white `TRADE BLOCK` tag and heart/badge icons mark interest. A bottom sheet holds the Trade Proposal. |
+| `09-trade-offers.jpg` | [Sleeper help](https://downloads.intercomcdn.com/i/o/xstxtwfr/2691171742/df628f40e3158662df90962ba381/image.png) ([article](https://support.sleeper.com/en/articles/4056316-where-can-i-view-my-trade-offers)) | Trade Offer: one offer sent to several managers | One card per counterparty, split into RECEIVES / SENDS columns with headshots. Each card has a status (green `✓ SENT OFFER` or grey hourglass `PENDING`). At the bottom, `WITHDRAW` and an outlined `MODIFY`. |
+| `10-player-card.jpg` | [Sleeper help](https://downloads.intercomcdn.com/i/o/xstxtwfr/2690874298/64dd8a5902640200b5e01b652ffe/image.png) ([article](https://support.sleeper.com/en/articles/4238825-welcome-to-a-new-trading-experience)) | Player card (opened from a league) | A **team-coloured hero** with a cut-out headshot, the surname in heavy caps, and Age / Height / Weight / Exp as big numbers. There are action buttons (DROP, trade block, star) and a commissioner "League note". Tabs are Summary / Game log / Team / History. Rank and ownership are shown with deltas (`96% (+6%)`), and there's an upcoming-game card with live reaction counts. |
+| `11-league-web-trades.jpg` | [Sleeper help](https://downloads.intercomcdn.com/i/o/xstxtwfr/2691177668/010ecfb02c7e1c94b375b008c769/image.png) ([article](https://support.sleeper.com/en/articles/4056316-where-can-i-view-my-trade-offers)) | Desktop web: league Trade tab | The web layout is a **left rail of league icons**, then the league (Matchup, Team, League, Trade, Settings) with the Trade Block and Active Trades. Down the right is a permanent player panel (Trend / Available / Leaders) with add counts in green and suggested FAAB per row. A chat bubble floats at the bottom. |
+| `12-feed.jpg` | [App Store](https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/85/2b/d6/852bd67b-cef8-cdc4-1470-929c44c8be65/05_APP_IPAD_PRO_3GEN_129.png/1920x1440bb.jpg) | Trending feed (marketing comp) | A social feed: channel icons across the top, then posts with avatars, a live score card embedded in a post, emoji reaction counts (`788`), replies and shares. The game is wrapped in talk. |
+
+---
+
+## What FPL does for a fantasy game
+
+Background only. These describe how FPL and FPL Draft present things, not what
+this product should do.
+
+- **The pitch is the main view.** Pick Team, Points and Transfers all use the
+  same perspective pitch of shirts (fpl/01, 04, 06), and the plate under each
+  shirt changes job: position, next opponent, price or points. Some screens
+  also offer a List toggle (fpl/03).
+- **The points headline is one number compared with two others.** The gameweek
+  score is the big figure, set between the average and the highest (fpl/05).
+  On the pitch, each player's points go on his own plate rather than in a table
+  (fpl/04). History is a plain abbreviated-column table with green/red rank
+  arrows (fpl/09).
+- **Player info is mostly a row, not a page.** Rows carry an italic `i` that
+  opens the pop-up, plus a kit icon, name, club and position, then fixtures or
+  stats (fpl/03, fpl-draft/04). FPL squeezes the player down to a kit and a
+  three-letter club code. Sleeper uses a headshot and a hero card.
+- **Fixture difficulty is a five-step colour scale** (green, pale green, grey,
+  red, maroon). It's reused as pills in the squad list and as a full club × gameweek
+  grid (fpl/03, 08). It's a judgement, much like FM26's verdict pills.
+- **Live updates.** The 2026/27 game updates points, projected bonus (from about
+  20 minutes into a match) and mini-league ranks live. None of the shots here
+  shows the live state.
+- **Chips and rules sit in the chrome.** Chips are a row of four `Play` /
+  `Unavailable` buttons above the pitch (fpl/01). Free transfers, cost and bank
+  are four stat chips (fpl/06). Hints and rule reminders are purple banners.
+- **The FPL Draft draft room is a list, not a board.** It has a status slab
+  ("Draft has ended!"), a one-line pick ticker, the player list with All /
+  Watchlist / Drafted tabs, and a side pane with each manager's squad filling
+  position quotas (`5 / 5 Defenders`) (fpl-draft/01, 03). The lobby is one
+  "Enter the Draft Room" button (fpl-draft/02). Sleeper does the opposite and
+  makes the colour-coded grid the hero.
+- **FPL Draft waivers and trades are tables of words.** A waiver is a numbered,
+  draggable IN/OUT row (fpl-draft/06). Free agents get `Watch` / `Sign` buttons
+  (fpl-draft/05). A trade is OFFERED / REQUESTED halves with a status word and
+  manager initials chips (fpl-draft/07). There are no prices, because draft has
+  no budget.
+
+## What Sleeper does differently
+
+- **It's dark, neon and mobile-first.** Navy grounds with cyan/teal action pills,
+  next to FPL's white-and-purple with bright green pitches and FM26's purple
+  gradients. The web version copies the phone: a rail of league icons and a
+  permanent player side panel (sleeper/11).
+- **Position is the main colour code everywhere.** Board tiles, roster blocks
+  and trade cards are filled by position (sleeper/01, 05, 08). FPL colours by
+  fixture difficulty. CM colours by kind of value.
+- **The draft board is the hero.** A manager × round grid of coloured tiles with
+  snake arrows, an on-the-clock tile and a countdown. The pick list and chat are
+  tabs underneath (sleeper/01–03).
+- **Everything is a probability or a delta.** Win % bars in the matchup
+  (sleeper/06), `% Rostered | % Start` on every row (sleeper/05), ownership with
+  `(+6%)` (sleeper/10), suggested FAAB bids (sleeper/07). This is FM26's
+  "numbers become verdicts", aimed at fantasy instead.
+- **It's social by default.** A chat strip is docked above the tab bar on every
+  league screen, there's a draft-room chat tab, a feed with reactions
+  (sleeper/12), and a commissioner note on the player card.
+- **Head-to-head is laid out as a duel.** Two avatars and two scores face each
+  other, and starters are paired across a centre column of position chips
+  (sleeper/06). FPL Draft's H2H matchup screen wasn't found to compare against.
