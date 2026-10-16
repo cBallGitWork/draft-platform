@@ -15,7 +15,7 @@ an email sent)? And the blast radius: which screen, league or job it can break. 
 
 - [ ] the tests at this feature's seam pass, and were run
 - [ ] shot at 390 and 1440, and looked at, if anything visible changed
-- [ ] refactor check on this diff (`docs/REFACTORING.md`, *With every pull request*); a drift pass is due after 10 merged since the last
+- [ ] `/refactor` run on the branch, twice; a drift pass is due after 10 merged since the last (`docs/REFACTORING.md`)
 - [ ] pr-reviewer run on the branch; its verdict is below
 - [ ] docs updated in this branch, not a follow-up
 - [ ] staged by named path

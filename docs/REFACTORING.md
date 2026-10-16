@@ -33,19 +33,9 @@ its own reason, never a cleanup:
 
 ## With every pull request
 
-A small check on the pull request's own diff, before `pr-reviewer` runs. It covers only what this
-branch wrote; anything older found on the way becomes an issue (`CLAUDE.md`), unless it sits in a
-file the task already touches.
-
-- **Written three times?** Lift it, after the third copy (PHILOSOPHY: duplicate code is cheaper
-  than the wrong abstraction). Two copies stay.
-- **Left behind?** Unused imports, functions, arguments, commented-out code: delete.
-- **Named for what it is?** In the glossary's words (`SPEC.md`): a *team*, not a *player*, for a
-  manager's side.
-- **Docs still true?** A doc the change makes wrong is fixed in the same branch.
-- **Would I write it this way from scratch?** If not, and the fix is inside this diff, fix it.
-
-The pull request template has a box for it.
+`/refactor` (`.claude/skills/refactor/`), before `pr-reviewer` runs: a six-point checklist, twice,
+over the branch's own diff, then the checks. The checklist lives in the skill, not here. The pull
+request template has a box for it.
 
 ## The drift pass
 
@@ -57,7 +47,7 @@ back, names drift, docs desync. The drift pass is a scheduled step back.
 - before the mini beta, and before the draft goes live;
 - a file passes 300 lines (the line-ceiling hook will say when, `ARCHITECTURE.md`).
 
-**What:** the per-PR checks above, across everything merged since the last pass; and whether each
+**What:** `/refactor`'s checklist, across everything merged since the last pass; and whether each
 thing lives in the right place.
 
 The drift pass is a task of its own, so fixing older files there keeps `CLAUDE.md`'s rule that
@@ -65,7 +55,6 @@ tidying stays inside the files a task touches.
 
 **How:** fresh eyes, never the author's own: `pr-reviewer` over the range, or `/code-review`.
 Fixes go in on a `refactor/` branch, and its pull request title starts `refactor: drift pass`.
-A pass that finds nothing is a success; say so and stop. Never invent changes to look busy.
 
 **Record**, in a commit message on the drift pass's branch. The repo's squash merge keeps every
 commit's message, so the line reaches `main`:
@@ -96,6 +85,7 @@ numbers, not "looks fine".
 
 ## Toolkit
 
+- `/refactor` (`.claude/skills/`): the check every pull request gets.
 - `/simplify` and `/code-review` are Claude Code's own skills.
 - `/simplify`: reuse and simplification cleanups, applied. The driver for mode 1.
 - `/code-review`: a correctness pass; run it after an untangle.
