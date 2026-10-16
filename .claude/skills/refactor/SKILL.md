@@ -22,13 +22,19 @@ file the task already touches.
 2. **Find bugs:** a test that can't fail; a test name promising what its body doesn't check; a
    test double joining downstream of the logic it should protect (delete the fix, run the test:
    if it still passes, it pins the wrong thing); a silent catch; a league rule hardcoded.
-3. **Naming:** the glossary's words (`SPEC.md`); a test named for its action and its outcome.
+3. **Naming:** every variable, function, file and test says what it is: `daysUntilExpiration`,
+   not `d` (`PHILOSOPHY.md`); a function needing a comment to explain it is renamed. The
+   glossary's words (`SPEC.md`): a *team*, not a *player*, for a manager's side. A test is named
+   for its action and its outcome, and checks what its name says.
 4. **Debloat:** comments that restate the code, the same explanation in two places, anything not
    carrying its weight. A first draft usually cuts to a third or a half.
-5. **Rule of three:** anything written three times is lifted; two copies stay (`PHILOSOPHY.md`: "the same pattern 3 times").
-   An abstraction with one use goes. Code copied from epl-draft stays copied.
-6. **Right home:** FPL's fixed rules as constants, a league's rules as data, the football layer
-   behind its one seam (`ARCHITECTURE.md`).
+5. **Rule of 2/3:** a value (a number, a string, a path, a URL) written twice is lifted; logic
+   written three times is lifted (`PHILOSOPHY.md`: "the same pattern 3 times"). Two copies of
+   logic stay. An abstraction with one use goes. Code copied from epl-draft stays copied.
+6. **Right home, nothing hardcoded:** no bare number or string in a function body; each goes to
+   its shared file, one home for each kind of thing. FPL's fixed rules are constants; a league's
+   rules are data, never a constant; the feeds' endpoints sit behind the football layer's one seam
+   (`ARCHITECTURE.md`). Setup a test repeats goes in a shared helper, not the test body.
 
 Report every finding from each pass with its file and line, including the ones you chose not to
 act on. A pass that finds nothing is a valid result; never invent changes to look busy. A green
