@@ -67,3 +67,18 @@ its table row.
 
 Only Craig's answers go in. A recommendation he didn't take stays out. SPEC.md goes in on its
 own branch and PR, like any change.
+
+## 6. Then the tickets
+
+A feature grilled for building ends in GitHub issues, after epl-draft's grill and Pocock's
+skills v1.3 (Craig, 16 Oct 2026):
+
+- **Title** says what is missing or wrong, not what to add.
+- **The stories**, numbered: *as a manager who …, I …*, one per settled decision, each pointing
+  at its line in `spec/NN-*.md`.
+- **The seam**: where the tests will poke the feature. Aim for one.
+- **Done**: the check that proves it, which a session can rerun.
+
+A feature bigger than one fresh session (~150k tokens) is cut into several issues, each a thin
+slice through every layer that works on its own, with the blocking order named. The spec file
+stays: it is the product's record; the issue closes by merge.

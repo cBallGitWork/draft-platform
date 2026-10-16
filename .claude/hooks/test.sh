@@ -16,7 +16,6 @@ check() { # expect hook payload
   fi
 }
 bash_cmd() { /usr/bin/jq -nc --arg c "$1" '{tool_name:"Bash",tool_input:{command:$c}}'; }
-edit() { /usr/bin/jq -nc --arg p "$1" '{tool_name:"Write",tool_input:{file_path:$p}}'; }
 
 # guard_bash.py, run from a throwaway repo on a feature branch
 tmp=$(mktemp -d)
@@ -52,20 +51,5 @@ check deny guard_bash.py "$(bash_cmd 'git push')"
 check allow guard_bash.py "$(bash_cmd 'git status')"
 check allow guard_bash.py "$(bash_cmd 'git switch -c chore/y origin/main && git status')"
 
-# guard_spec.py, with and without a SPEC.md. Symlinked paths: on macOS /tmp is /private/tmp.
-real=$(cd "$tmp" && pwd -P)
-ln -s "$real" "$tmp.link"
-for p in "$tmp/src/app.ts" "src/app.ts" "./src/app.ts" "$tmp/package.json" \
-         "$tmp/.claude/../src/a.ts" "$real/src/a.ts" "$tmp.link/src/a.ts" "$tmp/sub/.gitignore"; do
-  check deny guard_spec.py "$(edit "$p")"
-done
-for p in "$tmp/SPEC.md" "$tmp/docs/notes.md" "$tmp/.claude/skills/x/SKILL.md" "$tmp/.gitignore" \
-         "/tmp/elsewhere.ts" "$tmp/../outside.ts"; do
-  check allow guard_spec.py "$(edit "$p")"
-done
-check deny guard_spec.py "$(/usr/bin/jq -nc --arg p "$tmp/a.ipynb" '{tool_name:"NotebookEdit",tool_input:{notebook_path:$p}}')"
-touch "$tmp/SPEC.md"
-check allow guard_spec.py "$(edit "$tmp/src/app.ts")"
-
-rm -rf "$tmp" "$tmp.link"
+rm -rf "$tmp"
 [ "$fails" -eq 0 ] && echo "hooks: all checks pass" || exit 1

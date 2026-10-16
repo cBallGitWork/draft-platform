@@ -17,10 +17,13 @@ Our league moves to it from Fantrax; the companion app lives in `cBallGitWork/ep
 - Persist FPL's season-stable `code`, never the per-season `id`.
 - Football-layer code is copied from epl-draft's `packages/core` when it's needed, not shared.
 - The stack is in `ARCHITECTURE.md`: Craig picks services, Claude picks libraries, both with a reason.
+- Before drawing any screen, read `docs/design/plate.md`. `docs/design/references/` is background, never the product.
 
 ## Working
 
 - Never commit on `main`. One branch and one PR per task, squash-merged.
 - Stage named paths; never stage everything.
+- Before a pull request opens, run the `pr-reviewer` agent on the branch and paste its verdict into the template.
+- A doc over 100 lines opens with a contents list.
 - Both are enforced by `.claude/hooks/guard_bash.py`; `.claude/hooks/test.sh` checks every hook.
 - Add a rule here only after Claude gets something wrong, and add a hook rather than a rule where possible. `/retro` before clearing the chat finds those moments.
