@@ -20,3 +20,5 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - An auto-sub takes the slot and role of the player he replaces, while the formation stays within
   the league's area limits. How is still to be investigated.
 - Your tactics change only your own players' points, never your opponent's.
+- Squad numbers: a manager can give his players numbers, shown on their shirts. They start from
+  each player's real club number.

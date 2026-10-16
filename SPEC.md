@@ -32,16 +32,18 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 9 | [Season admin](spec/09-season-admin.md) | not built | an illegal lineup at lock is fixed by the auto team |
 | 10 | [Live matchday](spec/10-live-matchday.md) | not built | points move during a match and are marked provisional until it is final |
 | 11 | [Email](spec/11-email.md) | not built | on a pick clock over 10 minutes the manager on the clock gets one email; under it, none |
-| 12 | Screens | to grill | — |
+| 12 | [Screens](spec/12-screens.md) | not built | a signed-in manager lands on My team, with Mail's unread count in the menu |
 | 13 | Setting up a league | to grill | — |
 | 14 | Scoring categories | to grill | — |
 | 15 | Admin tools | to grill | — |
+| 16 | [Mail](spec/16-mail.md) | not built | a claim, a drop and a trade each file one letter for every manager in the league |
 
-Features 12–15 get their file from their own `/grill`.
+Features 13–15 get their file from their own `/grill`.
 
 ## Second release
 
-- Team-wide instructions on top of formation and roles.
+- Team instructions on top of formation and roles. One can target an area (a high press: forwards
+  score more for tackles won and interceptions) or the whole team ("get stuck in" rewards everyone).
 - The super sub, as a league rule: a bench player who scores extra if he comes on in the real
   match, which makes bench players worth having.
 
@@ -86,3 +88,6 @@ Features 12–15 get their file from their own `/grill`.
 | auto team | the app setting an absent manager's lineup | |
 | super sub | a bench player who scores extra if he comes on in the real match | |
 | the market | money in the game: salaries, fees, wages, money in trades | |
+| Mail | the inbox in the app | email |
+| email | a message sent to a manager's own inbox | Mail |
+| squad number | the number a manager gives a player, shown on his shirt ("shirt number" means the same) | |
