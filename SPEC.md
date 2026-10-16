@@ -94,6 +94,8 @@ Features 13 and 15 get their file from their own `/grill`.
 | deadline | the one moment each gameweek that locks every lineup | lock time |
 | formation | how a lineup stands on the pitch's grid, preset or placed freely | shape |
 | preset | a ready-made formation, such as 4-2-3-1 | |
+| category | one stat a league can score, such as goals or tackles won | |
+| short code | a category's abbreviation in dense tables: G, A, CS, KP, TW | |
 | lineup | a team's starters and bench for one gameweek | |
 | squad | every player a team owns | |
 | starter | a player in the lineup's eleven | |

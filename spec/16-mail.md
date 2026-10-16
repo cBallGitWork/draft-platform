@@ -9,7 +9,8 @@ letters, newest first. It reports; it never advises.
 - An unread count in the menu.
 - It files: the next deadline; your results; injury doubts, yours and your next opponent's (from FPL's player news and
   chance of playing);
-  every claim, drop and trade in the league; trade offers to and from you; waiver results;
+  every claim, drop and trade in the league; trade offers to and from you; waiver results; a commissioner's
+  override of a past score (`spec/14`);
   draft-day letters (on the clock, pick made).
 - Real-life news, once there is a source for it.
 - The commissioner can send a one-way letter to the whole league. There is still no chat.

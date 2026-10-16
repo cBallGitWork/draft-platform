@@ -28,15 +28,16 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 - A commissioner can override one player's points for one match, with a reason. It re-scores that
   head-to-head and sends Mail to the whole league saying what changed and why.
 
-## The starter set
+## The first scoring set
 
-- The mini beta runs on one starter set: a first draft written from the catalogue, starting from
+- The mini beta runs on one first scoring set: a draft written from the catalogue, starting from
   the Tim Hortons Pro League's own values so it feels familiar, which Craig edits before the beta.
-  The platform's real sets are designed later.
+  It carries the starting list of roles (`spec/05`). The platform's real sets are designed later.
 
 ## On screen
 
 - The player card breaks each match down by category (goals 5, assists 3, minutes 2, role +2).
-- Bench players' points show greyed on the card and the matchup, and never count.
-- Dense tables use short codes (G, A, CS, KP, TW) with the full name on hover; the rules editor
+- Bench players' points show greyed on the card and the matchup, and count only if the player is
+  subbed on (`spec/05`).
+- Dense tables use short codes (G goals, A assists, CS clean sheet, KP key passes, TW tackles won) with the full name on hover; the rules editor
   uses full names.
