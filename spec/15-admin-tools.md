@@ -13,10 +13,11 @@ each league's **commissioner**.
 - Sets the stat-correction window (`spec/07`).
 - Can remove a manager from a league. The team stays, for the commissioner to hand to someone
   new (`spec/09`).
-- A feeds view: when FPL's and the Premier League's feeds last answered, and whether scoring is
+- A feeds page: when FPL's and the Premier League's data last arrived, and whether scoring is
   behind. A feed that stops silently is the failure to catch.
-- His actions are logged where only he sees them; a league gets a Mail letter only when its
-  results change.
+- His actions are logged where only he sees them. One files a Mail letter in a league when it
+  changes a score, a squad or who runs a team there; a position correction doesn't, since managers
+  already get its warning (`spec/06`). (Craig left this to Claude.)
 
 ## The commissioner
 
@@ -30,8 +31,9 @@ each league's **commissioner**.
 ## Joining a league
 
 - The commissioner enters a manager's email address and the app sends a sign-in link; or the
-  commissioner shares the league's one invite link (say, in the group chat), and whoever opens it
-  takes the next empty team. One manager runs one team.
+  commissioner shares the league's one invite link (say, in the group chat). Opening the link only
+  asks to join: the commissioner approves each request and picks which team the person gets, a
+  vacated one included. A leaked link lets no one in. One manager runs one team.
 
 ## Assigning players
 
@@ -42,6 +44,6 @@ each league's **commissioner**.
 ## The mini beta
 
 - Needed by then: creating a league and naming its commissioner, inviting managers, assigning
-  players, editing the scoring set, overriding a score, correcting positions, and the feeds view.
+  players, editing the scoring set, overriding a score, correcting positions, and the feeds page.
   The rest (draft controls, trade veto, fixture editing, handing a team on, the auto team) by
   August.

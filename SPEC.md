@@ -13,8 +13,9 @@ which Craig sets the leagues up; long term, anyone can. Live by August 2027 woul
 it can go live at any time. The Tim Hortons Pro League is the first league on it. A goal: a mini
 beta over the last three or four weeks of the 2026/27 season, to iron out kinks: a quick league
 of about four, with players assigned to teams rather than drafted, for the basics. By then:
-features 1, 2, 3, 5, 6, 7, 10, 12, 14 and 16, and the admin tool that assigns players to teams
-(15). The draft (4) waits for the summer.
+features 1, 2, 3, 5, 6, 7, 10, 12, 14 and 16, and the mini beta's admin tools
+(15: creating a league, inviting managers, assigning players, a score override, positions, the
+feeds page). The draft (4) waits for the summer.
 
 ## Features
 
@@ -76,7 +77,7 @@ Feature 13 gets its file from its own `/grill`.
 - Injured reserve.
 - A limit on auto-subs, or a switch to turn them off.
 - Public league pages: no league is visible without signing in.
-- Co-commissioners: one commissioner per league.
+- Co-commissioners (a league has one commissioner).
 - FPL's bonus points, and a ready-made FPL-style or Fantrax-copy scoring set.
 - A lock at each player's kickoff: there is one deadline per gameweek.
 
