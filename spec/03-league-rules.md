@@ -7,7 +7,7 @@ The league's rules are data. Among them:
 - Format: head-to-head, or total points.
 - Playoffs: how many teams, how many legs.
 - Standings tie-breaks.
-- Squad shape: a minimum and maximum squad size, or no limits; a minimum and maximum per area;
+- Squad make-up: a minimum and maximum squad size, or no limits; a minimum and maximum per area;
   a maximum per club.
 - Carry-over: redraft, keeper (the league sets how many each team keeps; keeping costs nothing)
   or dynasty (the whole squad carries over).

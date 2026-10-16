@@ -28,7 +28,7 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   one category at a time: an attacking role might reward key passes more, a defensive one
   defensive actions.
 - The effect is flat points per action (for example +1 per key pass, −1 per clean sheet): the
-  working shape, which Craig will edit.
+  working assumption, which Craig will edit.
 - Every role gives something and takes something. Each is checked against last season's
   real stats: for an average player in its area it comes out close to the base scoring, so a role
   pays only for the player it suits.
@@ -61,7 +61,7 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 
 ## The deadline
 
-- One deadline per gameweek for every team, as in FPL: it locks the whole lineup, roles and shape
+- One deadline per gameweek for every team, as in FPL: it locks the whole lineup, roles and formation
   included. Nothing locks player by player. Its time is a league rule; the default is FPL's own,
   90 minutes before the gameweek's first kickoff (every 2026/27 gameweek so far, checked against
   FPL's live data on 16 Oct 2026).
@@ -72,7 +72,7 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   live points, final when the gameweek ends.
 - The first player in the manager's bench order who can play the empty slot's area takes that
   slot and its role. If none can, the first who keeps the area limits legal comes on in his own
-  area, on his best-star role, and the shape changes. If no one can come on without breaking the
+  area, on his best-star role, and the formation changes. If no one can come on without breaking the
   limits, no one does: the slot scores nothing.
 - A goalkeeper is replaced only by a goalkeeper.
 - In a double gameweek, a starter who plays in either match is not subbed.

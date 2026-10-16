@@ -11,7 +11,7 @@ Our league moves to it from Fantrax; the companion app lives in `cBallGitWork/ep
 
 ## Decided
 
-- Opus plans and builds. Only a reviewer runs on a different model.
+- Opus plans and builds. The reviewer runs on a different model from the builder.
 - The look is modern, with Championship Manager as a homage, not the rulebook.
 - FPL's rules are fixed, so they can be constants. The league's rules are data, never hardcoded.
 - Persist FPL's season-stable `code`, never the per-season `id`.

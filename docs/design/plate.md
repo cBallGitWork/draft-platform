@@ -16,19 +16,27 @@ values are Claude's, from the designer's round-2 brief and the reviewer's pass o
 | name plate | `#050a30` | under a player's name on the pitch, the alert strip |
 | column head | `#b9bcc4`, ink `#0a1240` | one continuous plate over a table's columns |
 | fact | `#ffffff` | names, labels that are facts, a role |
-| figure | `#ffe600` | a number that is a figure: points, form, stars |
+| figure | `#ffe600` | a number that is a figure: points, form, stars. Never a button or tab |
 | derived reading | `#6bfdfa` | something worked out: a countdown, a formation's preset name |
 | event | `#ff9b3d` | something that happened or needs you: a doubt, unread mail |
 | muted / unavailable | `#9aa4b8` | secondary labels, subs, read mail |
 | role text | `#c9d1ff` | the role under a name on the pitch |
 | pitch | stripes `#2f8535` / `#276f2c`, lines 2px `#e6f2e6` | |
+| action | fill `#ffffff`, ink `#0a1240`, bevel `#b9bcc4` | Continue; hover `#c9d1ff`, pressed `#b9bcc4` (bevel flipped); `#ff9b3d` (hover `#ffb36b`, pressed `#e07f1f`) when the deadline is near; with nothing to do, no fill, 1px `#9aa4b8` border, "Nothing needs you" |
+| secondary action | fill `#0030a6`, 1px border `#c9d1ff`, ink `#ffffff` | hover fill `#1f13a7`, border `#ffffff`; pressed fill `#0a1240` |
+| active tab | text `#ffffff` 600, 3px underline `#6bfdfa` (2px on a sub-tab) | inactive tabs `#c9d1ff`; never muted `#9aa4b8` on the bar (4.24:1) |
+| focus | 2px outline `#6bfdfa`, offset 2px | every control |
+| link | `#ffffff`, 1px underline; hover underline `#6bfdfa` | |
 
-**Fixture difficulty**, always with its digit, never by colour alone:
-1 `#00b050` ink `#04130a` · 2 `#8fd36a` ink `#0c1a06` · 3 `#c9ccd4` ink `#0a1240` ·
-4 `#ff4f6d` ink `#1a0208` · 5 `#8c1236` ink `#ffffff`.
+**Fixture difficulty** fills the whole cell, CM style, with no digit (Craig). The fills fall in
+lightness from easiest to hardest, so the order survives red-green colour blindness:
+1 `#57e08a` ink `#04130a` · 2 `#93b83a` ink `#0c1a06` · 3 `#8a90a0` ink `#0a1240` ·
+4 `#c9304f` ink `#ffffff` · 5 `#8c1236` ink `#ffffff`. Each cell carries `title` and `aria-label`
+("Opponent BOU, home, difficulty 2 of 5, easy"; the words: very easy, easy, average, hard, very
+hard), a five-step legend sits above the table, and rows keep a 1px `#0a1240` gap.
 
 The pairs the reviewer computed meet WCAG 2.1 AA (muted on panel 5.1:1, every difficulty ink on
-its fill 6.2:1 or better, the unread badge 8.5:1); check any new pair before using it. Cyan never
+its fill 5.2:1 or better, the unread badge 8.5:1); check any new pair before using it. Cyan never
 sits straight on the pitch: it fails there (4.35:1).
 
 ## Type
@@ -69,13 +77,9 @@ with its count); the deadline and Continue in a 48px bar at the top; every targe
 keeps the player column fixed and drops Club, Role and Role fit; Mail collapses to an "N unread"
 bar above the pitch; the pitch's player blocks narrow to 84px. The app needs a viewport meta.
 
-## Open: Craig's call
+## Decided
 
-The reviewer and the designer disagree on these, so they wait for Craig:
-
-- **Yellow for Continue and the active tab.** The designer gave Continue CM's yellow; the reviewer
-  says yellow means a figure and should not be spent on buttons, and wants white on blue (orange
-  when the deadline is near) with a cyan underline for the active tab.
-- **Fixture difficulty as a filled cell** (the whole column coloured, as CM did) instead of a chip
-  inside the cell.
-- **The squad as the dominant panel** over the pitch.
+- **Yellow is a figure only.** Continue is white, orange when the deadline is near, and the active
+  tab is a cyan underline: the UX expert's call, which Craig handed them (16 Oct 2026).
+- **Fixture difficulty** is a filled cell without a digit (Craig).
+- **Pitch, squad and Mail** stay side by side; no panel is made dominant (Craig).
