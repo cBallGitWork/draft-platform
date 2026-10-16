@@ -10,7 +10,8 @@ draft/EPL/Football Manager hybrid with real tactics: formations and roles change
 scores, so a player's value depends on the team he is in. A salary cap is part of the idea, and
 it is the first thing cut if scope has to shrink. Web first, free for now, and a closed beta in
 which Craig sets the leagues up; long term, anyone can. Live by August 2027 would be nice, but
-it can go live at any time. The Tim Hortons Pro League is the first league on it.
+it can go live at any time. The Tim Hortons Pro League is the first league on it. A goal: a mini
+beta over the last three or four weeks of the 2026/27 season, to iron out kinks.
 
 ## Features
 
