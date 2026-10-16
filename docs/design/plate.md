@@ -65,7 +65,7 @@ From the designer's review, the tells that make a screen look AI-made:
 ## The phone (to draw when the phone design is grilled)
 
 From the reviewer, for a 390px screen: a bottom bar of five (Team, Matchup, Table, Players, Mail
-with its count); the lock and Continue in a 48px bar at the top; every target 44px; the squad table
+with its count); the deadline and Continue in a 48px bar at the top; every target 44px; the squad table
 keeps the player column fixed and drops Club, Role and Role fit; Mail collapses to an "N unread"
 bar above the pitch; the pitch's player blocks narrow to 84px. The app needs a viewport meta.
 
@@ -75,7 +75,7 @@ The reviewer and the designer disagree on these, so they wait for Craig:
 
 - **Yellow for Continue and the active tab.** The designer gave Continue CM's yellow; the reviewer
   says yellow means a figure and should not be spent on buttons, and wants white on blue (orange
-  when the lock is near) with a cyan underline for the active tab.
+  when the deadline is near) with a cyan underline for the active tab.
 - **Fixture difficulty as a filled cell** (the whole column coloured, as CM did) instead of a chip
   inside the cell.
 - **The squad as the dominant panel** over the pitch.

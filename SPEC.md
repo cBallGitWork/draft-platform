@@ -25,11 +25,11 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 2 | [Sign-in](spec/02-sign-in.md) | not built | a sign-in link works once and then expires |
 | 3 | [League rules](spec/03-league-rules.md) | not built | the same week scores differently under two leagues' rules |
 | 4 | [The draft](spec/04-the-draft.md) | not built | a timed-out pick takes the queue's best available player, then the default ranking's |
-| 5 | [Tactics](spec/05-tactics.md) | not built | the same player and match score differently in two roles |
+| 5 | [Tactics](spec/05-tactics.md) | not built | the same player and match score differently in two roles, and an empty slot is filled by the first fitting sub |
 | 6 | [Positions](spec/06-positions.md) | not built | a player flagged, then losing a position, at the admin's thresholds |
 | 7 | [Scoring](spec/07-scoring.md) | not built | a finished match's points match the league's rules for every category |
 | 8 | [Between gameweeks](spec/08-between-gameweeks.md) | not built | waiver claims resolve in priority order before free agency opens |
-| 9 | [Season admin](spec/09-season-admin.md) | not built | an illegal lineup at lock is fixed by the auto team |
+| 9 | [Season admin](spec/09-season-admin.md) | not built | an illegal lineup at the deadline is fixed by the auto team |
 | 10 | [Live matchday](spec/10-live-matchday.md) | not built | points move during a match and are marked provisional until it is final |
 | 11 | [Email](spec/11-email.md) | not built | on a pick clock over 10 minutes the manager on the clock gets one email; under it, none |
 | 12 | [Screens](spec/12-screens.md) | not built | a signed-in manager lands on My team, with Mail's unread count in the menu |
@@ -72,6 +72,8 @@ Features 13–15 get their file from their own `/grill`.
 - Two roles per player (in and out of possession, as in FM26).
 - A role penalty for playing out of position.
 - Injured reserve.
+- A limit on auto-subs, or a switch to turn them off.
+- A lock at each player's kickoff: there is one deadline per gameweek.
 
 ## Glossary
 
@@ -83,7 +85,9 @@ Features 13–15 get their file from their own `/grill`.
 | role | what you tell him to do in your slot, which changes his points | |
 | trait | what he does in real life (inverted full-back, cuts inside) | style |
 | slot | a place in your formation | |
-| area | a band of the pitch a formation is built from (defence, defensive midfield, ...) | line |
+| area | a band of the pitch a formation is built from: goalkeeper, defence, defensive midfield, midfield, attacking midfield, attack | line |
+| lane | one of five columns across an area: left, left-centre, centre, right-centre, right | |
+| deadline | the one moment each gameweek that locks every lineup | lock time |
 | best match | in a double gameweek, only his higher-scoring match counts | best ball |
 | auto team | the app setting an absent manager's lineup | |
 | super sub | a bench player who scores extra if he comes on in the real match | |
