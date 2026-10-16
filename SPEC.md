@@ -15,7 +15,8 @@ beta over the last three or four weeks of the 2026/27 season, to iron out kinks:
 of about four, with players assigned to teams rather than drafted, for the basics. By then:
 features 1, 2, 3, 5, 6, 7, 10, 12, 14 and 16, and the mini beta's admin tools
 (15: creating a league, inviting managers, assigning players, a score override, positions, the
-feeds page). The draft (4) waits for the summer.
+feeds page). Live commentary and the match page (10) are in it if the live stream is proven,
+and among the first things dropped if late. The draft (4) waits for the summer.
 
 ## Features
 
@@ -107,6 +108,9 @@ Feature 13 gets its file from its own `/grill`.
 | squad | every player a team owns | |
 | starter | a player in the lineup's eleven | |
 | bench | the lineup's players who don't start, in the order auto-subs use | subs |
+| match | a real Premier League match | |
+| matchup | a head-to-head between two teams in one gameweek | match |
+| commentary | the short lines that report a match or a matchup as it is played | feed (that is the data source) |
 | gameweek | one round of Premier League fixtures, as FPL numbers them | period |
 | best match | in a double gameweek, only his higher-scoring match counts | best ball |
 | auto team | the app setting an absent manager's lineup | |
