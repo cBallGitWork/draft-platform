@@ -11,8 +11,9 @@ scores, so a player's value depends on the team he is in. A salary cap is part o
 it is the first thing cut if scope has to shrink. Web first, free for now, and a closed beta in
 which Craig sets the leagues up; long term, anyone can. Live by August 2027 would be nice, but
 it can go live at any time. The Tim Hortons Pro League is the first league on it. A goal: a mini
-beta over the last three or four weeks of the 2026/27 season, to iron out kinks: a quick league
-of about four, with players assigned to teams rather than drafted, for the basics. By then:
+beta in the 2026/27 season, with no hard date: as early as it's ready (Craig, 17 Oct 2026). It
+irons out kinks: a quick league of about four, with players assigned to teams rather than
+drafted, for the basics. By then:
 features 1, 2, 3, 5, 6, 7, 10, 12, 14, 16 and 18, and the mini beta's admin tools
 (15: creating a league, inviting managers, assigning players, a score override, positions, the
 feeds page). Live commentary and the match page (10) are in it if the live stream is proven,
