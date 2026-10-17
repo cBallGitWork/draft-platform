@@ -1,0 +1,20 @@
+{
+  "name": "draft-platform",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "convex dev",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p convex",
+    "verify": "vitest run && tsc --noEmit -p convex && .claude/hooks/test.sh"
+  },
+  "dependencies": {
+    "convex": "^1.47.0"
+  },
+  "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
+    "convex-test": "^0.0.62",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
+  }
+}

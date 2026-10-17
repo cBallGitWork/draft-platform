@@ -1,0 +1,66 @@
+// The two public football feeds, read from Convex's own servers. The URLs and the browser
+// User-Agent are copied from epl-draft's packages/core (17 Oct 2026), not shared.
+
+export const FPL_API_BASE = "https://fantasy.premierleague.com/api";
+export const PL_API_BASE = "https://footballapi.pulselive.com/football";
+/** The Premier League's id for the 2026/27 season. */
+export const PL_COMP_SEASON = 841;
+/** The Premier League's id for Arsenal, whose squad list proves squad numbers can be read. */
+export const PL_ARSENAL = 1;
+
+const USER_AGENT =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0 Safari/537.36";
+// A feed that never answers would otherwise hold the action until Convex kills it.
+const TIMEOUT_MS = 15_000;
+
+/** The body as JSON; a status that is not OK throws, naming the URL and the status. */
+export async function getJson(url: string): Promise<unknown> {
+  const res = await fetch(url, {
+    headers: { "User-Agent": USER_AGENT },
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  });
+  if (!res.ok) throw new Error(`${url} answered ${res.status}`);
+  return res.json();
+}
+
+interface RawBootstrap {
+  elements: unknown[];
+}
+
+interface RawPlFixturePage {
+  content: unknown[];
+}
+
+/** `/teams/{id}/compseasons/{season}/staff`: a club's registered squad, each with his squad number. */
+export interface RawPlStaff {
+  players: { id: number; info?: { shirtNum?: number } }[];
+}
+
+export async function fplPlayerCount(): Promise<number> {
+  const bootstrap = (await getJson(`${FPL_API_BASE}/bootstrap-static/`)) as RawBootstrap;
+  return bootstrap.elements.length;
+}
+
+export async function plFixtureCount(): Promise<number> {
+  const page = (await getJson(
+    `${PL_API_BASE}/fixtures?comps=1&compSeasons=${PL_COMP_SEASON}&pageSize=400&page=0&altIds=true`,
+  )) as RawPlFixturePage;
+  return page.content.length;
+}
+
+export async function arsenalSquadNumbers(): Promise<number> {
+  const staff = (await getJson(
+    `${PL_API_BASE}/teams/${PL_ARSENAL}/compseasons/${PL_COMP_SEASON}/staff?type=all`,
+  )) as RawPlStaff;
+  return squadNumbers(staff).size;
+}
+
+/** Premier League player id → squad number, for every registered player who has one. */
+export function squadNumbers(staff: RawPlStaff): Map<number, number> {
+  const numbers = new Map<number, number>();
+  for (const player of staff.players) {
+    const shirt = player.info?.shirtNum;
+    if (shirt !== undefined) numbers.set(player.id, shirt);
+  }
+  return numbers;
+}

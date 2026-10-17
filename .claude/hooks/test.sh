@@ -82,5 +82,25 @@ check deny guard_bash.py "$(bash_cmd 'git push')"
 check allow guard_bash.py "$(bash_cmd 'git status')"
 check allow guard_bash.py "$(bash_cmd 'git switch -c chore/y origin/main && git status')"
 
+# gate_on_stop.py: blocks a stop only while watched files are changed and the gate fails
+said() { # expect hook payload [env...]: "speaks" if the hook prints anything, else "quiet"
+  local expect=$1 hook=$2 payload=$3 out got; shift 3
+  out=$(printf '%s' "$payload" | env "$@" "$here/$hook")
+  if [ -n "$out" ]; then got=speaks; else got=quiet; fi
+  if [ "$got" != "$expect" ]; then echo "FAIL $hook: expected $expect, got $got: $payload $*"; fails=$((fails + 1)); fi
+}
+said quiet gate_on_stop.py '{}' DRAFT_GATE_CMD=false   # nothing changed
+mkdir -p "$tmp/convex" && touch "$tmp/convex/a.ts"
+said speaks gate_on_stop.py '{}' DRAFT_GATE_CMD=false
+said quiet gate_on_stop.py '{}' DRAFT_GATE_CMD=true
+said quiet gate_on_stop.py '{"stop_hook_active":true}' DRAFT_GATE_CMD=false
+
+# line_ceiling.py: a note past 250 lines, none at or under it, none for prose
+seq 251 > "$tmp/long.ts" && seq 250 > "$tmp/short.ts" && seq 400 > "$tmp/long.md"
+for f in long.ts short.ts long.md; do
+  expect=quiet; [ "$f" = long.ts ] && expect=speaks
+  said "$expect" line_ceiling.py "$(/usr/bin/jq -nc --arg p "$tmp/$f" '{tool_input:{file_path:$p}}')"
+done
+
 rm -rf "$tmp"
 [ "$fails" -eq 0 ] && echo "hooks: all checks pass" || exit 1
