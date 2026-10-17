@@ -1,7 +1,7 @@
 ---
 name: refactor
 description: The refactor check every pull request gets before pr-reviewer runs. Runs a six-point checklist twice over the branch's diff, code and docs alike, reports every finding, then verifies. Use before opening a pull request, or when Craig asks for a refactor pass or "one more pass".
-allowed-tools: Bash(git diff:*)
+allowed-tools: Bash(git diff:*), Bash(git status:*)
 ---
 
 # The refactor check
@@ -10,7 +10,9 @@ Craig's refactor checklist (16 Oct 2026). The policy around it, and what is neve
 is [docs/REFACTORING.md](../../../docs/REFACTORING.md).
 
 ## The branch's diff
-!`git diff --stat origin/main...HEAD`
+Committed and uncommitted, against `main`, then any new files:
+!`git diff --stat origin/main`
+!`git status --short`
 
 Work over the whole branch's diff, not only the last edit. Change only what the branch already
 changed: something older that breaks a rule becomes an issue (`CLAUDE.md`), unless it sits in a

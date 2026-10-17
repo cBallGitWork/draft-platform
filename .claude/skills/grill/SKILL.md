@@ -40,6 +40,10 @@ Every question carries your recommendation, so most answers are "yes, yes, no, 3
 one". When you have no grounds to recommend, say so rather than invent one. Past about thirty
 questions on one feature, it is two features; say so.
 
+Phrase each question so that "yes" means taking the recommendation; a question whose
+recommendation is "not now" is asked as "later?", never "this?". Any on-screen text in a
+recommendation is checked against `docs/design/plate.md`'s *Never* list first.
+
 Some questions don't settle by talking, usually what a screen looks like. Offer two or three
 throwaway mock-ups that look nothing alike, and let Craig pick.
 
@@ -67,6 +71,10 @@ its table row.
 Only Craig's answers go in. A recommendation he didn't take stays out. SPEC.md goes in on its
 own branch and PR, like any change.
 
+Before "same page?", list every no Craig gave in this grill, and the Out of scope line each one
+becomes. When `pr-reviewer` checks the spec, give it the grill's questions with his answers, or
+it can't tell his words from yours.
+
 ## 6. Then the tickets
 
 A feature grilled for building ends in GitHub issues, after epl-draft's grill and Pocock's
@@ -77,6 +85,8 @@ skills v1.3 (Craig, 16 Oct 2026):
   at its line in `spec/NN-*.md`.
 - **The seam**: where the tests will poke the feature. Aim for one.
 - **Done**: the check that proves it, which a session can rerun.
+- **Blocked by**: name the data the ticket reads, the screen it sits on and the menu that reaches
+  it, then the issue that builds each. Those issues are its blockers.
 
 A feature bigger than one fresh session (~150k tokens) is cut into several issues, each a thin
 slice through every layer that works on its own, with the blocking order named. The spec file

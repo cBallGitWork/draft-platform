@@ -44,6 +44,29 @@ allow_cmds=(
 )
 for c in "${deny_cmds[@]}"; do check deny guard_bash.py "$(bash_cmd "$c")"; done
 for c in "${allow_cmds[@]}"; do check allow guard_bash.py "$(bash_cmd "$c")"; done
+
+# the private-words list: a made-up word, so this file names nothing real
+export DRAFT_PRIVATE_WORDS="$tmp/private-words.txt"
+printf '# private\nacmecorp\n' > "$DRAFT_PRIVATE_WORDS"
+printf 'adapted from AcmeCorp\n' > "$tmp/body.md"
+private_deny=(
+  'git commit -m "from acmecorp"' 'git commit -m "From ACMECORP"'
+  $'git commit -F - <<\'EOF\'\nideas from acmecorp\nEOF'
+  'gh pr create --title x --body "acmecorp idea"' 'gh issue create --title x --body-file body.md'
+  'gh pr edit 3 --body-file body.md' 'git add a.md && git commit -m "x" -m "acmecorp"'
+)
+private_allow=(
+  'git commit -m "clean"' 'echo acmecorp' 'cat body.md' 'gh pr view 3' 'gh issue create --title x --body "clean"'
+)
+for c in "${private_deny[@]}"; do check deny guard_bash.py "$(/usr/bin/jq -nc --arg c "$c" --arg d "$tmp" '{tool_name:"Bash",tool_input:{command:$c},cwd:$d}')"; done
+for c in "${private_allow[@]}"; do check allow guard_bash.py "$(/usr/bin/jq -nc --arg c "$c" --arg d "$tmp" '{tool_name:"Bash",tool_input:{command:$c},cwd:$d}')"; done
+printf 'see acmecorp\n' > "$tmp/staged.md" && git -C "$tmp" add staged.md
+check deny guard_bash.py "$(bash_cmd 'git commit -m "clean message"')"
+git -C "$tmp" rm -q --cached staged.md
+rm "$DRAFT_PRIVATE_WORDS"
+check allow guard_bash.py "$(bash_cmd 'git commit -m "from acmecorp"')"  # no list, no check
+unset DRAFT_PRIVATE_WORDS
+
 git -C "$tmp" switch -q -c main
 check deny guard_bash.py "$(bash_cmd 'git commit -m "x"')"
 check deny guard_bash.py "$(bash_cmd 'git -C . commit -m x')"
