@@ -13,7 +13,7 @@ which Craig sets the leagues up; long term, anyone can. Live by August 2027 woul
 it can go live at any time. The Tim Hortons Pro League is the first league on it. A goal: a mini
 beta in the 2026/27 season, with no hard date: as early as it's ready (Craig, 17 Oct 2026). It
 irons out kinks: a quick league of about four, with players assigned to teams rather than
-drafted, for the basics. By then:
+drafted, for the basics. It needs:
 features 1, 2, 3, 5, 6, 7, 10, 12, 14, 16 and 18, and the mini beta's admin tools
 (15: creating a league, inviting managers, assigning players, a score override, positions, the
 feeds page). Live commentary and the match page (10) are in it if the live stream is proven,
