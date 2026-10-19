@@ -1,8 +1,8 @@
 # The Premier League's stats per player per match
 
 What roles can score from (issue #7, story 4; [spec/05-tactics.md](../spec/05-tactics.md)). Read
-from Convex's own servers is proven for the feeds in [ARCHITECTURE.md](../ARCHITECTURE.md); this
-list was read from the same API on 19 Oct 2026.
+from Craig's Mac on 19 Oct 2026; the same host answers Convex's servers
+([ARCHITECTURE.md](../ARCHITECTURE.md)).
 
 **Where:** `GET https://footballapi.pulselive.com/football/stats/player/{plPlayerId}?fixtures={fixtureId}`,
 with a browser User-Agent. It answers one player's Opta stats for that one match: Daniel Muñoz at
@@ -37,7 +37,7 @@ gk_smother, punches, good_high_claim, total_high_claim, keeper_pick_up, total_ke
 accurate_keeper_sweeper, goal_kicks, accurate_goal_kicks, keeper_throws, accurate_keeper_throws,
 total_launches, accurate_launches, total_chipped_pass, accurate_chipped_pass, clean_sheet,
 goals_conceded, goals_conceded_ibox, goals_conceded_obox, attempts_conceded_ibox,
-attempts_conceded_obox. Outfielders carry the last five too.
+attempts_conceded_obox. Outfielders carry the last six too.
 
 **Shooting (67):** goals, goals_openplay, goal_fastbreak, winning_goal, own_goals,
 own_goals_conceded, total_scoring_att, ontarget_scoring_att, shot_off_target, blocked_scoring_att,

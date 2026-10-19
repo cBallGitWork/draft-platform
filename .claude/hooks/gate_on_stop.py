@@ -19,6 +19,7 @@ from pathlib import Path
 
 WATCHED = ("convex", "src", "package.json", "package-lock.json", "vitest.config.ts", ".claude")
 TAIL_LINES = 40
+GATE = "npm run verify"
 
 
 def changed(project):
@@ -39,12 +40,12 @@ def main():
     project = Path(os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd())
     if not changed(project):
         return 0
-    command = shlex.split(os.environ.get("DRAFT_GATE_CMD") or "npm run verify")
+    command = shlex.split(os.environ.get("DRAFT_GATE_CMD") or GATE)
     proc = subprocess.run(command, cwd=project, capture_output=True, text=True, timeout=170)
     if proc.returncode != 0:
         tail = "\n".join((proc.stdout + proc.stderr).strip().splitlines()[-TAIL_LINES:])
         reason = (
-            "The gate (npm run verify) fails on uncommitted changes. Fix it before finishing, "
+            f"The gate ({GATE}) fails on uncommitted changes. Fix it before finishing, "
             "or tell Craig exactly why it can't be fixed now:\n" + tail
         )
         print(json.dumps({"decision": "block", "reason": reason}))

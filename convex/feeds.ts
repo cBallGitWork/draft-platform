@@ -8,7 +8,7 @@ import { feedCheckFields, feedCheckTrigger, feedOutcome } from "./schema";
 // Run from the CLI: `npx convex run feeds:check '{"trigger":"manual"}'` now, or
 // `npx convex run feeds:checkLater '{"minutes":10}'`, close everything, then `feeds:latest`.
 
-const MINUTE_MS = 60_000;
+export const MINUTE_MS = 60_000;
 
 export const check = internalAction({
   args: { trigger: feedCheckTrigger, scheduledFor: v.optional(v.number()) },

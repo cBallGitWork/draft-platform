@@ -2,6 +2,7 @@
 import { convexTest } from "convex-test";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
+import { MINUTE_MS } from "./feeds";
 import { squadNumbers } from "./football";
 import schema from "./schema";
 
@@ -31,10 +32,11 @@ test("a check scheduled for later runs only when its time comes, and records bot
   const t = convexTest(schema, modules);
 
   await t.mutation(internal.feeds.checkLater, { minutes: 10 });
-  vi.advanceTimersByTime(9 * 60_000);
+  vi.advanceTimersByTime(9 * MINUTE_MS);
+  await t.finishInProgressScheduledFunctions();
   expect(await t.query(internal.feeds.latest, {})).toEqual([]);
 
-  vi.advanceTimersByTime(60_000);
+  vi.advanceTimersByTime(MINUTE_MS);
   await t.finishAllScheduledFunctions(vi.runAllTimers);
 
   const [row] = await t.query(internal.feeds.latest, {});
