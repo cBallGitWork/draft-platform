@@ -1,5 +1,7 @@
 # SPEC
 
+**Contents:** [What it is](#what-it-is) · [Features](#features) · [Second release](#second-release) · [Later](#later) · [Out of scope](#out-of-scope) · [Glossary](#glossary)
+
 Craig's answers from his `/grill` sessions (from 16 Oct 2026), and nothing else. A feature's detail is
 settled by its own `/grill` before it is built, and lands here.
 
