@@ -22,6 +22,17 @@ League's public APIs (only ever called from Vercel in London so far), and that a
 function fires with no browser open. If either fails, the backend choice goes back to Craig;
 Supabase was the runner-up.
 
+**Tested, 19 Oct 2026 (#7): both passed.** `convex/feeds.ts`, run on the cloud dev deployment
+`spotted-mosquito-905`:
+
+- Both feeds answered Convex's servers, with a browser User-Agent: FPL's
+  `/api/bootstrap-static/` (668 players) and the Premier League's
+  `footballapi.pulselive.com/football/fixtures?comps=1&compSeasons=841` (380 fixtures).
+- Squad numbers come from `/teams/{id}/compseasons/841/staff` (Arsenal: 29).
+- A check scheduled 10 minutes ahead fired at 11:50:40 BST, 0.6 seconds after it was due, with
+  no browser and no `convex dev` running.
+- The stats per player per match, for roles: [docs/pl-match-stats.md](docs/pl-match-stats.md).
+
 **When the free plans stop being enough:**
 
 - Vercel Hobby is for non-commercial use: payments, ads, a donate button or anyone paid to work on
@@ -59,19 +70,19 @@ Supabase was the runner-up.
 Craig's picks from the guide videos (16 Oct 2026; [docs/research/guide-videos.md](docs/research/guide-videos.md)),
 to land in the pull request that adds the first code, not later:
 
-- [ ] **Stop gate**: a session can't finish while the tests fail (copy sideband's
+- [x] **Stop gate**: a session can't finish while the tests fail (copy sideband's
       `.claude/hooks/gate_on_stop.py`), and a `/verify` skill that runs every gate and reports the
       count (epl-draft's).
-- [ ] **Line ceiling**: a note when a file passes 250 and 300 lines (epl-draft's
+- [x] **Line ceiling**: a note when a file passes 250 and 300 lines (epl-draft's
       `.claude/hooks/line_ceiling.sh`).
 - [ ] **UI rules by path**: `docs/design/plate.md`'s "Never" list in `.claude/rules/` so it loads
       only when screen files are touched, and a UI verifier agent that shoots a screen at 390 and
       1440 and looks (epl-draft's `ui-verifier`).
-- [ ] **MCPs**: Convex and Playwright, with the Convex test above.
+- [x] **MCPs**: Convex and Playwright, with the Convex test above.
 - [ ] **The reviewer in CI**: sideband's `review.yml`, which needs the Claude GitHub app and a
       `CLAUDE_CODE_OAUTH_TOKEN` secret from Craig (`claude setup-token`).
-- [ ] **`.env.example`** from the services above.
-- [ ] **One-command start**: clone, fill the env, run one command; the README says how
+- [x] **`.env.example`** from the services above.
+- [x] **One-command start**: clone, fill the env, run one command; the README says how
       (`docs/PHILOSOPHY.md`, *Knowledge Is Shared*).
 - [ ] **Bug hunts as we go**: a hunt scoped to each feature as it lands, and a full one (split by
       area, a skeptic per finding, a token budget) at the mini beta.
