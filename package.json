@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "setup": "convex login && convex dev --once --configure existing --team craigdavidball14 --project draft-platform --dev-deployment cloud",
     "dev": "convex dev",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p convex",
