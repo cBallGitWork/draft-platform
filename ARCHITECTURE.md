@@ -55,7 +55,7 @@ Supabase was the runner-up.
 | Motion | Motion | live picks and ticking points |
 | Forms | React Hook Form with Zod | the league-rules forms are large |
 | Charts | Recharts | what shadcn's charts use |
-| Tests | Vitest; `convex-test` with fake timers for the backend | the companion's runner; the draft clock can be tested without waiting |
+| Tests | Vitest; `convex-test` with fake timers for the backend, on `@edge-runtime/vm` | the companion's runner; the draft clock can be tested without waiting; `convex-test` needs Convex's runtime mimicked |
 
 ## Data
 
@@ -74,7 +74,7 @@ to land in the pull request that adds the first code, not later:
       `.claude/hooks/gate_on_stop.py`), and a `/verify` skill that runs every gate and reports the
       count (epl-draft's).
 - [x] **Line ceiling**: a note when a file passes 250 and 300 lines (epl-draft's
-      `.claude/hooks/line_ceiling.sh`).
+      `.claude/hooks/line_ceiling.sh`, landed as `line_ceiling.py`).
 - [ ] **UI rules by path**: `docs/design/plate.md`'s "Never" list in `.claude/rules/` so it loads
       only when screen files are touched, and a UI verifier agent that shoots a screen at 390 and
       1440 and looks (epl-draft's `ui-verifier`).

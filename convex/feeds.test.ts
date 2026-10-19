@@ -31,6 +31,7 @@ test("a check scheduled for later runs only when its time comes, and records bot
   vi.stubGlobal("fetch", fakeFeeds());
   const t = convexTest(schema, modules);
 
+  const start = Date.now();
   await t.mutation(internal.feeds.checkLater, { minutes: 10 });
   vi.advanceTimersByTime(9 * MINUTE_MS);
   await t.finishInProgressScheduledFunctions();
@@ -42,6 +43,7 @@ test("a check scheduled for later runs only when its time comes, and records bot
   const [row] = await t.query(internal.feeds.latest, {});
   expect(row).toMatchObject({
     trigger: "timer",
+    scheduledFor: start + 10 * MINUTE_MS,
     fplPlayers: { ok: true, count: 3 },
     plFixtures: { ok: true, count: 2 },
     arsenalSquadNumbers: { ok: true, count: 2 },

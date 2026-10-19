@@ -19,6 +19,9 @@ for his season. A match's players and their ids come from `GET /fixtures/{fixtur
 
 ## The ones the tactics spec names
 
+The mapping is Claude's reading of Opta's names, not something the feed states; it is confirmed
+when roles are grilled.
+
 | Spec | Stat |
 |---|---|
 | Key passes | `total_att_assist` (Opta's key pass: a pass that ends in a shot) |
