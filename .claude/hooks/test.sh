@@ -96,6 +96,15 @@ check deny guard_bash.py "$(bash_in "$tmp/sub" 'git -C .. commit -m x')"
 check deny guard_bash.py "$(bash_cmd 'cd sub && git switch main && git commit -m x')"
 git -C "$tmp" init -q -b main "$tmp/wt-main"  # and a worktree on main is refused from a project that isn't
 CLAUDE_PROJECT_DIR="$tmp/sub" check deny guard_bash.py "$(bash_in "$tmp/sub" 'cd ../wt-main && git commit -m x')"
+# where the guard can't be sure of the folder, it refuses (each of these commits on main in a real shell)
+for c in '(cd sub) && git commit -m x' 'cd sub && cd - && git commit -m x' 'cd nope; git commit -m x' \
+  'cd "$X" && git commit -m x' 'cd -P sub; git commit -m x' 'git commit --amend -C HEAD'; do
+  check deny guard_bash.py "$(bash_cmd "$c")"
+done
+check deny guard_bash.py "$(bash_in "$tmp/sub" "git --git-dir=$tmp/.git commit -m x")"
+check deny guard_bash.py "$(bash_in "$tmp/sub" "pushd $tmp && git commit -m x")"
+check allow guard_bash.py "$(bash_cmd '(cd sub && git commit -m x)')"
+check allow guard_bash.py "$(bash_cmd 'cd sub && git commit --amend -C HEAD')"
 
 # gate_on_stop.py: blocks a stop only while watched files are changed and the gate fails
 said() { # expect hook payload [env...]: "speaks" if the hook prints anything, else "quiet"
