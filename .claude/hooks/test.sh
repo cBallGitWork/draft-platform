@@ -16,6 +16,7 @@ check() { # expect hook payload
   fi
 }
 bash_cmd() { /usr/bin/jq -nc --arg c "$1" '{tool_name:"Bash",tool_input:{command:$c}}'; }
+bash_in() { /usr/bin/jq -nc --arg c "$2" --arg d "$1" '{tool_name:"Bash",tool_input:{command:$c},cwd:$d}'; }  # dir command
 
 # guard_bash.py, run from a throwaway repo on a feature branch
 tmp=$(mktemp -d)
@@ -67,6 +68,8 @@ check deny guard_bash.py "$(bash_cmd 'git commit -m "clean message"')"
 git -C "$tmp" rm -q --cached staged.md
 mkdir "$tmp/sub" && git -C "$tmp/sub" init -q -b chore/x && printf 'acmecorp\n' > "$tmp/sub/s.md" && git -C "$tmp/sub" add s.md
 check deny guard_bash.py "$(bash_cmd 'git -C sub commit -m "clean"')"
+check deny guard_bash.py "$(bash_cmd 'cd sub && git commit -m "clean"')"  # a worktree's staged lines, not the project's
+check deny guard_bash.py "$(bash_in "$tmp/sub" 'git commit -m "clean"')"
 check allow guard_bash.py "$(bash_cmd 'git commit -m "clean"')"
 rm "$DRAFT_PRIVATE_WORDS"
 check deny guard_bash.py "$(bash_cmd 'git commit -m "clean"')"  # an override that can't be read
@@ -81,6 +84,18 @@ check deny guard_bash.py "$(bash_cmd 'git -C . commit -m x')"
 check deny guard_bash.py "$(bash_cmd 'git push')"
 check allow guard_bash.py "$(bash_cmd 'git status')"
 check allow guard_bash.py "$(bash_cmd 'git switch -c chore/y origin/main && git status')"
+
+# a worktree is read where the command runs: sub is on chore/x while the project is on main
+git -C "$tmp/sub" rm -q --cached s.md
+check allow guard_bash.py "$(bash_cmd 'git -C sub commit -m x')"
+check allow guard_bash.py "$(bash_cmd 'cd sub && git commit -m x')"
+check allow guard_bash.py "$(bash_cmd "cd \"$tmp/sub\" && git push -u origin chore/x")"
+check allow guard_bash.py "$(bash_in "$tmp/sub" 'git commit -m x')"
+check deny guard_bash.py "$(bash_cmd 'cd sub && cd .. && git commit -m x')"
+check deny guard_bash.py "$(bash_in "$tmp/sub" 'git -C .. commit -m x')"
+check deny guard_bash.py "$(bash_cmd 'cd sub && git switch main && git commit -m x')"
+git -C "$tmp" init -q -b main "$tmp/wt-main"  # and a worktree on main is refused from a project that isn't
+CLAUDE_PROJECT_DIR="$tmp/sub" check deny guard_bash.py "$(bash_in "$tmp/sub" 'cd ../wt-main && git commit -m x')"
 
 # gate_on_stop.py: blocks a stop only while watched files are changed and the gate fails
 said() { # expect hook payload [env...]: "speaks" if the hook prints anything, else "quiet"
