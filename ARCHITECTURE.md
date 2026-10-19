@@ -48,14 +48,16 @@ Supabase was the runner-up.
 |---|---|---|
 | App | a Vite single-page React app with TanStack Router | Convex's main path, and the only setup its own sign-in officially supports; typed routes for filter-heavy tables; server rendering buys little where everyone is signed in and every screen is live. TanStack Start uses the same router if that changes |
 | Sign-in | Convex Auth magic links, sent through Resend | the backend's own; beta, so read its current docs first |
-| Components | shadcn/ui on Base UI | the code is copied into the repo, so it is ours to restyle |
+| Components | shadcn/ui on Base UI, added with the first component that needs Base UI's behaviour (a menu, a dialog); the shell needs none | the code is copied into the repo, so it is ours to restyle |
 | Styling | Tailwind 4 with our own design values | the defaults are the generic AI look Craig wants to get far from |
+| Typeface | Archivo Narrow from Fontsource | plate.md's one face, served with the app: no call to Google from the sign-in page, and screenshots don't wait on a font server |
 | Tables | TanStack Table and TanStack Virtual | unstyled, so they take Championship Manager density; v9 is newer than Claude's knowledge, so read its docs first |
 | Tactics pitch | Pragmatic drag and drop, plus tap to swap | maintained; a phone needs taps anyway |
 | Motion | Motion | live picks and ticking points |
 | Forms | React Hook Form with Zod | the league-rules forms are large |
 | Charts | Recharts | what shadcn's charts use |
-| Tests | Vitest; `convex-test` with fake timers for the backend, on `@edge-runtime/vm` | the companion's runner; the draft clock can be tested without waiting; `convex-test` needs Convex's runtime mimicked |
+| Tests | Vitest; `convex-test` with fake timers for the backend, on `@edge-runtime/vm`; Testing Library on jsdom for the app | the companion's runner; the draft clock can be tested without waiting; `convex-test` needs Convex's runtime mimicked; screens are tested by role and name, as a manager finds them |
+| Screenshots | Playwright, on the Mac's Chrome (`scripts/shoot.mjs`) | the `ui-verifier` agent's camera, and the same tool as the Playwright MCP |
 
 ## Data
 
@@ -75,9 +77,10 @@ to land in the pull request that adds the first code, not later:
       count (epl-draft's).
 - [x] **Line ceiling**: a note when a file passes 250 and 300 lines (epl-draft's
       `.claude/hooks/line_ceiling.sh`, landed as `line_ceiling.py`).
-- [ ] **UI rules by path**: `docs/design/plate.md`'s "Never" list in `.claude/rules/` so it loads
+- [x] **UI rules by path**: `docs/design/plate.md`'s "Never" list in `.claude/rules/` so it loads
       only when screen files are touched, and a UI verifier agent that shoots a screen at 390 and
-      1440 and looks (epl-draft's `ui-verifier`).
+      1440 and looks (epl-draft's `ui-verifier`). Landed as `.claude/rules/ui.md` and
+      `.claude/agents/ui-verifier.md` (#19).
 - [x] **MCPs**: Convex and Playwright, with the Convex test above.
 - [ ] **The reviewer in CI**: sideband's `review.yml`, which needs the Claude GitHub app and a
       `CLAUDE_CODE_OAUTH_TOKEN` secret from Craig (`claude setup-token`).

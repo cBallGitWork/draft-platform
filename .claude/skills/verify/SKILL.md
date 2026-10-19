@@ -6,7 +6,7 @@ description: Run every gate before a commit or a pull request (tests, typecheck,
 # Verify
 
 ```bash
-npm run verify   # vitest run, then tsc on convex/, then .claude/hooks/test.sh
+npm run verify   # vitest run, then tsc on convex/ and on the app, then .claude/hooks/test.sh
 ```
 
 That one script is the gate, and the Stop hook runs the same script, so a session can't

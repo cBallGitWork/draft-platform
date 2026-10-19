@@ -21,4 +21,9 @@ terms when asked), gives you your own cloud dev deployment of the `draft-platfor
 writes `.env.local` (`.env.example` says what lands there). A plain first `npm run dev` can land
 on a deployment on your own machine instead, which proves nothing about Convex's servers.
 
+`npm run dev` pushes the Convex functions to your dev deployment, keeps pushing as they change,
+and starts the app at <http://localhost:5173>: the sign-in page. Sign-in isn't switched on yet
+(#20), so to see the signed-in screens, open <http://localhost:5173/?preview=manager> (dev
+server only, with made-up figures). `npx vite` starts the app alone, without touching Convex.
+
 `npm run verify` runs every gate: the tests, the typecheck and the hook checks.

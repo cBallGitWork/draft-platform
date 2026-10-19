@@ -1,11 +1,26 @@
+import react from "@vitejs/plugin-react";
 import { configDefaults, defineConfig } from "vitest/config";
+
+// Agents' worktrees live inside the repo; each runs its own tests.
+const exclude = [...configDefaults.exclude, ".claude/worktrees/**"];
 
 export default defineConfig({
   test: {
-    // convex-test runs functions in Convex's own runtime, which this environment mimics.
-    environment: "edge-runtime",
-    server: { deps: { inline: ["convex-test"] } },
-    // Agents' worktrees live inside the repo; each runs its own tests.
-    exclude: [...configDefaults.exclude, ".claude/worktrees/**"],
+    projects: [
+      {
+        test: {
+          name: "convex",
+          include: ["convex/**/*.test.ts"],
+          exclude,
+          // convex-test runs functions in Convex's own runtime, which this environment mimics.
+          environment: "edge-runtime",
+          server: { deps: { inline: ["convex-test"] } },
+        },
+      },
+      {
+        plugins: [react()],
+        test: { name: "app", include: ["src/**/*.test.tsx"], exclude, environment: "jsdom" },
+      },
+    ],
   },
 });
