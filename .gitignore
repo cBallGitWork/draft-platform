@@ -6,3 +6,4 @@ dist/
 .convex/
 !.env.example
 convex/_generated/ai/ai-files.state.json
+.claude/worktrees/
