@@ -3,7 +3,9 @@
 
 Denies staging everything, force pushes, pushing to main, and committing or pushing
 while on main. The command is split into words the way the shell would, so text
-inside a quoted commit message or a heredoc is never mistaken for a command.
+inside a quoted commit message or a heredoc is never mistaken for a command. The branch and
+the staged lines are read in the folder each git command runs in (the shell's cwd, any cd
+before it, its -C), so a worktree is judged on its own branch, not the project's.
 
 Also denies a commit, pull request or issue that names a word on Craig's private list:
 in the command (message, body, heredoc), a body or message file it reads, or a commit's
@@ -119,10 +121,10 @@ def push_problem(args):
     return None
 
 
-def current_branch(project_dir):
+def current_branch(folder):
     try:
         return subprocess.run(
-            ["git", "-C", project_dir, "branch", "--show-current"],
+            ["git", "-C", folder, "branch", "--show-current"],
             capture_output=True, text=True, timeout=5,
         ).stdout.strip()
     except (OSError, subprocess.SubprocessError):
@@ -162,10 +164,10 @@ def files_read(words, cwd):
     return out
 
 
-def staged_lines(project_dir):
+def staged_lines(folder):
     try:
         diff = subprocess.run(
-            ["git", "-C", project_dir, "diff", "--cached", "-U0"],
+            ["git", "-C", folder, "diff", "--cached", "-U0"],
             capture_output=True, text=True, timeout=5,
         ).stdout
     except (OSError, subprocess.SubprocessError):
@@ -173,38 +175,49 @@ def staged_lines(project_dir):
     return "\n".join(l for l in diff.splitlines() if l.startswith("+") and not l.startswith("+++"))
 
 
-def git_dir(words, project_dir):
-    """The folder a git command runs in: its -C value, else the project."""
+def located(segs, cwd):
+    """(words, folder) for each simple command, following any cd before it. A worktree is a
+    folder of its own, so its branch and staged lines are read there, not in the project."""
+    here, out = cwd, []
+    for words in segs:
+        if words[0] == "cd" and words[1:2] != ["-"]:
+            here = os.path.join(here, os.path.expanduser(words[1] if len(words) > 1 else "~"))
+        out.append((words, here))
+    return out
+
+
+def git_dir(words, here):
+    """The folder a git command runs in: its -C value, else where the shell is."""
     for opt, val in zip(words, words[1:]):
         if opt == "-C":
-            return os.path.join(project_dir, val)
-    return project_dir
+            return os.path.join(here, os.path.expanduser(val))
+    return here
 
 
-def private_word_in(cmd, segs, project_dir, cwd):
+def private_word_in(cmd, segs, cwd):
     """The first private word this command would publish, "" for an unreadable list, or None."""
-    publishing = [s for s in segs if publishes(s)]
+    publishing = [(s, here) for s, here in located(segs, cwd) if publishes(s)]
     if not publishing:
         return None
     words = private_words()
     if words is None:
         return ""
     texts = [cmd]
-    for s in publishing:
-        texts += files_read(s, cwd)
+    for s, here in publishing:
+        texts += files_read(s, here)
         if git_call(s) and git_call(s)[0] == "commit":
-            texts.append(staged_lines(git_dir(s, project_dir)))
+            texts.append(staged_lines(git_dir(s, here)))
     found = "\n".join(texts).lower()
     return next((w for w in words if w in found), None)
 
 
-def decide(cmd, project_dir, cwd=None):
-    """A deny reason, or None to allow."""
+def decide(cmd, cwd):
+    """A deny reason, or None to allow; cwd is where the shell starts."""
     try:
         segs = segments(cmd)
     except ValueError:
         return None  # unbalanced quotes: the shell would refuse it too
-    word = private_word_in(cmd, segs, project_dir, cwd or project_dir)
+    word = private_word_in(cmd, segs, cwd)
     if word == "":
         return f"The private-word list at {PRIVATE_WORDS} can't be read, so nothing could be checked."
     if word:
@@ -212,14 +225,14 @@ def decide(cmd, project_dir, cwd=None):
             f"That would publish a word on Craig's private list ({PRIVATE_WORDS}). "
             "Take it out of the message, the body, or the staged lines."
         )
-    branch = None
-    for words in segs:
+    switched_to_main = False
+    for words, here in located(segs, cwd):
         call = git_call(words)
         if not call:
             continue
         sub, args = call
         if sub in {"switch", "checkout"} and args[-1:] in (["main"], ["origin/main"]) and "-c" not in args and "-b" not in args:
-            branch = "main"
+            switched_to_main = True
         if sub == "add" and stages_everything(args):
             return "That stages everything. Stage named paths only: git add path/one path/two."
         if sub == "commit" and commits_all(args):
@@ -231,9 +244,7 @@ def decide(cmd, project_dir, cwd=None):
             if problem == "main":
                 return "That pushes to main. Changes reach main only through a squash-merged PR."
         if sub in {"commit", "push"}:
-            if branch is None:
-                branch = current_branch(project_dir)
-            if branch == "main":
+            if switched_to_main or current_branch(git_dir(words, here)) == "main":
                 return (
                     "You are on main. Cut a branch first: git switch -c <type>/<thing> origin/main. "
                     "Prefixes: feat/ fix/ refactor/ docs/ chore/."
@@ -247,8 +258,8 @@ def main():
     except ValueError:
         return
     cmd = (payload.get("tool_input") or {}).get("command") or ""
-    project_dir = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
-    reason = decide(cmd, project_dir, payload.get("cwd") or project_dir)
+    cwd = payload.get("cwd") or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+    reason = decide(cmd, cwd)
     if reason:
         print(json.dumps({"hookSpecificOutput": {
             "hookEventName": "PreToolUse",
