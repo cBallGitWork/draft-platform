@@ -26,9 +26,8 @@ import shlex
 import subprocess
 import sys
 
-from where import GIT_VALUE_OPTS, current_branch, git_dir, located
+from where import GIT_VALUE_OPTS, SEPARATORS, current_branch, git_dir, located
 
-SEPARATORS = {";", "&", "&&", "|", "||", "(", ")", "\n"}
 HEREDOC = re.compile(r"<<-?[ \t]*(['\"]?)(\w+)\1[^\n]*\n(.*?\n)?[ \t]*\2[ \t]*(\n|$)", re.S)
 COMMIT_VALUE_SHORT = set("mFCct")  # in `-am msg` everything after m is the value
 MAIN_REFS = {"main", "refs/heads/main"}
@@ -41,7 +40,8 @@ FILE_OPTS = {"-F", "--file", "--body-file"}  # options whose value is a file the
 
 
 def segments(cmd):
-    """Each simple command as a list of words, heredoc bodies dropped."""
+    """Each simple command as a list of words, heredoc bodies dropped, and each separator
+    between them as a list of its own, so located() can tell when a cd may not take effect."""
     cmd = HEREDOC.sub("\n", cmd.replace("\\\n", " "))
     lex = shlex.shlex(cmd, posix=True, punctuation_chars=";&|()\n")
     lex.whitespace = " \t\r"
@@ -49,11 +49,8 @@ def segments(cmd):
     out, cur = [], []
     for word in lex:
         if word in SEPARATORS:
-            out.append(cur)
-            cur = [word] if word in "()" else []  # a subshell's bounds, kept for located()
-            if cur:
-                out.append(cur)
-                cur = []
+            out += [cur, [word]]
+            cur = []
         else:
             cur.append(word)
     out.append(cur)
@@ -220,14 +217,13 @@ def decide(cmd, cwd):
                 return "That pushes to main. Changes reach main only through a squash-merged PR."
         if sub in {"commit", "push"}:
             folder = git_dir(words, here)
-            branch = current_branch(folder) if folder else ""
-            if not branch:
+            if folder is None:
                 return (
-                    "Can't tell which branch that runs on (a cd or -C the guard can't follow, "
-                    "pushd, --git-dir, or no branch). Run it plainly: cd <folder> && git commit, "
-                    "or git -C <folder> commit."
+                    "Can't tell which folder that runs in (a cd that may not take effect, pushd, "
+                    "GIT_DIR or --git-dir). Run it plainly: cd <folder> && git commit, or "
+                    "git -C <folder> commit."
                 )
-            if switched_to_main or branch == "main":
+            if switched_to_main or current_branch(folder) == "main":
                 return (
                     "You are on main. Cut a branch first: git switch -c <type>/<thing> origin/main. "
                     "Prefixes: feat/ fix/ refactor/ docs/ chore/."
