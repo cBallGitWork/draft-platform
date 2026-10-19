@@ -105,6 +105,16 @@ check deny guard_bash.py "$(bash_in "$tmp/sub" "git --git-dir=$tmp/.git commit -
 check deny guard_bash.py "$(bash_in "$tmp/sub" "pushd $tmp && git commit -m x")"
 check allow guard_bash.py "$(bash_cmd '(cd sub && git commit -m x)')"
 check allow guard_bash.py "$(bash_cmd 'cd sub && git commit --amend -C HEAD')"
+for c in 'false && cd sub; git commit -m x' 'true || cd sub && git commit -m x' 'cd sub | git commit -m x' \
+  'cd sub & git commit -m x'; do  # a cd that may not run, or runs in another process
+  check deny guard_bash.py "$(bash_cmd "$c")"
+done
+check allow guard_bash.py "$(bash_cmd 'git status && cd sub && git commit -m x')"
+check deny guard_bash.py "$(bash_in "$tmp/sub" "GIT_DIR=$tmp/.git git commit -m x")"
+check deny guard_bash.py "$(bash_in "$tmp/sub" "export GIT_DIR=$tmp/.git; git commit -m x")"
+git -C "$tmp" init -q -b chore/d "$tmp/det"  # a detached HEAD has no branch, and isn't main
+git -C "$tmp/det" -c user.name=t -c user.email=t@t commit -q --allow-empty -m x && git -C "$tmp/det" switch -q --detach
+check allow guard_bash.py "$(bash_in "$tmp/det" 'git commit -m x')"
 
 # gate_on_stop.py: blocks a stop only while watched files are changed and the gate fails
 said() { # expect hook payload [env...]: "speaks" if the hook prints anything, else "quiet"
