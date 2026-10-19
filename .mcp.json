@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "convex": {
+      "command": "npx",
+      "args": ["convex", "mcp", "start", "--project-dir", "."]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@0.0.83"]
+    }
+  }
+}
