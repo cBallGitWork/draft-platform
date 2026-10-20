@@ -6,7 +6,7 @@ import type { AuthActions, Session } from "./auth";
 import { emptyTopBar } from "./frame/topBarState";
 import { SIGN_IN_PATH } from "./router";
 import { ShellApp } from "./ShellApp";
-import { replyWords, unreachableWords, type LinkProblem } from "./sign-in/words";
+import { askFailedWords, replyWords, type LinkProblem } from "./sign-in/words";
 
 // The app signed in for real: Convex Auth's session (convex/auth.ts), the email links asked for
 // through signInLinks:ask, and a link's code redeemed when the app is opened from one.
@@ -69,7 +69,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
           return replyWords[await ask({ email })];
         } catch (error) {
           console.error("Asking for a sign-in link failed:", error);
-          return unreachableWords;
+          return askFailedWords;
         }
       },
       signOut,

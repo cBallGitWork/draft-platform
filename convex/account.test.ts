@@ -1,19 +1,24 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
-import { ADMIN, LISTED, ask, fakeResend, linkCode, openLink, signInDeployment, type TestConvex } from "./signIn.harness";
+import {
+  ADMIN,
+  LISTED,
+  ask,
+  fakeResend,
+  linkCode,
+  openLink,
+  resetSignInDeployment,
+  signInDeployment,
+  type TestConvex,
+} from "./signIn.harness";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 let t: TestConvex;
 beforeEach(async () => {
-  vi.useFakeTimers({ now: new Date("2026-10-20T09:00:00Z") });
   t = await signInDeployment();
 });
-afterEach(() => {
-  vi.useRealTimers();
-  vi.unstubAllEnvs();
-  vi.unstubAllGlobals();
-});
+afterEach(resetSignInDeployment);
 
 /** Asks for a link for `email` and opens it: the browser's tokens, and who the server sees. */
 async function signIn(email: string) {

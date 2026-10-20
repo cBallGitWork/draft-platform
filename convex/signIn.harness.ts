@@ -31,8 +31,10 @@ async function makePkcs8PrivateKey(): Promise<string> {
   return `-----BEGIN PRIVATE KEY-----\n${btoa(String.fromCharCode(...der))}\n-----END PRIVATE KEY-----`;
 }
 
-/** The settings `npx @convex-dev/auth` and Craig put on a deployment, with LISTED on the list. */
+/** A deployment with the settings `npx @convex-dev/auth` and Craig put on one, LISTED on the
+ *  list, and the clock stopped at a known morning. `resetSignInDeployment` undoes it all. */
 export async function signInDeployment(): Promise<TestConvex> {
+  vi.useFakeTimers({ now: new Date("2026-10-20T09:00:00Z") });
   vi.stubEnv("SITE_URL", SITE_URL);
   vi.stubEnv("CONVEX_SITE_URL", "https://deployment.example.com");
   signingKey ??= makePkcs8PrivateKey();
@@ -44,6 +46,13 @@ export async function signInDeployment(): Promise<TestConvex> {
   const t = convexTest(schema, modules);
   await t.mutation(internal.allowedEmails.add, { email: LISTED });
   return t;
+}
+
+export function resetSignInDeployment() {
+  vi.useRealTimers();
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 }
 
 export type SentEmail = { to: string; subject: string; text: string };

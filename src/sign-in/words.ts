@@ -10,9 +10,8 @@ export const replyWords = {
   notSent: "The link couldn't be sent. Try again in a few minutes.",
 } as const;
 
-export type SignInReply = keyof typeof replyWords;
-
-export const unreachableWords = "Couldn't reach Draft Manager, so no link was sent. Check your connection and try again.";
+/** When asking failed before Convex could answer: the connection, or the server itself. */
+export const askFailedWords = "Something went wrong, so no link was sent. Check your connection and try again.";
 
 /** What the sign-in page says when a link from an email didn't sign the visitor in. */
 export const linkProblemWords = {

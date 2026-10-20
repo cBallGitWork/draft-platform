@@ -55,8 +55,8 @@ describe("a logged-out visitor", () => {
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
-  it("opening the sign-in page with no link problem, or one it doesn't know, sees no notice", async () => {
-    openApp(`${SIGN_IN_PATH}?link=nonsense`, visitor);
+  it.each([SIGN_IN_PATH, `${SIGN_IN_PATH}?link=nonsense`])("opening %s, with no link problem it knows, sees no notice", async (path) => {
+    openApp(path, visitor);
     expect(await screen.findByRole("textbox", { name: "Email" })).toBeTruthy();
     expect(screen.queryByRole("alert")).toBeNull();
   });

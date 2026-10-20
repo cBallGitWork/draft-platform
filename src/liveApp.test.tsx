@@ -8,7 +8,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { LEAGUES_PATH } from "./leagues/paths";
 import { LiveApp, NO_CONVEX_URL, takeLinkCode } from "./liveApp";
 import { SIGN_IN_PATH } from "./router";
-import { linkProblemWords, replyWords, unreachableWords } from "./sign-in/words";
+import { askFailedWords, linkProblemWords, replyWords } from "./sign-in/words";
 
 const convex = vi.hoisted(() => ({
   auth: { isLoading: false, isAuthenticated: false },
@@ -119,7 +119,7 @@ test("while Convex Auth is still finding the session, the app says it is connect
 
 test.each([
   ["Convex's reply", async () => "tryLater", replyWords.tryLater],
-  ["that it couldn't reach Convex", async () => Promise.reject(new Error("offline")), unreachableWords],
+  ["that it failed, when Convex couldn't answer", async () => Promise.reject(new Error("offline")), askFailedWords],
 ])("asking for a link shows %s in words", async (_, answer, words) => {
   convex.ask.mockImplementation(answer);
   vi.spyOn(console, "error").mockImplementation(() => {});

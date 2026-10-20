@@ -1,4 +1,5 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
+import type { AuthActions } from "../auth";
 import { Continue } from "./Continue";
 import { MAIL_PATH, sectionAt, sections } from "./menu";
 import { ProductName } from "./ProductName";
@@ -14,7 +15,7 @@ const sectionTabClasses =
   "data-[status=active]:text-fact data-[status=active]:shadow-subtab-active";
 
 /** The signed-in frame: the top menu, the active section's tabs under it, and the page. */
-export function AppFrame({ topBar, onSignOut }: { topBar: TopBarState; onSignOut: () => Promise<void> }) {
+export function AppFrame({ topBar, onSignOut }: { topBar: TopBarState; onSignOut: AuthActions["signOut"] }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const tabs = sectionAt(pathname)?.tabs ?? [];
   const unread = topBar.unreadMail > 0 ? topBar.unreadMail : null;

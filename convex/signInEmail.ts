@@ -5,16 +5,18 @@ import type { ActionCtx } from "./_generated/server";
 // `sendSignInEmail` once it has made the link; signInLinks.ts says why it first takes an ask.
 
 export const RESEND_EMAILS_URL = "https://api.resend.com/emails";
+/** The placeholder name: a copy of src/product.ts's, as the app's code isn't deployed here. */
+const PRODUCT_NAME = "Draft Manager";
 /** Resend's own test sender, which reaches only the Resend account's own address, until the app
- *  has a sending domain. "Draft Manager" is the placeholder name (src/product.ts). */
-const FROM = "Draft Manager <onboarding@resend.dev>";
+ *  has a sending domain. */
+const FROM = `${PRODUCT_NAME} <onboarding@resend.dev>`;
 
 /** Wording for Craig to change in the pull request (spec/02). */
 export function signInEmail(url: string) {
   return {
-    subject: "Your link to sign in to Draft Manager",
+    subject: `Your link to sign in to ${PRODUCT_NAME}`,
     text: [
-      "Here is your link to sign in to Draft Manager:",
+      `Here is your link to sign in to ${PRODUCT_NAME}:`,
       "",
       url,
       "",

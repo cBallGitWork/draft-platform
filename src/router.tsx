@@ -14,7 +14,7 @@ import { MY_TEAM_PATH, pages } from "./frame/menu";
 import { PageNotBuilt } from "./frame/PageNotBuilt";
 import { LeaguelessFrame } from "./leagues/LeaguelessFrame";
 import { NoLeaguePage } from "./leagues/NoLeaguePage";
-import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "./leagues/paths";
+import { LEAGUES_PATH, NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./leagues/paths";
 import { SignInPage } from "./sign-in/SignInPage";
 import { linkProblemWords, type LinkProblem } from "./sign-in/words";
 
@@ -75,7 +75,7 @@ const newLeagueRoute = createRoute({
   beforeLoad: ({ context }) => {
     if (!(context.session.signedIn && context.session.isAdmin)) throw redirect({ to: LEAGUES_PATH });
   },
-  component: () => <PageNotBuilt title="Create a league" />,
+  component: () => <PageNotBuilt title={NEW_LEAGUE_TITLE} />,
 });
 
 const frameRoute = createRoute({

@@ -10,6 +10,7 @@ import {
   fakeResend,
   linkCode,
   openLink,
+  resetSignInDeployment,
   signInDeployment,
   type TestConvex,
 } from "./signIn.harness";
@@ -20,15 +21,9 @@ const HOUR_MS = 60 * MINUTE_MS;
 
 let t: TestConvex;
 beforeEach(async () => {
-  vi.useFakeTimers({ now: new Date("2026-10-20T09:00:00Z") });
   t = await signInDeployment();
 });
-afterEach(() => {
-  vi.useRealTimers();
-  vi.unstubAllEnvs();
-  vi.unstubAllGlobals();
-  vi.restoreAllMocks();
-});
+afterEach(resetSignInDeployment);
 
 async function asksStored(email: string) {
   return t.run((ctx) =>
@@ -50,7 +45,7 @@ describe("asking for a link", () => {
     expect(sent[0].text).toContain(`${SITE_URL}/?code=`);
   });
 
-  test("an email off the list gets the same reply, and no email", async () => {
+  test("an email off the list gets the same reply, and no email and no account", async () => {
     const sent = fakeResend();
 
     expect(await ask(t, UNLISTED)).toBe("checkYourEmail");
@@ -74,6 +69,16 @@ describe("asking for a link", () => {
     await ask(t, `  ${LISTED.toUpperCase()} `);
 
     expect(sent.map((email) => email.to)).toEqual([LISTED]);
+  });
+
+  test("Convex Auth's own signIn, called directly with an email, sends nothing", async () => {
+    const sent = fakeResend();
+
+    await expect(t.action(api.auth.signIn, { provider: "resend", params: { email: LISTED } })).rejects.toThrow(
+      "a sign-in link is sent only by signInLinks:ask",
+    );
+
+    expect(sent).toEqual([]);
   });
 });
 
@@ -158,16 +163,6 @@ describe("when the email can't be sent", () => {
     expect(sent).toEqual([]);
     const [stored] = await asksStored(LISTED);
     expect(stored.sendError).toContain("AUTH_RESEND_KEY isn't set");
-  });
-
-  test("Convex Auth's own signIn, called directly with an email, sends nothing", async () => {
-    const sent = fakeResend();
-
-    await expect(t.action(api.auth.signIn, { provider: "resend", params: { email: LISTED } })).rejects.toThrow(
-      "a sign-in link is sent only by signInLinks:ask",
-    );
-
-    expect(sent).toEqual([]);
   });
 });
 
