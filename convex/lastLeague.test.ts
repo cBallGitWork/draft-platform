@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, test } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { refusals } from "./leagueAccess";
-import { ADMIN, actingAs, COMMISSIONER, MANAGERS, addManagers, adminCreatesLeague, type TestConvex } from "./leagues.harness";
+import { ADMIN, actingAs, CO_COMMISSIONER, COMMISSIONER, MANAGERS, addManagers, adminCreatesLeague, type TestConvex } from "./leagues.harness";
 import { fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
 
 // The league switcher (#76, spec/13, Several leagues): which league account:signedInAs says the
@@ -67,6 +67,16 @@ test("a commissioner with no team switches between the leagues they run", async 
 
   await switchTo(COMMISSIONER, second);
   expect(await currentLeagueOf(COMMISSIONER)).toBe(second);
+});
+
+test("a co-commissioner with no team in a league they help run switches into it", async () => {
+  const { first, second } = await annInTwoLeagues();
+  await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.nameCoCommissioner, { leagueId: second, email: CO_COMMISSIONER });
+  await addManagers(t, first, [CO_COMMISSIONER]);
+  expect(await currentLeagueOf(CO_COMMISSIONER)).toBe(first);
+
+  await switchTo(CO_COMMISSIONER, second);
+  expect(await currentLeagueOf(CO_COMMISSIONER)).toBe(second);
 });
 
 test("switching to a league they have no part in is refused, and they stay where they were", async () => {

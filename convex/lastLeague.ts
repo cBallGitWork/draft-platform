@@ -1,11 +1,14 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { mutation, type QueryCtx } from "./_generated/server";
-import { callerEmail, refuse, refusals, teamsOf } from "./leagueAccess";
-import type { LeagueSummary } from "./myLeagues";
+import { callerEmail, isAdmin, refuse, refusals } from "./leagueAccess";
+import { leaguesOf, type LeagueSummary } from "./myLeagues";
 
 // The league switcher (#76, spec/13, Several leagues): the app opens the league a person used
 // last. It is kept on the server, by email, so it follows them to every device.
+
+/** Having a part in a league is a role in it (`leaguesOf`), which the admin's override alone isn't. */
+const hasPart = (league: LeagueSummary) => league.roles.length > 0;
 
 const rememberedRow = (ctx: QueryCtx, email: string) =>
   ctx.db
@@ -17,7 +20,7 @@ const rememberedRow = (ctx: QueryCtx, email: string) =>
  *  the first of theirs by name, or null when they have a part in none. `leagues` are theirs, by
  *  name (`leaguesOf`), the admin's partless ones among them. */
 export async function currentLeagueOf(ctx: QueryCtx, email: string, leagues: readonly LeagueSummary[]): Promise<Id<"leagues"> | null> {
-  const theirs = leagues.filter((league) => league.roles.length > 0);
+  const theirs = leagues.filter(hasPart);
   const remembered = await rememberedRow(ctx, email);
   const current = theirs.find((league) => league.leagueId === remembered?.leagueId) ?? theirs[0];
   return current?.leagueId ?? null;
@@ -29,13 +32,8 @@ export const switchTo = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId }) => {
     const email = await callerEmail(ctx);
-    const league = await ctx.db.get("leagues", leagueId);
-    const hasPart =
-      league !== null &&
-      (league.commissionerEmail === email ||
-        league.coCommissionerEmail === email ||
-        (await teamsOf(ctx, leagueId)).some((team) => team.managerEmail === email));
-    if (!hasPart) refuse(refusals.notYourLeague);
+    const theirs = (await leaguesOf(ctx, email, isAdmin(email))).filter(hasPart);
+    if (!theirs.some((league) => league.leagueId === leagueId)) refuse(refusals.notYourLeague);
 
     const remembered = await rememberedRow(ctx, email);
     if (!remembered) await ctx.db.insert("lastLeagues", { email, leagueId });
