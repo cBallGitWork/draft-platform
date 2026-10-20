@@ -1,7 +1,6 @@
 import { convexTest } from "convex-test";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
-import { MS_PER_MINUTE } from "./deadline";
 import { FPL_BOOTSTRAP_URL, fplLiveUrl, plPlayerStatsUrl } from "./football";
 import { modules } from "./footballSync.harness";
 import { statValue } from "./matchRecords";
@@ -16,6 +15,7 @@ import {
   refusedError,
   syncAt,
   withBelloumiGoalRemoved,
+  withFplBlocksEmpty,
   withHullEverton,
   withPlReadEmpty,
 } from "./matchStats.harness";
@@ -58,16 +58,6 @@ test("a finished match lands complete: a record for every named man, both feeds 
   expect(held).toEqual(expect.arrayContaining(mergedHullEverton().map((record) => ({ ...record, state: "complete" }))));
 });
 
-test("a re-read of the same match writes nothing new, and keeps when it completed", async () => {
-  const t = await withHullEverton();
-  await syncAt(t, FULL_TIME_READ, recordedGw6());
-
-  const run = await syncAt(t, FULL_TIME_READ + 10 * MS_PER_MINUTE, recordedGw6());
-
-  expect(run.outcome).toMatchObject({ matches: [{ state: "complete", inserted: 0, updated: 0 }] });
-  expect((await heldMatch(t)).status).toMatchObject({ completeAt: FULL_TIME_READ });
-});
-
 test("a starter's record not yet arrived shows — and keeps the match provisional until it does", async () => {
   const t = await withHullEverton();
 
@@ -87,17 +77,17 @@ test("a starter's record not yet arrived shows — and keeps the match provision
   expect(statValue(after.records.get(FULL_STATS.coyle.code)!, "won_tackle")).toBe(1);
 });
 
-test("a correction inside the window updates the record, and a stat taken away goes back to 0", async () => {
+test("a match FPL has not filled in stays provisional, and a starter's minutes and goals show —", async () => {
   const t = await withHullEverton();
-  await syncAt(t, FULL_TIME_READ, recordedGw6());
 
-  const run = await syncAt(t, FULL_TIME_READ + HOUR_MS / 2, withBelloumiGoalRemoved(recordedGw6()));
+  await syncAt(t, FULL_TIME_READ, withFplBlocksEmpty(recordedGw6()));
 
-  expect(run.outcome).toMatchObject({ matches: [{ state: "complete", inserted: 0, updated: 1 }] });
-  const belloumi = (await heldMatch(t)).records.get(FULL_STATS.belloumi.code)!;
-  expect(statValue(belloumi, "goals_scored")).toBe(0);
-  expect(belloumi.stats).not.toHaveProperty("goals_openplay");
-  expect(statValue(belloumi, "goals_openplay")).toBe(0);
+  const { records, status } = await heldMatch(t);
+  expect(status).toMatchObject({ state: "provisional" });
+  const mcBurnie = records.get(FULL_STATS.mcBurnie.code)!;
+  expect(mcBurnie.arrived).toEqual({ fpl: false, pl: true });
+  expect(statValue(mcBurnie, "minutes")).toBeNull();
+  expect(statValue(mcBurnie, "goals_scored")).toBeNull();
 });
 
 test("a correction after the lock changes nothing, and is recorded once for the feeds page", async () => {

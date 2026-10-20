@@ -35,6 +35,47 @@ test("where both feeds send a stat, FPL's count is kept for saves, the Premier L
   });
 });
 
+/** Each stat spec/07 names a feed for, under FPL's name and Opta's, and whether this recording's
+ *  cut Premier League reads hold Opta's name: the rest are in docs/pl-match-stats.md's 221, or for
+ *  a red card and the two penalties, Opta's usual names not yet seen. */
+const PAIRED = [
+  { stat: "goals", fpl: "goals_scored", pl: "goals", kept: "fpl", recorded: true },
+  { stat: "assists", fpl: "assists", pl: "goal_assist", kept: "fpl", recorded: false },
+  { stat: "minutes", fpl: "minutes", pl: "mins_played", kept: "fpl", recorded: true },
+  { stat: "yellow cards", fpl: "yellow_cards", pl: "yellow_card", kept: "fpl", recorded: true },
+  { stat: "red cards", fpl: "red_cards", pl: "red_card", kept: "fpl", recorded: false },
+  { stat: "saves", fpl: "saves", pl: "saves", kept: "fpl", recorded: false },
+  { stat: "clean sheets", fpl: "clean_sheets", pl: "clean_sheet", kept: "fpl", recorded: false },
+  { stat: "goals conceded", fpl: "goals_conceded", pl: "goals_conceded", kept: "fpl", recorded: true },
+  { stat: "penalties saved", fpl: "penalties_saved", pl: "penalty_save", kept: "fpl", recorded: false },
+  { stat: "penalties missed", fpl: "penalties_missed", pl: "att_pen_miss", kept: "fpl", recorded: false },
+  { stat: "own goals", fpl: "own_goals", pl: "own_goals", kept: "pl", recorded: false },
+  { stat: "starts", fpl: "starts", pl: "game_started", kept: "pl", recorded: true },
+] as const;
+
+test.each(PAIRED)("$stat: the $kept feed's count is kept under its name, and the other feed's alone is not stored", (pair) => {
+  const kept = pair.kept === "fpl" ? { name: pair.fpl, value: 2 } : { name: pair.pl, value: 3 };
+  const other = pair.kept === "fpl" ? pair.pl : pair.fpl;
+
+  const both = mergeStats({ [pair.fpl]: 2 }, { [pair.pl]: 3 });
+  const alone = pair.kept === "fpl" ? mergeStats(undefined, { [pair.pl]: 3 }) : mergeStats({ [pair.fpl]: 2 }, undefined);
+
+  expect(both).toEqual({ [kept.name]: kept.value });
+  if (other !== kept.name) expect(both).not.toHaveProperty(other);
+  expect(alone).toEqual({});
+});
+
+test("each paired name is one the feeds send: every FPL name, and the Opta names this recording holds", () => {
+  const { fpl, pl } = recordedGw6();
+  const fplNames = new Set(fpl.live.elements.flatMap((element) => Object.keys(element.stats)));
+  const plNames = new Set(pl.playerStats.flatMap((read) => read.payload.stats.map((metric) => metric.name)));
+
+  for (const pair of PAIRED) {
+    expect(fplNames.has(pair.fpl), pair.fpl).toBe(true);
+    expect(plNames.has(pair.pl), pair.pl).toBe(pair.recorded);
+  }
+});
+
 test("FPL's bonus, BPS and the points built on them are not stored", () => {
   const stored = new Set(records.flatMap((record) => Object.keys(record.stats)));
   for (const fplPoints of ["bonus", "bps", "total_points", "in_dreamteam"]) expect(stored.has(fplPoints)).toBe(false);

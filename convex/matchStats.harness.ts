@@ -110,7 +110,23 @@ function hullEvertonRead(payloads: Gw6Payloads, plPlayerId: number) {
 
 /** `payloads` with the Premier League not yet having counted one man: his read's list is empty. */
 export function withPlReadEmpty(payloads: Gw6Payloads, plPlayerId: number): Gw6Payloads {
-  hullEvertonRead(payloads, plPlayerId).stats = [];
+  return withPlRead(payloads, plPlayerId, {});
+}
+
+/** `payloads` with one man's Premier League read holding only `stats`. */
+export function withPlRead(payloads: Gw6Payloads, plPlayerId: number, stats: Record<string, number>): Gw6Payloads {
+  hullEvertonRead(payloads, plPlayerId).stats = Object.entries(stats).map(([name, value]) => ({ name, value }));
+  return payloads;
+}
+
+/** `payloads` with FPL's match block for these men, or for every man if none is given, not yet
+ *  filled in: no stats in it, though the gameweek totals are still sent. */
+export function withFplBlocksEmpty(payloads: Gw6Payloads, ...codes: number[]): Gw6Payloads {
+  const ids = new Set(payloads.fpl.bootstrap.elements.filter((each) => codes.includes(each.code)).map((each) => each.id));
+  for (const element of payloads.fpl.live.elements) {
+    if (codes.length > 0 && !ids.has(element.id)) continue;
+    for (const block of element.explain) block.stats = [];
+  }
   return payloads;
 }
 

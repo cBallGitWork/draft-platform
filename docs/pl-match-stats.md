@@ -116,7 +116,8 @@ Never written down before; from gameweek 6 (`convex/fplLive.ts`, `convex/recorde
 - **`/event/{gw}/live/`**, per player: `explain`, one block per match he had, keyed by FPL's
   per-season fixture `id` (`/fixtures/` gives its `code`). Each block lists `{identifier, value,
   points, points_modification}` only for what moved his FPL points, plus `minutes`, which is always
-  there, nought or not. Seen: `minutes`, `goals_scored`, `assists`, `clean_sheets`,
+  there, nought or not, so a block without it is read as one FPL has not filled in yet: it gives
+  that man no FPL line, and his record waits. Seen: `minutes`, `goals_scored`, `assists`, `clean_sheets`,
   `goals_conceded`, `yellow_cards`, `red_cards`, `saves`, `bonus`, `defensive_contribution`; FPL's
   `element_stats` adds `own_goals`, `penalties_saved` and `penalties_missed` to its scoring set.
 - The same player's `stats` are the gameweek's totals, 29 keys: the ten above and `own_goals`,

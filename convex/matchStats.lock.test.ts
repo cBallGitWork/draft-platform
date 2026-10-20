@@ -41,6 +41,23 @@ test("a complete match locks an hour after full time, and not before", async () 
   expect((await heldMatch(t)).status).toMatchObject({ lockedAt: FULL_TIME_READ + HOUR_MS });
 });
 
+test("a match read every ten minutes still locks an hour after the first read found full time", async () => {
+  const t = await withHullEverton();
+  const readEvery = 10 * MS_PER_MINUTE;
+  for (let read = FULL_TIME_READ; read < FULL_TIME_READ + HOUR_MS; read += readEvery) {
+    if (read > FULL_TIME_READ) await elapse(t, readEvery);
+    await syncAt(t, read, recordedGw6());
+  }
+
+  await elapse(t, readEvery);
+
+  expect((await heldMatch(t)).status).toMatchObject({
+    state: "locked",
+    fullTimeAt: FULL_TIME_READ,
+    lockedAt: FULL_TIME_READ + HOUR_MS,
+  });
+});
+
 test("a record still missing at the hour keeps the match provisional, and it locks an hour after it arrives", async () => {
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, withPlReadEmpty(recordedGw6(), FULL_STATS.coyle.pl));
