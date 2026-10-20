@@ -1,24 +1,24 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
-import { askToJoin, emailsTo, finishWhatIsDueNow, invitesPage, lastEmailTo, makeLink, openLastLinkTo, spendTodaysEmails } from "./joining.harness";
-import { joiningRefusals } from "./joining";
-import { joinPath } from "./joiningShared";
-import { refusals } from "./leagueAccess";
 import {
-  COMMISSIONER,
-  MANAGERS,
-  actingAs,
-  addManagers,
-  adminCreatesLeague,
-  eventsIn,
-  onTheList,
-  teamsIn,
-  type TestConvex,
-} from "./leagues.harness";
-import { SITE_URL, UNLISTED, fakeResend, resetSignInDeployment, signInDeployment, type SentEmail } from "./signIn.harness";
+  asCommissioner,
+  askToJoin,
+  emailsTo,
+  finishWhatIsDueNow,
+  invitesPage,
+  joinPageAs,
+  lastEmailTo,
+  makeLink,
+  spendTodaysEmails,
+} from "./joining.harness";
+import { joiningRefusals } from "./joining";
+import { refusals } from "./leagueAccess";
+import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, type TestConvex } from "./leagues.harness";
+import { fakeResend, resetSignInDeployment, signInDeployment, type SentEmail } from "./signIn.harness";
 
-// The invite link and join requests (#73 stories 2-4; spec/13 Joining, spec/15 Joining a league).
+// Join requests and the commissioner's page of them (#73 stories 3 and 4; spec/13 Joining,
+// spec/15 Joining a league).
 
 const [ANN, BOB, CAT] = MANAGERS;
 
@@ -34,58 +34,8 @@ beforeEach(async () => {
 });
 afterEach(resetSignInDeployment);
 
-const joinPageFor = async (email: string, linkToken = token) => (await actingAs(t, email)).query(api.joinRequests.joinPage, { token: linkToken });
-const asCommissioner = () => actingAs(t, COMMISSIONER);
+const joinPageFor = (email: string) => joinPageAs(t, email, token);
 const waitingRequests = async () => (await invitesPage(t, leagueId))?.requests.map((request) => request.email);
-
-describe("the invite link", () => {
-  test("opened signed in, names the league and lets them ask to join", async () => {
-    expect(await joinPageFor(ANN)).toEqual({ leagueName: "Tim Hortons Pro League", standing: "mayAsk" });
-  });
-
-  test("lets anyone who opens it sign in, on the list or not, with a link back to it", async () => {
-    expect(await t.action(api.inviteLink.signInToJoin, { token, email: UNLISTED })).toBe("checkYourEmail");
-
-    expect(await onTheList(t, UNLISTED)).toBe(true);
-    expect(lastEmailTo(sent, UNLISTED).text).toContain(`${SITE_URL}${joinPath(token)}?code=`);
-    expect(await openLastLinkTo(t, sent, UNLISTED)).not.toBeNull();
-  });
-
-  test("switched off, stops working: its page is gone, and it neither signs anyone in nor takes a request", async () => {
-    await (await asCommissioner()).mutation(api.inviteLink.switchOff, { leagueId });
-
-    expect(await joinPageFor(ANN)).toBeNull();
-    expect(await t.action(api.inviteLink.signInToJoin, { token, email: UNLISTED })).toBe("linkOff");
-    expect(await onTheList(t, UNLISTED)).toBe(false);
-    await expect((await actingAs(t, ANN)).mutation(api.joinRequests.ask, { token })).rejects.toThrow(joiningRefusals.linkOff);
-    expect((await invitesPage(t, leagueId))?.linkToken).toBeNull();
-  });
-
-  test("replaced, the old one stops working and the new one works", async () => {
-    const newToken = await makeLink(t, leagueId);
-
-    expect(newToken).not.toBe(token);
-    expect(await joinPageFor(ANN)).toBeNull();
-    expect((await joinPageFor(ANN, newToken))?.standing).toBe("mayAsk");
-  });
-
-  test("making, replacing and switching it off are each filed for Mail", async () => {
-    await makeLink(t, leagueId);
-    await (await asCommissioner()).mutation(api.inviteLink.switchOff, { leagueId });
-    expect((await eventsIn(t, leagueId)).slice(2)).toEqual([
-      { by: COMMISSIONER, kind: "inviteLinkMade", replacedOne: false },
-      { by: COMMISSIONER, kind: "inviteLinkMade", replacedOne: true },
-      { by: COMMISSIONER, kind: "inviteLinkSwitchedOff" },
-    ]);
-  });
-
-  test("is made and switched off only by the league's runners", async () => {
-    await addManagers(t, leagueId, [ANN]);
-    const ann = await actingAs(t, ANN);
-    await expect(ann.mutation(api.inviteLink.make, { leagueId })).rejects.toThrow(refusals.notRunner);
-    await expect(ann.mutation(api.inviteLink.switchOff, { leagueId })).rejects.toThrow(refusals.notRunner);
-  });
-});
 
 describe("a join request", () => {
   test("waits for the commissioner, and the person sees it waiting", async () => {
@@ -108,7 +58,7 @@ describe("a join request", () => {
 
   test("approved to a new team makes them its manager, files it for Mail, and emails them", async () => {
     const requestId = await askToJoin(t, leagueId, token, ANN);
-    await (await asCommissioner()).mutation(api.joinRequests.approve, { requestId });
+    await (await asCommissioner(t)).mutation(api.joinRequests.approve, { requestId });
     await t.finishAllScheduledFunctions(vi.runAllTimers);
 
     const [team] = await teamsIn(t, leagueId);
@@ -122,9 +72,9 @@ describe("a join request", () => {
 
   test("approved to a vacated team hands them that team", async () => {
     const [annsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
-    await (await asCommissioner()).mutation(api.teams.removeManager, { leagueId, teamId: annsTeam });
+    await (await asCommissioner(t)).mutation(api.teams.removeManager, { leagueId, teamId: annsTeam });
     const requestId = await askToJoin(t, leagueId, token, CAT);
-    await (await asCommissioner()).mutation(api.joinRequests.approve, { requestId, teamId: annsTeam });
+    await (await asCommissioner(t)).mutation(api.joinRequests.approve, { requestId, teamId: annsTeam });
 
     expect((await teamsIn(t, leagueId)).map((team) => team.managerEmail)).toEqual([CAT, BOB]);
   });
@@ -133,7 +83,7 @@ describe("a join request", () => {
     const requestId = await askToJoin(t, leagueId, token, ANN);
     const eventsBefore = await eventsIn(t, leagueId);
     const emailsBefore = sent.length;
-    await (await asCommissioner()).mutation(api.joinRequests.refuseRequest, { requestId });
+    await (await asCommissioner(t)).mutation(api.joinRequests.refuseRequest, { requestId });
     await t.finishAllScheduledFunctions(vi.runAllTimers);
 
     expect(await teamsIn(t, leagueId)).toEqual([]);
@@ -148,14 +98,14 @@ describe("a join request", () => {
     await addManagers(t, leagueId, [BOB]);
     await expect((await actingAs(t, BOB)).mutation(api.joinRequests.approve, { requestId })).rejects.toThrow(refusals.notRunner);
 
-    await (await asCommissioner()).mutation(api.joinRequests.refuseRequest, { requestId });
-    await expect((await asCommissioner()).mutation(api.joinRequests.approve, { requestId })).rejects.toThrow(joiningRefusals.requestDecided);
+    await (await asCommissioner(t)).mutation(api.joinRequests.refuseRequest, { requestId });
+    await expect((await asCommissioner(t)).mutation(api.joinRequests.approve, { requestId })).rejects.toThrow(joiningRefusals.requestDecided);
   });
 
   test("approved past the day's emails, its email waits for tomorrow and goes then", async () => {
     const requestId = await askToJoin(t, leagueId, token, ANN);
     await spendTodaysEmails(t);
-    await (await asCommissioner()).mutation(api.joinRequests.approve, { requestId });
+    await (await asCommissioner(t)).mutation(api.joinRequests.approve, { requestId });
     await finishWhatIsDueNow(t);
     expect(emailsTo(sent, ANN)).toEqual([]);
 
@@ -167,7 +117,7 @@ describe("a join request", () => {
 describe("the commissioner's page", () => {
   test("shows the teams, whether there's room, the link and the waiting requests", async () => {
     const [annsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
-    await (await asCommissioner()).mutation(api.teams.removeManager, { leagueId, teamId: annsTeam });
+    await (await asCommissioner(t)).mutation(api.teams.removeManager, { leagueId, teamId: annsTeam });
     await askToJoin(t, leagueId, token, CAT);
 
     expect(await invitesPage(t, leagueId)).toMatchObject({
