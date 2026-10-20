@@ -9,7 +9,7 @@ import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL } from "./football";
 import { BATCH_SIZE } from "./footballSync";
 import { recordedFpl, type FplPayloads } from "./recorded/fpl.payloads";
 
-type TestConvex = ReturnType<typeof convexTest>;
+export type TestConvex = ReturnType<typeof convexTest>;
 
 export const modules = import.meta.glob("./**/*.ts");
 
@@ -60,7 +60,8 @@ export async function heldCounts(t: TestConvex) {
   };
 }
 
-export const NOTHING_CHANGED = { inserted: 0, updated: 0 };
+/** A table's share of a sync that wrote nothing: no row new, changed, marked or unmarked. */
+export const NOTHING_CHANGED = { inserted: 0, updated: 0, marked: 0, unmarked: 0 };
 
 /** The failure a sync records when FPL refuses `url`. */
 export function refusedError(url: string): string {

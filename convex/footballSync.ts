@@ -30,8 +30,11 @@ type FootballTable = Infer<typeof footballTable>;
 /** A record or a held row, by the key it is matched on. */
 type Keyed = { code: number } | { number: number };
 type MarkedPage = { marked: number; cursor: string; isDone: boolean };
+/** How many run rows `latest` returns. */
+const LATEST_RUNS = 5;
 
-/** Rows per mutation: well inside Convex's per-transaction limits, and a season's ~700 players in four. */
+/** Rows per mutation, upserted or checked for a mark: well inside Convex's per-transaction limits,
+ *  and a season's ~700 players in four. */
 export const BATCH_SIZE = 200;
 
 export const run = internalAction({
@@ -119,7 +122,7 @@ export const record = internalMutation({
 
 export const latest = internalQuery({
   args: {},
-  handler: async (ctx) => ctx.db.query("footballSyncs").order("desc").take(5),
+  handler: async (ctx) => ctx.db.query("footballSyncs").order("desc").take(LATEST_RUNS),
 });
 
 /** A row's stable key: a club's, player's or match's season-stable code, or a gameweek's number. */

@@ -12,6 +12,7 @@ import {
   refusedError,
   syncRun,
   syncWith,
+  type TestConvex,
 } from "./footballSync.harness";
 import { CLUB_CODE, RECORDED_COUNT, recordedFpl } from "./recorded/fpl.payloads";
 import schema from "./schema";
@@ -21,9 +22,8 @@ import schema from "./schema";
 const FIRST_SYNC = Date.parse("2026-10-19T06:00:00Z");
 const SECOND_SYNC = Date.parse("2026-10-19T12:00:00Z");
 const THIRD_SYNC = Date.parse("2026-10-19T18:00:00Z");
-const ONE_MARKED = { inserted: 0, updated: 0, marked: 1, unmarked: 0 };
-const ONE_UNMARKED = { inserted: 0, updated: 0, marked: 0, unmarked: 1 };
-const NO_WRITES = { ...NOTHING_CHANGED, marked: 0, unmarked: 0 };
+const ONE_MARKED = { ...NOTHING_CHANGED, marked: 1 };
+const ONE_UNMARKED = { ...NOTHING_CHANGED, unmarked: 1 };
 const NO_ROW_MARKED = { clubs: [], players: [], fixtures: [], gameweeks: [] };
 
 /** The recording less one of each: Jesus (gone abroad), a club no kept player or match names,
@@ -43,7 +43,7 @@ function withOneOfEachDropped() {
 }
 
 /** Each held row's key with its mark, only for the rows that are marked. */
-async function marks(t: ReturnType<typeof convexTest>) {
+async function marks(t: TestConvex) {
   const rows = await held(t);
   const marked = <Row extends { droppedAt?: number }>(table: Row[], keyOf: (row: Row) => number) =>
     table.filter((row) => "droppedAt" in row).map((row) => [keyOf(row), row.droppedAt]);
@@ -126,7 +126,13 @@ test("a re-run while a row is still missing changes nothing, and its mark keeps 
   vi.setSystemTime(THIRD_SYNC);
   const outcome = await syncWith(t, withOneOfEachDropped().payloads);
 
-  expect(outcome).toMatchObject({ ok: true, clubs: NO_WRITES, players: NO_WRITES, fixtures: NO_WRITES, gameweeks: NO_WRITES });
+  expect(outcome).toMatchObject({
+    ok: true,
+    clubs: NOTHING_CHANGED,
+    players: NOTHING_CHANGED,
+    fixtures: NOTHING_CHANGED,
+    gameweeks: NOTHING_CHANGED,
+  });
   expect(await held(t)).toEqual(before);
 });
 

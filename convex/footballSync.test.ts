@@ -16,6 +16,8 @@ import schema from "./schema";
 
 const SAKA = 223340;
 const MAN_CITY = { id: 15, code: CLUB_CODE.manCity } as const;
+/** Added to a player's or match's id to give it a new season's id. */
+const NEXT_SEASON_ID_OFFSET = 1000;
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -62,14 +64,14 @@ test("a new season's ids change nothing, because every row is keyed on its code"
 
   // Next season FPL numbers everything afresh: every player, club and match gets a new id.
   const renumbered = recordedFpl();
-  const newClubId = (id: number) => 21 - id;
+  const newClubId = (id: number) => RECORDED_COUNT.clubs + 1 - id;
   for (const team of renumbered.bootstrap.teams) team.id = newClubId(team.id);
   for (const player of renumbered.bootstrap.elements) {
-    player.id += 1000;
+    player.id += NEXT_SEASON_ID_OFFSET;
     player.team = newClubId(player.team);
   }
   for (const fixture of renumbered.fixtures) {
-    fixture.id += 1000;
+    fixture.id += NEXT_SEASON_ID_OFFSET;
     fixture.team_h = newClubId(fixture.team_h);
     fixture.team_a = newClubId(fixture.team_a);
   }
