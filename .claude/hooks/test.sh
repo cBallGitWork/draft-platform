@@ -20,6 +20,7 @@ bash_in() { /usr/bin/jq -nc --arg c "$2" --arg d "$1" '{tool_name:"Bash",tool_in
 
 # guard_bash.py, run from a throwaway repo on a feature branch
 tmp=$(mktemp -d)
+as_tester=(-c user.name=t -c user.email=t@t)  # who a test repo's commits are by
 git -C "$tmp" init -q -b chore/x
 export CLAUDE_PROJECT_DIR="$tmp"
 deny_cmds=(
@@ -143,21 +144,59 @@ for c in 'git switch -C main && git commit -m x' 'git checkout -B main origin/ma
 done
 check deny guard_bash.py "$(bash_in "$tmp/sub" "env -C $tmp git commit -m x")"  # env -C moves it
 git -C "$tmp" init -q -b chore/d "$tmp/det"  # a detached HEAD has no branch, and isn't main
-git -C "$tmp/det" -c user.name=t -c user.email=t@t commit -q --allow-empty -m x && git -C "$tmp/det" switch -q --detach
+git -C "$tmp/det" "${as_tester[@]}" commit -q --allow-empty -m x && git -C "$tmp/det" switch -q --detach
 check allow guard_bash.py "$(bash_in "$tmp/det" 'git commit -m x')"
 
-# gate_on_stop.py: blocks a stop only while watched files are changed and the gate fails
+# gate_on_stop.py: blocks a stop only while watched files are changed and the gate fails, in the
+# checkout the stop came from (the payload's cwd, else the project dir)
 said() { # expect hook payload [env...]: "speaks" if the hook prints anything, else "quiet"
   local expect=$1 hook=$2 payload=$3 out got; shift 3
   out=$(printf '%s' "$payload" | env "$@" "$here/$hook")
   if [ -n "$out" ]; then got=speaks; else got=quiet; fi
   if [ "$got" != "$expect" ]; then echo "FAIL $hook: expected $expect, got $got: $payload $*"; fails=$((fails + 1)); fi
 }
+gate_repo() { # dir: a checkout with its package.json committed, so nothing is changed yet
+  git init -q -b chore/g "$1" && printf '{}\n' > "$1/package.json" && git -C "$1" add package.json &&
+    git -C "$1" "${as_tester[@]}" commit -q -m x
+}
+stop_in() { # folder [event]: a stop payload from that folder, a builder's SubagentStop by default
+  /usr/bin/jq -nc --arg d "$1" --arg e "${2:-SubagentStop}" '{hook_event_name:$e,stop_hook_active:false,cwd:$d}'
+}
+dirty=$tmp/gate-dirty clean=$tmp/gate-clean nopkg=$tmp/gate-nopkg nogit=$(mktemp -d)
+gate_repo "$dirty" && gate_repo "$clean"
+wt_dirty=$tmp/gate-wt-dirty wt_clean=$tmp/gate-wt-clean  # builders work in linked worktrees
+git -C "$dirty" worktree add -q -b chore/wd "$wt_dirty" && git -C "$clean" worktree add -q -b chore/wc "$wt_clean"
+mkdir -p "$wt_dirty/src" && touch "$wt_dirty/src/a.ts"
+export CLAUDE_PROJECT_DIR=$dirty
 said quiet gate_on_stop.py '{}' DRAFT_GATE_CMD=false   # nothing changed
-mkdir -p "$tmp/convex" && touch "$tmp/convex/a.ts"
+mkdir -p "$dirty/src" && touch "$dirty/src/a.ts"
 said speaks gate_on_stop.py '{}' DRAFT_GATE_CMD=false
 said quiet gate_on_stop.py '{}' DRAFT_GATE_CMD=true
 said quiet gate_on_stop.py '{"stop_hook_active":true}' DRAFT_GATE_CMD=false
+said quiet gate_on_stop.py "$(stop_in "$wt_clean")" DRAFT_GATE_CMD=false  # a builder's clean worktree
+said speaks gate_on_stop.py "$(stop_in "$wt_dirty")" CLAUDE_PROJECT_DIR="$clean" DRAFT_GATE_CMD=false
+# a subfolder is judged and gated at its checkout's top, where src/a.ts exists, so this gate fails
+said speaks gate_on_stop.py "$(stop_in "$wt_dirty/src")" CLAUDE_PROJECT_DIR="$clean" DRAFT_GATE_CMD='test ! -e src/a.ts'
+# a subagent in the main checkout leaves it to the session's own Stop, which still gates it
+said quiet gate_on_stop.py "$(stop_in "$dirty")" DRAFT_GATE_CMD=false
+said speaks gate_on_stop.py "$(stop_in "$dirty" Stop)" DRAFT_GATE_CMD=false
+mkdir -p "$nogit/src" && touch "$nogit/package.json" "$nogit/src/a.ts"
+said quiet gate_on_stop.py "$(stop_in "$nogit")" DRAFT_GATE_CMD=false  # not a git checkout: no gate
+git init -q "$nopkg" && mkdir "$nopkg/src" && touch "$nopkg/src/a.ts"
+said quiet gate_on_stop.py '{}' CLAUDE_PROJECT_DIR="$nopkg" DRAFT_GATE_CMD=false  # no package.json: no gate
+rm -rf "$nogit"
+# a git status that fails (here a corrupt index) is an error on stderr, never "nothing changed"
+broken=$tmp/gate-broken && gate_repo "$broken" && printf 'not an index' > "$broken/.git/index"
+err=$(stop_in "$broken" Stop | env DRAFT_GATE_CMD=true "$here/gate_on_stop.py" 2>&1 >/dev/null)
+code=$?
+if [ "$code" -eq 0 ] || [ -z "$err" ]; then
+  echo "FAIL gate_on_stop.py: a failed git status exited $code with no error"; fails=$((fails + 1))
+fi
+# settings.json runs the gate on both stops, so neither a session nor a builder finishes past it
+for event in Stop SubagentStop; do
+  /usr/bin/jq -e --arg e "$event" '.hooks[$e][]?.hooks[]?.command | select(endswith("/gate_on_stop.py"))' \
+    "$here/../settings.json" >/dev/null || { echo "FAIL settings.json: no $event hook runs gate_on_stop.py"; fails=$((fails + 1)); }
+done
 
 # line_ceiling.py: a note past 250 lines, none at or under it, none for prose
 seq 251 > "$tmp/long.ts" && seq 250 > "$tmp/short.ts" && seq 400 > "$tmp/long.md"
