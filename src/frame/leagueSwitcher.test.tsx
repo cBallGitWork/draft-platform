@@ -5,7 +5,7 @@ import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import type { Id } from "../../convex/_generated/dataModel";
-import { notYourLeague } from "../../convex/lastLeague";
+import { refusals } from "../../convex/leagueAccess";
 import type { LeagueSummary } from "../../convex/myLeagues";
 import { LEAGUES_PATH } from "../leagues/paths";
 import { adminSeeing, league, manager, managerIn, openApp } from "../shell.harness";
@@ -68,11 +68,11 @@ describe("a manager in two leagues", () => {
 
   it("is told why a switch was refused, with the list still open", async () => {
     const app = openApp(MY_TEAM_PATH, inTwo);
-    app.leagues.switchLeague.mockResolvedValue(notYourLeague);
+    app.leagues.switchLeague.mockResolvedValue(refusals.notYourLeague);
     await userEvent.click(await switcher());
     await userEvent.click(screen.getByRole("button", { name: /^Mini beta/ }));
 
-    expect((await screen.findByRole("alert")).textContent).toBe(notYourLeague);
+    expect((await screen.findByRole("alert")).textContent).toBe(refusals.notYourLeague);
     expect(choices()).toHaveLength(2);
   });
 

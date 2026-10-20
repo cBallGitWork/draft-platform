@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
-import { notYourLeague } from "./lastLeague";
+import { refusals } from "./leagueAccess";
 import { ADMIN, actingAs, COMMISSIONER, MANAGERS, addManagers, adminCreatesLeague, type TestConvex } from "./leagues.harness";
 import { fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
 
@@ -74,8 +74,8 @@ test("switching to a league they have no part in is refused, and they stay where
   const strangers = await adminCreatesLeague(t, 4, "Strangers");
   await switchTo(ANN, second);
 
-  await expect(switchTo(ANN, strangers)).rejects.toThrow(notYourLeague);
-  await expect(switchTo(ADMIN, first)).rejects.toThrow(notYourLeague);
+  await expect(switchTo(ANN, strangers)).rejects.toThrow(refusals.notYourLeague);
+  await expect(switchTo(ADMIN, first)).rejects.toThrow(refusals.notYourLeague);
   expect(await currentLeagueOf(ANN)).toBe(second);
 });
 

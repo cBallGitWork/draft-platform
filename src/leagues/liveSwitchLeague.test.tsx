@@ -5,7 +5,7 @@ import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { afterEach, expect, test, vi } from "vitest";
 import type { Id } from "../../convex/_generated/dataModel";
-import { notYourLeague } from "../../convex/lastLeague";
+import { refusals } from "../../convex/leagueAccess";
 import { useLiveLeagueActions } from "./liveLeagueActions";
 import { switchFailedWords } from "./words";
 
@@ -27,8 +27,8 @@ test("a switch the server makes resolves with no problem", async () => {
 });
 
 test("a switch the server refuses resolves with the server's own words", async () => {
-  switchTo.mockRejectedValue(new ConvexError(notYourLeague));
-  expect(await switchLeague()).toBe(notYourLeague);
+  switchTo.mockRejectedValue(new ConvexError(refusals.notYourLeague));
+  expect(await switchLeague()).toBe(refusals.notYourLeague);
 });
 
 test("any other failure is logged and said plainly", async () => {

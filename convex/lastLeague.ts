@@ -1,14 +1,11 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { mutation, type QueryCtx } from "./_generated/server";
-import { callerEmail, refuse, teamsOf } from "./leagueAccess";
+import { callerEmail, refuse, refusals, teamsOf } from "./leagueAccess";
 import type { LeagueSummary } from "./myLeagues";
 
 // The league switcher (#76, spec/13, Several leagues): the app opens the league a person used
 // last. It is kept on the server, by email, so it follows them to every device.
-
-/** Why a switch was refused, as the person switching is told it. */
-export const notYourLeague = "You're not in that league.";
 
 const rememberedRow = (ctx: QueryCtx, email: string) =>
   ctx.db
@@ -22,7 +19,8 @@ const rememberedRow = (ctx: QueryCtx, email: string) =>
 export async function currentLeagueOf(ctx: QueryCtx, email: string, leagues: readonly LeagueSummary[]): Promise<Id<"leagues"> | null> {
   const theirs = leagues.filter((league) => league.roles.length > 0);
   const remembered = await rememberedRow(ctx, email);
-  return (theirs.find((league) => league.leagueId === remembered?.leagueId) ?? theirs[0])?.leagueId ?? null;
+  const current = theirs.find((league) => league.leagueId === remembered?.leagueId) ?? theirs[0];
+  return current?.leagueId ?? null;
 }
 
 /** The person switches to one of their leagues, which the app then opens until they switch again. */
@@ -37,7 +35,7 @@ export const switchTo = mutation({
       (league.commissionerEmail === email ||
         league.coCommissionerEmail === email ||
         (await teamsOf(ctx, leagueId)).some((team) => team.managerEmail === email));
-    if (!hasPart) refuse(notYourLeague);
+    if (!hasPart) refuse(refusals.notYourLeague);
 
     const remembered = await rememberedRow(ctx, email);
     if (!remembered) await ctx.db.insert("lastLeagues", { email, leagueId });
