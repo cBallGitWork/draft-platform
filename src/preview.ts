@@ -13,6 +13,7 @@ import type { LeagueActions } from "./leagues/actions";
 import { replyWords } from "./sign-in/words";
 
 /** Made-up leagues, in the shape account:signedInAs sends. */
+const unreachedCommissioner = "first.commissioner@example.com";
 const proLeague: LeagueSummary = {
   leagueId: "preview-pro-league" as Id<"leagues">,
   name: "Tim Hortons Pro League",
@@ -26,12 +27,12 @@ const proLeague: LeagueSummary = {
 const miniBeta: LeagueSummary = {
   leagueId: "preview-mini-beta" as Id<"leagues">,
   name: "Mini beta",
-  commissionerEmail: "first.commissioner@example.com",
+  commissionerEmail: unreachedCommissioner,
   roles: [],
   teamName: null,
   teams: 0,
   maxTeams: 4,
-  unsentCommissionerLink: { email: "first.commissioner@example.com", reply: "paused" },
+  unsentCommissionerLink: { email: unreachedCommissioner, reply: "paused" },
 };
 
 const manager = {
@@ -39,13 +40,22 @@ const manager = {
   email: "manager@example.com",
   isAdmin: false,
   inLeague: true,
-  leagues: [proLeague, { ...miniBeta, roles: ["commissioner", "manager"], teamName: "Team 1", teams: 1, unsentCommissionerLink: null }],
+  leagues: [
+    proLeague,
+    { ...miniBeta, roles: ["commissioner", "manager"], teamName: "Team 1", teams: 1, unsentCommissionerLink: null },
+  ],
 } as const satisfies Session;
 
 const previewSessions: Record<string, Session> = {
   manager,
   newcomer: { ...manager, inLeague: false, leagues: [] },
-  admin: { ...manager, email: "admin@example.com", isAdmin: true, inLeague: false, leagues: [miniBeta, { ...proLeague, roles: [], teamName: null }] },
+  admin: {
+    ...manager,
+    email: "admin@example.com",
+    isAdmin: true,
+    inLeague: false,
+    leagues: [miniBeta, { ...proLeague, roles: [], teamName: null }],
+  },
   visitor: { signedIn: false },
 };
 

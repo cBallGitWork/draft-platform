@@ -6,7 +6,7 @@ import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { ADMIN, type TestConvex } from "./signIn.harness";
 
-export { ADMIN, resetSignInDeployment as resetLeaguesDeployment, signInDeployment as leaguesDeployment } from "./signIn.harness";
+export { ADMIN };
 export type { TestConvex };
 
 export const COMMISSIONER = "commish@example.com";
