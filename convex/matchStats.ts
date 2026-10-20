@@ -67,7 +67,7 @@ export const upsertMatch = internalMutation({
     if (status?.state === "locked") {
       await ctx.db.patch("matchStatsStatus", status._id, { lastReadAt: readAt });
       const lateCorrections = await recordLateCorrections(ctx, records, held, readAt);
-      return { state: status.state, inserted: 0, updated: 0, lateCorrections };
+      return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections };
     }
     const complete = isMatchComplete(records);
     const state: State = complete ? "complete" : "provisional";
@@ -125,7 +125,7 @@ export const latest = internalQuery({
   handler: async (ctx) => ctx.db.query("matchStatsSyncs").order("desc").take(LATEST_RUNS),
 });
 
-function statusOf(ctx: QueryCtx, fixtureCode: number) {
+export function statusOf(ctx: QueryCtx, fixtureCode: number) {
   return ctx.db
     .query("matchStatsStatus")
     .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
@@ -140,34 +140,36 @@ function triedOf(ctx: QueryCtx, fixtureCode: number) {
 }
 
 /** A match's held records: one per man named, so a few dozen. */
-function recordsOf(ctx: MutationCtx, fixtureCode: number) {
+export function recordsOf(ctx: MutationCtx, fixtureCode: number) {
   return ctx.db
     .query("playerMatchStats")
     .withIndex("by_fixtureCode_and_playerCode", (q) => q.eq("fixtureCode", fixtureCode))
     .collect();
 }
 
-/** Each record as sent, in the match's state: a new man inserted, a changed one replaced whole. */
-async function writeRecords(
+/** Each record as sent, in the match's state: a new man inserted, a changed one replaced whole.
+ *  `changed` names every man inserted or updated: the ones whose points move (#28). */
+export async function writeRecords(
   ctx: MutationCtx,
   records: PlayerMatchRecord[],
   held: Map<number, Doc<"playerMatchStats">>,
   state: State,
-): Promise<{ inserted: number; updated: number }> {
+): Promise<{ inserted: number; updated: number; changed: number[] }> {
   let inserted = 0;
-  let updated = 0;
+  const changed: number[] = [];
   for (const record of records) {
     const row = held.get(record.playerCode);
     if (row === undefined) {
       await ctx.db.insert("playerMatchStats", { ...record, state });
       inserted += 1;
+      changed.push(record.playerCode);
       continue;
     }
-    const changed = !sameRecord(row, record);
-    if (changed) updated += 1;
-    if (changed || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state });
+    const differs = !sameRecord(row, record);
+    if (differs) changed.push(record.playerCode);
+    if (differs || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state });
   }
-  return { inserted, updated };
+  return { inserted, updated: changed.length - inserted, changed };
 }
 
 /** A row for each whole record that differs from the locked one, unless the last row for him

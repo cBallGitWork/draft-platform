@@ -1,0 +1,77 @@
+import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { isWhole } from "./matchRecords";
+import { REPLAY_MINUTES, stagedGw6, stageTime, tickAt } from "./liveStats.harness";
+import { HULL_EVERTON, heldMatch, mergedHullEverton, withHullEverton } from "./matchStats.harness";
+import { FULL_STATS, recordedGw6 } from "./recorded/gw6.payloads";
+import { scoreMatch } from "./scoring";
+import { EXAMPLE_SET } from "./scoring.example";
+import type { TestConvex } from "./test.harness";
+
+beforeEach(() => vi.useFakeTimers());
+afterEach(() => vi.useRealTimers());
+
+type Records = ReturnType<typeof mergedHullEverton>;
+
+/** The held records as the merge gives them, without Convex's own fields. */
+async function heldRecords(t: TestConvex) {
+  const { records } = await heldMatch(t);
+  return new Map([...records].map(([code, { _id, _creationTime, ...record }]) => [code, record]));
+}
+
+/** The men whose records differ between two stages. */
+function movedBetween(before: Records, after: Records): number[] {
+  const held = new Map(before.map((record) => [record.playerCode, JSON.stringify(record)]));
+  return after.filter((record) => held.get(record.playerCode) !== JSON.stringify(record)).map((record) => record.playerCode);
+}
+
+/** Belloumi's points under the tests' scoring set, from his held record: "—" (null) while it is not whole. */
+async function belloumiPoints(t: TestConvex) {
+  const record = (await heldRecords(t)).get(FULL_STATS.belloumi.code)!;
+  return scoreMatch(isWhole(record) ? record.stats : null, EXAMPLE_SET, "attack").total;
+}
+
+test("a replayed match moves every minute, provisional, names who moved, and ends complete at full time", async () => {
+  const t = await withHullEverton();
+  let before: Records = [];
+  const points: (number | null)[] = [];
+  for (let minute = 0; minute <= REPLAY_MINUTES; minute += 1) {
+    const { latest } = await tickAt(t, stageTime(minute), stagedGw6(minute));
+    const expected = mergedHullEverton(stagedGw6(minute));
+    const moved = movedBetween(before, expected);
+
+    expect(moved.length).toBeGreaterThan(0);
+    expect(latest).toMatchObject({
+      ranAt: stageTime(minute),
+      outcome: { ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: true, state: "provisional", changed: moved }] },
+    });
+    expect(await heldRecords(t)).toEqual(new Map(expected.map((record) => [record.playerCode, { ...record, state: "provisional" }])));
+    points.push(await belloumiPoints(t));
+    before = expected;
+  }
+  // On at 64' and scoring at 74', both five minutes later in play for the first half's stoppage:
+  // a point for playing once his first whole minute counts, four more with the goal.
+  const moves = points.flatMap((total, minute) => (minute > 0 && total !== points[minute - 1] ? [[minute, total]] : []));
+  expect(moves).toEqual([
+    [71, 1],
+    [79, 5],
+  ]);
+
+  const fullTime = stageTime(REPLAY_MINUTES + 1);
+  const { latest } = await tickAt(t, fullTime, recordedGw6());
+
+  expect(latest.outcome).toMatchObject({ ok: true, matches: [{ state: "complete" }] });
+  const { status } = await heldMatch(t);
+  expect(status).toMatchObject({ state: "complete", fullTimeAt: fullTime, completeAt: fullTime });
+  expect(await heldRecords(t)).toEqual(new Map(mergedHullEverton().map((record) => [record.playerCode, { ...record, state: "complete" }])));
+  expect(await belloumiPoints(t)).toBe(5);
+});
+
+test("once the match is complete the next tick reads no feed and records nothing", async () => {
+  const t = await withHullEverton();
+  await tickAt(t, stageTime(REPLAY_MINUTES + 1), recordedGw6());
+
+  const { fetch, latest } = await tickAt(t, stageTime(REPLAY_MINUTES + 2), recordedGw6());
+
+  expect(fetch).not.toHaveBeenCalled();
+  expect(latest.ranAt).toBe(stageTime(REPLAY_MINUTES + 1));
+});

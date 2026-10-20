@@ -141,6 +141,8 @@ export const matchSyncOutcome = v.union(
     inserted: v.number(),
     updated: v.number(),
     lateCorrections: v.number(),
+    /** The men inserted or updated: whose points move (#28). Absent on runs before it. */
+    changed: v.optional(v.array(v.number())),
     /** Men a team sheet names whom FPL does not list: no record, since there is no code to key it on. */
     unmatched: v.array(v.object({ plPlayerId: v.number(), name: v.string(), opta: v.union(v.string(), v.null()) })),
   }),
@@ -180,12 +182,26 @@ const matchStatsTables = {
   matchStatsTries: defineTable({ fixtureCode: v.number(), triedAt: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
 };
 
+// The live poller (#28): one row per tick that found a match live, so a failed one is on record.
+export const liveStatsTickFields = {
+  ranAt: v.number(),
+  outcome: v.union(
+    v.object({ ok: v.literal(true), matches: v.array(matchSyncOutcome) }),
+    v.object({ ok: v.literal(false), error: v.string() }),
+  ),
+};
+
+const liveStatsTables = {
+  liveStatsTicks: defineTable(liveStatsTickFields),
+};
+
 export default defineSchema({
   ...matchStatsTables,
+  ...liveStatsTables,
   feedChecks: defineTable(feedCheckFields),
   clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
   players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]),
-  fixtures: defineTable(fixtureRecord.extend({ droppedAt })).index("by_code", ["code"]),
+  fixtures: defineTable(fixtureRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_kickoff", ["kickoff"]),
   gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]),
   footballSyncs: defineTable(footballSyncFields),
 });

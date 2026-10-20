@@ -24,7 +24,7 @@ test("a re-read of the same match writes nothing new, and keeps when it reached 
 
   const run = await syncAt(t, FULL_TIME_READ + 10 * MINUTE_MS, recordedGw6());
 
-  expect(run.outcome).toMatchObject({ matches: [{ state: "complete", inserted: 0, updated: 0 }] });
+  expect(run.outcome).toMatchObject({ matches: [{ state: "complete", inserted: 0, updated: 0, changed: [] }] });
   expect((await heldMatch(t)).status).toMatchObject({ fullTimeAt: FULL_TIME_READ, completeAt: FULL_TIME_READ });
 });
 
@@ -34,7 +34,7 @@ test("a correction inside the window updates the record, and a stat taken away g
 
   const run = await syncAt(t, FULL_TIME_READ + HOUR_MS / 2, withBelloumiGoalRemoved(recordedGw6()));
 
-  expect(run.outcome).toMatchObject({ matches: [{ state: "complete", inserted: 0, updated: 1 }] });
+  expect(run.outcome).toMatchObject({ matches: [{ state: "complete", inserted: 0, updated: 1, changed: [FULL_STATS.belloumi.code] }] });
   const belloumi = (await heldMatch(t)).records.get(FULL_STATS.belloumi.code)!;
   expect(statValue(belloumi, "goals_scored")).toBe(0);
   expect(belloumi.stats).not.toHaveProperty("goals_openplay");
@@ -70,7 +70,7 @@ test.each([
 
   const run = await syncAt(t, FULL_TIME_READ + 10 * MINUTE_MS, after(provisional()));
 
-  expect(run.outcome).toMatchObject({ matches: [{ state: "provisional", inserted: 0, updated: 1 }] });
+  expect(run.outcome).toMatchObject({ matches: [{ state: "provisional", inserted: 0, updated: 1, changed: [playerCode] }] });
   const row = (await heldMatch(t)).records.get(playerCode)!;
   expect(row.stats).toEqual(held.stats);
   expect(held).not.toMatchObject(changed);

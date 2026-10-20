@@ -13,6 +13,8 @@ import type * as feeds from "../feeds.js";
 import type * as football from "../football.js";
 import type * as footballSync from "../footballSync.js";
 import type * as fpl from "../fpl.js";
+import type * as liveStats from "../liveStats.js";
+import type * as liveStatsSync from "../liveStatsSync.js";
 import type * as matchStats from "../matchStats.js";
 import type * as matchStatsSync from "../matchStatsSync.js";
 import type * as platformSettings from "../platformSettings.js";
@@ -29,6 +31,8 @@ declare const fullApi: ApiFromModules<{
   football: typeof football;
   footballSync: typeof footballSync;
   fpl: typeof fpl;
+  liveStats: typeof liveStats;
+  liveStatsSync: typeof liveStatsSync;
   matchStats: typeof matchStats;
   matchStatsSync: typeof matchStatsSync;
   platformSettings: typeof platformSettings;

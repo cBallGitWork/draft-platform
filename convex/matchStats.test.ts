@@ -38,6 +38,7 @@ test("a finished match lands complete: a record for every named man, both feeds 
         players: 40,
         inserted: 40,
         updated: 0,
+        changed: mergedHullEverton().map((record) => record.playerCode),
         lateCorrections: 0,
         unmatched: [],
       },
