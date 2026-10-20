@@ -11,7 +11,6 @@ import { roleWords } from "../leagues/words";
 const placementClasses = "order-last w-full border-t border-plate-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-l";
 const toggleClasses =
   "flex min-h-tap w-full items-center justify-between gap-2 px-4 text-lead font-semibold hover:bg-stepper aria-expanded:bg-stepper";
-// The league the app is in is marked as the active tab is, in cyan, down its left edge.
 const choiceClasses =
   "flex min-h-tap w-full flex-col justify-center px-3 py-1 text-left text-soft hover:text-fact " +
   "aria-current:text-fact aria-current:shadow-current-edge";

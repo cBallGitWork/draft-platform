@@ -20,6 +20,7 @@ export const refusals = {
   notNamer: "Only the league's commissioner or the admin can name or remove a commissioner or co-commissioner.",
   notManager: "Only the team's manager or the admin can do that.",
   runsNoTeam: "You don't run a team in this league.",
+  notYourLeague: "You're not in that league.",
   blankName: "Give it a name.",
   teamNameTooLong: `A team's name is up to ${TEAM_NAME_MAX} characters.`,
   teamNameTaken: (name: string) => `A team in this league is already called "${name}".`,

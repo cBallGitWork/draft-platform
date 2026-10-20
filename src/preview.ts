@@ -68,7 +68,7 @@ export function previewSession(): Session | null {
   return name !== null && Object.hasOwn(previewSessions, name) ? previewSessions[name] : null;
 }
 
-/** Creating a league makes nothing, and switching league stays put, and each says so. */
+/** Creating a league makes nothing and switching league stays put, each saying so. */
 export const previewLeagues: LeagueActions = {
   createLeague: async () => "This is a preview: no league was made.",
   switchLeague: async () => "This is a preview: you're still in this league.",
