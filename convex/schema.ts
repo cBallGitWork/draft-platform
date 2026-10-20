@@ -56,8 +56,24 @@ export const gameweekRecord = v.object({
   deadline: v.number(),
 });
 
-/** One table's share of a sync: the rows the feed sent, and how many were new or had changed. */
-export const tableWrites = v.object({ received: v.number(), inserted: v.number(), updated: v.number() });
+// The schema is live: clubs, players, fixtures, gameweeks and footballSyncs hold rows written
+// before #64, so every field added since is optional, or the next push would refuse those rows.
+// Renaming a field is a migration, never an edit here.
+
+/** When the feed stopped sending a held row: the `ranAt` of the first sync without it. Absent
+ *  while the row is sent. The row is kept, never deleted, and unmarked when sent again, found by
+ *  its key as ever: a player by his `code` (#64). */
+const droppedAt = v.optional(v.number());
+
+/** One table's share of a sync: the rows the feed sent, how many were new or had changed, and
+ *  how many held rows it marked as no longer sent or unmarked as sent again (absent on runs before #64). */
+export const tableWrites = v.object({
+  received: v.number(),
+  inserted: v.number(),
+  updated: v.number(),
+  marked: v.optional(v.number()),
+  unmarked: v.optional(v.number()),
+});
 
 export const footballSyncTrigger = v.union(v.literal("manual"), v.literal("cron"));
 
@@ -79,9 +95,9 @@ export const footballSyncFields = {
 
 export default defineSchema({
   feedChecks: defineTable(feedCheckFields),
-  clubs: defineTable(clubRecord).index("by_code", ["code"]),
-  players: defineTable(playerRecord).index("by_code", ["code"]),
-  fixtures: defineTable(fixtureRecord).index("by_code", ["code"]),
-  gameweeks: defineTable(gameweekRecord).index("by_number", ["number"]),
+  clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
+  players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]),
+  fixtures: defineTable(fixtureRecord.extend({ droppedAt })).index("by_code", ["code"]),
+  gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]),
   footballSyncs: defineTable(footballSyncFields),
 });

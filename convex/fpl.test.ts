@@ -79,3 +79,16 @@ test.each([
 
   expect(() => mapFpl(doubled.bootstrap, doubled.fixtures)).toThrow(`FPL sent ${kind} ${key} twice`);
 });
+
+// The sync marks every held row a list leaves out, so an empty list throws rather than mark them all.
+test.each([
+  ["club", (fpl: FplPayloads) => (fpl.bootstrap.teams = [])],
+  ["player", (fpl: FplPayloads) => (fpl.bootstrap.elements = [])],
+  ["match", (fpl: FplPayloads) => (fpl.fixtures = [])],
+  ["gameweek", (fpl: FplPayloads) => (fpl.bootstrap.events = [])],
+] as const)("an empty %s list throws", (kind, empty) => {
+  const emptied = recordedFpl();
+  empty(emptied);
+
+  expect(() => mapFpl(emptied.bootstrap, emptied.fixtures)).toThrow(`FPL sent an empty ${kind} list`);
+});

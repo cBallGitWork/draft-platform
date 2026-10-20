@@ -64,38 +64,54 @@ export async function readFpl(): Promise<Football> {
 /** Pure raw → seam mapping: no I/O and no clock, so the same payloads always give the same records. */
 export function mapFpl(bootstrap: RawBootstrap, fixtures: RawFixture[]): Football {
   const clubCode = clubCodes(bootstrap.teams);
-  const football: Football = {
-    clubs: bootstrap.teams.map((team) => ({ code: team.code, name: team.name, shortName: team.short_name })),
-    players: bootstrap.elements.map((element) => ({
-      code: element.code,
-      name: element.web_name,
-      fullName: `${element.first_name} ${element.second_name}`.trim(),
-      clubCode: clubCode(element.team),
-    })),
-    fixtures: fixtures.map((fixture) => ({
-      code: fixture.code,
-      gameweek: fixture.event ?? null,
-      homeClubCode: clubCode(fixture.team_h),
-      awayClubCode: clubCode(fixture.team_a),
-      kickoff: fixture.kickoff_time ? epochMs(fixture.kickoff_time) : null,
-    })),
-    gameweeks: bootstrap.events.map((event) => ({ number: event.id, deadline: epochMs(event.deadline_time) })),
+  // Clubs first: an empty club list is refused by name before a player looks his club up.
+  return {
+    clubs: wholeList(
+      "club",
+      bootstrap.teams.map((team) => ({ code: team.code, name: team.name, shortName: team.short_name })),
+      (club) => club.code,
+    ),
+    players: wholeList(
+      "player",
+      bootstrap.elements.map((element) => ({
+        code: element.code,
+        name: element.web_name,
+        fullName: `${element.first_name} ${element.second_name}`.trim(),
+        clubCode: clubCode(element.team),
+      })),
+      (player) => player.code,
+    ),
+    fixtures: wholeList(
+      "match",
+      fixtures.map((fixture) => ({
+        code: fixture.code,
+        gameweek: fixture.event ?? null,
+        homeClubCode: clubCode(fixture.team_h),
+        awayClubCode: clubCode(fixture.team_a),
+        kickoff: fixture.kickoff_time ? epochMs(fixture.kickoff_time) : null,
+      })),
+      (fixture) => fixture.code,
+    ),
+    gameweeks: wholeList(
+      "gameweek",
+      bootstrap.events.map((event) => ({ number: event.id, deadline: epochMs(event.deadline_time) })),
+      (gameweek) => gameweek.number,
+    ),
   };
-  eachOnce("club", football.clubs.map((club) => club.code));
-  eachOnce("player", football.players.map((player) => player.code));
-  eachOnce("match", football.fixtures.map((fixture) => fixture.code));
-  eachOnce("gameweek", football.gameweeks.map((gameweek) => gameweek.number));
-  return football;
 }
 
-/** A key sent twice is a changed payload. The sync looks a batch's rows up together, so two rows
- *  with one code would both be inserted, and every later sync would fail on the pair. */
-function eachOnce(what: string, keys: number[]): void {
+/** `rows`, unless the list is empty or sends a key twice: a changed payload, so it throws. The
+ *  sync marks every held row a list leaves out (#64), so an empty list would mark them all; and it
+ *  looks a batch's rows up together, so two rows with one key would both be inserted, and every
+ *  later sync would fail on the pair. */
+function wholeList<Row>(what: string, rows: Row[], keyOf: (row: Row) => number): Row[] {
+  if (rows.length === 0) throw new Error(`FPL sent an empty ${what} list`);
   const seen = new Set<number>();
-  for (const key of keys) {
+  for (const key of rows.map(keyOf)) {
     if (seen.has(key)) throw new Error(`FPL sent ${what} ${key} twice`);
     seen.add(key);
   }
+  return rows;
 }
 
 /** A club's season-stable code from its per-season id. A club FPL names but does not list is a
