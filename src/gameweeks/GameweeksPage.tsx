@@ -101,9 +101,7 @@ function GameweekTable({
           return (
             <tr key={row.gameweek} className={`border-t border-panel-rule ${row.used ? "" : "text-muted"}`}>
               <th scope="row" className={`${cellClasses} font-semibold`}>{row.gameweek}</th>
-              <td className={`${cellClasses} ${row.deadline === null || begun ? "text-muted" : ""}`}>
-                {row.deadline === null ? noDeadlineWords : begun ? begunWords : deadlineWords(row.deadline)}
-              </td>
+              <DeadlineCell deadline={row.deadline} begun={begun} />
               <td className={cellClasses}>
                 <TickBox
                   label={tickLabel(row.gameweek)}
@@ -120,9 +118,22 @@ function GameweekTable({
   );
 }
 
+/** When the gameweek begins, or, muted, that it has begun or that the app doesn't know when. */
+function DeadlineCell({ deadline, begun }: { deadline: number | null; begun: boolean }) {
+  if (deadline === null || begun) {
+    return <td className={`${cellClasses} text-muted`}>{deadline === null ? noDeadlineWords : begunWords}</td>;
+  }
+  return <td className={cellClasses}>{deadlineWords(deadline)}</td>;
+}
+
+/** The box's look: white when ticked, muted when it can't be changed. */
+function tickBoxClasses(ticked: boolean, disabled: boolean): string {
+  if (disabled) return ticked ? "border-muted bg-muted" : "border-muted";
+  return ticked ? "border-fact bg-fact" : "border-soft bg-ground";
+}
+
 /** A square tick box, CM's, with the whole cell's height to tap. */
 function TickBox({ label, ticked, disabled, onTick }: { label: string; ticked: boolean; disabled: boolean; onTick: () => void }) {
-  const boxClasses = disabled ? (ticked ? "border-muted bg-muted" : "border-muted") : ticked ? "border-fact bg-fact" : "border-soft bg-ground";
   return (
     <button
       type="button"
@@ -131,9 +142,9 @@ function TickBox({ label, ticked, disabled, onTick }: { label: string; ticked: b
       aria-label={label}
       disabled={disabled}
       onClick={onTick}
-      className="group flex min-h-tap items-center px-2 lg:min-h-0"
+      className="flex min-h-tap items-center px-2 lg:min-h-0"
     >
-      <span aria-hidden="true" className={`flex size-4 items-center justify-center border ${boxClasses}`}>
+      <span aria-hidden="true" className={`flex size-4 items-center justify-center border ${tickBoxClasses(ticked, disabled)}`}>
         {ticked && (
           <svg viewBox="0 0 16 16" className="size-3 stroke-ground" fill="none" strokeWidth="3">
             <path d="M2 8.5 6 12.5 14 3.5" />
