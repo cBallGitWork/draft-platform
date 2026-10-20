@@ -72,9 +72,9 @@ describe("letters about the league's events", () => {
   });
 
   test("the admin is named as the admin, never by his email", async () => {
-    const [, newest] = await t.run((ctx) => ctx.db.query("letters").collect());
-    expect(newest.body).toBe(`${adminByline} named ${COMMISSIONER} the league's commissioner.`);
-    expect(newest.body).not.toContain(ADMIN);
+    const [, named] = await t.run((ctx) => ctx.db.query("letters").collect());
+    expect(named.body).toBe(`${adminByline} named ${COMMISSIONER} the league's commissioner.`);
+    expect(named.body).not.toContain(ADMIN);
   });
 
   test("a manager who is removed is told, and gets nothing after", async () => {

@@ -20,7 +20,10 @@ export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly Le
     setSending(true);
     const problem = await writeToLeague({ leagueId: league.leagueId, subject, body });
     setSending(false);
-    if (problem !== null) return setOutcome({ sent: false, problem });
+    if (problem !== null) {
+      setOutcome({ sent: false, problem });
+      return;
+    }
     setOutcome({ sent: true, leagueName: league.name });
     setSubject("");
     setBody("");

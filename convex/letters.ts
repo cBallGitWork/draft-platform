@@ -7,12 +7,8 @@ import type { leagueEvent } from "./schema";
 
 // Filing Mail's letters (#26, spec/16): the one way any feature puts a letter in someone's Mail.
 
-export type Letter = {
-  subject: string;
-  body: string;
-  /** Who wrote it, by email; absent on a letter reporting something that happened. */
-  from?: string;
-};
+/** What a letter says, and who wrote it, if someone did (schema.ts, `letterFields`). */
+export type Letter = Pick<Doc<"letters">, "subject" | "body" | "from">;
 
 /** Everyone with a part in the league, by email: its commissioner, co-commissioner and managers. */
 export async function wholeLeague(ctx: QueryCtx, league: Doc<"leagues">): Promise<string[]> {
@@ -54,7 +50,10 @@ function takenOut(event: LeagueEvent): string[] {
     case "managerRemoved":
     case "managerLeft":
       return [event.email];
-    default:
+    case "created":
+    case "managerAdded":
+    case "teamRenamed":
+    case "maxTeamsChanged":
       return [];
   }
 }
