@@ -17,7 +17,7 @@ reason, and a change to either changes this file.
 | Backend | [Convex](https://docs.convex.dev): database, live queries, timers, sign-in | a pick's timer is saved with the pick, so pause and undo cancel it; live scores reach browsers with no extra service; one vendor, hard-capped free plan |
 | Pages | Vercel, free (Hobby) plan | the companion's host |
 | Timed work | Convex scheduled functions and crons | Vercel Hobby cron runs once a day and GitHub Actions cron can't hold a minute, so every timer lives with the data |
-| The gate in CI | GitHub Actions on `ubuntu-latest`: `.github/workflows/verify.yml` runs `npm run verify` on every pull request to main and every push to main (Craig, 20 Oct 2026) | two pull requests that pass alone can break main together (#69 and #77); Linux is the cheapest runner, and the hook checks need only Python, git and jq; no secrets, since no test touches a deployment |
+| The gate in CI | GitHub Actions on `ubuntu-latest`: `.github/workflows/verify.yml` runs `npm run verify` on every pull request to main and every push to main (Craig, 20 Oct 2026) | two pull requests that pass alone can break main together (#69 and #77); Linux is the cheapest runner, and the hook checks need only bash, Python, git and jq; no secrets, since no test touches a deployment |
 | Email | Resend | free: 3,000 a month, **100 a day**, which is why a live draft sends no "on the clock" email |
 | Money | free plans through the mini beta; Craig sets a monthly ceiling before August 2027 | |
 

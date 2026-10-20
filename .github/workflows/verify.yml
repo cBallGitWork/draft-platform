@@ -1,7 +1,4 @@
-# The gate, on GitHub's runner: every pull request to main and every push to main runs
-# `npm run verify` (tests, typecheck, hook checks), so two pull requests that pass alone but
-# break main together are caught on main. No secrets: the tests use convex-test and recorded
-# payloads, never a deployment.
+# `npm run verify` on GitHub's runner; what it catches and why here: ARCHITECTURE.md, Services.
 name: verify
 
 on:
@@ -27,7 +24,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      # the hook checks run on the runner's own python3, git and /usr/bin/jq: say which
-      - run: python3 --version && git --version && /usr/bin/jq --version
+      # the hook checks run on the runner's own bash, python3, git and /usr/bin/jq: say which
+      - run: bash --version | head -1 && python3 --version && git --version && /usr/bin/jq --version
       - run: npm ci
       - run: npm run verify
