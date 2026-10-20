@@ -53,6 +53,16 @@ test("a match read every ten minutes still locks an hour after the first read fo
   });
 });
 
+test("a complete match read again before its lock schedules no second lock", async () => {
+  const t = await withHullEverton();
+  await syncAt(t, FULL_TIME_READ, recordedGw6());
+  await elapse(t, 10 * MINUTE_MS);
+  await syncAt(t, FULL_TIME_READ + 10 * MINUTE_MS, recordedGw6());
+
+  const scheduled = await t.run((ctx) => ctx.db.system.query("_scheduled_functions").collect());
+  expect(scheduled.filter((job) => job.state.kind === "pending")).toHaveLength(1);
+});
+
 test("a record still missing at the hour keeps the match provisional, and it locks an hour after it arrives", async () => {
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, withPlReadEmpty(recordedGw6(), FULL_STATS.coyle.pl));

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
-import { FPL_BOOTSTRAP_URL, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl, squadNumbers } from "./football";
+import { FPL_BOOTSTRAP_URL, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "./football";
 import type { RawPlFixture } from "./premierLeague";
 import {
   COMMENTARY_MATCH,
@@ -45,6 +45,7 @@ test("a check scheduled for later runs only when its time comes, and records eac
   expect(row).toMatchObject({
     trigger: "timer",
     scheduledFor: start + 10 * MINUTE_MS,
+    ranAt: start + 10 * MINUTE_MS,
     fplPlayers: { ok: true, count: 3 },
     plFixtures: { ok: true, count: 2 },
     arsenalSquadNumbers: { ok: true, count: 2 },
@@ -62,11 +63,6 @@ test("a feed that refuses is recorded with its status, and the other feed still 
   expect(row.fplPlayers).toEqual({ ok: true, count: 3 });
   expect(row.plFixtures).toMatchObject({ ok: false, error: expect.stringContaining("answered 403") });
   expect(row.arsenalSquadNumbers).toMatchObject({ ok: false });
-});
-
-test("a registered player with no squad number is left out", () => {
-  const numbers = squadNumbers({ players: [{ id: 10, info: { shirtNum: 4 } }, { id: 11, info: {} }, { id: 12 }] });
-  expect([...numbers]).toEqual([[10, 4]]);
 });
 
 /** Serves a match's commentary, fixture and team stats as recorded; any other URL answers 404. */

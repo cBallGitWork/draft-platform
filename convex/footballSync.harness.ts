@@ -1,11 +1,13 @@
 // The football sync's tests' shared setup: a faked FPL, one sync run against it, and what it left
 // held. For the tests only: the second dot in this file's name keeps it out of Convex's deploy.
 
+import type { Infer } from "convex/values";
 import { vi } from "vitest";
 import { internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL } from "./football";
 import { BATCH_SIZE } from "./footballSync";
 import { recordedFpl, type FplPayloads } from "./recorded/fpl.payloads";
+import type { footballSyncTrigger } from "./schema";
 import { fakeFetch, type TestConvex } from "./test.harness";
 
 const UNLISTED_CLUB_ID = 99;
@@ -19,10 +21,16 @@ function fakeFpl(payloads: FplPayloads, refuse?: string) {
   return fakeFetch(bodies, (url) => url === refuse);
 }
 
-/** One sync against `payloads`, and the run row it recorded. */
-export async function syncRun(t: TestConvex, payloads: FplPayloads, refuse?: string) {
+/** One sync against `payloads`, started by hand unless `trigger` says the cron, and the run row it
+ *  recorded. */
+export async function syncRun(
+  t: TestConvex,
+  payloads: FplPayloads,
+  refuse?: string,
+  trigger: Infer<typeof footballSyncTrigger> = "manual",
+) {
   vi.stubGlobal("fetch", fakeFpl(payloads, refuse));
-  await t.action(internal.footballSync.run, { trigger: "manual" });
+  await t.action(internal.footballSync.run, { trigger });
   const [latest] = await t.query(internal.footballSync.latest, {});
   return latest;
 }

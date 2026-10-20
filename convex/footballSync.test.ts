@@ -6,12 +6,13 @@ import {
   heldCounts,
   nameAnUnlistedClub,
   NOTHING_CHANGED,
+  syncRun,
   syncWith,
 } from "./footballSync.harness";
-import { CLUB_CODE, RECORDED_COUNT, recordedFpl } from "./recorded/fpl.payloads";
+import { CLUB_CODE, PLAYER_CODE, RECORDED_COUNT, recordedFpl } from "./recorded/fpl.payloads";
 import { freshConvex, refusedError, silenceConsoleError } from "./test.harness";
 
-const SAKA = 223340;
+const SAKA = PLAYER_CODE.saka;
 const MAN_CITY = { id: 15, code: CLUB_CODE.manCity } as const;
 /** Added to a player's or match's id to give it a new season's id. */
 const NEXT_SEASON_ID_OFFSET = 1000;
@@ -30,6 +31,21 @@ test("a sync fills clubs, players, fixtures and gameweeks, and records what it w
     gameweeks: { received: gameweeks, inserted: gameweeks, updated: 0, marked: 0, unmarked: 0 },
   });
   expect(await heldCounts(t)).toEqual(RECORDED_COUNT);
+});
+
+test("each run row says whether the cron or a hand started it, and when it ran", async () => {
+  const t = freshConvex();
+  const before = Date.now();
+
+  const byHand = await syncRun(t, recordedFpl());
+  const byCron = await syncRun(t, recordedFpl(), undefined, "cron");
+
+  expect(byHand.trigger).toBe("manual");
+  expect(byCron.trigger).toBe("cron");
+  for (const run of [byHand, byCron]) {
+    expect(run.ranAt).toBeGreaterThanOrEqual(before);
+    expect(run.ranAt).toBeLessThanOrEqual(Date.now());
+  }
 });
 
 test("a re-run of the same payloads writes nothing and leaves every row as it was", async () => {

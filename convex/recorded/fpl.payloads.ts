@@ -25,6 +25,12 @@ export const RECORDED_COUNT = { clubs: 20, players: 7, fixtures: 3, gameweeks: 3
 /** Season-stable codes of clubs the tests name. */
 export const CLUB_CODE = { arsenal: 3, coventry: 9, manCity: 43 } as const;
 
+/** Season-stable codes of players the tests name. */
+export const PLAYER_CODE = { haaland: 223094, raya: 154561, saka: 223340 } as const;
+
+/** Season-stable codes of matches the tests name. */
+export const FIXTURE_CODE = { arsenalVCoventry: 2645195 } as const;
+
 /** A fresh copy of the first recording, safe to change for one test. */
 export function recordedFpl(): FplPayloads {
   return structuredClone({ bootstrap: bootstrap as RawBootstrap, fixtures: fixtures as RawFixture[] });

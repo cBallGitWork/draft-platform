@@ -2,6 +2,7 @@
 // and Hull v Everton's records as the pure merge gives them. For the tests only: the second dot
 // in this file's name keeps it out of Convex's deploy.
 
+import type { Infer } from "convex/values";
 import { vi } from "vitest";
 import { internal } from "./_generated/api";
 import { codesByOpta } from "./feedIds";
@@ -16,7 +17,8 @@ import {
 import { fplStatLines } from "./fplLive";
 import { matchRecords } from "./matchRecords";
 import { matchSlots, plStatLines } from "./plMatch";
-import { FULL_STATS, MATCH, recordedGw6, type Gw6Payloads } from "./recorded/gw6.payloads";
+import { FULL_STATS, hullEvertonReads, MATCH, recordedGw6, type Gw6Payloads } from "./recorded/gw6.payloads";
+import type { matchStatsSyncTrigger } from "./schema";
 import { fakeFetch, freshConvex, type TestConvex } from "./test.harness";
 import { HOUR_MS } from "./time";
 
@@ -24,8 +26,6 @@ export const GAMEWEEK = 6;
 /** FPL's club codes for the two sides. */
 const HULL = 88;
 const EVERTON = 11;
-/** Belloumi's per-season FPL id in the recording, which only the live read carries. */
-const BELLOUMI_FPL_ID = 286;
 
 export const HULL_EVERTON = MATCH.hullEverton.code;
 /** Hull v Everton's kickoff, as FPL recorded it, and when the tests first read it at full time. */
@@ -66,11 +66,18 @@ export async function elapse(t: TestConvex, ms: number) {
   await t.finishInProgressScheduledFunctions();
 }
 
-/** One sync at `time` against `payloads`, and the run row it recorded. */
-export async function syncAt(t: TestConvex, time: number, payloads: Gw6Payloads, refuse?: string) {
+/** One sync at `time` against `payloads`, started by hand unless `trigger` says the cron, and the
+ *  run row it recorded. */
+export async function syncAt(
+  t: TestConvex,
+  time: number,
+  payloads: Gw6Payloads,
+  refuse?: string,
+  trigger: Infer<typeof matchStatsSyncTrigger> = "manual",
+) {
   vi.setSystemTime(time);
   vi.stubGlobal("fetch", fakeFeeds(payloads, refuse));
-  await t.action(internal.matchStatsSync.run, { trigger: "manual" });
+  await t.action(internal.matchStatsSync.run, { trigger });
   const [latest] = await t.query(internal.matchStats.latest, {});
   return latest;
 }
@@ -90,8 +97,7 @@ export function mergedHullEverton(payloads: Gw6Payloads = recordedGw6()) {
   const fixture = payloads.pl.fixtures.find((each) => each.id === MATCH.hullEverton.pl)!;
   const codeByOpta = codesByOpta(payloads.fpl.bootstrap.elements);
   const { slots } = matchSlots(fixture, codeByOpta);
-  const reads = payloads.pl.playerStats.filter((read) => read.fixture === MATCH.hullEverton.pl);
-  const { lines } = plStatLines(fixture, new Map(reads.map((read) => [read.player, read.payload])), codeByOpta);
+  const { lines } = plStatLines(fixture, hullEvertonReads(payloads), codeByOpta);
   const fplLines = fplStatLines(payloads.fpl.live, payloads.fpl.bootstrap.elements, payloads.fpl.fixtures);
   return matchRecords(HULL_EVERTON, slots, fplLines, lines);
 }
@@ -125,7 +131,7 @@ export function withFplBlocksEmpty(payloads: Gw6Payloads, ...codes: number[]): G
 
 /** `payloads` with Belloumi's goal taken away in both feeds, as a correction would. */
 export function withBelloumiGoalRemoved(payloads: Gw6Payloads): Gw6Payloads {
-  const element = payloads.fpl.live.elements.find((each) => each.id === BELLOUMI_FPL_ID)!;
+  const element = payloads.fpl.live.elements.find((each) => each.id === FULL_STATS.belloumi.fplId)!;
   element.stats.goals_scored = 0;
   for (const block of element.explain) block.stats = block.stats.filter((stat) => stat.identifier !== "goals_scored");
   const read = hullEvertonRead(payloads, FULL_STATS.belloumi.pl);

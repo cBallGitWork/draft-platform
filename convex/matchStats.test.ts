@@ -51,6 +51,16 @@ test("a finished match lands complete: a record for every named man, both feeds 
   expect(held).toEqual(expect.arrayContaining(mergedHullEverton().map((record) => ({ ...record, state: "complete" }))));
 });
 
+test("each run row says whether the cron or a hand started it, and when it ran", async () => {
+  const t = await withHullEverton();
+
+  const byHand = await syncAt(t, FULL_TIME_READ, recordedGw6());
+  const byCron = await syncAt(t, FULL_TIME_READ + HOUR_MS / 2, recordedGw6(), undefined, "cron");
+
+  expect(byHand).toMatchObject({ trigger: "manual", ranAt: FULL_TIME_READ });
+  expect(byCron).toMatchObject({ trigger: "cron", ranAt: FULL_TIME_READ + HOUR_MS / 2 });
+});
+
 test("a starter's record not yet arrived shows — and keeps the match provisional until it does", async () => {
   const t = await withHullEverton();
 
