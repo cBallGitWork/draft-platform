@@ -13,6 +13,12 @@ export const replyWords = {
 /** When asking failed before Convex could answer: the connection, or the server itself. */
 export const askFailedWords = "Something went wrong, so no link was sent. Check your connection and try again.";
 
+/** What the app says while it waits: on a link's code, or on Convex. */
+export const waitingWords = {
+  checkingLink: "Checking your sign-in link…",
+  connecting: "Connecting…",
+} as const;
+
 /** What the sign-in page says when a link from an email didn't sign the visitor in. */
 export const linkProblemWords = {
   expired: "That sign-in link has expired. Send yourself a new one.",

@@ -92,6 +92,9 @@ The steps (push the action to the dev deployment, run it twice, how to read what
   held moves during a match, and what does (a signing, a rescheduled match) is known days ahead.
   Every run, failed or not, is a row in `footballSyncs`.
 - League rules are rows, never constants; FPL's own rules can be constants.
+- Each ask for a sign-in link that was answered "check your email" is a row in `signInAsks`, a
+  failed send kept with its error, and each day's emails are counted in `emailSends` against
+  Resend's 100 (#20).
 
 ## With the first code
 

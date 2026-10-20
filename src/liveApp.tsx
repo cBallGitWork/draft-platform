@@ -6,7 +6,7 @@ import type { AuthActions, Session } from "./auth";
 import { emptyTopBar } from "./frame/topBarState";
 import { SIGN_IN_PATH } from "./router";
 import { ShellApp } from "./ShellApp";
-import { askFailedWords, replyWords, type LinkProblem } from "./sign-in/words";
+import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "./sign-in/words";
 
 // The app signed in for real: Convex Auth's session (convex/auth.ts), the email links asked for
 // through signInLinks:ask, and a link's code redeemed when the app is opened from one.
@@ -85,7 +85,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   if (!session) {
     return (
       <p role="status" className="p-2 text-muted">
-        {checkingLink ? "Checking your sign-in link…" : "Connecting…"}
+        {checkingLink ? waitingWords.checkingLink : waitingWords.connecting}
       </p>
     );
   }

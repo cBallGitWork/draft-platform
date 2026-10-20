@@ -8,12 +8,12 @@ import type { TopBarState } from "./frame/topBarState";
 import { MAIL_PATH } from "./frame/menu";
 import { replyWords } from "./sign-in/words";
 
-const signedIn = { signedIn: true, email: "manager@example.com", isAdmin: false, inLeague: true } as const;
+const manager = { signedIn: true, email: "manager@example.com", isAdmin: false, inLeague: true } as const;
 
 const previewSessions: Record<string, Session> = {
-  manager: signedIn,
-  newcomer: { ...signedIn, inLeague: false },
-  admin: { ...signedIn, email: "admin@example.com", isAdmin: true, inLeague: false },
+  manager,
+  newcomer: { ...manager, inLeague: false },
+  admin: { ...manager, email: "admin@example.com", isAdmin: true, inLeague: false },
   visitor: { signedIn: false },
 };
 
