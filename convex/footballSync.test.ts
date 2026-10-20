@@ -1,44 +1,13 @@
-/// <reference types="vite/client" />
 import { convexTest } from "convex-test";
 import { afterEach, expect, test, vi } from "vitest";
-import { internal } from "./_generated/api";
-import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL } from "./football";
+import { FPL_BOOTSTRAP_URL } from "./football";
 import { BATCH_SIZE } from "./footballSync";
-import { CLUB_CODE, RECORDED_COUNT, recordedFpl, type FplPayloads } from "./recorded/fpl.payloads";
+import { held, modules, NOTHING_CHANGED, syncWith } from "./footballSync.harness";
+import { CLUB_CODE, RECORDED_COUNT, recordedFpl } from "./recorded/fpl.payloads";
 import schema from "./schema";
 
-const modules = import.meta.glob("./**/*.ts");
 const SAKA = 223340;
 const MAN_CITY = { id: 15, code: CLUB_CODE.manCity } as const;
-
-/** FPL answering with `payloads`; the `refuse` URL answers 503. */
-function fakeFpl(payloads: FplPayloads, refuse?: string) {
-  return vi.fn(async (url: string) => {
-    if (url === refuse) return new Response("Service Unavailable", { status: 503 });
-    if (url === FPL_BOOTSTRAP_URL) return Response.json(payloads.bootstrap);
-    if (url === FPL_FIXTURES_URL) return Response.json(payloads.fixtures);
-    throw new Error(`no fake for ${url}`);
-  });
-}
-
-async function syncWith(t: ReturnType<typeof convexTest>, payloads: FplPayloads, refuse?: string) {
-  vi.stubGlobal("fetch", fakeFpl(payloads, refuse));
-  await t.action(internal.footballSync.run, { trigger: "manual" });
-  const [latest] = await t.query(internal.footballSync.latest, {});
-  return latest.outcome;
-}
-
-/** Every held row of the football tables, system fields and all. */
-function held(t: ReturnType<typeof convexTest>) {
-  return t.run(async (ctx) => ({
-    clubs: await ctx.db.query("clubs").collect(),
-    players: await ctx.db.query("players").collect(),
-    fixtures: await ctx.db.query("fixtures").collect(),
-    gameweeks: await ctx.db.query("gameweeks").collect(),
-  }));
-}
-
-const NOTHING_CHANGED = { inserted: 0, updated: 0 };
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -53,10 +22,10 @@ test("a sync fills clubs, players, fixtures and gameweeks, and records what it w
   const { clubs, players, fixtures, gameweeks } = RECORDED_COUNT;
   expect(outcome).toEqual({
     ok: true,
-    clubs: { received: clubs, inserted: clubs, updated: 0 },
-    players: { received: players, inserted: players, updated: 0 },
-    fixtures: { received: fixtures, inserted: fixtures, updated: 0 },
-    gameweeks: { received: gameweeks, inserted: gameweeks, updated: 0 },
+    clubs: { received: clubs, inserted: clubs, updated: 0, marked: 0, unmarked: 0 },
+    players: { received: players, inserted: players, updated: 0, marked: 0, unmarked: 0 },
+    fixtures: { received: fixtures, inserted: fixtures, updated: 0, marked: 0, unmarked: 0 },
+    gameweeks: { received: gameweeks, inserted: gameweeks, updated: 0, marked: 0, unmarked: 0 },
   });
   const rows = await held(t);
   expect({
