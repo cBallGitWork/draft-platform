@@ -34,10 +34,12 @@ export const due = internalQuery({
   args: { now: v.number() },
   handler: async (ctx, { now }): Promise<DueMatch[]> => {
     const found: (DueMatch & { kickoff: number; triedAt: number })[] = [];
-    // A season's 380, at most a few seasons' worth: the fixtures table has no kickoff index to range on.
-    for await (const { code, gameweek, kickoff, droppedAt } of ctx.db.query("fixtures")) {
+    // A fixture with no kickoff sorts before every time in the index, so it is read and passed over.
+    const pastFullTime = ctx.db
+      .query("fixtures")
+      .withIndex("by_kickoff", (q) => q.lte("kickoff", now - EARLIEST_FULL_TIME_MS));
+    for await (const { code, gameweek, kickoff, droppedAt } of pastFullTime) {
       if (droppedAt !== undefined || gameweek === null || kickoff === null) continue;
-      if (now < kickoff + EARLIEST_FULL_TIME_MS) continue;
       const status = await statusOf(ctx, code);
       const lateWatched =
         status?.lockedAt !== undefined &&
@@ -67,7 +69,7 @@ export const upsertMatch = internalMutation({
     if (status?.state === "locked") {
       await ctx.db.patch("matchStatsStatus", status._id, { lastReadAt: readAt });
       const lateCorrections = await recordLateCorrections(ctx, records, held, readAt);
-      return { state: status.state, inserted: 0, updated: 0, lateCorrections };
+      return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections };
     }
     const complete = isMatchComplete(records);
     const state: State = complete ? "complete" : "provisional";
@@ -125,7 +127,7 @@ export const latest = internalQuery({
   handler: async (ctx) => ctx.db.query("matchStatsSyncs").order("desc").take(LATEST_RUNS),
 });
 
-function statusOf(ctx: QueryCtx, fixtureCode: number) {
+export function statusOf(ctx: QueryCtx, fixtureCode: number) {
   return ctx.db
     .query("matchStatsStatus")
     .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
@@ -140,34 +142,36 @@ function triedOf(ctx: QueryCtx, fixtureCode: number) {
 }
 
 /** A match's held records: one per man named, so a few dozen. */
-function recordsOf(ctx: MutationCtx, fixtureCode: number) {
+export function recordsOf(ctx: MutationCtx, fixtureCode: number) {
   return ctx.db
     .query("playerMatchStats")
     .withIndex("by_fixtureCode_and_playerCode", (q) => q.eq("fixtureCode", fixtureCode))
     .collect();
 }
 
-/** Each record as sent, in the match's state: a new man inserted, a changed one replaced whole. */
-async function writeRecords(
+/** Each record as sent, in the match's state: a new man inserted, a changed one replaced whole.
+ *  `changed` names every man inserted or updated. */
+export async function writeRecords(
   ctx: MutationCtx,
   records: PlayerMatchRecord[],
   held: Map<number, Doc<"playerMatchStats">>,
   state: State,
-): Promise<{ inserted: number; updated: number }> {
+): Promise<{ inserted: number; updated: number; changed: number[] }> {
   let inserted = 0;
-  let updated = 0;
+  const changed: number[] = [];
   for (const record of records) {
     const row = held.get(record.playerCode);
     if (row === undefined) {
       await ctx.db.insert("playerMatchStats", { ...record, state });
       inserted += 1;
+      changed.push(record.playerCode);
       continue;
     }
-    const changed = !sameRecord(row, record);
-    if (changed) updated += 1;
-    if (changed || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state });
+    const differs = !sameRecord(row, record);
+    if (differs) changed.push(record.playerCode);
+    if (differs || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state });
   }
-  return { inserted, updated };
+  return { inserted, updated: changed.length - inserted, changed };
 }
 
 /** A row for each whole record that differs from the locked one, unless the last row for him

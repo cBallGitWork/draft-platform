@@ -9,3 +9,12 @@ test("the football sync is registered to run unattended every six hours", () => 
     schedule: { type: "interval", hours: 6 },
   });
 });
+
+// The live poller has no other trigger: without this job, points stand still during matches.
+test("the live stats tick is registered to run unattended every minute", () => {
+  expect(Object.values(crons.crons)).toContainEqual({
+    name: "liveStatsSync:tick",
+    args: [{}],
+    schedule: { type: "interval", minutes: 1 },
+  });
+});
