@@ -1,8 +1,9 @@
 // The screens without signing in, for screenshots: `/?preview=manager` (in two leagues),
-// `newcomer` (in none), `admin` (in none, seeing every league and offered "Create a league") or
-// `visitor` (signed out), on the dev server only (the ui-verifier agent's way in).
-// `import.meta.env.DEV` is false in `vite build`, so the production bundle drops this and a
-// logged-out visitor can never reach the frame through it.
+// `commissioner` (running the same two, so Mail offers a letter to either), `newcomer` (in none),
+// `admin` (in none, seeing every league and offered "Create a league") or `visitor` (signed out),
+// on the dev server only (the ui-verifier agent's way in). `import.meta.env.DEV` is false in
+// `vite build`, so the production bundle drops this and a logged-out visitor can never reach the
+// frame through it.
 
 import type { Id } from "../convex/_generated/dataModel";
 import type { LeagueSummary } from "../convex/myLeagues";
@@ -40,12 +41,22 @@ export const manager = {
   inLeague: true,
   leagues: [
     proLeague,
-    { ...miniBeta, roles: ["commissioner", "manager"], teamName: "Team 1", teams: 1, unsentCommissionerLink: null },
+    { ...miniBeta, roles: ["manager"], teamName: "Team 1", teams: 1, unsentCommissionerLink: null },
   ],
 } as const satisfies Session;
 
+/** The manager, as co-commissioner of the Pro League and commissioner of Mini beta. */
+const commissioner: Session = {
+  ...manager,
+  leagues: [
+    { ...proLeague, roles: ["co-commissioner", "manager"] },
+    { ...manager.leagues[1], commissionerEmail: manager.email, roles: ["commissioner", "manager"] },
+  ],
+};
+
 const previewSessions: Record<string, Session> = {
   manager,
+  commissioner,
   newcomer: { ...manager, inLeague: false, leagues: [] },
   admin: {
     ...manager,

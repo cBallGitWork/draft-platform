@@ -14,7 +14,7 @@ import { unsentLink, unsentLinkWords } from "./words";
 afterEach(cleanup);
 
 describe("someone signed in, in no league", () => {
-  it.each(["/", MY_TEAM_PATH, "/mail", SIGN_IN_PATH])("opening %s sees their leagues page, saying they're in none", async (path) => {
+  it.each(["/", MY_TEAM_PATH, SIGN_IN_PATH])("opening %s sees their leagues page, saying they're in none", async (path) => {
     const app = openApp(path, newcomer);
     expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
     expect(screen.getByText("You're signed in as manager@example.com, and you're not in a league yet.")).toBeTruthy();

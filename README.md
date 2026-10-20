@@ -45,7 +45,8 @@ run as the person allowed to, by their `_id` in the `users` table:
 `npx convex run teams:addManager '{"leagueId":"…","email":"…"}' --identity '{"subject":"<their _id>|cli"}'`.
 
 To see the screens without signing in, add `?preview=` to the address: `manager` (in two leagues),
-`newcomer` (in none), `admin` (seeing every league) or `visitor` (dev server only, with made-up figures). `npx vite`
-starts the app alone, without touching Convex, and then only the previews work.
+`commissioner` (running them), `newcomer` (in none), `admin` (seeing every league) or `visitor`
+(dev server only, with made-up figures). `npx vite` starts the app alone, without touching Convex,
+and then only the previews work.
 
 `npm run verify` runs every gate: the tests, the typecheck and the hook checks.

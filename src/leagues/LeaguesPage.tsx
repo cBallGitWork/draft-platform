@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/myLeagues";
-import { NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
+import { LEAGUES_TITLE, NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
 import { adminWords, roleWords, unsentLink, unsentLinkWords } from "./words";
 
 const cellClasses = "px-2 text-left align-top";
@@ -12,7 +12,7 @@ export function LeaguesPage({ email, isAdmin, leagues }: { email: string; isAdmi
   return (
     <section aria-labelledby="page-title" className="max-w-3xl bg-panel">
       <h1 id="page-title" className="bg-plate px-4 py-1 text-title font-bold shadow-bevel-plate">
-        Your leagues
+        {LEAGUES_TITLE}
       </h1>
       <div className="flex flex-col gap-2 px-3 py-2">
         {leagues.length === 0 ? (
