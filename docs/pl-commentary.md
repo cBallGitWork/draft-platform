@@ -76,7 +76,7 @@ happen in them (a penalty saved or missed, an own goal's assist) may exist.
 | `player retired` | 1 | 1 | the man who went off | "Robinio Vaz went off injured after Hull City had used all subs." |
 
 - The parts were read from the four recorded matches, by where each man's name falls in the
-  text, and the order held on all 543 of their men named; the others follow the same words.
+  text, and the order held on all 543 men they name; the other sixteen use the same wording.
 - A second yellow is its own type, with no `red card` line after it.
 - An assist is in a goal's `playerIds` and text; its kind ("with a cross") is only in the text.
 

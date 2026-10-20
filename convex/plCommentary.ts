@@ -10,7 +10,7 @@ export interface CommentaryLine {
   /** The feed's id for the line: the same line keeps it from one read to the next. */
   id: number;
   /** The match minute, as the feed counts it: "45+2" is minute 45 and added minute 2. Both are
-   *  null on a line with no time (the lineups'). */
+   *  null on a line with no time (the lineups'). "Match ends" always says minute 1. */
   minute: number | null;
   addedMinute: number | null;
   /** The feed's own: "goal", "secondyellow card" (docs/pl-commentary.md lists those seen). */
