@@ -1,20 +1,21 @@
 import { v, type Infer } from "convex/values";
 import { api, internal } from "./_generated/api";
-import { action, internalMutation } from "./_generated/server";
+import { action, internalMutation, type MutationCtx } from "./_generated/server";
 import { isAllowed, normaliseEmail } from "./allowedEmails";
 
 // Asking for a sign-in link (spec/02, #20). The sign-in page asks through `ask`, which applies the
 // hourly limit, the day's email limit and the allowed list before Convex Auth makes a link, so a
 // refused ask never replaces the link an earlier email carries. Convex Auth's `auth:signIn` is
-// public too, so its send (signInEmail.ts) first takes the ask that let this email through a
-// moment ago (`claimSend`): called directly, it sends nothing.
+// public too, so the mutation that makes a link first claims the ask that let this email through
+// a moment ago (`claimAsk`, from convex/auth.ts): called directly, it is refused with nothing
+// written, so no earlier link is replaced and no account is made.
 
 const HOUR_MS = 60 * 60 * 1000;
 /** spec/02: one email asks for at most this many links an hour. */
 export const ASKS_PER_HOUR = 3;
 /** Resend's free plan (ARCHITECTURE.md, Services): every email the app sends counts. */
 export const EMAILS_PER_DAY = 100;
-/** How long after `ask` lets an email through its send may take that ask. */
+/** How long after `ask` lets an email through its link may take that ask. */
 const CLAIM_WINDOW_MS = 60 * 1000;
 
 /** What the sign-in page tells the visitor. `checkYourEmail` goes to listed and unlisted alike. */
@@ -94,23 +95,19 @@ export const recordAsk = internalMutation({
   },
 });
 
-/** Takes the oldest ask that let this email through in the last minute and that no send has taken
- *  yet, so two asks at once are each sent; whether there was one. */
-export const claimSend = internalMutation({
-  args: { email: v.string() },
-  returns: v.boolean(),
-  handler: async (ctx, { email }) => {
-    const now = Date.now();
-    const lastMinute = await ctx.db
-      .query("signInAsks")
-      .withIndex("by_email_and_askedAt", (q) => q.eq("email", email).gt("askedAt", now - CLAIM_WINDOW_MS))
-      .take(ASKS_PER_HOUR);
-    const unclaimed = lastMinute.find((asked) => asked.listed && asked.claimedAt === undefined);
-    if (!unclaimed) return false;
-    await ctx.db.patch("signInAsks", unclaimed._id, { claimedAt: now });
-    return true;
-  },
-});
+/** Claims the oldest ask that let this email through in the last minute and that no link has
+ *  claimed yet, so two asks at once each get theirs; throws with none. The email must match as
+ *  `ask` stored it, trimmed and lower-cased. */
+export async function claimAsk(ctx: MutationCtx, email: string): Promise<void> {
+  const now = Date.now();
+  const lastMinute = await ctx.db
+    .query("signInAsks")
+    .withIndex("by_email_and_askedAt", (q) => q.eq("email", email).gt("askedAt", now - CLAIM_WINDOW_MS))
+    .take(ASKS_PER_HOUR);
+  const unclaimed = lastMinute.find((asked) => asked.listed && asked.claimedAt === undefined);
+  if (!unclaimed) throw new Error(`No ask let ${email} through: a sign-in link is sent only by signInLinks:ask`);
+  await ctx.db.patch("signInAsks", unclaimed._id, { claimedAt: now });
+}
 
 export const recordSendError = internalMutation({
   args: { askId: v.id("signInAsks"), sendError: v.string() },

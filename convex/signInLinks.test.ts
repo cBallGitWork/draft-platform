@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "./_generated/api";
-import { LINK_LIFETIME_S } from "./auth";
 import {
   ADMIN,
   LISTED,
@@ -24,6 +23,12 @@ beforeEach(async () => {
   t = await signInDeployment();
 });
 afterEach(resetSignInDeployment);
+
+/** What Convex Auth's own signIn says when no ask let the email through. */
+const REFUSED = "a sign-in link is sent only by signInLinks:ask";
+
+/** Convex Auth's public signIn asked for a link, as anyone could call it, bypassing `ask`. */
+const signInDirectly = (email: string) => t.action(api.auth.signIn, { provider: "resend", params: { email } });
 
 async function asksStored(email: string) {
   return t.run((ctx) =>
@@ -71,27 +76,42 @@ describe("asking for a link", () => {
     expect(sent.map((email) => email.to)).toEqual([LISTED]);
   });
 
-  test("two asks let through at once each find their own to send", async () => {
+  test("two asks let through at once each make their own link, and a third call makes none", async () => {
+    const sent = fakeResend();
     await t.mutation(internal.signInLinks.recordAsk, { email: LISTED });
     await t.mutation(internal.signInLinks.recordAsk, { email: LISTED });
 
-    const claims = [
-      await t.mutation(internal.signInLinks.claimSend, { email: LISTED }),
-      await t.mutation(internal.signInLinks.claimSend, { email: LISTED }),
-      await t.mutation(internal.signInLinks.claimSend, { email: LISTED }),
-    ];
+    await signInDirectly(LISTED);
+    await signInDirectly(LISTED);
+    await expect(signInDirectly(LISTED)).rejects.toThrow(REFUSED);
 
-    expect(claims).toEqual([true, true, false]);
+    expect(sent).toHaveLength(2);
   });
 
   test("Convex Auth's own signIn, called directly with an email, sends nothing", async () => {
     const sent = fakeResend();
 
-    await expect(t.action(api.auth.signIn, { provider: "resend", params: { email: LISTED } })).rejects.toThrow(
-      "a sign-in link is sent only by signInLinks:ask",
-    );
+    await expect(signInDirectly(LISTED)).rejects.toThrow(REFUSED);
 
     expect(sent).toEqual([]);
+  });
+
+  test("Convex Auth's own signIn, called directly, leaves the link an ask sent working", async () => {
+    const sent = fakeResend();
+    await ask(t, LISTED);
+
+    await expect(signInDirectly(LISTED)).rejects.toThrow(REFUSED);
+
+    expect(await openLink(t, linkCode(sent[0]))).not.toBeNull();
+  });
+
+  test("Convex Auth's own signIn, called directly for an email off the list, makes no account", async () => {
+    fakeResend();
+
+    await expect(signInDirectly(UNLISTED)).rejects.toThrow(REFUSED);
+
+    expect(await t.run((ctx) => ctx.db.query("users").collect())).toEqual([]);
+    expect(await t.run((ctx) => ctx.db.query("authAccounts").collect())).toEqual([]);
   });
 });
 
@@ -196,7 +216,7 @@ describe("opening a link", () => {
     const sent = fakeResend();
     await ask(t, LISTED);
 
-    vi.advanceTimersByTime(LINK_LIFETIME_S * 1000 + offsetMs);
+    vi.advanceTimersByTime(HOUR_MS + offsetMs);
 
     expect((await openLink(t, linkCode(sent[0]))) !== null).toBe(signsIn);
   });
