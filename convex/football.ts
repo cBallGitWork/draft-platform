@@ -1,7 +1,23 @@
 // The two public football feeds, read from Convex's own servers. The URLs and the browser
 // User-Agent are copied from epl-draft's packages/core (17 Oct 2026), not shared.
 
+import type { Infer } from "convex/values";
+import type { clubRecord, fixtureRecord, gameweekRecord, playerRecord } from "./schema";
+
+/** The football layer's one seam: the real Premier League as any feed hands it to the platform.
+ *  FPL's feed fills it today (`fpl.ts`); a paid feed replaces it by returning the same. */
+export interface Football {
+  clubs: Infer<typeof clubRecord>[];
+  players: Infer<typeof playerRecord>[];
+  fixtures: Infer<typeof fixtureRecord>[];
+  gameweeks: Infer<typeof gameweekRecord>[];
+}
+
 export const FPL_API_BASE = "https://fantasy.premierleague.com/api";
+/** Players, clubs and gameweeks. */
+export const FPL_BOOTSTRAP_URL = `${FPL_API_BASE}/bootstrap-static/`;
+/** Every match of the season. */
+export const FPL_FIXTURES_URL = `${FPL_API_BASE}/fixtures/`;
 export const PL_API_BASE = "https://footballapi.pulselive.com/football";
 /** The Premier League's id for the 2026/27 season. */
 export const PL_COMP_SEASON = 841;
@@ -37,7 +53,7 @@ export interface RawPlStaff {
 }
 
 export async function fplPlayerCount(): Promise<number> {
-  const bootstrap = (await getJson(`${FPL_API_BASE}/bootstrap-static/`)) as RawBootstrap;
+  const bootstrap = (await getJson(FPL_BOOTSTRAP_URL)) as RawBootstrap;
   return bootstrap.elements.length;
 }
 

@@ -8,8 +8,11 @@
  * @module
  */
 
+import type * as crons from "../crons.js";
 import type * as feeds from "../feeds.js";
 import type * as football from "../football.js";
+import type * as footballSync from "../footballSync.js";
+import type * as fpl from "../fpl.js";
 
 import type {
   ApiFromModules,
@@ -18,8 +21,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  crons: typeof crons;
   feeds: typeof feeds;
   football: typeof football;
+  footballSync: typeof footballSync;
+  fpl: typeof fpl;
 }>;
 
 /**
