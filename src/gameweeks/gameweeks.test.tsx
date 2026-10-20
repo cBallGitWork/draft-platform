@@ -4,7 +4,7 @@
 import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
-import type { LeagueSummary } from "../../convex/myLeagues";
+import { GAMEWEEKS } from "../../convex/usedGameweeks";
 import { LEAGUES_PATH } from "../leagues/paths";
 import { adminSeeing, league, managerIn, openApp } from "../shell.harness";
 import { BEGUN, season } from "./gameweeks.harness";
@@ -13,14 +13,15 @@ import { begunWords, deadlineWords, GAMEWEEKS_TITLE, loadingWords, tickLabel } f
 
 afterEach(cleanup);
 
-const commissioned: LeagueSummary = { ...league, roles: ["commissioner"], teamName: null };
-const commissioner = managerIn(commissioned);
+const commissioner = managerIn({ ...league, roles: ["commissioner"], teamName: null });
 const PAGE = gameweeksPath(league.leagueId);
 const REFUSAL = "Gameweek 17 has begun, so it can't be ticked or unticked.";
 
 const tickBox = (gameweek: number) => screen.findByRole("checkbox", { name: tickLabel(gameweek) });
 const isTicked = async (gameweek: number) => (await tickBox(gameweek)).getAttribute("aria-checked") === "true";
 const isDisabled = async (gameweek: number) => ((await tickBox(gameweek)) as HTMLButtonElement).disabled;
+/** The line saying how many gameweeks the league plays. */
+const playsLine = () => screen.getByText(`${league.name} plays`, { exact: false }).textContent;
 /** The row headed by a gameweek's number. */
 const rowOf = (gameweek: number) => screen.getByRole("rowheader", { name: String(gameweek) }).closest("tr")!;
 
@@ -56,10 +57,10 @@ describe("the gameweeks page", () => {
   it("shows all 38 ticked by default, how many the league plays, and each one's deadline", async () => {
     openApp(PAGE, commissioner);
 
-    expect(await isTicked(38)).toBe(true);
-    expect(screen.getAllByRole("checkbox")).toHaveLength(38);
+    expect(await isTicked(GAMEWEEKS)).toBe(true);
+    expect(screen.getAllByRole("checkbox")).toHaveLength(GAMEWEEKS);
     expect(screen.getAllByRole("checkbox").every((box) => box.getAttribute("aria-checked") === "true")).toBe(true);
-    expect(screen.getByText(`${league.name} plays`, { exact: false }).textContent).toBe(`${league.name} plays 38 of 38 gameweeks.`);
+    expect(playsLine()).toBe(`${league.name} plays ${GAMEWEEKS} of ${GAMEWEEKS} gameweeks.`);
     expect(within(rowOf(BEGUN + 1)).getByText(deadlineWords(season()[BEGUN].deadline!))).toBeTruthy();
   });
 
@@ -71,7 +72,7 @@ describe("the gameweeks page", () => {
 
     expect(await isTicked(17)).toBe(false);
     expect(await isTicked(19)).toBe(true);
-    expect(screen.getByText(`${league.name} plays`, { exact: false }).textContent).toBe(`${league.name} plays 36 of 38 gameweeks.`);
+    expect(playsLine()).toBe(`${league.name} plays ${GAMEWEEKS - 2} of ${GAMEWEEKS} gameweeks.`);
   });
 
   it("unticking a gameweek asks for it to be left out", async () => {

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { GAMEWEEKS, isGameweekUsed, unusedAfter } from "./usedGameweeks";
+import { GAMEWEEKS, isGameweekUsed, noSuchGameweek, unusedAfter } from "./usedGameweeks";
 
 // The helper scoring (#29) and the fixtures (#33) read: whether a league plays a gameweek (#74).
 
@@ -14,7 +14,7 @@ describe("isGameweekUsed", () => {
   });
 
   test.each([0, GAMEWEEKS + 1, 2.5])("asking of gameweek %s, which the season doesn't have, throws", (gameweek) => {
-    expect(() => isGameweekUsed({}, gameweek)).toThrow(`There's no gameweek ${gameweek}`);
+    expect(() => isGameweekUsed({}, gameweek)).toThrow(noSuchGameweek(gameweek));
   });
 });
 
