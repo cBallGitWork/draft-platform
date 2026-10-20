@@ -131,8 +131,6 @@ export const lateStatChange = v.object({ stat: v.string(), locked: v.number(), s
 /** The platform's own settings, the admin's to change (spec/15). A league's rules are never here. */
 const platformSettingName = v.literal("statCorrectionWindowMinutes");
 
-export const matchStatsSyncTrigger = v.union(v.literal("manual"), v.literal("cron"));
-
 /** What one sync did with one match. */
 export const matchSyncOutcome = v.union(
   v.object({
@@ -151,7 +149,7 @@ export const matchSyncOutcome = v.union(
 
 // One row per run of matchStatsSync.run, so a failed read is on record, never silent.
 export const matchStatsSyncFields = {
-  trigger: matchStatsSyncTrigger,
+  trigger: syncTrigger,
   ranAt: v.number(),
   outcome: v.union(
     v.object({
