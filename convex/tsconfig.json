@@ -11,6 +11,8 @@
     "jsx": "react-jsx",
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
+    /* For the tests' recorded payloads in ./recorded. */
+    "resolveJsonModule": true,
 
     /* These compiler options are required by Convex */
     "target": "ESNext",

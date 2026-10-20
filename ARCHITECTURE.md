@@ -62,7 +62,11 @@ Supabase was the runner-up.
 - The football layer (FPL and the Premier League's public APIs) is copied from epl-draft's
   `packages/core` when needed, not shared, and kept behind one seam so a paid feed can replace it
   for other leagues (SPEC, Later).
+  The seam is `Football` in `convex/football.ts`; FPL's adapter is `convex/fpl.ts` (#21).
 - Players are keyed on FPL's season-stable `code`, never the per-season `id`.
+- Clubs, players, fixtures and gameweeks refresh every six hours (`convex/crons.ts`): nothing
+  held moves during a match, and what does (a signing, a rescheduled match) is known days ahead.
+  Every run, failed or not, is a row in `footballSyncs`.
 - League rules are rows, never constants; FPL's own rules can be constants.
 
 ## With the first code
