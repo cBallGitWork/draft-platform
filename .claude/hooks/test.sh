@@ -179,6 +179,8 @@ check deny guard_bash.py "$(bash_in "$tmp/sub" $'cat <<\'EOF\' && git add -A\nms
 check deny guard_bash.py "$(bash_cmd $'cat <<EOF\n$(git commit -m x)\nEOF')"
 check allow guard_bash.py "$(bash_cmd $'cat <<\'EOF\'\n$(git commit -m x)\nEOF')"
 check deny guard_bash.py "$(bash_in "$tmp/sub" 'echo x#; git add -A')"
+check deny guard_bash.py "$(bash_in "$tmp/sub" 'git commit -m "" -a')"  # an empty word is still a word
+check allow guard_bash.py "$(bash_in "$tmp/sub" 'cd "" && git commit -m x')"  # cd "" stays put
 check allow guard_bash.py "$(bash_cmd "echo '\$(git commit -m x)'")"  # in single quotes it runs nothing
 # where it can't read the string or tell the program, it refuses
 for c in "sh -c \"git commit -m 'x\"" 'echo "$(git commit -m x"' '$GIT commit -m x' \

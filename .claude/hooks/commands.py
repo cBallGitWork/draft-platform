@@ -72,7 +72,7 @@ def parse(cmd):
     lex.commenters = ""  # comments are dropped above; shlex would start one inside a word (a#b)
     out, cur = [], []
     for word in lex:
-        if not word.strip(PUNCTUATION):  # shlex joins a run: ");" or ";(" is two separators
+        if word and not word.strip(PUNCTUATION):  # shlex joins a run: ");" is two separators; "" is a word
             for sep in re.findall(r"&&|\|\||.", word, re.S):
                 out += [cur, [sep]]
                 cur = []
