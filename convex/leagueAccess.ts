@@ -31,7 +31,7 @@ export const refusals = {
   notEmail: (typed: string) => `"${typed}" isn't an email address.`,
   alreadyManager: (email: string) => `${email} already runs a team in this league.`,
   alreadyCommissioner: (email: string) => `${email} is already this league's commissioner.`,
-  isCoCommissioner: (email: string) => `${email} is the co-commissioner: remove them as co-commissioner first.`,
+  alreadyCoCommissioner: (email: string) => `${email} is the co-commissioner: remove them as co-commissioner first.`,
 } as const;
 
 export function refuse(reason: string): never {
