@@ -46,7 +46,7 @@ export function pollReads(fixtureId) {
   ];
 }
 
-/** What to do at `now`: "wait" until 90 minutes before kickoff, "record", or "stop". */
+/** What to do at `now`: "wait" until `LEAD_MS` before kickoff, "record", or "stop". */
 export function phase(now, kickoffMs, fullTimeSeenAt) {
   if (now < kickoffMs - LEAD_MS) return "wait";
   if (fullTimeSeenAt !== null && now >= fullTimeSeenAt + AFTER_FULL_TIME_MS) return "stop";
@@ -128,7 +128,7 @@ function teamStatsSummary(body, fixture) {
 /** A poll's file name: its time, sortable, with no colons. */
 const fileName = (polledAt) => `${polledAt.replaceAll(":", "-")}.json`;
 
-/** Waits until 90 minutes before kickoff, then polls every 30 seconds into `dir` until `phase` says stop. */
+/** Waits until `LEAD_MS` before kickoff, then polls every `POLL_MS` into `dir` until `phase` says stop. */
 export async function record(fixtureId, dir) {
   const url = plFixtureUrl(fixtureId);
   const kickoffMs = (await getJson(url)).kickoff?.millis;
