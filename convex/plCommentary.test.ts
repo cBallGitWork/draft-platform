@@ -13,7 +13,13 @@ import { FULL_STATS } from "./recorded/gw6.payloads";
 
 const codeByOpta = codesByOpta(recordedFplPlayers());
 /** FPL codes of the men the tests name. */
-const CODE = { belloumi: FULL_STATS.belloumi.code, stroud: 608227, gelhardt: 462635, yarmoliuk: 508395, janelt: 204580 } as const;
+const CODE = {
+  belloumi: FULL_STATS.belloumi.code,
+  stroud: 608227,
+  gelhardt: 462635,
+  yarmoliuk: 508395,
+  janelt: 204580,
+} as const;
 
 /** One recorded match's stream mapped, with FPL's players as recorded or as given. */
 function mapped(plId: number, codes: ReadonlyMap<string, number> = codeByOpta, stream = recordedCommentary(plId)) {

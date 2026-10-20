@@ -90,7 +90,7 @@ test("the commentary check reads a match's stream, sheets and team stats in turn
   expect(report).toEqual({
     readAt: new Date().toISOString(),
     lines: 122,
-    newest: { id: 2867014, minute: "01", text: "Match ends, Brentford 1, Liverpool 2." },
+    newest: { id: 2867014, minuteLabel: "01", text: "Match ends, Brentford 1, Liverpool 2." },
     namedMen: 40,
     teamStats: true,
   });

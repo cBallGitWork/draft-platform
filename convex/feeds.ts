@@ -59,7 +59,7 @@ export const latest = internalQuery({
 export const commentaryCheck = internalAction({
   args: { plFixtureId: v.number() },
   handler: async (_ctx, { plFixtureId }) => {
-    // One after another, as a browser on the match page would ask.
+    // One after another, to go easy on the feed.
     const stream = await readPlCommentary(plFixtureId);
     const fixture = await readPlFixture(plFixtureId);
     const teamStats = await readPlTeamStats(plFixtureId);
@@ -67,7 +67,7 @@ export const commentaryCheck = internalAction({
     return {
       readAt: new Date().toISOString(),
       lines: stream.length,
-      newest: newest === undefined ? null : { id: newest.id, minute: newest.time?.label ?? null, text: newest.text },
+      newest: newest === undefined ? null : { id: newest.id, minuteLabel: newest.time?.label ?? null, text: newest.text },
       namedMen: namedMen(fixture).length,
       teamStats: teamStats.data !== undefined,
     };

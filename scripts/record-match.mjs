@@ -3,7 +3,8 @@
 // live. Every 30 seconds, from an hour before kickoff to 15 minutes after full time, it reads the
 // commentary, the fixture (its team sheets) and the team stats, one after another, as Convex does
 // (the same URLs and `getJson`, from convex/football.ts), and saves each poll with its time to
-// .recordings/<fixture id>/ in this checkout, which git ignores. A failed read is saved and shown, and polling goes on.
+// .recordings/<fixture id>/ in this checkout, which git ignores. A failed read, or a body it can't
+// sum up, is saved and shown, and polling goes on.
 //
 // Usage, with the Premier League's fixture id:
 //   caffeinate -i node scripts/record-match.mjs <fixtureId>   records; start it any time before
@@ -19,8 +20,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { getJson, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../convex/football.ts";
 
 const MINUTE_MS = 60_000;
-export const POLL_MS = 30_000;
-/** Spec/10 wants the lineups about an hour before kickoff, so recording starts then. */
+const POLL_MS = 30_000;
+/** spec/10 wants the lineups about an hour before kickoff, so recording starts then. */
 export const LEAD_MS = 60 * MINUTE_MS;
 /** Kept on after full time, for late lines and corrected totals. */
 export const AFTER_FULL_TIME_MS = 15 * MINUTE_MS;
@@ -33,6 +34,7 @@ const FULL_TIME = "C";
 const RECORDINGS_DIR = join(dirname(dirname(fileURLToPath(import.meta.url))), ".recordings");
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const messageOf = (error) => (error instanceof Error ? error.message : String(error));
 
 /** The three reads a poll makes, in order. */
 export function pollReads(fixtureId) {
@@ -60,7 +62,7 @@ export async function poll(fixtureId, pauseMs = PAUSE_MS) {
     try {
       reads.push({ kind, url, askedAt, body: await getJson(url) });
     } catch (error) {
-      reads.push({ kind, url, askedAt, error: error instanceof Error ? error.message : String(error) });
+      reads.push({ kind, url, askedAt, error: messageOf(error) });
     }
   }
   return { polledAt, reads };
@@ -73,7 +75,7 @@ export function fixtureStatus(saved) {
   return bodyOf(saved, "fixture")?.status ?? null;
 }
 
-/** The five team stats spec/10 shows, under Opta's names (docs/pl-commentary.md). */
+/** spec/10's five team stats, cards as yellows and reds, under Opta's names (docs/pl-commentary.md). */
 const SHOWN_STATS = [
   ["shots", "total_scoring_att"],
   ["on target", "ontarget_scoring_att"],
@@ -87,10 +89,18 @@ const SHOWN_STATS = [
 export function summaryLine(saved) {
   const parts = [`${saved.polledAt.slice(11, 19)} UTC`];
   for (const read of saved.reads) {
-    if (read.error !== undefined) parts.push(`${read.kind} FAILED: ${read.error}`);
-    else if (read.kind === "commentary") parts.push(commentarySummary(read.body));
-    else if (read.kind === "fixture") parts.push(fixtureSummary(read.body));
-    else parts.push(teamStatsSummary(read.body, bodyOf(saved, "fixture")));
+    if (read.error !== undefined) {
+      parts.push(`${read.kind} FAILED: ${read.error}`);
+      continue;
+    }
+    try {
+      if (read.kind === "commentary") parts.push(commentarySummary(read.body));
+      else if (read.kind === "fixture") parts.push(fixtureSummary(read.body));
+      else parts.push(teamStatsSummary(read.body, bodyOf(saved, "fixture")));
+    } catch (error) {
+      // A changed shape is what this recording is for: it is saved whole, and said here.
+      parts.push(`${read.kind} UNREADABLE: ${messageOf(error)}`);
+    }
   }
   return parts.join("  |  ");
 }
@@ -118,9 +128,9 @@ function teamStatsSummary(body, fixture) {
 const fileName = (polledAt) => `${polledAt.replaceAll(":", "-")}.json`;
 
 async function record(fixtureId, dir) {
-  const fixture = await getJson(plFixtureUrl(fixtureId));
-  const kickoffMs = fixture.kickoff?.millis;
-  if (typeof kickoffMs !== "number") throw new Error(`${plFixtureUrl(fixtureId)} answered with no kickoff time`);
+  const url = plFixtureUrl(fixtureId);
+  const kickoffMs = (await getJson(url)).kickoff?.millis;
+  if (typeof kickoffMs !== "number") throw new Error(`${url} answered with no kickoff time`);
   if (phase(Date.now(), kickoffMs, null) === "stop") {
     throw new Error(`fixture ${fixtureId} kicked off at ${new Date(kickoffMs).toString()}: too long ago to record`);
   }
@@ -165,7 +175,7 @@ if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.a
   if (flag === "--summary") summarise(dir);
   else {
     await record(Number(id), dir).catch((error) => {
-      console.error(error instanceof Error ? error.message : error);
+      console.error(messageOf(error));
       process.exit(1);
     });
   }
