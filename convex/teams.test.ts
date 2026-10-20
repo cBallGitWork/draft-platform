@@ -11,13 +11,11 @@ import {
   addManagers,
   adminCreatesLeague,
   eventsIn,
-  leaguesDeployment,
   onTheList,
-  resetLeaguesDeployment,
   teamsIn,
   type TestConvex,
 } from "./leagues.harness";
-import { fakeResend } from "./signIn.harness";
+import { fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
 
 // A league's teams, their names and their managers (#24 stories 4, 5 and 7; spec/13).
 
@@ -26,11 +24,11 @@ const [ANN, BOB, CAT, DAN, EVE] = MANAGERS;
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await leaguesDeployment();
+  t = await signInDeployment();
   fakeResend();
   leagueId = await adminCreatesLeague(t, 4);
 });
-afterEach(resetLeaguesDeployment);
+afterEach(resetSignInDeployment);
 
 const teamNames = async () => (await teamsIn(t, leagueId)).map(({ name, managerEmail }) => ({ name, managerEmail }));
 
@@ -73,7 +71,7 @@ describe("adding managers", () => {
     expect((await teamNames()).map((team) => team.name)).toEqual(["Team 2", "Team 3"]);
   });
 
-  test("a manager can't add one", async () => {
+  test("a manager can't add another manager", async () => {
     await addManagers(t, leagueId, [ANN]);
     const ann = await actingAs(t, ANN);
     await expect(ann.mutation(api.teams.addManager, { leagueId, email: BOB })).rejects.toThrow(refusals.notRunner);

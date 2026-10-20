@@ -41,7 +41,7 @@ describe("someone signed in, in no league", () => {
   });
 });
 
-describe("the admin, in no league", () => {
+describe("the admin, with no part in a league", () => {
   it("is offered Create a league, which opens its form", async () => {
     const app = openApp("/", admin);
     await userEvent.click(await screen.findByRole("link", { name: "Create a league" }));

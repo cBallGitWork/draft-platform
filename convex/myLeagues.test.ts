@@ -9,12 +9,10 @@ import {
   MANAGERS,
   addManagers,
   adminCreatesLeague,
-  leaguesDeployment,
-  resetLeaguesDeployment,
   teamsIn,
   type TestConvex,
 } from "./leagues.harness";
-import { fakeResend } from "./signIn.harness";
+import { fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
 
 // "Your leagues" (spec/12): what account:signedInAs tells the screens of a person's leagues, and
 // #24's Done line end to end.
@@ -23,16 +21,16 @@ const [ANN, BOB, CAT, DAN] = MANAGERS;
 
 let t: TestConvex;
 beforeEach(async () => {
-  t = await leaguesDeployment();
+  t = await signInDeployment();
   fakeResend();
 });
-afterEach(resetLeaguesDeployment);
+afterEach(resetSignInDeployment);
 
 /** What account:signedInAs tells the screens for `email`. */
 const accountOf = async (email: string) => (await (await actingAs(t, email)).query(api.account.signedInAs, {}))!;
 
 describe("a person's leagues", () => {
-  test("each league they have a part in, with their roles and their team; in a league, so", async () => {
+  test("lists each league they have a part in, with their roles and team, and says they're in a league", async () => {
     const leagueId = await adminCreatesLeague(t, 4);
     await addManagers(t, leagueId, [ANN, COMMISSIONER]);
 

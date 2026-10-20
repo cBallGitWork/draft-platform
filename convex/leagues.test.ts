@@ -13,20 +13,18 @@ import {
   adminCreatesLeague,
   eventsIn,
   leagueRow,
-  leaguesDeployment,
   onTheList,
-  resetLeaguesDeployment,
   type TestConvex,
 } from "./leagues.harness";
-import { LISTED, fakeResend } from "./signIn.harness";
+import { LISTED, fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
 
 // Creating a league and who runs it (#24 stories 1-3 and 6; spec/13).
 
 let t: TestConvex;
 beforeEach(async () => {
-  t = await leaguesDeployment();
+  t = await signInDeployment();
 });
-afterEach(resetLeaguesDeployment);
+afterEach(resetSignInDeployment);
 
 describe("creating a league", () => {
   test("the admin creates one with its name, maximum and commissioner, and it's filed for Mail", async () => {
@@ -69,7 +67,7 @@ describe("creating a league", () => {
     expect(commissionersSummary.unsentCommissionerLink).toBeNull();
   });
 
-  test("the commissioner's email is stored as typed emails are, trimmed and lower-cased", async () => {
+  test("the commissioner's email is stored trimmed and lower-cased, as every email is", async () => {
     fakeResend();
     const admin = await actingAs(t, ADMIN);
     const leagueId = await admin.mutation(api.leagues.create, { name: "L", maxTeams: 2, commissionerEmail: " Commish@Example.com " });

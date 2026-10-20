@@ -1,5 +1,5 @@
 // The screens' tests' shared setup: the app opened at an address, for a session, with sign-in's
-// actions faked so a test can see what was asked of them.
+// and leagues' actions faked so a test can see what was asked of them.
 
 import { createMemoryHistory } from "@tanstack/react-router";
 import { render } from "@testing-library/react";
