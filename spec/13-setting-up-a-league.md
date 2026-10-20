@@ -41,11 +41,11 @@ comes to exist, fills, changes and ends.
   one then stops working.
 - The commissioner approves or refuses each join request. A person has at most one request
   waiting, sees that it is waiting for the commissioner, and gets an email once approved.
-  Refusing files no Mail letter; nothing in the league changed.
+  Refusing files no Mail letter.
 - Until invites are built, a sign-in link goes only to emails the admin puts on an allowed list;
   invites add to that list once they exist.
 - Invites past the email service's daily limit (100 a day for now) wait for the next day, and the
-  commissioner is told. None is dropped.
+  commissioner is told.
 
 ## Leaving
 
@@ -66,12 +66,11 @@ comes to exist, fills, changes and ends.
 ## Several leagues
 
 - A manager in several leagues switches between them from a list in the top bar, and the app
-  opens the one they used last. Its look is settled with `docs/design/plate.md` when the screen
-  is drawn.
+  opens the one they used last.
 
 ## Deleting
 
 - The admin or the league's commissioner can delete a league; the co-commissioner can't.
 - For 24 hours it can be undone. In that time the league is frozen and hidden from its managers,
   and each gets an email saying it will be deleted, and when.
-- After 24 hours it is gone for good: teams, Mail and history, not archived.
+- After 24 hours it is gone for good, not archived.

@@ -29,6 +29,7 @@ each league's **commissioner**.
   except naming or removing either and deleting the league (`/grill setting up a league`,
   20 Oct 2026, which replaced "no co-commissioners"; see [13](13-setting-up-a-league.md)).
 - Every commissioner action files a Mail letter to the whole league: nothing changes quietly.
+  Refusing a join request files none ([13](13-setting-up-a-league.md#joining)).
 
 ## Joining a league
 
