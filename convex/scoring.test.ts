@@ -3,8 +3,17 @@ import { codesByOpta } from "./feedIds";
 import { fplStatLines } from "./fplLive";
 import { plStatLines } from "./plMatch";
 import { FULL_STATS, MATCH, recordedGw6, recordedPlFixture } from "./recorded/gw6.payloads";
-import { everyArea, EXAMPLE_SET } from "./scoring.example";
-import { AREAS, scoreGameweek, scoreMatch, type Area, type Band, type MatchRecord, type ScoringSet } from "./scoring";
+import { everyArea, EXAMPLE_SET, MINUTES_BANDS } from "./scoring.example";
+import {
+  AREAS,
+  scoreGameweek,
+  scoreMatch,
+  type Area,
+  type Band,
+  type DoubleGameweekRule,
+  type MatchRecord,
+  type ScoringSet,
+} from "./scoring";
 
 // Every record is a recorded line from Hull v Everton, gameweek 6 of 2026/27.
 const { fpl, pl } = recordedGw6();
@@ -12,7 +21,8 @@ const fplLines = fplStatLines(fpl.live, fpl.bootstrap.elements, fpl.fixtures);
 const plReads = new Map(
   pl.playerStats.filter((read) => read.fixture === MATCH.hullEverton.pl).map((read) => [read.player, read.payload]),
 );
-const plLines = plStatLines(recordedPlFixture(MATCH.hullEverton.pl), plReads, codesByOpta(fpl.bootstrap.elements)).lines;
+const hullEverton = recordedPlFixture(MATCH.hullEverton.pl);
+const plLines = plStatLines(hullEverton, plReads, codesByOpta(fpl.bootstrap.elements)).lines;
 
 function recordOf(lines: { playerCode: number; stats: MatchRecord }[], playerCode: number): MatchRecord {
   const line = lines.find((each) => each.playerCode === playerCode);
@@ -20,7 +30,8 @@ function recordOf(lines: { playerCode: number; stats: MatchRecord }[], playerCod
   return line.stats;
 }
 
-/** FPL codes of men in that match beyond `FULL_STATS`, whose FPL lines are as full as anyone's. */
+/** Three more men in that match, by FPL code. FPL's lines keep every stat for all 40; `FULL_STATS`
+ *  names the men whose Premier League lines do. */
 const DEWSBURY_HALL = 215413; // Everton: 90 minutes, a goal, an assist, 3 FPL bonus, 10 defensive actions
 const TZOLAKIS = 473284; // Hull's keeper: 4 saves, 2 conceded
 const GELHARDT = 462635; // Hull: 64 minutes, a goal
@@ -49,46 +60,41 @@ describe("each area of the slot he starts in prices the same match its own way",
   });
 });
 
-test("a per-action rule pays for each action: a goal and an assist", () => {
-  const { categories } = scoreMatch(dewsburyHall, EXAMPLE_SET, "midfield");
-  expect(categories.slice(0, 2)).toEqual([
-    { stat: "goals_scored", points: 5 },
-    { stat: "assists", points: 3 },
-  ]);
+test("a per-action rule pays for each action: two goals in midfield pay 10", () => {
+  const { categories } = scoreMatch({ ...dewsburyHall, goals_scored: 2 }, EXAMPLE_SET, "midfield");
+  expect(categories).toContainEqual({ stat: "goals_scored", points: 10 });
 });
+
+const tzolakis = recordOf(fplLines, TZOLAKIS);
 
 test.each([
   [4, 1],
   [5, 1],
   [6, 2],
 ])("a per-count rule pays for each whole three: %i saves pay %i", (saves, points) => {
-  const record = { ...recordOf(fplLines, TZOLAKIS), saves };
-  expect(scoreMatch(record, EXAMPLE_SET, "goalkeeper").categories).toContainEqual({ stat: "saves", points });
+  const scored = scoreMatch({ ...tzolakis, saves }, EXAMPLE_SET, "goalkeeper");
+  expect(scored.categories).toContainEqual({ stat: "saves", points });
 });
 
 test("the recorded keeper's 4 saves, 2 conceded and full match score 2", () => {
-  expect(recordOf(fplLines, TZOLAKIS)).toMatchObject({ saves: 4, goals_conceded: 2, minutes: 90 });
-  expect(scoreMatch(recordOf(fplLines, TZOLAKIS), EXAMPLE_SET, "goalkeeper").total).toBe(2);
+  expect(tzolakis).toMatchObject({ saves: 4, goals_conceded: 2, minutes: 90 });
+  expect(scoreMatch(tzolakis, EXAMPLE_SET, "goalkeeper").total).toBe(2);
 });
 
 describe("a band rule", () => {
   const minutesBands = (stack: boolean, bands: Band[]): ScoringSet => ({
     rules: [{ shape: "bands", stat: "minutes", stack, byArea: everyArea(bands) }],
   });
-  const ONE_THEN_TWO = [
-    { atLeast: 1, points: 1 },
-    { atLeast: 60, points: 2 },
-  ];
   const minutesPoints = (set: ScoringSet, playerCode: number) =>
     scoreMatch(recordOf(fplLines, playerCode), set, "midfield").total;
 
   test.each([
-    ["90 minutes", DEWSBURY_HALL, 3, 2],
-    ["26 minutes off the bench", FULL_STATS.belloumi.code, 1, 1],
-    ["an unused substitute's 0", FULL_STATS.phillips.code, 0, 0],
-  ])("for %s pays %i when it stacks, %i when it pays only the highest band", (_what, playerCode, stacked, highest) => {
-    expect(minutesPoints(minutesBands(true, ONE_THEN_TWO), playerCode)).toBe(stacked);
-    expect(minutesPoints(minutesBands(false, ONE_THEN_TWO), playerCode)).toBe(highest);
+    ["90 minutes", 3, 2, DEWSBURY_HALL],
+    ["26 minutes off the bench", 1, 1, FULL_STATS.belloumi.code],
+    ["an unused substitute's 0", 0, 0, FULL_STATS.phillips.code],
+  ])("for %s pays %i when it stacks, %i when it pays only the highest band", (_what, stacked, highest, playerCode) => {
+    expect(minutesPoints(minutesBands(true, MINUTES_BANDS), playerCode)).toBe(stacked);
+    expect(minutesPoints(minutesBands(false, MINUTES_BANDS), playerCode)).toBe(highest);
   });
 
   test("paying only the highest means the highest threshold reached, in whatever order the bands are listed", () => {
@@ -97,7 +103,7 @@ describe("a band rule", () => {
       { atLeast: 1, points: 3 },
     ];
     expect(minutesPoints(minutesBands(false, lowerPaysMore), DEWSBURY_HALL)).toBe(2);
-    expect(minutesPoints(minutesBands(false, [...ONE_THEN_TWO].reverse()), DEWSBURY_HALL)).toBe(2);
+    expect(minutesPoints(minutesBands(false, [...MINUTES_BANDS].reverse()), DEWSBURY_HALL)).toBe(2);
   });
 
   test("with no bands for his area pays nothing", () => {
@@ -159,23 +165,31 @@ test.each([
   [
     "a per-count rule of every 0 actions",
     { shape: "perCount", stat: "saves", byArea: everyArea({ every: 0, points: 1 }) },
-    "saves's rule pays per 0 actions in midfield",
+    "the saves rule pays for every 0 actions in midfield; it must be more than 0",
   ],
   [
     "a band rule with two bands at one threshold",
-    { shape: "bands", stat: "minutes", stack: false, byArea: everyArea([{ atLeast: 60, points: 1 }, { atLeast: 60, points: 2 }]) },
-    "minutes's rule has two bands at one threshold in midfield",
+    {
+      shape: "bands",
+      stat: "minutes",
+      stack: false,
+      byArea: everyArea([
+        { atLeast: 60, points: 1 },
+        { atLeast: 60, points: 2 },
+      ]),
+    },
+    "the minutes rule has two bands at one threshold in midfield",
   ],
   ["a rule of no known shape", { shape: "perMinute", stat: "minutes", byArea: everyArea(1) }, 'shape "perMinute"'],
   [
     "a rule with no value for his area",
     { shape: "perAction", stat: "goals_scored", byArea: { attack: 4 } },
-    "goals_scored's rule has no values for midfield",
+    "the goals_scored rule has no values for midfield",
   ],
   [
     "a rule whose value is not a number",
     { shape: "perAction", stat: "goals_scored", byArea: everyArea("five") },
-    'goals_scored\'s rule gives NaN points in midfield',
+    "the goals_scored rule gives NaN points in midfield",
   ],
 ])("%s throws rather than score", (_what, rule, message) => {
   const set = { rules: [rule] } as ScoringSet;
@@ -183,8 +197,9 @@ test.each([
 });
 
 describe("a double gameweek, his two matches", () => {
-  const first = scoreMatch(dewsburyHall, EXAMPLE_SET, "midfield"); // 10
-  const second = scoreMatch(recordOf(fplLines, GELHARDT), EXAMPLE_SET, "midfield"); // 7
+  // Two men's recorded lines stand in for one man's two matches: the combiner sees only their points.
+  const first = scoreMatch(dewsburyHall, EXAMPLE_SET, "midfield");
+  const second = scoreMatch(recordOf(fplLines, GELHARDT), EXAMPLE_SET, "midfield");
   const notArrived = scoreMatch(null, EXAMPLE_SET, "midfield");
 
   test("both count: the two added up", () => {
@@ -208,5 +223,11 @@ describe("a double gameweek, his two matches", () => {
   test.each(["bothMatches", "bestMatch"] as const)("under %s, one match is that match, and none is 0", (rule) => {
     expect(scoreGameweek([first], rule)).toEqual({ points: 10, provisional: false });
     expect(scoreGameweek([], rule)).toEqual({ points: 0, provisional: false });
+  });
+
+  test("a rule that is neither throws rather than add the matches up", () => {
+    expect(() => scoreGameweek([first, second], "both" as DoubleGameweekRule)).toThrow(
+      'a double-gameweek rule of "both" is neither both matches nor best match',
+    );
   });
 });

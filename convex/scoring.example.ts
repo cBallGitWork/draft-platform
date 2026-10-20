@@ -1,17 +1,26 @@
-// Scoring sets for the tests only, never a default anyone plays: the first real set is Craig's to
+// A scoring set for the tests only, never a default anyone plays: the first real set is Craig's to
 // edit from the Tim Hortons Pro League's values (spec/14, The first scoring set). Keyed on FPL's
 // stat names, as `fplStatLines` gives them; the second dot keeps this file out of Convex's deploy.
 
-import { AREAS, type Area, type Band, type ByArea, type ScoringSet } from "./scoring";
+import { AREAS, type Area, type ByArea, type ScoringSet } from "./scoring";
 
 /** The same value in every area. */
 export function everyArea<Value>(value: Value): ByArea<Value> {
   return Object.fromEntries(AREAS.map((area) => [area, value])) as Record<Area, Value>;
 }
 
-const NO_BANDS: readonly Band[] = [];
 /** -1 for every two goals conceded, for the keeper and the defence only. */
 const CONCEDED_AT_BACK = { every: 2, points: -1 };
+
+/** 1 for playing, 2 for 60 minutes or more. */
+export const MINUTES_BANDS = [
+  { atLeast: 1, points: 1 },
+  { atLeast: 60, points: 2 },
+];
+
+/** 2 for 10 defensive actions in defence and defensive midfield, for 12 further up. */
+const TWO_FOR_TEN = [{ atLeast: 10, points: 2 }];
+const TWO_FOR_TWELVE = [{ atLeast: 12, points: 2 }];
 
 /** One rule of each shape, values set per area, both kinds of band rule. */
 export const EXAMPLE_SET: ScoringSet = {
@@ -30,10 +39,7 @@ export const EXAMPLE_SET: ScoringSet = {
       shape: "bands",
       stat: "minutes",
       stack: false,
-      byArea: everyArea([
-        { atLeast: 1, points: 1 },
-        { atLeast: 60, points: 2 },
-      ]),
+      byArea: everyArea(MINUTES_BANDS),
     },
     {
       shape: "perCount",
@@ -43,24 +49,13 @@ export const EXAMPLE_SET: ScoringSet = {
     {
       shape: "perCount",
       stat: "goals_conceded",
-      byArea: {
-        ...everyArea({ every: 2, points: 0 }),
-        goalkeeper: CONCEDED_AT_BACK,
-        defence: CONCEDED_AT_BACK,
-      },
+      byArea: { ...everyArea({ every: 2, points: 0 }), goalkeeper: CONCEDED_AT_BACK, defence: CONCEDED_AT_BACK },
     },
     {
       shape: "bands",
       stat: "defensive_contribution",
       stack: true,
-      byArea: {
-        goalkeeper: NO_BANDS,
-        defence: [{ atLeast: 10, points: 2 }],
-        defensiveMidfield: [{ atLeast: 10, points: 2 }],
-        midfield: [{ atLeast: 12, points: 2 }],
-        attackingMidfield: [{ atLeast: 12, points: 2 }],
-        attack: [{ atLeast: 12, points: 2 }],
-      },
+      byArea: { ...everyArea(TWO_FOR_TWELVE), goalkeeper: [], defence: TWO_FOR_TEN, defensiveMidfield: TWO_FOR_TEN },
     },
     { shape: "perAction", stat: "yellow_cards", byArea: everyArea(-1) },
   ],

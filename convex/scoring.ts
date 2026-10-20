@@ -1,9 +1,7 @@
 // A player's points for one match under a league's scoring set (spec/14, How a rule scores; #29).
-// The scoring set is the league's rule, so it is always an argument, never a constant: #25 is to
-// hold it as data, in the shape `ScoringSet` gives. No storage and no screen here.
+// The scoring set is the league's rule, so it is always an argument, never a constant.
 
-/** The pitch's six areas, back to front (spec/05). A player scores by the area of the slot he
- *  starts in, whatever his position: a centre-back played in midfield scores as a midfielder. */
+/** The pitch's six areas, back to front (spec/05). */
 export const AREAS = ["goalkeeper", "defence", "defensiveMidfield", "midfield", "attackingMidfield", "attack"] as const;
 export type Area = (typeof AREAS)[number];
 
@@ -47,7 +45,7 @@ export interface ScoringSet {
   rules: readonly ScoringRule[];
 }
 
-/** A player's stats for one match, by the feeds' own keys. A stat it leaves out is 0. */
+/** A player's stats for one match, by the feeds' own keys. */
 export type MatchRecord = Readonly<Record<string, number>>;
 
 /** One category's points, or null ("—") while his record for the match hasn't arrived. */
@@ -63,60 +61,78 @@ export interface MatchPoints {
 }
 
 /**
- * A player's points for one match, by the area of his slot. `record` is null while his whole
- * record for the match hasn't arrived: every category is then "—" and so is the total, never a
- * guess. Once it has arrived, a stat it leaves out is 0 (spec/14).
+ * A player's points for one match, by the area of the slot he starts in, whatever his position: a
+ * centre-back played in midfield scores as a midfielder. `record` is null while his whole record
+ * for the match hasn't arrived: every category is then "—" and so is the total, never a guess.
+ * Once it has arrived, a stat it leaves out is 0 (spec/14).
  */
 export function scoreMatch(record: MatchRecord | null, set: ScoringSet, area: Area): MatchPoints {
+  if (record === null) {
+    return { total: null, categories: set.rules.map((rule) => ({ stat: rule.stat, points: null })) };
+  }
   const categories = set.rules.map((rule) => ({
     stat: rule.stat,
-    points: record === null ? null : ruleScore(rule, area, Object.hasOwn(record, rule.stat) ? record[rule.stat] : 0),
+    points: rulePoints(rule, area, statIn(record, rule.stat)),
   }));
-  const total = record === null ? null : categories.reduce((sum, category) => sum + (category.points ?? 0), 0);
-  return { total, categories };
+  return { total: sum(categories.map((category) => category.points)), categories };
 }
 
-/** A rule's points for his actions. A rule lacking its area's values, or giving a non-number, is
- *  bad data, and throws. No action under a negative rule (0 yellow cards at -1) is -0 in
- *  JavaScript, which a saved row or a test tells apart from 0, so it is made 0. */
-function ruleScore(rule: ScoringRule, area: Area, actions: number): number {
-  if (!Object.hasOwn(rule.byArea, area)) throw new Error(`${rule.stat}'s rule has no values for ${area}`);
-  const points = shapeScore(rule, area, actions);
-  if (!Number.isFinite(points)) throw new Error(`${rule.stat}'s rule gives ${points} points in ${area}`);
+/** Only the record's own keys count: a rule on `constructor` must not read Object's. */
+function statIn(record: MatchRecord, stat: string): number {
+  return Object.hasOwn(record, stat) ? record[stat] : 0;
+}
+
+/** A rule lacking its area's values, or giving a non-number, is bad data, and throws. No action
+ *  under a negative rule (0 yellow cards at -1) is -0 in JavaScript, which a saved row or a test
+ *  tells apart from 0, so it is made 0. */
+function rulePoints(rule: ScoringRule, area: Area, actions: number): number {
+  if (!Object.hasOwn(rule.byArea, area)) throw new Error(`the ${rule.stat} rule has no values for ${area}`);
+  const points = pointsByShape(rule, area, actions);
+  if (!Number.isFinite(points)) throw new Error(`the ${rule.stat} rule gives ${points} points in ${area}`);
   return points === 0 ? 0 : points;
 }
 
-function shapeScore(rule: ScoringRule, area: Area, actions: number): number {
+function pointsByShape(rule: ScoringRule, area: Area, actions: number): number {
   switch (rule.shape) {
     case "perAction":
       return actions * rule.byArea[area];
     case "perCount": {
       const { every, points } = rule.byArea[area];
-      if (!(every > 0)) throw new Error(`${rule.stat}'s rule pays per ${every} actions in ${area}; it must be more than 0`);
+      if (!(every > 0)) {
+        throw new Error(`the ${rule.stat} rule pays for every ${every} actions in ${area}; it must be more than 0`);
+      }
       return Math.floor(actions / every) * points;
     }
     case "bands":
-      return bandsScore(rule, area, actions);
-    default:
-      throw new Error(`a scoring rule of shape ${JSON.stringify((rule as { shape: unknown }).shape)} is not one of the three`);
+      return bandPoints(rule, area, actions);
+    default: {
+      const shape = JSON.stringify((rule as { shape: unknown }).shape);
+      throw new Error(`a scoring rule of shape ${shape} is not one of the three`);
+    }
   }
 }
 
-function bandsScore(rule: BandsRule, area: Area, actions: number): number {
+function bandPoints(rule: BandsRule, area: Area, actions: number): number {
   const bands = rule.byArea[area];
-  const thresholds = new Set(bands.map((band) => band.atLeast));
-  if (thresholds.size !== bands.length) throw new Error(`${rule.stat}'s rule has two bands at one threshold in ${area}`);
+  if (new Set(bands.map((band) => band.atLeast)).size !== bands.length) {
+    throw new Error(`the ${rule.stat} rule has two bands at one threshold in ${area}`);
+  }
   const reached = bands.filter((band) => actions >= band.atLeast);
-  if (rule.stack) return reached.reduce((sum, band) => sum + band.points, 0);
-  const highest = reached.reduce<Band | null>((top, band) => (top === null || band.atLeast > top.atLeast ? band : top), null);
+  if (rule.stack) return sum(reached.map((band) => band.points));
+  const highest = reached.toSorted((one, other) => other.atLeast - one.atLeast)[0];
   return highest?.points ?? 0;
+}
+
+function sum(numbers: readonly number[]): number {
+  return numbers.reduce((total, each) => total + each, 0);
 }
 
 /** A league's double-gameweek rule (spec/03): both matches count, or only his best match. */
 export type DoubleGameweekRule = "bothMatches" | "bestMatch";
 
 /** A player's gameweek. Provisional while any of his matches' records hasn't arrived: the points
- *  are those of the matches that have, and null while none has. */
+ *  are those of the matches that have, and null while none has. A match still live or inside its
+ *  correction window is provisional too, which is the match's own state (spec/07), not this. */
 export interface GameweekPoints {
   points: number | null;
   provisional: boolean;
@@ -125,10 +141,13 @@ export interface GameweekPoints {
 /** A player's gameweek from his matches in it, under the league's double-gameweek rule. With one
  *  match the rule changes nothing; with none he scores 0. */
 export function scoreGameweek(matches: readonly MatchPoints[], rule: DoubleGameweekRule): GameweekPoints {
+  if (rule !== "bothMatches" && rule !== "bestMatch") {
+    throw new Error(`a double-gameweek rule of ${JSON.stringify(rule)} is neither both matches nor best match`);
+  }
   const arrived = matches.flatMap((match) => (match.total === null ? [] : [match.total]));
   const provisional = arrived.length < matches.length;
   if (matches.length === 0) return { points: 0, provisional };
   if (arrived.length === 0) return { points: null, provisional };
-  const points = rule === "bestMatch" ? Math.max(...arrived) : arrived.reduce((sum, total) => sum + total, 0);
+  const points = rule === "bestMatch" ? Math.max(...arrived) : sum(arrived);
   return { points, provisional };
 }
