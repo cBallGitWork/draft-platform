@@ -104,7 +104,7 @@ test("a position the admin sets stays until he removes it, and setting it again 
   expect(await heldPositions(t, PLAYER.thiaw)).toEqual({ CB: "starts", FB: "admin" });
 });
 
-test("a player no feed has named has no positions, and setting one gives him a row", async () => {
+test("a player no feed has named has no positions until the admin sets one", async () => {
   const t = convexTest(schema, modules);
   const unknown = 999_999;
   expect(await heldPositions(t, unknown)).toEqual({});
