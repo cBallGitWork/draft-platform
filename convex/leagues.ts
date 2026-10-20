@@ -60,8 +60,8 @@ export const setMaxTeams = mutation({
   handler: async (ctx, { leagueId, maxTeams }) => {
     const { email, league } = await runnerOf(ctx, leagueId);
     checkMaxTeams(maxTeams);
-    const teams = (await teamsOf(ctx, leagueId)).length;
-    if (maxTeams < teams) refuse(refusals.belowTeams(teams));
+    const teamCount = (await teamsOf(ctx, leagueId)).length;
+    if (maxTeams < teamCount) refuse(refusals.belowTeams(teamCount));
     if (maxTeams === league.maxTeams) return null;
     await ctx.db.patch("leagues", leagueId, { maxTeams });
     await recordEvent(ctx, leagueId, email, { kind: "maxTeamsChanged", from: league.maxTeams, to: maxTeams });
@@ -77,8 +77,9 @@ export const nameCommissioner = mutation({
     const { email: by, league } = await namerOf(ctx, args.leagueId);
     const email = namedEmail(args.email);
     if (email === league.commissionerEmail) refuse(refusals.alreadyCommissioner(email));
-    if (email === league.coCommissionerEmail) refuse(refusals.isCoCommissioner(email));
-    await ctx.db.patch("leagues", league._id, { commissionerEmail: email });
+    if (email === league.coCommissionerEmail) refuse(refusals.alreadyCoCommissioner(email));
+    // The last commissioner's link, if it didn't go, is theirs: no longer the admin's concern.
+    await ctx.db.patch("leagues", league._id, { commissionerEmail: email, commissionerLink: undefined });
     await recordEvent(ctx, league._id, by, { kind: "commissionerNamed", email });
     await admitCommissioner(ctx, email, league._id);
     return null;

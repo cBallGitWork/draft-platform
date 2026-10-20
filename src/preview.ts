@@ -1,7 +1,8 @@
-// The screens without signing in, for screenshots: `/?preview=manager` (in a league), `newcomer`
-// (in none), `admin` (in none, seeing every league and offered "Create a league") or `visitor`
-// (signed out), on the dev server only (the ui-verifier agent's way in). `import.meta.env.DEV` is false in `vite build`, so
-// the production bundle drops this and a logged-out visitor can never reach the frame through it.
+// The screens without signing in, for screenshots: `/?preview=manager` (in two leagues),
+// `newcomer` (in none), `admin` (in none, seeing every league and offered "Create a league") or
+// `visitor` (signed out), on the dev server only (the ui-verifier agent's way in).
+// `import.meta.env.DEV` is false in `vite build`, so the production bundle drops this and a
+// logged-out visitor can never reach the frame through it.
 
 import type { Id } from "../convex/_generated/dataModel";
 import type { LeagueSummary } from "../convex/myLeagues";

@@ -1,8 +1,9 @@
 // What the league screens say, in one place for Craig to change in the pull request. Why the
 // server refused a change is in convex/leagueAccess.ts (`refusals`), and reaches the screen as is.
 
-import type { LeagueSummary } from "../../convex/myLeagues";
 import { FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leagueLimits";
+import type { LeagueSummary } from "../../convex/myLeagues";
+import type { NoLinkReply } from "../../convex/signInLinks";
 
 export const roleWords: Record<LeagueSummary["roles"][number], string> = {
   commissioner: "Commissioner",
@@ -14,7 +15,7 @@ export const roleWords: Record<LeagueSummary["roles"][number], string> = {
 export const adminWords = "Admin";
 
 /** Why the commissioner's sign-in link didn't go, for each answer but "check your email". */
-export const unsentLinkWords: Record<NonNullable<LeagueSummary["unsentCommissionerLink"]>["reply"], string> = {
+export const unsentLinkWords: Record<NoLinkReply, string> = {
   tryLater: "too many links were asked for that email in the last hour",
   paused: "today's emails have all been sent",
   notSent: "the email service didn't send it",

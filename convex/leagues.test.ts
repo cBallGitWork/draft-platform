@@ -226,9 +226,21 @@ describe("naming a new commissioner", () => {
       refusals.alreadyCommissioner(COMMISSIONER),
     );
     await expect(commissioner.mutation(api.leagues.nameCommissioner, { leagueId, email: CO_COMMISSIONER })).rejects.toThrow(
-      refusals.isCoCommissioner(CO_COMMISSIONER),
+      refusals.alreadyCoCommissioner(CO_COMMISSIONER),
     );
     expect((await leagueRow(t, leagueId))?.commissionerEmail).toBe(COMMISSIONER);
+  });
+
+  test("a link that didn't go to the last commissioner no longer shows once another is named", async () => {
+    fakeResend(500);
+    const admin = await actingAs(t, ADMIN);
+    const unreached = "unreached@example.com";
+    const failedLeague = await admin.mutation(api.leagues.create, { name: "Failed link", maxTeams: 4, commissionerEmail: unreached });
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    expect((await leagueRow(t, failedLeague))?.commissionerLink).toEqual({ email: unreached, reply: "notSent" });
+
+    await admin.mutation(api.leagues.nameCommissioner, { leagueId: failedLeague, email: COMMISSIONER });
+    expect((await leagueRow(t, failedLeague))?.commissionerLink).toBeUndefined();
   });
 
   test("a manager can't name one", async () => {
