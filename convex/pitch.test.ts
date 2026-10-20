@@ -3,7 +3,8 @@ import { AREAS, LANES, playsCell, POSITION_LABELS, type Area, type PositionLabel
 
 type WholeAreaPosition = Exclude<PositionLabel, "WB">;
 
-/** spec/06, The labels: the areas each position plays, every lane of them. The wing back's own test is below. */
+/** spec/06, The labels: the areas each position plays, every lane of them. The wing back, who
+ *  plays only some lanes of two areas, has his own test below. */
 const SPEC_AREAS: Record<WholeAreaPosition, Area[]> = {
   GK: ["goalkeeper"],
   CB: ["defence"],

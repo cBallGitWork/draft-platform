@@ -29,8 +29,11 @@ const WIDE_LANES: readonly Lane[] = ["left", "right"];
 export const POSITION_LABELS = ["GK", "CB", "FB", "WB", "CDM", "CM", "WM", "CAM", "W", "SS", "ST"] as const;
 export type PositionLabel = (typeof POSITION_LABELS)[number];
 
-/** Each lane of the area, the usual case: anyone who plays an area fills any of its cells. */
-const wholeArea = (area: Area): Cell[] => LANES.map((lane) => ({ area, lane }));
+/** The area's cells in these lanes. */
+export const cellsOf = (area: Area, lanes: readonly Lane[]): Cell[] => lanes.map((lane) => ({ area, lane }));
+
+/** The usual case: anyone who plays an area fills any of its cells. */
+const wholeArea = (area: Area): Cell[] => cellsOf(area, LANES);
 
 const PLAYABLE_CELLS: Record<PositionLabel, readonly Cell[]> = {
   GK: wholeArea("goalkeeper"),
@@ -39,8 +42,8 @@ const PLAYABLE_CELLS: Record<PositionLabel, readonly Cell[]> = {
   // There is no wing-back row: a wing back also plays the wide lanes of the two midfield rows.
   WB: [
     ...wholeArea("defence"),
-    ...WIDE_LANES.map((lane) => ({ area: "defensiveMidfield" as const, lane })),
-    ...WIDE_LANES.map((lane) => ({ area: "midfield" as const, lane })),
+    ...cellsOf("defensiveMidfield", WIDE_LANES),
+    ...cellsOf("midfield", WIDE_LANES),
   ],
   CDM: wholeArea("defensiveMidfield"),
   CM: wholeArea("midfield"),

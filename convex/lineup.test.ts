@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { lineupProblems, type Lineup, type Placement } from "./lineup";
-import { FIRST_BENCH_CODE, filledLineup, openLimits, presetNamed, withPositions } from "./lineup.harness";
+import { FIRST_SUB, filledLineup, openLimits, presetNamed, withPositions } from "./lineup.harness";
 import type { Area, Lane } from "./pitch";
 
 // 4-4-2, starters 1 to 11 back to front and left to right: 1 the keeper, 2–5 the back four, 6–9
@@ -96,7 +96,7 @@ describe("the grid", () => {
   test.each([
     ["wingBack", "left"],
     ["attack", "farRight"],
-  ])("a cell in %s, %s doesn't exist", (area, lane) => {
+  ])("a starter in %s, %s is refused: no such cell", (area, lane) => {
     expect(lineupProblems(moved(STRIKER, area, lane), positions, openLimits())).toEqual([
       { kind: "noSuchCell", playerCode: STRIKER, area, lane },
     ]);
@@ -113,27 +113,26 @@ describe("the grid", () => {
 
 describe("who is in the lineup", () => {
   const withBench = (bench: number[]): Lineup => ({ ...fourFourTwo, bench });
-  const FIRST_SUB = FIRST_BENCH_CODE;
 
   test.each([
     ["ten", fourFourTwo.starters.slice(0, -1)],
     ["twelve", [...fourFourTwo.starters, { playerCode: FIRST_SUB, area: "attack", lane: "centre" }]],
   ])("%s starters is the wrong number", (_, starters) => {
     const lineup: Lineup = { starters, bench: fourFourTwo.bench.filter((code) => code !== FIRST_SUB) };
-    const fitting = withPositions(positions, FIRST_SUB, ["ST"]);
+    const firstSubStrikes = withPositions(positions, FIRST_SUB, ["ST"]);
 
-    expect(lineupProblems(lineup, fitting, openLimits())).toEqual([
-      { kind: "wrongStarterCount", starters: starters.length },
+    expect(lineupProblems(lineup, firstSubStrikes, openLimits())).toEqual([
+      { kind: "wrongStarterCount", starterCount: starters.length },
     ]);
   });
 
   test.each([
-    ["a starter also on the bench", withBench([...fourFourTwo.bench, STRIKER])],
-    ["a sub on the bench twice", withBench([...fourFourTwo.bench, FIRST_SUB])],
-  ])("%s is in the lineup twice", (_, lineup) => {
-    const twice = lineup.bench.at(-1)!;
+    ["a starter also on the bench", STRIKER],
+    ["a sub on the bench twice", FIRST_SUB],
+  ])("%s is in the lineup twice", (_, playerCode) => {
+    const lineup = withBench([...fourFourTwo.bench, playerCode]);
 
-    expect(lineupProblems(lineup, positions, openLimits())).toEqual([{ kind: "playerTwice", playerCode: twice }]);
+    expect(lineupProblems(lineup, positions, openLimits())).toEqual([{ kind: "playerTwice", playerCode }]);
   });
 
   test("a starter in two cells is in the lineup twice", () => {
@@ -151,19 +150,19 @@ describe("who is in the lineup", () => {
 });
 
 describe("the league's area limits", () => {
-  test("an area over its maximum", () => {
+  test("an area over its maximum is refused, with its count", () => {
     const rules = openLimits({ defence: { minimum: 0, maximum: 3 } });
 
     expect(lineupProblems(fourFourTwo, positions, rules)).toEqual([
-      { kind: "aboveMaximum", area: "defence", starters: 4, maximum: 3 },
+      { kind: "aboveMaximum", area: "defence", starterCount: 4, maximum: 3 },
     ]);
   });
 
-  test("an area under its minimum", () => {
+  test("an area under its minimum is refused, with its count", () => {
     const rules = openLimits({ defensiveMidfield: { minimum: 1, maximum: 2 } });
 
     expect(lineupProblems(fourFourTwo, positions, rules)).toEqual([
-      { kind: "belowMinimum", area: "defensiveMidfield", starters: 0, minimum: 1 },
+      { kind: "belowMinimum", area: "defensiveMidfield", starterCount: 0, minimum: 1 },
     ]);
   });
 
@@ -179,8 +178,8 @@ describe("the league's area limits", () => {
 
     expect(lineupProblems(lineup, positions, rules)).toEqual([
       { kind: "cellShared", area: "attack", lane: "leftCentre", playerCodes: [STRIKER, OTHER_STRIKER] },
-      { kind: "belowMinimum", area: "goalkeeper", starters: 1, minimum: 2 },
-      { kind: "aboveMaximum", area: "defence", starters: 4, maximum: 3 },
+      { kind: "belowMinimum", area: "goalkeeper", starterCount: 1, minimum: 2 },
+      { kind: "aboveMaximum", area: "defence", starterCount: 4, maximum: 3 },
     ]);
   });
 

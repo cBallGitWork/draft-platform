@@ -1,10 +1,10 @@
 // Whether a lineup may stand (spec/05, The pitch; #8): one pure function, the league's rules always
 // an argument. Storing a lineup, rolling it over and the screen are not here.
 
-import { AREAS, LANES, playsCell, type Area, type Lane, type PositionLabel } from "./pitch";
+import { AREAS, LANES, playsCell, type Area, type Cell, type Lane, type PositionLabel } from "./pitch";
 
 /** A football side's eleven: the product's rule, not a league's. */
-export const STARTERS = 11;
+export const STARTER_COUNT = 11;
 
 /** Players are FPL's season-stable `code`. */
 type PlayerCode = number;
@@ -38,25 +38,28 @@ export interface LineupRules {
  *  (spec/06). The bench's aren't read: where a sub may come on is the auto-subs' question. */
 export type PlayerPositions = ReadonlyMap<PlayerCode, readonly PositionLabel[]>;
 
+/** Who stands in one cell: more than one is a problem. */
+type CellStanding = Cell & { playerCodes: PlayerCode[] };
+
 export type LineupProblem =
-  | { kind: "wrongStarterCount"; starters: number }
+  | { kind: "wrongStarterCount"; starterCount: number }
   | { kind: "playerTwice"; playerCode: PlayerCode }
   | { kind: "noSuchCell"; playerCode: PlayerCode; area: string; lane: string }
-  | { kind: "cellShared"; area: Area; lane: Lane; playerCodes: PlayerCode[] }
+  | ({ kind: "cellShared" } & CellStanding)
   | { kind: "positionsUnknown"; playerCode: PlayerCode }
   | { kind: "outsideHisAreas"; playerCode: PlayerCode; area: Area; lane: Lane; positions: readonly PositionLabel[] }
-  | { kind: "aboveMaximum"; area: Area; starters: number; maximum: number }
-  | { kind: "belowMinimum"; area: Area; starters: number; minimum: number };
+  | { kind: "aboveMaximum"; area: Area; starterCount: number; maximum: number }
+  | { kind: "belowMinimum"; area: Area; starterCount: number; minimum: number };
 
 const isArea = (area: string): area is Area => (AREAS as readonly string[]).includes(area);
 const isLane = (lane: string): lane is Lane => (LANES as readonly string[]).includes(lane);
 
 /** Every reason the lineup can't stand under these rules; none means it is legal. */
 export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules: LineupRules): LineupProblem[] {
-  checkAreaLimits(rules);
+  throwOnInvalidAreaLimits(rules);
   const problems: LineupProblem[] = [];
-  if (lineup.starters.length !== STARTERS) {
-    problems.push({ kind: "wrongStarterCount", starters: lineup.starters.length });
+  if (lineup.starters.length !== STARTER_COUNT) {
+    problems.push({ kind: "wrongStarterCount", starterCount: lineup.starters.length });
   }
 
   const named = new Set<PlayerCode>();
@@ -65,7 +68,7 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
     named.add(playerCode);
   }
 
-  const standing = new Map<string, { area: Area; lane: Lane; playerCodes: PlayerCode[] }>();
+  const standing = new Map<string, CellStanding>();
   for (const { playerCode, area, lane } of lineup.starters) {
     if (!isArea(area) || !isLane(lane)) {
       problems.push({ kind: "noSuchCell", playerCode, area, lane });
@@ -87,19 +90,19 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
   }
 
   for (const area of AREAS) {
-    const starters = [...standing.values()]
+    const starterCount = [...standing.values()]
       .filter((cell) => cell.area === area)
       .reduce((count, cell) => count + cell.playerCodes.length, 0);
     const { minimum, maximum } = rules.areaLimits[area];
-    if (starters > maximum) problems.push({ kind: "aboveMaximum", area, starters, maximum });
-    if (starters < minimum) problems.push({ kind: "belowMinimum", area, starters, minimum });
+    if (starterCount > maximum) problems.push({ kind: "aboveMaximum", area, starterCount, maximum });
+    if (starterCount < minimum) problems.push({ kind: "belowMinimum", area, starterCount, minimum });
   }
   return problems;
 }
 
-/** A limit that can't be met is the league's mistake, not the manager's: it is thrown, never
- *  reported as his lineup's problem. Refusing it when it is set is #25's. */
-function checkAreaLimits(rules: LineupRules): void {
+/** An invalid limit is the league's mistake, not the manager's: it is thrown, never reported as
+ *  his lineup's problem. Refusing it when the league sets it is #25's. */
+function throwOnInvalidAreaLimits(rules: LineupRules): void {
   for (const area of AREAS) {
     const { minimum, maximum } = rules.areaLimits[area];
     if (!Number.isInteger(minimum) || !Number.isInteger(maximum) || minimum < 0 || maximum < minimum) {

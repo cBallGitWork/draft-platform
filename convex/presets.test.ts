@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
-import { lineupProblems, STARTERS } from "./lineup";
+import { lineupProblems, STARTER_COUNT } from "./lineup";
 import { filledLineup, openLimits } from "./lineup.harness";
+import type { Area } from "./pitch";
 import { DEFAULT_PRESETS } from "./presets";
 
 describe("the default presets", () => {
@@ -18,9 +19,9 @@ describe("the default presets", () => {
   });
 
   test.each(DEFAULT_PRESETS)("$name stands one keeper, its name's defenders and eleven in all", (preset) => {
-    const inArea = (area: string) => preset.cells.filter((cell) => cell.area === area).length;
+    const inArea = (area: Area) => preset.cells.filter((cell) => cell.area === area).length;
     const defenders = Number(preset.name.split("-")[0]);
 
-    expect([preset.cells.length, inArea("goalkeeper"), inArea("defence")]).toEqual([STARTERS, 1, defenders]);
+    expect([preset.cells.length, inArea("goalkeeper"), inArea("defence")]).toEqual([STARTER_COUNT, 1, defenders]);
   });
 });

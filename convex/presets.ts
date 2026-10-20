@@ -2,7 +2,7 @@
 // its own rules, which it can edit (spec/03), so this is only the set it is given: nothing checks
 // a lineup against it. Holding a league's copy is #25's.
 
-import type { Area, Cell, Lane } from "./pitch";
+import { cellsOf, type Area, type Cell, type Lane } from "./pitch";
 
 export interface Preset {
   /** As managers say it, such as "4-2-3-1". */
@@ -11,8 +11,7 @@ export interface Preset {
   cells: readonly Cell[];
 }
 
-/** One area's cells, in the lanes given. */
-const row = (area: Area, ...lanes: Lane[]): Cell[] => lanes.map((lane) => ({ area, lane }));
+const row = (area: Area, ...lanes: Lane[]): Cell[] => cellsOf(area, lanes);
 
 const KEEPER = row("goalkeeper", "centre");
 const BACK_FOUR = row("defence", "left", "leftCentre", "rightCentre", "right");
@@ -37,7 +36,7 @@ export const DEFAULT_PRESETS: readonly Preset[] = [
   preset("4-1-4-1", BACK_FOUR, row("defensiveMidfield", "centre"), FLAT_FOUR, LONE_STRIKER),
   preset("4-4-1-1", BACK_FOUR, FLAT_FOUR, NUMBER_TEN, LONE_STRIKER),
   preset("4-3-1-2", BACK_FOUR, CENTRAL_THREE, NUMBER_TEN, STRIKE_PAIR),
-  // Wing backs stand in the wide lanes of defensive midfield: there is no wing-back row.
+  // Its wing backs stand in defensive midfield's wide lanes.
   preset("3-5-2", BACK_THREE, row("defensiveMidfield", "left", "right"), CENTRAL_THREE, STRIKE_PAIR),
   preset("3-4-3", BACK_THREE, FLAT_FOUR, FRONT_THREE),
   preset("3-4-1-2", BACK_THREE, FLAT_FOUR, NUMBER_TEN, STRIKE_PAIR),
