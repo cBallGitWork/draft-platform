@@ -90,7 +90,7 @@ done
 for c in 'cd sub 2>/dev/null && git commit -m x' 'cd sub &&>/dev/null git commit -m x'; do  # a cd with a redirection moves
   check allow guard_bash.py "$(bash_cmd "$c")"
 done
-for c in "git commit -m '>x' -a" "git commit -m \$'\\x04>' -a" 'git add >o -A' 'git add &>o -A' 'echo x > "$(git add -A)"'; do
+for c in "git commit -m '>x' -a" 'git commit -m ">x" -a' "git commit -m \$'\\x04>' -a" 'git add >o -A' 'git add &>o -A' 'echo x > "$(git add -A)"'; do
   # a quoted > is text, and a $'…' can't pass for one; a target's $(…) runs
   check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
 done
