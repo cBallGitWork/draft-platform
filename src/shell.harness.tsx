@@ -1,5 +1,5 @@
 // The screens' tests' shared setup: the app opened at an address, for a session, with sign-in's
-// and leagues' actions faked so a test can see what was asked of them.
+// and leagues' actions and a league's gameweeks faked so a test can see what was asked of them.
 
 import { createMemoryHistory } from "@tanstack/react-router";
 import { render } from "@testing-library/react";
@@ -8,6 +8,7 @@ import type { Id } from "../convex/_generated/dataModel";
 import type { LeagueSummary } from "../convex/myLeagues";
 import type { AuthActions, Session } from "./auth";
 import { emptyTopBar, type TopBarState } from "./frame/topBarState";
+import { fakeGameweeks } from "./gameweeks/gameweeks.harness";
 import type { LeagueActions } from "./leagues/actions";
 import { ShellApp } from "./ShellApp";
 
@@ -54,17 +55,21 @@ function fakeAuth() {
 /** Creating a league succeeds, unless a test says otherwise. */
 const fakeLeagues = () => ({ createLeague: vi.fn<LeagueActions["createLeague"]>(async () => null) });
 
-/** The app opened at `path` for `session`: where it is, the fake sign-in and league actions, and
+/** The app opened at `path` for `session`: where it is, the fake sign-in, league and gameweeks seams, and
  *  a way to change the session as signing in or out, or a league changing, would. */
 export function openApp(path: string, session: Session, topBar: TopBarState = emptyTopBar) {
   const history = createMemoryHistory({ initialEntries: [path] });
   const auth = fakeAuth();
   const leagues = fakeLeagues();
-  const app = (current: Session) => <ShellApp session={current} auth={auth} leagues={leagues} topBar={topBar} history={history} />;
+  const gameweeks = fakeGameweeks();
+  const app = (current: Session) => (
+    <ShellApp session={current} auth={auth} leagues={leagues} topBar={topBar} gameweeks={gameweeks} history={history} />
+  );
   const view = render(app(session));
   return {
     auth,
     leagues,
+    gameweeks,
     path: () => history.location.pathname,
     becomes: (next: Session) => view.rerender(app(next)),
   };
