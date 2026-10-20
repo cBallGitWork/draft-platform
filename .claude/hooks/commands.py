@@ -1,10 +1,10 @@
 """Every simple command a Bash command line runs, for guard_bash.py, each with the folder it
 starts in (where.py). The line is split as the shell splits it (parsing.py), and then each string
 it hands to a shell is read the same way: sh, bash or zsh -c, eval, env -S, flock -c, each $(…)
-or `…`, and what a heredoc, here-string or pipe feeds a shell on stdin (bash <<'EOF',
-echo … | sh). A cd inside a string counts only inside it; an eval that may move the shell leaves
-the folder after it unsure (where.py), and so does every command run by ssh, su, watch, script,
-fish or find -execdir. Stdlib only, Python 3.9+.
+or `…`, what a heredoc, here-string or pipe feeds a shell on stdin (bash <<'EOF', echo … | sh:
+feeds.py), and what xargs adds from it (xargs -I{} sh -c '{}'). A cd inside a string counts only
+inside it; an eval that may move the shell leaves the folder after it unsure (where.py), and so
+does every command run by ssh, su, watch, script, fish or find -execdir. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -13,17 +13,17 @@ import re
 import shlex
 from collections import namedtuple
 
-from parsing import HEREDOC_MARKED, HERE_STRING, MARKED, Unbalanced, Unreadable, ansi_c_text, parse
-from where import (RUNNERS, SEPARATORS, located, moved_by_runner, options, program_index, program_name,
-                   runner_options)
+from feeds import FILLED_IN, STDIN, UNKNOWN, UnreadableStdin, stdins
+from parsing import MARKED, Unbalanced, Unreadable, parse
+from where import (RUNNERS, located, moved_by_runner, options, program_index, program_name, runner_options,
+                   runners)
 
 SHELLS = {"sh", "bash", "zsh", "dash", "ksh"}
 SHELL_VALUE_OPTS = {"-o", "+o", "-O", "+O", "--rcfile", "--init-file"}
-FILLED_IN = re.compile("[$`\x01]")  # a word the shell fills in: $GIT, "$(which git)"
 SHORT_FLAGS = re.compile(r"^-[A-Za-z]+$")  # -lc, -am
-ECHO_FLAGS = re.compile(r"^-[neE]+$")
-UNKNOWN = object()  # stdin a program writes, or one the shell fills in: not something to read
-STDIN = object()  # in place of a string: the commands a shell reads on its stdin
+XARGS = "xargs"  # it adds what it reads on stdin to the command after it
+XARGS_REPLACE = {"-I", "-i", "--replace"}  # xargs -I{}: each line it reads goes where {} is
+XARGS_FILE = {"-a", "--arg-file"}  # xargs -a f: it reads a file, not stdin
 # a program that runs a string as shell commands where the guard can't follow it (another host,
 # another user, its own syntax, over and over): its options that take a value, those whose value
 # is the string, and how many operands come before a command made of the rest (ssh host git
@@ -45,18 +45,13 @@ ELSEWHERE = {
 FIND_RUNS = {"-exec": True, "-ok": True, "-execdir": False, "-okdir": False}  # True: in find's folder
 
 
-class UnreadableStdin(Exception):
-    """A shell reads commands on stdin that the guard can't read: a program's output, or a heredoc
-    or here-string the shell fills in."""
-
-
 def commands(cmd, cwd):
     """(words, folder) for every simple command cmd runs, those in its strings included; the
     folder is None where the guard can't be sure. Raises Unbalanced if cmd's own quotes don't
     balance (zsh then runs none of it; bash runs the lines before the bad one), Unreadable if a
     string inside it doesn't, and UnreadableStdin."""
     segs, lifted = parse(cmd)
-    segs, feeds = _stdins(segs, lifted)
+    segs, feeds = stdins(segs, lifted)
     out = []
     for (words, here), (stdin, substituted) in zip(located(segs, cwd), feeds):
         out += _with_inner(words, here, stdin, lifted)
@@ -81,6 +76,8 @@ def _with_inner(words, here, stdin, lifted):
             out += _commands_in_string(MARKED.sub("$_", script), inner_here if same_folder else None)
     for run, same_folder in find_runs(words):
         out += _with_inner(run, inner_here if same_folder else None, None, lifted)
+    for run in _xargs_runs(words, stdin):
+        out += _with_inner(run, here, None, lifted)
     return out
 
 
@@ -89,65 +86,6 @@ def _commands_in_string(string, here):
         return commands(string, here)
     except Unbalanced:
         raise Unreadable(string) from None
-
-
-def _stdins(segs, lifted):
-    """segs with each command's heredoc and here-string words taken out, and for each command in
-    turn: what it reads on stdin (the text, UNKNOWN, or None if nothing on the line feeds it) and
-    the lifted $(…) those words run."""
-    out, feeds, output, piped = [], [], UNKNOWN, None
-    for seg in segs:
-        if seg[0] in SEPARATORS:  # (echo x) | sh: what ran inside a ( … ) isn't followed
-            piped, output = output if seg == ["|"] else None, UNKNOWN
-            out.append(seg)
-            continue
-        words, stdin, substituted = _redirects(seg, lifted)
-        stdin = piped if stdin is None else stdin
-        out.append(words or [""])  # a heredoc with no command runs no program, but its $(…) runs
-        feeds.append((stdin, substituted))
-        output = _output(words, stdin)
-    return out, feeds
-
-
-def _redirects(seg, lifted):
-    """seg without its heredoc and here-string words, what the last of them feeds it on stdin,
-    and the numbers of the $(…) they run."""
-    words, stdin, substituted, i = [], None, [], 0
-    while i < len(seg):
-        word, i = seg[i], i + 1
-        heredoc = HEREDOC_MARKED.fullmatch(word)
-        if heredoc:
-            body, quoted = lifted[int(heredoc.group(1))]
-            if body is not None and not quoted:
-                substituted += MARKED.findall(body)
-            stdin = UNKNOWN if body is None or (not quoted and FILLED_IN.search(body)) else body
-        elif word == HERE_STRING:
-            value, i = (seg[i], i + 1) if i < len(seg) else ("", i)
-            substituted += MARKED.findall(value)
-            stdin = UNKNOWN if FILLED_IN.search(value) else value + "\n"
-        else:
-            words.append(word)
-    return words, stdin, [int(n) for n in substituted]
-
-
-def _output(words, stdin):
-    """What this simple command writes to a pipe where the guard can tell: echo's words, printf's
-    plain format, cat's stdin. UNKNOWN for anything else, or where the shell fills a word in."""
-    i, program = program_index(words), program_name(words)
-    args = words[i + 1 :]
-    if program == "cat" and not args:
-        return stdin
-    if program == "echo":
-        flags = ""
-        while args and ECHO_FLAGS.match(args[0]):
-            flags += args.pop(0)
-        text = " ".join(args) + ("" if "n" in flags else "\n")
-        text = text if "E" in flags else ansi_c_text(text)  # zsh's echo fills \n in unasked
-    elif program == "printf" and len(args) == 1 and "%" not in args[0]:
-        text = ansi_c_text(args[0])
-    else:
-        return UNKNOWN
-    return UNKNOWN if FILLED_IN.search(text) else text
 
 
 def scripts(words):
@@ -163,7 +101,8 @@ def scripts(words):
     elif program in SHELLS:
         flags, operands = _shell_args(args)
         if "c" in flags:
-            out += [(string, True) for string in operands[:1]]
+            given = operands[:1] or ([STDIN] if XARGS in runners(words) else [])  # xargs sh -c: from stdin
+            out += [(string, True) for string in given]
         elif "s" in flags or not operands:  # bash script.sh runs a file, out of sight
             out.append((STDIN, True))
     elif program in ELSEWHERE:
@@ -215,6 +154,35 @@ def find_runs(words):
             i = end
         i += 1
     return out
+
+
+def _xargs_runs(words, stdin):
+    """What a command behind xargs runs once xargs adds what it reads: each line in place of its
+    -I string (xargs -I{} sh -c '{}'), or its words after the rest (xargs git, xargs sh -c), each
+    as written and as xargs unquotes it. Raises UnreadableStdin where xargs fills in a string the
+    command runs from stdin the guard can't read."""
+    if XARGS not in runners(words) or stdin is None:
+        return []
+    xargs = [(opt, value) for runner, opt, value in runner_options(words) if runner == XARGS]
+    replace = next((value or "{}" for opt, value in xargs if opt in XARGS_REPLACE), None)
+    if stdin is UNKNOWN or any(opt in XARGS_FILE for opt, _ in xargs):
+        if any(script is STDIN or (replace and replace in script) for script, _ in scripts(words)):
+            raise UnreadableStdin(" ".join(words))
+        return []
+    if not replace:
+        return [words + _xargs_words(stdin)]
+    i = program_index(words)
+    lines = [line.strip() for line in stdin.splitlines() if line.strip()]
+    items = lines + [" ".join(_xargs_words(line)) for line in lines]
+    return [words[:i] + [word.replace(replace, item) for word in words[i:]] for item in items]
+
+
+def _xargs_words(text):
+    """The words xargs reads from text: split at blanks, its quotes taken out where they balance."""
+    try:
+        return shlex.split(text)
+    except ValueError:
+        return text.split()
 
 
 def runs_unknown(words):

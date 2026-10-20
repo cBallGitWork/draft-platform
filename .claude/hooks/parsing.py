@@ -12,6 +12,9 @@ import shlex
 from collections import namedtuple
 
 PUNCTUATION = ";&|()\n"  # the characters separators are made of
+# a separator that doesn't end what comes before it: |& is a pipe (stderr too), and a line that
+# ends in |, && or || goes on to the next
+CONTINUED = {("|", "&"), ("|", "\n"), ("&&", "\n"), ("||", "\n")}
 # a quoted or escaped one belongs to its word (git add '|' -A): a stand-in until the line is split
 STAND_INS = ""
 TO_STAND_INS, FROM_STAND_INS = str.maketrans(PUNCTUATION, STAND_INS), str.maketrans(STAND_INS, PUNCTUATION)
@@ -58,7 +61,8 @@ def parse(cmd):
     for word in lexed:
         if word and not word.strip(PUNCTUATION):  # shlex joins a run: ");" is two separators; "" is a word
             for sep in re.findall(r"&&|\|\||.", word, re.S):
-                out += [cur, [sep]]
+                if cur or not out or (out[-1][0], sep) not in CONTINUED:
+                    out += [cur, [sep]]
                 cur = []
         else:
             cur.append(word.translate(FROM_STAND_INS))

@@ -20,7 +20,7 @@ import os
 import re
 import sys
 
-from commands import Unbalanced, Unreadable, UnreadableStdin, commands, runs_unknown, short_flags
+from commands import XARGS, Unbalanced, Unreadable, UnreadableStdin, commands, runs_unknown, short_flags
 from private_words import private_word_problem
 from where import current_branch, git_call, git_dir, options, previous_branch, runners
 
@@ -35,9 +35,10 @@ PUSH_VALUE_OPTS = {"-o", "--push-option", "--repo", "--receive-pack", "--exec"}
 UNREADABLE = ("Can't read a string that runs as commands (sh -c, eval, env -S, $(…), backticks, or a "
               "heredoc or pipe into a shell): its quotes or brackets don't balance. Run the commands "
               "plainly, not inside a string.")
-UNREADABLE_STDIN = ("Can't read what that feeds a shell on stdin: a program's output, or a heredoc or "
-                    "here-string with a $ or backtick the shell fills in. Run the commands plainly, or "
-                    "feed them literally: bash <<'EOF' (quoted), or echo '…' | sh.")
+UNREADABLE_STDIN = ("Can't read what that feeds a shell on stdin, or what xargs puts into a string a shell "
+                    "runs: a program's output, a file, or a heredoc or here-string with a $ or backtick the "
+                    "shell fills in. Run the commands plainly, or feed them literally: bash <<'EOF' "
+                    "(quoted), or echo '…' | sh.")
 STAGE_NAMED = "Stage named paths only: git add path/one path/two."
 UNKNOWN_PROGRAM = ("Can't tell what program that runs (it's a variable or a $(…)), so the guard can't "
                    "check it isn't git. Write the program out: vim f, not $EDITOR f; git commit, not $GIT commit.")
@@ -179,7 +180,7 @@ def decide(cmd, cwd):
             switched = True
         if sub == "add" and stages_everything(args):
             return "That stages everything. " + STAGE_NAMED
-        if sub == "add" and "xargs" in runners(words):
+        if sub == "add" and XARGS in runners(words):
             return "xargs adds the paths stdin holds, so the guard can't tell what that stages. " + STAGE_NAMED
         if sub == "commit" and commits_all(args):
             return "git commit -a stages every tracked change. Stage named paths with git add, then commit."

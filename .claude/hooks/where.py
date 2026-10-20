@@ -7,8 +7,8 @@ find -exec) are read by commands.py.
 Out of its sight: commands in a file (bash script.sh, ./x.sh, python's subprocess), a string run
 by any other program (python -c, node -e, make, a git alias), a function defined before this
 command line, what a variable holds (in a double-quoted sh -c "…" string too: the shell fills it
-in before sh reads it), the arguments xargs adds to git commit or push from stdin, and the paths
-find puts in for {}.
+in before sh reads it), the arguments xargs adds to git commit or push from a program's output,
+and the paths find puts in for {}.
 Stdlib only, Python 3.9+.
 """
 

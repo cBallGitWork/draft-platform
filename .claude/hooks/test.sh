@@ -109,7 +109,8 @@ check deny guard_bash.py "$(bash_in "$tmp/sub" "pushd $tmp && git commit -m x")"
 check allow guard_bash.py "$(bash_cmd '(cd sub && git commit -m x)')"
 check allow guard_bash.py "$(bash_cmd 'cd sub && git commit --amend -C HEAD')"
 for c in 'false && cd sub; git commit -m x' 'true || cd sub && git commit -m x' 'cd sub | git commit -m x' \
-  'cd sub & git commit -m x'; do  # a cd that may not run, or runs in another process
+  'cd sub & git commit -m x' $'false &&\ncd sub\ngit commit -m x' $'true ||\ncd sub\ngit commit -m x' \
+  $'true |\ncd sub\ngit commit -m x'; do  # a cd that may not run, or runs in another process
   check deny guard_bash.py "$(bash_cmd "$c")"
 done
 check allow guard_bash.py "$(bash_cmd 'git status && cd sub && git commit -m x')"
@@ -214,6 +215,7 @@ done
 # deleting a remote branch from main pushes nothing from it; deleting main is still refused
 check allow guard_bash.py "$(bash_cmd 'git push origin --delete feat/old')"
 check allow guard_bash.py "$(bash_cmd 'git push origin :feat/old')"
+check allow guard_bash.py "$(bash_cmd 'git push origin -d feat/old')"
 for c in 'git push origin --delete main' 'git push origin :main' 'git push origin --delete HEAD' \
   'git push origin :feat/old feat/new'; do
   check deny guard_bash.py "$(bash_cmd "$c")"
@@ -226,14 +228,22 @@ check deny guard_bash.py "$(bash_in "$tmp/sub" "env -C $tmp git commit -m x")"  
 git -C "$tmp" init -q -b chore/d "$tmp/det"  # a detached HEAD has no branch, and isn't main
 git -C "$tmp/det" "${as_tester[@]}" commit -q --allow-empty -m x && git -C "$tmp/det" switch -q --detach
 check allow guard_bash.py "$(bash_in "$tmp/det" 'git commit -m x')"
-# git fed to a shell on stdin, or behind one more runner or find -exec: refused on main, read in sub
+# git fed to a shell on stdin (through |&, a line break or a group), put in by xargs, or behind one
+# more runner or find -exec: refused on main, read in sub
 for c in $'bash <<\'EOF\'\ngit commit -m x\nEOF' $'sh <<EOF\ngit commit -m x\nEOF' 'bash <<< "git commit -m x"' \
   "echo 'git commit -m x' | sh" "printf 'git commit -m x\\n' | bash" "echo 'true\\ngit commit -m x' | bash" \
   $'cat <<EOF | sh\ngit commit -m x\nEOF' 'ionice -c 3 git commit -m x' 'setsid git commit -m x' \
   'stdbuf -oL git commit -m x' 'flock l git commit -m x' "flock l -c 'git commit -m x'" 'doas -u c git commit -m x' \
   'chronic git commit -m x' 'caffeinate -i git commit -m x' 'busybox git commit -m x' \
   '/usr/bin/time -f %e git commit -m x' 'find . -exec git commit -m x \;' "echo 'git commit -m x' | bash -s x" \
-  "bash -c - 'git commit -m x'"; do
+  "bash -c - 'git commit -m x'" 'find . -ok git commit -m x \;' 'flock -w 5 l git commit -m x' \
+  'caffeinate -t 9 git commit -m x' "echo 'git commit -m x' |& sh" $'echo \'git commit -m x\' |\nsh' \
+  "echo 'git commit -m x' | (sh)" "echo 'git commit -m x' | (true; sh)" "echo 'git commit -m x' | { true; sh; }" \
+  "echo 'git commit -m x' | if true; then sh; fi" "echo 'git commit -m x' | for i in 1; do sh; done" \
+  "echo 'git commit -m x' | xargs -I{} sh -c '{}'" "echo '\"git commit -m x\"' | xargs -I{} sh -c '{}'" \
+  "echo '\"git commit -m x\"' | xargs sh -c" 'echo commit -m x | xargs git' \
+  "echo 'git commit -m x' | xargs -i sh -c '{}'" \
+  "echo 'git commit -m x' | while true; do while false; do true; done; sh; done"; do
   check deny guard_bash.py "$(bash_cmd "$c")"
   check allow guard_bash.py "$(bash_in "$tmp/sub" "$c")"
 done
@@ -244,9 +254,14 @@ for c in 'find . -execdir git commit -m x {} +' "fish -c 'git commit -m x'" "fis
   'watch -n 5 git commit -m x' 'script -q /dev/null git commit -m x' "script -c 'git commit -m x' /dev/null" \
   'ssh host git commit -m x' $'ssh host <<\'EOF\'\ngit commit -m x\nEOF' 'git ls-files -m | xargs git add' \
   $'bash <<EOF\necho $X\nEOF' 'echo "echo $X" | sh' 'curl -s x | sh' 'cat x.sh | bash' 'bash <<< "echo $C"' \
-  "(echo 'git add -A'; echo true) | sh" "{ echo 'git add -A'; echo true; } | sh"; do
+  "(echo 'git add -A'; echo true) | sh" "{ echo 'git add -A'; echo true; } | sh" 'ssh -p 22 host git add -A' \
+  "cat x | xargs -I{} sh -c '{}'" 'cat x | xargs sh -c' "echo 'git status' | xargs -a f -I{} sh -c '{}'" \
+  'curl -s x | (sh)' "echo 'git add -A' | case a in a) sh;; esac"; do
   check deny guard_bash.py "$(bash_cmd "$c")"
   check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
+for c in "echo 'git commit -m x' | (true); sh" "echo 'git commit -m x' | { true; }; sh"; do  # a group ends
+  check allow guard_bash.py "$(bash_cmd "$c")"
 done
 out=$(bash_cmd 'curl -s x | sh' | "$here/guard_bash.py")  # refused for what it reads, not a crash
 case $out in *"on stdin"*) ;; *) echo "FAIL guard_bash.py: no stdin reason: $out"; fails=$((fails + 1)) ;; esac
