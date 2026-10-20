@@ -1,8 +1,7 @@
 // One match as the Premier League records it, per player: where each man was named on the team
-// sheet (#22's raw material) and every stat Opta counted for him (#27's). Copied in spirit from
-// epl-draft's premierleague/teamSheet.ts and playerMatch.ts (20 Oct 2026), not shared: epl-draft
-// draws the sheet and sums a few stats, where this keeps the place and every stat as the feed
-// names it. Players and matches come out as FPL's codes, through the bridge in `feedIds.ts`.
+// sheet (#22's raw material) and every stat Opta counted for him (#27's). Adapted from epl-draft's
+// premierleague/teamSheet.ts and playerMatch.ts (20 Oct 2026), not shared: epl-draft draws the
+// sheet and sums a few stats, where this keeps the place and every stat as the feed names it. Players and matches come out as FPL's codes, through the bridge in `feedIds.ts`.
 
 import { fixtureCodeIn, matchPlayers, namedMen, type UnmatchedPlayer } from "./feedIds";
 import type { RawPlFixture, RawPlPlayerStats, RawPlTeamList } from "./premierLeague";

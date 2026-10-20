@@ -31,8 +31,8 @@ export function fplLiveUrl(gameweek: number): string {
   return `${FPL_API_BASE}/event/${gameweek}/live/`;
 }
 
-/** Every fixture list asks for `altIds`: without it no fixture carries the join to FPL, and nothing
- *  says so, the fixtures simply arrive without it. One gameweek's, or the season's when omitted. */
+/** One gameweek's fixtures, or the season's when omitted. It always asks for `altIds`: without it
+ *  the fixtures arrive with no join to FPL, and nothing says so. */
 export function plFixturesUrl(gameweek?: number): string {
   const round = gameweek === undefined ? "" : `&gameweekNumbers=${gameweek}`;
   return (

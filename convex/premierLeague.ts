@@ -18,8 +18,6 @@ export interface RawPlSquadPlayer {
   id: number;
   name: { display: string };
   altIds?: RawPlAltIds;
-  /** The line he was named in for THIS match: `G`, `D`, `M` or `F`. */
-  matchPosition?: string;
 }
 
 /** A side's shape: `label` ("4-2-3-1") drawn as `players`, lines of player ids, keeper first. */
@@ -35,11 +33,9 @@ export interface RawPlTeamList {
   formation?: RawPlFormation;
 }
 
-/** A fixture from the fixture list or its own read. `status`: `U` upcoming, `L` live, `C` complete. */
+/** A fixture from the fixture list or its own read. */
 export interface RawPlFixture {
   id: number;
-  status: string;
-  teams: { team: { id: number; altIds?: RawPlAltIds } }[];
   /** `g` + FPL's fixture `code`. Sent only when the read asks with `altIds=true`. */
   altIds?: RawPlAltIds;
   /** On the fixture's own read: two entries, each null until that side is named. */

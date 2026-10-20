@@ -56,7 +56,7 @@ export function codesByOpta(elements: RawBootstrap["elements"]): Map<string, num
   return codes;
 }
 
-/** Every man either side named, starters then substitutes. A side not yet named is a null entry. */
+/** Every man either side named, starters then substitutes; a side not yet named adds no one. */
 export function namedMen(fixture: RawPlFixture): RawPlSquadPlayer[] {
   return (fixture.teamLists ?? []).flatMap((list) => (list === null ? [] : [...list.lineup, ...list.substitutes]));
 }

@@ -72,12 +72,12 @@ export function recordedGw6(): Gw6Payloads {
 
 /** One recorded Premier League fixture in full, a fresh copy. */
 export function recordedPlFixture(plId: number): RawPlFixture {
-  const fixture = recordedGw6().pl.fixtures.find((each) => each.id === plId);
+  const fixture = (plFixtures as RawPlFixture[]).find((each) => each.id === plId);
   if (fixture === undefined) throw new Error(`no recorded Premier League fixture ${plId}`);
-  return fixture;
+  return structuredClone(fixture);
 }
 
 /** The recorded FPL players less those with these codes, as if FPL had not listed them yet. */
 export function fplElementsWithout(...codes: number[]): RawBootstrap["elements"] {
-  return recordedGw6().fpl.bootstrap.elements.filter((element) => !codes.includes(element.code));
+  return structuredClone(bootstrap.elements.filter((element) => !codes.includes(element.code)));
 }
