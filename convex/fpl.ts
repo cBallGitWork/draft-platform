@@ -62,7 +62,7 @@ export async function readFpl(): Promise<Football> {
 /** Pure raw → seam mapping: no I/O and no clock, so the same payloads always give the same records. */
 export function mapFpl(bootstrap: RawBootstrap, fixtures: RawFixture[]): Football {
   const clubCode = clubCodes(bootstrap.teams);
-  return {
+  const football: Football = {
     clubs: bootstrap.teams.map((team) => ({ code: team.code, name: team.name, shortName: team.short_name })),
     players: bootstrap.elements.map((element) => ({
       code: element.code,
@@ -79,6 +79,21 @@ export function mapFpl(bootstrap: RawBootstrap, fixtures: RawFixture[]): Footbal
     })),
     gameweeks: bootstrap.events.map((event) => ({ number: event.id, deadline: epochMs(event.deadline_time) })),
   };
+  eachOnce("club", football.clubs.map((club) => club.code));
+  eachOnce("player", football.players.map((player) => player.code));
+  eachOnce("match", football.fixtures.map((fixture) => fixture.code));
+  eachOnce("gameweek", football.gameweeks.map((gameweek) => gameweek.number));
+  return football;
+}
+
+/** A key sent twice is a changed payload. The sync looks a batch's rows up together, so two rows
+ *  with one code would both be inserted, and every later sync would fail on the pair. */
+function eachOnce(what: string, keys: number[]): void {
+  const seen = new Set<number>();
+  for (const key of keys) {
+    if (seen.has(key)) throw new Error(`FPL sent ${what} ${key} twice`);
+    seen.add(key);
+  }
 }
 
 /** A club's season-stable code from its per-season id. A club FPL names but does not list is a

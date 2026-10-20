@@ -66,3 +66,19 @@ test("a deadline that does not parse throws rather than hold a gameweek with no 
   const garbled = { ...bootstrap, events: [{ ...bootstrap.events[0], deadline_time: "soon" }] };
   expect(() => mapFpl(garbled, fixtures)).toThrow('does not parse: "soon"');
 });
+
+test("a player FPL sends twice is a changed payload, and throws rather than be held twice", () => {
+  const doubled = recordedFpl();
+  doubled.bootstrap.elements.push({ ...doubled.bootstrap.elements[0] });
+
+  expect(() => mapFpl(doubled.bootstrap, doubled.fixtures)).toThrow(
+    `FPL sent player ${doubled.bootstrap.elements[0].code} twice`,
+  );
+});
+
+test("a match FPL sends twice throws too", () => {
+  const doubled = recordedFpl();
+  doubled.fixtures.push({ ...doubled.fixtures[0] });
+
+  expect(() => mapFpl(doubled.bootstrap, doubled.fixtures)).toThrow(`FPL sent match ${ARSENAL_V_COVENTRY} twice`);
+});
