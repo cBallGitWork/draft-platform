@@ -22,7 +22,7 @@ mostly baseball: "unconfirmed" marks where soccer may differ.
 **Squads and lineups** (features 3, 5)
 - Which transactions are blocked for making a squad illegal (live: total squad size only).
 - A youth or academy slot (live: not used).
-- One player on several teams (live: not used).
+- One player on several teams (live: not used): not now, maybe later (Craig, 20 Oct 2026; `docs/to-grill.md`).
 - Who may change lineups: managers, or only the commissioner.
 - ~~A lock offset before kickoff~~: settled, one deadline per gameweek (spec/05).
 - ~~Auto-subs: bench order, changing position, a maximum per gameweek~~: settled (spec/05).
