@@ -13,14 +13,15 @@ export const COMMISSIONER = "commish@example.com";
 export const CO_COMMISSIONER = "co@example.com";
 export const MANAGERS = ["ann@example.com", "bob@example.com", "cat@example.com", "dan@example.com", "eve@example.com"];
 
-/** `email` signed in, with an account made for it if it has none, as signing in by a link makes. */
+/** `email` signed in, with a verified account made for it if it has none, as opening a sign-in
+ *  link makes. */
 export async function actingAs(t: TestConvex, email: string) {
   const userId = await t.run(async (ctx) => {
     const user = await ctx.db
       .query("users")
       .withIndex("email", (q) => q.eq("email", email))
       .unique();
-    return user?._id ?? ctx.db.insert("users", { email });
+    return user?._id ?? ctx.db.insert("users", { email, emailVerificationTime: Date.now() });
   });
   // Convex Auth's token names the user and the session, as `getAuthUserId` reads it.
   return t.withIdentity({ subject: `${userId}|session` });

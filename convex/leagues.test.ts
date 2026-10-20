@@ -37,7 +37,7 @@ describe("creating a league", () => {
     expect(await leagueRow(t, leagueId)).toMatchObject({ name: "Tim Hortons Pro League", maxTeams: 4, commissionerEmail: COMMISSIONER });
     expect(await eventsIn(t, leagueId)).toEqual([
       { by: ADMIN, kind: "created", name: "Tim Hortons Pro League", maxTeams: 4 },
-      { by: ADMIN, kind: "commissionerNamed", email: COMMISSIONER },
+      { by: ADMIN, kind: "commissionerNamed", email: COMMISSIONER, replaced: null },
     ]);
   });
 
@@ -50,12 +50,29 @@ describe("creating a league", () => {
     expect((await leagueRow(t, leagueId))?.commissionerLink).toEqual({ email: COMMISSIONER, reply: "checkYourEmail" });
   });
 
-  test("a commissioner who already has an account is sent no link", async () => {
+  test("a commissioner who has signed in before is sent no link", async () => {
     const sent = fakeResend();
     await actingAs(t, COMMISSIONER);
     await adminCreatesLeague(t);
 
     expect(sent).toEqual([]);
+  });
+
+  test("a commissioner whose only account is from a link that didn't go is sent one", async () => {
+    fakeResend(500);
+    await adminCreatesLeague(t, 4, "First");
+    const account = await t.run((ctx) =>
+      ctx.db
+        .query("users")
+        .withIndex("email", (q) => q.eq("email", COMMISSIONER))
+        .unique(),
+    );
+    expect(account).not.toBeNull();
+    expect(account?.emailVerificationTime).toBeUndefined();
+
+    const sent = fakeResend();
+    await adminCreatesLeague(t, 4, "Second");
+    expect(sent.map((email) => email.to)).toEqual([COMMISSIONER]);
   });
 
   test("the commissioner's email is stored trimmed and lower-cased, as every email is", async () => {
@@ -148,16 +165,41 @@ describe("the co-commissioner", () => {
 
     expect((await leagueRow(t, leagueId))?.coCommissionerEmail).toBe(CO_COMMISSIONER);
     expect(await onTheList(t, CO_COMMISSIONER)).toBe(true);
-    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: namer, kind: "coCommissionerNamed", email: CO_COMMISSIONER });
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({
+      by: namer,
+      kind: "coCommissionerNamed",
+      email: CO_COMMISSIONER,
+      replaced: null,
+    });
   });
 
-  test("the commissioner removes them", async () => {
+  test("naming another replaces them, and the filing says whom it replaced", async () => {
+    const commissioner = await actingAs(t, COMMISSIONER);
+    await commissioner.mutation(api.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
+    await commissioner.mutation(api.leagues.nameCoCommissioner, { leagueId, email: MANAGERS[0] });
+
+    expect((await leagueRow(t, leagueId))?.coCommissionerEmail).toBe(MANAGERS[0]);
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({
+      by: COMMISSIONER,
+      kind: "coCommissionerNamed",
+      email: MANAGERS[0],
+      replaced: CO_COMMISSIONER,
+    });
+  });
+
+  test("the commissioner removes them, and the filing says who was removed", async () => {
     const commissioner = await actingAs(t, COMMISSIONER);
     await commissioner.mutation(api.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
     await commissioner.mutation(api.leagues.nameCoCommissioner, { leagueId, email: null });
 
     expect((await leagueRow(t, leagueId))?.coCommissionerEmail).toBeUndefined();
-    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "coCommissionerNamed", email: null });
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "coCommissionerRemoved", email: CO_COMMISSIONER });
+  });
+
+  test("removing a co-commissioner the league doesn't have files nothing", async () => {
+    const before = await eventsIn(t, leagueId);
+    await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.nameCoCommissioner, { leagueId, email: null });
+    expect(await eventsIn(t, leagueId)).toEqual(before);
   });
 
   test("they can do what the commissioner can: change the maximum, add and remove managers", async () => {
@@ -202,14 +244,19 @@ describe("naming a new commissioner", () => {
     leagueId = await adminCreatesLeague(t, 4);
   });
 
-  test("the commissioner hands the league on; the new one is sent a link, and the old one runs it no more", async () => {
+  test("the commissioner hands the league on; it's filed with whom it replaced, the new one is sent a link, and the old one runs it no more", async () => {
     const sent = fakeResend();
     const commissioner = await actingAs(t, COMMISSIONER);
     await commissioner.mutation(api.leagues.nameCommissioner, { leagueId, email: MANAGERS[0] });
     await t.finishAllScheduledFunctions(vi.runAllTimers);
 
     expect(sent.map((email) => email.to)).toEqual([MANAGERS[0]]);
-    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "commissionerNamed", email: MANAGERS[0] });
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({
+      by: COMMISSIONER,
+      kind: "commissionerNamed",
+      email: MANAGERS[0],
+      replaced: COMMISSIONER,
+    });
     await expect(commissioner.mutation(api.leagues.setMaxTeams, { leagueId, maxTeams: 6 })).rejects.toThrow(refusals.notRunner);
   });
 
