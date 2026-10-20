@@ -1,11 +1,13 @@
 import { describe, expect, test } from "vitest";
-import { NO_ADMIN, positionsOf, START_WINDOW, type AdminPositions, type PositionInputs, type Start } from "./positions";
+import { NO_ADMIN, positionsOf, type AdminPositions, type PositionInputs, type Start } from "./positions";
 import type { Position } from "./positionTables";
 
 // Places of a 4-2-3-1, as its sheet draws them: line 1 is the back four, right back first.
 const RIGHT_BACK = { formation: "4-2-3-1", line: 1, place: 0 };
 const CENTRE_BACK = { formation: "4-2-3-1", line: 1, place: 1 };
 const NUMBER_TEN = { formation: "4-2-3-1", line: 3, place: 1 };
+/** spec/06's window, written out rather than read from `START_WINDOW`, so changing it fails here. */
+const SPEC_WINDOW = 38;
 
 /** `count` starts at `place`: the newest kicks off at `newest`, each next one a millisecond earlier. */
 function startsAt(place: Omit<Start, "fixtureCode" | "kickoff">, count: number, newest = 1_000_000): Start[] {
@@ -29,9 +31,9 @@ describe("from starts", () => {
     expect(held(inputs({ starts: startsAt(RIGHT_BACK, 2), admin: approvedFb }))).toEqual({});
   });
 
-  test(`only his newest ${START_WINDOW} starts count`, () => {
+  test(`only his newest ${SPEC_WINDOW} starts count`, () => {
     const older = startsAt(RIGHT_BACK, 3, 1_000);
-    const newer = startsAt(CENTRE_BACK, START_WINDOW, 1_000_000);
+    const newer = startsAt(CENTRE_BACK, SPEC_WINDOW, 1_000_000);
 
     const given = inputs({ starts: [...older, ...newer], admin: { approved: ["FB", "CB"] } });
 
@@ -41,7 +43,7 @@ describe("from starts", () => {
   });
 
   test("a start on a sheet with no formation counts towards the window but gives nothing", () => {
-    const bare = startsAt({ formation: null, line: null, place: null }, START_WINDOW, 1_000_000);
+    const bare = startsAt({ formation: null, line: null, place: null }, SPEC_WINDOW, 1_000_000);
     expect(held(inputs({ starts: [...bare, ...startsAt(RIGHT_BACK, 3, 1_000)], admin: approvedFb }))).toEqual({});
   });
 
