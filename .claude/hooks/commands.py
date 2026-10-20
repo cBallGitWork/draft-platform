@@ -2,7 +2,7 @@
 starts in (where.py). The line is split as the shell splits it (parsing.py), and then each string
 it hands to a shell is read the same way: sh, bash or zsh -c, eval, env -S, flock -c, each $(…)
 or `…`, what a heredoc, here-string or pipe feeds a shell on stdin (bash <<'EOF', echo … | sh:
-feeds.py), and what xargs adds from it (xargs -I{} sh -c '{}'). A cd inside a string counts only
+stdin_reading.py), and what xargs adds from it (xargs -I{} sh -c '{}'). A cd inside a string counts only
 inside it; an eval that may move the shell leaves the folder after it unsure (where.py), and so
 does every command run by ssh, su, watch, script, fish or find -execdir. Stdlib only, Python 3.9+.
 """
@@ -13,7 +13,7 @@ import re
 import shlex
 from collections import namedtuple
 
-from feeds import FILLED_IN, STDIN, UNKNOWN, UnreadableStdin, stdins
+from stdin_reading import FILLED_IN, STDIN, UNKNOWN, UnreadableStdin, stdins
 from parsing import MARKED, Unbalanced, Unreadable, parse
 from where import (RUNNERS, located, moved_by_runner, options, program_index, program_name, runner_options,
                    runners)
@@ -51,9 +51,9 @@ def commands(cmd, cwd):
     balance (zsh then runs none of it; bash runs the lines before the bad one), Unreadable if a
     string inside it doesn't, and UnreadableStdin."""
     segs, lifted = parse(cmd)
-    segs, feeds = stdins(segs, lifted)
+    segs, inputs = stdins(segs, lifted)
     out = []
-    for (words, here), (stdin, substituted) in zip(located(segs, cwd), feeds):
+    for (words, here), (stdin, substituted) in zip(located(segs, cwd), inputs):
         out += _with_inner(words, here, stdin, lifted)
         for n in substituted:
             out += _commands_in_string(lifted[n], here)
