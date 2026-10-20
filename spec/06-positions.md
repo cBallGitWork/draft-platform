@@ -45,7 +45,11 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 ## New signings
 
 - A new signing with no starts takes his position from the Premier League's own label for him,
-  and it counts at once, shown as unconfirmed until the admin confirms it.
+  and it counts at once, shown as unconfirmed until the admin confirms it. A clear label maps
+  straight across (a full back is FB, a second striker SS); a vague one stays vague, giving every
+  position it could mean ("Defender" counts as CB and FB).
+- So does any player with fewer than 3 starts anywhere, or whose positions from starts the admin
+  hasn't approved yet: he plays on his label until they are.
 - The dashboard links to his Transfermarkt, FotMob and Understat pages for the admin to read;
   nothing fetches them.
 
