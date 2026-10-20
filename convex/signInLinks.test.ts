@@ -71,6 +71,19 @@ describe("asking for a link", () => {
     expect(sent.map((email) => email.to)).toEqual([LISTED]);
   });
 
+  test("two asks let through at once each find their own to send", async () => {
+    await t.mutation(internal.signInLinks.recordAsk, { email: LISTED });
+    await t.mutation(internal.signInLinks.recordAsk, { email: LISTED });
+
+    const claims = [
+      await t.mutation(internal.signInLinks.claimSend, { email: LISTED }),
+      await t.mutation(internal.signInLinks.claimSend, { email: LISTED }),
+      await t.mutation(internal.signInLinks.claimSend, { email: LISTED }),
+    ];
+
+    expect(claims).toEqual([true, true, false]);
+  });
+
   test("Convex Auth's own signIn, called directly with an email, sends nothing", async () => {
     const sent = fakeResend();
 

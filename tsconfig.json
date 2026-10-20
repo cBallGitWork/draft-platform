@@ -14,6 +14,6 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  // The app imports convex/_generated/api's types, which read convex/'s own: process.d.ts with them.
+  // The app imports convex/_generated/api, whose types reach into convex/, so process.d.ts too.
   "include": ["src", "vite.config.ts", "vitest.config.ts", "convex/process.d.ts"]
 }

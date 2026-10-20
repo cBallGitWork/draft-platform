@@ -94,20 +94,20 @@ export const recordAsk = internalMutation({
   },
 });
 
-/** Takes the ask that let this email through, if one did in the last minute and no send has taken
- *  it yet; whether there was one. */
+/** Takes the oldest ask that let this email through in the last minute and that no send has taken
+ *  yet, so two asks at once are each sent; whether there was one. */
 export const claimSend = internalMutation({
   args: { email: v.string() },
   returns: v.boolean(),
   handler: async (ctx, { email }) => {
     const now = Date.now();
-    const latest = await ctx.db
+    const lastMinute = await ctx.db
       .query("signInAsks")
       .withIndex("by_email_and_askedAt", (q) => q.eq("email", email).gt("askedAt", now - CLAIM_WINDOW_MS))
-      .order("desc")
-      .first();
-    if (!latest?.listed || latest.claimedAt !== undefined) return false;
-    await ctx.db.patch("signInAsks", latest._id, { claimedAt: now });
+      .take(ASKS_PER_HOUR);
+    const unclaimed = lastMinute.find((asked) => asked.listed && asked.claimedAt === undefined);
+    if (!unclaimed) return false;
+    await ctx.db.patch("signInAsks", unclaimed._id, { claimedAt: now });
     return true;
   },
 });

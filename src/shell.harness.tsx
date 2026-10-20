@@ -18,7 +18,7 @@ export const admin: Session = { signedIn: true, email: "craig@example.com", isAd
 
 export const LINK_REPLY = "Check your email.";
 
-export function fakeAuth() {
+function fakeAuth() {
   return {
     requestSignInLink: vi.fn<AuthActions["requestSignInLink"]>(async () => LINK_REPLY),
     signOut: vi.fn<AuthActions["signOut"]>(async () => {}),
