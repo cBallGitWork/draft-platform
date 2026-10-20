@@ -177,6 +177,18 @@ said quiet gate_on_stop.py "$(stop_in "$nogit")" DRAFT_GATE_CMD=false  # not a g
 git init -q "$nopkg" && mkdir "$nopkg/src" && touch "$nopkg/src/a.ts"
 said quiet gate_on_stop.py '{}' CLAUDE_PROJECT_DIR="$nopkg" DRAFT_GATE_CMD=false  # no package.json: no gate
 rm -rf "$nogit"
+# a git status that fails (here a corrupt index) is an error on stderr, never "nothing changed"
+broken=$tmp/gate-broken && gate_repo "$broken" && printf 'not an index' > "$broken/.git/index"
+err=$(stop_in "$broken" | env DRAFT_GATE_CMD=true "$here/gate_on_stop.py" 2>&1 >/dev/null)
+code=$?
+if [ "$code" -eq 0 ] || [ -z "$err" ]; then
+  echo "FAIL gate_on_stop.py: a failed git status exited $code with no error"; fails=$((fails + 1))
+fi
+# settings.json runs the gate on both stops, so neither a session nor a builder finishes past it
+for event in Stop SubagentStop; do
+  /usr/bin/jq -e --arg e "$event" '.hooks[$e][]?.hooks[]?.command | select(endswith("/gate_on_stop.py"))' \
+    "$here/../settings.json" >/dev/null || { echo "FAIL settings.json: no $event hook runs gate_on_stop.py"; fails=$((fails + 1)); }
+done
 
 # line_ceiling.py: a note past 250 lines, none at or under it, none for prose
 seq 251 > "$tmp/long.ts" && seq 250 > "$tmp/short.ts" && seq 400 > "$tmp/long.md"

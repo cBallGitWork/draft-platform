@@ -6,7 +6,11 @@ builder in .claude/worktrees/ is judged on its own worktree), else of CLAUDE_PRO
 the folder it runs in; one with no git or no package.json has no gate, so it says nothing. While
 the watched paths there have uncommitted changes, it runs `npm run verify` (tests, typecheck, hook
 checks) there; on failure, it blocks the stop and hands Claude the end of the output. Respects
-`stop_hook_active`, so it blocks once and never loops. Adapted from sideband's gate_on_stop.py
+`stop_hook_active`, so it blocks once and never loops. If git status fails or the gate times
+out, it exits 1 with the error on stderr: Claude Code shows it, but the stop goes ahead (it fails
+open, never quietly). A subagent's `cwd` is the folder it works in: an agent spawned with its own
+worktree has that worktree, but one that only names a worktree by absolute path has the main
+checkout, so it is judged there (checked 20 Oct 2026 in subagent transcripts). Adapted from sideband's gate_on_stop.py
 (17 Oct 2026). DRAFT_GATE_CMD overrides the command, for test.sh. Stdlib only, Python 3.9+.
 """
 
