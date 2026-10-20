@@ -36,6 +36,9 @@ export const SHEET = {
   cityCoventryRefused: 128950,
 } as const;
 
+/** The unplayed match in this season's list, by the Premier League's fixture id. */
+export const UNPLAYED_MATCH = 129091;
+
 /** Newcastle's club code in FPL, its per-season id there in 2026/27, and its Premier League id. */
 export const NEWCASTLE = { code: 4, fplId: 17, pl: 23 } as const;
 

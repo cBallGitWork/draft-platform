@@ -33,7 +33,7 @@ test.each([
   ["a second man in goal", "4-2-3-1", 0, 1, null],
   ["a place past the end of a line", "4-2-3-1", 2, 2, null],
   ["a line past the striker", "4-2-3-1", 5, 0, null],
-] as const)("%s is placed %s", (_who, formation, line, place, position) => {
+] as const)("%s is %s", (_who, formation, line, place, position) => {
   expect(placePosition(formation, line, place)).toBe(position);
 });
 
