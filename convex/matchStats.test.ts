@@ -11,7 +11,6 @@ import {
   HULL_EVERTON,
   heldMatch,
   mergedHullEverton,
-  modules,
   refusedError,
   syncAt,
   withBelloumiGoalRemoved,
@@ -21,6 +20,7 @@ import {
 import { statValue } from "./matchRecords";
 import type { RawPlFixture } from "./premierLeague";
 import { fplElementsWithout, FULL_STATS, MATCH, recordedGw6 } from "./recorded/gw6.payloads";
+import { modules } from "./footballSync.harness";
 import schema from "./schema";
 
 beforeEach(() => vi.useFakeTimers());

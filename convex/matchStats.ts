@@ -3,15 +3,16 @@ import { internal } from "./_generated/api";
 import type { Doc } from "./_generated/dataModel";
 import { internalMutation, internalQuery, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { MS_PER_MINUTE } from "./deadline";
-import { isMatchComplete, isWhole, lockTime, statChanges, type PlayerMatchRecord } from "./matchRecords";
+import { isMatchComplete, isWhole, lockTime, statChanges, type PlayerMatchRecord, type StatChange } from "./matchRecords";
 import { statCorrectionWindowMs } from "./platformSettings";
-import { lateStatChange, matchStatsState, matchStatsSyncFields, playerMatchRecord } from "./schema";
+import { matchStatsState, matchStatsSyncFields, playerMatchRecord } from "./schema";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
 
 type State = Infer<typeof matchStatsState>;
-type StatChange = Infer<typeof lateStatChange>;
+/** A match to read, and the gameweek its live stats come under. */
+export type DueMatch = { fixtureCode: number; gameweek: number };
 export const HOUR_MS = 60 * MS_PER_MINUTE;
 
 /** Ninety minutes and a fifteen-minute half-time: no match reaches full time sooner after kickoff,
@@ -30,8 +31,8 @@ const LATEST_RUNS = 5;
  *  locked within the watch and not read for an hour. */
 export const due = internalQuery({
   args: { now: v.number() },
-  handler: async (ctx, { now }): Promise<{ fixtureCode: number; gameweek: number }[]> => {
-    const due: { fixtureCode: number; gameweek: number; kickoff: number }[] = [];
+  handler: async (ctx, { now }): Promise<DueMatch[]> => {
+    const due: (DueMatch & { kickoff: number })[] = [];
     // A season's 380, at most a few seasons' worth: the fixtures table has no kickoff index to range on.
     for await (const { code, gameweek, kickoff, droppedAt } of ctx.db.query("fixtures")) {
       if (droppedAt !== undefined || gameweek === null || kickoff === null) continue;
@@ -75,20 +76,7 @@ export const upsertMatch = internalMutation({
       const lockAt = lockTime(fullTimeAt, completeAt, await statCorrectionWindowMs(ctx));
       await ctx.scheduler.runAt(lockAt, internal.matchStats.lock, { fixtureCode });
     }
-    let inserted = 0;
-    let updated = 0;
-    for (const record of records) {
-      const row = held.get(record.playerCode);
-      if (row === undefined) {
-        await ctx.db.insert("playerMatchStats", { ...record, state });
-        inserted += 1;
-        continue;
-      }
-      const changed = !sameRecord(row, record);
-      if (changed) updated += 1;
-      if (changed || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state });
-    }
-    return { state, inserted, updated, lateCorrections: 0 };
+    return { state, ...(await writeRecords(ctx, records, held, state)), lateCorrections: 0 };
   },
 });
 
@@ -139,6 +127,29 @@ function recordsOf(ctx: MutationCtx, fixtureCode: number) {
     .query("playerMatchStats")
     .withIndex("by_fixtureCode_and_playerCode", (q) => q.eq("fixtureCode", fixtureCode))
     .collect();
+}
+
+/** Each record as sent, in the match's state: a new man inserted, a changed one replaced whole. */
+async function writeRecords(
+  ctx: MutationCtx,
+  records: PlayerMatchRecord[],
+  held: Map<number, Doc<"playerMatchStats">>,
+  state: State,
+): Promise<{ inserted: number; updated: number }> {
+  let inserted = 0;
+  let updated = 0;
+  for (const record of records) {
+    const row = held.get(record.playerCode);
+    if (row === undefined) {
+      await ctx.db.insert("playerMatchStats", { ...record, state });
+      inserted += 1;
+      continue;
+    }
+    const changed = !sameRecord(row, record);
+    if (changed) updated += 1;
+    if (changed || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state });
+  }
+  return { inserted, updated };
 }
 
 /** A row for each whole record that differs from the locked one, unless the last row for him

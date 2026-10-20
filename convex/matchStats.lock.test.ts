@@ -10,12 +10,12 @@ import {
   HULL_EVERTON,
   heldMatch,
   KICKOFF,
-  modules,
   syncAt,
   withHullEverton,
   withPlReadEmpty,
 } from "./matchStats.harness";
 import { FULL_STATS, recordedGw6 } from "./recorded/gw6.payloads";
+import { modules, type TestConvex } from "./footballSync.harness";
 import schema from "./schema";
 
 beforeEach(() => vi.useFakeTimers());
@@ -23,8 +23,6 @@ afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
-
-type TestConvex = ReturnType<typeof convexTest>;
 
 async function stateOf(t: TestConvex) {
   const { records, status } = await heldMatch(t);

@@ -1,4 +1,3 @@
-/// <reference types="vite/client" />
 // The match stats tests' shared setup: gameweek 6 as both feeds recorded it, served to the sync,
 // and Hull v Everton's records as the pure merge gives them. For the tests only: the second dot
 // in this file's name keeps it out of Convex's deploy.
@@ -20,9 +19,9 @@ import { matchRecords } from "./matchRecords";
 import { HOUR_MS } from "./matchStats";
 import { matchSlots, plStatLines } from "./plMatch";
 import { FULL_STATS, MATCH, plReadsFor, recordedGw6, type Gw6Payloads } from "./recorded/gw6.payloads";
+import { modules, type TestConvex } from "./footballSync.harness";
 import schema from "./schema";
 
-export const modules = import.meta.glob("./**/*.ts");
 export const GAMEWEEK = 6;
 const REFUSED_STATUS = 503;
 /** FPL's club codes for the two sides. */
@@ -69,13 +68,13 @@ export async function withHullEverton() {
 }
 
 /** Lets `ms` pass, and runs every scheduled function that falls due in it. */
-export async function elapse(t: ReturnType<typeof convexTest>, ms: number) {
+export async function elapse(t: TestConvex, ms: number) {
   vi.advanceTimersByTime(ms);
   await t.finishInProgressScheduledFunctions();
 }
 
 /** One sync at `time` against `payloads`, and the run row it recorded. */
-export async function syncAt(t: ReturnType<typeof convexTest>, time: number, payloads: Gw6Payloads, refuse?: string) {
+export async function syncAt(t: TestConvex, time: number, payloads: Gw6Payloads, refuse?: string) {
   vi.setSystemTime(time);
   vi.stubGlobal("fetch", fakeFeeds(payloads, refuse));
   await t.action(internal.matchStatsSync.run, { trigger: "manual" });
@@ -84,7 +83,7 @@ export async function syncAt(t: ReturnType<typeof convexTest>, time: number, pay
 }
 
 /** Hull v Everton's held records, by player code, its status row and its late corrections. */
-export async function heldMatch(t: ReturnType<typeof convexTest>) {
+export async function heldMatch(t: TestConvex) {
   const held = await t.run(async (ctx) => ({
     records: await ctx.db.query("playerMatchStats").collect(),
     status: await ctx.db.query("matchStatsStatus").unique(),

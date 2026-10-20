@@ -22,7 +22,7 @@ test("FPL's count is kept for goals and minutes, the Premier League's for the re
   expect(recordOf(FULL_STATS.grealish.code).stats.minutes).toBe(85);
 });
 
-test("where both feeds name a stat alike, FPL's count is kept for saves and the Premier League's for own goals", () => {
+test("where both feeds send a stat, FPL's count is kept for saves, the Premier League's for own goals and starts", () => {
   expect(mergeStats({ saves: 3, own_goals: 1, starts: 1 }, { saves: 4, own_goals: 0, game_started: 1, touches: 9 })).toEqual({
     saves: 3,
     own_goals: 0,
@@ -49,6 +49,7 @@ test("a record the Premier League has not counted yet shows every stat as —, a
   expect(coyle.arrived).toEqual({ fpl: true, pl: false });
   expect(isWhole(coyle)).toBe(false);
   expect(statValue(coyle, "minutes")).toBeNull();
+  expect(statValue(coyle, "won_tackle")).toBeNull();
   expect(coyle.stats.minutes).toBe(90);
 });
 

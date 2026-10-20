@@ -5,6 +5,7 @@ import { codesByOpta, fixtureCodeIn, namedMen } from "./feedIds";
 import { readFplPayloads } from "./fpl";
 import { fplStatLines, readFplLive, type FplStatLine } from "./fplLive";
 import { matchRecords } from "./matchRecords";
+import type { DueMatch } from "./matchStats";
 import { matchSlots, plStatLines } from "./plMatch";
 import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlPlayerStats, type RawPlFixture } from "./premierLeague";
 import { matchStatsSyncFields, matchStatsSyncTrigger, type matchSyncOutcome } from "./schema";
@@ -12,11 +13,9 @@ import { matchStatsSyncFields, matchStatsSyncTrigger, type matchSyncOutcome } fr
 // Issue #27: every due match's stats from both feeds, one record per named man, upserted with
 // `matchStats.upsertMatch`. No cron runs it yet (ARCHITECTURE.md); from the CLI:
 // `npx convex run matchStatsSync:run '{"trigger":"manual"}'`, then `matchStats:latest`.
-// A match that fails is on the run row with its error, and the others still sync.
 
 type Outcome = Infer<typeof matchStatsSyncFields.outcome>;
 type MatchOutcome = Infer<typeof matchSyncOutcome>;
-type DueMatch = { fixtureCode: number; gameweek: number };
 
 /** What every due match of one gameweek is read against. */
 interface GameweekReads {

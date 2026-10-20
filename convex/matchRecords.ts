@@ -5,19 +5,26 @@
 import type { Infer } from "convex/values";
 import type { FplStatLine } from "./fplLive";
 import type { MatchSlot, PlStatLine } from "./plMatch";
-import type { playerMatchRecord } from "./schema";
+import type { lateStatChange, playerMatchRecord } from "./schema";
 
 export type PlayerMatchRecord = Infer<typeof playerMatchRecord>;
+export type StatChange = Infer<typeof lateStatChange>;
 type Stats = Record<string, number>;
 
-/** A stat both feeds send, under each one's name, and whose count is kept (spec/07: FPL's for
- *  goals, assists, minutes, cards, saves, clean sheets, goals conceded and penalties; the Premier
- *  League's for the rest). Three of Opta's names have not been seen in a recording yet, since no
- *  recorded match had the event: a wrong guess there only leaves both feeds' counts stored. */
-const STATS_IN_BOTH_FEEDS: { fpl: string; pl: string; kept: "fpl" | "pl" }[] = [
+/** A stat both feeds send, under each one's name. */
+type StatInBothFeeds = { fpl: string; pl: string; kept: "fpl" | "pl" };
+
+/** What a match's minutes are read from in each feed. */
+const MINUTES: StatInBothFeeds = { fpl: "minutes", pl: "mins_played", kept: "fpl" };
+
+/** Whose count is kept where both feeds send a stat (spec/07: FPL's for goals, assists, minutes,
+ *  cards, saves, clean sheets, goals conceded and penalties; the Premier League's for the rest).
+ *  Those marked are Opta's usual names, not yet seen in a recording: a wrong one only leaves both
+ *  feeds' counts stored. */
+const STATS_IN_BOTH_FEEDS: StatInBothFeeds[] = [
   { fpl: "goals_scored", pl: "goals", kept: "fpl" },
   { fpl: "assists", pl: "goal_assist", kept: "fpl" },
-  { fpl: "minutes", pl: "mins_played", kept: "fpl" },
+  MINUTES,
   { fpl: "yellow_cards", pl: "yellow_card", kept: "fpl" },
   { fpl: "red_cards", pl: "red_card", kept: "fpl" }, // Opta's name, not yet seen
   { fpl: "saves", pl: "saves", kept: "fpl" },
@@ -32,12 +39,9 @@ const STATS_IN_BOTH_FEEDS: { fpl: string; pl: string; kept: "fpl" | "pl" }[] = [
 /** FPL's own points, never stored (spec/07, spec/14): its bonus and BPS, and the two built on them. */
 const FPL_POINTS = new Set(["bonus", "bps", "total_points", "in_dreamteam"]);
 
-const droppedFromFpl = new Set([...FPL_POINTS, ...STATS_IN_BOTH_FEEDS.filter((s) => s.kept === "pl").map((s) => s.fpl)]);
-const droppedFromPl = new Set(STATS_IN_BOTH_FEEDS.filter((s) => s.kept === "fpl").map((s) => s.pl));
-
-/** What a match's minutes are read from in each feed. */
-const FPL_MINUTES = "minutes";
-const PL_MINUTES = "mins_played";
+const keptFrom = (feed: StatInBothFeeds["kept"]) => STATS_IN_BOTH_FEEDS.filter((stat) => stat.kept === feed);
+const droppedFromFpl = new Set([...FPL_POINTS, ...keptFrom("pl").map((stat) => stat.fpl)]);
+const droppedFromPl = new Set(keptFrom("fpl").map((stat) => stat.pl));
 
 /** Both feeds' stats in one map: each feed's name for what only it sends, and the kept feed's for
  *  what both send. A feed whose record has not arrived adds nothing. */
@@ -63,7 +67,7 @@ export function matchRecords(
   const plByPlayer = linesByPlayer(fixtureCode, plLines);
   const named = new Set(slots.map((slot) => slot.playerCode));
   for (const [playerCode, stats] of fplByPlayer) {
-    if (!named.has(playerCode) && (stats[FPL_MINUTES] ?? 0) > 0) {
+    if (!named.has(playerCode) && (stats[MINUTES.fpl] ?? 0) > 0) {
       throw new Error(`FPL has player ${playerCode} playing in match ${fixtureCode}, whom neither team sheet names`);
     }
   }
@@ -71,7 +75,7 @@ export function matchRecords(
     const fpl = fplByPlayer.get(slot.playerCode);
     const plSent = plByPlayer.get(slot.playerCode);
     const pl = plSent !== undefined && Object.keys(plSent).length > 0 ? plSent : undefined;
-    const minutes = fpl !== undefined ? (fpl[FPL_MINUTES] ?? 0) : pl !== undefined ? (pl[PL_MINUTES] ?? 0) : null;
+    const minutes = minutesFrom(fpl, pl);
     return {
       playerCode: slot.playerCode,
       fixtureCode,
@@ -81,6 +85,12 @@ export function matchRecords(
       stats: mergeStats(fpl, pl),
     };
   });
+}
+
+/** His minutes by FPL's count once it has sent him, by Opta's before; null while neither has. */
+function minutesFrom(fpl: Stats | undefined, pl: Stats | undefined): number | null {
+  if (fpl !== undefined) return fpl[MINUTES.fpl] ?? 0;
+  return pl === undefined ? null : (pl[MINUTES.pl] ?? 0);
 }
 
 /** Each player's stats in this match, from lines that may hold other matches too. */
@@ -111,7 +121,7 @@ export function lockTime(fullTimeAt: number, completeAt: number, windowMs: numbe
 }
 
 /** Each stat whose sent value differs from the locked one, by name; a stat left out counts as 0. */
-export function statChanges(locked: Stats, sent: Stats): { stat: string; locked: number; sent: number }[] {
+export function statChanges(locked: Stats, sent: Stats): StatChange[] {
   return [...new Set([...Object.keys(locked), ...Object.keys(sent)])]
     .sort()
     .map((stat) => ({ stat, locked: locked[stat] ?? 0, sent: sent[stat] ?? 0 }))
