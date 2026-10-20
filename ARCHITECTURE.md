@@ -92,6 +92,16 @@ The steps (push the action to the dev deployment, run it twice, how to read what
 - Clubs, players, fixtures and gameweeks refresh every six hours (`convex/crons.ts`): nothing
   held moves during a match, and what does (a signing, a rescheduled match) is known days ahead.
   Every run, failed or not, is a row in `footballSyncs`.
+- Match stats (#27): one record per player per match in `playerMatchStats`, keyed on FPL's
+  player and fixture codes, both feeds merged by spec/07's split
+  ([docs/pl-match-stats.md](docs/pl-match-stats.md#one-record-per-player-per-match)).
+  `convex/matchStatsSync.ts` reads each match the Premier League calls full time; every run,
+  failed or not, is a row in `matchStatsSyncs`. The lock is a scheduled function, so it fires
+  with no run due; the window is a row in `platformSettings`.
+  **No cron runs it yet.** The suggestion is every 10 minutes: full time counts from the first
+  read that finds it, so a match locks up to one interval after its true hour. A run with no
+  match due reads no feed; one due reads about 40 Premier League URLs per match, and a locked
+  match is read again hourly for a day to catch late corrections.
 - League rules are rows, never constants; FPL's own rules can be constants.
 
 ## With the first code

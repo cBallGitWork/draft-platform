@@ -93,7 +93,93 @@ export const footballSyncFields = {
   ),
 };
 
+// Match stats (#27, spec/07 "Match stats"): one record per player per match, both feeds merged,
+// keyed on FPL's player and fixture codes. Stats keep the feeds' own names (spec/14 names them
+// later); a stat a whole record leaves out is 0.
+
+/** Provisional until full time and every man who played has both feeds' records; complete then;
+ *  locked when the correction window closes, after which a correction changes nothing. */
+export const matchStatsState = v.union(v.literal("provisional"), v.literal("complete"), v.literal("locked"));
+
+export const playerMatchRecord = v.object({
+  playerCode: v.number(),
+  fixtureCode: v.number(),
+  started: v.boolean(),
+  /** False for an unused substitute; null while no feed has sent a substitute's minutes. */
+  played: v.union(v.boolean(), v.null()),
+  /** Whether each feed has sent his record for this match. */
+  arrived: v.object({ fpl: v.boolean(), pl: v.boolean() }),
+  stats: v.record(v.string(), v.number()),
+});
+
+/** One match's place in the window. `fullTimeAt` is when a read first found it at full time;
+ *  `completeAt` when every record it needs had arrived (absent while provisional). */
+export const matchStatsStatusFields = {
+  fixtureCode: v.number(),
+  state: matchStatsState,
+  fullTimeAt: v.number(),
+  completeAt: v.optional(v.number()),
+  lockedAt: v.optional(v.number()),
+  lastReadAt: v.number(),
+};
+
+/** A stat a feed changed after the lock, for the feeds page (spec/15): the locked value and the sent one. */
+export const lateStatChange = v.object({ stat: v.string(), locked: v.number(), sent: v.number() });
+
+/** The platform's own settings, the admin's to change (spec/15). A league's rules are never here. */
+export const platformSettingName = v.literal("statCorrectionWindowMinutes");
+
+export const matchStatsSyncTrigger = v.union(v.literal("manual"), v.literal("cron"));
+
+/** What one sync did with one match. */
+export const matchSyncOutcome = v.union(
+  v.object({
+    fixtureCode: v.number(),
+    ok: v.literal(true),
+    state: matchStatsState,
+    players: v.number(),
+    inserted: v.number(),
+    updated: v.number(),
+    lateCorrections: v.number(),
+    /** Men a team sheet names whom FPL does not list: no record, since there is no code to key it on. */
+    unmatched: v.array(v.object({ plPlayerId: v.number(), name: v.string(), opta: v.union(v.string(), v.null()) })),
+  }),
+  v.object({ fixtureCode: v.number(), ok: v.literal(false), error: v.string() }),
+);
+
+// One row per run of matchStatsSync.run, so a failed read is on record, never silent.
+export const matchStatsSyncFields = {
+  trigger: matchStatsSyncTrigger,
+  ranAt: v.number(),
+  outcome: v.union(
+    v.object({
+      ok: v.literal(true),
+      matches: v.array(matchSyncOutcome),
+      /** Matches due whose Premier League status is not yet full time. */
+      waiting: v.array(v.number()),
+    }),
+    v.object({ ok: v.literal(false), error: v.string() }),
+  ),
+};
+
+const matchStatsTables = {
+  playerMatchStats: defineTable(playerMatchRecord.extend({ state: matchStatsState })).index("by_fixtureCode_and_playerCode", [
+    "fixtureCode",
+    "playerCode",
+  ]),
+  matchStatsStatus: defineTable(matchStatsStatusFields).index("by_fixtureCode", ["fixtureCode"]),
+  lateStatCorrections: defineTable({
+    fixtureCode: v.number(),
+    playerCode: v.number(),
+    seenAt: v.number(),
+    changes: v.array(lateStatChange),
+  }).index("by_fixtureCode_and_playerCode", ["fixtureCode", "playerCode"]),
+  platformSettings: defineTable({ name: platformSettingName, value: v.number() }).index("by_name", ["name"]),
+  matchStatsSyncs: defineTable(matchStatsSyncFields),
+};
+
 export default defineSchema({
+  ...matchStatsTables,
   feedChecks: defineTable(feedCheckFields),
   clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
   players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]),

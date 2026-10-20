@@ -81,3 +81,10 @@ export function recordedPlFixture(plId: number): RawPlFixture {
 export function fplElementsWithout(...codes: number[]): RawBootstrap["elements"] {
   return structuredClone(bootstrap.elements.filter((element) => !codes.includes(element.code)));
 }
+
+/** The recorded Premier League stats reads for one match, by the Premier League's player id. */
+export function plReadsFor(payloads: Gw6Payloads, plFixtureId: number): Map<number, RawPlPlayerStats> {
+  return new Map(
+    payloads.pl.playerStats.filter((read) => read.fixture === plFixtureId).map((read) => [read.player, read.payload]),
+  );
+}
