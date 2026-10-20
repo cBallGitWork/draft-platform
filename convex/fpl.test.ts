@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { mapFpl } from "./fpl";
-import { CLUB_CODE, RECORDED_COUNT, recordedFpl } from "./recorded/fpl.payloads";
+import { CLUB_CODE, RECORDED_COUNT, recordedFpl, type FplPayloads } from "./recorded/fpl.payloads";
 
 const { bootstrap, fixtures } = recordedFpl();
 const football = mapFpl(bootstrap, fixtures);
@@ -67,18 +67,15 @@ test("a deadline that does not parse throws rather than hold a gameweek with no 
   expect(() => mapFpl(garbled, fixtures)).toThrow('does not parse: "soon"');
 });
 
-test("a player FPL sends twice is a changed payload, and throws rather than be held twice", () => {
+// A key sent twice is a changed payload: it throws rather than be held twice.
+test.each([
+  ["club", (fpl: FplPayloads) => fpl.bootstrap.teams.push({ ...fpl.bootstrap.teams[0] }), CLUB_CODE.arsenal],
+  ["player", (fpl: FplPayloads) => fpl.bootstrap.elements.push({ ...fpl.bootstrap.elements[0] }), HAALAND],
+  ["match", (fpl: FplPayloads) => fpl.fixtures.push({ ...fpl.fixtures[0] }), ARSENAL_V_COVENTRY],
+  ["gameweek", (fpl: FplPayloads) => fpl.bootstrap.events.push({ ...fpl.bootstrap.events[0] }), 1],
+] as const)("a %s FPL sends twice throws", (kind, sendTwice, key) => {
   const doubled = recordedFpl();
-  doubled.bootstrap.elements.push({ ...doubled.bootstrap.elements[0] });
+  sendTwice(doubled);
 
-  expect(() => mapFpl(doubled.bootstrap, doubled.fixtures)).toThrow(
-    `FPL sent player ${doubled.bootstrap.elements[0].code} twice`,
-  );
-});
-
-test("a match FPL sends twice throws too", () => {
-  const doubled = recordedFpl();
-  doubled.fixtures.push({ ...doubled.fixtures[0] });
-
-  expect(() => mapFpl(doubled.bootstrap, doubled.fixtures)).toThrow(`FPL sent match ${ARSENAL_V_COVENTRY} twice`);
+  expect(() => mapFpl(doubled.bootstrap, doubled.fixtures)).toThrow(`FPL sent ${kind} ${key} twice`);
 });

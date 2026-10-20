@@ -148,6 +148,35 @@ test("a rescheduled match and its moved deadline are updated in their own rows",
   expect(rows.gameweeks.find((gameweek) => gameweek.number === gameweekNumber)?.deadline).toBe(Date.parse(newDeadline));
 });
 
+test("a corrected name, a postponed match and a changed club are each updated on re-sync", async () => {
+  const t = convexTest(schema, modules);
+  await syncWith(t, recordedFpl());
+
+  // One field per row, so each field's change is counted on its own.
+  const corrected = recordedFpl();
+  const [club1, club2] = corrected.bootstrap.teams;
+  const [player1, player2] = corrected.bootstrap.elements;
+  const [postponed, newHome, newAway] = corrected.fixtures;
+  const playingIn = new Set(corrected.fixtures.flatMap((fixture) => [fixture.team_h, fixture.team_a]));
+  const idleClub = corrected.bootstrap.teams.find((team) => !playingIn.has(team.id))!;
+  club1.name = "Renamed FC";
+  club2.short_name = "XXX";
+  player1.web_name = "Corrected";
+  player2.first_name = "Respelt";
+  postponed.event = null;
+  newHome.team_h = idleClub.id;
+  newAway.team_a = idleClub.id;
+  const outcome = await syncWith(t, corrected);
+
+  expect(outcome).toMatchObject({
+    ok: true,
+    clubs: { inserted: 0, updated: 2 },
+    players: { inserted: 0, updated: 2 },
+    fixtures: { inserted: 0, updated: 3 },
+    gameweeks: NOTHING_CHANGED,
+  });
+});
+
 test("a failed fetch is recorded and logged, and nothing is written", async () => {
   const error = vi.spyOn(console, "error").mockImplementation(() => {});
   const t = convexTest(schema, modules);
