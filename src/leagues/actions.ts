@@ -11,5 +11,5 @@ export type LeagueActions = {
   createLeague(league: NewLeague): Promise<string | null>;
   /** Switches to one of the person's leagues (#76), and resolves with null once the app is in it,
    *  or with the words saying why not. It never rejects. */
-  chooseLeague(leagueId: Id<"leagues">): Promise<string | null>;
+  switchLeague(leagueId: Id<"leagues">): Promise<string | null>;
 };

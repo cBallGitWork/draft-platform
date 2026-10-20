@@ -5,6 +5,7 @@ import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import type { Id } from "../../convex/_generated/dataModel";
+import { notYourLeague } from "../../convex/lastLeague";
 import type { LeagueSummary } from "../../convex/myLeagues";
 import { LEAGUES_PATH } from "../leagues/paths";
 import { adminSeeing, league, manager, managerIn, openApp } from "../shell.harness";
@@ -22,7 +23,8 @@ const miniBeta: LeagueSummary = {
 const inTwo = managerIn(league, miniBeta);
 const inMiniBeta = { ...inTwo, currentLeagueId: miniBeta.leagueId };
 
-const switcher = () => screen.findByRole("button", { name: /^League: / });
+const SWITCHER_NAME = /^League: /;
+const switcher = () => screen.findByRole("button", { name: SWITCHER_NAME });
 const choices = () => within(screen.getByRole("list", { name: "Your leagues" })).getAllByRole("button");
 
 describe("a manager in two leagues", () => {
@@ -48,35 +50,35 @@ describe("a manager in two leagues", () => {
     await userEvent.click(await switcher());
     await userEvent.click(screen.getByRole("button", { name: /^Mini beta/ }));
 
-    expect(app.leagues.chooseLeague).toHaveBeenCalledWith(miniBeta.leagueId);
+    expect(app.leagues.switchLeague).toHaveBeenCalledWith(miniBeta.leagueId);
     expect(screen.queryByRole("list", { name: "Your leagues" })).toBeNull();
     app.becomes(inMiniBeta);
     expect((await switcher()).textContent).toBe("League: Mini beta");
     expect(app.path()).toBe("/team/squad");
   });
 
-  it("choosing the league they're in closes the list without asking the server", async () => {
+  it("picking the league they're already in closes the list without asking the server", async () => {
     const app = openApp(MY_TEAM_PATH, inTwo);
     await userEvent.click(await switcher());
     await userEvent.click(screen.getByRole("button", { current: true }));
 
-    expect(app.leagues.chooseLeague).not.toHaveBeenCalled();
+    expect(app.leagues.switchLeague).not.toHaveBeenCalled();
     expect(screen.queryByRole("list", { name: "Your leagues" })).toBeNull();
   });
 
   it("is told why a switch was refused, with the list still open", async () => {
     const app = openApp(MY_TEAM_PATH, inTwo);
-    app.leagues.chooseLeague.mockResolvedValue("You're not in that league.");
+    app.leagues.switchLeague.mockResolvedValue(notYourLeague);
     await userEvent.click(await switcher());
     await userEvent.click(screen.getByRole("button", { name: /^Mini beta/ }));
 
-    expect((await screen.findByRole("alert")).textContent).toBe("You're not in that league.");
+    expect((await screen.findByRole("alert")).textContent).toBe(notYourLeague);
     expect(choices()).toHaveLength(2);
   });
 
   it("can't switch twice while the first is on its way", async () => {
     const app = openApp(MY_TEAM_PATH, inTwo);
-    app.leagues.chooseLeague.mockReturnValue(new Promise(() => {}));
+    app.leagues.switchLeague.mockReturnValue(new Promise(() => {}));
     await userEvent.click(await switcher());
     await userEvent.click(screen.getByRole("button", { name: /^Mini beta/ }));
 
@@ -92,7 +94,7 @@ describe("a manager in two leagues", () => {
     await close();
 
     expect(screen.queryByRole("list", { name: "Your leagues" })).toBeNull();
-    expect(app.leagues.chooseLeague).not.toHaveBeenCalled();
+    expect(app.leagues.switchLeague).not.toHaveBeenCalled();
   });
 
   it("reaches all their leagues from the list", async () => {
@@ -111,12 +113,12 @@ describe("the top bar's league, for someone in one", () => {
     openApp(MY_TEAM_PATH, manager);
     const main = await screen.findByRole("banner");
     expect(within(main).getByText(league.name)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /^League: / })).toBeNull();
+    expect(screen.queryByRole("button", { name: SWITCHER_NAME })).toBeNull();
   });
 
   it("is the admin's own league alone, not those he only oversees", async () => {
     openApp(MY_TEAM_PATH, { ...adminSeeing(league, { ...miniBeta, roles: [] }), inLeague: true, currentLeagueId: league.leagueId });
     expect(within(await screen.findByRole("banner")).getByText(league.name)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /^League: / })).toBeNull();
+    expect(screen.queryByRole("button", { name: SWITCHER_NAME })).toBeNull();
   });
 });

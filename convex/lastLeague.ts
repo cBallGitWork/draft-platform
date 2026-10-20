@@ -7,7 +7,7 @@ import type { LeagueSummary } from "./myLeagues";
 // The league switcher (#76, spec/13, Several leagues): the app opens the league a person used
 // last. It is kept on the server, by email, so it follows them to every device.
 
-/** Why choosing a league was refused, as the person who chose it is told it. */
+/** Why a switch was refused, as the person switching is told it. */
 export const notYourLeague = "You're not in that league.";
 
 const rememberedRow = (ctx: QueryCtx, email: string) =>
@@ -26,7 +26,7 @@ export async function currentLeagueOf(ctx: QueryCtx, email: string, leagues: rea
 }
 
 /** The person switches to one of their leagues, which the app then opens until they switch again. */
-export const choose = mutation({
+export const switchTo = mutation({
   args: { leagueId: v.id("leagues") },
   returns: v.null(),
   handler: async (ctx, { leagueId }) => {

@@ -24,6 +24,6 @@ export const signedInAs = query({
     const admin = isAdmin(email);
     const leagues = await leaguesOf(ctx, email, admin);
     const currentLeagueId = await currentLeagueOf(ctx, email, leagues);
-    return { email, isAdmin: admin, inLeague: leagues.some((league) => league.roles.length > 0), leagues, currentLeagueId };
+    return { email, isAdmin: admin, inLeague: currentLeagueId !== null, leagues, currentLeagueId };
   },
 });
