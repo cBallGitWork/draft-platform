@@ -69,7 +69,8 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - **Traits** (what a player does in real life), if a source for them turns up.
 - **The platform's own scoring sets**, designed once the first scoring set has been played.
 - **A landing page** for the public, when signups open to anyone; its own `/grill` then.
-- **Carrying a league into next season.**
+- **Carrying a league into next season**: the league itself rolling on, not spec/03's carry-over
+  rule (redraft, keeper, dynasty), which is a different thing.
 - **Archiving a league**: deleting is for good for now (`spec/13`).
 
 ## Out of scope

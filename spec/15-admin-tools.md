@@ -25,6 +25,7 @@ each league's **commissioner**.
   (`spec/03`, `spec/14`), the draft's schedule and controls (`spec/04`), trade vetoes where the
   league uses them (`spec/08`), the head-to-head fixtures, handing a team on and the auto team
   (`spec/09`), one-way letters (`spec/16`) and overriding a past score (`spec/14`).
+- Can remove a manager from the league, as the admin can ([13](13-setting-up-a-league.md#leaving)).
 - One commissioner per league, and at most one co-commissioner with every commissioner power
   except naming or removing either and deleting the league (`/grill setting up a league`,
   20 Oct 2026, which replaced "no co-commissioners"; see [13](13-setting-up-a-league.md)).

@@ -36,7 +36,9 @@ comes to exist, fills, changes and ends.
 ## Joining
 
 - An emailed invite names the team it is for, or a new team, and the person joins on first
-  sign-in with no approval. It lasts 7 days, and the commissioner can cancel or resend it.
+  sign-in with no approval. It lasts 7 days, and the commissioner can cancel or resend it. An
+  invite needs no more guarding than that: if someone joins who shouldn't, the commissioner
+  removes them.
 - The commissioner can switch the league's invite link off, or replace it with a new one; the old
   one then stops working.
 - The commissioner approves or refuses each join request. A person has at most one request
@@ -49,8 +51,8 @@ comes to exist, fills, changes and ends.
 
 ## Leaving
 
-- A removed manager loses the league at once and can be invited back later. The team keeps its
-  name.
+- The admin or the commissioner can remove a manager. A removed manager loses the league at once
+  and can be invited back later. The team keeps its name.
 - A manager can leave a league themselves. It works like a removal, and files a Mail letter.
 
 ## Gameweeks
