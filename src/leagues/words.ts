@@ -41,7 +41,7 @@ export const confirmDelete = (leagueName: string) =>
 /** When it goes is in the viewer's own time. */
 const deletionTime = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 export const beingDeleted = (deletesAt: number) =>
-  `Being deleted: it's gone for good at ${deletionTime.format(deletesAt)}. Until then it's frozen and hidden from everyone in it.`;
+  `Being deleted: it goes for good at ${deletionTime.format(deletesAt)}. Until then it's frozen and hidden from everyone in it.`;
 export const undoWords = "Undo";
 export const unemailed = (email: string, reason: string) => `${email} wasn't told: ${reason}.`;
 
