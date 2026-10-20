@@ -1,18 +1,11 @@
 // How the two feeds name the same match and the same man. The Premier League keys both on its own
 // ids and carries Opta's alongside (`altIds.opta`); FPL carries Opta's too, so Opta's is the join:
 // a fixture's is "g" + FPL's fixture `code`, and a player's is FPL's `opta_code` (checked in
-// docs/pl-match-stats.md). Only FPL's season-stable codes come out, never its per-season ids. One
-// that matches nothing is reported to the caller, never dropped.
+// docs/pl-match-stats.md). Only FPL's season-stable codes come out, never its per-season ids. A man
+// who matches no one is reported to the caller, never dropped.
 
 import type { RawBootstrap } from "./fpl";
 import type { RawPlFixture, RawPlSquadPlayer } from "./premierLeague";
-
-/** A Premier League fixture with no FPL fixture to match. */
-export interface UnmatchedFixture {
-  plFixtureId: number;
-  /** What it carried as Opta's id, or null when it carried none. */
-  opta: string | null;
-}
 
 /** A man a team sheet names whom FPL does not list (a new signing FPL has not added, say). */
 export interface UnmatchedPlayer {
@@ -26,22 +19,6 @@ export interface UnmatchedPlayer {
 export function fixtureCodeIn(fixture: RawPlFixture): number | null {
   const found = /^g(\d+)$/.exec(fixture.altIds?.opta ?? "");
   return found === null ? null : Number(found[1]);
-}
-
-/** Each Premier League fixture's FPL code, by the Premier League's fixture id. */
-export function matchFixtures(
-  plFixtures: RawPlFixture[],
-  fplFixtureCodes: Iterable<number>,
-): { codes: Map<number, number>; unmatched: UnmatchedFixture[] } {
-  const known = new Set(fplFixtureCodes);
-  const codes = new Map<number, number>();
-  const unmatched: UnmatchedFixture[] = [];
-  for (const fixture of plFixtures) {
-    const code = fixtureCodeIn(fixture);
-    if (code !== null && known.has(code)) codes.set(fixture.id, code);
-    else unmatched.push({ plFixtureId: fixture.id, opta: fixture.altIds?.opta ?? null });
-  }
-  return { codes, unmatched };
 }
 
 /** FPL's `opta_code` → `code`, for every player that has one. A code given to two players is a
