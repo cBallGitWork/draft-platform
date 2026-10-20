@@ -10,13 +10,14 @@ export const GAMEWEEKS = 38;
  *  `unusedGameweeks`. Absent while it plays them all. */
 export type WithUnusedGameweeks = { unusedGameweeks?: readonly number[] };
 
-/** Whether this is one of the season's gameweeks. */
+/** Whether this is one of the season's gameweeks, and what to say when it isn't. */
 export const isGameweek = (gameweek: number) => Number.isInteger(gameweek) && gameweek >= 1 && gameweek <= GAMEWEEKS;
+export const noSuchGameweek = (gameweek: number) => `There's no gameweek ${gameweek}: a season has gameweeks 1 to ${GAMEWEEKS}.`;
 
 /** Whether the league plays this gameweek. Asking of a gameweek the season doesn't have is a bug
  *  in the caller, so it throws. */
 export function isGameweekUsed(league: WithUnusedGameweeks, gameweek: number): boolean {
-  if (!isGameweek(gameweek)) throw new Error(`There's no gameweek ${gameweek}: a season has 1 to ${GAMEWEEKS}`);
+  if (!isGameweek(gameweek)) throw new Error(noSuchGameweek(gameweek));
   return !(league.unusedGameweeks ?? []).includes(gameweek);
 }
 

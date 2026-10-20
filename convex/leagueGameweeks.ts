@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { isLocked } from "./deadline";
 import { recordEvent, refuse, runnerOf } from "./leagueAccess";
-import { GAMEWEEKS, isGameweek, isGameweekUsed, unusedAfter } from "./usedGameweeks";
+import { GAMEWEEKS, isGameweek, isGameweekUsed, noSuchGameweek, unusedAfter } from "./usedGameweeks";
 
 // The commissioner ticks the gameweeks the league plays, all 38 by default (#74; spec/13,
 // Gameweeks). A gameweek has begun once FPL's deadline for it (#21's gameweeks) has passed, and
@@ -11,7 +11,7 @@ import { GAMEWEEKS, isGameweek, isGameweekUsed, unusedAfter } from "./usedGamewe
 
 /** Why a change to the league's gameweeks was refused, as the commissioner is told it. */
 export const gameweekRefusals = {
-  notAGameweek: (gameweek: number) => `There's no gameweek ${gameweek}: a season has gameweeks 1 to ${GAMEWEEKS}.`,
+  notAGameweek: noSuchGameweek,
   begun: (gameweek: number) => `Gameweek ${gameweek} has begun, so it can't be ticked or unticked.`,
   noDeadline: (gameweek: number) =>
     `The app doesn't have FPL's deadline for gameweek ${gameweek} yet, so it can't tell whether it has begun. Try again once FPL's gameweeks have arrived.`,
