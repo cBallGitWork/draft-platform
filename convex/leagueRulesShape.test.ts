@@ -23,7 +23,7 @@ test("each stored part is its module's input type", () => {
   expectTypeOf<LeagueRules["doubleGameweek"]>().toEqualTypeOf<DoubleGameweekRule>();
 });
 
-test("the event names the rules' parts as the shape does", () => {
+test("the first rules hold every part of the shape, in its order", () => {
   expect(Object.keys(leagueRulesShape.fields)).toEqual(Object.keys(FIRST_RULES));
 });
 

@@ -3,19 +3,21 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { FIRST_RULES } from "./firstRules";
 import { callerEmail, isAdmin, memberOf, recordEvent, refuse, refusals, runnerOf } from "./leagueAccess";
-import { checkLeagueRules } from "./leagueRulesCheck";
+import { checkLeagueRules, UnsoundRules } from "./leagueRulesCheck";
 import { leagueRulesShape, type LeagueRules } from "./leagueRulesShape";
+import type { DeadlineRule } from "./deadline";
 import { nextGameweek } from "./nextGameweek";
 
 // A league's rules, held as data (spec/03; #25): a new league copies the admin's default rules, and
 // its commissioner changes them from the next gameweek, so a past gameweek keeps the rules it had.
 
-/** The rules, or the reason they can't be saved, as the commissioner or admin is told it. */
+/** Refuses unsound rules, telling the commissioner or admin why. */
 function refuseUnsound(rules: LeagueRules): void {
   try {
     checkLeagueRules(rules);
   } catch (error) {
-    refuse((error as Error).message);
+    if (error instanceof UnsoundRules) refuse(error.message);
+    throw error;
   }
 }
 
@@ -48,19 +50,23 @@ function defaultsRow(ctx: QueryCtx) {
   return ctx.db.query("defaultLeagueRules").unique();
 }
 
+async function writeDefaults(ctx: MutationCtx, rules: LeagueRules, by: string): Promise<void> {
+  const row = await defaultsRow(ctx);
+  const fields = { rules, setBy: by, setAt: Date.now() };
+  if (row === null) await ctx.db.insert("defaultLeagueRules", fields);
+  else await ctx.db.patch("defaultLeagueRules", row._id, fields);
+}
+
 /** Gives a new league the admin's default rules from gameweek 1. The first league a deployment
  *  makes writes the placeholder first rules (firstRules.ts) as those defaults. */
 export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">, by: string): Promise<void> {
-  let defaults = (await defaultsRow(ctx))?.rules;
-  if (defaults === undefined) {
-    defaults = FIRST_RULES;
-    await ctx.db.insert("defaultLeagueRules", { rules: defaults, setBy: by, setAt: Date.now() });
-  }
-  await ctx.db.insert("leagueRules", { leagueId, fromGameweek: 1, rules: defaults });
+  const defaults = (await defaultsRow(ctx))?.rules;
+  if (defaults === undefined) await writeDefaults(ctx, FIRST_RULES, by);
+  await ctx.db.insert("leagueRules", { leagueId, fromGameweek: 1, rules: defaults ?? FIRST_RULES });
 }
 
-/** Fixtures and gameweeks the football layer no longer sends are left out. */
-async function seasonNow(ctx: QueryCtx) {
+/** The season's gameweeks and matches as held, less those the football layer no longer sends. */
+async function heldSchedule(ctx: QueryCtx) {
   const gameweeks = [];
   for await (const { number, deadline, droppedAt } of ctx.db.query("gameweeks")) {
     if (droppedAt === undefined) gameweeks.push({ number, deadline });
@@ -76,11 +82,11 @@ async function seasonNow(ctx: QueryCtx) {
 /** The parts of the rules that differ, by name: all of them, from a league that had none. */
 function changedParts(from: LeagueRules | undefined, to: LeagueRules): (keyof LeagueRules)[] {
   const parts = Object.keys(leagueRulesShape.fields) as (keyof LeagueRules)[];
-  return parts.filter((part) => from === undefined || canonical(from[part]) !== canonical(to[part]));
+  return parts.filter((part) => from === undefined || sortedJson(from[part]) !== sortedJson(to[part]));
 }
 
 /** JSON with each object's keys sorted, so two equal values read the same whatever their order. */
-function canonical(value: unknown): string {
+function sortedJson(value: unknown): string {
   return JSON.stringify(value, (_key, inner: unknown) =>
     inner !== null && typeof inner === "object" && !Array.isArray(inner)
       ? Object.fromEntries(Object.entries(inner).toSorted(([one], [other]) => one.localeCompare(other)))
@@ -100,8 +106,9 @@ export const latest = query({
   },
 });
 
-/** The commissioner's change, whole: it takes effect from the next gameweek, and never earlier
- *  than a change already waiting. Returns that gameweek. Refused, with the reason, if unsound. */
+/** The commissioner's change, whole: it takes effect from the next gameweek not begun under the
+ *  rules it replaces nor under its own deadline, and never earlier than a change already waiting.
+ *  Returns that gameweek. Refused, with the reason, if unsound. */
 export const change = mutation({
   args: { leagueId: v.id("leagues"), rules: leagueRulesShape },
   returns: v.number(),
@@ -109,10 +116,16 @@ export const change = mutation({
     const { email } = await runnerOf(ctx, leagueId);
     refuseUnsound(rules);
     const history = await historyOf(ctx, leagueId);
-    const { gameweeks, matches } = await seasonNow(ctx);
-    const deadlineFor = (gameweek: number) => (inForce(history, gameweek)?.rules ?? rules).deadline;
+    const { gameweeks, matches } = await heldSchedule(ctx);
+    const nextUnder = (deadlineFor: (gameweek: number) => DeadlineRule) =>
+      nextGameweek(gameweeks, matches, deadlineFor, Date.now());
     const latestRow = history.at(-1);
-    const fromGameweek = Math.max(nextGameweek(gameweeks, matches, deadlineFor, Date.now()), latestRow?.fromGameweek ?? 1);
+    // An earlier deadline must not lock a gameweek the moment it is saved.
+    const fromGameweek = Math.max(
+      nextUnder((gameweek) => (inForce(history, gameweek)?.rules ?? rules).deadline),
+      nextUnder(() => rules.deadline),
+      latestRow?.fromGameweek ?? 1,
+    );
 
     const changed = changedParts(latestRow?.rules, rules);
     if (latestRow !== undefined && changed.length === 0) return latestRow.fromGameweek;
@@ -141,9 +154,7 @@ export const setDefaults = mutation({
     const by = await callerEmail(ctx);
     if (!isAdmin(by)) refuse(refusals.notAdmin);
     refuseUnsound(rules);
-    const row = await defaultsRow(ctx);
-    if (row === null) await ctx.db.insert("defaultLeagueRules", { rules, setBy: by, setAt: Date.now() });
-    else await ctx.db.patch("defaultLeagueRules", row._id, { rules, setBy: by, setAt: Date.now() });
+    await writeDefaults(ctx, rules, by);
     return null;
   },
 });

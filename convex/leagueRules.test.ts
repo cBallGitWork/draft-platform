@@ -4,7 +4,7 @@ import type { Id } from "./_generated/dataModel";
 import { FIRST_RULES } from "./firstRules";
 import { refusals } from "./leagueAccess";
 import { rulesInGameweek } from "./leagueRules";
-import { holdGameweeks, rulesWith, TOTAL_POINTS } from "./leagueRules.harness";
+import { expectRefused, holdGameweeks, HOUR_MS, rulesWith, TOTAL_POINTS } from "./leagueRules.harness";
 import {
   ADMIN,
   actingAs,
@@ -65,7 +65,7 @@ test("two leagues hold different rules side by side", async () => {
 
 describe("a commissioner's change", () => {
   test("before gameweek 9's deadline applies from gameweek 9, and gameweek 8 keeps the old rules", async () => {
-    await holdGameweeks(t, { lockedThrough: 8 });
+    await holdGameweeks(t, { next: 9 });
     const leagueId = await adminCreatesLeague(t);
 
     expect(await change(leagueId)).toBe(9);
@@ -74,8 +74,16 @@ describe("a commissioner's change", () => {
     expect(await inGameweek(leagueId, 38)).toEqual(TOTAL_POINTS);
   });
 
+  test("to an earlier deadline that has already passed for gameweek 9 waits for gameweek 10", async () => {
+    await holdGameweeks(t, { next: 9, kicksOffIn: 2 * HOUR_MS });
+    const leagueId = await adminCreatesLeague(t);
+
+    expect(await change(leagueId, rulesWith({ deadline: { minutesBeforeFirstKickoff: 180 } }))).toBe(10);
+    expect(await inGameweek(leagueId, 9)).toEqual(FIRST_RULES);
+  });
+
   test("is filed for Mail with what changed and from when", async () => {
-    await holdGameweeks(t, { lockedThrough: 8 });
+    await holdGameweeks(t, { next: 9 });
     const leagueId = await adminCreatesLeague(t);
     const commissioner = await actingAs(t, COMMISSIONER);
     await commissioner.mutation(api.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
@@ -90,7 +98,7 @@ describe("a commissioner's change", () => {
   });
 
   test("a second change before the deadline replaces the first, and both are filed", async () => {
-    await holdGameweeks(t, { lockedThrough: 8 });
+    await holdGameweeks(t, { next: 9 });
     const leagueId = await adminCreatesLeague(t);
     await change(leagueId);
     await change(leagueId, rulesWith({ tieBreaks: ["headToHead"] }));
@@ -113,7 +121,7 @@ describe("a commissioner's change", () => {
     const leagueId = await adminCreatesLeague(t);
     const unsound = rulesWith({ areaLimits: { ...FIRST_RULES.areaLimits, attack: { minimum: 3, maximum: 2 } } });
 
-    await expect(change(leagueId, unsound)).rejects.toThrow("On the pitch, attack's minimum, 3, is above its maximum, 2.");
+    await expectRefused(change(leagueId, unsound), "On the pitch, attack's minimum, 3, is above its maximum, 2.");
     expect((await latest(leagueId))?.rules).toEqual(FIRST_RULES);
   });
 
@@ -128,24 +136,25 @@ describe("a commissioner's change", () => {
     const leagueId = await adminCreatesLeague(t);
     await addManagers(t, leagueId, [MANAGERS[0]]);
 
-    await expect(change(leagueId, TOTAL_POINTS, MANAGERS[0])).rejects.toThrow(refusals.notRunner);
+    await expectRefused(change(leagueId, TOTAL_POINTS, MANAGERS[0]), refusals.notRunner);
     expect((await latest(leagueId, MANAGERS[0]))?.rules).toEqual(FIRST_RULES);
   });
 });
 
 test("someone outside the league can't read its rules", async () => {
   const leagueId = await adminCreatesLeague(t);
-  await expect(latest(leagueId, MANAGERS[1])).rejects.toThrow(refusals.notInLeague);
+  await expectRefused(latest(leagueId, MANAGERS[1]), refusals.notInLeague);
 });
 
 test("only the admin sets the defaults, and an unsound set is refused with the reason", async () => {
   await adminCreatesLeague(t);
   const commissioner = await actingAs(t, COMMISSIONER);
-  await expect(commissioner.mutation(api.leagueRules.setDefaults, { rules: TOTAL_POINTS })).rejects.toThrow(refusals.notAdmin);
+  await expectRefused(commissioner.mutation(api.leagueRules.setDefaults, { rules: TOTAL_POINTS }), refusals.notAdmin);
 
   const admin = await actingAs(t, ADMIN);
   const unsound = rulesWith({ deadline: { minutesBeforeFirstKickoff: -1 } });
-  await expect(admin.mutation(api.leagueRules.setDefaults, { rules: unsound })).rejects.toThrow(
+  await expectRefused(
+    admin.mutation(api.leagueRules.setDefaults, { rules: unsound }),
     "The deadline's minutes before the first kickoff must be a whole number, 0 or more, not -1.",
   );
   expect(await admin.query(api.leagueRules.defaults, {})).toEqual(FIRST_RULES);
