@@ -19,6 +19,7 @@ afterEach(() => {
 });
 
 const leagueId = "league-1" as Id<"leagues">;
+const REFUSAL = "Gameweek 3 has begun, so it can't be ticked or unticked.";
 const view = () => renderHook(() => liveGameweeks.useLeagueGameweeks(leagueId)).result.current;
 
 test("it reads the league's gameweeks from the server, as they come", () => {
@@ -35,8 +36,8 @@ test("a tick the server makes resolves with no problem", async () => {
 });
 
 test("a tick the server refuses resolves with the server's own words", async () => {
-  convex.set.mockRejectedValue(new ConvexError("Gameweek 3 has begun, so it can't be ticked or unticked."));
-  expect(await view().setUsed(3, false)).toBe("Gameweek 3 has begun, so it can't be ticked or unticked.");
+  convex.set.mockRejectedValue(new ConvexError(REFUSAL));
+  expect(await view().setUsed(3, false)).toBe(REFUSAL);
 });
 
 test("any other failure is logged and said plainly", async () => {

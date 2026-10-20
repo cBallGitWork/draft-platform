@@ -31,8 +31,6 @@ export function GameweeksPage({ league, view }: { league: LeagueSummary; view: L
     setSending(null);
   }
 
-  // A season in two halves, side by side on the desk.
-  const half = gameweeks && Math.ceil(gameweeks.length / 2);
   const plays = playsWords(league.name);
   return (
     <section aria-labelledby="page-title" className="max-w-3xl bg-panel">
@@ -55,8 +53,8 @@ export function GameweeksPage({ league, view }: { league: LeagueSummary; view: L
         )}
         {gameweeks ? (
           <div className="grid gap-2 lg:grid-cols-2">
-            {[gameweeks.slice(0, half), gameweeks.slice(half)].map((rows) => (
-              <GameweekTable key={rows[0]?.gameweek} rows={rows} sending={sending} onTick={tick} />
+            {halves(gameweeks).map((rows, index) => (
+              <GameweekTable key={index} rows={rows} sending={sending} onTick={tick} />
             ))}
           </div>
         ) : (
@@ -70,6 +68,12 @@ export function GameweeksPage({ league, view }: { league: LeagueSummary; view: L
       </div>
     </section>
   );
+}
+
+/** A season in two halves, side by side on the desk. */
+function halves<T>(rows: readonly T[]): T[][] {
+  const half = Math.ceil(rows.length / 2);
+  return [rows.slice(0, half), rows.slice(half)];
 }
 
 function GameweekTable({
@@ -118,7 +122,7 @@ function GameweekTable({
 
 /** A square tick box, CM's, with the whole cell's height to tap. */
 function TickBox({ label, ticked, disabled, onTick }: { label: string; ticked: boolean; disabled: boolean; onTick: () => void }) {
-  const box = disabled ? (ticked ? "border-muted bg-muted" : "border-muted") : ticked ? "border-fact bg-fact" : "border-soft bg-ground";
+  const boxClasses = disabled ? (ticked ? "border-muted bg-muted" : "border-muted") : ticked ? "border-fact bg-fact" : "border-soft bg-ground";
   return (
     <button
       type="button"
@@ -129,7 +133,7 @@ function TickBox({ label, ticked, disabled, onTick }: { label: string; ticked: b
       onClick={onTick}
       className="group flex min-h-tap items-center px-2 lg:min-h-0"
     >
-      <span aria-hidden="true" className={`flex size-4 items-center justify-center border ${box}`}>
+      <span aria-hidden="true" className={`flex size-4 items-center justify-center border ${boxClasses}`}>
         {ticked && (
           <svg viewBox="0 0 16 16" className="size-3 stroke-ground" fill="none" strokeWidth="3">
             <path d="M2 8.5 6 12.5 14 3.5" />

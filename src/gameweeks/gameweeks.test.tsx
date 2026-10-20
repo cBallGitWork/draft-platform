@@ -8,14 +8,15 @@ import type { LeagueSummary } from "../../convex/myLeagues";
 import { LEAGUES_PATH } from "../leagues/paths";
 import { adminSeeing, league, managerIn, openApp } from "../shell.harness";
 import { BEGUN, season } from "./gameweeks.harness";
-import { gameweeksPath } from "./seam";
-import { begunWords, deadlineWords, loadingWords, tickLabel } from "./words";
+import { gameweeksPath } from "./paths";
+import { begunWords, deadlineWords, GAMEWEEKS_TITLE, loadingWords, tickLabel } from "./words";
 
 afterEach(cleanup);
 
 const commissioned: LeagueSummary = { ...league, roles: ["commissioner"], teamName: null };
 const commissioner = managerIn(commissioned);
 const PAGE = gameweeksPath(league.leagueId);
+const REFUSAL = "Gameweek 17 has begun, so it can't be ticked or unticked.";
 
 const tick = (gameweek: number) => screen.findByRole("checkbox", { name: tickLabel(gameweek) });
 const isTicked = async (gameweek: number) => (await tick(gameweek)).getAttribute("aria-checked") === "true";
@@ -30,9 +31,9 @@ describe("reaching the gameweeks", () => {
     ["the admin, with no part in the league", adminSeeing({ ...league, roles: [], teamName: null })],
   ])("%s opens them from the league's row on Your leagues", async (_, session) => {
     const app = openApp(LEAGUES_PATH, session);
-    await userEvent.click(await screen.findByRole("link", { name: "Gameweeks" }));
+    await userEvent.click(await screen.findByRole("link", { name: GAMEWEEKS_TITLE }));
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Gameweeks" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: GAMEWEEKS_TITLE })).toBeTruthy();
     expect(app.path()).toBe(PAGE);
     expect(app.gameweeks.useLeagueGameweeks).toHaveBeenCalledWith(league.leagueId);
   });
@@ -40,7 +41,7 @@ describe("reaching the gameweeks", () => {
   it("a manager who doesn't run the league isn't offered them", async () => {
     openApp(LEAGUES_PATH, managerIn(league));
     await screen.findByRole("heading", { level: 1, name: "Your leagues" });
-    expect(screen.queryByRole("link", { name: "Gameweeks" })).toBeNull();
+    expect(screen.queryByRole("link", { name: GAMEWEEKS_TITLE })).toBeNull();
   });
 
   it("a manager who doesn't run the league, opening them, is sent back to their leagues", async () => {
@@ -91,10 +92,10 @@ describe("the gameweeks page", () => {
 
   it("says why a tick was refused", async () => {
     const app = openApp(PAGE, commissioner);
-    app.gameweeks.setUsed.mockResolvedValue("Gameweek 17 has begun, so it can't be ticked or unticked.");
+    app.gameweeks.setUsed.mockResolvedValue(REFUSAL);
     await userEvent.click(await tick(17));
 
-    expect((await screen.findByRole("alert")).textContent).toBe("Gameweek 17 has begun, so it can't be ticked or unticked.");
+    expect((await screen.findByRole("alert")).textContent).toBe(REFUSAL);
   });
 
   it("a tick can't be sent twice while the first is on its way", async () => {

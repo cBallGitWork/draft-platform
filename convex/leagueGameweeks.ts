@@ -56,7 +56,6 @@ export const setUsed = mutation({
       .withIndex("by_number", (q) => q.eq("number", gameweek))
       .unique();
     if (row === null) refuse(gameweekRefusals.noDeadline(gameweek));
-    // A gameweek begins when it locks.
     if (isLocked(row.deadline, Date.now())) refuse(gameweekRefusals.begun(gameweek));
     if (isGameweekUsed(league, gameweek) === used) return null;
     await ctx.db.patch("leagues", leagueId, { unusedGameweeks: unusedAfter(league, gameweek, used) });
