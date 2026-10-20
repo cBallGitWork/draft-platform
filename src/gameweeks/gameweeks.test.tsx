@@ -18,9 +18,9 @@ const commissioner = managerIn(commissioned);
 const PAGE = gameweeksPath(league.leagueId);
 const REFUSAL = "Gameweek 17 has begun, so it can't be ticked or unticked.";
 
-const tick = (gameweek: number) => screen.findByRole("checkbox", { name: tickLabel(gameweek) });
-const isTicked = async (gameweek: number) => (await tick(gameweek)).getAttribute("aria-checked") === "true";
-const isDisabled = async (gameweek: number) => ((await tick(gameweek)) as HTMLButtonElement).disabled;
+const tickBox = (gameweek: number) => screen.findByRole("checkbox", { name: tickLabel(gameweek) });
+const isTicked = async (gameweek: number) => (await tickBox(gameweek)).getAttribute("aria-checked") === "true";
+const isDisabled = async (gameweek: number) => ((await tickBox(gameweek)) as HTMLButtonElement).disabled;
 /** The row headed by a gameweek's number. */
 const rowOf = (gameweek: number) => screen.getByRole("rowheader", { name: String(gameweek) }).closest("tr")!;
 
@@ -76,7 +76,7 @@ describe("the gameweeks page", () => {
 
   it("unticking a gameweek asks for it to be left out", async () => {
     const app = openApp(PAGE, commissioner);
-    await userEvent.click(await tick(17));
+    await userEvent.click(await tickBox(17));
     expect(app.gameweeks.setUsed).toHaveBeenCalledWith(17, false);
   });
 
@@ -86,14 +86,14 @@ describe("the gameweeks page", () => {
     expect(await isDisabled(BEGUN)).toBe(true);
     expect(within(rowOf(BEGUN)).getByText(begunWords)).toBeTruthy();
     expect(await isDisabled(BEGUN + 1)).toBe(false);
-    await userEvent.click(await tick(BEGUN));
+    await userEvent.click(await tickBox(BEGUN));
     expect(app.gameweeks.setUsed).not.toHaveBeenCalled();
   });
 
   it("says why a tick was refused", async () => {
     const app = openApp(PAGE, commissioner);
     app.gameweeks.setUsed.mockResolvedValue(REFUSAL);
-    await userEvent.click(await tick(17));
+    await userEvent.click(await tickBox(17));
 
     expect((await screen.findByRole("alert")).textContent).toBe(REFUSAL);
   });
@@ -101,7 +101,7 @@ describe("the gameweeks page", () => {
   it("a tick can't be sent twice while the first is on its way", async () => {
     const app = openApp(PAGE, commissioner);
     app.gameweeks.setUsed.mockReturnValue(new Promise(() => {}));
-    await userEvent.click(await tick(17));
+    await userEvent.click(await tickBox(17));
 
     expect(await isDisabled(17)).toBe(true);
     expect(await isDisabled(18)).toBe(false);
