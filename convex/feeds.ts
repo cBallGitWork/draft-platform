@@ -5,12 +5,11 @@ import { namedMen } from "./feedIds";
 import { arsenalSquadNumbers, fplPlayerCount, plFixtureCount } from "./football";
 import { readPlCommentary, readPlFixture, readPlTeamStats } from "./premierLeague";
 import { feedCheckFields, feedCheckTrigger, feedOutcome } from "./schema";
+import { MINUTE_MS } from "./time";
 
 // Issue #7: can Convex reach the football feeds, and does a timer fire with no browser open?
 // Run from the CLI: `npx convex run feeds:check '{"trigger":"manual"}'` now, or
 // `npx convex run feeds:checkLater '{"minutes":10}'`, close everything, then `feeds:latest`.
-
-export const MINUTE_MS = 60_000;
 
 export const check = internalAction({
   args: { trigger: feedCheckTrigger, scheduledFor: v.optional(v.number()) },

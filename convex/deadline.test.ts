@@ -3,19 +3,16 @@ import {
   FPL_DEADLINE_RULE,
   gameweekDeadline,
   isLocked,
-  MS_PER_MINUTE,
   type DeadlineReading,
   type DeadlineRule,
 } from "./deadline";
 import { mapFpl } from "./fpl";
 import { recordedSeason } from "./recorded/fpl.payloads";
+import { DAY_MS, HOUR_MS, MINUTE_MS } from "./time";
 
 const { bootstrap, fixtures } = recordedSeason();
 const season = mapFpl(bootstrap, fixtures);
 const SEASON_GAMEWEEKS = 38;
-
-const HOUR = 60 * MS_PER_MINUTE;
-const DAY = 24 * HOUR;
 
 /** A gameweek seen for the first time: with nothing recorded, when it is read changes nothing. */
 const NOTHING_RECORDED: DeadlineReading = { recorded: null, now: 0 };
@@ -47,7 +44,7 @@ describe("from the recorded 2026/27 season", () => {
 
   test("a league with its own rule gets its own deadline for every gameweek, not FPL's", () => {
     const LEAGUE_MINUTES = 60;
-    const later = (FPL_DEADLINE_RULE.minutesBeforeFirstKickoff - LEAGUE_MINUTES) * MS_PER_MINUTE;
+    const later = (FPL_DEADLINE_RULE.minutesBeforeFirstKickoff - LEAGUE_MINUTES) * MINUTE_MS;
     const laterThanFpl = season.gameweeks.map(({ number, deadline }) => ({ number, deadline: deadline + later }));
 
     expect(deadlinesUnder(minutesBefore(LEAGUE_MINUTES))).toEqual(laterThanFpl);
@@ -57,7 +54,7 @@ describe("from the recorded 2026/27 season", () => {
     // A match from the gameweek after, rearranged into this one's midweek: both its clubs now play twice.
     const DOUBLE_GAMEWEEK = 8;
     const rearranged = season.fixtures.find((fixture) => fixture.gameweek === DOUBLE_GAMEWEEK + 1)!;
-    const midweek = fplDeadline(DOUBLE_GAMEWEEK) + 4 * DAY;
+    const midweek = fplDeadline(DOUBLE_GAMEWEEK) + 4 * DAY_MS;
     const doubled = season.fixtures.map((fixture) =>
       fixture === rearranged ? { ...fixture, gameweek: DOUBLE_GAMEWEEK, kickoff: midweek } : fixture,
     );
@@ -77,7 +74,7 @@ describe("from a gameweek's matches", () => {
   // Not FPL's 90, so a result that comes out right only for FPL's rule fails here.
   const RULE_MINUTES = 75;
   const rule = minutesBefore(RULE_MINUTES);
-  const deadlineBefore = (kickoff: number) => kickoff - RULE_MINUTES * MS_PER_MINUTE;
+  const deadlineBefore = (kickoff: number) => kickoff - RULE_MINUTES * MINUTE_MS;
 
   const FRIDAY_8PM = Date.UTC(2026, 9, 23, 19, 0);
   const SATURDAY_3PM = Date.UTC(2026, 9, 24, 14, 0);
@@ -96,7 +93,7 @@ describe("from a gameweek's matches", () => {
   });
 
   test("matches in other gameweeks do not move it", () => {
-    const withNextGameweek = [...weekend, match(NEXT_GAMEWEEK, FRIDAY_8PM - DAY)];
+    const withNextGameweek = [...weekend, match(NEXT_GAMEWEEK, FRIDAY_8PM - DAY_MS)];
 
     expect(gameweekDeadline(GAMEWEEK, withNextGameweek, rule, NOTHING_RECORDED)).toBe(deadlineBefore(FRIDAY_8PM));
   });
@@ -127,7 +124,7 @@ describe("from a gameweek's matches", () => {
     const firstMatchGone = [
       {
         change: "moved to the next gameweek",
-        matches: [saturday, match(NEXT_GAMEWEEK, FRIDAY_8PM + 7 * DAY), sunday],
+        matches: [saturday, match(NEXT_GAMEWEEK, FRIDAY_8PM + 7 * DAY_MS), sunday],
         nextDeadline: SATURDAY_DEADLINE,
       },
       { change: "postponed", matches: [saturday, postponed, sunday], nextDeadline: SATURDAY_DEADLINE },
@@ -147,7 +144,7 @@ describe("from a gameweek's matches", () => {
     test.each(
       firstMatchGone.flatMap((gone) => [
         { ...gone, when: "at", now: FRIDAY_DEADLINE },
-        { ...gone, when: "an hour after", now: FRIDAY_DEADLINE + HOUR },
+        { ...gone, when: "an hour after", now: FRIDAY_DEADLINE + HOUR_MS },
       ]),
     )("the first match $change $when the deadline leaves it where it fell, still locked", ({ matches, now }) => {
       const deadline = gameweekDeadline(GAMEWEEK, matches, rule, readAt(now));
@@ -156,7 +153,7 @@ describe("from a gameweek's matches", () => {
       expect(isLocked(deadline, now)).toBe(true);
     });
 
-    const THURSDAY_8PM = FRIDAY_8PM - DAY;
+    const THURSDAY_8PM = FRIDAY_8PM - DAY_MS;
     const THURSDAY_DEADLINE = deadlineBefore(THURSDAY_8PM);
     const movedIn = [...weekend, match(GAMEWEEK, THURSDAY_8PM)];
 
@@ -165,7 +162,7 @@ describe("from a gameweek's matches", () => {
     });
 
     test("a match rescheduled in ahead of the recorded deadline, read after its own, locks the gameweek", () => {
-      const now = THURSDAY_DEADLINE + HOUR;
+      const now = THURSDAY_DEADLINE + HOUR_MS;
       const deadline = gameweekDeadline(GAMEWEEK, movedIn, rule, readAt(now));
 
       expect(deadline).toBe(THURSDAY_DEADLINE);
@@ -192,7 +189,7 @@ describe("the lock", () => {
   });
 
   test("a change after the deadline is refused", () => {
-    expect(isLocked(DEADLINE, DEADLINE + HOUR)).toBe(true);
+    expect(isLocked(DEADLINE, DEADLINE + HOUR_MS)).toBe(true);
   });
 
   test("a gameweek with no deadline yet is not locked", () => {

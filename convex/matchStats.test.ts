@@ -4,7 +4,6 @@ import { internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, fplLiveUrl, plPlayerStatsUrl } from "./football";
 import { modules } from "./footballSync.harness";
 import { statValue } from "./matchRecords";
-import { HOUR_MS } from "./matchStats";
 import {
   elapse,
   FULL_TIME_READ,
@@ -22,6 +21,7 @@ import {
 import type { RawPlFixture } from "./premierLeague";
 import { fplElementsWithout, FULL_STATS, MATCH, recordedGw6 } from "./recorded/gw6.payloads";
 import schema from "./schema";
+import { HOUR_MS } from "./time";
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => {

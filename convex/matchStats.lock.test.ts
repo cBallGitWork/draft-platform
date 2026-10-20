@@ -1,9 +1,8 @@
 import { convexTest } from "convex-test";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
-import { MS_PER_MINUTE } from "./deadline";
 import { modules, type TestConvex } from "./footballSync.harness";
-import { HOUR_MS, LATE_CORRECTION_WATCH_MS, LATE_READ_EVERY_MS, MATCHES_PER_RUN } from "./matchStats";
+import { LATE_CORRECTION_WATCH_MS, LATE_READ_EVERY_MS, MATCHES_PER_RUN } from "./matchStats";
 import {
   elapse,
   FULL_TIME_READ,
@@ -17,6 +16,7 @@ import {
 } from "./matchStats.harness";
 import { FULL_STATS, recordedGw6, type Gw6Payloads } from "./recorded/gw6.payloads";
 import schema from "./schema";
+import { HOUR_MS, MINUTE_MS } from "./time";
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => {
@@ -33,17 +33,17 @@ test("a complete match locks an hour after full time, and not before", async () 
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, recordedGw6());
 
-  await elapse(t, HOUR_MS - MS_PER_MINUTE);
+  await elapse(t, HOUR_MS - MINUTE_MS);
   expect(await stateOf(t)).toEqual({ match: "complete", records: new Set(["complete"]) });
 
-  await elapse(t, MS_PER_MINUTE);
+  await elapse(t, MINUTE_MS);
   expect(await stateOf(t)).toEqual({ match: "locked", records: new Set(["locked"]) });
   expect((await heldMatch(t)).status).toMatchObject({ lockedAt: FULL_TIME_READ + HOUR_MS });
 });
 
 test("a match read every ten minutes still locks an hour after the first read found full time", async () => {
   const t = await withHullEverton();
-  const readEvery = 10 * MS_PER_MINUTE;
+  const readEvery = 10 * MINUTE_MS;
   for (let read = FULL_TIME_READ; read < FULL_TIME_READ + HOUR_MS; read += readEvery) {
     if (read > FULL_TIME_READ) await elapse(t, readEvery);
     await syncAt(t, read, recordedGw6());
@@ -61,22 +61,22 @@ test("a match read every ten minutes still locks an hour after the first read fo
 test("a record still missing at the hour keeps the match provisional, and it locks an hour after it arrives", async () => {
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, withPlReadEmpty(recordedGw6(), FULL_STATS.coyle.pl));
-  await elapse(t, HOUR_MS + MS_PER_MINUTE);
+  await elapse(t, HOUR_MS + MINUTE_MS);
   expect(await stateOf(t)).toEqual({ match: "provisional", records: new Set(["provisional"]) });
 
-  const arrived = FULL_TIME_READ + 90 * MS_PER_MINUTE;
+  const arrived = FULL_TIME_READ + 90 * MINUTE_MS;
   await syncAt(t, arrived, recordedGw6());
-  await elapse(t, HOUR_MS - MS_PER_MINUTE);
+  await elapse(t, HOUR_MS - MINUTE_MS);
   expect(await stateOf(t)).toEqual({ match: "complete", records: new Set(["complete"]) });
 
-  await elapse(t, MS_PER_MINUTE);
+  await elapse(t, MINUTE_MS);
   expect((await heldMatch(t)).status).toMatchObject({ state: "locked", lockedAt: arrived + HOUR_MS });
 });
 
 test("a match whose record goes missing again before the lock is provisional again, and locks an hour after it is back", async () => {
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, recordedGw6());
-  await syncAt(t, FULL_TIME_READ + 10 * MS_PER_MINUTE, withPlReadEmpty(recordedGw6(), FULL_STATS.coyle.pl));
+  await syncAt(t, FULL_TIME_READ + 10 * MINUTE_MS, withPlReadEmpty(recordedGw6(), FULL_STATS.coyle.pl));
   await elapse(t, HOUR_MS);
   expect((await heldMatch(t)).status).toMatchObject({ state: "provisional" });
   expect((await heldMatch(t)).status).not.toHaveProperty("completeAt");
@@ -93,9 +93,9 @@ test("the window is the admin's setting", async () => {
   await t.mutation(internal.platformSettings.setStatCorrectionWindow, { minutes: 30 });
   await syncAt(t, FULL_TIME_READ, recordedGw6());
 
-  await elapse(t, 30 * MS_PER_MINUTE);
+  await elapse(t, 30 * MINUTE_MS);
 
-  expect((await heldMatch(t)).status).toMatchObject({ state: "locked", lockedAt: FULL_TIME_READ + 30 * MS_PER_MINUTE });
+  expect((await heldMatch(t)).status).toMatchObject({ state: "locked", lockedAt: FULL_TIME_READ + 30 * MINUTE_MS });
 });
 
 test("a window changed after the lock was scheduled is read again when the lock fires", async () => {
@@ -106,8 +106,8 @@ test("a window changed after the lock was scheduled is read again when the lock 
   await elapse(t, HOUR_MS);
   expect(await stateOf(t)).toMatchObject({ match: "complete" });
 
-  await elapse(t, 30 * MS_PER_MINUTE);
-  expect((await heldMatch(t)).status).toMatchObject({ state: "locked", lockedAt: FULL_TIME_READ + 90 * MS_PER_MINUTE });
+  await elapse(t, 30 * MINUTE_MS);
+  expect((await heldMatch(t)).status).toMatchObject({ state: "locked", lockedAt: FULL_TIME_READ + 90 * MINUTE_MS });
 });
 
 test.each([-1, 1.5])("a window of %s minutes is refused", async (minutes) => {
@@ -121,8 +121,8 @@ test("a match is due 105 minutes after kickoff, the soonest it can reach full ti
   const t = await withHullEverton();
   const due = (now: number) => t.query(internal.matchStats.due, { now });
 
-  expect(await due(KICKOFF + 105 * MS_PER_MINUTE - 1)).toEqual([]);
-  expect(await due(KICKOFF + 105 * MS_PER_MINUTE)).toEqual([{ fixtureCode: HULL_EVERTON, gameweek: GAMEWEEK }]);
+  expect(await due(KICKOFF + 105 * MINUTE_MS - 1)).toEqual([]);
+  expect(await due(KICKOFF + 105 * MINUTE_MS)).toEqual([{ fixtureCode: HULL_EVERTON, gameweek: GAMEWEEK }]);
 });
 
 test("a match the football sync has marked dropped is not due", async () => {
@@ -155,7 +155,7 @@ test("a run takes due matches never tried oldest first, a gameweek's worth at mo
   const count = MATCHES_PER_RUN + 2;
   await t.run(async (ctx) => {
     for (let index = 0; index < count; index += 1) {
-      const kickoff = KICKOFF + (count - index) * MS_PER_MINUTE;
+      const kickoff = KICKOFF + (count - index) * MINUTE_MS;
       await ctx.db.insert("fixtures", { code: index + 1, gameweek: GAMEWEEK, homeClubCode: 1, awayClubCode: 2, kickoff });
     }
   });
@@ -189,7 +189,7 @@ test.each([
   const stuck = Array.from({ length: MATCHES_PER_RUN + 1 }, (_, index) => index + 1);
   await t.run(async (ctx) => {
     for (const code of stuck) {
-      await ctx.db.insert("fixtures", { code, gameweek: GAMEWEEK, homeClubCode: 1, awayClubCode: 2, kickoff: KICKOFF - code * MS_PER_MINUTE });
+      await ctx.db.insert("fixtures", { code, gameweek: GAMEWEEK, homeClubCode: 1, awayClubCode: 2, kickoff: KICKOFF - code * MINUTE_MS });
     }
   });
   const tried = new Map<number, string>();
@@ -200,7 +200,7 @@ test.each([
     for (const fixtureCode of outcome.waiting) tried.set(fixtureCode, "waiting");
   };
 
-  const secondRun = FULL_TIME_READ + 10 * MS_PER_MINUTE;
+  const secondRun = FULL_TIME_READ + 10 * MINUTE_MS;
   await run(FULL_TIME_READ);
   await run(secondRun);
 

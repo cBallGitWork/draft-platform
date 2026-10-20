@@ -2,7 +2,6 @@
 import { convexTest } from "convex-test";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
-import { MINUTE_MS } from "./feeds";
 import { FPL_BOOTSTRAP_URL, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl, squadNumbers } from "./football";
 import type { RawPlFixture } from "./premierLeague";
 import {
@@ -13,6 +12,7 @@ import {
   UPCOMING_MATCH,
 } from "./recorded/commentary.payloads";
 import schema from "./schema";
+import { MINUTE_MS } from "./time";
 
 const modules = import.meta.glob("./**/*.ts");
 

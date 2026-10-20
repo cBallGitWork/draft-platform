@@ -17,10 +17,10 @@ import {
 import { modules, type TestConvex } from "./footballSync.harness";
 import { fplStatLines } from "./fplLive";
 import { matchRecords } from "./matchRecords";
-import { HOUR_MS } from "./matchStats";
 import { matchSlots, plStatLines } from "./plMatch";
 import { FULL_STATS, MATCH, recordedGw6, type Gw6Payloads } from "./recorded/gw6.payloads";
 import schema from "./schema";
+import { HOUR_MS } from "./time";
 
 export const GAMEWEEK = 6;
 const REFUSED_STATUS = 503;

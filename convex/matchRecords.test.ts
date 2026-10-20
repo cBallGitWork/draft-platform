@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
-import { HOUR_MS } from "./matchStats";
 import { HULL_EVERTON, mergedHullEverton, withPlReadEmpty } from "./matchStats.harness";
 import { isMatchComplete, isWhole, lockTime, matchRecords, mergeStats, statChanges, statValue } from "./matchRecords";
 import { FULL_STATS, recordedGw6 } from "./recorded/gw6.payloads";
+import { HOUR_MS } from "./time";
 
 const records = mergedHullEverton();
 const recordOf = (code: number, from = records) => from.find((record) => record.playerCode === code)!;

@@ -2,10 +2,10 @@ import { v, type Infer } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Doc } from "./_generated/dataModel";
 import { internalMutation, internalQuery, type MutationCtx, type QueryCtx } from "./_generated/server";
-import { MS_PER_MINUTE } from "./deadline";
 import { isMatchComplete, isWhole, lockTime, statChanges, type PlayerMatchRecord, type StatChange } from "./matchRecords";
 import { statCorrectionWindowMs } from "./platformSettings";
 import { matchStatsState, matchStatsSyncFields, playerMatchRecord } from "./schema";
+import { HOUR_MS, MINUTE_MS } from "./time";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -13,11 +13,10 @@ import { matchStatsState, matchStatsSyncFields, playerMatchRecord } from "./sche
 type State = Infer<typeof matchStatsState>;
 /** A match to read, and the gameweek its live stats come under. */
 export type DueMatch = { fixtureCode: number; gameweek: number };
-export const HOUR_MS = 60 * MS_PER_MINUTE;
 
 /** Ninety minutes and a fifteen-minute half-time: no match reaches full time sooner after kickoff,
  *  so none is read before. */
-const EARLIEST_FULL_TIME_MS = 105 * MS_PER_MINUTE;
+const EARLIEST_FULL_TIME_MS = 105 * MINUTE_MS;
 /** How long a locked match is still read, to catch a late correction for the feeds page, and how
  *  often: Claude's choice, not yet Craig's, and no late correction has been recorded to size it. */
 export const LATE_CORRECTION_WATCH_MS = 24 * HOUR_MS;

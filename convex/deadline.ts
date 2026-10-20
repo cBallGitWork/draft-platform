@@ -11,6 +11,7 @@
 
 import type { Infer } from "convex/values";
 import type { fixtureRecord } from "./schema";
+import { MINUTE_MS } from "./time";
 
 export interface DeadlineRule {
   /** Whole minutes, 0 or more, before the gameweek's first kickoff. */
@@ -20,8 +21,6 @@ export interface DeadlineRule {
 /** FPL's own rule, and every league's default: 90 minutes before the first kickoff. It held for
  *  all 38 gameweeks of 2026/27 in FPL's data of 20 Oct 2026. */
 export const FPL_DEADLINE_RULE: DeadlineRule = { minutesBeforeFirstKickoff: 90 };
-
-export const MS_PER_MINUTE = 60_000;
 
 /** All of a match a deadline reads. */
 type ScheduledMatch = Pick<Infer<typeof fixtureRecord>, "gameweek" | "kickoff">;
@@ -53,7 +52,7 @@ export function gameweekDeadline(
     match.gameweek === gameweek && match.kickoff !== null ? [match.kickoff] : [],
   );
   if (kickoffs.length === 0) return null;
-  return Math.min(...kickoffs) - minutes * MS_PER_MINUTE;
+  return Math.min(...kickoffs) - minutes * MINUTE_MS;
 }
 
 /** Whether a lineup change made `now` is refused: at the deadline and after it, the gameweek is

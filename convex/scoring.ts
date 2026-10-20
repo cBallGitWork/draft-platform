@@ -13,7 +13,7 @@ import {
 } from "./scoringSet";
 
 /** A player's stats for one match, by the feeds' own keys. */
-export type MatchRecord = Readonly<Record<string, number>>;
+export type MatchStats = Readonly<Record<string, number>>;
 
 /** One category's points, or null ("—") while his record for the match hasn't arrived. */
 export interface CategoryPoints {
@@ -33,7 +33,7 @@ export interface MatchPoints {
  * for the match hasn't arrived: every category is then "—" and so is the total, never a guess.
  * Once it has arrived, a stat it leaves out is 0 (spec/14). A bad set, area or stat throws.
  */
-export function scoreMatch(record: MatchRecord | null, set: ScoringSet, area: Area): MatchPoints {
+export function scoreMatch(record: MatchStats | null, set: ScoringSet, area: Area): MatchPoints {
   validateScoringSet(set);
   if (!AREAS.includes(area)) throw new Error(`${showValue(area)} is not one of the pitch's six areas`);
   if (record === null) {
@@ -48,7 +48,7 @@ export function scoreMatch(record: MatchRecord | null, set: ScoringSet, area: Ar
 
 /** Only the record's own keys count: a rule on `constructor` must not read Object's. A stat the
  *  feeds sent as anything but a number is bad data, never 0. */
-function statIn(record: MatchRecord, stat: string): number {
+function statIn(record: MatchStats, stat: string): number {
   if (!Object.hasOwn(record, stat)) return 0;
   const actions = record[stat];
   requireNumber(actions, `his record's ${stat} is`);
