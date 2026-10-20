@@ -4,8 +4,9 @@
 import { vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
-import { UNDO_MS } from "./leagueDeletion";
+import { UNDO_MS, tablesKeyedToLeague } from "./leagueDeletion";
 import { COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "./leagues.harness";
+import { modules } from "./signIn.harness";
 
 export const [ANN, BOB] = MANAGERS;
 
@@ -35,3 +36,29 @@ export async function laterBy(t: TestConvex, ms: number): Promise<void> {
 /** What account:signedInAs tells the screens for `email`. */
 export const accountOf = async (t: TestConvex, email: string) =>
   (await (await actingAs(t, email)).query(api.account.signedInAs, {}))!;
+
+/** Every public mutation given the id of a league, or of a row keyed to one, as "module:name":
+ *  each must be refused while its league is being deleted. Read from the deployed modules, so a
+ *  mutation added later is found without anyone listing it. */
+export async function mutationsGivenALeague(): Promise<string[]> {
+  const keyedTables = new Set(["leagues", ...tablesKeyedToLeague]);
+  const names: string[] = [];
+  for (const [path, load] of Object.entries(modules)) {
+    // Convex deploys only files with one dot in their name, and none of _generated.
+    const module = path.match(/^\.\/((?!_generated\/)[^.]+)\.ts$/)?.[1];
+    if (!module) continue;
+    for (const [name, exported] of Object.entries((await load()) as Record<string, unknown>)) {
+      const fn = exported as { isMutation?: boolean; isPublic?: boolean; exportArgs?: () => string };
+      if (fn?.isMutation && fn.isPublic && givesIdOf(JSON.parse(fn.exportArgs!()), keyedTables)) names.push(`${module}:${name}`);
+    }
+  }
+  return names.sort();
+}
+
+/** Whether an argument validator, as Convex exports it, takes an id of one of `tables` anywhere. */
+function givesIdOf(validator: unknown, tables: Set<string>): boolean {
+  if (typeof validator !== "object" || validator === null) return false;
+  const { type, tableName } = validator as { type?: unknown; tableName?: unknown };
+  if (type === "id" && typeof tableName === "string" && tables.has(tableName)) return true;
+  return Object.values(validator).some((inner) => givesIdOf(inner, tables));
+}

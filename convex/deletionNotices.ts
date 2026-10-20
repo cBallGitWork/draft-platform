@@ -1,6 +1,7 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "./_generated/api";
 import { internalAction, internalMutation, type ActionCtx } from "./_generated/server";
+import { londonTime } from "./londonTime";
 import { unemailedReason } from "./schema";
 import { sendEmail } from "./signInEmail";
 import { EMAILS_PER_DAY, dayOf } from "./signInLinks";
@@ -10,23 +11,12 @@ import { EMAILS_PER_DAY, dayOf } from "./signInLinks";
 // (signInLinks.ts); one the limit or the email service stops is kept on the league, so whoever
 // deleted it sees who wasn't told.
 
-/** When the league goes, as its people read a time: the Premier League's own clock. */
-const whenFormat = new Intl.DateTimeFormat("en-GB", {
-  timeZone: "Europe/London",
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-  hour: "2-digit",
-  minute: "2-digit",
-  timeZoneName: "short",
-});
-
 /** Wording for Craig to change in the pull request. */
 export function deletionEmail(leagueName: string, by: string, deletesAt: number) {
   return {
     subject: `${leagueName} will be deleted`,
     text: [
-      `${by} deleted ${leagueName}. It will be gone for good, with its teams, Mail and history, on ${whenFormat.format(deletesAt)}.`,
+      `${by} deleted ${leagueName}. It will be gone for good, with its teams, Mail and history, on ${londonTime(deletesAt)}.`,
       "",
       "Until then it is frozen, and only whoever deleted it, or the admin, can undo it.",
     ].join("\n"),

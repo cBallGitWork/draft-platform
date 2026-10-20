@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { LeagueSummary } from "../../convex/myLeagues";
 import { adminSeeing, league, managerIn, openApp } from "../shell.harness";
 import { LEAGUES_PATH } from "./paths";
-import { beingDeleted, confirmDelete, unemailed, unsentLinkWords } from "./words";
+import { confirmDelete, unemailed, unsentLinkWords } from "./words";
 
 afterEach(cleanup);
 
@@ -70,10 +70,11 @@ describe("Delete league", () => {
 });
 
 describe("a league being deleted", () => {
-  it("shows when it goes and who wasn't told, and Undo undoes it", async () => {
+  it("shows when it goes on the email's clock, and who wasn't told, and Undo undoes it", async () => {
     const app = openApp(LEAGUES_PATH, managerIn(beingDeletedLeague));
 
-    expect(await screen.findByText(beingDeleted(deletesAt))).toBeTruthy();
+    // The moment convex/deletionNotices.test.ts finds in the email, said the same way.
+    expect(await screen.findByText(/goes for good on Wednesday 21 October at 10:00 BST\./)).toBeTruthy();
     expect(screen.getByText(unemailed("ann@example.com", unsentLinkWords.paused))).toBeTruthy();
     expect(deleteButton()).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: "Undo" }));
