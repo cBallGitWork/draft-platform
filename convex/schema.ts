@@ -279,9 +279,7 @@ const liveStatsTables = {
   liveStatsTicks: defineTable(liveStatsTickFields),
 };
 
-// Deleting a league (#75, spec/13, Deleting): for DELETION_UNDO_HOURS the league is frozen and
-// hidden from everyone with a part in it but whoever deleted it, then a scheduled function
-// deletes it and every row keyed to it.
+// Deleting a league (#75): how it works is in leagueDeletion.ts.
 
 /** Why one person wasn't emailed that their league is being deleted: the day's emails had all
  *  gone, or the email service didn't send it. */

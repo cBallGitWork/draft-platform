@@ -4,10 +4,8 @@
 import { vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
-import { DELETION_UNDO_HOURS } from "./leagueLimits";
+import { UNDO_MS } from "./leagueDeletion";
 import { COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "./leagues.harness";
-
-const UNDO_MS = DELETION_UNDO_HOURS * 60 * 60 * 1000;
 
 export const [ANN, BOB] = MANAGERS;
 
