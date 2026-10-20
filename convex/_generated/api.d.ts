@@ -18,12 +18,14 @@ import type * as footballSync from "../footballSync.js";
 import type * as fpl from "../fpl.js";
 import type * as http from "../http.js";
 import type * as leagueAccess from "../leagueAccess.js";
+import type * as leagueGameweeks from "../leagueGameweeks.js";
 import type * as leagueLimits from "../leagueLimits.js";
 import type * as leagues from "../leagues.js";
 import type * as myLeagues from "../myLeagues.js";
 import type * as signInEmail from "../signInEmail.js";
 import type * as signInLinks from "../signInLinks.js";
 import type * as teams from "../teams.js";
+import type * as usedGameweeks from "../usedGameweeks.js";
 
 import type {
   ApiFromModules,
@@ -42,12 +44,14 @@ declare const fullApi: ApiFromModules<{
   fpl: typeof fpl;
   http: typeof http;
   leagueAccess: typeof leagueAccess;
+  leagueGameweeks: typeof leagueGameweeks;
   leagueLimits: typeof leagueLimits;
   leagues: typeof leagues;
   myLeagues: typeof myLeagues;
   signInEmail: typeof signInEmail;
   signInLinks: typeof signInLinks;
   teams: typeof teams;
+  usedGameweeks: typeof usedGameweeks;
 }>;
 
 /**

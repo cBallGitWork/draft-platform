@@ -5,6 +5,7 @@ import "./styles.css";
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { previewGameweeks } from "./gameweeks/preview";
 import { LiveApp, takeLinkCode } from "./liveApp";
 import { previewAuth, previewLeagues, previewSession, previewTopBar } from "./preview";
 import { ShellApp } from "./ShellApp";
@@ -16,7 +17,7 @@ if (!root) throw new Error("index.html has no #root element to mount the app in"
 createRoot(root).render(
   <StrictMode>
     {preview ? (
-      <ShellApp session={preview} auth={previewAuth} leagues={previewLeagues} topBar={previewTopBar} />
+      <ShellApp session={preview} auth={previewAuth} leagues={previewLeagues} topBar={previewTopBar} gameweeks={previewGameweeks} />
     ) : (
       <LiveApp linkCode={takeLinkCode()} />
     )}

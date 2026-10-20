@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/myLeagues";
+import { GameweeksLink } from "../gameweeks/GameweeksLink";
 import { NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
 import { adminWords, roleWords, unsentLink, unsentLinkWords } from "./words";
 
@@ -21,7 +22,7 @@ export function LeaguesPage({ email, isAdmin, leagues }: { email: string; isAdmi
             {!isAdmin && <p className="text-muted">When a commissioner invites you to one, it will be here.</p>}
           </>
         ) : (
-          <LeagueTable leagues={leagues} />
+          <LeagueTable leagues={leagues} isAdmin={isAdmin} />
         )}
         {isAdmin && (
           <Link to={NEW_LEAGUE_PATH} className="action self-start">
@@ -33,7 +34,7 @@ export function LeaguesPage({ email, isAdmin, leagues }: { email: string; isAdmi
   );
 }
 
-function LeagueTable({ leagues }: { leagues: readonly LeagueSummary[] }) {
+function LeagueTable({ leagues, isAdmin }: { leagues: readonly LeagueSummary[]; isAdmin: boolean }) {
   return (
     <table className="w-full border-collapse">
       <thead className="bg-head text-ground">
@@ -50,6 +51,7 @@ function LeagueTable({ leagues }: { leagues: readonly LeagueSummary[] }) {
             <th scope="row" className={`${cellClasses} font-semibold`}>
               <span className="block text-lead">{league.name}</span>
               <span className="block font-normal text-muted wrap-anywhere">Commissioner: {league.commissionerEmail}</span>
+              <GameweeksLink league={league} isAdmin={isAdmin} />
             </th>
             <td className={cellClasses}>{league.roles.map((role) => roleWords[role]).join(", ") || adminWords}</td>
             <td className={cellClasses}>{league.teamName ?? <span className="text-muted">None</span>}</td>
