@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+/* The Plate look as Tailwind's tokens: docs/design/plate.md has every value and its role.
+   Tailwind's own scales are switched off (.claude/rules/ui.md). The bevel and rule
+   shades are R3·1's (docs/design/mockups/PlateOne.dc.html). */
+@theme {
+  --color-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --text-*: initial;
+  --tracking-*: initial;
+  --font-*: initial;
+  --font-weight-*: initial;
+
+  --color-ground: #0a1240;
+  --color-panel: #16238a;
+  --color-plate: #0030a6;
+  --color-stepper: #1f13a7;
+  --color-name-plate: #050a30;
+  --color-head: #b9bcc4;
+  --color-fact: #ffffff;
+  --color-figure: #ffe600;
+  --color-derived: #6bfdfa;
+  --color-event: #ff9b3d;
+  --color-muted: #9aa4b8;
+  --color-soft: #c9d1ff; /* role text, inactive tabs, the action's hover */
+  /* the 1px rules between butted tabs: on the plate, and on a panel */
+  --color-plate-rule: #001a5e;
+  --color-panel-rule: var(--color-ground);
+  /* a panel's lit edge: the top of its bevel, and the line above a section's tabs */
+  --color-panel-edge: #3d4fc4;
+
+  --font-sans: "Archivo Narrow", "Arial Narrow", sans-serif;
+  --font-weight-normal: 400;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --spacing-tap: 44px; /* every target, at the phone's width (plate.md, The phone) */
+
+  --text-data: 13px;
+  --text-data--line-height: 20px;
+  --text-lead: 15px; /* a player's name, and the menu */
+  --text-lead--line-height: 20px;
+  --text-title: 26px;
+  --text-title--line-height: 32px;
+
+  /* CM's 2px bevel, light above and dark below */
+  --shadow-bevel-plate: inset 0 2px 0 #4a74e0, inset 0 -2px 0 var(--color-plate-rule);
+  --shadow-bevel-panel: inset 0 2px 0 var(--color-panel-edge), inset 0 -2px 0 var(--color-name-plate);
+  --shadow-bevel-action: inset 0 2px 0 var(--color-fact), inset 0 -2px 0 var(--color-head);
+  --shadow-bevel-action-pressed: inset 0 2px 0 var(--color-head), inset 0 -2px 0 var(--color-fact);
+  --shadow-panel-top: inset 0 1px 0 var(--color-panel-edge);
+  /* the active tab's cyan underline, on the top row and on a section's tabs */
+  --shadow-tab-active: inset 0 -3px 0 var(--color-derived);
+  --shadow-subtab-active: inset 0 -2px 0 var(--color-derived);
+  /* the alert strip's orange edge */
+  --shadow-event-edge: inset 3px 0 0 var(--color-event);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    background: var(--color-ground);
+    color: var(--color-fact);
+    font-family: var(--font-sans);
+    font-size: var(--text-data);
+    line-height: var(--text-data--line-height);
+    font-variant-numeric: tabular-nums;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-derived);
+    outline-offset: 2px;
+  }
+  a {
+    color: var(--color-fact);
+    text-decoration: underline 1px;
+  }
+  a:hover {
+    text-decoration-color: var(--color-derived);
+  }
+}
+
+/* The action (plate.md, Colour roles): Continue, and a page's one main button. */
+@utility action {
+  display: flex;
+  align-items: center;
+  min-height: var(--spacing-tap);
+  padding-inline: calc(var(--spacing) * 4);
+  background: var(--color-fact);
+  color: var(--color-ground);
+  font-size: var(--text-lead);
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+  box-shadow: var(--shadow-bevel-action);
+  &:hover {
+    background: var(--color-soft);
+  }
+  &:active,
+  &:disabled {
+    background: var(--color-head);
+    box-shadow: var(--shadow-bevel-action-pressed);
+  }
+}
