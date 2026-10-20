@@ -119,6 +119,10 @@ export const recordCommissionerLink = internalMutation({
   args: { leagueId: v.id("leagues"), email: v.string(), reply: signInReply },
   returns: v.null(),
   handler: async (ctx, { leagueId, email, reply }) => {
+    const league = await ctx.db.get("leagues", leagueId);
+    if (!league) throw new Error(`League ${leagueId} doesn't exist, so ${email}'s sign-in link can't be kept on it`);
+    // An answer that comes back after another commissioner was named is no longer the league's.
+    if (league.commissionerEmail !== email) return null;
     await ctx.db.patch("leagues", leagueId, { commissionerLink: { email, reply } });
     return null;
   },

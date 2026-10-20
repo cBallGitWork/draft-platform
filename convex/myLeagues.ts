@@ -23,10 +23,22 @@ export const leagueSummary = v.object({
   teams: v.number(),
   maxTeams: v.number(),
   /** For the admin only: what asking for the commissioner's sign-in link answered, when that
-   *  wasn't "check your email", so a link that never went is seen. */
+   *  wasn't "check your email" and they haven't signed in since, so a link that never went is seen. */
   unsentCommissionerLink: v.union(v.null(), v.object({ email: v.string(), reply: noLinkReply })),
 });
 export type LeagueSummary = Infer<typeof leagueSummary>;
+
+/** The commissioner's link that didn't go, until they sign in some other way. Convex Auth makes
+ *  their user even when the link fails, and marks it verified only once a link of theirs is opened. */
+async function unsentLinkOf(ctx: QueryCtx, league: Doc<"leagues">): Promise<LeagueSummary["unsentCommissionerLink"]> {
+  const link = league.commissionerLink;
+  if (!link || link.reply === "checkYourEmail") return null;
+  const user = await ctx.db
+    .query("users")
+    .withIndex("email", (q) => q.eq("email", link.email))
+    .first();
+  return user?.emailVerificationTime === undefined ? { email: link.email, reply: link.reply } : null;
+}
 
 export async function leaguesOf(ctx: QueryCtx, email: string, isAdmin: boolean): Promise<LeagueSummary[]> {
   const commissioned = await ctx.db
@@ -59,7 +71,6 @@ export async function leaguesOf(ctx: QueryCtx, email: string, isAdmin: boolean):
     if (league.commissionerEmail === email) roles.push("commissioner");
     if (league.coCommissionerEmail === email) roles.push("co-commissioner");
     if (team) roles.push("manager");
-    const link = isAdmin ? league.commissionerLink : undefined;
     summaries.push({
       leagueId: league._id,
       name: league.name,
@@ -68,7 +79,7 @@ export async function leaguesOf(ctx: QueryCtx, email: string, isAdmin: boolean):
       teamName: team?.name ?? null,
       teams: teams.length,
       maxTeams: league.maxTeams,
-      unsentCommissionerLink: link && link.reply !== "checkYourEmail" ? { email: link.email, reply: link.reply } : null,
+      unsentCommissionerLink: isAdmin ? await unsentLinkOf(ctx, league) : null,
     });
   }
   return summaries.sort((a, b) => a.name.localeCompare(b.name));
