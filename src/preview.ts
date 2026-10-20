@@ -7,16 +7,12 @@
 import type { Id } from "../convex/_generated/dataModel";
 import type { LeagueSummary } from "../convex/myLeagues";
 import type { AuthActions, Session } from "./auth";
-import type { TopBarState } from "./frame/topBarState";
-import { MAIL_PATH } from "./frame/menu";
 import type { LeagueActions } from "./leagues/actions";
-import { previewLetters } from "./mail/previewMail";
-import { unreadCount } from "./mail/words";
 import { replyWords } from "./sign-in/words";
 
 /** Made-up leagues, in the shape account:signedInAs sends. */
 const unreachedCommissioner = "first.commissioner@example.com";
-const proLeague: LeagueSummary = {
+export const proLeague: LeagueSummary = {
   leagueId: "preview-pro-league" as Id<"leagues">,
   name: "Tim Hortons Pro League",
   commissionerEmail: "commish@example.com",
@@ -37,7 +33,7 @@ const miniBeta: LeagueSummary = {
   unsentCommissionerLink: { email: unreachedCommissioner, reply: "paused" },
 };
 
-const manager = {
+export const manager = {
   signedIn: true,
   email: "manager@example.com",
   isAdmin: false,
@@ -77,12 +73,4 @@ export const previewLeagues: LeagueActions = {
 export const previewAuth: AuthActions = {
   requestSignInLink: async () => replyWords.checkYourEmail,
   signOut: async () => {},
-};
-
-const unreadMail = previewLetters.filter((letter) => !letter.read).length;
-
-/** Mail's count from the made-up letters, so the shot shows it and Continue in use. */
-export const previewTopBar: TopBarState = {
-  unreadMail,
-  next: { path: MAIL_PATH, reason: unreadCount(unreadMail) },
 };

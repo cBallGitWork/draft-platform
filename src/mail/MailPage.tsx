@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../convex/mail";
+import { LETTERS_SHOWN } from "../../convex/mailLimits";
 import type { LeagueSummary } from "../../convex/myLeagues";
 import type { Session } from "../auth";
 import type { Mail } from "./actions";
@@ -12,6 +13,7 @@ import {
   letterTime,
   loadingWords,
   noLettersWords,
+  onlyLatestWords,
   unreadCount,
   unreadWords,
 } from "./words";
@@ -54,24 +56,27 @@ function Letters({ mail }: { mail: Mail }) {
   }
 
   return (
-    <ol>
-      {mail.letters.map((letter) => (
-        <Letter key={letter.letterId} letter={letter} isOpen={openId === letter.letterId} onToggle={() => toggle(letter)} />
-      ))}
-    </ol>
+    <>
+      <ol>
+        {mail.letters.map((letter) => (
+          <Letter key={letter.letterId} letter={letter} isOpen={openId === letter.letterId} onToggle={() => toggle(letter)} />
+        ))}
+      </ol>
+      {mail.letters.length >= LETTERS_SHOWN && <p className="px-3 py-2 text-muted">{onlyLatestWords}</p>}
+    </>
   );
 }
 
 function Letter({ letter, isOpen, onToggle }: { letter: LetterSummary; isOpen: boolean; onToggle: () => void }) {
   const bodyId = `letter-${letter.letterId}`;
   return (
-    <li className={`border-b border-panel-rule ${letter.read ? "" : "shadow-event-edge"}`}>
+    <li className="border-b border-panel-rule">
       <button
         type="button"
         aria-expanded={isOpen}
         aria-controls={bodyId}
         onClick={onToggle}
-        className="grid min-h-tap w-full grid-cols-[auto_minmax(0,1fr)] items-start gap-2 px-3 py-1 text-left hover:bg-stepper"
+        className={`grid min-h-tap w-full grid-cols-[auto_minmax(0,1fr)] items-start gap-2 px-3 py-1 text-left hover:bg-stepper ${letter.read ? "" : "shadow-event-edge"}`}
       >
         <time dateTime={new Date(letter.at).toISOString()} className="bg-plate px-1 text-center whitespace-nowrap">
           {letterDay(letter.at)} <span className="text-soft">{letterTime(letter.at)}</span>
