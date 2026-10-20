@@ -78,6 +78,14 @@ it is not picked (`docs/to-grill.md`).
 Craig moved the licence check to before the mini beta (`SPEC.md`, *What it is*; issue #79). The
 quotes above come from one research run: read both pages at the source.
 
+## US fantasy
+
+A checked research run of 20 Oct 2026 on what US draft leagues can teach us, with Craig's answers,
+is Claude's doc "What US fantasy can teach draft-platform", not checked by review
+(https://claude.ai/code/artifact/127ec025-09a4-4ca6-aa39-ca35dfcfab97). The strongest lessons: a
+"beat the median" result in head-to-head, a competition for the bottom of the table, a recap after
+each gameweek, and share cards for the group chat in place of chat.
+
 ## Sources
 
 - docs.draftfantasy.com (waivers, auction, snake, transfers, cups, commissioner); app.draftfantasy.com/pricing

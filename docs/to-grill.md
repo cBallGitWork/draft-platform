@@ -36,6 +36,20 @@ Each with the questions its grill starts from. The questions are Claude's.
 
 **Premier League club pages**: `spec/18`, *After the mini beta*.
 
+**Cups and a plate**: after the beta (SPEC, *Later*; Craig, 20 Oct 2026). The plate here is a
+competition, not the design plate (`docs/design/plate.md`).
+- Who plays the plate: everyone knocked out of the cup, or the bottom of the table.
+- Whether a plate win can earn next season's first pick, so losing never pays (commissioners set
+  the draft order anyway, `spec/04`).
+- Rounds, legs and ties, against the double-gameweek rule (`spec/03`). Draft Fantasy's cups and
+  US consolation brackets: `docs/research/draft-competitors.md`.
+
+**A split season or a redraft**: "a season is long" (Craig, 20 Oct 2026).
+- A whole redraft or a short top-up draft; at the January window or elsewhere.
+- Do keepers or some players stay; does the table reset or carry on. FPL Draft allows up to three
+  redrafts that "do not affect the current league standings"
+  (premierleague.com/en/news/4363847).
+
 ## Suggested, not yet picked
 
 | What | Why |

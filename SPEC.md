@@ -64,6 +64,8 @@ Feature 13 gets its file from its own `/grill`.
   fee, trades can involve money, and the market could take a more footballing form, like a
   transfer market. Auction drafts and bidding waivers go with it.
 - **Payments**, its own feature.
+- **Cups**, after the beta, with a plate competition beside them (Craig, 20 Oct 2026). Their
+  own `/grill` then (`docs/to-grill.md`).
 - **Other leagues**: Scotland and the rest of Europe. None has a free public feed like the
   Premier League's; a paid feed (Sportmonks, API-Football) covers them all. The football data is
   built so a feed can plug in.
@@ -75,7 +77,7 @@ Feature 13 gets its file from its own `/grill`.
 
 ## Out of scope
 
-- The paper, cups and player intel from the companion. It is a new product, not a companion app.
+- The paper and player intel from the companion. It is a new product, not a companion app.
 - Chat. Managers talk elsewhere.
 - Push notifications and native apps.
 - Storylines (morale, contracts, conduct).
