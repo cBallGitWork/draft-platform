@@ -3,7 +3,7 @@ import { ConvexError } from "convex/values";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import type { LeagueActions } from "./actions";
-import { switchFailedWords, createFailedWords } from "./words";
+import { createFailedWords, switchFailedWords } from "./words";
 
 /** The leagues seam filled in by Convex. A refusal comes back as the server's own words
  *  (convex/leagueAccess.ts); any other failure is logged and said plainly. */
