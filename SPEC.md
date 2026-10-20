@@ -39,14 +39,12 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 10 | [Live matchday](spec/10-live-matchday.md) | not built | points move during a match and are marked provisional until it is final |
 | 11 | [Email](spec/11-email.md) | not built | on a pick clock over 10 minutes the manager on the clock gets one email; under it, none |
 | 12 | [Screens](spec/12-screens.md) | not built | a signed-in manager lands on My team, with Mail's unread count in the menu |
-| 13 | Setting up a league | to grill | — |
+| 13 | [Setting up a league](spec/13-setting-up-a-league.md) | not built | a league of four fills from two emailed invites and two approved requests, and a refused request lets no one in |
 | 14 | [Scoring categories](spec/14-scoring-categories.md) | not built | a match's stats priced under a set of rules give each category's points and the total, by the slot's area |
 | 15 | [Admin tools](spec/15-admin-tools.md) | not built | a commissioner's assignment puts the player on the team and files a Mail letter to the league |
 | 16 | [Mail](spec/16-mail.md) | not built | a claim, a drop and a trade each file one letter for every manager in the league |
 | 17 | [Captain and set pieces](spec/17-captain-and-set-pieces.md) | after the mini beta | the first on a set-piece list who plays is paid for the duty for the whole match, and no one else on the list is |
 | 18 | [Premier League](spec/18-premier-league.md) | not built | a goal in a live match moves the Premier League table at once, marked provisional |
-
-Feature 13 gets its file from its own `/grill`.
 
 ## Second release
 
@@ -71,6 +69,8 @@ Feature 13 gets its file from its own `/grill`.
 - **Traits** (what a player does in real life), if a source for them turns up.
 - **The platform's own scoring sets**, designed once the first scoring set has been played.
 - **A landing page** for the public, when signups open to anyone; its own `/grill` then.
+- **Carrying a league into next season**, with keeper or dynasty rules; its own `/grill` then.
+- **Archiving a league**: deleting is for good for now (`spec/13`).
 
 ## Out of scope
 
@@ -86,7 +86,6 @@ Feature 13 gets its file from its own `/grill`.
 - Injured reserve.
 - A limit on auto-subs, or a switch to turn them off.
 - Public league pages: no league is visible without signing in.
-- Co-commissioners (a league has one commissioner).
 - FPL's bonus points, and a ready-made FPL-style or Fantrax-copy scoring set.
 - A lock at each player's kickoff: there is one deadline per gameweek.
 
@@ -97,7 +96,11 @@ Feature 13 gets its file from its own `/grill`.
 | team | a fantasy side: a manager's draft team | |
 | manager | the person who runs a team | player (for a person) |
 | admin | Craig, running the whole platform | |
-| commissioner | the manager who runs one league | |
+| commissioner | the person who runs one league, with or without a team in it | |
+| co-commissioner | a league's second person with the commissioner's powers, except naming commissioners and deleting the league | |
+| invite | an email a commissioner sends to bring one person into a team | |
+| invite link | a league's one shareable link; opening it only asks to join | |
+| join request | what opening the invite link makes, for the commissioner to approve or refuse | |
 | club | a real Premier League club | team |
 | position | where a player can play in real life (CB, CAM) | |
 | role | what you tell him to do in your slot, which changes his points | |
