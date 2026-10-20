@@ -5,7 +5,8 @@
 // The second, fpl-season-kickoffs.json, recorded 20 Oct 2026 with gameweek 7 still current, is the
 // whole season for the deadline (#9): all 38 gameweeks and 380 matches, no players, and each club,
 // gameweek and match cut to the keys `mapFpl` reads. The first holds too few matches for it: its one
-// gameweek 7 match is the Monday's, not the first kickoff.
+// gameweek 7 match is the Monday's, not the first kickoff. `recordedSeason` lends it the first's
+// seven players, since `mapFpl` refuses an empty list (#64); both are 2026/27, so their club ids agree.
 // For the tests only: the second dot in this file's name keeps it out of Convex's deploy.
 
 import type { RawBootstrap, RawFixture } from "../fpl";
@@ -29,7 +30,9 @@ export function recordedFpl(): FplPayloads {
   return structuredClone({ bootstrap: bootstrap as RawBootstrap, fixtures: fixtures as RawFixture[] });
 }
 
-/** A fresh copy of the whole-season recording, safe to change for one test. */
+/** A fresh copy of the whole-season recording, with the first's players, safe to change for one test. */
 export function recordedSeason(): FplPayloads {
-  return structuredClone(season as FplPayloads);
+  const whole = structuredClone(season as FplPayloads);
+  whole.bootstrap.elements = structuredClone(bootstrap.elements as RawBootstrap["elements"]);
+  return whole;
 }
