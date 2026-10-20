@@ -12,18 +12,17 @@ import { labelPositions, placePosition } from "./positionTables";
 import { readPlFixture, readPlFixtures, readPlSquad, type RawPlFixture, type RawPlSquadPlayer } from "./premierLeague";
 import { positionsSyncFields, startRecord, syncTrigger } from "./schema";
 
-// Issue #22: each player's starts, from the Premier League's team sheets for last season and this,
-// and his label, from this season's squads (docs/positions.md). A match's sheets are read once;
+// Issue #22: each player's starts, from the Premier League's team sheets for last season and this
+// (spec/06: his last 38 starts count, across both), and his label, from this season's squads or
+// else the sheets (docs/positions.md). A match's sheets are read once;
 // the squads every run, so a changed label arrives. From the CLI:
 // `npx convex run positionsSync:run '{"trigger":"manual"}'`, then `positionsSync:latest`.
 // Nothing schedules it yet: spec/06 names no cadence.
 
-/** Both seasons a start counts in (spec/06: his last 38 starts, last season's and this). */
-const SEASONS = [PL_LAST_COMP_SEASON, PL_COMP_SEASON];
 /** The fixture list's `status` for a match played, whose sheets are final. */
 const PLAYED = "C";
-/** Matches whose sheets one run reads, one read at a time: two seasons' first 450 take three runs,
- *  each well inside an action's ten minutes, and the feed is never asked for two at once. */
+/** Matches whose sheets one run reads, one at a time: two seasons' first 450 take three runs, each
+ *  well inside an action's ten minutes. */
 export const MATCHES_PER_RUN = 150;
 
 type Synced = Omit<Extract<Infer<typeof positionsSyncFields.outcome>, { ok: true }>, "ok">;
@@ -117,7 +116,10 @@ function withStart(starts: Start[], start: Start): Start[] {
  *  season's squads. A failed read throws, and the matches filed before it stay filed. */
 async function syncPositions(ctx: ActionCtx): Promise<Synced> {
   const codeByOpta = codesByOpta((await readFplBootstrap()).elements);
-  const [lastSeason, thisSeason] = await Promise.all(SEASONS.map((season) => readPlFixtures(undefined, season)));
+  const [lastSeason, thisSeason] = await Promise.all([
+    readPlFixtures(undefined, PL_LAST_COMP_SEASON),
+    readPlFixtures(undefined, PL_COMP_SEASON),
+  ]);
   const played = [...lastSeason, ...thisSeason].filter((fixture) => fixture.status === PLAYED);
   const unread = new Set<number>(
     await ctx.runQuery(internal.positionsSync.unreadMatches, { fixtureCodes: played.map(requireFixtureCode) }),

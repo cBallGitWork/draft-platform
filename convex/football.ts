@@ -23,7 +23,7 @@ export const PL_API_BASE = "https://footballapi.pulselive.com/football";
 export const PL_COMPETITION = 1;
 /** The Premier League's id for the 2026/27 season. */
 export const PL_COMP_SEASON = 841;
-/** The Premier League's id for the 2025/26 season, last season (its `/competitions/1/compseasons`). */
+/** The Premier League's id for the 2025/26 season, last season (from `/competitions/1/compseasons`). */
 export const PL_LAST_COMP_SEASON = 777;
 /** The Premier League's id for Arsenal, whose squad list proves squad numbers can be read. */
 export const PL_ARSENAL = 1;

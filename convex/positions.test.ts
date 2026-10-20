@@ -7,7 +7,7 @@ const RIGHT_BACK = { formation: "4-2-3-1", line: 1, place: 0 };
 const CENTRE_BACK = { formation: "4-2-3-1", line: 1, place: 1 };
 const NUMBER_TEN = { formation: "4-2-3-1", line: 3, place: 1 };
 
-/** `count` starts at `place`, the first `newest` milliseconds after the epoch and older from there. */
+/** `count` starts at `place`: the newest kicks off at `newest`, each next one a millisecond earlier. */
 function startsAt(place: Omit<Start, "fixtureCode" | "kickoff">, count: number, newest = 1_000_000): Start[] {
   return Array.from({ length: count }, (_, index) => ({ ...place, fixtureCode: newest - index, kickoff: newest - index }));
 }
