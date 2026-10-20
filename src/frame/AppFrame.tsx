@@ -1,7 +1,8 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { PRODUCT_NAME } from "../product";
 import { Continue } from "./Continue";
 import { MAIL_PATH, sectionAt, sections } from "./menu";
+import { ProductName } from "./ProductName";
+import { SignOut } from "./SignOut";
 import type { TopBarState } from "./topBarState";
 
 // Butted tabs with 1px rules between them (plate.md, Shape).
@@ -13,7 +14,7 @@ const sectionTabClasses =
   "data-[status=active]:text-fact data-[status=active]:shadow-subtab-active";
 
 /** The signed-in frame: the top menu, the active section's tabs under it, and the page. */
-export function AppFrame({ topBar }: { topBar: TopBarState }) {
+export function AppFrame({ topBar, onSignOut }: { topBar: TopBarState; onSignOut: () => Promise<void> }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const tabs = sectionAt(pathname)?.tabs ?? [];
   const unread = topBar.unreadMail > 0 ? topBar.unreadMail : null;
@@ -22,8 +23,8 @@ export function AppFrame({ topBar }: { topBar: TopBarState }) {
     <>
       <header className="bg-plate shadow-bevel-plate">
         <div className="flex flex-wrap items-stretch">
-          <span className="flex min-h-tap items-center px-4 text-lead font-bold">{PRODUCT_NAME}</span>
-          {/* On a phone the menu takes its own row under the name and Continue. */}
+          <ProductName />
+          {/* On a phone the menu takes its own row under the name, Continue and Sign out. */}
           <nav
             aria-label="Main"
             className="order-last flex w-full flex-wrap border-t border-plate-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-r"
@@ -49,6 +50,7 @@ export function AppFrame({ topBar }: { topBar: TopBarState }) {
           </nav>
           <span className="grow" />
           <Continue next={topBar.next} />
+          <SignOut onSignOut={onSignOut} />
         </div>
         {tabs.length > 0 && (
           <nav aria-label="Section" className="flex flex-wrap bg-panel shadow-panel-top">

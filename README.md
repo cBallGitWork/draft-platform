@@ -22,8 +22,16 @@ writes `.env.local` (`.env.example` says what lands there). A plain first `npm r
 on a deployment on your own machine instead, which proves nothing about Convex's servers.
 
 `npm run dev` pushes the Convex functions to your dev deployment, keeps pushing as they change,
-and starts the app at <http://localhost:5173>: the sign-in page. Sign-in isn't switched on yet
-(#20), so to see the signed-in screens, open <http://localhost:5173/?preview=manager> (dev
-server only, with made-up figures). `npx vite` starts the app alone, without touching Convex.
+and starts the app at <http://localhost:5173>: the sign-in page.
+
+Sign-in needs four settings on the deployment, once: `npx @convex-dev/auth` sets Convex Auth's
+keys and `SITE_URL`; `npx convex env set ADMIN_EMAIL` names the admin; and
+`npx convex env set AUTH_RESEND_KEY` holds Resend's API key (pipe each value in, so it stays out
+of your shell history). The admin can sign in at once; anyone else is put on the allowed list
+first: `npx convex run allowedEmails:add '{"email":"someone@example.com"}'`.
+
+To see the screens without signing in, add `?preview=` to the address: `manager` (in a league),
+`newcomer` (in none), `admin` or `visitor` (dev server only, with made-up figures). `npx vite`
+starts the app alone, without touching Convex, and then only the previews work.
 
 `npm run verify` runs every gate: the tests, the typecheck and the hook checks.

@@ -8,11 +8,17 @@
  * @module
  */
 
+import type * as account from "../account.js";
+import type * as allowedEmails from "../allowedEmails.js";
+import type * as auth from "../auth.js";
 import type * as crons from "../crons.js";
 import type * as feeds from "../feeds.js";
 import type * as football from "../football.js";
 import type * as footballSync from "../footballSync.js";
 import type * as fpl from "../fpl.js";
+import type * as http from "../http.js";
+import type * as signInEmail from "../signInEmail.js";
+import type * as signInLinks from "../signInLinks.js";
 
 import type {
   ApiFromModules,
@@ -21,11 +27,17 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  account: typeof account;
+  allowedEmails: typeof allowedEmails;
+  auth: typeof auth;
   crons: typeof crons;
   feeds: typeof feeds;
   football: typeof football;
   footballSync: typeof footballSync;
   fpl: typeof fpl;
+  http: typeof http;
+  signInEmail: typeof signInEmail;
+  signInLinks: typeof signInLinks;
 }>;
 
 /**

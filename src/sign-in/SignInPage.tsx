@@ -1,9 +1,18 @@
 import { useState, type FormEvent } from "react";
-import { requestSignInLink } from "../auth";
 import { PRODUCT_NAME } from "../product";
+import { linkProblemWords, type LinkProblem } from "./words";
 
-/** All a logged-out visitor sees (spec/12): the name, "Invite only", and an email box for the link. */
-export function SignInPage() {
+const alertStripClasses = "bg-name-plate px-3 py-2 text-event shadow-event-edge";
+
+/** All a logged-out visitor sees (spec/12): the name, "Invite only", and an email box for the link.
+ *  Opened from a link that didn't sign them in, it says so first (spec/02). */
+export function SignInPage({
+  requestSignInLink,
+  linkProblem,
+}: {
+  requestSignInLink: (email: string) => Promise<string>;
+  linkProblem?: LinkProblem;
+}) {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [outcome, setOutcome] = useState<string | null>(null);
@@ -26,6 +35,11 @@ export function SignInPage() {
           <h2 id="sign-in-title" className="bg-plate px-3 py-1 font-bold shadow-bevel-plate">
             Sign in
           </h2>
+          {linkProblem && !outcome && (
+            <p role="alert" className={alertStripClasses}>
+              {linkProblemWords[linkProblem]}
+            </p>
+          )}
           <form onSubmit={sendLink} className="flex flex-col gap-2 p-3">
             <label htmlFor="sign-in-email" className="font-semibold">
               Email
@@ -44,7 +58,7 @@ export function SignInPage() {
               Send the link
             </button>
           </form>
-          <p role="status" className={outcome ? "bg-name-plate px-3 py-2 text-event shadow-event-edge" : undefined}>
+          <p role="status" className={outcome ? alertStripClasses : undefined}>
             {outcome}
           </p>
         </section>
