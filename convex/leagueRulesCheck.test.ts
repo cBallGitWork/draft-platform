@@ -11,6 +11,8 @@ import { everyArea } from "./scoring.example";
 
 const [firstPreset] = FIRST_RULES.presets;
 const limits = FIRST_RULES.areaLimits;
+const FRIDAY_9_05 = { day: "friday", hour: 9, minute: 5 } as const;
+const ONE_PER_3 = { every: 3, points: 1 };
 
 test("the first rules are sound", () => {
   expect(() => checkLeagueRules(FIRST_RULES)).not.toThrow();
@@ -116,12 +118,12 @@ describe.each<[string, Partial<LeagueRules>, string]>([
   ],
   [
     "two waiver runs at one time",
-    { waivers: { ...FIRST_RULES.waivers, runs: [{ day: "friday", hour: 9, minute: 5 }, { day: "friday", hour: 9, minute: 5 }] } },
+    { waivers: { ...FIRST_RULES.waivers, runs: [FRIDAY_9_05, FRIDAY_9_05] } },
     "Waivers run on friday at 9:05 twice.",
   ],
   [
     "a scoring set missing an area's value",
-    { scoring: { rules: [{ shape: "perCount", stat: "saves", byArea: { ...everyArea({ every: 3, points: 1 }), attack: { every: 0, points: 1 } } }] } },
+    { scoring: { rules: [{ shape: "perCount", stat: "saves", byArea: { ...everyArea(ONE_PER_3), attack: { every: 0, points: 1 } } }] } },
     "The scoring set can't be saved: the saves rule in attack pays for every 0 actions; it must be more than 0.",
   ],
 ])("%s", (_name, change, reason) => {

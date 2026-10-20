@@ -345,10 +345,10 @@ const leagueRulesTables = {
 };
 
 export default defineSchema({
-  ...leagueRulesTables,
   ...matchStatsTables,
   ...liveStatsTables,
   ...authTables,
+  ...leagueRulesTables,
   allowedEmails: defineTable(allowedEmailFields).index("by_email", ["email"]),
   signInAsks: defineTable(signInAskFields).index("by_email_and_askedAt", ["email", "askedAt"]),
   emailSends: defineTable(emailSendFields).index("by_day", ["day"]),

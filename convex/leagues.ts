@@ -50,8 +50,8 @@ export const create = mutation({
 
     const leagueId = await ctx.db.insert("leagues", { name, maxTeams: args.maxTeams, commissionerEmail });
     await recordEvent(ctx, leagueId, by, { kind: "created", name, maxTeams: args.maxTeams });
-    await giveDefaultRules(ctx, leagueId);
     await recordEvent(ctx, leagueId, by, { kind: "commissionerNamed", email: commissionerEmail, replaced: null });
+    await giveDefaultRules(ctx, leagueId);
     await admitCommissioner(ctx, commissionerEmail, leagueId);
     return leagueId;
   },
