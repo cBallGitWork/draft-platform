@@ -24,12 +24,16 @@ const SEASON_GAMEWEEKS = 38;
 /** A season of one match a gameweek, a week apart, gameweek `next` kicking off `kicksOffIn` from
  *  now (six days by default), so every gameweek before it has begun and FPL's deadline for it is
  *  90 minutes before. */
-export async function holdGameweeks(t: TestConvex, { next, kicksOffIn = 6 * DAY_MS }: { next: number; kicksOffIn?: number }) {
+export async function holdGameweeks(
+  t: TestConvex,
+  { next, kicksOffIn = 6 * DAY_MS }: { next: number; kicksOffIn?: number },
+): Promise<void> {
   const kickoffOf = (gameweek: number) => Date.now() + kicksOffIn + (gameweek - next) * WEEK_MS;
   await t.run(async (ctx) => {
     for (let number = 1; number <= SEASON_GAMEWEEKS; number += 1) {
       const kickoff = kickoffOf(number);
-      await ctx.db.insert("gameweeks", { number, deadline: kickoff - FPL_DEADLINE_RULE.minutesBeforeFirstKickoff * MS_PER_MINUTE });
+      const deadline = kickoff - FPL_DEADLINE_RULE.minutesBeforeFirstKickoff * MS_PER_MINUTE;
+      await ctx.db.insert("gameweeks", { number, deadline });
       await ctx.db.insert("fixtures", { code: number, gameweek: number, homeClubCode: 1, awayClubCode: 2, kickoff });
     }
   });

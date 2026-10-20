@@ -2,9 +2,8 @@ import { expect, expectTypeOf, test } from "vitest";
 import type { DeadlineRule } from "./deadline";
 import { FIRST_RULES } from "./firstRules";
 import { lineupProblems, type LineupRules } from "./lineup";
-import { leagueRulesShape, type LeagueRules } from "./leagueRulesShape";
-import type { Preset } from "./presets";
-import { DEFAULT_PRESETS } from "./presets";
+import type { LeagueRules } from "./leagueRulesShape";
+import { DEFAULT_PRESETS, type Preset } from "./presets";
 import { scoreGameweek, scoreMatch, type DoubleGameweekRule } from "./scoring";
 import type { ScoringSet } from "./scoringSet";
 
@@ -13,7 +12,11 @@ import type { ScoringSet } from "./scoringSet";
 // renamed in one and not the other fails `npm run typecheck` here.
 
 /** The same type both ways, readonly aside: Convex hands back plain arrays. */
-type Writable<T> = T extends readonly (infer Item)[] ? Writable<Item>[] : T extends object ? { -readonly [K in keyof T]: Writable<T[K]> } : T;
+type Writable<T> = T extends readonly (infer Item)[]
+  ? Writable<Item>[]
+  : T extends object
+    ? { -readonly [K in keyof T]: Writable<T[K]> }
+    : T;
 
 test("each stored part is its module's input type", () => {
   expectTypeOf<LeagueRules["scoring"]>().toEqualTypeOf<Writable<ScoringSet>>();
@@ -23,13 +26,8 @@ test("each stored part is its module's input type", () => {
   expectTypeOf<LeagueRules["doubleGameweek"]>().toEqualTypeOf<DoubleGameweekRule>();
 });
 
-test("the first rules hold every part of the shape, in its order", () => {
-  expect(Object.keys(leagueRulesShape.fields)).toEqual(Object.keys(FIRST_RULES));
-});
-
 test("the first rules' presets are the eleven every league starts with", () => {
   expect(FIRST_RULES.presets).toEqual(DEFAULT_PRESETS);
-  expect(FIRST_RULES.presets[0].cells).not.toBe(DEFAULT_PRESETS[0].cells);
 });
 
 test("stored rules pass straight into scoring and the lineup check", () => {

@@ -27,7 +27,7 @@ const limit = v.object({ minimum: v.number(), maximum: v.number() });
 const band = v.object({ atLeast: v.number(), points: v.number() });
 
 /** scoringSet.ts's ScoringSet. */
-export const scoringSetShape = v.object({
+const scoringSetShape = v.object({
   rules: v.array(
     v.union(
       v.object({ shape: v.literal("perAction"), stat: v.string(), byArea: byArea(v.number()) }),
@@ -44,17 +44,18 @@ export const scoringSetShape = v.object({
 /** presets.ts's Preset. */
 const preset = v.object({ name: v.string(), cells: v.array(v.object({ area, lane })) });
 
-export const WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
+const WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
+const weekday = v.union(...WEEKDAYS.map((day) => v.literal(day)));
 
 /** Standings tie-breaks, applied in the league's order (spec/03). */
-export const TIE_BREAKS = ["pointsFor", "headToHead", "pointsAgainst"] as const;
+const TIE_BREAKS = ["pointsFor", "headToHead", "pointsAgainst"] as const;
 
 export const leagueRulesShape = v.object({
   format: v.union(v.literal("headToHead"), v.literal("totalPoints")),
   squad: v.object({
     /** Null: no limit on squad size. */
     size: v.union(limit, v.null()),
-    /** How many of a squad may play each area; null: no limits. */
+    /** How many of a squad may play each area (how a player's areas count is #31's); null: no limits. */
     byArea: v.union(byArea(limit), v.null()),
     /** Null: no limit. */
     maxPerClub: v.union(v.number(), v.null()),
@@ -69,7 +70,7 @@ export const leagueRulesShape = v.object({
   tieBreaks: v.array(v.union(...TIE_BREAKS.map((name) => v.literal(name)))),
   waivers: v.object({
     /** When they run each week, UK time (spec/08): one run or more. */
-    runs: v.array(v.object({ day: v.union(...WEEKDAYS.map((day) => v.literal(day))), hour: v.number(), minute: v.number() })),
+    runs: v.array(v.object({ day: weekday, hour: v.number(), minute: v.number() })),
     order: v.union(v.literal("reverseStandings"), v.literal("rotating")),
   }),
   scoring: scoringSetShape,

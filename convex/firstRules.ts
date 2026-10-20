@@ -18,7 +18,7 @@ function everyArea<Value>(value: Value): Record<Area, Value> {
   return Object.fromEntries(AREAS.map((area) => [area, value])) as Record<Area, Value>;
 }
 
-/** Placeholder: 0 a time in every area, for Craig to set. */
+/** Placeholder: 0 for each one, in every area, for Craig to set. */
 const unpriced = (stat: string) => ({ shape: "perAction" as const, stat, byArea: everyArea(0) });
 
 export const FIRST_RULES: LeagueRules = {
