@@ -38,8 +38,14 @@ in (its `.env.local` names your dev deployment):
 The admin can sign in at once; anyone else is put on the allowed list first:
 `npx convex run allowedEmails:add '{"email":"someone@example.com"}'`.
 
-To see the screens without signing in, add `?preview=` to the address: `manager` (in a league),
-`newcomer` (in none), `admin` or `visitor` (dev server only, with made-up figures). `npx vite`
+The admin creates a league from **Create a league** on the leagues page; its commissioner is
+let sign in, and sent a link if they have no account. The rest of running a league (adding and
+removing managers, renaming teams, the maximum, the co-commissioner) has no screen yet, so it is
+run as the person allowed to, by their `_id` in the `users` table:
+`npx convex run teams:addManager '{"leagueId":"…","email":"…"}' --identity '{"subject":"<their _id>|cli"}'`.
+
+To see the screens without signing in, add `?preview=` to the address: `manager` (in two leagues),
+`newcomer` (in none), `admin` (seeing every league) or `visitor` (dev server only, with made-up figures). `npx vite`
 starts the app alone, without touching Convex, and then only the previews work.
 
 `npm run verify` runs every gate: the tests, the typecheck and the hook checks.

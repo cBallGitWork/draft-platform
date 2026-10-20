@@ -1,10 +1,13 @@
 // The seam for sign-in (#20): what the screens know of it. Convex Auth's emailed links fill it in
 // live (liveApp.tsx); the preview (preview.ts) and the tests hand the screens their own.
 
-/** Who is at the screen. No league exists until #24, so a real session is in none. */
+import type { LeagueSummary } from "../convex/myLeagues";
+
+/** Who is at the screen, and their leagues (convex/account.ts): in a league is having a part in
+ *  one, as a commissioner, co-commissioner or manager. */
 export type Session =
   | { signedIn: false }
-  | { signedIn: true; email: string; isAdmin: boolean; inLeague: boolean };
+  | { signedIn: true; email: string; isAdmin: boolean; inLeague: boolean; leagues: readonly LeagueSummary[] };
 
 export type AuthActions = {
   /** Asks for a sign-in link for this email, and resolves with what to tell the visitor. It never
