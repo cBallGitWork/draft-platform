@@ -1,5 +1,3 @@
-/// <reference types="vite/client" />
-import { convexTest } from "convex-test";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl, squadNumbers } from "./football";
@@ -11,10 +9,8 @@ import {
   recordedTeamStats,
   UPCOMING_MATCH,
 } from "./recorded/commentary.payloads";
-import schema from "./schema";
+import { freshConvex, silenceConsoleError } from "./test.harness";
 import { MINUTE_MS } from "./time";
-
-const modules = import.meta.glob("./**/*.ts");
 
 /** Answers each feed as it answered on 17 Oct 2026, cut down; `refuse` makes URLs containing it answer 403. */
 function fakeFeeds(refuse?: string) {
@@ -30,14 +26,11 @@ function fakeFeeds(refuse?: string) {
 }
 
 beforeEach(() => vi.useFakeTimers());
-afterEach(() => {
-  vi.useRealTimers();
-  vi.unstubAllGlobals();
-});
+afterEach(() => vi.useRealTimers());
 
 test("a check scheduled for later runs only when its time comes, and records each read of both feeds", async () => {
   vi.stubGlobal("fetch", fakeFeeds());
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
 
   const start = Date.now();
   await t.mutation(internal.feeds.checkLater, { minutes: 10 });
@@ -60,8 +53,8 @@ test("a check scheduled for later runs only when its time comes, and records eac
 
 test("a feed that refuses is recorded with its status, and the other feed still counts", async () => {
   vi.stubGlobal("fetch", fakeFeeds("pulselive"));
-  vi.spyOn(console, "error").mockImplementation(() => {});
-  const t = convexTest(schema, modules);
+  silenceConsoleError();
+  const t = freshConvex();
 
   await t.action(internal.feeds.check, { trigger: "manual" });
 
@@ -91,7 +84,7 @@ function serveMatch(match: number, sheets: RawPlFixture) {
 test("the commentary check reads a match's stream, sheets and team stats in turn, and says what came", async () => {
   const match = COMMENTARY_MATCH.brentfordLiverpool;
   const { fetch, urls } = serveMatch(match, recordedSheets(match));
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
 
   const report = await t.action(internal.feeds.commentaryCheck, { plFixtureId: match });
 
@@ -108,7 +101,7 @@ test("the commentary check reads a match's stream, sheets and team stats in turn
 test("the commentary check before kickoff says no lines, no named men and no team stats yet", async () => {
   // Ipswich v Forest as recorded three days before: an empty stream, team stats with no `data`.
   serveMatch(UPCOMING_MATCH, { id: UPCOMING_MATCH, teamLists: [null, null] });
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
 
   const report = await t.action(internal.feeds.commentaryCheck, { plFixtureId: UPCOMING_MATCH });
 
@@ -117,7 +110,7 @@ test("the commentary check before kickoff says no lines, no named men and no tea
 
 test("a commentary check whose read is refused throws, naming the URL", async () => {
   vi.stubGlobal("fetch", fakeFeeds("textstream"));
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
 
   await expect(t.action(internal.feeds.commentaryCheck, { plFixtureId: UPCOMING_MATCH })).rejects.toThrow(
     `${plCommentaryUrl(UPCOMING_MATCH)} answered 403`,

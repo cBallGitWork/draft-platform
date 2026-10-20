@@ -2,7 +2,6 @@
 // and Hull v Everton's records as the pure merge gives them. For the tests only: the second dot
 // in this file's name keeps it out of Convex's deploy.
 
-import { convexTest } from "convex-test";
 import { vi } from "vitest";
 import { internal } from "./_generated/api";
 import { codesByOpta } from "./feedIds";
@@ -14,16 +13,14 @@ import {
   plFixtureUrl,
   plPlayerStatsUrl,
 } from "./football";
-import { modules, type TestConvex } from "./footballSync.harness";
 import { fplStatLines } from "./fplLive";
 import { matchRecords } from "./matchRecords";
 import { matchSlots, plStatLines } from "./plMatch";
 import { FULL_STATS, MATCH, recordedGw6, type Gw6Payloads } from "./recorded/gw6.payloads";
-import schema from "./schema";
+import { fakeFetch, freshConvex, type TestConvex } from "./test.harness";
 import { HOUR_MS } from "./time";
 
 export const GAMEWEEK = 6;
-const REFUSED_STATUS = 503;
 /** FPL's club codes for the two sides. */
 const HULL = 88;
 const EVERTON = 11;
@@ -35,7 +32,7 @@ export const HULL_EVERTON = MATCH.hullEverton.code;
 export const KICKOFF = Date.parse("2026-10-11T13:00:00Z");
 export const FULL_TIME_READ = KICKOFF + 2 * HOUR_MS;
 
-/** Every feed's read for gameweek 6 as recorded; a URL containing `refuse` answers 503. */
+/** Every feed's read for gameweek 6 as recorded; a URL containing `refuse` answers `REFUSED_STATUS`. */
 function fakeFeeds(payloads: Gw6Payloads, refuse?: string) {
   const bodies = new Map<string, unknown>([
     [FPL_BOOTSTRAP_URL, payloads.fpl.bootstrap],
@@ -45,16 +42,12 @@ function fakeFeeds(payloads: Gw6Payloads, refuse?: string) {
     ...payloads.pl.fixtures.map((fixture) => [plFixtureUrl(fixture.id), fixture] as const),
     ...payloads.pl.playerStats.map((read) => [plPlayerStatsUrl(read.player, read.fixture), read.payload] as const),
   ]);
-  return vi.fn(async (url: string) => {
-    if (refuse !== undefined && url.includes(refuse)) return new Response("Service Unavailable", { status: REFUSED_STATUS });
-    if (!bodies.has(url)) throw new Error(`no fake for ${url}`);
-    return Response.json(bodies.get(url));
-  });
+  return fakeFetch(bodies, (url) => refuse !== undefined && url.includes(refuse));
 }
 
 /** A test's Convex, holding Hull v Everton as the football sync would. */
 export async function withHullEverton() {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   await t.run((ctx) =>
     ctx.db.insert("fixtures", {
       code: HULL_EVERTON,
@@ -138,8 +131,4 @@ export function withBelloumiGoalRemoved(payloads: Gw6Payloads): Gw6Payloads {
   const read = hullEvertonRead(payloads, FULL_STATS.belloumi.pl);
   read.stats = read.stats.filter((metric) => !["goals", "goals_openplay"].includes(metric.name));
   return payloads;
-}
-
-export function refusedError(url: string): string {
-  return `${url} answered ${REFUSED_STATUS}`;
 }

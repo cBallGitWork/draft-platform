@@ -1,7 +1,5 @@
-import { convexTest } from "convex-test";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
-import { modules, type TestConvex } from "./footballSync.harness";
 import { LATE_CORRECTION_WATCH_MS, LATE_READ_EVERY_MS, MATCHES_PER_RUN } from "./matchStats";
 import {
   elapse,
@@ -15,14 +13,11 @@ import {
   withPlReadEmpty,
 } from "./matchStats.harness";
 import { FULL_STATS, recordedGw6, type Gw6Payloads } from "./recorded/gw6.payloads";
-import schema from "./schema";
+import { freshConvex, type TestConvex } from "./test.harness";
 import { HOUR_MS, MINUTE_MS } from "./time";
 
 beforeEach(() => vi.useFakeTimers());
-afterEach(() => {
-  vi.useRealTimers();
-  vi.unstubAllGlobals();
-});
+afterEach(() => vi.useRealTimers());
 
 async function stateOf(t: TestConvex) {
   const { records, status } = await heldMatch(t);
@@ -111,7 +106,7 @@ test("a window changed after the lock was scheduled is read again when the lock 
 });
 
 test.each([-1, 1.5])("a window of %s minutes is refused", async (minutes) => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   await expect(t.mutation(internal.platformSettings.setStatCorrectionWindow, { minutes })).rejects.toThrow(
     `whole number of minutes, 0 or more, not ${minutes}`,
   );
@@ -151,7 +146,7 @@ test("a locked match is read again now and then for late corrections, until the 
 });
 
 test("a run takes due matches never tried oldest first, a gameweek's worth at most", async () => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   const count = MATCHES_PER_RUN + 2;
   await t.run(async (ctx) => {
     for (let index = 0; index < count; index += 1) {

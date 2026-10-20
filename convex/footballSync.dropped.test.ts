@@ -1,4 +1,3 @@
-import { convexTest } from "convex-test";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL } from "./football";
@@ -6,16 +5,13 @@ import {
   crowdedFpl,
   held,
   heldCounts,
-  modules,
   nameAnUnlistedClub,
   NOTHING_CHANGED,
-  refusedError,
   syncRun,
   syncWith,
-  type TestConvex,
 } from "./footballSync.harness";
 import { CLUB_CODE, RECORDED_COUNT, recordedFpl } from "./recorded/fpl.payloads";
-import schema from "./schema";
+import { freshConvex, refusedError, silenceConsoleError, type TestConvex } from "./test.harness";
 
 // #64: a club, player, fixture or gameweek FPL stops sending is kept and marked, never deleted.
 
@@ -60,14 +56,10 @@ beforeEach(() => {
   vi.setSystemTime(FIRST_SYNC);
 });
 
-afterEach(() => {
-  vi.useRealTimers();
-  vi.unstubAllGlobals();
-  vi.restoreAllMocks();
-});
+afterEach(() => vi.useRealTimers());
 
 test("a row missing from a re-sync is kept, marked with the sync's time, and counted on its run row", async () => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   await syncWith(t, recordedFpl());
   const { payloads, dropped } = withOneOfEachDropped();
 
@@ -92,7 +84,7 @@ test("a row missing from a re-sync is kept, marked with the sync's time, and cou
 });
 
 test("a marked row sent again is unmarked, updated if it changed, and counted on its run row", async () => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   await syncWith(t, recordedFpl());
   const { payloads, dropped } = withOneOfEachDropped();
   vi.setSystemTime(SECOND_SYNC);
@@ -117,7 +109,7 @@ test("a marked row sent again is unmarked, updated if it changed, and counted on
 });
 
 test("a re-run while a row is still missing changes nothing, and its mark keeps the first time", async () => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   await syncWith(t, recordedFpl());
   vi.setSystemTime(SECOND_SYNC);
   await syncWith(t, withOneOfEachDropped().payloads);
@@ -140,8 +132,8 @@ test.each([
   ["bootstrap-static", FPL_BOOTSTRAP_URL],
   ["fixtures", FPL_FIXTURES_URL],
 ])("a failed fetch of %s marks nothing", async (_feed, refused) => {
-  vi.spyOn(console, "error").mockImplementation(() => {});
-  const t = convexTest(schema, modules);
+  silenceConsoleError();
+  const t = freshConvex();
   await syncWith(t, recordedFpl());
 
   vi.setSystemTime(SECOND_SYNC);
@@ -152,8 +144,8 @@ test.each([
 });
 
 test("a payload refused as changed marks nothing", async () => {
-  vi.spyOn(console, "error").mockImplementation(() => {});
-  const t = convexTest(schema, modules);
+  silenceConsoleError();
+  const t = freshConvex();
   await syncWith(t, recordedFpl());
   const { payloads } = withOneOfEachDropped();
   const refusal = nameAnUnlistedClub(payloads);
@@ -166,8 +158,8 @@ test("a payload refused as changed marks nothing", async () => {
 });
 
 test("a re-sync sending no players is refused, and marks nothing", async () => {
-  vi.spyOn(console, "error").mockImplementation(() => {});
-  const t = convexTest(schema, modules);
+  silenceConsoleError();
+  const t = freshConvex();
   await syncWith(t, recordedFpl());
   const noPlayers = recordedFpl();
   noPlayers.bootstrap.elements = [];
@@ -180,7 +172,7 @@ test("a re-sync sending no players is refused, and marks nothing", async () => {
 });
 
 test("held rows past the first page are checked too, and each missing one is marked once", async () => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   const { payloads: crowded, count } = crowdedFpl();
   await syncWith(t, crowded);
 
@@ -195,7 +187,7 @@ test("held rows past the first page are checked too, and each missing one is mar
 });
 
 test("rows written before #64, without its marks and counts, still fit the schema", async () => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   const writesBefore64 = { received: 1, inserted: 1, updated: 0 };
 
   await t.run(async (ctx) => {

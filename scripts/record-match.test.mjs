@@ -12,11 +12,7 @@ import {
 } from "../convex/recorded/commentary.payloads.ts";
 import { fixtureStatus, phase, poll, pollReads, record, summaryLine } from "./record-match.mjs";
 
-afterEach(() => {
-  vi.useRealTimers();
-  vi.unstubAllGlobals();
-  vi.restoreAllMocks();
-});
+afterEach(() => vi.useRealTimers());
 
 const BRENTFORD_LIVERPOOL = COMMENTARY_MATCH.brentfordLiverpool;
 const IPSWICH_FOREST = UPCOMING_MATCH;

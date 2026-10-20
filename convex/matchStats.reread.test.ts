@@ -16,10 +16,7 @@ import { HOUR_MS, MINUTE_MS } from "./time";
 // What a match read again before the lock writes over what it held.
 
 beforeEach(() => vi.useFakeTimers());
-afterEach(() => {
-  vi.useRealTimers();
-  vi.unstubAllGlobals();
-});
+afterEach(() => vi.useRealTimers());
 
 test("a re-read of the same match writes nothing new, and keeps when it reached full time and completed", async () => {
   const t = await withHullEverton();

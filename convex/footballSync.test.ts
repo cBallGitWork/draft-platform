@@ -1,31 +1,23 @@
-import { convexTest } from "convex-test";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import { FPL_BOOTSTRAP_URL } from "./football";
 import {
   crowdedFpl,
   held,
   heldCounts,
-  modules,
   nameAnUnlistedClub,
   NOTHING_CHANGED,
-  refusedError,
   syncWith,
 } from "./footballSync.harness";
 import { CLUB_CODE, RECORDED_COUNT, recordedFpl } from "./recorded/fpl.payloads";
-import schema from "./schema";
+import { freshConvex, refusedError, silenceConsoleError } from "./test.harness";
 
 const SAKA = 223340;
 const MAN_CITY = { id: 15, code: CLUB_CODE.manCity } as const;
 /** Added to a player's or match's id to give it a new season's id. */
 const NEXT_SEASON_ID_OFFSET = 1000;
 
-afterEach(() => {
-  vi.unstubAllGlobals();
-  vi.restoreAllMocks();
-});
-
 test("a sync fills clubs, players, fixtures and gameweeks, and records what it wrote", async () => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
 
   const outcome = await syncWith(t, recordedFpl());
 
@@ -41,7 +33,7 @@ test("a sync fills clubs, players, fixtures and gameweeks, and records what it w
 });
 
 test("a re-run of the same payloads writes nothing and leaves every row as it was", async () => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   await syncWith(t, recordedFpl());
   const before = await held(t);
 
@@ -58,7 +50,7 @@ test("a re-run of the same payloads writes nothing and leaves every row as it wa
 });
 
 test("a new season's ids change nothing, because every row is keyed on its code", async () => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   await syncWith(t, recordedFpl());
   const before = await held(t);
 
@@ -82,7 +74,7 @@ test("a new season's ids change nothing, because every row is keyed on its code"
 });
 
 test("a player who changes clubs is updated in his own row, not added again", async () => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   await syncWith(t, recordedFpl());
 
   const transfer = recordedFpl();
@@ -97,7 +89,7 @@ test("a player who changes clubs is updated in his own row, not added again", as
 });
 
 test("a rescheduled match and its moved deadline are updated in their own rows", async () => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   await syncWith(t, recordedFpl());
 
   // Gameweek 8's opener moves back a day, and FPL's deadline with it.
@@ -122,7 +114,7 @@ test("a rescheduled match and its moved deadline are updated in their own rows",
 });
 
 test("a corrected name, a postponed match and a changed club are each updated on re-sync", async () => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   await syncWith(t, recordedFpl());
 
   // One field per row, so each field's change is counted on its own.
@@ -151,8 +143,8 @@ test("a corrected name, a postponed match and a changed club are each updated on
 });
 
 test("a failed fetch is recorded and logged, and nothing is written", async () => {
-  const error = vi.spyOn(console, "error").mockImplementation(() => {});
-  const t = convexTest(schema, modules);
+  const error = silenceConsoleError();
+  const t = freshConvex();
 
   const outcome = await syncWith(t, recordedFpl(), FPL_BOOTSTRAP_URL);
 
@@ -162,8 +154,8 @@ test("a failed fetch is recorded and logged, and nothing is written", async () =
 });
 
 test("a payload whose shape has changed is recorded as a failure too", async () => {
-  vi.spyOn(console, "error").mockImplementation(() => {});
-  const t = convexTest(schema, modules);
+  silenceConsoleError();
+  const t = freshConvex();
   const changed = recordedFpl();
   const refusal = nameAnUnlistedClub(changed);
 
@@ -174,7 +166,7 @@ test("a payload whose shape has changed is recorded as a failure too", async () 
 });
 
 test("more players than one batch holds are all written, each once", async () => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   const { payloads: crowded, count } = crowdedFpl();
 
   const outcome = await syncWith(t, crowded);
