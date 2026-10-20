@@ -52,13 +52,16 @@ export interface RawFixture {
   team_a: number;
 }
 
+/** Bootstrap and the season's fixtures as FPL sent them. */
+export async function readFplPayloads(): Promise<{ bootstrap: RawBootstrap; fixtures: RawFixture[] }> {
+  const [bootstrap, fixtures] = await Promise.all([getJson(FPL_BOOTSTRAP_URL), getJson(FPL_FIXTURES_URL)]);
+  return { bootstrap: bootstrap as RawBootstrap, fixtures: fixtures as RawFixture[] };
+}
+
 /** Bootstrap and the season's fixtures, mapped onto the seam. */
 export async function readFpl(): Promise<Football> {
-  const [bootstrap, fixtures] = await Promise.all([
-    getJson(FPL_BOOTSTRAP_URL),
-    getJson(FPL_FIXTURES_URL),
-  ]);
-  return mapFpl(bootstrap as RawBootstrap, fixtures as RawFixture[]);
+  const { bootstrap, fixtures } = await readFplPayloads();
+  return mapFpl(bootstrap, fixtures);
 }
 
 /** Pure raw → seam mapping: no I/O and no clock, so the same payloads always give the same records. */

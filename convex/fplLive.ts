@@ -45,17 +45,19 @@ export async function readFplLive(gameweek: number): Promise<RawLive> {
 /** A line for each player for each match he had in the gameweek. A match's own block gives its
  *  scoring stats. The gameweek totals give the rest only when he had one match, where the two are
  *  the same; with two, FPL does not split them, so those stats are left out of both lines rather
- *  than guessed. A player or a match FPL's other reads do not list is a changed payload: it throws. */
+ *  than guessed. A block with no `minutes` is one FPL has not filled in yet, so it gives no line:
+ *  every recorded block carries them, 0 for an unused substitute. A player or a match FPL's other
+ *  reads do not list is a changed payload: it throws. */
 export function fplStatLines(live: RawLive, elements: RawBootstrap["elements"], fixtures: RawFixture[]): FplStatLine[] {
   const playerCode = codeById("player", new Map(elements.map((element) => [element.id, element.code])));
   const fixtureCode = codeById("match", new Map(fixtures.map((fixture) => [fixture.id, fixture.code])));
   return live.elements.flatMap((element) => {
     const totals = element.explain.length === 1 ? gameweekTotals(element) : {};
-    return element.explain.map((block) => ({
-      playerCode: playerCode(element.id),
-      fixtureCode: fixtureCode(block.fixture),
-      stats: { ...totals, ...matchValues(element.id, block.stats) },
-    }));
+    return element.explain.flatMap((block) => {
+      const line = { playerCode: playerCode(element.id), fixtureCode: fixtureCode(block.fixture) };
+      const values = matchValues(element.id, block.stats);
+      return "minutes" in values ? [{ ...line, stats: { ...totals, ...values } }] : [];
+    });
   });
 }
 
