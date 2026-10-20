@@ -117,6 +117,28 @@ test("a player who changes clubs is updated in his own row, not added again", as
   expect(sakas[0].clubCode).toBe(MAN_CITY.code);
 });
 
+test("a rescheduled match and its moved deadline are updated in their own rows", async () => {
+  const t = convexTest(schema, modules);
+  await syncWith(t, recordedFpl());
+
+  // Gameweek 8's opener moves back a day, and FPL's deadline with it.
+  const moved = recordedFpl();
+  const opener = moved.fixtures.find((fixture) => fixture.event === 8)!;
+  const gameweek8 = moved.bootstrap.events.find((event) => event.id === 8)!;
+  opener.kickoff_time = "2026-10-24T19:00:00Z";
+  gameweek8.deadline_time = "2026-10-24T17:30:00Z";
+  const outcome = await syncWith(t, moved);
+
+  expect(outcome).toMatchObject({
+    ok: true,
+    fixtures: { received: 3, inserted: 0, updated: 1 },
+    gameweeks: { received: 3, inserted: 0, updated: 1 },
+  });
+  const rows = await held(t);
+  expect(rows.fixtures.find((fixture) => fixture.code === opener.code)?.kickoff).toBe(Date.parse("2026-10-24T19:00:00Z"));
+  expect(rows.gameweeks.find((gameweek) => gameweek.number === 8)?.deadline).toBe(Date.parse("2026-10-24T17:30:00Z"));
+});
+
 test("a failed fetch is recorded and logged, and nothing is written", async () => {
   const error = vi.spyOn(console, "error").mockImplementation(() => {});
   const t = convexTest(schema, modules);
