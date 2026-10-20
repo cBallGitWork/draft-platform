@@ -11,12 +11,17 @@ export const JOIN_PATH = "/join";
 export const joinPath = (token: string) => `${JOIN_PATH}/${token}`;
 
 /** An invite's sign-in link is `/invited/<inviteId>`, which names the invite for its email's
- *  wording; the app has no page there and opens on the person's leagues. */
+ *  wording; the app has no page there and opens where `/` does, on My team once they've joined. */
 export const INVITED_PATH = "/invited";
 export const invitedPath = (inviteId: string) => `${INVITED_PATH}/${inviteId}`;
 
+/** The team an invite is for, when it isn't a vacated one. */
+export const aNewTeamWords = "a new team";
+
 /** A replaced or switched-off invite link, as the person who opens it is told. */
 export const linkOffWords = "That invite link no longer works. Ask the league's commissioner for a new one.";
+/** A league with no invite link, as its commissioner is told. */
+export const noLinkWords = "The league has no invite link.";
 
 /** The invite an invite's sign-in link names, or null for any other link. */
 export function inviteIdIn(url: string): string | null {

@@ -10,8 +10,8 @@ import { delivery } from "./schema";
 import { sendEmail } from "./signInEmail";
 import { putOnTeam } from "./teams";
 
-// Join requests (#73; spec/13 Joining, spec/15 Joining a league): opening the invite link signed
-// in asks to join. A person has at most one request waiting in a league; its runners approve it,
+// Join requests (#73; spec/13 Joining, spec/15 Joining a league): a person who opens the invite
+// link asks to join. They have at most one request waiting in a league; its runners approve it,
 // picking the team, a vacated one included, or refuse it, which files no Mail letter. An approved
 // person gets an email.
 

@@ -11,7 +11,7 @@ const NEW_TEAM = "";
 export function useTeamChoice(page: InvitesPageData) {
   const options = [
     ...(page.hasRoom ? [{ value: NEW_TEAM, label: newTeamWords }] : []),
-    ...page.teams.filter((team) => team.vacated).map((team) => ({ value: team.teamId as string, label: team.name })),
+    ...page.teams.filter((team) => team.vacated).map((team) => ({ value: team.teamId, label: team.name })),
   ];
   const [chosen, choose] = useState<string>(NEW_TEAM);
   const value = options.some((option) => option.value === chosen) ? chosen : options[0]?.value;

@@ -30,7 +30,7 @@ export function signInEmail(url: string) {
  *  link goes in the invite's own email (#73). */
 export async function sendSignInEmail({ identifier, url }: { identifier: string; url: string }, ctx?: ActionCtx) {
   const inviteId = inviteIdIn(url);
-  const words = ctx && inviteId ? await ctx.runQuery(internal.invites.email, { inviteId, url }) : signInEmail(url);
+  const words = ctx && inviteId ? await ctx.runQuery(internal.invites.emailWords, { inviteId, url }) : signInEmail(url);
   await sendEmail(identifier, words);
 }
 
