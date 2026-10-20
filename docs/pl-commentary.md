@@ -117,7 +117,8 @@ as they are, not refused (`convex/premierLeague.test.ts`).
 ## Still to learn from a live match
 
 #37's questions that need one, the first being Ipswich v Nott'm Forest on Fri 23 Oct 2026, 20:00
-BST (Premier League fixture 128999), recorded by `scripts/record-match.mjs`:
+BST (Premier League fixture 128999), recorded from 90 minutes before kickoff by
+`scripts/record-match.mjs`:
 
 - How soon after an event its line appears, and whether lines change or vanish (a goal VAR rules out).
 - When the lineups first appear, and when the `lineup` line does.

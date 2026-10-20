@@ -25,7 +25,7 @@ const KICKOFF = Date.UTC(2026, 9, 23, 19);
 const MINUTE = 60_000;
 const POLL = 30_000;
 const PAUSE = 1_000;
-const LEAD = 60 * MINUTE;
+const LEAD = 90 * MINUTE;
 const AFTER_FULL_TIME = 15 * MINUTE;
 const GIVE_UP = 4 * 60 * MINUTE;
 
@@ -40,8 +40,8 @@ test("a poll reads the commentary, the fixture and the team stats, in that order
 const FULL_TIME_SEEN = KICKOFF + 115 * MINUTE;
 
 test.each([
-  ["a minute before the hour before kickoff", "wait", KICKOFF - LEAD - MINUTE, null],
-  ["the hour before kickoff", "record", KICKOFF - LEAD, null],
+  ["a minute short of 90 minutes before kickoff", "wait", KICKOFF - LEAD - MINUTE, null],
+  ["90 minutes before kickoff", "record", KICKOFF - LEAD, null],
   ["during the match", "record", KICKOFF + 45 * MINUTE, null],
   ["full time, just seen", "record", FULL_TIME_SEEN, FULL_TIME_SEEN],
   ["a minute short of the quarter hour after full time", "record", FULL_TIME_SEEN + AFTER_FULL_TIME - MINUTE, FULL_TIME_SEEN],
@@ -155,7 +155,7 @@ async function recordAgainst(startAt, statusAt) {
 
 const gapsOf = (times) => times.slice(1).map((time, index) => time - times[index]);
 
-test("the recorder waits for the hour before kickoff, polls every 30 seconds, and stops a quarter hour after full time", async () => {
+test("the recorder waits until 90 minutes before kickoff, polls every 30 seconds, and stops a quarter hour after full time", async () => {
   const fullTimeAt = KICKOFF + 112 * MINUTE;
   const statusAt = (now) => (now < KICKOFF ? "U" : now < fullTimeAt ? "L" : "C");
 
