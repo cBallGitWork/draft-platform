@@ -45,7 +45,8 @@ comes to exist, fills, changes and ends.
   waiting, sees that it is waiting for the commissioner, and gets an email once approved.
   Refusing files no Mail letter.
 - Until invites are built, a sign-in link goes only to emails the admin puts on an allowed list;
-  invites add to that list once they exist.
+  invites add to that list once they exist. The invite link lets anyone who opens it sign in to
+  ask to join (`/grill sign-in`): it's a beta, and a leak needs no guarding.
 - Invites past the email service's daily limit (100 a day for now) wait for the next day, and the
   commissioner is told.
 
