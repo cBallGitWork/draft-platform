@@ -1,9 +1,9 @@
 // Whether a lineup may stand (spec/05, The pitch; #8): one pure function, the league's rules always
 // an argument. Storing a lineup, rolling it over and the screen are not here.
-// It judges a lineup as a manager sets it. A starter who loses a position later stays in his slot
-// for the gameweek, only warned (spec/06, When positions change), so the deadline, rollover and
-// auto team must not take his outsideHisAreas as illegal: they check only the placements a manager
-// changed, or pass each starter's positions from when he was placed.
+// It judges a lineup as a manager sets it, on his players' positions now. A starter who loses a
+// position after he was placed stays in his slot for the gameweek, only warned (spec/06, When
+// positions change): the deadline, rollover and auto team must not take that outsideHisAreas as
+// illegal. It is reported alone, so a caller can set it aside; the rule is #23's to keep.
 
 import { AREAS, LANES, playsCell, type Area, type Cell, type Lane, type PositionLabel } from "./pitch";
 

@@ -82,6 +82,15 @@ describe("where a player may stand", () => {
     ]);
   });
 
+  test("a starter who lost his position still counts in his area, so his outsideHisAreas stands alone", () => {
+    const exactlyFourInMidfield = openLimits({ midfield: { minimum: 4, maximum: 4 } });
+    const lostMidfield = withPositions(positions, LEFT_MIDFIELDER, ["ST"]);
+
+    expect(lineupProblems(fourFourTwo, lostMidfield, exactlyFourInMidfield)).toEqual([
+      { kind: "outsideHisAreas", playerCode: LEFT_MIDFIELDER, area: "midfield", lane: "left", positions: ["ST"] },
+    ]);
+  });
+
   test("a starter with no positions given is reported, not taken to fit nowhere or anywhere", () => {
     const unknown = new Map(positions);
     unknown.delete(STRIKER);
