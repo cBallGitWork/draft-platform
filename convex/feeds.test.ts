@@ -3,7 +3,13 @@ import { convexTest } from "convex-test";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { MINUTE_MS } from "./feeds";
-import { squadNumbers } from "./football";
+import { plCommentaryUrl, plFixtureUrl, plTeamStatsUrl, squadNumbers } from "./football";
+import {
+  COMMENTARY_MATCH,
+  recordedCommentary,
+  recordedSheets,
+  recordedTeamStats,
+} from "./recorded/commentary.payloads";
 import schema from "./schema";
 
 const modules = import.meta.glob("./**/*.ts");
@@ -66,4 +72,36 @@ test("a feed that refuses is recorded with its status, and the other feed still 
 test("a registered player with no squad number is left out", () => {
   const numbers = squadNumbers({ players: [{ id: 10, info: { shirtNum: 4 } }, { id: 11, info: {} }, { id: 12 }] });
   expect([...numbers]).toEqual([[10, 4]]);
+});
+
+test("the commentary check reads a match's stream, sheets and team stats in turn, and says what came", async () => {
+  const match = COMMENTARY_MATCH.brentfordLiverpool;
+  const bodies: Record<string, unknown> = {
+    [plCommentaryUrl(match)]: recordedCommentary(match),
+    [plFixtureUrl(match)]: recordedSheets(match),
+    [plTeamStatsUrl(match)]: recordedTeamStats(match),
+  };
+  const fetch = vi.fn(async (url: string) => (url in bodies ? Response.json(bodies[url]) : new Response("", { status: 404 })));
+  vi.stubGlobal("fetch", fetch);
+  const t = convexTest(schema, modules);
+
+  const report = await t.action(internal.feeds.commentaryCheck, { plFixtureId: match });
+
+  expect(report).toEqual({
+    readAt: new Date().toISOString(),
+    lines: 122,
+    newest: { id: 2867014, minute: "01", text: "Match ends, Brentford 1, Liverpool 2." },
+    namedMen: 40,
+    teamStats: true,
+  });
+  expect(fetch.mock.calls.map(([url]) => url)).toEqual(Object.keys(bodies));
+});
+
+test("a commentary check whose read is refused throws, naming the URL", async () => {
+  vi.stubGlobal("fetch", fakeFeeds("textstream"));
+  const t = convexTest(schema, modules);
+
+  await expect(t.action(internal.feeds.commentaryCheck, { plFixtureId: 128999 })).rejects.toThrow(
+    `${plCommentaryUrl(128999)} answered 403`,
+  );
 });

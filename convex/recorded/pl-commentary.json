@@ -1,0 +1,5806 @@
+{
+ "128978": {
+  "fixture": {
+   "gameweek": {
+    "id": 19766,
+    "gameweek": 6
+   },
+   "kickoff": {
+    "completeness": 3,
+    "millis": 1791723600000,
+    "label": "Sun 11 Oct 2026, 14:00 BST",
+    "gmtOffset": 1.0
+   },
+   "provisionalKickoff": {
+    "completeness": 3,
+    "millis": 1791723600000,
+    "label": "Sun 11 Oct 2026, 14:00 BST",
+    "gmtOffset": 1.0
+   },
+   "teams": [
+    {
+     "team": {
+      "name": "Hull City",
+      "club": {
+       "name": "Hull City",
+       "abbr": "HUL",
+       "id": 41
+      },
+      "teamType": "FIRST",
+      "shortName": "Hull",
+      "id": 41
+     },
+     "score": 2
+    },
+    {
+     "team": {
+      "name": "Everton",
+      "club": {
+       "name": "Everton",
+       "abbr": "EVE",
+       "id": 7
+      },
+      "teamType": "FIRST",
+      "shortName": "Everton",
+      "id": 7
+     },
+     "score": 2
+    }
+   ],
+   "replay": false,
+   "ground": {
+    "name": "The MKM Stadium",
+    "city": "Hull",
+    "source": "OPTA",
+    "id": 9569
+   },
+   "neutralGround": false,
+   "status": "C",
+   "phase": "F",
+   "outcome": "D",
+   "attendance": 24458,
+   "clock": {
+    "secs": 5760,
+    "label": "90+6'00"
+   },
+   "fixtureType": "REGULAR",
+   "extraTime": false,
+   "shootout": false,
+   "behindClosedDoors": false,
+   "id": 128978
+  },
+  "events": {
+   "pageInfo": {
+    "page": 0,
+    "numPages": 1,
+    "pageSize": 200,
+    "numEntries": 106
+   },
+   "content": [
+    {
+     "id": 2855376,
+     "time": {
+      "secs": 0,
+      "label": "01"
+     },
+     "type": "end 14",
+     "text": "Match ends, Hull City 2, Everton 2."
+    },
+    {
+     "id": 2855364,
+     "time": {
+      "secs": 5709,
+      "label": "90+6"
+     },
+     "type": "end 2",
+     "text": "Second Half ends, Hull City 2, Everton 2."
+    },
+    {
+     "id": 2855359,
+     "time": {
+      "secs": 5604,
+      "label": "90+4"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Michael Keane (Everton).",
+     "playerIds": [
+      4333
+     ]
+    },
+    {
+     "id": 2855358,
+     "time": {
+      "secs": 5604,
+      "label": "90+4"
+     },
+     "type": "free kick won",
+     "text": "Oliver McBurnie (Hull City) wins a free kick in the defensive half.",
+     "playerIds": [
+      8107
+     ]
+    },
+    {
+     "id": 2855341,
+     "time": {
+      "secs": 5531,
+      "label": "90+3"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Nobel Mendy (Hull City).",
+     "playerIds": [
+      133314
+     ]
+    },
+    {
+     "id": 2855340,
+     "time": {
+      "secs": 5531,
+      "label": "90+3"
+     },
+     "type": "free kick won",
+     "text": "Charly Alcaraz (Everton) wins a free kick in the defensive half.",
+     "playerIds": [
+      133612
+     ]
+    },
+    {
+     "id": 2855337,
+     "time": {
+      "secs": 5400,
+      "label": "90+1"
+     },
+     "type": "added time",
+     "text": "Fourth official has announced 5 minutes of added time."
+    },
+    {
+     "id": 2855320,
+     "time": {
+      "secs": 5357,
+      "label": "90"
+     },
+     "type": "free kick won",
+     "text": "James Tarkowski (Everton) wins a free kick in the defensive half.",
+     "playerIds": [
+      8143
+     ]
+    },
+    {
+     "id": 2855319,
+     "time": {
+      "secs": 5357,
+      "label": "90"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Oliver McBurnie (Hull City).",
+     "playerIds": [
+      8107
+     ]
+    },
+    {
+     "id": 2855311,
+     "time": {
+      "secs": 5324,
+      "label": "89"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Charly Alcaraz (Everton) right footed shot from outside the box misses to the left. Assisted by Kiernan Dewsbury-Hall.",
+     "playerIds": [
+      133612,
+      14706
+     ]
+    },
+    {
+     "id": 2855304,
+     "time": {
+      "secs": 5143,
+      "label": "86"
+     },
+     "type": "substitution",
+     "text": "Substitution, Everton. Charly Alcaraz replaces Thierno Barry.",
+     "playerIds": [
+      133612,
+      143922
+     ]
+    },
+    {
+     "id": 2855298,
+     "time": {
+      "secs": 5133,
+      "label": "86"
+     },
+     "type": "substitution",
+     "text": "Substitution, Everton. Tyler Dibling replaces Jack Grealish.",
+     "playerIds": [
+      112917,
+      4260
+     ]
+    },
+    {
+     "id": 2855299,
+     "time": {
+      "secs": 5126,
+      "label": "86"
+     },
+     "type": "substitution",
+     "text": "Substitution, Hull City. Robinio Vaz replaces Sorba Thomas.",
+     "playerIds": [
+      303085,
+      21455
+     ]
+    },
+    {
+     "id": 2855295,
+     "time": {
+      "secs": 5065,
+      "label": "85"
+     },
+     "type": "corner",
+     "text": "Corner, Hull City. Conceded by Kiernan Dewsbury-Hall.",
+     "playerIds": [
+      14706
+     ]
+    },
+    {
+     "id": 2855278,
+     "time": {
+      "secs": 4872,
+      "label": "82"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Jake O'Brien (Everton).",
+     "playerIds": [
+      112589
+     ]
+    },
+    {
+     "id": 2855277,
+     "time": {
+      "secs": 4872,
+      "label": "82"
+     },
+     "type": "free kick won",
+     "text": "Elliot Stroud (Hull City) wins a free kick in the defensive half.",
+     "playerIds": [
+      337382
+     ]
+    },
+    {
+     "id": 2855271,
+     "time": {
+      "secs": 4789,
+      "label": "80"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Mohamed Belloumi (Hull City) left footed shot from the centre of the box is blocked. Assisted by Sorba Thomas.",
+     "playerIds": [
+      137549,
+      21455
+     ]
+    },
+    {
+     "id": 2855266,
+     "time": {
+      "secs": 4631,
+      "label": "78"
+     },
+     "type": "substitution",
+     "text": "Substitution, Everton. Jake O'Brien replaces Ainsley Maitland-Niles.",
+     "playerIds": [
+      112589,
+      10428
+     ]
+    },
+    {
+     "id": 2855265,
+     "time": {
+      "secs": 4628,
+      "label": "78"
+     },
+     "type": "substitution",
+     "text": "Substitution, Everton. Hayden Hackney replaces Harrison Armstrong.",
+     "playerIds": [
+      25375,
+      134286
+     ]
+    },
+    {
+     "id": 2855259,
+     "time": {
+      "secs": 4463,
+      "label": "75"
+     },
+     "type": "substitution",
+     "text": "Substitution, Hull City. Hidemasa Morita replaces Regan Slater.",
+     "playerIds": [
+      126614,
+      21385
+     ]
+    },
+    {
+     "id": 2855247,
+     "time": {
+      "secs": 4400,
+      "label": "74"
+     },
+     "type": "goal",
+     "text": "Goal! Hull City 2, Everton 2. Mohamed Belloumi (Hull City) left footed shot from the centre of the box to the top right corner. Assisted by Elliot Stroud.",
+     "playerIds": [
+      137549,
+      337382
+     ]
+    },
+    {
+     "id": 2855222,
+     "time": {
+      "secs": 4276,
+      "label": "72"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Mohamed Belloumi (Hull City).",
+     "playerIds": [
+      137549
+     ]
+    },
+    {
+     "id": 2855221,
+     "time": {
+      "secs": 4276,
+      "label": "72"
+     },
+     "type": "free kick won",
+     "text": "Kiernan Dewsbury-Hall (Everton) wins a free kick in the defensive half.",
+     "playerIds": [
+      14706
+     ]
+    },
+    {
+     "id": 2855220,
+     "time": {
+      "secs": 4228,
+      "label": "71"
+     },
+     "type": "miss",
+     "text": "Attempt missed. John Egan (Hull City) right footed shot from the left side of the box misses to the right.",
+     "playerIds": [
+      4394
+     ]
+    },
+    {
+     "id": 2855215,
+     "time": {
+      "secs": 4163,
+      "label": "70"
+     },
+     "type": "end delay",
+     "text": "Delay over. They are ready to continue."
+    },
+    {
+     "id": 2855214,
+     "time": {
+      "secs": 4130,
+      "label": "69"
+     },
+     "type": "start delay",
+     "text": "Delay in match because of an injury Kiernan Dewsbury-Hall (Everton)."
+    },
+    {
+     "id": 2855211,
+     "time": {
+      "secs": 4050,
+      "label": "68"
+     },
+     "type": "goal",
+     "text": "Goal! Hull City 1, Everton 2. Thierno Barry (Everton) right footed shot from the centre of the box to the top right corner. Assisted by Kiernan Dewsbury-Hall.",
+     "playerIds": [
+      143922,
+      14706
+     ]
+    },
+    {
+     "id": 2855203,
+     "time": {
+      "secs": 4019,
+      "label": "67"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Jack Grealish (Everton).",
+     "playerIds": [
+      4260
+     ]
+    },
+    {
+     "id": 2855202,
+     "time": {
+      "secs": 4019,
+      "label": "67"
+     },
+     "type": "free kick won",
+     "text": "Lewie Coyle (Hull City) wins a free kick in the attacking half.",
+     "playerIds": [
+      13486
+     ]
+    },
+    {
+     "id": 2855193,
+     "time": {
+      "secs": 3945,
+      "label": "66"
+     },
+     "type": "substitution",
+     "text": "Substitution, Everton. Tyrique George replaces Brennan Johnson.",
+     "playerIds": [
+      118442,
+      49374
+     ]
+    },
+    {
+     "id": 2855181,
+     "time": {
+      "secs": 3911,
+      "label": "66"
+     },
+     "type": "offside",
+     "text": "Offside, Everton. Thierno Barry is caught offside.",
+     "playerIds": [
+      10428,
+      143922
+     ]
+    },
+    {
+     "id": 2855183,
+     "time": {
+      "secs": 3879,
+      "label": "65"
+     },
+     "type": "free kick won",
+     "text": "Harrison Armstrong (Everton) wins a free kick in the defensive half.",
+     "playerIds": [
+      134286
+     ]
+    },
+    {
+     "id": 2855182,
+     "time": {
+      "secs": 3879,
+      "label": "65"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Tim Iroegbunam (Hull City).",
+     "playerIds": [
+      66538
+     ]
+    },
+    {
+     "id": 2855173,
+     "time": {
+      "secs": 3841,
+      "label": "65"
+     },
+     "type": "substitution",
+     "text": "Substitution, Hull City. Tim Iroegbunam replaces Matt Crooks.",
+     "playerIds": [
+      66538,
+      8885
+     ]
+    },
+    {
+     "id": 2855172,
+     "time": {
+      "secs": 3840,
+      "label": "65"
+     },
+     "type": "substitution",
+     "text": "Substitution, Hull City. Mohamed Belloumi replaces Joe Gelhardt.",
+     "playerIds": [
+      137549,
+      51754
+     ]
+    },
+    {
+     "id": 2855174,
+     "time": {
+      "secs": 3825,
+      "label": "64"
+     },
+     "type": "substitution",
+     "text": "Substitution, Hull City. Elliot Stroud replaces Ryan Giles.",
+     "playerIds": [
+      337382,
+      20081
+     ]
+    },
+    {
+     "id": 2855169,
+     "time": {
+      "secs": 3780,
+      "label": "64"
+     },
+     "type": "offside",
+     "text": "Offside, Hull City. Ryan Giles is caught offside.",
+     "playerIds": [
+      4394,
+      20081
+     ]
+    },
+    {
+     "id": 2855160,
+     "time": {
+      "secs": 3617,
+      "label": "61"
+     },
+     "type": "offside",
+     "text": "Offside, Everton. Brennan Johnson is caught offside.",
+     "playerIds": [
+      10428,
+      49374
+     ]
+    },
+    {
+     "id": 2855155,
+     "time": {
+      "secs": 3593,
+      "label": "60"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Joe Gelhardt (Hull City).",
+     "playerIds": [
+      51754
+     ]
+    },
+    {
+     "id": 2855154,
+     "time": {
+      "secs": 3593,
+      "label": "60"
+     },
+     "type": "free kick won",
+     "text": "Jarrad Branthwaite (Everton) wins a free kick in the defensive half.",
+     "playerIds": [
+      66318
+     ]
+    },
+    {
+     "id": 2855121,
+     "time": {
+      "secs": 3268,
+      "label": "55"
+     },
+     "type": "goal",
+     "text": "Goal! Hull City 1, Everton 1. Kiernan Dewsbury-Hall (Everton) header from very close range to the bottom left corner. Assisted by Ainsley Maitland-Niles following a corner.",
+     "playerIds": [
+      14706,
+      10428
+     ]
+    },
+    {
+     "id": 2855118,
+     "time": {
+      "secs": 3228,
+      "label": "54"
+     },
+     "type": "corner",
+     "text": "Corner, Everton. Conceded by John Egan.",
+     "playerIds": [
+      4394
+     ]
+    },
+    {
+     "id": 2855110,
+     "time": {
+      "secs": 3154,
+      "label": "53"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Thierno Barry (Everton) header from the centre of the box is saved in the centre of the goal by Konstantinos Tzolakis (Hull City). Assisted by Brennan Johnson with a cross.",
+     "playerIds": [
+      143922,
+      49374
+     ]
+    },
+    {
+     "id": 2855111,
+     "time": {
+      "secs": 3140,
+      "label": "53"
+     },
+     "type": "free kick won",
+     "text": "Jack Grealish (Everton) wins a free kick on the left wing.",
+     "playerIds": [
+      4260
+     ]
+    },
+    {
+     "id": 2855109,
+     "time": {
+      "secs": 3140,
+      "label": "53"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Lewie Coyle (Hull City).",
+     "playerIds": [
+      13486
+     ]
+    },
+    {
+     "id": 2855092,
+     "time": {
+      "secs": 3066,
+      "label": "52"
+     },
+     "type": "corner",
+     "text": "Corner, Hull City. Conceded by Jarrad Branthwaite.",
+     "playerIds": [
+      66318
+     ]
+    },
+    {
+     "id": 2855091,
+     "time": {
+      "secs": 3020,
+      "label": "51"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Harrison Armstrong (Everton) right footed shot from outside the box is saved in the centre of the goal by Konstantinos Tzolakis (Hull City). Assisted by Jack Grealish.",
+     "playerIds": [
+      134286,
+      4260
+     ]
+    },
+    {
+     "id": 2855076,
+     "time": {
+      "secs": 2874,
+      "label": "48"
+     },
+     "type": "goal",
+     "text": "Goal! Hull City 1, Everton 0. Joe Gelhardt (Hull City) left footed shot from the centre of the box to the bottom right corner. Assisted by Sorba Thomas with a through ball following a fast break.",
+     "playerIds": [
+      51754,
+      21455
+     ]
+    },
+    {
+     "id": 2855061,
+     "time": {
+      "secs": 2700,
+      "label": "46"
+     },
+     "type": "start",
+     "text": "Second Half begins Hull City 0, Everton 0."
+    },
+    {
+     "id": 2855039,
+     "time": {
+      "secs": 2960,
+      "label": "45+5"
+     },
+     "type": "end 1",
+     "text": "First Half ends, Hull City 0, Everton 0."
+    },
+    {
+     "id": 2855037,
+     "time": {
+      "secs": 2923,
+      "label": "45+4"
+     },
+     "type": "corner",
+     "text": "Corner, Everton. Conceded by Nobel Mendy.",
+     "playerIds": [
+      133314
+     ]
+    },
+    {
+     "id": 2855038,
+     "time": {
+      "secs": 2920,
+      "label": "45+4"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Brennan Johnson (Everton) left footed shot from the right side of the box is blocked. Assisted by Harrison Armstrong.",
+     "playerIds": [
+      49374,
+      134286
+     ]
+    },
+    {
+     "id": 2855025,
+     "time": {
+      "secs": 2814,
+      "label": "45+2"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Thierno Barry (Everton) header from the right side of the six yard box is just a bit too high. Assisted by Jack Grealish with a cross.",
+     "playerIds": [
+      143922,
+      4260
+     ]
+    },
+    {
+     "id": 2855022,
+     "time": {
+      "secs": 2744,
+      "label": "45+1"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Jack Grealish (Everton) right footed shot from the left side of the box is high and wide to the right. Assisted by Ainsley Maitland-Niles with a cross.",
+     "playerIds": [
+      4260,
+      10428
+     ]
+    },
+    {
+     "id": 2855010,
+     "time": {
+      "secs": 2717,
+      "label": "45+1"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Joe Gelhardt (Hull City) right footed shot from the centre of the box is saved in the centre of the goal by Jordan Pickford (Everton). Assisted by John Egan with a through ball.",
+     "playerIds": [
+      51754,
+      4394
+     ]
+    },
+    {
+     "id": 2855007,
+     "time": {
+      "secs": 2699,
+      "label": "45"
+     },
+     "type": "added time",
+     "text": "Fourth official has announced 4 minutes of added time."
+    },
+    {
+     "id": 2855004,
+     "time": {
+      "secs": 2620,
+      "label": "44"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Nobel Mendy (Hull City) header from very close range is too high. Assisted by Sorba Thomas with a cross following a corner.",
+     "playerIds": [
+      133314,
+      21455
+     ]
+    },
+    {
+     "id": 2854992,
+     "time": {
+      "secs": 2590,
+      "label": "44"
+     },
+     "type": "corner",
+     "text": "Corner, Hull City. Conceded by James Tarkowski.",
+     "playerIds": [
+      8143
+     ]
+    },
+    {
+     "id": 2854993,
+     "time": {
+      "secs": 2587,
+      "label": "44"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Joe Gelhardt (Hull City) left footed shot from the centre of the box is blocked. Assisted by Oliver McBurnie.",
+     "playerIds": [
+      51754,
+      8107
+     ]
+    },
+    {
+     "id": 2854980,
+     "time": {
+      "secs": 2517,
+      "label": "42"
+     },
+     "type": "corner",
+     "text": "Corner, Hull City. Conceded by James Garner.",
+     "playerIds": [
+      23841
+     ]
+    },
+    {
+     "id": 2854970,
+     "time": {
+      "secs": 2465,
+      "label": "42"
+     },
+     "type": "corner",
+     "text": "Corner, Everton. Conceded by John Egan.",
+     "playerIds": [
+      4394
+     ]
+    },
+    {
+     "id": 2854981,
+     "time": {
+      "secs": 2463,
+      "label": "42"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Michael Keane (Everton) header from the centre of the box is blocked. Assisted by James Garner with a cross.",
+     "playerIds": [
+      4333,
+      23841
+     ]
+    },
+    {
+     "id": 2854969,
+     "time": {
+      "secs": 2421,
+      "label": "41"
+     },
+     "type": "corner",
+     "text": "Corner, Everton. Conceded by John Egan.",
+     "playerIds": [
+      4394
+     ]
+    },
+    {
+     "id": 2854968,
+     "time": {
+      "secs": 2420,
+      "label": "41"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Thierno Barry (Everton) right footed shot from the right side of the box is blocked. Assisted by Harrison Armstrong.",
+     "playerIds": [
+      143922,
+      134286
+     ]
+    },
+    {
+     "id": 2854962,
+     "time": {
+      "secs": 2353,
+      "label": "40"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Sorba Thomas (Hull City) right footed shot from the left side of the box is blocked. Assisted by Ryan Giles.",
+     "playerIds": [
+      21455,
+      20081
+     ]
+    },
+    {
+     "id": 2854956,
+     "time": {
+      "secs": 2297,
+      "label": "39"
+     },
+     "type": "end delay",
+     "text": "Delay over. They are ready to continue."
+    },
+    {
+     "id": 2854957,
+     "time": {
+      "secs": 2295,
+      "label": "39"
+     },
+     "type": "start delay",
+     "text": "Delay in match (Everton)."
+    },
+    {
+     "id": 2854941,
+     "time": {
+      "secs": 2007,
+      "label": "34"
+     },
+     "type": "contentious referee decisions",
+     "text": "VAR Decision: No Goal Hull City 0-0 Everton.",
+     "playerIds": [
+      49374
+     ]
+    },
+    {
+     "id": 2854926,
+     "time": {
+      "secs": 2004,
+      "label": "34"
+     },
+     "type": "VAR cancelled goal",
+     "text": "GOAL OVERTURNED BY VAR: Brennan Johnson (Everton) scores but the goal is ruled out after a VAR review.",
+     "playerIds": [
+      49374
+     ]
+    },
+    {
+     "id": 2854953,
+     "time": {
+      "secs": 2003,
+      "label": "34"
+     },
+     "type": "offside",
+     "text": "Offside, Everton. Brennan Johnson is caught offside.",
+     "playerIds": [
+      134286,
+      49374
+     ]
+    },
+    {
+     "id": 2854929,
+     "time": {
+      "secs": 2002,
+      "label": "34"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Harrison Armstrong (Everton) right footed shot from the centre of the box is blocked. Assisted by Kiernan Dewsbury-Hall.",
+     "playerIds": [
+      134286,
+      14706
+     ]
+    },
+    {
+     "id": 2854921,
+     "time": {
+      "secs": 1935,
+      "label": "33"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Joe Gelhardt (Hull City).",
+     "playerIds": [
+      51754
+     ]
+    },
+    {
+     "id": 2854920,
+     "time": {
+      "secs": 1935,
+      "label": "33"
+     },
+     "type": "free kick won",
+     "text": "Kiernan Dewsbury-Hall (Everton) wins a free kick in the defensive half.",
+     "playerIds": [
+      14706
+     ]
+    },
+    {
+     "id": 2854914,
+     "time": {
+      "secs": 1900,
+      "label": "32"
+     },
+     "type": "corner",
+     "text": "Corner, Hull City. Conceded by Ainsley Maitland-Niles.",
+     "playerIds": [
+      10428
+     ]
+    },
+    {
+     "id": 2854897,
+     "time": {
+      "secs": 1756,
+      "label": "30"
+     },
+     "type": "free kick lost",
+     "text": "Foul by James Tarkowski (Everton).",
+     "playerIds": [
+      8143
+     ]
+    },
+    {
+     "id": 2854896,
+     "time": {
+      "secs": 1756,
+      "label": "30"
+     },
+     "type": "free kick won",
+     "text": "Sorba Thomas (Hull City) wins a free kick on the left wing.",
+     "playerIds": [
+      21455
+     ]
+    },
+    {
+     "id": 2854899,
+     "time": {
+      "secs": 1723,
+      "label": "29"
+     },
+     "type": "free kick won",
+     "text": "Jarrad Branthwaite (Everton) wins a free kick in the defensive half.",
+     "playerIds": [
+      66318
+     ]
+    },
+    {
+     "id": 2854898,
+     "time": {
+      "secs": 1723,
+      "label": "29"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Joe Gelhardt (Hull City).",
+     "playerIds": [
+      51754
+     ]
+    },
+    {
+     "id": 2854891,
+     "time": {
+      "secs": 1679,
+      "label": "28"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Regan Slater (Hull City).",
+     "playerIds": [
+      21385
+     ]
+    },
+    {
+     "id": 2854890,
+     "time": {
+      "secs": 1679,
+      "label": "28"
+     },
+     "type": "free kick won",
+     "text": "Harrison Armstrong (Everton) wins a free kick in the defensive half.",
+     "playerIds": [
+      134286
+     ]
+    },
+    {
+     "id": 2854881,
+     "time": {
+      "secs": 1600,
+      "label": "27"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Jarrad Branthwaite (Everton) left footed shot from a difficult angle on the left is high and wide to the right following a corner.",
+     "playerIds": [
+      66318
+     ]
+    },
+    {
+     "id": 2854882,
+     "time": {
+      "secs": 1599,
+      "label": "27"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Thierno Barry (Everton) header from very close range is saved in the top centre of the goal by Konstantinos Tzolakis (Hull City). Assisted by James Garner with a cross.",
+     "playerIds": [
+      143922,
+      23841
+     ]
+    },
+    {
+     "id": 2854870,
+     "time": {
+      "secs": 1554,
+      "label": "26"
+     },
+     "type": "corner",
+     "text": "Corner, Everton. Conceded by Lewie Coyle.",
+     "playerIds": [
+      13486
+     ]
+    },
+    {
+     "id": 2854869,
+     "time": {
+      "secs": 1489,
+      "label": "25"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Nobel Mendy (Hull City).",
+     "playerIds": [
+      133314
+     ]
+    },
+    {
+     "id": 2854866,
+     "time": {
+      "secs": 1489,
+      "label": "25"
+     },
+     "type": "free kick won",
+     "text": "Thierno Barry (Everton) wins a free kick in the defensive half.",
+     "playerIds": [
+      143922
+     ]
+    },
+    {
+     "id": 2854837,
+     "time": {
+      "secs": 1294,
+      "label": "22"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Joe Gelhardt (Hull City) right footed shot from the right side of the box is saved in the centre of the goal by Jordan Pickford (Everton). Assisted by Sorba Thomas.",
+     "playerIds": [
+      51754,
+      21455
+     ]
+    },
+    {
+     "id": 2854836,
+     "time": {
+      "secs": 1202,
+      "label": "21"
+     },
+     "type": "yellow card",
+     "text": "Oliver McBurnie (Hull City) is shown the yellow card for a bad foul.",
+     "playerIds": [
+      8107
+     ]
+    },
+    {
+     "id": 2854838,
+     "time": {
+      "secs": 1195,
+      "label": "20"
+     },
+     "type": "free kick won",
+     "text": "James Tarkowski (Everton) wins a free kick in the attacking half.",
+     "playerIds": [
+      8143
+     ]
+    },
+    {
+     "id": 2854818,
+     "time": {
+      "secs": 1195,
+      "label": "20"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Oliver McBurnie (Hull City).",
+     "playerIds": [
+      8107
+     ]
+    },
+    {
+     "id": 2854812,
+     "time": {
+      "secs": 1124,
+      "label": "19"
+     },
+     "type": "offside",
+     "text": "Offside, Everton. Thierno Barry is caught offside.",
+     "playerIds": [
+      10428,
+      143922
+     ]
+    },
+    {
+     "id": 2854794,
+     "time": {
+      "secs": 1035,
+      "label": "18"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Oliver McBurnie (Hull City).",
+     "playerIds": [
+      8107
+     ]
+    },
+    {
+     "id": 2854791,
+     "time": {
+      "secs": 1035,
+      "label": "18"
+     },
+     "type": "free kick won",
+     "text": "Kiernan Dewsbury-Hall (Everton) wins a free kick in the defensive half.",
+     "playerIds": [
+      14706
+     ]
+    },
+    {
+     "id": 2854777,
+     "time": {
+      "secs": 746,
+      "label": "13"
+     },
+     "type": "yellow card",
+     "text": "Matt Crooks (Hull City) is shown the yellow card for a bad foul.",
+     "playerIds": [
+      8885
+     ]
+    },
+    {
+     "id": 2854776,
+     "time": {
+      "secs": 740,
+      "label": "13"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Matt Crooks (Hull City).",
+     "playerIds": [
+      8885
+     ]
+    },
+    {
+     "id": 2854773,
+     "time": {
+      "secs": 740,
+      "label": "13"
+     },
+     "type": "free kick won",
+     "text": "Jack Grealish (Everton) wins a free kick on the left wing.",
+     "playerIds": [
+      4260
+     ]
+    },
+    {
+     "id": 2854770,
+     "time": {
+      "secs": 667,
+      "label": "12"
+     },
+     "type": "corner",
+     "text": "Corner, Hull City. Conceded by James Tarkowski.",
+     "playerIds": [
+      8143
+     ]
+    },
+    {
+     "id": 2854764,
+     "time": {
+      "secs": 599,
+      "label": "10"
+     },
+     "type": "corner",
+     "text": "Corner, Hull City. Conceded by Harrison Armstrong.",
+     "playerIds": [
+      134286
+     ]
+    },
+    {
+     "id": 2854761,
+     "time": {
+      "secs": 510,
+      "label": "09"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Jack Grealish (Everton) right footed shot from outside the box is saved in the centre of the goal by Konstantinos Tzolakis (Hull City). Assisted by Kiernan Dewsbury-Hall.",
+     "playerIds": [
+      4260,
+      14706
+     ]
+    },
+    {
+     "id": 2854756,
+     "time": {
+      "secs": 463,
+      "label": "08"
+     },
+     "type": "free kick won",
+     "text": "Jack Grealish (Everton) wins a free kick in the attacking half.",
+     "playerIds": [
+      4260
+     ]
+    },
+    {
+     "id": 2854755,
+     "time": {
+      "secs": 463,
+      "label": "08"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Matt Crooks (Hull City).",
+     "playerIds": [
+      8885
+     ]
+    },
+    {
+     "id": 2854740,
+     "time": {
+      "secs": 254,
+      "label": "05"
+     },
+     "type": "corner",
+     "text": "Corner, Everton. Conceded by Konstantinos Tzolakis.",
+     "playerIds": [
+      55642
+     ]
+    },
+    {
+     "id": 2854731,
+     "time": {
+      "secs": 251,
+      "label": "05"
+     },
+     "type": "miss",
+     "text": "Attempt missed. James Garner (Everton) right footed shot from outside the box is just a bit too high from a direct free kick.",
+     "playerIds": [
+      23841
+     ]
+    },
+    {
+     "id": 2854726,
+     "time": {
+      "secs": 195,
+      "label": "04"
+     },
+     "type": "free kick won",
+     "text": "Thierno Barry (Everton) wins a free kick in the attacking half.",
+     "playerIds": [
+      143922
+     ]
+    },
+    {
+     "id": 2854725,
+     "time": {
+      "secs": 195,
+      "label": "04"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Regan Slater (Hull City).",
+     "playerIds": [
+      21385
+     ]
+    },
+    {
+     "id": 2854698,
+     "time": {
+      "secs": 0,
+      "label": "01"
+     },
+     "type": "start",
+     "text": "First Half begins."
+    },
+    {
+     "id": 2854691,
+     "type": "lineup",
+     "text": "Lineups are announced and players are warming up."
+    }
+   ]
+  }
+ },
+ "128984": {
+  "fixture": {
+   "gameweek": {
+    "id": 19767,
+    "gameweek": 7
+   },
+   "kickoff": {
+    "completeness": 3,
+    "millis": 1792245600000,
+    "label": "Sat 17 Oct 2026, 15:00 BST",
+    "gmtOffset": 1.0
+   },
+   "provisionalKickoff": {
+    "completeness": 3,
+    "millis": 1792245600000,
+    "label": "Sat 17 Oct 2026, 15:00 BST",
+    "gmtOffset": 1.0
+   },
+   "teams": [
+    {
+     "team": {
+      "name": "Brentford",
+      "club": {
+       "name": "Brentford",
+       "abbr": "BRE",
+       "id": 130
+      },
+      "teamType": "FIRST",
+      "shortName": "Brentford",
+      "id": 130
+     },
+     "score": 1
+    },
+    {
+     "team": {
+      "name": "Liverpool",
+      "club": {
+       "name": "Liverpool",
+       "abbr": "LIV",
+       "id": 10
+      },
+      "teamType": "FIRST",
+      "shortName": "Liverpool",
+      "id": 10
+     },
+     "score": 2
+    }
+   ],
+   "replay": false,
+   "ground": {
+    "name": "Gtech Community Stadium",
+    "city": "Brentford",
+    "source": "OPTA",
+    "id": 4003
+   },
+   "neutralGround": false,
+   "status": "C",
+   "phase": "F",
+   "outcome": "A",
+   "attendance": 17232,
+   "clock": {
+    "secs": 5820,
+    "label": "90+7'00"
+   },
+   "fixtureType": "REGULAR",
+   "extraTime": false,
+   "shootout": false,
+   "behindClosedDoors": false,
+   "id": 128984
+  },
+  "events": {
+   "pageInfo": {
+    "page": 0,
+    "numPages": 1,
+    "pageSize": 200,
+    "numEntries": 122
+   },
+   "content": [
+    {
+     "id": 2867014,
+     "time": {
+      "secs": 0,
+      "label": "01"
+     },
+     "type": "end 14",
+     "text": "Match ends, Brentford 1, Liverpool 2."
+    },
+    {
+     "id": 2867011,
+     "time": {
+      "secs": 5798,
+      "label": "90+7"
+     },
+     "type": "end 2",
+     "text": "Second Half ends, Brentford 1, Liverpool 2."
+    },
+    {
+     "id": 2866990,
+     "time": {
+      "secs": 5624,
+      "label": "90+4"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Lewis Koumas (Liverpool) right footed shot from outside the box is saved in the centre of the goal by Caoimhín Kelleher (Brentford). Assisted by Virgil van Dijk.",
+     "playerIds": [
+      129671,
+      5140
+     ]
+    },
+    {
+     "id": 2866987,
+     "time": {
+      "secs": 5548,
+      "label": "90+3"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Alexis Mac Allister (Liverpool) right footed shot from outside the box is high and wide to the right from a direct free kick.",
+     "playerIds": [
+      63633
+     ]
+    },
+    {
+     "id": 2866975,
+     "time": {
+      "secs": 5464,
+      "label": "90+2"
+     },
+     "type": "secondyellow card",
+     "text": "Second yellow card to Vitaly Janelt (Brentford) for a bad foul.",
+     "playerIds": [
+      23194
+     ]
+    },
+    {
+     "id": 2866977,
+     "time": {
+      "secs": 5455,
+      "label": "90+1"
+     },
+     "type": "free kick won",
+     "text": "Rio Ngumoha (Liverpool) wins a free kick in the attacking half.",
+     "playerIds": [
+      134796
+     ]
+    },
+    {
+     "id": 2866976,
+     "time": {
+      "secs": 5455,
+      "label": "90+1"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Vitaly Janelt (Brentford).",
+     "playerIds": [
+      23194
+     ]
+    },
+    {
+     "id": 2866969,
+     "time": {
+      "secs": 5400,
+      "label": "90+1"
+     },
+     "type": "added time",
+     "text": "Fourth official has announced 6 minutes of added time."
+    },
+    {
+     "id": 2866949,
+     "time": {
+      "secs": 5268,
+      "label": "88"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Joe Gomez (Liverpool).",
+     "playerIds": [
+      10651
+     ]
+    },
+    {
+     "id": 2866948,
+     "time": {
+      "secs": 5268,
+      "label": "88"
+     },
+     "type": "free kick won",
+     "text": "Igor Thiago (Brentford) wins a free kick on the left wing.",
+     "playerIds": [
+      124052
+     ]
+    },
+    {
+     "id": 2866873,
+     "time": {
+      "secs": 4805,
+      "label": "81"
+     },
+     "type": "offside",
+     "text": "Offside, Liverpool. Florian Wirtz is caught offside.",
+     "playerIds": [
+      10651,
+      75382
+     ]
+    },
+    {
+     "id": 2866855,
+     "time": {
+      "secs": 4712,
+      "label": "79"
+     },
+     "type": "substitution",
+     "text": "Substitution, Liverpool. Joe Gomez replaces Víctor Muñoz.",
+     "playerIds": [
+      10651,
+      119386
+     ]
+    },
+    {
+     "id": 2866857,
+     "time": {
+      "secs": 4709,
+      "label": "79"
+     },
+     "type": "substitution",
+     "text": "Substitution, Liverpool. Lewis Koumas replaces Alexander Isak.",
+     "playerIds": [
+      129671,
+      21737
+     ]
+    },
+    {
+     "id": 2866835,
+     "time": {
+      "secs": 4684,
+      "label": "79"
+     },
+     "type": "free kick won",
+     "text": "Kevin Schade (Brentford) wins a free kick in the defensive half.",
+     "playerIds": [
+      127594
+     ]
+    },
+    {
+     "id": 2866834,
+     "time": {
+      "secs": 4684,
+      "label": "79"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Rio Ngumoha (Liverpool).",
+     "playerIds": [
+      134796
+     ]
+    },
+    {
+     "id": 2866856,
+     "time": {
+      "secs": 4681,
+      "label": "79"
+     },
+     "type": "post",
+     "text": "Bradley Barcola (Liverpool) hits the bar with a right footed shot from the left side of the box following a corner.",
+     "playerIds": [
+      68840
+     ]
+    },
+    {
+     "id": 2866836,
+     "time": {
+      "secs": 4638,
+      "label": "78"
+     },
+     "type": "corner",
+     "text": "Corner, Liverpool. Conceded by Kristoffer Ajer.",
+     "playerIds": [
+      20113
+     ]
+    },
+    {
+     "id": 2866821,
+     "time": {
+      "secs": 4611,
+      "label": "77"
+     },
+     "type": "substitution",
+     "text": "Substitution, Brentford. Mikkel Damsgaard replaces Jaidon Anthony.",
+     "playerIds": [
+      49731,
+      50460
+     ]
+    },
+    {
+     "id": 2866819,
+     "time": {
+      "secs": 4608,
+      "label": "77"
+     },
+     "type": "substitution",
+     "text": "Substitution, Brentford. El Hadji Malick Diouf replaces Keane Lewis-Potter.",
+     "playerIds": [
+      145347,
+      24369
+     ]
+    },
+    {
+     "id": 2866820,
+     "time": {
+      "secs": 4583,
+      "label": "77"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Keane Lewis-Potter (Brentford) header from the centre of the box misses to the left. Assisted by Michael Kayode with a cross.",
+     "playerIds": [
+      24369,
+      133460
+     ]
+    },
+    {
+     "id": 2866798,
+     "time": {
+      "secs": 4480,
+      "label": "75"
+     },
+     "type": "corner",
+     "text": "Corner, Liverpool. Conceded by Aaron Hickey.",
+     "playerIds": [
+      115166
+     ]
+    },
+    {
+     "id": 2866792,
+     "time": {
+      "secs": 4341,
+      "label": "73"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Igor Thiago (Brentford) right footed shot from the centre of the box misses to the right.",
+     "playerIds": [
+      124052
+     ]
+    },
+    {
+     "id": 2866777,
+     "time": {
+      "secs": 4314,
+      "label": "72"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Víctor Muñoz (Liverpool) right footed shot from outside the box is saved in the centre of the goal by Caoimhín Kelleher (Brentford). Assisted by Trey Nyoni.",
+     "playerIds": [
+      119386,
+      130665
+     ]
+    },
+    {
+     "id": 2866769,
+     "time": {
+      "secs": 4252,
+      "label": "71"
+     },
+     "type": "free kick won",
+     "text": "Rio Ngumoha (Liverpool) wins a free kick in the attacking half.",
+     "playerIds": [
+      134796
+     ]
+    },
+    {
+     "id": 2866768,
+     "time": {
+      "secs": 4252,
+      "label": "71"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Mamadou Sangaré (Brentford).",
+     "playerIds": [
+      108421
+     ]
+    },
+    {
+     "id": 2866765,
+     "time": {
+      "secs": 4215,
+      "label": "71"
+     },
+     "type": "substitution",
+     "text": "Substitution, Brentford. Aaron Hickey replaces Sepp van den Berg.",
+     "playerIds": [
+      115166,
+      65987
+     ]
+    },
+    {
+     "id": 2866751,
+     "time": {
+      "secs": 4151,
+      "label": "70"
+     },
+     "type": "goal",
+     "text": "Goal! Brentford 1, Liverpool 2. Alexander Isak (Liverpool) left footed shot from very close range to the bottom right corner. Assisted by Bradley Barcola with a headed pass.",
+     "playerIds": [
+      21737,
+      68840
+     ]
+    },
+    {
+     "id": 2866750,
+     "time": {
+      "secs": 4118,
+      "label": "69"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Rio Ngumoha (Liverpool) left footed shot from the right side of the box is blocked. Assisted by Florian Wirtz.",
+     "playerIds": [
+      134796,
+      75382
+     ]
+    },
+    {
+     "id": 2866738,
+     "time": {
+      "secs": 4089,
+      "label": "69"
+     },
+     "type": "corner",
+     "text": "Corner, Liverpool. Conceded by Kevin Schade.",
+     "playerIds": [
+      127594
+     ]
+    },
+    {
+     "id": 2866723,
+     "time": {
+      "secs": 4048,
+      "label": "68"
+     },
+     "type": "corner",
+     "text": "Corner, Liverpool. Conceded by Igor Thiago.",
+     "playerIds": [
+      124052
+     ]
+    },
+    {
+     "id": 2866714,
+     "time": {
+      "secs": 3909,
+      "label": "66"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Bradley Barcola (Liverpool) right footed shot from the centre of the box misses to the right. Assisted by Florian Wirtz.",
+     "playerIds": [
+      68840,
+      75382
+     ]
+    },
+    {
+     "id": 2866706,
+     "time": {
+      "secs": 3842,
+      "label": "65"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Víctor Muñoz (Liverpool) left footed shot from the centre of the box misses to the left following a corner.",
+     "playerIds": [
+      119386
+     ]
+    },
+    {
+     "id": 2866705,
+     "time": {
+      "secs": 3825,
+      "label": "64"
+     },
+     "type": "corner",
+     "text": "Corner, Liverpool. Conceded by Keane Lewis-Potter.",
+     "playerIds": [
+      24369
+     ]
+    },
+    {
+     "id": 2866687,
+     "time": {
+      "secs": 3743,
+      "label": "63"
+     },
+     "type": "yellow card",
+     "text": "Vitaly Janelt (Brentford) is shown the yellow card.",
+     "playerIds": [
+      23194
+     ]
+    },
+    {
+     "id": 2866672,
+     "time": {
+      "secs": 3737,
+      "label": "63"
+     },
+     "type": "free kick won",
+     "text": "Jérémy Jacquet (Liverpool) wins a free kick in the defensive half.",
+     "playerIds": [
+      133104
+     ]
+    },
+    {
+     "id": 2866671,
+     "time": {
+      "secs": 3737,
+      "label": "63"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Igor Thiago (Brentford).",
+     "playerIds": [
+      124052
+     ]
+    },
+    {
+     "id": 2866663,
+     "time": {
+      "secs": 3672,
+      "label": "62"
+     },
+     "type": "goal",
+     "text": "Goal! Brentford 1, Liverpool 1. Víctor Muñoz (Liverpool) left footed shot from the right side of the box to the bottom left corner. Assisted by Florian Wirtz following a fast break.",
+     "playerIds": [
+      119386,
+      75382
+     ]
+    },
+    {
+     "id": 2866652,
+     "time": {
+      "secs": 3626,
+      "label": "61"
+     },
+     "type": "end delay",
+     "text": "Delay over. They are ready to continue."
+    },
+    {
+     "id": 2866648,
+     "time": {
+      "secs": 3586,
+      "label": "60"
+     },
+     "type": "yellow card",
+     "text": "Kevin Schade (Brentford) is shown the yellow card.",
+     "playerIds": [
+      127594
+     ]
+    },
+    {
+     "id": 2866651,
+     "time": {
+      "secs": 3582,
+      "label": "60"
+     },
+     "type": "start delay",
+     "text": "Delay in match because of an injury Víctor Muñoz (Liverpool)."
+    },
+    {
+     "id": 2866632,
+     "time": {
+      "secs": 3529,
+      "label": "59"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Virgil van Dijk (Liverpool) right footed shot from the left side of the box is close, but misses to the right. Assisted by Rio Ngumoha with a cross following a corner.",
+     "playerIds": [
+      5140,
+      134796
+     ]
+    },
+    {
+     "id": 2866630,
+     "time": {
+      "secs": 3511,
+      "label": "59"
+     },
+     "type": "corner",
+     "text": "Corner, Liverpool. Conceded by Caoimhín Kelleher.",
+     "playerIds": [
+      14723
+     ]
+    },
+    {
+     "id": 2866631,
+     "time": {
+      "secs": 3510,
+      "label": "59"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Alexis Mac Allister (Liverpool) right footed shot from outside the box is saved in the top right corner by Caoimhín Kelleher (Brentford). Assisted by Milos Kerkez.",
+     "playerIds": [
+      63633,
+      116665
+     ]
+    },
+    {
+     "id": 2866621,
+     "time": {
+      "secs": 3469,
+      "label": "58"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Jaidon Anthony (Brentford) right footed shot from the centre of the box misses to the right.",
+     "playerIds": [
+      50460
+     ]
+    },
+    {
+     "id": 2866609,
+     "time": {
+      "secs": 3322,
+      "label": "56"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Trey Nyoni (Liverpool) left footed shot from the left side of the box misses to the left. Assisted by Florian Wirtz.",
+     "playerIds": [
+      130665,
+      75382
+     ]
+    },
+    {
+     "id": 2866597,
+     "time": {
+      "secs": 3177,
+      "label": "53"
+     },
+     "type": "yellow card",
+     "text": "Alexis Mac Allister (Liverpool) is shown the yellow card.",
+     "playerIds": [
+      63633
+     ]
+    },
+    {
+     "id": 2866592,
+     "time": {
+      "secs": 3171,
+      "label": "53"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Bradley Barcola (Liverpool).",
+     "playerIds": [
+      68840
+     ]
+    },
+    {
+     "id": 2866591,
+     "time": {
+      "secs": 3171,
+      "label": "53"
+     },
+     "type": "free kick won",
+     "text": "Michael Kayode (Brentford) wins a free kick in the defensive half.",
+     "playerIds": [
+      133460
+     ]
+    },
+    {
+     "id": 2866585,
+     "time": {
+      "secs": 3122,
+      "label": "53"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Jaidon Anthony (Brentford) right footed shot from the centre of the box is saved in the bottom right corner by Alisson Becker (Liverpool).",
+     "playerIds": [
+      50460
+     ]
+    },
+    {
+     "id": 2866582,
+     "time": {
+      "secs": 3098,
+      "label": "52"
+     },
+     "type": "substitution",
+     "text": "Substitution, Liverpool. Rio Ngumoha replaces Jeremie Frimpong because of an injury.",
+     "playerIds": [
+      134796,
+      19919
+     ]
+    },
+    {
+     "id": 2867018,
+     "time": {
+      "secs": 3095,
+      "label": "52"
+     },
+     "type": "end delay",
+     "text": "Delay over. They are ready to continue."
+    },
+    {
+     "id": 2867017,
+     "time": {
+      "secs": 3026,
+      "label": "51"
+     },
+     "type": "start delay",
+     "text": "Delay in match because of an injury Jeremie Frimpong (Liverpool)."
+    },
+    {
+     "id": 2866563,
+     "time": {
+      "secs": 2937,
+      "label": "49"
+     },
+     "type": "yellow card",
+     "text": "Jérémy Jacquet (Liverpool) is shown the yellow card for a bad foul.",
+     "playerIds": [
+      133104
+     ]
+    },
+    {
+     "id": 2866564,
+     "time": {
+      "secs": 2934,
+      "label": "49"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Jérémy Jacquet (Liverpool).",
+     "playerIds": [
+      133104
+     ]
+    },
+    {
+     "id": 2866562,
+     "time": {
+      "secs": 2934,
+      "label": "49"
+     },
+     "type": "free kick won",
+     "text": "Kevin Schade (Brentford) wins a free kick on the left wing.",
+     "playerIds": [
+      127594
+     ]
+    },
+    {
+     "id": 2866561,
+     "time": {
+      "secs": 2903,
+      "label": "49"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Alexis Mac Allister (Liverpool) right footed shot from outside the box is blocked. Assisted by Florian Wirtz.",
+     "playerIds": [
+      63633,
+      75382
+     ]
+    },
+    {
+     "id": 2866534,
+     "time": {
+      "secs": 2759,
+      "label": "46"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Jérémy Jacquet (Liverpool) right footed shot from outside the box is high and wide to the left. Assisted by Jeremie Frimpong.",
+     "playerIds": [
+      133104,
+      19919
+     ]
+    },
+    {
+     "id": 2866532,
+     "time": {
+      "secs": 2712,
+      "label": "46"
+     },
+     "type": "yellow card",
+     "text": "Igor Thiago (Brentford) is shown the yellow card for a bad foul.",
+     "playerIds": [
+      124052
+     ]
+    },
+    {
+     "id": 2866533,
+     "time": {
+      "secs": 2707,
+      "label": "46"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Igor Thiago (Brentford).",
+     "playerIds": [
+      124052
+     ]
+    },
+    {
+     "id": 2866531,
+     "time": {
+      "secs": 2707,
+      "label": "46"
+     },
+     "type": "free kick won",
+     "text": "Jérémy Jacquet (Liverpool) wins a free kick in the defensive half.",
+     "playerIds": [
+      133104
+     ]
+    },
+    {
+     "id": 2866512,
+     "time": {
+      "secs": 2700,
+      "label": "46"
+     },
+     "type": "substitution",
+     "text": "Substitution, Brentford. Mamadou Sangaré replaces Mathias Jensen.",
+     "playerIds": [
+      108421,
+      49726
+     ]
+    },
+    {
+     "id": 2866511,
+     "time": {
+      "secs": 2700,
+      "label": "46"
+     },
+     "type": "substitution",
+     "text": "Substitution, Brentford. Kevin Schade replaces Dango Ouattara.",
+     "playerIds": [
+      127594,
+      133890
+     ]
+    },
+    {
+     "id": 2866510,
+     "time": {
+      "secs": 2700,
+      "label": "46"
+     },
+     "type": "start",
+     "text": "Second Half begins Brentford 1, Liverpool 0."
+    },
+    {
+     "id": 2866504,
+     "time": {
+      "secs": 2700,
+      "label": "46"
+     },
+     "type": "substitution",
+     "text": "Substitution, Liverpool. Jeremie Frimpong replaces Ronald Araujo.",
+     "playerIds": [
+      19919,
+      66133
+     ]
+    },
+    {
+     "id": 2866413,
+     "time": {
+      "secs": 3339,
+      "label": "45+11"
+     },
+     "type": "end 1",
+     "text": "First Half ends, Brentford 1, Liverpool 0."
+    },
+    {
+     "id": 2866396,
+     "time": {
+      "secs": 3247,
+      "label": "45+10"
+     },
+     "type": "free kick won",
+     "text": "Michael Kayode (Brentford) wins a free kick in the defensive half.",
+     "playerIds": [
+      133460
+     ]
+    },
+    {
+     "id": 2866395,
+     "time": {
+      "secs": 3247,
+      "label": "45+10"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Milos Kerkez (Liverpool).",
+     "playerIds": [
+      116665
+     ]
+    },
+    {
+     "id": 2866399,
+     "time": {
+      "secs": 3211,
+      "label": "45+9"
+     },
+     "type": "offside",
+     "text": "Offside, Brentford. Dango Ouattara is caught offside.",
+     "playerIds": [
+      133460,
+      133890
+     ]
+    },
+    {
+     "id": 2866397,
+     "time": {
+      "secs": 3176,
+      "label": "45+8"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Trey Nyoni (Liverpool) right footed shot from outside the box is blocked. Assisted by Florian Wirtz.",
+     "playerIds": [
+      130665,
+      75382
+     ]
+    },
+    {
+     "id": 2866398,
+     "time": {
+      "secs": 3135,
+      "label": "45+8"
+     },
+     "type": "red card",
+     "text": "Yehor Yarmoliuk (Brentford) is shown the red card for violent conduct.",
+     "playerIds": [
+      128891
+     ]
+    },
+    {
+     "id": 2866390,
+     "time": {
+      "secs": 2962,
+      "label": "45+5"
+     },
+     "type": "contentious referee decisions",
+     "text": "VAR Decision: Card upgraded Yehor Yarmoliuk (Brentford).",
+     "playerIds": [
+      128891
+     ]
+    },
+    {
+     "id": 2866375,
+     "time": {
+      "secs": 2903,
+      "label": "45+4"
+     },
+     "type": "corner",
+     "text": "Corner, Liverpool. Conceded by Dango Ouattara.",
+     "playerIds": [
+      133890
+     ]
+    },
+    {
+     "id": 2866374,
+     "time": {
+      "secs": 2903,
+      "label": "45+4"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Florian Wirtz (Liverpool) right footed shot from the right side of the box is blocked.",
+     "playerIds": [
+      75382
+     ]
+    },
+    {
+     "id": 2866355,
+     "time": {
+      "secs": 2865,
+      "label": "45+3"
+     },
+     "type": "corner",
+     "text": "Corner, Liverpool. Conceded by Keane Lewis-Potter.",
+     "playerIds": [
+      24369
+     ]
+    },
+    {
+     "id": 2866327,
+     "time": {
+      "secs": 2700,
+      "label": "45+1"
+     },
+     "type": "added time",
+     "text": "Fourth official has announced 6 minutes of added time."
+    },
+    {
+     "id": 2866318,
+     "time": {
+      "secs": 2625,
+      "label": "44"
+     },
+     "type": "goal",
+     "text": "Goal! Brentford 1, Liverpool 0. Keane Lewis-Potter (Brentford) header from the centre of the box to the top right corner. Assisted by Igor Thiago.",
+     "playerIds": [
+      24369,
+      124052
+     ]
+    },
+    {
+     "id": 2866321,
+     "time": {
+      "secs": 2615,
+      "label": "44"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Jaidon Anthony (Brentford) right footed shot from the left side of the box is blocked. Assisted by Keane Lewis-Potter.",
+     "playerIds": [
+      50460,
+      24369
+     ]
+    },
+    {
+     "id": 2866298,
+     "time": {
+      "secs": 2452,
+      "label": "41"
+     },
+     "type": "contentious referee decisions",
+     "text": "VAR Decision: No Penalty Liverpool.",
+     "playerIds": [
+      63633
+     ]
+    },
+    {
+     "id": 2866270,
+     "time": {
+      "secs": 2319,
+      "label": "39"
+     },
+     "type": "free kick won",
+     "text": "Trey Nyoni (Liverpool) wins a free kick in the attacking half.",
+     "playerIds": [
+      130665
+     ]
+    },
+    {
+     "id": 2866269,
+     "time": {
+      "secs": 2319,
+      "label": "39"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Mathias Jensen (Brentford).",
+     "playerIds": [
+      49726
+     ]
+    },
+    {
+     "id": 2866256,
+     "time": {
+      "secs": 2169,
+      "label": "37"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Bradley Barcola (Liverpool) right footed shot from outside the box is too high. Assisted by Florian Wirtz.",
+     "playerIds": [
+      68840,
+      75382
+     ]
+    },
+    {
+     "id": 2866247,
+     "time": {
+      "secs": 2084,
+      "label": "35"
+     },
+     "type": "free kick won",
+     "text": "Dango Ouattara (Brentford) wins a free kick in the defensive half.",
+     "playerIds": [
+      133890
+     ]
+    },
+    {
+     "id": 2866232,
+     "time": {
+      "secs": 2084,
+      "label": "35"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Trey Nyoni (Liverpool).",
+     "playerIds": [
+      130665
+     ]
+    },
+    {
+     "id": 2866223,
+     "time": {
+      "secs": 1939,
+      "label": "33"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Igor Thiago (Brentford) header from the left side of the six yard box is too high. Assisted by Kristoffer Ajer with a headed pass following a set piece situation.",
+     "playerIds": [
+      124052,
+      20113
+     ]
+    },
+    {
+     "id": 2866198,
+     "time": {
+      "secs": 1903,
+      "label": "32"
+     },
+     "type": "substitution",
+     "text": "Substitution, Liverpool. Trey Nyoni replaces Dominik Szoboszlai because of an injury.",
+     "playerIds": [
+      130665,
+      33231
+     ]
+    },
+    {
+     "id": 2866199,
+     "time": {
+      "secs": 1900,
+      "label": "32"
+     },
+     "type": "end delay",
+     "text": "Delay over. They are ready to continue."
+    },
+    {
+     "id": 2866197,
+     "time": {
+      "secs": 1850,
+      "label": "31"
+     },
+     "type": "start delay",
+     "text": "Delay in match because of an injury Dominik Szoboszlai (Liverpool)."
+    },
+    {
+     "id": 2866196,
+     "time": {
+      "secs": 1819,
+      "label": "31"
+     },
+     "type": "yellow card",
+     "text": "Bradley Barcola (Liverpool) is shown the yellow card for a bad foul.",
+     "playerIds": [
+      68840
+     ]
+    },
+    {
+     "id": 2866172,
+     "time": {
+      "secs": 1815,
+      "label": "31"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Bradley Barcola (Liverpool).",
+     "playerIds": [
+      68840
+     ]
+    },
+    {
+     "id": 2866171,
+     "time": {
+      "secs": 1815,
+      "label": "31"
+     },
+     "type": "free kick won",
+     "text": "Michael Kayode (Brentford) wins a free kick on the right wing.",
+     "playerIds": [
+      133460
+     ]
+    },
+    {
+     "id": 2866150,
+     "time": {
+      "secs": 1670,
+      "label": "28"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Igor Thiago (Brentford) right footed shot from the centre of the box is blocked.",
+     "playerIds": [
+      124052
+     ]
+    },
+    {
+     "id": 2866151,
+     "time": {
+      "secs": 1546,
+      "label": "26"
+     },
+     "type": "end delay",
+     "text": "Delay over. They are ready to continue."
+    },
+    {
+     "id": 2866108,
+     "time": {
+      "secs": 1427,
+      "label": "24"
+     },
+     "type": "start delay",
+     "text": "Delay in match because of an injury Víctor Muñoz (Liverpool)."
+    },
+    {
+     "id": 2866109,
+     "time": {
+      "secs": 1399,
+      "label": "24"
+     },
+     "type": "free kick won",
+     "text": "Yehor Yarmoliuk (Brentford) wins a free kick in the attacking half.",
+     "playerIds": [
+      128891
+     ]
+    },
+    {
+     "id": 2866102,
+     "time": {
+      "secs": 1399,
+      "label": "24"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Florian Wirtz (Liverpool).",
+     "playerIds": [
+      75382
+     ]
+    },
+    {
+     "id": 2866087,
+     "time": {
+      "secs": 1324,
+      "label": "23"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Alexander Isak (Liverpool) header from the centre of the box is too high. Assisted by Alexis Mac Allister with a cross.",
+     "playerIds": [
+      21737,
+      63633
+     ]
+    },
+    {
+     "id": 2866055,
+     "time": {
+      "secs": 1180,
+      "label": "20"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Bradley Barcola (Liverpool) right footed shot from outside the box is close, but misses to the left following a fast break.",
+     "playerIds": [
+      68840
+     ]
+    },
+    {
+     "id": 2866053,
+     "time": {
+      "secs": 1130,
+      "label": "19"
+     },
+     "type": "corner",
+     "text": "Corner, Brentford. Conceded by Jérémy Jacquet.",
+     "playerIds": [
+      133104
+     ]
+    },
+    {
+     "id": 2866054,
+     "time": {
+      "secs": 1129,
+      "label": "19"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Michael Kayode (Brentford) left footed shot from the right side of the box is blocked. Assisted by Dango Ouattara.",
+     "playerIds": [
+      133460,
+      133890
+     ]
+    },
+    {
+     "id": 2866020,
+     "time": {
+      "secs": 1029,
+      "label": "18"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Igor Thiago (Brentford).",
+     "playerIds": [
+      124052
+     ]
+    },
+    {
+     "id": 2866019,
+     "time": {
+      "secs": 1029,
+      "label": "18"
+     },
+     "type": "free kick won",
+     "text": "Milos Kerkez (Liverpool) wins a free kick on the left wing.",
+     "playerIds": [
+      116665
+     ]
+    },
+    {
+     "id": 2866007,
+     "time": {
+      "secs": 925,
+      "label": "16"
+     },
+     "type": "free kick won",
+     "text": "Kristoffer Ajer (Brentford) wins a free kick in the defensive half.",
+     "playerIds": [
+      20113
+     ]
+    },
+    {
+     "id": 2866005,
+     "time": {
+      "secs": 925,
+      "label": "16"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Florian Wirtz (Liverpool).",
+     "playerIds": [
+      75382
+     ]
+    },
+    {
+     "id": 2866004,
+     "time": {
+      "secs": 888,
+      "label": "15"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Alexis Mac Allister (Liverpool) right footed shot from outside the box is high and wide to the right. Assisted by Florian Wirtz following a corner.",
+     "playerIds": [
+      63633,
+      75382
+     ]
+    },
+    {
+     "id": 2866006,
+     "time": {
+      "secs": 854,
+      "label": "15"
+     },
+     "type": "corner",
+     "text": "Corner, Liverpool. Conceded by Sepp van den Berg.",
+     "playerIds": [
+      65987
+     ]
+    },
+    {
+     "id": 2865978,
+     "time": {
+      "secs": 711,
+      "label": "12"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Ronald Araujo (Liverpool).",
+     "playerIds": [
+      66133
+     ]
+    },
+    {
+     "id": 2865977,
+     "time": {
+      "secs": 711,
+      "label": "12"
+     },
+     "type": "free kick won",
+     "text": "Jaidon Anthony (Brentford) wins a free kick in the defensive half.",
+     "playerIds": [
+      50460
+     ]
+    },
+    {
+     "id": 2865968,
+     "time": {
+      "secs": 631,
+      "label": "11"
+     },
+     "type": "free kick won",
+     "text": "Keane Lewis-Potter (Brentford) wins a free kick in the defensive half.",
+     "playerIds": [
+      24369
+     ]
+    },
+    {
+     "id": 2865967,
+     "time": {
+      "secs": 631,
+      "label": "11"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Víctor Muñoz (Liverpool).",
+     "playerIds": [
+      119386
+     ]
+    },
+    {
+     "id": 2865937,
+     "time": {
+      "secs": 526,
+      "label": "09"
+     },
+     "type": "free kick won",
+     "text": "Milos Kerkez (Liverpool) wins a free kick in the defensive half.",
+     "playerIds": [
+      116665
+     ]
+    },
+    {
+     "id": 2865936,
+     "time": {
+      "secs": 526,
+      "label": "09"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Igor Thiago (Brentford).",
+     "playerIds": [
+      124052
+     ]
+    },
+    {
+     "id": 2865932,
+     "time": {
+      "secs": 441,
+      "label": "08"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Dominik Szoboszlai (Liverpool) right footed shot from outside the box is high and wide to the right. Assisted by Florian Wirtz.",
+     "playerIds": [
+      33231,
+      75382
+     ]
+    },
+    {
+     "id": 2865917,
+     "time": {
+      "secs": 411,
+      "label": "07"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Jaidon Anthony (Brentford) right footed shot from the left side of the box is blocked. Assisted by Keane Lewis-Potter.",
+     "playerIds": [
+      50460,
+      24369
+     ]
+    },
+    {
+     "id": 2865910,
+     "time": {
+      "secs": 343,
+      "label": "06"
+     },
+     "type": "corner",
+     "text": "Corner, Brentford. Conceded by Virgil van Dijk.",
+     "playerIds": [
+      5140
+     ]
+    },
+    {
+     "id": 2865897,
+     "time": {
+      "secs": 298,
+      "label": "05"
+     },
+     "type": "corner",
+     "text": "Corner, Brentford. Conceded by Víctor Muñoz.",
+     "playerIds": [
+      119386
+     ]
+    },
+    {
+     "id": 2865888,
+     "time": {
+      "secs": 142,
+      "label": "03"
+     },
+     "type": "offside",
+     "text": "Offside, Liverpool. Alexander Isak is caught offside.",
+     "playerIds": [
+      116665,
+      21737
+     ]
+    },
+    {
+     "id": 2865876,
+     "time": {
+      "secs": 105,
+      "label": "02"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Ronald Araujo (Liverpool).",
+     "playerIds": [
+      66133
+     ]
+    },
+    {
+     "id": 2865875,
+     "time": {
+      "secs": 105,
+      "label": "02"
+     },
+     "type": "free kick won",
+     "text": "Kristoffer Ajer (Brentford) wins a free kick in the defensive half.",
+     "playerIds": [
+      20113
+     ]
+    },
+    {
+     "id": 2865870,
+     "time": {
+      "secs": 20,
+      "label": "01"
+     },
+     "type": "free kick won",
+     "text": "Keane Lewis-Potter (Brentford) wins a free kick in the defensive half.",
+     "playerIds": [
+      24369
+     ]
+    },
+    {
+     "id": 2865869,
+     "time": {
+      "secs": 20,
+      "label": "01"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Florian Wirtz (Liverpool).",
+     "playerIds": [
+      75382
+     ]
+    },
+    {
+     "id": 2865863,
+     "time": {
+      "secs": 0,
+      "label": "01"
+     },
+     "type": "start",
+     "text": "First Half begins."
+    },
+    {
+     "id": 2865472,
+     "type": "lineup",
+     "text": "Lineups are announced and players are warming up."
+    }
+   ]
+  }
+ },
+ "128985": {
+  "fixture": {
+   "gameweek": {
+    "id": 19767,
+    "gameweek": 7
+   },
+   "kickoff": {
+    "completeness": 3,
+    "millis": 1792328400000,
+    "label": "Sun 18 Oct 2026, 14:00 BST",
+    "gmtOffset": 1.0
+   },
+   "provisionalKickoff": {
+    "completeness": 3,
+    "millis": 1792328400000,
+    "label": "Sun 18 Oct 2026, 14:00 BST",
+    "gmtOffset": 1.0
+   },
+   "teams": [
+    {
+     "team": {
+      "name": "Brighton & Hove Albion",
+      "club": {
+       "name": "Brighton and Hove Albion",
+       "abbr": "BHA",
+       "id": 131
+      },
+      "teamType": "FIRST",
+      "shortName": "Brighton",
+      "id": 131
+     },
+     "score": 5
+    },
+    {
+     "team": {
+      "name": "Crystal Palace",
+      "club": {
+       "name": "Crystal Palace",
+       "abbr": "CRY",
+       "id": 6
+      },
+      "teamType": "FIRST",
+      "shortName": "Crystal Palace",
+      "id": 6
+     },
+     "score": 0
+    }
+   ],
+   "replay": false,
+   "ground": {
+    "name": "American Express Stadium",
+    "city": "Falmer",
+    "source": "OPTA",
+    "id": 9524
+   },
+   "neutralGround": false,
+   "status": "C",
+   "phase": "F",
+   "outcome": "H",
+   "attendance": 31440,
+   "clock": {
+    "secs": 5700,
+    "label": "90+5'00"
+   },
+   "fixtureType": "REGULAR",
+   "extraTime": false,
+   "shootout": false,
+   "behindClosedDoors": false,
+   "id": 128985
+  },
+  "events": {
+   "pageInfo": {
+    "page": 0,
+    "numPages": 1,
+    "pageSize": 200,
+    "numEntries": 108
+   },
+   "content": [
+    {
+     "id": 2869276,
+     "time": {
+      "secs": 0,
+      "label": "01"
+     },
+     "type": "end 14",
+     "text": "Match ends, Brighton and Hove Albion 5, Crystal Palace 0."
+    },
+    {
+     "id": 2869261,
+     "time": {
+      "secs": 5653,
+      "label": "90+5"
+     },
+     "type": "end 2",
+     "text": "Second Half ends, Brighton and Hove Albion 5, Crystal Palace 0."
+    },
+    {
+     "id": 2869258,
+     "time": {
+      "secs": 5612,
+      "label": "90+4"
+     },
+     "type": "corner",
+     "text": "Corner, Crystal Palace. Conceded by Ferdi Kadioglu.",
+     "playerIds": [
+      50727
+     ]
+    },
+    {
+     "id": 2869255,
+     "time": {
+      "secs": 5543,
+      "label": "90+3"
+     },
+     "type": "corner",
+     "text": "Corner, Brighton and Hove Albion. Conceded by Chris Richards.",
+     "playerIds": [
+      50842
+     ]
+    },
+    {
+     "id": 2869216,
+     "time": {
+      "secs": 5509,
+      "label": "90+2"
+     },
+     "type": "offside",
+     "text": "Offside, Crystal Palace. Jean-Philippe Mateta is caught offside.",
+     "playerIds": [
+      123848,
+      20874
+     ]
+    },
+    {
+     "id": 2869202,
+     "time": {
+      "secs": 5400,
+      "label": "90+1"
+     },
+     "type": "added time",
+     "text": "Fourth official has announced 4 minutes of added time."
+    },
+    {
+     "id": 2869201,
+     "time": {
+      "secs": 5397,
+      "label": "90"
+     },
+     "type": "substitution",
+     "text": "Substitution, Brighton and Hove Albion. Michael Svoboda replaces Lewis Dunk.",
+     "playerIds": [
+      334200,
+      8163
+     ]
+    },
+    {
+     "id": 2869203,
+     "time": {
+      "secs": 5371,
+      "label": "90"
+     },
+     "type": "corner",
+     "text": "Corner, Brighton and Hove Albion. Conceded by Anan Khalaili.",
+     "playerIds": [
+      123848
+     ]
+    },
+    {
+     "id": 2869189,
+     "time": {
+      "secs": 5250,
+      "label": "88"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Jack Hinshelwood (Brighton and Hove Albion).",
+     "playerIds": [
+      112739
+     ]
+    },
+    {
+     "id": 2869177,
+     "time": {
+      "secs": 5250,
+      "label": "88"
+     },
+     "type": "free kick won",
+     "text": "Jean-Philippe Mateta (Crystal Palace) wins a free kick in the defensive half.",
+     "playerIds": [
+      20874
+     ]
+    },
+    {
+     "id": 2869178,
+     "time": {
+      "secs": 5192,
+      "label": "87"
+     },
+     "type": "corner",
+     "text": "Corner, Brighton and Hove Albion. Conceded by Chris Richards.",
+     "playerIds": [
+      50842
+     ]
+    },
+    {
+     "id": 2869142,
+     "time": {
+      "secs": 4994,
+      "label": "84"
+     },
+     "type": "goal",
+     "text": "Goal! Brighton and Hove Albion 5, Crystal Palace 0. Jack Hinshelwood (Brighton and Hove Albion) right footed shot from very close range to the top left corner following a corner.",
+     "playerIds": [
+      112739
+     ]
+    },
+    {
+     "id": 2869141,
+     "time": {
+      "secs": 4992,
+      "label": "84"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Luka Vuskovic (Brighton and Hove Albion) header from the left side of the six yard box is saved in the bottom left corner by Walter Benítez (Crystal Palace). Assisted by Maxim De Cuyper with a cross.",
+     "playerIds": [
+      134632,
+      67928
+     ]
+    },
+    {
+     "id": 2869138,
+     "time": {
+      "secs": 4944,
+      "label": "83"
+     },
+     "type": "corner",
+     "text": "Corner, Brighton and Hove Albion. Conceded by Tyrick Mitchell.",
+     "playerIds": [
+      24334
+     ]
+    },
+    {
+     "id": 2869115,
+     "time": {
+      "secs": 4886,
+      "label": "82"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Maxim De Cuyper (Brighton and Hove Albion).",
+     "playerIds": [
+      67928
+     ]
+    },
+    {
+     "id": 2869114,
+     "time": {
+      "secs": 4886,
+      "label": "82"
+     },
+     "type": "free kick won",
+     "text": "Eddie Nketiah (Crystal Palace) wins a free kick in the defensive half.",
+     "playerIds": [
+      14451
+     ]
+    },
+    {
+     "id": 2869116,
+     "time": {
+      "secs": 4855,
+      "label": "81"
+     },
+     "type": "substitution",
+     "text": "Substitution, Brighton and Hove Albion. Malick Yalcouyé replaces Yasin Ayari.",
+     "playerIds": [
+      147052,
+      134333
+     ]
+    },
+    {
+     "id": 2869105,
+     "time": {
+      "secs": 4846,
+      "label": "81"
+     },
+     "type": "substitution",
+     "text": "Substitution, Brighton and Hove Albion. Jaouen Hadjam replaces Olivier Boscagli.",
+     "playerIds": [
+      126175,
+      20505
+     ]
+    },
+    {
+     "id": 2869102,
+     "time": {
+      "secs": 4820,
+      "label": "81"
+     },
+     "type": "substitution",
+     "text": "Substitution, Crystal Palace. Will Hughes replaces Daichi Kamada.",
+     "playerIds": [
+      8589,
+      49759
+     ]
+    },
+    {
+     "id": 2869093,
+     "time": {
+      "secs": 4696,
+      "label": "79"
+     },
+     "type": "corner",
+     "text": "Corner, Crystal Palace. Conceded by Chema Andrés.",
+     "playerIds": [
+      129259
+     ]
+    },
+    {
+     "id": 2869082,
+     "time": {
+      "secs": 4643,
+      "label": "78"
+     },
+     "type": "free kick won",
+     "text": "Jaydee Canvot (Crystal Palace) wins a free kick in the defensive half.",
+     "playerIds": [
+      147312
+     ]
+    },
+    {
+     "id": 2869081,
+     "time": {
+      "secs": 4643,
+      "label": "78"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Diego Gómez (Brighton and Hove Albion).",
+     "playerIds": [
+      143240
+     ]
+    },
+    {
+     "id": 2869061,
+     "time": {
+      "secs": 4447,
+      "label": "75"
+     },
+     "type": "offside",
+     "text": "Offside, Crystal Palace. Eddie Nketiah is caught offside.",
+     "playerIds": [
+      24797,
+      14451
+     ]
+    },
+    {
+     "id": 2869060,
+     "time": {
+      "secs": 4430,
+      "label": "74"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Georginio Rutter (Brighton and Hove Albion) right footed shot from outside the box is saved in the top right corner by Walter Benítez (Crystal Palace). Assisted by Maxim De Cuyper.",
+     "playerIds": [
+      51830,
+      67928
+     ]
+    },
+    {
+     "id": 2869045,
+     "time": {
+      "secs": 4396,
+      "label": "74"
+     },
+     "type": "post",
+     "text": "Jefferson Lerma (Crystal Palace) hits the left post with a header from very close range. Assisted by Adam Wharton with a cross following a corner.",
+     "playerIds": [
+      37776,
+      69595
+     ]
+    },
+    {
+     "id": 2869046,
+     "time": {
+      "secs": 4363,
+      "label": "73"
+     },
+     "type": "corner",
+     "text": "Corner, Crystal Palace. Conceded by Olivier Boscagli.",
+     "playerIds": [
+      20505
+     ]
+    },
+    {
+     "id": 2869011,
+     "time": {
+      "secs": 4254,
+      "label": "71"
+     },
+     "type": "substitution",
+     "text": "Substitution, Brighton and Hove Albion. Georginio Rutter replaces Charalampos Kostoulas.",
+     "playerIds": [
+      51830,
+      145043
+     ]
+    },
+    {
+     "id": 2869010,
+     "time": {
+      "secs": 4248,
+      "label": "71"
+     },
+     "type": "substitution",
+     "text": "Substitution, Brighton and Hove Albion. Jack Hinshelwood replaces Pascal Groß.",
+     "playerIds": [
+      112739,
+      22542
+     ]
+    },
+    {
+     "id": 2868987,
+     "time": {
+      "secs": 4180,
+      "label": "70"
+     },
+     "type": "corner",
+     "text": "Corner, Brighton and Hove Albion. Conceded by Jefferson Lerma.",
+     "playerIds": [
+      37776
+     ]
+    },
+    {
+     "id": 2868975,
+     "time": {
+      "secs": 4128,
+      "label": "69"
+     },
+     "type": "free kick won",
+     "text": "Ferdi Kadioglu (Brighton and Hove Albion) wins a free kick on the right wing.",
+     "playerIds": [
+      50727
+     ]
+    },
+    {
+     "id": 2868974,
+     "time": {
+      "secs": 4128,
+      "label": "69"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Eddie Nketiah (Crystal Palace).",
+     "playerIds": [
+      14451
+     ]
+    },
+    {
+     "id": 2868988,
+     "time": {
+      "secs": 4116,
+      "label": "69"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Luka Vuskovic (Brighton and Hove Albion) header from the centre of the box misses to the right following a set piece situation.",
+     "playerIds": [
+      134632
+     ]
+    },
+    {
+     "id": 2868961,
+     "time": {
+      "secs": 4059,
+      "label": "68"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Jaydee Canvot (Crystal Palace).",
+     "playerIds": [
+      147312
+     ]
+    },
+    {
+     "id": 2868960,
+     "time": {
+      "secs": 4059,
+      "label": "68"
+     },
+     "type": "free kick won",
+     "text": "Charalampos Kostoulas (Brighton and Hove Albion) wins a free kick in the attacking half.",
+     "playerIds": [
+      145043
+     ]
+    },
+    {
+     "id": 2868920,
+     "time": {
+      "secs": 3869,
+      "label": "65"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Jaydee Canvot (Crystal Palace).",
+     "playerIds": [
+      147312
+     ]
+    },
+    {
+     "id": 2868917,
+     "time": {
+      "secs": 3869,
+      "label": "65"
+     },
+     "type": "free kick won",
+     "text": "Charalampos Kostoulas (Brighton and Hove Albion) wins a free kick in the defensive half.",
+     "playerIds": [
+      145043
+     ]
+    },
+    {
+     "id": 2868919,
+     "time": {
+      "secs": 3830,
+      "label": "64"
+     },
+     "type": "yellow card",
+     "text": "Chema Andrés (Brighton and Hove Albion) is shown the yellow card for a bad foul.",
+     "playerIds": [
+      129259
+     ]
+    },
+    {
+     "id": 2868918,
+     "time": {
+      "secs": 3822,
+      "label": "64"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Chema Andrés (Brighton and Hove Albion).",
+     "playerIds": [
+      129259
+     ]
+    },
+    {
+     "id": 2868896,
+     "time": {
+      "secs": 3822,
+      "label": "64"
+     },
+     "type": "free kick won",
+     "text": "Daichi Kamada (Crystal Palace) wins a free kick in the defensive half.",
+     "playerIds": [
+      49759
+     ]
+    },
+    {
+     "id": 2868887,
+     "time": {
+      "secs": 3747,
+      "label": "63"
+     },
+     "type": "post",
+     "text": "Jean-Philippe Mateta (Crystal Palace) hits the bar with a left footed shot from the centre of the box. Assisted by Dwight McNeil.",
+     "playerIds": [
+      20874,
+      24797
+     ]
+    },
+    {
+     "id": 2868884,
+     "time": {
+      "secs": 3660,
+      "label": "62"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Charalampos Kostoulas (Brighton and Hove Albion) right footed shot from outside the box is blocked. Assisted by Olivier Boscagli.",
+     "playerIds": [
+      145043,
+      20505
+     ]
+    },
+    {
+     "id": 2868857,
+     "time": {
+      "secs": 3627,
+      "label": "61"
+     },
+     "type": "substitution",
+     "text": "Substitution, Crystal Palace. Eddie Nketiah replaces Yéremy Pino.",
+     "playerIds": [
+      14451,
+      109117
+     ]
+    },
+    {
+     "id": 2868859,
+     "time": {
+      "secs": 3626,
+      "label": "61"
+     },
+     "type": "substitution",
+     "text": "Substitution, Crystal Palace. Jean-Philippe Mateta replaces Jørgen Strand Larsen.",
+     "playerIds": [
+      20874,
+      35670
+     ]
+    },
+    {
+     "id": 2868858,
+     "time": {
+      "secs": 3596,
+      "label": "60"
+     },
+     "type": "free kick won",
+     "text": "Maxim De Cuyper (Brighton and Hove Albion) wins a free kick in the attacking half.",
+     "playerIds": [
+      67928
+     ]
+    },
+    {
+     "id": 2868849,
+     "time": {
+      "secs": 3596,
+      "label": "60"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Jefferson Lerma (Crystal Palace).",
+     "playerIds": [
+      37776
+     ]
+    },
+    {
+     "id": 2868829,
+     "time": {
+      "secs": 3456,
+      "label": "58"
+     },
+     "type": "free kick lost",
+     "text": "Handball by Dwight McNeil (Crystal Palace).",
+     "playerIds": [
+      24797
+     ]
+    },
+    {
+     "id": 2868828,
+     "time": {
+      "secs": 3396,
+      "label": "57"
+     },
+     "type": "free kick won",
+     "text": "Jørgen Strand Larsen (Crystal Palace) wins a free kick in the defensive half.",
+     "playerIds": [
+      35670
+     ]
+    },
+    {
+     "id": 2868827,
+     "time": {
+      "secs": 3396,
+      "label": "57"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Luka Vuskovic (Brighton and Hove Albion).",
+     "playerIds": [
+      134632
+     ]
+    },
+    {
+     "id": 2868801,
+     "time": {
+      "secs": 3366,
+      "label": "57"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Luka Vuskovic (Brighton and Hove Albion) right footed shot from outside the box is too high following a set piece situation.",
+     "playerIds": [
+      134632
+     ]
+    },
+    {
+     "id": 2868800,
+     "time": {
+      "secs": 3314,
+      "label": "56"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Chris Richards (Crystal Palace).",
+     "playerIds": [
+      50842
+     ]
+    },
+    {
+     "id": 2868799,
+     "time": {
+      "secs": 3314,
+      "label": "56"
+     },
+     "type": "free kick won",
+     "text": "Yasin Ayari (Brighton and Hove Albion) wins a free kick in the attacking half.",
+     "playerIds": [
+      134333
+     ]
+    },
+    {
+     "id": 2868790,
+     "time": {
+      "secs": 3212,
+      "label": "54"
+     },
+     "type": "corner",
+     "text": "Corner, Crystal Palace. Conceded by Olivier Boscagli.",
+     "playerIds": [
+      20505
+     ]
+    },
+    {
+     "id": 2868769,
+     "time": {
+      "secs": 3165,
+      "label": "53"
+     },
+     "type": "free kick won",
+     "text": "Anan Khalaili (Crystal Palace) wins a free kick on the right wing.",
+     "playerIds": [
+      123848
+     ]
+    },
+    {
+     "id": 2868768,
+     "time": {
+      "secs": 3165,
+      "label": "53"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Maxim De Cuyper (Brighton and Hove Albion).",
+     "playerIds": [
+      67928
+     ]
+    },
+    {
+     "id": 2868765,
+     "time": {
+      "secs": 3140,
+      "label": "53"
+     },
+     "type": "substitution",
+     "text": "Substitution, Crystal Palace. Jefferson Lerma replaces Honest Ahanor.",
+     "playerIds": [
+      37776,
+      304106
+     ]
+    },
+    {
+     "id": 2868748,
+     "time": {
+      "secs": 3037,
+      "label": "51"
+     },
+     "type": "yellow card",
+     "text": "Daichi Kamada (Crystal Palace) is shown the yellow card for a bad foul.",
+     "playerIds": [
+      49759
+     ]
+    },
+    {
+     "id": 2868749,
+     "time": {
+      "secs": 3025,
+      "label": "51"
+     },
+     "type": "free kick won",
+     "text": "Olivier Boscagli (Brighton and Hove Albion) wins a free kick in the defensive half.",
+     "playerIds": [
+      20505
+     ]
+    },
+    {
+     "id": 2868747,
+     "time": {
+      "secs": 3025,
+      "label": "51"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Daichi Kamada (Crystal Palace).",
+     "playerIds": [
+      49759
+     ]
+    },
+    {
+     "id": 2868734,
+     "time": {
+      "secs": 2923,
+      "label": "49"
+     },
+     "type": "goal",
+     "text": "Goal! Brighton and Hove Albion 4, Crystal Palace 0. Charalampos Kostoulas (Brighton and Hove Albion) left footed shot from the centre of the box to the bottom left corner.Goal confirmed following VAR Review.",
+     "playerIds": [
+      145043
+     ]
+    },
+    {
+     "id": 2868735,
+     "time": {
+      "secs": 2922,
+      "label": "49"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Yasin Ayari (Brighton and Hove Albion) right footed shot from the centre of the box is blocked.",
+     "playerIds": [
+      134333
+     ]
+    },
+    {
+     "id": 2868725,
+     "time": {
+      "secs": 2809,
+      "label": "47"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Charalampos Kostoulas (Brighton and Hove Albion) right footed shot from outside the box is close, but misses to the left. Assisted by Luka Vuskovic following a fast break.",
+     "playerIds": [
+      145043,
+      134632
+     ]
+    },
+    {
+     "id": 2868720,
+     "time": {
+      "secs": 2709,
+      "label": "46"
+     },
+     "type": "free kick won",
+     "text": "Maxim De Cuyper (Brighton and Hove Albion) wins a free kick in the defensive half.",
+     "playerIds": [
+      67928
+     ]
+    },
+    {
+     "id": 2868719,
+     "time": {
+      "secs": 2709,
+      "label": "46"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Anan Khalaili (Crystal Palace).",
+     "playerIds": [
+      123848
+     ]
+    },
+    {
+     "id": 2868706,
+     "time": {
+      "secs": 2700,
+      "label": "46"
+     },
+     "type": "start",
+     "text": "Second Half begins Brighton and Hove Albion 3, Crystal Palace 0."
+    },
+    {
+     "id": 2868700,
+     "time": {
+      "secs": 2700,
+      "label": "46"
+     },
+     "type": "substitution",
+     "text": "Substitution, Crystal Palace. Dwight McNeil replaces Quinten Timber.",
+     "playerIds": [
+      24797,
+      67779
+     ]
+    },
+    {
+     "id": 2868615,
+     "time": {
+      "secs": 2820,
+      "label": "45+3"
+     },
+     "type": "end 1",
+     "text": "First Half ends, Brighton and Hove Albion 3, Crystal Palace 0."
+    },
+    {
+     "id": 2868616,
+     "time": {
+      "secs": 2719,
+      "label": "45+1"
+     },
+     "type": "added time",
+     "text": "Fourth official has announced 2 minutes of added time."
+    },
+    {
+     "id": 2868583,
+     "time": {
+      "secs": 2606,
+      "label": "44"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Anan Khalaili (Crystal Palace) header from a difficult angle on the right is high and wide to the right. Assisted by Chris Richards.",
+     "playerIds": [
+      123848,
+      50842
+     ]
+    },
+    {
+     "id": 2868533,
+     "time": {
+      "secs": 2282,
+      "label": "39"
+     },
+     "type": "corner",
+     "text": "Corner, Brighton and Hove Albion. Conceded by Walter Benítez.",
+     "playerIds": [
+      20497
+     ]
+    },
+    {
+     "id": 2868541,
+     "time": {
+      "secs": 2277,
+      "label": "38"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Ferdi Kadioglu (Brighton and Hove Albion) right footed shot from outside the box is saved in the top centre of the goal by Walter Benítez (Crystal Palace). Assisted by Pascal Groß.",
+     "playerIds": [
+      50727,
+      22542
+     ]
+    },
+    {
+     "id": 2868485,
+     "time": {
+      "secs": 2029,
+      "label": "34"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Pascal Groß (Brighton and Hove Albion) left footed shot from the left side of the box is too high following a corner.",
+     "playerIds": [
+      22542
+     ]
+    },
+    {
+     "id": 2868470,
+     "time": {
+      "secs": 1973,
+      "label": "33"
+     },
+     "type": "corner",
+     "text": "Corner, Brighton and Hove Albion. Conceded by Chris Richards.",
+     "playerIds": [
+      50842
+     ]
+    },
+    {
+     "id": 2868484,
+     "time": {
+      "secs": 1970,
+      "label": "33"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Yasin Ayari (Brighton and Hove Albion) right footed shot from outside the box is blocked. Assisted by Maxim De Cuyper.",
+     "playerIds": [
+      134333,
+      67928
+     ]
+    },
+    {
+     "id": 2868467,
+     "time": {
+      "secs": 1879,
+      "label": "32"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Chema Andrés (Brighton and Hove Albion).",
+     "playerIds": [
+      129259
+     ]
+    },
+    {
+     "id": 2868454,
+     "time": {
+      "secs": 1879,
+      "label": "32"
+     },
+     "type": "free kick won",
+     "text": "Adam Wharton (Crystal Palace) wins a free kick in the defensive half.",
+     "playerIds": [
+      69595
+     ]
+    },
+    {
+     "id": 2868429,
+     "time": {
+      "secs": 1698,
+      "label": "29"
+     },
+     "type": "yellow card",
+     "text": "Pascal Groß (Brighton and Hove Albion) is shown the yellow card for a bad foul.",
+     "playerIds": [
+      22542
+     ]
+    },
+    {
+     "id": 2868415,
+     "time": {
+      "secs": 1691,
+      "label": "29"
+     },
+     "type": "free kick won",
+     "text": "Yéremy Pino (Crystal Palace) wins a free kick in the defensive half.",
+     "playerIds": [
+      109117
+     ]
+    },
+    {
+     "id": 2868414,
+     "time": {
+      "secs": 1691,
+      "label": "29"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Pascal Groß (Brighton and Hove Albion).",
+     "playerIds": [
+      22542
+     ]
+    },
+    {
+     "id": 2868392,
+     "time": {
+      "secs": 1531,
+      "label": "26"
+     },
+     "type": "free kick won",
+     "text": "Honest Ahanor (Crystal Palace) wins a free kick in the defensive half.",
+     "playerIds": [
+      304106
+     ]
+    },
+    {
+     "id": 2868391,
+     "time": {
+      "secs": 1531,
+      "label": "26"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Maxim De Cuyper (Brighton and Hove Albion).",
+     "playerIds": [
+      67928
+     ]
+    },
+    {
+     "id": 2868381,
+     "time": {
+      "secs": 1461,
+      "label": "25"
+     },
+     "type": "corner",
+     "text": "Corner, Brighton and Hove Albion. Conceded by Honest Ahanor.",
+     "playerIds": [
+      304106
+     ]
+    },
+    {
+     "id": 2868380,
+     "time": {
+      "secs": 1389,
+      "label": "24"
+     },
+     "type": "offside",
+     "text": "Offside, Brighton and Hove Albion. Maxim De Cuyper is caught offside.",
+     "playerIds": [
+      134333,
+      67928
+     ]
+    },
+    {
+     "id": 2868354,
+     "time": {
+      "secs": 1368,
+      "label": "23"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Yasin Ayari (Brighton and Hove Albion) right footed shot from outside the box is saved in the bottom right corner by Walter Benítez (Crystal Palace). Assisted by Lewis Dunk.",
+     "playerIds": [
+      134333,
+      8163
+     ]
+    },
+    {
+     "id": 2868355,
+     "time": {
+      "secs": 1326,
+      "label": "23"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Yasin Ayari (Brighton and Hove Albion).",
+     "playerIds": [
+      134333
+     ]
+    },
+    {
+     "id": 2868336,
+     "time": {
+      "secs": 1326,
+      "label": "23"
+     },
+     "type": "free kick won",
+     "text": "Jaydee Canvot (Crystal Palace) wins a free kick in the defensive half.",
+     "playerIds": [
+      147312
+     ]
+    },
+    {
+     "id": 2868319,
+     "time": {
+      "secs": 1184,
+      "label": "20"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Charalampos Kostoulas (Brighton and Hove Albion) right footed shot from outside the box is saved in the centre of the goal by Walter Benítez (Crystal Palace). Assisted by Maxim De Cuyper.",
+     "playerIds": [
+      145043,
+      67928
+     ]
+    },
+    {
+     "id": 2868318,
+     "time": {
+      "secs": 1167,
+      "label": "20"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Yéremy Pino (Crystal Palace) right footed shot from outside the box is blocked.",
+     "playerIds": [
+      109117
+     ]
+    },
+    {
+     "id": 2868301,
+     "time": {
+      "secs": 1097,
+      "label": "19"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Luka Vuskovic (Brighton and Hove Albion).",
+     "playerIds": [
+      134632
+     ]
+    },
+    {
+     "id": 2868300,
+     "time": {
+      "secs": 1097,
+      "label": "19"
+     },
+     "type": "free kick won",
+     "text": "Jørgen Strand Larsen (Crystal Palace) wins a free kick in the attacking half.",
+     "playerIds": [
+      35670
+     ]
+    },
+    {
+     "id": 2868287,
+     "time": {
+      "secs": 1053,
+      "label": "18"
+     },
+     "type": "offside",
+     "text": "Offside, Brighton and Hove Albion. Ferdi Kadioglu is caught offside.",
+     "playerIds": [
+      22542,
+      50727
+     ]
+    },
+    {
+     "id": 2868265,
+     "time": {
+      "secs": 905,
+      "label": "16"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Pascal Groß (Brighton and Hove Albion) right footed shot from the centre of the box is blocked. Assisted by Olivier Boscagli.",
+     "playerIds": [
+      22542,
+      20505
+     ]
+    },
+    {
+     "id": 2868254,
+     "time": {
+      "secs": 874,
+      "label": "15"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Jørgen Strand Larsen (Crystal Palace).",
+     "playerIds": [
+      35670
+     ]
+    },
+    {
+     "id": 2868253,
+     "time": {
+      "secs": 874,
+      "label": "15"
+     },
+     "type": "free kick won",
+     "text": "Luka Vuskovic (Brighton and Hove Albion) wins a free kick in the defensive half.",
+     "playerIds": [
+      134632
+     ]
+    },
+    {
+     "id": 2868246,
+     "time": {
+      "secs": 779,
+      "label": "13"
+     },
+     "type": "free kick won",
+     "text": "Maxim De Cuyper (Brighton and Hove Albion) wins a free kick in the defensive half.",
+     "playerIds": [
+      67928
+     ]
+    },
+    {
+     "id": 2868245,
+     "time": {
+      "secs": 779,
+      "label": "13"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Jørgen Strand Larsen (Crystal Palace).",
+     "playerIds": [
+      35670
+     ]
+    },
+    {
+     "id": 2868226,
+     "time": {
+      "secs": 681,
+      "label": "12"
+     },
+     "type": "corner",
+     "text": "Corner, Crystal Palace. Conceded by Lewis Dunk.",
+     "playerIds": [
+      8163
+     ]
+    },
+    {
+     "id": 2868225,
+     "time": {
+      "secs": 679,
+      "label": "12"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Anan Khalaili (Crystal Palace) right footed shot from the right side of the box is saved in the centre of the goal by Bart Verbruggen (Brighton and Hove Albion). Assisted by Jaydee Canvot.",
+     "playerIds": [
+      123848,
+      147312
+     ]
+    },
+    {
+     "id": 2868211,
+     "time": {
+      "secs": 570,
+      "label": "10"
+     },
+     "type": "goal",
+     "text": "Goal! Brighton and Hove Albion 3, Crystal Palace 0. Yasin Ayari (Brighton and Hove Albion) right footed shot from the centre of the box to the bottom left corner. Assisted by Charalampos Kostoulas.",
+     "playerIds": [
+      134333,
+      145043
+     ]
+    },
+    {
+     "id": 2868187,
+     "time": {
+      "secs": 397,
+      "label": "07"
+     },
+     "type": "goal",
+     "text": "Goal! Brighton and Hove Albion 2, Crystal Palace 0. Diego Gómez (Brighton and Hove Albion) right footed shot from more than 35 yards to the high centre of the goal. Assisted by Olivier Boscagli following a fast break.",
+     "playerIds": [
+      143240,
+      20505
+     ]
+    },
+    {
+     "id": 2868181,
+     "time": {
+      "secs": 368,
+      "label": "07"
+     },
+     "type": "free kick won",
+     "text": "Quinten Timber (Crystal Palace) wins a free kick in the defensive half.",
+     "playerIds": [
+      67779
+     ]
+    },
+    {
+     "id": 2868180,
+     "time": {
+      "secs": 368,
+      "label": "07"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Luka Vuskovic (Brighton and Hove Albion).",
+     "playerIds": [
+      134632
+     ]
+    },
+    {
+     "id": 2868173,
+     "time": {
+      "secs": 318,
+      "label": "06"
+     },
+     "type": "free kick won",
+     "text": "Daichi Kamada (Crystal Palace) wins a free kick in the attacking half.",
+     "playerIds": [
+      49759
+     ]
+    },
+    {
+     "id": 2868172,
+     "time": {
+      "secs": 318,
+      "label": "06"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Maxim De Cuyper (Brighton and Hove Albion).",
+     "playerIds": [
+      67928
+     ]
+    },
+    {
+     "id": 2868156,
+     "time": {
+      "secs": 204,
+      "label": "04"
+     },
+     "type": "own goal",
+     "text": "Own Goal by Jaydee Canvot, Crystal Palace. Brighton and Hove Albion 1, Crystal Palace 0.",
+     "playerIds": [
+      147312
+     ]
+    },
+    {
+     "id": 2868148,
+     "time": {
+      "secs": 143,
+      "label": "03"
+     },
+     "type": "free kick won",
+     "text": "Lewis Dunk (Brighton and Hove Albion) wins a free kick on the left wing.",
+     "playerIds": [
+      8163
+     ]
+    },
+    {
+     "id": 2868142,
+     "time": {
+      "secs": 143,
+      "label": "03"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Anan Khalaili (Crystal Palace).",
+     "playerIds": [
+      123848
+     ]
+    },
+    {
+     "id": 2868119,
+     "time": {
+      "secs": 0,
+      "label": "01"
+     },
+     "type": "start",
+     "text": "First Half begins."
+    },
+    {
+     "id": 2867911,
+     "type": "lineup",
+     "text": "Lineups are announced and players are warming up."
+    }
+   ]
+  }
+ },
+ "128989": {
+  "fixture": {
+   "gameweek": {
+    "id": 19767,
+    "gameweek": 7
+   },
+   "kickoff": {
+    "completeness": 3,
+    "millis": 1792245600000,
+    "label": "Sat 17 Oct 2026, 15:00 BST",
+    "gmtOffset": 1.0
+   },
+   "provisionalKickoff": {
+    "completeness": 3,
+    "millis": 1792245600000,
+    "label": "Sat 17 Oct 2026, 15:00 BST",
+    "gmtOffset": 1.0
+   },
+   "teams": [
+    {
+     "team": {
+      "name": "Manchester City",
+      "club": {
+       "name": "Manchester City",
+       "abbr": "MCI",
+       "id": 11
+      },
+      "teamType": "FIRST",
+      "shortName": "Man City",
+      "id": 11
+     },
+     "score": 3
+    },
+    {
+     "team": {
+      "name": "Ipswich Town",
+      "club": {
+       "name": "Ipswich Town",
+       "abbr": "IPS",
+       "id": 8
+      },
+      "teamType": "FIRST",
+      "shortName": "Ipswich",
+      "id": 8
+     },
+     "score": 2
+    }
+   ],
+   "replay": false,
+   "ground": {
+    "name": "Etihad Stadium",
+    "city": "Manchester",
+    "source": "OPTA",
+    "id": 9514
+   },
+   "neutralGround": false,
+   "status": "C",
+   "phase": "F",
+   "outcome": "H",
+   "attendance": 60817,
+   "clock": {
+    "secs": 6180,
+    "label": "90+13'00"
+   },
+   "fixtureType": "REGULAR",
+   "extraTime": false,
+   "shootout": false,
+   "behindClosedDoors": false,
+   "id": 128989
+  },
+  "events": {
+   "pageInfo": {
+    "page": 0,
+    "numPages": 1,
+    "pageSize": 200,
+    "numEntries": 117
+   },
+   "content": [
+    {
+     "id": 2867008,
+     "time": {
+      "secs": 0,
+      "label": "01"
+     },
+     "type": "end 14",
+     "text": "Match ends, Manchester City 3, Ipswich Town 2."
+    },
+    {
+     "id": 2866997,
+     "time": {
+      "secs": 6123,
+      "label": "90+13"
+     },
+     "type": "end 2",
+     "text": "Second Half ends, Manchester City 3, Ipswich Town 2."
+    },
+    {
+     "id": 2866993,
+     "time": {
+      "secs": 6074,
+      "label": "90+12"
+     },
+     "type": "yellow card",
+     "text": "Leif Davis (Ipswich Town) is shown the yellow card for a bad foul.",
+     "playerIds": [
+      51454
+     ]
+    },
+    {
+     "id": 2866996,
+     "time": {
+      "secs": 6073,
+      "label": "90+12"
+     },
+     "type": "free kick won",
+     "text": "Ayyoub Bouaddi (Manchester City) wins a free kick on the right wing.",
+     "playerIds": [
+      141425
+     ]
+    },
+    {
+     "id": 2866995,
+     "time": {
+      "secs": 6073,
+      "label": "90+12"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Leif Davis (Ipswich Town).",
+     "playerIds": [
+      51454
+     ]
+    },
+    {
+     "id": 2866994,
+     "time": {
+      "secs": 6036,
+      "label": "90+11"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Erling Haaland (Manchester City) left footed shot from the right side of the box is blocked. Assisted by Enzo Fernández with a cross.",
+     "playerIds": [
+      65970,
+      63741
+     ]
+    },
+    {
+     "id": 2866984,
+     "time": {
+      "secs": 5972,
+      "label": "90+10"
+     },
+     "type": "corner",
+     "text": "Corner, Ipswich Town. Conceded by Josko Gvardiol.",
+     "playerIds": [
+      67178
+     ]
+    },
+    {
+     "id": 2866957,
+     "time": {
+      "secs": 5802,
+      "label": "90+7"
+     },
+     "type": "offside",
+     "text": "Offside, Ipswich Town. Dara O'Shea is caught offside.",
+     "playerIds": [
+      51454,
+      15154
+     ]
+    },
+    {
+     "id": 2866959,
+     "time": {
+      "secs": 5765,
+      "label": "90+7"
+     },
+     "type": "yellow card",
+     "text": "Josko Gvardiol (Manchester City) is shown the yellow card for a bad foul.",
+     "playerIds": [
+      67178
+     ]
+    },
+    {
+     "id": 2866960,
+     "time": {
+      "secs": 5761,
+      "label": "90+7"
+     },
+     "type": "free kick won",
+     "text": "Abdul Fatawu (Ipswich Town) wins a free kick on the right wing.",
+     "playerIds": [
+      127644
+     ]
+    },
+    {
+     "id": 2866958,
+     "time": {
+      "secs": 5761,
+      "label": "90+7"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Josko Gvardiol (Manchester City).",
+     "playerIds": [
+      67178
+     ]
+    },
+    {
+     "id": 2866954,
+     "time": {
+      "secs": 5733,
+      "label": "90+6"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Iliman Ndiaye (Manchester City) left footed shot from the centre of the box is close, but misses to the left. Assisted by Erling Haaland.",
+     "playerIds": [
+      31936,
+      65970
+     ]
+    },
+    {
+     "id": 2866934,
+     "time": {
+      "secs": 5570,
+      "label": "90+3"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Zian Flemming (Ipswich Town).",
+     "playerIds": [
+      75735
+     ]
+    },
+    {
+     "id": 2866933,
+     "time": {
+      "secs": 5570,
+      "label": "90+3"
+     },
+     "type": "free kick won",
+     "text": "Elliot Anderson (Manchester City) wins a free kick on the left wing.",
+     "playerIds": [
+      51593
+     ]
+    },
+    {
+     "id": 2866926,
+     "time": {
+      "secs": 5524,
+      "label": "90+3"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Dara O'Shea (Ipswich Town).",
+     "playerIds": [
+      15154
+     ]
+    },
+    {
+     "id": 2866925,
+     "time": {
+      "secs": 5524,
+      "label": "90+3"
+     },
+     "type": "free kick won",
+     "text": "Elliot Anderson (Manchester City) wins a free kick in the defensive half.",
+     "playerIds": [
+      51593
+     ]
+    },
+    {
+     "id": 2866915,
+     "time": {
+      "secs": 5466,
+      "label": "90+2"
+     },
+     "type": "added time",
+     "text": "Fourth official has announced 12 minutes of added time."
+    },
+    {
+     "id": 2866916,
+     "time": {
+      "secs": 5439,
+      "label": "90+1"
+     },
+     "type": "substitution",
+     "text": "Substitution, Ipswich Town. Jack Clarke replaces Jacob Greaves.",
+     "playerIds": [
+      32715,
+      49254
+     ]
+    },
+    {
+     "id": 2866901,
+     "time": {
+      "secs": 5394,
+      "label": "90"
+     },
+     "type": "penalty goal",
+     "text": "Goal! Manchester City 3, Ipswich Town 2. Zian Flemming (Ipswich Town) converts the penalty with a right footed shot to the centre of the goal.",
+     "playerIds": [
+      75735
+     ]
+    },
+    {
+     "id": 2866891,
+     "time": {
+      "secs": 5343,
+      "label": "90"
+     },
+     "type": "end delay",
+     "text": "Delay over. They are ready to continue."
+    },
+    {
+     "id": 2866924,
+     "time": {
+      "secs": 5253,
+      "label": "88"
+     },
+     "type": "start delay",
+     "text": "Delay in match (Ipswich Town). VAR checking."
+    },
+    {
+     "id": 2866878,
+     "time": {
+      "secs": 5253,
+      "label": "88"
+     },
+     "type": "start delay",
+     "text": "Delay in match (Manchester City). VAR checking."
+    },
+    {
+     "id": 2866892,
+     "time": {
+      "secs": 5221,
+      "label": "88"
+     },
+     "type": "contentious referee decisions",
+     "text": "VAR Decision: Penalty Ipswich Town.",
+     "playerIds": [
+      127644
+     ]
+    },
+    {
+     "id": 2866900,
+     "time": {
+      "secs": 5215,
+      "label": "87"
+     },
+     "type": "penalty won",
+     "text": "Penalty Ipswich Town. Abdul Fatawu draws a foul in the penalty area.",
+     "playerIds": [
+      127644
+     ]
+    },
+    {
+     "id": 2866897,
+     "time": {
+      "secs": 5215,
+      "label": "87"
+     },
+     "type": "penalty lost",
+     "text": "Penalty conceded by Marc Guéhi (Manchester City) after a foul in the penalty area.",
+     "playerIds": [
+      14569
+     ]
+    },
+    {
+     "id": 2866849,
+     "time": {
+      "secs": 5079,
+      "label": "85"
+     },
+     "type": "contentious referee decisions",
+     "text": "VAR Decision: No Goal Manchester City 3-1 Ipswich Town.",
+     "playerIds": [
+      65970
+     ]
+    },
+    {
+     "id": 2866828,
+     "time": {
+      "secs": 5076,
+      "label": "85"
+     },
+     "type": "VAR cancelled goal",
+     "text": "GOAL OVERTURNED BY VAR: Erling Haaland (Manchester City) scores but the goal is ruled out after a VAR review.",
+     "playerIds": [
+      65970,
+      63741
+     ]
+    },
+    {
+     "id": 2866877,
+     "time": {
+      "secs": 5074,
+      "label": "85"
+     },
+     "type": "offside",
+     "text": "Offside, Manchester City. Enzo Fernández is caught offside.",
+     "playerIds": [
+      31936,
+      63741
+     ]
+    },
+    {
+     "id": 2866876,
+     "time": {
+      "secs": 5073,
+      "label": "85"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Iliman Ndiaye (Manchester City) header from very close range misses to the left.",
+     "playerIds": [
+      31936
+     ]
+    },
+    {
+     "id": 2866850,
+     "time": {
+      "secs": 5070,
+      "label": "85"
+     },
+     "type": "post",
+     "text": "Iliman Ndiaye (Manchester City) hits the bar with a right footed shot from the centre of the box. Assisted by Erling Haaland with a headed pass.",
+     "playerIds": [
+      31936,
+      65970
+     ]
+    },
+    {
+     "id": 2866831,
+     "time": {
+      "secs": 5063,
+      "label": "85"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Enzo Fernández (Manchester City) right footed shot from the centre of the box is saved in the bottom left corner by Christian Walton (Ipswich Town). Assisted by Erling Haaland.",
+     "playerIds": [
+      63741,
+      65970
+     ]
+    },
+    {
+     "id": 2866810,
+     "time": {
+      "secs": 5028,
+      "label": "84"
+     },
+     "type": "offside",
+     "text": "Offside, Manchester City. Antoine Semenyo is caught offside.",
+     "playerIds": [
+      63741,
+      25474
+     ]
+    },
+    {
+     "id": 2866805,
+     "time": {
+      "secs": 4920,
+      "label": "83"
+     },
+     "type": "free kick won",
+     "text": "Elliot Anderson (Manchester City) wins a free kick in the defensive half.",
+     "playerIds": [
+      51593
+     ]
+    },
+    {
+     "id": 2866804,
+     "time": {
+      "secs": 4920,
+      "label": "83"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Exequiel Palacios (Ipswich Town).",
+     "playerIds": [
+      40161
+     ]
+    },
+    {
+     "id": 2866774,
+     "time": {
+      "secs": 4780,
+      "label": "80"
+     },
+     "type": "offside",
+     "text": "Offside, Ipswich Town. Jacob Greaves is caught offside.",
+     "playerIds": [
+      49308,
+      49254
+     ]
+    },
+    {
+     "id": 2866795,
+     "time": {
+      "secs": 4767,
+      "label": "80"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Zian Flemming (Ipswich Town) left footed shot from the centre of the box is saved in the bottom left corner by Gianluigi Donnarumma (Manchester City). Assisted by Jacob Greaves with a headed pass.",
+     "playerIds": [
+      75735,
+      49254
+     ]
+    },
+    {
+     "id": 2866756,
+     "time": {
+      "secs": 4624,
+      "label": "78"
+     },
+     "type": "substitution",
+     "text": "Substitution, Ipswich Town. Chuba Akpom replaces Julio Enciso.",
+     "playerIds": [
+      4482,
+      125827
+     ]
+    },
+    {
+     "id": 2866758,
+     "time": {
+      "secs": 4622,
+      "label": "78"
+     },
+     "type": "substitution",
+     "text": "Substitution, Ipswich Town. Zian Flemming replaces Emersonn.",
+     "playerIds": [
+      75735,
+      313194
+     ]
+    },
+    {
+     "id": 2866757,
+     "time": {
+      "secs": 4598,
+      "label": "77"
+     },
+     "type": "substitution",
+     "text": "Substitution, Manchester City. Antoine Semenyo replaces Jérémy Doku.",
+     "playerIds": [
+      25474,
+      54156
+     ]
+    },
+    {
+     "id": 2866742,
+     "time": {
+      "secs": 4584,
+      "label": "77"
+     },
+     "type": "substitution",
+     "text": "Substitution, Manchester City. Elliot Anderson replaces Phil Foden.",
+     "playerIds": [
+      51593,
+      14805
+     ]
+    },
+    {
+     "id": 2866743,
+     "time": {
+      "secs": 4559,
+      "label": "76"
+     },
+     "type": "substitution",
+     "text": "Substitution, Manchester City. Abdukodir Khusanov replaces Matheus Nunes because of an injury.",
+     "playerIds": [
+      137371,
+      76204
+     ]
+    },
+    {
+     "id": 2866741,
+     "time": {
+      "secs": 4521,
+      "label": "76"
+     },
+     "type": "end delay",
+     "text": "Delay over. They are ready to continue."
+    },
+    {
+     "id": 2866726,
+     "time": {
+      "secs": 4453,
+      "label": "75"
+     },
+     "type": "start delay",
+     "text": "Delay in match because of an injury Matheus Nunes (Manchester City)."
+    },
+    {
+     "id": 2866702,
+     "time": {
+      "secs": 4324,
+      "label": "73"
+     },
+     "type": "yellow card",
+     "text": "Abdoul Ouattara (Ipswich Town) is shown the yellow card.",
+     "playerIds": [
+      126111
+     ]
+    },
+    {
+     "id": 2866682,
+     "time": {
+      "secs": 4211,
+      "label": "71"
+     },
+     "type": "substitution",
+     "text": "Substitution, Ipswich Town. Abdul Fatawu replaces Daizen Maeda.",
+     "playerIds": [
+      127644,
+      122002
+     ]
+    },
+    {
+     "id": 2866681,
+     "time": {
+      "secs": 4204,
+      "label": "71"
+     },
+     "type": "substitution",
+     "text": "Substitution, Ipswich Town. Azor Matusiwa replaces Florentino.",
+     "playerIds": [
+      49308,
+      63851
+     ]
+    },
+    {
+     "id": 2866664,
+     "time": {
+      "secs": 4120,
+      "label": "69"
+     },
+     "type": "goal",
+     "text": "Goal! Manchester City 3, Ipswich Town 1. Erling Haaland (Manchester City) left footed shot from the centre of the box to the centre of the goal. Assisted by Iliman Ndiaye following a fast break.",
+     "playerIds": [
+      65970,
+      31936
+     ]
+    },
+    {
+     "id": 2866639,
+     "time": {
+      "secs": 4007,
+      "label": "67"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Emersonn (Ipswich Town) right footed shot from the right side of the box is high and wide to the right. Assisted by Exequiel Palacios following a fast break.",
+     "playerIds": [
+      313194,
+      40161
+     ]
+    },
+    {
+     "id": 2866612,
+     "time": {
+      "secs": 3791,
+      "label": "64"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Enzo Fernández (Manchester City) right footed shot from outside the box is too high from a direct free kick.",
+     "playerIds": [
+      63741
+     ]
+    },
+    {
+     "id": 2866602,
+     "time": {
+      "secs": 3728,
+      "label": "63"
+     },
+     "type": "free kick won",
+     "text": "Jérémy Doku (Manchester City) wins a free kick in the attacking half.",
+     "playerIds": [
+      54156
+     ]
+    },
+    {
+     "id": 2866601,
+     "time": {
+      "secs": 3728,
+      "label": "63"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Daizen Maeda (Ipswich Town).",
+     "playerIds": [
+      122002
+     ]
+    },
+    {
+     "id": 2866600,
+     "time": {
+      "secs": 3634,
+      "label": "61"
+     },
+     "type": "substitution",
+     "text": "Substitution, Manchester City. Josko Gvardiol replaces Nico O'Reilly.",
+     "playerIds": [
+      67178,
+      112948
+     ]
+    },
+    {
+     "id": 2866588,
+     "time": {
+      "secs": 3584,
+      "label": "60"
+     },
+     "type": "offside",
+     "text": "Offside, Ipswich Town. Abdoul Ouattara is caught offside.",
+     "playerIds": [
+      122002,
+      126111
+     ]
+    },
+    {
+     "id": 2866579,
+     "time": {
+      "secs": 3560,
+      "label": "60"
+     },
+     "type": "free kick lost",
+     "text": "Handball by Leif Davis (Ipswich Town).",
+     "playerIds": [
+      51454
+     ]
+    },
+    {
+     "id": 2866576,
+     "time": {
+      "secs": 3400,
+      "label": "57"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Phil Foden (Manchester City) left footed shot from outside the box is blocked. Assisted by Enzo Fernández.",
+     "playerIds": [
+      14805,
+      63741
+     ]
+    },
+    {
+     "id": 2866558,
+     "time": {
+      "secs": 3346,
+      "label": "56"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Nico O'Reilly (Manchester City) header from the left side of the six yard box is close, but misses to the right. Assisted by Phil Foden with a cross following a corner.",
+     "playerIds": [
+      112948,
+      14805
+     ]
+    },
+    {
+     "id": 2866552,
+     "time": {
+      "secs": 3311,
+      "label": "56"
+     },
+     "type": "corner",
+     "text": "Corner, Manchester City. Conceded by Florentino.",
+     "playerIds": [
+      63851
+     ]
+    },
+    {
+     "id": 2866546,
+     "time": {
+      "secs": 3269,
+      "label": "55"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Emersonn (Ipswich Town) header from the left side of the six yard box is close, but misses to the left. Assisted by Leif Davis with a cross following a corner.",
+     "playerIds": [
+      313194,
+      51454
+     ]
+    },
+    {
+     "id": 2866543,
+     "time": {
+      "secs": 3232,
+      "label": "54"
+     },
+     "type": "corner",
+     "text": "Corner, Ipswich Town. Conceded by Marc Guéhi.",
+     "playerIds": [
+      14569
+     ]
+    },
+    {
+     "id": 2866526,
+     "time": {
+      "secs": 3200,
+      "label": "54"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Marc Guéhi (Manchester City).",
+     "playerIds": [
+      14569
+     ]
+    },
+    {
+     "id": 2866525,
+     "time": {
+      "secs": 3200,
+      "label": "54"
+     },
+     "type": "free kick won",
+     "text": "Emersonn (Ipswich Town) wins a free kick in the attacking half.",
+     "playerIds": [
+      313194
+     ]
+    },
+    {
+     "id": 2866507,
+     "time": {
+      "secs": 3084,
+      "label": "52"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Abdoul Ouattara (Ipswich Town) left footed shot from the right side of the box misses to the left. Assisted by Emersonn.",
+     "playerIds": [
+      126111,
+      313194
+     ]
+    },
+    {
+     "id": 2866499,
+     "time": {
+      "secs": 3040,
+      "label": "51"
+     },
+     "type": "free kick won",
+     "text": "Ayyoub Bouaddi (Manchester City) wins a free kick in the attacking half.",
+     "playerIds": [
+      141425
+     ]
+    },
+    {
+     "id": 2866498,
+     "time": {
+      "secs": 3040,
+      "label": "51"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Julio Enciso (Ipswich Town).",
+     "playerIds": [
+      125827
+     ]
+    },
+    {
+     "id": 2866489,
+     "time": {
+      "secs": 2966,
+      "label": "50"
+     },
+     "type": "substitution",
+     "text": "Substitution, Manchester City. Enzo Fernández replaces Mateo Kovacic because of an injury.",
+     "playerIds": [
+      63741,
+      12520
+     ]
+    },
+    {
+     "id": 2866490,
+     "time": {
+      "secs": 2951,
+      "label": "50"
+     },
+     "type": "end delay",
+     "text": "Delay over. They are ready to continue."
+    },
+    {
+     "id": 2866491,
+     "time": {
+      "secs": 2926,
+      "label": "49"
+     },
+     "type": "start delay",
+     "text": "Delay in match because of an injury Mateo Kovacic (Manchester City)."
+    },
+    {
+     "id": 2866471,
+     "time": {
+      "secs": 2894,
+      "label": "49"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Jacob Greaves (Ipswich Town) header from the centre of the box is high and wide to the left. Assisted by Leif Davis with a cross following a corner.",
+     "playerIds": [
+      49254,
+      51454
+     ]
+    },
+    {
+     "id": 2866458,
+     "time": {
+      "secs": 2860,
+      "label": "48"
+     },
+     "type": "corner",
+     "text": "Corner, Ipswich Town. Conceded by Matheus Nunes.",
+     "playerIds": [
+      76204
+     ]
+    },
+    {
+     "id": 2866457,
+     "time": {
+      "secs": 2822,
+      "label": "48"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Florentino (Ipswich Town).",
+     "playerIds": [
+      63851
+     ]
+    },
+    {
+     "id": 2866456,
+     "time": {
+      "secs": 2822,
+      "label": "48"
+     },
+     "type": "free kick won",
+     "text": "Ayyoub Bouaddi (Manchester City) wins a free kick in the defensive half.",
+     "playerIds": [
+      141425
+     ]
+    },
+    {
+     "id": 2866451,
+     "time": {
+      "secs": 2766,
+      "label": "47"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Jérémy Doku (Manchester City).",
+     "playerIds": [
+      54156
+     ]
+    },
+    {
+     "id": 2866450,
+     "time": {
+      "secs": 2766,
+      "label": "47"
+     },
+     "type": "free kick won",
+     "text": "Dara O'Shea (Ipswich Town) wins a free kick in the defensive half.",
+     "playerIds": [
+      15154
+     ]
+    },
+    {
+     "id": 2866445,
+     "time": {
+      "secs": 2729,
+      "label": "46"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Emersonn (Ipswich Town).",
+     "playerIds": [
+      313194
+     ]
+    },
+    {
+     "id": 2866444,
+     "time": {
+      "secs": 2729,
+      "label": "46"
+     },
+     "type": "free kick won",
+     "text": "Marc Guéhi (Manchester City) wins a free kick in the defensive half.",
+     "playerIds": [
+      14569
+     ]
+    },
+    {
+     "id": 2866435,
+     "time": {
+      "secs": 2700,
+      "label": "46"
+     },
+     "type": "start",
+     "text": "Second Half begins Manchester City 2, Ipswich Town 1."
+    },
+    {
+     "id": 2866366,
+     "time": {
+      "secs": 2822,
+      "label": "45+3"
+     },
+     "type": "end 1",
+     "text": "First Half ends, Manchester City 2, Ipswich Town 1."
+    },
+    {
+     "id": 2866365,
+     "time": {
+      "secs": 2776,
+      "label": "45+2"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Rúben Dias (Manchester City).",
+     "playerIds": [
+      16431
+     ]
+    },
+    {
+     "id": 2866359,
+     "time": {
+      "secs": 2776,
+      "label": "45+2"
+     },
+     "type": "free kick won",
+     "text": "Julio Enciso (Ipswich Town) wins a free kick on the left wing.",
+     "playerIds": [
+      125827
+     ]
+    },
+    {
+     "id": 2866360,
+     "time": {
+      "secs": 2707,
+      "label": "45+1"
+     },
+     "type": "added time",
+     "text": "Fourth official has announced 2 minutes of added time."
+    },
+    {
+     "id": 2866330,
+     "time": {
+      "secs": 2570,
+      "label": "43"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Rúben Dias (Manchester City) right footed shot from outside the box is saved in the top right corner by Christian Walton (Ipswich Town). Assisted by Marc Guéhi.",
+     "playerIds": [
+      16431,
+      14569
+     ]
+    },
+    {
+     "id": 2866305,
+     "time": {
+      "secs": 2399,
+      "label": "40"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Jérémy Doku (Manchester City) left footed shot from the centre of the box is blocked.",
+     "playerIds": [
+      54156
+     ]
+    },
+    {
+     "id": 2866304,
+     "time": {
+      "secs": 2396,
+      "label": "40"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Iliman Ndiaye (Manchester City) left footed shot from the right side of the box is blocked. Assisted by Mateo Kovacic.",
+     "playerIds": [
+      31936,
+      12520
+     ]
+    },
+    {
+     "id": 2866264,
+     "time": {
+      "secs": 2119,
+      "label": "36"
+     },
+     "type": "free kick won",
+     "text": "Mateo Kovacic (Manchester City) wins a free kick in the defensive half.",
+     "playerIds": [
+      12520
+     ]
+    },
+    {
+     "id": 2866263,
+     "time": {
+      "secs": 2119,
+      "label": "36"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Emersonn (Ipswich Town).",
+     "playerIds": [
+      313194
+     ]
+    },
+    {
+     "id": 2866250,
+     "time": {
+      "secs": 2031,
+      "label": "34"
+     },
+     "type": "goal",
+     "text": "Goal! Manchester City 2, Ipswich Town 1. Erling Haaland (Manchester City) header from the centre of the box to the bottom left corner. Assisted by Mateo Kovacic with a cross.",
+     "playerIds": [
+      65970,
+      12520
+     ]
+    },
+    {
+     "id": 2866251,
+     "time": {
+      "secs": 2007,
+      "label": "34"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Erling Haaland (Manchester City) left footed shot from the centre of the box is blocked. Assisted by Rúben Dias.",
+     "playerIds": [
+      65970,
+      16431
+     ]
+    },
+    {
+     "id": 2866238,
+     "time": {
+      "secs": 1933,
+      "label": "33"
+     },
+     "type": "corner",
+     "text": "Corner, Manchester City. Conceded by Jacob Greaves.",
+     "playerIds": [
+      49254
+     ]
+    },
+    {
+     "id": 2866239,
+     "time": {
+      "secs": 1932,
+      "label": "33"
+     },
+     "type": "attempt blocked",
+     "text": "Attempt blocked. Erling Haaland (Manchester City) left footed shot from the left side of the box is blocked. Assisted by Phil Foden with a through ball.",
+     "playerIds": [
+      65970,
+      14805
+     ]
+    },
+    {
+     "id": 2866214,
+     "time": {
+      "secs": 1839,
+      "label": "31"
+     },
+     "type": "free kick won",
+     "text": "Iliman Ndiaye (Manchester City) wins a free kick in the attacking half.",
+     "playerIds": [
+      31936
+     ]
+    },
+    {
+     "id": 2866213,
+     "time": {
+      "secs": 1839,
+      "label": "31"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Florentino (Ipswich Town).",
+     "playerIds": [
+      63851
+     ]
+    },
+    {
+     "id": 2866180,
+     "time": {
+      "secs": 1729,
+      "label": "29"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Emersonn (Ipswich Town) right footed shot from outside the box misses to the right. Assisted by Christian Walton.",
+     "playerIds": [
+      313194,
+      8159
+     ]
+    },
+    {
+     "id": 2866142,
+     "time": {
+      "secs": 1503,
+      "label": "26"
+     },
+     "type": "free kick won",
+     "text": "Matheus Nunes (Manchester City) wins a free kick on the right wing.",
+     "playerIds": [
+      76204
+     ]
+    },
+    {
+     "id": 2866141,
+     "time": {
+      "secs": 1503,
+      "label": "26"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Julio Enciso (Ipswich Town).",
+     "playerIds": [
+      125827
+     ]
+    },
+    {
+     "id": 2866125,
+     "time": {
+      "secs": 1438,
+      "label": "24"
+     },
+     "type": "offside",
+     "text": "Offside, Ipswich Town. Dara O'Shea is caught offside.",
+     "playerIds": [
+      51454,
+      15154
+     ]
+    },
+    {
+     "id": 2866127,
+     "time": {
+      "secs": 1392,
+      "label": "24"
+     },
+     "type": "free kick won",
+     "text": "Abdoul Ouattara (Ipswich Town) wins a free kick on the right wing.",
+     "playerIds": [
+      126111
+     ]
+    },
+    {
+     "id": 2866126,
+     "time": {
+      "secs": 1392,
+      "label": "24"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Nico O'Reilly (Manchester City).",
+     "playerIds": [
+      112948
+     ]
+    },
+    {
+     "id": 2866120,
+     "time": {
+      "secs": 1350,
+      "label": "23"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Phil Foden (Manchester City) header from the centre of the box misses to the left. Assisted by Nico O'Reilly with a cross.",
+     "playerIds": [
+      14805,
+      112948
+     ]
+    },
+    {
+     "id": 2866098,
+     "time": {
+      "secs": 1236,
+      "label": "21"
+     },
+     "type": "goal",
+     "text": "Goal! Manchester City 1, Ipswich Town 1. Daizen Maeda (Ipswich Town) left footed shot from the centre of the box to the bottom right corner. Assisted by Abdoul Ouattara.",
+     "playerIds": [
+      122002,
+      126111
+     ]
+    },
+    {
+     "id": 2866068,
+     "time": {
+      "secs": 1081,
+      "label": "19"
+     },
+     "type": "goal",
+     "text": "Goal! Manchester City 1, Ipswich Town 0. Phil Foden (Manchester City) left footed shot from the centre of the box to the centre of the goal. Assisted by Jérémy Doku following a fast break.",
+     "playerIds": [
+      14805,
+      54156
+     ]
+    },
+    {
+     "id": 2866047,
+     "time": {
+      "secs": 1018,
+      "label": "17"
+     },
+     "type": "attempt saved",
+     "text": "Attempt saved. Rúben Dias (Manchester City) right footed shot from outside the box is saved in the top centre of the goal by Christian Walton (Ipswich Town). Assisted by Mateo Kovacic.",
+     "playerIds": [
+      16431,
+      12520
+     ]
+    },
+    {
+     "id": 2865999,
+     "time": {
+      "secs": 786,
+      "label": "14"
+     },
+     "type": "free kick won",
+     "text": "Jérémy Doku (Manchester City) wins a free kick on the left wing.",
+     "playerIds": [
+      54156
+     ]
+    },
+    {
+     "id": 2865998,
+     "time": {
+      "secs": 786,
+      "label": "14"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Abdoul Ouattara (Ipswich Town).",
+     "playerIds": [
+      126111
+     ]
+    },
+    {
+     "id": 2865964,
+     "time": {
+      "secs": 521,
+      "label": "09"
+     },
+     "type": "offside",
+     "text": "Offside, Ipswich Town. Emersonn is caught offside.",
+     "playerIds": [
+      51454,
+      313194
+     ]
+    },
+    {
+     "id": 2865952,
+     "time": {
+      "secs": 481,
+      "label": "09"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Rúben Dias (Manchester City).",
+     "playerIds": [
+      16431
+     ]
+    },
+    {
+     "id": 2865951,
+     "time": {
+      "secs": 481,
+      "label": "09"
+     },
+     "type": "free kick won",
+     "text": "Emersonn (Ipswich Town) wins a free kick on the left wing.",
+     "playerIds": [
+      313194
+     ]
+    },
+    {
+     "id": 2865953,
+     "time": {
+      "secs": 443,
+      "label": "08"
+     },
+     "type": "free kick won",
+     "text": "Jacob Greaves (Ipswich Town) wins a free kick in the defensive half.",
+     "playerIds": [
+      49254
+     ]
+    },
+    {
+     "id": 2865950,
+     "time": {
+      "secs": 443,
+      "label": "08"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Ayyoub Bouaddi (Manchester City).",
+     "playerIds": [
+      141425
+     ]
+    },
+    {
+     "id": 2865921,
+     "time": {
+      "secs": 315,
+      "label": "06"
+     },
+     "type": "miss",
+     "text": "Attempt missed. Rúben Dias (Manchester City) header from very close range is close, but misses to the right. Assisted by Phil Foden with a cross following a set piece situation.",
+     "playerIds": [
+      16431,
+      14805
+     ]
+    },
+    {
+     "id": 2865922,
+     "time": {
+      "secs": 255,
+      "label": "05"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Jacob Greaves (Ipswich Town).",
+     "playerIds": [
+      49254
+     ]
+    },
+    {
+     "id": 2865920,
+     "time": {
+      "secs": 255,
+      "label": "05"
+     },
+     "type": "free kick won",
+     "text": "Iliman Ndiaye (Manchester City) wins a free kick on the right wing.",
+     "playerIds": [
+      31936
+     ]
+    },
+    {
+     "id": 2865906,
+     "time": {
+      "secs": 205,
+      "label": "04"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Florentino (Ipswich Town).",
+     "playerIds": [
+      63851
+     ]
+    },
+    {
+     "id": 2865903,
+     "time": {
+      "secs": 205,
+      "label": "04"
+     },
+     "type": "free kick won",
+     "text": "Jérémy Doku (Manchester City) wins a free kick in the attacking half.",
+     "playerIds": [
+      54156
+     ]
+    },
+    {
+     "id": 2865900,
+     "time": {
+      "secs": 115,
+      "label": "02"
+     },
+     "type": "free kick lost",
+     "text": "Foul by Jacob Greaves (Ipswich Town).",
+     "playerIds": [
+      49254
+     ]
+    },
+    {
+     "id": 2865891,
+     "time": {
+      "secs": 115,
+      "label": "02"
+     },
+     "type": "free kick won",
+     "text": "Mateo Kovacic (Manchester City) wins a free kick on the right wing.",
+     "playerIds": [
+      12520
+     ]
+    },
+    {
+     "id": 2865881,
+     "time": {
+      "secs": 0,
+      "label": "01"
+     },
+     "type": "start",
+     "text": "First Half begins."
+    },
+    {
+     "id": 2865467,
+     "type": "lineup",
+     "text": "Lineups are announced and players are warming up."
+    }
+   ]
+  }
+ },
+ "128999": {
+  "fixture": {
+   "gameweek": {
+    "id": 19768,
+    "gameweek": 8
+   },
+   "kickoff": {
+    "completeness": 3,
+    "millis": 1792782000000,
+    "label": "Fri 23 Oct 2026, 20:00 BST",
+    "gmtOffset": 1.0
+   },
+   "provisionalKickoff": {
+    "completeness": 3,
+    "millis": 1792782000000,
+    "label": "Fri 23 Oct 2026, 20:00 BST",
+    "gmtOffset": 1.0
+   },
+   "teams": [
+    {
+     "team": {
+      "name": "Ipswich Town",
+      "club": {
+       "name": "Ipswich Town",
+       "abbr": "IPS",
+       "id": 8
+      },
+      "teamType": "FIRST",
+      "shortName": "Ipswich",
+      "id": 8
+     }
+    },
+    {
+     "team": {
+      "name": "Nottingham Forest",
+      "club": {
+       "name": "Nottingham Forest",
+       "abbr": "NFO",
+       "id": 15
+      },
+      "teamType": "FIRST",
+      "shortName": "Nott'm Forest",
+      "id": 15
+     }
+    }
+   ],
+   "replay": false,
+   "ground": {
+    "name": "Portman Road",
+    "city": "Ipswich",
+    "source": "OPTA",
+    "id": 9568
+   },
+   "neutralGround": false,
+   "status": "U",
+   "phase": "0",
+   "fixtureType": "REGULAR",
+   "extraTime": false,
+   "shootout": false,
+   "behindClosedDoors": false,
+   "id": 128999
+  },
+  "events": {
+   "pageInfo": {
+    "page": 0,
+    "numPages": 0,
+    "pageSize": 200,
+    "numEntries": 0
+   },
+   "content": []
+  }
+ }
+}
