@@ -25,10 +25,17 @@ each league's **commissioner**.
   (`spec/03`, `spec/14`), the draft's schedule and controls (`spec/04`), trade vetoes where the
   league uses them (`spec/08`), the head-to-head fixtures, handing a team on and the auto team
   (`spec/09`), one-way letters (`spec/16`) and overriding a past score (`spec/14`).
-- One commissioner per league; no co-commissioners.
+- Can remove a manager from the league, as the admin can ([13](13-setting-up-a-league.md#leaving)).
+- One commissioner per league, and at most one co-commissioner with every commissioner power
+  except naming or removing either and deleting the league (`/grill setting up a league`,
+  20 Oct 2026, which replaced "no co-commissioners"; see [13](13-setting-up-a-league.md)).
 - Every commissioner action files a Mail letter to the whole league: nothing changes quietly.
+  Refusing a join request files none ([13](13-setting-up-a-league.md#joining)).
 
 ## Joining a league
+
+How invites, the invite link and join requests work in detail is in
+[13. Setting up a league](13-setting-up-a-league.md#joining).
 
 - The commissioner enters a manager's email address and the app sends a sign-in link; or the
   commissioner shares the league's one invite link (say, in the group chat). Opening the link only
