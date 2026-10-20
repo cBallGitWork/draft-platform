@@ -29,7 +29,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | # | Feature | Status | Checked by |
 |---|---|---|---|
 | 1 | [Leagues](spec/01-leagues.md) | not built | a league created from a ready-made rule set carries every rule in it |
-| 2 | [Sign-in](spec/02-sign-in.md) | built, awaiting the live email proof; the invite link's way in waits for #73 | an email on the allowed list gets a link that works once within the hour; one not on it gets the same reply and no link |
+| 2 | [Sign-in](spec/02-sign-in.md) | built, awaiting the live email proof | an email on the allowed list gets a link that works once within the hour; one not on it gets the same reply and no link |
 | 3 | [League rules](spec/03-league-rules.md) | not built | the same week scores differently under two leagues' rules |
 | 4 | [The draft](spec/04-the-draft.md) | not built | a timed-out pick takes the queue's best available player, then the default ranking's |
 | 5 | [Tactics](spec/05-tactics.md) | not built | the same player and match score differently in two roles, and an empty slot is filled by the first fitting sub |
@@ -40,7 +40,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 10 | [Live matchday](spec/10-live-matchday.md) | not built | points move during a match and are marked provisional until it is final |
 | 11 | [Email](spec/11-email.md) | not built | on a pick clock over 10 minutes the manager on the clock gets one email; under it, none |
 | 12 | [Screens](spec/12-screens.md) | not built | a signed-in manager lands on My team, with Mail's unread count in the menu |
-| 13 | [Setting up a league](spec/13-setting-up-a-league.md) | leagues, teams and who runs them built (#24); joining waits for #73, gameweeks #74, deleting #75, switching leagues #76 | a league of four fills from two emailed invites and two approved join requests |
+| 13 | [Setting up a league](spec/13-setting-up-a-league.md) | leagues, teams and who runs them built (#24), and joining (#73); gameweeks wait for #74, deleting #75, switching leagues #76 | a league of four fills from two emailed invites and two approved join requests |
 | 14 | [Scoring categories](spec/14-scoring-categories.md) | not built | a match's stats priced under a set of rules give each category's points and the total, by the slot's area |
 | 15 | [Admin tools](spec/15-admin-tools.md) | not built | a commissioner's assignment puts the player on the team and files a Mail letter to the league |
 | 16 | [Mail](spec/16-mail.md) | not built | a claim, a drop and a trade each file one letter for every manager in the league |
