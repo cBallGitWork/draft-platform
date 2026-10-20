@@ -47,10 +47,14 @@ Each with the questions its grill starts from. The questions are Claude's.
 | Going on holiday | CM's holiday: the manager switches the auto team on himself until a gameweek he names (`spec/09` lets him switch it on; the end date is the new part) |
 | Match rating and Man of the Match | CM's Av R and MoM: a 1–10 rating from his points against his area; MoM the top scorer in each head-to-head |
 | Saved tactics | FM's: a few formations kept to switch between, say one for a double gameweek |
+| One player on several teams | Not now; maybe later (Craig, 20 Oct 2026). A draft is normally one owner per league; some leagues do one per division. The draft, waivers, trades and "owned in the league" all assume one owner |
 
 Thought of and set aside, as they clash with what's settled: board confidence and the sack
 (storylines are out of scope), counter-tactics (your tactics never touch your opponent's points),
 loans (wait for the market).
+
+Researched and not picked: a classic, FPL-style game where every manager can own the same
+players. Craig asked out of curiosity (20 Oct 2026; `docs/research/draft-competitors.md`).
 
 ## Smaller pages, from Fantrax
 

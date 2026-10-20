@@ -40,7 +40,7 @@ Supabase was the runner-up.
 - Resend's 100 a day: sign-in links, a busy waiver night across several leagues, or a slow
   draft's emails,
   means Resend Pro or another sender.
-- Before signups open to anyone, FPL's and the Premier League's terms are checked (SPEC, Later).
+- Before the mini beta, FPL's and the Premier League's terms are checked (SPEC, *What it is*; #79).
 
 ## Libraries (Claude's)
 
