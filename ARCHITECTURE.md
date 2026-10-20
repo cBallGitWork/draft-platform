@@ -1,5 +1,8 @@
 # Architecture
 
+**Contents:** [Services (Craig's)](#services-craigs) · [Libraries (Claude's)](#libraries-claudes) ·
+[Data](#data) · [With the first code](#with-the-first-code)
+
 How the product in [SPEC.md](SPEC.md) is built. Settled in the stack `/grill` (16 Oct 2026).
 
 **Who decides:** Craig picks the services, because they cost money and are hard to leave. Claude
@@ -32,6 +35,20 @@ Supabase was the runner-up.
 - A check scheduled 10 minutes ahead fired at 11:50:40 BST, 0.6 seconds after it was due, with
   no browser and no `convex dev` running.
 - The stats per player per match, for roles: [docs/pl-match-stats.md](docs/pl-match-stats.md).
+
+**The commentary stream (#37): read, not yet proven live.** spec/10's commentary stands on the
+Premier League's `/fixtures/{id}/textstream/EN?pageSize=200&sort=desc`; the team stats on
+`/stats/match/{id}`. Both need only the browser User-Agent: no `Origin` header (from the Mac,
+20 Oct 2026). Each line's `playerIds` are the team sheets' ids, so they map to FPL's `code` as
+the sheets do (`convex/plCommentary.ts`). The 28 event types seen and what each line's men are:
+[docs/pl-commentary.md](docs/pl-commentary.md). Four finished matches and one before kickoff are
+recorded (`convex/recorded/commentary.payloads.ts`).
+
+TODO after Fri 23 Oct 2026 (Ipswich v Nott'm Forest, fixture 128999, recorded by
+`scripts/record-match.mjs`, and `feeds:commentaryCheck` run on Convex during it): how often the
+stream updates live; whether it answers Convex's servers mid-match; when the lineups and the
+team stats first arrive and whether the stats move during play; a recorded live match kept for
+the tests. If the stream doesn't update live, or refuses Convex, the commentary goes back to Craig.
 
 **When the free plans stop being enough:**
 
