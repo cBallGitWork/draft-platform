@@ -76,7 +76,8 @@ happen in them (a penalty saved or missed, an own goal's assist) may exist.
 | `player retired` | 1 | 1 | the man who went off | "Robinio Vaz went off injured after Hull City had used all subs." |
 
 - The parts were read from the four recorded matches, by where each man's name falls in the
-  text, and the order held on all 543 men they name; the other sixteen use the same wording.
+  text, and the order held on all 543 mentions of the 122 men they name; the other sixteen use the
+  same wording.
 - A second yellow is its own type, with no `red card` line after it.
 - An assist is in a goal's `playerIds` and text; its kind ("with a cross") is only in the text.
 
@@ -86,15 +87,16 @@ happen in them (a penalty saved or missed, an own goal's assist) may exist.
 (`/fixtures/{id}`, `teamLists`), so each man is matched as the sheets are: his `altIds.opta` is
 FPL's `opta_code` ([pl-match-stats.md](pl-match-stats.md#matching-the-two-feeds)).
 `commentaryLines` maps each to FPL's `code`, in place: a man FPL does not list stays as null in
-that line and is reported with the unmatched, never dropped. All 543 men named in the four
-recorded matches were on the sheets and matched (`convex/plCommentary.test.ts`).
+that line and is reported with the unmatched, never dropped. All 122 men named in the four
+recorded matches (543 mentions) were on the sheets and matched (`convex/plCommentary.test.ts`).
 
 ## Team stats
 
 `GET https://footballapi.pulselive.com/football/stats/match/{fixtureId}`, read by `readPlTeamStats`.
 `{entity, data}`: `entity` is the match header, `data` each side's Opta totals keyed by the Premier
 League's team id, as `{M: [{name, value, description, additionalInfo}]}`, the same stat shape as a
-player's. Brighton's 178 at Brighton v Palace; noughts are left out, as per player.
+player's. At Brighton v Palace, Brighton's list has 178 stats and Palace's 154; noughts are left
+out, as per player.
 
 spec/10's five, by Opta's names (Brentford v Liverpool):
 
