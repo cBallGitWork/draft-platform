@@ -137,3 +137,14 @@ for c in 'ls | wc -l' 'git ls-files | xargs wc -l' 'ssh host ls' 'bash script.sh
   "echo 'git add -A' | { sh; } <<< true"; do  # no program; a $'…' can't make a marker; >| f writes a file
   check allow guard_bash.py "$(bash_in "$tmp/sub" "$c")"
 done
+# on main: a shell is fed by the innermost group open around it, a $(…) ends at its own ), and a
+# comment's lone ' quotes nothing, even on a command line's first character
+for c in "echo 'echo hi' | { (sh) <<< 'git add -A'; true; }" "{ { sh; } <<< 'git add -A'; sh; } <<< 'echo hi'" \
+  "{ true; { sh; } <<< 'git add -A'; }" 'echo $( (git add -A) )' 'x=$(cd sub && (git add -A))' \
+  $'# it\'s a note\ngit add -A'; do
+  check deny guard_bash.py "$(bash_cmd "$c")"
+done
+# in sub: a script reads no stdin, &> is one redirection, and a $(…) holding ( … ) ends at its own )
+for c in 'npm test | bash script.sh' 'git add a.ts &>/dev/null && git commit -m x' 'echo $( (true) ) && git commit -m x'; do
+  check allow guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done

@@ -35,7 +35,7 @@ def stdins(segs, lifted):
     reads on stdin (the text, UNKNOWN, or None if nothing on the line feeds it) and the lifted $(…)
     those redirections run."""
     closing_feeds = _closing_feeds(segs, lifted)
-    out, feeds, output, piped, groups = [], [], UNKNOWN, None, []  # groups: each Group still open
+    out, inputs, output, piped, groups = [], [], UNKNOWN, None, []  # groups: each Group still open
     for k, seg in enumerate(segs):
         fed = piped if piped is not None else (groups[-1].stdin if groups else None)
         _open_and_close(seg, k, groups, fed, closing_feeds)
@@ -48,9 +48,9 @@ def stdins(segs, lifted):
         words, stdin, substituted = _redirects(seg, lifted)
         stdin = fed if stdin is None else stdin
         out.append(words or [""])  # a heredoc with no command runs no program, but its $(…) runs
-        feeds.append((stdin, substituted))
+        inputs.append((stdin, substituted))
         output = _output(words, stdin)
-    return out, feeds
+    return out, inputs
 
 
 def _closing_feeds(segs, lifted):
