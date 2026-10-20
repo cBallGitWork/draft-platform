@@ -10,17 +10,19 @@ import {
 import type { AuthActions, Session } from "./auth";
 import { AppFrame } from "./frame/AppFrame";
 import type { TopBarState } from "./frame/topBarState";
-import { MY_TEAM_PATH, pages } from "./frame/menu";
+import { MAIL_PATH, MY_TEAM_PATH, pages } from "./frame/menu";
 import { PageNotBuilt } from "./frame/PageNotBuilt";
 import type { LeagueActions } from "./leagues/actions";
 import { LeaguelessFrame } from "./leagues/LeaguelessFrame";
 import { LeaguesPage } from "./leagues/LeaguesPage";
 import { NewLeaguePage } from "./leagues/NewLeaguePage";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "./leagues/paths";
+import type { Mail } from "./mail/actions";
+import { MailPage, leaguesToWriteFrom } from "./mail/MailPage";
 import { SignInPage } from "./sign-in/SignInPage";
 import { linkProblemWords, type LinkProblem } from "./sign-in/words";
 
-export type ShellContext = { session: Session; auth: AuthActions; leagues: LeagueActions; topBar: TopBarState };
+export type ShellContext = { session: Session; auth: AuthActions; leagues: LeagueActions; mail: Mail; topBar: TopBarState };
 
 export const SIGN_IN_PATH = "/sign-in";
 
@@ -109,7 +111,16 @@ const landingRoute = createRoute({
   },
 });
 
-const pageRoutes = pages.map((page) =>
+const mailRoute = createRoute({
+  getParentRoute: () => frameRoute,
+  path: MAIL_PATH,
+  component: function MailScreen() {
+    const { mail, session, topBar } = mailRoute.useRouteContext();
+    return <MailPage mail={mail} unread={topBar.unreadMail} writableLeagues={leaguesToWriteFrom(session)} />;
+  },
+});
+
+const pageRoutes = pages.filter((page) => page.path !== MAIL_PATH).map((page) =>
   createRoute({
     getParentRoute: () => frameRoute,
     path: page.path,
@@ -120,7 +131,7 @@ const pageRoutes = pages.map((page) =>
 const routeTree = rootRoute.addChildren([
   signInRoute,
   leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute]),
-  frameRoute.addChildren([landingRoute, ...pageRoutes]),
+  frameRoute.addChildren([landingRoute, mailRoute, ...pageRoutes]),
 ]);
 
 // Not registered for typed links yet: the pages above are made in a loop, so their paths are plain

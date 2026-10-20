@@ -3,8 +3,8 @@ import { ConvexReactClient, useAction, useConvexAuth, useQuery } from "convex/re
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../convex/_generated/api";
 import type { AuthActions, Session } from "./auth";
-import { emptyTopBar } from "./frame/topBarState";
 import { useLiveLeagueActions } from "./leagues/liveLeagueActions";
+import { useLiveMail } from "./mail/liveMail";
 import { SIGN_IN_PATH } from "./router";
 import { ShellApp } from "./ShellApp";
 import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "./sign-in/words";
@@ -52,6 +52,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   const { signIn, signOut } = useAuthActions();
   const ask = useAction(api.signInLinks.ask);
   const leagues = useLiveLeagueActions();
+  const { mail, topBar } = useLiveMail();
   const account = useQuery(api.account.signedInAs, isAuthenticated ? {} : "skip");
   const [checkingLink, setCheckingLink] = useState(linkCode !== null);
   const redeemed = useRef(false);
@@ -93,7 +94,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
       </p>
     );
   }
-  return <ShellApp session={session} auth={auth} leagues={leagues} topBar={emptyTopBar} />;
+  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} topBar={topBar} />;
 }
 
 /** Redeems a link's code, and says what went wrong if it didn't sign in. Convex Auth answers a
