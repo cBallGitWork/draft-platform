@@ -23,15 +23,17 @@ function checkMaxTeams(maxTeams: number): void {
   if (!Number.isInteger(maxTeams) || maxTeams < FEWEST_TEAMS || maxTeams > MOST_TEAMS) refuse(refusals.maxOutOfRange);
 }
 
-/** Lets a newly named commissioner sign in, and sends them a sign-in link if they have no account
- *  yet (spec/13, Creating a league). */
+/** Lets a newly named commissioner sign in, and sends them a sign-in link unless they have opened
+ *  one before (spec/13, Creating a league), judged as `unsentLinkOf` in myLeagues.ts judges it. */
 async function admitCommissioner(ctx: MutationCtx, email: string, leagueId: Id<"leagues">): Promise<void> {
   await admitEmail(ctx, email);
   const account = await ctx.db
     .query("users")
     .withIndex("email", (q) => q.eq("email", email))
     .first();
-  if (account === null) await ctx.scheduler.runAfter(0, internal.leagues.sendCommissionerLink, { leagueId, email });
+  if (account?.emailVerificationTime === undefined) {
+    await ctx.scheduler.runAfter(0, internal.leagues.sendCommissionerLink, { leagueId, email });
+  }
 }
 
 export const create = mutation({
@@ -47,7 +49,7 @@ export const create = mutation({
 
     const leagueId = await ctx.db.insert("leagues", { name, maxTeams: args.maxTeams, commissionerEmail });
     await recordEvent(ctx, leagueId, by, { kind: "created", name, maxTeams: args.maxTeams });
-    await recordEvent(ctx, leagueId, by, { kind: "commissionerNamed", email: commissionerEmail });
+    await recordEvent(ctx, leagueId, by, { kind: "commissionerNamed", email: commissionerEmail, replaced: null });
     await admitCommissioner(ctx, commissionerEmail, leagueId);
     return leagueId;
   },
@@ -80,7 +82,7 @@ export const nameCommissioner = mutation({
     if (email === league.coCommissionerEmail) refuse(refusals.alreadyCoCommissioner(email));
     // The last commissioner's link, if it didn't go, is theirs: no longer the admin's concern.
     await ctx.db.patch("leagues", league._id, { commissionerEmail: email, commissionerLink: undefined });
-    await recordEvent(ctx, league._id, by, { kind: "commissionerNamed", email });
+    await recordEvent(ctx, league._id, by, { kind: "commissionerNamed", email, replaced: league.commissionerEmail });
     await admitCommissioner(ctx, email, league._id);
     return null;
   },
@@ -95,10 +97,15 @@ export const nameCoCommissioner = mutation({
     const { email: by, league } = await namerOf(ctx, args.leagueId);
     const email = args.email === null ? null : namedEmail(args.email);
     if (email === league.commissionerEmail) refuse(refusals.alreadyCommissioner(email));
-    if (email === (league.coCommissionerEmail ?? null)) return null;
+    const replaced = league.coCommissionerEmail ?? null;
+    if (email === replaced) return null;
     await ctx.db.patch("leagues", league._id, { coCommissionerEmail: email ?? undefined });
-    await recordEvent(ctx, league._id, by, { kind: "coCommissionerNamed", email });
-    if (email !== null) await admitEmail(ctx, email);
+    if (email !== null) {
+      await recordEvent(ctx, league._id, by, { kind: "coCommissionerNamed", email, replaced });
+      await admitEmail(ctx, email);
+    } else if (replaced !== null) {
+      await recordEvent(ctx, league._id, by, { kind: "coCommissionerRemoved", email: replaced });
+    }
     return null;
   },
 });

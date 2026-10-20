@@ -140,15 +140,21 @@ const teamFields = {
   managerEmail: v.optional(v.string()),
 };
 
-/** What happened in a league, for Mail (#26) to turn into letters (spec/15, The commissioner). */
+/** Who held a role before, or null when nobody did. */
+const replaced = v.union(v.string(), v.null());
+/** A manager and their team, its name as it was then. */
+const managerOfTeam = { email: v.string(), teamId: v.id("teams"), teamName: v.string() };
+
+/** What happened in a league, for Mail (#26) to turn into letters (spec/15, The commissioner):
+ *  each says all a letter needs, as it was at the time. */
 export const leagueEvent = v.union(
   v.object({ kind: v.literal("created"), name: v.string(), maxTeams: v.number() }),
-  v.object({ kind: v.literal("commissionerNamed"), email: v.string() }),
-  /** `email` null: the co-commissioner was removed. */
-  v.object({ kind: v.literal("coCommissionerNamed"), email: v.union(v.string(), v.null()) }),
-  v.object({ kind: v.literal("managerAdded"), email: v.string(), teamId: v.id("teams"), teamName: v.string() }),
-  v.object({ kind: v.literal("managerRemoved"), email: v.string(), teamId: v.id("teams") }),
-  v.object({ kind: v.literal("managerLeft"), email: v.string(), teamId: v.id("teams") }),
+  v.object({ kind: v.literal("commissionerNamed"), email: v.string(), replaced }),
+  v.object({ kind: v.literal("coCommissionerNamed"), email: v.string(), replaced }),
+  v.object({ kind: v.literal("coCommissionerRemoved"), email: v.string() }),
+  v.object({ kind: v.literal("managerAdded"), ...managerOfTeam }),
+  v.object({ kind: v.literal("managerRemoved"), ...managerOfTeam }),
+  v.object({ kind: v.literal("managerLeft"), ...managerOfTeam }),
   v.object({ kind: v.literal("teamRenamed"), teamId: v.id("teams"), from: v.string(), to: v.string() }),
   v.object({ kind: v.literal("maxTeamsChanged"), from: v.number(), to: v.number() }),
 );

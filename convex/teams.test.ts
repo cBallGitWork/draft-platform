@@ -100,6 +100,19 @@ describe("renaming a team", () => {
     expect((await teamNames())[0].name).toBe("x".repeat(TEAM_NAME_MAX));
   });
 
+  test("its manager changes only its capitals, and it's filed", async () => {
+    await (await actingAs(t, ANN)).mutation(api.teams.rename, { teamId: annsTeam, name: "TEAM 1" });
+
+    expect((await teamNames())[0].name).toBe("TEAM 1");
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: ANN, kind: "teamRenamed", teamId: annsTeam, from: "Team 1", to: "TEAM 1" });
+  });
+
+  test("renaming it to the name it has, give or take spaces, files nothing", async () => {
+    const before = await eventsIn(t, leagueId);
+    await (await actingAs(t, ANN)).mutation(api.teams.rename, { teamId: annsTeam, name: " Team 1 " });
+    expect(await eventsIn(t, leagueId)).toEqual(before);
+  });
+
   test("a name another team in the league has is refused, whatever its capitals", async () => {
     const ann = await actingAs(t, ANN);
     await expect(ann.mutation(api.teams.rename, { teamId: annsTeam, name: "team 2" })).rejects.toThrow(refusals.teamNameTaken("team 2"));
@@ -145,7 +158,13 @@ describe("removing and leaving", () => {
 
     expect(await annsLeagues()).toEqual([]);
     expect((await teamNames())[0]).toEqual({ name: "Red Army", managerEmail: undefined });
-    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: remover, kind: "managerRemoved", email: ANN, teamId: annsTeam });
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({
+      by: remover,
+      kind: "managerRemoved",
+      email: ANN,
+      teamId: annsTeam,
+      teamName: "Red Army",
+    });
     await expect((await actingAs(t, ANN)).mutation(api.teams.rename, { teamId: annsTeam, name: "Back" })).rejects.toThrow(
       refusals.notManager,
     );
@@ -156,7 +175,13 @@ describe("removing and leaving", () => {
 
     expect(await annsLeagues()).toEqual([]);
     expect((await teamNames())[0]).toEqual({ name: "Red Army", managerEmail: undefined });
-    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: ANN, kind: "managerLeft", email: ANN, teamId: annsTeam });
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({
+      by: ANN,
+      kind: "managerLeft",
+      email: ANN,
+      teamId: annsTeam,
+      teamName: "Red Army",
+    });
   });
 
   test("someone with no team in the league can't leave it", async () => {

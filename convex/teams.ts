@@ -75,7 +75,7 @@ export const removeManager = mutation({
     const team = await teamIn(ctx, teamId, leagueId);
     if (team.managerEmail === undefined) refuse(refusals.noManager);
     await ctx.db.patch("teams", teamId, { managerEmail: undefined });
-    await recordEvent(ctx, leagueId, by, { kind: "managerRemoved", email: team.managerEmail, teamId });
+    await recordEvent(ctx, leagueId, by, { kind: "managerRemoved", email: team.managerEmail, teamId, teamName: team.name });
     return null;
   },
 });
@@ -89,7 +89,7 @@ export const leave = mutation({
     const team = (await teamsOf(ctx, leagueId)).find((each) => each.managerEmail === email);
     if (!team) refuse(refusals.runsNoTeam);
     await ctx.db.patch("teams", team._id, { managerEmail: undefined });
-    await recordEvent(ctx, leagueId, email, { kind: "managerLeft", email, teamId: team._id });
+    await recordEvent(ctx, leagueId, email, { kind: "managerLeft", email, teamId: team._id, teamName: team.name });
     return null;
   },
 });
