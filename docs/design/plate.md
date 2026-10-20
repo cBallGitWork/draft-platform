@@ -12,7 +12,7 @@ values are Claude's, from the designer's round-2 brief and the reviewer's pass o
 | ground | `#0a1240` | the page |
 | panel | `#16238a` | a panel's body |
 | plate | `#0030a6` | the top bar, a panel's title plate, date blocks |
-| stepper | `#1f13a7` | the `◄ GW9 ►` gameweek stepper |
+| stepper | `#1f13a7` | the `◄ GW9 ►` gameweek stepper; a control on the plate under the pointer, and a toggle on the plate while its list is open (the top bar's league) |
 | name plate | `#050a30` | under a player's name on the pitch, the alert strip |
 | column head | `#b9bcc4`, ink `#0a1240` | one continuous plate over a table's columns |
 | fact | `#ffffff` | names, labels that are facts, a role |
@@ -54,6 +54,8 @@ on the desk. Figures use tabular numerals.
 - Tabs are butted, separated by 1px rules, never gaps: `#001a5e` on the plate, `#0a1240` on a
   panel. Every tab is 44px tall; a section's tabs are 36px on the desk.
 - Panels sit 8px apart and align to the top (no stretched empty panels).
+- The league sits in the top bar: on the desk inline after the product name, ruled off by 1px
+  `#001a5e`; on the phone its own 44px row under the name, Continue and Sign out, above the menu.
 - Spacing steps: 4, 8, 12, 16.
 
 ## Marks
@@ -63,6 +65,8 @@ on the desk. Figures use tabular numerals.
   labelled "Role fit 4 of 5".
 - **A doubt**: an orange square with a bar, on the name plate and the squad row, labelled "Doubt".
 - **Unread**: a 3px orange bar down the letter's left edge, and "Unread" for screen readers.
+- **The current one of a list**: a 3px bar down its left edge in the active tab's cyan, and
+  `aria-current` for screen readers (the top bar's league list).
 - **The bench**: its own "Bench" plate in the table, below the eleven.
 
 ## Never
