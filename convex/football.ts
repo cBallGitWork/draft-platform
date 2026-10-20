@@ -52,8 +52,7 @@ export function plPlayerStatsUrl(playerId: number, fixtureId: number): string {
 /** The most commentary lines one read of the stream asks for. The most seen in a match is 133. */
 export const PL_COMMENTARY_PAGE_SIZE = 200;
 
-/** A match's commentary, newest first. The premierleague.com site sends an `Origin` header with
- *  it; the feed answers the same without one (checked 20 Oct 2026), so none is sent. */
+/** A match's commentary, newest first. It needs no `Origin` header (docs/pl-commentary.md). */
 export function plCommentaryUrl(fixtureId: number): string {
   return `${PL_API_BASE}/fixtures/${fixtureId}/textstream/EN?pageSize=${PL_COMMENTARY_PAGE_SIZE}&sort=desc`;
 }
