@@ -8,8 +8,9 @@ each league's **commissioner**.
 
 - Creates each league and names its commissioner (`spec/01`), and keeps an override on every
   league.
-- Sets positions for new signings and support strikers, corrects any player's positions, and
-  tunes the position-change thresholds (`spec/06`).
+- Approves, sets and corrects positions on one admin dashboard (`spec/06`): new signings, support
+  strikers, positions worked out from starts, any player; and tunes the position-change thresholds.
+  The feeds page below is a tab of it (`/grill positions`, 20 Oct 2026).
 - Sets the stat-correction window (`spec/07`).
 - Can remove a manager from a league. The team stays, for the commissioner to hand to someone
   new (`spec/09`).
@@ -52,6 +53,6 @@ How invites, the invite link and join requests work in detail is in
 ## The mini beta
 
 - Needed by then: creating a league and naming its commissioner, inviting managers, assigning
-  players, editing the scoring set, overriding a score, correcting positions, and the feeds page.
+  players, editing the scoring set, overriding a score, approving and correcting positions, and the feeds page.
   The rest (draft controls, trade veto, fixture editing, handing a team on, the auto team) by
   August.

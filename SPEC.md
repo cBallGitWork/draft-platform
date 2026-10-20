@@ -103,7 +103,8 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | invite link | a league's one shareable link; opening it only asks to join | |
 | join request | what opening the invite link makes, for the commissioner to approve or refuse | |
 | club | a real Premier League club | team |
-| position | where a player can play in real life (CB, CAM) | |
+| position | where a player can play in real life (CB, FB, CAM, W); no side | right back, left winger |
+| admin dashboard | the admin's one screen: the positions queue and corrections, thresholds, and the feeds page | |
 | role | what you tell him to do in your slot, which changes his points | |
 | trait | what he does in real life (inverted full-back, cuts inside) | style |
 | slot | a place in your formation | |
