@@ -49,6 +49,8 @@ TODO after Fri 23 Oct 2026 (Ipswich v Nott'm Forest, fixture 128999, recorded by
 stream updates live; whether it answers Convex's servers mid-match; when the lineups and the
 team stats first arrive and whether the stats move during play; a recorded live match kept for
 the tests. If the stream doesn't update live, or refuses Convex, the commentary goes back to Craig.
+The steps (push the action to the dev deployment, run it twice, how to read what it prints) head
+`commentaryCheck` in `convex/feeds.ts`.
 
 **When the free plans stop being enough:**
 
