@@ -160,8 +160,8 @@ check deny guard_bash.py "$(bash_in "$tmp/back-feat" 'git switch feat/a && git s
 # git passed as a string, run by a function or behind a runner is still read: refused on main, not in sub
 for c in 'sh -c "git commit -m x"' "bash -c 'git commit -m x'" 'zsh -c "git commit -m x"' \
   'bash -lc "git commit -m x"' 'eval "git commit -m x"' "env -S 'git commit -m x'" \
-  'echo "$(git commit -m x)"' 'echo `git commit -m x`' 'echo "`git commit -m x`"' \
-  'function f { git commit -m x; }; f' 'f() { git commit -m x; }; f' \
+  'echo "$(git commit -m x)"' 'echo `git commit -m x`' "echo 'a' \$(git commit -m x)" "echo 'a' \`git commit -m x\`" \
+  'echo "`git commit -m x`"' 'function f { git commit -m x; }; f' 'f() { git commit -m x; }; f' \
   'xargs git commit -m x' 'sudo git commit -m x' 'sudo -u craig git commit -m x' 'timeout 5 git commit -m x' \
   'nice -n 5 git commit -m x' 'time -p git commit -m x' 'xargs -n 1 git commit -m x' 'xargs -P 4 git commit -m x' \
   'xargs -a f git commit -m x' "bash -o pipefail -c 'git commit -m x'" "bash -c -- 'git commit -m x'" \
@@ -178,8 +178,8 @@ for c in 'eval "cd .."; git commit -m x' 'builtin cd .. && git commit -m x' 'sud
   'sudo --login git commit -m x' 'sudo -D /tmp sh -c "git commit -m x"' 'env -C /tmp sh -c "git commit -m x"'; do
   check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
 done
-# nothing hides a command: a heredoc's own line, an unquoted heredoc's $(…), a # inside a word
-check deny guard_bash.py "$(bash_in "$tmp/sub" $'cat <<\'EOF\' && git add -A\nmsg\nEOF')"
+# nothing hides a command: a heredoc's own line (quoted or not), an unquoted heredoc's $(…), a # in a word
+for delimiter in "'EOF'" EOF; do check deny guard_bash.py "$(bash_in "$tmp/sub" "cat <<$delimiter && git add -A"$'\nmsg\nEOF')"; done
 check deny guard_bash.py "$(bash_cmd $'cat <<EOF\n$(git commit -m x)\nEOF')"
 check allow guard_bash.py "$(bash_cmd $'cat <<\'EOF\'\n$(git commit -m x)\nEOF')"
 check deny guard_bash.py "$(bash_in "$tmp/sub" 'echo x#; git add -A')"
