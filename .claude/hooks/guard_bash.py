@@ -26,7 +26,7 @@ import shlex
 import subprocess
 import sys
 
-from where import GIT_VALUE_OPTS, SEPARATORS, current_branch, git_dir, located, runs
+from where import GIT_VALUE_OPTS, SEPARATORS, current_branch, git_dir, located, runs_at
 
 HEREDOC = re.compile(r"<<-?[ \t]*(['\"]?)(\w+)\1[^\n]*\n(.*?\n)?[ \t]*\2[ \t]*(\n|$)", re.S)
 COMMIT_VALUE_SHORT = set("mFCct")  # in `-am msg` everything after m is the value
@@ -59,7 +59,7 @@ def segments(cmd):
 
 def git_call(words):
     """(subcommand, args) if this simple command runs git, else None."""
-    i = runs(words, "git")  # FOO=1 git ..., env git ...
+    i = runs_at(words, "git")  # FOO=1 git ..., env git ...
     if i is None:
         return None
     i += 1
@@ -133,7 +133,7 @@ def publishes(words):
     call = git_call(words)
     if call:
         return call[0] in GIT_PUBLISHING
-    i = runs(words, "gh")
+    i = runs_at(words, "gh")
     if i is None:
         return False
     return words[i + 1 : i + 2] == ["api"] or tuple(words[i + 1 : i + 3]) in GH_PUBLISHING
@@ -219,7 +219,7 @@ def decide(cmd, cwd):
             if folder is None:
                 return (
                     "Can't tell which folder that runs in (a cd that may not take effect, pushd, "
-                    "GIT_DIR or --git-dir). Run it plainly: cd <folder> && git commit, or "
+                    "GIT_DIR, --git-dir or env -C). Run it plainly: cd <folder> && git commit, or "
                     "git -C <folder> commit."
                 )
             if switched_to_main or current_branch(folder) == "main":

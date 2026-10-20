@@ -15,16 +15,15 @@ ENDS_A_CHAIN = {";", "\n", "&", "||"}  # after these, a cd that hung on an earli
 GIT_PLACE_VARS = re.compile(r"^(GIT_DIR|GIT_WORK_TREE)=")
 UNFOLLOWABLE = re.compile(r"[$`]|^-")  # a cd or -C the guard can't follow: a variable, an option, cd -
 WRAPPERS = {"env", "command", "exec"}  # run the command after them: env git commit is a commit
-WRAPPER_VALUE_OPTS = {"-u", "-C", "-S", "-a", "--unset", "--chdir", "--split-string"}
+WRAPPER_VALUE_OPTS = {"-u", "-C", "-S", "-a", "--unset", "--chdir", "--split-string"}  # env's, and exec -a
 
 
 def located(segs, cwd):
     """(words, folder) for each simple command (separators left out), following any cd before
     it; folder is None where the guard can't be sure: a cd it can't follow, one that may not
     run (after || or a broken && chain) or runs elsewhere (in a pipe or the background), a
-    missing folder, pushd, popd, any command naming GIT_DIR= or GIT_WORK_TREE= (export,
-    declare -x, typeset -x, readonly, env). A worktree is a folder of its own, so
-    its branch and staged lines are read there."""
+    missing folder, pushd, popd, any command setting GIT_DIR or GIT_WORK_TREE. A worktree is
+    a folder of its own, so its branch and staged lines are read there."""
     here, out, outer, before, hung = cwd, [], [], ";", False
     for i, words in enumerate(segs):
         after = segs[i + 1][0] if i + 1 < len(segs) else ";"
@@ -55,20 +54,20 @@ def located(segs, cwd):
 def program_index(words):
     """Where the program this simple command runs is, past FOO=1 words and any env, command or
     exec (with their options)."""
-    i = 0
+    i, wrapped = 0, False
     while i < len(words):
-        if re.match(r"^\w+=", words[i]) or words[i] in WRAPPERS:
+        if re.match(r"^\w+=", words[i]):
             i += 1
-        elif i and words[i - 1] in WRAPPER_VALUE_OPTS:
-            i += 1
-        elif words[i].startswith("-") and any(w in WRAPPERS for w in words[:i]):
-            i += 1
+        elif words[i] in WRAPPERS:
+            i, wrapped = i + 1, True
+        elif wrapped and words[i].startswith("-"):
+            i += 2 if words[i] in WRAPPER_VALUE_OPTS else 1
         else:
             break
     return i
 
 
-def runs(words, program):
+def runs_at(words, program):
     """Where `program` is in this simple command, None if it doesn't run it."""
     i = program_index(words)
     return i if i < len(words) and os.path.basename(words[i]) == program else None
@@ -76,7 +75,7 @@ def runs(words, program):
 
 def git_options(words):
     """git's own options, before the subcommand, as (option, value) pairs."""
-    start = runs(words, "git")
+    start = runs_at(words, "git")
     if start is None:
         return []
     out, i = [], start + 1
