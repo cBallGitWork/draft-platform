@@ -3,7 +3,7 @@ import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { refusals } from "./leagueAccess";
 import { tablesKeyedToLeague } from "./leagueDeletion";
-import { ANN, BOB, accountOf, deletes, laterBy, leagueWithPeople } from "./leagueDeletion.harness";
+import { ANN, BOB, accountOf, deletes, laterBy, leagueWithPeople, mutationsGivenALeague } from "./leagueDeletion.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, actingAs, eventsIn, leagueRow, teamsIn, type TestConvex } from "./leagues.harness";
 import schema from "./schema";
 import { fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
@@ -46,25 +46,30 @@ describe("who deletes a league", () => {
 });
 
 describe("while it can be undone", () => {
-  test("every change to it is refused, saying why", async () => {
+  test("every change to it is refused, saying why, and every mutation given a league is tried", async () => {
     const [annsTeam] = await teamsIn(t, leagueId);
     await deletes(t, COMMISSIONER, leagueId);
     const before = await everythingOf(leagueId);
     const admin = await actingAs(t, ADMIN);
     const ann = await actingAs(t, ANN);
 
-    const changes = [
-      admin.mutation(api.leagues.setMaxTeams, { leagueId, maxTeams: 6 }),
-      admin.mutation(api.leagues.nameCommissioner, { leagueId, email: ANN }),
-      admin.mutation(api.leagues.nameCoCommissioner, { leagueId, email: null }),
-      admin.mutation(api.teams.addManager, { leagueId, email: "new@example.com" }),
-      admin.mutation(api.teams.removeManager, { leagueId, teamId: annsTeam._id }),
-      ann.mutation(api.teams.rename, { teamId: annsTeam._id, name: "Saka Potatoes" }),
-      ann.mutation(api.teams.leave, { leagueId }),
-      admin.mutation(api.leagueDeletion.deleteLeague, { leagueId }),
-    ];
-    for (const change of changes) await expect(change).rejects.toThrow(refusals.beingDeleted);
+    const changes: Record<string, Promise<unknown>> = {
+      "leagues:setMaxTeams": admin.mutation(api.leagues.setMaxTeams, { leagueId, maxTeams: 6 }),
+      "leagues:nameCommissioner": admin.mutation(api.leagues.nameCommissioner, { leagueId, email: ANN }),
+      "leagues:nameCoCommissioner": admin.mutation(api.leagues.nameCoCommissioner, { leagueId, email: null }),
+      "teams:addManager": admin.mutation(api.teams.addManager, { leagueId, email: "new@example.com" }),
+      "teams:removeManager": admin.mutation(api.teams.removeManager, { leagueId, teamId: annsTeam._id }),
+      "teams:rename": ann.mutation(api.teams.rename, { teamId: annsTeam._id, name: "Saka Potatoes" }),
+      "teams:leave": ann.mutation(api.teams.leave, { leagueId }),
+      "leagueDeletion:deleteLeague": admin.mutation(api.leagueDeletion.deleteLeague, { leagueId }),
+    };
+    for (const change of Object.values(changes)) await expect(change).rejects.toThrow(refusals.beingDeleted);
     expect(await everythingOf(leagueId)).toEqual(before);
+
+    // A mutation added later that is given a league, or a row in one, fails here until it is tried
+    // above: the freeze holds only where a change starts at getLeague (leagueAccess.ts).
+    const allowedWhileFrozen = ["leagueDeletion:undo"];
+    expect(Object.keys(changes).sort()).toEqual((await mutationsGivenALeague()).filter((name) => !allowedWhileFrozen.includes(name)));
   });
 
   test("it's hidden from everyone with a part in it but whoever deleted it, who is in no league now", async () => {

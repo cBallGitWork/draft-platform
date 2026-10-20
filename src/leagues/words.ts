@@ -2,6 +2,7 @@
 // server refused a change is in convex/leagueAccess.ts (`refusals`), and reaches the screen as is.
 
 import { DELETION_UNDO_HOURS, FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leagueLimits";
+import { londonTime } from "../../convex/londonTime";
 import type { LeagueSummary } from "../../convex/myLeagues";
 import type { NoLinkReply } from "../../convex/signInLinks";
 
@@ -38,10 +39,9 @@ export const confirmDelete = (leagueName: string) =>
   `Delete ${leagueName}? At once it's frozen and hidden from everyone in it, and they're emailed. ` +
   `You can undo it for ${DELETION_UNDO_HOURS} hours; then it's gone for good, with its teams, Mail and history.`;
 
-/** When it goes is in the viewer's own time. */
-const deletionTime = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+/** When it goes is said as the email says it (convex/londonTime.ts). */
 export const beingDeleted = (deletesAt: number) =>
-  `Being deleted: it goes for good at ${deletionTime.format(deletesAt)}. Until then it's frozen and hidden from everyone in it.`;
+  `Being deleted: it goes for good on ${londonTime(deletesAt)}. Until then it's frozen and hidden from everyone in it.`;
 export const undoWords = "Undo";
 export const unemailed = (email: string, reason: string) => `${email} wasn't told: ${reason}.`;
 
