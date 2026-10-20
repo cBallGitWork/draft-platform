@@ -63,28 +63,28 @@ export async function readFpl(): Promise<Football> {
 export function mapFpl(bootstrap: RawBootstrap, fixtures: RawFixture[]): Football {
   const clubCode = clubCodes(bootstrap.teams);
   return {
-    clubs: bootstrap.teams.map((t) => ({ code: t.code, name: t.name, shortName: t.short_name })),
-    players: bootstrap.elements.map((e) => ({
-      code: e.code,
-      name: e.web_name,
-      fullName: `${e.first_name} ${e.second_name}`.trim(),
-      clubCode: clubCode(e.team),
+    clubs: bootstrap.teams.map((team) => ({ code: team.code, name: team.name, shortName: team.short_name })),
+    players: bootstrap.elements.map((element) => ({
+      code: element.code,
+      name: element.web_name,
+      fullName: `${element.first_name} ${element.second_name}`.trim(),
+      clubCode: clubCode(element.team),
     })),
-    fixtures: fixtures.map((f) => ({
-      code: f.code,
-      gameweek: f.event ?? null,
-      homeClubCode: clubCode(f.team_h),
-      awayClubCode: clubCode(f.team_a),
-      kickoff: f.kickoff_time ? epochMs(f.kickoff_time) : null,
+    fixtures: fixtures.map((fixture) => ({
+      code: fixture.code,
+      gameweek: fixture.event ?? null,
+      homeClubCode: clubCode(fixture.team_h),
+      awayClubCode: clubCode(fixture.team_a),
+      kickoff: fixture.kickoff_time ? epochMs(fixture.kickoff_time) : null,
     })),
-    gameweeks: bootstrap.events.map((e) => ({ number: e.id, deadline: epochMs(e.deadline_time) })),
+    gameweeks: bootstrap.events.map((event) => ({ number: event.id, deadline: epochMs(event.deadline_time) })),
   };
 }
 
 /** A club's season-stable code from its per-season id. A club FPL names but does not list is a
  *  changed payload, so it throws rather than file a player or a match under no club. */
 function clubCodes(teams: RawTeam[]): (id: number) => number {
-  const codes = new Map(teams.map((t) => [t.id, t.code]));
+  const codes = new Map(teams.map((team) => [team.id, team.code]));
   return (id) => {
     const code = codes.get(id);
     if (code === undefined) throw new Error(`FPL names club id ${id}, which bootstrap-static does not list`);

@@ -13,6 +13,12 @@ export interface FplPayloads {
   fixtures: RawFixture[];
 }
 
+/** How many of each the recording holds. */
+export const RECORDED_COUNT = { clubs: 20, players: 7, fixtures: 3, gameweeks: 3 } as const;
+
+/** Season-stable codes of clubs the tests name. */
+export const CLUB_CODE = { arsenal: 3, coventry: 9, manCity: 43 } as const;
+
 /** A fresh copy of the recorded payloads, safe to change for one test. */
 export function recordedFpl(): FplPayloads {
   return structuredClone({ bootstrap: bootstrap as RawBootstrap, fixtures: fixtures as RawFixture[] });

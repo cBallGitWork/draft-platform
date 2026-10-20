@@ -1,18 +1,18 @@
 import { expect, test } from "vitest";
 import { mapFpl } from "./fpl";
-import { recordedFpl } from "./recorded/fpl.payloads";
+import { CLUB_CODE, RECORDED_COUNT, recordedFpl } from "./recorded/fpl.payloads";
 
 const { bootstrap, fixtures } = recordedFpl();
 const football = mapFpl(bootstrap, fixtures);
 
 const HAALAND = 223094;
 const RAYA = 154561;
-const CLUB = { arsenal: 3, coventry: 9, manCity: 43 } as const;
+const ARSENAL_V_COVENTRY = 2645195;
 
 test("every recorded club, player, match and gameweek is mapped", () => {
-  expect(football.clubs).toHaveLength(20);
-  expect(football.players).toHaveLength(7);
-  expect(football.fixtures).toHaveLength(3);
+  expect(football.clubs).toHaveLength(RECORDED_COUNT.clubs);
+  expect(football.players).toHaveLength(RECORDED_COUNT.players);
+  expect(football.fixtures).toHaveLength(RECORDED_COUNT.fixtures);
   expect(football.gameweeks.map((gameweek) => gameweek.number)).toEqual([1, 7, 8]);
 });
 
@@ -22,7 +22,7 @@ test("a player is his season-stable code, his names and his club's code, with no
     code: HAALAND,
     name: "Haaland",
     fullName: "Erling Haaland",
-    clubCode: CLUB.manCity,
+    clubCode: CLUB_CODE.manCity,
   });
 });
 
@@ -31,19 +31,19 @@ test("a full name joins FPL's first and second names, which can be several words
 });
 
 test("a club is its code, its name and its three letters", () => {
-  expect(football.clubs.find((club) => club.code === CLUB.arsenal)).toEqual({
-    code: CLUB.arsenal,
+  expect(football.clubs.find((club) => club.code === CLUB_CODE.arsenal)).toEqual({
+    code: CLUB_CODE.arsenal,
     name: "Arsenal",
     shortName: "ARS",
   });
 });
 
 test("a match names both clubs by code and its kickoff in epoch milliseconds", () => {
-  expect(football.fixtures.find((fixture) => fixture.code === 2645195)).toEqual({
-    code: 2645195,
+  expect(football.fixtures.find((fixture) => fixture.code === ARSENAL_V_COVENTRY)).toEqual({
+    code: ARSENAL_V_COVENTRY,
     gameweek: 1,
-    homeClubCode: CLUB.arsenal,
-    awayClubCode: CLUB.coventry,
+    homeClubCode: CLUB_CODE.arsenal,
+    awayClubCode: CLUB_CODE.coventry,
     kickoff: Date.UTC(2026, 7, 21, 19, 0),
   });
 });

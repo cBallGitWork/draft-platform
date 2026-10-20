@@ -4,12 +4,12 @@ import { afterEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL } from "./football";
 import { BATCH_SIZE } from "./footballSync";
-import { recordedFpl, type FplPayloads } from "./recorded/fpl.payloads";
+import { CLUB_CODE, RECORDED_COUNT, recordedFpl, type FplPayloads } from "./recorded/fpl.payloads";
 import schema from "./schema";
 
 const modules = import.meta.glob("./**/*.ts");
 const SAKA = 223340;
-const MAN_CITY = { id: 15, code: 43 } as const;
+const MAN_CITY = { id: 15, code: CLUB_CODE.manCity } as const;
 
 /** FPL answering with `payloads`; the `refuse` URL answers 503. */
 function fakeFpl(payloads: FplPayloads, refuse?: string) {
@@ -50,15 +50,21 @@ test("a sync fills clubs, players, fixtures and gameweeks, and records what it w
 
   const outcome = await syncWith(t, recordedFpl());
 
+  const { clubs, players, fixtures, gameweeks } = RECORDED_COUNT;
   expect(outcome).toEqual({
     ok: true,
-    clubs: { received: 20, inserted: 20, updated: 0 },
-    players: { received: 7, inserted: 7, updated: 0 },
-    fixtures: { received: 3, inserted: 3, updated: 0 },
-    gameweeks: { received: 3, inserted: 3, updated: 0 },
+    clubs: { received: clubs, inserted: clubs, updated: 0 },
+    players: { received: players, inserted: players, updated: 0 },
+    fixtures: { received: fixtures, inserted: fixtures, updated: 0 },
+    gameweeks: { received: gameweeks, inserted: gameweeks, updated: 0 },
   });
   const rows = await held(t);
-  expect([rows.clubs.length, rows.players.length, rows.fixtures.length, rows.gameweeks.length]).toEqual([20, 7, 3, 3]);
+  expect({
+    clubs: rows.clubs.length,
+    players: rows.players.length,
+    fixtures: rows.fixtures.length,
+    gameweeks: rows.gameweeks.length,
+  }).toEqual(RECORDED_COUNT);
 });
 
 test("a re-run of the same payloads writes nothing and leaves every row as it was", async () => {
@@ -111,7 +117,7 @@ test("a player who changes clubs is updated in his own row, not added again", as
   saka.team = MAN_CITY.id;
   const outcome = await syncWith(t, transfer);
 
-  expect(outcome).toMatchObject({ ok: true, players: { received: 7, inserted: 0, updated: 1 } });
+  expect(outcome).toMatchObject({ ok: true, players: { received: RECORDED_COUNT.players, inserted: 0, updated: 1 } });
   const sakas = (await held(t)).players.filter((player) => player.code === SAKA);
   expect(sakas).toHaveLength(1);
   expect(sakas[0].clubCode).toBe(MAN_CITY.code);
@@ -122,21 +128,24 @@ test("a rescheduled match and its moved deadline are updated in their own rows",
   await syncWith(t, recordedFpl());
 
   // Gameweek 8's opener moves back a day, and FPL's deadline with it.
+  const gameweekNumber = 8;
+  const newKickoff = "2026-10-24T19:00:00Z";
+  const newDeadline = "2026-10-24T17:30:00Z";
   const moved = recordedFpl();
-  const opener = moved.fixtures.find((fixture) => fixture.event === 8)!;
-  const gameweek8 = moved.bootstrap.events.find((event) => event.id === 8)!;
-  opener.kickoff_time = "2026-10-24T19:00:00Z";
-  gameweek8.deadline_time = "2026-10-24T17:30:00Z";
+  const opener = moved.fixtures.find((fixture) => fixture.event === gameweekNumber)!;
+  const fplGameweek = moved.bootstrap.events.find((event) => event.id === gameweekNumber)!;
+  opener.kickoff_time = newKickoff;
+  fplGameweek.deadline_time = newDeadline;
   const outcome = await syncWith(t, moved);
 
   expect(outcome).toMatchObject({
     ok: true,
-    fixtures: { received: 3, inserted: 0, updated: 1 },
-    gameweeks: { received: 3, inserted: 0, updated: 1 },
+    fixtures: { received: RECORDED_COUNT.fixtures, inserted: 0, updated: 1 },
+    gameweeks: { received: RECORDED_COUNT.gameweeks, inserted: 0, updated: 1 },
   });
   const rows = await held(t);
-  expect(rows.fixtures.find((fixture) => fixture.code === opener.code)?.kickoff).toBe(Date.parse("2026-10-24T19:00:00Z"));
-  expect(rows.gameweeks.find((gameweek) => gameweek.number === 8)?.deadline).toBe(Date.parse("2026-10-24T17:30:00Z"));
+  expect(rows.fixtures.find((fixture) => fixture.code === opener.code)?.kickoff).toBe(Date.parse(newKickoff));
+  expect(rows.gameweeks.find((gameweek) => gameweek.number === gameweekNumber)?.deadline).toBe(Date.parse(newDeadline));
 });
 
 test("a failed fetch is recorded and logged, and nothing is written", async () => {
