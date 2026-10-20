@@ -24,7 +24,8 @@ on a deployment on your own machine instead, which proves nothing about Convex's
 `npm run dev` pushes the Convex functions to your dev deployment, keeps pushing as they change,
 and starts the app at <http://localhost:5173>: the sign-in page.
 
-Sign-in needs four settings on the deployment, once, set from the checkout `npm run setup` ran
+Sign-in needs five settings on the deployment (JWT_PRIVATE_KEY, JWKS, SITE_URL, ADMIN_EMAIL,
+AUTH_RESEND_KEY), set once from the checkout `npm run setup` ran
 in (its `.env.local` names your dev deployment):
 
 - `npx @convex-dev/auth --web-server-url http://localhost:5173` sets Convex Auth's keys and
