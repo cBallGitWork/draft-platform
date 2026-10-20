@@ -7,7 +7,8 @@ const cellClasses = "px-2 text-left align-top";
 
 /** "Your leagues" (spec/12): each league the person has a part in, or, for the admin, every
  *  league; with none, a page saying so (spec/02). The admin is offered "Create a league", as only
- *  the admin creates leagues in the beta. Switching between leagues is #76. */
+ *  the admin creates leagues in the beta. Switching between leagues is the top bar's
+ *  (frame/LeagueSwitcher.tsx). */
 export function LeaguesPage({ email, isAdmin, leagues }: { email: string; isAdmin: boolean; leagues: readonly LeagueSummary[] }) {
   return (
     <section aria-labelledby="page-title" className="max-w-3xl bg-panel">

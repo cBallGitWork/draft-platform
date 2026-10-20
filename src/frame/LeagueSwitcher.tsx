@@ -1,0 +1,131 @@
+import { Link } from "@tanstack/react-router";
+import { useEffect, useId, useRef, useState } from "react";
+import type { Id } from "../../convex/_generated/dataModel";
+import type { LeagueSummary } from "../../convex/myLeagues";
+import type { Session } from "../auth";
+import type { LeagueActions } from "../leagues/actions";
+import { LEAGUES_PATH } from "../leagues/paths";
+import { roleWords } from "../leagues/words";
+
+// On a phone the league takes its own row under the name, Continue and Sign out, above the menu.
+const placeClasses = "order-last w-full border-t border-plate-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-l";
+
+/** The top bar's league (spec/13, Several leagues): for someone in several, a list to switch
+ *  between them; for someone in one, its name. The admin's leagues he has no part in aren't his
+ *  to switch to. */
+export function LeagueSwitcher({ session, chooseLeague }: { session: Session; chooseLeague: LeagueActions["chooseLeague"] }) {
+  const [open, setOpen] = useState(false);
+  const [choosing, setChoosing] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const listId = useId();
+  const switcher = useRef<HTMLDivElement>(null);
+  const toggle = useRef<HTMLButtonElement>(null);
+
+  // Escape, or a tap anywhere else, closes the list.
+  useEffect(() => {
+    if (!open) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setOpen(false);
+      toggle.current?.focus();
+    };
+    const closeOutside = (event: PointerEvent) => {
+      if (!switcher.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    document.addEventListener("pointerdown", closeOutside);
+    return () => {
+      document.removeEventListener("keydown", closeOnEscape);
+      document.removeEventListener("pointerdown", closeOutside);
+    };
+  }, [open]);
+
+  if (!session.signedIn) return null;
+  const theirs = session.leagues.filter((league) => league.roles.length > 0);
+  const current = theirs.find((league) => league.leagueId === session.currentLeagueId);
+  // account:signedInAs names one of theirs whenever they have any, and the frame is only theirs then.
+  if (!current) throw new Error(`The league the app is in, ${session.currentLeagueId}, isn't one of ${session.email}'s`);
+
+  if (theirs.length === 1) {
+    return <span className={`flex min-h-tap items-center px-4 text-lead font-semibold ${placeClasses}`}>{current.name}</span>;
+  }
+
+  const choose = async (leagueId: Id<"leagues">) => {
+    if (leagueId !== current.leagueId) {
+      setChoosing(true);
+      const refused = await chooseLeague(leagueId);
+      setChoosing(false);
+      setProblem(refused);
+      if (refused !== null) return;
+    }
+    setOpen(false);
+  };
+
+  return (
+    <div ref={switcher} className={`relative ${placeClasses}`}>
+      <button
+        ref={toggle}
+        type="button"
+        aria-expanded={open}
+        aria-controls={listId}
+        onClick={() => {
+          setProblem(null);
+          setOpen(!open);
+        }}
+        className="flex min-h-tap w-full items-center justify-between gap-2 px-4 text-lead font-semibold hover:bg-stepper aria-expanded:bg-stepper"
+      >
+        <span>
+          <span className="sr-only">League:</span> {current.name}
+        </span>
+        <svg aria-hidden="true" viewBox="0 0 10 6" className="h-1.5 w-2.5 fill-current">
+          <path d="M0 0h10L5 6z" />
+        </svg>
+      </button>
+      {open && (
+        <div id={listId} className="absolute top-full left-0 z-10 w-full bg-panel shadow-bevel-panel lg:w-72">
+          {problem && (
+            <p role="alert" className="alert-strip">
+              {problem}
+            </p>
+          )}
+          <ul aria-label="Your leagues">
+            {theirs.map((league) => (
+              <li key={league.leagueId} className="border-b border-panel-rule">
+                <LeagueChoice league={league} isCurrent={league === current} disabled={choosing} onChoose={choose} />
+              </li>
+            ))}
+          </ul>
+          <Link to={LEAGUES_PATH} className="flex min-h-tap items-center px-3">
+            All your leagues
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** One of the person's leagues, with their team in it, or their part when they run none. */
+function LeagueChoice({
+  league,
+  isCurrent,
+  disabled,
+  onChoose,
+}: {
+  league: LeagueSummary;
+  isCurrent: boolean;
+  disabled: boolean;
+  onChoose: (leagueId: Id<"leagues">) => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-current={isCurrent || undefined}
+      disabled={disabled}
+      onClick={() => onChoose(league.leagueId)}
+      className="flex min-h-tap w-full flex-col justify-center px-3 py-1 text-left text-soft hover:text-fact aria-current:text-fact aria-current:shadow-current-edge"
+    >
+      <span className="text-lead font-semibold">{league.name}</span>
+      <span className="text-muted">{league.teamName ?? league.roles.map((role) => roleWords[role]).join(", ")}</span>
+    </button>
+  );
+}

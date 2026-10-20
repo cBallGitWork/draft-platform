@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import type { AuthActions, Session } from "./auth";
 import { AppFrame } from "./frame/AppFrame";
+import { LeagueSwitcher } from "./frame/LeagueSwitcher";
 import type { TopBarState } from "./frame/topBarState";
 import { MY_TEAM_PATH, pages } from "./frame/menu";
 import { PageNotBuilt } from "./frame/PageNotBuilt";
@@ -58,9 +59,13 @@ const leaguePagesRoute = createRoute({
     if (!context.session.signedIn) throw redirect({ to: SIGN_IN_PATH });
   },
   component: function LeaguePages() {
-    const { session, topBar, auth } = leaguePagesRoute.useRouteContext();
+    const { session, topBar, auth, leagues } = leaguePagesRoute.useRouteContext();
     return session.signedIn && session.inLeague ? (
-      <AppFrame topBar={topBar} onSignOut={auth.signOut} />
+      <AppFrame
+        topBar={topBar}
+        onSignOut={auth.signOut}
+        leagueSwitcher={<LeagueSwitcher session={session} chooseLeague={leagues.chooseLeague} />}
+      />
     ) : (
       <LeaguelessFrame onSignOut={auth.signOut} />
     );
@@ -95,8 +100,14 @@ const frameRoute = createRoute({
     if (!context.session.inLeague) throw redirect({ to: LEAGUES_PATH });
   },
   component: function Frame() {
-    const { topBar, auth } = frameRoute.useRouteContext();
-    return <AppFrame topBar={topBar} onSignOut={auth.signOut} />;
+    const { session, topBar, auth, leagues } = frameRoute.useRouteContext();
+    return (
+      <AppFrame
+        topBar={topBar}
+        onSignOut={auth.signOut}
+        leagueSwitcher={<LeagueSwitcher session={session} chooseLeague={leagues.chooseLeague} />}
+      />
+    );
   },
 });
 

@@ -167,6 +167,9 @@ const leagueEventFields = {
   event: leagueEvent,
 };
 
+/** The league switcher (#76): the league each person used last, by email, one row each. */
+const lastLeagueFields = { email: v.string(), leagueId: v.id("leagues") };
+
 export default defineSchema({
   ...authTables,
   allowedEmails: defineTable(allowedEmailFields).index("by_email", ["email"]),
@@ -179,6 +182,7 @@ export default defineSchema({
     .index("by_leagueId_and_number", ["leagueId", "number"])
     .index("by_managerEmail", ["managerEmail"]),
   leagueEvents: defineTable(leagueEventFields).index("by_leagueId_and_at", ["leagueId", "at"]),
+  lastLeagues: defineTable(lastLeagueFields).index("by_email", ["email"]),
   feedChecks: defineTable(feedCheckFields),
   clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
   players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]),

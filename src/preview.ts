@@ -44,17 +44,19 @@ const manager = {
     proLeague,
     { ...miniBeta, roles: ["commissioner", "manager"], teamName: "Team 1", teams: 1, unsentCommissionerLink: null },
   ],
+  currentLeagueId: proLeague.leagueId,
 } as const satisfies Session;
 
 const previewSessions: Record<string, Session> = {
   manager,
-  newcomer: { ...manager, inLeague: false, leagues: [] },
+  newcomer: { ...manager, inLeague: false, leagues: [], currentLeagueId: null },
   admin: {
     ...manager,
     email: "admin@example.com",
     isAdmin: true,
     inLeague: false,
     leagues: [miniBeta, { ...proLeague, roles: [], teamName: null }],
+    currentLeagueId: null,
   },
   visitor: { signedIn: false },
 };
@@ -66,9 +68,10 @@ export function previewSession(): Session | null {
   return name !== null && Object.hasOwn(previewSessions, name) ? previewSessions[name] : null;
 }
 
-/** Creating a league makes nothing, and says so. */
+/** Creating a league makes nothing, and switching league stays put, and each says so. */
 export const previewLeagues: LeagueActions = {
   createLeague: async () => "This is a preview: no league was made.",
+  chooseLeague: async () => "This is a preview: you're still in this league.",
 };
 
 /** Asking for a link gets the reply everyone gets; nothing is sent, and signing out does nothing. */

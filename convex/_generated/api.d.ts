@@ -17,6 +17,7 @@ import type * as football from "../football.js";
 import type * as footballSync from "../footballSync.js";
 import type * as fpl from "../fpl.js";
 import type * as http from "../http.js";
+import type * as lastLeague from "../lastLeague.js";
 import type * as leagueAccess from "../leagueAccess.js";
 import type * as leagueLimits from "../leagueLimits.js";
 import type * as leagues from "../leagues.js";
@@ -41,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   footballSync: typeof footballSync;
   fpl: typeof fpl;
   http: typeof http;
+  lastLeague: typeof lastLeague;
   leagueAccess: typeof leagueAccess;
   leagueLimits: typeof leagueLimits;
   leagues: typeof leagues;
