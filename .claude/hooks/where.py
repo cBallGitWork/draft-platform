@@ -5,10 +5,10 @@ than guessing. Commands passed as a string or on stdin (sh -c, eval, a heredoc i
 find -exec) are read by commands.py.
 
 Out of its sight: commands in a file (bash script.sh, ./x.sh, python's subprocess), a string run
-by any other program (python -c, node -e, make, a git alias), a function
-defined before this command line, what a variable holds (in a double-quoted sh -c "…" string too:
-the shell fills it in before sh reads it), the arguments xargs adds to git commit or push from
-stdin, and the paths find puts in for {}.
+by any other program (python -c, node -e, make, a git alias), a function defined before this
+command line, what a variable holds (in a double-quoted sh -c "…" string too: the shell fills it
+in before sh reads it), the arguments xargs adds to git commit or push from stdin, and the paths
+find puts in for {}.
 Stdlib only, Python 3.9+.
 """
 
@@ -24,7 +24,8 @@ SEPARATORS = {";", "&", "&&", "|", "||", "(", ")", "\n"}
 ENDS_A_CHAIN = {";", "\n", "&", "||"}  # after these, a cd that hung on an earlier && may not have run
 GIT_PLACE_VARS = re.compile(r"^(GIT_DIR|GIT_WORK_TREE)=")
 UNFOLLOWABLE = re.compile(r"[$`]|^-")  # a cd or -C the guard can't follow: a variable, an option, cd -
-MOVES_THE_SHELL = re.compile(r"\b(cd|pushd|popd|source)\b|(^|\s)\.\s|\bGIT_(DIR|WORK_TREE)=")  # in an eval's string
+# in an eval's string: eval "cd ..", eval ". x.sh"
+MOVES_THE_SHELL = re.compile(r"\b(cd|pushd|popd|source)\b|(^|\s)\.\s|\bGIT_(DIR|WORK_TREE)=")
 # shell words a command can sit behind: { git commit; }, if ...; then git commit; fish's and git commit
 KEYWORDS = {"{", "}", "!", "if", "then", "else", "elif", "fi", "while", "until", "do", "done",
             "and", "or", "not"}

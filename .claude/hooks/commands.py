@@ -14,7 +14,8 @@ import shlex
 from collections import namedtuple
 
 from parsing import HEREDOC_MARKED, HERE_STRING, MARKED, Unbalanced, Unreadable, ansi_c_text, parse
-from where import RUNNERS, SEPARATORS, located, moved_by_runner, options, program_index, program_name, runner_options
+from where import (RUNNERS, SEPARATORS, located, moved_by_runner, options, program_index, program_name,
+                   runner_options)
 
 SHELLS = {"sh", "bash", "zsh", "dash", "ksh"}
 SHELL_VALUE_OPTS = {"-o", "+o", "-O", "+O", "--rcfile", "--init-file"}
@@ -208,7 +209,7 @@ def find_runs(words):
     while i < len(words):
         if words[i] in FIND_RUNS:
             end = i + 1
-            while end < len(words) and not (words[end] == ";" or (words[end] == "+" and words[end - 1] == "{}")):
+            while end < len(words) and words[end] != ";" and words[end - 1 : end + 1] != ["{}", "+"]:
                 end += 1
             out.append((words[i + 1 : end], FIND_RUNS[words[i]]))
             i = end

@@ -73,7 +73,7 @@ def lift_substitutions(text, lifted, quotes=True, closer=False):
     character for its stand-in (STAND_INS) and comments dropped, appending what each marker
     stands for to lifted. quotes=False reads a heredoc body, where quote marks, # and << are
     plain text. With closer, reads a $(…)'s inside and returns where its closing bracket is."""
-    out, quote, depth, i, heredocs = [], None, 0, 0, []
+    out, quote, depth, i, pending = [], None, 0, 0, []  # pending: heredocs whose bodies come next
     while i < len(text):
         c = text[i]
         unquoted = quotes and not quote
@@ -102,15 +102,15 @@ def lift_substitutions(text, lifted, quotes=True, closer=False):
             i += 3
             continue
         elif unquoted and (heredoc := HEREDOC.match(text, i)):
-            heredocs.append((len(lifted), heredoc.group(1)))
-            out.append(" " + HEREDOC_MARK.format(len(lifted)) + " ")
+            pending.append((len(lifted), heredoc.group(1)))
+            out.append(f" {HEREDOC_MARK.format(len(lifted))} ")
             lifted.append(Heredoc(None, False))
             i = heredoc.end()
             continue
-        elif unquoted and c == "\n" and heredocs:  # the bodies start on the next line
+        elif unquoted and c == "\n" and pending:
             out.append(c)
-            i = _read_bodies(text, i + 1, heredocs, lifted)
-            heredocs = []
+            i = _read_bodies(text, i + 1, pending, lifted)
+            pending = []
             continue
         elif quotes and c == '"':
             quote = None if quote else '"'
@@ -131,11 +131,11 @@ def lift_substitutions(text, lifted, quotes=True, closer=False):
     return "".join(out)
 
 
-def _read_bodies(text, i, heredocs, lifted):
+def _read_bodies(text, i, pending, lifted):
     """Fills in the Heredoc for each (marker number, delimiter word) on the line before text[i],
     and returns where the text goes on after their bodies. One whose delimiter line never comes
     keeps a body of None, and its lines are read as commands."""
-    for n, word in heredocs:
+    for n, word in pending:
         quoted = any(q in word for q in "'\"\\")  # its body is then plain text
         found = _delimiter_line(text, i, shlex.split(word)[0])
         if found:
