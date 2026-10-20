@@ -8,5 +8,10 @@ import { MAIL_PATH } from "./frame/menu";
 export const previewing =
   import.meta.env.DEV && new URLSearchParams(window.location.search).get("preview") === "manager";
 
+const unreadMail = 3;
+
 /** Made-up figures, so the shot shows Mail's count and Continue in use. */
-export const previewTopBar: TopBarState = { unreadMail: 3, next: { path: MAIL_PATH, reason: "3 unread letters" } };
+export const previewTopBar: TopBarState = {
+  unreadMail,
+  next: { path: MAIL_PATH, reason: `${unreadMail} unread letters` },
+};

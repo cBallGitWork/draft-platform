@@ -63,7 +63,7 @@ describe("a signed-in manager", () => {
   it("sees every section in the menu", async () => {
     openApp(MY_TEAM_PATH, { signedIn: true });
     const main = await screen.findByRole("navigation", { name: "Main" });
-    expect(within(main).getAllByRole("link").map((link) => link.textContent)).toEqual(sections.map((s) => s.label));
+    expect(within(main).getAllByRole("link").map((link) => link.textContent)).toEqual(sections.map((section) => section.label));
   });
 
   it("on a section's tab, sees that tab marked, and the section still marked in the menu", async () => {
@@ -81,9 +81,11 @@ describe("a signed-in manager", () => {
     expect(screen.queryByRole("navigation", { name: "Section" })).toBeNull();
   });
 
-  it("sees Mail's unread count in the menu, and Continue going to the next thing", async () => {
+  it("with unread mail, sees Mail's count in the menu, and Continue going to the next thing", async () => {
     openApp(MY_TEAM_PATH, { signedIn: true, topBar: previewTopBar });
-    expect((await screen.findByRole("link", { name: "Mail, 3 unread" })).getAttribute("href")).toBe(MAIL_PATH);
+    const mail = await screen.findByRole("link", { name: "Mail, 3 unread" });
+    expect(mail.getAttribute("href")).toBe(MAIL_PATH);
+    expect(within(mail).getByText("3")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Continue: 3 unread letters" }).getAttribute("href")).toBe(MAIL_PATH);
   });
 
@@ -91,7 +93,7 @@ describe("a signed-in manager", () => {
     openApp(MY_TEAM_PATH, { signedIn: true });
     expect(await screen.findByText("Nothing needs you")).toBeTruthy();
     expect(screen.queryByRole("link", { name: /^Continue/ })).toBeNull();
-    expect(screen.getByRole("link", { name: "Mail" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Mail" }).textContent).toBe("Mail");
   });
 
   it("opening the sign-in page is sent to My team", async () => {

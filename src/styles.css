@@ -1,9 +1,8 @@
 @import "tailwindcss";
 
 /* The Plate look as Tailwind's tokens: docs/design/plate.md has every value and its role.
-   Tailwind's own palette, radii, shadows, type scale and tracking are switched off, so a
-   stock utility (bg-slate-900, rounded-lg, text-sm, tracking-wide) doesn't exist to reach for.
-   The bevel and rule shades are R3·1's (docs/design/mockups/PlateOne.dc.html). */
+   Tailwind's own scales are switched off (.claude/rules/ui.md). The bevel and rule
+   shades are R3·1's (docs/design/mockups/PlateOne.dc.html). */
 @theme {
   --color-*: initial;
   --radius-*: initial;
@@ -27,7 +26,9 @@
   --color-soft: #c9d1ff; /* role text, inactive tabs, the action's hover */
   /* the 1px rules between butted tabs: on the plate, and on a panel */
   --color-plate-rule: #001a5e;
-  --color-panel-rule: #0a1240;
+  --color-panel-rule: var(--color-ground);
+  /* a panel's lit edge: the top of its bevel, and the line above a section's tabs */
+  --color-panel-edge: #3d4fc4;
 
   --font-sans: "Archivo Narrow", "Arial Narrow", sans-serif;
   --font-weight-normal: 400;
@@ -44,16 +45,16 @@
   --text-title--line-height: 32px;
 
   /* CM's 2px bevel, light above and dark below */
-  --shadow-bevel-plate: inset 0 2px 0 #4a74e0, inset 0 -2px 0 #001a5e;
-  --shadow-bevel-panel: inset 0 2px 0 #3d4fc4, inset 0 -2px 0 #050a30;
-  --shadow-bevel-action: inset 0 2px 0 #ffffff, inset 0 -2px 0 #b9bcc4;
-  --shadow-bevel-action-pressed: inset 0 2px 0 #b9bcc4, inset 0 -2px 0 #ffffff;
-  --shadow-panel-top: inset 0 1px 0 #3d4fc4;
+  --shadow-bevel-plate: inset 0 2px 0 #4a74e0, inset 0 -2px 0 var(--color-plate-rule);
+  --shadow-bevel-panel: inset 0 2px 0 var(--color-panel-edge), inset 0 -2px 0 var(--color-name-plate);
+  --shadow-bevel-action: inset 0 2px 0 var(--color-fact), inset 0 -2px 0 var(--color-head);
+  --shadow-bevel-action-pressed: inset 0 2px 0 var(--color-head), inset 0 -2px 0 var(--color-fact);
+  --shadow-panel-top: inset 0 1px 0 var(--color-panel-edge);
   /* the active tab's cyan underline, on the top row and on a section's tabs */
-  --shadow-tab-active: inset 0 -3px 0 #6bfdfa;
-  --shadow-subtab-active: inset 0 -2px 0 #6bfdfa;
+  --shadow-tab-active: inset 0 -3px 0 var(--color-derived);
+  --shadow-subtab-active: inset 0 -2px 0 var(--color-derived);
   /* the alert strip's orange edge */
-  --shadow-event-edge: inset 3px 0 0 #ff9b3d;
+  --shadow-event-edge: inset 3px 0 0 var(--color-event);
 }
 
 @layer base {

@@ -10,11 +10,10 @@
 import { mkdirSync } from "node:fs";
 import { chromium } from "playwright";
 
-const WIDTHS = [
-  { width: 390, height: 844 },
-  { width: 1440, height: 900 },
-];
+const PHONE = { width: 390, height: 844 };
+const WIDTHS = [PHONE, { width: 1440, height: 900 }];
 const SMALLEST_TAP = 44;
+const SHOTS_DIR = ".shots";
 
 const [route, name = "shot"] = process.argv.slice(2);
 if (!route) {
@@ -22,7 +21,7 @@ if (!route) {
   process.exit(2);
 }
 const url = new URL(route, process.env.APP_URL ?? "http://localhost:5173").href;
-mkdirSync(".shots", { recursive: true });
+mkdirSync(SHOTS_DIR, { recursive: true });
 
 // The Mac's Chrome, so Playwright's own browser needn't be downloaded.
 const browser = await chromium.launch({ channel: "chrome" });
@@ -31,7 +30,7 @@ try {
     const page = await browser.newPage({ viewport });
     await page.goto(url, { waitUntil: "networkidle" });
     await page.evaluate(() => document.fonts.ready);
-    const path = `.shots/${name}-${viewport.width}.png`;
+    const path = `${SHOTS_DIR}/${name}-${viewport.width}.png`;
     await page.screenshot({ path, fullPage: true });
     const report = await page.evaluate((smallestTap) => {
       const small = [...document.querySelectorAll("a, button, input, select, textarea")]
@@ -42,7 +41,7 @@ try {
     }, SMALLEST_TAP);
     console.log(
       `${path}: landed on ${report.landedOn}; ${report.scrollsSideways ? "SCROLLS SIDEWAYS" : "no sideways scroll"}` +
-        (viewport.width === 390 ? `; taps under ${SMALLEST_TAP}px: ${report.small.join(", ") || "none"}` : ""),
+        (viewport === PHONE ? `; taps under ${SMALLEST_TAP}px: ${report.small.join(", ") || "none"}` : ""),
     );
     await page.close();
   }

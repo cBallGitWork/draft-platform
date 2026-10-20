@@ -19,7 +19,7 @@ export default defineConfig({
       },
       {
         plugins: [react()],
-        test: { name: "app", include: ["src/**/*.test.tsx"], exclude, environment: "jsdom" },
+        test: { name: "app", include: ["src/**/*.test.{ts,tsx}"], exclude, environment: "jsdom" },
       },
     ],
   },

@@ -30,7 +30,7 @@ export const sections: readonly Section[] = [
 ];
 
 export function sectionAt(pathname: string): Section | undefined {
-  return sections.find((s) => pathname === s.path || pathname.startsWith(`${s.path}/`));
+  return sections.find((section) => pathname === section.path || pathname.startsWith(`${section.path}/`));
 }
 
 /** Every page the menu reaches: each section, and each tab that isn't its section's own page. */
