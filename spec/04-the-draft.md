@@ -11,8 +11,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - Before the draft, each manager ranks players into their queue.
 - Draft order is a league setting: random, set by the commissioner, or last season's finish.
 - Picks in the current draft can be traded in every league.
-- A drafted player who leaves the Premier League is lost to his team, with nothing in return
-  (Craig, 20 Oct 2026).
+- A drafted player who leaves the Premier League brings his team nothing in return (Craig,
+  20 Oct 2026). He keeps his place in the squad, shown as not available, like an FPL red flag.
 - The commissioner can pause the draft, undo a pick, and pick for a manager.
 - In keeper and dynasty leagues, next season's draft is every player who was not kept, in the
   league's draft order.
