@@ -1,6 +1,7 @@
-// The screens without signing in, for screenshots: `/?preview=manager` (in two leagues),
-// `newcomer` (in none), `admin` (in none, seeing every league and offered "Create a league") or
-// `visitor` (signed out), on the dev server only (the ui-verifier agent's way in).
+// The screens without signing in, for screenshots: `/?preview=manager` (in two leagues, and
+// deleting a third), `newcomer` (in none), `admin` (in none, seeing every league and offered
+// "Create a league") or `visitor` (signed out), on the dev server only (the ui-verifier agent's
+// way in).
 // `import.meta.env.DEV` is false in `vite build`, so the production bundle drops this and a
 // logged-out visitor can never reach the frame through it.
 
@@ -35,6 +36,26 @@ const miniBeta: LeagueSummary = {
   unsentCommissionerLink: { email: unreachedCommissioner, reply: "paused" },
 };
 
+/** A league its commissioner, the preview's manager, deleted an hour ago, whose last two
+ *  managers weren't told: the day's emails had gone. */
+const sundayLeague: LeagueSummary = {
+  ...miniBeta,
+  leagueId: "preview-sunday-league" as Id<"leagues">,
+  name: "Sunday League",
+  commissionerEmail: "manager@example.com",
+  roles: ["commissioner"],
+  teams: 6,
+  maxTeams: 8,
+  unsentCommissionerLink: null,
+  deletion: {
+    deletesAt: Date.now() + 23 * 60 * 60 * 1000,
+    unemailed: [
+      { email: "late.joiner@example.com", reason: "paused" },
+      { email: "last.manager@example.com", reason: "paused" },
+    ],
+  },
+};
+
 const manager = {
   signedIn: true,
   email: "manager@example.com",
@@ -43,6 +64,7 @@ const manager = {
   leagues: [
     proLeague,
     { ...miniBeta, roles: ["commissioner", "manager"], teamName: "Team 1", teams: 1, unsentCommissionerLink: null },
+    sundayLeague,
   ],
 } as const satisfies Session;
 
@@ -66,9 +88,11 @@ export function previewSession(): Session | null {
   return name !== null && Object.hasOwn(previewSessions, name) ? previewSessions[name] : null;
 }
 
-/** Creating a league makes nothing, and says so. */
+/** Creating or deleting a league, or undoing that, does nothing, and says so. */
 export const previewLeagues: LeagueActions = {
   createLeague: async () => "This is a preview: no league was made.",
+  deleteLeague: async () => "This is a preview: no league was deleted.",
+  undoDeletion: async () => "This is a preview: nothing was undone.",
 };
 
 /** Asking for a link gets the reply everyone gets; nothing is sent, and signing out does nothing. */

@@ -51,8 +51,12 @@ function fakeAuth() {
   };
 }
 
-/** Creating a league succeeds, unless a test says otherwise. */
-const fakeLeagues = () => ({ createLeague: vi.fn<LeagueActions["createLeague"]>(async () => null) });
+/** Each league action succeeds, unless a test says otherwise. */
+const fakeLeagues = () => ({
+  createLeague: vi.fn<LeagueActions["createLeague"]>(async () => null),
+  deleteLeague: vi.fn<LeagueActions["deleteLeague"]>(async () => null),
+  undoDeletion: vi.fn<LeagueActions["undoDeletion"]>(async () => null),
+});
 
 /** The app opened at `path` for `session`: where it is, the fake sign-in and league actions, and
  *  a way to change the session as signing in or out, or a league changing, would. */

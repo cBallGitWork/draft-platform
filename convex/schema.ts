@@ -279,6 +279,24 @@ const liveStatsTables = {
   liveStatsTicks: defineTable(liveStatsTickFields),
 };
 
+// Deleting a league (#75, spec/13, Deleting): for DELETION_UNDO_HOURS the league is frozen and
+// hidden from everyone with a part in it but whoever deleted it, then a scheduled function
+// deletes it and every row keyed to it.
+
+/** Why one person wasn't emailed that their league is being deleted: the day's emails had all
+ *  gone, or the email service didn't send it. */
+export const unemailedReason = v.union(v.literal("paused"), v.literal("notSent"));
+
+export const leagueDeletion = v.object({
+  /** Who deleted it, by email: they, and the admin, see it and can undo it. */
+  by: v.string(),
+  deletesAt: v.number(),
+  /** The scheduled deleteForGood, which undoing cancels. */
+  scheduledId: v.id("_scheduled_functions"),
+  /** Each person who wasn't emailed, so whoever deleted it is told. */
+  unemailed: v.array(v.object({ email: v.string(), reason: unemailedReason })),
+});
+
 // Leagues (#24, spec/13). People are known by their email, trimmed and lower-cased, so a
 // commissioner or manager can be named before they have an account; the admin is ADMIN_EMAIL.
 
@@ -292,6 +310,8 @@ const leagueFields = {
   /** What asking for the commissioner's sign-in link answered, when one was sent: a commissioner
    *  with no account gets one when named. */
   commissionerLink: v.optional(v.object({ email: v.string(), reply: signInReply })),
+  /** Present while the league is being deleted (#75). */
+  deletion: v.optional(leagueDeletion),
 };
 
 const teamFields = {
@@ -320,6 +340,8 @@ export const leagueEvent = v.union(
   v.object({ kind: v.literal("managerLeft"), ...managerOfTeam }),
   v.object({ kind: v.literal("teamRenamed"), teamId: v.id("teams"), from: v.string(), to: v.string() }),
   v.object({ kind: v.literal("maxTeamsChanged"), from: v.number(), to: v.number() }),
+  v.object({ kind: v.literal("deletionStarted"), name: v.string(), deletesAt: v.number() }),
+  v.object({ kind: v.literal("deletionUndone"), name: v.string() }),
 );
 
 const leagueEventFields = {

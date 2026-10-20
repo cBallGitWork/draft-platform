@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/myLeagues";
+import { LeagueDeletionRow, type DeletionActions } from "./LeagueDeletion";
 import { NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
 import { adminWords, roleWords, unsentLink, unsentLinkWords } from "./words";
 
@@ -8,7 +9,17 @@ const cellClasses = "px-2 text-left align-top";
 /** "Your leagues" (spec/12): each league the person has a part in, or, for the admin, every
  *  league; with none, a page saying so (spec/02). The admin is offered "Create a league", as only
  *  the admin creates leagues in the beta. Switching between leagues is #76. */
-export function LeaguesPage({ email, isAdmin, leagues }: { email: string; isAdmin: boolean; leagues: readonly LeagueSummary[] }) {
+export function LeaguesPage({
+  email,
+  isAdmin,
+  leagues,
+  actions,
+}: {
+  email: string;
+  isAdmin: boolean;
+  leagues: readonly LeagueSummary[];
+  actions: DeletionActions;
+}) {
   return (
     <section aria-labelledby="page-title" className="max-w-3xl bg-panel">
       <h1 id="page-title" className="bg-plate px-4 py-1 text-title font-bold shadow-bevel-plate">
@@ -21,7 +32,7 @@ export function LeaguesPage({ email, isAdmin, leagues }: { email: string; isAdmi
             {!isAdmin && <p className="text-muted">When a commissioner invites you to one, it will be here.</p>}
           </>
         ) : (
-          <LeagueTable leagues={leagues} />
+          <LeagueTable leagues={leagues} isAdmin={isAdmin} actions={actions} />
         )}
         {isAdmin && (
           <Link to={NEW_LEAGUE_PATH} className="action self-start">
@@ -33,7 +44,7 @@ export function LeaguesPage({ email, isAdmin, leagues }: { email: string; isAdmi
   );
 }
 
-function LeagueTable({ leagues }: { leagues: readonly LeagueSummary[] }) {
+function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSummary[]; isAdmin: boolean; actions: DeletionActions }) {
   return (
     <table className="w-full border-collapse">
       <thead className="bg-head text-ground">
@@ -64,6 +75,7 @@ function LeagueTable({ leagues }: { leagues: readonly LeagueSummary[] }) {
               </td>
             </tr>
           )}
+          <LeagueDeletionRow league={league} canDelete={isAdmin || league.roles.includes("commissioner")} actions={actions} />
         </tbody>
       ))}
     </table>

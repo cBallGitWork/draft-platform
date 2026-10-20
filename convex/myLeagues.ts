@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { QueryCtx } from "./_generated/server";
 import { teamsOf } from "./leagueAccess";
+import { leagueDeletion } from "./schema";
 import { noLinkReply } from "./signInLinks";
 
 // "Your leagues" (spec/12): each league the signed-in person has a part in, or, for the admin, who
@@ -25,6 +26,9 @@ export const leagueSummary = v.object({
   /** For the admin only: what asking for the commissioner's sign-in link answered, when that
    *  wasn't "check your email" and they haven't signed in since, so a link that never went is seen. */
   unsentCommissionerLink: v.union(v.null(), v.object({ email: v.string(), reply: noLinkReply })),
+  /** While it is being deleted (#75), which only whoever deleted it and the admin see: when it
+   *  goes, and who wasn't emailed. */
+  deletion: v.optional(leagueDeletion.pick("deletesAt", "unemailed")),
 });
 export type LeagueSummary = Infer<typeof leagueSummary>;
 
@@ -65,6 +69,8 @@ export async function leaguesOf(ctx: QueryCtx, email: string, isAdmin: boolean):
 
   const summaries = [];
   for (const league of leagues.values()) {
+    const { deletion } = league;
+    if (deletion && deletion.by !== email && !isAdmin) continue;
     const teams = await teamsOf(ctx, league._id);
     const team = teams.find((each) => each.managerEmail === email);
     const roles: LeagueSummary["roles"] = [];
@@ -80,6 +86,7 @@ export async function leaguesOf(ctx: QueryCtx, email: string, isAdmin: boolean):
       teams: teams.length,
       maxTeams: league.maxTeams,
       unsentCommissionerLink: isAdmin ? await unsentLinkOf(ctx, league) : null,
+      deletion: deletion && { deletesAt: deletion.deletesAt, unemailed: deletion.unemailed },
     });
   }
   return summaries.sort((a, b) => a.name.localeCompare(b.name));
