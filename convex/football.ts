@@ -26,6 +26,11 @@ export const PL_COMP_SEASON = 841;
 /** The Premier League's id for Arsenal, whose squad list proves squad numbers can be read. */
 export const PL_ARSENAL = 1;
 
+/** A club's registered squad this season, each man with his squad number. */
+export function plSquadUrl(teamId: number): string {
+  return `${PL_API_BASE}/teams/${teamId}/compseasons/${PL_COMP_SEASON}/staff?type=all`;
+}
+
 /** A gameweek's live stats, per player. */
 export function fplLiveUrl(gameweek: number): string {
   return `${FPL_API_BASE}/event/${gameweek}/live/`;
@@ -47,6 +52,19 @@ export function plFixtureUrl(fixtureId: number): string {
 
 export function plPlayerStatsUrl(playerId: number, fixtureId: number): string {
   return `${PL_API_BASE}/stats/player/${playerId}?fixtures=${fixtureId}`;
+}
+
+/** The most commentary lines one read of the stream asks for. The most seen in a match is 133. */
+export const PL_COMMENTARY_PAGE_SIZE = 200;
+
+/** A match's commentary, newest first. It needs no `Origin` header (docs/pl-commentary.md). */
+export function plCommentaryUrl(fixtureId: number): string {
+  return `${PL_API_BASE}/fixtures/${fixtureId}/textstream/EN?pageSize=${PL_COMMENTARY_PAGE_SIZE}&sort=desc`;
+}
+
+/** Both sides' Opta totals for one match: shots, possession, corners, cards and the rest. */
+export function plTeamStatsUrl(fixtureId: number): string {
+  return `${PL_API_BASE}/stats/match/${fixtureId}`;
 }
 
 const USER_AGENT =
@@ -106,9 +124,7 @@ export async function plFixtureCount(): Promise<number> {
 }
 
 export async function arsenalSquadNumbers(): Promise<number> {
-  const staff = (await getJson(
-    `${PL_API_BASE}/teams/${PL_ARSENAL}/compseasons/${PL_COMP_SEASON}/staff?type=all`,
-  )) as RawPlStaff;
+  const staff = (await getJson(plSquadUrl(PL_ARSENAL))) as RawPlStaff;
   return squadNumbers(staff).size;
 }
 
