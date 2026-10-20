@@ -2,7 +2,7 @@
 // edit from the Tim Hortons Pro League's values (spec/14, The first scoring set). Keyed on FPL's
 // stat names, as `fplStatLines` gives them; the second dot keeps this file out of Convex's deploy.
 
-import { AREAS, type Area, type ByArea, type ScoringSet } from "./scoring";
+import { AREAS, type Area, type ByArea, type ScoringSet } from "./scoringSet";
 
 /** The same value in every area. */
 export function everyArea<Value>(value: Value): ByArea<Value> {

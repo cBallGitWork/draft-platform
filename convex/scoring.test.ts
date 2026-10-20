@@ -4,16 +4,8 @@ import { fplStatLines } from "./fplLive";
 import { plStatLines } from "./plMatch";
 import { FULL_STATS, MATCH, recordedGw6, recordedPlFixture } from "./recorded/gw6.payloads";
 import { everyArea, EXAMPLE_SET, MINUTES_BANDS } from "./scoring.example";
-import {
-  AREAS,
-  scoreGameweek,
-  scoreMatch,
-  type Area,
-  type Band,
-  type DoubleGameweekRule,
-  type MatchRecord,
-  type ScoringSet,
-} from "./scoring";
+import { scoreGameweek, scoreMatch, type DoubleGameweekRule, type MatchRecord } from "./scoring";
+import { AREAS, type Area, type Band, type ScoringSet } from "./scoringSet";
 
 // Every record is a recorded line from Hull v Everton, gameweek 6 of 2026/27.
 const { fpl, pl } = recordedGw6();
@@ -161,39 +153,38 @@ test("FPL's bonus in a record scores nothing: no rule names it", () => {
   expect(scored.categories.map((category) => category.stat)).not.toContain("bonus");
 });
 
-test.each([
-  [
-    "a per-count rule of every 0 actions",
-    { shape: "perCount", stat: "saves", byArea: everyArea({ every: 0, points: 1 }) },
-    "the saves rule pays for every 0 actions in midfield; it must be more than 0",
-  ],
-  [
-    "a band rule with two bands at one threshold",
-    {
-      shape: "bands",
-      stat: "minutes",
-      stack: false,
-      byArea: everyArea([
-        { atLeast: 60, points: 1 },
-        { atLeast: 60, points: 2 },
-      ]),
-    },
-    "the minutes rule has two bands at one threshold in midfield",
-  ],
-  ["a rule of no known shape", { shape: "perMinute", stat: "minutes", byArea: everyArea(1) }, 'shape "perMinute"'],
-  [
-    "a rule with no value for his area",
-    { shape: "perAction", stat: "goals_scored", byArea: { attack: 4 } },
-    "the goals_scored rule has no values for midfield",
-  ],
-  [
-    "a rule whose value is not a number",
-    { shape: "perAction", stat: "goals_scored", byArea: everyArea("five") },
-    "the goals_scored rule gives NaN points in midfield",
-  ],
-])("%s throws rather than score", (_what, rule, message) => {
-  const set = { rules: [rule] } as ScoringSet;
-  expect(() => scoreMatch(dewsburyHall, set, "midfield")).toThrow(message);
+describe("bad data throws rather than score", () => {
+  // Each way a rule itself can be bad is in scoringSet.test.ts; these are what scoreMatch adds.
+  const { goalkeeper: _leftOut, ...outfieldOnly } = everyArea(5);
+  const noGoalkeeperValues = {
+    rules: [{ shape: "perAction", stat: "goals_scored", byArea: outfieldOnly }],
+  } as unknown as ScoringSet;
+
+  test("a set missing one area's values is refused whatever area is scored, arrived or not", () => {
+    const refusal = "the goals_scored rule has no values for goalkeeper";
+    expect(() => scoreMatch(dewsburyHall, noGoalkeeperValues, "attack")).toThrow(refusal);
+    expect(() => scoreMatch(null, noGoalkeeperValues, "attack")).toThrow(refusal);
+  });
+
+  test("a slot's area that is not one of the six", () => {
+    expect(() => scoreMatch(dewsburyHall, EXAMPLE_SET, "wing" as Area)).toThrow(
+      '"wing" is not one of the pitch\'s six areas',
+    );
+  });
+
+  test.each([
+    ["NaN minutes, which a band would pay 0", { minutes: NaN }, "his record's minutes is NaN, not a number"],
+    ["2 goals sent as text, which a per-action rule would coerce", { goals_scored: "2" }, 'goals_scored is "2"'],
+  ])("a record with %s", (_what, stats, message) => {
+    const record = { ...dewsburyHall, ...stats } as unknown as MatchRecord;
+    expect(() => scoreMatch(record, EXAMPLE_SET, "midfield")).toThrow(message);
+  });
+
+  test("points too large to be a number", () => {
+    expect(() => scoreMatch({ goals_scored: 1e308 }, EXAMPLE_SET, "midfield")).toThrow(
+      "the goals_scored rule gives Infinity points in midfield",
+    );
+  });
 });
 
 describe("a double gameweek, his two matches", () => {
