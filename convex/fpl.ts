@@ -24,6 +24,8 @@ interface RawElement {
   second_name: string;
   /** The club's per-season id. */
   team: number;
+  /** `"p"` + `code`: the Premier League's `altIds.opta` for him, the join between the two feeds. */
+  opta_code: string | null;
 }
 
 interface RawEvent {
