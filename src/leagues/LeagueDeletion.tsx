@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/myLeagues";
 import type { LeagueActions } from "./actions";
-import { beingDeleted, confirmDelete, confirmDeleteWords, deleteLeagueWords, notEmailed, undoWords, unsentLinkWords } from "./words";
+import { beingDeleted, confirmDelete, confirmDeleteWords, deleteLeagueWords, unemailed, undoWords, unsentLinkWords } from "./words";
 
 export type DeletionActions = Pick<LeagueActions, "deleteLeague" | "undoDeletion">;
 
@@ -31,7 +31,7 @@ export function LeagueDeletionRow({ league, canDelete, actions }: { league: Leag
             <>
               <p>{beingDeleted(deletion.deletesAt)}</p>
               {deletion.unemailed.map(({ email, reason }) => (
-                <p key={email}>{notEmailed(email, unsentLinkWords[reason])}</p>
+                <p key={email}>{unemailed(email, unsentLinkWords[reason])}</p>
               ))}
               <button type="button" disabled={busy} onClick={() => run(actions.undoDeletion)} className="action">
                 {undoWords}
