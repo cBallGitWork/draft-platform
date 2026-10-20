@@ -23,9 +23,14 @@ const STRIKE_PAIR = row("attack", "leftCentre", "rightCentre");
 const LONE_STRIKER = row("attack", "centre");
 const NUMBER_TEN = row("attackingMidfield", "centre");
 // A winger (W) plays attacking midfield (spec/06), so a front three's wide men stand there.
-const FRONT_THREE = [...row("attackingMidfield", "left"), ...LONE_STRIKER, ...row("attackingMidfield", "right")];
+const FRONT_THREE = [...row("attackingMidfield", "left", "right"), ...LONE_STRIKER];
 
-const preset = (name: string, ...areas: Cell[][]): Preset => ({ name, cells: [...KEEPER, ...areas.flat()] });
+/** Each preset gets cells of its own: a league edits its copy (spec/03), and a cell shared with
+ *  another preset would change that one too. */
+const preset = (name: string, ...areas: Cell[][]): Preset => ({
+  name,
+  cells: [...KEEPER, ...areas.flat()].map((cell) => ({ ...cell })),
+});
 
 /** In spec/05's order. */
 export const DEFAULT_PRESETS: readonly Preset[] = [
