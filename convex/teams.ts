@@ -4,6 +4,7 @@ import { mutation, type QueryCtx } from "./_generated/server";
 import { admitEmail } from "./allowedEmails";
 import {
   callerEmail,
+  getLeague,
   isAdmin,
   namedEmail,
   recordEvent,
@@ -86,6 +87,7 @@ export const leave = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId }) => {
     const email = await callerEmail(ctx);
+    await getLeague(ctx, leagueId);
     const team = (await teamsOf(ctx, leagueId)).find((each) => each.managerEmail === email);
     if (!team) refuse(refusals.runsNoTeam);
     await ctx.db.patch("teams", team._id, { managerEmail: undefined });
@@ -103,6 +105,7 @@ export const rename = mutation({
     const by = await callerEmail(ctx);
     const team = (await ctx.db.get("teams", args.teamId)) ?? refuse(refusals.noTeam);
     if (by !== team.managerEmail && !isAdmin(by)) refuse(refusals.notManager);
+    await getLeague(ctx, team.leagueId);
     const name = args.name.trim();
     if (!name) refuse(refusals.blankName);
     if ([...name].length > TEAM_NAME_MAX) refuse(refusals.teamNameTooLong);
