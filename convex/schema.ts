@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { v, type VLiteral } from "convex/values";
+import { POSITIONS, type Position } from "./positionTables";
 
 /** What one read of a feed found: a count of what came back, or why it failed. */
 export const feedOutcome = v.union(
@@ -180,12 +181,78 @@ const matchStatsTables = {
   matchStatsTries: defineTable({ fixtureCode: v.number(), triedAt: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
 };
 
+// Positions (#22). Kept apart from `players`, which the football sync rewrites every six hours, so
+// no feed read touches the admin's say. Each row is keyed on FPL's season-stable `code`.
+
+const positionLiterals = POSITIONS.map((position) => v.literal(position));
+export const position = v.union(...(positionLiterals as [VLiteral<Position>, VLiteral<Position>, ...VLiteral<Position>[]]));
+
+/** One match a player started, where he lined up: `Start` in positions.ts. */
+export const startRecord = v.object({
+  fixtureCode: v.number(),
+  kickoff: v.number(),
+  formation: v.union(v.string(), v.null()),
+  line: v.union(v.number(), v.null()),
+  place: v.union(v.number(), v.null()),
+});
+
+export const playerPositionFields = {
+  code: v.number(),
+  /** The Premier League's `positionInfo` for him, from this season's squads; absent until one names him. */
+  plLabel: v.optional(v.string()),
+  /** His newest starts, at most `START_WINDOW`, newest first. */
+  starts: v.array(startRecord),
+  // The admin's say (`AdminPositions` in positions.ts): only his actions write these.
+  approved: v.array(position),
+  confirmedLabel: v.optional(v.string()),
+  set: v.array(position),
+  removed: v.array(position),
+};
+
+export const approveMode = v.union(v.literal("proposals"), v.literal("countAtOnce"));
+
+/** How positions from starts count: a single row, absent until the admin first sets it. */
+export const positionSettingsFields = { approveMode };
+
+export const positionsSyncTrigger = v.union(v.literal("manual"), v.literal("cron"));
+
+// One row per run of positionsSync.run, so a failed read is on record, never silent.
+export const positionsSyncFields = {
+  trigger: positionsSyncTrigger,
+  ranAt: v.number(),
+  outcome: v.union(
+    v.object({
+      ok: v.literal(true),
+      /** Matches whose sheets were read this run, and those played but left for the next. */
+      matchesRead: v.number(),
+      matchesLeft: v.number(),
+      /** Matches whose sheets do not draw the men they start, each with why: not filed, so read
+       *  again next run. */
+      matchesRefused: v.array(v.string()),
+      startsAdded: v.number(),
+      /** Men a squad or a sheet names whom FPL does not list (gone abroad, say): not held. */
+      unmatchedPlayers: v.number(),
+      labelsReceived: v.number(),
+      labelsChanged: v.number(),
+      /** What the tables in positionTables.ts do not know: each needs a row before it counts. */
+      unknownFormations: v.array(v.string()),
+      unknownLabels: v.array(v.string()),
+    }),
+    v.object({ ok: v.literal(false), error: v.string() }),
+  ),
+};
+
 export default defineSchema({
   ...matchStatsTables,
   feedChecks: defineTable(feedCheckFields),
   clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
-  players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]),
+  players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_clubCode", ["clubCode"]),
   fixtures: defineTable(fixtureRecord.extend({ droppedAt })).index("by_code", ["code"]),
   gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]),
   footballSyncs: defineTable(footballSyncFields),
+  playerPositions: defineTable(playerPositionFields).index("by_code", ["code"]),
+  /** Each match whose sheets the positions sync has filed, so none is filed twice. */
+  positionSheets: defineTable({ fixtureCode: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
+  positionSettings: defineTable(positionSettingsFields),
+  positionsSyncs: defineTable(positionsSyncFields),
 });
