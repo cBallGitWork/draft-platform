@@ -1,8 +1,8 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "./_generated/api";
 import { internalAction, internalMutation, internalQuery } from "./_generated/server";
-import { arsenalSquadNumbers, fplPlayerCount, plFixtureCount } from "./football";
 import { namedMen } from "./feedIds";
+import { arsenalSquadNumbers, fplPlayerCount, plFixtureCount } from "./football";
 import { readPlCommentary, readPlFixture, readPlTeamStats } from "./premierLeague";
 import { feedCheckFields, feedCheckTrigger, feedOutcome } from "./schema";
 
@@ -54,7 +54,8 @@ export const latest = internalQuery({
 });
 
 // Issue #37: does the commentary stream answer Convex's servers during a live match, and move?
-// Run during a match, a minute or more apart: `npx convex run feeds:commentaryCheck '{"plFixtureId":128999}'`.
+// Run during a match, a minute or more apart:
+// `npx convex run feeds:commentaryCheck '{"plFixtureId":128999}'`.
 // A refused or changed read throws, naming the URL. Nothing is saved: the answer is the printout.
 export const commentaryCheck = internalAction({
   args: { plFixtureId: v.number() },

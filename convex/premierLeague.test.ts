@@ -73,6 +73,7 @@ test("each read asks the URL it names and hands back all that came", async () =>
 
 test("before a match, an empty commentary and team stats with no sides are read, not refused", async () => {
   const teamStats = recordedTeamStats(UPCOMING_MATCH);
+  expect(teamStats.data).toBeUndefined();
   fakeFeed({
     [plCommentaryUrl(UPCOMING_MATCH)]: recordedCommentary(UPCOMING_MATCH),
     [plTeamStatsUrl(UPCOMING_MATCH)]: teamStats,
@@ -80,15 +81,15 @@ test("before a match, an empty commentary and team stats with no sides are read,
 
   expect(await readPlCommentary(UPCOMING_MATCH)).toEqual([]);
   expect(await readPlTeamStats(UPCOMING_MATCH)).toEqual(teamStats);
-  expect(teamStats.data).toBeUndefined();
 });
 
 test("a commentary longer than one read holds throws rather than lose its oldest lines", async () => {
-  const commentary = recordedCommentary(COMMENTARY_MATCH.hullEverton);
+  const match = COMMENTARY_MATCH.hullEverton;
+  const commentary = recordedCommentary(match);
   commentary.events.pageInfo.numPages = 2;
-  fakeFeed({ [plCommentaryUrl(128978)]: commentary });
+  fakeFeed({ [plCommentaryUrl(match)]: commentary });
 
-  await expect(readPlCommentary(128978)).rejects.toThrow(`${plCommentaryUrl(128978)} has 2 pages: more than 200 lines`);
+  await expect(readPlCommentary(match)).rejects.toThrow(`${plCommentaryUrl(match)} has 2 pages: more than 200 lines`);
 });
 
 const URL_OF = {
