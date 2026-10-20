@@ -1,8 +1,8 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
-// Only convex/ and src/ at the root are searched for tests, so one anywhere else never runs: an
-// agent's worktree, inside the repo under .claude/worktrees/, runs its own.
+// Only convex/, src/ and scripts/ at the root are searched for tests, so one anywhere else never
+// runs: an agent's worktree, inside the repo under .claude/worktrees/, runs its own.
 
 export default defineConfig({
   test: {
@@ -20,6 +20,7 @@ export default defineConfig({
         plugins: [react()],
         test: { name: "app", include: ["src/**/*.test.{ts,tsx}"], environment: "jsdom" },
       },
+      { test: { name: "scripts", include: ["scripts/**/*.test.mjs"], environment: "node" } },
     ],
   },
 });
