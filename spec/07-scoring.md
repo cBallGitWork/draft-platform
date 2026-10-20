@@ -12,12 +12,12 @@ stats` (20 Oct 2026).
 
 ## Match stats
 
-- A match stops being provisional when FPL marks it finished and both feeds have sent every player
-  who played.
-- The correction window (the admin's setting, `spec/15`) is 1 hour after FPL marks the match
-  finished; then its points lock. A
-  correction after that doesn't change points, but shows on the feeds page
-  ([15](15-admin-tools.md)).
+- A match stops being provisional at full time once both feeds have sent every player who played.
+  The platform sets its own rule here, not FPL's flags.
+- The correction window (the admin's setting, `spec/15`) is 1 hour after full time; then its
+  points lock. If a player's record still hasn't arrived by then, the match stays provisional and
+  locks an hour after it does. A correction after the lock doesn't change points, but shows on
+  the feeds page ([15](15-admin-tools.md)).
 - A correction that takes a stat away (an assist removed) sets it back to 0.
 - Every player in either team sheet is stored; an unused substitute is marked as not having played.
 - Where both feeds have a stat, FPL's counts for goals, assists, minutes, cards, saves, clean
