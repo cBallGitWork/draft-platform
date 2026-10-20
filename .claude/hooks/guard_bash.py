@@ -29,8 +29,11 @@ import sys
 from where import GIT_VALUE_OPTS, SEPARATORS, current_branch, git_dir, located, runs_at
 
 HEREDOC = re.compile(r"<<-?[ \t]*(['\"]?)(\w+)\1[^\n]*\n(.*?\n)?[ \t]*\2[ \t]*(\n|$)", re.S)
+PUNCTUATION = ";&|()\n"  # the characters separators are made of
 COMMIT_VALUE_SHORT = set("mFCct")  # in `-am msg` everything after m is the value
 MAIN_REFS = {"main", "refs/heads/main"}
+MAIN_NAMES = {"main", "origin/main"}  # git switch main, git checkout origin/main
+CREATES_BRANCH = {"-c", "-C", "-b", "-B", "--create", "--force-create", "--orphan"}
 PRIVATE_WORDS = os.environ.get("DRAFT_PRIVATE_WORDS") or os.path.expanduser("~/.claude/private-words.txt")
 GH_PUBLISHING = {("pr", "create"), ("pr", "edit"), ("pr", "comment"), ("pr", "merge"), ("pr", "review"),
                  ("issue", "create"), ("issue", "edit"), ("issue", "comment"),
@@ -43,14 +46,15 @@ def segments(cmd):
     """Each simple command as a list of words, heredoc bodies dropped, and each separator
     between them as a list of its own, so located() can tell when a cd may not take effect."""
     cmd = HEREDOC.sub("\n", cmd.replace("\\\n", " "))
-    lex = shlex.shlex(cmd, posix=True, punctuation_chars=";&|()\n")
+    lex = shlex.shlex(cmd, posix=True, punctuation_chars=PUNCTUATION)
     lex.whitespace = " \t\r"
     lex.whitespace_split = True
     out, cur = [], []
     for word in lex:
-        if word in SEPARATORS:
-            out += [cur, [word]]
-            cur = []
+        if not word.strip(PUNCTUATION):  # shlex joins a run: ");" or ";(" is two separators
+            for sep in re.findall(r"&&|\|\||.", word, re.S):
+                out += [cur, [sep]]
+                cur = []
         else:
             cur.append(word)
     out.append(cur)
@@ -202,7 +206,7 @@ def decide(cmd, cwd):
         if not call:
             continue
         sub, args = call
-        if sub in {"switch", "checkout"} and args[-1:] in (["main"], ["origin/main"]) and "-c" not in args and "-b" not in args:
+        if sub in {"switch", "checkout"} and MAIN_NAMES & set(args) and not CREATES_BRANCH & set(args):
             switched_to_main = True
         if sub == "add" and stages_everything(args):
             return "That stages everything. Stage named paths only: git add path/one path/two."
@@ -218,8 +222,8 @@ def decide(cmd, cwd):
             folder = git_dir(words, here)
             if folder is None:
                 return (
-                    "Can't tell which folder that runs in (a cd that may not take effect, pushd, "
-                    "GIT_DIR, --git-dir or env -C). Run it plainly: cd <folder> && git commit, or "
+                    "Can't tell which folder that runs in (a cd that may not take effect or into a "
+                    "folder not made yet, a variable, pushd, GIT_DIR, --git-dir or env -C). Run it plainly: cd <folder> && git commit, or "
                     "git -C <folder> commit."
                 )
             if switched_to_main or current_branch(folder) == "main":

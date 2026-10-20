@@ -58,6 +58,7 @@ private_deny=(
   'gh pr create --title x --body-file=body.md' 'git commit --file=body.md' 'gh pr review 3 --body "acmecorp"'
   'git tag -a v1 -m "acmecorp"' 'gh release create v1 --notes acmecorp' 'gh api repos/x/y/issues -f body=acmecorp'
   'env gh pr create --title x --body "acmecorp"' 'command gh issue comment 3 --body acmecorp'
+  '(true);gh pr create --title x --body acmecorp'
 )
 private_allow=(
   'git commit -m "clean"' 'echo acmecorp' 'cat body.md' 'gh pr view 3' 'gh issue create --title x --body "clean"'
@@ -122,6 +123,18 @@ for c in 'env git commit -m x' 'command git commit -m x' 'exec git commit -m x' 
   check deny guard_bash.py "$(bash_cmd "$c")"
 done
 check allow guard_bash.py "$(bash_in "$tmp/sub" 'env git commit -m x')"
+# separators with no space between them, and shell syntax in front, still split commands (on main)
+for c in '(cd sub); git commit -m x' 'true;(git commit -m x)' '(true);git push origin HEAD' '(true);git add -A' \
+  '{ git commit -m x; }' 'if true; then git commit -m x; fi' 'while true; do git commit -m x; done' \
+  '! git commit -m x' 'time git commit -m x' 'nohup git commit -m x'; do
+  check deny guard_bash.py "$(bash_cmd "$c")"
+done
+check allow guard_bash.py "$(bash_in "$tmp/sub" '{ git commit -m x; }')"
+for c in '{ cd ..; git commit -m x; }' 'if cd ..; then git commit -m x; fi' 'git switch main -q && git commit -m x' \
+  'git checkout main --force && git commit -m x'; do  # each lands on main
+  check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
+check allow guard_bash.py "$(bash_in "$tmp/sub" 'git switch -C y origin/main && git commit -m x')"
 check deny guard_bash.py "$(bash_in "$tmp/sub" "env -C $tmp git commit -m x")"  # env -C moves it
 git -C "$tmp" init -q -b chore/d "$tmp/det"  # a detached HEAD has no branch, and isn't main
 git -C "$tmp/det" -c user.name=t -c user.email=t@t commit -q --allow-empty -m x && git -C "$tmp/det" switch -q --detach

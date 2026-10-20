@@ -1,6 +1,7 @@
 """Where a Bash command's git calls run, for guard_bash.py: the shell's cwd, moved by any cd
 before them (a subshell's cd stays in the subshell), then by git's -C. None wherever the guard
-can't be sure, so it refuses rather than guessing. Stdlib only, Python 3.9+.
+can't be sure, so it refuses rather than guessing. It reads the commands as written: one passed
+as a string (sh -c, eval, xargs, sudo, timeout) is out of its sight. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -14,8 +15,10 @@ SEPARATORS = {";", "&", "&&", "|", "||", "(", ")", "\n"}
 ENDS_A_CHAIN = {";", "\n", "&", "||"}  # after these, a cd that hung on an earlier && may not have run
 GIT_PLACE_VARS = re.compile(r"^(GIT_DIR|GIT_WORK_TREE)=")
 UNFOLLOWABLE = re.compile(r"[$`]|^-")  # a cd or -C the guard can't follow: a variable, an option, cd -
-WRAPPERS = {"env", "command", "exec"}  # run the command after them: env git commit is a commit
-WRAPPER_VALUE_OPTS = {"-u", "-C", "-S", "-a", "--unset", "--chdir", "--split-string"}  # env's, and exec -a
+# words a command can sit behind and still run here: env git commit, { git commit; }, if ...; then git commit
+PREFIXES = {"env", "command", "exec", "nohup", "nice", "time",
+            "{", "}", "!", "if", "then", "else", "elif", "fi", "while", "until", "do", "done"}
+PREFIX_VALUE_OPTS = {"-u", "-C", "-S", "-a", "-n", "--unset", "--chdir", "--split-string"}  # env's, exec -a, nice -n
 
 
 def located(segs, cwd):
@@ -36,13 +39,14 @@ def located(segs, cwd):
                 here = None
             before = words[0]
             continue
-        if words[0] in {"pushd", "popd"}:
+        run = words[program_index(words):]  # { cd x; ...} and if cd x; ... move the shell too
+        if run[:1] in (["pushd"], ["popd"]):
             here = None
         elif any(GIT_PLACE_VARS.match(w) for w in words):
             here = None
-        elif words[0] == "cd" and here is not None:
-            target = words[1] if len(words) > 1 else "~"
-            followable = (len(words) <= 2 and not UNFOLLOWABLE.search(target)
+        elif run[:1] == ["cd"] and here is not None:
+            target = run[1] if len(run) > 1 else "~"
+            followable = (len(run) <= 2 and not UNFOLLOWABLE.search(target)
                           and before not in {"||", "|", "&"} and after not in {"|", "&"})
             here = os.path.join(here, os.path.expanduser(target)) if followable else None
             here = here if here and os.path.isdir(here) else None
@@ -52,16 +56,16 @@ def located(segs, cwd):
 
 
 def program_index(words):
-    """Where the program this simple command runs is, past FOO=1 words and any env, command or
-    exec (with their options)."""
-    i, wrapped = 0, False
+    """Where the program this simple command runs is, past FOO=1 words and any prefix (with its
+    options)."""
+    i, prefixed = 0, False
     while i < len(words):
         if re.match(r"^\w+=", words[i]):
             i += 1
-        elif words[i] in WRAPPERS:
-            i, wrapped = i + 1, True
-        elif wrapped and words[i].startswith("-"):
-            i += 2 if words[i] in WRAPPER_VALUE_OPTS else 1
+        elif words[i] in PREFIXES:
+            i, prefixed = i + 1, True
+        elif prefixed and words[i].startswith("-"):
+            i += 2 if words[i] in PREFIX_VALUE_OPTS else 1
         else:
             break
     return i
@@ -92,7 +96,7 @@ def git_options(words):
 
 def git_dir(words, here):
     """The folder a git command runs in, None if the guard can't be sure: where the shell is,
-    moved by any -C. A wrapper's option (env -C, env -S) may move it too, so that's unsure."""
+    moved by any -C. A prefix's option (env -C, env -S) may move it too, so that's unsure."""
     start = program_index(words)
     if any(GIT_PLACE_VARS.match(w) or w.startswith("-") for w in words[:start]):
         return None
