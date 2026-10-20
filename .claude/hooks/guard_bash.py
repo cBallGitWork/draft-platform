@@ -32,8 +32,8 @@ ATTACHED_CREATE = re.compile(r"^-[a-zA-Z]*?([cCbB])(.*)$")  # -cmain, -qb main
 PREVIOUS = re.compile(r"^(-|@\{-(\d+)\})$")  # git switch -, git checkout @{-2}
 UNREADABLE = ("Can't read a string that runs as commands (sh -c, eval, env -S, $(…) or backticks): "
               "its quotes or brackets don't balance. Run the commands plainly, not inside a string.")
-UNKNOWN_PROGRAM = ("Can't tell what program that runs: the command is a variable or a $(…). "
-                   "Write the program out: git commit -m x, not $GIT commit -m x.")
+UNKNOWN_PROGRAM = ("Can't tell what program that runs (it's a variable or a $(…)), so the guard can't "
+                   "check it isn't git. Write the program out: vim f, not $EDITOR f; git commit, not $GIT commit.")
 UNKNOWN_FOLDER = ("Can't tell which folder that runs in (a cd that may not take effect or into a "
                   "folder not made yet, a variable, pushd, an eval with a cd, GIT_DIR, --git-dir, "
                   "env -C or sudo -D). Run it plainly: cd <folder> && git commit, or git -C <folder> commit.")
