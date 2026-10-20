@@ -148,7 +148,7 @@ export function recordsOf(ctx: MutationCtx, fixtureCode: number) {
 }
 
 /** Each record as sent, in the match's state: a new man inserted, a changed one replaced whole.
- *  `changed` names every man inserted or updated: the ones whose points move (#28). */
+ *  `changed` names every man inserted or updated. */
 export async function writeRecords(
   ctx: MutationCtx,
   records: PlayerMatchRecord[],

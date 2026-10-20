@@ -5,12 +5,14 @@
 // full time. Friday's recording (#37, fixture 128999) is to replace it: docs/pl-match-stats.md.
 // For the tests only: the second dot in this file's name keeps it out of Convex's deploy.
 
+import type { Infer } from "convex/values";
 import { vi } from "vitest";
 import { internal } from "./_generated/api";
 import { codesByOpta, namedMen } from "./feedIds";
-import { fakeFeeds, KICKOFF } from "./matchStats.harness";
+import { fakeFeeds, heldMatch, KICKOFF, mergedHullEverton } from "./matchStats.harness";
 import type { RawPlFixture } from "./premierLeague";
 import { MATCH, recordedGw6, type Gw6Payloads } from "./recorded/gw6.payloads";
+import type { matchStatsState } from "./schema";
 import type { TestConvex } from "./test.harness";
 import { MINUTE_MS } from "./time";
 
@@ -71,7 +73,7 @@ function menAt(payloads: Gw6Payloads, minute: number): Map<number, ManAt> {
       events.find((event) => event.type === "S" && event.description === description && event.personId === id);
     const cameOn = substitution("ON");
     const wentOff = substitution("OFF");
-    const on = starters.has(id) ? 0 : cameOn && secsOf(cameOn);
+    const on = starters.has(id) ? 0 : cameOn === undefined ? undefined : secsOf(cameOn);
     const off = wentOff === undefined ? endSecs : secsOf(wentOff);
     const share = on === undefined ? 0 : Math.min(1, Math.max(0, (now - on) / (off - on)));
     const value = (stat: string, final: number) => {
@@ -138,4 +140,15 @@ export async function tickAt(t: TestConvex, time: number, payloads: Gw6Payloads,
   await t.action(internal.liveStatsSync.tick, {});
   const [latest] = await t.query(internal.liveStats.latestTicks, {});
   return { fetch, latest };
+}
+
+/** Hull v Everton's held records by player code, without Convex's own fields. */
+export async function heldRecords(t: TestConvex) {
+  const { records } = await heldMatch(t);
+  return new Map([...records].map(([code, { _id, _creationTime, ...record }]) => [code, record]));
+}
+
+/** Hull v Everton's records as the merge gives them from `payloads`, held in `state`. */
+export function recordsIn(payloads: Gw6Payloads, state: Infer<typeof matchStatsState>) {
+  return new Map(mergedHullEverton(payloads).map((record) => [record.playerCode, { ...record, state }]));
 }

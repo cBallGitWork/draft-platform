@@ -104,17 +104,16 @@ The steps (push the action to the dev deployment, run it twice, how to read what
   read that finds it, so a match locks up to one interval after its true hour. A run with no
   match due reads no feed; one due reads about 40 Premier League URLs per match, and a locked
   match is read again hourly for a day to catch late corrections.
-- Live stats (#28): a cron every minute (`liveStatsSync.tick`) reads each match being played,
-  from kickoff until it is complete, or four hours on; outside those windows it reads no feed and
-  writes no row. A cron, not a function rescheduling itself: a chain stops for good at the first
-  tick that fails before scheduling the next (Convex runs a scheduled action at most once), with
-  nothing to say so, and would need re-arming whenever a kickoff moved. Convex runs one tick at a
-  time and skips one due while another runs; both feeds send running totals, so the next tick
-  catches up any failed or skipped. Each tick that found a match live is a row in
-  `liveStatsTicks`, failed or not ([docs/pl-match-stats.md](docs/pl-match-stats.md#during-a-match)).
-  Outside matches it is one action and one indexed query a minute, about 43,000 calls a month;
-  inside, each tick downloads FPL's ~1.8 MB bootstrap and reads about 40 Premier League URLs per
-  match.
+- Live stats (#28): a cron every minute (`liveStatsSync.tick`) reads each match from kickoff
+  until it is complete, or four hours on; outside those windows it reads no feed and writes no row.
+  A cron, not a function rescheduling itself, because Convex runs a scheduled action at most
+  once: a chain would end, unseen, at the first tick that failed before scheduling the next, and
+  need re-arming whenever a kickoff moved. Convex runs one tick at a time, skipping one due while
+  another runs, and both feeds send running totals, so the next tick catches up any failed or
+  skipped. Each tick that found a match live is a row in `liveStatsTicks`, failed or not
+  ([docs/pl-match-stats.md](docs/pl-match-stats.md#during-a-match)). Outside matches: one
+  action and one indexed query a minute, about 43,000 calls a month. Inside: FPL's ~1.8 MB
+  bootstrap and about 40 Premier League reads per match, each tick.
 - League rules are rows, never constants; FPL's own rules can be constants.
 
 ## With the first code

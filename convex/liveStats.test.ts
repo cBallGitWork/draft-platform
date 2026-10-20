@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { isWhole } from "./matchRecords";
-import { REPLAY_MINUTES, stagedGw6, stageTime, tickAt } from "./liveStats.harness";
+import { heldRecords, recordsIn, REPLAY_MINUTES, stagedGw6, stageTime, tickAt } from "./liveStats.harness";
 import { HULL_EVERTON, heldMatch, mergedHullEverton, withHullEverton } from "./matchStats.harness";
 import { FULL_STATS, recordedGw6 } from "./recorded/gw6.payloads";
 import { scoreMatch } from "./scoring";
@@ -11,12 +11,6 @@ beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
 type Records = ReturnType<typeof mergedHullEverton>;
-
-/** The held records as the merge gives them, without Convex's own fields. */
-async function heldRecords(t: TestConvex) {
-  const { records } = await heldMatch(t);
-  return new Map([...records].map(([code, { _id, _creationTime, ...record }]) => [code, record]));
-}
 
 /** The men whose records differ between two stages. */
 function movedBetween(before: Records, after: Records): number[] {
@@ -44,7 +38,7 @@ test("a replayed match moves every minute, provisional, names who moved, and end
       ranAt: stageTime(minute),
       outcome: { ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: true, state: "provisional", changed: moved }] },
     });
-    expect(await heldRecords(t)).toEqual(new Map(expected.map((record) => [record.playerCode, { ...record, state: "provisional" }])));
+    expect(await heldRecords(t)).toEqual(recordsIn(stagedGw6(minute), "provisional"));
     points.push(await belloumiPoints(t));
     before = expected;
   }
@@ -62,7 +56,7 @@ test("a replayed match moves every minute, provisional, names who moved, and end
   expect(latest.outcome).toMatchObject({ ok: true, matches: [{ state: "complete" }] });
   const { status } = await heldMatch(t);
   expect(status).toMatchObject({ state: "complete", fullTimeAt: fullTime, completeAt: fullTime });
-  expect(await heldRecords(t)).toEqual(new Map(mergedHullEverton().map((record) => [record.playerCode, { ...record, state: "complete" }])));
+  expect(await heldRecords(t)).toEqual(recordsIn(recordedGw6(), "complete"));
   expect(await belloumiPoints(t)).toBe(5);
 });
 

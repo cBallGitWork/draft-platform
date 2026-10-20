@@ -141,7 +141,7 @@ export const matchSyncOutcome = v.union(
     inserted: v.number(),
     updated: v.number(),
     lateCorrections: v.number(),
-    /** The men inserted or updated: whose points move (#28). Absent on runs before it. */
+    /** The men inserted or updated, whose points to recompute (#28). Absent on runs before it. */
     changed: v.optional(v.array(v.number())),
     /** Men a team sheet names whom FPL does not list: no record, since there is no code to key it on. */
     unmatched: v.array(v.object({ plPlayerId: v.number(), name: v.string(), opta: v.union(v.string(), v.null()) })),
