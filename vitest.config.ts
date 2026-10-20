@@ -1,8 +1,8 @@
 import react from "@vitejs/plugin-react";
 import { configDefaults, defineConfig } from "vitest/config";
 
-// Agents' worktrees live inside the repo; each runs its own tests. Only convex/ and src/ are
-// searched for tests: one anywhere else is never run.
+// Agents' worktrees live inside the repo; each runs its own tests. Only convex/, src/ and scripts/
+// are searched for tests: one anywhere else is never run.
 const exclude = [...configDefaults.exclude, ".claude/worktrees/**"];
 
 export default defineConfig({
@@ -22,6 +22,7 @@ export default defineConfig({
         plugins: [react()],
         test: { name: "app", include: ["src/**/*.test.{ts,tsx}"], exclude, environment: "jsdom" },
       },
+      { test: { name: "scripts", include: ["scripts/**/*.test.mjs"], exclude, environment: "node" } },
     ],
   },
 });
