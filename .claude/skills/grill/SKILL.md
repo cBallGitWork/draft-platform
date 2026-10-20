@@ -61,6 +61,8 @@ On yes, write or update the spec. `SPEC.md` at the repo root is the index:
 - **What it is**, in Craig's words, a paragraph.
 - **Features**, a numbered table, each with a status (`not built` to start), the one place a
   test will check it, and a link to its file. The status lives only in this table.
+- **Second release**: what Craig wants straight after the first release.
+- **Later**: what he wants, but not yet.
 - **Out of scope**: everything Craig said no to, so it isn't re-asked.
 - **Glossary**.
 
@@ -72,7 +74,7 @@ Only Craig's answers go in. A recommendation he didn't take stays out. SPEC.md g
 own branch and PR, like any change.
 
 Before "same page?", list every no Craig gave in this grill, and the Out of scope line each one
-becomes. When `pr-reviewer` checks the spec, give it the grill's questions with his answers, or
+becomes, then every "later" and its Later line. When `pr-reviewer` checks the spec, give it the grill's questions with his answers, or
 it can't tell his words from yours.
 
 ## 6. Then the tickets

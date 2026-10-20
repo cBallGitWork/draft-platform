@@ -1,7 +1,7 @@
 // This checkout's own port for the app, so each worktree's screenshots are of its own code: a
 // server another worktree started on a shared port would be shot as this branch's. The same
-// checkout always gets the same port, from 5200 to 5899, clear of Vite's 5173 (`npm run dev`),
-// whichever folder inside it this runs from.
+// checkout always gets the same port, one of HOW_MANY from FIRST, clear of Vite's 5173
+// (`npm run dev`), whichever folder inside it this runs from.
 //
 // Usage: npx vite --port "$(node scripts/port.mjs)" --strictPort
 
