@@ -37,6 +37,8 @@ const latest = async (leagueId: Id<"leagues">, email = COMMISSIONER) =>
 const defaults = () => t.run(async (ctx) => (await ctx.db.query("defaultLeagueRules").unique())?.rules);
 const inGameweek = (leagueId: Id<"leagues">, gameweek: number) =>
   t.run((ctx) => rulesInGameweek(ctx, leagueId, gameweek));
+/** A deadline three hours before the first kickoff, so an hour and a half earlier than FPL's. */
+const THREE_HOURS_BEFORE = rulesWith({ deadline: { minutesBeforeFirstKickoff: 180 } });
 
 describe("a new league", () => {
   test("starts on the first rules, from gameweek 1, which become the admin's defaults", async () => {
@@ -85,8 +87,29 @@ describe("a commissioner's change", () => {
     await holdGameweeks(t, { next: 9, kicksOffIn: 2 * HOUR_MS });
     const leagueId = await adminCreatesLeague(t);
 
-    expect(await change(leagueId, rulesWith({ deadline: { minutesBeforeFirstKickoff: 180 } }))).toBe(10);
+    expect(await change(leagueId, THREE_HOURS_BEFORE)).toBe(10);
     expect(await inGameweek(leagueId, 9)).toEqual(FIRST_RULES);
+  });
+
+  test("to a later deadline waits for gameweek 10 if gameweek 9 has begun under the old one", async () => {
+    await holdGameweeks(t, { next: 9, kicksOffIn: 2 * HOUR_MS });
+    await t.mutation(internal.leagueRules.setDefaults, { rules: THREE_HOURS_BEFORE });
+    const leagueId = await adminCreatesLeague(t);
+    const atKickoff = rulesWith({ deadline: { minutesBeforeFirstKickoff: 0 } });
+
+    expect(await change(leagueId, atKickoff)).toBe(10);
+    expect((await inGameweek(leagueId, 9)).deadline.minutesBeforeFirstKickoff).toBe(180);
+  });
+
+  test("made while another waits for gameweek 10 waits for it too, so the waiting one can't override it", async () => {
+    await holdGameweeks(t, { next: 9, kicksOffIn: 2 * HOUR_MS });
+    const leagueId = await adminCreatesLeague(t);
+    await change(leagueId, THREE_HOURS_BEFORE);
+
+    expect(await change(leagueId, structuredClone(FIRST_RULES))).toBe(10);
+    expect(await inGameweek(leagueId, 9)).toEqual(FIRST_RULES);
+    expect(await inGameweek(leagueId, 10)).toEqual(FIRST_RULES);
+    expect(await latest(leagueId)).toEqual({ fromGameweek: 10, rules: FIRST_RULES });
   });
 
   test("is filed for Mail with what changed and from when", async () => {

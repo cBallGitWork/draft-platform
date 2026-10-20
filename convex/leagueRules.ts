@@ -121,7 +121,8 @@ export const change = mutation({
     const nextUnder = (deadlineFor: (gameweek: number) => DeadlineRule) =>
       nextGameweek(gameweeks, matches, deadlineFor, Date.now());
     const latestRow = history.at(-1);
-    // An earlier deadline must not lock a gameweek the moment it is saved.
+    // A later deadline must not reopen a gameweek the old one locked, nor an earlier one lock a
+    // gameweek the moment it is saved; and a row from before a waiting one would be overridden by it.
     const fromGameweek = Math.max(
       nextUnder((gameweek) => (inForce(history, gameweek)?.rules ?? rules).deadline),
       nextUnder(() => rules.deadline),

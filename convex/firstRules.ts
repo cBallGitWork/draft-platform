@@ -10,9 +10,10 @@ import { DEFAULT_PRESETS } from "./presets";
 //
 // Only the presets, the deadline and the double-gameweek rule are the spec's own (spec/05, spec/03).
 // The Tim Hortons Pro League's scoring values are not in this repo, so every scoring value is 0
-// for Craig to fill from them: its categories are FPL's stat names as #27 stores them, and which
-// shape each takes is a guess too. The rest is a guess marked where it stands. Roles (spec/05)
-// are not here: their shape is #10's.
+// for Craig to copy from its Fantrax settings page or the raw record of its rules, both listed in
+// docs/research/fantrax-options.md's Sources. Its categories are FPL's stat names as #27 stores
+// them, and which shape each takes is a guess too. The rest is a guess marked where it stands,
+// against that doc's live values where it has them. Roles (spec/05) are not here: their shape is #10's.
 
 function everyArea<Value>(value: Value): Record<Area, Value> {
   return Object.fromEntries(AREAS.map((area) => [area, value])) as Record<Area, Value>;
@@ -35,8 +36,12 @@ export const FIRST_RULES: LeagueRules = {
   presets: DEFAULT_PRESETS.map(({ name, cells }) => ({ name, cells: cells.map((cell) => ({ ...cell })) })),
   deadline: { ...FPL_DEADLINE_RULE },
   doubleGameweek: "bothMatches",
-  tieBreaks: ["pointsFor"], // guess
-  waivers: { runs: [{ day: "tuesday", hour: 23, minute: 0 }], order: "reverseStandings" }, // guess
+  // guess: the doc's live tie-breaks, "none; highest seed", are a matchup's and a playoff's, not
+  // the standings' these are; it has no standings value.
+  tieBreaks: ["pointsFor"],
+  // guess: the doc's live 23-hour minimum waiver period has no rule here: spec/03
+  // sets only when waivers run and the order.
+  waivers: { runs: [{ day: "tuesday", hour: 23, minute: 0 }], order: "reverseStandings" },
   scoring: {
     rules: [
       { shape: "bands", stat: "minutes", stack: false, byArea: everyArea([]) },
