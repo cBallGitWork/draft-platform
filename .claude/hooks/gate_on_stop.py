@@ -13,7 +13,7 @@ worktree has that worktree, but one that only names a worktree by absolute path 
 checkout (checked 20 Oct 2026 in subagent transcripts). A subagent stopping in the main checkout
 isn't gated: the session's own Stop gates it, and a builder or a reviewer there would otherwise
 be held up by changes that aren't its own. Adapted from sideband's gate_on_stop.py (17 Oct 2026).
-DRAFT_GATE_CMD overrides the command, for test.sh. Stdlib only, Python 3.9+.
+DRAFT_GATE_CMD overrides the command, for tests/gate_on_stop.sh. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
