@@ -141,6 +141,60 @@ done
 for c in 'git switch -C main && git commit -m x' 'git checkout -B main origin/main && git commit -m x'; do
   check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
 done
+for c in 'git switch --create=main' 'git switch -cmain' 'git checkout -bmain' 'git checkout main --'; do
+  check deny guard_bash.py "$(bash_in "$tmp/sub" "$c && git commit -m x")"  # other spellings of the same
+done
+for c in 'git switch --create=feat/y' 'git switch -cfeat/y' 'git checkout -bfeat/y'; do
+  check allow guard_bash.py "$(bash_in "$tmp/sub" "$c && git commit -m x")"
+done
+# git switch - goes back a branch: to main in back-main, to a feature branch in back-feat
+for r in back-main back-feat; do
+  git init -q -b main "$tmp/$r" && git -C "$tmp/$r" -c user.name=t -c user.email=t@t commit -q --allow-empty -m x
+done
+git -C "$tmp/back-main" switch -q -c feat/a
+git -C "$tmp/back-feat" switch -q -c feat/a && git -C "$tmp/back-feat" switch -q -c feat/b
+check deny guard_bash.py "$(bash_in "$tmp/back-main" 'git switch - && git commit -m x')"
+check deny guard_bash.py "$(bash_in "$tmp/back-main" 'git checkout @{-1} && git commit -m x')"
+check allow guard_bash.py "$(bash_in "$tmp/back-feat" 'git switch - && git commit -m x')"
+check deny guard_bash.py "$(bash_in "$tmp/back-feat" 'git switch feat/a && git switch - && git commit -m x')"  # unsure
+# git passed as a string, run by a function or behind a runner is still read: refused on main, not in sub
+for c in 'sh -c "git commit -m x"' "bash -c 'git commit -m x'" 'zsh -c "git commit -m x"' \
+  'bash -lc "git commit -m x"' 'eval "git commit -m x"' "env -S 'git commit -m x'" \
+  'echo "$(git commit -m x)"' 'echo `git commit -m x`' 'echo "`git commit -m x`"' \
+  'function f { git commit -m x; }; f' 'f() { git commit -m x; }; f' \
+  'xargs git commit -m x' 'sudo git commit -m x' 'sudo -u craig git commit -m x' 'timeout 5 git commit -m x' \
+  'nice -n 5 git commit -m x' 'time -p git commit -m x'; do
+  check deny guard_bash.py "$(bash_cmd "$c")"
+  check allow guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
+check deny guard_bash.py "$(bash_in "$tmp/sub" 'sh -c "git add -A"')"
+# a cd inside a string counts only inside it; an eval's runs here, so the folder after it is unsure
+check allow guard_bash.py "$(bash_cmd 'sh -c "cd sub && git commit -m x"')"
+check deny guard_bash.py "$(bash_cmd 'sh -c "cd sub" && git commit -m x')"
+for c in 'eval "cd .."; git commit -m x' 'builtin cd .. && git commit -m x' 'sudo -D /tmp git commit -m x'; do
+  check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
+# nothing hides a command: a heredoc's own line, an unquoted heredoc's $(…), a # inside a word
+check deny guard_bash.py "$(bash_in "$tmp/sub" $'cat <<\'EOF\' && git add -A\nmsg\nEOF')"
+check deny guard_bash.py "$(bash_cmd $'cat <<EOF\n$(git commit -m x)\nEOF')"
+check allow guard_bash.py "$(bash_cmd $'cat <<\'EOF\'\n$(git commit -m x)\nEOF')"
+check deny guard_bash.py "$(bash_in "$tmp/sub" 'echo x#; git add -A')"
+check allow guard_bash.py "$(bash_cmd "echo '\$(git commit -m x)'")"  # in single quotes it runs nothing
+# where it can't read the string or tell the program, it refuses
+for c in "sh -c \"git commit -m 'x\"" 'echo "$(git commit -m x"' '$GIT commit -m x' \
+  '$(which git) commit -m x' 'eval "$CMD"'; do
+  check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
+# deleting a remote branch from main pushes nothing from it; deleting main is still refused
+check allow guard_bash.py "$(bash_cmd 'git push origin --delete feat/old')"
+check allow guard_bash.py "$(bash_cmd 'git push origin :feat/old')"
+for c in 'git push origin --delete main' 'git push origin :main' 'git push origin --delete HEAD' \
+  'git push origin :feat/old feat/new'; do
+  check deny guard_bash.py "$(bash_cmd "$c")"
+done
+plain=$(mktemp -d)  # not a checkout: git can't say which branch it's on, so a commit there is refused
+check deny guard_bash.py "$(bash_in "$plain" 'git commit -m x')"
+rm -rf "$plain"
 check deny guard_bash.py "$(bash_in "$tmp/sub" "env -C $tmp git commit -m x")"  # env -C moves it
 git -C "$tmp" init -q -b chore/d "$tmp/det"  # a detached HEAD has no branch, and isn't main
 git -C "$tmp/det" -c user.name=t -c user.email=t@t commit -q --allow-empty -m x && git -C "$tmp/det" switch -q --detach
