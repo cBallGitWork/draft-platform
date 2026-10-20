@@ -2,21 +2,20 @@ import { describe, expect, test } from "vitest";
 import { codesByOpta } from "./feedIds";
 import { fplStatLines } from "./fplLive";
 import { plStatLines } from "./plMatch";
-import { FULL_STATS, MATCH, recordedGw6, recordedPlFixture } from "./recorded/gw6.payloads";
+import { FULL_STATS, hullEvertonReads, MATCH, recordedGw6, recordedPlFixture } from "./recorded/gw6.payloads";
 import { everyArea, EXAMPLE_SET, MINUTES_BANDS } from "./scoring.example";
-import { scoreGameweek, scoreMatch, type DoubleGameweekRule, type MatchRecord } from "./scoring";
+import { scoreGameweek, scoreMatch, type DoubleGameweekRule, type MatchStats } from "./scoring";
 import { AREAS, type Area, type Band, type ScoringSet } from "./scoringSet";
 
 // Every record is a recorded line from Hull v Everton, gameweek 6 of 2026/27.
-const { fpl, pl } = recordedGw6();
+const gw6 = recordedGw6();
+const { fpl } = gw6;
 const fplLines = fplStatLines(fpl.live, fpl.bootstrap.elements, fpl.fixtures);
-const plReads = new Map(
-  pl.playerStats.filter((read) => read.fixture === MATCH.hullEverton.pl).map((read) => [read.player, read.payload]),
-);
+const plReads = hullEvertonReads(gw6);
 const hullEverton = recordedPlFixture(MATCH.hullEverton.pl);
 const plLines = plStatLines(hullEverton, plReads, codesByOpta(fpl.bootstrap.elements)).lines;
 
-function recordOf(lines: { playerCode: number; stats: MatchRecord }[], playerCode: number): MatchRecord {
+function recordOf(lines: { playerCode: number; stats: MatchStats }[], playerCode: number): MatchStats {
   const line = lines.find((each) => each.playerCode === playerCode);
   if (line === undefined) throw new Error(`no recorded line for player ${playerCode}`);
   return line.stats;
@@ -176,7 +175,7 @@ describe("bad data throws rather than score", () => {
     ["NaN minutes, which a band would pay 0", { minutes: NaN }, "his record's minutes is NaN, not a number"],
     ["2 goals sent as text, which a per-action rule would coerce", { goals_scored: "2" }, 'goals_scored is "2"'],
   ])("a record with %s", (_what, stats, message) => {
-    const record = { ...dewsburyHall, ...stats } as unknown as MatchRecord;
+    const record = { ...dewsburyHall, ...stats } as unknown as MatchStats;
     expect(() => scoreMatch(record, EXAMPLE_SET, "midfield")).toThrow(message);
   });
 

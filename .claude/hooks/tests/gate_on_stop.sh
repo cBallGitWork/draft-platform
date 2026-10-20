@@ -1,5 +1,5 @@
 #!/bin/bash
-# gate_on_stop.py's checks: it blocks a stop only while watched files are changed and the gate
+# gate_on_stop.py's checks: it blocks a stop (and is otherwise silent) only while watched files are changed and the gate
 # fails, in the checkout the stop came from (the payload's cwd, else the project dir).
 . "$(dirname "$0")/helpers.sh"
 
@@ -16,22 +16,22 @@ wt_dirty=$tmp/gate-wt-dirty wt_clean=$tmp/gate-wt-clean  # builders work in link
 git -C "$dirty" worktree add -q -b chore/wd "$wt_dirty" && git -C "$clean" worktree add -q -b chore/wc "$wt_clean"
 mkdir -p "$wt_dirty/src" && touch "$wt_dirty/src/a.ts"
 export CLAUDE_PROJECT_DIR=$dirty
-said quiet gate_on_stop.py '{}' DRAFT_GATE_CMD=false   # nothing changed
+silent gate_on_stop.py '{}' DRAFT_GATE_CMD=false   # nothing changed
 mkdir -p "$dirty/src" && touch "$dirty/src/a.ts"
-said speaks gate_on_stop.py '{}' DRAFT_GATE_CMD=false
-said quiet gate_on_stop.py '{}' DRAFT_GATE_CMD=true
-said quiet gate_on_stop.py '{"stop_hook_active":true}' DRAFT_GATE_CMD=false
-said quiet gate_on_stop.py "$(stop_in "$wt_clean")" DRAFT_GATE_CMD=false  # a builder's clean worktree
-said speaks gate_on_stop.py "$(stop_in "$wt_dirty")" CLAUDE_PROJECT_DIR="$clean" DRAFT_GATE_CMD=false
+blocks gate_on_stop.py '{}' DRAFT_GATE_CMD=false
+silent gate_on_stop.py '{}' DRAFT_GATE_CMD=true
+silent gate_on_stop.py '{"stop_hook_active":true}' DRAFT_GATE_CMD=false
+silent gate_on_stop.py "$(stop_in "$wt_clean")" DRAFT_GATE_CMD=false  # a builder's clean worktree
+blocks gate_on_stop.py "$(stop_in "$wt_dirty")" CLAUDE_PROJECT_DIR="$clean" DRAFT_GATE_CMD=false
 # a subfolder is judged and gated at its checkout's top, where src/a.ts exists, so this gate fails
-said speaks gate_on_stop.py "$(stop_in "$wt_dirty/src")" CLAUDE_PROJECT_DIR="$clean" DRAFT_GATE_CMD='test ! -e src/a.ts'
+blocks gate_on_stop.py "$(stop_in "$wt_dirty/src")" CLAUDE_PROJECT_DIR="$clean" DRAFT_GATE_CMD='test ! -e src/a.ts'
 # a subagent in the main checkout leaves it to the session's own Stop, which still gates it
-said quiet gate_on_stop.py "$(stop_in "$dirty")" DRAFT_GATE_CMD=false
-said speaks gate_on_stop.py "$(stop_in "$dirty" Stop)" DRAFT_GATE_CMD=false
+silent gate_on_stop.py "$(stop_in "$dirty")" DRAFT_GATE_CMD=false
+blocks gate_on_stop.py "$(stop_in "$dirty" Stop)" DRAFT_GATE_CMD=false
 mkdir -p "$nogit/src" && touch "$nogit/package.json" "$nogit/src/a.ts"
-said quiet gate_on_stop.py "$(stop_in "$nogit")" DRAFT_GATE_CMD=false  # not a git checkout: no gate
+silent gate_on_stop.py "$(stop_in "$nogit")" DRAFT_GATE_CMD=false  # not a git checkout: no gate
 git init -q "$nopkg" && mkdir "$nopkg/src" && touch "$nopkg/src/a.ts"
-said quiet gate_on_stop.py '{}' CLAUDE_PROJECT_DIR="$nopkg" DRAFT_GATE_CMD=false  # no package.json: no gate
+silent gate_on_stop.py '{}' CLAUDE_PROJECT_DIR="$nopkg" DRAFT_GATE_CMD=false  # no package.json: no gate
 rm -rf "$nogit"
 # a git status that fails (here a corrupt index) is an error on stderr, never "nothing changed"
 broken=$tmp/gate-broken && gate_repo "$broken" && printf 'not an index' > "$broken/.git/index"

@@ -1,10 +1,7 @@
-import { convexTest } from "convex-test";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, fplLiveUrl, plPlayerStatsUrl } from "./football";
-import { modules } from "./footballSync.harness";
 import { statValue } from "./matchRecords";
-import { HOUR_MS } from "./matchStats";
 import {
   elapse,
   FULL_TIME_READ,
@@ -12,7 +9,6 @@ import {
   HULL_EVERTON,
   heldMatch,
   mergedHullEverton,
-  refusedError,
   syncAt,
   withBelloumiGoalRemoved,
   withFplBlocksEmpty,
@@ -21,14 +17,11 @@ import {
 } from "./matchStats.harness";
 import type { RawPlFixture } from "./premierLeague";
 import { fplElementsWithout, FULL_STATS, MATCH, recordedGw6 } from "./recorded/gw6.payloads";
-import schema from "./schema";
+import { freshConvex, refusedError, silenceConsoleError } from "./test.harness";
+import { HOUR_MS } from "./time";
 
 beforeEach(() => vi.useFakeTimers());
-afterEach(() => {
-  vi.useRealTimers();
-  vi.unstubAllGlobals();
-  vi.restoreAllMocks();
-});
+afterEach(() => vi.useRealTimers());
 
 test("a finished match lands complete: a record for every named man, both feeds merged", async () => {
   const t = await withHullEverton();
@@ -56,6 +49,16 @@ test("a finished match lands complete: a record for every named man, both feeds 
   const held = [...records.values()].map(({ _id, _creationTime, ...record }) => record);
   expect(held).toHaveLength(40);
   expect(held).toEqual(expect.arrayContaining(mergedHullEverton().map((record) => ({ ...record, state: "complete" }))));
+});
+
+test("each run row says whether the cron or a hand started it, and when it ran", async () => {
+  const t = await withHullEverton();
+
+  const byHand = await syncAt(t, FULL_TIME_READ, recordedGw6());
+  const byCron = await syncAt(t, FULL_TIME_READ + HOUR_MS / 2, recordedGw6(), undefined, "cron");
+
+  expect(byHand).toMatchObject({ trigger: "manual", ranAt: FULL_TIME_READ });
+  expect(byCron).toMatchObject({ trigger: "cron", ranAt: FULL_TIME_READ + HOUR_MS / 2 });
 });
 
 test("a starter's record not yet arrived shows — and keeps the match provisional until it does", async () => {
@@ -155,7 +158,7 @@ test.each([
     `PL fixture ${MATCH.hullEverton.pl} carries no status`,
   ],
 ] as const)("a match %s fails on the run row", async (_what, change, error) => {
-  vi.spyOn(console, "error").mockImplementation(() => {});
+  silenceConsoleError();
   const t = await withHullEverton();
   const payloads = recordedGw6();
   change(payloads.pl.round.content.find((fixture) => fixture.id === MATCH.hullEverton.pl)!);
@@ -166,7 +169,7 @@ test.each([
 });
 
 test("a refused read is on the run row with its URL and status, logged, and nothing is written", async () => {
-  const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+  const errors = silenceConsoleError();
   const t = await withHullEverton();
   const refused = plPlayerStatsUrl(FULL_STATS.coyle.pl, MATCH.hullEverton.pl);
 
@@ -182,7 +185,7 @@ test("a refused read is on the run row with its URL and status, logged, and noth
 });
 
 test("a gameweek's refused read fails each of its matches, and a refused FPL read the whole run", async () => {
-  vi.spyOn(console, "error").mockImplementation(() => {});
+  silenceConsoleError();
   const t = await withHullEverton();
 
   const gameweek = await syncAt(t, FULL_TIME_READ, recordedGw6(), fplLiveUrl(GAMEWEEK));
@@ -211,7 +214,7 @@ test("a named man FPL does not list is reported on the run row, and has no recor
 });
 
 test("with no match due, no feed is read and the run is still recorded", async () => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   const fetch = vi.fn();
   vi.stubGlobal("fetch", fetch);
 

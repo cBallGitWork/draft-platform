@@ -30,7 +30,9 @@ const AFTER_FULL_TIME_MS = 15 * MINUTE_MS;
 const GIVE_UP_MS = 4 * 60 * MINUTE_MS;
 /** Between one read and the next in a poll: politeness, not a rule of the feed. */
 const PAUSE_MS = 1_000;
-/** The fixture's `status` once the match is over ("U" before it, "C" after). */
+/** The fixture's `status` once the match is over ("U" before it, "C" after). A copy of
+ *  PL_FULL_TIME in convex/premierLeague.ts, which plain node can't import: it imports "./football"
+ *  with no extension. */
 const FULL_TIME = "C";
 const RECORDINGS_DIR = join(dirname(dirname(fileURLToPath(import.meta.url))), ".recordings");
 

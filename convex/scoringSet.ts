@@ -1,9 +1,10 @@
 // A league's scoring set: the shape #25 stores, and the check that refuses a bad one (spec/14, How
 // a rule scores). The set is the league's rule, so it is always data handed in, never a constant.
 
-/** The pitch's six areas, back to front (spec/05). */
-export const AREAS = ["goalkeeper", "defence", "defensiveMidfield", "midfield", "attackingMidfield", "attack"] as const;
-export type Area = (typeof AREAS)[number];
+import { AREAS, type Area } from "./pitch";
+
+// The pitch's six areas are the pitch's (./pitch.ts), so a lineup and a scoring set can't disagree.
+export { AREAS, type Area };
 
 /** A value for each of the six areas: a league sets every rule's values per area. */
 export type ByArea<Value> = Readonly<Record<Area, Value>>;

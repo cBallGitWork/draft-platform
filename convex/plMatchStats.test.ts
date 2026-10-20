@@ -2,14 +2,13 @@ import { expect, test } from "vitest";
 import { codesByOpta } from "./feedIds";
 import { plStatLines, plStats } from "./plMatch";
 import type { RawPlPlayerStats } from "./premierLeague";
-import { fplElementsWithout, FULL_STATS, MATCH, recordedGw6, recordedPlFixture } from "./recorded/gw6.payloads";
+import { fplElementsWithout, FULL_STATS, hullEvertonReads, MATCH, recordedGw6, recordedPlFixture } from "./recorded/gw6.payloads";
 
-const { fpl, pl } = recordedGw6();
+const gw6 = recordedGw6();
+const { fpl, pl } = gw6;
 const hullEverton = recordedPlFixture(MATCH.hullEverton.pl);
 const codeByOpta = codesByOpta(fpl.bootstrap.elements);
-const reads = new Map(
-  pl.playerStats.filter((read) => read.fixture === MATCH.hullEverton.pl).map((read) => [read.player, read.payload]),
-);
+const reads = hullEvertonReads(gw6);
 const readOf = (plId: number): RawPlPlayerStats => structuredClone(reads.get(plId)!);
 
 test("a man's stats keep every name and value the feed sent", () => {

@@ -6,7 +6,7 @@ const { fpl } = recordedGw6();
 const { elements } = fpl.bootstrap;
 const lines = fplStatLines(fpl.live, elements, fpl.fixtures);
 const lineOf = (code: number) => lines.find((line) => line.playerCode === code)!;
-const BELLOUMI_ID = 286; // His per-season id in this payload, which no line carries.
+const BELLOUMI_ID = FULL_STATS.belloumi.fplId; // No line carries it.
 
 test("each player with one match has one line, by his code and the match's", () => {
   expect(lines).toHaveLength(40);

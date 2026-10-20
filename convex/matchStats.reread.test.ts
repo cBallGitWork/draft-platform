@@ -1,7 +1,5 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { MS_PER_MINUTE } from "./deadline";
 import { statValue } from "./matchRecords";
-import { HOUR_MS } from "./matchStats";
 import {
   FULL_TIME_READ,
   heldMatch,
@@ -13,20 +11,18 @@ import {
   withPlReadEmpty,
 } from "./matchStats.harness";
 import { FULL_STATS, recordedGw6, type Gw6Payloads } from "./recorded/gw6.payloads";
+import { HOUR_MS, MINUTE_MS } from "./time";
 
 // What a match read again before the lock writes over what it held.
 
 beforeEach(() => vi.useFakeTimers());
-afterEach(() => {
-  vi.useRealTimers();
-  vi.unstubAllGlobals();
-});
+afterEach(() => vi.useRealTimers());
 
 test("a re-read of the same match writes nothing new, and keeps when it reached full time and completed", async () => {
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, recordedGw6());
 
-  const run = await syncAt(t, FULL_TIME_READ + 10 * MS_PER_MINUTE, recordedGw6());
+  const run = await syncAt(t, FULL_TIME_READ + 10 * MINUTE_MS, recordedGw6());
 
   expect(run.outcome).toMatchObject({ matches: [{ state: "complete", inserted: 0, updated: 0 }] });
   expect((await heldMatch(t)).status).toMatchObject({ fullTimeAt: FULL_TIME_READ, completeAt: FULL_TIME_READ });
@@ -72,7 +68,7 @@ test.each([
   await syncAt(t, FULL_TIME_READ, before(provisional()));
   const held = (await heldMatch(t)).records.get(playerCode)!;
 
-  const run = await syncAt(t, FULL_TIME_READ + 10 * MS_PER_MINUTE, after(provisional()));
+  const run = await syncAt(t, FULL_TIME_READ + 10 * MINUTE_MS, after(provisional()));
 
   expect(run.outcome).toMatchObject({ matches: [{ state: "provisional", inserted: 0, updated: 1 }] });
   const row = (await heldMatch(t)).records.get(playerCode)!;

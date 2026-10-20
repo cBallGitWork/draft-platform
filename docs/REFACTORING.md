@@ -69,9 +69,9 @@ first pass, `git rev-list --count main`.
 ## Proving nothing changed
 
 - The Vitest suite and the type check pass before and after.
-- Scoring: a recorded gameweek replayed through scoring, before and after, gives identical points
-  for every player and every head-to-head, once such a test exists (#28's replayed match, for
-  live points, is the nearest so far).
+- Scoring: `convex/scoring.test.ts` replays a recorded match (Hull v Everton) through scoring and
+  must give identical points before and after. A whole gameweek, every player and every
+  head-to-head, replaces it once #28 or the league score lands.
 - The Convex schema is unchanged.
 - A test that still passes with the fix deleted pins the wrong thing: delete it, run it, see.
 
