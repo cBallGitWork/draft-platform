@@ -49,6 +49,20 @@ export function plPlayerStatsUrl(playerId: number, fixtureId: number): string {
   return `${PL_API_BASE}/stats/player/${playerId}?fixtures=${fixtureId}`;
 }
 
+/** The most commentary lines one read of the stream asks for. The most seen in a match is 133. */
+export const PL_COMMENTARY_PAGE_SIZE = 200;
+
+/** A match's commentary, newest first. The premierleague.com site sends an `Origin` header with
+ *  it; the feed answers the same without one (checked 20 Oct 2026), so none is sent. */
+export function plCommentaryUrl(fixtureId: number): string {
+  return `${PL_API_BASE}/fixtures/${fixtureId}/textstream/EN?pageSize=${PL_COMMENTARY_PAGE_SIZE}&sort=desc`;
+}
+
+/** Both sides' Opta totals for one match: shots, possession, corners, cards and the rest. */
+export function plTeamStatsUrl(fixtureId: number): string {
+  return `${PL_API_BASE}/stats/match/${fixtureId}`;
+}
+
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0 Safari/537.36";
 // A feed that never answers would otherwise hold the action until Convex kills it.

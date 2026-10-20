@@ -2,6 +2,8 @@ import { v, type Infer } from "convex/values";
 import { internal } from "./_generated/api";
 import { internalAction, internalMutation, internalQuery } from "./_generated/server";
 import { arsenalSquadNumbers, fplPlayerCount, plFixtureCount } from "./football";
+import { namedMen } from "./feedIds";
+import { readPlCommentary, readPlFixture, readPlTeamStats } from "./premierLeague";
 import { feedCheckFields, feedCheckTrigger, feedOutcome } from "./schema";
 
 // Issue #7: can Convex reach the football feeds, and does a timer fire with no browser open?
@@ -49,6 +51,27 @@ export const record = internalMutation({
 export const latest = internalQuery({
   args: {},
   handler: async (ctx) => ctx.db.query("feedChecks").order("desc").take(5),
+});
+
+// Issue #37: does the commentary stream answer Convex's servers during a live match, and move?
+// Run during a match, a minute or more apart: `npx convex run feeds:commentaryCheck '{"plFixtureId":128999}'`.
+// A refused or changed read throws, naming the URL. Nothing is saved: the answer is the printout.
+export const commentaryCheck = internalAction({
+  args: { plFixtureId: v.number() },
+  handler: async (_ctx, { plFixtureId }) => {
+    // One after another, as a browser on the match page would ask.
+    const stream = await readPlCommentary(plFixtureId);
+    const fixture = await readPlFixture(plFixtureId);
+    const teamStats = await readPlTeamStats(plFixtureId);
+    const [newest] = stream;
+    return {
+      readAt: new Date().toISOString(),
+      lines: stream.length,
+      newest: newest === undefined ? null : { id: newest.id, minute: newest.time?.label ?? null, text: newest.text },
+      namedMen: namedMen(fixture).length,
+      teamStats: teamStats.data !== undefined,
+    };
+  },
 });
 
 /** A refusal is the answer this check exists to find, so it is recorded and logged, not thrown. */

@@ -1,0 +1,1148 @@
+[
+ {
+  "id": 128984,
+  "altIds": {
+   "opta": "g2645256"
+  },
+  "teamLists": [
+   {
+    "teamId": 130,
+    "lineup": [
+     {
+      "id": 128891,
+      "name": {
+       "display": "Yehor Yarmoliuk"
+      },
+      "altIds": {
+       "opta": "p508395"
+      }
+     },
+     {
+      "id": 133890,
+      "name": {
+       "display": "Dango Ouattara"
+      },
+      "altIds": {
+       "opta": "p533463"
+      }
+     },
+     {
+      "id": 20113,
+      "name": {
+       "display": "Kristoffer Ajer"
+      },
+      "altIds": {
+       "opta": "p191866"
+      }
+     },
+     {
+      "id": 133460,
+      "name": {
+       "display": "Michael Kayode"
+      },
+      "altIds": {
+       "opta": "p607464"
+      }
+     },
+     {
+      "id": 50460,
+      "name": {
+       "display": "Jaidon Anthony"
+      },
+      "altIds": {
+       "opta": "p444180"
+      }
+     },
+     {
+      "id": 23194,
+      "name": {
+       "display": "Vitaly Janelt"
+      },
+      "altIds": {
+       "opta": "p204580"
+      }
+     },
+     {
+      "id": 65987,
+      "name": {
+       "display": "Sepp van den Berg"
+      },
+      "altIds": {
+       "opta": "p444765"
+      }
+     },
+     {
+      "id": 14723,
+      "name": {
+       "display": "Caoimhín Kelleher"
+      },
+      "altIds": {
+       "opta": "p200720"
+      }
+     },
+     {
+      "id": 124052,
+      "name": {
+       "display": "Igor Thiago"
+      },
+      "altIds": {
+       "opta": "p502500"
+      }
+     },
+     {
+      "id": 24369,
+      "name": {
+       "display": "Keane Lewis-Potter"
+      },
+      "altIds": {
+       "opta": "p249231"
+      }
+     },
+     {
+      "id": 49726,
+      "name": {
+       "display": "Mathias Jensen"
+      },
+      "altIds": {
+       "opta": "p207283"
+      }
+     }
+    ],
+    "substitutes": [
+     {
+      "id": 108421,
+      "name": {
+       "display": "Mamadou Sangaré"
+      },
+      "altIds": {
+       "opta": "p513545"
+      }
+     },
+     {
+      "id": 115166,
+      "name": {
+       "display": "Aaron Hickey"
+      },
+      "altIds": {
+       "opta": "p472713"
+      }
+     },
+     {
+      "id": 145347,
+      "name": {
+       "display": "El Hadji Malick Diouf"
+      },
+      "altIds": {
+       "opta": "p613804"
+      }
+     },
+     {
+      "id": 144788,
+      "name": {
+       "display": "Hákon Valdimarsson"
+      },
+      "altIds": {
+       "opta": "p507433"
+      }
+     },
+     {
+      "id": 24659,
+      "name": {
+       "display": "Nathan Collins"
+      },
+      "altIds": {
+       "opta": "p432830"
+      }
+     },
+     {
+      "id": 32289,
+      "name": {
+       "display": "Fábio Carvalho"
+      },
+      "altIds": {
+       "opta": "p244858"
+      }
+     },
+     {
+      "id": 127594,
+      "name": {
+       "display": "Kevin Schade"
+      },
+      "altIds": {
+       "opta": "p513418"
+      }
+     },
+     {
+      "id": 49731,
+      "name": {
+       "display": "Mikkel Damsgaard"
+      },
+      "altIds": {
+       "opta": "p440089"
+      }
+     },
+     {
+      "id": 8454,
+      "name": {
+       "display": "Callum Wilson"
+      },
+      "altIds": {
+       "opta": "p75115"
+      }
+     }
+    ]
+   },
+   {
+    "teamId": 10,
+    "lineup": [
+     {
+      "id": 5140,
+      "name": {
+       "display": "Virgil van Dijk"
+      },
+      "altIds": {
+       "opta": "p97032"
+      }
+     },
+     {
+      "id": 133104,
+      "name": {
+       "display": "Jérémy Jacquet"
+      },
+      "altIds": {
+       "opta": "p606702"
+      }
+     },
+     {
+      "id": 63633,
+      "name": {
+       "display": "Alexis Mac Allister"
+      },
+      "altIds": {
+       "opta": "p243016"
+      }
+     },
+     {
+      "id": 75382,
+      "name": {
+       "display": "Florian Wirtz"
+      },
+      "altIds": {
+       "opta": "p494595"
+      }
+     },
+     {
+      "id": 21737,
+      "name": {
+       "display": "Alexander Isak"
+      },
+      "altIds": {
+       "opta": "p219168"
+      }
+     },
+     {
+      "id": 119386,
+      "name": {
+       "display": "Víctor Muñoz"
+      },
+      "altIds": {
+       "opta": "p551499"
+      }
+     },
+     {
+      "id": 33231,
+      "name": {
+       "display": "Dominik Szoboszlai"
+      },
+      "altIds": {
+       "opta": "p424876"
+      }
+     },
+     {
+      "id": 116665,
+      "name": {
+       "display": "Milos Kerkez"
+      },
+      "altIds": {
+       "opta": "p544877"
+      }
+     },
+     {
+      "id": 66133,
+      "name": {
+       "display": "Ronald Araujo"
+      },
+      "altIds": {
+       "opta": "p445087"
+      }
+     },
+     {
+      "id": 20559,
+      "name": {
+       "display": "Alisson Becker"
+      },
+      "altIds": {
+       "opta": "p116535"
+      }
+     },
+     {
+      "id": 68840,
+      "name": {
+       "display": "Bradley Barcola"
+      },
+      "altIds": {
+       "opta": "p482616"
+      }
+     }
+    ],
+    "substitutes": [
+     {
+      "id": 32894,
+      "name": {
+       "display": "Cody Gakpo"
+      },
+      "altIds": {
+       "opta": "p243298"
+      }
+     },
+     {
+      "id": 129671,
+      "name": {
+       "display": "Lewis Koumas"
+      },
+      "altIds": {
+       "opta": "p514514"
+      }
+     },
+     {
+      "id": 43586,
+      "name": {
+       "display": "Wataru Endo"
+      },
+      "altIds": {
+       "opta": "p158983"
+      }
+     },
+     {
+      "id": 10651,
+      "name": {
+       "display": "Joe Gomez"
+      },
+      "altIds": {
+       "opta": "p171287"
+      }
+     },
+     {
+      "id": 19919,
+      "name": {
+       "display": "Jeremie Frimpong"
+      },
+      "altIds": {
+       "opta": "p216094"
+      }
+     },
+     {
+      "id": 134796,
+      "name": {
+       "display": "Rio Ngumoha"
+      },
+      "altIds": {
+       "opta": "p611922"
+      }
+     },
+     {
+      "id": 116496,
+      "name": {
+       "display": "Giorgi Mamardashvili"
+      },
+      "altIds": {
+       "opta": "p449027"
+      }
+     },
+     {
+      "id": 130665,
+      "name": {
+       "display": "Trey Nyoni"
+      },
+      "altIds": {
+       "opta": "p591386"
+      }
+     },
+     {
+      "id": 16006,
+      "name": {
+       "display": "Kostas Tsimikas"
+      },
+      "altIds": {
+       "opta": "p214285"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 128985,
+  "altIds": {
+   "opta": "g2645257"
+  },
+  "teamLists": [
+   {
+    "teamId": 131,
+    "lineup": [
+     {
+      "id": 129259,
+      "name": {
+       "display": "Chema Andrés"
+      },
+      "altIds": {
+       "opta": "p592984"
+      }
+     },
+     {
+      "id": 134333,
+      "name": {
+       "display": "Yasin Ayari"
+      },
+      "altIds": {
+       "opta": "p509416"
+      }
+     },
+     {
+      "id": 67928,
+      "name": {
+       "display": "Maxim De Cuyper"
+      },
+      "altIds": {
+       "opta": "p465730"
+      }
+     },
+     {
+      "id": 20505,
+      "name": {
+       "display": "Olivier Boscagli"
+      },
+      "altIds": {
+       "opta": "p204120"
+      }
+     },
+     {
+      "id": 50727,
+      "name": {
+       "display": "Ferdi Kadioglu"
+      },
+      "altIds": {
+       "opta": "p231416"
+      }
+     },
+     {
+      "id": 143240,
+      "name": {
+       "display": "Diego Gómez"
+      },
+      "altIds": {
+       "opta": "p514254"
+      }
+     },
+     {
+      "id": 22542,
+      "name": {
+       "display": "Pascal Groß"
+      },
+      "altIds": {
+       "opta": "p60307"
+      }
+     },
+     {
+      "id": 8163,
+      "name": {
+       "display": "Lewis Dunk"
+      },
+      "altIds": {
+       "opta": "p83299"
+      }
+     },
+     {
+      "id": 134632,
+      "name": {
+       "display": "Luka Vuskovic"
+      },
+      "altIds": {
+       "opta": "p610799"
+      }
+     },
+     {
+      "id": 145043,
+      "name": {
+       "display": "Charalampos Kostoulas"
+      },
+      "altIds": {
+       "opta": "p647850"
+      }
+     },
+     {
+      "id": 75709,
+      "name": {
+       "display": "Bart Verbruggen"
+      },
+      "altIds": {
+       "opta": "p489639"
+      }
+     }
+    ],
+    "substitutes": [
+     {
+      "id": 126175,
+      "name": {
+       "display": "Jaouen Hadjam"
+      },
+      "altIds": {
+       "opta": "p512123"
+      }
+     },
+     {
+      "id": 334200,
+      "name": {
+       "display": "Michael Svoboda"
+      },
+      "altIds": {
+       "opta": "p454490"
+      }
+     },
+     {
+      "id": 147052,
+      "name": {
+       "display": "Malick Yalcouyé"
+      },
+      "altIds": {
+       "opta": "p611695"
+      }
+     },
+     {
+      "id": 14671,
+      "name": {
+       "display": "Matt O'Riley"
+      },
+      "altIds": {
+       "opta": "p219249"
+      }
+     },
+     {
+      "id": 136398,
+      "name": {
+       "display": "Ibrahim Osman"
+      },
+      "altIds": {
+       "opta": "p612855"
+      }
+     },
+     {
+      "id": 146970,
+      "name": {
+       "display": "Costinha"
+      },
+      "altIds": {
+       "opta": "p451490"
+      }
+     },
+     {
+      "id": 112739,
+      "name": {
+       "display": "Jack Hinshelwood"
+      },
+      "altIds": {
+       "opta": "p532529"
+      }
+     },
+     {
+      "id": 51830,
+      "name": {
+       "display": "Georginio Rutter"
+      },
+      "altIds": {
+       "opta": "p463067"
+      }
+     },
+     {
+      "id": 3457,
+      "name": {
+       "display": "Jason Steele"
+      },
+      "altIds": {
+       "opta": "p49262"
+      }
+     }
+    ]
+   },
+   {
+    "teamId": 6,
+    "lineup": [
+     {
+      "id": 20497,
+      "name": {
+       "display": "Walter Benítez"
+      },
+      "altIds": {
+       "opta": "p121709"
+      }
+     },
+     {
+      "id": 304106,
+      "name": {
+       "display": "Honest Ahanor"
+      },
+      "altIds": {
+       "opta": "p605972"
+      }
+     },
+     {
+      "id": 123848,
+      "name": {
+       "display": "Anan Khalaili"
+      },
+      "altIds": {
+       "opta": "p570794"
+      }
+     },
+     {
+      "id": 50842,
+      "name": {
+       "display": "Chris Richards"
+      },
+      "altIds": {
+       "opta": "p427623"
+      }
+     },
+     {
+      "id": 147312,
+      "name": {
+       "display": "Jaydee Canvot"
+      },
+      "altIds": {
+       "opta": "p651426"
+      }
+     },
+     {
+      "id": 35670,
+      "name": {
+       "display": "Jørgen Strand Larsen"
+      },
+      "altIds": {
+       "opta": "p247412"
+      }
+     },
+     {
+      "id": 69595,
+      "name": {
+       "display": "Adam Wharton"
+      },
+      "altIds": {
+       "opta": "p496221"
+      }
+     },
+     {
+      "id": 49759,
+      "name": {
+       "display": "Daichi Kamada"
+      },
+      "altIds": {
+       "opta": "p209400"
+      }
+     },
+     {
+      "id": 109117,
+      "name": {
+       "display": "Yéremy Pino"
+      },
+      "altIds": {
+       "opta": "p488024"
+      }
+     },
+     {
+      "id": 24334,
+      "name": {
+       "display": "Tyrick Mitchell"
+      },
+      "altIds": {
+       "opta": "p244723"
+      }
+     },
+     {
+      "id": 67779,
+      "name": {
+       "display": "Quinten Timber"
+      },
+      "altIds": {
+       "opta": "p450063"
+      }
+     }
+    ],
+    "substitutes": [
+     {
+      "id": 37776,
+      "name": {
+       "display": "Jefferson Lerma"
+      },
+      "altIds": {
+       "opta": "p152551"
+      }
+     },
+     {
+      "id": 8589,
+      "name": {
+       "display": "Will Hughes"
+      },
+      "altIds": {
+       "opta": "p108413"
+      }
+     },
+     {
+      "id": 49796,
+      "name": {
+       "display": "Ismaïla Sarr"
+      },
+      "altIds": {
+       "opta": "p232185"
+      }
+     },
+     {
+      "id": 10827,
+      "name": {
+       "display": "Remi Matthews"
+      },
+      "altIds": {
+       "opta": "p169593"
+      }
+     },
+     {
+      "id": 14451,
+      "name": {
+       "display": "Eddie Nketiah"
+      },
+      "altIds": {
+       "opta": "p205533"
+      }
+     },
+     {
+      "id": 135512,
+      "name": {
+       "display": "Darío Osorio"
+      },
+      "altIds": {
+       "opta": "p533646"
+      }
+     },
+     {
+      "id": 50909,
+      "name": {
+       "display": "Óscar Mingueza"
+      },
+      "altIds": {
+       "opta": "p242313"
+      }
+     },
+     {
+      "id": 20874,
+      "name": {
+       "display": "Jean-Philippe Mateta"
+      },
+      "altIds": {
+       "opta": "p231747"
+      }
+     },
+     {
+      "id": 24797,
+      "name": {
+       "display": "Dwight McNeil"
+      },
+      "altIds": {
+       "opta": "p433154"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 128989,
+  "altIds": {
+   "opta": "g2645261"
+  },
+  "teamLists": [
+   {
+    "teamId": 11,
+    "lineup": [
+     {
+      "id": 14569,
+      "name": {
+       "display": "Marc Guéhi"
+      },
+      "altIds": {
+       "opta": "p209036"
+      }
+     },
+     {
+      "id": 76204,
+      "name": {
+       "display": "Matheus Nunes"
+      },
+      "altIds": {
+       "opta": "p465351"
+      }
+     },
+     {
+      "id": 112948,
+      "name": {
+       "display": "Nico O'Reilly"
+      },
+      "altIds": {
+       "opta": "p472769"
+      }
+     },
+     {
+      "id": 141425,
+      "name": {
+       "display": "Ayyoub Bouaddi"
+      },
+      "altIds": {
+       "opta": "p637238"
+      }
+     },
+     {
+      "id": 22857,
+      "name": {
+       "display": "Gianluigi Donnarumma"
+      },
+      "altIds": {
+       "opta": "p204936"
+      }
+     },
+     {
+      "id": 16431,
+      "name": {
+       "display": "Rúben Dias"
+      },
+      "altIds": {
+       "opta": "p171314"
+      }
+     },
+     {
+      "id": 65970,
+      "name": {
+       "display": "Erling Haaland"
+      },
+      "altIds": {
+       "opta": "p223094"
+      }
+     },
+     {
+      "id": 54156,
+      "name": {
+       "display": "Jérémy Doku"
+      },
+      "altIds": {
+       "opta": "p248875"
+      }
+     },
+     {
+      "id": 12520,
+      "name": {
+       "display": "Mateo Kovacic"
+      },
+      "altIds": {
+       "opta": "p91651"
+      }
+     },
+     {
+      "id": 31936,
+      "name": {
+       "display": "Iliman Ndiaye"
+      },
+      "altIds": {
+       "opta": "p440993"
+      }
+     },
+     {
+      "id": 14805,
+      "name": {
+       "display": "Phil Foden"
+      },
+      "altIds": {
+       "opta": "p209244"
+      }
+     }
+    ],
+    "substitutes": [
+     {
+      "id": 67178,
+      "name": {
+       "display": "Josko Gvardiol"
+      },
+      "altIds": {
+       "opta": "p477424"
+      }
+     },
+     {
+      "id": 51593,
+      "name": {
+       "display": "Elliot Anderson"
+      },
+      "altIds": {
+       "opta": "p215379"
+      }
+     },
+     {
+      "id": 63741,
+      "name": {
+       "display": "Enzo Fernández"
+      },
+      "altIds": {
+       "opta": "p448047"
+      }
+     },
+     {
+      "id": 68150,
+      "name": {
+       "display": "Rayan Cherki"
+      },
+      "altIds": {
+       "opta": "p466052"
+      }
+     },
+     {
+      "id": 20857,
+      "name": {
+       "display": "Gerónimo Rulli"
+      },
+      "altIds": {
+       "opta": "p106921"
+      }
+     },
+     {
+      "id": 25474,
+      "name": {
+       "display": "Antoine Semenyo"
+      },
+      "altIds": {
+       "opta": "p437730"
+      }
+     },
+     {
+      "id": 137371,
+      "name": {
+       "display": "Abdukodir Khusanov"
+      },
+      "altIds": {
+       "opta": "p578153"
+      }
+     },
+     {
+      "id": 338602,
+      "name": {
+       "display": "Allan"
+      },
+      "altIds": {
+       "opta": "p624777"
+      }
+     },
+     {
+      "id": 71432,
+      "name": {
+       "display": "Rayan Aït-Nouri"
+      },
+      "altIds": {
+       "opta": "p448514"
+      }
+     }
+    ]
+   },
+   {
+    "teamId": 8,
+    "lineup": [
+     {
+      "id": 15154,
+      "name": {
+       "display": "Dara O'Shea"
+      },
+      "altIds": {
+       "opta": "p216616"
+      }
+     },
+     {
+      "id": 126111,
+      "name": {
+       "display": "Abdoul Ouattara"
+      },
+      "altIds": {
+       "opta": "p572584"
+      }
+     },
+     {
+      "id": 49884,
+      "name": {
+       "display": "Issa Diop"
+      },
+      "altIds": {
+       "opta": "p219924"
+      }
+     },
+     {
+      "id": 125827,
+      "name": {
+       "display": "Julio Enciso"
+      },
+      "altIds": {
+       "opta": "p474120"
+      }
+     },
+     {
+      "id": 8159,
+      "name": {
+       "display": "Christian Walton"
+      },
+      "altIds": {
+       "opta": "p108813"
+      }
+     },
+     {
+      "id": 51454,
+      "name": {
+       "display": "Leif Davis"
+      },
+      "altIds": {
+       "opta": "p455084"
+      }
+     },
+     {
+      "id": 313194,
+      "name": {
+       "display": "Emersonn"
+      },
+      "altIds": {
+       "opta": "p543968"
+      }
+     },
+     {
+      "id": 40161,
+      "name": {
+       "display": "Exequiel Palacios"
+      },
+      "altIds": {
+       "opta": "p218543"
+      }
+     },
+     {
+      "id": 63851,
+      "name": {
+       "display": "Florentino"
+      },
+      "altIds": {
+       "opta": "p216055"
+      }
+     },
+     {
+      "id": 49254,
+      "name": {
+       "display": "Jacob Greaves"
+      },
+      "altIds": {
+       "opta": "p449429"
+      }
+     },
+     {
+      "id": 122002,
+      "name": {
+       "display": "Daizen Maeda"
+      },
+      "altIds": {
+       "opta": "p442967"
+      }
+     }
+    ],
+    "substitutes": [
+     {
+      "id": 10491,
+      "name": {
+       "display": "Darnell Furlong"
+      },
+      "altIds": {
+       "opta": "p176420"
+      }
+     },
+     {
+      "id": 32715,
+      "name": {
+       "display": "Jack Clarke"
+      },
+      "altIds": {
+       "opta": "p443261"
+      }
+     },
+     {
+      "id": 67189,
+      "name": {
+       "display": "Kjell Scherpen"
+      },
+      "altIds": {
+       "opta": "p240514"
+      }
+     },
+     {
+      "id": 127644,
+      "name": {
+       "display": "Abdul Fatawu"
+      },
+      "altIds": {
+       "opta": "p531442"
+      }
+     },
+     {
+      "id": 4482,
+      "name": {
+       "display": "Chuba Akpom"
+      },
+      "altIds": {
+       "opta": "p147675"
+      }
+     },
+     {
+      "id": 15333,
+      "name": {
+       "display": "Cédric Kipré"
+      },
+      "altIds": {
+       "opta": "p183015"
+      }
+     },
+     {
+      "id": 64519,
+      "name": {
+       "display": "Jaden Philogene"
+      },
+      "altIds": {
+       "opta": "p481624"
+      }
+     },
+     {
+      "id": 75735,
+      "name": {
+       "display": "Zian Flemming"
+      },
+      "altIds": {
+       "opta": "p431639"
+      }
+     },
+     {
+      "id": 49308,
+      "name": {
+       "display": "Azor Matusiwa"
+      },
+      "altIds": {
+       "opta": "p241117"
+      }
+     }
+    ]
+   }
+  ]
+ }
+]
