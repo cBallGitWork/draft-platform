@@ -118,6 +118,20 @@ test("a match filed twice, as by two runs at once, is filed once", async () => {
   expect(await t.query(internal.positionsSync.unreadMatches, { fixtureCodes: [1, 2] })).toEqual([2]);
 });
 
+test("a man's row keeps his newest 38 starts, the oldest dropped", async () => {
+  const t = convexTest(schema, modules);
+  const matches = 40;
+  // Filed oldest first, as a run files them.
+  for (let match = 1; match <= matches; match += 1) {
+    const start = { fixtureCode: match, kickoff: match, formation: "4-3-3", line: 1, place: 0 };
+    await t.mutation(internal.positionsSync.recordStarts, { fixtureCode: match, starts: [{ playerCode: PLAYER.hall, start }] });
+  }
+
+  const kept = (await heldStarts(t, PLAYER.hall)).map((start) => start.fixtureCode);
+
+  expect(kept).toEqual(Array.from({ length: 38 }, (_, index) => matches - index)); // newest first; 1 and 2 dropped
+});
+
 test.each([
   ["FPL's players", FPL_BOOTSTRAP_URL],
   ["last season's fixture list", plFixturesUrl(undefined, PL_LAST_COMP_SEASON)],
