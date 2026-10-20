@@ -1,13 +1,7 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { fplLiveUrl, readFplLive } from "./fplLive";
-import {
-  plFixturesUrl,
-  plFixtureUrl,
-  plPlayerStatsUrl,
-  readPlFixture,
-  readPlFixtures,
-  readPlPlayerStats,
-} from "./premierLeague";
+import { fplLiveUrl, plFixturesUrl, plFixtureUrl, plPlayerStatsUrl } from "./football";
+import { readFplLive } from "./fplLive";
+import { readPlFixture, readPlFixtures, readPlPlayerStats } from "./premierLeague";
 
 afterEach(() => vi.unstubAllGlobals());
 

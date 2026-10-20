@@ -1,13 +1,12 @@
 // The Premier League's public API: who was named for a match, in what shape, and what each man did.
 // The raw shapes and the reads are copied from epl-draft's packages/core/src/football/premierleague/
 // (raw.ts, rawStats.ts and client.ts, 20 Oct 2026), not shared, and cut to what #27 and #22 read.
-// The reads sit behind the football seam (`football.ts`), on its base URL and its `getJson`, so
-// every failed read throws with the URL and the status.
+// The reads sit behind the football seam (`football.ts`), on its URLs and its `getJson`, so every
+// failed read throws with the URL and the status.
 
-import { getJson, PL_API_BASE, PL_COMP_SEASON, PL_COMPETITION } from "./football";
+import { getJson, plFixturesUrl, plFixtureUrl, plPlayerStatsUrl } from "./football";
 
 // The shapes the Premier League answers: data we do not control. Only the fields read are typed.
-// Its numbers arrive written as decimals (`128978.0`), which JSON reads as whole numbers.
 
 /** `{opta: "g2645250"}` on a fixture, `"p193278"` on a player, `"t88"` on a club. */
 export interface RawPlAltIds {
@@ -61,24 +60,6 @@ export interface RawPlMetric {
 export interface RawPlPlayerStats {
   entity: { id: number };
   stats: RawPlMetric[];
-}
-
-/** Every fixture list asks for `altIds`: without it no fixture carries the join to FPL, and nothing
- *  says so, the fixtures simply arrive without it. One gameweek's, or the season's when omitted. */
-export function plFixturesUrl(gameweek?: number): string {
-  const round = gameweek === undefined ? "" : `&gameweekNumbers=${gameweek}`;
-  return (
-    `${PL_API_BASE}/fixtures?comps=${PL_COMPETITION}&compSeasons=${PL_COMP_SEASON}` +
-    `${round}&pageSize=400&page=0&sort=asc&altIds=true`
-  );
-}
-
-export function plFixtureUrl(fixtureId: number): string {
-  return `${PL_API_BASE}/fixtures/${fixtureId}`;
-}
-
-export function plPlayerStatsUrl(playerId: number, fixtureId: number): string {
-  return `${PL_API_BASE}/stats/player/${playerId}?fixtures=${fixtureId}`;
 }
 
 /** One gameweek's fixtures, or the season's, each with its FPL join (`altIds`). */

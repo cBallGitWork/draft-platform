@@ -1,9 +1,8 @@
 // How the two feeds name the same match and the same man. The Premier League keys both on its own
 // ids and carries Opta's alongside (`altIds.opta`); FPL carries Opta's too, so Opta's is the join:
-// - a fixture: `altIds.opta` is "g" + FPL's fixture `code` (all 380 of 2026/27, 20 Oct 2026);
-// - a player: `altIds.opta` equals FPL's `opta_code` (all 400 named on gameweek 6's sheets).
-// Only FPL's season-stable codes come out, never its per-season ids. One that matches nothing is
-// reported to the caller, never dropped.
+// a fixture's is "g" + FPL's fixture `code`, and a player's is FPL's `opta_code` (checked in
+// docs/pl-match-stats.md). Only FPL's season-stable codes come out, never its per-season ids. One
+// that matches nothing is reported to the caller, never dropped.
 
 import type { RawBootstrap } from "./fpl";
 import type { RawPlFixture, RawPlSquadPlayer } from "./premierLeague";

@@ -2,10 +2,10 @@ import { expect, test } from "vitest";
 import { codesByOpta } from "./feedIds";
 import { plStatLines, plStats } from "./plMatch";
 import type { RawPlPlayerStats } from "./premierLeague";
-import { FULL_STATS, MATCH, recordedGw6 } from "./recorded/gw6.payloads";
+import { fplElementsWithout, FULL_STATS, MATCH, recordedGw6, recordedPlFixture } from "./recorded/gw6.payloads";
 
 const { fpl, pl } = recordedGw6();
-const hullEverton = pl.fixtures.find((fixture) => fixture.id === MATCH.hullEverton.pl)!;
+const hullEverton = recordedPlFixture(MATCH.hullEverton.pl);
 const codeByOpta = codesByOpta(fpl.bootstrap.elements);
 const reads = new Map(
   pl.playerStats.filter((read) => read.fixture === MATCH.hullEverton.pl).map((read) => [read.player, read.payload]),
@@ -22,7 +22,7 @@ test("a man's stats keep every name and value the feed sent", () => {
   expect(stats).toMatchObject({ formation_place: 2, game_started: 1, mins_played: 90, won_tackle: 1 });
 });
 
-test("a stat he did not register is not sent, and stays absent rather than nought", () => {
+test("a stat the feed did not send is left absent, not filled in", () => {
   const stats = plStats(readOf(FULL_STATS.coyle.pl));
   expect("goals" in stats).toBe(false);
   // Some noughts are sent all the same: Opta's choice, kept as it came.
@@ -30,7 +30,12 @@ test("a stat he did not register is not sent, and stays absent rather than nough
 });
 
 test("a substitute who came on has his own minutes, and an unused one only formation_place 0", () => {
-  expect(plStats(readOf(FULL_STATS.belloumi.pl))).toMatchObject({ total_sub_on: 1, mins_played: 26, goals: 1, formation_place: 0 });
+  expect(plStats(readOf(FULL_STATS.belloumi.pl))).toMatchObject({
+    total_sub_on: 1,
+    mins_played: 26,
+    goals: 1,
+    formation_place: 0,
+  });
   expect(plStats(readOf(FULL_STATS.phillips.pl))).toEqual({ formation_place: 0 });
 });
 
@@ -47,8 +52,7 @@ test("a stat line is the man's and the match's FPL codes, for every man read", (
 });
 
 test("a man read whom FPL does not list has no line and is reported; one not read is not", () => {
-  const unlisted: number[] = [FULL_STATS.coyle.code, FULL_STATS.phillips.code];
-  const without = codesByOpta(fpl.bootstrap.elements.filter((element) => !unlisted.includes(element.code)));
+  const without = codesByOpta(fplElementsWithout(FULL_STATS.coyle.code, FULL_STATS.phillips.code));
   const twoReads = new Map([FULL_STATS.coyle.pl, FULL_STATS.mcBurnie.pl].map((id) => [id, readOf(id)]));
 
   const { lines, unmatched } = plStatLines(hullEverton, twoReads, without);
@@ -72,9 +76,27 @@ test("a read for a man neither sheet names throws", () => {
 });
 
 test.each([
-  ["a stat sent twice", (read: RawPlPlayerStats) => { read.stats.push({ ...read.stats[0] }); }, "sent formation_place twice"],
-  ["a stat that is not a number", (read: RawPlPlayerStats) => { read.stats[0].value = "2" as never; }, 'stat {"name":"formation_place","value":"2"}'],
-  ["no stats list", (read: RawPlPlayerStats) => { delete (read as Partial<RawPlPlayerStats>).stats; }, "sent no stats list"],
+  [
+    "a stat sent twice",
+    (read: RawPlPlayerStats) => {
+      read.stats.push({ ...read.stats[0] });
+    },
+    "sent formation_place twice",
+  ],
+  [
+    "a stat that is not a number",
+    (read: RawPlPlayerStats) => {
+      read.stats[0].value = "2" as never;
+    },
+    'stat {"name":"formation_place","value":"2"}',
+  ],
+  [
+    "no stats list",
+    (read: RawPlPlayerStats) => {
+      delete (read as Partial<RawPlPlayerStats>).stats;
+    },
+    "sent no stats list",
+  ],
 ] as const)("%s is a changed payload, and throws", (_what, change, message) => {
   const read = readOf(FULL_STATS.coyle.pl);
   change(read);

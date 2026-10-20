@@ -1,10 +1,10 @@
 import { expect, test } from "vitest";
 import { codesByOpta, fixtureCodeIn, matchFixtures, matchPlayers, namedMen } from "./feedIds";
-import { FULL_STATS, MATCH, recordedGw6 } from "./recorded/gw6.payloads";
+import { fplElementsWithout, FULL_STATS, MATCH, recordedGw6, recordedPlFixture } from "./recorded/gw6.payloads";
 
 const { fpl, pl } = recordedGw6();
 const fplCodes = fpl.fixtures.map((fixture) => fixture.code);
-const hullEverton = pl.fixtures.find((fixture) => fixture.id === MATCH.hullEverton.pl)!;
+const hullEverton = recordedPlFixture(MATCH.hullEverton.pl);
 const codeByOpta = codesByOpta(fpl.bootstrap.elements);
 
 test("every fixture of the Premier League's gameweek matches one of FPL's, by g + its code", () => {
@@ -50,9 +50,7 @@ test("every man named for Hull v Everton matches FPL's player with his opta_code
 });
 
 test("a named man FPL does not list is reported with his name, not dropped", () => {
-  const without = fpl.bootstrap.elements.filter((element) => element.code !== FULL_STATS.coyle.code);
-
-  const { codes, unmatched } = matchPlayers(hullEverton, codesByOpta(without));
+  const { codes, unmatched } = matchPlayers(hullEverton, codesByOpta(fplElementsWithout(FULL_STATS.coyle.code)));
 
   expect(unmatched).toEqual([{ plPlayerId: FULL_STATS.coyle.pl, name: "Lewie Coyle", opta: "p193278" }]);
   expect(codes.size).toBe(39);

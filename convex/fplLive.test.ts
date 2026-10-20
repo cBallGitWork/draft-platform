@@ -17,7 +17,9 @@ test("each player with one match has one line, by his code and the match's", () 
 test("a line holds every stat FPL sent under FPL's names, its decimal strings as numbers", () => {
   const belloumi = lineOf(FULL_STATS.belloumi.code);
 
-  expect(Object.keys(belloumi.stats).sort()).toEqual(Object.keys(fpl.live.elements.find((e) => e.id === BELLOUMI_ID)!.stats).sort());
+  expect(Object.keys(belloumi.stats).sort()).toEqual(
+    Object.keys(fpl.live.elements.find((element) => element.id === BELLOUMI_ID)!.stats).sort(),
+  );
   expect(belloumi.stats).toMatchObject({
     minutes: 26,
     goals_scored: 1,
@@ -38,7 +40,13 @@ test("an unused substitute's line says he played no minutes", () => {
 function doubleGameweek(): RawLive {
   const live = structuredClone(fpl.live);
   const belloumi = live.elements.find((element) => element.id === BELLOUMI_ID)!;
-  belloumi.explain.push({ fixture: 51, stats: [{ identifier: "minutes", value: 90 }, { identifier: "assists", value: 1 }] });
+  belloumi.explain.push({
+    fixture: 51,
+    stats: [
+      { identifier: "minutes", value: 90 },
+      { identifier: "assists", value: 1 },
+    ],
+  });
   belloumi.stats = { ...belloumi.stats, minutes: 116, assists: 1, tackles: 3 };
   return live;
 }
@@ -70,22 +78,56 @@ test("a player with no match in the gameweek has no line", () => {
 });
 
 test.each([
-  ["a player bootstrap-static does not list", (live: RawLive) => { live.elements[0].id = 9999; }, "player id 9999"],
-  ["a match /fixtures/ does not list", (live: RawLive) => { live.elements[0].explain[0].fixture = 999; }, "match id 999"],
+  [
+    "a player bootstrap-static does not list",
+    (live: RawLive) => {
+      live.elements[0].id = 9999;
+    },
+    "player id 9999",
+  ],
+  [
+    "a match /fixtures/ does not list",
+    (live: RawLive) => {
+      live.elements[0].explain[0].fixture = 999;
+    },
+    "match id 999",
+  ],
 ] as const)("a line naming %s throws", (_what, change, message) => {
   const live = structuredClone(fpl.live);
   change(live);
 
-  expect(() => fplStatLines(live, elements, fpl.fixtures)).toThrow(`name ${message}, which its other reads do not list`);
+  expect(() => fplStatLines(live, elements, fpl.fixtures)).toThrow(
+    `name ${message}, which its other reads do not list`,
+  );
 });
 
 test.each([
-  ["a total that is not a number", (live: RawLive) => { live.elements[0].stats.influence = "n/a"; }, 'sent influence "n/a"'],
-  ["an empty total", (live: RawLive) => { live.elements[0].stats.bps = ""; }, 'sent bps ""'],
-  ["a match stat that is not a number", (live: RawLive) => { live.elements[0].explain[0].stats[0].value = null as never; }, "sent minutes null"],
+  [
+    "a total that is not a number",
+    (live: RawLive) => {
+      live.elements[0].stats.influence = "n/a";
+    },
+    'sent influence "n/a"',
+  ],
+  [
+    "an empty total",
+    (live: RawLive) => {
+      live.elements[0].stats.bps = "";
+    },
+    'sent bps ""',
+  ],
+  [
+    "a match stat that is not a number",
+    (live: RawLive) => {
+      live.elements[0].explain[0].stats[0].value = null as never;
+    },
+    "sent minutes null",
+  ],
   [
     "a match stat sent twice",
-    (live: RawLive) => { live.elements[0].explain[0].stats.push({ ...live.elements[0].explain[0].stats[0] }); },
+    (live: RawLive) => {
+      live.elements[0].explain[0].stats.push({ ...live.elements[0].explain[0].stats[0] });
+    },
     "sent minutes twice",
   ],
 ] as const)("%s is a changed payload, and throws", (_what, change, message) => {
@@ -94,4 +136,3 @@ test.each([
 
   expect(() => fplStatLines(live, elements, fpl.fixtures)).toThrow(message);
 });
-

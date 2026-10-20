@@ -1,20 +1,18 @@
 import { expect, test } from "vitest";
 import { codesByOpta, namedMen } from "./feedIds";
 import { matchSlots, plStats, type MatchSlot } from "./plMatch";
-import type { RawPlFixture } from "./premierLeague";
-import { FULL_STATS, MATCH, recordedGw6 } from "./recorded/gw6.payloads";
+import { fplElementsWithout, FULL_STATS, MATCH, recordedGw6, recordedPlFixture } from "./recorded/gw6.payloads";
 
 const { fpl, pl } = recordedGw6();
-const fixture = (plId: number): RawPlFixture => structuredClone(pl.fixtures.find((each) => each.id === plId)!);
-const hullEverton = fixture(MATCH.hullEverton.pl);
+const hullEverton = recordedPlFixture(MATCH.hullEverton.pl);
 const codeByOpta = codesByOpta(fpl.bootstrap.elements);
 
 // The recorded bootstrap lists only Hull's and Everton's men. For the other ten sheets, FPL's rule
 // (opta_code is "p" + code, true of all its 668 players and pinned in feedIds.test.ts) stands in.
-const everyOpta = new Map(
-  pl.fixtures.flatMap(namedMen).map((man) => [man.altIds!.opta, Number(man.altIds!.opta.slice(1))]),
-);
-const everySlot = pl.fixtures.flatMap((each) => matchSlots(each, everyOpta).slots);
+const everyMan = pl.fixtures.flatMap(namedMen);
+const codeByOptaRule = new Map(everyMan.map((man) => [man.altIds!.opta, Number(man.altIds!.opta.slice(1))]));
+const codeByPlId = new Map(everyMan.map((man) => [man.id, codeByOptaRule.get(man.altIds!.opta)!]));
+const everySlot = pl.fixtures.flatMap((each) => matchSlots(each, codeByOptaRule).slots);
 
 test("every man named for Hull v Everton has a slot: 22 starters and 18 on the bench", () => {
   const { slots, unmatched } = matchSlots(hullEverton, codeByOpta);
@@ -42,15 +40,23 @@ test("a starter's slot is his formation, his line and his place along it", () =>
 test("a substitute's slot has no formation, line or place, whether or not he came on", () => {
   const slots = matchSlots(hullEverton, codeByOpta).slots;
   for (const code of [FULL_STATS.phillips.code, FULL_STATS.belloumi.code]) {
-    expect(slots.find((slot) => slot.playerCode === code)).toMatchObject({ started: false, formation: null, line: null, place: null });
+    expect(slots.find((slot) => slot.playerCode === code)).toMatchObject({
+      started: false,
+      formation: null,
+      line: null,
+      place: null,
+    });
   }
 });
 
-test("the twelve recorded sheets cover a back five, a back four and a back three", () => {
+test("every starter on the twelve recorded sheets, with a back five, four or three, has a place", () => {
   const sheets = pl.fixtures.flatMap((each) => each.teamLists!.map((list) => list!.formation!.label));
 
   expect(sheets.sort()).toEqual([
-    "3-4-2-1", "3-4-2-1", "3-4-2-1", "3-4-2-1",
+    "3-4-2-1",
+    "3-4-2-1",
+    "3-4-2-1",
+    "3-4-2-1",
     ...Array<string>(7).fill("4-2-3-1"),
     "5-4-1",
   ]);
@@ -63,7 +69,7 @@ test("the twelve recorded sheets cover a back five, a back four and a back three
 test("Opta's formation_place is fixed by a starter's formation, line and place", () => {
   const places = new Map<string, number[][]>();
   for (const { fixture: plId, player, payload } of pl.playerStats) {
-    const code = everyOpta.get(namedMen(fixture(plId)).find((man) => man.id === player)!.altIds!.opta)!;
+    const code = codeByPlId.get(player);
     const slot = everySlot.find((each) => each.playerCode === code && each.fixtureCode === fixtureCodeOf(plId))!;
     if (!slot.started) continue;
     const layout = places.get(slot.formation!) ?? [];
@@ -82,7 +88,7 @@ test("Opta's formation_place is fixed by a starter's formation, line and place",
 });
 
 test("a sheet with no formation still names its starters, with no line or place", () => {
-  const bare = fixture(MATCH.hullEverton.pl);
+  const bare = recordedPlFixture(MATCH.hullEverton.pl);
   delete bare.teamLists![0]!.formation;
 
   const starters = matchSlots(bare, codeByOpta).slots.filter((slot) => slot.started);
@@ -97,7 +103,7 @@ test("a side not yet named has no slots", () => {
 });
 
 test("a man FPL does not list has no slot and is reported", () => {
-  const without = codesByOpta(fpl.bootstrap.elements.filter((element) => element.code !== FULL_STATS.coyle.code));
+  const without = codesByOpta(fplElementsWithout(FULL_STATS.coyle.code));
 
   const { slots, unmatched } = matchSlots(hullEverton, without);
 
@@ -112,18 +118,36 @@ test("a fixture with no FPL code throws rather than file slots under no match", 
 });
 
 test.each([
-  ["draws a man who is not starting", (lines: number[][]) => { lines[3][0] = FULL_STATS.phillips.pl; }, "does not draw the 11 men"],
-  ["leaves a starter out", (lines: number[][]) => { lines[2].pop(); }, "draws lines of 1-5-3-1"],
-  ["draws a starter twice", (lines: number[][]) => { lines[3][0] = lines[1][0]; }, "does not draw the 11 men"],
+  [
+    "draws a man who is not starting",
+    (lines: number[][]) => {
+      lines[3][0] = FULL_STATS.phillips.pl;
+    },
+    "does not draw the 11 men",
+  ],
+  [
+    "leaves a starter out",
+    (lines: number[][]) => {
+      lines[2].pop();
+    },
+    "draws lines of 1-5-3-1",
+  ],
+  [
+    "draws a starter twice",
+    (lines: number[][]) => {
+      lines[3][0] = lines[1][0];
+    },
+    "does not draw the 11 men",
+  ],
 ] as const)("a formation that %s is a changed payload, and throws", (_what, change, message) => {
-  const changed = fixture(MATCH.hullEverton.pl);
+  const changed = recordedPlFixture(MATCH.hullEverton.pl);
   change(changed.teamLists![0]!.formation!.players);
 
   expect(() => matchSlots(changed, codeByOpta)).toThrow(`team 41's 5-4-1 ${message}`);
 });
 
 test("a formation whose label does not count its lines throws", () => {
-  const changed = fixture(MATCH.hullEverton.pl);
+  const changed = recordedPlFixture(MATCH.hullEverton.pl);
   changed.teamLists![0]!.formation!.label = "4-4-2";
 
   expect(() => matchSlots(changed, codeByOpta)).toThrow("team 41's 4-4-2 draws lines of 1-5-4-1");

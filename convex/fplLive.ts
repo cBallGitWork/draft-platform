@@ -4,7 +4,7 @@
 // rather than becoming epl-draft's fields, and players and matches come out as FPL's season-stable
 // codes, never its per-season ids.
 
-import { FPL_API_BASE, getJson } from "./football";
+import { fplLiveUrl, getJson } from "./football";
 import type { RawBootstrap, RawFixture } from "./fpl";
 
 /** One scoring stat in one match. `points` and `points_modification` are FPL's scoring, not read. */
@@ -33,10 +33,6 @@ export interface FplStatLine {
   stats: Record<string, number>;
 }
 
-export function fplLiveUrl(gameweek: number): string {
-  return `${FPL_API_BASE}/event/${gameweek}/live/`;
-}
-
 /** A gameweek's live stats; `{elements: []}` until its first match kicks off. */
 export async function readFplLive(gameweek: number): Promise<RawLive> {
   return (await getJson(fplLiveUrl(gameweek))) as RawLive;
@@ -46,13 +42,9 @@ export async function readFplLive(gameweek: number): Promise<RawLive> {
  *  scoring stats. The gameweek totals give the rest only when he had one match, where the two are
  *  the same; with two, FPL does not split them, so those stats are left out of both lines rather
  *  than guessed. A player or a match FPL's other reads do not list is a changed payload: it throws. */
-export function fplStatLines(
-  live: RawLive,
-  elements: RawBootstrap["elements"],
-  fixtures: RawFixture[],
-): FplStatLine[] {
-  const playerCode = codeOf("player", new Map(elements.map((element) => [element.id, element.code])));
-  const fixtureCode = codeOf("match", new Map(fixtures.map((fixture) => [fixture.id, fixture.code])));
+export function fplStatLines(live: RawLive, elements: RawBootstrap["elements"], fixtures: RawFixture[]): FplStatLine[] {
+  const playerCode = codeById("player", new Map(elements.map((element) => [element.id, element.code])));
+  const fixtureCode = codeById("match", new Map(fixtures.map((fixture) => [fixture.id, fixture.code])));
   return live.elements.flatMap((element) => {
     const totals = element.explain.length === 1 ? gameweekTotals(element) : {};
     return element.explain.map((block) => ({
@@ -67,7 +59,9 @@ export function fplStatLines(
 function matchValues(elementId: number, stats: RawExplainStat[]): Record<string, number> {
   const values: Record<string, number> = {};
   for (const stat of stats) {
-    if (stat.identifier in values) throw new Error(`FPL sent ${stat.identifier} twice in one match for player id ${elementId}`);
+    if (stat.identifier in values) {
+      throw new Error(`FPL sent ${stat.identifier} twice in one match for player id ${elementId}`);
+    }
     values[stat.identifier] = numberOf(elementId, stat.identifier, stat.value);
   }
   return values;
@@ -91,10 +85,12 @@ function numberOf(elementId: number, key: string, value: unknown): number {
   return number;
 }
 
-function codeOf(what: string, codes: Map<number, number>): (id: number) => number {
+function codeById(what: string, codes: Map<number, number>): (id: number) => number {
   return (id) => {
     const code = codes.get(id);
-    if (code === undefined) throw new Error(`FPL's live stats name ${what} id ${id}, which its other reads do not list`);
+    if (code === undefined) {
+      throw new Error(`FPL's live stats name ${what} id ${id}, which its other reads do not list`);
+    }
     return code;
   };
 }

@@ -26,6 +26,29 @@ export const PL_COMP_SEASON = 841;
 /** The Premier League's id for Arsenal, whose squad list proves squad numbers can be read. */
 export const PL_ARSENAL = 1;
 
+/** A gameweek's live stats, per player. */
+export function fplLiveUrl(gameweek: number): string {
+  return `${FPL_API_BASE}/event/${gameweek}/live/`;
+}
+
+/** Every fixture list asks for `altIds`: without it no fixture carries the join to FPL, and nothing
+ *  says so, the fixtures simply arrive without it. One gameweek's, or the season's when omitted. */
+export function plFixturesUrl(gameweek?: number): string {
+  const round = gameweek === undefined ? "" : `&gameweekNumbers=${gameweek}`;
+  return (
+    `${PL_API_BASE}/fixtures?comps=${PL_COMPETITION}&compSeasons=${PL_COMP_SEASON}` +
+    `${round}&pageSize=400&page=0&sort=asc&altIds=true`
+  );
+}
+
+export function plFixtureUrl(fixtureId: number): string {
+  return `${PL_API_BASE}/fixtures/${fixtureId}`;
+}
+
+export function plPlayerStatsUrl(playerId: number, fixtureId: number): string {
+  return `${PL_API_BASE}/stats/player/${playerId}?fixtures=${fixtureId}`;
+}
+
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0 Safari/537.36";
 // A feed that never answers would otherwise hold the action until Convex kills it.
