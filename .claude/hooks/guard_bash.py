@@ -223,8 +223,8 @@ def decide(cmd, cwd):
             if folder is None:
                 return (
                     "Can't tell which folder that runs in (a cd that may not take effect or into a "
-                    "folder not made yet, a variable, pushd, GIT_DIR, --git-dir or env -C). Run it plainly: cd <folder> && git commit, or "
-                    "git -C <folder> commit."
+                    "folder not made yet, a variable, pushd, GIT_DIR, --git-dir or env -C). "
+                    "Run it plainly: cd <folder> && git commit, or git -C <folder> commit."
                 )
             if switched_to_main or current_branch(folder) == "main":
                 return (
