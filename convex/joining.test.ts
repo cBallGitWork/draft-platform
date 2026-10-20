@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import { askToJoin, invite, makeLink, openLastLinkTo } from "./joining.harness";
-import { INVITE_LIFETIME_MS, joiningRefusals } from "./joining";
+import { joiningRefusals } from "./joining";
+import { INVITE_LIFETIME_MS } from "./joiningShared";
 import { COMMISSIONER, MANAGERS, actingAs, adminCreatesLeague, teamsIn, type TestConvex } from "./leagues.harness";
 import { UNLISTED, ask, fakeResend, resetSignInDeployment, signInDeployment, type SentEmail } from "./signIn.harness";
 

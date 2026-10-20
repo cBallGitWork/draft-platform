@@ -17,11 +17,20 @@ export async function invite(t: TestConvex, leagueId: Id<"leagues">, email: stri
   return inviteId;
 }
 
+/** Every email sent to this address, oldest first. */
+export const emailsTo = (sent: SentEmail[], email: string) => sent.filter((each) => each.to === email);
+
 /** The last email sent to this address. */
 export function lastEmailTo(sent: SentEmail[], email: string): SentEmail {
-  const last = sent.findLast((each) => each.to === email);
+  const last = emailsTo(sent, email).at(-1);
   if (!last) throw new Error(`no email was sent to ${email}`);
   return last;
+}
+
+/** Runs what is scheduled to run now, and nothing later, such as what waits for tomorrow. */
+export async function finishWhatIsDueNow(t: TestConvex) {
+  vi.runOnlyPendingTimers();
+  await t.finishInProgressScheduledFunctions();
 }
 
 /** Opens the link in the last email sent to this address: its tokens, or null if refused. */

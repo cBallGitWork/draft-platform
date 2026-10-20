@@ -5,7 +5,7 @@ import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import type { Id } from "../../convex/_generated/dataModel";
-import { joinPath } from "../../convex/joinLinks";
+import { DAY_MS, joinPath } from "../../convex/joiningShared";
 import { league, managerIn, openApp } from "../shell.harness";
 import { invitesPath } from "./paths";
 import type { InvitesPageData } from "./seam";
@@ -13,7 +13,6 @@ import { dayWords, expiredWords, invitesTitle, joinedWords, noTeamWords, notYour
 
 afterEach(cleanup);
 
-const DAY_MS = 24 * 60 * 60 * 1000;
 const commissioner = managerIn({ ...league, roles: ["commissioner"], teamName: null });
 const TEAM_2 = "team-2" as Id<"teams">;
 const inviteRow = (inviteId: string, email: string) =>

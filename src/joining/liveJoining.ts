@@ -2,7 +2,7 @@ import { useAction, useMutation, useQuery } from "convex/react";
 import { ConvexError } from "convex/values";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
-import { linkOffWords } from "../../convex/joinLinks";
+import { linkOffWords } from "../../convex/joiningShared";
 import { askFailedWords, replyWords } from "../sign-in/words";
 import type { JoiningSeam } from "./seam";
 import { changeFailedWords } from "./words";

@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
-import { askToJoin, invitesPage, lastEmailTo, makeLink, openLastLinkTo, spendTodaysEmails } from "./joining.harness";
+import { askToJoin, emailsTo, finishWhatIsDueNow, invitesPage, lastEmailTo, makeLink, openLastLinkTo, spendTodaysEmails } from "./joining.harness";
 import { joiningRefusals } from "./joining";
-import { joinPath } from "./joinLinks";
+import { joinPath } from "./joiningShared";
 import { refusals } from "./leagueAccess";
 import {
   COMMISSIONER,
@@ -156,12 +156,11 @@ describe("a join request", () => {
     const requestId = await askToJoin(t, leagueId, token, ANN);
     await spendTodaysEmails(t);
     await (await asCommissioner()).mutation(api.joinRequests.approve, { requestId });
-    vi.runOnlyPendingTimers();
-    await t.finishInProgressScheduledFunctions();
-    expect(sent.filter((email) => email.to === ANN)).toEqual([]);
+    await finishWhatIsDueNow(t);
+    expect(emailsTo(sent, ANN)).toEqual([]);
 
     await t.finishAllScheduledFunctions(vi.runAllTimers);
-    expect(sent.filter((email) => email.to === ANN)).toHaveLength(1);
+    expect(emailsTo(sent, ANN)).toHaveLength(1);
   });
 });
 

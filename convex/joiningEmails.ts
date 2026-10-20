@@ -1,3 +1,4 @@
+import { INVITE_DAYS } from "./joiningShared";
 import { PRODUCT_NAME } from "./signInEmail";
 
 // Joining's emails (#73), in words for Craig to change in the pull request: an invite, which
@@ -18,7 +19,7 @@ export function inviteEmail(url: string, { leagueName, invitedBy, teamName }: In
       url,
       "",
       "The link works once, within an hour, on any device. After that, open",
-      `${siteUrl()} and ask for a new one with this email: the invite lasts 7 days.`,
+      `${siteUrl()} and ask for a new one with this email: the invite lasts ${INVITE_DAYS} days.`,
     ].join("\n"),
   };
 }

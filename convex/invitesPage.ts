@@ -9,7 +9,7 @@ import { delivery } from "./schema";
 
 /** The most invites and waiting requests the page lists, newest first: the closed beta's leagues
  *  are small. */
-const SHOWN = 50;
+const ROWS_SHOWN = 50;
 
 export const invitesPageData = v.union(
   v.null(),
@@ -64,12 +64,12 @@ export const page = query({
       .query("invites")
       .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
       .order("desc")
-      .take(SHOWN);
+      .take(ROWS_SHOWN);
     const requests = await ctx.db
       .query("joinRequests")
       .withIndex("by_leagueId_and_decision", (q) => q.eq("leagueId", leagueId).eq("decision", undefined))
       .order("desc")
-      .take(SHOWN);
+      .take(ROWS_SHOWN);
 
     return {
       leagueId,

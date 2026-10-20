@@ -55,11 +55,8 @@ const signInRoute = createRoute({
   component: function SignIn() {
     const { auth, joining } = signInRoute.useRouteContext();
     const { link, join } = signInRoute.useSearch();
-    return join ? (
-      <SignInPage requestSignInLink={(email) => joining.signInToJoin(join, email)} linkProblem={link} intro={signInToJoinWords} />
-    ) : (
-      <SignInPage requestSignInLink={auth.requestSignInLink} linkProblem={link} />
-    );
+    const requestSignInLink = join ? (email: string) => joining.signInToJoin(join, email) : auth.requestSignInLink;
+    return <SignInPage requestSignInLink={requestSignInLink} linkProblem={link} intro={join && signInToJoinWords} />;
   },
 });
 

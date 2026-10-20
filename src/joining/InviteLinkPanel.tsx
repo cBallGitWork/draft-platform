@@ -1,4 +1,4 @@
-import { joinPath } from "../../convex/joinLinks";
+import { joinPath } from "../../convex/joiningShared";
 import { PanelTitle, Problem } from "./Panel";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { useChange } from "./useChange";
