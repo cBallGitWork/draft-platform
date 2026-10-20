@@ -1,6 +1,6 @@
 // Records one match as the Premier League's API serves it, for #37: how often the commentary moves
 // while the match is played, when the lineups first appear, and whether the team stats update
-// live. Every 30 seconds, from an hour before kickoff to 15 minutes after full time, it reads the
+// live. Every 30 seconds, from 90 minutes before kickoff to 15 minutes after full time, it reads the
 // commentary, the fixture (its team sheets) and the team stats, one after another, as Convex does
 // (the same URLs and `getJson`, from convex/football.ts), and saves each poll with its time to
 // .recordings/<fixture id>/ in this checkout, which git ignores. A failed read, or a body it can't
@@ -8,7 +8,7 @@
 //
 // Usage, with the Premier League's fixture id:
 //   caffeinate -i node scripts/record-match.mjs <fixtureId>   records; start it any time before
-//                                                             an hour before kickoff
+//                                                             90 minutes before kickoff
 //   node scripts/record-match.mjs <fixtureId> --summary       one line per poll saved so far
 // `caffeinate -i` keeps the Mac awake: a sleeping Mac leaves gaps that look like a stalled feed.
 // Friday 23 Oct 2026, Ipswich v Nott'm Forest at 20:00 BST:
@@ -21,8 +21,9 @@ import { getJson, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../conve
 
 const MINUTE_MS = 60_000;
 const POLL_MS = 30_000;
-/** spec/10 wants the lineups about an hour before kickoff, so recording starts then. */
-const LEAD_MS = 60 * MINUTE_MS;
+/** spec/10 wants the lineups "about an hour before kickoff"; when they first appear is one of #37's
+ *  questions, so recording starts half an hour earlier than that, to see them arrive. */
+const LEAD_MS = 90 * MINUTE_MS;
 /** Kept on after full time, for late lines and corrected totals. */
 const AFTER_FULL_TIME_MS = 15 * MINUTE_MS;
 /** A match abandoned, or a status that never turns to full time, stops recording here. */
@@ -45,7 +46,7 @@ export function pollReads(fixtureId) {
   ];
 }
 
-/** What to do at `now`: "wait" for the hour before kickoff, "record", or "stop". */
+/** What to do at `now`: "wait" until 90 minutes before kickoff, "record", or "stop". */
 export function phase(now, kickoffMs, fullTimeSeenAt) {
   if (now < kickoffMs - LEAD_MS) return "wait";
   if (fullTimeSeenAt !== null && now >= fullTimeSeenAt + AFTER_FULL_TIME_MS) return "stop";
@@ -127,7 +128,7 @@ function teamStatsSummary(body, fixture) {
 /** A poll's file name: its time, sortable, with no colons. */
 const fileName = (polledAt) => `${polledAt.replaceAll(":", "-")}.json`;
 
-/** Waits for the hour before kickoff, then polls every 30 seconds into `dir` until `phase` says stop. */
+/** Waits until 90 minutes before kickoff, then polls every 30 seconds into `dir` until `phase` says stop. */
 export async function record(fixtureId, dir) {
   const url = plFixtureUrl(fixtureId);
   const kickoffMs = (await getJson(url)).kickoff?.millis;
