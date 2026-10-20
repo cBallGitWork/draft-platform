@@ -66,11 +66,11 @@ describe("from a gameweek's matches", () => {
 
   const FRIDAY_8PM = Date.UTC(2026, 9, 23, 19, 0);
   const SATURDAY_3PM = Date.UTC(2026, 9, 24, 14, 0);
-  const SUNDAY_2PM = Date.UTC(2026, 9, 25, 13, 0);
+  const SUNDAY_1PM = Date.UTC(2026, 9, 25, 13, 0);
   const GAMEWEEK = 8;
   const NEXT_GAMEWEEK = 9;
   const match = (gameweek: number | null, kickoff: number | null) => ({ gameweek, kickoff });
-  const weekend = [match(GAMEWEEK, SATURDAY_3PM), match(GAMEWEEK, FRIDAY_8PM), match(GAMEWEEK, SUNDAY_2PM)];
+  const weekend = [match(GAMEWEEK, SATURDAY_3PM), match(GAMEWEEK, FRIDAY_8PM), match(GAMEWEEK, SUNDAY_1PM)];
 
   test("the deadline is the rule's minutes before the earliest kickoff, in any order", () => {
     expect(gameweekDeadline(GAMEWEEK, weekend, rule)).toBe(deadlineBefore(FRIDAY_8PM));
