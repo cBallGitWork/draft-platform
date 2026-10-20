@@ -22,6 +22,7 @@ import type * as fplLive from "../fplLive.js";
 import type * as http from "../http.js";
 import type * as leagueAccess from "../leagueAccess.js";
 import type * as leagueLimits from "../leagueLimits.js";
+import type * as leagueRules from "../leagueRules.js";
 import type * as leagues from "../leagues.js";
 import type * as lineup from "../lineup.js";
 import type * as liveStats from "../liveStats.js";
@@ -66,6 +67,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   leagueAccess: typeof leagueAccess;
   leagueLimits: typeof leagueLimits;
+  leagueRules: typeof leagueRules;
   leagues: typeof leagues;
   lineup: typeof lineup;
   liveStats: typeof liveStats;

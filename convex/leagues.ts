@@ -15,6 +15,7 @@ import {
   teamsOf,
 } from "./leagueAccess";
 import { FEWEST_TEAMS, MOST_TEAMS } from "./leagueLimits";
+import { giveDefaultRules } from "./leagueRules";
 import { askForLink, signInReply } from "./signInLinks";
 
 // A league, and who runs it (#24, spec/13). Each change files an event for Mail (#26).
@@ -49,6 +50,7 @@ export const create = mutation({
 
     const leagueId = await ctx.db.insert("leagues", { name, maxTeams: args.maxTeams, commissionerEmail });
     await recordEvent(ctx, leagueId, by, { kind: "created", name, maxTeams: args.maxTeams });
+    await giveDefaultRules(ctx, leagueId, by);
     await recordEvent(ctx, leagueId, by, { kind: "commissionerNamed", email: commissionerEmail, replaced: null });
     await admitCommissioner(ctx, commissionerEmail, leagueId);
     return leagueId;

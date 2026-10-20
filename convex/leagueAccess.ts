@@ -20,6 +20,7 @@ export const refusals = {
   notNamer: "Only the league's commissioner or the admin can name or remove a commissioner or co-commissioner.",
   notManager: "Only the team's manager or the admin can do that.",
   runsNoTeam: "You don't run a team in this league.",
+  notInLeague: "You aren't in this league.",
   blankName: "Give it a name.",
   teamNameTooLong: `A team's name is up to ${TEAM_NAME_MAX} characters.`,
   teamNameTaken: (name: string) => `A team in this league is already called "${name}".`,
@@ -93,6 +94,15 @@ export async function namerOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
   const email = await callerEmail(ctx);
   const league = await getLeague(ctx, leagueId);
   if (!powersIn(league, email).names) refuse(refusals.notNamer);
+  return { email, league };
+}
+
+/** The caller and the league, if the caller runs it or a team in it. */
+export async function memberOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
+  const email = await callerEmail(ctx);
+  const league = await getLeague(ctx, leagueId);
+  const managesTeam = async () => (await teamsOf(ctx, leagueId)).some((team) => team.managerEmail === email);
+  if (!powersIn(league, email).runs && !(await managesTeam())) refuse(refusals.notInLeague);
   return { email, league };
 }
 
