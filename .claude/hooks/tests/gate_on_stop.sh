@@ -1,7 +1,6 @@
 #!/bin/bash
 # gate_on_stop.py's checks: it blocks a stop only while watched files are changed and the gate
 # fails, in the checkout the stop came from (the payload's cwd, else the project dir).
-# Usage: .claude/hooks/tests/gate_on_stop.sh   (test.sh runs it with the others)
 . "$(dirname "$0")/helpers.sh"
 
 gate_repo() { # dir: a checkout with its package.json committed, so nothing is changed yet
@@ -9,9 +8,9 @@ gate_repo() { # dir: a checkout with its package.json committed, so nothing is c
     git -C "$1" "${as_tester[@]}" commit -q -m x
 }
 stop_in() { # folder [event]: a stop payload from that folder, a builder's SubagentStop by default
-  /usr/bin/jq -nc --arg d "$1" --arg e "${2:-SubagentStop}" '{hook_event_name:$e,stop_hook_active:false,cwd:$d}'
+  "$jq" -nc --arg d "$1" --arg e "${2:-SubagentStop}" '{hook_event_name:$e,stop_hook_active:false,cwd:$d}'
 }
-dirty=$tmp/gate-dirty clean=$tmp/gate-clean nopkg=$tmp/gate-nopkg nogit=$(mktemp -d)
+dirty=$tmp/gate-dirty clean=$tmp/gate-clean nopkg=$tmp/gate-nopkg nogit=$(mktemp -d) || exit 1
 gate_repo "$dirty" && gate_repo "$clean"
 wt_dirty=$tmp/gate-wt-dirty wt_clean=$tmp/gate-wt-clean  # builders work in linked worktrees
 git -C "$dirty" worktree add -q -b chore/wd "$wt_dirty" && git -C "$clean" worktree add -q -b chore/wc "$wt_clean"
@@ -43,6 +42,6 @@ if [ "$code" -eq 0 ] || [ -z "$err" ]; then
 fi
 # settings.json runs the gate on both stops, so neither a session nor a builder finishes past it
 for event in Stop SubagentStop; do
-  /usr/bin/jq -e --arg e "$event" '.hooks[$e][]?.hooks[]?.command | select(endswith("/gate_on_stop.py"))' \
+  "$jq" -e --arg e "$event" '.hooks[$e][]?.hooks[]?.command | select(endswith("/gate_on_stop.py"))' \
     "$hooks/../settings.json" >/dev/null || fail "settings.json: no $event hook runs gate_on_stop.py"
 done

@@ -1,7 +1,6 @@
 #!/bin/bash
 # guard_bash.py's checks: commands it must refuse and commands it must let through, run from a
 # throwaway repo on a feature branch, then on main with a worktree (sub) on a feature branch.
-# Usage: .claude/hooks/tests/guard_bash.sh   (test.sh runs it with the others)
 . "$(dirname "$0")/helpers.sh"
 
 git -C "$tmp" init -q -b chore/x
@@ -141,7 +140,7 @@ check deny guard_bash.py "$(bash_in "$tmp/back-main" 'git switch - && git commit
 check deny guard_bash.py "$(bash_in "$tmp/back-main" 'git checkout @{-1} && git commit -m x')"
 check allow guard_bash.py "$(bash_in "$tmp/back-feat" 'git switch - && git commit -m x')"
 check deny guard_bash.py "$(bash_in "$tmp/back-feat" 'git switch feat/a && git switch - && git commit -m x')"  # unsure
-. "$hooks/tests/guard_bash_reading.sh"
+. "$(dirname "$0")/guard_bash_reading.sh"  # what it reads inside a command, on this main and sub
 # deleting a remote branch from main pushes nothing from it; deleting main is still refused
 check allow guard_bash.py "$(bash_cmd 'git push origin --delete feat/old')"
 check allow guard_bash.py "$(bash_cmd 'git push origin :feat/old')"
@@ -151,7 +150,7 @@ for c in 'git push origin --delete main' 'git push origin :main' 'git push origi
   'git push origin :feat/old feat/new'; do
   check deny guard_bash.py "$(bash_cmd "$c")"
 done
-plain=$(mktemp -d)  # not a checkout: git can't say which branch it's on, so a push there is refused
+plain=$(mktemp -d) || exit 1  # not a checkout: git can't say which branch it's on, so a push there is refused
 check deny guard_bash.py "$(bash_in "$plain" 'git push origin x')"
 check deny guard_bash.py "$(bash_in "$plain" 'git commit -m x')"  # and a commit (its staged lines can't be read)
 rm -rf "$plain"

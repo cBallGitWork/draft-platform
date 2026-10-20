@@ -5,9 +5,10 @@ set -uo pipefail
 
 hooks="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"  # the hooks under test
 fails=0
-tmp=$(mktemp -d)
+tmp=$(mktemp -d) || exit 1  # never empty: git -C "" would act on the checkout it runs from
 export CLAUDE_PROJECT_DIR="$tmp"
 as_tester=(-c user.name=t -c user.email=t@t)  # who a test repo's commits are by
+jq=/usr/bin/jq  # the system's own, as on CI's runner
 
 finish() {
   local status=$?
@@ -30,5 +31,5 @@ said() { # expect hook payload [env...]: "speaks" if the hook prints anything, e
   if [ -n "$out" ]; then got=speaks; else got=quiet; fi
   if [ "$got" != "$expect" ]; then fail "$hook: expected $expect, got $got: $payload $*"; fi
 }
-bash_cmd() { /usr/bin/jq -nc --arg c "$1" '{tool_name:"Bash",tool_input:{command:$c}}'; }
-bash_in() { /usr/bin/jq -nc --arg c "$2" --arg d "$1" '{tool_name:"Bash",tool_input:{command:$c},cwd:$d}'; }  # dir command
+bash_cmd() { "$jq" -nc --arg c "$1" '{tool_name:"Bash",tool_input:{command:$c}}'; }
+bash_in() { "$jq" -nc --arg c "$2" --arg d "$1" '{tool_name:"Bash",tool_input:{command:$c},cwd:$d}'; }  # dir command

@@ -1,6 +1,6 @@
 #!/bin/bash
-# Runs every hook's checks (tests/, one suite per hook), each against payloads it must refuse or
-# let through, and fails if any suite fails. A suite also runs alone: tests/<hook>.sh.
+# Runs every hook's checks (tests/, one suite per hook) and fails if any suite fails. A suite also
+# runs alone: tests/<hook>.sh.
 # Usage: .claude/hooks/test.sh   (exits 1 on any wrong answer)
 set -uo pipefail
 

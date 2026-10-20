@@ -1,9 +1,8 @@
 #!/bin/bash
 # line_ceiling.py's checks: a note past 250 lines, none at or under it, none for prose.
-# Usage: .claude/hooks/tests/line_ceiling.sh   (test.sh runs it with the others)
 . "$(dirname "$0")/helpers.sh"
 
-edited() { /usr/bin/jq -nc --arg p "$tmp/$1" '{tool_input:{file_path:$p}}'; }  # file: a Write or Edit of it
+edited() { "$jq" -nc --arg p "$tmp/$1" '{tool_input:{file_path:$p}}'; }  # file: a Write or Edit of it
 seq 251 > "$tmp/long.ts" && seq 250 > "$tmp/short.ts" && seq 400 > "$tmp/long.md" && seq 251 > "$tmp/long.sh"
 said speaks line_ceiling.py "$(edited long.ts)"
 said quiet line_ceiling.py "$(edited short.ts)"
