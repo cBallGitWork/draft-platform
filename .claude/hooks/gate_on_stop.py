@@ -10,8 +10,10 @@ checks) there; on failure, it blocks the stop and hands Claude the end of the ou
 out, it exits 1 with the error on stderr: Claude Code shows it, but the stop goes ahead (it fails
 open, never quietly). A subagent's `cwd` is the folder it works in: an agent spawned with its own
 worktree has that worktree, but one that only names a worktree by absolute path has the main
-checkout, so it is judged there (checked 20 Oct 2026 in subagent transcripts). Adapted from sideband's gate_on_stop.py
-(17 Oct 2026). DRAFT_GATE_CMD overrides the command, for test.sh. Stdlib only, Python 3.9+.
+checkout (checked 20 Oct 2026 in subagent transcripts). A subagent stopping in the main checkout
+isn't gated: the session's own Stop gates it, and a builder or a reviewer there would otherwise
+be held up by changes that aren't its own. Adapted from sideband's gate_on_stop.py (17 Oct 2026).
+DRAFT_GATE_CMD overrides the command, for test.sh. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -40,6 +42,16 @@ def checkout_of(payload):
     return top if top and (top / PACKAGE).is_file() else None
 
 
+def is_main_checkout(checkout):
+    """True for the repo's own folder, False for a linked worktree (whose git dir is its own)."""
+    proc = subprocess.run(
+        ["git", "-C", str(checkout), "rev-parse", "--git-dir", "--git-common-dir"],
+        capture_output=True, text=True, check=True,
+    )
+    git_dir, common_dir = proc.stdout.split("\n")[:2]
+    return (checkout / git_dir).resolve() == (checkout / common_dir).resolve()
+
+
 def changed(checkout):
     proc = subprocess.run(
         ["git", "status", "--porcelain", "--", *WATCHED],
@@ -57,7 +69,11 @@ def main():
     if payload.get("stop_hook_active"):
         return 0
     checkout = checkout_of(payload)
-    if checkout is None or not changed(checkout):
+    if checkout is None:
+        return 0
+    if payload.get("hook_event_name") == "SubagentStop" and is_main_checkout(checkout):
+        return 0
+    if not changed(checkout):
         return 0
     command = shlex.split(os.environ.get("DRAFT_GATE_CMD") or GATE)
     proc = subprocess.run(
