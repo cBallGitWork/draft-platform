@@ -101,9 +101,7 @@ export async function fplPlayerCount(): Promise<number> {
 }
 
 export async function plFixtureCount(): Promise<number> {
-  const page = (await getJson(
-    `${PL_API_BASE}/fixtures?comps=1&compSeasons=${PL_COMP_SEASON}&pageSize=400&page=0&altIds=true`,
-  )) as RawPlFixturePage;
+  const page = (await getJson(plFixturesUrl())) as RawPlFixturePage;
   return page.content.length;
 }
 
