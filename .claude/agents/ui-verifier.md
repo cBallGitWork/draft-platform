@@ -38,8 +38,9 @@ node scripts/shoot.mjs <route> <name>    # .shots/<name>-390.png and -1440.png (
 ```
 
 It uses the Mac's Chrome, and prints for each width where the page landed and whether it scrolls
-sideways, and at 390 every tap under 44px (plate.md, The phone): measured, not eyeballed. 390×844
-is the phone and 1440 the desk; they fail differently, so one is never enough.
+sideways, and at 390 every tap under the tap size (`--spacing-tap`; plate.md, The phone):
+measured, not eyeballed. 390×844 is the phone and 1440 the desk; they fail differently, so one is
+never enough.
 
 - **A visitor** sees only the sign-in page: shoot `/`.
 - **A manager**: add `?preview=manager` (`src/preview.ts`): the signed-in frame with made-up

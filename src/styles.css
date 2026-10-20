@@ -1,8 +1,7 @@
 @import "tailwindcss";
 
 /* The Plate look as Tailwind's tokens: docs/design/plate.md has every value and its role.
-   Tailwind's own scales are switched off (.claude/rules/ui.md). The bevel and rule
-   shades are R3·1's (docs/design/mockups/PlateOne.dc.html). */
+   Tailwind's own scales are switched off (.claude/rules/ui.md). */
 @theme {
   --color-*: initial;
   --radius-*: initial;
@@ -27,7 +26,8 @@
   /* the 1px rules between butted tabs: on the plate, and on a panel */
   --color-plate-rule: #001a5e;
   --color-panel-rule: var(--color-ground);
-  /* a panel's lit edge: the top of its bevel, and the line above a section's tabs */
+  /* the lit top of a bevel: on the plate, and on a panel (also the line above a section's tabs) */
+  --color-plate-edge: #4a74e0;
   --color-panel-edge: #3d4fc4;
 
   --font-sans: "Archivo Narrow", "Arial Narrow", sans-serif;
@@ -36,6 +36,7 @@
   --font-weight-bold: 700;
 
   --spacing-tap: 44px; /* every target, at the phone's width (plate.md, The phone) */
+  --spacing-subtab: 36px; /* a section's tabs, on the desk */
 
   --text-data: 13px;
   --text-data--line-height: 20px;
@@ -45,7 +46,7 @@
   --text-title--line-height: 32px;
 
   /* CM's 2px bevel, light above and dark below */
-  --shadow-bevel-plate: inset 0 2px 0 #4a74e0, inset 0 -2px 0 var(--color-plate-rule);
+  --shadow-bevel-plate: inset 0 2px 0 var(--color-plate-edge), inset 0 -2px 0 var(--color-plate-rule);
   --shadow-bevel-panel: inset 0 2px 0 var(--color-panel-edge), inset 0 -2px 0 var(--color-name-plate);
   --shadow-bevel-action: inset 0 2px 0 var(--color-fact), inset 0 -2px 0 var(--color-head);
   --shadow-bevel-action-pressed: inset 0 2px 0 var(--color-head), inset 0 -2px 0 var(--color-fact);

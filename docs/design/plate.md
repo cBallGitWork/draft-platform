@@ -49,7 +49,10 @@ on the desk. Figures use tabular numerals.
 
 - Radius 0 everywhere.
 - CM's bevel, 2px: `inset 0 2px 0` light, `inset 0 -2px 0` dark, on title plates and the top bar.
-- Tabs are butted, separated by 1px rules, never gaps.
+  On the plate, light `#4a74e0` and dark `#001a5e`; on a panel, light `#3d4fc4` and dark
+  `#050a30`. The line above a section's tabs is 1px `#3d4fc4`.
+- Tabs are butted, separated by 1px rules, never gaps: `#001a5e` on the plate, `#0a1240` on a
+  panel. Every tab is 44px tall; a section's tabs are 36px on the desk.
 - Panels sit 8px apart and align to the top (no stretched empty panels).
 - Spacing steps: 4, 8, 12, 16.
 

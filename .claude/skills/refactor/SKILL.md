@@ -46,7 +46,7 @@ pull request is not reworked over borderline duplication: say it in one line and
 
 ## Verify
 
-`/verify` once it exists (`ARCHITECTURE.md`, *With the first code*); until then, the type check
-and the Vitest suite. A change that touches scoring also replays a recorded gameweek and compares
-every point (`docs/REFACTORING.md`, *Proving nothing changed*). If a step fails, fix it and
-rerun from the first.
+`/verify` (`npm run verify`: the tests, the type check and the hook checks). A change that
+touches scoring also replays a recorded gameweek and compares every point
+(`docs/REFACTORING.md`, *Proving nothing changed*). If a step fails, fix it and rerun from the
+first.

@@ -5,13 +5,14 @@ import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { emptyTopBar, type TopBarState } from "./frame/topBarState";
-import { MAIL_PATH, MY_TEAM_PATH, sections } from "./frame/menu";
-import { previewTopBar } from "./preview";
+import { MAIL_PATH, MY_TEAM_PATH } from "./frame/menu";
 import { SIGN_IN_PATH, createShellRouter } from "./router";
 
 afterEach(cleanup);
 // The router restores scroll on every navigation, and jsdom has no scrolling to restore.
 window.scrollTo = () => {};
+
+const threeUnread: TopBarState = { unreadMail: 3, next: { path: MAIL_PATH, reason: "3 unread letters" } };
 
 function openApp(path: string, { signedIn, topBar = emptyTopBar }: { signedIn: boolean; topBar?: TopBarState }) {
   const router = createShellRouter({ signedIn, topBar }, createMemoryHistory({ initialEntries: [path] }));
@@ -60,10 +61,19 @@ describe("a signed-in manager", () => {
     expect(within(tabs).getByRole("link", { current: "page" }).textContent).toBe("Tactics");
   });
 
-  it("sees every section in the menu", async () => {
+  it("sees the eight sections in the menu, in order", async () => {
     openApp(MY_TEAM_PATH, { signedIn: true });
     const main = await screen.findByRole("navigation", { name: "Main" });
-    expect(within(main).getAllByRole("link").map((link) => link.textContent)).toEqual(sections.map((section) => section.label));
+    expect(within(main).getAllByRole("link").map((link) => link.textContent)).toEqual([
+      "Home",
+      "My team",
+      "Matchup",
+      "Table",
+      "Players",
+      "Trades",
+      "Premier League",
+      "Mail",
+    ]);
   });
 
   it("on a section's tab, sees that tab marked, and the section still marked in the menu", async () => {
@@ -82,7 +92,7 @@ describe("a signed-in manager", () => {
   });
 
   it("with unread mail, sees Mail's count in the menu, and Continue going to the next thing", async () => {
-    openApp(MY_TEAM_PATH, { signedIn: true, topBar: previewTopBar });
+    openApp(MY_TEAM_PATH, { signedIn: true, topBar: threeUnread });
     const mail = await screen.findByRole("link", { name: "Mail, 3 unread" });
     expect(mail.getAttribute("href")).toBe(MAIL_PATH);
     expect(within(mail).getByText("3")).toBeTruthy();
