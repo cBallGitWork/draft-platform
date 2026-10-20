@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
 """PreToolUse guard for Bash: the CLAUDE.md "Working" rules, as machinery.
 
-Denies staging everything, force pushes, pushing to main, and committing or pushing
-while on main. The command is split into words the way the shell would, so text
-inside a quoted commit message or a heredoc is never mistaken for a command. The branch and
-the staged lines are read in the folder each git command runs in (the shell's cwd, any cd
-before it, its -C), so a worktree is judged on its own branch, not the project's.
-
-Also denies a commit, pull request or issue that names a word on Craig's private list:
-in the command (message, body, heredoc), a body or message file it reads, or a commit's
-staged lines. The list lives outside the repo (PRIVATE_WORDS, one per line), so this file
-never names them; with no list at the default path, nothing is checked. Not seen: text the
-shell builds at run time, such as -m "$(cat file)", and branch or file names.
+Denies staging everything, force pushes, pushing to main, and committing or pushing while on
+main. Every command the line runs is checked, those it passes as a string to sh -c, eval, env -S
+or $(…) included (commands.py), each in the folder it runs in (the shell's cwd, any cd before it,
+its -C: where.py), so a worktree is judged on its own branch, not the project's. Also denies
+publishing a word on Craig's private list (private_words.py). Where it can't be sure what runs
+or where, it refuses and says how to run the command plainly.
 
 Reads the hook payload (JSON) on stdin; prints a deny decision or nothing.
 Stdlib only, Python 3.9+, because it runs on whatever python3 is present.
@@ -22,69 +17,67 @@ from __future__ import annotations
 import json
 import os
 import re
-import shlex
-import subprocess
 import sys
 
-from where import GIT_VALUE_OPTS, SEPARATORS, current_branch, git_dir, located, runs_at
+from commands import Unbalanced, Unreadable, commands, runs_unknown, short_flags
+from private_words import private_word_problem
+from where import current_branch, git_call, git_dir, previous_branch
 
-HEREDOC = re.compile(r"<<-?[ \t]*(['\"]?)(\w+)\1[^\n]*\n(.*?\n)?[ \t]*\2[ \t]*(\n|$)", re.S)
-PUNCTUATION = ";&|()\n"  # the characters separators are made of
 COMMIT_VALUE_SHORT = set("mFCct")  # in `-am msg` everything after m is the value
-MAIN_REFS = {"main", "refs/heads/main"}
-MAIN_NAMES = {"main", "origin/main"}  # git switch main, git checkout origin/main
+MAIN = "main"
+MAIN_REFS = {MAIN, "refs/heads/" + MAIN}
+MAIN_NAMES = {MAIN, "origin/" + MAIN}  # git switch main, git checkout origin/main
 CREATES_BRANCH = {"-c", "-C", "-b", "-B", "--create", "--force-create", "--orphan"}
-PRIVATE_WORDS = os.environ.get("DRAFT_PRIVATE_WORDS") or os.path.expanduser("~/.claude/private-words.txt")
-GH_PUBLISHING = {("pr", "create"), ("pr", "edit"), ("pr", "comment"), ("pr", "merge"), ("pr", "review"),
-                 ("issue", "create"), ("issue", "edit"), ("issue", "comment"),
-                 ("release", "create"), ("release", "edit")}
-GIT_PUBLISHING = {"commit", "tag"}
-FILE_OPTS = {"-F", "--file", "--body-file"}  # options whose value is a file the text comes from
+ATTACHED_CREATE = re.compile(r"^-[a-zA-Z]*?([cCbB])(.*)$")  # -cmain, -qb main
+PREVIOUS = re.compile(r"^(-|@\{-(\d+)\})$")  # git switch -, git checkout @{-2}
+UNREADABLE = ("Can't read a string that runs as commands (sh -c, eval, env -S, $(…) or backticks): "
+              "its quotes or brackets don't balance. Run the commands plainly, not inside a string.")
+UNKNOWN_PROGRAM = ("Can't tell what program that runs (it's a variable or a $(…)), so the guard can't "
+                   "check it isn't git. Write the program out: vim f, not $EDITOR f; git commit, not $GIT commit.")
+UNKNOWN_FOLDER = ("Can't tell which folder that runs in (a cd that may not take effect or into a "
+                  "folder not made yet, a variable, pushd, an eval with a cd, GIT_DIR, --git-dir, "
+                  "env -C or sudo -D). Run it plainly: cd <folder> && git commit, or git -C <folder> commit.")
+CUT_A_BRANCH = ("Cut a branch first: git switch -c <type>/<thing> origin/main. "
+                "Prefixes: feat/ fix/ refactor/ docs/ chore/.")
+ON_MAIN = "You are on main. " + CUT_A_BRANCH
+SWITCHED_TO_MAIN = ("That switches to main before it commits or pushes (a git switch - counts as main "
+                    "where the guard can't tell which branch it goes back to). " + CUT_A_BRANCH)
 
 
-def segments(cmd):
-    """Each simple command as a list of words, heredoc bodies dropped, and each separator
-    between them as a list of its own, so located() can tell when a cd may not take effect."""
-    cmd = HEREDOC.sub("\n", cmd.replace("\\\n", " "))
-    lex = shlex.shlex(cmd, posix=True, punctuation_chars=PUNCTUATION)
-    lex.whitespace = " \t\r"
-    lex.whitespace_split = True
-    out, cur = [], []
-    for word in lex:
-        if not word.strip(PUNCTUATION):  # shlex joins a run: ");" or ";(" is two separators
-            for sep in re.findall(r"&&|\|\||.", word, re.S):
-                out += [cur, [sep]]
-                cur = []
+def split_creating_options(args):
+    """args with a creating option's attached name split off: --create=main and -cmain become
+    --create main and -c main."""
+    out = []
+    for arg in args:
+        opt, has_value, value = arg.partition("=")
+        attached = ATTACHED_CREATE.match(arg) if not arg.startswith("--") else None
+        if has_value and opt in CREATES_BRANCH:
+            out += [opt, value]
+        elif attached:
+            out.append("-" + attached.group(1))
+            if attached.group(2):
+                out.append(attached.group(2))
         else:
-            cur.append(word)
-    out.append(cur)
-    return [s for s in out if s]
+            out.append(arg)
+    return out
 
 
-def git_call(words):
-    """(subcommand, args) if this simple command runs git, else None."""
-    i = runs_at(words, "git")  # FOO=1 git ..., env git ...
-    if i is None:
-        return None
-    i += 1
-    while i < len(words) and words[i].startswith("-"):
-        i += 2 if words[i] in GIT_VALUE_OPTS else 1
-    if i >= len(words):
-        return None
-    return words[i], words[i + 1 :]
-
-
-def switches_to_main(args):
+def switches_to_main(args, folder):
     """True if git switch or checkout with these args leaves the folder on main: git switch main,
-    git switch -C main. With -- it restores files (git checkout main -- a) and stays put."""
-    if "--" in args:
+    git switch -C main, git switch - back to it. With -- and a path after it, it restores files
+    (git checkout main -- a) and stays put. The branch git switch - goes back to is read in
+    folder; where that's None or git can't say, it counts as main."""
+    args = split_creating_options(args)
+    if "--" in args[:-1]:
         return False
     created = [name for opt, name in zip(args, args[1:]) if opt in CREATES_BRANCH]
-    return bool(MAIN_NAMES & set(created[:1] or args))
-
-
-def short_flags(arg):
-    return arg[1:] if re.match(r"^-[A-Za-z]+$", arg) else ""
+    names = set(created[:1] or args)
+    for name in list(names):
+        back = PREVIOUS.match(name)
+        if back:
+            found = previous_branch(folder, int(back.group(2) or 1)) if folder else None
+            names.add(found or MAIN)
+    return bool(MAIN_NAMES & names)
 
 
 def stages_everything(args):
@@ -132,91 +125,38 @@ def push_problem(args):
     return None
 
 
-def private_words():
-    """The list, [] if there is none at the default path, None if an override can't be read."""
-    try:
-        with open(PRIVATE_WORDS, encoding="utf-8") as f:
-            return [w.strip().lower() for w in f if w.strip() and not w.startswith("#")]
-    except OSError:
-        return None if os.environ.get("DRAFT_PRIVATE_WORDS") else []
-
-
-def publishes(words):
-    """True if this simple command writes text Craig shares: a commit, a PR or an issue."""
-    call = git_call(words)
-    if call:
-        return call[0] in GIT_PUBLISHING
-    i = runs_at(words, "gh")
-    if i is None:
-        return False
-    return words[i + 1 : i + 2] == ["api"] or tuple(words[i + 1 : i + 3]) in GH_PUBLISHING
-
-
-def files_read(words, cwd):
-    """The text of every file a -F/--file/--body-file option points at."""
-    out = []
-    pairs = list(zip(words, words[1:])) + [tuple(w.split("=", 1)) for w in words if "=" in w]
-    for opt, val in pairs:
-        if opt in FILE_OPTS and val != "-":
-            try:
-                with open(os.path.join(cwd, val), encoding="utf-8") as f:
-                    out.append(f.read())
-            except OSError:
-                pass
-    return out
-
-
-def staged_lines(folder):
-    try:
-        diff = subprocess.run(
-            ["git", "-C", folder, "diff", "--cached", "-U0"],
-            capture_output=True, text=True, timeout=5,
-        ).stdout
-    except (OSError, subprocess.SubprocessError):
-        return ""
-    return "\n".join(l for l in diff.splitlines() if l.startswith("+") and not l.startswith("+++"))
-
-
-def private_word_in(cmd, segs, cwd):
-    """The first private word this command would publish, "" for an unreadable list, or None."""
-    publishing = [(s, here) for s, here in located(segs, cwd) if publishes(s)]
-    if not publishing:
-        return None
-    words = private_words()
-    if words is None:
-        return ""
-    texts = [cmd]
-    for s, here in publishing:
-        texts += files_read(s, here or cwd)
-        call, folder = git_call(s), git_dir(s, here)
-        if call and call[0] == "commit" and folder:
-            texts.append(staged_lines(folder))  # an unknown folder is refused below
-    found = "\n".join(texts).lower()
-    return next((w for w in words if w in found), None)
+def deletes_only(args):
+    """True if this push only deletes remote branches (--delete x, or :x), so it pushes nothing
+    from the branch it runs on. Deleting main is refused before this, as a push to main."""
+    refs = [a for a in args if not a.startswith("-")][1:]  # the first is the remote
+    deleting = "--delete" in args or "-d" in args or all(ref.startswith(":") for ref in refs)
+    names = {ref.lstrip(":") for ref in refs}
+    return bool(refs) and deleting and not names & {"HEAD", "@"}
 
 
 def decide(cmd, cwd):
     """A deny reason, or None to allow; cwd is where the shell starts."""
     try:
-        segs = segments(cmd)
-    except ValueError:
-        return None  # unbalanced quotes: the shell would refuse it too
-    word = private_word_in(cmd, segs, cwd)
-    if word == "":
-        return f"The private-word list at {PRIVATE_WORDS} can't be read, so nothing could be checked."
-    if word:
-        return (
-            f"That would publish a word on Craig's private list ({PRIVATE_WORDS}). "
-            "Take it out of the message, the body, or the staged lines."
-        )
-    switched_to_main = False
-    for words, here in located(segs, cwd):
+        cmds = commands(cmd, cwd)
+    except Unbalanced:
+        return None  # zsh runs none of a line whose quotes don't balance (see commands())
+    except Unreadable:
+        return UNREADABLE
+    problem = private_word_problem(cmd, cmds, cwd)
+    if problem:
+        return problem
+    switched, switched_to_main = False, False
+    for words, here in cmds:
+        if runs_unknown(words):
+            return UNKNOWN_PROGRAM
         call = git_call(words)
         if not call:
             continue
         sub, args = call
-        if sub in {"switch", "checkout"} and switches_to_main(args):
-            switched_to_main = True
+        folder = git_dir(words, here)
+        if sub in {"switch", "checkout"}:  # after an earlier switch, git switch - is unsure
+            switched_to_main = switched_to_main or switches_to_main(args, None if switched else folder)
+            switched = True
         if sub == "add" and stages_everything(args):
             return "That stages everything. Stage named paths only: git add path/one path/two."
         if sub == "commit" and commits_all(args):
@@ -228,18 +168,18 @@ def decide(cmd, cwd):
             if problem == "main":
                 return "That pushes to main. Changes reach main only through a squash-merged PR."
         if sub in {"commit", "push"}:
-            folder = git_dir(words, here)
             if folder is None:
-                return (
-                    "Can't tell which folder that runs in (a cd that may not take effect or into a "
-                    "folder not made yet, a variable, pushd, GIT_DIR, --git-dir or env -C). "
-                    "Run it plainly: cd <folder> && git commit, or git -C <folder> commit."
-                )
-            if switched_to_main or current_branch(folder) == "main":
-                return (
-                    "You are on main. Cut a branch first: git switch -c <type>/<thing> origin/main. "
-                    "Prefixes: feat/ fix/ refactor/ docs/ chore/."
-                )
+                return UNKNOWN_FOLDER
+            if sub == "push" and deletes_only(args):
+                continue
+            if switched_to_main:
+                return SWITCHED_TO_MAIN
+            branch = current_branch(folder)
+            if branch is None:
+                return (f"Can't read which branch {folder} is on. "
+                        f"Check that git runs there: git -C {folder} status.")
+            if branch == MAIN:
+                return ON_MAIN
     return None
 
 
