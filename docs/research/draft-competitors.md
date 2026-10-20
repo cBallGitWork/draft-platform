@@ -56,7 +56,7 @@ Craig asked whether we build one. Three judges scored the options out of 10: sta
 product 7.3, a classic mode later 5.3, an FPL rival now 1.0. Craig asked out of curiosity, and
 it is not picked (`docs/to-grill.md`).
 
-- FPL's player count is levelling off (Craig, 20 Oct 2026), after growing almost every season.
+- FPL's player count may be levelling off, after growing almost every season.
   By season's end: 10.91m in 2023/24, 11.50m in 2024/25, about 13.1m in 2025/26 (allaboutfpl.com,
   unofficial, counting bots and duplicate accounts). This season is behind last: 8.95m at the
   Gameweek 1 deadline against about 9.5m, and 11.1m at Gameweek 7 against 11.76m at Gameweek 4 of
