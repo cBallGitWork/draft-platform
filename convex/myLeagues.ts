@@ -10,7 +10,7 @@ import { noLinkReply } from "./signInLinks";
 /** The most leagues one list shows, and of each kind of part in one: the closed beta has a handful. */
 const LEAGUES_SHOWN = 200;
 
-export const leagueRole = v.union(v.literal("commissioner"), v.literal("co-commissioner"), v.literal("manager"));
+const leagueRole = v.union(v.literal("commissioner"), v.literal("co-commissioner"), v.literal("manager"));
 
 export const leagueSummary = v.object({
   leagueId: v.id("leagues"),

@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
-import { adminEmail } from "./allowedEmails";
-import { signedInEmail } from "./leagueAccess";
+import { isAdmin, signedInEmail } from "./leagueAccess";
 import { leagueSummary, leaguesOf } from "./myLeagues";
 
 /** Who this browser is signed in as, or null when signed out, and their leagues (spec/12): in a
@@ -15,8 +14,8 @@ export const signedInAs = query({
   handler: async (ctx) => {
     const email = await signedInEmail(ctx);
     if (email === null) return null;
-    const isAdmin = email === adminEmail();
-    const leagues = await leaguesOf(ctx, email, isAdmin);
-    return { email, isAdmin, inLeague: leagues.some((league) => league.roles.length > 0), leagues };
+    const admin = isAdmin(email);
+    const leagues = await leaguesOf(ctx, email, admin);
+    return { email, isAdmin: admin, inLeague: leagues.some((league) => league.roles.length > 0), leagues };
   },
 });

@@ -2,9 +2,10 @@ import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { internalAction, internalMutation, mutation, type MutationCtx } from "./_generated/server";
-import { adminEmail, admitEmail } from "./allowedEmails";
+import { admitEmail } from "./allowedEmails";
 import {
   callerEmail,
+  isAdmin,
   namedEmail,
   namerOf,
   recordEvent,
@@ -22,11 +23,10 @@ function checkMaxTeams(maxTeams: number): void {
   if (!Number.isInteger(maxTeams) || maxTeams < FEWEST_TEAMS || maxTeams > MOST_TEAMS) refuse(refusals.maxOutOfRange);
 }
 
-/** Lets a newly named person sign in: puts them on the allowed list and, for a commissioner with
- *  no account yet, sends them a sign-in link (spec/13, Creating a league). */
-async function admitNamed(ctx: MutationCtx, email: string, leagueId: Id<"leagues">, sendLink: boolean): Promise<void> {
+/** Lets a newly named commissioner sign in, and sends them a sign-in link if they have no account
+ *  yet (spec/13, Creating a league). */
+async function admitCommissioner(ctx: MutationCtx, email: string, leagueId: Id<"leagues">): Promise<void> {
   await admitEmail(ctx, email);
-  if (!sendLink) return;
   const account = await ctx.db
     .query("users")
     .withIndex("email", (q) => q.eq("email", email))
@@ -39,7 +39,7 @@ export const create = mutation({
   returns: v.id("leagues"),
   handler: async (ctx, args) => {
     const by = await callerEmail(ctx);
-    if (by !== adminEmail()) refuse(refusals.notAdmin);
+    if (!isAdmin(by)) refuse(refusals.notAdmin);
     const name = args.name.trim();
     if (!name) refuse(refusals.blankName);
     checkMaxTeams(args.maxTeams);
@@ -48,7 +48,7 @@ export const create = mutation({
     const leagueId = await ctx.db.insert("leagues", { name, maxTeams: args.maxTeams, commissionerEmail });
     await recordEvent(ctx, leagueId, by, { kind: "created", name, maxTeams: args.maxTeams });
     await recordEvent(ctx, leagueId, by, { kind: "commissionerNamed", email: commissionerEmail });
-    await admitNamed(ctx, commissionerEmail, leagueId, true);
+    await admitCommissioner(ctx, commissionerEmail, leagueId);
     return leagueId;
   },
 });
@@ -80,7 +80,7 @@ export const nameCommissioner = mutation({
     if (email === league.coCommissionerEmail) refuse(refusals.isCoCommissioner(email));
     await ctx.db.patch("leagues", league._id, { commissionerEmail: email });
     await recordEvent(ctx, league._id, by, { kind: "commissionerNamed", email });
-    await admitNamed(ctx, email, league._id, true);
+    await admitCommissioner(ctx, email, league._id);
     return null;
   },
 });
@@ -97,7 +97,7 @@ export const nameCoCommissioner = mutation({
     if (email === (league.coCommissionerEmail ?? null)) return null;
     await ctx.db.patch("leagues", league._id, { coCommissionerEmail: email ?? undefined });
     await recordEvent(ctx, league._id, by, { kind: "coCommissionerNamed", email });
-    if (email !== null) await admitNamed(ctx, email, league._id, false);
+    if (email !== null) await admitEmail(ctx, email);
     return null;
   },
 });

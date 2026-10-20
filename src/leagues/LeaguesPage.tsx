@@ -3,7 +3,7 @@ import type { LeagueSummary } from "../../convex/myLeagues";
 import { NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
 import { adminWords, roleWords, unsentLink, unsentLinkWords } from "./words";
 
-const cellClasses = "px-2 py-0 text-left align-top";
+const cellClasses = "px-2 text-left align-top";
 
 /** "Your leagues" (spec/12): each league the person has a part in, or, for the admin, every
  *  league; with none, a page saying so (spec/02). The admin is offered "Create a league", as only

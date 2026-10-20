@@ -1,9 +1,10 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, type QueryCtx } from "./_generated/server";
-import { adminEmail, admitEmail } from "./allowedEmails";
+import { admitEmail } from "./allowedEmails";
 import {
   callerEmail,
+  isAdmin,
   namedEmail,
   recordEvent,
   refuse,
@@ -86,7 +87,7 @@ export const leave = mutation({
   handler: async (ctx, { leagueId }) => {
     const email = await callerEmail(ctx);
     const team = (await teamsOf(ctx, leagueId)).find((each) => each.managerEmail === email);
-    if (!team) refuse(refusals.notInLeague);
+    if (!team) refuse(refusals.runsNoTeam);
     await ctx.db.patch("teams", team._id, { managerEmail: undefined });
     await recordEvent(ctx, leagueId, email, { kind: "managerLeft", email, teamId: team._id });
     return null;
@@ -101,7 +102,7 @@ export const rename = mutation({
   handler: async (ctx, args) => {
     const by = await callerEmail(ctx);
     const team = (await ctx.db.get("teams", args.teamId)) ?? refuse(refusals.noTeam);
-    if (by !== team.managerEmail && by !== adminEmail()) refuse(refusals.notManager);
+    if (by !== team.managerEmail && !isAdmin(by)) refuse(refusals.notManager);
     const name = args.name.trim();
     if (!name) refuse(refusals.blankName);
     if ([...name].length > TEAM_NAME_MAX) refuse(refusals.teamNameTooLong);
