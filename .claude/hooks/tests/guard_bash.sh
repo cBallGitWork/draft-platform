@@ -58,9 +58,9 @@ check allow guard_bash.py "$(bash_cmd 'git commit -m "clean"')"
 rm "$DRAFT_PRIVATE_WORDS"
 check deny guard_bash.py "$(bash_cmd 'git commit -m "clean"')"  # an override that can't be read
 check allow guard_bash.py "$(bash_cmd 'git status')"
-old_home=$HOME; export DRAFT_PRIVATE_WORDS= HOME="$tmp"
+export DRAFT_PRIVATE_WORDS=  # HOME is $tmp (helpers.sh), which holds no list
 check allow guard_bash.py "$(bash_cmd 'git commit -m "from acmecorp"')"  # no list at the default path, no check
-unset DRAFT_PRIVATE_WORDS; export HOME=$old_home
+unset DRAFT_PRIVATE_WORDS
 
 git -C "$tmp" switch -q -c main
 check deny guard_bash.py "$(bash_cmd 'git commit -m "x"')"

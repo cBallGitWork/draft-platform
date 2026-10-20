@@ -10,3 +10,4 @@ dist/
 convex/_generated/ai/ai-files.state.json
 .claude/worktrees/
 __pycache__/
+.vercel/
