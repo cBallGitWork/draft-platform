@@ -1,6 +1,6 @@
 import type { Infer } from "convex/values";
 import type { MutationCtx } from "./_generated/server";
-import { DAY_MS, linkOffWords } from "./joiningShared";
+import { DAY_MS, linkOffWords, noLinkWords } from "./joiningShared";
 import type { delivery } from "./schema";
 import { EMAILS_PER_DAY, dayOf, type SignInReply } from "./signInLinks";
 
@@ -14,7 +14,7 @@ export const joiningRefusals = {
   inviteEnded: "That invite has ended: the person signed in, or it was cancelled.",
   alreadyInvited: (email: string) => `${email} already has an invite to this league: resend it instead.`,
   inviteWaiting: "That invite waits for tomorrow, when it goes by itself.",
-  noLink: "The league has no invite link.",
+  noLink: noLinkWords,
   linkOff: linkOffWords,
   alreadyIn: "You already run a team in this league.",
   noRequest: "That join request doesn't exist.",

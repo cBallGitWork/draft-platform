@@ -30,13 +30,18 @@ async function liveInvitesTo(ctx: QueryCtx, email: string, now: number) {
   return unexpired.filter((invite) => !hasEnded(invite));
 }
 
-/** The invite, if the caller may run its league, with the league and what an event says of it. */
+/** The name of the vacated team the invite names, or null for a new team. */
+async function teamNameOf(ctx: QueryCtx, invite: Doc<"invites">): Promise<string | null> {
+  return invite.teamId === undefined ? null : ((await ctx.db.get("teams", invite.teamId))?.name ?? null);
+}
+
+/** The invite while it can be resent or cancelled, the runner asking, and whom it's for, as an
+ *  event says. */
 async function inviteToRun(ctx: QueryCtx, inviteId: Id<"invites">) {
   const invite = (await ctx.db.get("invites", inviteId)) ?? refuse(joiningRefusals.noInvite);
   const { email: by } = await runnerOf(ctx, invite.leagueId);
   if (hasEnded(invite)) refuse(joiningRefusals.inviteEnded);
-  const team = invite.teamId === undefined ? null : await ctx.db.get("teams", invite.teamId);
-  const invitedTo = { email: invite.email, teamId: invite.teamId ?? null, teamName: team?.name ?? null };
+  const invitedTo = { email: invite.email, teamId: invite.teamId ?? null, teamName: await teamNameOf(ctx, invite) };
   return { by, invite, invitedTo };
 }
 
@@ -140,7 +145,7 @@ export const recordDelivery = internalMutation({
 });
 
 /** The invite's email, carrying its sign-in link `url` (signInEmail.ts). */
-export const email = internalQuery({
+export const emailWords = internalQuery({
   args: { inviteId: v.string(), url: v.string() },
   returns: v.object({ subject: v.string(), text: v.string() }),
   handler: async (ctx, { inviteId, url }) => {
@@ -149,8 +154,7 @@ export const email = internalQuery({
     if (!invite) throw new Error(`Invite ${inviteId} doesn't exist, so its email can't say what it's for`);
     const league = await ctx.db.get("leagues", invite.leagueId);
     if (!league) throw new Error(`Invite ${inviteId} is to league ${invite.leagueId}, which doesn't exist`);
-    const team = invite.teamId === undefined ? null : await ctx.db.get("teams", invite.teamId);
-    return inviteEmail(url, { leagueName: league.name, invitedBy: invite.invitedBy, teamName: team?.name ?? null });
+    return inviteEmail(url, { leagueName: league.name, invitedBy: invite.invitedBy, teamName: await teamNameOf(ctx, invite) });
   },
 });
 

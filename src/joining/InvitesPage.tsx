@@ -4,7 +4,7 @@ import { EmailInvites } from "./EmailInvites";
 import { InviteLinkPanel } from "./InviteLinkPanel";
 import { RequestsPanel } from "./RequestsPanel";
 import type { InvitesPageData, JoiningSeam } from "./seam";
-import { invitesTitle, notYoursWords, loadingWords, waitingStrip } from "./words";
+import { invitesTitle, loadingWords, notYoursWords, waitingStrip } from "./words";
 
 /** An invite past the day's emails, not yet taken up. */
 const waitsForTomorrow = (invite: InvitesPageData["invites"][number]) =>

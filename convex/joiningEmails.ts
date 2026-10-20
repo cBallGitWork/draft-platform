@@ -1,4 +1,4 @@
-import { INVITE_DAYS } from "./joiningShared";
+import { INVITE_DAYS, aNewTeamWords } from "./joiningShared";
 import { PRODUCT_NAME } from "./signInEmail";
 
 // Joining's emails (#73), in words for Craig to change in the pull request: an invite, which
@@ -7,13 +7,11 @@ import { PRODUCT_NAME } from "./signInEmail";
 /** What an invite's email says of it. */
 export type InviteFacts = { leagueName: string; invitedBy: string; teamName: string | null };
 
-const forTeam = (teamName: string | null) => (teamName === null ? "a new team" : teamName);
-
 export function inviteEmail(url: string, { leagueName, invitedBy, teamName }: InviteFacts) {
   return {
     subject: `You're invited to ${leagueName} on ${PRODUCT_NAME}`,
     text: [
-      `${invitedBy} has invited you to run ${forTeam(teamName)} in ${leagueName} on ${PRODUCT_NAME}.`,
+      `${invitedBy} has invited you to run ${teamName ?? aNewTeamWords} in ${leagueName} on ${PRODUCT_NAME}.`,
       "This link signs you in, and you're in the league:",
       "",
       url,

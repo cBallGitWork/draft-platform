@@ -42,6 +42,7 @@ export const make = mutation({
   },
 });
 
+/** Switches the league's invite link off: it stops working, and the league has none. */
 export const switchOff = mutation({
   args: { leagueId: v.id("leagues") },
   returns: v.null(),

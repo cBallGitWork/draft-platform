@@ -3,7 +3,7 @@
 // screen as is.
 
 import type { Delivery } from "../../convex/joining";
-import { INVITE_DAYS } from "../../convex/joiningShared";
+import { INVITE_DAYS, aNewTeamWords } from "../../convex/joiningShared";
 import { unsentLinkWords } from "../leagues/words";
 
 /** The commissioner's page: its title, and the link to it from their leagues. */
@@ -12,7 +12,7 @@ export const invitesTitle = "Invites and join requests";
 /** The team an invite or an approval is for, when it isn't a vacated one. */
 export const newTeamWords = "A new team";
 export const noTeamWords = "The league is full, with no vacated team to hand on.";
-export const forTeamWords = (teamName: string | null) => `For ${teamName ?? "a new team"}`;
+export const forTeamWords = (teamName: string | null) => `For ${teamName ?? aNewTeamWords}`;
 
 export const inviteHint = `They join when they sign in, with no approval. An invite lasts ${INVITE_DAYS} days.`;
 
@@ -20,11 +20,14 @@ const dayFormat = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "num
 /** A day, as the page shows when an invite ends or a request was made: "Tue 27 Oct". */
 export const dayWords = (time: number) => dayFormat.format(time);
 
+/** Why an invite waits for tomorrow (spec/13). */
+const dayIsSpent = "today's emails have all gone";
+
 /** Where a live invite's email stands. */
 export const deliveryWords: Record<Delivery, (expiresAt: number) => string> = {
   sending: () => "Sending…",
   sent: (expiresAt) => `Sent. It lasts until ${dayWords(expiresAt)}.`,
-  waiting: () => "Waits for tomorrow: today's emails have all gone. It goes by itself.",
+  waiting: () => `Waits for tomorrow: ${dayIsSpent}. It goes by itself.`,
   tryLater: () => `Not sent: ${unsentLinkWords.tryLater}. Resend it later.`,
   notSent: () => `Not sent: ${unsentLinkWords.notSent}. Resend it.`,
 };
@@ -34,14 +37,12 @@ export const couldNotJoinWords = (reason: string) => `Signed in, but couldn't jo
 
 /** The strip telling the commissioner that invites wait for tomorrow (spec/13). */
 export const waitingStrip = (waiting: number) =>
-  `${waiting === 1 ? "1 invite waits" : `${waiting} invites wait`} for tomorrow: today's emails have all gone. ` +
-  "They go by themselves.";
+  `${waiting === 1 ? "1 invite waits" : `${waiting} invites wait`} for tomorrow: ${dayIsSpent}. They go by themselves.`;
 
 export const loadingWords = "Loading…";
 export const notYoursWords = "You don't run this league, or it doesn't exist.";
 
 export const linkHint = "Share it, say in the group chat. Opening it only asks to join: you approve each request.";
-export const noLinkWords = "The league has no invite link.";
 export const noRequestsWords = "No one is waiting.";
 export const noInvitesWords = "No invites yet.";
 
