@@ -50,7 +50,11 @@ export const PLAYER = {
   joelinton: 180974, // four starts in the middle three
   thiaw: 465642, // four starts at centre-back
   steur: 636852, // in Newcastle's squad, on no sheet: a new signing
+  kelleher: 200720, // Brentford's keeper: one start, against Newcastle
 } as const;
+
+/** Brentford's club code in FPL. */
+export const BRENTFORD_CODE = 94;
 
 /** A fresh copy of the recorded payloads, safe to change for one test. */
 export function recordedPositions(): PositionsPayloads {

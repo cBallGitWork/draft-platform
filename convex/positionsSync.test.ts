@@ -154,6 +154,9 @@ test(`one run reads at most ${MATCHES_PER_RUN} matches' sheets, oldest first, an
   }));
   payloads.sheets = copies;
   payloads.fixtureLists = { [PL_LAST_COMP_SEASON]: copies, [PL_COMP_SEASON]: [] };
+  // FPL listing Thiaw alone, so each copy files his one start, not a whole match's: filing every
+  // starter of 152 matches took over the default five seconds on a loaded machine.
+  payloads.fplElements = payloads.fplElements.filter((element) => element.code === PLAYER.thiaw);
 
   const { outcome } = await syncPositionsWith(t, payloads);
 
@@ -162,4 +165,4 @@ test(`one run reads at most ${MATCHES_PER_RUN} matches' sheets, oldest first, an
   expect(filed).toContain(firstCopy + 2);
   expect(filed).not.toContain(firstCopy); // the newest two wait for the next run
   expect(filed).not.toContain(firstCopy + 1);
-});
+}, 30_000);

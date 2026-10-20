@@ -12,9 +12,10 @@ export type Position = (typeof POSITIONS)[number];
  *  450 matches, read 20 Oct 2026), by its label, drawn as its sheet draws it: lines from the keeper
  *  up, each from the side's right to its left (docs/pl-match-stats.md). The keeper's line is left
  *  out: it is always one GK. Wide in a back four is FB, in a back five WB; wide beside a back three
- *  is WB; wide in a flat midfield is WM; wide ahead of midfield is W. A 4-2-3-1's two deepest are
- *  CDM and a 4-3-3's three are CM (spec/06). SS is never a place: the admin marks him. Where the
- *  rule leaves a choice, the labels of the men who started there decided it (docs/positions.md). */
+ *  is WB; wide in a flat midfield is WM; wide ahead of midfield is W. Just ahead of the defence one
+ *  or two men are CDM and three CM; one man behind the forwards is CAM. A 4-2-3-1's two deepest
+ *  are CDM and a 4-3-3's three are CM (spec/06). SS is never a place: the admin marks him. Where
+ *  the rule leaves a choice, the labels of the men who started there decided it (docs/positions.md). */
 export const FORMATION_PLACES: Readonly<Record<string, readonly (readonly Position[])[]>> = {
   "4-2-3-1": [["FB", "CB", "CB", "FB"], ["CDM", "CDM"], ["W", "CAM", "W"], ["ST"]],
   "4-3-3": [["FB", "CB", "CB", "FB"], ["CM", "CM", "CM"], ["W", "ST", "W"]],
@@ -22,13 +23,13 @@ export const FORMATION_PLACES: Readonly<Record<string, readonly (readonly Positi
   "4-4-2": [["FB", "CB", "CB", "FB"], ["WM", "CM", "CM", "WM"], ["ST", "ST"]],
   "4-4-1-1": [["FB", "CB", "CB", "FB"], ["WM", "CM", "CM", "WM"], ["CAM"], ["ST"]],
   "4-3-2-1": [["FB", "CB", "CB", "FB"], ["CM", "CM", "CM"], ["CAM", "CAM"], ["ST"]],
-  // Drawn as a 4-3-2-1, but its two are wide: every one of the six sheets put wingers there.
+  // Drawn as a 4-3-2-1, but its two are the five's wide men, W (docs/positions.md has who).
   "4-5-1": [["FB", "CB", "CB", "FB"], ["CM", "CM", "CM"], ["W", "W"], ["ST"]],
   "4-2-2-2": [["FB", "CB", "CB", "FB"], ["CDM", "CDM"], ["CAM", "CAM"], ["ST", "ST"]],
   "4-1-3-2": [["FB", "CB", "CB", "FB"], ["CDM"], ["W", "CAM", "W"], ["ST", "ST"]],
   "4-3-1-2": [["FB", "CB", "CB", "FB"], ["CM", "CM", "CM"], ["CAM"], ["ST", "ST"]],
   "4-1-2-1-2": [["FB", "CB", "CB", "FB"], ["CDM"], ["CM", "CM"], ["CAM"], ["ST", "ST"]],
-  // The two behind the striker were mostly wingers (Pino, Sarr, Mbeumo), so W rather than CAM.
+  // The two behind the striker were more often wingers than anything else, so W rather than CAM.
   "3-4-2-1": [["CB", "CB", "CB"], ["WB", "CM", "CM", "WB"], ["W", "W"], ["ST"]],
   "3-4-3": [["CB", "CB", "CB"], ["WB", "CM", "CM", "WB"], ["W", "ST", "W"]],
   "3-4-1-2": [["CB", "CB", "CB"], ["WB", "CM", "CM", "WB"], ["CAM"], ["ST", "ST"]],

@@ -3,7 +3,7 @@ import { afterEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { PL_LAST_COMP_SEASON } from "./football";
 import { heldPositions, modules, syncPositionsWith, type TestConvex } from "./positionsSync.harness";
-import { NEWCASTLE, PLAYER, recordedPositions, SHEET } from "./recorded/positions.payloads";
+import { BRENTFORD_CODE, NEWCASTLE, PLAYER, recordedPositions, SHEET } from "./recorded/positions.payloads";
 import schema from "./schema";
 
 afterEach(() => vi.unstubAllGlobals());
@@ -13,7 +13,8 @@ function newcastleMen() {
   return recordedPositions().fplElements.filter((each) => each.team === NEWCASTLE.fplId);
 }
 
-/** Synced from the recorded payloads, with Newcastle's men held by the football sync (#21). */
+/** Synced from the recorded payloads, with Newcastle's men and Brentford's keeper held by the
+ *  football sync (#21). */
 async function synced(): Promise<TestConvex> {
   const t = convexTest(schema, modules);
   await syncPositionsWith(t, recordedPositions());
@@ -21,6 +22,7 @@ async function synced(): Promise<TestConvex> {
     for (const element of newcastleMen()) {
       await ctx.db.insert("players", { code: element.code, name: element.web_name, fullName: element.web_name, clubCode: NEWCASTLE.code });
     }
+    await ctx.db.insert("players", { code: PLAYER.kelleher, name: "Kelleher", fullName: "Caoimhín Kelleher", clubCode: BRENTFORD_CODE });
   });
   return t;
 }
@@ -44,8 +46,9 @@ test("approving a player confirms what his starts give him, and drops his label"
   expect((await t.query(internal.playerPositions.ofPlayer, { code: PLAYER.woltemade })).proposals).toEqual([]);
 });
 
-test("approving a club approves each of its men, and one with too few starts keeps his label, confirmed", async () => {
+test("approving a club approves each of its men and no other club's, and one with too few starts keeps his label, confirmed", async () => {
   const t = await synced();
+  expect(await heldPositions(t, PLAYER.kelleher)).toEqual({ GK: "label?" });
 
   const approved = await t.mutation(internal.playerPositions.approveClub, { clubCode: NEWCASTLE.code });
 
@@ -53,6 +56,7 @@ test("approving a club approves each of its men, and one with too few starts kee
   expect(await heldPositions(t, PLAYER.barnes)).toEqual({ W: "starts" });
   expect(await heldPositions(t, PLAYER.thiaw)).toEqual({ CB: "starts" });
   expect(await heldPositions(t, PLAYER.hall)).toEqual({ FB: "label" }); // two starts at full back
+  expect(await heldPositions(t, PLAYER.kelleher)).toEqual({ GK: "label?" }); // another club's, untouched
 });
 
 test("a new signing with no starts plays on his label, unconfirmed until the admin approves him", async () => {
