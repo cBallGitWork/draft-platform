@@ -96,7 +96,9 @@ The steps (push the action to the dev deployment, run it twice, how to read what
   player and fixture codes, both feeds merged by spec/07's split
   ([docs/pl-match-stats.md](docs/pl-match-stats.md#one-record-per-player-per-match)).
   `convex/matchStatsSync.ts` reads each match the Premier League calls full time; every run,
-  failed or not, is a row in `matchStatsSyncs`. The lock is a scheduled function, so it fires
+  failed or not, is a row in `matchStatsSyncs`. A run reads ten matches at most, the least
+  lately tried first (`matchStatsTries`), so ones that fail or wait every run hold up no newer
+  match. The lock is a scheduled function, so it fires
   with no run due; the window is a row in `platformSettings`.
   **No cron runs it yet.** The suggestion is every 10 minutes: full time counts from the first
   read that finds it, so a match locks up to one interval after its true hour. A run with no

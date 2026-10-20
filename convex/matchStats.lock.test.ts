@@ -15,7 +15,7 @@ import {
   withHullEverton,
   withPlReadEmpty,
 } from "./matchStats.harness";
-import { FULL_STATS, recordedGw6 } from "./recorded/gw6.payloads";
+import { FULL_STATS, recordedGw6, type Gw6Payloads } from "./recorded/gw6.payloads";
 import schema from "./schema";
 
 beforeEach(() => vi.useFakeTimers());
@@ -150,7 +150,7 @@ test("a locked match is read again now and then for late corrections, until the 
   expect(await due(lockedAt + LATE_CORRECTION_WATCH_MS)).toBe(0);
 });
 
-test("a run takes the oldest due matches first, a gameweek's worth at most", async () => {
+test("a run takes due matches never tried oldest first, a gameweek's worth at most", async () => {
   const t = convexTest(schema, modules);
   const count = MATCHES_PER_RUN + 2;
   await t.run(async (ctx) => {
@@ -165,4 +165,48 @@ test("a run takes the oldest due matches first, a gameweek's worth at most", asy
   expect(due.map((match) => match.fixtureCode)).toEqual(
     Array.from({ length: MATCHES_PER_RUN }, (_, index) => count - index),
   );
+});
+
+/** A Premier League id for each stuck match the list names, clear of the recorded ones. */
+const STUCK_PL_ID = 900_000;
+/** Not yet over: any status but `PL_FULL_TIME`. */
+const NOT_OVER = "U";
+
+test.each([
+  ["fails", "failed", (payloads: Gw6Payloads) => payloads],
+  [
+    "waits",
+    "waiting",
+    (payloads: Gw6Payloads, codes: number[]) => {
+      const notOver = codes.map((code, index) => ({ id: STUCK_PL_ID + index, altIds: { opta: `g${code}` }, status: NOT_OVER }));
+      payloads.pl.round.content.push(...notOver);
+      return payloads;
+    },
+  ],
+] as const)("a run's worth of older matches that %s every run keeps no newer match from being read", async (_what, stuckAs, stick) => {
+  const t = await withHullEverton();
+  // Older than Hull v Everton; the Premier League's list leaves each out (so it fails) or has it not over.
+  const stuck = Array.from({ length: MATCHES_PER_RUN + 1 }, (_, index) => index + 1);
+  await t.run(async (ctx) => {
+    for (const code of stuck) {
+      await ctx.db.insert("fixtures", { code, gameweek: GAMEWEEK, homeClubCode: 1, awayClubCode: 2, kickoff: KICKOFF - code * MS_PER_MINUTE });
+    }
+  });
+  const tried = new Map<number, string>();
+  const run = async (time: number) => {
+    const { outcome } = await syncAt(t, time, stick(recordedGw6(), stuck));
+    if (!outcome.ok) throw new Error(outcome.error);
+    for (const match of outcome.matches) tried.set(match.fixtureCode, match.ok ? match.state : "failed");
+    for (const fixtureCode of outcome.waiting) tried.set(fixtureCode, "waiting");
+  };
+
+  const secondRun = FULL_TIME_READ + 10 * MS_PER_MINUTE;
+  await run(FULL_TIME_READ);
+  await run(secondRun);
+
+  expect((await heldMatch(t)).status).toMatchObject({ state: "complete", fullTimeAt: secondRun });
+  expect(Object.fromEntries(tried)).toEqual({
+    ...Object.fromEntries(stuck.map((code) => [code, stuckAs])),
+    [HULL_EVERTON]: "complete",
+  });
 });

@@ -176,6 +176,8 @@ const matchStatsTables = {
   }).index("by_fixtureCode_and_playerCode", ["fixtureCode", "playerCode"]),
   platformSettings: defineTable({ name: platformSettingName, value: v.number() }).index("by_name", ["name"]),
   matchStatsSyncs: defineTable(matchStatsSyncFields),
+  /** When a run last tried each match, read or not: one that never reads steps behind the rest. */
+  matchStatsTries: defineTable({ fixtureCode: v.number(), triedAt: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
 };
 
 export default defineSchema({

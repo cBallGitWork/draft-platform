@@ -22,17 +22,19 @@ const EARLIEST_FULL_TIME_MS = 105 * MS_PER_MINUTE;
  *  often: Claude's choice, not yet Craig's, and no late correction has been recorded to size it. */
 export const LATE_CORRECTION_WATCH_MS = 24 * HOUR_MS;
 export const LATE_READ_EVERY_MS = HOUR_MS;
-/** Matches per run, oldest first: a gameweek's worth, so a first run behind many keeps inside an action's time. */
+/** Matches per run: a gameweek's worth, so a first run behind many keeps inside an action's time. */
 export const MATCHES_PER_RUN = 10;
 /** How many run rows `latest` returns. */
 const LATEST_RUNS = 5;
 
-/** The held matches to read now, oldest kickoff first: each past full time and not locked, or
- *  locked within the watch and not read for an hour. */
+/** The held matches to read now: each past full time and not locked, or locked within the watch
+ *  and not read for an hour. Those never tried come first, then the least lately tried, oldest
+ *  kickoff first among equals, so a run's worth that fail, wait or stay provisional every run
+ *  cannot keep a newer match from being read. */
 export const due = internalQuery({
   args: { now: v.number() },
   handler: async (ctx, { now }): Promise<DueMatch[]> => {
-    const found: (DueMatch & { kickoff: number })[] = [];
+    const found: (DueMatch & { kickoff: number; triedAt: number })[] = [];
     // A season's 380, at most a few seasons' worth: the fixtures table has no kickoff index to range on.
     for await (const { code, gameweek, kickoff, droppedAt } of ctx.db.query("fixtures")) {
       if (droppedAt !== undefined || gameweek === null || kickoff === null) continue;
@@ -42,10 +44,13 @@ export const due = internalQuery({
         status?.lockedAt !== undefined &&
         now - status.lockedAt < LATE_CORRECTION_WATCH_MS &&
         now - status.lastReadAt >= LATE_READ_EVERY_MS;
-      if (status?.state !== "locked" || lateWatched) found.push({ fixtureCode: code, gameweek, kickoff });
+      if (status?.state !== "locked" || lateWatched) {
+        const triedAt = (await triedOf(ctx, code))?.triedAt ?? Number.NEGATIVE_INFINITY;
+        found.push({ fixtureCode: code, gameweek, kickoff, triedAt });
+      }
     }
     return found
-      .sort((a, b) => a.kickoff - b.kickoff)
+      .sort((a, b) => a.triedAt - b.triedAt || a.kickoff - b.kickoff)
       .slice(0, MATCHES_PER_RUN)
       .map(({ fixtureCode, gameweek }) => ({ fixtureCode, gameweek }));
   },
@@ -102,10 +107,17 @@ export const lock = internalMutation({
   },
 });
 
+/** The run's row, and every match it tried marked tried then, whether it read, waited or failed. */
 export const record = internalMutation({
   args: matchStatsSyncFields,
   handler: async (ctx, row) => {
     await ctx.db.insert("matchStatsSyncs", row);
+    if (!row.outcome.ok) return;
+    for (const fixtureCode of [...row.outcome.matches.map((match) => match.fixtureCode), ...row.outcome.waiting]) {
+      const tried = await triedOf(ctx, fixtureCode);
+      if (tried === null) await ctx.db.insert("matchStatsTries", { fixtureCode, triedAt: row.ranAt });
+      else await ctx.db.patch("matchStatsTries", tried._id, { triedAt: row.ranAt });
+    }
   },
 });
 
@@ -117,6 +129,13 @@ export const latest = internalQuery({
 function statusOf(ctx: QueryCtx, fixtureCode: number) {
   return ctx.db
     .query("matchStatsStatus")
+    .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
+    .unique();
+}
+
+function triedOf(ctx: QueryCtx, fixtureCode: number) {
+  return ctx.db
+    .query("matchStatsTries")
     .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
     .unique();
 }
