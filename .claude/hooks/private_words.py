@@ -74,7 +74,8 @@ def private_word_problem(cmd, cmds, cwd):
         if call and call[0] == "commit" and folder:  # an unknown folder is refused by the guard
             staged = git_output(folder, "diff", "--cached", "-U0")
             if staged is None:
-                return f"Can't read the staged lines in {folder}, so they couldn't be checked for private words."
+                return (f"Can't read the staged lines in {folder}, "
+                        "so they couldn't be checked for private words.")
             texts.append(added_lines(staged))
     found = "\n".join(texts).lower()
     if any(w in found for w in private):

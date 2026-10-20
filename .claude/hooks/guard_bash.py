@@ -2,9 +2,9 @@
 """PreToolUse guard for Bash: the CLAUDE.md "Working" rules, as machinery.
 
 Denies staging everything, force pushes, pushing to main, and committing or pushing while on
-main. Every command the line runs is checked, those it passes as a string included (sh -c, eval,
-env -S, $(…), commands.py), each in the folder it runs in (the shell's cwd, any cd before it,
-its -C, where.py), so a worktree is judged on its own branch, not the project's. Also denies
+main. Every command the line runs is checked, those it passes as a string to sh -c, eval, env -S
+or $(…) included (commands.py), each in the folder it runs in (the shell's cwd, any cd before it,
+its -C: where.py), so a worktree is judged on its own branch, not the project's. Also denies
 publishing a word on Craig's private list (private_words.py). Where it can't be sure what runs
 or where, it refuses and says how to run the command plainly.
 
@@ -19,13 +19,14 @@ import os
 import re
 import sys
 
-from commands import Unreadable, commands, runs_unknown
+from commands import Unreadable, commands, runs_unknown, short_flags
 from private_words import private_word_problem
 from where import current_branch, git_call, git_dir, previous_branch
 
 COMMIT_VALUE_SHORT = set("mFCct")  # in `-am msg` everything after m is the value
-MAIN_REFS = {"main", "refs/heads/main"}
-MAIN_NAMES = {"main", "origin/main"}  # git switch main, git checkout origin/main
+MAIN = "main"
+MAIN_REFS = {MAIN, "refs/heads/" + MAIN}
+MAIN_NAMES = {MAIN, "origin/" + MAIN}  # git switch main, git checkout origin/main
 CREATES_BRANCH = {"-c", "-C", "-b", "-B", "--create", "--force-create", "--orphan"}
 ATTACHED_CREATE = re.compile(r"^-[a-zA-Z]*?([cCbB])(.*)$")  # -cmain, -qb main
 PREVIOUS = re.compile(r"^(-|@\{-(\d+)\})$")  # git switch -, git checkout @{-2}
@@ -36,7 +37,8 @@ UNKNOWN_PROGRAM = ("Can't tell what program that runs: the command is a variable
 UNKNOWN_FOLDER = ("Can't tell which folder that runs in (a cd that may not take effect or into a "
                   "folder not made yet, a variable, pushd, an eval with a cd, GIT_DIR, --git-dir, "
                   "env -C or sudo -D). Run it plainly: cd <folder> && git commit, or git -C <folder> commit.")
-CUT_A_BRANCH = "Cut a branch first: git switch -c <type>/<thing> origin/main. Prefixes: feat/ fix/ refactor/ docs/ chore/."
+CUT_A_BRANCH = ("Cut a branch first: git switch -c <type>/<thing> origin/main. "
+                "Prefixes: feat/ fix/ refactor/ docs/ chore/.")
 ON_MAIN = "You are on main. " + CUT_A_BRANCH
 SWITCHED_TO_MAIN = ("That switches to main before it commits or pushes (a git switch - counts as main "
                     "where the guard can't tell which branch it goes back to). " + CUT_A_BRANCH)
@@ -70,15 +72,12 @@ def switches_to_main(args, folder):
         return False
     created = [name for opt, name in zip(args, args[1:]) if opt in CREATES_BRANCH]
     names = set(created[:1] or args)
-    for back in [PREVIOUS.match(name) for name in names]:
+    for name in list(names):
+        back = PREVIOUS.match(name)
         if back:
             found = previous_branch(folder, int(back.group(2) or 1)) if folder else None
-            names = names | {found or "main"}
+            names.add(found or MAIN)
     return bool(MAIN_NAMES & names)
-
-
-def short_flags(arg):
-    return arg[1:] if re.match(r"^-[A-Za-z]+$", arg) else ""
 
 
 def stages_everything(args):
@@ -177,8 +176,9 @@ def decide(cmd, cwd):
                 return SWITCHED_TO_MAIN
             branch = current_branch(folder)
             if branch is None:
-                return f"Can't read which branch {folder} is on. Check that git runs there: git -C {folder} status."
-            if branch == "main":
+                return (f"Can't read which branch {folder} is on. "
+                        f"Check that git runs there: git -C {folder} status.")
+            if branch == MAIN:
                 return ON_MAIN
     return None
 

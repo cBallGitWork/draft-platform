@@ -142,7 +142,7 @@ for c in 'git switch -C main && git commit -m x' 'git checkout -B main origin/ma
   check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
 done
 for c in 'git switch --create=main' 'git switch -cmain' 'git checkout -bmain' 'git checkout main --'; do
-  check deny guard_bash.py "$(bash_in "$tmp/sub" "$c && git commit -m x")"  # other spellings of the same
+  check deny guard_bash.py "$(bash_in "$tmp/sub" "$c && git commit -m x")"  # attached, or a bare --: still main
 done
 for c in 'git switch --create=feat/y' 'git switch -cfeat/y' 'git checkout -bfeat/y'; do
   check allow guard_bash.py "$(bash_in "$tmp/sub" "$c && git commit -m x")"
@@ -168,7 +168,7 @@ for c in 'sh -c "git commit -m x"' "bash -c 'git commit -m x'" 'zsh -c "git comm
   check allow guard_bash.py "$(bash_in "$tmp/sub" "$c")"
 done
 check deny guard_bash.py "$(bash_in "$tmp/sub" 'sh -c "git add -A"')"
-# a cd inside a string counts only inside it; an eval's runs here, so the folder after it is unsure
+# a cd inside a string counts only inside it; one in an eval, a builtin cd or sudo -D moves the folder
 check allow guard_bash.py "$(bash_cmd 'sh -c "cd sub && git commit -m x"')"
 check deny guard_bash.py "$(bash_cmd 'sh -c "cd sub" && git commit -m x')"
 for c in 'eval "cd .."; git commit -m x' 'builtin cd .. && git commit -m x' 'sudo -D /tmp git commit -m x'; do

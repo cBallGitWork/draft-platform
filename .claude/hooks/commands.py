@@ -8,11 +8,10 @@ shell leaves the folder after it unsure (where.py). Stdlib only, Python 3.9+.
 
 from __future__ import annotations
 
-import os
 import re
 import shlex
 
-from where import located, program_index, moved_by_runner, runner_options
+from where import SPLIT_STRING, located, moved_by_runner, program_index, program_name, runner_options
 
 HEREDOC = re.compile(r"<<-?[ \t]*(['\"]?)(\w+)\1([^\n]*)\n(.*?\n)?[ \t]*\2[ \t]*(\n|$)", re.S)
 PUNCTUATION = ";&|()\n"  # the characters separators are made of
@@ -22,7 +21,8 @@ BACKTICKED = re.compile(r"(?:\\.|[^`\\])*`", re.S)  # the rest of a `…`, up to
 WORD_START = " \t\n;&|()"  # a # after one of these starts a comment
 SHELLS = {"sh", "bash", "zsh", "dash", "ksh"}
 SHELL_VALUE_OPTS = {"-o", "+o", "-O", "+O", "--rcfile", "--init-file"}
-UNKNOWN_PROGRAM = re.compile("[$`\x01]")  # $GIT commit, "$(which git)" commit
+FILLED_IN = re.compile("[$`\x01]")  # a word the shell fills in: $GIT, "$(which git)"
+SHORT_FLAGS = re.compile(r"^-[A-Za-z]+$")  # -lc, -am
 
 
 class Unreadable(Exception):
@@ -38,13 +38,14 @@ def commands(cmd, cwd):
     for words, here in located(segs, cwd):
         out.append((words, here))
         for n in (int(n) for word in words for n in MARKED.findall(word)):
-            out += _inner(lifted[n], here)
-        for string in strings_run(words):  # a marker in one was run by this shell, above
-            out += _inner(MARKED.sub("$_", string), None if moved_by_runner(words) else here)
+            out += _commands_in_string(lifted[n], here)
+        inner_here = None if moved_by_runner(words) else here
+        for string in strings_run(words):  # its $(…) ran in this shell, above: the next sees output
+            out += _commands_in_string(MARKED.sub("$_", string), inner_here)
     return out
 
 
-def _inner(string, here):
+def _commands_in_string(string, here):
     try:
         return commands(string, here)
     except ValueError:
@@ -59,12 +60,16 @@ def parse(cmd):
 
     def keep_the_line(heredoc):  # an unquoted heredoc's $(…) runs too
         quoted, rest, body = heredoc.group(1), heredoc.group(3), heredoc.group(4) or ""
-        marks = "" if quoted else " ".join(m.group() for m in MARKED.finditer(lift(body, lifted, False)))
-        return f" {marks} {rest}\n"
+        if quoted:
+            return f" {rest}\n"
+        marks = MARKED.findall(lift_substitutions(body, lifted, quotes=False))
+        return " " + " ".join(MARK.format(n) for n in marks) + f" {rest}\n"
 
-    text = lift(HEREDOC.sub(keep_the_line, cmd.replace("\\\n", " ")), lifted)
+    text = lift_substitutions(HEREDOC.sub(keep_the_line, cmd.replace("\\\n", " ")), lifted)
     lex = shlex.shlex(text, posix=True, punctuation_chars=PUNCTUATION)
-    lex.whitespace, lex.whitespace_split, lex.commenters = " \t\r", True, ""  # lift() drops comments
+    lex.whitespace = " \t\r"
+    lex.whitespace_split = True
+    lex.commenters = ""  # comments are dropped above; shlex would start one inside a word (a#b)
     out, cur = [], []
     for word in lex:
         if not word.strip(PUNCTUATION):  # shlex joins a run: ");" or ";(" is two separators
@@ -77,7 +82,7 @@ def parse(cmd):
     return [s for s in out if s], lifted
 
 
-def lift(text, lifted, quotes=True, closer=False):
+def lift_substitutions(text, lifted, quotes=True, closer=False):
     """text with each $(…) and `…` the shell runs (any not in single quotes) swapped for a marker
     and comments dropped, appending what each marker stands for to lifted. quotes=False reads a
     heredoc body, where quote marks and # are plain text. With closer, reads a $(…)'s inside and
@@ -93,7 +98,10 @@ def lift(text, lifted, quotes=True, closer=False):
             continue
         elif text.startswith("$(", i) or c == "`":
             start = i + (2 if c == "$" else 1)
-            end = lift(text[start:], [], closer=True) + start if c == "$" else _backtick_end(text, start)
+            if c == "$":
+                end = start + lift_substitutions(text[start:], [], closer=True)
+            else:
+                end = _backtick_end(text, start)
             lifted.append(text[start:end])
             out.append(MARK.format(len(lifted) - 1))
             i = end + 1
@@ -126,10 +134,9 @@ def _backtick_end(text, start):
 
 def strings_run(words):
     """The strings this simple command hands to a shell to run: sh -c "…", eval …, env -S '…'."""
-    i = program_index(words)
+    i, program = program_index(words), program_name(words)
     out = [value + " " + shlex.join(words[i:]) for runner, opt, value in runner_options(words)
-           if runner == "env" and opt in {"-S", "--split-string"}]
-    program = os.path.basename(words[i]) if i < len(words) else ""
+           if runner == "env" and opt in SPLIT_STRING]
     if program == "eval":
         out.append(" ".join(words[i + 1 :]))
     elif program in SHELLS:
@@ -141,7 +148,7 @@ def _dash_c(args):
     """The string a shell runs with -c (bash -lc "…"), [] if it runs a file or stdin."""
     has_c, i = False, 0
     while i < len(args) and args[i].startswith(("-", "+")) and args[i] not in {"-", "--"}:
-        has_c = has_c or (re.match(r"^-[a-zA-Z]+$", args[i]) is not None and "c" in args[i])
+        has_c = has_c or "c" in short_flags(args[i])
         i += 2 if args[i] in SHELL_VALUE_OPTS else 1
     if args[i : i + 1] == ["--"]:
         i += 1
@@ -150,5 +157,9 @@ def _dash_c(args):
 
 def runs_unknown(words):
     """True if the program this simple command runs is a variable or a $(…)."""
-    i = program_index(words)
-    return i < len(words) and UNKNOWN_PROGRAM.search(os.path.basename(words[i])) is not None
+    return FILLED_IN.search(program_name(words)) is not None
+
+
+def short_flags(arg):
+    """The letters of a cluster of short options (-lc gives lc), "" for anything else."""
+    return arg[1:] if SHORT_FLAGS.match(arg) else ""

@@ -14,6 +14,7 @@ from __future__ import annotations
 import os
 import re
 import subprocess
+from collections import namedtuple
 
 GIT_VALUE_OPTS = {"-C", "-c", "--git-dir", "--work-tree", "--namespace"}
 SEPARATORS = {";", "&", "&&", "|", "||", "(", ")", "\n"}
@@ -23,20 +24,22 @@ UNFOLLOWABLE = re.compile(r"[$`]|^-")  # a cd or -C the guard can't follow: a va
 MOVES_THE_SHELL = re.compile(r"\b(cd|pushd|popd)\b|\bGIT_(DIR|WORK_TREE)=")  # inside an eval's string
 # shell words a command can sit behind: { git commit; }, if ...; then git commit
 KEYWORDS = {"{", "}", "!", "if", "then", "else", "elif", "fi", "while", "until", "do", "done"}
-# programs that run the command after them here: for each, its options that take a value, how
-# many arguments come before the command (timeout 5 git), and its options that move the folder
+SPLIT_STRING = {"-S", "--split-string"}  # env -S 'git commit': a string env splits and runs
+# a program that runs the command after it, here: its options that take a value, how many
+# arguments come before the command (timeout 5 git), and its options that move the folder
+Runner = namedtuple("Runner", "takes_value args_before_command moves_folder")
 RUNNERS = {
-    "env": ({"-u", "--unset", "-C", "--chdir", "-S", "--split-string", "-P", "-L", "-U"}, 0,
-            {"-C", "--chdir"}),
-    "sudo": ({"-u", "--user", "-g", "--group", "-h", "--host", "-p", "--prompt", "-r", "--role",
-              "-t", "--type", "-U", "--other-user", "-C", "--close-from", "-D", "--chdir",
-              "-T", "--command-timeout"}, 0, {"-D", "--chdir", "-i", "--login"}),
-    "xargs": ({"-I", "-L", "-n", "-P", "-s", "-E", "-d", "-a", "--max-lines", "--max-args",
-               "--max-procs", "--max-chars", "--eof", "--delimiter", "--arg-file"}, 0, set()),
-    "timeout": ({"-s", "--signal", "-k", "--kill-after"}, 1, set()),
-    "nice": ({"-n", "--adjustment"}, 0, set()),
-    "exec": ({"-a"}, 0, set()),
-    **{name: (set(), 0, set()) for name in ("command", "builtin", "nohup", "time")},
+    "env": Runner({"-u", "--unset", "-C", "--chdir", "-P", "-L", "-U", *SPLIT_STRING}, 0,
+                  {"-C", "--chdir"}),
+    "sudo": Runner({"-u", "--user", "-g", "--group", "-h", "--host", "-p", "--prompt", "-r", "--role",
+                    "-t", "--type", "-U", "--other-user", "-C", "--close-from", "-D", "--chdir",
+                    "-T", "--command-timeout"}, 0, {"-D", "--chdir", "-i", "--login"}),
+    "xargs": Runner({"-I", "-L", "-n", "-P", "-s", "-E", "-d", "-a", "--max-lines", "--max-args",
+                     "--max-procs", "--max-chars", "--eof", "--delimiter", "--arg-file"}, 0, set()),
+    "timeout": Runner({"-s", "--signal", "-k", "--kill-after"}, 1, set()),
+    "nice": Runner({"-n", "--adjustment"}, 0, set()),
+    "exec": Runner({"-a"}, 0, set()),
+    **{name: Runner(set(), 0, set()) for name in ("command", "builtin", "nohup", "time")},
 }
 
 
@@ -90,7 +93,7 @@ def runner_options(words):
 
 def moved_by_runner(words):
     """True if a runner's option may run the program elsewhere: env -C, sudo -D, sudo -i."""
-    return any(opt in RUNNERS[runner][2] for runner, opt, _ in runner_options(words))
+    return any(opt in RUNNERS[runner].moves_folder for runner, opt, _ in runner_options(words))
 
 
 def _past_runners(words):
@@ -109,7 +112,7 @@ def _past_runners(words):
 
 def _past_one_runner(words, i, opts):
     runner = os.path.basename(words[i])
-    takes_value, before_command, _ = RUNNERS[runner]
+    takes_value = RUNNERS[runner].takes_value
     i += 1
     while i < len(words) and words[i].startswith("-"):
         word, i = words[i], i + 1
@@ -129,13 +132,18 @@ def _past_one_runner(words, i, opts):
                 opts.append((runner, opt, value))
                 break
             opts.append((runner, opt, ""))
-    return i + before_command
+    return i + RUNNERS[runner].args_before_command
+
+
+def program_name(words):
+    """The program this simple command runs, as a file name (git for /usr/bin/git), or ""."""
+    i = program_index(words)
+    return os.path.basename(words[i]) if i < len(words) else ""
 
 
 def runs_at(words, program):
     """Where `program` is in this simple command, None if it doesn't run it."""
-    i = program_index(words)
-    return i if i < len(words) and os.path.basename(words[i]) == program else None
+    return program_index(words) if program_name(words) == program else None
 
 
 def git_call(words):
@@ -183,7 +191,7 @@ def git_dir(words, here):
 
 
 def git_output(folder, *args):
-    """What git prints run in folder, None if it fails or can't run."""
+    """git's output, run in folder; None if it fails or can't run."""
     try:
         done = subprocess.run(["git", "-C", folder, *args], capture_output=True, text=True, timeout=5)
     except (OSError, subprocess.SubprocessError):
