@@ -1,3 +1,6 @@
+import { mkdtempSync, readdirSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { afterEach, expect, test, vi } from "vitest";
 import { plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../convex/football.ts";
 import {
@@ -7,22 +10,24 @@ import {
   recordedTeamStats,
   UPCOMING_MATCH,
 } from "../convex/recorded/commentary.payloads.ts";
-import {
-  AFTER_FULL_TIME_MS,
-  fixtureStatus,
-  GIVE_UP_MS,
-  LEAD_MS,
-  phase,
-  poll,
-  pollReads,
-  summaryLine,
-} from "./record-match.mjs";
+import { fixtureStatus, phase, poll, pollReads, record, summaryLine } from "./record-match.mjs";
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 const BRENTFORD_LIVERPOOL = COMMENTARY_MATCH.brentfordLiverpool;
 const IPSWICH_FOREST = UPCOMING_MATCH;
 const KICKOFF = Date.UTC(2026, 9, 23, 19);
+// Pinned here, not imported, so a change to the recorder's timings fails a test.
+const MINUTE = 60_000;
+const POLL = 30_000;
+const PAUSE = 1_000;
+const LEAD = 60 * MINUTE;
+const AFTER_FULL_TIME = 15 * MINUTE;
+const GIVE_UP = 4 * 60 * MINUTE;
 
 test("a poll reads the commentary, the fixture and the team stats, in that order, on the seam's URLs", () => {
   expect(pollReads(IPSWICH_FOREST).map((read) => read.url)).toEqual([
@@ -32,14 +37,18 @@ test("a poll reads the commentary, the fixture and the team stats, in that order
   ]);
 });
 
+const FULL_TIME_SEEN = KICKOFF + 115 * MINUTE;
+
 test.each([
-  ["a minute before the hour before kickoff", KICKOFF - LEAD_MS - 60_000, null, "wait"],
-  ["the hour before kickoff", KICKOFF - LEAD_MS, null, "record"],
-  ["during the match", KICKOFF + 45 * 60_000, null, "record"],
-  ["full time, just seen", KICKOFF + 115 * 60_000, KICKOFF + 115 * 60_000, "record"],
-  ["the quarter hour after full time", KICKOFF + 130 * 60_000, KICKOFF + 130 * 60_000 - AFTER_FULL_TIME_MS, "stop"],
-  ["hours on, with no full time seen", KICKOFF + GIVE_UP_MS, null, "stop"],
-])("%s is %s", (_when, now, fullTimeSeenAt, expected) => {
+  ["a minute before the hour before kickoff", "wait", KICKOFF - LEAD - MINUTE, null],
+  ["the hour before kickoff", "record", KICKOFF - LEAD, null],
+  ["during the match", "record", KICKOFF + 45 * MINUTE, null],
+  ["full time, just seen", "record", FULL_TIME_SEEN, FULL_TIME_SEEN],
+  ["a minute short of the quarter hour after full time", "record", FULL_TIME_SEEN + AFTER_FULL_TIME - MINUTE, FULL_TIME_SEEN],
+  ["the quarter hour after full time", "stop", FULL_TIME_SEEN + AFTER_FULL_TIME, FULL_TIME_SEEN],
+  ["a minute short of four hours on, with no full time seen", "record", KICKOFF + GIVE_UP - MINUTE, null],
+  ["four hours on, with no full time seen", "stop", KICKOFF + GIVE_UP, null],
+])("%s is %s", (_when, expected, now, fullTimeSeenAt) => {
   expect(phase(now, KICKOFF, fullTimeSeenAt)).toBe(expected);
 });
 
@@ -102,4 +111,70 @@ test("before kickoff, a poll sums up as no commentary, no one named and no team 
   };
 
   expect(summaryLine(saved)).toBe("12:00:00 UTC  |  commentary: none  |  status U, clock -, named 0+0  |  team stats: none");
+});
+
+test("a fixture read with no team sheets at all sums up as no one named", () => {
+  const saved = { polledAt: "2026-10-20T12:00:00.000Z", reads: [{ kind: "fixture", body: { status: "U" } }] };
+  expect(summaryLine(saved)).toBe("12:00:00 UTC  |  status U, clock -, named -");
+});
+
+/** Runs the recorder from `startAt` against a fake feed whose fixture status is `statusAt(now)`;
+ *  gives the time of each read of each kind and the number of polls saved. */
+async function recordAgainst(startAt, statusAt) {
+  vi.useFakeTimers({ now: startAt });
+  vi.spyOn(console, "log").mockImplementation(() => {});
+  const asked = { commentary: [], fixture: [], teamStats: [] };
+  const answer = (body) => ({ ok: true, status: 200, json: async () => body });
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url) => {
+      if (url === plCommentaryUrl(IPSWICH_FOREST)) {
+        asked.commentary.push(Date.now());
+        return answer({ events: { content: [] } });
+      }
+      if (url === plTeamStatsUrl(IPSWICH_FOREST)) {
+        asked.teamStats.push(Date.now());
+        return answer({ entity: { id: IPSWICH_FOREST } });
+      }
+      if (url !== plFixtureUrl(IPSWICH_FOREST)) throw new Error(`no fake for ${url}`);
+      asked.fixture.push(Date.now());
+      return answer({ id: IPSWICH_FOREST, kickoff: { millis: KICKOFF }, status: statusAt(Date.now()) });
+    }),
+  );
+  const dir = mkdtempSync(join(tmpdir(), "record-match-"));
+  try {
+    let done = false;
+    const recording = record(IPSWICH_FOREST, dir).finally(() => (done = true));
+    while (!done) await vi.advanceTimersByTimeAsync(MINUTE);
+    await recording;
+    return { asked, polls: readdirSync(dir).length };
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+const gapsOf = (times) => times.slice(1).map((time, index) => time - times[index]);
+
+test("the recorder waits for the hour before kickoff, polls every 30 seconds, and stops a quarter hour after full time", async () => {
+  const fullTimeAt = KICKOFF + 112 * MINUTE;
+  const statusAt = (now) => (now < KICKOFF ? "U" : now < fullTimeAt ? "L" : "C");
+
+  const { asked, polls } = await recordAgainst(KICKOFF - LEAD - 5.5 * MINUTE, statusAt);
+
+  const [firstPoll] = asked.commentary;
+  const lastPoll = asked.commentary.at(-1);
+  expect(firstPoll).toBe(KICKOFF - LEAD);
+  expect(new Set(gapsOf(asked.commentary))).toEqual(new Set([POLL]));
+  // The first fixture read is for the kickoff time; each poll's comes a second after its commentary.
+  expect(asked.fixture.slice(1).map((time, index) => time - asked.commentary[index])).toEqual(asked.commentary.map(() => PAUSE));
+  expect(asked.teamStats.map((time, index) => time - asked.commentary[index])).toEqual(asked.commentary.map(() => 2 * PAUSE));
+  // Full time is seen at the first poll on or after it; the last poll is the one a quarter hour on.
+  expect(lastPoll).toBe(fullTimeAt + AFTER_FULL_TIME);
+  expect(polls).toBe(asked.commentary.length);
+});
+
+test("a match that never reaches full time stops being recorded four hours after kickoff", async () => {
+  const { asked } = await recordAgainst(KICKOFF - LEAD, () => "L");
+
+  expect(asked.commentary.at(-1)).toBe(KICKOFF + GIVE_UP - POLL);
 });

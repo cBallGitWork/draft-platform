@@ -22,11 +22,11 @@ import { getJson, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../conve
 const MINUTE_MS = 60_000;
 const POLL_MS = 30_000;
 /** spec/10 wants the lineups about an hour before kickoff, so recording starts then. */
-export const LEAD_MS = 60 * MINUTE_MS;
+const LEAD_MS = 60 * MINUTE_MS;
 /** Kept on after full time, for late lines and corrected totals. */
-export const AFTER_FULL_TIME_MS = 15 * MINUTE_MS;
+const AFTER_FULL_TIME_MS = 15 * MINUTE_MS;
 /** A match abandoned, or a status that never turns to full time, stops recording here. */
-export const GIVE_UP_MS = 4 * 60 * MINUTE_MS;
+const GIVE_UP_MS = 4 * 60 * MINUTE_MS;
 /** Between one read and the next in a poll: politeness, not a rule of the feed. */
 const PAUSE_MS = 1_000;
 /** The fixture's `status` once the match is over ("U" before it, "C" after). */
@@ -127,7 +127,8 @@ function teamStatsSummary(body, fixture) {
 /** A poll's file name: its time, sortable, with no colons. */
 const fileName = (polledAt) => `${polledAt.replaceAll(":", "-")}.json`;
 
-async function record(fixtureId, dir) {
+/** Waits for the hour before kickoff, then polls every 30 seconds into `dir` until `phase` says stop. */
+export async function record(fixtureId, dir) {
   const url = plFixtureUrl(fixtureId);
   const kickoffMs = (await getJson(url)).kickoff?.millis;
   if (typeof kickoffMs !== "number") throw new Error(`${url} answered with no kickoff time`);
