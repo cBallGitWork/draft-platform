@@ -7,8 +7,7 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 
 - Every stat the two free feeds give per player per match (confirmed by #7), each with a plain
   name and a short code. A league can score any of them; roles (`spec/05`) draw on the same list.
-  The names and codes are written with the first scoring set; until then stats are stored under
-  the feeds' own names (`/grill match stats`, 20 Oct 2026).
+  The names and codes are written with the first scoring set (`/grill match stats`, 20 Oct 2026).
 - No FPL bonus points.
 
 ## How a rule scores
