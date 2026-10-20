@@ -36,7 +36,9 @@ export function LiveApp({ linkCode }: { linkCode: string | null }) {
       </p>
     );
   }
-  // The link's code is redeemed below, so Convex Auth's own reading of the address is off.
+  // The link's code is redeemed below, and was taken out of the address before this mounted.
+  // Convex Auth's own reading of the address is off too: a code works once, so a second redeem
+  // would turn a good link into "expired" (liveApp.provider.test.tsx).
   return (
     <ConvexAuthProvider client={client} shouldHandleCode={false}>
       <LiveShell linkCode={linkCode} />
