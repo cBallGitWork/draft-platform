@@ -34,10 +34,12 @@ export const due = internalQuery({
   args: { now: v.number() },
   handler: async (ctx, { now }): Promise<DueMatch[]> => {
     const found: (DueMatch & { kickoff: number; triedAt: number })[] = [];
-    // A season's 380, at most a few seasons' worth: the fixtures table has no kickoff index to range on.
-    for await (const { code, gameweek, kickoff, droppedAt } of ctx.db.query("fixtures")) {
+    // A fixture with no kickoff sorts before every time in the index, so it is read and passed over.
+    const pastFullTime = ctx.db
+      .query("fixtures")
+      .withIndex("by_kickoff", (q) => q.lte("kickoff", now - EARLIEST_FULL_TIME_MS));
+    for await (const { code, gameweek, kickoff, droppedAt } of pastFullTime) {
       if (droppedAt !== undefined || gameweek === null || kickoff === null) continue;
-      if (now < kickoff + EARLIEST_FULL_TIME_MS) continue;
       const status = await statusOf(ctx, code);
       const lateWatched =
         status?.lockedAt !== undefined &&

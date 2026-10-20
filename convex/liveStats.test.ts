@@ -10,6 +10,10 @@ import type { TestConvex } from "./test.harness";
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
+/** The replay runs a tick a minute for over a hundred minutes: about 3 s of work, and 5 to 16 s
+ *  when other runs share the machine, past vitest's default 5 s. */
+const REPLAY_TIMEOUT_MS = 60_000;
+
 type Records = ReturnType<typeof mergedHullEverton>;
 
 /** The men whose records differ between two stages. */
@@ -29,8 +33,9 @@ test("a replayed match moves every minute, provisional, names who moved, and end
   let before: Records = [];
   const points: (number | null)[] = [];
   for (let minute = 0; minute <= REPLAY_MINUTES; minute += 1) {
-    const { latest } = await tickAt(t, stageTime(minute), stagedGw6(minute));
-    const expected = mergedHullEverton(stagedGw6(minute));
+    const stage = stagedGw6(minute);
+    const { latest } = await tickAt(t, stageTime(minute), stage);
+    const expected = mergedHullEverton(stage);
     const moved = movedBetween(before, expected);
 
     expect(moved.length).toBeGreaterThan(0);
@@ -38,7 +43,7 @@ test("a replayed match moves every minute, provisional, names who moved, and end
       ranAt: stageTime(minute),
       outcome: { ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: true, state: "provisional", changed: moved }] },
     });
-    expect(await heldRecords(t)).toEqual(recordsIn(stagedGw6(minute), "provisional"));
+    expect(await heldRecords(t)).toEqual(recordsIn(stage, "provisional"));
     points.push(await belloumiPoints(t));
     before = expected;
   }
@@ -58,7 +63,7 @@ test("a replayed match moves every minute, provisional, names who moved, and end
   expect(status).toMatchObject({ state: "complete", fullTimeAt: fullTime, completeAt: fullTime });
   expect(await heldRecords(t)).toEqual(recordsIn(recordedGw6(), "complete"));
   expect(await belloumiPoints(t)).toBe(5);
-});
+}, REPLAY_TIMEOUT_MS);
 
 test("once the match is complete the next tick reads no feed and records nothing", async () => {
   const t = await withHullEverton();
