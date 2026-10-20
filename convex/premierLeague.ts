@@ -2,9 +2,9 @@
 // The raw shapes and the reads are copied from epl-draft's packages/core/src/football/premierleague/
 // (raw.ts, rawStats.ts and client.ts, 20 Oct 2026), not shared, and cut to what #27 and #22 read.
 // The reads sit behind the football seam (`football.ts`), on its URLs and its `getJson`, so every
-// failed read throws with the URL and the status.
+// failed read throws with the URL and the status, and every body missing what is read with the URL.
 
-import { getJson, plFixturesUrl, plFixtureUrl, plPlayerStatsUrl } from "./football";
+import { getShaped, hasId, plFixturesUrl, plFixtureUrl, plPlayerStatsUrl } from "./football";
 
 // The shapes the Premier League answers: data we do not control. Only the fields read are typed.
 
@@ -60,16 +60,24 @@ export interface RawPlPlayerStats {
 
 /** One gameweek's fixtures, or the season's, each with its FPL join (`altIds`). */
 export async function readPlFixtures(gameweek?: number): Promise<RawPlFixture[]> {
-  const page = (await getJson(plFixturesUrl(gameweek))) as RawPlFixturePage;
+  const page = await getShaped<RawPlFixturePage>(
+    plFixturesUrl(gameweek),
+    "list of fixtures with ids",
+    (body) => Array.isArray(body.content) && body.content.every(hasId),
+  );
   return page.content;
 }
 
 /** One fixture in full: both team sheets and their formations. */
 export async function readPlFixture(fixtureId: number): Promise<RawPlFixture> {
-  return (await getJson(plFixtureUrl(fixtureId))) as RawPlFixture;
+  return getShaped<RawPlFixture>(plFixtureUrl(fixtureId), "fixture id", hasId);
 }
 
 /** One man's stats in one match, by the Premier League's ids for both. */
 export async function readPlPlayerStats(playerId: number, fixtureId: number): Promise<RawPlPlayerStats> {
-  return (await getJson(plPlayerStatsUrl(playerId, fixtureId))) as RawPlPlayerStats;
+  return getShaped<RawPlPlayerStats>(
+    plPlayerStatsUrl(playerId, fixtureId),
+    "player entity and stats list",
+    (body) => hasId(body.entity) && Array.isArray(body.stats),
+  );
 }

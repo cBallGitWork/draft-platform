@@ -131,8 +131,10 @@ Never written down before; from gameweek 6 (`convex/fplLive.ts`, `convex/recorde
   `penalties_saved`, `penalties_missed`, `yellow_cards`, `red_cards`, `saves`, `bonus`, `bps` (which
   can be negative) and `defensive_contribution`. These are per match even in a double gameweek, but
   there are no minutes among them.
-- The two feeds differ on minutes: at Hull v Everton every starter taken off has one minute fewer
-  in FPL than in Opta's `mins_played` (Grealish 85 against 86); the substitutes agree.
+- The two feeds differ on minutes: at Hull v Everton nine of the ten starters taken off have one
+  minute fewer in FPL than in Opta's `mins_played` (Grealish 85 against 86); Gelhardt, off at 64,
+  is 64 in both. The ten substitutes who came on agree; the eight unused have 0 in FPL and no
+  `mins_played` in Opta.
 
 ## Where a man lined up
 

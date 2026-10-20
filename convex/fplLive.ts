@@ -4,7 +4,7 @@
 // rather than becoming epl-draft's fields, and players and matches come out as FPL's season-stable
 // codes, never its per-season ids.
 
-import { fplLiveUrl, getJson } from "./football";
+import { fplLiveUrl, getShaped, hasId } from "./football";
 import type { RawBootstrap, RawFixture } from "./fpl";
 
 /** One scoring stat in one match. `points` and `points_modification` are FPL's scoring, not read. */
@@ -35,7 +35,11 @@ export interface FplStatLine {
 
 /** A gameweek's live stats; `{elements: []}` until its first match kicks off. */
 export async function readFplLive(gameweek: number): Promise<RawLive> {
-  return (await getJson(fplLiveUrl(gameweek))) as RawLive;
+  return getShaped<RawLive>(
+    fplLiveUrl(gameweek),
+    "list of players with ids",
+    (body) => Array.isArray(body.elements) && body.elements.every(hasId),
+  );
 }
 
 /** A line for each player for each match he had in the gameweek. A match's own block gives its
