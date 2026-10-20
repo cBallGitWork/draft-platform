@@ -1,0 +1,1445 @@
+{
+ "pageInfo": {
+  "page": 0,
+  "numPages": 1,
+  "pageSize": 20,
+  "numEntries": 10
+ },
+ "content": [
+  {
+   "gameweek": {
+    "id": 19766.0,
+    "compSeason": {
+     "label": "English Premier League Season 2026/2027",
+     "competition": {
+      "abbreviation": "EN_PR",
+      "description": "Premier League",
+      "level": "SEN",
+      "source": "",
+      "id": 1.0,
+      "altIds": {
+       "opta": "8"
+      }
+     },
+     "id": 841.0
+    },
+    "gameweek": 6.0,
+    "competitionPhase": {
+     "id": 8163.0,
+     "type": "L",
+     "gameweekRange": [
+      1.0,
+      38.0
+     ]
+    }
+   },
+   "kickoff": {
+    "completeness": 3.0,
+    "millis": 1791631800000.0,
+    "label": "Sat 10 Oct 2026, 12:30 BST",
+    "gmtOffset": 1.0
+   },
+   "provisionalKickoff": {
+    "completeness": 3.0,
+    "millis": 1791631800000.0,
+    "label": "Sat 10 Oct 2026, 12:30 BST",
+    "gmtOffset": 1.0
+   },
+   "teams": [
+    {
+     "team": {
+      "name": "Arsenal",
+      "club": {
+       "name": "Arsenal",
+       "shortName": "Arsenal",
+       "abbr": "ARS",
+       "id": 1.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Arsenal",
+      "id": 1.0,
+      "altIds": {
+       "opta": "t3"
+      }
+     },
+     "score": 2.0
+    },
+    {
+     "team": {
+      "name": "Leeds United",
+      "club": {
+       "name": "Leeds United",
+       "shortName": "Leeds",
+       "abbr": "LEE",
+       "id": 9.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Leeds",
+      "id": 9.0,
+      "altIds": {
+       "opta": "t2"
+      }
+     },
+     "score": 1.0
+    }
+   ],
+   "replay": false,
+   "ground": {
+    "name": "Emirates Stadium",
+    "city": "London",
+    "source": "OPTA",
+    "id": 9523.0
+   },
+   "neutralGround": false,
+   "status": "C",
+   "phase": "F",
+   "outcome": "H",
+   "attendance": 60315.0,
+   "clock": {
+    "secs": 5760.0,
+    "label": "90+6'00"
+   },
+   "fixtureType": "REGULAR",
+   "extraTime": false,
+   "shootout": false,
+   "goals": [
+    {
+     "personId": 13515.0,
+     "assistId": 75543.0,
+     "clock": {
+      "secs": 3300.0,
+      "label": "55'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 69914.0,
+     "assistId": 14548.0,
+     "clock": {
+      "secs": 3720.0,
+      "label": "62'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 74761.0,
+     "assistId": 15202.0,
+     "clock": {
+      "secs": 4200.0,
+      "label": "70'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    }
+   ],
+   "penaltyShootouts": [],
+   "behindClosedDoors": false,
+   "id": 128973.0,
+   "altIds": {
+    "opta": "g2645245"
+   }
+  },
+  {
+   "gameweek": {
+    "id": 19766.0,
+    "compSeason": {
+     "label": "English Premier League Season 2026/2027",
+     "competition": {
+      "abbreviation": "EN_PR",
+      "description": "Premier League",
+      "level": "SEN",
+      "source": "",
+      "id": 1.0,
+      "altIds": {
+       "opta": "8"
+      }
+     },
+     "id": 841.0
+    },
+    "gameweek": 6.0,
+    "competitionPhase": {
+     "id": 8163.0,
+     "type": "L",
+     "gameweekRange": [
+      1.0,
+      38.0
+     ]
+    }
+   },
+   "kickoff": {
+    "completeness": 3.0,
+    "millis": 1791640800000.0,
+    "label": "Sat 10 Oct 2026, 15:00 BST",
+    "gmtOffset": 1.0
+   },
+   "provisionalKickoff": {
+    "completeness": 3.0,
+    "millis": 1791640800000.0,
+    "label": "Sat 10 Oct 2026, 15:00 BST",
+    "gmtOffset": 1.0
+   },
+   "teams": [
+    {
+     "team": {
+      "name": "Aston Villa",
+      "club": {
+       "name": "Aston Villa",
+       "shortName": "Aston Villa",
+       "abbr": "AVL",
+       "id": 2.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Aston Villa",
+      "id": 2.0,
+      "altIds": {
+       "opta": "t7"
+      }
+     },
+     "score": 2.0
+    },
+    {
+     "team": {
+      "name": "Brentford",
+      "club": {
+       "name": "Brentford",
+       "shortName": "Brentford",
+       "abbr": "BRE",
+       "id": 130.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Brentford",
+      "id": 130.0,
+      "altIds": {
+       "opta": "t94"
+      }
+     },
+     "score": 2.0
+    }
+   ],
+   "replay": false,
+   "ground": {
+    "name": "Villa Park",
+    "city": "Birmingham",
+    "source": "OPTA",
+    "id": 9518.0
+   },
+   "neutralGround": false,
+   "status": "C",
+   "phase": "F",
+   "outcome": "D",
+   "attendance": 36636.0,
+   "clock": {
+    "secs": 5820.0,
+    "label": "90+7'00"
+   },
+   "fixtureType": "REGULAR",
+   "extraTime": false,
+   "shootout": false,
+   "goals": [
+    {
+     "personId": 128891.0,
+     "clock": {
+      "secs": 600.0,
+      "label": "10'00"
+     },
+     "phase": "1",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 110526.0,
+     "clock": {
+      "secs": 720.0,
+      "label": "12'00"
+     },
+     "phase": "1",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 51423.0,
+     "assistId": 304175.0,
+     "clock": {
+      "secs": 4620.0,
+      "label": "77'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 20113.0,
+     "assistId": 50460.0,
+     "clock": {
+      "secs": 4740.0,
+      "label": "79'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    }
+   ],
+   "penaltyShootouts": [],
+   "behindClosedDoors": false,
+   "id": 128974.0,
+   "altIds": {
+    "opta": "g2645246"
+   }
+  },
+  {
+   "gameweek": {
+    "id": 19766.0,
+    "compSeason": {
+     "label": "English Premier League Season 2026/2027",
+     "competition": {
+      "abbreviation": "EN_PR",
+      "description": "Premier League",
+      "level": "SEN",
+      "source": "",
+      "id": 1.0,
+      "altIds": {
+       "opta": "8"
+      }
+     },
+     "id": 841.0
+    },
+    "gameweek": 6.0,
+    "competitionPhase": {
+     "id": 8163.0,
+     "type": "L",
+     "gameweekRange": [
+      1.0,
+      38.0
+     ]
+    }
+   },
+   "kickoff": {
+    "completeness": 3.0,
+    "millis": 1791640800000.0,
+    "label": "Sat 10 Oct 2026, 15:00 BST",
+    "gmtOffset": 1.0
+   },
+   "provisionalKickoff": {
+    "completeness": 3.0,
+    "millis": 1791640800000.0,
+    "label": "Sat 10 Oct 2026, 15:00 BST",
+    "gmtOffset": 1.0
+   },
+   "teams": [
+    {
+     "team": {
+      "name": "Chelsea",
+      "club": {
+       "name": "Chelsea",
+       "shortName": "Chelsea",
+       "abbr": "CHE",
+       "id": 4.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Chelsea",
+      "id": 4.0,
+      "altIds": {
+       "opta": "t8"
+      }
+     },
+     "score": 5.0
+    },
+    {
+     "team": {
+      "name": "Bournemouth",
+      "club": {
+       "name": "Bournemouth",
+       "shortName": "Bournemouth",
+       "abbr": "BOU",
+       "id": 127.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Bournemouth",
+      "id": 127.0,
+      "altIds": {
+       "opta": "t91"
+      }
+     },
+     "score": 1.0
+    }
+   ],
+   "replay": false,
+   "ground": {
+    "name": "Stamford Bridge",
+    "city": "London",
+    "source": "OPTA",
+    "id": 9519.0
+   },
+   "neutralGround": false,
+   "status": "C",
+   "phase": "F",
+   "outcome": "H",
+   "attendance": 39676.0,
+   "clock": {
+    "secs": 5760.0,
+    "label": "90+6'00"
+   },
+   "fixtureType": "REGULAR",
+   "extraTime": false,
+   "shootout": false,
+   "goals": [
+    {
+     "personId": 3712.0,
+     "assistId": 49293.0,
+     "clock": {
+      "secs": 120.0,
+      "label": "02'00"
+     },
+     "phase": "1",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 23968.0,
+     "assistId": 3712.0,
+     "clock": {
+      "secs": 180.0,
+      "label": "03'00"
+     },
+     "phase": "1",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 72371.0,
+     "assistId": 21998.0,
+     "clock": {
+      "secs": 2760.0,
+      "label": "46'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 33032.0,
+     "clock": {
+      "secs": 3060.0,
+      "label": "51'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 72371.0,
+     "assistId": 70585.0,
+     "clock": {
+      "secs": 4020.0,
+      "label": "67'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 3712.0,
+     "clock": {
+      "secs": 4200.0,
+      "label": "70'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    }
+   ],
+   "penaltyShootouts": [],
+   "behindClosedDoors": false,
+   "id": 128975.0,
+   "altIds": {
+    "opta": "g2645247"
+   }
+  },
+  {
+   "gameweek": {
+    "id": 19766.0,
+    "compSeason": {
+     "label": "English Premier League Season 2026/2027",
+     "competition": {
+      "abbreviation": "EN_PR",
+      "description": "Premier League",
+      "level": "SEN",
+      "source": "",
+      "id": 1.0,
+      "altIds": {
+       "opta": "8"
+      }
+     },
+     "id": 841.0
+    },
+    "gameweek": 6.0,
+    "competitionPhase": {
+     "id": 8163.0,
+     "type": "L",
+     "gameweekRange": [
+      1.0,
+      38.0
+     ]
+    }
+   },
+   "kickoff": {
+    "completeness": 3.0,
+    "millis": 1791640800000.0,
+    "label": "Sat 10 Oct 2026, 15:00 BST",
+    "gmtOffset": 1.0
+   },
+   "provisionalKickoff": {
+    "completeness": 3.0,
+    "millis": 1791640800000.0,
+    "label": "Sat 10 Oct 2026, 15:00 BST",
+    "gmtOffset": 1.0
+   },
+   "teams": [
+    {
+     "team": {
+      "name": "Ipswich Town",
+      "club": {
+       "name": "Ipswich Town",
+       "shortName": "Ipswich",
+       "abbr": "IPS",
+       "id": 8.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Ipswich",
+      "id": 8.0,
+      "altIds": {
+       "opta": "t40"
+      }
+     },
+     "score": 2.0
+    },
+    {
+     "team": {
+      "name": "Fulham",
+      "club": {
+       "name": "Fulham",
+       "shortName": "Fulham",
+       "abbr": "FUL",
+       "id": 34.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Fulham",
+      "id": 34.0,
+      "altIds": {
+       "opta": "t54"
+      }
+     },
+     "score": 1.0
+    }
+   ],
+   "replay": false,
+   "ground": {
+    "name": "Portman Road",
+    "city": "Ipswich",
+    "source": "OPTA",
+    "id": 9568.0
+   },
+   "neutralGround": false,
+   "status": "C",
+   "phase": "F",
+   "outcome": "H",
+   "attendance": 29445.0,
+   "clock": {
+    "secs": 5820.0,
+    "label": "90+7'00"
+   },
+   "fixtureType": "REGULAR",
+   "extraTime": false,
+   "shootout": false,
+   "goals": [
+    {
+     "personId": 14656.0,
+     "clock": {
+      "secs": 3300.0,
+      "label": "55'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 126111.0,
+     "clock": {
+      "secs": 5280.0,
+      "label": "88'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 15154.0,
+     "assistId": 32715.0,
+     "clock": {
+      "secs": 5460.0,
+      "label": "90+1'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    }
+   ],
+   "penaltyShootouts": [],
+   "behindClosedDoors": false,
+   "id": 128979.0,
+   "altIds": {
+    "opta": "g2645251"
+   }
+  },
+  {
+   "gameweek": {
+    "id": 19766.0,
+    "compSeason": {
+     "label": "English Premier League Season 2026/2027",
+     "competition": {
+      "abbreviation": "EN_PR",
+      "description": "Premier League",
+      "level": "SEN",
+      "source": "",
+      "id": 1.0,
+      "altIds": {
+       "opta": "8"
+      }
+     },
+     "id": 841.0
+    },
+    "gameweek": 6.0,
+    "competitionPhase": {
+     "id": 8163.0,
+     "type": "L",
+     "gameweekRange": [
+      1.0,
+      38.0
+     ]
+    }
+   },
+   "kickoff": {
+    "completeness": 3.0,
+    "millis": 1791640800000.0,
+    "label": "Sat 10 Oct 2026, 15:00 BST",
+    "gmtOffset": 1.0
+   },
+   "provisionalKickoff": {
+    "completeness": 3.0,
+    "millis": 1791640800000.0,
+    "label": "Sat 10 Oct 2026, 15:00 BST",
+    "gmtOffset": 1.0
+   },
+   "teams": [
+    {
+     "team": {
+      "name": "Sunderland",
+      "club": {
+       "name": "Sunderland",
+       "shortName": "Sunderland",
+       "abbr": "SUN",
+       "id": 29.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Sunderland",
+      "id": 29.0,
+      "altIds": {
+       "opta": "t56"
+      }
+     },
+     "score": 0.0
+    },
+    {
+     "team": {
+      "name": "Brighton & Hove Albion",
+      "club": {
+       "name": "Brighton and Hove Albion",
+       "shortName": "Brighton",
+       "abbr": "BHA",
+       "id": 131.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Brighton",
+      "id": 131.0,
+      "altIds": {
+       "opta": "t36"
+      }
+     },
+     "score": 2.0
+    }
+   ],
+   "replay": false,
+   "ground": {
+    "name": "Stadium of Light",
+    "city": "Sunderland",
+    "source": "OPTA",
+    "id": 2010.0
+   },
+   "neutralGround": false,
+   "status": "C",
+   "phase": "F",
+   "outcome": "A",
+   "attendance": 47196.0,
+   "clock": {
+    "secs": 5880.0,
+    "label": "90+8'00"
+   },
+   "fixtureType": "REGULAR",
+   "extraTime": false,
+   "shootout": false,
+   "goals": [
+    {
+     "personId": 67928.0,
+     "assistId": 22542.0,
+     "clock": {
+      "secs": 3180.0,
+      "label": "53'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 126175.0,
+     "assistId": 51830.0,
+     "clock": {
+      "secs": 5580.0,
+      "label": "90+3'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    }
+   ],
+   "penaltyShootouts": [],
+   "behindClosedDoors": false,
+   "id": 128982.0,
+   "altIds": {
+    "opta": "g2645254"
+   }
+  },
+  {
+   "gameweek": {
+    "id": 19766.0,
+    "compSeason": {
+     "label": "English Premier League Season 2026/2027",
+     "competition": {
+      "abbreviation": "EN_PR",
+      "description": "Premier League",
+      "level": "SEN",
+      "source": "",
+      "id": 1.0,
+      "altIds": {
+       "opta": "8"
+      }
+     },
+     "id": 841.0
+    },
+    "gameweek": 6.0,
+    "competitionPhase": {
+     "id": 8163.0,
+     "type": "L",
+     "gameweekRange": [
+      1.0,
+      38.0
+     ]
+    }
+   },
+   "kickoff": {
+    "completeness": 3.0,
+    "millis": 1791649800000.0,
+    "label": "Sat 10 Oct 2026, 17:30 BST",
+    "gmtOffset": 1.0
+   },
+   "provisionalKickoff": {
+    "completeness": 3.0,
+    "millis": 1791649800000.0,
+    "label": "Sat 10 Oct 2026, 17:30 BST",
+    "gmtOffset": 1.0
+   },
+   "teams": [
+    {
+     "team": {
+      "name": "Manchester United",
+      "club": {
+       "name": "Manchester United",
+       "shortName": "Man Utd",
+       "abbr": "MUN",
+       "id": 12.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Man Utd",
+      "id": 12.0,
+      "altIds": {
+       "opta": "t1"
+      }
+     },
+     "score": 1.0
+    },
+    {
+     "team": {
+      "name": "Tottenham Hotspur",
+      "club": {
+       "name": "Tottenham Hotspur",
+       "shortName": "Spurs",
+       "abbr": "TOT",
+       "id": 21.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Spurs",
+      "id": 21.0,
+      "altIds": {
+       "opta": "t6"
+      }
+     },
+     "score": 1.0
+    }
+   ],
+   "replay": false,
+   "ground": {
+    "name": "Old Trafford",
+    "city": "Manchester",
+    "source": "OPTA",
+    "id": 9516.0
+   },
+   "neutralGround": false,
+   "status": "C",
+   "phase": "F",
+   "outcome": "D",
+   "attendance": 74129.0,
+   "clock": {
+    "secs": 6000.0,
+    "label": "90+10'00"
+   },
+   "fixtureType": "REGULAR",
+   "extraTime": false,
+   "shootout": false,
+   "goals": [
+    {
+     "personId": 66360.0,
+     "assistId": 51202.0,
+     "clock": {
+      "secs": 4380.0,
+      "label": "73'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 10443.0,
+     "assistId": 71623.0,
+     "clock": {
+      "secs": 5520.0,
+      "label": "90+2'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    }
+   ],
+   "penaltyShootouts": [],
+   "behindClosedDoors": false,
+   "id": 128981.0,
+   "altIds": {
+    "opta": "g2645253"
+   }
+  },
+  {
+   "gameweek": {
+    "id": 19766.0,
+    "compSeason": {
+     "label": "English Premier League Season 2026/2027",
+     "competition": {
+      "abbreviation": "EN_PR",
+      "description": "Premier League",
+      "level": "SEN",
+      "source": "",
+      "id": 1.0,
+      "altIds": {
+       "opta": "8"
+      }
+     },
+     "id": 841.0
+    },
+    "gameweek": 6.0,
+    "competitionPhase": {
+     "id": 8163.0,
+     "type": "L",
+     "gameweekRange": [
+      1.0,
+      38.0
+     ]
+    }
+   },
+   "kickoff": {
+    "completeness": 3.0,
+    "millis": 1791723600000.0,
+    "label": "Sun 11 Oct 2026, 14:00 BST",
+    "gmtOffset": 1.0
+   },
+   "provisionalKickoff": {
+    "completeness": 3.0,
+    "millis": 1791723600000.0,
+    "label": "Sun 11 Oct 2026, 14:00 BST",
+    "gmtOffset": 1.0
+   },
+   "teams": [
+    {
+     "team": {
+      "name": "Crystal Palace",
+      "club": {
+       "name": "Crystal Palace",
+       "shortName": "Crystal Palace",
+       "abbr": "CRY",
+       "id": 6.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Crystal Palace",
+      "id": 6.0,
+      "altIds": {
+       "opta": "t31"
+      }
+     },
+     "score": 3.0
+    },
+    {
+     "team": {
+      "name": "Nottingham Forest",
+      "club": {
+       "name": "Nottingham Forest",
+       "shortName": "Nott'm Forest",
+       "abbr": "NFO",
+       "id": 15.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Nott'm Forest",
+      "id": 15.0,
+      "altIds": {
+       "opta": "t17"
+      }
+     },
+     "score": 1.0
+    }
+   ],
+   "replay": false,
+   "ground": {
+    "name": "Selhurst Park",
+    "city": "London",
+    "source": "OPTA",
+    "id": 9431.0
+   },
+   "neutralGround": false,
+   "status": "C",
+   "phase": "F",
+   "outcome": "H",
+   "attendance": 25120.0,
+   "clock": {
+    "secs": 5700.0,
+    "label": "90+5'00"
+   },
+   "fixtureType": "REGULAR",
+   "extraTime": false,
+   "shootout": false,
+   "goals": [
+    {
+     "personId": 50623.0,
+     "clock": {
+      "secs": 180.0,
+      "label": "03'00"
+     },
+     "phase": "1",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 49759.0,
+     "assistId": 67779.0,
+     "clock": {
+      "secs": 2460.0,
+      "label": "41'00"
+     },
+     "phase": "1",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 37776.0,
+     "assistId": 69595.0,
+     "clock": {
+      "secs": 2940.0,
+      "label": "45+4'00"
+     },
+     "phase": "1",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 109117.0,
+     "clock": {
+      "secs": 3540.0,
+      "label": "59'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    }
+   ],
+   "penaltyShootouts": [],
+   "behindClosedDoors": false,
+   "id": 128977.0,
+   "altIds": {
+    "opta": "g2645249"
+   }
+  },
+  {
+   "gameweek": {
+    "id": 19766.0,
+    "compSeason": {
+     "label": "English Premier League Season 2026/2027",
+     "competition": {
+      "abbreviation": "EN_PR",
+      "description": "Premier League",
+      "level": "SEN",
+      "source": "",
+      "id": 1.0,
+      "altIds": {
+       "opta": "8"
+      }
+     },
+     "id": 841.0
+    },
+    "gameweek": 6.0,
+    "competitionPhase": {
+     "id": 8163.0,
+     "type": "L",
+     "gameweekRange": [
+      1.0,
+      38.0
+     ]
+    }
+   },
+   "kickoff": {
+    "completeness": 3.0,
+    "millis": 1791723600000.0,
+    "label": "Sun 11 Oct 2026, 14:00 BST",
+    "gmtOffset": 1.0
+   },
+   "provisionalKickoff": {
+    "completeness": 3.0,
+    "millis": 1791723600000.0,
+    "label": "Sun 11 Oct 2026, 14:00 BST",
+    "gmtOffset": 1.0
+   },
+   "teams": [
+    {
+     "team": {
+      "name": "Hull City",
+      "club": {
+       "name": "Hull City",
+       "shortName": "Hull",
+       "abbr": "HUL",
+       "id": 41.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Hull",
+      "id": 41.0,
+      "altIds": {
+       "opta": "t88"
+      }
+     },
+     "score": 2.0
+    },
+    {
+     "team": {
+      "name": "Everton",
+      "club": {
+       "name": "Everton",
+       "shortName": "Everton",
+       "abbr": "EVE",
+       "id": 7.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Everton",
+      "id": 7.0,
+      "altIds": {
+       "opta": "t11"
+      }
+     },
+     "score": 2.0
+    }
+   ],
+   "replay": false,
+   "ground": {
+    "name": "The MKM Stadium",
+    "city": "Hull",
+    "source": "OPTA",
+    "id": 9569.0
+   },
+   "neutralGround": false,
+   "status": "C",
+   "phase": "F",
+   "outcome": "D",
+   "attendance": 24458.0,
+   "clock": {
+    "secs": 5760.0,
+    "label": "90+6'00"
+   },
+   "fixtureType": "REGULAR",
+   "extraTime": false,
+   "shootout": false,
+   "goals": [
+    {
+     "personId": 51754.0,
+     "assistId": 21455.0,
+     "clock": {
+      "secs": 2880.0,
+      "label": "48'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 14706.0,
+     "assistId": 10428.0,
+     "clock": {
+      "secs": 3300.0,
+      "label": "55'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 143922.0,
+     "assistId": 14706.0,
+     "clock": {
+      "secs": 4080.0,
+      "label": "68'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 137549.0,
+     "assistId": 337382.0,
+     "clock": {
+      "secs": 4440.0,
+      "label": "74'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    }
+   ],
+   "penaltyShootouts": [],
+   "behindClosedDoors": false,
+   "id": 128978.0,
+   "altIds": {
+    "opta": "g2645250"
+   }
+  },
+  {
+   "gameweek": {
+    "id": 19766.0,
+    "compSeason": {
+     "label": "English Premier League Season 2026/2027",
+     "competition": {
+      "abbreviation": "EN_PR",
+      "description": "Premier League",
+      "level": "SEN",
+      "source": "",
+      "id": 1.0,
+      "altIds": {
+       "opta": "8"
+      }
+     },
+     "id": 841.0
+    },
+    "gameweek": 6.0,
+    "competitionPhase": {
+     "id": 8163.0,
+     "type": "L",
+     "gameweekRange": [
+      1.0,
+      38.0
+     ]
+    }
+   },
+   "kickoff": {
+    "completeness": 3.0,
+    "millis": 1791732600000.0,
+    "label": "Sun 11 Oct 2026, 16:30 BST",
+    "gmtOffset": 1.0
+   },
+   "provisionalKickoff": {
+    "completeness": 3.0,
+    "millis": 1791732600000.0,
+    "label": "Sun 11 Oct 2026, 16:30 BST",
+    "gmtOffset": 1.0
+   },
+   "teams": [
+    {
+     "team": {
+      "name": "Liverpool",
+      "club": {
+       "name": "Liverpool",
+       "shortName": "Liverpool",
+       "abbr": "LIV",
+       "id": 10.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Liverpool",
+      "id": 10.0,
+      "altIds": {
+       "opta": "t14"
+      }
+     },
+     "score": 0.0
+    },
+    {
+     "team": {
+      "name": "Manchester City",
+      "club": {
+       "name": "Manchester City",
+       "shortName": "Man City",
+       "abbr": "MCI",
+       "id": 11.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Man City",
+      "id": 11.0,
+      "altIds": {
+       "opta": "t43"
+      }
+     },
+     "score": 3.0
+    }
+   ],
+   "replay": false,
+   "ground": {
+    "name": "Anfield",
+    "city": "Liverpool",
+    "source": "OPTA",
+    "id": 7305.0
+   },
+   "neutralGround": false,
+   "status": "C",
+   "phase": "F",
+   "outcome": "A",
+   "attendance": 60338.0,
+   "clock": {
+    "secs": 5640.0,
+    "label": "90+4'00"
+   },
+   "fixtureType": "REGULAR",
+   "extraTime": false,
+   "shootout": false,
+   "goals": [
+    {
+     "personId": 65970.0,
+     "clock": {
+      "secs": 3900.0,
+      "label": "65'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 54156.0,
+     "assistId": 51593.0,
+     "clock": {
+      "secs": 4080.0,
+      "label": "68'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 68150.0,
+     "assistId": 67178.0,
+     "clock": {
+      "secs": 4680.0,
+      "label": "78'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    }
+   ],
+   "penaltyShootouts": [],
+   "behindClosedDoors": false,
+   "id": 128980.0,
+   "altIds": {
+    "opta": "g2645252"
+   }
+  },
+  {
+   "gameweek": {
+    "id": 19766.0,
+    "compSeason": {
+     "label": "English Premier League Season 2026/2027",
+     "competition": {
+      "abbreviation": "EN_PR",
+      "description": "Premier League",
+      "level": "SEN",
+      "source": "",
+      "id": 1.0,
+      "altIds": {
+       "opta": "8"
+      }
+     },
+     "id": 841.0
+    },
+    "gameweek": 6.0,
+    "competitionPhase": {
+     "id": 8163.0,
+     "type": "L",
+     "gameweekRange": [
+      1.0,
+      38.0
+     ]
+    }
+   },
+   "kickoff": {
+    "completeness": 3.0,
+    "millis": 1791831600000.0,
+    "label": "Mon 12 Oct 2026, 20:00 BST",
+    "gmtOffset": 1.0
+   },
+   "provisionalKickoff": {
+    "completeness": 3.0,
+    "millis": 1791831600000.0,
+    "label": "Mon 12 Oct 2026, 20:00 BST",
+    "gmtOffset": 1.0
+   },
+   "teams": [
+    {
+     "team": {
+      "name": "Coventry City",
+      "club": {
+       "name": "Coventry City",
+       "shortName": "Coventry",
+       "abbr": "COV",
+       "id": 5.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Coventry",
+      "id": 5.0,
+      "altIds": {
+       "opta": "t9"
+      }
+     },
+     "score": 4.0
+    },
+    {
+     "team": {
+      "name": "Newcastle United",
+      "club": {
+       "name": "Newcastle United",
+       "shortName": "Newcastle",
+       "abbr": "NEW",
+       "id": 23.0
+      },
+      "teamType": "FIRST",
+      "shortName": "Newcastle",
+      "id": 23.0,
+      "altIds": {
+       "opta": "t4"
+      }
+     },
+     "score": 1.0
+    }
+   ],
+   "replay": false,
+   "ground": {
+    "name": "Coventry Building Society Arena",
+    "city": "Coventry",
+    "source": "OPTA",
+    "id": 9570.0
+   },
+   "neutralGround": false,
+   "status": "C",
+   "phase": "F",
+   "outcome": "H",
+   "attendance": 30811.0,
+   "clock": {
+    "secs": 5700.0,
+    "label": "90+5'00"
+   },
+   "fixtureType": "REGULAR",
+   "extraTime": false,
+   "shootout": false,
+   "goals": [
+    {
+     "personId": 66304.0,
+     "clock": {
+      "secs": 360.0,
+      "label": "06'00"
+     },
+     "phase": "1",
+     "type": "P",
+     "description": "P"
+    },
+    {
+     "personId": 337821.0,
+     "clock": {
+      "secs": 2880.0,
+      "label": "48'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 49908.0,
+     "assistId": 67849.0,
+     "clock": {
+      "secs": 4200.0,
+      "label": "70'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 19925.0,
+     "assistId": 19694.0,
+     "clock": {
+      "secs": 4860.0,
+      "label": "81'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    },
+    {
+     "personId": 128136.0,
+     "assistId": 10438.0,
+     "clock": {
+      "secs": 5160.0,
+      "label": "86'00"
+     },
+     "phase": "2",
+     "type": "G",
+     "description": "G"
+    }
+   ],
+   "penaltyShootouts": [],
+   "behindClosedDoors": false,
+   "id": 128976.0,
+   "altIds": {
+    "opta": "g2645248"
+   }
+  }
+ ]
+}

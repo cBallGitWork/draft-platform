@@ -66,6 +66,9 @@ Supabase was the runner-up.
   for other leagues (SPEC, Later).
   The seam is `Football` in `convex/football.ts`; FPL's adapter is `convex/fpl.ts` (#21).
 - Players are keyed on FPL's season-stable `code`, never the per-season `id`.
+- The two feeds are matched on Opta's ids (`convex/feedIds.ts`): a Premier League fixture's
+  `altIds.opta` is `g` + FPL's fixture `code`, and a man's is FPL's `opta_code`; one that matches
+  nothing is reported, never dropped ([docs/pl-match-stats.md](docs/pl-match-stats.md#matching-the-two-feeds)).
 - Clubs, players, fixtures and gameweeks refresh every six hours (`convex/crons.ts`): nothing
   held moves during a match, and what does (a signing, a rescheduled match) is known days ahead.
   Every run, failed or not, is a row in `footballSyncs`.

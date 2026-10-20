@@ -19,10 +19,35 @@ export const FPL_BOOTSTRAP_URL = `${FPL_API_BASE}/bootstrap-static/`;
 /** Every match of the season. */
 export const FPL_FIXTURES_URL = `${FPL_API_BASE}/fixtures/`;
 export const PL_API_BASE = "https://footballapi.pulselive.com/football";
+/** The Premier League's id for its own competition. */
+export const PL_COMPETITION = 1;
 /** The Premier League's id for the 2026/27 season. */
 export const PL_COMP_SEASON = 841;
 /** The Premier League's id for Arsenal, whose squad list proves squad numbers can be read. */
 export const PL_ARSENAL = 1;
+
+/** A gameweek's live stats, per player. */
+export function fplLiveUrl(gameweek: number): string {
+  return `${FPL_API_BASE}/event/${gameweek}/live/`;
+}
+
+/** One gameweek's fixtures, or the season's when omitted. It always asks for `altIds`: without it
+ *  the fixtures arrive with no join to FPL, and nothing says so. */
+export function plFixturesUrl(gameweek?: number): string {
+  const round = gameweek === undefined ? "" : `&gameweekNumbers=${gameweek}`;
+  return (
+    `${PL_API_BASE}/fixtures?comps=${PL_COMPETITION}&compSeasons=${PL_COMP_SEASON}` +
+    `${round}&pageSize=400&page=0&sort=asc&altIds=true`
+  );
+}
+
+export function plFixtureUrl(fixtureId: number): string {
+  return `${PL_API_BASE}/fixtures/${fixtureId}`;
+}
+
+export function plPlayerStatsUrl(playerId: number, fixtureId: number): string {
+  return `${PL_API_BASE}/stats/player/${playerId}?fixtures=${fixtureId}`;
+}
 
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0 Safari/537.36";
@@ -38,6 +63,24 @@ export async function getJson(url: string): Promise<unknown> {
   if (!res.ok) throw new Error(`${url} answered ${res.status}`);
   return res.json();
 }
+
+/** The body as JSON once `fits` passes it. A body of another shape is a changed payload: it throws
+ *  here, naming the URL and what was missing, rather than fail later somewhere unrelated. */
+export async function getShaped<T>(
+  url: string,
+  missing: string,
+  fits: (body: Record<string, any>) => boolean,
+): Promise<T> {
+  const body = await getJson(url);
+  if (typeof body !== "object" || body === null || !fits(body)) {
+    throw new Error(`${url} answered with no ${missing}`);
+  }
+  return body as T;
+}
+
+const isNumber = (value: unknown): value is number => typeof value === "number";
+/** An id the feeds send as a number (the Premier League's arrive as `128978.0`, still a number). */
+export const hasId = (value: unknown): boolean => isNumber((value as { id?: unknown } | null)?.id);
 
 interface RawBootstrap {
   elements: unknown[];
@@ -58,9 +101,7 @@ export async function fplPlayerCount(): Promise<number> {
 }
 
 export async function plFixtureCount(): Promise<number> {
-  const page = (await getJson(
-    `${PL_API_BASE}/fixtures?comps=1&compSeasons=${PL_COMP_SEASON}&pageSize=400&page=0&altIds=true`,
-  )) as RawPlFixturePage;
+  const page = (await getJson(plFixturesUrl())) as RawPlFixturePage;
   return page.content.length;
 }
 
