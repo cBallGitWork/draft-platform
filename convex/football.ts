@@ -19,6 +19,8 @@ export const FPL_BOOTSTRAP_URL = `${FPL_API_BASE}/bootstrap-static/`;
 /** Every match of the season. */
 export const FPL_FIXTURES_URL = `${FPL_API_BASE}/fixtures/`;
 export const PL_API_BASE = "https://footballapi.pulselive.com/football";
+/** The Premier League's id for its own competition. */
+export const PL_COMPETITION = 1;
 /** The Premier League's id for the 2026/27 season. */
 export const PL_COMP_SEASON = 841;
 /** The Premier League's id for Arsenal, whose squad list proves squad numbers can be read. */
