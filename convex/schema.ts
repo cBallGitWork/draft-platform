@@ -76,11 +76,12 @@ export const tableWrites = v.object({
   unmarked: v.optional(v.number()),
 });
 
-export const footballSyncTrigger = v.union(v.literal("manual"), v.literal("cron"));
+/** Who started a sync: someone by hand, or its cron. */
+export const syncTrigger = v.union(v.literal("manual"), v.literal("cron"));
 
 // One row per run of footballSync.run, so a failed fetch is on record, never silent.
 export const footballSyncFields = {
-  trigger: footballSyncTrigger,
+  trigger: syncTrigger,
   ranAt: v.number(),
   outcome: v.union(
     v.object({
@@ -184,6 +185,7 @@ const matchStatsTables = {
 // Positions (#22). Kept apart from `players`, which the football sync rewrites every six hours, so
 // no feed read touches the admin's say. Each row is keyed on FPL's season-stable `code`.
 
+// `v.union` takes two or more members, which a mapped array cannot promise its type.
 const positionLiterals = POSITIONS.map((position) => v.literal(position));
 export const position = v.union(...(positionLiterals as [VLiteral<Position>, VLiteral<Position>, ...VLiteral<Position>[]]));
 
@@ -198,7 +200,8 @@ export const startRecord = v.object({
 
 export const playerPositionFields = {
   code: v.number(),
-  /** The Premier League's `positionInfo` for him, from this season's squads; absent until one names him. */
+  /** The Premier League's `positionInfo` for him, his squad's or else his newest sheet's; absent
+   *  until one names him. */
   plLabel: v.optional(v.string()),
   /** His newest starts, at most `START_WINDOW`, newest first. */
   starts: v.array(startRecord),
@@ -214,11 +217,9 @@ export const approveMode = v.union(v.literal("proposals"), v.literal("countAtOnc
 /** How positions from starts count: a single row, absent until the admin first sets it. */
 export const positionSettingsFields = { approveMode };
 
-export const positionsSyncTrigger = v.union(v.literal("manual"), v.literal("cron"));
-
 // One row per run of positionsSync.run, so a failed read is on record, never silent.
 export const positionsSyncFields = {
-  trigger: positionsSyncTrigger,
+  trigger: syncTrigger,
   ranAt: v.number(),
   outcome: v.union(
     v.object({

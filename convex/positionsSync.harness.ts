@@ -42,7 +42,7 @@ export async function syncPositionsWith(t: TestConvex, payloads: PositionsPayloa
 }
 
 /** A player's positions, as `{position: source}` with "?" on each unconfirmed, e.g. `{W: "label?"}`. */
-export async function positionsOf(t: TestConvex, code: number): Promise<Record<string, string>> {
+export async function heldPositions(t: TestConvex, code: number): Promise<Record<string, string>> {
   const { positions } = await t.query(internal.playerPositions.ofPlayer, { code });
   return Object.fromEntries(positions.map((held) => [held.position, held.source + (held.confirmed ? "" : "?")]));
 }

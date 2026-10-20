@@ -2,7 +2,7 @@ import { convexTest } from "convex-test";
 import { afterEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { PL_LAST_COMP_SEASON } from "./football";
-import { modules, positionsOf, syncPositionsWith, type TestConvex } from "./positionsSync.harness";
+import { heldPositions, modules, syncPositionsWith, type TestConvex } from "./positionsSync.harness";
 import { NEWCASTLE, PLAYER, recordedPositions, SHEET } from "./recorded/positions.payloads";
 import schema from "./schema";
 
@@ -31,8 +31,8 @@ test("until the admin approves them, a player's starts are proposals and he play
   const barnes = await t.query(internal.playerPositions.ofPlayer, { code: PLAYER.barnes });
 
   expect(barnes.proposals).toEqual(["W"]);
-  expect(await positionsOf(t, PLAYER.barnes)).toEqual({ W: "label?" }); // "Left/Right Winger"
-  expect(await positionsOf(t, PLAYER.joelinton)).toEqual({ CM: "label?" }); // "Left Central Midfielder"
+  expect(await heldPositions(t, PLAYER.barnes)).toEqual({ W: "label?" }); // "Left/Right Winger"
+  expect(await heldPositions(t, PLAYER.joelinton)).toEqual({ CM: "label?" }); // "Left Central Midfielder"
 });
 
 test("approving a player confirms what his starts give him, and drops his label", async () => {
@@ -40,7 +40,7 @@ test("approving a player confirms what his starts give him, and drops his label"
 
   await t.mutation(internal.playerPositions.approvePlayer, { code: PLAYER.woltemade });
 
-  expect(await positionsOf(t, PLAYER.woltemade)).toEqual({ ST: "starts" }); // his label gave SS
+  expect(await heldPositions(t, PLAYER.woltemade)).toEqual({ ST: "starts" }); // his label gave SS
   expect((await t.query(internal.playerPositions.ofPlayer, { code: PLAYER.woltemade })).proposals).toEqual([]);
 });
 
@@ -50,18 +50,18 @@ test("approving a club approves each of its men, and one with too few starts kee
   const approved = await t.mutation(internal.playerPositions.approveClub, { clubCode: NEWCASTLE.code });
 
   expect(approved).toBe(newcastleMen().length);
-  expect(await positionsOf(t, PLAYER.barnes)).toEqual({ W: "starts" });
-  expect(await positionsOf(t, PLAYER.thiaw)).toEqual({ CB: "starts" });
-  expect(await positionsOf(t, PLAYER.hall)).toEqual({ FB: "label" }); // two starts at full back
+  expect(await heldPositions(t, PLAYER.barnes)).toEqual({ W: "starts" });
+  expect(await heldPositions(t, PLAYER.thiaw)).toEqual({ CB: "starts" });
+  expect(await heldPositions(t, PLAYER.hall)).toEqual({ FB: "label" }); // two starts at full back
 });
 
 test("a new signing with no starts plays on his label, unconfirmed until the admin approves him", async () => {
   const t = await synced();
-  expect(await positionsOf(t, PLAYER.steur)).toEqual({ CM: "label?" }); // "Centre Central Midfielder"
+  expect(await heldPositions(t, PLAYER.steur)).toEqual({ CM: "label?" }); // "Centre Central Midfielder"
 
   await t.mutation(internal.playerPositions.approvePlayer, { code: PLAYER.steur });
 
-  expect(await positionsOf(t, PLAYER.steur)).toEqual({ CM: "label" });
+  expect(await heldPositions(t, PLAYER.steur)).toEqual({ CM: "label" });
 });
 
 test("with positions counting at once, starts count unconfirmed and stay in the queue", async () => {
@@ -69,7 +69,7 @@ test("with positions counting at once, starts count unconfirmed and stay in the 
 
   await t.mutation(internal.playerPositions.setApproveMode, { approveMode: "countAtOnce" });
 
-  expect(await positionsOf(t, PLAYER.barnes)).toEqual({ W: "starts?" });
+  expect(await heldPositions(t, PLAYER.barnes)).toEqual({ W: "starts?" });
   expect((await t.query(internal.playerPositions.ofPlayer, { code: PLAYER.barnes })).proposals).toEqual(["W"]);
 });
 
@@ -86,7 +86,7 @@ test("the admin's corrections survive a recount: SS he marks stays, and a positi
 
   await syncPositionsWith(t, recordedPositions()); // his fourth start up front arrives
 
-  expect(await positionsOf(t, PLAYER.woltemade)).toEqual({ SS: "admin" });
+  expect(await heldPositions(t, PLAYER.woltemade)).toEqual({ SS: "admin" });
   expect((await t.query(internal.playerPositions.ofPlayer, { code: PLAYER.woltemade })).proposals).toEqual([]);
 });
 
@@ -95,21 +95,21 @@ test("a position the admin sets stays until he removes it, and setting it again 
   await t.mutation(internal.playerPositions.approvePlayer, { code: PLAYER.thiaw });
 
   await t.mutation(internal.playerPositions.setPosition, { code: PLAYER.thiaw, position: "FB" });
-  expect(await positionsOf(t, PLAYER.thiaw)).toEqual({ CB: "starts", FB: "admin" });
+  expect(await heldPositions(t, PLAYER.thiaw)).toEqual({ CB: "starts", FB: "admin" });
 
   await t.mutation(internal.playerPositions.removePosition, { code: PLAYER.thiaw, position: "FB" });
-  expect(await positionsOf(t, PLAYER.thiaw)).toEqual({ CB: "starts" });
+  expect(await heldPositions(t, PLAYER.thiaw)).toEqual({ CB: "starts" });
 
   await t.mutation(internal.playerPositions.setPosition, { code: PLAYER.thiaw, position: "FB" });
-  expect(await positionsOf(t, PLAYER.thiaw)).toEqual({ CB: "starts", FB: "admin" });
+  expect(await heldPositions(t, PLAYER.thiaw)).toEqual({ CB: "starts", FB: "admin" });
 });
 
 test("a player no feed has named has no positions, and setting one gives him a row", async () => {
   const t = convexTest(schema, modules);
   const unknown = 999_999;
-  expect(await positionsOf(t, unknown)).toEqual({});
+  expect(await heldPositions(t, unknown)).toEqual({});
 
   await t.mutation(internal.playerPositions.setPosition, { code: unknown, position: "GK" });
 
-  expect(await positionsOf(t, unknown)).toEqual({ GK: "admin" });
+  expect(await heldPositions(t, unknown)).toEqual({ GK: "admin" });
 });
