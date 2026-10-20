@@ -3,7 +3,7 @@ import { convexTest } from "convex-test";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { MINUTE_MS } from "./feeds";
-import { squadNumbers } from "./football";
+import { FPL_BOOTSTRAP_URL, squadNumbers } from "./football";
 import schema from "./schema";
 
 const modules = import.meta.glob("./**/*.ts");
@@ -12,7 +12,7 @@ const modules = import.meta.glob("./**/*.ts");
 function fakeFeeds(refuse?: string) {
   return vi.fn(async (url: string) => {
     if (refuse !== undefined && url.includes(refuse)) return new Response("Forbidden", { status: 403 });
-    if (url.includes("bootstrap-static")) return Response.json({ elements: [{}, {}, {}] });
+    if (url === FPL_BOOTSTRAP_URL) return Response.json({ elements: [{}, {}, {}] });
     if (url.includes("/staff")) {
       return Response.json({ players: [{ id: 1, info: { shirtNum: 1 } }, { id: 2, info: { shirtNum: 7 } }] });
     }
@@ -27,7 +27,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-test("a check scheduled for later runs only when its time comes, and records both feeds", async () => {
+test("a check scheduled for later runs only when its time comes, and records each read of both feeds", async () => {
   vi.stubGlobal("fetch", fakeFeeds());
   const t = convexTest(schema, modules);
 
