@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { LeagueSummary } from "../../convex/myLeagues";
 import { adminSeeing, league, managerIn, openApp } from "../shell.harness";
 import { LEAGUES_PATH } from "./paths";
-import { beingDeleted, confirmDelete, notEmailed, unsentLinkWords } from "./words";
+import { beingDeleted, confirmDelete, unemailed, unsentLinkWords } from "./words";
 
 afterEach(cleanup);
 
@@ -19,6 +19,7 @@ const beingDeletedLeague: LeagueSummary = {
 };
 
 const deleteButton = () => screen.queryByRole("button", { name: "Delete league" });
+const deleteButtonShown = () => screen.findByRole("button", { name: "Delete league" });
 
 describe("Delete league", () => {
   it.each([
@@ -26,7 +27,7 @@ describe("Delete league", () => {
     ["the admin", adminSeeing({ ...league, roles: [] })],
   ])("%s is offered it", async (_, session) => {
     openApp(LEAGUES_PATH, session);
-    expect(await screen.findByRole("button", { name: "Delete league" })).toBeTruthy();
+    expect(await deleteButtonShown()).toBeTruthy();
   });
 
   it.each([
@@ -40,7 +41,7 @@ describe("Delete league", () => {
 
   it("asks first, and deletes the league once confirmed", async () => {
     const app = openApp(LEAGUES_PATH, managerIn(commissioned));
-    await userEvent.click(await screen.findByRole("button", { name: "Delete league" }));
+    await userEvent.click(await deleteButtonShown());
     expect(screen.getByText(confirmDelete(league.name))).toBeTruthy();
     expect(app.leagues.deleteLeague).not.toHaveBeenCalled();
 
@@ -50,7 +51,7 @@ describe("Delete league", () => {
 
   it("Keep it deletes nothing", async () => {
     const app = openApp(LEAGUES_PATH, managerIn(commissioned));
-    await userEvent.click(await screen.findByRole("button", { name: "Delete league" }));
+    await userEvent.click(await deleteButtonShown());
     await userEvent.click(screen.getByRole("button", { name: "Keep it" }));
 
     expect(screen.queryByText(confirmDelete(league.name))).toBeNull();
@@ -61,7 +62,7 @@ describe("Delete league", () => {
   it("says why, when the server refuses", async () => {
     const app = openApp(LEAGUES_PATH, managerIn(commissioned));
     app.leagues.deleteLeague.mockResolvedValue("Only the league's commissioner or the admin can delete it.");
-    await userEvent.click(await screen.findByRole("button", { name: "Delete league" }));
+    await userEvent.click(await deleteButtonShown());
     await userEvent.click(screen.getByRole("button", { name: "Delete it" }));
 
     expect((await screen.findByRole("alert")).textContent).toBe("Only the league's commissioner or the admin can delete it.");
@@ -73,7 +74,7 @@ describe("a league being deleted", () => {
     const app = openApp(LEAGUES_PATH, managerIn(beingDeletedLeague));
 
     expect(await screen.findByText(beingDeleted(deletesAt))).toBeTruthy();
-    expect(screen.getByText(notEmailed("ann@example.com", unsentLinkWords.paused))).toBeTruthy();
+    expect(screen.getByText(unemailed("ann@example.com", unsentLinkWords.paused))).toBeTruthy();
     expect(deleteButton()).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: "Undo" }));
     expect(app.leagues.undoDeletion).toHaveBeenCalledExactlyOnceWith(league.leagueId);
