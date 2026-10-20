@@ -74,6 +74,15 @@ def git_call(words):
     return words[i], words[i + 1 :]
 
 
+def switches_to_main(args):
+    """True if git switch or checkout with these args leaves the folder on main: git switch main,
+    git switch -C main. With -- it restores files (git checkout main -- a) and stays put."""
+    if "--" in args:
+        return False
+    created = [name for opt, name in zip(args, args[1:]) if opt in CREATES_BRANCH]
+    return bool(MAIN_NAMES & set(created[:1] or args))
+
+
 def short_flags(arg):
     return arg[1:] if re.match(r"^-[A-Za-z]+$", arg) else ""
 
@@ -206,7 +215,7 @@ def decide(cmd, cwd):
         if not call:
             continue
         sub, args = call
-        if sub in {"switch", "checkout"} and MAIN_NAMES & set(args) and not CREATES_BRANCH & set(args):
+        if sub in {"switch", "checkout"} and switches_to_main(args):
             switched_to_main = True
         if sub == "add" and stages_everything(args):
             return "That stages everything. Stage named paths only: git add path/one path/two."

@@ -134,7 +134,13 @@ for c in '{ cd ..; git commit -m x; }' 'if cd ..; then git commit -m x; fi' 'git
   'git checkout main --force && git commit -m x'; do  # each lands on main
   check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
 done
-check allow guard_bash.py "$(bash_in "$tmp/sub" 'git switch -C y origin/main && git commit -m x')"
+for c in 'git switch -C y origin/main && git commit -m x' 'git checkout -b feat/z main && git commit -m x' \
+  'git checkout origin/main -- a && git commit -m x'; do  # a new branch from main, a file restored from it
+  check allow guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
+for c in 'git switch -C main && git commit -m x' 'git checkout -B main origin/main && git commit -m x'; do
+  check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
 check deny guard_bash.py "$(bash_in "$tmp/sub" "env -C $tmp git commit -m x")"  # env -C moves it
 git -C "$tmp" init -q -b chore/d "$tmp/det"  # a detached HEAD has no branch, and isn't main
 git -C "$tmp/det" -c user.name=t -c user.email=t@t commit -q --allow-empty -m x && git -C "$tmp/det" switch -q --detach
