@@ -165,6 +165,20 @@ test("a payload refused as changed marks nothing", async () => {
   expect(await marks(t)).toEqual(NO_ROW_MARKED);
 });
 
+test("a re-sync sending no players is refused, and marks nothing", async () => {
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  const t = convexTest(schema, modules);
+  await syncWith(t, recordedFpl());
+  const noPlayers = recordedFpl();
+  noPlayers.bootstrap.elements = [];
+
+  vi.setSystemTime(SECOND_SYNC);
+  const outcome = await syncWith(t, noPlayers);
+
+  expect(outcome).toEqual({ ok: false, error: "FPL sent an empty player list" });
+  expect(await marks(t)).toEqual(NO_ROW_MARKED);
+});
+
 test("held rows past the first page are checked too, and each missing one is marked once", async () => {
   const t = convexTest(schema, modules);
   const { payloads: crowded, count } = crowdedFpl();
