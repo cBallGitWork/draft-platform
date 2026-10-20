@@ -9,10 +9,12 @@ import { COMMISSIONER, actingAs, type TestConvex } from "./leagues.harness";
 import { linkCode, openLink, type SentEmail } from "./signIn.harness";
 import { EMAILS_PER_DAY, dayOf } from "./signInLinks";
 
+/** The league's commissioner, signed in. */
+export const asCommissioner = (t: TestConvex) => actingAs(t, COMMISSIONER);
+
 /** The commissioner invites `email`, to a vacated team or a new one, and the email is sent. */
 export async function invite(t: TestConvex, leagueId: Id<"leagues">, email: string, teamId?: Id<"teams">) {
-  const commissioner = await actingAs(t, COMMISSIONER);
-  const inviteId = await commissioner.mutation(api.invites.send, { leagueId, email, teamId });
+  const inviteId = await (await asCommissioner(t)).mutation(api.invites.send, { leagueId, email, teamId });
   await t.finishAllScheduledFunctions(vi.runAllTimers);
   return inviteId;
 }
@@ -43,10 +45,15 @@ export async function invitesPage(t: TestConvex, leagueId: Id<"leagues">, as = C
 
 /** The commissioner makes the league's invite link, replacing any: its token. */
 export async function makeLink(t: TestConvex, leagueId: Id<"leagues">): Promise<string> {
-  await (await actingAs(t, COMMISSIONER)).mutation(api.inviteLink.make, { leagueId });
+  await (await asCommissioner(t)).mutation(api.inviteLink.make, { leagueId });
   const token = (await invitesPage(t, leagueId))?.linkToken;
   if (!token) throw new Error("making the invite link left the league with none");
   return token;
+}
+
+/** The invite link's page, as `email`, signed in, sees it. */
+export async function joinPageAs(t: TestConvex, email: string, token: string) {
+  return (await actingAs(t, email)).query(api.joinRequests.joinPage, { token });
 }
 
 /** `email`, signed in, asks to join from the invite link: the request the commissioner sees. */

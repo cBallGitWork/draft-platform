@@ -41,12 +41,12 @@ describe("a signed-out visitor opening the invite link", () => {
     expect(await screen.findByRole("button", { name: "Ask to join" })).toBeTruthy();
     expect(app.path()).toBe(joinPath(TOKEN));
   });
+});
 
-  it("opening the plain sign-in page sees no word of joining", async () => {
-    openApp(SIGN_IN_PATH, visitor);
-    await screen.findByRole("textbox", { name: "Email" });
-    expect(screen.queryByText(signInToJoinWords)).toBeNull();
-  });
+it("a visitor opening the plain sign-in page sees no word of joining", async () => {
+  openApp(SIGN_IN_PATH, visitor);
+  await screen.findByRole("textbox", { name: "Email" });
+  expect(screen.queryByText(signInToJoinWords)).toBeNull();
 });
 
 describe("someone signed in opening the invite link", () => {
