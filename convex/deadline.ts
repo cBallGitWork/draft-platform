@@ -4,8 +4,10 @@
 //
 // Once passed, a deadline stays where it fell, even if the first match is then postponed (#85), and
 // the matches no longer show where that was. So each read takes the deadline recorded for the
-// gameweek, and whoever keeps it (per league and gameweek, with the lineups: #8, #14) records what
+// gameweek. The code that locks lineups owns that record, per league and gameweek: it stores what
 // gameweekDeadline returns each time the matches change, so the record is never older than them.
+// Nothing here can check that it does. A reading with nothing recorded is valid, so a caller that
+// never records still type-checks, and a postponement after the deadline reopens the gameweek.
 
 import type { Infer } from "convex/values";
 import type { fixtureRecord } from "./schema";
@@ -24,7 +26,7 @@ export const MS_PER_MINUTE = 60_000;
 /** All of a match a deadline reads. */
 type ScheduledMatch = Pick<Infer<typeof fixtureRecord>, "gameweek" | "kickoff">;
 
-/** The deadline last recorded for the gameweek (null before any), and the time it is read. */
+/** The deadline last recorded for the gameweek (null only before one is), and the time it is read. */
 export interface DeadlineReading {
   recorded: number | null;
   now: number;
