@@ -6,10 +6,12 @@ paths:
 
 # Screens
 
-Read `docs/design/plate.md` before drawing anything: it is the look, and every value in it is a
-token in `src/styles.css`. Use the tokens (`bg-plate`, `text-figure`, `text-data`); a hex value or
-a stock Tailwind utility in a component is a finding. Tailwind's own palette, radii, shadows and
-type scale are switched off there, so a stock utility (`bg-slate-900`, `rounded-lg`) draws nothing.
+Read `docs/design/plate.md` before drawing anything: it is the look, and every value the built
+screens use is a token in `src/styles.css`; a screen needing a plate.md value with no token yet
+(the pitch, fixture difficulty) adds it there. Use the tokens (`bg-plate`, `text-figure`,
+`text-data`); a hex value or a stock Tailwind utility in a component is a finding. Tailwind's own
+palette, radii, shadows and type scale are switched off there, so a stock utility
+(`bg-slate-900`, `rounded-lg`) draws nothing.
 
 After any change a manager can see, run the `ui-verifier` agent: it shoots 390 and 1440 and looks.
 
