@@ -1,11 +1,15 @@
 """Where a Bash command's git calls run, for guard_bash.py: the shell's cwd, moved by any cd
 before them (a subshell's cd stays in the subshell), then by git's -C, and the program behind any
 runner (sudo -u x git, timeout 5 git). None wherever the guard can't be sure, so it refuses rather
-than guessing. Commands passed as a string (sh -c, eval, env -S, $(…)) are read by commands.py.
+than guessing. Commands passed as a string or on stdin (sh -c, eval, a heredoc into bash, ssh,
+find -exec) are read by commands.py.
 
-Out of its sight: commands in a file or on stdin (bash script.sh, a heredoc or pipe into sh,
-python's subprocess), a string run by any other program (su -c, watch, ssh), a cd inside a
-function or a sourced file, what a variable holds, and the arguments xargs reads from stdin.
+Out of its sight: commands in a file (bash script.sh, ./x.sh, python's subprocess), a string run
+by any other program (python -c, node -e, make, a git alias), a shell started inside a shell to
+read its stdin (sh -c sh, eval sh, bash /dev/stdin), a function defined before this command line,
+what a variable holds (in a double-quoted sh -c "…" string too: the shell fills it in before sh
+reads it), the arguments xargs adds to git commit or push from a program's output, and the paths
+find puts in for {}.
 Stdlib only, Python 3.9+.
 """
 
@@ -21,25 +25,38 @@ SEPARATORS = {";", "&", "&&", "|", "||", "(", ")", "\n"}
 ENDS_A_CHAIN = {";", "\n", "&", "||"}  # after these, a cd that hung on an earlier && may not have run
 GIT_PLACE_VARS = re.compile(r"^(GIT_DIR|GIT_WORK_TREE)=")
 UNFOLLOWABLE = re.compile(r"[$`]|^-")  # a cd or -C the guard can't follow: a variable, an option, cd -
-MOVES_THE_SHELL = re.compile(r"\b(cd|pushd|popd)\b|\bGIT_(DIR|WORK_TREE)=")  # inside an eval's string
-# shell words a command can sit behind: { git commit; }, if ...; then git commit
-KEYWORDS = {"{", "}", "!", "if", "then", "else", "elif", "fi", "while", "until", "do", "done"}
+# in an eval's string: eval "cd ..", eval ". x.sh"
+MOVES_THE_SHELL = re.compile(r"\b(cd|pushd|popd|source)\b|(^|\s)\.\s|\bGIT_(DIR|WORK_TREE)=")
+# shell words a command can sit behind: { git commit; }, if ...; then git commit; fish's and git commit
+KEYWORDS = {"{", "}", "!", "if", "then", "else", "elif", "fi", "while", "until", "do", "done",
+            "and", "or", "not"}
+MAY_MOVE = {"pushd", "popd", "source", "."}  # each leaves the folder unsure: a sourced file may cd
 SPLIT_STRING = {"-S", "--split-string"}  # env -S 'git commit': a string env splits and runs
 # a program that runs the command after it, here: its options that take a value, how many
-# arguments come before the command (timeout 5 git), and its options that move the folder
-Runner = namedtuple("Runner", "takes_value args_before_command moves_folder")
+# arguments come before the command (timeout 5 git, flock <file> git), its options that move the
+# folder, and those whose value is a string it runs (env -S '…', flock <file> -c '…')
+Runner = namedtuple("Runner", "takes_value args_before_command moves_folder runs_string")
 RUNNERS = {
     "env": Runner({"-u", "--unset", "-C", "--chdir", "-P", "-L", "-U", *SPLIT_STRING}, 0,
-                  {"-C", "--chdir"}),
+                  {"-C", "--chdir"}, SPLIT_STRING),
     "sudo": Runner({"-u", "--user", "-g", "--group", "-h", "--host", "-p", "--prompt", "-r", "--role",
                     "-t", "--type", "-U", "--other-user", "-C", "--close-from", "-D", "--chdir",
-                    "-T", "--command-timeout"}, 0, {"-D", "--chdir", "-i", "--login"}),
+                    "-T", "--command-timeout"}, 0, {"-D", "--chdir", "-i", "--login"}, set()),
     "xargs": Runner({"-I", "-L", "-n", "-P", "-s", "-E", "-d", "-a", "--max-lines", "--max-args",
-                     "--max-procs", "--max-chars", "--eof", "--delimiter", "--arg-file"}, 0, set()),
-    "timeout": Runner({"-s", "--signal", "-k", "--kill-after"}, 1, set()),
-    "nice": Runner({"-n", "--adjustment"}, 0, set()),
-    "exec": Runner({"-a"}, 0, set()),
-    **{name: Runner(set(), 0, set()) for name in ("command", "builtin", "nohup", "time")},
+                     "--max-procs", "--max-chars", "--eof", "--delimiter", "--arg-file"}, 0, set(), set()),
+    "timeout": Runner({"-s", "--signal", "-k", "--kill-after"}, 1, set(), set()),
+    "nice": Runner({"-n", "--adjustment"}, 0, set(), set()),
+    "exec": Runner({"-a"}, 0, set(), set()),
+    "time": Runner({"-f", "--format", "-o", "--output"}, 0, set(), set()),  # GNU's /usr/bin/time
+    "ionice": Runner({"-c", "--class", "-n", "--classdata", "-p", "--pid", "-P", "--pgid", "-u", "--uid"},
+                     0, set(), set()),
+    "stdbuf": Runner({"-i", "--input", "-o", "--output", "-e", "--error"}, 0, set(), set()),
+    "flock": Runner({"-w", "--wait", "--timeout", "-E", "--conflict-exit-code", "-c", "--command"}, 1,
+                    set(), {"-c", "--command"}),
+    "doas": Runner({"-u", "-C"}, 0, set(), set()),
+    "caffeinate": Runner({"-t", "-w"}, 0, set(), set()),
+    **{name: Runner(set(), 0, set(), set())
+       for name in ("command", "builtin", "nohup", "setsid", "chronic", "busybox")},
 }
 
 
@@ -47,10 +64,11 @@ def located(segs, cwd):
     """(words, folder) for each simple command (separators left out), following any cd before
     it; folder is None where the guard can't be sure: a cd it can't follow, one that may not
     run (after || or a broken && chain) or runs elsewhere (in a pipe or the background), a
-    missing folder, pushd, popd, an eval that may move the shell, any command setting GIT_DIR
-    or GIT_WORK_TREE. A worktree is a folder of its own, so its branch and staged lines are
-    read there."""
-    here, out, outer, before, hung = cwd, [], [], ";", False
+    missing folder, pushd, popd, source, an eval that may move the shell, any command setting
+    GIT_DIR or GIT_WORK_TREE, a cd once a function is defined (it runs when the function is
+    called, not where it's written). A worktree is a folder of its own, so its branch and staged
+    lines are read there."""
+    here, out, outer, before, hung, defined = cwd, [], [], ";", False, False
     for i, words in enumerate(segs):
         after = segs[i + 1][0] if i + 1 < len(segs) else ";"
         if words[0] in SEPARATORS:
@@ -63,7 +81,8 @@ def located(segs, cwd):
             before = words[0]
             continue
         run = words[program_index(words):]  # { cd x; ...} and if cd x; ... move the shell too
-        if run[:1] in (["pushd"], ["popd"]):
+        defined = defined or words[:1] == ["function"] or segs[i + 1 : i + 3] == [["("], [")"]]
+        if run and (run[0] in MAY_MOVE or (defined and run[0] == "cd")):
             here = None
         elif any(GIT_PLACE_VARS.match(w) for w in words):
             here = None
@@ -91,29 +110,47 @@ def runner_options(words):
     return _past_runners(words)[1]
 
 
+def runners(words):
+    """The runners this simple command's program sits behind: xargs for xargs -n 1 git add."""
+    return _past_runners(words)[2]
+
+
 def moved_by_runner(words):
     """True if a runner's option may run the program elsewhere: env -C, sudo -D, sudo -i."""
     return any(opt in RUNNERS[runner].moves_folder for runner, opt, _ in runner_options(words))
 
 
 def _past_runners(words):
-    i, opts = 0, []
+    i, opts, crossed = 0, [], []
     while i < len(words):
         if re.match(r"^\w+=", words[i]) or words[i] in KEYWORDS:
             i += 1
         elif words[i] == "function":  # function f { git commit; }
             i += 2
         elif os.path.basename(words[i]) in RUNNERS:
-            i = _past_one_runner(words, i, opts)
+            runner = os.path.basename(words[i])
+            crossed.append(runner)
+            i = _past_one_runner(words, i, runner, opts)
         else:
             break
-    return i, opts
+    return i, opts, crossed
 
 
-def _past_one_runner(words, i, opts):
-    runner = os.path.basename(words[i])
-    takes_value = RUNNERS[runner].takes_value
-    i += 1
+def _past_one_runner(words, i, runner, opts):
+    spec = RUNNERS[runner]
+    found, i = options(words, i + 1, spec.takes_value)
+    if spec.args_before_command:  # and its options may follow them: flock <file> -c '…'
+        more, i = options(words, i + spec.args_before_command, spec.takes_value)
+        found += more
+    opts += [(runner, opt, value) for opt, value in found]
+    return i
+
+
+def options(words, i, takes_value):
+    """The options from words[i] on, as (option, value), and where they end: at the first word
+    that isn't one, or just past a --. A cluster's letters are options each (sudo -nu craig), up
+    to one that takes a value (nice -n5)."""
+    found = []
     while i < len(words) and words[i].startswith("-"):
         word, i = words[i], i + 1
         if word == "--":
@@ -122,17 +159,17 @@ def _past_one_runner(words, i, opts):
             opt, has_value, value = word.partition("=")
             if not has_value and opt in takes_value and i < len(words):
                 value, i = words[i], i + 1
-            opts.append((runner, opt, value))
+            found.append((opt, value))
             continue
-        for k, letter in enumerate(word[1:], 2):  # a cluster: sudo -nu craig, nice -n5
+        for k, letter in enumerate(word[1:], 2):
             opt, value = "-" + letter, word[k:]
             if opt in takes_value:
                 if not value and i < len(words):
                     value, i = words[i], i + 1
-                opts.append((runner, opt, value))
+                found.append((opt, value))
                 break
-            opts.append((runner, opt, ""))
-    return i + RUNNERS[runner].args_before_command
+            found.append((opt, ""))
+    return found, i
 
 
 def program_name(words):
