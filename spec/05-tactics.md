@@ -64,7 +64,8 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - One deadline per gameweek for every team, as in FPL: it locks the whole lineup, roles and formation
   included. Nothing locks player by player. Its time is a league rule; the default is FPL's own,
   90 minutes before the gameweek's first kickoff (every 2026/27 gameweek so far, checked against
-  FPL's live data on 16 Oct 2026).
+  FPL's live data on 16 Oct 2026). Once passed, a deadline stays where it fell, even if the
+  gameweek's first match is then postponed, as in FPL (20 Oct 2026).
 
 ## Auto-subs
 

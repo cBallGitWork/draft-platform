@@ -77,6 +77,18 @@ test("a player with no match in the gameweek has no line", () => {
   expect(fplStatLines(live, elements, fpl.fixtures)).toHaveLength(39);
 });
 
+test("a match block FPL has not filled in gives no line, though his gameweek totals carry minutes", () => {
+  const live = structuredClone(fpl.live);
+  const belloumi = live.elements.find((element) => element.id === BELLOUMI_ID)!;
+  belloumi.explain[0].stats = [];
+  expect(belloumi.stats).toHaveProperty("minutes", 26);
+
+  const unfilled = fplStatLines(live, elements, fpl.fixtures);
+
+  expect(unfilled).toHaveLength(39);
+  expect(unfilled.some((line) => line.playerCode === FULL_STATS.belloumi.code)).toBe(false);
+});
+
 test.each([
   [
     "a player bootstrap-static does not list",
@@ -89,6 +101,13 @@ test.each([
     "a match /fixtures/ does not list",
     (live: RawLive) => {
       live.elements[0].explain[0].fixture = 999;
+    },
+    "match id 999",
+  ],
+  [
+    "a match /fixtures/ does not list, in a block not yet filled in",
+    (live: RawLive) => {
+      live.elements[0].explain[0] = { fixture: 999, stats: [] };
     },
     "match id 999",
   ],

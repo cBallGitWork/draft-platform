@@ -154,8 +154,11 @@ async function recordAgainst(startAt, statusAt) {
 }
 
 const gapsOf = (times) => times.slice(1).map((time, index) => time - times[index]);
+// Each plays hours of polls through fake timers: about 2s alone on a Mac, but past vitest's 5s
+// default on a loaded machine (seen 20 Oct 2026), and CI's runner is smaller.
+const HOURS_OF_POLLS = { timeout: 30_000 };
 
-test("the recorder waits until 90 minutes before kickoff, polls every 30 seconds, and stops a quarter hour after full time", async () => {
+test("the recorder waits until 90 minutes before kickoff, polls every 30 seconds, and stops a quarter hour after full time", HOURS_OF_POLLS, async () => {
   const fullTimeAt = KICKOFF + 112 * MINUTE;
   const statusAt = (now) => (now < KICKOFF ? "U" : now < fullTimeAt ? "L" : "C");
 
@@ -173,7 +176,7 @@ test("the recorder waits until 90 minutes before kickoff, polls every 30 seconds
   expect(polls).toBe(asked.commentary.length);
 });
 
-test("a match that never reaches full time stops being recorded four hours after kickoff", async () => {
+test("a match that never reaches full time stops being recorded four hours after kickoff", HOURS_OF_POLLS, async () => {
   const { asked } = await recordAgainst(KICKOFF - LEAD, () => "L");
 
   expect(asked.commentary.at(-1)).toBe(KICKOFF + GIVE_UP - POLL);
