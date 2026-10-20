@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { refusals } from "./leagueAccess";
-import { MOST_TEAMS } from "./leagueLimits";
+import { FEWEST_TEAMS, MOST_TEAMS } from "./leagueLimits";
 import {
   ADMIN,
   actingAs,
@@ -19,6 +19,9 @@ import {
 import { LISTED, fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
 
 // Creating a league and who runs it (#24 stories 1-3 and 6; spec/13).
+
+/** Maximums a league can't have: too few teams, too many, and not a whole number. */
+const OUT_OF_RANGE = [FEWEST_TEAMS - 1, MOST_TEAMS + 1, 2.5];
 
 let t: TestConvex;
 beforeEach(async () => {
@@ -55,18 +58,6 @@ describe("creating a league", () => {
     expect(sent).toEqual([]);
   });
 
-  test("a commissioner's link that couldn't be sent is kept on the league for the admin, and only him, to see", async () => {
-    fakeResend(500);
-    const leagueId = await adminCreatesLeague(t);
-
-    const admin = await actingAs(t, ADMIN);
-    const [summary] = (await admin.query(api.account.signedInAs, {}))!.leagues;
-    expect(summary).toMatchObject({ leagueId, unsentCommissionerLink: { email: COMMISSIONER, reply: "notSent" } });
-    const commissioner = await actingAs(t, COMMISSIONER);
-    const [commissionersSummary] = (await commissioner.query(api.account.signedInAs, {}))!.leagues;
-    expect(commissionersSummary.unsentCommissionerLink).toBeNull();
-  });
-
   test("the commissioner's email is stored trimmed and lower-cased, as every email is", async () => {
     fakeResend();
     const admin = await actingAs(t, ADMIN);
@@ -84,7 +75,7 @@ describe("creating a league", () => {
     );
   });
 
-  test.each([1, 21, 2.5])("a maximum of %s teams is refused", async (maxTeams) => {
+  test.each(OUT_OF_RANGE)("a maximum of %s teams is refused", async (maxTeams) => {
     const admin = await actingAs(t, ADMIN);
     await expect(admin.mutation(api.leagues.create, { name: "L", maxTeams, commissionerEmail: COMMISSIONER })).rejects.toThrow(
       refusals.maxOutOfRange,
@@ -135,6 +126,12 @@ describe("the maximum", () => {
     await addManagers(t, leagueId, [MANAGERS[0]]);
     const manager = await actingAs(t, MANAGERS[0]);
     await expect(manager.mutation(api.leagues.setMaxTeams, { leagueId, maxTeams: 6 })).rejects.toThrow(refusals.notRunner);
+  });
+
+  test.each(OUT_OF_RANGE)("the commissioner can't set it out of range, to %s", async (maxTeams) => {
+    const commissioner = await actingAs(t, COMMISSIONER);
+    await expect(commissioner.mutation(api.leagues.setMaxTeams, { leagueId, maxTeams })).rejects.toThrow(refusals.maxOutOfRange);
+    expect((await leagueRow(t, leagueId))?.maxTeams).toBe(4);
   });
 });
 

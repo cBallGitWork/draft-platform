@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import { api } from "./_generated/api";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { api, internal } from "./_generated/api";
 import { refusals } from "./leagueAccess";
 import {
   ADMIN,
@@ -9,10 +9,11 @@ import {
   MANAGERS,
   addManagers,
   adminCreatesLeague,
+  leagueRow,
   teamsIn,
   type TestConvex,
 } from "./leagues.harness";
-import { fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
+import { ask, fakeResend, linkCode, openLink, resetSignInDeployment, signInDeployment } from "./signIn.harness";
 
 // "Your leagues" (spec/12): what account:signedInAs tells the screens of a person's leagues, and
 // #24's Done line end to end.
@@ -64,6 +65,40 @@ describe("a person's leagues", () => {
       { name: "First", roles: [], unsentCommissionerLink: null },
       { name: "Second", roles: [], unsentCommissionerLink: null },
     ]);
+  });
+});
+
+describe("a commissioner's sign-in link that didn't go", () => {
+  beforeEach(() => fakeResend(500));
+
+  test("is kept on the league for the admin, and only him, to see", async () => {
+    const leagueId = await adminCreatesLeague(t);
+
+    const [summary] = (await accountOf(ADMIN)).leagues;
+    expect(summary).toMatchObject({ leagueId, unsentCommissionerLink: { email: COMMISSIONER, reply: "notSent" } });
+    const [commissionersSummary] = (await accountOf(COMMISSIONER)).leagues;
+    expect(commissionersSummary.unsentCommissionerLink).toBeNull();
+  });
+
+  test("no longer shows once the commissioner signs in some other way", async () => {
+    await adminCreatesLeague(t);
+    const sent = fakeResend();
+    await ask(t, COMMISSIONER);
+    await openLink(t, linkCode(sent[0]));
+
+    const [summary] = (await accountOf(ADMIN)).leagues;
+    expect(summary.unsentCommissionerLink).toBeNull();
+  });
+
+  test("isn't kept when it comes back after another commissioner was named", async () => {
+    const admin = await actingAs(t, ADMIN);
+    const leagueId = await admin.mutation(api.leagues.create, { name: "L", maxTeams: 4, commissionerEmail: ANN });
+    await admin.mutation(api.leagues.nameCommissioner, { leagueId, email: COMMISSIONER });
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    // Ann's link, sent first, is the last to answer.
+    await t.mutation(internal.leagues.recordCommissionerLink, { leagueId, email: ANN, reply: "notSent" });
+
+    expect((await leagueRow(t, leagueId))?.commissionerLink).toEqual({ email: COMMISSIONER, reply: "notSent" });
   });
 });
 
