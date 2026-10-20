@@ -9,6 +9,7 @@ done < f), feeds every command inside it. Stdlib only, Python 3.9+.
 from __future__ import annotations
 
 import re
+from collections import namedtuple
 
 from parsing import HEREDOC_MARKED, HERE_STRING, MARKED, REDIRECT_IN, REDIRECT_OUT, ansi_c_text
 from where import KEYWORDS, SEPARATORS, program_index, program_name
@@ -20,6 +21,7 @@ STDIN = object()  # in place of a string: the commands a shell reads on its stdi
 # the word that opens a group of commands and the one that closes it
 CLOSES = {"(": ")", "{": "}", "if": "fi", "while": "done", "until": "done", "for": "done",
           "select": "done", "case": "esac"}
+Group = namedtuple("Group", "closer stdin opened")  # opened: (segment, word) where it opens
 
 
 class UnreadableStdin(Exception):
@@ -33,12 +35,12 @@ def stdins(segs, lifted):
     reads on stdin (the text, UNKNOWN, or None if nothing on the line feeds it) and the lifted $(…)
     those redirections run."""
     closing_feeds = _closing_feeds(segs, lifted)
-    out, feeds, output, piped, groups = [], [], UNKNOWN, None, []  # groups: (closer, its stdin, where)
+    out, feeds, output, piped, groups = [], [], UNKNOWN, None, []  # groups: each Group still open
     for k, seg in enumerate(segs):
-        fed = piped if piped is not None else (groups[-1][1] if groups else None)
+        fed = piped if piped is not None else (groups[-1].stdin if groups else None)
         _open_and_close(seg, k, groups, fed, closing_feeds)
-        if groups and groups[-1][2][0] == k:  # { sh; } <<EOF: sh is fed what its group is
-            fed = groups[-1][1]
+        if groups and groups[-1].opened[0] == k:  # { sh; } <<EOF: sh is fed what its group is
+            fed = groups[-1].stdin
         if seg[0] in SEPARATORS:  # (echo x) | sh: what ran inside a ( … ) isn't followed
             piped, output = output if seg == ["|"] else None, UNKNOWN
             out.append(seg)
@@ -73,9 +75,9 @@ def _open_and_close(seg, k, groups, fed, closing_feeds):
     for j, word in enumerate(seg):
         if word in CLOSES:
             fed = closing_feeds.get((k, j), fed)  # a group opened inside it is fed the same: { { sh
-            groups.append((CLOSES[word], fed, (k, j)))
-        elif groups and word == groups[-1][0]:
-            closed.append(groups.pop()[2])
+            groups.append(Group(CLOSES[word], fed, (k, j)))
+        elif groups and word == groups[-1].closer:
+            closed.append(groups.pop().opened)
         elif word not in KEYWORDS:
             break
     return closed
