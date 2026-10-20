@@ -5,11 +5,11 @@
 // Usage: node scripts/shoot.mjs <route> [name]
 //   node scripts/shoot.mjs / sign-in
 //   node scripts/shoot.mjs "/team/squad?preview=manager" squad
-// The app must be running on this folder's port (scripts/port.mjs); APP_URL overrides it.
+// The app must be running on this checkout's port (scripts/port.mjs); APP_URL overrides it.
 
 import { mkdirSync } from "node:fs";
 import { chromium } from "playwright";
-import { folderPort } from "./port.mjs";
+import { appPort } from "./port.mjs";
 
 const PHONE = { width: 390, height: 844 };
 const WIDTHS = [PHONE, { width: 1440, height: 900 }];
@@ -21,7 +21,7 @@ if (!route) {
   console.error("Usage: node scripts/shoot.mjs <route> [name]");
   process.exit(2);
 }
-const url = new URL(route, process.env.APP_URL ?? `http://localhost:${folderPort(process.cwd())}`).href;
+const url = new URL(route, process.env.APP_URL ?? `http://localhost:${appPort()}`).href;
 mkdirSync(SHOTS_DIR, { recursive: true });
 
 // The Mac's Chrome, so Playwright's own browser needn't be downloaded.

@@ -26,7 +26,7 @@ don't need Convex to draw.
 npx vite --port "$(node scripts/port.mjs)" --strictPort   # in the background, from this folder
 ```
 
-The port is this folder's own (`scripts/port.mjs`), and `shoot.mjs` aims at it. Never shoot a
+The port is this checkout's own (`scripts/port.mjs`), and `shoot.mjs` aims at it. Never shoot a
 server you didn't start, and never 5173: another worktree's app may be on it, and its screens
 would be passed off as this branch's. If the port is taken, say so and stop. Stop the server
 when you are done.
