@@ -2,12 +2,13 @@
 // in convex/mail.ts (`mailRefusals`), and reaches the screen as is. What the letters about a
 // league's events say is in convex/letterWords.ts.
 
-import { UNREAD_COUNTED } from "../../convex/mailLimits";
+import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mailLimits";
 
 export const MAIL_TITLE = "Mail";
 export const noLettersWords = "No letters yet. When something happens in your league, it's reported here.";
 export const loadingWords = "Fetching your Mail…";
 export const unreadWords = "Unread";
+export const onlyLatestWords = `Only your latest ${LETTERS_SHOWN} letters are shown.`;
 
 /** The menu's and the plate's count: past UNREAD_COUNTED, that number and a "+". */
 export const unreadFigure = (unread: number) => (unread > UNREAD_COUNTED ? `${UNREAD_COUNTED}+` : `${unread}`);

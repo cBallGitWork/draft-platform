@@ -6,10 +6,10 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../convex/mail";
-import { UNREAD_COUNTED } from "../../convex/mailLimits";
+import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mailLimits";
 import { MAIL_PATH } from "../frame/menu";
 import { league, manager, managerIn, openApp } from "../shell.harness";
-import { WRITE_TITLE, loadingWords, noLettersWords, sentWords } from "./words";
+import { WRITE_TITLE, loadingWords, noLettersWords, onlyLatestWords, sentWords } from "./words";
 
 afterEach(cleanup);
 
@@ -17,7 +17,7 @@ afterEach(cleanup);
 const letter = (number: number, read: boolean, from: string | null = null): LetterSummary => ({
   letterId: `letter-${number}` as Id<"letters">,
   leagueName: league.name,
-  at: Date.parse(`2026-10-${10 + number}T12:00:00Z`),
+  at: Date.UTC(2026, 9, 10 + number, 12),
   from,
   subject: `Letter ${number}`,
   body: `The text of letter ${number}.`,
@@ -59,12 +59,24 @@ describe("the letters", () => {
     expect(app.mail.open).toHaveBeenCalledTimes(1);
   });
 
-  it("with none, says so; while they load, says that", async () => {
+  it("with none, says so", async () => {
     openApp(MAIL_PATH, manager);
     expect(await screen.findByText(noLettersWords)).toBeTruthy();
-    cleanup();
+  });
+
+  it("while they load, says that", async () => {
     openApp(MAIL_PATH, manager, undefined, null);
     expect((await screen.findByRole("status")).textContent).toBe(loadingWords);
+  });
+
+  it(`at ${LETTERS_SHOWN}, says older ones aren't shown; under it, says nothing`, async () => {
+    const full = Array.from({ length: LETTERS_SHOWN }, (_, index) => letter(index + 1, true));
+    openApp(MAIL_PATH, manager, undefined, full);
+    expect(await screen.findByText(onlyLatestWords)).toBeTruthy();
+    cleanup();
+    openApp(MAIL_PATH, manager, undefined, full.slice(1));
+    await screen.findByRole("list");
+    expect(screen.queryByText(onlyLatestWords)).toBeNull();
   });
 });
 

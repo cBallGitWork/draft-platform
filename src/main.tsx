@@ -6,8 +6,8 @@ import "./styles.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { LiveApp, takeLinkCode } from "./liveApp";
-import { previewMail } from "./mail/previewMail";
-import { previewAuth, previewLeagues, previewSession, previewTopBar } from "./preview";
+import { previewMail, previewTopBar } from "./mail/previewMail";
+import { previewAuth, previewLeagues, previewSession } from "./preview";
 import { ShellApp } from "./ShellApp";
 
 const preview = previewSession();
