@@ -8,7 +8,8 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../convex/mail";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mailLimits";
 import { MAIL_PATH } from "../frame/menu";
-import { league, manager, managerIn, openApp } from "../shell.harness";
+import { LEAGUES_PATH } from "../leagues/paths";
+import { league, manager, managerIn, newcomer, openApp } from "../shell.harness";
 import { WRITE_TITLE, loadingWords, noLettersWords, onlyLatestWords, sentWords } from "./words";
 
 afterEach(cleanup);
@@ -91,6 +92,30 @@ describe("the unread count", () => {
     openApp(MAIL_PATH, manager, { unreadMail: UNREAD_COUNTED + 1, next: null }, letters);
     expect(await screen.findByText(`${UNREAD_COUNTED}+ unread`)).toBeTruthy();
     expect(screen.getByRole("link", { name: `Mail, ${UNREAD_COUNTED}+ unread` })).toBeTruthy();
+  });
+});
+
+describe("someone in no league, as a manager removed from their last one is (spec/13)", () => {
+  it("sees Mail and its count on the top bar, opens it, and reads a letter", async () => {
+    const app = openApp(LEAGUES_PATH, newcomer, twoUnread, letters);
+    await userEvent.click(await screen.findByRole("link", { name: "Mail, 2 unread" }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Mail" })).toBeTruthy();
+    expect(app.path()).toBe(MAIL_PATH);
+    expect(screen.queryByRole("navigation", { name: "Main" })).toBeNull();
+    await userEvent.click(letterButton("Letter 3"));
+    expect(shown("The text of letter 3.")).toBe(true);
+    expect(app.mail.open).toHaveBeenCalledWith("letter-3");
+  });
+
+  it("opening Mail's address stays on Mail, and the top bar goes back to their leagues", async () => {
+    const app = openApp(MAIL_PATH, newcomer, twoUnread, letters);
+    expect(await screen.findByRole("heading", { level: 1, name: "Mail" })).toBeTruthy();
+    expect(app.path()).toBe(MAIL_PATH);
+
+    await userEvent.click(screen.getByRole("link", { name: "Your leagues" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
+    expect(app.path()).toBe(LEAGUES_PATH);
   });
 });
 

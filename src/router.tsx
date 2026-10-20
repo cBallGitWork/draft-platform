@@ -51,8 +51,9 @@ const signInRoute = createRoute({
   },
 });
 
-// The leagues pages, for anyone signed in: in the league frame for someone in a league, and
-// outside it, with no league menu, for someone in none (spec/02).
+// The leagues pages and Mail, for anyone signed in: in the league frame for someone in a league,
+// and outside it, with no league menu, for someone in none (spec/02). Mail is one of them, not a
+// league-frame page, because a manager removed from their last league is told so by letter (spec/13).
 const leaguePagesRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "leaguePages",
@@ -64,7 +65,7 @@ const leaguePagesRoute = createRoute({
     return session.signedIn && session.inLeague ? (
       <AppFrame topBar={topBar} onSignOut={auth.signOut} />
     ) : (
-      <LeaguelessFrame onSignOut={auth.signOut} />
+      <LeaguelessFrame unreadMail={topBar.unreadMail} onSignOut={auth.signOut} />
     );
   },
 });
@@ -86,6 +87,15 @@ const newLeagueRoute = createRoute({
   },
   component: function NewLeague() {
     return <NewLeaguePage createLeague={newLeagueRoute.useRouteContext({ select: (context) => context.leagues.createLeague })} />;
+  },
+});
+
+const mailRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: MAIL_PATH,
+  component: function MailScreen() {
+    const { mail, session, topBar } = mailRoute.useRouteContext();
+    return <MailPage mail={mail} unread={topBar.unreadMail} writableLeagues={leaguesToWriteFrom(session)} />;
   },
 });
 
@@ -111,15 +121,6 @@ const landingRoute = createRoute({
   },
 });
 
-const mailRoute = createRoute({
-  getParentRoute: () => frameRoute,
-  path: MAIL_PATH,
-  component: function MailScreen() {
-    const { mail, session, topBar } = mailRoute.useRouteContext();
-    return <MailPage mail={mail} unread={topBar.unreadMail} writableLeagues={leaguesToWriteFrom(session)} />;
-  },
-});
-
 const pageRoutes = pages.filter((page) => page.path !== MAIL_PATH).map((page) =>
   createRoute({
     getParentRoute: () => frameRoute,
@@ -130,8 +131,8 @@ const pageRoutes = pages.filter((page) => page.path !== MAIL_PATH).map((page) =>
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
-  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute]),
-  frameRoute.addChildren([landingRoute, mailRoute, ...pageRoutes]),
+  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute]),
+  frameRoute.addChildren([landingRoute, ...pageRoutes]),
 ]);
 
 // Not registered for typed links yet: the pages above are made in a loop, so their paths are plain
