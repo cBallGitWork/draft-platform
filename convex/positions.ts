@@ -80,7 +80,7 @@ export function positionsFromStarts(starts: Start[]): { positions: Position[]; u
 
 /** His positions, each once, in `POSITIONS` order. An admin's position wins over one from starts,
  *  and starts over his label. His label counts only while no start-position does (spec/06: a new
- *  signing, fewer than 3 starts anywhere, or starts the admin has not yet approved). */
+ *  signing, too few starts anywhere, or starts the admin has not yet approved). */
 export function positionsOf({ starts, plLabel, admin, approveMode }: PositionInputs): PlayerPositions {
   const fromStarts = positionsFromStarts(starts);
   const kept = fromStarts.positions.filter((position) => !admin.removed.includes(position));

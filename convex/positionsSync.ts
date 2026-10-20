@@ -1,7 +1,8 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "./_generated/api";
 import { internalAction, internalMutation, internalQuery, type ActionCtx } from "./_generated/server";
-import { PL_COMP_SEASON, PL_LAST_COMP_SEASON } from "./football";
+import { errorMessage, PL_COMP_SEASON, PL_LAST_COMP_SEASON } from "./football";
+import { BATCH_SIZE, LATEST_RUNS } from "./footballSync";
 import { codesByOpta, namedMen } from "./feedIds";
 import { readFplBootstrap } from "./fpl";
 import { heldRow } from "./playerPositions";
@@ -9,7 +10,7 @@ import { matchSlots, requireFixtureCode, type MatchSlot } from "./plMatch";
 import { START_WINDOW, type Start } from "./positions";
 import { labelPositions, placePosition } from "./positionTables";
 import { readPlFixture, readPlFixtures, readPlSquad, type RawPlFixture, type RawPlSquadPlayer } from "./premierLeague";
-import { positionsSyncFields, positionsSyncTrigger, startRecord } from "./schema";
+import { positionsSyncFields, startRecord, syncTrigger } from "./schema";
 
 // Issue #22: each player's starts, from the Premier League's team sheets for last season and this,
 // and his label, from this season's squads (docs/positions.md). A match's sheets are read once;
@@ -24,15 +25,12 @@ const PLAYED = "C";
 /** Matches whose sheets one run reads, one read at a time: two seasons' first 450 take three runs,
  *  each well inside an action's ten minutes, and the feed is never asked for two at once. */
 export const MATCHES_PER_RUN = 150;
-/** Labels per mutation: a season's ~700 players in four. */
-const LABELS_PER_BATCH = 200;
-const LATEST_RUNS = 5;
 
 type Synced = Omit<Extract<Infer<typeof positionsSyncFields.outcome>, { ok: true }>, "ok">;
 const matchStarts = v.array(v.object({ playerCode: v.number(), start: startRecord }));
 
 export const run = internalAction({
-  args: { trigger: positionsSyncTrigger },
+  args: { trigger: syncTrigger },
   handler: async (ctx, { trigger }) => {
     const ranAt = Date.now();
     let outcome: Infer<typeof positionsSyncFields.outcome>;
@@ -44,7 +42,7 @@ export const run = internalAction({
         console.error(`positions sync: ${JSON.stringify({ unknownFormations, unknownLabels, matchesRefused })}`);
       }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message = errorMessage(error);
       console.error(`positions sync failed: ${message}`);
       outcome = { ok: false, error: message };
     }
@@ -128,7 +126,7 @@ async function syncPositions(ctx: ActionCtx): Promise<Synced> {
   const found: Found = { labels: new Map(), unmatched: new Set(), unknownFormations: new Set(), matchesRefused: [] };
   let startsAdded = 0;
   for (const listed of toRead.slice(0, MATCHES_PER_RUN)) {
-    const starts = startsOf(await readPlFixture(listed.id), codeByOpta, found);
+    const starts = matchStartsOf(await readPlFixture(listed.id), codeByOpta, found);
     if (starts !== null) {
       startsAdded += await ctx.runMutation(internal.positionsSync.recordStarts, { fixtureCode: requireFixtureCode(listed), starts });
     }
@@ -138,8 +136,8 @@ async function syncPositions(ctx: ActionCtx): Promise<Synced> {
   for (const club of clubs) noteLabels((await readPlSquad(club)).players, codeByOpta, found);
   const rows = [...found.labels].map(([code, plLabel]) => ({ code, plLabel }));
   let labelsChanged = 0;
-  for (let start = 0; start < rows.length; start += LABELS_PER_BATCH) {
-    labelsChanged += await ctx.runMutation(internal.positionsSync.recordLabels, { labels: rows.slice(start, start + LABELS_PER_BATCH) });
+  for (let start = 0; start < rows.length; start += BATCH_SIZE) {
+    labelsChanged += await ctx.runMutation(internal.positionsSync.recordLabels, { labels: rows.slice(start, start + BATCH_SIZE) });
   }
   return {
     matchesRead: Math.min(toRead.length, MATCHES_PER_RUN),
@@ -166,14 +164,14 @@ interface Found {
 /** A played match's starts, each under the starter's FPL code. A match whose sheets do not draw the
  *  men they start (Manchester City's at 128950 drew a substitute) is refused and noted, not filed,
  *  so every run reads it again and reports it until the feed corrects it. */
-function startsOf(sheet: RawPlFixture, codeByOpta: ReadonlyMap<string, number>, found: Found) {
+function matchStartsOf(sheet: RawPlFixture, codeByOpta: ReadonlyMap<string, number>, found: Found) {
   let slots: MatchSlot[];
   try {
     const matched = matchSlots(sheet, codeByOpta);
     slots = matched.slots;
     matched.unmatched.forEach((man) => found.unmatched.add(man.plPlayerId));
   } catch (error: unknown) {
-    found.matchesRefused.push(error instanceof Error ? error.message : String(error));
+    found.matchesRefused.push(errorMessage(error));
     return null;
   }
   noteLabels(namedMen(sheet), codeByOpta, found);

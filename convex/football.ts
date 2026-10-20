@@ -76,6 +76,11 @@ const USER_AGENT =
 // A feed that never answers would otherwise hold the action until Convex kills it.
 const TIMEOUT_MS = 15_000;
 
+/** What a caught failure says, whether or not it was thrown as an Error. */
+export function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 /** The body as JSON; a status that is not OK throws, naming the URL and the status. */
 export async function getJson(url: string): Promise<unknown> {
   const res = await fetch(url, {

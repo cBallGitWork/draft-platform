@@ -8,13 +8,16 @@ import { approveMode, position } from "./schema";
 // Each player's positions (#22): his row holds what the feeds gave (his starts, his label) and the
 // admin's say, and `positionsOf` works his positions out from it on every read, so a change to
 // either, or to the approve mode, needs no recount. The admin's screen is #87; until sign-in (#20)
-// these are internal functions, run from the dashboard or the CLI:
+// these are internal functions, run from Convex's dashboard or the CLI:
 // `npx convex run playerPositions:approveClub '{"clubCode":3}'`.
 
 type Row = Doc<"playerPositions">;
 
 /** Spec/06: at first, positions from starts wait for the admin. */
 const FIRST_APPROVE_MODE: ApproveMode = "proposals";
+
+/** A player's row before any feed or the admin has written to it. */
+const EMPTY_ROW: Omit<Row, "_id" | "_creationTime" | "code"> = { starts: [], approved: [], set: [], removed: [] };
 
 /** His positions, worked out now; a player no feed has named yet has none. */
 export const ofPlayer = internalQuery({
@@ -49,21 +52,22 @@ export const approveClub = internalMutation({
 /** Gives him `position` until the admin removes it: support striker is set this way (spec/06). */
 export const setPosition = internalMutation({
   args: { code: v.number(), position },
-  handler: async (ctx, { code, position: set }) => {
+  handler: async (ctx, { code, position: given }) => {
     const row = await heldRow(ctx, code);
-    await ctx.db.patch("playerPositions", row._id, { set: withOne(row.set, set), removed: withoutOne(row.removed, set) });
+    await ctx.db.patch("playerPositions", row._id, { set: withOne(row.set, given), removed: withoutOne(row.removed, given) });
   },
 });
 
 /** Takes `position` from him, wherever it came from, and keeps it off through every recount. */
 export const removePosition = internalMutation({
   args: { code: v.number(), position },
-  handler: async (ctx, { code, position: removed }) => {
+  handler: async (ctx, { code, position: taken }) => {
     const row = await heldRow(ctx, code);
-    await ctx.db.patch("playerPositions", row._id, { set: withoutOne(row.set, removed), removed: withOne(row.removed, removed) });
+    await ctx.db.patch("playerPositions", row._id, { set: withoutOne(row.set, taken), removed: withOne(row.removed, taken) });
   },
 });
 
+/** Whether positions from starts wait for his approval or count at once (spec/06). */
 export const setApproveMode = internalMutation({
   args: { approveMode },
   handler: async (ctx, { approveMode: mode }) => {
@@ -73,15 +77,12 @@ export const setApproveMode = internalMutation({
   },
 });
 
-/** A player's row before any feed or the admin has written to it. */
-const EMPTY_ROW: Omit<Row, "_id" | "_creationTime" | "code"> = { starts: [], approved: [], set: [], removed: [] };
-
 /** His row, made empty if he has none yet. */
 export async function heldRow(ctx: MutationCtx, code: number): Promise<Row> {
   const row = await findRow(ctx, code);
   if (row !== null) return row;
   const id = await ctx.db.insert("playerPositions", { code, ...EMPTY_ROW });
-  return { _id: id, _creationTime: Date.now(), code, ...EMPTY_ROW };
+  return (await ctx.db.get("playerPositions", id))!;
 }
 
 function findRow(ctx: QueryCtx, code: number): Promise<Row | null> {
@@ -92,6 +93,7 @@ async function currentApproveMode(ctx: QueryCtx): Promise<ApproveMode> {
   return (await ctx.db.query("positionSettings").unique())?.approveMode ?? FIRST_APPROVE_MODE;
 }
 
+/** Adds what his starts give him now to what the admin approved before, and confirms his label. */
 async function approve(ctx: MutationCtx, row: Row): Promise<void> {
   const approved = positionsFromStarts(row.starts).positions.reduce(withOne, row.approved);
   await ctx.db.patch("playerPositions", row._id, { approved, confirmedLabel: row.plLabel });

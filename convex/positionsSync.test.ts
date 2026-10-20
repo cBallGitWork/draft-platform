@@ -2,7 +2,7 @@ import { convexTest } from "convex-test";
 import { afterEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, PL_COMP_SEASON, PL_LAST_COMP_SEASON, plFixturesUrl, plFixtureUrl } from "./football";
-import { modules, positionsOf, REFUSED_STATUS, syncPositionsWith, type TestConvex } from "./positionsSync.harness";
+import { heldPositions, modules, REFUSED_STATUS, syncPositionsWith, type TestConvex } from "./positionsSync.harness";
 import { MATCHES_PER_RUN } from "./positionsSync";
 import type { RawPlSquadPlayer } from "./premierLeague";
 import { NEWCASTLE, PLAYER, recordedPositions, SHEET } from "./recorded/positions.payloads";
@@ -16,14 +16,14 @@ function manIn(men: RawPlSquadPlayer[], code: number): RawPlSquadPlayer {
   return men.find((man) => man.altIds?.opta === `p${code}`)!;
 }
 
-function startsOf(t: TestConvex, code: number) {
+function heldStarts(t: TestConvex, code: number) {
   return t.run(async (ctx) => {
     const row = await ctx.db.query("playerPositions").withIndex("by_code", (q) => q.eq("code", code)).unique();
     return row?.starts ?? [];
   });
 }
 
-test("a run files every played sheet's starts and this season's labels, and reports what it could not place", async () => {
+test("a run files every played match's starts and this season's labels, and reports what it could not place", async () => {
   const t = convexTest(schema, modules);
 
   const { outcome, urls } = await syncPositionsWith(t, recordedPositions());
@@ -51,7 +51,7 @@ test("a substitute's appearance is never filed as a start", async () => {
   await syncPositionsWith(t, recordedPositions());
 
   // Lewis Hall started two of the four Newcastle matches and was on the bench for the other two.
-  const starts = await startsOf(t, PLAYER.hall);
+  const starts = await heldStarts(t, PLAYER.hall);
 
   expect(starts.map((start) => start.fixtureCode)).toHaveLength(2);
   expect(starts.every((start) => start.formation !== null && start.line === 1)).toBe(true);
@@ -65,7 +65,7 @@ test("each sheet is read once: a second run files nothing again, and reads only 
 
   expect(outcome).toMatchObject({ ok: true, matchesRead: 1, startsAdded: 0, matchesRefused: [REFUSED_SHEET] });
   expect(urls.filter((url) => /\/fixtures\/\d+$/.test(url))).toEqual([plFixtureUrl(SHEET.cityCoventryRefused)]);
-  expect(await startsOf(t, PLAYER.barnes)).toHaveLength(3);
+  expect(await heldStarts(t, PLAYER.barnes)).toHaveLength(3);
 });
 
 test("a formation the table does not know is reported, and its starts give nothing", async () => {
@@ -91,7 +91,7 @@ test("a label the table does not know is reported, and gives no position", async
   const { outcome } = await syncPositionsWith(t, payloads);
 
   expect(outcome).toMatchObject({ ok: true, unknownLabels: ["Libero"] });
-  expect(await positionsOf(t, PLAYER.steur)).toEqual({});
+  expect(await heldPositions(t, PLAYER.steur)).toEqual({});
 });
 
 test("a squad's label wins over a sheet's, and a man no squad lists keeps his newest sheet's", async () => {
@@ -104,8 +104,8 @@ test("a squad's label wins over a sheet's, and a man no squad lists keeps his ne
 
   await syncPositionsWith(t, payloads);
 
-  expect(await positionsOf(t, PLAYER.hall)).toEqual({ WB: "label?" });
-  expect(await positionsOf(t, PLAYER.woltemade)).toEqual({ ST: "label?" });
+  expect(await heldPositions(t, PLAYER.hall)).toEqual({ WB: "label?" });
+  expect(await heldPositions(t, PLAYER.woltemade)).toEqual({ ST: "label?" });
 });
 
 test("a sheet filed twice, as by two runs at once, is filed once", async () => {
@@ -128,7 +128,7 @@ test.each([
   const { outcome } = await syncPositionsWith(t, recordedPositions(), url);
 
   expect(outcome).toEqual({ ok: false, error: `${url} answered ${REFUSED_STATUS}` });
-  expect(await startsOf(t, PLAYER.barnes)).toEqual([]);
+  expect(await heldStarts(t, PLAYER.barnes)).toEqual([]);
 });
 
 test("a sheet refused mid-run leaves the sheets read before it filed", async () => {
@@ -137,7 +137,7 @@ test("a sheet refused mid-run leaves the sheets read before it filed", async () 
   const { outcome } = await syncPositionsWith(t, recordedPositions(), plFixtureUrl(SHEET.newcastleLateNov));
 
   expect(outcome).toEqual({ ok: false, error: `${plFixtureUrl(SHEET.newcastleLateNov)} answered ${REFUSED_STATUS}` });
-  expect(await startsOf(t, PLAYER.barnes)).toHaveLength(2);
+  expect(await heldStarts(t, PLAYER.barnes)).toHaveLength(2);
 });
 
 test(`one run reads at most ${MATCHES_PER_RUN} sheets, oldest first, and says how many are left`, async () => {
@@ -158,7 +158,7 @@ test(`one run reads at most ${MATCHES_PER_RUN} sheets, oldest first, and says ho
   const { outcome } = await syncPositionsWith(t, payloads);
 
   expect(outcome).toMatchObject({ ok: true, matchesRead: MATCHES_PER_RUN, matchesLeft: 2 });
-  const filed = (await startsOf(t, PLAYER.thiaw)).map((start) => start.fixtureCode);
+  const filed = (await heldStarts(t, PLAYER.thiaw)).map((start) => start.fixtureCode);
   expect(filed).toContain(900_002);
   expect(filed).not.toContain(900_000); // the newest two wait for the next run
   expect(filed).not.toContain(900_001);

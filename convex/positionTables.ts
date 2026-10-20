@@ -39,14 +39,10 @@ export const FORMATION_PLACES: Readonly<Record<string, readonly (readonly Positi
   "5-3-2": [["WB", "CB", "CB", "CB", "WB"], ["CM", "CM", "CM"], ["ST", "ST"]],
 };
 
-export function isKnownFormation(formation: string): boolean {
-  return Object.hasOwn(FORMATION_PLACES, formation);
-}
-
 /** Where a starter at `line` and `place` of `formation` played; null for a formation the table
  *  does not know, or a place it does not draw, which the sync reports. */
 export function placePosition(formation: string, line: number, place: number): Position | null {
-  if (!isKnownFormation(formation)) return null;
+  if (!Object.hasOwn(FORMATION_PLACES, formation)) return null;
   if (line === 0) return place === 0 ? "GK" : null;
   return FORMATION_PLACES[formation][line - 1]?.[place] ?? null;
 }
