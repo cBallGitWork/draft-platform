@@ -2,10 +2,10 @@
 // lineup at once. When it falls is the league's rule (spec/03), so the rule is always an argument,
 // never a constant: #25 is to hold it as data with the league's other rules.
 //
-// Once passed, a deadline stays where it fell, even if the first match is then postponed (#85).
-// The matches no longer show where it fell, so the deadline is read with the one recorded for the
-// gameweek. Whoever records it (one per league and gameweek, with the lineups: #8, #14) records
-// what gameweekDeadline returns each time the matches change, so the record is never older than them.
+// Once passed, a deadline stays where it fell, even if the first match is then postponed (#85), and
+// the matches no longer show where that was. So each read takes the deadline recorded for the
+// gameweek, and whoever keeps it (per league and gameweek, with the lineups: #8, #14) records what
+// gameweekDeadline returns each time the matches change, so the record is never older than them.
 
 import type { Infer } from "convex/values";
 import type { fixtureRecord } from "./schema";
