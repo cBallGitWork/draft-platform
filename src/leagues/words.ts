@@ -29,3 +29,6 @@ export const commissionerHint = "If they have no account yet, they're sent a sig
 
 /** When creating failed before the server could say why: the connection, or the server itself. */
 export const createFailedWords = "Something went wrong, so the league wasn't made. Check your connection and try again.";
+
+/** When switching league failed before the server could say why. */
+export const chooseFailedWords = "Something went wrong, so you're still in this league. Check your connection and try again.";

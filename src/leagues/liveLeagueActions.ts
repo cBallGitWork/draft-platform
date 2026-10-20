@@ -3,12 +3,13 @@ import { ConvexError } from "convex/values";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import type { LeagueActions } from "./actions";
-import { createFailedWords } from "./words";
+import { chooseFailedWords, createFailedWords } from "./words";
 
 /** The leagues seam filled in by Convex. A refusal comes back as the server's own words
  *  (convex/leagueAccess.ts); any other failure is logged and said plainly. */
 export function useLiveLeagueActions(): LeagueActions {
   const create = useMutation(api.leagues.create);
+  const choose = useMutation(api.lastLeague.choose);
   return useMemo(
     () => ({
       createLeague: async (league) => {
@@ -21,7 +22,17 @@ export function useLiveLeagueActions(): LeagueActions {
           return createFailedWords;
         }
       },
+      chooseLeague: async (leagueId) => {
+        try {
+          await choose({ leagueId });
+          return null;
+        } catch (error) {
+          if (error instanceof ConvexError && typeof error.data === "string") return error.data;
+          console.error("Switching league failed:", error);
+          return chooseFailedWords;
+        }
+      },
     }),
-    [create],
+    [create, choose],
   );
 }
