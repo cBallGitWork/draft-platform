@@ -26,6 +26,11 @@ export const PL_COMP_SEASON = 841;
 /** The Premier League's id for Arsenal, whose squad list proves squad numbers can be read. */
 export const PL_ARSENAL = 1;
 
+/** A club's registered squad this season, each man with his squad number. */
+export function plSquadUrl(teamId: number): string {
+  return `${PL_API_BASE}/teams/${teamId}/compseasons/${PL_COMP_SEASON}/staff?type=all`;
+}
+
 /** A gameweek's live stats, per player. */
 export function fplLiveUrl(gameweek: number): string {
   return `${FPL_API_BASE}/event/${gameweek}/live/`;
@@ -119,9 +124,7 @@ export async function plFixtureCount(): Promise<number> {
 }
 
 export async function arsenalSquadNumbers(): Promise<number> {
-  const staff = (await getJson(
-    `${PL_API_BASE}/teams/${PL_ARSENAL}/compseasons/${PL_COMP_SEASON}/staff?type=all`,
-  )) as RawPlStaff;
+  const staff = (await getJson(plSquadUrl(PL_ARSENAL))) as RawPlStaff;
   return squadNumbers(staff).size;
 }
 

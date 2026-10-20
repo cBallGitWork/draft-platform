@@ -1,6 +1,12 @@
-import { readFileSync } from "node:fs";
 import { afterEach, expect, test, vi } from "vitest";
 import { plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../convex/football.ts";
+import {
+  COMMENTARY_MATCH,
+  recordedCommentary,
+  recordedSheets,
+  recordedTeamStats,
+  UPCOMING_MATCH,
+} from "../convex/recorded/commentary.payloads.ts";
 import {
   AFTER_FULL_TIME_MS,
   fixtureStatus,
@@ -14,9 +20,8 @@ import {
 
 afterEach(() => vi.unstubAllGlobals());
 
-const recorded = (name) => JSON.parse(readFileSync(new URL(`../convex/recorded/${name}`, import.meta.url), "utf8"));
-const BRENTFORD_LIVERPOOL = 128984;
-const IPSWICH_FOREST = 128999;
+const BRENTFORD_LIVERPOOL = COMMENTARY_MATCH.brentfordLiverpool;
+const IPSWICH_FOREST = UPCOMING_MATCH;
 const KICKOFF = Date.UTC(2026, 9, 23, 19);
 
 test("a poll reads the commentary, the fixture and the team stats, in that order, on the seam's URLs", () => {
@@ -58,14 +63,13 @@ test("a refused read is saved with why, and the poll goes on to the next", async
 });
 
 test("a finished match's poll sums up as its newest line, its sheets and the five team stats, home first", () => {
-  const sheets = recorded("pl-commentary-sheets.json").find((each) => each.id === BRENTFORD_LIVERPOOL);
-  const fixture = { ...sheets, status: "C", clock: { label: "90+7'00" }, teams: [{ team: { id: 130 } }, { team: { id: 10 } }] };
+  const fixture = { ...recordedSheets(BRENTFORD_LIVERPOOL), status: "C", clock: { label: "90+7'00" }, teams: [{ team: { id: 130 } }, { team: { id: 10 } }] };
   const saved = {
     polledAt: "2026-10-17T15:58:30.000Z",
     reads: [
-      { kind: "commentary", body: recorded("pl-commentary.json")[BRENTFORD_LIVERPOOL] },
+      { kind: "commentary", body: recordedCommentary(BRENTFORD_LIVERPOOL) },
       { kind: "fixture", body: fixture },
-      { kind: "teamStats", body: recorded("pl-team-stats.json")[BRENTFORD_LIVERPOOL] },
+      { kind: "teamStats", body: recordedTeamStats(BRENTFORD_LIVERPOOL) },
     ],
   };
 
@@ -91,9 +95,9 @@ test("before kickoff, a poll sums up as no commentary, no one named and no team 
   const saved = {
     polledAt: "2026-10-20T12:00:00.000Z",
     reads: [
-      { kind: "commentary", body: recorded("pl-commentary.json")[IPSWICH_FOREST] },
+      { kind: "commentary", body: recordedCommentary(IPSWICH_FOREST) },
       { kind: "fixture", body: { status: "U", teamLists: [null, null] } },
-      { kind: "teamStats", body: recorded("pl-team-stats.json")[IPSWICH_FOREST] },
+      { kind: "teamStats", body: recordedTeamStats(IPSWICH_FOREST) },
     ],
   };
 

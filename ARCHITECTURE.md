@@ -39,8 +39,8 @@ Supabase was the runner-up.
 **The commentary stream (#37): read, not yet proven live.** spec/10's commentary stands on the
 Premier League's `/fixtures/{id}/textstream/EN?pageSize=200&sort=desc`; the team stats on
 `/stats/match/{id}`. Neither needs the `Origin` header the premierleague.com site sends (from
-the Mac, 20 Oct 2026). Each line's `playerIds` are the team sheets' ids, so they map to FPL's `code` as
-the sheets do (`convex/plCommentary.ts`). The 28 event types seen and what each line's men are:
+the Mac, 20 Oct 2026). Each line's `playerIds` are the team sheets' ids, so they map to FPL's
+`code` as the sheets do (`convex/plCommentary.ts`). The 28 event types seen and what each line's men are:
 [docs/pl-commentary.md](docs/pl-commentary.md). Four finished matches and one before kickoff are
 recorded (`convex/recorded/commentary.payloads.ts`).
 

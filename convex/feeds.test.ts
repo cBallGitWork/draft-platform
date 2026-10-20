@@ -9,6 +9,7 @@ import {
   recordedCommentary,
   recordedSheets,
   recordedTeamStats,
+  UPCOMING_MATCH,
 } from "./recorded/commentary.payloads";
 import schema from "./schema";
 
@@ -101,7 +102,7 @@ test("a commentary check whose read is refused throws, naming the URL", async ()
   vi.stubGlobal("fetch", fakeFeeds("textstream"));
   const t = convexTest(schema, modules);
 
-  await expect(t.action(internal.feeds.commentaryCheck, { plFixtureId: 128999 })).rejects.toThrow(
-    `${plCommentaryUrl(128999)} answered 403`,
+  await expect(t.action(internal.feeds.commentaryCheck, { plFixtureId: UPCOMING_MATCH })).rejects.toThrow(
+    `${plCommentaryUrl(UPCOMING_MATCH)} answered 403`,
   );
 });
