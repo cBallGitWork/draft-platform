@@ -167,6 +167,24 @@ const leagueEventFields = {
   event: leagueEvent,
 };
 
+// Mail (#26, spec/16). A letter is filed as one row for each person it's to, so who got it is
+// fixed when it's filed: someone who joins later doesn't get the league's old letters.
+
+const letterFields = {
+  /** Whom this copy is to, by email. */
+  to: v.string(),
+  leagueId: v.id("leagues"),
+  /** The league's name when it was filed. */
+  leagueName: v.string(),
+  at: v.number(),
+  /** Who wrote it, by email: absent on a letter the app files about something that happened. */
+  from: v.optional(v.string()),
+  subject: v.string(),
+  body: v.string(),
+  /** When `to` opened it; absent while unread. */
+  readAt: v.optional(v.number()),
+};
+
 export default defineSchema({
   ...authTables,
   allowedEmails: defineTable(allowedEmailFields).index("by_email", ["email"]),
@@ -179,6 +197,7 @@ export default defineSchema({
     .index("by_leagueId_and_number", ["leagueId", "number"])
     .index("by_managerEmail", ["managerEmail"]),
   leagueEvents: defineTable(leagueEventFields).index("by_leagueId_and_at", ["leagueId", "at"]),
+  letters: defineTable(letterFields).index("by_to_and_at", ["to", "at"]).index("by_to_and_readAt", ["to", "readAt"]),
   feedChecks: defineTable(feedCheckFields),
   clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
   players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]),

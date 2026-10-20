@@ -1,5 +1,6 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import type { AuthActions } from "../auth";
+import { unreadFigure } from "../mail/words";
 import { Continue } from "./Continue";
 import { MAIL_PATH, sectionAt, sections } from "./menu";
 import { ProductName } from "./ProductName";
@@ -18,7 +19,7 @@ const sectionTabClasses =
 export function AppFrame({ topBar, onSignOut }: { topBar: TopBarState; onSignOut: AuthActions["signOut"] }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const tabs = sectionAt(pathname)?.tabs ?? [];
-  const unread = topBar.unreadMail > 0 ? topBar.unreadMail : null;
+  const unread = topBar.unreadMail > 0 ? unreadFigure(topBar.unreadMail) : null;
 
   return (
     <>

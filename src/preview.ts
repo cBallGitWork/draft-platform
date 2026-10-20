@@ -10,6 +10,8 @@ import type { AuthActions, Session } from "./auth";
 import type { TopBarState } from "./frame/topBarState";
 import { MAIL_PATH } from "./frame/menu";
 import type { LeagueActions } from "./leagues/actions";
+import { previewLetters } from "./mail/previewMail";
+import { unreadCount } from "./mail/words";
 import { replyWords } from "./sign-in/words";
 
 /** Made-up leagues, in the shape account:signedInAs sends. */
@@ -77,10 +79,10 @@ export const previewAuth: AuthActions = {
   signOut: async () => {},
 };
 
-const unreadMail = 3;
+const unreadMail = previewLetters.filter((letter) => !letter.read).length;
 
-/** Made-up figures, so the shot shows Mail's count and Continue in use. */
+/** Mail's count from the made-up letters, so the shot shows it and Continue in use. */
 export const previewTopBar: TopBarState = {
   unreadMail,
-  next: { path: MAIL_PATH, reason: `${unreadMail} unread letters` },
+  next: { path: MAIL_PATH, reason: unreadCount(unreadMail) },
 };

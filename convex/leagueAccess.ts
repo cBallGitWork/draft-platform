@@ -4,6 +4,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { adminEmail, normaliseEmail } from "./allowedEmails";
 import { FEWEST_TEAMS, MOST_TEAMS, TEAM_NAME_MAX } from "./leagueLimits";
+import { fileEventLetter } from "./letters";
 import type { leagueEvent } from "./schema";
 
 // Who may do what in a league (spec/13, Who runs it), checked on the server for every change.
@@ -105,7 +106,7 @@ export function teamsOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"te
     .take(MOST_TEAMS);
 }
 
-/** Files what happened, for Mail (#26) to turn into a letter. */
+/** Files what happened, and the Mail letter reporting it (#26). */
 export async function recordEvent(
   ctx: MutationCtx,
   leagueId: Id<"leagues">,
@@ -113,4 +114,5 @@ export async function recordEvent(
   event: Infer<typeof leagueEvent>,
 ): Promise<void> {
   await ctx.db.insert("leagueEvents", { leagueId, at: Date.now(), by, event });
+  await fileEventLetter(ctx, leagueId, by, event);
 }

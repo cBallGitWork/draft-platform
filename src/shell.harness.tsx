@@ -1,14 +1,16 @@
-// The screens' tests' shared setup: the app opened at an address, for a session, with sign-in's
-// and leagues' actions faked so a test can see what was asked of them.
+// The screens' tests' shared setup: the app opened at an address, for a session, with sign-in's,
+// leagues' and Mail's actions faked so a test can see what was asked of them.
 
 import { createMemoryHistory } from "@tanstack/react-router";
 import { render } from "@testing-library/react";
 import { vi } from "vitest";
 import type { Id } from "../convex/_generated/dataModel";
+import type { LetterSummary } from "../convex/mail";
 import type { LeagueSummary } from "../convex/myLeagues";
 import type { AuthActions, Session } from "./auth";
 import { emptyTopBar, type TopBarState } from "./frame/topBarState";
 import type { LeagueActions } from "./leagues/actions";
+import type { Mail } from "./mail/actions";
 import { ShellApp } from "./ShellApp";
 
 // The router restores scroll on every navigation, and jsdom has no scrolling to restore.
@@ -54,17 +56,34 @@ function fakeAuth() {
 /** Creating a league succeeds, unless a test says otherwise. */
 const fakeLeagues = () => ({ createLeague: vi.fn<LeagueActions["createLeague"]>(async () => null) });
 
-/** The app opened at `path` for `session`: where it is, the fake sign-in and league actions, and
- *  a way to change the session as signing in or out, or a league changing, would. */
-export function openApp(path: string, session: Session, topBar: TopBarState = emptyTopBar) {
+/** Mail holding `letters`, whose letter to the league is sent, unless a test says otherwise. */
+const fakeMail = (letters: readonly LetterSummary[] | null) => ({
+  letters,
+  open: vi.fn<Mail["open"]>(async () => {}),
+  writeToLeague: vi.fn<Mail["writeToLeague"]>(async () => null),
+});
+
+/** The app opened at `path` for `session`, with `letters` in Mail: where it is, the fake sign-in,
+ *  league and Mail actions, and a way to change the session as signing in or out, or a league
+ *  changing, would. */
+export function openApp(
+  path: string,
+  session: Session,
+  topBar: TopBarState = emptyTopBar,
+  letters: readonly LetterSummary[] | null = [],
+) {
   const history = createMemoryHistory({ initialEntries: [path] });
   const auth = fakeAuth();
   const leagues = fakeLeagues();
-  const app = (current: Session) => <ShellApp session={current} auth={auth} leagues={leagues} topBar={topBar} history={history} />;
+  const mail = fakeMail(letters);
+  const app = (current: Session) => (
+    <ShellApp session={current} auth={auth} leagues={leagues} mail={mail} topBar={topBar} history={history} />
+  );
   const view = render(app(session));
   return {
     auth,
     leagues,
+    mail,
     path: () => history.location.pathname,
     becomes: (next: Session) => view.rerender(app(next)),
   };
