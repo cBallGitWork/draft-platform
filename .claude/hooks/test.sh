@@ -57,6 +57,7 @@ private_deny=(
   'gh pr edit 3 --body-file body.md' 'git add a.md && git commit -m "x" -m "acmecorp"'
   'gh pr create --title x --body-file=body.md' 'git commit --file=body.md' 'gh pr review 3 --body "acmecorp"'
   'git tag -a v1 -m "acmecorp"' 'gh release create v1 --notes acmecorp' 'gh api repos/x/y/issues -f body=acmecorp'
+  'env gh pr create --title x --body "acmecorp"' 'command gh issue comment 3 --body acmecorp'
 )
 private_allow=(
   'git commit -m "clean"' 'echo acmecorp' 'cat body.md' 'gh pr view 3' 'gh issue create --title x --body "clean"'
@@ -111,7 +112,17 @@ for c in 'false && cd sub; git commit -m x' 'true || cd sub && git commit -m x' 
 done
 check allow guard_bash.py "$(bash_cmd 'git status && cd sub && git commit -m x')"
 check deny guard_bash.py "$(bash_in "$tmp/sub" "GIT_DIR=$tmp/.git git commit -m x")"
-check deny guard_bash.py "$(bash_in "$tmp/sub" "export GIT_DIR=$tmp/.git; git commit -m x")"
+for set in 'export' 'declare -x' 'typeset -x' 'readonly' 'env'; do  # however GIT_DIR is set, it moves git
+  check deny guard_bash.py "$(bash_in "$tmp/sub" "$set GIT_DIR=$tmp/.git; git commit -m x")"
+done
+check deny guard_bash.py "$(bash_in "$tmp/sub" "declare -x GIT_WORK_TREE=$tmp; git commit -m x")"
+check deny guard_bash.py "$(bash_in "$tmp/sub" "env GIT_DIR=$tmp/.git git commit -m x")"
+for c in 'env git commit -m x' 'command git commit -m x' 'exec git commit -m x' 'env -i git commit -m x' \
+  'FOO=1 env BAR=2 git commit -m x'; do  # a wrapper still runs git, here on main
+  check deny guard_bash.py "$(bash_cmd "$c")"
+done
+check allow guard_bash.py "$(bash_in "$tmp/sub" 'env git commit -m x')"
+check deny guard_bash.py "$(bash_in "$tmp/sub" "env -C $tmp git commit -m x")"  # env -C moves it
 git -C "$tmp" init -q -b chore/d "$tmp/det"  # a detached HEAD has no branch, and isn't main
 git -C "$tmp/det" -c user.name=t -c user.email=t@t commit -q --allow-empty -m x && git -C "$tmp/det" switch -q --detach
 check allow guard_bash.py "$(bash_in "$tmp/det" 'git commit -m x')"

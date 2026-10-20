@@ -14,13 +14,16 @@ SEPARATORS = {";", "&", "&&", "|", "||", "(", ")", "\n"}
 ENDS_A_CHAIN = {";", "\n", "&", "||"}  # after these, a cd that hung on an earlier && may not have run
 GIT_PLACE_VARS = re.compile(r"^(GIT_DIR|GIT_WORK_TREE)=")
 UNFOLLOWABLE = re.compile(r"[$`]|^-")  # a cd or -C the guard can't follow: a variable, an option, cd -
+WRAPPERS = {"env", "command", "exec"}  # run the command after them: env git commit is a commit
+WRAPPER_VALUE_OPTS = {"-u", "-C", "-S", "-a", "--unset", "--chdir", "--split-string"}
 
 
 def located(segs, cwd):
     """(words, folder) for each simple command (separators left out), following any cd before
     it; folder is None where the guard can't be sure: a cd it can't follow, one that may not
     run (after || or a broken && chain) or runs elsewhere (in a pipe or the background), a
-    missing folder, pushd, popd, an exported GIT_DIR. A worktree is a folder of its own, so
+    missing folder, pushd, popd, any command naming GIT_DIR= or GIT_WORK_TREE= (export,
+    declare -x, typeset -x, readonly, env). A worktree is a folder of its own, so
     its branch and staged lines are read there."""
     here, out, outer, before, hung = cwd, [], [], ";", False
     for i, words in enumerate(segs):
@@ -36,7 +39,7 @@ def located(segs, cwd):
             continue
         if words[0] in {"pushd", "popd"}:
             here = None
-        elif words[0] == "export" and any(GIT_PLACE_VARS.match(w) for w in words):
+        elif any(GIT_PLACE_VARS.match(w) for w in words):
             here = None
         elif words[0] == "cd" and here is not None:
             target = words[1] if len(words) > 1 else "~"
@@ -49,12 +52,34 @@ def located(segs, cwd):
     return out
 
 
+def program_index(words):
+    """Where the program this simple command runs is, past FOO=1 words and any env, command or
+    exec (with their options)."""
+    i = 0
+    while i < len(words):
+        if re.match(r"^\w+=", words[i]) or words[i] in WRAPPERS:
+            i += 1
+        elif i and words[i - 1] in WRAPPER_VALUE_OPTS:
+            i += 1
+        elif words[i].startswith("-") and any(w in WRAPPERS for w in words[:i]):
+            i += 1
+        else:
+            break
+    return i
+
+
+def runs(words, program):
+    """Where `program` is in this simple command, None if it doesn't run it."""
+    i = program_index(words)
+    return i if i < len(words) and os.path.basename(words[i]) == program else None
+
+
 def git_options(words):
     """git's own options, before the subcommand, as (option, value) pairs."""
-    i = 0
-    while i < len(words) and re.match(r"^\w+=", words[i]):
-        i += 1
-    out, i = [], i + 1
+    start = runs(words, "git")
+    if start is None:
+        return []
+    out, i = [], start + 1
     while i < len(words) and words[i].startswith("-"):
         if words[i] in GIT_VALUE_OPTS:
             out.append((words[i], words[i + 1] if i + 1 < len(words) else ""))
@@ -68,12 +93,10 @@ def git_options(words):
 
 def git_dir(words, here):
     """The folder a git command runs in, None if the guard can't be sure: where the shell is,
-    moved by any -C."""
-    for word in words:
-        if not re.match(r"^\w+=", word):
-            break
-        if GIT_PLACE_VARS.match(word):
-            return None
+    moved by any -C. A wrapper's option (env -C, env -S) may move it too, so that's unsure."""
+    start = program_index(words)
+    if any(GIT_PLACE_VARS.match(w) or w.startswith("-") for w in words[:start]):
+        return None
     for opt, val in git_options(words):
         if here is None or opt in {"--git-dir", "--work-tree"}:
             return None

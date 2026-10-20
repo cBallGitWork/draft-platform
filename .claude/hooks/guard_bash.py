@@ -26,7 +26,7 @@ import shlex
 import subprocess
 import sys
 
-from where import GIT_VALUE_OPTS, SEPARATORS, current_branch, git_dir, located
+from where import GIT_VALUE_OPTS, SEPARATORS, current_branch, git_dir, located, runs
 
 HEREDOC = re.compile(r"<<-?[ \t]*(['\"]?)(\w+)\1[^\n]*\n(.*?\n)?[ \t]*\2[ \t]*(\n|$)", re.S)
 COMMIT_VALUE_SHORT = set("mFCct")  # in `-am msg` everything after m is the value
@@ -59,10 +59,8 @@ def segments(cmd):
 
 def git_call(words):
     """(subcommand, args) if this simple command runs git, else None."""
-    i = 0
-    while i < len(words) and re.match(r"^\w+=", words[i]):
-        i += 1  # FOO=1 git ...
-    if i >= len(words) or os.path.basename(words[i]) != "git":
+    i = runs(words, "git")  # FOO=1 git ..., env git ...
+    if i is None:
         return None
     i += 1
     while i < len(words) and words[i].startswith("-"):
@@ -135,9 +133,10 @@ def publishes(words):
     call = git_call(words)
     if call:
         return call[0] in GIT_PUBLISHING
-    if not words or os.path.basename(words[0]) != "gh":
+    i = runs(words, "gh")
+    if i is None:
         return False
-    return words[1:2] == ["api"] or tuple(words[1:3]) in GH_PUBLISHING
+    return words[i + 1 : i + 2] == ["api"] or tuple(words[i + 1 : i + 3]) in GH_PUBLISHING
 
 
 def files_read(words, cwd):
