@@ -1,14 +1,16 @@
 """What each simple command reads on stdin, for commands.py: a heredoc's or here-string's text,
 or what the command before a pipe writes where the guard can tell (echo's words, printf's plain
-format, cat passing its stdin on). A pipe into ( … ), { … } or a compound command (if, while,
-until, for, select, case) feeds every command inside it. Stdlib only, Python 3.9+.
+format, cat passing its stdin on); a file (< f) can't be read. Its redirections are taken out of
+its words, so bash > log still reads stdin. A pipe into ( … ), { … } or a compound command (if,
+while, until, for, select, case), or a redirection after its closing word ({ sh; } <<EOF,
+done < f), feeds every command inside it. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
 
 import re
 
-from parsing import HEREDOC_MARKED, HERE_STRING, MARKED, ansi_c_text
+from parsing import HEREDOC_MARKED, HERE_STRING, MARKED, REDIRECT_IN, REDIRECT_OUT, ansi_c_text
 from where import KEYWORDS, SEPARATORS, program_index, program_name
 
 FILLED_IN = re.compile("[$`\x01]")  # a word the shell fills in: $GIT, "$(which git)"
@@ -27,13 +29,16 @@ class UnreadableStdin(Exception):
 
 
 def stdins(segs, lifted):
-    """segs with each command's heredoc and here-string words taken out, and for each command in
-    turn: what it reads on stdin (the text, UNKNOWN, or None if nothing on the line feeds it) and
-    the lifted $(…) those words run."""
-    out, feeds, output, piped, groups = [], [], UNKNOWN, None, []  # groups: (closer, its stdin)
-    for seg in segs:
+    """segs with each command's redirections taken out, and for each command in turn: what it
+    reads on stdin (the text, UNKNOWN, or None if nothing on the line feeds it) and the lifted $(…)
+    those redirections run."""
+    closing_feeds = _closing_feeds(segs, lifted)
+    out, feeds, output, piped, groups = [], [], UNKNOWN, None, []  # groups: (closer, its stdin, where)
+    for k, seg in enumerate(segs):
         fed = piped if piped is not None else (groups[-1][1] if groups else None)
-        _open_and_close(seg, groups, fed)
+        _open_and_close(seg, k, groups, fed, closing_feeds)
+        if groups and groups[-1][2][0] == k:  # { sh; } <<EOF: sh is fed what its group is
+            fed = groups[-1][1]
         if seg[0] in SEPARATORS:  # (echo x) | sh: what ran inside a ( … ) isn't followed
             piped, output = output if seg == ["|"] else None, UNKNOWN
             out.append(seg)
@@ -46,22 +51,39 @@ def stdins(segs, lifted):
     return out, feeds
 
 
-def _open_and_close(seg, groups, fed):
-    """Opens a group for each one this segment starts ((, {, if, while …), fed what the segment
-    is fed, and closes one for each closing word (), }, fi, done …). A close that matches no open
-    (a case pattern's ")") is passed over, so the stdin is still handed on."""
-    for word in seg:
+def _closing_feeds(segs, lifted):
+    """Where each group opens, as (segment, word), that a redirection after its closing word feeds
+    ({ sh; } <<EOF, done < f, (sh) <<< '…'), and what it feeds it."""
+    out, groups = {}, []
+    for k, seg in enumerate(segs):
+        after = segs[k + 1] if seg == [")"] and k + 1 < len(segs) else seg  # ( … ) <<EOF
+        stdin = None if after[0] in SEPARATORS else _redirects(after, lifted)[1]
+        for opened in _open_and_close(seg, k, groups, None, {}):
+            if stdin is not None:
+                out[opened] = stdin
+    return out
+
+
+def _open_and_close(seg, k, groups, fed, closing_feeds):
+    """Opens a group for each one segs[k] starts ((, {, if, while …), fed what a redirection after
+    its closing word feeds it, or else what the segment is fed, and closes one for each closing word
+    (), }, fi, done …), returning where each it closes opened. A close that matches no open (a case
+    pattern's ")") is passed over, so the stdin is still handed on."""
+    closed = []
+    for j, word in enumerate(seg):
         if word in CLOSES:
-            groups.append((CLOSES[word], fed))
+            fed = closing_feeds.get((k, j), fed)  # a group opened inside it is fed the same: { { sh
+            groups.append((CLOSES[word], fed, (k, j)))
         elif groups and word == groups[-1][0]:
-            groups.pop()
+            closed.append(groups.pop()[2])
         elif word not in KEYWORDS:
-            return
+            break
+    return closed
 
 
 def _redirects(seg, lifted):
-    """seg without its heredoc and here-string words, what the last of them feeds it on stdin,
-    and the numbers of the $(…) they run."""
+    """seg without its redirections (heredocs, here-strings, > f, 2>&1, < f), what the last that
+    feeds stdin feeds it (a file is UNKNOWN), and the numbers of the $(…) they run."""
     words, stdin, substituted, i = [], None, [], 0
     while i < len(seg):
         word, i = seg[i], i + 1
@@ -75,6 +97,10 @@ def _redirects(seg, lifted):
             value, i = (seg[i], i + 1) if i < len(seg) else ("", i)
             substituted += MARKED.findall(value)
             stdin = UNKNOWN if FILLED_IN.search(value) else value + "\n"
+        elif word in (REDIRECT_IN, REDIRECT_OUT):
+            target, i = (seg[i], i + 1) if i < len(seg) else ("", i)
+            substituted += MARKED.findall(target)  # > "$(git add -A)" runs it
+            stdin = UNKNOWN if word == REDIRECT_IN else stdin
         else:
             words.append(word)
     return words, stdin, [int(n) for n in substituted]

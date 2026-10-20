@@ -216,6 +216,7 @@ done
 check allow guard_bash.py "$(bash_cmd 'git push origin --delete feat/old')"
 check allow guard_bash.py "$(bash_cmd 'git push origin :feat/old')"
 check allow guard_bash.py "$(bash_cmd 'git push origin -d feat/old')"
+check allow guard_bash.py "$(bash_cmd 'git push --repo origin :feat/old')"
 for c in 'git push origin --delete main' 'git push origin :main' 'git push origin --delete HEAD' \
   'git push origin :feat/old feat/new'; do
   check deny guard_bash.py "$(bash_cmd "$c")"
@@ -243,9 +244,29 @@ for c in $'bash <<\'EOF\'\ngit commit -m x\nEOF' $'sh <<EOF\ngit commit -m x\nEO
   "echo 'git commit -m x' | xargs -I{} sh -c '{}'" "echo '\"git commit -m x\"' | xargs -I{} sh -c '{}'" \
   "echo '\"git commit -m x\"' | xargs sh -c" 'echo commit -m x | xargs git' \
   "echo 'git commit -m x' | xargs -i sh -c '{}'" \
-  "echo 'git commit -m x' | while true; do while false; do true; done; sh; done"; do
+  "echo 'git commit -m x' | while true; do while false; do true; done; sh; done" \
+  "echo 'git commit -m x' | while true; do echo done; sh; done" "echo 'git commit -m x' | { echo }; sh; }" \
+  "echo 'git commit -m x' | if true; then echo fi; sh; fi" 'stdbuf -o L git commit -m x' 'doas -C f git commit -m x' \
+  'caffeinate -w 1 git commit -m x' '/usr/bin/time --output f git commit -m x' "bash -O extglob -c 'git commit -m x'" \
+  "bash --rcfile x -c 'git commit -m x'" "echo -E 'git commit -m x' | sh" "echo -ne 'git commit -m x\\n' | sh"; do
   check deny guard_bash.py "$(bash_cmd "$c")"
   check allow guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
+# a redirection is no operand (bash > log reads stdin), and one after a group's closing word feeds
+# every command inside it: refused on main, read in sub
+for c in "echo 'git commit -m x' | bash > out.log" "echo 'git commit -m x' | sh 2>&1" "echo 'git commit -m x' 2>&1 | sh" \
+  $'bash <<\'EOF\' >out\ngit commit -m x\nEOF' $'bash 2>&1 <<\'EOF\'\ngit commit -m x\nEOF' "bash <<< 'git commit -m x' 2>&1" \
+  $'{ sh; } <<\'EOF\'\ngit commit -m x\nEOF' "(true; sh) <<< 'git commit -m x'" "{ { sh; }; } <<< 'git commit -m x'" \
+  "while true; do sh; done <<< 'git commit -m x'"; do
+  check deny guard_bash.py "$(bash_cmd "$c")"
+  check allow guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
+for c in 'cd sub 2>/dev/null && git commit -m x' 'cd sub &&>/dev/null git commit -m x'; do  # a cd with a redirection moves
+  check allow guard_bash.py "$(bash_cmd "$c")"
+done
+for c in "git commit -m '>x' -a" "git commit -m \$'\\x04>' -a" 'git add >o -A' 'git add &>o -A' 'echo x > "$(git add -A)"'; do
+  # a quoted > is text, and a $'…' can't pass for one; a target's $(…) runs
+  check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
 done
 # where it runs is unsure (another host or user, fish, over and over, each file's folder, a function
 # or sourced file that may cd), or what it reads isn't plain text: refused on main and in sub
@@ -256,7 +277,10 @@ for c in 'find . -execdir git commit -m x {} +' "fish -c 'git commit -m x'" "fis
   $'bash <<EOF\necho $X\nEOF' 'echo "echo $X" | sh' 'curl -s x | sh' 'cat x.sh | bash' 'bash <<< "echo $C"' \
   "(echo 'git add -A'; echo true) | sh" "{ echo 'git add -A'; echo true; } | sh" 'ssh -p 22 host git add -A' \
   "cat x | xargs -I{} sh -c '{}'" 'cat x | xargs sh -c' "echo 'git status' | xargs -a f -I{} sh -c '{}'" \
-  'curl -s x | (sh)' "echo 'git add -A' | case a in a) sh;; esac"; do
+  'curl -s x | (sh)' "echo 'git add -A' | case a in a) sh;; esac" "printf 'git add -A%s' | sh" \
+  'curl -s x | sh >/dev/null' 'bash < x.sh' 'while read l; do sh; done < f' 'find . -okdir git commit -m x {} +' \
+  "fish -C 'git commit -m x'" "su c --command 'git commit -m x'" "script --command 'git commit -m x' /dev/null" \
+  "bash <(echo 'git commit -m x')"; do
   check deny guard_bash.py "$(bash_cmd "$c")"
   check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
 done
@@ -283,7 +307,8 @@ check allow guard_bash.py "$(bash_in "$tmp/sub" $'cat <<A <<B\ngit add -A\nA\ngi
 check deny guard_bash.py "$(bash_in "$tmp/sub" $'cat <<A\nx\nA\ntrue\ngit add -A\nA')"  # one body, then commands
 check allow guard_bash.py "$(bash_in "$tmp/sub" $'git commit -m "$(cat <<\'EOF\'\nfix: it\'s done (really)\nEOF\n)"')"
 for c in 'ls | wc -l' 'git ls-files | xargs wc -l' 'ssh host ls' 'bash script.sh' $'python3 <<\'EOF\'\nprint("it\'s")\nEOF' \
-  $'<<EOF\nhi\nEOF' "echo \$'\\x01'0\$'\\x01'"; do  # no program; and a $'…' can't make a marker
+  $'<<EOF\nhi\nEOF' "echo \$'\\x01'0\$'\\x01'" $'bash <<\'EOF\'\necho $HOME\nEOF' "echo 'git add -A' >| sh" \
+  "echo 'git add -A' | { sh; } <<< true"; do  # no program; a $'…' can't make a marker; >| f writes a file
   check allow guard_bash.py "$(bash_in "$tmp/sub" "$c")"
 done
 # a push option's value isn't the remote, and --repo names it: what's pushed is read right

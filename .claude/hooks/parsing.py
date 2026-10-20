@@ -2,7 +2,8 @@
 quotes and escapes kept to their words, comments dropped, each $(…) and `…` the shell runs lifted
 out to be read on its own, and each heredoc's body lifted out of the line, so a quoted commit
 message or a heredoc's text is never mistaken for a command. A $'…' is read as the shell reads
-it, its escapes filled in. Stdlib only, Python 3.9+.
+it, its escapes filled in, and each redirection's operator is marked (2>&1 is one, not a
+background &). Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -23,7 +24,13 @@ MARKED = re.compile("\x01(\\d+)\x01")
 HEREDOC_MARK = "\x02{}\x02"  # stands in for a heredoc, numbered the same way
 HEREDOC_MARKED = re.compile("\x02(\\d+)\x02")
 HERE_STRING = "\x03"  # stands in for an unquoted <<<
-NOT_A_MARK = str.maketrans("\x01\x02\x03", "???")  # what a $'…' holds can't pass for one
+# stand in for an unquoted redirection's operator, its target the word after: one that feeds stdin
+# (< f, 0<&3, <> f) and any other (> f, 2>&1, &>> f, >| f)
+REDIRECT_IN, REDIRECT_OUT = "\x04<", "\x04>"
+# <(…) too: bash <(curl x) is refused, as curl x | bash is
+REDIRECT = re.compile(r"(\d*)(>>|>&|>\||>|<>|<&|<)")
+REDIRECT_BOTH = re.compile(r"&>>?")  # stdout and stderr: &> f
+NOT_A_MARK = str.maketrans("\x01\x02\x03\x04", "????")  # what a $'…' holds can't pass for one
 # a heredoc's operator and delimiter word: <<EOF, <<-'EOF', <<"E.F", <<\EOF, <<E"O"F
 HEREDOC = re.compile(r"""<<-?[ \t]*((?:'[^']*'|"(?:\\.|[^"\\])*"|\\.|[^\s;&|()<>'"\\])+)""", re.S)
 Heredoc = namedtuple("Heredoc", "body quoted")  # body is None if its delimiter line never comes
@@ -73,7 +80,8 @@ def parse(cmd):
 def lift_substitutions(text, lifted, quotes=True, closer=False):
     """text with each $(…) and `…` the shell runs (any not in single quotes) swapped for a marker,
     each heredoc's operator and delimiter for one and its body cut out, each unquoted <<< for
-    HERE_STRING, each $'…' for the plain quote it means, each quoted or escaped separator
+    HERE_STRING, any other redirection's operator for REDIRECT_IN or REDIRECT_OUT (its target
+    the word after), each $'…' for the plain quote it means, each quoted or escaped separator
     character for its stand-in (STAND_INS) and comments dropped, appending what each marker
     stands for to lifted. quotes=False reads a heredoc body, where quote marks, # and << are
     plain text. With closer, reads a $(…)'s inside and returns where its closing bracket is."""
@@ -111,6 +119,10 @@ def lift_substitutions(text, lifted, quotes=True, closer=False):
             lifted.append(Heredoc(None, False))
             i = heredoc.end()
             continue
+        elif unquoted and (redirect := _redirect_at(text, i)):
+            marker, i = redirect
+            out.append(f" {marker} ")
+            continue
         elif unquoted and c == "\n" and pending:
             out.append(c)
             i = _read_bodies(text, i + 1, pending, lifted)
@@ -133,6 +145,20 @@ def lift_substitutions(text, lifted, quotes=True, closer=False):
     if closer:
         raise Unreadable(text)
     return "".join(out)
+
+
+def _redirect_at(text, i):
+    """(its marker, where it ends) for a redirection's operator starting at text[i], with any
+    file descriptor before it (2>&1 but not a2>b, which is a2 and >b), else None."""
+    if text.startswith("&>", i) and text[i - 1 : i] not in ("&", "|"):  # true &&>f is && >f
+        return REDIRECT_OUT, REDIRECT_BOTH.match(text, i).end()
+    if not (text[i] in "<>" or (text[i].isdigit() and (i == 0 or text[i - 1] in WORD_START))):
+        return None
+    found = REDIRECT.match(text, i)
+    if not found:
+        return None
+    feeds_stdin = found.group(2)[0] == "<" and found.group(1) in ("", "0")
+    return REDIRECT_IN if feeds_stdin else REDIRECT_OUT, found.end()
 
 
 def _read_bodies(text, i, pending, lifted):
