@@ -30,6 +30,15 @@ const REFUSED = "a sign-in link is sent only by signInLinks:ask";
 /** Convex Auth's public signIn asked for a link, as anyone could call it, bypassing `ask`. */
 const signInDirectly = (email: string) => t.action(api.auth.signIn, { provider: "resend", params: { email } });
 
+/** Every user and Convex Auth account made so far. */
+async function accountsMade() {
+  return t.run(async (ctx) => ({
+    users: await ctx.db.query("users").collect(),
+    authAccounts: await ctx.db.query("authAccounts").collect(),
+  }));
+}
+const NO_ACCOUNTS = { users: [], authAccounts: [] };
+
 async function asksStored(email: string) {
   return t.run((ctx) =>
     ctx.db
@@ -56,8 +65,7 @@ describe("asking for a link", () => {
     expect(await ask(t, UNLISTED)).toBe("checkYourEmail");
 
     expect(sent).toEqual([]);
-    const users = await t.run((ctx) => ctx.db.query("users").collect());
-    expect(users).toEqual([]);
+    expect(await accountsMade()).toEqual(NO_ACCOUNTS);
   });
 
   test("the admin's email gets a link without being put on the list", async () => {
@@ -110,8 +118,17 @@ describe("asking for a link", () => {
 
     await expect(signInDirectly(UNLISTED)).rejects.toThrow(REFUSED);
 
-    expect(await t.run((ctx) => ctx.db.query("users").collect())).toEqual([]);
-    expect(await t.run((ctx) => ctx.db.query("authAccounts").collect())).toEqual([]);
+    expect(await accountsMade()).toEqual(NO_ACCOUNTS);
+  });
+
+  test("an email off the list that has just asked still gets nothing from Convex Auth's own signIn", async () => {
+    const sent = fakeResend();
+    await ask(t, UNLISTED);
+
+    await expect(signInDirectly(UNLISTED)).rejects.toThrow(REFUSED);
+
+    expect(sent).toEqual([]);
+    expect(await accountsMade()).toEqual(NO_ACCOUNTS);
   });
 });
 
