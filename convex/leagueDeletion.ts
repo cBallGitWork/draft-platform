@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Doc, Id, TableNames } from "./_generated/dataModel";
-import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { internalMutation, mutation, type QueryCtx } from "./_generated/server";
 import { callerEmail, deleterOf, isAdmin, recordEvent, refuse, refusals, teamsOf } from "./leagueAccess";
 import { DELETION_UNDO_HOURS } from "./leagueLimits";
 
@@ -10,7 +10,8 @@ import { DELETION_UNDO_HOURS } from "./leagueLimits";
 // in it but whoever deleted it (myLeagues.ts), and each of them is emailed (deletionNotices.ts).
 // Then deleteForGood removes it and every row keyed to it: nothing is archived.
 
-const MS_PER_HOUR = 60 * 60 * 1000;
+/** How long after it is deleted a league is gone for good. */
+export const UNDO_MS = DELETION_UNDO_HOURS * 60 * 60 * 1000;
 /** The most rows of one table one run of deleteForGood deletes, so a long season's events never
  *  outgrow a mutation: a full batch hands on to another run. */
 const ROWS_PER_RUN = 500;
@@ -41,13 +42,13 @@ async function othersIn(ctx: QueryCtx, league: Doc<"leagues">, by: string): Prom
   return [...people].filter((email): email is string => email !== undefined && email !== by);
 }
 
-/** The admin or the league's commissioner deletes it, to be gone for good in DELETION_UNDO_HOURS. */
+/** The admin or the league's commissioner deletes it, to be gone for good in UNDO_MS. */
 export const deleteLeague = mutation({
   args: { leagueId: v.id("leagues") },
   returns: v.null(),
   handler: async (ctx, { leagueId }) => {
     const { email: by, league } = await deleterOf(ctx, leagueId);
-    const deletesAt = Date.now() + DELETION_UNDO_HOURS * MS_PER_HOUR;
+    const deletesAt = Date.now() + UNDO_MS;
     const scheduledId = await ctx.scheduler.runAt(deletesAt, internal.leagueDeletion.deleteForGood, { leagueId });
     await ctx.db.patch("leagues", leagueId, { deletion: { by, deletesAt, scheduledId, unemailed: [] } });
     await recordEvent(ctx, leagueId, by, { kind: "deletionStarted", name: league.name, deletesAt });
@@ -80,10 +81,6 @@ export const undo = mutation({
   },
 });
 
-async function deleteRows<Table extends TableNames>(ctx: MutationCtx, rows: Doc<Table>[]): Promise<void> {
-  for (const row of rows) await ctx.db.delete(row._id);
-}
-
 /** Deletes the league for good: every row keyed to it, a batch of each table a run, then the
  *  league itself last, so it stays frozen and hidden until nothing of it is left. */
 export const deleteForGood = internalMutation({
@@ -95,7 +92,7 @@ export const deleteForGood = internalMutation({
     let more = false;
     for (const batchOf of Object.values(leagueRows)) {
       const rows = await batchOf(ctx, leagueId);
-      await deleteRows(ctx, rows);
+      for (const row of rows) await ctx.db.delete(row._id);
       more ||= rows.length === ROWS_PER_RUN;
     }
     if (more) await ctx.scheduler.runAfter(0, internal.leagueDeletion.deleteForGood, { leagueId });

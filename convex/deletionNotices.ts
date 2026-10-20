@@ -85,7 +85,7 @@ export const recordUnemailed = internalMutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, email, reason }) => {
     const league = await ctx.db.get("leagues", leagueId);
-    if (!league) throw new Error(`League ${leagueId} is gone, so ${email} not being told it would be deleted can't be kept`);
+    if (!league) throw new Error(`League ${leagueId} is gone, so that ${email} wasn't told of its deletion can't be kept on it`);
     // Undone already: nobody is waiting to hear who wasn't told.
     if (!league.deletion) return null;
     const unemailed = [...league.deletion.unemailed, { email, reason }];
