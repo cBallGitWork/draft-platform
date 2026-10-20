@@ -17,13 +17,14 @@ export function rulesWith(change: Partial<LeagueRules>): LeagueRules {
 export const TOTAL_POINTS = rulesWith({ format: "totalPoints" });
 
 export const HOUR_MS = 60 * MS_PER_MINUTE;
-const WEEK_MS = 7 * 24 * HOUR_MS;
+const DAY_MS = 24 * HOUR_MS;
+const WEEK_MS = 7 * DAY_MS;
 const SEASON_GAMEWEEKS = 38;
 
 /** A season of one match a gameweek, a week apart, gameweek `next` kicking off `kicksOffIn` from
  *  now (six days by default), so every gameweek before it has begun and FPL's deadline for it is
  *  90 minutes before. */
-export async function holdGameweeks(t: TestConvex, { next, kicksOffIn = 6 * 24 * HOUR_MS }: { next: number; kicksOffIn?: number }) {
+export async function holdGameweeks(t: TestConvex, { next, kicksOffIn = 6 * DAY_MS }: { next: number; kicksOffIn?: number }) {
   const kickoffOf = (gameweek: number) => Date.now() + kicksOffIn + (gameweek - next) * WEEK_MS;
   await t.run(async (ctx) => {
     for (let number = 1; number <= SEASON_GAMEWEEKS; number += 1) {

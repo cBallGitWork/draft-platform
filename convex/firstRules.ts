@@ -6,7 +6,7 @@ import { DEFAULT_PRESETS } from "./presets";
 // PLACEHOLDER, for Craig to edit before the beta. The first rules a deployment gives a new league
 // (spec/14, The first scoring set; #25), used once: the first league created copies them into
 // the admin's default rules row (`defaultLeagueRules`), and every league after copies that row,
-// which the admin edits with leagueRules.setDefaults. No league reads this file.
+// which the admin edits (leagueRules.ts says how). Once that row exists, nothing reads this file.
 //
 // Only the presets, the deadline and the double-gameweek rule are the spec's own (spec/05, spec/03).
 // The Tim Hortons Pro League's scoring values are not in this repo, so every scoring value is 0

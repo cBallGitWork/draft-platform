@@ -341,7 +341,7 @@ const leagueRulesTables = {
     ["leagueId", "fromGameweek"],
   ),
   /** One row: the rules the admin gives each new league. */
-  defaultLeagueRules: defineTable({ rules: leagueRulesShape, setBy: v.string(), setAt: v.number() }),
+  defaultLeagueRules: defineTable({ rules: leagueRulesShape }),
 };
 
 export default defineSchema({

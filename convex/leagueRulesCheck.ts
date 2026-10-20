@@ -3,9 +3,9 @@ import { AREAS, type Area } from "./pitch";
 import type { LeagueRules } from "./leagueRulesShape";
 import { validateScoringSet } from "./scoringSet";
 
-// What makes a league's rules sound beyond their stored shape (spec/03; #25): each check throws
-// an UnsoundRules carrying the reason a commissioner is told. The shape (a known format, a number where one belongs) is
-// leagueRulesShape.ts's, checked by Convex before this runs. Pure: no I/O.
+// What makes a league's rules sound beyond their stored shape (spec/03; #25): each check throws an
+// UnsoundRules carrying the reason a commissioner is told. The shape (a known format, a number
+// where one belongs) is leagueRulesShape.ts's, checked by Convex before this runs. Pure: no I/O.
 
 /** Why rules can't be saved, told apart from a bug, which is never shown as a reason. */
 export class UnsoundRules extends Error {}
@@ -26,7 +26,9 @@ export function checkLeagueRules(rules: LeagueRules): void {
 }
 
 function checkWholeNumber(value: number, what: string, least: number): void {
-  if (!Number.isInteger(value) || value < least) throw new UnsoundRules(`${what} must be a whole number, ${least} or more, not ${value}.`);
+  if (!Number.isInteger(value) || value < least) {
+    throw new UnsoundRules(`${what} must be a whole number, ${least} or more, not ${value}.`);
+  }
 }
 
 function checkLimit({ minimum, maximum }: AreaLimit, what: string): void {

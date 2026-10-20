@@ -1,15 +1,17 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
-import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import type { DeadlineRule } from "./deadline";
 import { FIRST_RULES } from "./firstRules";
-import { callerEmail, isAdmin, memberOf, recordEvent, refuse, refusals, runnerOf } from "./leagueAccess";
+import { memberOf, recordEvent, refuse, runnerOf } from "./leagueAccess";
 import { checkLeagueRules, UnsoundRules } from "./leagueRulesCheck";
 import { leagueRulesShape, type LeagueRules } from "./leagueRulesShape";
-import type { DeadlineRule } from "./deadline";
 import { nextGameweek } from "./nextGameweek";
 
 // A league's rules, held as data (spec/03; #25): a new league copies the admin's default rules, and
 // its commissioner changes them from the next gameweek, so a past gameweek keeps the rules it had.
+// Until the admin has a screen, the defaults are set from the dashboard or the command line:
+// `npx convex run leagueRules:setDefaults '{"rules": {…}}'`, checked as a commissioner's are.
 
 /** Refuses unsound rules, telling the commissioner or admin why. */
 function refuseUnsound(rules: LeagueRules): void {
@@ -50,18 +52,17 @@ function defaultsRow(ctx: QueryCtx) {
   return ctx.db.query("defaultLeagueRules").unique();
 }
 
-async function writeDefaults(ctx: MutationCtx, rules: LeagueRules, by: string): Promise<void> {
+async function writeDefaults(ctx: MutationCtx, rules: LeagueRules): Promise<void> {
   const row = await defaultsRow(ctx);
-  const fields = { rules, setBy: by, setAt: Date.now() };
-  if (row === null) await ctx.db.insert("defaultLeagueRules", fields);
-  else await ctx.db.patch("defaultLeagueRules", row._id, fields);
+  if (row === null) await ctx.db.insert("defaultLeagueRules", { rules });
+  else await ctx.db.patch("defaultLeagueRules", row._id, { rules });
 }
 
 /** Gives a new league the admin's default rules from gameweek 1. The first league a deployment
  *  makes writes the placeholder first rules (firstRules.ts) as those defaults. */
-export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">, by: string): Promise<void> {
+export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">): Promise<void> {
   const defaults = (await defaultsRow(ctx))?.rules;
-  if (defaults === undefined) await writeDefaults(ctx, FIRST_RULES, by);
+  if (defaults === undefined) await writeDefaults(ctx, FIRST_RULES);
   await ctx.db.insert("leagueRules", { leagueId, fromGameweek: 1, rules: defaults ?? FIRST_RULES });
 }
 
@@ -136,25 +137,13 @@ export const change = mutation({
   },
 });
 
-/** The rules the admin gives each new league. Null before the first league is made. */
-export const defaults = query({
-  args: {},
-  returns: v.union(v.null(), leagueRulesShape),
-  handler: async (ctx) => {
-    if (!isAdmin(await callerEmail(ctx))) refuse(refusals.notAdmin);
-    return (await defaultsRow(ctx))?.rules ?? null;
-  },
-});
-
 /** The admin changes the rules new leagues get. Leagues already made keep their own. */
-export const setDefaults = mutation({
+export const setDefaults = internalMutation({
   args: { rules: leagueRulesShape },
   returns: v.null(),
   handler: async (ctx, { rules }) => {
-    const by = await callerEmail(ctx);
-    if (!isAdmin(by)) refuse(refusals.notAdmin);
     refuseUnsound(rules);
-    await writeDefaults(ctx, rules, by);
+    await writeDefaults(ctx, rules);
     return null;
   },
 });
