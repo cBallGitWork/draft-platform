@@ -1,8 +1,15 @@
 import { convexTest } from "convex-test";
 import { afterEach, expect, test, vi } from "vitest";
 import { FPL_BOOTSTRAP_URL } from "./football";
-import { BATCH_SIZE } from "./footballSync";
-import { held, modules, NOTHING_CHANGED, syncWith } from "./footballSync.harness";
+import {
+  crowdedFpl,
+  held,
+  modules,
+  nameAnUnlistedClub,
+  NOTHING_CHANGED,
+  refusedError,
+  syncWith,
+} from "./footballSync.harness";
 import { CLUB_CODE, RECORDED_COUNT, recordedFpl } from "./recorded/fpl.payloads";
 import schema from "./schema";
 
@@ -152,7 +159,7 @@ test("a failed fetch is recorded and logged, and nothing is written", async () =
 
   const outcome = await syncWith(t, recordedFpl(), FPL_BOOTSTRAP_URL);
 
-  expect(outcome).toEqual({ ok: false, error: `${FPL_BOOTSTRAP_URL} answered 503` });
+  expect(outcome).toEqual({ ok: false, error: refusedError(FPL_BOOTSTRAP_URL) });
   expect(error).toHaveBeenCalledWith(expect.stringContaining("football sync failed"));
   expect(await held(t)).toEqual({ clubs: [], players: [], fixtures: [], gameweeks: [] });
 });
@@ -161,20 +168,17 @@ test("a payload whose shape has changed is recorded as a failure too", async () 
   vi.spyOn(console, "error").mockImplementation(() => {});
   const t = convexTest(schema, modules);
   const changed = recordedFpl();
-  changed.fixtures[0].team_h = 99;
+  const refusal = nameAnUnlistedClub(changed);
 
   const outcome = await syncWith(t, changed);
 
-  expect(outcome).toEqual({ ok: false, error: "FPL names club id 99, which bootstrap-static does not list" });
+  expect(outcome).toEqual({ ok: false, error: refusal });
   expect((await held(t)).fixtures).toEqual([]);
 });
 
 test("more players than one batch holds are all written, each once", async () => {
   const t = convexTest(schema, modules);
-  const crowded = recordedFpl();
-  const template = crowded.bootstrap.elements[0];
-  const count = BATCH_SIZE * 2 + 50;
-  crowded.bootstrap.elements = Array.from({ length: count }, (_, index) => ({ ...template, id: index + 1, code: index + 1 }));
+  const { payloads: crowded, count } = crowdedFpl();
 
   const outcome = await syncWith(t, crowded);
 

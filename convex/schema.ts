@@ -60,13 +60,13 @@ export const gameweekRecord = v.object({
 // before #64, so every field added since is optional, or the next push would refuse those rows.
 // Renaming a field is a migration, never an edit here.
 
-/** When the feed stopped sending a held row (epoch ms, the sync's `ranAt`); absent while it is
- *  sent. A row FPL stops sending is kept and marked, never deleted, and unmarked if sent again,
- *  found by the same key as ever: a player by his `code` (#64). */
+/** When the feed stopped sending a held row: the `ranAt` of the first sync without it. Absent
+ *  while the row is sent. The row is kept, never deleted, and unmarked when sent again, found by
+ *  its key as ever: a player by his `code` (#64). */
 const droppedAt = v.optional(v.number());
 
 /** One table's share of a sync: the rows the feed sent, how many were new or had changed, and
- *  how many held rows it marked as no longer sent or unmarked as sent again (absent before #64). */
+ *  how many held rows it marked as no longer sent or unmarked as sent again (absent on runs before #64). */
 export const tableWrites = v.object({
   received: v.number(),
   inserted: v.number(),
