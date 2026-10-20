@@ -8,14 +8,26 @@ import { LEAGUES_PATH } from "../leagues/paths";
 import { roleWords } from "../leagues/words";
 
 // On a phone the league takes its own row under the name, Continue and Sign out, above the menu.
-const placeClasses = "order-last w-full border-t border-plate-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-l";
+const placementClasses = "order-last w-full border-t border-plate-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-l";
+const toggleClasses =
+  "flex min-h-tap w-full items-center justify-between gap-2 px-4 text-lead font-semibold hover:bg-stepper aria-expanded:bg-stepper";
+// The league the app is in is marked as the active tab is, in cyan, down its left edge.
+const choiceClasses =
+  "flex min-h-tap w-full flex-col justify-center px-3 py-1 text-left text-soft hover:text-fact " +
+  "aria-current:text-fact aria-current:shadow-current-edge";
 
 /** The top bar's league (spec/13, Several leagues): for someone in several, a list to switch
  *  between them; for someone in one, its name. The admin's leagues he has no part in aren't his
  *  to switch to. */
-export function LeagueSwitcher({ session, chooseLeague }: { session: Session; chooseLeague: LeagueActions["chooseLeague"] }) {
+export function LeagueSwitcher({
+  session,
+  switchLeague,
+}: {
+  session: Session;
+  switchLeague: LeagueActions["switchLeague"];
+}) {
   const [open, setOpen] = useState(false);
-  const [choosing, setChoosing] = useState(false);
+  const [switching, setSwitching] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const listId = useId();
   const switcher = useRef<HTMLDivElement>(null);
@@ -47,14 +59,14 @@ export function LeagueSwitcher({ session, chooseLeague }: { session: Session; ch
   if (!current) throw new Error(`The league the app is in, ${session.currentLeagueId}, isn't one of ${session.email}'s`);
 
   if (theirs.length === 1) {
-    return <span className={`flex min-h-tap items-center px-4 text-lead font-semibold ${placeClasses}`}>{current.name}</span>;
+    return <span className={`flex min-h-tap items-center px-4 text-lead font-semibold ${placementClasses}`}>{current.name}</span>;
   }
 
-  const choose = async (leagueId: Id<"leagues">) => {
+  const switchTo = async (leagueId: Id<"leagues">) => {
     if (leagueId !== current.leagueId) {
-      setChoosing(true);
-      const refused = await chooseLeague(leagueId);
-      setChoosing(false);
+      setSwitching(true);
+      const refused = await switchLeague(leagueId);
+      setSwitching(false);
       setProblem(refused);
       if (refused !== null) return;
     }
@@ -62,7 +74,7 @@ export function LeagueSwitcher({ session, chooseLeague }: { session: Session; ch
   };
 
   return (
-    <div ref={switcher} className={`relative ${placeClasses}`}>
+    <div ref={switcher} className={`relative ${placementClasses}`}>
       <button
         ref={toggle}
         type="button"
@@ -72,7 +84,7 @@ export function LeagueSwitcher({ session, chooseLeague }: { session: Session; ch
           setProblem(null);
           setOpen(!open);
         }}
-        className="flex min-h-tap w-full items-center justify-between gap-2 px-4 text-lead font-semibold hover:bg-stepper aria-expanded:bg-stepper"
+        className={toggleClasses}
       >
         <span>
           <span className="sr-only">League:</span> {current.name}
@@ -91,7 +103,7 @@ export function LeagueSwitcher({ session, chooseLeague }: { session: Session; ch
           <ul aria-label="Your leagues">
             {theirs.map((league) => (
               <li key={league.leagueId} className="border-b border-panel-rule">
-                <LeagueChoice league={league} isCurrent={league === current} disabled={choosing} onChoose={choose} />
+                <LeagueChoice league={league} isCurrent={league === current} disabled={switching} onChoose={switchTo} />
               </li>
             ))}
           </ul>
@@ -122,7 +134,7 @@ function LeagueChoice({
       aria-current={isCurrent || undefined}
       disabled={disabled}
       onClick={() => onChoose(league.leagueId)}
-      className="flex min-h-tap w-full flex-col justify-center px-3 py-1 text-left text-soft hover:text-fact aria-current:text-fact aria-current:shadow-current-edge"
+      className={choiceClasses}
     >
       <span className="text-lead font-semibold">{league.name}</span>
       <span className="text-muted">{league.teamName ?? league.roles.map((role) => roleWords[role]).join(", ")}</span>

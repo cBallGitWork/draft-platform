@@ -7,35 +7,35 @@ import { afterEach, expect, test, vi } from "vitest";
 import type { Id } from "../../convex/_generated/dataModel";
 import { notYourLeague } from "../../convex/lastLeague";
 import { useLiveLeagueActions } from "./liveLeagueActions";
-import { chooseFailedWords } from "./words";
+import { switchFailedWords } from "./words";
 
-const choose = vi.hoisted(() => vi.fn());
-vi.mock("convex/react", () => ({ useMutation: () => choose }));
+const switchTo = vi.hoisted(() => vi.fn());
+vi.mock("convex/react", () => ({ useMutation: () => switchTo }));
 
 afterEach(() => {
-  choose.mockReset();
+  switchTo.mockReset();
   vi.restoreAllMocks();
 });
 
 const leagueId = "league-2" as Id<"leagues">;
-const chooseLeague = () => renderHook(useLiveLeagueActions).result.current.chooseLeague(leagueId);
+const switchLeague = () => renderHook(useLiveLeagueActions).result.current.switchLeague(leagueId);
 
 test("a switch the server makes resolves with no problem", async () => {
-  choose.mockResolvedValue(null);
-  expect(await chooseLeague()).toBeNull();
-  expect(choose).toHaveBeenCalledWith({ leagueId });
+  switchTo.mockResolvedValue(null);
+  expect(await switchLeague()).toBeNull();
+  expect(switchTo).toHaveBeenCalledWith({ leagueId });
 });
 
 test("a switch the server refuses resolves with the server's own words", async () => {
-  choose.mockRejectedValue(new ConvexError(notYourLeague));
-  expect(await chooseLeague()).toBe(notYourLeague);
+  switchTo.mockRejectedValue(new ConvexError(notYourLeague));
+  expect(await switchLeague()).toBe(notYourLeague);
 });
 
 test("any other failure is logged and said plainly", async () => {
   const failure = new Error("offline");
-  choose.mockRejectedValue(failure);
+  switchTo.mockRejectedValue(failure);
   const logged = vi.spyOn(console, "error").mockImplementation(() => {});
 
-  expect(await chooseLeague()).toBe(chooseFailedWords);
+  expect(await switchLeague()).toBe(switchFailedWords);
   expect(logged).toHaveBeenCalledWith("Switching league failed:", failure);
 });

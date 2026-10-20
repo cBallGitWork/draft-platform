@@ -58,7 +58,7 @@ function fakeAuth() {
 /** Creating a league, or switching to one, succeeds, unless a test says otherwise. */
 const fakeLeagues = () => ({
   createLeague: vi.fn<LeagueActions["createLeague"]>(async () => null),
-  chooseLeague: vi.fn<LeagueActions["chooseLeague"]>(async () => null),
+  switchLeague: vi.fn<LeagueActions["switchLeague"]>(async () => null),
 });
 
 /** The app opened at `path` for `session`: where it is, the fake sign-in and league actions, and

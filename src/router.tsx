@@ -64,7 +64,7 @@ const leaguePagesRoute = createRoute({
       <AppFrame
         topBar={topBar}
         onSignOut={auth.signOut}
-        leagueSwitcher={<LeagueSwitcher session={session} chooseLeague={leagues.chooseLeague} />}
+        leagueSwitcher={<LeagueSwitcher session={session} switchLeague={leagues.switchLeague} />}
       />
     ) : (
       <LeaguelessFrame onSignOut={auth.signOut} />
@@ -105,7 +105,7 @@ const frameRoute = createRoute({
       <AppFrame
         topBar={topBar}
         onSignOut={auth.signOut}
-        leagueSwitcher={<LeagueSwitcher session={session} chooseLeague={leagues.chooseLeague} />}
+        leagueSwitcher={<LeagueSwitcher session={session} switchLeague={leagues.switchLeague} />}
       />
     );
   },

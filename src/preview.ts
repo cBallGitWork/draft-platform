@@ -71,7 +71,7 @@ export function previewSession(): Session | null {
 /** Creating a league makes nothing, and switching league stays put, and each says so. */
 export const previewLeagues: LeagueActions = {
   createLeague: async () => "This is a preview: no league was made.",
-  chooseLeague: async () => "This is a preview: you're still in this league.",
+  switchLeague: async () => "This is a preview: you're still in this league.",
 };
 
 /** Asking for a link gets the reply everyone gets; nothing is sent, and signing out does nothing. */
