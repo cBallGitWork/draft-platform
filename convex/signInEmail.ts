@@ -1,6 +1,6 @@
 import { internal } from "./_generated/api";
 import type { ActionCtx } from "./_generated/server";
-import { inviteIdIn } from "./joinLinks";
+import { inviteIdIn } from "./joiningShared";
 
 // The sign-in email, sent through Resend's API (ARCHITECTURE.md, Services). Convex Auth calls
 // `sendSignInEmail` once it has made the link, which only an ask lets it do (signInLinks.ts).

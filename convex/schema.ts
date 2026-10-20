@@ -248,7 +248,7 @@ const replaced = v.union(v.string(), v.null());
 const managerOfTeam = { email: v.string(), teamId: v.id("teams"), teamName: v.string() };
 
 // Joining a league (#73, spec/13 Joining): emailed invites, the league's invite link and join
-// requests. Every field added to a live table is optional.
+// requests.
 
 /** Where an email the app sends stands: being sent; sent; waiting for tomorrow, the day's emails
  *  all gone (spec/13); or not sent, for too many links to that email this hour, or by the email

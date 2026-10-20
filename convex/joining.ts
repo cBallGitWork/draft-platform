@@ -1,14 +1,10 @@
 import type { Infer } from "convex/values";
 import type { MutationCtx } from "./_generated/server";
-import { linkOffWords } from "./joinLinks";
+import { DAY_MS, linkOffWords } from "./joiningShared";
 import type { delivery } from "./schema";
 import { EMAILS_PER_DAY, dayOf, type SignInReply } from "./signInLinks";
 
 // What emailed invites, the invite link and join requests share (#73, spec/13 Joining).
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-/** spec/13: an invite lasts 7 days. */
-export const INVITE_LIFETIME_MS = 7 * DAY_MS;
 
 export type Delivery = Infer<typeof delivery>;
 

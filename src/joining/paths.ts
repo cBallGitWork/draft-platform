@@ -1,11 +1,11 @@
-import { JOIN_PATH } from "../../convex/joinLinks";
+import { JOIN_PATH } from "../../convex/joiningShared";
 import { LEAGUES_PATH } from "../leagues/paths";
 
 /** A league's invites and join requests, for its runners. */
 export const INVITES_ROUTE = `${LEAGUES_PATH}/$leagueId/invites`;
 export const invitesPath = (leagueId: string) => `${LEAGUES_PATH}/${leagueId}/invites`;
 
-/** A league's invite link (convex/joinLinks.ts). */
+/** A league's invite link (convex/joiningShared.ts). */
 export const JOIN_ROUTE = `${JOIN_PATH}/$token`;
 
 /** The invite link's token, when this address is one. */

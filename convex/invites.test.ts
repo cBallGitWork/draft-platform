@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
-import { invite, invitesPage, lastEmailTo, openLastLinkTo, spendTodaysEmails } from "./joining.harness";
-import { INVITE_LIFETIME_MS, joiningRefusals } from "./joining";
-import { invitedPath } from "./joinLinks";
+import { emailsTo, finishWhatIsDueNow, invite, invitesPage, lastEmailTo, openLastLinkTo, spendTodaysEmails } from "./joining.harness";
+import { joiningRefusals } from "./joining";
+import { DAY_MS, INVITE_LIFETIME_MS, invitedPath } from "./joiningShared";
 import { refusals } from "./leagueAccess";
 import {
   COMMISSIONER,
@@ -21,7 +21,6 @@ import { SITE_URL, ask, fakeResend, resetSignInDeployment, signInDeployment, typ
 // Emailed invites (#73 stories 1 and 5; spec/13, Joining).
 
 const [ANN, BOB, CAT, DAN, EVE] = MANAGERS;
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 let t: TestConvex;
 let sent: SentEmail[];
@@ -117,7 +116,7 @@ describe("how long an invite lasts", () => {
     await (await asCommissioner()).mutation(api.invites.resend, { inviteId });
     await t.finishAllScheduledFunctions(vi.runAllTimers);
 
-    expect(sent.filter((email) => email.to === ANN)).toHaveLength(2);
+    expect(emailsTo(sent, ANN)).toHaveLength(2);
     expect((await inviteRow(inviteId))?.expiresAt).toBe(Date.now() + INVITE_LIFETIME_MS);
     await openLastLinkTo(t, sent, ANN);
     expect(await managers()).toEqual([{ name: "Team 1", managerEmail: ANN }]);
@@ -170,16 +169,15 @@ describe("past the day's emails (spec/13)", () => {
   test("an invite waits for tomorrow, the commissioner's page says so, and it goes then by itself", async () => {
     await spendTodaysEmails(t);
     const inviteId = await (await asCommissioner()).mutation(api.invites.send, { leagueId, email: ANN });
-    vi.runOnlyPendingTimers();
-    await t.finishInProgressScheduledFunctions();
+    await finishWhatIsDueNow(t);
 
     expect((await inviteRow(inviteId))?.delivery).toBe("waiting");
-    expect(sent.filter((email) => email.to === ANN)).toEqual([]);
+    expect(emailsTo(sent, ANN)).toEqual([]);
     await expect((await asCommissioner()).mutation(api.invites.resend, { inviteId })).rejects.toThrow(joiningRefusals.inviteWaiting);
 
     await t.finishAllScheduledFunctions(vi.runAllTimers);
     expect(new Date(Date.now()).toISOString()).toBe("2026-10-21T00:00:00.000Z");
     expect((await inviteRow(inviteId))?.delivery).toBe("sent");
-    expect(sent.filter((email) => email.to === ANN)).toHaveLength(1);
+    expect(emailsTo(sent, ANN)).toHaveLength(1);
   });
 });

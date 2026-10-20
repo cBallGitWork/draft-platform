@@ -4,7 +4,7 @@
 import { cleanup, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
-import { joinPath, linkOffWords } from "../../convex/joinLinks";
+import { joinPath, linkOffWords } from "../../convex/joiningShared";
 import { SIGN_IN_PATH } from "../router";
 import { LINK_REPLY, newcomer, openApp, visitor } from "../shell.harness";
 import type { JoinPageData } from "./seam";

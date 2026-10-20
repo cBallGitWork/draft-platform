@@ -5,7 +5,7 @@ import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { afterEach, expect, test, vi } from "vitest";
 import type { Id } from "../../convex/_generated/dataModel";
-import { linkOffWords } from "../../convex/joinLinks";
+import { linkOffWords } from "../../convex/joiningShared";
 import { askFailedWords, replyWords } from "../sign-in/words";
 import { useLiveJoining } from "./liveJoining";
 import { changeFailedWords } from "./words";

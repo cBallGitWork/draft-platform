@@ -3,6 +3,7 @@
 // screen as is.
 
 import type { Delivery } from "../../convex/joining";
+import { INVITE_DAYS } from "../../convex/joiningShared";
 import { unsentLinkWords } from "../leagues/words";
 
 /** The commissioner's page: its title, and the link to it from their leagues. */
@@ -13,7 +14,7 @@ export const newTeamWords = "A new team";
 export const noTeamWords = "The league is full, with no vacated team to hand on.";
 export const forTeamWords = (teamName: string | null) => `For ${teamName ?? "a new team"}`;
 
-export const inviteHint = "They join when they sign in, with no approval. An invite lasts seven days.";
+export const inviteHint = `They join when they sign in, with no approval. An invite lasts ${INVITE_DAYS} days.`;
 
 const dayFormat = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" });
 /** A day, as the page shows when an invite ends or a request was made: "Tue 27 Oct". */
@@ -27,7 +28,7 @@ export const deliveryWords: Record<Delivery, (expiresAt: number) => string> = {
   tryLater: () => `Not sent: ${unsentLinkWords.tryLater}. Resend it later.`,
   notSent: () => `Not sent: ${unsentLinkWords.notSent}. Resend it.`,
 };
-export const expiredWords = "Expired. Resend it for seven more days.";
+export const expiredWords = `Expired. Resend it for ${INVITE_DAYS} more days.`;
 export const joinedWords = (teamName: string) => `Joined, running ${teamName}.`;
 export const couldNotJoinWords = (reason: string) => `Signed in, but couldn't join: ${reason}`;
 
@@ -48,6 +49,7 @@ export const noInvitesWords = "No invites yet.";
 export const signInToJoinWords = "Sign in with your email, and the link brings you back here to ask to join the league.";
 
 export const joinPageWords = {
+  title: "Join a league",
   loading: loadingWords,
   mayAsk: (leagueName: string) => `Ask to join ${leagueName}. Its commissioner approves each request.`,
   waiting: (leagueName: string) =>

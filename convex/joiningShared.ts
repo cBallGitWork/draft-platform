@@ -1,5 +1,10 @@
-// Joining's links (#73): where their sign-in links lead in the app, and what a league's invite
-// link says once it no longer works. No imports, so the screens can read it too.
+// What joining's server code and screens both read (#73), with no imports so the screens can:
+// how long an invite lasts, where joining's sign-in links lead, and what a dead invite link says.
+
+export const DAY_MS = 24 * 60 * 60 * 1000;
+/** spec/13: an invite lasts 7 days. */
+export const INVITE_DAYS = 7;
+export const INVITE_LIFETIME_MS = INVITE_DAYS * DAY_MS;
 
 /** A league's invite link is `/join/<token>`; its sign-in link comes back to it (spec/02). */
 export const JOIN_PATH = "/join";

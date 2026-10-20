@@ -3,7 +3,7 @@ import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { action, internalMutation, mutation, type QueryCtx } from "./_generated/server";
 import { admitEmail } from "./allowedEmails";
-import { joinPath } from "./joinLinks";
+import { joinPath } from "./joiningShared";
 import { joiningRefusals } from "./joining";
 import { namedEmail, recordEvent, refuse, runnerOf } from "./leagueAccess";
 import { askForLink, signInReply } from "./signInLinks";
