@@ -75,6 +75,18 @@ test("a finished match's poll sums up as its newest line, its sheets and the fiv
   );
 });
 
+test("a body it cannot sum up is said, and the rest of the poll still is", () => {
+  const saved = {
+    polledAt: "2026-10-23T19:00:00.000Z",
+    reads: [
+      { kind: "commentary", body: { content: [] } },
+      { kind: "fixture", body: { status: "U", teamLists: [null, null] } },
+    ],
+  };
+
+  expect(summaryLine(saved)).toMatch(/^19:00:00 UTC {2}\| {2}commentary UNREADABLE: .+ {2}\| {2}status U, clock -, named 0\+0$/);
+});
+
 test("before kickoff, a poll sums up as no commentary, no one named and no team stats", () => {
   const saved = {
     polledAt: "2026-10-20T12:00:00.000Z",
