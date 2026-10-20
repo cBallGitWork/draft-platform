@@ -2,8 +2,9 @@
 starts in (where.py). The line is split into words the way the shell would, so text inside a
 quoted commit message or a quoted heredoc is never mistaken for a command, and then each string
 it hands to a shell is read the same way: sh, bash or zsh -c, eval, env -S, and each $(…) or `…`
-outside single quotes. A cd inside a string counts only inside it; an eval that may move the
-shell leaves the folder after it unsure (where.py). Stdlib only, Python 3.9+.
+outside single quotes. A $'…' is read as the shell reads it, its escapes filled in. A cd inside a
+string counts only inside it; an eval that may move the shell leaves the folder after it unsure
+(where.py). Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -15,6 +16,9 @@ from where import SPLIT_STRING, located, moved_by_runner, program_index, program
 
 HEREDOC = re.compile(r"<<-?[ \t]*(['\"]?)(\w+)\1([^\n]*)\n(.*?\n)?[ \t]*\2[ \t]*(\n|$)", re.S)
 PUNCTUATION = ";&|()\n"  # the characters separators are made of
+# a quoted or escaped one belongs to its word (git add '|' -A): a stand-in until the line is split
+STAND_INS = "\ue000\ue001\ue002\ue003\ue004\ue005"
+TO_STAND_INS, FROM_STAND_INS = str.maketrans(PUNCTUATION, STAND_INS), str.maketrans(STAND_INS, PUNCTUATION)
 MARK = "\x01{}\x01"  # stands in for a lifted $(…) or `…`, numbered
 MARKED = re.compile("\x01(\\d+)\x01")
 BACKTICKED = re.compile(r"(?:\\.|[^`\\])*`", re.S)  # the rest of a `…`, up to its closing backtick
@@ -23,6 +27,14 @@ SHELLS = {"sh", "bash", "zsh", "dash", "ksh"}
 SHELL_VALUE_OPTS = {"-o", "+o", "-O", "+O", "--rcfile", "--init-file"}
 FILLED_IN = re.compile("[$`\x01]")  # a word the shell fills in: $GIT, "$(which git)"
 SHORT_FLAGS = re.compile(r"^-[A-Za-z]+$")  # -lc, -am
+ANSI_C = re.compile(r"\$'((?:\\.|[^'\\])*)'", re.S)  # $'it\'s': a quote in which \ escapes
+ANSI_C_ESCAPE = re.compile(r"\\(x[0-9A-Fa-f]{1,2}|u[0-9A-Fa-f]{1,4}|U[0-9A-Fa-f]{1,8}|[0-7]{1,3}|.)", re.S)
+ANSI_C_LETTERS = {"a": "\a", "b": "\b", "e": "\x1b", "E": "\x1b", "f": "\f", "n": "\n", "r": "\r",
+                  "t": "\t", "v": "\v", "\\": "\\", "'": "'", '"': '"', "?": "?"}
+
+
+class Unbalanced(Exception):
+    """A command line whose own quotes don't balance."""
 
 
 class Unreadable(Exception):
@@ -31,8 +43,9 @@ class Unreadable(Exception):
 
 def commands(cmd, cwd):
     """(words, folder) for every simple command cmd runs, those in its strings included; the
-    folder is None where the guard can't be sure. Raises ValueError if cmd's own quotes don't
-    balance (the shell refuses it too) and Unreadable if a string inside it doesn't."""
+    folder is None where the guard can't be sure. Raises Unbalanced if cmd's own quotes don't
+    balance (zsh then runs none of it; bash runs the lines before the bad one) and Unreadable if
+    a string inside it doesn't."""
     segs, lifted = parse(cmd)
     out = []
     for words, here in located(segs, cwd):
@@ -48,7 +61,7 @@ def commands(cmd, cwd):
 def _commands_in_string(string, here):
     try:
         return commands(string, here)
-    except ValueError:
+    except Unbalanced:
         raise Unreadable(string) from None
 
 
@@ -70,30 +83,35 @@ def parse(cmd):
     lex.whitespace = " \t\r"
     lex.whitespace_split = True
     lex.commenters = ""  # comments are dropped above; shlex would start one inside a word (a#b)
+    try:
+        lexed = list(lex)
+    except ValueError:  # shlex's: no closing quotation, or a \ with nothing after it
+        raise Unbalanced(cmd) from None
     out, cur = [], []
-    for word in lex:
+    for word in lexed:
         if word and not word.strip(PUNCTUATION):  # shlex joins a run: ");" is two separators; "" is a word
             for sep in re.findall(r"&&|\|\||.", word, re.S):
                 out += [cur, [sep]]
                 cur = []
         else:
-            cur.append(word)
+            cur.append(word.translate(FROM_STAND_INS))
     out.append(cur)
     return [s for s in out if s], lifted
 
 
 def lift_substitutions(text, lifted, quotes=True, closer=False):
-    """text with each $(…) and `…` the shell runs (any not in single quotes) swapped for a marker
-    and comments dropped, appending what each marker stands for to lifted. quotes=False reads a
-    heredoc body, where quote marks and # are plain text. With closer, reads a $(…)'s inside and
-    returns where its closing bracket is instead."""
+    """text with each $(…) and `…` the shell runs (any not in single quotes) swapped for a marker,
+    each $'…' for the plain quote it means, each quoted or escaped separator character for its
+    stand-in (STAND_INS) and comments dropped, appending what each marker stands for to lifted.
+    quotes=False reads a heredoc body, where quote marks and # are plain text. With closer, reads
+    a $(…)'s inside and returns where its closing bracket is instead."""
     out, quote, depth, i = [], None, 0, 0
     while i < len(text):
         c = text[i]
         if quote == "'":
             quote = None if c == "'" else quote
         elif c == "\\":
-            out.append(text[i : i + 2])
+            out.append(text[i : i + 2].translate(TO_STAND_INS))
             i += 2
             continue
         elif text.startswith("$(", i) or c == "`":
@@ -105,6 +123,10 @@ def lift_substitutions(text, lifted, quotes=True, closer=False):
             lifted.append(text[start:end])
             out.append(MARK.format(len(lifted) - 1))
             i = end + 1
+            continue
+        elif quotes and not quote and (ansi_c := ANSI_C.match(text, i)):
+            out.append(shlex.quote(_ansi_c(ansi_c.group(1)).translate(TO_STAND_INS)))
+            i = ansi_c.end()
             continue
         elif quotes and c == '"':
             quote = None if quote else '"'
@@ -118,11 +140,29 @@ def lift_substitutions(text, lifted, quotes=True, closer=False):
             line_end = text.find("\n", i)
             i = len(text) if line_end < 0 else line_end
             continue
-        out.append(c)
+        out.append(c.translate(TO_STAND_INS) if quote else c)
         i += 1
     if closer:
         raise Unreadable(text)
     return "".join(out)
+
+
+def _ansi_c(body):
+    """What the inside of a $'…' says, its escapes filled in, up to any \\0 (bash drops the rest).
+    A \\x01 in it becomes ?, so it can't pass for a marker."""
+    return ANSI_C_ESCAPE.sub(_ansi_c_char, body).split("\0")[0].replace("\x01", "?")
+
+
+def _ansi_c_char(escape):
+    """The character a $'…' escape stands for: \\n, \\x63, \\u00e9, \\101. An unknown one stays, and so
+    does \\cA (a control character, which no git word holds)."""
+    e = escape.group(1)
+    if e[0] in "xuU" and len(e) > 1:
+        code = int(e[1:], 16)
+        return chr(code) if code <= 0x10FFFF else escape.group(0)
+    if e[0] in "01234567":
+        return chr(int(e, 8))
+    return ANSI_C_LETTERS.get(e, escape.group(0))
 
 
 def _backtick_end(text, start):

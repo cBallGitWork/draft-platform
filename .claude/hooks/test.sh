@@ -163,15 +163,19 @@ for c in 'sh -c "git commit -m x"' "bash -c 'git commit -m x'" 'zsh -c "git comm
   'echo "$(git commit -m x)"' 'echo `git commit -m x`' 'echo "`git commit -m x`"' \
   'function f { git commit -m x; }; f' 'f() { git commit -m x; }; f' \
   'xargs git commit -m x' 'sudo git commit -m x' 'sudo -u craig git commit -m x' 'timeout 5 git commit -m x' \
-  'nice -n 5 git commit -m x' 'time -p git commit -m x'; do
+  'nice -n 5 git commit -m x' 'time -p git commit -m x' 'xargs -n 1 git commit -m x' 'xargs -P 4 git commit -m x' \
+  'xargs -a f git commit -m x' "bash -o pipefail -c 'git commit -m x'" "bash -c -- 'git commit -m x'" \
+  "ksh -c 'git commit -m x'" "dash -c 'git commit -m x'" 'eval git commit -m x'; do
   check deny guard_bash.py "$(bash_cmd "$c")"
   check allow guard_bash.py "$(bash_in "$tmp/sub" "$c")"
 done
 check deny guard_bash.py "$(bash_in "$tmp/sub" 'sh -c "git add -A"')"
-# a cd inside a string counts only inside it; one in an eval, a builtin cd or sudo -D moves the folder
+# a cd inside a string counts only inside it; one in an eval, a builtin cd, sudo -D or -i moves the folder
 check allow guard_bash.py "$(bash_cmd 'sh -c "cd sub && git commit -m x"')"
 check deny guard_bash.py "$(bash_cmd 'sh -c "cd sub" && git commit -m x')"
-for c in 'eval "cd .."; git commit -m x' 'builtin cd .. && git commit -m x' 'sudo -D /tmp git commit -m x'; do
+for c in 'eval "cd .."; git commit -m x' 'builtin cd .. && git commit -m x' 'sudo -D /tmp git commit -m x' \
+  'eval "pushd .."; git commit -m x' 'eval popd; git commit -m x' 'sudo -i git commit -m x' \
+  'sudo --login git commit -m x' 'sudo -D /tmp sh -c "git commit -m x"' 'env -C /tmp sh -c "git commit -m x"'; do
   check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
 done
 # nothing hides a command: a heredoc's own line, an unquoted heredoc's $(…), a # inside a word
@@ -182,6 +186,25 @@ check deny guard_bash.py "$(bash_in "$tmp/sub" 'echo x#; git add -A')"
 check deny guard_bash.py "$(bash_in "$tmp/sub" 'git commit -m "" -a')"  # an empty word is still a word
 check allow guard_bash.py "$(bash_in "$tmp/sub" 'cd "" && git commit -m x')"  # cd "" stays put
 check allow guard_bash.py "$(bash_cmd "echo '\$(git commit -m x)'")"  # in single quotes it runs nothing
+check deny guard_bash.py "$(bash_cmd "git add -A # don't")"  # a comment is dropped, its quote mark with it
+check allow guard_bash.py "$(bash_cmd 'echo hi # $(git commit -m x)')"  # and a comment's $(…) runs nothing
+# quotes read as the shell reads them (main, then sub): a comment's ' is none; in $'…', \ escapes
+for c in "git commit -m x # it's fine" "git commit -m \$'a\\nit\\'s'" "echo \$'it\\'s'; git commit -m x" \
+  "echo \$'\\'' \$(git commit -m x)" "git \$'\\x63ommit' -m x" "git \$'commit' -m x" "git \$'\\143ommit' -m x" \
+  "git \$'\\u0063ommit' -m x" "git \$'\\U00000063ommit' -m x" "git \$'commit\\0x' -m x" "git \$'comm\\0x'it -m x"; do
+  check deny guard_bash.py "$(bash_cmd "$c")"
+  check allow guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
+# each refused in sub: $'…' escapes are filled in, and a quoted or escaped ; or | stays in its word
+for c in "git add \$'-\\x41'" "git add '|' -A" 'git add ";" -A' "git add \$';' -A" 'git commit -m x \; -a' \
+  "eval \$'true\\ngit add -A'" "eval \$'git\\tadd -A'" "echo \$'\\U110000'; git add -A"; do
+  check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
+# and an escaped \ ' " or ; keeps a ; in the word, and a line whose quotes don't close runs nothing in zsh
+for c in "eval \$'echo \\\\; git add -A'" "eval \$'echo \\'; git add -A \\''" "eval \$'echo \\\"; git add -A \\\"'" \
+  "echo \$'\\U110000'" 'echo "x' 'echo \; git add -A'; do
+  check allow guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
 # where it can't read the string or tell the program, it refuses
 for c in "sh -c \"git commit -m 'x\"" 'echo "$(git commit -m x"' '$GIT commit -m x' \
   '$(which git) commit -m x' 'eval "$CMD"'; do
@@ -194,8 +217,9 @@ for c in 'git push origin --delete main' 'git push origin :main' 'git push origi
   'git push origin :feat/old feat/new'; do
   check deny guard_bash.py "$(bash_cmd "$c")"
 done
-plain=$(mktemp -d)  # not a checkout: git can't say which branch it's on, so a commit there is refused
-check deny guard_bash.py "$(bash_in "$plain" 'git commit -m x')"
+plain=$(mktemp -d)  # not a checkout: git can't say which branch it's on, so a push there is refused
+check deny guard_bash.py "$(bash_in "$plain" 'git push origin x')"
+check deny guard_bash.py "$(bash_in "$plain" 'git commit -m x')"  # and a commit (its staged lines can't be read)
 rm -rf "$plain"
 check deny guard_bash.py "$(bash_in "$tmp/sub" "env -C $tmp git commit -m x")"  # env -C moves it
 git -C "$tmp" init -q -b chore/d "$tmp/det"  # a detached HEAD has no branch, and isn't main

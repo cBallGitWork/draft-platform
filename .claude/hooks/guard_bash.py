@@ -19,7 +19,7 @@ import os
 import re
 import sys
 
-from commands import Unreadable, commands, runs_unknown, short_flags
+from commands import Unbalanced, Unreadable, commands, runs_unknown, short_flags
 from private_words import private_word_problem
 from where import current_branch, git_call, git_dir, previous_branch
 
@@ -138,8 +138,8 @@ def decide(cmd, cwd):
     """A deny reason, or None to allow; cwd is where the shell starts."""
     try:
         cmds = commands(cmd, cwd)
-    except ValueError:
-        return None  # unbalanced quotes: the shell would refuse it too
+    except Unbalanced:
+        return None  # zsh runs none of a line whose quotes don't balance (see commands())
     except Unreadable:
         return UNREADABLE
     problem = private_word_problem(cmd, cmds, cwd)
