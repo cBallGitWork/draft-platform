@@ -39,7 +39,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 10 | [Live matchday](spec/10-live-matchday.md) | not built | points move during a match and are marked provisional until it is final |
 | 11 | [Email](spec/11-email.md) | not built | on a pick clock over 10 minutes the manager on the clock gets one email; under it, none |
 | 12 | [Screens](spec/12-screens.md) | not built | a signed-in manager lands on My team, with Mail's unread count in the menu |
-| 13 | [Setting up a league](spec/13-setting-up-a-league.md) | not built | a league of four fills from two emailed invites and two approved join requests |
+| 13 | [Setting up a league](spec/13-setting-up-a-league.md) | leagues, teams and who runs them built (#24); joining waits for #73, gameweeks #74, deleting #75, switching leagues #76 | a league of four fills from two emailed invites and two approved join requests |
 | 14 | [Scoring categories](spec/14-scoring-categories.md) | not built | a match's stats priced under a set of rules give each category's points and the total, by the slot's area |
 | 15 | [Admin tools](spec/15-admin-tools.md) | not built | a commissioner's assignment puts the player on the team and files a Mail letter to the league |
 | 16 | [Mail](spec/16-mail.md) | not built | a claim, a drop and a trade each file one letter for every manager in the league |

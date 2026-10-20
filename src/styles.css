@@ -124,3 +124,22 @@
     background: var(--color-ground);
   }
 }
+
+/* The alert strip (plate.md, Colour roles: name plate, event): something that needs you. */
+@utility alert-strip {
+  background: var(--color-name-plate);
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  color: var(--color-event);
+  box-shadow: var(--shadow-event-edge);
+}
+
+/* A box to type in. */
+@utility text-box {
+  min-height: var(--spacing-tap);
+  border: 1px solid var(--color-soft);
+  background: var(--color-ground);
+  padding-inline: calc(var(--spacing) * 2);
+  color: var(--color-fact);
+  font-size: var(--text-lead);
+  line-height: var(--text-lead--line-height);
+}
