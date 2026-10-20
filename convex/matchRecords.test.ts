@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
-import { HOUR_MS, HULL_EVERTON, mergedHullEverton, withPlReadEmpty } from "./matchStats.harness";
+import { HOUR_MS } from "./matchStats";
+import { HULL_EVERTON, mergedHullEverton, withPlReadEmpty } from "./matchStats.harness";
 import { isMatchComplete, isWhole, lockTime, matchRecords, mergeStats, statChanges, statValue } from "./matchRecords";
 import { FULL_STATS, recordedGw6 } from "./recorded/gw6.payloads";
 
@@ -59,8 +60,8 @@ test("once a record is whole, a stat it leaves out is 0", () => {
 });
 
 test("a substitute neither feed has sent may have played, so his record is not whole", () => {
-  const belloumi = recordOf(FULL_STATS.belloumi.code);
-  const [unsent] = matchRecords(HULL_EVERTON, [{ playerCode: belloumi.playerCode, fixtureCode: HULL_EVERTON, started: false, formation: null, line: null, place: null }], [], []);
+  const benched = { playerCode: FULL_STATS.belloumi.code, fixtureCode: HULL_EVERTON, started: false };
+  const [unsent] = matchRecords(HULL_EVERTON, [{ ...benched, formation: null, line: null, place: null }], [], []);
   expect(unsent).toMatchObject({ played: null, arrived: { fpl: false, pl: false }, stats: {} });
   expect(isWhole(unsent)).toBe(false);
 });

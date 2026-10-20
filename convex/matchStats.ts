@@ -12,15 +12,15 @@ import { lateStatChange, matchStatsState, matchStatsSyncFields, playerMatchRecor
 
 type State = Infer<typeof matchStatsState>;
 type StatChange = Infer<typeof lateStatChange>;
-const HOUR_MS = 60 * MS_PER_MINUTE;
+export const HOUR_MS = 60 * MS_PER_MINUTE;
 
 /** Ninety minutes and a fifteen-minute half-time: no match reaches full time sooner after kickoff,
  *  so none is read before. */
-const EARLIEST_FULL_TIME_MS = 105 * MS_PER_MINUTE;
+export const EARLIEST_FULL_TIME_MS = 105 * MS_PER_MINUTE;
 /** How long a locked match is still read, to catch a late correction for the feeds page, and how
  *  often. Claude's choice: FPL's corrections seen so far land the same day. */
-const LATE_CORRECTION_WATCH_MS = 24 * HOUR_MS;
-const LATE_READ_EVERY_MS = HOUR_MS;
+export const LATE_CORRECTION_WATCH_MS = 24 * HOUR_MS;
+export const LATE_READ_EVERY_MS = HOUR_MS;
 /** Matches per run, oldest first: a gameweek's worth, so a first run behind many keeps inside an action's time. */
 export const MATCHES_PER_RUN = 10;
 /** How many run rows `latest` returns. */

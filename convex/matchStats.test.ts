@@ -2,9 +2,12 @@ import { convexTest } from "convex-test";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, fplLiveUrl, plPlayerStatsUrl } from "./football";
+import { MS_PER_MINUTE } from "./deadline";
+import { HOUR_MS } from "./matchStats";
 import {
+  elapse,
   FULL_TIME_READ,
-  HOUR_MS,
+  GAMEWEEK,
   HULL_EVERTON,
   heldMatch,
   mergedHullEverton,
@@ -35,22 +38,31 @@ test("a finished match lands complete: a record for every named man, both feeds 
   expect(run.outcome).toEqual({
     ok: true,
     matches: [
-      { fixtureCode: HULL_EVERTON, ok: true, state: "complete", players: 40, inserted: 40, updated: 0, lateCorrections: 0, unmatched: [] },
+      {
+        fixtureCode: HULL_EVERTON,
+        ok: true,
+        state: "complete",
+        players: 40,
+        inserted: 40,
+        updated: 0,
+        lateCorrections: 0,
+        unmatched: [],
+      },
     ],
     waiting: [],
   });
   const { records, status } = await heldMatch(t);
   expect(status).toMatchObject({ state: "complete", fullTimeAt: FULL_TIME_READ, completeAt: FULL_TIME_READ });
-  const held = [...records.values()].map(({ _id, _creationTime, state, ...record }) => ({ ...record, state }));
-  expect(held).toEqual(expect.arrayContaining(mergedHullEverton().map((record) => ({ ...record, state: "complete" }))));
+  const held = [...records.values()].map(({ _id, _creationTime, ...record }) => record);
   expect(held).toHaveLength(40);
+  expect(held).toEqual(expect.arrayContaining(mergedHullEverton().map((record) => ({ ...record, state: "complete" }))));
 });
 
-test("a re-read of the same match writes nothing new", async () => {
+test("a re-read of the same match writes nothing new, and keeps when it completed", async () => {
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, recordedGw6());
 
-  const run = await syncAt(t, FULL_TIME_READ + 10 * 60_000, recordedGw6());
+  const run = await syncAt(t, FULL_TIME_READ + 10 * MS_PER_MINUTE, recordedGw6());
 
   expect(run.outcome).toMatchObject({ matches: [{ state: "complete", inserted: 0, updated: 0 }] });
   expect((await heldMatch(t)).status).toMatchObject({ completeAt: FULL_TIME_READ });
@@ -91,8 +103,7 @@ test("a correction inside the window updates the record, and a stat taken away g
 test("a correction after the lock changes nothing, and is recorded once for the feeds page", async () => {
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, recordedGw6());
-  vi.advanceTimersByTime(HOUR_MS);
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await elapse(t, HOUR_MS);
   const locked = await heldMatch(t);
   expect(locked.status).toMatchObject({ state: "locked" });
 
@@ -119,8 +130,7 @@ test("a correction after the lock changes nothing, and is recorded once for the 
 test("a record a feed stops sending after the lock is a gap, not a correction", async () => {
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, recordedGw6());
-  vi.advanceTimersByTime(HOUR_MS);
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await elapse(t, HOUR_MS);
 
   await syncAt(t, FULL_TIME_READ + 2 * HOUR_MS, withPlReadEmpty(recordedGw6(), FULL_STATS.coyle.pl));
 
@@ -139,12 +149,20 @@ test("a match the Premier League does not yet call full time waits, and nothing 
 });
 
 test.each([
-  ["missing from the Premier League's gameweek list", (listed: RawPlFixture) => {
+  [
+    "missing from the Premier League's gameweek list",
+    (listed: RawPlFixture) => {
       delete listed.altIds;
-    }, `the Premier League lists no match ${HULL_EVERTON} in gameweek 6`],
-  ["listed with no status", (listed: RawPlFixture) => {
+    },
+    `the Premier League lists no match ${HULL_EVERTON} in gameweek ${GAMEWEEK}`,
+  ],
+  [
+    "listed with no status",
+    (listed: RawPlFixture) => {
       delete listed.status;
-    }, `PL fixture ${MATCH.hullEverton.pl} carries no status`],
+    },
+    `PL fixture ${MATCH.hullEverton.pl} carries no status`,
+  ],
 ] as const)("a match %s fails on the run row", async (_what, change, error) => {
   vi.spyOn(console, "error").mockImplementation(() => {});
   const t = await withHullEverton();
@@ -176,10 +194,10 @@ test("a gameweek's refused read fails each of its matches, and a refused FPL rea
   vi.spyOn(console, "error").mockImplementation(() => {});
   const t = await withHullEverton();
 
-  const gameweek = await syncAt(t, FULL_TIME_READ, recordedGw6(), fplLiveUrl(6));
+  const gameweek = await syncAt(t, FULL_TIME_READ, recordedGw6(), fplLiveUrl(GAMEWEEK));
   const whole = await syncAt(t, FULL_TIME_READ, recordedGw6(), FPL_BOOTSTRAP_URL);
 
-  expect(gameweek.outcome).toMatchObject({ ok: true, matches: [{ ok: false, error: refusedError(fplLiveUrl(6)) }] });
+  expect(gameweek.outcome).toMatchObject({ ok: true, matches: [{ ok: false, error: refusedError(fplLiveUrl(GAMEWEEK)) }] });
   expect(whole.outcome).toEqual({ ok: false, error: refusedError(FPL_BOOTSTRAP_URL) });
 });
 
@@ -194,7 +212,9 @@ test("a named man FPL does not list is reported on the run row, and has no recor
   const run = await syncAt(t, FULL_TIME_READ, payloads);
 
   expect(run.outcome).toMatchObject({
-    matches: [{ players: 39, unmatched: [{ plPlayerId: FULL_STATS.coyle.pl, name: expect.any(String), opta: `p${FULL_STATS.coyle.code}` }] }],
+    matches: [
+      { players: 39, unmatched: [{ plPlayerId: FULL_STATS.coyle.pl, name: expect.any(String), opta: `p${FULL_STATS.coyle.code}` }] },
+    ],
   });
   expect((await heldMatch(t)).records.has(FULL_STATS.coyle.code)).toBe(false);
 });

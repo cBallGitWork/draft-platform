@@ -6,7 +6,6 @@
 import { convexTest } from "convex-test";
 import { vi } from "vitest";
 import { internal } from "./_generated/api";
-import { MS_PER_MINUTE } from "./deadline";
 import { codesByOpta } from "./feedIds";
 import {
   FPL_BOOTSTRAP_URL,
@@ -18,13 +17,13 @@ import {
 } from "./football";
 import { fplStatLines } from "./fplLive";
 import { matchRecords } from "./matchRecords";
+import { HOUR_MS } from "./matchStats";
 import { matchSlots, plStatLines } from "./plMatch";
 import { FULL_STATS, MATCH, plReadsFor, recordedGw6, type Gw6Payloads } from "./recorded/gw6.payloads";
 import schema from "./schema";
 
 export const modules = import.meta.glob("./**/*.ts");
-export const HOUR_MS = 60 * MS_PER_MINUTE;
-const GAMEWEEK = 6;
+export const GAMEWEEK = 6;
 const REFUSED_STATUS = 503;
 /** FPL's club codes for the two sides. */
 const HULL = 88;
@@ -67,6 +66,12 @@ export async function withHullEverton() {
     }),
   );
   return t;
+}
+
+/** Lets `ms` pass, and runs every scheduled function that falls due in it. */
+export async function elapse(t: ReturnType<typeof convexTest>, ms: number) {
+  vi.advanceTimersByTime(ms);
+  await t.finishInProgressScheduledFunctions();
 }
 
 /** One sync at `time` against `payloads`, and the run row it recorded. */

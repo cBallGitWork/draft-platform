@@ -14,7 +14,7 @@ type Stats = Record<string, number>;
  *  goals, assists, minutes, cards, saves, clean sheets, goals conceded and penalties; the Premier
  *  League's for the rest). Three of Opta's names have not been seen in a recording yet, since no
  *  recorded match had the event: a wrong guess there only leaves both feeds' counts stored. */
-const BOTH_FEEDS: { fpl: string; pl: string; kept: "fpl" | "pl" }[] = [
+const STATS_IN_BOTH_FEEDS: { fpl: string; pl: string; kept: "fpl" | "pl" }[] = [
   { fpl: "goals_scored", pl: "goals", kept: "fpl" },
   { fpl: "assists", pl: "goal_assist", kept: "fpl" },
   { fpl: "minutes", pl: "mins_played", kept: "fpl" },
@@ -32,8 +32,8 @@ const BOTH_FEEDS: { fpl: string; pl: string; kept: "fpl" | "pl" }[] = [
 /** FPL's own points, never stored (spec/07, spec/14): its bonus and BPS, and the two built on them. */
 const FPL_POINTS = new Set(["bonus", "bps", "total_points", "in_dreamteam"]);
 
-const droppedFromFpl = new Set([...FPL_POINTS, ...BOTH_FEEDS.filter((s) => s.kept === "pl").map((s) => s.fpl)]);
-const droppedFromPl = new Set(BOTH_FEEDS.filter((s) => s.kept === "fpl").map((s) => s.pl));
+const droppedFromFpl = new Set([...FPL_POINTS, ...STATS_IN_BOTH_FEEDS.filter((s) => s.kept === "pl").map((s) => s.fpl)]);
+const droppedFromPl = new Set(STATS_IN_BOTH_FEEDS.filter((s) => s.kept === "fpl").map((s) => s.pl));
 
 /** What a match's minutes are read from in each feed. */
 const FPL_MINUTES = "minutes";
