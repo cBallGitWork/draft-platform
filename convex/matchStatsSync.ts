@@ -35,7 +35,7 @@ export const run = internalAction({
       const due: DueMatch[] = await ctx.runQuery(internal.matchStats.due, { now: ranAt });
       outcome = { ok: true, ...(due.length === 0 ? { matches: [], waiting: [] } : await syncDue(ctx, due, ranAt)) };
     } catch (error: unknown) {
-      outcome = { ok: false, error: failure("match stats sync failed", error) };
+      outcome = { ok: false, error: logFailure("match stats sync failed", error) };
     }
     await ctx.runMutation(internal.matchStats.record, { trigger, ranAt, outcome });
   },
@@ -55,7 +55,7 @@ async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number) {
       const fplLines = fplStatLines(live, bootstrap.elements, fixtures);
       reads = { gameweek, codeByOpta, fplLines, listed: new Map(round.map((each) => [fixtureCodeIn(each), each])) };
     } catch (error: unknown) {
-      const message = failure(`gameweek ${gameweek}'s reads failed`, error);
+      const message = logFailure(`gameweek ${gameweek}'s reads failed`, error);
       matches.push(...codes.map((fixtureCode) => ({ fixtureCode, ok: false as const, error: message })));
       continue;
     }
@@ -65,7 +65,7 @@ async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number) {
         if (outcome === null) waiting.push(fixtureCode);
         else matches.push(outcome);
       } catch (error: unknown) {
-        matches.push({ fixtureCode, ok: false, error: failure(`match ${fixtureCode} failed`, error) });
+        matches.push({ fixtureCode, ok: false, error: logFailure(`match ${fixtureCode} failed`, error) });
       }
     }
   }
@@ -102,7 +102,7 @@ function byGameweek(due: DueMatch[]): Map<number, number[]> {
 }
 
 /** The error's message, logged so a failure is seen in Convex's logs as well as on the run row. */
-function failure(what: string, error: unknown): string {
+function logFailure(what: string, error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
   console.error(`${what}: ${message}`);
   return message;

@@ -1,8 +1,10 @@
 import { convexTest } from "convex-test";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
-import { FPL_BOOTSTRAP_URL, fplLiveUrl, plPlayerStatsUrl } from "./football";
 import { MS_PER_MINUTE } from "./deadline";
+import { FPL_BOOTSTRAP_URL, fplLiveUrl, plPlayerStatsUrl } from "./football";
+import { modules } from "./footballSync.harness";
+import { statValue } from "./matchRecords";
 import { HOUR_MS } from "./matchStats";
 import {
   elapse,
@@ -17,10 +19,8 @@ import {
   withHullEverton,
   withPlReadEmpty,
 } from "./matchStats.harness";
-import { statValue } from "./matchRecords";
 import type { RawPlFixture } from "./premierLeague";
 import { fplElementsWithout, FULL_STATS, MATCH, recordedGw6 } from "./recorded/gw6.payloads";
-import { modules } from "./footballSync.harness";
 import schema from "./schema";
 
 beforeEach(() => vi.useFakeTimers());
@@ -108,10 +108,11 @@ test("a correction after the lock changes nothing, and is recorded once for the 
   expect(locked.status).toMatchObject({ state: "locked" });
 
   const late = FULL_TIME_READ + 2 * HOUR_MS;
-  const run = await syncAt(t, late, withBelloumiGoalRemoved(recordedGw6()));
-  await syncAt(t, late + 2 * HOUR_MS, withBelloumiGoalRemoved(recordedGw6()));
+  const first = await syncAt(t, late, withBelloumiGoalRemoved(recordedGw6()));
+  const again = await syncAt(t, late + 2 * HOUR_MS, withBelloumiGoalRemoved(recordedGw6()));
 
-  expect(run.outcome).toMatchObject({ matches: [{ state: "locked", inserted: 0, updated: 0, lateCorrections: 1 }] });
+  expect(first.outcome).toMatchObject({ matches: [{ state: "locked", inserted: 0, updated: 0, lateCorrections: 1 }] });
+  expect(again.outcome).toMatchObject({ matches: [{ state: "locked", lateCorrections: 0 }] });
   const after = await heldMatch(t);
   expect(after.records).toEqual(locked.records);
   expect(after.lateCorrections).toEqual([

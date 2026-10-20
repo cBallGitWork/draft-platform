@@ -165,8 +165,9 @@ How #27 merges the two feeds (spec/07 "Match stats"; `convex/matchRecords.ts` ho
 - Where both send a stat, FPL's count is kept for goals, assists, minutes, cards, saves, clean
   sheets, goals conceded and penalties, under FPL's name (`goals_scored`, not Opta's `goals`);
   Opta's for own goals and starts. Every other stat keeps its own feed's name.
-- No recorded match had a red card, a penalty saved or a penalty missed, so Opta's names for them
-  (`red_card`, `penalty_save`, `att_pen_miss`) are its usual ones, not yet seen here.
+- None of the three matches the 221 names come from had a red card, a penalty saved or a penalty
+  missed, so Opta's names for them (`red_card`, `penalty_save`, `att_pen_miss`) are its usual
+  ones, not yet seen here.
 - Not paired, since neither feed says they count the same: FPL's `tackles` and `recoveries`
   beside Opta's `total_tackle`, `won_tackle` and `ball_recovery`. Both are kept.
 - FPL's `bonus`, `bps`, `total_points` and `in_dreamteam` are never stored.

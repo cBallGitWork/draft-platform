@@ -2,6 +2,7 @@ import { convexTest } from "convex-test";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { MS_PER_MINUTE } from "./deadline";
+import { modules, type TestConvex } from "./footballSync.harness";
 import { EARLIEST_FULL_TIME_MS, HOUR_MS, LATE_CORRECTION_WATCH_MS, LATE_READ_EVERY_MS, MATCHES_PER_RUN } from "./matchStats";
 import {
   elapse,
@@ -15,7 +16,6 @@ import {
   withPlReadEmpty,
 } from "./matchStats.harness";
 import { FULL_STATS, recordedGw6 } from "./recorded/gw6.payloads";
-import { modules, type TestConvex } from "./footballSync.harness";
 import schema from "./schema";
 
 beforeEach(() => vi.useFakeTimers());

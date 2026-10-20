@@ -6,7 +6,7 @@ import { MS_PER_MINUTE } from "./deadline";
 // screen exists: `npx convex run platformSettings:setStatCorrectionWindow '{"minutes":60}'`.
 
 /** How long after full time a match's stats stay open to corrections (spec/07), until set. */
-export const DEFAULT_STAT_CORRECTION_WINDOW_MINUTES = 60;
+const DEFAULT_STAT_CORRECTION_WINDOW_MINUTES = 60;
 
 const STAT_CORRECTION_WINDOW = "statCorrectionWindowMinutes";
 

@@ -14,12 +14,12 @@ import {
   plFixtureUrl,
   plPlayerStatsUrl,
 } from "./football";
+import { modules, type TestConvex } from "./footballSync.harness";
 import { fplStatLines } from "./fplLive";
 import { matchRecords } from "./matchRecords";
 import { HOUR_MS } from "./matchStats";
 import { matchSlots, plStatLines } from "./plMatch";
-import { FULL_STATS, MATCH, plReadsFor, recordedGw6, type Gw6Payloads } from "./recorded/gw6.payloads";
-import { modules, type TestConvex } from "./footballSync.harness";
+import { FULL_STATS, MATCH, recordedGw6, type Gw6Payloads } from "./recorded/gw6.payloads";
 import schema from "./schema";
 
 export const GAMEWEEK = 6;
@@ -97,15 +97,20 @@ export function mergedHullEverton(payloads: Gw6Payloads = recordedGw6()) {
   const fixture = payloads.pl.fixtures.find((each) => each.id === MATCH.hullEverton.pl)!;
   const codeByOpta = codesByOpta(payloads.fpl.bootstrap.elements);
   const { slots } = matchSlots(fixture, codeByOpta);
-  const { lines } = plStatLines(fixture, plReadsFor(payloads, MATCH.hullEverton.pl), codeByOpta);
+  const reads = payloads.pl.playerStats.filter((read) => read.fixture === MATCH.hullEverton.pl);
+  const { lines } = plStatLines(fixture, new Map(reads.map((read) => [read.player, read.payload])), codeByOpta);
   const fplLines = fplStatLines(payloads.fpl.live, payloads.fpl.bootstrap.elements, payloads.fpl.fixtures);
   return matchRecords(HULL_EVERTON, slots, fplLines, lines);
 }
 
+/** One man's recorded Premier League read at Hull v Everton, to change for a test. */
+function hullEvertonRead(payloads: Gw6Payloads, plPlayerId: number) {
+  return payloads.pl.playerStats.find((read) => read.player === plPlayerId && read.fixture === MATCH.hullEverton.pl)!.payload;
+}
+
 /** `payloads` with the Premier League not yet having counted one man: his read's list is empty. */
 export function withPlReadEmpty(payloads: Gw6Payloads, plPlayerId: number): Gw6Payloads {
-  const read = payloads.pl.playerStats.find((each) => each.player === plPlayerId && each.fixture === MATCH.hullEverton.pl)!;
-  read.payload.stats = [];
+  hullEvertonRead(payloads, plPlayerId).stats = [];
   return payloads;
 }
 
@@ -114,8 +119,8 @@ export function withBelloumiGoalRemoved(payloads: Gw6Payloads): Gw6Payloads {
   const element = payloads.fpl.live.elements.find((each) => each.id === BELLOUMI_FPL_ID)!;
   element.stats.goals_scored = 0;
   for (const block of element.explain) block.stats = block.stats.filter((stat) => stat.identifier !== "goals_scored");
-  const read = payloads.pl.playerStats.find((each) => each.player === FULL_STATS.belloumi.pl && each.fixture === MATCH.hullEverton.pl)!;
-  read.payload.stats = read.payload.stats.filter((metric) => !["goals", "goals_openplay"].includes(metric.name));
+  const read = hullEvertonRead(payloads, FULL_STATS.belloumi.pl);
+  read.stats = read.stats.filter((metric) => !["goals", "goals_openplay"].includes(metric.name));
   return payloads;
 }
 

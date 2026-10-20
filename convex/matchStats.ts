@@ -19,7 +19,7 @@ export const HOUR_MS = 60 * MS_PER_MINUTE;
  *  so none is read before. */
 export const EARLIEST_FULL_TIME_MS = 105 * MS_PER_MINUTE;
 /** How long a locked match is still read, to catch a late correction for the feeds page, and how
- *  often. Claude's choice: FPL's corrections seen so far land the same day. */
+ *  often: Claude's choice, not yet Craig's, and no late correction has been recorded to size it. */
 export const LATE_CORRECTION_WATCH_MS = 24 * HOUR_MS;
 export const LATE_READ_EVERY_MS = HOUR_MS;
 /** Matches per run, oldest first: a gameweek's worth, so a first run behind many keeps inside an action's time. */
@@ -32,7 +32,7 @@ const LATEST_RUNS = 5;
 export const due = internalQuery({
   args: { now: v.number() },
   handler: async (ctx, { now }): Promise<DueMatch[]> => {
-    const due: (DueMatch & { kickoff: number })[] = [];
+    const found: (DueMatch & { kickoff: number })[] = [];
     // A season's 380, at most a few seasons' worth: the fixtures table has no kickoff index to range on.
     for await (const { code, gameweek, kickoff, droppedAt } of ctx.db.query("fixtures")) {
       if (droppedAt !== undefined || gameweek === null || kickoff === null) continue;
@@ -42,9 +42,9 @@ export const due = internalQuery({
         status?.lockedAt !== undefined &&
         now - status.lockedAt < LATE_CORRECTION_WATCH_MS &&
         now - status.lastReadAt >= LATE_READ_EVERY_MS;
-      if (status?.state !== "locked" || lateWatched) due.push({ fixtureCode: code, gameweek, kickoff });
+      if (status?.state !== "locked" || lateWatched) found.push({ fixtureCode: code, gameweek, kickoff });
     }
-    return due
+    return found
       .sort((a, b) => a.kickoff - b.kickoff)
       .slice(0, MATCHES_PER_RUN)
       .map(({ fixtureCode, gameweek }) => ({ fixtureCode, gameweek }));
