@@ -16,6 +16,8 @@ import type * as fpl from "../fpl.js";
 import type * as matchStats from "../matchStats.js";
 import type * as matchStatsSync from "../matchStatsSync.js";
 import type * as platformSettings from "../platformSettings.js";
+import type * as playerPositions from "../playerPositions.js";
+import type * as positionsSync from "../positionsSync.js";
 
 import type {
   ApiFromModules,
@@ -32,6 +34,8 @@ declare const fullApi: ApiFromModules<{
   matchStats: typeof matchStats;
   matchStatsSync: typeof matchStatsSync;
   platformSettings: typeof platformSettings;
+  playerPositions: typeof playerPositions;
+  positionsSync: typeof positionsSync;
 }>;
 
 /**

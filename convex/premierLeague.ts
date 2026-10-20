@@ -13,6 +13,7 @@ import {
   plFixturesUrl,
   plFixtureUrl,
   plPlayerStatsUrl,
+  plSquadUrl,
   plTeamStatsUrl,
 } from "./football";
 
@@ -23,11 +24,18 @@ export interface RawPlAltIds {
   opta: string;
 }
 
-/** A man on a team sheet. `id` is the Premier League's own; `altIds.opta` is FPL's `opta_code`. */
+/** A man on a team sheet or in a squad. `id` is the Premier League's own; `altIds.opta` is FPL's
+ *  `opta_code`. `info.positionInfo` is his usual position ("Left Full Back"), not one match's. */
 export interface RawPlSquadPlayer {
   id: number;
   name: { display: string };
   altIds?: RawPlAltIds;
+  info?: { positionInfo?: string };
+}
+
+/** `/teams/{id}/compseasons/{season}/staff`: a club's registered squad. */
+export interface RawPlSquad {
+  players: RawPlSquadPlayer[];
 }
 
 /** A side's shape: `label` ("4-2-3-1") drawn as `players`, lines of player ids, keeper first. */
@@ -46,10 +54,14 @@ export interface RawPlTeamList {
 /** A fixture from the fixture list or its own read. */
 export interface RawPlFixture {
   id: number;
+  /** `PL_FULL_TIME` ("C") once the match is over; "U" before. Other values are not read. Every
+   *  read recorded so far carries it. */
+  status?: string;
+  kickoff?: { millis: number };
+  /** Both sides, home first, by the Premier League's team ids. */
+  teams?: { team: { id: number } }[];
   /** `g` + FPL's fixture `code`. Sent only when the read asks with `altIds=true`. */
   altIds?: RawPlAltIds;
-  /** `PL_FULL_TIME` once the match is over; every read recorded so far carries it. */
-  status?: string;
   /** On the fixture's own read: two entries, each null until that side is named. */
   teamLists?: (RawPlTeamList | null)[];
 }
@@ -100,10 +112,11 @@ export interface RawPlTeamStats {
   data?: Record<string, { M: RawPlMetric[] }>;
 }
 
-/** One gameweek's fixtures, or the season's, each with its FPL join (`altIds`). */
-export async function readPlFixtures(gameweek?: number): Promise<RawPlFixture[]> {
+/** One gameweek's fixtures, or the season's, each with its FPL join (`altIds`); this season's
+ *  unless another is named. */
+export async function readPlFixtures(gameweek?: number, compSeason?: number): Promise<RawPlFixture[]> {
   const page = await getShaped<RawPlFixturePage>(
-    plFixturesUrl(gameweek),
+    plFixturesUrl(gameweek, compSeason),
     "list of fixtures with ids",
     (body) => Array.isArray(body.content) && body.content.every(hasId),
   );
@@ -113,6 +126,15 @@ export async function readPlFixtures(gameweek?: number): Promise<RawPlFixture[]>
 /** One fixture in full: both team sheets and their formations. */
 export async function readPlFixture(fixtureId: number): Promise<RawPlFixture> {
   return getShaped<RawPlFixture>(plFixtureUrl(fixtureId), "fixture id", hasId);
+}
+
+/** A club's registered squad this season, each man with his label and his join to FPL. */
+export async function readPlSquad(teamId: number): Promise<RawPlSquad> {
+  return getShaped<RawPlSquad>(
+    plSquadUrl(teamId),
+    "list of players with ids",
+    (body) => Array.isArray(body.players) && body.players.every(hasId),
+  );
 }
 
 /** One man's stats in one match, by the Premier League's ids for both. */

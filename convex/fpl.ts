@@ -3,7 +3,7 @@
 // map.ts and client.ts, 19 Oct 2026), not shared, and cut to the fields #21 holds. One change:
 // FPL names a club by its per-season id, and this hands on the club's season-stable code instead.
 
-import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, getJson, type Football } from "./football";
+import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, getJson, getShaped, type Football } from "./football";
 
 // The shapes FPL's public API returns: data we do not control. Only the fields read below are typed.
 
@@ -62,6 +62,12 @@ export async function readFplPayloads(): Promise<{ bootstrap: RawBootstrap; fixt
 export async function readFpl(): Promise<Football> {
   const { bootstrap, fixtures } = await readFplPayloads();
   return mapFpl(bootstrap, fixtures);
+}
+
+/** Bootstrap as FPL sent it, for what the seam leaves out: each player's join to the Premier
+ *  League (`codesByOpta` in feedIds.ts). */
+export async function readFplBootstrap(): Promise<RawBootstrap> {
+  return getShaped<RawBootstrap>(FPL_BOOTSTRAP_URL, "list of players", (body) => Array.isArray(body.elements));
 }
 
 /** Pure raw → seam mapping: no I/O and no clock, so the same payloads always give the same records. */

@@ -145,7 +145,9 @@ Opta's `formation_place` read for the 44 starters of Hull v Everton and Palace v
 
 - `teamLists[].formation` is `{label, players}`, `players` the starters' ids in lines: the keeper
   first, then each line up the pitch, matching the label (`1-4-2-3-1`). It draws the eleven
-  starters exactly; substitutes are not in it.
+  starters exactly; substitutes are not in it. Two exceptions in all 900 sheets of 2025/26 and
+  2026/27 to 20 Oct 2026 ([positions.md](positions.md#the-team-sheets)): every "4-5-1" draws a
+  4-3-2-1, and one sheet draws a man it lists on the bench.
 - Along a line the ids run from the side's own right to its left: every back four starts with its
   right back and ends with its left back, and every 3-4-2-1 midfield starts with the right wing-back.
 - `formation_place` agrees with it: within one formation, a line and place always gives the same
