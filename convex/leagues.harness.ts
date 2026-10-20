@@ -14,7 +14,7 @@ export const CO_COMMISSIONER = "co@example.com";
 export const MANAGERS = ["ann@example.com", "bob@example.com", "cat@example.com", "dan@example.com", "eve@example.com"];
 
 /** `email` signed in, with an account made for it if it has none, as signing in by a link makes. */
-export async function signedInAs(t: TestConvex, email: string) {
+export async function actingAs(t: TestConvex, email: string) {
   const userId = await t.run(async (ctx) => {
     const user = await ctx.db
       .query("users")
@@ -28,7 +28,7 @@ export async function signedInAs(t: TestConvex, email: string) {
 
 /** The admin makes a league of `maxTeams` run by COMMISSIONER, and its scheduled link is sent. */
 export async function adminCreatesLeague(t: TestConvex, maxTeams = 4, name = "Tim Hortons Pro League"): Promise<Id<"leagues">> {
-  const admin = await signedInAs(t, ADMIN);
+  const admin = await actingAs(t, ADMIN);
   const leagueId = await admin.mutation(api.leagues.create, { name, maxTeams, commissionerEmail: COMMISSIONER });
   await t.finishAllScheduledFunctions(vi.runAllTimers);
   return leagueId;
@@ -36,7 +36,7 @@ export async function adminCreatesLeague(t: TestConvex, maxTeams = 4, name = "Ti
 
 /** The commissioner adds each email as a manager: their new teams' ids, in order. */
 export async function addManagers(t: TestConvex, leagueId: Id<"leagues">, emails: string[]): Promise<Id<"teams">[]> {
-  const commissioner = await signedInAs(t, COMMISSIONER);
+  const commissioner = await actingAs(t, COMMISSIONER);
   const teamIds = [];
   for (const email of emails) teamIds.push(await commissioner.mutation(api.teams.addManager, { leagueId, email }));
   return teamIds;
@@ -62,4 +62,13 @@ export async function eventsIn(t: TestConvex, leagueId: Id<"leagues">) {
   return rows.map(({ by, event }) => ({ by, ...event }));
 }
 
-export const getLeague = (t: TestConvex, leagueId: Id<"leagues">) => t.run((ctx) => ctx.db.get("leagues", leagueId));
+/** Whether a sign-in link may go to this email: whether it is on the allowed list. */
+export const onTheList = (t: TestConvex, email: string) =>
+  t.run(async (ctx) =>
+    (await ctx.db
+      .query("allowedEmails")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .unique()) !== null,
+  );
+
+export const leagueRow = (t: TestConvex, leagueId: Id<"leagues">) => t.run((ctx) => ctx.db.get("leagues", leagueId));

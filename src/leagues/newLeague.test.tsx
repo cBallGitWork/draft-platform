@@ -9,6 +9,8 @@ import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "./paths";
 
 afterEach(cleanup);
 
+const REFUSAL = "Only the admin can do that.";
+
 /** Fills the form in as the admin would, and sends it. */
 async function fillIn({ name = "Mini beta", maxTeams = "4", commissionerEmail = "commish@example.com" } = {}) {
   await userEvent.type(await screen.findByRole("textbox", { name: "League name" }), name);
@@ -29,10 +31,10 @@ describe("creating a league", () => {
 
   it("says why a league wasn't made, and stays on the form with what was typed", async () => {
     const app = openApp(NEW_LEAGUE_PATH, admin);
-    app.leagues.createLeague.mockResolvedValue("Only the admin can do that.");
+    app.leagues.createLeague.mockResolvedValue(REFUSAL);
     await fillIn();
 
-    expect((await screen.findByRole("alert")).textContent).toBe("Only the admin can do that.");
+    expect((await screen.findByRole("alert")).textContent).toBe(REFUSAL);
     expect((screen.getByRole("textbox", { name: "League name" }) as HTMLInputElement).value).toBe("Mini beta");
     expect(app.path()).toBe(NEW_LEAGUE_PATH);
   });

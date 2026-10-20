@@ -19,7 +19,7 @@ export const refusals = {
   notRunner: "Only the league's commissioner, its co-commissioner or the admin can do that.",
   notNamer: "Only the league's commissioner or the admin can name or remove a commissioner or co-commissioner.",
   notManager: "Only the team's manager or the admin can do that.",
-  notInLeague: "You don't run a team in this league.",
+  runsNoTeam: "You don't run a team in this league.",
   blankName: "Give it a name.",
   teamNameTooLong: `A team's name is up to ${TEAM_NAME_MAX} characters.`,
   teamNameTaken: (name: string) => `A team in this league is already called "${name}".`,
@@ -61,19 +61,22 @@ export async function callerEmail(ctx: QueryCtx): Promise<string> {
   return (await signedInEmail(ctx)) ?? refuse(refusals.signedOut);
 }
 
-export async function getLeague(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"leagues">> {
+async function getLeague(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"leagues">> {
   return (await ctx.db.get("leagues", leagueId)) ?? refuse(refusals.noLeague);
 }
 
-/** What this email is in this league. */
-export function powersIn(league: Doc<"leagues">, email: string) {
-  const isAdmin = email === adminEmail();
+/** Whether this (normalised) email is the admin's. */
+export const isAdmin = (email: string) => email === adminEmail();
+
+/** What this email may do in this league. */
+function powersIn(league: Doc<"leagues">, email: string) {
+  const admin = isAdmin(email);
   const isCommissioner = email === league.commissionerEmail;
   return {
     /** Names and removes the commissioner and co-commissioner (and, in #75, deletes the league). */
-    names: isAdmin || isCommissioner,
+    names: admin || isCommissioner,
     /** Every other commissioner power. */
-    runs: isAdmin || isCommissioner || email === league.coCommissionerEmail,
+    runs: admin || isCommissioner || email === league.coCommissionerEmail,
   };
 }
 
