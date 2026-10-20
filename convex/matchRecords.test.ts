@@ -6,6 +6,10 @@ import { FULL_STATS, recordedGw6 } from "./recorded/gw6.payloads";
 
 const records = mergedHullEverton();
 const recordOf = (code: number, from = records) => from.find((record) => record.playerCode === code)!;
+/** A substitute's slot, which places him nowhere. */
+const benchSlot = (playerCode: number) =>
+  ({ playerCode, fixtureCode: HULL_EVERTON, started: false, formation: null, line: null, place: null }) as const;
+const plLine = (playerCode: number, stats: Record<string, number>) => ({ playerCode, fixtureCode: HULL_EVERTON, stats });
 
 test("every man either sheet names has a record, keyed on his and the match's FPL codes", () => {
   expect(records).toHaveLength(40);
@@ -61,10 +65,22 @@ test("once a record is whole, a stat it leaves out is 0", () => {
 });
 
 test("a substitute neither feed has sent may have played, so his record is not whole", () => {
-  const benched = { playerCode: FULL_STATS.belloumi.code, fixtureCode: HULL_EVERTON, started: false };
-  const [unsent] = matchRecords(HULL_EVERTON, [{ ...benched, formation: null, line: null, place: null }], [], []);
+  const [unsent] = matchRecords(HULL_EVERTON, [benchSlot(FULL_STATS.belloumi.code)], [], []);
   expect(unsent).toMatchObject({ played: null, arrived: { fpl: false, pl: false }, stats: {} });
   expect(isWhole(unsent)).toBe(false);
+});
+
+test("before FPL sends a substitute, Opta's minutes say whether he played", () => {
+  const { belloumi, phillips } = FULL_STATS;
+  const [cameOn] = matchRecords(HULL_EVERTON, [benchSlot(belloumi.code)], [], [
+    plLine(belloumi.code, { mins_played: 26, formation_place: 0 }),
+  ]);
+  const [unused] = matchRecords(HULL_EVERTON, [benchSlot(phillips.code)], [], [plLine(phillips.code, { formation_place: 0 })]);
+
+  expect(cameOn).toMatchObject({ played: true, arrived: { fpl: false, pl: true } });
+  expect(isWhole(cameOn)).toBe(false);
+  expect(unused).toMatchObject({ played: false, arrived: { fpl: false, pl: true } });
+  expect(isWhole(unused)).toBe(true);
 });
 
 test("a match is complete only once every man who played has his whole record", () => {

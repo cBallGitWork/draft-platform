@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { MS_PER_MINUTE } from "./deadline";
 import { modules, type TestConvex } from "./footballSync.harness";
-import { EARLIEST_FULL_TIME_MS, HOUR_MS, LATE_CORRECTION_WATCH_MS, LATE_READ_EVERY_MS, MATCHES_PER_RUN } from "./matchStats";
+import { HOUR_MS, LATE_CORRECTION_WATCH_MS, LATE_READ_EVERY_MS, MATCHES_PER_RUN } from "./matchStats";
 import {
   elapse,
   FULL_TIME_READ,
@@ -100,12 +100,12 @@ test.each([-1, 1.5])("a window of %s minutes is refused", async (minutes) => {
   );
 });
 
-test("a match is due once it can have reached full time, and not before", async () => {
+test("a match is due 105 minutes after kickoff, the soonest it can reach full time, and not before", async () => {
   const t = await withHullEverton();
   const due = (now: number) => t.query(internal.matchStats.due, { now });
 
-  expect(await due(KICKOFF + EARLIEST_FULL_TIME_MS - 1)).toEqual([]);
-  expect(await due(KICKOFF + EARLIEST_FULL_TIME_MS)).toEqual([{ fixtureCode: HULL_EVERTON, gameweek: GAMEWEEK }]);
+  expect(await due(KICKOFF + 105 * MS_PER_MINUTE - 1)).toEqual([]);
+  expect(await due(KICKOFF + 105 * MS_PER_MINUTE)).toEqual([{ fixtureCode: HULL_EVERTON, gameweek: GAMEWEEK }]);
 });
 
 test("a match the football sync has marked dropped is not due", async () => {

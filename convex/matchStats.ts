@@ -17,7 +17,7 @@ export const HOUR_MS = 60 * MS_PER_MINUTE;
 
 /** Ninety minutes and a fifteen-minute half-time: no match reaches full time sooner after kickoff,
  *  so none is read before. */
-export const EARLIEST_FULL_TIME_MS = 105 * MS_PER_MINUTE;
+const EARLIEST_FULL_TIME_MS = 105 * MS_PER_MINUTE;
 /** How long a locked match is still read, to catch a late correction for the feeds page, and how
  *  often: Claude's choice, not yet Craig's, and no late correction has been recorded to size it. */
 export const LATE_CORRECTION_WATCH_MS = 24 * HOUR_MS;
