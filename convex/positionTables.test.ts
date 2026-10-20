@@ -14,13 +14,55 @@ test("spec/06's two fixed rows: a 4-2-3-1's deepest two are CDM, a 4-3-3's three
   expect(FORMATION_PLACES["4-3-3"][1]).toEqual(["CM", "CM", "CM"]);
 });
 
-test("wide in a back four is FB, in a back five WB, and no place is ever SS", () => {
-  for (const lines of Object.values(FORMATION_PLACES)) {
+test("a back three is CB, wide in a back four is FB, in a back five WB, and no place is ever SS", () => {
+  for (const [label, lines] of Object.entries(FORMATION_PLACES)) {
     const back = lines[0];
+    if (back.length === 3) expect(back, label).toEqual(["CB", "CB", "CB"]);
     if (back.length === 4) expect([back[0], back[3]]).toEqual(["FB", "FB"]);
     if (back.length === 5) expect([back[0], back[4]]).toEqual(["WB", "WB"]);
     expect(lines.flat()).not.toContain("SS");
   }
+});
+
+/** Each formation's lines past the keeper: the back line, the midfield lines, the front line. */
+function linesOf(lines: readonly (readonly Position[])[]) {
+  return { back: lines[0], middle: lines.slice(1, -1), front: lines.at(-1)! };
+}
+
+test("by the rule, the front line is ST, but for a front three's wide men, W", () => {
+  const fronts: Record<number, Position[]> = { 1: ["ST"], 2: ["ST", "ST"], 3: ["W", "ST", "W"] };
+  for (const [label, lines] of Object.entries(FORMATION_PLACES)) {
+    const { front } = linesOf(lines);
+    expect(front, label).toEqual(fronts[front.length]);
+  }
+});
+
+test("by the rule, midfield's deepest line is CDM for one or two men and CM for three, a lone man behind the forwards CAM, a higher three W CAM W, and a flat midfield WM wide, WB beside a back three, CM between", () => {
+  for (const [label, lines] of Object.entries(FORMATION_PLACES)) {
+    const { back, middle } = linesOf(lines);
+    const [deepest, ...higher] = middle;
+    if (deepest.length <= 2) expect(deepest, label).toEqual(deepest.map(() => "CDM"));
+    if (deepest.length === 3) expect(deepest, label).toEqual(["CM", "CM", "CM"]);
+    if (middle.at(-1)!.length === 1) expect(middle.at(-1), label).toEqual(["CAM"]);
+    for (const three of higher.filter((line) => line.length === 3)) expect(three, label).toEqual(["W", "CAM", "W"]);
+    const wide = back.length === 3 ? "WB" : "WM";
+    for (const flat of middle.filter((line) => line.length >= 4)) expect([flat[0], flat.at(-1)], label).toEqual([wide, wide]);
+    for (const four of middle.filter((line) => line.length === 4)) expect(four.slice(1, -1), label).toEqual(["CM", "CM"]);
+  }
+});
+
+// docs/positions.md: where the rule left a choice, the labels of the men who started there decided.
+test.each<[string, Position[], string, number]>([
+  ["a 3-4-2-1's two behind the striker", ["W", "W"], "3-4-2-1", 2],
+  ["a 4-5-1's two wide men", ["W", "W"], "4-5-1", 2],
+  ["a 4-3-2-1's two behind the striker", ["CAM", "CAM"], "4-3-2-1", 2],
+  ["a 4-2-2-2's two behind the strikers", ["CAM", "CAM"], "4-2-2-2", 2],
+  ["a 3-5-2's midfield", ["WB", "CM", "CDM", "CM", "WB"], "3-5-2", 1],
+  ["a 3-5-1-1's midfield", ["WB", "CM", "CDM", "CM", "WB"], "3-5-1-1", 1],
+  ["a 4-1-4-1's midfield four", ["WM", "CM", "CM", "WM"], "4-1-4-1", 2],
+  ["a 5-4-1's midfield four", ["WM", "CM", "CM", "WM"], "5-4-1", 1],
+])("the data decided %s: %j", (_what, positions, formation, line) => {
+  expect(FORMATION_PLACES[formation][line]).toEqual(positions);
 });
 
 test.each([
@@ -37,7 +79,7 @@ test.each([
   expect(placePosition(formation, line, place)).toBe(position);
 });
 
-test("every starter on the recorded sheets is placed, and the 4-5-1's two wide men are wingers", () => {
+test("every starter on the recorded sheets is placed, and the 4-5-1's two wide men are W", () => {
   const payloads = recordedPositions();
   const codeByOpta = codesByOpta(payloads.fplElements);
   const placed = payloads.sheets
