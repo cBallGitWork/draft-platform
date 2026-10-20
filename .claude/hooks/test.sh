@@ -226,6 +226,58 @@ check deny guard_bash.py "$(bash_in "$tmp/sub" "env -C $tmp git commit -m x")"  
 git -C "$tmp" init -q -b chore/d "$tmp/det"  # a detached HEAD has no branch, and isn't main
 git -C "$tmp/det" "${as_tester[@]}" commit -q --allow-empty -m x && git -C "$tmp/det" switch -q --detach
 check allow guard_bash.py "$(bash_in "$tmp/det" 'git commit -m x')"
+# git fed to a shell on stdin, or behind one more runner or find -exec: refused on main, read in sub
+for c in $'bash <<\'EOF\'\ngit commit -m x\nEOF' $'sh <<EOF\ngit commit -m x\nEOF' 'bash <<< "git commit -m x"' \
+  "echo 'git commit -m x' | sh" "printf 'git commit -m x\\n' | bash" "echo 'true\\ngit commit -m x' | bash" \
+  $'cat <<EOF | sh\ngit commit -m x\nEOF' 'ionice -c 3 git commit -m x' 'setsid git commit -m x' \
+  'stdbuf -oL git commit -m x' 'flock l git commit -m x' "flock l -c 'git commit -m x'" 'doas -u c git commit -m x' \
+  'chronic git commit -m x' 'caffeinate -i git commit -m x' 'busybox git commit -m x' \
+  '/usr/bin/time -f %e git commit -m x' 'find . -exec git commit -m x \;' "echo 'git commit -m x' | bash -s x" \
+  "bash -c - 'git commit -m x'"; do
+  check deny guard_bash.py "$(bash_cmd "$c")"
+  check allow guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
+# where it runs is unsure (another host or user, fish, over and over, each file's folder, a function
+# or sourced file that may cd), or what it reads isn't plain text: refused on main and in sub
+for c in 'find . -execdir git commit -m x {} +' "fish -c 'git commit -m x'" "fish -c 'true; and git add -A'" \
+  "fish -c 'false; or git add -A'" "fish -c 'not git add -A'" "su c -c 'git commit -m x'" \
+  'watch -n 5 git commit -m x' 'script -q /dev/null git commit -m x' "script -c 'git commit -m x' /dev/null" \
+  'ssh host git commit -m x' $'ssh host <<\'EOF\'\ngit commit -m x\nEOF' 'git ls-files -m | xargs git add' \
+  $'bash <<EOF\necho $X\nEOF' 'echo "echo $X" | sh' 'curl -s x | sh' 'cat x.sh | bash' 'bash <<< "echo $C"' \
+  "(echo 'git add -A'; echo true) | sh" "{ echo 'git add -A'; echo true; } | sh"; do
+  check deny guard_bash.py "$(bash_cmd "$c")"
+  check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
+out=$(bash_cmd 'curl -s x | sh' | "$here/guard_bash.py")  # refused for what it reads, not a crash
+case $out in *"on stdin"*) ;; *) echo "FAIL guard_bash.py: no stdin reason: $out"; fails=$((fails + 1)) ;; esac
+for c in 'f() { cd sub; }; git commit -m x' 'function f { cd sub; }; git commit -m x' \
+  'cat <<< "$(git commit -m x)"'; do  # on main: f never runs, and a here-string's $(…) runs
+  check deny guard_bash.py "$(bash_cmd "$c")"
+done
+for c in 'source x.sh; git commit -m x' '. x.sh && git commit -m x' 'f() { cd ../wt-main; }; f; git commit -m x' \
+  'eval "source x.sh"; git commit -m x' "env -C $tmp find . -exec git commit -m x \;"; do
+  check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
+# a heredoc's body is never read as commands, whatever its delimiter, and two can share a line
+for d in "'EOF-1' EOF-1" '"E.F" E.F' '\EOF EOF' 'E"O"F EOF'; do  # the operator's word, then its line
+  check deny guard_bash.py "$(bash_in "$tmp/sub" "cat <<${d% *}"$'\nit\'s\n'"${d#* }"$'\ngit add -A')"
+  check allow guard_bash.py "$(bash_in "$tmp/sub" "cat <<${d% *}"$'\ngit add -A\n'"${d#* }")"
+done
+check deny guard_bash.py "$(bash_in "$tmp/sub" $'cat <<A <<B\nit\'s\nA\nit\'s\nB\ngit add -A')"
+check allow guard_bash.py "$(bash_in "$tmp/sub" $'cat <<A <<B\ngit add -A\nA\ngit add -A\nB')"
+check deny guard_bash.py "$(bash_in "$tmp/sub" $'cat <<A\nx\nA\ntrue\ngit add -A\nA')"  # one body, then commands
+check allow guard_bash.py "$(bash_in "$tmp/sub" $'git commit -m "$(cat <<\'EOF\'\nfix: it\'s done (really)\nEOF\n)"')"
+for c in 'ls | wc -l' 'git ls-files | xargs wc -l' 'ssh host ls' 'bash script.sh' $'python3 <<\'EOF\'\nprint("it\'s")\nEOF' \
+  $'<<EOF\nhi\nEOF' "echo \$'\\x01'0\$'\\x01'"; do  # no program; and a $'…' can't make a marker
+  check allow guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
+# a push option's value isn't the remote, and --repo names it: what's pushed is read right
+for c in 'git push --repo=origin main' 'git push --repo=origin +x' 'git push --repo=origin --delete main'; do
+  check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
+done
+for o in '-o ci.skip' '--push-option ci.skip' '--push-option=ci.skip' '--receive-pack x' '--exec x'; do
+  check allow guard_bash.py "$(bash_cmd "git push $o origin :feat/old")"  # from main: deletes only
+done
 
 # gate_on_stop.py: blocks a stop only while watched files are changed and the gate fails, in the
 # checkout the stop came from (the payload's cwd, else the project dir)
