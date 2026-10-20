@@ -6,7 +6,8 @@ Feature 2 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - An emailed sign-in link. No passwords.
 - In the closed beta a link goes only to an email on the admin's allowed list
   ([13](13-setting-up-a-league.md#joining)). Everyone who asks gets the same "check your email"
-  reply, on the list or not, so no one can tell which emails are on it.
+  reply, on the list or not, so no one can tell which emails are on it. Someone who opens a
+  league's invite link can sign in whether or not they're on the list, to ask to join.
 - A link works once and lasts 1 hour. It can be opened on another device from the one it was
   asked for on.
 - Signed in, a manager stays signed in on that device for 30 days. Sign out is in the top bar.
