@@ -32,7 +32,7 @@ function fakeFeeds(payloads: PositionsPayloads, refuse?: string) {
   });
 }
 
-/** One sync against `payloads`, and the outcome it recorded. */
+/** One sync against `payloads`: the outcome it recorded, and the URLs it asked for. */
 export async function syncPositionsWith(t: TestConvex, payloads: PositionsPayloads, refuse?: string) {
   const fetch = fakeFeeds(payloads, refuse);
   vi.stubGlobal("fetch", fetch);
