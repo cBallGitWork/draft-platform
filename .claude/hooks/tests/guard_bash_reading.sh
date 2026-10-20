@@ -1,6 +1,6 @@
-# Sourced by test.sh after its main/sub setup: what guard_bash.py reads inside a command (strings,
-# runners, functions, $'…' quotes, stdin, xargs, heredocs), each refused on main and read in the
-# worktree sub unless noted. It uses check, bash_cmd, bash_in and $tmp from test.sh.
+# Sourced by guard_bash.sh after its main/sub setup: what guard_bash.py reads inside a command
+# (strings, runners, functions, $'…' quotes, stdin, xargs, heredocs), each refused on main and read
+# in the worktree sub unless noted.
 
 # git passed as a string, run by a function or behind a runner is still read: refused on main, not in sub
 for c in 'sh -c "git commit -m x"' "bash -c 'git commit -m x'" 'zsh -c "git commit -m x"' \
@@ -113,8 +113,8 @@ done
 for c in "echo 'git commit -m x' | (true); sh" "echo 'git commit -m x' | { true; }; sh"; do  # a group ends
   check allow guard_bash.py "$(bash_cmd "$c")"
 done
-out=$(bash_cmd 'curl -s x | sh' | "$here/guard_bash.py")  # refused for what it reads, not a crash
-case $out in *"on stdin"*) ;; *) echo "FAIL guard_bash.py: no stdin reason: $out"; fails=$((fails + 1)) ;; esac
+out=$(bash_cmd 'curl -s x | sh' | "$hooks/guard_bash.py")  # refused for what it reads, not a crash
+case $out in *"on stdin"*) ;; *) fail "guard_bash.py: no stdin reason: $out" ;; esac
 for c in 'f() { cd sub; }; git commit -m x' 'function f { cd sub; }; git commit -m x' \
   'cat <<< "$(git commit -m x)"'; do  # on main: f never runs, and a here-string's $(…) runs
   check deny guard_bash.py "$(bash_cmd "$c")"
