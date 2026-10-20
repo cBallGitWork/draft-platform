@@ -23,10 +23,13 @@ branch's Convex functions to the dev deployment, which can delete another sessio
 don't need Convex to draw.
 
 ```bash
-curl -sf -o /dev/null http://localhost:5173/ || npx vite --port 5173 --strictPort   # in the background
+npx vite --port "$(node scripts/port.mjs)" --strictPort   # in the background, from this folder
 ```
 
-A server already up on 5173 is fine and is the normal case: use it, and say which you used.
+The port is this folder's own (`scripts/port.mjs`), and `shoot.mjs` aims at it. Never shoot a
+server you didn't start, and never 5173: another worktree's app may be on it, and its screens
+would be passed off as this branch's. If the port is taken, say so and stop. Stop the server
+when you are done.
 
 **2. Shoot both widths, every route the change could reach.**
 
