@@ -7,7 +7,7 @@ import { internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL } from "./football";
 import { BATCH_SIZE } from "./footballSync";
 import { recordedFpl, type FplPayloads } from "./recorded/fpl.payloads";
-import type { footballSyncTrigger } from "./schema";
+import type { syncTrigger } from "./schema";
 import { fakeFetch, type TestConvex } from "./test.harness";
 
 const UNLISTED_CLUB_ID = 99;
@@ -27,7 +27,7 @@ export async function syncRun(
   t: TestConvex,
   payloads: FplPayloads,
   refuse?: string,
-  trigger: Infer<typeof footballSyncTrigger> = "manual",
+  trigger: Infer<typeof syncTrigger> = "manual",
 ) {
   vi.stubGlobal("fetch", fakeFpl(payloads, refuse));
   await t.action(internal.footballSync.run, { trigger });
