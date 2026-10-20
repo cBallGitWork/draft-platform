@@ -20,6 +20,7 @@ bash_in() { /usr/bin/jq -nc --arg c "$2" --arg d "$1" '{tool_name:"Bash",tool_in
 
 # guard_bash.py, run from a throwaway repo on a feature branch
 tmp=$(mktemp -d)
+as_tester=(-c user.name=t -c user.email=t@t)  # who a test repo's commits are by
 git -C "$tmp" init -q -b chore/x
 export CLAUDE_PROJECT_DIR="$tmp"
 deny_cmds=(
@@ -143,7 +144,7 @@ for c in 'git switch -C main && git commit -m x' 'git checkout -B main origin/ma
 done
 check deny guard_bash.py "$(bash_in "$tmp/sub" "env -C $tmp git commit -m x")"  # env -C moves it
 git -C "$tmp" init -q -b chore/d "$tmp/det"  # a detached HEAD has no branch, and isn't main
-git -C "$tmp/det" -c user.name=t -c user.email=t@t commit -q --allow-empty -m x && git -C "$tmp/det" switch -q --detach
+git -C "$tmp/det" "${as_tester[@]}" commit -q --allow-empty -m x && git -C "$tmp/det" switch -q --detach
 check allow guard_bash.py "$(bash_in "$tmp/det" 'git commit -m x')"
 
 # gate_on_stop.py: blocks a stop only while watched files are changed and the gate fails, in the
@@ -156,10 +157,10 @@ said() { # expect hook payload [env...]: "speaks" if the hook prints anything, e
 }
 gate_repo() { # dir: a checkout with its package.json committed, so nothing is changed yet
   git init -q -b chore/g "$1" && printf '{}\n' > "$1/package.json" && git -C "$1" add package.json &&
-    git -C "$1" -c user.name=t -c user.email=t@t commit -q -m x
+    git -C "$1" "${as_tester[@]}" commit -q -m x
 }
 stop_in() { /usr/bin/jq -nc --arg d "$1" '{hook_event_name:"SubagentStop",stop_hook_active:false,cwd:$d}'; }
-dirty=$tmp/gate-dirty clean=$tmp/gate-clean nopkg=$tmp/gate-nopkg plain=$(mktemp -d)
+dirty=$tmp/gate-dirty clean=$tmp/gate-clean nopkg=$tmp/gate-nopkg nogit=$(mktemp -d)
 gate_repo "$dirty" && gate_repo "$clean"
 export CLAUDE_PROJECT_DIR=$dirty
 said quiet gate_on_stop.py '{}' DRAFT_GATE_CMD=false   # nothing changed
@@ -169,13 +170,13 @@ said quiet gate_on_stop.py '{}' DRAFT_GATE_CMD=true
 said quiet gate_on_stop.py '{"stop_hook_active":true}' DRAFT_GATE_CMD=false
 said quiet gate_on_stop.py "$(stop_in "$clean")" DRAFT_GATE_CMD=false  # a builder's clean worktree
 said speaks gate_on_stop.py "$(stop_in "$dirty")" CLAUDE_PROJECT_DIR="$clean" DRAFT_GATE_CMD=false
-# from a subfolder it's judged, and gated, at its checkout's top: there src/a.ts exists, so this gate fails
+# a subfolder is judged and gated at its checkout's top, where src/a.ts exists, so this gate fails
 said speaks gate_on_stop.py "$(stop_in "$dirty/src")" CLAUDE_PROJECT_DIR="$clean" DRAFT_GATE_CMD='test ! -e src/a.ts'
-mkdir -p "$plain/src" && touch "$plain/package.json" "$plain/src/a.ts"
-said quiet gate_on_stop.py "$(stop_in "$plain")" DRAFT_GATE_CMD=false  # not a git checkout: no gate
+mkdir -p "$nogit/src" && touch "$nogit/package.json" "$nogit/src/a.ts"
+said quiet gate_on_stop.py "$(stop_in "$nogit")" DRAFT_GATE_CMD=false  # not a git checkout: no gate
 git init -q "$nopkg" && mkdir "$nopkg/src" && touch "$nopkg/src/a.ts"
 said quiet gate_on_stop.py '{}' CLAUDE_PROJECT_DIR="$nopkg" DRAFT_GATE_CMD=false  # no package.json: no gate
-rm -rf "$plain"
+rm -rf "$nogit"
 
 # line_ceiling.py: a note past 250 lines, none at or under it, none for prose
 seq 251 > "$tmp/long.ts" && seq 250 > "$tmp/short.ts" && seq 400 > "$tmp/long.md"
