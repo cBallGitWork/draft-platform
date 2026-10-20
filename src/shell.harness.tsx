@@ -8,6 +8,7 @@ import type { Id } from "../convex/_generated/dataModel";
 import type { LeagueSummary } from "../convex/myLeagues";
 import type { AuthActions, Session } from "./auth";
 import { emptyTopBar, type TopBarState } from "./frame/topBarState";
+import { fakeJoining, type JoiningData } from "./joining/joining.harness";
 import type { LeagueActions } from "./leagues/actions";
 import { ShellApp } from "./ShellApp";
 
@@ -54,18 +55,23 @@ function fakeAuth() {
 /** Creating a league succeeds, unless a test says otherwise. */
 const fakeLeagues = () => ({ createLeague: vi.fn<LeagueActions["createLeague"]>(async () => null) });
 
-/** The app opened at `path` for `session`: where it is, the fake sign-in and league actions, and
- *  a way to change the session as signing in or out, or a league changing, would. */
-export function openApp(path: string, session: Session, topBar: TopBarState = emptyTopBar) {
+/** The app opened at `path` for `session`: where it is, the fake sign-in, league and joining
+ *  actions, and a way to change the session as signing in or out, or a league changing, would. */
+export function openApp(path: string, session: Session, topBar: TopBarState = emptyTopBar, joiningData: JoiningData = {}) {
   const history = createMemoryHistory({ initialEntries: [path] });
   const auth = fakeAuth();
   const leagues = fakeLeagues();
-  const app = (current: Session) => <ShellApp session={current} auth={auth} leagues={leagues} topBar={topBar} history={history} />;
+  const joining = fakeJoining(joiningData, LINK_REPLY);
+  const app = (current: Session) => (
+    <ShellApp session={current} auth={auth} leagues={leagues} joining={joining} topBar={topBar} history={history} />
+  );
   const view = render(app(session));
   return {
     auth,
     leagues,
+    joining,
     path: () => history.location.pathname,
+    search: () => history.location.search,
     becomes: (next: Session) => view.rerender(app(next)),
   };
 }

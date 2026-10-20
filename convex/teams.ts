@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
-import { mutation, type QueryCtx } from "./_generated/server";
+import { mutation, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { admitEmail } from "./allowedEmails";
 import {
   callerEmail,
@@ -34,32 +34,43 @@ async function teamIn(ctx: QueryCtx, teamId: Id<"teams">, leagueId: Id<"leagues"
   return team;
 }
 
-/** Makes this email a manager in the league: of the vacated team `teamId`, or of a new team while
- *  the league is under its maximum (spec/13, Teams). The seam invites and join requests (#73)
- *  will call once approved; until then the league's runners call it with an email. */
+/** Makes this email a manager in the league: of the vacated team `vacatedTeamId`, or of a new
+ *  team while the league is under its maximum (spec/13, Teams), and lets them sign in. Every
+ *  refusal comes before anything is written, so a caller may catch one: invites (#73) do. */
+export async function putOnTeam(
+  ctx: MutationCtx,
+  league: Doc<"leagues">,
+  email: string,
+  vacatedTeamId: Id<"teams"> | undefined,
+): Promise<{ teamId: Id<"teams">; teamName: string }> {
+  const teams = await teamsOf(ctx, league._id);
+  if (teams.some((team) => team.managerEmail === email)) refuse(refusals.alreadyManager(email));
+
+  let teamId: Id<"teams">;
+  let teamName: string;
+  if (vacatedTeamId !== undefined) {
+    const vacated = await teamIn(ctx, vacatedTeamId, league._id);
+    if (vacated.managerEmail !== undefined) refuse(refusals.notVacated);
+    await ctx.db.patch("teams", vacated._id, { managerEmail: email });
+    ({ _id: teamId, name: teamName } = vacated);
+  } else {
+    if (teams.length >= league.maxTeams) refuse(refusals.full(league.maxTeams));
+    const number = teams.length + 1;
+    teamName = startingName(teams, number);
+    teamId = await ctx.db.insert("teams", { leagueId: league._id, number, name: teamName, managerEmail: email });
+  }
+  await admitEmail(ctx, email);
+  return { teamId, teamName };
+}
+
+/** The league's runners make an email a manager. */
 export const addManager = mutation({
   args: { leagueId: v.id("leagues"), email: v.string(), teamId: v.optional(v.id("teams")) },
   returns: v.id("teams"),
   handler: async (ctx, args) => {
     const { email: by, league } = await runnerOf(ctx, args.leagueId);
     const email = namedEmail(args.email);
-    const teams = await teamsOf(ctx, league._id);
-    if (teams.some((team) => team.managerEmail === email)) refuse(refusals.alreadyManager(email));
-
-    let teamId: Id<"teams">;
-    let teamName: string;
-    if (args.teamId !== undefined) {
-      const vacated = await teamIn(ctx, args.teamId, league._id);
-      if (vacated.managerEmail !== undefined) refuse(refusals.notVacated);
-      await ctx.db.patch("teams", vacated._id, { managerEmail: email });
-      ({ _id: teamId, name: teamName } = vacated);
-    } else {
-      if (teams.length >= league.maxTeams) refuse(refusals.full(league.maxTeams));
-      const number = teams.length + 1;
-      teamName = startingName(teams, number);
-      teamId = await ctx.db.insert("teams", { leagueId: league._id, number, name: teamName, managerEmail: email });
-    }
-    await admitEmail(ctx, email);
+    const { teamId, teamName } = await putOnTeam(ctx, league, email, args.teamId);
     await recordEvent(ctx, league._id, by, { kind: "managerAdded", email, teamId, teamName });
     return teamId;
   },
