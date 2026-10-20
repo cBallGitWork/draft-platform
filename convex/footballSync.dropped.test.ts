@@ -1,9 +1,11 @@
 import { convexTest } from "convex-test";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL } from "./football";
 import {
   crowdedFpl,
   held,
+  heldCounts,
   modules,
   nameAnUnlistedClub,
   NOTHING_CHANGED,
@@ -20,6 +22,8 @@ const FIRST_SYNC = Date.parse("2026-10-19T06:00:00Z");
 const SECOND_SYNC = Date.parse("2026-10-19T12:00:00Z");
 const THIRD_SYNC = Date.parse("2026-10-19T18:00:00Z");
 const ONE_MARKED = { inserted: 0, updated: 0, marked: 1, unmarked: 0 };
+const ONE_UNMARKED = { inserted: 0, updated: 0, marked: 0, unmarked: 1 };
+const NO_WRITES = { ...NOTHING_CHANGED, marked: 0, unmarked: 0 };
 const NO_ROW_MARKED = { clubs: [], players: [], fixtures: [], gameweeks: [] };
 
 /** The recording less one of each: Jesus (gone abroad), a club no kept player or match names,
@@ -84,13 +88,7 @@ test("a row missing from a re-sync is kept, marked with the sync's time, and cou
     fixtures: [[dropped.fixture, SECOND_SYNC]],
     gameweeks: [[dropped.gameweek, SECOND_SYNC]],
   });
-  const rows = await held(t);
-  expect({
-    clubs: rows.clubs.length,
-    players: rows.players.length,
-    fixtures: rows.fixtures.length,
-    gameweeks: rows.gameweeks.length,
-  }).toEqual(RECORDED_COUNT);
+  expect(await heldCounts(t)).toEqual(RECORDED_COUNT);
 });
 
 test("a marked row sent again is unmarked, updated if it changed, and counted on its run row", async () => {
@@ -106,7 +104,6 @@ test("a marked row sent again is unmarked, updated if it changed, and counted on
   vi.setSystemTime(THIRD_SYNC);
   const outcome = await syncWith(t, sentAgain);
 
-  const ONE_UNMARKED = { inserted: 0, updated: 0, marked: 0, unmarked: 1 };
   expect(outcome).toMatchObject({
     ok: true,
     clubs: ONE_UNMARKED,
@@ -129,8 +126,7 @@ test("a re-run while a row is still missing changes nothing, and its mark keeps 
   vi.setSystemTime(THIRD_SYNC);
   const outcome = await syncWith(t, withOneOfEachDropped().payloads);
 
-  const NOTHING = { ...NOTHING_CHANGED, marked: 0, unmarked: 0 };
-  expect(outcome).toMatchObject({ ok: true, clubs: NOTHING, players: NOTHING, fixtures: NOTHING, gameweeks: NOTHING });
+  expect(outcome).toMatchObject({ ok: true, clubs: NO_WRITES, players: NO_WRITES, fixtures: NO_WRITES, gameweeks: NO_WRITES });
   expect(await held(t)).toEqual(before);
 });
 
@@ -197,5 +193,6 @@ test("rows written before #64, without its marks and counts, still fit the schem
     });
   });
 
-  expect((await held(t)).clubs).toHaveLength(1);
+  expect((await heldCounts(t)).clubs).toBe(1);
+  expect(await t.query(internal.footballSync.latest, {})).toHaveLength(1);
 });

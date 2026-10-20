@@ -49,6 +49,17 @@ export function held(t: TestConvex) {
   }));
 }
 
+/** How many rows each football table holds. */
+export async function heldCounts(t: TestConvex) {
+  const rows = await held(t);
+  return {
+    clubs: rows.clubs.length,
+    players: rows.players.length,
+    fixtures: rows.fixtures.length,
+    gameweeks: rows.gameweeks.length,
+  };
+}
+
 export const NOTHING_CHANGED = { inserted: 0, updated: 0 };
 
 /** The failure a sync records when FPL refuses `url`. */

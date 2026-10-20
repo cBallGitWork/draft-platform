@@ -21,6 +21,7 @@ import {
 // sync that read the whole list (#64). Rows are matched on their stable key, a player on his
 // `code`, so one sent again is unmarked in his own row.
 
+// The schema's counts are optional only for runs before #64; every run since writes them all.
 type TableWrites = Required<Infer<typeof tableWrites>>;
 type Upserted = Pick<TableWrites, "inserted" | "updated" | "unmarked">;
 

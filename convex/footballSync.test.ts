@@ -4,6 +4,7 @@ import { FPL_BOOTSTRAP_URL } from "./football";
 import {
   crowdedFpl,
   held,
+  heldCounts,
   modules,
   nameAnUnlistedClub,
   NOTHING_CHANGED,
@@ -34,13 +35,7 @@ test("a sync fills clubs, players, fixtures and gameweeks, and records what it w
     fixtures: { received: fixtures, inserted: fixtures, updated: 0, marked: 0, unmarked: 0 },
     gameweeks: { received: gameweeks, inserted: gameweeks, updated: 0, marked: 0, unmarked: 0 },
   });
-  const rows = await held(t);
-  expect({
-    clubs: rows.clubs.length,
-    players: rows.players.length,
-    fixtures: rows.fixtures.length,
-    gameweeks: rows.gameweeks.length,
-  }).toEqual(RECORDED_COUNT);
+  expect(await heldCounts(t)).toEqual(RECORDED_COUNT);
 });
 
 test("a re-run of the same payloads writes nothing and leaves every row as it was", async () => {
