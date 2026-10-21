@@ -13,9 +13,10 @@ export const runs = (league: LeagueSummary, isAdmin: boolean) =>
  *  commissioner or the admin. */
 export const deletes = (league: LeagueSummary, isAdmin: boolean) => isAdmin || league.roles.includes("commissioner");
 
-/** The league with this id, if the person runs it. */
+/** The league with this id, if the person runs it and it isn't being deleted: a league being
+ *  deleted is frozen and hidden (spec/13, Deleting), so none of its pages open. */
 export function leagueRunBy(session: Session, leagueId: string): LeagueSummary | undefined {
   if (!session.signedIn) return undefined;
   const league = session.leagues.find((each) => each.leagueId === leagueId);
-  return league && runs(league, session.isAdmin) ? league : undefined;
+  return league && !league.deletion && runs(league, session.isAdmin) ? league : undefined;
 }
