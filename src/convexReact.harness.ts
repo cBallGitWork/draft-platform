@@ -6,7 +6,7 @@
 //   vi.mock("convex/react", async () =>
 //     (await import("../convexReact.harness")).fakeConvexReact({ mutations: { "squads:move": move } }));
 
-import { getFunctionName, type FunctionReference } from "convex/server";
+import { getFunctionName, type FunctionReference, type FunctionType } from "convex/server";
 
 type Fakes = Record<string, (...args: never[]) => unknown>;
 
@@ -20,7 +20,7 @@ export interface ConvexReactFakes {
 }
 
 export function fakeConvexReact({ queries = {}, mutations = {}, actions = {} }: ConvexReactFakes) {
-  const pick = (kind: string, fakes: Fakes) => (fn: FunctionReference<"query" | "mutation" | "action">) => {
+  const pick = (kind: FunctionType, fakes: Fakes) => (fn: FunctionReference<FunctionType>) => {
     const name = getFunctionName(fn);
     const fake = fakes[name];
     if (!fake) throw new Error(`The convex/react fake was given no ${kind} named ${name}.`);

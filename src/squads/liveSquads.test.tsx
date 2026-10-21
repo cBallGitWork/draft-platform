@@ -31,6 +31,7 @@ afterEach(() => {
 const leagueId = "league-1" as Id<"leagues">;
 const teamId = "team-2" as Id<"teams">;
 const seam = () => renderHook(() => useLiveSquads()).result.current;
+const changeNames = ["assign", "move", "release"] as const;
 
 test("a league's squads are read from squads:squads", () => {
   const squads = { teams: [], unassigned: [] };
@@ -57,7 +58,7 @@ test.each([
   convex[name].mockResolvedValue(null);
   expect(await change()).toBeNull();
   expect(convex[name]).toHaveBeenCalledExactlyOnceWith(args);
-  for (const other of (["assign", "move", "release"] as const).filter((n) => n !== name)) {
+  for (const other of changeNames.filter((n) => n !== name)) {
     expect(convex[other]).not.toHaveBeenCalled();
   }
 });
