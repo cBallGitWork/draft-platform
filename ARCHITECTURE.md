@@ -80,7 +80,7 @@ The steps (push the action to the dev deployment, run it twice, how to read what
 | Screenshots | Playwright, on the Mac's Chrome (`scripts/shoot.mjs`) | the `ui-verifier` agent's camera, and the same tool as the Playwright MCP |
 
 Each is installed with the first feature that needs it; for now package.json has the app, sign-in,
-styling, typeface and test rows, and the rest are the plan.
+styling, typeface, test and screenshot rows, and the rest are the plan.
 
 ## Data
 
