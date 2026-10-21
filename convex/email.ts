@@ -1,7 +1,6 @@
 import { PRODUCT_NAME } from "./product";
 
-// The app's emails go out through Resend's API (ARCHITECTURE.md, Services), each one through
-// `sendEmail`: sign-in links (signInEmail.ts), joining's (joiningEmails.ts) and deletion notices.
+// The app's emails go out through Resend's API (ARCHITECTURE.md, Services).
 
 export const RESEND_EMAILS_URL = "https://api.resend.com/emails";
 /** Resend's own test sender, which reaches only the Resend account's own address, until the app

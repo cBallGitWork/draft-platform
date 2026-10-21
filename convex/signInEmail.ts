@@ -4,8 +4,8 @@ import { sendEmail } from "./email";
 import { inviteIdIn } from "./joiningShared";
 import { PRODUCT_NAME } from "./product";
 
-// The sign-in email, sent through email.ts. Convex Auth calls `sendSignInEmail` once it has made
-// the link, which only an ask lets it do (signInLinks.ts). The product's name is product.ts's.
+// The sign-in email. Convex Auth calls `sendSignInEmail` once it has made the link, which only an
+// ask lets it do (signInLinks.ts).
 
 /** Wording for Craig to change in the pull request (spec/02). */
 export function signInEmail(url: string) {
