@@ -16,7 +16,9 @@ Committed and uncommitted, against `main`, then any new files:
 
 Work over the whole branch's diff, not only the last edit. Change only what the branch already
 changed: something older that breaks a rule becomes an issue (`CLAUDE.md`), unless it sits in a
-file the task already touches.
+file the task already touches. In scoring, the draft or saved data, a fix that changes what a
+function takes or returns is reported, never made here: it is a feature or a fix
+(`docs/REFACTORING.md`, *What is never a refactor*).
 
 ## The checklist, twice
 
