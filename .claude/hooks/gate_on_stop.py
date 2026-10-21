@@ -26,7 +26,7 @@ import sys
 from pathlib import Path
 
 PACKAGE = "package.json"  # a checkout without one has no gate
-# WATCHED lists what `npm run verify` checks, so it changes whenever verify's scope does (a new vitest project, say)
+# what `npm run verify` checks: it changes with verify's scope (a new vitest project, say)
 WATCHED = ("convex", "src", "scripts", PACKAGE, "package-lock.json", "tsconfig.json", "vite.config.ts",
            "vitest.config.ts", ".claude")
 TAIL_LINES = 40
