@@ -1,5 +1,6 @@
-// A league's table and fixtures as the server would send them, drawn by the server's own pure
-// functions: for the preview and the tests.
+// A league's table and fixtures as the server would send them, for the preview and the tests:
+// drawn by the server's pure functions (convex/roundRobin.ts, convex/standings.ts), with the
+// mapping copied from convex/leagueTable.ts's ofLeague, and with no tie-breaks.
 
 import type { Id } from "../../convex/_generated/dataModel";
 import { drawFixtures, LEAGUE_AVERAGE, roundsOf, type DrawOptions } from "../../convex/roundRobin";
