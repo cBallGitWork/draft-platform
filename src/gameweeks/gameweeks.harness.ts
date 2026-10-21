@@ -4,8 +4,8 @@
 import { vi } from "vitest";
 import type { LeagueGameweek } from "../../convex/leagueGameweeks";
 import { HOUR_MS, WEEK_MS } from "../../convex/time";
-import { weeklySeason } from "./preview";
 import type { GameweeksSeam, LeagueGameweeksView } from "./seam";
+import { weeklySeason } from "./weeklySeason";
 
 /** Gameweeks 1 to BEGUN have begun when a test opens the app; BEGUN + 1's deadline is an hour on. */
 export const BEGUN = 10;

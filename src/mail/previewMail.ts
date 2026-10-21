@@ -7,7 +7,7 @@ import type { LetterSummary } from "../../convex/mail";
 import { HOUR_MS } from "../../convex/time";
 import { MAIL_PATH } from "../frame/menu";
 import type { TopBarState } from "../frame/topBarState";
-import { manager, proLeague } from "../preview";
+import { manager, previewSays, proLeague } from "../preview";
 import type { Mail } from "./actions";
 import { unreadCount } from "./words";
 
@@ -51,7 +51,7 @@ const previewLetters: LetterSummary[] = [
 export const previewMail: Mail = {
   letters: previewLetters,
   open: async () => {},
-  writeToLeague: async () => "This is a preview: no letter was sent.",
+  writeToLeague: previewSays("no letter was sent"),
 };
 
 const unreadMail = previewLetters.filter((each) => !each.read).length;

@@ -4,15 +4,16 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import { DAY_MS } from "../../convex/time";
+import { miniBeta, previewSays } from "../preview";
 import { replyWords } from "../sign-in/words";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 
 const now = Date.now();
 const id = <Table extends "teams" | "invites" | "joinRequests">(value: string) => value as Id<Table>;
 
-const miniBeta: InvitesPageData = {
-  leagueId: "preview-mini-beta" as Id<"leagues">,
-  leagueName: "Mini beta",
+const invitesPage: InvitesPageData = {
+  leagueId: miniBeta.leagueId,
+  leagueName: miniBeta.name,
   teams: [
     { teamId: id("team-1"), name: "Team 1", vacated: false },
     { teamId: id("team-2"), name: "Saka Potatoes", vacated: true },
@@ -28,13 +29,13 @@ const miniBeta: InvitesPageData = {
   requests: [{ requestId: id("request-1"), email: "a.very.long.address.for.the.phone@example.com", askedAt: now - DAY_MS }],
 };
 
-const nothingChanged = async () => "This is a preview: nothing changed.";
+const nothingChanged = previewSays("nothing changed");
 
 export const previewJoining: JoiningSeam = {
-  useInvitesPage: (leagueId) => (leagueId === miniBeta.leagueId ? miniBeta : null),
+  useInvitesPage: (leagueId) => (leagueId === invitesPage.leagueId ? invitesPage : null),
   useJoinPage: (token) => {
     if (token === "gone") return null;
-    return { leagueName: miniBeta.leagueName, standing: token === "waiting" ? "waiting" : "mayAsk" };
+    return { leagueName: invitesPage.leagueName, standing: token === "waiting" ? "waiting" : "mayAsk" };
   },
   invite: nothingChanged,
   resendInvite: nothingChanged,

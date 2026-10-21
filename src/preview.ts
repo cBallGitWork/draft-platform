@@ -24,7 +24,7 @@ export const proLeague: LeagueSummary = {
   maxTeams: 12,
   unsentCommissionerLink: null,
 };
-const miniBeta: LeagueSummary = {
+export const miniBeta: LeagueSummary = {
   leagueId: "preview-mini-beta" as Id<"leagues">,
   name: "Mini beta",
   commissionerEmail: unreachedCommissioner,
@@ -92,6 +92,9 @@ const previewSessions: Record<string, Session> = {
   visitor: { signedIn: false },
 };
 
+/** A change the preview doesn't make, saying what that left. */
+export const previewSays = (outcome: string) => async () => `This is a preview: ${outcome}.`;
+
 /** The session `?preview=` names, on the dev server; otherwise null, and the app signs in for real. */
 export function previewSession(): Session | null {
   if (!import.meta.env.DEV) return null;
@@ -102,10 +105,10 @@ export function previewSession(): Session | null {
 /** Creating or deleting a league, or undoing that, does nothing, and switching league stays put,
  *  each saying so. */
 export const previewLeagues: LeagueActions = {
-  createLeague: async () => "This is a preview: no league was made.",
-  deleteLeague: async () => "This is a preview: no league was deleted.",
-  undoDeletion: async () => "This is a preview: nothing was undone.",
-  switchLeague: async () => "This is a preview: you're still in this league.",
+  createLeague: previewSays("no league was made"),
+  deleteLeague: previewSays("no league was deleted"),
+  undoDeletion: previewSays("nothing was undone"),
+  switchLeague: previewSays("you're still in this league"),
 };
 
 /** Asking for a link gets the reply everyone gets; nothing is sent, and signing out does nothing. */
