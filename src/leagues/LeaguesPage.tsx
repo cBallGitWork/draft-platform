@@ -3,7 +3,8 @@ import type { LeagueSummary } from "../../convex/myLeagues";
 import { ADMIN_PATH } from "../admin/paths";
 import { ADMIN_TITLE } from "../admin/words";
 import { PageTitle } from "../frame/Panel";
-import { GameweeksLink } from "../gameweeks/GameweeksLink";
+import { gameweeksPath } from "../gameweeks/paths";
+import { GAMEWEEKS_TITLE } from "../gameweeks/words";
 import { invitesPath } from "../joining/paths";
 import { invitesTitle } from "../joining/words";
 import { squadsPath } from "../squads/paths";
@@ -15,6 +16,13 @@ import { deletes, runs } from "./roles";
 import { adminWords, roleWords, unsentLink, unsentLinkWords } from "./words";
 
 const cellClasses = "px-2 text-left align-top";
+
+/** The ways into a league from its row, for someone who runs it. */
+const runnerLinks = (leagueId: string) => [
+  { to: gameweeksPath(leagueId), title: GAMEWEEKS_TITLE },
+  { to: invitesPath(leagueId), title: invitesTitle },
+  { to: squadsPath(leagueId), title: SQUADS_TITLE },
+];
 
 /** "Your leagues" (spec/12): each league the person has a part in, or, for the admin, every
  *  league; with none, a page saying so (spec/02). The admin is offered "Create a league", as only
@@ -75,17 +83,13 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
             <th scope="row" className={`${cellClasses} font-semibold`}>
               <span className="block text-lead">{league.name}</span>
               <span className="block font-normal text-muted wrap-anywhere">Commissioner: {league.commissionerEmail}</span>
-              {!league.deletion && <GameweeksLink league={league} isAdmin={isAdmin} />}
-              {!league.deletion && runs(league, isAdmin) && (
-                <Link to={invitesPath(league.leagueId)} className={leagueRowLinkClasses}>
-                  {invitesTitle}
-                </Link>
-              )}
-              {!league.deletion && runs(league, isAdmin) && (
-                <Link to={squadsPath(league.leagueId)} className={leagueRowLinkClasses}>
-                  {SQUADS_TITLE}
-                </Link>
-              )}
+              {!league.deletion &&
+                runs(league, isAdmin) &&
+                runnerLinks(league.leagueId).map(({ to, title }) => (
+                  <Link key={to} to={to} className={leagueRowLinkClasses}>
+                    {title}
+                  </Link>
+                ))}
             </th>
             <td className={cellClasses}>{league.roles.map((role) => roleWords[role]).join(", ") || adminWords}</td>
             <td className={cellClasses}>{league.teamName ?? <span className="text-muted">None</span>}</td>
