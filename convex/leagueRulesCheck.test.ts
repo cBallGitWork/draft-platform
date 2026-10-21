@@ -28,7 +28,13 @@ test.each(ODD_TEAM_OUTS)("the team left over playing %s is sound", (oddTeamOut) 
   expect(() => checkLeagueRules(rulesWith({ oddTeamOut }))).not.toThrow();
 });
 
+test.each([1, 2, 4])("%i head-to-head games a gameweek is sound", (gamesPerGameweek) => {
+  expect(() => checkLeagueRules(rulesWith({ gamesPerGameweek }))).not.toThrow();
+});
+
 describe.each<[string, Partial<LeagueRules>, string]>([
+  ["no games a gameweek", { gamesPerGameweek: 0 }, "The head-to-head games each team plays a gameweek must be a whole number, 1 or more, not 0."],
+  ["half a game a gameweek", { gamesPerGameweek: 1.5 }, "The head-to-head games each team plays a gameweek must be a whole number, 1 or more, not 1.5."],
   [
     "a squad whose minimum is above its maximum",
     { squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum: 14 } } },

@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { FIRST_RULES, oddTeamOutOf } from "./firstRules";
+import { drawRulesOf, FIRST_RULES } from "./firstRules";
 import { fplStatLines } from "./fplLive";
 import bootstrap from "./recorded/fpl-gw6-bootstrap.json";
 import live from "./recorded/fpl-gw6-live.json";
@@ -56,9 +56,10 @@ test.each(RARE)("the first scoring set pays %s in %s as FPL does", (_name, area,
   expect(scoreMatch({ minutes: 90, ...stat }, FIRST_RULES.scoring, centreOf(area)).total).toBe(2 + points);
 });
 
-test("the team left over plays the league's average, in the first rules and in rules saved before that was a rule", () => {
-  expect(oddTeamOutOf(FIRST_RULES)).toBe("leagueAverage");
-  const { oddTeamOut: _, ...savedBefore } = FIRST_RULES;
-  expect(oddTeamOutOf(savedBefore)).toBe("leagueAverage");
-  expect(oddTeamOutOf({ ...FIRST_RULES, oddTeamOut: "bye" })).toBe("bye");
+test("the team left over plays the league's average, one game a gameweek, in the first rules and in rules saved before those were rules", () => {
+  const firstDraw = { oddTeamOut: "leagueAverage", gamesPerGameweek: 1 };
+  expect(drawRulesOf(FIRST_RULES)).toEqual(firstDraw);
+  const { oddTeamOut: _odd, gamesPerGameweek: _games, ...savedBefore } = FIRST_RULES;
+  expect(drawRulesOf(savedBefore)).toEqual(firstDraw);
+  expect(drawRulesOf({ ...FIRST_RULES, oddTeamOut: "bye", gamesPerGameweek: 2 })).toEqual({ oddTeamOut: "bye", gamesPerGameweek: 2 });
 });

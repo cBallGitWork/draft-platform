@@ -99,8 +99,11 @@ export const leagueRulesShape = v.object({
   /** standings.ts's TieBreak, in the league's order. */
   tieBreaks: v.array(v.union(...TIE_BREAKS.map((name) => v.literal(name)))),
   /** roundRobin.ts's OddTeamOut. Absent only from rules saved before #33, which play the first
-   *  rules' (firstRules.ts, `oddTeamOutOf`): optional, so those rows need no migration. */
+   *  rules' (firstRules.ts, `drawRulesOf`): optional, so those rows need no migration. */
   oddTeamOut: v.optional(v.union(...ODD_TEAM_OUTS.map((name) => v.literal(name)))),
+  /** roundRobin.ts's DrawOptions["gamesPerGameweek"]: a whole number, 1 or more. Absent, as
+   *  `oddTeamOut` is, only from rules saved before #130. */
+  gamesPerGameweek: v.optional(v.number()),
   waivers: v.object({
     /** When they run each week, UK time (spec/08): one run or more. */
     runs: v.array(v.object({ day: weekday, hour: v.number(), minute: v.number() })),

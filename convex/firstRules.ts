@@ -2,13 +2,13 @@ import { FPL_DEADLINE_RULE } from "./deadline";
 import type { LeagueRules } from "./leagueRulesShape";
 import { AREAS, type Area } from "./pitch";
 import { DEFAULT_PRESETS } from "./presets";
-import type { OddTeamOut } from "./roundRobin";
+import type { DrawOptions, OddTeamOut } from "./roundRobin";
 
 // The first rules a deployment gives a new league
 // (spec/14, The first scoring set; #25), used once: the first league created copies them into
 // the admin's default rules row (`defaultLeagueRules`), and every league after copies that row,
 // which the admin edits (leagueRules.ts says how). Once that row exists, nothing reads this file
-// but `oddTeamOutOf`, for rules saved before the odd team out was one of them.
+// but `drawRulesOf`, for rules saved before the odd team out and games a gameweek were among them.
 //
 // Only the presets, the deadline and the double-gameweek rule are the spec's own (spec/05, spec/03).
 // The scoring is FPL's own for 2025/26 without bonus points, Craig's choice to start from and tune
@@ -43,8 +43,15 @@ const NO_SAVES = { every: 3, points: 0 };
 /** Craig's: with an odd number of teams, the team left over plays the league's average (spec/09). */
 const FIRST_ODD_TEAM_OUT: OddTeamOut = "leagueAverage";
 
-/** The league's odd team out: the first rules' for rules saved before #33 made it a rule. */
-export const oddTeamOutOf = (rules: LeagueRules): OddTeamOut => rules.oddTeamOut ?? FIRST_ODD_TEAM_OUT;
+/** Craig's: one head-to-head game a gameweek, unless a league chooses more (spec/09). */
+const FIRST_GAMES_PER_GAMEWEEK = 1;
+
+/** How the league's round robin is drawn: the first rules' odd team out and games a gameweek, for
+ *  rules saved before #33 and #130 made them rules. */
+export const drawRulesOf = (rules: LeagueRules): Omit<DrawOptions, "seed"> => ({
+  oddTeamOut: rules.oddTeamOut ?? FIRST_ODD_TEAM_OUT,
+  gamesPerGameweek: rules.gamesPerGameweek ?? FIRST_GAMES_PER_GAMEWEEK,
+});
 
 export const FIRST_RULES: LeagueRules = {
   format: "headToHead", // guess: the Tim Hortons league plays head-to-head matchups
@@ -64,6 +71,7 @@ export const FIRST_RULES: LeagueRules = {
   // the standings' these are; it has no standings value.
   tieBreaks: ["pointsFor"],
   oddTeamOut: FIRST_ODD_TEAM_OUT,
+  gamesPerGameweek: FIRST_GAMES_PER_GAMEWEEK,
   // guess: the doc's live 23-hour minimum waiver period has no rule here: spec/03
   // sets only when waivers run and the order.
   waivers: { runs: [{ day: "tuesday", hour: 23, minute: 0 }], order: "reverseStandings" },

@@ -2,14 +2,13 @@
 // functions: for the preview and the tests.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import { drawFixtures, LEAGUE_AVERAGE, roundsOf, type OddTeamOut } from "../../convex/roundRobin";
+import { drawFixtures, LEAGUE_AVERAGE, roundsOf, type DrawOptions } from "../../convex/roundRobin";
 import { headToHeadTable, totalPointsTable, type GameweekScores } from "../../convex/standings";
 import { SEASON_GAMEWEEKS } from "../../convex/usedGameweeks";
 import type { LeagueTable } from "./seam";
 
-type Drawn = {
+type Drawn = Partial<DrawOptions> & {
   format?: LeagueTable["format"];
-  oddTeamOut?: OddTeamOut;
   /** The gameweeks the league plays: all 38 by default. */
   gameweeks?: readonly number[];
   /** FPL's deadline for each gameweek: none known by default. */
@@ -23,22 +22,24 @@ export function leagueTableOf(
   {
     format = "headToHead",
     oddTeamOut = "leagueAverage",
+    gamesPerGameweek = 1,
+    seed = "preview-league",
     gameweeks = SEASON_GAMEWEEKS,
     deadlineOf = () => null,
     scores = new Map(),
   }: Drawn = {},
 ): LeagueTable {
   const headToHead = format === "headToHead";
-  const schedule = headToHead ? drawFixtures(teamNames, gameweeks, oddTeamOut) : [];
+  const schedule = headToHead ? drawFixtures(teamNames, gameweeks, { oddTeamOut, gamesPerGameweek, seed }) : [];
   const table = headToHead ? headToHeadTable(teamNames, schedule, scores, []) : totalPointsTable(teamNames, scores);
   return {
     format,
-    roundRobinGameweeks: schedule.length === 0 ? 0 : roundsOf(teamNames).length,
-    gameweeks: schedule.map(({ gameweek, fixtures, bye }) => ({
+    roundRobinRounds: schedule.length === 0 ? 0 : roundsOf(teamNames).length,
+    gameweeks: schedule.map(({ gameweek, fixtures, byes }) => ({
       gameweek,
       deadline: deadlineOf(gameweek),
       fixtures: fixtures.map(({ team, opponent }) => ({ team, opponent: opponent === LEAGUE_AVERAGE ? null : opponent })),
-      bye,
+      byes,
     })),
     table: table.map(({ team, ...row }) => ({ teamId: `id-${team}` as Id<"teams">, teamName: team, ...row })),
   };
