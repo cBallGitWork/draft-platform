@@ -34,7 +34,7 @@ const commissioner = managerIn({ ...league, roles: ["commissioner", "manager"] }
 
 describe("the letters", () => {
   it("are listed in the order the server sends them, newest first, dated, with the unread ones marked", async () => {
-    openApp(MAIL_PATH, manager, twoUnread, letters);
+    openApp(MAIL_PATH, manager, { topBar: twoUnread, letters });
     const rows = within(await screen.findByRole("list")).getAllByRole("button").map((row) => row.textContent);
 
     expect(rows[0]).toContain("13 Oct");
@@ -45,7 +45,7 @@ describe("the letters", () => {
   });
 
   it("opening an unread one shows its text and marks it read; opening a read one asks nothing", async () => {
-    const app = openApp(MAIL_PATH, manager, twoUnread, letters);
+    const app = openApp(MAIL_PATH, manager, { topBar: twoUnread, letters });
     await screen.findByRole("list");
     expect(shown("The text of letter 3.")).toBe(false);
 
@@ -66,16 +66,16 @@ describe("the letters", () => {
   });
 
   it("while they load, says that", async () => {
-    openApp(MAIL_PATH, manager, undefined, null);
+    openApp(MAIL_PATH, manager, { letters: null });
     expect((await screen.findByRole("status")).textContent).toBe(loadingWords);
   });
 
   it(`at ${LETTERS_SHOWN}, says older ones aren't shown; under it, says nothing`, async () => {
     const full = Array.from({ length: LETTERS_SHOWN }, (_, index) => letter(index + 1, true));
-    openApp(MAIL_PATH, manager, undefined, full);
+    openApp(MAIL_PATH, manager, { letters: full });
     expect(await screen.findByText(onlyLatestWords)).toBeTruthy();
     cleanup();
-    openApp(MAIL_PATH, manager, undefined, full.slice(1));
+    openApp(MAIL_PATH, manager, { letters: full.slice(1) });
     await screen.findByRole("list");
     expect(screen.queryByText(onlyLatestWords)).toBeNull();
   });
@@ -83,13 +83,13 @@ describe("the letters", () => {
 
 describe("the unread count", () => {
   it("is the same on Mail's plate and in the menu", async () => {
-    openApp(MAIL_PATH, manager, twoUnread, letters);
+    openApp(MAIL_PATH, manager, { topBar: twoUnread, letters });
     expect(await screen.findByText("2 unread")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Mail, 2 unread" })).toBeTruthy();
   });
 
   it(`past ${UNREAD_COUNTED}, shows ${UNREAD_COUNTED}+`, async () => {
-    openApp(MAIL_PATH, manager, { unreadMail: UNREAD_COUNTED + 1, next: null }, letters);
+    openApp(MAIL_PATH, manager, { topBar: { unreadMail: UNREAD_COUNTED + 1, next: null }, letters });
     expect(await screen.findByText(`${UNREAD_COUNTED}+ unread`)).toBeTruthy();
     expect(screen.getByRole("link", { name: `Mail, ${UNREAD_COUNTED}+ unread` })).toBeTruthy();
   });
@@ -97,7 +97,7 @@ describe("the unread count", () => {
 
 describe("someone in no league, as a manager removed from their last one is (spec/13)", () => {
   it("sees Mail and its count on the top bar, opens it, and reads a letter", async () => {
-    const app = openApp(LEAGUES_PATH, newcomer, twoUnread, letters);
+    const app = openApp(LEAGUES_PATH, newcomer, { topBar: twoUnread, letters });
     await userEvent.click(await screen.findByRole("link", { name: "Mail, 2 unread" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Mail" })).toBeTruthy();
@@ -109,7 +109,7 @@ describe("someone in no league, as a manager removed from their last one is (spe
   });
 
   it("opening Mail's address stays on Mail, and the top bar goes back to their leagues", async () => {
-    const app = openApp(MAIL_PATH, newcomer, twoUnread, letters);
+    const app = openApp(MAIL_PATH, newcomer, { topBar: twoUnread, letters });
     expect(await screen.findByRole("heading", { level: 1, name: "Mail" })).toBeTruthy();
     expect(app.path()).toBe(MAIL_PATH);
 
@@ -121,13 +121,13 @@ describe("someone in no league, as a manager removed from their last one is (spe
 
 describe("writing to the league", () => {
   it("isn't offered to a manager who runs no league", async () => {
-    openApp(MAIL_PATH, manager, twoUnread, letters);
+    openApp(MAIL_PATH, manager, { topBar: twoUnread, letters });
     await screen.findByRole("list");
     expect(screen.queryByRole("heading", { name: WRITE_TITLE })).toBeNull();
   });
 
   it("the commissioner sends one to their league, and is told it went", async () => {
-    const app = openApp(MAIL_PATH, commissioner, twoUnread, letters);
+    const app = openApp(MAIL_PATH, commissioner, { topBar: twoUnread, letters });
     await userEvent.type(await screen.findByRole("textbox", { name: "Subject" }), "Draft night");
     await userEvent.type(screen.getByRole("textbox", { name: "Letter" }), "Friday at eight.");
     await userEvent.click(screen.getByRole("button", { name: `Send to ${league.name}` }));
@@ -138,7 +138,7 @@ describe("writing to the league", () => {
   });
 
   it("a letter the server refuses shows why, and keeps what was typed", async () => {
-    const app = openApp(MAIL_PATH, commissioner, twoUnread, letters);
+    const app = openApp(MAIL_PATH, commissioner, { topBar: twoUnread, letters });
     app.mail.writeToLeague.mockResolvedValue("Give the letter a subject.");
     await userEvent.type(await screen.findByRole("textbox", { name: "Subject" }), "x");
     await userEvent.type(screen.getByRole("textbox", { name: "Letter" }), "Hello");
@@ -150,7 +150,7 @@ describe("writing to the league", () => {
 
   it("someone running two leagues picks which one it goes to", async () => {
     const other = { ...league, leagueId: "league-2" as Id<"leagues">, name: "Mini beta", roles: ["co-commissioner" as const] };
-    const app = openApp(MAIL_PATH, managerIn({ ...league, roles: ["commissioner"] }, other), twoUnread, letters);
+    const app = openApp(MAIL_PATH, managerIn({ ...league, roles: ["commissioner"] }, other), { topBar: twoUnread, letters });
     await userEvent.selectOptions(await screen.findByRole("combobox", { name: "League" }), "Mini beta");
     await userEvent.type(screen.getByRole("textbox", { name: "Subject" }), "Hi");
     await userEvent.type(screen.getByRole("textbox", { name: "Letter" }), "Hello");

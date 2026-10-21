@@ -8,6 +8,7 @@ import { vi } from "vitest";
 import type { Id } from "../convex/_generated/dataModel";
 import type { LetterSummary } from "../convex/mail";
 import type { LeagueSummary } from "../convex/myLeagues";
+import { fakeAdmin, type AdminData } from "./admin/admin.harness";
 import type { AuthActions, Session } from "./auth";
 import { emptyTopBar, type TopBarState } from "./frame/topBarState";
 import { fakeGameweeks } from "./gameweeks/gameweeks.harness";
@@ -15,7 +16,7 @@ import { fakeJoining, type JoiningData } from "./joining/joining.harness";
 import type { LeagueActions } from "./leagues/actions";
 import type { Mail } from "./mail/actions";
 import { ShellApp } from "./ShellApp";
-import { fakeAdmin, type AdminData } from "./admin/admin.harness";
+import { fakeSquads, type SquadsData } from "./squads/squads.harness";
 
 // The router restores scroll on every navigation, and jsdom has no scrolling to restore.
 window.scrollTo = () => {};
@@ -79,22 +80,26 @@ const fakeMail = (letters: readonly LetterSummary[] | null) => ({
 });
 
 /** The app opened at `path` for `session`, with `letters` in Mail: where it is, the fake sign-in,
- *  league, Mail, joining and gameweeks seams, and a way to change the session as signing in or out,
- *  or a league changing, would. */
-export function openApp(
-  path: string,
-  session: Session,
-  topBar: TopBarState = emptyTopBar,
-  letters: readonly LetterSummary[] | null = [],
-  joiningData: JoiningData = {},
-  adminData: AdminData = {},
-) {
+ *  league, Mail, joining, gameweeks and squads seams, and a way to change the session as signing
+ *  in or out, or a league changing, would. */
+/** What a test may set besides the address and the session: each seam's data, and the top bar. */
+export type AppSetUp = {
+  topBar?: TopBarState;
+  letters?: readonly LetterSummary[] | null;
+  joining?: JoiningData;
+  squads?: SquadsData;
+  admin?: AdminData;
+};
+
+export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
+  const { topBar = emptyTopBar, letters = [], joining: joiningData = {}, squads: squadsData = {}, admin: adminData = {} } = setUp;
   const history = createMemoryHistory({ initialEntries: [path] });
   const auth = fakeAuth();
   const leagues = fakeLeagues();
   const mail = fakeMail(letters);
   const joining = fakeJoining(joiningData, LINK_REPLY);
   const gameweeks = fakeGameweeks();
+  const squads = fakeSquads(squadsData);
   const admin = fakeAdmin(adminData);
   const app = (current: Session) => (
     <ShellApp
@@ -105,6 +110,7 @@ export function openApp(
       joining={joining}
       topBar={topBar}
       gameweeks={gameweeks}
+      squads={squads}
       admin={admin}
       history={history}
     />
@@ -116,6 +122,7 @@ export function openApp(
     mail,
     gameweeks,
     joining,
+    squads,
     admin,
     path: () => history.location.pathname,
     search: () => history.location.search,

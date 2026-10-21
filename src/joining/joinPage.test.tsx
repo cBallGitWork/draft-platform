@@ -14,7 +14,7 @@ afterEach(cleanup);
 
 const TOKEN = "the-token";
 const LEAGUE = "Tim Hortons Pro League";
-const openLink = (joinPage: JoinPageData, session = newcomer) => openApp(joinPath(TOKEN), session, undefined, undefined, { joinPage });
+const openLink = (joinPage: JoinPageData, session = newcomer) => openApp(joinPath(TOKEN), session, { joining: { joinPage } });
 
 describe("a signed-out visitor opening the invite link", () => {
   it("is sent to sign in, which says the link brings them back to ask to join", async () => {
@@ -83,7 +83,7 @@ describe("someone signed in opening the invite link", () => {
   });
 
   it("on the sign-in page with the invite link's token, is sent back to the invite link", async () => {
-    const app = openApp(`${SIGN_IN_PATH}?join=${TOKEN}`, newcomer, undefined, undefined, { joinPage: { leagueName: LEAGUE, standing: "mayAsk" } });
+    const app = openApp(`${SIGN_IN_PATH}?join=${TOKEN}`, newcomer, { joining: { joinPage: { leagueName: LEAGUE, standing: "mayAsk" } } });
     expect(await screen.findByRole("button", { name: "Ask to join" })).toBeTruthy();
     expect(app.path()).toBe(joinPath(TOKEN));
   });

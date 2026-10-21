@@ -6,6 +6,8 @@ import { PageTitle } from "../frame/Panel";
 import { GameweeksLink } from "../gameweeks/GameweeksLink";
 import { invitesPath } from "../joining/paths";
 import { invitesTitle } from "../joining/words";
+import { squadsPath } from "../squads/paths";
+import { SQUADS_TITLE } from "../squads/words";
 import { LeagueDeletionRow, type DeletionActions } from "./LeagueDeletion";
 import { leagueRowLinkClasses } from "./LeagueLinks";
 import { LEAGUES_TITLE, NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
@@ -77,6 +79,11 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
               {!league.deletion && runs(league, isAdmin) && (
                 <Link to={invitesPath(league.leagueId)} className={leagueRowLinkClasses}>
                   {invitesTitle}
+                </Link>
+              )}
+              {!league.deletion && runs(league, isAdmin) && (
+                <Link to={squadsPath(league.leagueId)} className={leagueRowLinkClasses}>
+                  {SQUADS_TITLE}
                 </Link>
               )}
             </th>

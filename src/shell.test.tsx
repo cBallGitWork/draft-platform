@@ -110,7 +110,7 @@ describe("a signed-in manager", () => {
   });
 
   it("with unread mail, sees Mail's count in the menu, and Continue going to the next thing", async () => {
-    openApp(MY_TEAM_PATH, manager, threeUnread);
+    openApp(MY_TEAM_PATH, manager, { topBar: threeUnread });
     const mail = await screen.findByRole("link", { name: "Mail, 3 unread" });
     expect(mail.getAttribute("href")).toBe(MAIL_PATH);
     expect(within(mail).getByText("3")).toBeTruthy();

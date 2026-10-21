@@ -1,0 +1,41 @@
+// What the squads screen says, in one place for Craig to change in the pull request. Why the
+// server refused a change is in convex/squads.ts (`squadRefusals`), and reaches the screen as is.
+
+import type { SquadWarning } from "../../convex/squads";
+import { failedWords } from "../words";
+
+export const SQUADS_TITLE = "Squads";
+export const findTitle = "Find a player";
+export const findLabel = "Name";
+export const findHint = "Put any player on any team, move him to another, or release him to free agency. Every change is in the league's Mail.";
+export const loadingWords = "Loading the squads…";
+export const searchingWords = "Searching…";
+export const noneFoundWords = "No player of that name in the Premier League.";
+export const freeAgentWords = "Free agent";
+export const onTeamWords = (teamName: string) => `On ${teamName}`;
+export const emptySquadWords = "No players yet.";
+export const goneWords = "Not available: he has left the Premier League.";
+export const teamChoiceLabel = (name: string) => `Team for ${name}`;
+export const assignWords = "Put on team";
+export const moveWords = "Move";
+export const releaseWords = "Release";
+export const releaseLabel = (name: string) => `Release ${name}`;
+export const assignLabel = (name: string) => `Put ${name} on the team chosen`;
+export const moveLabel = (name: string) => `Move ${name} to the team chosen`;
+export const foundListLabel = "Players found";
+export const squadListLabel = (teamName: string) => `${teamName}'s players`;
+export const playersCount = (count: number) => (count === 1 ? "1 player" : `${count} players`);
+
+/** Each squad limit the league's rules set that this squad breaks: they warn, never block (spec/15). */
+export function warningWords(warning: SquadWarning): string {
+  switch (warning.kind) {
+    case "overMaximum":
+      return `${warning.players} players, over the league's most of ${warning.maximum}.`;
+    case "underMinimum":
+      return `${warning.players} players, under the league's least of ${warning.minimum}.`;
+    case "overClubMaximum":
+      return `${warning.players} from ${warning.clubShortName}, over the league's most of ${warning.maximum} from one club.`;
+  }
+}
+
+export const changeFailedWords = failedWords("the squads didn't change");

@@ -39,7 +39,7 @@ const DATA: AdminData = {
     },
   ],
 };
-const openDashboard = (data: AdminData = DATA) => openApp(ADMIN_PATH, admin, undefined, undefined, undefined, data);
+const openDashboard = (data: AdminData = DATA) => openApp(ADMIN_PATH, admin, { admin: data });
 
 describe("reaching the dashboard", () => {
   it("the admin opens it from Your leagues", async () => {

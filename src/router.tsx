@@ -33,6 +33,9 @@ import { leagueRunBy } from "./leagues/roles";
 import type { Mail } from "./mail/actions";
 import { MailPage, leaguesToWriteFrom } from "./mail/MailPage";
 import { SignInPage } from "./sign-in/SignInPage";
+import { SQUADS_ROUTE } from "./squads/paths";
+import type { SquadsSeam } from "./squads/seam";
+import { SquadsRoute } from "./squads/SquadsRoute";
 import { linkProblemWords, type LinkProblem } from "./sign-in/words";
 
 export type ShellContext = {
@@ -43,6 +46,7 @@ export type ShellContext = {
   joining: JoiningSeam;
   topBar: TopBarState;
   gameweeks: GameweeksSeam;
+  squads: SquadsSeam;
   admin: AdminSeam;
 };
 
@@ -146,6 +150,19 @@ const gameweeksRoute = createRoute({
   },
 });
 
+// A league's squads, for whoever runs it (#31).
+const squadsRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: SQUADS_ROUTE,
+  beforeLoad: ({ context, params }) => {
+    if (!leagueRunBy(context.session, params.leagueId)) throw redirect({ to: LEAGUES_PATH });
+  },
+  component: function Squads() {
+    const { session, squads } = squadsRoute.useRouteContext();
+    return <SquadsRoute session={session} seam={squads} leagueId={squadsRoute.useParams().leagueId} />;
+  },
+});
+
 // The admin's dashboard (#87), his alone.
 const adminRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
@@ -217,7 +234,7 @@ const pageRoutes = pages.filter((page) => page.path !== MAIL_PATH).map((page) =>
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
-  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, adminRoute]),
+  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, adminRoute]),
   frameRoute.addChildren([landingRoute, ...pageRoutes]),
 ]);
 
