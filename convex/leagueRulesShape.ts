@@ -60,6 +60,17 @@ const scoringSetShape = v.object({
     ),
   ),
   wholePointsOnly: v.boolean(),
+  /** scoringSet.ts's OwnStat. */
+  ownStats: v.optional(
+    v.array(
+      v.object({
+        stat: v.string(),
+        name: v.string(),
+        shortCode: v.string(),
+        parts: v.array(v.object({ stat: v.string(), weight: v.number() })),
+      }),
+    ),
+  ),
 });
 
 /** presets.ts's Preset. */
