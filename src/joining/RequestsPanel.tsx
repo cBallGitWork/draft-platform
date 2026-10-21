@@ -1,7 +1,7 @@
 import { PanelTitle, Problem } from "../frame/Panel";
+import { useChange } from "../useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { TeamSelect, useTeamChoice } from "./TeamChoice";
-import { useChange } from "./useChange";
 import { dayWords, noRequestsWords } from "./words";
 
 type Request = InvitesPageData["requests"][number];

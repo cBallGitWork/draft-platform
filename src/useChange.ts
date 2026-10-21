@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-/** A change asked of the seam from a panel: whether one is under way, and why the last was refused. */
+/** A change asked of a seam from a screen: whether one is under way, and why the last was refused. */
 export function useChange() {
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);

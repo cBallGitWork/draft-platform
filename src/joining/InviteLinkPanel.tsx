@@ -1,7 +1,7 @@
 import { joinPath, noLinkWords } from "../../convex/joiningShared";
 import { PanelTitle, Problem } from "../frame/Panel";
+import { useChange } from "../useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
-import { useChange } from "./useChange";
 import { linkHint } from "./words";
 
 /** spec/13, Joining: the league's one invite link, to share; switching it off or replacing it

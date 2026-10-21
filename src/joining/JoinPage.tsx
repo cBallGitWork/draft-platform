@@ -2,8 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { linkOffWords } from "../../convex/joiningShared";
 import { PageTitle, Problem } from "../frame/Panel";
 import { LEAGUES_PATH } from "../leagues/paths";
+import { useChange } from "../useChange";
 import type { JoiningSeam } from "./seam";
-import { useChange } from "./useChange";
 import { joinPageWords } from "./words";
 
 /** A league's invite link, opened signed in (spec/13, Joining): ask to join, then see the request
