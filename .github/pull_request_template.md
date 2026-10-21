@@ -4,7 +4,7 @@
 
 <!-- The fault this closes, and the spec item it serves (spec/NN-*.md). -->
 
-Closes #
+Closes #  <!-- only on its own line, only for an issue this PR finishes. For a slice, write "Part of #n". Never put close/fix/resolve next to an issue number anywhere else. -->
 
 ## Merge danger
 
@@ -13,9 +13,11 @@ an email sent)? And the blast radius: which screen, league or job it can break. 
 
 ## Checks
 
+<!-- A step not run stays unticked and says why (- [ ] pr-reviewer: not run — <why>); it is never ticked with a caveat. -->
+
 - [ ] the tests at this feature's seam pass, and were run
 - [ ] shot at 390 and 1440, and looked at, if anything visible changed
-- [ ] `/refactor` run on the branch, twice; a drift pass is due after 10 merged since the last (`docs/REFACTORING.md`)
+- [ ] `/refactor` run on the branch (one run; it makes its two passes itself); a drift pass is due after 10 merged since the last (`docs/REFACTORING.md`)
 - [ ] pr-reviewer run on the branch; its verdict is below
 - [ ] docs updated in this branch, not a follow-up
 - [ ] staged by named path
@@ -23,3 +25,5 @@ an email sent)? And the blast radius: which screen, league or job it can break. 
 ## Fresh-eyes review
 
 <!-- pr-reviewer's block for Craig, pasted. -->
+
+Commits after the review: none / <sha>..HEAD, second round pasted below
