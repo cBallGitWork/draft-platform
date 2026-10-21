@@ -1,7 +1,8 @@
 import { expect, test } from "vitest";
-import { AREAS, LANES, playsCell, POSITION_LABELS, positionOfSlot, SLOT_POSITIONS, type Area, type PositionLabel } from "./pitch";
+import { AREAS, LANES, playsCell, positionOfSlot, SLOT_POSITIONS, type Area } from "./pitch";
+import { POSITIONS, type Position } from "./positionTables";
 
-type WholeAreaPosition = Exclude<PositionLabel, "WB">;
+type WholeAreaPosition = Exclude<Position, "WB">;
 
 /** spec/06, The labels: the areas each position plays, every lane of them. The wing back, who
  *  plays only some lanes of two areas, has his own test below. */
@@ -19,13 +20,13 @@ const SPEC_AREAS: Record<WholeAreaPosition, Area[]> = {
 };
 
 /** Every cell of the grid a position plays, as "area lane". */
-function cellsPlayedBy(position: PositionLabel): string[] {
+function cellsPlayedBy(position: Position): string[] {
   return AREAS.flatMap((area) =>
     LANES.filter((lane) => playsCell([position], { area, lane })).map((lane) => `${area} ${lane}`),
   );
 }
 
-const WHOLE_AREA_POSITIONS = POSITION_LABELS.filter((position): position is WholeAreaPosition => position !== "WB");
+const WHOLE_AREA_POSITIONS = POSITIONS.filter((position): position is WholeAreaPosition => position !== "WB");
 
 test.each(WHOLE_AREA_POSITIONS)("%s plays every cell of its areas and no other", (position) => {
   const expected = SPEC_AREAS[position].flatMap((area) => LANES.map((lane) => `${area} ${lane}`));
@@ -56,6 +57,6 @@ test.each([
 });
 
 test("every slot position is a position label, and SS is none of them", () => {
-  expect(SLOT_POSITIONS.every((position) => POSITION_LABELS.includes(position))).toBe(true);
+  expect(SLOT_POSITIONS.every((position) => POSITIONS.includes(position))).toBe(true);
   expect(SLOT_POSITIONS).not.toContain("SS");
 });

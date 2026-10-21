@@ -2,7 +2,8 @@
 // For the tests only: the second dot in this file's name keeps it out of Convex's deploy.
 
 import type { AreaLimit, Lineup, LineupRules, PlayerPositions } from "./lineup";
-import { AREAS, LANES, type Area, type PositionLabel } from "./pitch";
+import { AREAS, LANES, type Area } from "./pitch";
+import type { Position } from "./positionTables";
 import { DEFAULT_PRESETS, type Preset } from "./presets";
 
 /** Every area from none to a full row: limits that refuse nothing. */
@@ -12,7 +13,7 @@ export function openLimits(overrides: Partial<Record<Area, AreaLimit>> = {}): Li
 }
 
 /** The most usual position for each area, so a filled preset needs no utility men. */
-const USUAL_POSITION: Record<Area, PositionLabel> = {
+const USUAL_POSITION: Record<Area, Position> = {
   goalkeeper: "GK",
   defence: "CB",
   defensiveMidfield: "CDM",
@@ -36,13 +37,13 @@ export function presetNamed(name: string): Preset {
 export function filledLineup(preset: Preset): { lineup: Lineup; positions: PlayerPositions } {
   const starters = preset.cells.map((cell, index) => ({ playerCode: index + 1, ...cell }));
   const bench = Array.from({ length: BENCH_SIZE }, (_, index) => FIRST_SUB + index);
-  const positions = new Map<number, PositionLabel[]>(
+  const positions = new Map<number, Position[]>(
     starters.map(({ playerCode, area }) => [playerCode, [USUAL_POSITION[area]]]),
   );
   return { lineup: { starters, bench }, positions };
 }
 
 /** The positions with one player's swapped for `labels`. */
-export function withPositions(positions: PlayerPositions, playerCode: number, labels: PositionLabel[]) {
+export function withPositions(positions: PlayerPositions, playerCode: number, labels: Position[]) {
   return new Map(positions).set(playerCode, labels);
 }
