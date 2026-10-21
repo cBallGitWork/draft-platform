@@ -8,6 +8,7 @@ import { vi } from "vitest";
 import type { Id } from "../convex/_generated/dataModel";
 import type { LetterSummary } from "../convex/mail";
 import type { LeagueSummary } from "../convex/myLeagues";
+import { fakeAdmin, type AdminData } from "./admin/admin.harness";
 import type { AuthActions, Session } from "./auth";
 import { emptyTopBar, type TopBarState } from "./frame/topBarState";
 import { fakeGameweeks } from "./gameweeks/gameweeks.harness";
@@ -78,17 +79,20 @@ const fakeMail = (letters: readonly LetterSummary[] | null) => ({
   writeToLeague: vi.fn<Mail["writeToLeague"]>(async () => null),
 });
 
-/** The app opened at `path` for `session`, with `letters` in Mail: where it is, the fake sign-in,
- *  league, Mail, joining, gameweeks and squads seams, and a way to change the session as signing
- *  in or out, or a league changing, would. */
-export function openApp(
-  path: string,
-  session: Session,
-  topBar: TopBarState = emptyTopBar,
-  letters: readonly LetterSummary[] | null = [],
-  joiningData: JoiningData = {},
-  squadsData: SquadsData = {},
-) {
+/** What a test may set besides the address and the session: each seam's data, and the top bar. */
+export type AppSetUp = {
+  topBar?: TopBarState;
+  letters?: readonly LetterSummary[] | null;
+  joining?: JoiningData;
+  squads?: SquadsData;
+  admin?: AdminData;
+};
+
+/** The app opened at `path` for `session`, set up as `setUp` says: where it is, the fake sign-in,
+ *  league, Mail, joining, gameweeks, squads and admin seams, and a way to change the session as
+ *  signing in or out, or a league changing, would. */
+export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
+  const { topBar = emptyTopBar, letters = [], joining: joiningData = {}, squads: squadsData = {}, admin: adminData = {} } = setUp;
   const history = createMemoryHistory({ initialEntries: [path] });
   const auth = fakeAuth();
   const leagues = fakeLeagues();
@@ -96,6 +100,7 @@ export function openApp(
   const joining = fakeJoining(joiningData, LINK_REPLY);
   const gameweeks = fakeGameweeks();
   const squads = fakeSquads(squadsData);
+  const admin = fakeAdmin(adminData);
   const app = (current: Session) => (
     <ShellApp
       session={current}
@@ -106,6 +111,7 @@ export function openApp(
       topBar={topBar}
       gameweeks={gameweeks}
       squads={squads}
+      admin={admin}
       history={history}
     />
   );
@@ -117,6 +123,7 @@ export function openApp(
     gameweeks,
     joining,
     squads,
+    admin,
     path: () => history.location.pathname,
     search: () => history.location.search,
     becomes: (next: Session) => view.rerender(app(next)),

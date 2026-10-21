@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { adminOf } from "./leagueAccess";
@@ -107,12 +107,24 @@ export const setApproveMode = mutation({
  *  3 at a place) and who play on their label until he confirms it, and the men whose starts give
  *  positions waiting for his approval. By name. It reads every row: one cut short would lose the
  *  newest, who are the new signings. */
+/** A player as the dashboard names him (spec/06): his full name for the links it gives. */
+const queuedPlayer = { code: v.number(), name: v.string(), fullName: v.string(), clubCode: v.number() };
+
+const positionsQueue = v.object({
+  newSignings: v.array(v.object({ ...queuedPlayer, label: v.string() })),
+  waiting: v.array(v.object({ ...queuedPlayer, proposals: v.array(position) })),
+  /** The clubs, by name, for approving one whole. */
+  clubs: v.array(v.object({ code: v.number(), name: v.string() })),
+  approveMode,
+});
+export type PositionsQueue = Infer<typeof positionsQueue>;
+
+/** The Premier League's clubs, with room for the ones a season's sync keeps after relegation. */
+const CLUBS_MOST = 40;
+
 export const queue = query({
   args: {},
-  returns: v.object({
-    newSignings: v.array(v.object({ code: v.number(), name: v.string(), clubCode: v.number(), label: v.union(v.string(), v.null()) })),
-    waiting: v.array(v.object({ code: v.number(), name: v.string(), clubCode: v.number(), proposals: v.array(position) })),
-  }),
+  returns: positionsQueue,
   handler: async (ctx) => {
     await adminOf(ctx);
     const approveMode = await currentApproveMode(ctx);
@@ -122,7 +134,7 @@ export const queue = query({
       const player = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", row.code)).unique();
       if (player === null || player.droppedAt !== undefined) continue;
       const { proposals } = positionsFrom(row, approveMode);
-      const who = { code: row.code, name: player.name, clubCode: player.clubCode };
+      const who = { code: row.code, name: player.name, fullName: player.fullName, clubCode: player.clubCode };
       const onLabel = positionsFromStarts(row.starts).positions.length === 0;
       if (onLabel && row.plLabel !== undefined && row.confirmedLabel !== row.plLabel) {
         newSignings.push({ ...who, label: row.plLabel });
@@ -130,7 +142,47 @@ export const queue = query({
       if (proposals.length > 0) waiting.push({ ...who, proposals });
     }
     const byName = (one: { name: string }, other: { name: string }) => one.name.localeCompare(other.name);
-    return { newSignings: newSignings.sort(byName), waiting: waiting.sort(byName) };
+    const clubs = (await ctx.db.query("clubs").take(CLUBS_MOST))
+      .filter((club) => club.droppedAt === undefined)
+      .map(({ code, name }) => ({ code, name }))
+      .sort(byName);
+    return { newSignings: newSignings.sort(byName), waiting: waiting.sort(byName), clubs, approveMode };
+  },
+});
+
+/** The most players a search gives the admin: enough to pick from, few enough to read. */
+const FOUND_MOST = 20;
+
+const heldPosition = v.object({
+  position,
+  source: v.union(v.literal("starts"), v.literal("label"), v.literal("admin")),
+  confirmed: v.boolean(),
+});
+const foundPlayer = v.object({ ...queuedPlayer, positions: v.array(heldPosition) });
+export type FoundPlayerPositions = Infer<typeof foundPlayer>;
+
+/** Players whose name matches, with their positions now, for the admin to correct any of them
+ *  (spec/06). Never those who have left the Premier League. */
+export const find = query({
+  args: { text: v.string() },
+  returns: v.array(foundPlayer),
+  handler: async (ctx, { text }) => {
+    await adminOf(ctx);
+    if (!text.trim()) return [];
+    const approveMode = await currentApproveMode(ctx);
+    const found = await ctx.db
+      .query("players")
+      .withSearchIndex("search_fullName", (q) => q.search("fullName", text).eq("droppedAt", undefined))
+      .take(FOUND_MOST);
+    return Promise.all(
+      found.map(async (player) => ({
+        code: player.code,
+        name: player.name,
+        fullName: player.fullName,
+        clubCode: player.clubCode,
+        positions: positionsFrom((await findRow(ctx, player.code)) ?? EMPTY_ROW, approveMode).positions,
+      })),
+    );
   },
 });
 

@@ -23,7 +23,7 @@ const TWO_TEAMS: SquadsData = {
     { code: 2002, name: "Isak", fullName: "Alexander Isak", teamName: null },
   ],
 };
-const openSquads = (data: SquadsData = TWO_TEAMS) => openApp(PAGE, commissioner, undefined, undefined, undefined, data);
+const openSquads = (data: SquadsData = TWO_TEAMS) => openApp(PAGE, commissioner, { squads: data });
 const search = async (text: string) => userEvent.type(await screen.findByRole("searchbox", { name: findLabel }), text);
 const foundRow = (name: string) => within(screen.getByRole("list", { name: foundListLabel })).getByText(name).closest("li")!;
 

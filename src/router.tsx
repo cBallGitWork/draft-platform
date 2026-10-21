@@ -7,6 +7,9 @@ import {
   redirect,
   type RouterHistory,
 } from "@tanstack/react-router";
+import { AdminPage } from "./admin/AdminPage";
+import { ADMIN_PATH } from "./admin/paths";
+import type { AdminSeam } from "./admin/seam";
 import type { AuthActions, Session } from "./auth";
 import { AppFrame } from "./frame/AppFrame";
 import { LeagueSwitcher } from "./frame/LeagueSwitcher";
@@ -44,6 +47,7 @@ export type ShellContext = {
   topBar: TopBarState;
   gameweeks: GameweeksSeam;
   squads: SquadsSeam;
+  admin: AdminSeam;
 };
 
 export const SIGN_IN_PATH = "/sign-in";
@@ -159,6 +163,19 @@ const squadsRoute = createRoute({
   },
 });
 
+// The admin's dashboard (#87), his alone.
+const adminRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: ADMIN_PATH,
+  beforeLoad: ({ context }) => {
+    if (!context.session.signedIn || !context.session.isAdmin) throw redirect({ to: LEAGUES_PATH });
+  },
+  component: function Admin() {
+    const admin = adminRoute.useRouteContext({ select: (context) => context.admin });
+    return <AdminPage seam={admin} />;
+  },
+});
+
 // Joining a league (#73): a league's invites and join requests, for its runners, and its invite
 // link, which a signed-out visitor reaches through sign-in.
 const invitesRoute = createRoute({
@@ -217,7 +234,7 @@ const pageRoutes = pages.filter((page) => page.path !== MAIL_PATH).map((page) =>
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
-  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute]),
+  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, adminRoute]),
   frameRoute.addChildren([landingRoute, ...pageRoutes]),
 ]);
 
