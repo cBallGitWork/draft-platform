@@ -4,7 +4,7 @@ import type { LetterSummary } from "../../convex/mail";
 import { LETTERS_SHOWN } from "../../convex/mailLimits";
 import type { LeagueSummary } from "../../convex/myLeagues";
 import type { Session } from "../auth";
-import { PageTitle } from "../frame/Panel";
+import { Loading, PageTitle } from "../frame/Panel";
 import { runs } from "../leagues/roles";
 import type { Mail } from "./actions";
 import { WriteToLeague } from "./WriteToLeague";
@@ -43,7 +43,7 @@ export function MailPage({ mail, unread, writableLeagues }: { mail: Mail; unread
 
 function Letters({ mail }: { mail: Mail }) {
   const [openId, setOpenId] = useState<Id<"letters"> | null>(null);
-  if (mail.letters === null) return <p role="status" className="px-3 py-2 text-muted">{loadingWords}</p>;
+  if (mail.letters === null) return <Loading className="px-3 py-2">{loadingWords}</Loading>;
   if (mail.letters.length === 0) return <p className="px-3 py-2 text-muted">{noLettersWords}</p>;
 
   function toggle(letter: LetterSummary) {

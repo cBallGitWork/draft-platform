@@ -10,7 +10,7 @@ import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mailLimits";
 import { MAIL_PATH } from "../frame/menu";
 import { LEAGUES_PATH } from "../leagues/paths";
 import { league, manager, managerIn, newcomer, openApp } from "../shell.harness";
-import { WRITE_TITLE, loadingWords, noLettersWords, onlyLatestWords, sentWords } from "./words";
+import { MAIL_TITLE, WRITE_TITLE, loadingWords, noLettersWords, onlyLatestWords, sentWords } from "./words";
 
 afterEach(cleanup);
 
@@ -88,6 +88,13 @@ describe("the unread count", () => {
     expect(screen.getByRole("link", { name: "Mail, 2 unread" })).toBeTruthy();
   });
 
+  it("sits on the title plate beside the heading, not in it", async () => {
+    openApp(MAIL_PATH, manager, { topBar: twoUnread, letters });
+    const title = await screen.findByRole("heading", { level: 1, name: MAIL_TITLE });
+    expect(screen.getByRole("region", { name: MAIL_TITLE })).toBeTruthy();
+    expect(title.parentElement?.textContent).toBe(`${MAIL_TITLE}2 unread`);
+  });
+
   it(`past ${UNREAD_COUNTED}, shows ${UNREAD_COUNTED}+`, async () => {
     openApp(MAIL_PATH, manager, { topBar: { unreadMail: UNREAD_COUNTED + 1, next: null }, letters });
     expect(await screen.findByText(`${UNREAD_COUNTED}+ unread`)).toBeTruthy();
@@ -124,6 +131,12 @@ describe("writing to the league", () => {
     openApp(MAIL_PATH, manager, { topBar: twoUnread, letters });
     await screen.findByRole("list");
     expect(screen.queryByRole("heading", { name: WRITE_TITLE })).toBeNull();
+  });
+
+  it("is a panel titled by its plate", async () => {
+    openApp(MAIL_PATH, commissioner, { topBar: twoUnread, letters });
+    const panel = await screen.findByRole("region", { name: WRITE_TITLE });
+    expect(within(panel).getByRole("heading", { level: 2, name: WRITE_TITLE })).toBeTruthy();
   });
 
   it("the commissioner sends one to their league, and is told it went", async () => {

@@ -22,6 +22,13 @@ describe("a logged-out visitor", () => {
     expect(app.path()).toBe(SIGN_IN_PATH);
   });
 
+  it("sees the sign-in panel titled by its plate, with the same email box as every other text box", async () => {
+    openApp("/", visitor);
+    const panel = await screen.findByRole("region", { name: "Sign in" });
+    expect(within(panel).getByRole("heading", { level: 2, name: "Sign in" })).toBeTruthy();
+    expect(within(panel).getByRole("textbox", { name: "Email" }).classList.contains("text-box")).toBe(true);
+  });
+
   it.each([MY_TEAM_PATH, "/team/squad", MAIL_PATH, "/leagues", "/leagues/new", "/no-such-page"])(
     "opening %s sees only the sign-in page",
     async (path) => {
