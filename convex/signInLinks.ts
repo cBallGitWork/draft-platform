@@ -1,8 +1,9 @@
 import { v, type Infer } from "convex/values";
 import { api, internal } from "./_generated/api";
-import { action, internalMutation, type ActionCtx, type MutationCtx } from "./_generated/server";
+import { action, internalMutation, type ActionCtx, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { isAllowed, normaliseEmail } from "./allowedEmails";
 import { anEmailLeftToday, countTodaysEmail } from "./emailLimit";
+import { logFailure } from "./football";
 import { HOUR_MS, MINUTE_MS } from "./time";
 
 // Asking for a sign-in link (spec/02, #20). The sign-in page asks through `ask`, which applies the
@@ -11,6 +12,16 @@ import { HOUR_MS, MINUTE_MS } from "./time";
 // public too, so the mutation that makes a link first claims the ask that let this email through
 // a moment ago (`claimAsk`, from convex/auth.ts): called directly, it is refused with nothing
 // written, so no earlier link is replaced and no account is made.
+
+/** Whether this email has ever opened a sign-in link. Convex Auth makes the user even when the link
+ *  fails, and marks it verified only once a link of theirs is opened. */
+export async function hasOpenedALink(ctx: QueryCtx, email: string): Promise<boolean> {
+  const user = await ctx.db
+    .query("users")
+    .withIndex("email", (q) => q.eq("email", email))
+    .first();
+  return user?.emailVerificationTime !== undefined;
+}
 
 /** spec/02: one email asks for at most this many links an hour. */
 export const ASKS_PER_HOUR = 3;
@@ -52,8 +63,7 @@ export async function askForLink(ctx: ActionCtx, typedEmail: string, redirectTo?
         await ctx.runAction(api.auth.signIn, { provider: "resend", params: { email, redirectTo } });
         return "checkYourEmail";
       } catch (error) {
-        const sendError = error instanceof Error ? error.message : String(error);
-        console.error(`The sign-in link to ${email} wasn't sent: ${sendError}`);
+        const sendError = logFailure(`The sign-in link to ${email} wasn't sent`, error);
         await ctx.runMutation(internal.signInLinks.recordSendError, { askId: asked.askId, sendError });
         return "notSent";
       }

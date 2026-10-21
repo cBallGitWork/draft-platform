@@ -10,7 +10,8 @@ import type { DrawOptions, OddTeamOut } from "./roundRobin";
 // which the admin edits (leagueRules.ts says how). Once that row exists, nothing reads this file
 // but `drawRulesOf`, for rules saved before the odd team out and games a gameweek were among them.
 //
-// Only the presets, the deadline and the double-gameweek rule are the spec's own (spec/05, spec/03).
+// Only the presets, the deadline, the double-gameweek rule, the odd team out and games a gameweek
+// are the spec's own (spec/05, spec/03, spec/09).
 // The scoring is FPL's own for 2025/26 without bonus points, Craig's choice to start from and tune
 // (spec/14, 21 Oct 2026), keyed on FPL's stat names as #27 stores them. FPL scores a player by his
 // position and this by the area he starts in, so all three midfield areas take FPL's midfielder

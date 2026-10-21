@@ -8,7 +8,7 @@ import { heldRow } from "./playerPositions";
 import { matchSlots, requireFixtureCode, type MatchSlot } from "./plMatch";
 import { START_WINDOW, type Start } from "./positions";
 import { labelPositions, placePosition } from "./positionTables";
-import { readPlFixture, readPlFixtures, readPlSquad, type RawPlFixture, type RawPlSquadPlayer } from "./premierLeague";
+import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlSquad, type RawPlFixture, type RawPlSquadPlayer } from "./premierLeague";
 import { positionsSyncFields, startRecord, syncTrigger } from "./schema";
 import { BATCH_SIZE, LATEST_RUNS } from "./syncRuns";
 
@@ -19,8 +19,6 @@ import { BATCH_SIZE, LATEST_RUNS } from "./syncRuns";
 // `npx convex run positionsSync:run '{"trigger":"manual"}'`, then `positionsSync:latest`.
 // Nothing schedules it yet: spec/06 names no cadence.
 
-/** The fixture list's `status` for a match played, whose sheets are final. */
-const PLAYED = "C";
 /** Matches whose sheets one run reads, one at a time: two seasons' first 450 take three runs, each
  *  well inside an action's ten minutes. */
 export const MATCHES_PER_RUN = 150;
@@ -118,7 +116,7 @@ async function syncPositions(ctx: ActionCtx): Promise<Synced> {
     readPlFixtures(undefined, PL_LAST_COMP_SEASON),
     readPlFixtures(undefined, PL_COMP_SEASON),
   ]);
-  const played = [...lastSeason, ...thisSeason].filter((fixture) => fixture.status === PLAYED);
+  const played = [...lastSeason, ...thisSeason].filter((fixture) => fixture.status === PL_FULL_TIME);
   const unread = new Set<number>(
     await ctx.runQuery(internal.positionsSync.unreadMatches, { fixtureCodes: played.map(requireFixtureCode) }),
   );
