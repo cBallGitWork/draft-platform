@@ -12,7 +12,7 @@ import re
 from parsing import MARKED
 from where import options, runs_at
 
-PR_SUBCOMMANDS = {"create", "edit"}
+PR_CALLS = (["pr", "create"], ["pr", "edit"])
 BODY_OPTS = {"-b", "--body"}
 BODY_FILE_OPTS = {"-F", "--body-file"}
 REQUIRED = ("## Merge danger", "## Fresh-eyes review")  # .github/pull_request_template.md
@@ -25,7 +25,7 @@ USE_A_FILE = "Write the body to a file and pass it with --body-file <file>."
 def pr_call(words):
     """'create' or 'edit' and the args after it, if this simple command runs gh pr create or edit."""
     i = runs_at(words, "gh")
-    if i is None or words[i + 1 : i + 2] != ["pr"] or len(words) < i + 3 or words[i + 2] not in PR_SUBCOMMANDS:
+    if i is None or words[i + 1 : i + 3] not in PR_CALLS:
         return None
     return words[i + 2], words[i + 3 :]
 
