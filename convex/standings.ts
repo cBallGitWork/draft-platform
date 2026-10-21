@@ -72,7 +72,8 @@ function scoreIn<Team>(scores: ReadonlyMap<Team, number>, team: Team, gameweek: 
 }
 
 /** The league's average score in a gameweek, every team's counted once, kept in tenths as points
- *  are. A team has one score a gameweek however many games it plays: each game counts that score. */
+ *  are. A team has one score a gameweek however many games it plays, and plays the average once a
+ *  gameweek at most (roundRobin.ts never leaves a team over twice in one). */
 function averageOf<Team>(teams: readonly Team[], scores: ReadonlyMap<Team, number>, gameweek: number): number {
   const total = teams.reduce((sum, team) => sum + scoreIn(scores, team, gameweek), 0);
   return inTenths(total / teams.length);

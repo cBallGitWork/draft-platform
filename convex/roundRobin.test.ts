@@ -97,6 +97,21 @@ test.each(TEAM_COUNTS)("%i teams: one round robin, a game a gameweek, has every 
 });
 
 describe("games a gameweek", () => {
+  test.each(ODD_TEAM_OUTS)("with an odd number of teams, nobody is left over twice in a gameweek, playing %s", (oddTeamOut) => {
+    // Each round leaves one team over, a different one each round, and a gameweek never has a
+    // round twice: so a team plays the league's average, or sits out, once a gameweek at most.
+    for (const count of [3, 5, 7, 9, 19]) {
+      for (const games of GAMES) {
+        for (const seed of SEEDS) {
+          for (const gameweek of drawFixtures(teamsOf(count), WITH_GAPS, { oddTeamOut, gamesPerGameweek: games, seed })) {
+            const leftOver = [...gameweek.byes, ...gameweek.fixtures.filter((each) => each.opponent === LEAGUE_AVERAGE).map((each) => each.team)];
+            expect(new Set(leftOver).size, `${count} teams, ${games} a gameweek, gameweek ${gameweek.gameweek}`).toBe(leftOver.length);
+          }
+        }
+      }
+    }
+  });
+
   test("with two, each team meets two different opponents every gameweek", () => {
     for (const gameweek of drawFixtures(teamsOf(6), SEASON_GAMEWEEKS, options({ gamesPerGameweek: 2 }))) {
       for (const opponents of opponentsIn(gameweek).values()) expect(new Set(opponents).size).toBe(2);
