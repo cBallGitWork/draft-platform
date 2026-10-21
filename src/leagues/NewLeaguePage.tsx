@@ -1,9 +1,10 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leagueLimits";
 import { PageTitle, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { LeagueActions } from "./actions";
+import { BackToLeagues } from "./LeagueLinks";
 import { LEAGUES_PATH, NEW_LEAGUE_TITLE } from "./paths";
 import { commissionerHint, maxTeamsHint } from "./words";
 
@@ -70,9 +71,7 @@ export function NewLeaguePage({ createLeague }: { createLeague: LeagueActions["c
           <button type="submit" disabled={creating} className="action">
             Create the league
           </button>
-          <Link to={LEAGUES_PATH} className="flex min-h-tap items-center">
-            Back to your leagues
-          </Link>
+          <BackToLeagues />
         </div>
       </form>
     </section>

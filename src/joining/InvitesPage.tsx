@@ -1,6 +1,5 @@
-import { Link } from "@tanstack/react-router";
 import { PageTitle } from "../frame/Panel";
-import { LEAGUES_PATH } from "../leagues/paths";
+import { BackToLeagues } from "../leagues/LeagueLinks";
 import { EmailInvites } from "./EmailInvites";
 import { InviteLinkPanel } from "./InviteLinkPanel";
 import { RequestsPanel } from "./RequestsPanel";
@@ -27,9 +26,7 @@ export function InvitesPage({ leagueId, joining }: { leagueId: string; joining: 
           <p className="flex flex-wrap items-center gap-4 px-3 py-2 text-muted">
             {page === undefined ? loadingWords : notYoursWords}
             {page === null && (
-              <Link to={LEAGUES_PATH} className="flex min-h-tap items-center">
-                Back to your leagues
-              </Link>
+              <BackToLeagues />
             )}
           </p>
         )}

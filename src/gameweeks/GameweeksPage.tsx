@@ -1,10 +1,9 @@
-import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { isLocked } from "../../convex/deadline";
 import type { LeagueGameweek } from "../../convex/leagueGameweeks";
 import type { LeagueSummary } from "../../convex/myLeagues";
 import { PageTitle, Problem } from "../frame/Panel";
-import { LEAGUES_PATH } from "../leagues/paths";
+import { BackToLeagues } from "../leagues/LeagueLinks";
 import type { LeagueGameweeksView } from "./seam";
 import {
   begunWords,
@@ -57,9 +56,7 @@ export function GameweeksPage({ league, view }: { league: LeagueSummary; view: L
             {loadingWords}
           </p>
         )}
-        <Link to={LEAGUES_PATH} className="flex min-h-tap items-center self-start">
-          Back to your leagues
-        </Link>
+        <BackToLeagues className="self-start" />
       </div>
     </section>
   );

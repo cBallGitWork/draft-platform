@@ -5,6 +5,7 @@ import { GameweeksLink } from "../gameweeks/GameweeksLink";
 import { invitesPath } from "../joining/paths";
 import { invitesTitle } from "../joining/words";
 import { LeagueDeletionRow, type DeletionActions } from "./LeagueDeletion";
+import { leagueRowLinkClasses } from "./LeagueLinks";
 import { LEAGUES_TITLE, NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
 import { deletes, runs } from "./roles";
 import { adminWords, roleWords, unsentLink, unsentLinkWords } from "./words";
@@ -67,7 +68,7 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
               <span className="block font-normal text-muted wrap-anywhere">Commissioner: {league.commissionerEmail}</span>
               {!league.deletion && <GameweeksLink league={league} isAdmin={isAdmin} />}
               {!league.deletion && runs(league, isAdmin) && (
-                <Link to={invitesPath(league.leagueId)} className="flex min-h-tap items-center font-normal lg:min-h-0">
+                <Link to={invitesPath(league.leagueId)} className={leagueRowLinkClasses}>
                   {invitesTitle}
                 </Link>
               )}
