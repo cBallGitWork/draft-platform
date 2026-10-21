@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { POSITIONS, type Position } from "../../convex/positionTables";
 import { Loading, PanelTitle } from "../frame/Panel";
-import type { PanelProps } from "./panelProps";
+import type { Changing } from "../useChange";
 import type { AdminSeam, FoundPlayerPositions } from "./seam";
 import {
   findHint,
@@ -22,9 +22,7 @@ import {
 
 // Correcting any player's positions (spec/06): find him, then remove a position or set one, SS among them.
 
-type Change = PanelProps["change"];
-
-export function FindPlayer({ seam, change }: { seam: AdminSeam; change: Change }) {
+export function FindPlayer({ seam, change }: { seam: AdminSeam; change: Changing }) {
   const [text, setText] = useState("");
   const found = seam.useFoundPlayers(text);
   return (
@@ -54,7 +52,7 @@ export function FindPlayer({ seam, change }: { seam: AdminSeam; change: Change }
 }
 
 /** One player's positions: where each came from, whether it's confirmed; remove one, or set one. */
-function PlayerPositions({ player, seam, change }: { player: FoundPlayerPositions; seam: AdminSeam; change: Change }) {
+function PlayerPositions({ player, seam, change }: { player: FoundPlayerPositions; seam: AdminSeam; change: Changing }) {
   const held = new Set(player.positions.map((each) => each.position));
   const givable = POSITIONS.filter((position) => !held.has(position));
   const [chosen, choose] = useState<Position | undefined>(undefined);

@@ -3,6 +3,7 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../convex/mail";
+import type { Change } from "../refusal";
 
 export type LeagueLetter = { leagueId: Id<"leagues">; subject: string; body: string };
 
@@ -13,5 +14,5 @@ export type Mail = {
   open(letterId: Id<"letters">): Promise<void>;
   /** Sends the commissioner's letter to the whole league, and resolves with null once it's sent,
    *  or with the words saying why it wasn't. It never rejects. */
-  writeToLeague(letter: LeagueLetter): Promise<string | null>;
+  writeToLeague(letter: LeagueLetter): Change;
 };
