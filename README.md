@@ -12,10 +12,11 @@ with Football Manager-style tactics. Private.
 
 You need:
 
-1. Membership of the Convex team `craigdavidball14`: `npm run setup` is hardcoded to it.
-2. A Resend account and its API key.
+1. Node 24.
+2. Membership of the Convex team `craigdavidball14`: `npm run setup` is hardcoded to it.
+3. A Resend account and its API key.
 
-Node 24. Clone, then:
+Clone, then:
 
 ```
 npm install && npm run setup && npm run dev
@@ -52,10 +53,9 @@ The admin creates a league from **Create a league** on the leagues page; its com
 let sign in, and sent a link if they have no account. A commissioner adds managers from
 **Invites and join requests** on the league's row of the leagues page. Removing managers,
 renaming teams, the maximum and the co-commissioner have no screen yet, so they are run from the
-CLI as the person allowed to, by their `_id` in the `users` table:
+CLI as the person allowed to, by their `_id` in the `users` table (without `--identity` the
+server refuses):
 `npx convex run teams:removeManager '{"leagueId":"…","teamId":"…"}' --identity '{"subject":"<their _id>|cli"}'`.
-The CLI needs that `--identity`, of a person allowed to make the change: run without it, the
-server refuses.
 
 To see the screens without signing in, add `?preview=` to the address: `manager` (in two leagues),
 `commissioner` (running them), `newcomer` (in none), `admin` (seeing every league) or `visitor`

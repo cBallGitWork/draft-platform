@@ -75,7 +75,7 @@ table needs a recount. `positionSettings` holds the approve mode; `positionSheet
 The admin's functions, his alone by his email on the server (#87): `queue` (new signings and the
 men whose starts wait for him), `ofPlayer`, `approvePlayer`, `approveClub`, `setPosition` (SS is
 set this way), `removePosition` and `setApproveMode`, in `convex/playerPositions.ts`. The
-dashboard's screen is built (#126).
+dashboard's screen is built.
 
 ## The sync
 
