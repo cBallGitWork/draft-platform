@@ -31,17 +31,21 @@ export const league: LeagueSummary = {
 };
 
 const signedIn = { signedIn: true, email: "manager@example.com", isAdmin: false } as const;
-export const managerIn = (...leagues: LeagueSummary[]): Session => ({ ...signedIn, inLeague: true, leagues });
+/** A manager in these leagues, the app in the first. */
+export const managerIn = (...leagues: LeagueSummary[]) =>
+  ({ ...signedIn, inLeague: true, leagues, currentLeagueId: leagues[0].leagueId }) satisfies Session;
 export const manager = managerIn(league);
-export const newcomer: Session = { ...signedIn, inLeague: false, leagues: [] };
+export const newcomer: Session = { ...signedIn, inLeague: false, leagues: [], currentLeagueId: null };
 /** The admin, seeing every league, with no part in any. */
-export const adminSeeing = (...leagues: LeagueSummary[]): Session => ({
-  ...signedIn,
-  email: "craig@example.com",
-  isAdmin: true,
-  inLeague: false,
-  leagues,
-});
+export const adminSeeing = (...leagues: LeagueSummary[]) =>
+  ({
+    ...signedIn,
+    email: "craig@example.com",
+    isAdmin: true,
+    inLeague: false,
+    leagues,
+    currentLeagueId: null,
+  }) satisfies Session;
 export const admin = adminSeeing();
 
 export const LINK_REPLY = "Check your email.";
@@ -58,6 +62,7 @@ const fakeLeagues = () => ({
   createLeague: vi.fn<LeagueActions["createLeague"]>(async () => null),
   deleteLeague: vi.fn<LeagueActions["deleteLeague"]>(async () => null),
   undoDeletion: vi.fn<LeagueActions["undoDeletion"]>(async () => null),
+  switchLeague: vi.fn<LeagueActions["switchLeague"]>(async () => null),
 });
 
 /** The app opened at `path` for `session`: where it is, the fake sign-in, league, joining and

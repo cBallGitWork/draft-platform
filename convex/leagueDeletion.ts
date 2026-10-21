@@ -46,6 +46,11 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
       .query("joinRequests")
       .withIndex("by_leagueId_and_decision", (q) => q.eq("leagueId", leagueId))
       .take(ROWS_PER_RUN),
+  lastLeagues: (ctx, leagueId) =>
+    ctx.db
+      .query("lastLeagues")
+      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
 };
 
 export const tablesKeyedToLeague = Object.keys(leagueRows);

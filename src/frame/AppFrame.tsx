@@ -1,4 +1,5 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 import type { AuthActions } from "../auth";
 import { Continue } from "./Continue";
 import { MAIL_PATH, sectionAt, sections } from "./menu";
@@ -14,8 +15,17 @@ const sectionTabClasses =
   "flex min-h-tap items-center border-l border-panel-rule px-4 font-semibold text-soft no-underline first:border-l-0 hover:text-fact lg:min-h-subtab " +
   "data-[status=active]:text-fact data-[status=active]:shadow-subtab-active";
 
-/** The signed-in frame: the top menu, the active section's tabs under it, and the page. */
-export function AppFrame({ topBar, onSignOut }: { topBar: TopBarState; onSignOut: AuthActions["signOut"] }) {
+/** The signed-in frame: the top menu with the league it is in, the active section's tabs under it,
+ *  and the page. */
+export function AppFrame({
+  topBar,
+  onSignOut,
+  leagueSwitcher,
+}: {
+  topBar: TopBarState;
+  onSignOut: AuthActions["signOut"];
+  leagueSwitcher: ReactNode;
+}) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const tabs = sectionAt(pathname)?.tabs ?? [];
   const unread = topBar.unreadMail > 0 ? topBar.unreadMail : null;
@@ -25,6 +35,7 @@ export function AppFrame({ topBar, onSignOut }: { topBar: TopBarState; onSignOut
       <header className="bg-plate shadow-bevel-plate">
         <div className="flex flex-wrap items-stretch">
           <ProductName />
+          {leagueSwitcher}
           {/* On a phone the menu takes its own row under the name, Continue and Sign out. */}
           <nav
             aria-label="Main"

@@ -413,6 +413,9 @@ const leagueEventFields = {
   event: leagueEvent,
 };
 
+/** The league switcher (#76): the league each person used last, by email, one row each. */
+const lastLeagueFields = { email: v.string(), leagueId: v.id("leagues") };
+
 export default defineSchema({
   ...matchStatsTables,
   ...liveStatsTables,
@@ -434,6 +437,7 @@ export default defineSchema({
   joinRequests: defineTable(joinRequestFields)
     .index("by_leagueId_and_decision", ["leagueId", "decision"])
     .index("by_leagueId_and_email_and_decision", ["leagueId", "email", "decision"]),
+  lastLeagues: defineTable(lastLeagueFields).index("by_email", ["email"]).index("by_leagueId", ["leagueId"]),
   feedChecks: defineTable(feedCheckFields),
   clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
   players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_clubCode", ["clubCode"]),
