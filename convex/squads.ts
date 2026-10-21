@@ -131,11 +131,12 @@ export type SquadWarning = Infer<typeof squadWarning>;
 
 /** Each team's squad, by name, and the league's squad limits it breaks, which warn but don't block.
  *  Anyone with a part in the league sees them. */
+const teamSquad = v.object({ teamId: v.id("teams"), teamName: v.string(), players: v.array(squadPlayer), warnings: v.array(squadWarning) });
+export type TeamSquad = Infer<typeof teamSquad>;
+
 export const squads = query({
   args: { leagueId: v.id("leagues") },
-  returns: v.array(
-    v.object({ teamId: v.id("teams"), teamName: v.string(), players: v.array(squadPlayer), warnings: v.array(squadWarning) }),
-  ),
+  returns: v.array(teamSquad),
   handler: async (ctx, { leagueId }) => {
     await memberOf(ctx, leagueId);
     const rules = await latestRules(ctx, leagueId);
@@ -180,9 +181,12 @@ function squadWarnings(players: readonly { clubShortName: string }[], squad: Lea
 
 /** Players whose name matches, for picking one to assign: each with his team in this league, if
  *  any. For the league's commissioners and the admin. */
+const foundPlayer = v.object({ code: v.number(), name: v.string(), fullName: v.string(), teamName: v.union(v.string(), v.null()) });
+export type FoundPlayer = Infer<typeof foundPlayer>;
+
 export const findPlayers = query({
   args: { leagueId: v.id("leagues"), text: v.string() },
-  returns: v.array(v.object({ code: v.number(), name: v.string(), fullName: v.string(), teamName: v.union(v.string(), v.null()) })),
+  returns: v.array(foundPlayer),
   handler: async (ctx, { leagueId, text }) => {
     await runnerOf(ctx, leagueId);
     if (!text.trim()) return [];

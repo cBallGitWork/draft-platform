@@ -8,6 +8,7 @@ import { useLiveJoining } from "./joining/liveJoining";
 import { joinTokenAt } from "./joining/paths";
 import { useLiveLeagueActions } from "./leagues/liveLeagueActions";
 import { useLiveMail } from "./mail/liveMail";
+import { useLiveSquads } from "./squads/liveSquads";
 import { answerOf } from "./refusal";
 import { SIGN_IN_PATH } from "./router";
 import { ShellApp } from "./ShellApp";
@@ -58,6 +59,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   const leagues = useLiveLeagueActions();
   const { mail, topBar } = useLiveMail();
   const joining = useLiveJoining();
+  const squads = useLiveSquads();
   const account = useQuery(api.account.signedInAs, isAuthenticated ? {} : "skip");
   const [checkingLink, setCheckingLink] = useState(linkCode !== null);
   const redeemed = useRef(false);
@@ -92,7 +94,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
       </p>
     );
   }
-  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} />;
+  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} />;
 }
 
 /** The sign-in page saying what was wrong with a link, and, for one that led to a league's invite

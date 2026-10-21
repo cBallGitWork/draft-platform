@@ -11,6 +11,7 @@ import { previewJoining } from "./joining/preview";
 import { previewMail, previewTopBar } from "./mail/previewMail";
 import { previewAuth, previewLeagues, previewSession } from "./preview";
 import { ShellApp } from "./ShellApp";
+import { previewSquads } from "./squads/preview";
 
 const preview = previewSession();
 
@@ -27,6 +28,7 @@ createRoot(root).render(
         joining={previewJoining}
         topBar={previewTopBar}
         gameweeks={previewGameweeks}
+        squads={previewSquads}
       />
     ) : (
       <LiveApp linkCode={takeLinkCode()} />
