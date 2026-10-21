@@ -27,8 +27,8 @@ test("a switch the server makes resolves with no problem", async () => {
 });
 
 test("a switch the server refuses resolves with the server's own words", async () => {
-  switchTo.mockRejectedValue(new ConvexError(refusals.notYourLeague));
-  expect(await switchLeague()).toBe(refusals.notYourLeague);
+  switchTo.mockRejectedValue(new ConvexError(refusals.notInLeague));
+  expect(await switchLeague()).toBe(refusals.notInLeague);
 });
 
 test("any other failure is logged and said plainly", async () => {

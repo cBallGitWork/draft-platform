@@ -11,6 +11,7 @@ import {
   refuse,
   refusals,
   runnerOf,
+  teamOf,
   teamsOf,
 } from "./leagueAccess";
 import { TEAM_NAME_MAX } from "./leagueLimits";
@@ -99,7 +100,7 @@ export const leave = mutation({
   handler: async (ctx, { leagueId }) => {
     const email = await callerEmail(ctx);
     await getLeague(ctx, leagueId);
-    const team = (await teamsOf(ctx, leagueId)).find((each) => each.managerEmail === email);
+    const team = await teamOf(ctx, leagueId, email);
     if (!team) refuse(refusals.runsNoTeam);
     await ctx.db.patch("teams", team._id, { managerEmail: undefined });
     await recordEvent(ctx, leagueId, email, { kind: "managerLeft", email, teamId: team._id, teamName: team.name });

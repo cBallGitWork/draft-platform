@@ -27,7 +27,6 @@ export const refusals = {
   notManager: "Only the team's manager or the admin can do that.",
   runsNoTeam: "You don't run a team in this league.",
   notInLeague: "You aren't in this league.",
-  notYourLeague: "You're not in that league.",
   blankName: "Give it a name.",
   teamNameTooLong: `A team's name is up to ${TEAM_NAME_MAX} characters.`,
   teamNameTaken: (name: string) => `A team in this league is already called "${name}".`,
@@ -112,8 +111,7 @@ export async function namerOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
 export async function memberOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
   const email = await callerEmail(ctx);
   const league = await getLeague(ctx, leagueId);
-  const managesTeam = async () => (await teamsOf(ctx, leagueId)).some((team) => team.managerEmail === email);
-  if (!powersIn(league, email).runs && !(await managesTeam())) refuse(refusals.notInLeague);
+  if (!powersIn(league, email).runs && !(await teamOf(ctx, leagueId, email))) refuse(refusals.notInLeague);
   return { email, league };
 }
 
@@ -132,6 +130,11 @@ export function teamsOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"te
     .query("teams")
     .withIndex("by_leagueId_and_number", (q) => q.eq("leagueId", leagueId))
     .take(MOST_TEAMS);
+}
+
+/** The team this email manages in the league, if any: one at most, as putOnTeam keeps it (teams.ts). */
+export async function teamOf(ctx: QueryCtx, leagueId: Id<"leagues">, email: string): Promise<Doc<"teams"> | undefined> {
+  return (await teamsOf(ctx, leagueId)).find((team) => team.managerEmail === email);
 }
 
 /** Files what happened, and the Mail letter reporting it (#26). */

@@ -6,7 +6,7 @@ import { takeTodaysEmail } from "./emailLimit";
 import { linkWithToken } from "./inviteLink";
 import { joiningRefusals, startOfNextDay } from "./joining";
 import { approvedEmail } from "./joiningEmails";
-import { callerEmail, getLeague, recordEvent, refuse, runnerOf, signedInEmail, teamsOf } from "./leagueAccess";
+import { callerEmail, getLeague, recordEvent, refuse, runnerOf, signedInEmail, teamOf } from "./leagueAccess";
 import { delivery } from "./schema";
 import { sendEmail } from "./signInEmail";
 import { putOnTeam } from "./teams";
@@ -42,7 +42,7 @@ export const joinPage = query({
     if (!league) return null;
     const email = await signedInEmail(ctx);
     if (email === null) return { leagueName: league.name, standing: "mayAsk" as const };
-    const team = (await teamsOf(ctx, league._id)).find((each) => each.managerEmail === email);
+    const team = await teamOf(ctx, league._id, email);
     if (team) return { leagueName: league.name, standing: "inLeague" as const, teamName: team.name };
     const waiting = await waitingRequestOf(ctx, league._id, email);
     return { leagueName: league.name, standing: waiting ? ("waiting" as const) : ("mayAsk" as const) };
@@ -57,7 +57,7 @@ export const ask = mutation({
     const email = await callerEmail(ctx);
     const link = (await linkWithToken(ctx, token)) ?? refuse(joiningRefusals.linkOff);
     await getLeague(ctx, link.leagueId);
-    if ((await teamsOf(ctx, link.leagueId)).some((team) => team.managerEmail === email)) refuse(joiningRefusals.alreadyIn);
+    if (await teamOf(ctx, link.leagueId, email)) refuse(joiningRefusals.alreadyIn);
     if (await waitingRequestOf(ctx, link.leagueId, email)) return null;
     await ctx.db.insert("joinRequests", { leagueId: link.leagueId, email });
     return null;

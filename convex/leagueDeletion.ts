@@ -2,8 +2,9 @@ import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Doc, Id, TableNames } from "./_generated/dataModel";
 import { internalMutation, mutation, type QueryCtx } from "./_generated/server";
-import { callerEmail, deleterOf, isAdmin, recordEvent, refuse, refusals, teamsOf } from "./leagueAccess";
+import { callerEmail, deleterOf, isAdmin, recordEvent, refuse, refusals } from "./leagueAccess";
 import { DELETION_UNDO_HOURS } from "./leagueLimits";
+import { wholeLeague } from "./letters";
 import { HOUR_MS } from "./time";
 
 // Deleting a league (#75, spec/13, Deleting). For DELETION_UNDO_HOURS it can be undone: it is
@@ -68,9 +69,7 @@ export const tablesKeyedToLeague = Object.keys(leagueRows);
 
 /** Everyone with a part in the league but `by`: whom deleting it hides it from, and who is told. */
 async function othersIn(ctx: QueryCtx, league: Doc<"leagues">, by: string): Promise<string[]> {
-  const managers = (await teamsOf(ctx, league._id)).map((team) => team.managerEmail);
-  const people = new Set([league.commissionerEmail, league.coCommissionerEmail, ...managers]);
-  return [...people].filter((email): email is string => email !== undefined && email !== by);
+  return [...new Set(await wholeLeague(ctx, league))].filter((email) => email !== by);
 }
 
 /** The admin or the league's commissioner deletes it, to be gone for good in UNDO_MS. */
