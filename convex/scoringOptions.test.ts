@@ -111,6 +111,15 @@ describe("points in tenths", () => {
     expect(scoreMatch({ passes: 1, touches: 1 }, setOf(passes, touches), CENTRE_BACK).total).toBe(0.3);
   });
 
+  test("tenths that cancel out total 0, never -0", () => {
+    const set = setOf(
+      { shape: "perAction", stat: "passes", values: { all: 0.3 } },
+      { shape: "perAction", stat: "fouls", values: { all: -0.1 } },
+      { shape: "perAction", stat: "offsides", values: { all: -0.2 } },
+    );
+    expect(Object.is(scoreMatch({ passes: 1, fouls: 1, offsides: 1 }, set, CENTRE_BACK).total, 0)).toBe(true);
+  });
+
   test("a league counting whole points only scores as any other", () => {
     const set: ScoringSet = { rules: [{ shape: "perAction", stat: "assists", values: { all: 3 } }], wholePointsOnly: true };
     expect(scoreMatch({ assists: 2 }, set, CENTRE_BACK).total).toBe(6);

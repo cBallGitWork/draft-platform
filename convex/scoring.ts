@@ -57,7 +57,7 @@ export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cel
     stat: rule.stat,
     points: rulePoints(rule, slot, statIn(record, rule.stat), minutes),
   }));
-  return { total: inTenths(sum(categories.map((category) => category.points))), categories };
+  return { total: notNegativeZero(inTenths(sum(categories.map((category) => category.points)))), categories };
 }
 
 /** Only the record's own keys count: a rule on `constructor` must not read Object's. A stat the
@@ -70,8 +70,7 @@ function statIn(record: MatchStats, stat: string): number {
 }
 
 /** A rule's points for the slot: nothing below its minimum minutes, then held to its points
- *  limit. Points too large to be a number throw. No action under a negative rule (0 yellow cards
- *  at -1) is -0 in JavaScript, which a saved row or a test tells apart from 0, so it is made 0. */
+ *  limit. Points too large to be a number throw. */
 function rulePoints(rule: ScoringRule, slot: Slot, actions: number, minutes: number): number {
   const price: Price = (priced) => priceFor(priced, slot.area, slot.position);
   if (rule.minMinutes !== undefined && minutes < price(rule.minMinutes)) return 0;
@@ -82,7 +81,12 @@ function rulePoints(rule: ScoringRule, slot: Slot, actions: number, minutes: num
     if (min !== null) points = Math.max(points, min);
   }
   if (!Number.isFinite(points)) throw new Error(`the ${rule.stat} rule gives ${points} points as ${slot.position}`);
-  points = inTenths(points);
+  return notNegativeZero(inTenths(points));
+}
+
+/** No points as -0, which JavaScript makes of 0 yellow cards at -1, or of tenths that cancel out,
+ *  and which a saved row or a test tells apart from 0. */
+function notNegativeZero(points: number): number {
   return points === 0 ? 0 : points;
 }
 

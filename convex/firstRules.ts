@@ -77,6 +77,7 @@ export const FIRST_RULES: LeagueRules = {
         stat: "defensive_contribution",
         stack: false,
         values: { byArea: fplPositions([], [{ atLeast: 10, points: 2 }], [{ atLeast: 12, points: 2 }], [{ atLeast: 12, points: 2 }]) },
+        limit: { all: { max: 2, min: null } },
       },
       { shape: "perAction", stat: "yellow_cards", values: { all: -1 } },
       { shape: "perAction", stat: "red_cards", values: { all: -3 } },
