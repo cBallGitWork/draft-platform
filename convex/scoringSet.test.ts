@@ -9,24 +9,25 @@ test("a good set passes, an area with no bands among it", () => {
   expect(() => validateScoringSet(EXAMPLE_SET)).not.toThrow();
 });
 
-const goals = (byArea: unknown) => ({ rules: [{ shape: "perAction", stat: "goals", byArea }] });
-const saves = (byArea: unknown) => ({ rules: [{ shape: "perCount", stat: "saves", byArea }] });
-const minutes = (bands: unknown, stacking: object = { stack: false }) => ({
-  rules: [{ shape: "bands", stat: "minutes", ...stacking, byArea: everyArea(bands) }],
-});
+/** A set of these rules, fractions allowed. */
+const setOf = (...rules: unknown[]) => ({ rules, wholePointsOnly: false });
+const goals = (byArea: unknown) => setOf({ shape: "perAction", stat: "goals", values: { byArea } });
+const saves = (byArea: unknown) => setOf({ shape: "perCount", stat: "saves", values: { byArea } });
+const minutes = (bands: unknown, stacking: object = { stack: false }) =>
+  setOf({ shape: "bands", stat: "minutes", ...stacking, values: { byArea: everyArea(bands) } });
 const { attack: _leftOut, ...noAttack } = everyArea(5);
 
 test.each([
   ["a set with no list of rules", {}, "a scoring set must be a list of rules"],
-  ["a rule that is not a rule", { rules: [null] }, "rule 1 of the scoring set is not a rule"],
+  ["a rule that is not a rule", setOf(null), "rule 1 of the scoring set is not a rule"],
   [
     "a rule naming no stat",
-    { rules: [...goals(everyArea(5)).rules, { shape: "perAction", byArea: everyArea(1) }] },
+    setOf(...goals(everyArea(5)).rules, { shape: "perAction", values: { all: 1 } }),
     "rule 2 of the scoring set names no stat",
   ],
   [
     "a rule of no known shape",
-    { rules: [{ shape: "perMinute", stat: "minutes", byArea: everyArea(1) }] },
+    setOf({ shape: "perMinute", stat: "minutes", values: { all: 1 } }),
     'the minutes rule has the shape "perMinute", which is not one of the three',
   ],
   [

@@ -17,6 +17,9 @@ type StatInBothFeeds = { fpl: string; pl: string; kept: "fpl" | "pl" };
 /** What a match's minutes are read from in each feed. */
 const MINUTES: StatInBothFeeds = { fpl: "minutes", pl: "mins_played", kept: "fpl" };
 
+/** A record's minutes, under the name it is kept by. */
+export const MINUTES_STAT = MINUTES.fpl;
+
 /** Whose count is kept where both feeds send a stat (spec/07: FPL's for goals, assists, minutes,
  *  cards, saves, clean sheets, goals conceded and penalties; the Premier League's for the rest).
  *  Those marked are Opta's usual names, not yet seen in a recording: a wrong one only leaves both
