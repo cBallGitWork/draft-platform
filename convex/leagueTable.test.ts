@@ -39,7 +39,7 @@ describe("who may read it", () => {
 });
 
 describe("the fixtures", () => {
-  test("three teams play each other over three gameweeks, the one left over against the league's average, by default", async () => {
+  test("three teams' round robin takes three gameweeks, every one the league plays has fixtures, and the team left over plays the league's average by default", async () => {
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
     const league = await read();
 
