@@ -1,5 +1,5 @@
 import { INVITE_DAYS, aNewTeamWords } from "./joiningShared";
-import { PRODUCT_NAME } from "./signInEmail";
+import { PRODUCT_NAME } from "./product";
 
 // Joining's emails (#73), in words for Craig to change in the pull request: an invite, which
 // carries a sign-in link, and the one telling a person their join request was approved.

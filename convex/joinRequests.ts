@@ -2,13 +2,13 @@ import { v, type Infer } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { internalAction, internalMutation, mutation, query, type QueryCtx } from "./_generated/server";
+import { sendEmail } from "./email";
 import { takeTodaysEmail } from "./emailLimit";
 import { linkWithToken } from "./inviteLink";
 import { joiningRefusals, startOfNextDay } from "./joining";
 import { approvedEmail } from "./joiningEmails";
 import { callerEmail, getLeague, recordEvent, refuse, runnerOf, signedInEmail, teamOf } from "./leagueAccess";
 import { delivery } from "./schema";
-import { sendEmail } from "./signInEmail";
 import { putOnTeam } from "./teams";
 
 // Join requests (#73; spec/13 Joining, spec/15 Joining a league): a person who opens the invite

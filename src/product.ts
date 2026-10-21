@@ -1,3 +1,2 @@
-/** The product's working name (README). index.html's <title> carries a copy, as HTML can't import
- *  it, and so does the sign-in email (convex/signInEmail.ts), as Convex deploys only convex/. */
-export const PRODUCT_NAME = "Draft Manager";
+/** Re-exported from its one home, convex/product.ts, as Convex deploys only convex/. */
+export { PRODUCT_NAME } from "../convex/product";

@@ -44,7 +44,7 @@ in (its `.env.local` names your dev deployment):
 - `npx convex env set ADMIN_EMAIL` names the admin, and `npx convex env set AUTH_RESEND_KEY`
   holds Resend's API key: pipe each value in, so it stays out of your shell history. Until there
   is a sending domain, mail comes from Resend's test sender (`onboarding@resend.dev`, set in
-  `convex/signInEmail.ts`), which reaches only the Resend account's own address, so `ADMIN_EMAIL`
+  `convex/email.ts`), which reaches only the Resend account's own address, so `ADMIN_EMAIL`
   must be that address and no one else gets a link yet.
 
 The admin can sign in at once; anyone else is put on the allowed list first:

@@ -6,7 +6,7 @@
 import { vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import { EMAILS_PER_DAY, dayOf } from "./emailLimit";
-import { RESEND_EMAILS_URL } from "./signInEmail";
+import { RESEND_EMAILS_URL } from "./email";
 import { freshConvex, type TestConvex } from "./test.harness";
 
 export const ADMIN = "craig@example.com";
