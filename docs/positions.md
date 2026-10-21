@@ -72,7 +72,7 @@ and the admin's approvals and corrections, written only by his functions. `posit
 every read (`playerPositions:ofPlayer`), so neither a change of approve mode nor a corrected
 table needs a recount. `positionSettings` holds the approve mode; `positionSheets` each match filed.
 
-The admin's functions, his alone by his email on the server (#87): `queue` (new signings and the
+The admin's functions, his alone by his email on the server (#124): `queue` (new signings and the
 men whose starts wait for him), `ofPlayer`, `approvePlayer`, `approveClub`, `setPosition` (SS is
 set this way), `removePosition` and `setApproveMode`, in `convex/playerPositions.ts`. The
 dashboard's screen is built.
