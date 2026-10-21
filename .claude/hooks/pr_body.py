@@ -12,11 +12,11 @@ import re
 from parsing import MARKED
 from where import options, runs_at
 
-CHECKED = {"create", "edit"}  # gh pr …
+PR_SUBCOMMANDS = {"create", "edit"}
 BODY_OPTS = {"-b", "--body"}
 BODY_FILE_OPTS = {"-F", "--body-file"}
 REQUIRED = ("## Merge danger", "## Fresh-eyes review")  # .github/pull_request_template.md
-LOCAL_PATH = "/Users/"
+LOCAL_PATHS = ("/Users/", "/private/tmp/")  # a Mac home folder, the session scratchpad
 CLOSING = re.compile(r"(?i)\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\b[^\n#]{0,40}#\d+")
 BARE_CLOSES = re.compile(r"^Closes #\d+\s*$")
 USE_A_FILE = "Write the body to a file and pass it with --body-file <file>."
@@ -25,7 +25,7 @@ USE_A_FILE = "Write the body to a file and pass it with --body-file <file>."
 def pr_call(words):
     """'create' or 'edit' and the args after it, if this simple command runs gh pr create or edit."""
     i = runs_at(words, "gh")
-    if i is None or words[i + 1 : i + 2] != ["pr"] or len(words) < i + 3 or words[i + 2] not in CHECKED:
+    if i is None or words[i + 1 : i + 2] != ["pr"] or len(words) < i + 3 or words[i + 2] not in PR_SUBCOMMANDS:
         return None
     return words[i + 2], words[i + 3 :]
 
@@ -63,8 +63,9 @@ def body_problem(body, creating):
         if missing:
             return (f"The body lacks {' and '.join(missing)}. Fill in the whole template "
                     "(.github/pull_request_template.md).")
-    if LOCAL_PATH in body:
-        return f"The body names a local path ({LOCAL_PATH}…). Name the file by its path in the repo."
+    local = next((path for path in LOCAL_PATHS if path in body), None)
+    if local:
+        return f"The body names a local path ({local}…). Name the file by its path in the repo."
     for line in body.splitlines():
         if CLOSING.search(line) and not BARE_CLOSES.match(line):
             return (f"A closing word sits next to an issue number ({line.strip()!r}), so merging shuts "

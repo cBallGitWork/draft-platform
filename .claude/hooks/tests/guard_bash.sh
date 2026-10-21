@@ -66,7 +66,7 @@ unset DRAFT_PRIVATE_WORDS
 # issue number elsewhere, a local path or a missing section is refused, as is a body it can't read
 sed 's/^Closes #.*/Closes #12/' "$hooks/../../.github/pull_request_template.md" > "$tmp/pr.md"
 for b in 'Partly closes #31; the screen remains.' 'It does **not** close #87.' "doesn't fully close #87" \
-  'see /Users/craigball/x' 'Fixes #4' 'Closes #12  <!-- the template comment, left in -->'; do
+  'see /Users/craigball/x' 'in /private/tmp/claude-501/x' 'Fixes #4' 'Closes #12  <!-- the template comment, left in -->'; do
   cp "$tmp/pr.md" "$tmp/pr-bad.md" && printf '%s\n' "$b" >> "$tmp/pr-bad.md"
   check deny guard_bash.py "$(bash_in "$tmp" 'gh pr create --title x --body-file pr-bad.md')"
   check deny guard_bash.py "$(bash_in "$tmp" 'gh pr edit 3 --body-file pr-bad.md')"
