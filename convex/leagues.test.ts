@@ -17,6 +17,7 @@ import {
   type TestConvex,
 } from "./leagues.harness";
 import { LISTED, fakeResend, signInDeployment } from "./signIn.harness";
+import { silenceConsoleError } from "./test.harness";
 
 // Creating a league and who runs it (#24 stories 1-3 and 6; spec/13).
 
@@ -59,7 +60,9 @@ describe("creating a league", () => {
 
   test("a commissioner whose only account is from a link that didn't go is sent one", async () => {
     fakeResend(500);
+    const logged = silenceConsoleError();
     await adminCreatesLeague(t, 4, "First");
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The sign-in link to ${COMMISSIONER} wasn't sent`));
     const account = await t.run((ctx) =>
       ctx.db
         .query("users")
@@ -274,10 +277,12 @@ describe("naming a new commissioner", () => {
 
   test("a link that didn't go to the last commissioner no longer shows once another is named", async () => {
     fakeResend(500);
+    const logged = silenceConsoleError();
     const admin = await actingAs(t, ADMIN);
     const unreached = "unreached@example.com";
     const failedLeague = await admin.mutation(api.leagues.create, { name: "Failed link", maxTeams: 4, commissionerEmail: unreached });
     await t.finishAllScheduledFunctions(vi.runAllTimers);
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The sign-in link to ${unreached} wasn't sent`));
     expect((await leagueRow(t, failedLeague))?.commissionerLink).toEqual({ email: unreached, reply: "notSent" });
 
     await admin.mutation(api.leagues.nameCommissioner, { leagueId: failedLeague, email: COMMISSIONER });

@@ -5,7 +5,14 @@ import { ADMIN, actingAs } from "./leagues.harness";
 import { PL_LAST_COMP_SEASON } from "./football";
 import { asAdmin, heldPositions, syncPositionsWith } from "./positionsSync.harness";
 import { BRENTFORD_CODE, NEWCASTLE, PLAYER, recordedPositions, SHEET } from "./recorded/positions.payloads";
-import { freshConvex, type TestConvex } from "./test.harness";
+import { freshConvex, silenceConsoleError, type TestConvex } from "./test.harness";
+
+/** What every sync of the recorded payloads logs: one match's sheet doesn't add up (positionsSync.test.ts). */
+const REPORTED = `positions sync: ${JSON.stringify({
+  unknownFormations: [],
+  unknownLabels: [],
+  matchesRefused: [`PL fixture ${SHEET.cityCoventryRefused}, team 11's 4-2-3-1 does not draw the 11 men it lists as starting`],
+})}`;
 
 /** The recorded men FPL lists at Newcastle. */
 function newcastleMen() {
@@ -16,7 +23,9 @@ function newcastleMen() {
  *  football sync (#21). */
 async function synced(): Promise<TestConvex> {
   const t = freshConvex();
+  const logged = silenceConsoleError();
   await syncPositionsWith(t, recordedPositions());
+  expect(logged).toHaveBeenCalledWith(REPORTED);
   await t.run(async (ctx) => {
     for (const element of newcastleMen()) {
       await ctx.db.insert("players", { code: element.code, name: element.web_name, fullName: element.web_name, clubCode: NEWCASTLE.code });
@@ -78,6 +87,7 @@ test("with positions counting at once, starts count unconfirmed and stay in the 
 
 test("the admin's corrections survive a recount: SS he marks stays, and a position he removes stays off", async () => {
   const t = freshConvex();
+  const logged = silenceConsoleError();
   const payloads = recordedPositions();
   const lateNov = payloads.sheets.find((sheet) => sheet.id === SHEET.newcastleLateNov)!;
   payloads.sheets = payloads.sheets.filter((sheet) => sheet !== lateNov);
@@ -90,6 +100,7 @@ test("the admin's corrections survive a recount: SS he marks stays, and a positi
   await syncPositionsWith(t, recordedPositions()); // his fourth start up front arrives
 
   expect(await heldPositions(t, PLAYER.woltemade)).toEqual({ SS: "admin" });
+  expect(logged).toHaveBeenCalledWith(REPORTED);
   expect((await (await asAdmin(t)).query(api.playerPositions.ofPlayer, { code: PLAYER.woltemade })).proposals).toEqual([]);
 });
 

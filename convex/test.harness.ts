@@ -5,6 +5,7 @@
 
 import { convexTest, type TestConvex as TestConvexOf } from "convex-test";
 import { vi } from "vitest";
+import { allowConsoleError } from "../console.setup";
 import schema from "./schema";
 
 export const modules = import.meta.glob("./**/*.ts");
@@ -34,8 +35,9 @@ export function refusedError(url: string): string {
   return `${url} answered ${REFUSED_STATUS}`;
 }
 
-/** Keeps console.error quiet for the test, where a logged failure is what it causes; the spy is
- *  returned to check what was logged. Vitest restores it after the test (vitest.config.ts). */
+/** Keeps console.error quiet for the test, where a logged failure is what it causes, and lets it
+ *  pass the guard that fails any other test that logs one (console.setup.ts). The spy is returned
+ *  to check what was logged. */
 export function silenceConsoleError() {
-  return vi.spyOn(console, "error").mockImplementation(() => {});
+  return allowConsoleError();
 }

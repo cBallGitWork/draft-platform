@@ -14,7 +14,7 @@ import {
   signInDeployment,
 } from "./signIn.harness";
 import { ASKS_PER_HOUR } from "./signInLinks";
-import type { TestConvex } from "./test.harness";
+import { silenceConsoleError, type TestConvex } from "./test.harness";
 import { HOUR_MS, MINUTE_MS } from "./time";
 
 let t: TestConvex;
@@ -192,7 +192,7 @@ describe("the day's email limit", () => {
 describe("when the email can't be sent", () => {
   test("Resend refusing it is told as not sent, and kept on the ask", async () => {
     fakeResend(500);
-    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    const logged = silenceConsoleError();
 
     expect(await ask(t, LISTED)).toBe("notSent");
 
@@ -204,11 +204,12 @@ describe("when the email can't be sent", () => {
   test("without AUTH_RESEND_KEY set, it is told as not sent", async () => {
     const sent = fakeResend();
     vi.stubEnv("AUTH_RESEND_KEY", "");
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    const logged = silenceConsoleError();
 
     expect(await ask(t, LISTED)).toBe("notSent");
 
     expect(sent).toEqual([]);
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The sign-in link to ${LISTED} wasn't sent: AUTH_RESEND_KEY isn't set`));
     const [stored] = await asksStored(LISTED);
     expect(stored.sendError).toContain("AUTH_RESEND_KEY isn't set");
   });

@@ -5,7 +5,7 @@ import { defineConfig } from "vitest/config";
 // runs: an agent's worktree, inside the repo under .claude/worktrees/, runs its own.
 // Each project puts back every stubbed global, stubbed env and spy before each test, and
 // test.setup.ts puts the real timers back after each, so no test file needs its own afterEach for
-// them. The setup file sits outside convex/, so Convex never loads it as one of its modules.
+// them. The setup files sit outside convex/, so Convex never loads them as its modules.
 
 const RESTORED = { unstubGlobals: true, unstubEnvs: true, restoreMocks: true, setupFiles: ["./test.setup.ts"] };
 
@@ -16,6 +16,8 @@ export default defineConfig({
         test: {
           name: "convex",
           ...RESTORED,
+          // A test fails if it logs with console.error and didn't call silenceConsoleError().
+          setupFiles: [...RESTORED.setupFiles, "./console.setup.ts"],
           include: ["convex/**/*.test.ts"],
           // convex-test runs functions in Convex's own runtime, which this environment mimics.
           environment: "edge-runtime",
