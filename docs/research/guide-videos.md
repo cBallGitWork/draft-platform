@@ -50,10 +50,12 @@ draft-platform, epl-draft and sideband (16 Oct 2026); K and L were pasted on 21 
 - **A changelog and a status doc** (A): the spec's status column and squash-merged PR titles do it.
 - **A rule on plan mode** (F, A, I disagree): none; each ticket is the brief. K agrees.
 - **`/advisor`** (K): we don't build on Sonnet.
-- **Projects with a coordinator and threads** (K, L): not for builds. Each builder needs its own
-  local Convex deployment, and a coordinator splitting a ticket its own way breaks one ticket,
+- **Projects with a coordinator and threads** (K, L): not for builds. Since 20 Oct each builder
+  has run in its own worktree against its own local Convex deployment on Craig's Mac, which a
+  cloud thread can't reach; and a coordinator splitting a ticket its own way breaks one ticket,
   one branch, one PR. A grill or research run there is worth one trial.
-- **A smaller workflow size** (K): medium (under 10 agents) fits our waves of 3–4 builders.
+- **A smaller workflow size** (K): the session setting is medium (under 10 agents), which has
+  fitted the waves of 3–4 builders run so far.
 - **`/loop`** (K): nothing needs polling, since builders end on the Stop gate and a finish notice.
   One use in view: watching the live poller's logs during the first live match (#37).
 
@@ -68,8 +70,9 @@ correct answers wrong at least twice, so every report was also read by hand.
   *swap*/*transfer* clash and didn't re-ask a settled rule.
 - **`/refactor`**: Opus alone caught every planted fault; the skill adds the two passes and a file
   and line per finding. All 3 with-skill runs also rewrote scoring's signatures to make the league
-  points data, which `docs/REFACTORING.md` says is never a cleanup. One line now says such a fix
-  is reported, not made; rerun, 3 of 3 reported it and left the code alone.
-- **`/goal`** (K: its checker reads only the chat): true per the docs, but 6 headless runs on a
-  small task, 3 with a vague goal and 3 with a proof goal, all passed the tests for real. A proof clause in a long builder's
-  goal stays cheap insurance.
+  points data, which `docs/REFACTORING.md` says is never a cleanup. #109 adds a line saying such
+  a fix is reported, not made; rerun, 3 of 3 reported it and left the code alone.
+- **`/goal`** (K: its checker reads only the chat): true per
+  [the docs](https://code.claude.com/docs/en/goal), but 6 headless runs on one small task, 3 with
+  a vague goal and 3 with a proof goal, all passed the tests for real. A proof clause in a long
+  builder's goal stays cheap insurance.
