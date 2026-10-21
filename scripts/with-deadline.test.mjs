@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { afterEach, expect, test } from "vitest";
 
 const WRAPPER = join(import.meta.dirname, "with-deadline.mjs");
-const DEADLINE_MESSAGE = "Tests passed the 1s deadline: likely an endless loop";
+const DEADLINE_MESSAGE = "sh ran past the 1s deadline: likely an endless loop";
 
 let scratch;
 afterEach(() => scratch && rmSync(scratch, { recursive: true, force: true }));
@@ -38,6 +38,12 @@ async function waitUntilDead(pid) {
   return !alive(pid);
 }
 
+// A fresh scratch folder, removed after the test, and the file in it for a grandchild's pid.
+function grandchildPidFile() {
+  scratch = mkdtempSync(join(tmpdir(), "with-deadline-"));
+  return join(scratch, "grandchild.pid");
+}
+
 // A shell that starts a grandchild sleeping for a minute, writes its pid, and waits on it.
 function grandchildCommand(pidFile) {
   return ["sh", "-c", `sleep 60 & echo $! > '${pidFile}'; wait`];
@@ -57,8 +63,7 @@ test("a command that never ends is killed near the deadline, and the wrapper fai
 });
 
 test("at the deadline the command's own children die too, not just the command", async () => {
-  scratch = mkdtempSync(join(tmpdir(), "with-deadline-"));
-  const pidFile = join(scratch, "grandchild.pid");
+  const pidFile = grandchildPidFile();
   const { code } = await run(["1", ...grandchildCommand(pidFile)]);
   expect(code).toBe(1);
   const grandchild = Number(readFileSync(pidFile, "utf8"));
@@ -67,8 +72,7 @@ test("at the deadline the command's own children die too, not just the command",
 });
 
 test("a signal to the wrapper reaches the command's group, which sits outside the terminal's", async () => {
-  scratch = mkdtempSync(join(tmpdir(), "with-deadline-"));
-  const pidFile = join(scratch, "grandchild.pid");
+  const pidFile = grandchildPidFile();
   const { code, output } = await run(["30", ...grandchildCommand(pidFile)], {
     onSpawn: (wrapper) => setTimeout(() => wrapper.kill("SIGTERM"), 500),
   });

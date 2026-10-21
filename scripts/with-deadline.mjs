@@ -14,14 +14,18 @@ if (!command || !(limit > 0)) {
 
 const child = spawn(command, args, { detached: true, stdio: "inherit" });
 
-const timer = setTimeout(() => {
+function killGroup(signal) {
   try {
-    process.kill(-child.pid, "SIGKILL");
+    process.kill(-child.pid, signal);
   } catch (error) {
     // ESRCH: the group is already gone. Anything else is worth seeing.
     if (error.code !== "ESRCH") console.error(error);
   }
-  console.error(`Tests passed the ${seconds}s deadline: likely an endless loop`);
+}
+
+const timer = setTimeout(() => {
+  killGroup("SIGKILL");
+  console.error(`${command} ran past the ${seconds}s deadline: likely an endless loop`);
   process.exit(1);
 }, limit * 1000);
 
@@ -32,15 +36,7 @@ child.on("error", (error) => {
 });
 
 // The group is detached from the terminal's, so a Ctrl-C reaches only this process: pass it on.
-for (const signal of ["SIGINT", "SIGTERM"]) {
-  process.on(signal, () => {
-    try {
-      process.kill(-child.pid, signal);
-    } catch {
-      // The group is already gone.
-    }
-  });
-}
+for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => killGroup(signal));
 
 child.on("exit", (code) => {
   clearTimeout(timer);

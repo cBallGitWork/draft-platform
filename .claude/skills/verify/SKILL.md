@@ -10,12 +10,12 @@ npm run verify   # install check, vitest run, then tsc on convex/ and on the app
 npm test -- <file>   # one test file
 ```
 
-Run a single file with `npm test -- <file>`, never bare `npx vitest`: `npm test` wraps vitest in
-`scripts/with-deadline.mjs`, which kills the run at 120s, so a test that loops forever fails instead
-of hanging the session. 120s sits under the Stop hook's 170s.
-
-That one script is the gate, and the Stop hook runs the same script, so a session can't
+`npm run verify` is the gate, and the Stop hook runs the same script, so a session can't
 end on a failure it didn't mention.
+
+Never run bare `npx vitest`: `npm test` wraps vitest in `scripts/with-deadline.mjs`, which kills
+the run at 120s, so a test that loops forever fails instead of hanging the session. 120s sits under
+the Stop hook's 170s.
 
 **Report the test count.** "3 passed" is a fact the next session can compare against;
 "tests pass" is not. If the count fell, say which file lost tests before anything else.
