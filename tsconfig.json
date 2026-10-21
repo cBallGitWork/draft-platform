@@ -1,6 +1,6 @@
 {
   // The app in src/ and every test in tests/. Convex's functions have their own,
-  // convex/tsconfig.json, which sees only convex/, so Convex never bundles a test.
+  // convex/tsconfig.json; the tests sit outside convex/, so Convex never bundles one.
   "compilerOptions": {
     "target": "ES2023",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],

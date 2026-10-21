@@ -340,7 +340,7 @@ const leagueFields = {
   commissionerLink: v.optional(v.object({ email: v.string(), reply: signInReply })),
   /** Present while the league is being deleted (#75). */
   deletion: v.optional(leagueDeletion),
-  /** The gameweeks its commissioner unticked, in order (#74, convex/usedGameweeks.ts). Absent while
+  /** The gameweeks its commissioner unticked, in order (#74, convex/gameweeks/usedGameweeks.ts). Absent while
    *  it plays all 38, the default, so a league needs no write to have it. */
   unusedGameweeks: v.optional(v.array(v.number())),
 };
