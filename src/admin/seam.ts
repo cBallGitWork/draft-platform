@@ -4,11 +4,9 @@
 import type { FoundPlayerPositions, PositionsQueue } from "../../convex/playerPositions";
 import type { ApproveMode } from "../../convex/positions";
 import type { Position } from "../../convex/positionTables";
+import type { Change } from "../refusal";
 
 export type { FoundPlayerPositions, PositionsQueue };
-
-/** A change: it resolves with null once made, or with the words saying why not. It never rejects. */
-type Change = Promise<string | null>;
 
 export type AdminSeam = {
   /** The queue, the clubs and the approve mode, live (a hook): undefined while they load. */

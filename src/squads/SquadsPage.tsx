@@ -3,7 +3,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/myLeagues";
 import { Loading, PageTitle, PanelTitle, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
-import { useChange } from "../useChange";
+import { useChange, type Changing } from "../useChange";
 import type { FoundPlayer, SquadsSeam, TeamSquad } from "./seam";
 import {
   assignLabel,
@@ -29,8 +29,6 @@ import {
   teamChoiceLabel,
   warningWords,
 } from "./words";
-
-type Change = ReturnType<typeof useChange>;
 
 /** A league's squads (spec/15, Assigning players), for its commissioners and the admin: find a
  *  player and put him on a team, move him or release him; each team's squad and the league's
@@ -65,7 +63,7 @@ export function SquadsPage({ league, seam }: { league: LeagueSummary; seam: Squa
 }
 
 /** Search by name, then put the player found on a team, or move him to another. */
-function FindPlayer({ league, seam, squads, change }: { league: LeagueSummary; seam: SquadsSeam; squads: readonly TeamSquad[]; change: Change }) {
+function FindPlayer({ league, seam, squads, change }: { league: LeagueSummary; seam: SquadsSeam; squads: readonly TeamSquad[]; change: Changing }) {
   const [text, setText] = useState("");
   const found = seam.useFoundPlayers(league.leagueId, text);
   return (
@@ -106,7 +104,7 @@ function FoundRow({
   seam: SquadsSeam;
   player: FoundPlayer;
   squads: readonly TeamSquad[];
-  change: Change;
+  change: Changing;
 }) {
   const others = squads.filter((squad) => squad.teamName !== player.teamName);
   const [chosen, choose] = useState<string>("");
@@ -149,7 +147,7 @@ function FoundRow({
 }
 
 /** One team's squad: its players by name, the limits it breaks, and releasing a player. */
-function Squad({ league, seam, squad, change }: { league: LeagueSummary; seam: SquadsSeam; squad: TeamSquad; change: Change }) {
+function Squad({ league, seam, squad, change }: { league: LeagueSummary; seam: SquadsSeam; squad: TeamSquad; change: Changing }) {
   const titleId = `squad-${squad.teamId}`;
   return (
     <section aria-labelledby={titleId} className="bg-panel">

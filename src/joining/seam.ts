@@ -5,11 +5,9 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import type { InvitesPageData } from "../../convex/invitesPage";
 import type { JoinPageData } from "../../convex/joinRequests";
+import type { Change } from "../refusal";
 
 export type { InvitesPageData, JoinPageData };
-
-/** A change: it resolves with null once made, or with the words saying why not. It never rejects. */
-type Change = Promise<string | null>;
 
 export type JoiningSeam = {
   /** The league's invites page, live (a hook): undefined while it loads, null when the person

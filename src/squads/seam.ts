@@ -3,11 +3,9 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { FoundPlayer, TeamSquad } from "../../convex/squads";
+import type { Change } from "../refusal";
 
 export type { FoundPlayer, TeamSquad };
-
-/** A change: it resolves with null once made, or with the words saying why not. It never rejects. */
-type Change = Promise<string | null>;
 
 export type SquadsSeam = {
   /** Each team's squad and its warnings, live (a hook): undefined while they load. */

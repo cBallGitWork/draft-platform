@@ -3,13 +3,13 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueGameweek } from "../../convex/leagueGameweeks";
+import type { Change } from "../refusal";
 
 export type LeagueGameweeksView = {
   /** The league's gameweeks, 1 to 38, or undefined while they load. */
   gameweeks: readonly LeagueGameweek[] | undefined;
-  /** Ticks (`used`) or unticks a gameweek, and resolves with null once done, or with the words
-   *  saying why it wasn't. It never rejects. */
-  setUsed(gameweek: number, used: boolean): Promise<string | null>;
+  /** Ticks (`used`) or unticks a gameweek. */
+  setUsed(gameweek: number, used: boolean): Change;
 };
 
 export type GameweeksSeam = { useLeagueGameweeks(leagueId: Id<"leagues">): LeagueGameweeksView };

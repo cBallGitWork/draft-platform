@@ -41,6 +41,9 @@ import { linkProblemWords, type LinkProblem } from "./sign-in/words";
 import type { TableSeam } from "./table/seam";
 import { TableRoute } from "./table/TableRoute";
 
+// A seam is a top-level useLive* hook holding root state (mail, joining, squads, admin, leagues) or a
+// constant object of hooks (gameweeks, table). Each new one needs a preview (main.tsx), a live value
+// (liveApp.tsx) and a fake (shell.harness.tsx), and the typechecker flags any that's missing.
 export type ShellContext = {
   session: Session;
   auth: AuthActions;
@@ -63,6 +66,21 @@ const rootRoute = createRootRouteWithContext<ShellContext>()({
   component: Outlet,
   notFoundComponent: () => <Navigate to="/" replace />,
 });
+
+/** The app's frame for someone in a league: the menu, the top bar and the league switcher. */
+function LeagueFrame({ context: { session, topBar, auth, leagues } }: { context: ShellContext }) {
+  const leagueSwitcher = <LeagueSwitcher session={session} switchLeague={leagues.switchLeague} />;
+  return <AppFrame topBar={topBar} onSignOut={auth.signOut} leagueSwitcher={leagueSwitcher} />;
+}
+
+// The guards on a page for the admin alone, and on a league's page for whoever runs it: anyone else
+// is sent back to their leagues.
+const adminOnly = ({ context }: { context: ShellContext }) => {
+  if (!(context.session.signedIn && context.session.isAdmin)) throw redirect({ to: LEAGUES_PATH });
+};
+const runnersOnly = ({ context, params }: { context: ShellContext; params: { leagueId: string } }) => {
+  if (!leagueRunBy(context.session, params.leagueId)) throw redirect({ to: LEAGUES_PATH });
+};
 
 const isLinkProblem = (value: unknown): value is LinkProblem =>
   typeof value === "string" && Object.hasOwn(linkProblemWords, value);
@@ -97,15 +115,11 @@ const leaguePagesRoute = createRoute({
     if (!context.session.signedIn) throw redirect({ to: SIGN_IN_PATH, search: { join: joinTokenAt(location.pathname) ?? undefined } });
   },
   component: function LeaguePages() {
-    const { session, topBar, auth, leagues } = leaguePagesRoute.useRouteContext();
-    return session.signedIn && session.inLeague ? (
-      <AppFrame
-        topBar={topBar}
-        onSignOut={auth.signOut}
-        leagueSwitcher={<LeagueSwitcher session={session} switchLeague={leagues.switchLeague} />}
-      />
+    const context = leaguePagesRoute.useRouteContext();
+    return context.session.signedIn && context.session.inLeague ? (
+      <LeagueFrame context={context} />
     ) : (
-      <LeaguelessFrame unreadMail={topBar.unreadMail} onSignOut={auth.signOut} />
+      <LeaguelessFrame unreadMail={context.topBar.unreadMail} onSignOut={context.auth.signOut} />
     );
   },
 });
@@ -124,9 +138,7 @@ const leaguesRoute = createRoute({
 const newLeagueRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: NEW_LEAGUE_PATH,
-  beforeLoad: ({ context }) => {
-    if (!(context.session.signedIn && context.session.isAdmin)) throw redirect({ to: LEAGUES_PATH });
-  },
+  beforeLoad: adminOnly,
   component: function NewLeague() {
     return <NewLeaguePage createLeague={newLeagueRoute.useRouteContext({ select: (context) => context.leagues.createLeague })} />;
   },
@@ -145,9 +157,7 @@ const mailRoute = createRoute({
 const gameweeksRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: GAMEWEEKS_ROUTE,
-  beforeLoad: ({ context, params }) => {
-    if (!leagueRunBy(context.session, params.leagueId)) throw redirect({ to: LEAGUES_PATH });
-  },
+  beforeLoad: runnersOnly,
   component: function Gameweeks() {
     const { session, gameweeks } = gameweeksRoute.useRouteContext();
     return <GameweeksRoute session={session} seam={gameweeks} leagueId={gameweeksRoute.useParams().leagueId} />;
@@ -158,9 +168,7 @@ const gameweeksRoute = createRoute({
 const squadsRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: SQUADS_ROUTE,
-  beforeLoad: ({ context, params }) => {
-    if (!leagueRunBy(context.session, params.leagueId)) throw redirect({ to: LEAGUES_PATH });
-  },
+  beforeLoad: runnersOnly,
   component: function Squads() {
     const { session, squads } = squadsRoute.useRouteContext();
     return <SquadsRoute session={session} seam={squads} leagueId={squadsRoute.useParams().leagueId} />;
@@ -171,9 +179,7 @@ const squadsRoute = createRoute({
 const adminRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: ADMIN_PATH,
-  beforeLoad: ({ context }) => {
-    if (!context.session.signedIn || !context.session.isAdmin) throw redirect({ to: LEAGUES_PATH });
-  },
+  beforeLoad: adminOnly,
   component: function Admin() {
     const admin = adminRoute.useRouteContext({ select: (context) => context.admin });
     return <AdminPage seam={admin} />;
@@ -208,14 +214,7 @@ const frameRoute = createRoute({
     if (!context.session.inLeague) throw redirect({ to: LEAGUES_PATH });
   },
   component: function Frame() {
-    const { session, topBar, auth, leagues } = frameRoute.useRouteContext();
-    return (
-      <AppFrame
-        topBar={topBar}
-        onSignOut={auth.signOut}
-        leagueSwitcher={<LeagueSwitcher session={session} switchLeague={leagues.switchLeague} />}
-      />
-    );
+    return <LeagueFrame context={frameRoute.useRouteContext()} />;
   },
 });
 
