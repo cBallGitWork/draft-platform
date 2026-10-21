@@ -4,7 +4,7 @@ import { ConvexError } from "convex/values";
 // own words (each convex/ module's refusals); any other failure is logged and said plainly.
 
 /** The server's words for a refusal, or null for any other failure. */
-const refusalIn = (error: unknown) => (error instanceof ConvexError && typeof error.data === "string" ? error.data : null);
+export const refusalIn =(error: unknown) => (error instanceof ConvexError && typeof error.data === "string" ? error.data : null);
 
 /** What `attempt` resolves with, the server's words if it refused, or `failedWords` (and the
  *  failure logged as what `doing` failed) if anything else went wrong. */
