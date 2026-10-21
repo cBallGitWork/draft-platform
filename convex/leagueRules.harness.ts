@@ -3,10 +3,11 @@
 
 import { ConvexError } from "convex/values";
 import { expect } from "vitest";
-import { FPL_DEADLINE_RULE, MS_PER_MINUTE } from "./deadline";
+import { FPL_DEADLINE_RULE } from "./deadline";
 import { FIRST_RULES } from "./firstRules";
 import type { TestConvex } from "./leagues.harness";
 import type { LeagueRules } from "./leagueRulesShape";
+import { DAY_MS, MINUTE_MS } from "./time";
 
 /** The first rules with some parts changed, as a copy the test may change further. */
 export function rulesWith(change: Partial<LeagueRules>): LeagueRules {
@@ -16,8 +17,6 @@ export function rulesWith(change: Partial<LeagueRules>): LeagueRules {
 /** The first rules, played as total points. */
 export const TOTAL_POINTS = rulesWith({ format: "totalPoints" });
 
-export const HOUR_MS = 60 * MS_PER_MINUTE;
-const DAY_MS = 24 * HOUR_MS;
 const WEEK_MS = 7 * DAY_MS;
 const SEASON_GAMEWEEKS = 38;
 
@@ -32,7 +31,7 @@ export async function holdGameweeks(
   await t.run(async (ctx) => {
     for (let number = 1; number <= SEASON_GAMEWEEKS; number += 1) {
       const kickoff = kickoffOf(number);
-      const deadline = kickoff - FPL_DEADLINE_RULE.minutesBeforeFirstKickoff * MS_PER_MINUTE;
+      const deadline = kickoff - FPL_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS;
       await ctx.db.insert("gameweeks", { number, deadline });
       await ctx.db.insert("fixtures", { code: number, gameweek: number, homeClubCode: 1, awayClubCode: 2, kickoff });
     }

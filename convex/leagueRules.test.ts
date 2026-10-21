@@ -7,7 +7,8 @@ import { rulesInGameweek } from "./leagueRules";
 import type { LeagueRules } from "./leagueRulesShape";
 import { scoreMatch } from "./scoring";
 import { EXAMPLE_SET } from "./scoring.example";
-import { expectRefused, holdGameweeks, HOUR_MS, rulesWith, TOTAL_POINTS } from "./leagueRules.harness";
+import { expectRefused, holdGameweeks, rulesWith, TOTAL_POINTS } from "./leagueRules.harness";
+import { HOUR_MS } from "./time";
 import {
   actingAs,
   addManagers,
