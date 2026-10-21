@@ -2,6 +2,7 @@
 // The scoring set is the league's rule, so it is always an argument, never a constant.
 
 import { MINUTES_STAT } from "./matchRecords";
+import { withOwnStats } from "./ownStats";
 import { AREAS, LANES, positionOfSlot, type Cell, type SlotPosition } from "./pitch";
 import {
   inTenths,
@@ -52,6 +53,7 @@ export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cel
     return { total: null, categories: set.rules.map((rule) => ({ stat: rule.stat, points: null })) };
   }
   const slot = { area: cell.area, position: positionOfSlot(cell) };
+  record = withOwnStats(record, set);
   const minutes = statIn(record, MINUTES_STAT);
   const categories = set.rules.map((rule) => ({
     stat: rule.stat,
@@ -62,7 +64,7 @@ export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cel
 
 /** Only the record's own keys count: a rule on `constructor` must not read Object's. A stat the
  *  feeds sent as anything but a number is bad data, never 0. */
-function statIn(record: MatchStats, stat: string): number {
+export function statIn(record: MatchStats, stat: string): number {
   if (!Object.hasOwn(record, stat)) return 0;
   const actions = record[stat];
   requireNumber(actions, `his record's ${stat} is`);

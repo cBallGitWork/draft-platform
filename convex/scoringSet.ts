@@ -2,6 +2,9 @@
 // a rule scores). The set is the league's rule, so it is always data handed in, never a constant.
 
 import { AREAS, SLOT_POSITIONS, type Area, type SlotPosition } from "./pitch";
+import { validateOwnStats, type OwnStat } from "./ownStats";
+
+export type { OwnStat };
 
 // The pitch's six areas are the pitch's (./pitch.ts), so a lineup and a scoring set can't disagree.
 export { AREAS, type Area };
@@ -65,10 +68,12 @@ export interface BandsRule extends RuleOptions {
 export type ScoringRule = PerActionRule | PerCountRule | BandsRule;
 
 /** A league's scoring set. A stat no rule names scores nothing, FPL's bonus among them. Points
- *  are kept in tenths; `wholePointsOnly` refuses any fraction (spec/14). */
+ *  are kept in tenths; `wholePointsOnly` refuses any fraction, and counts an own stat's whole
+ *  actions only (spec/14). */
 export interface ScoringSet {
   rules: readonly ScoringRule[];
   wholePointsOnly: boolean;
+  ownStats?: readonly OwnStat[];
 }
 
 /** The value a priced setting gives the slot he starts in. */
@@ -90,6 +95,7 @@ export function validateScoringSet(set: unknown): asserts set is ScoringSet {
     throw new Error(`a scoring set must say whether its points are whole only, true or false, not ${showValue(set.wholePointsOnly)}`);
   }
   const { wholePointsOnly } = set;
+  if (set.ownStats !== undefined) validateOwnStats(set.ownStats);
   set.rules.forEach((rule, index) => validateRule(rule, index + 1, wholePointsOnly));
 }
 
