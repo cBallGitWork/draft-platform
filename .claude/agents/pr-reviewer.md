@@ -43,9 +43,7 @@ Then check the description's claims against what you found.
 9. **Plain English** in anything Craig reads.
 10. **Refactor means identical.** On a refactor/ branch or a drift pass, nothing a manager or the
     league's data sees may change. Check the diff against docs/REFACTORING.md 'What is never a
-    refactor' and 'Proving nothing changed' (Vitest and typecheck pass before and after,
-    convex/scoring.test.ts replay gives identical points, Convex schema unchanged). A fix or
-    feature mixed into a refactor is a finding.
+    refactor' and 'Proving nothing changed'. A fix or feature mixed into a refactor is a finding.
 
 Do not invent rules. Where the repo's docs are silent, say so and mark it CRAIG'S CALL. Never write
 anywhere in the repo.

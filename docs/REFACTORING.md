@@ -48,9 +48,8 @@ back, names drift, docs desync. The drift pass is a scheduled step back.
 - a file passes 300 lines (the line-ceiling hook will say when, `ARCHITECTURE.md`).
 
 **What:** `/refactor`'s checklist, across everything merged since the last pass (the skill diffs only
-the current branch, so give it the range from
-`git log -1 --format=%H --grep '^refactor: drift pass' main` to `main`); whether each thing lives
-in the right place; and diff `.claude/rules/ui.md`'s Never list against plate.md's `## Never`,
+the current branch, so give it the range from the last drift pass to `main`, as *Record* finds
+it); whether each thing lives in the right place; and diff `.claude/rules/ui.md`'s Never list against plate.md's `## Never`,
 and check ui-verifier's colour-role bullet still matches plate.md.
 
 The drift pass is a task of its own, so fixing older files there keeps `CLAUDE.md`'s rule that
