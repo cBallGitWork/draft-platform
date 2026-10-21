@@ -1,4 +1,4 @@
-# `npm run verify` on GitHub's runner; what it catches and why here: ARCHITECTURE.md, Services.
+# `npm run verify`, then `npm run build`, on GitHub's runner; what it catches and why here: ARCHITECTURE.md, Services.
 name: verify
 
 on:
