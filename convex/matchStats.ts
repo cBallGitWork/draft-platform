@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Doc } from "./_generated/dataModel";
 import { internalMutation, internalQuery, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { LATEST_RUNS } from "./footballSync";
 import { isMatchComplete, isWhole, lockTime, statChanges, type PlayerMatchRecord, type StatChange } from "./matchRecords";
 import { statCorrectionWindowMs } from "./platformSettings";
 import { matchStatsState, matchStatsSyncFields, playerMatchRecord } from "./schema";
@@ -23,8 +24,6 @@ export const LATE_CORRECTION_WATCH_MS = 24 * HOUR_MS;
 export const LATE_READ_EVERY_MS = HOUR_MS;
 /** Matches per run: a gameweek's worth, so a first run behind many keeps inside an action's time. */
 export const MATCHES_PER_RUN = 10;
-/** How many run rows `latest` returns. */
-const LATEST_RUNS = 5;
 
 /** The held matches to read now: each past full time and not locked, or locked within the watch
  *  and not read for an hour. Those never tried come first, then the least lately tried, oldest

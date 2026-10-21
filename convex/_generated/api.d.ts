@@ -41,6 +41,8 @@ import type * as pitch from "../pitch.js";
 import type * as plCommentary from "../plCommentary.js";
 import type * as plMatch from "../plMatch.js";
 import type * as platformSettings from "../platformSettings.js";
+import type * as playerPositions from "../playerPositions.js";
+import type * as positionsSync from "../positionsSync.js";
 import type * as premierLeague from "../premierLeague.js";
 import type * as presets from "../presets.js";
 import type * as scoring from "../scoring.js";
@@ -90,6 +92,8 @@ declare const fullApi: ApiFromModules<{
   plCommentary: typeof plCommentary;
   plMatch: typeof plMatch;
   platformSettings: typeof platformSettings;
+  playerPositions: typeof playerPositions;
+  positionsSync: typeof positionsSync;
   premierLeague: typeof premierLeague;
   presets: typeof presets;
   scoring: typeof scoring;

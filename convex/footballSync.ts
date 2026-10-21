@@ -3,12 +3,13 @@ import { v, type Infer, type Value } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Doc } from "./_generated/dataModel";
 import { internalAction, internalMutation, internalQuery, type ActionCtx, type MutationCtx } from "./_generated/server";
+import { errorMessage } from "./football";
 import { readFpl } from "./fpl";
 import {
   clubRecord,
   fixtureRecord,
   footballSyncFields,
-  footballSyncTrigger,
+  syncTrigger,
   gameweekRecord,
   playerRecord,
   tableWrites,
@@ -31,14 +32,14 @@ type FootballTable = Infer<typeof footballTable>;
 type Keyed = { code: number } | { number: number };
 type MarkedPage = { marked: number; cursor: string; isDone: boolean };
 /** How many run rows `latest` returns. */
-const LATEST_RUNS = 5;
+export const LATEST_RUNS = 5;
 
 /** Rows per mutation, upserted or checked for a mark: well inside Convex's per-transaction limits,
  *  and a season's ~700 players in four. */
 export const BATCH_SIZE = 200;
 
 export const run = internalAction({
-  args: { trigger: footballSyncTrigger },
+  args: { trigger: syncTrigger },
   handler: async (ctx, { trigger }) => {
     const ranAt = Date.now();
     let outcome: Infer<typeof footballSyncFields.outcome>;
@@ -55,7 +56,7 @@ export const run = internalAction({
         gameweeks: await syncTable(ctx, "gameweeks", internal.footballSync.upsertGameweeks, football.gameweeks, ranAt),
       };
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message = errorMessage(error);
       console.error(`football sync failed: ${message}`);
       outcome = { ok: false, error: message };
     }
