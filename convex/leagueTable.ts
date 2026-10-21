@@ -4,9 +4,10 @@ import { query } from "./_generated/server";
 import { drawRulesOf } from "./firstRules";
 import { memberOf, teamsOf } from "./leagueAccess";
 import { latestRules } from "./leagueRules";
+import { leagueRulesShape } from "./leagueRulesShape";
 import { drawFixtures, LEAGUE_AVERAGE, roundsOf } from "./roundRobin";
 import { headToHeadTable, totalPointsTable, type GameweekScores } from "./standings";
-import { GAMEWEEKS, usedGameweeksOf } from "./usedGameweeks";
+import { fplDeadline, fplDeadlines, usedGameweeksOf } from "./usedGameweeks";
 
 // The league's fixtures and table (#33; spec/09, spec/12 "table and fixtures"), for anyone with a
 // part in it. The fixtures are drawn afresh from the teams, the gameweeks the league plays and its
@@ -22,8 +23,7 @@ const fixture = v.object({
 
 const gameweekFixtures = v.object({
   gameweek: v.number(),
-  /** FPL's deadline, when it begins; null while the app doesn't have it. */
-  deadline: v.union(v.number(), v.null()),
+  deadline: fplDeadline,
   fixtures: v.array(fixture),
   /** The teams with a bye, in a league whose odd team out has one: one a game. */
   byes: v.array(v.string()),
@@ -43,7 +43,7 @@ const tableRow = v.object({
 });
 
 export const leagueTable = v.object({
-  format: v.union(v.literal("headToHead"), v.literal("totalPoints")),
+  format: leagueRulesShape.fields.format,
   /** How many rounds one round robin has, every team meeting every other once; 0 with no fixtures. */
   roundRobinRounds: v.number(),
   /** Each gameweek the league plays, with its fixtures; none in total points, or with fewer than
@@ -74,11 +74,7 @@ export const ofLeague = query({
     const scores: GameweekScores<Id<"teams">> = new Map();
     const table = headToHead ? headToHeadTable(teamIds, schedule, scores, rules.tieBreaks) : totalPointsTable(teamIds, scores);
 
-    const rows = await ctx.db
-      .query("gameweeks")
-      .withIndex("by_number", (q) => q.gte("number", 1).lte("number", GAMEWEEKS))
-      .take(GAMEWEEKS);
-    const deadlines = new Map(rows.map((row) => [row.number, row.deadline]));
+    const deadlines = await fplDeadlines(ctx);
     return {
       format: rules.format,
       roundRobinRounds: schedule.length === 0 ? 0 : roundsOf(teamIds).length,

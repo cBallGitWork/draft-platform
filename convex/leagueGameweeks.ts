@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { isLocked } from "./deadline";
 import { recordEvent, refuse, runnerOf } from "./leagueAccess";
-import { GAMEWEEKS, isGameweek, isGameweekUsed, noSuchGameweek, unusedAfter } from "./usedGameweeks";
+import { fplDeadline, fplDeadlines, isGameweek, isGameweekUsed, noSuchGameweek, SEASON_GAMEWEEKS, unusedAfter } from "./usedGameweeks";
 
 // The commissioner ticks the gameweeks the league plays, all 38 by default (#74; spec/13,
 // Gameweeks). A gameweek has begun once FPL's deadline for it (#21's gameweeks) has passed, and
@@ -21,8 +21,7 @@ export const gameweekRefusals = {
 export const leagueGameweek = v.object({
   gameweek: v.number(),
   used: v.boolean(),
-  /** FPL's deadline, when it begins; null while the app doesn't have it. */
-  deadline: v.union(v.number(), v.null()),
+  deadline: fplDeadline,
 });
 export type LeagueGameweek = Infer<typeof leagueGameweek>;
 
@@ -33,15 +32,12 @@ export const ofLeague = query({
   returns: v.array(leagueGameweek),
   handler: async (ctx, { leagueId }) => {
     const { league } = await runnerOf(ctx, leagueId);
-    const rows = await ctx.db
-      .query("gameweeks")
-      .withIndex("by_number", (q) => q.gte("number", 1).lte("number", GAMEWEEKS))
-      .take(GAMEWEEKS);
-    const deadlines = new Map(rows.map((row) => [row.number, row.deadline]));
-    return Array.from({ length: GAMEWEEKS }, (_, index) => {
-      const gameweek = index + 1;
-      return { gameweek, used: isGameweekUsed(league, gameweek), deadline: deadlines.get(gameweek) ?? null };
-    });
+    const deadlines = await fplDeadlines(ctx);
+    return SEASON_GAMEWEEKS.map((gameweek) => ({
+      gameweek,
+      used: isGameweekUsed(league, gameweek),
+      deadline: deadlines.get(gameweek) ?? null,
+    }));
   },
 });
 
