@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { adminOf } from "./leagueAccess";
+import { allClubs, playersNamed } from "./playerSearch";
 import { positionsFromStarts, positionsOf, type ApproveMode, type PlayerPositions } from "./positions";
 import type { Position } from "./positionTables";
 import { approveMode, position } from "./schema";
@@ -115,9 +116,6 @@ const positionsQueue = v.object({
 });
 export type PositionsQueue = Infer<typeof positionsQueue>;
 
-/** The Premier League's clubs, with room for the ones a season's sync keeps after relegation. */
-const CLUBS_MOST = 40;
-
 /** The admin's queue (spec/06; spec/15): new signings, whose starts give no position yet (fewer than
  *  3 at a place) and who play on their label until he confirms it, and the men whose starts give
  *  positions waiting for his approval. By name. It reads every row: one cut short would lose the
@@ -142,17 +140,13 @@ export const queue = query({
       if (proposals.length > 0) waiting.push({ ...who, proposals });
     }
     const byName = (one: { name: string }, other: { name: string }) => one.name.localeCompare(other.name);
-    const clubs = (await ctx.db.query("clubs").take(CLUBS_MOST))
+    const clubs = (await allClubs(ctx))
       .filter((club) => club.droppedAt === undefined)
       .map(({ code, name }) => ({ code, name }))
       .sort(byName);
     return { newSignings: newSignings.sort(byName), waiting: waiting.sort(byName), clubs, approveMode };
   },
 });
-
-/** The most players a search gives the admin: enough to pick from, few enough to read. Its twin, with
- *  the same search, is in squads.ts: change the limit or the query in both. */
-const FOUND_MOST = 20;
 
 const heldPosition = v.object({
   position,
@@ -171,10 +165,7 @@ export const find = query({
     await adminOf(ctx);
     if (!text.trim()) return [];
     const approveMode = await currentApproveMode(ctx);
-    const found = await ctx.db
-      .query("players")
-      .withSearchIndex("search_fullName", (q) => q.search("fullName", text).eq("droppedAt", undefined))
-      .take(FOUND_MOST);
+    const found = await playersNamed(ctx, text);
     return Promise.all(
       found.map(async (player) => ({
         code: player.code,
