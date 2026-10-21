@@ -33,8 +33,8 @@ test("the first rules' presets are the eleven every league starts with", () => {
 test("stored rules pass straight into scoring and the lineup check", () => {
   const { scoring, areaLimits, doubleGameweek } = FIRST_RULES;
   const match = scoreMatch({ minutes: 90, goals_scored: 1 }, scoring, "attack");
-  expect(match.total).toBe(0);
-  expect(scoreGameweek([match], doubleGameweek)).toEqual({ points: 0, provisional: false });
+  expect(match.total).toBe(6);
+  expect(scoreGameweek([match], doubleGameweek)).toEqual({ points: 6, provisional: false });
   expect(lineupProblems({ starters: [], bench: [] }, new Map(), { areaLimits })).toContainEqual({
     kind: "belowMinimum",
     area: "goalkeeper",

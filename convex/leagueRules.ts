@@ -59,7 +59,7 @@ async function writeDefaults(ctx: MutationCtx, rules: LeagueRules): Promise<void
 }
 
 /** Gives a new league the admin's default rules from gameweek 1. The first league a deployment
- *  makes writes the placeholder first rules (firstRules.ts) as those defaults. */
+ *  makes writes the first rules (firstRules.ts) as those defaults. */
 export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">): Promise<void> {
   const defaults = (await defaultsRow(ctx))?.rules;
   if (defaults === undefined) await writeDefaults(ctx, FIRST_RULES);
