@@ -1,10 +1,10 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "./_generated/api";
 import { internalAction, internalMutation, type ActionCtx } from "./_generated/server";
+import { sendEmail } from "./email";
 import { takeTodaysEmail as takeOne } from "./emailLimit";
 import { londonTime } from "./londonTime";
 import { unemailedReason } from "./schema";
-import { sendEmail } from "./signInEmail";
 
 // The email each person with a part in a league gets when it is deleted (#75, spec/13, Deleting):
 // that it will be deleted, and when. Each counts against the day's emails as a sign-in link does
