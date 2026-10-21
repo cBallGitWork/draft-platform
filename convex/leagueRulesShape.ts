@@ -1,9 +1,12 @@
 import { v, type Infer, type Validator } from "convex/values";
 import { AREAS, LANES } from "./pitch";
+import { ODD_TEAM_OUTS } from "./roundRobin";
+import { TIE_BREAKS } from "./standings";
 
 // The shape a league's rules are stored in (spec/03; #25). Each part is the input type of the pure
 // module that reads it, so a stored rule passes straight in: the scoring set to scoring.ts, the
-// area limits to lineup.ts, the deadline to deadline.ts. leagueRulesShape.test.ts holds them equal.
+// area limits to lineup.ts, the deadline to deadline.ts, the tie-breaks to standings.ts and the odd
+// team out to roundRobin.ts. leagueRulesShape.test.ts holds them equal.
 // What makes a rule sound beyond its shape (a minimum above its maximum) is leagueRulesCheck.ts's.
 
 /** The same validator for each of the pitch's six areas: a ByArea<Value>, or a Record<Area, …>. */
@@ -76,9 +79,6 @@ const preset = v.object({ name: v.string(), cells: v.array(v.object({ area, lane
 const WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
 const weekday = v.union(...WEEKDAYS.map((day) => v.literal(day)));
 
-/** Standings tie-breaks, applied in the league's order (spec/03). */
-const TIE_BREAKS = ["pointsFor", "headToHead", "pointsAgainst"] as const;
-
 export const leagueRulesShape = v.object({
   format: v.union(v.literal("headToHead"), v.literal("totalPoints")),
   squad: v.object({
@@ -96,7 +96,11 @@ export const leagueRulesShape = v.object({
   deadline: v.object({ minutesBeforeFirstKickoff: v.number() }),
   /** scoring.ts's DoubleGameweekRule. */
   doubleGameweek: v.union(v.literal("bothMatches"), v.literal("bestMatch")),
+  /** standings.ts's TieBreak, in the league's order. */
   tieBreaks: v.array(v.union(...TIE_BREAKS.map((name) => v.literal(name)))),
+  /** roundRobin.ts's OddTeamOut. Absent only from rules saved before #33, which play the first
+   *  rules' (firstRules.ts, `oddTeamOutOf`): optional, so those rows need no migration. */
+  oddTeamOut: v.optional(v.union(...ODD_TEAM_OUTS.map((name) => v.literal(name)))),
   waivers: v.object({
     /** When they run each week, UK time (spec/08): one run or more. */
     runs: v.array(v.object({ day: weekday, hour: v.number(), minute: v.number() })),

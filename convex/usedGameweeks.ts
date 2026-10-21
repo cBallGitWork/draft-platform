@@ -6,6 +6,9 @@
 /** FPL's season has gameweeks 1 to 38: FPL's rule, so a constant. */
 export const GAMEWEEKS = 38;
 
+/** The season's gameweeks, 1 to 38, in order. */
+export const SEASON_GAMEWEEKS: readonly number[] = Array.from({ length: GAMEWEEKS }, (_, index) => index + 1);
+
 /** What of a league this reads: the gameweeks its commissioner unticked, stored as the league's
  *  `unusedGameweeks`. Absent while it plays them all. */
 export type WithUnusedGameweeks = { unusedGameweeks?: readonly number[] };
@@ -20,6 +23,9 @@ export function isGameweekUsed(league: WithUnusedGameweeks, gameweek: number): b
   if (!isGameweek(gameweek)) throw new Error(noSuchGameweek(gameweek));
   return !(league.unusedGameweeks ?? []).includes(gameweek);
 }
+
+/** The gameweeks the league plays, in order. */
+export const usedGameweeksOf = (league: WithUnusedGameweeks) => SEASON_GAMEWEEKS.filter((gameweek) => isGameweekUsed(league, gameweek));
 
 /** The league's unticked gameweeks, in order, once this one is ticked (`used`) or unticked. */
 export function unusedAfter(league: WithUnusedGameweeks, gameweek: number, used: boolean): number[] {

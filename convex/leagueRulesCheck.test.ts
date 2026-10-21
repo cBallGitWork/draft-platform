@@ -3,6 +3,7 @@ import { FIRST_RULES } from "./firstRules";
 import { checkLeagueRules } from "./leagueRulesCheck";
 import type { LeagueRules } from "./leagueRulesShape";
 import { rulesWith } from "./leagueRules.harness";
+import { ODD_TEAM_OUTS } from "./roundRobin";
 import { everyArea } from "./scoring.example";
 
 // What a league's rules are refused for on save, with the reason (#25 Done: "an invalid rule is
@@ -21,6 +22,10 @@ test("the first rules are sound", () => {
 test("no squad limits, no club limit, no presets and no tie-breaks are all sound", () => {
   const free = rulesWith({ squad: { size: null, byArea: null, maxPerClub: null }, presets: [], tieBreaks: [] });
   expect(() => checkLeagueRules(free)).not.toThrow();
+});
+
+test.each(ODD_TEAM_OUTS)("the team left over playing %s is sound", (oddTeamOut) => {
+  expect(() => checkLeagueRules(rulesWith({ oddTeamOut }))).not.toThrow();
 });
 
 describe.each<[string, Partial<LeagueRules>, string]>([

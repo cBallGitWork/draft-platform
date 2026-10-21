@@ -4,12 +4,14 @@ import { FIRST_RULES } from "./firstRules";
 import { lineupProblems, type LineupRules } from "./lineup";
 import type { LeagueRules } from "./leagueRulesShape";
 import { DEFAULT_PRESETS, type Preset } from "./presets";
+import type { OddTeamOut } from "./roundRobin";
 import { scoreGameweek, scoreMatch, type DoubleGameweekRule } from "./scoring";
 import { centreOf } from "./scoring.example";
 import type { ScoringSet } from "./scoringSet";
+import type { TieBreak } from "./standings";
 
 // The stored rules are the pure modules' own inputs (#25): what Convex accepts as a rule must type
-// as what scoring.ts, lineup.ts, deadline.ts and presets.ts read, and the other way round. A field
+// as what scoring.ts, lineup.ts, deadline.ts, presets.ts, standings.ts and roundRobin.ts read, and the other way round. A field
 // renamed in one and not the other fails `npm run typecheck` here.
 
 /** The same type both ways, readonly aside: Convex hands back plain arrays. */
@@ -25,6 +27,9 @@ test("each stored part is its module's input type", () => {
   expectTypeOf<LeagueRules["presets"]>().toEqualTypeOf<Writable<Preset[]>>();
   expectTypeOf<LeagueRules["deadline"]>().toEqualTypeOf<DeadlineRule>();
   expectTypeOf<LeagueRules["doubleGameweek"]>().toEqualTypeOf<DoubleGameweekRule>();
+  expectTypeOf<LeagueRules["tieBreaks"]>().toEqualTypeOf<TieBreak[]>();
+  // Optional only for rules saved before #33 (firstRules.ts, oddTeamOutOf).
+  expectTypeOf<LeagueRules["oddTeamOut"]>().toEqualTypeOf<OddTeamOut | undefined>();
 });
 
 test("the first rules' presets are the eleven every league starts with", () => {

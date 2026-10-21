@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { FIRST_RULES } from "./firstRules";
+import { FIRST_RULES, oddTeamOutOf } from "./firstRules";
 import { fplStatLines } from "./fplLive";
 import bootstrap from "./recorded/fpl-gw6-bootstrap.json";
 import live from "./recorded/fpl-gw6-live.json";
@@ -54,4 +54,11 @@ const RARE: [string, Area, Record<string, number>, number][] = [
 
 test.each(RARE)("the first scoring set pays %s in %s as FPL does", (_name, area, stat, points) => {
   expect(scoreMatch({ minutes: 90, ...stat }, FIRST_RULES.scoring, centreOf(area)).total).toBe(2 + points);
+});
+
+test("the team left over plays the league's average, in the first rules and in rules saved before that was a rule", () => {
+  expect(oddTeamOutOf(FIRST_RULES)).toBe("leagueAverage");
+  const { oddTeamOut: _, ...savedBefore } = FIRST_RULES;
+  expect(oddTeamOutOf(savedBefore)).toBe("leagueAverage");
+  expect(oddTeamOutOf({ ...FIRST_RULES, oddTeamOut: "bye" })).toBe("bye");
 });
