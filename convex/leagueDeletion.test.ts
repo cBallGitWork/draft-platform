@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { askToJoin, invite, makeLink, openLastLinkTo } from "./joining.harness";
+import { FIRST_RULES } from "./firstRules";
 import { refusals } from "./leagueAccess";
 import { tablesKeyedToLeague } from "./leagueDeletion";
 import { ANN, BOB, CAT, DAN, accountOf, deletes, laterBy, leagueWithPeople, mutationsGivenALeague } from "./leagueDeletion.harness";
@@ -84,6 +85,7 @@ describe("while it can be undone", () => {
       "joinRequests:approve": () => admin.mutation(api.joinRequests.approve, { requestId }),
       "joinRequests:refuseRequest": () => admin.mutation(api.joinRequests.refuseRequest, { requestId }),
       "leagueGameweeks:setUsed": () => admin.mutation(api.leagueGameweeks.setUsed, { leagueId, gameweek: 38, used: false }),
+      "leagueRules:change": () => admin.mutation(api.leagueRules.change, { leagueId, rules: structuredClone(FIRST_RULES) }),
       "lastLeague:switchTo": () => commissioner.mutation(api.lastLeague.switchTo, { leagueId }),
     };
     for (const change of Object.values(changes)) await expect(change()).rejects.toThrow(refusals.beingDeleted);

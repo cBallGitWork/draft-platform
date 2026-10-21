@@ -30,7 +30,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 |---|---|---|---|
 | 1 | [Leagues](spec/01-leagues.md) | not built | a league created from a ready-made rule set carries every rule in it |
 | 2 | [Sign-in](spec/02-sign-in.md) | built, awaiting the live email proof | an email on the allowed list gets a link that works once within the hour; one not on it gets the same reply and no link |
-| 3 | [League rules](spec/03-league-rules.md) | not built | the same week scores differently under two leagues' rules |
+| 3 | [League rules](spec/03-league-rules.md) | each league's rules held as data, changed from the next gameweek (#25); no editor yet (#30); the first scoring set is FPL's (spec/14) | the same week scores differently under two leagues' rules |
 | 4 | [The draft](spec/04-the-draft.md) | not built | a timed-out pick takes the queue's best available player, then the default ranking's |
 | 5 | [Tactics](spec/05-tactics.md) | not built | the same player and match score differently in two roles, and an empty slot is filled by the first fitting sub |
 | 6 | [Positions](spec/06-positions.md) | not built | a player flagged, then losing a position, at the admin's thresholds |

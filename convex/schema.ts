@@ -1,6 +1,7 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v, type VLiteral } from "convex/values";
+import { leagueRulesShape } from "./leagueRulesShape";
 import { POSITIONS, type Position } from "./positionTables";
 import { signInReply } from "./signInLinks";
 
@@ -403,6 +404,8 @@ export const leagueEvent = v.union(
   v.object({ kind: v.literal("deletionUndone"), name: v.string() }),
   v.object({ kind: v.literal("gameweekUsed"), gameweek: v.number(), used: v.boolean() }),
   ...joiningEvents,
+  /** `changed` names the parts of LeagueRules that changed, such as "scoring". */
+  v.object({ kind: v.literal("rulesChanged"), fromGameweek: v.number(), changed: v.array(v.string()) }),
 );
 
 const leagueEventFields = {
@@ -413,6 +416,16 @@ const leagueEventFields = {
   event: leagueEvent,
 };
 
+// A league's rules (#25, spec/03). Each change is a new row from the gameweek it takes effect, so
+// past gameweeks keep the rules they were played under; who changed them is in leagueEvents.
+const leagueRulesTables = {
+  leagueRules: defineTable({ leagueId: v.id("leagues"), fromGameweek: v.number(), rules: leagueRulesShape }).index(
+    "by_leagueId_and_fromGameweek",
+    ["leagueId", "fromGameweek"],
+  ),
+  /** One row: the rules the admin gives each new league. */
+  defaultLeagueRules: defineTable({ rules: leagueRulesShape }),
+};
 /** The league switcher (#76): the league each person used last, by email, one row each. */
 const lastLeagueFields = { email: v.string(), leagueId: v.id("leagues") };
 
@@ -420,6 +433,7 @@ export default defineSchema({
   ...matchStatsTables,
   ...liveStatsTables,
   ...authTables,
+  ...leagueRulesTables,
   allowedEmails: defineTable(allowedEmailFields).index("by_email", ["email"]),
   signInAsks: defineTable(signInAskFields).index("by_email_and_askedAt", ["email", "askedAt"]),
   emailSends: defineTable(emailSendFields).index("by_day", ["day"]),
