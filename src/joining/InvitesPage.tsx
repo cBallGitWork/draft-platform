@@ -23,7 +23,7 @@ export function InvitesPage({ leagueId, joining }: { leagueId: string; joining: 
         {page ? (
           <p className="px-3 py-2 text-lead font-semibold">{page.leagueName}</p>
         ) : page === undefined ? (
-          <Loading className="px-3 py-2 text-muted">{loadingWords}</Loading>
+          <Loading className="px-3 py-2">{loadingWords}</Loading>
         ) : (
           <p className="flex flex-wrap items-center gap-4 px-3 py-2 text-muted">
             {notYoursWords}

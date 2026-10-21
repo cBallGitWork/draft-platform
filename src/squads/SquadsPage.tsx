@@ -80,7 +80,7 @@ function FindPlayer({ league, seam, squads, change }: { league: LeagueSummary; s
       </div>
       {text.trim() !== "" &&
         (found === undefined ? (
-          <Loading className="px-3 pb-2 text-muted">{searchingWords}</Loading>
+          <Loading className="px-3 pb-2">{searchingWords}</Loading>
         ) : found.length === 0 ? (
           <p className="px-3 pb-2 text-muted">{noneFoundWords}</p>
         ) : (

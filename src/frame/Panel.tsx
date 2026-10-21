@@ -42,11 +42,11 @@ export function PanelTitle({ id, children }: { id: string; children: string }) {
   );
 }
 
-/** A line saying something is still loading or being searched for, announced to screen readers;
- *  muted unless `className` says otherwise, which then carries the caller's spacing. */
+/** A muted line saying something is still loading or being searched for, announced to screen
+ *  readers; `className` adds the caller's spacing. */
 export function Loading({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <p role="status" className={className ?? "text-muted"}>
+    <p role="status" className={className ? `text-muted ${className}` : "text-muted"}>
       {children}
     </p>
   );
