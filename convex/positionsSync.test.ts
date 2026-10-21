@@ -5,7 +5,7 @@ import { asAdmin, heldPositions, syncPositionsWith } from "./positionsSync.harne
 import { MATCHES_PER_RUN } from "./positionsSync";
 import type { RawPlSquadPlayer } from "./premierLeague";
 import { NEWCASTLE, PLAYER, recordedPositions, SHEET, UNPLAYED_MATCH } from "./recorded/positions.payloads";
-import { freshConvex, REFUSED_STATUS, type TestConvex } from "./test.harness";
+import { freshConvex, refusedError, type TestConvex } from "./test.harness";
 
 const REFUSED_MATCH = `PL fixture ${SHEET.cityCoventryRefused}, team 11's 4-2-3-1 does not draw the 11 men it lists as starting`;
 
@@ -138,16 +138,17 @@ test.each([
 
   const { outcome } = await syncPositionsWith(t, recordedPositions(), url);
 
-  expect(outcome).toEqual({ ok: false, error: `${url} answered ${REFUSED_STATUS}` });
+  expect(outcome).toEqual({ ok: false, error: refusedError(url) });
   expect(await heldStarts(t, PLAYER.barnes)).toEqual([]);
 });
 
 test("a failed read mid-run fails the run, and leaves the matches read before it filed", async () => {
   const t = freshConvex();
 
-  const { outcome } = await syncPositionsWith(t, recordedPositions(), plFixtureUrl(SHEET.newcastleLateNov));
+  const refused = plFixtureUrl(SHEET.newcastleLateNov);
+  const { outcome } = await syncPositionsWith(t, recordedPositions(), refused);
 
-  expect(outcome).toEqual({ ok: false, error: `${plFixtureUrl(SHEET.newcastleLateNov)} answered ${REFUSED_STATUS}` });
+  expect(outcome).toEqual({ ok: false, error: refusedError(refused) });
   expect(await heldStarts(t, PLAYER.barnes)).toHaveLength(2);
 });
 

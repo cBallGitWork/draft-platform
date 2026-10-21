@@ -10,8 +10,7 @@ import { ADMIN, actingAs } from "./leagues.harness";
 import type { PositionsPayloads } from "./recorded/positions.payloads";
 import { fakeFetch, type TestConvex } from "./test.harness";
 
-/** Both feeds answering with `payloads`; the `refuse` URL answers `REFUSED_STATUS` (test.harness.ts).
- *  Any other URL is the test's mistake, and fails the read. */
+/** Both feeds answering with `payloads`, and refusing the `refuse` URL as `fakeFetch` does. */
 function fakeFeeds(payloads: PositionsPayloads, refuse?: string) {
   const bodies = new Map<string, unknown>([[FPL_BOOTSTRAP_URL, { elements: payloads.fplElements }]]);
   for (const [season, content] of Object.entries(payloads.fixtureLists)) {
