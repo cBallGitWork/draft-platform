@@ -99,31 +99,18 @@ describe("a player is on one team in a league at most", () => {
 });
 
 describe("each change files one letter to the league", () => {
+  type Commissioner = Awaited<ReturnType<typeof as>>;
   test.each([
-    ["assigning", async (c: Awaited<ReturnType<typeof as>>) => c.assign(SAKA, teams[0]), { kind: "playerAssigned", teamName: "Team 1" }],
-    [
-      "moving",
-      async (c: Awaited<ReturnType<typeof as>>) => {
-        await c.assign(SAKA, teams[0]);
-        await c.move(SAKA, teams[1]);
-      },
-      { kind: "playerMoved", fromTeamName: "Team 1", teamName: "Team 2" },
-    ],
-    [
-      "releasing",
-      async (c: Awaited<ReturnType<typeof as>>) => {
-        await c.assign(SAKA, teams[0]);
-        await c.release(SAKA);
-      },
-      { kind: "playerReleased", teamName: "Team 1" },
-    ],
-  ])("%s", async (_what, change, event) => {
+    ["assigning", async () => {}, (c: Commissioner) => c.assign(SAKA, teams[0]), { kind: "playerAssigned", teamName: "Team 1" }],
+    ["moving", (c: Commissioner) => c.assign(SAKA, teams[0]), (c: Commissioner) => c.move(SAKA, teams[1]), { kind: "playerMoved", fromTeamName: "Team 1", teamName: "Team 2" }],
+    ["releasing", (c: Commissioner) => c.assign(SAKA, teams[0]), (c: Commissioner) => c.release(SAKA), { kind: "playerReleased", teamName: "Team 1" }],
+  ])("%s", async (_what, setUp, change, event) => {
     const commissioner = await as(COMMISSIONER);
+    await setUp(commissioner);
     const before = (await eventsIn(t, leagueId)).length;
     await change(commissioner);
+    expect((await eventsIn(t, leagueId)).length - before).toBe(1);
     expect(await lastEvent()).toMatchObject({ by: COMMISSIONER, playerCode: SAKA, playerName: "Saka", ...event });
-    const filed = (await eventsIn(t, leagueId)).length - before;
-    expect(filed).toBe(event.kind === "playerAssigned" ? 1 : 2);
   });
 
   test("Ann, managing a team, gets the letter", async () => {
@@ -172,7 +159,7 @@ describe("refused, saying why, and nothing changes", () => {
   test("a team from another league", async () => {
     const other = await adminCreatesLeague(t, 4, "Another league");
     const [othersTeam] = await addManagers(t, other, [ANN]);
-    await expect((await as(COMMISSIONER)).assign(SAKA, othersTeam)).rejects.toThrow(squadRefusals.noTeam);
+    await expect((await as(COMMISSIONER)).assign(SAKA, othersTeam)).rejects.toThrow(refusals.noTeam);
   });
 
   test(`a team already holding ${MOST_IN_SQUAD}, the most any can`, async () => {

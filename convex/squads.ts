@@ -1,9 +1,10 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query, type QueryCtx } from "./_generated/server";
-import { memberOf, recordEvent, refuse, runnerOf, teamsOf } from "./leagueAccess";
+import { memberOf, recordEvent, refuse, refusals, runnerOf, teamsOf } from "./leagueAccess";
 import { MOST_IN_SQUAD } from "./leagueLimits";
 import { latestRules } from "./leagueRules";
+import type { LeagueRules } from "./leagueRulesShape";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
 // team, one at a time, move him between teams, or release him to free agency. Each files a Mail
@@ -15,12 +16,13 @@ export const squadRefusals = {
   alreadyOwned: (name: string, teamName: string) => `${name} is already on ${teamName}. Move him instead.`,
   freeAgent: (name: string) => `${name} isn't on a team in this league.`,
   alreadyThere: (name: string, teamName: string) => `${name} is already on ${teamName}.`,
-  noTeam: "That team isn't in this league.",
   squadFull: `A team holds at most ${MOST_IN_SQUAD} players.`,
 };
 
 /** The most players a search returns: enough to pick from, few enough to read. */
-export const FOUND_MOST = 20;
+const FOUND_MOST = 20;
+/** The Premier League's clubs, with room for the ones a season's sync keeps after relegation. */
+const CLUBS_MOST = 40;
 
 async function playerByCode(ctx: QueryCtx, code: number): Promise<Doc<"players">> {
   const player = await ctx.db
@@ -47,7 +49,7 @@ function squadOf(ctx: QueryCtx, teamId: Id<"teams">) {
 
 async function teamIn(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">): Promise<Doc<"teams">> {
   const team = await ctx.db.get("teams", teamId);
-  if (team === null || team.leagueId !== leagueId) refuse(squadRefusals.noTeam);
+  if (team === null || team.leagueId !== leagueId) refuse(refusals.noTeam);
   return team;
 }
 
@@ -68,7 +70,7 @@ export const assign = mutation({
     if (player.droppedAt !== undefined) refuse(squadRefusals.playerGone(player.name));
     const team = await teamIn(ctx, leagueId, teamId);
     const place = await placeOf(ctx, leagueId, playerCode);
-    if (place !== null) refuse(squadRefusals.alreadyOwned(player.name, (await ctx.db.get("teams", place.teamId))!.name));
+    if (place !== null) refuse(squadRefusals.alreadyOwned(player.name, (await teamIn(ctx, leagueId, place.teamId)).name));
     await roomOn(ctx, team);
     await ctx.db.insert("squadPlayers", { leagueId, teamId, playerCode });
     await recordEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode, playerName: player.name, teamId, teamName: team.name });
@@ -158,14 +160,9 @@ export const squads = query({
   },
 });
 
-/** The Premier League's clubs, with room for the ones a season's sync keeps after relegation. */
-const CLUBS_MOST = 40;
-
-type SquadRules = NonNullable<Awaited<ReturnType<typeof latestRules>>>["squad"] | null;
-
 /** The league's squad limits a squad breaks (spec/03, Squad make-up). How a player's areas count
  *  against a limit per area is not settled, so those limits aren't checked yet. */
-export function squadWarnings(players: readonly { clubShortName: string }[], squad: SquadRules): SquadWarning[] {
+function squadWarnings(players: readonly { clubShortName: string }[], squad: LeagueRules["squad"] | null): SquadWarning[] {
   if (squad === null) return [];
   const warnings: SquadWarning[] = [];
   const { size, maxPerClub } = squad;
