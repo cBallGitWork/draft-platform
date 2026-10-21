@@ -2,8 +2,8 @@
 // in firstRules.ts (spec/14, The first scoring set). Keyed on FPL's
 // stat names, as `fplStatLines` gives them; the second dot keeps this file out of Convex's deploy.
 
-import type { Cell } from "./pitch";
-import { AREAS, type Area, type ByArea, type ScoringSet } from "./scoringSet";
+import { SLOT_POSITIONS, type Cell, type SlotPosition } from "./pitch";
+import { AREAS, type Area, type ByArea, type ByPosition, type ScoringSet } from "./scoringSet";
 
 /** The slot in the centre of an area: where the tests stand a player when only his area matters. */
 export const centreOf = (area: Area): Cell => ({ area, lane: "centre" });
@@ -11,6 +11,11 @@ export const centreOf = (area: Area): Cell => ({ area, lane: "centre" });
 /** The same value in every area. */
 export function everyArea<Value>(value: Value): ByArea<Value> {
   return Object.fromEntries(AREAS.map((area) => [area, value])) as Record<Area, Value>;
+}
+
+/** The same value for every position a slot can be. */
+export function everyPosition<Value>(value: Value): ByPosition<Value> {
+  return Object.fromEntries(SLOT_POSITIONS.map((position) => [position, value])) as Record<SlotPosition, Value>;
 }
 
 /** -1 for every two goals conceded, for the keeper and the defence only. */

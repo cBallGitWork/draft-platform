@@ -4,6 +4,7 @@
 import { MINUTES_STAT } from "./matchRecords";
 import { AREAS, LANES, positionOfSlot, type Cell, type SlotPosition } from "./pitch";
 import {
+  inTenths,
   priceFor,
   requireNumber,
   showValue,
@@ -106,11 +107,6 @@ function bandPoints(bands: readonly Band[], stack: boolean, actions: number): nu
   if (stack) return sum(reached.map((band) => band.points));
   const highest = reached.toSorted((one, other) => other.atLeast - one.atLeast)[0];
   return highest?.points ?? 0;
-}
-
-/** Points to the nearest tenth, which is all they are kept in: floating point's own noise goes. */
-function inTenths(points: number): number {
-  return Math.round(points * 10) / 10;
 }
 
 function sum(numbers: readonly number[]): number {

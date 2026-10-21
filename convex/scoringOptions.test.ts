@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest";
 import type { Cell } from "./pitch";
 import { scoreMatch } from "./scoring";
-import { centreOf, everyArea } from "./scoring.example";
-import { validateScoringSet, type ByPosition, type ScoringRule, type ScoringSet } from "./scoringSet";
+import { centreOf, everyArea, everyPosition } from "./scoring.example";
+import { validateScoringSet, type ScoringRule, type ScoringSet } from "./scoringSet";
 
 // What a rule may say beyond its values (spec/14, How a rule scores; #111): priced the same for
 // all, by area or by position; held to a points limit; paid only after so many minutes; kept in
@@ -14,20 +14,6 @@ const LEFT_WINGER: Cell = { area: "attackingMidfield", lane: "left" };
 
 const setOf = (...rules: ScoringRule[]): ScoringSet => ({ rules, wholePointsOnly: false });
 const pointsFor = (rule: ScoringRule, stats: Record<string, number>, cell: Cell) => scoreMatch({ minutes: 90, ...stats }, setOf(rule), cell).total;
-
-/** The same value for every position a slot can be. */
-const everyPosition = <Value,>(value: Value): ByPosition<Value> => ({
-  GK: value,
-  FB: value,
-  CB: value,
-  WB: value,
-  CDM: value,
-  WM: value,
-  CM: value,
-  W: value,
-  CAM: value,
-  ST: value,
-});
 
 describe("how finely a rule is priced", () => {
   test("by position: a full back and a centre back in one back line are paid apart", () => {
@@ -121,7 +107,7 @@ describe("points in tenths", () => {
   test("0.1 a pass three times is 0.3, and two tenths' rules add to 0.3, never floating point's noise", () => {
     const passes: ScoringRule = { shape: "perAction", stat: "passes", values: { all: 0.1 } };
     const touches: ScoringRule = { shape: "perAction", stat: "touches", values: { all: 0.2 } };
-    expect(pointsFor(passes, { passes: 3 }, CENTRE_BACK)).toBe(0.3);
+    expect(scoreMatch({ passes: 3 }, setOf(passes), CENTRE_BACK).categories).toEqual([{ stat: "passes", points: 0.3 }]);
     expect(scoreMatch({ passes: 1, touches: 1 }, setOf(passes, touches), CENTRE_BACK).total).toBe(0.3);
   });
 

@@ -106,8 +106,12 @@ function validateRule(rule: unknown, position: number, wholePointsOnly: boolean)
   }
   const points = (value: unknown, what: string) => requirePoints(value, what, wholePointsOnly);
   validatePriced(rule.values, named, "values", (values, where) => validateValues(shape, values, where, points));
-  if (rule.limit !== undefined) validatePriced(rule.limit, `${named}'s points limit`, "limit", (limit, where) => validateLimit(limit, where, points));
-  if (rule.minMinutes !== undefined) validatePriced(rule.minMinutes, `${named}'s minimum minutes`, "minutes", validateMinutes);
+  if (rule.limit !== undefined) {
+    validatePriced(rule.limit, `${named}'s points limit`, "limit", (limit, where) => validateLimit(limit, where, points));
+  }
+  if (rule.minMinutes !== undefined) {
+    validatePriced(rule.minMinutes, `${named}'s minimum minutes`, "minutes", validateMinutes);
+  }
 }
 
 type CheckPoints = (value: unknown, what: string) => void;
@@ -182,9 +186,14 @@ function requirePoints(value: unknown, what: string, wholePointsOnly: boolean): 
   if (!isInTenths(value)) throw new Error(`${what} ${value}; points are kept in tenths`);
 }
 
+/** Points to the nearest tenth, which is all they are kept in: floating point's own noise goes. */
+export function inTenths(points: number): number {
+  return Math.round(points * 10) / 10;
+}
+
 /** Whether a number is a whole number of tenths, allowing for floating point's own noise. */
-export function isInTenths(value: number): boolean {
-  return Math.abs(value * 10 - Math.round(value * 10)) < 1e-9;
+function isInTenths(value: number): boolean {
+  return Math.abs(value - inTenths(value)) < 1e-9;
 }
 
 /** Throws "<what> <value>, not a number" unless it is a finite number, never coerced from text. */
