@@ -5,7 +5,8 @@
 Every route in `src/router.tsx` and how a person moves between them, plus the screens the spec
 names that have no route yet. Read with [plate.md](plate.md), which is the look. The spec is the
 product; this map only draws it. `src/flow.test.ts` fails when a route is missing from the
-Screens table, or the table lists a path the router doesn't have.
+Screens table or the map, the table lists a path the router doesn't have, or a file it names is
+gone.
 
 ## The map
 

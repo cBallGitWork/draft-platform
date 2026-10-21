@@ -12,7 +12,7 @@ const sourceFiles = Object.keys(import.meta.glob("./**/*.{ts,tsx}")).map((path) 
 /** Every path the router matches, read from its route tree. Building it loads nothing. */
 const routerPaths = Object.keys(createShellRouter({} as ShellContext).routesByPath);
 
-type Row = { screen: string; path: string | null; file: string };
+type Row = { path: string | null; file: string };
 
 /** The Screens table's rows: a path in backticks, or null for a screen with no route yet. */
 function screensTable(markdown: string): Row[] {
@@ -21,8 +21,8 @@ function screensTable(markdown: string): Row[] {
     .split("\n")
     .filter((line) => line.startsWith("| ") && !line.startsWith("| Screen |"))
     .map((line) => {
-      const [screen = "", path = "", file = ""] = line.split("|").slice(1).map((cell) => cell.trim());
-      return { screen, path: /^`(\/[^`]*)`$/.exec(path)?.[1] ?? null, file };
+      const [, path = "", file = ""] = line.split("|").slice(1).map((cell) => cell.trim());
+      return { path: /^`(\/[^`]*)`$/.exec(path)?.[1] ?? null, file };
     });
 }
 
