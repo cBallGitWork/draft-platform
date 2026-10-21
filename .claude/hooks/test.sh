@@ -6,7 +6,7 @@ set -uo pipefail
 
 tests="$(cd "$(dirname "$0")" && pwd)/tests"
 failed=0
-for suite in guard_bash gate_on_stop line_ceiling; do
+for suite in guard_bash gate_on_stop line_ceiling settings; do
   "$tests/$suite.sh" || { echo "FAIL tests/$suite.sh"; failed=1; }
 done
 [ "$failed" -eq 0 ] && echo "hooks: all checks pass" || exit 1

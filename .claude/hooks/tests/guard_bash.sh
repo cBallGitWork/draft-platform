@@ -165,3 +165,6 @@ done
 for o in '-o ci.skip' '--push-option ci.skip' '--push-option=ci.skip' '--receive-pack x' '--exec x'; do
   check allow guard_bash.py "$(bash_cmd "git push $o origin :feat/old")"  # from main: deletes only
 done
+for payload in 'not json' '' '[]'; do  # a payload it can't read is denied, never let through unchecked
+  check deny guard_bash.py "$payload"
+done
