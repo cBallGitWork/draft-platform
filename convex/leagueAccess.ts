@@ -98,20 +98,22 @@ export async function adminOf(ctx: QueryCtx): Promise<string> {
   return email;
 }
 
-/** The caller and the league, if the caller may run it. */
-export async function runnerOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
+/** The caller and the league, if the caller holds `power` in it; otherwise `refusal`. */
+async function callerWith(ctx: QueryCtx, leagueId: Id<"leagues">, power: "runs" | "names", refusal: string) {
   const email = await callerEmail(ctx);
   const league = await getLeague(ctx, leagueId);
-  if (!powersIn(league, email).runs) refuse(refusals.notRunner);
+  if (!powersIn(league, email)[power]) refuse(refusal);
   return { email, league };
 }
 
+/** The caller and the league, if the caller may run it. */
+export function runnerOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
+  return callerWith(ctx, leagueId, "runs", refusals.notRunner);
+}
+
 /** The caller and the league, if the caller may name its commissioner and co-commissioner. */
-export async function namerOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
-  const email = await callerEmail(ctx);
-  const league = await getLeague(ctx, leagueId);
-  if (!powersIn(league, email).names) refuse(refusals.notNamer);
-  return { email, league };
+export function namerOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
+  return callerWith(ctx, leagueId, "names", refusals.notNamer);
 }
 
 /** The caller and the league, if the caller runs it or a team in it. */
@@ -123,11 +125,8 @@ export async function memberOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
 }
 
 /** The caller and the league, if the caller may delete it (spec/13, Deleting). */
-export async function deleterOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
-  const email = await callerEmail(ctx);
-  const league = await getLeague(ctx, leagueId);
-  if (!powersIn(league, email).names) refuse(refusals.notDeleter);
-  return { email, league };
+export function deleterOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
+  return callerWith(ctx, leagueId, "names", refusals.notDeleter);
 }
 
 /** Every team in the league, in the order they were made. A league never holds more than
@@ -137,6 +136,13 @@ export function teamsOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"te
     .query("teams")
     .withIndex("by_leagueId_and_number", (q) => q.eq("leagueId", leagueId))
     .take(MOST_TEAMS);
+}
+
+/** The team, if it is in the league; otherwise a refusal. */
+export async function teamIn(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">): Promise<Doc<"teams">> {
+  const team = await ctx.db.get("teams", teamId);
+  if (team === null || team.leagueId !== leagueId) refuse(refusals.noTeam);
+  return team;
 }
 
 /** The team this email manages in the league, if any: one at most, as putOnTeam keeps it (teams.ts). */

@@ -103,10 +103,6 @@ export const setApproveMode = mutation({
   },
 });
 
-/** The admin's queue (spec/06; spec/15): new signings, whose starts give no position yet (fewer than
- *  3 at a place) and who play on their label until he confirms it, and the men whose starts give
- *  positions waiting for his approval. By name. It reads every row: one cut short would lose the
- *  newest, who are the new signings. */
 /** A player as the dashboard names him (spec/06): his full name for the links it gives. */
 const queuedPlayer = { code: v.number(), name: v.string(), fullName: v.string(), clubCode: v.number() };
 
@@ -119,9 +115,14 @@ const positionsQueue = v.object({
 });
 export type PositionsQueue = Infer<typeof positionsQueue>;
 
-/** The Premier League's clubs, with room for the ones a season's sync keeps after relegation. */
+/** The Premier League's clubs, with room for the ones a season's sync keeps after relegation. Its twin
+ *  is in squads.ts: change both. */
 const CLUBS_MOST = 40;
 
+/** The admin's queue (spec/06; spec/15): new signings, whose starts give no position yet (fewer than
+ *  3 at a place) and who play on their label until he confirms it, and the men whose starts give
+ *  positions waiting for his approval. By name. It reads every row: one cut short would lose the
+ *  newest, who are the new signings. */
 export const queue = query({
   args: {},
   returns: positionsQueue,
@@ -150,7 +151,8 @@ export const queue = query({
   },
 });
 
-/** The most players a search gives the admin: enough to pick from, few enough to read. */
+/** The most players a search gives the admin: enough to pick from, few enough to read. Its twin, with
+ *  the same search, is in squads.ts: change the limit or the query in both. */
 const FOUND_MOST = 20;
 
 const heldPosition = v.object({

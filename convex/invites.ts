@@ -8,7 +8,7 @@ import { deliveryOf, joiningRefusals, startOfNextDay } from "./joining";
 import { inviteEmail } from "./joiningEmails";
 import { getLeague, namedEmail, recordEvent, refuse, refusals, runnerOf, teamsOf } from "./leagueAccess";
 import { askForLink, signInReply } from "./signInLinks";
-import { putOnTeam } from "./teams";
+import { checkCanJoin, putOnTeam } from "./teams";
 
 // Emailed invites (#73, spec/13 Joining): an invite names a vacated team or a new one, carries a
 // sign-in link, and the person joins on signing in, with no approval, while it lasts (an invite's lifetime).
@@ -51,16 +51,7 @@ export const send = mutation({
   handler: async (ctx, args) => {
     const { email: by, league } = await runnerOf(ctx, args.leagueId);
     const email = namedEmail(args.email);
-    const teams = await teamsOf(ctx, league._id);
-    if (teams.some((team) => team.managerEmail === email)) refuse(refusals.alreadyManager(email));
-    let teamName: string | null = null;
-    if (args.teamId !== undefined) {
-      const team = teams.find((each) => each._id === args.teamId) ?? refuse(refusals.noTeam);
-      if (team.managerEmail !== undefined) refuse(refusals.notVacated);
-      teamName = team.name;
-    } else if (teams.length >= league.maxTeams) {
-      refuse(refusals.full(league.maxTeams));
-    }
+    const teamName = checkCanJoin(await teamsOf(ctx, league._id), league, email, args.teamId)?.name ?? null;
     const now = Date.now();
     if ((await liveInvitesTo(ctx, email, now)).some((invite) => invite.leagueId === league._id)) {
       refuse(joiningRefusals.alreadyInvited(email));
