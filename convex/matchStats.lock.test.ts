@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { LATE_CORRECTION_WATCH_MS, LATE_READ_EVERY_MS, MATCHES_PER_RUN } from "./matchStats";
 import {
@@ -17,7 +17,6 @@ import { freshConvex, type TestConvex } from "./test.harness";
 import { HOUR_MS, MINUTE_MS } from "./time";
 
 beforeEach(() => vi.useFakeTimers());
-afterEach(() => vi.useRealTimers());
 
 async function stateOf(t: TestConvex) {
   const { records, status } = await heldMatch(t);

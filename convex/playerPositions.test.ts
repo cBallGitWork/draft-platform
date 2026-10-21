@@ -1,18 +1,11 @@
-import { convexTest } from "convex-test";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import { refusals } from "./leagueAccess";
 import { ADMIN, actingAs } from "./leagues.harness";
 import { PL_LAST_COMP_SEASON } from "./football";
-import { asAdmin, heldPositions, modules, syncPositionsWith, type TestConvex } from "./positionsSync.harness";
+import { asAdmin, heldPositions, syncPositionsWith } from "./positionsSync.harness";
 import { BRENTFORD_CODE, NEWCASTLE, PLAYER, recordedPositions, SHEET } from "./recorded/positions.payloads";
-import schema from "./schema";
-
-afterEach(() => {
-  vi.unstubAllGlobals();
-  vi.unstubAllEnvs();
-});
-
+import { freshConvex, type TestConvex } from "./test.harness";
 
 /** The recorded men FPL lists at Newcastle. */
 function newcastleMen() {
@@ -22,7 +15,7 @@ function newcastleMen() {
 /** Synced from the recorded payloads, with Newcastle's men and Brentford's keeper held by the
  *  football sync (#21). */
 async function synced(): Promise<TestConvex> {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   await syncPositionsWith(t, recordedPositions());
   await t.run(async (ctx) => {
     for (const element of newcastleMen()) {
@@ -84,7 +77,7 @@ test("with positions counting at once, starts count unconfirmed and stay in the 
 });
 
 test("the admin's corrections survive a recount: SS he marks stays, and a position he removes stays off", async () => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   const payloads = recordedPositions();
   const lateNov = payloads.sheets.find((sheet) => sheet.id === SHEET.newcastleLateNov)!;
   payloads.sheets = payloads.sheets.filter((sheet) => sheet !== lateNov);
@@ -115,7 +108,7 @@ test("a position the admin sets stays until he removes it, and setting it again 
 });
 
 test("a player no feed has named has no positions until the admin sets one", async () => {
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   const unknown = 999_999;
   expect(await heldPositions(t, unknown)).toEqual({});
 

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { refusals } from "./leagueAccess";
@@ -15,7 +15,7 @@ import {
   leagueRow,
   type TestConvex,
 } from "./leagues.harness";
-import { fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
+import { fakeResend, signInDeployment } from "./signIn.harness";
 import { HOUR_MS, WEEK_MS } from "./time";
 import { GAMEWEEKS, isGameweekUsed } from "./usedGameweeks";
 
@@ -35,7 +35,6 @@ beforeEach(async () => {
   fakeResend();
   leagueId = await adminCreatesLeague(t);
 });
-afterEach(resetSignInDeployment);
 
 /** FPL's gameweeks as the football layer holds them, each with its deadline, but for `missing`. */
 async function holdGameweeks(missing: number[] = []) {

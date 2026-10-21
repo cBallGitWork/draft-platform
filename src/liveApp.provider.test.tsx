@@ -37,8 +37,6 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
-  vi.unstubAllEnvs();
-  vi.unstubAllGlobals();
   window.history.replaceState(null, "", "/");
 });
 

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { FIRST_RULES } from "./firstRules";
@@ -19,7 +19,7 @@ import {
   MANAGERS,
   type TestConvex,
 } from "./leagues.harness";
-import { fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
+import { fakeResend, signInDeployment } from "./signIn.harness";
 
 // A league's rules as data (#25): each league holds its own, a new one starts on the admin's
 // defaults, a commissioner's change applies from the next gameweek, and an unsound one is refused.
@@ -29,7 +29,6 @@ beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
 });
-afterEach(resetSignInDeployment);
 
 const change = async (leagueId: Id<"leagues">, rules = TOTAL_POINTS, email = COMMISSIONER) =>
   (await actingAs(t, email)).mutation(api.leagueRules.change, { leagueId, rules });

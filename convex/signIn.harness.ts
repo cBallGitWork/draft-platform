@@ -3,16 +3,11 @@
 // asked to send, and a link's code redeemed as the browser does. For the tests only: the second
 // dot in this file's name keeps it out of Convex's deploy.
 
-import { convexTest, type TestConvex as TestConvexOf } from "convex-test";
 import { vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import { EMAILS_PER_DAY, dayOf } from "./emailLimit";
-import schema from "./schema";
 import { RESEND_EMAILS_URL } from "./signInEmail";
-
-export type TestConvex = TestConvexOf<typeof schema>;
-
-export const modules = import.meta.glob("./**/*.ts");
+import { freshConvex, type TestConvex } from "./test.harness";
 
 export const ADMIN = "craig@example.com";
 export const LISTED = "manager@example.com";
@@ -33,7 +28,8 @@ async function makePkcs8PrivateKey(): Promise<string> {
 }
 
 /** A deployment with the settings `npx @convex-dev/auth` and Craig put on one, LISTED on the
- *  list, and the clock stopped at a known morning. `resetSignInDeployment` undoes it all. */
+ *  list, and the clock stopped at a known morning. Vitest undoes it all after the test
+ *  (vitest.config.ts, test.setup.ts). */
 export async function signInDeployment(): Promise<TestConvex> {
   vi.useFakeTimers({ now: new Date("2026-10-20T09:00:00Z") });
   vi.stubEnv("SITE_URL", SITE_URL);
@@ -44,16 +40,9 @@ export async function signInDeployment(): Promise<TestConvex> {
   vi.stubEnv("AUTH_RESEND_KEY", "re_test_key");
   // Convex Auth logs every store call at INFO; its warnings and errors still show.
   vi.stubEnv("AUTH_LOG_LEVEL", "WARN");
-  const t = convexTest(schema, modules);
+  const t = freshConvex();
   await t.mutation(internal.allowedEmails.add, { email: LISTED });
   return t;
-}
-
-export function resetSignInDeployment() {
-  vi.useRealTimers();
-  vi.unstubAllEnvs();
-  vi.unstubAllGlobals();
-  vi.restoreAllMocks();
 }
 
 export type SentEmail = { to: string; subject: string; text: string };

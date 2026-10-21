@@ -1,9 +1,9 @@
-import { afterEach, beforeEach, expect, test } from "vitest";
+import { beforeEach, expect, test } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { refusals } from "./leagueAccess";
 import { ADMIN, actingAs, CO_COMMISSIONER, COMMISSIONER, MANAGERS, addManagers, adminCreatesLeague, type TestConvex } from "./leagues.harness";
-import { fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
+import { fakeResend, signInDeployment } from "./signIn.harness";
 
 // The league switcher (#76, spec/13, Several leagues): which league account:signedInAs says the
 // app is in, and switching to another.
@@ -15,7 +15,6 @@ beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
 });
-afterEach(resetSignInDeployment);
 
 const currentLeagueOf = async (email: string) => (await (await actingAs(t, email)).query(api.account.signedInAs, {}))!.currentLeagueId;
 const switchTo = async (email: string, leagueId: Id<"leagues">) =>
@@ -114,7 +113,6 @@ test("the admin, with no part in any league, is in none, though he sees them all
   await annInTwoLeagues();
   expect(await currentLeagueOf(ADMIN)).toBeNull();
 });
-
 
 test("a league being deleted is never the one the app is in, nor one to switch to, for whoever deleted it either", async () => {
   const { first, second } = await annInTwoLeagues();

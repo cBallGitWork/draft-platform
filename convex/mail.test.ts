@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { refusals } from "./leagueAccess";
@@ -6,7 +6,7 @@ import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManagers, 
 import { adminByline } from "./letterWords";
 import { mailRefusals } from "./mail";
 import { BODY_MAX, SUBJECT_MAX, UNREAD_COUNTED } from "./mailLimits";
-import { fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
+import { fakeResend, signInDeployment } from "./signIn.harness";
 import { MINUTE_MS } from "./time";
 
 // Mail (#26, spec/16): a filed letter reaches exactly the right people, unread until opened, and
@@ -21,7 +21,6 @@ beforeEach(async () => {
   fakeResend();
   leagueId = await adminCreatesLeague(t, 4);
 });
-afterEach(resetSignInDeployment);
 
 async function mailOf(email: string) {
   const person = await actingAs(t, email);

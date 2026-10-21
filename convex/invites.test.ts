@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import {
@@ -28,7 +28,6 @@ import {
   SITE_URL,
   ask,
   fakeResend,
-  resetSignInDeployment,
   signInDeployment,
   spendTodaysEmails,
   type SentEmail,
@@ -47,7 +46,6 @@ beforeEach(async () => {
   sent = fakeResend();
   leagueId = await adminCreatesLeague(t, 4);
 });
-afterEach(resetSignInDeployment);
 
 const managers = async () => (await teamsIn(t, leagueId)).map(({ name, managerEmail }) => ({ name, managerEmail }));
 const inviteRow = async (inviteId: Id<"invites">) => (await invitesPage(t, leagueId))?.invites.find((row) => row.inviteId === inviteId);

@@ -4,7 +4,8 @@
 import { vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
-import { ADMIN, type TestConvex } from "./signIn.harness";
+import { ADMIN } from "./signIn.harness";
+import type { TestConvex } from "./test.harness";
 
 export { ADMIN };
 export type { TestConvex };

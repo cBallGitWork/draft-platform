@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, fplLiveUrl } from "./football";
 import { LIVE_WINDOW_MS } from "./liveStats";
@@ -19,7 +19,6 @@ import { refusedError, silenceConsoleError, type TestConvex } from "./test.harne
 import { MINUTE_MS } from "./time";
 
 beforeEach(() => vi.useFakeTimers());
-afterEach(() => vi.useRealTimers());
 
 const liveAt = (t: TestConvex, now: number) => t.query(internal.liveStats.live, { now });
 const HULL_EVERTON_LIVE = [{ fixtureCode: HULL_EVERTON, gameweek: GAMEWEEK }];

@@ -6,7 +6,7 @@ import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { UNDO_MS, tablesKeyedToLeague } from "./leagueDeletion";
 import { COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "./leagues.harness";
-import { modules } from "./signIn.harness";
+import { modules } from "./test.harness";
 
 export const [ANN, BOB, CAT, DAN] = MANAGERS;
 

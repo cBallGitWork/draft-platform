@@ -1,10 +1,10 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { ANN, BOB, accountOf, deletes, leagueWithPeople } from "./leagueDeletion.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, actingAs, leagueRow, type TestConvex } from "./leagues.harness";
 import { EMAILS_PER_DAY } from "./emailLimit";
-import { fakeResend, resetSignInDeployment, sentToday, setSentToday, signInDeployment, type SentEmail } from "./signIn.harness";
+import { fakeResend, sentToday, setSentToday, signInDeployment, type SentEmail } from "./signIn.harness";
 
 // The email saying a league will be deleted, and when (#75, spec/13, Deleting).
 
@@ -17,7 +17,6 @@ beforeEach(async () => {
   leagueId = await leagueWithPeople(t);
   sent = fakeResend();
 });
-afterEach(resetSignInDeployment);
 
 describe("deleting a league emails", () => {
   test("everyone with a part in it but whoever deleted it, saying it will be deleted, and when", async () => {

@@ -3,10 +3,11 @@ import { defineConfig } from "vitest/config";
 
 // Only convex/, src/ and scripts/ at the root are searched for tests, so one anywhere else never
 // runs: an agent's worktree, inside the repo under .claude/worktrees/, runs its own.
-// Each project puts back every stubbed global and every spy before each test (and the app's stubbed
-// env), so no test file needs its own afterEach for them.
+// Each project puts back every stubbed global, stubbed env and spy before each test, and
+// test.setup.ts puts the real timers back after each, so no test file needs its own afterEach for
+// them. The setup file sits outside convex/, so Convex never loads it as one of its modules.
 
-const RESTORED = { unstubGlobals: true, restoreMocks: true };
+const RESTORED = { unstubGlobals: true, unstubEnvs: true, restoreMocks: true, setupFiles: ["./test.setup.ts"] };
 
 export default defineConfig({
   test: {
@@ -23,7 +24,7 @@ export default defineConfig({
       },
       {
         plugins: [react()],
-        test: { name: "app", include: ["src/**/*.test.{ts,tsx}"], environment: "jsdom", ...RESTORED, unstubEnvs: true },
+        test: { name: "app", include: ["src/**/*.test.{ts,tsx}"], environment: "jsdom", ...RESTORED },
       },
       { test: { name: "scripts", include: ["scripts/**/*.test.mjs"], environment: "node", ...RESTORED } },
     ],

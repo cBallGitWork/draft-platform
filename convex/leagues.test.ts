@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { refusals } from "./leagueAccess";
@@ -16,7 +16,7 @@ import {
   onTheList,
   type TestConvex,
 } from "./leagues.harness";
-import { LISTED, fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
+import { LISTED, fakeResend, signInDeployment } from "./signIn.harness";
 
 // Creating a league and who runs it (#24 stories 1-3 and 6; spec/13).
 
@@ -27,7 +27,6 @@ let t: TestConvex;
 beforeEach(async () => {
   t = await signInDeployment();
 });
-afterEach(resetSignInDeployment);
 
 describe("creating a league", () => {
   test("the admin creates one with its name, maximum and commissioner, and it's filed for Mail", async () => {

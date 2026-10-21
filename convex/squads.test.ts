@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { FIRST_RULES } from "./firstRules";
@@ -6,7 +6,7 @@ import { refusals } from "./leagueAccess";
 import { MOST_IN_SQUAD } from "./leagueLimits";
 import { rulesWith } from "./leagueRules.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, type TestConvex } from "./leagues.harness";
-import { fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
+import { fakeResend, signInDeployment } from "./signIn.harness";
 import { squadRefusals } from "./squads";
 
 // Assigning players (#31, spec/15 Assigning players): the commissioners and the admin put any
@@ -41,7 +41,6 @@ beforeEach(async () => {
     await ctx.db.insert("players", { code: GONE, name: "Gone", fullName: "Long Gone", clubCode: 3, droppedAt: Date.now() });
   });
 });
-afterEach(resetSignInDeployment);
 
 const as = async (email: string) => {
   const person = await actingAs(t, email);

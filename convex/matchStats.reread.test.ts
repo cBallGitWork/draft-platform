@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { statValue } from "./matchRecords";
 import {
   FULL_TIME_READ,
@@ -16,7 +16,6 @@ import { HOUR_MS, MINUTE_MS } from "./time";
 // What a match read again before the lock writes over what it held.
 
 beforeEach(() => vi.useFakeTimers());
-afterEach(() => vi.useRealTimers());
 
 test("a re-read of the same match writes nothing new, and keeps when it reached full time and completed", async () => {
   const t = await withHullEverton();

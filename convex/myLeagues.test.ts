@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import { refusals } from "./leagueAccess";
 import {
@@ -13,7 +13,7 @@ import {
   teamsIn,
   type TestConvex,
 } from "./leagues.harness";
-import { ask, fakeResend, linkCode, openLink, resetSignInDeployment, signInDeployment } from "./signIn.harness";
+import { ask, fakeResend, linkCode, openLink, signInDeployment } from "./signIn.harness";
 
 // "Your leagues" (spec/12): what account:signedInAs tells the screens of a person's leagues, and
 // #24's Done line end to end.
@@ -25,7 +25,6 @@ beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
 });
-afterEach(resetSignInDeployment);
 
 /** What account:signedInAs tells the screens for `email`. */
 const accountOf = async (email: string) => (await (await actingAs(t, email)).query(api.account.signedInAs, {}))!;

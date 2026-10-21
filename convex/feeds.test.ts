@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "./football";
 import type { RawPlFixture } from "./premierLeague";
@@ -26,7 +26,6 @@ function fakeFeeds(refuse?: string) {
 }
 
 beforeEach(() => vi.useFakeTimers());
-afterEach(() => vi.useRealTimers());
 
 test("a check scheduled for later runs only when its time comes, and records each read of both feeds", async () => {
   vi.stubGlobal("fetch", fakeFeeds());
