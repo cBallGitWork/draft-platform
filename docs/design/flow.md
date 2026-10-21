@@ -99,8 +99,8 @@ flowchart TD
 
 ## Screens
 
-Built screens have a route and a screen. A placeholder has a route that says "This screen isn't
-built yet". `none` in the path column means no route yet.
+A built screen has a route and its own page. A placeholder has a route that says "This screen
+isn't built yet". `none` in the Path and File columns means no route yet.
 
 | Screen | Path | File | Spec | Status |
 |---|---|---|---|---|
