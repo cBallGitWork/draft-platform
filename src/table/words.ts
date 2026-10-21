@@ -29,7 +29,7 @@ export const nextLabel = "Next gameweek";
 export const versusWords = "v";
 export const leagueAverageWords = "League average";
 export const byeWords = (teamName: string) => `${teamName} has a bye.`;
-export const fixturesListLabel = (gameweek: number) => `Gameweek ${gameweek}'s fixtures`;
+export const fixturesListLabel = (gameweek: number) => `${gameweekWords(gameweek)}'s fixtures`;
 export const repeatWords = (gameweeks: number) =>
   `Every team meets every other once in ${gameweeks} of the gameweeks the league plays, and then the fixtures repeat.`;
 

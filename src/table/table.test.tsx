@@ -31,7 +31,6 @@ afterEach(cleanup);
 
 const FIVE = ["Ann's", "Bob's", "Cat's", "Dan's", "Eve's"];
 const openTable = (table: TableData = {}) => openApp(TABLE_PATH, manager, { table });
-const tableRows = () => within(screen.getByRole("table")).getAllByRole("row").slice(1);
 const fixtureLines = (gameweek: number) =>
   within(screen.getByRole("list", { name: fixturesListLabel(gameweek) }))
     .getAllByRole("listitem")
@@ -65,7 +64,7 @@ describe("the table", () => {
   it("lists every team on nothing, in the order they were made, and says why", async () => {
     openTable({ leagueTable: leagueTableOf(FIVE) });
     await screen.findByText(noResultsWords);
-    const rows = tableRows().map((row) => [within(row).getByRole("rowheader").textContent, within(row).getAllByRole("cell").map((cell) => cell.textContent)]);
+    const rows = within(screen.getByRole("table")).getAllByRole("row").slice(1).map((row) => [within(row).getByRole("rowheader").textContent, within(row).getAllByRole("cell").map((cell) => cell.textContent)]);
     expect(rows).toEqual(FIVE.map((name, index) => [name, [String(index + 1), "0", "0", "0", "0", "0", "0", "0", "0"]]));
   });
 

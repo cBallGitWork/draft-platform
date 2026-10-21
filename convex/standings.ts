@@ -53,11 +53,12 @@ function matchPoints(score: number, against: number): number {
 }
 
 function addResult<Team>(row: TableRow<Team>, score: number, against: number): void {
+  const earned = matchPoints(score, against);
   row.played += 1;
-  if (score > against) row.won += 1;
-  else if (score === against) row.drawn += 1;
+  if (earned === MATCH_POINTS.win) row.won += 1;
+  else if (earned === MATCH_POINTS.draw) row.drawn += 1;
   else row.lost += 1;
-  row.points += matchPoints(score, against);
+  row.points += earned;
   row.pointsFor = inTenths(row.pointsFor + score);
   row.pointsAgainst = inTenths(row.pointsAgainst + against);
   row.difference = inTenths(row.pointsFor - row.pointsAgainst);
@@ -128,7 +129,11 @@ export function totalPointsTable<Team>(teams: readonly Team[], scores: GameweekS
 /** Rows grouped by a key, highest first, each group in the rows' own order. */
 function groupedBy<Row>(rows: readonly Row[], key: (row: Row) => number): Row[][] {
   const groups = new Map<number, Row[]>();
-  for (const row of rows) groups.set(key(row), [...(groups.get(key(row)) ?? []), row]);
+  for (const row of rows) {
+    const group = groups.get(key(row));
+    if (group === undefined) groups.set(key(row), [row]);
+    else group.push(row);
+  }
   return [...groups.entries()].toSorted(([one], [other]) => other - one).map(([, group]) => group);
 }
 

@@ -30,7 +30,7 @@ export function roundsOf<Team>(teams: readonly Team[]): [Team, Team | null][][] 
     const pairs: [Team, Team | null][] = [];
     for (let index = 0; index < size / 2; index += 1) {
       const [one, other] = [circle[index], circle[size - 1 - index]];
-      // The gap is never the first of a pair, so the team it faces is.
+      // Whoever faces the gap comes first.
       pairs.push(one === null ? [other!, null] : [one, other]);
     }
     rounds.push(pairs);
