@@ -4,6 +4,7 @@ The values behind [spec/12-screens.md](../../spec/12-screens.md). Craig chose th
 values are Claude's, from the designer's round-2 brief and the reviewer's pass on R3·1
 (16 Oct 2026). The reference mock-up is "R3·1 · Plate, chosen" (source: `docs/design/mockups/PlateOne.dc.html`) on
 <https://claude.ai/artifact/Qz9zn3FrMHgPB189UtbjoB>. Every screen is drawn from this file.
+How the screens link, and which the spec names but nobody has built: [flow.md](flow.md).
 
 ## Colour roles (CM 99/00 blue)
 
