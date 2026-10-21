@@ -3,7 +3,7 @@
 // its invite link at /join/preview, or /join/waiting once asked, or /join/gone once switched off.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import { DAY_MS } from "../../convex/joiningShared";
+import { DAY_MS } from "../../convex/time";
 import { replyWords } from "../sign-in/words";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 

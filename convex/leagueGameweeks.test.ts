@@ -16,12 +16,11 @@ import {
   type TestConvex,
 } from "./leagues.harness";
 import { fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
+import { HOUR_MS, WEEK_MS } from "./time";
 import { GAMEWEEKS, isGameweekUsed } from "./usedGameweeks";
 
 // The gameweeks a league plays (#74; spec/13, Gameweeks), against #21's gameweeks.
 
-const HOUR = 60 * 60 * 1000;
-const WEEK = 7 * 24 * HOUR;
 /** The first gameweek still to begin, an hour after the harness's clock starts: 1 to 10 have begun. */
 const NEXT = 11;
 
@@ -29,7 +28,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let start: number;
 /** FPL's deadline for a gameweek: a week apart, from the clock's start, however the clock moves. */
-const deadlineOf = (gameweek: number) => start + (gameweek - NEXT) * WEEK + HOUR;
+const deadlineOf = (gameweek: number) => start + (gameweek - NEXT) * WEEK_MS + HOUR_MS;
 beforeEach(async () => {
   t = await signInDeployment();
   start = Date.now();

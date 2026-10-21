@@ -7,6 +7,7 @@
 
 import type { Id } from "../convex/_generated/dataModel";
 import type { LeagueSummary } from "../convex/myLeagues";
+import { HOUR_MS } from "../convex/time";
 import type { AuthActions, Session } from "./auth";
 import type { LeagueActions } from "./leagues/actions";
 import { replyWords } from "./sign-in/words";
@@ -46,7 +47,7 @@ const sundayLeague: LeagueSummary = {
   maxTeams: 8,
   unsentCommissionerLink: null,
   deletion: {
-    deletesAt: Date.now() + 23 * 60 * 60 * 1000,
+    deletesAt: Date.now() + 23 * HOUR_MS,
     unemailed: [
       { email: "late.joiner@example.com", reason: "paused" },
       { email: "last.manager@example.com", reason: "paused" },

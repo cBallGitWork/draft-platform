@@ -3,6 +3,7 @@ import { api, internal } from "./_generated/api";
 import { action, internalMutation, type ActionCtx, type MutationCtx } from "./_generated/server";
 import { isAllowed, normaliseEmail } from "./allowedEmails";
 import { anEmailLeftToday, countTodaysEmail } from "./emailLimit";
+import { HOUR_MS, MINUTE_MS } from "./time";
 
 // Asking for a sign-in link (spec/02, #20). The sign-in page asks through `ask`, which applies the
 // hourly limit, the day's email limit and the allowed list before Convex Auth makes a link, so a
@@ -11,11 +12,10 @@ import { anEmailLeftToday, countTodaysEmail } from "./emailLimit";
 // a moment ago (`claimAsk`, from convex/auth.ts): called directly, it is refused with nothing
 // written, so no earlier link is replaced and no account is made.
 
-const HOUR_MS = 60 * 60 * 1000;
 /** spec/02: one email asks for at most this many links an hour. */
 export const ASKS_PER_HOUR = 3;
 /** How long after `ask` lets an email through its link may take that ask. */
-const CLAIM_WINDOW_MS = 60 * 1000;
+const CLAIM_WINDOW_MS = MINUTE_MS;
 
 /** The replies that mean no link went. */
 export const noLinkReply = v.union(v.literal("tryLater"), v.literal("paused"), v.literal("notSent"));

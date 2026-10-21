@@ -3,7 +3,8 @@
 
 import { vi } from "vitest";
 import type { LeagueGameweek } from "../../convex/leagueGameweeks";
-import { WEEK, weeklySeason } from "./preview";
+import { HOUR_MS, WEEK_MS } from "../../convex/time";
+import { weeklySeason } from "./preview";
 import type { GameweeksSeam, LeagueGameweeksView } from "./seam";
 
 /** Gameweeks 1 to BEGUN have begun when a test opens the app; BEGUN + 1's deadline is an hour on. */
@@ -11,8 +12,8 @@ export const BEGUN = 10;
 
 /** The season as the server sends it, `unused` unticked. */
 export function season(unused: number[] = []): LeagueGameweek[] {
-  const nextDeadline = Date.now() + 60 * 60 * 1000;
-  return weeklySeason(nextDeadline - BEGUN * WEEK, unused);
+  const nextDeadline = Date.now() + HOUR_MS;
+  return weeklySeason(nextDeadline - BEGUN * WEEK_MS, unused);
 }
 
 /** Ticking succeeds, unless a test says otherwise; the season is all played, unless a test

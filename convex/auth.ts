@@ -3,6 +3,7 @@ import { convexAuth } from "@convex-dev/auth/server";
 import { joinByInvites } from "./invites";
 import { sendSignInEmail } from "./signInEmail";
 import { claimAsk } from "./signInLinks";
+import { DAY_MS } from "./time";
 
 // Convex Auth (ARCHITECTURE.md, Libraries): emailed sign-in links, no passwords (spec/02). The
 // sign-in page asks through signInLinks:ask, never `signIn` with an email; the browser redeems a
@@ -11,7 +12,7 @@ import { claimAsk } from "./signInLinks";
 /** spec/02: a link works once and lasts an hour. */
 export const LINK_LIFETIME_S = 60 * 60;
 /** spec/02: signed in, a manager stays signed in on that device for 30 days. */
-export const SESSION_MS = 30 * 24 * 60 * 60 * 1000;
+export const SESSION_MS = 30 * DAY_MS;
 
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   providers: [Resend({ maxAge: LINK_LIFETIME_S, sendVerificationRequest: sendSignInEmail })],

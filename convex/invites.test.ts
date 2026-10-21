@@ -11,7 +11,7 @@ import {
   openLastLinkTo,
 } from "./joining.harness";
 import { joiningRefusals } from "./joining";
-import { DAY_MS, INVITE_LIFETIME_MS, invitedPath } from "./joiningShared";
+import { INVITE_LIFETIME_MS, invitedPath } from "./joiningShared";
 import { refusals } from "./leagueAccess";
 import {
   COMMISSIONER,
@@ -33,6 +33,7 @@ import {
   spendTodaysEmails,
   type SentEmail,
 } from "./signIn.harness";
+import { DAY_MS } from "./time";
 
 // Emailed invites (#73 stories 1 and 5; spec/13, Joining).
 

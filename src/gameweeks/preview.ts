@@ -2,11 +2,9 @@
 // week apart for each of FPL's gameweeks.
 
 import type { LeagueGameweek } from "../../convex/leagueGameweeks";
+import { WEEK_MS } from "../../convex/time";
 import { GAMEWEEKS } from "../../convex/usedGameweeks";
 import type { GameweeksSeam } from "./seam";
-
-/** How far apart the made-up deadlines are. */
-export const WEEK = 7 * 24 * 60 * 60 * 1000;
 
 /** The season as the server sends it: gameweek 1's deadline at `firstDeadline`, each next a week
  *  on, and `unused` unticked. */
@@ -14,7 +12,7 @@ export function weeklySeason(firstDeadline: number, unused: readonly number[] = 
   return Array.from({ length: GAMEWEEKS }, (_, index) => ({
     gameweek: index + 1,
     used: !unused.includes(index + 1),
-    deadline: firstDeadline + index * WEEK,
+    deadline: firstDeadline + index * WEEK_MS,
   }));
 }
 

@@ -11,7 +11,7 @@ import { askForLink, signInReply } from "./signInLinks";
 import { putOnTeam } from "./teams";
 
 // Emailed invites (#73, spec/13 Joining): an invite names a vacated team or a new one, carries a
-// sign-in link, and the person joins on signing in, with no approval, while it lasts (7 days).
+// sign-in link, and the person joins on signing in, with no approval, while it lasts (an invite's lifetime).
 // Each change the league's runners make files an event for Mail (#26).
 
 /** The most unexpired invites to one email read at once: far more leagues than invite anyone in a week. */
@@ -130,7 +130,7 @@ export const emailToDeliver = internalQuery({
   },
 });
 
-/** Keeps how the email went. Sent, the invite lasts 7 days from now; past the day's emails, it
+/** Keeps how the email went. Sent, the invite lasts its lifetime from now; past the day's emails, it
  *  waits for tomorrow and goes by itself then (spec/13). */
 export const recordDelivery = internalMutation({
   args: { inviteId: v.id("invites"), reply: signInReply },

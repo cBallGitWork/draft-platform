@@ -1,8 +1,9 @@
 import type { Infer } from "convex/values";
 import { dayOf } from "./emailLimit";
-import { DAY_MS, linkOffWords, noLinkWords } from "./joiningShared";
+import { linkOffWords, noLinkWords } from "./joiningShared";
 import type { delivery } from "./schema";
 import type { SignInReply } from "./signInLinks";
+import { DAY_MS } from "./time";
 
 // What emailed invites, the invite link and join requests share (#73, spec/13 Joining).
 

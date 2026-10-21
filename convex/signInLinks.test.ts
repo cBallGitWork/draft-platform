@@ -16,9 +16,7 @@ import {
   type TestConvex,
 } from "./signIn.harness";
 import { ASKS_PER_HOUR } from "./signInLinks";
-
-const MINUTE_MS = 60 * 1000;
-const HOUR_MS = 60 * MINUTE_MS;
+import { HOUR_MS, MINUTE_MS } from "./time";
 
 let t: TestConvex;
 beforeEach(async () => {
