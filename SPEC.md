@@ -29,7 +29,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | # | Feature | Status | Checked by |
 |---|---|---|---|
 | 1 | [Leagues](spec/01-leagues.md) | not built | a league created from a ready-made rule set carries every rule in it |
-| 2 | [Sign-in](spec/02-sign-in.md) | not built | an email on the allowed list gets a link that works once within the hour; one not on it gets the same reply and no link |
+| 2 | [Sign-in](spec/02-sign-in.md) | built, awaiting the live email proof; the invite link's way in waits for #73 | an email on the allowed list gets a link that works once within the hour; one not on it gets the same reply and no link |
 | 3 | [League rules](spec/03-league-rules.md) | not built | the same week scores differently under two leagues' rules |
 | 4 | [The draft](spec/04-the-draft.md) | not built | a timed-out pick takes the queue's best available player, then the default ranking's |
 | 5 | [Tactics](spec/05-tactics.md) | not built | the same player and match score differently in two roles, and an empty slot is filled by the first fitting sub |

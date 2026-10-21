@@ -34,7 +34,7 @@ export const run = internalAction({
     let outcome: Outcome;
     try {
       const due: DueMatch[] = await ctx.runQuery(internal.matchStats.due, { now: ranAt });
-      outcome = { ok: true, ...(due.length === 0 ? { matches: [], waiting: [] } : await syncDue(ctx, due, ranAt)) };
+      outcome = { ok: true, ...(due.length === 0 ? { matches: [], waiting: [] } : await syncDue(ctx, due, ranAt, "wait")) };
     } catch (error: unknown) {
       outcome = { ok: false, error: logFailure("match stats sync failed", error) };
     }
@@ -42,9 +42,13 @@ export const run = internalAction({
   },
 });
 
+/** What a read does with a match the Premier League does not yet call full time: the sync leaves
+ *  it "waiting" for a later run; the live tick (#28) writes it, provisional. */
+export type BeforeFullTime = "wait" | "live";
+
 /** Each due match a gameweek at a time, since FPL's live stats and the Premier League's list come
  *  by gameweek. A gameweek whose reads fail fails each of its matches; a match that fails fails alone. */
-async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number) {
+export async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number, beforeFullTime: BeforeFullTime) {
   const { bootstrap, fixtures } = await readFplPayloads();
   const codeByOpta = codesByOpta(bootstrap.elements);
   const matches: MatchOutcome[] = [];
@@ -62,7 +66,7 @@ async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number) {
     }
     for (const fixtureCode of codes) {
       try {
-        const outcome = await syncMatch(ctx, fixtureCode, reads, readAt);
+        const outcome = await syncMatch(ctx, fixtureCode, reads, readAt, beforeFullTime);
         if (outcome === null) waiting.push(fixtureCode);
         else matches.push(outcome);
       } catch (error: unknown) {
@@ -73,18 +77,20 @@ async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number) {
   return { matches, waiting };
 }
 
-/** One match: null while the Premier League does not yet call it full time; then its sheets and
- *  every named man's Premier League stats, merged with FPL's and upserted. */
+/** One match: its sheets and every named man's Premier League stats, merged with FPL's and
+ *  upserted; before full time, null if waiting, or written as live. */
 async function syncMatch(
   ctx: ActionCtx,
   fixtureCode: number,
   { gameweek, codeByOpta, fplLines, listed }: GameweekReads,
   readAt: number,
+  beforeFullTime: BeforeFullTime,
 ): Promise<MatchOutcome | null> {
   const summary = listed.get(fixtureCode);
   if (summary === undefined) throw new Error(`the Premier League lists no match ${fixtureCode} in gameweek ${gameweek}`);
   if (summary.status === undefined) throw new Error(`PL fixture ${summary.id} carries no status`);
-  if (summary.status !== PL_FULL_TIME) return null;
+  const fullTime = summary.status === PL_FULL_TIME;
+  if (!fullTime && beforeFullTime === "wait") return null;
   const fixture = await readPlFixture(summary.id);
   const { slots, unmatched } = matchSlots(fixture, codeByOpta);
   const reads = new Map(
@@ -92,7 +98,9 @@ async function syncMatch(
   );
   const { lines } = plStatLines(fixture, reads, codeByOpta);
   const records = matchRecords(fixtureCode, slots, fplLines, lines);
-  const written = await ctx.runMutation(internal.matchStats.upsertMatch, { fixtureCode, readAt, records });
+  const written = fullTime
+    ? await ctx.runMutation(internal.matchStats.upsertMatch, { fixtureCode, readAt, records })
+    : await ctx.runMutation(internal.liveStats.upsertLive, { fixtureCode, records });
   return { fixtureCode, ok: true, ...written, players: records.length, unmatched };
 }
 
@@ -103,7 +111,7 @@ function byGameweek(due: DueMatch[]): Map<number, number[]> {
 }
 
 /** The error's message, logged so a failure is seen in Convex's logs as well as on the run row. */
-function logFailure(what: string, error: unknown): string {
+export function logFailure(what: string, error: unknown): string {
   const message = errorMessage(error);
   console.error(`${what}: ${message}`);
   return message;

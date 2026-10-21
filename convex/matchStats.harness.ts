@@ -33,7 +33,7 @@ export const KICKOFF = Date.parse("2026-10-11T13:00:00Z");
 export const FULL_TIME_READ = KICKOFF + 2 * HOUR_MS;
 
 /** Every feed's read for gameweek 6 as recorded; a URL containing `refuse` answers `REFUSED_STATUS`. */
-function fakeFeeds(payloads: Gw6Payloads, refuse?: string) {
+export function fakeFeeds(payloads: Gw6Payloads, refuse?: string) {
   const bodies = new Map<string, unknown>([
     [FPL_BOOTSTRAP_URL, payloads.fpl.bootstrap],
     [FPL_FIXTURES_URL, payloads.fpl.fixtures],

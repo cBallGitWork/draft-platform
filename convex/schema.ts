@@ -1,3 +1,4 @@
+import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v, type VLiteral } from "convex/values";
 import { POSITIONS, type Position } from "./positionTables";
@@ -95,6 +96,27 @@ export const footballSyncFields = {
   ),
 };
 
+// Sign-in (#20, spec/02). Emails are stored trimmed and lower-cased (`normaliseEmail`).
+
+/** An email the admin let sign in (spec/13, Joining). The admin's own email needs no row. */
+const allowedEmailFields = { email: v.string() };
+
+/** One ask for a link that was answered "check your email", on the list or not, so the hourly
+ *  limit counts every email alike. A refused ask (too many, or paused) is told so and not stored. */
+const signInAskFields = {
+  email: v.string(),
+  askedAt: v.number(),
+  /** Whether the email was on the list, so a link was to be sent. */
+  listed: v.boolean(),
+  /** When Convex Auth's send took this ask; a send with no ask to take is refused. */
+  claimedAt: v.optional(v.number()),
+  /** Why the email wasn't sent, when it wasn't. */
+  sendError: v.optional(v.string()),
+};
+
+/** The emails the app sent on one UTC day, against Resend's daily limit (ARCHITECTURE.md). */
+const emailSendFields = { day: v.string(), count: v.number() };
+
 // Match stats (#27, spec/07 "Match stats"): one record per player per match, both feeds merged,
 // keyed on FPL's player and fixture codes. Stats keep the feeds' own names (spec/14 names them
 // later); a stat a whole record leaves out is 0.
@@ -141,6 +163,8 @@ export const matchSyncOutcome = v.union(
     inserted: v.number(),
     updated: v.number(),
     lateCorrections: v.number(),
+    /** The men inserted or updated, whose points to recompute (#28). Absent on runs before it. */
+    changed: v.optional(v.array(v.number())),
     /** Men a team sheet names whom FPL does not list: no record, since there is no code to key it on. */
     unmatched: v.array(v.object({ plPlayerId: v.number(), name: v.string(), opta: v.union(v.string(), v.null()) })),
   }),
@@ -241,12 +265,30 @@ export const positionsSyncFields = {
   ),
 };
 
+// The live poller (#28): one row per tick that found a match live, so a failed one is on record.
+export const liveStatsTickFields = {
+  ranAt: v.number(),
+  outcome: v.union(
+    v.object({ ok: v.literal(true), matches: v.array(matchSyncOutcome) }),
+    v.object({ ok: v.literal(false), error: v.string() }),
+  ),
+};
+
+const liveStatsTables = {
+  liveStatsTicks: defineTable(liveStatsTickFields),
+};
+
 export default defineSchema({
   ...matchStatsTables,
+  ...liveStatsTables,
+  ...authTables,
+  allowedEmails: defineTable(allowedEmailFields).index("by_email", ["email"]),
+  signInAsks: defineTable(signInAskFields).index("by_email_and_askedAt", ["email", "askedAt"]),
+  emailSends: defineTable(emailSendFields).index("by_day", ["day"]),
   feedChecks: defineTable(feedCheckFields),
   clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
   players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_clubCode", ["clubCode"]),
-  fixtures: defineTable(fixtureRecord.extend({ droppedAt })).index("by_code", ["code"]),
+  fixtures: defineTable(fixtureRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_kickoff", ["kickoff"]),
   gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]),
   footballSyncs: defineTable(footballSyncFields),
   playerPositions: defineTable(playerPositionFields).index("by_code", ["code"]),

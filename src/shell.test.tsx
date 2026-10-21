@@ -1,54 +1,72 @@
 // The shell's routes, rendered (#19's seam): what a visitor and a signed-in manager can reach.
 
-import { RouterProvider, createMemoryHistory } from "@tanstack/react-router";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
-import { emptyTopBar, type TopBarState } from "./frame/topBarState";
+import type { TopBarState } from "./frame/topBarState";
 import { MAIL_PATH, MY_TEAM_PATH } from "./frame/menu";
-import { SIGN_IN_PATH, createShellRouter } from "./router";
+import { SIGN_IN_PATH } from "./router";
+import { LINK_REPLY, manager, openApp, visitor } from "./shell.harness";
+import { linkProblemWords } from "./sign-in/words";
 
 afterEach(cleanup);
-// The router restores scroll on every navigation, and jsdom has no scrolling to restore.
-window.scrollTo = () => {};
 
 const threeUnread: TopBarState = { unreadMail: 3, next: { path: MAIL_PATH, reason: "3 unread letters" } };
 
-function openApp(path: string, { signedIn, topBar = emptyTopBar }: { signedIn: boolean; topBar?: TopBarState }) {
-  const router = createShellRouter({ signedIn, topBar }, createMemoryHistory({ initialEntries: [path] }));
-  render(<RouterProvider router={router} />);
-  return router;
-}
-
 describe("a logged-out visitor", () => {
   it("opening the app sees the sign-in page: the name, invite only, an email box", async () => {
-    const router = openApp("/", { signedIn: false });
+    const app = openApp("/", visitor);
     expect(await screen.findByRole("heading", { level: 1, name: "Draft Manager" })).toBeTruthy();
     expect(screen.getByText("Invite only")).toBeTruthy();
     expect(screen.getByRole("textbox", { name: "Email" })).toBeTruthy();
-    expect(router.state.location.pathname).toBe(SIGN_IN_PATH);
+    expect(app.path()).toBe(SIGN_IN_PATH);
   });
 
-  it.each([MY_TEAM_PATH, "/team/squad", MAIL_PATH, "/no-such-page"])("opening %s sees only the sign-in page", async (path) => {
-    const router = openApp(path, { signedIn: false });
-    expect(await screen.findByRole("textbox", { name: "Email" })).toBeTruthy();
-    expect(screen.queryByRole("navigation")).toBeNull();
-    expect(router.state.location.pathname).toBe(SIGN_IN_PATH);
-  });
+  it.each([MY_TEAM_PATH, "/team/squad", MAIL_PATH, "/leagues", "/leagues/new", "/no-such-page"])(
+    "opening %s sees only the sign-in page",
+    async (path) => {
+      const app = openApp(path, visitor);
+      expect(await screen.findByRole("textbox", { name: "Email" })).toBeTruthy();
+      expect(screen.queryByRole("navigation")).toBeNull();
+      expect(screen.queryByRole("button", { name: "Sign out" })).toBeNull();
+      expect(app.path()).toBe(SIGN_IN_PATH);
+    },
+  );
 
-  it("asking for a link is told plainly that sign-in isn't switched on", async () => {
-    openApp(SIGN_IN_PATH, { signedIn: false });
+  it("asking for a link asks for it for the email typed, and shows the reply", async () => {
+    const app = openApp(SIGN_IN_PATH, visitor);
     await userEvent.type(await screen.findByRole("textbox", { name: "Email" }), "craig@example.com");
     await userEvent.click(screen.getByRole("button", { name: "Send the link" }));
-    expect((await screen.findByRole("status")).textContent).toBe("Sign-in isn't switched on yet, so no link was sent.");
+    expect((await screen.findByRole("status")).textContent).toBe(LINK_REPLY);
+    expect(app.auth.requestSignInLink).toHaveBeenCalledWith("craig@example.com");
+  });
+
+  it("opened from a used or expired link, is told it has expired, above the box to send a new one", async () => {
+    openApp(`${SIGN_IN_PATH}?link=expired`, visitor);
+    expect((await screen.findByRole("alert")).textContent).toBe(linkProblemWords.expired);
+    expect(screen.getByRole("textbox", { name: "Email" })).toBeTruthy();
+  });
+
+  it("asking for a new link replaces the expired notice with the reply", async () => {
+    openApp(`${SIGN_IN_PATH}?link=expired`, visitor);
+    await userEvent.type(await screen.findByRole("textbox", { name: "Email" }), "craig@example.com");
+    await userEvent.click(screen.getByRole("button", { name: "Send the link" }));
+    expect((await screen.findByRole("status")).textContent).toBe(LINK_REPLY);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it.each([SIGN_IN_PATH, `${SIGN_IN_PATH}?link=nonsense`])("opening %s, with no link problem it knows, sees no notice", async (path) => {
+    openApp(path, visitor);
+    expect(await screen.findByRole("textbox", { name: "Email" })).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });
 
 describe("a signed-in manager", () => {
   it("lands on My team, with its tabs under the menu", async () => {
-    const router = openApp("/", { signedIn: true });
+    const app = openApp("/", manager);
     expect(await screen.findByRole("heading", { level: 1, name: "My team" })).toBeTruthy();
-    expect(router.state.location.pathname).toBe(MY_TEAM_PATH);
+    expect(app.path()).toBe(MY_TEAM_PATH);
     const main = screen.getByRole("navigation", { name: "Main" });
     expect(within(main).getByRole("link", { current: "page" }).textContent).toBe("My team");
     const tabs = screen.getByRole("navigation", { name: "Section" });
@@ -62,7 +80,7 @@ describe("a signed-in manager", () => {
   });
 
   it("sees the eight sections in the menu, in order", async () => {
-    openApp(MY_TEAM_PATH, { signedIn: true });
+    openApp(MY_TEAM_PATH, manager);
     const main = await screen.findByRole("navigation", { name: "Main" });
     expect(within(main).getAllByRole("link").map((link) => link.textContent)).toEqual([
       "Home",
@@ -78,7 +96,7 @@ describe("a signed-in manager", () => {
 
   it("on a section's tab, sees that tab marked, and the section still marked in the menu", async () => {
     // A table's sort or filter in the address must not unmark its tab.
-    openApp("/team/squad?sort=form", { signedIn: true });
+    openApp("/team/squad?sort=form", manager);
     const tabs = await screen.findByRole("navigation", { name: "Section" });
     expect(within(tabs).getByRole("link", { current: "page" }).textContent).toBe("Squad");
     const main = screen.getByRole("navigation", { name: "Main" });
@@ -86,13 +104,13 @@ describe("a signed-in manager", () => {
   });
 
   it("on a section with no tabs yet, sees no second row", async () => {
-    openApp("/matchup", { signedIn: true });
+    openApp("/matchup", manager);
     expect(await screen.findByRole("heading", { level: 1, name: "Matchup" })).toBeTruthy();
     expect(screen.queryByRole("navigation", { name: "Section" })).toBeNull();
   });
 
   it("with unread mail, sees Mail's count in the menu, and Continue going to the next thing", async () => {
-    openApp(MY_TEAM_PATH, { signedIn: true, topBar: threeUnread });
+    openApp(MY_TEAM_PATH, manager, threeUnread);
     const mail = await screen.findByRole("link", { name: "Mail, 3 unread" });
     expect(mail.getAttribute("href")).toBe(MAIL_PATH);
     expect(within(mail).getByText("3")).toBeTruthy();
@@ -100,15 +118,26 @@ describe("a signed-in manager", () => {
   });
 
   it("with nothing to do, sees 'Nothing needs you' and no Continue, and Mail with no count", async () => {
-    openApp(MY_TEAM_PATH, { signedIn: true });
+    openApp(MY_TEAM_PATH, manager);
     expect(await screen.findByText("Nothing needs you")).toBeTruthy();
     expect(screen.queryByRole("link", { name: /^Continue/ })).toBeNull();
     expect(screen.getByRole("link", { name: "Mail" }).textContent).toBe("Mail");
   });
 
   it("opening the sign-in page is sent to My team", async () => {
-    const router = openApp(SIGN_IN_PATH, { signedIn: true });
+    const app = openApp(SIGN_IN_PATH, manager);
     expect(await screen.findByRole("heading", { level: 1, name: "My team" })).toBeTruthy();
-    expect(router.state.location.pathname).toBe(MY_TEAM_PATH);
+    expect(app.path()).toBe(MY_TEAM_PATH);
+  });
+
+  it("signs out from the top bar, and is then sent to the sign-in page", async () => {
+    const app = openApp("/team/squad", manager);
+    await userEvent.click(await screen.findByRole("button", { name: "Sign out" }));
+    expect(app.auth.signOut).toHaveBeenCalledOnce();
+
+    app.becomes(visitor);
+
+    expect(await screen.findByRole("textbox", { name: "Email" })).toBeTruthy();
+    expect(app.path()).toBe(SIGN_IN_PATH);
   });
 });

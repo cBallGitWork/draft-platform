@@ -67,7 +67,7 @@ The steps (push the action to the dev deployment, run it twice, how to read what
 | What | Choice | Why |
 |---|---|---|
 | App | a Vite single-page React app with TanStack Router | Convex's main path, and the only setup its own sign-in officially supports; typed routes for filter-heavy tables; server rendering buys little where everyone is signed in and every screen is live. TanStack Start uses the same router if that changes |
-| Sign-in | Convex Auth magic links, sent through Resend | the backend's own; beta, so read its current docs first |
+| Sign-in | Convex Auth (`@convex-dev/auth`) magic links, with Auth.js's Resend provider (`@auth/core`, its required peer); the email is sent with one `fetch` to Resend's API, no Resend package | the backend's own; beta, so read its current docs first. The hourly and daily limits are counted in our own tables (`convex/signInLinks.ts`), not `@convex-dev/rate-limiter`: a Convex mutation is one transaction, so the count can't race, and it's one component less to install |
 | Components | shadcn/ui on Base UI, added with the first component that needs Base UI's behaviour (a menu, a dialog); the shell needs none | the code is copied into the repo, so it is ours to restyle |
 | Styling | Tailwind 4 with our own design values | the defaults are the generic AI look Craig wants to get far from |
 | Typeface | Archivo Narrow from Fontsource | plate.md's one face, served with the app: no call to Google from the sign-in page, and screenshots don't wait on a font server |
@@ -104,7 +104,20 @@ The steps (push the action to the dev deployment, run it twice, how to read what
   read that finds it, so a match locks up to one interval after its true hour. A run with no
   match due reads no feed; one due reads about 40 Premier League URLs per match, and a locked
   match is read again hourly for a day to catch late corrections.
+- Live stats (#28): a cron every minute (`liveStatsSync.tick`) reads each match from kickoff
+  until it is complete, or four hours on; outside those windows it reads no feed and writes no row.
+  A cron, not a function rescheduling itself, because Convex runs a scheduled action at most
+  once: a chain would end, unseen, at the first tick that failed before scheduling the next, and
+  need re-arming whenever a kickoff moved. Convex runs one tick at a time, skipping one due while
+  another runs, and both feeds send running totals, so the next tick catches up any failed or
+  skipped. Each tick that found a match live is a row in `liveStatsTicks`, failed or not
+  ([docs/pl-match-stats.md](docs/pl-match-stats.md#during-a-match)). Outside matches: one
+  action and one indexed query a minute, about 43,000 calls a month. Inside: FPL's ~1.8 MB
+  bootstrap and about 40 Premier League reads per match, each tick.
 - League rules are rows, never constants; FPL's own rules can be constants.
+- Each ask for a sign-in link that was answered "check your email" is a row in `signInAsks`, a
+  failed send kept with its error, and each day's emails are counted in `emailSends` against
+  Resend's 100 (#20).
 
 ## With the first code
 
