@@ -7,7 +7,8 @@ import { GAMEWEEKS, isGameweek, isGameweekUsed, noSuchGameweek, unusedAfter } fr
 // The commissioner ticks the gameweeks the league plays, all 38 by default (#74; spec/13,
 // Gameweeks). A gameweek has begun once FPL's deadline for it (#21's gameweeks) has passed, and
 // from then on it can't be ticked or unticked; before gameweek 1 begins, every one can be.
-// The league's own deadline rule isn't data yet (#25), and FPL's is every league's default.
+// Each league's deadline rule is stored (#120, leagueRules.ts), but nothing reads it here yet:
+// FPL's deadline decides when a gameweek has begun.
 
 /** Why a change to the league's gameweeks was refused, as the commissioner is told it. */
 export const gameweekRefusals = {

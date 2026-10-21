@@ -186,8 +186,9 @@ How #28 reads a match while it is played (`convex/liveStatsSync.ts`, `convex/liv
   calls full time, the match goes through the full-time path above; it stops being polled once
   complete, or four hours after kickoff.
 - `changed` on each tick's row (`liveStatsTicks`) and each sync's (`matchStatsSyncs`) names the
-  men whose records moved. No league's scoring set or lineup is stored yet (#25, #8), so no
-  points are recomputed; once they are, they are recomputed for those men.
+  men whose records moved. Each league's scoring set is stored (#120), but no lineup is yet (#8)
+  and nothing recomputes points from them, so none are; once something does, it recomputes them
+  for those men.
 - Assumed until a live match is recorded: a match in play's `status` is anything but "C"; both
   feeds send running totals, so the next tick catches up one that failed; FPL's match blocks fill
   in during play, as Opta's per-man reads do.
