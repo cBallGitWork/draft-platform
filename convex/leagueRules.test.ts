@@ -67,9 +67,9 @@ test("two leagues hold different rules side by side, and the same match scores d
   expect((await latest(first))?.rules).toEqual(FIRST_RULES);
   expect((await latest(second))?.rules).toEqual(priced);
   const goalIn = async (leagueId: Id<"leagues">) =>
-    scoreMatch({ minutes: 90, goals_scored: 1 }, (await inGameweek(leagueId, 1)).scoring, "attack").total;
-  expect(await goalIn(first)).toBe(0);
-  expect(await goalIn(second)).toBe(6);
+    scoreMatch({ minutes: 90, goals_scored: 1 }, (await inGameweek(leagueId, 1)).scoring, "defensiveMidfield").total;
+  expect(await goalIn(first)).toBe(7);
+  expect(await goalIn(second)).toBe(8);
 });
 
 describe("a commissioner's change", () => {
