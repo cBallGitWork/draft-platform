@@ -170,7 +170,7 @@ describe("who can be invited", () => {
     await expect(commissioner.mutation(api.invites.send, { leagueId, email: EVE })).rejects.toThrow(refusals.full(4));
   });
 
-  test("each refusal reads the same as adding them as a manager would (teams.ts checkCanJoin)", async () => {
+  test("an invite refuses whoever adding them as a manager would, in the same words", async () => {
     const otherLeague = await adminCreatesLeague(t, 2, "Other league");
     const [catsTeam] = await addManagers(t, otherLeague, [CAT]);
     await (await actingAs(t, CAT)).mutation(api.teams.leave, { leagueId: otherLeague });
