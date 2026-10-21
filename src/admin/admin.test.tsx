@@ -10,7 +10,7 @@ import { admin, commissioner, openApp } from "../shell.harness";
 import type { AdminData } from "./admin.harness";
 import { EMPTY_QUEUE } from "./admin.harness";
 import { ADMIN_PATH } from "./paths";
-import { ADMIN_TITLE, approveLabel, confirmLabel, findLabel, removeLabel, setLabel, switchModeWords } from "./words";
+import { ADMIN_TITLE, approveLabel, confirmLabel, findLabel, foundListLabel, removeLabel, setLabel, switchModeWords } from "./words";
 
 afterEach(cleanup);
 
@@ -107,7 +107,7 @@ describe("settings", () => {
 describe("correcting a player", () => {
   const findWoltemade = async () => {
     await userEvent.type(await screen.findByRole("searchbox", { name: findLabel }), "Woltemade");
-    return screen.getByRole("list", { name: "Players found" });
+    return screen.getByRole("list", { name: foundListLabel });
   };
 
   it("shows each position, where it came from, and whether it's confirmed", async () => {

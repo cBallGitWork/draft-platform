@@ -46,6 +46,9 @@ export const unconfirmedWords = "unconfirmed";
 export const removeLabel = (position: string, name: string) => `Remove ${position} from ${name}`;
 export const setLabel = (name: string) => `Position to give ${name}`;
 export const setWords = "Set";
+export const removeWords = "Remove";
+export const foundListLabel = "Players found";
+export const positionsListLabel = (name: string) => `${name}'s positions`;
 
 /** Where to read up on a player, as a web search on one site each: nothing is fetched (spec/06). */
 const searchOn = (site: string, fullName: string) => `https://www.google.com/search?q=${encodeURIComponent(`site:${site} ${fullName}`)}`;

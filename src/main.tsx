@@ -4,8 +4,8 @@ import "@fontsource/archivo-narrow/700.css";
 import "./styles.css";
 
 import { StrictMode } from "react";
-import { previewAdmin } from "./admin/preview";
 import { createRoot } from "react-dom/client";
+import { previewAdmin } from "./admin/preview";
 import { previewGameweeks } from "./gameweeks/preview";
 import { LiveApp, takeLinkCode } from "./liveApp";
 import { previewJoining } from "./joining/preview";

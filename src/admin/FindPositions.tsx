@@ -5,6 +5,9 @@ import type { PanelProps } from "./panelProps";
 import type { AdminSeam, FoundPlayerPositions } from "./seam";
 import {
   findHint,
+  foundListLabel,
+  positionsListLabel,
+  removeWords,
   findLabel,
   findTitle,
   noneFoundWords,
@@ -40,7 +43,7 @@ export function FindPlayer({ seam, change }: { seam: AdminSeam; change: Change }
         ) : found.length === 0 ? (
           <p className="px-3 pb-2 text-muted">{noneFoundWords}</p>
         ) : (
-          <ul aria-label="Players found" className="border-t border-panel-rule">
+          <ul aria-label={foundListLabel} className="border-t border-panel-rule">
             {found.map((player) => (
               <PlayerPositions key={player.code} player={player} seam={seam} change={change} />
             ))}
@@ -63,7 +66,7 @@ function PlayerPositions({ player, seam, change }: { player: FoundPlayerPosition
       {player.positions.length === 0 ? (
         <span className="text-muted">{noPositionsWords}</span>
       ) : (
-        <ul aria-label={`${player.name}'s positions`} className="flex flex-col">
+        <ul aria-label={positionsListLabel(player.name)} className="flex flex-col gap-1">
           {player.positions.map((each) => (
             <li key={each.position} className="flex items-center justify-between gap-2">
               <span>
@@ -80,7 +83,7 @@ function PlayerPositions({ player, seam, change }: { player: FoundPlayerPosition
                 className="secondary-action"
                 aria-label={removeLabel(each.position, player.name)}
               >
-                Remove
+                {removeWords}
               </button>
             </li>
           ))}

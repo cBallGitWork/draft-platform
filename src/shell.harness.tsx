@@ -79,9 +79,6 @@ const fakeMail = (letters: readonly LetterSummary[] | null) => ({
   writeToLeague: vi.fn<Mail["writeToLeague"]>(async () => null),
 });
 
-/** The app opened at `path` for `session`, with `letters` in Mail: where it is, the fake sign-in,
- *  league, Mail, joining, gameweeks and squads seams, and a way to change the session as signing
- *  in or out, or a league changing, would. */
 /** What a test may set besides the address and the session: each seam's data, and the top bar. */
 export type AppSetUp = {
   topBar?: TopBarState;
@@ -91,6 +88,9 @@ export type AppSetUp = {
   admin?: AdminData;
 };
 
+/** The app opened at `path` for `session`, set up as `setUp` says: where it is, the fake sign-in,
+ *  league, Mail, joining, gameweeks, squads and admin seams, and a way to change the session as
+ *  signing in or out, or a league changing, would. */
 export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const { topBar = emptyTopBar, letters = [], joining: joiningData = {}, squads: squadsData = {}, admin: adminData = {} } = setUp;
   const history = createMemoryHistory({ initialEntries: [path] });
