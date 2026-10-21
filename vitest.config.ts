@@ -3,6 +3,7 @@ import { defineConfig } from "vitest/config";
 
 // Only convex/, src/ and scripts/ at the root are searched for tests, so one anywhere else never
 // runs: an agent's worktree, inside the repo under .claude/worktrees/, runs its own.
+// e2e/ is Playwright's, run by `npm run smoke` (playwright.config.ts), never by Vitest.
 // Each project puts back every stubbed global, stubbed env and spy before each test, and
 // test.setup.ts puts the real timers back after each, so no test file needs its own afterEach for
 // them. The setup files sit outside convex/, so Convex never loads them as its modules.

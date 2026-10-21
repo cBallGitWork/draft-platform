@@ -17,7 +17,7 @@ reason, and a change to either changes this file.
 | Backend | [Convex](https://docs.convex.dev): database, live queries, timers, sign-in | a pick's timer is saved with the pick, so pause and undo cancel it; live scores reach browsers with no extra service; one vendor, hard-capped free plan |
 | Pages | Vercel, free (Hobby) plan | the companion's host |
 | Timed work | Convex scheduled functions and crons | Vercel Hobby cron runs once a day and GitHub Actions cron can't hold a minute, so every timer lives with the data |
-| The gate in CI | GitHub Actions on `ubuntu-latest`: `.github/workflows/verify.yml` runs `npm run verify` and then `npm run build` on every pull request to main and every push to main (Craig, 20 Oct 2026) | two pull requests that pass alone can break main together (#69 and #77); Linux is the cheapest runner, and the hook checks need only bash, Python, git and jq; no secrets, since no test touches a deployment |
+| The gate in CI | GitHub Actions on `ubuntu-latest`: `.github/workflows/verify.yml` runs `npm run verify` and then `npm run build`, and after them a `smoke` job runs `npm run smoke`, on every pull request to main and every push to main (Craig, 20 Oct 2026) | two pull requests that pass alone can break main together (#69 and #77); Linux is the cheapest runner, and the hook checks need only bash, Python, git and jq; no secrets, since no test touches a deployment |
 | Email | Resend | free: 3,000 a month, **100 a day**, which is why a live draft sends no "on the clock" email |
 | Money | free plans through the mini beta; Craig sets a monthly ceiling before August 2027 | |
 
@@ -78,9 +78,10 @@ The steps (push the action to the dev deployment, run it twice, how to read what
 | Charts | Recharts | what shadcn's charts use |
 | Tests | Vitest; `convex-test` with fake timers for the backend, on `@edge-runtime/vm`; Testing Library on jsdom for the app | the companion's runner; the draft clock can be tested without waiting; `convex-test` needs Convex's runtime mimicked; screens are tested by role and name, as a manager finds them |
 | Screenshots | Playwright, on the Mac's Chrome (`scripts/shoot.mjs`) | the `ui-verifier` agent's camera, and the same tool as the Playwright MCP |
+| Smoke tests | `@playwright/test` (`npm run smoke`, `e2e/`), on the Mac's Chrome locally and Chromium in CI | loads the built app in a real browser on the preview sessions, no deployment needed |
 
 Each is installed with the first feature that needs it; for now package.json has the app, sign-in,
-styling, typeface, test and screenshot rows, and the rest are the plan.
+styling, typeface, test, screenshot and smoke-test rows, and the rest are the plan.
 
 ## Data
 
