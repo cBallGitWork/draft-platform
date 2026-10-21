@@ -18,7 +18,7 @@ unwired() { # settings-file: a loud line for each row it doesn't wire, so silenc
     "$jq" -e --arg e "$event" --arg m "$matcher" --arg s "/$script" '
       .hooks[$e][]? | select((.matcher // "") == $m) | .hooks[]?.command | select(endswith($s))' \
       "$1" >/dev/null || echo "settings.json: no $event/${matcher:-(no matcher)} hook runs $script"
-    [ -x "$hooks/$script" ] || echo "settings.json: $script isn't there or isn't executable"
+    [ -x "$hooks/$script" ] || echo "hooks/$script isn't there or isn't executable"
   done
 }
 
