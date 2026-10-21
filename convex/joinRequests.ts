@@ -25,7 +25,8 @@ function waitingRequestOf(ctx: QueryCtx, leagueId: Id<"leagues">, email: string)
 }
 
 /** What the invite link's page shows: whether the person may ask, has asked and waits, or runs a
- *  team in the league already; null once the link no longer works. */
+ *  team in the league already; null once the link no longer works, or while the league is being
+ *  deleted (spec/13 hides it then). */
 export const joinPageData = v.union(
   v.null(),
   v.object({ leagueName: v.string(), standing: v.union(v.literal("mayAsk"), v.literal("waiting")) }),
@@ -39,7 +40,7 @@ export const joinPage = query({
   handler: async (ctx, { token }) => {
     const link = await linkWithToken(ctx, token);
     const league = link && (await ctx.db.get("leagues", link.leagueId));
-    if (!league) return null;
+    if (!league || league.deletion) return null;
     const email = await signedInEmail(ctx);
     if (email === null) return { leagueName: league.name, standing: "mayAsk" as const };
     const team = await teamOf(ctx, league._id, email);

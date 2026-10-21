@@ -3,7 +3,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import type { QueryCtx } from "./_generated/server";
 import { teamsOf } from "./leagueAccess";
 import { leagueDeletion } from "./schema";
-import { noLinkReply } from "./signInLinks";
+import { hasOpenedALink, noLinkReply } from "./signInLinks";
 
 // "Your leagues" (spec/12): each league the signed-in person has a part in, or, for the admin, who
 // keeps an override on every league (spec/15), every league.
@@ -32,16 +32,11 @@ export const leagueSummary = v.object({
 });
 export type LeagueSummary = Infer<typeof leagueSummary>;
 
-/** The commissioner's link that didn't go, until they sign in some other way. Convex Auth makes
- *  their user even when the link fails, and marks it verified only once a link of theirs is opened. */
+/** The commissioner's link that didn't go, until they sign in some other way. */
 async function unsentLinkOf(ctx: QueryCtx, league: Doc<"leagues">): Promise<LeagueSummary["unsentCommissionerLink"]> {
   const link = league.commissionerLink;
   if (!link || link.reply === "checkYourEmail") return null;
-  const user = await ctx.db
-    .query("users")
-    .withIndex("email", (q) => q.eq("email", link.email))
-    .first();
-  return user?.emailVerificationTime === undefined ? { email: link.email, reply: link.reply } : null;
+  return (await hasOpenedALink(ctx, link.email)) ? null : { email: link.email, reply: link.reply };
 }
 
 export async function leaguesOf(ctx: QueryCtx, email: string, isAdmin: boolean): Promise<LeagueSummary[]> {

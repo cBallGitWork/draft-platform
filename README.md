@@ -6,6 +6,7 @@ with Football Manager-style tactics. Private.
 - [SPEC.md](SPEC.md): what it is and every feature, from Craig's answers.
 - [ARCHITECTURE.md](ARCHITECTURE.md): the stack and why.
 - [CLAUDE.md](CLAUDE.md): how work is done here.
+- [docs/design/flow.md](docs/design/flow.md): every screen, how they link, and which are still to build.
 - The build queue is the GitHub issues.
 
 ## Start

@@ -4,8 +4,7 @@ import type { Id } from "./_generated/dataModel";
 import { internalAction, internalMutation, mutation, type MutationCtx } from "./_generated/server";
 import { admitEmail } from "./allowedEmails";
 import {
-  callerEmail,
-  isAdmin,
+  adminOf,
   namedEmail,
   namerOf,
   recordEvent,
@@ -16,7 +15,7 @@ import {
 } from "./leagueAccess";
 import { FEWEST_TEAMS, MOST_TEAMS } from "./leagueLimits";
 import { giveDefaultRules } from "./leagueRules";
-import { askForLink, signInReply } from "./signInLinks";
+import { askForLink, hasOpenedALink, signInReply } from "./signInLinks";
 
 // A league, and who runs it (#24, spec/13). Each change files an event for Mail (#26).
 
@@ -25,14 +24,10 @@ function checkMaxTeams(maxTeams: number): void {
 }
 
 /** Lets a newly named commissioner sign in, and sends them a sign-in link unless they have opened
- *  one before (spec/13, Creating a league), judged as `unsentLinkOf` in myLeagues.ts judges it. */
+ *  one before (spec/13, Creating a league). */
 async function admitCommissioner(ctx: MutationCtx, email: string, leagueId: Id<"leagues">): Promise<void> {
   await admitEmail(ctx, email);
-  const account = await ctx.db
-    .query("users")
-    .withIndex("email", (q) => q.eq("email", email))
-    .first();
-  if (account?.emailVerificationTime === undefined) {
+  if (!(await hasOpenedALink(ctx, email))) {
     await ctx.scheduler.runAfter(0, internal.leagues.sendCommissionerLink, { leagueId, email });
   }
 }
@@ -41,8 +36,7 @@ export const create = mutation({
   args: { name: v.string(), maxTeams: v.number(), commissionerEmail: v.string() },
   returns: v.id("leagues"),
   handler: async (ctx, args) => {
-    const by = await callerEmail(ctx);
-    if (!isAdmin(by)) refuse(refusals.notAdmin);
+    const by = await adminOf(ctx);
     const name = args.name.trim();
     if (!name) refuse(refusals.blankName);
     checkMaxTeams(args.maxTeams);

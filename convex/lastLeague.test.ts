@@ -123,3 +123,31 @@ test("a league being deleted is never the one the app is in, nor one to switch t
   expect(await currentLeagueOf(ANN)).toBe(second);
   await expect(switchTo(COMMISSIONER, first)).rejects.toThrow(refusals.beingDeleted);
 });
+
+test("a manager can't switch into a league someone else is deleting, and isn't told it is going", async () => {
+  const { first, second } = await annInTwoLeagues();
+  await switchTo(ANN, second);
+  await (await actingAs(t, COMMISSIONER)).mutation(api.leagueDeletion.deleteLeague, { leagueId: first });
+
+  await expect(switchTo(ANN, first)).rejects.toThrow(refusals.notInLeague);
+  expect(await currentLeagueOf(ANN)).toBe(second);
+});
+
+test("the admin with a team in a league someone else is deleting is told it is being deleted", async () => {
+  const { first } = await annInTwoLeagues();
+  await addManagers(t, first, [ADMIN]);
+  await (await actingAs(t, COMMISSIONER)).mutation(api.leagueDeletion.deleteLeague, { leagueId: first });
+
+  await expect(switchTo(ADMIN, first)).rejects.toThrow(refusals.beingDeleted);
+});
+
+test("switching to a league that doesn't exist is refused as one they have no part in", async () => {
+  const { second } = await annInTwoLeagues();
+  const gone = await adminCreatesLeague(t, 4, "Gone");
+  await t.run((ctx) => ctx.db.delete("leagues", gone));
+  await switchTo(ANN, second);
+
+  await expect(switchTo(ANN, gone)).rejects.toThrow(refusals.notInLeague);
+  await expect(switchTo(ADMIN, gone)).rejects.toThrow(refusals.notInLeague);
+  expect(await currentLeagueOf(ANN)).toBe(second);
+});

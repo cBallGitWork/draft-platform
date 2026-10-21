@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
-import { mutation, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { mutation, type MutationCtx } from "./_generated/server";
 import { admitEmail } from "./allowedEmails";
 import {
   callerEmail,
@@ -11,6 +11,7 @@ import {
   refuse,
   refusals,
   runnerOf,
+  teamIn,
   teamOf,
   teamsOf,
 } from "./leagueAccess";
@@ -30,10 +31,23 @@ function startingName(teams: Doc<"teams">[], number: number): string {
   return `Team ${free}`;
 }
 
-async function teamIn(ctx: QueryCtx, teamId: Id<"teams">, leagueId: Id<"leagues">): Promise<Doc<"teams">> {
-  const team = await ctx.db.get("teams", teamId);
-  if (team === null || team.leagueId !== leagueId) refuse(refusals.noTeam);
-  return team;
+/** Whether this email may join the league (spec/13, Teams), given its `teams`: the vacated team
+ *  `vacatedTeamId` it would take, or null for a new team; otherwise a refusal. putOnTeam and an
+ *  invite (invites.ts) both check here, so they refuse alike. */
+export function checkCanJoin(
+  teams: Doc<"teams">[],
+  league: Doc<"leagues">,
+  email: string,
+  vacatedTeamId: Id<"teams"> | undefined,
+): Doc<"teams"> | null {
+  if (teams.some((team) => team.managerEmail === email)) refuse(refusals.alreadyManager(email));
+  if (vacatedTeamId !== undefined) {
+    const vacated = teams.find((team) => team._id === vacatedTeamId) ?? refuse(refusals.noTeam);
+    if (vacated.managerEmail !== undefined) refuse(refusals.notVacated);
+    return vacated;
+  }
+  if (teams.length >= league.maxTeams) refuse(refusals.full(league.maxTeams));
+  return null;
 }
 
 /** Makes this email a manager in the league: of the vacated team `vacatedTeamId`, or of a new
@@ -46,17 +60,14 @@ export async function putOnTeam(
   vacatedTeamId: Id<"teams"> | undefined,
 ): Promise<{ teamId: Id<"teams">; teamName: string }> {
   const teams = await teamsOf(ctx, league._id);
-  if (teams.some((team) => team.managerEmail === email)) refuse(refusals.alreadyManager(email));
+  const vacated = checkCanJoin(teams, league, email, vacatedTeamId);
 
   let teamId: Id<"teams">;
   let teamName: string;
-  if (vacatedTeamId !== undefined) {
-    const vacated = await teamIn(ctx, vacatedTeamId, league._id);
-    if (vacated.managerEmail !== undefined) refuse(refusals.notVacated);
+  if (vacated !== null) {
     await ctx.db.patch("teams", vacated._id, { managerEmail: email });
     ({ _id: teamId, name: teamName } = vacated);
   } else {
-    if (teams.length >= league.maxTeams) refuse(refusals.full(league.maxTeams));
     const number = teams.length + 1;
     teamName = startingName(teams, number);
     teamId = await ctx.db.insert("teams", { leagueId: league._id, number, name: teamName, managerEmail: email });
@@ -85,7 +96,7 @@ export const removeManager = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, teamId }) => {
     const { email: by } = await runnerOf(ctx, leagueId);
-    const team = await teamIn(ctx, teamId, leagueId);
+    const team = await teamIn(ctx, leagueId, teamId);
     if (team.managerEmail === undefined) refuse(refusals.noManager);
     await ctx.db.patch("teams", teamId, { managerEmail: undefined });
     await recordEvent(ctx, leagueId, by, { kind: "managerRemoved", email: team.managerEmail, teamId, teamName: team.name });

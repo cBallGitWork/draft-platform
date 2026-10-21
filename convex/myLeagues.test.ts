@@ -14,6 +14,7 @@ import {
   type TestConvex,
 } from "./leagues.harness";
 import { ask, fakeResend, linkCode, openLink, signInDeployment } from "./signIn.harness";
+import { silenceConsoleError } from "./test.harness";
 
 // "Your leagues" (spec/12): what account:signedInAs tells the screens of a person's leagues, and
 // #24's Done line end to end.
@@ -71,7 +72,9 @@ describe("a commissioner's sign-in link that didn't go", () => {
   beforeEach(() => fakeResend(500));
 
   test("is kept on the league for the admin, and only him, to see", async () => {
+    const logged = silenceConsoleError();
     const leagueId = await adminCreatesLeague(t);
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The sign-in link to ${COMMISSIONER} wasn't sent`));
 
     const [summary] = (await accountOf(ADMIN)).leagues;
     expect(summary).toMatchObject({ leagueId, unsentCommissionerLink: { email: COMMISSIONER, reply: "notSent" } });
@@ -80,7 +83,9 @@ describe("a commissioner's sign-in link that didn't go", () => {
   });
 
   test("no longer shows once the commissioner signs in some other way", async () => {
+    const logged = silenceConsoleError();
     await adminCreatesLeague(t);
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The sign-in link to ${COMMISSIONER} wasn't sent`));
     const sent = fakeResend();
     await ask(t, COMMISSIONER);
     await openLink(t, linkCode(sent[0]));
@@ -90,10 +95,13 @@ describe("a commissioner's sign-in link that didn't go", () => {
   });
 
   test("isn't kept when it comes back after another commissioner was named", async () => {
+    const logged = silenceConsoleError();
     const admin = await actingAs(t, ADMIN);
     const leagueId = await admin.mutation(api.leagues.create, { name: "L", maxTeams: 4, commissionerEmail: ANN });
     await admin.mutation(api.leagues.nameCommissioner, { leagueId, email: COMMISSIONER });
     await t.finishAllScheduledFunctions(vi.runAllTimers);
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The sign-in link to ${ANN} wasn't sent`));
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The sign-in link to ${COMMISSIONER} wasn't sent`));
     // Ann's link, sent first, is the last to answer.
     await t.mutation(internal.leagues.recordCommissionerLink, { leagueId, email: ANN, reply: "notSent" });
 

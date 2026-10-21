@@ -1,8 +1,8 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { mutation, type QueryCtx } from "./_generated/server";
-import { callerEmail, isAdmin, refuse, refusals } from "./leagueAccess";
-import { leaguesOf, type LeagueSummary } from "./myLeagues";
+import { callerEmail, isAdmin, refuse, refusals, teamOf } from "./leagueAccess";
+import type { LeagueSummary } from "./myLeagues";
 
 // The league switcher (#76, spec/13, Several leagues): the app opens the league a person used
 // last. It is kept on the server, by email, so it follows them to every device.
@@ -32,9 +32,16 @@ export const switchTo = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId }) => {
     const email = await callerEmail(ctx);
-    const theirs = (await leaguesOf(ctx, email, isAdmin(email))).filter(hasPart);
-    const league = theirs.find((each) => each.leagueId === leagueId) ?? refuse(refusals.notInLeague);
-    if (league.deletion) refuse(refusals.beingDeleted);
+    // The same rules as `leaguesOf` and `hasPart`, for this one league: a part is a role in it,
+    // never the admin's override, and a league being deleted is hidden from all but its deleter
+    // and the admin, so anyone else is told only that it isn't theirs.
+    const league = (await ctx.db.get("leagues", leagueId)) ?? refuse(refusals.notInLeague);
+    const isTheirs =
+      league.commissionerEmail === email ||
+      league.coCommissionerEmail === email ||
+      (await teamOf(ctx, leagueId, email)) !== undefined;
+    if (!isTheirs) refuse(refusals.notInLeague);
+    if (league.deletion) refuse(league.deletion.by === email || isAdmin(email) ? refusals.beingDeleted : refusals.notInLeague);
 
     const remembered = await rememberedRow(ctx, email);
     if (!remembered) await ctx.db.insert("lastLeagues", { email, leagueId });

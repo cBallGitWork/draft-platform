@@ -6,7 +6,8 @@ main. Every command the line runs is checked, those it passes to sh -c, eval, $(
 here-string or pipe into a shell (or a group around one), find -exec or ssh included, whatever
 its redirections (commands.py; where.py lists what it can't see), each in the folder it runs in
 (the shell's cwd, any cd before it, its -C: where.py), so a worktree is judged on its own branch,
-not the project's. Also denies publishing a word on Craig's private list (private_words.py).
+not the project's. Also denies publishing a word on Craig's private list (private_words.py),
+and a pull request body that breaks the template's rules (pr_body.py).
 Where it can't be sure what runs or where, it refuses and says how to run the command plainly.
 
 Reads the hook payload (JSON) on stdin; prints a deny decision or nothing.
@@ -21,6 +22,7 @@ import re
 import sys
 
 from commands import XARGS, Unbalanced, Unreadable, UnreadableStdin, commands, runs_unknown, short_flags
+from pr_body import pr_body_problem
 from private_words import private_word_problem
 from where import current_branch, git_call, git_dir, options, previous_branch, runners
 
@@ -163,7 +165,7 @@ def decide(cmd, cwd):
         return UNREADABLE
     except UnreadableStdin:
         return UNREADABLE_STDIN
-    problem = private_word_problem(cmd, cmds, cwd)
+    problem = private_word_problem(cmd, cmds, cwd) or pr_body_problem(cmds, cwd)
     if problem:
         return problem
     switched, switched_to_main = False, False

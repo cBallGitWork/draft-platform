@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query, type QueryCtx } from "./_generated/server";
-import { memberOf, recordEvent, refuse, refusals, runnerOf, teamsOf } from "./leagueAccess";
+import { memberOf, recordEvent, refuse, runnerOf, teamIn, teamsOf } from "./leagueAccess";
 import { MOST_IN_SQUAD } from "./leagueLimits";
 import { latestRules } from "./leagueRules";
 import type { LeagueRules } from "./leagueRulesShape";
@@ -19,9 +19,11 @@ export const squadRefusals = {
   squadFull: `A team holds at most ${MOST_IN_SQUAD} players.`,
 };
 
-/** The most players a search returns: enough to pick from, few enough to read. */
+/** The most players a search returns: enough to pick from, few enough to read. Its twin, with the
+ *  same search, is in playerPositions.ts: change the limit or the query in both. */
 const FOUND_MOST = 20;
-/** The Premier League's clubs, with room for the ones a season's sync keeps after relegation. */
+/** The Premier League's clubs, with room for the ones a season's sync keeps after relegation. Its twin
+ *  is in playerPositions.ts: change both. */
 const CLUBS_MOST = 40;
 
 async function playerByCode(ctx: QueryCtx, code: number): Promise<Doc<"players">> {
@@ -45,12 +47,6 @@ function squadOf(ctx: QueryCtx, teamId: Id<"teams">) {
     .query("squadPlayers")
     .withIndex("by_teamId", (q) => q.eq("teamId", teamId))
     .take(MOST_IN_SQUAD);
-}
-
-async function teamIn(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">): Promise<Doc<"teams">> {
-  const team = await ctx.db.get("teams", teamId);
-  if (team === null || team.leagueId !== leagueId) refuse(refusals.noTeam);
-  return team;
 }
 
 /** Refuses a team already holding the platform's most, whatever the league's own limits say. */
