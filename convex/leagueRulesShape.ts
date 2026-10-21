@@ -18,6 +18,16 @@ function byArea<Value extends Validator<unknown, "required", string>>(value: Val
   });
 }
 
+/** The same validator for each position a slot can be: scoringSet.ts's ByPosition<Value>. */
+function byPosition<Value extends Validator<unknown, "required", string>>(value: Value) {
+  return v.object({ GK: value, FB: value, CB: value, WB: value, CDM: value, WM: value, CM: value, W: value, CAM: value, ST: value });
+}
+
+/** scoringSet.ts's Priced<Value>: the same for all, by area, or by position. */
+function priced<Value extends Validator<unknown, "required", string>>(value: Value) {
+  return v.union(v.object({ all: value }), v.object({ byArea: byArea(value) }), v.object({ byPosition: byPosition(value) }));
+}
+
 const area = v.union(...AREAS.map((name) => v.literal(name)));
 const lane = v.union(...LANES.map((name) => v.literal(name)));
 
@@ -26,19 +36,27 @@ const limit = v.object({ minimum: v.number(), maximum: v.number() });
 
 const band = v.object({ atLeast: v.number(), points: v.number() });
 
+/** What any rule may carry besides its values: scoringSet.ts's RuleOptions. */
+const ruleOptions = {
+  limit: v.optional(priced(v.object({ max: v.union(v.number(), v.null()), min: v.union(v.number(), v.null()) }))),
+  minMinutes: v.optional(priced(v.number())),
+};
+
 /** scoringSet.ts's ScoringSet. */
 const scoringSetShape = v.object({
   rules: v.array(
     v.union(
-      v.object({ shape: v.literal("perAction"), stat: v.string(), byArea: byArea(v.number()) }),
+      v.object({ shape: v.literal("perAction"), stat: v.string(), values: priced(v.number()), ...ruleOptions }),
       v.object({
         shape: v.literal("perCount"),
         stat: v.string(),
-        byArea: byArea(v.object({ every: v.number(), points: v.number() })),
+        values: priced(v.object({ every: v.number(), points: v.number() })),
+        ...ruleOptions,
       }),
-      v.object({ shape: v.literal("bands"), stat: v.string(), stack: v.boolean(), byArea: byArea(v.array(band)) }),
+      v.object({ shape: v.literal("bands"), stat: v.string(), stack: v.boolean(), values: priced(v.array(band)), ...ruleOptions }),
     ),
   ),
+  wholePointsOnly: v.boolean(),
 });
 
 /** presets.ts's Preset. */
