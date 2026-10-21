@@ -1,4 +1,5 @@
 import type { Infer } from "convex/values";
+import { aNewTeamWords } from "./joiningShared";
 import { londonTime } from "./londonTime";
 import type { leagueEvent } from "./schema";
 
@@ -12,7 +13,7 @@ type Words = { subject: string; body: string };
 
 const handOn = "The team stays, for the commissioner to hand to someone new.";
 const inPlaceOf = (replaced: string | null) => (replaced === null ? "" : ` in place of ${replaced}`);
-const forTeam = (teamName: string | null) => (teamName === null ? "a new team" : teamName);
+const forTeam = (teamName: string | null) => teamName ?? aNewTeamWords;
 
 /** The letter reporting `event`, done by `who`. */
 export function eventLetter(event: LeagueEvent, who: string): Words {

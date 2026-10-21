@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { internal } from "./_generated/api";
 import { internalAction, internalMutation, internalQuery } from "./_generated/server";
 import { namedMen } from "./feedIds";
-import { arsenalSquadNumbers, fplPlayerCount, plFixtureCount } from "./football";
+import { arsenalSquadNumbers, fplPlayerCount, logFailure, plFixtureCount } from "./football";
 import { readPlCommentary, readPlFixture, readPlTeamStats } from "./premierLeague";
 import { feedCheckFields, feedCheckTrigger, feedOutcome } from "./schema";
 import { LATEST_RUNS } from "./syncRuns";
@@ -91,8 +91,6 @@ async function outcome(read: () => Promise<number>): Promise<Infer<typeof feedOu
   try {
     return { ok: true, count: await read() };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(`feed check failed: ${message}`);
-    return { ok: false, error: message };
+    return { ok: false, error: logFailure("feed check failed", error) };
   }
 }
