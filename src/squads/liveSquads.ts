@@ -5,21 +5,21 @@ import { refusalOf } from "../refusal";
 import type { SquadsSeam } from "./seam";
 import { changeFailedWords } from "./words";
 
-const useSquads: SquadsSeam["useSquads"] = (leagueId) => useQuery(api.squads.squads, { leagueId });
+const useSquads: SquadsSeam["useSquads"] = (leagueId) => useQuery(api.squads.squads.squads, { leagueId });
 
 /** Blank text asks the server nothing, and finds no one. */
 const useFoundPlayers: SquadsSeam["useFoundPlayers"] = (leagueId, text) => {
   const blank = !text.trim();
-  const found = useQuery(api.squads.findPlayers, blank ? "skip" : { leagueId, text });
+  const found = useQuery(api.squads.squads.findPlayers, blank ? "skip" : { leagueId, text });
   return blank ? [] : found;
 };
 
 /** The squads seam filled in by Convex. A refusal comes back as the server's own words
- *  (convex/squads.ts); any other failure is logged and said plainly. */
+ *  (convex/squads/squads.ts); any other failure is logged and said plainly. */
 export function useLiveSquads(): SquadsSeam {
-  const assign = useMutation(api.squads.assign);
-  const move = useMutation(api.squads.move);
-  const release = useMutation(api.squads.release);
+  const assign = useMutation(api.squads.squads.assign);
+  const move = useMutation(api.squads.squads.move);
+  const release = useMutation(api.squads.squads.release);
   return useMemo(
     () => ({
       useSquads,

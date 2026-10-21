@@ -1,9 +1,9 @@
 // What sign-in says, in one place for Craig to change in the pull request (spec/02). The email
-// itself is convex/signInEmail.ts.
+// itself is convex/signIn/signInEmail.ts.
 
 import { failedWords } from "../words";
 
-/** The reply to asking for a link, one for each of `signInLinks:ask`'s answers. `checkYourEmail`
+/** The reply to asking for a link, one for each of `signIn/signInLinks:ask`'s answers. `checkYourEmail`
  *  goes to every email, on the list or not, so nobody can tell which are on it. */
 export const replyWords = {
   checkYourEmail: "Check your email. If this address can sign in, a link is on its way. It works once, within an hour.",

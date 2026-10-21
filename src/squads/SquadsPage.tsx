@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
-import type { LeagueSummary } from "../../convex/myLeagues";
+import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, PageTitle, PanelTitle, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { useChange, type Changing } from "../useChange";

@@ -2,7 +2,7 @@
 // fills it in live (liveGameweeks.ts); the preview and the tests hand the screen their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import type { LeagueGameweek } from "../../convex/leagueGameweeks";
+import type { LeagueGameweek } from "../../convex/gameweeks/leagueGameweeks";
 import type { Change } from "../refusal";
 
 export type LeagueGameweeksView = {

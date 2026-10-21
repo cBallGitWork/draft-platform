@@ -1,8 +1,8 @@
-import type { LeagueSummary } from "../../convex/myLeagues";
+import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../auth";
 
 // Who may do what in a league, as the screens judge it to offer a way in. The server judges again
-// on every change (convex/leagueAccess.ts).
+// on every change (convex/shared/leagueAccess.ts).
 
 /** Whether this person runs the league, as the server's `runnerOf` judges it: its commissioner,
  *  its co-commissioner or the admin. */

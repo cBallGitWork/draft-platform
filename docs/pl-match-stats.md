@@ -97,7 +97,7 @@ formation_place, wins, draws, losses.
 ## Matching the two feeds
 
 Checked on 20 Oct 2026 against the whole season's 380 fixtures and every man on gameweek 6's
-twenty team sheets (#27; `convex/feedIds.ts`):
+twenty team sheets (#27; `convex/football/feedIds.ts`):
 
 - A fixture's `altIds.opta` is `g` + FPL's fixture `code` (380 of 380). It comes only when the
   fixture list is read with `altIds=true`; the full fixture read carries it anyway. FPL's own
@@ -111,7 +111,7 @@ twenty team sheets (#27; `convex/feedIds.ts`):
 
 ## FPL's stats per match
 
-Never written down before; from gameweek 6 (`convex/fplLive.ts`, `convex/recorded/`):
+Never written down before; from gameweek 6 (`convex/football/fplLive.ts`, `tests/support/recorded/`):
 
 - **`/event/{gw}/live/`**, per player: `explain`, one block per match he had, keyed by FPL's
   per-season fixture `id` (`/fixtures/` gives its `code`). Each block lists `{identifier, value,
@@ -141,7 +141,7 @@ Never written down before; from gameweek 6 (`convex/fplLive.ts`, `convex/recorde
 
 For #22, from twelve of gameweek 6's team sheets: seven 4-2-3-1, four 3-4-2-1 and one 5-4-1, with
 Opta's `formation_place` read for the 44 starters of Hull v Everton and Palace v Forest
-(`convex/plMatchSlots.test.ts` pins it).
+(`tests/convex/football/plMatchSlots.test.ts` pins it).
 
 - `teamLists[].formation` is `{label, players}`, `players` the starters' ids in lines: the keeper
   first, then each line up the pitch, matching the label (`1-4-2-3-1`). It draws the eleven
@@ -163,7 +163,7 @@ Opta's `formation_place` read for the 44 starters of Hull v Everton and Palace v
 
 ## One record per player per match
 
-How #27 merges the two feeds (spec/07 "Match stats"; `convex/matchRecords.ts` holds the pairs):
+How #27 merges the two feeds (spec/07 "Match stats"; `convex/stats/matchRecords.ts` holds the pairs):
 
 - Where both send a stat, FPL's count is kept for goals, assists, minutes, cards, saves, clean
   sheets, goals conceded and penalties, under FPL's name (`goals_scored`, not Opta's `goals`);
@@ -179,7 +179,7 @@ How #27 merges the two feeds (spec/07 "Match stats"; `convex/matchRecords.ts` ho
 
 ## During a match
 
-How #28 reads a match while it is played (`convex/liveStatsSync.ts`, `convex/liveStats.ts`):
+How #28 reads a match while it is played (`convex/stats/liveStatsSync.ts`, `convex/stats/liveStats.ts`):
 
 - Every minute from kickoff, both feeds are read for each match being played, the same reads as
   at full time, and each record is written provisional. From the first read the Premier League
@@ -193,7 +193,7 @@ How #28 reads a match while it is played (`convex/liveStatsSync.ts`, `convex/liv
   feeds send running totals, so the next tick catches up one that failed; FPL's match blocks fill
   in during play, as Opta's per-man reads do.
 
-**The replay the tests use is not a live recording.** `convex/liveStats.harness.ts` cuts Hull v
+**The replay the tests use is not a live recording.** `tests/support/convex/liveStats.harness.ts` cuts Hull v
 Everton, recorded finished, into a stage a minute: each man's stats grow with his share of his
 minutes on the pitch, and goals, assists and yellow cards land at the minutes the fixture's
 `events` give them. Friday's recording (#37: Ipswich v Nott'm Forest, Premier League fixture

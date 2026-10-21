@@ -1,11 +1,11 @@
 // A league's table and fixtures as the server would send them, for the preview and the tests:
-// drawn by the server's pure functions (convex/roundRobin.ts, convex/standings.ts), with the
-// mapping copied from convex/leagueTable.ts's ofLeague, and with no tie-breaks.
+// drawn by the server's pure functions (convex/table/roundRobin.ts, convex/table/standings.ts), with the
+// mapping copied from convex/table/leagueTable.ts's ofLeague, and with no tie-breaks.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import { drawFixtures, LEAGUE_AVERAGE, roundsOf, type DrawOptions } from "../../convex/roundRobin";
-import { headToHeadTable, totalPointsTable, type GameweekScores } from "../../convex/standings";
-import { SEASON_GAMEWEEKS } from "../../convex/usedGameweeks";
+import { drawFixtures, LEAGUE_AVERAGE, roundsOf, type DrawOptions } from "../../convex/table/roundRobin";
+import { headToHeadTable, totalPointsTable, type GameweekScores } from "../../convex/table/standings";
+import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import type { LeagueTable } from "./seam";
 
 type Drawn = Partial<DrawOptions> & {

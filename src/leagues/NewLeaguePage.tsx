@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
-import { FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leagueLimits";
+import { FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leagues/leagueLimits";
 import { PageTitle, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { LeagueActions } from "./actions";

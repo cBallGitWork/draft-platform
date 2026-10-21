@@ -2,7 +2,7 @@
 // live (liveSquads.ts); the preview and the tests hand the screen their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import type { FoundPlayer, TeamSquad } from "../../convex/squads";
+import type { FoundPlayer, TeamSquad } from "../../convex/squads/squads";
 import type { Change } from "../refusal";
 
 export type { FoundPlayer, TeamSquad };

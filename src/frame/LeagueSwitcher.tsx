@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
-import type { LeagueSummary } from "../../convex/myLeagues";
+import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../auth";
 import type { LeagueActions } from "../leagues/actions";
 import { LEAGUES_PATH } from "../leagues/paths";
@@ -56,7 +56,7 @@ export function LeagueSwitcher({
   // A league being deleted is frozen: whoever deleted it sees it on "Your leagues", never here.
   const theirs = session.leagues.filter((league) => league.roles.length > 0 && !league.deletion);
   const current = theirs.find((league) => league.leagueId === session.currentLeagueId);
-  // account:signedInAs names one of theirs whenever they have any, and the frame is only theirs then.
+  // signIn/account:signedInAs names one of theirs whenever they have any, and the frame is only theirs then.
   if (!current) throw new Error(`The league the app is in, ${session.currentLeagueId}, isn't one of ${session.email}'s`);
 
   if (theirs.length === 1) {

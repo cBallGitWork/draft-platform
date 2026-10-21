@@ -27,7 +27,7 @@ from pathlib import Path
 
 PACKAGE = "package.json"  # a checkout without one has no gate
 # what `npm run verify` checks: it changes with verify's scope (a new vitest project, say)
-WATCHED = ("convex", "src", "scripts", PACKAGE, "package-lock.json", "tsconfig.json", "vite.config.ts",
+WATCHED = ("convex", "src", "scripts", "tests", PACKAGE, "package-lock.json", "tsconfig.json", "vite.config.ts",
            "vitest.config.ts", ".claude")
 TAIL_LINES = 40
 GATE = "npm run verify"

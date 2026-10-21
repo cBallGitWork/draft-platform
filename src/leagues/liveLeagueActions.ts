@@ -6,12 +6,12 @@ import type { LeagueActions } from "./actions";
 import { createFailedWords, deleteFailedWords, switchFailedWords, undoFailedWords } from "./words";
 
 /** The leagues seam filled in by Convex. A refusal comes back as the server's own words
- *  (convex/leagueAccess.ts); any other failure is logged and said plainly. */
+ *  (convex/shared/leagueAccess.ts); any other failure is logged and said plainly. */
 export function useLiveLeagueActions(): LeagueActions {
-  const create = useMutation(api.leagues.create);
-  const deleteLeague = useMutation(api.leagueDeletion.deleteLeague);
-  const undo = useMutation(api.leagueDeletion.undo);
-  const switchTo = useMutation(api.lastLeague.switchTo);
+  const create = useMutation(api.leagues.leagues.create);
+  const deleteLeague = useMutation(api.leagues.leagueDeletion.deleteLeague);
+  const undo = useMutation(api.leagues.leagueDeletion.undo);
+  const switchTo = useMutation(api.leagues.lastLeague.switchTo);
   return useMemo(
     () => ({
       createLeague: (league) => refusalOf(() => create(league), "Creating a league", createFailedWords),

@@ -1,4 +1,4 @@
-import type { LeagueSummary } from "../../convex/myLeagues";
+import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../auth";
 import { leagueRunBy } from "../leagues/roles";
 import { GameweeksPage } from "./GameweeksPage";

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { isLocked } from "../../convex/deadline";
+import { isLocked } from "../../convex/gameweeks/deadline";
 import { PanelTitle } from "../frame/Panel";
 import type { LeagueTable } from "./seam";
 import {

@@ -6,11 +6,11 @@ import type { GameweeksSeam } from "./seam";
 import { setFailedWords } from "./words";
 
 /** The gameweeks seam filled in by Convex. A refusal comes back as the server's own words
- *  (convex/leagueGameweeks.ts); any other failure is logged and said plainly. */
+ *  (convex/gameweeks/leagueGameweeks.ts); any other failure is logged and said plainly. */
 export const liveGameweeks: GameweeksSeam = {
   useLeagueGameweeks(leagueId) {
-    const gameweeks = useQuery(api.leagueGameweeks.ofLeague, { leagueId });
-    const set = useMutation(api.leagueGameweeks.setUsed);
+    const gameweeks = useQuery(api.gameweeks.leagueGameweeks.ofLeague, { leagueId });
+    const set = useMutation(api.gameweeks.leagueGameweeks.setUsed);
     const setUsed = useCallback(
       (gameweek: number, used: boolean) =>
         refusalOf(() => set({ leagueId, gameweek, used }), `Ticking gameweek ${gameweek}`, setFailedWords),

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
-import type { LetterSummary } from "../../convex/mail";
-import { LETTERS_SHOWN } from "../../convex/mailLimits";
-import type { LeagueSummary } from "../../convex/myLeagues";
+import type { LetterSummary } from "../../convex/mail/mail";
+import { LETTERS_SHOWN } from "../../convex/mail/mailLimits";
+import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../auth";
 import { Loading, PageTitle } from "../frame/Panel";
 import { runs } from "../leagues/roles";

@@ -47,7 +47,7 @@ pull request is not reworked over borderline duplication: say it in one line and
 ## Verify
 
 `/verify` (`npm run verify`: the tests, the type check and the hook checks). A change that
-touches scoring also replays the recorded match in `convex/scoring.test.ts` (Hull v Everton; a
+touches scoring also replays the recorded match in `tests/convex/scoring/scoring.test.ts` (Hull v Everton; a
 whole gameweek once #28 or the league score lands) and compares every point
 (`docs/REFACTORING.md`, *Proving nothing changed*). If a step fails, fix it and rerun from the
 first.

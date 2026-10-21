@@ -1,7 +1,7 @@
 import { useAction, useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
-import { linkOffWords } from "../../convex/joiningShared";
+import { linkOffWords } from "../../convex/joining/joiningShared";
 import { answerOf, refusalOf } from "../refusal";
 import { askFailedWords, replyWords } from "../sign-in/words";
 import type { JoiningSeam } from "./seam";
@@ -12,19 +12,19 @@ import { changeFailedWords } from "./words";
 
 const change = (doing: string, attempt: () => Promise<unknown>) => refusalOf(attempt, doing, changeFailedWords);
 
-const useInvitesPage: JoiningSeam["useInvitesPage"] = (leagueId) => useQuery(api.invitesPage.page, { leagueId });
-const useJoinPage: JoiningSeam["useJoinPage"] = (token) => useQuery(api.joinRequests.joinPage, { token });
+const useInvitesPage: JoiningSeam["useInvitesPage"] = (leagueId) => useQuery(api.joining.invitesPage.page, { leagueId });
+const useJoinPage: JoiningSeam["useJoinPage"] = (token) => useQuery(api.joining.joinRequests.joinPage, { token });
 
 export function useLiveJoining(): JoiningSeam {
-  const send = useMutation(api.invites.send);
-  const resend = useMutation(api.invites.resend);
-  const cancel = useMutation(api.invites.cancel);
-  const make = useMutation(api.inviteLink.make);
-  const switchOff = useMutation(api.inviteLink.switchOff);
-  const approve = useMutation(api.joinRequests.approve);
-  const refuse = useMutation(api.joinRequests.refuseRequest);
-  const ask = useMutation(api.joinRequests.ask);
-  const signInToJoin = useAction(api.inviteLink.signInToJoin);
+  const send = useMutation(api.joining.invites.send);
+  const resend = useMutation(api.joining.invites.resend);
+  const cancel = useMutation(api.joining.invites.cancel);
+  const make = useMutation(api.joining.inviteLink.make);
+  const switchOff = useMutation(api.joining.inviteLink.switchOff);
+  const approve = useMutation(api.joining.joinRequests.approve);
+  const refuse = useMutation(api.joining.joinRequests.refuseRequest);
+  const ask = useMutation(api.joining.joinRequests.ask);
+  const signInToJoin = useAction(api.joining.inviteLink.signInToJoin);
   return useMemo(
     () => ({
       useInvitesPage,

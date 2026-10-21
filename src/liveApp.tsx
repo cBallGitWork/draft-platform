@@ -17,7 +17,7 @@ import { ShellApp } from "./ShellApp";
 import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "./sign-in/words";
 
 // The app signed in for real: Convex Auth's session (convex/auth.ts), the email links asked for
-// through signInLinks:ask, and a link's code redeemed when the app is opened from one.
+// through signIn/signInLinks:ask, and a link's code redeemed when the app is opened from one.
 
 /** The code a sign-in link opened the app with, taken out of the address so a reload or a
  *  bookmark can't carry it. */
@@ -57,13 +57,13 @@ export function LiveApp({ linkCode }: { linkCode: string | null }) {
 function LiveShell({ linkCode }: { linkCode: string | null }) {
   const { isLoading, isAuthenticated } = useConvexAuth();
   const { signIn, signOut } = useAuthActions();
-  const ask = useAction(api.signInLinks.ask);
+  const ask = useAction(api.signIn.signInLinks.ask);
   const leagues = useLiveLeagueActions();
   const { mail, topBar } = useLiveMail();
   const joining = useLiveJoining();
   const admin = useLiveAdmin();
   const squads = useLiveSquads();
-  const account = useQuery(api.account.signedInAs, isAuthenticated ? {} : "skip");
+  const account = useQuery(api.signIn.account.signedInAs, isAuthenticated ? {} : "skip");
   const [checkingLink, setCheckingLink] = useState(linkCode !== null);
   const redeemed = useRef(false);
 

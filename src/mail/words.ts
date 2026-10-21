@@ -1,8 +1,8 @@
 // What the Mail screen says, in one place for Craig to change. Why the server refused a letter is
-// in convex/mail.ts (`mailRefusals`), and reaches the screen as is. What the letters about a
-// league's events say is in convex/letterWords.ts.
+// in convex/mail/mail.ts (`mailRefusals`), and reaches the screen as is. What the letters about a
+// league's events say is in convex/mail/letterWords.ts.
 
-import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mailLimits";
+import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mail/mailLimits";
 import { failedWords } from "../words";
 
 export const MAIL_TITLE = "Mail";

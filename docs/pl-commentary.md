@@ -6,8 +6,8 @@
 
 What spec/10's commentary and match page would stand on (#37). Read from Craig's Mac on 20 Oct
 2026, over all twenty finished matches of gameweeks 6 and 7, of which four are recorded for the
-tests (`convex/recorded/commentary.payloads.ts`). The read is `readPlCommentary` and the mapping
-`commentaryLines` (`convex/premierLeague.ts`, `convex/plCommentary.ts`).
+tests (`tests/support/recorded/commentary.payloads.ts`). The read is `readPlCommentary` and the mapping
+`commentaryLines` (`convex/football/premierLeague.ts`, `convex/football/plCommentary.ts`).
 
 ## Where
 
@@ -88,7 +88,7 @@ happen in them (a penalty saved or missed, an own goal's assist) may exist.
 FPL's `opta_code` ([pl-match-stats.md](pl-match-stats.md#matching-the-two-feeds)).
 `commentaryLines` maps each to FPL's `code`, in place: a man FPL does not list stays as null in
 that line and is reported with the unmatched, never dropped. All 122 men named in the four
-recorded matches (543 mentions) were on the sheets and matched (`convex/plCommentary.test.ts`).
+recorded matches (543 mentions) were on the sheets and matched (`tests/convex/football/plCommentary.test.ts`).
 
 ## Team stats
 
@@ -96,7 +96,7 @@ recorded matches (543 mentions) were on the sheets and matched (`convex/plCommen
 `{entity, data}`: `entity` is the match header, `data` each side's Opta totals keyed by the Premier
 League's team id, as `{M: [{name, value, description, additionalInfo}]}`, the same stat shape as a
 player's. At Brentford v Liverpool, Brentford's list has 165 stats and Liverpool's 178
-(`convex/recorded/pl-team-stats.json`); noughts are left out, as per player.
+(`tests/support/recorded/pl-team-stats.json`); noughts are left out, as per player.
 
 spec/10's five, by Opta's names (Brentford v Liverpool):
 
@@ -112,7 +112,7 @@ spec/10's five, by Opta's names (Brentford v Liverpool):
 
 Ipswich v Forest, three days before kickoff: the commentary's `content` is empty (`numPages` 0),
 the fixture's `teamLists` is `[null, null]`, and the team stats have no `data`. All three are read
-as they are, not refused (`convex/premierLeague.test.ts`).
+as they are, not refused (`tests/convex/football/premierLeague.test.ts`).
 
 ## Still to learn from a live match
 
@@ -123,4 +123,4 @@ BST (Premier League fixture 128999), recorded from 90 minutes before kickoff by
 - How soon after an event its line appears, and whether lines change or vanish (a goal VAR rules out).
 - When the lineups first appear, and when the `lineup` line does.
 - Whether the team stats move during the match, and how often.
-- Whether the feed answers Convex's servers mid-match (`feeds:commentaryCheck`).
+- Whether the feed answers Convex's servers mid-match (`football/feeds:commentaryCheck`).

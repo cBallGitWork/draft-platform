@@ -1,9 +1,9 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v, type VLiteral } from "convex/values";
-import { leagueRulesShape } from "./leagueRulesShape";
-import { POSITIONS, type Position } from "./positionTables";
-import { signInReply } from "./signInLinks";
+import { leagueRulesShape } from "./rules/leagueRulesShape";
+import { POSITIONS, type Position } from "./positions/positionTables";
+import { signInReply } from "./signIn/signInLinks";
 
 /** What one read of a feed found: a count of what came back, or why it failed. */
 export const feedOutcome = v.union(

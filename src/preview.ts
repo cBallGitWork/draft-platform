@@ -6,13 +6,13 @@
 // logged-out visitor can never reach the frame through it.
 
 import type { Id } from "../convex/_generated/dataModel";
-import type { LeagueSummary } from "../convex/myLeagues";
-import { HOUR_MS } from "../convex/time";
+import type { LeagueSummary } from "../convex/leagues/myLeagues";
+import { HOUR_MS } from "../convex/shared/time";
 import type { AuthActions, Session } from "./auth";
 import type { LeagueActions } from "./leagues/actions";
 import { replyWords } from "./sign-in/words";
 
-/** Made-up leagues, in the shape account:signedInAs sends. */
+/** Made-up leagues, in the shape signIn/account:signedInAs sends. */
 const unreachedCommissioner = "first.commissioner@example.com";
 export const proLeague: LeagueSummary = {
   leagueId: "preview-pro-league" as Id<"leagues">,

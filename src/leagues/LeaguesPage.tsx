@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import type { LeagueSummary } from "../../convex/myLeagues";
+import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { ADMIN_PATH } from "../admin/paths";
 import { ADMIN_TITLE } from "../admin/words";
 import { PageTitle } from "../frame/Panel";

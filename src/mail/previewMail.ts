@@ -3,8 +3,8 @@
 // writing to the league sends nothing and says so.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import type { LetterSummary } from "../../convex/mail";
-import { HOUR_MS } from "../../convex/time";
+import type { LetterSummary } from "../../convex/mail/mail";
+import { HOUR_MS } from "../../convex/shared/time";
 import { MAIL_PATH } from "../frame/menu";
 import type { TopBarState } from "../frame/topBarState";
 import { manager, previewSays, proLeague } from "../preview";

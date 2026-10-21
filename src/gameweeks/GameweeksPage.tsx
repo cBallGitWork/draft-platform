@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { isLocked } from "../../convex/deadline";
-import type { LeagueGameweek } from "../../convex/leagueGameweeks";
-import type { LeagueSummary } from "../../convex/myLeagues";
+import { isLocked } from "../../convex/gameweeks/deadline";
+import type { LeagueGameweek } from "../../convex/gameweeks/leagueGameweeks";
+import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PageTitle, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import type { LeagueGameweeksView } from "./seam";

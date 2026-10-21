@@ -2,7 +2,7 @@
 // while the match is played, when the lineups first appear, and whether the team stats update
 // live. Every 30 seconds, from 90 minutes before kickoff to 15 minutes after full time, it reads the
 // commentary, the fixture (its team sheets) and the team stats, one after another, as Convex does
-// (the same URLs and `getJson`, from convex/football.ts), and saves each poll with its time to
+// (the same URLs and `getJson`, from convex/football/football.ts), and saves each poll with its time to
 // .recordings/<fixture id>/ in this checkout, which git ignores. A failed read, or a body it can't
 // sum up, is saved and shown, and polling goes on.
 //
@@ -18,8 +18,8 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { errorMessage, getJson, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../convex/football.ts";
-import { HOUR_MS, MINUTE_MS } from "../convex/time.ts";
+import { errorMessage, getJson, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../convex/football/football.ts";
+import { HOUR_MS, MINUTE_MS } from "../convex/shared/time.ts";
 
 const POLL_MS = 30_000;
 /** spec/10 wants the lineups "about an hour before kickoff"; when they first appear is one of #37's
@@ -28,13 +28,13 @@ const LEAD_MS = 90 * MINUTE_MS;
 /** Kept on after full time, for late lines and corrected totals. */
 const AFTER_FULL_TIME_MS = 15 * MINUTE_MS;
 /** A match abandoned, or a status that never turns to full time, stops recording here. The same
- *  window as LIVE_WINDOW_MS in convex/liveStats.ts, which plain node can't import: it imports its
+ *  window as LIVE_WINDOW_MS in convex/stats/liveStats.ts, which plain node can't import: it imports its
  *  neighbours with no extension. */
 const GIVE_UP_MS = 4 * HOUR_MS;
 /** Between one read and the next in a poll: politeness, not a rule of the feed. */
 const PAUSE_MS = 1_000;
 /** The fixture's `status` once the match is over ("U" before it, "C" after). A copy of
- *  PL_FULL_TIME in convex/premierLeague.ts, which plain node can't import: it imports "./football"
+ *  PL_FULL_TIME in convex/football/premierLeague.ts, which plain node can't import: it imports "./football"
  *  with no extension. */
 const FULL_TIME = "C";
 const RECORDINGS_DIR = join(dirname(dirname(fileURLToPath(import.meta.url))), ".recordings");
