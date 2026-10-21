@@ -67,8 +67,8 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
             <th scope="row" className={`${cellClasses} font-semibold`}>
               <span className="block text-lead">{league.name}</span>
               <span className="block font-normal text-muted wrap-anywhere">Commissioner: {league.commissionerEmail}</span>
-              <GameweeksLink league={league} isAdmin={isAdmin} />
-              {runs(league, isAdmin) && (
+              {!league.deletion && <GameweeksLink league={league} isAdmin={isAdmin} />}
+              {!league.deletion && runs(league, isAdmin) && (
                 <Link to={invitesPath(league.leagueId)} className="flex min-h-tap items-center font-normal lg:min-h-0">
                   {invitesTitle}
                 </Link>

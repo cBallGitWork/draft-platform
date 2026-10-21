@@ -5,6 +5,8 @@ import { cleanup, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import type { LeagueSummary } from "../../convex/myLeagues";
+import { GAMEWEEKS_TITLE } from "../gameweeks/words";
+import { invitesTitle } from "../joining/words";
 import { adminSeeing, league, managerIn, openApp } from "../shell.harness";
 import { LEAGUES_PATH } from "./paths";
 import { confirmDelete, unemailed, unsentLinkWords } from "./words";
@@ -77,6 +79,9 @@ describe("a league being deleted", () => {
     expect(await screen.findByText(/goes for good on Wednesday 21 October at 10:00 BST\./)).toBeTruthy();
     expect(screen.getByText(unemailed("ann@example.com", unsentLinkWords.paused))).toBeTruthy();
     expect(deleteButton()).toBeNull();
+    // Frozen, it offers nothing to change: no gameweeks, no invites.
+    expect(screen.queryByRole("link", { name: GAMEWEEKS_TITLE })).toBeNull();
+    expect(screen.queryByRole("link", { name: invitesTitle })).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: "Undo" }));
     expect(app.leagues.undoDeletion).toHaveBeenCalledExactlyOnceWith(league.leagueId);
   });

@@ -102,7 +102,7 @@ describe("while it can be undone", () => {
     await expect((await actingAs(t, DAN)).mutation(api.joinRequests.ask, { token })).rejects.toThrow(refusals.beingDeleted);
     expect(await openLastLinkTo(t, sent, CAT)).not.toBeNull();
     expect(await teamsIn(t, leagueId)).toEqual(teams);
-    expect((await everythingOf(leagueId)).joining.joinRequests).toEqual(joining.joinRequests);
+    expect((await everythingOf(leagueId)).joining).toEqual(joining);
   });
 
   test("it's hidden from everyone with a part in it but whoever deleted it, who is in no league now", async () => {
