@@ -54,6 +54,8 @@
   /* the active tab's cyan underline, on the top row and on a section's tabs */
   --shadow-tab-active: inset 0 -3px 0 var(--color-derived);
   --shadow-subtab-active: inset 0 -2px 0 var(--color-derived);
+  /* the current one of a list (plate.md, Marks) */
+  --shadow-current-edge: inset 3px 0 0 var(--color-derived);
   /* the alert strip's orange edge */
   --shadow-event-edge: inset 3px 0 0 var(--color-event);
 }

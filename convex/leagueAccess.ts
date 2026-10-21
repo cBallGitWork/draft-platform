@@ -26,6 +26,7 @@ export const refusals = {
   notManager: "Only the team's manager or the admin can do that.",
   runsNoTeam: "You don't run a team in this league.",
   notInLeague: "You aren't in this league.",
+  notYourLeague: "You're not in that league.",
   blankName: "Give it a name.",
   teamNameTooLong: `A team's name is up to ${TEAM_NAME_MAX} characters.`,
   teamNameTaken: (name: string) => `A team in this league is already called "${name}".`,

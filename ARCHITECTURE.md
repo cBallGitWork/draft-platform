@@ -118,6 +118,8 @@ The steps (push the action to the dev deployment, run it twice, how to read what
 - Each ask for a sign-in link that was answered "check your email" is a row in `signInAsks`, a
   failed send kept with its error, and each day's emails are counted in `emailSends` against
   Resend's 100 (#20).
+- The league each person used last is a row in `lastLeagues`, by email, not in the browser, so
+  the app opens it on any device they sign in on (#76).
 
 ## With the first code
 

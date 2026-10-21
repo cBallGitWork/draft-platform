@@ -28,6 +28,7 @@ import type * as joinRequests from "../joinRequests.js";
 import type * as joining from "../joining.js";
 import type * as joiningEmails from "../joiningEmails.js";
 import type * as joiningShared from "../joiningShared.js";
+import type * as lastLeague from "../lastLeague.js";
 import type * as leagueAccess from "../leagueAccess.js";
 import type * as leagueDeletion from "../leagueDeletion.js";
 import type * as leagueGameweeks from "../leagueGameweeks.js";
@@ -84,6 +85,7 @@ declare const fullApi: ApiFromModules<{
   joining: typeof joining;
   joiningEmails: typeof joiningEmails;
   joiningShared: typeof joiningShared;
+  lastLeague: typeof lastLeague;
   leagueAccess: typeof leagueAccess;
   leagueDeletion: typeof leagueDeletion;
   leagueGameweeks: typeof leagueGameweeks;

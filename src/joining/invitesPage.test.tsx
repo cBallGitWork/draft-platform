@@ -54,7 +54,7 @@ describe("the invites page", () => {
 
   it("shows how each invite stands, and says when invites wait for tomorrow", async () => {
     openPage();
-    expect(await screen.findByText(league.name)).toBeTruthy();
+    expect(await within(await screen.findByRole("main")).findByText(league.name)).toBeTruthy();
     expect(within(inviteItem("ann@example.com")).getByText(`Sent. It lasts until ${dayWords(Date.UTC(2030, 9, 27))}.`)).toBeTruthy();
     expect(within(inviteItem("bob@example.com")).getByText(/^Waits for tomorrow/)).toBeTruthy();
     expect(within(inviteItem("bob@example.com")).getByText("For Saka Potatoes")).toBeTruthy();

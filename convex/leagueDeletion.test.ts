@@ -66,6 +66,7 @@ describe("while it can be undone", () => {
     const before = await everythingOf(leagueId);
     const admin = await actingAs(t, ADMIN);
     const ann = await actingAs(t, ANN);
+    const commissioner = await actingAs(t, COMMISSIONER);
 
     const changes: Record<string, () => Promise<unknown>> = {
       "leagues:setMaxTeams": () => admin.mutation(api.leagues.setMaxTeams, { leagueId, maxTeams: 6 }),
@@ -85,6 +86,7 @@ describe("while it can be undone", () => {
       "joinRequests:refuseRequest": () => admin.mutation(api.joinRequests.refuseRequest, { requestId }),
       "leagueGameweeks:setUsed": () => admin.mutation(api.leagueGameweeks.setUsed, { leagueId, gameweek: 38, used: false }),
       "leagueRules:change": () => admin.mutation(api.leagueRules.change, { leagueId, rules: structuredClone(FIRST_RULES) }),
+      "lastLeague:switchTo": () => commissioner.mutation(api.lastLeague.switchTo, { leagueId }),
     };
     for (const change of Object.values(changes)) await expect(change()).rejects.toThrow(refusals.beingDeleted);
     expect(await everythingOf(leagueId)).toEqual(before);
