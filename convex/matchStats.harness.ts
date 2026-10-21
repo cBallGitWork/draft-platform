@@ -18,7 +18,7 @@ import { fplStatLines } from "./fplLive";
 import { matchRecords } from "./matchRecords";
 import { matchSlots, plStatLines } from "./plMatch";
 import { FULL_STATS, hullEvertonReads, MATCH, recordedGw6, type Gw6Payloads } from "./recorded/gw6.payloads";
-import type { matchStatsSyncTrigger } from "./schema";
+import type { syncTrigger } from "./schema";
 import { fakeFetch, freshConvex, type TestConvex } from "./test.harness";
 import { HOUR_MS } from "./time";
 
@@ -73,7 +73,7 @@ export async function syncAt(
   time: number,
   payloads: Gw6Payloads,
   refuse?: string,
-  trigger: Infer<typeof matchStatsSyncTrigger> = "manual",
+  trigger: Infer<typeof syncTrigger> = "manual",
 ) {
   vi.setSystemTime(time);
   vi.stubGlobal("fetch", fakeFeeds(payloads, refuse));

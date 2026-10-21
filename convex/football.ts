@@ -23,12 +23,15 @@ export const PL_API_BASE = "https://footballapi.pulselive.com/football";
 export const PL_COMPETITION = 1;
 /** The Premier League's id for the 2026/27 season. */
 export const PL_COMP_SEASON = 841;
+/** The Premier League's id for the 2025/26 season, last season (from `/competitions/1/compseasons`). */
+export const PL_LAST_COMP_SEASON = 777;
 /** The Premier League's id for Arsenal, whose squad list proves squad numbers can be read. */
 export const PL_ARSENAL = 1;
 
-/** A club's registered squad this season, each man with his squad number. */
+/** A club's registered squad this season, each man with his squad number, his label and, asked
+ *  with `altIds=true`, the join to FPL. */
 export function plSquadUrl(teamId: number): string {
-  return `${PL_API_BASE}/teams/${teamId}/compseasons/${PL_COMP_SEASON}/staff?type=all`;
+  return `${PL_API_BASE}/teams/${teamId}/compseasons/${PL_COMP_SEASON}/staff?type=all&altIds=true`;
 }
 
 /** A gameweek's live stats, per player. */
@@ -36,12 +39,13 @@ export function fplLiveUrl(gameweek: number): string {
   return `${FPL_API_BASE}/event/${gameweek}/live/`;
 }
 
-/** One gameweek's fixtures, or the season's when omitted. It always asks for `altIds`: without it
- *  the fixtures arrive with no join to FPL, and nothing says so. */
-export function plFixturesUrl(gameweek?: number): string {
+/** One gameweek's fixtures, or the season's when omitted; this season's unless another is named.
+ *  It always asks for `altIds`: without it the fixtures arrive with no join to FPL, and nothing
+ *  says so. */
+export function plFixturesUrl(gameweek?: number, compSeason = PL_COMP_SEASON): string {
   const round = gameweek === undefined ? "" : `&gameweekNumbers=${gameweek}`;
   return (
-    `${PL_API_BASE}/fixtures?comps=${PL_COMPETITION}&compSeasons=${PL_COMP_SEASON}` +
+    `${PL_API_BASE}/fixtures?comps=${PL_COMPETITION}&compSeasons=${compSeason}` +
     `${round}&pageSize=400&page=0&sort=asc&altIds=true`
   );
 }
@@ -71,6 +75,11 @@ const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0 Safari/537.36";
 // A feed that never answers would otherwise hold the action until Convex kills it.
 const TIMEOUT_MS = 15_000;
+
+/** What a caught failure says, whether or not it was thrown as an Error. */
+export function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
 
 /** The body as JSON; a status that is not OK throws, naming the URL and the status. */
 export async function getJson(url: string): Promise<unknown> {
