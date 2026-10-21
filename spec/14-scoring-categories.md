@@ -40,18 +40,18 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
   Each is one number for the rule, or set by area or position like its values. A cap limits only
   the rule's own points: a role's adjustment is added on top.
 - Points can be fractions (0.5 per tackle). A league can choose whole points only: a fractional
-  value is then refused with the reason, and a stat of its own counts whole actions, rounded down
+  value is then refused with the reason, and an own stat counts whole actions, rounded down
   (tackles + 0.5 × clearances = 3.5 counts 3). Whole points only starts off.
 - A stat the feed hasn't sent yet for a finished match shows "—", and the match stays
   provisional until it arrives. Nothing is guessed. "—" means a player's whole record for the
   match hasn't arrived; once it has, a stat it leaves out is 0 (`/grill match stats`, 20 Oct 2026).
 
-## A league's own stats
+## Own stats
 
-- A commissioner can make a stat by adding catalogue stats, each with a weight, which can be
+- A commissioner can make an own stat by adding catalogue stats, each with a weight, which can be
   negative: tackles + 0.5 × clearances; shots − shots on target. Stats are only added, never
-  multiplied or divided by each other, and are only catalogue stats, never another of the
-  league's own.
+  multiplied or divided by each other, and are only catalogue stats, never another own
+  stat.
 - It then works like any category: any of the three kinds of rule, roles can use it, and it has
   its own name and short code in the category tables.
 

@@ -92,7 +92,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - Public league pages: no league is visible without signing in.
 - FPL's bonus points, and a ready-made FPL-style or Fantrax-copy scoring set for a league to pick.
   The mini beta's first set starts from FPL's values as a draft Craig changes (spec/14).
-- A cap on a player's whole match, or on a team's gameweek total: a rule's own cap covers it.
+- A cap on a player's whole match, or on a team's gameweek total: a cap on each rule covers it.
 - A lock at each player's kickoff: there is one deadline per gameweek.
 
 ## Glossary
@@ -120,7 +120,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | preset | a ready-made formation, such as 4-2-3-1 | |
 | category | one stat a league can score, such as goals or tackles won | |
 | own stat | a stat a league makes by adding catalogue stats with weights | custom stat, formula |
-| cap | a rule's maximum or minimum points for one player in one match | limit |
+| cap | a rule's maximum or minimum points for one player in one match | floor, ceiling |
 | short code | a category's abbreviation in dense tables: G, A, CS, KP, TW | |
 | lineup | a team's starters and bench for one gameweek | |
 | squad | every player a team owns | |
