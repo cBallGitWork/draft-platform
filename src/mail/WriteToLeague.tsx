@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { BODY_MAX, SUBJECT_MAX } from "../../convex/mailLimits";
 import type { LeagueSummary } from "../../convex/myLeagues";
-import { Problem } from "../frame/Panel";
+import { PanelTitle, Problem } from "../frame/Panel";
 import type { Mail } from "./actions";
 import { WRITE_TITLE, sentWords, writeHint } from "./words";
 
@@ -32,9 +32,7 @@ export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly Le
 
   return (
     <section aria-labelledby="write-title" className="min-w-0 max-w-xl flex-[1_1_320px] bg-panel">
-      <h2 id="write-title" className="bg-plate px-3 py-1 font-bold shadow-bevel-plate">
-        {WRITE_TITLE}
-      </h2>
+      <PanelTitle id="write-title">{WRITE_TITLE}</PanelTitle>
       <Problem problem={outcome?.sent === false ? outcome.problem : null} />
       {outcome?.sent && (
         <p role="status" className="px-3 pt-2 text-derived">

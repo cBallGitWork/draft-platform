@@ -10,7 +10,20 @@ import { adminSeeing, commissioner, league, managerIn, openApp } from "../shell.
 import { squadsPath } from "./paths";
 import type { SquadsData } from "./squads.harness";
 import { teamSquad } from "./squads.harness";
-import { assignLabel, findLabel, foundListLabel, goneWords, moveLabel, noneFoundWords, releaseLabel, SQUADS_TITLE, teamChoiceLabel } from "./words";
+import {
+  assignLabel,
+  findLabel,
+  findTitle,
+  foundListLabel,
+  goneWords,
+  loadingWords,
+  moveLabel,
+  noneFoundWords,
+  releaseLabel,
+  searchingWords,
+  SQUADS_TITLE,
+  teamChoiceLabel,
+} from "./words";
 
 afterEach(cleanup);
 
@@ -112,5 +125,19 @@ describe("finding a player", () => {
     await userEvent.click(within(foundRow("Alexander Isak")).getByRole("button", { name: assignLabel("Isak") }));
 
     expect((await screen.findByRole("alert")).textContent).toBe("Isak is already on Team 1. Move him instead.");
+  });
+});
+
+describe("while the server answers", () => {
+  it("says the squads are loading, to screen readers too", async () => {
+    openSquads({ loading: true });
+    await screen.findByRole("heading", { level: 1, name: SQUADS_TITLE });
+    expect(screen.getByRole("status").textContent).toBe(loadingWords);
+  });
+
+  it("says a search is under way, to screen readers too", async () => {
+    openSquads({ ...TWO_TEAMS, searching: true });
+    await search("Isak");
+    expect(within(screen.getByRole("region", { name: findTitle })).getByRole("status").textContent).toBe(searchingWords);
   });
 });

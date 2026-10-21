@@ -2,12 +2,25 @@ import type { ReactNode } from "react";
 
 // The pieces the screens' panels share (plate.md, Shape and Colour roles).
 
-/** A page's title plate (plate.md, Shape): the heading its section is labelled by, `page-title`. */
-export function PageTitle({ children }: { children: ReactNode }) {
+const TITLE_PLATE = "bg-plate px-4 py-1 shadow-bevel-plate";
+
+/** A page's title plate (plate.md, Shape): the heading its section is labelled by, `page-title`;
+ *  `aside`, such as Mail's unread count, sits at the plate's far end. */
+export function PageTitle({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
+  if (aside === undefined) {
+    return (
+      <h1 id="page-title" className={`${TITLE_PLATE} text-title font-bold`}>
+        {children}
+      </h1>
+    );
+  }
   return (
-    <h1 id="page-title" className="bg-plate px-4 py-1 text-title font-bold shadow-bevel-plate">
-      {children}
-    </h1>
+    <div className={`flex items-baseline justify-between ${TITLE_PLATE}`}>
+      <h1 id="page-title" className="text-title font-bold">
+        {children}
+      </h1>
+      {aside}
+    </div>
   );
 }
 
@@ -26,5 +39,15 @@ export function PanelTitle({ id, children }: { id: string; children: string }) {
     <h2 id={id} className="bg-plate px-3 py-1 text-lead font-bold shadow-bevel-plate">
       {children}
     </h2>
+  );
+}
+
+/** A line saying something is still loading or being searched for, announced to screen readers;
+ *  muted unless `className` says otherwise, which then carries the caller's spacing. */
+export function Loading({ className, children }: { className?: string; children: ReactNode }) {
+  return (
+    <p role="status" className={className ?? "text-muted"}>
+      {children}
+    </p>
   );
 }

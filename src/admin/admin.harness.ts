@@ -4,15 +4,16 @@ import { vi } from "vitest";
 import type { AdminSeam, FoundPlayerPositions, PositionsQueue } from "./seam";
 
 /** What the fake server holds: the queue, and who a search finds. */
-export type AdminData = { queue?: PositionsQueue; found?: readonly FoundPlayerPositions[] };
+export type AdminData = { queue?: PositionsQueue; found?: readonly FoundPlayerPositions[]; loading?: boolean; searching?: boolean };
 
 export const EMPTY_QUEUE: PositionsQueue = { newSignings: [], waiting: [], clubs: [], approveMode: "proposals" };
 
-/** Every change succeeds, unless a test says otherwise; a search finds `found` for any text. */
-export function fakeAdmin({ queue = EMPTY_QUEUE, found = [] }: AdminData = {}) {
+/** Every change succeeds, unless a test says otherwise; a search finds `found` for any text.
+ *  `loading` keeps the queue, and `searching` a search, still on their way (undefined). */
+export function fakeAdmin({ queue = EMPTY_QUEUE, found = [], loading = false, searching = false }: AdminData = {}) {
   return {
-    useQueue: vi.fn<AdminSeam["useQueue"]>(() => queue),
-    useFoundPlayers: vi.fn<AdminSeam["useFoundPlayers"]>((text) => (text.trim() ? found : [])),
+    useQueue: vi.fn<AdminSeam["useQueue"]>(() => (loading ? undefined : queue)),
+    useFoundPlayers: vi.fn<AdminSeam["useFoundPlayers"]>((text) => (searching ? undefined : text.trim() ? found : [])),
     approvePlayer: vi.fn<AdminSeam["approvePlayer"]>(async () => null),
     approveClub: vi.fn<AdminSeam["approveClub"]>(async () => null),
     setPosition: vi.fn<AdminSeam["setPosition"]>(async () => null),

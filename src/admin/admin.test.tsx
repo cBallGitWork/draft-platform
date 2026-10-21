@@ -10,7 +10,19 @@ import { admin, commissioner, openApp } from "../shell.harness";
 import type { AdminData } from "./admin.harness";
 import { EMPTY_QUEUE } from "./admin.harness";
 import { ADMIN_PATH } from "./paths";
-import { ADMIN_TITLE, approveLabel, confirmLabel, findLabel, foundListLabel, removeLabel, setLabel, switchModeWords } from "./words";
+import {
+  ADMIN_TITLE,
+  approveLabel,
+  confirmLabel,
+  findLabel,
+  findTitle,
+  foundListLabel,
+  loadingWords,
+  removeLabel,
+  searchingWords,
+  setLabel,
+  switchModeWords,
+} from "./words";
 
 afterEach(cleanup);
 
@@ -137,5 +149,19 @@ describe("correcting a player", () => {
     app.admin.approvePlayer.mockResolvedValueOnce("Only the admin can do that.");
     await userEvent.click(await screen.findByRole("button", { name: approveLabel("Barnes") }));
     expect((await screen.findByRole("alert")).textContent).toBe("Only the admin can do that.");
+  });
+});
+
+describe("while the server answers", () => {
+  it("says the queue is loading, to screen readers too", async () => {
+    openDashboard({ loading: true });
+    await screen.findByRole("heading", { level: 1, name: ADMIN_TITLE });
+    expect(screen.getByRole("status").textContent).toBe(loadingWords);
+  });
+
+  it("says a search is under way, to screen readers too", async () => {
+    openDashboard({ ...DATA, searching: true });
+    await userEvent.type(await screen.findByRole("searchbox", { name: findLabel }), "Woltemade");
+    expect(within(screen.getByRole("region", { name: findTitle })).getByRole("status").textContent).toBe(searchingWords);
   });
 });

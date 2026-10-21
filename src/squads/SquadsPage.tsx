@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/myLeagues";
-import { PageTitle, PanelTitle, Problem } from "../frame/Panel";
+import { Loading, PageTitle, PanelTitle, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { useChange } from "../useChange";
 import type { FoundPlayer, SquadsSeam, TeamSquad } from "./seam";
@@ -49,7 +49,7 @@ export function SquadsPage({ league, seam }: { league: LeagueSummary; seam: Squa
         <Problem problem={change.problem} />
       </section>
       {squads === undefined ? (
-        <p className="text-muted">{loadingWords}</p>
+        <Loading>{loadingWords}</Loading>
       ) : (
         <div className="grid items-start gap-2 lg:grid-cols-2">
           <FindPlayer league={league} seam={seam} squads={squads} change={change} />
@@ -80,7 +80,7 @@ function FindPlayer({ league, seam, squads, change }: { league: LeagueSummary; s
       </div>
       {text.trim() !== "" &&
         (found === undefined ? (
-          <p className="px-3 pb-2 text-muted">{searchingWords}</p>
+          <Loading className="px-3 pb-2 text-muted">{searchingWords}</Loading>
         ) : found.length === 0 ? (
           <p className="px-3 pb-2 text-muted">{noneFoundWords}</p>
         ) : (

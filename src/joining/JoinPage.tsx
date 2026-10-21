@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { linkOffWords } from "../../convex/joiningShared";
-import { PageTitle, Problem } from "../frame/Panel";
+import { Loading, PageTitle, Problem } from "../frame/Panel";
 import { LEAGUES_PATH } from "../leagues/paths";
 import { useChange } from "../useChange";
 import type { JoiningSeam } from "./seam";
@@ -17,7 +17,7 @@ export function JoinPage({ token, joining }: { token: string; joining: JoiningSe
       <PageTitle>{page?.leagueName ?? joinPageWords.title}</PageTitle>
       <Problem problem={problem} />
       <div className="flex flex-col gap-2 px-3 py-2">
-        {page === undefined && <p className="text-muted">{joinPageWords.loading}</p>}
+        {page === undefined && <Loading>{joinPageWords.loading}</Loading>}
         {page === null && <p>{linkOffWords}</p>}
         {page?.standing === "mayAsk" && (
           <>
