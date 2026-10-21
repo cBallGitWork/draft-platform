@@ -58,7 +58,7 @@ function LeagueTable({ leagues, isAdmin }: { leagues: readonly LeagueSummary[]; 
               <span className="block font-normal text-muted wrap-anywhere">Commissioner: {league.commissionerEmail}</span>
               <GameweeksLink league={league} isAdmin={isAdmin} />
               {runs(league, isAdmin) && (
-                <Link to={invitesPath(league.leagueId)} className="flex min-h-tap items-center font-normal">
+                <Link to={invitesPath(league.leagueId)} className="flex min-h-tap items-center font-normal lg:min-h-0">
                   {invitesTitle}
                 </Link>
               )}

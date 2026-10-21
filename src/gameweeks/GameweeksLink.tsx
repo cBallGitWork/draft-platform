@@ -7,7 +7,7 @@ import { GAMEWEEKS_TITLE } from "./words";
 export function GameweeksLink({ league, isAdmin }: { league: LeagueSummary; isAdmin: boolean }) {
   if (!runs(league, isAdmin)) return null;
   return (
-    <Link to={gameweeksPath(league.leagueId)} className="flex min-h-tap items-center self-start font-normal lg:min-h-0">
+    <Link to={gameweeksPath(league.leagueId)} className="flex min-h-tap items-center font-normal lg:min-h-0">
       {GAMEWEEKS_TITLE}
     </Link>
   );
