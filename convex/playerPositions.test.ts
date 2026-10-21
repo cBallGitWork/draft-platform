@@ -140,6 +140,26 @@ describe("the admin's queue (#87)", () => {
     expect((await admin.query(api.playerPositions.queue, {})).newSignings.map((each) => each.code)).not.toContain(PLAYER.steur);
   });
 
+  test("so is a man with too few starts at any place to have a position from them, who plays on his label", async () => {
+    const t = await synced();
+    expect((await (await asAdmin(t)).query(api.playerPositions.queue, {})).newSignings).toContainEqual(
+      expect.objectContaining({ code: PLAYER.hall, label: "Left Full Back" }),
+    );
+  });
+
+  test("a man who has left the Premier League is in neither list", async () => {
+    const t = await synced();
+    await t.run(async (ctx) => {
+      for (const code of [PLAYER.steur, PLAYER.barnes]) {
+        const player = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", code)).unique();
+        await ctx.db.patch("players", player!._id, { droppedAt: Date.now() });
+      }
+    });
+    const { newSignings, waiting } = await (await asAdmin(t)).query(api.playerPositions.queue, {});
+    expect(waiting.map((each) => each.code)).not.toContain(PLAYER.barnes);
+    expect(newSignings.map((each) => each.code)).not.toContain(PLAYER.steur);
+  });
+
   test("a man whose starts wait for approval is in it with what they'd give him, until approved", async () => {
     const t = await synced();
     const admin = await asAdmin(t);
@@ -169,5 +189,6 @@ test("everything here is the admin's alone: anyone else signed in is refused", a
   ]) {
     await expect(call()).rejects.toThrow(refusals.notAdmin);
   }
+  await expect(t.query(api.playerPositions.queue, {})).rejects.toThrow(refusals.signedOut);
   expect(await heldPositions(t, code)).toEqual({ W: "label?" });
 });

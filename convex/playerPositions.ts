@@ -15,6 +15,9 @@ type Row = Doc<"playerPositions">;
 /** What a row holds about a player, without what identifies it. */
 type RowFields = Omit<Row, "_id" | "_creationTime" | "code">;
 
+/** The most players one club's approval reads: a club's squad, with room. */
+const CLUB_PLAYERS_MOST = 100;
+
 /** Spec/06: at first, positions from starts wait for the admin. */
 const FIRST_APPROVE_MODE: ApproveMode = "proposals";
 
@@ -57,7 +60,7 @@ export const approveClub = mutation({
   returns: v.number(),
   handler: async (ctx, { clubCode }): Promise<number> => {
     await adminOf(ctx);
-    const players = await ctx.db.query("players").withIndex("by_clubCode", (q) => q.eq("clubCode", clubCode)).take(PLAYERS_MOST);
+    const players = await ctx.db.query("players").withIndex("by_clubCode", (q) => q.eq("clubCode", clubCode)).take(CLUB_PLAYERS_MOST);
     for (const player of players) await approve(ctx, await heldRow(ctx, player.code));
     return players.length;
   },
@@ -100,11 +103,10 @@ export const setApproveMode = mutation({
   },
 });
 
-/** The most rows of players the queue reads: every man FPL lists in a season, with room. */
-const PLAYERS_MOST = 1500;
-
-/** The admin's queue (spec/06; spec/15): new signings, who have no starts and play on their label
- *  until he confirms it, and the men whose starts give positions waiting for his approval. By name. */
+/** The admin's queue (spec/06; spec/15): new signings, whose starts give no position yet (fewer than
+ *  3 at a place) and who play on their label until he confirms it, and the men whose starts give
+ *  positions waiting for his approval. By name. It reads every row: one cut short would lose the
+ *  newest, who are the new signings. */
 export const queue = query({
   args: {},
   returns: v.object({
@@ -116,12 +118,13 @@ export const queue = query({
     const approveMode = await currentApproveMode(ctx);
     const newSignings = [];
     const waiting = [];
-    for (const row of await ctx.db.query("playerPositions").take(PLAYERS_MOST)) {
+    for await (const row of ctx.db.query("playerPositions")) {
       const player = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", row.code)).unique();
       if (player === null || player.droppedAt !== undefined) continue;
       const { proposals } = positionsFrom(row, approveMode);
       const who = { code: row.code, name: player.name, clubCode: player.clubCode };
-      if (row.starts.length === 0 && row.plLabel !== undefined && row.confirmedLabel !== row.plLabel) {
+      const onLabel = positionsFromStarts(row.starts).positions.length === 0;
+      if (onLabel && row.plLabel !== undefined && row.confirmedLabel !== row.plLabel) {
         newSignings.push({ ...who, label: row.plLabel });
       }
       if (proposals.length > 0) waiting.push({ ...who, proposals });
