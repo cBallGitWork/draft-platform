@@ -5,9 +5,9 @@ import type { Infer } from "convex/values";
 import { vi } from "vitest";
 import { internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL } from "./football";
-import { BATCH_SIZE } from "./footballSync";
 import { recordedFpl, type FplPayloads } from "./recorded/fpl.payloads";
 import type { syncTrigger } from "./schema";
+import { BATCH_SIZE } from "./syncRuns";
 import { fakeFetch, type TestConvex } from "./test.harness";
 
 const UNLISTED_CLUB_ID = 99;

@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server";
 import { recordsOf, statusOf, writeRecords, type DueMatch } from "./matchStats";
 import { liveStatsTickFields, playerMatchRecord } from "./schema";
+import { LATEST_RUNS } from "./syncRuns";
 import { HOUR_MS } from "./time";
 
 // Issue #28: the stored side of the live poller. `liveStatsSync.tick` asks `live` which matches
@@ -13,8 +14,6 @@ import { HOUR_MS } from "./time";
  *  League has not called full time by then is abandoned or its status is stuck, and is left to
  *  `matchStatsSync`. Claude's choice, as long as `scripts/record-match.mjs` records for. */
 export const LIVE_WINDOW_MS = 4 * HOUR_MS;
-/** How many tick rows `latestTicks` returns. */
-const LATEST_TICKS = 5;
 
 /** The matches being played at `now`: kicked off within the window, and not yet complete. A match
  *  provisional after full time is still polled, so its last records land within the minute. */
@@ -59,5 +58,5 @@ export const recordTick = internalMutation({
 
 export const latestTicks = internalQuery({
   args: {},
-  handler: async (ctx) => ctx.db.query("liveStatsTicks").order("desc").take(LATEST_TICKS),
+  handler: async (ctx) => ctx.db.query("liveStatsTicks").order("desc").take(LATEST_RUNS),
 });

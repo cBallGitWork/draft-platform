@@ -2,7 +2,7 @@ import type { Infer } from "convex/values";
 import { internal } from "./_generated/api";
 import { internalAction, type ActionCtx } from "./_generated/server";
 import { codesByOpta, fixtureCodeIn, namedMen } from "./feedIds";
-import { errorMessage } from "./football";
+import { logFailure } from "./football";
 import { readFplPayloads } from "./fpl";
 import { fplStatLines, readFplLive, type FplStatLine } from "./fplLive";
 import { matchRecords } from "./matchRecords";
@@ -108,11 +108,4 @@ function byGameweek(due: DueMatch[]): Map<number, number[]> {
   const codes = new Map<number, number[]>();
   for (const { fixtureCode, gameweek } of due) codes.set(gameweek, [...(codes.get(gameweek) ?? []), fixtureCode]);
   return codes;
-}
-
-/** The error's message, logged so a failure is seen in Convex's logs as well as on the run row. */
-export function logFailure(what: string, error: unknown): string {
-  const message = errorMessage(error);
-  console.error(`${what}: ${message}`);
-  return message;
 }

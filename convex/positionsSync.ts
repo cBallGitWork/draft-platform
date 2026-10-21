@@ -1,8 +1,7 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "./_generated/api";
 import { internalAction, internalMutation, internalQuery, type ActionCtx } from "./_generated/server";
-import { errorMessage, PL_COMP_SEASON, PL_LAST_COMP_SEASON } from "./football";
-import { BATCH_SIZE, LATEST_RUNS } from "./footballSync";
+import { errorMessage, logFailure, PL_COMP_SEASON, PL_LAST_COMP_SEASON } from "./football";
 import { codesByOpta, namedMen } from "./feedIds";
 import { readFplBootstrap } from "./fpl";
 import { heldRow } from "./playerPositions";
@@ -11,6 +10,7 @@ import { START_WINDOW, type Start } from "./positions";
 import { labelPositions, placePosition } from "./positionTables";
 import { readPlFixture, readPlFixtures, readPlSquad, type RawPlFixture, type RawPlSquadPlayer } from "./premierLeague";
 import { positionsSyncFields, startRecord, syncTrigger } from "./schema";
+import { BATCH_SIZE, LATEST_RUNS } from "./syncRuns";
 
 // Issue #22: each player's starts, from the Premier League's team sheets for last season and this
 // (spec/06: his last 38 starts count, across both), and his label, from this season's squads or
@@ -41,9 +41,7 @@ export const run = internalAction({
         console.error(`positions sync: ${JSON.stringify({ unknownFormations, unknownLabels, matchesRefused })}`);
       }
     } catch (error: unknown) {
-      const message = errorMessage(error);
-      console.error(`positions sync failed: ${message}`);
-      outcome = { ok: false, error: message };
+      outcome = { ok: false, error: logFailure("positions sync failed", error) };
     }
     await ctx.runMutation(internal.positionsSync.record, { trigger, ranAt, outcome });
   },

@@ -2,10 +2,10 @@ import { v, type Infer } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Doc } from "./_generated/dataModel";
 import { internalMutation, internalQuery, type MutationCtx, type QueryCtx } from "./_generated/server";
-import { LATEST_RUNS } from "./footballSync";
 import { isMatchComplete, isWhole, lockTime, statChanges, type PlayerMatchRecord, type StatChange } from "./matchRecords";
 import { statCorrectionWindowMs } from "./platformSettings";
 import { matchStatsState, matchStatsSyncFields, playerMatchRecord } from "./schema";
+import { LATEST_RUNS } from "./syncRuns";
 import { HOUR_MS, MINUTE_MS } from "./time";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
