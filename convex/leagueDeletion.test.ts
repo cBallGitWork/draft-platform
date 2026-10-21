@@ -65,27 +65,28 @@ describe("while it can be undone", () => {
     const before = await everythingOf(leagueId);
     const admin = await actingAs(t, ADMIN);
     const ann = await actingAs(t, ANN);
+    const commissioner = await actingAs(t, COMMISSIONER);
 
-    const changes: Record<string, Promise<unknown>> = {
-      "leagues:setMaxTeams": admin.mutation(api.leagues.setMaxTeams, { leagueId, maxTeams: 6 }),
-      "leagues:nameCommissioner": admin.mutation(api.leagues.nameCommissioner, { leagueId, email: ANN }),
-      "leagues:nameCoCommissioner": admin.mutation(api.leagues.nameCoCommissioner, { leagueId, email: null }),
-      "teams:addManager": admin.mutation(api.teams.addManager, { leagueId, email: "new@example.com" }),
-      "teams:removeManager": admin.mutation(api.teams.removeManager, { leagueId, teamId: annsTeam._id }),
-      "teams:rename": ann.mutation(api.teams.rename, { teamId: annsTeam._id, name: "Saka Potatoes" }),
-      "teams:leave": ann.mutation(api.teams.leave, { leagueId }),
-      "leagueDeletion:deleteLeague": admin.mutation(api.leagueDeletion.deleteLeague, { leagueId }),
-      "invites:send": admin.mutation(api.invites.send, { leagueId, email: "new@example.com" }),
-      "invites:resend": admin.mutation(api.invites.resend, { inviteId }),
-      "invites:cancel": admin.mutation(api.invites.cancel, { inviteId }),
-      "inviteLink:make": admin.mutation(api.inviteLink.make, { leagueId }),
-      "inviteLink:switchOff": admin.mutation(api.inviteLink.switchOff, { leagueId }),
-      "joinRequests:approve": admin.mutation(api.joinRequests.approve, { requestId }),
-      "joinRequests:refuseRequest": admin.mutation(api.joinRequests.refuseRequest, { requestId }),
-      "leagueGameweeks:setUsed": admin.mutation(api.leagueGameweeks.setUsed, { leagueId, gameweek: 38, used: false }),
-      "lastLeague:switchTo": (await actingAs(t, COMMISSIONER)).mutation(api.lastLeague.switchTo, { leagueId }),
+    const changes: Record<string, () => Promise<unknown>> = {
+      "leagues:setMaxTeams": () => admin.mutation(api.leagues.setMaxTeams, { leagueId, maxTeams: 6 }),
+      "leagues:nameCommissioner": () => admin.mutation(api.leagues.nameCommissioner, { leagueId, email: ANN }),
+      "leagues:nameCoCommissioner": () => admin.mutation(api.leagues.nameCoCommissioner, { leagueId, email: null }),
+      "teams:addManager": () => admin.mutation(api.teams.addManager, { leagueId, email: "new@example.com" }),
+      "teams:removeManager": () => admin.mutation(api.teams.removeManager, { leagueId, teamId: annsTeam._id }),
+      "teams:rename": () => ann.mutation(api.teams.rename, { teamId: annsTeam._id, name: "Saka Potatoes" }),
+      "teams:leave": () => ann.mutation(api.teams.leave, { leagueId }),
+      "leagueDeletion:deleteLeague": () => admin.mutation(api.leagueDeletion.deleteLeague, { leagueId }),
+      "invites:send": () => admin.mutation(api.invites.send, { leagueId, email: "new@example.com" }),
+      "invites:resend": () => admin.mutation(api.invites.resend, { inviteId }),
+      "invites:cancel": () => admin.mutation(api.invites.cancel, { inviteId }),
+      "inviteLink:make": () => admin.mutation(api.inviteLink.make, { leagueId }),
+      "inviteLink:switchOff": () => admin.mutation(api.inviteLink.switchOff, { leagueId }),
+      "joinRequests:approve": () => admin.mutation(api.joinRequests.approve, { requestId }),
+      "joinRequests:refuseRequest": () => admin.mutation(api.joinRequests.refuseRequest, { requestId }),
+      "leagueGameweeks:setUsed": () => admin.mutation(api.leagueGameweeks.setUsed, { leagueId, gameweek: 38, used: false }),
+      "lastLeague:switchTo": () => commissioner.mutation(api.lastLeague.switchTo, { leagueId }),
     };
-    for (const change of Object.values(changes)) await expect(change).rejects.toThrow(refusals.beingDeleted);
+    for (const change of Object.values(changes)) await expect(change()).rejects.toThrow(refusals.beingDeleted);
     expect(await everythingOf(leagueId)).toEqual(before);
 
     // A mutation added later that is given a league, or a row in one, fails here until it is tried

@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { LeagueSummary } from "../../convex/myLeagues";
 import { GAMEWEEKS_TITLE } from "../gameweeks/words";
 import { invitesTitle } from "../joining/words";
+import type { Session } from "../auth";
 import { adminSeeing, league, managerIn, openApp } from "../shell.harness";
 import { LEAGUES_PATH } from "./paths";
 import { confirmDelete, unemailed, unsentLinkWords } from "./words";
@@ -19,6 +20,9 @@ const beingDeletedLeague: LeagueSummary = {
   ...commissioned,
   deletion: { deletesAt, unemailed: [{ email: "ann@example.com", reason: "paused" }] },
 };
+
+/** Whoever deleted it, as account:signedInAs has them: it's theirs to see, and they're in no league. */
+const deleter: Session = { ...managerIn(beingDeletedLeague), inLeague: false, currentLeagueId: null };
 
 const deleteButton = () => screen.queryByRole("button", { name: "Delete league" });
 const deleteButtonShown = () => screen.findByRole("button", { name: "Delete league" });
@@ -73,7 +77,7 @@ describe("Delete league", () => {
 
 describe("a league being deleted", () => {
   it("shows when it goes on the email's clock, and who wasn't told, and Undo undoes it", async () => {
-    const app = openApp(LEAGUES_PATH, managerIn(beingDeletedLeague));
+    const app = openApp(LEAGUES_PATH, deleter);
 
     // The moment convex/deletionNotices.test.ts finds in the email, said the same way.
     expect(await screen.findByText(/goes for good on Wednesday 21 October at 10:00 BST\./)).toBeTruthy();
@@ -87,7 +91,7 @@ describe("a league being deleted", () => {
   });
 
   it("says why Undo didn't work", async () => {
-    const app = openApp(LEAGUES_PATH, managerIn(beingDeletedLeague));
+    const app = openApp(LEAGUES_PATH, deleter);
     app.leagues.undoDeletion.mockResolvedValue("It's too late to undo: the league is being deleted for good.");
     await userEvent.click(await screen.findByRole("button", { name: "Undo" }));
 
