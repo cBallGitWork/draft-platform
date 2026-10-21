@@ -34,8 +34,6 @@ export function refusedError(url: string): string {
   return `${url} answered ${REFUSED_STATUS}`;
 }
 
-/** Keeps console.error quiet for the test, where a logged failure is what it causes; the spy is
- *  returned to check what was logged. Vitest restores it after the test (vitest.config.ts). */
-export function silenceConsoleError() {
-  return vi.spyOn(console, "error").mockImplementation(() => {});
-}
+// Vitest loads the setup file and this import as one module, so the flag this sets reaches the
+// guard. Were they ever two copies, every silenced test would fail loudly, not pass quietly.
+export { silenceConsoleError } from "../console.setup";

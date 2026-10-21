@@ -5,9 +5,20 @@ import { asAdmin, heldPositions, syncPositionsWith } from "./positionsSync.harne
 import { MATCHES_PER_RUN } from "./positionsSync";
 import type { RawPlSquadPlayer } from "./premierLeague";
 import { NEWCASTLE, PLAYER, recordedPositions, SHEET, UNPLAYED_MATCH } from "./recorded/positions.payloads";
-import { freshConvex, refusedError, type TestConvex } from "./test.harness";
+import { freshConvex, refusedError, silenceConsoleError, type TestConvex } from "./test.harness";
 
 const REFUSED_MATCH = `PL fixture ${SHEET.cityCoventryRefused}, team 11's 4-2-3-1 does not draw the 11 men it lists as starting`;
+
+/** The line a run logs for what it could not place: the recorded payloads' refused match, and any
+ *  formation or label the table does not know. */
+function reported(unknown: { unknownFormations?: string[]; unknownLabels?: string[] } = {}): string {
+  return `positions sync: ${JSON.stringify({ unknownFormations: [], unknownLabels: [], matchesRefused: [REFUSED_MATCH], ...unknown })}`;
+}
+
+/** The line a run logs when its read of url is refused. */
+function reportedFailure(url: string): string {
+  return `positions sync failed: ${refusedError(url)}`;
+}
 
 function manIn(men: RawPlSquadPlayer[], code: number): RawPlSquadPlayer {
   return men.find((man) => man.altIds?.opta === `p${code}`)!;
@@ -22,6 +33,7 @@ function heldStarts(t: TestConvex, code: number) {
 
 test("a run files every played match's starts and this season's labels, and reports what it could not place", async () => {
   const t = freshConvex();
+  const logged = silenceConsoleError();
 
   const { outcome, urls } = await syncPositionsWith(t, recordedPositions());
 
@@ -41,11 +53,14 @@ test("a run files every played match's starts and this season's labels, and repo
     unknownLabels: [],
   });
   expect(urls).not.toContain(plFixtureUrl(UNPLAYED_MATCH));
+  expect(logged).toHaveBeenCalledWith(reported());
 });
 
 test("a substitute's appearance is never filed as a start", async () => {
   const t = freshConvex();
+  const logged = silenceConsoleError();
   await syncPositionsWith(t, recordedPositions());
+  expect(logged).toHaveBeenCalledWith(reported());
 
   // Lewis Hall started two of the four Newcastle matches and was on the bench for the other two.
   const starts = await heldStarts(t, PLAYER.hall);
@@ -56,6 +71,7 @@ test("a substitute's appearance is never filed as a start", async () => {
 
 test("each match's sheets are read once: a second run files nothing again, and reads only the refused match", async () => {
   const t = freshConvex();
+  const logged = silenceConsoleError();
   await syncPositionsWith(t, recordedPositions());
 
   const { outcome, urls } = await syncPositionsWith(t, recordedPositions());
@@ -63,10 +79,12 @@ test("each match's sheets are read once: a second run files nothing again, and r
   expect(outcome).toMatchObject({ ok: true, matchesRead: 1, startsAdded: 0, matchesRefused: [REFUSED_MATCH] });
   expect(urls.filter((url) => /\/fixtures\/\d+$/.test(url))).toEqual([plFixtureUrl(SHEET.cityCoventryRefused)]);
   expect(await heldStarts(t, PLAYER.barnes)).toHaveLength(3);
+  expect(logged.mock.calls).toEqual([[reported()], [reported()]]);
 });
 
 test("a formation the table does not know is reported, and its starts give nothing", async () => {
   const t = freshConvex();
+  const logged = silenceConsoleError();
   const payloads = recordedPositions();
   for (const sheet of payloads.sheets.filter((each) => each.id !== SHEET.cityCoventryRefused)) {
     for (const list of sheet.teamLists!) list!.formation!.label = "2-3-5";
@@ -75,6 +93,7 @@ test("a formation the table does not know is reported, and its starts give nothi
   const { outcome } = await syncPositionsWith(t, payloads);
 
   expect(outcome).toMatchObject({ ok: true, unknownFormations: ["2-3-5"] });
+  expect(logged).toHaveBeenCalledWith(reported({ unknownFormations: ["2-3-5"] }));
   const { positions, unknownFormations } = await (await asAdmin(t)).query(api.playerPositions.ofPlayer, { code: PLAYER.barnes });
   expect(unknownFormations).toEqual(["2-3-5"]);
   expect(positions.map((held) => held.source)).toEqual(["label"]);
@@ -82,17 +101,20 @@ test("a formation the table does not know is reported, and its starts give nothi
 
 test("a label the table does not know is reported, and gives no position", async () => {
   const t = freshConvex();
+  const logged = silenceConsoleError();
   const payloads = recordedPositions();
   manIn(payloads.squads[NEWCASTLE.pl].players, PLAYER.steur).info = { positionInfo: "Libero" };
 
   const { outcome } = await syncPositionsWith(t, payloads);
 
   expect(outcome).toMatchObject({ ok: true, unknownLabels: ["Libero"] });
+  expect(logged).toHaveBeenCalledWith(reported({ unknownLabels: ["Libero"] }));
   expect(await heldPositions(t, PLAYER.steur)).toEqual({});
 });
 
 test("a squad's label wins over a sheet's, and a man no squad lists keeps his newest sheet's", async () => {
   const t = freshConvex();
+  const logged = silenceConsoleError();
   const payloads = recordedPositions();
   // Every sheet calls Hall "Left Full Back" and Woltemade, whom no squad lists, "Second Striker".
   manIn(payloads.squads[NEWCASTLE.pl].players, PLAYER.hall).info = { positionInfo: "Left Wing Back" };
@@ -103,6 +125,7 @@ test("a squad's label wins over a sheet's, and a man no squad lists keeps his ne
 
   expect(await heldPositions(t, PLAYER.hall)).toEqual({ WB: "label?" });
   expect(await heldPositions(t, PLAYER.woltemade)).toEqual({ ST: "label?" });
+  expect(logged).toHaveBeenCalledWith(reported());
 });
 
 test("a match filed twice, as by two runs at once, is filed once", async () => {
@@ -135,20 +158,24 @@ test.each([
   ["this season's fixture list", plFixturesUrl(undefined, PL_COMP_SEASON)],
 ])("a refused read of %s is recorded as the run's failure, and files nothing", async (_what, url) => {
   const t = freshConvex();
+  const logged = silenceConsoleError();
 
   const { outcome } = await syncPositionsWith(t, recordedPositions(), url);
 
   expect(outcome).toEqual({ ok: false, error: refusedError(url) });
+  expect(logged).toHaveBeenCalledWith(reportedFailure(url));
   expect(await heldStarts(t, PLAYER.barnes)).toEqual([]);
 });
 
 test("a failed read mid-run fails the run, and leaves the matches read before it filed", async () => {
   const t = freshConvex();
+  const logged = silenceConsoleError();
 
   const refused = plFixtureUrl(SHEET.newcastleLateNov);
   const { outcome } = await syncPositionsWith(t, recordedPositions(), refused);
 
   expect(outcome).toEqual({ ok: false, error: refusedError(refused) });
+  expect(logged).toHaveBeenCalledWith(reportedFailure(refused));
   expect(await heldStarts(t, PLAYER.barnes)).toHaveLength(2);
 });
 

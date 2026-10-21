@@ -13,7 +13,7 @@ import {
   withPlReadEmpty,
 } from "./matchStats.harness";
 import { FULL_STATS, recordedGw6, type Gw6Payloads } from "./recorded/gw6.payloads";
-import { freshConvex, type TestConvex } from "./test.harness";
+import { freshConvex, silenceConsoleError, type TestConvex } from "./test.harness";
 import { HOUR_MS, MINUTE_MS } from "./time";
 
 beforeEach(() => vi.useFakeTimers());
@@ -189,6 +189,7 @@ test.each([
   ],
 ] as const)("a run's worth of older matches that %s every run keeps no newer match from being read", async (_what, stuckAs, stick) => {
   const t = await withHullEverton();
+  const logged = silenceConsoleError();
   // Older than Hull v Everton; the Premier League's list leaves each out (so it fails) or has it not over.
   const stuck = Array.from({ length: MATCHES_PER_RUN + 1 }, (_, index) => index + 1);
   await t.run(async (ctx) => {
@@ -213,4 +214,10 @@ test.each([
     ...Object.fromEntries(stuck.map((code) => [code, stuckAs])),
     [HULL_EVERTON]: "complete",
   });
+  // Only a match that fails is logged; one that waits is not.
+  if (stuckAs === "failed") {
+    expect(logged).toHaveBeenCalledWith(`match 1 failed: the Premier League lists no match 1 in gameweek ${GAMEWEEK}`);
+  } else {
+    expect(logged).not.toHaveBeenCalled();
+  }
 });

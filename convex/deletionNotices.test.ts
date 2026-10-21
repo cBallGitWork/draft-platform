@@ -1,10 +1,11 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { ANN, BOB, accountOf, deletes, leagueWithPeople } from "./leagueDeletion.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, actingAs, leagueRow, type TestConvex } from "./leagues.harness";
 import { EMAILS_PER_DAY } from "./emailLimit";
 import { fakeResend, sentToday, setSentToday, signInDeployment, type SentEmail } from "./signIn.harness";
+import { silenceConsoleError } from "./test.harness";
 
 // The email saying a league will be deleted, and when (#75, spec/13, Deleting).
 
@@ -56,7 +57,7 @@ describe("someone who isn't emailed", () => {
 
   test("when the email service refuses it, is kept as not sent, and the failure logged", async () => {
     fakeResend(500);
-    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    const logged = silenceConsoleError();
     await deletes(t, COMMISSIONER, leagueId);
 
     expect((await leagueRow(t, leagueId))?.deletion?.unemailed).toEqual([
@@ -65,6 +66,10 @@ describe("someone who isn't emailed", () => {
       { email: BOB, reason: "notSent" },
     ]);
     expect(logged).toHaveBeenCalledTimes(3);
+    expect(logged).toHaveBeenCalledWith(
+      `The email saying a league will be deleted wasn't sent to ${ANN}:`,
+      new Error("Resend refused the email (500): refused"),
+    );
   });
 
   test("once the deletion is undone, is no longer kept", async () => {
