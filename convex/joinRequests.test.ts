@@ -142,17 +142,18 @@ describe("the commissioner's page", () => {
 });
 
 describe("the join page of a league being deleted (spec/13 Deleting)", () => {
-  test("is the switched-off link to everyone, signed out, new or already in", async () => {
+  beforeEach(async () => {
     await addManagers(t, leagueId, [BOB]);
     await deletes(t, COMMISSIONER, leagueId);
+  });
+
+  test("is the switched-off link to everyone, signed out, new or already in", async () => {
     expect(await t.query(api.joinRequests.joinPage, { token })).toBeNull();
     expect(await joinPageFor(ANN)).toBeNull();
     expect(await joinPageFor(BOB)).toBeNull();
   });
 
   test("offers asking to join again once the deletion is undone", async () => {
-    await addManagers(t, leagueId, [BOB]);
-    await deletes(t, COMMISSIONER, leagueId);
     await (await actingAs(t, COMMISSIONER)).mutation(api.leagueDeletion.undo, { leagueId });
     expect(await t.query(api.joinRequests.joinPage, { token })).toEqual({ leagueName: LEAGUE_NAME, standing: "mayAsk" });
     expect((await joinPageFor(ANN))?.standing).toBe("mayAsk");
