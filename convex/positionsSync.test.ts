@@ -15,6 +15,11 @@ function reported(unknown: { unknownFormations?: string[]; unknownLabels?: strin
   return `positions sync: ${JSON.stringify({ unknownFormations: [], unknownLabels: [], matchesRefused: [REFUSED_MATCH], ...unknown })}`;
 }
 
+/** The line a run logs when its read of url is refused. */
+function reportedFailure(url: string): string {
+  return `positions sync failed: ${refusedError(url)}`;
+}
+
 function manIn(men: RawPlSquadPlayer[], code: number): RawPlSquadPlayer {
   return men.find((man) => man.altIds?.opta === `p${code}`)!;
 }
@@ -158,7 +163,7 @@ test.each([
   const { outcome } = await syncPositionsWith(t, recordedPositions(), url);
 
   expect(outcome).toEqual({ ok: false, error: refusedError(url) });
-  expect(logged).toHaveBeenCalledWith(`positions sync failed: ${refusedError(url)}`);
+  expect(logged).toHaveBeenCalledWith(reportedFailure(url));
   expect(await heldStarts(t, PLAYER.barnes)).toEqual([]);
 });
 
@@ -170,7 +175,7 @@ test("a failed read mid-run fails the run, and leaves the matches read before it
   const { outcome } = await syncPositionsWith(t, recordedPositions(), refused);
 
   expect(outcome).toEqual({ ok: false, error: refusedError(refused) });
-  expect(logged).toHaveBeenCalledWith(`positions sync failed: ${refusedError(refused)}`);
+  expect(logged).toHaveBeenCalledWith(reportedFailure(refused));
   expect(await heldStarts(t, PLAYER.barnes)).toHaveLength(2);
 });
 
