@@ -8,10 +8,11 @@ test("each hook gives the fake named for its function", () => {
   const squads = vi.fn(() => "the squads");
   const move = vi.fn();
   const action = vi.fn();
+  const args = { leagueId: "league-1" };
   const convex = fakeConvexReact({ queries: { "squads:squads": squads }, mutations: { "squads:move": move }, actions: { "squads:release": action } });
 
-  expect(convex.useQuery(api.squads.squads, { leagueId: "league-1" })).toBe("the squads");
-  expect(squads).toHaveBeenCalledExactlyOnceWith({ leagueId: "league-1" });
+  expect(convex.useQuery(api.squads.squads, args)).toBe("the squads");
+  expect(squads).toHaveBeenCalledExactlyOnceWith(args);
   expect(convex.useMutation(api.squads.move)).toBe(move);
   expect(convex.useAction(api.squads.release as never)).toBe(action);
 });

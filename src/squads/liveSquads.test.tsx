@@ -30,6 +30,7 @@ afterEach(() => {
 
 const leagueId = "league-1" as Id<"leagues">;
 const teamId = "team-2" as Id<"teams">;
+const playerCode = 1001;
 const seam = () => renderHook(() => useLiveSquads()).result.current;
 const changeNames = ["assign", "move", "release"] as const;
 
@@ -51,9 +52,9 @@ test("a search asks squads:findPlayers, and blank text asks nothing and finds no
 });
 
 test.each([
-  ["assigning", "assign", () => seam().assign(leagueId, 1001, teamId), { leagueId, playerCode: 1001, teamId }],
-  ["moving", "move", () => seam().move(leagueId, 1001, teamId), { leagueId, playerCode: 1001, teamId }],
-  ["releasing", "release", () => seam().release(leagueId, 1001), { leagueId, playerCode: 1001 }],
+  ["assigning", "assign", () => seam().assign(leagueId, playerCode, teamId), { leagueId, playerCode, teamId }],
+  ["moving", "move", () => seam().move(leagueId, playerCode, teamId), { leagueId, playerCode, teamId }],
+  ["releasing", "release", () => seam().release(leagueId, playerCode), { leagueId, playerCode }],
 ] as const)("%s a player calls squads:%s alone, and resolves with no problem", async (_, name, change, args) => {
   convex[name].mockResolvedValue(null);
   expect(await change()).toBeNull();
@@ -64,8 +65,9 @@ test.each([
 });
 
 test("a change the server refuses resolves with the server's own words", async () => {
-  convex.assign.mockRejectedValue(new ConvexError("Saka is already on Team 1. Move him instead."));
-  expect(await seam().assign(leagueId, 1001, teamId)).toBe("Saka is already on Team 1. Move him instead.");
+  const refusal = "Saka is already on Team 1. Move him instead.";
+  convex.assign.mockRejectedValue(new ConvexError(refusal));
+  expect(await seam().assign(leagueId, playerCode, teamId)).toBe(refusal);
 });
 
 test("any other failure is logged and said plainly", async () => {
@@ -73,6 +75,6 @@ test("any other failure is logged and said plainly", async () => {
   convex.release.mockRejectedValue(failure);
   const logged = vi.spyOn(console, "error").mockImplementation(() => {});
 
-  expect(await seam().release(leagueId, 1001)).toBe(changeFailedWords);
+  expect(await seam().release(leagueId, playerCode)).toBe(changeFailedWords);
   expect(logged).toHaveBeenCalledWith("Releasing a player failed:", failure);
 });
