@@ -8,7 +8,7 @@ import { UNDO_MS, tablesKeyedToLeague } from "./leagueDeletion";
 import { COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "./leagues.harness";
 import { modules } from "./signIn.harness";
 
-export const [ANN, BOB] = MANAGERS;
+export const [ANN, BOB, CAT, DAN] = MANAGERS;
 
 /** A league with a commissioner who runs no team, a co-commissioner, and ANN and BOB managing. */
 export async function leagueWithPeople(t: TestConvex, name?: string): Promise<Id<"leagues">> {

@@ -1,5 +1,6 @@
 import Resend from "@auth/core/providers/resend";
 import { convexAuth } from "@convex-dev/auth/server";
+import { joinByInvites } from "./invites";
 import { sendSignInEmail } from "./signInEmail";
 import { claimAsk } from "./signInLinks";
 
@@ -20,6 +21,8 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
     // any earlier one is deleted, so a refusal here leaves nothing written (signInLinks.ts).
     async afterUserCreatedOrUpdated(ctx, { type, profile }) {
       if (type === "email") await claimAsk(ctx, profile.email ?? "");
+      // Opening a link: the person joins every league whose invite to them is live (spec/13).
+      if (type === "verification") await joinByInvites(ctx, profile.email ?? "");
     },
   },
 });

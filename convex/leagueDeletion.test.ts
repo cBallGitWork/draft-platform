@@ -1,26 +1,37 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
+import { askToJoin, invite, makeLink, openLastLinkTo } from "./joining.harness";
 import { refusals } from "./leagueAccess";
 import { tablesKeyedToLeague } from "./leagueDeletion";
-import { ANN, BOB, accountOf, deletes, laterBy, leagueWithPeople, mutationsGivenALeague } from "./leagueDeletion.harness";
+import { ANN, BOB, CAT, DAN, accountOf, deletes, laterBy, leagueWithPeople, mutationsGivenALeague } from "./leagueDeletion.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, actingAs, eventsIn, leagueRow, teamsIn, type TestConvex } from "./leagues.harness";
 import schema from "./schema";
-import { fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
+import { fakeResend, resetSignInDeployment, signInDeployment, type SentEmail } from "./signIn.harness";
 
 // Deleting a league (#75, spec/13, Deleting): who may, the day it can be undone, and gone after.
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
+let sent: SentEmail[];
 beforeEach(async () => {
   t = await signInDeployment();
-  fakeResend();
+  sent = fakeResend();
   leagueId = await leagueWithPeople(t);
 });
 afterEach(resetSignInDeployment);
 
-/** All of a league there is: its row, its teams and its events. */
-const everythingOf = async (id: Id<"leagues">) => ({ league: await leagueRow(t, id), teams: await teamsIn(t, id), events: await eventsIn(t, id) });
+/** All of a league there is: its row, its teams, its events, and its invites, invite link and join requests. */
+const everythingOf = async (id: Id<"leagues">) => ({
+  league: await leagueRow(t, id),
+  teams: await teamsIn(t, id),
+  events: await eventsIn(t, id),
+  joining: await t.run(async (ctx) => ({
+    invites: await ctx.db.query("invites").withIndex("by_leagueId", (q) => q.eq("leagueId", id)).collect(),
+    inviteLinks: await ctx.db.query("inviteLinks").withIndex("by_leagueId", (q) => q.eq("leagueId", id)).collect(),
+    joinRequests: await ctx.db.query("joinRequests").withIndex("by_leagueId_and_decision", (q) => q.eq("leagueId", id)).collect(),
+  })),
+});
 
 describe("who deletes a league", () => {
   test("the commissioner deletes it, filed for Mail with when it goes", async () => {
@@ -48,6 +59,8 @@ describe("who deletes a league", () => {
 describe("while it can be undone", () => {
   test("every change to it is refused, saying why, and every mutation given a league is tried", async () => {
     const [annsTeam] = await teamsIn(t, leagueId);
+    const inviteId = await invite(t, leagueId, CAT);
+    const requestId = await askToJoin(t, leagueId, await makeLink(t, leagueId), DAN);
     await deletes(t, COMMISSIONER, leagueId);
     const before = await everythingOf(leagueId);
     const admin = await actingAs(t, ADMIN);
@@ -62,6 +75,14 @@ describe("while it can be undone", () => {
       "teams:rename": ann.mutation(api.teams.rename, { teamId: annsTeam._id, name: "Saka Potatoes" }),
       "teams:leave": ann.mutation(api.teams.leave, { leagueId }),
       "leagueDeletion:deleteLeague": admin.mutation(api.leagueDeletion.deleteLeague, { leagueId }),
+      "invites:send": admin.mutation(api.invites.send, { leagueId, email: "new@example.com" }),
+      "invites:resend": admin.mutation(api.invites.resend, { inviteId }),
+      "invites:cancel": admin.mutation(api.invites.cancel, { inviteId }),
+      "inviteLink:make": admin.mutation(api.inviteLink.make, { leagueId }),
+      "inviteLink:switchOff": admin.mutation(api.inviteLink.switchOff, { leagueId }),
+      "joinRequests:approve": admin.mutation(api.joinRequests.approve, { requestId }),
+      "joinRequests:refuseRequest": admin.mutation(api.joinRequests.refuseRequest, { requestId }),
+      "leagueGameweeks:setUsed": admin.mutation(api.leagueGameweeks.setUsed, { leagueId, gameweek: 38, used: false }),
     };
     for (const change of Object.values(changes)) await expect(change).rejects.toThrow(refusals.beingDeleted);
     expect(await everythingOf(leagueId)).toEqual(before);
@@ -70,6 +91,18 @@ describe("while it can be undone", () => {
     // above: the freeze holds only where a change starts at getLeague (leagueAccess.ts).
     const allowedWhileFrozen = ["leagueDeletion:undo"];
     expect(Object.keys(changes).sort()).toEqual((await mutationsGivenALeague()).filter((name) => !allowedWhileFrozen.includes(name)));
+  });
+
+  test("nobody joins it: not by asking from its invite link, nor by opening an invite sent before", async () => {
+    const token = await makeLink(t, leagueId);
+    await invite(t, leagueId, CAT);
+    await deletes(t, COMMISSIONER, leagueId);
+    const { teams, joining } = await everythingOf(leagueId);
+
+    await expect((await actingAs(t, DAN)).mutation(api.joinRequests.ask, { token })).rejects.toThrow(refusals.beingDeleted);
+    expect(await openLastLinkTo(t, sent, CAT)).not.toBeNull();
+    expect(await teamsIn(t, leagueId)).toEqual(teams);
+    expect((await everythingOf(leagueId)).joining.joinRequests).toEqual(joining.joinRequests);
   });
 
   test("it's hidden from everyone with a part in it but whoever deleted it, who is in no league now", async () => {
@@ -128,7 +161,12 @@ describe("while it can be undone", () => {
 });
 
 describe("after the day", () => {
-  test("it's gone for good: the league, its teams and its events; another league is untouched", async () => {
+  /** A league with nothing of it left. */
+  const GONE = { league: null, teams: [], events: [], joining: { invites: [], inviteLinks: [], joinRequests: [] } };
+
+  test("it's gone for good: the league, its teams, events, invites, invite link and join requests; another league is untouched", async () => {
+    await askToJoin(t, leagueId, await makeLink(t, leagueId), DAN);
+    await invite(t, leagueId, CAT);
     const other = await leagueWithPeople(t, "Another league");
     const othersBefore = await everythingOf(other);
     const deletesAt = await deletes(t, COMMISSIONER, leagueId);
@@ -136,7 +174,7 @@ describe("after the day", () => {
     expect(await leagueRow(t, leagueId)).not.toBeNull();
 
     await t.finishAllScheduledFunctions(vi.runAllTimers);
-    expect(await everythingOf(leagueId)).toEqual({ league: null, teams: [], events: [] });
+    expect(await everythingOf(leagueId)).toEqual(GONE);
     expect(await everythingOf(other)).toEqual(othersBefore);
     expect((await accountOf(t, COMMISSIONER)).leagues.map((league) => league.name)).toEqual(["Another league"]);
   });
@@ -149,7 +187,7 @@ describe("after the day", () => {
     });
     await deletes(t, COMMISSIONER, leagueId);
     await t.finishAllScheduledFunctions(vi.runAllTimers);
-    expect(await everythingOf(leagueId)).toEqual({ league: null, teams: [], events: [] });
+    expect(await everythingOf(leagueId)).toEqual(GONE);
   });
 
   test("every table keyed to a league is deleted with it", () => {
