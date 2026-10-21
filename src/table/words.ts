@@ -33,7 +33,7 @@ const andList = new Intl.ListFormat("en-GB", { type: "conjunction" });
 export const byeWords = (teamNames: readonly string[]) => `${andList.format(teamNames)} ${teamNames.length === 1 ? "has" : "have"} a bye.`;
 export const fixturesListLabel = (gameweek: number) => `${gameweekWords(gameweek)}'s fixtures`;
 export const roundRobinWords = (rounds: number) =>
-  `Every team meets every other once a round robin of ${rounds} games, and each round robin is drawn in its own order.`;
+  `Every team meets every other once a round robin of ${rounds} rounds, and each round robin is drawn in its own order.`;
 
 export const totalPointsWords = "The league plays total points, so it has no matchups or fixtures: the table ranks teams by their points.";
 export const tooFewTeamsWords = "Fixtures are drawn once the league has two teams.";

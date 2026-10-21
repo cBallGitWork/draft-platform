@@ -138,8 +138,9 @@ describe("the fixtures", () => {
     const drawn = leagueTableOf(FIVE, { oddTeamOut: "bye", gamesPerGameweek: 2 });
     openTable({ leagueTable: drawn });
     const [first] = drawn.gameweeks;
+    const [one, other] = first.byes;
     expect(first.byes).toHaveLength(2);
-    expect(await screen.findByText(byeWords(first.byes))).toBeTruthy();
+    expect(await screen.findByText(`${one} and ${other} have a bye.`)).toBeTruthy();
     expect(fixtureLines(1)).toHaveLength(4);
   });
 

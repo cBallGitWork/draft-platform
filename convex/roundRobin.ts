@@ -87,12 +87,16 @@ export function drawFixtures<Team>(
  *  twice, which would pair a team with the same opponent twice: the next round robin opens with
  *  rounds the gameweek hasn't had. */
 export function roundOrder(roundCount: number, total: number, games: number, seed: string): number[] {
+  if (roundCount < 1 || games < 1 || games > roundCount) {
+    throw new Error(`Can't deal ${games} of ${roundCount} rounds a gameweek`);
+  }
   const random = seededRandom(seed);
   const order: number[] = [];
   while (order.length < total) {
     const shuffled = shuffle(Array.from({ length: roundCount }, (_, round) => round), random);
     const inThisGameweek = new Set(order.slice(order.length - (order.length % games)));
-    const opening = shuffled.filter((round) => !inThisGameweek.has(round)).slice(0, inThisGameweek.size === 0 ? 0 : games - inThisGameweek.size);
+    const stillToDeal = inThisGameweek.size === 0 ? 0 : games - inThisGameweek.size;
+    const opening = shuffled.filter((round) => !inThisGameweek.has(round)).slice(0, stillToDeal);
     order.push(...opening, ...shuffled.filter((round) => !opening.includes(round)));
   }
   return order.slice(0, total);

@@ -74,12 +74,12 @@ describe.each(ODD_TEAM_OUTS)("as even as can be, the odd team out playing %s", (
 
     const perGameweek = gamesInAGameweek(roundsOf(teams).length, games);
     for (const gameweek of schedule) {
-      for (const [team, opponents] of opponentsIn(gameweek)) {
-        expect(new Set(opponents).size, `${team} in gameweek ${gameweek.gameweek}`).toBe(opponents.length);
-      }
+      const opponents = opponentsIn(gameweek);
       const byes = tally(teams, gameweek.byes);
       for (const team of teams) {
-        expect((opponentsIn(gameweek).get(team)?.length ?? 0) + (byes.get(team) ?? 0)).toBe(perGameweek);
+        const met = opponents.get(team) ?? [];
+        expect(new Set(met).size, `${team} in gameweek ${gameweek.gameweek}`).toBe(met.length);
+        expect(met.length + (byes.get(team) ?? 0)).toBe(perGameweek);
       }
     }
   });
@@ -113,6 +113,10 @@ describe("games a gameweek", () => {
 
   test.each([[2, 1], [4, 3], [9, 9], [20, 19]])("%i teams have at most %i a gameweek", (count, most) => {
     expect(gamesInAGameweek(roundsOf(teamsOf(count)).length, 99)).toBe(most);
+  });
+
+  test.each([[0, 1], [3, 0], [3, 4]])("dealing from %i rounds, %i a gameweek, is a bug, and throws", (rounds, games) => {
+    expect(() => roundOrder(rounds, 10, games, "league-a")).toThrow(`Can't deal ${games} of ${rounds} rounds a gameweek`);
   });
 
   test("a gameweek straddling two round robins never has a round twice", () => {
