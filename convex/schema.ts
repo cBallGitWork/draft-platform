@@ -500,7 +500,7 @@ export default defineSchema({
   players: defineTable(playerRecord.extend({ droppedAt }))
     .index("by_code", ["code"])
     .index("by_clubCode", ["clubCode"])
-    .searchIndex("search_fullName", { searchField: "fullName" }),
+    .searchIndex("search_fullName", { searchField: "fullName", filterFields: ["droppedAt"] }),
   fixtures: defineTable(fixtureRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_kickoff", ["kickoff"]),
   gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]),
   footballSyncs: defineTable(footballSyncFields),

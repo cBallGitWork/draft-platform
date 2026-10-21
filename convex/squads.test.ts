@@ -209,4 +209,14 @@ describe("finding a player", () => {
     expect(await commissioner.find("Gone")).toEqual([]);
     expect(await commissioner.find("  ")).toEqual([]);
   });
+
+  test("those who have left never crowd out one still here", async () => {
+    await t.run(async (ctx) => {
+      for (let i = 0; i < 30; i += 1) {
+        await ctx.db.insert("players", { code: 3000 + i, name: "Smith", fullName: `Gone Smith ${i}`, clubCode: 3, droppedAt: Date.now() });
+      }
+      await ctx.db.insert("players", { code: 4000, name: "Smith", fullName: "Here Smith", clubCode: 3 });
+    });
+    expect((await (await as(COMMISSIONER)).find("Smith")).map((player) => player.code)).toEqual([4000]);
+  });
 });

@@ -188,21 +188,19 @@ export const findPlayers = query({
     if (!text.trim()) return [];
     const found = await ctx.db
       .query("players")
-      .withSearchIndex("search_fullName", (q) => q.search("fullName", text))
+      .withSearchIndex("search_fullName", (q) => q.search("fullName", text).eq("droppedAt", undefined))
       .take(FOUND_MOST);
     const teamNames = new Map((await teamsOf(ctx, leagueId)).map((team) => [team._id, team.name]));
     return Promise.all(
-      found
-        .filter((player) => player.droppedAt === undefined)
-        .map(async (player) => {
-          const place = await placeOf(ctx, leagueId, player.code);
-          return {
-            code: player.code,
-            name: player.name,
-            fullName: player.fullName,
-            teamName: place === null ? null : (teamNames.get(place.teamId) ?? null),
-          };
-        }),
+      found.map(async (player) => {
+        const place = await placeOf(ctx, leagueId, player.code);
+        return {
+          code: player.code,
+          name: player.name,
+          fullName: player.fullName,
+          teamName: place === null ? null : (teamNames.get(place.teamId) ?? null),
+        };
+      }),
     );
   },
 });
