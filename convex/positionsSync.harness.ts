@@ -5,8 +5,9 @@
 
 import type { TestConvex as TestConvexOf } from "convex-test";
 import { vi } from "vitest";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, plFixturesUrl, plFixtureUrl, plSquadUrl } from "./football";
+import { ADMIN, actingAs } from "./leagues.harness";
 import type { PositionsPayloads } from "./recorded/positions.payloads";
 import type schema from "./schema";
 
@@ -41,8 +42,14 @@ export async function syncPositionsWith(t: TestConvex, payloads: PositionsPayloa
   return { outcome: latest.outcome, urls: fetch.mock.calls.map(([url]) => url) };
 }
 
+/** The admin, signed in: every function in playerPositions.ts is his alone. */
+export function asAdmin(t: TestConvex) {
+  vi.stubEnv("ADMIN_EMAIL", ADMIN);
+  return actingAs(t, ADMIN);
+}
+
 /** A player's positions, as `{position: source}` with "?" on each unconfirmed, e.g. `{W: "label?"}`. */
 export async function heldPositions(t: TestConvex, code: number): Promise<Record<string, string>> {
-  const { positions } = await t.query(internal.playerPositions.ofPlayer, { code });
+  const { positions } = await (await asAdmin(t)).query(api.playerPositions.ofPlayer, { code });
   return Object.fromEntries(positions.map((held) => [held.position, held.source + (held.confirmed ? "" : "?")]));
 }

@@ -1,14 +1,17 @@
 import { convexTest } from "convex-test";
 import { afterEach, expect, test, vi } from "vitest";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, PL_COMP_SEASON, PL_LAST_COMP_SEASON, plFixturesUrl, plFixtureUrl } from "./football";
-import { heldPositions, modules, REFUSED_STATUS, syncPositionsWith, type TestConvex } from "./positionsSync.harness";
+import { asAdmin, heldPositions, modules, REFUSED_STATUS, syncPositionsWith, type TestConvex } from "./positionsSync.harness";
 import { MATCHES_PER_RUN } from "./positionsSync";
 import type { RawPlSquadPlayer } from "./premierLeague";
 import { NEWCASTLE, PLAYER, recordedPositions, SHEET, UNPLAYED_MATCH } from "./recorded/positions.payloads";
 import schema from "./schema";
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+});
 
 const REFUSED_MATCH = `PL fixture ${SHEET.cityCoventryRefused}, team 11's 4-2-3-1 does not draw the 11 men it lists as starting`;
 
@@ -78,7 +81,7 @@ test("a formation the table does not know is reported, and its starts give nothi
   const { outcome } = await syncPositionsWith(t, payloads);
 
   expect(outcome).toMatchObject({ ok: true, unknownFormations: ["2-3-5"] });
-  const { positions, unknownFormations } = await t.query(internal.playerPositions.ofPlayer, { code: PLAYER.barnes });
+  const { positions, unknownFormations } = await (await asAdmin(t)).query(api.playerPositions.ofPlayer, { code: PLAYER.barnes });
   expect(unknownFormations).toEqual(["2-3-5"]);
   expect(positions.map((held) => held.source)).toEqual(["label"]);
 });
