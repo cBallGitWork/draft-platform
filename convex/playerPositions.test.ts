@@ -1,12 +1,18 @@
 import { convexTest } from "convex-test";
-import { afterEach, expect, test, vi } from "vitest";
-import { internal } from "./_generated/api";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { api } from "./_generated/api";
+import { refusals } from "./leagueAccess";
+import { ADMIN, actingAs } from "./leagues.harness";
 import { PL_LAST_COMP_SEASON } from "./football";
-import { heldPositions, modules, syncPositionsWith, type TestConvex } from "./positionsSync.harness";
+import { asAdmin, heldPositions, modules, syncPositionsWith, type TestConvex } from "./positionsSync.harness";
 import { BRENTFORD_CODE, NEWCASTLE, PLAYER, recordedPositions, SHEET } from "./recorded/positions.payloads";
 import schema from "./schema";
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+});
+
 
 /** The recorded men FPL lists at Newcastle. */
 function newcastleMen() {
@@ -30,7 +36,7 @@ async function synced(): Promise<TestConvex> {
 test("until the admin approves them, a player's starts are proposals and he plays on his label, unconfirmed", async () => {
   const t = await synced();
 
-  const barnes = await t.query(internal.playerPositions.ofPlayer, { code: PLAYER.barnes });
+  const barnes = await (await asAdmin(t)).query(api.playerPositions.ofPlayer, { code: PLAYER.barnes });
 
   expect(barnes.proposals).toEqual(["W"]);
   expect(await heldPositions(t, PLAYER.barnes)).toEqual({ W: "label?" }); // "Left/Right Winger"
@@ -40,17 +46,17 @@ test("until the admin approves them, a player's starts are proposals and he play
 test("approving a player confirms what his starts give him, and drops his label", async () => {
   const t = await synced();
 
-  await t.mutation(internal.playerPositions.approvePlayer, { code: PLAYER.woltemade });
+  await (await asAdmin(t)).mutation(api.playerPositions.approvePlayer, { code: PLAYER.woltemade });
 
   expect(await heldPositions(t, PLAYER.woltemade)).toEqual({ ST: "starts" }); // his label gave SS
-  expect((await t.query(internal.playerPositions.ofPlayer, { code: PLAYER.woltemade })).proposals).toEqual([]);
+  expect((await (await asAdmin(t)).query(api.playerPositions.ofPlayer, { code: PLAYER.woltemade })).proposals).toEqual([]);
 });
 
 test("approving a club approves each of its men and no other club's, and one with too few starts keeps his label, confirmed", async () => {
   const t = await synced();
   expect(await heldPositions(t, PLAYER.kelleher)).toEqual({ GK: "label?" });
 
-  const approved = await t.mutation(internal.playerPositions.approveClub, { clubCode: NEWCASTLE.code });
+  const approved = await (await asAdmin(t)).mutation(api.playerPositions.approveClub, { clubCode: NEWCASTLE.code });
 
   expect(approved).toBe(newcastleMen().length);
   expect(await heldPositions(t, PLAYER.barnes)).toEqual({ W: "starts" });
@@ -63,7 +69,7 @@ test("a new signing with no starts plays on his label, unconfirmed until the adm
   const t = await synced();
   expect(await heldPositions(t, PLAYER.steur)).toEqual({ CM: "label?" }); // "Centre Central Midfielder"
 
-  await t.mutation(internal.playerPositions.approvePlayer, { code: PLAYER.steur });
+  await (await asAdmin(t)).mutation(api.playerPositions.approvePlayer, { code: PLAYER.steur });
 
   expect(await heldPositions(t, PLAYER.steur)).toEqual({ CM: "label" });
 });
@@ -71,10 +77,10 @@ test("a new signing with no starts plays on his label, unconfirmed until the adm
 test("with positions counting at once, starts count unconfirmed and stay in the queue", async () => {
   const t = await synced();
 
-  await t.mutation(internal.playerPositions.setApproveMode, { approveMode: "countAtOnce" });
+  await (await asAdmin(t)).mutation(api.playerPositions.setApproveMode, { approveMode: "countAtOnce" });
 
   expect(await heldPositions(t, PLAYER.barnes)).toEqual({ W: "starts?" });
-  expect((await t.query(internal.playerPositions.ofPlayer, { code: PLAYER.barnes })).proposals).toEqual(["W"]);
+  expect((await (await asAdmin(t)).query(api.playerPositions.ofPlayer, { code: PLAYER.barnes })).proposals).toEqual(["W"]);
 });
 
 test("the admin's corrections survive a recount: SS he marks stays, and a position he removes stays off", async () => {
@@ -84,27 +90,27 @@ test("the admin's corrections survive a recount: SS he marks stays, and a positi
   payloads.sheets = payloads.sheets.filter((sheet) => sheet !== lateNov);
   payloads.fixtureLists[PL_LAST_COMP_SEASON] = payloads.fixtureLists[PL_LAST_COMP_SEASON].filter((fixture) => fixture.id !== lateNov.id);
   await syncPositionsWith(t, payloads);
-  await t.mutation(internal.playerPositions.approvePlayer, { code: PLAYER.woltemade });
-  await t.mutation(internal.playerPositions.setPosition, { code: PLAYER.woltemade, position: "SS" });
-  await t.mutation(internal.playerPositions.removePosition, { code: PLAYER.woltemade, position: "ST" });
+  await (await asAdmin(t)).mutation(api.playerPositions.approvePlayer, { code: PLAYER.woltemade });
+  await (await asAdmin(t)).mutation(api.playerPositions.setPosition, { code: PLAYER.woltemade, position: "SS" });
+  await (await asAdmin(t)).mutation(api.playerPositions.removePosition, { code: PLAYER.woltemade, position: "ST" });
 
   await syncPositionsWith(t, recordedPositions()); // his fourth start up front arrives
 
   expect(await heldPositions(t, PLAYER.woltemade)).toEqual({ SS: "admin" });
-  expect((await t.query(internal.playerPositions.ofPlayer, { code: PLAYER.woltemade })).proposals).toEqual([]);
+  expect((await (await asAdmin(t)).query(api.playerPositions.ofPlayer, { code: PLAYER.woltemade })).proposals).toEqual([]);
 });
 
 test("a position the admin sets stays until he removes it, and setting it again undoes a removal", async () => {
   const t = await synced();
-  await t.mutation(internal.playerPositions.approvePlayer, { code: PLAYER.thiaw });
+  await (await asAdmin(t)).mutation(api.playerPositions.approvePlayer, { code: PLAYER.thiaw });
 
-  await t.mutation(internal.playerPositions.setPosition, { code: PLAYER.thiaw, position: "FB" });
+  await (await asAdmin(t)).mutation(api.playerPositions.setPosition, { code: PLAYER.thiaw, position: "FB" });
   expect(await heldPositions(t, PLAYER.thiaw)).toEqual({ CB: "starts", FB: "admin" });
 
-  await t.mutation(internal.playerPositions.removePosition, { code: PLAYER.thiaw, position: "FB" });
+  await (await asAdmin(t)).mutation(api.playerPositions.removePosition, { code: PLAYER.thiaw, position: "FB" });
   expect(await heldPositions(t, PLAYER.thiaw)).toEqual({ CB: "starts" });
 
-  await t.mutation(internal.playerPositions.setPosition, { code: PLAYER.thiaw, position: "FB" });
+  await (await asAdmin(t)).mutation(api.playerPositions.setPosition, { code: PLAYER.thiaw, position: "FB" });
   expect(await heldPositions(t, PLAYER.thiaw)).toEqual({ CB: "starts", FB: "admin" });
 });
 
@@ -113,7 +119,55 @@ test("a player no feed has named has no positions until the admin sets one", asy
   const unknown = 999_999;
   expect(await heldPositions(t, unknown)).toEqual({});
 
-  await t.mutation(internal.playerPositions.setPosition, { code: unknown, position: "GK" });
+  await (await asAdmin(t)).mutation(api.playerPositions.setPosition, { code: unknown, position: "GK" });
 
   expect(await heldPositions(t, unknown)).toEqual({ GK: "admin" });
+});
+
+describe("the admin's queue (#87)", () => {
+  test("#87 Done: a new signing appears with his label, until the admin confirms it", async () => {
+    const t = await synced();
+    const admin = await asAdmin(t);
+    expect((await admin.query(api.playerPositions.queue, {})).newSignings).toContainEqual({
+      code: PLAYER.steur,
+      name: expect.any(String),
+      clubCode: NEWCASTLE.code,
+      label: "Centre Central Midfielder",
+    });
+
+    await admin.mutation(api.playerPositions.approvePlayer, { code: PLAYER.steur });
+
+    expect((await admin.query(api.playerPositions.queue, {})).newSignings.map((each) => each.code)).not.toContain(PLAYER.steur);
+  });
+
+  test("a man whose starts wait for approval is in it with what they'd give him, until approved", async () => {
+    const t = await synced();
+    const admin = await asAdmin(t);
+    expect((await admin.query(api.playerPositions.queue, {})).waiting).toContainEqual(
+      expect.objectContaining({ code: PLAYER.barnes, proposals: ["W"] }),
+    );
+
+    await admin.mutation(api.playerPositions.approvePlayer, { code: PLAYER.barnes });
+
+    expect((await admin.query(api.playerPositions.queue, {})).waiting.map((each) => each.code)).not.toContain(PLAYER.barnes);
+  });
+});
+
+test("everything here is the admin's alone: anyone else signed in is refused", async () => {
+  const t = await synced();
+  vi.stubEnv("ADMIN_EMAIL", ADMIN);
+  const someone = await actingAs(t, "someone@example.com");
+  const code = PLAYER.barnes;
+  for (const call of [
+    () => someone.query(api.playerPositions.ofPlayer, { code }),
+    () => someone.query(api.playerPositions.queue, {}),
+    () => someone.mutation(api.playerPositions.approvePlayer, { code }),
+    () => someone.mutation(api.playerPositions.approveClub, { clubCode: NEWCASTLE.code }),
+    () => someone.mutation(api.playerPositions.setPosition, { code, position: "SS" }),
+    () => someone.mutation(api.playerPositions.removePosition, { code, position: "W" }),
+    () => someone.mutation(api.playerPositions.setApproveMode, { approveMode: "countAtOnce" }),
+  ]) {
+    await expect(call()).rejects.toThrow(refusals.notAdmin);
+  }
+  expect(await heldPositions(t, code)).toEqual({ W: "label?" });
 });

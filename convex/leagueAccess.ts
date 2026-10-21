@@ -92,6 +92,13 @@ function powersIn(league: Doc<"leagues">, email: string) {
   };
 }
 
+/** The caller, if the caller is the admin (spec/15, The admin). */
+export async function adminOf(ctx: QueryCtx): Promise<string> {
+  const email = await callerEmail(ctx);
+  if (!isAdmin(email)) refuse(refusals.notAdmin);
+  return email;
+}
+
 /** The caller and the league, if the caller may run it. */
 export async function runnerOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
   const email = await callerEmail(ctx);
