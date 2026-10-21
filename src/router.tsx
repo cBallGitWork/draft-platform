@@ -12,6 +12,7 @@ import { ADMIN_PATH } from "./admin/paths";
 import type { AdminSeam } from "./admin/seam";
 import type { AuthActions, Session } from "./auth";
 import { AppFrame } from "./frame/AppFrame";
+import { ErrorScreen } from "./frame/ErrorScreen";
 import { LeagueSwitcher } from "./frame/LeagueSwitcher";
 import type { TopBarState } from "./frame/topBarState";
 import { MAIL_PATH, MY_TEAM_PATH, pages, TABLE_PATH } from "./frame/menu";
@@ -255,5 +256,5 @@ const routeTree = rootRoute.addChildren([
 // Not registered for typed links yet: the pages above are made in a loop, so their paths are plain
 // strings. Each screen that gets built gets its own route, and the types come with them.
 export function createShellRouter(context: ShellContext, history?: RouterHistory) {
-  return createRouter({ routeTree, context, history });
+  return createRouter({ routeTree, context, history, defaultErrorComponent: ErrorScreen });
 }
