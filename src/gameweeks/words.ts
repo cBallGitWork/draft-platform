@@ -3,6 +3,7 @@
 // screen as is.
 
 import { GAMEWEEKS } from "../../convex/usedGameweeks";
+import { failedWords } from "../words";
 
 export const GAMEWEEKS_TITLE = "Gameweeks";
 
@@ -29,4 +30,4 @@ const deadlineFormat = new Intl.DateTimeFormat("en-GB", {
 export const deadlineWords = (deadline: number) => deadlineFormat.format(deadline);
 
 /** When ticking failed before the server could say why: the connection, or the server itself. */
-export const setFailedWords = "Something went wrong, so the gameweek wasn't changed. Check your connection and try again.";
+export const setFailedWords = failedWords("the gameweek wasn't changed");

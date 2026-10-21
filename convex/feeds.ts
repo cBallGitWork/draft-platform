@@ -5,6 +5,7 @@ import { namedMen } from "./feedIds";
 import { arsenalSquadNumbers, fplPlayerCount, plFixtureCount } from "./football";
 import { readPlCommentary, readPlFixture, readPlTeamStats } from "./premierLeague";
 import { feedCheckFields, feedCheckTrigger, feedOutcome } from "./schema";
+import { LATEST_RUNS } from "./syncRuns";
 import { MINUTE_MS } from "./time";
 
 // Two one-off probes of the feeds, not the admin's feeds page (spec/15): `check` and `checkLater`
@@ -52,7 +53,7 @@ export const record = internalMutation({
 
 export const latest = internalQuery({
   args: {},
-  handler: async (ctx) => ctx.db.query("feedChecks").order("desc").take(5),
+  handler: async (ctx) => ctx.db.query("feedChecks").order("desc").take(LATEST_RUNS),
 });
 
 // Issue #37: does the commentary stream answer Convex's servers during a live match, and move?

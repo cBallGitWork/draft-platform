@@ -35,7 +35,7 @@ export async function sendSignInEmail({ identifier, url }: { identifier: string;
 }
 
 /** Sends one email, or throws saying why it wasn't sent. Every email the app sends goes through
- *  here, counted first against the day's limit (`EMAILS_PER_DAY`, signInLinks.ts). */
+ *  here, and counts nothing: the caller counts it first, against the day's limit (emailLimit.ts). */
 export async function sendEmail(to: string, words: { subject: string; text: string }) {
   const apiKey = process.env.AUTH_RESEND_KEY;
   if (!apiKey) throw new Error("AUTH_RESEND_KEY isn't set on this deployment, so no email can be sent");

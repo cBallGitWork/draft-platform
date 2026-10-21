@@ -8,6 +8,7 @@ import { useLiveJoining } from "./joining/liveJoining";
 import { joinTokenAt } from "./joining/paths";
 import { useLiveLeagueActions } from "./leagues/liveLeagueActions";
 import { useLiveMail } from "./mail/liveMail";
+import { answerOf } from "./refusal";
 import { SIGN_IN_PATH } from "./router";
 import { ShellApp } from "./ShellApp";
 import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "./sign-in/words";
@@ -73,14 +74,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
 
   const auth = useMemo<AuthActions>(
     () => ({
-      requestSignInLink: async (email) => {
-        try {
-          return replyWords[await ask({ email })];
-        } catch (error) {
-          console.error("Asking for a sign-in link failed:", error);
-          return askFailedWords;
-        }
-      },
+      requestSignInLink: (email) => answerOf(async () => replyWords[await ask({ email })], "Asking for a sign-in link", askFailedWords),
       signOut,
     }),
     [ask, signOut],

@@ -4,6 +4,7 @@ import type { LetterSummary } from "../../convex/mail";
 import { LETTERS_SHOWN } from "../../convex/mailLimits";
 import type { LeagueSummary } from "../../convex/myLeagues";
 import type { Session } from "../auth";
+import { runs } from "../leagues/roles";
 import type { Mail } from "./actions";
 import { WriteToLeague } from "./WriteToLeague";
 import {
@@ -22,7 +23,7 @@ import {
  *  admin, every league, but never one being deleted. The server checks again. */
 export function leaguesToWriteFrom(session: Session): readonly LeagueSummary[] {
   if (!session.signedIn) return [];
-  return session.leagues.filter((league) => !league.deletion && (session.isAdmin || league.roles.some((role) => role !== "manager")));
+  return session.leagues.filter((league) => !league.deletion && runs(league, session.isAdmin));
 }
 
 /** Mail (spec/16): the person's letters, newest first, each opened in place, which marks it read;

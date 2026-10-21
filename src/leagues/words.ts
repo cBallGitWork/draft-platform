@@ -5,6 +5,7 @@ import { DELETION_UNDO_HOURS, FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leag
 import { londonTime } from "../../convex/londonTime";
 import type { LeagueSummary } from "../../convex/myLeagues";
 import type { NoLinkReply } from "../../convex/signInLinks";
+import { failedWords } from "../words";
 
 export const roleWords: Record<LeagueSummary["roles"][number], string> = {
   commissioner: "Commissioner",
@@ -29,10 +30,10 @@ export const maxTeamsHint = `${FEWEST_TEAMS} to ${MOST_TEAMS}. The commissioner 
 export const commissionerHint = "If they have no account yet, they're sent a sign-in link.";
 
 /** When creating failed before the server could say why: the connection, or the server itself. */
-export const createFailedWords = "Something went wrong, so the league wasn't made. Check your connection and try again.";
+export const createFailedWords = failedWords("the league wasn't made");
 
 /** When switching league failed before the server could say why. */
-export const switchFailedWords = "Something went wrong, so you're still in this league. Check your connection and try again.";
+export const switchFailedWords = failedWords("you're still in this league");
 
 // Deleting a league (#75, spec/13, Deleting).
 
@@ -49,5 +50,5 @@ export const undoWords = "Undo";
 export const unemailed = (email: string, reason: string) => `${email} wasn't told: ${reason}.`;
 
 /** When deleting a league, or undoing it, failed before the server could say why. */
-export const deleteFailedWords = "Something went wrong, so the league wasn't deleted. Check your connection and try again.";
-export const undoFailedWords = "Something went wrong, so the league is still being deleted. Check your connection and try again.";
+export const deleteFailedWords = failedWords("the league wasn't deleted");
+export const undoFailedWords = failedWords("the league is still being deleted");

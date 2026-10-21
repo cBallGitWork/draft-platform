@@ -84,8 +84,8 @@ test("switching to a league they have no part in is refused, and they stay where
   const strangers = await adminCreatesLeague(t, 4, "Strangers");
   await switchTo(ANN, second);
 
-  await expect(switchTo(ANN, strangers)).rejects.toThrow(refusals.notYourLeague);
-  await expect(switchTo(ADMIN, first)).rejects.toThrow(refusals.notYourLeague);
+  await expect(switchTo(ANN, strangers)).rejects.toThrow(refusals.notInLeague);
+  await expect(switchTo(ADMIN, first)).rejects.toThrow(refusals.notInLeague);
   expect(await currentLeagueOf(ANN)).toBe(second);
 });
 

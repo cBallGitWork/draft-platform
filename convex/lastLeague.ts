@@ -33,7 +33,7 @@ export const switchTo = mutation({
   handler: async (ctx, { leagueId }) => {
     const email = await callerEmail(ctx);
     const theirs = (await leaguesOf(ctx, email, isAdmin(email))).filter(hasPart);
-    const league = theirs.find((each) => each.leagueId === leagueId) ?? refuse(refusals.notYourLeague);
+    const league = theirs.find((each) => each.leagueId === leagueId) ?? refuse(refusals.notInLeague);
     if (league.deletion) refuse(refusals.beingDeleted);
 
     const remembered = await rememberedRow(ctx, email);

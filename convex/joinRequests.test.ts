@@ -10,12 +10,11 @@ import {
   joinPageAs,
   lastEmailTo,
   makeLink,
-  spendTodaysEmails,
 } from "./joining.harness";
 import { joiningRefusals } from "./joining";
 import { refusals } from "./leagueAccess";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, type TestConvex } from "./leagues.harness";
-import { fakeResend, resetSignInDeployment, signInDeployment, type SentEmail } from "./signIn.harness";
+import { fakeResend, resetSignInDeployment, signInDeployment, spendTodaysEmails, type SentEmail } from "./signIn.harness";
 
 // Join requests and the commissioner's page of them (#73 stories 3 and 4; spec/13 Joining,
 // spec/15 Joining a league).

@@ -2,8 +2,10 @@ import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Doc, Id, TableNames } from "./_generated/dataModel";
 import { internalMutation, mutation, type QueryCtx } from "./_generated/server";
-import { callerEmail, deleterOf, isAdmin, recordEvent, refuse, refusals, teamsOf } from "./leagueAccess";
+import { callerEmail, deleterOf, isAdmin, recordEvent, refuse, refusals } from "./leagueAccess";
 import { DELETION_UNDO_HOURS } from "./leagueLimits";
+import { wholeLeague } from "./letters";
+import { HOUR_MS } from "./time";
 
 // Deleting a league (#75, spec/13, Deleting). For DELETION_UNDO_HOURS it can be undone: it is
 // frozen (leagueAccess's getLeague refuses every change to it), hidden from everyone with a part
@@ -11,7 +13,7 @@ import { DELETION_UNDO_HOURS } from "./leagueLimits";
 // Then deleteForGood removes it and every row keyed to it: nothing is archived.
 
 /** How long after it is deleted a league is gone for good. */
-export const UNDO_MS = DELETION_UNDO_HOURS * 60 * 60 * 1000;
+export const UNDO_MS = DELETION_UNDO_HOURS * HOUR_MS;
 /** The most rows of one table one run of deleteForGood deletes, so a long season's events never
  *  outgrow a mutation: a full batch hands on to another run. */
 const ROWS_PER_RUN = 500;
@@ -72,9 +74,7 @@ export const tablesKeyedToLeague = Object.keys(leagueRows);
 
 /** Everyone with a part in the league but `by`: whom deleting it hides it from, and who is told. */
 async function othersIn(ctx: QueryCtx, league: Doc<"leagues">, by: string): Promise<string[]> {
-  const managers = (await teamsOf(ctx, league._id)).map((team) => team.managerEmail);
-  const people = new Set([league.commissionerEmail, league.coCommissionerEmail, ...managers]);
-  return [...people].filter((email): email is string => email !== undefined && email !== by);
+  return [...new Set(await wholeLeague(ctx, league))].filter((email) => email !== by);
 }
 
 /** The admin or the league's commissioner deletes it, to be gone for good in UNDO_MS. */

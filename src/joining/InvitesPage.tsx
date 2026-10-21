@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router";
-import { LEAGUES_PATH } from "../leagues/paths";
+import { PageTitle } from "../frame/Panel";
+import { BackToLeagues } from "../leagues/LeagueLinks";
 import { EmailInvites } from "./EmailInvites";
 import { InviteLinkPanel } from "./InviteLinkPanel";
 import { RequestsPanel } from "./RequestsPanel";
@@ -19,18 +19,14 @@ export function InvitesPage({ leagueId, joining }: { leagueId: string; joining: 
   return (
     <div className="flex max-w-5xl flex-col gap-2">
       <section aria-labelledby="page-title" className="bg-panel">
-        <h1 id="page-title" className="bg-plate px-4 py-1 text-title font-bold shadow-bevel-plate">
-          {invitesTitle}
-        </h1>
+        <PageTitle>{invitesTitle}</PageTitle>
         {page ? (
           <p className="px-3 py-2 text-lead font-semibold">{page.leagueName}</p>
         ) : (
           <p className="flex flex-wrap items-center gap-4 px-3 py-2 text-muted">
             {page === undefined ? loadingWords : notYoursWords}
             {page === null && (
-              <Link to={LEAGUES_PATH} className="flex min-h-tap items-center">
-                Back to your leagues
-              </Link>
+              <BackToLeagues />
             )}
           </p>
         )}

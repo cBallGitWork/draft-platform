@@ -3,8 +3,8 @@ import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { ANN, BOB, accountOf, deletes, leagueWithPeople } from "./leagueDeletion.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, actingAs, leagueRow, type TestConvex } from "./leagues.harness";
-import { fakeResend, resetSignInDeployment, signInDeployment, type SentEmail } from "./signIn.harness";
-import { EMAILS_PER_DAY, dayOf } from "./signInLinks";
+import { EMAILS_PER_DAY } from "./emailLimit";
+import { fakeResend, resetSignInDeployment, sentToday, setSentToday, signInDeployment, type SentEmail } from "./signIn.harness";
 
 // The email saying a league will be deleted, and when (#75, spec/13, Deleting).
 
@@ -18,23 +18,6 @@ beforeEach(async () => {
   sent = fakeResend();
 });
 afterEach(resetSignInDeployment);
-
-/** Today's count of emails sent: the commissioner's sign-in link started it. */
-const sentToday = async () => {
-  const row = await t.run((ctx) =>
-    ctx.db
-      .query("emailSends")
-      .withIndex("by_day", (q) => q.eq("day", dayOf(Date.now())))
-      .unique(),
-  );
-  if (!row) throw new Error("No email has been counted today");
-  return row;
-};
-
-const setSentToday = async (count: number) => {
-  const { _id } = await sentToday();
-  await t.run((ctx) => ctx.db.patch("emailSends", _id, { count }));
-};
 
 describe("deleting a league emails", () => {
   test("everyone with a part in it but whoever deleted it, saying it will be deleted, and when", async () => {
@@ -53,19 +36,19 @@ describe("deleting a league emails", () => {
   });
 
   test("each counting against the day's emails", async () => {
-    const before = (await sentToday()).count;
+    const before = await sentToday(t);
     await deletes(t, COMMISSIONER, leagueId);
-    expect((await sentToday()).count).toBe(before + 3);
+    expect(await sentToday(t)).toBe(before + 3);
   });
 });
 
 describe("someone who isn't emailed", () => {
   test("past the day's limit, isn't, and whoever deleted it is told who", async () => {
-    await setSentToday(EMAILS_PER_DAY - 1);
+    await setSentToday(t, EMAILS_PER_DAY - 1);
     await deletes(t, COMMISSIONER, leagueId);
 
     expect(sent.map((email) => email.to)).toEqual([CO_COMMISSIONER]);
-    expect((await sentToday()).count).toBe(EMAILS_PER_DAY);
+    expect(await sentToday(t)).toBe(EMAILS_PER_DAY);
     expect((await accountOf(t, COMMISSIONER)).leagues[0].deletion?.unemailed).toEqual([
       { email: ANN, reason: "paused" },
       { email: BOB, reason: "paused" },

@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "convex/react";
-import { ConvexError } from "convex/values";
 import { useCallback } from "react";
 import { api } from "../../convex/_generated/api";
+import { refusalOf } from "../refusal";
 import type { GameweeksSeam } from "./seam";
 import { setFailedWords } from "./words";
 
@@ -12,16 +12,8 @@ export const liveGameweeks: GameweeksSeam = {
     const gameweeks = useQuery(api.leagueGameweeks.ofLeague, { leagueId });
     const set = useMutation(api.leagueGameweeks.setUsed);
     const setUsed = useCallback(
-      async (gameweek: number, used: boolean) => {
-        try {
-          await set({ leagueId, gameweek, used });
-          return null;
-        } catch (error) {
-          if (error instanceof ConvexError && typeof error.data === "string") return error.data;
-          console.error(`Ticking gameweek ${gameweek} failed:`, error);
-          return setFailedWords;
-        }
-      },
+      (gameweek: number, used: boolean) =>
+        refusalOf(() => set({ leagueId, gameweek, used }), `Ticking gameweek ${gameweek}`, setFailedWords),
       [set, leagueId],
     );
     return { gameweeks, setUsed };

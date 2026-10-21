@@ -28,19 +28,19 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 
 | # | Feature | Status | Checked by |
 |---|---|---|---|
-| 1 | [Leagues](spec/01-leagues.md) | not built | a league created from a ready-made rule set carries every rule in it |
+| 1 | [Leagues](spec/01-leagues.md) | the admin creates a league and names its commissioner (#24); it starts from the admin's default rules (#25); the platform's own rule sets come later | a league created from a ready-made rule set carries every rule in it |
 | 2 | [Sign-in](spec/02-sign-in.md) | built, awaiting the live email proof | an email on the allowed list gets a link that works once within the hour; one not on it gets the same reply and no link |
 | 3 | [League rules](spec/03-league-rules.md) | each league's rules held as data, changed from the next gameweek (#25); no editor yet (#30); the first scoring set is FPL's (spec/14) | the same week scores differently under two leagues' rules |
 | 4 | [The draft](spec/04-the-draft.md) | not built | a timed-out pick takes the queue's best available player, then the default ranking's |
 | 5 | [Tactics](spec/05-tactics.md) | not built | the same player and match score differently in two roles, and an empty slot is filled by the first fitting sub |
-| 6 | [Positions](spec/06-positions.md) | not built | a player flagged, then losing a position, at the admin's thresholds |
-| 7 | [Scoring](spec/07-scoring.md) | not built | a finished match's points match the league's rules for every category |
+| 6 | [Positions](spec/06-positions.md) | positions from real starts, labels and the admin's say built on the server (#22); no admin screen (#87), and nothing runs the sync on a schedule | a player flagged, then losing a position, at the admin's thresholds |
+| 7 | [Scoring](spec/07-scoring.md) | a match's stats priced under a scoring set (#29), finished matches' stats read and locked (#27, no cron yet); nothing scores a league's matches yet | a finished match's points match the league's rules for every category |
 | 8 | [Between gameweeks](spec/08-between-gameweeks.md) | not built | waiver claims resolve in priority order before free agency opens |
 | 9 | [Season admin](spec/09-season-admin.md) | not built | an illegal lineup at the deadline is fixed by the auto team |
-| 10 | [Live matchday](spec/10-live-matchday.md) | not built | points move during a match and are marked provisional until it is final |
+| 10 | [Live matchday](spec/10-live-matchday.md) | stats read every minute during a match (#28); no points move yet, and no matchup, match page or commentary on screen | points move during a match and are marked provisional until it is final |
 | 11 | [Email](spec/11-email.md) | not built | on a pick clock over 10 minutes the manager on the clock gets one email; under it, none |
 | 12 | [Screens](spec/12-screens.md) | not built | a signed-in manager lands on My team, with Mail's unread count in the menu |
-| 13 | [Setting up a league](spec/13-setting-up-a-league.md) | leagues, teams and who runs them built (#24), and joining (#73); gameweeks wait for #74, deleting #75, switching leagues #76 | a league of four fills from two emailed invites and two approved join requests |
+| 13 | [Setting up a league](spec/13-setting-up-a-league.md) | leagues, teams and who runs them (#24), joining (#73), the gameweeks it plays (#74), deleting (#75) and switching leagues (#76) built | a league of four fills from two emailed invites and two approved join requests |
 | 14 | [Scoring categories](spec/14-scoring-categories.md) | not built | a match's stats priced under a set of rules give each category's points and the total, by the slot's area or position, within each rule's points limits |
 | 15 | [Admin tools](spec/15-admin-tools.md) | not built | a commissioner's assignment puts the player on the team and files a Mail letter to the league |
 | 16 | [Mail](spec/16-mail.md) | the letter store, letters about a league's events, the commissioner's letter, the Mail screen and its count built (#26); down the side of My team waits for My team; each feature files its own letters | a claim, a drop and a trade each file one letter for every manager in the league |

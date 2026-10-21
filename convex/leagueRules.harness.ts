@@ -7,7 +7,7 @@ import { FPL_DEADLINE_RULE } from "./deadline";
 import { FIRST_RULES } from "./firstRules";
 import type { TestConvex } from "./leagues.harness";
 import type { LeagueRules } from "./leagueRulesShape";
-import { DAY_MS, MINUTE_MS } from "./time";
+import { DAY_MS, MINUTE_MS, WEEK_MS } from "./time";
 
 /** The first rules with some parts changed, as a copy the test may change further. */
 export function rulesWith(change: Partial<LeagueRules>): LeagueRules {
@@ -17,7 +17,6 @@ export function rulesWith(change: Partial<LeagueRules>): LeagueRules {
 /** The first rules, played as total points. */
 export const TOTAL_POINTS = rulesWith({ format: "totalPoints" });
 
-const WEEK_MS = 7 * DAY_MS;
 const SEASON_GAMEWEEKS = 38;
 
 /** A season of one match a gameweek, a week apart, gameweek `next` kicking off `kicksOffIn` from

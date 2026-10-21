@@ -1,7 +1,7 @@
 import type { LeagueSummary } from "../../convex/myLeagues";
 import type { Session } from "../auth";
+import { leagueRunBy } from "../leagues/roles";
 import { GameweeksPage } from "./GameweeksPage";
-import { leagueRunBy } from "./paths";
 import type { GameweeksSeam } from "./seam";
 
 /** The gameweeks page for the league in the address. The route's guard lets in only someone who

@@ -114,7 +114,20 @@ The steps (push the action to the dev deployment, run it twice, how to read what
   ([docs/pl-match-stats.md](docs/pl-match-stats.md#during-a-match)). Outside matches: one
   action and one indexed query a minute, about 43,000 calls a month. Inside: FPL's ~1.8 MB
   bootstrap and about 40 Premier League reads per match, each tick.
-- League rules are rows, never constants; FPL's own rules can be constants.
+- Positions (#22): each player's in `playerPositions`, keyed on FPL's `code`, apart from
+  `players` so no feed read touches the admin's say; `positionsSync` files each match's starts
+  once (`positionSheets`) and is run by hand for now, each run a row in `positionsSyncs`
+  ([docs/positions.md](docs/positions.md)).
+- League rules are rows, never constants; FPL's own rules can be constants. Each league's are rows
+  in `leagueRules`, one from each gameweek they changed in, copied at creation from
+  `defaultLeagueRules` (#25).
+- Leagues (#24): `leagues`, `teams` and `leagueEvents`, people known by their email, so one can be
+  named before they have an account; joining's rows are `invites`, `inviteLinks` and
+  `joinRequests` (#73).
+- Mail (#26): a letter is a row in `letters` for each person it's to, filed when it's sent, so
+  someone who joins later doesn't get old ones.
+- A deleted league is gone for good 24 hours on: `deleteForGood`, a scheduled function, removes
+  it and every row keyed to it, in batches, archiving nothing (#75).
 - Each ask for a sign-in link that was answered "check your email" is a row in `signInAsks`, a
   failed send kept with its error, and each day's emails are counted in `emailSends` against
   Resend's 100 (#20).

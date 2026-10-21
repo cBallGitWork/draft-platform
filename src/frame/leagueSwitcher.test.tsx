@@ -69,11 +69,11 @@ describe("a manager in two leagues", () => {
 
   it("is told why a switch was refused, with the list still open", async () => {
     const app = openApp(MY_TEAM_PATH, inTwo);
-    app.leagues.switchLeague.mockResolvedValue(refusals.notYourLeague);
+    app.leagues.switchLeague.mockResolvedValue(refusals.notInLeague);
     await userEvent.click(await switcher());
     await userEvent.click(screen.getByRole("button", { name: /^Mini beta/ }));
 
-    expect((await screen.findByRole("alert")).textContent).toBe(refusals.notYourLeague);
+    expect((await screen.findByRole("alert")).textContent).toBe(refusals.notInLeague);
     expect(choices()).toHaveLength(2);
   });
 

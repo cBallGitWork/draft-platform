@@ -1,6 +1,6 @@
 // The eleven presets every league starts with (spec/05, The pitch; #8). A league's presets are
 // its own rules, which it can edit (spec/03), so this is only the set it is given: nothing checks
-// a lineup against it. Holding a league's copy is #25's.
+// a lineup against it. A league's copy is held with its rules (#25, leagueRules.ts).
 
 import { cellsOf, type Area, type Cell, type Lane } from "./pitch";
 

@@ -6,6 +6,7 @@
 import { convexTest, type TestConvex as TestConvexOf } from "convex-test";
 import { vi } from "vitest";
 import { api, internal } from "./_generated/api";
+import { EMAILS_PER_DAY, dayOf } from "./emailLimit";
 import schema from "./schema";
 import { RESEND_EMAILS_URL } from "./signInEmail";
 
@@ -86,3 +87,29 @@ export async function openLink(t: TestConvex, code: string) {
   const { tokens } = await t.action(api.auth.signIn, { params: { code } });
   return tokens ?? null;
 }
+
+/** How many of today's emails have been counted (emailLimit.ts). */
+export async function sentToday(t: TestConvex): Promise<number> {
+  const row = await t.run((ctx) =>
+    ctx.db
+      .query("emailSends")
+      .withIndex("by_day", (q) => q.eq("day", dayOf(Date.now())))
+      .unique(),
+  );
+  return row?.count ?? 0;
+}
+
+/** Today's emails counted as `count` already sent. */
+export const setSentToday = (t: TestConvex, count: number) =>
+  t.run(async (ctx) => {
+    const day = dayOf(Date.now());
+    const today = await ctx.db
+      .query("emailSends")
+      .withIndex("by_day", (q) => q.eq("day", day))
+      .unique();
+    if (today) await ctx.db.patch("emailSends", today._id, { count });
+    else await ctx.db.insert("emailSends", { day, count });
+  });
+
+/** Every one of today's emails sent: the daily limit reached. */
+export const spendTodaysEmails = (t: TestConvex) => setSentToday(t, EMAILS_PER_DAY);
