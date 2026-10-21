@@ -32,10 +32,9 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 
 ## The first scoring set
 
-- The mini beta runs on one first scoring set: FPL's own scoring, without bonus points, to be
-  tuned from there (21 Oct 2026; it replaces starting from the Tim Hortons Pro League's values).
-  A commissioner edits any value for their league. It carries the starting list of roles
-  (`spec/05`). The platform's real sets are designed later.
+- The mini beta runs on one first scoring set: a draft written from the catalogue, starting from
+  the Tim Hortons Pro League's own values so it feels familiar, which Craig edits before the beta.
+  It carries the starting list of roles (`spec/05`). The platform's real sets are designed later.
 
 ## On screen
 
