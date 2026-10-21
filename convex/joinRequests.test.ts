@@ -13,6 +13,7 @@ import {
 } from "./joining.harness";
 import { joiningRefusals } from "./joining";
 import { refusals } from "./leagueAccess";
+import { deletes } from "./leagueDeletion.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, type TestConvex } from "./leagues.harness";
 import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "./signIn.harness";
 
@@ -136,5 +137,24 @@ describe("the commissioner's page", () => {
     expect(await invitesPage(t, leagueId, ANN)).toBeNull();
     expect(await t.query(api.invitesPage.page, { leagueId })).toBeNull();
     expect(await t.query(api.invitesPage.page, { leagueId: "not-a-league" })).toBeNull();
+  });
+});
+
+describe("the join page of a league being deleted (spec/13 Deleting)", () => {
+  test("is the switched-off link to everyone, signed out, new or already in", async () => {
+    await addManagers(t, leagueId, [BOB]);
+    await deletes(t, COMMISSIONER, leagueId);
+    expect(await t.query(api.joinRequests.joinPage, { token })).toBeNull();
+    expect(await joinPageFor(ANN)).toBeNull();
+    expect(await joinPageFor(BOB)).toBeNull();
+  });
+
+  test("offers asking to join again once the deletion is undone", async () => {
+    await addManagers(t, leagueId, [BOB]);
+    await deletes(t, COMMISSIONER, leagueId);
+    await (await actingAs(t, COMMISSIONER)).mutation(api.leagueDeletion.undo, { leagueId });
+    expect(await t.query(api.joinRequests.joinPage, { token })).toEqual({ leagueName: "Tim Hortons Pro League", standing: "mayAsk" });
+    expect((await joinPageFor(ANN))?.standing).toBe("mayAsk");
+    expect((await joinPageFor(BOB))?.standing).toBe("inLeague");
   });
 });
