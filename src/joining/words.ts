@@ -5,6 +5,7 @@
 import type { Delivery } from "../../convex/joining";
 import { INVITE_DAYS, aNewTeamWords } from "../../convex/joiningShared";
 import { unsentLinkWords } from "../leagues/words";
+import { failedWords } from "../words";
 
 /** The commissioner's page: its title, and the link to it from their leagues. */
 export const invitesTitle = "Invites and join requests";
@@ -59,4 +60,4 @@ export const joinPageWords = {
 } as const;
 
 /** When a change failed before the server could say why: the connection, or the server itself. */
-export const changeFailedWords = "Something went wrong, so nothing changed. Check your connection and try again.";
+export const changeFailedWords = failedWords("nothing changed");

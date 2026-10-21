@@ -3,6 +3,7 @@
 // league's events say is in convex/letterWords.ts.
 
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mailLimits";
+import { failedWords } from "../words";
 
 export const MAIL_TITLE = "Mail";
 export const noLettersWords = "No letters yet. When something happens in your league, it's reported here.";
@@ -27,4 +28,4 @@ export const WRITE_TITLE = "Write to the league";
 export const writeHint = "Everyone in the league gets it in their Mail. They can't reply: there is no chat.";
 export const sentWords = (leagueName: string) => `Sent to everyone in ${leagueName}.`;
 /** When sending failed before the server could say why: the connection, or the server itself. */
-export const sendFailedWords = "Something went wrong, so the letter wasn't sent. Check your connection and try again.";
+export const sendFailedWords = failedWords("the letter wasn't sent");
