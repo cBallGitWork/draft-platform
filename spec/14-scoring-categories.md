@@ -1,7 +1,7 @@
 # 14. Scoring categories
 
 Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring categories`
-(16 Oct 2026).
+(16 Oct 2026) and `/grill scoring options` (21 Oct 2026).
 
 ## The catalogue
 
@@ -12,16 +12,48 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 
 ## How a rule scores
 
-- A player is scored by the **area of the slot he starts in** for that team (`spec/05`): a
-  centre-back played in midfield scores as a midfielder. A league sets values per area.
+- A player is scored by the **slot he starts in** for that team (`spec/05`), never by his own
+  positions: a centre-back played at full-back scores as a full-back.
+- Each rule chooses how finely it is priced: the same for all, by area, or by position. A slot's
+  position comes from its area and lane, left and right alike:
+
+  | Area | Wide lanes | Centre lanes |
+  |---|---|---|
+  | goalkeeper | | GK |
+  | defence | FB | CB |
+  | defensive midfield | WB | CDM |
+  | midfield | WM | CM |
+  | attacking midfield | W | CAM |
+  | attack | ST | ST |
+
+  SS has no slot of its own: shadow striker is a role (`spec/05`).
 - Three kinds of rule:
   - per action (+3 per assist);
   - per number of actions (+1 per 3 saves);
   - bands by threshold (2 for 60+ minutes, +2 for 10+ defensive actions). Each band rule either
     stacks or pays only its highest band.
+- A rule can also carry, each optional:
+  - a maximum and a minimum on the points it pays one player in one match (FPL's defensive
+    contribution pays at most 2);
+  - the minutes he must play before it pays anything (a clean sheet only at 60+).
+
+  Each is one number for the rule, or set by area or position like its values. A cap limits only
+  the rule's own points: a role's adjustment is added on top.
+- Points can be fractions (0.5 per tackle). A league can choose whole points only: a fractional
+  value is then refused with the reason, and a stat of its own counts whole actions, rounded down
+  (tackles + 0.5 × clearances = 3.5 counts 3). Whole points only starts off.
 - A stat the feed hasn't sent yet for a finished match shows "—", and the match stays
   provisional until it arrives. Nothing is guessed. "—" means a player's whole record for the
   match hasn't arrived; once it has, a stat it leaves out is 0 (`/grill match stats`, 20 Oct 2026).
+
+## A league's own stats
+
+- A commissioner can make a stat by adding catalogue stats, each with a weight, which can be
+  negative: tackles + 0.5 × clearances; shots − shots on target. Stats are only added, never
+  multiplied or divided by each other, and are only catalogue stats, never another of the
+  league's own.
+- It then works like any category: any of the three kinds of rule, roles can use it, and it has
+  its own name and short code in the category tables.
 
 ## Changes and corrections
 
@@ -32,9 +64,18 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 
 ## The first scoring set
 
-- The mini beta runs on one first scoring set: a draft written from the catalogue, starting from
-  the Tim Hortons Pro League's own values so it feels familiar, which Craig edits before the beta.
-  It carries the starting list of roles (`spec/05`). The platform's real sets are designed later.
+- The mini beta runs on one first scoring set: FPL's own scoring without bonus points, for now
+  (21 Oct 2026; it replaces starting from the Tim Hortons Pro League's values). Craig changes it
+  in the rules editor. FPL has only GK, DEF, MID and FWD, so all three midfield areas take MID's
+  values, and every position takes its area's.
+- It carries the starting list of roles (`spec/05`). The platform's real sets are designed later.
+
+## The rules editor
+
+- It is in the mini beta.
+- What it opens on is simple: each category with one value. Pricing by area or position, the
+  caps, the minutes and stacking sit behind checkboxes. Its look is picked from two or three
+  mock-ups when it is built (#30).
 
 ## On screen
 
