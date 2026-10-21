@@ -24,6 +24,10 @@ export const feedCheckFields = {
   arsenalSquadNumbers: feedOutcome,
 };
 
+const feedCheckTables = {
+  feedChecks: defineTable(feedCheckFields),
+};
+
 // The real Premier League, as the football layer hands it over (#21). Each row is keyed on a
 // season-stable code, never FPL's per-season id, and names its clubs by their codes too, so a
 // new season's ids change nothing. A gameweek is keyed on its number, as FPL numbers them.
@@ -98,6 +102,14 @@ export const footballSyncFields = {
   ),
 };
 
+const footballTables = {
+  clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
+  players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_clubCode", ["clubCode"]),
+  fixtures: defineTable(fixtureRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_kickoff", ["kickoff"]),
+  gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]),
+  footballSyncs: defineTable(footballSyncFields),
+};
+
 // Sign-in (#20, spec/02). Emails are stored trimmed and lower-cased (`normaliseEmail`).
 
 /** An email the admin let sign in (spec/13, Joining). The admin's own email needs no row. */
@@ -118,6 +130,12 @@ const signInAskFields = {
 
 /** The emails the app sent on one UTC day, against Resend's daily limit (ARCHITECTURE.md). */
 const emailSendFields = { day: v.string(), count: v.number() };
+
+const signInTables = {
+  allowedEmails: defineTable(allowedEmailFields).index("by_email", ["email"]),
+  signInAsks: defineTable(signInAskFields).index("by_email_and_askedAt", ["email", "askedAt"]),
+  emailSends: defineTable(emailSendFields).index("by_day", ["day"]),
+};
 
 // Match stats (#27, spec/07 "Match stats"): one record per player per match, both feeds merged,
 // keyed on FPL's player and fixture codes. Stats keep the feeds' own names (spec/14 names them
@@ -267,6 +285,14 @@ export const positionsSyncFields = {
   ),
 };
 
+const positionsTables = {
+  playerPositions: defineTable(playerPositionFields).index("by_code", ["code"]),
+  /** Each match whose sheets the positions sync has filed, so none is filed twice. */
+  positionSheets: defineTable({ fixtureCode: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
+  positionSettings: defineTable(positionSettingsFields),
+  positionsSyncs: defineTable(positionsSyncFields),
+};
+
 // The live poller (#28): one row per tick that found a match live, so a failed one is on record.
 export const liveStatsTickFields = {
   ranAt: v.number(),
@@ -325,6 +351,9 @@ const teamFields = {
   managerEmail: v.optional(v.string()),
 };
 
+/** The league switcher (#76): the league each person used last, by email, one row each. */
+const lastLeagueFields = { email: v.string(), leagueId: v.id("leagues") };
+
 /** Who held a role before, or null when nobody did. */
 const replaced = v.union(v.string(), v.null());
 /** A manager and their team, its name as it was then. */
@@ -374,6 +403,16 @@ const joinRequestFields = {
   approvedEmail: v.optional(delivery),
 };
 
+const joiningTables = {
+  invites: defineTable(inviteFields)
+    .index("by_leagueId", ["leagueId"])
+    .index("by_email_and_expiresAt", ["email", "expiresAt"]),
+  inviteLinks: defineTable(inviteLinkFields).index("by_leagueId", ["leagueId"]).index("by_token", ["token"]),
+  joinRequests: defineTable(joinRequestFields)
+    .index("by_leagueId_and_decision", ["leagueId", "decision"])
+    .index("by_leagueId_and_email_and_decision", ["leagueId", "email", "decision"]),
+};
+
 /** Whom an invite is for: a vacated team, or (both null) a new team. */
 const invitedTo = { email: v.string(), teamId: v.union(v.id("teams"), v.null()), teamName: v.union(v.string(), v.null()) };
 
@@ -416,6 +455,17 @@ const leagueEventFields = {
   event: leagueEvent,
 };
 
+const leagueTables = {
+  leagues: defineTable(leagueFields)
+    .index("by_commissionerEmail", ["commissionerEmail"])
+    .index("by_coCommissionerEmail", ["coCommissionerEmail"]),
+  teams: defineTable(teamFields)
+    .index("by_leagueId_and_number", ["leagueId", "number"])
+    .index("by_managerEmail", ["managerEmail"]),
+  leagueEvents: defineTable(leagueEventFields).index("by_leagueId_and_at", ["leagueId", "at"]),
+  lastLeagues: defineTable(lastLeagueFields).index("by_email", ["email"]).index("by_leagueId", ["leagueId"]),
+};
+
 // Mail (#26, spec/16). A letter is filed as one row for each person it's to, so who got it is
 // fixed when it's filed: someone who joins later doesn't get the league's old letters.
 
@@ -434,6 +484,13 @@ const letterFields = {
   readAt: v.optional(v.number()),
 };
 
+const mailTables = {
+  letters: defineTable(letterFields)
+    .index("by_to_and_at", ["to", "at"])
+    .index("by_to_and_readAt", ["to", "readAt"])
+    .index("by_leagueId", ["leagueId"]),
+};
+
 // A league's rules (#25, spec/03). Each change is a new row from the gameweek it takes effect, so
 // past gameweeks keep the rules they were played under; who changed them is in leagueEvents.
 const leagueRulesTables = {
@@ -444,45 +501,17 @@ const leagueRulesTables = {
   /** One row: the rules the admin gives each new league. */
   defaultLeagueRules: defineTable({ rules: leagueRulesShape }),
 };
-/** The league switcher (#76): the league each person used last, by email, one row each. */
-const lastLeagueFields = { email: v.string(), leagueId: v.id("leagues") };
 
 export default defineSchema({
+  ...authTables,
+  ...signInTables,
+  ...feedCheckTables,
+  ...footballTables,
+  ...positionsTables,
   ...matchStatsTables,
   ...liveStatsTables,
-  ...authTables,
+  ...leagueTables,
+  ...joiningTables,
+  ...mailTables,
   ...leagueRulesTables,
-  allowedEmails: defineTable(allowedEmailFields).index("by_email", ["email"]),
-  signInAsks: defineTable(signInAskFields).index("by_email_and_askedAt", ["email", "askedAt"]),
-  emailSends: defineTable(emailSendFields).index("by_day", ["day"]),
-  leagues: defineTable(leagueFields)
-    .index("by_commissionerEmail", ["commissionerEmail"])
-    .index("by_coCommissionerEmail", ["coCommissionerEmail"]),
-  teams: defineTable(teamFields)
-    .index("by_leagueId_and_number", ["leagueId", "number"])
-    .index("by_managerEmail", ["managerEmail"]),
-  leagueEvents: defineTable(leagueEventFields).index("by_leagueId_and_at", ["leagueId", "at"]),
-  invites: defineTable(inviteFields)
-    .index("by_leagueId", ["leagueId"])
-    .index("by_email_and_expiresAt", ["email", "expiresAt"]),
-  inviteLinks: defineTable(inviteLinkFields).index("by_leagueId", ["leagueId"]).index("by_token", ["token"]),
-  joinRequests: defineTable(joinRequestFields)
-    .index("by_leagueId_and_decision", ["leagueId", "decision"])
-    .index("by_leagueId_and_email_and_decision", ["leagueId", "email", "decision"]),
-  lastLeagues: defineTable(lastLeagueFields).index("by_email", ["email"]).index("by_leagueId", ["leagueId"]),
-  letters: defineTable(letterFields)
-    .index("by_to_and_at", ["to", "at"])
-    .index("by_to_and_readAt", ["to", "readAt"])
-    .index("by_leagueId", ["leagueId"]),
-  feedChecks: defineTable(feedCheckFields),
-  clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
-  players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_clubCode", ["clubCode"]),
-  fixtures: defineTable(fixtureRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_kickoff", ["kickoff"]),
-  gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]),
-  footballSyncs: defineTable(footballSyncFields),
-  playerPositions: defineTable(playerPositionFields).index("by_code", ["code"]),
-  /** Each match whose sheets the positions sync has filed, so none is filed twice. */
-  positionSheets: defineTable({ fixtureCode: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
-  positionSettings: defineTable(positionSettingsFields),
-  positionsSyncs: defineTable(positionsSyncFields),
 });
