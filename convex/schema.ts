@@ -388,6 +388,25 @@ const joiningEvents = [
   v.object({ kind: v.literal("inviteLinkSwitchedOff") }),
 ] as const;
 
+// Squads (#31, spec/15 Assigning players): which team in a league owns each player, by FPL's
+// season-stable code. A player is on one team in a league at most; any other is a free agent.
+
+/** A player as a squad letter names him, and the team concerned. */
+const playerOnTeam = { playerCode: v.number(), playerName: v.string(), teamId: v.id("teams"), teamName: v.string() };
+
+/** What assigning players files for Mail. */
+const squadEvents = [
+  v.object({ kind: v.literal("playerAssigned"), ...playerOnTeam }),
+  v.object({ kind: v.literal("playerMoved"), ...playerOnTeam, fromTeamId: v.id("teams"), fromTeamName: v.string() }),
+  v.object({ kind: v.literal("playerReleased"), ...playerOnTeam }),
+] as const;
+
+const squadTables = {
+  squadPlayers: defineTable({ leagueId: v.id("leagues"), teamId: v.id("teams"), playerCode: v.number() })
+    .index("by_leagueId_and_playerCode", ["leagueId", "playerCode"])
+    .index("by_teamId", ["teamId"]),
+};
+
 /** What happened in a league, for Mail (#26) to turn into letters (spec/15, The commissioner):
  *  each says all a letter needs, as it was at the time. */
 export const leagueEvent = v.union(
@@ -406,6 +425,7 @@ export const leagueEvent = v.union(
   ...joiningEvents,
   /** `changed` names the parts of LeagueRules that changed, such as "scoring". */
   v.object({ kind: v.literal("rulesChanged"), fromGameweek: v.number(), changed: v.array(v.string()) }),
+  ...squadEvents,
 );
 
 const leagueEventFields = {
@@ -448,6 +468,7 @@ const leagueRulesTables = {
 const lastLeagueFields = { email: v.string(), leagueId: v.id("leagues") };
 
 export default defineSchema({
+  ...squadTables,
   ...matchStatsTables,
   ...liveStatsTables,
   ...authTables,
@@ -476,7 +497,10 @@ export default defineSchema({
     .index("by_leagueId", ["leagueId"]),
   feedChecks: defineTable(feedCheckFields),
   clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
-  players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_clubCode", ["clubCode"]),
+  players: defineTable(playerRecord.extend({ droppedAt }))
+    .index("by_code", ["code"])
+    .index("by_clubCode", ["clubCode"])
+    .searchIndex("search_fullName", { searchField: "fullName" }),
   fixtures: defineTable(fixtureRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_kickoff", ["kickoff"]),
   gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]),
   footballSyncs: defineTable(footballSyncFields),

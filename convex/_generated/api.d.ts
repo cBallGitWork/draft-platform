@@ -58,6 +58,7 @@ import type * as scoring from "../scoring.js";
 import type * as scoringSet from "../scoringSet.js";
 import type * as signInEmail from "../signInEmail.js";
 import type * as signInLinks from "../signInLinks.js";
+import type * as squads from "../squads.js";
 import type * as teams from "../teams.js";
 import type * as time from "../time.js";
 import type * as usedGameweeks from "../usedGameweeks.js";
@@ -119,6 +120,7 @@ declare const fullApi: ApiFromModules<{
   scoringSet: typeof scoringSet;
   signInEmail: typeof signInEmail;
   signInLinks: typeof signInLinks;
+  squads: typeof squads;
   teams: typeof teams;
   time: typeof time;
   usedGameweeks: typeof usedGameweeks;

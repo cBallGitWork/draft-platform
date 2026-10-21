@@ -40,6 +40,12 @@ function inForce(history: readonly Doc<"leagueRules">[], gameweek: number): Doc<
   return history.findLast((row) => row.fromGameweek <= gameweek);
 }
 
+/** The league's latest rules, a waiting change's among them, or null for a league made before #25:
+ *  what the squad's warnings read (#31), as a change of squad limits is best known at once. */
+export async function latestRules(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<LeagueRules | null> {
+  return (await historyOf(ctx, leagueId)).at(-1)?.rules ?? null;
+}
+
 /** The league's rules in a gameweek, for scoring (#29) and the lineup's checks. Throws for a
  *  league with none, which only one made before #25 can be. */
 export async function rulesInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number): Promise<LeagueRules> {

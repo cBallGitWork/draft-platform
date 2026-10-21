@@ -88,6 +88,9 @@ describe("while it can be undone", () => {
       "leagueRules:change": () => admin.mutation(api.leagueRules.change, { leagueId, rules: structuredClone(FIRST_RULES) }),
       "lastLeague:switchTo": () => commissioner.mutation(api.lastLeague.switchTo, { leagueId }),
       "mail:writeToLeague": () => admin.mutation(api.mail.writeToLeague, { leagueId, subject: "Still here?", body: "It's being deleted." }),
+      "squads:assign": () => admin.mutation(api.squads.assign, { leagueId, playerCode: 1, teamId: annsTeam._id }),
+      "squads:move": () => admin.mutation(api.squads.move, { leagueId, playerCode: 1, teamId: annsTeam._id }),
+      "squads:release": () => admin.mutation(api.squads.release, { leagueId, playerCode: 1 }),
     };
     for (const change of Object.values(changes)) await expect(change()).rejects.toThrow(refusals.beingDeleted);
     expect(await everythingOf(leagueId)).toEqual(before);

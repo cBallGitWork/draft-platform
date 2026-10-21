@@ -7,3 +7,6 @@ export const MOST_TEAMS = 20;
 export const TEAM_NAME_MAX = 30;
 /** How long a deleted league can be undone before it is gone for good (spec/13, Deleting). */
 export const DELETION_UNDO_HOURS = 24;
+/** The most players one team can hold, whatever the league's own squad limits (spec/03), which
+ *  only warn: a bound for reading a squad, well above any league's maximum (#31). */
+export const MOST_IN_SQUAD = 60;
