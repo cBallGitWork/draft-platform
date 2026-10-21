@@ -10,6 +10,7 @@ import { joinTokenAt } from "./joining/paths";
 import { useLiveLeagueActions } from "./leagues/liveLeagueActions";
 import { useLiveMail } from "./mail/liveMail";
 import { useLiveSquads } from "./squads/liveSquads";
+import { liveTable } from "./table/liveTable";
 import { answerOf } from "./refusal";
 import { SIGN_IN_PATH } from "./router";
 import { ShellApp } from "./ShellApp";
@@ -96,7 +97,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
       </p>
     );
   }
-  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} admin={admin} />;
+  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} table={liveTable} admin={admin} />;
 }
 
 /** The sign-in page saying what was wrong with a link, and, for one that led to a league's invite

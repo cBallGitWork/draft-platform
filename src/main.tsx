@@ -13,6 +13,7 @@ import { previewMail, previewTopBar } from "./mail/previewMail";
 import { previewAuth, previewLeagues, previewSession } from "./preview";
 import { ShellApp } from "./ShellApp";
 import { previewSquads } from "./squads/preview";
+import { previewTable } from "./table/preview";
 
 const preview = previewSession();
 
@@ -30,6 +31,7 @@ createRoot(root).render(
         topBar={previewTopBar}
         gameweeks={previewGameweeks}
         squads={previewSquads}
+        table={previewTable}
         admin={previewAdmin}
       />
     ) : (

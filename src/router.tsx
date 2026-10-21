@@ -14,7 +14,7 @@ import type { AuthActions, Session } from "./auth";
 import { AppFrame } from "./frame/AppFrame";
 import { LeagueSwitcher } from "./frame/LeagueSwitcher";
 import type { TopBarState } from "./frame/topBarState";
-import { MAIL_PATH, MY_TEAM_PATH, pages } from "./frame/menu";
+import { MAIL_PATH, MY_TEAM_PATH, pages, TABLE_PATH } from "./frame/menu";
 import { PageNotBuilt } from "./frame/PageNotBuilt";
 import { GameweeksRoute } from "./gameweeks/GameweeksRoute";
 import { GAMEWEEKS_ROUTE } from "./gameweeks/paths";
@@ -37,6 +37,8 @@ import { SQUADS_ROUTE } from "./squads/paths";
 import type { SquadsSeam } from "./squads/seam";
 import { SquadsRoute } from "./squads/SquadsRoute";
 import { linkProblemWords, type LinkProblem } from "./sign-in/words";
+import type { TableSeam } from "./table/seam";
+import { TableRoute } from "./table/TableRoute";
 
 export type ShellContext = {
   session: Session;
@@ -47,6 +49,7 @@ export type ShellContext = {
   topBar: TopBarState;
   gameweeks: GameweeksSeam;
   squads: SquadsSeam;
+  table: TableSeam;
   admin: AdminSeam;
 };
 
@@ -224,7 +227,18 @@ const landingRoute = createRoute({
   },
 });
 
-const pageRoutes = pages.filter((page) => page.path !== MAIL_PATH).map((page) =>
+// The league's table and fixtures (#33), for anyone in it.
+const tableRoute = createRoute({
+  getParentRoute: () => frameRoute,
+  path: TABLE_PATH,
+  component: function Table() {
+    const { session, table } = tableRoute.useRouteContext();
+    return <TableRoute session={session} seam={table} />;
+  },
+});
+
+const BUILT_PAGES: readonly string[] = [MAIL_PATH, TABLE_PATH];
+const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map((page) =>
   createRoute({
     getParentRoute: () => frameRoute,
     path: page.path,
@@ -235,7 +249,7 @@ const pageRoutes = pages.filter((page) => page.path !== MAIL_PATH).map((page) =>
 const routeTree = rootRoute.addChildren([
   signInRoute,
   leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, adminRoute]),
-  frameRoute.addChildren([landingRoute, ...pageRoutes]),
+  frameRoute.addChildren([landingRoute, tableRoute, ...pageRoutes]),
 ]);
 
 // Not registered for typed links yet: the pages above are made in a loop, so their paths are plain
