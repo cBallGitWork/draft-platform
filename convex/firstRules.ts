@@ -20,7 +20,7 @@ function everyArea<Value>(value: Value): Record<Area, Value> {
 }
 
 /** FPL's four positions spread over the six areas: every midfield area is FPL's midfielder. */
-function byPosition<Value>(goalkeeper: Value, defender: Value, midfielder: Value, forward: Value): Record<Area, Value> {
+function fplPositions<Value>(goalkeeper: Value, defender: Value, midfielder: Value, forward: Value): Record<Area, Value> {
   return {
     goalkeeper,
     defence: defender,
@@ -34,6 +34,9 @@ function byPosition<Value>(goalkeeper: Value, defender: Value, midfielder: Value
 /** -1 for every two goals conceded, for the keeper and the defence. */
 const CONCEDED = { every: 2, points: -1 };
 const NOT_CONCEDED = { every: 2, points: 0 };
+/** 1 for every three saves, for the keeper. */
+const SAVES = { every: 3, points: 1 };
+const NO_SAVES = { every: 3, points: 0 };
 
 export const FIRST_RULES: LeagueRules = {
   format: "headToHead", // guess: the Tim Hortons league plays head-to-head matchups
@@ -58,25 +61,27 @@ export const FIRST_RULES: LeagueRules = {
   scoring: {
     rules: [
       // 1 for playing, 2 for 60 minutes or more.
-      { shape: "bands", stat: "minutes", stack: false, byArea: everyArea([{ atLeast: 1, points: 1 }, { atLeast: 60, points: 2 }]) },
-      { shape: "perAction", stat: "goals_scored", byArea: byPosition(10, 6, 5, 4) },
-      { shape: "perAction", stat: "assists", byArea: everyArea(3) },
+      { shape: "bands", stat: "minutes", stack: false, values: { all: [{ atLeast: 1, points: 1 }, { atLeast: 60, points: 2 }] } },
+      { shape: "perAction", stat: "goals_scored", values: { byArea: fplPositions(10, 6, 5, 4) } },
+      { shape: "perAction", stat: "assists", values: { all: 3 } },
       // FPL counts a clean sheet only for a player on for 60 minutes or more.
-      { shape: "perAction", stat: "clean_sheets", byArea: byPosition(4, 4, 1, 0) },
-      { shape: "perCount", stat: "goals_conceded", byArea: byPosition(CONCEDED, CONCEDED, NOT_CONCEDED, NOT_CONCEDED) },
-      { shape: "perCount", stat: "saves", byArea: byPosition({ every: 3, points: 1 }, { every: 3, points: 0 }, { every: 3, points: 0 }, { every: 3, points: 0 }) },
-      { shape: "perAction", stat: "penalties_saved", byArea: everyArea(5) },
-      { shape: "perAction", stat: "penalties_missed", byArea: everyArea(-2) },
-      // 2 for 10 defensive contributions as a defender, 12 as a midfielder or forward; none for a keeper.
+      { shape: "perAction", stat: "clean_sheets", values: { byArea: fplPositions(4, 4, 1, 0) }, minMinutes: { all: 60 } },
+      { shape: "perCount", stat: "goals_conceded", values: { byArea: fplPositions(CONCEDED, CONCEDED, NOT_CONCEDED, NOT_CONCEDED) } },
+      { shape: "perCount", stat: "saves", values: { byArea: fplPositions(SAVES, NO_SAVES, NO_SAVES, NO_SAVES) } },
+      { shape: "perAction", stat: "penalties_saved", values: { all: 5 } },
+      { shape: "perAction", stat: "penalties_missed", values: { all: -2 } },
+      // 2 for 10 defensive contributions as a defender, 12 as a midfielder or forward; none for a
+      // keeper, and never more than 2.
       {
         shape: "bands",
         stat: "defensive_contribution",
         stack: false,
-        byArea: byPosition([], [{ atLeast: 10, points: 2 }], [{ atLeast: 12, points: 2 }], [{ atLeast: 12, points: 2 }]),
+        values: { byArea: fplPositions([], [{ atLeast: 10, points: 2 }], [{ atLeast: 12, points: 2 }], [{ atLeast: 12, points: 2 }]) },
       },
-      { shape: "perAction", stat: "yellow_cards", byArea: everyArea(-1) },
-      { shape: "perAction", stat: "red_cards", byArea: everyArea(-3) },
-      { shape: "perAction", stat: "own_goals", byArea: everyArea(-2) },
+      { shape: "perAction", stat: "yellow_cards", values: { all: -1 } },
+      { shape: "perAction", stat: "red_cards", values: { all: -3 } },
+      { shape: "perAction", stat: "own_goals", values: { all: -2 } },
     ],
+    wholePointsOnly: false,
   },
 };

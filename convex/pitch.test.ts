@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { AREAS, LANES, playsCell, POSITION_LABELS, type Area, type PositionLabel } from "./pitch";
+import { AREAS, LANES, playsCell, POSITION_LABELS, positionOfSlot, SLOT_POSITIONS, type Area, type PositionLabel } from "./pitch";
 
 type WholeAreaPosition = Exclude<PositionLabel, "WB">;
 
@@ -41,4 +41,21 @@ test("a wing back plays defence and the wide lanes of the two midfield rows, and
     "midfield left",
     "midfield right",
   ]);
+});
+
+// A slot's position (spec/14, How a rule scores): from its area and lane, left and right alike.
+test.each([
+  ["goalkeeper", "GK", "GK"],
+  ["defence", "FB", "CB"],
+  ["defensiveMidfield", "WB", "CDM"],
+  ["midfield", "WM", "CM"],
+  ["attackingMidfield", "W", "CAM"],
+  ["attack", "ST", "ST"],
+] as const)("a slot in %s is %s in the wide lanes and %s in the three centre ones", (area, wide, centre) => {
+  expect(LANES.map((lane) => positionOfSlot({ area, lane }))).toEqual([wide, centre, centre, centre, wide]);
+});
+
+test("every slot position is a position label, and SS is none of them", () => {
+  expect(SLOT_POSITIONS.every((position) => POSITION_LABELS.includes(position))).toBe(true);
+  expect(SLOT_POSITIONS).not.toContain("SS");
 });

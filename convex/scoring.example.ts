@@ -2,7 +2,11 @@
 // in firstRules.ts (spec/14, The first scoring set). Keyed on FPL's
 // stat names, as `fplStatLines` gives them; the second dot keeps this file out of Convex's deploy.
 
+import type { Cell } from "./pitch";
 import { AREAS, type Area, type ByArea, type ScoringSet } from "./scoringSet";
+
+/** The slot in the centre of an area: where the tests stand a player when only his area matters. */
+export const centreOf = (area: Area): Cell => ({ area, lane: "centre" });
 
 /** The same value in every area. */
 export function everyArea<Value>(value: Value): ByArea<Value> {
@@ -22,41 +26,42 @@ export const MINUTES_BANDS = [
 const TWO_FOR_TEN = [{ atLeast: 10, points: 2 }];
 const TWO_FOR_TWELVE = [{ atLeast: 12, points: 2 }];
 
-/** One rule of each shape, values set per area, both kinds of band rule. */
+/** One rule of each shape, values set per area and the same for all, both kinds of band rule. */
 export const EXAMPLE_SET: ScoringSet = {
   rules: [
     {
       shape: "perAction",
       stat: "goals_scored",
-      byArea: { goalkeeper: 10, defence: 6, defensiveMidfield: 6, midfield: 5, attackingMidfield: 5, attack: 4 },
+      values: { byArea: { goalkeeper: 10, defence: 6, defensiveMidfield: 6, midfield: 5, attackingMidfield: 5, attack: 4 } },
     },
     {
       shape: "perAction",
       stat: "assists",
-      byArea: { ...everyArea(3), attackingMidfield: 4 },
+      values: { byArea: { ...everyArea(3), attackingMidfield: 4 } },
     },
     {
       shape: "bands",
       stat: "minutes",
       stack: false,
-      byArea: everyArea(MINUTES_BANDS),
+      values: { byArea: everyArea(MINUTES_BANDS) },
     },
     {
       shape: "perCount",
       stat: "saves",
-      byArea: { ...everyArea({ every: 3, points: 0 }), goalkeeper: { every: 3, points: 1 } },
+      values: { byArea: { ...everyArea({ every: 3, points: 0 }), goalkeeper: { every: 3, points: 1 } } },
     },
     {
       shape: "perCount",
       stat: "goals_conceded",
-      byArea: { ...everyArea({ every: 2, points: 0 }), goalkeeper: CONCEDED_AT_BACK, defence: CONCEDED_AT_BACK },
+      values: { byArea: { ...everyArea({ every: 2, points: 0 }), goalkeeper: CONCEDED_AT_BACK, defence: CONCEDED_AT_BACK } },
     },
     {
       shape: "bands",
       stat: "defensive_contribution",
       stack: true,
-      byArea: { ...everyArea(TWO_FOR_TWELVE), goalkeeper: [], defence: TWO_FOR_TEN, defensiveMidfield: TWO_FOR_TEN },
+      values: { byArea: { ...everyArea(TWO_FOR_TWELVE), goalkeeper: [], defence: TWO_FOR_TEN, defensiveMidfield: TWO_FOR_TEN } },
     },
-    { shape: "perAction", stat: "yellow_cards", byArea: everyArea(-1) },
+    { shape: "perAction", stat: "yellow_cards", values: { all: -1 } },
   ],
+  wholePointsOnly: false,
 };

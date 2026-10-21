@@ -4,7 +4,7 @@ import { heldRecords, recordsIn, REPLAY_MINUTES, stagedGw6, stageTime, tickAt } 
 import { HULL_EVERTON, heldMatch, mergedHullEverton, withHullEverton } from "./matchStats.harness";
 import { FULL_STATS, recordedGw6 } from "./recorded/gw6.payloads";
 import { scoreMatch } from "./scoring";
-import { EXAMPLE_SET } from "./scoring.example";
+import { centreOf, EXAMPLE_SET } from "./scoring.example";
 import type { TestConvex } from "./test.harness";
 
 beforeEach(() => vi.useFakeTimers());
@@ -25,7 +25,7 @@ function movedBetween(before: Records, after: Records): number[] {
 /** Belloumi's points under the tests' scoring set, from his held record: "—" (null) while it is not whole. */
 async function belloumiPoints(t: TestConvex) {
   const record = (await heldRecords(t)).get(FULL_STATS.belloumi.code)!;
-  return scoreMatch(isWhole(record) ? record.stats : null, EXAMPLE_SET, "attack").total;
+  return scoreMatch(isWhole(record) ? record.stats : null, EXAMPLE_SET, centreOf("attack")).total;
 }
 
 test("a replayed match moves every minute, provisional, names who moved, and ends complete at full time", async () => {

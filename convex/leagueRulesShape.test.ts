@@ -5,6 +5,7 @@ import { lineupProblems, type LineupRules } from "./lineup";
 import type { LeagueRules } from "./leagueRulesShape";
 import { DEFAULT_PRESETS, type Preset } from "./presets";
 import { scoreGameweek, scoreMatch, type DoubleGameweekRule } from "./scoring";
+import { centreOf } from "./scoring.example";
 import type { ScoringSet } from "./scoringSet";
 
 // The stored rules are the pure modules' own inputs (#25): what Convex accepts as a rule must type
@@ -32,7 +33,7 @@ test("the first rules' presets are the eleven every league starts with", () => {
 
 test("stored rules pass straight into scoring and the lineup check", () => {
   const { scoring, areaLimits, doubleGameweek } = FIRST_RULES;
-  const match = scoreMatch({ minutes: 90, goals_scored: 1 }, scoring, "attack");
+  const match = scoreMatch({ minutes: 90, goals_scored: 1 }, scoring, centreOf("attack"));
   expect(match.total).toBe(6);
   expect(scoreGameweek([match], doubleGameweek)).toEqual({ points: 6, provisional: false });
   expect(lineupProblems({ starters: [], bench: [] }, new Map(), { areaLimits })).toContainEqual({

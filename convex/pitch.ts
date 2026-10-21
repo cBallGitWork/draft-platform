@@ -54,6 +54,27 @@ const PLAYABLE_CELLS: Record<PositionLabel, readonly Cell[]> = {
   ST: wholeArea("attack"),
 };
 
+/** The positions a slot can be, back to front: every label but SS, who has no slot of his own
+ *  (shadow striker is a role, spec/05). */
+export const SLOT_POSITIONS = ["GK", "FB", "CB", "WB", "CDM", "WM", "CM", "W", "CAM", "ST"] as const satisfies readonly PositionLabel[];
+export type SlotPosition = (typeof SLOT_POSITIONS)[number];
+
+/** Each area's position in its wide lanes and in its centre lanes (spec/14, How a rule scores). */
+const SLOT_POSITION_BY_AREA: Record<Area, { wide: SlotPosition; centre: SlotPosition }> = {
+  goalkeeper: { wide: "GK", centre: "GK" },
+  defence: { wide: "FB", centre: "CB" },
+  defensiveMidfield: { wide: "WB", centre: "CDM" },
+  midfield: { wide: "WM", centre: "CM" },
+  attackingMidfield: { wide: "W", centre: "CAM" },
+  attack: { wide: "ST", centre: "ST" },
+};
+
+/** The position of the slot at this cell, left and right alike: what a rule priced by position
+ *  pays (spec/14). */
+export function positionOfSlot({ area, lane }: Cell): SlotPosition {
+  return SLOT_POSITION_BY_AREA[area][WIDE_LANES.includes(lane) ? "wide" : "centre"];
+}
+
 /** Whether a player with these positions may stand in this cell. Any one of them is enough, and
  *  one still unconfirmed counts the same (spec/06, New signings). */
 export function playsCell(positions: readonly PositionLabel[], cell: Cell): boolean {

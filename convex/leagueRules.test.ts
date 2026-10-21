@@ -6,7 +6,7 @@ import { refusals } from "./leagueAccess";
 import { rulesInGameweek } from "./leagueRules";
 import type { LeagueRules } from "./leagueRulesShape";
 import { scoreMatch } from "./scoring";
-import { EXAMPLE_SET } from "./scoring.example";
+import { centreOf, EXAMPLE_SET } from "./scoring.example";
 import { expectRefused, holdGameweeks, rulesWith, TOTAL_POINTS } from "./leagueRules.harness";
 import { HOUR_MS } from "./time";
 import {
@@ -68,7 +68,7 @@ test("two leagues hold different rules side by side, and the same match scores d
   expect((await latest(first))?.rules).toEqual(FIRST_RULES);
   expect((await latest(second))?.rules).toEqual(priced);
   const goalIn = async (leagueId: Id<"leagues">) =>
-    scoreMatch({ minutes: 90, goals_scored: 1 }, (await inGameweek(leagueId, 1)).scoring, "defensiveMidfield").total;
+    scoreMatch({ minutes: 90, goals_scored: 1 }, (await inGameweek(leagueId, 1)).scoring, centreOf("defensiveMidfield")).total;
   expect(await goalIn(first)).toBe(7);
   expect(await goalIn(second)).toBe(8);
 });
