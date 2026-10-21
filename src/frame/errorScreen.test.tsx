@@ -23,20 +23,28 @@ async function openTableThrowing(error: unknown) {
   return app;
 }
 
+/** Follows the error page's way back, which lands on Your leagues and leaves the error behind. */
+async function goBackToLeagues(app: ReturnType<typeof openApp>) {
+  await userEvent.click(screen.getByRole("link", { name: "Back to your leagues" }));
+  expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+  expect(app.path()).toBe(LEAGUES_PATH);
+  expect(screen.queryByRole("heading", { name: ERROR_PAGE_TITLE })).toBeNull();
+}
+
+const refusalWords = "You aren't in this league.";
+const loggedAs = "Drawing the page failed:";
+
 /** React and the router report a caught error too; a test keeps that quiet and sees what was logged. */
 const quietConsole = () => vi.spyOn(console, "error").mockImplementation(() => {});
 
 it("shows the server's own words when it refuses, and leads back to Your leagues", async () => {
   quietConsole();
-  const app = await openTableThrowing(new ConvexError("You aren't in this league."));
+  const app = await openTableThrowing(new ConvexError(refusalWords));
 
   expect(await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE })).toBeTruthy();
-  expect(screen.getByRole("alert").textContent).toBe("You aren't in this league.");
+  expect(screen.getByRole("alert").textContent).toBe(refusalWords);
 
-  await userEvent.click(screen.getByRole("link", { name: "Back to your leagues" }));
-  expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
-  expect(app.path()).toBe(LEAGUES_PATH);
-  expect(screen.queryByRole("heading", { name: ERROR_PAGE_TITLE })).toBeNull();
+  await goBackToLeagues(app);
 });
 
 it("says plainly that anything else went wrong, logs it, and leads back to Your leagues", async () => {
@@ -46,17 +54,15 @@ it("says plainly that anything else went wrong, logs it, and leads back to Your 
 
   expect(await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE })).toBeTruthy();
   expect(screen.getByRole("alert").textContent).toBe(readFailedWords);
-  expect(logged).toHaveBeenCalledWith("Drawing the page failed:", failure);
+  expect(logged).toHaveBeenCalledWith(loggedAs, failure);
 
-  await userEvent.click(screen.getByRole("link", { name: "Back to your leagues" }));
-  expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
-  expect(app.path()).toBe(LEAGUES_PATH);
+  await goBackToLeagues(app);
 });
 
 it("doesn't log a refusal as a failure", async () => {
   const logged = quietConsole();
-  await openTableThrowing(new ConvexError("You aren't in this league."));
+  await openTableThrowing(new ConvexError(refusalWords));
   await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE });
 
-  expect(logged).not.toHaveBeenCalledWith("Drawing the page failed:", expect.anything());
+  expect(logged).not.toHaveBeenCalledWith(loggedAs, expect.anything());
 });

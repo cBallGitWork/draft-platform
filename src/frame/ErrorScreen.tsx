@@ -11,8 +11,8 @@ import { ERROR_PAGE_TITLE, readFailedWords } from "./words";
 export function ErrorScreen({ error }: ErrorComponentProps) {
   const refusal = refusalIn(error);
   useEffect(() => {
-    if (refusalIn(error) === null) console.error("Drawing the page failed:", error);
-  }, [error]);
+    if (refusal === null) console.error("Drawing the page failed:", error);
+  }, [error, refusal]);
   return (
     <section aria-labelledby="page-title" className="max-w-xl bg-panel">
       <PageTitle>{ERROR_PAGE_TITLE}</PageTitle>
