@@ -4,6 +4,7 @@ import "@fontsource/archivo-narrow/700.css";
 import "./styles.css";
 
 import { StrictMode } from "react";
+import { previewAdmin } from "./admin/preview";
 import { createRoot } from "react-dom/client";
 import { previewGameweeks } from "./gameweeks/preview";
 import { LiveApp, takeLinkCode } from "./liveApp";
@@ -27,6 +28,7 @@ createRoot(root).render(
         joining={previewJoining}
         topBar={previewTopBar}
         gameweeks={previewGameweeks}
+        admin={previewAdmin}
       />
     ) : (
       <LiveApp linkCode={takeLinkCode()} />

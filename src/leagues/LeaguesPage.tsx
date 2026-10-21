@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/myLeagues";
+import { ADMIN_PATH } from "../admin/paths";
+import { ADMIN_TITLE } from "../admin/words";
 import { PageTitle } from "../frame/Panel";
 import { GameweeksLink } from "../gameweeks/GameweeksLink";
 import { invitesPath } from "../joining/paths";
@@ -40,9 +42,14 @@ export function LeaguesPage({
           <LeagueTable leagues={leagues} isAdmin={isAdmin} actions={actions} />
         )}
         {isAdmin && (
-          <Link to={NEW_LEAGUE_PATH} className="action self-start">
-            {NEW_LEAGUE_TITLE}
-          </Link>
+          <span className="flex flex-wrap gap-2">
+            <Link to={NEW_LEAGUE_PATH} className="action">
+              {NEW_LEAGUE_TITLE}
+            </Link>
+            <Link to={ADMIN_PATH} className="secondary-action">
+              {ADMIN_TITLE}
+            </Link>
+          </span>
         )}
       </div>
     </section>

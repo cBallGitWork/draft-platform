@@ -15,6 +15,7 @@ import { fakeJoining, type JoiningData } from "./joining/joining.harness";
 import type { LeagueActions } from "./leagues/actions";
 import type { Mail } from "./mail/actions";
 import { ShellApp } from "./ShellApp";
+import { fakeAdmin, type AdminData } from "./admin/admin.harness";
 
 // The router restores scroll on every navigation, and jsdom has no scrolling to restore.
 window.scrollTo = () => {};
@@ -86,6 +87,7 @@ export function openApp(
   topBar: TopBarState = emptyTopBar,
   letters: readonly LetterSummary[] | null = [],
   joiningData: JoiningData = {},
+  adminData: AdminData = {},
 ) {
   const history = createMemoryHistory({ initialEntries: [path] });
   const auth = fakeAuth();
@@ -93,6 +95,7 @@ export function openApp(
   const mail = fakeMail(letters);
   const joining = fakeJoining(joiningData, LINK_REPLY);
   const gameweeks = fakeGameweeks();
+  const admin = fakeAdmin(adminData);
   const app = (current: Session) => (
     <ShellApp
       session={current}
@@ -102,6 +105,7 @@ export function openApp(
       joining={joining}
       topBar={topBar}
       gameweeks={gameweeks}
+      admin={admin}
       history={history}
     />
   );
@@ -112,6 +116,7 @@ export function openApp(
     mail,
     gameweeks,
     joining,
+    admin,
     path: () => history.location.pathname,
     search: () => history.location.search,
     becomes: (next: Session) => view.rerender(app(next)),

@@ -131,6 +131,7 @@ describe("the admin's queue (#87)", () => {
     expect((await admin.query(api.playerPositions.queue, {})).newSignings).toContainEqual({
       code: PLAYER.steur,
       name: expect.any(String),
+      fullName: expect.any(String),
       clubCode: NEWCASTLE.code,
       label: "Centre Central Midfielder",
     });
@@ -181,6 +182,7 @@ test("everything here is the admin's alone: anyone else signed in is refused", a
   for (const call of [
     () => someone.query(api.playerPositions.ofPlayer, { code }),
     () => someone.query(api.playerPositions.queue, {}),
+    () => someone.query(api.playerPositions.find, { text: "Barnes" }),
     () => someone.mutation(api.playerPositions.approvePlayer, { code }),
     () => someone.mutation(api.playerPositions.approveClub, { clubCode: NEWCASTLE.code }),
     () => someone.mutation(api.playerPositions.setPosition, { code, position: "SS" }),
@@ -191,4 +193,41 @@ test("everything here is the admin's alone: anyone else signed in is refused", a
   }
   await expect(t.query(api.playerPositions.queue, {})).rejects.toThrow(refusals.signedOut);
   expect(await heldPositions(t, code)).toEqual({ W: "label?" });
+});
+
+describe("finding a player to correct (#87)", () => {
+  test("by name, with his positions now, never one who has left", async () => {
+    const t = await synced();
+    const admin = await asAdmin(t);
+    await admin.mutation(api.playerPositions.setPosition, { code: PLAYER.kelleher, position: "GK" });
+    expect(await admin.query(api.playerPositions.find, { text: "Kelleher" })).toEqual([
+      expect.objectContaining({ code: PLAYER.kelleher, fullName: "Caoimhín Kelleher", positions: expect.arrayContaining([{ position: "GK", source: "admin", confirmed: true }]) }),
+    ]);
+    expect(await admin.query(api.playerPositions.find, { text: "  " })).toEqual([]);
+
+    await t.run(async (ctx) => {
+      const player = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", PLAYER.kelleher)).unique();
+      await ctx.db.patch("players", player!._id, { droppedAt: Date.now() });
+    });
+    expect(await admin.query(api.playerPositions.find, { text: "Kelleher" })).toEqual([]);
+  });
+
+  test("the queue carries the clubs, by name, and how starts count", async () => {
+    const t = await synced();
+    await t.run(async (ctx) => {
+      await ctx.db.insert("clubs", { code: NEWCASTLE.code, name: "Newcastle", shortName: "NEW" });
+      await ctx.db.insert("clubs", { code: 3, name: "Arsenal", shortName: "ARS" });
+      await ctx.db.insert("clubs", { code: 99, name: "Relegated", shortName: "REL", droppedAt: Date.now() });
+    });
+    const admin = await asAdmin(t);
+    expect(await admin.query(api.playerPositions.queue, {})).toMatchObject({
+      clubs: [
+        { code: 3, name: "Arsenal" },
+        { code: NEWCASTLE.code, name: "Newcastle" },
+      ],
+      approveMode: "proposals",
+    });
+    await admin.mutation(api.playerPositions.setApproveMode, { approveMode: "countAtOnce" });
+    expect((await admin.query(api.playerPositions.queue, {})).approveMode).toBe("countAtOnce");
+  });
 });
