@@ -35,11 +35,9 @@ confirmed out, with his proposals (what his starts give that the admin has not a
 
 ## The formation table
 
-`FORMATION_PLACES` in `convex/positionTables.ts`, 19 formations, every one seen. Spec/06 fixes
-two rows (a 4-2-3-1's two deepest are CDM, a 4-3-3's three are CM); the rest follow one rule
-(wide in a back four FB, in a back five or beside a back three WB, in a flat midfield WM, ahead
-of midfield W; just ahead of the defence one or two men CDM and three CM; one man behind the
-forwards CAM). Where the rule left a choice, the labels of the men who started there decided:
+`FORMATION_PLACES` in `convex/positionTables.ts`, 19 formations, every one seen; the rule they
+follow is the comment above it. Where the rule left a choice, the labels of the men who started
+there decided:
 
 - A 3-4-2-1's two behind the striker are W: more wingers than anything else, 115 of 240 men
   (Pino 27 starts there, Sarr 22, Mbeumo 16), with 50 attacking midfielders and 38 strikers.
@@ -77,7 +75,7 @@ table needs a recount. `positionSettings` holds the approve mode; `positionSheet
 The admin's functions, his alone by his email on the server (#87): `queue` (new signings and the
 men whose starts wait for him), `ofPlayer`, `approvePlayer`, `approveClub`, `setPosition` (SS is
 set this way), `removePosition` and `setApproveMode`, in `convex/playerPositions.ts`. The
-dashboard's screen comes next.
+dashboard's screen is built (#126).
 
 ## The sync
 
