@@ -140,6 +140,15 @@ describe("a commissioner's change", () => {
     expect(filed.map((event) => event.kind === "rulesChanged" && event.changed)).toEqual([["format"], ["format", "tieBreaks"]]);
   });
 
+  test("the odd team out is changed like any other rule, and only to a bye or the league's average", async () => {
+    const leagueId = await adminCreatesLeague(t);
+    await change(leagueId, rulesWith({ oddTeamOut: "bye" }));
+    expect((await latest(leagueId))?.rules.oddTeamOut).toBe("bye");
+
+    const unknown = { ...FIRST_RULES, oddTeamOut: "sitOut" } as unknown as LeagueRules;
+    await expect(change(leagueId, unknown)).rejects.toThrow(/sitOut/);
+  });
+
   test("the same rules again change nothing and file nothing", async () => {
     const leagueId = await adminCreatesLeague(t);
     const eventsBefore = await eventsIn(t, leagueId);

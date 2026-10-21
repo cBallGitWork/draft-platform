@@ -23,6 +23,10 @@ test("no squad limits, no club limit, no presets and no tie-breaks are all sound
   expect(() => checkLeagueRules(free)).not.toThrow();
 });
 
+test.each(["bye", "leagueAverage"] as const)("the team left over playing %s is sound", (oddTeamOut) => {
+  expect(() => checkLeagueRules(rulesWith({ oddTeamOut }))).not.toThrow();
+});
+
 describe.each<[string, Partial<LeagueRules>, string]>([
   [
     "a squad whose minimum is above its maximum",

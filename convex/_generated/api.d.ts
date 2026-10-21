@@ -34,6 +34,7 @@ import type * as leagueDeletion from "../leagueDeletion.js";
 import type * as leagueGameweeks from "../leagueGameweeks.js";
 import type * as leagueLimits from "../leagueLimits.js";
 import type * as leagueRules from "../leagueRules.js";
+import type * as leagueTable from "../leagueTable.js";
 import type * as leagues from "../leagues.js";
 import type * as letterWords from "../letterWords.js";
 import type * as letters from "../letters.js";
@@ -96,6 +97,7 @@ declare const fullApi: ApiFromModules<{
   leagueGameweeks: typeof leagueGameweeks;
   leagueLimits: typeof leagueLimits;
   leagueRules: typeof leagueRules;
+  leagueTable: typeof leagueTable;
   leagues: typeof leagues;
   letterWords: typeof letterWords;
   letters: typeof letters;
