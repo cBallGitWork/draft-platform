@@ -6,6 +6,7 @@
 import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
+import { HOUR_MS, WEEK_MS } from "../../convex/time";
 import { MY_TEAM_PATH, TABLE_PATH } from "../frame/menu";
 import { commissioner, league, manager, openApp } from "../shell.harness";
 import { leagueTableOf } from "./drawnTable";
@@ -13,6 +14,7 @@ import type { TableData } from "./table.harness";
 import {
   byeWords,
   columns,
+  fixturesListLabel,
   gameweekWords,
   leagueAverageWords,
   loadingWords,
@@ -28,11 +30,10 @@ import {
 afterEach(cleanup);
 
 const FIVE = ["Ann's", "Bob's", "Cat's", "Dan's", "Eve's"];
-const HOUR = 60 * 60 * 1000;
 const openTable = (table: TableData = {}) => openApp(TABLE_PATH, manager, { table });
 const tableRows = () => within(screen.getByRole("table")).getAllByRole("row").slice(1);
 const fixtureLines = (gameweek: number) =>
-  within(screen.getByRole("list", { name: `Gameweek ${gameweek}'s fixtures` }))
+  within(screen.getByRole("list", { name: fixturesListLabel(gameweek) }))
     .getAllByRole("listitem")
     .map((item) => item.textContent);
 
@@ -96,7 +97,7 @@ describe("the table", () => {
 
 describe("the fixtures", () => {
   /** Gameweek 1 began two weeks ago, so gameweek 3 is the first not begun. */
-  const deadlineOf = (gameweek: number) => Date.now() + (gameweek - 3) * 7 * 24 * HOUR + HOUR;
+  const deadlineOf = (gameweek: number) => Date.now() + (gameweek - 3) * WEEK_MS + HOUR_MS;
 
   it("open on the first gameweek not yet begun, the team left over against the league's average", async () => {
     const drawn = leagueTableOf(FIVE, { deadlineOf });
@@ -123,7 +124,7 @@ describe("the fixtures", () => {
   });
 
   it("open on the last gameweek once every one has begun", async () => {
-    openTable({ leagueTable: leagueTableOf(FIVE, { gameweeks: [1, 2], deadlineOf: () => Date.now() - HOUR }) });
+    openTable({ leagueTable: leagueTableOf(FIVE, { gameweeks: [1, 2], deadlineOf: () => Date.now() - HOUR_MS }) });
     expect(await screen.findByRole("heading", { level: 3, name: gameweekWords(2) })).toBeTruthy();
   });
 

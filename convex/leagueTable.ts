@@ -6,7 +6,7 @@ import { memberOf, teamsOf } from "./leagueAccess";
 import { latestRules } from "./leagueRules";
 import { drawFixtures, LEAGUE_AVERAGE, roundsOf } from "./roundRobin";
 import { headToHeadTable, totalPointsTable, type GameweekScores } from "./standings";
-import { GAMEWEEKS, isGameweekUsed } from "./usedGameweeks";
+import { GAMEWEEKS, usedGameweeksOf } from "./usedGameweeks";
 
 // The league's fixtures and table (#33; spec/09, spec/12 "table and fixtures"), for anyone with a
 // part in it. The fixtures are drawn afresh from the teams, the gameweeks the league plays and its
@@ -68,8 +68,7 @@ export const ofLeague = query({
     const named = (teamId: Id<"teams">) => nameOf.get(teamId)!;
 
     const headToHead = rules.format === "headToHead";
-    const played = Array.from({ length: GAMEWEEKS }, (_, index) => index + 1).filter((gameweek) => isGameweekUsed(league, gameweek));
-    const schedule = headToHead ? drawFixtures(teamIds, played, oddTeamOutOf(rules)) : [];
+    const schedule = headToHead ? drawFixtures(teamIds, usedGameweeksOf(league), oddTeamOutOf(rules)) : [];
     const scores: GameweekScores<Id<"teams">> = new Map();
     const table = headToHead ? headToHeadTable(teamIds, schedule, scores, rules.tieBreaks) : totalPointsTable(teamIds, scores);
 

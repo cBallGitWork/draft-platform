@@ -48,10 +48,10 @@ export function drawFixtures<Team>(
 ): GameweekFixtures<Team>[] {
   if (teams.length < 2) return [];
   const rounds = roundsOf(teams);
-  return gameweeks.map((gameweek, played) => {
+  return gameweeks.map((gameweek, index) => {
     const fixtures: Fixture<Team>[] = [];
     let leftOver: Team | null = null;
-    for (const [team, opponent] of rounds[played % rounds.length]) {
+    for (const [team, opponent] of rounds[index % rounds.length]) {
       if (opponent === null) leftOver = team;
       else fixtures.push({ team, opponent });
     }

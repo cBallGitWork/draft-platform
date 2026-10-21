@@ -4,14 +4,14 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import { drawFixtures, LEAGUE_AVERAGE, roundsOf, type OddTeamOut } from "../../convex/roundRobin";
 import { headToHeadTable, totalPointsTable, type GameweekScores } from "../../convex/standings";
-import { GAMEWEEKS } from "../../convex/usedGameweeks";
+import { SEASON_GAMEWEEKS } from "../../convex/usedGameweeks";
 import type { LeagueTable } from "./seam";
 
 type Drawn = {
   format?: LeagueTable["format"];
   oddTeamOut?: OddTeamOut;
   /** The gameweeks the league plays: all 38 by default. */
-  gameweeks?: number[];
+  gameweeks?: readonly number[];
   /** FPL's deadline for each gameweek: none known by default. */
   deadlineOf?: (gameweek: number) => number | null;
   scores?: GameweekScores<string>;
@@ -23,7 +23,7 @@ export function leagueTableOf(
   {
     format = "headToHead",
     oddTeamOut = "leagueAverage",
-    gameweeks = Array.from({ length: GAMEWEEKS }, (_, index) => index + 1),
+    gameweeks = SEASON_GAMEWEEKS,
     deadlineOf = () => null,
     scores = new Map(),
   }: Drawn = {},

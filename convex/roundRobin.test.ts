@@ -1,13 +1,12 @@
 import { describe, expect, test } from "vitest";
 import { drawFixtures, LEAGUE_AVERAGE, ODD_TEAM_OUTS, roundsOf, type GameweekFixtures } from "./roundRobin";
-import { GAMEWEEKS } from "./usedGameweeks";
+import { GAMEWEEKS, SEASON_GAMEWEEKS, usedGameweeksOf } from "./usedGameweeks";
 
 // The round robin (#33; spec/09): every pair meets once a round robin, nobody plays twice in a
 // gameweek, the team left over is a different one each gameweek of a round robin, it repeats
 // once the gameweeks outnumber its rounds, and only the gameweeks the league plays have fixtures.
 
 const teamsOf = (count: number) => Array.from({ length: count }, (_, index) => `Team ${index + 1}`);
-const everyGameweek = Array.from({ length: GAMEWEEKS }, (_, index) => index + 1);
 const TEAM_COUNTS = Array.from({ length: 19 }, (_, index) => index + 2); // 2 to 20
 const pairKey = (one: string, other: string) => [one, other].toSorted().join(" v ");
 
@@ -33,7 +32,7 @@ describe.each(ODD_TEAM_OUTS)("with the odd team out playing %s", (oddTeamOut) =>
     const rounds = roundsOf(teams).length;
     expect(rounds).toBe(count % 2 === 0 ? count - 1 : count);
 
-    const schedule = drawFixtures(teams, everyGameweek.slice(0, rounds), oddTeamOut);
+    const schedule = drawFixtures(teams, SEASON_GAMEWEEKS.slice(0, rounds), oddTeamOut);
     const meetings = schedule.flatMap(({ fixtures }) =>
       fixtures.flatMap(({ team, opponent }) => (opponent === LEAGUE_AVERAGE ? [] : [pairKey(team, opponent)])),
     );
@@ -45,8 +44,8 @@ describe.each(ODD_TEAM_OUTS)("with the odd team out playing %s", (oddTeamOut) =>
   test.each(TEAM_COUNTS)("%i teams: each is left over once a round robin, and over a season no more than once more than another", (count) => {
     const teams = teamsOf(count);
     const rounds = roundsOf(teams).length;
-    const oneRoundRobin = leftOverCounts(drawFixtures(teams, everyGameweek.slice(0, rounds), oddTeamOut));
-    const season = [...leftOverCounts(drawFixtures(teams, everyGameweek, oddTeamOut)).values()];
+    const oneRoundRobin = leftOverCounts(drawFixtures(teams, SEASON_GAMEWEEKS.slice(0, rounds), oddTeamOut));
+    const season = [...leftOverCounts(drawFixtures(teams, SEASON_GAMEWEEKS, oddTeamOut)).values()];
     if (count % 2 === 0) {
       expect(oneRoundRobin.size).toBe(0);
       expect(season).toEqual([]);
@@ -70,23 +69,26 @@ test("the team left over has a bye, or plays the league's average, as the league
 });
 
 test("an even league has no one left over, whatever its setting", () => {
-  for (const gameweek of drawFixtures(teamsOf(4), everyGameweek, "leagueAverage")) {
+  for (const gameweek of drawFixtures(teamsOf(4), SEASON_GAMEWEEKS, "leagueAverage")) {
     expect(gameweek.bye).toBeNull();
     expect(gameweek.fixtures.map((fixture) => fixture.opponent)).not.toContain(LEAGUE_AVERAGE);
   }
 });
 
 test("once the gameweeks outnumber its rounds, the round robin repeats in the same order", () => {
-  const schedule = drawFixtures(teamsOf(6), everyGameweek, "leagueAverage");
+  const teams = teamsOf(6);
+  const schedule = drawFixtures(teams, SEASON_GAMEWEEKS, "leagueAverage");
   const fixturesIn = (gameweek: number) => schedule[gameweek - 1].fixtures;
+  const rounds = roundsOf(teams).map((pairs) => pairs.map(([team, opponent]) => ({ team, opponent })));
+  expect([1, 2, 3, 4, 5].map(fixturesIn)).toEqual(rounds);
   for (let gameweek = 6; gameweek <= GAMEWEEKS; gameweek += 1) expect(fixturesIn(gameweek)).toEqual(fixturesIn(gameweek - 5));
 });
 
 test("only the gameweeks the league plays have fixtures, and an unplayed one's round moves on to the next", () => {
   const teams = teamsOf(4);
-  const played = everyGameweek.filter((gameweek) => ![17, 18, 19].includes(gameweek));
+  const played = usedGameweeksOf({ unusedGameweeks: [17, 18, 19] });
   const withBreak = drawFixtures(teams, played, "bye");
-  const straight = drawFixtures(teams, everyGameweek, "bye");
+  const straight = drawFixtures(teams, SEASON_GAMEWEEKS, "bye");
 
   expect(withBreak.map((each) => each.gameweek)).toEqual(played);
   const fixturesOf = (schedule: GameweekFixtures<string>[], gameweek: number) => schedule.find((each) => each.gameweek === gameweek)?.fixtures;
@@ -95,5 +97,5 @@ test("only the gameweeks the league plays have fixtures, and an unplayed one's r
 });
 
 test.each([0, 1])("%i teams have no one to play, so no fixtures", (count) => {
-  expect(drawFixtures(teamsOf(count), everyGameweek, "leagueAverage")).toEqual([]);
+  expect(drawFixtures(teamsOf(count), SEASON_GAMEWEEKS, "leagueAverage")).toEqual([]);
 });

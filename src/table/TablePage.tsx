@@ -16,7 +16,10 @@ const COLUMNS_OF: Record<LeagueTable["format"], readonly Column[]> = {
 /** Columns a phone leaves out, for room: the difference says what they would. */
 const DESK_ONLY: readonly Column[] = ["pointsFor", "pointsAgainst"];
 
-const cellClasses = "px-2 text-right align-middle";
+/** A column's cells: names read from the left, figures line up on the right, and a phone leaves
+ *  out what it has no room for. */
+const cellClasses = (column: Column) =>
+  `px-2 align-middle ${column === "team" ? "text-left" : "text-right"} ${DESK_ONLY.includes(column) ? "hidden sm:table-cell" : ""}`;
 
 /** The league's table and fixtures (spec/12, spec/09), for anyone in it: the table beside the
  *  fixtures of one gameweek at a time. */
@@ -24,10 +27,7 @@ export function TablePage({ league, seam }: { league: LeagueSummary; seam: Table
   const leagueTable = seam.useLeagueTable(league.leagueId);
   return (
     <div className="flex max-w-6xl flex-col gap-2">
-      <section aria-labelledby="page-title" className="bg-panel">
-        <PageTitle>{TABLE_PAGE_TITLE}</PageTitle>
-        <p className="px-3 py-2 text-lead font-semibold">{league.name}</p>
-      </section>
+      <PageTitle>{TABLE_PAGE_TITLE}</PageTitle>
       {leagueTable === undefined ? (
         <p role="status" className="text-muted">
           {loadingWords}
@@ -46,7 +46,6 @@ export function TablePage({ league, seam }: { league: LeagueSummary; seam: Table
 
 function StandingsPanel({ leagueTable: { format, table } }: { leagueTable: LeagueTable }) {
   const shown = COLUMNS_OF[format];
-  const visibility = (column: Column) => (DESK_ONLY.includes(column) ? "hidden sm:table-cell" : "");
   return (
     <section aria-labelledby="table-title" className="bg-panel">
       <PanelTitle id="table-title">{TABLE_TITLE}</PanelTitle>
@@ -60,7 +59,7 @@ function StandingsPanel({ leagueTable: { format, table } }: { leagueTable: Leagu
                 scope="col"
                 title={columns[column].long}
                 aria-label={columns[column].long}
-                className={`${cellClasses} ${column === "team" ? "text-left" : ""} ${visibility(column)}`}
+                className={cellClasses(column)}
               >
                 {columns[column].short}
               </th>
@@ -71,7 +70,7 @@ function StandingsPanel({ leagueTable: { format, table } }: { leagueTable: Leagu
           {table.map((row, index) => (
             <tr key={row.teamId} className="border-t border-panel-rule">
               {shown.map((column) => (
-                <TableCell key={column} column={column} row={row} position={index + 1} className={visibility(column)} />
+                <TableCell key={column} column={column} row={row} position={index + 1} />
               ))}
             </tr>
           ))}
@@ -82,21 +81,22 @@ function StandingsPanel({ leagueTable: { format, table } }: { leagueTable: Leagu
 }
 
 /** One cell of a team's row: its name heads the row, its points are the table's figure. */
-function TableCell({ column, row, position, className }: { column: Column; row: Row; position: number; className: string }) {
+function TableCell({ column, row, position }: { column: Column; row: Row; position: number }) {
+  const className = cellClasses(column);
   switch (column) {
     case "position":
-      return <td className={`${cellClasses} text-muted ${className}`}>{position}</td>;
+      return <td className={`${className} text-muted`}>{position}</td>;
     case "team":
       return (
-        <th scope="row" className={`${cellClasses} text-left text-lead font-semibold ${className}`}>
+        <th scope="row" className={`${className} text-lead font-semibold`}>
           {row.teamName}
         </th>
       );
     case "difference":
-      return <td className={`${cellClasses} ${className}`}>{differenceWords(row.difference)}</td>;
+      return <td className={className}>{differenceWords(row.difference)}</td>;
     case "points":
-      return <td className={`${cellClasses} font-bold text-figure ${className}`}>{row.points}</td>;
+      return <td className={`${className} font-bold text-figure`}>{row.points}</td>;
     default:
-      return <td className={`${cellClasses} ${className}`}>{row[column]}</td>;
+      return <td className={className}>{row[column]}</td>;
   }
 }
