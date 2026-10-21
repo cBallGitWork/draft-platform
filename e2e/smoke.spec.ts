@@ -1,9 +1,8 @@
-// The app loaded in a real browser, with no Convex deployment (playwright.config.ts). Each test
-// fails on any console error or uncaught page error it didn't expect, so a boot crash can't pass.
-// The `dev` project's tests are tagged @dev and run on Vite's dev server; @bundle runs on the
-// production build.
+// The servers, and which tag runs on which: playwright.config.ts. Each test fails on any console
+// error or uncaught page error it didn't expect, so a boot crash can't pass.
 
 import { expect, test as base, type ConsoleMessage } from "@playwright/test";
+import { ERROR_PAGE_TITLE } from "../src/frame/words";
 import { NO_CONVEX_URL } from "../src/liveApp";
 
 /** The one error every page load logs: the app has no favicon, and the browser asks for one. */
@@ -29,15 +28,12 @@ const test = base.extend<{ allowedErrors: ((message: ConsoleMessage) => boolean)
   ],
 });
 
-/** React Router's own fallback when a route throws. */
-const CRASHED = "Something went wrong!";
-
 test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
   test("?preview=manager mounts the manager's landing page", async ({ page }) => {
     await page.goto("/?preview=manager");
     await expect(page.getByRole("main").getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Main" })).toBeVisible();
-    await expect(page.getByText(CRASHED)).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: ERROR_PAGE_TITLE })).toHaveCount(0);
   });
 
   test("?preview=visitor shows the sign-in page", async ({ page }) => {
