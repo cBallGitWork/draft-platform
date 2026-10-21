@@ -37,12 +37,12 @@ const page: InvitesPageData = {
 };
 
 const openPage = (invitesPage: InvitesPageData | null = page) =>
-  openApp(invitesPath(league.leagueId), commissioner, undefined, { invitesPage });
+  openApp(invitesPath(league.leagueId), commissioner, undefined, undefined, { invitesPage });
 const inviteItem = (email: string) => within(screen.getByRole("list", { name: "Invites" })).getByText(email).closest("li")!;
 
 describe("the invites page", () => {
   it("is reached from the commissioner's leagues, and not offered to a manager", async () => {
-    const app = openApp("/leagues", commissioner, undefined, { invitesPage: page });
+    const app = openApp("/leagues", commissioner, undefined, undefined, { invitesPage: page });
     await userEvent.click(await screen.findByRole("link", { name: invitesTitle }));
     expect(app.path()).toBe(invitesPath(league.leagueId));
     cleanup();

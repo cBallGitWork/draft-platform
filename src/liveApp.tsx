@@ -3,11 +3,11 @@ import { ConvexReactClient, useAction, useConvexAuth, useQuery } from "convex/re
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../convex/_generated/api";
 import type { AuthActions, Session } from "./auth";
-import { emptyTopBar } from "./frame/topBarState";
 import { liveGameweeks } from "./gameweeks/liveGameweeks";
 import { useLiveJoining } from "./joining/liveJoining";
 import { joinTokenAt } from "./joining/paths";
 import { useLiveLeagueActions } from "./leagues/liveLeagueActions";
+import { useLiveMail } from "./mail/liveMail";
 import { SIGN_IN_PATH } from "./router";
 import { ShellApp } from "./ShellApp";
 import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "./sign-in/words";
@@ -55,6 +55,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   const { signIn, signOut } = useAuthActions();
   const ask = useAction(api.signInLinks.ask);
   const leagues = useLiveLeagueActions();
+  const { mail, topBar } = useLiveMail();
   const joining = useLiveJoining();
   const account = useQuery(api.account.signedInAs, isAuthenticated ? {} : "skip");
   const [checkingLink, setCheckingLink] = useState(linkCode !== null);
@@ -97,7 +98,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
       </p>
     );
   }
-  return <ShellApp session={session} auth={auth} leagues={leagues} joining={joining} topBar={emptyTopBar} gameweeks={liveGameweeks} />;
+  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} />;
 }
 
 /** The sign-in page saying what was wrong with a link, and, for one that led to a league's invite

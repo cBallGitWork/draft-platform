@@ -11,7 +11,7 @@ import type { AuthActions, Session } from "./auth";
 import { AppFrame } from "./frame/AppFrame";
 import { LeagueSwitcher } from "./frame/LeagueSwitcher";
 import type { TopBarState } from "./frame/topBarState";
-import { MY_TEAM_PATH, pages } from "./frame/menu";
+import { MAIL_PATH, MY_TEAM_PATH, pages } from "./frame/menu";
 import { PageNotBuilt } from "./frame/PageNotBuilt";
 import { GameweeksRoute } from "./gameweeks/GameweeksRoute";
 import { GAMEWEEKS_ROUTE, leagueRunBy } from "./gameweeks/paths";
@@ -26,6 +26,8 @@ import { LeaguelessFrame } from "./leagues/LeaguelessFrame";
 import { LeaguesPage } from "./leagues/LeaguesPage";
 import { NewLeaguePage } from "./leagues/NewLeaguePage";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "./leagues/paths";
+import type { Mail } from "./mail/actions";
+import { MailPage, leaguesToWriteFrom } from "./mail/MailPage";
 import { SignInPage } from "./sign-in/SignInPage";
 import { linkProblemWords, type LinkProblem } from "./sign-in/words";
 
@@ -33,6 +35,7 @@ export type ShellContext = {
   session: Session;
   auth: AuthActions;
   leagues: LeagueActions;
+  mail: Mail;
   joining: JoiningSeam;
   topBar: TopBarState;
   gameweeks: GameweeksSeam;
@@ -71,8 +74,9 @@ const signInRoute = createRoute({
   },
 });
 
-// The leagues pages, for anyone signed in: in the league frame for someone in a league, and
-// outside it, with no league menu, for someone in none (spec/02).
+// The leagues pages and Mail, for anyone signed in: in the league frame for someone in a league,
+// and outside it, with no league menu, for someone in none (spec/02). Mail is one of them, not a
+// league-frame page, because a manager removed from their last league is told so by letter (spec/13).
 const leaguePagesRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "leaguePages",
@@ -88,7 +92,7 @@ const leaguePagesRoute = createRoute({
         leagueSwitcher={<LeagueSwitcher session={session} switchLeague={leagues.switchLeague} />}
       />
     ) : (
-      <LeaguelessFrame onSignOut={auth.signOut} />
+      <LeaguelessFrame unreadMail={topBar.unreadMail} onSignOut={auth.signOut} />
     );
   },
 });
@@ -112,6 +116,15 @@ const newLeagueRoute = createRoute({
   },
   component: function NewLeague() {
     return <NewLeaguePage createLeague={newLeagueRoute.useRouteContext({ select: (context) => context.leagues.createLeague })} />;
+  },
+});
+
+const mailRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: MAIL_PATH,
+  component: function MailScreen() {
+    const { mail, session, topBar } = mailRoute.useRouteContext();
+    return <MailPage mail={mail} unread={topBar.unreadMail} writableLeagues={leaguesToWriteFrom(session)} />;
   },
 });
 
@@ -176,7 +189,7 @@ const landingRoute = createRoute({
   },
 });
 
-const pageRoutes = pages.map((page) =>
+const pageRoutes = pages.filter((page) => page.path !== MAIL_PATH).map((page) =>
   createRoute({
     getParentRoute: () => frameRoute,
     path: page.path,
@@ -186,7 +199,7 @@ const pageRoutes = pages.map((page) =>
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
-  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, invitesRoute, joinRoute, gameweeksRoute]),
+  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute]),
   frameRoute.addChildren([landingRoute, ...pageRoutes]),
 ]);
 

@@ -1,21 +1,19 @@
-// The screens without signing in, for screenshots: `/?preview=manager` (in two leagues, and
-// deleting a third), `newcomer` (in none), `admin` (in none, seeing every league and offered
-// "Create a league") or `visitor` (signed out), on the dev server only (the ui-verifier agent's
-// way in).
+// The screens without signing in, for screenshots: `/?preview=manager` (in two leagues),
+// `commissioner` (running the same two, so Mail offers a letter to either, and deleting a third),
+// `newcomer` (in none), `admin` (in none, seeing every league and offered "Create a league") or
+// `visitor` (signed out), on the dev server only (the ui-verifier agent's way in).
 // `import.meta.env.DEV` is false in `vite build`, so the production bundle drops this and a
 // logged-out visitor can never reach the frame through it.
 
 import type { Id } from "../convex/_generated/dataModel";
 import type { LeagueSummary } from "../convex/myLeagues";
 import type { AuthActions, Session } from "./auth";
-import type { TopBarState } from "./frame/topBarState";
-import { MAIL_PATH } from "./frame/menu";
 import type { LeagueActions } from "./leagues/actions";
 import { replyWords } from "./sign-in/words";
 
 /** Made-up leagues, in the shape account:signedInAs sends. */
 const unreachedCommissioner = "first.commissioner@example.com";
-const proLeague: LeagueSummary = {
+export const proLeague: LeagueSummary = {
   leagueId: "preview-pro-league" as Id<"leagues">,
   name: "Tim Hortons Pro League",
   commissionerEmail: "commish@example.com",
@@ -36,7 +34,7 @@ const miniBeta: LeagueSummary = {
   unsentCommissionerLink: { email: unreachedCommissioner, reply: "paused" },
 };
 
-/** A league its commissioner, the preview's manager, deleted an hour ago, whose last two
+/** A league the preview's commissioner deleted an hour ago, whose last two
  *  managers weren't told: the day's emails had gone. */
 const sundayLeague: LeagueSummary = {
   ...miniBeta,
@@ -56,21 +54,31 @@ const sundayLeague: LeagueSummary = {
   },
 };
 
-const manager = {
+export const manager = {
   signedIn: true,
   email: "manager@example.com",
   isAdmin: false,
   inLeague: true,
   leagues: [
     proLeague,
-    { ...miniBeta, roles: ["commissioner", "manager"], teamName: "Team 1", teams: 1, unsentCommissionerLink: null },
-    sundayLeague,
+    { ...miniBeta, roles: ["manager"], teamName: "Team 1", teams: 1, unsentCommissionerLink: null },
   ],
   currentLeagueId: proLeague.leagueId,
 } as const satisfies Session;
 
+/** The manager, as co-commissioner of the Pro League and commissioner of Mini beta, deleting Sunday League. */
+const commissioner: Session = {
+  ...manager,
+  leagues: [
+    { ...proLeague, roles: ["co-commissioner", "manager"] },
+    { ...manager.leagues[1], commissionerEmail: manager.email, roles: ["commissioner", "manager"] },
+    sundayLeague,
+  ],
+};
+
 const previewSessions: Record<string, Session> = {
   manager,
+  commissioner,
   newcomer: { ...manager, inLeague: false, leagues: [], currentLeagueId: null },
   admin: {
     ...manager,
@@ -103,12 +111,4 @@ export const previewLeagues: LeagueActions = {
 export const previewAuth: AuthActions = {
   requestSignInLink: async () => replyWords.checkYourEmail,
   signOut: async () => {},
-};
-
-const unreadMail = 3;
-
-/** Made-up figures, so the shot shows Mail's count and Continue in use. */
-export const previewTopBar: TopBarState = {
-  unreadMail,
-  next: { path: MAIL_PATH, reason: `${unreadMail} unread letters` },
 };

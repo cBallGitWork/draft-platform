@@ -416,6 +416,24 @@ const leagueEventFields = {
   event: leagueEvent,
 };
 
+// Mail (#26, spec/16). A letter is filed as one row for each person it's to, so who got it is
+// fixed when it's filed: someone who joins later doesn't get the league's old letters.
+
+const letterFields = {
+  /** Whom this copy is to, by email. */
+  to: v.string(),
+  leagueId: v.id("leagues"),
+  /** The league's name when it was filed. */
+  leagueName: v.string(),
+  at: v.number(),
+  /** Who wrote it, by email: absent on a letter the app files about something that happened. */
+  from: v.optional(v.string()),
+  subject: v.string(),
+  body: v.string(),
+  /** When `to` opened it; absent while unread. */
+  readAt: v.optional(v.number()),
+};
+
 // A league's rules (#25, spec/03). Each change is a new row from the gameweek it takes effect, so
 // past gameweeks keep the rules they were played under; who changed them is in leagueEvents.
 const leagueRulesTables = {
@@ -452,6 +470,10 @@ export default defineSchema({
     .index("by_leagueId_and_decision", ["leagueId", "decision"])
     .index("by_leagueId_and_email_and_decision", ["leagueId", "email", "decision"]),
   lastLeagues: defineTable(lastLeagueFields).index("by_email", ["email"]).index("by_leagueId", ["leagueId"]),
+  letters: defineTable(letterFields)
+    .index("by_to_and_at", ["to", "at"])
+    .index("by_to_and_readAt", ["to", "readAt"])
+    .index("by_leagueId", ["leagueId"]),
   feedChecks: defineTable(feedCheckFields),
   clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
   players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_clubCode", ["clubCode"]),

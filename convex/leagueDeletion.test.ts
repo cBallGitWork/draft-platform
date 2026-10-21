@@ -87,13 +87,15 @@ describe("while it can be undone", () => {
       "leagueGameweeks:setUsed": () => admin.mutation(api.leagueGameweeks.setUsed, { leagueId, gameweek: 38, used: false }),
       "leagueRules:change": () => admin.mutation(api.leagueRules.change, { leagueId, rules: structuredClone(FIRST_RULES) }),
       "lastLeague:switchTo": () => commissioner.mutation(api.lastLeague.switchTo, { leagueId }),
+      "mail:writeToLeague": () => admin.mutation(api.mail.writeToLeague, { leagueId, subject: "Still here?", body: "It's being deleted." }),
     };
     for (const change of Object.values(changes)) await expect(change()).rejects.toThrow(refusals.beingDeleted);
     expect(await everythingOf(leagueId)).toEqual(before);
 
     // A mutation added later that is given a league, or a row in one, fails here until it is tried
     // above: the freeze holds only where a change starts at getLeague (leagueAccess.ts).
-    const allowedWhileFrozen = ["leagueDeletion:undo"];
+    // Opening one's own letter marks it read, which changes nothing in the league.
+    const allowedWhileFrozen = ["leagueDeletion:undo", "mail:open"];
     expect(Object.keys(changes).sort()).toEqual((await mutationsGivenALeague()).filter((name) => !allowedWhileFrozen.includes(name)));
   });
 

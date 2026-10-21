@@ -1,16 +1,19 @@
-// The screens' tests' shared setup: the app opened at an address, for a session, with sign-in's
-// and leagues' actions and a league's gameweeks faked so a test can see what was asked of them.
+// The screens' tests' shared setup: the app opened at an address, for a session, with sign-in's,
+// leagues', Mail's and joining's actions and a league's gameweeks faked so a test can see what was
+// asked of them.
 
 import { createMemoryHistory } from "@tanstack/react-router";
 import { render } from "@testing-library/react";
 import { vi } from "vitest";
 import type { Id } from "../convex/_generated/dataModel";
+import type { LetterSummary } from "../convex/mail";
 import type { LeagueSummary } from "../convex/myLeagues";
 import type { AuthActions, Session } from "./auth";
 import { emptyTopBar, type TopBarState } from "./frame/topBarState";
 import { fakeGameweeks } from "./gameweeks/gameweeks.harness";
 import { fakeJoining, type JoiningData } from "./joining/joining.harness";
 import type { LeagueActions } from "./leagues/actions";
+import type { Mail } from "./mail/actions";
 import { ShellApp } from "./ShellApp";
 
 // The router restores scroll on every navigation, and jsdom has no scrolling to restore.
@@ -65,21 +68,46 @@ const fakeLeagues = () => ({
   switchLeague: vi.fn<LeagueActions["switchLeague"]>(async () => null),
 });
 
-/** The app opened at `path` for `session`: where it is, the fake sign-in, league, joining and
- *  gameweeks seams, and a way to change the session as signing in or out, or a league changing, would. */
-export function openApp(path: string, session: Session, topBar: TopBarState = emptyTopBar, joiningData: JoiningData = {}) {
+/** Mail holding `letters`, whose letter to the league is sent, unless a test says otherwise. */
+const fakeMail = (letters: readonly LetterSummary[] | null) => ({
+  letters,
+  open: vi.fn<Mail["open"]>(async () => {}),
+  writeToLeague: vi.fn<Mail["writeToLeague"]>(async () => null),
+});
+
+/** The app opened at `path` for `session`, with `letters` in Mail: where it is, the fake sign-in,
+ *  league, Mail, joining and gameweeks seams, and a way to change the session as signing in or out,
+ *  or a league changing, would. */
+export function openApp(
+  path: string,
+  session: Session,
+  topBar: TopBarState = emptyTopBar,
+  letters: readonly LetterSummary[] | null = [],
+  joiningData: JoiningData = {},
+) {
   const history = createMemoryHistory({ initialEntries: [path] });
   const auth = fakeAuth();
   const leagues = fakeLeagues();
+  const mail = fakeMail(letters);
   const joining = fakeJoining(joiningData, LINK_REPLY);
   const gameweeks = fakeGameweeks();
   const app = (current: Session) => (
-    <ShellApp session={current} auth={auth} leagues={leagues} joining={joining} topBar={topBar} gameweeks={gameweeks} history={history} />
+    <ShellApp
+      session={current}
+      auth={auth}
+      leagues={leagues}
+      mail={mail}
+      joining={joining}
+      topBar={topBar}
+      gameweeks={gameweeks}
+      history={history}
+    />
   );
   const view = render(app(session));
   return {
     auth,
     leagues,
+    mail,
     gameweeks,
     joining,
     path: () => history.location.pathname,

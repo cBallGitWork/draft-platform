@@ -8,7 +8,8 @@ import { createRoot } from "react-dom/client";
 import { previewGameweeks } from "./gameweeks/preview";
 import { LiveApp, takeLinkCode } from "./liveApp";
 import { previewJoining } from "./joining/preview";
-import { previewAuth, previewLeagues, previewSession, previewTopBar } from "./preview";
+import { previewMail, previewTopBar } from "./mail/previewMail";
+import { previewAuth, previewLeagues, previewSession } from "./preview";
 import { ShellApp } from "./ShellApp";
 
 const preview = previewSession();
@@ -18,7 +19,15 @@ if (!root) throw new Error("index.html has no #root element to mount the app in"
 createRoot(root).render(
   <StrictMode>
     {preview ? (
-      <ShellApp session={preview} auth={previewAuth} leagues={previewLeagues} joining={previewJoining} topBar={previewTopBar} gameweeks={previewGameweeks} />
+      <ShellApp
+        session={preview}
+        auth={previewAuth}
+        leagues={previewLeagues}
+        mail={previewMail}
+        joining={previewJoining}
+        topBar={previewTopBar}
+        gameweeks={previewGameweeks}
+      />
     ) : (
       <LiveApp linkCode={takeLinkCode()} />
     )}
