@@ -62,6 +62,17 @@ competition, not the design plate (`docs/design/plate.md`).
 | Match rating and Man of the Match | CM's Av R and MoM: a 1–10 rating from his points against his area; MoM the top scorer in each head-to-head |
 | Saved tactics | FM's: a few formations kept to switch between, say one for a double gameweek |
 | One player on several teams | Not now; maybe later (Craig, 20 Oct 2026). A draft is normally one owner per league; some leagues do one per division. The draft, waivers, trades and "owned in the league" all assume one owner |
+| The first rules' guessed defaults | `convex/firstRules.ts` guesses them, each marked "guess": head-to-head; a squad of 11 to 14; every area 0 to 10 but exactly one goalkeeper; tie-breaks `["pointsFor"]` alone, of the three there are (points for, head-to-head, points against); waivers Tuesday 23:00 in reverse standings, and "the doc's live 23-hour minimum waiver period has no rule here". Tie-breaks also open: PR #129's "Your call", item 5 |
+| More games a gameweek than opponents | `convex/roundRobin.ts`: "A league asking for more plays as many as there are." It caps them without saying so; should it refuse, or meet the same team twice? |
+| When a gameweek has begun | The league's deadline, FPL's, or whichever is first. `convex/nextGameweek.ts` takes the first ("whose league deadline, and FPL's own, are both still ahead"); `convex/leagueGameweeks.ts` checks FPL's only ("FPL's deadline decides when a gameweek has begun"). #138 |
+| An own stat named like a catalogue stat | `convex/ownStats.ts` requires "a key, a name and a short code of its own, none a catalogue stat's", but checks names and codes only against other own stats. May one be called Minutes, or M? Keys: #136 |
+| A league name's length | A team's name has one (`convex/leagueAccess.ts`: "A team's name is up to ${TEAM_NAME_MAX} characters.", 30 in `convex/leagueLimits.ts`); `leagues.create` refuses only a blank name ("Give it a name."). Should a league's have a maximum? |
+| Frozen fixtures | `spec/13`: "a change reshuffles only fixtures not yet played". Open: a team joining mid-season, a rule change from its `fromGameweek`, and the commissioner's fixture edits (`spec/09`: "the commissioner can edit them"). #137 |
+| How the admin hears a feed or sync failure | `spec/15`: "A feed that stops silently is the failure to catch." The feeds page only (#35), or email too, out of Resend's "100 a day" (`ARCHITECTURE.md`)? |
+| A screen whose read fails | What it shows, and whether it shows the server's words. `docs/PHILOSOPHY.md`: "Don't swallow errors silently. If something fails, we need to know." |
+
+The rows from the first rules' defaults down are open questions from the repo audit of 21 Oct
+2026, details the spec doesn't settle rather than new features.
 
 Thought of and set aside, as they clash with what's settled: board confidence and the sack
 (storylines are out of scope), counter-tactics (your tactics never touch your opponent's points),
