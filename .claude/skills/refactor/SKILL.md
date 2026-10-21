@@ -16,9 +16,9 @@ Committed and uncommitted, against `main`, then any new files:
 
 Work over the whole branch's diff, not only the last edit. Change only what the branch already
 changed: something older that breaks a rule becomes an issue (`CLAUDE.md`), unless it sits in a
-file the task already touches. In scoring, the draft or saved data, a fix that changes what a
-function takes or returns is reported, never made here: it is a feature or a fix
-(`docs/REFACTORING.md`, *What is never a refactor*).
+file the task already touches. In scoring, the draft or saved data, a fix that changes a
+function's arguments or result (handing it the league's rules, say) is reported, never made
+here: it needs its own pull request (`docs/REFACTORING.md`, *What is never a refactor*).
 
 ## The checklist, twice
 
@@ -38,9 +38,9 @@ function takes or returns is reported, never made here: it is a feature or a fix
    one use goes. Code copied from epl-draft stays copied.
 6. **Right home, nothing hardcoded:** no bare number or string that means something in a
    function body; each goes to its shared file, one home for each kind of thing. FPL's fixed
-   rules are constants; a league's rules are data, never a constant; the feeds' endpoints sit
-   behind the football layer's one seam (`ARCHITECTURE.md`). Setup a test repeats goes in a
-   shared helper, not the test body.
+   rules are constants; a league's rules are data, never a constant (in scoring, reported: see
+   above); the feeds' endpoints sit behind the football layer's one seam (`ARCHITECTURE.md`).
+   Setup a test repeats goes in a shared helper, not the test body.
 
 Report every finding from each pass with its file and line, including the ones you chose not to
 act on. A pass that finds nothing is a valid result; never invent changes to look busy. A green
