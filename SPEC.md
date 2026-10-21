@@ -41,7 +41,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 11 | [Email](spec/11-email.md) | not built | on a pick clock over 10 minutes the manager on the clock gets one email; under it, none |
 | 12 | [Screens](spec/12-screens.md) | not built | a signed-in manager lands on My team, with Mail's unread count in the menu |
 | 13 | [Setting up a league](spec/13-setting-up-a-league.md) | leagues, teams and who runs them built (#24); joining waits for #73, gameweeks #74, deleting #75, switching leagues #76 | a league of four fills from two emailed invites and two approved join requests |
-| 14 | [Scoring categories](spec/14-scoring-categories.md) | not built | a match's stats priced under a set of rules give each category's points and the total, by the slot's area |
+| 14 | [Scoring categories](spec/14-scoring-categories.md) | not built | a match's stats priced under a set of rules give each category's points and the total, by the slot's area or position, within each rule's points limits |
 | 15 | [Admin tools](spec/15-admin-tools.md) | not built | a commissioner's assignment puts the player on the team and files a Mail letter to the league |
 | 16 | [Mail](spec/16-mail.md) | the letter store, letters about a league's events, the commissioner's letter, the Mail screen and its count built (#26); down the side of My team waits for My team; each feature files its own letters | a claim, a drop and a trade each file one letter for every manager in the league |
 | 17 | [Captain and set pieces](spec/17-captain-and-set-pieces.md) | after the mini beta | the first on a set-piece list who plays is paid for the duty for the whole match, and no one else on the list is |
@@ -90,7 +90,9 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - Injured reserve.
 - A limit on auto-subs, or a switch to turn them off.
 - Public league pages: no league is visible without signing in.
-- FPL's bonus points, and a ready-made FPL-style or Fantrax-copy scoring set.
+- FPL's bonus points, and a ready-made FPL-style or Fantrax-copy scoring set for a league to pick.
+  The mini beta's first set starts from FPL's values as a draft Craig changes (spec/14).
+- A limit on a player's whole match, or on a team's gameweek total.
 - A lock at each player's kickoff: there is one deadline per gameweek.
 
 ## Glossary
@@ -106,7 +108,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | invite link | a league's one shareable link; opening it only asks to join | |
 | join request | what opening the invite link makes, for the commissioner to approve or refuse | |
 | club | a real Premier League club | team |
-| position | where a player can play in real life (CB, FB, CAM, W); no side | right back, left winger |
+| position | where a player can play in real life (CB, FB, CAM, W); no side. A slot has one too, from its area and lane (spec/14) | right back, left winger |
 | admin dashboard | the admin's one screen: the positions queue and corrections, thresholds, and the feeds page | |
 | role | what you tell him to do in your slot, which changes his points | |
 | trait | what he does in real life (inverted full-back, cuts inside) | style |
@@ -117,6 +119,8 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | formation | how a lineup stands on the pitch's grid, preset or placed freely | shape |
 | preset | a ready-made formation, such as 4-2-3-1 | |
 | category | one stat a league can score, such as goals or tackles won | |
+| own stat | a stat a league makes by adding catalogue stats with weights | custom stat, formula |
+| points limit | a rule's maximum or minimum points for one player in one match | cap (that is the salary cap), floor, ceiling |
 | short code | a category's abbreviation in dense tables: G, A, CS, KP, TW | |
 | lineup | a team's starters and bench for one gameweek | |
 | squad | every player a team owns | |
