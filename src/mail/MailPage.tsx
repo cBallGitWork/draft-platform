@@ -4,6 +4,7 @@ import type { LetterSummary } from "../../convex/mail";
 import { LETTERS_SHOWN } from "../../convex/mailLimits";
 import type { LeagueSummary } from "../../convex/myLeagues";
 import type { Session } from "../auth";
+import { Loading, PageTitle } from "../frame/Panel";
 import { runs } from "../leagues/roles";
 import type { Mail } from "./actions";
 import { WriteToLeague } from "./WriteToLeague";
@@ -32,12 +33,7 @@ export function MailPage({ mail, unread, writableLeagues }: { mail: Mail; unread
   return (
     <div className="flex flex-wrap items-start gap-2">
       <section aria-labelledby="page-title" className="min-w-0 max-w-3xl flex-[2_1_480px] bg-panel">
-        <div className="flex items-baseline justify-between bg-plate px-4 py-1 shadow-bevel-plate">
-          <h1 id="page-title" className="text-title font-bold">
-            {MAIL_TITLE}
-          </h1>
-          <span>{unreadCount(unread)}</span>
-        </div>
+        <PageTitle aside={<span>{unreadCount(unread)}</span>}>{MAIL_TITLE}</PageTitle>
         <Letters mail={mail} />
       </section>
       {writableLeagues.length > 0 && <WriteToLeague leagues={writableLeagues} writeToLeague={mail.writeToLeague} />}
@@ -47,7 +43,7 @@ export function MailPage({ mail, unread, writableLeagues }: { mail: Mail; unread
 
 function Letters({ mail }: { mail: Mail }) {
   const [openId, setOpenId] = useState<Id<"letters"> | null>(null);
-  if (mail.letters === null) return <p role="status" className="px-3 py-2 text-muted">{loadingWords}</p>;
+  if (mail.letters === null) return <Loading className="px-3 py-2">{loadingWords}</Loading>;
   if (mail.letters.length === 0) return <p className="px-3 py-2 text-muted">{noLettersWords}</p>;
 
   function toggle(letter: LetterSummary) {

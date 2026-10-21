@@ -1,4 +1,4 @@
-import { PageTitle, Problem } from "../frame/Panel";
+import { Loading, PageTitle, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { useChange } from "../useChange";
 import { FindPlayer } from "./FindPositions";
@@ -22,7 +22,7 @@ export function AdminPage({ seam }: { seam: AdminSeam }) {
         <Problem problem={change.problem} />
       </section>
       {queue === undefined ? (
-        <p className="text-muted">{loadingWords}</p>
+        <Loading>{loadingWords}</Loading>
       ) : (
         <div className="grid items-start gap-2 lg:grid-cols-2">
           <div className="flex flex-col gap-2">

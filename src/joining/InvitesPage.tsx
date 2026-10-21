@@ -1,4 +1,4 @@
-import { PageTitle } from "../frame/Panel";
+import { Loading, PageTitle } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { EmailInvites } from "./EmailInvites";
 import { InviteLinkPanel } from "./InviteLinkPanel";
@@ -22,12 +22,12 @@ export function InvitesPage({ leagueId, joining }: { leagueId: string; joining: 
         <PageTitle>{invitesTitle}</PageTitle>
         {page ? (
           <p className="px-3 py-2 text-lead font-semibold">{page.leagueName}</p>
+        ) : page === undefined ? (
+          <Loading className="px-3 py-2">{loadingWords}</Loading>
         ) : (
           <p className="flex flex-wrap items-center gap-4 px-3 py-2 text-muted">
-            {page === undefined ? loadingWords : notYoursWords}
-            {page === null && (
-              <BackToLeagues />
-            )}
+            {notYoursWords}
+            <BackToLeagues />
           </p>
         )}
         {waiting > 0 && (

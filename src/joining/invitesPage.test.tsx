@@ -10,7 +10,7 @@ import { DAY_MS } from "../../convex/time";
 import { commissioner, league, managerIn, openApp } from "../shell.harness";
 import { invitesPath } from "./paths";
 import type { InvitesPageData } from "./seam";
-import { dayWords, expiredWords, invitesTitle, joinedWords, noTeamWords, notYoursWords, waitingStrip } from "./words";
+import { dayWords, expiredWords, invitesTitle, joinedWords, loadingWords, noTeamWords, notYoursWords, waitingStrip } from "./words";
 
 afterEach(cleanup);
 
@@ -145,5 +145,13 @@ describe("join requests", () => {
   it("show the day each was asked", async () => {
     openPage();
     expect(await screen.findByText(`Asked ${dayWords(Date.UTC(2026, 9, 19))}`)).toBeTruthy();
+  });
+});
+
+describe("while the server answers", () => {
+  it("says the page is loading, to screen readers too", async () => {
+    openApp(invitesPath(league.leagueId), commissioner, { joining: {} });
+    await screen.findByRole("heading", { level: 1, name: invitesTitle });
+    expect(screen.getByRole("status").textContent).toBe(loadingWords);
   });
 });

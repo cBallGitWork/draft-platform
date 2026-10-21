@@ -88,3 +88,11 @@ describe("someone signed in opening the invite link", () => {
     expect(app.path()).toBe(joinPath(TOKEN));
   });
 });
+
+describe("while the server answers", () => {
+  it("says the link is loading, to screen readers too", async () => {
+    openApp(joinPath(TOKEN), newcomer, { joining: {} });
+    await screen.findByRole("heading", { level: 1, name: joinPageWords.title });
+    expect(screen.getByRole("status").textContent).toBe(joinPageWords.loading);
+  });
+});

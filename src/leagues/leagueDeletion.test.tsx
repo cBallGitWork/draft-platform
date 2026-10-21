@@ -71,7 +71,10 @@ describe("Delete league", () => {
     await userEvent.click(await deleteButtonShown());
     await userEvent.click(screen.getByRole("button", { name: "Delete it" }));
 
-    expect((await screen.findByRole("alert")).textContent).toBe("Only the league's commissioner or the admin can delete it.");
+    const refusal = await screen.findByRole("alert");
+    expect(refusal.textContent).toBe("Only the league's commissioner or the admin can delete it.");
+    // In the alert strip, as every refusal is (Problem).
+    expect(refusal.classList.contains("alert-strip")).toBe(true);
   });
 });
 
@@ -95,6 +98,10 @@ describe("a league being deleted", () => {
     app.leagues.undoDeletion.mockResolvedValue("It's too late to undo: the league is being deleted for good.");
     await userEvent.click(await screen.findByRole("button", { name: "Undo" }));
 
-    expect((await screen.findByRole("alert")).textContent).toBe("It's too late to undo: the league is being deleted for good.");
+    const refusal = await screen.findByRole("alert");
+    expect(refusal.textContent).toBe("It's too late to undo: the league is being deleted for good.");
+    // The row is already the alert strip, so the refusal is a line in it, not a strip inside a strip.
+    expect(refusal.classList.contains("alert-strip")).toBe(false);
+    expect(refusal.closest("td")?.classList.contains("alert-strip")).toBe(true);
   });
 });

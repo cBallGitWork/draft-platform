@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/myLeagues";
+import { Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { LeagueActions } from "./actions";
 import { beingDeleted, confirmDelete, confirmDeleteWords, deleteLeagueWords, unemailed, undoWords, unsentLinkWords } from "./words";
@@ -50,11 +51,7 @@ export function LeagueDeletionRow({ league, canDelete, actions }: { league: Leag
               {deleteLeagueWords}
             </button>
           )}
-          {problem && (
-            <p role="alert" className="text-event">
-              {problem}
-            </p>
-          )}
+          {deletion ? problem && <p role="alert">{problem}</p> : <Problem problem={problem} />}
         </div>
       </td>
     </tr>

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { PanelTitle } from "../frame/Panel";
 import { PRODUCT_NAME } from "../product";
 import { linkProblemWords, type LinkProblem } from "./words";
 
@@ -33,9 +34,7 @@ export function SignInPage({
       </header>
       <main className="p-2">
         <section aria-labelledby="sign-in-title" className="max-w-md bg-panel">
-          <h2 id="sign-in-title" className="bg-plate px-3 py-1 font-bold shadow-bevel-plate">
-            Sign in
-          </h2>
+          <PanelTitle id="sign-in-title">Sign in</PanelTitle>
           {linkProblem && !outcome && (
             <p role="alert" className="alert-strip">
               {linkProblemWords[linkProblem]}
@@ -53,7 +52,7 @@ export function SignInPage({
               autoComplete="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="min-h-tap border border-soft bg-ground px-2 text-lead text-fact"
+              className="text-box"
             />
             <p className="text-muted">We'll email you a link that signs you in. No password.</p>
             <button type="submit" disabled={sending} className="action self-start">
