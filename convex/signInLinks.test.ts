@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "./_generated/api";
+import { EMAILS_PER_DAY } from "./emailLimit";
 import {
   ADMIN,
   LISTED,
@@ -10,10 +11,11 @@ import {
   linkCode,
   openLink,
   resetSignInDeployment,
+  setSentToday,
   signInDeployment,
   type TestConvex,
 } from "./signIn.harness";
-import { ASKS_PER_HOUR, EMAILS_PER_DAY, dayOf } from "./signInLinks";
+import { ASKS_PER_HOUR } from "./signInLinks";
 
 const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -165,7 +167,7 @@ describe("the hourly limit", () => {
 
 describe("the day's email limit", () => {
   async function sendTodaysLastEmail() {
-    await t.run((ctx) => ctx.db.insert("emailSends", { day: dayOf(Date.now()), count: EMAILS_PER_DAY - 1 }));
+    await setSentToday(t, EMAILS_PER_DAY - 1);
     await ask(t, ADMIN);
   }
 

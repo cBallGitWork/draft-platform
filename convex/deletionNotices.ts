@@ -1,14 +1,14 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "./_generated/api";
 import { internalAction, internalMutation, type ActionCtx } from "./_generated/server";
+import { takeTodaysEmail as takeOne } from "./emailLimit";
 import { londonTime } from "./londonTime";
 import { unemailedReason } from "./schema";
 import { sendEmail } from "./signInEmail";
-import { EMAILS_PER_DAY, dayOf } from "./signInLinks";
 
 // The email each person with a part in a league gets when it is deleted (#75, spec/13, Deleting):
 // that it will be deleted, and when. Each counts against the day's emails as a sign-in link does
-// (signInLinks.ts); one the limit or the email service stops is kept on the league, so whoever
+// (emailLimit.ts); one the limit or the email service stops is kept on the league, so whoever
 // deleted it sees who wasn't told.
 
 /** Wording for Craig to change in the pull request. */
@@ -52,22 +52,11 @@ async function sendOne(
   }
 }
 
-/** Counts one of today's emails, or says none is left. Counted before it is sent, as signInLinks.ts
- *  counts a link; one that then fails stays counted. */
+/** Counts one of today's emails, or says none is left (emailLimit.ts): an action's way in. */
 export const takeTodaysEmail = internalMutation({
   args: {},
   returns: v.boolean(),
-  handler: async (ctx) => {
-    const day = dayOf(Date.now());
-    const sentToday = await ctx.db
-      .query("emailSends")
-      .withIndex("by_day", (q) => q.eq("day", day))
-      .unique();
-    if (!sentToday) await ctx.db.insert("emailSends", { day, count: 1 });
-    else if (sentToday.count >= EMAILS_PER_DAY) return false;
-    else await ctx.db.patch("emailSends", sentToday._id, { count: sentToday.count + 1 });
-    return true;
-  },
+  handler: (ctx) => takeOne(ctx),
 });
 
 export const recordUnemailed = internalMutation({

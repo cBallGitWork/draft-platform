@@ -9,7 +9,6 @@ import {
   invitesPage,
   lastEmailTo,
   openLastLinkTo,
-  spendTodaysEmails,
 } from "./joining.harness";
 import { joiningRefusals } from "./joining";
 import { DAY_MS, INVITE_LIFETIME_MS, invitedPath } from "./joiningShared";
@@ -25,7 +24,15 @@ import {
   teamsIn,
   type TestConvex,
 } from "./leagues.harness";
-import { SITE_URL, ask, fakeResend, resetSignInDeployment, signInDeployment, type SentEmail } from "./signIn.harness";
+import {
+  SITE_URL,
+  ask,
+  fakeResend,
+  resetSignInDeployment,
+  signInDeployment,
+  spendTodaysEmails,
+  type SentEmail,
+} from "./signIn.harness";
 
 // Emailed invites (#73 stories 1 and 5; spec/13, Joining).
 
