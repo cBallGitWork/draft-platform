@@ -47,6 +47,14 @@ describe("letters about the league's events", () => {
     expect(await (await mailOf(ADMIN)).letters()).toEqual([]);
   });
 
+  test("what joining, gameweeks, rules and deleting do is filed too: here, a new invite link", async () => {
+    await addManagers(t, leagueId, [ANN]);
+    await (await actingAs(t, COMMISSIONER)).mutation(api.inviteLink.make, { leagueId });
+
+    expect((await (await mailOf(ANN)).subjects())[0]).toBe("The league has a new invite link");
+    expect((await (await mailOf(COMMISSIONER)).subjects())[0]).toBe("The league has a new invite link");
+  });
+
   test("someone with two parts in the league gets one copy", async () => {
     await addManagers(t, leagueId, [COMMISSIONER, ANN]);
     const copies = (await everyLetter()).filter(([to, subject]) => to === COMMISSIONER && subject === `${ANN} joined as manager of Team 2`);

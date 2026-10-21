@@ -41,8 +41,9 @@ export const ask = action({
   handler: (ctx, { email }) => askForLink(ctx, email),
 });
 
-/** `ask`'s work, for the server's own sends too: a newly named commissioner's link (leagues.ts). */
-export async function askForLink(ctx: ActionCtx, typedEmail: string): Promise<SignInReply> {
+/** `ask`'s work, for the server's own sends too: a newly named commissioner's link (leagues.ts),
+ *  and joining's (#73), whose links lead back to `redirectTo`, a path in the app. */
+export async function askForLink(ctx: ActionCtx, typedEmail: string, redirectTo?: string): Promise<SignInReply> {
   const email = normaliseEmail(typedEmail);
   const asked: Infer<typeof askOutcome> = await ctx.runMutation(internal.signInLinks.recordAsk, { email });
   switch (asked.outcome) {
@@ -54,7 +55,7 @@ export async function askForLink(ctx: ActionCtx, typedEmail: string): Promise<Si
     case "send":
       try {
         // Convex Auth's own action makes the link and sends it: only it holds its config.
-        await ctx.runAction(api.auth.signIn, { provider: "resend", params: { email } });
+        await ctx.runAction(api.auth.signIn, { provider: "resend", params: { email, redirectTo } });
         return "checkYourEmail";
       } catch (error) {
         const sendError = error instanceof Error ? error.message : String(error);

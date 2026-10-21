@@ -49,7 +49,13 @@ test("signed out, the browser is signed in as nobody", async () => {
 test("signed in by a link, a manager is seen by their email, as no admin, and in no league", async () => {
   const { asUser } = await signIn(LISTED);
 
-  expect(await asUser.query(api.account.signedInAs, {})).toEqual({ email: LISTED, isAdmin: false, inLeague: false, leagues: [] });
+  expect(await asUser.query(api.account.signedInAs, {})).toEqual({
+    email: LISTED,
+    isAdmin: false,
+    inLeague: false,
+    leagues: [],
+    currentLeagueId: null,
+  });
 });
 
 test("the admin, signed in, is seen as the admin", async () => {

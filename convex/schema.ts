@@ -1,6 +1,7 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v, type VLiteral } from "convex/values";
+import { leagueRulesShape } from "./leagueRulesShape";
 import { POSITIONS, type Position } from "./positionTables";
 import { signInReply } from "./signInLinks";
 
@@ -279,6 +280,22 @@ const liveStatsTables = {
   liveStatsTicks: defineTable(liveStatsTickFields),
 };
 
+// Deleting a league (#75): how it works is in leagueDeletion.ts.
+
+/** Why one person wasn't emailed that their league is being deleted: the day's emails had all
+ *  gone, or the email service didn't send it. */
+export const unemailedReason = v.union(v.literal("paused"), v.literal("notSent"));
+
+export const leagueDeletion = v.object({
+  /** Who deleted it, by email: they, and the admin, see it and can undo it. */
+  by: v.string(),
+  deletesAt: v.number(),
+  /** The scheduled deleteForGood, which undoing cancels. */
+  scheduledId: v.id("_scheduled_functions"),
+  /** Each person who wasn't emailed, so whoever deleted it is told. */
+  unemailed: v.array(v.object({ email: v.string(), reason: unemailedReason })),
+});
+
 // Leagues (#24, spec/13). People are known by their email, trimmed and lower-cased, so a
 // commissioner or manager can be named before they have an account; the admin is ADMIN_EMAIL.
 
@@ -292,6 +309,11 @@ const leagueFields = {
   /** What asking for the commissioner's sign-in link answered, when one was sent: a commissioner
    *  with no account gets one when named. */
   commissionerLink: v.optional(v.object({ email: v.string(), reply: signInReply })),
+  /** Present while the league is being deleted (#75). */
+  deletion: v.optional(leagueDeletion),
+  /** The gameweeks its commissioner unticked, in order (#74, convex/usedGameweeks.ts). Absent while
+   *  it plays all 38, the default, so a league needs no write to have it. */
+  unusedGameweeks: v.optional(v.array(v.number())),
 };
 
 const teamFields = {
@@ -308,6 +330,64 @@ const replaced = v.union(v.string(), v.null());
 /** A manager and their team, its name as it was then. */
 const managerOfTeam = { email: v.string(), teamId: v.id("teams"), teamName: v.string() };
 
+// Joining a league (#73, spec/13 Joining): emailed invites, the league's invite link and join
+// requests.
+
+/** Where an email the app sends stands: being sent; sent; waiting for tomorrow, the day's emails
+ *  all gone (spec/13); or not sent, for too many links to that email this hour, or by the email
+ *  service. */
+export const delivery = v.union(
+  v.literal("sending"),
+  v.literal("sent"),
+  v.literal("waiting"),
+  v.literal("tryLater"),
+  v.literal("notSent"),
+);
+
+/** One emailed invite (spec/13, Joining). It is live until it expires, is cancelled, or the person
+ *  signs in, which ends it with the team they joined or why they couldn't. */
+const inviteFields = {
+  leagueId: v.id("leagues"),
+  email: v.string(),
+  /** The vacated team it names; absent for a new team. */
+  teamId: v.optional(v.id("teams")),
+  invitedBy: v.string(),
+  /** Seven days after it was made or last sent. */
+  expiresAt: v.number(),
+  delivery,
+  cancelledAt: v.optional(v.number()),
+  joined: v.optional(v.object({ teamId: v.id("teams"), teamName: v.string() })),
+  couldNotJoin: v.optional(v.string()),
+};
+
+/** A league's one live invite link, by its token: switching it off or replacing it deletes the row. */
+const inviteLinkFields = { leagueId: v.id("leagues"), token: v.string() };
+
+/** One join request, made by opening the invite link (spec/15, Joining a league). */
+const joinRequestFields = {
+  leagueId: v.id("leagues"),
+  email: v.string(),
+  /** Absent while it waits for the commissioner. */
+  decision: v.optional(v.union(v.literal("approved"), v.literal("refused"))),
+  decidedBy: v.optional(v.string()),
+  /** The email telling an approved person so. */
+  approvedEmail: v.optional(delivery),
+};
+
+/** Whom an invite is for: a vacated team, or (both null) a new team. */
+const invitedTo = { email: v.string(), teamId: v.union(v.id("teams"), v.null()), teamName: v.union(v.string(), v.null()) };
+
+/** What joining files for Mail. A refused join request files nothing (spec/13, Joining). */
+const joiningEvents = [
+  v.object({ kind: v.literal("invited"), ...invitedTo }),
+  v.object({ kind: v.literal("inviteResent"), ...invitedTo }),
+  v.object({ kind: v.literal("inviteCancelled"), ...invitedTo }),
+  v.object({ kind: v.literal("joinedByInvite"), ...managerOfTeam, invitedBy: v.string() }),
+  v.object({ kind: v.literal("joinRequestApproved"), ...managerOfTeam }),
+  v.object({ kind: v.literal("inviteLinkMade"), replacedOne: v.boolean() }),
+  v.object({ kind: v.literal("inviteLinkSwitchedOff") }),
+] as const;
+
 /** What happened in a league, for Mail (#26) to turn into letters (spec/15, The commissioner):
  *  each says all a letter needs, as it was at the time. */
 export const leagueEvent = v.union(
@@ -320,6 +400,12 @@ export const leagueEvent = v.union(
   v.object({ kind: v.literal("managerLeft"), ...managerOfTeam }),
   v.object({ kind: v.literal("teamRenamed"), teamId: v.id("teams"), from: v.string(), to: v.string() }),
   v.object({ kind: v.literal("maxTeamsChanged"), from: v.number(), to: v.number() }),
+  v.object({ kind: v.literal("deletionStarted"), name: v.string(), deletesAt: v.number() }),
+  v.object({ kind: v.literal("deletionUndone"), name: v.string() }),
+  v.object({ kind: v.literal("gameweekUsed"), gameweek: v.number(), used: v.boolean() }),
+  ...joiningEvents,
+  /** `changed` names the parts of LeagueRules that changed, such as "scoring". */
+  v.object({ kind: v.literal("rulesChanged"), fromGameweek: v.number(), changed: v.array(v.string()) }),
 );
 
 const leagueEventFields = {
@@ -348,10 +434,24 @@ const letterFields = {
   readAt: v.optional(v.number()),
 };
 
+// A league's rules (#25, spec/03). Each change is a new row from the gameweek it takes effect, so
+// past gameweeks keep the rules they were played under; who changed them is in leagueEvents.
+const leagueRulesTables = {
+  leagueRules: defineTable({ leagueId: v.id("leagues"), fromGameweek: v.number(), rules: leagueRulesShape }).index(
+    "by_leagueId_and_fromGameweek",
+    ["leagueId", "fromGameweek"],
+  ),
+  /** One row: the rules the admin gives each new league. */
+  defaultLeagueRules: defineTable({ rules: leagueRulesShape }),
+};
+/** The league switcher (#76): the league each person used last, by email, one row each. */
+const lastLeagueFields = { email: v.string(), leagueId: v.id("leagues") };
+
 export default defineSchema({
   ...matchStatsTables,
   ...liveStatsTables,
   ...authTables,
+  ...leagueRulesTables,
   allowedEmails: defineTable(allowedEmailFields).index("by_email", ["email"]),
   signInAsks: defineTable(signInAskFields).index("by_email_and_askedAt", ["email", "askedAt"]),
   emailSends: defineTable(emailSendFields).index("by_day", ["day"]),
@@ -362,7 +462,18 @@ export default defineSchema({
     .index("by_leagueId_and_number", ["leagueId", "number"])
     .index("by_managerEmail", ["managerEmail"]),
   leagueEvents: defineTable(leagueEventFields).index("by_leagueId_and_at", ["leagueId", "at"]),
-  letters: defineTable(letterFields).index("by_to_and_at", ["to", "at"]).index("by_to_and_readAt", ["to", "readAt"]),
+  invites: defineTable(inviteFields)
+    .index("by_leagueId", ["leagueId"])
+    .index("by_email_and_expiresAt", ["email", "expiresAt"]),
+  inviteLinks: defineTable(inviteLinkFields).index("by_leagueId", ["leagueId"]).index("by_token", ["token"]),
+  joinRequests: defineTable(joinRequestFields)
+    .index("by_leagueId_and_decision", ["leagueId", "decision"])
+    .index("by_leagueId_and_email_and_decision", ["leagueId", "email", "decision"]),
+  lastLeagues: defineTable(lastLeagueFields).index("by_email", ["email"]).index("by_leagueId", ["leagueId"]),
+  letters: defineTable(letterFields)
+    .index("by_to_and_at", ["to", "at"])
+    .index("by_to_and_readAt", ["to", "readAt"])
+    .index("by_leagueId", ["leagueId"]),
   feedChecks: defineTable(feedCheckFields),
   clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
   players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_clubCode", ["clubCode"]),

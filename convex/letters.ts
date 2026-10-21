@@ -54,6 +54,17 @@ function takenOut(event: LeagueEvent): string[] {
     case "managerAdded":
     case "teamRenamed":
     case "maxTeamsChanged":
+    case "deletionStarted":
+    case "deletionUndone":
+    case "gameweekUsed":
+    case "invited":
+    case "inviteResent":
+    case "inviteCancelled":
+    case "joinedByInvite":
+    case "joinRequestApproved":
+    case "inviteLinkMade":
+    case "inviteLinkSwitchedOff":
+    case "rulesChanged":
       return [];
   }
 }

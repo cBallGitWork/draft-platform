@@ -1,4 +1,5 @@
 import type { Infer } from "convex/values";
+import { londonTime } from "./londonTime";
 import type { leagueEvent } from "./schema";
 
 // What the letters Mail files about a league's events say (spec/15: nothing changes quietly), in
@@ -11,6 +12,7 @@ type Words = { subject: string; body: string };
 
 const handOn = "The team stays, for the commissioner to hand to someone new.";
 const inPlaceOf = (replaced: string | null) => (replaced === null ? "" : ` in place of ${replaced}`);
+const forTeam = (teamName: string | null) => (teamName === null ? "a new team" : teamName);
 
 /** The letter reporting `event`, done by `who`. */
 export function eventLetter(event: LeagueEvent, who: string): Words {
@@ -47,6 +49,45 @@ export function eventLetter(event: LeagueEvent, who: string): Words {
       return {
         subject: `The league now holds up to ${event.to} teams`,
         body: `${who} changed the most teams the league holds from ${event.from} to ${event.to}.`,
+      };
+    case "deletionStarted":
+      return {
+        subject: `${event.name} is being deleted`,
+        body: `${who} deleted the league. It goes for good on ${londonTime(event.deletesAt)}, unless that is undone.`,
+      };
+    case "deletionUndone":
+      return { subject: `${event.name} is no longer being deleted`, body: `${who} undid deleting the league. It is as it was.` };
+    case "gameweekUsed":
+      return event.used
+        ? { subject: `Gameweek ${event.gameweek} counts again`, body: `${who} made gameweek ${event.gameweek} count for the league again.` }
+        : { subject: `Gameweek ${event.gameweek} won't count`, body: `${who} took gameweek ${event.gameweek} out of the league's season.` };
+    case "invited":
+      return { subject: `${event.email} was invited`, body: `${who} invited ${event.email} to manage ${forTeam(event.teamName)}.` };
+    case "inviteResent":
+      return { subject: `${event.email}'s invite was sent again`, body: `${who} sent ${event.email}'s invite to manage ${forTeam(event.teamName)} again.` };
+    case "inviteCancelled":
+      return { subject: `${event.email}'s invite was cancelled`, body: `${who} cancelled ${event.email}'s invite to manage ${forTeam(event.teamName)}.` };
+    case "joinedByInvite":
+      return {
+        subject: `${event.email} joined as manager of ${event.teamName}`,
+        body: `${event.email} took up ${event.invitedBy}'s invite and manages ${event.teamName}.`,
+      };
+    case "joinRequestApproved":
+      return {
+        subject: `${event.email} joined as manager of ${event.teamName}`,
+        body: `${who} approved ${event.email}'s request to join. They manage ${event.teamName}.`,
+      };
+    case "inviteLinkMade":
+      return {
+        subject: "The league has a new invite link",
+        body: `${who} made an invite link for the league${event.replacedOne ? ", and the old one no longer works" : ""}.`,
+      };
+    case "inviteLinkSwitchedOff":
+      return { subject: "The invite link is off", body: `${who} switched the league's invite link off.` };
+    case "rulesChanged":
+      return {
+        subject: `The league's rules change from gameweek ${event.fromGameweek}`,
+        body: `${who} changed the league's ${event.changed.join(", ")}, from gameweek ${event.fromGameweek}.`,
       };
   }
 }

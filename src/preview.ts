@@ -1,9 +1,9 @@
 // The screens without signing in, for screenshots: `/?preview=manager` (in two leagues),
-// `commissioner` (running the same two, so Mail offers a letter to either), `newcomer` (in none),
-// `admin` (in none, seeing every league and offered "Create a league") or `visitor` (signed out),
-// on the dev server only (the ui-verifier agent's way in). `import.meta.env.DEV` is false in
-// `vite build`, so the production bundle drops this and a logged-out visitor can never reach the
-// frame through it.
+// `commissioner` (running the same two, so Mail offers a letter to either, and deleting a third),
+// `newcomer` (in none), `admin` (in none, seeing every league and offered "Create a league") or
+// `visitor` (signed out), on the dev server only (the ui-verifier agent's way in).
+// `import.meta.env.DEV` is false in `vite build`, so the production bundle drops this and a
+// logged-out visitor can never reach the frame through it.
 
 import type { Id } from "../convex/_generated/dataModel";
 import type { LeagueSummary } from "../convex/myLeagues";
@@ -34,6 +34,26 @@ const miniBeta: LeagueSummary = {
   unsentCommissionerLink: { email: unreachedCommissioner, reply: "paused" },
 };
 
+/** A league the preview's commissioner deleted an hour ago, whose last two
+ *  managers weren't told: the day's emails had gone. */
+const sundayLeague: LeagueSummary = {
+  ...miniBeta,
+  leagueId: "preview-sunday-league" as Id<"leagues">,
+  name: "Sunday League",
+  commissionerEmail: "manager@example.com",
+  roles: ["commissioner"],
+  teams: 6,
+  maxTeams: 8,
+  unsentCommissionerLink: null,
+  deletion: {
+    deletesAt: Date.now() + 23 * 60 * 60 * 1000,
+    unemailed: [
+      { email: "late.joiner@example.com", reason: "paused" },
+      { email: "last.manager@example.com", reason: "paused" },
+    ],
+  },
+};
+
 export const manager = {
   signedIn: true,
   email: "manager@example.com",
@@ -43,27 +63,30 @@ export const manager = {
     proLeague,
     { ...miniBeta, roles: ["manager"], teamName: "Team 1", teams: 1, unsentCommissionerLink: null },
   ],
+  currentLeagueId: proLeague.leagueId,
 } as const satisfies Session;
 
-/** The manager, as co-commissioner of the Pro League and commissioner of Mini beta. */
+/** The manager, as co-commissioner of the Pro League and commissioner of Mini beta, deleting Sunday League. */
 const commissioner: Session = {
   ...manager,
   leagues: [
     { ...proLeague, roles: ["co-commissioner", "manager"] },
     { ...manager.leagues[1], commissionerEmail: manager.email, roles: ["commissioner", "manager"] },
+    sundayLeague,
   ],
 };
 
 const previewSessions: Record<string, Session> = {
   manager,
   commissioner,
-  newcomer: { ...manager, inLeague: false, leagues: [] },
+  newcomer: { ...manager, inLeague: false, leagues: [], currentLeagueId: null },
   admin: {
     ...manager,
     email: "admin@example.com",
     isAdmin: true,
     inLeague: false,
     leagues: [miniBeta, { ...proLeague, roles: [], teamName: null }],
+    currentLeagueId: null,
   },
   visitor: { signedIn: false },
 };
@@ -75,9 +98,13 @@ export function previewSession(): Session | null {
   return name !== null && Object.hasOwn(previewSessions, name) ? previewSessions[name] : null;
 }
 
-/** Creating a league makes nothing, and says so. */
+/** Creating or deleting a league, or undoing that, does nothing, and switching league stays put,
+ *  each saying so. */
 export const previewLeagues: LeagueActions = {
   createLeague: async () => "This is a preview: no league was made.",
+  deleteLeague: async () => "This is a preview: no league was deleted.",
+  undoDeletion: async () => "This is a preview: nothing was undone.",
+  switchLeague: async () => "This is a preview: you're still in this league.",
 };
 
 /** Asking for a link gets the reply everyone gets; nothing is sent, and signing out does nothing. */

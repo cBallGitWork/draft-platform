@@ -5,6 +5,7 @@ import { act, cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { signInToJoinWords } from "./joining/words";
 import { LEAGUES_PATH } from "./leagues/paths";
 import { LiveApp, NO_CONVEX_URL, takeLinkCode } from "./liveApp";
 import { SIGN_IN_PATH } from "./router";
@@ -12,7 +13,7 @@ import { askFailedWords, linkProblemWords, replyWords, waitingWords } from "./si
 
 const convex = vi.hoisted(() => ({
   auth: { isLoading: false, isAuthenticated: false },
-  account: undefined as { email: string; isAdmin: boolean; inLeague: boolean; leagues: [] } | null | undefined,
+  account: undefined as { email: string; isAdmin: boolean; inLeague: boolean; leagues: []; currentLeagueId: null } | null | undefined,
   signIn: vi.fn(),
   signOut: vi.fn(async () => {}),
   ask: vi.fn(),
@@ -82,6 +83,17 @@ test("opened from a used or expired link, the app shows the sign-in page saying 
   expect(window.location.pathname).toBe(SIGN_IN_PATH);
 });
 
+test("an expired link that led to a league's invite link keeps the way back to it (#73)", async () => {
+  convex.signIn.mockResolvedValue({ signingIn: false });
+
+  openAt("/join/the-token?code=used-code");
+
+  expect((await screen.findByRole("alert")).textContent).toBe(linkProblemWords.expired);
+  expect(window.location.pathname).toBe(SIGN_IN_PATH);
+  expect(new URLSearchParams(window.location.search).get("join")).toBe("the-token");
+  expect(screen.getByText(signInToJoinWords)).toBeTruthy();
+});
+
 test("a link that can't be checked says so, and the error is logged", async () => {
   convex.signIn.mockRejectedValue(new Error("network down"));
   const logged = vi.spyOn(console, "error").mockImplementation(() => {});
@@ -94,7 +106,7 @@ test("a link that can't be checked says so, and the error is logged", async () =
 
 test("signed in, in no league, the app opens on the leagues page", async () => {
   convex.auth = { isLoading: false, isAuthenticated: true };
-  convex.account = { email: "manager@example.com", isAdmin: false, inLeague: false, leagues: [] };
+  convex.account = { email: "manager@example.com", isAdmin: false, inLeague: false, leagues: [], currentLeagueId: null };
 
   openAt("/");
 

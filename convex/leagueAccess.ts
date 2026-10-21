@@ -19,8 +19,15 @@ export const refusals = {
   notAdmin: "Only the admin can do that.",
   notRunner: "Only the league's commissioner, its co-commissioner or the admin can do that.",
   notNamer: "Only the league's commissioner or the admin can name or remove a commissioner or co-commissioner.",
+  notDeleter: "Only the league's commissioner or the admin can delete it.",
+  beingDeleted: "This league is being deleted, so nothing in it can change unless that is undone.",
+  notBeingDeleted: "This league isn't being deleted.",
+  notUndoer: "Only whoever deleted the league, or the admin, can undo it.",
+  tooLateToUndo: "It's too late to undo: the league is being deleted for good.",
   notManager: "Only the team's manager or the admin can do that.",
   runsNoTeam: "You don't run a team in this league.",
+  notInLeague: "You aren't in this league.",
+  notYourLeague: "You're not in that league.",
   blankName: "Give it a name.",
   teamNameTooLong: `A team's name is up to ${TEAM_NAME_MAX} characters.`,
   teamNameTaken: (name: string) => `A team in this league is already called "${name}".`,
@@ -62,8 +69,12 @@ export async function callerEmail(ctx: QueryCtx): Promise<string> {
   return (await signedInEmail(ctx)) ?? refuse(refusals.signedOut);
 }
 
-async function getLeague(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"leagues">> {
-  return (await ctx.db.get("leagues", leagueId)) ?? refuse(refusals.noLeague);
+/** The league, or a refusal if it doesn't exist or is being deleted: a league being deleted is
+ *  frozen, so every change to it starts here (spec/13, Deleting). */
+export async function getLeague(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"leagues">> {
+  const league = (await ctx.db.get("leagues", leagueId)) ?? refuse(refusals.noLeague);
+  if (league.deletion) refuse(refusals.beingDeleted);
+  return league;
 }
 
 /** Whether this (normalised) email is the admin's. */
@@ -74,7 +85,7 @@ function powersIn(league: Doc<"leagues">, email: string) {
   const admin = isAdmin(email);
   const isCommissioner = email === league.commissionerEmail;
   return {
-    /** Names and removes the commissioner and co-commissioner (and, in #75, deletes the league). */
+    /** Names and removes the commissioner and co-commissioner, and deletes the league. */
     names: admin || isCommissioner,
     /** Every other commissioner power. */
     runs: admin || isCommissioner || email === league.coCommissionerEmail,
@@ -94,6 +105,23 @@ export async function namerOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
   const email = await callerEmail(ctx);
   const league = await getLeague(ctx, leagueId);
   if (!powersIn(league, email).names) refuse(refusals.notNamer);
+  return { email, league };
+}
+
+/** The caller and the league, if the caller runs it or a team in it. */
+export async function memberOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
+  const email = await callerEmail(ctx);
+  const league = await getLeague(ctx, leagueId);
+  const managesTeam = async () => (await teamsOf(ctx, leagueId)).some((team) => team.managerEmail === email);
+  if (!powersIn(league, email).runs && !(await managesTeam())) refuse(refusals.notInLeague);
+  return { email, league };
+}
+
+/** The caller and the league, if the caller may delete it (spec/13, Deleting). */
+export async function deleterOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
+  const email = await callerEmail(ctx);
+  const league = await getLeague(ctx, leagueId);
+  if (!powersIn(league, email).names) refuse(refusals.notDeleter);
   return { email, league };
 }
 

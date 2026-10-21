@@ -1,0 +1,100 @@
+// Deleting a league on "Your leagues" (#75, spec/13, Deleting): Delete league and its plain
+// confirm for the admin or the commissioner, and Undo while it's being deleted.
+
+import { cleanup, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, describe, expect, it } from "vitest";
+import type { LeagueSummary } from "../../convex/myLeagues";
+import { GAMEWEEKS_TITLE } from "../gameweeks/words";
+import { invitesTitle } from "../joining/words";
+import type { Session } from "../auth";
+import { adminSeeing, league, managerIn, openApp } from "../shell.harness";
+import { LEAGUES_PATH } from "./paths";
+import { confirmDelete, unemailed, unsentLinkWords } from "./words";
+
+afterEach(cleanup);
+
+const commissioned: LeagueSummary = { ...league, roles: ["commissioner", "manager"] };
+const deletesAt = Date.parse("2026-10-21T09:00:00Z");
+const beingDeletedLeague: LeagueSummary = {
+  ...commissioned,
+  deletion: { deletesAt, unemailed: [{ email: "ann@example.com", reason: "paused" }] },
+};
+
+/** Whoever deleted it, as account:signedInAs has them: it's theirs to see, and they're in no league. */
+const deleter: Session = { ...managerIn(beingDeletedLeague), inLeague: false, currentLeagueId: null };
+
+const deleteButton = () => screen.queryByRole("button", { name: "Delete league" });
+const deleteButtonShown = () => screen.findByRole("button", { name: "Delete league" });
+
+describe("Delete league", () => {
+  it.each([
+    ["the commissioner", managerIn(commissioned)],
+    ["the admin", adminSeeing({ ...league, roles: [] })],
+  ])("%s is offered it", async (_, session) => {
+    openApp(LEAGUES_PATH, session);
+    expect(await deleteButtonShown()).toBeTruthy();
+  });
+
+  it.each([
+    ["a manager", managerIn(league)],
+    ["the co-commissioner", managerIn({ ...league, roles: ["co-commissioner", "manager"] })],
+  ])("%s isn't", async (_, session) => {
+    openApp(LEAGUES_PATH, session);
+    await screen.findByRole("rowheader", { name: new RegExp(`^${league.name}`) });
+    expect(deleteButton()).toBeNull();
+  });
+
+  it("asks first, and deletes the league once confirmed", async () => {
+    const app = openApp(LEAGUES_PATH, managerIn(commissioned));
+    await userEvent.click(await deleteButtonShown());
+    expect(screen.getByText(confirmDelete(league.name))).toBeTruthy();
+    expect(app.leagues.deleteLeague).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole("button", { name: "Delete it" }));
+    expect(app.leagues.deleteLeague).toHaveBeenCalledExactlyOnceWith(league.leagueId);
+  });
+
+  it("Keep it deletes nothing", async () => {
+    const app = openApp(LEAGUES_PATH, managerIn(commissioned));
+    await userEvent.click(await deleteButtonShown());
+    await userEvent.click(screen.getByRole("button", { name: "Keep it" }));
+
+    expect(screen.queryByText(confirmDelete(league.name))).toBeNull();
+    expect(deleteButton()).toBeTruthy();
+    expect(app.leagues.deleteLeague).not.toHaveBeenCalled();
+  });
+
+  it("says why, when the server refuses", async () => {
+    const app = openApp(LEAGUES_PATH, managerIn(commissioned));
+    app.leagues.deleteLeague.mockResolvedValue("Only the league's commissioner or the admin can delete it.");
+    await userEvent.click(await deleteButtonShown());
+    await userEvent.click(screen.getByRole("button", { name: "Delete it" }));
+
+    expect((await screen.findByRole("alert")).textContent).toBe("Only the league's commissioner or the admin can delete it.");
+  });
+});
+
+describe("a league being deleted", () => {
+  it("shows when it goes on the email's clock, and who wasn't told, and Undo undoes it", async () => {
+    const app = openApp(LEAGUES_PATH, deleter);
+
+    // The moment convex/deletionNotices.test.ts finds in the email, said the same way.
+    expect(await screen.findByText(/goes for good on Wednesday 21 October at 10:00 BST\./)).toBeTruthy();
+    expect(screen.getByText(unemailed("ann@example.com", unsentLinkWords.paused))).toBeTruthy();
+    expect(deleteButton()).toBeNull();
+    // Frozen, it offers nothing to change: no gameweeks, no invites.
+    expect(screen.queryByRole("link", { name: GAMEWEEKS_TITLE })).toBeNull();
+    expect(screen.queryByRole("link", { name: invitesTitle })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+    expect(app.leagues.undoDeletion).toHaveBeenCalledExactlyOnceWith(league.leagueId);
+  });
+
+  it("says why Undo didn't work", async () => {
+    const app = openApp(LEAGUES_PATH, deleter);
+    app.leagues.undoDeletion.mockResolvedValue("It's too late to undo: the league is being deleted for good.");
+    await userEvent.click(await screen.findByRole("button", { name: "Undo" }));
+
+    expect((await screen.findByRole("alert")).textContent).toBe("It's too late to undo: the league is being deleted for good.");
+  });
+});

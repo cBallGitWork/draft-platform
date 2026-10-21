@@ -19,10 +19,10 @@ import {
 } from "./words";
 
 /** The leagues a letter to the whole league can go from: those the person runs, or, for the
- *  admin, every league. The server checks again. */
+ *  admin, every league, but never one being deleted. The server checks again. */
 export function leaguesToWriteFrom(session: Session): readonly LeagueSummary[] {
   if (!session.signedIn) return [];
-  return session.leagues.filter((league) => session.isAdmin || league.roles.some((role) => role !== "manager"));
+  return session.leagues.filter((league) => !league.deletion && (session.isAdmin || league.roles.some((role) => role !== "manager")));
 }
 
 /** Mail (spec/16): the person's letters, newest first, each opened in place, which marks it read;
