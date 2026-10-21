@@ -5,3 +5,5 @@ export const FEWEST_TEAMS = 2;
 export const MOST_TEAMS = 20;
 /** How long a team's name may be (spec/13, Teams). */
 export const TEAM_NAME_MAX = 30;
+/** How long a deleted league can be undone before it is gone for good (spec/13, Deleting). */
+export const DELETION_UNDO_HOURS = 24;

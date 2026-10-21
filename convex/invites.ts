@@ -6,7 +6,7 @@ import { admitEmail } from "./allowedEmails";
 import { INVITE_LIFETIME_MS, invitedPath } from "./joiningShared";
 import { deliveryOf, joiningRefusals, startOfNextDay } from "./joining";
 import { inviteEmail } from "./joiningEmails";
-import { namedEmail, recordEvent, refuse, refusals, runnerOf, teamsOf } from "./leagueAccess";
+import { getLeague, namedEmail, recordEvent, refuse, refusals, runnerOf, teamsOf } from "./leagueAccess";
 import { askForLink, signInReply } from "./signInLinks";
 import { putOnTeam } from "./teams";
 
@@ -119,14 +119,14 @@ export const deliver = internalAction({
   },
 });
 
-/** Whom the invite goes to, or null once it was cancelled or the person signed in. */
+/** Whom the invite goes to, or null once it was cancelled, the person signed in, or it went with
+ *  its deleted league. */
 export const emailToDeliver = internalQuery({
   args: { inviteId: v.id("invites") },
   returns: v.union(v.string(), v.null()),
   handler: async (ctx, { inviteId }) => {
     const invite = await ctx.db.get("invites", inviteId);
-    if (!invite) throw new Error(`Invite ${inviteId} doesn't exist, so it can't be sent`);
-    return hasEnded(invite) ? null : invite.email;
+    return invite && !hasEnded(invite) ? invite.email : null;
   },
 });
 
@@ -164,10 +164,12 @@ export async function joinByInvites(ctx: MutationCtx, email: string): Promise<vo
   for (const invite of await liveInvitesTo(ctx, email, Date.now())) {
     let joined;
     try {
-      const league = (await ctx.db.get("leagues", invite.leagueId)) ?? refuse(refusals.noLeague);
+      const league = await getLeague(ctx, invite.leagueId);
       joined = await putOnTeam(ctx, league, email, invite.teamId);
     } catch (error) {
       if (!(error instanceof ConvexError)) throw error;
+      // A league being deleted is frozen: its invite stays as it was, live again if it is undone.
+      if (error.data === refusals.beingDeleted) continue;
       await ctx.db.patch("invites", invite._id, { couldNotJoin: String(error.data) });
       continue;
     }
