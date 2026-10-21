@@ -1,6 +1,6 @@
 # The Premier League's stats per player per match
 
-**Contents:** [The ones the tactics spec names](#the-ones-the-tactics-spec-names) · [All 221, by area](#all-221-by-area) · [Matching the two feeds](#matching-the-two-feeds) · [FPL's stats per match](#fpls-stats-per-match) · [Where a man lined up](#where-a-man-lined-up)
+**Contents:** [The ones the tactics spec names](#the-ones-the-tactics-spec-names) · [All 221, by area](#all-221-by-area) · [Matching the two feeds](#matching-the-two-feeds) · [FPL's stats per match](#fpls-stats-per-match) · [Where a man lined up](#where-a-man-lined-up) · [One record per player per match](#one-record-per-player-per-match) · [During a match](#during-a-match)
 
 What roles can score from (issue #7, story 4; [spec/05-tactics.md](../spec/05-tactics.md)). Read
 from Craig's Mac on 19 Oct 2026; the same host answers Convex's servers
@@ -116,7 +116,8 @@ Never written down before; from gameweek 6 (`convex/fplLive.ts`, `convex/recorde
 - **`/event/{gw}/live/`**, per player: `explain`, one block per match he had, keyed by FPL's
   per-season fixture `id` (`/fixtures/` gives its `code`). Each block lists `{identifier, value,
   points, points_modification}` only for what moved his FPL points, plus `minutes`, which is always
-  there, nought or not. Seen: `minutes`, `goals_scored`, `assists`, `clean_sheets`,
+  there, nought or not, so a block without it is read as one FPL has not filled in yet: it gives
+  that man no FPL line, and his record waits. Seen: `minutes`, `goals_scored`, `assists`, `clean_sheets`,
   `goals_conceded`, `yellow_cards`, `red_cards`, `saves`, `bonus`, `defensive_contribution`; FPL's
   `element_stats` adds `own_goals`, `penalties_saved` and `penalties_missed` to its scoring set.
 - The same player's `stats` are the gameweek's totals, 29 keys: the ten above and `own_goals`,
@@ -157,3 +158,44 @@ Opta's `formation_place` read for the 44 starters of Hull v Everton and Palace v
 - `matchPosition` (`G`, `D`, `M`, `F`) is the line he was named in; a 3-4-2-1's two behind the
   striker are `F`. The sheet's `info.positionInfo` ("Left Full Back") is his usual position, not
   this match's: Myles Lewis-Skelly, "Left Full Back", started in Arsenal's midfield two.
+
+## One record per player per match
+
+How #27 merges the two feeds (spec/07 "Match stats"; `convex/matchRecords.ts` holds the pairs):
+
+- Where both send a stat, FPL's count is kept for goals, assists, minutes, cards, saves, clean
+  sheets, goals conceded and penalties, under FPL's name (`goals_scored`, not Opta's `goals`);
+  Opta's for own goals and starts. Every other stat keeps its own feed's name.
+- None of the three matches the 221 names come from had a red card, a penalty saved or a penalty
+  missed, so Opta's names for them (`red_card`, `penalty_save`, `att_pen_miss`) are its usual
+  ones, not yet seen here.
+- Not paired, since neither feed says they count the same: FPL's `tackles` and `recoveries`
+  beside Opta's `total_tackle`, `won_tackle` and `ball_recovery`. Both are kept.
+- FPL's `bonus`, `bps`, `total_points` and `in_dreamteam` are never stored.
+- Full time is the Premier League's fixture `status` "C"; the window runs from the first read that
+  finds it.
+
+## During a match
+
+How #28 reads a match while it is played (`convex/liveStatsSync.ts`, `convex/liveStats.ts`):
+
+- Every minute from kickoff, both feeds are read for each match being played, the same reads as
+  at full time, and each record is written provisional. From the first read the Premier League
+  calls full time, the match goes through the full-time path above; it stops being polled once
+  complete, or four hours after kickoff.
+- `changed` on each tick's row (`liveStatsTicks`) and each sync's (`matchStatsSyncs`) names the
+  men whose records moved. No league's scoring set or lineup is stored yet (#25, #8), so no
+  points are recomputed; once they are, they are recomputed for those men.
+- Assumed until a live match is recorded: a match in play's `status` is anything but "C"; both
+  feeds send running totals, so the next tick catches up one that failed; FPL's match blocks fill
+  in during play, as Opta's per-man reads do.
+
+**The replay the tests use is not a live recording.** `convex/liveStats.harness.ts` cuts Hull v
+Everton, recorded finished, into a stage a minute: each man's stats grow with his share of his
+minutes on the pitch, and goals, assists and yellow cards land at the minutes the fixture's
+`events` give them. Friday's recording (#37: Ipswich v Nott'm Forest, Premier League fixture
+128999, by `scripts/record-match.mjs`) reads the commentary, the fixture and the team stats, not
+the per-man stats or FPL's live read. To replay it instead, extend that script to save, each poll,
+FPL's `/event/{gw}/live/` and each named man's `/stats/player/{id}?fixtures=128999` for a later
+match, then swap `stagedGw6(minute)` for that match's poll nearest each minute; Friday's own run
+settles the `status` a match in play carries, and whether the stats move during play.

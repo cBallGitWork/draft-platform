@@ -5,12 +5,14 @@ import { namedMen } from "./feedIds";
 import { arsenalSquadNumbers, fplPlayerCount, plFixtureCount } from "./football";
 import { readPlCommentary, readPlFixture, readPlTeamStats } from "./premierLeague";
 import { feedCheckFields, feedCheckTrigger, feedOutcome } from "./schema";
+import { MINUTE_MS } from "./time";
+
+// Two one-off probes of the feeds, not the admin's feeds page (spec/15): `check` and `checkLater`
+// for #7, `commentaryCheck` below for #37.
 
 // Issue #7: can Convex reach the football feeds, and does a timer fire with no browser open?
 // Run from the CLI: `npx convex run feeds:check '{"trigger":"manual"}'` now, or
 // `npx convex run feeds:checkLater '{"minutes":10}'`, close everything, then `feeds:latest`.
-
-export const MINUTE_MS = 60_000;
 
 export const check = internalAction({
   args: { trigger: feedCheckTrigger, scheduledFor: v.optional(v.number()) },
@@ -55,11 +57,7 @@ export const latest = internalQuery({
 
 // Issue #37: does the commentary stream answer Convex's servers during a live match, and move?
 // Friday 23 Oct 2026, Ipswich v Nott'm Forest (fixture 128999), kickoff 20:00 BST:
-// 1. Before kickoff, push this action to the dev deployment from a checkout that has it: on main
-//    once this is merged, `npx convex dev --once`; from this branch's worktree, which has no
-//    .env.local, `npm run setup` (it links the dev deployment, then pushes once). The push sends
-//    every file in convex/, so an unmerged branch's code runs on dev until main is pushed again;
-//    this branch adds no table or cron, but the six-hourly sync then runs its convex/football.ts.
+// 1. Before kickoff, push this action to the dev deployment from main: `npx convex dev --once`.
 // 2. During play, run `npx convex run feeds:commentaryCheck '{"plFixtureId":128999}'`, then again
 //    a minute or more later.
 // Good: the second run's `lines` is higher and `newest.id` differs (a quiet minute may add none, so

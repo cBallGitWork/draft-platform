@@ -7,4 +7,4 @@ Feature 11 of [SPEC.md](../SPEC.md). Only Craig's answers.
   invites, the email once a join request is approved, and the warning that a league will be
   deleted.
 - "On the clock" is sent only when the pick clock is long (over 10 minutes): in a live draft
-  managers are in the room.
+  managers are on the draft page.

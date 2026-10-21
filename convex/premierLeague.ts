@@ -48,9 +48,15 @@ export interface RawPlFixture {
   id: number;
   /** `g` + FPL's fixture `code`. Sent only when the read asks with `altIds=true`. */
   altIds?: RawPlAltIds;
+  /** `PL_FULL_TIME` once the match is over; every read recorded so far carries it. */
+  status?: string;
   /** On the fixture's own read: two entries, each null until that side is named. */
   teamLists?: (RawPlTeamList | null)[];
 }
+
+/** A fixture's `status` at full time: "C", completed, on all ten of gameweek 6's recorded. Full time
+ *  is the Premier League's word here, not FPL's flags (spec/07). */
+export const PL_FULL_TIME = "C";
 
 export interface RawPlFixturePage {
   content: RawPlFixture[];

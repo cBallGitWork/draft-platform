@@ -17,6 +17,7 @@ reason, and a change to either changes this file.
 | Backend | [Convex](https://docs.convex.dev): database, live queries, timers, sign-in | a pick's timer is saved with the pick, so pause and undo cancel it; live scores reach browsers with no extra service; one vendor, hard-capped free plan |
 | Pages | Vercel, free (Hobby) plan | the companion's host |
 | Timed work | Convex scheduled functions and crons | Vercel Hobby cron runs once a day and GitHub Actions cron can't hold a minute, so every timer lives with the data |
+| The gate in CI | GitHub Actions on `ubuntu-latest`: `.github/workflows/verify.yml` runs `npm run verify` on every pull request to main and every push to main (Craig, 20 Oct 2026) | two pull requests that pass alone can break main together (#69 and #77); Linux is the cheapest runner, and the hook checks need only bash, Python, git and jq; no secrets, since no test touches a deployment |
 | Email | Resend | free: 3,000 a month, **100 a day**, which is why a live draft sends no "on the clock" email |
 | Money | free plans through the mini beta; Craig sets a monthly ceiling before August 2027 | |
 
@@ -59,7 +60,7 @@ The steps (push the action to the dev deployment, run it twice, how to read what
 - Resend's 100 a day: sign-in links, a busy waiver night across several leagues, or a slow
   draft's emails,
   means Resend Pro or another sender.
-- Before signups open to anyone, FPL's and the Premier League's terms are checked (SPEC, Later).
+- Before the mini beta, FPL's and the Premier League's terms are checked (SPEC, *What it is*; #79).
 
 ## Libraries (Claude's)
 
@@ -91,6 +92,28 @@ The steps (push the action to the dev deployment, run it twice, how to read what
 - Clubs, players, fixtures and gameweeks refresh every six hours (`convex/crons.ts`): nothing
   held moves during a match, and what does (a signing, a rescheduled match) is known days ahead.
   Every run, failed or not, is a row in `footballSyncs`.
+- Match stats (#27): one record per player per match in `playerMatchStats`, keyed on FPL's
+  player and fixture codes, both feeds merged by spec/07's split
+  ([docs/pl-match-stats.md](docs/pl-match-stats.md#one-record-per-player-per-match)).
+  `convex/matchStatsSync.ts` reads each match the Premier League calls full time; every run,
+  failed or not, is a row in `matchStatsSyncs`. A run reads ten matches at most, the least
+  lately tried first (`matchStatsTries`), so ones that fail or wait every run hold up no newer
+  match. The lock is a scheduled function, so it fires
+  with no run due; the window is a row in `platformSettings`.
+  **No cron runs it yet.** The suggestion is every 10 minutes: full time counts from the first
+  read that finds it, so a match locks up to one interval after its true hour. A run with no
+  match due reads no feed; one due reads about 40 Premier League URLs per match, and a locked
+  match is read again hourly for a day to catch late corrections.
+- Live stats (#28): a cron every minute (`liveStatsSync.tick`) reads each match from kickoff
+  until it is complete, or four hours on; outside those windows it reads no feed and writes no row.
+  A cron, not a function rescheduling itself, because Convex runs a scheduled action at most
+  once: a chain would end, unseen, at the first tick that failed before scheduling the next, and
+  need re-arming whenever a kickoff moved. Convex runs one tick at a time, skipping one due while
+  another runs, and both feeds send running totals, so the next tick catches up any failed or
+  skipped. Each tick that found a match live is a row in `liveStatsTicks`, failed or not
+  ([docs/pl-match-stats.md](docs/pl-match-stats.md#during-a-match)). Outside matches: one
+  action and one indexed query a minute, about 43,000 calls a month. Inside: FPL's ~1.8 MB
+  bootstrap and about 40 Premier League reads per match, each tick.
 - League rules are rows, never constants; FPL's own rules can be constants.
 - Each ask for a sign-in link that was answered "check your email" is a row in `signInAsks`, a
   failed send kept with its error, and each day's emails are counted in `emailSends` against
@@ -112,7 +135,8 @@ to land in the pull request that adds the first code, not later:
       `.claude/agents/ui-verifier.md` (#19).
 - [x] **MCPs**: Convex and Playwright, with the Convex test above.
 - [ ] **The reviewer in CI**: sideband's `review.yml`, which needs the Claude GitHub app and a
-      `CLAUDE_CODE_OAUTH_TOKEN` secret from Craig (`claude setup-token`).
+      `CLAUDE_CODE_OAUTH_TOKEN` secret from Craig (`claude setup-token`). The gate alone already
+      runs there (Services, above).
 - [x] **`.env.example`** from the services above.
 - [x] **One-command start**: clone, fill the env, run one command; the README says how
       (`docs/PHILOSOPHY.md`, *Knowledge Is Shared*).

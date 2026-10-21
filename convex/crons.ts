@@ -7,4 +7,7 @@ const crons = cronJobs();
 // reads every held row to compare, so running it more often costs bandwidth for nothing new.
 crons.interval("football sync", { hours: 6 }, internal.footballSync.run, { trigger: "cron" });
 
+// The live poller's tick (#28): every minute, a no-op outside match windows (ARCHITECTURE.md).
+crons.interval("live stats tick", { minutes: 1 }, internal.liveStatsSync.tick, {});
+
 export default crons;

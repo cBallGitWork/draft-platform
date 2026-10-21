@@ -1,0 +1,30 @@
+# `npm run verify` on GitHub's runner; what it catches and why here: ARCHITECTURE.md, Services.
+name: verify
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:  # a newer push to a pull request replaces its older run; main's runs all finish
+  group: verify-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      # the hook checks run on the runner's own bash, python3, git and /usr/bin/jq: say which
+      - run: bash --version | head -1 && python3 --version && git --version && /usr/bin/jq --version
+      - run: npm ci
+      - run: npm run verify

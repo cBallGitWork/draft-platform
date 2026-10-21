@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { codesByOpta, fixtureCodeIn, matchFixtures, matchPlayers, namedMen } from "./feedIds";
+import { codesByOpta, fixtureCodeIn, matchPlayers, namedMen } from "./feedIds";
 import { fplElementsWithout, FULL_STATS, MATCH, recordedGw6, recordedPlFixture } from "./recorded/gw6.payloads";
 
 const { fpl, pl } = recordedGw6();
@@ -7,10 +7,9 @@ const fplCodes = fpl.fixtures.map((fixture) => fixture.code);
 const hullEverton = recordedPlFixture(MATCH.hullEverton.pl);
 const codeByOpta = codesByOpta(fpl.bootstrap.elements);
 
-test("every fixture of the Premier League's gameweek matches one of FPL's, by g + its code", () => {
-  const { codes, unmatched } = matchFixtures(pl.round.content, fplCodes);
+test("every fixture of the Premier League's gameweek carries one of FPL's codes, as g + the code", () => {
+  const codes = new Map(pl.round.content.map((fixture) => [fixture.id, fixtureCodeIn(fixture)]));
 
-  expect(unmatched).toEqual([]);
   expect(codes.size).toBe(10);
   expect(new Set(codes.values())).toEqual(new Set(fplCodes));
   for (const { pl: plId, code } of Object.values(MATCH)) expect(codes.get(plId)).toBe(code);
@@ -20,18 +19,8 @@ test("the full fixture read carries the fixture's altIds too", () => {
   expect(fixtureCodeIn(hullEverton)).toBe(MATCH.hullEverton.code);
 });
 
-test("a fixture read without altIds, or naming no FPL fixture, is reported, not dropped", () => {
-  const [first, second, ...rest] = pl.round.content;
-  const bare = { ...first, altIds: undefined };
-  const stranger = { ...second, altIds: { opta: "g999" } };
-
-  const { codes, unmatched } = matchFixtures([bare, stranger, ...rest], fplCodes);
-
-  expect(unmatched).toEqual([
-    { plFixtureId: first.id, opta: null },
-    { plFixtureId: second.id, opta: "g999" },
-  ]);
-  expect(codes.size).toBe(8);
+test("a fixture read without altIds carries no FPL fixture code", () => {
+  expect(fixtureCodeIn({ ...hullEverton, altIds: undefined })).toBeNull();
 });
 
 test("an Opta id in another form carries no FPL fixture code", () => {

@@ -1,13 +1,12 @@
 import { expect, test } from "vitest";
 import { mapFpl } from "./fpl";
-import { CLUB_CODE, RECORDED_COUNT, recordedFpl, type FplPayloads } from "./recorded/fpl.payloads";
+import { CLUB_CODE, FIXTURE_CODE, PLAYER_CODE, RECORDED_COUNT, recordedFpl, type FplPayloads } from "./recorded/fpl.payloads";
 
 const { bootstrap, fixtures } = recordedFpl();
 const football = mapFpl(bootstrap, fixtures);
 
-const HAALAND = 223094;
-const RAYA = 154561;
-const ARSENAL_V_COVENTRY = 2645195;
+const { haaland: HAALAND, raya: RAYA } = PLAYER_CODE;
+const ARSENAL_V_COVENTRY = FIXTURE_CODE.arsenalVCoventry;
 
 test("every recorded club, player, match and gameweek is mapped", () => {
   expect(football.clubs).toHaveLength(RECORDED_COUNT.clubs);
@@ -28,6 +27,18 @@ test("a player is his season-stable code, his names and his club's code, with no
 
 test("a full name joins FPL's first and second names, which can be several words", () => {
   expect(football.players.find((player) => player.code === RAYA)?.fullName).toBe("David Raya Martín");
+});
+
+test("a player with only one of FPL's two names has no stray space in his full name", () => {
+  const payloads = recordedFpl();
+  const [first, second] = payloads.bootstrap.elements;
+  first.first_name = "";
+  second.second_name = "";
+
+  const players = mapFpl(payloads.bootstrap, payloads.fixtures).players;
+
+  expect(players.find((player) => player.code === first.code)?.fullName).toBe(first.second_name);
+  expect(players.find((player) => player.code === second.code)?.fullName).toBe(second.first_name);
 });
 
 test("a club is its code, its name and its three letters", () => {

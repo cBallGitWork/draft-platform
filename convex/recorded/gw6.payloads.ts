@@ -44,12 +44,13 @@ export const MATCH = {
   hullEverton: { pl: 128978, code: 2645250 },
 } as const;
 
-/** The men whose every stat is kept, by FPL code and the Premier League's id. */
+/** The men whose every stat is kept, by FPL code and the Premier League's id. Belloumi's `fplId`
+ *  is his per-season FPL id in this recording, which only the live read carries. */
 export const FULL_STATS = {
   phillips: { code: 167825, pl: 8339 }, // Hull's keeper, an unused substitute
   coyle: { code: 193278, pl: 13486 }, // Hull's right back
   mcBurnie: { code: 169432, pl: 8107 }, // Hull's striker
-  belloumi: { code: 540324, pl: 137549 }, // Hull, on at 64 minutes
+  belloumi: { code: 540324, pl: 137549, fplId: 286 }, // Hull, on at 64 minutes
   johnson: { code: 242898, pl: 49374 }, // Everton's right winger, off at 66
   grealish: { code: 114283, pl: 4260 }, // Everton's left attacking midfielder, off at 86
 } as const;
@@ -75,6 +76,12 @@ export function recordedPlFixture(plId: number): RawPlFixture {
   const fixture = (plFixtures as RawPlFixture[]).find((each) => each.id === plId);
   if (fixture === undefined) throw new Error(`no recorded Premier League fixture ${plId}`);
   return structuredClone(fixture);
+}
+
+/** Each man's Premier League read at Hull v Everton, by his Premier League id. */
+export function hullEvertonReads(payloads: Gw6Payloads): Map<number, RawPlPlayerStats> {
+  const reads = payloads.pl.playerStats.filter((read) => read.fixture === MATCH.hullEverton.pl);
+  return new Map(reads.map((read) => [read.player, read.payload]));
 }
 
 /** The recorded FPL players less those with these codes, as if FPL had not listed them yet. */

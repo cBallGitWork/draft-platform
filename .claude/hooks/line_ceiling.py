@@ -13,7 +13,7 @@ import json
 import os
 import sys
 
-CODE = (".ts", ".tsx", ".js", ".mjs", ".css", ".py")
+CODE = (".ts", ".tsx", ".js", ".mjs", ".css", ".py", ".sh")
 SOFT, HARD = 250, 300
 
 

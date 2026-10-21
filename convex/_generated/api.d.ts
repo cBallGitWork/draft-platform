@@ -20,11 +20,23 @@ import type * as footballSync from "../footballSync.js";
 import type * as fpl from "../fpl.js";
 import type * as fplLive from "../fplLive.js";
 import type * as http from "../http.js";
+import type * as lineup from "../lineup.js";
+import type * as liveStats from "../liveStats.js";
+import type * as liveStatsSync from "../liveStatsSync.js";
+import type * as matchRecords from "../matchRecords.js";
+import type * as matchStats from "../matchStats.js";
+import type * as matchStatsSync from "../matchStatsSync.js";
+import type * as pitch from "../pitch.js";
 import type * as plCommentary from "../plCommentary.js";
 import type * as plMatch from "../plMatch.js";
+import type * as platformSettings from "../platformSettings.js";
 import type * as premierLeague from "../premierLeague.js";
+import type * as presets from "../presets.js";
+import type * as scoring from "../scoring.js";
+import type * as scoringSet from "../scoringSet.js";
 import type * as signInEmail from "../signInEmail.js";
 import type * as signInLinks from "../signInLinks.js";
+import type * as time from "../time.js";
 
 import type {
   ApiFromModules,
@@ -45,11 +57,23 @@ declare const fullApi: ApiFromModules<{
   fpl: typeof fpl;
   fplLive: typeof fplLive;
   http: typeof http;
+  lineup: typeof lineup;
+  liveStats: typeof liveStats;
+  liveStatsSync: typeof liveStatsSync;
+  matchRecords: typeof matchRecords;
+  matchStats: typeof matchStats;
+  matchStatsSync: typeof matchStatsSync;
+  pitch: typeof pitch;
   plCommentary: typeof plCommentary;
   plMatch: typeof plMatch;
+  platformSettings: typeof platformSettings;
   premierLeague: typeof premierLeague;
+  presets: typeof presets;
+  scoring: typeof scoring;
+  scoringSet: typeof scoringSet;
   signInEmail: typeof signInEmail;
   signInLinks: typeof signInLinks;
+  time: typeof time;
 }>;
 
 /**

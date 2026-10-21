@@ -19,7 +19,8 @@ drafted, for the basics. It needs:
 features 1, 2, 3, 5, 6, 7, 10, 12, 14, 16 and 18, and the mini beta's admin tools
 (15: creating a league, inviting managers, assigning players, a score override, positions, the
 feeds page). Live commentary and the match page (10) are in it if the live stream is proven,
-and among the first things dropped if late. The draft (4) waits for the summer.
+and among the first things dropped if late. The draft (4) waits for the summer. Before it starts,
+FPL's and the Premier League's terms are checked (Craig, 20 Oct 2026; issue #79).
 
 ## Features
 
@@ -61,11 +62,13 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   fee, trades can involve money, and the market could take a more footballing form, like a
   transfer market. Auction drafts and bidding waivers go with it.
 - **Payments**, its own feature.
+- **Cups**, after the beta, with a plate competition beside them (Craig, 20 Oct 2026). Their
+  own `/grill` then (`docs/to-grill.md`).
 - **Other leagues**: Scotland and the rest of Europe. None has a free public feed like the
   Premier League's; a paid feed (Sportmonks, API-Football) covers them all. The football data is
   built so a feed can plug in.
-- **Licensed data**: before signups open to anyone, check FPL's and the Premier League's terms,
-  and switch to a licensed feed if they don't allow a public product.
+- **Licensed data**: a licensed feed if FPL's and the Premier League's terms, checked before the
+  mini beta (above), don't allow a public product.
 - **Traits** (what a player does in real life), if a source for them turns up.
 - **The platform's own scoring sets**, designed once the first scoring set has been played.
 - **A landing page** for the public, when signups open to anyone; its own `/grill` then.
@@ -75,7 +78,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 
 ## Out of scope
 
-- The paper, cups and player intel from the companion. It is a new product, not a companion app.
+- The paper and player intel from the companion. It is a new product, not a companion app.
 - Chat. Managers talk elsewhere.
 - Push notifications and native apps.
 - Storylines (morale, contracts, conduct).
@@ -103,7 +106,8 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | invite link | a league's one shareable link; opening it only asks to join | |
 | join request | what opening the invite link makes, for the commissioner to approve or refuse | |
 | club | a real Premier League club | team |
-| position | where a player can play in real life (CB, CAM) | |
+| position | where a player can play in real life (CB, FB, CAM, W); no side | right back, left winger |
+| admin dashboard | the admin's one screen: the positions queue and corrections, thresholds, and the feeds page | |
 | role | what you tell him to do in your slot, which changes his points | |
 | trait | what he does in real life (inverted full-back, cuts inside) | style |
 | slot | a place in your formation | |
