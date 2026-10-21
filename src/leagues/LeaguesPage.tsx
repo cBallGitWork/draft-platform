@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/myLeagues";
+import { PageTitle } from "../frame/Panel";
 import { GameweeksLink } from "../gameweeks/GameweeksLink";
 import { invitesPath } from "../joining/paths";
 import { invitesTitle } from "../joining/words";
@@ -27,9 +28,7 @@ export function LeaguesPage({
 }) {
   return (
     <section aria-labelledby="page-title" className="max-w-3xl bg-panel">
-      <h1 id="page-title" className="bg-plate px-4 py-1 text-title font-bold shadow-bevel-plate">
-        {LEAGUES_TITLE}
-      </h1>
+      <PageTitle>{LEAGUES_TITLE}</PageTitle>
       <div className="flex flex-col gap-2 px-3 py-2">
         {leagues.length === 0 ? (
           <>

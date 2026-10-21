@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
+import { PanelTitle, Problem } from "../frame/Panel";
 import type { InvitesPageData, JoiningSeam } from "./seam";
-import { PanelTitle, Problem } from "./Panel";
 import { TeamSelect, useTeamChoice } from "./TeamChoice";
 import { useChange } from "./useChange";
 import {

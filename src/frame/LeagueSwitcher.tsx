@@ -6,6 +6,7 @@ import type { Session } from "../auth";
 import type { LeagueActions } from "../leagues/actions";
 import { LEAGUES_PATH } from "../leagues/paths";
 import { roleWords } from "../leagues/words";
+import { Problem } from "./Panel";
 
 // On a phone the league takes its own row under the name, Continue and Sign out, above the menu.
 const placementClasses = "order-last w-full border-t border-plate-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-l";
@@ -95,11 +96,7 @@ export function LeagueSwitcher({
       </button>
       {open && (
         <div id={listId} className="absolute top-full left-0 z-10 w-full bg-panel shadow-bevel-panel lg:w-72">
-          {problem && (
-            <p role="alert" className="alert-strip">
-              {problem}
-            </p>
-          )}
+          <Problem problem={problem} />
           <ul aria-label="Your leagues">
             {theirs.map((league) => (
               <li key={league.leagueId} className="border-b border-panel-rule">

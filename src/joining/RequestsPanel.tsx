@@ -1,4 +1,4 @@
-import { PanelTitle, Problem } from "./Panel";
+import { PanelTitle, Problem } from "../frame/Panel";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { TeamSelect, useTeamChoice } from "./TeamChoice";
 import { useChange } from "./useChange";

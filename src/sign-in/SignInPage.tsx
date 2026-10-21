@@ -2,8 +2,6 @@ import { useState, type FormEvent } from "react";
 import { PRODUCT_NAME } from "../product";
 import { linkProblemWords, type LinkProblem } from "./words";
 
-const alertStripClasses = "bg-name-plate px-3 py-2 text-event shadow-event-edge";
-
 /** All a logged-out visitor sees (spec/12): the name, "Invite only", and an email box for the link.
  *  Opened from a link that didn't sign them in, it says so first (spec/02); `intro` says why
  *  they're here, as from a league's invite link (#73). */
@@ -39,7 +37,7 @@ export function SignInPage({
             Sign in
           </h2>
           {linkProblem && !outcome && (
-            <p role="alert" className={alertStripClasses}>
+            <p role="alert" className="alert-strip">
               {linkProblemWords[linkProblem]}
             </p>
           )}
@@ -62,7 +60,7 @@ export function SignInPage({
               Send the link
             </button>
           </form>
-          <p role="status" className={outcome ? alertStripClasses : undefined}>
+          <p role="status" className={outcome ? "alert-strip" : undefined}>
             {outcome}
           </p>
         </section>
