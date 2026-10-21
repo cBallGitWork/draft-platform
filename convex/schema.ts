@@ -292,6 +292,9 @@ const leagueFields = {
   /** What asking for the commissioner's sign-in link answered, when one was sent: a commissioner
    *  with no account gets one when named. */
   commissionerLink: v.optional(v.object({ email: v.string(), reply: signInReply })),
+  /** The gameweeks its commissioner unticked, in order (#74, convex/usedGameweeks.ts). Absent while
+   *  it plays all 38, the default, so a league needs no write to have it. */
+  unusedGameweeks: v.optional(v.array(v.number())),
 };
 
 const teamFields = {
@@ -378,6 +381,7 @@ export const leagueEvent = v.union(
   v.object({ kind: v.literal("managerLeft"), ...managerOfTeam }),
   v.object({ kind: v.literal("teamRenamed"), teamId: v.id("teams"), from: v.string(), to: v.string() }),
   v.object({ kind: v.literal("maxTeamsChanged"), from: v.number(), to: v.number() }),
+  v.object({ kind: v.literal("gameweekUsed"), gameweek: v.number(), used: v.boolean() }),
   ...joiningEvents,
 );
 

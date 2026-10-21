@@ -28,6 +28,7 @@ import type * as joining from "../joining.js";
 import type * as joiningEmails from "../joiningEmails.js";
 import type * as joiningShared from "../joiningShared.js";
 import type * as leagueAccess from "../leagueAccess.js";
+import type * as leagueGameweeks from "../leagueGameweeks.js";
 import type * as leagueLimits from "../leagueLimits.js";
 import type * as leagues from "../leagues.js";
 import type * as lineup from "../lineup.js";
@@ -51,6 +52,7 @@ import type * as signInEmail from "../signInEmail.js";
 import type * as signInLinks from "../signInLinks.js";
 import type * as teams from "../teams.js";
 import type * as time from "../time.js";
+import type * as usedGameweeks from "../usedGameweeks.js";
 
 import type {
   ApiFromModules,
@@ -79,6 +81,7 @@ declare const fullApi: ApiFromModules<{
   joiningEmails: typeof joiningEmails;
   joiningShared: typeof joiningShared;
   leagueAccess: typeof leagueAccess;
+  leagueGameweeks: typeof leagueGameweeks;
   leagueLimits: typeof leagueLimits;
   leagues: typeof leagues;
   lineup: typeof lineup;
@@ -102,6 +105,7 @@ declare const fullApi: ApiFromModules<{
   signInLinks: typeof signInLinks;
   teams: typeof teams;
   time: typeof time;
+  usedGameweeks: typeof usedGameweeks;
 }>;
 
 /**

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../convex/_generated/api";
 import type { AuthActions, Session } from "./auth";
 import { emptyTopBar } from "./frame/topBarState";
+import { liveGameweeks } from "./gameweeks/liveGameweeks";
 import { useLiveJoining } from "./joining/liveJoining";
 import { joinTokenAt } from "./joining/paths";
 import { useLiveLeagueActions } from "./leagues/liveLeagueActions";
@@ -96,7 +97,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
       </p>
     );
   }
-  return <ShellApp session={session} auth={auth} leagues={leagues} joining={joining} topBar={emptyTopBar} />;
+  return <ShellApp session={session} auth={auth} leagues={leagues} joining={joining} topBar={emptyTopBar} gameweeks={liveGameweeks} />;
 }
 
 /** The sign-in page saying what was wrong with a link, and, for one that led to a league's invite

@@ -12,6 +12,9 @@ import { AppFrame } from "./frame/AppFrame";
 import type { TopBarState } from "./frame/topBarState";
 import { MY_TEAM_PATH, pages } from "./frame/menu";
 import { PageNotBuilt } from "./frame/PageNotBuilt";
+import { GameweeksRoute } from "./gameweeks/GameweeksRoute";
+import { GAMEWEEKS_ROUTE, leagueRunBy } from "./gameweeks/paths";
+import type { GameweeksSeam } from "./gameweeks/seam";
 import { InvitesPage } from "./joining/InvitesPage";
 import { JoinPage } from "./joining/JoinPage";
 import { INVITES_ROUTE, JOIN_ROUTE, joinTokenAt } from "./joining/paths";
@@ -25,7 +28,14 @@ import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "./leagues/paths";
 import { SignInPage } from "./sign-in/SignInPage";
 import { linkProblemWords, type LinkProblem } from "./sign-in/words";
 
-export type ShellContext = { session: Session; auth: AuthActions; leagues: LeagueActions; joining: JoiningSeam; topBar: TopBarState };
+export type ShellContext = {
+  session: Session;
+  auth: AuthActions;
+  leagues: LeagueActions;
+  joining: JoiningSeam;
+  topBar: TopBarState;
+  gameweeks: GameweeksSeam;
+};
 
 export const SIGN_IN_PATH = "/sign-in";
 
@@ -98,6 +108,19 @@ const newLeagueRoute = createRoute({
   },
 });
 
+// A league's gameweeks, for whoever runs it (#74).
+const gameweeksRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: GAMEWEEKS_ROUTE,
+  beforeLoad: ({ context, params }) => {
+    if (!leagueRunBy(context.session, params.leagueId)) throw redirect({ to: LEAGUES_PATH });
+  },
+  component: function Gameweeks() {
+    const { session, gameweeks } = gameweeksRoute.useRouteContext();
+    return <GameweeksRoute session={session} seam={gameweeks} leagueId={gameweeksRoute.useParams().leagueId} />;
+  },
+});
+
 // Joining a league (#73): a league's invites and join requests, for its runners, and its invite
 // link, which a signed-out visitor reaches through sign-in.
 const invitesRoute = createRoute({
@@ -150,7 +173,7 @@ const pageRoutes = pages.map((page) =>
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
-  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, invitesRoute, joinRoute]),
+  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, invitesRoute, joinRoute, gameweeksRoute]),
   frameRoute.addChildren([landingRoute, ...pageRoutes]),
 ]);
 

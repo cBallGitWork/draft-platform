@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/myLeagues";
+import { GameweeksLink } from "../gameweeks/GameweeksLink";
 import { invitesPath } from "../joining/paths";
 import { invitesTitle } from "../joining/words";
 import { NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
@@ -55,8 +56,9 @@ function LeagueTable({ leagues, isAdmin }: { leagues: readonly LeagueSummary[]; 
             <th scope="row" className={`${cellClasses} font-semibold`}>
               <span className="block text-lead">{league.name}</span>
               <span className="block font-normal text-muted wrap-anywhere">Commissioner: {league.commissionerEmail}</span>
+              <GameweeksLink league={league} isAdmin={isAdmin} />
               {runs(league, isAdmin) && (
-                <Link to={invitesPath(league.leagueId)} className="flex min-h-tap items-center font-normal">
+                <Link to={invitesPath(league.leagueId)} className="flex min-h-tap items-center font-normal lg:min-h-0">
                   {invitesTitle}
                 </Link>
               )}
