@@ -8,15 +8,14 @@ import { NO_CONVEX_URL } from "../src/liveApp";
 /** The one error every page load logs: the app has no favicon, and the browser asks for one. */
 const isFaviconMiss = (message: ConsoleMessage) => new URL(message.location().url || "about:blank").pathname === "/favicon.ico";
 
-/** A test whose page records every console error and page error; after the test, any not
- *  matched by `allowedErrors` fails it. */
-const test = base.extend<{ allowedErrors: ((message: ConsoleMessage) => boolean)[]; errors: string[] }>({
-  allowedErrors: [[isFaviconMiss], { option: true }],
+/** A test whose page records every console error but the favicon's, and every page error; any
+ *  recorded fails it. */
+const test = base.extend<{ errors: string[] }>({
   errors: [
-    async ({ page, allowedErrors }, use) => {
+    async ({ page }, use) => {
       const errors: string[] = [];
       page.on("console", (message) => {
-        if (message.type() === "error" && !allowedErrors.some((allowed) => allowed(message))) {
+        if (message.type() === "error" && !isFaviconMiss(message)) {
           errors.push(`console: ${message.text()} (${message.location().url})`);
         }
       });
