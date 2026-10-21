@@ -3,22 +3,14 @@
 // against them, and a player's positions read back. For the tests only: the second dot in this
 // file's name keeps it out of Convex's deploy.
 
-import type { TestConvex as TestConvexOf } from "convex-test";
 import { vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, plFixturesUrl, plFixtureUrl, plSquadUrl } from "./football";
 import { ADMIN, actingAs } from "./leagues.harness";
 import type { PositionsPayloads } from "./recorded/positions.payloads";
-import type schema from "./schema";
+import { fakeFetch, type TestConvex } from "./test.harness";
 
-export type TestConvex = TestConvexOf<typeof schema>;
-
-export const modules = import.meta.glob("./**/*.ts");
-
-export const REFUSED_STATUS = 503;
-
-/** Both feeds answering with `payloads`; the `refuse` URL answers `REFUSED_STATUS`. Any other URL
- *  is the test's mistake, and fails the read. */
+/** Both feeds answering with `payloads`, and refusing the `refuse` URL as `fakeFetch` does. */
 function fakeFeeds(payloads: PositionsPayloads, refuse?: string) {
   const bodies = new Map<string, unknown>([[FPL_BOOTSTRAP_URL, { elements: payloads.fplElements }]]);
   for (const [season, content] of Object.entries(payloads.fixtureLists)) {
@@ -26,11 +18,7 @@ function fakeFeeds(payloads: PositionsPayloads, refuse?: string) {
   }
   for (const sheet of payloads.sheets) bodies.set(plFixtureUrl(sheet.id), sheet);
   for (const [team, squad] of Object.entries(payloads.squads)) bodies.set(plSquadUrl(Number(team)), squad);
-  return vi.fn(async (url: string) => {
-    if (url === refuse) return new Response("Service Unavailable", { status: REFUSED_STATUS });
-    if (!bodies.has(url)) throw new Error(`no fake for ${url}`);
-    return Response.json(bodies.get(url));
-  });
+  return fakeFetch(bodies, (url) => url === refuse);
 }
 
 /** One sync against `payloads`: the outcome it recorded, and the URLs it asked for. */

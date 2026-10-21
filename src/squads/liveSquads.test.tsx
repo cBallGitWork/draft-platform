@@ -25,7 +25,6 @@ vi.mock("convex/react", async () =>
 
 afterEach(() => {
   for (const fake of Object.values(convex)) fake.mockReset();
-  vi.restoreAllMocks();
 });
 
 const leagueId = "league-1" as Id<"leagues">;

@@ -3,13 +3,13 @@
 // console for the failures a test sets out to cause. Each test file's own harness builds its feeds
 // on these. For the tests only: the second dot in this file's name keeps it out of Convex's deploy.
 
-import { convexTest } from "convex-test";
+import { convexTest, type TestConvex as TestConvexOf } from "convex-test";
 import { vi } from "vitest";
 import schema from "./schema";
 
 export const modules = import.meta.glob("./**/*.ts");
 
-export type TestConvex = ReturnType<typeof convexTest>;
+export type TestConvex = TestConvexOf<typeof schema>;
 
 /** A test's own Convex, empty, on the real schema and functions. */
 export function freshConvex(): TestConvex {

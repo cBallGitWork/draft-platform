@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import {
   ADMIN,
@@ -7,17 +7,15 @@ import {
   fakeResend,
   linkCode,
   openLink,
-  resetSignInDeployment,
   signInDeployment,
-  type TestConvex,
 } from "./signIn.harness";
+import type { TestConvex } from "./test.harness";
 import { DAY_MS } from "./time";
 
 let t: TestConvex;
 beforeEach(async () => {
   t = await signInDeployment();
 });
-afterEach(resetSignInDeployment);
 
 /** Asks for a link for `email` and opens it: the browser's tokens, and who the server sees. */
 async function signIn(email: string) {

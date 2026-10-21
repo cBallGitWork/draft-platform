@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { refusals } from "./leagueAccess";
@@ -15,7 +15,7 @@ import {
   teamsIn,
   type TestConvex,
 } from "./leagues.harness";
-import { fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
+import { fakeResend, signInDeployment } from "./signIn.harness";
 
 // A league's teams, their names and their managers (#24 stories 4, 5 and 7; spec/13).
 
@@ -28,7 +28,6 @@ beforeEach(async () => {
   fakeResend();
   leagueId = await adminCreatesLeague(t, 4);
 });
-afterEach(resetSignInDeployment);
 
 const teamNames = async () => (await teamsIn(t, leagueId)).map(({ name, managerEmail }) => ({ name, managerEmail }));
 

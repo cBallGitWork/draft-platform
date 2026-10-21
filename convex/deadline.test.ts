@@ -9,10 +9,10 @@ import {
 import { mapFpl } from "./fpl";
 import { recordedSeason } from "./recorded/fpl.payloads";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "./time";
+import { GAMEWEEKS } from "./usedGameweeks";
 
 const { bootstrap, fixtures } = recordedSeason();
 const season = mapFpl(bootstrap, fixtures);
-const SEASON_GAMEWEEKS = 38;
 
 /** A gameweek seen for the first time: with nothing recorded, when it is read changes nothing. */
 const NOTHING_RECORDED: DeadlineReading = { recorded: null, now: 0 };
@@ -37,7 +37,7 @@ describe("from the recorded 2026/27 season", () => {
     }));
 
   test("FPL's rule gives FPL's own deadline for every gameweek", () => {
-    expect(season.gameweeks).toHaveLength(SEASON_GAMEWEEKS);
+    expect(season.gameweeks).toHaveLength(GAMEWEEKS);
 
     expect(deadlinesUnder(FPL_DEADLINE_RULE)).toEqual(season.gameweeks);
   });

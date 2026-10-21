@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import {
@@ -14,7 +14,7 @@ import {
 import { joiningRefusals } from "./joining";
 import { refusals } from "./leagueAccess";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, type TestConvex } from "./leagues.harness";
-import { fakeResend, resetSignInDeployment, signInDeployment, spendTodaysEmails, type SentEmail } from "./signIn.harness";
+import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "./signIn.harness";
 
 // Join requests and the commissioner's page of them (#73 stories 3 and 4; spec/13 Joining,
 // spec/15 Joining a league).
@@ -31,7 +31,6 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t, 4);
   token = await makeLink(t, leagueId);
 });
-afterEach(resetSignInDeployment);
 
 const joinPageFor = (email: string) => joinPageAs(t, email, token);
 const waitingRequests = async () => (await invitesPage(t, leagueId))?.requests.map((request) => request.email);

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { askToJoin, invite, makeLink, openLastLinkTo } from "./joining.harness";
@@ -8,7 +8,7 @@ import { tablesKeyedToLeague } from "./leagueDeletion";
 import { ANN, BOB, CAT, DAN, accountOf, deletes, laterBy, leagueWithPeople, mutationsGivenALeague } from "./leagueDeletion.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, actingAs, eventsIn, leagueRow, teamsIn, type TestConvex } from "./leagues.harness";
 import schema from "./schema";
-import { fakeResend, resetSignInDeployment, signInDeployment, type SentEmail } from "./signIn.harness";
+import { fakeResend, signInDeployment, type SentEmail } from "./signIn.harness";
 
 // Deleting a league (#75, spec/13, Deleting): who may, the day it can be undone, and gone after.
 
@@ -20,7 +20,6 @@ beforeEach(async () => {
   sent = fakeResend();
   leagueId = await leagueWithPeople(t);
 });
-afterEach(resetSignInDeployment);
 
 /** All of a league there is: its row, its teams, its events, and its invites, invite link and join requests. */
 const everythingOf = async (id: Id<"leagues">) => ({

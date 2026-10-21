@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, fplLiveUrl, plPlayerStatsUrl } from "./football";
 import { statValue } from "./matchRecords";
@@ -21,7 +21,6 @@ import { freshConvex, refusedError, silenceConsoleError } from "./test.harness";
 import { HOUR_MS } from "./time";
 
 beforeEach(() => vi.useFakeTimers());
-afterEach(() => vi.useRealTimers());
 
 test("a finished match lands complete: a record for every named man, both feeds merged", async () => {
   const t = await withHullEverton();

@@ -1,4 +1,4 @@
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import {
   FPL_BOOTSTRAP_URL,
   fplLiveUrl,
@@ -26,8 +26,6 @@ import {
   recordedTeamStats,
   UPCOMING_MATCH,
 } from "./recorded/commentary.payloads";
-
-afterEach(() => vi.unstubAllGlobals());
 
 /** Answers each URL with its body in `bodies`, or every URL with `status` and no body when one is
  *  given; records the URLs. A URL with no body is the test's mistake: it fails the read. */

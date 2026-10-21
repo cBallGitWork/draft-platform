@@ -1,10 +1,10 @@
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { refusals } from "./leagueAccess";
 import { expectRefused, rulesWith } from "./leagueRules.harness";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "./leagues.harness";
-import { fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
+import { fakeResend, signInDeployment } from "./signIn.harness";
 import { GAMEWEEKS } from "./usedGameweeks";
 
 // The league's fixtures and table (#33), read from its teams, the gameweeks it plays and its
@@ -20,7 +20,6 @@ beforeEach(async () => {
   fakeResend();
   leagueId = await adminCreatesLeague(t);
 });
-afterEach(resetSignInDeployment);
 
 const read = async (email = ANN) => (await actingAs(t, email)).query(api.leagueTable.ofLeague, { leagueId });
 const changeRules = async (change: Parameters<typeof rulesWith>[0]) =>

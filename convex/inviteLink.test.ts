@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { asCommissioner, invitesPage, joinPageAs, lastEmailTo, makeLink, openLastLinkTo } from "./joining.harness";
@@ -6,7 +6,7 @@ import { joiningRefusals } from "./joining";
 import { joinPath } from "./joiningShared";
 import { refusals } from "./leagueAccess";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, onTheList, type TestConvex } from "./leagues.harness";
-import { SITE_URL, UNLISTED, fakeResend, resetSignInDeployment, signInDeployment, type SentEmail } from "./signIn.harness";
+import { SITE_URL, UNLISTED, fakeResend, signInDeployment, type SentEmail } from "./signIn.harness";
 
 // A league's invite link (#73 story 2; spec/02, spec/13 Joining): made, replaced and switched
 // off, and letting anyone who opens it sign in to ask to join.
@@ -23,7 +23,6 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t, 4);
   token = await makeLink(t, leagueId);
 });
-afterEach(resetSignInDeployment);
 
 const joinPageFor = (email: string, linkToken = token) => joinPageAs(t, email, linkToken);
 

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { isWhole } from "./matchRecords";
 import { heldRecords, recordsIn, REPLAY_MINUTES, stagedGw6, stageTime, tickAt } from "./liveStats.harness";
 import { HULL_EVERTON, heldMatch, mergedHullEverton, withHullEverton } from "./matchStats.harness";
@@ -8,7 +8,6 @@ import { centreOf, EXAMPLE_SET } from "./scoring.example";
 import type { TestConvex } from "./test.harness";
 
 beforeEach(() => vi.useFakeTimers());
-afterEach(() => vi.useRealTimers());
 
 /** The replay runs a tick a minute for over a hundred minutes: about 3 s of work, and 5 to 16 s
  *  when other runs share the machine, past vitest's default 5 s. */

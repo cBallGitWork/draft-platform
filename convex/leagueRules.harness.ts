@@ -8,6 +8,7 @@ import { FIRST_RULES } from "./firstRules";
 import type { TestConvex } from "./leagues.harness";
 import type { LeagueRules } from "./leagueRulesShape";
 import { DAY_MS, MINUTE_MS, WEEK_MS } from "./time";
+import { GAMEWEEKS } from "./usedGameweeks";
 
 /** The first rules with some parts changed, as a copy the test may change further. */
 export function rulesWith(change: Partial<LeagueRules>): LeagueRules {
@@ -16,8 +17,6 @@ export function rulesWith(change: Partial<LeagueRules>): LeagueRules {
 
 /** The first rules, played as total points. */
 export const TOTAL_POINTS = rulesWith({ format: "totalPoints" });
-
-const SEASON_GAMEWEEKS = 38;
 
 /** A season of one match a gameweek, a week apart, gameweek `next` kicking off `kicksOffIn` from
  *  now (six days by default), so every gameweek before it has begun and FPL's deadline for it is
@@ -28,7 +27,7 @@ export async function holdGameweeks(
 ): Promise<void> {
   const kickoffOf = (gameweek: number) => Date.now() + kicksOffIn + (gameweek - next) * WEEK_MS;
   await t.run(async (ctx) => {
-    for (let number = 1; number <= SEASON_GAMEWEEKS; number += 1) {
+    for (let number = 1; number <= GAMEWEEKS; number += 1) {
       const kickoff = kickoffOf(number);
       const deadline = kickoff - FPL_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS;
       await ctx.db.insert("gameweeks", { number, deadline });

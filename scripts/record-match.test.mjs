@@ -1,7 +1,7 @@
 import { mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import { plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../convex/football.ts";
 import {
   COMMENTARY_MATCH,
@@ -11,8 +11,6 @@ import {
   UPCOMING_MATCH,
 } from "../convex/recorded/commentary.payloads.ts";
 import { fixtureStatus, phase, poll, pollReads, record, summaryLine } from "./record-match.mjs";
-
-afterEach(() => vi.useRealTimers());
 
 const BRENTFORD_LIVERPOOL = COMMENTARY_MATCH.brentfordLiverpool;
 const IPSWICH_FOREST = UPCOMING_MATCH;

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import { EMAILS_PER_DAY } from "./emailLimit";
 import {
@@ -10,19 +10,17 @@ import {
   fakeResend,
   linkCode,
   openLink,
-  resetSignInDeployment,
   setSentToday,
   signInDeployment,
-  type TestConvex,
 } from "./signIn.harness";
 import { ASKS_PER_HOUR } from "./signInLinks";
+import type { TestConvex } from "./test.harness";
 import { HOUR_MS, MINUTE_MS } from "./time";
 
 let t: TestConvex;
 beforeEach(async () => {
   t = await signInDeployment();
 });
-afterEach(resetSignInDeployment);
 
 /** What Convex Auth's own signIn says when no ask let the email through. */
 const REFUSED = "a sign-in link is sent only by signInLinks:ask";

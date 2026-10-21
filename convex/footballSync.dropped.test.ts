@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL } from "./football";
 import {
@@ -55,8 +55,6 @@ beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(FIRST_SYNC);
 });
-
-afterEach(() => vi.useRealTimers());
 
 test("a row missing from a re-sync is kept, marked with the sync's time, and counted on its run row", async () => {
   const t = freshConvex();
