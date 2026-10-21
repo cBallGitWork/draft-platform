@@ -4,6 +4,8 @@ Feature 9 of [SPEC.md](../SPEC.md). Only Craig's answers.
 
 - The platform generates the head-to-head fixtures as a round robin; the commissioner can edit them.
   It is drawn over the gameweeks the league uses ([13](13-setting-up-a-league.md#gameweeks)).
+- The round robin needn't repeat in one order: it is drawn as evenly as possible. A league can
+  choose more than one game per gameweek (21 Oct 2026).
 - The table is a real football table: 3 points for a win, 1 for a draw, 0 for a loss (21 Oct 2026).
 - With an odd number of teams, the team left over each gameweek plays the league's average, as a
   league setting (21 Oct 2026).
