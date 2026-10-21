@@ -30,3 +30,27 @@ test("the first scoring set gives FPL's points less bonus to all 40 recorded men
     expect({ code, total }).toEqual({ code, total: element.stats.total_points - element.stats.bonus });
   }
 });
+
+// What Hull v Everton never had, priced by hand from FPL's rules: each line is one stat on top of
+// 90 minutes (2 points), in the area that stat's value differs by.
+const RARE: [string, Area, Record<string, number>, number][] = [
+  ["a keeper's goal", "goalkeeper", { goals_scored: 1 }, 10],
+  ["a defender's goal", "defence", { goals_scored: 1 }, 6],
+  ["a keeper's clean sheet", "goalkeeper", { clean_sheets: 1 }, 4],
+  ["a defender's clean sheet", "defence", { clean_sheets: 1 }, 4],
+  ["a midfielder's clean sheet", "defensiveMidfield", { clean_sheets: 1 }, 1],
+  ["a forward's clean sheet", "attack", { clean_sheets: 1 }, 0],
+  ["a penalty saved", "goalkeeper", { penalties_saved: 1 }, 5],
+  ["a penalty missed", "attack", { penalties_missed: 1 }, -2],
+  ["a red card", "midfield", { red_cards: 1 }, -3],
+  ["an own goal", "defence", { own_goals: 1 }, -2],
+  ["9 defensive contributions in defence", "defence", { defensive_contribution: 9 }, 0],
+  ["10 defensive contributions in defence", "defence", { defensive_contribution: 10 }, 2],
+  ["11 defensive contributions in midfield", "attackingMidfield", { defensive_contribution: 11 }, 0],
+  ["24 defensive contributions in attack, paid once", "attack", { defensive_contribution: 24 }, 2],
+  ["10 defensive contributions in goal", "goalkeeper", { defensive_contribution: 10 }, 0],
+];
+
+test.each(RARE)("the first scoring set pays %s in %s as FPL does", (_name, area, stat, points) => {
+  expect(scoreMatch({ minutes: 90, ...stat }, FIRST_RULES.scoring, area).total).toBe(2 + points);
+});
