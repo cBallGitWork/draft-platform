@@ -5,7 +5,6 @@ import { memberOf, recordEvent, refuse, runnerOf, teamIn, teamsOf } from "./leag
 import { MOST_IN_SQUAD } from "./leagueLimits";
 import { latestRules } from "./leagueRules";
 import type { LeagueRules } from "./leagueRulesShape";
-import { allClubs, playersNamed } from "./playerSearch";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
 // team, one at a time, move him between teams, or release him to free agency. Each files a Mail
@@ -19,6 +18,13 @@ export const squadRefusals = {
   alreadyThere: (name: string, teamName: string) => `${name} is already on ${teamName}.`,
   squadFull: `A team holds at most ${MOST_IN_SQUAD} players.`,
 };
+
+/** The most players a search returns: enough to pick from, few enough to read. Its twin, with the
+ *  same search, is in playerPositions.ts: change the limit or the query in both. */
+const FOUND_MOST = 20;
+/** The Premier League's clubs, with room for the ones a season's sync keeps after relegation. Its twin
+ *  is in playerPositions.ts: change both. */
+const CLUBS_MOST = 40;
 
 async function playerByCode(ctx: QueryCtx, code: number): Promise<Doc<"players">> {
   const player = await ctx.db
@@ -130,7 +136,7 @@ export const squads = query({
   handler: async (ctx, { leagueId }) => {
     await memberOf(ctx, leagueId);
     const rules = await latestRules(ctx, leagueId);
-    const clubs = new Map((await allClubs(ctx)).map((club) => [club.code, club]));
+    const clubs = new Map((await ctx.db.query("clubs").take(CLUBS_MOST)).map((club) => [club.code, club]));
     return Promise.all(
       (await teamsOf(ctx, leagueId)).map(async (team) => {
         const players = await Promise.all(
@@ -180,7 +186,10 @@ export const findPlayers = query({
   handler: async (ctx, { leagueId, text }) => {
     await runnerOf(ctx, leagueId);
     if (!text.trim()) return [];
-    const found = await playersNamed(ctx, text);
+    const found = await ctx.db
+      .query("players")
+      .withSearchIndex("search_fullName", (q) => q.search("fullName", text).eq("droppedAt", undefined))
+      .take(FOUND_MOST);
     const teamNames = new Map((await teamsOf(ctx, leagueId)).map((team) => [team._id, team.name]));
     return Promise.all(
       found.map(async (player) => {
