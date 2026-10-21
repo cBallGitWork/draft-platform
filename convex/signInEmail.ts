@@ -2,7 +2,7 @@ import { internal } from "./_generated/api";
 import type { ActionCtx } from "./_generated/server";
 import { inviteIdIn } from "./joiningShared";
 
-// The sign-in email, sent through Resend's API (ARCHITECTURE.md, Services). Convex Auth calls
+// The app's emails, sent through Resend's API (ARCHITECTURE.md, Services). Convex Auth calls
 // `sendSignInEmail` once it has made the link, which only an ask lets it do (signInLinks.ts).
 
 export const RESEND_EMAILS_URL = "https://api.resend.com/emails";
@@ -34,7 +34,8 @@ export async function sendSignInEmail({ identifier, url }: { identifier: string;
   await sendEmail(identifier, words);
 }
 
-/** Sends one email through Resend. */
+/** Sends one email, or throws saying why it wasn't sent. Every email the app sends goes through
+ *  here, counted first against the day's limit (`EMAILS_PER_DAY`, signInLinks.ts). */
 export async function sendEmail(to: string, words: { subject: string; text: string }) {
   const apiKey = process.env.AUTH_RESEND_KEY;
   if (!apiKey) throw new Error("AUTH_RESEND_KEY isn't set on this deployment, so no email can be sent");

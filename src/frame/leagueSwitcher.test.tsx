@@ -116,6 +116,13 @@ describe("the top bar's league, for someone in one", () => {
     expect(screen.queryByRole("button", { name: SWITCHER_NAME })).toBeNull();
   });
 
+  it("leaves out a league they're deleting, which is frozen", async () => {
+    const deleting = { ...miniBeta, deletion: { deletesAt: Date.parse("2026-10-22T09:00:00Z"), unemailed: [] } };
+    openApp(MY_TEAM_PATH, managerIn(league, deleting));
+    expect(within(await screen.findByRole("banner")).getByText(league.name)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: SWITCHER_NAME })).toBeNull();
+  });
+
   it("is the admin's own league alone, not those he only oversees", async () => {
     openApp(MY_TEAM_PATH, { ...adminSeeing(league, { ...miniBeta, roles: [] }), inLeague: true, currentLeagueId: league.leagueId });
     expect(within(await screen.findByRole("banner")).getByText(league.name)).toBeTruthy();

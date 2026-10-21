@@ -97,8 +97,10 @@ const leaguesRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: LEAGUES_PATH,
   component: function Leagues() {
-    const session = leaguesRoute.useRouteContext({ select: (context) => context.session });
-    return session.signedIn ? <LeaguesPage email={session.email} isAdmin={session.isAdmin} leagues={session.leagues} /> : null;
+    const { session, leagues } = leaguesRoute.useRouteContext();
+    return session.signedIn ? (
+      <LeaguesPage email={session.email} isAdmin={session.isAdmin} leagues={session.leagues} actions={leagues} />
+    ) : null;
   },
 });
 

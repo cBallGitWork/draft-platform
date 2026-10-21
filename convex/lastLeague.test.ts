@@ -115,3 +115,13 @@ test("the admin, with no part in any league, is in none, though he sees them all
   expect(await currentLeagueOf(ADMIN)).toBeNull();
 });
 
+
+test("a league being deleted is never the one the app is in, nor one to switch to, for whoever deleted it either", async () => {
+  const { first, second } = await annInTwoLeagues();
+  await switchTo(COMMISSIONER, first);
+  await (await actingAs(t, COMMISSIONER)).mutation(api.leagueDeletion.deleteLeague, { leagueId: first });
+
+  expect(await currentLeagueOf(COMMISSIONER)).toBe(second);
+  expect(await currentLeagueOf(ANN)).toBe(second);
+  await expect(switchTo(COMMISSIONER, first)).rejects.toThrow(refusals.beingDeleted);
+});

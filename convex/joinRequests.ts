@@ -5,7 +5,7 @@ import { internalAction, internalMutation, mutation, query, type QueryCtx } from
 import { linkWithToken } from "./inviteLink";
 import { joiningRefusals, startOfNextDay, takeTodaysEmail } from "./joining";
 import { approvedEmail } from "./joiningEmails";
-import { callerEmail, recordEvent, refuse, runnerOf, signedInEmail, teamsOf } from "./leagueAccess";
+import { callerEmail, getLeague, recordEvent, refuse, runnerOf, signedInEmail, teamsOf } from "./leagueAccess";
 import { delivery } from "./schema";
 import { sendEmail } from "./signInEmail";
 import { putOnTeam } from "./teams";
@@ -55,6 +55,7 @@ export const ask = mutation({
   handler: async (ctx, { token }) => {
     const email = await callerEmail(ctx);
     const link = (await linkWithToken(ctx, token)) ?? refuse(joiningRefusals.linkOff);
+    await getLeague(ctx, link.leagueId);
     if ((await teamsOf(ctx, link.leagueId)).some((team) => team.managerEmail === email)) refuse(joiningRefusals.alreadyIn);
     if (await waitingRequestOf(ctx, link.leagueId, email)) return null;
     await ctx.db.insert("joinRequests", { leagueId: link.leagueId, email });
@@ -117,15 +118,14 @@ export const sendApprovedEmail = internalAction({
 });
 
 /** Takes one of today's emails for the approved person, or, with none left, sets it waiting for
- *  tomorrow; whom it goes to, or null when it waits. */
+ *  tomorrow; whom it goes to, or null when it waits or went with its deleted league. */
 export const takeEmailFor = internalMutation({
   args: approvedEmailArgs,
   returns: v.union(v.null(), v.object({ email: v.string(), leagueName: v.string() })),
   handler: async (ctx, args) => {
     const request = await ctx.db.get("joinRequests", args.requestId);
-    if (!request) throw new Error(`Join request ${args.requestId} doesn't exist, so no email can say it was approved`);
-    const league = await ctx.db.get("leagues", request.leagueId);
-    if (!league) throw new Error(`Join request ${args.requestId} is to league ${request.leagueId}, which doesn't exist`);
+    const league = request && (await ctx.db.get("leagues", request.leagueId));
+    if (!request || !league) return null;
     if (await takeTodaysEmail(ctx)) return { email: request.email, leagueName: league.name };
     await ctx.db.patch("joinRequests", args.requestId, { approvedEmail: "waiting" });
     await ctx.scheduler.runAt(startOfNextDay(Date.now()), internal.joinRequests.sendApprovedEmail, args);

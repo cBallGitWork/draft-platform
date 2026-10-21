@@ -1,7 +1,8 @@
 // What the league screens say, in one place for Craig to change in the pull request. Why the
 // server refused a change is in convex/leagueAccess.ts (`refusals`), and reaches the screen as is.
 
-import { FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leagueLimits";
+import { DELETION_UNDO_HOURS, FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leagueLimits";
+import { londonTime } from "../../convex/londonTime";
 import type { LeagueSummary } from "../../convex/myLeagues";
 import type { NoLinkReply } from "../../convex/signInLinks";
 
@@ -32,3 +33,21 @@ export const createFailedWords = "Something went wrong, so the league wasn't mad
 
 /** When switching league failed before the server could say why. */
 export const switchFailedWords = "Something went wrong, so you're still in this league. Check your connection and try again.";
+
+// Deleting a league (#75, spec/13, Deleting).
+
+export const deleteLeagueWords = "Delete league";
+export const confirmDeleteWords = { yes: "Delete it", no: "Keep it" };
+export const confirmDelete = (leagueName: string) =>
+  `Delete ${leagueName}? At once it's frozen and hidden from everyone in it, and they're emailed. ` +
+  `You can undo it for ${DELETION_UNDO_HOURS} hours; then it's gone for good, with its teams, Mail and history.`;
+
+/** When it goes is said as the email says it (convex/londonTime.ts). */
+export const beingDeleted = (deletesAt: number) =>
+  `Being deleted: it goes for good on ${londonTime(deletesAt)}. Until then it's frozen and hidden from everyone in it.`;
+export const undoWords = "Undo";
+export const unemailed = (email: string, reason: string) => `${email} wasn't told: ${reason}.`;
+
+/** When deleting a league, or undoing it, failed before the server could say why. */
+export const deleteFailedWords = "Something went wrong, so the league wasn't deleted. Check your connection and try again.";
+export const undoFailedWords = "Something went wrong, so the league is still being deleted. Check your connection and try again.";

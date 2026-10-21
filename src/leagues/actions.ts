@@ -12,4 +12,9 @@ export type LeagueActions = {
   /** Switches to one of the person's leagues (#76), and resolves with null once the app is in it,
    *  or with the words saying why not. It never rejects. */
   switchLeague(leagueId: Id<"leagues">): Promise<string | null>;
+  /** Deletes a league (the admin or its commissioner), undoable for a day (#75); resolves as
+   *  `createLeague` does. */
+  deleteLeague(leagueId: Id<"leagues">): Promise<string | null>;
+  /** Undoes deleting a league (whoever deleted it, or the admin); resolves as `createLeague` does. */
+  undoDeletion(leagueId: Id<"leagues">): Promise<string | null>;
 };

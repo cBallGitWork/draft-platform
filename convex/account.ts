@@ -5,7 +5,8 @@ import { isAdmin, signedInEmail } from "./leagueAccess";
 import { leagueSummary, leaguesOf } from "./myLeagues";
 
 /** Who this browser is signed in as, or null when signed out, their leagues (spec/12), and the one
- *  the app is in (#76): in a league is having a part in one, which the admin's override alone isn't. */
+ *  the app is in (#76): in a league is having a part in one not being deleted, which the admin's
+ *  override alone isn't. */
 export const signedInAs = query({
   args: {},
   returns: v.union(

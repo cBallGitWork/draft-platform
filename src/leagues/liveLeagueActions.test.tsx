@@ -1,17 +1,25 @@
 // The leagues seam's live wiring, with Convex's mutation faked: what creating a league resolves
-// with when the server makes it, refuses it, or can't be reached.
+// with when the server makes it, refuses it, or can't be reached, and deleting one and undoing it.
 
 import { renderHook } from "@testing-library/react";
+import type { Id } from "../../convex/_generated/dataModel";
+import type { FunctionReference } from "convex/server";
 import { ConvexError } from "convex/values";
 import { afterEach, expect, test, vi } from "vitest";
 import { useLiveLeagueActions } from "./liveLeagueActions";
-import { createFailedWords } from "./words";
+import { createFailedWords, deleteFailedWords, undoFailedWords } from "./words";
 
 const create = vi.hoisted(() => vi.fn());
-vi.mock("convex/react", () => ({ useMutation: () => create }));
+const deleteLeague = vi.hoisted(() => vi.fn());
+const undo = vi.hoisted(() => vi.fn());
+vi.mock("convex/react", async () => {
+  const { getFunctionName } = await import("convex/server");
+  const byName: Record<string, unknown> = { "leagues:create": create, "leagueDeletion:deleteLeague": deleteLeague, "leagueDeletion:undo": undo };
+  return { useMutation: (mutation: FunctionReference<"mutation">) => byName[getFunctionName(mutation)] };
+});
 
 afterEach(() => {
-  create.mockReset();
+  for (const mutation of [create, deleteLeague, undo]) mutation.mockReset();
   vi.restoreAllMocks();
 });
 
@@ -36,4 +44,28 @@ test("any other failure is logged and said plainly", async () => {
 
   expect(await createLeague()).toBe(createFailedWords);
   expect(logged).toHaveBeenCalledWith("Creating a league failed:", failure);
+});
+
+const leagueId = "league-1" as Id<"leagues">;
+const liveActions = () => renderHook(useLiveLeagueActions).result.current;
+
+test.each([
+  ["deleting", () => liveActions().deleteLeague(leagueId), deleteLeague],
+  ["undoing", () => liveActions().undoDeletion(leagueId), undo],
+])("%s a league asks the server with its id, and resolves with no problem", async (_, change, mutation) => {
+  mutation.mockResolvedValue(null);
+  expect(await change()).toBeNull();
+  expect(mutation).toHaveBeenCalledExactlyOnceWith({ leagueId });
+});
+
+test.each([
+  ["Deleting a league", () => liveActions().deleteLeague(leagueId), deleteLeague, deleteFailedWords],
+  ["Undoing a league's deletion", () => liveActions().undoDeletion(leagueId), undo, undoFailedWords],
+])("%s failing for any other reason is logged and said plainly", async (doing, change, mutation, words) => {
+  const failure = new Error("offline");
+  mutation.mockRejectedValue(failure);
+  const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+
+  expect(await change()).toBe(words);
+  expect(logged).toHaveBeenCalledWith(`${doing} failed:`, failure);
 });

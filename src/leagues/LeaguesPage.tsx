@@ -3,6 +3,7 @@ import type { LeagueSummary } from "../../convex/myLeagues";
 import { GameweeksLink } from "../gameweeks/GameweeksLink";
 import { invitesPath } from "../joining/paths";
 import { invitesTitle } from "../joining/words";
+import { LeagueDeletionRow, type DeletionActions } from "./LeagueDeletion";
 import { NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
 import { adminWords, roleWords, unsentLink, unsentLinkWords } from "./words";
 
@@ -12,7 +13,17 @@ const cellClasses = "px-2 text-left align-top";
  *  league; with none, a page saying so (spec/02). The admin is offered "Create a league", as only
  *  the admin creates leagues in the beta. Switching between leagues is the top bar's
  *  (frame/LeagueSwitcher.tsx). */
-export function LeaguesPage({ email, isAdmin, leagues }: { email: string; isAdmin: boolean; leagues: readonly LeagueSummary[] }) {
+export function LeaguesPage({
+  email,
+  isAdmin,
+  leagues,
+  actions,
+}: {
+  email: string;
+  isAdmin: boolean;
+  leagues: readonly LeagueSummary[];
+  actions: DeletionActions;
+}) {
   return (
     <section aria-labelledby="page-title" className="max-w-3xl bg-panel">
       <h1 id="page-title" className="bg-plate px-4 py-1 text-title font-bold shadow-bevel-plate">
@@ -25,7 +36,7 @@ export function LeaguesPage({ email, isAdmin, leagues }: { email: string; isAdmi
             {!isAdmin && <p className="text-muted">When a commissioner invites you to one, it will be here.</p>}
           </>
         ) : (
-          <LeagueTable leagues={leagues} isAdmin={isAdmin} />
+          <LeagueTable leagues={leagues} isAdmin={isAdmin} actions={actions} />
         )}
         {isAdmin && (
           <Link to={NEW_LEAGUE_PATH} className="action self-start">
@@ -40,7 +51,7 @@ export function LeaguesPage({ email, isAdmin, leagues }: { email: string; isAdmi
 /** Whether the person runs the league: its commissioner, its co-commissioner, or the admin. */
 const runs = (league: LeagueSummary, isAdmin: boolean) => isAdmin || league.roles.some((role) => role !== "manager");
 
-function LeagueTable({ leagues, isAdmin }: { leagues: readonly LeagueSummary[]; isAdmin: boolean }) {
+function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSummary[]; isAdmin: boolean; actions: DeletionActions }) {
   return (
     <table className="w-full border-collapse">
       <thead className="bg-head text-ground">
@@ -57,8 +68,8 @@ function LeagueTable({ leagues, isAdmin }: { leagues: readonly LeagueSummary[]; 
             <th scope="row" className={`${cellClasses} font-semibold`}>
               <span className="block text-lead">{league.name}</span>
               <span className="block font-normal text-muted wrap-anywhere">Commissioner: {league.commissionerEmail}</span>
-              <GameweeksLink league={league} isAdmin={isAdmin} />
-              {runs(league, isAdmin) && (
+              {!league.deletion && <GameweeksLink league={league} isAdmin={isAdmin} />}
+              {!league.deletion && runs(league, isAdmin) && (
                 <Link to={invitesPath(league.leagueId)} className="flex min-h-tap items-center font-normal lg:min-h-0">
                   {invitesTitle}
                 </Link>
@@ -77,6 +88,7 @@ function LeagueTable({ leagues, isAdmin }: { leagues: readonly LeagueSummary[]; 
               </td>
             </tr>
           )}
+          <LeagueDeletionRow league={league} canDelete={isAdmin || league.roles.includes("commissioner")} actions={actions} />
         </tbody>
       ))}
     </table>

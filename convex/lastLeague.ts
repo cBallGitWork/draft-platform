@@ -17,10 +17,10 @@ const rememberedRow = (ctx: QueryCtx, email: string) =>
     .unique();
 
 /** The league the app is in: the one used last while the person still has a part in it, or else
- *  the first of theirs by name, or null when they have a part in none. `leagues` are theirs, by
- *  name (`leaguesOf`), the admin's partless ones among them. */
+ *  the first of theirs by name, or null when they have a part in none. A league being deleted is
+ *  never it (#75). `leagues` are theirs, by name (`leaguesOf`), the admin's partless ones among them. */
 export async function currentLeagueOf(ctx: QueryCtx, email: string, leagues: readonly LeagueSummary[]): Promise<Id<"leagues"> | null> {
-  const theirs = leagues.filter(hasPart);
+  const theirs = leagues.filter((league) => hasPart(league) && !league.deletion);
   const remembered = await rememberedRow(ctx, email);
   const current = theirs.find((league) => league.leagueId === remembered?.leagueId) ?? theirs[0];
   return current?.leagueId ?? null;
@@ -33,7 +33,8 @@ export const switchTo = mutation({
   handler: async (ctx, { leagueId }) => {
     const email = await callerEmail(ctx);
     const theirs = (await leaguesOf(ctx, email, isAdmin(email))).filter(hasPart);
-    if (!theirs.some((league) => league.leagueId === leagueId)) refuse(refusals.notYourLeague);
+    const league = theirs.find((each) => each.leagueId === leagueId) ?? refuse(refusals.notYourLeague);
+    if (league.deletion) refuse(refusals.beingDeleted);
 
     const remembered = await rememberedRow(ctx, email);
     if (!remembered) await ctx.db.insert("lastLeagues", { email, leagueId });
