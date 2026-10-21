@@ -7,14 +7,13 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { Id } from "../../convex/_generated/dataModel";
 import { joinPath } from "../../convex/joiningShared";
 import { DAY_MS } from "../../convex/time";
-import { league, managerIn, openApp } from "../shell.harness";
+import { commissioner, league, managerIn, openApp } from "../shell.harness";
 import { invitesPath } from "./paths";
 import type { InvitesPageData } from "./seam";
 import { dayWords, expiredWords, invitesTitle, joinedWords, noTeamWords, notYoursWords, waitingStrip } from "./words";
 
 afterEach(cleanup);
 
-const commissioner = managerIn({ ...league, roles: ["commissioner"], teamName: null });
 const TEAM_2 = "team-2" as Id<"teams">;
 const inviteRow = (inviteId: string, email: string) =>
   ({ inviteId: inviteId as Id<"invites">, email, teamName: null, delivery: "sent", expiresAt: Date.now() + DAY_MS, joinedTeamName: null, couldNotJoin: null }) as const;

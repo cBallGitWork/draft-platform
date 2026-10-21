@@ -1,25 +1,33 @@
 // The leagues seam's live wiring, with Convex's mutation faked: what creating a league resolves
-// with when the server makes it, refuses it, or can't be reached, and deleting one and undoing it.
+// with when the server makes it, refuses it, or can't be reached, deleting one and undoing it, and
+// switching league (#76).
 
 import { renderHook } from "@testing-library/react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { FunctionReference } from "convex/server";
 import { ConvexError } from "convex/values";
+import { refusals } from "../../convex/leagueAccess";
 import { afterEach, expect, test, vi } from "vitest";
 import { useLiveLeagueActions } from "./liveLeagueActions";
-import { createFailedWords, deleteFailedWords, undoFailedWords } from "./words";
+import { createFailedWords, deleteFailedWords, switchFailedWords, undoFailedWords } from "./words";
 
 const create = vi.hoisted(() => vi.fn());
 const deleteLeague = vi.hoisted(() => vi.fn());
 const undo = vi.hoisted(() => vi.fn());
+const switchTo = vi.hoisted(() => vi.fn());
 vi.mock("convex/react", async () => {
   const { getFunctionName } = await import("convex/server");
-  const byName: Record<string, unknown> = { "leagues:create": create, "leagueDeletion:deleteLeague": deleteLeague, "leagueDeletion:undo": undo };
+  const byName: Record<string, unknown> = {
+    "leagues:create": create,
+    "leagueDeletion:deleteLeague": deleteLeague,
+    "leagueDeletion:undo": undo,
+    "lastLeague:switchTo": switchTo,
+  };
   return { useMutation: (mutation: FunctionReference<"mutation">) => byName[getFunctionName(mutation)] };
 });
 
 afterEach(() => {
-  for (const mutation of [create, deleteLeague, undo]) mutation.mockReset();
+  for (const mutation of [create, deleteLeague, undo, switchTo]) mutation.mockReset();
   vi.restoreAllMocks();
 });
 
@@ -52,6 +60,7 @@ const liveActions = () => renderHook(useLiveLeagueActions).result.current;
 test.each([
   ["deleting", () => liveActions().deleteLeague(leagueId), deleteLeague],
   ["undoing", () => liveActions().undoDeletion(leagueId), undo],
+  ["switching to", () => liveActions().switchLeague(leagueId), switchTo],
 ])("%s a league asks the server with its id, and resolves with no problem", async (_, change, mutation) => {
   mutation.mockResolvedValue(null);
   expect(await change()).toBeNull();
@@ -61,6 +70,7 @@ test.each([
 test.each([
   ["Deleting a league", () => liveActions().deleteLeague(leagueId), deleteLeague, deleteFailedWords],
   ["Undoing a league's deletion", () => liveActions().undoDeletion(leagueId), undo, undoFailedWords],
+  ["Switching league", () => liveActions().switchLeague(leagueId), switchTo, switchFailedWords],
 ])("%s failing for any other reason is logged and said plainly", async (doing, change, mutation, words) => {
   const failure = new Error("offline");
   mutation.mockRejectedValue(failure);
@@ -68,4 +78,9 @@ test.each([
 
   expect(await change()).toBe(words);
   expect(logged).toHaveBeenCalledWith(`${doing} failed:`, failure);
+});
+
+test("a switch the server refuses resolves with the server's own words", async () => {
+  switchTo.mockRejectedValue(new ConvexError(refusals.notInLeague));
+  expect(await liveActions().switchLeague(leagueId)).toBe(refusals.notInLeague);
 });

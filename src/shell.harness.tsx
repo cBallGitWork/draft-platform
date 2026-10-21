@@ -38,6 +38,8 @@ const signedIn = { signedIn: true, email: "manager@example.com", isAdmin: false 
 export const managerIn = (...leagues: LeagueSummary[]) =>
   ({ ...signedIn, inLeague: true, leagues, currentLeagueId: leagues[0].leagueId }) satisfies Session;
 export const manager = managerIn(league);
+/** The commissioner of `league`, running no team in it. */
+export const commissioner = managerIn({ ...league, roles: ["commissioner"], teamName: null });
 export const newcomer: Session = { ...signedIn, inLeague: false, leagues: [], currentLeagueId: null };
 /** The admin, seeing every league, with no part in any. */
 export const adminSeeing = (...leagues: LeagueSummary[]) =>
