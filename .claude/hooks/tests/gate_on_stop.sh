@@ -40,8 +40,8 @@ code=$?
 if [ "$code" -eq 0 ] || [ -z "$err" ]; then
   fail "gate_on_stop.py: a failed git status exited $code with no error"
 fi
-# settings.json runs the gate on both stops, so neither a session nor a builder finishes past it
-for event in Stop SubagentStop; do
-  "$jq" -e --arg e "$event" '.hooks[$e][]?.hooks[]?.command | select(endswith("/gate_on_stop.py"))' \
-    "$hooks/../settings.json" >/dev/null || fail "settings.json: no $event hook runs gate_on_stop.py"
-done
+# scripts/ is watched (verify tests it), so a change there alone runs the gate
+scripts=$tmp/gate-scripts && gate_repo "$scripts"
+silent gate_on_stop.py "$(stop_in "$scripts" Stop)" DRAFT_GATE_CMD=false
+mkdir "$scripts/scripts" && touch "$scripts/scripts/a.mjs"
+blocks gate_on_stop.py "$(stop_in "$scripts" Stop)" DRAFT_GATE_CMD=false

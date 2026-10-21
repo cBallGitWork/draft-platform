@@ -207,14 +207,15 @@ def decide(cmd, cwd):
 
 
 def main():
-    try:
+    try:  # a payload it can't read is denied too: allowing it would check nothing
         payload = json.load(sys.stdin)
-    except ValueError:
-        return
-    cmd = (payload.get("tool_input") or {}).get("command") or ""
-    cwd = payload.get("cwd") or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
-    try:
-        reason = decide(cmd, cwd)
+        if isinstance(payload, dict):
+            cmd = (payload.get("tool_input") or {}).get("command") or ""
+            cwd = payload.get("cwd") or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+            reason = decide(cmd, cwd)
+        else:
+            reason = (f"The Bash guard couldn't read the hook payload (a JSON {type(payload).__name__}, "
+                      "not an object), so nothing was checked.")
     except Exception as error:  # a guard that crashes prints nothing, which would allow
         reason = f"The Bash guard failed ({type(error).__name__}: {error}), so nothing was checked."
     if reason:

@@ -26,7 +26,9 @@ import sys
 from pathlib import Path
 
 PACKAGE = "package.json"  # a checkout without one has no gate
-WATCHED = ("convex", "src", PACKAGE, "package-lock.json", "vitest.config.ts", ".claude")
+# what `npm run verify` checks: it changes with verify's scope (a new vitest project, say)
+WATCHED = ("convex", "src", "scripts", PACKAGE, "package-lock.json", "tsconfig.json", "vite.config.ts",
+           "vitest.config.ts", ".claude")
 TAIL_LINES = 40
 GATE = "npm run verify"
 GATE_TIMEOUT_SECONDS = 170  # inside the 180 settings.json gives the hook
