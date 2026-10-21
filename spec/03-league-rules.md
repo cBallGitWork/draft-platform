@@ -7,6 +7,7 @@ The league's rules are data. Among them:
 - Format: head-to-head, or total points.
 - Playoffs: how many teams, how many legs.
 - Standings tie-breaks.
+- How many head-to-head games each team plays a gameweek: one, or more (`spec/09`).
 - With an odd number of teams, whether the team left over plays the league's average
   (`spec/09`).
 - Squad make-up: a minimum and maximum squad size, or no limits; a minimum and maximum per area;
