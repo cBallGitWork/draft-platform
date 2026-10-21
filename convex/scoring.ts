@@ -1,13 +1,17 @@
 // A player's points for one match under a league's scoring set (spec/14, How a rule scores; #29).
 // The scoring set is the league's rule, so it is always an argument, never a constant.
 
+import { MINUTES_STAT } from "./matchRecords";
+import { AREAS, LANES, positionOfSlot, type Cell, type SlotPosition } from "./pitch";
 import {
-  AREAS,
+  inTenths,
+  priceFor,
   requireNumber,
   showValue,
   validateScoringSet,
   type Area,
-  type BandsRule,
+  type Band,
+  type Priced,
   type ScoringRule,
   type ScoringSet,
 } from "./scoringSet";
@@ -27,23 +31,33 @@ export interface MatchPoints {
   categories: CategoryPoints[];
 }
 
+/** Where he starts: the slot's area, and the position its area and lane make it (pitch.ts). */
+interface Slot {
+  area: Area;
+  position: SlotPosition;
+}
+
 /**
- * A player's points for one match, by the area of the slot he starts in, whatever his position: a
- * centre-back played in midfield scores as a midfielder. `record` is null while his whole record
+ * A player's points for one match, by the slot he starts in, whatever his own positions: a
+ * centre-back played at full-back scores as a full-back. `record` is null while his whole record
  * for the match hasn't arrived: every category is then "—" and so is the total, never a guess.
- * Once it has arrived, a stat it leaves out is 0 (spec/14). A bad set, area or stat throws.
+ * Once it has arrived, a stat it leaves out is 0 (spec/14). A bad set, cell or stat throws.
+ * Points are kept in tenths, so 0.1 three times is 0.3, never 0.30000000000000004.
  */
-export function scoreMatch(record: MatchStats | null, set: ScoringSet, area: Area): MatchPoints {
+export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cell): MatchPoints {
   validateScoringSet(set);
-  if (!AREAS.includes(area)) throw new Error(`${showValue(area)} is not one of the pitch's six areas`);
+  if (!AREAS.includes(cell.area)) throw new Error(`${showValue(cell.area)} is not one of the pitch's six areas`);
+  if (!LANES.includes(cell.lane)) throw new Error(`${showValue(cell.lane)} is not one of the pitch's five lanes`);
   if (record === null) {
     return { total: null, categories: set.rules.map((rule) => ({ stat: rule.stat, points: null })) };
   }
+  const slot = { area: cell.area, position: positionOfSlot(cell) };
+  const minutes = statIn(record, MINUTES_STAT);
   const categories = set.rules.map((rule) => ({
     stat: rule.stat,
-    points: rulePoints(rule, area, statIn(record, rule.stat)),
+    points: rulePoints(rule, slot, statIn(record, rule.stat), minutes),
   }));
-  return { total: sum(categories.map((category) => category.points)), categories };
+  return { total: notNegativeZero(inTenths(sum(categories.map((category) => category.points)))), categories };
 }
 
 /** Only the record's own keys count: a rule on `constructor` must not read Object's. A stat the
@@ -55,30 +69,46 @@ function statIn(record: MatchStats, stat: string): number {
   return actions;
 }
 
-/** Points too large to be a number throw. No action under a negative rule (0 yellow cards at -1)
- *  is -0 in JavaScript, which a saved row or a test tells apart from 0, so it is made 0. */
-function rulePoints(rule: ScoringRule, area: Area, actions: number): number {
-  const points = pointsByShape(rule, area, actions);
-  if (!Number.isFinite(points)) throw new Error(`the ${rule.stat} rule gives ${points} points in ${area}`);
+/** A rule's points for the slot: nothing below its minimum minutes, then held to its points
+ *  limit. Points too large to be a number throw. */
+function rulePoints(rule: ScoringRule, slot: Slot, actions: number, minutes: number): number {
+  const price: Price = (priced) => priceFor(priced, slot.area, slot.position);
+  if (rule.minMinutes !== undefined && minutes < price(rule.minMinutes)) return 0;
+  let points = pointsByShape(rule, price, actions);
+  if (rule.limit !== undefined) {
+    const { max, min } = price(rule.limit);
+    if (max !== null) points = Math.min(points, max);
+    if (min !== null) points = Math.max(points, min);
+  }
+  if (!Number.isFinite(points)) throw new Error(`the ${rule.stat} rule gives ${points} points as ${slot.position}`);
+  return notNegativeZero(inTenths(points));
+}
+
+/** No points as -0, which JavaScript makes of 0 yellow cards at -1, or of tenths that cancel out,
+ *  and which a saved row or a test tells apart from 0. */
+function notNegativeZero(points: number): number {
   return points === 0 ? 0 : points;
 }
 
-function pointsByShape(rule: ScoringRule, area: Area, actions: number): number {
+/** A rule's setting for the slot being scored. */
+type Price = <Value>(priced: Priced<Value>) => Value;
+
+function pointsByShape(rule: ScoringRule, price: Price, actions: number): number {
   switch (rule.shape) {
     case "perAction":
-      return actions * rule.byArea[area];
+      return actions * price(rule.values);
     case "perCount": {
-      const { every, points } = rule.byArea[area];
+      const { every, points } = price(rule.values);
       return Math.floor(actions / every) * points;
     }
     case "bands":
-      return bandPoints(rule, area, actions);
+      return bandPoints(price(rule.values), rule.stack, actions);
   }
 }
 
-function bandPoints(rule: BandsRule, area: Area, actions: number): number {
-  const reached = rule.byArea[area].filter((band) => actions >= band.atLeast);
-  if (rule.stack) return sum(reached.map((band) => band.points));
+function bandPoints(bands: readonly Band[], stack: boolean, actions: number): number {
+  const reached = bands.filter((band) => actions >= band.atLeast);
+  if (stack) return sum(reached.map((band) => band.points));
   const highest = reached.toSorted((one, other) => other.atLeast - one.atLeast)[0];
   return highest?.points ?? 0;
 }
