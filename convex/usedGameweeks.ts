@@ -14,7 +14,7 @@ export const GAMEWEEKS = 38;
 export const fplDeadline = v.union(v.number(), v.null());
 
 /** FPL's deadline for each of gameweeks 1 to 38 the app holds, by gameweek. It reads dropped rows
- *  too; leagueRules.ts:78 skips them, and whether these should too is Craig's call. */
+ *  too; leagueRules.ts's `heldSchedule` skips them, and whether these should too is Craig's call. */
 export async function fplDeadlines(ctx: QueryCtx): Promise<Map<number, number>> {
   const rows = await ctx.db
     .query("gameweeks")
