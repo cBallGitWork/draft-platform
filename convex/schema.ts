@@ -1,6 +1,7 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { v, type VLiteral } from "convex/values";
+import { POSITIONS, type Position } from "./positionTables";
 import { signInReply } from "./signInLinks";
 
 /** What one read of a feed found: a count of what came back, or why it failed. */
@@ -77,11 +78,12 @@ export const tableWrites = v.object({
   unmarked: v.optional(v.number()),
 });
 
-export const footballSyncTrigger = v.union(v.literal("manual"), v.literal("cron"));
+/** Who started a sync: someone by hand, or its cron. */
+export const syncTrigger = v.union(v.literal("manual"), v.literal("cron"));
 
 // One row per run of footballSync.run, so a failed fetch is on record, never silent.
 export const footballSyncFields = {
-  trigger: footballSyncTrigger,
+  trigger: syncTrigger,
   ranAt: v.number(),
   outcome: v.union(
     v.object({
@@ -152,8 +154,6 @@ export const lateStatChange = v.object({ stat: v.string(), locked: v.number(), s
 /** The platform's own settings, the admin's to change (spec/15). A league's rules are never here. */
 const platformSettingName = v.literal("statCorrectionWindowMinutes");
 
-export const matchStatsSyncTrigger = v.union(v.literal("manual"), v.literal("cron"));
-
 /** What one sync did with one match. */
 export const matchSyncOutcome = v.union(
   v.object({
@@ -174,7 +174,7 @@ export const matchSyncOutcome = v.union(
 
 // One row per run of matchStatsSync.run, so a failed read is on record, never silent.
 export const matchStatsSyncFields = {
-  trigger: matchStatsSyncTrigger,
+  trigger: syncTrigger,
   ranAt: v.number(),
   outcome: v.union(
     v.object({
@@ -203,6 +203,67 @@ const matchStatsTables = {
   matchStatsSyncs: defineTable(matchStatsSyncFields),
   /** When a run last tried each match, read or not: one that never reads steps behind the rest. */
   matchStatsTries: defineTable({ fixtureCode: v.number(), triedAt: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
+};
+
+// Positions (#22). Kept apart from `players`, which the football sync rewrites every six hours, so
+// no feed read touches the admin's say. Each row is keyed on FPL's season-stable `code`.
+
+// `v.union` takes two or more members, which a mapped array cannot promise its type.
+const positionLiterals = POSITIONS.map((position) => v.literal(position));
+export const position = v.union(...(positionLiterals as [VLiteral<Position>, VLiteral<Position>, ...VLiteral<Position>[]]));
+
+/** One match a player started, where he lined up: `Start` in positions.ts. */
+export const startRecord = v.object({
+  fixtureCode: v.number(),
+  kickoff: v.number(),
+  formation: v.union(v.string(), v.null()),
+  line: v.union(v.number(), v.null()),
+  place: v.union(v.number(), v.null()),
+});
+
+export const playerPositionFields = {
+  code: v.number(),
+  /** The Premier League's `positionInfo` for him, his squad's or else his newest sheet's; absent
+   *  until one names him. */
+  plLabel: v.optional(v.string()),
+  /** His newest starts, at most `START_WINDOW`, newest first. */
+  starts: v.array(startRecord),
+  // The admin's say (`AdminPositions` in positions.ts): only his actions write these.
+  approved: v.array(position),
+  confirmedLabel: v.optional(v.string()),
+  set: v.array(position),
+  removed: v.array(position),
+};
+
+export const approveMode = v.union(v.literal("proposals"), v.literal("countAtOnce"));
+
+/** How positions from starts count: a single row, absent until the admin first sets it. */
+export const positionSettingsFields = { approveMode };
+
+// One row per run of positionsSync.run, so a failed read is on record, never silent.
+export const positionsSyncFields = {
+  trigger: syncTrigger,
+  ranAt: v.number(),
+  outcome: v.union(
+    v.object({
+      ok: v.literal(true),
+      /** Matches whose sheets were read this run, and those played but left for the next. */
+      matchesRead: v.number(),
+      matchesLeft: v.number(),
+      /** Matches whose sheets do not draw the men they start, each with why: not filed, so read
+       *  again next run. */
+      matchesRefused: v.array(v.string()),
+      startsAdded: v.number(),
+      /** Men a squad or a sheet names whom FPL does not list (gone abroad, say): not held. */
+      unmatchedPlayers: v.number(),
+      labelsReceived: v.number(),
+      labelsChanged: v.number(),
+      /** What the tables in positionTables.ts do not know: each needs a row before it counts. */
+      unknownFormations: v.array(v.string()),
+      unknownLabels: v.array(v.string()),
+    }),
+    v.object({ ok: v.literal(false), error: v.string() }),
+  ),
 };
 
 // The live poller (#28): one row per tick that found a match live, so a failed one is on record.
@@ -289,8 +350,13 @@ export default defineSchema({
   leagueEvents: defineTable(leagueEventFields).index("by_leagueId_and_at", ["leagueId", "at"]),
   feedChecks: defineTable(feedCheckFields),
   clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
-  players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]),
+  players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_clubCode", ["clubCode"]),
   fixtures: defineTable(fixtureRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_kickoff", ["kickoff"]),
   gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]),
   footballSyncs: defineTable(footballSyncFields),
+  playerPositions: defineTable(playerPositionFields).index("by_code", ["code"]),
+  /** Each match whose sheets the positions sync has filed, so none is filed twice. */
+  positionSheets: defineTable({ fixtureCode: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
+  positionSettings: defineTable(positionSettingsFields),
+  positionsSyncs: defineTable(positionsSyncFields),
 });

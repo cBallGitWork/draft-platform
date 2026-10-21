@@ -2,13 +2,14 @@ import type { Infer } from "convex/values";
 import { internal } from "./_generated/api";
 import { internalAction, type ActionCtx } from "./_generated/server";
 import { codesByOpta, fixtureCodeIn, namedMen } from "./feedIds";
+import { errorMessage } from "./football";
 import { readFplPayloads } from "./fpl";
 import { fplStatLines, readFplLive, type FplStatLine } from "./fplLive";
 import { matchRecords } from "./matchRecords";
 import type { DueMatch } from "./matchStats";
 import { matchSlots, plStatLines } from "./plMatch";
 import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlPlayerStats, type RawPlFixture } from "./premierLeague";
-import { matchStatsSyncFields, matchStatsSyncTrigger, type matchSyncOutcome } from "./schema";
+import { matchStatsSyncFields, syncTrigger, type matchSyncOutcome } from "./schema";
 
 // Issue #27: every due match's stats from both feeds, one record per named man, upserted with
 // `matchStats.upsertMatch`. No cron runs it yet (ARCHITECTURE.md); from the CLI:
@@ -27,7 +28,7 @@ interface GameweekReads {
 }
 
 export const run = internalAction({
-  args: { trigger: matchStatsSyncTrigger },
+  args: { trigger: syncTrigger },
   handler: async (ctx, { trigger }) => {
     const ranAt = Date.now();
     let outcome: Outcome;
@@ -111,7 +112,7 @@ function byGameweek(due: DueMatch[]): Map<number, number[]> {
 
 /** The error's message, logged so a failure is seen in Convex's logs as well as on the run row. */
 export function logFailure(what: string, error: unknown): string {
-  const message = error instanceof Error ? error.message : String(error);
+  const message = errorMessage(error);
   console.error(`${what}: ${message}`);
   return message;
 }
