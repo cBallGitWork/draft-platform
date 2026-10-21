@@ -6,7 +6,11 @@ import { BackToLeagues } from "../leagues/LeagueLinks";
 import { useChange } from "../useChange";
 import type { FoundPlayer, SquadsSeam, TeamSquad } from "./seam";
 import {
+  assignLabel,
   assignWords,
+  foundListLabel,
+  moveLabel,
+  squadListLabel,
   emptySquadWords,
   findHint,
   findLabel,
@@ -80,7 +84,7 @@ function FindPlayer({ league, seam, squads, change }: { league: LeagueSummary; s
         ) : found.length === 0 ? (
           <p className="px-3 pb-2 text-muted">{noneFoundWords}</p>
         ) : (
-          <ul aria-label="Players found" className="border-t border-panel-rule">
+          <ul aria-label={foundListLabel} className="border-t border-panel-rule">
             {found.map((player) => (
               <FoundRow key={player.code} league={league} seam={seam} player={player} squads={squads} change={change} />
             ))}
@@ -108,11 +112,10 @@ function FoundRow({
   const [chosen, choose] = useState<string>("");
   const teamId = (others.some((squad) => squad.teamId === chosen) ? chosen : others[0]?.teamId) as Id<"teams"> | undefined;
   const free = player.teamName === null;
-  const place = () =>
-    teamId !== undefined &&
-    void change.run(() =>
-      free ? seam.assign(league.leagueId, player.code, teamId) : seam.move(league.leagueId, player.code, teamId),
-    );
+  function place() {
+    if (teamId === undefined) return;
+    void change.run(() => (free ? seam.assign(league.leagueId, player.code, teamId) : seam.move(league.leagueId, player.code, teamId)));
+  }
   const selectId = `team-for-${player.code}`;
   return (
     <li className="flex flex-col gap-1 border-b border-panel-rule px-3 py-2">
@@ -130,7 +133,13 @@ function FoundRow({
               </option>
             ))}
           </select>
-          <button type="button" disabled={change.busy} onClick={place} className="secondary-action">
+          <button
+            type="button"
+            disabled={change.busy}
+            onClick={place}
+            className="secondary-action"
+            aria-label={free ? assignLabel(player.name) : moveLabel(player.name)}
+          >
             {free ? assignWords : moveWords}
           </button>
         </span>
@@ -154,7 +163,7 @@ function Squad({ league, seam, squad, change }: { league: LeagueSummary; seam: S
       {squad.players.length === 0 ? (
         <p className="px-3 pb-2 text-muted">{emptySquadWords}</p>
       ) : (
-        <ul aria-label={`${squad.teamName}'s players`} className="mt-2 border-t border-panel-rule">
+        <ul aria-label={squadListLabel(squad.teamName)} className="mt-2 border-t border-panel-rule">
           {squad.players.map((player) => (
             <li key={player.code} className="flex items-center justify-between gap-2 border-b border-panel-rule px-3 py-1">
               <span className="flex flex-col">

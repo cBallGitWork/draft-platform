@@ -20,6 +20,10 @@ export const assignWords = "Put on team";
 export const moveWords = "Move";
 export const releaseWords = "Release";
 export const releaseLabel = (name: string) => `Release ${name}`;
+export const assignLabel = (name: string) => `Put ${name} on the team chosen`;
+export const moveLabel = (name: string) => `Move ${name} to the team chosen`;
+export const foundListLabel = "Players found";
+export const squadListLabel = (teamName: string) => `${teamName}'s players`;
 export const playersCount = (count: number) => (count === 1 ? "1 player" : `${count} players`);
 
 /** Each squad limit the league's rules set that this squad breaks: they warn, never block (spec/15). */

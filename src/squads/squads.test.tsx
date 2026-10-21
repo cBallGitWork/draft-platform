@@ -10,7 +10,7 @@ import { adminSeeing, commissioner, league, managerIn, openApp } from "../shell.
 import { squadsPath } from "./paths";
 import type { SquadsData } from "./squads.harness";
 import { teamSquad } from "./squads.harness";
-import { assignWords, goneWords, moveWords, noneFoundWords, releaseLabel, SQUADS_TITLE, teamChoiceLabel } from "./words";
+import { assignLabel, findLabel, foundListLabel, goneWords, moveLabel, noneFoundWords, releaseLabel, SQUADS_TITLE, teamChoiceLabel } from "./words";
 
 afterEach(cleanup);
 
@@ -24,8 +24,8 @@ const TWO_TEAMS: SquadsData = {
   ],
 };
 const openSquads = (data: SquadsData = TWO_TEAMS) => openApp(PAGE, commissioner, undefined, undefined, undefined, data);
-const search = async (text: string) => userEvent.type(await screen.findByRole("searchbox", { name: "Name" }), text);
-const foundRow = (name: string) => within(screen.getByRole("list", { name: "Players found" })).getByText(name).closest("li")!;
+const search = async (text: string) => userEvent.type(await screen.findByRole("searchbox", { name: findLabel }), text);
+const foundRow = (name: string) => within(screen.getByRole("list", { name: foundListLabel })).getByText(name).closest("li")!;
 
 describe("reaching the squads", () => {
   it.each([
@@ -77,7 +77,7 @@ describe("finding a player", () => {
     await search("Isak");
     const isak = foundRow("Alexander Isak");
     await userEvent.selectOptions(within(isak).getByRole("combobox", { name: teamChoiceLabel("Isak") }), "Team 2");
-    await userEvent.click(within(isak).getByRole("button", { name: assignWords }));
+    await userEvent.click(within(isak).getByRole("button", { name: assignLabel("Isak") }));
 
     expect(app.squads.assign).toHaveBeenCalledExactlyOnceWith(league.leagueId, 2002, "team-2");
   });
@@ -88,9 +88,15 @@ describe("finding a player", () => {
     const sakaRow = foundRow("Bukayo Saka");
     const choices = within(sakaRow).getAllByRole("option").map((option) => option.textContent);
     expect(choices).toEqual(["Team 2"]);
-    await userEvent.click(within(sakaRow).getByRole("button", { name: moveWords }));
+    await userEvent.click(within(sakaRow).getByRole("button", { name: moveLabel("Saka") }));
 
     expect(app.squads.move).toHaveBeenCalledExactlyOnceWith(league.leagueId, 1001, "team-2");
+  });
+
+  it("offers a free agent every team", async () => {
+    openSquads();
+    await search("Isak");
+    expect(within(foundRow("Alexander Isak")).getAllByRole("option").map((option) => option.textContent)).toEqual(["Team 1", "Team 2"]);
   });
 
   it("says so when nobody matches", async () => {
@@ -103,7 +109,7 @@ describe("finding a player", () => {
     const app = openSquads();
     app.squads.assign.mockResolvedValueOnce("Isak is already on Team 1. Move him instead.");
     await search("Isak");
-    await userEvent.click(within(foundRow("Alexander Isak")).getByRole("button", { name: assignWords }));
+    await userEvent.click(within(foundRow("Alexander Isak")).getByRole("button", { name: assignLabel("Isak") }));
 
     expect((await screen.findByRole("alert")).textContent).toBe("Isak is already on Team 1. Move him instead.");
   });
