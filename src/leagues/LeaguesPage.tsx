@@ -5,6 +5,7 @@ import { invitesPath } from "../joining/paths";
 import { invitesTitle } from "../joining/words";
 import { LeagueDeletionRow, type DeletionActions } from "./LeagueDeletion";
 import { LEAGUES_TITLE, NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
+import { deletes, runs } from "./roles";
 import { adminWords, roleWords, unsentLink, unsentLinkWords } from "./words";
 
 const cellClasses = "px-2 text-left align-top";
@@ -48,9 +49,6 @@ export function LeaguesPage({
   );
 }
 
-/** Whether the person runs the league: its commissioner, its co-commissioner, or the admin. */
-const runs = (league: LeagueSummary, isAdmin: boolean) => isAdmin || league.roles.some((role) => role !== "manager");
-
 function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSummary[]; isAdmin: boolean; actions: DeletionActions }) {
   return (
     <table className="w-full border-collapse">
@@ -88,7 +86,7 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
               </td>
             </tr>
           )}
-          <LeagueDeletionRow league={league} canDelete={isAdmin || league.roles.includes("commissioner")} actions={actions} />
+          <LeagueDeletionRow league={league} canDelete={deletes(league, isAdmin)} actions={actions} />
         </tbody>
       ))}
     </table>

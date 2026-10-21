@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/myLeagues";
-import { gameweeksPath, runs } from "./paths";
+import { runs } from "../leagues/roles";
+import { gameweeksPath } from "./paths";
 import { GAMEWEEKS_TITLE } from "./words";
 
 /** The way to a league's gameweeks from "Your leagues", for someone who runs it. */
