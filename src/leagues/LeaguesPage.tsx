@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/myLeagues";
 import { GameweeksLink } from "../gameweeks/GameweeksLink";
+import { invitesPath } from "../joining/paths";
+import { invitesTitle } from "../joining/words";
 import { NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
 import { adminWords, roleWords, unsentLink, unsentLinkWords } from "./words";
 
@@ -34,6 +36,9 @@ export function LeaguesPage({ email, isAdmin, leagues }: { email: string; isAdmi
   );
 }
 
+/** Whether the person runs the league: its commissioner, its co-commissioner, or the admin. */
+const runs = (league: LeagueSummary, isAdmin: boolean) => isAdmin || league.roles.some((role) => role !== "manager");
+
 function LeagueTable({ leagues, isAdmin }: { leagues: readonly LeagueSummary[]; isAdmin: boolean }) {
   return (
     <table className="w-full border-collapse">
@@ -52,6 +57,11 @@ function LeagueTable({ leagues, isAdmin }: { leagues: readonly LeagueSummary[]; 
               <span className="block text-lead">{league.name}</span>
               <span className="block font-normal text-muted wrap-anywhere">Commissioner: {league.commissionerEmail}</span>
               <GameweeksLink league={league} isAdmin={isAdmin} />
+              {runs(league, isAdmin) && (
+                <Link to={invitesPath(league.leagueId)} className="flex min-h-tap items-center font-normal">
+                  {invitesTitle}
+                </Link>
+              )}
             </th>
             <td className={cellClasses}>{league.roles.map((role) => roleWords[role]).join(", ") || adminWords}</td>
             <td className={cellClasses}>{league.teamName ?? <span className="text-muted">None</span>}</td>
