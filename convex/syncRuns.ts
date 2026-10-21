@@ -1,5 +1,6 @@
-// Two constants the syncs and probes share: how many runs each `latest` returns (footballSync,
-// positionsSync, matchStats, liveStats and feeds each keep a row a run) and the batch size.
+// What the syncs and probes share: how many runs each `latest` returns (footballSync,
+// positionsSync, matchStats, liveStats and feeds each keep a row a run), and the batch size that
+// footballSync and positionsSync write in.
 
 /** How many run rows each `latest` returns. */
 export const LATEST_RUNS = 5;
