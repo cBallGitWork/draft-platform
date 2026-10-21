@@ -84,6 +84,18 @@ export function eventLetter(event: LeagueEvent, who: string): Words {
       };
     case "inviteLinkSwitchedOff":
       return { subject: "The invite link is off", body: `${who} switched the league's invite link off.` };
+    case "playerAssigned":
+      return { subject: `${event.playerName} joined ${event.teamName}`, body: `${who} put ${event.playerName} on ${event.teamName}.` };
+    case "playerMoved":
+      return {
+        subject: `${event.playerName} moved to ${event.teamName}`,
+        body: `${who} moved ${event.playerName} from ${event.fromTeamName} to ${event.teamName}.`,
+      };
+    case "playerReleased":
+      return {
+        subject: `${event.playerName} was released`,
+        body: `${who} released ${event.playerName} from ${event.teamName} to free agency.`,
+      };
     case "rulesChanged":
       return {
         subject: `The league's rules change from gameweek ${event.fromGameweek}`,

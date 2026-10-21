@@ -65,6 +65,9 @@ function takenOut(event: LeagueEvent): string[] {
     case "inviteLinkMade":
     case "inviteLinkSwitchedOff":
     case "rulesChanged":
+    case "playerAssigned":
+    case "playerMoved":
+    case "playerReleased":
       return [];
   }
 }
