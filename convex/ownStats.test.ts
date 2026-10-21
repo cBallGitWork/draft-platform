@@ -64,6 +64,11 @@ test("a negative weight takes away: shots − shots on target is shots off targe
   expect(withOwnStats({ total_scoring_att: 5, ontarget_scoring_att: 2 }, setWith([offTarget]))).toMatchObject({ own_off_target: 3 });
 });
 
+test("under whole points only, a negative own stat rounds down too: -0.5 counts -1", () => {
+  const lostBall: OwnStat = { stat: "own_lost", name: "Lost", shortCode: "LOST", parts: [{ stat: "dispossessed", weight: -0.5 }] };
+  expect(withOwnStats({ dispossessed: 1 }, setWith([lostBall], true))).toMatchObject({ own_lost: -1 });
+});
+
 test("weights of tenths that add to a whole count the whole, never one under it", () => {
   const tenth: OwnStat = { stat: "own_tenth", name: "Tenth", shortCode: "TEN", parts: [{ stat: "touches", weight: 0.1 }] };
   expect(withOwnStats({ touches: 30 }, setWith([tenth], true))).toMatchObject({ own_tenth: 3 });
