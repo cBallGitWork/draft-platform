@@ -69,7 +69,7 @@ competition, not the design plate (`docs/design/plate.md`).
 | A league name's length | A team's name has one (`convex/leagueAccess.ts`: "A team's name is up to ${TEAM_NAME_MAX} characters.", 30 in `convex/leagueLimits.ts`); `leagues.create` refuses only a blank name ("Give it a name."). Should a league's have a maximum? |
 | Frozen fixtures | `spec/13`: "a change reshuffles only fixtures not yet played". Open: a team joining mid-season, a rule change from its `fromGameweek`, and the commissioner's fixture edits (`spec/09`: "the commissioner can edit them"). #137 |
 | How the admin hears a feed or sync failure | `spec/15`: "A feed that stops silently is the failure to catch." The feeds page only (#35), or email too, out of Resend's "100 a day" (`ARCHITECTURE.md`)? |
-| A screen whose read fails | What it shows, and whether it shows the server's words. `docs/PHILOSOPHY.md`: "Don't swallow errors silently. If something fails, we need to know." The `fix/read-error-screen` branch builds a first version |
+| A screen whose read fails | What it shows, and whether it shows the server's words. `docs/PHILOSOPHY.md`: "Don't swallow errors silently. If something fails, we need to know." |
 
 The rows from the first rules' defaults down are open questions from the repo audit of 21 Oct
 2026, details the spec doesn't settle rather than new features.
