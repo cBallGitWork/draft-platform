@@ -12,12 +12,14 @@ import { approveMode, position } from "./schema";
 // (spec/06, The admin oversees them; #87), checked on the server by his email.
 
 type Row = Doc<"playerPositions">;
+/** What a row holds about a player, without what identifies it. */
+type RowFields = Omit<Row, "_id" | "_creationTime" | "code">;
 
 /** Spec/06: at first, positions from starts wait for the admin. */
 const FIRST_APPROVE_MODE: ApproveMode = "proposals";
 
 /** A player's row before any feed or the admin has written to it. */
-const EMPTY_ROW: Omit<Row, "_id" | "_creationTime" | "code"> = { starts: [], approved: [], set: [], removed: [] };
+const EMPTY_ROW: RowFields = { starts: [], approved: [], set: [], removed: [] };
 
 /** His positions, worked out now; a player no feed has named yet has none. */
 export const ofPlayer = query({
@@ -28,7 +30,8 @@ export const ofPlayer = query({
   },
 });
 
-function positionsFrom(row: Pick<Row, "starts" | "plLabel" | "approved" | "confirmedLabel" | "set" | "removed">, approveMode: ApproveMode) {
+/** His positions now, from his row and the approve mode. */
+function positionsFrom(row: RowFields, approveMode: ApproveMode): PlayerPositions {
   return positionsOf({
     starts: row.starts,
     plLabel: row.plLabel ?? null,
@@ -54,7 +57,7 @@ export const approveClub = mutation({
   returns: v.number(),
   handler: async (ctx, { clubCode }): Promise<number> => {
     await adminOf(ctx);
-    const players = await ctx.db.query("players").withIndex("by_clubCode", (q) => q.eq("clubCode", clubCode)).collect();
+    const players = await ctx.db.query("players").withIndex("by_clubCode", (q) => q.eq("clubCode", clubCode)).take(PLAYERS_MOST);
     for (const player of players) await approve(ctx, await heldRow(ctx, player.code));
     return players.length;
   },
