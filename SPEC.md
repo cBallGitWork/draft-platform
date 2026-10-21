@@ -41,7 +41,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 11 | [Email](spec/11-email.md) | not built | on a pick clock over 10 minutes the manager on the clock gets one email; under it, none |
 | 12 | [Screens](spec/12-screens.md) | not built | a signed-in manager lands on My team, with Mail's unread count in the menu |
 | 13 | [Setting up a league](spec/13-setting-up-a-league.md) | not built | a league of four fills from two emailed invites and two approved join requests |
-| 14 | [Scoring categories](spec/14-scoring-categories.md) | not built | a match's stats priced under a set of rules give each category's points and the total, by the slot's area or position, within each rule's caps |
+| 14 | [Scoring categories](spec/14-scoring-categories.md) | not built | a match's stats priced under a set of rules give each category's points and the total, by the slot's area or position, within each rule's points limits |
 | 15 | [Admin tools](spec/15-admin-tools.md) | not built | a commissioner's assignment puts the player on the team and files a Mail letter to the league |
 | 16 | [Mail](spec/16-mail.md) | not built | a claim, a drop and a trade each file one letter for every manager in the league |
 | 17 | [Captain and set pieces](spec/17-captain-and-set-pieces.md) | after the mini beta | the first on a set-piece list who plays is paid for the duty for the whole match, and no one else on the list is |
@@ -92,7 +92,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - Public league pages: no league is visible without signing in.
 - FPL's bonus points, and a ready-made FPL-style or Fantrax-copy scoring set for a league to pick.
   The mini beta's first set starts from FPL's values as a draft Craig changes (spec/14).
-- A cap on a player's whole match, or on a team's gameweek total: a cap on each rule covers it.
+- A limit on a player's whole match, or on a team's gameweek total.
 - A lock at each player's kickoff: there is one deadline per gameweek.
 
 ## Glossary
@@ -120,7 +120,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | preset | a ready-made formation, such as 4-2-3-1 | |
 | category | one stat a league can score, such as goals or tackles won | |
 | own stat | a stat a league makes by adding catalogue stats with weights | custom stat, formula |
-| cap | a rule's maximum or minimum points for one player in one match | floor, ceiling |
+| points limit | a rule's maximum or minimum points for one player in one match | cap (that is the salary cap), floor, ceiling |
 | short code | a category's abbreviation in dense tables: G, A, CS, KP, TW | |
 | lineup | a team's starters and bench for one gameweek | |
 | squad | every player a team owns | |

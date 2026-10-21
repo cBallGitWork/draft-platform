@@ -33,12 +33,12 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
   - bands by threshold (2 for 60+ minutes, +2 for 10+ defensive actions). Each band rule either
     stacks or pays only its highest band.
 - A rule can also carry, each optional:
-  - a maximum and a minimum on the points it pays one player in one match (FPL's defensive
-    contribution pays at most 2);
+  - points limits: a maximum and a minimum on the points it pays one player in one match (FPL's
+    defensive contribution pays at most 2);
   - the minutes he must play before it pays anything (a clean sheet only at 60+).
 
-  Each is one number for the rule, or set by area or position like its values. A cap limits only
-  the rule's own points: a role's adjustment is added on top.
+  Each is one number for the rule, or set by area or position like its values. A points limit
+  holds only the rule's own points: a role's adjustment is added on top.
 - Points can be fractions (0.5 per tackle). A league can choose whole points only: a fractional
   value is then refused with the reason, and an own stat counts whole actions, rounded down
   (tackles + 0.5 × clearances = 3.5 counts 3). Whole points only starts off.
@@ -74,7 +74,7 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 
 - It is in the mini beta.
 - What it opens on is simple: each category with one value. Pricing by area or position, the
-  caps, the minutes and stacking sit behind checkboxes. Its look is picked from two or three
+  points limits, the minutes and stacking sit behind checkboxes. Its look is picked from two or three
   mock-ups when it is built (#30).
 
 ## On screen
