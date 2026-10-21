@@ -10,7 +10,7 @@ import { GAMEWEEKS } from "./usedGameweeks";
 // The league's fixtures and table (#33), read from its teams, the gameweeks it plays and its
 // rules, by anyone with a part in it. No matchup is scored yet, so the table is all noughts.
 
-const [ANN, BOB, CAT] = MANAGERS;
+const [ANN, BOB, CAT, DAN] = MANAGERS;
 const STRANGER = "stranger@example.com";
 
 let t: TestConvex;
@@ -39,22 +39,43 @@ describe("who may read it", () => {
 });
 
 describe("the fixtures", () => {
-  test("three teams' round robin takes three gameweeks, every one the league plays has fixtures, and the team left over plays the league's average by default", async () => {
+  test("three teams' round robin has three rounds, every gameweek the league plays has fixtures, and the team left over plays the league's average by default", async () => {
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
     const league = await read();
 
-    expect(league?.roundRobinGameweeks).toBe(3);
+    expect(league?.roundRobinRounds).toBe(3);
     expect(league?.gameweeks).toHaveLength(GAMEWEEKS);
     const [first] = league!.gameweeks;
-    expect(first).toEqual({ gameweek: 1, deadline: null, fixtures: [{ team: "Team 2", opponent: "Team 3" }, { team: "Team 1", opponent: null }], bye: null });
+    expect(first.fixtures.map((fixture) => fixture.opponent === null)).toEqual([false, true]);
+    expect(first.byes).toEqual([]);
   });
 
   test("with byes, the team left over plays nobody", async () => {
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
     await changeRules({ oddTeamOut: "bye" });
     const [first] = (await read())!.gameweeks;
-    expect(first.fixtures).toEqual([{ team: "Team 2", opponent: "Team 3" }]);
-    expect(first.bye).toBe("Team 1");
+    expect(first.fixtures).toHaveLength(1);
+    expect(first.byes).toHaveLength(1);
+    expect([first.fixtures[0].team, first.fixtures[0].opponent, first.byes[0]].toSorted()).toEqual(["Team 1", "Team 2", "Team 3"]);
+  });
+
+  test("with two games a gameweek, each team plays two every gameweek", async () => {
+    await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
+    await changeRules({ gamesPerGameweek: 2 });
+    for (const { fixtures } of (await read())!.gameweeks) {
+      const named = fixtures.flatMap(({ team, opponent }) => [team, opponent]);
+      expect(["Team 1", "Team 2", "Team 3", "Team 4"].map((team) => named.filter((each) => each === team).length)).toEqual([2, 2, 2, 2]);
+    }
+  });
+
+  test("are the same on every read, drawn from the league's own seed", async () => {
+    await addManagers(t, leagueId, [ANN, BOB, CAT]);
+    const otherLeague = await adminCreatesLeague(t, 4, "Other");
+    await addManagers(t, otherLeague, [ANN, BOB, CAT]);
+    const readOther = async () => (await actingAs(t, ANN)).query(api.leagueTable.ofLeague, { leagueId: otherLeague });
+
+    expect((await read())?.gameweeks).toEqual((await read())?.gameweeks);
+    expect((await readOther())?.gameweeks).not.toEqual((await read())?.gameweeks);
   });
 
   test("a gameweek the league doesn't play has none, and each gameweek carries FPL's deadline", async () => {
@@ -70,13 +91,13 @@ describe("the fixtures", () => {
 
   test("a league of one team has none", async () => {
     await addManagers(t, leagueId, [ANN]);
-    expect(await read()).toMatchObject({ roundRobinGameweeks: 0, gameweeks: [] });
+    expect(await read()).toMatchObject({ roundRobinRounds: 0, gameweeks: [] });
   });
 
   test("a total-points league has none", async () => {
     await addManagers(t, leagueId, [ANN, BOB]);
     await changeRules({ format: "totalPoints" });
-    expect(await read()).toMatchObject({ format: "totalPoints", roundRobinGameweeks: 0, gameweeks: [] });
+    expect(await read()).toMatchObject({ format: "totalPoints", roundRobinRounds: 0, gameweeks: [] });
   });
 });
 

@@ -149,6 +149,17 @@ describe("a commissioner's change", () => {
     await expect(change(leagueId, unknown)).rejects.toThrow(/sitOut/);
   });
 
+  test("games a gameweek are changed like any other rule, and refused, with the reason, below 1", async () => {
+    const leagueId = await adminCreatesLeague(t);
+    await change(leagueId, rulesWith({ gamesPerGameweek: 2 }));
+    expect((await latest(leagueId))?.rules.gamesPerGameweek).toBe(2);
+
+    await expectRefused(
+      change(leagueId, rulesWith({ gamesPerGameweek: 0 })),
+      "The head-to-head games each team plays a gameweek must be a whole number, 1 or more, not 0.",
+    );
+  });
+
   test("the same rules again change nothing and file nothing", async () => {
     const leagueId = await adminCreatesLeague(t);
     const eventsBefore = await eventsIn(t, leagueId);

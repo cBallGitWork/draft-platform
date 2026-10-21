@@ -103,7 +103,7 @@ describe("the fixtures", () => {
     openTable({ leagueTable: drawn });
     expect(await screen.findByRole("heading", { level: 3, name: gameweekWords(3) })).toBeTruthy();
     const { fixtures } = drawn.gameweeks[2];
-    expect(fixtures.at(-1)?.opponent).toBeNull();
+    expect(fixtures.filter((fixture) => fixture.opponent === null)).toHaveLength(1);
     expect(fixtureLines(3)).toEqual(fixtures.map(({ team, opponent }) => `${team}v${opponent ?? leagueAverageWords}`));
   });
 
@@ -128,9 +128,20 @@ describe("the fixtures", () => {
   });
 
   it("give the team left over a bye in a league that has them", async () => {
-    openTable({ leagueTable: leagueTableOf(FIVE, { oddTeamOut: "bye" }) });
-    expect(await screen.findByText(byeWords("Ann's"))).toBeTruthy();
+    const drawn = leagueTableOf(FIVE, { oddTeamOut: "bye" });
+    openTable({ leagueTable: drawn });
+    expect(await screen.findByText(byeWords(drawn.gameweeks[0].byes))).toBeTruthy();
     expect(fixtureLines(1)).toHaveLength(2);
+  });
+
+  it("with two games a gameweek, list both rounds' fixtures and every team with a bye", async () => {
+    const drawn = leagueTableOf(FIVE, { oddTeamOut: "bye", gamesPerGameweek: 2 });
+    openTable({ leagueTable: drawn });
+    const [first] = drawn.gameweeks;
+    const [one, other] = first.byes;
+    expect(first.byes).toHaveLength(2);
+    expect(await screen.findByText(`${one} and ${other} have a bye.`)).toBeTruthy();
+    expect(fixtureLines(1)).toHaveLength(4);
   });
 
   it("wait for a second team", async () => {

@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { query } from "./_generated/server";
-import { oddTeamOutOf } from "./firstRules";
+import { drawRulesOf } from "./firstRules";
 import { memberOf, teamsOf } from "./leagueAccess";
 import { latestRules } from "./leagueRules";
 import { drawFixtures, LEAGUE_AVERAGE, roundsOf } from "./roundRobin";
@@ -25,8 +25,8 @@ const gameweekFixtures = v.object({
   /** FPL's deadline, when it begins; null while the app doesn't have it. */
   deadline: v.union(v.number(), v.null()),
   fixtures: v.array(fixture),
-  /** The team with a bye, in a league whose odd team out has one; otherwise null. */
-  bye: v.union(v.string(), v.null()),
+  /** The teams with a bye, in a league whose odd team out has one: one a game. */
+  byes: v.array(v.string()),
 });
 
 const tableRow = v.object({
@@ -44,8 +44,8 @@ const tableRow = v.object({
 
 export const leagueTable = v.object({
   format: v.union(v.literal("headToHead"), v.literal("totalPoints")),
-  /** How many gameweeks one round robin takes; 0 with no fixtures. */
-  roundRobinGameweeks: v.number(),
+  /** How many rounds one round robin has, every team meeting every other once; 0 with no fixtures. */
+  roundRobinRounds: v.number(),
   /** Each gameweek the league plays, with its fixtures; none in total points, or with fewer than
    *  two teams. */
   gameweeks: v.array(gameweekFixtures),
@@ -68,7 +68,9 @@ export const ofLeague = query({
     const named = (teamId: Id<"teams">) => nameOf.get(teamId)!;
 
     const headToHead = rules.format === "headToHead";
-    const schedule = headToHead ? drawFixtures(teamIds, usedGameweeksOf(league), oddTeamOutOf(rules)) : [];
+    // Seeded by the league, so its draw comes out the same each time it's read.
+    const draw = { ...drawRulesOf(rules), seed: leagueId };
+    const schedule = headToHead ? drawFixtures(teamIds, usedGameweeksOf(league), draw) : [];
     const scores: GameweekScores<Id<"teams">> = new Map();
     const table = headToHead ? headToHeadTable(teamIds, schedule, scores, rules.tieBreaks) : totalPointsTable(teamIds, scores);
 
@@ -79,15 +81,15 @@ export const ofLeague = query({
     const deadlines = new Map(rows.map((row) => [row.number, row.deadline]));
     return {
       format: rules.format,
-      roundRobinGameweeks: schedule.length === 0 ? 0 : roundsOf(teamIds).length,
-      gameweeks: schedule.map(({ gameweek, fixtures, bye }) => ({
+      roundRobinRounds: schedule.length === 0 ? 0 : roundsOf(teamIds).length,
+      gameweeks: schedule.map(({ gameweek, fixtures, byes }) => ({
         gameweek,
         deadline: deadlines.get(gameweek) ?? null,
         fixtures: fixtures.map(({ team, opponent }) => ({
           team: named(team),
           opponent: opponent === LEAGUE_AVERAGE ? null : named(opponent),
         })),
-        bye: bye === null ? null : named(bye),
+        byes: byes.map(named),
       })),
       table: table.map(({ team, ...row }) => ({ teamId: team, teamName: named(team), ...row })),
     };

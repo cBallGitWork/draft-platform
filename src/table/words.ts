@@ -28,10 +28,12 @@ export const previousLabel = "Previous gameweek";
 export const nextLabel = "Next gameweek";
 export const versusWords = "v";
 export const leagueAverageWords = "League average";
-export const byeWords = (teamName: string) => `${teamName} has a bye.`;
+const andList = new Intl.ListFormat("en-GB", { type: "conjunction" });
+/** The teams with a bye in a gameweek: one a game, so several when a league plays more than one. */
+export const byeWords = (teamNames: readonly string[]) => `${andList.format(teamNames)} ${teamNames.length === 1 ? "has" : "have"} a bye.`;
 export const fixturesListLabel = (gameweek: number) => `${gameweekWords(gameweek)}'s fixtures`;
-export const repeatWords = (gameweeks: number) =>
-  `Every team meets every other once in ${gameweeks} of the gameweeks the league plays, and then the fixtures repeat.`;
+export const roundRobinWords = (rounds: number) =>
+  `Every team meets every other once a round robin of ${rounds} rounds, and each round robin is drawn in its own order.`;
 
 export const totalPointsWords = "The league plays total points, so it has no matchups or fixtures: the table ranks teams by their points.";
 export const tooFewTeamsWords = "Fixtures are drawn once the league has two teams.";

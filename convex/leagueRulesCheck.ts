@@ -17,6 +17,7 @@ export function checkLeagueRules(rules: LeagueRules): void {
   checkPresets(rules.presets, rules.areaLimits);
   checkWholeNumber(rules.deadline.minutesBeforeFirstKickoff, "The deadline's minutes before the first kickoff", 0);
   checkNoneTwice(rules.tieBreaks, (tieBreak) => `The tie-break ${tieBreak} is listed twice.`);
+  if (rules.gamesPerGameweek !== undefined) checkWholeNumber(rules.gamesPerGameweek, "The head-to-head games each team plays a gameweek", 1);
   checkWaivers(rules.waivers);
   try {
     validateScoringSet(rules.scoring);

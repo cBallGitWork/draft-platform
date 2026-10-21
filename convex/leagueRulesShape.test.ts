@@ -4,7 +4,7 @@ import { FIRST_RULES } from "./firstRules";
 import { lineupProblems, type LineupRules } from "./lineup";
 import type { LeagueRules } from "./leagueRulesShape";
 import { DEFAULT_PRESETS, type Preset } from "./presets";
-import type { OddTeamOut } from "./roundRobin";
+import type { DrawOptions, OddTeamOut } from "./roundRobin";
 import { scoreGameweek, scoreMatch, type DoubleGameweekRule } from "./scoring";
 import { centreOf } from "./scoring.example";
 import type { ScoringSet } from "./scoringSet";
@@ -28,8 +28,9 @@ test("each stored part is its module's input type", () => {
   expectTypeOf<LeagueRules["deadline"]>().toEqualTypeOf<DeadlineRule>();
   expectTypeOf<LeagueRules["doubleGameweek"]>().toEqualTypeOf<DoubleGameweekRule>();
   expectTypeOf<LeagueRules["tieBreaks"]>().toEqualTypeOf<TieBreak[]>();
-  // Optional only for rules saved before #33 (firstRules.ts, oddTeamOutOf).
+  // Optional only for rules saved before #33 and #130 (firstRules.ts, drawRulesOf).
   expectTypeOf<LeagueRules["oddTeamOut"]>().toEqualTypeOf<OddTeamOut | undefined>();
+  expectTypeOf<LeagueRules["gamesPerGameweek"]>().toEqualTypeOf<DrawOptions["gamesPerGameweek"] | undefined>();
 });
 
 test("the first rules' presets are the eleven every league starts with", () => {
