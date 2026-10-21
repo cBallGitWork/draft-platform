@@ -25,6 +25,7 @@ const inMiniBeta = { ...inTwo, currentLeagueId: miniBeta.leagueId };
 
 const SWITCHER_NAME = /^League: /;
 const switcher = () => screen.findByRole("button", { name: SWITCHER_NAME });
+const switcherOrName = async () => within(await screen.findByRole("banner")).findByText(league.name);
 const choices = () => within(screen.getByRole("list", { name: "Your leagues" })).getAllByRole("button");
 
 describe("a manager in two leagues", () => {
@@ -127,5 +128,16 @@ describe("the top bar's league, for someone in one", () => {
     openApp(MY_TEAM_PATH, { ...adminSeeing(league, { ...miniBeta, roles: [] }), inLeague: true, currentLeagueId: league.leagueId });
     expect(within(await screen.findByRole("banner")).getByText(league.name)).toBeTruthy();
     expect(screen.queryByRole("button", { name: SWITCHER_NAME })).toBeNull();
+  });
+});
+
+describe("a league deleted under someone on its pages", () => {
+  it("takes them to their leagues, not a broken page", async () => {
+    const app = openApp(MY_TEAM_PATH, manager);
+    await switcherOrName();
+    app.becomes({ ...manager, inLeague: false, leagues: [], currentLeagueId: null });
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
+    expect(app.path()).toBe(LEAGUES_PATH);
   });
 });
