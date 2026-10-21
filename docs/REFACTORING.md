@@ -1,9 +1,9 @@
 # Refactoring
 
-How we change code's structure without changing what it does. Adapted from sideband's
-`REFACTORING.md` (16 Oct 2026) to this repo's stack and to the rules already in `CLAUDE.md` and
-[PHILOSOPHY.md](PHILOSOPHY.md); where they differ, those two win. Read this before any change
-whose goal is "make the code better" rather than "make it do a new thing".
+How we change code's structure without changing what it does, fitted to this repo's stack and
+to the rules already in `CLAUDE.md` and [PHILOSOPHY.md](PHILOSOPHY.md); where they differ, those
+two win. Read this before any change whose goal is "make the code better" rather than "make it
+do a new thing".
 
 **Contents:** [The one line](#the-one-line) · [What is never a refactor](#what-is-never-a-refactor) ·
 [With every pull request](#with-every-pull-request) · [The drift pass](#the-drift-pass) ·
@@ -48,8 +48,10 @@ back, names drift, docs desync. The drift pass is a scheduled step back.
 - a file passes 300 lines (the line-ceiling hook will say when, `ARCHITECTURE.md`).
 
 **What:** `/refactor`'s checklist, across everything merged since the last pass (the skill diffs only
-the current branch, so give it the range from the last `Self-review:` commit to `main`); and whether each
-thing lives in the right place.
+the current branch, so give it the range from the last drift pass to `main`, as *Record* finds
+it); whether each thing lives in the right place; whether `.claude/rules/ui.md`'s Never list
+still matches plate.md's `## Never`; and whether ui-verifier's colour-role bullet still matches
+plate.md.
 
 The drift pass is a task of its own, so fixing older files there keeps `CLAUDE.md`'s rule that
 tidying stays inside the files a task touches.
@@ -61,10 +63,11 @@ Fixes go in on a `refactor/` branch, and its pull request title starts `refactor
 commit's message, so the line reaches `main`:
 `Self-review: <range>: <what was checked>; <what changed, or "clean, no changes">`, with the
 counts, including what was declined ("3 things written three times: 2 lifted, 1 only similar").
-`git log --grep '^Self-review:' main` lists the passes. Each merged pull request is one commit on
-`main`, so the count since the last pass is
-`git rev-list --count $(git log -1 --format=%H --grep '^Self-review:' main)..main`; before the
-first pass, `git rev-list --count main`.
+`git log --grep '^refactor: drift pass' main` lists the passes. Each merged pull request is one
+commit on `main`, so the count since the last pass is
+`git rev-list --count $(git log -1 --format=%H --grep '^refactor: drift pass' main)..main`.
+`Self-review:` is the drift pass's record line only; a feature branch records /refactor in its
+PR's checks box.
 
 ## Proving nothing changed
 

@@ -2,7 +2,7 @@
 
 Ten videos on working with Claude Code that Craig pasted into sessions on 14–16 Oct 2026, and what
 this repo took from each. Background, never the product. Gathered from the session logs of
-draft-platform, epl-draft and sideband (16 Oct 2026).
+draft-platform, epl-draft and one other project of Craig's (16 Oct 2026).
 
 ## The videos
 
@@ -12,12 +12,12 @@ draft-platform, epl-draft and sideband (16 Oct 2026).
 | B | Claude Design: a design system from an inspiration image (creator unnamed) | draft-platform |
 | C | Chase AI, "Defeat AI slop in three steps" | draft-platform |
 | D | Matt Pocock's skills v1.3 (presented by Kevin) | epl-draft |
-| E | Kevin, dynamic workflows and a bug hunt | sideband |
+| E | Kevin, dynamic workflows and a bug hunt | another project |
 | F | Boris Cherny's setup (narrator unnamed) | epl-draft |
 | G | Jonathan, a hackathon winner's workflow | epl-draft |
 | H | "I let Claude run my agency" (probably Nick Saraev) | epl-draft |
-| I | Simon Scrapes, "What the top 1% do now" | sideband |
-| J | "Skills: the 100-line rule" (probably Simon Scrapes) | sideband |
+| I | Simon Scrapes, "What the top 1% do now" | another project |
+| J | "Skills: the 100-line rule" (probably Simon Scrapes) | another project |
 
 ## Taken
 

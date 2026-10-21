@@ -6,7 +6,6 @@ dist/
 .DS_Store
 .claude/settings.local.json
 .convex/
-!.env.example
 convex/_generated/ai/ai-files.state.json
 .claude/worktrees/
 __pycache__/
