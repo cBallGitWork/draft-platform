@@ -5,6 +5,7 @@ import { act, cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { signInToJoinWords } from "./joining/words";
 import { LEAGUES_PATH } from "./leagues/paths";
 import { LiveApp, NO_CONVEX_URL, takeLinkCode } from "./liveApp";
 import { SIGN_IN_PATH } from "./router";
@@ -80,6 +81,17 @@ test("opened from a used or expired link, the app shows the sign-in page saying 
 
   expect((await screen.findByRole("alert")).textContent).toBe(linkProblemWords.expired);
   expect(window.location.pathname).toBe(SIGN_IN_PATH);
+});
+
+test("an expired link that led to a league's invite link keeps the way back to it (#73)", async () => {
+  convex.signIn.mockResolvedValue({ signingIn: false });
+
+  openAt("/join/the-token?code=used-code");
+
+  expect((await screen.findByRole("alert")).textContent).toBe(linkProblemWords.expired);
+  expect(window.location.pathname).toBe(SIGN_IN_PATH);
+  expect(new URLSearchParams(window.location.search).get("join")).toBe("the-token");
+  expect(screen.getByText(signInToJoinWords)).toBeTruthy();
 });
 
 test("a link that can't be checked says so, and the error is logged", async () => {

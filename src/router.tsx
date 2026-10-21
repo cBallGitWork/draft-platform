@@ -13,6 +13,14 @@ import { LeagueSwitcher } from "./frame/LeagueSwitcher";
 import type { TopBarState } from "./frame/topBarState";
 import { MY_TEAM_PATH, pages } from "./frame/menu";
 import { PageNotBuilt } from "./frame/PageNotBuilt";
+import { GameweeksRoute } from "./gameweeks/GameweeksRoute";
+import { GAMEWEEKS_ROUTE, leagueRunBy } from "./gameweeks/paths";
+import type { GameweeksSeam } from "./gameweeks/seam";
+import { InvitesPage } from "./joining/InvitesPage";
+import { JoinPage } from "./joining/JoinPage";
+import { INVITES_ROUTE, JOIN_ROUTE, joinTokenAt } from "./joining/paths";
+import type { JoiningSeam } from "./joining/seam";
+import { signInToJoinWords } from "./joining/words";
 import type { LeagueActions } from "./leagues/actions";
 import { LeaguelessFrame } from "./leagues/LeaguelessFrame";
 import { LeaguesPage } from "./leagues/LeaguesPage";
@@ -21,7 +29,14 @@ import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "./leagues/paths";
 import { SignInPage } from "./sign-in/SignInPage";
 import { linkProblemWords, type LinkProblem } from "./sign-in/words";
 
-export type ShellContext = { session: Session; auth: AuthActions; leagues: LeagueActions; topBar: TopBarState };
+export type ShellContext = {
+  session: Session;
+  auth: AuthActions;
+  leagues: LeagueActions;
+  joining: JoiningSeam;
+  topBar: TopBarState;
+  gameweeks: GameweeksSeam;
+};
 
 export const SIGN_IN_PATH = "/sign-in";
 
@@ -39,14 +54,20 @@ const isLinkProblem = (value: unknown): value is LinkProblem =>
 const signInRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: SIGN_IN_PATH,
-  // `link` always set, if only to undefined: a route's search is laid over the address's own.
-  validateSearch: (search): { link?: LinkProblem } => ({ link: isLinkProblem(search.link) ? search.link : undefined }),
-  beforeLoad: ({ context }) => {
-    if (context.session.signedIn) throw redirect({ to: "/" });
+  // Each always set, if only to undefined: a route's search is laid over the address's own. `join`
+  // is the invite link a signed-out visitor opened, which their sign-in link leads back to (#73).
+  validateSearch: (search): { link?: LinkProblem; join?: string } => ({
+    link: isLinkProblem(search.link) ? search.link : undefined,
+    join: typeof search.join === "string" && search.join ? search.join : undefined,
+  }),
+  beforeLoad: ({ context, search }) => {
+    if (context.session.signedIn) throw redirect(search.join ? { to: JOIN_ROUTE, params: { token: search.join } } : { to: "/" });
   },
   component: function SignIn() {
-    const requestSignInLink = signInRoute.useRouteContext({ select: (context) => context.auth.requestSignInLink });
-    return <SignInPage requestSignInLink={requestSignInLink} linkProblem={signInRoute.useSearch().link} />;
+    const { auth, joining } = signInRoute.useRouteContext();
+    const { link, join } = signInRoute.useSearch();
+    const requestSignInLink = join ? (email: string) => joining.signInToJoin(join, email) : auth.requestSignInLink;
+    return <SignInPage requestSignInLink={requestSignInLink} linkProblem={link} intro={join && signInToJoinWords} />;
   },
 });
 
@@ -55,8 +76,8 @@ const signInRoute = createRoute({
 const leaguePagesRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "leaguePages",
-  beforeLoad: ({ context }) => {
-    if (!context.session.signedIn) throw redirect({ to: SIGN_IN_PATH });
+  beforeLoad: ({ context, location }) => {
+    if (!context.session.signedIn) throw redirect({ to: SIGN_IN_PATH, search: { join: joinTokenAt(location.pathname) ?? undefined } });
   },
   component: function LeaguePages() {
     const { session, topBar, auth, leagues } = leaguePagesRoute.useRouteContext();
@@ -89,6 +110,39 @@ const newLeagueRoute = createRoute({
   },
   component: function NewLeague() {
     return <NewLeaguePage createLeague={newLeagueRoute.useRouteContext({ select: (context) => context.leagues.createLeague })} />;
+  },
+});
+
+// A league's gameweeks, for whoever runs it (#74).
+const gameweeksRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: GAMEWEEKS_ROUTE,
+  beforeLoad: ({ context, params }) => {
+    if (!leagueRunBy(context.session, params.leagueId)) throw redirect({ to: LEAGUES_PATH });
+  },
+  component: function Gameweeks() {
+    const { session, gameweeks } = gameweeksRoute.useRouteContext();
+    return <GameweeksRoute session={session} seam={gameweeks} leagueId={gameweeksRoute.useParams().leagueId} />;
+  },
+});
+
+// Joining a league (#73): a league's invites and join requests, for its runners, and its invite
+// link, which a signed-out visitor reaches through sign-in.
+const invitesRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: INVITES_ROUTE,
+  component: function Invites() {
+    const joining = invitesRoute.useRouteContext({ select: (context) => context.joining });
+    return <InvitesPage leagueId={invitesRoute.useParams().leagueId} joining={joining} />;
+  },
+});
+
+const joinRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: JOIN_ROUTE,
+  component: function Join() {
+    const joining = joinRoute.useRouteContext({ select: (context) => context.joining });
+    return <JoinPage token={joinRoute.useParams().token} joining={joining} />;
   },
 });
 
@@ -130,7 +184,7 @@ const pageRoutes = pages.map((page) =>
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
-  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute]),
+  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, invitesRoute, joinRoute, gameweeksRoute]),
   frameRoute.addChildren([landingRoute, ...pageRoutes]),
 ]);
 

@@ -1,0 +1,55 @@
+import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { api } from "./_generated/api";
+import { askToJoin, invite, makeLink, openLastLinkTo } from "./joining.harness";
+import { joiningRefusals } from "./joining";
+import { INVITE_LIFETIME_MS } from "./joiningShared";
+import { COMMISSIONER, MANAGERS, actingAs, adminCreatesLeague, teamsIn, type TestConvex } from "./leagues.harness";
+import { UNLISTED, ask, fakeResend, resetSignInDeployment, signInDeployment, type SentEmail } from "./signIn.harness";
+
+// #73's Done line, end to end: "A league of four fills from two emailed invites and two approved
+// link requests; a refused request, an expired invite and a replaced link let no one in."
+
+const [ANN, BOB, CAT, DAN, EVE] = MANAGERS;
+const LATE = "late@example.com";
+
+let t: TestConvex;
+let sent: SentEmail[];
+beforeEach(async () => {
+  t = await signInDeployment();
+  sent = fakeResend();
+});
+afterEach(resetSignInDeployment);
+
+test("a league of four fills from two invites and two approved requests, and no one else gets in", async () => {
+  const leagueId = await adminCreatesLeague(t, 4);
+  const commissioner = await actingAs(t, COMMISSIONER);
+
+  // An invite left past its seven days.
+  await invite(t, leagueId, LATE);
+  vi.advanceTimersByTime(INVITE_LIFETIME_MS + 1);
+  await ask(t, LATE);
+  await openLastLinkTo(t, sent, LATE);
+
+  for (const email of [ANN, BOB]) {
+    await invite(t, leagueId, email);
+    await openLastLinkTo(t, sent, email);
+  }
+
+  const oldToken = await makeLink(t, leagueId);
+  const token = await makeLink(t, leagueId);
+  await expect((await actingAs(t, UNLISTED)).mutation(api.joinRequests.ask, { token: oldToken })).rejects.toThrow(joiningRefusals.linkOff);
+
+  for (const email of [CAT, DAN]) {
+    const requestId = await askToJoin(t, leagueId, token, email);
+    await commissioner.mutation(api.joinRequests.approve, { requestId });
+  }
+  const refused = await askToJoin(t, leagueId, token, EVE);
+  await commissioner.mutation(api.joinRequests.refuseRequest, { requestId: refused });
+
+  expect((await teamsIn(t, leagueId)).map(({ name, managerEmail }) => ({ name, managerEmail }))).toEqual([
+    { name: "Team 1", managerEmail: ANN },
+    { name: "Team 2", managerEmail: BOB },
+    { name: "Team 3", managerEmail: CAT },
+    { name: "Team 4", managerEmail: DAN },
+  ]);
+});
