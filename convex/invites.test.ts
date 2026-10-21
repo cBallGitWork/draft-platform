@@ -170,6 +170,25 @@ describe("who can be invited", () => {
     await expect(commissioner.mutation(api.invites.send, { leagueId, email: EVE })).rejects.toThrow(refusals.full(4));
   });
 
+  test("each refusal reads the same as adding them as a manager would (teams.ts checkCanJoin)", async () => {
+    const otherLeague = await adminCreatesLeague(t, 2, "Other league");
+    const [catsTeam] = await addManagers(t, otherLeague, [CAT]);
+    await (await actingAs(t, CAT)).mutation(api.teams.leave, { leagueId: otherLeague });
+    const [annsTeam] = await addManagers(t, leagueId, [ANN]);
+    const commissioner = await asCommissioner(t);
+    const refusalOf = (sending: Promise<unknown>) => sending.then(() => null, (error: { data?: unknown }) => error.data);
+    const bothRefuse = async (args: { email: string; teamId?: Id<"teams"> }) => [
+      await refusalOf(commissioner.mutation(api.invites.send, { leagueId, ...args })),
+      await refusalOf(commissioner.mutation(api.teams.addManager, { leagueId, ...args })),
+    ];
+
+    expect(await bothRefuse({ email: ANN })).toEqual([refusals.alreadyManager(ANN), refusals.alreadyManager(ANN)]);
+    expect(await bothRefuse({ email: EVE, teamId: catsTeam })).toEqual([refusals.noTeam, refusals.noTeam]);
+    expect(await bothRefuse({ email: EVE, teamId: annsTeam })).toEqual([refusals.notVacated, refusals.notVacated]);
+    await addManagers(t, leagueId, [BOB, CAT, DAN]);
+    expect(await bothRefuse({ email: EVE })).toEqual([refusals.full(4), refusals.full(4)]);
+  });
+
   test("when the league filled before they signed in, they still sign in, and the invite says why they didn't join", async () => {
     const inviteId = await invite(t, leagueId, EVE);
     await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
