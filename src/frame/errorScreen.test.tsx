@@ -13,13 +13,14 @@ import { ERROR_PAGE_TITLE, readFailedWords } from "./words";
 
 afterEach(cleanup);
 
-/** The app at My team, whose Table, once opened, reads by throwing `error`. */
+/** Opens the Table from My team, whose reading throws `error`, and waits for the error page. */
 async function openTableThrowing(error: unknown) {
   const app = openApp(MY_TEAM_PATH, manager);
   app.table.useLeagueTable.mockImplementation(() => {
     throw error;
   });
   await userEvent.click(await screen.findByRole("link", { name: "Table" }));
+  expect(await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE })).toBeTruthy();
   return app;
 }
 
@@ -41,7 +42,6 @@ it("shows the server's own words when it refuses, and leads back to Your leagues
   quietConsole();
   const app = await openTableThrowing(new ConvexError(refusalWords));
 
-  expect(await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE })).toBeTruthy();
   expect(screen.getByRole("alert").textContent).toBe(refusalWords);
 
   await goBackToLeagues(app);
@@ -52,7 +52,6 @@ it("says plainly that anything else went wrong, logs it, and leads back to Your 
   const failure = new Error("socket closed");
   const app = await openTableThrowing(failure);
 
-  expect(await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE })).toBeTruthy();
   expect(screen.getByRole("alert").textContent).toBe(readFailedWords);
   expect(logged).toHaveBeenCalledWith(loggedAs, failure);
 
@@ -62,7 +61,6 @@ it("says plainly that anything else went wrong, logs it, and leads back to Your 
 it("doesn't log a refusal as a failure", async () => {
   const logged = quietConsole();
   await openTableThrowing(new ConvexError(refusalWords));
-  await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE });
 
   expect(logged).not.toHaveBeenCalledWith(loggedAs, expect.anything());
 });
