@@ -1,11 +1,12 @@
 // Whether a lineup may stand (spec/05, The pitch; #8): one pure function, the league's rules always
 // an argument. Storing a lineup, rolling it over and the screen are not here.
-// It judges a lineup as a manager sets it, on his players' positions now. A starter who loses a
-// position after he was placed stays in his slot for the gameweek, only warned (spec/06, When
-// positions change): the deadline, rollover and auto team must not take that outsideHisAreas as
-// illegal. It is reported alone, so a caller can set it aside; the rule is #23's to keep.
+// It judges a lineup as a manager sets it, on the positions their players hold now. A starter who
+// loses a position after he was placed stays in his slot for the gameweek, only warned (spec/06,
+// When positions change): the deadline, rollover and auto team must not take that outsideHisAreas
+// as illegal. It is reported alone, so a caller can set it aside; the rule is #23's to keep.
 
-import { AREAS, LANES, playsCell, type Area, type Cell, type Lane, type PositionLabel } from "./pitch";
+import { AREAS, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
+import type { Position } from "./positionTables";
 
 /** A football side's eleven: the product's rule, not a league's. */
 export const STARTER_COUNT = 11;
@@ -40,7 +41,7 @@ export interface LineupRules {
 
 /** Each starter's positions. An unconfirmed position is passed like any other: it counts
  *  (spec/06). The bench's aren't read: where a sub may come on is the auto-subs' question. */
-export type PlayerPositions = ReadonlyMap<PlayerCode, readonly PositionLabel[]>;
+export type PlayerPositions = ReadonlyMap<PlayerCode, readonly Position[]>;
 
 /** Who stands in one cell: more than one is a problem. */
 type CellStanding = Cell & { playerCodes: PlayerCode[] };
@@ -51,7 +52,7 @@ export type LineupProblem =
   | { kind: "noSuchCell"; playerCode: PlayerCode; area: string; lane: string }
   | ({ kind: "cellShared" } & CellStanding)
   | { kind: "positionsUnknown"; playerCode: PlayerCode }
-  | { kind: "outsideHisAreas"; playerCode: PlayerCode; area: Area; lane: Lane; positions: readonly PositionLabel[] }
+  | { kind: "outsideHisAreas"; playerCode: PlayerCode; area: Area; lane: Lane; positions: readonly Position[] }
   | { kind: "aboveMaximum"; area: Area; starterCount: number; maximum: number }
   | { kind: "belowMinimum"; area: Area; starterCount: number; minimum: number };
 
@@ -105,7 +106,7 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
 }
 
 /** An invalid limit is the league's mistake, not the manager's: it is thrown, never reported as
- *  his lineup's problem. leagueRulesCheck.ts refuses it when the league sets it (#25). */
+ *  a problem with their lineup. leagueRulesCheck.ts refuses it when the league sets it (#25). */
 function throwOnInvalidAreaLimits(rules: LineupRules): void {
   for (const area of AREAS) {
     const { minimum, maximum } = rules.areaLimits[area];
