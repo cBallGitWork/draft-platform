@@ -21,6 +21,7 @@ import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from 
 // spec/15 Joining a league).
 
 const [ANN, BOB, CAT] = MANAGERS;
+const LEAGUE_NAME = "Tim Hortons Pro League";
 
 let t: TestConvex;
 let sent: SentEmail[];
@@ -29,7 +30,7 @@ let token: string;
 beforeEach(async () => {
   t = await signInDeployment();
   sent = fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t, 4, LEAGUE_NAME);
   token = await makeLink(t, leagueId);
 });
 
@@ -63,9 +64,9 @@ describe("a join request", () => {
     const [team] = await teamsIn(t, leagueId);
     expect(team).toMatchObject({ name: "Team 1", managerEmail: ANN });
     expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "joinRequestApproved", email: ANN, teamId: team._id, teamName: "Team 1" });
-    expect(lastEmailTo(sent, ANN)).toMatchObject({ subject: "You're in Tim Hortons Pro League on Draft Manager" });
+    expect(lastEmailTo(sent, ANN)).toMatchObject({ subject: `You're in ${LEAGUE_NAME} on Draft Manager` });
     expect(lastEmailTo(sent, ANN).text).toContain("you run Team 1");
-    expect(await joinPageFor(ANN)).toEqual({ leagueName: "Tim Hortons Pro League", standing: "inLeague", teamName: "Team 1" });
+    expect(await joinPageFor(ANN)).toEqual({ leagueName: LEAGUE_NAME, standing: "inLeague", teamName: "Team 1" });
     expect(await waitingRequests()).toEqual([]);
   });
 
@@ -120,7 +121,7 @@ describe("the commissioner's page", () => {
     await askToJoin(t, leagueId, token, CAT);
 
     expect(await invitesPage(t, leagueId)).toMatchObject({
-      leagueName: "Tim Hortons Pro League",
+      leagueName: LEAGUE_NAME,
       teams: [
         { name: "Team 1", vacated: true },
         { name: "Team 2", vacated: false },
@@ -153,7 +154,7 @@ describe("the join page of a league being deleted (spec/13 Deleting)", () => {
     await addManagers(t, leagueId, [BOB]);
     await deletes(t, COMMISSIONER, leagueId);
     await (await actingAs(t, COMMISSIONER)).mutation(api.leagueDeletion.undo, { leagueId });
-    expect(await t.query(api.joinRequests.joinPage, { token })).toEqual({ leagueName: "Tim Hortons Pro League", standing: "mayAsk" });
+    expect(await t.query(api.joinRequests.joinPage, { token })).toEqual({ leagueName: LEAGUE_NAME, standing: "mayAsk" });
     expect((await joinPageFor(ANN))?.standing).toBe("mayAsk");
     expect((await joinPageFor(BOB))?.standing).toBe("inLeague");
   });
