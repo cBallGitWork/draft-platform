@@ -10,7 +10,13 @@ with Football Manager-style tactics. Private.
 
 ## Start
 
-Node 24. Clone, then:
+You need:
+
+1. Node 24.
+2. Membership of the Convex team `craigdavidball14`: `npm run setup` is hardcoded to it.
+3. A Resend account and its API key.
+
+Clone, then:
 
 ```
 npm install && npm run setup && npm run dev
@@ -20,6 +26,8 @@ npm install && npm run setup && npm run dev
 terms when asked), gives you your own cloud dev deployment of the `draft-platform` project and
 writes `.env.local` (`env.example` says what lands there). A plain first `npm run dev` can land
 on a deployment on your own machine instead, which proves nothing about Convex's servers.
+
+After pulling a change to `package-lock.json`, run `npm ci`.
 
 `npm run dev` pushes the Convex functions to your dev deployment, keeps pushing as they change,
 and starts the app at <http://localhost:5173>: the sign-in page.
@@ -33,16 +41,21 @@ in (its `.env.local` names your dev deployment):
   holds: it edits no file that exists, so answer yes to each "Ready to continue?", and
   `git status` should show nothing changed after.
 - `npx convex env set ADMIN_EMAIL` names the admin, and `npx convex env set AUTH_RESEND_KEY`
-  holds Resend's API key: pipe each value in, so it stays out of your shell history.
+  holds Resend's API key: pipe each value in, so it stays out of your shell history. Until there
+  is a sending domain, mail comes from Resend's test sender (`onboarding@resend.dev`, set in
+  `convex/signInEmail.ts`), which reaches only the Resend account's own address, so `ADMIN_EMAIL`
+  must be that address and no one else gets a link yet.
 
 The admin can sign in at once; anyone else is put on the allowed list first:
 `npx convex run allowedEmails:add '{"email":"someone@example.com"}'`.
 
 The admin creates a league from **Create a league** on the leagues page; its commissioner is
-let sign in, and sent a link if they have no account. The rest of running a league (adding and
-removing managers, renaming teams, the maximum, the co-commissioner) has no screen yet, so it is
-run as the person allowed to, by their `_id` in the `users` table:
-`npx convex run teams:addManager '{"leagueId":"…","email":"…"}' --identity '{"subject":"<their _id>|cli"}'`.
+let sign in, and sent a link if they have no account. A commissioner adds managers from
+**Invites and join requests** on the league's row of the leagues page. Removing managers,
+renaming teams, the maximum and the co-commissioner have no screen yet, so they are run from the
+CLI as the person allowed to, by their `_id` in the `users` table (without `--identity` the
+server refuses):
+`npx convex run teams:removeManager '{"leagueId":"…","teamId":"…"}' --identity '{"subject":"<their _id>|cli"}'`.
 
 To see the screens without signing in, add `?preview=` to the address: `manager` (in two leagues),
 `commissioner` (running them), `newcomer` (in none), `admin` (seeing every league) or `visitor`
