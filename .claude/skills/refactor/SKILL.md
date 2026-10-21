@@ -10,8 +10,8 @@ Craig's refactor checklist (16 Oct 2026). The policy around it, and what is neve
 is [docs/REFACTORING.md](../../../docs/REFACTORING.md).
 
 ## The branch's diff
-Committed and uncommitted, against `main`, then any new files:
-!`git diff --stat origin/main`
+Committed and uncommitted, against where the branch left `main`, then any new files:
+!`git diff --stat --merge-base origin/main`
 !`git status --short`
 
 Work over the whole branch's diff, not only the last edit. Change only what the branch already

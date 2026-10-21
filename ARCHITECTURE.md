@@ -79,6 +79,9 @@ The steps (push the action to the dev deployment, run it twice, how to read what
 | Tests | Vitest; `convex-test` with fake timers for the backend, on `@edge-runtime/vm`; Testing Library on jsdom for the app | the companion's runner; the draft clock can be tested without waiting; `convex-test` needs Convex's runtime mimicked; screens are tested by role and name, as a manager finds them |
 | Screenshots | Playwright, on the Mac's Chrome (`scripts/shoot.mjs`) | the `ui-verifier` agent's camera, and the same tool as the Playwright MCP |
 
+Each is installed with the first feature that needs it; for now package.json has the app, sign-in,
+styling, typeface and test rows, and the rest are the plan.
+
 ## Data
 
 - The football layer (FPL and the Premier League's public APIs) is copied from epl-draft's
@@ -114,6 +117,8 @@ The steps (push the action to the dev deployment, run it twice, how to read what
   ([docs/pl-match-stats.md](docs/pl-match-stats.md#during-a-match)). Outside matches: one
   action and one indexed query a minute, about 43,000 calls a month. Inside: FPL's ~1.8 MB
   bootstrap and about 40 Premier League reads per match, each tick.
+  Revisit the bootstrap read each tick when Convex usage nears the plan's limit, or when
+  `liveStatsTicks` rows fail from throttling.
 - Positions (#22): each player's in `playerPositions`, keyed on FPL's `code`, apart from
   `players` so no feed read touches the admin's say; `positionsSync` files each match's starts
   once (`positionSheets`) and is run by hand for now, each run a row in `positionsSyncs`
@@ -133,15 +138,22 @@ The steps (push the action to the dev deployment, run it twice, how to read what
   Resend's 100 (#20).
 - The league each person used last is a row in `lastLeagues`, by email, not in the browser, so
   the app opens it on any device they sign in on (#76).
+- Squads (#122): a `squadPlayers` row (league, team, FPL `code`) for each player on a team, one
+  team per player per league (index `by_leagueId_and_playerCode`). Assigning, moving and
+  releasing a player are filed as `leagueEvents` for Mail.
+- Fixtures and the table (#129, #131): the round robin is drawn on every read, seeded by the
+  league's id, and never stored. That is harmless only while nothing is scored, so it must be
+  stored or frozen before scores are kept (#29).
 
 ## With the first code
 
 Craig's picks from the guide videos (16 Oct 2026; [docs/research/guide-videos.md](docs/research/guide-videos.md)),
-to land in the pull request that adds the first code, not later:
+meant to land with the first code; the ones still open are tracked in issues, linked below:
 
-- [x] **Stop gate**: a session can't finish while the tests fail (copy sideband's
-      `.claude/hooks/gate_on_stop.py`), and a `/verify` skill that runs every gate and reports the
-      count (epl-draft's).
+- [x] **Stop gate**: a session can't finish while the tests fail. `.claude/hooks/gate_on_stop.py`
+      runs on Stop and SubagentStop; while the watched paths have uncommitted changes it runs
+      `npm run verify`, and on a failure blocks the stop once. A `/verify` skill runs every gate
+      and reports the count (epl-draft's).
 - [x] **Line ceiling**: a note when a file passes 250 and 300 lines (epl-draft's
       `.claude/hooks/line_ceiling.sh`, landed as `line_ceiling.py`).
 - [x] **UI rules by path**: `docs/design/plate.md`'s "Never" list in `.claude/rules/` so it loads
@@ -149,14 +161,17 @@ to land in the pull request that adds the first code, not later:
       1440 and looks (epl-draft's `ui-verifier`). Landed as `.claude/rules/ui.md` and
       `.claude/agents/ui-verifier.md` (#19).
 - [x] **MCPs**: Convex and Playwright, with the Convex test above.
-- [ ] **The reviewer in CI**: sideband's `review.yml`, which needs the Claude GitHub app and a
-      `CLAUDE_CODE_OAUTH_TOKEN` secret from Craig (`claude setup-token`). The gate alone already
-      runs there (Services, above).
-- [x] **`.env.example`** from the services above.
+- [ ] **The reviewer in CI** (#162): a workflow that runs when a pull request opens, is marked
+      ready or reopens, or when someone with a seat on the repo writes "@claude" on one. It runs
+      `pr-reviewer` as it stands on the base branch, read-only, and posts one comment; it never
+      blocks or merges. Its permissions: read the code, write pull request and issue comments,
+      and an id token for the app. It needs the Claude GitHub app and a `CLAUDE_CODE_OAUTH_TOKEN`
+      secret from Craig (`claude setup-token`). The gate alone already runs there (Services, above).
+- [x] **`env.example`** from the services above.
 - [x] **One-command start**: clone, fill the env, run one command; the README says how
       (`docs/PHILOSOPHY.md`, *Knowledge Is Shared*).
-- [ ] **Bug hunts as we go**: a hunt scoped to each feature as it lands, and a full one (split by
-      area, a skeptic per finding, a token budget) at the mini beta.
-- [ ] **One design skill tested**: Impeccable or the Taste skill run once against R3·1, kept only if
-      it beats what we have.
-- [ ] After a few build sessions: `/fewer-permission-prompts` to pre-approve safe commands.
+- [ ] **Bug hunts as we go** (#165): a hunt scoped to each feature as it lands, and a full one
+      (split by area, a skeptic per finding, a token budget) at the mini beta.
+- [ ] **One design skill tested** (#163): Impeccable or the Taste skill run once against R3·1,
+      kept only if it beats what we have.
+- [ ] After a few build sessions: `/fewer-permission-prompts` to pre-approve safe commands (#164).

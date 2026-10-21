@@ -1,6 +1,6 @@
 # Championship Manager — the reference library
 
-*Copied from epl-draft (16 Oct 2026); the paths it names (`docs/rules/…`, `docs/record/…`) are that repo's.*
+*Copied from epl-draft (16 Oct 2026). Its paths, tools (e.g. `tools/ui/groundfit.mjs`), tokens, every "we" and "ours", and every rule or decision below are epl-draft's: background only, binding nothing here. This repo's look is [docs/design/plate.md](../../plate.md).*
 
 **This folder is the work base.** `docs/rules/DESIGN.md` §2 and the 29 Aug handover both say
 the CM reference was "studied from the game's own screenshots… not from memory of
