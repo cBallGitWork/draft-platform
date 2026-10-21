@@ -21,17 +21,14 @@ const beingDeleted: LeagueSummary = {
 /** Its commissioner, as account:signedInAs has them: it's theirs to see, and they're in no league. */
 const deleter: Session = { ...managerIn(beingDeleted), inLeague: false, currentLeagueId: null };
 
-const pages = [
-  ["squads", squadsPath(beingDeleted.leagueId)],
-  ["gameweeks", gameweeksPath(beingDeleted.leagueId)],
-];
+const pages = [squadsPath(beingDeleted.leagueId), gameweeksPath(beingDeleted.leagueId)];
 
 describe("a league being deleted", () => {
   it.each([
     ["its commissioner", deleter],
     ["the admin", adminSeeing({ ...beingDeleted, roles: [], teamName: null })],
   ])("sends %s opening its squads or gameweeks back to Your leagues", async (_, session) => {
-    for (const [, page] of pages) {
+    for (const page of pages) {
       const app = openApp(page, session);
       expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
       expect(app.path()).toBe(LEAGUES_PATH);
