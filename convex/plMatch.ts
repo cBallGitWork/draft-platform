@@ -12,7 +12,8 @@ export interface MatchSlot {
   playerCode: number;
   fixtureCode: number;
   started: boolean;
-  /** The side's formation, e.g. "4-2-3-1"; null on the bench, or for a sheet that carries none. */
+  /** The side's formation as its sheet labels it, e.g. "4-2-3-1"; null on the bench, or for a sheet
+   *  that carries none. The label need not count the lines drawn: 2025/26's "4-5-1"s draw 4-3-2-1. */
   formation: string | null;
   /** His line of it: 0 the keeper, counting up the pitch. Null whenever `formation` is. */
   line: number | null;
@@ -62,13 +63,12 @@ export function matchSlots(
 }
 
 /** Each starter's line and place, or null for a sheet with no formation. A formation that does not
- *  draw exactly the side's starters, or whose label does not count its lines, is a changed payload. */
+ *  draw exactly the side's starters, the keeper alone on its first line, is a changed payload. */
 function startingPlaces(fixtureId: number, list: RawPlTeamList): Map<number, Place> | null {
   if (list.formation === undefined) return null;
   const { label, players } = list.formation;
   const where = `PL fixture ${fixtureId}, team ${list.teamId}'s ${label}`;
-  const lineSizes = players.map((line) => line.length).join("-");
-  if (lineSizes !== `1-${label}`) throw new Error(`${where} draws lines of ${lineSizes}`);
+  if (players[0]?.length !== 1) throw new Error(`${where} draws ${players[0]?.length ?? 0} men in goal`);
   const places = new Map<number, Place>();
   players.forEach((ids, line) => ids.forEach((id, place) => places.set(id, { line, place })));
   const starters = new Set(list.lineup.map((man) => man.id));
@@ -116,7 +116,9 @@ export function plStatLines(
   return { lines, unmatched: unmatched.filter((man) => reads.has(man.plPlayerId)) };
 }
 
-function requireFixtureCode(fixture: RawPlFixture): number {
+/** FPL's code for a Premier League fixture; one that carries none throws rather than file
+ *  anything under no match. */
+export function requireFixtureCode(fixture: RawPlFixture): number {
   const code = fixtureCodeIn(fixture);
   if (code === null) {
     throw new Error(`PL fixture ${fixture.id} carries no FPL fixture code (altIds ${JSON.stringify(fixture.altIds)})`);

@@ -1,11 +1,23 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { fplLiveUrl, plCommentaryUrl, plFixturesUrl, plFixtureUrl, plPlayerStatsUrl, plTeamStatsUrl } from "./football";
+import {
+  FPL_BOOTSTRAP_URL,
+  fplLiveUrl,
+  PL_LAST_COMP_SEASON,
+  plCommentaryUrl,
+  plFixturesUrl,
+  plFixtureUrl,
+  plPlayerStatsUrl,
+  plSquadUrl,
+  plTeamStatsUrl,
+} from "./football";
+import { readFplBootstrap } from "./fpl";
 import { readFplLive } from "./fplLive";
 import {
   readPlCommentary,
   readPlFixture,
   readPlFixtures,
   readPlPlayerStats,
+  readPlSquad,
   readPlTeamStats,
 } from "./premierLeague";
 import {
@@ -39,6 +51,16 @@ test("one gameweek's fixture list asks for that gameweek of this season's Premie
   expect(new URL(plFixturesUrl()).searchParams.has("gameweekNumbers")).toBe(false);
 });
 
+test("a named season's fixture list asks for that season, with altIds", () => {
+  const query = new URL(plFixturesUrl(undefined, PL_LAST_COMP_SEASON)).searchParams;
+  expect(["compSeasons", "altIds"].map((key) => query.get(key))).toEqual(["777", "true"]);
+});
+
+test("a squad read asks for altIds, the join to FPL, as well as every kind of player", () => {
+  const query = new URL(plSquadUrl(23)).searchParams;
+  expect(["type", "altIds"].map((key) => query.get(key))).toEqual(["all", "true"]);
+});
+
 test("each read asks the URL it names and hands back all that came", async () => {
   const list = { content: [{ id: 128973 }, { id: 128977 }, { id: 128978 }] };
   const fixture = { id: 128978, teamLists: [null, null] };
@@ -46,7 +68,13 @@ test("each read asks the URL it names and hands back all that came", async () =>
   const live = { elements: [{ id: 286, stats: {}, explain: [] }] };
   const commentary = recordedCommentary(COMMENTARY_MATCH.hullEverton);
   const teamStats = recordedTeamStats(COMMENTARY_MATCH.brentfordLiverpool);
+  const lastSeason = { content: [{ id: 124909 }] };
+  const squad = { players: [{ id: 13486, name: { display: "Lewie Coyle" }, info: { positionInfo: "Right Full Back" } }] };
+  const bootstrap = { elements: [{ id: 1, code: 193278 }] };
   const fetch = fakeFeed({
+    [plFixturesUrl(undefined, PL_LAST_COMP_SEASON)]: lastSeason,
+    [plSquadUrl(41)]: squad,
+    [FPL_BOOTSTRAP_URL]: bootstrap,
     [plFixturesUrl(6)]: list,
     [plFixtureUrl(128978)]: fixture,
     [plPlayerStatsUrl(13486, 128978)]: stats,
@@ -61,6 +89,9 @@ test("each read asks the URL it names and hands back all that came", async () =>
   expect(await readFplLive(6)).toEqual(live);
   expect(await readPlCommentary(128978)).toEqual(commentary.events.content);
   expect(await readPlTeamStats(128984)).toEqual(teamStats);
+  expect(await readPlFixtures(undefined, PL_LAST_COMP_SEASON)).toEqual(lastSeason.content);
+  expect(await readPlSquad(41)).toEqual(squad);
+  expect(await readFplBootstrap()).toEqual(bootstrap);
   expect(fetch.mock.calls.map(([url]) => url)).toEqual([
     plFixturesUrl(6),
     "https://footballapi.pulselive.com/football/fixtures/128978",
@@ -68,6 +99,9 @@ test("each read asks the URL it names and hands back all that came", async () =>
     "https://fantasy.premierleague.com/api/event/6/live/",
     "https://footballapi.pulselive.com/football/fixtures/128978/textstream/EN?pageSize=200&sort=desc",
     "https://footballapi.pulselive.com/football/stats/match/128984",
+    plFixturesUrl(undefined, PL_LAST_COMP_SEASON),
+    "https://footballapi.pulselive.com/football/teams/41/compseasons/841/staff?type=all&altIds=true",
+    "https://fantasy.premierleague.com/api/bootstrap-static/",
   ]);
 });
 
@@ -99,6 +133,8 @@ const URL_OF = {
   live: fplLiveUrl(6),
   commentary: plCommentaryUrl(128978),
   teamStats: plTeamStatsUrl(128984),
+  squad: plSquadUrl(41),
+  bootstrap: FPL_BOOTSTRAP_URL,
 };
 const READ_OF = {
   list: () => readPlFixtures(6),
@@ -107,6 +143,8 @@ const READ_OF = {
   live: () => readFplLive(6),
   commentary: () => readPlCommentary(128978),
   teamStats: () => readPlTeamStats(128984),
+  squad: () => readPlSquad(41),
+  bootstrap: () => readFplBootstrap(),
 };
 
 test.each([
@@ -124,6 +162,9 @@ test.each([
   ["team stats with no entity", "teamStats", { data: {} }, "match entity and each side's stats list"],
   ["team stats with a side with no list", "teamStats", { entity: { id: 128984 }, data: { "130": {} } }, "match entity and each side's stats list"],
   ["team stats whose sides are not an object", "teamStats", { entity: { id: 128984 }, data: null }, "match entity and each side's stats list"],
+  ["a squad with no list", "squad", { team: {} }, "list of players with ids"],
+  ["a squad with a player with no id", "squad", { players: [{ id: 1 }, { name: {} }] }, "list of players with ids"],
+  ["FPL's bootstrap with no players", "bootstrap", { teams: [] }, "list of players"],
 ] as const)("%s, answered 200, throws with its URL and what is missing", async (_what, read, body, missing) => {
   fakeFeed({ [URL_OF[read]]: body });
 
@@ -137,6 +178,8 @@ test.each([
   ["FPL's live stats", () => readFplLive(6), fplLiveUrl(6)],
   ["a match's commentary", () => readPlCommentary(128978), plCommentaryUrl(128978)],
   ["a match's team stats", () => readPlTeamStats(128984), plTeamStatsUrl(128984)],
+  ["a club's squad", () => readPlSquad(41), plSquadUrl(41)],
+  ["FPL's bootstrap", () => readFplBootstrap(), FPL_BOOTSTRAP_URL],
 ] as const)("a refused read of %s throws with its URL and status", async (_what, read, url) => {
   fakeFeed({}, 403);
 

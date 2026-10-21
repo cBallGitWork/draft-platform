@@ -130,7 +130,14 @@ test.each([
     (lines: number[][]) => {
       lines[2].pop();
     },
-    "draws lines of 1-5-3-1",
+    "does not draw the 11 men",
+  ],
+  [
+    "draws two men in goal",
+    (lines: number[][]) => {
+      lines[0].push(lines[1].shift()!);
+    },
+    "draws 2 men in goal",
   ],
   [
     "draws a starter twice",
@@ -146,11 +153,20 @@ test.each([
   expect(() => matchSlots(changed, codeByOpta)).toThrow(`team 41's 5-4-1 ${message}`);
 });
 
-test("a formation whose label does not count its lines throws", () => {
-  const changed = recordedPlFixture(MATCH.hullEverton.pl);
-  changed.teamLists![0]!.formation!.label = "4-4-2";
+// Every 2025/26 sheet labelled 4-5-1 draws a 4-3-2-1 (docs/positions.md): the label is kept for
+// positionTables.ts to read, and each starter keeps the place drawn for him.
+test("a sheet whose label does not count its drawn lines keeps its label and its places", () => {
+  const relabelled = recordedPlFixture(MATCH.hullEverton.pl);
+  relabelled.teamLists![0]!.formation!.label = "4-4-2";
 
-  expect(() => matchSlots(changed, codeByOpta)).toThrow("team 41's 4-4-2 draws lines of 1-5-4-1");
+  const slots = matchSlots(relabelled, codeByOpta).slots;
+
+  expect(slots.find((slot) => slot.playerCode === FULL_STATS.coyle.code)).toMatchObject({
+    formation: "4-4-2",
+    line: 1,
+    place: 0,
+  });
+  expect(slots.filter((slot) => slot.formation === "4-4-2")).toHaveLength(11);
 });
 
 function fixtureCodeOf(plId: number): number {
