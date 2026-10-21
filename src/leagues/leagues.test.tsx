@@ -1,12 +1,15 @@
-// Signed in, in no league (spec/02): the page saying so, and the admin's "Create a league".
+// "Your leagues" (spec/12): a person's leagues, the page saying they're in none (spec/02), and
+// the admin's "Create a league".
 
-import { cleanup, screen } from "@testing-library/react";
+import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
+import type { Id } from "../../convex/_generated/dataModel";
 import { MY_TEAM_PATH } from "../frame/menu";
 import { SIGN_IN_PATH } from "../router";
-import { admin, manager, newcomer, openApp, visitor } from "../shell.harness";
+import { admin, adminSeeing, league, manager, managerIn, newcomer, openApp, visitor } from "../shell.harness";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "./paths";
+import { unsentLink, unsentLinkWords } from "./words";
 
 afterEach(cleanup);
 
@@ -38,18 +41,51 @@ describe("someone signed in, in no league", () => {
   });
 });
 
-describe("the admin, in no league", () => {
-  it("is offered Create a league, which opens its page (the form is #24)", async () => {
+describe("the admin, with no part in a league", () => {
+  it("is offered Create a league, which opens its form", async () => {
     const app = openApp("/", admin);
     await userEvent.click(await screen.findByRole("link", { name: "Create a league" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Create a league" })).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "League name" })).toBeTruthy();
     expect(app.path()).toBe(NEW_LEAGUE_PATH);
+  });
+
+  it("sees every league, as the admin where he has no other part, and a commissioner's link that didn't go", async () => {
+    const unsentCommissionerLink = { email: league.commissionerEmail, reply: "paused" } as const;
+    openApp(LEAGUES_PATH, adminSeeing({ ...league, roles: [], teamName: null, unsentCommissionerLink }));
+
+    const row = await rowOf(league.name);
+    expect(cellsOf(row)).toEqual(["Admin", "None", "3 of 4"]);
+    expect(screen.getByText(unsentLink(league.commissionerEmail, unsentLinkWords.paused))).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Create a league" })).toBeTruthy();
   });
 });
 
+/** The row headed by a league's name, once the page shows it. */
+async function rowOf(leagueName: string) {
+  const header = await screen.findByRole("rowheader", { name: new RegExp(`^${leagueName}`) });
+  return header.closest("tr")!;
+}
+const cellsOf = (row: HTMLElement) => within(row).getAllByRole("cell").map((cell) => cell.textContent);
+
 describe("a manager in a league", () => {
-  it("opening the leagues page is sent to My team", async () => {
-    const app = openApp(LEAGUES_PATH, manager);
+  it("opening the leagues page sees each of their leagues, their part and team in it, inside the league frame", async () => {
+    const app = openApp(
+      LEAGUES_PATH,
+      managerIn(league, { ...league, leagueId: "league-2" as Id<"leagues">, name: "Mini beta", roles: ["commissioner", "manager"], teams: 1 }),
+    );
+
+    const managed = await rowOf(league.name);
+    expect(cellsOf(managed)).toEqual(["Manager", "Team 1", "3 of 4"]);
+    expect(within(managed).getByText(`Commissioner: ${league.commissionerEmail}`)).toBeTruthy();
+    expect(cellsOf(await rowOf("Mini beta"))).toEqual(["Commissioner, Manager", "Team 1", "1 of 4"]);
+    expect(screen.getByRole("navigation", { name: "Main" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Create a league" })).toBeNull();
+    expect(app.path()).toBe(LEAGUES_PATH);
+  });
+
+  it("opening the app still lands on My team", async () => {
+    const app = openApp("/", manager);
     expect(await screen.findByRole("heading", { level: 1, name: "My team" })).toBeTruthy();
     expect(app.path()).toBe(MY_TEAM_PATH);
   });

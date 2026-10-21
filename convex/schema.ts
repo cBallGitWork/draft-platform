@@ -2,6 +2,7 @@ import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v, type VLiteral } from "convex/values";
 import { POSITIONS, type Position } from "./positionTables";
+import { signInReply } from "./signInLinks";
 
 /** What one read of a feed found: a count of what came back, or why it failed. */
 export const feedOutcome = v.union(
@@ -278,6 +279,57 @@ const liveStatsTables = {
   liveStatsTicks: defineTable(liveStatsTickFields),
 };
 
+// Leagues (#24, spec/13). People are known by their email, trimmed and lower-cased, so a
+// commissioner or manager can be named before they have an account; the admin is ADMIN_EMAIL.
+
+const leagueFields = {
+  name: v.string(),
+  /** The league's own maximum, 2 to 20 (spec/13), which its commissioner changes. */
+  maxTeams: v.number(),
+  commissionerEmail: v.string(),
+  /** Absent while the league has none. */
+  coCommissionerEmail: v.optional(v.string()),
+  /** What asking for the commissioner's sign-in link answered, when one was sent: a commissioner
+   *  with no account gets one when named. */
+  commissionerLink: v.optional(v.object({ email: v.string(), reply: signInReply })),
+};
+
+const teamFields = {
+  leagueId: v.id("leagues"),
+  /** The order teams were made in, from 1. */
+  number: v.number(),
+  name: v.string(),
+  /** Absent while the team is vacated: a manager who leaves or is removed leaves it behind. */
+  managerEmail: v.optional(v.string()),
+};
+
+/** Who held a role before, or null when nobody did. */
+const replaced = v.union(v.string(), v.null());
+/** A manager and their team, its name as it was then. */
+const managerOfTeam = { email: v.string(), teamId: v.id("teams"), teamName: v.string() };
+
+/** What happened in a league, for Mail (#26) to turn into letters (spec/15, The commissioner):
+ *  each says all a letter needs, as it was at the time. */
+export const leagueEvent = v.union(
+  v.object({ kind: v.literal("created"), name: v.string(), maxTeams: v.number() }),
+  v.object({ kind: v.literal("commissionerNamed"), email: v.string(), replaced }),
+  v.object({ kind: v.literal("coCommissionerNamed"), email: v.string(), replaced }),
+  v.object({ kind: v.literal("coCommissionerRemoved"), email: v.string() }),
+  v.object({ kind: v.literal("managerAdded"), ...managerOfTeam }),
+  v.object({ kind: v.literal("managerRemoved"), ...managerOfTeam }),
+  v.object({ kind: v.literal("managerLeft"), ...managerOfTeam }),
+  v.object({ kind: v.literal("teamRenamed"), teamId: v.id("teams"), from: v.string(), to: v.string() }),
+  v.object({ kind: v.literal("maxTeamsChanged"), from: v.number(), to: v.number() }),
+);
+
+const leagueEventFields = {
+  leagueId: v.id("leagues"),
+  at: v.number(),
+  /** Who did it, by email. */
+  by: v.string(),
+  event: leagueEvent,
+};
+
 export default defineSchema({
   ...matchStatsTables,
   ...liveStatsTables,
@@ -285,6 +337,13 @@ export default defineSchema({
   allowedEmails: defineTable(allowedEmailFields).index("by_email", ["email"]),
   signInAsks: defineTable(signInAskFields).index("by_email_and_askedAt", ["email", "askedAt"]),
   emailSends: defineTable(emailSendFields).index("by_day", ["day"]),
+  leagues: defineTable(leagueFields)
+    .index("by_commissionerEmail", ["commissionerEmail"])
+    .index("by_coCommissionerEmail", ["coCommissionerEmail"]),
+  teams: defineTable(teamFields)
+    .index("by_leagueId_and_number", ["leagueId", "number"])
+    .index("by_managerEmail", ["managerEmail"]),
+  leagueEvents: defineTable(leagueEventFields).index("by_leagueId_and_at", ["leagueId", "at"]),
   feedChecks: defineTable(feedCheckFields),
   clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
   players: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_clubCode", ["clubCode"]),

@@ -12,7 +12,7 @@ import { askFailedWords, linkProblemWords, replyWords, waitingWords } from "./si
 
 const convex = vi.hoisted(() => ({
   auth: { isLoading: false, isAuthenticated: false },
-  account: undefined as { email: string; isAdmin: boolean; inLeague: boolean } | null | undefined,
+  account: undefined as { email: string; isAdmin: boolean; inLeague: boolean; leagues: [] } | null | undefined,
   signIn: vi.fn(),
   signOut: vi.fn(async () => {}),
   ask: vi.fn(),
@@ -23,6 +23,7 @@ vi.mock("convex/react", () => ({
   useConvexAuth: () => convex.auth,
   useQuery: (_query: unknown, args: unknown) => (args === "skip" ? undefined : convex.account),
   useAction: () => convex.ask,
+  useMutation: () => vi.fn(),
 }));
 vi.mock("@convex-dev/auth/react", () => ({
   ConvexAuthProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -93,7 +94,7 @@ test("a link that can't be checked says so, and the error is logged", async () =
 
 test("signed in, in no league, the app opens on the leagues page", async () => {
   convex.auth = { isLoading: false, isAuthenticated: true };
-  convex.account = { email: "manager@example.com", isAdmin: false, inLeague: false };
+  convex.account = { email: "manager@example.com", isAdmin: false, inLeague: false, leagues: [] };
 
   openAt("/");
 

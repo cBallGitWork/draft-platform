@@ -1,19 +1,61 @@
-// The screens without signing in, for screenshots: `/?preview=manager` (in a league), `newcomer`
-// (in none), `admin` (in none, so offered "Create a league") or `visitor` (signed out), on the dev
-// server only (the ui-verifier agent's way in). `import.meta.env.DEV` is false in `vite build`, so
-// the production bundle drops this and a logged-out visitor can never reach the frame through it.
+// The screens without signing in, for screenshots: `/?preview=manager` (in two leagues),
+// `newcomer` (in none), `admin` (in none, seeing every league and offered "Create a league") or
+// `visitor` (signed out), on the dev server only (the ui-verifier agent's way in).
+// `import.meta.env.DEV` is false in `vite build`, so the production bundle drops this and a
+// logged-out visitor can never reach the frame through it.
 
+import type { Id } from "../convex/_generated/dataModel";
+import type { LeagueSummary } from "../convex/myLeagues";
 import type { AuthActions, Session } from "./auth";
 import type { TopBarState } from "./frame/topBarState";
 import { MAIL_PATH } from "./frame/menu";
+import type { LeagueActions } from "./leagues/actions";
 import { replyWords } from "./sign-in/words";
 
-const manager = { signedIn: true, email: "manager@example.com", isAdmin: false, inLeague: true } as const;
+/** Made-up leagues, in the shape account:signedInAs sends. */
+const unreachedCommissioner = "first.commissioner@example.com";
+const proLeague: LeagueSummary = {
+  leagueId: "preview-pro-league" as Id<"leagues">,
+  name: "Tim Hortons Pro League",
+  commissionerEmail: "commish@example.com",
+  roles: ["manager"],
+  teamName: "Saka Potatoes",
+  teams: 9,
+  maxTeams: 12,
+  unsentCommissionerLink: null,
+};
+const miniBeta: LeagueSummary = {
+  leagueId: "preview-mini-beta" as Id<"leagues">,
+  name: "Mini beta",
+  commissionerEmail: unreachedCommissioner,
+  roles: [],
+  teamName: null,
+  teams: 0,
+  maxTeams: 4,
+  unsentCommissionerLink: { email: unreachedCommissioner, reply: "paused" },
+};
+
+const manager = {
+  signedIn: true,
+  email: "manager@example.com",
+  isAdmin: false,
+  inLeague: true,
+  leagues: [
+    proLeague,
+    { ...miniBeta, roles: ["commissioner", "manager"], teamName: "Team 1", teams: 1, unsentCommissionerLink: null },
+  ],
+} as const satisfies Session;
 
 const previewSessions: Record<string, Session> = {
   manager,
-  newcomer: { ...manager, inLeague: false },
-  admin: { ...manager, email: "admin@example.com", isAdmin: true, inLeague: false },
+  newcomer: { ...manager, inLeague: false, leagues: [] },
+  admin: {
+    ...manager,
+    email: "admin@example.com",
+    isAdmin: true,
+    inLeague: false,
+    leagues: [miniBeta, { ...proLeague, roles: [], teamName: null }],
+  },
   visitor: { signedIn: false },
 };
 
@@ -23,6 +65,11 @@ export function previewSession(): Session | null {
   const name = new URLSearchParams(window.location.search).get("preview");
   return name !== null && Object.hasOwn(previewSessions, name) ? previewSessions[name] : null;
 }
+
+/** Creating a league makes nothing, and says so. */
+export const previewLeagues: LeagueActions = {
+  createLeague: async () => "This is a preview: no league was made.",
+};
 
 /** Asking for a link gets the reply everyone gets; nothing is sent, and signing out does nothing. */
 export const previewAuth: AuthActions = {

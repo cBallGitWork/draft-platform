@@ -1,6 +1,6 @@
 import { v, type Infer } from "convex/values";
 import { api, internal } from "./_generated/api";
-import { action, internalMutation, type MutationCtx } from "./_generated/server";
+import { action, internalMutation, type ActionCtx, type MutationCtx } from "./_generated/server";
 import { isAllowed, normaliseEmail } from "./allowedEmails";
 
 // Asking for a sign-in link (spec/02, #20). The sign-in page asks through `ask`, which applies the
@@ -18,13 +18,11 @@ export const EMAILS_PER_DAY = 100;
 /** How long after `ask` lets an email through its link may take that ask. */
 const CLAIM_WINDOW_MS = 60 * 1000;
 
+/** The replies that mean no link went. */
+export const noLinkReply = v.union(v.literal("tryLater"), v.literal("paused"), v.literal("notSent"));
+export type NoLinkReply = Infer<typeof noLinkReply>;
 /** What the sign-in page tells the visitor. `checkYourEmail` goes to listed and unlisted alike. */
-export const signInReply = v.union(
-  v.literal("checkYourEmail"),
-  v.literal("tryLater"),
-  v.literal("paused"),
-  v.literal("notSent"),
-);
+export const signInReply = v.union(v.literal("checkYourEmail"), ...noLinkReply.members);
 export type SignInReply = Infer<typeof signInReply>;
 
 const askOutcome = v.union(
@@ -40,29 +38,32 @@ export function dayOf(time: number): string {
 export const ask = action({
   args: { email: v.string() },
   returns: signInReply,
-  handler: async (ctx, args): Promise<SignInReply> => {
-    const email = normaliseEmail(args.email);
-    const asked: Infer<typeof askOutcome> = await ctx.runMutation(internal.signInLinks.recordAsk, { email });
-    switch (asked.outcome) {
-      case "tryLater":
-      case "paused":
-        return asked.outcome;
-      case "unlisted":
-        return "checkYourEmail";
-      case "send":
-        try {
-          // Convex Auth's own action makes the link and sends it: only it holds its config.
-          await ctx.runAction(api.auth.signIn, { provider: "resend", params: { email } });
-          return "checkYourEmail";
-        } catch (error) {
-          const sendError = error instanceof Error ? error.message : String(error);
-          console.error(`The sign-in link to ${email} wasn't sent: ${sendError}`);
-          await ctx.runMutation(internal.signInLinks.recordSendError, { askId: asked.askId, sendError });
-          return "notSent";
-        }
-    }
-  },
+  handler: (ctx, { email }) => askForLink(ctx, email),
 });
+
+/** `ask`'s work, for the server's own sends too: a newly named commissioner's link (leagues.ts). */
+export async function askForLink(ctx: ActionCtx, typedEmail: string): Promise<SignInReply> {
+  const email = normaliseEmail(typedEmail);
+  const asked: Infer<typeof askOutcome> = await ctx.runMutation(internal.signInLinks.recordAsk, { email });
+  switch (asked.outcome) {
+    case "tryLater":
+    case "paused":
+      return asked.outcome;
+    case "unlisted":
+      return "checkYourEmail";
+    case "send":
+      try {
+        // Convex Auth's own action makes the link and sends it: only it holds its config.
+        await ctx.runAction(api.auth.signIn, { provider: "resend", params: { email } });
+        return "checkYourEmail";
+      } catch (error) {
+        const sendError = error instanceof Error ? error.message : String(error);
+        console.error(`The sign-in link to ${email} wasn't sent: ${sendError}`);
+        await ctx.runMutation(internal.signInLinks.recordSendError, { askId: asked.askId, sendError });
+        return "notSent";
+      }
+  }
+}
 
 export const recordAsk = internalMutation({
   args: { email: v.string() },

@@ -12,13 +12,15 @@ import { AppFrame } from "./frame/AppFrame";
 import type { TopBarState } from "./frame/topBarState";
 import { MY_TEAM_PATH, pages } from "./frame/menu";
 import { PageNotBuilt } from "./frame/PageNotBuilt";
+import type { LeagueActions } from "./leagues/actions";
 import { LeaguelessFrame } from "./leagues/LeaguelessFrame";
-import { NoLeaguePage } from "./leagues/NoLeaguePage";
-import { LEAGUES_PATH, NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./leagues/paths";
+import { LeaguesPage } from "./leagues/LeaguesPage";
+import { NewLeaguePage } from "./leagues/NewLeaguePage";
+import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "./leagues/paths";
 import { SignInPage } from "./sign-in/SignInPage";
 import { linkProblemWords, type LinkProblem } from "./sign-in/words";
 
-export type ShellContext = { session: Session; auth: AuthActions; topBar: TopBarState };
+export type ShellContext = { session: Session; auth: AuthActions; leagues: LeagueActions; topBar: TopBarState };
 
 export const SIGN_IN_PATH = "/sign-in";
 
@@ -47,35 +49,42 @@ const signInRoute = createRoute({
   },
 });
 
-// Signed in but in no league (spec/02): the leagues page, outside the league frame.
-const leaguelessRoute = createRoute({
+// The leagues pages, for anyone signed in: in the league frame for someone in a league, and
+// outside it, with no league menu, for someone in none (spec/02).
+const leaguePagesRoute = createRoute({
   getParentRoute: () => rootRoute,
-  id: "leagueless",
+  id: "leaguePages",
   beforeLoad: ({ context }) => {
     if (!context.session.signedIn) throw redirect({ to: SIGN_IN_PATH });
-    if (context.session.inLeague) throw redirect({ to: MY_TEAM_PATH });
   },
-  component: function Leagueless() {
-    return <LeaguelessFrame onSignOut={leaguelessRoute.useRouteContext({ select: (context) => context.auth.signOut })} />;
+  component: function LeaguePages() {
+    const { session, topBar, auth } = leaguePagesRoute.useRouteContext();
+    return session.signedIn && session.inLeague ? (
+      <AppFrame topBar={topBar} onSignOut={auth.signOut} />
+    ) : (
+      <LeaguelessFrame onSignOut={auth.signOut} />
+    );
   },
 });
 
 const leaguesRoute = createRoute({
-  getParentRoute: () => leaguelessRoute,
+  getParentRoute: () => leaguePagesRoute,
   path: LEAGUES_PATH,
   component: function Leagues() {
     const session = leaguesRoute.useRouteContext({ select: (context) => context.session });
-    return session.signedIn ? <NoLeaguePage email={session.email} isAdmin={session.isAdmin} /> : null;
+    return session.signedIn ? <LeaguesPage email={session.email} isAdmin={session.isAdmin} leagues={session.leagues} /> : null;
   },
 });
 
 const newLeagueRoute = createRoute({
-  getParentRoute: () => leaguelessRoute,
+  getParentRoute: () => leaguePagesRoute,
   path: NEW_LEAGUE_PATH,
   beforeLoad: ({ context }) => {
     if (!(context.session.signedIn && context.session.isAdmin)) throw redirect({ to: LEAGUES_PATH });
   },
-  component: () => <PageNotBuilt title={NEW_LEAGUE_TITLE} />,
+  component: function NewLeague() {
+    return <NewLeaguePage createLeague={newLeagueRoute.useRouteContext({ select: (context) => context.leagues.createLeague })} />;
+  },
 });
 
 const frameRoute = createRoute({
@@ -110,7 +119,7 @@ const pageRoutes = pages.map((page) =>
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
-  leaguelessRoute.addChildren([leaguesRoute, newLeagueRoute]),
+  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute]),
   frameRoute.addChildren([landingRoute, ...pageRoutes]),
 ]);
 
