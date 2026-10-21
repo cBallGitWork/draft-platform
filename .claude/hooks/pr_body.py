@@ -17,7 +17,9 @@ BODY_OPTS = {"-b", "--body"}
 BODY_FILE_OPTS = {"-F", "--body-file"}
 REQUIRED = ("## Merge danger", "## Fresh-eyes review")  # .github/pull_request_template.md
 LOCAL_PATHS = ("/Users/", "/private/tmp/")  # a Mac home folder, the session scratchpad
-CLOSING = re.compile(r"(?i)\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\b[^\n#]{0,40}#\d+")
+# One line at a time, by design: "Closes" at a line's end with "#12" starting the next, and
+# "Closes https://…/issues/5", both get through. A known limit, not a promise.
+CLOSING =re.compile(r"(?i)\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\b[^\n#]{0,40}#\d+")
 BARE_CLOSES = re.compile(r"^Closes #\d+\s*$")
 USE_A_FILE = "Write the body to a file and pass it with --body-file <file>."
 
