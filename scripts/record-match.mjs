@@ -7,27 +7,30 @@
 // sum up, is saved and shown, and polling goes on.
 //
 // Usage, with the Premier League's fixture id:
-//   caffeinate -i node scripts/record-match.mjs <fixtureId>   records; start it any time before
+//   caffeinate -is node scripts/record-match.mjs <fixtureId>  records; start it any time before
 //                                                             90 minutes before kickoff
 //   node scripts/record-match.mjs <fixtureId> --summary       one line per poll saved so far
-// `caffeinate -i` keeps the Mac awake: a sleeping Mac leaves gaps that look like a stalled feed.
+// `caffeinate -is` keeps the Mac awake while it is plugged in with the lid open (`-s` does nothing on
+// battery, and a closed lid still sleeps it): a sleeping Mac leaves gaps that look like a stalled feed.
 // Friday 23 Oct 2026, Ipswich v Nott'm Forest at 20:00 BST:
-//   caffeinate -i node scripts/record-match.mjs 128999
+//   caffeinate -is node scripts/record-match.mjs 128999
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { getJson, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../convex/football.ts";
+import { errorMessage, getJson, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../convex/football.ts";
+import { HOUR_MS, MINUTE_MS } from "../convex/time.ts";
 
-const MINUTE_MS = 60_000;
 const POLL_MS = 30_000;
 /** spec/10 wants the lineups "about an hour before kickoff"; when they first appear is one of #37's
  *  questions, so recording starts half an hour earlier than that, to see them arrive. */
 const LEAD_MS = 90 * MINUTE_MS;
 /** Kept on after full time, for late lines and corrected totals. */
 const AFTER_FULL_TIME_MS = 15 * MINUTE_MS;
-/** A match abandoned, or a status that never turns to full time, stops recording here. */
-const GIVE_UP_MS = 4 * 60 * MINUTE_MS;
+/** A match abandoned, or a status that never turns to full time, stops recording here. The same
+ *  window as LIVE_WINDOW_MS in convex/liveStats.ts, which plain node can't import: it imports its
+ *  neighbours with no extension. */
+const GIVE_UP_MS = 4 * HOUR_MS;
 /** Between one read and the next in a poll: politeness, not a rule of the feed. */
 const PAUSE_MS = 1_000;
 /** The fixture's `status` once the match is over ("U" before it, "C" after). A copy of
@@ -37,7 +40,6 @@ const FULL_TIME = "C";
 const RECORDINGS_DIR = join(dirname(dirname(fileURLToPath(import.meta.url))), ".recordings");
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const messageOf = (error) => (error instanceof Error ? error.message : String(error));
 
 /** The three reads a poll makes, in order. */
 export function pollReads(fixtureId) {
@@ -65,7 +67,7 @@ export async function poll(fixtureId, pauseMs = PAUSE_MS) {
     try {
       reads.push({ kind, url, askedAt, body: await getJson(url) });
     } catch (error) {
-      reads.push({ kind, url, askedAt, error: messageOf(error) });
+      reads.push({ kind, url, askedAt, error: errorMessage(error) });
     }
   }
   return { polledAt, reads };
@@ -102,7 +104,7 @@ export function summaryLine(saved) {
       else parts.push(teamStatsSummary(read.body, bodyOf(saved, "fixture")));
     } catch (error) {
       // A changed shape is what this recording is for: it is saved whole, and said here.
-      parts.push(`${read.kind} UNREADABLE: ${messageOf(error)}`);
+      parts.push(`${read.kind} UNREADABLE: ${errorMessage(error)}`);
     }
   }
   return parts.join("  |  ");
@@ -179,7 +181,7 @@ if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.a
   if (flag === "--summary") summarise(dir);
   else {
     await record(Number(id), dir).catch((error) => {
-      console.error(messageOf(error));
+      console.error(errorMessage(error));
       process.exit(1);
     });
   }
