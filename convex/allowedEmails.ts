@@ -27,8 +27,8 @@ export async function isAllowed(ctx: QueryCtx, email: string): Promise<boolean> 
   return row !== null;
 }
 
-/** Puts an email on the allowed list. The admin's `add` calls it now; invites (#73) will too, and
- *  so will the invite link, which lets anyone who opens it sign in to ask to join (spec/02). */
+/** Puts an email on the allowed list: the admin's `add`, an invite (#73), and the invite link,
+ *  which lets anyone who opens it sign in to ask to join (spec/02). */
 export async function admitEmail(ctx: MutationCtx, email: string): Promise<"added" | "already on the list"> {
   const normalised = normaliseEmail(email);
   if (!normalised.includes("@")) throw new Error(`"${email}" isn't an email address`);

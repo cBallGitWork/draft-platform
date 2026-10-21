@@ -5,13 +5,16 @@ import { linkProblemWords, type LinkProblem } from "./words";
 const alertStripClasses = "bg-name-plate px-3 py-2 text-event shadow-event-edge";
 
 /** All a logged-out visitor sees (spec/12): the name, "Invite only", and an email box for the link.
- *  Opened from a link that didn't sign them in, it says so first (spec/02). */
+ *  Opened from a link that didn't sign them in, it says so first (spec/02); `intro` says why
+ *  they're here, as from a league's invite link (#73). */
 export function SignInPage({
   requestSignInLink,
   linkProblem,
+  intro,
 }: {
   requestSignInLink: (email: string) => Promise<string>;
   linkProblem?: LinkProblem;
+  intro?: string;
 }) {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
@@ -40,6 +43,7 @@ export function SignInPage({
               {linkProblemWords[linkProblem]}
             </p>
           )}
+          {intro && <p className="px-3 pt-2">{intro}</p>}
           <form onSubmit={sendLink} className="flex flex-col gap-2 p-3">
             <label htmlFor="sign-in-email" className="font-semibold">
               Email

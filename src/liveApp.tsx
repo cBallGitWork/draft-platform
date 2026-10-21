@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../convex/_generated/api";
 import type { AuthActions, Session } from "./auth";
 import { emptyTopBar } from "./frame/topBarState";
+import { useLiveJoining } from "./joining/liveJoining";
+import { joinTokenAt } from "./joining/paths";
 import { useLiveLeagueActions } from "./leagues/liveLeagueActions";
 import { SIGN_IN_PATH } from "./router";
 import { ShellApp } from "./ShellApp";
@@ -52,6 +54,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   const { signIn, signOut } = useAuthActions();
   const ask = useAction(api.signInLinks.ask);
   const leagues = useLiveLeagueActions();
+  const joining = useLiveJoining();
   const account = useQuery(api.account.signedInAs, isAuthenticated ? {} : "skip");
   const [checkingLink, setCheckingLink] = useState(linkCode !== null);
   const redeemed = useRef(false);
@@ -61,7 +64,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
     if (linkCode === null || redeemed.current) return;
     redeemed.current = true;
     void redeemLink(signIn, linkCode).then((problem) => {
-      if (problem) window.history.replaceState(null, "", `${SIGN_IN_PATH}?link=${problem}`);
+      if (problem) window.history.replaceState(null, "", signInAddressAfter(problem));
       setCheckingLink(false);
     });
   }, [linkCode, signIn]);
@@ -93,7 +96,15 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
       </p>
     );
   }
-  return <ShellApp session={session} auth={auth} leagues={leagues} topBar={emptyTopBar} />;
+  return <ShellApp session={session} auth={auth} leagues={leagues} joining={joining} topBar={emptyTopBar} />;
+}
+
+/** The sign-in page saying what was wrong with a link, and, for one that led to a league's invite
+ *  link, leading back to it (#73). */
+function signInAddressAfter(problem: LinkProblem): string {
+  const join = joinTokenAt(window.location.pathname);
+  const search = new URLSearchParams({ link: problem, ...(join && { join }) });
+  return `${SIGN_IN_PATH}?${search}`;
 }
 
 /** Redeems a link's code, and says what went wrong if it didn't sign in. Convex Auth answers a
