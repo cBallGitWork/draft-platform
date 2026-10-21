@@ -4,13 +4,13 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../convex/mail";
+import { HOUR_MS } from "../../convex/time";
 import { MAIL_PATH } from "../frame/menu";
 import type { TopBarState } from "../frame/topBarState";
-import { manager, proLeague } from "../preview";
+import { manager, previewSays, proLeague } from "../preview";
 import type { Mail } from "./actions";
 import { unreadCount } from "./words";
 
-const HOUR = 60 * 60 * 1000;
 const NEWEST = Date.parse("2026-10-20T14:02:00Z");
 const { commissionerEmail: commissioner } = proLeague;
 
@@ -18,7 +18,7 @@ type Made = Pick<LetterSummary, "subject" | "body" | "read"> & Partial<Pick<Lett
 const letter = (number: number, hoursAgo: number, { from = null, ...made }: Made): LetterSummary => ({
   letterId: `preview-letter-${number}` as Id<"letters">,
   leagueName: proLeague.name,
-  at: NEWEST - hoursAgo * HOUR,
+  at: NEWEST - hoursAgo * HOUR_MS,
   from,
   ...made,
 });
@@ -51,7 +51,7 @@ const previewLetters: LetterSummary[] = [
 export const previewMail: Mail = {
   letters: previewLetters,
   open: async () => {},
-  writeToLeague: async () => "This is a preview: no letter was sent.",
+  writeToLeague: previewSays("no letter was sent"),
 };
 
 const unreadMail = previewLetters.filter((each) => !each.read).length;

@@ -105,7 +105,7 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
 }
 
 /** An invalid limit is the league's mistake, not the manager's: it is thrown, never reported as
- *  his lineup's problem. Refusing it when the league sets it is #25's. */
+ *  his lineup's problem. leagueRulesCheck.ts refuses it when the league sets it (#25). */
 function throwOnInvalidAreaLimits(rules: LineupRules): void {
   for (const area of AREAS) {
     const { minimum, maximum } = rules.areaLimits[area];

@@ -11,8 +11,7 @@ import {
   signInDeployment,
   type TestConvex,
 } from "./signIn.harness";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
+import { DAY_MS } from "./time";
 
 let t: TestConvex;
 beforeEach(async () => {

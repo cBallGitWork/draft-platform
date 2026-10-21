@@ -7,7 +7,6 @@ import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { COMMISSIONER, actingAs, type TestConvex } from "./leagues.harness";
 import { linkCode, openLink, type SentEmail } from "./signIn.harness";
-import { EMAILS_PER_DAY, dayOf } from "./signInLinks";
 
 /** The league's commissioner, signed in. */
 export const asCommissioner = (t: TestConvex) => actingAs(t, COMMISSIONER);
@@ -63,15 +62,3 @@ export async function askToJoin(t: TestConvex, leagueId: Id<"leagues">, token: s
   if (!request) throw new Error(`${email} asked to join, and the commissioner sees no request`);
   return request.requestId;
 }
-
-/** Every one of today's emails sent: the daily limit reached. */
-export const spendTodaysEmails = (t: TestConvex) =>
-  t.run(async (ctx) => {
-    const day = dayOf(Date.now());
-    const today = await ctx.db
-      .query("emailSends")
-      .withIndex("by_day", (q) => q.eq("day", day))
-      .unique();
-    if (today) await ctx.db.patch("emailSends", today._id, { count: EMAILS_PER_DAY });
-    else await ctx.db.insert("emailSends", { day, count: EMAILS_PER_DAY });
-  });

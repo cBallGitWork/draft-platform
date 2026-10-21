@@ -1,9 +1,9 @@
-import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { isLocked } from "../../convex/deadline";
 import type { LeagueGameweek } from "../../convex/leagueGameweeks";
 import type { LeagueSummary } from "../../convex/myLeagues";
-import { LEAGUES_PATH } from "../leagues/paths";
+import { PageTitle, Problem } from "../frame/Panel";
+import { BackToLeagues } from "../leagues/LeagueLinks";
 import type { LeagueGameweeksView } from "./seam";
 import {
   begunWords,
@@ -34,9 +34,7 @@ export function GameweeksPage({ league, view }: { league: LeagueSummary; view: L
   const plays = playsWords(league.name);
   return (
     <section aria-labelledby="page-title" className="max-w-3xl bg-panel">
-      <h1 id="page-title" className="bg-plate px-4 py-1 text-title font-bold shadow-bevel-plate">
-        {GAMEWEEKS_TITLE}
-      </h1>
+      <PageTitle>{GAMEWEEKS_TITLE}</PageTitle>
       <div className="flex flex-col gap-2 px-3 py-2">
         {gameweeks && (
           <p className="text-lead">
@@ -46,11 +44,7 @@ export function GameweeksPage({ league, view }: { league: LeagueSummary; view: L
           </p>
         )}
         <p className="text-muted">{howTickingWorks}</p>
-        {problem && (
-          <p role="alert" className="alert-strip">
-            {problem}
-          </p>
-        )}
+        <Problem problem={problem} />
         {gameweeks ? (
           <div className="grid gap-2 lg:grid-cols-2">
             {halves(gameweeks).map((rows, index) => (
@@ -62,9 +56,7 @@ export function GameweeksPage({ league, view }: { league: LeagueSummary; view: L
             {loadingWords}
           </p>
         )}
-        <Link to={LEAGUES_PATH} className="flex min-h-tap items-center self-start">
-          Back to your leagues
-        </Link>
+        <BackToLeagues className="self-start" />
       </div>
     </section>
   );

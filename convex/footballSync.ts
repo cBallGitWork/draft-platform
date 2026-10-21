@@ -3,7 +3,7 @@ import { v, type Infer, type Value } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Doc } from "./_generated/dataModel";
 import { internalAction, internalMutation, internalQuery, type ActionCtx, type MutationCtx } from "./_generated/server";
-import { errorMessage } from "./football";
+import { logFailure } from "./football";
 import { readFpl } from "./fpl";
 import {
   clubRecord,
@@ -14,6 +14,7 @@ import {
   playerRecord,
   tableWrites,
 } from "./schema";
+import { BATCH_SIZE, LATEST_RUNS } from "./syncRuns";
 
 // Issue #21: the real Premier League's clubs, players, fixtures and gameweeks, copied in from the
 // football layer. crons.ts runs it on a schedule; from the CLI:
@@ -31,12 +32,6 @@ type FootballTable = Infer<typeof footballTable>;
 /** A record or a held row, by the key it is matched on. */
 type Keyed = { code: number } | { number: number };
 type MarkedPage = { marked: number; cursor: string; isDone: boolean };
-/** How many run rows `latest` returns. */
-export const LATEST_RUNS = 5;
-
-/** Rows per mutation, upserted or checked for a mark: well inside Convex's per-transaction limits,
- *  and a season's ~700 players in four. */
-export const BATCH_SIZE = 200;
 
 export const run = internalAction({
   args: { trigger: syncTrigger },
@@ -56,9 +51,7 @@ export const run = internalAction({
         gameweeks: await syncTable(ctx, "gameweeks", internal.footballSync.upsertGameweeks, football.gameweeks, ranAt),
       };
     } catch (error: unknown) {
-      const message = errorMessage(error);
-      console.error(`football sync failed: ${message}`);
-      outcome = { ok: false, error: message };
+      outcome = { ok: false, error: logFailure("football sync failed", error) };
     }
     await ctx.runMutation(internal.footballSync.record, { trigger, ranAt, outcome });
   },

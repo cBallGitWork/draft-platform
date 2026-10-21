@@ -1,7 +1,8 @@
 import type { Infer } from "convex/values";
 import { internal } from "./_generated/api";
 import { internalAction } from "./_generated/server";
-import { logFailure, syncDue } from "./matchStatsSync";
+import { logFailure } from "./football";
+import { syncDue } from "./matchStatsSync";
 import type { liveStatsTickFields } from "./schema";
 
 // Issue #28: the live poller's tick, run every minute by `crons.ts`. Outside every match window

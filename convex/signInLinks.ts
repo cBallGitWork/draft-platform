@@ -2,6 +2,8 @@ import { v, type Infer } from "convex/values";
 import { api, internal } from "./_generated/api";
 import { action, internalMutation, type ActionCtx, type MutationCtx } from "./_generated/server";
 import { isAllowed, normaliseEmail } from "./allowedEmails";
+import { anEmailLeftToday, countTodaysEmail } from "./emailLimit";
+import { HOUR_MS, MINUTE_MS } from "./time";
 
 // Asking for a sign-in link (spec/02, #20). The sign-in page asks through `ask`, which applies the
 // hourly limit, the day's email limit and the allowed list before Convex Auth makes a link, so a
@@ -10,13 +12,10 @@ import { isAllowed, normaliseEmail } from "./allowedEmails";
 // a moment ago (`claimAsk`, from convex/auth.ts): called directly, it is refused with nothing
 // written, so no earlier link is replaced and no account is made.
 
-const HOUR_MS = 60 * 60 * 1000;
 /** spec/02: one email asks for at most this many links an hour. */
 export const ASKS_PER_HOUR = 3;
-/** Resend's free plan (ARCHITECTURE.md, Services): every email the app sends counts. */
-export const EMAILS_PER_DAY = 100;
 /** How long after `ask` lets an email through its link may take that ask. */
-const CLAIM_WINDOW_MS = 60 * 1000;
+const CLAIM_WINDOW_MS = MINUTE_MS;
 
 /** The replies that mean no link went. */
 export const noLinkReply = v.union(v.literal("tryLater"), v.literal("paused"), v.literal("notSent"));
@@ -29,11 +28,6 @@ const askOutcome = v.union(
   v.object({ outcome: v.literal("send"), askId: v.id("signInAsks") }),
   v.object({ outcome: v.union(v.literal("unlisted"), v.literal("tryLater"), v.literal("paused")) }),
 );
-
-/** The UTC day a time falls on, as Resend's daily limit is counted here: "2026-10-20". */
-export function dayOf(time: number): string {
-  return new Date(time).toISOString().slice(0, 10);
-}
 
 export const ask = action({
   args: { email: v.string() },
@@ -78,21 +72,14 @@ export const recordAsk = internalMutation({
     if (lastHour.length >= ASKS_PER_HOUR) return { outcome: "tryLater" as const };
 
     // Before the list is read, so a paused day reads the same for every email.
-    const day = dayOf(now);
-    const sentToday = await ctx.db
-      .query("emailSends")
-      .withIndex("by_day", (q) => q.eq("day", day))
-      .unique();
-    if ((sentToday?.count ?? 0) >= EMAILS_PER_DAY) return { outcome: "paused" as const };
+    if (!(await anEmailLeftToday(ctx))) return { outcome: "paused" as const };
 
     const listed = await isAllowed(ctx, email);
     const askId = await ctx.db.insert("signInAsks", { email, askedAt: now, listed });
     if (!listed) return { outcome: "unlisted" as const };
 
-    // Counted before it is sent, so two asks at once can't both take the day's last email. One
-    // that then fails stays counted: Resend may have counted it too.
-    if (sentToday) await ctx.db.patch("emailSends", sentToday._id, { count: sentToday.count + 1 });
-    else await ctx.db.insert("emailSends", { day, count: 1 });
+    // Counted before it is sent, as every email is (emailLimit.ts).
+    await countTodaysEmail(ctx);
     return { outcome: "send" as const, askId };
   },
 });

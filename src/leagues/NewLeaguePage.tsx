@@ -1,7 +1,10 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leagueLimits";
+import { PageTitle, Problem } from "../frame/Panel";
+import { useChange } from "../useChange";
 import type { LeagueActions } from "./actions";
+import { BackToLeagues } from "./LeagueLinks";
 import { LEAGUES_PATH, NEW_LEAGUE_TITLE } from "./paths";
 import { commissionerHint, maxTeamsHint } from "./words";
 
@@ -12,28 +15,17 @@ export function NewLeaguePage({ createLeague }: { createLeague: LeagueActions["c
   const [name, setName] = useState("");
   const [maxTeams, setMaxTeams] = useState("");
   const [commissionerEmail, setCommissionerEmail] = useState("");
-  const [creating, setCreating] = useState(false);
-  const [problem, setProblem] = useState<string | null>(null);
+  const { busy: creating, problem, run } = useChange();
 
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setCreating(true);
-    const refused = await createLeague({ name, maxTeams: Number(maxTeams), commissionerEmail });
-    setCreating(false);
-    setProblem(refused);
-    if (refused === null) void navigate({ to: LEAGUES_PATH });
+    if (await run(() => createLeague({ name, maxTeams: Number(maxTeams), commissionerEmail }))) void navigate({ to: LEAGUES_PATH });
   }
 
   return (
     <section aria-labelledby="page-title" className="max-w-md bg-panel">
-      <h1 id="page-title" className="bg-plate px-4 py-1 text-title font-bold shadow-bevel-plate">
-        {NEW_LEAGUE_TITLE}
-      </h1>
-      {problem && (
-        <p role="alert" className="alert-strip">
-          {problem}
-        </p>
-      )}
+      <PageTitle>{NEW_LEAGUE_TITLE}</PageTitle>
+      <Problem problem={problem} />
       <form onSubmit={create} className="flex flex-col gap-2 p-3">
         <label htmlFor="league-name" className="font-semibold">
           League name
@@ -79,9 +71,7 @@ export function NewLeaguePage({ createLeague }: { createLeague: LeagueActions["c
           <button type="submit" disabled={creating} className="action">
             Create the league
           </button>
-          <Link to={LEAGUES_PATH} className="flex min-h-tap items-center">
-            Back to your leagues
-          </Link>
+          <BackToLeagues />
         </div>
       </form>
     </section>

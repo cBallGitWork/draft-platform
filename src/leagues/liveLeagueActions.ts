@@ -1,7 +1,7 @@
 import { useMutation } from "convex/react";
-import { ConvexError } from "convex/values";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
+import { refusalOf } from "../refusal";
 import type { LeagueActions } from "./actions";
 import { createFailedWords, deleteFailedWords, switchFailedWords, undoFailedWords } from "./words";
 
@@ -21,17 +21,4 @@ export function useLiveLeagueActions(): LeagueActions {
     }),
     [create, deleteLeague, undo, switchTo],
   );
-}
-
-/** Null once `change` is made, the server's words if it refused, or `failedWords` (and the failure
- *  logged as what `doing` failed) if anything else went wrong. */
-async function refusalOf(change: () => Promise<unknown>, doing: string, failedWords: string): Promise<string | null> {
-  try {
-    await change();
-    return null;
-  } catch (error) {
-    if (error instanceof ConvexError && typeof error.data === "string") return error.data;
-    console.error(`${doing} failed:`, error);
-    return failedWords;
-  }
 }

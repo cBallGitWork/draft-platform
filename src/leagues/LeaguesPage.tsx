@@ -1,10 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/myLeagues";
+import { PageTitle } from "../frame/Panel";
 import { GameweeksLink } from "../gameweeks/GameweeksLink";
 import { invitesPath } from "../joining/paths";
 import { invitesTitle } from "../joining/words";
 import { LeagueDeletionRow, type DeletionActions } from "./LeagueDeletion";
+import { leagueRowLinkClasses } from "./LeagueLinks";
 import { LEAGUES_TITLE, NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
+import { deletes, runs } from "./roles";
 import { adminWords, roleWords, unsentLink, unsentLinkWords } from "./words";
 
 const cellClasses = "px-2 text-left align-top";
@@ -26,9 +29,7 @@ export function LeaguesPage({
 }) {
   return (
     <section aria-labelledby="page-title" className="max-w-3xl bg-panel">
-      <h1 id="page-title" className="bg-plate px-4 py-1 text-title font-bold shadow-bevel-plate">
-        {LEAGUES_TITLE}
-      </h1>
+      <PageTitle>{LEAGUES_TITLE}</PageTitle>
       <div className="flex flex-col gap-2 px-3 py-2">
         {leagues.length === 0 ? (
           <>
@@ -47,9 +48,6 @@ export function LeaguesPage({
     </section>
   );
 }
-
-/** Whether the person runs the league: its commissioner, its co-commissioner, or the admin. */
-const runs = (league: LeagueSummary, isAdmin: boolean) => isAdmin || league.roles.some((role) => role !== "manager");
 
 function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSummary[]; isAdmin: boolean; actions: DeletionActions }) {
   return (
@@ -70,7 +68,7 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
               <span className="block font-normal text-muted wrap-anywhere">Commissioner: {league.commissionerEmail}</span>
               {!league.deletion && <GameweeksLink league={league} isAdmin={isAdmin} />}
               {!league.deletion && runs(league, isAdmin) && (
-                <Link to={invitesPath(league.leagueId)} className="flex min-h-tap items-center font-normal lg:min-h-0">
+                <Link to={invitesPath(league.leagueId)} className={leagueRowLinkClasses}>
                   {invitesTitle}
                 </Link>
               )}
@@ -88,7 +86,7 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
               </td>
             </tr>
           )}
-          <LeagueDeletionRow league={league} canDelete={isAdmin || league.roles.includes("commissioner")} actions={actions} />
+          <LeagueDeletionRow league={league} canDelete={deletes(league, isAdmin)} actions={actions} />
         </tbody>
       ))}
     </table>

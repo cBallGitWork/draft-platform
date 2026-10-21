@@ -1,8 +1,10 @@
-// What joining's server code and screens both read (#73), with no imports so the screens can:
-// how long an invite lasts, where joining's sign-in links lead, and what a dead invite link says.
+// What joining's server code and screens both read (#73), importing only time.ts's units so the
+// screens can: how long an invite lasts, where joining's sign-in links lead, and what a dead
+// invite link says.
 
-export const DAY_MS = 24 * 60 * 60 * 1000;
-/** spec/13: an invite lasts 7 days. */
+import { DAY_MS } from "./time";
+
+/** spec/13: an invite's lifetime, in days. */
 export const INVITE_DAYS = 7;
 export const INVITE_LIFETIME_MS = INVITE_DAYS * DAY_MS;
 

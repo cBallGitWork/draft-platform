@@ -7,6 +7,7 @@ import { adminByline } from "./letterWords";
 import { mailRefusals } from "./mail";
 import { BODY_MAX, SUBJECT_MAX, UNREAD_COUNTED } from "./mailLimits";
 import { fakeResend, resetSignInDeployment, signInDeployment } from "./signIn.harness";
+import { MINUTE_MS } from "./time";
 
 // Mail (#26, spec/16): a filed letter reaches exactly the right people, unread until opened, and
 // the count matches; the commissioner writes to the whole league.
@@ -168,7 +169,7 @@ describe("the commissioner's letter to the league", () => {
   });
 
   test("it reaches everyone in the league, from the commissioner, newest first", async () => {
-    vi.advanceTimersByTime(60_000);
+    vi.advanceTimersByTime(MINUTE_MS);
     await (await mailOf(COMMISSIONER)).writeToLeague("  Draft night  ", " Friday at eight. ");
 
     const [newest, older] = await (await mailOf(BOB)).letters();

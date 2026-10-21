@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/myLeagues";
+import { useChange } from "../useChange";
 import type { LeagueActions } from "./actions";
 import { beingDeleted, confirmDelete, confirmDeleteWords, deleteLeagueWords, unemailed, undoWords, unsentLinkWords } from "./words";
 
@@ -10,15 +11,10 @@ export type DeletionActions = Pick<LeagueActions, "deleteLeague" | "undoDeletion
  *  wasn't told, and Undo, which only whoever deleted it and the admin see. */
 export function LeagueDeletionRow({ league, canDelete, actions }: { league: LeagueSummary; canDelete: boolean; actions: DeletionActions }) {
   const [confirming, setConfirming] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState<string | null>(null);
+  const { busy, problem, run: runChange } = useChange();
 
   async function run(change: DeletionActions[keyof DeletionActions]) {
-    setBusy(true);
-    const refused = await change(league.leagueId);
-    setBusy(false);
-    setProblem(refused);
-    if (refused === null) setConfirming(false);
+    if (await runChange(() => change(league.leagueId))) setConfirming(false);
   }
 
   const { deletion } = league;

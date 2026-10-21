@@ -1,6 +1,6 @@
 // A gameweek's deadline (spec/05, The deadline; #9): one per gameweek, locking every team's whole
 // lineup at once. When it falls is the league's rule (spec/03), so the rule is always an argument,
-// never a constant: #25 is to hold it as data with the league's other rules.
+// never a constant: it is held as data with the league's other rules (#25, leagueRules.ts).
 //
 // Once passed, a deadline stays where it fell, even if the first match is then postponed (#85), and
 // the matches no longer show where that was. So each read takes the deadline recorded for the

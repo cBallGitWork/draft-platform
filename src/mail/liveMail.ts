@@ -1,9 +1,9 @@
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
-import { ConvexError } from "convex/values";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { MAIL_PATH } from "../frame/menu";
 import type { TopBarState } from "../frame/topBarState";
+import { refusalOf } from "../refusal";
 import type { Mail } from "./actions";
 import { sendFailedWords, unreadCount } from "./words";
 
@@ -27,16 +27,7 @@ export function useLiveMail(): { mail: Mail; topBar: TopBarState } {
           console.error("Marking a letter read failed:", error);
         }
       },
-      writeToLeague: async (letter) => {
-        try {
-          await write(letter);
-          return null;
-        } catch (error) {
-          if (error instanceof ConvexError && typeof error.data === "string") return error.data;
-          console.error("Sending a letter to the league failed:", error);
-          return sendFailedWords;
-        }
-      },
+      writeToLeague: (letter) => refusalOf(() => write(letter), "Sending a letter to the league", sendFailedWords),
     }),
     [letters, open, write],
   );

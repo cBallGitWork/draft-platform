@@ -6,14 +6,13 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { GAMEWEEKS } from "../../convex/usedGameweeks";
 import { LEAGUES_PATH } from "../leagues/paths";
-import { adminSeeing, league, managerIn, openApp } from "../shell.harness";
+import { adminSeeing, commissioner, league, managerIn, openApp } from "../shell.harness";
 import { BEGUN, season } from "./gameweeks.harness";
 import { gameweeksPath } from "./paths";
 import { begunWords, deadlineWords, GAMEWEEKS_TITLE, loadingWords, tickLabel } from "./words";
 
 afterEach(cleanup);
 
-const commissioner = managerIn({ ...league, roles: ["commissioner"], teamName: null });
 const PAGE = gameweeksPath(league.leagueId);
 const REFUSAL = "Gameweek 17 has begun, so it can't be ticked or unticked.";
 
