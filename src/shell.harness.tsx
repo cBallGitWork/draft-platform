@@ -15,6 +15,7 @@ import { fakeJoining, type JoiningData } from "./joining/joining.harness";
 import type { LeagueActions } from "./leagues/actions";
 import type { Mail } from "./mail/actions";
 import { ShellApp } from "./ShellApp";
+import { fakeSquads, type SquadsData } from "./squads/squads.harness";
 
 // The router restores scroll on every navigation, and jsdom has no scrolling to restore.
 window.scrollTo = () => {};
@@ -78,14 +79,15 @@ const fakeMail = (letters: readonly LetterSummary[] | null) => ({
 });
 
 /** The app opened at `path` for `session`, with `letters` in Mail: where it is, the fake sign-in,
- *  league, Mail, joining and gameweeks seams, and a way to change the session as signing in or out,
- *  or a league changing, would. */
+ *  league, Mail, joining, gameweeks and squads seams, and a way to change the session as signing
+ *  in or out, or a league changing, would. */
 export function openApp(
   path: string,
   session: Session,
   topBar: TopBarState = emptyTopBar,
   letters: readonly LetterSummary[] | null = [],
   joiningData: JoiningData = {},
+  squadsData: SquadsData = {},
 ) {
   const history = createMemoryHistory({ initialEntries: [path] });
   const auth = fakeAuth();
@@ -93,6 +95,7 @@ export function openApp(
   const mail = fakeMail(letters);
   const joining = fakeJoining(joiningData, LINK_REPLY);
   const gameweeks = fakeGameweeks();
+  const squads = fakeSquads(squadsData);
   const app = (current: Session) => (
     <ShellApp
       session={current}
@@ -102,6 +105,7 @@ export function openApp(
       joining={joining}
       topBar={topBar}
       gameweeks={gameweeks}
+      squads={squads}
       history={history}
     />
   );
@@ -112,6 +116,7 @@ export function openApp(
     mail,
     gameweeks,
     joining,
+    squads,
     path: () => history.location.pathname,
     search: () => history.location.search,
     becomes: (next: Session) => view.rerender(app(next)),
