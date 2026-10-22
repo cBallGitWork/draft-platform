@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { leagueRole, rolesIn, seesWhileDeleted, teamsOf } from "../shared/leagueAccess";
+import { isAdmin, leagueRole, rolesIn, seesWhileDeleted, teamsOf } from "../shared/leagueAccess";
 import { leagueDeletion } from "../schema";
 import { hasOpenedALink, noLinkReply } from "../signIn/signInLinks";
 
@@ -37,7 +37,7 @@ async function unsentLinkOf(ctx: QueryCtx, league: Doc<"leagues">): Promise<Leag
   return (await hasOpenedALink(ctx, link.email)) ? null : { email: link.email, reply: link.reply };
 }
 
-export async function leaguesOf(ctx: QueryCtx, email: string, isAdmin: boolean): Promise<LeagueSummary[]> {
+export async function leaguesOf(ctx: QueryCtx, email: string): Promise<LeagueSummary[]> {
   const commissioned = await ctx.db
     .query("leagues")
     .withIndex("by_commissionerEmail", (q) => q.eq("commissionerEmail", email))
@@ -51,6 +51,7 @@ export async function leaguesOf(ctx: QueryCtx, email: string, isAdmin: boolean):
     .withIndex("by_managerEmail", (q) => q.eq("managerEmail", email))
     .take(LEAGUES_SHOWN);
 
+  const admin = isAdmin(email);
   const leagues = new Map<Id<"leagues">, Doc<"leagues">>();
   for (const league of [...commissioned, ...coCommissioned]) leagues.set(league._id, league);
   for (const team of managed) {
@@ -58,7 +59,7 @@ export async function leaguesOf(ctx: QueryCtx, email: string, isAdmin: boolean):
     if (!league) throw new Error(`Team ${team._id} is in league ${team.leagueId}, which doesn't exist`);
     leagues.set(league._id, league);
   }
-  if (isAdmin) for (const league of await ctx.db.query("leagues").take(LEAGUES_SHOWN)) leagues.set(league._id, league);
+  if (admin) for (const league of await ctx.db.query("leagues").take(LEAGUES_SHOWN)) leagues.set(league._id, league);
 
   const summaries = [];
   for (const league of leagues.values()) {
@@ -74,7 +75,7 @@ export async function leaguesOf(ctx: QueryCtx, email: string, isAdmin: boolean):
       teamName: team?.name ?? null,
       teams: teams.length,
       maxTeams: league.maxTeams,
-      unsentCommissionerLink: isAdmin ? await unsentLinkOf(ctx, league) : null,
+      unsentCommissionerLink: admin ? await unsentLinkOf(ctx, league) : null,
       deletion: deletion && { deletesAt: deletion.deletesAt, unemailed: deletion.unemailed },
     });
   }
