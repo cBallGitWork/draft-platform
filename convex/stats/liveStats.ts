@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalMutation, internalQuery } from "../_generated/server";
+import { internalMutation, internalQuery, type QueryCtx } from "../_generated/server";
 import { recordsOf, statusOf, writeRecords, type DueMatch } from "./matchStats";
 import { liveStatsTickFields, playerMatchRecord } from "../schema";
 import { LATEST_RUNS } from "../shared/syncRuns";
@@ -19,19 +19,23 @@ export const LIVE_WINDOW_MS = 4 * HOUR_MS;
  *  provisional after full time is still polled, so its last records land within the minute. */
 export const live = internalQuery({
   args: { now: v.number() },
-  handler: async (ctx, { now }): Promise<DueMatch[]> => {
-    const kickedOff = ctx.db
-      .query("fixtures")
-      .withIndex("by_kickoff", (q) => q.gt("kickoff", now - LIVE_WINDOW_MS).lte("kickoff", now));
-    const found: DueMatch[] = [];
-    for await (const { code, gameweek, droppedAt } of kickedOff) {
-      if (droppedAt !== undefined || gameweek === null) continue;
-      const status = await statusOf(ctx, code);
-      if (status === null || status.state === "provisional") found.push({ fixtureCode: code, gameweek });
-    }
-    return found;
-  },
+  handler: async (ctx, { now }): Promise<DueMatch[]> =>
+    (await liveMatches(ctx, now)).map(({ fixtureCode, gameweek }) => ({ fixtureCode, gameweek })),
 });
+
+/** `live`'s matches with their kickoffs, which the feeds page judges the tick's lateness from. */
+export async function liveMatches(ctx: QueryCtx, now: number): Promise<(DueMatch & { kickoff: number })[]> {
+  const kickedOff = ctx.db
+    .query("fixtures")
+    .withIndex("by_kickoff", (q) => q.gt("kickoff", now - LIVE_WINDOW_MS).lte("kickoff", now));
+  const found: (DueMatch & { kickoff: number })[] = [];
+  for await (const { code, gameweek, kickoff, droppedAt } of kickedOff) {
+    if (droppedAt !== undefined || gameweek === null || kickoff === null) continue;
+    const status = await statusOf(ctx, code);
+    if (status === null || status.state === "provisional") found.push({ fixtureCode: code, gameweek, kickoff });
+  }
+  return found;
+}
 
 /** One match's records as read before full time, every one provisional. A match already read at
  *  full time (a status row) is `upsertMatch`'s alone, so a tick racing the sync writes nothing.
