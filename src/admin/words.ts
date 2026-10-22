@@ -122,8 +122,11 @@ const whenFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "num
 export const whenWords = (at: number) => whenFormat.format(at);
 export const lastErrorWords = (at: number) => `Last error, ${whenWords(at)}:`;
 
+/** A match by its clubs' names, or null while the football sync holds no such match. */
+type MatchName = { home: string; away: string } | null;
+
 /** A match by its clubs, or by FPL's code for it while the football sync holds no such match. */
-export const matchWords = (match: { home: string; away: string } | null, fixtureCode: number) =>
+export const matchWords = (match: MatchName, fixtureCode: number) =>
   match === null ? `Match ${fixtureCode}` : `${match.home} ${versusWords} ${match.away}`;
 
 export const behindTitle = "Scoring behind";
@@ -140,7 +143,7 @@ export const noCorrectionsWords = "No stat has changed after a lock.";
 export const moreCorrectionsWords = (shown: number) => `More came than these: only the newest ${shown} are shown.`;
 const playerWords = (player: string | null, playerCode: number) => player ?? `Player ${playerCode}`;
 /** A correction's heading: whose stat, in which match. */
-export const correctionOfWords = (player: string | null, playerCode: number, match: { home: string; away: string } | null, fixtureCode: number) =>
+export const correctionOfWords = (player: string | null, playerCode: number, match: MatchName, fixtureCode: number) =>
   `${playerWords(player, playerCode)}, ${matchWords(match, fixtureCode)}`;
 export const changeWords = ({ stat, locked, sent }: { stat: string; locked: number; sent: number }) => `${stat}: locked at ${locked}, sent ${sent}`;
 export const seenWords = (at: number) => `Seen ${whenWords(at)}`;
