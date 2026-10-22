@@ -3,11 +3,10 @@
 
 import { drawRulesOf, FIRST_RULES } from "../../convex/rules/firstRules";
 import { previewSays } from "../preview";
-import type { Revision } from "../rules/rulesDraft";
+import { PREVIEW_CHANGES_FROM, PREVIEW_REVISION } from "../rules/preview";
 import type { LeagueSettingsSeam } from "./seam";
 
-const PREVIEW_CHANGES_FROM = 9;
-const view = { part: drawRulesOf(FIRST_RULES), revision: "preview-rules" as Revision, changesFrom: PREVIEW_CHANGES_FROM };
+const view = { part: drawRulesOf(FIRST_RULES), revision: PREVIEW_REVISION, changesFrom: PREVIEW_CHANGES_FROM };
 
 export const previewLeagueSettings: LeagueSettingsSeam = {
   useSettings: () => view,

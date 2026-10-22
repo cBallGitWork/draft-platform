@@ -203,8 +203,8 @@ export const change = mutation({
   },
 });
 
-/** What a screen editing part of the rules reads, its returns validator `editorViewOf` gives: the
- *  part as the latest rules have it, a waiting change's among them, the rules row it is from (for
+/** What a screen editing part of the rules reads (`editorViewOf` validates it): the part as the
+ *  latest rules have it, a waiting change's among them, the rules row it is from (for
  *  the save to carry), and the gameweek a change made at `now` would take effect from. Null for a
  *  league made before rules were held. For whoever runs the league. `now` is the screen's, moved on
  *  each minute, as a query must not read the clock (convex/admin/feeds.ts says why). */
@@ -236,7 +236,7 @@ export async function changeLatest(
   return await changeRules(ctx, leagueId, email, changed(latest), revision);
 }
 
-/** The league's scoring set as the rules editor (#30) edits it, as `editorView` reads it. */
+/** The league's scoring set as Player scoring, the rules editor (#30), edits it. */
 export const scoring = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
   returns: editorViewOf(scoringSetShape),

@@ -3,11 +3,10 @@
 
 import { FIRST_RULES } from "../../convex/rules/firstRules";
 import { previewSays } from "../preview";
-import type { Revision } from "../rules/rulesDraft";
+import { PREVIEW_CHANGES_FROM, PREVIEW_REVISION } from "../rules/preview";
 import type { ScoringSeam } from "./seam";
 
-const PREVIEW_CHANGES_FROM = 9;
-const view = { part: FIRST_RULES.scoring, revision: "preview-rules" as Revision, changesFrom: PREVIEW_CHANGES_FROM };
+const view = { part: FIRST_RULES.scoring, revision: PREVIEW_REVISION, changesFrom: PREVIEW_CHANGES_FROM };
 
 export const previewScoring: ScoringSeam = {
   useScoring: () => view,
