@@ -84,9 +84,10 @@ describe("changing them", () => {
     expect(await inGameweek(9)).toEqual(FIRST_RULES);
   });
 
-  test("more games a gameweek than a round robin has rounds saves, and the table plays as many as there are", async () => {
+  // More than that is refused when saved (#274, tests/convex/rules/refusedAtSave.test.ts).
+  test("as many games a gameweek as a round robin has rounds saves, and the table plays them all", async () => {
     await addManagers(t, leagueId, MANAGERS.slice(0, 4));
-    await change({ ...FIRST, gamesPerGameweek: 10 });
+    await change({ ...FIRST, gamesPerGameweek: 3 });
     const table = await (await actingAs(t, COMMISSIONER)).query(api.table.leagueTable.ofLeague, { leagueId });
 
     // Four teams: three rounds of two fixtures, all three played each gameweek.
