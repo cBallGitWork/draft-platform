@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { mutation, query, type QueryCtx } from "../_generated/server";
 import { callerEmail, refuse, runnerOf, signedInEmail } from "../shared/leagueAccess";
 import { fileLetter, wholeLeague } from "./letters";
-import { BODY_MAX, LETTERS_SHOWN, SUBJECT_MAX, UNREAD_COUNTED } from "./mailLimits";
+import { BODY_MAX, LETTERS_SHOWN, SUBJECT_MAX } from "./mailLimits";
 
 // A manager's Mail (#26, spec/16): their letters, newest first, each unread until they open it,
 // and the commissioner's one-way letter to the whole league.
@@ -55,16 +55,15 @@ export const letters = query({
   },
 });
 
-/** How many of the letters `letters` lists are unread, so opening every one clears it.
- *  Counted up to one past UNREAD_COUNTED. */
+/** How many of the letters `letters` lists are unread, so opening every one clears it. At most
+ *  LETTERS_SHOWN; the screens show anything past UNREAD_COUNTED as that number and a "+". */
 export const unreadCount = query({
   args: {},
   returns: v.number(),
   handler: async (ctx) => {
     const email = await signedInEmail(ctx);
     if (email === null) return 0;
-    const unread = (await listedLetters(ctx, email)).filter((row) => row.readAt === undefined).length;
-    return Math.min(unread, UNREAD_COUNTED + 1);
+    return (await listedLetters(ctx, email)).filter((row) => row.readAt === undefined).length;
   },
 });
 

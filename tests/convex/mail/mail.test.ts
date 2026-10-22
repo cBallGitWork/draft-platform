@@ -148,12 +148,13 @@ describe("unread", () => {
     await expect(t.mutation(api.mail.mail.open, { letterId: annsLetter.letterId })).rejects.toThrow(refusals.signedOut);
   });
 
-  test(`the count stops one past ${UNREAD_COUNTED}`, async () => {
+  test(`the count stops at the ${LETTERS_SHOWN} letters listed, past the ${UNREAD_COUNTED} the menu shows`, async () => {
     await addManagers(t, leagueId, [ANN]);
     const commissioner = await mailOf(COMMISSIONER);
-    for (let letter = 0; letter < UNREAD_COUNTED + 5; letter += 1) await commissioner.writeToLeague(`Letter ${letter}`, "Hello");
+    for (let letter = 0; letter < LETTERS_SHOWN + 5; letter += 1) await commissioner.writeToLeague(`Letter ${letter}`, "Hello");
 
-    expect(await (await mailOf(ANN)).unread()).toBe(UNREAD_COUNTED + 1);
+    expect(await (await mailOf(ANN)).unread()).toBe(LETTERS_SHOWN);
+    expect(LETTERS_SHOWN).toBeGreaterThan(UNREAD_COUNTED);
   });
 
   test(`a letter older than the latest ${LETTERS_SHOWN} isn't counted, so opening every listed letter clears the count`, async () => {
