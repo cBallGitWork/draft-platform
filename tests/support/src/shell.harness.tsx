@@ -97,9 +97,10 @@ const fakeLeagues = () => ({
 });
 
 /** Mail holding `letters`, whose letter to the league is sent, unless a test says otherwise;
- *  `loading` keeps the letters still on their way (undefined). */
+ *  `loading` keeps the letters still on their way (undefined). A test can see which screens read
+ *  the letters through `useLetters`. */
 const fakeMail = (letters: readonly LetterSummary[], loading: boolean) => ({
-  letters: loading ? undefined : letters,
+  useLetters: vi.fn<MailSeam["useLetters"]>(() => (loading ? undefined : letters)),
   open: vi.fn<MailSeam["open"]>(async () => {}),
   writeToLeague: vi.fn<MailSeam["writeToLeague"]>(async () => null),
 });

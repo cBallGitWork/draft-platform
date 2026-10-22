@@ -42,8 +42,9 @@ export function MailPage({ mail, unread, writableLeagues }: { mail: MailSeam; un
 
 function Letters({ mail }: { mail: MailSeam }) {
   const [openId, setOpenId] = useState<Id<"letters"> | null>(null);
-  if (mail.letters === undefined) return <Loading className="px-3 py-2">{loadingWords}</Loading>;
-  if (mail.letters.length === 0) return <PanelNote>{noLettersWords}</PanelNote>;
+  const letters = mail.useLetters();
+  if (letters === undefined) return <Loading className="px-3 py-2">{loadingWords}</Loading>;
+  if (letters.length === 0) return <PanelNote>{noLettersWords}</PanelNote>;
 
   function toggle(letter: LetterSummary) {
     const opening = openId !== letter.letterId;
@@ -54,11 +55,11 @@ function Letters({ mail }: { mail: MailSeam }) {
   return (
     <>
       <ol>
-        {mail.letters.map((letter) => (
+        {letters.map((letter) => (
           <Letter key={letter.letterId} letter={letter} isOpen={openId === letter.letterId} onToggle={() => toggle(letter)} />
         ))}
       </ol>
-      {mail.letters.length >= LETTERS_SHOWN && <PanelNote>{onlyLatestWords}</PanelNote>}
+      {letters.length >= LETTERS_SHOWN && <PanelNote>{onlyLatestWords}</PanelNote>}
     </>
   );
 }

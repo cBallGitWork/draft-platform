@@ -1,11 +1,13 @@
 // Mail's live wiring, with Convex faked: the top bar's count and Continue from the server's
-// unread count, and what opening and sending resolve with when the server refuses or can't be reached.
+// unread count, the letters asked for only by the hook Mail calls (#211), and what opening and
+// sending resolve with when the server refuses or can't be reached.
 
 import { renderHook } from "@testing-library/react";
 import { getFunctionName, type FunctionReference } from "convex/server";
 import { ConvexError } from "convex/values";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
+import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { MAIL_PATH } from "../../../src/frame/menu";
 import { useLiveMail } from "../../../src/mail/liveMail";
@@ -14,15 +16,18 @@ import { sendFailedWords } from "../../../src/mail/words";
 const convex = vi.hoisted(() => ({
   signedIn: true,
   unread: 0 as number | undefined,
-  queried: [] as unknown[],
+  letters: [] as unknown[],
+  /** Each query asked for, by name, and "skip" when it was skipped. */
+  queried: [] as string[],
   mutate: vi.fn(),
 }));
 vi.mock("convex/react", () => ({
   useConvexAuth: () => ({ isAuthenticated: convex.signedIn }),
   useQuery: (query: FunctionReference<"query">, args: unknown) => {
-    convex.queried.push(args);
+    const name = getFunctionName(query);
+    convex.queried.push(args === "skip" ? "skip" : name);
     if (args === "skip") return undefined;
-    return getFunctionName(query) === "mail/mail:letters" ? [] : convex.unread;
+    return name === LETTERS_QUERY ? convex.letters : convex.unread;
   },
   useMutation: () => convex.mutate,
 }));
@@ -30,13 +35,18 @@ vi.mock("convex/react", () => ({
 beforeEach(() => {
   convex.signedIn = true;
   convex.unread = 0;
+  convex.letters = [];
   convex.queried = [];
 });
 afterEach(() => {
   convex.mutate.mockReset();
 });
 
+const LETTERS_QUERY = getFunctionName(api.mail.mail.letters);
+const UNREAD_QUERY = getFunctionName(api.mail.mail.unreadCount);
 const live = () => renderHook(useLiveMail).result.current;
+/** The letters as Mail reads them, through the seam's hook. */
+const lettersOnMail = () => renderHook(live().mail.useLetters).result.current;
 const letter = { leagueId: "league-1" as Id<"leagues">, subject: "Hi", body: "Hello" };
 
 test("unread letters are the top bar's count, and Continue goes to Mail", () => {
@@ -50,9 +60,20 @@ test("with nothing unread, or the count still loading, there is no count and not
   expect(live().topBar).toEqual({ unreadMail: 0, next: null });
 });
 
+test("the shell asks only for the unread count, never the letters", () => {
+  live();
+  expect(convex.queried).toEqual([UNREAD_QUERY]);
+});
+
+test("Mail's hook asks for the letters, and gives them back", () => {
+  convex.letters = [{ subject: "Hi" }];
+  expect(lettersOnMail()).toBe(convex.letters);
+  expect(convex.queried).toContain(LETTERS_QUERY);
+});
+
 test("signed out, Mail isn't asked for", () => {
   convex.signedIn = false;
-  expect(live().mail.letters).toBeUndefined();
+  expect(lettersOnMail()).toBeUndefined();
   expect(convex.queried).toEqual(["skip", "skip"]);
 });
 
