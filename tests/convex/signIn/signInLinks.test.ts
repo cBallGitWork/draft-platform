@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
-import { EMAILS_PER_DAY } from "../../../convex/email/emailLimit";
+import { EMAILS_PER_DAY } from "../../../convex/outbound/emailLimit";
 import {
   ADMIN,
   LISTED,

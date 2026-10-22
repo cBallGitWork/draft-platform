@@ -2,10 +2,12 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { expectRefused, rulesRevision, rulesWith } from "../../support/convex/leagueRules.harness";
+import { expectRefused, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, moveFplDeadline, rulesRevision, rulesWith } from "../../support/convex/leagueRules.harness";
+import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { FIRST_RULES } from "../../../convex/rules/firstRules";
 
 // The league's fixtures and table (#33), read from its teams, the gameweeks it plays and its
 // rules, by anyone with a part in it. No matchup is scored yet, so the table is all noughts.
@@ -77,15 +79,13 @@ describe("the fixtures", () => {
     expect((await readOther())?.gameweeks).not.toEqual((await read())?.gameweeks);
   });
 
-  test("a gameweek the league doesn't play has none, and each gameweek carries FPL's deadline", async () => {
+  test("a gameweek the league doesn't play has none", async () => {
     await addManagers(t, leagueId, [ANN, BOB]);
     await t.run(async (ctx) => {
       await ctx.db.patch("leagues", leagueId, { unusedGameweeks: [2] });
-      await ctx.db.insert("gameweeks", { number: 3, deadline: 1234 });
     });
     const gameweeks = (await read())!.gameweeks;
     expect(gameweeks.map((each) => each.gameweek)).not.toContain(2);
-    expect(gameweeks.find((each) => each.gameweek === 3)?.deadline).toBe(1234);
   });
 
   test("a league of one team has none", async () => {
@@ -97,6 +97,47 @@ describe("the fixtures", () => {
     await addManagers(t, leagueId, [ANN, BOB]);
     await changeRules({ format: "totalPoints" });
     expect(await read()).toMatchObject({ format: "totalPoints", roundRobinRounds: 0, gameweeks: [] });
+  });
+});
+
+// Each gameweek carries the league's own deadline, and the fixtures open on the first it hasn't
+// locked (#139): never FPL's (Craig, 22 Oct 2026: "ours, we arent fpl so stop copying them").
+describe("each gameweek's deadline", () => {
+  /** The first rules' deadline: 90 minutes before the first kickoff, as FPL's. */
+  const FIRST_MINUTES = FIRST_RULES.deadline.minutesBeforeFirstKickoff;
+  /** Gameweek 9's one match kicks off holdGameweeks' default time from now, each next a week on. */
+  const kickoffOf = (gameweek: number) => Date.now() + KICKS_OFF_IN + (gameweek - 9) * WEEK_MS;
+  const deadlineIn = async (gameweek: number) => (await read())!.gameweeks.find((each) => each.gameweek === gameweek)?.deadline;
+  beforeEach(async () => {
+    await addManagers(t, leagueId, [ANN, BOB]);
+    await holdGameweeks(t, { next: 9 });
+  });
+
+  test.each([
+    ["earlier than FPL's", 180],
+    ["equal to FPL's", FIRST_MINUTES],
+    ["later than FPL's", 0],
+  ])("is the league's own when it is %s", async (_, minutes) => {
+    await giveDeadlineRule(t, leagueId, minutes);
+    expect(await deadlineIn(9)).toBe(kickoffOf(9) - minutes * MINUTE_MS);
+  });
+
+  test("doesn't move when FPL's does", async () => {
+    await moveFplDeadline(t, 9, 1234);
+    expect(await deadlineIn(9)).toBe(kickoffOf(9) - FIRST_MINUTES * MINUTE_MS);
+  });
+
+  test("is under the rule in force in that gameweek, when the rule changes mid-season", async () => {
+    await giveDeadlineRule(t, leagueId, 120, 20);
+    expect(await deadlineIn(19)).toBe(kickoffOf(19) - FIRST_MINUTES * MINUTE_MS);
+    expect(await deadlineIn(20)).toBe(kickoffOf(20) - 120 * MINUTE_MS);
+  });
+
+  test("is none while the gameweek has no kickoff time", async () => {
+    await t.run(async (ctx) => {
+      for await (const match of ctx.db.query("fixtures")) if (match.gameweek === 30) await ctx.db.patch("fixtures", match._id, { kickoff: null });
+    });
+    expect(await deadlineIn(30)).toBeNull();
   });
 });
 

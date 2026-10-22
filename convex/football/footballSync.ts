@@ -15,6 +15,7 @@ import {
   tableWrites,
 } from "../schema";
 import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
+import { recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
 
 // Issue #21: the real Premier League's clubs, players, fixtures and gameweeks, copied in from the
 // football layer. crons.ts runs it on a schedule; from the CLI:
@@ -75,10 +76,13 @@ export const upsertPlayers = internalMutation({
 
 export const upsertFixtures = internalMutation({
   args: { rows: v.array(fixtureRecord) },
-  handler: (ctx, { rows }): Promise<Upserted> =>
-    upsertEach(ctx, "fixtures", rows, (row) =>
+  handler: async (ctx, { rows }): Promise<Upserted> => {
+    // In the same transaction as the kickoffs it may move (#150, deadlineRecorder.ts).
+    await recordPassedDeadlines(ctx);
+    return upsertEach(ctx, "fixtures", rows, (row) =>
       ctx.db.query("fixtures").withIndex("by_code", (q) => q.eq("code", row.code)).unique(),
-    ),
+    );
+  },
 });
 
 export const upsertGameweeks = internalMutation({
@@ -99,6 +103,8 @@ export const markDropped = internalMutation({
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, { table, sentKeys, droppedAt, paginationOpts }): Promise<MarkedPage> => {
+    // Dropping a match can move its gameweek's first kickoff: as upsertFixtures (#150).
+    if (table === "fixtures") await recordPassedDeadlines(ctx);
     const sent = new Set(sentKeys);
     const page = await ctx.db.query(table).paginate(paginationOpts);
     const dropped = page.page.filter((held) => !sent.has(keyOf(held)) && held.droppedAt === undefined);

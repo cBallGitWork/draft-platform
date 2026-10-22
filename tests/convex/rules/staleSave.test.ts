@@ -5,7 +5,7 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { rulesRefusals } from "../../../convex/rules/leagueRules";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { adminByline } from "../../../convex/mail/letterWords";
-import { expectRefused, holdGameweeks, rulesRevision, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { expectRefused, holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { ADMIN, actingAs, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -43,14 +43,20 @@ const rulesLetters = () =>
 const lastEventAt = () =>
   t.run(async (ctx) => (await ctx.db.query("leagueEvents").withIndex("by_leagueId_and_at", (q) => q.eq("leagueId", leagueId)).order("desc").first())!.at);
 
+/** The co-commissioner saves assists paying 4 over the rules the commissioner opened: the
+ *  revision opened, and the refusal a save from it gets. */
+const coCommissionerSavesOver = async () => {
+  const opened = await rulesRevision(t, leagueId);
+  await changeScoring(CO_COMMISSIONER, assistsPaying(4), opened);
+  return { opened, refusal: rulesRefusals.changedSince(CO_COMMISSIONER, await lastEventAt()) };
+};
+
 describe("a save made from rules someone has saved over since", () => {
   test("is refused, naming who saved and when, and writes nothing and files no letter", async () => {
-    const opened = await rulesRevision(t, leagueId);
-    await changeScoring(CO_COMMISSIONER, assistsPaying(4), opened);
-    const savedAt = await lastEventAt();
+    const { opened, refusal } = await coCommissionerSavesOver();
     const events = await eventsIn(t, leagueId);
 
-    await expectRefused(changeScoring(COMMISSIONER, assistsPaying(5), opened), rulesRefusals.changedSince(CO_COMMISSIONER, savedAt));
+    await expectRefused(changeScoring(COMMISSIONER, assistsPaying(5), opened), refusal);
     expect((await latestRules())?.scoring).toEqual(assistsPaying(4));
     expect(await eventsIn(t, leagueId)).toEqual(events);
     expect(await rulesLetters()).toHaveLength(1);
@@ -64,15 +70,22 @@ describe("a save made from rules someone has saved over since", () => {
   });
 
   test("is refused through the whole-rules change too", async () => {
-    const opened = await rulesRevision(t, leagueId);
-    await changeScoring(CO_COMMISSIONER, assistsPaying(4), opened);
-    const savedAt = await lastEventAt();
+    const { opened, refusal } = await coCommissionerSavesOver();
 
     await expectRefused(
       (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules: TOTAL_POINTS, revision: opened }),
-      rulesRefusals.changedSince(CO_COMMISSIONER, savedAt),
+      refusal,
     );
     expect(await latestRules()).toEqual({ ...FIRST_RULES, scoring: assistsPaying(4) });
+  });
+
+  test("is refused as stale, not as unsound, when its rules are unsound too", async () => {
+    const { opened, refusal } = await coCommissionerSavesOver();
+
+    await expectRefused(
+      (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules: rulesWith({ gamesPerGameweek: 99 }), revision: opened }),
+      refusal,
+    );
   });
 });
 

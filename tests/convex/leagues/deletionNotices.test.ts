@@ -3,7 +3,7 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ANN, BOB, accountOf, deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, leagueRow, type TestConvex } from "../../support/convex/leagues.harness";
-import { EMAILS_PER_DAY } from "../../../convex/email/emailLimit";
+import { EMAILS_PER_DAY } from "../../../convex/outbound/emailLimit";
 import { fakeResend, sentToday, setSentToday, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 

@@ -539,6 +539,15 @@ const leagueRulesTables = {
   ),
   /** One row: the rules the admin gives each new league. */
   defaultLeagueRules: defineTable({ rules: leagueRulesShape }),
+  /** A league's deadline for a gameweek once it has passed (#150): where it fell stays put, even if
+   *  the first match is then postponed (spec/05). One row a league and gameweek, written at or
+   *  after the deadline by deadlineRecorder.ts. */
+  passedDeadlines: defineTable({
+    leagueId: v.id("leagues"),
+    gameweek: v.number(),
+    deadline: v.number(),
+    recordedAt: v.number(),
+  }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
 };
 
 export default defineSchema({

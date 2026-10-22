@@ -1,16 +1,18 @@
 import { v, type Validator } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
-import type { DeadlineRule } from "../gameweeks/deadline";
+import { leagueDeadline, type DeadlineRule, type ScheduledMatch } from "../gameweeks/deadline";
 import { FIRST_RULES } from "./firstRules";
-import { isAdmin, memberOf, refuse, runnerOf } from "../shared/leagueAccess";
+import { getLeague, isAdmin, memberOf, refuse, runnerOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
-import { checkLeagueRules, UnsoundRules } from "./leagueRulesCheck";
+import { checkGamesFor, checkLeagueRules, gamesWords, UnsoundRules, whyMostGames } from "./leagueRulesCheck";
+import { roundsInARoundRobin } from "../table/roundRobin";
 import { leagueRulesShape, scoringSetShape, type LeagueRules } from "./leagueRulesShape";
 import { categoryName } from "../scoring/categories";
 import { sortedJson } from "../shared/sortedJson";
 import { nextGameweek } from "../gameweeks/nextGameweek";
-import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
+import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
+import { FIRST_GAMEWEEK, SEASON_GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { londonTime } from "../shared/londonTime";
 import { adminByline } from "../mail/letterWords";
 
@@ -27,6 +29,10 @@ export const rulesRefusals = {
    *  names them. */
   changedSince: (who: string | null, at: number) =>
     `${who ?? "Someone"} saved the league's rules on ${londonTime(at)}, after you opened them, so yours weren't saved.`,
+  /** A new league too small for the admin's default games a gameweek: the defaults are the cause. */
+  defaultGamesTooMany: (games: number, maxTeams: number) =>
+    `The admin's default rules play ${gamesWords(games)} a gameweek, but with ${maxTeams} teams a team can play at most ` +
+    `${gamesWords(roundsInARoundRobin(maxTeams))}: ${whyMostGames(maxTeams)}.`,
 };
 
 /** The rules row a screen loaded, carried with its change so a save over someone else's is
@@ -45,10 +51,16 @@ async function refuseStale(ctx: QueryCtx, leagueId: Id<"leagues">, latestRow: Do
   refuse(rulesRefusals.changedSince(null, latestRow?._creationTime ?? Date.now()));
 }
 
-/** Refuses unsound rules, telling the commissioner or admin why. */
-function refuseUnsound(rules: LeagueRules): void {
+/** Refuses unsound rules, telling the commissioner or admin why: a league's, of `maxTeams` teams,
+ *  or the admin's defaults, which belong to no league. */
+function refuseUnsound(rules: LeagueRules, maxTeams?: number): void {
+  asRefusal(() => checkLeagueRules(rules, maxTeams));
+}
+
+/** Runs a check of the rules, its UnsoundRules a refusal and anything else the bug it is. */
+function asRefusal(check: () => void): void {
   try {
-    checkLeagueRules(rules);
+    check();
   } catch (error) {
     if (error instanceof UnsoundRules) refuse(error.message);
     throw error;
@@ -96,19 +108,30 @@ async function writeDefaults(ctx: MutationCtx, rules: LeagueRules): Promise<void
   else await ctx.db.patch("defaultLeagueRules", row._id, { rules });
 }
 
-/** Gives a new league the admin's default rules from gameweek 1. The first league a deployment
- *  makes writes the first rules (firstRules.ts) as those defaults. */
-export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">): Promise<void> {
+/** Gives a new league of `maxTeams` the admin's default rules from gameweek 1, refused if that
+ *  many teams can't play their games a gameweek. The first league a deployment makes writes the
+ *  first rules (firstRules.ts) as those defaults. */
+export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">, maxTeams: number): Promise<void> {
   const defaults = (await defaultsRow(ctx))?.rules;
   if (defaults === undefined) await writeDefaults(ctx, FIRST_RULES);
-  await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, rules: defaults ?? FIRST_RULES });
+  const rules = defaults ?? FIRST_RULES;
+  const games = rules.gamesPerGameweek;
+  if (games !== undefined && games > roundsInARoundRobin(maxTeams)) refuse(rulesRefusals.defaultGamesTooMany(games, maxTeams));
+  await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, rules });
+}
+
+/** Refuses `maxTeams` for a league whose `rules` play more games a gameweek than that many teams
+ *  can: when its maximum is lowered. A team joining can't change it. */
+export function refuseTooFewForGames(rules: LeagueRules | null, maxTeams: number): void {
+  const games = rules?.gamesPerGameweek;
+  if (games !== undefined) asRefusal(() => checkGamesFor(games, maxTeams));
 }
 
 /** The season's gameweeks and matches as held, less those the football layer no longer sends. */
-async function heldSchedule(ctx: QueryCtx) {
+export async function heldSchedule(ctx: QueryCtx) {
   const gameweeks = [];
-  for await (const { number, deadline, droppedAt } of ctx.db.query("gameweeks")) {
-    if (droppedAt === undefined) gameweeks.push({ number, deadline });
+  for await (const { number, droppedAt } of ctx.db.query("gameweeks")) {
+    if (droppedAt === undefined) gameweeks.push({ number });
   }
   const matches = [];
   // A season's 380, at most a few seasons' worth: the fixtures table has no gameweek index.
@@ -116,6 +139,32 @@ async function heldSchedule(ctx: QueryCtx) {
     if (droppedAt === undefined) matches.push({ gameweek, kickoff });
   }
   return { gameweeks, matches };
+}
+
+/** The league's own deadline for each of gameweeks 1 to 38: the one recorded once it passed
+ *  (#150), else the one under the rule in force in it. When each begins, for its screens, refusals
+ *  and recorder (#138, #139). Null where none of the gameweek's matches has a kickoff time held,
+ *  and for every gameweek of a league made before rules were held, which has no deadline rule. */
+export async function leagueDeadlines(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, number | null>> {
+  return leagueDeadlinesIn(ctx, leagueId, (await heldSchedule(ctx)).matches);
+}
+
+/** `leagueDeadlines` against matches already read (`heldSchedule`), so one read serves every
+ *  league. */
+export async function leagueDeadlinesIn(
+  ctx: QueryCtx,
+  leagueId: Id<"leagues">,
+  matches: readonly ScheduledMatch[],
+): Promise<Map<number, number | null>> {
+  const history = await historyOf(ctx, leagueId);
+  const passed = await passedDeadlinesOf(ctx, leagueId);
+  return new Map(
+    SEASON_GAMEWEEKS.map((gameweek) => {
+      const row = inForce(history, gameweek);
+      const recorded = passed.get(gameweek) ?? null;
+      return [gameweek, row === undefined ? recorded : leagueDeadline(gameweek, matches, row.rules.deadline, recorded)];
+    }),
+  );
 }
 
 /** The parts of the rules that differ, by name: all of them, from a league that had none. */
@@ -142,12 +191,14 @@ export const latest = query({
  *  gameweek the moment it is saved; and a row from before a waiting one would be overridden by it. */
 async function takesEffectFrom(
   ctx: QueryCtx,
+  leagueId: Id<"leagues">,
   history: readonly Doc<"leagueRules">[],
   rules: LeagueRules,
   now: number,
 ): Promise<number> {
   const { gameweeks, matches } = await heldSchedule(ctx);
-  const nextUnder = (deadlineFor: (gameweek: number) => DeadlineRule) => nextGameweek(gameweeks, matches, deadlineFor, now);
+  const passed = await passedDeadlinesOf(ctx, leagueId);
+  const nextUnder = (deadlineFor: (gameweek: number) => DeadlineRule) => nextGameweek(gameweeks, matches, deadlineFor, passed, now);
   return Math.max(
     nextUnder((gameweek) => (inForce(history, gameweek)?.rules ?? rules).deadline),
     nextUnder(() => rules.deadline),
@@ -163,8 +214,8 @@ async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: str
   const history = await historyOf(ctx, leagueId);
   const latestRow = history.at(-1);
   await refuseStale(ctx, leagueId, latestRow, loaded);
-  refuseUnsound(rules);
-  const fromGameweek = await takesEffectFrom(ctx, history, rules, Date.now());
+  refuseUnsound(rules, (await getLeague(ctx, leagueId)).maxTeams);
+  const fromGameweek = await takesEffectFrom(ctx, leagueId, history, rules, Date.now());
   const changed = changedParts(latestRow?.rules, rules);
   if (latestRow !== undefined && changed.length === 0) return latestRow.fromGameweek;
   // A second change before the same deadline is a newer row from the same gameweek: it wins.
@@ -213,7 +264,7 @@ export async function editorView<Part>(ctx: QueryCtx, leagueId: Id<"leagues">, n
   const history = await historyOf(ctx, leagueId);
   const latestRow = history.at(-1);
   if (latestRow === undefined) return null;
-  return { part: partOf(latestRow.rules), revision: latestRow._id, changesFrom: await takesEffectFrom(ctx, history, latestRow.rules, now) };
+  return { part: partOf(latestRow.rules), revision: latestRow._id, changesFrom: await takesEffectFrom(ctx, leagueId, history, latestRow.rules, now) };
 }
 
 /** `editorView`'s returns validator, for a part shaped as `part`. */

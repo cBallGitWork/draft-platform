@@ -4,8 +4,8 @@
 
 import { vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
-import { EMAILS_PER_DAY, dayOf } from "../../../convex/email/emailLimit";
-import { RESEND_EMAILS_URL } from "../../../convex/email/email";
+import { EMAILS_PER_DAY, dayOf } from "../../../convex/outbound/emailLimit";
+import { RESEND_EMAILS_URL } from "../../../convex/outbound/email";
 import { freshConvex, type TestConvex } from "./test.harness";
 
 export const ADMIN = "craig@example.com";
