@@ -17,14 +17,17 @@ import {
   versusWords,
 } from "./words";
 
+/** The ids that pair a heading, label or hint with what it describes. */
+const TITLE_ID = "fixtures-title";
+
 type Gameweek = LeagueTable["gameweeks"][number];
 
 /** The league's fixtures, a gameweek at a time, or why it has none. */
 export function FixturesPanel({ leagueTable }: { leagueTable: LeagueTable }) {
   const { format, gameweeks, roundRobinRounds, table } = leagueTable;
   return (
-    <section aria-labelledby="fixtures-title" className="bg-panel">
-      <PanelTitle id="fixtures-title">{FIXTURES_TITLE}</PanelTitle>
+    <section aria-labelledby={TITLE_ID} className="bg-panel">
+      <PanelTitle id={TITLE_ID}>{FIXTURES_TITLE}</PanelTitle>
       {format === "totalPoints" ? (
         <p className="px-3 py-2">{totalPointsWords}</p>
       ) : gameweeks.length === 0 ? (

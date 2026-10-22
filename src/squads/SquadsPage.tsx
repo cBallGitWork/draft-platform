@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { Loading, PageTitle, PanelTitle, Problem } from "../frame/Panel";
+import { Loading, PAGE_TITLE_ID, PageTitle, PanelTitle, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { useChange, type Changing } from "../useChange";
 import type { FoundPlayer, SquadsSeam, TeamSquad } from "./seam";
@@ -30,6 +30,10 @@ import {
   warningWords,
 } from "./words";
 
+/** The ids that pair a heading, label or hint with what it describes. */
+const FIND_TITLE_ID = "find-title";
+const FIND_NAME_ID = "find-name";
+
 /** A league's squads (spec/15, Assigning players), for its commissioners and the admin: find a
  *  player and put him on a team, move him or release him; each team's squad and the league's
  *  squad limits it breaks, which warn but never block. */
@@ -38,7 +42,7 @@ export function SquadsPage({ league, seam }: { league: LeagueSummary; seam: Squa
   const change = useChange();
   return (
     <div className="flex max-w-5xl flex-col gap-2">
-      <section aria-labelledby="page-title" className="bg-panel">
+      <section aria-labelledby={PAGE_TITLE_ID} className="bg-panel">
         <PageTitle>{SQUADS_TITLE}</PageTitle>
         <p className="flex flex-wrap items-center gap-4 px-3 py-2">
           <span className="text-lead font-semibold">{league.name}</span>
@@ -67,13 +71,13 @@ function FindPlayer({ league, seam, squads, change }: { league: LeagueSummary; s
   const [text, setText] = useState("");
   const found = seam.useFoundPlayers(league.leagueId, text);
   return (
-    <section aria-labelledby="find-title" className="bg-panel">
-      <PanelTitle id="find-title">{findTitle}</PanelTitle>
+    <section aria-labelledby={FIND_TITLE_ID} className="bg-panel">
+      <PanelTitle id={FIND_TITLE_ID}>{findTitle}</PanelTitle>
       <div className="flex flex-col gap-2 p-3">
-        <label htmlFor="find-name" className="font-semibold">
+        <label htmlFor={FIND_NAME_ID} className="font-semibold">
           {findLabel}
         </label>
-        <input id="find-name" type="search" value={text} onChange={(event) => setText(event.target.value)} className="text-box" />
+        <input id={FIND_NAME_ID} type="search" value={text} onChange={(event) => setText(event.target.value)} className="text-box" />
         <p className="text-muted">{findHint}</p>
       </div>
       {text.trim() !== "" &&

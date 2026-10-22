@@ -4,6 +4,10 @@ import { useChange } from "../useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { inviteLinkWords, linkHint } from "./words";
 
+/** The ids that pair a heading, label or hint with what it describes. */
+const TITLE_ID = "invite-link-title";
+const LINK_ID = "invite-link";
+
 /** spec/13, Joining: the league's one invite link, to share; switching it off or replacing it
  *  stops the old one working. */
 export function InviteLinkPanel({ page, joining }: { page: InvitesPageData; joining: JoiningSeam }) {
@@ -11,8 +15,8 @@ export function InviteLinkPanel({ page, joining }: { page: InvitesPageData; join
   const makeLink = () => void run(() => joining.makeLink(page.leagueId));
 
   return (
-    <section aria-labelledby="invite-link-title" className="bg-panel">
-      <PanelTitle id="invite-link-title">{inviteLinkWords.title}</PanelTitle>
+    <section aria-labelledby={TITLE_ID} className="bg-panel">
+      <PanelTitle id={TITLE_ID}>{inviteLinkWords.title}</PanelTitle>
       <Problem problem={problem} />
       <div className="flex flex-col gap-2 p-3">
         {page.linkToken === null ? (
@@ -24,11 +28,11 @@ export function InviteLinkPanel({ page, joining }: { page: InvitesPageData; join
           </>
         ) : (
           <>
-            <label htmlFor="invite-link" className="font-semibold">
+            <label htmlFor={LINK_ID} className="font-semibold">
               {inviteLinkWords.label}
             </label>
             <input
-              id="invite-link"
+              id={LINK_ID}
               readOnly
               value={new URL(joinPath(page.linkToken), window.location.origin).href}
               onFocus={(event) => event.target.select()}

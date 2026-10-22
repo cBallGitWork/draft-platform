@@ -4,7 +4,7 @@ import type { LetterSummary } from "../../convex/mail/mail";
 import { LETTERS_SHOWN } from "../../convex/mail/mailLimits";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../auth";
-import { Loading, PageTitle } from "../frame/Panel";
+import { Loading, PAGE_TITLE_ID, PageTitle } from "../frame/Panel";
 import { runs } from "../leagues/roles";
 import type { Mail } from "./actions";
 import { WriteToLeague } from "./WriteToLeague";
@@ -32,7 +32,7 @@ export function leaguesToWriteFrom(session: Session): readonly LeagueSummary[] {
 export function MailPage({ mail, unread, writableLeagues }: { mail: Mail; unread: number; writableLeagues: readonly LeagueSummary[] }) {
   return (
     <div className="flex flex-wrap items-start gap-2">
-      <section aria-labelledby="page-title" className="min-w-0 max-w-3xl flex-[2_1_480px] bg-panel">
+      <section aria-labelledby={PAGE_TITLE_ID} className="min-w-0 max-w-3xl flex-[2_1_480px] bg-panel">
         <PageTitle aside={<span>{unreadCount(unread)}</span>}>{MAIL_TITLE}</PageTitle>
         <Letters mail={mail} />
       </section>

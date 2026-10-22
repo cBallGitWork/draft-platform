@@ -1,12 +1,19 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leagues/leagueLimits";
-import { PageTitle, Problem } from "../frame/Panel";
+import { PAGE_TITLE_ID, PageTitle, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { LeagueActions } from "./actions";
 import { BackToLeagues } from "./LeagueLinks";
 import { LEAGUES_PATH, NEW_LEAGUE_TITLE } from "./paths";
 import { commissionerHint, maxTeamsHint, newLeagueLabels } from "./words";
+
+/** The ids that pair a heading, label or hint with what it describes. */
+const NAME_ID = "league-name";
+const MAX_TEAMS_ID = "league-max-teams";
+const MAX_TEAMS_HINT_ID = "league-max-teams-hint";
+const COMMISSIONER_ID = "league-commissioner";
+const COMMISSIONER_HINT_ID = "league-commissioner-hint";
 
 /** The admin's "Create a league" (spec/13, Creating a league): its name, its maximum teams and its
  *  commissioner's email. Once made, it is on the admin's leagues page. */
@@ -23,20 +30,20 @@ export function NewLeaguePage({ createLeague }: { createLeague: LeagueActions["c
   }
 
   return (
-    <section aria-labelledby="page-title" className="max-w-md bg-panel">
+    <section aria-labelledby={PAGE_TITLE_ID} className="max-w-md bg-panel">
       <PageTitle>{NEW_LEAGUE_TITLE}</PageTitle>
       <Problem problem={problem} />
       <form onSubmit={create} className="flex flex-col gap-2 p-3">
-        <label htmlFor="league-name" className="font-semibold">
+        <label htmlFor={NAME_ID} className="font-semibold">
           {newLeagueLabels.name}
         </label>
-        <input id="league-name" required value={name} onChange={(event) => setName(event.target.value)} className="text-box" />
+        <input id={NAME_ID} required value={name} onChange={(event) => setName(event.target.value)} className="text-box" />
 
-        <label htmlFor="league-max-teams" className="font-semibold">
+        <label htmlFor={MAX_TEAMS_ID} className="font-semibold">
           {newLeagueLabels.maxTeams}
         </label>
         <input
-          id="league-max-teams"
+          id={MAX_TEAMS_ID}
           type="number"
           required
           min={FEWEST_TEAMS}
@@ -44,26 +51,26 @@ export function NewLeaguePage({ createLeague }: { createLeague: LeagueActions["c
           step={1}
           value={maxTeams}
           onChange={(event) => setMaxTeams(event.target.value)}
-          aria-describedby="league-max-teams-hint"
+          aria-describedby={MAX_TEAMS_HINT_ID}
           className="text-box w-24"
         />
-        <p id="league-max-teams-hint" className="text-muted">
+        <p id={MAX_TEAMS_HINT_ID} className="text-muted">
           {maxTeamsHint}
         </p>
 
-        <label htmlFor="league-commissioner" className="font-semibold">
+        <label htmlFor={COMMISSIONER_ID} className="font-semibold">
           {newLeagueLabels.commissionerEmail}
         </label>
         <input
-          id="league-commissioner"
+          id={COMMISSIONER_ID}
           type="email"
           required
           value={commissionerEmail}
           onChange={(event) => setCommissionerEmail(event.target.value)}
-          aria-describedby="league-commissioner-hint"
+          aria-describedby={COMMISSIONER_HINT_ID}
           className="text-box"
         />
-        <p id="league-commissioner-hint" className="text-muted">
+        <p id={COMMISSIONER_HINT_ID} className="text-muted">
           {commissionerHint}
         </p>
 

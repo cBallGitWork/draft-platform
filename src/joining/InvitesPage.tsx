@@ -1,4 +1,4 @@
-import { Loading, PageTitle } from "../frame/Panel";
+import { Loading, PAGE_TITLE_ID, PageTitle } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { EmailInvites } from "./EmailInvites";
 import { InviteLinkPanel } from "./InviteLinkPanel";
@@ -18,7 +18,7 @@ export function InvitesPage({ leagueId, joining }: { leagueId: string; joining: 
 
   return (
     <div className="flex max-w-5xl flex-col gap-2">
-      <section aria-labelledby="page-title" className="bg-panel">
+      <section aria-labelledby={PAGE_TITLE_ID} className="bg-panel">
         <PageTitle>{invitesTitle}</PageTitle>
         {page ? (
           <p className="px-3 py-2 text-lead font-semibold">{page.leagueName}</p>

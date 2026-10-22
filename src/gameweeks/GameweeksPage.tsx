@@ -2,7 +2,7 @@ import { useState } from "react";
 import { isLocked } from "../../convex/gameweeks/deadline";
 import type { LeagueGameweek } from "../../convex/gameweeks/leagueGameweeks";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { PageTitle, Problem } from "../frame/Panel";
+import { PAGE_TITLE_ID, PageTitle, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import type { LeagueGameweeksView } from "./seam";
 import {
@@ -34,7 +34,7 @@ export function GameweeksPage({ league, view }: { league: LeagueSummary; view: L
 
   const plays = playsWords(league.name);
   return (
-    <section aria-labelledby="page-title" className="max-w-3xl bg-panel">
+    <section aria-labelledby={PAGE_TITLE_ID} className="max-w-3xl bg-panel">
       <PageTitle>{GAMEWEEKS_TITLE}</PageTitle>
       <div className="flex flex-col gap-2 px-3 py-2">
         {gameweeks && (
