@@ -119,13 +119,13 @@ describe("an invite", () => {
 
 describe("a manager who is removed or leaves (#133)", () => {
   const inviteOf = (inviteId: Id<"invites">) => t.run((ctx) => ctx.db.get("invites", inviteId));
-  const removeAnn = async (teamId: Id<"teams">) =>
+  const commissionerRemoves = async (teamId: Id<"teams">) =>
     (await asCommissioner(t)).mutation(api.leagues.teams.removeManager, { leagueId, teamId });
 
   test("removed while an older invite is live: it is cancelled, so signing in doesn't bring them back", async () => {
     const inviteId = await invite(t, leagueId, ANN);
     const [annsTeam] = await addManagers(t, leagueId, [ANN]);
-    await removeAnn(annsTeam);
+    await commissionerRemoves(annsTeam);
     await ask(t, ANN);
     await openLastLinkTo(t, sent, ANN);
 
@@ -147,7 +147,7 @@ describe("a manager who is removed or leaves (#133)", () => {
   test("a new invite after the removal does bring them back", async () => {
     await invite(t, leagueId, ANN);
     const [annsTeam] = await addManagers(t, leagueId, [ANN]);
-    await removeAnn(annsTeam);
+    await commissionerRemoves(annsTeam);
 
     await invite(t, leagueId, ANN, annsTeam);
     await openLastLinkTo(t, sent, ANN);
@@ -159,7 +159,7 @@ describe("a manager who is removed or leaves (#133)", () => {
     const otherLeague = await adminCreatesLeague(t, 4, "Another League");
     const otherInvite = await invite(t, otherLeague, ANN);
     const [annsTeam] = await addManagers(t, leagueId, [ANN]);
-    await removeAnn(annsTeam);
+    await commissionerRemoves(annsTeam);
     await openLastLinkTo(t, sent, ANN);
 
     expect((await inviteOf(otherInvite))?.joined?.teamName).toBe("Team 1");

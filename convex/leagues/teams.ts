@@ -98,8 +98,8 @@ export const addManager = mutation({
 });
 
 /** spec/13, Leaving: the admin, the commissioner or the co-commissioner removes a team's manager.
- *  They lose the league at once, with any invite to it still live (#133); the team stays, keeps
- *  its name, and can be handed on. */
+ *  They lose the league at once, and any live invite of theirs to it is cancelled (#133); the team
+ *  stays, keeps its name, and can be handed on. */
 export const removeManager = mutation({
   args: { leagueId: v.id("leagues"), teamId: v.id("teams") },
   returns: v.null(),
