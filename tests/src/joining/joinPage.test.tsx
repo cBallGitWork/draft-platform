@@ -5,7 +5,7 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { joinPath, linkOffWords } from "../../../convex/joining/joiningShared";
-import { SIGN_IN_PATH } from "../../../src/router";
+import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
 import { LINK_REPLY, newcomer, openApp, visitor } from "../../support/src/shell.harness";
 import type { JoinPageData } from "../../../src/joining/seam";
 import { joinPageWords, signInToJoinWords } from "../../../src/joining/words";

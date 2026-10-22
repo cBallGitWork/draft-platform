@@ -1,3 +1,4 @@
+// scripts/record-match.mjs loads this under plain node: import only types, or other files by explicit `.ts` path.
 // A moment as the league reads it: on the Premier League's own clock, with its zone named, so an
 // email and a screen say one moment the same way. No imports, so the screens can read it too.
 

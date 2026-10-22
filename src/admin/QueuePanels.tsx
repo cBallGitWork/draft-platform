@@ -23,6 +23,10 @@ import {
   waitingTitle,
 } from "./words";
 
+const NEW_SIGNINGS_TITLE_ID = "new-signings-title";
+const WAITING_TITLE_ID = "waiting-title";
+const CHANGES_TITLE_ID = "changes-title";
+
 // The admin's queue (spec/06, The admin oversees them): new signings on their label, starts
 // waiting for his approval, and positions flagged or removed.
 
@@ -41,8 +45,8 @@ function ReadingLinks({ fullName }: { fullName: string }) {
 
 export function NewSignings({ queue, seam, change }: PanelProps) {
   return (
-    <section aria-labelledby="new-signings-title" className="bg-panel">
-      <PanelTitle id="new-signings-title">{newSigningsTitle}</PanelTitle>
+    <section aria-labelledby={NEW_SIGNINGS_TITLE_ID} className="bg-panel">
+      <PanelTitle id={NEW_SIGNINGS_TITLE_ID}>{newSigningsTitle}</PanelTitle>
       <p className="px-3 py-2 text-muted">{newSigningsHint}</p>
       {queue.newSignings.length === 0 ? (
         <p className="px-3 pb-2 text-muted">{noNewSigningsWords}</p>
@@ -72,8 +76,8 @@ export function NewSignings({ queue, seam, change }: PanelProps) {
 
 export function Waiting({ queue, seam, change }: PanelProps) {
   return (
-    <section aria-labelledby="waiting-title" className="bg-panel">
-      <PanelTitle id="waiting-title">{waitingTitle}</PanelTitle>
+    <section aria-labelledby={WAITING_TITLE_ID} className="bg-panel">
+      <PanelTitle id={WAITING_TITLE_ID}>{waitingTitle}</PanelTitle>
       <p className="px-3 py-2 text-muted">{waitingHint}</p>
       {queue.waiting.length === 0 ? (
         <p className="px-3 pb-2 text-muted">{noWaitingWords}</p>
@@ -107,8 +111,8 @@ export function Waiting({ queue, seam, change }: PanelProps) {
 export function PositionChanges({ queue }: Pick<PanelProps, "queue">) {
   const { flagged, removed } = queue;
   return (
-    <section aria-labelledby="changes-title" className="bg-panel">
-      <PanelTitle id="changes-title">{changesTitle}</PanelTitle>
+    <section aria-labelledby={CHANGES_TITLE_ID} className="bg-panel">
+      <PanelTitle id={CHANGES_TITLE_ID}>{changesTitle}</PanelTitle>
       <p className="px-3 py-2 text-muted">{changesHint(queue.thresholds)}</p>
       {flagged.length === 0 && removed.length === 0 && <p className="px-3 pb-2 text-muted">{noChangesWords}</p>}
       {flagged.length > 0 && (

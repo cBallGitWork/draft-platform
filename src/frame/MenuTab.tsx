@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { unreadFigure } from "../mail/words";
+import { unreadFigure, unreadTabLabel } from "../mail/words";
 
 // Butted tabs with 1px rules between them (plate.md, Shape).
 const menuTabClasses =
@@ -10,7 +10,7 @@ const menuTabClasses =
 export function MenuTab({ path, label, unreadMail = 0 }: { path: string; label: string; unreadMail?: number }) {
   const unread = unreadMail > 0 ? unreadFigure(unreadMail) : null;
   return (
-    <Link to={path} className={menuTabClasses} aria-label={unread ? `${label}, ${unread} unread` : undefined}>
+    <Link to={path} className={menuTabClasses} aria-label={unread ? unreadTabLabel(label, unreadMail) : undefined}>
       {label}
       {unread && (
         <span aria-hidden="true" className="ml-1 bg-event px-1 font-bold text-ground">

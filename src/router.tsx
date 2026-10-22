@@ -34,6 +34,7 @@ import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "./leagues/paths";
 import { leagueRunBy } from "./leagues/roles";
 import type { Mail } from "./mail/actions";
 import { MailPage, leaguesToWriteFrom } from "./mail/MailPage";
+import { SIGN_IN_PATH } from "./sign-in/paths";
 import { SignInPage } from "./sign-in/SignInPage";
 import { SQUADS_ROUTE } from "./squads/paths";
 import type { SquadsSeam } from "./squads/seam";
@@ -58,14 +59,15 @@ export type ShellContext = {
   admin: AdminSeam;
 };
 
-export const SIGN_IN_PATH = "/sign-in";
+/** Where the app opens: the guards below send each visitor on from here. */
+const LANDING_PATH = "/";
 
 // Any address nobody knows goes back to `/`, which the guards below send on: to the sign-in page
 // for a visitor, to their leagues for someone in none, to My team for a manager. So a visitor only
 // ever sees the sign-in page (spec/12).
 const rootRoute = createRootRouteWithContext<ShellContext>()({
   component: Outlet,
-  notFoundComponent: () => <Navigate to="/" replace />,
+  notFoundComponent: () => <Navigate to={LANDING_PATH} replace />,
 });
 
 /** The app's frame for someone in a league: the menu, the top bar and the league switcher. */
@@ -96,7 +98,7 @@ const signInRoute = createRoute({
     join: typeof search.join === "string" && search.join ? search.join : undefined,
   }),
   beforeLoad: ({ context, search }) => {
-    if (context.session.signedIn) throw redirect(search.join ? { to: JOIN_ROUTE, params: { token: search.join } } : { to: "/" });
+    if (context.session.signedIn) throw redirect(search.join ? { to: JOIN_ROUTE, params: { token: search.join } } : { to: LANDING_PATH });
   },
   component: function SignIn() {
     const { auth, joining } = signInRoute.useRouteContext();
@@ -234,7 +236,7 @@ const frameRoute = createRoute({
 // A signed-in manager lands on My team (spec/12).
 const landingRoute = createRoute({
   getParentRoute: () => frameRoute,
-  path: "/",
+  path: LANDING_PATH,
   beforeLoad: () => {
     throw redirect({ to: MY_TEAM_PATH });
   },

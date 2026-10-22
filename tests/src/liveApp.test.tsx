@@ -11,8 +11,9 @@ import { silenceConsoleError } from "../support/console.setup";
 import { signInToJoinWords } from "../../src/joining/words";
 import { ERROR_PAGE_TITLE, readFailedWords, reloadWords } from "../../src/frame/words";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../src/leagues/paths";
-import { LiveApp, NO_CONVEX_URL, takeLinkCode } from "../../src/liveApp";
-import { SIGN_IN_PATH } from "../../src/router";
+import { LiveApp, takeLinkCode } from "../../src/liveApp";
+import { NO_CONVEX_URL } from "../../src/words";
+import { SIGN_IN_PATH } from "../../src/sign-in/paths";
 import { askFailedWords, linkProblemWords, replyWords, signInWords, waitingWords } from "../../src/sign-in/words";
 
 const convex = vi.hoisted(() => ({

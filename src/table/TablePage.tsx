@@ -1,8 +1,10 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { PageTitle, PanelTitle } from "../frame/Panel";
+import { PAGE_TITLE_ID, PageTitle, PanelTitle } from "../frame/Panel";
 import { FixturesPanel } from "./FixturesPanel";
 import type { LeagueTable, TableSeam } from "./seam";
 import { columns, differenceWords, loadingWords, noResultsWords, noRulesWords, TABLE_PAGE_TITLE, TABLE_TITLE } from "./words";
+
+const TITLE_ID = "table-title";
 
 type Column = keyof typeof columns;
 type Row = LeagueTable["table"][number];
@@ -26,7 +28,7 @@ const cellClasses = (column: Column) =>
 export function TablePage({ league, seam }: { league: LeagueSummary; seam: TableSeam }) {
   const leagueTable = seam.useLeagueTable(league.leagueId);
   return (
-    <section aria-labelledby="page-title" className="flex max-w-6xl flex-col gap-2">
+    <section aria-labelledby={PAGE_TITLE_ID} className="flex max-w-6xl flex-col gap-2">
       <PageTitle>{TABLE_PAGE_TITLE}</PageTitle>
       {leagueTable === undefined ? (
         <p role="status" className="text-muted">
@@ -47,8 +49,8 @@ export function TablePage({ league, seam }: { league: LeagueSummary; seam: Table
 function StandingsPanel({ leagueTable: { format, table } }: { leagueTable: LeagueTable }) {
   const shown = COLUMNS_OF[format];
   return (
-    <section aria-labelledby="table-title" className="bg-panel">
-      <PanelTitle id="table-title">{TABLE_TITLE}</PanelTitle>
+    <section aria-labelledby={TITLE_ID} className="bg-panel">
+      <PanelTitle id={TITLE_ID}>{TABLE_TITLE}</PanelTitle>
       {table.every((row) => row.played === 0) && <p className="px-3 py-2">{noResultsWords}</p>}
       <table className="w-full border-collapse">
         <thead className="bg-head text-ground">

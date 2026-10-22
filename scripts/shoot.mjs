@@ -12,7 +12,7 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
-import { appPort } from "./port.mjs";
+import { appPort, localUrl } from "./port.mjs";
 
 const PHONE = { width: 390, height: 844 };
 const WIDTHS = [PHONE, { width: 1440, height: 900 }];
@@ -23,7 +23,7 @@ if (!route) {
   console.error("Usage: node scripts/shoot.mjs <route> [name]");
   process.exit(2);
 }
-const url = new URL(route, process.env.APP_URL ?? `http://localhost:${appPort()}`).href;
+const url = new URL(route, process.env.APP_URL ?? localUrl(appPort())).href;
 mkdirSync(SHOTS_DIR, { recursive: true });
 
 // The Mac's Chrome, so Playwright's own browser needn't be downloaded.

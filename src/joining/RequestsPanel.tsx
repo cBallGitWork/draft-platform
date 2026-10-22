@@ -4,14 +4,16 @@ import type { InvitesPageData, JoiningSeam } from "./seam";
 import { TeamSelect, useTeamChoice } from "./TeamChoice";
 import { noRequestsWords, requestsWords } from "./words";
 
+const TITLE_ID = "requests-title";
+
 type Request = InvitesPageData["requests"][number];
 
 /** spec/15, Joining a league: the requests the invite link made, each approved to a team the
  *  commissioner picks, a vacated one included, or refused. */
 export function RequestsPanel({ page, joining }: { page: InvitesPageData; joining: JoiningSeam }) {
   return (
-    <section aria-labelledby="requests-title" className="bg-panel">
-      <PanelTitle id="requests-title">{requestsWords.title}</PanelTitle>
+    <section aria-labelledby={TITLE_ID} className="bg-panel">
+      <PanelTitle id={TITLE_ID}>{requestsWords.title}</PanelTitle>
       {page.requests.length === 0 ? (
         <p className="px-3 py-2 text-muted">{noRequestsWords}</p>
       ) : (

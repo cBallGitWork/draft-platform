@@ -3,7 +3,7 @@ import { ConvexReactClient, useAction, useConvexAuth, useQuery } from "convex/re
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { api } from "../convex/_generated/api";
 import { useLiveAdmin } from "./admin/liveAdmin";
-import { PageTitle, Problem } from "./frame/Panel";
+import { PAGE_TITLE_ID, PageTitle, Problem } from "./frame/Panel";
 import { ERROR_PAGE_TITLE, readFailedWords, reloadWords } from "./frame/words";
 import type { AuthActions, Session } from "./auth";
 import { liveGameweeks } from "./gameweeks/liveGameweeks";
@@ -14,25 +14,27 @@ import { useLiveMail } from "./mail/liveMail";
 import { useLiveSquads } from "./squads/liveSquads";
 import { liveTable } from "./table/liveTable";
 import { answerOf, refusalIn } from "./refusal";
-import { SIGN_IN_PATH } from "./router";
 import { ShellApp } from "./ShellApp";
+import { SIGN_IN_PATH } from "./sign-in/paths";
 import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "./sign-in/words";
+import { NO_CONVEX_URL } from "./words";
 
 // The app signed in for real: Convex Auth's session (convex/auth.ts), the email links asked for
 // through signIn/signInLinks:ask, and a link's code redeemed when the app is opened from one.
+
+/** The search param a sign-in link carries its code in (Convex Auth's). */
+const LINK_CODE_PARAM = "code";
 
 /** The code a sign-in link opened the app with, taken out of the address so a reload or a
  *  bookmark can't carry it. */
 export function takeLinkCode(): string | null {
   const url = new URL(window.location.href);
-  const code = url.searchParams.get("code");
+  const code = url.searchParams.get(LINK_CODE_PARAM);
   if (code === null) return null;
-  url.searchParams.delete("code");
+  url.searchParams.delete(LINK_CODE_PARAM);
   window.history.replaceState(null, "", url);
   return code;
 }
-
-export const NO_CONVEX_URL = "VITE_CONVEX_URL isn't set, so the app can't reach Convex: `npm run setup` writes it to .env.local (docs/setup.md).";
 
 export function LiveApp({ linkCode }: { linkCode: string | null }) {
   const [client] = useState(() => {
@@ -74,7 +76,7 @@ class ShellFailed extends Component<{ children: ReactNode }, ShellFailedState> {
   render() {
     if (this.state.failed === null) return this.props.children;
     return (
-      <section aria-labelledby="page-title" className="max-w-xl bg-panel">
+      <section aria-labelledby={PAGE_TITLE_ID} className="max-w-xl bg-panel">
         <PageTitle>{ERROR_PAGE_TITLE}</PageTitle>
         <Problem problem={refusalIn(this.state.failed.error) ?? readFailedWords} />
         <button type="button" onClick={() => location.reload()} className="action m-3">

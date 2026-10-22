@@ -13,6 +13,9 @@ export const PORT_RANGE_START = 5200;
 export const PORT_RANGE_SIZE = 700;
 const CHECKOUT = dirname(dirname(fileURLToPath(import.meta.url)));
 
+/** The address of a server this machine runs on `port`. */
+export const localUrl = (port) => `http://localhost:${port}`;
+
 export function appPort() {
   const checkoutHash = createHash("sha256").update(CHECKOUT).digest().readUInt32BE(0);
   return PORT_RANGE_START + (checkoutHash % PORT_RANGE_SIZE);

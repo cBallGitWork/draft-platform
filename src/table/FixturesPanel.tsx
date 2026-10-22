@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { isLocked } from "../../convex/gameweeks/deadline";
+import { FEWEST_TO_DRAW } from "../../convex/table/roundRobin";
 import { PanelTitle } from "../frame/Panel";
 import type { LeagueTable } from "./seam";
 import {
@@ -8,8 +9,10 @@ import {
   fixturesListLabel,
   gameweekWords,
   leagueAverageWords,
+  nextGlyph,
   nextLabel,
   noGameweeksWords,
+  previousGlyph,
   previousLabel,
   roundRobinWords,
   tooFewTeamsWords,
@@ -17,18 +20,20 @@ import {
   versusWords,
 } from "./words";
 
+const TITLE_ID = "fixtures-title";
+
 type Gameweek = LeagueTable["gameweeks"][number];
 
 /** The league's fixtures, a gameweek at a time, or why it has none. */
 export function FixturesPanel({ leagueTable }: { leagueTable: LeagueTable }) {
   const { format, gameweeks, roundRobinRounds, table } = leagueTable;
   return (
-    <section aria-labelledby="fixtures-title" className="bg-panel">
-      <PanelTitle id="fixtures-title">{FIXTURES_TITLE}</PanelTitle>
+    <section aria-labelledby={TITLE_ID} className="bg-panel">
+      <PanelTitle id={TITLE_ID}>{FIXTURES_TITLE}</PanelTitle>
       {format === "totalPoints" ? (
         <p className="px-3 py-2">{totalPointsWords}</p>
       ) : gameweeks.length === 0 ? (
-        <p className="px-3 py-2">{table.length < 2 ? tooFewTeamsWords : noGameweeksWords}</p>
+        <p className="px-3 py-2">{table.length < FEWEST_TO_DRAW ? tooFewTeamsWords : noGameweeksWords}</p>
       ) : (
         <>
           <GameweekFixtures gameweeks={gameweeks} />
@@ -56,7 +61,7 @@ function GameweekFixtures({ gameweeks }: { gameweeks: readonly Gameweek[] }) {
     <>
       <div className="flex min-h-tap items-stretch bg-stepper">
         <button type="button" aria-label={previousLabel} disabled={index === 0} onClick={() => choose(index - 1)} className={stepClasses}>
-          <span aria-hidden="true">◄</span>
+          <span aria-hidden="true">{previousGlyph}</span>
         </button>
         <h3 aria-live="polite" className="flex grow items-center justify-center text-lead font-bold">
           {gameweekWords(gameweek)}
@@ -68,7 +73,7 @@ function GameweekFixtures({ gameweeks }: { gameweeks: readonly Gameweek[] }) {
           onClick={() => choose(index + 1)}
           className={stepClasses}
         >
-          <span aria-hidden="true">►</span>
+          <span aria-hidden="true">{nextGlyph}</span>
         </button>
       </div>
       <ul aria-label={fixturesListLabel(gameweek)}>

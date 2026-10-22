@@ -5,6 +5,10 @@ import { statIn, type MatchStats } from "./scoring";
 import { requireNumber, showValue, type ScoringSet } from "./scoringSet";
 import { CATALOGUE_STATS } from "./statCatalogue";
 
+/** What an own stat is rounded to before it counts: a millionth, far finer than any weight, so
+ *  only floating point's noise goes. */
+const ACTIONS_PRECISION = 1e6;
+
 /** A stat of the league's own (spec/14, Own stats): catalogue stats added up, each with a weight,
  *  which can be negative: tackles + 0.5 × clearances. A rule scores it by `stat`, as any category. */
 export interface OwnStat {
@@ -49,7 +53,7 @@ export function withOwnStats(record: MatchStats, set: ScoringSet): MatchStats {
   const own: Record<string, number> = {};
   for (const { stat, parts } of set.ownStats) {
     // Floating point's noise goes first, so 0.1 × 30 is 3 and never just under it.
-    const actions = Math.round(parts.reduce((total, part) => total + part.weight * statIn(record, part.stat), 0) * 1e6) / 1e6;
+    const actions = Math.round(parts.reduce((total, part) => total + part.weight * statIn(record, part.stat), 0) * ACTIONS_PRECISION) / ACTIONS_PRECISION;
     own[stat] = set.wholePointsOnly ? Math.floor(actions) : actions;
   }
   return { ...record, ...own };

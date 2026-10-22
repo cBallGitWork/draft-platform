@@ -8,6 +8,7 @@ import { recordEvent } from "../mail/letters";
 import { checkLeagueRules, UnsoundRules } from "./leagueRulesCheck";
 import { leagueRulesShape, type LeagueRules } from "./leagueRulesShape";
 import { nextGameweek } from "../gameweeks/nextGameweek";
+import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
 
 // A league's rules, held as data (spec/03; #25): a new league copies the admin's default rules, and
 // its commissioner changes them from the next gameweek, so a past gameweek keeps the rules it had.
@@ -70,7 +71,7 @@ async function writeDefaults(ctx: MutationCtx, rules: LeagueRules): Promise<void
 export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">): Promise<void> {
   const defaults = (await defaultsRow(ctx))?.rules;
   if (defaults === undefined) await writeDefaults(ctx, FIRST_RULES);
-  await ctx.db.insert("leagueRules", { leagueId, fromGameweek: 1, rules: defaults ?? FIRST_RULES });
+  await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, rules: defaults ?? FIRST_RULES });
 }
 
 /** The season's gameweeks and matches as held, less those the football layer no longer sends. */
@@ -133,7 +134,7 @@ export const change = mutation({
     const fromGameweek = Math.max(
       nextUnder((gameweek) => (inForce(history, gameweek)?.rules ?? rules).deadline),
       nextUnder(() => rules.deadline),
-      latestRow?.fromGameweek ?? 1,
+      latestRow?.fromGameweek ?? FIRST_GAMEWEEK,
     );
 
     const changed = changedParts(latestRow?.rules, rules);

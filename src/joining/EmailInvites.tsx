@@ -14,6 +14,9 @@ import {
   noInvitesWords,
 } from "./words";
 
+const TITLE_ID = "email-invites-title";
+const EMAIL_ID = "invite-email";
+
 type Invite = InvitesPageData["invites"][number];
 /** Resending or cancelling an invite, and whether a change is under way. */
 type InviteChange = { busy: boolean; resend(invite: Invite): void; cancel(invite: Invite): void };
@@ -48,15 +51,15 @@ export function EmailInvites({ page, joining }: { page: InvitesPageData; joining
     cancel: (invite) => void run(() => joining.cancelInvite(invite.inviteId)),
   };
   return (
-    <section aria-labelledby="email-invites-title" className="bg-panel">
-      <PanelTitle id="email-invites-title">{emailInvitesWords.title}</PanelTitle>
+    <section aria-labelledby={TITLE_ID} className="bg-panel">
+      <PanelTitle id={TITLE_ID}>{emailInvitesWords.title}</PanelTitle>
       <Problem problem={problem} />
       <form onSubmit={send} className="flex flex-col gap-2 p-3">
-        <label htmlFor="invite-email" className="font-semibold">
+        <label htmlFor={EMAIL_ID} className="font-semibold">
           {emailInvitesWords.emailLabel}
         </label>
         <input
-          id="invite-email"
+          id={EMAIL_ID}
           type="email"
           required
           value={email}

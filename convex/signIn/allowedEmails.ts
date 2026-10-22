@@ -10,6 +10,9 @@ export function normaliseEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
+/** Whether a (normalised) email can be an address at all: the closed beta checks no more. */
+export const isEmailAddress = (email: string) => email.includes("@");
+
 /** The admin's email, set on the server (spec/13#who-runs-it), never in the code. */
 export function adminEmail(): string {
   const email = process.env.ADMIN_EMAIL;
@@ -31,7 +34,7 @@ export async function isAllowed(ctx: QueryCtx, email: string): Promise<boolean> 
  *  which lets anyone who opens it sign in to ask to join (spec/02). */
 export async function admitEmail(ctx: MutationCtx, email: string): Promise<"added" | "already on the list"> {
   const normalised = normaliseEmail(email);
-  if (!normalised.includes("@")) throw new Error(`"${email}" isn't an email address`);
+  if (!isEmailAddress(normalised)) throw new Error(`"${email}" isn't an email address`);
   if (await isAllowed(ctx, normalised)) return "already on the list";
   await ctx.db.insert("allowedEmails", { email: normalised });
   return "added";
