@@ -56,6 +56,20 @@ export const adminSeeing = (...leagues: LeagueSummary[]) =>
   }) satisfies Session;
 export const admin = adminSeeing();
 
+type Deletion = NonNullable<LeagueSummary["deletion"]>;
+/** `league` being deleted (spec/13, Deleting): frozen until `deletesAt`, with `unemailed` not told. */
+export const beingDeleted = (
+  league: LeagueSummary,
+  { deletesAt = Date.parse("2026-10-22T09:00:00Z"), unemailed = [] }: Partial<Deletion> = {},
+): LeagueSummary => ({ ...league, deletion: { deletesAt, unemailed } });
+/** Whoever is deleting `league`, as signIn/account:signedInAs has them: it's theirs to see, and
+ *  they're in no league. */
+export const deleterOf = (league: LeagueSummary): Session => ({
+  ...managerIn(league),
+  inLeague: false,
+  currentLeagueId: null,
+});
+
 export const LINK_REPLY = "Check your email.";
 
 function fakeAuth() {

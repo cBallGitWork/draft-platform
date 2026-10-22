@@ -8,7 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
-import { adminSeeing, league, manager, managerIn, openApp } from "../../support/src/shell.harness";
+import { adminSeeing, beingDeleted, league, manager, managerIn, openApp } from "../../support/src/shell.harness";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { allLeaguesWords } from "../../../src/frame/words";
 
@@ -117,8 +117,7 @@ describe("the top bar's league, for someone in one", () => {
   });
 
   it("leaves out a league they're deleting, which is frozen", async () => {
-    const deleting = { ...miniBeta, deletion: { deletesAt: Date.parse("2026-10-22T09:00:00Z"), unemailed: [] } };
-    openApp(MY_TEAM_PATH, managerIn(league, deleting));
+    openApp(MY_TEAM_PATH, managerIn(league, beingDeleted(miniBeta)));
     expect(within(await screen.findByRole("banner")).getByText(league.name)).toBeTruthy();
     expect(screen.queryByRole("button", { name: SWITCHER_NAME })).toBeNull();
   });
