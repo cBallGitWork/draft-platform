@@ -7,6 +7,7 @@ import { Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { useRulesDraft } from "../rules/rulesDraft";
 import { SaveBar } from "../rules/SaveBar";
+import { TickBox } from "../rules/TickBox";
 import { CategoryEditor } from "./CategoryEditor";
 import { firstBlankRule, newRule, rulePricing, valueAt, type Rule, type Scoring } from "./editing";
 import type { ScoringSeam, ScoringView } from "./seam";
@@ -99,10 +100,9 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: ScoringSe
       <div className="flex min-w-0 grow flex-col gap-2">
         {rule && <CategoryEditor key={chosen} name={nameOf(rule.stat)} rule={rule} onChange={(changed) => setRule(chosen, changed)} onRemove={() => remove(chosen)} />}
         <SaveBar draft={rulesDraft} savedWords={savedWords}>
-          <label className="flex min-h-tap cursor-pointer items-center gap-2">
-            <input type="checkbox" checked={draft.wholePointsOnly} onChange={(event) => edit({ ...draft, wholePointsOnly: event.target.checked })} />
+          <TickBox checked={draft.wholePointsOnly} onChange={(on) => edit({ ...draft, wholePointsOnly: on })}>
             {wholePointsWords}
-          </label>
+          </TickBox>
         </SaveBar>
       </div>
     </div>

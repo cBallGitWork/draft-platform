@@ -45,6 +45,9 @@
   --flex-basis-categories: 360px;
   /* A box for one number of a rule: room for "-10.5" */
   --spacing-number-box: 72px;
+  /* A tick box's well (plate.md, Controls) */
+  --spacing-tick: 22px;
+  --spacing-tick-mark: 14px; /* the tick drawn in it */
 
   --text-data: 13px;
   --text-data--line-height: 20px;
@@ -59,6 +62,10 @@
   --shadow-bevel-action: inset 0 2px 0 var(--color-fact), inset 0 -2px 0 var(--color-head);
   --shadow-bevel-action-pressed: inset 0 2px 0 var(--color-head), inset 0 -2px 0 var(--color-fact);
   --shadow-panel-top: inset 0 1px 0 var(--color-panel-edge);
+  /* the bevels flipped (plate.md, Controls): a tick box's well sunk into a panel, and the chosen key
+     pressed into the plate */
+  --shadow-bevel-sunk: inset 0 2px 0 var(--color-name-plate), inset 0 -2px 0 var(--color-panel-edge);
+  --shadow-bevel-plate-pressed: inset 0 2px 0 var(--color-plate-rule), inset 0 -2px 0 var(--color-plate-edge);
   /* the active tab's cyan underline, on the top row and on a section's tabs */
   --shadow-tab-active: inset 0 -3px 0 var(--color-derived);
   --shadow-subtab-active: inset 0 -2px 0 var(--color-derived);
@@ -69,6 +76,11 @@
 }
 
 @layer base {
+  :root {
+    /* the focus ring (plate.md, Colour roles: focus), on every control */
+    --focus-ring: 2px solid var(--color-derived);
+    --focus-ring-offset: 2px;
+  }
   html {
     color-scheme: dark;
   }
@@ -81,8 +93,8 @@
     font-variant-numeric: tabular-nums;
   }
   :focus-visible {
-    outline: 2px solid var(--color-derived);
-    outline-offset: 2px;
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
   }
   a {
     color: var(--color-fact);
@@ -113,6 +125,18 @@
     background: var(--color-head);
     box-shadow: var(--shadow-bevel-action-pressed);
   }
+}
+
+/* Save with nothing to save (plate.md, Colour roles: the action with nothing to do). */
+@utility action-idle {
+  display: flex;
+  align-items: center;
+  min-height: var(--spacing-tap);
+  padding-inline: calc(var(--spacing) * 4);
+  border: 1px solid var(--color-muted);
+  color: var(--color-muted);
+  font-size: var(--text-lead);
+  font-weight: var(--font-weight-semibold);
 }
 
 /* The secondary action (plate.md, Colour roles): Sign out. */
@@ -166,5 +190,48 @@
   line-height: var(--text-lead--line-height);
   &[aria-invalid="true"] {
     border-color: var(--color-event);
+  }
+}
+
+/* A tick box (plate.md, Controls): the real checkbox drawn as a sunken well, its tick drawn over it.
+   The soft rim, as on a box to type in, is what sets it off from the panel at 3:1. */
+@utility tick-well {
+  appearance: none;
+  margin: 0;
+  width: var(--spacing-tick);
+  height: var(--spacing-tick);
+  flex-shrink: 0;
+  border: 1px solid var(--color-soft);
+  background: var(--color-name-plate);
+  box-shadow: var(--shadow-bevel-sunk);
+  cursor: pointer;
+}
+
+/* One of a row of butted keys (plate.md, Controls): the plate, and the chosen one pressed in. It is
+   the label around a hidden radio, so the radio's focus rings the key. */
+@utility key {
+  display: flex;
+  align-items: center;
+  min-height: var(--spacing-tap);
+  padding-inline: calc(var(--spacing) * 4);
+  background: var(--color-plate);
+  box-shadow: var(--shadow-bevel-plate);
+  color: var(--color-soft);
+  cursor: pointer;
+  & + & {
+    border-left: 1px solid var(--color-plate-rule);
+  }
+  &:hover {
+    background: var(--color-stepper);
+  }
+  &:has(:checked) {
+    background: var(--color-ground);
+    box-shadow: var(--shadow-bevel-plate-pressed);
+    color: var(--color-fact);
+    font-weight: var(--font-weight-semibold);
+  }
+  &:has(:focus-visible) {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
   }
 }
