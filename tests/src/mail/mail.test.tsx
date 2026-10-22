@@ -65,7 +65,7 @@ describe("the letters", () => {
   });
 
   it("while they load, says that", async () => {
-    openApp(MAIL_PATH, manager, { letters: null });
+    openApp(MAIL_PATH, manager, { mailLoading: true });
     expect((await screen.findByRole("status")).textContent).toBe(loadingWords);
   });
 

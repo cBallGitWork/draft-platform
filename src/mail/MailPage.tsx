@@ -43,7 +43,7 @@ export function MailPage({ mail, unread, writableLeagues }: { mail: Mail; unread
 
 function Letters({ mail }: { mail: Mail }) {
   const [openId, setOpenId] = useState<Id<"letters"> | null>(null);
-  if (mail.letters === null) return <Loading className="px-3 py-2">{loadingWords}</Loading>;
+  if (mail.letters === undefined) return <Loading className="px-3 py-2">{loadingWords}</Loading>;
   if (mail.letters.length === 0) return <p className="px-3 py-2 text-muted">{noLettersWords}</p>;
 
   function toggle(letter: LetterSummary) {

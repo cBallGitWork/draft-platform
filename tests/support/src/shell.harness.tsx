@@ -90,9 +90,10 @@ const fakeLeagues = () => ({
   switchLeague: vi.fn<LeagueActions["switchLeague"]>(async () => null),
 });
 
-/** Mail holding `letters`, whose letter to the league is sent, unless a test says otherwise. */
-const fakeMail = (letters: readonly LetterSummary[] | null) => ({
-  letters,
+/** Mail holding `letters`, whose letter to the league is sent, unless a test says otherwise;
+ *  `loading` keeps the letters still on their way (undefined). */
+const fakeMail = (letters: readonly LetterSummary[], loading: boolean) => ({
+  letters: loading ? undefined : letters,
   open: vi.fn<Mail["open"]>(async () => {}),
   writeToLeague: vi.fn<Mail["writeToLeague"]>(async () => null),
 });
@@ -100,7 +101,8 @@ const fakeMail = (letters: readonly LetterSummary[] | null) => ({
 /** What a test may set besides the address and the session: each seam's data, and the top bar. */
 export type AppSetUp = {
   topBar?: TopBarState;
-  letters?: readonly LetterSummary[] | null;
+  letters?: readonly LetterSummary[];
+  mailLoading?: boolean;
   joining?: JoiningData;
   squads?: SquadsData;
   table?: TableData;
@@ -114,6 +116,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const {
     topBar = { unreadMail: 0, next: null },
     letters = [],
+    mailLoading = false,
     joining: joiningData = {},
     squads: squadsData = {},
     table: tableData = {},
@@ -122,7 +125,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const history = createMemoryHistory({ initialEntries: [path] });
   const auth = fakeAuth();
   const leagues = fakeLeagues();
-  const mail = fakeMail(letters);
+  const mail = fakeMail(letters, mailLoading);
   const joining = fakeJoining(joiningData, LINK_REPLY);
   const gameweeks = fakeGameweeks();
   const squads = fakeSquads(squadsData);

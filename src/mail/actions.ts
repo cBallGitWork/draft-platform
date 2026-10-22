@@ -8,8 +8,8 @@ import type { Change } from "../refusal";
 export type LeagueLetter = { leagueId: Id<"leagues">; subject: string; body: string };
 
 export type Mail = {
-  /** The signed-in person's letters, newest first, or null while they load. */
-  letters: readonly LetterSummary[] | null;
+  /** The signed-in person's letters, newest first, or undefined while they load. */
+  letters: readonly LetterSummary[] | undefined;
   /** Marks a letter read. It never rejects: a failure is logged, and the letter stays unread. */
   open(letterId: Id<"letters">): Promise<void>;
   /** Sends the commissioner's letter to the whole league. */
