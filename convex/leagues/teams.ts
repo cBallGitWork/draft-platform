@@ -3,6 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, type MutationCtx } from "../_generated/server";
 import { admitEmail } from "../signIn/allowedEmails";
 import {
+  adminOf,
   callerEmail,
   getLeague,
   isAdmin,
@@ -79,12 +80,15 @@ export async function putOnTeam(
   return { teamId, teamName };
 }
 
-/** The league's runners make an email a manager. */
+/** spec/13, Teams: the admin names a team's manager directly, from the CLI (docs/setup.md); the
+ *  league's runners invite people instead: "admin only (not commissioner or co-commissioner)"
+ *  (Craig, 22 Oct 2026). */
 export const addManager = mutation({
   args: { leagueId: v.id("leagues"), email: v.string(), teamId: v.optional(v.id("teams")) },
   returns: v.id("teams"),
   handler: async (ctx, args) => {
-    const { email: by, league } = await runnerOf(ctx, args.leagueId);
+    const by = await adminOf(ctx);
+    const league = await getLeague(ctx, args.leagueId);
     const email = namedEmail(args.email);
     const { teamId, teamName } = await putOnTeam(ctx, league, email, args.teamId);
     await recordEvent(ctx, league._id, by, { kind: "managerAdded", email, teamId, teamName });

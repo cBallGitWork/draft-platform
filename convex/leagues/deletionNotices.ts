@@ -8,8 +8,8 @@ import { unemailedReason } from "../schema";
 
 // The email each person with a part in a league gets when it is deleted (#75, spec/13, Deleting):
 // that it will be deleted, and when. Each counts against the day's emails as a sign-in link does
-// (emailLimit.ts); one the limit or the email service stops is kept on the league, so whoever
-// deleted it sees who wasn't told.
+// (emailLimit.ts); one the limit or the email service stops is kept on the league, so its
+// commissioner and the admin see who wasn't told.
 
 /** Wording for Craig to change in the pull request. */
 export function deletionEmail(leagueName: string, by: string, deletesAt: number) {
@@ -18,7 +18,7 @@ export function deletionEmail(leagueName: string, by: string, deletesAt: number)
     text: [
       `${by} deleted ${leagueName}. It will be gone for good, with its teams, Mail and history, on ${londonTime(deletesAt)}.`,
       "",
-      "Until then it is frozen, and only whoever deleted it, or the admin, can undo it.",
+      "Until then it is frozen, and only its commissioner or the admin can undo it.",
     ].join("\n"),
   };
 }

@@ -2,6 +2,7 @@
 // server refused a change is in convex/joining/joining.ts and convex/shared/leagueAccess.ts, and reaches the
 // screen as is.
 
+import type { EndedInvite } from "../../convex/joining/endedInvite";
 import type { Delivery } from "../../convex/joining/joining";
 import { INVITE_DAYS, aNewTeamWords } from "../../convex/joining/joiningShared";
 import { LOCALE } from "../../convex/shared/londonTime";
@@ -34,7 +35,16 @@ export const deliveryWords: Record<Delivery, (expiresAt: number) => string> = {
 };
 export const expiredWords = `Expired. Resend it for ${INVITE_DAYS} more days.`;
 export const joinedWords = (teamName: string) => `Joined, running ${teamName}.`;
-export const couldNotJoinWords = (reason: string) => `Signed in, but couldn't join: ${reason}`;
+/** A reason as its own sentence after another, or nothing when none was kept. */
+const thenReason = (reason: string | null) => (reason === null ? "" : ` ${reason}`);
+
+export const couldNotJoinWords = (reason: string | null) => `Signed in, but couldn't join.${thenReason(reason)}`;
+
+/** "Your leagues" for someone in none, when their newest invite ended without them joining. */
+export function endedInviteWords({ leagueName, ended, reason }: EndedInvite): string {
+  const how = { expired: "expired.", cancelled: "was cancelled.", couldNotJoin: `couldn't be used.${thenReason(reason)}` }[ended];
+  return `Your invite to ${leagueName} ${how} Ask the commissioner for a new one.`;
+}
 
 /** The strip telling the commissioner that invites wait for tomorrow (spec/13). */
 export const waitingStrip = (waiting: number) =>
