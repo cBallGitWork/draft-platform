@@ -18,8 +18,8 @@ Ask first: what does a manager see, or what does the league's data become, after
     git log --oneline $BASE..HEAD && git diff --stat $BASE..HEAD
 
 If the caller gives you a range (a drift pass: `<last drift pass>..main`), review that range
-instead of $BASE..HEAD and name it in **What I ran**. With no range given, use $BASE..HEAD. If the
-diff is empty, say so and stop; an empty diff is never 'Nothing found'.
+instead of $BASE..HEAD and name it in **What I ran**. If the diff is empty, say so and stop; an
+empty diff is never 'Nothing found'.
 
 A second round starts only when there are commits since round 1. It names
 `<round-1-head>..HEAD`, reviews those commits first, and checks them against the whole branch
@@ -63,7 +63,8 @@ Then check the description's claims against what you found.
     - Every `.take(n)`, `limit` or `slice` on stored or fed data says what happens past n: an
       error, a log, a 'more' marker, or a comment saying why n can't be passed. A silent cut-off
       is a REGRESSION.
-    - A branch that adds a public mutation may be pointed at issue #141.
+    - A public mutation the diff adds gets a detail row pointing at issue #141 (nothing yet checks
+      that every public mutation refuses a signed-out caller and an outsider).
 
 Do not invent rules. Where the repo's docs are silent, say so and mark it CRAIG'S CALL. Each
 CRAIG'S CALL goes in the pull request template's '## Left for later' section, listed with '#n' or
