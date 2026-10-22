@@ -1,8 +1,10 @@
 import { useState } from "react";
 
-/** A box's text as a number: null when blank, NaN when it isn't one. */
+/** A box's text as a number: null when blank, NaN when it isn't a finite one ("Infinity" isn't). */
 function parse(text: string): number | null {
-  return text.trim() === "" ? null : Number(text);
+  if (text.trim() === "") return null;
+  const number = Number(text);
+  return Number.isFinite(number) ? number : NaN;
 }
 
 const show = (value: number | null) => (value === null || Number.isNaN(value) ? "" : String(value));

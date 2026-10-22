@@ -123,14 +123,15 @@ function TickBox({ checked, onChange, children }: { checked: boolean; onChange: 
 type Column = { head: string; cell: (key: PriceKey, row: string) => ReactNode };
 
 /** The rule's values, a row for everyone or for each area or position, with a column for each
- *  part it has: what it pays, its points limit's two ends, and its minutes. */
+ *  part it has: what it pays, its points limit's two ends, and its minutes. On the phone each row
+ *  is a block, its boxes wrapping under its name, each with its column's name beside it. */
 function ValuesTable({ rule, pricing, onChange }: { rule: Rule; pricing: Pricing; onChange: (rule: Rule) => void }) {
   const columns = columnsOf(rule, onChange);
   const rowHead = pricing === "byPosition" ? columnWords.position : columnWords.area;
   return (
     <div className="overflow-x-auto">
-      <table className="w-full border-collapse">
-        <thead>
+      <table className="w-full border-collapse max-lg:block">
+        <thead className="max-lg:hidden">
           <tr className="bg-head text-left text-ground">
             <th scope="col" className="px-3 py-1 font-semibold">
               {pricing === "all" ? "" : rowHead}
@@ -142,16 +143,19 @@ function ValuesTable({ rule, pricing, onChange }: { rule: Rule; pricing: Pricing
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody className="max-lg:block">
           {keysOf(pricing).map((key) => {
             const row = rowWords(key);
             return (
-              <tr key={key} className="border-b border-panel-rule align-top">
-                <th scope="row" className="px-3 py-1 text-left font-normal whitespace-nowrap">
+              <tr key={key} className="border-b border-panel-rule align-top max-lg:flex max-lg:flex-wrap max-lg:py-1">
+                <th scope="row" className="px-3 py-1 text-left font-normal whitespace-nowrap max-lg:w-full max-lg:font-semibold">
                   <span className="flex min-h-tap items-center">{row}</span>
                 </th>
                 {columns.map((column) => (
-                  <td key={column.head} className="px-3 py-1">
+                  <td key={column.head} className="px-3 py-1 max-lg:flex max-lg:items-center max-lg:gap-2">
+                    <span aria-hidden className="text-soft lg:hidden">
+                      {column.head}
+                    </span>
                     {column.cell(key, row)}
                   </td>
                 ))}
