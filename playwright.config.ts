@@ -7,11 +7,11 @@
 // by side, clear of every checkout's app server.
 
 import { defineConfig } from "@playwright/test";
-import { smokePorts } from "./scripts/port.mjs";
+import { localUrl, smokePorts } from "./scripts/port.mjs";
 
 const { dev: DEV_PORT, bundle: BUNDLE_PORT } = smokePorts();
-const DEV_URL = `http://localhost:${DEV_PORT}`;
-const BUNDLE_URL = `http://localhost:${BUNDLE_PORT}`;
+const DEV_URL = localUrl(DEV_PORT);
+const BUNDLE_URL = localUrl(BUNDLE_PORT);
 const NO_CONVEX = { VITE_CONVEX_URL: "" };
 
 export default defineConfig({

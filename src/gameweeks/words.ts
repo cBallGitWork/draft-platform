@@ -16,7 +16,6 @@ export const howTickingWorks =
 export const playsWords = (name: string) => ({ before: `${name} plays `, after: ` of ${GAMEWEEKS} gameweeks.` });
 
 export const gameweekColumns = { gameweek: "GW", deadline: "Deadline", plays: "Plays" } as const;
-export const tickLabel = (gameweek: number) => `Gameweek ${gameweek}`;
 export const begunWords = "Begun";
 export const noDeadlineWords = "Not known yet";
 export const loadingWords = "Loading the gameweeks…";

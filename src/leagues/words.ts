@@ -7,11 +7,14 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { NoLinkReply } from "../../convex/signIn/signInLinks";
 import { failedWords } from "../words";
 
-export const roleWords: Record<LeagueSummary["roles"][number], string> = {
+const roleWords: Record<LeagueSummary["roles"][number], string> = {
   commissioner: "Commissioner",
   "co-commissioner": "Co-commissioner",
   manager: "Manager",
 };
+
+/** A person's parts in a league, as a list: "Commissioner, Manager". */
+export const rolesWords = (roles: LeagueSummary["roles"]) => roles.map((role) => roleWords[role]).join(", ");
 
 /** The admin's part in a league where he has no other. */
 export const adminWords = "Admin";

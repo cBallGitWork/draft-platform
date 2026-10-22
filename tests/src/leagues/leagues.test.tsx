@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel, signOutWords } from "../../../src/frame/words";
-import { SIGN_IN_PATH } from "../../../src/router";
+import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
 import { admin, adminSeeing, league, manager, managerIn, newcomer, openApp, visitor } from "../../support/src/shell.harness";
 import { LEAGUES_PATH, LEAGUES_TITLE, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
 import { commissionerLine, newLeagueLabels, notInALeagueWords, unsentLink, unsentLinkWords } from "../../../src/leagues/words";

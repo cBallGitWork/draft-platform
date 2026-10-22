@@ -4,6 +4,7 @@
 // group, so at the deadline the whole group dies (vitest's workers too), not just the command.
 
 import { spawn } from "node:child_process";
+import { SECOND_MS } from "../convex/shared/time.ts";
 
 const [seconds, command, ...args] = process.argv.slice(2);
 const limit = Number(seconds);
@@ -27,7 +28,7 @@ const timer = setTimeout(() => {
   killGroup("SIGKILL");
   console.error(`${command} ran past the ${seconds}s deadline: likely an endless loop`);
   process.exit(1);
-}, limit * 1000);
+}, limit * SECOND_MS);
 
 child.on("error", (error) => {
   clearTimeout(timer);

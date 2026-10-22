@@ -4,19 +4,22 @@ import type { ReactNode } from "react";
 
 const TITLE_PLATE = "bg-plate px-4 py-1 shadow-bevel-plate";
 
-/** A page's title plate (plate.md, Shape): the heading its section is labelled by, `page-title`;
+/** The id of a page's heading, which its section is labelled by. */
+export const PAGE_TITLE_ID = "page-title";
+
+/** A page's title plate (plate.md, Shape): the heading its section is labelled by, `PAGE_TITLE_ID`;
  *  `aside`, such as Mail's unread count, sits at the plate's far end. */
 export function PageTitle({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
   if (aside === undefined) {
     return (
-      <h1 id="page-title" className={`${TITLE_PLATE} text-title font-bold`}>
+      <h1 id={PAGE_TITLE_ID} className={`${TITLE_PLATE} text-title font-bold`}>
         {children}
       </h1>
     );
   }
   return (
     <div className={`flex items-baseline justify-between ${TITLE_PLATE}`}>
-      <h1 id="page-title" className="text-title font-bold">
+      <h1 id={PAGE_TITLE_ID} className="text-title font-bold">
         {children}
       </h1>
       {aside}

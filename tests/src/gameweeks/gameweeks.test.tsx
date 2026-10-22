@@ -9,12 +9,13 @@ import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { adminSeeing, commissioner, league, managerIn, openApp } from "../../support/src/shell.harness";
 import { BEGUN, season } from "../../support/src/gameweeks.harness";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
-import { begunWords, deadlineWords, GAMEWEEKS_TITLE, loadingWords, tickLabel } from "../../../src/gameweeks/words";
+import { begunWords, deadlineWords, GAMEWEEKS_TITLE, loadingWords } from "../../../src/gameweeks/words";
+import { gameweekWords } from "../../../src/words";
 
 const PAGE = gameweeksPath(league.leagueId);
 const REFUSAL = "Gameweek 17 has begun, so it can't be ticked or unticked.";
 
-const tickBox = (gameweek: number) => screen.findByRole("checkbox", { name: tickLabel(gameweek) });
+const tickBox = (gameweek: number) => screen.findByRole("checkbox", { name: gameweekWords(gameweek) });
 const isTicked = async (gameweek: number) => (await tickBox(gameweek)).getAttribute("aria-checked") === "true";
 const isDisabled = async (gameweek: number) => ((await tickBox(gameweek)) as HTMLButtonElement).disabled;
 /** The line saying how many gameweeks the league plays. */

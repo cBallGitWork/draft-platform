@@ -19,6 +19,9 @@ export type DrawOptions = {
   seed: string;
 };
 
+/** The fewest teams a round robin is drawn for: a fixture needs two. */
+export const FEWEST_TO_DRAW = 2;
+
 /** The opponent of the team left over, in a league whose odd team out plays the average. */
 export const LEAGUE_AVERAGE = "leagueAverage";
 
@@ -58,13 +61,13 @@ export function roundsOf<Team>(teams: readonly Team[]): Round<Team>[] {
 export const gamesInAGameweek = (roundCount: number, gamesPerGameweek: number) => Math.min(gamesPerGameweek, roundCount);
 
 /** The league's fixtures in each gameweek it plays (`gameweeks`, in order), its teams in the
- *  order they were made. Fewer than two teams have no one to play, so no fixtures. */
+ *  order they were made. Fewer than FEWEST_TO_DRAW have no one to play, so no fixtures. */
 export function drawFixtures<Team>(
   teams: readonly Team[],
   gameweeks: readonly number[],
   { oddTeamOut, gamesPerGameweek, seed }: DrawOptions,
 ): GameweekFixtures<Team>[] {
-  if (teams.length < 2) return [];
+  if (teams.length < FEWEST_TO_DRAW) return [];
   const rounds = roundsOf(teams);
   const games = gamesInAGameweek(rounds.length, gamesPerGameweek);
   const order = roundOrder(rounds.length, gameweeks.length * games, games, seed);
@@ -111,15 +114,21 @@ function shuffle<Item>(items: Item[], random: () => number): Item[] {
   return items;
 }
 
+/** FNV-1a's 32-bit offset basis and prime, mulberry32's step, and how many 32-bit numbers there are. */
+const FNV_OFFSET_BASIS = 0x811c9dc5;
+const FNV_PRIME = 0x01000193;
+const MULBERRY32_STEP = 0x6d2b79f5;
+const UINT32_RANGE = 2 ** 32;
+
 /** Numbers in [0, 1) that are the same for the same seed: mulberry32, seeded by the seed's FNV-1a
  *  hash. Not for secrets; only so a league's draw comes out the same each time it's read. */
 export function seededRandom(seed: string): () => number {
-  let state = 0x811c9dc5;
-  for (const character of seed) state = Math.imul(state ^ character.charCodeAt(0), 0x01000193);
+  let state = FNV_OFFSET_BASIS;
+  for (const character of seed) state = Math.imul(state ^ character.charCodeAt(0), FNV_PRIME);
   return () => {
-    state = (state + 0x6d2b79f5) | 0;
+    state = (state + MULBERRY32_STEP) | 0;
     let mixed = Math.imul(state ^ (state >>> 15), 1 | state);
     mixed = (mixed + Math.imul(mixed ^ (mixed >>> 7), 61 | mixed)) ^ mixed;
-    return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
+    return ((mixed ^ (mixed >>> 14)) >>> 0) / UINT32_RANGE;
   };
 }

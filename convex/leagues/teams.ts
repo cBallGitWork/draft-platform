@@ -23,12 +23,15 @@ import { TEAM_NAME_MAX } from "./leagueLimits";
 /** How a team's name is compared, so "Red Army" and "red army " are one name in a league. */
 const nameKey = (name: string) => name.trim().toLowerCase();
 
+/** A new team's name until its manager renames it: "Team 3". */
+const teamNumbered = (number: number) => `Team ${number}`;
+
 /** The first "Team N" free in the league, from the new team's own number. */
 function startingName(teams: Doc<"teams">[], number: number): string {
   const taken = new Set(teams.map((team) => nameKey(team.name)));
   let free = number;
-  while (taken.has(nameKey(`Team ${free}`))) free += 1;
-  return `Team ${free}`;
+  while (taken.has(nameKey(teamNumbered(free)))) free += 1;
+  return teamNumbered(free);
 }
 
 /** Whether this email may join the league (spec/13, Teams), given its `teams`: the vacated team

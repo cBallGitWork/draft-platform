@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { TopBarState } from "../../src/frame/topBarState";
 import { MAIL_PATH, MY_TEAM_PATH } from "../../src/frame/menu";
-import { SIGN_IN_PATH } from "../../src/router";
+import { SIGN_IN_PATH } from "../../src/sign-in/paths";
 import { LINK_REPLY, manager, openApp, visitor } from "../support/src/shell.harness";
 import { linkProblemWords } from "../../src/sign-in/words";
 

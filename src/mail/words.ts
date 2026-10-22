@@ -15,6 +15,8 @@ export const onlyLatestWords = `Only your latest ${LETTERS_SHOWN} letters are sh
 /** The menu's and the plate's count: past UNREAD_COUNTED, that number and a "+". */
 export const unreadFigure = (unread: number) => (unread > UNREAD_COUNTED ? `${UNREAD_COUNTED}+` : `${unread}`);
 export const unreadCount = (unread: number) => `${unreadFigure(unread)} unread`;
+/** A menu tab with unread letters, as a screen reader names it: "Mail, 3 unread". */
+export const unreadTabLabel = (label: string, unread: number) => `${label}, ${unreadCount(unread)}`;
 
 /** Where a letter came from: its league, and who wrote it, if someone did. */
 export const letterSource = (leagueName: string, from: string | null) => (from === null ? leagueName : `${leagueName}, from ${from}`);
