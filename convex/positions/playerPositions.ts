@@ -3,7 +3,8 @@ import type { Doc } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { adminOf } from "../shared/leagueAccess";
 import { heldClubs, playersNamed } from "../shared/players";
-import { positionsFromStarts, positionsOf, type ApproveMode, type PlayerPositions } from "./positions";
+import { howPositionsCount, type HowPositionsCount } from "./positionSettings";
+import { positionsFromStarts, positionsOf, type PlayerPositions } from "./positions";
 import type { Position } from "./positionTables";
 import { approveMode, position } from "../schema";
 
@@ -19,9 +20,6 @@ type RowFields = Omit<Row, "_id" | "_creationTime" | "code">;
 /** The most players one club's approval reads: a club's squad, with room. */
 const CLUB_PLAYERS_MOST = 100;
 
-/** Spec/06: at first, positions from starts wait for the admin. */
-const FIRST_APPROVE_MODE: ApproveMode = "proposals";
-
 /** A player's row before any feed or the admin has written to it. */
 const EMPTY_ROW: RowFields = { starts: [], approved: [], set: [], removed: [] };
 
@@ -30,17 +28,17 @@ export const ofPlayer = query({
   args: { code: v.number() },
   handler: async (ctx, { code }): Promise<PlayerPositions> => {
     await adminOf(ctx);
-    return positionsFrom((await findRow(ctx, code)) ?? EMPTY_ROW, await currentApproveMode(ctx));
+    return positionsFrom((await findRow(ctx, code)) ?? EMPTY_ROW, await howPositionsCount(ctx));
   },
 });
 
-/** His positions now, from his row and the approve mode. */
-function positionsFrom(row: RowFields, approveMode: ApproveMode): PlayerPositions {
+/** His positions now, from his row and how positions count. */
+function positionsFrom(row: RowFields, how: HowPositionsCount): PlayerPositions {
   return positionsOf({
     starts: row.starts,
     plLabel: row.plLabel ?? null,
     admin: { approved: row.approved, confirmedLabel: row.confirmedLabel ?? null, set: row.set, removed: row.removed },
-    approveMode,
+    ...how,
   });
 }
 
@@ -91,60 +89,65 @@ export const removePosition = mutation({
   },
 });
 
-/** Whether positions from starts wait for his approval or count at once (spec/06). */
-export const setApproveMode = mutation({
-  args: { approveMode },
-  returns: v.null(),
-  handler: async (ctx, { approveMode: mode }) => {
-    await adminOf(ctx);
-    const settings = await ctx.db.query("positionSettings").unique();
-    if (settings === null) await ctx.db.insert("positionSettings", { approveMode: mode });
-    else await ctx.db.patch("positionSettings", settings._id, { approveMode: mode });
-    return null;
-  },
-});
-
 /** A player as the dashboard names him (spec/06): his full name for the links it gives. */
 const queuedPlayer = { code: v.number(), name: v.string(), fullName: v.string(), clubCode: v.number() };
 
 const positionsQueue = v.object({
   newSignings: v.array(v.object({ ...queuedPlayer, label: v.string() })),
   waiting: v.array(v.object({ ...queuedPlayer, proposals: v.array(position) })),
+  /** Positions from starts a run elsewhere has flagged, then removed (spec/06, When positions change). */
+  flagged: v.array(v.object({ ...queuedPlayer, position, startsElsewhere: v.number() })),
+  removed: v.array(v.object({ ...queuedPlayer, position })),
   /** The clubs, by name, for approving one whole. */
   clubs: v.array(v.object({ code: v.number(), name: v.string() })),
   approveMode,
+  thresholds: v.object({ flagAfter: v.number(), removeAfter: v.number() }),
 });
 export type PositionsQueue = Infer<typeof positionsQueue>;
 
 /** The admin's queue (spec/06; spec/15): new signings, whose starts give no position yet (fewer than
- *  3 at a place) and who play on their label until he confirms it, and the men whose starts give
- *  positions waiting for his approval. By name. It reads every row: one cut short would lose the
+ *  3 at a place) and who play on their label until he confirms it, the men whose starts give
+ *  positions waiting for his approval, and positions flagged or removed. By name. It reads every row: one cut short would lose the
  *  newest, who are the new signings. */
 export const queue = query({
   args: {},
   returns: positionsQueue,
   handler: async (ctx) => {
     await adminOf(ctx);
-    const approveMode = await currentApproveMode(ctx);
+    const how = await howPositionsCount(ctx);
     const newSignings = [];
     const waiting = [];
+    const flagged = [];
+    const removed = [];
     for await (const row of ctx.db.query("playerPositions")) {
       const player = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", row.code)).unique();
       if (player === null || player.droppedAt !== undefined) continue;
-      const { proposals } = positionsFrom(row, approveMode);
+      const now = positionsFrom(row, how);
       const who = { code: row.code, name: player.name, fullName: player.fullName, clubCode: player.clubCode };
       const onLabel = positionsFromStarts(row.starts).positions.length === 0;
       if (onLabel && row.plLabel !== undefined && row.confirmedLabel !== row.plLabel) {
         newSignings.push({ ...who, label: row.plLabel });
       }
-      if (proposals.length > 0) waiting.push({ ...who, proposals });
+      if (now.proposals.length > 0) waiting.push({ ...who, proposals: now.proposals });
+      for (const { position: held, flaggedElsewhere } of now.positions) {
+        if (flaggedElsewhere !== null) flagged.push({ ...who, position: held, startsElsewhere: flaggedElsewhere });
+      }
+      for (const lost of now.removed) removed.push({ ...who, position: lost });
     }
     const byName = (one: { name: string }, other: { name: string }) => one.name.localeCompare(other.name);
     const clubs = (await heldClubs(ctx))
       .filter((club) => club.droppedAt === undefined)
       .map(({ code, name }) => ({ code, name }))
       .sort(byName);
-    return { newSignings: newSignings.sort(byName), waiting: waiting.sort(byName), clubs, approveMode };
+    return {
+      newSignings: newSignings.sort(byName),
+      waiting: waiting.sort(byName),
+      flagged: flagged.sort(byName),
+      removed: removed.sort(byName),
+      clubs,
+      approveMode: how.approveMode,
+      thresholds: how.thresholds,
+    };
   },
 });
 
@@ -152,6 +155,7 @@ const heldPosition = v.object({
   position,
   source: v.union(v.literal("starts"), v.literal("label"), v.literal("admin")),
   confirmed: v.boolean(),
+  flaggedElsewhere: v.union(v.number(), v.null()),
 });
 const foundPlayer = v.object({ ...queuedPlayer, positions: v.array(heldPosition) });
 export type FoundPlayerPositions = Infer<typeof foundPlayer>;
@@ -164,7 +168,7 @@ export const find = query({
   handler: async (ctx, { text }) => {
     await adminOf(ctx);
     if (!text.trim()) return [];
-    const approveMode = await currentApproveMode(ctx);
+    const how = await howPositionsCount(ctx);
     const found = await playersNamed(ctx, text);
     return Promise.all(
       found.map(async (player) => ({
@@ -172,7 +176,7 @@ export const find = query({
         name: player.name,
         fullName: player.fullName,
         clubCode: player.clubCode,
-        positions: positionsFrom((await findRow(ctx, player.code)) ?? EMPTY_ROW, approveMode).positions,
+        positions: positionsFrom((await findRow(ctx, player.code)) ?? EMPTY_ROW, how).positions,
       })),
     );
   },
@@ -188,10 +192,6 @@ export async function heldRow(ctx: MutationCtx, code: number): Promise<Row> {
 
 function findRow(ctx: QueryCtx, code: number): Promise<Row | null> {
   return ctx.db.query("playerPositions").withIndex("by_code", (q) => q.eq("code", code)).unique();
-}
-
-async function currentApproveMode(ctx: QueryCtx): Promise<ApproveMode> {
-  return (await ctx.db.query("positionSettings").unique())?.approveMode ?? FIRST_APPROVE_MODE;
 }
 
 /** Adds what his starts give him now to what the admin approved before, and confirms his label. */

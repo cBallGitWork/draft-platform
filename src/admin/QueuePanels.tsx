@@ -3,6 +3,13 @@ import type { PanelProps } from "./panelProps";
 import {
   approveLabel,
   approveWords,
+  changesHint,
+  changesTitle,
+  flaggedTitle,
+  flaggedWords,
+  noChangesWords,
+  removedTitle,
+  removedWords,
   confirmLabel,
   confirmWords,
   labelWords,
@@ -16,8 +23,8 @@ import {
   waitingTitle,
 } from "./words";
 
-// The admin's queue (spec/06, The admin oversees them): new signings on their label, and starts
-// waiting for his approval.
+// The admin's queue (spec/06, The admin oversees them): new signings on their label, starts
+// waiting for his approval, and positions flagged or removed.
 
 /** Where to read up on him: a search on each site, opened apart from the app. */
 function ReadingLinks({ fullName }: { fullName: string }) {
@@ -95,3 +102,35 @@ export function Waiting({ queue, seam, change }: PanelProps) {
   );
 }
 
+/** Positions from starts a run elsewhere has flagged, which need him (he can set one to keep it),
+ *  and those it has removed (spec/06, When positions change). */
+export function PositionChanges({ queue }: Pick<PanelProps, "queue">) {
+  const { flagged, removed } = queue;
+  return (
+    <section aria-labelledby="changes-title" className="bg-panel">
+      <PanelTitle id="changes-title">{changesTitle}</PanelTitle>
+      <p className="px-3 py-2 text-muted">{changesHint(queue.thresholds)}</p>
+      {flagged.length === 0 && removed.length === 0 && <p className="px-3 pb-2 text-muted">{noChangesWords}</p>}
+      {flagged.length > 0 && (
+        <ul aria-label={flaggedTitle} className="border-t border-panel-rule">
+          {flagged.map((each) => (
+            <li key={`${each.code}-${each.position}`} className="flex flex-col border-b border-panel-rule px-3 py-1">
+              <span className="font-semibold">{each.fullName}</span>
+              <span className="text-event">{flaggedWords(each.position, each.startsElsewhere)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {removed.length > 0 && (
+        <ul aria-label={removedTitle} className="border-t border-panel-rule text-muted">
+          {removed.map((each) => (
+            <li key={`${each.code}-${each.position}`} className="flex flex-col border-b border-panel-rule px-3 py-1">
+              <span>{each.fullName}</span>
+              <span>{removedWords(each.position)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}

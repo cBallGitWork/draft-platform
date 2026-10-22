@@ -8,7 +8,7 @@ import { afterEach, expect, test, vi } from "vitest";
 import { useLiveAdmin } from "../../../src/admin/liveAdmin";
 import { changeFailedWords } from "../../../src/admin/words";
 
-const convex = vi.hoisted(() => ({ find: vi.fn(), setPosition: vi.fn(), approvePlayer: vi.fn(), approveClub: vi.fn() }));
+const convex = vi.hoisted(() => ({ find: vi.fn(), setPosition: vi.fn(), approvePlayer: vi.fn(), approveClub: vi.fn(), setChangeThresholds: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
     queries: { "positions/playerPositions:find": convex.find },
@@ -17,7 +17,8 @@ vi.mock("convex/react", async () =>
       "positions/playerPositions:approveClub": convex.approveClub,
       "positions/playerPositions:setPosition": convex.setPosition,
       "positions/playerPositions:removePosition": vi.fn(),
-      "positions/playerPositions:setApproveMode": vi.fn(),
+      "positions/positionSettings:setApproveMode": vi.fn(),
+      "positions/positionSettings:setChangeThresholds": convex.setChangeThresholds,
     },
   }),
 );
@@ -42,6 +43,12 @@ test("a change positions/playerPositions:setPosition makes resolves with no prob
   convex.setPosition.mockResolvedValue(null);
   expect(await seam().setPosition(3, "SS")).toBeNull();
   expect(convex.setPosition).toHaveBeenCalledWith({ code: 3, position: "SS" });
+});
+
+test("new thresholds go to positions/positionSettings:setChangeThresholds", async () => {
+  convex.setChangeThresholds.mockResolvedValue(null);
+  expect(await seam().setChangeThresholds({ flagAfter: 2, removeAfter: 5 })).toBeNull();
+  expect(convex.setChangeThresholds).toHaveBeenCalledWith({ flagAfter: 2, removeAfter: 5 });
 });
 
 test("a change the server refuses resolves with the server's own words", async () => {

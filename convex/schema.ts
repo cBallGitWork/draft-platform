@@ -259,8 +259,14 @@ export const playerPositionFields = {
 
 export const approveMode = v.union(v.literal("proposals"), v.literal("countAtOnce"));
 
-/** How positions from starts count: a single row, absent until the admin first sets it. */
-export const positionSettingsFields = { approveMode };
+/** How positions from starts count, and change: a single row, absent until the admin first sets
+ *  one. A threshold is absent until he tunes it (`FIRST_THRESHOLDS` in positionChanges.ts). */
+export const positionSettingsFields = {
+  approveMode,
+  /** Starts in a row elsewhere that flag a position from starts, then remove it (spec/06). */
+  flagAfter: v.optional(v.number()),
+  removeAfter: v.optional(v.number()),
+};
 
 // One row per run of positionsSync.run, so a failed read is on record, never silent.
 export const positionsSyncFields = {

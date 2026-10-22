@@ -1,6 +1,7 @@
 // What the admin's dashboard says, in one place for Craig to change in the pull request. Why the
 // server refused a change reaches the screen as is.
 
+import type { ChangeThresholds } from "../../convex/positions/positionChanges";
 import type { ApproveMode, PositionSource } from "../../convex/positions/positions";
 import { failedWords } from "../words";
 
@@ -23,6 +24,18 @@ export const proposalsWords = (positions: readonly string[]) => `From his starts
 export const approveWords = "Approve";
 export const approveLabel = (name: string) => `Approve ${name}'s starts`;
 
+/** What flags a position, then removes it (spec/06, When positions change). */
+const IN_A_ROW_ELSEWHERE = "starts in a row elsewhere";
+
+export const changesTitle = "Position changes";
+export const changesHint = ({ flagAfter, removeAfter }: ChangeThresholds) =>
+  `A position from his starts is flagged after ${flagAfter} starts in a row somewhere else, and removed after ${removeAfter}, judged between gameweeks. Set one on him to keep it.`;
+export const noChangesWords = "No position is flagged or removed.";
+export const flaggedTitle = "Flagged";
+export const flaggedWords = (position: string, startsElsewhere: number) => `${position}: ${startsElsewhere} ${IN_A_ROW_ELSEWHERE}`;
+export const removedTitle = "Removed";
+export const removedWords = (position: string) => `${position} removed`;
+
 export const clubTitle = "Approve a whole club";
 export const clubLabel = "Club";
 export const approveClubWords = "Approve the club";
@@ -37,10 +50,16 @@ export const switchModeWords: Record<ApproveMode, string> = {
   countAtOnce: "Let them count at once",
 };
 
+export const thresholdsTitle = "When positions change";
+export const flagAfterLabel = `Flag after this many ${IN_A_ROW_ELSEWHERE}`;
+export const removeAfterLabel = `Remove after this many ${IN_A_ROW_ELSEWHERE}`;
+export const saveThresholdsWords = "Save";
+
 export const findHint = "Set or remove any player's positions. What you set stays until you remove it, and a position you remove stays off.";
 export const noPositionsWords = "No positions yet.";
 export const sourceWords: Record<PositionSource, string> = { starts: "from his starts", label: "from his label", admin: "set by you" };
 export const unconfirmedWords = "unconfirmed";
+export const flaggedPositionWords = (startsElsewhere: number) => `flagged: ${startsElsewhere} ${IN_A_ROW_ELSEWHERE}`;
 export const removeLabel = (position: string, name: string) => `Remove ${position} from ${name}`;
 export const setLabel = (name: string) => `Position to give ${name}`;
 export const setWords = "Set";
