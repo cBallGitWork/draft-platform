@@ -4,23 +4,19 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { GAMEWEEKS_TITLE } from "../../../src/gameweeks/words";
 import { invitesTitle } from "../../../src/joining/words";
-import type { Session } from "../../../src/auth";
-import { adminSeeing, league, managerIn, openApp } from "../../support/src/shell.harness";
+import { SQUADS_TITLE } from "../../../src/squads/words";
+import { adminSeeing, beingDeleted, commissioned, deleterOf, league, managerIn, openApp } from "../../support/src/shell.harness";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { confirmDelete, unemailed, unsentLinkWords } from "../../../src/leagues/words";
 
-const commissioned: LeagueSummary = { ...league, roles: ["commissioner", "manager"] };
-const deletesAt = Date.parse("2026-10-21T09:00:00Z");
-const beingDeletedLeague: LeagueSummary = {
-  ...commissioned,
-  deletion: { deletesAt, unemailed: [{ email: "ann@example.com", reason: "paused" }] },
-};
-
-/** Whoever deleted it, as signIn/account:signedInAs has them: it's theirs to see, and they're in no league. */
-const deleter: Session = { ...managerIn(beingDeletedLeague), inLeague: false, currentLeagueId: null };
+const deleter = deleterOf(
+  beingDeleted(commissioned, {
+    deletesAt: Date.parse("2026-10-21T09:00:00Z"),
+    unemailed: [{ email: "ann@example.com", reason: "paused" }],
+  }),
+);
 
 const deleteButton = () => screen.queryByRole("button", { name: "Delete league" });
 const deleteButtonShown = () => screen.findByRole("button", { name: "Delete league" });
@@ -84,9 +80,10 @@ describe("a league being deleted", () => {
     expect(await screen.findByText(/goes for good on Wednesday 21 October at 10:00 BST\./)).toBeTruthy();
     expect(screen.getByText(unemailed("ann@example.com", unsentLinkWords.paused))).toBeTruthy();
     expect(deleteButton()).toBeNull();
-    // Frozen, it offers nothing to change: no gameweeks, no invites.
+    // Frozen, it offers nothing to change: no gameweeks, no invites, no squads.
     expect(screen.queryByRole("link", { name: GAMEWEEKS_TITLE })).toBeNull();
     expect(screen.queryByRole("link", { name: invitesTitle })).toBeNull();
+    expect(screen.queryByRole("link", { name: SQUADS_TITLE })).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: "Undo" }));
     expect(app.leagues.undoDeletion).toHaveBeenCalledExactlyOnceWith(league.leagueId);
   });

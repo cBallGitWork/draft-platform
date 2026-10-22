@@ -43,6 +43,8 @@ export const managerIn = (...leagues: LeagueSummary[]) =>
 export const manager = managerIn(league);
 /** The commissioner of `league`, running no team in it. */
 export const commissioner = managerIn({ ...league, roles: ["commissioner"], teamName: null });
+/** `league` as `manager` sees it when they run it as well as Team 1. */
+export const commissioned: LeagueSummary = { ...league, roles: ["commissioner", "manager"] };
 export const newcomer: Session = { ...signedIn, inLeague: false, leagues: [], currentLeagueId: null };
 /** The admin, seeing every league, with no part in any. */
 export const adminSeeing = (...leagues: LeagueSummary[]) =>
@@ -55,6 +57,21 @@ export const adminSeeing = (...leagues: LeagueSummary[]) =>
     currentLeagueId: null,
   }) satisfies Session;
 export const admin = adminSeeing();
+
+type Deletion = NonNullable<LeagueSummary["deletion"]>;
+/** `summary`'s league being deleted (spec/13, Deleting): frozen until `deletesAt`, with `unemailed`
+ *  not told. */
+export const beingDeleted = (
+  summary: LeagueSummary,
+  { deletesAt = Date.parse("2026-10-22T09:00:00Z"), unemailed = [] }: Partial<Deletion> = {},
+): LeagueSummary => ({ ...summary, deletion: { deletesAt, unemailed } });
+/** Whoever is deleting `summary`'s league, as signIn/account:signedInAs has them: it's theirs to
+ *  see, and they're in no league. */
+export const deleterOf = (summary: LeagueSummary): Session => ({
+  ...managerIn(summary),
+  inLeague: false,
+  currentLeagueId: null,
+});
 
 export const LINK_REPLY = "Check your email.";
 

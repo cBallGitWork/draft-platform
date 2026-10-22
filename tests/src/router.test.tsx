@@ -4,22 +4,14 @@
 
 import { cleanup, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../../src/auth";
 import { gameweeksPath } from "../../src/gameweeks/paths";
 import { invitesPath } from "../../src/joining/paths";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../src/leagues/paths";
 import { squadsPath } from "../../src/squads/paths";
-import { adminSeeing, league, manager, managerIn, openApp } from "../support/src/shell.harness";
+import { adminSeeing, beingDeleted, commissioned, deleterOf, league, manager, openApp } from "../support/src/shell.harness";
 
-const beingDeleted: LeagueSummary = {
-  ...league,
-  roles: ["commissioner", "manager"],
-  deletion: { deletesAt: Date.parse("2026-10-22T09:00:00Z"), unemailed: [] },
-};
-
-/** Its commissioner, as signIn/account:signedInAs has them: it's theirs to see, and they're in no league. */
-const deleter: Session = { ...managerIn(beingDeleted), inLeague: false, currentLeagueId: null };
+const deleting = beingDeleted(commissioned);
 
 const pagesOf = (leagueId: string) => [squadsPath(leagueId), gameweeksPath(leagueId), invitesPath(leagueId)];
 
@@ -36,10 +28,10 @@ async function expectEachSentToLeagues(pages: string[], session: Session) {
 
 describe("a league being deleted", () => {
   it.each([
-    ["its commissioner", deleter],
-    ["the admin", adminSeeing({ ...beingDeleted, roles: [], teamName: null })],
+    ["its commissioner", deleterOf(deleting)],
+    ["the admin", adminSeeing({ ...deleting, roles: [], teamName: null })],
   ])("sends %s opening its squads, gameweeks or invites back to Your leagues", async (_, session) => {
-    await expectEachSentToLeagues(pagesOf(beingDeleted.leagueId), session);
+    await expectEachSentToLeagues(pagesOf(deleting.leagueId), session);
   });
 });
 

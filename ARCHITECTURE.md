@@ -68,7 +68,7 @@ The steps (push the action to the dev deployment, run it twice, how to read what
 |---|---|---|
 | App | a Vite single-page React app with TanStack Router | Convex's main path, and the only setup its own sign-in officially supports; typed routes for filter-heavy tables; server rendering buys little where everyone is signed in and every screen is live. TanStack Start uses the same router if that changes |
 | Sign-in | Convex Auth (`@convex-dev/auth`) magic links, with Auth.js's Resend provider (`@auth/core`, its required peer); the email is sent with one `fetch` to Resend's API, no Resend package | the backend's own; beta, so read its current docs first. The hourly and daily limits are counted in our own tables (`convex/signIn/signInLinks.ts`), not `@convex-dev/rate-limiter`: a Convex mutation is one transaction, so the count can't race, and it's one component less to install |
-| Components | shadcn/ui on Base UI, added with the first component that needs Base UI's behaviour (a menu, a dialog); the shell needs none | the code is copied into the repo, so it is ours to restyle |
+| Components | shadcn/ui on Base UI, added with the first component that needs Base UI's behaviour (a dialog, or a true ARIA menu with arrow-key roving focus); a disclosure list like the league switcher (`src/frame/LeagueSwitcher.tsx`) is hand-built and needs none | the code is copied into the repo, so it is ours to restyle |
 | Styling | Tailwind 4 with our own design values | the defaults are the generic AI look Craig wants to get far from |
 | Typeface | Archivo Narrow from Fontsource | plate.md's one face, served with the app: no call to Google from the sign-in page, and screenshots don't wait on a font server |
 | Tables | TanStack Table and TanStack Virtual | unstyled, so they take Championship Manager density; v9 is newer than Claude's knowledge, so read its docs first |
@@ -158,8 +158,8 @@ meant to land with the first code; the ones still open are tracked in issues, li
 
 - [x] **Stop gate**: a session can't finish while the tests fail. `.claude/hooks/gate_on_stop.py`
       runs on Stop and SubagentStop; while the watched paths have uncommitted changes it runs
-      `npm run verify`, and on a failure blocks the stop once. A `/verify` skill runs every gate
-      and reports the count (epl-draft's).
+      `npm run verify`, and on a failure blocks the stop once. A `/verify` skill runs the local
+      gate and reports the count (epl-draft's; [what it runs](.claude/skills/verify/SKILL.md)).
 - [x] **Line ceiling**: a note when a file passes 250 and 300 lines (epl-draft's
       `.claude/hooks/line_ceiling.sh`, landed as `line_ceiling.py`).
 - [x] **UI rules by path**: `docs/design/plate.md`'s "Never" list in `.claude/rules/` so it loads
@@ -173,6 +173,16 @@ meant to land with the first code; the ones still open are tracked in issues, li
       blocks or merges. Its permissions: read the code, write pull request and issue comments,
       and an id token for the app. It needs the Claude GitHub app and a `CLAUDE_CODE_OAUTH_TOKEN`
       secret from Craig (`claude setup-token`). The gate alone already runs there (Services, above).
+      Lessons to build it to:
+      - It never runs only on a mention: a reviewer that waited for one was skipped on every run.
+      - It skips draft pull requests and comments from bots.
+      - One review per pull request at a time (concurrency group `review-<PR>`, no cancelling).
+      - The action restores `.claude/` from the base branch, so the pull request that adds the
+        reviewer reads its agent from `.claude-pr/agents/pr-reviewer.md`.
+      - Its comment never contains "@claude".
+      - Its read-only tools are listed one by one, and on a failure it prints the commands it was
+        refused.
+      - With no `CLAUDE_CODE_OAUTH_TOKEN` it posts a notice and passes rather than fails.
 - [x] **`env.example`** from the services above.
 - [x] **One-command start**: clone, fill the env, run one command; docs/setup.md says how
       (`docs/PHILOSOPHY.md`, *Knowledge Is Shared*).
