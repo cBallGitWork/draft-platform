@@ -82,6 +82,9 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
   points limits, the minutes and stacking sit behind checkboxes. Its look is two panes, picked
   from three mock-ups (Craig, 22 Oct 2026): the categories down the left, the chosen one on the
   right (#30).
+- Two people editing the rules at once: the second save warns rather than silently replacing the
+  first (Craig, 22 Oct 2026). It is refused, naming who saved and when; their edits stay on
+  screen, with the latest rules offered in their place.
 
 ## On screen
 

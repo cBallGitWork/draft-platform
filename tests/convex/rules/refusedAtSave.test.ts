@@ -5,7 +5,7 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { LEAGUE_NAME_MAX, MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { expectRefused, rulesWith } from "../../support/convex/leagueRules.harness";
+import { expectRefused, rulesRevision, rulesWith } from "../../support/convex/leagueRules.harness";
 import { ADMIN, actingAs, adminCreatesLeague, COMMISSIONER, leagueRow, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -21,7 +21,7 @@ beforeEach(async () => {
 });
 
 const change = async (leagueId: Id<"leagues">, rules: LeagueRules) =>
-  (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules });
+  (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules, revision: await rulesRevision(t, leagueId) });
 const latestRules = async (leagueId: Id<"leagues">) =>
   (await (await actingAs(t, COMMISSIONER)).query(api.rules.leagueRules.latest, { leagueId }))?.rules;
 const setMaxTeams = async (leagueId: Id<"leagues">, maxTeams: number) =>
@@ -97,7 +97,7 @@ test("an own stat named as a catalogue stat is, case aside, is refused from the 
   };
 
   await expectRefused(
-    (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.changeScoring, { leagueId, scoring }),
+    (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.changeScoring, { leagueId, scoring, revision: await rulesRevision(t, leagueId) }),
     'The scoring set can\'t be saved: the own stat own_assists has the name "assists", which the catalogue\'s Assists has.',
   );
 });
