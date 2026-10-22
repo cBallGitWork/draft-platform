@@ -33,6 +33,8 @@ let start: number;
 /** A gameweek's deadline under the first rules, 90 minutes before its one match: a week apart,
  *  from the clock's start, however the clock moves. FPL's is held at the same time, as feed data. */
 const deadlineOf = (gameweek: number) => start + (gameweek - NEXT) * WEEK_MS + HOUR_MS;
+/** A deadline earlier than the first rules', in minutes before the first kickoff. */
+const THREE_HOURS = 180;
 const kickoffOf = (gameweek: number) => deadlineOf(gameweek) + FIRST_RULES.deadline.minutesBeforeFirstKickoff * MINUTE_MS;
 beforeEach(async () => {
   t = await signInDeployment();
@@ -150,9 +152,9 @@ describe("the league's own deadline decides, never FPL's (Craig: \"ours, we aren
 
   test("a league deadline earlier than FPL's: the gameweek has begun while FPL's is still ahead", async () => {
     await holdGameweeks();
-    await giveDeadlineRule(t, leagueId, 180);
+    await giveDeadlineRule(t, leagueId, THREE_HOURS);
 
-    expect(await deadlineShown(NEXT)).toBe(kickoffOf(NEXT) - 3 * HOUR_MS);
+    expect(await deadlineShown(NEXT)).toBe(kickoffOf(NEXT) - THREE_HOURS * MINUTE_MS);
     expect(Date.now()).toBeLessThan(deadlineOf(NEXT));
     await expect(setUsed(COMMISSIONER, NEXT, false)).rejects.toThrow(gameweekRefusals.begun(NEXT));
   });
@@ -180,10 +182,10 @@ describe("the league's own deadline decides, never FPL's (Craig: \"ours, we aren
 
   test("each gameweek's deadline is under the rule in force in it", async () => {
     await holdGameweeks();
-    await giveDeadlineRule(t, leagueId, 180, 20);
+    await giveDeadlineRule(t, leagueId, THREE_HOURS, 20);
 
     expect(await deadlineShown(19)).toBe(deadlineOf(19));
-    expect(await deadlineShown(20)).toBe(kickoffOf(20) - 3 * HOUR_MS);
+    expect(await deadlineShown(20)).toBe(kickoffOf(20) - THREE_HOURS * MINUTE_MS);
   });
 });
 

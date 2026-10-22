@@ -20,6 +20,8 @@ const payloads = recordedSeason();
 const kickoffsOf = (gameweek: number) =>
   payloads.fixtures.flatMap((fixture) => (fixture.event === gameweek && fixture.kickoff_time !== null ? [Date.parse(fixture.kickoff_time)] : [])).toSorted((a, b) => a - b);
 const [OPENER, SECOND] = kickoffsOf(GAMEWEEK);
+/** A deadline earlier than the first rules', in minutes before the first kickoff. */
+const THREE_HOURS = 180;
 /** The first rules' deadline, before a kickoff. */
 const deadlineBefore = (kickoff: number) => kickoff - FIRST_RULES.deadline.minutesBeforeFirstKickoff * MINUTE_MS;
 
@@ -52,7 +54,7 @@ describe("recording", () => {
   test("records each league's deadline once it has passed, under its own rule, and not before", async () => {
     fakeResend();
     const other = await adminCreatesLeague(t, 4, "Other");
-    await giveDeadlineRule(t, other, 180);
+    await giveDeadlineRule(t, other, THREE_HOURS);
     vi.setSystemTime(deadlineBefore(OPENER) - 1);
     await recordPassed();
     const before = await passedRows();
@@ -64,7 +66,7 @@ describe("recording", () => {
     expect(before.some((row) => row.leagueId === leagueId && row.gameweek === GAMEWEEK)).toBe(false);
     expect(before.some((row) => row.leagueId === other && row.gameweek === GAMEWEEK)).toBe(true);
     expect(gameweek8.map(({ leagueId, deadline }) => ({ leagueId, deadline })).toSorted((a, b) => a.deadline - b.deadline)).toEqual([
-      { leagueId: other, deadline: OPENER - 3 * HOUR_MS },
+      { leagueId: other, deadline: OPENER - THREE_HOURS * MINUTE_MS },
       { leagueId, deadline: deadlineBefore(OPENER) },
     ]);
   });
