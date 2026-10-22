@@ -168,7 +168,7 @@ meant to land with the first code; the ones still open are tracked in issues, li
       blocks or merges. Its permissions: read the code, write pull request and issue comments,
       and an id token for the app. It needs the Claude GitHub app and a `CLAUDE_CODE_OAUTH_TOKEN`
       secret from Craig (`claude setup-token`). The gate alone already runs there (Services, above).
-      Lessons it is built to:
+      Lessons to build it to:
       - It never runs only on a mention: a reviewer that waited for one was skipped on every run.
       - It skips draft pull requests and comments from bots.
       - One review per pull request at a time (concurrency group `review-<PR>`, no cancelling).
