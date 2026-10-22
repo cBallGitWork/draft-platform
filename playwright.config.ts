@@ -3,14 +3,13 @@
 // production build, where they must not (src/preview.ts). Each project runs the tests tagged with
 // its name. VITE_CONVEX_URL is blanked for both, so a checkout's .env.local can't point either at
 // a real deployment.
-// The ports are this checkout's own (scripts/port.mjs), so worktrees can run it side by side; the
-// bundle's sits one range above every checkout's dev port.
+// The ports are this checkout's own (smokePorts in scripts/port.mjs), so worktrees can run it side
+// by side, clear of every checkout's app server.
 
 import { defineConfig } from "@playwright/test";
-import { appPort } from "./scripts/port.mjs";
+import { smokePorts } from "./scripts/port.mjs";
 
-const DEV_PORT = appPort();
-const BUNDLE_PORT = DEV_PORT + 700;
+const { dev: DEV_PORT, bundle: BUNDLE_PORT } = smokePorts();
 const DEV_URL = `http://localhost:${DEV_PORT}`;
 const BUNDLE_URL = `http://localhost:${BUNDLE_PORT}`;
 const NO_CONVEX = { VITE_CONVEX_URL: "" };
