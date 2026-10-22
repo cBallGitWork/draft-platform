@@ -19,7 +19,7 @@ export function useLiveMail(): { mail: Mail; topBar: TopBarState } {
 
   const mail = useMemo<Mail>(
     () => ({
-      letters: letters ?? null,
+      letters,
       open: async (letterId) => {
         try {
           await open({ letterId });

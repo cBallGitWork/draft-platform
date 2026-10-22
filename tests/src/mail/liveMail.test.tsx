@@ -52,7 +52,7 @@ test("with nothing unread, or the count still loading, there is no count and not
 
 test("signed out, Mail isn't asked for", () => {
   convex.signedIn = false;
-  expect(live().mail.letters).toBeNull();
+  expect(live().mail.letters).toBeUndefined();
   expect(convex.queried).toEqual(["skip", "skip"]);
 });
 
