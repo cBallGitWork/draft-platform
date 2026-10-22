@@ -58,11 +58,14 @@ export function LiveApp({ linkCode }: { linkCode: string | null }) {
   );
 }
 
+/** The thrown value is wrapped, as it can itself be null. */
+type ShellFailedState = { failed: { error: unknown } | null };
+
 /** What the app shows when something above the router threw, such as a query the top bar reads:
  *  what ErrorScreen.tsx says, and a reload, as the router's way back isn't there. React logs the
  *  error itself (its onCaughtError). */
-class ShellFailed extends Component<{ children: ReactNode }, { failed: { error: unknown } | null }> {
-  state: { failed: { error: unknown } | null } = { failed: null };
+class ShellFailed extends Component<{ children: ReactNode }, ShellFailedState> {
+  state: ShellFailedState = { failed: null };
 
   static getDerivedStateFromError(error: unknown) {
     return { failed: { error } };

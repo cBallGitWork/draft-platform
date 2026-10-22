@@ -42,6 +42,15 @@ vi.mock("@convex-dev/auth/react", () => ({
 
 window.scrollTo = () => {};
 
+/** A signed-in manager's account before joining any league. */
+const inNoLeague: NonNullable<typeof convex.account> = {
+  email: "manager@example.com",
+  isAdmin: false,
+  inLeague: false,
+  leagues: [],
+  currentLeagueId: null,
+};
+
 beforeEach(() => {
   vi.stubEnv("VITE_CONVEX_URL", "https://deployment.example.com");
   convex.auth = { isLoading: false, isAuthenticated: false };
@@ -113,7 +122,7 @@ test("a link that can't be checked says so, and the error is logged", async () =
 
 test("signed in, in no league, the app opens on the leagues page", async () => {
   convex.auth = { isLoading: false, isAuthenticated: true };
-  convex.account = { email: "manager@example.com", isAdmin: false, inLeague: false, leagues: [], currentLeagueId: null };
+  convex.account = inNoLeague;
 
   openAt("/");
 
@@ -126,7 +135,7 @@ test.each([
   ["the server's words for a refusal", new ConvexError("You're not in this league."), "You're not in this league."],
 ])("a query failing above the pages shows %s and a reload, not an empty page", async (_, error, words) => {
   convex.auth = { isLoading: false, isAuthenticated: true };
-  convex.account = { email: "manager@example.com", isAdmin: false, inLeague: false, leagues: [], currentLeagueId: null };
+  convex.account = inNoLeague;
   convex.unreadFails = error;
   silenceConsoleError();
 
