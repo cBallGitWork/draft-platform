@@ -8,6 +8,8 @@ The look's exact values are in [docs/design/plate.md](../docs/design/plate.md).
 - Desk designed first; the phone is a second design of the same data.
 - Dark only.
 - Navigation follows modern design standards: a top menu, with a second row of tabs under it.
+- The site's wording is plain, not jokey banter: a feature is named for what it does, never a
+  joke name like "Fergie time" (22 Oct 2026).
 - A signed-in manager lands on **My team**. Mail shows an unread count in the menu.
 - **Continue**, the top bar's button, takes the manager to the next thing that needs him: an
   unread letter, a lineup before the deadline, a trade offer, or "nothing to do".
