@@ -10,7 +10,7 @@ import { invitesPath } from "../../src/joining/paths";
 import { LEAGUES_PATH } from "../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../src/leagues/words";
 import { squadsPath } from "../../src/squads/paths";
-import { adminSeeing, beingDeleted, commissioned, deleterOf, league, manager, openApp } from "../support/src/shell.harness";
+import { adminSeeing, beingDeleted, commissioned, deleterOf, league, manager, openApp, withNoPart } from "../support/src/shell.harness";
 
 const deleting = beingDeleted(commissioned);
 
@@ -30,7 +30,7 @@ async function expectEachSentToLeagues(pages: string[], session: Session) {
 describe("a league being deleted", () => {
   it.each([
     ["its commissioner", deleterOf(deleting)],
-    ["the admin", adminSeeing({ ...deleting, roles: [], teamName: null })],
+    ["the admin", adminSeeing(withNoPart(deleting))],
   ])("sends %s opening its squads, gameweeks or invites back to Your leagues", async (_, session) => {
     await expectEachSentToLeagues(pagesOf(deleting.leagueId), session);
   });

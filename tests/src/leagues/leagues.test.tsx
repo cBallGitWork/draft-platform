@@ -8,7 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel, signOutWords } from "../../../src/frame/words";
 import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
-import { admin, adminSeeing, commissioned, league, manager, managerIn, newcomer, openApp, visitor } from "../../support/src/shell.harness";
+import { admin, adminSeeing, commissioned, league, manager, managerIn, newcomer, openApp, visitor, withNoPart } from "../../support/src/shell.harness";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
 import { commissionerLine, LEAGUES_TITLE, newLeagueLabels, notInALeagueWords, unsentLink, unsentLinkWords } from "../../../src/leagues/words";
 import { signInWords } from "../../../src/sign-in/words";
@@ -52,7 +52,7 @@ describe("the admin, with no part in a league", () => {
 
   it("sees every league, as the admin where he has no other part, and a commissioner's link that didn't go", async () => {
     const unsentCommissionerLink = { email: league.commissionerEmail, reply: "paused" } as const;
-    openApp(LEAGUES_PATH, adminSeeing({ ...league, roles: [], teamName: null, unsentCommissionerLink }));
+    openApp(LEAGUES_PATH, adminSeeing({ ...withNoPart(league), unsentCommissionerLink }));
 
     const row = await rowOf(league.name);
     expect(cellsOf(row)).toEqual(["Admin", "None", "3 of 4"]);
