@@ -1,8 +1,9 @@
 """The private-word check, for guard_bash.py: denies a commit, pull request or issue that names
 a word on Craig's private list, in the command (message, body, heredoc), a body or message file
 it reads, or a commit's staged lines. The list lives outside the repo (PRIVATE_WORDS, one per
-line), so this file never names them; with no list at the default path, nothing is checked. Not
-seen: text the shell builds at run time, such as -m "$(cat file)", and branch or file names.
+line), so this file never names them. With no list at the default path (a cloud session, a fresh
+clone), nothing is checked and the guard says so in a note, never a denial, so work there goes on.
+Not seen: text the shell builds at run time, such as -m "$(cat file)", and branch or file names.
 Stdlib only, Python 3.9+.
 """
 
@@ -12,7 +13,11 @@ import os
 
 from where import git_call, git_dir, git_output, runs_at
 
-PRIVATE_WORDS = os.environ.get("DRAFT_PRIVATE_WORDS") or os.path.expanduser("~/.claude/private-words.txt")
+LIST_OVERRIDE_ENV = "DRAFT_PRIVATE_WORDS"  # names another list; the hook tests use it
+DEFAULT_LIST = "~/.claude/private-words.txt"
+PRIVATE_WORDS = os.environ.get(LIST_OVERRIDE_ENV) or os.path.expanduser(DEFAULT_LIST)
+NO_LIST = (f"No private-word list at {DEFAULT_LIST} on this machine, "
+           "so this commit/PR wasn't checked for private words.")
 GH_PUBLISHING = {("pr", "create"), ("pr", "edit"), ("pr", "comment"), ("pr", "merge"), ("pr", "review"),
                  ("issue", "create"), ("issue", "edit"), ("issue", "comment"),
                  ("release", "create"), ("release", "edit")}
@@ -26,7 +31,7 @@ def private_words():
         with open(PRIVATE_WORDS, encoding="utf-8") as f:
             return [w.strip().lower() for w in f if w.strip() and not w.startswith("#")]
     except OSError:
-        return None if os.environ.get("DRAFT_PRIVATE_WORDS") else []
+        return None if os.environ.get(LIST_OVERRIDE_ENV) else []
 
 
 def publishes(words):
@@ -56,6 +61,14 @@ def files_read(words, cwd):
 
 def added_lines(diff):
     return "\n".join(l for l in diff.splitlines() if l.startswith("+") and not l.startswith("+++"))
+
+
+def list_missing_note(cmds):
+    """A note, never a denial, when cmds publish and there is no list at the default path to check
+    them against, else None. An override that can't be read is private_word_problem's denial."""
+    if os.environ.get(LIST_OVERRIDE_ENV) or os.path.exists(PRIVATE_WORDS):
+        return None
+    return NO_LIST if any(publishes(words) for words, _ in cmds) else None
 
 
 def private_word_problem(cmd, cmds, cwd):

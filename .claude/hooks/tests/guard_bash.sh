@@ -60,6 +60,20 @@ check deny guard_bash.py "$(bash_cmd 'git commit -m "clean"')"  # an override th
 check allow guard_bash.py "$(bash_cmd 'git status')"
 export DRAFT_PRIVATE_WORDS=  # HOME is $tmp (helpers.sh), which holds no list
 check allow guard_bash.py "$(bash_cmd 'git commit -m "from acmecorp"')"  # no list at the default path, no check
+no_list="No private-word list at ~/.claude/private-words.txt"  # ...but it says so, to Craig and to Claude
+says "$no_list" guard_bash.py "$(bash_cmd 'git commit -m "clean"')"
+says '"systemMessage"' guard_bash.py "$(bash_cmd 'git commit -m "clean"')"
+says "$no_list" guard_bash.py "$(bash_in "$tmp" 'gh pr comment 3 --body "clean"')"
+long_title_edit="gh pr edit 3 --title $(printf 'x%.0s' {1..101})"  # both notes, one under the other
+says "$no_list" guard_bash.py "$(bash_in "$tmp" "$long_title_edit")"
+says 'past the soft limit' guard_bash.py "$(bash_in "$tmp" "$long_title_edit")"
+silent guard_bash.py "$(bash_cmd 'git status')"  # publishes nothing, so there is nothing to say
+# an override names the list to use, so there is no note, though there is none at the default path
+silent guard_bash.py "$(bash_cmd 'git commit -m "clean"')" DRAFT_PRIVATE_WORDS=/dev/null
+# from here on the list is at the default path, so the checks below see no note about it
+mkdir "$tmp/.claude" && printf 'acmecorp\n' > "$tmp/.claude/private-words.txt"
+silent guard_bash.py "$(bash_cmd 'git commit -m "clean"')"  # checked, nothing to say
+check deny guard_bash.py "$(bash_cmd 'git commit -m "from acmecorp"')"
 unset DRAFT_PRIVATE_WORDS
 
 # a pull request's body: the whole template with a bare Closes line and a verdict passes; a closing
