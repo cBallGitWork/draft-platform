@@ -26,12 +26,15 @@ FILE_OPTS = {"-F", "--file", "--body-file"}  # options whose value is a file the
 
 
 def private_words():
-    """The list, [] if there is none at the default path, None if an override can't be read."""
+    """The list, [] if there is none at the default path, None if one is there (or named by an
+    override) but can't be read."""
     try:
         with open(PRIVATE_WORDS, encoding="utf-8") as f:
             return [w.strip().lower() for w in f if w.strip() and not w.startswith("#")]
-    except OSError:
+    except FileNotFoundError:  # list_missing_note says so
         return None if os.environ.get(LIST_OVERRIDE_ENV) else []
+    except OSError:  # there, but a folder or unreadable: checking nothing would pass in silence
+        return None
 
 
 def publishes(words):

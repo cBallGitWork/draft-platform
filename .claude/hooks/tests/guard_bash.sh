@@ -70,8 +70,11 @@ says 'past the soft limit' guard_bash.py "$(bash_in "$tmp" "$long_title_edit")"
 silent guard_bash.py "$(bash_cmd 'git status')"  # publishes nothing, so there is nothing to say
 # an override names the list to use, so there is no note, though there is none at the default path
 silent guard_bash.py "$(bash_cmd 'git commit -m "clean"')" DRAFT_PRIVATE_WORDS=/dev/null
+mkdir -p "$tmp/.claude/private-words.txt"  # something at the default path that can't be read
+check deny guard_bash.py "$(bash_cmd 'git commit -m "clean"')"
+rmdir "$tmp/.claude/private-words.txt"
 # from here on the list is at the default path, so the checks below see no note about it
-mkdir "$tmp/.claude" && printf 'acmecorp\n' > "$tmp/.claude/private-words.txt"
+printf 'acmecorp\n' > "$tmp/.claude/private-words.txt"
 silent guard_bash.py "$(bash_cmd 'git commit -m "clean"')"  # checked, nothing to say
 check deny guard_bash.py "$(bash_cmd 'git commit -m "from acmecorp"')"
 unset DRAFT_PRIVATE_WORDS
