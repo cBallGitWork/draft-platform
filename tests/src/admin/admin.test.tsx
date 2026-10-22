@@ -10,6 +10,7 @@ import { admin, commissioner, openApp } from "../../support/src/shell.harness";
 import type { AdminData } from "../../support/src/admin.harness";
 import { EMPTY_QUEUE } from "../../support/src/admin.harness";
 import { ADMIN_PATH } from "../../../src/admin/paths";
+import { thresholdRefusals } from "../../../convex/positions/positionSettings";
 import {
   ADMIN_TITLE,
   approveLabel,
@@ -156,10 +157,9 @@ describe("settings", () => {
 
   it("shows why thresholds were refused", async () => {
     const app = openDashboard();
-    const refusal = "Remove a position after a whole number of starts, more than it takes to flag it.";
-    app.admin.setChangeThresholds.mockResolvedValueOnce(refusal);
+    app.admin.setChangeThresholds.mockResolvedValueOnce(thresholdRefusals.removeAfter);
     await userEvent.click(await screen.findByRole("button", { name: "Save" }));
-    expect((await screen.findByRole("alert")).textContent).toBe(refusal);
+    expect((await screen.findByRole("alert")).textContent).toBe(thresholdRefusals.removeAfter);
   });
 
   it("switches how starts count, to the other way", async () => {

@@ -5,25 +5,18 @@ import { describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { thresholdRefusals } from "../../../convex/positions/positionSettings";
 import type { Start } from "../../../convex/positions/positions";
+import { DAY_MS } from "../../../convex/shared/time";
 import type { Position } from "../../../convex/positions/positionTables";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, actingAs } from "../../support/convex/leagues.harness";
 import { asAdmin } from "../../support/convex/positionsSync.harness";
+import { CENTRE_BACK, movedToFullBack, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
 import { freshConvex, type TestConvex } from "../../support/convex/test.harness";
 
-const DAY = 86_400_000;
-const CENTRE_BACK = { formation: "4-2-3-1", line: 1, place: 1 };
-const RIGHT_BACK = { formation: "4-2-3-1", line: 1, place: 0 };
 const BARNES = { code: 1, name: "Barnes", fullName: "Harvey Barnes", clubCode: 4 };
 const ALLEN = { code: 2, name: "Allen", fullName: "Rob Allen", clubCode: 4 };
 const AARONS = { code: 3, name: "Aarons", fullName: "Max Aarons", clubCode: 4 };
 const BURN = { code: 4, name: "Burn", fullName: "Dan Burn", clubCode: 4 };
-
-/** Five starts at centre back on days 1 to 5, then `count` at full back from day 6, a day apart. */
-function movedToFullBack(count: number): Start[] {
-  const places = [...Array<typeof CENTRE_BACK>(5).fill(CENTRE_BACK), ...Array<typeof RIGHT_BACK>(count).fill(RIGHT_BACK)];
-  return places.map((place, index) => ({ ...place, fixtureCode: index, kickoff: (index + 1) * DAY }));
-}
 
 /** A Premier League player whose starts are `starts`, CB and FB approved unless `set` says more. */
 async function holdPlayer(t: TestConvex, player: typeof BARNES, starts: Start[], set: Position[] = []) {
@@ -133,15 +126,15 @@ describe("only between gameweeks", () => {
   /** Gameweeks whose FPL deadlines fall on days 10 and 20. */
   async function gameweeksAtDays10And20(t: TestConvex) {
     await t.run(async (ctx) => {
-      await ctx.db.insert("gameweeks", { number: 1, deadline: 10 * DAY });
-      await ctx.db.insert("gameweeks", { number: 2, deadline: 20 * DAY });
+      await ctx.db.insert("gameweeks", { number: 1, deadline: 10 * DAY_MS });
+      await ctx.db.insert("gameweeks", { number: 2, deadline: 20 * DAY_MS });
     });
   }
   const positionsSyncRanOnDay = (t: TestConvex, day: number) =>
-    t.run((ctx) => ctx.db.insert("positionsSyncs", { trigger: "manual", ranAt: day * DAY, outcome: { ok: false, error: "not read" } }));
+    t.run((ctx) => ctx.db.insert("positionsSyncs", { trigger: "manual", ranAt: day * DAY_MS, outcome: { ok: false, error: "not read" } }));
 
   /** Five at centre back to day 5, four at full back to day 9, then two more on days 11 and 12. */
-  const acrossTheDeadline = () => movedToFullBack(6).map((start, index) => (index < 9 ? start : { ...start, kickoff: start.kickoff + DAY }));
+  const acrossTheDeadline = () => [...played(...times(CENTRE_BACK, 5), ...times(RIGHT_BACK, 4)), ...startsFrom(11, ...times(RIGHT_BACK, 2))];
 
   test("a change is judged on the starts before the last deadline the newest positions sync ran after", async () => {
     const t = freshConvex();

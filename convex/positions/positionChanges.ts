@@ -4,15 +4,14 @@
 // stays until he removes it, and a label is not a start. Pure: the same starts always give the
 // same changes.
 
+import type { Infer } from "convex/values";
 import { placePosition, type Position } from "./positionTables";
 import type { Start } from "./positions";
+import type { changeThresholds } from "../schema";
 
 /** The admin's thresholds: how many of his newest starts in a row elsewhere flag a position, and
  *  how many take it away. */
-export interface ChangeThresholds {
-  flagAfter: number;
-  removeAfter: number;
-}
+export type ChangeThresholds = Infer<typeof changeThresholds>;
 
 /** Spec/06's starting point, until the admin tunes them. */
 export const FIRST_THRESHOLDS: ChangeThresholds = { flagAfter: 3, removeAfter: 6 };

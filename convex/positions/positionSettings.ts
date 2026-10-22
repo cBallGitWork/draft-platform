@@ -5,7 +5,7 @@ import { fplDeadlines } from "../gameweeks/usedGameweeks";
 import { adminOf, refuse } from "../shared/leagueAccess";
 import { FIRST_THRESHOLDS, type ChangeThresholds } from "./positionChanges";
 import { START_WINDOW, type ApproveMode, type PositionInputs } from "./positions";
-import { approveMode } from "../schema";
+import { approveMode, changeThresholds } from "../schema";
 
 // How positions from starts count and change, platform-wide (spec/06): the admin's settings, his
 // alone to change, and the gameweek boundary changes are judged at.
@@ -34,7 +34,7 @@ export const setApproveMode = mutation({
 /** How many starts in a row elsewhere flag a position from starts, and how many remove it
  *  (spec/06, When positions change). A run can't pass the starts held, so a longer one is refused. */
 export const setChangeThresholds = mutation({
-  args: { flagAfter: v.number(), removeAfter: v.number() },
+  args: changeThresholds.fields,
   returns: v.null(),
   handler: async (ctx, { flagAfter, removeAfter }) => {
     await adminOf(ctx);
@@ -65,11 +65,10 @@ function thresholdsOf(settings: Doc<"positionSettings"> | null): ChangeThreshold
   };
 }
 
-/** Positions change only between gameweeks (spec/06), so a start is judged once a gameweek
- *  deadline after it has passed: the starts before the last FPL deadline the newest positions sync
- *  ran after. Every start held was played before that run, so a run within a gameweek moves
- *  nothing. Null, judging every start, before any sync or before the season's first deadline,
- *  when all held are last season's. A query can't read the clock, so the sync's time stands in. */
+/** Positions change only between gameweeks (spec/06): the starts judged are those before the last
+ *  FPL deadline the newest positions sync ran after, so a sync within a gameweek moves nothing.
+ *  The sync's time stands in for the clock, which a query can't read. Null, judging every start,
+ *  before any sync or the season's first deadline (docs/positions.md, When positions change). */
 async function judgedBefore(ctx: QueryCtx): Promise<number | null> {
   const newestSync = await ctx.db.query("positionsSyncs").order("desc").first();
   if (newestSync === null) return null;

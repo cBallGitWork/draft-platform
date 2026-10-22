@@ -96,10 +96,10 @@ export function positionsFromStarts(starts: Start[]): { positions: Position[]; u
 export function positionsOf({ starts, plLabel, admin, approveMode, thresholds, judgedBefore }: PositionInputs): PlayerPositions {
   const fromStarts = positionsFromStarts(starts);
   const kept = fromStarts.positions.filter((position) => !admin.removed.includes(position));
-  const elsewhere = new Map(kept.map((position) => [position, startsElsewhere(starts, position, judgedBefore)]));
+  const runElsewhere = new Map(kept.map((position) => [position, startsElsewhere(starts, position, judgedBefore)]));
   const isApproved = (position: Position) => admin.approved.includes(position);
   const wouldCount = (position: Position) => approveMode === "countAtOnce" || isApproved(position);
-  const isRemoved = (position: Position) => elsewhere.get(position)! >= thresholds.removeAfter;
+  const isRemoved = (position: Position) => runElsewhere.get(position)! >= thresholds.removeAfter;
   const standing = kept.filter((position) => !isRemoved(position));
   const counted = standing.filter(wouldCount);
   const fromLabel = plLabel === null ? [] : labelPositions(plLabel);
@@ -109,7 +109,7 @@ export function positionsOf({ starts, plLabel, admin, approveMode, thresholds, j
   };
   for (const position of admin.set) hold(position, "admin", true);
   for (const position of counted) {
-    const run = elsewhere.get(position)!;
+    const run = runElsewhere.get(position)!;
     hold(position, "starts", isApproved(position), run >= thresholds.flagAfter ? run : null);
   }
   if (counted.length === 0) {

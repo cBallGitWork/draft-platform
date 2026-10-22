@@ -6,7 +6,7 @@ import { heldClubs, playersNamed } from "../shared/players";
 import { howPositionsCount, type HowPositionsCount } from "./positionSettings";
 import { positionsFromStarts, positionsOf, type PlayerPositions } from "./positions";
 import type { Position } from "./positionTables";
-import { approveMode, position } from "../schema";
+import { approveMode, changeThresholds, position } from "../schema";
 
 // Each player's positions (#22): his row holds what the feeds gave (his starts, his label) and the
 // admin's say, and `positionsOf` works his positions out from it on every read, so a change to
@@ -101,14 +101,14 @@ const positionsQueue = v.object({
   /** The clubs, by name, for approving one whole. */
   clubs: v.array(v.object({ code: v.number(), name: v.string() })),
   approveMode,
-  thresholds: v.object({ flagAfter: v.number(), removeAfter: v.number() }),
+  thresholds: changeThresholds,
 });
 export type PositionsQueue = Infer<typeof positionsQueue>;
 
 /** The admin's queue (spec/06; spec/15): new signings, whose starts give no position yet (fewer than
  *  3 at a place) and who play on their label until he confirms it, the men whose starts give
- *  positions waiting for his approval, and positions flagged or removed. By name. It reads every row: one cut short would lose the
- *  newest, who are the new signings. */
+ *  positions waiting for his approval, and positions flagged or removed. By name. It reads every
+ *  row: one cut short would lose the newest, who are the new signings. */
 export const queue = query({
   args: {},
   returns: positionsQueue,
@@ -122,17 +122,17 @@ export const queue = query({
     for await (const row of ctx.db.query("playerPositions")) {
       const player = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", row.code)).unique();
       if (player === null || player.droppedAt !== undefined) continue;
-      const now = positionsFrom(row, how);
+      const positionsNow = positionsFrom(row, how);
       const who = { code: row.code, name: player.name, fullName: player.fullName, clubCode: player.clubCode };
       const onLabel = positionsFromStarts(row.starts).positions.length === 0;
       if (onLabel && row.plLabel !== undefined && row.confirmedLabel !== row.plLabel) {
         newSignings.push({ ...who, label: row.plLabel });
       }
-      if (now.proposals.length > 0) waiting.push({ ...who, proposals: now.proposals });
-      for (const { position: held, flaggedElsewhere } of now.positions) {
+      if (positionsNow.proposals.length > 0) waiting.push({ ...who, proposals: positionsNow.proposals });
+      for (const { position: held, flaggedElsewhere } of positionsNow.positions) {
         if (flaggedElsewhere !== null) flagged.push({ ...who, position: held, startsElsewhere: flaggedElsewhere });
       }
-      for (const lost of now.removed) removed.push({ ...who, position: lost });
+      for (const lost of positionsNow.removed) removed.push({ ...who, position: lost });
     }
     const byName = (one: { name: string }, other: { name: string }) => one.name.localeCompare(other.name);
     const clubs = (await heldClubs(ctx))

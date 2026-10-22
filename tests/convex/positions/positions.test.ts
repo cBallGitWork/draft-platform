@@ -2,16 +2,23 @@ import { describe, expect, test } from "vitest";
 import { FIRST_THRESHOLDS } from "../../../convex/positions/positionChanges";
 import { NO_ADMIN, positionsOf, type AdminPositions, type PositionInputs, type Start } from "../../../convex/positions/positions";
 import type { Position } from "../../../convex/positions/positionTables";
-
-// Places of a 4-2-3-1, as its sheet draws them: line 1 is the back four, right back first.
-const RIGHT_BACK = { formation: "4-2-3-1", line: 1, place: 0 };
-const CENTRE_BACK = { formation: "4-2-3-1", line: 1, place: 1 };
-const NUMBER_TEN = { formation: "4-2-3-1", line: 3, place: 1 };
+import {
+  CENTRE_BACK,
+  HOLDING,
+  LEFT_WINGER,
+  movedToFullBack,
+  NUMBER_TEN,
+  played,
+  RIGHT_BACK,
+  startsFrom,
+  times,
+  type Place,
+} from "../../support/convex/positionStarts.harness";
 /** spec/06's window, written out rather than read from `START_WINDOW`, so changing it fails here. */
 const SPEC_WINDOW = 38;
 
 /** `count` starts at `place`: the newest kicks off at `newest`, each next one a millisecond earlier. */
-function startsAt(place: Omit<Start, "fixtureCode" | "kickoff">, count: number, newest = 1_000_000): Start[] {
+function startsAt(place: Place, count: number, newest = 1_000_000): Start[] {
   return Array.from({ length: count }, (_, index) => ({ ...place, fixtureCode: newest - index, kickoff: newest - index }));
 }
 
@@ -124,19 +131,8 @@ describe("his label", () => {
 });
 
 describe("when positions change (spec/06)", () => {
-  const LEFT_WINGER = { formation: "4-2-3-1", line: 3, place: 0 };
-  const HOLDING = { formation: "4-2-3-1", line: 2, place: 0 };
   const NO_PLACE = { formation: null, line: null, place: null };
   const UNKNOWN_PLACE = { formation: "2-3-5", line: 1, place: 0 };
-  const DAY = 86_400_000;
-
-  /** One start at each place, oldest first, a day apart. */
-  function played(...places: Omit<Start, "fixtureCode" | "kickoff">[]): Start[] {
-    return places.map((place, index) => ({ ...place, fixtureCode: index, kickoff: (index + 1) * DAY }));
-  }
-  const times = <T,>(place: T, count: number): T[] => Array(count).fill(place);
-  /** A centre back of five starts, then `count` at full back. */
-  const movedToFullBack = (count: number) => played(...times(CENTRE_BACK, 5), ...times(RIGHT_BACK, count));
   const bothApproved = { approved: ["CB", "FB"] as Position[] };
 
   /** Positions as `{position: source}`, "!n" marking one flagged after n starts elsewhere. */
@@ -164,18 +160,18 @@ describe("when positions change (spec/06)", () => {
   });
 
   test("one start back at the position ends the run, and a removed one counts again while his window holds 3 there", () => {
-    const back = [...movedToFullBack(6), ...played(CENTRE_BACK).map((start) => ({ ...start, kickoff: 100 * DAY }))];
+    const back = [...movedToFullBack(6), ...startsFrom(12, CENTRE_BACK)];
     expect(flags(inputs({ starts: back, admin: bothApproved }))).toEqual({ CB: "starts", FB: "starts" });
 
-    const awayAgain = [...back, ...played(...times(RIGHT_BACK, 3)).map((start) => ({ ...start, kickoff: start.kickoff + 100 * DAY }))];
+    const awayAgain = [...back, ...startsFrom(13, ...times(RIGHT_BACK, 3))];
     expect(flags(inputs({ starts: awayAgain, admin: bothApproved }))).toEqual({ CB: "starts!3", FB: "starts" });
   });
 
   test("a start that gives no position neither adds to the run nor ends it", () => {
-    const unread = [...movedToFullBack(2), ...played(NO_PLACE, UNKNOWN_PLACE).map((start) => ({ ...start, kickoff: 50 * DAY }))];
+    const unread = [...movedToFullBack(2), ...startsFrom(8, NO_PLACE, UNKNOWN_PLACE)];
     expect(flags(inputs({ starts: unread, admin: bothApproved }))).toEqual({ CB: "starts" });
 
-    const thenFullBack = [...unread, { ...RIGHT_BACK, fixtureCode: 99, kickoff: 60 * DAY }];
+    const thenFullBack = [...unread, ...startsFrom(10, RIGHT_BACK)];
     expect(flags(inputs({ starts: thenFullBack, admin: bothApproved }))).toEqual({ CB: "starts!3", FB: "starts" });
   });
 
