@@ -20,14 +20,17 @@ import { drawFixtures, type GameweekFixtures } from "./roundRobin";
 // force in it (#266). Nor can a ticked or unticked gameweek: only one not yet begun can be, and
 // each gameweek's draw hangs only on those before it (roundRobin.ts's roundOrder).
 
-export type Schedule = GameweekFixtures<Id<"teams">>[];
+type TeamsGameweek = GameweekFixtures<Id<"teams">>;
+export type Schedule = TeamsGameweek[];
+/** Stored gameweeks, by number. */
+type Played = Map<number, TeamsGameweek>;
 
 /** All of a league's rules this reads: those in force in each gameweek (leagueRules.ts's
  *  `seasonRules`). */
-export type RulesBy = { inGameweek: (gameweek: number) => LeagueRules };
+export type RulesInForce = { inGameweek: (gameweek: number) => LeagueRules };
 
 /** The league's stored fixtures, by gameweek: those of each gameweek it has played. */
-async function playedFixturesOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, GameweekFixtures<Id<"teams">>>> {
+async function playedFixturesOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Played> {
   const rows = await ctx.db
     .query("playedFixtures")
     .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
@@ -38,7 +41,7 @@ async function playedFixturesOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise
 /** The league's head-to-head fixtures in each gameweek, in order: each gameweek it has played as
  *  stored, and the rest drawn from its teams today, the gameweeks it plays and the rules in force
  *  in each, seeded by the league so a read gives the same draw each time. */
-export async function scheduleOf(ctx: QueryCtx, league: Doc<"leagues">, rules: RulesBy): Promise<Schedule> {
+export async function scheduleOf(ctx: QueryCtx, league: Doc<"leagues">, rules: RulesInForce): Promise<Schedule> {
   return scheduleAround(ctx, league, rules, await playedFixturesOf(ctx, league._id));
 }
 
@@ -49,7 +52,7 @@ export async function scheduleOf(ctx: QueryCtx, league: Doc<"leagues">, rules: R
  *  mid-season starts a new draw for them instead; whether one can, and how its season then runs,
  *  is for a grill of leagues with splits (docs/to-grill.md), as is the commissioner editing the
  *  fixtures (spec/09). */
-async function scheduleAround(ctx: QueryCtx, league: Doc<"leagues">, rules: RulesBy, played: Map<number, GameweekFixtures<Id<"teams">>>): Promise<Schedule> {
+async function scheduleAround(ctx: QueryCtx, league: Doc<"leagues">, rules: RulesInForce, played: Played): Promise<Schedule> {
   const teamIds = (await teamsOf(ctx, league._id)).map((team) => team._id);
   const drawRulesIn = (gameweek: number) => drawRulesOf(rules.inGameweek(gameweek));
   const drawn = drawFixtures(teamIds, usedGameweeksOf(league), drawRulesIn, league._id);
@@ -62,27 +65,24 @@ async function scheduleAround(ctx: QueryCtx, league: Doc<"leagues">, rules: Rule
  *  while the league existed. One that began before the league was made was never played by it, so
  *  it is drawn as before; what a league made mid-season does with those is #282.
  *  Only a gameweek played head-to-head, and only one the draw has: none with fewer than two teams.
- *  A gameweek already stored is left as it is, so storing again does no harm. Returns how many it
- *  stored. Null rules are a league made before #25, which has no fixtures to store. */
+ *  A gameweek already stored is left as it is, so storing again does no harm. Null rules are a
+ *  league made before #25, which has no fixtures to store. */
 export async function storeBegunFixtures(
   ctx: MutationCtx,
   league: Doc<"leagues">,
-  rules: RulesBy | null,
+  rules: RulesInForce | null,
   deadlines: ReadonlyMap<number, number | null>,
   now: number,
-): Promise<number> {
-  if (rules === null) return 0;
+): Promise<void> {
+  if (rules === null) return;
   const begunInLeague = (gameweek: number) => {
     const deadline = deadlines.get(gameweek) ?? null;
-    return isLocked(deadline, now) && deadline! >= league._creationTime;
+    return deadline !== null && isLocked(deadline, now) && deadline >= league._creationTime;
   };
   const playedHeadToHead = (gameweek: number) => rules.inGameweek(gameweek).format === "headToHead";
   const played = await playedFixturesOf(ctx, league._id);
-  let stored = 0;
   for (const { gameweek, fixtures, byes } of await scheduleAround(ctx, league, rules, played)) {
     if (played.has(gameweek) || !begunInLeague(gameweek) || !playedHeadToHead(gameweek)) continue;
     await ctx.db.insert("playedFixtures", { leagueId: league._id, gameweek, fixtures, byes, storedAt: now });
-    stored += 1;
   }
-  return stored;
 }
