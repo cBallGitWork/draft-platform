@@ -6,13 +6,13 @@ import { validateOwnStats, type OwnStat } from "./ownStats";
 
 export type { OwnStat };
 
-// The pitch's six areas are the pitch's (./pitch.ts), so a lineup and a scoring set can't disagree.
+// The pitch's six areas are the pitch's (../lineup/pitch.ts), so a lineup and a scoring set can't disagree.
 export { AREAS, type Area };
 
 /** A value for each of the six areas. */
 export type ByArea<Value> = Readonly<Record<Area, Value>>;
 
-/** A value for each position a slot can be (pitch.ts, `positionOfSlot`). */
+/** A value for each position a slot can be (../lineup/pitch.ts, `positionOfSlot`). */
 export type ByPosition<Value> = Readonly<Record<SlotPosition, Value>>;
 
 /** How finely a rule's value is set (spec/14): the same for all, by area, or by the position of
