@@ -1,6 +1,7 @@
 #!/bin/bash
-# scripts/recorded-add-only.mjs, the add-only check on recorded feed payloads that npm run verify
-# runs: in a throwaway repo whose origin/main holds two payloads, adding one passes; changing,
+# scripts/recorded-add-only.mjs, the add-only check on recorded feed payloads and goldens that npm
+# run verify runs: in a throwaway repo whose origin/main holds two payloads and a golden, adding
+# one passes; changing,
 # deleting or renaming one fails, committed or not, unless a branch commit carries
 # "Re-record: <file>: <why>" for it.
 source "$(dirname "$0")/helpers.sh"
@@ -18,10 +19,11 @@ fresh() { # a branch off origin/main, clean
   g checkout -q -f main && g branch -q -D work; g checkout -q -b work
 }
 
-mkdir -p "$repo/tests/support/recorded"
+mkdir -p "$repo/tests/support/recorded" "$repo/tests/support/golden"
 g init -q -b main
 echo '{"a":1}' > "$repo/tests/support/recorded/a.json"
 echo '{"b":1}' > "$repo/tests/support/recorded/b.json"
+echo '{"v":1}' > "$repo/tests/support/golden/schema.json"
 g add tests && g commit -q -m base && g update-ref refs/remotes/origin/main HEAD
 
 fresh; passes "nothing changed"
@@ -41,6 +43,10 @@ g commit -q --allow-empty -m "why" -m "Re-record: tests/support/recorded/b.json:
 
 fresh; g mv tests/support/recorded/a.json tests/support/recorded/a2.json && g commit -q -m "rename a"
 refuses "a rename"
+
+fresh; echo '{"v":2}' > "$repo/tests/support/golden/schema.json"; g add tests && g commit -q -m "edit golden"
+refuses "a golden edited"
+g commit -q --allow-empty -m "why" -m "Re-record: schema.json: a new stat in the schema"; passes "a golden with a trailer"
 
 g update-ref -d refs/remotes/origin/main
 fresh; refuses "no origin/main to compare with"

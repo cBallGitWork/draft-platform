@@ -7,7 +7,7 @@ description: Run the local gate before a commit or a pull request (the install c
 
 ```bash
 npm run verify   # install check, vitest run, tsc on convex/ and on the app, then
-                 # scripts/recorded-add-only.mjs (feed payloads are add-only), .claude/hooks/test.sh
+                 # scripts/recorded-add-only.mjs (payloads, goldens add-only), .claude/hooks/test.sh
 npm test -- <file>   # one test file
 ```
 
