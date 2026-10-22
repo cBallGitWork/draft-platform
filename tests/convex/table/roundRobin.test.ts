@@ -1,61 +1,27 @@
 import { describe, expect, test } from "vitest";
+import { gamesInAGameweek, LEAGUE_AVERAGE, ODD_TEAM_OUTS, roundOrder, roundsOf, seededRandom } from "../../../convex/table/roundRobin";
+import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import {
-  drawFixtures,
-  gamesInAGameweek,
-  LEAGUE_AVERAGE,
-  ODD_TEAM_OUTS,
-  roundOrder,
-  roundsOf,
-  seededRandom,
-  type DrawRules,
-  type GameweekFixtures,
-} from "../../../convex/table/roundRobin";
-import { SEASON_GAMEWEEKS, usedGameweeksOf } from "../../../convex/gameweeks/usedGameweeks";
+  drawn,
+  leftOverIn,
+  opponentsIn,
+  pairKey,
+  SEED,
+  spread,
+  tally,
+  teamsOf,
+  WITH_GAPS,
+  type DrawOptions,
+} from "../../support/convex/roundRobin.harness";
 
 // The round robin (#33, #130; spec/09): as even as can be over a season, one or more games a
 // gameweek, never the same opponent twice in a gameweek, each round robin in its own order, drawn
 // the same from the same seed, and only over the gameweeks the league plays.
 
-const teamsOf = (count: number) => Array.from({ length: count }, (_, index) => `Team ${index + 1}`);
 const TEAM_COUNTS = Array.from({ length: 19 }, (_, index) => index + 2); // 2 to 20
 const GAMES = [1, 2, 3, 4];
 const SEEDS = ["league-a", "league-b", "k57abc123"];
-const SEED = "league-a";
-const pairKey = (one: string, other: string) => [one, other].toSorted().join(" v ");
-type DrawOptions = DrawRules & { seed: string };
-/** The draw of a league whose rules never change. */
-const drawn = (teams: readonly string[], gameweeks: readonly number[], { seed, ...rules }: DrawOptions) => drawFixtures(teams, gameweeks, () => rules, seed);
-const options = (change: Partial<DrawOptions> = {}): DrawOptions => ({ oddTeamOut: "leagueAverage", gamesPerGameweek: 1, seed: "league-a", ...change });
-
-/** The spread of some counts: the most less the fewest. */
-const spread = (counts: Iterable<number>) => Math.max(...counts) - Math.min(...counts);
-
-/** How often each key comes up, every key in `keys` counted from 0. */
-function tally(keys: readonly string[], seen: readonly string[]): Map<string, number> {
-  const counts = new Map(keys.map((key) => [key, 0]));
-  for (const key of seen) counts.set(key, (counts.get(key) ?? 0) + 1);
-  return counts;
-}
-
-/** Each team's opponents in a gameweek, the league's average among them. */
-function opponentsIn({ fixtures }: GameweekFixtures<string>): Map<string, string[]> {
-  const opponents = new Map<string, string[]>();
-  const add = (team: string, opponent: string) => opponents.set(team, [...(opponents.get(team) ?? []), opponent]);
-  for (const { team, opponent } of fixtures) {
-    add(team, opponent);
-    if (opponent !== LEAGUE_AVERAGE) add(opponent, team);
-  }
-  return opponents;
-}
-
-/** Who is left over in a gameweek: on a bye, or against the league's average. */
-const leftOverIn = ({ fixtures, byes }: GameweekFixtures<string>) => [
-  ...byes,
-  ...fixtures.filter((fixture) => fixture.opponent === LEAGUE_AVERAGE).map((fixture) => fixture.team),
-];
-
-/** A season with a Christmas break and an early end: 33 gameweeks played. */
-const WITH_GAPS = usedGameweeksOf({ unusedGameweeks: [17, 18, 19, 37, 38] });
+const options = (change: Partial<DrawOptions> = {}): DrawOptions => ({ oddTeamOut: "leagueAverage", gamesPerGameweek: 1, seed: SEED, ...change });
 
 describe.each(ODD_TEAM_OUTS)("as even as can be, the odd team out playing %s", (oddTeamOut) => {
   const cases = TEAM_COUNTS.flatMap((count) => GAMES.flatMap((games) => SEEDS.map((seed) => [count, games, seed] as const)));
@@ -189,81 +155,4 @@ test("the team left over has a bye, or plays the league's average, as the league
 
 test.each([0, 1])("%i teams have no one to play, so no fixtures", (count) => {
   expect(drawn(teamsOf(count), SEASON_GAMEWEEKS, options())).toEqual([]);
-});
-
-describe("a change of rules from a gameweek on (#266: \"games played in past are done\")", () => {
-  const BEFORE: DrawRules = { oddTeamOut: "leagueAverage", gamesPerGameweek: 1 };
-  const CHANGES: DrawRules[] = [
-    { oddTeamOut: "leagueAverage", gamesPerGameweek: 2 },
-    { oddTeamOut: "bye", gamesPerGameweek: 1 },
-    { oddTeamOut: "bye", gamesPerGameweek: 3 },
-  ];
-  /** The first gameweek of the season, one after a gap, and two inside a run. */
-  const FROM = [WITH_GAPS[0], 20, 9, 33];
-  const cases = [3, 4, 5, 7, 8, 10].flatMap((count) => CHANGES.flatMap((after) => FROM.map((from) => [count, after, from] as const)));
-
-  test.each(cases)("%i teams, changed to %o from gameweek %i", (count, after, from) => {
-    const teams = teamsOf(count);
-    for (const [first, then] of [[BEFORE, after], [after, BEFORE]]) {
-      const unchanged = drawFixtures(teams, WITH_GAPS, () => first, SEED);
-      const changed = drawFixtures(teams, WITH_GAPS, (gameweek) => (gameweek < from ? first : then), SEED);
-      const before = (schedule: GameweekFixtures<string>[]) => schedule.filter(({ gameweek }) => gameweek < from);
-      const since = (schedule: GameweekFixtures<string>[]) => schedule.filter(({ gameweek }) => gameweek >= from);
-
-      // The gameweeks before the change keep their fixtures, whole.
-      expect(before(changed)).toEqual(before(unchanged));
-      // An even league has no one left over, so the odd team out alone changes nothing.
-      const changesAnything = first.gamesPerGameweek !== then.gamesPerGameweek || count % 2 === 1;
-      if (changesAnything) expect(since(changed)).not.toEqual(since(unchanged));
-      else expect(changed).toEqual(unchanged);
-      expect(changed.map(({ gameweek }) => gameweek)).toEqual(WITH_GAPS);
-
-      // From the change on, each gameweek is drawn by the new rules, a team never meeting one
-      // opponent twice in it nor left over twice.
-      const perGameweek = gamesInAGameweek(roundsOf(teams).length, then.gamesPerGameweek);
-      for (const gameweek of since(changed)) {
-        const opponents = opponentsIn(gameweek);
-        const byes = tally(teams, gameweek.byes);
-        if (then.oddTeamOut === "bye") expect(gameweek.fixtures.some(({ opponent }) => opponent === LEAGUE_AVERAGE)).toBe(false);
-        else expect(gameweek.byes).toEqual([]);
-        expect(new Set(leftOverIn(gameweek)).size).toBe(leftOverIn(gameweek).length);
-        for (const team of teams) {
-          const met = opponents.get(team) ?? [];
-          expect(new Set(met).size, `${team} in gameweek ${gameweek.gameweek}`).toBe(met.length);
-          expect(met.length + (byes.get(team) ?? 0)).toBe(perGameweek);
-        }
-      }
-
-      // And the season stays as even as can be: the rounds carry on where they were left.
-      const everyPair = teams.flatMap((one, index) => teams.slice(index + 1).map((other) => pairKey(one, other)));
-      const meetings = changed.flatMap(({ fixtures }) =>
-        fixtures.flatMap(({ team, opponent }) => (opponent === LEAGUE_AVERAGE ? [] : [pairKey(team, opponent)])),
-      );
-      expect(spread(tally(everyPair, meetings).values())).toBeLessThanOrEqual(1);
-      if (count % 2 === 1) expect(spread(tally(teams, changed.flatMap(leftOverIn)).values())).toBeLessThanOrEqual(1);
-    }
-  });
-});
-
-/** The draws the golden file pins: every odd team out, a few team counts and games a gameweek. */
-const GOLDEN_TEAM_COUNTS = [2, 3, 4, 7, 10];
-const GOLDEN_GAMES = [1, 2, 3];
-const GOLDEN_SEED = "golden-league";
-const AVERAGE_WORD = "average";
-
-/** A gameweek as one line, so a diff of the golden names exactly what moved. */
-const goldenLine = ({ gameweek, fixtures, byes }: GameweekFixtures<string>) =>
-  `${gameweek}: ${fixtures.map(({ team, opponent }) => `${team} v ${opponent === LEAGUE_AVERAGE ? AVERAGE_WORD : opponent}`).join(", ")}` +
-  (byes.length === 0 ? "" : ` | byes ${byes.join(", ")}`);
-
-test("a league whose rules never change is drawn as the golden file pins, over a season with gaps", async () => {
-  const lines = ODD_TEAM_OUTS.flatMap((oddTeamOut) =>
-    GOLDEN_TEAM_COUNTS.flatMap((count) =>
-      GOLDEN_GAMES.flatMap((games) => [
-        `# ${count} teams, ${games} a gameweek, odd team out ${oddTeamOut}`,
-        ...drawn(teamsOf(count), WITH_GAPS, { oddTeamOut, gamesPerGameweek: games, seed: GOLDEN_SEED }).map(goldenLine),
-      ]),
-    ),
-  );
-  await expect(`${lines.join("\n")}\n`).toMatchFileSnapshot("../../support/golden/round-robin.txt");
 });
