@@ -189,6 +189,29 @@ describe("bad data throws rather than score", () => {
   });
 });
 
+// The whole-match golden: every recorded line of Hull v Everton, from both feeds, scored in each of
+// the six areas. It locks the engine's arithmetic under EXAMPLE_SET, not the league's real rules, so
+// a refactor of scoring that moves any man's points in any area fails here. The named-man tests above
+// say why a number is what it is; this says no number moved.
+test("every recorded line of Hull v Everton, from both feeds, in every area, scores as the golden file", async () => {
+  const scoredBy = (feed: "fpl" | "pl", lines: { playerCode: number; stats: MatchStats }[]) =>
+    [...lines]
+      .sort((a, b) => a.playerCode - b.playerCode)
+      .flatMap(({ playerCode, stats }) =>
+        AREAS.map((area) => {
+          const { total, categories } = scoreMatch(stats, EXAMPLE_SET, centreOf(area));
+          return { feed, playerCode, area, total, categories };
+        }),
+      );
+  const rows = [...scoredBy("fpl", fplLines), ...scoredBy("pl", plLines)];
+
+  expect(AREAS).toHaveLength(6);
+  expect(rows).toHaveLength((fplLines.length + plLines.length) * 6);
+  // One row per man per area, each on its own line, so a diff of the golden names exactly what moved.
+  const golden = `[\n${rows.map((row) => `  ${JSON.stringify(row)}`).join(",\n")}\n]\n`;
+  await expect(golden).toMatchFileSnapshot("../../support/golden/hull-everton.scores.json");
+});
+
 describe("a double gameweek, his two matches", () => {
   // Two men's recorded lines stand in for one man's two matches: the combiner sees only their points.
   const first = scoreMatch(dewsburyHall, EXAMPLE_SET, centreOf("midfield"));

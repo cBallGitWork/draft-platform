@@ -77,10 +77,12 @@ PR's checks box.
 ## Proving nothing changed
 
 - The Vitest suite and the type check pass before and after.
-- Scoring: `tests/convex/scoring/scoring.test.ts` replays a recorded match (Hull v Everton) through scoring and
-  must give identical points before and after. A whole gameweek, every player and every
-  head-to-head, replaces it once #28 or the league score lands.
-- The Convex schema is unchanged.
+- Scoring: the whole-match golden in `tests/convex/scoring/scoring.test.ts` scores every recorded
+  line of Hull v Everton, from both feeds, in all six areas, and must match
+  `tests/support/golden/hull-everton.scores.json` before and after. A whole gameweek, every player
+  and every head-to-head, replaces it once #28 or the league score lands.
+- The Convex schema is unchanged: `tests/convex/schema.contract.test.ts` passes without `-u`; a
+  refactor/ branch that changes `tests/support/golden/schema.json` is not a refactor.
 - A test that still passes with the fix deleted pins the wrong thing: delete it, run it, see.
 
 ## The three modes
