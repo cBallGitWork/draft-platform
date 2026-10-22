@@ -2,6 +2,7 @@
 // fills it in live (liveAdmin.ts); the preview and the tests hand the screen their own.
 
 import type { FoundPlayerPositions, PositionsQueue } from "../../convex/positions/playerPositions";
+import type { ChangeThresholds } from "../../convex/positions/positionChanges";
 import type { ApproveMode } from "../../convex/positions/positions";
 import type { Position } from "../../convex/positions/positionTables";
 import type { Change } from "../refusal";
@@ -19,4 +20,5 @@ export type AdminSeam = {
   setPosition(code: number, position: Position): Change;
   removePosition(code: number, position: Position): Change;
   setApproveMode(approveMode: ApproveMode): Change;
+  setChangeThresholds(thresholds: ChangeThresholds): Change;
 };

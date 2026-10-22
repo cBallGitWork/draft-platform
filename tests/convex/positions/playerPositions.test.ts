@@ -72,7 +72,7 @@ test("a new signing with no starts plays on his label, unconfirmed until the adm
 test("with positions counting at once, starts count unconfirmed and stay in the queue", async () => {
   const t = await synced();
 
-  await (await asAdmin(t)).mutation(api.positions.playerPositions.setApproveMode, { approveMode: "countAtOnce" });
+  await (await asAdmin(t)).mutation(api.positions.positionSettings.setApproveMode, { approveMode: "countAtOnce" });
 
   expect(await heldPositions(t, PLAYER.barnes)).toEqual({ W: "starts?" });
   expect((await (await asAdmin(t)).query(api.positions.playerPositions.ofPlayer, { code: PLAYER.barnes })).proposals).toEqual(["W"]);
@@ -184,7 +184,7 @@ test("everything here is the admin's alone: anyone else signed in is refused", a
     () => someone.mutation(api.positions.playerPositions.approveClub, { clubCode: NEWCASTLE.code }),
     () => someone.mutation(api.positions.playerPositions.setPosition, { code, position: "SS" }),
     () => someone.mutation(api.positions.playerPositions.removePosition, { code, position: "W" }),
-    () => someone.mutation(api.positions.playerPositions.setApproveMode, { approveMode: "countAtOnce" }),
+    () => someone.mutation(api.positions.positionSettings.setApproveMode, { approveMode: "countAtOnce" }),
   ]) {
     await expect(call()).rejects.toThrow(refusals.notAdmin);
   }
@@ -198,7 +198,7 @@ describe("finding a player to correct (#87)", () => {
     const admin = await asAdmin(t);
     await admin.mutation(api.positions.playerPositions.setPosition, { code: PLAYER.kelleher, position: "GK" });
     expect(await admin.query(api.positions.playerPositions.find, { text: "Kelleher" })).toEqual([
-      expect.objectContaining({ code: PLAYER.kelleher, fullName: "Caoimhín Kelleher", positions: expect.arrayContaining([{ position: "GK", source: "admin", confirmed: true }]) }),
+      expect.objectContaining({ code: PLAYER.kelleher, fullName: "Caoimhín Kelleher", positions: expect.arrayContaining([{ position: "GK", source: "admin", confirmed: true, flaggedElsewhere: null }]) }),
     ]);
     expect(await admin.query(api.positions.playerPositions.find, { text: "  " })).toEqual([]);
 
@@ -224,7 +224,7 @@ describe("finding a player to correct (#87)", () => {
       ],
       approveMode: "proposals",
     });
-    await admin.mutation(api.positions.playerPositions.setApproveMode, { approveMode: "countAtOnce" });
+    await admin.mutation(api.positions.positionSettings.setApproveMode, { approveMode: "countAtOnce" });
     expect((await admin.query(api.positions.playerPositions.queue, {})).approveMode).toBe("countAtOnce");
   });
 });
