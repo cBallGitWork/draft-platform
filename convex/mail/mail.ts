@@ -1,5 +1,5 @@
 import { v, type Infer } from "convex/values";
-import { mutation, query } from "../_generated/server";
+import { mutation, query, type QueryCtx } from "../_generated/server";
 import { callerEmail, refuse, runnerOf, signedInEmail } from "../shared/leagueAccess";
 import { fileLetter, wholeLeague } from "./letters";
 import { BODY_MAX, LETTERS_SHOWN, SUBJECT_MAX, UNREAD_COUNTED } from "./mailLimits";
@@ -27,6 +27,14 @@ export const letterSummary = v.object({
 });
 export type LetterSummary = Infer<typeof letterSummary>;
 
+/** The letters Mail lists for someone: their latest LETTERS_SHOWN, newest first. */
+const listedLetters = (ctx: QueryCtx, email: string) =>
+  ctx.db
+    .query("letters")
+    .withIndex("by_to_and_at", (q) => q.eq("to", email))
+    .order("desc")
+    .take(LETTERS_SHOWN);
+
 /** The signed-in person's letters, newest first: the latest LETTERS_SHOWN. None when signed out. */
 export const letters = query({
   args: {},
@@ -34,11 +42,7 @@ export const letters = query({
   handler: async (ctx) => {
     const email = await signedInEmail(ctx);
     if (email === null) return [];
-    const rows = await ctx.db
-      .query("letters")
-      .withIndex("by_to_and_at", (q) => q.eq("to", email))
-      .order("desc")
-      .take(LETTERS_SHOWN);
+    const rows = await listedLetters(ctx, email);
     return rows.map((row) => ({
       letterId: row._id,
       leagueName: row.leagueName,
@@ -51,18 +55,16 @@ export const letters = query({
   },
 });
 
-/** How many of the signed-in person's letters are unread, counted up to one past UNREAD_COUNTED. */
+/** How many of the signed-in person's listed letters are unread: only the latest LETTERS_SHOWN,
+ *  the ones `letters` lists, so opening every one clears it. Counted up to one past UNREAD_COUNTED. */
 export const unreadCount = query({
   args: {},
   returns: v.number(),
   handler: async (ctx) => {
     const email = await signedInEmail(ctx);
     if (email === null) return 0;
-    const unread = await ctx.db
-      .query("letters")
-      .withIndex("by_to_and_readAt", (q) => q.eq("to", email).eq("readAt", undefined))
-      .take(UNREAD_COUNTED + 1);
-    return unread.length;
+    const unread = (await listedLetters(ctx, email)).filter((row) => row.readAt === undefined).length;
+    return Math.min(unread, UNREAD_COUNTED + 1);
   },
 });
 
