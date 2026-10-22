@@ -40,6 +40,8 @@ const askOutcome = v.union(
   v.object({ outcome: v.union(v.literal("unlisted"), v.literal("tryLater"), v.literal("paused")) }),
 );
 
+/** Open to anyone, signed in or not: ASKS_PER_HOUR asks an email an hour, none past the day's email
+ *  limit, and a link goes only to an allowed email. */
 export const ask = action({
   args: { email: v.string() },
   returns: signInReply,

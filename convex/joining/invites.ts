@@ -47,6 +47,8 @@ async function inviteToRun(ctx: QueryCtx, inviteId: Id<"invites">) {
   return { by, invite, invitedTo };
 }
 
+/** For the league's commissioners and the admin: refuses someone already managing a team in it, a
+ *  full league or a team not vacated, and a second live invite to the same email. */
 export const send = mutation({
   args: { leagueId: v.id("leagues"), email: v.string(), teamId: v.optional(v.id("teams")) },
   returns: v.id("invites"),
@@ -74,7 +76,7 @@ export const send = mutation({
   },
 });
 
-/** Sends the invite again, for 7 more days from when it goes. */
+/** Sends the invite again; once the email goes, the invite lasts INVITE_LIFETIME_MS from then (recordDelivery sets it). */
 export const resend = mutation({
   args: { inviteId: v.id("invites") },
   returns: v.null(),
@@ -88,6 +90,7 @@ export const resend = mutation({
   },
 });
 
+/** For the league's commissioners and the admin: cancels an invite that hasn't ended. */
 export const cancel = mutation({
   args: { inviteId: v.id("invites") },
   returns: v.null(),
