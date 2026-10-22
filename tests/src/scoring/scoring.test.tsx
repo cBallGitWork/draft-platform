@@ -143,6 +143,17 @@ describe("#30 Done: an edit saves, from the next gameweek", () => {
     expect(app.scoring.save).not.toHaveBeenCalled();
   });
 
+  it("takes Infinity typed in a box for no number, refusing it itself", async () => {
+    const app = openScoring();
+    await choose("Assists");
+    await retype(columnWords.points, everyoneWords, "Infinity");
+    expect(box(columnWords.points, everyoneWords).getAttribute("aria-invalid")).toBe("true");
+    await save();
+
+    expect((await screen.findByRole("alert")).textContent).toBe(blankBoxWords("Assists"));
+    expect(app.scoring.save).not.toHaveBeenCalled();
+  });
+
   it("discards the changes made, back to the set as saved", async () => {
     openScoring();
     await choose("Assists");
