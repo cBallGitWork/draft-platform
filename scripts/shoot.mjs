@@ -1,7 +1,7 @@
 // Shoots one route of the running app at the phone's width and the desk's, into the checkout's
 // .shots/ (printing each shot's absolute path), and says what a picture can't: whether the page
-// scrolls sideways, and which taps are under the tap size at 390 (`--spacing-tap`, read from the page; plate.md, The phone). The ui-verifier agent's
-// camera.
+// scrolls sideways, and which taps are under the tap size at 390 (`--spacing-tap`, read from the
+// page; plate.md, The phone). The ui-verifier agent's camera.
 //
 // Usage: node scripts/shoot.mjs <route> [name]
 //   node scripts/shoot.mjs / sign-in
@@ -16,7 +16,6 @@ import { appPort } from "./port.mjs";
 
 const PHONE = { width: 390, height: 844 };
 const WIDTHS = [PHONE, { width: 1440, height: 900 }];
-// The checkout's .shots/, wherever the script is run from.
 const SHOTS_DIR = fileURLToPath(new URL("../.shots/", import.meta.url));
 
 const [route, name = "shot"] = process.argv.slice(2);
