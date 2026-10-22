@@ -40,6 +40,7 @@ const feeds: FeedsReport = {
   ],
   behind: [{ ...hullEverton, fullTimeAt: now - 3 * HOUR_MS }],
   moreBehind: false,
+  moreCorrections: false,
   corrections: [
     {
       ...hullEverton,

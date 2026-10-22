@@ -3,7 +3,7 @@ import { query, type QueryCtx } from "../_generated/server";
 import { statCorrectionWindowMs } from "./platformSettings";
 import { ALWAYS_OWED, failureOf, feedState, judgeFeed, type FeedRuns, type RunOutcome } from "./feedState";
 import { adminOf } from "../shared/leagueAccess";
-import { FEED_SCHEDULES, FEEDS, type Feed } from "../shared/feedSchedule";
+import { FEED_RUN_TABLES, FEED_SCHEDULES, FEEDS, type Feed } from "../shared/feedSchedule";
 import { liveMatches } from "../stats/liveStats";
 import { lateStatChange } from "../schema";
 
@@ -43,6 +43,8 @@ const feedsReport = v.object({
   behind: v.array(v.object({ fixtureCode: v.number(), match: matchNamed, fullTimeAt: v.number() })),
   /** Whether more are behind than `behind` lists. */
   moreBehind: v.boolean(),
+  /** Whether more corrections came than `corrections` lists: the page says so, never a silent cut. */
+  moreCorrections: v.boolean(),
   corrections: v.array(
     v.object({
       fixtureCode: v.number(),
@@ -78,11 +80,12 @@ export const feeds = query({
       behind.push({ fixtureCode, match: await matchName(ctx, fixtureCode), fullTimeAt });
     }
     const corrections = [];
-    for (const { fixtureCode, playerCode, seenAt, changes } of await ctx.db.query("lateStatCorrections").order("desc").take(CORRECTIONS_SHOWN)) {
+    const latestCorrections = await ctx.db.query("lateStatCorrections").order("desc").take(CORRECTIONS_SHOWN + 1);
+    for (const { fixtureCode, playerCode, seenAt, changes } of latestCorrections.slice(0, CORRECTIONS_SHOWN)) {
       const player = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", playerCode)).unique();
       corrections.push({ fixtureCode, match: await matchName(ctx, fixtureCode), playerCode, player: player?.name ?? null, seenAt, changes });
     }
-    return { now, feeds, behind, moreBehind: provisional.length > BEHIND_SHOWN, corrections };
+    return { now, feeds, behind, moreBehind: provisional.length > BEHIND_SHOWN, moreCorrections: latestCorrections.length > CORRECTIONS_SHOWN, corrections };
   },
 });
 
@@ -99,8 +102,7 @@ type RunsRead = FeedRuns & { lastError: { at: number; error: string } | null };
 
 /** A feed's run rows, newest first. */
 function runsOf(ctx: QueryCtx, feed: Feed): AsyncIterable<Run> {
-  const tables = { football: "footballSyncs", positions: "positionsSyncs", matchStats: "matchStatsSyncs", liveStats: "liveStatsTicks" } as const;
-  return ctx.db.query(tables[feed]).order("desc");
+  return ctx.db.query(FEED_RUN_TABLES[feed]).order("desc");
 }
 
 /** The newest run, the newest success and the newest error, among the newest `RUNS_READ`. */

@@ -8,6 +8,14 @@ import { HOUR_MS, MINUTE_MS } from "./time";
 export const FEEDS = ["football", "positions", "matchStats", "liveStats"] as const;
 export type Feed = (typeof FEEDS)[number];
 
+/** Each feed's run table: one row a run, newest last. */
+export const FEED_RUN_TABLES = {
+  football: "footballSyncs",
+  positions: "positionsSyncs",
+  matchStats: "matchStatsSyncs",
+  liveStats: "liveStatsTicks",
+} as const satisfies Record<Feed, string>;
+
 /** A run's interval, as `crons.interval` takes it. */
 type Every = { readonly hours: number } | { readonly minutes: number };
 

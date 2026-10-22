@@ -15,6 +15,7 @@ import {
   behindTitle,
   changeWords,
   correctionsTitle,
+  moreCorrectionsWords,
   feedNames,
   feedsLoadingWords,
   feedStateWords,
@@ -46,6 +47,7 @@ const QUIET: FeedsReport = {
   ],
   behind: [],
   moreBehind: false,
+  moreCorrections: false,
   corrections: [],
 };
 
@@ -133,6 +135,16 @@ describe("the feeds", () => {
     const football = await feedRows(feedNames.football.name);
     expect(within(football).getByText(neverWords)).toBeTruthy();
     expect(within(football).getByText(feedStateWords.notRunningYet).className).toContain("text-muted");
+  });
+});
+
+describe("corrections", () => {
+  it("says so when more came than it shows, never cutting them silently", async () => {
+    const correction = { fixtureCode: 1, match: { home: "Hull City", away: "Everton" }, playerCode: 7, player: "Saka", seenAt: NOW, changes: [{ stat: "assists", locked: 0, sent: 1 }] };
+    openFeeds({ ...QUIET, corrections: [correction], moreCorrections: true });
+
+    const panel = await screen.findByRole("region", { name: correctionsTitle });
+    expect(within(panel).getByText(moreCorrectionsWords(1)).className).toContain("text-event");
   });
 });
 

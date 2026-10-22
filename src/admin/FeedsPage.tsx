@@ -9,6 +9,7 @@ import {
   changeWords,
   correctionsHint,
   correctionsTitle,
+  moreCorrectionsWords,
   feedColumns,
   feedNames,
   feedsHint,
@@ -138,11 +139,12 @@ function Behind({ report: { behind, moreBehind } }: { report: FeedsReport }) {
   );
 }
 
-function Corrections({ report: { corrections } }: { report: FeedsReport }) {
+function Corrections({ report: { corrections, moreCorrections } }: { report: FeedsReport }) {
   return (
     <section aria-labelledby="corrections-title" className="bg-panel">
       <PanelTitle id="corrections-title">{correctionsTitle}</PanelTitle>
       <p className="px-3 py-2 text-muted">{corrections.length === 0 ? noCorrectionsWords : correctionsHint}</p>
+      {moreCorrections && <p className="px-3 pb-2 text-event">{moreCorrectionsWords(corrections.length)}</p>}
       {corrections.length > 0 && (
         <ul aria-labelledby="corrections-title">
           {corrections.map(({ fixtureCode, match, playerCode, player, seenAt, changes }) => (

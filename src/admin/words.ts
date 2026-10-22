@@ -134,6 +134,7 @@ export const fullTimeWords = (at: number) => `Full time ${whenWords(at)}`;
 export const correctionsTitle = "Corrections after the lock";
 export const correctionsHint = "A feed changed a stat after the match's points locked. The points didn't change.";
 export const noCorrectionsWords = "No stat has changed after a lock.";
+export const moreCorrectionsWords = (shown: number) => `More came than these: only the newest ${shown} are shown.`;
 export const playerWords = (player: string | null, playerCode: number) => player ?? `Player ${playerCode}`;
 export const changeWords = ({ stat, locked, sent }: { stat: string; locked: number; sent: number }) => `${stat}: locked at ${locked}, sent ${sent}`;
 export const seenWords = (at: number) => `Seen ${whenWords(at)}`;

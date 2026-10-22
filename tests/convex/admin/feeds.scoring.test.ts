@@ -78,7 +78,14 @@ test("the newest corrections show first, as many as the page lists", async () =>
   const t = freshConvex();
   for (let index = 0; index <= CORRECTIONS_SHOWN; index += 1) await recordCorrection(t, 1, index, T0 + index * MINUTE_MS);
 
-  const { corrections } = await feedsAt(t, T0 + HOUR_MS);
+  const { corrections, moreCorrections } = await feedsAt(t, T0 + HOUR_MS);
   expect(corrections).toHaveLength(CORRECTIONS_SHOWN);
   expect(corrections[0]).toMatchObject({ playerCode: CORRECTIONS_SHOWN, player: null, match: null });
+  expect(moreCorrections).toBe(true);
+});
+
+test("as many corrections as the page lists, and no more, says nothing of more", async () => {
+  const t = freshConvex();
+  for (let index = 0; index < CORRECTIONS_SHOWN; index += 1) await recordCorrection(t, 1, index, T0 + index * MINUTE_MS);
+  expect((await feedsAt(t, T0 + HOUR_MS)).moreCorrections).toBe(false);
 });
