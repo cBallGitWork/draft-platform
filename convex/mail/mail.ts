@@ -35,7 +35,7 @@ const listedLetters = (ctx: QueryCtx, email: string) =>
     .order("desc")
     .take(LETTERS_SHOWN);
 
-/** The signed-in person's letters, newest first: the latest LETTERS_SHOWN. None when signed out. */
+/** The signed-in person's `listedLetters`. None when signed out. */
 export const letters = query({
   args: {},
   returns: v.array(letterSummary),
