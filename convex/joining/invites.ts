@@ -76,7 +76,8 @@ export const send = mutation({
   },
 });
 
-/** Sends the invite again; once the email goes, the invite lasts INVITE_LIFETIME_MS from then (recordDelivery sets it). */
+/** For the league's commissioners and the admin: sends an invite that hasn't ended again, but not
+ *  while it waits for tomorrow's emails. Its lifetime restarts once it goes (recordDelivery). */
 export const resend = mutation({
   args: { inviteId: v.id("invites") },
   returns: v.null(),
