@@ -22,8 +22,8 @@ instead of $BASE..HEAD and name it in **What I ran**. If the diff is empty, say 
 empty diff is never 'Nothing found'.
 
 A second round starts only when there are commits since round 1. It names
-`<round-1-head>..HEAD`, reviews those commits first, and checks them against the whole branch
-diff. With no commits since round 1, say 'No commits since <sha>; round 1 stands' and stop.
+`<round-1-head>..HEAD` in **What I ran**, reviews those commits first, and checks them against
+the whole branch diff. With no commits since round 1, say 'No commits since <sha>; round 1 stands' and stop.
 
 Read `CLAUDE.md`, `SPEC.md` and the `spec/NN-*.md` file of the feature the branch serves, then the
 whole diff, **before** the pull request description, so the author's framing doesn't set yours.
