@@ -17,4 +17,12 @@ export function appPort() {
   return FIRST + (createHash("sha256").update(CHECKOUT).digest().readUInt32BE(0) % HOW_MANY);
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) console.log(appPort());
+// `npm run smoke`'s two servers, one and two ranges above appPort(): clear of every checkout's app
+// port (the ui-verifier's server among them) and of every other checkout's smoke ports.
+export function smokePorts() {
+  return { dev: appPort() + HOW_MANY, bundle: appPort() + 2 * HOW_MANY };
+}
+
+if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  console.log(appPort());
+}
