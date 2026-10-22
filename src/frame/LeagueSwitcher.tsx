@@ -3,6 +3,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../auth";
+import { ESCAPE_KEY, KEY_DOWN, POINTER_DOWN } from "../browserEvents";
 import type { LeagueActions } from "../leagues/actions";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../leagues/paths";
 import { roleWords } from "../leagues/words";
@@ -38,18 +39,18 @@ export function LeagueSwitcher({
   useEffect(() => {
     if (!open) return;
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
+      if (event.key !== ESCAPE_KEY) return;
       setOpen(false);
       toggle.current?.focus();
     };
     const closeOutside = (event: PointerEvent) => {
       if (!switcher.current?.contains(event.target as Node)) setOpen(false);
     };
-    document.addEventListener("keydown", closeOnEscape);
-    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener(KEY_DOWN, closeOnEscape);
+    document.addEventListener(POINTER_DOWN, closeOutside);
     return () => {
-      document.removeEventListener("keydown", closeOnEscape);
-      document.removeEventListener("pointerdown", closeOutside);
+      document.removeEventListener(KEY_DOWN, closeOnEscape);
+      document.removeEventListener(POINTER_DOWN, closeOutside);
     };
   }, [open]);
 
