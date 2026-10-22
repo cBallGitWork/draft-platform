@@ -130,20 +130,23 @@ test("signed in, in no league, the app opens on the leagues page", async () => {
   expect(window.location.pathname).toBe(LEAGUES_PATH);
 });
 
+const notInLeague = "You're not in this league.";
+
 test.each([
   ["plain words for a failure", new Error("server down"), readFailedWords],
-  ["the server's words for a refusal", new ConvexError("You're not in this league."), "You're not in this league."],
-])("a query failing above the pages shows %s and a reload, not an empty page", async (_, error, words) => {
+  ["the server's words for a refusal", new ConvexError(notInLeague), notInLeague],
+])("a query failing above the pages shows %s and a reload, and logs the error", async (_, error, words) => {
   convex.auth = { isLoading: false, isAuthenticated: true };
   convex.account = inNoLeague;
   convex.unreadFails = error;
-  silenceConsoleError();
+  const logged = silenceConsoleError();
 
   openAt("/");
 
   expect(await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE })).toBeTruthy();
   expect(screen.getByRole("alert").textContent).toBe(words);
   expect(screen.getByRole("button", { name: reloadWords })).toBeTruthy();
+  expect(logged.mock.calls.some((call) => call.includes(error))).toBe(true);
 });
 
 test("without VITE_CONVEX_URL, the app says so on the page rather than showing nothing", () => {
