@@ -4,6 +4,7 @@ import { v, type VLiteral } from "convex/values";
 import { leagueRulesShape } from "./rules/leagueRulesShape";
 import { POSITIONS, type Position } from "./positions/positionTables";
 import { signInReply } from "./signIn/signInLinks";
+import { LEAGUE_AVERAGE } from "./table/roundRobin";
 
 /** What one read of a feed found: a count of what came back, or why it failed. */
 export const feedOutcome = v.union(
@@ -550,6 +551,22 @@ const leagueRulesTables = {
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
 };
 
+// A league's head-to-head fixtures once a gameweek has begun (#137; spec/13, Gameweeks: "a change
+// reshuffles only fixtures not yet played"). The round robin is drawn on each read; once a
+// gameweek's league deadline passes, its draw is stored here and read from here ever after,
+// whatever then happens to the teams, the rules or the draw's code. One row a league and gameweek,
+// written only by convex/table/playedFixtures.ts.
+const playedFixtureTables = {
+  playedFixtures: defineTable({
+    leagueId: v.id("leagues"),
+    gameweek: v.number(),
+    fixtures: v.array(v.object({ team: v.id("teams"), opponent: v.union(v.id("teams"), v.literal(LEAGUE_AVERAGE)) })),
+    /** The teams left over with a bye, in a league whose odd team out has one. */
+    byes: v.array(v.id("teams")),
+    storedAt: v.number(),
+  }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
+};
+
 export default defineSchema({
   ...authTables,
   ...signInTables,
@@ -563,4 +580,5 @@ export default defineSchema({
   ...joiningTables,
   ...mailTables,
   ...leagueRulesTables,
+  ...playedFixtureTables,
 });

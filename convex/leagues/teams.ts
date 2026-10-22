@@ -16,6 +16,8 @@ import {
   teamsOf,
 } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
+import { leagueDeadlines, seasonRules } from "../rules/leagueRules";
+import { storeBegunFixtures } from "../table/playedFixtures";
 import { TEAM_NAME_MAX } from "./leagueLimits";
 
 // A league's teams and their managers (#24, spec/13, Teams and Leaving). Each change files an
@@ -72,6 +74,8 @@ export async function putOnTeam(
     await ctx.db.patch("teams", vacated._id, { managerEmail: email });
     ({ _id: teamId, name: teamName } = vacated);
   } else {
+    // A new team redraws the round robin, so the gameweeks already begun are stored first (#137).
+    await storeBegunFixtures(ctx, league, await seasonRules(ctx, league._id), await leagueDeadlines(ctx, league._id), Date.now());
     const number = teams.length + 1;
     teamName = startingName(teams, number);
     teamId = await ctx.db.insert("teams", { leagueId: league._id, number, name: teamName, managerEmail: email });
