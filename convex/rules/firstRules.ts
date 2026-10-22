@@ -2,7 +2,7 @@ import { FPL_DEADLINE_RULE } from "../gameweeks/deadline";
 import type { LeagueRules } from "./leagueRulesShape";
 import { AREAS, type Area } from "../lineup/pitch";
 import { DEFAULT_PRESETS } from "../lineup/presets";
-import type { DrawOptions, OddTeamOut } from "../table/roundRobin";
+import type { DrawRules, OddTeamOut } from "../table/roundRobin";
 
 // The first rules a deployment gives a new league
 // (spec/14, The first scoring set; #25), used once: the first league created copies them into
@@ -49,7 +49,7 @@ const FIRST_GAMES_PER_GAMEWEEK = 1;
 
 /** How the league's round robin is drawn: the first rules' odd team out and games a gameweek, for
  *  rules saved before #33 and #130 made them rules. */
-export const drawRulesOf = (rules: LeagueRules): Omit<DrawOptions, "seed"> => ({
+export const drawRulesOf = (rules: LeagueRules): DrawRules => ({
   oddTeamOut: rules.oddTeamOut ?? FIRST_ODD_TEAM_OUT,
   gamesPerGameweek: rules.gamesPerGameweek ?? FIRST_GAMES_PER_GAMEWEEK,
 });

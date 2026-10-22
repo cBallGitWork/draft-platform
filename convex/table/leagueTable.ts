@@ -3,15 +3,16 @@ import type { Id } from "../_generated/dataModel";
 import { query } from "../_generated/server";
 import { drawRulesOf } from "../rules/firstRules";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
-import { latestRules } from "../rules/leagueRules";
+import { seasonRules } from "../rules/leagueRules";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { drawFixtures, LEAGUE_AVERAGE, roundsOf } from "./roundRobin";
 import { headToHeadTable, totalPointsTable, type GameweekScores } from "./standings";
 import { fplDeadline, fplDeadlines, usedGameweeksOf } from "../gameweeks/usedGameweeks";
 
 // The league's fixtures and table (#33; spec/09, spec/12 "table and fixtures"), for anyone with a
-// part in it. The fixtures are drawn afresh from the teams, the gameweeks the league plays and its
-// latest rules each time they're read: none is stored, so a team joining redraws them all. No
+// part in it. The fixtures are drawn afresh on every read from the teams, the gameweeks the league
+// plays and the rules in force in each, so a change of rules never moves a gameweek before it
+// takes effect (#266). None is stored, so a team joining redraws them all (#29). No
 // matchup is scored yet (no lineups or scores are kept), so the table is all noughts until #29's
 // scores reach it; the commissioner editing fixtures (spec/09) comes later.
 
@@ -60,8 +61,10 @@ export const ofLeague = query({
   returns: v.union(leagueTable, v.null()),
   handler: async (ctx, { leagueId }) => {
     const { league } = await memberOf(ctx, leagueId);
-    const rules = await latestRules(ctx, leagueId);
-    if (rules === null) return null;
+    const season = await seasonRules(ctx, leagueId);
+    if (season === null) return null;
+    // The format and tie-breaks are the latest rules'; the draw is each gameweek's own.
+    const rules = season.latest;
     const teams = await teamsOf(ctx, leagueId);
     const teamIds = teams.map((team) => team._id);
     const nameOf = new Map(teams.map((team) => [team._id, team.name]));
@@ -69,8 +72,8 @@ export const ofLeague = query({
 
     const headToHead = rules.format === "headToHead";
     // Seeded by the league, so its draw comes out the same each time it's read.
-    const draw = { ...drawRulesOf(rules), seed: leagueId };
-    const schedule = headToHead ? drawFixtures(teamIds, usedGameweeksOf(league), draw) : [];
+    const drawRulesIn = (gameweek: number) => drawRulesOf(season.inGameweek(gameweek));
+    const schedule = headToHead ? drawFixtures(teamIds, usedGameweeksOf(league), drawRulesIn, leagueId) : [];
     const scores: GameweekScores<Id<"teams">> = new Map();
     const table = headToHead ? headToHeadTable(teamIds, schedule, scores, rules.tieBreaks) : totalPointsTable(teamIds, scores);
 

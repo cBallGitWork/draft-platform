@@ -86,12 +86,16 @@ describe("changing them", () => {
 
   test("more games a gameweek than a round robin has rounds saves, and the table plays as many as there are", async () => {
     await addManagers(t, leagueId, MANAGERS.slice(0, 4));
-    await change({ ...FIRST, gamesPerGameweek: 10 });
+    const from = await change({ ...FIRST, gamesPerGameweek: 10 });
     const table = await (await actingAs(t, COMMISSIONER)).query(api.table.leagueTable.ofLeague, { leagueId });
+    const fixturesIn = (gameweek: number) => table?.gameweeks.find((each) => each.gameweek === gameweek)?.fixtures.length;
 
-    // Four teams: three rounds of two fixtures, all three played each gameweek.
+    // Four teams: three rounds of two fixtures, all three played each gameweek from the change on,
+    // and one a gameweek before it (#266).
+    const fixturesARound = 2;
     expect(table?.roundRobinRounds).toBe(3);
-    expect(table?.gameweeks[0].fixtures.length).toBe(table!.roundRobinRounds * 2);
+    expect(fixturesIn(from)).toBe(table!.roundRobinRounds * fixturesARound);
+    expect(fixturesIn(from - 1)).toBe(fixturesARound);
   });
 
   test("over someone else's save is refused, naming them, and writes nothing", async () => {

@@ -4,7 +4,7 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { lineupProblems, type LineupRules } from "../../../convex/lineup/lineup";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { DEFAULT_PRESETS, type Preset } from "../../../convex/lineup/presets";
-import type { DrawOptions, OddTeamOut } from "../../../convex/table/roundRobin";
+import type { DrawRules, OddTeamOut } from "../../../convex/table/roundRobin";
 import { scoreGameweek, scoreMatch, type DoubleGameweekRule } from "../../../convex/scoring/scoring";
 import { centreOf } from "../../support/convex/scoring.example";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
@@ -30,7 +30,7 @@ test("each stored part is its module's input type", () => {
   expectTypeOf<LeagueRules["tieBreaks"]>().toEqualTypeOf<TieBreak[]>();
   // Optional only for rules saved before #33 and #130 (firstRules.ts, drawRulesOf).
   expectTypeOf<LeagueRules["oddTeamOut"]>().toEqualTypeOf<OddTeamOut | undefined>();
-  expectTypeOf<LeagueRules["gamesPerGameweek"]>().toEqualTypeOf<DrawOptions["gamesPerGameweek"] | undefined>();
+  expectTypeOf<LeagueRules["gamesPerGameweek"]>().toEqualTypeOf<DrawRules["gamesPerGameweek"] | undefined>();
 });
 
 test("the first rules' presets are the eleven every league starts with", () => {
