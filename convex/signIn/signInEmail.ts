@@ -1,6 +1,6 @@
 import { internal } from "../_generated/api";
 import type { ActionCtx } from "../_generated/server";
-import { sendEmail } from "../email/email";
+import { sendEmail } from "../outbound/email";
 import { inviteIdIn } from "../joining/joiningShared";
 import { PRODUCT_NAME } from "../shared/product";
 

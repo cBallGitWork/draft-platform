@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { api, internal } from "../_generated/api";
 import { action, internalMutation, type ActionCtx, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { isAllowed, normaliseEmail } from "./allowedEmails";
-import { anEmailLeftToday, countTodaysEmail } from "../email/emailLimit";
+import { anEmailLeftToday, countTodaysEmail } from "../outbound/emailLimit";
 import { logFailure } from "../shared/errors";
 import { HOUR_MS, MINUTE_MS } from "../shared/time";
 

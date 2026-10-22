@@ -1,8 +1,8 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalAction, internalMutation, type ActionCtx } from "../_generated/server";
-import { sendEmail } from "../email/email";
-import { takeTodaysEmail as takeOne } from "../email/emailLimit";
+import { sendEmail } from "../outbound/email";
+import { takeTodaysEmail as takeOne } from "../outbound/emailLimit";
 import { londonTime } from "../shared/londonTime";
 import { unemailedReason } from "../schema";
 
