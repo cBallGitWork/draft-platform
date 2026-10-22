@@ -1,7 +1,8 @@
 import { v, type Infer } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { isLocked } from "./deadline";
-import { recordEvent, refuse, runnerOf } from "../shared/leagueAccess";
+import { refuse, runnerOf } from "../shared/leagueAccess";
+import { recordEvent } from "../mail/letters";
 import { fplDeadline, fplDeadlines, isGameweek, isGameweekUsed, noSuchGameweek, SEASON_GAMEWEEKS, unusedAfter } from "./usedGameweeks";
 
 // The commissioner ticks the gameweeks the league plays, all 38 by default (#74; spec/13,

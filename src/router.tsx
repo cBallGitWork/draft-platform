@@ -203,6 +203,7 @@ const adminFeedsRoute = createRoute({
 const invitesRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: INVITES_ROUTE,
+  beforeLoad: runnersOnly,
   component: function Invites() {
     const joining = invitesRoute.useRouteContext({ select: (context) => context.joining });
     return <InvitesPage leagueId={invitesRoute.useParams().leagueId} joining={joining} />;

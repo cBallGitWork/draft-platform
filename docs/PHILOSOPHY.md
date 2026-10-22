@@ -5,6 +5,12 @@ written for a team; here the team is Craig and Claude, and where it says "triage
 "discuss at kick-off", that is a `/grill`. CLAUDE.md and the hooks are the enforced rules; this is
 the spirit they serve.
 
+Two lines in *Commit Often, Push Early* read differently here. "The PR guidelines for your
+domain" means this repo's pull request template, `.github/pull_request_template.md`; no line limit
+is written down yet. A big chunk of work is split by `/grill` step 6 into issues, each with its
+own branch and pull request (stacked on a base branch when one needs another); this repo doesn't
+use `gh stack`.
+
 **Contents:** [The Principles](#the-principles) · [Error Handling](#error-handling) ·
 [When You Disagree](#when-you-disagree)
 

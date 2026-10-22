@@ -14,6 +14,9 @@ Committed and uncommitted, against where the branch left `main`, then any new fi
 !`git diff --stat --merge-base origin/main`
 !`git status --short`
 
+On a drift pass the branch's own diff is empty: run `git diff --stat <range>` with the range
+`docs/REFACTORING.md`'s *Record* gives, and work over that.
+
 Work over the whole branch's diff, not only the last edit. Change only what the branch already
 changed: something older that breaks a rule becomes an issue (`CLAUDE.md`), unless it sits in a
 file the task already touches.
@@ -47,7 +50,7 @@ pull request is not reworked over borderline duplication: say it in one line and
 
 ## Verify
 
-`/verify` (`npm run verify`: the tests, the type check and the hook checks). A change that
-touches scoring also replays the recorded match and compares every point, as
-`docs/REFACTORING.md`'s *Proving nothing changed* says. If a step fails, fix it and rerun from the
-first.
+`/verify` (`npm run verify`: the tests, the type check and the hook checks; CI also runs the
+build and the smoke test). A change that touches scoring also replays the recorded match and
+compares every point, as `docs/REFACTORING.md`'s *Proving nothing changed* says. If a step fails,
+fix it and rerun from the first.

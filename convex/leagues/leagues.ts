@@ -7,12 +7,12 @@ import {
   adminOf,
   namedEmail,
   namerOf,
-  recordEvent,
   refuse,
   refusals,
   runnerOf,
   teamsOf,
 } from "../shared/leagueAccess";
+import { recordEvent } from "../mail/letters";
 import { FEWEST_TEAMS, MOST_TEAMS } from "./leagueLimits";
 import { giveDefaultRules } from "../rules/leagueRules";
 import { askForLink, hasOpenedALink, signInReply } from "../signIn/signInLinks";

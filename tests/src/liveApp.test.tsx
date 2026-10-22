@@ -3,10 +3,13 @@
 
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { getFunctionName, type FunctionReference } from "convex/server";
+import { ConvexError } from "convex/values";
 import { StrictMode } from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../support/console.setup";
 import { signInToJoinWords } from "../../src/joining/words";
+import { ERROR_PAGE_TITLE, readFailedWords, reloadWords } from "../../src/frame/words";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../src/leagues/paths";
 import { LiveApp, NO_CONVEX_URL, takeLinkCode } from "../../src/liveApp";
 import { SIGN_IN_PATH } from "../../src/router";
@@ -18,12 +21,17 @@ const convex = vi.hoisted(() => ({
   signIn: vi.fn(),
   signOut: vi.fn(async () => {}),
   ask: vi.fn(),
+  unreadFails: null as Error | null,
 }));
 
 vi.mock("convex/react", () => ({
   ConvexReactClient: class {},
   useConvexAuth: () => convex.auth,
-  useQuery: (_query: unknown, args: unknown) => (args === "skip" ? undefined : convex.account),
+  useQuery: (query: FunctionReference<"query">, args: unknown) => {
+    if (args === "skip") return undefined;
+    if (convex.unreadFails && getFunctionName(query) === "mail/mail:unreadCount") throw convex.unreadFails;
+    return convex.account;
+  },
   useAction: () => convex.ask,
   useMutation: () => vi.fn(),
 }));
@@ -34,10 +42,20 @@ vi.mock("@convex-dev/auth/react", () => ({
 
 window.scrollTo = () => {};
 
+/** A signed-in manager's account before joining any league. */
+const inNoLeague: NonNullable<typeof convex.account> = {
+  email: "manager@example.com",
+  isAdmin: false,
+  inLeague: false,
+  leagues: [],
+  currentLeagueId: null,
+};
+
 beforeEach(() => {
   vi.stubEnv("VITE_CONVEX_URL", "https://deployment.example.com");
   convex.auth = { isLoading: false, isAuthenticated: false };
   convex.account = undefined;
+  convex.unreadFails = null;
 });
 afterEach(() => {
   convex.signIn.mockReset();
@@ -104,12 +122,31 @@ test("a link that can't be checked says so, and the error is logged", async () =
 
 test("signed in, in no league, the app opens on the leagues page", async () => {
   convex.auth = { isLoading: false, isAuthenticated: true };
-  convex.account = { email: "manager@example.com", isAdmin: false, inLeague: false, leagues: [], currentLeagueId: null };
+  convex.account = inNoLeague;
 
   openAt("/");
 
   expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
   expect(window.location.pathname).toBe(LEAGUES_PATH);
+});
+
+const notInLeague = "You're not in this league.";
+
+test.each([
+  ["plain words for a failure", new Error("server down"), readFailedWords],
+  ["the server's words for a refusal", new ConvexError(notInLeague), notInLeague],
+])("a query failing above the pages shows %s and a reload, and logs the error", async (_, error, words) => {
+  convex.auth = { isLoading: false, isAuthenticated: true };
+  convex.account = inNoLeague;
+  convex.unreadFails = error;
+  const logged = silenceConsoleError();
+
+  openAt("/");
+
+  expect(await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE })).toBeTruthy();
+  expect(screen.getByRole("alert").textContent).toBe(words);
+  expect(screen.getByRole("button", { name: reloadWords })).toBeTruthy();
+  expect(logged.mock.calls.some((call) => call.includes(error))).toBe(true);
 });
 
 test("without VITE_CONVEX_URL, the app says so on the page rather than showing nothing", () => {

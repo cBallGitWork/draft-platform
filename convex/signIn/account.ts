@@ -23,7 +23,7 @@ export const signedInAs = query({
     const email = await signedInEmail(ctx);
     if (email === null) return null;
     const admin = isAdmin(email);
-    const leagues = await leaguesOf(ctx, email, admin);
+    const leagues = await leaguesOf(ctx, email);
     const currentLeagueId = await currentLeagueOf(ctx, email, leagues);
     return { email, isAdmin: admin, inLeague: currentLeagueId !== null, leagues, currentLeagueId };
   },

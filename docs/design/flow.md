@@ -41,7 +41,7 @@ flowchart TD
   end
   LP -.->|"signed out (an invite link keeps ?join)"| SIGNIN
   NEW & ADMIN & FEEDS -.->|"not the admin"| LEAGUES
-  GW & SQ -.->|"doesn't run it, or it's being deleted"| LEAGUES
+  GW & SQ & INV -.->|"doesn't run it, or it's being deleted"| LEAGUES
   LEAGUES -- "Create a league" --> NEW
   LEAGUES -- "Admin dashboard" --> ADMIN
   ADMIN -- "Feeds" --> FEEDS
@@ -136,8 +136,6 @@ isn't built yet". `none` in the Path and File columns means no route yet.
 
 ## Gaps
 
-- `/leagues/$leagueId/invites` has no router guard; its own data says "You don't run this
-  league" to anyone else.
 - Your leagues has no link into a league's frame pages: the menu, or `/`, gets there.
 - An admin in no league can't open the frame, so `/table` and `/team` send him to Your leagues.
 - Continue only ever leads to Mail until lineups and trades are built.
