@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { teamsOf } from "../shared/leagueAccess";
+import { rolesIn, seesWhileDeleted, teamsOf } from "../shared/leagueAccess";
 import { leagueDeletion } from "../schema";
 import { hasOpenedALink, noLinkReply } from "../signIn/signInLinks";
 
@@ -65,18 +65,14 @@ export async function leaguesOf(ctx: QueryCtx, email: string, isAdmin: boolean):
   const summaries = [];
   for (const league of leagues.values()) {
     const { deletion } = league;
-    if (deletion && deletion.by !== email && !isAdmin) continue;
+    if (deletion && !seesWhileDeleted(league, email)) continue;
     const teams = await teamsOf(ctx, league._id);
     const team = teams.find((each) => each.managerEmail === email);
-    const roles: LeagueSummary["roles"] = [];
-    if (league.commissionerEmail === email) roles.push("commissioner");
-    if (league.coCommissionerEmail === email) roles.push("co-commissioner");
-    if (team) roles.push("manager");
     summaries.push({
       leagueId: league._id,
       name: league.name,
       commissionerEmail: league.commissionerEmail,
-      roles,
+      roles: rolesIn(league, email, team),
       teamName: team?.name ?? null,
       teams: teams.length,
       maxTeams: league.maxTeams,

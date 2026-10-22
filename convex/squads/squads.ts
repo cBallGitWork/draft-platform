@@ -1,7 +1,8 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type QueryCtx } from "../_generated/server";
-import { memberOf, recordEvent, refuse, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
+import { memberOf, refuse, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
+import { recordEvent } from "../mail/letters";
 import { heldClubs, playersNamed } from "../shared/players";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { latestRules } from "../rules/leagueRules";

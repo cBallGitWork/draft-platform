@@ -1,15 +1,14 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { ConvexError, type Infer } from "convex/values";
+import { ConvexError } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
-import type { MutationCtx, QueryCtx } from "../_generated/server";
+import type { QueryCtx } from "../_generated/server";
 import { adminEmail, normaliseEmail } from "../signIn/allowedEmails";
 import { FEWEST_TEAMS, MOST_TEAMS, TEAM_NAME_MAX } from "../leagues/leagueLimits";
-import { fileEventLetter } from "../mail/letters";
-import type { leagueEvent } from "../schema";
 
 // Who may do what in a league (spec/13, Who runs it), checked on the server for every change.
 // The admin may do anything anywhere; the commissioner runs one league; the co-commissioner has
 // every commissioner power except naming or removing either of them, and deleting the league.
+// It also holds the refusals' shared words and the reads of a league's teams.
 
 /** Why a change was refused, as the person who asked is told it. */
 export const refusals = {
@@ -91,6 +90,24 @@ function powersIn(league: Doc<"leagues">, email: string) {
   };
 }
 
+/** A person's parts in a league: a role in it, which the admin's override alone isn't. */
+export type LeagueRole = "commissioner" | "co-commissioner" | "manager";
+
+/** This email's parts in the league, given the team it manages there, if any. */
+export function rolesIn(league: Doc<"leagues">, email: string, team: Doc<"teams"> | undefined): LeagueRole[] {
+  const roles: LeagueRole[] = [];
+  if (email === league.commissionerEmail) roles.push("commissioner");
+  if (email === league.coCommissionerEmail) roles.push("co-commissioner");
+  if (team) roles.push("manager");
+  return roles;
+}
+
+/** Whether this email is the deleter or the admin: who still sees a league being deleted and may
+ *  undo it (spec/13, Deleting). */
+export function seesWhileDeleted(league: Doc<"leagues">, email: string): boolean {
+  return league.deletion?.by === email || isAdmin(email);
+}
+
 /** The caller, if the caller is the admin (spec/15, The admin). */
 export async function adminOf(ctx: QueryCtx): Promise<string> {
   const email = await callerEmail(ctx);
@@ -148,15 +165,4 @@ export async function teamIn(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<
 /** The team this email manages in the league, if any: one at most, as putOnTeam keeps it (teams.ts). */
 export async function teamOf(ctx: QueryCtx, leagueId: Id<"leagues">, email: string): Promise<Doc<"teams"> | undefined> {
   return (await teamsOf(ctx, leagueId)).find((team) => team.managerEmail === email);
-}
-
-/** Files what happened, and the Mail letter reporting it (#26). */
-export async function recordEvent(
-  ctx: MutationCtx,
-  leagueId: Id<"leagues">,
-  by: string,
-  event: Infer<typeof leagueEvent>,
-): Promise<void> {
-  await ctx.db.insert("leagueEvents", { leagueId, at: Date.now(), by, event });
-  await fileEventLetter(ctx, leagueId, by, event);
 }
