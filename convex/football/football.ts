@@ -1,3 +1,4 @@
+// scripts/record-match.mjs loads this under plain node: import only types, or other files by explicit `.ts` path.
 // The two public football feeds, read from Convex's own servers. The URLs and the browser
 // User-Agent are copied from epl-draft's packages/core (17 Oct 2026), not shared.
 
