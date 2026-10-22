@@ -2,7 +2,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 import { LONDON_ZONE } from "./convex/shared/londonTime";
 
-// The zone every moment is told in, so no test depends on the host's zone.
+// So no test depends on the host's zone.
 process.env.TZ = LONDON_ZONE;
 
 // Every test sits in tests/, mirroring the code it tests. Only tests/convex/, tests/src/ and
