@@ -4,7 +4,7 @@ Every test sits here, at the path of the code it tests, under one of four roots.
 
 ## The four roots
 
-| Root | Tests | Runs with | One to read |
+| Root | What it tests | Runs with | An example |
 | --- | --- | --- | --- |
 | `tests/convex/` | `convex/`, in Convex's own runtime (convex-test) | Vitest, the `convex` project: `*.test.ts` | `tests/convex/scoring/scoring.test.ts` |
 | `tests/src/` | `src/`, the screens, in jsdom | Vitest, the `app` project: `*.test.ts`, `*.test.tsx` | `tests/src/table/table.test.tsx` |
