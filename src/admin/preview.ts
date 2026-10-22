@@ -1,10 +1,12 @@
 // The admin's dashboard in the preview (src/preview.ts): a new signing, a man whose starts wait, a
 // position flagged and one removed, three clubs, and a search that finds one player with positions
-// from all three sources, one of them flagged.
+// from all three sources, one of them flagged. On the feeds page, FPL's sync late, match stats
+// failing, a match behind and a correction after the lock.
 
 import { FIRST_THRESHOLDS } from "../../convex/positions/positionChanges";
+import { HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
 import { previewSays } from "../preview";
-import type { AdminSeam, PositionsQueue } from "./seam";
+import type { AdminSeam, FeedsReport, PositionsQueue } from "./seam";
 
 const queue: PositionsQueue = {
   newSignings: [{ code: 1, name: "Steur", fullName: "Jacob Steur", clubCode: 4, label: "Centre Central Midfielder" }],
@@ -18,6 +20,36 @@ const queue: PositionsQueue = {
   ],
   approveMode: "proposals",
   thresholds: FIRST_THRESHOLDS,
+};
+
+const now = Date.now();
+const hullEverton = { home: "Hull City", away: "Everton" };
+const feeds: FeedsReport = {
+  now,
+  feeds: [
+    { feed: "football", state: "late", lastRunAt: now - 9 * HOUR_MS, lastSuccessAt: now - 9 * HOUR_MS, lastError: null },
+    { feed: "positions", state: "notScheduled", lastRunAt: now - 50 * HOUR_MS, lastSuccessAt: now - 50 * HOUR_MS, lastError: null },
+    {
+      feed: "matchStats",
+      state: "failing",
+      lastRunAt: now - 10 * MINUTE_MS,
+      lastSuccessAt: now - 3 * HOUR_MS,
+      lastError: { at: now - 10 * MINUTE_MS, error: "gameweek 8's reads failed: https://footballapi.pulselive.com/football/fixtures answered 503" },
+    },
+    { feed: "liveStats", state: "fine", lastRunAt: now - 26 * HOUR_MS, lastSuccessAt: now - 26 * HOUR_MS, lastError: null },
+  ],
+  behind: [{ fixtureCode: 2561902, match: hullEverton, fullTimeAt: now - 3 * HOUR_MS }],
+  moreBehind: false,
+  corrections: [
+    {
+      fixtureCode: 2561902,
+      match: hullEverton,
+      playerCode: 7,
+      player: "Ndiaye",
+      seenAt: now - 2 * HOUR_MS,
+      changes: [{ stat: "assists", locked: 1, sent: 0 }],
+    },
+  ],
 };
 
 export const previewAdmin: AdminSeam = {
@@ -38,6 +70,7 @@ export const previewAdmin: AdminSeam = {
           },
         ]
       : [],
+  useFeeds: () => feeds,
   approvePlayer: previewSays("nobody was approved"),
   approveClub: previewSays("no club was approved"),
   setPosition: previewSays("no position was set"),
