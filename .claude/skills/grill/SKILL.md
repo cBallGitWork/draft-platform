@@ -91,5 +91,7 @@ skills v1.3 (Craig, 16 Oct 2026):
   it, then the issue that builds each. Those issues are its blockers.
 
 A feature bigger than one fresh session (~150k tokens) is cut into several issues, each a thin
-slice through every layer that works on its own, with the blocking order named. The spec file
+slice through every layer that works on its own, with the blocking order named. So is one past
+the pull request size in `docs/PHILOSOPHY.md`'s header (about 400 changed lines of non-test
+code); its pull requests merge in that order. The spec file
 stays: it is the product's record; the issue closes by merge.

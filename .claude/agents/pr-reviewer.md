@@ -45,8 +45,12 @@ Then check the description's claims against what you found.
 6. **Tests.** A fix lands with a test that fails without it; a feature's test sits at the seam its
    ticket names. Where you doubt one, name the change to the code that should make it fail.
 7. **Numbers.** Re-derive every number the diff adds to a doc, the description or a commit
-   message, or mark it UNVERIFIED. A dated number is a record; an undated present-tense one is a
-   claim.
+   message, or mark it UNVERIFIED. **A dated number is a record; an undated one is a claim.** A
+   count, size or time (tests passing, lines, files, seconds, players, a file's length) in a pull
+   request body or a doc is a record when it carries the date it was true on or the command that
+   produced it ("412 tests pass, `npm run verify`, 22 Oct 2026"): it stands as history. Without
+   either, it claims to be true always, goes stale unnoticed, and is a finding (UNVERIFIED) even
+   when right today (Craig, 22 Oct 2026).
 8. **This diff's drift and the lines it makes stale.** Anything written twice, anything left dead,
    a file past ~250 lines that this diff makes longer. Grep the docs, README, skills, agents and
    hook docstrings for any path, name, count or claim this diff makes false (a renamed file, a
@@ -65,6 +69,14 @@ Then check the description's claims against what you found.
       is a REGRESSION.
     - A public mutation the diff adds gets a detail row pointing at issue #141 (nothing yet checks
       that every public mutation refuses a signed-out caller and an outsider).
+12. **Size.** About 400 changed lines of non-test code per pull request; tests, docs and
+    generated files don't count (Craig, 22 Oct 2026). Count them:
+
+        git diff --numstat $BASE..HEAD -- . ':!tests' ':!.claude/hooks/tests' ':!*.md' \
+          ':!convex/_generated' ':!package-lock.json' | awk '{n += $1 + $2} END {print n+0}'
+
+    Over it is a finding naming the split: pull requests that each work alone and merge in order.
+    A guide, not a gate: a larger change that can't be cut is CRAIG'S CALL, with the reason.
 
 Do not invent rules. Where the repo's docs are silent, say so and mark it CRAIG'S CALL. Each
 CRAIG'S CALL goes in the pull request template's '## Left for later' section, listed with '#n' or
