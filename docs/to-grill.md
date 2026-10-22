@@ -79,7 +79,7 @@ somepoint").
 The rows from frozen fixtures down are open questions from the repo audits of 21 and 22 Oct
 2026, details the spec doesn't settle rather than new features.
 
-Also Claude's suggestions, from the same audit:
+Also Claude's suggestions, from the audit of 21 Oct 2026:
 - #117's undo sends no email, so managers told "will be deleted" never hear it was undone.
 
 Thought of and set aside, as they clash with what's settled: board confidence and the sack
