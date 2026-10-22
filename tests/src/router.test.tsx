@@ -7,10 +7,10 @@ import { describe, expect, it } from "vitest";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../../src/auth";
 import { gameweeksPath } from "../../src/gameweeks/paths";
-import { LEAGUES_PATH, LEAGUES_TITLE } from "../../src/leagues/paths";
-import { adminSeeing, league, manager, managerIn, openApp } from "../support/src/shell.harness";
 import { invitesPath } from "../../src/joining/paths";
+import { LEAGUES_PATH, LEAGUES_TITLE } from "../../src/leagues/paths";
 import { squadsPath } from "../../src/squads/paths";
+import { adminSeeing, league, manager, managerIn, openApp } from "../support/src/shell.harness";
 
 const beingDeleted: LeagueSummary = {
   ...league,
