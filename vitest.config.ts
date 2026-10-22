@@ -37,7 +37,15 @@ export default defineConfig({
       },
       {
         plugins: [react()],
-        test: { name: "app", include: ["tests/src/**/*.test.{ts,tsx}"], environment: "jsdom", ...RESTORED },
+        test: {
+          name: "app",
+          include: ["tests/src/**/*.test.{ts,tsx}"],
+          environment: "jsdom",
+          ...RESTORED,
+          // Vitest empties every CSS import, `?raw` included. Only the raw read of styles.css is let
+          // through, for the theme-color test in tests/src/product.test.ts; plain CSS imports stay empty.
+          css: { include: [/\/src\/styles\.css\?raw$/] },
+        },
       },
       { test: { name: "scripts", include: ["tests/scripts/**/*.test.mjs"], environment: "node", ...RESTORED } },
     ],
