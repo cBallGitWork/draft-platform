@@ -17,10 +17,11 @@ export function season(unused: number[] = []): LeagueGameweek[] {
 }
 
 /** Ticking succeeds, unless a test says otherwise; the season is all played, unless a test
- *  changes what `useLeagueGameweeks` returns. */
+ *  changes what `useLeagueGameweeks` returns. `gameweeks` is the season the screen was given, so
+ *  a test checks its deadlines rather than a second season built a moment later. */
 export function fakeGameweeks() {
   const setUsed = vi.fn<LeagueGameweeksView["setUsed"]>(async () => null);
   const gameweeks = season();
   const useLeagueGameweeks = vi.fn<GameweeksSeam["useLeagueGameweeks"]>(() => ({ gameweeks, setUsed }));
-  return { useLeagueGameweeks, setUsed };
+  return { useLeagueGameweeks, setUsed, gameweeks };
 }

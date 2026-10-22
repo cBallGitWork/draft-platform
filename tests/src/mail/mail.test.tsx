@@ -15,7 +15,7 @@ import { MAIL_TITLE, WRITE_TITLE, loadingWords, noLettersWords, onlyLatestWords,
 
 afterEach(cleanup);
 
-// Noon UTC, so the day is the same in any time zone the tests run in.
+// Noon UTC, so a letter's day is the same in London, where vitest.config.ts pins every test's zone.
 const letter = (number: number, read: boolean, from: string | null = null): LetterSummary => ({
   letterId: `letter-${number}` as Id<"letters">,
   leagueName: league.name,

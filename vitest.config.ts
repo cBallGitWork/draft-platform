@@ -1,6 +1,9 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
+// The league's zone, as convex/shared/londonTime.ts uses, so no test depends on the host's zone.
+process.env.TZ = "Europe/London";
+
 // Every test sits in tests/, mirroring the code it tests. Only tests/convex/, tests/src/ and
 // tests/scripts/ at the root are searched, so one anywhere else never runs: an agent's worktree,
 // inside the repo under .claude/worktrees/, runs its own. tests/support/ holds the harnesses and

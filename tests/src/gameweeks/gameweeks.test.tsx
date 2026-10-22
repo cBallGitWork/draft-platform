@@ -54,13 +54,13 @@ describe("reaching the gameweeks", () => {
 
 describe("the gameweeks page", () => {
   it("shows all 38 ticked by default, how many the league plays, and each one's deadline", async () => {
-    openApp(PAGE, commissioner);
+    const app = openApp(PAGE, commissioner);
 
     expect(await isTicked(GAMEWEEKS)).toBe(true);
     expect(screen.getAllByRole("checkbox")).toHaveLength(GAMEWEEKS);
     expect(screen.getAllByRole("checkbox").every((box) => box.getAttribute("aria-checked") === "true")).toBe(true);
     expect(playsLine()).toBe(`${league.name} plays ${GAMEWEEKS} of ${GAMEWEEKS} gameweeks.`);
-    expect(within(rowOf(BEGUN + 1)).getByText(deadlineWords(season()[BEGUN].deadline!))).toBeTruthy();
+    expect(within(rowOf(BEGUN + 1)).getByText(deadlineWords(app.gameweeks.gameweeks[BEGUN].deadline!))).toBeTruthy();
   });
 
   it("an unticked gameweek shows unticked, and isn't counted", async () => {
