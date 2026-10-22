@@ -209,9 +209,8 @@ test("under plain node, the recorder loads and, given no fixture id, prints its 
 const RECORDING_DIR = "/r/128999";
 
 test("the last line says the recording stopped after full time, and when full time was seen", () => {
-  const seen = KICKOFF + 112 * MINUTE;
-  expect(doneLine(250, RECORDING_DIR, seen)).toBe(
-    `Done: 250 polls in /r/128999/; stopped 15 min after full time (seen ${new Date(seen).toLocaleTimeString("en-GB")})`,
+  expect(doneLine(250, RECORDING_DIR, FULL_TIME_SEEN)).toBe(
+    `Done: 250 polls in /r/128999/; stopped 15 min after full time (seen ${new Date(FULL_TIME_SEEN).toLocaleTimeString("en-GB")})`,
   );
 });
 
