@@ -90,8 +90,6 @@ export function Thresholds({ queue, seam, change }: PanelProps) {
               id={field.id}
               type="number"
               required
-              min={1}
-              step={1}
               value={field.value}
               onChange={(event) => field.set(event.target.value)}
               className="text-box w-24"

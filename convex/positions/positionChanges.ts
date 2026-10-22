@@ -22,12 +22,12 @@ export const FIRST_THRESHOLDS: ChangeThresholds = { flagAfter: 3, removeAfter: 6
  *  a formation the table doesn't know) says nothing of where he played, so neither adds to the run
  *  nor ends it. */
 export function startsElsewhere(starts: readonly Start[], position: Position, judgedBefore: number | null): number {
-  const judged = starts.filter((start) => judgedBefore === null || start.kickoff < judgedBefore).sort((a, b) => b.kickoff - a.kickoff);
+  const judged = starts.filter((start) => judgedBefore === null || start.kickoff < judgedBefore);
   let run = 0;
-  for (const { formation, line, place } of judged) {
-    const played = formation === null || line === null || place === null ? null : placePosition(formation, line, place);
-    if (played === position) break;
-    if (played !== null) run += 1;
+  for (const { formation, line, place } of judged.sort((a, b) => b.kickoff - a.kickoff)) {
+    const playedAs = formation === null || line === null || place === null ? null : placePosition(formation, line, place);
+    if (playedAs === position) break;
+    if (playedAs !== null) run += 1;
   }
   return run;
 }

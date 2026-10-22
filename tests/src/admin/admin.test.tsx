@@ -113,7 +113,7 @@ describe("position changes", () => {
   it("shows each position flagged, as needing him, with its starts in a row elsewhere, and each removed, muted", async () => {
     openDashboard();
     const changes = await screen.findByRole("region", { name: changesTitle });
-    expect(within(changes).getByText(/flagged after 3 starts in a row somewhere else, and removed after 6/)).toBeTruthy();
+    expect(within(changes).getByText(/flagged after 3 starts in a row elsewhere, and removed after 6/)).toBeTruthy();
 
     const flagged = within(changes).getByRole("list", { name: "Flagged" });
     expect(within(flagged).getByText("Nick Woltemade")).toBeTruthy();

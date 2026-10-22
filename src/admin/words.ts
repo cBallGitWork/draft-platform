@@ -29,7 +29,7 @@ const IN_A_ROW_ELSEWHERE = "starts in a row elsewhere";
 
 export const changesTitle = "Position changes";
 export const changesHint = ({ flagAfter, removeAfter }: ChangeThresholds) =>
-  `A position from his starts is flagged after ${flagAfter} starts in a row somewhere else, and removed after ${removeAfter}, judged between gameweeks. Set one on him to keep it.`;
+  `A position from his starts is flagged after ${flagAfter} ${IN_A_ROW_ELSEWHERE}, and removed after ${removeAfter}, judged between gameweeks. To keep one, set it on him.`;
 export const noChangesWords = "No position is flagged or removed.";
 export const flaggedTitle = "Flagged";
 export const flaggedWords = (position: string, startsElsewhere: number) => `${position}: ${startsElsewhere} ${IN_A_ROW_ELSEWHERE}`;
