@@ -9,14 +9,14 @@ import { byAreaWords, columnWords, discardWords, everyoneWords, paysLabel, saveW
 import { box, categories, choose, openScoring, save, savedRule, savedSet } from "../../support/src/scoringScreen.harness";
 
 const tickBox = (name: string) => screen.getByRole("checkbox", { name }) as HTMLInputElement;
-const key = (name: string) => screen.getByRole("radio", { name }) as HTMLInputElement;
+const payKey = (name: string) => screen.getByRole("radio", { name }) as HTMLInputElement;
 const saveButton = () => screen.getByRole("button", { name: saveWords }) as HTMLButtonElement;
 
 describe("a tick box", () => {
-  it("toggles from a click on its words, anywhere on the row, and back", async () => {
+  it("toggles from a click on its row, and back from a click on its words", async () => {
     openScoring();
     await choose("Assists");
-    await userEvent.click(screen.getByText(byAreaWords));
+    await userEvent.click(tickBox(byAreaWords).closest("label")!);
     expect(tickBox(byAreaWords).checked).toBe(true);
 
     await userEvent.click(screen.getByText(byAreaWords));
@@ -50,18 +50,18 @@ describe("the Pays keys", () => {
     await choose("Assists");
 
     expect(screen.getByRole("radiogroup", { name: paysLabel })).toBeTruthy();
-    expect(key(shapeWords.perAction).checked).toBe(true);
-    expect(key(shapeWords.perCount).checked).toBe(false);
-    expect(key(shapeWords.bands).checked).toBe(false);
+    expect(payKey(shapeWords.perAction).checked).toBe(true);
+    expect(payKey(shapeWords.perCount).checked).toBe(false);
+    expect(payKey(shapeWords.bands).checked).toBe(false);
   });
 
   it("move the choice with the arrow keys", async () => {
     const app = openScoring();
     await choose("Assists");
-    key(shapeWords.perAction).focus();
+    payKey(shapeWords.perAction).focus();
     await userEvent.keyboard("{ArrowRight}");
 
-    expect(key(shapeWords.perCount).checked).toBe(true);
+    expect(payKey(shapeWords.perCount).checked).toBe(true);
     expect(box(columnWords.every, everyoneWords).value).toBe("1");
     await save();
     expect(savedRule(app, "assists")?.shape).toBe("perCount");

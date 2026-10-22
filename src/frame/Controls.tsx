@@ -3,7 +3,8 @@ import { useId, type ReactNode } from "react";
 // The controls the screens share, in the Wells look (plate.md, Controls): a tick box, a row of keys
 // to choose one of, and the Discard and Save pair. The words are the caller's.
 
-/** The drawn tick (plate.md, Controls), on a 14-unit square the size of `size-tick-mark`, stroked in white with square caps. */
+/** The drawn tick (plate.md, Controls): a 14-unit square drawn at `size-tick-mark`, stroked white
+ *  with square caps. */
 const TICK_VIEW_BOX = "0 0 14 14";
 const TICK_PATH = "M2 7.5 L5.5 11 L12 3";
 const TICK_STROKE_WIDTH = 2.5;
@@ -26,7 +27,7 @@ export function TickBox({ checked, onChange, children }: { checked: boolean; onC
 
 /** A row of butted keys, one chosen (plate.md, Controls): a radio group named by `label`, so the
  *  arrow keys move the choice. */
-export function Keys<Choice extends string>({
+export function KeyRow<Choice extends string>({
   label,
   choices,
   words,
