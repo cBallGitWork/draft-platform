@@ -21,7 +21,8 @@ export function useLiveAdmin(): AdminSeam {
   const approveClub = useMutation(api.positions.playerPositions.approveClub);
   const setPosition = useMutation(api.positions.playerPositions.setPosition);
   const removePosition = useMutation(api.positions.playerPositions.removePosition);
-  const setApproveMode = useMutation(api.positions.playerPositions.setApproveMode);
+  const setApproveMode = useMutation(api.positions.positionSettings.setApproveMode);
+  const setChangeThresholds = useMutation(api.positions.positionSettings.setChangeThresholds);
   return useMemo(
     () => ({
       useQueue,
@@ -31,7 +32,8 @@ export function useLiveAdmin(): AdminSeam {
       setPosition: (code, position) => refusalOf(() => setPosition({ code, position }), "Setting a position", changeFailedWords),
       removePosition: (code, position) => refusalOf(() => removePosition({ code, position }), "Removing a position", changeFailedWords),
       setApproveMode: (approveMode) => refusalOf(() => setApproveMode({ approveMode }), "Changing the approve mode", changeFailedWords),
+      setChangeThresholds: (thresholds) => refusalOf(() => setChangeThresholds(thresholds), "Changing the thresholds", changeFailedWords),
     }),
-    [approvePlayer, approveClub, setPosition, removePosition, setApproveMode],
+    [approvePlayer, approveClub, setPosition, removePosition, setApproveMode, setChangeThresholds],
   );
 }
