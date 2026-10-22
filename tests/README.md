@@ -1,7 +1,8 @@
 # Tests
 
-Every test sits here, under one of four roots: at the path of the code it tests, or at the root
-for a test that spans many files (`tests/src/flow.test.ts`).
+Every Vitest and Playwright test sits here (the hook checks are in `.claude/hooks/tests/`), under
+one of four roots: at the path of the code it tests, or at the root for a test that spans many
+files (`tests/src/flow.test.ts`).
 
 ## The four roots
 
