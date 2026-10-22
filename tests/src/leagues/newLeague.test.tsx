@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { admin, openApp } from "../../support/src/shell.harness";
 import { LEAGUES_PATH, LEAGUES_TITLE, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
-import { backToLeaguesWords } from "../../../src/leagues/words";
+import { backToLeaguesWords, newLeagueLabels } from "../../../src/leagues/words";
 
 afterEach(cleanup);
 
@@ -14,10 +14,10 @@ const REFUSAL = "Only the admin can do that.";
 
 /** Fills the form in as the admin would, and sends it. */
 async function fillIn({ name = "Mini beta", maxTeams = "4", commissionerEmail = "commish@example.com" } = {}) {
-  await userEvent.type(await screen.findByRole("textbox", { name: "League name" }), name);
-  await userEvent.type(screen.getByRole("spinbutton", { name: "Maximum teams" }), maxTeams);
-  await userEvent.type(screen.getByRole("textbox", { name: "Commissioner's email" }), commissionerEmail);
-  await userEvent.click(screen.getByRole("button", { name: "Create the league" }));
+  await userEvent.type(await screen.findByRole("textbox", { name: newLeagueLabels.name }), name);
+  await userEvent.type(screen.getByRole("spinbutton", { name: newLeagueLabels.maxTeams }), maxTeams);
+  await userEvent.type(screen.getByRole("textbox", { name: newLeagueLabels.commissionerEmail }), commissionerEmail);
+  await userEvent.click(screen.getByRole("button", { name: newLeagueLabels.create }));
 }
 
 describe("creating a league", () => {
@@ -36,7 +36,7 @@ describe("creating a league", () => {
     await fillIn();
 
     expect((await screen.findByRole("alert")).textContent).toBe(REFUSAL);
-    expect((screen.getByRole("textbox", { name: "League name" }) as HTMLInputElement).value).toBe("Mini beta");
+    expect((screen.getByRole("textbox", { name: newLeagueLabels.name }) as HTMLInputElement).value).toBe("Mini beta");
     expect(app.path()).toBe(NEW_LEAGUE_PATH);
   });
 
@@ -45,7 +45,7 @@ describe("creating a league", () => {
     app.leagues.createLeague.mockReturnValue(new Promise(() => {}));
     await fillIn();
 
-    expect((screen.getByRole("button", { name: "Create the league" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: newLeagueLabels.create }) as HTMLButtonElement).disabled).toBe(true);
   });
 
   it("goes back to the admin's leagues without making one", async () => {

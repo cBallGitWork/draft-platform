@@ -11,7 +11,7 @@ import { commissioner, league, managerIn, openApp } from "../../support/src/shel
 import { LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { invitesPath } from "../../../src/joining/paths";
 import type { InvitesPageData } from "../../../src/joining/seam";
-import { dayWords, expiredWords, invitesTitle, joinedWords, loadingWords, noTeamWords, notYoursWords, waitingStrip } from "../../../src/joining/words";
+import { dayWords, emailInvitesWords, expiredWords, invitesTitle, joinedWords, loadingWords, noTeamWords, notYoursWords, waitingStrip } from "../../../src/joining/words";
 
 afterEach(cleanup);
 
@@ -86,13 +86,13 @@ describe("inviting by email", () => {
   it("invites the email to a new team, or to the vacated team chosen", async () => {
     const app = openPage();
     await userEvent.type(await screen.findByRole("textbox", { name: "Email" }), "fay@example.com");
-    await userEvent.click(screen.getByRole("button", { name: "Send the invite" }));
+    await userEvent.click(screen.getByRole("button", { name: emailInvitesWords.send }));
     expect(app.joining.invite).toHaveBeenLastCalledWith(league.leagueId, "fay@example.com", null);
     expect((screen.getByRole("textbox", { name: "Email" }) as HTMLInputElement).value).toBe("");
 
     await userEvent.type(screen.getByRole("textbox", { name: "Email" }), "gus@example.com");
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Team" }), "Saka Potatoes");
-    await userEvent.click(screen.getByRole("button", { name: "Send the invite" }));
+    await userEvent.click(screen.getByRole("button", { name: emailInvitesWords.send }));
     expect(app.joining.invite).toHaveBeenLastCalledWith(league.leagueId, "gus@example.com", TEAM_2);
   });
 
@@ -100,7 +100,7 @@ describe("inviting by email", () => {
     const app = openPage();
     app.joining.invite.mockResolvedValue("fay@example.com already has an invite to this league: resend it instead.");
     await userEvent.type(await screen.findByRole("textbox", { name: "Email" }), "fay@example.com");
-    await userEvent.click(screen.getByRole("button", { name: "Send the invite" }));
+    await userEvent.click(screen.getByRole("button", { name: emailInvitesWords.send }));
 
     expect((await screen.findByRole("alert")).textContent).toBe("fay@example.com already has an invite to this league: resend it instead.");
     expect((screen.getByRole("textbox", { name: "Email" }) as HTMLInputElement).value).toBe("fay@example.com");
@@ -109,7 +109,7 @@ describe("inviting by email", () => {
   it("in a full league with no vacated team, offers no team and sends nothing", async () => {
     openPage({ ...page, hasRoom: false, teams: [page.teams[0]] });
     expect((await screen.findAllByText(noTeamWords)).length).toBeGreaterThan(0);
-    expect((screen.getByRole("button", { name: "Send the invite" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: emailInvitesWords.send }) as HTMLButtonElement).disabled).toBe(true);
   });
 });
 

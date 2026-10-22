@@ -10,6 +10,7 @@ import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { adminSeeing, league, manager, managerIn, openApp } from "../../support/src/shell.harness";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
+import { allLeaguesWords } from "../../../src/frame/words";
 
 afterEach(cleanup);
 
@@ -101,7 +102,7 @@ describe("a manager in two leagues", () => {
   it("reaches all their leagues from the list", async () => {
     const app = openApp(MY_TEAM_PATH, inTwo);
     await userEvent.click(await switcher());
-    await userEvent.click(screen.getByRole("link", { name: "All your leagues" }));
+    await userEvent.click(screen.getByRole("link", { name: allLeaguesWords }));
 
     expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);

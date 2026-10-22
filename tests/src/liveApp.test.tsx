@@ -9,7 +9,7 @@ import { signInToJoinWords } from "../../src/joining/words";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../src/leagues/paths";
 import { LiveApp, NO_CONVEX_URL, takeLinkCode } from "../../src/liveApp";
 import { SIGN_IN_PATH } from "../../src/router";
-import { askFailedWords, linkProblemWords, replyWords, waitingWords } from "../../src/sign-in/words";
+import { askFailedWords, linkProblemWords, replyWords, signInWords, waitingWords } from "../../src/sign-in/words";
 
 const convex = vi.hoisted(() => ({
   auth: { isLoading: false, isAuthenticated: false },
@@ -137,7 +137,7 @@ test.each([
   openAt(SIGN_IN_PATH);
 
   await userEvent.type(await screen.findByRole("textbox", { name: "Email" }), "craig@example.com");
-  await userEvent.click(screen.getByRole("button", { name: "Send the link" }));
+  await userEvent.click(screen.getByRole("button", { name: signInWords.send }));
 
   expect((await screen.findByRole("status")).textContent).toBe(words);
   expect(convex.ask).toHaveBeenCalledWith({ email: "craig@example.com" });

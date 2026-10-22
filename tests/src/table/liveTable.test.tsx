@@ -8,7 +8,11 @@ import { liveTable } from "../../../src/table/liveTable";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 
 const convex = vi.hoisted(() => ({ ofLeague: vi.fn() }));
-vi.mock("convex/react", async () => (await import("../../support/src/convexReact.harness")).fakeConvexReact({ queries: { "table/leagueTable:ofLeague": convex.ofLeague } }));
+vi.mock("convex/react", async () =>
+  (await import("../../support/src/convexReact.harness")).fakeConvexReact({
+    queries: { "table/leagueTable:ofLeague": convex.ofLeague },
+  }),
+);
 
 afterEach(() => convex.ofLeague.mockReset());
 

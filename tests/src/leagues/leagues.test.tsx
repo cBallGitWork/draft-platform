@@ -6,10 +6,11 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
+import { signOutWords } from "../../../src/frame/words";
 import { SIGN_IN_PATH } from "../../../src/router";
 import { admin, adminSeeing, league, manager, managerIn, newcomer, openApp, visitor } from "../../support/src/shell.harness";
 import { LEAGUES_PATH, LEAGUES_TITLE, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
-import { unsentLink, unsentLinkWords } from "../../../src/leagues/words";
+import { newLeagueLabels, unsentLink, unsentLinkWords } from "../../../src/leagues/words";
 
 afterEach(cleanup);
 
@@ -27,7 +28,7 @@ describe("someone signed in, in no league", () => {
     expect(screen.queryByRole("navigation")).toBeNull();
     expect(screen.queryByRole("link", { name: "Create a league" })).toBeNull();
 
-    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    await userEvent.click(screen.getByRole("button", { name: signOutWords }));
     expect(app.auth.signOut).toHaveBeenCalledOnce();
     app.becomes(visitor);
     expect(await screen.findByRole("textbox", { name: "Email" })).toBeTruthy();
@@ -46,7 +47,7 @@ describe("the admin, with no part in a league", () => {
     const app = openApp("/", admin);
     await userEvent.click(await screen.findByRole("link", { name: "Create a league" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Create a league" })).toBeTruthy();
-    expect(screen.getByRole("textbox", { name: "League name" })).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: newLeagueLabels.name })).toBeTruthy();
     expect(app.path()).toBe(NEW_LEAGUE_PATH);
   });
 
