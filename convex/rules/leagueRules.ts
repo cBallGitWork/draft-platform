@@ -10,6 +10,7 @@ import { leagueRulesShape, scoringSetShape, type LeagueRules } from "./leagueRul
 import { categoryName } from "../scoring/categories";
 import { sortedJson } from "../shared/sortedJson";
 import { nextGameweek } from "../gameweeks/nextGameweek";
+import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { FIRST_GAMEWEEK, SEASON_GAMEWEEKS } from "../gameweeks/usedGameweeks";
 
 // A league's rules, held as data (spec/03; #25): a new league copies the admin's default rules, and
@@ -95,17 +96,19 @@ async function heldSchedule(ctx: QueryCtx) {
   return { gameweeks, matches };
 }
 
-/** The league's own deadline for each of gameweeks 1 to 38, under the rule in force in it: when
- *  each begins, for its screens and refusals (#138, #139). Null where none of the gameweek's
- *  matches has a kickoff time held, and for every gameweek of a league made before rules were held,
- *  which has no deadline rule. */
+/** The league's own deadline for each of gameweeks 1 to 38: the one recorded once it passed
+ *  (#150), else the one under the rule in force in it. When each begins, for its screens, refusals
+ *  and recorder (#138, #139). Null where none of the gameweek's matches has a kickoff time held,
+ *  and for every gameweek of a league made before rules were held, which has no deadline rule. */
 export async function leagueDeadlines(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, number | null>> {
   const history = await historyOf(ctx, leagueId);
+  const passed = await passedDeadlinesOf(ctx, leagueId);
   const { matches } = await heldSchedule(ctx);
   return new Map(
     SEASON_GAMEWEEKS.map((gameweek) => {
       const row = inForce(history, gameweek);
-      return [gameweek, row === undefined ? null : leagueDeadline(gameweek, matches, row.rules.deadline)];
+      const recorded = passed.get(gameweek) ?? null;
+      return [gameweek, row === undefined ? recorded : leagueDeadline(gameweek, matches, row.rules.deadline, recorded)];
     }),
   );
 }
@@ -134,12 +137,14 @@ export const latest = query({
  *  gameweek the moment it is saved; and a row from before a waiting one would be overridden by it. */
 async function takesEffectFrom(
   ctx: QueryCtx,
+  leagueId: Id<"leagues">,
   history: readonly Doc<"leagueRules">[],
   rules: LeagueRules,
   now: number,
 ): Promise<number> {
   const { gameweeks, matches } = await heldSchedule(ctx);
-  const nextUnder = (deadlineFor: (gameweek: number) => DeadlineRule) => nextGameweek(gameweeks, matches, deadlineFor, now);
+  const passed = await passedDeadlinesOf(ctx, leagueId);
+  const nextUnder = (deadlineFor: (gameweek: number) => DeadlineRule) => nextGameweek(gameweeks, matches, deadlineFor, passed, now);
   return Math.max(
     nextUnder((gameweek) => (inForce(history, gameweek)?.rules ?? rules).deadline),
     nextUnder(() => rules.deadline),
@@ -153,7 +158,7 @@ async function takesEffectFrom(
 async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: string, rules: LeagueRules): Promise<number> {
   refuseUnsound(rules);
   const history = await historyOf(ctx, leagueId);
-  const fromGameweek = await takesEffectFrom(ctx, history, rules, Date.now());
+  const fromGameweek = await takesEffectFrom(ctx, leagueId, history, rules, Date.now());
   const latestRow = history.at(-1);
   const changed = changedParts(latestRow?.rules, rules);
   if (latestRow !== undefined && changed.length === 0) return latestRow.fromGameweek;
@@ -204,7 +209,7 @@ export const scoring = query({
     const history = await historyOf(ctx, leagueId);
     const latestRow = history.at(-1);
     if (latestRow === undefined) return null;
-    return { scoring: latestRow.rules.scoring, changesFrom: await takesEffectFrom(ctx, history, latestRow.rules, now) };
+    return { scoring: latestRow.rules.scoring, changesFrom: await takesEffectFrom(ctx, leagueId, history, latestRow.rules, now) };
   },
 });
 

@@ -42,6 +42,8 @@ export const run = internalAction({
       // The seam: swap `readFpl` for another feed's reader that returns the same `Football`.
       // It throws on a failed fetch or a changed payload, so only a whole list reaches `syncTable`.
       const football = await readFpl();
+      // Before a kickoff can move, so a deadline already passed stays where it fell (#150).
+      await ctx.runMutation(internal.gameweeks.deadlineRecorder.recordPassed, {});
       outcome = {
         ok: true,
         // Clubs first, so a player or a fixture never names a club not yet held.

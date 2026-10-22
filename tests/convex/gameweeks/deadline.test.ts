@@ -117,9 +117,17 @@ describe("from a gameweek's matches", () => {
 
   test("the league's own deadline, the one every caller reads (#138), is the rule's with nothing recorded", () => {
     for (const minutes of [180, 90, 0]) {
-      expect(leagueDeadline(GAMEWEEK, weekend, minutesBefore(minutes))).toBe(FRIDAY_8PM - minutes * MINUTE_MS);
+      expect(leagueDeadline(GAMEWEEK, weekend, minutesBefore(minutes), null)).toBe(FRIDAY_8PM - minutes * MINUTE_MS);
     }
-    expect(leagueDeadline(NEXT_GAMEWEEK, weekend, rule)).toBeNull();
+    expect(leagueDeadline(NEXT_GAMEWEEK, weekend, rule, null)).toBeNull();
+  });
+
+  test("once the league's deadline is recorded (#150), it is the deadline whatever the matches say", () => {
+    const recorded = deadlineBefore(FRIDAY_8PM);
+    const fridayPostponed = [match(null, null), match(GAMEWEEK, SATURDAY_3PM), match(GAMEWEEK, SUNDAY_1PM)];
+
+    expect(leagueDeadline(GAMEWEEK, fridayPostponed, rule, recorded)).toBe(recorded);
+    expect(leagueDeadline(GAMEWEEK, [], rule, recorded)).toBe(recorded);
   });
 
   describe("against the deadline recorded for it", () => {
