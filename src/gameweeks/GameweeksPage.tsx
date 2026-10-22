@@ -4,6 +4,7 @@ import type { LeagueGameweek } from "../../convex/gameweeks/leagueGameweeks";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PAGE_TITLE_ID, PageTitle, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
+import { gameweekWords } from "../words";
 import type { LeagueGameweeksView } from "./seam";
 import {
   begunWords,
@@ -14,7 +15,6 @@ import {
   loadingWords,
   noDeadlineWords,
   playsWords,
-  tickLabel,
 } from "./words";
 
 const cellClasses = "px-2 text-left align-middle";
@@ -97,7 +97,7 @@ function GameweekTable({
               <DeadlineCell deadline={row.deadline} begun={begun} />
               <td className={cellClasses}>
                 <TickBox
-                  label={tickLabel(row.gameweek)}
+                  label={gameweekWords(row.gameweek)}
                   ticked={row.used}
                   disabled={begun || sending === row.gameweek}
                   onTick={() => onTick(row)}
