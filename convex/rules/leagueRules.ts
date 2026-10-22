@@ -22,8 +22,8 @@ export const rulesRefusals = {
   noRules: "This league was made before leagues held their rules, so it has none to change yet.",
 };
 
-/** Refuses unsound rules, telling the commissioner or admin why: a league's of `maxTeams`, or the
- *  admin's defaults, for no league. */
+/** Refuses unsound rules, telling the commissioner or admin why: a league's, of `maxTeams` teams,
+ *  or the admin's defaults, which belong to no league. */
 function refuseUnsound(rules: LeagueRules, maxTeams?: number): void {
   asRefusal(() => checkLeagueRules(rules, maxTeams));
 }
@@ -91,8 +91,7 @@ export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">
 }
 
 /** Refuses `maxTeams` for a league whose `rules` play more games a gameweek than that many teams
- *  can, each against a different opponent: checked when a league is made and when its maximum
- *  changes. A team joining needs no check, as the check reads the maximum, not the teams. */
+ *  can: when a league is made and when its maximum changes. A team joining can't change it. */
 export function refuseTooFewForGames(rules: LeagueRules | null, maxTeams: number): void {
   const games = rules?.gamesPerGameweek;
   if (games !== undefined) asRefusal(() => checkGamesFor(games, maxTeams));

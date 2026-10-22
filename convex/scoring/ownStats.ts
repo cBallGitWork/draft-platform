@@ -18,6 +18,9 @@ export interface OwnStat {
   parts: readonly { stat: string; weight: number }[];
 }
 
+/** How a reason names an own stat's name and short code. */
+const FIELD_WORDS = { name: "name", shortCode: "short code" } as const;
+
 /** Own stats are made of catalogue stats only, never another own stat (spec/14), and each has a
  *  key no catalogue stat has, and a name and a short code no other own stat has. That no name or
  *  short code is a catalogue stat's is checked on saving only (`checkOwnStatsAgainstCatalogue`),
@@ -35,8 +38,8 @@ export function validateOwnStats(ownStats: unknown): void {
     keys.add(own.stat);
     for (const [field, seen] of [["name", names], ["shortCode", codes]] as const) {
       const value = own[field];
-      if (typeof value !== "string" || value.trim() === "") throw new Error(`${named} has no ${field === "name" ? "name" : "short code"}`);
-      if (seen.has(value)) throw new Error(`${named} has the ${field === "name" ? "name" : "short code"} ${showValue(value)}, which another own stat has`);
+      if (typeof value !== "string" || value.trim() === "") throw new Error(`${named} has no ${FIELD_WORDS[field]}`);
+      if (seen.has(value)) throw new Error(`${named} has the ${FIELD_WORDS[field]} ${showValue(value)}, which another own stat has`);
       seen.add(value);
     }
     if (!Array.isArray(own.parts) || own.parts.length === 0) throw new Error(`${named} adds up no stats`);
@@ -52,21 +55,20 @@ export function validateOwnStats(ownStats: unknown): void {
  *  Tackle" is the catalogue's "Won tackle" and "w t" its "WT" (Craig, 22 Oct 2026). */
 const nameKey = (value: string) => value.replace(/\s/g, "").toLowerCase();
 
-/** Each catalogue name and short code, as `nameKey` compares them, to the name of its stat. */
-const CATALOGUE_NAMES = {
+/** The catalogue stat's name for each name and short code, keyed as `nameKey` compares them. */
+const CATALOGUE_STAT_NAME_BY = {
   name: new Map(STAT_CATALOGUE.map((entry) => [nameKey(entry.name), entry.name])),
   shortCode: new Map(STAT_CATALOGUE.map((entry) => [nameKey(entry.shortCode), entry.name])),
 };
 
 /** Refuses an own stat named, or short-coded, as a catalogue stat is, so no two categories read
- *  alike (#212). For saving only: see `validateOwnStats`. */
+ *  alike. For saving only: see `validateOwnStats`. */
 export function checkOwnStatsAgainstCatalogue(ownStats: readonly OwnStat[]): void {
   for (const own of ownStats) {
     for (const field of ["name", "shortCode"] as const) {
-      const catalogueStat = CATALOGUE_NAMES[field].get(nameKey(own[field]));
+      const catalogueStat = CATALOGUE_STAT_NAME_BY[field].get(nameKey(own[field]));
       if (catalogueStat !== undefined) {
-        const what = field === "name" ? "name" : "short code";
-        throw new Error(`the own stat ${own.stat} has the ${what} ${showValue(own[field])}, which the catalogue's ${catalogueStat} has`);
+        throw new Error(`the own stat ${own.stat} has the ${FIELD_WORDS[field]} ${showValue(own[field])}, which the catalogue's ${catalogueStat} has`);
       }
     }
   }

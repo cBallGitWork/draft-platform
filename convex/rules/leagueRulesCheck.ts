@@ -15,8 +15,7 @@ import { roundsInARoundRobin } from "../table/roundRobin";
 export class UnsoundRules extends Error {}
 
 /** Throws the first reason these rules can't be saved. Given the league's maximum teams, also
- *  checks its games a gameweek can each be against a different opponent: the admin's defaults
- *  belong to no league, so are checked against one when a league is made with them. */
+ *  that that many can play its games a gameweek. */
 export function checkLeagueRules(rules: LeagueRules, maxTeams?: number): void {
   checkSquad(rules.squad);
   checkAreaLimits(rules.areaLimits);
@@ -30,8 +29,7 @@ export function checkLeagueRules(rules: LeagueRules, maxTeams?: number): void {
   checkWaivers(rules.waivers);
   try {
     validateScoringSet(rules.scoring);
-    // Here, on saving, never in validateScoringSet, which scoring runs: a catalogue stat renamed
-    // later mustn't stop a league's saved set scoring (#212).
+    // On saving only: ownStats.ts's validateOwnStats says why.
     checkOwnStatsAgainstCatalogue(rules.scoring.ownStats ?? []);
   } catch (error) {
     throw new UnsoundRules(`The scoring set can't be saved: ${(error as Error).message}.`);
@@ -40,9 +38,8 @@ export function checkLeagueRules(rules: LeagueRules, maxTeams?: number): void {
 
 const gamesWords = (games: number) => (games === 1 ? "1 game" : `${games} games`);
 
-/** Each of a team's games in a gameweek is against a different opponent, so with `maxTeams` teams
- *  it plays at most one round robin's rounds (roundRobin.ts); a league asking more would quietly
- *  play fewer (Craig, 22 Oct 2026: refused instead, naming the most). */
+/** A league asking more games a gameweek than `maxTeams` teams have rounds for would quietly play
+ *  fewer (roundRobin.ts): refused instead, naming the most (Craig, 22 Oct 2026). */
 export function checkGamesFor(games: number, maxTeams: number): void {
   const most = roundsInARoundRobin(maxTeams);
   if (games > most) {

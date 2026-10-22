@@ -194,4 +194,3 @@ describe("games a gameweek, in a league of so many teams (Craig, 22 Oct 2026)", 
     expect(() => checkLeagueRules(rulesWith({ gamesPerGameweek: 30 }))).not.toThrow();
   });
 });
-

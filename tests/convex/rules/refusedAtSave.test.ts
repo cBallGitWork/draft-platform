@@ -30,21 +30,20 @@ const createLeague = async (name: string, maxTeams = 4) =>
   (await actingAs(t, ADMIN)).mutation(api.leagues.leagues.create, { name, maxTeams, commissionerEmail: COMMISSIONER });
 
 describe("games a gameweek, each against a different opponent", () => {
+  const FIVE_WITH_FOUR = "With 4 teams, a team can play at most 3 games a gameweek, each against a different opponent, not 5.";
+
   test("more than the league's teams have opponents for is refused, naming the most", async () => {
     const leagueId = await adminCreatesLeague(t, 4);
-    await expectRefused(
-      change(leagueId, rulesWith({ gamesPerGameweek: 5 })),
-      "With 4 teams, a team can play at most 3 games a gameweek, each against a different opponent, not 5.",
-    );
+    await expectRefused(change(leagueId, rulesWith({ gamesPerGameweek: 5 })), FIVE_WITH_FOUR);
     await change(leagueId, rulesWith({ gamesPerGameweek: 3 }));
     expect((await latestRules(leagueId))?.gamesPerGameweek).toBe(3);
   });
 
-  test("the maximum of teams can't then go below what they need, and can once the games come down", async () => {
+  test("the maximum of teams can't then go below what they need, and can go down to it", async () => {
     const leagueId = await adminCreatesLeague(t, 6);
     await change(leagueId, rulesWith({ gamesPerGameweek: 5 }));
 
-    await expectRefused(setMaxTeams(leagueId, 4), "With 4 teams, a team can play at most 3 games a gameweek, each against a different opponent, not 5.");
+    await expectRefused(setMaxTeams(leagueId, 4), FIVE_WITH_FOUR);
     expect((await leagueRow(t, leagueId))?.maxTeams).toBe(6);
     await setMaxTeams(leagueId, 5);
     expect((await leagueRow(t, leagueId))?.maxTeams).toBe(5);
