@@ -1,3 +1,4 @@
+import type { ComponentType } from "react";
 import {
   Navigate,
   Outlet,
@@ -7,28 +8,91 @@ import {
   redirect,
   type RouterHistory,
 } from "@tanstack/react-router";
+import { AdminPage } from "./admin/AdminPage";
+import { FeedsPage } from "./admin/FeedsPage";
+import { ADMIN_FEEDS_PATH, ADMIN_PATH } from "./admin/paths";
+import type { AdminSeam } from "./admin/seam";
 import type { AuthActions, Session } from "./auth";
 import { AppFrame } from "./frame/AppFrame";
+import { ErrorScreen } from "./frame/ErrorScreen";
+import { LeagueSwitcher } from "./frame/LeagueSwitcher";
 import type { TopBarState } from "./frame/topBarState";
-import { MY_TEAM_PATH, pages } from "./frame/menu";
+import { MAIL_PATH, MY_TEAM_PATH, pages, TABLE_PATH } from "./frame/menu";
 import { PageNotBuilt } from "./frame/PageNotBuilt";
+import { GameweeksRoute } from "./gameweeks/GameweeksRoute";
+import { GAMEWEEKS_ROUTE } from "./gameweeks/paths";
+import type { GameweeksSeam } from "./gameweeks/seam";
+import { InvitesPage } from "./joining/InvitesPage";
+import { JoinPage } from "./joining/JoinPage";
+import { INVITES_ROUTE, JOIN_ROUTE, joinTokenAt } from "./joining/paths";
+import type { JoiningSeam } from "./joining/seam";
+import { signInToJoinWords } from "./joining/words";
+import type { LeaguesSeam } from "./leagues/seam";
 import { LeaguelessFrame } from "./leagues/LeaguelessFrame";
-import { NoLeaguePage } from "./leagues/NoLeaguePage";
-import { LEAGUES_PATH, NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./leagues/paths";
+import { LeaguesPage } from "./leagues/LeaguesPage";
+import { NewLeaguePage } from "./leagues/NewLeaguePage";
+import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "./leagues/paths";
+import { leagueRunBy } from "./leagues/roles";
+import type { MailSeam } from "./mail/seam";
+import { MailPage, leaguesToWriteFrom } from "./mail/MailPage";
+import { SIGN_IN_PATH } from "./sign-in/paths";
 import { SignInPage } from "./sign-in/SignInPage";
+import { SETTINGS_ROUTE } from "./leagueSettings/paths";
+import type { LeagueSettingsSeam } from "./leagueSettings/seam";
+import { SettingsRoute } from "./leagueSettings/SettingsRoute";
+import { SCORING_ROUTE } from "./scoring/paths";
+import type { ScoringSeam } from "./scoring/seam";
+import { ScoringRoute } from "./scoring/ScoringRoute";
+import { SQUADS_ROUTE } from "./squads/paths";
+import type { SquadsSeam } from "./squads/seam";
+import { SquadsRoute } from "./squads/SquadsRoute";
 import { linkProblemWords, type LinkProblem } from "./sign-in/words";
+import type { TableSeam } from "./table/seam";
+import { TableRoute } from "./table/TableRoute";
 
-export type ShellContext = { session: Session; auth: AuthActions; topBar: TopBarState };
+// A seam is a top-level useLive* hook holding root state (mail, joining, squads, scoring, league settings, admin, leagues) or a
+// constant object of hooks (gameweeks, table). Each new one needs a preview (main.tsx), a live value
+// (liveApp.tsx) and a fake (shell.harness.tsx), and the typechecker flags any that's missing.
+export type ShellContext = {
+  session: Session;
+  auth: AuthActions;
+  leagues: LeaguesSeam;
+  mail: MailSeam;
+  joining: JoiningSeam;
+  topBar: TopBarState;
+  gameweeks: GameweeksSeam;
+  squads: SquadsSeam;
+  scoring: ScoringSeam;
+  leagueSettings: LeagueSettingsSeam;
+  table: TableSeam;
+  admin: AdminSeam;
+};
 
-export const SIGN_IN_PATH = "/sign-in";
+/** Where the app opens: the guards below send each visitor on from here. */
+const LANDING_PATH = "/";
 
 // Any address nobody knows goes back to `/`, which the guards below send on: to the sign-in page
 // for a visitor, to their leagues for someone in none, to My team for a manager. So a visitor only
 // ever sees the sign-in page (spec/12).
 const rootRoute = createRootRouteWithContext<ShellContext>()({
   component: Outlet,
-  notFoundComponent: () => <Navigate to="/" replace />,
+  notFoundComponent: () => <Navigate to={LANDING_PATH} replace />,
 });
+
+/** The app's frame for someone in a league: the menu, the top bar and the league switcher. */
+function LeagueFrame({ context: { session, topBar, auth, leagues } }: { context: ShellContext }) {
+  const leagueSwitcher = <LeagueSwitcher session={session} switchLeague={leagues.switchLeague} />;
+  return <AppFrame topBar={topBar} onSignOut={auth.signOut} leagueSwitcher={leagueSwitcher} />;
+}
+
+// The guards on a page for the admin alone, and on a league's page for whoever runs it: anyone else
+// is sent back to their leagues.
+const adminOnly = ({ context }: { context: ShellContext }) => {
+  if (!(context.session.signedIn && context.session.isAdmin)) throw redirect({ to: LEAGUES_PATH });
+};
+const runnersOnly = ({ context, params }: { context: ShellContext; params: { leagueId: string } }) => {
+  if (!leagueRunBy(context.session, params.leagueId)) throw redirect({ to: LEAGUES_PATH });
+};
 
 const isLinkProblem = (value: unknown): value is LinkProblem =>
   typeof value === "string" && Object.hasOwn(linkProblemWords, value);
@@ -36,46 +100,145 @@ const isLinkProblem = (value: unknown): value is LinkProblem =>
 const signInRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: SIGN_IN_PATH,
-  // `link` always set, if only to undefined: a route's search is laid over the address's own.
-  validateSearch: (search): { link?: LinkProblem } => ({ link: isLinkProblem(search.link) ? search.link : undefined }),
-  beforeLoad: ({ context }) => {
-    if (context.session.signedIn) throw redirect({ to: "/" });
+  // Each always set, if only to undefined: a route's search is laid over the address's own. `join`
+  // is the invite link a signed-out visitor opened, which their sign-in link leads back to (#73).
+  validateSearch: (search): { link?: LinkProblem; join?: string } => ({
+    link: isLinkProblem(search.link) ? search.link : undefined,
+    join: typeof search.join === "string" && search.join ? search.join : undefined,
+  }),
+  beforeLoad: ({ context, search }) => {
+    if (context.session.signedIn) throw redirect(search.join ? { to: JOIN_ROUTE, params: { token: search.join } } : { to: LANDING_PATH });
   },
   component: function SignIn() {
-    const requestSignInLink = signInRoute.useRouteContext({ select: (context) => context.auth.requestSignInLink });
-    return <SignInPage requestSignInLink={requestSignInLink} linkProblem={signInRoute.useSearch().link} />;
+    const { auth, joining } = signInRoute.useRouteContext();
+    const { link, join } = signInRoute.useSearch();
+    const requestSignInLink = join ? (email: string) => joining.signInToJoin(join, email) : auth.requestSignInLink;
+    return <SignInPage requestSignInLink={requestSignInLink} linkProblem={link} intro={join && signInToJoinWords} />;
   },
 });
 
-// Signed in but in no league (spec/02): the leagues page, outside the league frame.
-const leaguelessRoute = createRoute({
+// The leagues pages and Mail, for anyone signed in: in the league frame for someone in a league,
+// and outside it, with no league menu, for someone in none (spec/02). Mail is one of them, not a
+// league-frame page, because a manager removed from their last league is told so by letter (spec/13).
+const leaguePagesRoute = createRoute({
   getParentRoute: () => rootRoute,
-  id: "leagueless",
-  beforeLoad: ({ context }) => {
-    if (!context.session.signedIn) throw redirect({ to: SIGN_IN_PATH });
-    if (context.session.inLeague) throw redirect({ to: MY_TEAM_PATH });
+  id: "leaguePages",
+  beforeLoad: ({ context, location }) => {
+    if (!context.session.signedIn) throw redirect({ to: SIGN_IN_PATH, search: { join: joinTokenAt(location.pathname) ?? undefined } });
   },
-  component: function Leagueless() {
-    return <LeaguelessFrame onSignOut={leaguelessRoute.useRouteContext({ select: (context) => context.auth.signOut })} />;
+  component: function LeaguePages() {
+    const context = leaguePagesRoute.useRouteContext();
+    return context.session.signedIn && context.session.inLeague ? (
+      <LeagueFrame context={context} />
+    ) : (
+      <LeaguelessFrame unreadMail={context.topBar.unreadMail} onSignOut={context.auth.signOut} />
+    );
   },
 });
 
 const leaguesRoute = createRoute({
-  getParentRoute: () => leaguelessRoute,
+  getParentRoute: () => leaguePagesRoute,
   path: LEAGUES_PATH,
   component: function Leagues() {
-    const session = leaguesRoute.useRouteContext({ select: (context) => context.session });
-    return session.signedIn ? <NoLeaguePage email={session.email} isAdmin={session.isAdmin} /> : null;
+    const { session, leagues, joining } = leaguesRoute.useRouteContext();
+    return session.signedIn ? (
+      <LeaguesPage
+        email={session.email}
+        isAdmin={session.isAdmin}
+        leagues={session.leagues}
+        actions={leagues}
+        useEndedInvite={joining.useEndedInvite}
+      />
+    ) : null;
   },
 });
 
 const newLeagueRoute = createRoute({
-  getParentRoute: () => leaguelessRoute,
+  getParentRoute: () => leaguePagesRoute,
   path: NEW_LEAGUE_PATH,
-  beforeLoad: ({ context }) => {
-    if (!(context.session.signedIn && context.session.isAdmin)) throw redirect({ to: LEAGUES_PATH });
+  beforeLoad: adminOnly,
+  component: function NewLeague() {
+    return <NewLeaguePage createLeague={newLeagueRoute.useRouteContext({ select: (context) => context.leagues.createLeague })} />;
   },
-  component: () => <PageNotBuilt title={NEW_LEAGUE_TITLE} />,
+});
+
+const mailRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: MAIL_PATH,
+  component: function MailScreen() {
+    const { mail, session, topBar } = mailRoute.useRouteContext();
+    return <MailPage mail={mail} unread={topBar.unreadMail} writableLeagues={leaguesToWriteFrom(session)} />;
+  },
+});
+
+/** The seams of the pages a league's runners open from its row on Your leagues. */
+type RunnerSeams = Pick<ShellContext, "gameweeks" | "squads" | "scoring" | "leagueSettings">;
+
+/** A page of one league's for whoever runs it, at `path`: `Page` is given the session, its seam
+ *  from the context and the league in the address. */
+function runnersPage<Seam extends keyof RunnerSeams, Path extends `${string}/$leagueId/${string}`>(
+  path: Path,
+  seam: Seam,
+  Page: ComponentType<{ session: Session; seam: RunnerSeams[Seam]; leagueId: string }>,
+) {
+  const route = createRoute({
+    getParentRoute: () => leaguePagesRoute,
+    path,
+    beforeLoad: runnersOnly,
+    component: function RunnersPage() {
+      const context = route.useRouteContext();
+      return <Page session={context.session} seam={context[seam]} leagueId={route.useParams().leagueId} />;
+    },
+  });
+  return route;
+}
+
+const gameweeksRoute = runnersPage(GAMEWEEKS_ROUTE, "gameweeks", GameweeksRoute); // #74
+const squadsRoute = runnersPage(SQUADS_ROUTE, "squads", SquadsRoute); // #31
+const scoringRoute = runnersPage(SCORING_ROUTE, "scoring", ScoringRoute); // Player scoring, #30
+const settingsRoute = runnersPage(SETTINGS_ROUTE, "leagueSettings", SettingsRoute); // League settings
+
+// The admin's dashboard (#87), his alone.
+const adminRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: ADMIN_PATH,
+  beforeLoad: adminOnly,
+  component: function Admin() {
+    const admin = adminRoute.useRouteContext({ select: (context) => context.admin });
+    return <AdminPage seam={admin} />;
+  },
+});
+
+// The dashboard's feeds tab (#35), his alone too.
+const adminFeedsRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: ADMIN_FEEDS_PATH,
+  beforeLoad: adminOnly,
+  component: function AdminFeeds() {
+    const admin = adminFeedsRoute.useRouteContext({ select: (context) => context.admin });
+    return <FeedsPage seam={admin} />;
+  },
+});
+
+// Joining a league (#73): a league's invites and join requests, for its runners, and its invite
+// link, which a signed-out visitor reaches through sign-in.
+const invitesRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: INVITES_ROUTE,
+  beforeLoad: runnersOnly,
+  component: function Invites() {
+    const joining = invitesRoute.useRouteContext({ select: (context) => context.joining });
+    return <InvitesPage leagueId={invitesRoute.useParams().leagueId} joining={joining} />;
+  },
+});
+
+const joinRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: JOIN_ROUTE,
+  component: function Join() {
+    const joining = joinRoute.useRouteContext({ select: (context) => context.joining });
+    return <JoinPage token={joinRoute.useParams().token} joining={joining} />;
+  },
 });
 
 const frameRoute = createRoute({
@@ -86,21 +249,31 @@ const frameRoute = createRoute({
     if (!context.session.inLeague) throw redirect({ to: LEAGUES_PATH });
   },
   component: function Frame() {
-    const { topBar, auth } = frameRoute.useRouteContext();
-    return <AppFrame topBar={topBar} onSignOut={auth.signOut} />;
+    return <LeagueFrame context={frameRoute.useRouteContext()} />;
   },
 });
 
 // A signed-in manager lands on My team (spec/12).
 const landingRoute = createRoute({
   getParentRoute: () => frameRoute,
-  path: "/",
+  path: LANDING_PATH,
   beforeLoad: () => {
     throw redirect({ to: MY_TEAM_PATH });
   },
 });
 
-const pageRoutes = pages.map((page) =>
+// The league's table and fixtures (#33), for anyone in it.
+const tableRoute = createRoute({
+  getParentRoute: () => frameRoute,
+  path: TABLE_PATH,
+  component: function Table() {
+    const { session, table } = tableRoute.useRouteContext();
+    return <TableRoute session={session} seam={table} />;
+  },
+});
+
+const BUILT_PAGES: readonly string[] = [MAIL_PATH, TABLE_PATH];
+const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map((page) =>
   createRoute({
     getParentRoute: () => frameRoute,
     path: page.path,
@@ -110,12 +283,12 @@ const pageRoutes = pages.map((page) =>
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
-  leaguelessRoute.addChildren([leaguesRoute, newLeagueRoute]),
-  frameRoute.addChildren([landingRoute, ...pageRoutes]),
+  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, settingsRoute, adminRoute, adminFeedsRoute]),
+  frameRoute.addChildren([landingRoute, tableRoute, ...pageRoutes]),
 ]);
 
 // Not registered for typed links yet: the pages above are made in a loop, so their paths are plain
 // strings. Each screen that gets built gets its own route, and the types come with them.
 export function createShellRouter(context: ShellContext, history?: RouterHistory) {
-  return createRouter({ routeTree, context, history });
+  return createRouter({ routeTree, context, history, defaultErrorComponent: ErrorScreen });
 }

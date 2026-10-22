@@ -5,7 +5,7 @@ Our league moves to it from Fantrax; the companion app lives in `cBallGitWork/ep
 
 ## The product is SPEC.md
 
-- `SPEC.md` is the index and `spec/NN-*.md` each feature; both hold only Craig's answers. A feature marked `to grill`, or any detail it doesn't settle, gets a `/grill` before it is built.
+- `SPEC.md` is the index and `spec/NN-*.md` each feature; both hold only Craig's answers. Wants no grill has settled live in `docs/to-grill.md`, never in `SPEC.md`; those, a screen marked `to grill` in `SPEC.md`, and any detail a spec file doesn't settle each get a `/grill` before they are built.
 - The build queue is the GitHub issues each grill ends in (`/grill` step 6).
 - Don't assume features. Generic fantasy-app research is background, never the product (`docs/research/`).
 
@@ -25,6 +25,6 @@ Our league moves to it from Fantrax; the companion app lives in `cBallGitWork/ep
 - Never commit on `main`. One branch and one PR per task, squash-merged. Branches start `feat/`, `fix/`, `refactor/`, `docs/` or `chore/` (a convention; the hook checks only `main`).
 - Stage named paths; never stage everything.
 - Both are enforced by `.claude/hooks/guard_bash.py`; `.claude/hooks/test.sh` checks every hook.
-- Before a pull request opens, run the `pr-reviewer` agent on the branch and paste its verdict into the template.
+- Before a pull request opens, run the `pr-reviewer` agent on the branch and paste its verdict into the template. A merge or restack after the review that changes behaviour gets a second `pr-reviewer` round. A docs-only PR that only quotes Craig's answers may skip `pr-reviewer`, and says so in its Checks.
 - A doc over 100 lines opens with a contents list.
 - Add a rule here only after Claude gets something wrong, and add a hook rather than a rule where possible. `/retro` before clearing the chat finds those moments; `/wait-what` re-says a reply that didn't land.

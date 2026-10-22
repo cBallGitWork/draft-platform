@@ -10,9 +10,12 @@ Craig's refactor checklist (16 Oct 2026). The policy around it, and what is neve
 is [docs/REFACTORING.md](../../../docs/REFACTORING.md).
 
 ## The branch's diff
-Committed and uncommitted, against `main`, then any new files:
-!`git diff --stat origin/main`
+Committed and uncommitted, against where the branch left `main`, then any new files:
+!`git diff --stat --merge-base origin/main`
 !`git status --short`
+
+On a drift pass the branch's own diff is empty: run `git diff --stat <range>` with the range
+`docs/REFACTORING.md`'s *Record* gives, and work over that.
 
 Work over the whole branch's diff, not only the last edit. Change only what the branch already
 changed: something older that breaks a rule becomes an issue (`CLAUDE.md`), unless it sits in a
@@ -25,7 +28,8 @@ here: it needs its own pull request (`docs/REFACTORING.md`, *What is never a ref
 1. **Improve:** is this the clearest way to say it?
 2. **Find bugs:** a test that can't fail; a test name promising what its body doesn't check; a
    test double joining downstream of the logic it should protect (delete the fix, run the test:
-   if it still passes, it pins the wrong thing); a silent catch; a league rule hardcoded.
+   if it still passes, it pins the wrong thing); a silent catch; a league rule hardcoded; a test
+   that silences console.error by hand where silenceConsoleError() would assert it.
 3. **Naming:** every variable, function, file and test says what it is: `daysUntilExpiration`,
    not `d` (`PHILOSOPHY.md`); a function needing a comment to explain it is renamed. The
    glossary's words (`SPEC.md`): a *team*, not a *player*, for a manager's side. A test is named
@@ -48,8 +52,7 @@ pull request is not reworked over borderline duplication: say it in one line and
 
 ## Verify
 
-`/verify` (`npm run verify`: the tests, the type check and the hook checks). A change that
-touches scoring also replays the recorded match in `convex/scoring.test.ts` (Hull v Everton; a
-whole gameweek once #28 or the league score lands) and compares every point
-(`docs/REFACTORING.md`, *Proving nothing changed*). If a step fails, fix it and rerun from the
-first.
+`/verify` (`npm run verify`: the tests, the type check, the recorded-payload check and the hook
+checks; CI also runs the build and the smoke test). A change that touches scoring also replays
+the recorded match and compares every point, as `docs/REFACTORING.md`'s *Proving nothing
+changed* says. If a step fails, fix it and rerun from the first.

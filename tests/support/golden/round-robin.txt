@@ -1,0 +1,1020 @@
+# 2 teams, 1 a gameweek, odd team out bye
+1: Team 1 v Team 2
+2: Team 1 v Team 2
+3: Team 1 v Team 2
+4: Team 1 v Team 2
+5: Team 1 v Team 2
+6: Team 1 v Team 2
+7: Team 1 v Team 2
+8: Team 1 v Team 2
+9: Team 1 v Team 2
+10: Team 1 v Team 2
+11: Team 1 v Team 2
+12: Team 1 v Team 2
+13: Team 1 v Team 2
+14: Team 1 v Team 2
+15: Team 1 v Team 2
+16: Team 1 v Team 2
+20: Team 1 v Team 2
+21: Team 1 v Team 2
+22: Team 1 v Team 2
+23: Team 1 v Team 2
+24: Team 1 v Team 2
+25: Team 1 v Team 2
+26: Team 1 v Team 2
+27: Team 1 v Team 2
+28: Team 1 v Team 2
+29: Team 1 v Team 2
+30: Team 1 v Team 2
+31: Team 1 v Team 2
+32: Team 1 v Team 2
+33: Team 1 v Team 2
+34: Team 1 v Team 2
+35: Team 1 v Team 2
+36: Team 1 v Team 2
+# 2 teams, 2 a gameweek, odd team out bye
+1: Team 1 v Team 2
+2: Team 1 v Team 2
+3: Team 1 v Team 2
+4: Team 1 v Team 2
+5: Team 1 v Team 2
+6: Team 1 v Team 2
+7: Team 1 v Team 2
+8: Team 1 v Team 2
+9: Team 1 v Team 2
+10: Team 1 v Team 2
+11: Team 1 v Team 2
+12: Team 1 v Team 2
+13: Team 1 v Team 2
+14: Team 1 v Team 2
+15: Team 1 v Team 2
+16: Team 1 v Team 2
+20: Team 1 v Team 2
+21: Team 1 v Team 2
+22: Team 1 v Team 2
+23: Team 1 v Team 2
+24: Team 1 v Team 2
+25: Team 1 v Team 2
+26: Team 1 v Team 2
+27: Team 1 v Team 2
+28: Team 1 v Team 2
+29: Team 1 v Team 2
+30: Team 1 v Team 2
+31: Team 1 v Team 2
+32: Team 1 v Team 2
+33: Team 1 v Team 2
+34: Team 1 v Team 2
+35: Team 1 v Team 2
+36: Team 1 v Team 2
+# 2 teams, 3 a gameweek, odd team out bye
+1: Team 1 v Team 2
+2: Team 1 v Team 2
+3: Team 1 v Team 2
+4: Team 1 v Team 2
+5: Team 1 v Team 2
+6: Team 1 v Team 2
+7: Team 1 v Team 2
+8: Team 1 v Team 2
+9: Team 1 v Team 2
+10: Team 1 v Team 2
+11: Team 1 v Team 2
+12: Team 1 v Team 2
+13: Team 1 v Team 2
+14: Team 1 v Team 2
+15: Team 1 v Team 2
+16: Team 1 v Team 2
+20: Team 1 v Team 2
+21: Team 1 v Team 2
+22: Team 1 v Team 2
+23: Team 1 v Team 2
+24: Team 1 v Team 2
+25: Team 1 v Team 2
+26: Team 1 v Team 2
+27: Team 1 v Team 2
+28: Team 1 v Team 2
+29: Team 1 v Team 2
+30: Team 1 v Team 2
+31: Team 1 v Team 2
+32: Team 1 v Team 2
+33: Team 1 v Team 2
+34: Team 1 v Team 2
+35: Team 1 v Team 2
+36: Team 1 v Team 2
+# 3 teams, 1 a gameweek, odd team out bye
+1: Team 1 v Team 3 | byes Team 2
+2: Team 2 v Team 3 | byes Team 1
+3: Team 1 v Team 2 | byes Team 3
+4: Team 2 v Team 3 | byes Team 1
+5: Team 1 v Team 2 | byes Team 3
+6: Team 1 v Team 3 | byes Team 2
+7: Team 2 v Team 3 | byes Team 1
+8: Team 1 v Team 3 | byes Team 2
+9: Team 1 v Team 2 | byes Team 3
+10: Team 1 v Team 3 | byes Team 2
+11: Team 1 v Team 2 | byes Team 3
+12: Team 2 v Team 3 | byes Team 1
+13: Team 1 v Team 2 | byes Team 3
+14: Team 1 v Team 3 | byes Team 2
+15: Team 2 v Team 3 | byes Team 1
+16: Team 1 v Team 2 | byes Team 3
+20: Team 1 v Team 3 | byes Team 2
+21: Team 2 v Team 3 | byes Team 1
+22: Team 1 v Team 2 | byes Team 3
+23: Team 2 v Team 3 | byes Team 1
+24: Team 1 v Team 3 | byes Team 2
+25: Team 2 v Team 3 | byes Team 1
+26: Team 1 v Team 2 | byes Team 3
+27: Team 1 v Team 3 | byes Team 2
+28: Team 1 v Team 2 | byes Team 3
+29: Team 2 v Team 3 | byes Team 1
+30: Team 1 v Team 3 | byes Team 2
+31: Team 1 v Team 3 | byes Team 2
+32: Team 2 v Team 3 | byes Team 1
+33: Team 1 v Team 2 | byes Team 3
+34: Team 1 v Team 3 | byes Team 2
+35: Team 2 v Team 3 | byes Team 1
+36: Team 1 v Team 2 | byes Team 3
+# 3 teams, 2 a gameweek, odd team out bye
+1: Team 1 v Team 3, Team 2 v Team 3 | byes Team 2, Team 1
+2: Team 1 v Team 2, Team 2 v Team 3 | byes Team 3, Team 1
+3: Team 1 v Team 2, Team 1 v Team 3 | byes Team 3, Team 2
+4: Team 2 v Team 3, Team 1 v Team 3 | byes Team 1, Team 2
+5: Team 1 v Team 2, Team 1 v Team 3 | byes Team 3, Team 2
+6: Team 1 v Team 2, Team 2 v Team 3 | byes Team 3, Team 1
+7: Team 1 v Team 2, Team 1 v Team 3 | byes Team 3, Team 2
+8: Team 2 v Team 3, Team 1 v Team 2 | byes Team 1, Team 3
+9: Team 1 v Team 3, Team 2 v Team 3 | byes Team 2, Team 1
+10: Team 1 v Team 2, Team 2 v Team 3 | byes Team 3, Team 1
+11: Team 1 v Team 3, Team 2 v Team 3 | byes Team 2, Team 1
+12: Team 1 v Team 2, Team 1 v Team 3 | byes Team 3, Team 2
+13: Team 1 v Team 2, Team 2 v Team 3 | byes Team 3, Team 1
+14: Team 1 v Team 3, Team 2 v Team 3 | byes Team 2, Team 1
+15: Team 1 v Team 3, Team 1 v Team 2 | byes Team 2, Team 3
+16: Team 1 v Team 3, Team 2 v Team 3 | byes Team 2, Team 1
+20: Team 1 v Team 2, Team 1 v Team 3 | byes Team 3, Team 2
+21: Team 2 v Team 3, Team 1 v Team 2 | byes Team 1, Team 3
+22: Team 2 v Team 3, Team 1 v Team 2 | byes Team 1, Team 3
+23: Team 1 v Team 3, Team 2 v Team 3 | byes Team 2, Team 1
+24: Team 1 v Team 3, Team 1 v Team 2 | byes Team 2, Team 3
+25: Team 1 v Team 2, Team 2 v Team 3 | byes Team 3, Team 1
+26: Team 1 v Team 3, Team 1 v Team 2 | byes Team 2, Team 3
+27: Team 1 v Team 3, Team 2 v Team 3 | byes Team 2, Team 1
+28: Team 1 v Team 2, Team 1 v Team 3 | byes Team 3, Team 2
+29: Team 2 v Team 3, Team 1 v Team 3 | byes Team 1, Team 2
+30: Team 1 v Team 2, Team 2 v Team 3 | byes Team 3, Team 1
+31: Team 2 v Team 3, Team 1 v Team 2 | byes Team 1, Team 3
+32: Team 1 v Team 3, Team 2 v Team 3 | byes Team 2, Team 1
+33: Team 1 v Team 2, Team 1 v Team 3 | byes Team 3, Team 2
+34: Team 1 v Team 2, Team 2 v Team 3 | byes Team 3, Team 1
+35: Team 1 v Team 3, Team 1 v Team 2 | byes Team 2, Team 3
+36: Team 1 v Team 3, Team 2 v Team 3 | byes Team 2, Team 1
+# 3 teams, 3 a gameweek, odd team out bye
+1: Team 1 v Team 3, Team 2 v Team 3, Team 1 v Team 2 | byes Team 2, Team 1, Team 3
+2: Team 2 v Team 3, Team 1 v Team 2, Team 1 v Team 3 | byes Team 1, Team 3, Team 2
+3: Team 2 v Team 3, Team 1 v Team 3, Team 1 v Team 2 | byes Team 1, Team 2, Team 3
+4: Team 1 v Team 3, Team 1 v Team 2, Team 2 v Team 3 | byes Team 2, Team 3, Team 1
+5: Team 1 v Team 2, Team 1 v Team 3, Team 2 v Team 3 | byes Team 3, Team 2, Team 1
+6: Team 1 v Team 2, Team 1 v Team 3, Team 2 v Team 3 | byes Team 3, Team 2, Team 1
+7: Team 1 v Team 2, Team 2 v Team 3, Team 1 v Team 3 | byes Team 3, Team 1, Team 2
+8: Team 2 v Team 3, Team 1 v Team 2, Team 1 v Team 3 | byes Team 1, Team 3, Team 2
+9: Team 1 v Team 2, Team 2 v Team 3, Team 1 v Team 3 | byes Team 3, Team 1, Team 2
+10: Team 1 v Team 3, Team 2 v Team 3, Team 1 v Team 2 | byes Team 2, Team 1, Team 3
+11: Team 1 v Team 3, Team 2 v Team 3, Team 1 v Team 2 | byes Team 2, Team 1, Team 3
+12: Team 1 v Team 3, Team 2 v Team 3, Team 1 v Team 2 | byes Team 2, Team 1, Team 3
+13: Team 2 v Team 3, Team 1 v Team 2, Team 1 v Team 3 | byes Team 1, Team 3, Team 2
+14: Team 2 v Team 3, Team 1 v Team 3, Team 1 v Team 2 | byes Team 1, Team 2, Team 3
+15: Team 1 v Team 2, Team 2 v Team 3, Team 1 v Team 3 | byes Team 3, Team 1, Team 2
+16: Team 1 v Team 3, Team 1 v Team 2, Team 2 v Team 3 | byes Team 2, Team 3, Team 1
+20: Team 1 v Team 2, Team 1 v Team 3, Team 2 v Team 3 | byes Team 3, Team 2, Team 1
+21: Team 1 v Team 3, Team 1 v Team 2, Team 2 v Team 3 | byes Team 2, Team 3, Team 1
+22: Team 2 v Team 3, Team 1 v Team 2, Team 1 v Team 3 | byes Team 1, Team 3, Team 2
+23: Team 2 v Team 3, Team 1 v Team 2, Team 1 v Team 3 | byes Team 1, Team 3, Team 2
+24: Team 1 v Team 2, Team 2 v Team 3, Team 1 v Team 3 | byes Team 3, Team 1, Team 2
+25: Team 1 v Team 2, Team 1 v Team 3, Team 2 v Team 3 | byes Team 3, Team 2, Team 1
+26: Team 2 v Team 3, Team 1 v Team 3, Team 1 v Team 2 | byes Team 1, Team 2, Team 3
+27: Team 2 v Team 3, Team 1 v Team 3, Team 1 v Team 2 | byes Team 1, Team 2, Team 3
+28: Team 1 v Team 2, Team 1 v Team 3, Team 2 v Team 3 | byes Team 3, Team 2, Team 1
+29: Team 2 v Team 3, Team 1 v Team 3, Team 1 v Team 2 | byes Team 1, Team 2, Team 3
+30: Team 1 v Team 2, Team 2 v Team 3, Team 1 v Team 3 | byes Team 3, Team 1, Team 2
+31: Team 1 v Team 3, Team 1 v Team 2, Team 2 v Team 3 | byes Team 2, Team 3, Team 1
+32: Team 2 v Team 3, Team 1 v Team 2, Team 1 v Team 3 | byes Team 1, Team 3, Team 2
+33: Team 1 v Team 2, Team 2 v Team 3, Team 1 v Team 3 | byes Team 3, Team 1, Team 2
+34: Team 2 v Team 3, Team 1 v Team 3, Team 1 v Team 2 | byes Team 1, Team 2, Team 3
+35: Team 2 v Team 3, Team 1 v Team 2, Team 1 v Team 3 | byes Team 1, Team 3, Team 2
+36: Team 1 v Team 3, Team 1 v Team 2, Team 2 v Team 3 | byes Team 2, Team 3, Team 1
+# 4 teams, 1 a gameweek, odd team out bye
+1: Team 1 v Team 3, Team 4 v Team 2
+2: Team 1 v Team 4, Team 2 v Team 3
+3: Team 1 v Team 2, Team 3 v Team 4
+4: Team 1 v Team 4, Team 2 v Team 3
+5: Team 1 v Team 2, Team 3 v Team 4
+6: Team 1 v Team 3, Team 4 v Team 2
+7: Team 1 v Team 4, Team 2 v Team 3
+8: Team 1 v Team 3, Team 4 v Team 2
+9: Team 1 v Team 2, Team 3 v Team 4
+10: Team 1 v Team 3, Team 4 v Team 2
+11: Team 1 v Team 2, Team 3 v Team 4
+12: Team 1 v Team 4, Team 2 v Team 3
+13: Team 1 v Team 2, Team 3 v Team 4
+14: Team 1 v Team 3, Team 4 v Team 2
+15: Team 1 v Team 4, Team 2 v Team 3
+16: Team 1 v Team 2, Team 3 v Team 4
+20: Team 1 v Team 3, Team 4 v Team 2
+21: Team 1 v Team 4, Team 2 v Team 3
+22: Team 1 v Team 2, Team 3 v Team 4
+23: Team 1 v Team 4, Team 2 v Team 3
+24: Team 1 v Team 3, Team 4 v Team 2
+25: Team 1 v Team 4, Team 2 v Team 3
+26: Team 1 v Team 2, Team 3 v Team 4
+27: Team 1 v Team 3, Team 4 v Team 2
+28: Team 1 v Team 2, Team 3 v Team 4
+29: Team 1 v Team 4, Team 2 v Team 3
+30: Team 1 v Team 3, Team 4 v Team 2
+31: Team 1 v Team 3, Team 4 v Team 2
+32: Team 1 v Team 4, Team 2 v Team 3
+33: Team 1 v Team 2, Team 3 v Team 4
+34: Team 1 v Team 3, Team 4 v Team 2
+35: Team 1 v Team 4, Team 2 v Team 3
+36: Team 1 v Team 2, Team 3 v Team 4
+# 4 teams, 2 a gameweek, odd team out bye
+1: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+2: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+3: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+4: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2
+5: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+6: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+7: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+8: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4
+9: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+10: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+11: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+12: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+13: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+14: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+15: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+16: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+20: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+21: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4
+22: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4
+23: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+24: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+25: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+26: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+27: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+28: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+29: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2
+30: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+31: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4
+32: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+33: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+34: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+35: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+36: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+# 4 teams, 3 a gameweek, odd team out bye
+1: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4
+2: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+3: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+4: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+5: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+6: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+7: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2
+8: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+9: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2
+10: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4
+11: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4
+12: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4
+13: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+14: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+15: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2
+16: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+20: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+21: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+22: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+23: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+24: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2
+25: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+26: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+27: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+28: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+29: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+30: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2
+31: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+32: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+33: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2
+34: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+35: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+36: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+# 7 teams, 1 a gameweek, odd team out bye
+1: Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 1
+2: Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4 | byes Team 6
+3: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2 | byes Team 7
+4: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3 | byes Team 2
+5: Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6 | byes Team 3
+6: Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3 | byes Team 4
+7: Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7 | byes Team 5
+8: Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7 | byes Team 5
+9: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2 | byes Team 7
+10: Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 1
+11: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3 | byes Team 2
+12: Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6 | byes Team 3
+13: Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3 | byes Team 4
+14: Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4 | byes Team 6
+15: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2 | byes Team 7
+16: Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7 | byes Team 5
+20: Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4 | byes Team 6
+21: Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3 | byes Team 4
+22: Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6 | byes Team 3
+23: Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 1
+24: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3 | byes Team 2
+25: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3 | byes Team 2
+26: Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 1
+27: Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3 | byes Team 4
+28: Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6 | byes Team 3
+29: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2 | byes Team 7
+30: Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4 | byes Team 6
+31: Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7 | byes Team 5
+32: Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3 | byes Team 4
+33: Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 1
+34: Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4 | byes Team 6
+35: Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6 | byes Team 3
+36: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2 | byes Team 7
+# 7 teams, 2 a gameweek, odd team out bye
+1: Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4 | byes Team 1, Team 6
+2: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3 | byes Team 7, Team 2
+3: Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3 | byes Team 3, Team 4
+4: Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2 | byes Team 5, Team 7
+5: Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 5, Team 1
+6: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6 | byes Team 2, Team 3
+7: Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3, Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4 | byes Team 4, Team 6
+8: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7 | byes Team 7, Team 5
+9: Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3 | byes Team 6, Team 4
+10: Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 3, Team 1
+11: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 2, Team 1
+12: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3 | byes Team 2, Team 4
+13: Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2 | byes Team 3, Team 7
+14: Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7 | byes Team 6, Team 5
+15: Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 4, Team 1
+16: Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6 | byes Team 6, Team 3
+20: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7 | byes Team 7, Team 5
+21: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4 | byes Team 2, Team 6
+22: Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2 | byes Team 5, Team 7
+23: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6 | byes Team 2, Team 3
+24: Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 4, Team 1
+25: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 7, Team 1
+26: Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6 | byes Team 6, Team 3
+27: Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3 | byes Team 5, Team 2
+28: Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 4, Team 1
+29: Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3 | byes Team 3, Team 4
+30: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7 | byes Team 2, Team 5
+31: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4 | byes Team 7, Team 6
+32: Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 5, Team 1
+33: Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3 | byes Team 3, Team 4
+34: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3 | byes Team 7, Team 2
+35: Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2 | byes Team 6, Team 7
+36: Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6 | byes Team 5, Team 3
+# 7 teams, 3 a gameweek, odd team out bye
+1: Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2 | byes Team 1, Team 6, Team 7
+2: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3 | byes Team 2, Team 3, Team 4
+3: Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 5, Team 7, Team 1
+4: Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6 | byes Team 5, Team 2, Team 3
+5: Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3, Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2 | byes Team 4, Team 6, Team 7
+6: Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3 | byes Team 5, Team 6, Team 4
+7: Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3 | byes Team 3, Team 1, Team 2
+8: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3 | byes Team 2, Team 1, Team 4
+9: Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4 | byes Team 3, Team 7, Team 6
+10: Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 5, Team 4, Team 1
+11: Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2 | byes Team 6, Team 3, Team 7
+12: Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4 | byes Team 5, Team 2, Team 6
+13: Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3 | byes Team 5, Team 7, Team 2
+14: Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 3, Team 4, Team 1
+15: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4 | byes Team 7, Team 1, Team 6
+16: Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3 | byes Team 3, Team 5, Team 2
+20: Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6 | byes Team 4, Team 1, Team 3
+21: Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7 | byes Team 4, Team 2, Team 5
+22: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7 | byes Team 7, Team 6, Team 5
+23: Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3 | byes Team 1, Team 3, Team 4
+24: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4 | byes Team 7, Team 2, Team 6
+25: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6 | byes Team 7, Team 5, Team 3
+26: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 2, Team 4, Team 1
+27: Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 6, Team 5, Team 1
+28: Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3 | byes Team 6, Team 2, Team 4
+29: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 7, Team 3, Team 1
+30: Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6 | byes Team 6, Team 7, Team 3
+31: Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7 | byes Team 4, Team 2, Team 5
+32: Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4 | byes Team 4, Team 7, Team 6
+33: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5 | byes Team 2, Team 5, Team 1
+34: Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 7, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2 | byes Team 3, Team 6, Team 7
+35: Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 2, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 6, Team 7 v Team 5, Team 2 v Team 3 | byes Team 1, Team 3, Team 4
+36: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 6 v Team 7, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2 | byes Team 2, Team 5, Team 7
+# 10 teams, 1 a gameweek, odd team out bye
+1: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+2: Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+3: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+4: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+5: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+6: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+7: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7
+8: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+9: Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+10: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+11: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+12: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+13: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+14: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7
+15: Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+16: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+20: Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+21: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+22: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+23: Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+24: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+25: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+26: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7
+27: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+28: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+29: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+30: Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+31: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+32: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7
+33: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+34: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+35: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+36: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+# 10 teams, 2 a gameweek, odd team out bye
+1: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+2: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+3: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+4: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+5: Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+6: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+7: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7
+8: Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2, Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+9: Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+10: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+11: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+12: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+13: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+14: Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+15: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+16: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+20: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+21: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+22: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+23: Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+24: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+25: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+26: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+27: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+28: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+29: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+30: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+31: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+32: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+33: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+34: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+35: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+36: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+# 10 teams, 3 a gameweek, odd team out bye
+1: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+2: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+3: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+4: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+5: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+6: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+7: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+8: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+9: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+10: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+11: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+12: Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+13: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+14: Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+15: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+16: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+20: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7
+21: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+22: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+23: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+24: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+25: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+26: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+27: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+28: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+29: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+30: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+31: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+32: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+33: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+34: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+35: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+36: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+# 2 teams, 1 a gameweek, odd team out leagueAverage
+1: Team 1 v Team 2
+2: Team 1 v Team 2
+3: Team 1 v Team 2
+4: Team 1 v Team 2
+5: Team 1 v Team 2
+6: Team 1 v Team 2
+7: Team 1 v Team 2
+8: Team 1 v Team 2
+9: Team 1 v Team 2
+10: Team 1 v Team 2
+11: Team 1 v Team 2
+12: Team 1 v Team 2
+13: Team 1 v Team 2
+14: Team 1 v Team 2
+15: Team 1 v Team 2
+16: Team 1 v Team 2
+20: Team 1 v Team 2
+21: Team 1 v Team 2
+22: Team 1 v Team 2
+23: Team 1 v Team 2
+24: Team 1 v Team 2
+25: Team 1 v Team 2
+26: Team 1 v Team 2
+27: Team 1 v Team 2
+28: Team 1 v Team 2
+29: Team 1 v Team 2
+30: Team 1 v Team 2
+31: Team 1 v Team 2
+32: Team 1 v Team 2
+33: Team 1 v Team 2
+34: Team 1 v Team 2
+35: Team 1 v Team 2
+36: Team 1 v Team 2
+# 2 teams, 2 a gameweek, odd team out leagueAverage
+1: Team 1 v Team 2
+2: Team 1 v Team 2
+3: Team 1 v Team 2
+4: Team 1 v Team 2
+5: Team 1 v Team 2
+6: Team 1 v Team 2
+7: Team 1 v Team 2
+8: Team 1 v Team 2
+9: Team 1 v Team 2
+10: Team 1 v Team 2
+11: Team 1 v Team 2
+12: Team 1 v Team 2
+13: Team 1 v Team 2
+14: Team 1 v Team 2
+15: Team 1 v Team 2
+16: Team 1 v Team 2
+20: Team 1 v Team 2
+21: Team 1 v Team 2
+22: Team 1 v Team 2
+23: Team 1 v Team 2
+24: Team 1 v Team 2
+25: Team 1 v Team 2
+26: Team 1 v Team 2
+27: Team 1 v Team 2
+28: Team 1 v Team 2
+29: Team 1 v Team 2
+30: Team 1 v Team 2
+31: Team 1 v Team 2
+32: Team 1 v Team 2
+33: Team 1 v Team 2
+34: Team 1 v Team 2
+35: Team 1 v Team 2
+36: Team 1 v Team 2
+# 2 teams, 3 a gameweek, odd team out leagueAverage
+1: Team 1 v Team 2
+2: Team 1 v Team 2
+3: Team 1 v Team 2
+4: Team 1 v Team 2
+5: Team 1 v Team 2
+6: Team 1 v Team 2
+7: Team 1 v Team 2
+8: Team 1 v Team 2
+9: Team 1 v Team 2
+10: Team 1 v Team 2
+11: Team 1 v Team 2
+12: Team 1 v Team 2
+13: Team 1 v Team 2
+14: Team 1 v Team 2
+15: Team 1 v Team 2
+16: Team 1 v Team 2
+20: Team 1 v Team 2
+21: Team 1 v Team 2
+22: Team 1 v Team 2
+23: Team 1 v Team 2
+24: Team 1 v Team 2
+25: Team 1 v Team 2
+26: Team 1 v Team 2
+27: Team 1 v Team 2
+28: Team 1 v Team 2
+29: Team 1 v Team 2
+30: Team 1 v Team 2
+31: Team 1 v Team 2
+32: Team 1 v Team 2
+33: Team 1 v Team 2
+34: Team 1 v Team 2
+35: Team 1 v Team 2
+36: Team 1 v Team 2
+# 3 teams, 1 a gameweek, odd team out leagueAverage
+1: Team 1 v Team 3, Team 2 v average
+2: Team 1 v average, Team 2 v Team 3
+3: Team 1 v Team 2, Team 3 v average
+4: Team 1 v average, Team 2 v Team 3
+5: Team 1 v Team 2, Team 3 v average
+6: Team 1 v Team 3, Team 2 v average
+7: Team 1 v average, Team 2 v Team 3
+8: Team 1 v Team 3, Team 2 v average
+9: Team 1 v Team 2, Team 3 v average
+10: Team 1 v Team 3, Team 2 v average
+11: Team 1 v Team 2, Team 3 v average
+12: Team 1 v average, Team 2 v Team 3
+13: Team 1 v Team 2, Team 3 v average
+14: Team 1 v Team 3, Team 2 v average
+15: Team 1 v average, Team 2 v Team 3
+16: Team 1 v Team 2, Team 3 v average
+20: Team 1 v Team 3, Team 2 v average
+21: Team 1 v average, Team 2 v Team 3
+22: Team 1 v Team 2, Team 3 v average
+23: Team 1 v average, Team 2 v Team 3
+24: Team 1 v Team 3, Team 2 v average
+25: Team 1 v average, Team 2 v Team 3
+26: Team 1 v Team 2, Team 3 v average
+27: Team 1 v Team 3, Team 2 v average
+28: Team 1 v Team 2, Team 3 v average
+29: Team 1 v average, Team 2 v Team 3
+30: Team 1 v Team 3, Team 2 v average
+31: Team 1 v Team 3, Team 2 v average
+32: Team 1 v average, Team 2 v Team 3
+33: Team 1 v Team 2, Team 3 v average
+34: Team 1 v Team 3, Team 2 v average
+35: Team 1 v average, Team 2 v Team 3
+36: Team 1 v Team 2, Team 3 v average
+# 3 teams, 2 a gameweek, odd team out leagueAverage
+1: Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3
+2: Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3
+3: Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average
+4: Team 1 v average, Team 2 v Team 3, Team 1 v Team 3, Team 2 v average
+5: Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average
+6: Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3
+7: Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average
+8: Team 1 v average, Team 2 v Team 3, Team 1 v Team 2, Team 3 v average
+9: Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3
+10: Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3
+11: Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3
+12: Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average
+13: Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3
+14: Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3
+15: Team 1 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average
+16: Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3
+20: Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average
+21: Team 1 v average, Team 2 v Team 3, Team 1 v Team 2, Team 3 v average
+22: Team 1 v average, Team 2 v Team 3, Team 1 v Team 2, Team 3 v average
+23: Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3
+24: Team 1 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average
+25: Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3
+26: Team 1 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average
+27: Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3
+28: Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average
+29: Team 1 v average, Team 2 v Team 3, Team 1 v Team 3, Team 2 v average
+30: Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3
+31: Team 1 v average, Team 2 v Team 3, Team 1 v Team 2, Team 3 v average
+32: Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3
+33: Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average
+34: Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3
+35: Team 1 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average
+36: Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3
+# 3 teams, 3 a gameweek, odd team out leagueAverage
+1: Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3, Team 1 v Team 2, Team 3 v average
+2: Team 1 v average, Team 2 v Team 3, Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average
+3: Team 1 v average, Team 2 v Team 3, Team 1 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average
+4: Team 1 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3
+5: Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3
+6: Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3
+7: Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3, Team 1 v Team 3, Team 2 v average
+8: Team 1 v average, Team 2 v Team 3, Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average
+9: Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3, Team 1 v Team 3, Team 2 v average
+10: Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3, Team 1 v Team 2, Team 3 v average
+11: Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3, Team 1 v Team 2, Team 3 v average
+12: Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3, Team 1 v Team 2, Team 3 v average
+13: Team 1 v average, Team 2 v Team 3, Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average
+14: Team 1 v average, Team 2 v Team 3, Team 1 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average
+15: Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3, Team 1 v Team 3, Team 2 v average
+16: Team 1 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3
+20: Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3
+21: Team 1 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3
+22: Team 1 v average, Team 2 v Team 3, Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average
+23: Team 1 v average, Team 2 v Team 3, Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average
+24: Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3, Team 1 v Team 3, Team 2 v average
+25: Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3
+26: Team 1 v average, Team 2 v Team 3, Team 1 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average
+27: Team 1 v average, Team 2 v Team 3, Team 1 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average
+28: Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 3
+29: Team 1 v average, Team 2 v Team 3, Team 1 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average
+30: Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3, Team 1 v Team 3, Team 2 v average
+31: Team 1 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3
+32: Team 1 v average, Team 2 v Team 3, Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average
+33: Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3, Team 1 v Team 3, Team 2 v average
+34: Team 1 v average, Team 2 v Team 3, Team 1 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average
+35: Team 1 v average, Team 2 v Team 3, Team 1 v Team 2, Team 3 v average, Team 1 v Team 3, Team 2 v average
+36: Team 1 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average, Team 1 v average, Team 2 v Team 3
+# 4 teams, 1 a gameweek, odd team out leagueAverage
+1: Team 1 v Team 3, Team 4 v Team 2
+2: Team 1 v Team 4, Team 2 v Team 3
+3: Team 1 v Team 2, Team 3 v Team 4
+4: Team 1 v Team 4, Team 2 v Team 3
+5: Team 1 v Team 2, Team 3 v Team 4
+6: Team 1 v Team 3, Team 4 v Team 2
+7: Team 1 v Team 4, Team 2 v Team 3
+8: Team 1 v Team 3, Team 4 v Team 2
+9: Team 1 v Team 2, Team 3 v Team 4
+10: Team 1 v Team 3, Team 4 v Team 2
+11: Team 1 v Team 2, Team 3 v Team 4
+12: Team 1 v Team 4, Team 2 v Team 3
+13: Team 1 v Team 2, Team 3 v Team 4
+14: Team 1 v Team 3, Team 4 v Team 2
+15: Team 1 v Team 4, Team 2 v Team 3
+16: Team 1 v Team 2, Team 3 v Team 4
+20: Team 1 v Team 3, Team 4 v Team 2
+21: Team 1 v Team 4, Team 2 v Team 3
+22: Team 1 v Team 2, Team 3 v Team 4
+23: Team 1 v Team 4, Team 2 v Team 3
+24: Team 1 v Team 3, Team 4 v Team 2
+25: Team 1 v Team 4, Team 2 v Team 3
+26: Team 1 v Team 2, Team 3 v Team 4
+27: Team 1 v Team 3, Team 4 v Team 2
+28: Team 1 v Team 2, Team 3 v Team 4
+29: Team 1 v Team 4, Team 2 v Team 3
+30: Team 1 v Team 3, Team 4 v Team 2
+31: Team 1 v Team 3, Team 4 v Team 2
+32: Team 1 v Team 4, Team 2 v Team 3
+33: Team 1 v Team 2, Team 3 v Team 4
+34: Team 1 v Team 3, Team 4 v Team 2
+35: Team 1 v Team 4, Team 2 v Team 3
+36: Team 1 v Team 2, Team 3 v Team 4
+# 4 teams, 2 a gameweek, odd team out leagueAverage
+1: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+2: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+3: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+4: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2
+5: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+6: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+7: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+8: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4
+9: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+10: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+11: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+12: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+13: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+14: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+15: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+16: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+20: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+21: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4
+22: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4
+23: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+24: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+25: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+26: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+27: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+28: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+29: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2
+30: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+31: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4
+32: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+33: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+34: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+35: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+36: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+# 4 teams, 3 a gameweek, odd team out leagueAverage
+1: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4
+2: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+3: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+4: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+5: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+6: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+7: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2
+8: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+9: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2
+10: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4
+11: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4
+12: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4
+13: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+14: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+15: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2
+16: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+20: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+21: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+22: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+23: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+24: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2
+25: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+26: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+27: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+28: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 4, Team 2 v Team 3
+29: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+30: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2
+31: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+32: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+33: Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2
+34: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4
+35: Team 1 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2
+36: Team 1 v Team 3, Team 4 v Team 2, Team 1 v Team 2, Team 3 v Team 4, Team 1 v Team 4, Team 2 v Team 3
+# 7 teams, 1 a gameweek, odd team out leagueAverage
+1: Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+2: Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4
+3: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average
+4: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average
+5: Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6
+6: Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3
+7: Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7
+8: Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7
+9: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average
+10: Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+11: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average
+12: Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6
+13: Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3
+14: Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4
+15: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average
+16: Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7
+20: Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4
+21: Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3
+22: Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6
+23: Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+24: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average
+25: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average
+26: Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+27: Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3
+28: Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6
+29: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average
+30: Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4
+31: Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7
+32: Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3
+33: Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+34: Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4
+35: Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6
+36: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average
+# 7 teams, 2 a gameweek, odd team out leagueAverage
+1: Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4
+2: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average
+3: Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3
+4: Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average
+5: Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+6: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6
+7: Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3, Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4
+8: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average, Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7
+9: Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3
+10: Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+11: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+12: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3
+13: Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average
+14: Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7
+15: Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+16: Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6
+20: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average, Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7
+21: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4
+22: Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average
+23: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6
+24: Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+25: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+26: Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6
+27: Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average
+28: Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+29: Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3
+30: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7
+31: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average, Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4
+32: Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+33: Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3
+34: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average
+35: Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average
+36: Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6
+# 7 teams, 3 a gameweek, odd team out leagueAverage
+1: Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average
+2: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3
+3: Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+4: Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6
+5: Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3, Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average
+6: Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3
+7: Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average
+8: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3
+9: Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average, Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4
+10: Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+11: Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average
+12: Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4
+13: Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average
+14: Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+15: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4
+16: Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average
+20: Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6
+21: Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7
+22: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average, Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7
+23: Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3
+24: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4
+25: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average, Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6
+26: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+27: Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+28: Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3
+29: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average, Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+30: Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average, Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6
+31: Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7
+32: Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average, Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4
+33: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+34: Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 7, Team 6 v average, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average
+35: Team 1 v average, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 2, Team 3 v average, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 6, Team 7 v Team 5, Team 4 v average, Team 2 v Team 3
+36: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 2 v average, Team 1 v Team 3, Team 4 v Team 2, Team 5 v average, Team 6 v Team 7, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v average
+# 10 teams, 1 a gameweek, odd team out leagueAverage
+1: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+2: Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+3: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+4: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+5: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+6: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+7: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7
+8: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+9: Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+10: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+11: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+12: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+13: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+14: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7
+15: Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+16: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+20: Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+21: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+22: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+23: Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+24: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+25: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+26: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7
+27: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+28: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+29: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+30: Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+31: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+32: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7
+33: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+34: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+35: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+36: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+# 10 teams, 2 a gameweek, odd team out leagueAverage
+1: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+2: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+3: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+4: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+5: Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+6: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+7: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7
+8: Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2, Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+9: Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+10: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+11: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+12: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+13: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+14: Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+15: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+16: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+20: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+21: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+22: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+23: Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+24: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+25: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+26: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+27: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+28: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+29: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+30: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+31: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+32: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+33: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+34: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+35: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+36: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+# 10 teams, 3 a gameweek, odd team out leagueAverage
+1: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+2: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+3: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+4: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+5: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+6: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+7: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+8: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+9: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+10: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+11: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+12: Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+13: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+14: Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+15: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+16: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+20: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7
+21: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+22: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+23: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+24: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4
+25: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+26: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5
+27: Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+28: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+29: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+30: Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6
+31: Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10
+32: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2
+33: Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8
+34: Team 1 v Team 8, Team 9 v Team 7, Team 10 v Team 6, Team 2 v Team 5, Team 3 v Team 4, Team 1 v Team 5, Team 6 v Team 4, Team 7 v Team 3, Team 8 v Team 2, Team 9 v Team 10, Team 1 v Team 7, Team 8 v Team 6, Team 9 v Team 5, Team 10 v Team 4, Team 2 v Team 3
+35: Team 1 v Team 2, Team 3 v Team 10, Team 4 v Team 9, Team 5 v Team 8, Team 6 v Team 7, Team 1 v Team 10, Team 2 v Team 9, Team 3 v Team 8, Team 4 v Team 7, Team 5 v Team 6, Team 1 v Team 4, Team 5 v Team 3, Team 6 v Team 2, Team 7 v Team 10, Team 8 v Team 9
+36: Team 1 v Team 9, Team 10 v Team 8, Team 2 v Team 7, Team 3 v Team 6, Team 4 v Team 5, Team 1 v Team 3, Team 4 v Team 2, Team 5 v Team 10, Team 6 v Team 9, Team 7 v Team 8, Team 1 v Team 6, Team 7 v Team 5, Team 8 v Team 4, Team 9 v Team 3, Team 10 v Team 2

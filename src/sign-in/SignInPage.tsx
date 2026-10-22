@@ -1,17 +1,22 @@
 import { useState, type FormEvent } from "react";
-import { PRODUCT_NAME } from "../product";
-import { linkProblemWords, type LinkProblem } from "./words";
+import { PanelTitle, Problem } from "../frame/Panel";
+import { PRODUCT_NAME } from "../../convex/shared/product";
+import { linkProblemWords, signInWords, type LinkProblem } from "./words";
 
-const alertStripClasses = "bg-name-plate px-3 py-2 text-event shadow-event-edge";
+const TITLE_ID = "sign-in-title";
+const EMAIL_ID = "sign-in-email";
 
 /** All a logged-out visitor sees (spec/12): the name, "Invite only", and an email box for the link.
- *  Opened from a link that didn't sign them in, it says so first (spec/02). */
+ *  Opened from a link that didn't sign them in, it says so first (spec/02); `intro` says why
+ *  they're here, as from a league's invite link (#73). */
 export function SignInPage({
   requestSignInLink,
   linkProblem,
+  intro,
 }: {
   requestSignInLink: (email: string) => Promise<string>;
   linkProblem?: LinkProblem;
+  intro?: string;
 }) {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
@@ -28,37 +33,33 @@ export function SignInPage({
     <>
       <header className="flex flex-wrap items-stretch bg-plate shadow-bevel-plate">
         <h1 className="px-4 py-1 text-title font-bold">{PRODUCT_NAME}</h1>
-        <p className="flex items-center border-l border-plate-rule px-4 text-lead font-semibold">Invite only</p>
+        <p className="flex items-center border-l border-plate-rule px-4 text-lead font-semibold">{signInWords.inviteOnly}</p>
       </header>
       <main className="p-2">
-        <section aria-labelledby="sign-in-title" className="max-w-md bg-panel">
-          <h2 id="sign-in-title" className="bg-plate px-3 py-1 font-bold shadow-bevel-plate">
-            Sign in
-          </h2>
-          {linkProblem && !outcome && (
-            <p role="alert" className={alertStripClasses}>
-              {linkProblemWords[linkProblem]}
-            </p>
-          )}
+        <section aria-labelledby={TITLE_ID} className="max-w-md bg-panel">
+          <PanelTitle id={TITLE_ID}>{signInWords.title}</PanelTitle>
+          <Problem problem={linkProblem && !outcome ? linkProblemWords[linkProblem] : null} />
+          {intro && <p className="px-3 pt-2">{intro}</p>}
           <form onSubmit={sendLink} className="flex flex-col gap-2 p-3">
-            <label htmlFor="sign-in-email" className="font-semibold">
-              Email
+            <label htmlFor={EMAIL_ID} className="font-semibold">
+              {signInWords.emailLabel}
             </label>
             <input
-              id="sign-in-email"
+              id={EMAIL_ID}
               type="email"
               required
               autoComplete="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="min-h-tap border border-soft bg-ground px-2 text-lead text-fact"
+              className="text-box"
             />
-            <p className="text-muted">We'll email you a link that signs you in. No password.</p>
+            <p className="text-muted">{signInWords.hint}</p>
             <button type="submit" disabled={sending} className="action self-start">
-              Send the link
+              {signInWords.send}
             </button>
           </form>
-          <p role="status" className={outcome ? alertStripClasses : undefined}>
+          {/* Not a Notice: it stays in the page while empty, so the live region announces the outcome. */}
+          <p role="status" className={outcome ? "alert-strip" : undefined}>
             {outcome}
           </p>
         </section>

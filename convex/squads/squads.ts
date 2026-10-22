@@ -1,0 +1,199 @@
+import { v, type Infer } from "convex/values";
+import type { Doc, Id } from "../_generated/dataModel";
+import { mutation, query, type QueryCtx } from "../_generated/server";
+import { memberOf, refuse, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
+import { recordEvent } from "../mail/letters";
+import { heldClubs, playersNamed } from "../shared/players";
+import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
+import { latestRules } from "../rules/leagueRules";
+import type { LeagueRules } from "../rules/leagueRulesShape";
+
+// Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
+// team, one at a time, move him between teams, or release him to free agency. Each files a Mail
+// letter (spec/15: nothing changes quietly). The league's squad limits warn, never block.
+
+export const squadRefusals = {
+  noPlayer: "There's no such player in the Premier League.",
+  playerGone: (name: string) => `${name} has left the Premier League, so he can't join a team.`,
+  alreadyOwned: (name: string, teamName: string) => `${name} is already on ${teamName}. Move him instead.`,
+  freeAgent: (name: string) => `${name} isn't on a team in this league.`,
+  alreadyThere: (name: string, teamName: string) => `${name} is already on ${teamName}.`,
+  squadFull: `A team holds at most ${MOST_IN_SQUAD} players.`,
+};
+
+async function playerByCode(ctx: QueryCtx, code: number): Promise<Doc<"players">> {
+  const player = await ctx.db
+    .query("players")
+    .withIndex("by_code", (q) => q.eq("code", code))
+    .unique();
+  return player ?? refuse(squadRefusals.noPlayer);
+}
+
+/** The player's place in this league, or null while he is a free agent. */
+function placeOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number) {
+  return ctx.db
+    .query("squadPlayers")
+    .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode))
+    .unique();
+}
+
+function squadOf(ctx: QueryCtx, teamId: Id<"teams">) {
+  return ctx.db
+    .query("squadPlayers")
+    .withIndex("by_teamId", (q) => q.eq("teamId", teamId))
+    .take(MOST_IN_SQUAD);
+}
+
+/** Refuses a team already holding the platform's most, whatever the league's own limits say. */
+async function roomOn(ctx: QueryCtx, team: Doc<"teams">): Promise<void> {
+  if ((await squadOf(ctx, team._id)).length >= MOST_IN_SQUAD) refuse(squadRefusals.squadFull);
+}
+
+const placement = { leagueId: v.id("leagues"), playerCode: v.number(), teamId: v.id("teams") };
+
+/** Puts a free agent on a team. A player who has left the Premier League can't join one. */
+export const assign = mutation({
+  args: placement,
+  returns: v.null(),
+  handler: async (ctx, { leagueId, playerCode, teamId }) => {
+    const { email: by } = await runnerOf(ctx, leagueId);
+    const player = await playerByCode(ctx, playerCode);
+    if (player.droppedAt !== undefined) refuse(squadRefusals.playerGone(player.name));
+    const team = await teamIn(ctx, leagueId, teamId);
+    const place = await placeOf(ctx, leagueId, playerCode);
+    if (place !== null) refuse(squadRefusals.alreadyOwned(player.name, (await teamIn(ctx, leagueId, place.teamId)).name));
+    await roomOn(ctx, team);
+    await ctx.db.insert("squadPlayers", { leagueId, teamId, playerCode });
+    await recordEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode, playerName: player.name, teamId, teamName: team.name });
+    return null;
+  },
+});
+
+/** Moves a player from his team to another in the league. */
+export const move = mutation({
+  args: placement,
+  returns: v.null(),
+  handler: async (ctx, { leagueId, playerCode, teamId }) => {
+    const { email: by } = await runnerOf(ctx, leagueId);
+    const player = await playerByCode(ctx, playerCode);
+    const team = await teamIn(ctx, leagueId, teamId);
+    const place = (await placeOf(ctx, leagueId, playerCode)) ?? refuse(squadRefusals.freeAgent(player.name));
+    if (place.teamId === teamId) refuse(squadRefusals.alreadyThere(player.name, team.name));
+    await roomOn(ctx, team);
+    const from = await teamIn(ctx, leagueId, place.teamId);
+    await ctx.db.patch("squadPlayers", place._id, { teamId });
+    await recordEvent(ctx, leagueId, by, {
+      kind: "playerMoved",
+      playerCode,
+      playerName: player.name,
+      teamId,
+      teamName: team.name,
+      fromTeamId: from._id,
+      fromTeamName: from.name,
+    });
+    return null;
+  },
+});
+
+/** Releases a player from his team to free agency. */
+export const release = mutation({
+  args: { leagueId: v.id("leagues"), playerCode: v.number() },
+  returns: v.null(),
+  handler: async (ctx, { leagueId, playerCode }) => {
+    const { email: by } = await runnerOf(ctx, leagueId);
+    const player = await playerByCode(ctx, playerCode);
+    const place = (await placeOf(ctx, leagueId, playerCode)) ?? refuse(squadRefusals.freeAgent(player.name));
+    const team = await teamIn(ctx, leagueId, place.teamId);
+    await ctx.db.delete("squadPlayers", place._id);
+    await recordEvent(ctx, leagueId, by, { kind: "playerReleased", playerCode, playerName: player.name, teamId: team._id, teamName: team.name });
+    return null;
+  },
+});
+
+const squadPlayer = v.object({ code: v.number(), name: v.string(), clubShortName: v.string(), gone: v.boolean() });
+
+/** Where a squad stands against the league's squad limits (spec/03): each one it breaks. */
+const squadWarning = v.union(
+  v.object({ kind: v.literal("overMaximum"), players: v.number(), maximum: v.number() }),
+  v.object({ kind: v.literal("underMinimum"), players: v.number(), minimum: v.number() }),
+  v.object({ kind: v.literal("overClubMaximum"), clubShortName: v.string(), players: v.number(), maximum: v.number() }),
+);
+export type SquadWarning = Infer<typeof squadWarning>;
+
+const teamSquad = v.object({ teamId: v.id("teams"), teamName: v.string(), players: v.array(squadPlayer), warnings: v.array(squadWarning) });
+export type TeamSquad = Infer<typeof teamSquad>;
+
+/** Each team's squad, by name, and the league's squad limits it breaks, which warn but don't block.
+ *  Anyone with a part in the league sees them. */
+export const squads = query({
+  args: { leagueId: v.id("leagues") },
+  returns: v.array(teamSquad),
+  handler: async (ctx, { leagueId }) => {
+    await memberOf(ctx, leagueId);
+    const rules = await latestRules(ctx, leagueId);
+    const clubs = new Map((await heldClubs(ctx)).map((club) => [club.code, club]));
+    return Promise.all(
+      (await teamsOf(ctx, leagueId)).map(async (team) => {
+        const players = await Promise.all(
+          (await squadOf(ctx, team._id)).map(async ({ playerCode }) => {
+            const player = await playerByCode(ctx, playerCode);
+            return {
+              code: player.code,
+              name: player.name,
+              clubShortName: clubs.get(player.clubCode)?.shortName ?? "",
+              gone: player.droppedAt !== undefined,
+            };
+          }),
+        );
+        players.sort((one, other) => one.name.localeCompare(other.name));
+        return { teamId: team._id, teamName: team.name, players, warnings: squadWarnings(players, rules?.squad ?? null) };
+      }),
+    );
+  },
+});
+
+/** The league's squad limits a squad breaks (spec/03, Squad make-up). How a player's areas count
+ *  against a limit per area is not settled (docs/to-grill.md, the row on limits per area), so those
+ *  limits aren't checked yet. */
+function squadWarnings(players: readonly { clubShortName: string }[], squad: LeagueRules["squad"] | null): SquadWarning[] {
+  if (squad === null) return [];
+  const warnings: SquadWarning[] = [];
+  const { size, maxPerClub } = squad;
+  if (size !== null && players.length > size.maximum) warnings.push({ kind: "overMaximum", players: players.length, maximum: size.maximum });
+  if (size !== null && players.length < size.minimum) warnings.push({ kind: "underMinimum", players: players.length, minimum: size.minimum });
+  if (maxPerClub !== null) {
+    const byClub = new Map<string, number>();
+    for (const { clubShortName } of players) byClub.set(clubShortName, (byClub.get(clubShortName) ?? 0) + 1);
+    for (const [clubShortName, count] of byClub) {
+      if (count > maxPerClub) warnings.push({ kind: "overClubMaximum", clubShortName, players: count, maximum: maxPerClub });
+    }
+  }
+  return warnings;
+}
+
+const foundPlayer = v.object({ code: v.number(), name: v.string(), fullName: v.string(), teamName: v.union(v.string(), v.null()) });
+export type FoundPlayer = Infer<typeof foundPlayer>;
+
+/** Players whose name matches, for picking one to assign: each with his team in this league, if
+ *  any. For the league's commissioners and the admin. */
+export const findPlayers = query({
+  args: { leagueId: v.id("leagues"), text: v.string() },
+  returns: v.array(foundPlayer),
+  handler: async (ctx, { leagueId, text }) => {
+    await runnerOf(ctx, leagueId);
+    if (!text.trim()) return [];
+    const found = await playersNamed(ctx, text);
+    const teamNames = new Map((await teamsOf(ctx, leagueId)).map((team) => [team._id, team.name]));
+    return Promise.all(
+      found.map(async (player) => {
+        const place = await placeOf(ctx, leagueId, player.code);
+        return {
+          code: player.code,
+          name: player.name,
+          fullName: player.fullName,
+          teamName: place === null ? null : (teamNames.get(place.teamId) ?? null),
+        };
+      }),
+    );
+  },
+});

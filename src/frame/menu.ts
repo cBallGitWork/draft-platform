@@ -3,30 +3,34 @@
 // with the Premier League as its own section (spec/18). My team's tabs are R3·1's; a section
 // gets tabs when its screen is grilled, and until then has no second row.
 
+import { MAIL_TITLE } from "../mail/words";
+import { menuWords } from "./words";
+
 export type Page = { label: string; path: string };
 export type Section = Page & { tabs: readonly Page[] };
 
 export const MY_TEAM_PATH = "/team";
 export const MAIL_PATH = "/mail";
+export const TABLE_PATH = "/table";
 
 export const sections: readonly Section[] = [
-  { label: "Home", path: "/home", tabs: [] },
+  { label: menuWords.home, path: "/home", tabs: [] },
   {
-    label: "My team",
+    label: menuWords.myTeam,
     path: MY_TEAM_PATH,
     tabs: [
-      { label: "Tactics", path: MY_TEAM_PATH },
-      { label: "Squad", path: `${MY_TEAM_PATH}/squad` },
-      { label: "Fixtures", path: `${MY_TEAM_PATH}/fixtures` },
-      { label: "Transactions", path: `${MY_TEAM_PATH}/transactions` },
+      { label: menuWords.tactics, path: MY_TEAM_PATH },
+      { label: menuWords.squad, path: `${MY_TEAM_PATH}/squad` },
+      { label: menuWords.fixtures, path: `${MY_TEAM_PATH}/fixtures` },
+      { label: menuWords.transactions, path: `${MY_TEAM_PATH}/transactions` },
     ],
   },
-  { label: "Matchup", path: "/matchup", tabs: [] },
-  { label: "Table", path: "/table", tabs: [] },
-  { label: "Players", path: "/players", tabs: [] },
-  { label: "Trades", path: "/trades", tabs: [] },
-  { label: "Premier League", path: "/premier-league", tabs: [] },
-  { label: "Mail", path: MAIL_PATH, tabs: [] },
+  { label: menuWords.matchup, path: "/matchup", tabs: [] },
+  { label: menuWords.table, path: TABLE_PATH, tabs: [] },
+  { label: menuWords.players, path: "/players", tabs: [] },
+  { label: menuWords.trades, path: "/trades", tabs: [] },
+  { label: menuWords.premierLeague, path: "/premier-league", tabs: [] },
+  { label: MAIL_TITLE, path: MAIL_PATH, tabs: [] },
 ];
 
 export function sectionAt(pathname: string): Section | undefined {

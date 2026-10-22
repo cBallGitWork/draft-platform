@@ -68,7 +68,7 @@ On yes, write or update the spec. `SPEC.md` at the repo root is the index:
 
 Each feature's detail is its own file, `spec/NN-name.md`, so a session building one feature reads
 the index and that file, not the whole spec. A feature `/grill` writes or rewrites its file and
-its table row.
+its table row. In the same PR, delete the lines this grill settled from `docs/to-grill.md`.
 
 Only Craig's answers go in. A recommendation he didn't take stays out. SPEC.md goes in on its
 own branch and PR, like any change.
@@ -91,5 +91,7 @@ skills v1.3 (Craig, 16 Oct 2026):
   it, then the issue that builds each. Those issues are its blockers.
 
 A feature bigger than one fresh session (~150k tokens) is cut into several issues, each a thin
-slice through every layer that works on its own, with the blocking order named. The spec file
+slice through every layer that works on its own, with the blocking order named. So is one past
+the pull request size in `docs/PHILOSOPHY.md`'s header (about 400 changed lines of non-test
+code); its pull requests merge in that order. The spec file
 stays: it is the product's record; the issue closes by merge.

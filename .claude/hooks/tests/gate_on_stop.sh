@@ -40,8 +40,10 @@ code=$?
 if [ "$code" -eq 0 ] || [ -z "$err" ]; then
   fail "gate_on_stop.py: a failed git status exited $code with no error"
 fi
-# settings.json runs the gate on both stops, so neither a session nor a builder finishes past it
-for event in Stop SubagentStop; do
-  "$jq" -e --arg e "$event" '.hooks[$e][]?.hooks[]?.command | select(endswith("/gate_on_stop.py"))' \
-    "$hooks/../settings.json" >/dev/null || fail "settings.json: no $event hook runs gate_on_stop.py"
+# each is watched (verify tests or reads it), so a change there alone runs the gate
+for path in scripts/a.mjs tests/a.test.ts playwright.config.ts; do
+  repo=$tmp/gate-watch-${path%%[/.]*} && gate_repo "$repo"
+  silent gate_on_stop.py "$(stop_in "$repo" Stop)" DRAFT_GATE_CMD=false
+  mkdir -p "$repo/$(dirname "$path")" && touch "$repo/$path"
+  blocks gate_on_stop.py "$(stop_in "$repo" Stop)" DRAFT_GATE_CMD=false
 done

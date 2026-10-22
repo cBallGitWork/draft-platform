@@ -6,13 +6,15 @@ fixture lists, all 900 team sheets of the 450 matches played, and both seasons' 
 
 **Contents:** [The seam](#the-seam) · [The team sheets](#the-team-sheets) ·
 [The formation table](#the-formation-table) · [The labels](#the-labels) ·
-[Held, and read](#held-and-read) · [The sync](#the-sync)
+[When positions change](#when-positions-change) · [Held, and read](#held-and-read) · [The sync](#the-sync)
 
 ## The seam
 
-`positionsOf` in `convex/positions.ts`: his starts, his Premier League label, the admin's say and
-the approve mode in; each position with its source (starts, label, admin) and whether it is
-confirmed out, with his proposals (what his starts give that the admin has not approved).
+`positionsOf` in `convex/positions/positions.ts`: his starts, his Premier League label, the admin's say,
+the approve mode, the change thresholds and the gameweek boundary in; each position with its
+source (starts, label, admin), whether it is confirmed and whether it is flagged out, with his
+proposals (what his starts give that the admin has not approved) and the positions a run elsewhere
+removed.
 
 - His newest 38 starts count, last season's and this; 3 at a place give its position. A
   substitute's appearance is never a start.
@@ -35,11 +37,9 @@ confirmed out, with his proposals (what his starts give that the admin has not a
 
 ## The formation table
 
-`FORMATION_PLACES` in `convex/positionTables.ts`, 19 formations, every one seen. Spec/06 fixes
-two rows (a 4-2-3-1's two deepest are CDM, a 4-3-3's three are CM); the rest follow one rule
-(wide in a back four FB, in a back five or beside a back three WB, in a flat midfield WM, ahead
-of midfield W; just ahead of the defence one or two men CDM and three CM; one man behind the
-forwards CAM). Where the rule left a choice, the labels of the men who started there decided:
+`FORMATION_PLACES` in `convex/positions/positionTables.ts`, 19 formations, every one seen; the rule they
+follow is the comment above it. Where the rule left a choice, the labels of the men who started
+there decided:
 
 - A 3-4-2-1's two behind the striker are W: more wingers than anything else, 115 of 240 men
   (Pino 27 starts there, Sarr 22, Mbeumo 16), with 50 attacking midfielders and 38 strikers.
@@ -61,26 +61,50 @@ A formation not in the table gives nothing and is reported (`unknownFormations`)
 except for an attacking midfielder: CAM in the centre, W out wide, both with no side named. Clear
 roles map straight across; the three vague ones give every position they could mean: Defender
 CB FB (spec/06), Midfielder CDM CM WM CAM, Forward W SS ST. All 54 labels seen are pinned in
-`convex/positionTables.test.ts`; an unseen one gives nothing and is reported (`unknownLabels`).
+`tests/convex/positions/positionTables.test.ts`; an unseen one gives nothing and is reported (`unknownLabels`).
 
 This season's squads leave some men out (Romero, Vicario and Spence at Spurs), so a man's label
 is his squad's, else the newest sheet's that names him.
+
+## When positions change
+
+`startsElsewhere` in `convex/positions/positionChanges.ts` (spec/06, When positions change): for each
+position his starts give him, how many of his newest starts in a row were at a place that gives
+another. At the admin's `flagAfter` (3 until he tunes it) it is flagged; at `removeAfter` (6) it no
+longer counts, nor is it proposed.
+
+- Only positions from starts, approved ones included. One the admin set stays until he removes
+  it, and a label's positions are not from starts. With every position from his starts removed he
+  plays on his label, as a man with too few starts does.
+- A start that gives no position (a sheet that drew none, a formation the table doesn't know)
+  neither adds to a run nor ends it. One start back at a position ends its run, and a removed one
+  counts again while his window still holds 3 starts there.
+- Only between gameweeks: the starts judged are those before the last FPL deadline the newest
+  positions sync ran after (`judgedBefore` in `positionSettings.ts`), so a sync within a gameweek
+  moves nothing; the sync's time stands in for the clock, which a query can't read. Before any
+  sync, or the season's first deadline, every start is judged. Gaining a position is not held
+  back this way.
+- Nothing is refused for it: losing a position never makes a squad illegal (spec/06).
 
 ## Held, and read
 
 `playerPositions`, one row per player keyed on FPL's `code`, apart from `players` so the
 six-hourly football sync never touches it: his newest 38 starts and his label, from the feeds,
 and the admin's approvals and corrections, written only by his functions. `positionsOf` runs on
-every read (`playerPositions:ofPlayer`), so neither a change of approve mode nor a corrected
-table needs a recount. `positionSettings` holds the approve mode; `positionSheets` each match filed.
+every read (`positions/playerPositions:ofPlayer`), so neither a change of approve mode nor a corrected
+table needs a recount. `positionSettings` holds the approve mode and the thresholds, each absent
+until he sets it; `positionSheets` each match filed.
 
-The admin's functions are internal until sign-in (#20); the screen is #87:
-`approvePlayer`, `approveClub`, `setPosition` (SS is set this way), `removePosition` and
-`setApproveMode`, in `convex/playerPositions.ts`.
+The admin's functions, his alone by his email on the server (#124): `queue` (new signings, the
+men whose starts wait for him, and positions flagged or removed), `ofPlayer`, `find`,
+`approvePlayer`, `approveClub`, `setPosition` (SS is set this way) and `removePosition`, in
+`convex/positions/playerPositions.ts`; `setApproveMode` and `setChangeThresholds` (whole numbers,
+flagging after 1 or more, removing after more than that and at most 38; refused with why
+otherwise) in `convex/positions/positionSettings.ts`. The dashboard's screen is built.
 
 ## The sync
 
-`npx convex run positionsSync:run '{"trigger":"manual"}'`, then `positionsSync:latest`. It reads
+`npx convex run positions/positionsSync:run '{"trigger":"manual"}'`, then `positions/positionsSync:latest`. It reads
 FPL's players (the join), both seasons' fixture lists, the sheets of up to 150 played matches not
 yet read, oldest first and one at a time, and this season's twenty squads. Every run is a row in
 `positionsSyncs`; a failed read fails the run, keeping the matches filed before it. The first run
