@@ -14,6 +14,8 @@ export type Session =
       isAdmin: boolean;
       inLeague: boolean;
       leagues: readonly LeagueSummary[];
+      /** Only when `leagues` stops short: more exist than it holds. */
+      leaguesCut?: true;
       currentLeagueId: Id<"leagues"> | null;
     };
 
