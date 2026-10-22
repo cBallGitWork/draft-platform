@@ -10,8 +10,8 @@ on:
 permissions:
   contents: read
 
-concurrency:  # a newer push to a pull request replaces its older run; main's runs all finish
-  group: verify-${{ github.ref }}
+concurrency:  # a newer push to a pull request cancels its older run; every push to main gets its own run, so each merged commit is checked
+  group: verify-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
