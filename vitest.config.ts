@@ -1,6 +1,6 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
-import { LONDON_ZONE } from "./convex/shared/londonTime";
+import { LONDON_ZONE } from "./convex/shared/londonTime.ts";
 
 // So no test depends on the host's zone.
 process.env.TZ = LONDON_ZONE;
