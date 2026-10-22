@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      BROWSER: chromium  # the one browser smoke runs in (playwright.config.ts)
+      BROWSER: chromium  # the one browser CI installs for smoke
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -67,7 +67,7 @@ jobs:
         run: |
           for try in $(seq "$TRIES"); do
             timeout --kill-after="$KILL_AFTER_SECONDS" "$TRY_SECONDS" npx playwright install --with-deps "$BROWSER" && exit 0
-            echo "::warning::playwright install: try $try of $TRIES failed or passed ${TRY_SECONDS}s"
+            echo "::warning::playwright install: try $try of $TRIES failed or ran past ${TRY_SECONDS}s"
           done
           exit 1
       - run: npm run smoke
