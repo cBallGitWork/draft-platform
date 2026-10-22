@@ -21,6 +21,10 @@ export const PRUNE_ORDER = ["liveStats", "football", "positions", "matchStats"] 
 
 type RunRow = { _id: string; _creationTime: number; ranAt: number; outcome: RunOutcome };
 
+/** A success as the feeds page counts one: no failed match either. For positions, whose runs
+ *  read no matches, that is `outcome.ok`, as positionSettings.ts counts one. */
+const succeeded = (row: RunRow) => failureOf(row.outcome) === null;
+
 export const prune = internalMutation({
   args: {
     /** The feed being pruned; the first in `PRUNE_ORDER` when absent. */
@@ -55,16 +59,15 @@ export const prune = internalMutation({
         reachedKept = true;
         break;
       }
-      const keptFor = failureOf(row.outcome) === null ? SUCCESS_KEPT_MS : FAILURE_KEPT_MS;
-      const expired = row.ranAt < startedAt - keptFor && !newest.has(row._id);
-      if (row.outcome.ok) {
+      const expired = row.ranAt < startedAt - (succeeded(row) ? SUCCESS_KEPT_MS : FAILURE_KEPT_MS) && !newest.has(row._id);
+      if (succeeded(row)) {
         if (held !== null) await remove(held);
         held = expired ? row._id : null;
       } else if (expired) {
         await remove(row._id);
       }
     }
-    if (reachedKept && held !== null && newestRows.some((row) => row.outcome.ok)) await remove(held);
+    if (reachedKept && held !== null && newestRows.some(succeeded)) await remove(held);
     console.log(`Pruned ${deleted} ${table} rows`);
 
     const next = PRUNE_ORDER[PRUNE_ORDER.indexOf(feed) + 1];
