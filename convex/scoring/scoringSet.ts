@@ -197,9 +197,12 @@ export function inTenths(points: number): number {
   return Math.round(points * 10) / 10;
 }
 
+/** How far a number may sit from its tenth and still be in tenths: floating point's own noise. */
+const FLOAT_NOISE = 1e-9;
+
 /** Whether a number is a whole number of tenths, allowing for floating point's own noise. */
 function isInTenths(value: number): boolean {
-  return Math.abs(value - inTenths(value)) < 1e-9;
+  return Math.abs(value - inTenths(value)) < FLOAT_NOISE;
 }
 
 /** Throws "<what> <value>, not a number" unless it is a finite number, never coerced from text. */
