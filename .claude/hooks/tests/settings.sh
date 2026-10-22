@@ -1,6 +1,7 @@
 #!/bin/bash
 # settings.json's checks: each hook is wired to the event and matcher it guards, and its script is
-# there and executable. A hook that isn't wired never runs, and nothing else would say so.
+# there and executable, and the Stop gates' timeouts sit over gate_on_stop.py's own. A hook that
+# isn't wired never runs, and nothing else would say so.
 . "$(dirname "$0")/helpers.sh"
 
 wiring=(  # event|matcher|script, the matcher empty where the entry has none
@@ -49,7 +50,8 @@ problems=$(short_timeouts "$settings")
 [ -z "$problems" ] || fail "$problems"
 
 # a copy whose Stop timeout is under the gate's must be caught
-"$jq" '.hooks.Stop[0].hooks[0].timeout = 100' "$settings" > "$tmp/short-stop.json"
+short=100
+"$jq" --argjson t "$short" '.hooks.Stop[0].hooks[0].timeout = $t' "$settings" > "$tmp/short-stop.json"
 problems=$(short_timeouts "$tmp/short-stop.json")
 [ "$problems" = "settings.json: the Stop gate's timeout isn't over gate_on_stop.py's $gate_timeout seconds" ] ||
-  fail "settings.sh: a settings.json with a 100-second Stop timeout gave: ${problems:-nothing}"
+  fail "settings.sh: a settings.json with a $short-second Stop timeout gave: ${problems:-nothing}"
