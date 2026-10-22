@@ -1,7 +1,7 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { LeagueSettings } from "../../convex/rules/leagueSettings";
 import { ODD_TEAM_OUTS } from "../../convex/table/roundRobin";
-import { Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
+import { PANEL_BODY, Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { Choice } from "../rules/Choice";
 import { useRulesDraft } from "../rules/rulesDraft";
@@ -58,7 +58,7 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
     <>
       <section aria-labelledby={FIXTURES_TITLE_ID} className="bg-panel">
         <PanelTitle id={FIXTURES_TITLE_ID}>{fixturesTitle}</PanelTitle>
-        <div className="flex flex-col gap-2 p-3">
+        <div className={PANEL_BODY}>
           <Choice
             label={oddTeamOutLabel}
             name={ODD_TEAM_OUT_CHOICE}

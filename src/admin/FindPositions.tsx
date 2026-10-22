@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
-import { Loading, PanelNote, PanelTitle } from "../frame/Panel";
+import { PANEL_BODY, Loading, PanelNote, PanelTitle } from "../frame/Panel";
 import type { Changing } from "../useChange";
 import type { AdminSeam, FoundPlayerPositions } from "./seam";
 import {
@@ -32,7 +32,7 @@ export function FindPlayer({ seam, change }: { seam: AdminSeam; change: Changing
   return (
     <section aria-labelledby={FIND_TITLE_ID} className="bg-panel">
       <PanelTitle id={FIND_TITLE_ID}>{findTitle}</PanelTitle>
-      <div className="flex flex-col gap-2 p-3">
+      <div className={PANEL_BODY}>
         <label htmlFor={FIND_NAME_ID} className="font-semibold">
           {findLabel}
         </label>
