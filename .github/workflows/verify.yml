@@ -37,7 +37,7 @@ jobs:
   smoke:
     needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12  # the install step's 7 plus npm ci and smoke, so a double hang fails as that step, not as a cancel
     env:
       BROWSER: chromium  # the one browser CI installs for smoke
     steps:
@@ -50,7 +50,7 @@ jobs:
       # Why the cache and the cut-off: ARCHITECTURE.md, Services (#281).
       - name: Read the installed Playwright version
         id: playwright
-        run: echo "version=$(node -p "require('playwright-core/package.json').version")" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Restore Playwright's browser from the cache
         id: browsers
         uses: actions/cache@v4
