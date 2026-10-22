@@ -12,9 +12,9 @@
   --font-weight-*: initial;
 
   --color-ground: #0a1240;
-  --color-panel: #16238a;
-  --color-plate: #0030a6;
-  --color-stepper: #1f13a7;
+  --color-panel: #1a2a80;
+  --color-plate: #173a94;
+  --color-stepper: #1d2a98;
   --color-name-plate: #050a30;
   --color-head: #b9bcc4;
   --color-fact: #ffffff;
@@ -27,8 +27,8 @@
   --color-plate-rule: #001a5e;
   --color-panel-rule: var(--color-ground);
   /* the lit top of a bevel: on the plate, and on a panel (also the line above a section's tabs) */
-  --color-plate-edge: #4a74e0;
-  --color-panel-edge: #3d4fc4;
+  --color-plate-edge: #4a6cc8;
+  --color-panel-edge: #4556b8;
 
   --font-sans: "Archivo Narrow", "Arial Narrow", sans-serif;
   --font-weight-normal: 400;
