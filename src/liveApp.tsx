@@ -30,7 +30,7 @@ export function takeLinkCode(): string | null {
   return code;
 }
 
-export const NO_CONVEX_URL = "VITE_CONVEX_URL isn't set, so the app can't reach Convex: `npm run setup` writes it to .env.local (README).";
+export const NO_CONVEX_URL = "VITE_CONVEX_URL isn't set, so the app can't reach Convex: `npm run setup` writes it to .env.local (docs/setup.md).";
 
 export function LiveApp({ linkCode }: { linkCode: string | null }) {
   const [client] = useState(() => {

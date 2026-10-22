@@ -169,7 +169,7 @@ meant to land with the first code; the ones still open are tracked in issues, li
       and an id token for the app. It needs the Claude GitHub app and a `CLAUDE_CODE_OAUTH_TOKEN`
       secret from Craig (`claude setup-token`). The gate alone already runs there (Services, above).
 - [x] **`env.example`** from the services above.
-- [x] **One-command start**: clone, fill the env, run one command; the README says how
+- [x] **One-command start**: clone, fill the env, run one command; docs/setup.md says how
       (`docs/PHILOSOPHY.md`, *Knowledge Is Shared*).
 - [ ] **Bug hunts as we go** (#165): a hunt scoped to each feature as it lands, and a full one
       (split by area, a skeptic per finding, a token budget) at the mini beta.
