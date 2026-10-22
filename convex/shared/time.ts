@@ -1,3 +1,4 @@
+// scripts/record-match.mjs loads this under plain node: import only types, or other files by explicit `.ts` path.
 // Units of time in milliseconds, the unit Date.now() and Convex's scheduler count in. They are
 // the calendar's, not any rule's, so they are constants with one home.
 

@@ -67,10 +67,17 @@ export async function poll(fixtureId, pauseMs = PAUSE_MS) {
     try {
       reads.push({ kind, url, askedAt, body: await getJson(url) });
     } catch (error) {
-      reads.push({ kind, url, askedAt, error: errorMessage(error) });
+      const cause = causeOf(error);
+      reads.push({ kind, url, askedAt, error: errorMessage(error), ...(cause === undefined ? {} : { cause }) });
     }
   }
   return { polledAt, reads };
+}
+
+/** Why a failed fetch failed underneath, when it says: Node's fetch throws a bare "fetch failed"
+ *  and keeps the reason (ENOTFOUND, ECONNRESET, a timeout) on `cause`. */
+function causeOf(error) {
+  return error?.cause?.code ?? error?.cause?.message;
 }
 
 const bodyOf = (saved, kind) => saved.reads.find((read) => read.kind === kind)?.body;
@@ -95,7 +102,7 @@ export function summaryLine(saved) {
   const parts = [`${saved.polledAt.slice(11, 19)} UTC`];
   for (const read of saved.reads) {
     if (read.error !== undefined) {
-      parts.push(`${read.kind} FAILED: ${read.error}`);
+      parts.push(`${read.kind} FAILED: ${read.error}${read.cause === undefined ? "" : ` (${read.cause})`}`);
       continue;
     }
     try {
@@ -118,7 +125,8 @@ function commentarySummary(body) {
 
 function fixtureSummary(body) {
   const named = (body.teamLists ?? []).map((list) => (list === null ? 0 : list.lineup.length + list.substitutes.length));
-  return `status ${body.status}, clock ${body.clock?.label ?? "-"}, named ${named.join("+") || "-"}`;
+  const status = typeof body.status === "string" ? body.status : `UNREADABLE (${typeof body.status})`;
+  return `status ${status}, clock ${body.clock?.label ?? "-"}, named ${named.join("+") || "-"}`;
 }
 
 /** Home then away when the fixture read says which is which; Opta leaves noughts out. */
@@ -132,10 +140,28 @@ function teamStatsSummary(body, fixture) {
 /** A poll's file name: its time, sortable, with no colons. */
 const fileName = (polledAt) => `${polledAt.replaceAll(":", "-")}.json`;
 
+const localTime = (ms) => new Date(ms).toLocaleTimeString("en-GB");
+const AFTER_FULL_TIME_MINUTES = AFTER_FULL_TIME_MS / MINUTE_MS;
+
+/** The last line of a recording, saying why it stopped. */
+export function doneLine(pollCount, dir, fullTimeSeenAt) {
+  const why =
+    fullTimeSeenAt === null
+      ? `GAVE UP ${GIVE_UP_MS / HOUR_MS}h after kickoff, full time never seen`
+      : `stopped ${AFTER_FULL_TIME_MINUTES} min after full time (seen ${localTime(fullTimeSeenAt)})`;
+  return `Done: ${pollCount} polls in ${dir}/; ${why}`;
+}
+
 /** Waits until `LEAD_MS` before kickoff, then polls every `POLL_MS` into `dir` until `phase` says stop. */
 export async function record(fixtureId, dir) {
   const url = plFixtureUrl(fixtureId);
-  const kickoffMs = (await getJson(url)).kickoff?.millis;
+  let kickoffMs;
+  try {
+    kickoffMs = (await getJson(url)).kickoff?.millis;
+  } catch (error) {
+    // Still fails fast, with no retry (#148), but says what failed underneath.
+    throw new Error(`${url}: ${errorMessage(error)} (${causeOf(error) ?? "no cause"})`, { cause: error });
+  }
   if (typeof kickoffMs !== "number") throw new Error(`${url} answered with no kickoff time`);
   if (phase(Date.now(), kickoffMs, null) === "stop") {
     throw new Error(`fixture ${fixtureId} kicked off at ${new Date(kickoffMs).toString()}: too long ago to record`);
@@ -155,19 +181,27 @@ export async function record(fixtureId, dir) {
     const saved = await poll(fixtureId);
     writeFileSync(join(dir, fileName(saved.polledAt)), JSON.stringify(saved));
     console.log(summaryLine(saved));
-    if (fullTimeSeenAt === null && fixtureStatus(saved) === FULL_TIME) fullTimeSeenAt = Date.now();
+    if (fullTimeSeenAt === null && fixtureStatus(saved) === FULL_TIME) {
+      fullTimeSeenAt = Date.now();
+      console.log(`Full time seen at ${localTime(fullTimeSeenAt)}; stopping ${AFTER_FULL_TIME_MINUTES} min from now`);
+    }
     await sleep(Math.max(0, POLL_MS - (Date.now() - startedAt)));
   }
-  console.log(`Done: ${readdirSync(dir).length} polls in ${dir}/`);
+  console.log(doneLine(readdirSync(dir).length, dir, fullTimeSeenAt));
 }
 
-function summarise(dir) {
+/** One line per poll saved in `dir`, in time order; a file it can't read is named, and the rest go on. */
+export function summarise(dir) {
   if (!existsSync(dir)) {
     console.error(`No polls saved in ${dir}/`);
     process.exit(1);
   }
   for (const file of readdirSync(dir).filter((name) => name.endsWith(".json")).sort()) {
-    console.log(summaryLine(JSON.parse(readFileSync(join(dir, file), "utf8"))));
+    try {
+      console.log(summaryLine(JSON.parse(readFileSync(join(dir, file), "utf8"))));
+    } catch (error) {
+      console.log(`${file} UNREADABLE: ${errorMessage(error)}`);
+    }
   }
 }
 
