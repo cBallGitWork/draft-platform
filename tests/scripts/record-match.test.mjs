@@ -18,6 +18,7 @@ import { doneLine, fixtureStatus, phase, poll, pollReads, record, summarise, sum
 const BRENTFORD_LIVERPOOL = COMMENTARY_MATCH.brentfordLiverpool;
 const IPSWICH_FOREST = UPCOMING_MATCH;
 const KICKOFF = Date.UTC(2026, 9, 23, 19);
+const POLLED_AT_KICKOFF = new Date(KICKOFF).toISOString();
 // Pinned here, not imported, so a change to the recorder's timings fails a test.
 const MINUTE = 60_000;
 const POLL = 30_000;
@@ -93,7 +94,7 @@ test("a finished match's poll sums up as its newest line, its sheets and the fiv
 
 test("a body it cannot sum up is said, and the rest of the poll still is", () => {
   const saved = {
-    polledAt: "2026-10-23T19:00:00.000Z",
+    polledAt: POLLED_AT_KICKOFF,
     reads: [
       { kind: "commentary", body: { content: [] } },
       { kind: "fixture", body: { status: "U", teamLists: [null, null] } },
@@ -220,7 +221,7 @@ test("the last line says the recording gave up when full time was never seen", (
 
 test("a fixture read with no status says so, and still sums up its clock and sheets", () => {
   const saved = {
-    polledAt: "2026-10-23T19:00:00.000Z",
+    polledAt: POLLED_AT_KICKOFF,
     reads: [{ kind: "fixture", body: { clock: { label: "12'00" }, teamLists: [null, null] } }],
   };
   expect(summaryLine(saved)).toBe("19:00:00 UTC  |  status UNREADABLE (undefined), clock 12'00, named 0+0");
@@ -246,7 +247,7 @@ test("a read that failed underneath is saved with its cause, and sums up with it
 });
 
 test("a failed read saved with no cause, as older polls were, still sums up", () => {
-  const saved = { polledAt: "2026-10-23T19:00:00.000Z", reads: [{ kind: "commentary", error: "fetch failed" }] };
+  const saved = { polledAt: POLLED_AT_KICKOFF, reads: [{ kind: "commentary", error: "fetch failed" }] };
   expect(summaryLine(saved)).toBe("19:00:00 UTC  |  commentary FAILED: fetch failed");
 });
 
@@ -268,7 +269,7 @@ test("a summary names a cut-off poll file and goes on to the next", () => {
   vi.spyOn(console, "log").mockImplementation((line) => lines.push(line));
   const fixturePoll = (polledAt) => JSON.stringify({ polledAt, reads: [{ kind: "fixture", body: { status: "U" } }] });
   try {
-    writeFileSync(join(dir, "2026-10-23T19-00-00.000Z.json"), fixturePoll("2026-10-23T19:00:00.000Z"));
+    writeFileSync(join(dir, "2026-10-23T19-00-00.000Z.json"), fixturePoll(POLLED_AT_KICKOFF));
     writeFileSync(join(dir, "2026-10-23T19-00-30.000Z.json"), fixturePoll("2026-10-23T19:00:30.000Z").slice(0, 20));
     writeFileSync(join(dir, "2026-10-23T19-01-00.000Z.json"), fixturePoll("2026-10-23T19:01:00.000Z"));
 
