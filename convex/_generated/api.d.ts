@@ -8,6 +8,8 @@
  * @module
  */
 
+import type * as admin_feedState from "../admin/feedState.js";
+import type * as admin_feeds from "../admin/feeds.js";
 import type * as admin_platformSettings from "../admin/platformSettings.js";
 import type * as auth from "../auth.js";
 import type * as crons from "../crons.js";
@@ -63,6 +65,7 @@ import type * as scoring_scoring from "../scoring/scoring.js";
 import type * as scoring_scoringSet from "../scoring/scoringSet.js";
 import type * as scoring_statCatalogue from "../scoring/statCatalogue.js";
 import type * as shared_errors from "../shared/errors.js";
+import type * as shared_feedSchedule from "../shared/feedSchedule.js";
 import type * as shared_leagueAccess from "../shared/leagueAccess.js";
 import type * as shared_londonTime from "../shared/londonTime.js";
 import type * as shared_players from "../shared/players.js";
@@ -90,6 +93,8 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "admin/feedState": typeof admin_feedState;
+  "admin/feeds": typeof admin_feeds;
   "admin/platformSettings": typeof admin_platformSettings;
   auth: typeof auth;
   crons: typeof crons;
@@ -145,6 +150,7 @@ declare const fullApi: ApiFromModules<{
   "scoring/scoringSet": typeof scoring_scoringSet;
   "scoring/statCatalogue": typeof scoring_statCatalogue;
   "shared/errors": typeof shared_errors;
+  "shared/feedSchedule": typeof shared_feedSchedule;
   "shared/leagueAccess": typeof shared_leagueAccess;
   "shared/londonTime": typeof shared_londonTime;
   "shared/players": typeof shared_players;

@@ -214,7 +214,10 @@ const matchStatsTables = {
     "fixtureCode",
     "playerCode",
   ]),
-  matchStatsStatus: defineTable(matchStatsStatusFields).index("by_fixtureCode", ["fixtureCode"]),
+  matchStatsStatus: defineTable(matchStatsStatusFields)
+    .index("by_fixtureCode", ["fixtureCode"])
+    // The feeds page's matches still provisional past their window (spec/15).
+    .index("by_state_and_fullTimeAt", ["state", "fullTimeAt"]),
   lateStatCorrections: defineTable({
     fixtureCode: v.number(),
     playerCode: v.number(),

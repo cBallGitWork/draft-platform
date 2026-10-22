@@ -36,18 +36,21 @@ flowchart TD
     JOIN["Join a league<br/>/join/$token<br/>manager, commissioner, admin"]
     GW["Gameweeks<br/>/leagues/$leagueId/gameweeks<br/>commissioner, admin"]
     SQ["Squads<br/>/leagues/$leagueId/squads<br/>commissioner, admin"]
-    ADMIN["Admin dashboard<br/>/admin<br/>admin"]
+    ADMIN["Admin dashboard, tab Positions<br/>/admin<br/>admin"]
+    FEEDS["Feeds, a tab of the admin dashboard<br/>/admin/feeds<br/>admin"]
   end
   LP -.->|"signed out (an invite link keeps ?join)"| SIGNIN
-  NEW & ADMIN -.->|"not the admin"| LEAGUES
+  NEW & ADMIN & FEEDS -.->|"not the admin"| LEAGUES
   GW & SQ & INV -.->|"doesn't run it, or it's being deleted"| LEAGUES
   LEAGUES -- "Create a league" --> NEW
   LEAGUES -- "Admin dashboard" --> ADMIN
+  ADMIN -- "Feeds" --> FEEDS
+  FEEDS -- "Positions" --> ADMIN
   LEAGUES -- "Gameweeks" --> GW
   LEAGUES -- "Invites and join requests" --> INV
   LEAGUES -- "Squads" --> SQ
   NEW -- "Create the league / Back to your leagues" --> LEAGUES
-  GW & SQ & ADMIN & INV -- "Back to your leagues" --> LEAGUES
+  GW & SQ & ADMIN & FEEDS & INV -- "Back to your leagues" --> LEAGUES
   JOIN -- "Your leagues" --> LEAGUES
   INV -- "the invite link, sent outside the app" --> JOIN
 
@@ -89,13 +92,11 @@ flowchart TD
     DRAFT["Draft room<br/>spec/12:16, spec/04<br/>manager, commissioner"]
     SETTINGS["League settings<br/>spec/12:16<br/>commissioner"]
     RULES["Rules editor<br/>spec/14:76<br/>commissioner, admin"]
-    FEEDS["Feeds page, a tab of the admin dashboard<br/>spec/15:17<br/>admin"]
     CLUBS["Club pages<br/>spec/18:22<br/>after the mini beta"]
   end
-  class MATCH,CARD,DRAFT,SETTINGS,RULES,FEEDS,CLUBS planned
+  class MATCH,CARD,DRAFT,SETTINGS,RULES,CLUBS planned
   MATCHUP -- "a player's status (spec/10:23)" --> MATCH
   PL -- "each fixture (spec/18:12)" --> MATCH
-  ADMIN -- "its feeds tab (spec/15:13)" --> FEEDS
 ```
 
 ## Screens
@@ -114,7 +115,8 @@ isn't built yet". `none` in the Path and File columns means no route yet.
 | Join a league | `/join/$token` | src/joining/JoinPage.tsx | spec/13 Joining | built |
 | Gameweeks | `/leagues/$leagueId/gameweeks` | src/gameweeks/GameweeksPage.tsx | spec/13 Gameweeks | built |
 | Squads | `/leagues/$leagueId/squads` | src/squads/SquadsPage.tsx | spec/15 Assigning players | built |
-| Admin dashboard | `/admin` | src/admin/AdminPage.tsx | spec/15 The admin, spec/06 | built |
+| Admin dashboard (Positions) | `/admin` | src/admin/AdminPage.tsx | spec/15 The admin, spec/06 | built |
+| Feeds, a tab of the admin dashboard | `/admin/feeds` | src/admin/FeedsPage.tsx | spec/15 The admin | built |
 | Table and fixtures | `/table` | src/table/TablePage.tsx | spec/12, spec/09 | built |
 | League home | `/home` | src/frame/PageNotBuilt.tsx | spec/12:16 | to grill (placeholder) |
 | My team (Tactics) | `/team` | src/frame/PageNotBuilt.tsx | spec/12:11, spec/12:28, spec/05 | spec'd (placeholder, #14) |
@@ -130,7 +132,6 @@ isn't built yet". `none` in the Path and File columns means no route yet.
 | Draft room | none | none | spec/12:16, spec/04 | spec'd, waits for the summer |
 | League settings | none | none | spec/12:16 | to grill |
 | Rules editor | none | none | spec/14 The rules editor | spec'd (#30) |
-| Feeds page | none | none | spec/15:17 | spec'd (#35) |
 | Club pages | none | none | spec/18:22 | spec'd, after the mini beta |
 
 ## Gaps

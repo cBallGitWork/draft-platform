@@ -9,8 +9,8 @@ import { SignOut } from "./SignOut";
 import type { TopBarState } from "./topBarState";
 import { mainMenuLabel, sectionTabsLabel } from "./words";
 
-// A section's tabs, butted like the menu's (plate.md, Shape).
-const sectionTabClasses =
+/** A section's tabs, butted like the menu's (plate.md, Shape); the admin's dashboard's too. */
+export const sectionTabClasses =
   "flex min-h-tap items-center border-l border-panel-rule px-4 font-semibold text-soft no-underline first:border-l-0 hover:text-fact lg:min-h-subtab " +
   "data-[status=active]:text-fact data-[status=active]:shadow-subtab-active";
 
