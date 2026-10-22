@@ -7,7 +7,8 @@ import { INVITE_LIFETIME_MS, invitedPath } from "./joiningShared";
 import { deliveryOf, joiningRefusals } from "./joining";
 import { startOfNextDay } from "../email/emailLimit";
 import { inviteEmail } from "./joiningEmails";
-import { getLeague, namedEmail, recordEvent, refuse, refusals, runnerOf, teamsOf } from "../shared/leagueAccess";
+import { getLeague, namedEmail, refuse, refusals, runnerOf, teamsOf } from "../shared/leagueAccess";
+import { recordEvent } from "../mail/letters";
 import { askForLink, signInReply } from "../signIn/signInLinks";
 import { checkCanJoin, putOnTeam } from "../leagues/teams";
 

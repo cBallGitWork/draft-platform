@@ -69,10 +69,15 @@ competition, not the design plate (`docs/design/plate.md`).
 | A league name's length | A team's name has one (`convex/shared/leagueAccess.ts`: "A team's name is up to ${TEAM_NAME_MAX} characters.", 30 in `convex/leagues/leagueLimits.ts`); `leagues.create` refuses only a blank name ("Give it a name."). Should a league's have a maximum? |
 | Frozen fixtures | `spec/13`: "a change reshuffles only fixtures not yet played". Open: a team joining mid-season, a rule change from its `fromGameweek`, and the commissioner's fixture edits (`spec/09`: "the commissioner can edit them"). #137 |
 | How the admin hears a feed or sync failure | `spec/15`: "A feed that stops silently is the failure to catch." The feeds page only (#35), or email too, out of Resend's "100 a day" (`ARCHITECTURE.md`)? |
+| How a player's areas count against a squad's limit per area | `spec/03` Squad make-up. The limits are saved and validated by `leagueRulesCheck` but not checked by `squadWarnings`; the first rules' guess is above |
 | A screen whose read fails | What it shows, and whether it shows the server's words. `docs/PHILOSOPHY.md`: "Don't swallow errors silently. If something fails, we need to know." |
 
 The rows from the first rules' defaults down are open questions from the repo audit of 21 Oct
 2026, details the spec doesn't settle rather than new features.
+
+Also Claude's suggestions, from the same audit:
+- #117's undo sends no email, so managers told "will be deleted" never hear it was undone.
+- A person the 100-a-day limit stopped is marked "not told" and never retried.
 
 Thought of and set aside, as they clash with what's settled: board confidence and the sack
 (storylines are out of scope), counter-tactics (your tactics never touch your opponent's points),
@@ -107,4 +112,4 @@ be tabs on screens `spec/12` already lists rather than pages of their own.
 
 ## Keeping this list
 
-- Nothing yet makes a grill delete its line here; a step in `/grill` could.
+- `/grill` deletes the lines it settles here, in the spec's PR.

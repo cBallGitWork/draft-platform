@@ -8,6 +8,9 @@ export const ERROR_PAGE_TITLE = "This page can't be shown";
 /** Why, when the failure wasn't a refusal, which shows the server's own words instead (refusalIn, src/refusal.ts). */
 export const readFailedWords = failedWords("this page can't be shown");
 
+/** The way back when the whole app failed, above the pages and their menu (liveApp.tsx). */
+export const reloadWords = "Reload";
+
 /** The top bar: its two menus, named for screen readers, Continue, and Sign out. */
 export const mainMenuLabel = "Main";
 export const sectionTabsLabel = "Section";

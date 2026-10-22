@@ -7,7 +7,8 @@ import { startOfNextDay, takeTodaysEmail } from "../email/emailLimit";
 import { linkWithToken } from "./inviteLink";
 import { joiningRefusals } from "./joining";
 import { approvedEmail } from "./joiningEmails";
-import { callerEmail, getLeague, recordEvent, refuse, runnerOf, signedInEmail, teamOf } from "../shared/leagueAccess";
+import { callerEmail, getLeague, refuse, runnerOf, signedInEmail, teamOf } from "../shared/leagueAccess";
+import { recordEvent } from "../mail/letters";
 import { delivery } from "../schema";
 import { putOnTeam } from "../leagues/teams";
 

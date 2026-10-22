@@ -28,7 +28,7 @@ const cellClasses = (column: Column) =>
 export function TablePage({ league, seam }: { league: LeagueSummary; seam: TableSeam }) {
   const leagueTable = seam.useLeagueTable(league.leagueId);
   return (
-    <div className="flex max-w-6xl flex-col gap-2">
+    <section aria-labelledby="page-title" className="flex max-w-6xl flex-col gap-2">
       <PageTitle>{TABLE_PAGE_TITLE}</PageTitle>
       {leagueTable === undefined ? (
         <p role="status" className="text-muted">
@@ -42,7 +42,7 @@ export function TablePage({ league, seam }: { league: LeagueSummary; seam: Table
           <FixturesPanel leagueTable={leagueTable} />
         </div>
       )}
-    </div>
+    </section>
   );
 }
 

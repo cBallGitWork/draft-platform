@@ -8,7 +8,8 @@ import {
   type RouterHistory,
 } from "@tanstack/react-router";
 import { AdminPage } from "./admin/AdminPage";
-import { ADMIN_PATH } from "./admin/paths";
+import { FeedsPage } from "./admin/FeedsPage";
+import { ADMIN_FEEDS_PATH, ADMIN_PATH } from "./admin/paths";
 import type { AdminSeam } from "./admin/seam";
 import type { AuthActions, Session } from "./auth";
 import { AppFrame } from "./frame/AppFrame";
@@ -188,11 +189,23 @@ const adminRoute = createRoute({
   },
 });
 
+// The dashboard's feeds tab (#35), his alone too.
+const adminFeedsRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: ADMIN_FEEDS_PATH,
+  beforeLoad: adminOnly,
+  component: function AdminFeeds() {
+    const admin = adminFeedsRoute.useRouteContext({ select: (context) => context.admin });
+    return <FeedsPage seam={admin} />;
+  },
+});
+
 // Joining a league (#73): a league's invites and join requests, for its runners, and its invite
 // link, which a signed-out visitor reaches through sign-in.
 const invitesRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: INVITES_ROUTE,
+  beforeLoad: runnersOnly,
   component: function Invites() {
     const joining = invitesRoute.useRouteContext({ select: (context) => context.joining });
     return <InvitesPage leagueId={invitesRoute.useParams().leagueId} joining={joining} />;
@@ -250,7 +263,7 @@ const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map(
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
-  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, adminRoute]),
+  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, adminRoute, adminFeedsRoute]),
   frameRoute.addChildren([landingRoute, tableRoute, ...pageRoutes]),
 ]);
 

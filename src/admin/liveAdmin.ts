@@ -1,11 +1,32 @@
 import { useMutation, useQuery } from "convex/react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../../convex/_generated/api";
+import { MINUTE_MS } from "../../convex/shared/time";
 import { refusalOf } from "../refusal";
 import type { AdminSeam } from "./seam";
 import { changeFailedWords } from "./words";
 
 const useQueue: AdminSeam["useQueue"] = () => useQuery(api.positions.playerPositions.queue, {});
+
+/** The start of the current minute, moving on at the next: the time the feeds are judged at, so a
+ *  feed that stops turns late on screen (why, in convex/admin/feeds.ts). */
+function useMinute(): number {
+  const [minute, setMinute] = useState(() => startOfMinute(Date.now()));
+  useEffect(() => {
+    const timer = setTimeout(() => setMinute(startOfMinute(Date.now())), minute + MINUTE_MS - Date.now());
+    return () => clearTimeout(timer);
+  }, [minute]);
+  return minute;
+}
+
+function startOfMinute(at: number): number {
+  return at - (at % MINUTE_MS);
+}
+
+const useFeeds: AdminSeam["useFeeds"] = () => {
+  const now = useMinute();
+  return useQuery(api.admin.feeds.feeds, { now });
+};
 
 /** Blank text asks the server nothing, and finds no one. */
 const useFoundPlayers: AdminSeam["useFoundPlayers"] = (text) => {
@@ -27,6 +48,7 @@ export function useLiveAdmin(): AdminSeam {
     () => ({
       useQueue,
       useFoundPlayers,
+      useFeeds,
       approvePlayer: (code) => refusalOf(() => approvePlayer({ code }), "Approving a player", changeFailedWords),
       approveClub: (clubCode) => refusalOf(() => approveClub({ clubCode }), "Approving a club", changeFailedWords),
       setPosition: (code, position) => refusalOf(() => setPosition({ code, position }), "Setting a position", changeFailedWords),

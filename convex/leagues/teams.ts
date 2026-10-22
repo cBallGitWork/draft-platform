@@ -7,7 +7,6 @@ import {
   getLeague,
   isAdmin,
   namedEmail,
-  recordEvent,
   refuse,
   refusals,
   runnerOf,
@@ -15,6 +14,7 @@ import {
   teamOf,
   teamsOf,
 } from "../shared/leagueAccess";
+import { recordEvent } from "../mail/letters";
 import { TEAM_NAME_MAX } from "./leagueLimits";
 
 // A league's teams and their managers (#24, spec/13, Teams and Leaving). Each change files an

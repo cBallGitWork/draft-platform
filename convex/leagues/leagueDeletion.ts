@@ -2,9 +2,9 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc, Id, TableNames } from "../_generated/dataModel";
 import { internalMutation, mutation, type QueryCtx } from "../_generated/server";
-import { callerEmail, deleterOf, isAdmin, recordEvent, refuse, refusals } from "../shared/leagueAccess";
+import { callerEmail, deleterOf, refuse, refusals, seesWhileDeleted } from "../shared/leagueAccess";
 import { DELETION_UNDO_HOURS } from "./leagueLimits";
-import { wholeLeague } from "../mail/letters";
+import { recordEvent, wholeLeague } from "../mail/letters";
 import { HOUR_MS } from "../shared/time";
 
 // Deleting a league (#75, spec/13, Deleting). For DELETION_UNDO_HOURS it can be undone: it is
@@ -107,7 +107,7 @@ export const undo = mutation({
     const league = (await ctx.db.get("leagues", leagueId)) ?? refuse(refusals.noLeague);
     const { deletion } = league;
     if (!deletion) refuse(refusals.notBeingDeleted);
-    if (email !== deletion.by && !isAdmin(email)) refuse(refusals.notUndoer);
+    if (!seesWhileDeleted(league, email)) refuse(refusals.notUndoer);
     if (Date.now() >= deletion.deletesAt) refuse(refusals.tooLateToUndo);
     await ctx.scheduler.cancel(deletion.scheduledId);
     await ctx.db.patch("leagues", leagueId, { deletion: undefined });

@@ -79,3 +79,14 @@ export async function fileEventLetter(ctx: MutationCtx, leagueId: Id<"leagues">,
   const to = [...(await wholeLeague(ctx, league)), ...takenOut(event)];
   await fileLetter(ctx, league, to, eventLetter(event, isAdmin(by) ? adminByline : by), by);
 }
+
+/** Files what happened, and the Mail letter reporting it (#26). */
+export async function recordEvent(
+  ctx: MutationCtx,
+  leagueId: Id<"leagues">,
+  by: string,
+  event: Infer<typeof leagueEvent>,
+): Promise<void> {
+  await ctx.db.insert("leagueEvents", { leagueId, at: Date.now(), by, event });
+  await fileEventLetter(ctx, leagueId, by, event);
+}
