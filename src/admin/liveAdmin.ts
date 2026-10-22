@@ -4,7 +4,7 @@ import { api } from "../../convex/_generated/api";
 import { MINUTE_MS } from "../../convex/shared/time";
 import { refusalOf } from "../refusal";
 import type { AdminSeam } from "./seam";
-import { changeFailedWords } from "./words";
+import { changeFailedWords } from "../words";
 
 const useQueue: AdminSeam["useQueue"] = () => useQuery(api.positions.playerPositions.queue, {});
 

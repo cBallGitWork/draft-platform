@@ -6,18 +6,20 @@ import { PageSection } from "../frame/Panel";
 import { gameweeksPath } from "../gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../gameweeks/words";
 import { invitesPath } from "../joining/paths";
-import { invitesTitle } from "../joining/words";
+import { INVITES_TITLE } from "../joining/words";
 import { squadsPath } from "../squads/paths";
 import { SQUADS_TITLE } from "../squads/words";
 import { LeagueDeletionRow, type DeletionActions } from "./LeagueDeletion";
 import { leagueColumnCount } from "./LeagueLinks";
-import { LEAGUES_TITLE, NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
+import { NEW_LEAGUE_PATH } from "./paths";
 import { deletes, runs } from "./roles";
 import {
   adminWords,
   commissionerLine,
   invitedHereWords,
   leagueColumns,
+  LEAGUES_TITLE,
+  NEW_LEAGUE_TITLE,
   noTeamCellWords,
   notInALeagueWords,
   rolesWords,
@@ -35,7 +37,7 @@ const leagueRowLinkClasses = "flex min-h-tap items-center font-normal lg:min-h-0
 /** The ways into a league from its row, for someone who runs it. */
 const runnerLinks = (leagueId: string) => [
   { to: gameweeksPath(leagueId), title: GAMEWEEKS_TITLE },
-  { to: invitesPath(leagueId), title: invitesTitle },
+  { to: invitesPath(leagueId), title: INVITES_TITLE },
   { to: squadsPath(leagueId), title: SQUADS_TITLE },
 ];
 

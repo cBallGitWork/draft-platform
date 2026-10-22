@@ -7,6 +7,11 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { NoLinkReply } from "../../convex/signIn/signInLinks";
 import { failedWords } from "../words";
 
+/** "Your leagues" (spec/12), which says so when there are none (spec/02). */
+export const LEAGUES_TITLE = "Your leagues";
+/** The admin's "Create a league". */
+export const NEW_LEAGUE_TITLE = "Create a league";
+
 const roleWords: Record<LeagueSummary["roles"][number], string> = {
   commissioner: "Commissioner",
   "co-commissioner": "Co-commissioner",

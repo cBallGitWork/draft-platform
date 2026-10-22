@@ -5,8 +5,9 @@
 import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
-import { adminSeeing, commissioner, league, managerIn, openApp } from "../../support/src/shell.harness";
+import { LEAGUES_PATH } from "../../../src/leagues/paths";
+import { LEAGUES_TITLE } from "../../../src/leagues/words";
+import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
 import { squadsPath } from "../../../src/squads/paths";
 import type { SquadsData } from "../../support/src/squads.harness";
 import { teamSquad } from "../../support/src/squads.harness";
@@ -41,8 +42,8 @@ const foundRow = (name: string) => within(screen.getByRole("list", { name: found
 describe("reaching the squads", () => {
   it.each([
     ["the commissioner", commissioner],
-    ["the co-commissioner", managerIn({ ...league, roles: ["co-commissioner"] })],
-    ["the admin, with no part in the league", adminSeeing({ ...league, roles: [], teamName: null })],
+    ["the co-commissioner", managerIn(coCommissioned)],
+    ["the admin, with no part in the league", adminSeeing(withNoPart(league))],
   ])("%s opens them from the league's row on Your leagues", async (_, session) => {
     const app = openApp(LEAGUES_PATH, session);
     await userEvent.click(await screen.findByRole("link", { name: SQUADS_TITLE }));

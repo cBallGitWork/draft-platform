@@ -2,12 +2,12 @@ import { useMutation } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { refusalOf } from "../refusal";
-import type { LeagueActions } from "./actions";
+import type { LeaguesSeam } from "./seam";
 import { createFailedWords, deleteFailedWords, switchFailedWords, undoFailedWords } from "./words";
 
 /** The leagues seam filled in by Convex. A refusal comes back as the server's own words
  *  (convex/shared/leagueAccess.ts); any other failure is logged and said plainly. */
-export function useLiveLeagueActions(): LeagueActions {
+export function useLiveLeagueActions(): LeaguesSeam {
   const create = useMutation(api.leagues.leagues.create);
   const deleteLeague = useMutation(api.leagues.leagueDeletion.deleteLeague);
   const undo = useMutation(api.leagues.leagueDeletion.undo);

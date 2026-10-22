@@ -9,7 +9,7 @@ import type { Id } from "../convex/_generated/dataModel";
 import type { LeagueSummary } from "../convex/leagues/myLeagues";
 import { HOUR_MS } from "../convex/shared/time";
 import type { AuthActions, Session } from "./auth";
-import type { LeagueActions } from "./leagues/actions";
+import type { LeaguesSeam } from "./leagues/seam";
 import { replyWords } from "./sign-in/words";
 
 /** Made-up leagues, in the shape signIn/account:signedInAs sends. */
@@ -107,7 +107,7 @@ export function previewSession(): Session | null {
 
 /** Creating or deleting a league, or undoing that, does nothing, and switching league stays put,
  *  each saying so. */
-export const previewLeagues: LeagueActions = {
+export const previewLeagues: LeaguesSeam = {
   createLeague: previewSays("no league was made"),
   deleteLeague: previewSays("no league was deleted"),
   undoDeletion: previewSays("nothing was undone"),

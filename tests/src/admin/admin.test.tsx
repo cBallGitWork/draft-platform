@@ -5,7 +5,8 @@
 import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
+import { LEAGUES_PATH } from "../../../src/leagues/paths";
+import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { admin, commissioner, openApp } from "../../support/src/shell.harness";
 import type { AdminData } from "../../support/src/admin.harness";
 import { EMPTY_QUEUE } from "../../support/src/admin.harness";

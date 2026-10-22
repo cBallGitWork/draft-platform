@@ -30,7 +30,8 @@ import {
   seenWords,
   whenWords,
 } from "../../../src/admin/words";
-import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
+import { LEAGUES_PATH } from "../../../src/leagues/paths";
+import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { admin, commissioner, openApp } from "../../support/src/shell.harness";
 
 const NOW = Date.parse("2026-10-17T12:00:00Z");

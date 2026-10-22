@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { PanelTitle, Problem } from "../frame/Panel";
-import { PRODUCT_NAME } from "../product";
+import { PRODUCT_NAME } from "../../convex/shared/product";
 import { linkProblemWords, signInWords, type LinkProblem } from "./words";
 
 const TITLE_ID = "sign-in-title";

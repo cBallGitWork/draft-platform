@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { BODY_MAX, SUBJECT_MAX } from "../../convex/mail/mailLimits";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PanelTitle, Problem } from "../frame/Panel";
-import type { Mail } from "./actions";
+import type { MailSeam } from "./seam";
 import { WRITE_TITLE, sendToWords, sentWords, writeHint, writeLabels } from "./words";
 
 const TITLE_ID = "write-title";
@@ -16,7 +16,7 @@ const LETTER_ROWS = 6;
 type Outcome = { sent: true; leagueName: string } | { sent: false; problem: string };
 
 /** spec/16: the commissioner's one-way letter to the whole league, from a league they run. */
-export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly LeagueSummary[]; writeToLeague: Mail["writeToLeague"] }) {
+export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly LeagueSummary[]; writeToLeague: MailSeam["writeToLeague"] }) {
   const [leagueId, setLeagueId] = useState(leagues[0].leagueId);
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");

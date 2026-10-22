@@ -7,7 +7,7 @@ import type { FeedState } from "../../convex/admin/feedState";
 import type { Feed } from "../../convex/shared/feedSchedule";
 import { LOCALE } from "../../convex/shared/londonTime";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
-import { failedWords, versusWords } from "../words";
+import { versusWords } from "../words";
 import { READING_SITES, siteSearchUrl } from "./paths";
 
 export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../words";
@@ -83,8 +83,6 @@ export const readingLinks = (fullName: string) => [
   { label: "FotMob", href: siteSearchUrl(READING_SITES.fotMob, fullName) },
   { label: "Understat", href: siteSearchUrl(READING_SITES.understat, fullName) },
 ];
-
-export const changeFailedWords = failedWords("nothing changed");
 
 // The feeds page (#35; spec/15 The admin).
 

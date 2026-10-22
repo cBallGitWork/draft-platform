@@ -8,7 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { joinPath } from "../../../convex/joining/joiningShared";
 import { DAY_MS } from "../../../convex/shared/time";
 import { commissioner, league, managerIn, openApp } from "../../support/src/shell.harness";
-import { LEAGUES_TITLE } from "../../../src/leagues/paths";
+import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { invitesPath } from "../../../src/joining/paths";
 import type { InvitesPageData } from "../../../src/joining/seam";
 import {
@@ -16,7 +16,7 @@ import {
   emailInvitesWords,
   expiredWords,
   inviteLinkWords,
-  invitesTitle,
+  INVITES_TITLE,
   joinedWords,
   loadingWords,
   noTeamWords,
@@ -54,13 +54,13 @@ const inviteItem = (email: string) => within(screen.getByRole("list", { name: em
 describe("the invites page", () => {
   it("is reached from the commissioner's leagues, and not offered to a manager", async () => {
     const app = openApp("/leagues", commissioner, { joining: { invitesPage: page } });
-    await userEvent.click(await screen.findByRole("link", { name: invitesTitle }));
+    await userEvent.click(await screen.findByRole("link", { name: INVITES_TITLE }));
     expect(app.path()).toBe(invitesPath(league.leagueId));
     cleanup();
 
     openApp("/leagues", managerIn(league));
     await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
-    expect(screen.queryByRole("link", { name: invitesTitle })).toBeNull();
+    expect(screen.queryByRole("link", { name: INVITES_TITLE })).toBeNull();
   });
 
   it("shows how each invite stands, and says when invites wait for tomorrow", async () => {
@@ -162,7 +162,7 @@ describe("join requests", () => {
 describe("while the server answers", () => {
   it("says the page is loading, to screen readers too", async () => {
     openApp(invitesPath(league.leagueId), commissioner, { joining: {} });
-    await screen.findByRole("heading", { level: 1, name: invitesTitle });
+    await screen.findByRole("heading", { level: 1, name: INVITES_TITLE });
     expect(screen.getByRole("status").textContent).toBe(loadingWords);
   });
 });

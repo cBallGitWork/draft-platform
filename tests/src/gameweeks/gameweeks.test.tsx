@@ -5,8 +5,9 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
-import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
-import { adminSeeing, commissioner, league, managerIn, openApp } from "../../support/src/shell.harness";
+import { LEAGUES_PATH } from "../../../src/leagues/paths";
+import { LEAGUES_TITLE } from "../../../src/leagues/words";
+import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
 import { BEGUN, season } from "../../support/src/gameweeks.harness";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { begunWords, deadlineWords, GAMEWEEKS_TITLE, loadingWords } from "../../../src/gameweeks/words";
@@ -26,8 +27,8 @@ const rowOf = (gameweek: number) => screen.getByRole("rowheader", { name: String
 describe("reaching the gameweeks", () => {
   it.each([
     ["the commissioner", commissioner],
-    ["the co-commissioner", managerIn({ ...league, roles: ["co-commissioner"] })],
-    ["the admin, with no part in the league", adminSeeing({ ...league, roles: [], teamName: null })],
+    ["the co-commissioner", managerIn(coCommissioned)],
+    ["the admin, with no part in the league", adminSeeing(withNoPart(league))],
   ])("%s opens them from the league's row on Your leagues", async (_, session) => {
     const app = openApp(LEAGUES_PATH, session);
     await userEvent.click(await screen.findByRole("link", { name: GAMEWEEKS_TITLE }));
