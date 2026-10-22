@@ -82,8 +82,12 @@ export async function storeBegunFixtures(
   };
   const playedHeadToHead = (gameweek: number) => rules.inGameweek(gameweek).format === "headToHead";
   const played = await playedFixturesOf(ctx, league._id);
+  const toStore = new Set(usedGameweeksOf(league).filter((gameweek) => !played.has(gameweek) && begunInLeague(gameweek) && playedHeadToHead(gameweek)));
+  // The football sync calls this for every league on each batch: most find nothing to store, and
+  // skip the draw.
+  if (toStore.size === 0) return;
   for (const { gameweek, fixtures, byes } of await scheduleAround(ctx, league, rules, played)) {
-    if (played.has(gameweek) || !begunInLeague(gameweek) || !playedHeadToHead(gameweek)) continue;
+    if (!toStore.has(gameweek)) continue;
     await ctx.db.insert("playedFixtures", { leagueId: league._id, gameweek, fixtures, byes, storedAt: now });
   }
 }

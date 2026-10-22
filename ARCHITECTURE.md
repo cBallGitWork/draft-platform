@@ -147,9 +147,10 @@ styling, typeface, test, screenshot and smoke-test rows, and the rest are the pl
 - Squads (#122): a `squadPlayers` row (league, team, FPL `code`) for each player on a team, one
   team per player per league (index `by_leagueId_and_playerCode`). Assigning, moving and
   releasing a player are filed as `leagueEvents` for Mail.
-- Fixtures and the table (#129, #131): the round robin is drawn on every read, seeded by the
-  league's id, and never stored. That is harmless only while nothing is scored, so it must be
-  stored or frozen before scores are kept (#29).
+- Fixtures and the table (#129, #131, #137): a gameweek's fixtures are stored in
+  `playedFixtures` once it begins, at the league's own deadline, and read from there ever after;
+  the gameweeks still to come are drawn on every read, seeded by the league's id. The football
+  sync's deadline recorder stores them, and a new team is never made without them stored first.
 
 ## With the first code
 

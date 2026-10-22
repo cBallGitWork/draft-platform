@@ -15,9 +15,10 @@ import { storeBegunFixtures } from "../table/playedFixtures";
 //
 // It fails closed: if recording or storing throws, for any league, that fixtures mutation fails
 // with it, so no kickoff moves; the sync is logged and filed in footballSyncs as failed. The feed
-// stands still for every league until it is fixed. A league whose rules can't be read (only a row written by
-// hand can be: a commissioner's change is checked) isn't skipped, because skipping it would let
-// its kickoffs move with its passed deadlines unrecorded, and that could reopen its gameweek.
+// stands still for every league until it is fixed. A league whose rules can't be read (only a row
+// written by hand can be: a commissioner's change is checked) isn't skipped, because skipping it
+// would let its kickoffs move with its passed deadlines unrecorded, and that could reopen its
+// gameweek.
 
 /** Records every league's deadlines that have passed and aren't yet recorded, and stores the
  *  fixtures of the gameweeks they began; returns how many deadlines it recorded. */
