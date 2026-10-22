@@ -9,7 +9,7 @@ import { StrictMode } from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../support/console.setup";
 import { signInToJoinWords } from "../../src/joining/words";
-import { ERROR_PAGE_TITLE, readFailedWords, reloadWords } from "../../src/frame/words";
+import { ERROR_PAGE_TITLE, readFailedWords, reloadWords, signOutWords } from "../../src/frame/words";
 import { LEAGUES_PATH } from "../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../src/leagues/words";
 import { LiveApp, takeLinkCode } from "../../src/liveApp";
@@ -133,9 +133,10 @@ test("signed in, in no league, the app opens on the leagues page", async () => {
 });
 
 const notInLeague = "You're not in this league.";
+const serverDown = new Error("server down");
 
 test.each([
-  ["plain words for a failure", new Error("server down"), readFailedWords],
+  ["plain words for a failure", serverDown, readFailedWords],
   ["the server's words for a refusal", new ConvexError(notInLeague), notInLeague],
 ])("a query failing above the pages shows %s and a reload, and logs the error", async (_, error, words) => {
   convex.auth = { isLoading: false, isAuthenticated: true };
@@ -149,6 +150,23 @@ test.each([
   expect(screen.getByRole("alert").textContent).toBe(words);
   expect(screen.getByRole("button", { name: reloadWords })).toBeTruthy();
   expect(logged.mock.calls.some((call) => call.includes(error))).toBe(true);
+});
+
+test("a query failing above the pages offers Sign out, which leaves for the sign-in page", async () => {
+  convex.auth = { isLoading: false, isAuthenticated: true };
+  convex.account = inNoLeague;
+  convex.unreadFails = serverDown;
+  convex.signOut.mockImplementationOnce(async () => {
+    convex.auth = { isLoading: false, isAuthenticated: false };
+  });
+  silenceConsoleError();
+
+  openAt("/");
+  await userEvent.click(await screen.findByRole("button", { name: signOutWords }));
+
+  expect(convex.signOut).toHaveBeenCalledOnce();
+  expect(await screen.findByRole("textbox", { name: signInWords.emailLabel })).toBeTruthy();
+  expect(window.location.pathname).toBe(SIGN_IN_PATH);
 });
 
 test("without VITE_CONVEX_URL, the app says so on the page rather than showing nothing", () => {
