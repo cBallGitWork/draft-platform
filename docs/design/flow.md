@@ -6,8 +6,8 @@ Every route in `src/router.tsx` and how a person moves between them, plus the sc
 names that have no route yet. Read with [plate.md](plate.md), which is the look. The spec is the
 product; this map only draws it. `tests/src/flow.test.ts` fails when a route is missing from the
 Screens table, isn't its own box in the map or has no arrow touching it, the table lists a path
-the router doesn't have, a file it names is gone, or a Status disagrees with its file
-(PageNotBuilt is a placeholder, any other page is built). It doesn't check where arrows go.
+the router doesn't have, a file it names is gone, or a Status disagrees with its route
+(no route, a PageNotBuilt placeholder, or built). It doesn't check where arrows go.
 
 ## The map
 
@@ -103,8 +103,10 @@ flowchart TD
 
 ## Screens
 
-A built screen has a route and its own page. A placeholder has a route that says "This screen
-isn't built yet". `none` in the Path and File columns means no route yet.
+Status is the route's state only. A built screen has a route and its own page. A placeholder has
+a route that says "This screen isn't built yet". `none` in the Path and File columns means no
+route yet. Whether a screen is spec'd or to grill, and its issue, is in [SPEC.md](../../SPEC.md)'s
+Features table (feature 12), the one home for screen status.
 
 | Screen | Path | File | Spec | Status |
 |---|---|---|---|---|

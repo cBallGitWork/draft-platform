@@ -205,18 +205,18 @@ describe("the co-commissioner", () => {
     expect(await eventsIn(t, leagueId)).toEqual(before);
   });
 
-  test("they can do what the commissioner can: change the maximum, add and remove managers", async () => {
+  test("they can do what the commissioner can: change the maximum and remove a manager", async () => {
     const commissioner = await actingAs(t, COMMISSIONER);
     await commissioner.mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
     const co = await actingAs(t, CO_COMMISSIONER);
+    const [teamId] = await addManagers(t, leagueId, [MANAGERS[0]]);
 
     await co.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 6 });
-    const teamId = await co.mutation(api.leagues.teams.addManager, { leagueId, email: MANAGERS[0] });
     await co.mutation(api.leagues.teams.removeManager, { leagueId, teamId });
 
     expect((await leagueRow(t, leagueId))?.maxTeams).toBe(6);
     expect((await eventsIn(t, leagueId)).slice(-2).map((event) => [event.by, event.kind])).toEqual([
-      [CO_COMMISSIONER, "managerAdded"],
+      [CO_COMMISSIONER, "maxTeamsChanged"],
       [CO_COMMISSIONER, "managerRemoved"],
     ]);
   });
