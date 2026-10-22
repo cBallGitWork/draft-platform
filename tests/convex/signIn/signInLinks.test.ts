@@ -23,7 +23,7 @@ beforeEach(async () => {
 });
 
 /** What Convex Auth's own signIn says when no ask let the email through. */
-const REFUSED = "a sign-in link is sent only by signInLinks:ask";
+const REFUSED = "a sign-in link is sent only by signIn/signInLinks:ask";
 
 /** Convex Auth's public signIn asked for a link, as anyone could call it, bypassing `ask`. */
 const signInDirectly = (email: string) => t.action(api.auth.signIn, { provider: "resend", params: { email } });

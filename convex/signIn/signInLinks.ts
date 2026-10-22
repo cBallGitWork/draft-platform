@@ -104,7 +104,7 @@ export async function claimAsk(ctx: MutationCtx, email: string): Promise<void> {
     .withIndex("by_email_and_askedAt", (q) => q.eq("email", email).gt("askedAt", now - CLAIM_WINDOW_MS))
     .take(ASKS_PER_HOUR);
   const unclaimed = lastMinute.find((asked) => asked.listed && asked.claimedAt === undefined);
-  if (!unclaimed) throw new Error(`No ask let ${email} through: a sign-in link is sent only by signInLinks:ask`);
+  if (!unclaimed) throw new Error(`No ask let ${email} through: a sign-in link is sent only by signIn/signInLinks:ask`);
   await ctx.db.patch("signInAsks", unclaimed._id, { claimedAt: now });
 }
 

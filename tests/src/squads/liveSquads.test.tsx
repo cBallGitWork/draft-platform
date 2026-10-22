@@ -33,14 +33,14 @@ const playerCode = 1001;
 const seam = () => renderHook(() => useLiveSquads()).result.current;
 const changeNames = ["assign", "move", "release"] as const;
 
-test("a league's squads are read from squads:squads", () => {
+test("a league's squads are read from squads/squads:squads", () => {
   const squads = { teams: [], unassigned: [] };
   convex.squads.mockReturnValue(squads);
   expect(renderHook(() => useLiveSquads().useSquads(leagueId)).result.current).toBe(squads);
   expect(convex.squads).toHaveBeenLastCalledWith({ leagueId });
 });
 
-test("a search asks squads:findPlayers, and blank text asks nothing and finds no one", () => {
+test("a search asks squads/squads:findPlayers, and blank text asks nothing and finds no one", () => {
   const found = [{ code: 1, name: "Saka", fullName: "Bukayo Saka", teamName: null }];
   convex.findPlayers.mockReturnValue(found);
   expect(renderHook(() => useLiveSquads().useFoundPlayers(leagueId, "Saka")).result.current).toBe(found);
