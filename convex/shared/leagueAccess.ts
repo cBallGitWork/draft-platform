@@ -2,7 +2,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { ConvexError, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import { adminEmail, normaliseEmail } from "../signIn/allowedEmails";
+import { adminEmail, isEmailAddress, normaliseEmail } from "../signIn/allowedEmails";
 import { FEWEST_TEAMS, MOST_TEAMS, TEAM_NAME_MAX } from "../leagues/leagueLimits";
 import { fileEventLetter } from "../mail/letters";
 import type { leagueEvent } from "../schema";
@@ -48,7 +48,7 @@ export function refuse(reason: string): never {
 /** A typed email, as every email is stored (`normaliseEmail`), or a refusal. */
 export function namedEmail(typed: string): string {
   const email = normaliseEmail(typed);
-  if (!email.includes("@")) refuse(refusals.notEmail(typed));
+  if (!isEmailAddress(email)) refuse(refusals.notEmail(typed));
   return email;
 }
 
