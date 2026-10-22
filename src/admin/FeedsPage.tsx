@@ -1,5 +1,5 @@
 import type { FeedState } from "../../convex/admin/feedState";
-import { Loading, PanelTitle } from "../frame/Panel";
+import { Loading, PanelNote, PanelTitle } from "../frame/Panel";
 import { AdminHeader } from "./AdminHeader";
 import type { AdminSeam, FeedsReport } from "./seam";
 import {
@@ -73,7 +73,7 @@ function Feeds({ report }: { report: FeedsReport }) {
   return (
     <section aria-labelledby={FEEDS_TITLE_ID} className="bg-panel">
       <PanelTitle id={FEEDS_TITLE_ID}>{feedsTitle}</PanelTitle>
-      <p className="px-3 py-2 text-muted">{feedsHint}</p>
+      <PanelNote>{feedsHint}</PanelNote>
       <table className="w-full border-collapse">
         <thead className="bg-head text-ground">
           <tr>
@@ -125,7 +125,7 @@ function Behind({ report: { behind, moreBehind } }: { report: FeedsReport }) {
     <section aria-labelledby={BEHIND_TITLE_ID} className="bg-panel">
       <PanelTitle id={BEHIND_TITLE_ID}>{behindTitle}</PanelTitle>
       {behind.length === 0 ? (
-        <p className="px-3 py-2 text-muted">{noneBehindWords}</p>
+        <PanelNote>{noneBehindWords}</PanelNote>
       ) : (
         <>
           <p className="px-3 py-2">
@@ -150,7 +150,7 @@ function Corrections({ report: { corrections, moreCorrections } }: { report: Fee
   return (
     <section aria-labelledby={CORRECTIONS_TITLE_ID} className="bg-panel">
       <PanelTitle id={CORRECTIONS_TITLE_ID}>{correctionsTitle}</PanelTitle>
-      <p className="px-3 py-2 text-muted">{corrections.length === 0 ? noCorrectionsWords : correctionsHint}</p>
+      <PanelNote>{corrections.length === 0 ? noCorrectionsWords : correctionsHint}</PanelNote>
       {moreCorrections && <p className="px-3 pb-2 text-event">{moreCorrectionsWords(corrections.length)}</p>}
       {corrections.length > 0 && (
         <ul aria-labelledby={CORRECTIONS_TITLE_ID}>

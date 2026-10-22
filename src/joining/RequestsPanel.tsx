@@ -1,4 +1,4 @@
-import { PanelTitle, Problem } from "../frame/Panel";
+import { PanelNote, PanelTitle, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { TeamSelect, useTeamChoice } from "./TeamChoice";
@@ -15,7 +15,7 @@ export function RequestsPanel({ page, joining }: { page: InvitesPageData; joinin
     <section aria-labelledby={TITLE_ID} className="bg-panel">
       <PanelTitle id={TITLE_ID}>{requestsWords.title}</PanelTitle>
       {page.requests.length === 0 ? (
-        <p className="px-3 py-2 text-muted">{noRequestsWords}</p>
+        <PanelNote>{noRequestsWords}</PanelNote>
       ) : (
         <ul aria-label={requestsWords.title}>
           {page.requests.map((request) => (

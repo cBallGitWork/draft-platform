@@ -2,7 +2,7 @@ import type { ErrorComponentProps } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { refusalIn } from "../refusal";
-import { PAGE_TITLE_ID, PageTitle, Problem } from "./Panel";
+import { PageSection, Problem } from "./Panel";
 import { ERROR_PAGE_TITLE, readFailedWords } from "./words";
 
 /** What a page shows in place of itself when drawing it threw, such as a query the server refused:
@@ -14,10 +14,9 @@ export function ErrorScreen({ error }: ErrorComponentProps) {
     if (refusal === null) console.error("Drawing the page failed:", error);
   }, [error, refusal]);
   return (
-    <section aria-labelledby={PAGE_TITLE_ID} className="max-w-xl bg-panel">
-      <PageTitle>{ERROR_PAGE_TITLE}</PageTitle>
+    <PageSection title={ERROR_PAGE_TITLE} className="max-w-xl bg-panel">
       <Problem problem={refusal ?? readFailedWords} />
       <BackToLeagues className="px-3 py-2" />
-    </section>
+    </PageSection>
   );
 }

@@ -1,4 +1,4 @@
-import { PanelTitle } from "../frame/Panel";
+import { PanelNote, PanelTitle } from "../frame/Panel";
 import type { PanelProps } from "./panelProps";
 import {
   approveLabel,
@@ -47,9 +47,9 @@ export function NewSignings({ queue, seam, change }: PanelProps) {
   return (
     <section aria-labelledby={NEW_SIGNINGS_TITLE_ID} className="bg-panel">
       <PanelTitle id={NEW_SIGNINGS_TITLE_ID}>{newSigningsTitle}</PanelTitle>
-      <p className="px-3 py-2 text-muted">{newSigningsHint}</p>
+      <PanelNote>{newSigningsHint}</PanelNote>
       {queue.newSignings.length === 0 ? (
-        <p className="px-3 pb-2 text-muted">{noNewSigningsWords}</p>
+        <PanelNote edge="b">{noNewSigningsWords}</PanelNote>
       ) : (
         <ul aria-label={newSigningsTitle} className="border-t border-panel-rule">
           {queue.newSignings.map((player) => (
@@ -78,9 +78,9 @@ export function Waiting({ queue, seam, change }: PanelProps) {
   return (
     <section aria-labelledby={WAITING_TITLE_ID} className="bg-panel">
       <PanelTitle id={WAITING_TITLE_ID}>{waitingTitle}</PanelTitle>
-      <p className="px-3 py-2 text-muted">{waitingHint}</p>
+      <PanelNote>{waitingHint}</PanelNote>
       {queue.waiting.length === 0 ? (
-        <p className="px-3 pb-2 text-muted">{noWaitingWords}</p>
+        <PanelNote edge="b">{noWaitingWords}</PanelNote>
       ) : (
         <ul aria-label={waitingTitle} className="border-t border-panel-rule">
           {queue.waiting.map((player) => (
@@ -113,8 +113,8 @@ export function PositionChanges({ queue }: Pick<PanelProps, "queue">) {
   return (
     <section aria-labelledby={CHANGES_TITLE_ID} className="bg-panel">
       <PanelTitle id={CHANGES_TITLE_ID}>{changesTitle}</PanelTitle>
-      <p className="px-3 py-2 text-muted">{changesHint(queue.thresholds)}</p>
-      {flagged.length === 0 && removed.length === 0 && <p className="px-3 pb-2 text-muted">{noChangesWords}</p>}
+      <PanelNote>{changesHint(queue.thresholds)}</PanelNote>
+      {flagged.length === 0 && removed.length === 0 && <PanelNote edge="b">{noChangesWords}</PanelNote>}
       {flagged.length > 0 && (
         <ul aria-label={flaggedTitle} className="border-t border-panel-rule">
           {flagged.map((each) => (

@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { ADMIN_PATH } from "../admin/paths";
 import { ADMIN_TITLE } from "../admin/words";
-import { PAGE_TITLE_ID, PageTitle } from "../frame/Panel";
+import { PageSection } from "../frame/Panel";
 import { gameweeksPath } from "../gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../gameweeks/words";
 import { invitesPath } from "../joining/paths";
@@ -10,7 +10,7 @@ import { invitesTitle } from "../joining/words";
 import { squadsPath } from "../squads/paths";
 import { SQUADS_TITLE } from "../squads/words";
 import { LeagueDeletionRow, type DeletionActions } from "./LeagueDeletion";
-import { leagueColumnCount, leagueRowLinkClasses } from "./LeagueLinks";
+import { leagueColumnCount } from "./LeagueLinks";
 import { LEAGUES_TITLE, NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
 import { deletes, runs } from "./roles";
 import {
@@ -27,6 +27,10 @@ import {
 } from "./words";
 
 const cellClasses = "px-2 text-left align-top";
+
+/** A way into one of a league's pages from its row: a full tap on a phone, a plain line on a
+ *  desktop. */
+const leagueRowLinkClasses = "flex min-h-tap items-center font-normal lg:min-h-0";
 
 /** The ways into a league from its row, for someone who runs it. */
 const runnerLinks = (leagueId: string) => [
@@ -51,8 +55,7 @@ export function LeaguesPage({
   actions: DeletionActions;
 }) {
   return (
-    <section aria-labelledby={PAGE_TITLE_ID} className="max-w-3xl bg-panel">
-      <PageTitle>{LEAGUES_TITLE}</PageTitle>
+    <PageSection title={LEAGUES_TITLE} className="max-w-3xl bg-panel">
       <div className="flex flex-col gap-2 px-3 py-2">
         {leagues.length === 0 ? (
           <>
@@ -73,7 +76,7 @@ export function LeaguesPage({
           </span>
         )}
       </div>
-    </section>
+    </PageSection>
   );
 }
 
