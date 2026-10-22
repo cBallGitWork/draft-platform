@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import type { Scoring } from "../../../src/scoring/editing";
 import type { Revision, ScoringView } from "../../../src/scoring/seam";
-import { columnWords, everyoneWords, loadLatestWords, overtakenWords, unchangedWords } from "../../../src/scoring/words";
+import { columnWords, discardWords, everyoneWords, loadLatestWords, overtakenWords, unchangedWords } from "../../../src/scoring/words";
 import { CHANGES_FROM, REVISION } from "../../support/src/scoring.harness";
 import { box, choose, openScoring, retype, save } from "../../support/src/scoringScreen.harness";
 import { commissioner } from "../../support/src/shell.harness";
@@ -40,7 +40,7 @@ function openThenOvertaken() {
 }
 
 describe("with edits made", () => {
-  it("keeps them on screen when someone else saves, says so, and saves with the rules they were made from", async () => {
+  it("keeps them on screen when someone else saves, says so in place of Discard, and saves with the rules they were made from", async () => {
     const { app, overtake } = openThenOvertaken();
     await choose("Assists");
     await retype(columnWords.points, everyoneWords, "4");
@@ -48,6 +48,7 @@ describe("with edits made", () => {
 
     expect(box(columnWords.points, everyoneWords).value).toBe("4");
     expect(screen.getByText(overtakenWords)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: discardWords })).toBeNull();
     app.scoring.save.mockResolvedValueOnce(REFUSAL);
     await save();
 

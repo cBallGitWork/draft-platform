@@ -149,7 +149,7 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: ScoringSe
               {wholePointsWords}
             </label>
             <span className="flex grow flex-wrap justify-end gap-2">
-              {!unchanged && (
+              {!unchanged && !overtaken && (
                 <button type="button" onClick={dropEdits} className="secondary-action">
                   {discardWords}
                 </button>
