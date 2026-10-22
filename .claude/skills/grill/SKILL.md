@@ -92,6 +92,6 @@ skills v1.3 (Craig, 16 Oct 2026):
 
 A feature bigger than one fresh session (~150k tokens) is cut into several issues, each a thin
 slice through every layer that works on its own, with the blocking order named. So is one past
-about 400 changed lines of non-test code (tests, docs and generated files don't count: Craig,
-22 Oct 2026); its pull requests merge in that order, as there is no `gh stack`. The spec file
+the pull request size in `docs/PHILOSOPHY.md`'s header (about 400 changed lines of non-test
+code); its pull requests merge in that order. The spec file
 stays: it is the product's record; the issue closes by merge.

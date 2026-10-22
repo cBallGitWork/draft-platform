@@ -3,8 +3,8 @@
 anywhere but a bare "Closes #n" line. On gh pr create it also denies a body that lacks the
 template's headings; one with neither pr-reviewer's pasted signature nor an unticked "not run" line
 for it; and one with a ticked box that says "not run". A body the guard can't read is denied too.
-Their titles get a soft limit (Craig, 22 Oct 2026): over 120 characters is denied, and over 100
-is a note, not a denial (pr_title_note).
+A title past TITLE_HARD characters is denied; one past TITLE_SOFT gets a note, not a denial
+(pr_title_note; Craig, 22 Oct 2026).
 Stdlib only, Python 3.9+.
 """
 

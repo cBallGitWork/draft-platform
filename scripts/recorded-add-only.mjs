@@ -47,8 +47,8 @@ const allowed = new Set(
 const refused = touched.filter((path) => !allowed.has(path));
 if (refused.length) {
   fail(
-    `${refused.join(", ")} changed or went, and they are add-only. Record a new file beside it, ` +
-      `or, if the old one was wrong, add a trailer to a commit on this branch: ` +
+    `they are add-only, but this branch changes or deletes ${refused.join(", ")}. Record a new ` +
+      `file beside the old one, or, if the old one was wrong, add a trailer to a commit on this branch: ` +
       `"${TRAILER}: <file>: <why>".`,
   );
 }

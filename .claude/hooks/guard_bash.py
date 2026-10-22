@@ -7,8 +7,8 @@ here-string or pipe into a shell (or a group around one), find -exec or ssh incl
 its redirections (commands.py; where.py lists what it can't see), each in the folder it runs in
 (the shell's cwd, any cd before it, its -C: where.py), so a worktree is judged on its own branch,
 not the project's. Also denies publishing a word on Craig's private list (private_words.py),
-and a pull request body that breaks the template's rules or a title past 120 characters
-(pr_body.py); a title past 100 gets a note, not a denial.
+and a pull request body that breaks the template's rules or a title far too long (pr_body.py);
+a title only somewhat long gets a note, not a denial.
 Where it can't be sure what runs or where, it refuses and says how to run the command plainly.
 
 Reads the hook payload (JSON) on stdin; prints a deny decision, a note, or nothing.
@@ -218,6 +218,7 @@ def note(cmd, cwd):
 
 
 def main():
+    advice = None
     try:  # a payload it can't read is denied too: allowing it would check nothing
         payload = json.load(sys.stdin)
         if isinstance(payload, dict):
@@ -226,11 +227,10 @@ def main():
             reason = decide(cmd, cwd)
             advice = None if reason else note(cmd, cwd)
         else:
-            advice = None
             reason = (f"The Bash guard couldn't read the hook payload (a JSON {type(payload).__name__}, "
                       "not an object), so nothing was checked.")
     except Exception as error:  # a guard that crashes prints nothing, which would allow
-        reason, advice = f"The Bash guard failed ({type(error).__name__}: {error}), so nothing was checked.", None
+        reason = f"The Bash guard failed ({type(error).__name__}: {error}), so nothing was checked."
     if reason:
         print(json.dumps({"hookSpecificOutput": {
             "hookEventName": "PreToolUse",
