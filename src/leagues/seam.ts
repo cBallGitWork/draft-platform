@@ -13,6 +13,6 @@ export type LeaguesSeam = {
   switchLeague(leagueId: Id<"leagues">): Change;
   /** Deletes a league (the admin or its commissioner), undoable for a day (#75). */
   deleteLeague(leagueId: Id<"leagues">): Change;
-  /** Undoes deleting a league (whoever deleted it, or the admin). */
+  /** Undoes deleting a league (its commissioner or the admin, whichever deleted it). */
   undoDeletion(leagueId: Id<"leagues">): Change;
 };

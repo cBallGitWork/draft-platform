@@ -72,11 +72,12 @@ describe("letters about the league's events", () => {
 
   test("the copy to whoever did it is filed read, and everyone else's unread", async () => {
     await addManagers(t, leagueId, [ANN]);
+    await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 6 });
     const commissioner = await mailOf(COMMISSIONER);
     const ann = await mailOf(ANN);
 
-    expect((await commissioner.letters()).map((letter) => letter.read)).toEqual([true, false, false]);
-    expect(await ann.unread()).toBe(1);
+    expect((await commissioner.letters()).map((letter) => letter.read)).toEqual([true, false, false, false]);
+    expect(await ann.unread()).toBe(2);
   });
 
   test("the admin is named as the admin, never by his email", async () => {

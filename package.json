@@ -9,7 +9,7 @@
     "test": "node scripts/with-deadline.mjs 120 vitest run",
     "typecheck": "tsc --noEmit -p convex && tsc --noEmit -p .",
     "smoke": "playwright test",
-    "verify": "npm ls --depth=0 >/dev/null 2>&1 || { echo 'node_modules is behind package-lock.json: run npm ci'; exit 1; } && npm test && npm run typecheck && .claude/hooks/test.sh"
+    "verify": "npm ls --depth=0 >/dev/null 2>&1 || { echo 'node_modules is behind package-lock.json: run npm ci'; exit 1; } && npm test && npm run typecheck && node scripts/recorded-add-only.mjs && .claude/hooks/test.sh"
   },
   "dependencies": {
     "@auth/core": "^0.41.3",

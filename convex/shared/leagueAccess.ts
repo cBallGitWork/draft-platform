@@ -21,7 +21,7 @@ export const refusals = {
   notDeleter: "Only the league's commissioner or the admin can delete it.",
   beingDeleted: "This league is being deleted, so nothing in it can change unless that is undone.",
   notBeingDeleted: "This league isn't being deleted.",
-  notUndoer: "Only whoever deleted the league, or the admin, can undo it.",
+  notUndoer: "Only the league's commissioner or the admin can undo it.",
   tooLateToUndo: "It's too late to undo: the league is being deleted for good.",
   notManager: "Only the team's manager or the admin can do that.",
   runsNoTeam: "You don't run a team in this league.",
@@ -104,10 +104,11 @@ export function rolesIn(league: Doc<"leagues">, email: string, team: Doc<"teams"
   return roles;
 }
 
-/** Whether this email is the deleter or the admin: who still sees a league being deleted and may
- *  undo it (spec/13, Deleting). */
+/** Whether this email is the league's commissioner or the admin: who still sees a league being
+ *  deleted and may undo it, whichever of them deleted it (spec/13, Deleting). The co-commissioner
+ *  and the managers don't. */
 export function seesWhileDeleted(league: Doc<"leagues">, email: string): boolean {
-  return league.deletion?.by === email || isAdmin(email);
+  return email === league.commissionerEmail || isAdmin(email);
 }
 
 /** The caller, if the caller is the admin (spec/15, The admin). */
