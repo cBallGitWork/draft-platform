@@ -34,7 +34,9 @@ async function goBackToLeagues(app: ReturnType<typeof openApp>) {
 
 const refusalWords = "You aren't in this league.";
 const loggedAs = "Drawing the page failed:";
-// React and the router report a caught error too, so each test silences console.error.
+
+// React and the router log a caught error too, so every test here silences console.error, even
+// one that checks nothing was logged as a failure.
 
 it("shows the server's own words when it refuses, and leads back to Your leagues", async () => {
   silenceConsoleError();
