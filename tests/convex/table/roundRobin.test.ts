@@ -5,6 +5,7 @@ import {
   LEAGUE_AVERAGE,
   ODD_TEAM_OUTS,
   roundOrder,
+  roundsInARoundRobin,
   roundsOf,
   seededRandom,
   type DrawOptions,
@@ -128,6 +129,10 @@ describe("games a gameweek", () => {
 
   test.each([[2, 1], [4, 3], [9, 9], [20, 19]])("%i teams have at most %i a gameweek", (count, most) => {
     expect(gamesInAGameweek(roundsOf(teamsOf(count)).length, 99)).toBe(most);
+  });
+
+  test.each(TEAM_COUNTS)("%i teams: the most the rules may ask, as counted without drawing, is one round robin's rounds", (count) => {
+    expect(roundsInARoundRobin(count)).toBe(roundsOf(teamsOf(count)).length);
   });
 
   test.each([[0, 1], [3, 0], [3, 4]])("dealing from %i rounds, %i a gameweek, is a bug, and throws", (rounds, games) => {

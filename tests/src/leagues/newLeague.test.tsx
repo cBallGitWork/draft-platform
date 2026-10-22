@@ -7,6 +7,8 @@ import { describe, expect, it } from "vitest";
 import { admin, openApp } from "../../support/src/shell.harness";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
 import { backToLeaguesWords, LEAGUES_TITLE, newLeagueLabels } from "../../../src/leagues/words";
+import { LEAGUE_NAME_MAX } from "../../../convex/leagues/leagueLimits";
+import { refusals } from "../../../convex/shared/leagueAccess";
 
 const REFUSAL = "Only the admin can do that.";
 
@@ -36,6 +38,15 @@ describe("creating a league", () => {
     expect((await screen.findByRole("alert")).textContent).toBe(REFUSAL);
     expect((screen.getByRole("textbox", { name: newLeagueLabels.name }) as HTMLInputElement).value).toBe("Mini beta");
     expect(app.path()).toBe(NEW_LEAGUE_PATH);
+  });
+
+  it(`says a name over ${LEAGUE_NAME_MAX} characters is refused, in the server's words`, async () => {
+    const app = openApp(NEW_LEAGUE_PATH, admin);
+    app.leagues.createLeague.mockResolvedValue(refusals.leagueNameTooLong);
+    await fillIn({ name: "x".repeat(LEAGUE_NAME_MAX + 1) });
+
+    expect((await screen.findByRole("alert")).textContent).toBe(`A league's name is up to ${LEAGUE_NAME_MAX} characters.`);
+    expect(app.leagues.createLeague).toHaveBeenCalledWith(expect.objectContaining({ name: "x".repeat(LEAGUE_NAME_MAX + 1) }));
   });
 
   it("can't be sent twice while the first is on its way", async () => {

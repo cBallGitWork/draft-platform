@@ -3,9 +3,10 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import type { DeadlineRule } from "../gameweeks/deadline";
 import { FIRST_RULES } from "./firstRules";
-import { isAdmin, memberOf, refuse, runnerOf } from "../shared/leagueAccess";
+import { getLeague, isAdmin, memberOf, refuse, runnerOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
-import { checkLeagueRules, UnsoundRules } from "./leagueRulesCheck";
+import { checkGamesFor, checkLeagueRules, gamesWords, UnsoundRules, whyMostGames } from "./leagueRulesCheck";
+import { roundsInARoundRobin } from "../table/roundRobin";
 import { leagueRulesShape, scoringSetShape, type LeagueRules } from "./leagueRulesShape";
 import { categoryName } from "../scoring/categories";
 import { sortedJson } from "../shared/sortedJson";
@@ -27,6 +28,10 @@ export const rulesRefusals = {
    *  names them. */
   changedSince: (who: string | null, at: number) =>
     `${who ?? "Someone"} saved the league's rules on ${londonTime(at)}, after you opened them, so yours weren't saved.`,
+  /** A new league too small for the admin's default games a gameweek: the defaults are the cause. */
+  defaultGamesTooMany: (games: number, maxTeams: number) =>
+    `The admin's default rules play ${gamesWords(games)} a gameweek, but with ${maxTeams} teams a team can play at most ` +
+    `${gamesWords(roundsInARoundRobin(maxTeams))}: ${whyMostGames(maxTeams)}.`,
 };
 
 /** The rules row a screen loaded, carried with its change so a save over someone else's is
@@ -45,10 +50,16 @@ async function refuseStale(ctx: QueryCtx, leagueId: Id<"leagues">, latestRow: Do
   refuse(rulesRefusals.changedSince(null, latestRow?._creationTime ?? Date.now()));
 }
 
-/** Refuses unsound rules, telling the commissioner or admin why. */
-function refuseUnsound(rules: LeagueRules): void {
+/** Refuses unsound rules, telling the commissioner or admin why: a league's, of `maxTeams` teams,
+ *  or the admin's defaults, which belong to no league. */
+function refuseUnsound(rules: LeagueRules, maxTeams?: number): void {
+  asRefusal(() => checkLeagueRules(rules, maxTeams));
+}
+
+/** Runs a check of the rules, its UnsoundRules a refusal and anything else the bug it is. */
+function asRefusal(check: () => void): void {
   try {
-    checkLeagueRules(rules);
+    check();
   } catch (error) {
     if (error instanceof UnsoundRules) refuse(error.message);
     throw error;
@@ -96,12 +107,23 @@ async function writeDefaults(ctx: MutationCtx, rules: LeagueRules): Promise<void
   else await ctx.db.patch("defaultLeagueRules", row._id, { rules });
 }
 
-/** Gives a new league the admin's default rules from gameweek 1. The first league a deployment
- *  makes writes the first rules (firstRules.ts) as those defaults. */
-export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">): Promise<void> {
+/** Gives a new league of `maxTeams` the admin's default rules from gameweek 1, refused if that
+ *  many teams can't play their games a gameweek. The first league a deployment makes writes the
+ *  first rules (firstRules.ts) as those defaults. */
+export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">, maxTeams: number): Promise<void> {
   const defaults = (await defaultsRow(ctx))?.rules;
   if (defaults === undefined) await writeDefaults(ctx, FIRST_RULES);
-  await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, rules: defaults ?? FIRST_RULES });
+  const rules = defaults ?? FIRST_RULES;
+  const games = rules.gamesPerGameweek;
+  if (games !== undefined && games > roundsInARoundRobin(maxTeams)) refuse(rulesRefusals.defaultGamesTooMany(games, maxTeams));
+  await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, rules });
+}
+
+/** Refuses `maxTeams` for a league whose `rules` play more games a gameweek than that many teams
+ *  can: when its maximum is lowered. A team joining can't change it. */
+export function refuseTooFewForGames(rules: LeagueRules | null, maxTeams: number): void {
+  const games = rules?.gamesPerGameweek;
+  if (games !== undefined) asRefusal(() => checkGamesFor(games, maxTeams));
 }
 
 /** The season's gameweeks and matches as held, less those the football layer no longer sends. */
@@ -163,7 +185,7 @@ async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: str
   const history = await historyOf(ctx, leagueId);
   const latestRow = history.at(-1);
   await refuseStale(ctx, leagueId, latestRow, loaded);
-  refuseUnsound(rules);
+  refuseUnsound(rules, (await getLeague(ctx, leagueId)).maxTeams);
   const fromGameweek = await takesEffectFrom(ctx, history, rules, Date.now());
   const changed = changedParts(latestRow?.rules, rules);
   if (latestRow !== undefined && changed.length === 0) return latestRow.fromGameweek;
