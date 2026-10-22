@@ -16,11 +16,11 @@ it can go live at any time. The Tim Hortons Pro League is the first league on it
 beta in the 2026/27 season, with no hard date: as early as it's ready (Craig, 17 Oct 2026). It
 irons out kinks: a quick league of about four, with players assigned to teams rather than
 drafted, for the basics. It needs:
-features 1, 2, 3, 5, 6, 7, 10, 12, 14, 16 and 18, and the mini beta's admin tools
-(15: creating a league, inviting managers, assigning players, a score override, positions, the
-feeds page). Live commentary and the match page (10) are in it if the live stream is proven,
-and among the first things dropped if late. The draft (4) waits for the summer. Before it starts,
-FPL's and the Premier League's terms are checked (Craig, 20 Oct 2026; issue #79).
+features 1, 2, 3, 5, 6, 7, 10, 12, 14, 16 and 18, and the admin tools listed in
+[spec/15's The mini beta](spec/15-admin-tools.md#the-mini-beta). Live commentary and the match
+page (10) are in it if the live stream is proven, and among the first things dropped if late.
+The draft (4) waits for the summer. Before it starts, FPL's and the Premier League's terms are
+checked (Craig, 20 Oct 2026; issue #79).
 
 ## Features
 
@@ -39,7 +39,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 9 | [Season admin](spec/09-season-admin.md) | the round robin over the gameweeks a league plays, the odd team out and the football table built (#33); the table stays all noughts until matchups are scored; not yet the commissioner editing fixtures or the auto team | an illegal lineup at the deadline is fixed by the auto team |
 | 10 | [Live matchday](spec/10-live-matchday.md) | stats read every minute during a match (#28); no points move yet, and no matchup, match page or commentary on screen | points move during a match and are marked provisional until it is final |
 | 11 | [Email](spec/11-email.md) | not built | on a pick clock over 10 minutes the manager on the clock gets one email; under it, none |
-| 12 | [Screens](spec/12-screens.md) | the frame and sign-in (#19), your leagues (#24), Mail and its count in the menu (#26), table and fixtures (#33), invites (#73), gameweeks (#74), squads (#31), the scoring editor (#30) and the admin dashboard (#126) built; not yet My team, where a manager lands (#14), home, matchup (#34), match (#45), players, player card, trades, draft room, Premier League (#49) or league settings | a signed-in manager lands on My team, with Mail's unread count in the menu |
+| 12 | [Screens](spec/12-screens.md) | the frame and sign-in (#19), your leagues (#24), Mail and its count in the menu (#26), table and fixtures (#33), invites (#73), gameweeks (#74), squads (#31), the scoring editor (#30) and the admin dashboard (#126) built; spec'd, not yet built: My team, where a manager lands (#14), matchup (#34), match (#45), Premier League (#49), the draft room (waits for the summer) and club pages (after the mini beta); to grill: home, players, player card, trades, league settings, and My team's Squad, Fixtures and Transactions tabs (from the mock-up, not the spec) | a signed-in manager lands on My team, with Mail's unread count in the menu |
 | 13 | [Setting up a league](spec/13-setting-up-a-league.md) | leagues, teams and who runs them (#24), joining (#73), the gameweeks it plays (#74), deleting (#75) and switching leagues (#76) built | a league of four fills from two emailed invites and two approved join requests |
 | 14 | [Scoring categories](spec/14-scoring-categories.md) | the catalogue (placeholder names), pricing by area or position, points limits and minutes (#111), own stats (#112) and the first scoring set, FPL's (#25), built on the server, and the rules editor (#30), but not yet making an own stat in it (#262); not yet a score override (#32), or anything scoring a league's matches | a match's stats priced under a set of rules give each category's points and the total, by the slot's area or position, within each rule's points limits |
 | 15 | [Admin tools](spec/15-admin-tools.md) | creating a league and naming its commissioner (#24), inviting managers (#73), assigning players (#31) and the positions dashboard (#126) built; removing a manager, renaming teams, the maximum and the co-commissioner only from the CLI (#134), and editing the scoring set (#30); not yet a score override (#32), the feeds page (#35) or the admin's log | a commissioner's assignment puts the player on the team and files a Mail letter to the league |
