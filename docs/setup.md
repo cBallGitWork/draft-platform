@@ -11,6 +11,10 @@ You need:
 2. Membership of the Convex team `craigdavidball14`: `npm run setup` is hardcoded to it.
 3. A Resend account and its API key.
 
+To run the gates (`npm run verify`, `npm run smoke`) and ship: python3 and git, jq at /usr/bin/jq
+(built into macOS 15+; the hook tests call that path), Google Chrome (local smoke and screenshots)
+and the gh CLI signed in to the repo.
+
 Clone, then:
 
 ```
@@ -57,8 +61,10 @@ To see the screens without signing in, add `?preview=` to the address: `manager`
 (dev server only, with made-up figures). `npx vite` starts the app alone, without touching Convex,
 and then only the previews work.
 
-`npm run verify` runs every gate: the tests, the typecheck and the hook checks.
+`npm run verify` runs the local gate; the [verify skill](../.claude/skills/verify/SKILL.md) lists
+what it checks and what CI runs besides.
 
-The app is in `src/` and the server in `convex/`, one folder per feature in each. Every test is in
+The app is in `src/` and the server in `convex/`, one folder per feature in each. The tests are in
 `tests/`, mirroring them (`tests/convex/`, `tests/src/`, `tests/scripts/`), with the shared
-harnesses and recorded feeds in `tests/support/` and the browser smoke suite in `tests/smoke/`.
+harnesses and recorded feeds in `tests/support/` and the browser smoke suite in `tests/smoke/`;
+the hooks' own checks are in `.claude/hooks/tests/`.
