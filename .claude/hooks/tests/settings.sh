@@ -31,3 +31,25 @@ problems=$(unwired "$settings")
 problems=$(unwired "$tmp/no-guard.json")
 [ "$problems" = "settings.json: no PreToolUse/Bash hook runs guard_bash.py" ] ||
   fail "settings.sh: a settings.json with no Bash guard gave: ${problems:-nothing}"
+
+# the gate's own timeout must sit inside the one settings.json gives its hook, or Claude Code kills
+# the hook first and a slow gate never reports
+gate_timeout=$(sed -n 's/^GATE_TIMEOUT_SECONDS = \([0-9][0-9]*\).*/\1/p' "$hooks/gate_on_stop.py")
+[ -n "$gate_timeout" ] || fail "settings.sh: no 'GATE_TIMEOUT_SECONDS = N' line in gate_on_stop.py"
+short_timeouts() { # settings-file: a loud line for each Stop or SubagentStop gate entry not over it
+  local event
+  for event in Stop SubagentStop; do
+    "$jq" -e --arg e "$event" --argjson t "${gate_timeout:-0}" '
+      [.hooks[$e][]?.hooks[]? | select(.command | endswith("/gate_on_stop.py"))] |
+      length > 0 and all((.timeout // 0) > $t)' "$1" >/dev/null ||
+      echo "settings.json: the $event gate's timeout isn't over gate_on_stop.py's $gate_timeout seconds"
+  done
+}
+problems=$(short_timeouts "$settings")
+[ -z "$problems" ] || fail "$problems"
+
+# a copy whose Stop timeout is under the gate's must be caught
+"$jq" '.hooks.Stop[0].hooks[0].timeout = 100' "$settings" > "$tmp/short-stop.json"
+problems=$(short_timeouts "$tmp/short-stop.json")
+[ "$problems" = "settings.json: the Stop gate's timeout isn't over gate_on_stop.py's $gate_timeout seconds" ] ||
+  fail "settings.sh: a settings.json with a 100-second Stop timeout gave: ${problems:-nothing}"

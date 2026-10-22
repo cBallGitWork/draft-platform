@@ -40,8 +40,10 @@ code=$?
 if [ "$code" -eq 0 ] || [ -z "$err" ]; then
   fail "gate_on_stop.py: a failed git status exited $code with no error"
 fi
-# scripts/ is watched (verify tests it), so a change there alone runs the gate
-scripts=$tmp/gate-scripts && gate_repo "$scripts"
-silent gate_on_stop.py "$(stop_in "$scripts" Stop)" DRAFT_GATE_CMD=false
-mkdir "$scripts/scripts" && touch "$scripts/scripts/a.mjs"
-blocks gate_on_stop.py "$(stop_in "$scripts" Stop)" DRAFT_GATE_CMD=false
+# each is watched (verify tests or reads it), so a change there alone runs the gate
+for path in scripts/a.mjs tests/a.test.ts playwright.config.ts; do
+  repo=$tmp/gate-watch-${path%%[/.]*} && gate_repo "$repo"
+  silent gate_on_stop.py "$(stop_in "$repo" Stop)" DRAFT_GATE_CMD=false
+  mkdir -p "$repo/$(dirname "$path")" && touch "$repo/$path"
+  blocks gate_on_stop.py "$(stop_in "$repo" Stop)" DRAFT_GATE_CMD=false
+done
