@@ -5,22 +5,28 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { judgeFeed } from "../../../convex/admin/feedState";
+import { ALWAYS_OWED, judgeFeed } from "../../../convex/admin/feedState";
 import { FEED_SCHEDULES, lateAfterMs } from "../../../convex/shared/feedSchedule";
-import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
+import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../../src/admin/paths";
 import type { FeedsReport } from "../../../src/admin/seam";
 import {
   ADMIN_TITLE,
   behindTitle,
+  changeWords,
   correctionsTitle,
   feedNames,
   feedsLoadingWords,
+  feedStateWords,
   feedsTabWords,
   feedsTitle,
+  fullTimeWords,
+  lastErrorWords,
+  neverWords,
   noCorrectionsWords,
   noneBehindWords,
   positionsTabWords,
+  seenWords,
   whenWords,
 } from "../../../src/admin/words";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
@@ -88,11 +94,11 @@ describe("the feeds", () => {
   it("#35 Done: a feed stopped past its schedule shows as late, in the event colour, with when it last arrived", async () => {
     const stoppedAt = NOW - lateAfterMs(FEED_SCHEDULES.football) - MINUTE_MS;
     const runs = { lastRun: { ranAt: stoppedAt, failure: null }, lastSuccessAt: stoppedAt };
-    const state = judgeFeed(runs, FEED_SCHEDULES.football, Number.NEGATIVE_INFINITY, NOW);
+    const state = judgeFeed(runs, FEED_SCHEDULES.football, ALWAYS_OWED, NOW);
     openFeeds(withFeed(QUIET, { feed: "football", state, lastRunAt: stoppedAt, lastSuccessAt: stoppedAt, lastError: null }));
 
     const rows = await feedRows(feedNames.football.name);
-    const late = within(rows).getByText("Late");
+    const late = within(rows).getByText(feedStateWords.late);
     expect(late.className).toContain("text-event");
     expect(within(rows).getAllByRole("row")[0].className).toContain("shadow-event-edge");
     expect(within(rows).getByText("6 hours ago")).toBeTruthy();
@@ -104,29 +110,29 @@ describe("the feeds", () => {
     openFeeds(withFeed(QUIET, { feed: "matchStats", state: "failing", lastRunAt: lastError.at, lastSuccessAt: NOW - 3 * HOUR_MS, lastError }));
 
     const rows = await feedRows(feedNames.matchStats.name);
-    expect(within(rows).getByText("Failing").className).toContain("text-event");
+    expect(within(rows).getByText(feedStateWords.failing).className).toContain("text-event");
     expect(within(rows).getByText("3 hours ago")).toBeTruthy();
-    expect(within(rows).getAllByRole("row")[1].textContent).toBe(`Last error, ${whenWords(lastError.at)}: FPL answered 503`);
+    expect(within(rows).getAllByRole("row")[1].textContent).toBe(`${lastErrorWords(lastError.at)} FPL answered 503`);
   });
 
   it("a feed on time is plain, one never run says Never, and one run by hand says it isn't scheduled, muted", async () => {
     const report = withFeed(withFeed(QUIET, { feed: "liveStats", state: "fine", lastRunAt: NOW - 2 * MINUTE_MS, lastSuccessAt: NOW - 2 * MINUTE_MS, lastError: null }), {
       feed: "positions",
       state: "notScheduled",
-      lastRunAt: NOW - 3 * 24 * HOUR_MS,
-      lastSuccessAt: NOW - 3 * 24 * HOUR_MS,
+      lastRunAt: NOW - 3 * DAY_MS,
+      lastSuccessAt: NOW - 3 * DAY_MS,
       lastError: null,
     });
     openFeeds(report);
 
     const live = await feedRows(feedNames.liveStats.name);
-    expect(within(live).getByText("On time").className).not.toMatch(/text-event|text-muted/);
+    expect(within(live).getByText(feedStateWords.fine).className).not.toMatch(/text-event|text-muted/);
     expect(within(live).getByText("2 minutes ago")).toBeTruthy();
-    expect(within(await feedRows(feedNames.positions.name)).getByText("Not scheduled: run by hand").className).toContain("text-muted");
+    expect(within(await feedRows(feedNames.positions.name)).getByText(feedStateWords.notScheduled).className).toContain("text-muted");
     expect(within(await feedRows(feedNames.positions.name)).getByText("3 days ago")).toBeTruthy();
     const football = await feedRows(feedNames.football.name);
-    expect(within(football).getByText("Never")).toBeTruthy();
-    expect(within(football).getByText("Not running yet").className).toContain("text-muted");
+    expect(within(football).getByText(neverWords)).toBeTruthy();
+    expect(within(football).getByText(feedStateWords.notRunningYet).className).toContain("text-muted");
   });
 });
 
@@ -138,19 +144,17 @@ describe("scoring", () => {
     const panel = await screen.findByRole("region", { name: behindTitle });
     expect(within(panel).getByText("1+").className).toContain("text-figure");
     const match = within(within(panel).getByRole("list", { name: behindTitle })).getByRole("listitem");
-    expect(match.textContent).toBe(`Hull City v Everton${`Full time ${whenWords(fullTimeAt)}`}`);
+    expect(match.textContent).toBe(`Hull City v Everton${fullTimeWords(fullTimeAt)}`);
   });
 
   it("a correction after the lock shows the player, the match and the stat as locked and as sent", async () => {
     const seenAt = NOW - HOUR_MS;
-    openFeeds({
-      ...QUIET,
-      corrections: [{ fixtureCode: 1, match: null, playerCode: 7, player: "Ndiaye", seenAt, changes: [{ stat: "assists", locked: 1, sent: 0 }] }],
-    });
+    const change = { stat: "assists", locked: 1, sent: 0 };
+    openFeeds({ ...QUIET, corrections: [{ fixtureCode: 1, match: null, playerCode: 7, player: "Ndiaye", seenAt, changes: [change] }] });
 
     const panel = await screen.findByRole("region", { name: correctionsTitle });
     const correction = within(within(panel).getByRole("list", { name: correctionsTitle })).getByRole("listitem");
-    expect(correction.textContent).toBe(`Ndiaye, Match 1assists: locked at 1, sent 0Seen ${whenWords(seenAt)}`);
+    expect(correction.textContent).toBe(`Ndiaye, Match 1${changeWords(change)}${seenWords(seenAt)}`);
   });
 
   it("says so when nothing is behind and no stat changed after a lock", async () => {
