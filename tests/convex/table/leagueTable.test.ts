@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { expectRefused, giveDeadlineRule, holdGameweeks, moveFplDeadline, rulesWith } from "../../support/convex/leagueRules.harness";
-import { DAY_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
+import { expectRefused, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, moveFplDeadline, rulesWith } from "../../support/convex/leagueRules.harness";
+import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
@@ -103,10 +103,10 @@ describe("the fixtures", () => {
 // Each gameweek carries the league's own deadline, and the fixtures open on the first it hasn't
 // locked (#139): never FPL's (Craig, 22 Oct 2026: "ours, we arent fpl so stop copying them").
 describe("each gameweek's deadline", () => {
-  /** Gameweek 9's one match kicks off in six days (holdGameweeks), each next a week on. */
   /** The first rules' deadline: 90 minutes before the first kickoff, as FPL's. */
   const FIRST_MINUTES = FIRST_RULES.deadline.minutesBeforeFirstKickoff;
-  const kickoffOf = (gameweek: number) => Date.now() + 6 * DAY_MS + (gameweek - 9) * WEEK_MS;
+  /** Gameweek 9's one match kicks off holdGameweeks' default time from now, each next a week on. */
+  const kickoffOf = (gameweek: number) => Date.now() + KICKS_OFF_IN + (gameweek - 9) * WEEK_MS;
   const deadlineIn = async (gameweek: number) => (await read())!.gameweeks.find((each) => each.gameweek === gameweek)?.deadline;
   beforeEach(async () => {
     await addManagers(t, leagueId, [ANN, BOB]);

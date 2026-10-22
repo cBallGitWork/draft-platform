@@ -25,6 +25,8 @@ const latest = async (leagueId: Id<"leagues">) => (await actingAs(t, COMMISSIONE
 const inGameweek = (leagueId: Id<"leagues">, gameweek: number) => t.run((ctx) => rulesInGameweek(ctx, leagueId, gameweek));
 /** A deadline three hours before the first kickoff, so an hour and a half earlier than FPL's. */
 const THREE_HOURS_BEFORE = rulesWith({ deadline: { minutesBeforeFirstKickoff: 180 } });
+/** A deadline at the first kickoff, so an hour and a half later than FPL's. */
+const AT_KICKOFF = rulesWith({ deadline: { minutesBeforeFirstKickoff: 0 } });
 
 describe("a commissioner's change of deadline", () => {
   test("to an earlier deadline that has already passed for gameweek 9 waits for gameweek 10", async () => {
@@ -39,19 +41,17 @@ describe("a commissioner's change of deadline", () => {
     await holdGameweeks(t, { next: 9, kicksOffIn: 2 * HOUR_MS });
     await t.mutation(internal.rules.leagueRules.setDefaults, { rules: THREE_HOURS_BEFORE });
     const leagueId = await adminCreatesLeague(t);
-    const atKickoff = rulesWith({ deadline: { minutesBeforeFirstKickoff: 0 } });
 
-    expect(await change(leagueId, atKickoff)).toBe(10);
+    expect(await change(leagueId, AT_KICKOFF)).toBe(10);
     expect((await inGameweek(leagueId, 9)).deadline.minutesBeforeFirstKickoff).toBe(180);
   });
 
   test("under a deadline later than FPL's, made after FPL's but before the league's, applies from gameweek 9", async () => {
     await holdGameweeks(t, { next: 9, kicksOffIn: HOUR_MS });
-    const atKickoff = rulesWith({ deadline: { minutesBeforeFirstKickoff: 0 } });
-    await t.mutation(internal.rules.leagueRules.setDefaults, { rules: atKickoff });
+    await t.mutation(internal.rules.leagueRules.setDefaults, { rules: AT_KICKOFF });
     const leagueId = await adminCreatesLeague(t);
 
-    expect(await change(leagueId, { ...atKickoff, format: "totalPoints" })).toBe(9);
+    expect(await change(leagueId, { ...AT_KICKOFF, format: "totalPoints" })).toBe(9);
   });
 
   test("ignores FPL's deadline moving: gameweek 9 is still to begin when FPL's has passed", async () => {

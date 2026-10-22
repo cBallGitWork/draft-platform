@@ -18,12 +18,15 @@ export function rulesWith(change: Partial<LeagueRules>): LeagueRules {
 /** The first rules, played as total points. */
 export const TOTAL_POINTS = rulesWith({ format: "totalPoints" });
 
+/** How long from now holdGameweeks' gameweek `next` kicks off, unless a test says. */
+export const KICKS_OFF_IN = 6 * DAY_MS;
+
 /** A season of one match a gameweek, a week apart, gameweek `next` kicking off `kicksOffIn` from
- *  now (six days by default), so every gameweek before it has begun. FPL's deadline, feed data
+ *  now (KICKS_OFF_IN by default), so every gameweek before it has begun. FPL's deadline, feed data
  *  only, is held 90 minutes before each kickoff, as FPL sets it. */
 export async function holdGameweeks(
   t: TestConvex,
-  { next, kicksOffIn = 6 * DAY_MS }: { next: number; kicksOffIn?: number },
+  { next, kicksOffIn = KICKS_OFF_IN }: { next: number; kicksOffIn?: number },
 ): Promise<void> {
   const kickoffOf = (gameweek: number) => Date.now() + kicksOffIn + (gameweek - next) * WEEK_MS;
   await t.run(async (ctx) => {
