@@ -11,6 +11,9 @@ const LEAGUE_CHOICE_ID = "letter-league";
 const SUBJECT_ID = "letter-subject";
 const BODY_ID = "letter-body";
 
+/** How many lines the letter's box shows before it scrolls. */
+const LETTER_ROWS = 6;
+
 type Outcome = { sent: true; leagueName: string } | { sent: false; problem: string };
 
 /** spec/16: the commissioner's one-way letter to the whole league, from a league they run. */
@@ -84,7 +87,7 @@ export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly Le
           id={BODY_ID}
           required
           maxLength={BODY_MAX}
-          rows={6}
+          rows={LETTER_ROWS}
           value={body}
           onChange={(event) => setBody(event.target.value)}
           className="text-box py-1"

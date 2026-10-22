@@ -8,7 +8,8 @@
 import { v } from "convex/values";
 import type { QueryCtx } from "../_generated/server";
 
-/** FPL's season has gameweeks 1 to 38: FPL's rule, so a constant. */
+/** FPL's season has gameweeks 1 to 38: FPL's rule, so constants. */
+export const FIRST_GAMEWEEK = 1;
 export const GAMEWEEKS = 38;
 
 /** FPL's deadline, when it begins; null while the app doesn't have it. */
@@ -19,21 +20,21 @@ export const fplDeadline = v.union(v.number(), v.null());
 export async function fplDeadlines(ctx: QueryCtx): Promise<Map<number, number>> {
   const rows = await ctx.db
     .query("gameweeks")
-    .withIndex("by_number", (q) => q.gte("number", 1).lte("number", GAMEWEEKS))
+    .withIndex("by_number", (q) => q.gte("number", FIRST_GAMEWEEK).lte("number", GAMEWEEKS))
     .take(GAMEWEEKS);
   return new Map(rows.map((row) => [row.number, row.deadline]));
 }
 
 /** The season's gameweeks, 1 to 38, in order. */
-export const SEASON_GAMEWEEKS: readonly number[] = Array.from({ length: GAMEWEEKS }, (_, index) => index + 1);
+export const SEASON_GAMEWEEKS: readonly number[] = Array.from({ length: GAMEWEEKS }, (_, index) => FIRST_GAMEWEEK + index);
 
 /** What of a league this reads: the gameweeks its commissioner unticked, stored as the league's
  *  `unusedGameweeks`. Absent while it plays them all. */
 export type WithUnusedGameweeks = { unusedGameweeks?: readonly number[] };
 
 /** Whether this is one of the season's gameweeks, and what to say when it isn't. */
-export const isGameweek = (gameweek: number) => Number.isInteger(gameweek) && gameweek >= 1 && gameweek <= GAMEWEEKS;
-export const noSuchGameweek = (gameweek: number) => `There's no gameweek ${gameweek}: a season has gameweeks 1 to ${GAMEWEEKS}.`;
+export const isGameweek = (gameweek: number) => Number.isInteger(gameweek) && gameweek >= FIRST_GAMEWEEK && gameweek <= GAMEWEEKS;
+export const noSuchGameweek = (gameweek: number) => `There's no gameweek ${gameweek}: a season has gameweeks ${FIRST_GAMEWEEK} to ${GAMEWEEKS}.`;
 
 /** Whether the league plays this gameweek. Asking of a gameweek the season doesn't have is a bug
  *  in the caller, so it throws. */

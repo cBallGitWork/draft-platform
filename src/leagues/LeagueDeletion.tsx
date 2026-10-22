@@ -3,6 +3,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { LeagueActions } from "./actions";
+import { leagueColumnCount } from "./LeagueLinks";
 import { beingDeleted, confirmDelete, confirmDeleteWords, deleteLeagueWords, unemailed, undoWords, unsentLinkWords } from "./words";
 
 export type DeletionActions = Pick<LeagueActions, "deleteLeague" | "undoDeletion">;
@@ -22,7 +23,7 @@ export function LeagueDeletionRow({ league, canDelete, actions }: { league: Leag
   if (!deletion && !canDelete) return null;
   return (
     <tr>
-      <td colSpan={4} className={deletion ? "alert-strip" : "px-2 pb-2"}>
+      <td colSpan={leagueColumnCount} className={deletion ? "alert-strip" : "px-2 pb-2"}>
         <div className="flex flex-col items-start gap-2">
           {deletion ? (
             <>

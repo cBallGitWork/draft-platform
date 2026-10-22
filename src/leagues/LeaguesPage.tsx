@@ -10,7 +10,7 @@ import { invitesTitle } from "../joining/words";
 import { squadsPath } from "../squads/paths";
 import { SQUADS_TITLE } from "../squads/words";
 import { LeagueDeletionRow, type DeletionActions } from "./LeagueDeletion";
-import { leagueRowLinkClasses } from "./LeagueLinks";
+import { leagueColumnCount, leagueRowLinkClasses } from "./LeagueLinks";
 import { LEAGUES_TITLE, NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
 import { deletes, runs } from "./roles";
 import {
@@ -112,7 +112,7 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
           </tr>
           {league.unsentCommissionerLink && (
             <tr>
-              <td colSpan={4} className="alert-strip">
+              <td colSpan={leagueColumnCount} className="alert-strip">
                 {unsentLink(league.unsentCommissionerLink.email, unsentLinkWords[league.unsentCommissionerLink.reply])}
               </td>
             </tr>

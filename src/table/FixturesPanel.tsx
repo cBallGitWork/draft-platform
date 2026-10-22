@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { isLocked } from "../../convex/gameweeks/deadline";
+import { FEWEST_TO_DRAW } from "../../convex/table/roundRobin";
 import { PanelTitle } from "../frame/Panel";
 import type { LeagueTable } from "./seam";
 import {
@@ -33,7 +34,7 @@ export function FixturesPanel({ leagueTable }: { leagueTable: LeagueTable }) {
       {format === "totalPoints" ? (
         <p className="px-3 py-2">{totalPointsWords}</p>
       ) : gameweeks.length === 0 ? (
-        <p className="px-3 py-2">{table.length < 2 ? tooFewTeamsWords : noGameweeksWords}</p>
+        <p className="px-3 py-2">{table.length < FEWEST_TO_DRAW ? tooFewTeamsWords : noGameweeksWords}</p>
       ) : (
         <>
           <GameweekFixtures gameweeks={gameweeks} />

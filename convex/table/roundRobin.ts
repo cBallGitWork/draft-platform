@@ -19,6 +19,9 @@ export type DrawOptions = {
   seed: string;
 };
 
+/** The fewest teams a round robin is drawn for: a fixture needs two. */
+export const FEWEST_TO_DRAW = 2;
+
 /** The opponent of the team left over, in a league whose odd team out plays the average. */
 export const LEAGUE_AVERAGE = "leagueAverage";
 
@@ -58,13 +61,13 @@ export function roundsOf<Team>(teams: readonly Team[]): Round<Team>[] {
 export const gamesInAGameweek = (roundCount: number, gamesPerGameweek: number) => Math.min(gamesPerGameweek, roundCount);
 
 /** The league's fixtures in each gameweek it plays (`gameweeks`, in order), its teams in the
- *  order they were made. Fewer than two teams have no one to play, so no fixtures. */
+ *  order they were made. Fewer than FEWEST_TO_DRAW have no one to play, so no fixtures. */
 export function drawFixtures<Team>(
   teams: readonly Team[],
   gameweeks: readonly number[],
   { oddTeamOut, gamesPerGameweek, seed }: DrawOptions,
 ): GameweekFixtures<Team>[] {
-  if (teams.length < 2) return [];
+  if (teams.length < FEWEST_TO_DRAW) return [];
   const rounds = roundsOf(teams);
   const games = gamesInAGameweek(rounds.length, gamesPerGameweek);
   const order = roundOrder(rounds.length, gameweeks.length * games, games, seed);
