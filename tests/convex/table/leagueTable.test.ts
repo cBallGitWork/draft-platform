@@ -7,6 +7,7 @@ import { DAY_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { FIRST_RULES } from "../../../convex/rules/firstRules";
 
 // The league's fixtures and table (#33), read from its teams, the gameweeks it plays and its
 // rules, by anyone with a part in it. No matchup is scored yet, so the table is all noughts.
@@ -103,6 +104,8 @@ describe("the fixtures", () => {
 // locked (#139): never FPL's (Craig, 22 Oct 2026: "ours, we arent fpl so stop copying them").
 describe("each gameweek's deadline", () => {
   /** Gameweek 9's one match kicks off in six days (holdGameweeks), each next a week on. */
+  /** The first rules' deadline: 90 minutes before the first kickoff, as FPL's. */
+  const FIRST_MINUTES = FIRST_RULES.deadline.minutesBeforeFirstKickoff;
   const kickoffOf = (gameweek: number) => Date.now() + 6 * DAY_MS + (gameweek - 9) * WEEK_MS;
   const deadlineIn = async (gameweek: number) => (await read())!.gameweeks.find((each) => each.gameweek === gameweek)?.deadline;
   beforeEach(async () => {
@@ -112,7 +115,7 @@ describe("each gameweek's deadline", () => {
 
   test.each([
     ["earlier than FPL's", 180],
-    ["equal to FPL's", 90],
+    ["equal to FPL's", FIRST_MINUTES],
     ["later than FPL's", 0],
   ])("is the league's own when it is %s", async (_, minutes) => {
     await giveDeadlineRule(t, leagueId, minutes);
@@ -121,12 +124,12 @@ describe("each gameweek's deadline", () => {
 
   test("doesn't move when FPL's does", async () => {
     await moveFplDeadline(t, 9, 1234);
-    expect(await deadlineIn(9)).toBe(kickoffOf(9) - 90 * MINUTE_MS);
+    expect(await deadlineIn(9)).toBe(kickoffOf(9) - FIRST_MINUTES * MINUTE_MS);
   });
 
   test("is under the rule in force in that gameweek, when the rule changes mid-season", async () => {
     await giveDeadlineRule(t, leagueId, 120, 20);
-    expect(await deadlineIn(19)).toBe(kickoffOf(19) - 90 * MINUTE_MS);
+    expect(await deadlineIn(19)).toBe(kickoffOf(19) - FIRST_MINUTES * MINUTE_MS);
     expect(await deadlineIn(20)).toBe(kickoffOf(20) - 120 * MINUTE_MS);
   });
 

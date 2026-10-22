@@ -19,6 +19,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 import { DAY_MS, HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { giveDeadlineRule, moveFplDeadline } from "../../support/convex/leagueRules.harness";
 import { GAMEWEEKS, isGameweekUsed } from "../../../convex/gameweeks/usedGameweeks";
+import { FIRST_RULES } from "../../../convex/rules/firstRules";
 
 // The gameweeks a league plays (#74; spec/13, Gameweeks), against #21's gameweeks and matches. Each
 // begins at the league's own deadline, never FPL's (#138).
@@ -32,7 +33,7 @@ let start: number;
 /** A gameweek's deadline under the first rules, 90 minutes before its one match: a week apart,
  *  from the clock's start, however the clock moves. FPL's is held at the same time, as feed data. */
 const deadlineOf = (gameweek: number) => start + (gameweek - NEXT) * WEEK_MS + HOUR_MS;
-const kickoffOf = (gameweek: number) => deadlineOf(gameweek) + 90 * MINUTE_MS;
+const kickoffOf = (gameweek: number) => deadlineOf(gameweek) + FIRST_RULES.deadline.minutesBeforeFirstKickoff * MINUTE_MS;
 beforeEach(async () => {
   t = await signInDeployment();
   start = Date.now();
@@ -134,7 +135,7 @@ describe("once a gameweek has begun", () => {
     expect(await gameweekEvents()).toHaveLength(1);
   });
 
-  test("it begins at its deadline, not before", async () => {
+  test("it begins at its deadline, not before: the first rules' 90 minutes, equal to FPL's", async () => {
     await holdGameweeks();
     vi.setSystemTime(deadlineOf(NEXT) - 1);
     await setUsed(COMMISSIONER, NEXT, false);
@@ -144,14 +145,14 @@ describe("once a gameweek has begun", () => {
 });
 
 describe("the league's own deadline decides, never FPL's (Craig: \"ours, we arent fpl so stop copying them\")", () => {
-  const shownDeadline = async (gameweek: number) =>
+  const deadlineShown = async (gameweek: number) =>
     (await (await actingAs(t, COMMISSIONER)).query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId }))[gameweek - 1].deadline;
 
   test("a league deadline earlier than FPL's: the gameweek has begun while FPL's is still ahead", async () => {
     await holdGameweeks();
     await giveDeadlineRule(t, leagueId, 180);
 
-    expect(await shownDeadline(NEXT)).toBe(kickoffOf(NEXT) - 3 * HOUR_MS);
+    expect(await deadlineShown(NEXT)).toBe(kickoffOf(NEXT) - 3 * HOUR_MS);
     expect(Date.now()).toBeLessThan(deadlineOf(NEXT));
     await expect(setUsed(COMMISSIONER, NEXT, false)).rejects.toThrow(gameweekRefusals.begun(NEXT));
   });
@@ -160,21 +161,10 @@ describe("the league's own deadline decides, never FPL's (Craig: \"ours, we aren
     await holdGameweeks();
     await giveDeadlineRule(t, leagueId, 0);
 
-    expect(await shownDeadline(NEXT)).toBe(kickoffOf(NEXT));
+    expect(await deadlineShown(NEXT)).toBe(kickoffOf(NEXT));
     vi.setSystemTime(deadlineOf(NEXT));
     await setUsed(COMMISSIONER, NEXT, false);
     vi.setSystemTime(kickoffOf(NEXT));
-    await expect(setUsed(COMMISSIONER, NEXT, true)).rejects.toThrow(gameweekRefusals.begun(NEXT));
-  });
-
-  test("a league deadline equal to FPL's begins at that one time", async () => {
-    await holdGameweeks();
-    await giveDeadlineRule(t, leagueId, 90);
-
-    expect(await shownDeadline(NEXT)).toBe(deadlineOf(NEXT));
-    vi.setSystemTime(deadlineOf(NEXT) - 1);
-    await setUsed(COMMISSIONER, NEXT, false);
-    vi.setSystemTime(deadlineOf(NEXT));
     await expect(setUsed(COMMISSIONER, NEXT, true)).rejects.toThrow(gameweekRefusals.begun(NEXT));
   });
 
@@ -183,7 +173,7 @@ describe("the league's own deadline decides, never FPL's (Craig: \"ours, we aren
     await moveFplDeadline(t, NEXT, start - DAY_MS);
     await moveFplDeadline(t, NEXT + 1, start + DAY_MS);
 
-    expect(await shownDeadline(NEXT)).toBe(deadlineOf(NEXT));
+    expect(await deadlineShown(NEXT)).toBe(deadlineOf(NEXT));
     await setUsed(COMMISSIONER, NEXT, false);
     expect(await used(NEXT)).toBe(false);
   });
@@ -192,8 +182,8 @@ describe("the league's own deadline decides, never FPL's (Craig: \"ours, we aren
     await holdGameweeks();
     await giveDeadlineRule(t, leagueId, 180, 20);
 
-    expect(await shownDeadline(19)).toBe(deadlineOf(19));
-    expect(await shownDeadline(20)).toBe(kickoffOf(20) - 3 * HOUR_MS);
+    expect(await deadlineShown(19)).toBe(deadlineOf(19));
+    expect(await deadlineShown(20)).toBe(kickoffOf(20) - 3 * HOUR_MS);
   });
 });
 

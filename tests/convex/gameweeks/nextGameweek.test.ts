@@ -17,8 +17,9 @@ const matches = [
 ];
 const minutesBefore = (minutesBeforeFirstKickoff: number) => (): DeadlineRule => ({ minutesBeforeFirstKickoff });
 /** FPL's 90 minutes, the first rules' default: as a league's own rule, not FPL's deadline. */
-const ninetyMinutes = minutesBefore(90);
-const ninetyBefore = (kickoff: number) => kickoff - 90 * MINUTE_MS;
+const NINETY = 90;
+const ninetyMinutes = minutesBefore(NINETY);
+const ninetyBefore = (kickoff: number) => kickoff - NINETY * MINUTE_MS;
 
 // A gameweek begins at the league's own deadline, never FPL's (Craig, 22 Oct 2026: "ours, we arent
 // fpl so stop copying them"; #138). nextGameweek isn't given FPL's deadline at all.
@@ -50,7 +51,7 @@ test("a league deadline later than FPL's 90 minutes locks the gameweek later, no
 });
 
 test("each gameweek is judged by the deadline rule in force in it", () => {
-  const threeHoursFrom10 = (gameweek: number) => ({ minutesBeforeFirstKickoff: gameweek >= 10 ? 180 : 90 });
+  const threeHoursFrom10 = (gameweek: number) => ({ minutesBeforeFirstKickoff: gameweek >= 10 ? 180 : NINETY });
   expect(nextGameweek(gameweeks, matches, threeHoursFrom10, NEXT_SATURDAY_3PM - 2 * HOUR_MS)).toBe(11);
 });
 

@@ -10,7 +10,7 @@ import { isGameweek, isGameweekUsed, noSuchGameweek, SEASON_GAMEWEEKS, shownDead
 // Gameweeks). A gameweek has begun once the league's own deadline for it has passed, under the
 // deadline rule in force in it (leagueRules.ts's `leagueDeadlines`; #138), and from then on it
 // can't be ticked or unticked; before gameweek 1 begins, every one can be. FPL's deadline plays no
-// part: "ours, we arent fpl so stop copying them" (Craig, 22 Oct 2026).
+// part (deadline.ts's `leagueDeadline` says why).
 
 /** Why a change to the league's gameweeks was refused, as the commissioner is told it. */
 export const gameweekRefusals = {
