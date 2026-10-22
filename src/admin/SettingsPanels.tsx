@@ -1,9 +1,21 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { PanelTitle } from "../frame/Panel";
 import type { PanelProps } from "./panelProps";
-import { approveClubWords, clubLabel, clubTitle, modeTitle, modeWords, switchModeWords } from "./words";
+import {
+  approveClubWords,
+  clubLabel,
+  clubTitle,
+  flagAfterLabel,
+  modeTitle,
+  modeWords,
+  removeAfterLabel,
+  saveThresholdsWords,
+  switchModeWords,
+  thresholdsTitle,
+} from "./words";
 
-// Approving a club whole, and how starts count (spec/06, The admin oversees them).
+// Approving a club whole, how starts count (spec/06, The admin oversees them), and when positions
+// change (spec/06, When positions change).
 
 export function ApproveClub({ queue, seam, change }: PanelProps) {
   const [chosen, choose] = useState<number | undefined>(undefined);
@@ -52,3 +64,42 @@ export function ApproveMode({ queue, seam, change }: PanelProps) {
   );
 }
 
+/** The thresholds a run of starts elsewhere flags, then removes, a position at; the server says
+ *  why a pair is refused. */
+export function Thresholds({ queue, seam, change }: PanelProps) {
+  const [flagAfter, setFlagAfter] = useState(String(queue.thresholds.flagAfter));
+  const [removeAfter, setRemoveAfter] = useState(String(queue.thresholds.removeAfter));
+  function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void change.run(() => seam.setChangeThresholds({ flagAfter: Number(flagAfter), removeAfter: Number(removeAfter) }));
+  }
+  const fields = [
+    { id: "flag-after", label: flagAfterLabel, value: flagAfter, set: setFlagAfter },
+    { id: "remove-after", label: removeAfterLabel, value: removeAfter, set: setRemoveAfter },
+  ];
+  return (
+    <section aria-labelledby="thresholds-title" className="bg-panel">
+      <PanelTitle id="thresholds-title">{thresholdsTitle}</PanelTitle>
+      <form onSubmit={save} className="flex flex-col gap-2 p-3">
+        {fields.map((field) => (
+          <span key={field.id} className="flex flex-col gap-1">
+            <label htmlFor={field.id} className="font-semibold">
+              {field.label}
+            </label>
+            <input
+              id={field.id}
+              type="number"
+              required
+              value={field.value}
+              onChange={(event) => field.set(event.target.value)}
+              className="text-box w-24"
+            />
+          </span>
+        ))}
+        <button type="submit" disabled={change.busy} className="secondary-action self-start">
+          {saveThresholdsWords}
+        </button>
+      </form>
+    </section>
+  );
+}

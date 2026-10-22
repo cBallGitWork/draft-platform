@@ -5,6 +5,7 @@ import type { Changing } from "../useChange";
 import type { AdminSeam, FoundPlayerPositions } from "./seam";
 import {
   findHint,
+  flaggedPositionWords,
   foundListLabel,
   positionsListLabel,
   removeWords,
@@ -73,6 +74,7 @@ function PlayerPositions({ player, seam, change }: { player: FoundPlayerPosition
                   {sourceWords[each.source]}
                   {each.confirmed ? "" : `, ${unconfirmedWords}`}
                 </span>
+                {each.flaggedElsewhere !== null && <span className="text-event">, {flaggedPositionWords(each.flaggedElsewhere)}</span>}
               </span>
               <button
                 type="button"
