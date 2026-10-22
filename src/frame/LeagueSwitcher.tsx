@@ -7,6 +7,7 @@ import type { LeagueActions } from "../leagues/actions";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../leagues/paths";
 import { roleWords } from "../leagues/words";
 import { Problem } from "./Panel";
+import { allLeaguesWords, currentLeagueLabel } from "./words";
 
 // On a phone the league takes its own row under the name, Continue and Sign out, above the menu.
 const placementClasses = "order-last w-full border-t border-plate-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-l";
@@ -88,7 +89,7 @@ export function LeagueSwitcher({
         className={toggleClasses}
       >
         <span>
-          <span className="sr-only">League:</span> {current.name}
+          <span className="sr-only">{currentLeagueLabel}</span> {current.name}
         </span>
         <svg aria-hidden="true" viewBox="0 0 10 6" className="h-1.5 w-2.5 fill-current">
           <path d="M0 0h10L5 6z" />
@@ -105,7 +106,7 @@ export function LeagueSwitcher({
             ))}
           </ul>
           <Link to={LEAGUES_PATH} className="flex min-h-tap items-center px-3">
-            All your leagues
+            {allLeaguesWords}
           </Link>
         </div>
       )}

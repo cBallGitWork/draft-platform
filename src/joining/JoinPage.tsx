@@ -23,7 +23,7 @@ export function JoinPage({ token, joining }: { token: string; joining: JoiningSe
           <>
             <p>{joinPageWords.mayAsk(page.leagueName)}</p>
             <button type="button" disabled={busy} onClick={() => void run(() => joining.askToJoin(token))} className="action self-start">
-              Ask to join
+              {joinPageWords.ask}
             </button>
           </>
         )}

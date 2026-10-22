@@ -3,6 +3,15 @@
 
 import { failedWords } from "../words";
 
+/** The sign-in page: the top bar's "Invite only", and the form asking for a link. */
+export const signInWords = {
+  inviteOnly: "Invite only",
+  title: "Sign in",
+  emailLabel: "Email",
+  hint: "We'll email you a link that signs you in. No password.",
+  send: "Send the link",
+} as const;
+
 /** The reply to asking for a link, one for each of `signIn/signInLinks:ask`'s answers. `checkYourEmail`
  *  goes to every email, on the list or not, so nobody can tell which are on it. */
 export const replyWords = {

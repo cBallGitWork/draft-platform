@@ -3,7 +3,7 @@ import { BODY_MAX, SUBJECT_MAX } from "../../convex/mail/mailLimits";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PanelTitle, Problem } from "../frame/Panel";
 import type { Mail } from "./actions";
-import { WRITE_TITLE, sentWords, writeHint } from "./words";
+import { WRITE_TITLE, sendToWords, sentWords, writeHint, writeLabels } from "./words";
 
 type Outcome = { sent: true; leagueName: string } | { sent: false; problem: string };
 
@@ -44,7 +44,7 @@ export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly Le
         {leagues.length > 1 && (
           <>
             <label htmlFor="letter-league" className="font-semibold">
-              League
+              {writeLabels.league}
             </label>
             <select
               id="letter-league"
@@ -61,7 +61,7 @@ export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly Le
           </>
         )}
         <label htmlFor="letter-subject" className="font-semibold">
-          Subject
+          {writeLabels.subject}
         </label>
         <input
           id="letter-subject"
@@ -72,7 +72,7 @@ export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly Le
           className="text-box"
         />
         <label htmlFor="letter-body" className="font-semibold">
-          Letter
+          {writeLabels.body}
         </label>
         <textarea
           id="letter-body"
@@ -84,7 +84,7 @@ export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly Le
           className="text-box py-1"
         />
         <button type="submit" disabled={sending} className="action self-start">
-          Send to {league.name}
+          {sendToWords(league.name)}
         </button>
       </form>
     </section>

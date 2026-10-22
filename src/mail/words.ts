@@ -27,6 +27,8 @@ export const letterTime = (at: number) => time.format(at);
 
 export const WRITE_TITLE = "Write to the league";
 export const writeHint = "Everyone in the league gets it in their Mail. They can't reply: there is no chat.";
+export const writeLabels = { league: "League", subject: "Subject", body: "Letter" } as const;
+export const sendToWords = (leagueName: string) => `Send to ${leagueName}`;
 export const sentWords = (leagueName: string) => `Sent to everyone in ${leagueName}.`;
 /** When sending failed before the server could say why: the connection, or the server itself. */
 export const sendFailedWords = failedWords("the letter wasn't sent");

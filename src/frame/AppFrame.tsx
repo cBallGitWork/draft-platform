@@ -7,6 +7,7 @@ import { MenuTab } from "./MenuTab";
 import { ProductName } from "./ProductName";
 import { SignOut } from "./SignOut";
 import type { TopBarState } from "./topBarState";
+import { mainMenuLabel, sectionTabsLabel } from "./words";
 
 // A section's tabs, butted like the menu's (plate.md, Shape).
 const sectionTabClasses =
@@ -35,7 +36,7 @@ export function AppFrame({
           {leagueSwitcher}
           {/* On a phone the menu takes its own row under the name, Continue and Sign out. */}
           <nav
-            aria-label="Main"
+            aria-label={mainMenuLabel}
             className="order-last flex w-full flex-wrap border-t border-plate-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-r"
           >
             {sections.map((section) => (
@@ -52,7 +53,7 @@ export function AppFrame({
           <SignOut onSignOut={onSignOut} />
         </div>
         {tabs.length > 0 && (
-          <nav aria-label="Section" className="flex flex-wrap bg-panel shadow-panel-top">
+          <nav aria-label={sectionTabsLabel} className="flex flex-wrap bg-panel shadow-panel-top">
             {tabs.map((tab) => (
               <Link key={tab.path} to={tab.path} activeOptions={{ exact: true, includeSearch: false }} className={sectionTabClasses}>
                 {tab.label}

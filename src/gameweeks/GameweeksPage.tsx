@@ -8,6 +8,7 @@ import type { LeagueGameweeksView } from "./seam";
 import {
   begunWords,
   deadlineWords,
+  gameweekColumns,
   GAMEWEEKS_TITLE,
   howTickingWorks,
   loadingWords,
@@ -82,9 +83,9 @@ function GameweekTable({
     <table className="w-full self-start border-collapse">
       <thead className="bg-head text-ground">
         <tr>
-          <th scope="col" className={cellClasses}>GW</th>
-          <th scope="col" className={cellClasses}>Deadline</th>
-          <th scope="col" className={cellClasses}>Plays</th>
+          <th scope="col" className={cellClasses}>{gameweekColumns.gameweek}</th>
+          <th scope="col" className={cellClasses}>{gameweekColumns.deadline}</th>
+          <th scope="col" className={cellClasses}>{gameweekColumns.plays}</th>
         </tr>
       </thead>
       <tbody>

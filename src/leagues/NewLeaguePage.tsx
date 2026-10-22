@@ -6,7 +6,7 @@ import { useChange } from "../useChange";
 import type { LeagueActions } from "./actions";
 import { BackToLeagues } from "./LeagueLinks";
 import { LEAGUES_PATH, NEW_LEAGUE_TITLE } from "./paths";
-import { commissionerHint, maxTeamsHint } from "./words";
+import { commissionerHint, newLeagueLabels, maxTeamsHint } from "./words";
 
 /** The admin's "Create a league" (spec/13, Creating a league): its name, its maximum teams and its
  *  commissioner's email. Once made, it is on the admin's leagues page. */
@@ -28,12 +28,12 @@ export function NewLeaguePage({ createLeague }: { createLeague: LeagueActions["c
       <Problem problem={problem} />
       <form onSubmit={create} className="flex flex-col gap-2 p-3">
         <label htmlFor="league-name" className="font-semibold">
-          League name
+          {newLeagueLabels.name}
         </label>
         <input id="league-name" required value={name} onChange={(event) => setName(event.target.value)} className="text-box" />
 
         <label htmlFor="league-max-teams" className="font-semibold">
-          Maximum teams
+          {newLeagueLabels.maxTeams}
         </label>
         <input
           id="league-max-teams"
@@ -52,7 +52,7 @@ export function NewLeaguePage({ createLeague }: { createLeague: LeagueActions["c
         </p>
 
         <label htmlFor="league-commissioner" className="font-semibold">
-          Commissioner's email
+          {newLeagueLabels.commissionerEmail}
         </label>
         <input
           id="league-commissioner"
@@ -69,7 +69,7 @@ export function NewLeaguePage({ createLeague }: { createLeague: LeagueActions["c
 
         <div className="flex flex-wrap items-center gap-4">
           <button type="submit" disabled={creating} className="action">
-            Create the league
+            {newLeagueLabels.create}
           </button>
           <BackToLeagues />
         </div>
