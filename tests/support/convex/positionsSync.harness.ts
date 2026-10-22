@@ -29,10 +29,15 @@ function fakeFeeds(payloads: PositionsPayloads, refuse?: string) {
   return fakeFetch(bodies, (url) => url === refuse);
 }
 
-/** One sync against `payloads`: the outcome it recorded, and the URLs it asked for. */
-export async function syncPositionsWith(t: TestConvex, payloads: PositionsPayloads, refuse?: string) {
+/** One sync against `payloads`, run at `at` when given (the feeds are faked first, at the real
+ *  time): the outcome it recorded, and the URLs it asked for. */
+export async function syncPositionsWith(t: TestConvex, payloads: PositionsPayloads, refuse?: string, at?: number) {
   const fetch = fakeFeeds(payloads, refuse);
   vi.stubGlobal("fetch", fetch);
+  if (at !== undefined) {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(at);
+  }
   await t.action(internal.positions.positionsSync.run, { trigger: "manual" });
   const [latest] = await t.query(internal.positions.positionsSync.latest, {});
   return { outcome: latest.outcome, urls: fetch.mock.calls.map(([url]) => url) };
