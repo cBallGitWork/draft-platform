@@ -40,7 +40,7 @@ export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly Le
   }
 
   return (
-    <section aria-labelledby={TITLE_ID} className="min-w-0 max-w-xl flex-[1_1_320px] bg-panel">
+    <section aria-labelledby={TITLE_ID} className="min-w-0 max-w-xl grow basis-letter-form bg-panel">
       <PanelTitle id={TITLE_ID}>{WRITE_TITLE}</PanelTitle>
       <Problem problem={outcome?.sent === false ? outcome.problem : null} />
       {outcome?.sent && (

@@ -32,7 +32,7 @@ export function leaguesToWriteFrom(session: Session): readonly LeagueSummary[] {
 export function MailPage({ mail, unread, writableLeagues }: { mail: Mail; unread: number; writableLeagues: readonly LeagueSummary[] }) {
   return (
     <div className="flex flex-wrap items-start gap-2">
-      <section aria-labelledby={PAGE_TITLE_ID} className="min-w-0 max-w-3xl flex-[2_1_480px] bg-panel">
+      <section aria-labelledby={PAGE_TITLE_ID} className="min-w-0 max-w-3xl grow-2 basis-letters bg-panel">
         <PageTitle aside={<span>{unreadCount(unread)}</span>}>{MAIL_TITLE}</PageTitle>
         <Letters mail={mail} />
       </section>
