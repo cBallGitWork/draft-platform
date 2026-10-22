@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import type { Band, Priced } from "../../convex/scoring/scoringSet";
-import { KeyRow, TickBox } from "../frame/Controls";
 import { PanelTitle } from "../frame/Panel";
+import { Choice } from "../rules/Choice";
+import { TickBox } from "../rules/TickBox";
 import {
   keysOf,
   nextBand,
@@ -48,6 +49,7 @@ import {
 } from "./words";
 
 const CATEGORY_TITLE_ID = "category-title";
+const SHAPE_CHOICE = "shape";
 
 /** A row's name in the values table. */
 function rowWords(key: PriceKey): string {
@@ -64,7 +66,7 @@ export function CategoryEditor({ name, rule, onChange, onRemove }: { name: strin
     <section aria-labelledby={CATEGORY_TITLE_ID} className="bg-panel">
       <PanelTitle id={CATEGORY_TITLE_ID}>{name}</PanelTitle>
       <div className="flex flex-col gap-1 p-3">
-        <KeyRow label={paysLabel} choices={SHAPES} words={shapeWords} chosen={rule.shape} onChoose={(shape) => onChange(withShape(rule, shape))} />
+        <Choice label={paysLabel} name={SHAPE_CHOICE} options={SHAPES} words={shapeWords} chosen={rule.shape} onChoose={(shape) => onChange(withShape(rule, shape))} />
         <p className="text-muted">{shapeHints[rule.shape]}</p>
         <TickBox checked={pricing === "byArea"} onChange={pricedBy("byArea")}>
           {byAreaWords}

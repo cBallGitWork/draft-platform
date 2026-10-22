@@ -2,7 +2,11 @@
 
 Feature 3 of [SPEC.md](../SPEC.md). Only Craig's answers.
 
-The league's rules are data. Among them:
+The league's rules are data. A commissioner edits them on two screens (Craig, 22 Oct 2026):
+**League settings**, the rules that build the league, starting with the odd team out and the games
+a gameweek; and **Player scoring** (once called Scoring), players' points by position.
+
+Among them:
 
 - Format: head-to-head, or total points.
 - Playoffs: how many teams, how many legs.

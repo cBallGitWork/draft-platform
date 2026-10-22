@@ -7,7 +7,7 @@ import { rulesInGameweek, rulesRefusals } from "../../../convex/rules/leagueRule
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { centreOf, EXAMPLE_SET } from "../../support/convex/scoring.example";
-import { expectRefused, holdGameweeks, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { expectRefused, holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { HOUR_MS } from "../../../convex/shared/time";
 import {
   ADMIN,
@@ -31,8 +31,9 @@ beforeEach(async () => {
   fakeResend();
 });
 
+/** A change made from the league's latest rules, as a screen opened just now makes it. */
 const change = async (leagueId: Id<"leagues">, rules = TOTAL_POINTS, email = COMMISSIONER) =>
-  (await actingAs(t, email)).mutation(api.rules.leagueRules.change, { leagueId, rules });
+  (await actingAs(t, email)).mutation(api.rules.leagueRules.change, { leagueId, rules, revision: await rulesRevision(t, leagueId) });
 const latest = async (leagueId: Id<"leagues">, email = COMMISSIONER) =>
   (await actingAs(t, email)).query(api.rules.leagueRules.latest, { leagueId });
 const defaults = () => t.run(async (ctx) => (await ctx.db.query("defaultLeagueRules").unique())?.rules);
@@ -45,7 +46,7 @@ describe("a new league", () => {
   test("starts on the first rules, from gameweek 1, which become the admin's defaults", async () => {
     const leagueId = await adminCreatesLeague(t);
 
-    expect(await latest(leagueId)).toEqual({ fromGameweek: 1, rules: FIRST_RULES });
+    expect(await latest(leagueId)).toEqual({ fromGameweek: 1, rules: FIRST_RULES, revision: await rulesRevision(t, leagueId) });
     expect(await defaults()).toEqual(FIRST_RULES);
   });
 
@@ -110,7 +111,7 @@ describe("a commissioner's change", () => {
     expect(await change(leagueId, structuredClone(FIRST_RULES))).toBe(10);
     expect(await inGameweek(leagueId, 9)).toEqual(FIRST_RULES);
     expect(await inGameweek(leagueId, 10)).toEqual(FIRST_RULES);
-    expect(await latest(leagueId)).toEqual({ fromGameweek: 10, rules: FIRST_RULES });
+    expect(await latest(leagueId)).toEqual({ fromGameweek: 10, rules: FIRST_RULES, revision: await rulesRevision(t, leagueId) });
   });
 
   test("is filed for Mail with what changed and from when", async () => {
@@ -223,7 +224,7 @@ describe("the rules editor", () => {
   const scoringOf = async (leagueId: Id<"leagues">, email = COMMISSIONER) =>
     (await actingAs(t, email)).query(api.rules.leagueRules.scoring, { leagueId, now: Date.now() });
   const changeScoring = async (leagueId: Id<"leagues">, scoring: Scoring, email = COMMISSIONER) =>
-    (await actingAs(t, email)).mutation(api.rules.leagueRules.changeScoring, { leagueId, scoring });
+    (await actingAs(t, email)).mutation(api.rules.leagueRules.changeScoring, { leagueId, scoring, revision: await rulesRevision(t, leagueId) });
   /** The first scoring set with assists paying 4 and one more category, tackles at 1. */
   const EDITED: Scoring = {
     ...structuredClone(FIRST_RULES.scoring),
@@ -243,7 +244,7 @@ describe("the rules editor", () => {
     await holdGameweeks(t, { next: 9 });
     const leagueId = await adminCreatesLeague(t);
 
-    expect(await scoringOf(leagueId)).toEqual({ scoring: FIRST_RULES.scoring, changesFrom: 9 });
+    expect(await scoringOf(leagueId)).toEqual({ part: FIRST_RULES.scoring, revision: await rulesRevision(t, leagueId), changesFrom: 9 });
   });
 
   test("says a change waits for gameweek 10 once one already waits for it", async () => {
@@ -319,7 +320,7 @@ describe("the rules editor", () => {
     const leagueId = await adminCreatesLeague(t);
     await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
 
-    expect((await scoringOf(leagueId, email))?.scoring).toEqual(FIRST_RULES.scoring);
+    expect((await scoringOf(leagueId, email))?.part).toEqual(FIRST_RULES.scoring);
     await changeScoring(leagueId, EDITED, email);
     expect((await latest(leagueId))?.rules.scoring).toEqual(EDITED);
   });

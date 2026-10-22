@@ -7,6 +7,8 @@ import { gameweeksPath } from "../gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../gameweeks/words";
 import { invitesPath } from "../joining/paths";
 import { INVITES_TITLE } from "../joining/words";
+import { settingsPath } from "../leagueSettings/paths";
+import { SETTINGS_TITLE } from "../leagueSettings/words";
 import { scoringPath } from "../scoring/paths";
 import { SCORING_TITLE } from "../scoring/words";
 import { squadsPath } from "../squads/paths";
@@ -42,6 +44,7 @@ const runnerLinks = (leagueId: string) => [
   { to: invitesPath(leagueId), title: INVITES_TITLE },
   { to: squadsPath(leagueId), title: SQUADS_TITLE },
   { to: scoringPath(leagueId), title: SCORING_TITLE },
+  { to: settingsPath(leagueId), title: SETTINGS_TITLE },
 ];
 
 /** "Your leagues" (spec/12): each league the person has a part in, or, for the admin, every

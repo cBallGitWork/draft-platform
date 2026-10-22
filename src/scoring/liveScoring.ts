@@ -16,7 +16,7 @@ export function useLiveScoring(): ScoringSeam {
   return useMemo(
     () => ({
       useScoring,
-      save: (leagueId, scoring) => answerOf(() => changeScoring({ leagueId, scoring }), "Saving the scoring", saveFailedWords),
+      save: (leagueId, scoring, revision) => answerOf(() => changeScoring({ leagueId, scoring, revision }), "Saving the scoring", saveFailedWords),
     }),
     [changeScoring],
   );

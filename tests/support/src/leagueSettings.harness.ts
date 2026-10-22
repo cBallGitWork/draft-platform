@@ -1,0 +1,18 @@
+// League settings' tests' fake seam (shell.harness.tsx hands it to the app).
+
+import { vi } from "vitest";
+import { drawRulesOf, FIRST_RULES } from "../../../convex/rules/firstRules";
+import type { LeagueSettingsSeam, SettingsView } from "../../../src/leagueSettings/seam";
+import { CHANGES_FROM, REVISION } from "./scoring.harness";
+
+/** What the fake server holds: the settings as `view` says, the first rules' by default; null for
+ *  a league with no rules; `loading` keeps them on their way (undefined). */
+export type LeagueSettingsData = { view?: SettingsView | null; loading?: boolean };
+
+/** Saving succeeds from CHANGES_FROM, unless a test says otherwise. */
+export function fakeLeagueSettings({ view = { part: drawRulesOf(FIRST_RULES), revision: REVISION, changesFrom: CHANGES_FROM }, loading = false }: LeagueSettingsData = {}) {
+  return {
+    useSettings: vi.fn<LeagueSettingsSeam["useSettings"]>(() => (loading ? undefined : view)),
+    save: vi.fn<LeagueSettingsSeam["save"]>(async () => CHANGES_FROM),
+  };
+}

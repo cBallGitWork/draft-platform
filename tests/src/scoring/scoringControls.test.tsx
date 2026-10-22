@@ -1,11 +1,12 @@
-// The rules editor's controls in the Wells look (plate.md, Controls; src/frame/Controls.tsx): each
+// The rules editor's controls in the Wells look (plate.md, Controls; src/rules/): each
 // tick box is a real checkbox its whole row toggles, by pointer or keyboard; the Pays keys are a
 // radio group the arrow keys move; and Save says when there is nothing to save.
 
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { byAreaWords, columnWords, discardWords, everyoneWords, paysLabel, saveWords, shapeWords, wholePointsWords } from "../../../src/scoring/words";
+import { discardWords, saveWords } from "../../../src/rules/words";
+import { byAreaWords, columnWords, everyoneWords, paysLabel, shapeWords, wholePointsWords } from "../../../src/scoring/words";
 import { box, categories, choose, openScoring, save, savedRule, savedSet } from "../../support/src/scoringScreen.harness";
 
 const tickBox = (name: string) => screen.getByRole("checkbox", { name }) as HTMLInputElement;

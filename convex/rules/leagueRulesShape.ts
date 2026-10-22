@@ -79,6 +79,9 @@ const preset = v.object({ name: v.string(), cells: v.array(v.object({ area, lane
 const WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
 const weekday = v.union(...WEEKDAYS.map((day) => v.literal(day)));
 
+/** roundRobin.ts's OddTeamOut. */
+export const oddTeamOutShape = v.union(...ODD_TEAM_OUTS.map((name) => v.literal(name)));
+
 export const leagueRulesShape = v.object({
   format: v.union(v.literal("headToHead"), v.literal("totalPoints")),
   squad: v.object({
@@ -101,7 +104,7 @@ export const leagueRulesShape = v.object({
   tieBreaks: v.array(v.union(...TIE_BREAKS.map((name) => v.literal(name)))),
   /** roundRobin.ts's OddTeamOut. Absent only from rules saved before #33, which play the first
    *  rules' (firstRules.ts, `drawRulesOf`): optional, so those rows need no migration. */
-  oddTeamOut: v.optional(v.union(...ODD_TEAM_OUTS.map((name) => v.literal(name)))),
+  oddTeamOut: v.optional(oddTeamOutShape),
   /** roundRobin.ts's DrawOptions["gamesPerGameweek"]: a whole number, 1 or more. Absent, as
    *  `oddTeamOut` is, only from rules saved before #130. */
   gamesPerGameweek: v.optional(v.number()),

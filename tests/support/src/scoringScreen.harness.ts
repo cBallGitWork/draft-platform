@@ -5,7 +5,8 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Rule, Scoring } from "../../../src/scoring/editing";
 import { scoringPath } from "../../../src/scoring/paths";
-import { boxLabel, categoriesLabel, saveWords } from "../../../src/scoring/words";
+import { boxLabel, categoriesLabel } from "../../../src/scoring/words";
+import { saveWords } from "../../../src/rules/words";
 import type { ScoringData } from "./scoring.harness";
 import { commissioner, league, openApp } from "./shell.harness";
 
