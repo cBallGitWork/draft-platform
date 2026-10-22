@@ -13,7 +13,6 @@ import {
 import { joiningRefusals } from "../../../convex/joining/joining";
 import { INVITE_LIFETIME_MS, invitedPath } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { PRODUCT_NAME } from "../../../convex/shared/product";
 import {
   COMMISSIONER,
   LEAGUE_NAME,
@@ -57,7 +56,7 @@ describe("an invite", () => {
     const inviteId = await invite(t, leagueId, ANN);
 
     const email = lastEmailTo(sent, ANN);
-    expect(email.subject).toBe(`You're invited to ${LEAGUE_NAME} on ${PRODUCT_NAME}`);
+    expect(email.subject).toBe("You're invited to Tim Hortons Pro League on Draft Manager");
     expect(email.text).toContain(`${COMMISSIONER} has invited you to run a new team in ${LEAGUE_NAME}`);
     expect(email.text).toContain(`${SITE_URL}${invitedPath(inviteId)}?code=`);
     expect(await openLastLinkTo(t, sent, ANN)).not.toBeNull();

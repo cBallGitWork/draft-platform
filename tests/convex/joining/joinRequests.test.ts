@@ -13,7 +13,6 @@ import {
 } from "../../support/convex/joining.harness";
 import { joiningRefusals } from "../../../convex/joining/joining";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { PRODUCT_NAME } from "../../../convex/shared/product";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
 import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
@@ -64,7 +63,7 @@ describe("a join request", () => {
     const [team] = await teamsIn(t, leagueId);
     expect(team).toMatchObject({ name: "Team 1", managerEmail: ANN });
     expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "joinRequestApproved", email: ANN, teamId: team._id, teamName: "Team 1" });
-    expect(lastEmailTo(sent, ANN)).toMatchObject({ subject: `You're in ${LEAGUE_NAME} on ${PRODUCT_NAME}` });
+    expect(lastEmailTo(sent, ANN)).toMatchObject({ subject: `You're in ${LEAGUE_NAME} on Draft Manager` });
     expect(lastEmailTo(sent, ANN).text).toContain("you run Team 1");
     expect(await joinPageFor(ANN)).toEqual({ leagueName: LEAGUE_NAME, standing: "inLeague", teamName: "Team 1" });
     expect(await waitingRequests()).toEqual([]);
