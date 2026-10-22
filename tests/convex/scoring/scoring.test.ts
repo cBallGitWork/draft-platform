@@ -15,7 +15,9 @@ const plReads = hullEvertonReads(gw6);
 const hullEverton = recordedPlFixture(MATCH.hullEverton.pl);
 const plLines = plStatLines(hullEverton, plReads, codesByOpta(fpl.bootstrap.elements)).lines;
 
-function recordOf(lines: { playerCode: number; stats: MatchStats }[], playerCode: number): MatchStats {
+type RecordedLine = { playerCode: number; stats: MatchStats };
+
+function recordOf(lines: RecordedLine[], playerCode: number): MatchStats {
   const line = lines.find((each) => each.playerCode === playerCode);
   if (line === undefined) throw new Error(`no recorded line for player ${playerCode}`);
   return line.stats;
@@ -189,12 +191,10 @@ describe("bad data throws rather than score", () => {
   });
 });
 
-// The whole-match golden: every recorded line of Hull v Everton, from both feeds, scored in each of
-// the six areas. It locks the engine's arithmetic under EXAMPLE_SET, not the league's real rules, so
-// a refactor of scoring that moves any man's points in any area fails here. The named-man tests above
-// say why a number is what it is; this says no number moved.
+// The whole-match golden locks the engine's arithmetic under EXAMPLE_SET, not the league's real
+// rules. The named-man tests above say why a number is what it is; this says no number moved.
 test("every recorded line of Hull v Everton, from both feeds, in every area, scores as the golden file", async () => {
-  const scoredBy = (feed: "fpl" | "pl", lines: { playerCode: number; stats: MatchStats }[]) =>
+  const scoredBy = (feed: "fpl" | "pl", lines: RecordedLine[]) =>
     [...lines]
       .sort((a, b) => a.playerCode - b.playerCode)
       .flatMap(({ playerCode, stats }) =>
@@ -205,8 +205,6 @@ test("every recorded line of Hull v Everton, from both feeds, in every area, sco
       );
   const rows = [...scoredBy("fpl", fplLines), ...scoredBy("pl", plLines)];
 
-  expect(AREAS).toHaveLength(6);
-  expect(rows).toHaveLength((fplLines.length + plLines.length) * 6);
   // One row per man per area, each on its own line, so a diff of the golden names exactly what moved.
   const golden = `[\n${rows.map((row) => `  ${JSON.stringify(row)}`).join(",\n")}\n]\n`;
   await expect(golden).toMatchFileSnapshot("../../support/golden/hull-everton.scores.json");

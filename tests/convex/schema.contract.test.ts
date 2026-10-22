@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import schema from "../../convex/schema";
 
-// The schema's contract: the shape of every saved table, pinned in tests/support/golden/schema.json.
+// The schema's contract: the shape of every saved table, pinned in the golden file.
 // - A changed schema is a migration of saved data. The schema pulls in rules/leagueRulesShape,
 //   positions, signIn and @convex-dev/auth's tables, so a change can come from outside schema.ts.
 // - `schema.export()` is Convex-internal: after a Convex upgrade, run `vitest -u` and check the diff
