@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
-import { PANEL_BODY, Loading, PanelNote, PanelTitle } from "../frame/Panel";
+import { Loading, PANEL_BODY, PanelNote, PanelTitle } from "../frame/Panel";
 import type { Changing } from "../useChange";
 import type { AdminSeam, FoundPlayerPositions } from "./seam";
 import {

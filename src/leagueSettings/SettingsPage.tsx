@@ -1,7 +1,7 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { LeagueSettings } from "../../convex/rules/leagueSettings";
 import { ODD_TEAM_OUTS } from "../../convex/table/roundRobin";
-import { PANEL_BODY, Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
+import { Loading, PageSection, PANEL_BODY, PanelNote, PanelTitle } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { Choice } from "../rules/Choice";
 import { useRulesDraft } from "../rules/rulesDraft";
