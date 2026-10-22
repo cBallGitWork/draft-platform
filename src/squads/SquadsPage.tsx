@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { Loading, PAGE_TITLE_ID, PageTitle, PanelTitle, Problem } from "../frame/Panel";
+import { Loading, Notice, PageSection, PanelNote, PanelTitle, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { useChange, type Changing } from "../useChange";
 import type { FoundPlayer, SquadsSeam, TeamSquad } from "./seam";
@@ -41,14 +41,13 @@ export function SquadsPage({ league, seam }: { league: LeagueSummary; seam: Squa
   const change = useChange();
   return (
     <div className="flex max-w-5xl flex-col gap-2">
-      <section aria-labelledby={PAGE_TITLE_ID} className="bg-panel">
-        <PageTitle>{SQUADS_TITLE}</PageTitle>
+      <PageSection title={SQUADS_TITLE} className="bg-panel">
         <p className="flex flex-wrap items-center gap-4 px-3 py-2">
           <span className="text-lead font-semibold">{league.name}</span>
           <BackToLeagues />
         </p>
         <Problem problem={change.problem} />
-      </section>
+      </PageSection>
       {squads === undefined ? (
         <Loading>{loadingWords}</Loading>
       ) : (
@@ -83,7 +82,7 @@ function FindPlayer({ league, seam, squads, change }: { league: LeagueSummary; s
         (found === undefined ? (
           <Loading className="px-3 pb-2">{searchingWords}</Loading>
         ) : found.length === 0 ? (
-          <p className="px-3 pb-2 text-muted">{noneFoundWords}</p>
+          <PanelNote edge="b">{noneFoundWords}</PanelNote>
         ) : (
           <ul aria-label={foundListLabel} className="border-t border-panel-rule">
             {found.map((player) => (
@@ -155,14 +154,12 @@ function Squad({ league, seam, squad, change }: { league: LeagueSummary; seam: S
   return (
     <section aria-labelledby={titleId} className="bg-panel">
       <PanelTitle id={titleId}>{squad.teamName}</PanelTitle>
-      <p className="px-3 pt-2 text-muted">{playersCount(squad.players.length)}</p>
+      <PanelNote edge="t">{playersCount(squad.players.length)}</PanelNote>
       {squad.warnings.map((warning) => (
-        <p key={warningWords(warning)} role="status" className="alert-strip">
-          {warningWords(warning)}
-        </p>
+        <Notice key={warningWords(warning)}>{warningWords(warning)}</Notice>
       ))}
       {squad.players.length === 0 ? (
-        <p className="px-3 pb-2 text-muted">{emptySquadWords}</p>
+        <PanelNote edge="b">{emptySquadWords}</PanelNote>
       ) : (
         <ul aria-label={squadListLabel(squad.teamName)} className="mt-2 border-t border-panel-rule">
           {squad.players.map((player) => (

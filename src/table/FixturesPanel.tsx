@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { isLocked } from "../../convex/gameweeks/deadline";
 import { FEWEST_TO_DRAW } from "../../convex/table/roundRobin";
-import { PanelTitle } from "../frame/Panel";
+import { PanelNote, PanelTitle } from "../frame/Panel";
 import type { LeagueTable } from "./seam";
 import {
   byeWords,
@@ -37,7 +37,7 @@ export function FixturesPanel({ leagueTable }: { leagueTable: LeagueTable }) {
       ) : (
         <>
           <GameweekFixtures gameweeks={gameweeks} />
-          <p className="px-3 py-2 text-muted">{roundRobinWords(roundRobinRounds)}</p>
+          <PanelNote>{roundRobinWords(roundRobinRounds)}</PanelNote>
         </>
       )}
     </section>
@@ -55,6 +55,7 @@ const stepClasses = "flex min-w-tap items-center justify-center text-lead font-b
 /** One gameweek's fixtures, under CM's ◄ GW ► stepper over the gameweeks the league plays. */
 function GameweekFixtures({ gameweeks }: { gameweeks: readonly Gameweek[] }) {
   const [chosen, choose] = useState(() => openingIndex(gameweeks, Date.now()));
+  // The list is live: unticking a gameweek can shorten it under the stepper, so the chosen index is held inside it (it keeps a place in the list, not a gameweek number).
   const index = Math.min(chosen, gameweeks.length - 1);
   const { gameweek, fixtures, byes } = gameweeks[index];
   return (

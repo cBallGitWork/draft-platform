@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { PanelTitle, Problem } from "../frame/Panel";
+import { PanelNote, PanelTitle, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { TeamSelect, useTeamChoice } from "./TeamChoice";
@@ -73,7 +73,7 @@ export function EmailInvites({ page, joining }: { page: InvitesPageData; joining
         </button>
       </form>
       {page.invites.length === 0 ? (
-        <p className="px-3 pb-2 text-muted">{noInvitesWords}</p>
+        <PanelNote edge="b">{noInvitesWords}</PanelNote>
       ) : (
         <ul aria-label={emailInvitesWords.listLabel} className="border-t border-panel-rule">
           {page.invites.map((invite) => (

@@ -1,5 +1,5 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { PAGE_TITLE_ID, PageTitle, PanelTitle } from "../frame/Panel";
+import { PageSection, PanelTitle } from "../frame/Panel";
 import { FixturesPanel } from "./FixturesPanel";
 import type { LeagueTable, TableSeam } from "./seam";
 import { columns, differenceWords, loadingWords, noResultsWords, noRulesWords, TABLE_PAGE_TITLE, TABLE_TITLE } from "./words";
@@ -28,8 +28,7 @@ const cellClasses = (column: Column) =>
 export function TablePage({ league, seam }: { league: LeagueSummary; seam: TableSeam }) {
   const leagueTable = seam.useLeagueTable(league.leagueId);
   return (
-    <section aria-labelledby={PAGE_TITLE_ID} className="flex max-w-6xl flex-col gap-2">
-      <PageTitle>{TABLE_PAGE_TITLE}</PageTitle>
+    <PageSection title={TABLE_PAGE_TITLE} className="flex max-w-6xl flex-col gap-2">
       {leagueTable === undefined ? (
         <p role="status" className="text-muted">
           {loadingWords}
@@ -42,7 +41,7 @@ export function TablePage({ league, seam }: { league: LeagueSummary; seam: Table
           <FixturesPanel leagueTable={leagueTable} />
         </div>
       )}
-    </section>
+    </PageSection>
   );
 }
 

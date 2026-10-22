@@ -4,7 +4,7 @@ import type { LetterSummary } from "../../convex/mail/mail";
 import { LETTERS_SHOWN } from "../../convex/mail/mailLimits";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../auth";
-import { Loading, PAGE_TITLE_ID, PageTitle } from "../frame/Panel";
+import { Loading, PageSection, PanelNote } from "../frame/Panel";
 import { runs } from "../leagues/roles";
 import type { Mail } from "./actions";
 import { WriteToLeague } from "./WriteToLeague";
@@ -32,10 +32,9 @@ export function leaguesToWriteFrom(session: Session): readonly LeagueSummary[] {
 export function MailPage({ mail, unread, writableLeagues }: { mail: Mail; unread: number; writableLeagues: readonly LeagueSummary[] }) {
   return (
     <div className="flex flex-wrap items-start gap-2">
-      <section aria-labelledby={PAGE_TITLE_ID} className="min-w-0 max-w-3xl grow-2 basis-letters bg-panel">
-        <PageTitle aside={<span>{unreadCount(unread)}</span>}>{MAIL_TITLE}</PageTitle>
+      <PageSection title={MAIL_TITLE} aside={<span>{unreadCount(unread)}</span>} className="min-w-0 max-w-3xl grow-2 basis-letters bg-panel">
         <Letters mail={mail} />
-      </section>
+      </PageSection>
       {writableLeagues.length > 0 && <WriteToLeague leagues={writableLeagues} writeToLeague={mail.writeToLeague} />}
     </div>
   );
@@ -44,7 +43,7 @@ export function MailPage({ mail, unread, writableLeagues }: { mail: Mail; unread
 function Letters({ mail }: { mail: Mail }) {
   const [openId, setOpenId] = useState<Id<"letters"> | null>(null);
   if (mail.letters === undefined) return <Loading className="px-3 py-2">{loadingWords}</Loading>;
-  if (mail.letters.length === 0) return <p className="px-3 py-2 text-muted">{noLettersWords}</p>;
+  if (mail.letters.length === 0) return <PanelNote>{noLettersWords}</PanelNote>;
 
   function toggle(letter: LetterSummary) {
     const opening = openId !== letter.letterId;
@@ -59,7 +58,7 @@ function Letters({ mail }: { mail: Mail }) {
           <Letter key={letter.letterId} letter={letter} isOpen={openId === letter.letterId} onToggle={() => toggle(letter)} />
         ))}
       </ol>
-      {mail.letters.length >= LETTERS_SHOWN && <p className="px-3 py-2 text-muted">{onlyLatestWords}</p>}
+      {mail.letters.length >= LETTERS_SHOWN && <PanelNote>{onlyLatestWords}</PanelNote>}
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { Loading, PAGE_TITLE_ID, PageTitle } from "../frame/Panel";
+import { Loading, Notice, PageSection } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { EmailInvites } from "./EmailInvites";
 import { InviteLinkPanel } from "./InviteLinkPanel";
@@ -18,8 +18,7 @@ export function InvitesPage({ leagueId, joining }: { leagueId: string; joining: 
 
   return (
     <div className="flex max-w-5xl flex-col gap-2">
-      <section aria-labelledby={PAGE_TITLE_ID} className="bg-panel">
-        <PageTitle>{invitesTitle}</PageTitle>
+      <PageSection title={invitesTitle} className="bg-panel">
         {page ? (
           <p className="px-3 py-2 text-lead font-semibold">{page.leagueName}</p>
         ) : page === undefined ? (
@@ -30,12 +29,8 @@ export function InvitesPage({ leagueId, joining }: { leagueId: string; joining: 
             <BackToLeagues />
           </p>
         )}
-        {waiting > 0 && (
-          <p role="status" className="alert-strip">
-            {waitingStrip(waiting)}
-          </p>
-        )}
-      </section>
+        {waiting > 0 && <Notice>{waitingStrip(waiting)}</Notice>}
+      </PageSection>
       {page && (
         <div className="grid items-start gap-2 lg:grid-cols-2">
           <EmailInvites page={page} joining={joining} />

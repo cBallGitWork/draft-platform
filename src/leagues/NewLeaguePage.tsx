@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leagues/leagueLimits";
-import { PAGE_TITLE_ID, PageTitle, Problem } from "../frame/Panel";
+import { PageSection, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { LeagueActions } from "./actions";
 import { BackToLeagues } from "./LeagueLinks";
@@ -29,8 +29,7 @@ export function NewLeaguePage({ createLeague }: { createLeague: LeagueActions["c
   }
 
   return (
-    <section aria-labelledby={PAGE_TITLE_ID} className="max-w-md bg-panel">
-      <PageTitle>{NEW_LEAGUE_TITLE}</PageTitle>
+    <PageSection title={NEW_LEAGUE_TITLE} className="max-w-md bg-panel">
       <Problem problem={problem} />
       <form onSubmit={create} className="flex flex-col gap-2 p-3">
         <label htmlFor={NAME_ID} className="font-semibold">
@@ -80,6 +79,6 @@ export function NewLeaguePage({ createLeague }: { createLeague: LeagueActions["c
           <BackToLeagues />
         </div>
       </form>
-    </section>
+    </PageSection>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
-import { Loading, PanelTitle } from "../frame/Panel";
+import { Loading, PanelNote, PanelTitle } from "../frame/Panel";
 import type { Changing } from "../useChange";
 import type { AdminSeam, FoundPlayerPositions } from "./seam";
 import {
@@ -43,7 +43,7 @@ export function FindPlayer({ seam, change }: { seam: AdminSeam; change: Changing
         (found === undefined ? (
           <Loading className="px-3 pb-2">{searchingWords}</Loading>
         ) : found.length === 0 ? (
-          <p className="px-3 pb-2 text-muted">{noneFoundWords}</p>
+          <PanelNote edge="b">{noneFoundWords}</PanelNote>
         ) : (
           <ul aria-label={foundListLabel} className="border-t border-panel-rule">
             {found.map((player) => (

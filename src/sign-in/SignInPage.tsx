@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { PanelTitle } from "../frame/Panel";
+import { PanelTitle, Problem } from "../frame/Panel";
 import { PRODUCT_NAME } from "../product";
 import { linkProblemWords, signInWords, type LinkProblem } from "./words";
 
@@ -38,11 +38,7 @@ export function SignInPage({
       <main className="p-2">
         <section aria-labelledby={TITLE_ID} className="max-w-md bg-panel">
           <PanelTitle id={TITLE_ID}>{signInWords.title}</PanelTitle>
-          {linkProblem && !outcome && (
-            <p role="alert" className="alert-strip">
-              {linkProblemWords[linkProblem]}
-            </p>
-          )}
+          <Problem problem={linkProblem && !outcome ? linkProblemWords[linkProblem] : null} />
           {intro && <p className="px-3 pt-2">{intro}</p>}
           <form onSubmit={sendLink} className="flex flex-col gap-2 p-3">
             <label htmlFor={EMAIL_ID} className="font-semibold">
@@ -62,6 +58,7 @@ export function SignInPage({
               {signInWords.send}
             </button>
           </form>
+          {/* Not a Notice: it stays in the page while empty, so the live region announces the outcome. */}
           <p role="status" className={outcome ? "alert-strip" : undefined}>
             {outcome}
           </p>
