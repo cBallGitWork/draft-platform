@@ -9,7 +9,7 @@ import { previewAdmin } from "./admin/preview";
 import { previewGameweeks } from "./gameweeks/preview";
 import { LiveApp, takeLinkCode } from "./liveApp";
 import { previewJoining } from "./joining/preview";
-import { previewMail, previewTopBar } from "./mail/previewMail";
+import { previewMail, previewTopBar } from "./mail/preview";
 import { previewAuth, previewLeagues, previewSession } from "./preview";
 import { ShellApp } from "./ShellApp";
 import { previewSquads } from "./squads/preview";

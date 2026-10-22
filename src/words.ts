@@ -3,6 +3,8 @@
 /** What a screen says when a change or a read failed for any reason but the server's refusal (src/refusal.ts):
  *  `outcome` is what that left, such as "nothing changed". */
 export const failedWords = (outcome: string) => `Something went wrong, so ${outcome}. Check your connection and try again.`;
+/** When a change failed before the server could say why: the connection, or the server itself. */
+export const changeFailedWords = failedWords("nothing changed");
 
 /** What the live app shows when it was built with no Convex deployment to reach (liveApp.tsx). */
 export const NO_CONVEX_URL = "VITE_CONVEX_URL isn't set, so the app can't reach Convex: `npm run setup` writes it to .env.local (docs/setup.md).";

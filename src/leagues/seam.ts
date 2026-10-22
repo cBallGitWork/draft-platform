@@ -6,7 +6,7 @@ import type { Change } from "../refusal";
 
 export type NewLeague = { name: string; maxTeams: number; commissionerEmail: string };
 
-export type LeagueActions = {
+export type LeaguesSeam = {
   /** Creates a league (the admin only). */
   createLeague(league: NewLeague): Change;
   /** Switches to one of the person's leagues (#76); made once the app is in it. */

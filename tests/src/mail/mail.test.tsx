@@ -9,8 +9,9 @@ import type { LetterSummary } from "../../../convex/mail/mail";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../../convex/mail/mailLimits";
 import { MAIL_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel } from "../../../src/frame/words";
-import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
-import { league, manager, managerIn, newcomer, openApp } from "../../support/src/shell.harness";
+import { LEAGUES_PATH } from "../../../src/leagues/paths";
+import { LEAGUES_TITLE } from "../../../src/leagues/words";
+import { commissioned, league, manager, managerIn, newcomer, openApp } from "../../support/src/shell.harness";
 import { MAIL_TITLE, WRITE_TITLE, loadingWords, noLettersWords, onlyLatestWords, sendToWords, sentWords, writeLabels } from "../../../src/mail/words";
 
 // Noon UTC, so a letter's day is the same in London, where vitest.config.ts pins every test's zone.
@@ -29,7 +30,7 @@ const twoUnread = { unreadMail: 2, next: null };
 const letterButton = (subject: string) => screen.getByRole("button", { name: new RegExp(subject) });
 /** Whether a letter's text is shown: it is hidden until the letter is opened. */
 const shown = (text: string) => !screen.getByText(text).hidden;
-const commissioner = managerIn({ ...league, roles: ["commissioner", "manager"] });
+const commissioner = managerIn(commissioned);
 
 describe("the letters", () => {
   it("are listed in the order the server sends them, newest first, dated, with the unread ones marked", async () => {

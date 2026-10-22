@@ -7,7 +7,7 @@ import { ConvexError } from "convex/values";
 import { afterEach, expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
 import { useLiveAdmin } from "../../../src/admin/liveAdmin";
-import { changeFailedWords } from "../../../src/admin/words";
+import { changeFailedWords } from "../../../src/words";
 import { MINUTE_MS } from "../../../convex/shared/time";
 
 const convex = vi.hoisted(() => ({ find: vi.fn(), feeds: vi.fn(), setPosition: vi.fn(), approvePlayer: vi.fn(), approveClub: vi.fn(), setChangeThresholds: vi.fn() }));

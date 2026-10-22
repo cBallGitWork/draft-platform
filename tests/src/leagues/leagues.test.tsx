@@ -8,9 +8,9 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel, signOutWords } from "../../../src/frame/words";
 import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
-import { admin, adminSeeing, league, manager, managerIn, newcomer, openApp, visitor } from "../../support/src/shell.harness";
-import { LEAGUES_PATH, LEAGUES_TITLE, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
-import { commissionerLine, newLeagueLabels, notInALeagueWords, unsentLink, unsentLinkWords } from "../../../src/leagues/words";
+import { admin, adminSeeing, commissioned, league, manager, managerIn, newcomer, openApp, visitor } from "../../support/src/shell.harness";
+import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
+import { commissionerLine, LEAGUES_TITLE, newLeagueLabels, notInALeagueWords, unsentLink, unsentLinkWords } from "../../../src/leagues/words";
 import { signInWords } from "../../../src/sign-in/words";
 
 describe("someone signed in, in no league", () => {
@@ -72,7 +72,7 @@ describe("a manager in a league", () => {
   it("opening the leagues page sees each of their leagues, their part and team in it, inside the league frame", async () => {
     const app = openApp(
       LEAGUES_PATH,
-      managerIn(league, { ...league, leagueId: "league-2" as Id<"leagues">, name: "Mini beta", roles: ["commissioner", "manager"], teams: 1 }),
+      managerIn(league, { ...commissioned, leagueId: "league-2" as Id<"leagues">, name: "Mini beta", teams: 1 }),
     );
 
     const managed = await rowOf(league.name);

@@ -3,10 +3,10 @@ import { useState, type FormEvent } from "react";
 import { FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leagues/leagueLimits";
 import { PageSection, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
-import type { LeagueActions } from "./actions";
+import type { LeaguesSeam } from "./seam";
 import { BackToLeagues } from "./LeagueLinks";
-import { LEAGUES_PATH, NEW_LEAGUE_TITLE } from "./paths";
-import { commissionerHint, maxTeamsHint, newLeagueLabels } from "./words";
+import { LEAGUES_PATH } from "./paths";
+import { commissionerHint, maxTeamsHint, NEW_LEAGUE_TITLE, newLeagueLabels } from "./words";
 
 const NAME_ID = "league-name";
 const MAX_TEAMS_ID = "league-max-teams";
@@ -16,7 +16,7 @@ const COMMISSIONER_HINT_ID = "league-commissioner-hint";
 
 /** The admin's "Create a league" (spec/13, Creating a league): its name, its maximum teams and its
  *  commissioner's email. Once made, it is on the admin's leagues page. */
-export function NewLeaguePage({ createLeague }: { createLeague: LeagueActions["createLeague"] }) {
+export function NewLeaguePage({ createLeague }: { createLeague: LeaguesSeam["createLeague"] }) {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [maxTeams, setMaxTeams] = useState("");

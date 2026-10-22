@@ -13,8 +13,8 @@ import type { AuthActions, Session } from "../../../src/auth";
 import type { TopBarState } from "../../../src/frame/topBarState";
 import { fakeGameweeks } from "./gameweeks.harness";
 import { fakeJoining, type JoiningData } from "./joining.harness";
-import type { LeagueActions } from "../../../src/leagues/actions";
-import type { Mail } from "../../../src/mail/actions";
+import type { LeaguesSeam } from "../../../src/leagues/seam";
+import type { MailSeam } from "../../../src/mail/seam";
 import { ShellApp } from "../../../src/ShellApp";
 import { fakeSquads, type SquadsData } from "./squads.harness";
 import { fakeTable, type TableData } from "./table.harness";
@@ -84,18 +84,18 @@ function fakeAuth() {
 
 /** Each league action succeeds, unless a test says otherwise. */
 const fakeLeagues = () => ({
-  createLeague: vi.fn<LeagueActions["createLeague"]>(async () => null),
-  deleteLeague: vi.fn<LeagueActions["deleteLeague"]>(async () => null),
-  undoDeletion: vi.fn<LeagueActions["undoDeletion"]>(async () => null),
-  switchLeague: vi.fn<LeagueActions["switchLeague"]>(async () => null),
+  createLeague: vi.fn<LeaguesSeam["createLeague"]>(async () => null),
+  deleteLeague: vi.fn<LeaguesSeam["deleteLeague"]>(async () => null),
+  undoDeletion: vi.fn<LeaguesSeam["undoDeletion"]>(async () => null),
+  switchLeague: vi.fn<LeaguesSeam["switchLeague"]>(async () => null),
 });
 
 /** Mail holding `letters`, whose letter to the league is sent, unless a test says otherwise;
  *  `loading` keeps the letters still on their way (undefined). */
 const fakeMail = (letters: readonly LetterSummary[], loading: boolean) => ({
   letters: loading ? undefined : letters,
-  open: vi.fn<Mail["open"]>(async () => {}),
-  writeToLeague: vi.fn<Mail["writeToLeague"]>(async () => null),
+  open: vi.fn<MailSeam["open"]>(async () => {}),
+  writeToLeague: vi.fn<MailSeam["writeToLeague"]>(async () => null),
 });
 
 /** What a test may set besides the address and the session: each seam's data, and the top bar. */

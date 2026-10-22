@@ -5,8 +5,8 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { admin, openApp } from "../../support/src/shell.harness";
-import { LEAGUES_PATH, LEAGUES_TITLE, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
-import { backToLeaguesWords, newLeagueLabels } from "../../../src/leagues/words";
+import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
+import { backToLeaguesWords, LEAGUES_TITLE, newLeagueLabels } from "../../../src/leagues/words";
 
 const REFUSAL = "Only the admin can do that.";
 

@@ -5,7 +5,7 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { GAMEWEEKS_TITLE } from "../../../src/gameweeks/words";
-import { invitesTitle } from "../../../src/joining/words";
+import { INVITES_TITLE } from "../../../src/joining/words";
 import { SQUADS_TITLE } from "../../../src/squads/words";
 import { adminSeeing, beingDeleted, commissioned, deleterOf, league, managerIn, openApp } from "../../support/src/shell.harness";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
@@ -82,7 +82,7 @@ describe("a league being deleted", () => {
     expect(deleteButton()).toBeNull();
     // Frozen, it offers nothing to change: no gameweeks, no invites, no squads.
     expect(screen.queryByRole("link", { name: GAMEWEEKS_TITLE })).toBeNull();
-    expect(screen.queryByRole("link", { name: invitesTitle })).toBeNull();
+    expect(screen.queryByRole("link", { name: INVITES_TITLE })).toBeNull();
     expect(screen.queryByRole("link", { name: SQUADS_TITLE })).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: "Undo" }));
     expect(app.leagues.undoDeletion).toHaveBeenCalledExactlyOnceWith(league.leagueId);

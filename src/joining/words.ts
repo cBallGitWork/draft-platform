@@ -6,10 +6,9 @@ import type { Delivery } from "../../convex/joining/joining";
 import { INVITE_DAYS, aNewTeamWords } from "../../convex/joining/joiningShared";
 import { LOCALE } from "../../convex/shared/londonTime";
 import { unsentLinkWords } from "../leagues/words";
-import { failedWords } from "../words";
 
 /** The commissioner's page: its title, and the link to it from their leagues. */
-export const invitesTitle = "Invites and join requests";
+export const INVITES_TITLE = "Invites and join requests";
 
 /** The team an invite or an approval is for, when it isn't a vacated one. */
 export const newTeamWords = "A new team";
@@ -92,6 +91,3 @@ export const joinPageWords = {
     `Your request to join ${leagueName} is waiting for the commissioner. You'll get an email once it's approved.`,
   inLeague: (leagueName: string, teamName: string) => `You're in ${leagueName}, running ${teamName}.`,
 } as const;
-
-/** When a change failed before the server could say why: the connection, or the server itself. */
-export const changeFailedWords = failedWords("nothing changed");

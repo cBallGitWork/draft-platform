@@ -4,10 +4,10 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../auth";
 import { ESCAPE_KEY, KEY_DOWN, POINTER_DOWN } from "../browserEvents";
-import type { LeagueActions } from "../leagues/actions";
-import { LEAGUES_PATH, LEAGUES_TITLE } from "../leagues/paths";
+import type { LeaguesSeam } from "../leagues/seam";
+import { LEAGUES_PATH } from "../leagues/paths";
 import { currentLeagueOf } from "../leagues/roles";
-import { rolesWords } from "../leagues/words";
+import { LEAGUES_TITLE, rolesWords } from "../leagues/words";
 import { useChange } from "../useChange";
 import { Problem } from "./Panel";
 import { allLeaguesWords, currentLeagueLabel } from "./words";
@@ -28,7 +28,7 @@ export function LeagueSwitcher({
   switchLeague,
 }: {
   session: Session;
-  switchLeague: LeagueActions["switchLeague"];
+  switchLeague: LeaguesSeam["switchLeague"];
 }) {
   const [open, setOpen] = useState(false);
   const { busy: switching, problem, run, clear } = useChange();

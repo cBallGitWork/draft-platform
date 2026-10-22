@@ -7,7 +7,8 @@ import { describe, expect, it } from "vitest";
 import type { Session } from "../../src/auth";
 import { gameweeksPath } from "../../src/gameweeks/paths";
 import { invitesPath } from "../../src/joining/paths";
-import { LEAGUES_PATH, LEAGUES_TITLE } from "../../src/leagues/paths";
+import { LEAGUES_PATH } from "../../src/leagues/paths";
+import { LEAGUES_TITLE } from "../../src/leagues/words";
 import { squadsPath } from "../../src/squads/paths";
 import { adminSeeing, beingDeleted, commissioned, deleterOf, league, manager, openApp } from "../support/src/shell.harness";
 

@@ -5,7 +5,8 @@ import { MenuTab } from "../frame/MenuTab";
 import { ProductName } from "../frame/ProductName";
 import { SignOut } from "../frame/SignOut";
 import { MAIL_TITLE } from "../mail/words";
-import { LEAGUES_PATH, LEAGUES_TITLE } from "./paths";
+import { LEAGUES_PATH } from "./paths";
+import { LEAGUES_TITLE } from "./words";
 
 /** The frame for someone signed in but in no league: the name, their leagues, Mail with its count,
  *  and Sign out. No league menu. */

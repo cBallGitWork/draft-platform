@@ -4,7 +4,7 @@ import { EmailInvites } from "./EmailInvites";
 import { InviteLinkPanel } from "./InviteLinkPanel";
 import { RequestsPanel } from "./RequestsPanel";
 import type { InvitesPageData, JoiningSeam } from "./seam";
-import { invitesTitle, loadingWords, notYoursWords, waitingStrip } from "./words";
+import { INVITES_TITLE, loadingWords, notYoursWords, waitingStrip } from "./words";
 
 /** An invite past the day's emails, not yet taken up. */
 const waitsForTomorrow = (invite: InvitesPageData["invites"][number]) =>
@@ -18,7 +18,7 @@ export function InvitesPage({ leagueId, joining }: { leagueId: string; joining: 
 
   return (
     <div className="flex max-w-5xl flex-col gap-2">
-      <PageSection title={invitesTitle} className="bg-panel">
+      <PageSection title={INVITES_TITLE} className="bg-panel">
         {page ? (
           <p className="px-3 py-2 text-lead font-semibold">{page.leagueName}</p>
         ) : page === undefined ? (

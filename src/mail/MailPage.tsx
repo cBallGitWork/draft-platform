@@ -6,7 +6,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../auth";
 import { Loading, PageSection, PanelNote } from "../frame/Panel";
 import { runs } from "../leagues/roles";
-import type { Mail } from "./actions";
+import type { MailSeam } from "./seam";
 import { WriteToLeague } from "./WriteToLeague";
 import {
   MAIL_TITLE,
@@ -29,7 +29,7 @@ export function leaguesToWriteFrom(session: Session): readonly LeagueSummary[] {
 
 /** Mail (spec/16): the person's letters, newest first, each opened in place, which marks it read;
  *  and, for whoever runs a league, a letter to the whole league. */
-export function MailPage({ mail, unread, writableLeagues }: { mail: Mail; unread: number; writableLeagues: readonly LeagueSummary[] }) {
+export function MailPage({ mail, unread, writableLeagues }: { mail: MailSeam; unread: number; writableLeagues: readonly LeagueSummary[] }) {
   return (
     <div className="flex flex-wrap items-start gap-2">
       <PageSection title={MAIL_TITLE} aside={<span>{unreadCount(unread)}</span>} className="min-w-0 max-w-3xl grow-2 basis-letters bg-panel">
@@ -40,7 +40,7 @@ export function MailPage({ mail, unread, writableLeagues }: { mail: Mail; unread
   );
 }
 
-function Letters({ mail }: { mail: Mail }) {
+function Letters({ mail }: { mail: MailSeam }) {
   const [openId, setOpenId] = useState<Id<"letters"> | null>(null);
   if (mail.letters === undefined) return <Loading className="px-3 py-2">{loadingWords}</Loading>;
   if (mail.letters.length === 0) return <PanelNote>{noLettersWords}</PanelNote>;

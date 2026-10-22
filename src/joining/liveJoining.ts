@@ -5,7 +5,7 @@ import { linkOffWords } from "../../convex/joining/joiningShared";
 import { answerOf, refusalOf } from "../refusal";
 import { askFailedWords, replyWords } from "../sign-in/words";
 import type { JoiningSeam } from "./seam";
-import { changeFailedWords } from "./words";
+import { changeFailedWords } from "../words";
 
 // The joining seam filled in by Convex. A refusal comes back as the server's own words; any other
 // failure is logged and said plainly (src/refusal.ts).

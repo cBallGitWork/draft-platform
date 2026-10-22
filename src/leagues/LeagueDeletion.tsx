@@ -2,11 +2,11 @@ import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
-import type { LeagueActions } from "./actions";
+import type { LeaguesSeam } from "./seam";
 import { leagueColumnCount } from "./LeagueLinks";
 import { beingDeleted, confirmDelete, confirmDeleteWords, deleteLeagueWords, unemailed, undoWords, unsentLinkWords } from "./words";
 
-export type DeletionActions = Pick<LeagueActions, "deleteLeague" | "undoDeletion">;
+export type DeletionActions = Pick<LeaguesSeam, "deleteLeague" | "undoDeletion">;
 
 /** A league's row on "Your leagues" for deleting it (spec/13, Deleting): "Delete league" with a
  *  plain confirm for the admin or its commissioner; while it is being deleted, when it goes, who

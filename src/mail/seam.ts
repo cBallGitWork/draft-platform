@@ -7,7 +7,7 @@ import type { Change } from "../refusal";
 
 export type LeagueLetter = { leagueId: Id<"leagues">; subject: string; body: string };
 
-export type Mail = {
+export type MailSeam = {
   /** The signed-in person's letters, newest first, or undefined while they load. */
   letters: readonly LetterSummary[] | undefined;
   /** Marks a letter read. It never rejects: a failure is logged, and the letter stays unread. */

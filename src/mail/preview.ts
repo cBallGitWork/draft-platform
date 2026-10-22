@@ -8,7 +8,7 @@ import { HOUR_MS } from "../../convex/shared/time";
 import { MAIL_PATH } from "../frame/menu";
 import type { TopBarState } from "../frame/topBarState";
 import { manager, previewSays, proLeague } from "../preview";
-import type { Mail } from "./actions";
+import type { MailSeam } from "./seam";
 import { unreadCount } from "./words";
 
 const NEWEST = Date.parse("2026-10-20T14:02:00Z");
@@ -48,7 +48,7 @@ const previewLetters: LetterSummary[] = [
   }),
 ];
 
-export const previewMail: Mail = {
+export const previewMail: MailSeam = {
   letters: previewLetters,
   open: async () => {},
   writeToLeague: previewSays("no letter was sent"),
