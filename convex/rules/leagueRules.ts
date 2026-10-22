@@ -90,12 +90,31 @@ export async function latestRules(ctx: QueryCtx, leagueId: Id<"leagues">): Promi
   return (await historyOf(ctx, leagueId)).at(-1)?.rules ?? null;
 }
 
+/** The rules in force in this gameweek, from the league's history. Throws if none is, which only a
+ *  league made before #25 can have. */
+function rulesInForce(history: readonly Doc<"leagueRules">[], leagueId: Id<"leagues">, gameweek: number): LeagueRules {
+  const row = inForce(history, gameweek);
+  if (row === undefined) throw new Error(`League ${leagueId} has no rules for gameweek ${gameweek}`);
+  return row.rules;
+}
+
 /** The league's rules in a gameweek, for scoring (#29) and the lineup's checks. Throws for a
  *  league with none, which only one made before #25 can be. */
 export async function rulesInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number): Promise<LeagueRules> {
-  const row = inForce(await historyOf(ctx, leagueId), gameweek);
-  if (row === undefined) throw new Error(`League ${leagueId} has no rules for gameweek ${gameweek}`);
-  return row.rules;
+  return rulesInForce(await historyOf(ctx, leagueId), leagueId, gameweek);
+}
+
+/** The league's rules over the season from one read of its history: its latest, a waiting
+ *  change's among them, and those in force in each gameweek, as the fixtures read them (#266).
+ *  Null for a league made before #25. */
+export async function seasonRules(
+  ctx: QueryCtx,
+  leagueId: Id<"leagues">,
+): Promise<{ latest: LeagueRules; inGameweek: (gameweek: number) => LeagueRules } | null> {
+  const history = await historyOf(ctx, leagueId);
+  const latest = history.at(-1);
+  if (latest === undefined) return null;
+  return { latest: latest.rules, inGameweek: (gameweek) => rulesInForce(history, leagueId, gameweek) };
 }
 
 function defaultsRow(ctx: QueryCtx) {

@@ -105,7 +105,7 @@ export const leagueRulesShape = v.object({
   /** roundRobin.ts's OddTeamOut. Absent only from rules saved before #33, which play the first
    *  rules' (firstRules.ts, `drawRulesOf`): optional, so those rows need no migration. */
   oddTeamOut: v.optional(oddTeamOutShape),
-  /** roundRobin.ts's DrawOptions["gamesPerGameweek"]: a whole number, 1 or more. Absent, as
+  /** roundRobin.ts's DrawRules["gamesPerGameweek"]: a whole number, 1 or more. Absent, as
    *  `oddTeamOut` is, only from rules saved before #130. */
   gamesPerGameweek: v.optional(v.number()),
   waivers: v.object({

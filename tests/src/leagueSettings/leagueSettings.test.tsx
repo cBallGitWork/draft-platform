@@ -79,7 +79,7 @@ describe("editing them", () => {
     expect((screen.getByRole("button", { name: saveWords }) as HTMLButtonElement).disabled).toBe(true);
   });
 
-  it("says saving redraws the whole season's fixtures (#266)", async () => {
+  it("says saving redraws the fixtures only from the gameweek it applies from (#266)", async () => {
     openSettings();
     expect(await screen.findByText(redrawWords)).toBeTruthy();
   });

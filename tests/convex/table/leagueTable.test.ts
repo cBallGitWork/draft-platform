@@ -14,6 +14,8 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 
 const [ANN, BOB, CAT, DAN] = MANAGERS;
 const STRANGER = "stranger@example.com";
+/** The gameweek a change made in the tests that hold a season takes effect from. */
+const CHANGE_FROM = 10;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -86,6 +88,23 @@ describe("the fixtures", () => {
     });
     const gameweeks = (await read())!.gameweeks;
     expect(gameweeks.map((each) => each.gameweek)).not.toContain(2);
+  });
+
+  test("a change of rules leaves the gameweeks already played as they were, and draws the rest by it (#266)", async () => {
+    await addManagers(t, leagueId, [ANN, BOB, CAT]);
+    await holdGameweeks(t, { next: CHANGE_FROM });
+    const before = (await read())!.gameweeks;
+    expect(await changeRules({ oddTeamOut: "bye", gamesPerGameweek: 2 })).toBe(CHANGE_FROM);
+    const after = (await read())!.gameweeks;
+
+    const played = ({ gameweek }: { gameweek: number }) => gameweek < CHANGE_FROM;
+    expect(after.filter(played)).toEqual(before.filter(played));
+    for (const { fixtures, byes } of after.filter((each) => !played(each))) {
+      // Two of three teams' rounds: a fixture and a bye each, never one team's two byes.
+      expect(fixtures).toHaveLength(2);
+      expect(fixtures.every(({ opponent }) => opponent !== null)).toBe(true);
+      expect(new Set(byes).size).toBe(2);
+    }
   });
 
   test("a league of one team has none", async () => {

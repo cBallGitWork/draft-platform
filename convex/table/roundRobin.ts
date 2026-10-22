@@ -3,7 +3,10 @@
 // to the next one played. A league plays one or more games a gameweek: each gameweek is dealt that
 // many rounds. Once one round robin is dealt, the next begins, each in its own order, as evenly as
 // can be: every pair meets once a round robin, and each team is left over once. The order is
-// seeded by something stable (the league's id), so drawing again gives the same fixtures.
+// seeded by something stable (the league's id), so drawing again gives the same fixtures. Each
+// gameweek is drawn by the rules in force in it, dealt on from where the gameweeks before left the
+// rounds, so a change of rules never moves a gameweek before it (Craig, 22 Oct 2026: "games played
+// in past are done"; #266).
 // Pure: no I/O.
 
 /** With an odd number of teams, what the team left over plays each gameweek: no one, or the
@@ -11,12 +14,11 @@
 export const ODD_TEAM_OUTS = ["bye", "leagueAverage"] as const;
 export type OddTeamOut = (typeof ODD_TEAM_OUTS)[number];
 
-/** How a league's round robin is drawn: its rules, and the seed its order is drawn from. */
-export type DrawOptions = {
+/** A league's rules for its round robin, in one gameweek. */
+export type DrawRules = {
   oddTeamOut: OddTeamOut;
   /** How many games each team plays a gameweek (spec/09): a league's rule, 1 or more. */
   gamesPerGameweek: number;
-  seed: string;
 };
 
 /** The fewest teams a round robin is drawn for: a fixture needs two. */
@@ -66,23 +68,29 @@ export const roundsInARoundRobin = (teamCount: number) => (teamCount % 2 === 0 ?
 export const gamesInAGameweek = (roundCount: number, gamesPerGameweek: number) => Math.min(gamesPerGameweek, roundCount);
 
 /** The league's fixtures in each gameweek it plays (`gameweeks`, in order), its teams in the
- *  order they were made. Fewer than FEWEST_TO_DRAW have no one to play, so no fixtures. */
+ *  order they were made, each gameweek by the rules in force in it (`rulesIn`), its order drawn
+ *  from `seed`. Fewer than FEWEST_TO_DRAW have no one to play, so no fixtures. */
 export function drawFixtures<Team>(
   teams: readonly Team[],
   gameweeks: readonly number[],
-  { oddTeamOut, gamesPerGameweek, seed }: DrawOptions,
+  rulesIn: (gameweek: number) => DrawRules,
+  seed: string,
 ): GameweekFixtures<Team>[] {
   if (teams.length < FEWEST_TO_DRAW) return [];
   const rounds = roundsOf(teams);
-  const games = gamesInAGameweek(rounds.length, gamesPerGameweek);
-  const order = roundOrder(rounds.length, gameweeks.length * games, games, seed);
+  const rules = gameweeks.map(rulesIn);
+  const order = roundOrder(
+    rounds.length,
+    rules.map(({ gamesPerGameweek }) => gamesInAGameweek(rounds.length, gamesPerGameweek)),
+    seed,
+  );
   return gameweeks.map((gameweek, index) => {
     const fixtures: Fixture<Team>[] = [];
     const leftOver: Team[] = [];
-    for (const round of order.slice(index * games, (index + 1) * games)) {
+    for (const round of order[index]) {
       for (const [team, opponent] of rounds[round]) {
         if (opponent !== null) fixtures.push({ team, opponent });
-        else if (oddTeamOut === "leagueAverage") fixtures.push({ team, opponent: LEAGUE_AVERAGE });
+        else if (rules[index].oddTeamOut === "leagueAverage") fixtures.push({ team, opponent: LEAGUE_AVERAGE });
         else leftOver.push(team);
       }
     }
@@ -90,24 +98,33 @@ export function drawFixtures<Team>(
   });
 }
 
-/** Which round is played at each of `total` turns, `games` to a gameweek: one round robin after
- *  another, each shuffled by the seed. A gameweek straddling two round robins never gets one round
- *  twice, which would pair a team with the same opponent twice: the next round robin opens with
- *  rounds the gameweek hasn't had. */
-export function roundOrder(roundCount: number, total: number, games: number, seed: string): number[] {
-  if (roundCount < 1 || games < 1 || games > roundCount) {
-    throw new Error(`Can't deal ${games} of ${roundCount} rounds a gameweek`);
+/** The rounds each gameweek plays, `gamesEach[i]` in the i-th: one round robin after another, each
+ *  shuffled by the seed. Dealt in turn, so a gameweek's rounds hang only on the gameweeks up to it,
+ *  never on those after. A gameweek straddling two round robins never gets one round twice, which
+ *  would pair a team with the same opponent twice: the next round robin opens with rounds the
+ *  gameweek hasn't had. */
+export function roundOrder(roundCount: number, gamesEach: readonly number[], seed: string): number[][] {
+  for (const games of gamesEach) {
+    if (games < 1 || games > roundCount) throw new Error(`Can't deal ${games} of ${roundCount} rounds a gameweek`);
+  }
+  const starts: number[] = [];
+  let total = 0;
+  for (const games of gamesEach) {
+    starts.push(total);
+    total += games;
   }
   const random = seededRandom(seed);
   const order: number[] = [];
+  let current = 0; // the gameweek the next round is dealt to
   while (order.length < total) {
+    while (starts[current] + gamesEach[current] <= order.length) current += 1;
     const shuffled = shuffle(Array.from({ length: roundCount }, (_, round) => round), random);
-    const inThisGameweek = new Set(order.slice(order.length - (order.length % games)));
-    const stillToDeal = inThisGameweek.size === 0 ? 0 : games - inThisGameweek.size;
+    const inThisGameweek = new Set(order.slice(starts[current]));
+    const stillToDeal = inThisGameweek.size === 0 ? 0 : starts[current] + gamesEach[current] - order.length;
     const opening = shuffled.filter((round) => !inThisGameweek.has(round)).slice(0, stillToDeal);
     order.push(...opening, ...shuffled.filter((round) => !opening.includes(round)));
   }
-  return order.slice(0, total);
+  return gamesEach.map((games, index) => order.slice(starts[index], starts[index] + games));
 }
 
 /** A Fisher-Yates shuffle, by `random`. */

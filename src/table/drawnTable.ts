@@ -3,12 +3,14 @@
 // mapping copied from convex/table/leagueTable.ts's ofLeague, and with no tie-breaks.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import { drawFixtures, LEAGUE_AVERAGE, roundsOf, type DrawOptions } from "../../convex/table/roundRobin";
+import { drawFixtures, LEAGUE_AVERAGE, roundsOf, type DrawRules } from "../../convex/table/roundRobin";
 import { headToHeadTable, totalPointsTable, type GameweekScores } from "../../convex/table/standings";
 import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import type { LeagueTable } from "./seam";
 
-type Drawn = Partial<DrawOptions> & {
+type Drawn = Partial<DrawRules> & {
+  /** What the order is drawn from, as the league's id is on the server. */
+  seed?: string;
   format?: LeagueTable["format"];
   /** The gameweeks the league plays: all 38 by default. */
   gameweeks?: readonly number[];
@@ -31,7 +33,7 @@ export function leagueTableOf(
   }: Drawn = {},
 ): LeagueTable {
   const headToHead = format === "headToHead";
-  const schedule = headToHead ? drawFixtures(teamNames, gameweeks, { oddTeamOut, gamesPerGameweek, seed }) : [];
+  const schedule = headToHead ? drawFixtures(teamNames, gameweeks, () => ({ oddTeamOut, gamesPerGameweek }), seed) : [];
   const table = headToHead ? headToHeadTable(teamNames, schedule, scores, []) : totalPointsTable(teamNames, scores);
   return {
     format,
