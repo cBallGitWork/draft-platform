@@ -4,7 +4,7 @@
 
 import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { adminSeeing, commissioner, league, managerIn, openApp } from "../../support/src/shell.harness";
 import { squadsPath } from "../../../src/squads/paths";
@@ -24,8 +24,6 @@ import {
   SQUADS_TITLE,
   teamChoiceLabel,
 } from "../../../src/squads/words";
-
-afterEach(cleanup);
 
 const PAGE = squadsPath(league.leagueId);
 const saka = { code: 1001, name: "Saka", clubShortName: "ARS", gone: false };

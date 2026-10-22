@@ -5,6 +5,7 @@ import { renderHook } from "@testing-library/react";
 import { getFunctionName, type FunctionReference } from "convex/server";
 import { ConvexError } from "convex/values";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { silenceConsoleError } from "../../support/console.setup";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { MAIL_PATH } from "../../../src/frame/menu";
 import { useLiveMail } from "../../../src/mail/liveMail";
@@ -69,7 +70,7 @@ test("a letter the server refuses resolves with the server's own words", async (
 test("any other failure to send is logged and said plainly", async () => {
   const failure = new Error("offline");
   convex.mutate.mockRejectedValue(failure);
-  const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+  const logged = silenceConsoleError();
 
   expect(await live().mail.writeToLeague(letter)).toBe(sendFailedWords);
   expect(logged).toHaveBeenCalledWith("Sending a letter to the league failed:", failure);
@@ -78,7 +79,7 @@ test("any other failure to send is logged and said plainly", async () => {
 test("a letter that can't be marked read is logged, and opening it doesn't reject", async () => {
   const failure = new Error("offline");
   convex.mutate.mockRejectedValue(failure);
-  const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+  const logged = silenceConsoleError();
 
   await live().mail.open("letter-1" as Id<"letters">);
   expect(convex.mutate).toHaveBeenCalledWith({ letterId: "letter-1" });

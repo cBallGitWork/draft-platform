@@ -3,9 +3,9 @@
 // at a time, over the gameweeks the league plays, the team left over against the league's average
 // or on a bye; and a total-points league's table with no fixtures.
 
-import { cleanup, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
@@ -26,8 +26,6 @@ import {
   tooFewTeamsWords,
   totalPointsWords,
 } from "../../../src/table/words";
-
-afterEach(cleanup);
 
 const FIVE = ["Ann's", "Bob's", "Cat's", "Dan's", "Eve's"];
 const openTable = (table: TableData = {}) => openApp(TABLE_PATH, manager, { table });

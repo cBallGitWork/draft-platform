@@ -1,14 +1,12 @@
 // The admin's "Create a league" (spec/13, Creating a league): its form, and what it says when
 // the league isn't made.
 
-import { cleanup, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { admin, openApp } from "../../support/src/shell.harness";
 import { LEAGUES_PATH, LEAGUES_TITLE, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
 import { backToLeaguesWords, newLeagueLabels } from "../../../src/leagues/words";
-
-afterEach(cleanup);
 
 const REFUSAL = "Only the admin can do that.";
 

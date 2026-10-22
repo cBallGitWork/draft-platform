@@ -23,7 +23,8 @@ file the task already touches.
 1. **Improve:** is this the clearest way to say it?
 2. **Find bugs:** a test that can't fail; a test name promising what its body doesn't check; a
    test double joining downstream of the logic it should protect (delete the fix, run the test:
-   if it still passes, it pins the wrong thing); a silent catch; a league rule hardcoded.
+   if it still passes, it pins the wrong thing); a silent catch; a league rule hardcoded; a test
+   that silences console.error by hand where silenceConsoleError() would assert it.
 3. **Naming:** every variable, function, file and test says what it is: `daysUntilExpiration`,
    not `d` (`PHILOSOPHY.md`); a function needing a comment to explain it is renamed. The
    glossary's words (`SPEC.md`): a *team*, not a *player*, for a manager's side. A test is named

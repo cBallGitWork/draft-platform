@@ -1,9 +1,9 @@
 // "Your leagues" (spec/12): a person's leagues, the page saying they're in none (spec/02), and
 // the admin's "Create a league".
 
-import { cleanup, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel, signOutWords } from "../../../src/frame/words";
@@ -12,8 +12,6 @@ import { admin, adminSeeing, league, manager, managerIn, newcomer, openApp, visi
 import { LEAGUES_PATH, LEAGUES_TITLE, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
 import { commissionerLine, newLeagueLabels, notInALeagueWords, unsentLink, unsentLinkWords } from "../../../src/leagues/words";
 import { signInWords } from "../../../src/sign-in/words";
-
-afterEach(cleanup);
 
 describe("someone signed in, in no league", () => {
   it.each(["/", MY_TEAM_PATH, SIGN_IN_PATH])("opening %s sees their leagues page, saying they're in none", async (path) => {

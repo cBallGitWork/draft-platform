@@ -4,6 +4,7 @@
 import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { afterEach, expect, test, vi } from "vitest";
+import { silenceConsoleError } from "../../support/console.setup";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { linkOffWords } from "../../../convex/joining/joiningShared";
 import { askFailedWords, replyWords } from "../../../src/sign-in/words";
@@ -48,7 +49,7 @@ test("a change the server refuses resolves with the server's own words", async (
 test("any other failure is logged and said plainly", async () => {
   const failure = new Error("offline");
   convex.ask.mockRejectedValue(failure);
-  const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+  const logged = silenceConsoleError();
 
   expect(await joining().askToJoin("the-token")).toBe(changeFailedWords);
   expect(logged).toHaveBeenCalledWith("Asking to join failed:", failure);
@@ -60,7 +61,7 @@ test.each([
   ["that it failed, when Convex couldn't answer", async () => Promise.reject(new Error("offline")), askFailedWords],
 ])("asking for a link to join tells %s", async (_, answer, words) => {
   convex.signInToJoin.mockImplementation(answer);
-  vi.spyOn(console, "error").mockImplementation(() => {});
+  silenceConsoleError();
   expect(await joining().signInToJoin("the-token", "ann@example.com")).toBe(words);
   expect(convex.signInToJoin).toHaveBeenCalledWith({ token: "the-token", email: "ann@example.com" });
 });

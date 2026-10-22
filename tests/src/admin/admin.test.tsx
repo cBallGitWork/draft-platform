@@ -4,7 +4,7 @@
 
 import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { admin, commissioner, openApp } from "../../support/src/shell.harness";
 import type { AdminData } from "../../support/src/admin.harness";
@@ -23,8 +23,6 @@ import {
   setLabel,
   switchModeWords,
 } from "../../../src/admin/words";
-
-afterEach(cleanup);
 
 const STEUR = { code: 1, name: "Steur", fullName: "Jacob Steur", clubCode: 4, label: "Centre Central Midfielder" };
 const BARNES = { code: 2, name: "Barnes", fullName: "Harvey Barnes", clubCode: 4, proposals: ["W" as const] };

@@ -1,9 +1,9 @@
 // Deleting a league on "Your leagues" (#75, spec/13, Deleting): Delete league and its plain
 // confirm for the admin or the commissioner, and Undo while it's being deleted.
 
-import { cleanup, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { GAMEWEEKS_TITLE } from "../../../src/gameweeks/words";
 import { invitesTitle } from "../../../src/joining/words";
@@ -11,8 +11,6 @@ import type { Session } from "../../../src/auth";
 import { adminSeeing, league, managerIn, openApp } from "../../support/src/shell.harness";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { confirmDelete, unemailed, unsentLinkWords } from "../../../src/leagues/words";
-
-afterEach(cleanup);
 
 const commissioned: LeagueSummary = { ...league, roles: ["commissioner", "manager"] };
 const deletesAt = Date.parse("2026-10-21T09:00:00Z");

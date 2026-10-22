@@ -1,15 +1,13 @@
 // The shell's routes, rendered (#19's seam): what a visitor and a signed-in manager can reach.
 
-import { cleanup, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { TopBarState } from "../../src/frame/topBarState";
 import { MAIL_PATH, MY_TEAM_PATH } from "../../src/frame/menu";
 import { SIGN_IN_PATH } from "../../src/router";
 import { LINK_REPLY, manager, openApp, visitor } from "../support/src/shell.harness";
 import { linkProblemWords } from "../../src/sign-in/words";
-
-afterEach(cleanup);
 
 const threeUnread: TopBarState = { unreadMail: 3, next: { path: MAIL_PATH, reason: "3 unread letters" } };
 

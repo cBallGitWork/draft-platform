@@ -76,7 +76,7 @@ The steps (push the action to the dev deployment, run it twice, how to read what
 | Motion | Motion | live picks and ticking points |
 | Forms | React Hook Form with Zod | the league-rules forms are large |
 | Charts | Recharts | what shadcn's charts use |
-| Tests | Vitest; `convex-test` with fake timers for the backend, on `@edge-runtime/vm`; Testing Library on jsdom for the app | the companion's runner; the draft clock can be tested without waiting; `convex-test` needs Convex's runtime mimicked; screens are tested by role and name, as a manager finds them |
+| Tests | Vitest; `convex-test` with fake timers for the backend, on `@edge-runtime/vm`; Testing Library on jsdom for the app; a test that logs with `console.error` fails unless it calls `silenceConsoleError()` | the companion's runner; the draft clock can be tested without waiting; `convex-test` needs Convex's runtime mimicked; screens are tested by role and name, as a manager finds them |
 | Screenshots | Playwright, on the Mac's Chrome (`scripts/shoot.mjs`) | the `ui-verifier` agent's camera, and the same tool as the Playwright MCP |
 | Smoke tests | `@playwright/test` (`npm run smoke`, `tests/smoke/`), on the Mac's Chrome locally and Chromium in CI | loads the built app in a real browser on the preview sessions, no deployment needed |
 

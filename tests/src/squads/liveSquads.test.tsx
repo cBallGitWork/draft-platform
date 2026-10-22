@@ -5,6 +5,7 @@
 import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { afterEach, expect, test, vi } from "vitest";
+import { silenceConsoleError } from "../../support/console.setup";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { useLiveSquads } from "../../../src/squads/liveSquads";
 import { changeFailedWords } from "../../../src/squads/words";
@@ -72,7 +73,7 @@ test("a change the server refuses resolves with the server's own words", async (
 test("any other failure is logged and said plainly", async () => {
   const failure = new Error("offline");
   convex.release.mockRejectedValue(failure);
-  const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+  const logged = silenceConsoleError();
 
   expect(await seam().release(leagueId, playerCode)).toBe(changeFailedWords);
   expect(logged).toHaveBeenCalledWith("Releasing a player failed:", failure);
