@@ -124,19 +124,19 @@ Features table (feature 12), the one home for screen status.
 | Admin dashboard (Positions) | `/admin` | src/admin/AdminPage.tsx | spec/15 The admin, spec/06 | built |
 | Feeds, a tab of the admin dashboard | `/admin/feeds` | src/admin/FeedsPage.tsx | spec/15 The admin | built |
 | Table and fixtures | `/table` | src/table/TablePage.tsx | spec/12, spec/09 | built |
-| League home | `/home` | src/frame/PageNotBuilt.tsx | spec/12:16 | to grill (placeholder) |
-| My team (Tactics) | `/team` | src/frame/PageNotBuilt.tsx | spec/12:11, spec/12:28, spec/05 | spec'd (placeholder, #14) |
-| Squad | `/team/squad` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | to grill (placeholder) |
-| Fixtures | `/team/fixtures` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | to grill (placeholder) |
-| Transactions | `/team/transactions` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | to grill (placeholder) |
-| Matchup | `/matchup` | src/frame/PageNotBuilt.tsx | spec/10 The matchup | spec'd (placeholder, #34) |
-| Players | `/players` | src/frame/PageNotBuilt.tsx | spec/12:16 | to grill (placeholder) |
-| Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12:16, spec/08 | to grill (placeholder) |
-| Premier League | `/premier-league` | src/frame/PageNotBuilt.tsx | spec/18 | spec'd (placeholder, #49) |
-| Match | none | none | spec/10 The match page | spec'd (#45) |
-| Player card | none | none | spec/12:16, spec/05:59, spec/14 | to grill |
-| Draft room | none | none | spec/12:16, spec/04 | spec'd, waits for the summer |
-| Club pages | none | none | spec/18:22 | spec'd, after the mini beta |
+| League home | `/home` | src/frame/PageNotBuilt.tsx | spec/12:16 | placeholder |
+| My team (Tactics) | `/team` | src/frame/PageNotBuilt.tsx | spec/12:11, spec/12:28, spec/05 | placeholder |
+| Squad | `/team/squad` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | placeholder |
+| Fixtures | `/team/fixtures` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | placeholder |
+| Transactions | `/team/transactions` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | placeholder |
+| Matchup | `/matchup` | src/frame/PageNotBuilt.tsx | spec/10 The matchup | placeholder |
+| Players | `/players` | src/frame/PageNotBuilt.tsx | spec/12:16 | placeholder |
+| Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12:16, spec/08 | placeholder |
+| Premier League | `/premier-league` | src/frame/PageNotBuilt.tsx | spec/18 | placeholder |
+| Match | none | none | spec/10 The match page | no route |
+| Player card | none | none | spec/12:16, spec/05:59, spec/14 | no route |
+| Draft room | none | none | spec/12:16, spec/04 | no route |
+| Club pages | none | none | spec/18:22 | no route |
 
 ## Gaps
 
