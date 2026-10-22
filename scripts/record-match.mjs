@@ -140,16 +140,17 @@ function teamStatsSummary(body, fixture) {
 /** A poll's file name: its time, sortable, with no colons. */
 const fileName = (polledAt) => `${polledAt.replaceAll(":", "-")}.json`;
 
+const localTime = (ms) => new Date(ms).toLocaleTimeString("en-GB");
+const AFTER_FULL_TIME_MINUTES = AFTER_FULL_TIME_MS / MINUTE_MS;
+
 /** The last line of a recording, saying why it stopped. */
-export function doneLine(count, dir, fullTimeSeenAt) {
+export function doneLine(pollCount, dir, fullTimeSeenAt) {
   const why =
     fullTimeSeenAt === null
       ? `GAVE UP ${GIVE_UP_MS / HOUR_MS}h after kickoff, full time never seen`
-      : `stopped ${AFTER_FULL_TIME_MS / MINUTE_MS} min after full time (seen ${localTime(fullTimeSeenAt)})`;
-  return `Done: ${count} polls in ${dir}/; ${why}`;
+      : `stopped ${AFTER_FULL_TIME_MINUTES} min after full time (seen ${localTime(fullTimeSeenAt)})`;
+  return `Done: ${pollCount} polls in ${dir}/; ${why}`;
 }
-
-const localTime = (ms) => new Date(ms).toLocaleTimeString("en-GB");
 
 /** Waits until `LEAD_MS` before kickoff, then polls every `POLL_MS` into `dir` until `phase` says stop. */
 export async function record(fixtureId, dir) {
@@ -182,7 +183,7 @@ export async function record(fixtureId, dir) {
     console.log(summaryLine(saved));
     if (fullTimeSeenAt === null && fixtureStatus(saved) === FULL_TIME) {
       fullTimeSeenAt = Date.now();
-      console.log(`Full time seen at ${localTime(fullTimeSeenAt)}; stopping ${AFTER_FULL_TIME_MS / MINUTE_MS} min from now`);
+      console.log(`Full time seen at ${localTime(fullTimeSeenAt)}; stopping ${AFTER_FULL_TIME_MINUTES} min from now`);
     }
     await sleep(Math.max(0, POLL_MS - (Date.now() - startedAt)));
   }

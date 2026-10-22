@@ -205,15 +205,17 @@ test("under plain node, the recorder loads and, given no fixture id, prints its 
   expect(code).toBe(2);
 });
 
+const RECORDING_DIR = "/r/128999";
+
 test("the last line says the recording stopped after full time, and when full time was seen", () => {
   const seen = KICKOFF + 112 * MINUTE;
-  expect(doneLine(250, "/r/128999", seen)).toBe(
+  expect(doneLine(250, RECORDING_DIR, seen)).toBe(
     `Done: 250 polls in /r/128999/; stopped 15 min after full time (seen ${new Date(seen).toLocaleTimeString("en-GB")})`,
   );
 });
 
 test("the last line says the recording gave up when full time was never seen", () => {
-  expect(doneLine(660, "/r/128999", null)).toBe("Done: 660 polls in /r/128999/; GAVE UP 4h after kickoff, full time never seen");
+  expect(doneLine(660, RECORDING_DIR, null)).toBe("Done: 660 polls in /r/128999/; GAVE UP 4h after kickoff, full time never seen");
 });
 
 test("a fixture read with no status says so, and still sums up its clock and sheets", () => {
