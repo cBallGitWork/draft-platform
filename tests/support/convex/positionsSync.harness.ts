@@ -1,7 +1,6 @@
 /// <reference types="vite/client" />
 // The positions tests' shared setup: both feeds faked from the recorded payloads, one sync run
-// against them, and a player's positions read back. For the tests only: it sits outside convex/,
-// so never deploys.
+// against them, and a player's positions read back.
 
 import { vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";

@@ -7,7 +7,6 @@
 // - pl-commentary-fpl-players.json: FPL's bootstrap-static on the same day, cut to the 160 men those
 //   four matches named, and to the fields `RawBootstrap` types.
 // - pl-team-stats.json: `/stats/match/{id}` whole, for Brentford v Liverpool and for Ipswich v Forest.
-// For the tests only: it sits outside convex/, so never deploys.
 
 import type { RawBootstrap } from "../../../convex/football/fpl";
 import type { RawPlCommentary, RawPlFixture, RawPlTeamStats } from "../../../convex/football/premierLeague";

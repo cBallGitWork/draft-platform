@@ -1,5 +1,4 @@
 // The lineup tests' shared setup: limits, and a lineup filled from a preset with players who fit.
-// For the tests only: it sits outside convex/, so never deploys.
 
 import type { AreaLimit, Lineup, LineupRules, PlayerPositions } from "../../../convex/lineup/lineup";
 import { AREAS, LANES, type Area } from "../../../convex/lineup/pitch";

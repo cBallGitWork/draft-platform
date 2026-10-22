@@ -11,7 +11,6 @@
 //   whole, the other two cut to the men the sheets name.
 // - FPL's bootstrap-static players, cut to every man the sheets and squads name whom FPL lists
 //   today, and to the fields read. The men it leaves out (Trippier, Krafth, gone) are unmatched.
-// For the tests only: it sits outside convex/, so never deploys.
 
 import { PL_COMP_SEASON, PL_LAST_COMP_SEASON } from "../../../convex/football/football";
 import type { RawBootstrap } from "../../../convex/football/fpl";

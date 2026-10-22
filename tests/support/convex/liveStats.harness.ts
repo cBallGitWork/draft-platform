@@ -3,7 +3,6 @@
 // stat grows with his share of his minutes on the pitch, and his goals, assists and yellow cards
 // land at the minutes the fixture's events give them. The last stage is the recording itself, at
 // full time. Friday's recording (#37, fixture 128999) is to replace it: docs/pl-match-stats.md.
-// For the tests only: it sits outside convex/, so never deploys.
 
 import type { Infer } from "convex/values";
 import { vi } from "vitest";

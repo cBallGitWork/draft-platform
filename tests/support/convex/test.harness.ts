@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 // Every Convex test's shared setup: a fresh Convex, a faked fetch and a refused read, and a quiet
 // console for the failures a test sets out to cause. Each test file's own harness builds its feeds
-// on these. For the tests only: it sits outside convex/, so never deploys.
+// on these.
 
 import { convexTest, type TestConvex as TestConvexOf } from "convex-test";
 import { vi } from "vitest";

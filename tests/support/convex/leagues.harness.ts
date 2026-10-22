@@ -1,5 +1,5 @@
 // Leagues' tests' shared setup (#24): sign-in's deployment, people signed in by email, and a
-// league made by the admin. For the tests only: it sits outside convex/, so never deploys.
+// league made by the admin.
 
 import { vi } from "vitest";
 import { api } from "../../../convex/_generated/api";

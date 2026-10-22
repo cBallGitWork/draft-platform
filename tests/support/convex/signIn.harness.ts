@@ -1,7 +1,6 @@
 /// <reference types="vite/client" />
 // Sign-in's tests' shared setup: the deployment's settings, a faked Resend that keeps what it was
-// asked to send, and a link's code redeemed as the browser does. For the tests only: it sits
-// outside convex/, so never deploys.
+// asked to send, and a link's code redeemed as the browser does.
 
 import { vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";

@@ -1,6 +1,6 @@
 // A scoring set for the tests only, never a default anyone plays: the first real set is FPL's,
-// in firstRules.ts (spec/14, The first scoring set). Keyed on FPL's
-// stat names, as `fplStatLines` gives them; it sits outside convex/, so never deploys.
+// in firstRules.ts (spec/14, The first scoring set). Keyed on FPL's stat names, as `fplStatLines`
+// gives them.
 
 import { SLOT_POSITIONS, type Cell, type SlotPosition } from "../../../convex/lineup/pitch";
 import { AREAS, type Area, type ByArea, type ByPosition, type ScoringSet } from "../../../convex/scoring/scoringSet";

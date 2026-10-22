@@ -8,7 +8,7 @@ import { defineConfig } from "vitest/config";
 // by Vitest.
 // Each project puts back every stubbed global, stubbed env and spy before each test, and
 // tests/support/test.setup.ts puts the real timers back after each, so no test file needs its own
-// afterEach for them. The setup files sit outside convex/, so Convex never loads them as its modules.
+// afterEach for them.
 
 const RESTORED = {
   unstubGlobals: true,

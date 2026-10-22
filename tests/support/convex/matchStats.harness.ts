@@ -1,6 +1,5 @@
 // The match stats tests' shared setup: gameweek 6 as both feeds recorded it, served to the sync,
-// and Hull v Everton's records as the pure merge gives them. For the tests only: it sits outside
-// convex/, so never deploys.
+// and Hull v Everton's records as the pure merge gives them.
 
 import type { Infer } from "convex/values";
 import { vi } from "vitest";

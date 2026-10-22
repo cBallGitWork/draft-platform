@@ -1,6 +1,5 @@
 // Joining's tests' shared setup (#73): invites sent and their emails' links opened, the invite
-// link made and asked from, as people do. For the tests only: it sits outside convex/, so never
-// deploys.
+// link made and asked from, as people do.
 
 import { vi } from "vitest";
 import { api } from "../../../convex/_generated/api";

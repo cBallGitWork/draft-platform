@@ -1,5 +1,5 @@
 // The football sync's tests' shared setup: a faked FPL, one sync run against it, and what it left
-// held. For the tests only: it sits outside convex/, so never deploys.
+// held.
 
 import type { Infer } from "convex/values";
 import { vi } from "vitest";

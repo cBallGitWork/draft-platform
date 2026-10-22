@@ -1,5 +1,4 @@
-// League rules' tests' shared setup (#25). For the tests only: it sits outside convex/, so never
-// deploys.
+// League rules' tests' shared setup (#25).
 
 import { ConvexError } from "convex/values";
 import { expect } from "vitest";

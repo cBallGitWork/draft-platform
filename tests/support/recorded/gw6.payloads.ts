@@ -9,7 +9,6 @@
 // - Per-player stats (`/stats/player/{id}?fixtures=`, keyed here by fixture and player) for every
 //   man named for Hull v Everton and the 22 starters at Palace v Forest. Every stat is kept for the
 //   six men in `FULL_STATS`; for the rest, only where they played and for how long.
-// For the tests only: it sits outside convex/, so never deploys.
 
 import type { RawBootstrap, RawFixture } from "../../../convex/football/fpl";
 import type { RawLive } from "../../../convex/football/fplLive";

@@ -7,7 +7,6 @@
 // gameweek and match cut to the keys `mapFpl` reads. The first holds too few matches for it: its one
 // gameweek 7 match is the Monday's, not the first kickoff. `recordedSeason` lends it the first's
 // seven players, since `mapFpl` refuses an empty list (#64); both are 2026/27, so their club ids agree.
-// For the tests only: it sits outside convex/, so never deploys.
 
 import type { RawBootstrap, RawFixture } from "../../../convex/football/fpl";
 import bootstrap from "./fpl-bootstrap-static.json";

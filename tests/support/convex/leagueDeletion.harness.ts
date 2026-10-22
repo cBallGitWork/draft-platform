@@ -1,5 +1,4 @@
-// Deleting a league's tests' shared setup (#75). For the tests only: it sits outside convex/, so
-// never deploys.
+// Deleting a league's tests' shared setup (#75).
 
 import { vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
