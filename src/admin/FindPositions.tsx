@@ -5,7 +5,7 @@ import type { Changing } from "../useChange";
 import type { AdminSeam, FoundPlayerPositions } from "./seam";
 import {
   findHint,
-  flaggedPositionWords,
+  flaggedNote,
   foundListLabel,
   positionsListLabel,
   removeWords,
@@ -18,7 +18,7 @@ import {
   setLabel,
   setWords,
   sourceWords,
-  unconfirmedWords,
+  unconfirmedNote,
 } from "./words";
 
 const FIND_TITLE_ID = "admin-find-title";
@@ -75,9 +75,9 @@ function PlayerPositions({ player, seam, change }: { player: FoundPlayerPosition
                 <span className="font-semibold">{each.position}</span>{" "}
                 <span className="text-muted">
                   {sourceWords[each.source]}
-                  {each.confirmed ? "" : `, ${unconfirmedWords}`}
+                  {each.confirmed ? "" : unconfirmedNote}
                 </span>
-                {each.flaggedElsewhere !== null && <span className="text-event">, {flaggedPositionWords(each.flaggedElsewhere)}</span>}
+                {each.flaggedElsewhere !== null && <span className="text-event">{flaggedNote(each.flaggedElsewhere)}</span>}
               </span>
               <button
                 type="button"

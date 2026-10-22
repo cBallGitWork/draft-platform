@@ -3,7 +3,7 @@
 import { LOCALE } from "../../convex/shared/londonTime";
 import { gameweekWords } from "../words";
 
-export { gameweekWords };
+export { gameweekWords, versusWords } from "../words";
 
 export const TABLE_PAGE_TITLE = "Table and fixtures";
 export const TABLE_TITLE = "Table";
@@ -33,7 +33,6 @@ export const nextLabel = "Next gameweek";
 /** CM's stepper arrows, either side of the gameweek: decoration, as each button carries its label. */
 export const previousGlyph = "◄";
 export const nextGlyph = "►";
-export const versusWords = "v";
 export const leagueAverageWords = "League average";
 const andList = new Intl.ListFormat(LOCALE, { type: "conjunction" });
 /** The teams with a bye in a gameweek: one a game, so several when a league plays more than one. */

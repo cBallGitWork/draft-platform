@@ -10,6 +10,9 @@ export const NO_CONVEX_URL = "VITE_CONVEX_URL isn't set, so the app can't reach 
 /** A gameweek by name, as its tick box and the fixtures' stepper say it. */
 export const gameweekWords = (gameweek: number) => `Gameweek ${gameweek}`;
 
+/** Between the two sides of a match or a fixture: "Hull City v Everton". */
+export const versusWords = "v";
+
 /** The "Find a player" panel, on the admin's dashboard and the squads page alike; each says its own hint. */
 export const findTitle = "Find a player";
 export const findLabel = "Name";

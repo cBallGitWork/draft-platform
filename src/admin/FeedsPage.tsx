@@ -7,6 +7,7 @@ import {
   behindTitle,
   behindWords,
   changeWords,
+  correctionOfWords,
   correctionsHint,
   correctionsTitle,
   moreCorrectionsWords,
@@ -22,7 +23,6 @@ import {
   neverWords,
   noCorrectionsWords,
   noneBehindWords,
-  playerWords,
   seenWords,
   whenWords,
 } from "./words";
@@ -32,13 +32,16 @@ const BEHIND_TITLE_ID = "behind-title";
 const CORRECTIONS_TITLE_ID = "corrections-title";
 
 const cellClasses = "px-2 py-1 text-left align-top";
+/** A row across the whole feeds table spans its columns. */
+const FEED_COLUMN_COUNT = Object.keys(feedColumns).length;
 
 /** A feed late or failing needs the admin: the event colour, and its bar down the row's edge. */
 const NEEDS_YOU: readonly FeedState[] = ["late", "failing"];
+const NEEDS_YOU_CLASSES = "font-semibold text-event";
 const stateClasses: Record<FeedState, string> = {
   fine: "",
-  late: "font-semibold text-event",
-  failing: "font-semibold text-event",
+  late: NEEDS_YOU_CLASSES,
+  failing: NEEDS_YOU_CLASSES,
   notRunningYet: "text-muted",
   notScheduled: "text-muted",
 };
@@ -103,7 +106,7 @@ function Feeds({ report }: { report: FeedsReport }) {
               </tr>
               {lastError && (
                 <tr className={edge}>
-                  <td colSpan={3} className={`${cellClasses} break-words`}>
+                  <td colSpan={FEED_COLUMN_COUNT} className={`${cellClasses} break-words`}>
                     <span className="text-muted">{lastErrorWords(lastError.at)}</span> {lastError.error}
                   </td>
                 </tr>
@@ -154,7 +157,7 @@ function Corrections({ report: { corrections, moreCorrections } }: { report: Fee
           {corrections.map(({ fixtureCode, match, playerCode, player, seenAt, changes }) => (
             <li key={`${fixtureCode}-${playerCode}-${seenAt}`} className="border-t border-panel-rule px-3 py-1">
               <span className="block font-semibold">
-                {playerWords(player, playerCode)}, {matchWords(match, fixtureCode)}
+                {correctionOfWords(player, playerCode, match, fixtureCode)}
               </span>
               {changes.map((change) => (
                 <span key={change.stat} className="block">

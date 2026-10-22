@@ -7,7 +7,8 @@ import type { FeedState } from "../../convex/admin/feedState";
 import type { Feed } from "../../convex/shared/feedSchedule";
 import { LOCALE } from "../../convex/shared/londonTime";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
-import { failedWords } from "../words";
+import { failedWords, versusWords } from "../words";
+import { READING_SITES, siteSearchUrl } from "./paths";
 
 export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../words";
 
@@ -67,8 +68,9 @@ export const saveThresholdsWords = "Save";
 export const findHint = "Set or remove any player's positions. What you set stays until you remove it, and a position you remove stays off.";
 export const noPositionsWords = "No positions yet.";
 export const sourceWords: Record<PositionSource, string> = { starts: "from his starts", label: "from his label", admin: "set by you" };
-export const unconfirmedWords = "unconfirmed";
-export const flaggedPositionWords = (startsElsewhere: number) => `flagged: ${startsElsewhere} ${IN_A_ROW_ELSEWHERE}`;
+/** What follows where a held position came from: that it is unconfirmed, or flagged. */
+export const unconfirmedNote = ", unconfirmed";
+export const flaggedNote = (startsElsewhere: number) => `, flagged: ${startsElsewhere} ${IN_A_ROW_ELSEWHERE}`;
 export const removeLabel = (position: string, name: string) => `Remove ${position} from ${name}`;
 export const setLabel = (name: string) => `Position to give ${name}`;
 export const setWords = "Set";
@@ -76,11 +78,10 @@ export const removeWords = "Remove";
 export const positionsListLabel = (name: string) => `${name}'s positions`;
 
 /** Where to read up on a player, as a web search on one site each: nothing is fetched (spec/06). */
-const searchOn = (site: string, fullName: string) => `https://www.google.com/search?q=${encodeURIComponent(`site:${site} ${fullName}`)}`;
 export const readingLinks = (fullName: string) => [
-  { label: "Transfermarkt", href: searchOn("transfermarkt.co.uk", fullName) },
-  { label: "FotMob", href: searchOn("fotmob.com", fullName) },
-  { label: "Understat", href: searchOn("understat.com", fullName) },
+  { label: "Transfermarkt", href: siteSearchUrl(READING_SITES.transfermarkt, fullName) },
+  { label: "FotMob", href: siteSearchUrl(READING_SITES.fotMob, fullName) },
+  { label: "Understat", href: siteSearchUrl(READING_SITES.understat, fullName) },
 ];
 
 export const changeFailedWords = failedWords("nothing changed");
@@ -107,11 +108,13 @@ export const feedStateWords: Record<FeedState, string> = {
 export const neverWords = "Never";
 
 const relative = new Intl.RelativeTimeFormat(LOCALE, { numeric: "auto" });
+/** From how long ago a time is said in days rather than hours. */
+const DAYS_FROM_MS = 2 * DAY_MS;
 /** How long before `now` a time was, in its largest whole unit: "3 minutes ago", "yesterday". */
 export const agoWords = (at: number, now: number) => {
   const since = at - now;
   if (-since < HOUR_MS) return relative.format(Math.trunc(since / MINUTE_MS), "minute");
-  if (-since < 2 * DAY_MS) return relative.format(Math.trunc(since / HOUR_MS), "hour");
+  if (-since < DAYS_FROM_MS) return relative.format(Math.trunc(since / HOUR_MS), "hour");
   return relative.format(Math.trunc(since / DAY_MS), "day");
 };
 const whenFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -121,7 +124,7 @@ export const lastErrorWords = (at: number) => `Last error, ${whenWords(at)}:`;
 
 /** A match by its clubs, or by FPL's code for it while the football sync holds no such match. */
 export const matchWords = (match: { home: string; away: string } | null, fixtureCode: number) =>
-  match === null ? `Match ${fixtureCode}` : `${match.home} v ${match.away}`;
+  match === null ? `Match ${fixtureCode}` : `${match.home} ${versusWords} ${match.away}`;
 
 export const behindTitle = "Scoring behind";
 export const noneBehindWords = "No match is behind: each one at full time had every player's stats within its correction window.";
@@ -135,6 +138,9 @@ export const correctionsTitle = "Corrections after the lock";
 export const correctionsHint = "A feed changed a stat after the match's points locked. The points didn't change.";
 export const noCorrectionsWords = "No stat has changed after a lock.";
 export const moreCorrectionsWords = (shown: number) => `More came than these: only the newest ${shown} are shown.`;
-export const playerWords = (player: string | null, playerCode: number) => player ?? `Player ${playerCode}`;
+const playerWords = (player: string | null, playerCode: number) => player ?? `Player ${playerCode}`;
+/** A correction's heading: whose stat, in which match. */
+export const correctionOfWords = (player: string | null, playerCode: number, match: { home: string; away: string } | null, fixtureCode: number) =>
+  `${playerWords(player, playerCode)}, ${matchWords(match, fixtureCode)}`;
 export const changeWords = ({ stat, locked, sent }: { stat: string; locked: number; sent: number }) => `${stat}: locked at ${locked}, sent ${sent}`;
 export const seenWords = (at: number) => `Seen ${whenWords(at)}`;
