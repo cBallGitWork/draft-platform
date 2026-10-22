@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { gameweekRefusals } from "../../../convex/gameweeks/leagueGameweeks";
+import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { giveDeadlineRule } from "../../support/convex/leagueRules.harness";
@@ -44,7 +45,7 @@ beforeEach(async () => {
   await syncWith(t, payloads);
 });
 
-const recordPassed = () => t.mutation(internal.gameweeks.deadlineRecorder.recordPassed, {});
+const recordPassed = () => t.run((ctx) => recordPassedDeadlines(ctx));
 const passedRows = () => t.run((ctx) => ctx.db.query("passedDeadlines").collect());
 const shownDeadline = async (gameweek: number) =>
   (await (await actingAs(t, COMMISSIONER)).query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId }))[gameweek - 1].deadline;
@@ -99,8 +100,48 @@ test("it fails closed: a league whose deadlines can't be worked out fails the sy
   expect(error).toHaveBeenCalledWith(expect.stringContaining("football sync failed"));
   const kickoffs = await t.run(async (ctx) => (await ctx.db.query("fixtures").collect()).map((fixture) => fixture.kickoff));
   expect(kickoffs).toContain(OPENER);
-  expect(await passedRows()).toEqual([]);
+  expect((await passedRows()).filter((row) => row.gameweek === GAMEWEEK)).toEqual([]);
   expect(await shownDeadline(GAMEWEEK)).toBe(deadlineBefore(OPENER));
+});
+
+// The deadline can pass after the sync starts and before it writes the fixtures: each fixtures
+// mutation records first, in the same transaction as the kickoffs it moves.
+describe("a deadline passing mid-sync", () => {
+  /** Gameweek 8's opener as held, less its system fields. */
+  const heldOpener = () =>
+    t.run(async (ctx) => {
+      const row = (await ctx.db.query("fixtures").collect()).find((fixture) => fixture.kickoff === OPENER)!;
+      const { _id, _creationTime, droppedAt, ...fields } = row;
+      return fields;
+    });
+
+  test("upsertFixtures records it before postponing the opener, and the gameweek stays begun", async () => {
+    const opener = await heldOpener();
+    vi.setSystemTime(deadlineBefore(OPENER) + MINUTE_MS);
+
+    await t.mutation(internal.football.footballSync.upsertFixtures, { rows: [{ ...opener, gameweek: null, kickoff: null }] });
+
+    expect((await passedRows()).find((row) => row.leagueId === leagueId && row.gameweek === GAMEWEEK)?.deadline).toBe(deadlineBefore(OPENER));
+    expect(await shownDeadline(GAMEWEEK)).toBe(deadlineBefore(OPENER));
+    await expect(setUsed(GAMEWEEK, false)).rejects.toThrow(gameweekRefusals.begun(GAMEWEEK));
+  });
+
+  test("markDropped records it before dropping the opener, and the gameweek stays begun", async () => {
+    const opener = await heldOpener();
+    const othersSent = payloads.fixtures.map((fixture) => fixture.code).filter((code) => code !== opener.code);
+    vi.setSystemTime(deadlineBefore(OPENER) + MINUTE_MS);
+
+    await t.mutation(internal.football.footballSync.markDropped, {
+      table: "fixtures",
+      sentKeys: othersSent,
+      droppedAt: Date.now(),
+      paginationOpts: { cursor: null, numItems: payloads.fixtures.length },
+    });
+
+    expect((await passedRows()).find((row) => row.leagueId === leagueId && row.gameweek === GAMEWEEK)?.deadline).toBe(deadlineBefore(OPENER));
+    expect(await shownDeadline(GAMEWEEK)).toBe(deadlineBefore(OPENER));
+    await expect(setUsed(GAMEWEEK, false)).rejects.toThrow(gameweekRefusals.begun(GAMEWEEK));
+  });
 });
 
 describe("a postponed first match", () => {
