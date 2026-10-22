@@ -15,7 +15,7 @@ Committed and uncommitted, against where the branch left `main`, then any new fi
 !`git status --short`
 
 On a drift pass the branch's own diff is empty: run `git diff --stat <range>` with the range
-*Record* gives, and work over that.
+`docs/REFACTORING.md`'s *Record* gives, and work over that.
 
 Work over the whole branch's diff, not only the last edit. Change only what the branch already
 changed: something older that breaks a rule becomes an issue (`CLAUDE.md`), unless it sits in a
