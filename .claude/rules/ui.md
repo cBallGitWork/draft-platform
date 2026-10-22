@@ -16,6 +16,9 @@ palette, radii, shadows and type scale are switched off there, so a stock utilit
 
 After any change a manager can see, run the `ui-verifier` agent: it shoots 390 and 1440 and looks.
 
+Where tests go, and what `tests/support/` holds (harnesses, setup files, goldens):
+`tests/README.md`.
+
 ## Never
 
 From `docs/design/plate.md` (its "Never" list, copied here so it loads with the screen files;
