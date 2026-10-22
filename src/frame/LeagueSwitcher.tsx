@@ -5,7 +5,9 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../auth";
 import type { LeagueActions } from "../leagues/actions";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../leagues/paths";
+import { currentLeagueOf } from "../leagues/roles";
 import { roleWords } from "../leagues/words";
+import { useChange } from "../useChange";
 import { Problem } from "./Panel";
 import { allLeaguesWords, currentLeagueLabel } from "./words";
 
@@ -28,8 +30,7 @@ export function LeagueSwitcher({
   switchLeague: LeagueActions["switchLeague"];
 }) {
   const [open, setOpen] = useState(false);
-  const [switching, setSwitching] = useState(false);
-  const [problem, setProblem] = useState<string | null>(null);
+  const { busy: switching, problem, run, clear } = useChange();
   const listId = useId();
   const switcher = useRef<HTMLDivElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
@@ -56,23 +57,17 @@ export function LeagueSwitcher({
   if (!session.signedIn) return null;
   // A league being deleted is frozen: whoever deleted it sees it on "Your leagues", never here.
   const theirs = session.leagues.filter((league) => league.roles.length > 0 && !league.deletion);
-  const current = theirs.find((league) => league.leagueId === session.currentLeagueId);
+  const current = currentLeagueOf(session);
   // signIn/account:signedInAs names one of theirs whenever they have any, and the frame is only theirs then.
-  if (!current) throw new Error(`The league the app is in, ${session.currentLeagueId}, isn't one of ${session.email}'s`);
+  if (!current || !theirs.includes(current))
+    throw new Error(`The league the app is in, ${session.currentLeagueId}, isn't one of ${session.email}'s`);
 
   if (theirs.length === 1) {
     return <span className={`flex min-h-tap items-center px-4 text-lead font-semibold ${placementClasses}`}>{current.name}</span>;
   }
 
   const switchTo = async (leagueId: Id<"leagues">) => {
-    if (leagueId !== current.leagueId) {
-      setSwitching(true);
-      const refused = await switchLeague(leagueId);
-      setSwitching(false);
-      setProblem(refused);
-      if (refused !== null) return;
-    }
-    setOpen(false);
+    if (leagueId === current.leagueId || (await run(() => switchLeague(leagueId)))) setOpen(false);
   };
 
   return (
@@ -83,7 +78,7 @@ export function LeagueSwitcher({
         aria-expanded={open}
         aria-controls={listId}
         onClick={() => {
-          setProblem(null);
+          clear();
           setOpen(!open);
         }}
         className={toggleClasses}

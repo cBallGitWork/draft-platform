@@ -13,7 +13,9 @@ export function useChange() {
     setProblem(refused);
     return refused === null;
   }
-  return { busy, problem, run };
+  /** Forgets the last refusal, as when the screen it was said on is opened afresh. */
+  const clear = () => setProblem(null);
+  return { busy, problem, run, clear };
 }
 
 /** What `useChange` hands a screen, to pass down to the parts that make changes. */
