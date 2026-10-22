@@ -15,7 +15,9 @@ const plReads = hullEvertonReads(gw6);
 const hullEverton = recordedPlFixture(MATCH.hullEverton.pl);
 const plLines = plStatLines(hullEverton, plReads, codesByOpta(fpl.bootstrap.elements)).lines;
 
-function recordOf(lines: { playerCode: number; stats: MatchStats }[], playerCode: number): MatchStats {
+type RecordedLine = { playerCode: number; stats: MatchStats };
+
+function recordOf(lines: RecordedLine[], playerCode: number): MatchStats {
   const line = lines.find((each) => each.playerCode === playerCode);
   if (line === undefined) throw new Error(`no recorded line for player ${playerCode}`);
   return line.stats;
@@ -187,6 +189,25 @@ describe("bad data throws rather than score", () => {
       "the goals_scored rule gives Infinity points as CM",
     );
   });
+});
+
+// The whole-match golden locks the engine's arithmetic under EXAMPLE_SET, not the league's real
+// rules. The named-man tests above say why a number is what it is; this says no number moved.
+test("every recorded line of Hull v Everton, from both feeds, in every area, scores as the golden file", async () => {
+  const scoredBy = (feed: "fpl" | "pl", lines: RecordedLine[]) =>
+    [...lines]
+      .sort((a, b) => a.playerCode - b.playerCode)
+      .flatMap(({ playerCode, stats }) =>
+        AREAS.map((area) => {
+          const { total, categories } = scoreMatch(stats, EXAMPLE_SET, centreOf(area));
+          return { feed, playerCode, area, total, categories };
+        }),
+      );
+  const rows = [...scoredBy("fpl", fplLines), ...scoredBy("pl", plLines)];
+
+  // One row per man per area, each on its own line, so a diff of the golden names exactly what moved.
+  const scoredJson = `[\n${rows.map((row) => `  ${JSON.stringify(row)}`).join(",\n")}\n]\n`;
+  await expect(scoredJson).toMatchFileSnapshot("../../support/golden/hull-everton.scores.json");
 });
 
 describe("a double gameweek, his two matches", () => {
