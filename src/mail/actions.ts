@@ -2,7 +2,7 @@
 // (liveMail.ts); the preview and the tests hand the screens their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import type { LetterSummary } from "../../convex/mail";
+import type { LetterSummary } from "../../convex/mail/mail";
 import type { Change } from "../refusal";
 
 export type LeagueLetter = { leagueId: Id<"leagues">; subject: string; body: string };

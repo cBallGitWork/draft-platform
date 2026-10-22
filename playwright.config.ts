@@ -16,7 +16,7 @@ const BUNDLE_URL = `http://localhost:${BUNDLE_PORT}`;
 const NO_CONVEX = { VITE_CONVEX_URL: "" };
 
 export default defineConfig({
-  testDir: "e2e",
+  testDir: "tests/smoke",
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {

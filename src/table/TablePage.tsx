@@ -1,4 +1,4 @@
-import type { LeagueSummary } from "../../convex/myLeagues";
+import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PageTitle, PanelTitle } from "../frame/Panel";
 import { FixturesPanel } from "./FixturesPanel";
 import type { LeagueTable, TableSeam } from "./seam";

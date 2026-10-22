@@ -1,9 +1,9 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v, type VLiteral } from "convex/values";
-import { leagueRulesShape } from "./leagueRulesShape";
-import { POSITIONS, type Position } from "./positionTables";
-import { signInReply } from "./signInLinks";
+import { leagueRulesShape } from "./rules/leagueRulesShape";
+import { POSITIONS, type Position } from "./positions/positionTables";
+import { signInReply } from "./signIn/signInLinks";
 
 /** What one read of a feed found: a count of what came back, or why it failed. */
 export const feedOutcome = v.union(
@@ -340,7 +340,7 @@ const leagueFields = {
   commissionerLink: v.optional(v.object({ email: v.string(), reply: signInReply })),
   /** Present while the league is being deleted (#75). */
   deletion: v.optional(leagueDeletion),
-  /** The gameweeks its commissioner unticked, in order (#74, convex/usedGameweeks.ts). Absent while
+  /** The gameweeks its commissioner unticked, in order (#74, convex/gameweeks/usedGameweeks.ts). Absent while
    *  it plays all 38, the default, so a league needs no write to have it. */
   unusedGameweeks: v.optional(v.array(v.number())),
 };

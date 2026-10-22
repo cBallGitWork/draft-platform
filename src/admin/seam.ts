@@ -1,9 +1,9 @@
 // The seam for the admin's dashboard (#87): what it reads and asks of players' positions. Convex
 // fills it in live (liveAdmin.ts); the preview and the tests hand the screen their own.
 
-import type { FoundPlayerPositions, PositionsQueue } from "../../convex/playerPositions";
-import type { ApproveMode } from "../../convex/positions";
-import type { Position } from "../../convex/positionTables";
+import type { FoundPlayerPositions, PositionsQueue } from "../../convex/positions/playerPositions";
+import type { ApproveMode } from "../../convex/positions/positions";
+import type { Position } from "../../convex/positions/positionTables";
 import type { Change } from "../refusal";
 
 export type { FoundPlayerPositions, PositionsQueue };

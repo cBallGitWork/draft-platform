@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { BODY_MAX, SUBJECT_MAX } from "../../convex/mailLimits";
-import type { LeagueSummary } from "../../convex/myLeagues";
+import { BODY_MAX, SUBJECT_MAX } from "../../convex/mail/mailLimits";
+import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PanelTitle, Problem } from "../frame/Panel";
 import type { Mail } from "./actions";
 import { WRITE_TITLE, sentWords, writeHint } from "./words";

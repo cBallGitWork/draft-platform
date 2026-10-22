@@ -1,6 +1,7 @@
 ---
 paths:
   - "convex/**"
+  - "tests/convex/**"
 ---
 
 # Convex

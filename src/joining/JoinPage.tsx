@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { linkOffWords } from "../../convex/joiningShared";
+import { linkOffWords } from "../../convex/joining/joiningShared";
 import { Loading, PageTitle, Problem } from "../frame/Panel";
 import { LEAGUES_PATH } from "../leagues/paths";
 import { useChange } from "../useChange";

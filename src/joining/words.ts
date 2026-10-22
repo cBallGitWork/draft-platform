@@ -1,9 +1,9 @@
 // What joining's screens say (#73), in one place for Craig to change in the pull request. Why the
-// server refused a change is in convex/joining.ts and convex/leagueAccess.ts, and reaches the
+// server refused a change is in convex/joining/joining.ts and convex/shared/leagueAccess.ts, and reaches the
 // screen as is.
 
-import type { Delivery } from "../../convex/joining";
-import { INVITE_DAYS, aNewTeamWords } from "../../convex/joiningShared";
+import type { Delivery } from "../../convex/joining/joining";
+import { INVITE_DAYS, aNewTeamWords } from "../../convex/joining/joiningShared";
 import { unsentLinkWords } from "../leagues/words";
 import { failedWords } from "../words";
 

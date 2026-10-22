@@ -3,8 +3,8 @@
 // hand the screens their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import type { InvitesPageData } from "../../convex/invitesPage";
-import type { JoinPageData } from "../../convex/joinRequests";
+import type { InvitesPageData } from "../../convex/joining/invitesPage";
+import type { JoinPageData } from "../../convex/joining/joinRequests";
 import type { Change } from "../refusal";
 
 export type { InvitesPageData, JoinPageData };

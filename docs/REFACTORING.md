@@ -72,7 +72,7 @@ PR's checks box.
 ## Proving nothing changed
 
 - The Vitest suite and the type check pass before and after.
-- Scoring: `convex/scoring.test.ts` replays a recorded match (Hull v Everton) through scoring and
+- Scoring: `tests/convex/scoring/scoring.test.ts` replays a recorded match (Hull v Everton) through scoring and
   must give identical points before and after. A whole gameweek, every player and every
   head-to-head, replaces it once #28 or the league score lands.
 - The Convex schema is unchanged.

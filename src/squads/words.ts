@@ -1,7 +1,7 @@
 // What the squads screen says, in one place for Craig to change in the pull request. Why the
-// server refused a change is in convex/squads.ts (`squadRefusals`), and reaches the screen as is.
+// server refused a change is in convex/squads/squads.ts (`squadRefusals`), and reaches the screen as is.
 
-import type { SquadWarning } from "../../convex/squads";
+import type { SquadWarning } from "../../convex/squads/squads";
 import { failedWords } from "../words";
 
 export const SQUADS_TITLE = "Squads";

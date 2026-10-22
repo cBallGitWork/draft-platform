@@ -10,7 +10,7 @@ fixture lists, all 900 team sheets of the 450 matches played, and both seasons' 
 
 ## The seam
 
-`positionsOf` in `convex/positions.ts`: his starts, his Premier League label, the admin's say and
+`positionsOf` in `convex/positions/positions.ts`: his starts, his Premier League label, the admin's say and
 the approve mode in; each position with its source (starts, label, admin) and whether it is
 confirmed out, with his proposals (what his starts give that the admin has not approved).
 
@@ -35,7 +35,7 @@ confirmed out, with his proposals (what his starts give that the admin has not a
 
 ## The formation table
 
-`FORMATION_PLACES` in `convex/positionTables.ts`, 19 formations, every one seen; the rule they
+`FORMATION_PLACES` in `convex/positions/positionTables.ts`, 19 formations, every one seen; the rule they
 follow is the comment above it. Where the rule left a choice, the labels of the men who started
 there decided:
 
@@ -59,7 +59,7 @@ A formation not in the table gives nothing and is reported (`unknownFormations`)
 except for an attacking midfielder: CAM in the centre, W out wide, both with no side named. Clear
 roles map straight across; the three vague ones give every position they could mean: Defender
 CB FB (spec/06), Midfielder CDM CM WM CAM, Forward W SS ST. All 54 labels seen are pinned in
-`convex/positionTables.test.ts`; an unseen one gives nothing and is reported (`unknownLabels`).
+`tests/convex/positions/positionTables.test.ts`; an unseen one gives nothing and is reported (`unknownLabels`).
 
 This season's squads leave some men out (Romero, Vicario and Spence at Spurs), so a man's label
 is his squad's, else the newest sheet's that names him.
@@ -69,17 +69,17 @@ is his squad's, else the newest sheet's that names him.
 `playerPositions`, one row per player keyed on FPL's `code`, apart from `players` so the
 six-hourly football sync never touches it: his newest 38 starts and his label, from the feeds,
 and the admin's approvals and corrections, written only by his functions. `positionsOf` runs on
-every read (`playerPositions:ofPlayer`), so neither a change of approve mode nor a corrected
+every read (`positions/playerPositions:ofPlayer`), so neither a change of approve mode nor a corrected
 table needs a recount. `positionSettings` holds the approve mode; `positionSheets` each match filed.
 
 The admin's functions, his alone by his email on the server (#124): `queue` (new signings and the
 men whose starts wait for him), `ofPlayer`, `approvePlayer`, `approveClub`, `setPosition` (SS is
-set this way), `removePosition` and `setApproveMode`, in `convex/playerPositions.ts`. The
+set this way), `removePosition` and `setApproveMode`, in `convex/positions/playerPositions.ts`. The
 dashboard's screen is built.
 
 ## The sync
 
-`npx convex run positionsSync:run '{"trigger":"manual"}'`, then `positionsSync:latest`. It reads
+`npx convex run positions/positionsSync:run '{"trigger":"manual"}'`, then `positions/positionsSync:latest`. It reads
 FPL's players (the join), both seasons' fixture lists, the sheets of up to 150 played matches not
 yet read, oldest first and one at a time, and this season's twenty squads. Every run is a row in
 `positionsSyncs`; a failed read fails the run, keeping the matches filed before it. The first run

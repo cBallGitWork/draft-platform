@@ -1,5 +1,6 @@
 {
-  // The app in src/. Convex's functions have their own, convex/tsconfig.json.
+  // The app in src/ and every test in tests/. Convex's functions have their own,
+  // convex/tsconfig.json; the tests sit outside convex/, so Convex never bundles one.
   "compilerOptions": {
     "target": "ES2023",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
@@ -12,8 +13,10 @@
     "noUnusedParameters": true,
     "isolatedModules": true,
     "skipLibCheck": true,
+    /* For the tests' recorded payloads in tests/support/recorded. */
+    "resolveJsonModule": true,
     "noEmit": true
   },
   // The app imports convex/_generated/api, whose types reach into convex/, so process.d.ts too.
-  "include": ["src", "e2e", "vite.config.ts", "vitest.config.ts", "playwright.config.ts", "test.setup.ts", "console.setup.ts", "convex/process.d.ts"]
+  "include": ["src", "tests", "vite.config.ts", "vitest.config.ts", "playwright.config.ts", "convex/process.d.ts"]
 }

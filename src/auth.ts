@@ -2,9 +2,9 @@
 // live (liveApp.tsx); the preview (preview.ts) and the tests hand the screens their own.
 
 import type { Id } from "../convex/_generated/dataModel";
-import type { LeagueSummary } from "../convex/myLeagues";
+import type { LeagueSummary } from "../convex/leagues/myLeagues";
 
-/** Who is at the screen, their leagues, and the one the app is in (convex/account.ts): in a league
+/** Who is at the screen, their leagues, and the one the app is in (convex/signIn/account.ts): in a league
  *  is having a part in one, as a commissioner, co-commissioner or manager. */
 export type Session =
   | { signedIn: false }

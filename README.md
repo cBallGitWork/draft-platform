@@ -44,11 +44,11 @@ in (its `.env.local` names your dev deployment):
 - `npx convex env set ADMIN_EMAIL` names the admin, and `npx convex env set AUTH_RESEND_KEY`
   holds Resend's API key: pipe each value in, so it stays out of your shell history. Until there
   is a sending domain, mail comes from Resend's test sender (`onboarding@resend.dev`, set in
-  `convex/email.ts`), which reaches only the Resend account's own address, so `ADMIN_EMAIL`
+  `convex/email/email.ts`), which reaches only the Resend account's own address, so `ADMIN_EMAIL`
   must be that address and no one else gets a link yet.
 
 The admin can sign in at once; anyone else is put on the allowed list first:
-`npx convex run allowedEmails:add '{"email":"someone@example.com"}'`.
+`npx convex run signIn/allowedEmails:add '{"email":"someone@example.com"}'`.
 
 The admin creates a league from **Create a league** on the leagues page; its commissioner is
 let sign in, and sent a link if they have no account. A commissioner adds managers from
@@ -56,7 +56,7 @@ let sign in, and sent a link if they have no account. A commissioner adds manage
 renaming teams, the maximum and the co-commissioner have no screen yet, so they are run from the
 CLI as the person allowed to, by their `_id` in the `users` table (without `--identity` the
 server refuses):
-`npx convex run teams:removeManager '{"leagueId":"…","teamId":"…"}' --identity '{"subject":"<their _id>|cli"}'`.
+`npx convex run leagues/teams:removeManager '{"leagueId":"…","teamId":"…"}' --identity '{"subject":"<their _id>|cli"}'`.
 
 To see the screens without signing in, add `?preview=` to the address: `manager` (in two leagues),
 `commissioner` (running them), `newcomer` (in none), `admin` (seeing every league) or `visitor`
@@ -64,3 +64,7 @@ To see the screens without signing in, add `?preview=` to the address: `manager`
 and then only the previews work.
 
 `npm run verify` runs every gate: the tests, the typecheck and the hook checks.
+
+The app is in `src/` and the server in `convex/`, one folder per feature in each. Every test is in
+`tests/`, mirroring them (`tests/convex/`, `tests/src/`, `tests/scripts/`), with the shared
+harnesses and recorded feeds in `tests/support/` and the browser smoke suite in `tests/smoke/`.

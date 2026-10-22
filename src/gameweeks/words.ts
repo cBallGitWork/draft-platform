@@ -1,8 +1,8 @@
 // What the gameweeks screen says, in one place for Craig to change in the pull request. Why the
-// server refused a change is in convex/leagueGameweeks.ts (`gameweekRefusals`), and reaches the
+// server refused a change is in convex/gameweeks/leagueGameweeks.ts (`gameweekRefusals`), and reaches the
 // screen as is.
 
-import { GAMEWEEKS } from "../../convex/usedGameweeks";
+import { GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import { failedWords } from "../words";
 
 export const GAMEWEEKS_TITLE = "Gameweeks";

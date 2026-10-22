@@ -2,7 +2,7 @@
 // (liveTable.ts); the preview and the tests hand the screen their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import type { LeagueTable } from "../../convex/leagueTable";
+import type { LeagueTable } from "../../convex/table/leagueTable";
 
 export type { LeagueTable };
 

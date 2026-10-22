@@ -1,7 +1,7 @@
 // What the admin's dashboard says, in one place for Craig to change in the pull request. Why the
 // server refused a change reaches the screen as is.
 
-import type { ApproveMode, PositionSource } from "../../convex/positions";
+import type { ApproveMode, PositionSource } from "../../convex/positions/positions";
 import { failedWords } from "../words";
 
 export const ADMIN_TITLE = "Admin dashboard";
