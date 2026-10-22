@@ -55,8 +55,8 @@ export const letters = query({
   },
 });
 
-/** How many of the signed-in person's listed letters are unread: only the latest LETTERS_SHOWN,
- *  the ones `letters` lists, so opening every one clears it. Counted up to one past UNREAD_COUNTED. */
+/** How many of the letters `letters` lists are unread, so opening every one clears it.
+ *  Counted up to one past UNREAD_COUNTED. */
 export const unreadCount = query({
   args: {},
   returns: v.number(),
