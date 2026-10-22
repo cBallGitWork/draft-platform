@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { INVITES_TO_ONE_EMAIL_READ } from "../../../convex/joining/invites";
 import { INVITE_LIFETIME_MS } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { asCommissioner, invite, openLastLinkTo } from "../../support/convex/joining.harness";
@@ -87,6 +88,18 @@ describe("nothing to tell", () => {
     await deletes(t, COMMISSIONER, leagueId);
 
     expect(await endedInviteOf(ANN)).toBeNull();
+  });
+
+  test("reading as many invites as it reads at once says so, so the older ones aren't ignored silently", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await t.run(async (ctx) => {
+      for (let i = 0; i < INVITES_TO_ONE_EMAIL_READ; i += 1) {
+        await ctx.db.insert("invites", { leagueId, email: ANN, invitedBy: COMMISSIONER, expiresAt: Date.now() + i, delivery: "sent" });
+      }
+    });
+
+    await endedInviteOf(ANN);
+    expect(warn).toHaveBeenCalledWith(`${ANN} has ${INVITES_TO_ONE_EMAIL_READ} or more invites: only ${INVITES_TO_ONE_EMAIL_READ} were read`);
   });
 
   test("signed out", async () => {

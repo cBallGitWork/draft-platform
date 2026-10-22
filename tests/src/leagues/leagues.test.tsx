@@ -22,18 +22,24 @@ describe("someone signed in, in no league", () => {
   });
 
   // "Your invite to <league> expired / was cancelled / couldn't be used: <reason>. Ask the
-  // commissioner for a new one." (Craig, 22 Oct 2026)
+  // commissioner for a new one." (Craig, 22 Oct 2026), the reason its own sentence.
   it.each([
     [{ leagueName: "Mini beta", ended: "expired", reason: null }, "Your invite to Mini beta expired. Ask the commissioner for a new one."],
     [{ leagueName: "Mini beta", ended: "cancelled", reason: null }, "Your invite to Mini beta was cancelled. Ask the commissioner for a new one."],
     [
       { leagueName: "Mini beta", ended: "couldNotJoin", reason: "The league is full: it has all 4 of its teams." },
-      "Your invite to Mini beta couldn't be used: The league is full: it has all 4 of its teams. Ask the commissioner for a new one.",
+      "Your invite to Mini beta couldn't be used. The league is full: it has all 4 of its teams. Ask the commissioner for a new one.",
     ],
   ] as const)("whose newest invite ended without them joining is told how, and to ask for a new one", async (endedInvite, line) => {
     openApp(LEAGUES_PATH, newcomer, { joining: { endedInvite } });
     expect(await screen.findByText(line)).toBeTruthy();
     expect(screen.getByText(notInALeagueWords("manager@example.com"))).toBeTruthy();
+  });
+
+  it("whose invite couldn't be used, with no reason kept, never sees 'null'", async () => {
+    openApp(LEAGUES_PATH, newcomer, { joining: { endedInvite: { leagueName: "Mini beta", ended: "couldNotJoin", reason: null } } });
+    const line = await screen.findByText(/^Your invite to Mini beta couldn't be used\. Something went wrong/);
+    expect(line.textContent).not.toContain("null");
   });
 
   it("with no invite to tell of, is told only that they're in none", async () => {

@@ -132,6 +132,7 @@ export const deleteForGood = internalMutation({
       for (const row of rows) await ctx.db.delete(row._id);
       more ||= rows.length === ROWS_PER_RUN;
     }
+    // The league goes last: joining/endedInvite.ts reads an invite's league as always there.
     if (more) await ctx.scheduler.runAfter(0, internal.leagues.leagueDeletion.deleteForGood, { leagueId });
     else await ctx.db.delete("leagues", leagueId);
     return null;

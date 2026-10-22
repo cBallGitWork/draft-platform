@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { query } from "../_generated/server";
 import { signedInEmail } from "../shared/leagueAccess";
-import { INVITES_TO_ONE_EMAIL_READ } from "./invites";
+import { INVITES_TO_ONE_EMAIL_READ, warnIfFull } from "./invites";
 
 // What became of an invite that let someone sign in but not join (spec/13, Joining): their leagues
 // page says it expired, was cancelled, or couldn't be used and why, instead of only that they're in
@@ -41,9 +41,12 @@ export const mine = query({
       .withIndex("by_email_and_expiresAt", (q) => q.eq("email", email))
       .order("desc")
       .take(INVITES_TO_ONE_EMAIL_READ);
+    warnIfFull(invites, email);
     const newest = invites.reduce<Doc<"invites"> | null>((found, invite) => (found && found._creationTime > invite._creationTime ? found : invite), null);
     const ended = newest && howEnded(newest, now);
     if (!newest || !ended) return null;
+    // deleteForGood (leagueDeletion.ts) removes a league's invites before the league itself, so an
+    // invite whose league is gone is a broken database, not a league deleted a moment ago.
     const league = await ctx.db.get("leagues", newest.leagueId);
     if (!league) throw new Error(`Invite ${newest._id} is to league ${newest.leagueId}, which doesn't exist`);
     if (league.deletion) return null;
