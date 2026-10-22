@@ -135,9 +135,15 @@ const leaguesRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: LEAGUES_PATH,
   component: function Leagues() {
-    const { session, leagues } = leaguesRoute.useRouteContext();
+    const { session, leagues, joining } = leaguesRoute.useRouteContext();
     return session.signedIn ? (
-      <LeaguesPage email={session.email} isAdmin={session.isAdmin} leagues={session.leagues} actions={leagues} />
+      <LeaguesPage
+        email={session.email}
+        isAdmin={session.isAdmin}
+        leagues={session.leagues}
+        actions={leagues}
+        useEndedInvite={joining.useEndedInvite}
+      />
     ) : null;
   },
 });

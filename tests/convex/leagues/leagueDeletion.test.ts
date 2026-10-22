@@ -129,6 +129,26 @@ describe("while it can be undone", () => {
     expect((await accountOf(t, ADMIN)).leagues).toMatchObject([{ leagueId, deletion: {} }]);
   });
 
+  // "Its own commissioner can always see it during the 24 hours and undo it" (Craig, 22 Oct 2026).
+  test("when the admin deletes it, its commissioner still sees it; the co-commissioner and managers don't", async () => {
+    const deletesAt = await deletes(t, ADMIN, leagueId);
+
+    expect(await accountOf(t, COMMISSIONER)).toMatchObject({ inLeague: false, leagues: [{ leagueId, deletion: { deletesAt } }] });
+    expect((await accountOf(t, ADMIN)).leagues).toMatchObject([{ leagueId, deletion: { deletesAt } }]);
+    for (const email of [CO_COMMISSIONER, ANN, BOB]) expect(await accountOf(t, email)).toMatchObject({ inLeague: false, leagues: [] });
+  });
+
+  test("when the admin deletes it, its commissioner can undo it; the co-commissioner and managers can't", async () => {
+    await deletes(t, ADMIN, leagueId);
+    for (const email of [CO_COMMISSIONER, ANN]) {
+      await expect((await actingAs(t, email)).mutation(api.leagues.leagueDeletion.undo, { leagueId })).rejects.toThrow(refusals.notUndoer);
+    }
+    await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
+
+    expect((await leagueRow(t, leagueId))?.deletion).toBeUndefined();
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "deletionUndone", name: LEAGUE_NAME });
+  });
+
   test("whoever deleted it undoes it inside the day: the deletion is called off, and it comes back whole", async () => {
     const before = await everythingOf(leagueId);
     const deletesAt = await deletes(t, COMMISSIONER, leagueId);

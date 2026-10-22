@@ -33,6 +33,8 @@ const nothingChanged = previewSays("nothing changed");
 
 export const previewJoining: JoiningSeam = {
   useInvitesPage: (leagueId) => (leagueId === invitesPage.leagueId ? invitesPage : null),
+  // The newcomer's invite to Mini beta ran out before they signed in.
+  useEndedInvite: () => ({ leagueName: miniBeta.name, ended: "expired", reason: null }),
   useJoinPage: (token) => {
     if (token === "gone") return null;
     return { leagueName: invitesPage.leagueName, standing: token === "waiting" ? "waiting" : "mayAsk" };
