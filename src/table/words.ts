@@ -1,5 +1,7 @@
 // What the table and fixtures screen says, in one place for Craig to change in the pull request.
 
+import { LOCALE } from "../../convex/shared/londonTime";
+
 export const TABLE_PAGE_TITLE = "Table and fixtures";
 export const TABLE_TITLE = "Table";
 export const FIXTURES_TITLE = "Fixtures";
@@ -28,7 +30,7 @@ export const previousLabel = "Previous gameweek";
 export const nextLabel = "Next gameweek";
 export const versusWords = "v";
 export const leagueAverageWords = "League average";
-const andList = new Intl.ListFormat("en-GB", { type: "conjunction" });
+const andList = new Intl.ListFormat(LOCALE, { type: "conjunction" });
 /** The teams with a bye in a gameweek: one a game, so several when a league plays more than one. */
 export const byeWords = (teamNames: readonly string[]) => `${andList.format(teamNames)} ${teamNames.length === 1 ? "has" : "have"} a bye.`;
 export const fixturesListLabel = (gameweek: number) => `${gameweekWords(gameweek)}'s fixtures`;

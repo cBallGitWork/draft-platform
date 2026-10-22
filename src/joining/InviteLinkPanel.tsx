@@ -2,7 +2,7 @@ import { joinPath, noLinkWords } from "../../convex/joining/joiningShared";
 import { PanelTitle, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
-import { linkHint } from "./words";
+import { inviteLinkWords, linkHint } from "./words";
 
 /** spec/13, Joining: the league's one invite link, to share; switching it off or replacing it
  *  stops the old one working. */
@@ -12,20 +12,20 @@ export function InviteLinkPanel({ page, joining }: { page: InvitesPageData; join
 
   return (
     <section aria-labelledby="invite-link-title" className="bg-panel">
-      <PanelTitle id="invite-link-title">Invite link</PanelTitle>
+      <PanelTitle id="invite-link-title">{inviteLinkWords.title}</PanelTitle>
       <Problem problem={problem} />
       <div className="flex flex-col gap-2 p-3">
         {page.linkToken === null ? (
           <>
             <p>{noLinkWords}</p>
             <button type="button" disabled={busy} onClick={makeLink} className="action self-start">
-              Make an invite link
+              {inviteLinkWords.make}
             </button>
           </>
         ) : (
           <>
             <label htmlFor="invite-link" className="font-semibold">
-              The league's invite link
+              {inviteLinkWords.label}
             </label>
             <input
               id="invite-link"
@@ -37,7 +37,7 @@ export function InviteLinkPanel({ page, joining }: { page: InvitesPageData; join
             <p className="text-muted">{linkHint}</p>
             <span className="flex flex-wrap gap-2">
               <button type="button" disabled={busy} onClick={makeLink} className="secondary-action">
-                Replace the link
+                {inviteLinkWords.replace}
               </button>
               <button
                 type="button"
@@ -45,7 +45,7 @@ export function InviteLinkPanel({ page, joining }: { page: InvitesPageData; join
                 onClick={() => void run(() => joining.switchOffLink(page.leagueId))}
                 className="secondary-action"
               >
-                Switch it off
+                {inviteLinkWords.switchOff}
               </button>
             </span>
           </>

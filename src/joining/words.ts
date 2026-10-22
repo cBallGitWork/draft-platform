@@ -4,6 +4,7 @@
 
 import type { Delivery } from "../../convex/joining/joining";
 import { INVITE_DAYS, aNewTeamWords } from "../../convex/joining/joiningShared";
+import { LOCALE } from "../../convex/shared/londonTime";
 import { unsentLinkWords } from "../leagues/words";
 import { failedWords } from "../words";
 
@@ -17,7 +18,7 @@ export const forTeamWords = (teamName: string | null) => `For ${teamName ?? aNew
 
 export const inviteHint = `They join when they sign in, with no approval. An invite lasts ${INVITE_DAYS} days.`;
 
-const dayFormat = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" });
+const dayFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short" });
 /** A day, as the page shows when an invite ends or a request was made: "Tue 27 Oct". */
 export const dayWords = (time: number) => dayFormat.format(time);
 
@@ -43,7 +44,39 @@ export const waitingStrip = (waiting: number) =>
 export const loadingWords = "Loading…";
 export const notYoursWords = "You don't run this league, or it doesn't exist.";
 
+/** The panel inviting by email: its form, and each invite's controls. */
+export const emailInvitesWords = {
+  title: "Invite by email",
+  emailLabel: "Email",
+  teamLabel: "Team",
+  send: "Send the invite",
+  listLabel: "Invites",
+  resend: "Resend",
+  resendLabel: (email: string) => `Resend the invite to ${email}`,
+  cancel: "Cancel",
+  cancelLabel: (email: string) => `Cancel the invite to ${email}`,
+} as const;
+
+/** The league's one invite link. */
+export const inviteLinkWords = {
+  title: "Invite link",
+  make: "Make an invite link",
+  label: "The league's invite link",
+  replace: "Replace the link",
+  switchOff: "Switch it off",
+} as const;
 export const linkHint = "Share it, say in the group chat. Opening it only asks to join: you approve each request.";
+
+/** The join requests the link made, each approved to a team or refused. */
+export const requestsWords = {
+  title: "Join requests",
+  asked: (askedAt: number) => `Asked ${dayWords(askedAt)}`,
+  teamLabel: (email: string) => `Team for ${email}`,
+  approve: "Approve",
+  approveLabel: (email: string) => `Approve ${email}`,
+  refuse: "Refuse",
+  refuseLabel: (email: string) => `Refuse ${email}`,
+} as const;
 export const noRequestsWords = "No one is waiting.";
 export const noInvitesWords = "No invites yet.";
 
@@ -54,6 +87,7 @@ export const joinPageWords = {
   title: "Join a league",
   loading: loadingWords,
   mayAsk: (leagueName: string) => `Ask to join ${leagueName}. Its commissioner approves each request.`,
+  ask: "Ask to join",
   waiting: (leagueName: string) =>
     `Your request to join ${leagueName} is waiting for the commissioner. You'll get an email once it's approved.`,
   inLeague: (leagueName: string, teamName: string) => `You're in ${leagueName}, running ${teamName}.`,

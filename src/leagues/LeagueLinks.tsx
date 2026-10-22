@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { LEAGUES_PATH } from "./paths";
+import { backToLeaguesWords } from "./words";
 
 /** A way into one of a league's pages from its row on "Your leagues": a full tap on a phone, a
  *  plain line on a desktop. */
@@ -9,7 +10,7 @@ export const leagueRowLinkClasses = "flex min-h-tap items-center font-normal lg:
 export function BackToLeagues({ className }: { className?: string }) {
   return (
     <Link to={LEAGUES_PATH} className={className ? `flex min-h-tap items-center ${className}` : "flex min-h-tap items-center"}>
-      Back to your leagues
+      {backToLeaguesWords}
     </Link>
   );
 }

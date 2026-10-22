@@ -6,6 +6,7 @@ import { TeamSelect, useTeamChoice } from "./TeamChoice";
 import {
   couldNotJoinWords,
   deliveryWords,
+  emailInvitesWords,
   expiredWords,
   forTeamWords,
   inviteHint,
@@ -48,11 +49,11 @@ export function EmailInvites({ page, joining }: { page: InvitesPageData; joining
   };
   return (
     <section aria-labelledby="email-invites-title" className="bg-panel">
-      <PanelTitle id="email-invites-title">Invite by email</PanelTitle>
+      <PanelTitle id="email-invites-title">{emailInvitesWords.title}</PanelTitle>
       <Problem problem={problem} />
       <form onSubmit={send} className="flex flex-col gap-2 p-3">
         <label htmlFor="invite-email" className="font-semibold">
-          Email
+          {emailInvitesWords.emailLabel}
         </label>
         <input
           id="invite-email"
@@ -62,16 +63,16 @@ export function EmailInvites({ page, joining }: { page: InvitesPageData; joining
           onChange={(event) => setEmail(event.target.value)}
           className="text-box"
         />
-        <TeamSelect id="invite-team" label="Team" choice={choice} />
+        <TeamSelect id="invite-team" label={emailInvitesWords.teamLabel} choice={choice} />
         <p className="text-muted">{inviteHint}</p>
         <button type="submit" disabled={busy || teamId === undefined} className="action self-start">
-          Send the invite
+          {emailInvitesWords.send}
         </button>
       </form>
       {page.invites.length === 0 ? (
         <p className="px-3 pb-2 text-muted">{noInvitesWords}</p>
       ) : (
-        <ul aria-label="Invites" className="border-t border-panel-rule">
+        <ul aria-label={emailInvitesWords.listLabel} className="border-t border-panel-rule">
           {page.invites.map((invite) => (
             <InviteItem key={invite.inviteId} invite={invite} now={now} change={change} />
           ))}
@@ -98,9 +99,9 @@ function InviteItem({ invite, now, change }: { invite: Invite; now: number; chan
               disabled={change.busy}
               onClick={() => change.resend(invite)}
               className="secondary-action"
-              aria-label={`Resend the invite to ${invite.email}`}
+              aria-label={emailInvitesWords.resendLabel(invite.email)}
             >
-              Resend
+              {emailInvitesWords.resend}
             </button>
           )}
           <button
@@ -108,9 +109,9 @@ function InviteItem({ invite, now, change }: { invite: Invite; now: number; chan
             disabled={change.busy}
             onClick={() => change.cancel(invite)}
             className="secondary-action"
-            aria-label={`Cancel the invite to ${invite.email}`}
+            aria-label={emailInvitesWords.cancelLabel(invite.email)}
           >
-            Cancel
+            {emailInvitesWords.cancel}
           </button>
         </span>
       )}

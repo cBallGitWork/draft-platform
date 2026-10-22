@@ -1,4 +1,4 @@
-// The gameweeks seam's live wiring, with Convex's query and mutation faked: what it reads, and
+// The gameweeks seam's live wiring, with Convex's query and mutation faked by name: what it reads, and
 // what ticking resolves with when the server does it, refuses it, or can't be reached.
 
 import { renderHook } from "@testing-library/react";
@@ -9,40 +9,44 @@ import { season } from "../../support/src/gameweeks.harness";
 import { liveGameweeks } from "../../../src/gameweeks/liveGameweeks";
 import { setFailedWords } from "../../../src/gameweeks/words";
 
-const convex = vi.hoisted(() => ({ query: vi.fn(), set: vi.fn() }));
-vi.mock("convex/react", () => ({ useQuery: convex.query, useMutation: () => convex.set }));
+const convex = vi.hoisted(() => ({ ofLeague: vi.fn(), setUsed: vi.fn() }));
+vi.mock("convex/react", async () =>
+  (await import("../../support/src/convexReact.harness")).fakeConvexReact({
+    queries: { "gameweeks/leagueGameweeks:ofLeague": convex.ofLeague },
+    mutations: { "gameweeks/leagueGameweeks:setUsed": convex.setUsed },
+  }),
+);
 
 afterEach(() => {
-  convex.query.mockReset();
-  convex.set.mockReset();
-  vi.restoreAllMocks();
+  convex.ofLeague.mockReset();
+  convex.setUsed.mockReset();
 });
 
 const leagueId = "league-1" as Id<"leagues">;
 const REFUSAL = "Gameweek 3 has begun, so it can't be ticked or unticked.";
 const view = () => renderHook(() => liveGameweeks.useLeagueGameweeks(leagueId)).result.current;
 
-test("it reads the league's gameweeks from the server, as they come", () => {
+test("it reads the league's gameweeks from gameweeks/leagueGameweeks:ofLeague, as they come", () => {
   const gameweeks = season();
-  convex.query.mockReturnValue(gameweeks);
+  convex.ofLeague.mockReturnValue(gameweeks);
   expect(view().gameweeks).toBe(gameweeks);
-  expect(convex.query).toHaveBeenCalledWith(expect.anything(), { leagueId });
+  expect(convex.ofLeague).toHaveBeenCalledWith({ leagueId });
 });
 
-test("a tick the server makes resolves with no problem", async () => {
-  convex.set.mockResolvedValue(null);
+test("a tick gameweeks/leagueGameweeks:setUsed makes resolves with no problem", async () => {
+  convex.setUsed.mockResolvedValue(null);
   expect(await view().setUsed(17, false)).toBeNull();
-  expect(convex.set).toHaveBeenCalledWith({ leagueId, gameweek: 17, used: false });
+  expect(convex.setUsed).toHaveBeenCalledWith({ leagueId, gameweek: 17, used: false });
 });
 
 test("a tick the server refuses resolves with the server's own words", async () => {
-  convex.set.mockRejectedValue(new ConvexError(REFUSAL));
+  convex.setUsed.mockRejectedValue(new ConvexError(REFUSAL));
   expect(await view().setUsed(3, false)).toBe(REFUSAL);
 });
 
 test("any other failure is logged and said plainly", async () => {
   const failure = new Error("offline");
-  convex.set.mockRejectedValue(failure);
+  convex.setUsed.mockRejectedValue(failure);
   const logged = vi.spyOn(console, "error").mockImplementation(() => {});
 
   expect(await view().setUsed(17, true)).toBe(setFailedWords);

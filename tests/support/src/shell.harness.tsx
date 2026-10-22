@@ -10,7 +10,7 @@ import type { LetterSummary } from "../../../convex/mail/mail";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { fakeAdmin, type AdminData } from "./admin.harness";
 import type { AuthActions, Session } from "../../../src/auth";
-import { emptyTopBar, type TopBarState } from "../../../src/frame/topBarState";
+import type { TopBarState } from "../../../src/frame/topBarState";
 import { fakeGameweeks } from "./gameweeks.harness";
 import { fakeJoining, type JoiningData } from "./joining.harness";
 import type { LeagueActions } from "../../../src/leagues/actions";
@@ -95,7 +95,7 @@ export type AppSetUp = {
  *  signing in or out, or a league changing, would. */
 export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const {
-    topBar = emptyTopBar,
+    topBar = { unreadMail: 0, next: null },
     letters = [],
     joining: joiningData = {},
     squads: squadsData = {},

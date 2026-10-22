@@ -3,6 +3,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, test, vi } from "vitest";
 import { plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../../convex/football/football.ts";
+import { PL_FULL_TIME } from "../../convex/football/premierLeague.ts";
+import { LIVE_WINDOW_MS } from "../../convex/stats/liveStats.ts";
 import {
   COMMENTARY_MATCH,
   recordedCommentary,
@@ -44,6 +46,12 @@ test.each([
   ["four hours on, with no full time seen", "stop", KICKOFF + GIVE_UP, null],
 ])("%s is %s", (_when, expected, now, fullTimeSeenAt) => {
   expect(phase(now, KICKOFF, fullTimeSeenAt)).toBe(expected);
+});
+
+// The recorder keeps its own copy of the live poller's window, as plain node can't import the server's.
+test("with no full time seen, the recorder gives up where the live poller's window ends", () => {
+  expect(phase(KICKOFF + LIVE_WINDOW_MS - MINUTE, KICKOFF, null)).toBe("record");
+  expect(phase(KICKOFF + LIVE_WINDOW_MS, KICKOFF, null)).toBe("stop");
 });
 
 test("a refused read is saved with why, and the poll goes on to the next", async () => {
@@ -154,7 +162,7 @@ const HOURS_OF_POLLS = { timeout: 30_000 };
 
 test("the recorder waits until 90 minutes before kickoff, polls every 30 seconds, and stops a quarter hour after full time", HOURS_OF_POLLS, async () => {
   const fullTimeAt = KICKOFF + 112 * MINUTE;
-  const statusAt = (now) => (now < KICKOFF ? "U" : now < fullTimeAt ? "L" : "C");
+  const statusAt = (now) => (now < KICKOFF ? "U" : now < fullTimeAt ? "L" : PL_FULL_TIME);
 
   const { asked, polls } = await recordAgainst(KICKOFF - LEAD - 5.5 * MINUTE, statusAt);
 

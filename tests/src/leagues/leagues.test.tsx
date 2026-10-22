@@ -6,37 +6,39 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
+import { mainMenuLabel, signOutWords } from "../../../src/frame/words";
 import { SIGN_IN_PATH } from "../../../src/router";
 import { admin, adminSeeing, league, manager, managerIn, newcomer, openApp, visitor } from "../../support/src/shell.harness";
-import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
-import { unsentLink, unsentLinkWords } from "../../../src/leagues/words";
+import { LEAGUES_PATH, LEAGUES_TITLE, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
+import { commissionerLine, newLeagueLabels, notInALeagueWords, unsentLink, unsentLinkWords } from "../../../src/leagues/words";
+import { signInWords } from "../../../src/sign-in/words";
 
 afterEach(cleanup);
 
 describe("someone signed in, in no league", () => {
   it.each(["/", MY_TEAM_PATH, SIGN_IN_PATH])("opening %s sees their leagues page, saying they're in none", async (path) => {
     const app = openApp(path, newcomer);
-    expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
-    expect(screen.getByText("You're signed in as manager@example.com, and you're not in a league yet.")).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+    expect(screen.getByText(notInALeagueWords("manager@example.com"))).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 
   it("sees no league menu and no Create a league, and can sign out", async () => {
     const app = openApp(LEAGUES_PATH, newcomer);
-    await screen.findByRole("heading", { level: 1, name: "Your leagues" });
+    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
     expect(screen.queryByRole("navigation")).toBeNull();
     expect(screen.queryByRole("link", { name: "Create a league" })).toBeNull();
 
-    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    await userEvent.click(screen.getByRole("button", { name: signOutWords }));
     expect(app.auth.signOut).toHaveBeenCalledOnce();
     app.becomes(visitor);
-    expect(await screen.findByRole("textbox", { name: "Email" })).toBeTruthy();
+    expect(await screen.findByRole("textbox", { name: signInWords.emailLabel })).toBeTruthy();
     expect(app.path()).toBe(SIGN_IN_PATH);
   });
 
   it("opening Create a league, not being the admin, is sent back to their leagues", async () => {
     const app = openApp(NEW_LEAGUE_PATH, newcomer);
-    expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 });
@@ -46,7 +48,7 @@ describe("the admin, with no part in a league", () => {
     const app = openApp("/", admin);
     await userEvent.click(await screen.findByRole("link", { name: "Create a league" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Create a league" })).toBeTruthy();
-    expect(screen.getByRole("textbox", { name: "League name" })).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: newLeagueLabels.name })).toBeTruthy();
     expect(app.path()).toBe(NEW_LEAGUE_PATH);
   });
 
@@ -77,9 +79,9 @@ describe("a manager in a league", () => {
 
     const managed = await rowOf(league.name);
     expect(cellsOf(managed)).toEqual(["Manager", "Team 1", "3 of 4"]);
-    expect(within(managed).getByText(`Commissioner: ${league.commissionerEmail}`)).toBeTruthy();
+    expect(within(managed).getByText(commissionerLine(league.commissionerEmail))).toBeTruthy();
     expect(cellsOf(await rowOf("Mini beta"))).toEqual(["Commissioner, Manager", "Team 1", "1 of 4"]);
-    expect(screen.getByRole("navigation", { name: "Main" })).toBeTruthy();
+    expect(screen.getByRole("navigation", { name: mainMenuLabel })).toBeTruthy();
     expect(screen.queryByRole("link", { name: "Create a league" })).toBeNull();
     expect(app.path()).toBe(LEAGUES_PATH);
   });

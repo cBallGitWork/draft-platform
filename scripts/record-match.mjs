@@ -29,13 +29,13 @@ const LEAD_MS = 90 * MINUTE_MS;
 const AFTER_FULL_TIME_MS = 15 * MINUTE_MS;
 /** A match abandoned, or a status that never turns to full time, stops recording here. The same
  *  window as LIVE_WINDOW_MS in convex/stats/liveStats.ts, which plain node can't import: it imports its
- *  neighbours with no extension. */
+ *  neighbours with no extension. tests/scripts/record-match.test.mjs holds the two equal. */
 const GIVE_UP_MS = 4 * HOUR_MS;
 /** Between one read and the next in a poll: politeness, not a rule of the feed. */
 const PAUSE_MS = 1_000;
 /** The fixture's `status` once the match is over ("U" before it, "C" after). A copy of
  *  PL_FULL_TIME in convex/football/premierLeague.ts, which plain node can't import: it imports "./football"
- *  with no extension. */
+ *  with no extension. tests/scripts/record-match.test.mjs holds the two equal. */
 const FULL_TIME = "C";
 const RECORDINGS_DIR = join(dirname(dirname(fileURLToPath(import.meta.url))), ".recordings");
 

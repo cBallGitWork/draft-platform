@@ -16,6 +16,28 @@ export const roleWords: Record<LeagueSummary["roles"][number], string> = {
 /** The admin's part in a league where he has no other. */
 export const adminWords = "Admin";
 
+/** The way back to "Your leagues" from a page about one league. */
+export const backToLeaguesWords = "Back to your leagues";
+
+/** "Your leagues" for someone in none. */
+export const notInALeagueWords = (email: string) => `You're signed in as ${email}, and you're not in a league yet.`;
+export const invitedHereWords = "When a commissioner invites you to one, it will be here.";
+
+/** "Your leagues" as a table: its columns, and what each row says. */
+export const leagueColumns = { league: "League", you: "You", team: "Your team", teams: "Teams" } as const;
+export const commissionerLine = (email: string) => `Commissioner: ${email}`;
+export const noTeamCellWords = "None";
+/** Between a league's teams and its most, each its own figure: "6 of 8". */
+export const teamsOfMostWords = " of ";
+
+/** The admin's "Create a league" form. */
+export const newLeagueLabels = {
+  name: "League name",
+  maxTeams: "Maximum teams",
+  commissionerEmail: "Commissioner's email",
+  create: "Create the league",
+} as const;
+
 /** Why the commissioner's sign-in link didn't go, for each answer but "check your email". */
 export const unsentLinkWords: Record<NoLinkReply, string> = {
   tryLater: "too many links were asked for that email in the last hour",

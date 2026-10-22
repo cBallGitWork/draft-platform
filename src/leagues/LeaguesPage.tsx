@@ -13,7 +13,18 @@ import { LeagueDeletionRow, type DeletionActions } from "./LeagueDeletion";
 import { leagueRowLinkClasses } from "./LeagueLinks";
 import { LEAGUES_TITLE, NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
 import { deletes, runs } from "./roles";
-import { adminWords, roleWords, unsentLink, unsentLinkWords } from "./words";
+import {
+  adminWords,
+  commissionerLine,
+  invitedHereWords,
+  leagueColumns,
+  noTeamCellWords,
+  notInALeagueWords,
+  roleWords,
+  teamsOfMostWords,
+  unsentLink,
+  unsentLinkWords,
+} from "./words";
 
 const cellClasses = "px-2 text-left align-top";
 
@@ -45,8 +56,8 @@ export function LeaguesPage({
       <div className="flex flex-col gap-2 px-3 py-2">
         {leagues.length === 0 ? (
           <>
-            <p>You're signed in as {email}, and you're not in a league yet.</p>
-            {!isAdmin && <p className="text-muted">When a commissioner invites you to one, it will be here.</p>}
+            <p>{notInALeagueWords(email)}</p>
+            {!isAdmin && <p className="text-muted">{invitedHereWords}</p>}
           </>
         ) : (
           <LeagueTable leagues={leagues} isAdmin={isAdmin} actions={actions} />
@@ -71,10 +82,10 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
     <table className="w-full border-collapse">
       <thead className="bg-head text-ground">
         <tr>
-          <th scope="col" className={cellClasses}>League</th>
-          <th scope="col" className={cellClasses}>You</th>
-          <th scope="col" className={cellClasses}>Your team</th>
-          <th scope="col" className={`${cellClasses} text-right`}>Teams</th>
+          <th scope="col" className={cellClasses}>{leagueColumns.league}</th>
+          <th scope="col" className={cellClasses}>{leagueColumns.you}</th>
+          <th scope="col" className={cellClasses}>{leagueColumns.team}</th>
+          <th scope="col" className={`${cellClasses} text-right`}>{leagueColumns.teams}</th>
         </tr>
       </thead>
       {leagues.map((league) => (
@@ -82,7 +93,7 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
           <tr>
             <th scope="row" className={`${cellClasses} font-semibold`}>
               <span className="block text-lead">{league.name}</span>
-              <span className="block font-normal text-muted wrap-anywhere">Commissioner: {league.commissionerEmail}</span>
+              <span className="block font-normal text-muted wrap-anywhere">{commissionerLine(league.commissionerEmail)}</span>
               {!league.deletion &&
                 runs(league, isAdmin) &&
                 runnerLinks(league.leagueId).map(({ to, title }) => (
@@ -92,9 +103,11 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
                 ))}
             </th>
             <td className={cellClasses}>{league.roles.map((role) => roleWords[role]).join(", ") || adminWords}</td>
-            <td className={cellClasses}>{league.teamName ?? <span className="text-muted">None</span>}</td>
+            <td className={cellClasses}>{league.teamName ?? <span className="text-muted">{noTeamCellWords}</span>}</td>
             <td className={`${cellClasses} text-right whitespace-nowrap`}>
-              <span className="text-figure">{league.teams}</span> of <span className="text-figure">{league.maxTeams}</span>
+              <span className="text-figure">{league.teams}</span>
+              {teamsOfMostWords}
+              <span className="text-figure">{league.maxTeams}</span>
             </td>
           </tr>
           {league.unsentCommissionerLink && (

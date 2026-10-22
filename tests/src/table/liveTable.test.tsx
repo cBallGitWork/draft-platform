@@ -1,4 +1,4 @@
-// The table seam's live wiring, with Convex's query faked: what it asks the server, and that it
+// The table seam's live wiring, with Convex's query faked by name: what it asks the server, and that it
 // hands on what comes back as it comes.
 
 import { renderHook } from "@testing-library/react";
@@ -7,21 +7,25 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { liveTable } from "../../../src/table/liveTable";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 
-const convex = vi.hoisted(() => ({ query: vi.fn() }));
-vi.mock("convex/react", () => ({ useQuery: convex.query }));
+const convex = vi.hoisted(() => ({ ofLeague: vi.fn() }));
+vi.mock("convex/react", async () =>
+  (await import("../../support/src/convexReact.harness")).fakeConvexReact({
+    queries: { "table/leagueTable:ofLeague": convex.ofLeague },
+  }),
+);
 
-afterEach(() => convex.query.mockReset());
+afterEach(() => convex.ofLeague.mockReset());
 
 const leagueId = "league-1" as Id<"leagues">;
 
-test("it reads the league's table and fixtures from the server, as they come", () => {
+test("it reads the league's table and fixtures from table/leagueTable:ofLeague, as they come", () => {
   const table = leagueTableOf(["Team 1", "Team 2"]);
-  convex.query.mockReturnValue(table);
+  convex.ofLeague.mockReturnValue(table);
   expect(renderHook(() => liveTable.useLeagueTable(leagueId)).result.current).toBe(table);
-  expect(convex.query).toHaveBeenCalledWith(expect.anything(), { leagueId });
+  expect(convex.ofLeague).toHaveBeenCalledWith({ leagueId });
 });
 
 test("it is undefined while loading", () => {
-  convex.query.mockReturnValue(undefined);
+  convex.ofLeague.mockReturnValue(undefined);
   expect(renderHook(() => liveTable.useLeagueTable(leagueId)).result.current).toBeUndefined();
 });

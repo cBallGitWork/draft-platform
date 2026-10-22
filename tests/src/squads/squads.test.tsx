@@ -5,7 +5,7 @@
 import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
-import { LEAGUES_PATH } from "../../../src/leagues/paths";
+import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { adminSeeing, commissioner, league, managerIn, openApp } from "../../support/src/shell.harness";
 import { squadsPath } from "../../../src/squads/paths";
 import type { SquadsData } from "../../support/src/squads.harness";
@@ -56,12 +56,12 @@ describe("reaching the squads", () => {
 
   it("a manager isn't offered them, and is sent back to Your leagues if they go there", async () => {
     openApp(LEAGUES_PATH, managerIn(league));
-    await screen.findByRole("heading", { level: 1, name: "Your leagues" });
+    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
     expect(screen.queryByRole("link", { name: SQUADS_TITLE })).toBeNull();
 
     cleanup();
     const app = openApp(PAGE, managerIn(league));
-    await screen.findByRole("heading", { level: 1, name: "Your leagues" });
+    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 });

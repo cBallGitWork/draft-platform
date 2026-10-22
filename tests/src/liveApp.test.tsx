@@ -6,10 +6,10 @@ import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { signInToJoinWords } from "../../src/joining/words";
-import { LEAGUES_PATH } from "../../src/leagues/paths";
+import { LEAGUES_PATH, LEAGUES_TITLE } from "../../src/leagues/paths";
 import { LiveApp, NO_CONVEX_URL, takeLinkCode } from "../../src/liveApp";
 import { SIGN_IN_PATH } from "../../src/router";
-import { askFailedWords, linkProblemWords, replyWords, waitingWords } from "../../src/sign-in/words";
+import { askFailedWords, linkProblemWords, replyWords, signInWords, waitingWords } from "../../src/sign-in/words";
 
 const convex = vi.hoisted(() => ({
   auth: { isLoading: false, isAuthenticated: false },
@@ -40,8 +40,6 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
-  vi.unstubAllEnvs();
-  vi.restoreAllMocks();
   convex.signIn.mockReset();
   convex.ask.mockReset();
   window.history.replaceState(null, "", "/");
@@ -110,7 +108,7 @@ test("signed in, in no league, the app opens on the leagues page", async () => {
 
   openAt("/");
 
-  expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
+  expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
   expect(window.location.pathname).toBe(LEAGUES_PATH);
 });
 
@@ -138,8 +136,8 @@ test.each([
   vi.spyOn(console, "error").mockImplementation(() => {});
   openAt(SIGN_IN_PATH);
 
-  await userEvent.type(await screen.findByRole("textbox", { name: "Email" }), "craig@example.com");
-  await userEvent.click(screen.getByRole("button", { name: "Send the link" }));
+  await userEvent.type(await screen.findByRole("textbox", { name: signInWords.emailLabel }), "craig@example.com");
+  await userEvent.click(screen.getByRole("button", { name: signInWords.send }));
 
   expect((await screen.findByRole("status")).textContent).toBe(words);
   expect(convex.ask).toHaveBeenCalledWith({ email: "craig@example.com" });

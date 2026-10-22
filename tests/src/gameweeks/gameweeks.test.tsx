@@ -5,7 +5,7 @@ import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
-import { LEAGUES_PATH } from "../../../src/leagues/paths";
+import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { adminSeeing, commissioner, league, managerIn, openApp } from "../../support/src/shell.harness";
 import { BEGUN, season } from "../../support/src/gameweeks.harness";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
@@ -40,13 +40,13 @@ describe("reaching the gameweeks", () => {
 
   it("a manager who doesn't run the league isn't offered them", async () => {
     openApp(LEAGUES_PATH, managerIn(league));
-    await screen.findByRole("heading", { level: 1, name: "Your leagues" });
+    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
     expect(screen.queryByRole("link", { name: GAMEWEEKS_TITLE })).toBeNull();
   });
 
   it("a manager who doesn't run the league, opening them, is sent back to their leagues", async () => {
     const app = openApp(PAGE, managerIn(league));
-    expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
     expect(app.gameweeks.useLeagueGameweeks).not.toHaveBeenCalled();
   });

@@ -7,9 +7,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
-import { LEAGUES_PATH } from "../../../src/leagues/paths";
+import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { adminSeeing, league, manager, managerIn, openApp } from "../../support/src/shell.harness";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
+import { allLeaguesWords } from "../../../src/frame/words";
 
 afterEach(cleanup);
 
@@ -26,7 +27,7 @@ const inMiniBeta = { ...inTwo, currentLeagueId: miniBeta.leagueId };
 const SWITCHER_NAME = /^League: /;
 const switcher = () => screen.findByRole("button", { name: SWITCHER_NAME });
 const switcherOrName = async () => within(await screen.findByRole("banner")).findByText(league.name);
-const choices = () => within(screen.getByRole("list", { name: "Your leagues" })).getAllByRole("button");
+const choices = () => within(screen.getByRole("list", { name: LEAGUES_TITLE })).getAllByRole("button");
 
 describe("a manager in two leagues", () => {
   it("opening the app is in the league they used last, named in the top bar", async () => {
@@ -40,7 +41,7 @@ describe("a manager in two leagues", () => {
     await userEvent.click(await switcher());
 
     expect(choices().map((choice) => choice.textContent)).toEqual(["Tim Hortons Pro LeagueTeam 1", "Mini betaCommissioner"]);
-    expect(within(screen.getByRole("list", { name: "Your leagues" })).getByRole("button", { current: true }).textContent).toBe(
+    expect(within(screen.getByRole("list", { name: LEAGUES_TITLE })).getByRole("button", { current: true }).textContent).toBe(
       "Tim Hortons Pro LeagueTeam 1",
     );
     expect((await switcher()).getAttribute("aria-expanded")).toBe("true");
@@ -52,7 +53,7 @@ describe("a manager in two leagues", () => {
     await userEvent.click(screen.getByRole("button", { name: /^Mini beta/ }));
 
     expect(app.leagues.switchLeague).toHaveBeenCalledWith(miniBeta.leagueId);
-    expect(screen.queryByRole("list", { name: "Your leagues" })).toBeNull();
+    expect(screen.queryByRole("list", { name: LEAGUES_TITLE })).toBeNull();
     app.becomes(inMiniBeta);
     expect((await switcher()).textContent).toBe("League: Mini beta");
     expect(app.path()).toBe("/team/squad");
@@ -64,7 +65,7 @@ describe("a manager in two leagues", () => {
     await userEvent.click(screen.getByRole("button", { current: true }));
 
     expect(app.leagues.switchLeague).not.toHaveBeenCalled();
-    expect(screen.queryByRole("list", { name: "Your leagues" })).toBeNull();
+    expect(screen.queryByRole("list", { name: LEAGUES_TITLE })).toBeNull();
   });
 
   it("is told why a switch was refused, with the list still open", async () => {
@@ -94,18 +95,18 @@ describe("a manager in two leagues", () => {
     await userEvent.click(await switcher());
     await close();
 
-    expect(screen.queryByRole("list", { name: "Your leagues" })).toBeNull();
+    expect(screen.queryByRole("list", { name: LEAGUES_TITLE })).toBeNull();
     expect(app.leagues.switchLeague).not.toHaveBeenCalled();
   });
 
   it("reaches all their leagues from the list", async () => {
     const app = openApp(MY_TEAM_PATH, inTwo);
     await userEvent.click(await switcher());
-    await userEvent.click(screen.getByRole("link", { name: "All your leagues" }));
+    await userEvent.click(screen.getByRole("link", { name: allLeaguesWords }));
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
-    expect(screen.queryByRole("list", { name: "Your leagues" })).toBeNull();
+    expect(screen.queryByRole("list", { name: LEAGUES_TITLE })).toBeNull();
   });
 });
 
@@ -137,7 +138,7 @@ describe("a league deleted under someone on its pages", () => {
     await switcherOrName();
     app.becomes({ ...manager, inLeague: false, leagues: [], currentLeagueId: null });
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 });

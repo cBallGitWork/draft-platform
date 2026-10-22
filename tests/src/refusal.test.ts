@@ -2,14 +2,10 @@
 // a log and plain words for anything else.
 
 import { ConvexError } from "convex/values";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import { answerOf, refusalOf } from "../../src/refusal";
 
 const FAILED = "Something went wrong.";
-
-afterEach(() => {
-  vi.restoreAllMocks();
-});
 
 test("a change made resolves with no problem, and an answer with the answer", async () => {
   expect(await refusalOf(async () => "made", "Making it", FAILED)).toBeNull();

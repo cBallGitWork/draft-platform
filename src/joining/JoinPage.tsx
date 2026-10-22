@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { linkOffWords } from "../../convex/joining/joiningShared";
 import { Loading, PageTitle, Problem } from "../frame/Panel";
-import { LEAGUES_PATH } from "../leagues/paths";
+import { LEAGUES_PATH, LEAGUES_TITLE } from "../leagues/paths";
 import { useChange } from "../useChange";
 import type { JoiningSeam } from "./seam";
 import { joinPageWords } from "./words";
@@ -23,7 +23,7 @@ export function JoinPage({ token, joining }: { token: string; joining: JoiningSe
           <>
             <p>{joinPageWords.mayAsk(page.leagueName)}</p>
             <button type="button" disabled={busy} onClick={() => void run(() => joining.askToJoin(token))} className="action self-start">
-              Ask to join
+              {joinPageWords.ask}
             </button>
           </>
         )}
@@ -31,7 +31,7 @@ export function JoinPage({ token, joining }: { token: string; joining: JoiningSe
         {page?.standing === "inLeague" && <p>{joinPageWords.inLeague(page.leagueName, page.teamName)}</p>}
         {page?.standing !== "mayAsk" && (
           <Link to={LEAGUES_PATH} className="flex min-h-tap items-center self-start">
-            Your leagues
+            {LEAGUES_TITLE}
           </Link>
         )}
       </div>

@@ -4,5 +4,3 @@
 
 export type NextStep = { path: string; reason: string };
 export type TopBarState = { unreadMail: number; next: NextStep | null };
-
-export const emptyTopBar: TopBarState = { unreadMail: 0, next: null };

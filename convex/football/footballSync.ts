@@ -14,7 +14,7 @@ import {
   playerRecord,
   tableWrites,
 } from "../schema";
-import { BATCH_SIZE, LATEST_RUNS } from "./syncRuns";
+import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
 
 // Issue #21: the real Premier League's clubs, players, fixtures and gameweeks, copied in from the
 // football layer. crons.ts runs it on a schedule; from the CLI:

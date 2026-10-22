@@ -2,7 +2,7 @@ import { PanelTitle, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { TeamSelect, useTeamChoice } from "./TeamChoice";
-import { dayWords, noRequestsWords } from "./words";
+import { noRequestsWords, requestsWords } from "./words";
 
 type Request = InvitesPageData["requests"][number];
 
@@ -11,11 +11,11 @@ type Request = InvitesPageData["requests"][number];
 export function RequestsPanel({ page, joining }: { page: InvitesPageData; joining: JoiningSeam }) {
   return (
     <section aria-labelledby="requests-title" className="bg-panel">
-      <PanelTitle id="requests-title">Join requests</PanelTitle>
+      <PanelTitle id="requests-title">{requestsWords.title}</PanelTitle>
       {page.requests.length === 0 ? (
         <p className="px-3 py-2 text-muted">{noRequestsWords}</p>
       ) : (
-        <ul aria-label="Join requests">
+        <ul aria-label={requestsWords.title}>
           {page.requests.map((request) => (
             <RequestRow key={request.requestId} request={request} page={page} joining={joining} />
           ))}
@@ -33,28 +33,28 @@ function RequestRow({ request, page, joining }: { request: Request; page: Invite
     <li className="flex flex-col gap-2 border-b border-panel-rule px-3 py-2">
       <span>
         <span className="block text-lead font-semibold wrap-anywhere">{request.email}</span>
-        <span className="text-muted">Asked {dayWords(request.askedAt)}</span>
+        <span className="text-muted">{requestsWords.asked(request.askedAt)}</span>
       </span>
       <Problem problem={problem} />
-      <TeamSelect id={`team-for-${request.requestId}`} label={`Team for ${request.email}`} choice={choice} />
+      <TeamSelect id={`team-for-${request.requestId}`} label={requestsWords.teamLabel(request.email)} choice={choice} />
       <span className="flex flex-wrap gap-2">
         <button
           type="button"
           disabled={busy || teamId === undefined}
           onClick={() => teamId !== undefined && void run(() => joining.approve(request.requestId, teamId))}
           className="action"
-          aria-label={`Approve ${request.email}`}
+          aria-label={requestsWords.approveLabel(request.email)}
         >
-          Approve
+          {requestsWords.approve}
         </button>
         <button
           type="button"
           disabled={busy}
           onClick={() => void run(() => joining.refuse(request.requestId))}
           className="secondary-action"
-          aria-label={`Refuse ${request.email}`}
+          aria-label={requestsWords.refuseLabel(request.email)}
         >
-          Refuse
+          {requestsWords.refuse}
         </button>
       </span>
     </li>

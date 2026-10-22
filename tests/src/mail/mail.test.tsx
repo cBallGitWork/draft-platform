@@ -8,9 +8,10 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../../convex/mail/mail";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../../convex/mail/mailLimits";
 import { MAIL_PATH } from "../../../src/frame/menu";
-import { LEAGUES_PATH } from "../../../src/leagues/paths";
+import { mainMenuLabel } from "../../../src/frame/words";
+import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { league, manager, managerIn, newcomer, openApp } from "../../support/src/shell.harness";
-import { MAIL_TITLE, WRITE_TITLE, loadingWords, noLettersWords, onlyLatestWords, sentWords } from "../../../src/mail/words";
+import { MAIL_TITLE, WRITE_TITLE, loadingWords, noLettersWords, onlyLatestWords, sendToWords, sentWords, writeLabels } from "../../../src/mail/words";
 
 afterEach(cleanup);
 
@@ -109,7 +110,7 @@ describe("someone in no league, as a manager removed from their last one is (spe
 
     expect(await screen.findByRole("heading", { level: 1, name: "Mail" })).toBeTruthy();
     expect(app.path()).toBe(MAIL_PATH);
-    expect(screen.queryByRole("navigation", { name: "Main" })).toBeNull();
+    expect(screen.queryByRole("navigation", { name: mainMenuLabel })).toBeNull();
     await userEvent.click(letterButton("Letter 3"));
     expect(shown("The text of letter 3.")).toBe(true);
     expect(app.mail.open).toHaveBeenCalledWith("letter-3");
@@ -120,8 +121,8 @@ describe("someone in no league, as a manager removed from their last one is (spe
     expect(await screen.findByRole("heading", { level: 1, name: "Mail" })).toBeTruthy();
     expect(app.path()).toBe(MAIL_PATH);
 
-    await userEvent.click(screen.getByRole("link", { name: "Your leagues" }));
-    expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
+    await userEvent.click(screen.getByRole("link", { name: LEAGUES_TITLE }));
+    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 });
@@ -141,33 +142,33 @@ describe("writing to the league", () => {
 
   it("the commissioner sends one to their league, and is told it went", async () => {
     const app = openApp(MAIL_PATH, commissioner, { topBar: twoUnread, letters });
-    await userEvent.type(await screen.findByRole("textbox", { name: "Subject" }), "Draft night");
-    await userEvent.type(screen.getByRole("textbox", { name: "Letter" }), "Friday at eight.");
+    await userEvent.type(await screen.findByRole("textbox", { name: writeLabels.subject }), "Draft night");
+    await userEvent.type(screen.getByRole("textbox", { name: writeLabels.body }), "Friday at eight.");
     await userEvent.click(screen.getByRole("button", { name: `Send to ${league.name}` }));
 
     expect(app.mail.writeToLeague).toHaveBeenCalledWith({ leagueId: league.leagueId, subject: "Draft night", body: "Friday at eight." });
     expect((await screen.findByRole("status")).textContent).toBe(sentWords(league.name));
-    expect((screen.getByRole("textbox", { name: "Subject" }) as HTMLInputElement).value).toBe("");
+    expect((screen.getByRole("textbox", { name: writeLabels.subject }) as HTMLInputElement).value).toBe("");
   });
 
   it("a letter the server refuses shows why, and keeps what was typed", async () => {
     const app = openApp(MAIL_PATH, commissioner, { topBar: twoUnread, letters });
     app.mail.writeToLeague.mockResolvedValue("Give the letter a subject.");
-    await userEvent.type(await screen.findByRole("textbox", { name: "Subject" }), "x");
-    await userEvent.type(screen.getByRole("textbox", { name: "Letter" }), "Hello");
+    await userEvent.type(await screen.findByRole("textbox", { name: writeLabels.subject }), "x");
+    await userEvent.type(screen.getByRole("textbox", { name: writeLabels.body }), "Hello");
     await userEvent.click(screen.getByRole("button", { name: `Send to ${league.name}` }));
 
     expect((await screen.findByRole("alert")).textContent).toBe("Give the letter a subject.");
-    expect((screen.getByRole("textbox", { name: "Letter" }) as HTMLTextAreaElement).value).toBe("Hello");
+    expect((screen.getByRole("textbox", { name: writeLabels.body }) as HTMLTextAreaElement).value).toBe("Hello");
   });
 
   it("someone running two leagues picks which one it goes to", async () => {
     const other = { ...league, leagueId: "league-2" as Id<"leagues">, name: "Mini beta", roles: ["co-commissioner" as const] };
     const app = openApp(MAIL_PATH, managerIn({ ...league, roles: ["commissioner"] }, other), { topBar: twoUnread, letters });
-    await userEvent.selectOptions(await screen.findByRole("combobox", { name: "League" }), "Mini beta");
-    await userEvent.type(screen.getByRole("textbox", { name: "Subject" }), "Hi");
-    await userEvent.type(screen.getByRole("textbox", { name: "Letter" }), "Hello");
-    await userEvent.click(screen.getByRole("button", { name: "Send to Mini beta" }));
+    await userEvent.selectOptions(await screen.findByRole("combobox", { name: writeLabels.league }), "Mini beta");
+    await userEvent.type(screen.getByRole("textbox", { name: writeLabels.subject }), "Hi");
+    await userEvent.type(screen.getByRole("textbox", { name: writeLabels.body }), "Hello");
+    await userEvent.click(screen.getByRole("button", { name: sendToWords("Mini beta") }));
 
     expect(app.mail.writeToLeague).toHaveBeenCalledWith({ leagueId: "league-2", subject: "Hi", body: "Hello" });
   });
