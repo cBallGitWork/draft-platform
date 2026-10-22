@@ -120,6 +120,12 @@ styling, typeface, test, screenshot and smoke-test rows, and the rest are the pl
   bootstrap and about 40 Premier League reads per match, each tick.
   Revisit the bootstrap read each tick when Convex usage nears the plan's limit, or when
   `liveStatsTicks` rows fail from throttling.
+- The run logs (#146): `admin/runLogs:prune` deletes a run row 30 days after its run if it
+  succeeded, and 180 days after if it failed (Craig, 22 Oct 2026). It always keeps each feed's
+  newest five rows and its newest success. It goes in batches, `liveStatsTicks` first.
+  **No cron runs it yet**: `crons.ts` holds the daily line Craig turns on with the others. A
+  match-stats run with no match due is still a row: the feeds page needs it as a success to judge
+  lateness, and pruning keeps a 10-minute cron's runs to about 4,300.
 - The feeds page (#35): `admin/feeds:feeds` reads each run table back and calls a feed late
   when it has gone longer than its schedule allows without a success. Each feed's interval is in
   `convex/shared/feedSchedule.ts`, which `crons.ts` runs from; a feed no cron runs is "not

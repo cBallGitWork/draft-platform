@@ -11,6 +11,7 @@
 import type * as admin_feedState from "../admin/feedState.js";
 import type * as admin_feeds from "../admin/feeds.js";
 import type * as admin_platformSettings from "../admin/platformSettings.js";
+import type * as admin_runLogs from "../admin/runLogs.js";
 import type * as auth from "../auth.js";
 import type * as crons from "../crons.js";
 import type * as football_feedIds from "../football/feedIds.js";
@@ -102,6 +103,7 @@ declare const fullApi: ApiFromModules<{
   "admin/feedState": typeof admin_feedState;
   "admin/feeds": typeof admin_feeds;
   "admin/platformSettings": typeof admin_platformSettings;
+  "admin/runLogs": typeof admin_runLogs;
   auth: typeof auth;
   crons: typeof crons;
   "football/feedIds": typeof football_feedIds;
