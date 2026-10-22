@@ -27,6 +27,10 @@ import {
   whenWords,
 } from "./words";
 
+const FEEDS_TITLE_ID = "feeds-title";
+const BEHIND_TITLE_ID = "behind-title";
+const CORRECTIONS_TITLE_ID = "corrections-title";
+
 const cellClasses = "px-2 py-1 text-left align-top";
 
 /** A feed late or failing needs the admin: the event colour, and its bar down the row's edge. */
@@ -64,8 +68,8 @@ export function FeedsPage({ seam }: { seam: AdminSeam }) {
 
 function Feeds({ report }: { report: FeedsReport }) {
   return (
-    <section aria-labelledby="feeds-title" className="bg-panel">
-      <PanelTitle id="feeds-title">{feedsTitle}</PanelTitle>
+    <section aria-labelledby={FEEDS_TITLE_ID} className="bg-panel">
+      <PanelTitle id={FEEDS_TITLE_ID}>{feedsTitle}</PanelTitle>
       <p className="px-3 py-2 text-muted">{feedsHint}</p>
       <table className="w-full border-collapse">
         <thead className="bg-head text-ground">
@@ -115,8 +119,8 @@ function Feeds({ report }: { report: FeedsReport }) {
 function Behind({ report: { behind, moreBehind } }: { report: FeedsReport }) {
   const count = behindWords(behind.length, moreBehind);
   return (
-    <section aria-labelledby="behind-title" className="bg-panel">
-      <PanelTitle id="behind-title">{behindTitle}</PanelTitle>
+    <section aria-labelledby={BEHIND_TITLE_ID} className="bg-panel">
+      <PanelTitle id={BEHIND_TITLE_ID}>{behindTitle}</PanelTitle>
       {behind.length === 0 ? (
         <p className="px-3 py-2 text-muted">{noneBehindWords}</p>
       ) : (
@@ -125,7 +129,7 @@ function Behind({ report: { behind, moreBehind } }: { report: FeedsReport }) {
             <span className="text-figure">{count.figure}</span>
             {count.after}
           </p>
-          <ul aria-labelledby="behind-title">
+          <ul aria-labelledby={BEHIND_TITLE_ID}>
             {behind.map(({ fixtureCode, match, fullTimeAt }) => (
               <li key={fixtureCode} className="border-t border-panel-rule px-3 py-1">
                 <span className="block font-semibold">{matchWords(match, fixtureCode)}</span>
@@ -141,12 +145,12 @@ function Behind({ report: { behind, moreBehind } }: { report: FeedsReport }) {
 
 function Corrections({ report: { corrections, moreCorrections } }: { report: FeedsReport }) {
   return (
-    <section aria-labelledby="corrections-title" className="bg-panel">
-      <PanelTitle id="corrections-title">{correctionsTitle}</PanelTitle>
+    <section aria-labelledby={CORRECTIONS_TITLE_ID} className="bg-panel">
+      <PanelTitle id={CORRECTIONS_TITLE_ID}>{correctionsTitle}</PanelTitle>
       <p className="px-3 py-2 text-muted">{corrections.length === 0 ? noCorrectionsWords : correctionsHint}</p>
       {moreCorrections && <p className="px-3 pb-2 text-event">{moreCorrectionsWords(corrections.length)}</p>}
       {corrections.length > 0 && (
-        <ul aria-labelledby="corrections-title">
+        <ul aria-labelledby={CORRECTIONS_TITLE_ID}>
           {corrections.map(({ fixtureCode, match, playerCode, player, seenAt, changes }) => (
             <li key={`${fixtureCode}-${playerCode}-${seenAt}`} className="border-t border-panel-rule px-3 py-1">
               <span className="block font-semibold">

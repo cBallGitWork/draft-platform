@@ -3,7 +3,7 @@ import { ConvexReactClient, useAction, useConvexAuth, useQuery } from "convex/re
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { api } from "../convex/_generated/api";
 import { useLiveAdmin } from "./admin/liveAdmin";
-import { PageTitle, Problem } from "./frame/Panel";
+import { PAGE_TITLE_ID, PageTitle, Problem } from "./frame/Panel";
 import { ERROR_PAGE_TITLE, readFailedWords, reloadWords } from "./frame/words";
 import type { AuthActions, Session } from "./auth";
 import { liveGameweeks } from "./gameweeks/liveGameweeks";
@@ -76,7 +76,7 @@ class ShellFailed extends Component<{ children: ReactNode }, ShellFailedState> {
   render() {
     if (this.state.failed === null) return this.props.children;
     return (
-      <section aria-labelledby="page-title" className="max-w-xl bg-panel">
+      <section aria-labelledby={PAGE_TITLE_ID} className="max-w-xl bg-panel">
         <PageTitle>{ERROR_PAGE_TITLE}</PageTitle>
         <Problem problem={refusalIn(this.state.failed.error) ?? readFailedWords} />
         <button type="button" onClick={() => location.reload()} className="action m-3">

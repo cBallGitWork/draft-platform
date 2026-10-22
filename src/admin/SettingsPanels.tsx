@@ -14,6 +14,11 @@ import {
   thresholdsTitle,
 } from "./words";
 
+const CLUB_TITLE_ID = "club-title";
+const CLUB_ID = "approve-club";
+const MODE_TITLE_ID = "mode-title";
+const THRESHOLDS_TITLE_ID = "thresholds-title";
+
 // Approving a club whole, how starts count (spec/06, The admin oversees them), and when positions
 // change (spec/06, When positions change).
 
@@ -21,14 +26,14 @@ export function ApproveClub({ queue, seam, change }: PanelProps) {
   const [chosen, choose] = useState<number | undefined>(undefined);
   const clubCode = chosen ?? queue.clubs[0]?.code;
   return (
-    <section aria-labelledby="club-title" className="bg-panel">
-      <PanelTitle id="club-title">{clubTitle}</PanelTitle>
+    <section aria-labelledby={CLUB_TITLE_ID} className="bg-panel">
+      <PanelTitle id={CLUB_TITLE_ID}>{clubTitle}</PanelTitle>
       <div className="flex flex-wrap items-end gap-2 p-3">
         <span className="flex flex-col gap-1">
-          <label htmlFor="approve-club" className="font-semibold">
+          <label htmlFor={CLUB_ID} className="font-semibold">
             {clubLabel}
           </label>
-          <select id="approve-club" value={clubCode} onChange={(event) => choose(Number(event.target.value))} className="text-box">
+          <select id={CLUB_ID} value={clubCode} onChange={(event) => choose(Number(event.target.value))} className="text-box">
             {queue.clubs.map((club) => (
               <option key={club.code} value={club.code}>
                 {club.name}
@@ -52,8 +57,8 @@ export function ApproveClub({ queue, seam, change }: PanelProps) {
 export function ApproveMode({ queue, seam, change }: PanelProps) {
   const other = queue.approveMode === "proposals" ? "countAtOnce" : "proposals";
   return (
-    <section aria-labelledby="mode-title" className="bg-panel">
-      <PanelTitle id="mode-title">{modeTitle}</PanelTitle>
+    <section aria-labelledby={MODE_TITLE_ID} className="bg-panel">
+      <PanelTitle id={MODE_TITLE_ID}>{modeTitle}</PanelTitle>
       <div className="flex flex-col gap-2 p-3">
         <p>{modeWords[queue.approveMode]}</p>
         <button type="button" disabled={change.busy} onClick={() => void change.run(() => seam.setApproveMode(other))} className="secondary-action self-start">
@@ -78,8 +83,8 @@ export function Thresholds({ queue, seam, change }: PanelProps) {
     { id: "remove-after", label: removeAfterLabel, value: removeAfter, set: setRemoveAfter },
   ];
   return (
-    <section aria-labelledby="thresholds-title" className="bg-panel">
-      <PanelTitle id="thresholds-title">{thresholdsTitle}</PanelTitle>
+    <section aria-labelledby={THRESHOLDS_TITLE_ID} className="bg-panel">
+      <PanelTitle id={THRESHOLDS_TITLE_ID}>{thresholdsTitle}</PanelTitle>
       <form onSubmit={save} className="flex flex-col gap-2 p-3">
         {fields.map((field) => (
           <span key={field.id} className="flex flex-col gap-1">

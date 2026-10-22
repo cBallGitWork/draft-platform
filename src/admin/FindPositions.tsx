@@ -21,19 +21,22 @@ import {
   unconfirmedWords,
 } from "./words";
 
+const FIND_TITLE_ID = "admin-find-title";
+const FIND_NAME_ID = "admin-find-name";
+
 // Correcting any player's positions (spec/06): find him, then remove a position or set one, SS among them.
 
 export function FindPlayer({ seam, change }: { seam: AdminSeam; change: Changing }) {
   const [text, setText] = useState("");
   const found = seam.useFoundPlayers(text);
   return (
-    <section aria-labelledby="admin-find-title" className="bg-panel">
-      <PanelTitle id="admin-find-title">{findTitle}</PanelTitle>
+    <section aria-labelledby={FIND_TITLE_ID} className="bg-panel">
+      <PanelTitle id={FIND_TITLE_ID}>{findTitle}</PanelTitle>
       <div className="flex flex-col gap-2 p-3">
-        <label htmlFor="admin-find-name" className="font-semibold">
+        <label htmlFor={FIND_NAME_ID} className="font-semibold">
           {findLabel}
         </label>
-        <input id="admin-find-name" type="search" value={text} onChange={(event) => setText(event.target.value)} className="text-box" />
+        <input id={FIND_NAME_ID} type="search" value={text} onChange={(event) => setText(event.target.value)} className="text-box" />
         <p className="text-muted">{findHint}</p>
       </div>
       {text.trim() !== "" &&
