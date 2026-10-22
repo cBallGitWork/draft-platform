@@ -205,9 +205,9 @@ export const change = mutation({
 
 /** The league's scoring set as the rules editor (#30) edits it: the latest, a waiting change's
  *  among them, the rules row it is from (for the save to carry), and the gameweek a change made at
- *  `now` would take effect from. Null for a league
- *  made before rules were held. For whoever runs the league. `now` is the screen's, moved on each
- *  minute, as a query must not read the clock (convex/admin/feeds.ts says why). */
+ *  `now` would take effect from. Null for a league made before rules were held. For whoever runs
+ *  the league. `now` is the screen's, moved on each minute, as a query must not read the clock
+ *  (convex/admin/feeds.ts says why). */
 export const scoring = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
   returns: v.union(v.null(), v.object({ scoring: scoringSetShape, revision: v.id("leagueRules"), changesFrom: v.number() })),

@@ -10,6 +10,7 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { useLiveScoring } from "../../../src/scoring/liveScoring";
 import { saveFailedWords } from "../../../src/scoring/words";
 import { silenceConsoleError } from "../../support/console.setup";
+import { REVISION as revision } from "../../support/src/scoring.harness";
 
 const convex = vi.hoisted(() => ({ scoring: vi.fn(), changeScoring: vi.fn() }));
 vi.mock("convex/react", async () =>
@@ -26,7 +27,6 @@ afterEach(() => {
 
 const leagueId = "league-1" as Id<"leagues">;
 const scoring = FIRST_RULES.scoring;
-const revision = "rules-1" as Id<"leagueRules">;
 const seam = () => renderHook(() => useLiveScoring()).result.current;
 
 test("the scoring is read from rules/leagueRules:scoring, at the start of the current minute", () => {
