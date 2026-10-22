@@ -54,14 +54,14 @@ back, names drift, docs desync. The drift pass is a scheduled step back.
 
 **What:** `/refactor`'s checklist, across everything merged since the last pass (the skill diffs
 the current branch unless given a range: give it the one from the last drift pass to `main`, as
-*Record* finds it); whether each thing lives in the right place; whether `.claude/rules/ui.md`'s Never list still matches plate.md's `## Never`; and
-whether ui-verifier's colour-role bullet still matches plate.md.
+*Record* finds it); whether each thing lives in the right place; whether `.claude/rules/ui.md`'s
+Never list still matches plate.md's `## Never`; and whether ui-verifier's colour-role bullet still
+matches plate.md.
 
 The drift pass is a task of its own, so fixing older files there keeps `CLAUDE.md`'s rule that
 tidying stays inside the files a task touches.
 
-**How:** fresh eyes, never the author's own: `pr-reviewer` or `/code-review`, each given
-the range.
+**How:** fresh eyes, never the author's own: `pr-reviewer` or `/code-review`, each given the range.
 Fixes go in on a `refactor/` branch, and its pull request title starts `refactor: drift pass`.
 
 **Record**, in a commit message on the drift pass's branch. The repo's squash merge keeps every
