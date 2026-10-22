@@ -20,9 +20,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { getJson, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../convex/football/football.ts";
 import { errorMessage } from "../convex/shared/errors.ts";
-import { HOUR_MS, MINUTE_MS } from "../convex/shared/time.ts";
+import { LOCALE } from "../convex/shared/londonTime.ts";
+import { HOUR_MS, MINUTE_MS, SECOND_MS } from "../convex/shared/time.ts";
 
-const POLL_MS = 30_000;
+const POLL_MS = 30 * SECOND_MS;
 /** spec/10 wants the lineups "about an hour before kickoff"; when they first appear is one of #37's
  *  questions, so recording starts half an hour earlier than that, to see them arrive. */
 const LEAD_MS = 90 * MINUTE_MS;
@@ -33,7 +34,7 @@ const AFTER_FULL_TIME_MS = 15 * MINUTE_MS;
  *  neighbours with no extension. tests/scripts/record-match.test.mjs holds the two equal. */
 const GIVE_UP_MS = 4 * HOUR_MS;
 /** Between one read and the next in a poll: politeness, not a rule of the feed. */
-const PAUSE_MS = 1_000;
+const PAUSE_MS = SECOND_MS;
 /** The fixture's `status` once the match is over ("U" before it, "C" after). A copy of
  *  PL_FULL_TIME in convex/football/premierLeague.ts, which plain node can't import: it imports "./football"
  *  with no extension. tests/scripts/record-match.test.mjs holds the two equal. */
@@ -98,9 +99,12 @@ const SHOWN_STATS = [
   ["reds", "total_red_card"],
 ];
 
+/** Where an ISO time's "HH:MM:SS" sits in it: "2026-10-23T19:02:30.000Z". */
+const ISO_TIME_OF_DAY = { start: 11, end: 19 };
+
 /** One saved poll as a line: the time, and what each read held or why it failed. */
 export function summaryLine(saved) {
-  const parts = [`${saved.polledAt.slice(11, 19)} UTC`];
+  const parts = [`${saved.polledAt.slice(ISO_TIME_OF_DAY.start, ISO_TIME_OF_DAY.end)} UTC`];
   for (const read of saved.reads) {
     if (read.error !== undefined) {
       parts.push(`${read.kind} FAILED: ${read.error}${read.cause === undefined ? "" : ` (${read.cause})`}`);
@@ -141,7 +145,7 @@ function teamStatsSummary(body, fixture) {
 /** A poll's file name: its time, sortable, with no colons. */
 const fileName = (polledAt) => `${polledAt.replaceAll(":", "-")}.json`;
 
-const localTime = (ms) => new Date(ms).toLocaleTimeString("en-GB");
+const localTime = (ms) => new Date(ms).toLocaleTimeString(LOCALE);
 const AFTER_FULL_TIME_MINUTES = AFTER_FULL_TIME_MS / MINUTE_MS;
 
 /** The last line of a recording, saying why it stopped. */
