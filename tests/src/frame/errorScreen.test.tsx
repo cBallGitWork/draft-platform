@@ -2,17 +2,16 @@
 // plate's look, the server's own words for a refusal and plain words for anything else, which is
 // logged, and leads back to "Your leagues".
 
-import { cleanup, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConvexError } from "convex/values";
-import { afterEach, expect, it, vi } from "vitest";
+import { expect, it } from "vitest";
+import { silenceConsoleError } from "../../support/console.setup";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { backToLeaguesWords } from "../../../src/leagues/words";
 import { manager, openApp } from "../../support/src/shell.harness";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { ERROR_PAGE_TITLE, readFailedWords } from "../../../src/frame/words";
-
-afterEach(cleanup);
 
 /** Opens the Table from My team, whose reading throws `error`, and waits for the error page. */
 async function openTableThrowing(error: unknown) {
@@ -35,12 +34,10 @@ async function goBackToLeagues(app: ReturnType<typeof openApp>) {
 
 const refusalWords = "You aren't in this league.";
 const loggedAs = "Drawing the page failed:";
-
-/** React and the router report a caught error too; a test keeps that quiet and sees what was logged. */
-const quietConsole = () => vi.spyOn(console, "error").mockImplementation(() => {});
+// React and the router report a caught error too, so each test silences console.error.
 
 it("shows the server's own words when it refuses, and leads back to Your leagues", async () => {
-  quietConsole();
+  silenceConsoleError();
   const app = await openTableThrowing(new ConvexError(refusalWords));
 
   expect(screen.getByRole("alert").textContent).toBe(refusalWords);
@@ -49,7 +46,7 @@ it("shows the server's own words when it refuses, and leads back to Your leagues
 });
 
 it("says plainly that anything else went wrong, logs it, and leads back to Your leagues", async () => {
-  const logged = quietConsole();
+  const logged = silenceConsoleError();
   const failure = new Error("socket closed");
   const app = await openTableThrowing(failure);
 
@@ -60,7 +57,7 @@ it("says plainly that anything else went wrong, logs it, and leads back to Your 
 });
 
 it("doesn't log a refusal as a failure", async () => {
-  const logged = quietConsole();
+  const logged = silenceConsoleError();
   await openTableThrowing(new ConvexError(refusalWords));
 
   expect(logged).not.toHaveBeenCalledWith(loggedAs, expect.anything());

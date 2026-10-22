@@ -3,7 +3,7 @@
 
 import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { joinPath } from "../../../convex/joining/joiningShared";
 import { DAY_MS } from "../../../convex/shared/time";
@@ -24,8 +24,6 @@ import {
   requestsWords,
   waitingStrip,
 } from "../../../src/joining/words";
-
-afterEach(cleanup);
 
 const TEAM_2 = "team-2" as Id<"teams">;
 const inviteRow = (inviteId: string, email: string) =>

@@ -1,17 +1,15 @@
 // The commissioner's gameweeks (#74; spec/13, Gameweeks): reached from "Your leagues" by whoever
 // runs the league, a tick for each gameweek, and what it says when a tick is refused.
 
-import { cleanup, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { adminSeeing, commissioner, league, managerIn, openApp } from "../../support/src/shell.harness";
 import { BEGUN, season } from "../../support/src/gameweeks.harness";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { begunWords, deadlineWords, GAMEWEEKS_TITLE, loadingWords, tickLabel } from "../../../src/gameweeks/words";
-
-afterEach(cleanup);
 
 const PAGE = gameweeksPath(league.leagueId);
 const REFUSAL = "Gameweek 17 has begun, so it can't be ticked or unticked.";

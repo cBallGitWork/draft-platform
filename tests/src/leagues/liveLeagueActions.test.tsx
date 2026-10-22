@@ -7,6 +7,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { ConvexError } from "convex/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { afterEach, expect, test, vi } from "vitest";
+import { silenceConsoleError } from "../../support/console.setup";
 import { useLiveLeagueActions } from "../../../src/leagues/liveLeagueActions";
 import { createFailedWords, deleteFailedWords, switchFailedWords, undoFailedWords } from "../../../src/leagues/words";
 
@@ -46,7 +47,7 @@ test("a league the server refuses resolves with the server's own words", async (
 test("any other failure is logged and said plainly", async () => {
   const failure = new Error("offline");
   create.mockRejectedValue(failure);
-  const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+  const logged = silenceConsoleError();
 
   expect(await createLeague()).toBe(createFailedWords);
   expect(logged).toHaveBeenCalledWith("Creating a league failed:", failure);
@@ -72,7 +73,7 @@ test.each([
 ])("%s failing for any other reason is logged and said plainly", async (doing, change, mutation, words) => {
   const failure = new Error("offline");
   mutation.mockRejectedValue(failure);
-  const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+  const logged = silenceConsoleError();
 
   expect(await change()).toBe(words);
   expect(logged).toHaveBeenCalledWith(`${doing} failed:`, failure);

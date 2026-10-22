@@ -1,16 +1,14 @@
 // A league's invite link, opened (#73 story 3; spec/02, spec/13 Joining): signed out it goes
 // through sign-in and back; signed in it asks to join and shows the request waiting.
 
-import { cleanup, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { joinPath, linkOffWords } from "../../../convex/joining/joiningShared";
 import { SIGN_IN_PATH } from "../../../src/router";
 import { LINK_REPLY, newcomer, openApp, visitor } from "../../support/src/shell.harness";
 import type { JoinPageData } from "../../../src/joining/seam";
 import { joinPageWords, signInToJoinWords } from "../../../src/joining/words";
-
-afterEach(cleanup);
 
 const TOKEN = "the-token";
 const LEAGUE = "Tim Hortons Pro League";

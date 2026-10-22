@@ -2,15 +2,13 @@
 // frozen and hidden, so its squads and gameweeks send whoever runs it back to Your leagues.
 
 import { cleanup, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../../src/auth";
 import { gameweeksPath } from "../../src/gameweeks/paths";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../src/leagues/paths";
 import { adminSeeing, league, managerIn, openApp } from "../support/src/shell.harness";
 import { squadsPath } from "../../src/squads/paths";
-
-afterEach(cleanup);
 
 const beingDeleted: LeagueSummary = {
   ...league,

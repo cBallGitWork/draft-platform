@@ -1,6 +1,6 @@
-// The convex project's setup (vitest.config.ts): a test fails if it logged with console.error and
-// didn't say it meant to, by calling silenceConsoleError(). A logged error a test didn't expect
-// would otherwise pass green, unseen.
+// The convex and app projects' setup (vitest.config.ts): a test fails if it logged with
+// console.error and didn't say it meant to, by calling silenceConsoleError(). A logged error a test
+// didn't expect would otherwise pass green, unseen.
 
 import { afterEach, beforeEach, expect, vi, type MockInstance } from "vitest";
 
@@ -8,8 +8,8 @@ let consoleError: MockInstance<typeof console.error>;
 let silenced = false;
 
 /** Keeps console.error quiet for the test, where a logged failure is what it causes, and lets it
- *  pass the guard. The spy is returned to check what was logged. Tests import it from
- *  tests/support/convex/test.harness.ts. */
+ *  pass the guard. The spy is returned to check what was logged. Convex tests import it from
+ *  tests/support/convex/test.harness.ts, app tests from here. */
 export function silenceConsoleError(): MockInstance<typeof console.error> {
   silenced = true;
   return consoleError.mockImplementation(() => {});

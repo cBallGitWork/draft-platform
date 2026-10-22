@@ -3,7 +3,7 @@
 
 import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../../convex/mail/mail";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../../convex/mail/mailLimits";
@@ -12,8 +12,6 @@ import { mainMenuLabel } from "../../../src/frame/words";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { league, manager, managerIn, newcomer, openApp } from "../../support/src/shell.harness";
 import { MAIL_TITLE, WRITE_TITLE, loadingWords, noLettersWords, onlyLatestWords, sendToWords, sentWords, writeLabels } from "../../../src/mail/words";
-
-afterEach(cleanup);
 
 // Noon UTC, so a letter's day is the same in London, where vitest.config.ts pins every test's zone.
 const letter = (number: number, read: boolean, from: string | null = null): LetterSummary => ({

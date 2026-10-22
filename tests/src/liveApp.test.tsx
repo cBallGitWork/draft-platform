@@ -1,10 +1,11 @@
 // The live app's wiring to Convex Auth, with Convex's React hooks faked: opening the app from a
 // link, who it then thinks is signed in, and the reply to asking for a link.
 
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { silenceConsoleError } from "../support/console.setup";
 import { signInToJoinWords } from "../../src/joining/words";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../src/leagues/paths";
 import { LiveApp, NO_CONVEX_URL, takeLinkCode } from "../../src/liveApp";
@@ -39,7 +40,6 @@ beforeEach(() => {
   convex.account = undefined;
 });
 afterEach(() => {
-  cleanup();
   convex.signIn.mockReset();
   convex.ask.mockReset();
   window.history.replaceState(null, "", "/");
@@ -94,7 +94,7 @@ test("an expired link that led to a league's invite link keeps the way back to i
 
 test("a link that can't be checked says so, and the error is logged", async () => {
   convex.signIn.mockRejectedValue(new Error("network down"));
-  const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+  const logged = silenceConsoleError();
 
   openAt("/?code=some-code");
 
@@ -133,7 +133,7 @@ test.each([
   ["that it failed, when Convex couldn't answer", async () => Promise.reject(new Error("offline")), askFailedWords],
 ])("asking for a link shows %s in words", async (_, answer, words) => {
   convex.ask.mockImplementation(answer);
-  vi.spyOn(console, "error").mockImplementation(() => {});
+  silenceConsoleError();
   openAt(SIGN_IN_PATH);
 
   await userEvent.type(await screen.findByRole("textbox", { name: signInWords.emailLabel }), "craig@example.com");

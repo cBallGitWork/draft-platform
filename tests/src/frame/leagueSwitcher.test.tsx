@@ -1,9 +1,9 @@
 // The top bar's league switcher (#76, spec/13, Several leagues): a manager in several leagues
 // switches between them from a list in the top bar, and the app opens in the one used last.
 
-import { cleanup, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
@@ -11,8 +11,6 @@ import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { adminSeeing, league, manager, managerIn, openApp } from "../../support/src/shell.harness";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { allLeaguesWords } from "../../../src/frame/words";
-
-afterEach(cleanup);
 
 const miniBeta: LeagueSummary = {
   ...league,
