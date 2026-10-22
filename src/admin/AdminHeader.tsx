@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { sectionTabClasses } from "../frame/AppFrame";
-import { PageTitle, Problem } from "../frame/Panel";
+import { PAGE_TITLE_ID, PageTitle, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { ADMIN_FEEDS_PATH, ADMIN_PATH } from "./paths";
 import { ADMIN_TITLE, adminTabsLabel, feedsTabWords, positionsTabWords } from "./words";
@@ -14,7 +14,7 @@ const TABS = [
  *  change was refused. Its tabs are routes, so each has its own address. */
 export function AdminHeader({ problem = null }: { problem?: string | null }) {
   return (
-    <section aria-labelledby="page-title" className="bg-panel">
+    <section aria-labelledby={PAGE_TITLE_ID} className="bg-panel">
       <PageTitle>{ADMIN_TITLE}</PageTitle>
       <nav aria-label={adminTabsLabel} className="flex flex-wrap shadow-panel-top">
         {TABS.map((tab) => (

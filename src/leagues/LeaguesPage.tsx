@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { ADMIN_PATH } from "../admin/paths";
 import { ADMIN_TITLE } from "../admin/words";
-import { PageTitle } from "../frame/Panel";
+import { PAGE_TITLE_ID, PageTitle } from "../frame/Panel";
 import { gameweeksPath } from "../gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../gameweeks/words";
 import { invitesPath } from "../joining/paths";
@@ -10,7 +10,7 @@ import { invitesTitle } from "../joining/words";
 import { squadsPath } from "../squads/paths";
 import { SQUADS_TITLE } from "../squads/words";
 import { LeagueDeletionRow, type DeletionActions } from "./LeagueDeletion";
-import { leagueRowLinkClasses } from "./LeagueLinks";
+import { leagueColumnCount, leagueRowLinkClasses } from "./LeagueLinks";
 import { LEAGUES_TITLE, NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE } from "./paths";
 import { deletes, runs } from "./roles";
 import {
@@ -20,7 +20,7 @@ import {
   leagueColumns,
   noTeamCellWords,
   notInALeagueWords,
-  roleWords,
+  rolesWords,
   teamsOfMostWords,
   unsentLink,
   unsentLinkWords,
@@ -51,7 +51,7 @@ export function LeaguesPage({
   actions: DeletionActions;
 }) {
   return (
-    <section aria-labelledby="page-title" className="max-w-3xl bg-panel">
+    <section aria-labelledby={PAGE_TITLE_ID} className="max-w-3xl bg-panel">
       <PageTitle>{LEAGUES_TITLE}</PageTitle>
       <div className="flex flex-col gap-2 px-3 py-2">
         {leagues.length === 0 ? (
@@ -102,7 +102,7 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
                   </Link>
                 ))}
             </th>
-            <td className={cellClasses}>{league.roles.map((role) => roleWords[role]).join(", ") || adminWords}</td>
+            <td className={cellClasses}>{rolesWords(league.roles) || adminWords}</td>
             <td className={cellClasses}>{league.teamName ?? <span className="text-muted">{noTeamCellWords}</span>}</td>
             <td className={`${cellClasses} text-right whitespace-nowrap`}>
               <span className="text-figure">{league.teams}</span>
@@ -112,7 +112,7 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
           </tr>
           {league.unsentCommissionerLink && (
             <tr>
-              <td colSpan={4} className="alert-strip">
+              <td colSpan={leagueColumnCount} className="alert-strip">
                 {unsentLink(league.unsentCommissionerLink.email, unsentLinkWords[league.unsentCommissionerLink.reply])}
               </td>
             </tr>

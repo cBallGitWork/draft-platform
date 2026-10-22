@@ -38,6 +38,10 @@
   --spacing-tap: 44px; /* every target, at the phone's width (plate.md, The phone) */
   --spacing-subtab: 36px; /* a section's tabs, on the desk */
 
+  /* The width each of Mail's two panels grows from; with less room than both, the form wraps under */
+  --flex-basis-letters: 480px;
+  --flex-basis-letter-form: 320px;
+
   --text-data: 13px;
   --text-data--line-height: 20px;
   --text-lead: 15px; /* a player's name, and the menu */

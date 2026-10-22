@@ -67,7 +67,8 @@ const ROLE_POSITIONS: Readonly<Record<string, readonly Position[]>> = {
   Forward: ["W", "SS", "ST"],
 };
 const ATTACKING_MIDFIELDER = "Attacking Midfielder";
-const SIDES = ["Left", "Centre", "Right"];
+const CENTRE = "Centre";
+const SIDES = ["Left", CENTRE, "Right"];
 
 /** The positions the Premier League's label for a player gives, or null for a label these tables
  *  do not know, which the sync reports. */
@@ -78,8 +79,8 @@ export function labelPositions(positionInfo: string): Position[] | null {
   const sides = hasSides ? named : SIDES;
   const role = (hasSides ? rest : [first, ...rest]).join(" ");
   if (role === ATTACKING_MIDFIELDER) {
-    const centre: Position[] = sides.includes("Centre") ? ["CAM"] : [];
-    const wide: Position[] = sides.some((side) => side !== "Centre") ? ["W"] : [];
+    const centre: Position[] = sides.includes(CENTRE) ? ["CAM"] : [];
+    const wide: Position[] = sides.some((side) => side !== CENTRE) ? ["W"] : [];
     return [...centre, ...wide];
   }
   return Object.hasOwn(ROLE_POSITIONS, role) ? [...ROLE_POSITIONS[role]] : null;

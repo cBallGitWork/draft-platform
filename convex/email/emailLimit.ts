@@ -9,9 +9,12 @@ import { DAY_MS } from "../shared/time";
 /** Resend's free plan (ARCHITECTURE.md, Services): every email the app sends counts. */
 export const EMAILS_PER_DAY = 100;
 
+/** How long an ISO time's date is: "2026-10-20". */
+const ISO_DATE_LENGTH = 10;
+
 /** The UTC day a time falls on, as Resend's daily limit is counted here: "2026-10-20". */
 export function dayOf(time: number): string {
-  return new Date(time).toISOString().slice(0, 10);
+  return new Date(time).toISOString().slice(0, ISO_DATE_LENGTH);
 }
 
 /** The start of the UTC day after `time`'s, when Resend's daily limit starts again. */

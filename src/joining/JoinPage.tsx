@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { linkOffWords } from "../../convex/joining/joiningShared";
-import { Loading, PageTitle, Problem } from "../frame/Panel";
+import { Loading, PAGE_TITLE_ID, PageTitle, Problem } from "../frame/Panel";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../leagues/paths";
 import { useChange } from "../useChange";
 import type { JoiningSeam } from "./seam";
@@ -13,7 +13,7 @@ export function JoinPage({ token, joining }: { token: string; joining: JoiningSe
   const { busy, problem, run } = useChange();
 
   return (
-    <section aria-labelledby="page-title" className="max-w-md bg-panel">
+    <section aria-labelledby={PAGE_TITLE_ID} className="max-w-md bg-panel">
       <PageTitle>{page?.leagueName ?? joinPageWords.title}</PageTitle>
       <Problem problem={problem} />
       <div className="flex flex-col gap-2 px-3 py-2">

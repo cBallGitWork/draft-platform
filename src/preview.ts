@@ -92,6 +92,9 @@ const previewSessions: Record<string, Session> = {
   visitor: { signedIn: false },
 };
 
+/** The gameweeks the preview's league leaves unticked: a Christmas break. */
+export const previewChristmasBreak: readonly number[] = [17, 18, 19];
+
 /** A change the preview doesn't make, saying what that left. */
 export const previewSays = (outcome: string) => async () => `This is a preview: ${outcome}.`;
 

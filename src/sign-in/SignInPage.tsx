@@ -3,6 +3,9 @@ import { PanelTitle } from "../frame/Panel";
 import { PRODUCT_NAME } from "../product";
 import { linkProblemWords, signInWords, type LinkProblem } from "./words";
 
+const TITLE_ID = "sign-in-title";
+const EMAIL_ID = "sign-in-email";
+
 /** All a logged-out visitor sees (spec/12): the name, "Invite only", and an email box for the link.
  *  Opened from a link that didn't sign them in, it says so first (spec/02); `intro` says why
  *  they're here, as from a league's invite link (#73). */
@@ -33,8 +36,8 @@ export function SignInPage({
         <p className="flex items-center border-l border-plate-rule px-4 text-lead font-semibold">{signInWords.inviteOnly}</p>
       </header>
       <main className="p-2">
-        <section aria-labelledby="sign-in-title" className="max-w-md bg-panel">
-          <PanelTitle id="sign-in-title">{signInWords.title}</PanelTitle>
+        <section aria-labelledby={TITLE_ID} className="max-w-md bg-panel">
+          <PanelTitle id={TITLE_ID}>{signInWords.title}</PanelTitle>
           {linkProblem && !outcome && (
             <p role="alert" className="alert-strip">
               {linkProblemWords[linkProblem]}
@@ -42,11 +45,11 @@ export function SignInPage({
           )}
           {intro && <p className="px-3 pt-2">{intro}</p>}
           <form onSubmit={sendLink} className="flex flex-col gap-2 p-3">
-            <label htmlFor="sign-in-email" className="font-semibold">
+            <label htmlFor={EMAIL_ID} className="font-semibold">
               {signInWords.emailLabel}
             </label>
             <input
-              id="sign-in-email"
+              id={EMAIL_ID}
               type="email"
               required
               autoComplete="email"
