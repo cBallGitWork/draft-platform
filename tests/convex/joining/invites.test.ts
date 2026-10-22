@@ -15,6 +15,7 @@ import { INVITE_LIFETIME_MS, invitedPath } from "../../../convex/joining/joining
 import { refusals } from "../../../convex/shared/leagueAccess";
 import {
   COMMISSIONER,
+  LEAGUE_NAME,
   MANAGERS,
   actingAs,
   addManagers,
@@ -56,7 +57,7 @@ describe("an invite", () => {
 
     const email = lastEmailTo(sent, ANN);
     expect(email.subject).toBe("You're invited to Tim Hortons Pro League on Draft Manager");
-    expect(email.text).toContain(`${COMMISSIONER} has invited you to run a new team in Tim Hortons Pro League`);
+    expect(email.text).toContain(`${COMMISSIONER} has invited you to run a new team in ${LEAGUE_NAME}`);
     expect(email.text).toContain(`${SITE_URL}${invitedPath(inviteId)}?code=`);
     expect(await openLastLinkTo(t, sent, ANN)).not.toBeNull();
 
@@ -69,7 +70,7 @@ describe("an invite", () => {
     await (await asCommissioner(t)).mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam });
 
     await invite(t, leagueId, CAT, annsTeam);
-    expect(lastEmailTo(sent, CAT).text).toContain("has invited you to run Team 1 in Tim Hortons Pro League");
+    expect(lastEmailTo(sent, CAT).text).toContain(`has invited you to run Team 1 in ${LEAGUE_NAME}`);
     await openLastLinkTo(t, sent, CAT);
 
     expect(await managers()).toEqual([

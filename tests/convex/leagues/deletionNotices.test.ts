@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ANN, BOB, accountOf, deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
-import { ADMIN, COMMISSIONER, CO_COMMISSIONER, actingAs, leagueRow, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, leagueRow, type TestConvex } from "../../support/convex/leagues.harness";
 import { EMAILS_PER_DAY } from "../../../convex/email/emailLimit";
 import { fakeResend, sentToday, setSentToday, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
@@ -24,9 +24,9 @@ describe("deleting a league emails", () => {
     await deletes(t, COMMISSIONER, leagueId);
 
     expect(sent.map((email) => email.to)).toEqual([CO_COMMISSIONER, ANN, BOB]);
-    expect(sent[0].subject).toBe("Tim Hortons Pro League will be deleted");
+    expect(sent[0].subject).toBe(`${LEAGUE_NAME} will be deleted`);
     // Deleted at 09:00 UTC on 20 Oct 2026: 10:00 in London a day later.
-    expect(sent[0].text).toContain(`${COMMISSIONER} deleted Tim Hortons Pro League.`);
+    expect(sent[0].text).toContain(`${COMMISSIONER} deleted ${LEAGUE_NAME}.`);
     expect(sent[0].text).toContain("on Wednesday 21 October at 10:00 BST.");
   });
 

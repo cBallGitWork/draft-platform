@@ -62,6 +62,9 @@ export function fakeResend(status = 200): SentEmail[] {
 
 export const ask = (t: TestConvex, email: string) => t.action(api.signIn.signInLinks.ask, { email });
 
+/** The start of the line logged when a sign-in link to `email` could not be sent (signInLinks.ts). */
+export const linkNotSentLine = (email: string) => `The sign-in link to ${email} wasn't sent`;
+
 /** The code in an email's link, as the browser finds it in the address bar. */
 export function linkCode(email: SentEmail): string {
   const link = email.text.split("\n").find((line) => line.startsWith(SITE_URL));

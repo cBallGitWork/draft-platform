@@ -8,6 +8,7 @@ import {
   actingAs,
   COMMISSIONER,
   CO_COMMISSIONER,
+  LEAGUE_NAME,
   MANAGERS,
   addManagers,
   adminCreatesLeague,
@@ -16,7 +17,7 @@ import {
   onTheList,
   type TestConvex,
 } from "../../support/convex/leagues.harness";
-import { LISTED, fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { LISTED, fakeResend, linkNotSentLine, signInDeployment } from "../../support/convex/signIn.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 
 // Creating a league and who runs it (#24 stories 1-3 and 6; spec/13).
@@ -34,9 +35,9 @@ describe("creating a league", () => {
     fakeResend();
     const leagueId = await adminCreatesLeague(t, 4);
 
-    expect(await leagueRow(t, leagueId)).toMatchObject({ name: "Tim Hortons Pro League", maxTeams: 4, commissionerEmail: COMMISSIONER });
+    expect(await leagueRow(t, leagueId)).toMatchObject({ name: LEAGUE_NAME, maxTeams: 4, commissionerEmail: COMMISSIONER });
     expect(await eventsIn(t, leagueId)).toEqual([
-      { by: ADMIN, kind: "created", name: "Tim Hortons Pro League", maxTeams: 4 },
+      { by: ADMIN, kind: "created", name: LEAGUE_NAME, maxTeams: 4 },
       { by: ADMIN, kind: "commissionerNamed", email: COMMISSIONER, replaced: null },
     ]);
   });
@@ -62,7 +63,7 @@ describe("creating a league", () => {
     fakeResend(500);
     const logged = silenceConsoleError();
     await adminCreatesLeague(t, 4, "First");
-    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The sign-in link to ${COMMISSIONER} wasn't sent`));
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining(linkNotSentLine(COMMISSIONER)));
     const account = await t.run((ctx) =>
       ctx.db
         .query("users")
@@ -282,7 +283,7 @@ describe("naming a new commissioner", () => {
     const unreached = "unreached@example.com";
     const failedLeague = await admin.mutation(api.leagues.leagues.create, { name: "Failed link", maxTeams: 4, commissionerEmail: unreached });
     await t.finishAllScheduledFunctions(vi.runAllTimers);
-    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The sign-in link to ${unreached} wasn't sent`));
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining(linkNotSentLine(unreached)));
     expect((await leagueRow(t, failedLeague))?.commissionerLink).toEqual({ email: unreached, reply: "notSent" });
 
     await admin.mutation(api.leagues.leagues.nameCommissioner, { leagueId: failedLeague, email: COMMISSIONER });

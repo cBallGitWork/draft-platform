@@ -6,7 +6,7 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { tablesKeyedToLeague } from "../../../convex/leagues/leagueDeletion";
 import { ANN, BOB, CAT, DAN, accountOf, deletes, laterBy, leagueWithPeople, mutationsGivenALeague } from "../../support/convex/leagueDeletion.harness";
-import { ADMIN, COMMISSIONER, CO_COMMISSIONER, actingAs, eventsIn, leagueRow, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, eventsIn, leagueRow, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import schema from "../../../convex/schema";
 import { fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
 
@@ -38,7 +38,7 @@ describe("who deletes a league", () => {
     const deletesAt = await deletes(t, COMMISSIONER, leagueId);
 
     expect((await leagueRow(t, leagueId))?.deletion).toMatchObject({ by: COMMISSIONER, deletesAt });
-    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "deletionStarted", name: "Tim Hortons Pro League", deletesAt });
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "deletionStarted", name: LEAGUE_NAME, deletesAt });
   });
 
   test("the admin deletes it", async () => {
@@ -142,8 +142,8 @@ describe("while it can be undone", () => {
     const after = await everythingOf(leagueId);
     expect({ ...after, events: after.events.slice(0, -2) }).toEqual(before);
     expect(after.events.slice(-2)).toEqual([
-      { by: COMMISSIONER, kind: "deletionStarted", name: "Tim Hortons Pro League", deletesAt: expect.any(Number) },
-      { by: COMMISSIONER, kind: "deletionUndone", name: "Tim Hortons Pro League" },
+      { by: COMMISSIONER, kind: "deletionStarted", name: LEAGUE_NAME, deletesAt: expect.any(Number) },
+      { by: COMMISSIONER, kind: "deletionUndone", name: LEAGUE_NAME },
     ]);
     expect(await accountOf(t, ANN)).toMatchObject({ inLeague: true, leagues: [{ leagueId, roles: ["manager"] }] });
   });

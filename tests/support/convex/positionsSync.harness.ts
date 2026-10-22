@@ -1,13 +1,22 @@
 /// <reference types="vite/client" />
 // The positions tests' shared setup: both feeds faked from the recorded payloads, one sync run
-// against them, and a player's positions read back.
+// against them, the line it logs, and a player's positions read back.
 
 import { vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import { FPL_BOOTSTRAP_URL, plFixturesUrl, plFixtureUrl, plSquadUrl } from "../../../convex/football/football";
 import { ADMIN, actingAs } from "./leagues.harness";
-import type { PositionsPayloads } from "../recorded/positions.payloads";
+import { SHEET, type PositionsPayloads } from "../recorded/positions.payloads";
 import { fakeFetch, type TestConvex } from "./test.harness";
+
+/** The recorded payloads' one match whose sheet doesn't add up, as a run reports it refused. */
+export const REFUSED_MATCH = `PL fixture ${SHEET.cityCoventryRefused}, team 11's 4-2-3-1 does not draw the 11 men it lists as starting`;
+
+/** The line a run logs for what it could not place: the recorded payloads' refused match, and any
+ *  formation or label the table does not know. */
+export function reported(unknown: { unknownFormations?: string[]; unknownLabels?: string[] } = {}): string {
+  return `positions sync: ${JSON.stringify({ unknownFormations: [], unknownLabels: [], matchesRefused: [REFUSED_MATCH], ...unknown })}`;
+}
 
 /** Both feeds answering with `payloads`, and refusing the `refuse` URL as `fakeFetch` does. */
 function fakeFeeds(payloads: PositionsPayloads, refuse?: string) {
