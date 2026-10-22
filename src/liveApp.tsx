@@ -3,7 +3,7 @@ import { ConvexReactClient, useAction, useConvexAuth, useQuery } from "convex/re
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { api } from "../convex/_generated/api";
 import { useLiveAdmin } from "./admin/liveAdmin";
-import { PageSection, Problem } from "./frame/Panel";
+import { Loading, PageSection, Problem } from "./frame/Panel";
 import { ERROR_PAGE_TITLE, readFailedWords, reloadWords } from "./frame/words";
 import type { AuthActions, Session } from "./auth";
 import { liveGameweeks } from "./gameweeks/liveGameweeks";
@@ -124,9 +124,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
 
   if (!session) {
     return (
-      <p role="status" className="p-2 text-muted">
-        {checkingLink ? waitingWords.checkingLink : waitingWords.connecting}
-      </p>
+      <Loading className="p-2">{checkingLink ? waitingWords.checkingLink : waitingWords.connecting}</Loading>
     );
   }
   return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} table={liveTable} admin={admin} />;

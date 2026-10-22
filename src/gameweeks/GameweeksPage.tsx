@@ -2,7 +2,7 @@ import { useState } from "react";
 import { isLocked } from "../../convex/gameweeks/deadline";
 import type { LeagueGameweek } from "../../convex/gameweeks/leagueGameweeks";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { PageSection, Problem } from "../frame/Panel";
+import { Loading, PageSection, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { gameweekWords } from "../words";
 import type { LeagueGameweeksView } from "./seam";
@@ -52,9 +52,7 @@ export function GameweeksPage({ league, view }: { league: LeagueSummary; view: L
             ))}
           </div>
         ) : (
-          <p role="status" className="text-muted">
-            {loadingWords}
-          </p>
+          <Loading>{loadingWords}</Loading>
         )}
         <BackToLeagues className="self-start" />
       </div>

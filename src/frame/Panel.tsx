@@ -88,12 +88,12 @@ export function Loading({ className, children }: { className?: string; children:
 /** The padding of a muted panel line, as Tailwind names its sides: `y` above and below, `b` below
  *  only (under something that pads itself), `t` above only. Whole strings, so Tailwind finds them. */
 const PANEL_NOTE_EDGES = {
-  y: "px-3 py-2 text-muted",
-  b: "px-3 pb-2 text-muted",
-  t: "px-3 pt-2 text-muted",
+  y: "px-3 py-2",
+  b: "px-3 pb-2",
+  t: "px-3 pt-2",
 } as const;
 
 /** A muted line inside a panel, such as a hint or "none found"; `edge` says which sides it pads. */
 export function PanelNote({ edge = "y", children }: { edge?: keyof typeof PANEL_NOTE_EDGES; children: ReactNode }) {
-  return <p className={PANEL_NOTE_EDGES[edge]}>{children}</p>;
+  return <p className={`${PANEL_NOTE_EDGES[edge]} text-muted`}>{children}</p>;
 }
