@@ -190,3 +190,26 @@ test("the team left over has a bye, or plays the league's average, as the league
 test.each([0, 1])("%i teams have no one to play, so no fixtures", (count) => {
   expect(drawFixtures(teamsOf(count), SEASON_GAMEWEEKS, options())).toEqual([]);
 });
+
+/** The draws the golden file pins: every odd team out, a few team counts and games a gameweek. */
+const GOLDEN_TEAM_COUNTS = [2, 3, 4, 7, 10];
+const GOLDEN_GAMES = [1, 2, 3];
+const GOLDEN_SEED = "golden-league";
+const AVERAGE_WORD = "average";
+
+/** A gameweek as one line, so a diff of the golden names exactly what moved. */
+const goldenLine = ({ gameweek, fixtures, byes }: GameweekFixtures<string>) =>
+  `${gameweek}: ${fixtures.map(({ team, opponent }) => `${team} v ${opponent === LEAGUE_AVERAGE ? AVERAGE_WORD : opponent}`).join(", ")}` +
+  (byes.length === 0 ? "" : ` | byes ${byes.join(", ")}`);
+
+test("a league whose rules never change is drawn as the golden file pins, over a season with gaps", async () => {
+  const lines = ODD_TEAM_OUTS.flatMap((oddTeamOut) =>
+    GOLDEN_TEAM_COUNTS.flatMap((count) =>
+      GOLDEN_GAMES.flatMap((games) => [
+        `# ${count} teams, ${games} a gameweek, odd team out ${oddTeamOut}`,
+        ...drawFixtures(teamsOf(count), WITH_GAPS, { oddTeamOut, gamesPerGameweek: games, seed: GOLDEN_SEED }).map(goldenLine),
+      ]),
+    ),
+  );
+  await expect(`${lines.join("\n")}\n`).toMatchFileSnapshot("../../support/golden/round-robin.txt");
+});
