@@ -18,8 +18,9 @@ irons out kinks: a quick league of about four, with players assigned to teams ra
 drafted, for the basics. It needs:
 features 1, 2, 3, 5, 6, 7, 10, 12, 14, 16 and 18, and the admin tools listed in
 [spec/15's The mini beta](spec/15-admin-tools.md#the-mini-beta). Live commentary and the match
-page (10) are in it if the live stream is proven, and among the first things dropped if late. The draft (4) waits for the summer. Before it starts,
-FPL's and the Premier League's terms are checked (Craig, 20 Oct 2026; issue #79).
+page (10) are in it if the live stream is proven, and among the first things dropped if late.
+The draft (4) waits for the summer. Before it starts, FPL's and the Premier League's terms are
+checked (Craig, 20 Oct 2026; issue #79).
 
 ## Features
 
