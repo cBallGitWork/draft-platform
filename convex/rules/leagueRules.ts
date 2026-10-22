@@ -1,7 +1,7 @@
 import { v, type Validator } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
-import type { DeadlineRule } from "../gameweeks/deadline";
+import { leagueDeadline, type DeadlineRule, type ScheduledMatch } from "../gameweeks/deadline";
 import { FIRST_RULES } from "./firstRules";
 import { getLeague, isAdmin, memberOf, refuse, runnerOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
@@ -11,7 +11,8 @@ import { leagueRulesShape, scoringSetShape, type LeagueRules } from "./leagueRul
 import { categoryName } from "../scoring/categories";
 import { sortedJson } from "../shared/sortedJson";
 import { nextGameweek } from "../gameweeks/nextGameweek";
-import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
+import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
+import { FIRST_GAMEWEEK, SEASON_GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { londonTime } from "../shared/londonTime";
 import { adminByline } from "../mail/letterWords";
 
@@ -127,10 +128,10 @@ export function refuseTooFewForGames(rules: LeagueRules | null, maxTeams: number
 }
 
 /** The season's gameweeks and matches as held, less those the football layer no longer sends. */
-async function heldSchedule(ctx: QueryCtx) {
+export async function heldSchedule(ctx: QueryCtx) {
   const gameweeks = [];
-  for await (const { number, deadline, droppedAt } of ctx.db.query("gameweeks")) {
-    if (droppedAt === undefined) gameweeks.push({ number, deadline });
+  for await (const { number, droppedAt } of ctx.db.query("gameweeks")) {
+    if (droppedAt === undefined) gameweeks.push({ number });
   }
   const matches = [];
   // A season's 380, at most a few seasons' worth: the fixtures table has no gameweek index.
@@ -138,6 +139,32 @@ async function heldSchedule(ctx: QueryCtx) {
     if (droppedAt === undefined) matches.push({ gameweek, kickoff });
   }
   return { gameweeks, matches };
+}
+
+/** The league's own deadline for each of gameweeks 1 to 38: the one recorded once it passed
+ *  (#150), else the one under the rule in force in it. When each begins, for its screens, refusals
+ *  and recorder (#138, #139). Null where none of the gameweek's matches has a kickoff time held,
+ *  and for every gameweek of a league made before rules were held, which has no deadline rule. */
+export async function leagueDeadlines(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, number | null>> {
+  return leagueDeadlinesIn(ctx, leagueId, (await heldSchedule(ctx)).matches);
+}
+
+/** `leagueDeadlines` against matches already read (`heldSchedule`), so one read serves every
+ *  league. */
+export async function leagueDeadlinesIn(
+  ctx: QueryCtx,
+  leagueId: Id<"leagues">,
+  matches: readonly ScheduledMatch[],
+): Promise<Map<number, number | null>> {
+  const history = await historyOf(ctx, leagueId);
+  const passed = await passedDeadlinesOf(ctx, leagueId);
+  return new Map(
+    SEASON_GAMEWEEKS.map((gameweek) => {
+      const row = inForce(history, gameweek);
+      const recorded = passed.get(gameweek) ?? null;
+      return [gameweek, row === undefined ? recorded : leagueDeadline(gameweek, matches, row.rules.deadline, recorded)];
+    }),
+  );
 }
 
 /** The parts of the rules that differ, by name: all of them, from a league that had none. */
@@ -164,12 +191,14 @@ export const latest = query({
  *  gameweek the moment it is saved; and a row from before a waiting one would be overridden by it. */
 async function takesEffectFrom(
   ctx: QueryCtx,
+  leagueId: Id<"leagues">,
   history: readonly Doc<"leagueRules">[],
   rules: LeagueRules,
   now: number,
 ): Promise<number> {
   const { gameweeks, matches } = await heldSchedule(ctx);
-  const nextUnder = (deadlineFor: (gameweek: number) => DeadlineRule) => nextGameweek(gameweeks, matches, deadlineFor, now);
+  const passed = await passedDeadlinesOf(ctx, leagueId);
+  const nextUnder = (deadlineFor: (gameweek: number) => DeadlineRule) => nextGameweek(gameweeks, matches, deadlineFor, passed, now);
   return Math.max(
     nextUnder((gameweek) => (inForce(history, gameweek)?.rules ?? rules).deadline),
     nextUnder(() => rules.deadline),
@@ -186,7 +215,7 @@ async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: str
   const latestRow = history.at(-1);
   await refuseStale(ctx, leagueId, latestRow, loaded);
   refuseUnsound(rules, (await getLeague(ctx, leagueId)).maxTeams);
-  const fromGameweek = await takesEffectFrom(ctx, history, rules, Date.now());
+  const fromGameweek = await takesEffectFrom(ctx, leagueId, history, rules, Date.now());
   const changed = changedParts(latestRow?.rules, rules);
   if (latestRow !== undefined && changed.length === 0) return latestRow.fromGameweek;
   // A second change before the same deadline is a newer row from the same gameweek: it wins.
@@ -235,7 +264,7 @@ export async function editorView<Part>(ctx: QueryCtx, leagueId: Id<"leagues">, n
   const history = await historyOf(ctx, leagueId);
   const latestRow = history.at(-1);
   if (latestRow === undefined) return null;
-  return { part: partOf(latestRow.rules), revision: latestRow._id, changesFrom: await takesEffectFrom(ctx, history, latestRow.rules, now) };
+  return { part: partOf(latestRow.rules), revision: latestRow._id, changesFrom: await takesEffectFrom(ctx, leagueId, history, latestRow.rules, now) };
 }
 
 /** `editorView`'s returns validator, for a part shaped as `part`. */
