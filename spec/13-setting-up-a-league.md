@@ -48,9 +48,9 @@ comes to exist, fills, changes and ends.
   so do an invite, the live invite link and naming a team's manager (Craig, 22 Oct 2026). The
   invite link lets anyone who opens it sign in to ask to join (`/grill sign-in`): it's a beta,
   and a leak needs no guarding.
-- Teams probably can't join mid-season: "teams probably cant join mid season (unless its a
-  league with splits etc.)" (Craig, 22 Oct 2026). A played gameweek's fixtures never change
-  because a team joined. Leagues with splits are to grill (`docs/to-grill.md`).
+- Joining mid-season: "teams probably cant join mid season (unless its a league with splits
+  etc.)" (Craig, 22 Oct 2026). A played gameweek's fixtures never change because a team joined;
+  leagues with splits are to grill (`docs/to-grill.md`).
 - Invites past the email service's daily limit (100 a day for now) wait for the next day, and the
   commissioner is told.
 

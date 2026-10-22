@@ -45,8 +45,8 @@ competition, not the design plate (`docs/design/plate.md`).
   US consolation brackets: `docs/research/draft-competitors.md`.
 
 **A split season or a redraft**: "a season is long" (Craig, 20 Oct 2026).
-- Whether a team can join a league with splits at a split: "teams probably cant join mid season
-  (unless its a league with splits etc.)" (Craig, 22 Oct 2026; `spec/13` Joining).
+- Whether a team can join at a split, in a league with splits (Craig, 22 Oct 2026; `spec/13`
+  Joining).
 - A whole redraft or a short top-up draft; at the January window or elsewhere.
 - Do keepers or some players stay; does the table reset or carry on. FPL Draft allows up to three
   redrafts that "do not affect the current league standings"
