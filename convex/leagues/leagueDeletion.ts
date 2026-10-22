@@ -9,7 +9,8 @@ import { HOUR_MS } from "../shared/time";
 
 // Deleting a league (#75, spec/13, Deleting). For DELETION_UNDO_HOURS it can be undone: it is
 // frozen (leagueAccess's getLeague refuses every change to it), hidden from everyone with a part
-// in it but whoever deleted it (myLeagues.ts), and each of them is emailed (deletionNotices.ts).
+// in it but its commissioner (myLeagues.ts), and everyone with a part in it but whoever deleted it
+// is emailed (deletionNotices.ts).
 // Then deleteForGood removes it and every row keyed to it: nothing is archived.
 
 /** How long after it is deleted a league is gone for good. */
@@ -72,7 +73,7 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
 
 export const tablesKeyedToLeague = Object.keys(leagueRows);
 
-/** Everyone with a part in the league but `by`: whom deleting it hides it from, and who is told. */
+/** Everyone with a part in the league but `by`: who is told it is being deleted. */
 async function othersIn(ctx: QueryCtx, league: Doc<"leagues">, by: string): Promise<string[]> {
   return [...new Set(await wholeLeague(ctx, league))].filter((email) => email !== by);
 }
@@ -98,7 +99,8 @@ export const deleteLeague = mutation({
   },
 });
 
-/** Whoever deleted the league, or the admin, undoes it before it is gone, and it is as it was. */
+/** The league's commissioner or the admin, whichever deleted it, undoes it before it is gone, and
+ *  it is as it was. */
 export const undo = mutation({
   args: { leagueId: v.id("leagues") },
   returns: v.null(),

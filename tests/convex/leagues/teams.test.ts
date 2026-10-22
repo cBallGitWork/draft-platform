@@ -7,7 +7,9 @@ import {
   ADMIN,
   actingAs,
   COMMISSIONER,
+  CO_COMMISSIONER,
   MANAGERS,
+  addManager,
   addManagers,
   adminCreatesLeague,
   eventsIn,
@@ -39,7 +41,7 @@ describe("adding managers", () => {
       { name: "Team 1", managerEmail: ANN },
       { name: "Team 2", managerEmail: BOB },
     ]);
-    expect((await eventsIn(t, leagueId))[2]).toEqual({ by: COMMISSIONER, kind: "managerAdded", email: ANN, teamId: annsTeam, teamName: "Team 1" });
+    expect((await eventsIn(t, leagueId))[2]).toEqual({ by: ADMIN, kind: "managerAdded", email: ANN, teamId: annsTeam, teamName: "Team 1" });
   });
 
   test("an added manager is let sign in", async () => {
@@ -70,10 +72,17 @@ describe("adding managers", () => {
     expect((await teamNames()).map((team) => team.name)).toEqual(["Team 2", "Team 3"]);
   });
 
-  test("a manager can't add another manager", async () => {
+  // "admin only (not commissioner or co-commissioner)" (Craig, 22 Oct 2026): they invite instead.
+  test("only the admin adds a manager directly: not the commissioner, the co-commissioner or a manager", async () => {
     await addManagers(t, leagueId, [ANN]);
-    const ann = await actingAs(t, ANN);
-    await expect(ann.mutation(api.leagues.teams.addManager, { leagueId, email: BOB })).rejects.toThrow(refusals.notRunner);
+    await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
+    const before = await teamNames();
+    for (const email of [COMMISSIONER, CO_COMMISSIONER, ANN]) {
+      await expect((await actingAs(t, email)).mutation(api.leagues.teams.addManager, { leagueId, email: BOB })).rejects.toThrow(
+        refusals.notAdmin,
+      );
+    }
+    expect(await teamNames()).toEqual(before);
   });
 });
 
@@ -199,14 +208,13 @@ describe("removing and leaving", () => {
     await addManagers(t, leagueId, [CAT, DAN]);
     await expect(addManagers(t, leagueId, [EVE])).rejects.toThrow(refusals.full(4));
 
-    await commissioner.mutation(api.leagues.teams.addManager, { leagueId, email: EVE, teamId: annsTeam });
+    await addManager(t, leagueId, EVE, annsTeam);
     expect((await teamNames())[0]).toEqual({ name: "Red Army", managerEmail: EVE });
   });
 
-  test("a removed manager can be invited back", async () => {
-    const commissioner = await actingAs(t, COMMISSIONER);
-    await commissioner.mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam });
-    await commissioner.mutation(api.leagues.teams.addManager, { leagueId, email: ANN, teamId: annsTeam });
+  test("a removed manager can be added back", async () => {
+    await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam });
+    await addManager(t, leagueId, ANN, annsTeam);
 
     expect((await annsLeagues())?.map((league) => league.teamName)).toEqual(["Red Army"]);
   });
@@ -216,9 +224,7 @@ describe("removing and leaving", () => {
     const [catsTeam] = await addManagers(t, otherLeague, [CAT]);
     await (await actingAs(t, CAT)).mutation(api.leagues.teams.leave, { leagueId: otherLeague });
 
-    await expect(
-      (await actingAs(t, COMMISSIONER)).mutation(api.leagues.teams.addManager, { leagueId, email: DAN, teamId: catsTeam }),
-    ).rejects.toThrow(refusals.noTeam);
+    await expect(addManager(t, leagueId, DAN, catsTeam)).rejects.toThrow(refusals.noTeam);
   });
 
   test("removing the manager of a vacated team is refused", async () => {
@@ -228,8 +234,6 @@ describe("removing and leaving", () => {
   });
 
   test("a team that has a manager can't be handed to another", async () => {
-    await expect(
-      (await actingAs(t, COMMISSIONER)).mutation(api.leagues.teams.addManager, { leagueId, email: CAT, teamId: annsTeam }),
-    ).rejects.toThrow(refusals.notVacated);
+    await expect(addManager(t, leagueId, CAT, annsTeam)).rejects.toThrow(refusals.notVacated);
   });
 });

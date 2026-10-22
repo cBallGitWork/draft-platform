@@ -21,6 +21,8 @@ comes to exist, fills, changes and ends.
   stays, for the commissioner to hand to the next person.
 - A team starts as "Team 1", "Team 2" and so on, and its manager renames it. Names are unique
   within the league, up to 30 characters.
+- The admin can name a team's manager directly, from the command line; the commissioner and
+  co-commissioner invite instead (22 Oct 2026).
 
 ## Who runs it
 
@@ -39,6 +41,8 @@ comes to exist, fills, changes and ends.
   sign-in with no approval. It lasts 7 days, and the commissioner can cancel or resend it. An
   invite needs no more guarding than that: if someone joins who shouldn't, the commissioner
   removes them.
+- Someone whose invite expired, was cancelled or couldn't be used, and who is in no league, is told
+  so on signing in, with why, and to ask the commissioner for a new one (22 Oct 2026).
 - The commissioner can switch the league's invite link off, or replace it with a new one; the old
   one then stops working.
 - The commissioner approves or refuses each join request. A person has at most one request
@@ -75,5 +79,6 @@ comes to exist, fills, changes and ends.
 
 - The admin or the league's commissioner can delete a league; the co-commissioner can't.
 - For 24 hours it can be undone. In that time the league is frozen and hidden from its managers,
-  and each gets an email saying it will be deleted, and when.
+  and each gets an email saying it will be deleted, and when. When the admin deletes it, its
+  commissioner still sees it and can undo it (22 Oct 2026).
 - After 24 hours it is gone for good, not archived.

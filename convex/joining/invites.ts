@@ -16,8 +16,8 @@ import { checkCanJoin, putOnTeam } from "../leagues/teams";
 // sign-in link, and the person joins on signing in, with no approval, while it lasts (an invite's lifetime).
 // Each change the league's runners make files an event for Mail (#26).
 
-/** The most unexpired invites to one email read at once: far more leagues than invite anyone in a week. */
-const UNEXPIRED_INVITES_READ = 100;
+/** The most invites to one email read at once: far more than anyone is sent in the closed beta. */
+export const INVITES_TO_ONE_EMAIL_READ = 100;
 
 /** Whether the invite was cancelled, or the person signed in and it was taken up or couldn't be. */
 const hasEnded = (invite: Doc<"invites">) =>
@@ -28,7 +28,7 @@ async function liveInvitesTo(ctx: QueryCtx, email: string, now: number) {
   const unexpired = await ctx.db
     .query("invites")
     .withIndex("by_email_and_expiresAt", (q) => q.eq("email", email).gt("expiresAt", now))
-    .take(UNEXPIRED_INVITES_READ);
+    .take(INVITES_TO_ONE_EMAIL_READ);
   return unexpired.filter((invite) => !hasEnded(invite));
 }
 

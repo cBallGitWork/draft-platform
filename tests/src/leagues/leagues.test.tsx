@@ -21,6 +21,27 @@ describe("someone signed in, in no league", () => {
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 
+  // "Your invite to <league> expired / was cancelled / couldn't be used: <reason>. Ask the
+  // commissioner for a new one." (Craig, 22 Oct 2026)
+  it.each([
+    [{ leagueName: "Mini beta", ended: "expired", reason: null }, "Your invite to Mini beta expired. Ask the commissioner for a new one."],
+    [{ leagueName: "Mini beta", ended: "cancelled", reason: null }, "Your invite to Mini beta was cancelled. Ask the commissioner for a new one."],
+    [
+      { leagueName: "Mini beta", ended: "couldNotJoin", reason: "The league is full: it has all 4 of its teams." },
+      "Your invite to Mini beta couldn't be used: The league is full: it has all 4 of its teams. Ask the commissioner for a new one.",
+    ],
+  ] as const)("whose newest invite ended without them joining is told how, and to ask for a new one", async (endedInvite, line) => {
+    openApp(LEAGUES_PATH, newcomer, { joining: { endedInvite } });
+    expect(await screen.findByText(line)).toBeTruthy();
+    expect(screen.getByText(notInALeagueWords("manager@example.com"))).toBeTruthy();
+  });
+
+  it("with no invite to tell of, is told only that they're in none", async () => {
+    openApp(LEAGUES_PATH, newcomer, { joining: { endedInvite: null } });
+    await screen.findByText(notInALeagueWords("manager@example.com"));
+    expect(screen.queryByText(/Your invite to/)).toBeNull();
+  });
+
   it("sees no league menu and no Create a league, and can sign out", async () => {
     const app = openApp(LEAGUES_PATH, newcomer);
     await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
