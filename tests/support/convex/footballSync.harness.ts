@@ -7,7 +7,7 @@ import { internal } from "../../../convex/_generated/api";
 import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL } from "../../../convex/football/football";
 import { recordedFpl, type FplPayloads } from "../recorded/fpl.payloads";
 import type { syncTrigger } from "../../../convex/schema";
-import { BATCH_SIZE } from "../../../convex/football/syncRuns";
+import { BATCH_SIZE } from "../../../convex/shared/syncRuns";
 import { fakeFetch, type TestConvex } from "./test.harness";
 
 const UNLISTED_CLUB_ID = 99;

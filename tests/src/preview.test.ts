@@ -9,7 +9,6 @@ function previewOnLoad(search: string) {
 }
 
 afterEach(() => {
-  vi.unstubAllEnvs();
   window.history.replaceState(null, "", "/");
 });
 

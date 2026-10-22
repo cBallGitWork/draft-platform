@@ -40,8 +40,6 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
-  vi.unstubAllEnvs();
-  vi.restoreAllMocks();
   convex.signIn.mockReset();
   convex.ask.mockReset();
   window.history.replaceState(null, "", "/");

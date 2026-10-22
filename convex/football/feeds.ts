@@ -5,7 +5,7 @@ import { namedMen } from "./feedIds";
 import { arsenalSquadNumbers, fplPlayerCount, logFailure, plFixtureCount } from "./football";
 import { readPlCommentary, readPlFixture, readPlTeamStats } from "./premierLeague";
 import { feedCheckFields, feedCheckTrigger, feedOutcome } from "../schema";
-import { LATEST_RUNS } from "./syncRuns";
+import { LATEST_RUNS } from "../shared/syncRuns";
 import { MINUTE_MS } from "../shared/time";
 
 // Two one-off probes of the feeds, not the admin's feeds page (spec/15): `check` and `checkLater`

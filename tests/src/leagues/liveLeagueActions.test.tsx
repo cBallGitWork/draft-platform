@@ -4,7 +4,6 @@
 
 import { renderHook } from "@testing-library/react";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { FunctionReference } from "convex/server";
 import { ConvexError } from "convex/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { afterEach, expect, test, vi } from "vitest";
@@ -15,20 +14,19 @@ const create = vi.hoisted(() => vi.fn());
 const deleteLeague = vi.hoisted(() => vi.fn());
 const undo = vi.hoisted(() => vi.fn());
 const switchTo = vi.hoisted(() => vi.fn());
-vi.mock("convex/react", async () => {
-  const { getFunctionName } = await import("convex/server");
-  const byName: Record<string, unknown> = {
-    "leagues/leagues:create": create,
-    "leagues/leagueDeletion:deleteLeague": deleteLeague,
-    "leagues/leagueDeletion:undo": undo,
-    "leagues/lastLeague:switchTo": switchTo,
-  };
-  return { useMutation: (mutation: FunctionReference<"mutation">) => byName[getFunctionName(mutation)] };
-});
+vi.mock("convex/react", async () =>
+  (await import("../../support/src/convexReact.harness")).fakeConvexReact({
+    mutations: {
+      "leagues/leagues:create": create,
+      "leagues/leagueDeletion:deleteLeague": deleteLeague,
+      "leagues/leagueDeletion:undo": undo,
+      "leagues/lastLeague:switchTo": switchTo,
+    },
+  }),
+);
 
 afterEach(() => {
   for (const mutation of [create, deleteLeague, undo, switchTo]) mutation.mockReset();
-  vi.restoreAllMocks();
 });
 
 const newLeague = { name: "Mini beta", maxTeams: 4, commissionerEmail: "commish@example.com" };

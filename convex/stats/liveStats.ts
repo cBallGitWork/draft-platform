@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery } from "../_generated/server";
 import { recordsOf, statusOf, writeRecords, type DueMatch } from "./matchStats";
 import { liveStatsTickFields, playerMatchRecord } from "../schema";
-import { LATEST_RUNS } from "../football/syncRuns";
+import { LATEST_RUNS } from "../shared/syncRuns";
 import { HOUR_MS } from "../shared/time";
 
 // Issue #28: the stored side of the live poller. `liveStatsSync.tick` asks `live` which matches

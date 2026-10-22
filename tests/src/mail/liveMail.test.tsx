@@ -33,7 +33,6 @@ beforeEach(() => {
 });
 afterEach(() => {
   convex.mutate.mockReset();
-  vi.restoreAllMocks();
 });
 
 const live = () => renderHook(useLiveMail).result.current;
