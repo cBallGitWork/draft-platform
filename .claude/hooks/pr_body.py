@@ -1,7 +1,10 @@
 """The pull-request body check, for guard_bash.py: denies a gh pr create or gh pr edit whose body
 (--body, or the file --body-file names) holds a local path or a closing word near an issue number
-anywhere but a bare "Closes #n" line, and a gh pr create whose body lacks the template's Merge
-danger or Fresh-eyes review. A body the guard can't read is denied too. Stdlib only, Python 3.9+.
+anywhere but a bare "Closes #n" line. On gh pr create it also denies a body that lacks the
+template's Merge danger, Checks, Fresh-eyes review or Left for later heading; one with neither
+pr-reviewer's pasted signature ("*Reviewer: pr-reviewer (" starting a line) nor an unticked
+"- [ ] pr-reviewer: not run" line; and one with a ticked box that says "not run". A body the guard
+can't read is denied too. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -15,7 +18,10 @@ from where import options, runs_at
 PR_CALLS = (["pr", "create"], ["pr", "edit"])
 BODY_OPTS = {"-b", "--body"}
 BODY_FILE_OPTS = {"-F", "--body-file"}
-REQUIRED = ("## Merge danger", "## Fresh-eyes review")  # .github/pull_request_template.md
+REQUIRED = ("## Merge danger", "## Checks", "## Fresh-eyes review", "## Left for later")  # the template
+SIGNED = re.compile(r"^\*Reviewer: pr-reviewer \(", re.M)  # the last line of pr-reviewer's block
+NOT_RUN = re.compile(r"^- \[ \] pr-reviewer: not run", re.M)
+TICKED_NOT_RUN = re.compile(r"^- \[[xX]\] .*not run", re.M)
 LOCAL_PATHS = ("/Users/", "/private/tmp/")  # a Mac home folder, the session scratchpad
 # One line at a time, by design: "Closes" at a line's end with "#12" starting the next, and
 # "Closes https://…/issues/5", both get through. A known limit, not a promise.
@@ -65,6 +71,13 @@ def body_problem(body, creating):
         if missing:
             return (f"The body lacks {' and '.join(missing)}. Fill in the whole template "
                     "(.github/pull_request_template.md).")
+        ticked = TICKED_NOT_RUN.search(body)
+        if ticked:
+            return (f"A ticked box says a step was not run ({ticked.group(0).strip()!r}). "
+                    "Untick it and say why: '- [ ] <step>: not run — <why>'.")
+        if not SIGNED.search(body) and not NOT_RUN.search(body):
+            return ("The body has no pr-reviewer verdict. Paste its block under Fresh-eyes review "
+                    "(it ends '*Reviewer: pr-reviewer (…'), or write '- [ ] pr-reviewer: not run — <why>'.")
     local = next((path for path in LOCAL_PATHS if path in body), None)
     if local:
         return f"The body names a local path ({local}…). Name the file by its path in the repo."

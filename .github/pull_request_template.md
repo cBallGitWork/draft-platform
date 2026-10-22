@@ -24,6 +24,10 @@ an email sent)? And the blast radius: which screen, league or job it can break. 
 
 ## Fresh-eyes review
 
-<!-- pr-reviewer's block for Craig, pasted. -->
+<!-- Paste the last round's block for Craig. Put earlier rounds and every 'detail for the author' table inside <details><summary>Review detail</summary>…</details>. -->
 
 Commits after the review: none / <sha>..HEAD, second round pasted below
+
+## Left for later
+
+<!-- One line per CRAIG'S CALL or parked finding, naming where it went: '#n' or 'to-grill: <row>'. Or 'none'. -->
