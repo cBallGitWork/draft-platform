@@ -4,6 +4,7 @@ import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from 
 import { api } from "../convex/_generated/api";
 import { useLiveAdmin } from "./admin/liveAdmin";
 import { Loading, PageSection, Problem } from "./frame/Panel";
+import { SignOut } from "./frame/SignOut";
 import { ERROR_PAGE_TITLE, readFailedWords, reloadWords } from "./frame/words";
 import type { AuthActions, Session } from "./auth";
 import { liveGameweeks } from "./gameweeks/liveGameweeks";
@@ -11,6 +12,7 @@ import { useLiveJoining } from "./joining/liveJoining";
 import { joinTokenAt } from "./joining/paths";
 import { useLiveLeagueActions } from "./leagues/liveLeagueActions";
 import { useLiveMail } from "./mail/liveMail";
+import { useLiveLeagueSettings } from "./leagueSettings/liveSettings";
 import { useLiveScoring } from "./scoring/liveScoring";
 import { useLiveSquads } from "./squads/liveSquads";
 import { liveTable } from "./table/liveTable";
@@ -65,8 +67,8 @@ export function LiveApp({ linkCode }: { linkCode: string | null }) {
 type ShellFailedState = { failed: { error: unknown } | null };
 
 /** What the app shows when something above the router threw, such as a query the top bar reads:
- *  what ErrorScreen.tsx says, and a reload, as the router's way back isn't there. React logs the
- *  error itself (its onCaughtError). */
+ *  what ErrorScreen.tsx says, a reload, as the router's way back isn't there, and Sign out, as the
+ *  top bar's isn't either. React logs the error itself (its onCaughtError). */
 class ShellFailed extends Component<{ children: ReactNode }, ShellFailedState> {
   state: ShellFailedState = { failed: null };
 
@@ -79,12 +81,29 @@ class ShellFailed extends Component<{ children: ReactNode }, ShellFailedState> {
     return (
       <PageSection title={ERROR_PAGE_TITLE} className="max-w-xl bg-panel">
         <Problem problem={refusalIn(this.state.failed.error) ?? readFailedWords} />
-        <button type="button" onClick={() => location.reload()} className="action m-3">
-          {reloadWords}
-        </button>
+        <div className="m-3 flex flex-wrap gap-2">
+          <button type="button" onClick={() => location.reload()} className="action">
+            {reloadWords}
+          </button>
+          <SignOutAfresh onSignedOut={() => this.setState({ failed: null })} />
+        </div>
       </PageSection>
     );
   }
+}
+
+/** The top bar's Sign out, for ShellFailed, which has no top bar: once signed out, it shows the
+ *  app again, which is then the sign-in page. */
+function SignOutAfresh({ onSignedOut }: { onSignedOut: () => void }) {
+  const { signOut } = useAuthActions();
+  return (
+    <SignOut
+      onSignOut={async () => {
+        await signOut();
+        onSignedOut();
+      }}
+    />
+  );
 }
 
 function LiveShell({ linkCode }: { linkCode: string | null }) {
@@ -97,6 +116,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   const admin = useLiveAdmin();
   const squads = useLiveSquads();
   const scoring = useLiveScoring();
+  const leagueSettings = useLiveLeagueSettings();
   const account = useQuery(api.signIn.account.signedInAs, isAuthenticated ? {} : "skip");
   const [checkingLink, setCheckingLink] = useState(linkCode !== null);
   const redeemed = useRef(false);
@@ -129,7 +149,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
       <Loading className="p-2">{checkingLink ? waitingWords.checkingLink : waitingWords.connecting}</Loading>
     );
   }
-  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} table={liveTable} admin={admin} />;
+  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} admin={admin} />;
 }
 
 /** The sign-in page saying what was wrong with a link, and, for one that led to a league's invite

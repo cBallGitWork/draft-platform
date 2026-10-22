@@ -7,10 +7,11 @@ here-string or pipe into a shell (or a group around one), find -exec or ssh incl
 its redirections (commands.py; where.py lists what it can't see), each in the folder it runs in
 (the shell's cwd, any cd before it, its -C: where.py), so a worktree is judged on its own branch,
 not the project's. Also denies publishing a word on Craig's private list (private_words.py),
-and a pull request body that breaks the template's rules (pr_body.py).
+and a pull request body that breaks the template's rules or a title far too long (pr_body.py);
+a title only somewhat long gets a note, not a denial.
 Where it can't be sure what runs or where, it refuses and says how to run the command plainly.
 
-Reads the hook payload (JSON) on stdin; prints a deny decision or nothing.
+Reads the hook payload (JSON) on stdin; prints a deny decision, a note, or nothing.
 Stdlib only, Python 3.9+, because it runs on whatever python3 is present.
 """
 
@@ -22,7 +23,7 @@ import re
 import sys
 
 from commands import XARGS, Unbalanced, Unreadable, UnreadableStdin, commands, runs_unknown, short_flags
-from pr_body import pr_body_problem
+from pr_body import pr_body_problem, pr_title_note
 from private_words import private_word_problem
 from where import current_branch, git_call, git_dir, options, previous_branch, runners
 
@@ -208,13 +209,23 @@ def decide(cmd, cwd):
     return None
 
 
+def note(cmd, cwd):
+    """Advice that doesn't deny (a long pull request title), or None. Asked only when decide allows."""
+    try:
+        return pr_title_note(commands(cmd, cwd))
+    except (Unbalanced, Unreadable, UnreadableStdin):
+        return None
+
+
 def main():
+    advice = None
     try:  # a payload it can't read is denied too: allowing it would check nothing
         payload = json.load(sys.stdin)
         if isinstance(payload, dict):
             cmd = (payload.get("tool_input") or {}).get("command") or ""
             cwd = payload.get("cwd") or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
             reason = decide(cmd, cwd)
+            advice = None if reason else note(cmd, cwd)
         else:
             reason = (f"The Bash guard couldn't read the hook payload (a JSON {type(payload).__name__}, "
                       "not an object), so nothing was checked.")
@@ -226,6 +237,9 @@ def main():
             "permissionDecision": "deny",
             "permissionDecisionReason": reason,
         }}))
+    elif advice:  # additionalContext reaches Claude; systemMessage shows it to Craig
+        print(json.dumps({"systemMessage": advice,
+                          "hookSpecificOutput": {"hookEventName": "PreToolUse", "additionalContext": advice}}))
 
 
 if __name__ == "__main__":

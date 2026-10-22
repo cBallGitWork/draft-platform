@@ -7,7 +7,7 @@ import { rulesInGameweek } from "../../../convex/rules/leagueRules";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { centreOf, EXAMPLE_SET } from "../../support/convex/scoring.example";
-import { expectRefused, holdGameweeks, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { expectRefused, holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import {
   actingAs,
   addManagers,
@@ -29,8 +29,9 @@ beforeEach(async () => {
   fakeResend();
 });
 
+/** A change made from the league's latest rules, as a screen opened just now makes it. */
 const change = async (leagueId: Id<"leagues">, rules = TOTAL_POINTS, email = COMMISSIONER) =>
-  (await actingAs(t, email)).mutation(api.rules.leagueRules.change, { leagueId, rules });
+  (await actingAs(t, email)).mutation(api.rules.leagueRules.change, { leagueId, rules, revision: await rulesRevision(t, leagueId) });
 const latest = async (leagueId: Id<"leagues">, email = COMMISSIONER) =>
   (await actingAs(t, email)).query(api.rules.leagueRules.latest, { leagueId });
 const defaults = () => t.run(async (ctx) => (await ctx.db.query("defaultLeagueRules").unique())?.rules);
@@ -41,7 +42,7 @@ describe("a new league", () => {
   test("starts on the first rules, from gameweek 1, which become the admin's defaults", async () => {
     const leagueId = await adminCreatesLeague(t);
 
-    expect(await latest(leagueId)).toEqual({ fromGameweek: 1, rules: FIRST_RULES });
+    expect(await latest(leagueId)).toEqual({ fromGameweek: 1, rules: FIRST_RULES, revision: await rulesRevision(t, leagueId) });
     expect(await defaults()).toEqual(FIRST_RULES);
   });
 

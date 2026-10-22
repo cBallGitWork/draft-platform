@@ -18,6 +18,7 @@ import {
   LEAGUE_NAME,
   MANAGERS,
   actingAs,
+  addManager,
   addManagers,
   adminCreatesLeague,
   eventsIn,
@@ -180,7 +181,7 @@ describe("who can be invited", () => {
     const refusalOf = (sending: Promise<unknown>) => sending.then(() => null, (error: { data?: unknown }) => error.data);
     const bothRefuse = async (args: { email: string; teamId?: Id<"teams"> }) => [
       await refusalOf(commissioner.mutation(api.joining.invites.send, { leagueId, ...args })),
-      await refusalOf(commissioner.mutation(api.leagues.teams.addManager, { leagueId, ...args })),
+      await refusalOf(addManager(t, leagueId, args.email, args.teamId)),
     ];
 
     expect(await bothRefuse({ email: ANN })).toEqual([refusals.alreadyManager(ANN), refusals.alreadyManager(ANN)]);

@@ -6,8 +6,8 @@ Every route in `src/router.tsx` and how a person moves between them, plus the sc
 names that have no route yet. Read with [plate.md](plate.md), which is the look. The spec is the
 product; this map only draws it. `tests/src/flow.test.ts` fails when a route is missing from the
 Screens table, isn't its own box in the map or has no arrow touching it, the table lists a path
-the router doesn't have, a file it names is gone, or a Status disagrees with its file
-(PageNotBuilt is a placeholder, any other page is built). It doesn't check where arrows go.
+the router doesn't have, a file it names is gone, or a Status disagrees with its route
+(no route, a PageNotBuilt placeholder, or built). It doesn't check where arrows go.
 
 ## The map
 
@@ -36,13 +36,14 @@ flowchart TD
     JOIN["Join a league<br/>/join/$token<br/>manager, commissioner, admin"]
     GW["Gameweeks<br/>/leagues/$leagueId/gameweeks<br/>commissioner, admin"]
     SQ["Squads<br/>/leagues/$leagueId/squads<br/>commissioner, admin"]
-    SC["Scoring, the rules editor<br/>/leagues/$leagueId/scoring<br/>commissioner, admin"]
+    SC["Player scoring, the rules editor<br/>/leagues/$leagueId/scoring<br/>commissioner, admin"]
+    SET["League settings<br/>/leagues/$leagueId/settings<br/>commissioner, admin"]
     ADMIN["Admin dashboard, tab Positions<br/>/admin<br/>admin"]
     FEEDS["Feeds, a tab of the admin dashboard<br/>/admin/feeds<br/>admin"]
   end
   LP -.->|"signed out (an invite link keeps ?join)"| SIGNIN
   NEW & ADMIN & FEEDS -.->|"not the admin"| LEAGUES
-  GW & SQ & SC & INV -.->|"doesn't run it, or it's being deleted"| LEAGUES
+  GW & SQ & SC & SET & INV -.->|"doesn't run it, or it's being deleted"| LEAGUES
   LEAGUES -- "Create a league" --> NEW
   LEAGUES -- "Admin dashboard" --> ADMIN
   ADMIN -- "Feeds" --> FEEDS
@@ -50,9 +51,10 @@ flowchart TD
   LEAGUES -- "Gameweeks" --> GW
   LEAGUES -- "Invites and join requests" --> INV
   LEAGUES -- "Squads" --> SQ
-  LEAGUES -- "Scoring" --> SC
+  LEAGUES -- "Player scoring" --> SC
+  LEAGUES -- "League settings" --> SET
   NEW -- "Create the league / Back to your leagues" --> LEAGUES
-  GW & SQ & SC & ADMIN & FEEDS & INV -- "Back to your leagues" --> LEAGUES
+  GW & SQ & SC & SET & ADMIN & FEEDS & INV -- "Back to your leagues" --> LEAGUES
   JOIN -- "Your leagues" --> LEAGUES
   INV -- "the invite link, sent outside the app" --> JOIN
 
@@ -92,18 +94,19 @@ flowchart TD
     MATCH["Match<br/>spec/10:17<br/>manager"]
     CARD["Player card<br/>spec/12:16<br/>manager"]
     DRAFT["Draft room<br/>spec/12:16, spec/04<br/>manager, commissioner"]
-    SETTINGS["League settings<br/>spec/12:16<br/>commissioner"]
     CLUBS["Club pages<br/>spec/18:22<br/>after the mini beta"]
   end
-  class MATCH,CARD,DRAFT,SETTINGS,CLUBS planned
+  class MATCH,CARD,DRAFT,CLUBS planned
   MATCHUP -- "a player's status (spec/10:23)" --> MATCH
   PL -- "each fixture (spec/18:12)" --> MATCH
 ```
 
 ## Screens
 
-A built screen has a route and its own page. A placeholder has a route that says "This screen
-isn't built yet". `none` in the Path and File columns means no route yet.
+Status is the route's state only. A built screen has a route and its own page. A placeholder has
+a route that says "This screen isn't built yet". `none` in the Path and File columns means no
+route yet. Whether a screen is spec'd or to grill, and its issue, is in [SPEC.md](../../SPEC.md)'s
+Features table (feature 12), the one home for screen status.
 
 | Screen | Path | File | Spec | Status |
 |---|---|---|---|---|
@@ -116,24 +119,24 @@ isn't built yet". `none` in the Path and File columns means no route yet.
 | Join a league | `/join/$token` | src/joining/JoinPage.tsx | spec/13 Joining | built |
 | Gameweeks | `/leagues/$leagueId/gameweeks` | src/gameweeks/GameweeksPage.tsx | spec/13 Gameweeks | built |
 | Squads | `/leagues/$leagueId/squads` | src/squads/SquadsPage.tsx | spec/15 Assigning players | built |
-| Scoring, the rules editor | `/leagues/$leagueId/scoring` | src/scoring/ScoringPage.tsx | spec/14 The rules editor | built |
+| Player scoring, the rules editor | `/leagues/$leagueId/scoring` | src/scoring/ScoringPage.tsx | spec/14 The rules editor | built |
+| League settings | `/leagues/$leagueId/settings` | src/leagueSettings/SettingsPage.tsx | spec/03, spec/09 | built |
 | Admin dashboard (Positions) | `/admin` | src/admin/AdminPage.tsx | spec/15 The admin, spec/06 | built |
 | Feeds, a tab of the admin dashboard | `/admin/feeds` | src/admin/FeedsPage.tsx | spec/15 The admin | built |
 | Table and fixtures | `/table` | src/table/TablePage.tsx | spec/12, spec/09 | built |
-| League home | `/home` | src/frame/PageNotBuilt.tsx | spec/12:16 | to grill (placeholder) |
-| My team (Tactics) | `/team` | src/frame/PageNotBuilt.tsx | spec/12:11, spec/12:28, spec/05 | spec'd (placeholder, #14) |
-| Squad | `/team/squad` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | to grill (placeholder) |
-| Fixtures | `/team/fixtures` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | to grill (placeholder) |
-| Transactions | `/team/transactions` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | to grill (placeholder) |
-| Matchup | `/matchup` | src/frame/PageNotBuilt.tsx | spec/10 The matchup | spec'd (placeholder, #34) |
-| Players | `/players` | src/frame/PageNotBuilt.tsx | spec/12:16 | to grill (placeholder) |
-| Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12:16, spec/08 | to grill (placeholder) |
-| Premier League | `/premier-league` | src/frame/PageNotBuilt.tsx | spec/18 | spec'd (placeholder, #49) |
-| Match | none | none | spec/10 The match page | spec'd (#45) |
-| Player card | none | none | spec/12:16, spec/05:59, spec/14 | to grill |
-| Draft room | none | none | spec/12:16, spec/04 | spec'd, waits for the summer |
-| League settings | none | none | spec/12:16 | to grill |
-| Club pages | none | none | spec/18:22 | spec'd, after the mini beta |
+| League home | `/home` | src/frame/PageNotBuilt.tsx | spec/12:16 | placeholder |
+| My team (Tactics) | `/team` | src/frame/PageNotBuilt.tsx | spec/12:11, spec/12:28, spec/05 | placeholder |
+| Squad | `/team/squad` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | placeholder |
+| Fixtures | `/team/fixtures` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | placeholder |
+| Transactions | `/team/transactions` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | placeholder |
+| Matchup | `/matchup` | src/frame/PageNotBuilt.tsx | spec/10 The matchup | placeholder |
+| Players | `/players` | src/frame/PageNotBuilt.tsx | spec/12:16 | placeholder |
+| Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12:16, spec/08 | placeholder |
+| Premier League | `/premier-league` | src/frame/PageNotBuilt.tsx | spec/18 | placeholder |
+| Match | none | none | spec/10 The match page | no route |
+| Player card | none | none | spec/12:16, spec/05:59, spec/14 | no route |
+| Draft room | none | none | spec/12:16, spec/04 | no route |
+| Club pages | none | none | spec/18:22 | no route |
 
 ## Gaps
 

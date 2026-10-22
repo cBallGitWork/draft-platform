@@ -6,7 +6,10 @@ import { PageSection } from "../frame/Panel";
 import { gameweeksPath } from "../gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../gameweeks/words";
 import { invitesPath } from "../joining/paths";
-import { INVITES_TITLE } from "../joining/words";
+import type { JoiningSeam } from "../joining/seam";
+import { endedInviteWords, INVITES_TITLE } from "../joining/words";
+import { settingsPath } from "../leagueSettings/paths";
+import { SETTINGS_TITLE } from "../leagueSettings/words";
 import { scoringPath } from "../scoring/paths";
 import { SCORING_TITLE } from "../scoring/words";
 import { squadsPath } from "../squads/paths";
@@ -42,10 +45,12 @@ const runnerLinks = (leagueId: string) => [
   { to: invitesPath(leagueId), title: INVITES_TITLE },
   { to: squadsPath(leagueId), title: SQUADS_TITLE },
   { to: scoringPath(leagueId), title: SCORING_TITLE },
+  { to: settingsPath(leagueId), title: SETTINGS_TITLE },
 ];
 
 /** "Your leagues" (spec/12): each league the person has a part in, or, for the admin, every
- *  league; with none, a page saying so (spec/02). The admin is offered "Create a league", as only
+ *  league; with none, a page saying so (spec/02), and what became of their newest invite if it
+ *  ended without them joining (spec/13, Joining). The admin is offered "Create a league", as only
  *  the admin creates leagues in the beta. Switching between leagues is the top bar's
  *  (frame/LeagueSwitcher.tsx). */
 export function LeaguesPage({
@@ -53,11 +58,13 @@ export function LeaguesPage({
   isAdmin,
   leagues,
   actions,
+  useEndedInvite,
 }: {
   email: string;
   isAdmin: boolean;
   leagues: readonly LeagueSummary[];
   actions: DeletionActions;
+  useEndedInvite: JoiningSeam["useEndedInvite"];
 }) {
   return (
     <PageSection title={LEAGUES_TITLE} className="max-w-3xl bg-panel">
@@ -65,6 +72,7 @@ export function LeaguesPage({
         {leagues.length === 0 ? (
           <>
             <p>{notInALeagueWords(email)}</p>
+            <EndedInviteLine useEndedInvite={useEndedInvite} />
             {!isAdmin && <p className="text-muted">{invitedHereWords}</p>}
           </>
         ) : (
@@ -83,6 +91,12 @@ export function LeaguesPage({
       </div>
     </PageSection>
   );
+}
+
+/** Why the person's newest invite didn't make them a manager, if it didn't: nothing until it loads. */
+function EndedInviteLine({ useEndedInvite }: { useEndedInvite: JoiningSeam["useEndedInvite"] }) {
+  const ended = useEndedInvite();
+  return ended ? <p>{endedInviteWords(ended)}</p> : null;
 }
 
 function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSummary[]; isAdmin: boolean; actions: DeletionActions }) {

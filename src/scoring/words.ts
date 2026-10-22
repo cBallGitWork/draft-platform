@@ -8,7 +8,7 @@ import type { Pricing, Shape } from "./editing";
 
 export { gameweekWords };
 
-export const SCORING_TITLE = "Scoring";
+export const SCORING_TITLE = "Player scoring";
 export const categoriesLabel = "Categories";
 export const loadingWords = "Loading the scoring…";
 export const noRulesWords = "This league was made before leagues held their rules, so it has no scoring to edit yet.";
@@ -89,11 +89,7 @@ export const POSITION_WORDS: Record<SlotPosition, string> = {
 };
 
 /** The bottom bar. */
-export const appliesFromWords = "Changes apply from";
 export const wholePointsWords = "Whole points only";
-export const saveWords = "Save changes";
-export const discardWords = "Discard changes";
-export const unchangedWords = "Nothing changed yet.";
 export const savedWords = (gameweek: number) => `Saved. The new scoring applies from ${gameweekWords(gameweek)}, and the league has a letter saying so.`;
 export const blankBoxWords = (category: string) => `${category} has a box without a number. Fill it in, then save.`;
 

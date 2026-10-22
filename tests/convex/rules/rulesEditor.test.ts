@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { rulesInGameweek, rulesRefusals } from "../../../convex/rules/leagueRules";
-import { expectRefused, holdGameweeks, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { expectRefused, holdGameweeks, rulesRevision, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -16,7 +16,7 @@ beforeEach(async () => {
 });
 
 const change = async (leagueId: Id<"leagues">, rules = TOTAL_POINTS) =>
-  (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules });
+  (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules, revision: await rulesRevision(t, leagueId) });
 const latest = async (leagueId: Id<"leagues">) => (await actingAs(t, COMMISSIONER)).query(api.rules.leagueRules.latest, { leagueId });
 const inGameweek = (leagueId: Id<"leagues">, gameweek: number) => t.run((ctx) => rulesInGameweek(ctx, leagueId, gameweek));
 
@@ -28,7 +28,7 @@ describe("the rules editor", () => {
   const scoringOf = async (leagueId: Id<"leagues">, email = COMMISSIONER) =>
     (await actingAs(t, email)).query(api.rules.leagueRules.scoring, { leagueId, now: Date.now() });
   const changeScoring = async (leagueId: Id<"leagues">, scoring: Scoring, email = COMMISSIONER) =>
-    (await actingAs(t, email)).mutation(api.rules.leagueRules.changeScoring, { leagueId, scoring });
+    (await actingAs(t, email)).mutation(api.rules.leagueRules.changeScoring, { leagueId, scoring, revision: await rulesRevision(t, leagueId) });
   /** The first scoring set with assists paying 4 and one more category, tackles at 1. */
   const EDITED: Scoring = {
     ...structuredClone(FIRST_RULES.scoring),
@@ -48,7 +48,7 @@ describe("the rules editor", () => {
     await holdGameweeks(t, { next: 9 });
     const leagueId = await adminCreatesLeague(t);
 
-    expect(await scoringOf(leagueId)).toEqual({ scoring: FIRST_RULES.scoring, changesFrom: 9 });
+    expect(await scoringOf(leagueId)).toEqual({ part: FIRST_RULES.scoring, revision: await rulesRevision(t, leagueId), changesFrom: 9 });
   });
 
   test("#30 Done: an edit saves, applies from the next gameweek only, and files one letter", async () => {
@@ -116,7 +116,7 @@ describe("the rules editor", () => {
     const leagueId = await adminCreatesLeague(t);
     await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
 
-    expect((await scoringOf(leagueId, email))?.scoring).toEqual(FIRST_RULES.scoring);
+    expect((await scoringOf(leagueId, email))?.part).toEqual(FIRST_RULES.scoring);
     await changeScoring(leagueId, EDITED, email);
     expect((await latest(leagueId))?.rules.scoring).toEqual(EDITED);
   });

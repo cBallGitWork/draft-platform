@@ -8,25 +8,8 @@ import { describe, expect, it } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import {
-  blankBoxWords,
-  byAreaWords,
-  byPositionWords,
-  columnWords,
-  discardWords,
-  everyoneWords,
-  gameweekWords,
-  limitWords,
-  loadingWords,
-  minutesWords,
-  noRulesWords,
-  savedWords,
-  saveWords,
-  SCORING_TITLE,
-  shapeWords,
-  unchangedWords,
-  wholePointsWords,
-} from "../../../src/scoring/words";
+import { blankBoxWords, byAreaWords, byPositionWords, columnWords, everyoneWords, gameweekWords, limitWords, loadingWords, minutesWords, noRulesWords, savedWords, SCORING_TITLE, shapeWords, wholePointsWords } from "../../../src/scoring/words";
+import { discardWords, saveWords, unchangedWords } from "../../../src/rules/words";
 import { CHANGES_FROM } from "../../support/src/scoring.harness";
 import { box, categories, choose, openScoring, retype, save, savedSet, SCORING_PAGE } from "../../support/src/scoringScreen.harness";
 import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";

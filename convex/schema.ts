@@ -324,12 +324,12 @@ const liveStatsTables = {
 export const unemailedReason = v.union(v.literal("paused"), v.literal("notSent"));
 
 export const leagueDeletion = v.object({
-  /** Who deleted it, by email: they, and the admin, see it and can undo it. */
+  /** Who deleted it, by email: the admin or its commissioner, who both see it and can undo it. */
   by: v.string(),
   deletesAt: v.number(),
   /** The scheduled deleteForGood, which undoing cancels. */
   scheduledId: v.id("_scheduled_functions"),
-  /** Each person who wasn't emailed, so whoever deleted it is told. */
+  /** Each person who wasn't emailed, so the commissioner and the admin are told. */
   unemailed: v.array(v.object({ email: v.string(), reason: unemailedReason })),
 });
 

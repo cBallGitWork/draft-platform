@@ -6,14 +6,19 @@ import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import type { TestConvex } from "./leagues.harness";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
+import type { Id } from "../../../convex/_generated/dataModel";
 import { DAY_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
-import type { Id } from "../../../convex/_generated/dataModel";
 
 /** The first rules with some parts changed, as a copy the test may change further. */
 export function rulesWith(change: Partial<LeagueRules>): LeagueRules {
   return structuredClone({ ...FIRST_RULES, ...change });
 }
+
+/** The league's latest rules row, as a screen that loaded them now would carry it to a save; null
+ *  for a league with none. */
+export const rulesRevision = (t: TestConvex, leagueId: Id<"leagues">) =>
+  t.run(async (ctx) => (await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()).at(-1)?._id ?? null);
 
 /** The first rules, played as total points. */
 export const TOTAL_POINTS = rulesWith({ format: "totalPoints" });

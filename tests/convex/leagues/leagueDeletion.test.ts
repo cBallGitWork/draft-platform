@@ -3,6 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { askToJoin, invite, makeLink, openLastLinkTo } from "../../support/convex/joining.harness";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { rulesRevision } from "../../support/convex/leagueRules.harness";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { tablesKeyedToLeague } from "../../../convex/leagues/leagueDeletion";
 import { ANN, BOB, CAT, DAN, accountOf, deletes, laterBy, leagueWithPeople, mutationsGivenALeague } from "../../support/convex/leagueDeletion.harness";
@@ -61,6 +62,7 @@ describe("while it can be undone", () => {
     const [annsTeam] = await teamsIn(t, leagueId);
     const inviteId = await invite(t, leagueId, CAT);
     const requestId = await askToJoin(t, leagueId, await makeLink(t, leagueId), DAN);
+    const revision = await rulesRevision(t, leagueId);
     await deletes(t, COMMISSIONER, leagueId);
     const before = await everythingOf(leagueId);
     const admin = await actingAs(t, ADMIN);
@@ -84,8 +86,10 @@ describe("while it can be undone", () => {
       "joining/joinRequests:approve": () => admin.mutation(api.joining.joinRequests.approve, { requestId }),
       "joining/joinRequests:refuseRequest": () => admin.mutation(api.joining.joinRequests.refuseRequest, { requestId }),
       "gameweeks/leagueGameweeks:setUsed": () => admin.mutation(api.gameweeks.leagueGameweeks.setUsed, { leagueId, gameweek: 38, used: false }),
-      "rules/leagueRules:change": () => admin.mutation(api.rules.leagueRules.change, { leagueId, rules: structuredClone(FIRST_RULES) }),
-      "rules/leagueRules:changeScoring": () => admin.mutation(api.rules.leagueRules.changeScoring, { leagueId, scoring: structuredClone(FIRST_RULES.scoring) }),
+      "rules/leagueRules:change": () => admin.mutation(api.rules.leagueRules.change, { leagueId, rules: structuredClone(FIRST_RULES), revision }),
+      "rules/leagueRules:changeScoring": () => admin.mutation(api.rules.leagueRules.changeScoring, { leagueId, scoring: structuredClone(FIRST_RULES.scoring), revision }),
+      "rules/leagueSettings:changeSettings": () =>
+        admin.mutation(api.rules.leagueSettings.changeSettings, { leagueId, settings: { oddTeamOut: "bye", gamesPerGameweek: 2 }, revision }),
       "leagues/lastLeague:switchTo": () => commissioner.mutation(api.leagues.lastLeague.switchTo, { leagueId }),
       "mail/mail:writeToLeague": () => admin.mutation(api.mail.mail.writeToLeague, { leagueId, subject: "Still here?", body: "It's being deleted." }),
       "squads/squads:assign": () => admin.mutation(api.squads.squads.assign, { leagueId, playerCode: 1, teamId: annsTeam._id }),
@@ -127,6 +131,26 @@ describe("while it can be undone", () => {
   test("the admin sees it, whoever deleted it", async () => {
     await deletes(t, COMMISSIONER, leagueId);
     expect((await accountOf(t, ADMIN)).leagues).toMatchObject([{ leagueId, deletion: {} }]);
+  });
+
+  // "Its own commissioner can always see it during the 24 hours and undo it" (Craig, 22 Oct 2026).
+  test("when the admin deletes it, its commissioner still sees it; the co-commissioner and managers don't", async () => {
+    const deletesAt = await deletes(t, ADMIN, leagueId);
+
+    expect(await accountOf(t, COMMISSIONER)).toMatchObject({ inLeague: false, leagues: [{ leagueId, deletion: { deletesAt } }] });
+    expect((await accountOf(t, ADMIN)).leagues).toMatchObject([{ leagueId, deletion: { deletesAt } }]);
+    for (const email of [CO_COMMISSIONER, ANN, BOB]) expect(await accountOf(t, email)).toMatchObject({ inLeague: false, leagues: [] });
+  });
+
+  test("when the admin deletes it, its commissioner can undo it; the co-commissioner and managers can't", async () => {
+    await deletes(t, ADMIN, leagueId);
+    for (const email of [CO_COMMISSIONER, ANN]) {
+      await expect((await actingAs(t, email)).mutation(api.leagues.leagueDeletion.undo, { leagueId })).rejects.toThrow(refusals.notUndoer);
+    }
+    await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
+
+    expect((await leagueRow(t, leagueId))?.deletion).toBeUndefined();
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "deletionUndone", name: LEAGUE_NAME });
   });
 
   test("whoever deleted it undoes it inside the day: the deletion is called off, and it comes back whole", async () => {

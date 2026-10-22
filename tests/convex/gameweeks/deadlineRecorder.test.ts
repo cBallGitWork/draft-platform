@@ -5,7 +5,7 @@ import { gameweekRefusals } from "../../../convex/gameweeks/leagueGameweeks";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
-import { giveDeadlineRule } from "../../support/convex/leagueRules.harness";
+import { giveDeadlineRule, rulesRevision } from "../../support/convex/leagueRules.harness";
 import { syncWith } from "../../support/convex/footballSync.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
@@ -151,7 +151,11 @@ describe("a postponed first match", () => {
 
     expect(await shownDeadline(GAMEWEEK)).toBe(deadlineBefore(OPENER));
     await expect(setUsed(GAMEWEEK, false)).rejects.toThrow(gameweekRefusals.begun(GAMEWEEK));
-    const change = await (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules: { ...FIRST_RULES, format: "totalPoints" } });
+    const change = await (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, {
+      leagueId,
+      rules: { ...FIRST_RULES, format: "totalPoints" },
+      revision: await rulesRevision(t, leagueId),
+    });
     expect(change).toBe(GAMEWEEK + 1);
   });
 

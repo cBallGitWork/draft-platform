@@ -1,11 +1,15 @@
-// useChange: a screen's change under way, the words for why the last was refused, and clearing them.
+// useChange: a screen's change under way, the words for why the last was refused or failed, and
+// clearing them.
 
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { silenceConsoleError } from "../support/console.setup";
 import type { Change } from "../../src/refusal";
 import { useChange } from "../../src/useChange";
+import { changeFailedWords } from "../../src/words";
 
 const refusedWords = "Not yours to change";
+const serverDown = new Error("server down");
 
 /** A change the test answers by hand: made (null) or refused with words. */
 function heldChange() {
@@ -41,6 +45,27 @@ describe("useChange", () => {
     expect(made).toBe(false);
     expect(result.current.busy).toBe(false);
     expect(result.current.problem).toBe(refusedWords);
+  });
+
+  it.each([
+    ["rejects", (): Change => Promise.reject(serverDown)],
+    [
+      "throws before it starts",
+      (): Change => {
+        throw serverDown;
+      },
+    ],
+  ])("a change that %s is logged, says the failure words, and isn't left busy (#253)", async (_, change) => {
+    const logged = silenceConsoleError();
+    const { result } = renderHook(useChange);
+    let made = true;
+    await act(async () => {
+      made = await result.current.run(change);
+    });
+    expect(made).toBe(false);
+    expect(result.current.busy).toBe(false);
+    expect(result.current.problem).toBe(changeFailedWords);
+    expect(logged).toHaveBeenCalledWith("A change failed:", serverDown);
   });
 
   it("clear forgets the last refusal", async () => {

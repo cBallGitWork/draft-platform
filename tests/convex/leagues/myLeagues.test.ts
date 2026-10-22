@@ -117,9 +117,7 @@ test("#24 Done: a league of four fills, renames, refuses a duplicate, keeps a le
   await commissioner.mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: ANN });
   const co = await actingAs(t, ANN);
 
-  const [annsTeam, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
-  await co.mutation(api.leagues.teams.addManager, { leagueId, email: CAT });
-  await co.mutation(api.leagues.teams.addManager, { leagueId, email: DAN });
+  const [annsTeam, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
   await co.mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "Red Army" });
   const bob = await actingAs(t, BOB);
   await expect(bob.mutation(api.leagues.teams.rename, { teamId: bobsTeam, name: "RED ARMY" })).rejects.toThrow(

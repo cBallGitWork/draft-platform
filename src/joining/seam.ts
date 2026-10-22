@@ -3,11 +3,12 @@
 // hand the screens their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
+import type { EndedInvite } from "../../convex/joining/endedInvite";
 import type { InvitesPageData } from "../../convex/joining/invitesPage";
 import type { JoinPageData } from "../../convex/joining/joinRequests";
 import type { Change } from "../refusal";
 
-export type { InvitesPageData, JoinPageData };
+export type { EndedInvite, InvitesPageData, JoinPageData };
 
 export type JoiningSeam = {
   /** The league's invites page, live (a hook): undefined while it loads, null when the person
@@ -16,6 +17,9 @@ export type JoiningSeam = {
   /** The invite link's page, live (a hook): undefined while it loads, null once the link no
    *  longer works. */
   useJoinPage(token: string): JoinPageData | undefined;
+  /** The person's newest invite, live (a hook), if it ended without them joining: undefined while
+   *  it loads, null when there's none to tell of. */
+  useEndedInvite(): EndedInvite | null | undefined;
   /** Invites an email to the vacated team `teamId`, or to a new team when it's null. */
   invite(leagueId: Id<"leagues">, email: string, teamId: Id<"teams"> | null): Change;
   resendInvite(inviteId: Id<"invites">): Change;

@@ -7,6 +7,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { previewAdmin } from "./admin/preview";
 import { previewGameweeks } from "./gameweeks/preview";
+import { previewLeagueSettings } from "./leagueSettings/preview";
 import { LiveApp, takeLinkCode } from "./liveApp";
 import { previewJoining } from "./joining/preview";
 import { previewMail, previewTopBar } from "./mail/preview";
@@ -33,6 +34,7 @@ createRoot(root).render(
         gameweeks={previewGameweeks}
         squads={previewSquads}
         scoring={previewScoring}
+        leagueSettings={previewLeagueSettings}
         table={previewTable}
         admin={previewAdmin}
       />
