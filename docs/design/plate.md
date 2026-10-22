@@ -6,6 +6,10 @@ values are Claude's, from the designer's round-2 brief and the reviewer's pass o
 <https://claude.ai/artifact/Qz9zn3FrMHgPB189UtbjoB>. Every screen is drawn from this file.
 How the screens link, and which the spec names but nobody has built: [flow.md](flow.md).
 
+**Contents:** [Colour roles](#colour-roles-cm-9900-blue) · [Type](#type) · [Shape](#shape) ·
+[Marks](#marks) · [Controls](#controls) · [Never](#never) ·
+[The phone](#the-phone-to-draw-when-the-phone-design-is-grilled) · [Decided](#decided)
+
 ## Colour roles (CM 99/00 blue)
 
 | Role | Value | Used for |
@@ -69,6 +73,24 @@ on the desk. Figures use tabular numerals.
 - **The current one of a list**: a 3px bar down its left edge in the active tab's cyan, and
   `aria-current` for screen readers (the top bar's league list).
 - **The bench**: its own "Bench" plate in the table, below the eleven.
+
+## Controls
+
+Craig chose "Wells" of three looks (22 Oct 2026), drawn as board "A · Wells" on
+<https://claude.ai/artifact/LArQQrJt8SuAZzqedPhx4u>: CM's bevel turned inward. Built once each, for the rules
+screens, in `src/rules/` (`TickBox`, `Choice`, `SaveBar`).
+
+- **Tick box**: a real checkbox drawn as a 22px well: name plate fill, the panel bevel flipped
+  (`inset 0 2px 0 #050a30`, `inset 0 -2px 0 #4556b8`), a 1px `#c9d1ff` rim like a box to type in
+  (the rim is ours: the well alone is 1.54:1 on the panel), stepper fill under the pointer, and
+  a white drawn tick (stroke 2.5, square caps) when on. Its row is 44px and toggles it anywhere;
+  the words are white when on, `#c9d1ff` when off.
+- **Keys**, one of a few chosen (a rule's Pays): butted 44px keys, 1px `#001a5e` rules between.
+  The others are the plate with its bevel and `#c9d1ff` text; the chosen one is pressed in:
+  ground fill, the plate bevel flipped (`inset 0 2px 0 #001a5e`, `inset 0 -2px 0 #4a6cc8`), white
+  600. A radio group, so the arrow keys move it.
+- **Discard and Save**: Discard is the secondary action, there only once something changed; Save
+  is the action, and with nothing to save it is the action with nothing to do, in `#9aa4b8` text.
 
 ## Never
 

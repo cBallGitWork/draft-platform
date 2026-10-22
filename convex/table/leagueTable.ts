@@ -3,11 +3,11 @@ import type { Id } from "../_generated/dataModel";
 import { query } from "../_generated/server";
 import { drawRulesOf } from "../rules/firstRules";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
-import { seasonRules } from "../rules/leagueRules";
+import { leagueDeadlines, seasonRules } from "../rules/leagueRules";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { drawFixtures, LEAGUE_AVERAGE, roundsOf } from "./roundRobin";
 import { headToHeadTable, totalPointsTable, type GameweekScores } from "./standings";
-import { fplDeadline, fplDeadlines, usedGameweeksOf } from "../gameweeks/usedGameweeks";
+import { shownDeadline, usedGameweeksOf } from "../gameweeks/usedGameweeks";
 
 // The league's fixtures and table (#33; spec/09, spec/12 "table and fixtures"), for anyone with a
 // part in it. The fixtures are drawn afresh on every read from the teams, the gameweeks the league
@@ -24,7 +24,9 @@ const fixture = v.object({
 
 const gameweekFixtures = v.object({
   gameweek: v.number(),
-  deadline: fplDeadline,
+  /** The league's own deadline, under the rule in force in the gameweek (#139); the fixtures
+   *  open on the first gameweek it hasn't locked. */
+  deadline: shownDeadline,
   fixtures: v.array(fixture),
   /** The teams with a bye, in a league whose odd team out has one: one a game. */
   byes: v.array(v.string()),
@@ -77,7 +79,7 @@ export const ofLeague = query({
     const scores: GameweekScores<Id<"teams">> = new Map();
     const table = headToHead ? headToHeadTable(teamIds, schedule, scores, rules.tieBreaks) : totalPointsTable(teamIds, scores);
 
-    const deadlines = await fplDeadlines(ctx);
+    const deadlines = await leagueDeadlines(ctx, leagueId);
     return {
       format: rules.format,
       roundRobinRounds: schedule.length === 0 ? 0 : roundsOf(teamIds).length,

@@ -23,6 +23,8 @@ beforeEach(async () => {
 });
 
 const FIRST: LeagueSettings = { oddTeamOut: "leagueAverage", gamesPerGameweek: 1 };
+/** The fixtures in one round of the four-team leagues the table tests make. */
+const FIXTURES_A_ROUND = 2;
 const read = async (email = COMMISSIONER) => (await actingAs(t, email)).query(api.rules.leagueSettings.settings, { leagueId, now: Date.now() });
 /** A change made from the latest rules, or from the row `revision` names. */
 const change = async (settings: LeagueSettings, email = COMMISSIONER, revision?: Id<"leagueRules"> | null) =>
@@ -84,18 +86,36 @@ describe("changing them", () => {
     expect(await inGameweek(9)).toEqual(FIRST_RULES);
   });
 
-  test("more games a gameweek than a round robin has rounds saves, and the table plays as many as there are", async () => {
+  test("more games a gameweek than the league's teams have opponents for is refused, and saves nothing", async () => {
+    await expectRefused(
+      change({ ...FIRST, gamesPerGameweek: 10 }),
+      "With 4 teams, a team can play at most 3 games a gameweek, not 10: one against each of the other 3.",
+    );
+    expect(await inGameweek(9)).toEqual(FIRST_RULES);
+  });
+
+  test("rules saved before that refusal, with more games than rounds, play as many as the round robin has", async () => {
     await addManagers(t, leagueId, MANAGERS.slice(0, 4));
-    const from = await change({ ...FIRST, gamesPerGameweek: 10 });
+    await t.run(async (ctx) => {
+      const [row] = await ctx.db.query("leagueRules").collect();
+      await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules, gamesPerGameweek: 10 } });
+    });
+    const table = await (await actingAs(t, COMMISSIONER)).query(api.table.leagueTable.ofLeague, { leagueId });
+
+    // Four teams: three rounds of two fixtures, all three played each gameweek.
+    expect(table?.roundRobinRounds).toBe(3);
+    expect(table?.gameweeks[0].fixtures.length).toBe(table!.roundRobinRounds * FIXTURES_A_ROUND);
+  });
+
+  test("more games a gameweek reach the table from the gameweek the change applies from, never the one before it (#266)", async () => {
+    await addManagers(t, leagueId, MANAGERS.slice(0, 4));
+    const games = 3;
+    const from = await change({ ...FIRST, gamesPerGameweek: games });
     const table = await (await actingAs(t, COMMISSIONER)).query(api.table.leagueTable.ofLeague, { leagueId });
     const fixturesIn = (gameweek: number) => table?.gameweeks.find((each) => each.gameweek === gameweek)?.fixtures.length;
 
-    // Four teams: three rounds of two fixtures, all three played each gameweek from the change on,
-    // and one a gameweek before it (#266).
-    const fixturesARound = 2;
-    expect(table?.roundRobinRounds).toBe(3);
-    expect(fixturesIn(from)).toBe(table!.roundRobinRounds * fixturesARound);
-    expect(fixturesIn(from - 1)).toBe(fixturesARound);
+    expect(fixturesIn(from)).toBe(games * FIXTURES_A_ROUND);
+    expect(fixturesIn(from - 1)).toBe(FIRST.gamesPerGameweek * FIXTURES_A_ROUND);
   });
 
   test("over someone else's save is refused, naming them, and writes nothing", async () => {

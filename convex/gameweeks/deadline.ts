@@ -4,10 +4,9 @@
 //
 // Once passed, a deadline stays where it fell, even if the first match is then postponed (#85), and
 // the matches no longer show where that was. So each read takes the deadline recorded for the
-// gameweek. The code that locks lineups owns that record, per league and gameweek: it stores what
-// gameweekDeadline returns each time the matches change, so the record is never older than them.
-// Nothing here can check that it does. A reading with nothing recorded is valid, so a caller that
-// never records still type-checks, and a postponement after the deadline reopens the gameweek.
+// gameweek. deadlineRecorder.ts records each league's passed deadlines (`passedDeadlines`, #150)
+// before the football sync, the only writer of kickoffs, can move one, and `leagueDeadline` reads
+// the record first: a gameweek with one stays begun, whatever then happens to its matches.
 
 import type { Infer } from "convex/values";
 import type { fixtureRecord } from "../schema";
@@ -23,7 +22,7 @@ export interface DeadlineRule {
 export const FPL_DEADLINE_RULE: DeadlineRule = { minutesBeforeFirstKickoff: 90 };
 
 /** All of a match a deadline reads. */
-type ScheduledMatch = Pick<Infer<typeof fixtureRecord>, "gameweek" | "kickoff">;
+export type ScheduledMatch = Pick<Infer<typeof fixtureRecord>, "gameweek" | "kickoff">;
 
 /** The deadline last recorded for the gameweek (null only before one is), and the time it is read. */
 export interface DeadlineReading {
@@ -53,6 +52,23 @@ export function gameweekDeadline(
   );
   if (kickoffs.length === 0) return null;
   return Math.min(...kickoffs) - minutes * MINUTE_MS;
+}
+
+/**
+ * The league's own deadline for a gameweek, under the rule in force in it: the one function that
+ * decides when a gameweek begins, for every caller (#138, #139). FPL's deadline never decides
+ * (Craig, 22 Oct 2026: "ours, we arent fpl so stop copying them"); it stays feed data. `recorded`
+ * is the league's passed deadline for the gameweek, null while none is: once there is one, it is
+ * the deadline, whatever the matches now say.
+ */
+export function leagueDeadline(
+  gameweek: number,
+  matches: readonly ScheduledMatch[],
+  rule: DeadlineRule,
+  recorded: number | null,
+): number | null {
+  // Only a passed deadline is recorded, so the reading's time is never needed to judge it.
+  return recorded ?? gameweekDeadline(gameweek, matches, rule, { recorded: null, now: 0 });
 }
 
 /** Whether a lineup change made `now` is refused: at the deadline and after it, the gameweek is

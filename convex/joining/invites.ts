@@ -5,7 +5,7 @@ import { internalAction, internalMutation, internalQuery, mutation, type Mutatio
 import { admitEmail } from "../signIn/allowedEmails";
 import { INVITE_LIFETIME_MS, invitedPath } from "./joiningShared";
 import { deliveryOf, joiningRefusals } from "./joining";
-import { startOfNextDay } from "../email/emailLimit";
+import { startOfNextDay } from "../outbound/emailLimit";
 import { inviteEmail } from "./joiningEmails";
 import { getLeague, namedEmail, refuse, refusals, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";

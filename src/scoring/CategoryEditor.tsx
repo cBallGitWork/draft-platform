@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { Band, Priced } from "../../convex/scoring/scoringSet";
 import { PanelTitle } from "../frame/Panel";
 import { Choice } from "../rules/Choice";
+import { TickBox } from "../rules/TickBox";
 import {
   keysOf,
   nextBand,
@@ -93,15 +94,6 @@ export function CategoryEditor({ name, rule, onChange, onRemove }: { name: strin
         </button>
       </div>
     </section>
-  );
-}
-
-function TickBox({ checked, onChange, children }: { checked: boolean; onChange: (checked: boolean) => void; children: ReactNode }) {
-  return (
-    <label className="flex min-h-tap cursor-pointer items-center gap-2 self-start lg:min-h-0 lg:py-1">
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
-      {children}
-    </label>
   );
 }
 

@@ -21,7 +21,7 @@ export function SaveBar<Part>({ draft, savedWords, children }: { draft: RulesDra
               {discardWords}
             </button>
           )}
-          <button type="button" disabled={draft.unchanged || draft.busy} onClick={() => void draft.saveDraft()} className="action">
+          <button type="button" disabled={draft.unchanged || draft.busy} onClick={() => void draft.saveDraft()} className={draft.unchanged ? "action-idle" : "action"}>
             {saveWords}
           </button>
         </span>
