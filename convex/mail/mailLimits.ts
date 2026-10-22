@@ -1,6 +1,7 @@
-// Mail's fixed limits, with no imports, so the screens can read them too.
+// Mail's fixed limits, with no imports, so the screens can read them too. Each is Claude's choice,
+// not yet Craig's.
 
-/** How long a commissioner's letter may be (spec/16): its subject, and its text. */
+/** How long a commissioner's letter (spec/16) may be: its subject, and its text. */
 export const SUBJECT_MAX = 100;
 export const BODY_MAX = 2000;
 /** The most unread letters the menu counts; past it, it shows this number and a "+". */

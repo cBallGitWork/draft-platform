@@ -35,6 +35,8 @@ export const joinPageData = v.union(
 );
 export type JoinPageData = Infer<typeof joinPageData>;
 
+/** Open to anyone holding the link, signed in or not: null for a link that no longer works or a
+ *  league being deleted. */
 export const joinPage = query({
   args: { token: v.string() },
   returns: joinPageData,

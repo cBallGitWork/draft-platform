@@ -32,6 +32,8 @@ async function admitCommissioner(ctx: MutationCtx, email: string, leagueId: Id<"
   }
 }
 
+/** For the admin alone: refuses a blank name, a maximum of teams out of range and a commissioner
+ *  email without an "@". */
 export const create = mutation({
   args: { name: v.string(), maxTeams: v.number(), commissionerEmail: v.string() },
   returns: v.id("leagues"),

@@ -120,11 +120,11 @@ const squadWarning = v.union(
 );
 export type SquadWarning = Infer<typeof squadWarning>;
 
-/** Each team's squad, by name, and the league's squad limits it breaks, which warn but don't block.
- *  Anyone with a part in the league sees them. */
 const teamSquad = v.object({ teamId: v.id("teams"), teamName: v.string(), players: v.array(squadPlayer), warnings: v.array(squadWarning) });
 export type TeamSquad = Infer<typeof teamSquad>;
 
+/** Each team's squad, by name, and the league's squad limits it breaks, which warn but don't block.
+ *  Anyone with a part in the league sees them. */
 export const squads = query({
   args: { leagueId: v.id("leagues") },
   returns: v.array(teamSquad),
@@ -153,7 +153,8 @@ export const squads = query({
 });
 
 /** The league's squad limits a squad breaks (spec/03, Squad make-up). How a player's areas count
- *  against a limit per area is not settled, so those limits aren't checked yet. */
+ *  against a limit per area is not settled (docs/to-grill.md, the row on limits per area), so those
+ *  limits aren't checked yet. */
 function squadWarnings(players: readonly { clubShortName: string }[], squad: LeagueRules["squad"] | null): SquadWarning[] {
   if (squad === null) return [];
   const warnings: SquadWarning[] = [];
@@ -170,11 +171,11 @@ function squadWarnings(players: readonly { clubShortName: string }[], squad: Lea
   return warnings;
 }
 
-/** Players whose name matches, for picking one to assign: each with his team in this league, if
- *  any. For the league's commissioners and the admin. */
 const foundPlayer = v.object({ code: v.number(), name: v.string(), fullName: v.string(), teamName: v.union(v.string(), v.null()) });
 export type FoundPlayer = Infer<typeof foundPlayer>;
 
+/** Players whose name matches, for picking one to assign: each with his team in this league, if
+ *  any. For the league's commissioners and the admin. */
 export const findPlayers = query({
   args: { leagueId: v.id("leagues"), text: v.string() },
   returns: v.array(foundPlayer),

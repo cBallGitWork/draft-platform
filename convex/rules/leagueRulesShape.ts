@@ -84,7 +84,8 @@ export const leagueRulesShape = v.object({
   squad: v.object({
     /** Null: no limit on squad size. */
     size: v.union(limit, v.null()),
-    /** How many of a squad may play each area (how a player's areas count is #31's); null: no limits. */
+    /** How many of a squad may play each area (how a player's areas count is open: docs/to-grill.md,
+     *  the row on limits per area); null: no limits. */
     byArea: v.union(byArea(limit), v.null()),
     /** Null: no limit. */
     maxPerClub: v.union(v.number(), v.null()),
