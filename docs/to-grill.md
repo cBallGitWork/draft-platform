@@ -69,17 +69,15 @@ somepoint").
 | Match rating and Man of the Match | CM's Av R and MoM: a 1–10 rating from his points against his area; MoM the top scorer in each head-to-head |
 | Saved tactics | FM's: a few formations kept to switch between, say one for a double gameweek |
 | One player on several teams | Not now; maybe later (Craig, 20 Oct 2026). A draft is normally one owner per league; some leagues do one per division. The draft, waivers, trades and "owned in the league" all assume one owner |
-| More games a gameweek than opponents | `convex/table/roundRobin.ts`: "A league asking for more plays as many as there are." It caps them without saying so; should it refuse, or meet the same team twice? |
-| An own stat named like a catalogue stat | `convex/scoring/ownStats.ts` requires "a key, a name and a short code of its own, none a catalogue stat's", but checks names and codes only against other own stats. May one be called Minutes, or M? Keys: #136 |
-| A league name's length | A team's name has one (`convex/shared/leagueAccess.ts`: "A team's name is up to ${TEAM_NAME_MAX} characters.", 30 in `convex/leagues/leagueLimits.ts`); `leagues.create` refuses only a blank name ("Give it a name."). Should a league's have a maximum? |
 | Frozen fixtures | `spec/13`: "a change reshuffles only fixtures not yet played". Open: a rule change from its `fromGameweek`, and the commissioner's fixture edits (`spec/09`: "the commissioner can edit them"). #137 |
 | How the admin hears a feed or sync failure | `spec/15`: "A feed that stops silently is the failure to catch." The feeds page only (#35), or email too, out of Resend's "100 a day" (`ARCHITECTURE.md`)? |
 | How a player's areas count against a squad's limit per area | `spec/03` Squad make-up. The limits are saved and validated by `leagueRulesCheck` but not checked by `squadWarnings` |
+| The platform's squad ceiling of 60 | `convex/leagues/leagueLimits.ts`: `MOST_IN_SQUAD = 60`, "The most players one team can hold, whatever the league's own squad limits". A league's squad maximum above it is refused when saved (`spec/03`). Is 60 the right ceiling? (#213) |
 | A screen whose read fails | What it shows, and whether it shows the server's words. `docs/PHILOSOPHY.md`: "Don't swallow errors silently. If something fails, we need to know." |
 | Retry deletion warnings past the day's email limit | A manager the 100-a-day limit stopped is marked "not told" and never retried. Left as it is for the beta (Craig agreed, 22 Oct 2026) |
 
-The rows from more games a gameweek than opponents down are open questions from the repo audit
-of 21 Oct 2026, details the spec doesn't settle rather than new features.
+The rows from frozen fixtures down are open questions from the repo audits of 21 and 22 Oct
+2026, details the spec doesn't settle rather than new features.
 
 Also Claude's suggestions, from the same audit:
 - #117's undo sends no email, so managers told "will be deleted" never hear it was undone.
