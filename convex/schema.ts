@@ -551,11 +551,9 @@ const leagueRulesTables = {
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
 };
 
-// A league's head-to-head fixtures once a gameweek has begun (#137; spec/13, Gameweeks: "a change
-// reshuffles only fixtures not yet played"). The round robin is drawn on each read; once a
-// gameweek's league deadline passes, its draw is stored here and read from here ever after,
-// whatever then happens to the teams, the rules or the draw's code. One row a league and gameweek,
-// written only by convex/table/playedFixtures.ts.
+// A league's head-to-head fixtures in each gameweek it has played, stored once the gameweek begins
+// and read from here ever after (#137). One row a league and gameweek, written only by
+// convex/table/playedFixtures.ts, which says why.
 const playedFixtureTables = {
   playedFixtures: defineTable({
     leagueId: v.id("leagues"),
