@@ -45,10 +45,17 @@ competition, not the design plate (`docs/design/plate.md`).
   US consolation brackets: `docs/research/draft-competitors.md`.
 
 **A split season or a redraft**: "a season is long" (Craig, 20 Oct 2026).
+- Whether a team can join a league with splits at a split: "teams probably cant join mid season
+  (unless its a league with splits etc.)" (Craig, 22 Oct 2026; `spec/13` Joining).
 - A whole redraft or a short top-up draft; at the January window or elsewhere.
 - Do keepers or some players stay; does the table reset or carry on. FPL Draft allows up to three
   redrafts that "do not affect the current league standings"
   (premierleague.com/en/news/4363847).
+
+**Our own gameweeks, not FPL's** (Craig, 22 Oct: "think we need to make our own gameweeks at
+somepoint").
+- A league's gameweek begins at its own deadline already (`spec/13` Gameweeks); what an own
+  gameweek is beyond that, and how it maps to FPL's rounds.
 
 ## Suggested, not yet picked
 
@@ -62,22 +69,20 @@ competition, not the design plate (`docs/design/plate.md`).
 | Match rating and Man of the Match | CM's Av R and MoM: a 1–10 rating from his points against his area; MoM the top scorer in each head-to-head |
 | Saved tactics | FM's: a few formations kept to switch between, say one for a double gameweek |
 | One player on several teams | Not now; maybe later (Craig, 20 Oct 2026). A draft is normally one owner per league; some leagues do one per division. The draft, waivers, trades and "owned in the league" all assume one owner |
-| The first rules' guessed defaults | `convex/rules/firstRules.ts` guesses them, each marked "guess": head-to-head; a squad of 11 to 14; every area 0 to 10 but exactly one goalkeeper; tie-breaks `["pointsFor"]` alone, of the three there are (points for, head-to-head, points against); waivers Tuesday 23:00 in reverse standings, and "the doc's live 23-hour minimum waiver period has no rule here". Tie-breaks also open: PR #129's "Your call", item 5 |
 | More games a gameweek than opponents | `convex/table/roundRobin.ts`: "A league asking for more plays as many as there are." It caps them without saying so; should it refuse, or meet the same team twice? |
-| When a gameweek has begun | The league's deadline, FPL's, or whichever is first. `convex/gameweeks/nextGameweek.ts` takes the first ("whose league deadline, and FPL's own, are both still ahead"); `convex/gameweeks/leagueGameweeks.ts` checks FPL's only ("FPL's deadline decides when a gameweek has begun"). #138 |
 | An own stat named like a catalogue stat | `convex/scoring/ownStats.ts` requires "a key, a name and a short code of its own, none a catalogue stat's", but checks names and codes only against other own stats. May one be called Minutes, or M? Keys: #136 |
 | A league name's length | A team's name has one (`convex/shared/leagueAccess.ts`: "A team's name is up to ${TEAM_NAME_MAX} characters.", 30 in `convex/leagues/leagueLimits.ts`); `leagues.create` refuses only a blank name ("Give it a name."). Should a league's have a maximum? |
-| Frozen fixtures | `spec/13`: "a change reshuffles only fixtures not yet played". Open: a team joining mid-season, a rule change from its `fromGameweek`, and the commissioner's fixture edits (`spec/09`: "the commissioner can edit them"). #137 |
+| Frozen fixtures | `spec/13`: "a change reshuffles only fixtures not yet played". Open: a rule change from its `fromGameweek`, and the commissioner's fixture edits (`spec/09`: "the commissioner can edit them"). #137 |
 | How the admin hears a feed or sync failure | `spec/15`: "A feed that stops silently is the failure to catch." The feeds page only (#35), or email too, out of Resend's "100 a day" (`ARCHITECTURE.md`)? |
-| How a player's areas count against a squad's limit per area | `spec/03` Squad make-up. The limits are saved and validated by `leagueRulesCheck` but not checked by `squadWarnings`; the first rules' guess is above |
+| How a player's areas count against a squad's limit per area | `spec/03` Squad make-up. The limits are saved and validated by `leagueRulesCheck` but not checked by `squadWarnings` |
 | A screen whose read fails | What it shows, and whether it shows the server's words. `docs/PHILOSOPHY.md`: "Don't swallow errors silently. If something fails, we need to know." |
+| Retry deletion warnings past the day's email limit | A manager the 100-a-day limit stopped is marked "not told" and never retried. Left as it is for the beta (Craig agreed, 22 Oct 2026) |
 
-The rows from the first rules' defaults down are open questions from the repo audit of 21 Oct
-2026, details the spec doesn't settle rather than new features.
+The rows from more games a gameweek than opponents down are open questions from the repo audit
+of 21 Oct 2026, details the spec doesn't settle rather than new features.
 
 Also Claude's suggestions, from the same audit:
 - #117's undo sends no email, so managers told "will be deleted" never hear it was undone.
-- A person the 100-a-day limit stopped is marked "not told" and never retried.
 
 Thought of and set aside, as they clash with what's settled: board confidence and the sack
 (storylines are out of scope), counter-tactics (your tactics never touch your opponent's points),
