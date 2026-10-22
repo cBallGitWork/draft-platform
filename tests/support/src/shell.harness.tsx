@@ -16,6 +16,7 @@ import { fakeJoining, type JoiningData } from "./joining.harness";
 import type { LeaguesSeam } from "../../../src/leagues/seam";
 import type { MailSeam } from "../../../src/mail/seam";
 import { ShellApp } from "../../../src/ShellApp";
+import { fakeScoring, type ScoringData } from "./scoring.harness";
 import { fakeSquads, type SquadsData } from "./squads.harness";
 import { fakeTable, type TableData } from "./table.harness";
 
@@ -109,12 +110,13 @@ export type AppSetUp = {
   mailLoading?: boolean;
   joining?: JoiningData;
   squads?: SquadsData;
+  scoring?: ScoringData;
   table?: TableData;
   admin?: AdminData;
 };
 
 /** The app opened at `path` for `session`, set up as `setUp` says: where it is, the fake sign-in,
- *  league, Mail, joining, gameweeks, squads, table and admin seams, and a way to change the session as
+ *  league, Mail, joining, gameweeks, squads, scoring, table and admin seams, and a way to change the session as
  *  signing in or out, or a league changing, would. */
 export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const {
@@ -123,6 +125,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     mailLoading = false,
     joining: joiningData = {},
     squads: squadsData = {},
+    scoring: scoringData = {},
     table: tableData = {},
     admin: adminData = {},
   } = setUp;
@@ -133,6 +136,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const joining = fakeJoining(joiningData, LINK_REPLY);
   const gameweeks = fakeGameweeks();
   const squads = fakeSquads(squadsData);
+  const scoring = fakeScoring(scoringData);
   const table = fakeTable(tableData);
   const admin = fakeAdmin(adminData);
   const app = (current: Session) => (
@@ -145,6 +149,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
       topBar={topBar}
       gameweeks={gameweeks}
       squads={squads}
+      scoring={scoring}
       table={table}
       admin={admin}
       history={history}
@@ -158,6 +163,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     gameweeks,
     joining,
     squads,
+    scoring,
     table,
     admin,
     path: () => history.location.pathname,

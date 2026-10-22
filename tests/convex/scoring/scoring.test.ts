@@ -165,7 +165,7 @@ describe("bad data throws rather than score", () => {
   } as unknown as ScoringSet;
 
   test("a set missing one area's values is refused whatever area is scored, arrived or not", () => {
-    const refusal = "the goals_scored rule has no values for goalkeeper";
+    const refusal = "the Goals scored rule has no values for goalkeeper";
     expect(() => scoreMatch(dewsburyHall, noGoalkeeperValues, centreOf("attack"))).toThrow(refusal);
     expect(() => scoreMatch(null, noGoalkeeperValues, centreOf("attack"))).toThrow(refusal);
   });

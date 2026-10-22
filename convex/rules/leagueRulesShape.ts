@@ -46,7 +46,7 @@ const ruleOptions = {
 };
 
 /** scoringSet.ts's ScoringSet. */
-const scoringSetShape = v.object({
+export const scoringSetShape = v.object({
   rules: v.array(
     v.union(
       v.object({ shape: v.literal("perAction"), stat: v.string(), values: priced(v.number()), ...ruleOptions }),

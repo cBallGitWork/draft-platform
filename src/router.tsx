@@ -36,6 +36,9 @@ import type { MailSeam } from "./mail/seam";
 import { MailPage, leaguesToWriteFrom } from "./mail/MailPage";
 import { SIGN_IN_PATH } from "./sign-in/paths";
 import { SignInPage } from "./sign-in/SignInPage";
+import { SCORING_ROUTE } from "./scoring/paths";
+import type { ScoringSeam } from "./scoring/seam";
+import { ScoringRoute } from "./scoring/ScoringRoute";
 import { SQUADS_ROUTE } from "./squads/paths";
 import type { SquadsSeam } from "./squads/seam";
 import { SquadsRoute } from "./squads/SquadsRoute";
@@ -43,7 +46,7 @@ import { linkProblemWords, type LinkProblem } from "./sign-in/words";
 import type { TableSeam } from "./table/seam";
 import { TableRoute } from "./table/TableRoute";
 
-// A seam is a top-level useLive* hook holding root state (mail, joining, squads, admin, leagues) or a
+// A seam is a top-level useLive* hook holding root state (mail, joining, squads, scoring, admin, leagues) or a
 // constant object of hooks (gameweeks, table). Each new one needs a preview (main.tsx), a live value
 // (liveApp.tsx) and a fake (shell.harness.tsx), and the typechecker flags any that's missing.
 export type ShellContext = {
@@ -55,6 +58,7 @@ export type ShellContext = {
   topBar: TopBarState;
   gameweeks: GameweeksSeam;
   squads: SquadsSeam;
+  scoring: ScoringSeam;
   table: TableSeam;
   admin: AdminSeam;
 };
@@ -178,6 +182,17 @@ const squadsRoute = createRoute({
   },
 });
 
+// A league's scoring, the rules editor, for whoever runs it (#30).
+const scoringRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: SCORING_ROUTE,
+  beforeLoad: runnersOnly,
+  component: function Scoring() {
+    const { session, scoring } = scoringRoute.useRouteContext();
+    return <ScoringRoute session={session} seam={scoring} leagueId={scoringRoute.useParams().leagueId} />;
+  },
+});
+
 // The admin's dashboard (#87), his alone.
 const adminRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
@@ -263,7 +278,7 @@ const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map(
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
-  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, adminRoute, adminFeedsRoute]),
+  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, adminRoute, adminFeedsRoute]),
   frameRoute.addChildren([landingRoute, tableRoute, ...pageRoutes]),
 ]);
 

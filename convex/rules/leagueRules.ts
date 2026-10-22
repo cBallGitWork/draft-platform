@@ -6,7 +6,9 @@ import { FIRST_RULES } from "./firstRules";
 import { memberOf, refuse, runnerOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
 import { checkLeagueRules, UnsoundRules } from "./leagueRulesCheck";
-import { leagueRulesShape, type LeagueRules } from "./leagueRulesShape";
+import { leagueRulesShape, scoringSetShape, type LeagueRules } from "./leagueRulesShape";
+import { categoryName } from "../scoring/categories";
+import { sortedJson } from "../shared/sortedJson";
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
 
@@ -14,6 +16,11 @@ import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
 // its commissioner changes them from the next gameweek, so a past gameweek keeps the rules it had.
 // Until the admin has a screen, the defaults are set from the dashboard or the command line:
 // `npx convex run rules/leagueRules:setDefaults '{"rules": {…}}'`, checked as a commissioner's are.
+
+/** Why a change to the rules is refused besides unsound rules, in the words the person is shown. */
+export const rulesRefusals = {
+  noRules: "This league was made before leagues held their rules, so it has none to change yet.",
+};
 
 /** Refuses unsound rules, telling the commissioner or admin why. */
 function refuseUnsound(rules: LeagueRules): void {
@@ -94,15 +101,6 @@ function changedParts(from: LeagueRules | undefined, to: LeagueRules): (keyof Le
   return parts.filter((part) => from === undefined || sortedJson(from[part]) !== sortedJson(to[part]));
 }
 
-/** JSON with each object's keys sorted, so two equal values read the same whatever their order. */
-function sortedJson(value: unknown): string {
-  return JSON.stringify(value, (_key, inner: unknown) =>
-    inner !== null && typeof inner === "object" && !Array.isArray(inner)
-      ? Object.fromEntries(Object.entries(inner).toSorted(([one], [other]) => one.localeCompare(other)))
-      : inner,
-  );
-}
-
 /** The league's latest rules, and the gameweek they take effect from: the next gameweek's, when a
  *  change is waiting for it. Null for a league made before rules were held. */
 export const latest = query({
@@ -115,34 +113,97 @@ export const latest = query({
   },
 });
 
-/** The commissioner's change, whole: it takes effect from the next gameweek not begun under the
+/** The gameweek a change to `rules` made at `now` takes effect from: the next not begun under the
  *  rules it replaces nor under its own deadline, and never earlier than a change already waiting.
+ *  A later deadline must not reopen a gameweek the old one locked, nor an earlier one lock a
+ *  gameweek the moment it is saved; and a row from before a waiting one would be overridden by it. */
+async function takesEffectFrom(
+  ctx: QueryCtx,
+  history: readonly Doc<"leagueRules">[],
+  rules: LeagueRules,
+  now: number,
+): Promise<number> {
+  const { gameweeks, matches } = await heldSchedule(ctx);
+  const nextUnder = (deadlineFor: (gameweek: number) => DeadlineRule) => nextGameweek(gameweeks, matches, deadlineFor, now);
+  return Math.max(
+    nextUnder((gameweek) => (inForce(history, gameweek)?.rules ?? rules).deadline),
+    nextUnder(() => rules.deadline),
+    history.at(-1)?.fromGameweek ?? FIRST_GAMEWEEK,
+  );
+}
+
+/** Saves `rules` as the league's from the gameweek they can take effect, and files the letter
+ *  saying what changed and from when. The same rules again change nothing and file nothing.
+ *  Returns that gameweek. Refused, with the reason, if unsound. */
+async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: string, rules: LeagueRules): Promise<number> {
+  refuseUnsound(rules);
+  const history = await historyOf(ctx, leagueId);
+  const fromGameweek = await takesEffectFrom(ctx, history, rules, Date.now());
+  const latestRow = history.at(-1);
+  const changed = changedParts(latestRow?.rules, rules);
+  if (latestRow !== undefined && changed.length === 0) return latestRow.fromGameweek;
+  // A second change before the same deadline is a newer row from the same gameweek: it wins.
+  await ctx.db.insert("leagueRules", { leagueId, fromGameweek, rules });
+  await recordEvent(ctx, leagueId, email, { kind: "rulesChanged", fromGameweek, changed, ...scoringChanges(latestRow?.rules.scoring, rules.scoring) });
+  return fromGameweek;
+}
+
+type Scoring = LeagueRules["scoring"];
+
+/** What a letter says of a scoring change (spec/15: nothing changes quietly): the categories whose
+ *  rules were added, removed or changed, by full name as they were named then, and whole points
+ *  only, when it was switched. Nothing for a league that had no rules. */
+function scoringChanges(from: Scoring | undefined, to: Scoring): { categories?: string[]; wholePointsOnly?: boolean } {
+  if (from === undefined) return {};
+  const rulesFor = (scoring: Scoring, stat: string) => sortedJson(scoring.rules.filter((rule) => rule.stat === stat));
+  const stats = [...new Set([...to.rules, ...from.rules].map((rule) => rule.stat))];
+  const categories = stats
+    .filter((stat) => rulesFor(from, stat) !== rulesFor(to, stat))
+    .map((stat) => categoryName(stat, to.ownStats ?? from.ownStats));
+  return {
+    ...(categories.length > 0 && { categories }),
+    ...(from.wholePointsOnly !== to.wholePointsOnly && { wholePointsOnly: to.wholePointsOnly }),
+  };
+}
+
+/** The commissioner's change, whole: it takes effect from the gameweek `takesEffectFrom` gives.
  *  Returns that gameweek. Refused, with the reason, if unsound. */
 export const change = mutation({
   args: { leagueId: v.id("leagues"), rules: leagueRulesShape },
   returns: v.number(),
   handler: async (ctx, { leagueId, rules }) => {
     const { email } = await runnerOf(ctx, leagueId);
-    refuseUnsound(rules);
-    const history = await historyOf(ctx, leagueId);
-    const { gameweeks, matches } = await heldSchedule(ctx);
-    const nextUnder = (deadlineFor: (gameweek: number) => DeadlineRule) =>
-      nextGameweek(gameweeks, matches, deadlineFor, Date.now());
-    const latestRow = history.at(-1);
-    // A later deadline must not reopen a gameweek the old one locked, nor an earlier one lock a
-    // gameweek the moment it is saved; and a row from before a waiting one would be overridden by it.
-    const fromGameweek = Math.max(
-      nextUnder((gameweek) => (inForce(history, gameweek)?.rules ?? rules).deadline),
-      nextUnder(() => rules.deadline),
-      latestRow?.fromGameweek ?? FIRST_GAMEWEEK,
-    );
+    return await changeRules(ctx, leagueId, email, rules);
+  },
+});
 
-    const changed = changedParts(latestRow?.rules, rules);
-    if (latestRow !== undefined && changed.length === 0) return latestRow.fromGameweek;
-    // A second change before the same deadline is a newer row from the same gameweek: it wins.
-    await ctx.db.insert("leagueRules", { leagueId, fromGameweek, rules });
-    await recordEvent(ctx, leagueId, email, { kind: "rulesChanged", fromGameweek, changed });
-    return fromGameweek;
+/** The league's scoring set as the rules editor (#30) edits it: the latest, a waiting change's
+ *  among them, and the gameweek a change made at `now` would take effect from. Null for a league
+ *  made before rules were held. For whoever runs the league. `now` is the screen's, moved on each
+ *  minute, as a query must not read the clock (convex/admin/feeds.ts says why). */
+export const scoring = query({
+  args: { leagueId: v.id("leagues"), now: v.number() },
+  returns: v.union(v.null(), v.object({ scoring: scoringSetShape, changesFrom: v.number() })),
+  handler: async (ctx, { leagueId, now }) => {
+    await runnerOf(ctx, leagueId);
+    const history = await historyOf(ctx, leagueId);
+    const latestRow = history.at(-1);
+    if (latestRow === undefined) return null;
+    return { scoring: latestRow.rules.scoring, changesFrom: await takesEffectFrom(ctx, history, latestRow.rules, now) };
+  },
+});
+
+/** The rules editor's change (#30): the league's latest rules with this scoring set, saved as
+ *  `change` saves them, so a change to the rest made meanwhile isn't undone. Returns the gameweek
+ *  it takes effect from. Refused, with the reason, if unsound or if the league has no rules yet. */
+export const changeScoring = mutation({
+  args: { leagueId: v.id("leagues"), scoring: scoringSetShape },
+  returns: v.number(),
+  handler: async (ctx, { leagueId, scoring }) => {
+    const { email } = await runnerOf(ctx, leagueId);
+    const latest = await latestRules(ctx, leagueId);
+    if (latest === null) refuse(rulesRefusals.noRules);
+    return await changeRules(ctx, leagueId, email, { ...latest, scoring });
   },
 });
 

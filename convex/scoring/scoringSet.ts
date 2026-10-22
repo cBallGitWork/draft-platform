@@ -2,6 +2,7 @@
 // a rule scores). The set is the league's rule, so it is always data handed in, never a constant.
 
 import { AREAS, SLOT_POSITIONS, type Area, type SlotPosition } from "../lineup/pitch";
+import { categoryName } from "./categories";
 import { validateOwnStats, type OwnStat } from "./ownStats";
 
 export type { OwnStat };
@@ -96,14 +97,16 @@ export function validateScoringSet(set: unknown): asserts set is ScoringSet {
   }
   const { wholePointsOnly } = set;
   if (set.ownStats !== undefined) validateOwnStats(set.ownStats);
-  set.rules.forEach((rule, index) => validateRule(rule, index + 1, wholePointsOnly));
+  const ownStats = set.ownStats as readonly OwnStat[] | undefined;
+  set.rules.forEach((rule, index) => validateRule(rule, index + 1, wholePointsOnly, (stat) => categoryName(stat, ownStats)));
 }
 
-function validateRule(rule: unknown, position: number, wholePointsOnly: boolean): void {
+/** A rule is named by its category's full name, as the rules editor shows it (spec/14). */
+function validateRule(rule: unknown, position: number, wholePointsOnly: boolean, nameOf: (stat: string) => string): void {
   if (!isObject(rule)) throw new Error(`rule ${position} of the scoring set is not a rule`);
   const { stat, shape } = rule;
   if (typeof stat !== "string" || stat === "") throw new Error(`rule ${position} of the scoring set names no stat`);
-  const named = `the ${stat} rule`;
+  const named = `the ${nameOf(stat)} rule`;
   if (shape !== "perAction" && shape !== "perCount" && shape !== "bands") {
     throw new Error(`${named} has the shape ${showValue(shape)}, which is not one of the three`);
   }

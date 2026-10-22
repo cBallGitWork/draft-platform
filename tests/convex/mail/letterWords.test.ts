@@ -31,7 +31,22 @@ const LETTERS: [Infer<typeof leagueEvent>, string, string][] = [
   [
     { kind: "rulesChanged", fromGameweek: 9, changed: ["scoring", "deadline"] },
     "The league's rules change from gameweek 9",
-    "scoring, deadline, from gameweek 9",
+    "scoring and deadline, from gameweek 9.",
+  ],
+  [
+    { kind: "rulesChanged", fromGameweek: 9, changed: ["oddTeamOut", "gamesPerGameweek", "tieBreaks"] },
+    "The league's rules change from gameweek 9",
+    "changed the league's odd team out, games a gameweek and tie-breaks, from gameweek 9.",
+  ],
+  [
+    { kind: "rulesChanged", fromGameweek: 9, changed: ["scoring"], categories: ["Goals scored", "Assists"], wholePointsOnly: true },
+    "The league's rules change from gameweek 9",
+    "changed the league's scoring, from gameweek 9. The scoring changed for Goals scored and Assists, and points are now whole only.",
+  ],
+  [
+    { kind: "rulesChanged", fromGameweek: 9, changed: ["scoring"], wholePointsOnly: false },
+    "The league's rules change from gameweek 9",
+    "changed the league's scoring, from gameweek 9. Points can now be fractions.",
   ],
 ];
 
