@@ -36,11 +36,11 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   them, a whole club or one player at a time. A setting later lets them count straight away, with
   only changes waiting for him.
 - A position the admin sets stays until he removes it; starts can still add others.
-- Support striker (SS) is a position. Lineups alone can't tell him from a number 10, so the admin
-  marks him; SS is added to his positions, and a recount never removes it.
-- One admin dashboard in the beta ([15](15-admin-tools.md)): a queue (new signings, possible
-  support strikers, flagged and removed positions), search to correct any player, the
-  thresholds, and the feeds page as a tab.
+- Support striker (SS): any forward (ST) or attacking midfielder (CAM, W) can play there, with
+  its own scoring, rules and tactics (Craig, 22 Oct 2026). Nobody marks him by hand. Whether SS
+  is a slot of its own or a role on a forward's slot is to grill.
+- One admin dashboard in the beta ([15](15-admin-tools.md)): a queue (new signings, flagged and
+  removed positions), search to correct any player, the thresholds, and the feeds page as a tab.
 
 ## New signings
 

@@ -28,7 +28,8 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
   | attacking midfield | W | CAM |
   | attack | ST | ST |
 
-  SS has no slot of its own: shadow striker is a role (`spec/05`).
+  SS will have its own price, so a support striker can score differently (Craig, 22 Oct 2026);
+  how a slot becomes SS is to grill (`spec/06`).
 - Three kinds of rule:
   - per action (+3 per assist);
   - per number of actions (+1 per 3 saves);
@@ -77,8 +78,9 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 
 - It is in the mini beta.
 - What it opens on is simple: each category with one value. Pricing by area or position, the
-  points limits, the minutes and stacking sit behind checkboxes. Its look is picked from two or three
-  mock-ups when it is built (#30).
+  points limits, the minutes and stacking sit behind checkboxes. Its look is two panes, picked
+  from three mock-ups (Craig, 22 Oct 2026): the categories down the left, the chosen one on the
+  right (#30).
 
 ## On screen
 
