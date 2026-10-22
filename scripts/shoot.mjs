@@ -1,7 +1,7 @@
-// Shoots one route of the running app at the phone's width and the desk's, into .shots/, and
-// says what a picture can't: whether the page scrolls sideways, and which taps are under the tap
-// size at 390 (`--spacing-tap`, read from the page; plate.md, The phone). The ui-verifier agent's
-// camera.
+// Shoots one route of the running app at the phone's width and the desk's, into the checkout's
+// .shots/ (printing each shot's absolute path), and says what a picture can't: whether the page
+// scrolls sideways, and which taps are under the tap size at 390 (`--spacing-tap`, read from the
+// page; plate.md, The phone). The ui-verifier agent's camera.
 //
 // Usage: node scripts/shoot.mjs <route> [name]
 //   node scripts/shoot.mjs / sign-in
@@ -9,12 +9,14 @@
 // The app must be running on this checkout's port (scripts/port.mjs); APP_URL overrides it.
 
 import { mkdirSync } from "node:fs";
-import { chromium } from "playwright";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { chromium } from "@playwright/test";
 import { appPort } from "./port.mjs";
 
 const PHONE = { width: 390, height: 844 };
 const WIDTHS = [PHONE, { width: 1440, height: 900 }];
-const SHOTS_DIR = ".shots";
+const SHOTS_DIR = fileURLToPath(new URL("../.shots/", import.meta.url));
 
 const [route, name = "shot"] = process.argv.slice(2);
 if (!route) {
@@ -31,7 +33,7 @@ try {
     const page = await browser.newPage({ viewport });
     await page.goto(url, { waitUntil: "networkidle" });
     await page.evaluate(() => document.fonts.ready);
-    const path = `${SHOTS_DIR}/${name}-${viewport.width}.png`;
+    const path = join(SHOTS_DIR, `${name}-${viewport.width}.png`);
     await page.screenshot({ path, fullPage: true });
     const report = await page.evaluate(() => {
       const tapToken = getComputedStyle(document.documentElement).getPropertyValue("--spacing-tap").trim();
