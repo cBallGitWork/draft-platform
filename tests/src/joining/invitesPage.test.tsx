@@ -11,7 +11,19 @@ import { commissioner, league, managerIn, openApp } from "../../support/src/shel
 import { LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { invitesPath } from "../../../src/joining/paths";
 import type { InvitesPageData } from "../../../src/joining/seam";
-import { dayWords, emailInvitesWords, expiredWords, invitesTitle, joinedWords, loadingWords, noTeamWords, notYoursWords, waitingStrip } from "../../../src/joining/words";
+import {
+  dayWords,
+  emailInvitesWords,
+  expiredWords,
+  inviteLinkWords,
+  invitesTitle,
+  joinedWords,
+  loadingWords,
+  noTeamWords,
+  notYoursWords,
+  requestsWords,
+  waitingStrip,
+} from "../../../src/joining/words";
 
 afterEach(cleanup);
 
@@ -39,7 +51,7 @@ const page: InvitesPageData = {
 
 const openPage = (invitesPage: InvitesPageData | null = page) =>
   openApp(invitesPath(league.leagueId), commissioner, { joining: { invitesPage } });
-const inviteItem = (email: string) => within(screen.getByRole("list", { name: "Invites" })).getByText(email).closest("li")!;
+const inviteItem = (email: string) => within(screen.getByRole("list", { name: emailInvitesWords.listLabel })).getByText(email).closest("li")!;
 
 describe("the invites page", () => {
   it("is reached from the commissioner's leagues, and not offered to a manager", async () => {
@@ -66,12 +78,12 @@ describe("the invites page", () => {
 
   it("resends or cancels an invite not yet taken up; one waiting for tomorrow isn't resent", async () => {
     const app = openPage();
-    await userEvent.click(await screen.findByRole("button", { name: "Resend the invite to cat@example.com" }));
-    await userEvent.click(screen.getByRole("button", { name: "Cancel the invite to ann@example.com" }));
+    await userEvent.click(await screen.findByRole("button", { name: emailInvitesWords.resendLabel("cat@example.com") }));
+    await userEvent.click(screen.getByRole("button", { name: emailInvitesWords.cancelLabel("ann@example.com") }));
 
     expect(app.joining.resendInvite).toHaveBeenCalledWith("invite-cat");
     expect(app.joining.cancelInvite).toHaveBeenCalledWith("invite-ann");
-    expect(screen.queryByRole("button", { name: "Resend the invite to bob@example.com" })).toBeNull();
+    expect(screen.queryByRole("button", { name: emailInvitesWords.resendLabel("bob@example.com") })).toBeNull();
     expect(within(inviteItem("dan@example.com")).queryByRole("button")).toBeNull();
   });
 
@@ -85,13 +97,13 @@ describe("the invites page", () => {
 describe("inviting by email", () => {
   it("invites the email to a new team, or to the vacated team chosen", async () => {
     const app = openPage();
-    await userEvent.type(await screen.findByRole("textbox", { name: "Email" }), "fay@example.com");
+    await userEvent.type(await screen.findByRole("textbox", { name: emailInvitesWords.emailLabel }), "fay@example.com");
     await userEvent.click(screen.getByRole("button", { name: emailInvitesWords.send }));
     expect(app.joining.invite).toHaveBeenLastCalledWith(league.leagueId, "fay@example.com", null);
-    expect((screen.getByRole("textbox", { name: "Email" }) as HTMLInputElement).value).toBe("");
+    expect((screen.getByRole("textbox", { name: emailInvitesWords.emailLabel }) as HTMLInputElement).value).toBe("");
 
-    await userEvent.type(screen.getByRole("textbox", { name: "Email" }), "gus@example.com");
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Team" }), "Saka Potatoes");
+    await userEvent.type(screen.getByRole("textbox", { name: emailInvitesWords.emailLabel }), "gus@example.com");
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: emailInvitesWords.teamLabel }), "Saka Potatoes");
     await userEvent.click(screen.getByRole("button", { name: emailInvitesWords.send }));
     expect(app.joining.invite).toHaveBeenLastCalledWith(league.leagueId, "gus@example.com", TEAM_2);
   });
@@ -99,11 +111,11 @@ describe("inviting by email", () => {
   it("shows the server's refusal, and keeps the email typed", async () => {
     const app = openPage();
     app.joining.invite.mockResolvedValue("fay@example.com already has an invite to this league: resend it instead.");
-    await userEvent.type(await screen.findByRole("textbox", { name: "Email" }), "fay@example.com");
+    await userEvent.type(await screen.findByRole("textbox", { name: emailInvitesWords.emailLabel }), "fay@example.com");
     await userEvent.click(screen.getByRole("button", { name: emailInvitesWords.send }));
 
     expect((await screen.findByRole("alert")).textContent).toBe("fay@example.com already has an invite to this league: resend it instead.");
-    expect((screen.getByRole("textbox", { name: "Email" }) as HTMLInputElement).value).toBe("fay@example.com");
+    expect((screen.getByRole("textbox", { name: emailInvitesWords.emailLabel }) as HTMLInputElement).value).toBe("fay@example.com");
   });
 
   it("in a full league with no vacated team, offers no team and sends nothing", async () => {
@@ -116,18 +128,18 @@ describe("inviting by email", () => {
 describe("the invite link", () => {
   it("is shown whole, to copy, and can be replaced or switched off", async () => {
     const app = openPage();
-    const link = (await screen.findByRole("textbox", { name: "The league's invite link" })) as HTMLInputElement;
+    const link = (await screen.findByRole("textbox", { name: inviteLinkWords.label })) as HTMLInputElement;
     expect(link.value).toBe(new URL(joinPath("the-token"), window.location.origin).href);
 
-    await userEvent.click(screen.getByRole("button", { name: "Replace the link" }));
-    await userEvent.click(screen.getByRole("button", { name: "Switch it off" }));
+    await userEvent.click(screen.getByRole("button", { name: inviteLinkWords.replace }));
+    await userEvent.click(screen.getByRole("button", { name: inviteLinkWords.switchOff }));
     expect(app.joining.makeLink).toHaveBeenCalledWith(league.leagueId);
     expect(app.joining.switchOffLink).toHaveBeenCalledWith(league.leagueId);
   });
 
   it("can be made when the league has none", async () => {
     const app = openPage({ ...page, linkToken: null });
-    await userEvent.click(await screen.findByRole("button", { name: "Make an invite link" }));
+    await userEvent.click(await screen.findByRole("button", { name: inviteLinkWords.make }));
     expect(app.joining.makeLink).toHaveBeenCalledWith(league.leagueId);
   });
 });
@@ -135,11 +147,11 @@ describe("the invite link", () => {
 describe("join requests", () => {
   it("are approved to the team chosen, a vacated one included, or refused", async () => {
     const app = openPage();
-    await userEvent.selectOptions(await screen.findByRole("combobox", { name: "Team for eve@example.com" }), "Saka Potatoes");
-    await userEvent.click(screen.getByRole("button", { name: "Approve eve@example.com" }));
+    await userEvent.selectOptions(await screen.findByRole("combobox", { name: requestsWords.teamLabel("eve@example.com") }), "Saka Potatoes");
+    await userEvent.click(screen.getByRole("button", { name: requestsWords.approveLabel("eve@example.com") }));
     expect(app.joining.approve).toHaveBeenCalledWith("request-eve", TEAM_2);
 
-    await userEvent.click(screen.getByRole("button", { name: "Refuse eve@example.com" }));
+    await userEvent.click(screen.getByRole("button", { name: requestsWords.refuseLabel("eve@example.com") }));
     expect(app.joining.refuse).toHaveBeenCalledWith("request-eve");
   });
 

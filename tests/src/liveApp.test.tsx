@@ -136,7 +136,7 @@ test.each([
   vi.spyOn(console, "error").mockImplementation(() => {});
   openAt(SIGN_IN_PATH);
 
-  await userEvent.type(await screen.findByRole("textbox", { name: "Email" }), "craig@example.com");
+  await userEvent.type(await screen.findByRole("textbox", { name: signInWords.emailLabel }), "craig@example.com");
   await userEvent.click(screen.getByRole("button", { name: signInWords.send }));
 
   expect((await screen.findByRole("status")).textContent).toBe(words);
