@@ -1,6 +1,9 @@
 // What the table and fixtures screen says, in one place for Craig to change in the pull request.
 
 import { LOCALE } from "../../convex/shared/londonTime";
+import { gameweekWords } from "../words";
+
+export { gameweekWords };
 
 export const TABLE_PAGE_TITLE = "Table and fixtures";
 export const TABLE_TITLE = "Table";
@@ -25,9 +28,11 @@ export const columns = {
   points: { short: "Pts", long: "Points" },
 } as const;
 
-export const gameweekWords = (gameweek: number) => `Gameweek ${gameweek}`;
 export const previousLabel = "Previous gameweek";
 export const nextLabel = "Next gameweek";
+/** CM's stepper arrows, either side of the gameweek: decoration, as each button carries its label. */
+export const previousGlyph = "◄";
+export const nextGlyph = "►";
 export const versusWords = "v";
 export const leagueAverageWords = "League average";
 const andList = new Intl.ListFormat(LOCALE, { type: "conjunction" });

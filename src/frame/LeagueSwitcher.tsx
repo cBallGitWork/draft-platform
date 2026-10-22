@@ -6,7 +6,7 @@ import type { Session } from "../auth";
 import { ESCAPE_KEY, KEY_DOWN, POINTER_DOWN } from "../browserEvents";
 import type { LeagueActions } from "../leagues/actions";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../leagues/paths";
-import { roleWords } from "../leagues/words";
+import { rolesWords } from "../leagues/words";
 import { Problem } from "./Panel";
 import { allLeaguesWords, currentLeagueLabel } from "./words";
 
@@ -136,7 +136,7 @@ function LeagueChoice({
       className={choiceClasses}
     >
       <span className="text-lead font-semibold">{league.name}</span>
-      <span className="text-muted">{league.teamName ?? league.roles.map((role) => roleWords[role]).join(", ")}</span>
+      <span className="text-muted">{league.teamName ?? rolesWords(league.roles)}</span>
     </button>
   );
 }

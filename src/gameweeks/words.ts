@@ -4,7 +4,7 @@
 
 import { GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import { LOCALE } from "../../convex/shared/londonTime";
-import { failedWords } from "../words";
+import { failedWords, gameweekWords } from "../words";
 
 export const GAMEWEEKS_TITLE = "Gameweeks";
 
@@ -16,7 +16,7 @@ export const howTickingWorks =
 export const playsWords = (name: string) => ({ before: `${name} plays `, after: ` of ${GAMEWEEKS} gameweeks.` });
 
 export const gameweekColumns = { gameweek: "GW", deadline: "Deadline", plays: "Plays" } as const;
-export const tickLabel = (gameweek: number) => `Gameweek ${gameweek}`;
+export const tickLabel = gameweekWords;
 export const begunWords = "Begun";
 export const noDeadlineWords = "Not known yet";
 export const loadingWords = "Loading the gameweeks…";

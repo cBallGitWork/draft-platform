@@ -8,8 +8,10 @@ import {
   fixturesListLabel,
   gameweekWords,
   leagueAverageWords,
+  nextGlyph,
   nextLabel,
   noGameweeksWords,
+  previousGlyph,
   previousLabel,
   roundRobinWords,
   tooFewTeamsWords,
@@ -59,7 +61,7 @@ function GameweekFixtures({ gameweeks }: { gameweeks: readonly Gameweek[] }) {
     <>
       <div className="flex min-h-tap items-stretch bg-stepper">
         <button type="button" aria-label={previousLabel} disabled={index === 0} onClick={() => choose(index - 1)} className={stepClasses}>
-          <span aria-hidden="true">◄</span>
+          <span aria-hidden="true">{previousGlyph}</span>
         </button>
         <h3 aria-live="polite" className="flex grow items-center justify-center text-lead font-bold">
           {gameweekWords(gameweek)}
@@ -71,7 +73,7 @@ function GameweekFixtures({ gameweeks }: { gameweeks: readonly Gameweek[] }) {
           onClick={() => choose(index + 1)}
           className={stepClasses}
         >
-          <span aria-hidden="true">►</span>
+          <span aria-hidden="true">{nextGlyph}</span>
         </button>
       </div>
       <ul aria-label={fixturesListLabel(gameweek)}>

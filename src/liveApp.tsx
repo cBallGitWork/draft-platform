@@ -15,6 +15,7 @@ import { answerOf } from "./refusal";
 import { SIGN_IN_PATH } from "./router";
 import { ShellApp } from "./ShellApp";
 import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "./sign-in/words";
+import { NO_CONVEX_URL } from "./words";
 
 // The app signed in for real: Convex Auth's session (convex/auth.ts), the email links asked for
 // through signIn/signInLinks:ask, and a link's code redeemed when the app is opened from one.
@@ -29,8 +30,6 @@ export function takeLinkCode(): string | null {
   window.history.replaceState(null, "", url);
   return code;
 }
-
-export const NO_CONVEX_URL = "VITE_CONVEX_URL isn't set, so the app can't reach Convex: `npm run setup` writes it to .env.local (docs/setup.md).";
 
 export function LiveApp({ linkCode }: { linkCode: string | null }) {
   const [client] = useState(() => {

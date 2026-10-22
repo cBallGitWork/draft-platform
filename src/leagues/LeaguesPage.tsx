@@ -20,7 +20,7 @@ import {
   leagueColumns,
   noTeamCellWords,
   notInALeagueWords,
-  roleWords,
+  rolesWords,
   teamsOfMostWords,
   unsentLink,
   unsentLinkWords,
@@ -102,7 +102,7 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
                   </Link>
                 ))}
             </th>
-            <td className={cellClasses}>{league.roles.map((role) => roleWords[role]).join(", ") || adminWords}</td>
+            <td className={cellClasses}>{rolesWords(league.roles) || adminWords}</td>
             <td className={cellClasses}>{league.teamName ?? <span className="text-muted">{noTeamCellWords}</span>}</td>
             <td className={`${cellClasses} text-right whitespace-nowrap`}>
               <span className="text-figure">{league.teams}</span>
