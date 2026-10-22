@@ -1,5 +1,4 @@
 // scripts/record-match.mjs loads this under plain node: import only types, or other files by explicit `.ts` path.
-// What any caught failure says, and how it reaches Convex's logs: not the football layer's, every caller's.
 
 /** What a caught failure says, whether or not it was thrown as an Error. */
 export function errorMessage(error: unknown): string {
