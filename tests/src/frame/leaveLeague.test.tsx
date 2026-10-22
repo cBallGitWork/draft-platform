@@ -4,19 +4,15 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import type { Id } from "../../../convex/_generated/dataModel";
-import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { leaveWords } from "../../../src/frame/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import { league, manager, managerIn, newcomer, openApp } from "../../support/src/shell.harness";
-
-const miniBeta: LeagueSummary = { ...league, leagueId: "league-2" as Id<"leagues">, name: "Mini beta", roles: ["commissioner"], teamName: null };
+import { league, manager, managerIn, miniBeta, newcomer, openApp } from "../../support/src/shell.harness";
 
 const openList = async () => userEvent.click(await screen.findByRole("button", { name: /^League: / }));
-const leaveButton = (name: string) => screen.queryByRole("button", { name });
+const leaveOffered = () => screen.queryByRole("button", { name: leaveWords.open }) !== null;
 
 describe("leaving the league", () => {
   it("asks first, then leaves the league the app is in, and closes the list", async () => {
@@ -39,7 +35,7 @@ describe("leaving the league", () => {
     await userEvent.click(screen.getByRole("button", { name: leaveWords.no }));
 
     expect(app.leagues.leaveLeague).not.toHaveBeenCalled();
-    expect(leaveButton(leaveWords.open)).toBeTruthy();
+    expect(leaveOffered()).toBe(true);
   });
 
   it("is told why the server refused, someone running no team there, with the list still open", async () => {
@@ -58,7 +54,7 @@ describe("leaving the league", () => {
     await openList();
 
     expect(within(screen.getByRole("list", { name: LEAGUES_TITLE })).getAllByRole("button")).toHaveLength(2);
-    expect(leaveButton(leaveWords.open)).toBeNull();
+    expect(leaveOffered()).toBe(false);
   });
 
   it("having left their only league, takes them to their leagues", async () => {

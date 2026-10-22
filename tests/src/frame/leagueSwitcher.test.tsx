@@ -4,22 +4,13 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import { adminSeeing, beingDeleted, commissioner, league, manager, managerIn, openApp } from "../../support/src/shell.harness";
+import { adminSeeing, beingDeleted, commissioner, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { allLeaguesWords } from "../../../src/frame/words";
 
-const miniBeta: LeagueSummary = {
-  ...league,
-  leagueId: "league-2" as Id<"leagues">,
-  name: "Mini beta",
-  roles: ["commissioner"],
-  teamName: null,
-};
 const inTwo = managerIn(league, miniBeta);
 const inMiniBeta = { ...inTwo, currentLeagueId: miniBeta.leagueId };
 

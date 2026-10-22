@@ -38,6 +38,15 @@ export const league: LeagueSummary = {
   unsentCommissionerLink: null,
 };
 
+/** A second league, which `manager` commissions with no team of their own. */
+export const miniBeta: LeagueSummary = {
+  ...league,
+  leagueId: "league-2" as Id<"leagues">,
+  name: "Mini beta",
+  roles: ["commissioner"],
+  teamName: null,
+};
+
 const signedIn = { signedIn: true, email: "manager@example.com", isAdmin: false } as const;
 /** A manager in these leagues, the app in the first. */
 export const managerIn = (...leagues: LeagueSummary[]) =>
