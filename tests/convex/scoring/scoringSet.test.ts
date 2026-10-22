@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { everyArea, EXAMPLE_SET, MINUTES_BANDS } from "../../support/convex/scoring.example";
+import { everyArea, EXAMPLE_SET, MINUTES_BANDS, TACKLES_AND_CLEARANCES } from "../../support/convex/scoring.example";
 import { validateScoringSet } from "../../../convex/scoring/scoringSet";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 
@@ -94,15 +94,6 @@ test.each([
 
 describe("a rule scores a catalogue stat or one of the league's own, never a key no record holds (#135)", () => {
   const perAction = (stat: string) => ({ shape: "perAction", stat, values: { all: 1 } });
-  const TACKLES_AND_CLEARANCES = {
-    stat: "own_tackles_and_clearances",
-    name: "Tackles and clearances",
-    shortCode: "TAC",
-    parts: [
-      { stat: "won_tackle", weight: 1 },
-      { stat: "total_clearance", weight: 0.5 },
-    ],
-  };
 
   test("a typo of a catalogue stat is refused, naming it", () => {
     expect(() => validateScoringSet(setOf(perAction("goals_scroed")))).toThrow(

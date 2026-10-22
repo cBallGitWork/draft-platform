@@ -5,8 +5,8 @@
 // and the two built on them) are never in it (spec/14: no FPL bonus points). Opta may send stats not
 // yet seen in a recording; each is added here once seen, and only then can a rule score it. A stat's
 // key is the feed's own name: rename its name and short code freely, never its key, which an own
-// stat stores its parts by and a rule its stat by. A key gone from here makes every saved set that
-// scores it refuse to score, loudly, which is better than paying 0 in it unnoticed (#135).
+// stat stores its parts by and a rule its stat by: a key gone from here makes every saved set that
+// scores it throw when scored (#135).
 
 export interface CatalogueStat {
   /** The name the merged record keeps it under. */

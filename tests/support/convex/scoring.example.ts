@@ -3,7 +3,7 @@
 // gives them.
 
 import { SLOT_POSITIONS, type Cell, type SlotPosition } from "../../../convex/lineup/pitch";
-import { AREAS, type Area, type ByArea, type ByPosition, type ScoringSet } from "../../../convex/scoring/scoringSet";
+import { AREAS, type Area, type ByArea, type ByPosition, type OwnStat, type ScoringSet } from "../../../convex/scoring/scoringSet";
 
 /** The slot in the centre of an area: where the tests stand a player when only his area matters. */
 export const centreOf = (area: Area): Cell => ({ area, lane: "centre" });
@@ -69,4 +69,15 @@ export const EXAMPLE_SET: ScoringSet = {
     { shape: "perAction", stat: "yellow_cards", values: { all: -1 } },
   ],
   wholePointsOnly: false,
+};
+
+/** A league's own stat (spec/14, Own stats): tackles won + 0.5 × clearances. */
+export const TACKLES_AND_CLEARANCES: OwnStat = {
+  stat: "own_tackles_and_clearances",
+  name: "Tackles and clearances",
+  shortCode: "T+C",
+  parts: [
+    { stat: "won_tackle", weight: 1 },
+    { stat: "total_clearance", weight: 0.5 },
+  ],
 };
