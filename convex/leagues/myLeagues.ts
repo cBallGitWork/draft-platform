@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { rolesIn, seesWhileDeleted, teamsOf } from "../shared/leagueAccess";
+import { leagueRole, rolesIn, seesWhileDeleted, teamsOf } from "../shared/leagueAccess";
 import { leagueDeletion } from "../schema";
 import { hasOpenedALink, noLinkReply } from "../signIn/signInLinks";
 
@@ -10,8 +10,6 @@ import { hasOpenedALink, noLinkReply } from "../signIn/signInLinks";
 
 /** The most leagues one list shows, and of each kind of part in one: the closed beta has a handful. */
 const LEAGUES_SHOWN = 200;
-
-const leagueRole = v.union(v.literal("commissioner"), v.literal("co-commissioner"), v.literal("manager"));
 
 export const leagueSummary = v.object({
   leagueId: v.id("leagues"),

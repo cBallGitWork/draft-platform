@@ -1,5 +1,5 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { ConvexError } from "convex/values";
+import { ConvexError, v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { adminEmail, normaliseEmail } from "../signIn/allowedEmails";
@@ -91,7 +91,8 @@ function powersIn(league: Doc<"leagues">, email: string) {
 }
 
 /** A person's parts in a league: a role in it, which the admin's override alone isn't. */
-export type LeagueRole = "commissioner" | "co-commissioner" | "manager";
+export const leagueRole = v.union(v.literal("commissioner"), v.literal("co-commissioner"), v.literal("manager"));
+export type LeagueRole = Infer<typeof leagueRole>;
 
 /** This email's parts in the league, given the team it manages there, if any. */
 export function rolesIn(league: Doc<"leagues">, email: string, team: Doc<"teams"> | undefined): LeagueRole[] {
