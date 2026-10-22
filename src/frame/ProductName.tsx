@@ -1,4 +1,4 @@
-import { PRODUCT_NAME } from "../product";
+import { PRODUCT_NAME } from "../../convex/shared/product";
 
 /** The name at the left of a signed-in top bar. */
 export function ProductName() {

@@ -1,5 +1,10 @@
 # How we build
 
+Below, the PR "line limits" for your domain mean about 400 changed lines of non-test code per
+pull request (tests, docs and generated files don't count; pr-reviewer names a split past it), and
+`gh stack`, which this repo doesn't have, means large work split by `/grill` step 6 into pull
+requests that merge in order (Craig, 22 Oct 2026).
+
 Craig's engineering philosophy, adopted for this repo on 16 Oct 2026, word for word. It was
 written for a team; here the team is Craig and Claude, and where it says "triage together" or
 "discuss at kick-off", that is a `/grill`. CLAUDE.md and the hooks are the enforced rules; this is

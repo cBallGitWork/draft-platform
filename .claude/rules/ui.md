@@ -1,6 +1,7 @@
 ---
 paths:
   - "src/**"
+  - "tests/src/**"
   - "index.html"
 ---
 

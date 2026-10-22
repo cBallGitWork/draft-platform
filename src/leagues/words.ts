@@ -1,0 +1,84 @@
+// What the league screens say, in one place for Craig to change in the pull request. Why the
+// server refused a change is in convex/shared/leagueAccess.ts (`refusals`), and reaches the screen as is.
+
+import { DELETION_UNDO_HOURS, FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leagues/leagueLimits";
+import { londonTime } from "../../convex/shared/londonTime";
+import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import type { NoLinkReply } from "../../convex/signIn/signInLinks";
+import { failedWords } from "../words";
+
+/** "Your leagues" (spec/12), which says so when there are none (spec/02). */
+export const LEAGUES_TITLE = "Your leagues";
+/** The admin's "Create a league". */
+export const NEW_LEAGUE_TITLE = "Create a league";
+
+const roleWords: Record<LeagueSummary["roles"][number], string> = {
+  commissioner: "Commissioner",
+  "co-commissioner": "Co-commissioner",
+  manager: "Manager",
+};
+
+/** A person's parts in a league, as a list: "Commissioner, Manager". */
+export const rolesWords = (roles: LeagueSummary["roles"]) => roles.map((role) => roleWords[role]).join(", ");
+
+/** The admin's part in a league where he has no other. */
+export const adminWords = "Admin";
+
+/** The way back to "Your leagues" from a page about one league. */
+export const backToLeaguesWords = "Back to your leagues";
+
+/** "Your leagues" for someone in none. */
+export const notInALeagueWords = (email: string) => `You're signed in as ${email}, and you're not in a league yet.`;
+export const invitedHereWords = "When a commissioner invites you to one, it will be here.";
+
+/** "Your leagues" as a table: its columns, and what each row says. */
+export const leagueColumns = { league: "League", you: "You", team: "Your team", teams: "Teams" } as const;
+export const commissionerLine = (email: string) => `Commissioner: ${email}`;
+export const noTeamCellWords = "None";
+/** Between a league's teams and its most, each its own figure: "6 of 8". */
+export const teamsOfMostWords = " of ";
+
+/** The admin's "Create a league" form. */
+export const newLeagueLabels = {
+  name: "League name",
+  maxTeams: "Maximum teams",
+  commissionerEmail: "Commissioner's email",
+  create: "Create the league",
+} as const;
+
+/** Why the commissioner's sign-in link didn't go, for each answer but "check your email". */
+export const unsentLinkWords: Record<NoLinkReply, string> = {
+  tryLater: "too many links were asked for that email in the last hour",
+  paused: "today's emails have all been sent",
+  notSent: "the email service didn't send it",
+};
+
+export const unsentLink = (email: string, reason: string) =>
+  `No sign-in link went to ${email}: ${reason}. They can ask for one on the sign-in page.`;
+
+export const maxTeamsHint = `${FEWEST_TEAMS} to ${MOST_TEAMS}. The commissioner can change it later, never below the teams already there.`;
+export const commissionerHint = "If they have no account yet, they're sent a sign-in link.";
+
+/** When creating failed before the server could say why: the connection, or the server itself. */
+export const createFailedWords = failedWords("the league wasn't made");
+
+/** When switching league failed before the server could say why. */
+export const switchFailedWords = failedWords("you're still in this league");
+
+// Deleting a league (#75, spec/13, Deleting).
+
+export const deleteLeagueWords = "Delete league";
+export const confirmDeleteWords = { yes: "Delete it", no: "Keep it" };
+export const confirmDelete = (leagueName: string) =>
+  `Delete ${leagueName}? At once it's frozen and hidden from everyone but its commissioner and the admin, and everyone else in it is emailed. ` +
+  `You can undo it for ${DELETION_UNDO_HOURS} hours; then it's gone for good, with its teams, Mail and history.`;
+
+/** When it goes is said as the email says it (convex/shared/londonTime.ts). */
+export const beingDeleted = (deletesAt: number) =>
+  `Being deleted: it goes for good on ${londonTime(deletesAt)}. Until then it's frozen and hidden from everyone but its commissioner and the admin.`;
+export const undoWords = "Undo";
+export const unemailed = (email: string, reason: string) => `${email} wasn't told: ${reason}.`;
+
+/** When deleting a league, or undoing it, failed before the server could say why. */
+export const deleteFailedWords = failedWords("the league wasn't deleted");
+export const undoFailedWords = failedWords("the league is still being deleted");

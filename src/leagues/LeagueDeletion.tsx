@@ -1,0 +1,60 @@
+import { useState } from "react";
+import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { Problem } from "../frame/Panel";
+import { useChange } from "../useChange";
+import type { LeaguesSeam } from "./seam";
+import { leagueColumnCount } from "./LeagueLinks";
+import { beingDeleted, confirmDelete, confirmDeleteWords, deleteLeagueWords, unemailed, undoWords, unsentLinkWords } from "./words";
+
+export type DeletionActions = Pick<LeaguesSeam, "deleteLeague" | "undoDeletion">;
+
+/** A league's row on "Your leagues" for deleting it (spec/13, Deleting): "Delete league" with a
+ *  plain confirm for the admin or its commissioner; while it is being deleted, when it goes, who
+ *  wasn't told, and Undo, which only its commissioner and the admin see. */
+export function LeagueDeletionRow({ league, canDelete, actions }: { league: LeagueSummary; canDelete: boolean; actions: DeletionActions }) {
+  const [confirming, setConfirming] = useState(false);
+  const { busy, problem, run: runChange } = useChange();
+
+  async function run(change: DeletionActions[keyof DeletionActions]) {
+    if (await runChange(() => change(league.leagueId))) setConfirming(false);
+  }
+
+  const { deletion } = league;
+  if (!deletion && !canDelete) return null;
+  return (
+    <tr>
+      <td colSpan={leagueColumnCount} className={deletion ? "alert-strip" : "px-2 pb-2"}>
+        <div className="flex flex-col items-start gap-2">
+          {deletion ? (
+            <>
+              <p>{beingDeleted(deletion.deletesAt)}</p>
+              {deletion.unemailed.map(({ email, reason }) => (
+                <p key={email}>{unemailed(email, unsentLinkWords[reason])}</p>
+              ))}
+              <button type="button" disabled={busy} onClick={() => run(actions.undoDeletion)} className="action">
+                {undoWords}
+              </button>
+            </>
+          ) : confirming ? (
+            <>
+              <p className="text-event">{confirmDelete(league.name)}</p>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" disabled={busy} onClick={() => run(actions.deleteLeague)} className="action">
+                  {confirmDeleteWords.yes}
+                </button>
+                <button type="button" onClick={() => setConfirming(false)} className="secondary-action">
+                  {confirmDeleteWords.no}
+                </button>
+              </div>
+            </>
+          ) : (
+            <button type="button" onClick={() => setConfirming(true)} className="secondary-action">
+              {deleteLeagueWords}
+            </button>
+          )}
+          {deletion ? problem && <p role="alert">{problem}</p> : <Problem problem={problem} />}
+        </div>
+      </td>
+    </tr>
+  );
+}

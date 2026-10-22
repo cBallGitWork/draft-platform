@@ -1,28 +1,43 @@
 import { ConvexAuthProvider, useAuthActions } from "@convex-dev/auth/react";
 import { ConvexReactClient, useAction, useConvexAuth, useQuery } from "convex/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { api } from "../convex/_generated/api";
+import { useLiveAdmin } from "./admin/liveAdmin";
+import { Loading, PageSection, Problem } from "./frame/Panel";
+import { SignOut } from "./frame/SignOut";
+import { ERROR_PAGE_TITLE, readFailedWords, reloadWords } from "./frame/words";
 import type { AuthActions, Session } from "./auth";
-import { emptyTopBar } from "./frame/topBarState";
-import { SIGN_IN_PATH } from "./router";
+import { liveGameweeks } from "./gameweeks/liveGameweeks";
+import { useLiveJoining } from "./joining/liveJoining";
+import { joinTokenAt } from "./joining/paths";
+import { useLiveLeagueActions } from "./leagues/liveLeagueActions";
+import { useLiveMail } from "./mail/liveMail";
+import { useLiveLeagueSettings } from "./leagueSettings/liveSettings";
+import { useLiveScoring } from "./scoring/liveScoring";
+import { useLiveSquads } from "./squads/liveSquads";
+import { liveTable } from "./table/liveTable";
+import { answerOf, refusalIn } from "./refusal";
 import { ShellApp } from "./ShellApp";
+import { SIGN_IN_PATH } from "./sign-in/paths";
 import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "./sign-in/words";
+import { NO_CONVEX_URL } from "./words";
 
 // The app signed in for real: Convex Auth's session (convex/auth.ts), the email links asked for
-// through signInLinks:ask, and a link's code redeemed when the app is opened from one.
+// through signIn/signInLinks:ask, and a link's code redeemed when the app is opened from one.
+
+/** The search param a sign-in link carries its code in (Convex Auth's). */
+const LINK_CODE_PARAM = "code";
 
 /** The code a sign-in link opened the app with, taken out of the address so a reload or a
  *  bookmark can't carry it. */
 export function takeLinkCode(): string | null {
   const url = new URL(window.location.href);
-  const code = url.searchParams.get("code");
+  const code = url.searchParams.get(LINK_CODE_PARAM);
   if (code === null) return null;
-  url.searchParams.delete("code");
+  url.searchParams.delete(LINK_CODE_PARAM);
   window.history.replaceState(null, "", url);
   return code;
 }
-
-export const NO_CONVEX_URL = "VITE_CONVEX_URL isn't set, so the app can't reach Convex: `npm run setup` writes it to .env.local (README).";
 
 export function LiveApp({ linkCode }: { linkCode: string | null }) {
   const [client] = useState(() => {
@@ -41,16 +56,68 @@ export function LiveApp({ linkCode }: { linkCode: string | null }) {
   // would turn a good link into "expired" (liveApp.provider.test.tsx).
   return (
     <ConvexAuthProvider client={client} shouldHandleCode={false}>
-      <LiveShell linkCode={linkCode} />
+      <ShellFailed>
+        <LiveShell linkCode={linkCode} />
+      </ShellFailed>
     </ConvexAuthProvider>
+  );
+}
+
+/** The thrown value is wrapped, as it can itself be null. */
+type ShellFailedState = { failed: { error: unknown } | null };
+
+/** What the app shows when something above the router threw, such as a query the top bar reads:
+ *  what ErrorScreen.tsx says, a reload, as the router's way back isn't there, and Sign out, as the
+ *  top bar's isn't either. React logs the error itself (its onCaughtError). */
+class ShellFailed extends Component<{ children: ReactNode }, ShellFailedState> {
+  state: ShellFailedState = { failed: null };
+
+  static getDerivedStateFromError(error: unknown) {
+    return { failed: { error } };
+  }
+
+  render() {
+    if (this.state.failed === null) return this.props.children;
+    return (
+      <PageSection title={ERROR_PAGE_TITLE} className="max-w-xl bg-panel">
+        <Problem problem={refusalIn(this.state.failed.error) ?? readFailedWords} />
+        <div className="m-3 flex flex-wrap gap-2">
+          <button type="button" onClick={() => location.reload()} className="action">
+            {reloadWords}
+          </button>
+          <SignOutAfresh onSignedOut={() => this.setState({ failed: null })} />
+        </div>
+      </PageSection>
+    );
+  }
+}
+
+/** The top bar's Sign out, for ShellFailed, which has no top bar: once signed out, it shows the
+ *  app again, which is then the sign-in page. */
+function SignOutAfresh({ onSignedOut }: { onSignedOut: () => void }) {
+  const { signOut } = useAuthActions();
+  return (
+    <SignOut
+      onSignOut={async () => {
+        await signOut();
+        onSignedOut();
+      }}
+    />
   );
 }
 
 function LiveShell({ linkCode }: { linkCode: string | null }) {
   const { isLoading, isAuthenticated } = useConvexAuth();
   const { signIn, signOut } = useAuthActions();
-  const ask = useAction(api.signInLinks.ask);
-  const account = useQuery(api.account.signedInAs, isAuthenticated ? {} : "skip");
+  const ask = useAction(api.signIn.signInLinks.ask);
+  const leagues = useLiveLeagueActions();
+  const { mail, topBar } = useLiveMail();
+  const joining = useLiveJoining();
+  const admin = useLiveAdmin();
+  const squads = useLiveSquads();
+  const scoring = useLiveScoring();
+  const leagueSettings = useLiveLeagueSettings();
+  const account = useQuery(api.signIn.account.signedInAs, isAuthenticated ? {} : "skip");
   const [checkingLink, setCheckingLink] = useState(linkCode !== null);
   const redeemed = useRef(false);
 
@@ -59,21 +126,14 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
     if (linkCode === null || redeemed.current) return;
     redeemed.current = true;
     void redeemLink(signIn, linkCode).then((problem) => {
-      if (problem) window.history.replaceState(null, "", `${SIGN_IN_PATH}?link=${problem}`);
+      if (problem) window.history.replaceState(null, "", signInAddressAfter(problem));
       setCheckingLink(false);
     });
   }, [linkCode, signIn]);
 
   const auth = useMemo<AuthActions>(
     () => ({
-      requestSignInLink: async (email) => {
-        try {
-          return replyWords[await ask({ email })];
-        } catch (error) {
-          console.error("Asking for a sign-in link failed:", error);
-          return askFailedWords;
-        }
-      },
+      requestSignInLink: (email) => answerOf(async () => replyWords[await ask({ email })], "Asking for a sign-in link", askFailedWords),
       signOut,
     }),
     [ask, signOut],
@@ -86,12 +146,18 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
 
   if (!session) {
     return (
-      <p role="status" className="p-2 text-muted">
-        {checkingLink ? waitingWords.checkingLink : waitingWords.connecting}
-      </p>
+      <Loading className="p-2">{checkingLink ? waitingWords.checkingLink : waitingWords.connecting}</Loading>
     );
   }
-  return <ShellApp session={session} auth={auth} topBar={emptyTopBar} />;
+  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} admin={admin} />;
+}
+
+/** The sign-in page saying what was wrong with a link, and, for one that led to a league's invite
+ *  link, leading back to it (#73). */
+function signInAddressAfter(problem: LinkProblem): string {
+  const join = joinTokenAt(window.location.pathname);
+  const search = new URLSearchParams({ link: problem, ...(join && { join }) });
+  return `${SIGN_IN_PATH}?${search}`;
 }
 
 /** Redeems a link's code, and says what went wrong if it didn't sign in. Convex Auth answers a

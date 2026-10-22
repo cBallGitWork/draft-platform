@@ -33,7 +33,8 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   real stats: for an average player in its area it comes out close to the base scoring, so a role
   pays only for the player it suits.
 - Roles and their adjustments are league rules; the ready-made rules carry a default set.
-- The default set starts as a basic list, filled out later:
+- The default set starts as this list, made long before roles are built: every area and lane gets
+  as many roles as fit, for Craig to cut much later (21 Oct 2026):
   - goalkeeper: shot-stopper, sweeper keeper
   - full-back: defensive, attacking
   - wing-back: attacking, holding
@@ -43,7 +44,7 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   - wide midfield: winger, defensive winger
   - attacking midfield, centre: number 10, shadow striker
   - attacking midfield, wide: inside forward, winger
-  - attack: poacher, target man, pressing forward
+  - attack: poacher, target man, pressing forward, shadow striker, false 9
 - Roles stack with the second release's team instructions: a pressing forward under a high press
   is paid by both, and a sweeper keeper suits a high defensive line.
 - A player dropped into a slot starts on the role he has the most stars for. The manager can
@@ -66,6 +67,8 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   90 minutes before the gameweek's first kickoff (every 2026/27 gameweek so far, checked against
   FPL's live data on 16 Oct 2026). Once passed, a deadline stays where it fell, even if the
   gameweek's first match is then postponed, as in FPL (20 Oct 2026).
+- A gameweek begins at the league's own deadline, never FPL's: "ours, we arent fpl so stop copying
+  them" (22 Oct 2026).
 
 ## Auto-subs
 

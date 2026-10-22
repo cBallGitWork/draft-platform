@@ -10,8 +10,9 @@ comes to exist, fills, changes and ends.
 
 ## Creating a league
 
-- The admin creates a league and sets its name, its maximum number of teams (2 to 20) and its
-  commissioner's email. Naming a commissioner who has no account yet sends them a sign-in link.
+- The admin creates a league and sets its name (up to 30 characters, as a team's; 22 Oct 2026),
+  its maximum number of teams (2 to 20) and its commissioner's email. Naming a commissioner who
+  has no account yet sends them a sign-in link.
 - The commissioner then ticks the gameweeks the league uses and edits its rules.
 - The commissioner can raise or lower the maximum later, never below the teams already there.
 
@@ -21,6 +22,8 @@ comes to exist, fills, changes and ends.
   stays, for the commissioner to hand to the next person.
 - A team starts as "Team 1", "Team 2" and so on, and its manager renames it. Names are unique
   within the league, up to 30 characters.
+- The admin can name a team's manager directly, from the command line; the commissioner and
+  co-commissioner invite instead (22 Oct 2026).
 
 ## Who runs it
 
@@ -39,14 +42,20 @@ comes to exist, fills, changes and ends.
   sign-in with no approval. It lasts 7 days, and the commissioner can cancel or resend it. An
   invite needs no more guarding than that: if someone joins who shouldn't, the commissioner
   removes them.
+- Someone whose invite expired, was cancelled or couldn't be used, and who is in no league, is told
+  so on signing in, with why, and to ask the commissioner for a new one (22 Oct 2026).
 - The commissioner can switch the league's invite link off, or replace it with a new one; the old
   one then stops working.
 - The commissioner approves or refuses each join request. A person has at most one request
   waiting, sees that it is waiting for the commissioner, and gets an email once approved.
   Refusing files no Mail letter.
-- Until invites are built, a sign-in link goes only to emails the admin puts on an allowed list;
-  invites add to that list once they exist. The invite link lets anyone who opens it sign in to
-  ask to join (`/grill sign-in`): it's a beta, and a leak needs no guarding.
+- In the beta, a sign-in link goes only to emails on the allowed list; the admin adds emails, and
+  so do an invite, the live invite link and naming a team's manager (Craig, 22 Oct 2026). The
+  invite link lets anyone who opens it sign in to ask to join (`/grill sign-in`): it's a beta,
+  and a leak needs no guarding.
+- Joining mid-season: "teams probably cant join mid season (unless its a league with splits
+  etc.)" (Craig, 22 Oct 2026). A played gameweek's fixtures never change because a team joined;
+  leagues with splits are to grill (`docs/to-grill.md`).
 - Invites past the email service's daily limit (100 a day for now) wait for the next day, and the
   commissioner is told.
 
@@ -60,6 +69,8 @@ comes to exist, fills, changes and ends.
 
 - The commissioner ticks the gameweeks the league uses, all 38 by default: a league can end early
   or take a break, such as at Christmas.
+- A gameweek begins at the league's own deadline, never FPL's: "ours, we arent fpl so stop
+  copying them" (Craig, 22 Oct 2026).
 - After the season starts, only gameweeks that haven't begun can be ticked or unticked.
 - An unticked gameweek scores nothing and has no head-to-head; its lineups don't matter. Waivers,
   free agency and trades carry on through it.
@@ -75,5 +86,6 @@ comes to exist, fills, changes and ends.
 
 - The admin or the league's commissioner can delete a league; the co-commissioner can't.
 - For 24 hours it can be undone. In that time the league is frozen and hidden from its managers,
-  and each gets an email saying it will be deleted, and when.
+  and each gets an email saying it will be deleted, and when. When the admin deletes it, its
+  commissioner still sees it and can undo it (22 Oct 2026).
 - After 24 hours it is gone for good, not archived.

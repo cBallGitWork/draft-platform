@@ -7,12 +7,12 @@
     /* These settings are not required by Convex and can be modified. */
     "allowJs": true,
     "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "moduleResolution": "Bundler",
     "jsx": "react-jsx",
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
-    /* For the tests' recorded payloads in ./recorded. */
-    "resolveJsonModule": true,
 
     /* These compiler options are required by Convex */
     "target": "ESNext",

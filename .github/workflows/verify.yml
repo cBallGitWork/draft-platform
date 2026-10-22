@@ -1,4 +1,4 @@
-# `npm run verify` on GitHub's runner; what it catches and why here: ARCHITECTURE.md, Services.
+# `npm run verify`, then `npm run build`, then `npm run smoke` in its own job, on GitHub's runner; what it catches and why here: ARCHITECTURE.md, Services.
 name: verify
 
 on:
@@ -10,8 +10,8 @@ on:
 permissions:
   contents: read
 
-concurrency:  # a newer push to a pull request replaces its older run; main's runs all finish
-  group: verify-${{ github.ref }}
+concurrency:  # a newer push to a pull request cancels its older run; every push to main gets its own run, so each merged commit is checked
+  group: verify-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -20,6 +20,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # origin/main and the branch's commits, for verify's recorded-payload check
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -28,3 +30,28 @@ jobs:
       - run: bash --version | head -1 && python3 --version && git --version && /usr/bin/jq --version
       - run: npm ci
       - run: npm run verify
+      - run: npm run build  # the production bundle builds; verify never runs vite build
+
+  # `npm run smoke`: the dev server and the production bundle loaded in Chromium, with no Convex
+  # deployment (playwright.config.ts); its report and traces are kept when it fails.
+  smoke:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run smoke
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
