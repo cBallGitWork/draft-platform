@@ -7,7 +7,6 @@ import type { Delivery } from "../../convex/joining/joining";
 import { INVITE_DAYS, aNewTeamWords } from "../../convex/joining/joiningShared";
 import { LOCALE } from "../../convex/shared/londonTime";
 import { unsentLinkWords } from "../leagues/words";
-import { failedWords } from "../words";
 
 /** The commissioner's page: its title, and the link to it from their leagues. */
 export const INVITES_TITLE = "Invites and join requests";
@@ -36,14 +35,14 @@ export const deliveryWords: Record<Delivery, (expiresAt: number) => string> = {
 };
 export const expiredWords = `Expired. Resend it for ${INVITE_DAYS} more days.`;
 export const joinedWords = (teamName: string) => `Joined, running ${teamName}.`;
-export const couldNotJoinWords = (reason: string) => `Signed in, but couldn't join. ${reason}`;
+/** A reason as its own sentence after another, or nothing when none was kept. */
+const thenReason = (reason: string | null) => (reason === null ? "" : ` ${reason}`);
 
-/** Why an invite couldn't be used, should the server not have kept it. */
-const reasonLostWords = failedWords("the reason wasn't kept");
+export const couldNotJoinWords = (reason: string | null) => `Signed in, but couldn't join.${thenReason(reason)}`;
 
 /** "Your leagues" for someone in none, when their newest invite ended without them joining. */
 export function endedInviteWords({ leagueName, ended, reason }: EndedInvite): string {
-  const how = { expired: "expired.", cancelled: "was cancelled.", couldNotJoin: `couldn't be used. ${reason ?? reasonLostWords}` }[ended];
+  const how = { expired: "expired.", cancelled: "was cancelled.", couldNotJoin: `couldn't be used.${thenReason(reason)}` }[ended];
   return `Your invite to ${leagueName} ${how} Ask the commissioner for a new one.`;
 }
 

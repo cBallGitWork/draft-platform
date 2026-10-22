@@ -38,7 +38,7 @@ describe("someone signed in, in no league", () => {
 
   it("whose invite couldn't be used, with no reason kept, never sees 'null'", async () => {
     openApp(LEAGUES_PATH, newcomer, { joining: { endedInvite: { leagueName: "Mini beta", ended: "couldNotJoin", reason: null } } });
-    const line = await screen.findByText(/^Your invite to Mini beta couldn't be used\. Something went wrong/);
+    const line = await screen.findByText("Your invite to Mini beta couldn't be used. Ask the commissioner for a new one.");
     expect(line.textContent).not.toContain("null");
   });
 
