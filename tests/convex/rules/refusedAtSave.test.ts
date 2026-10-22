@@ -29,8 +29,8 @@ const setMaxTeams = async (leagueId: Id<"leagues">, maxTeams: number) =>
 const createLeague = async (name: string, maxTeams = 4) =>
   (await actingAs(t, ADMIN)).mutation(api.leagues.leagues.create, { name, maxTeams, commissionerEmail: COMMISSIONER });
 
-describe("games a gameweek, each against a different opponent", () => {
-  const FIVE_WITH_FOUR = "With 4 teams, a team can play at most 3 games a gameweek, each against a different opponent, not 5.";
+describe("games a gameweek, no more than the league's teams can play", () => {
+  const FIVE_WITH_FOUR = "With 4 teams, a team can play at most 3 games a gameweek, not 5: one against each of the other 3.";
 
   test("more than the league's teams have opponents for is refused, naming the most", async () => {
     const leagueId = await adminCreatesLeague(t, 4);
@@ -39,7 +39,15 @@ describe("games a gameweek, each against a different opponent", () => {
     expect((await latestRules(leagueId))?.gamesPerGameweek).toBe(3);
   });
 
-  test("the maximum of teams can't then go below what they need, and can go down to it", async () => {
+  test("with an odd number of teams, the refusal counts the game of the team left over", async () => {
+    const leagueId = await adminCreatesLeague(t, 5);
+    await expectRefused(
+      change(leagueId, rulesWith({ gamesPerGameweek: 6 })),
+      "With 5 teams, a team can play at most 5 games a gameweek, not 6: one against each of the other 4, and one left over, against the league's average or a bye.",
+    );
+  });
+
+  test("the maximum of teams can't then be lowered below what they need, and can go down to it", async () => {
     const leagueId = await adminCreatesLeague(t, 6);
     await change(leagueId, rulesWith({ gamesPerGameweek: 5 }));
 
@@ -49,10 +57,25 @@ describe("games a gameweek, each against a different opponent", () => {
     expect((await leagueRow(t, leagueId))?.maxTeams).toBe(5);
   });
 
-  test("a league is refused when too small for the admin's default games a gameweek", async () => {
+  test("a maximum kept or raised is never refused, even under rules saved before the check", async () => {
+    const leagueId = await adminCreatesLeague(t, 4);
+    await t.run(async (ctx) => {
+      const row = (await ctx.db.query("leagueRules").collect()).find((each) => each.leagueId === leagueId)!;
+      await ctx.db.patch("leagueRules", row._id, { rules: rulesWith({ gamesPerGameweek: 5 }) });
+    });
+
+    await setMaxTeams(leagueId, 4);
+    await setMaxTeams(leagueId, 5);
+    expect((await leagueRow(t, leagueId))?.maxTeams).toBe(5);
+  });
+
+  test("a league too small for the admin's default games a gameweek is refused, naming the defaults", async () => {
     await t.mutation(internal.rules.leagueRules.setDefaults, { rules: rulesWith({ gamesPerGameweek: 2 }) });
 
-    await expectRefused(createLeague("Two", 2), "With 2 teams, a team can play at most 1 game a gameweek, each against a different opponent, not 2.");
+    await expectRefused(
+      createLeague("Two", 2),
+      "The admin's default rules play 2 games a gameweek, but with 2 teams a team can play at most 1 game: one against the other team.",
+    );
     await createLeague("Three", 3);
   });
 });

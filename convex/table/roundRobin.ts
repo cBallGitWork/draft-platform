@@ -56,8 +56,8 @@ export function roundsOf<Team>(teams: readonly Team[]): Round<Team>[] {
 }
 
 /** How many rounds one round robin of `teamCount` teams has (`roundsOf`), so the most games a team
- *  can play in a gameweek, each against a different opponent: one fewer than the teams, or with an
- *  odd number, as many, the league's average or a bye counting as one. */
+ *  can play in a gameweek: one against each other team, and with an odd number, one more for the
+ *  team left over, against the league's average or a bye. */
 export const roundsInARoundRobin = (teamCount: number) => (teamCount % 2 === 0 ? teamCount - 1 : teamCount);
 
 /** The games each team plays a gameweek: the league's number, but never more than one round

@@ -56,7 +56,7 @@ export const create = mutation({
 });
 
 /** spec/13: the commissioner raises or lowers the maximum, never below the teams already there,
- *  nor below the teams its latest rules' games a gameweek need. */
+ *  nor lowered below the teams its latest rules' games a gameweek need. */
 export const setMaxTeams = mutation({
   args: { leagueId: v.id("leagues"), maxTeams: v.number() },
   returns: v.null(),
@@ -65,7 +65,7 @@ export const setMaxTeams = mutation({
     checkMaxTeams(maxTeams);
     const teamCount = (await teamsOf(ctx, leagueId)).length;
     if (maxTeams < teamCount) refuse(refusals.belowTeams(teamCount));
-    refuseTooFewForGames(await latestRules(ctx, leagueId), maxTeams);
+    if (maxTeams < league.maxTeams) refuseTooFewForGames(await latestRules(ctx, leagueId), maxTeams);
     if (maxTeams === league.maxTeams) return null;
     await ctx.db.patch("leagues", leagueId, { maxTeams });
     await recordEvent(ctx, leagueId, email, { kind: "maxTeamsChanged", from: league.maxTeams, to: maxTeams });

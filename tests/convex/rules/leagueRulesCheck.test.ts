@@ -176,17 +176,18 @@ test("an own stat whose name and short code are its own is sound", () => {
 });
 
 describe("games a gameweek, in a league of so many teams (Craig, 22 Oct 2026)", () => {
-  // Each against a different opponent: one fewer than the teams, or with an odd number, as many,
-  // the league's average or a bye counting as one.
+  // One against each other team, and with an odd number, one more for the team left over.
+  const LEFT_OVER = ", and one left over, against the league's average or a bye";
   test.each([
-    [4, 3],
-    [5, 5],
-    [2, 1],
-    [20, 19],
-  ])("with %i teams, %i is the most", (maxTeams, most) => {
+    [2, "at most 1 game a gameweek, not 2: one against the other team."],
+    [4, "at most 3 games a gameweek, not 4: one against each of the other 3."],
+    [5, `at most 5 games a gameweek, not 6: one against each of the other 4${LEFT_OVER}.`],
+    [20, "at most 19 games a gameweek, not 20: one against each of the other 19."],
+  ])("with %i teams, a team can play %s", (maxTeams, reason) => {
+    const most = maxTeams % 2 === 0 ? maxTeams - 1 : maxTeams;
     expect(() => checkLeagueRules(rulesWith({ gamesPerGameweek: most }), maxTeams)).not.toThrow();
     expect(() => checkLeagueRules(rulesWith({ gamesPerGameweek: most + 1 }), maxTeams)).toThrow(
-      new Error(`With ${maxTeams} teams, a team can play at most ${most === 1 ? "1 game" : `${most} games`} a gameweek, each against a different opponent, not ${most + 1}.`),
+      new Error(`With ${maxTeams} teams, a team can play ${reason}`),
     );
   });
 

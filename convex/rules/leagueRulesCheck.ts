@@ -36,7 +36,15 @@ export function checkLeagueRules(rules: LeagueRules, maxTeams?: number): void {
   }
 }
 
-const gamesWords = (games: number) => (games === 1 ? "1 game" : `${games} games`);
+export const gamesWords = (games: number) => (games === 1 ? "1 game" : `${games} games`);
+
+/** Why `maxTeams` teams play at most so many games a gameweek: one against each other team, and
+ *  with an odd number, one more for the team left over, against the league's average or a bye. */
+export function whyMostGames(maxTeams: number): string {
+  const others = maxTeams - 1;
+  const eachOther = others === 1 ? "one against the other team" : `one against each of the other ${others}`;
+  return maxTeams % 2 === 0 ? eachOther : `${eachOther}, and one left over, against the league's average or a bye`;
+}
 
 /** A league asking more games a gameweek than `maxTeams` teams have rounds for would quietly play
  *  fewer (roundRobin.ts): refused instead, naming the most (Craig, 22 Oct 2026). */
@@ -44,7 +52,7 @@ export function checkGamesFor(games: number, maxTeams: number): void {
   const most = roundsInARoundRobin(maxTeams);
   if (games > most) {
     throw new UnsoundRules(
-      `With ${maxTeams} teams, a team can play at most ${gamesWords(most)} a gameweek, each against a different opponent, not ${games}.`,
+      `With ${maxTeams} teams, a team can play at most ${gamesWords(most)} a gameweek, not ${games}: ${whyMostGames(maxTeams)}.`,
     );
   }
 }
