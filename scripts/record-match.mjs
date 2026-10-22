@@ -18,7 +18,8 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { errorMessage, getJson, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../convex/football/football.ts";
+import { getJson, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../convex/football/football.ts";
+import { errorMessage } from "../convex/shared/errors.ts";
 import { HOUR_MS, MINUTE_MS } from "../convex/shared/time.ts";
 
 const POLL_MS = 30_000;

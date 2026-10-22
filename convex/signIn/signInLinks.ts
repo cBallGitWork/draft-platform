@@ -3,7 +3,7 @@ import { api, internal } from "../_generated/api";
 import { action, internalMutation, type ActionCtx, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { isAllowed, normaliseEmail } from "./allowedEmails";
 import { anEmailLeftToday, countTodaysEmail } from "../email/emailLimit";
-import { logFailure } from "../football/football";
+import { logFailure } from "../shared/errors";
 import { HOUR_MS, MINUTE_MS } from "../shared/time";
 
 // Asking for a sign-in link (spec/02, #20). The sign-in page asks through `ask`, which applies the

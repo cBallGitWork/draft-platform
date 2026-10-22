@@ -2,7 +2,7 @@ import type { Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalAction, type ActionCtx } from "../_generated/server";
 import { codesByOpta, fixtureCodeIn, namedMen } from "../football/feedIds";
-import { logFailure } from "../football/football";
+import { logFailure } from "../shared/errors";
 import { readFplPayloads } from "../football/fpl";
 import { fplStatLines, readFplLive, type FplStatLine } from "../football/fplLive";
 import { matchRecords } from "./matchRecords";
