@@ -5,6 +5,8 @@ import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { rulesWith } from "../../support/convex/leagueRules.harness";
 import { ODD_TEAM_OUTS } from "../../../convex/table/roundRobin";
 import { everyArea } from "../../support/convex/scoring.example";
+import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
+import type { OwnStat } from "../../../convex/scoring/ownStats";
 
 // What a league's rules are refused for on save, with the reason (#25 Done: "an invalid rule is
 // refused with the reason"). Unchecked, each of these would save and then fail, or score wrong,
@@ -14,6 +16,13 @@ const [firstPreset] = FIRST_RULES.presets;
 const limits = FIRST_RULES.areaLimits;
 const FRIDAY_9_05 = { day: "friday", hour: 9, minute: 5 } as const;
 const ONE_PER_3 = { every: 3, points: 1 };
+
+/** A scoring set of one own stat, tackles won, named as `change` says. */
+const scoringWithOwn = (change: Partial<Pick<OwnStat, "name" | "shortCode">>): LeagueRules["scoring"] => ({
+  rules: [{ shape: "perAction", stat: "own_tackles", values: { all: 1 } }],
+  wholePointsOnly: false,
+  ownStats: [{ stat: "own_tackles", name: "Tackles won", shortCode: "TW+", parts: [{ stat: "won_tackle", weight: 1 }], ...change }],
+});
 
 test("the first rules are sound", () => {
   expect(() => checkLeagueRules(FIRST_RULES)).not.toThrow();
@@ -137,9 +146,52 @@ describe.each<[string, Partial<LeagueRules>, string]>([
     { scoring: { rules: [{ shape: "perCount", stat: "saves", values: { byArea: { ...everyArea(ONE_PER_3), attack: { every: 0, points: 1 } } } }], wholePointsOnly: false } },
     "The scoring set can't be saved: the Saves rule in attack pays for every 0 actions; it must be more than 0.",
   ],
+  [
+    "a squad maximum above the most any team can hold",
+    { squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum: MOST_IN_SQUAD + 1 } } },
+    `The squad's maximum, ${MOST_IN_SQUAD + 1}, is above the ${MOST_IN_SQUAD} players any team can hold.`,
+  ],
+  [
+    "an own stat named as a catalogue stat is, case and spaces aside",
+    { scoring: scoringWithOwn({ name: " won  TACKLE" }) },
+    'The scoring set can\'t be saved: the own stat own_tackles has the name " won  TACKLE", which the catalogue\'s Won tackle has.',
+  ],
+  [
+    "an own stat with a catalogue stat's short code, case and spaces aside",
+    { scoring: scoringWithOwn({ shortCode: "a s" }) },
+    'The scoring set can\'t be saved: the own stat own_tackles has the short code "a s", which the catalogue\'s Assists has.',
+  ],
 ])("%s", (_name, change, reason) => {
   test("is refused with the reason", () => {
     expect(() => checkLeagueRules(rulesWith(change))).toThrow(new Error(reason));
   });
 });
 
+test(`a squad maximum of ${MOST_IN_SQUAD}, the most any team can hold, is sound`, () => {
+  expect(() => checkLeagueRules(rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum: MOST_IN_SQUAD } } }))).not.toThrow();
+});
+
+test("an own stat whose name and short code are its own is sound", () => {
+  expect(() => checkLeagueRules(rulesWith({ scoring: scoringWithOwn({}) }))).not.toThrow();
+});
+
+describe("games a gameweek, in a league of so many teams (Craig, 22 Oct 2026)", () => {
+  // One against each other team, and with an odd number, one more for the team left over.
+  const LEFT_OVER = ", and one left over, against the league's average or a bye";
+  test.each([
+    [2, "at most 1 game a gameweek, not 2: one against the other team."],
+    [4, "at most 3 games a gameweek, not 4: one against each of the other 3."],
+    [5, `at most 5 games a gameweek, not 6: one against each of the other 4${LEFT_OVER}.`],
+    [20, "at most 19 games a gameweek, not 20: one against each of the other 19."],
+  ])("with %i teams, a team can play %s", (maxTeams, reason) => {
+    const most = maxTeams % 2 === 0 ? maxTeams - 1 : maxTeams;
+    expect(() => checkLeagueRules(rulesWith({ gamesPerGameweek: most }), maxTeams)).not.toThrow();
+    expect(() => checkLeagueRules(rulesWith({ gamesPerGameweek: most + 1 }), maxTeams)).toThrow(
+      new Error(`With ${maxTeams} teams, a team can play ${reason}`),
+    );
+  });
+
+  test("the admin's defaults, for no league, aren't checked against one", () => {
+    expect(() => checkLeagueRules(rulesWith({ gamesPerGameweek: 30 }))).not.toThrow();
+  });
+});

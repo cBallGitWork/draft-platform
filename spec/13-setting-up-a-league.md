@@ -10,8 +10,9 @@ comes to exist, fills, changes and ends.
 
 ## Creating a league
 
-- The admin creates a league and sets its name, its maximum number of teams (2 to 20) and its
-  commissioner's email. Naming a commissioner who has no account yet sends them a sign-in link.
+- The admin creates a league and sets its name (up to 30 characters, as a team's; 22 Oct 2026),
+  its maximum number of teams (2 to 20) and its commissioner's email. Naming a commissioner who
+  has no account yet sends them a sign-in link.
 - The commissioner then ticks the gameweeks the league uses and edits its rules.
 - The commissioner can raise or lower the maximum later, never below the teams already there.
 
