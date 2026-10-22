@@ -71,8 +71,8 @@ export const ofLeague = query({
     const named = (teamId: Id<"teams">) => nameOf.get(teamId)!;
 
     const headToHead = rules.format === "headToHead";
-    // Seeded by the league, so its draw comes out the same each time it's read.
     const drawRulesIn = (gameweek: number) => drawRulesOf(season.inGameweek(gameweek));
+    // Seeded by the league, so its draw comes out the same each time it's read.
     const schedule = headToHead ? drawFixtures(teamIds, usedGameweeksOf(league), drawRulesIn, leagueId) : [];
     const scores: GameweekScores<Id<"teams">> = new Map();
     const table = headToHead ? headToHeadTable(teamIds, schedule, scores, rules.tieBreaks) : totalPointsTable(teamIds, scores);
