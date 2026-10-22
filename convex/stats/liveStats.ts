@@ -56,7 +56,7 @@ export const recordTick = internalMutation({
   },
 });
 
-export const latestTicks = internalQuery({
+export const latest = internalQuery({
   args: {},
   handler: async (ctx) => ctx.db.query("liveStatsTicks").order("desc").take(LATEST_RUNS),
 });
