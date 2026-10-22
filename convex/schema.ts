@@ -473,8 +473,16 @@ export const leagueEvent = v.union(
   v.object({ kind: v.literal("deletionUndone"), name: v.string() }),
   v.object({ kind: v.literal("gameweekUsed"), gameweek: v.number(), used: v.boolean() }),
   ...joiningEvents,
-  /** `changed` names the parts of LeagueRules that changed, such as "scoring". */
-  v.object({ kind: v.literal("rulesChanged"), fromGameweek: v.number(), changed: v.array(v.string()) }),
+  /** `changed` names the parts of LeagueRules that changed, such as "scoring"; `categories`, the
+   *  scoring categories whose rules changed, by full name; `wholePointsOnly`, its new value when
+   *  it was switched. Both are absent when they didn't change, and from events before #30. */
+  v.object({
+    kind: v.literal("rulesChanged"),
+    fromGameweek: v.number(),
+    changed: v.array(v.string()),
+    categories: v.optional(v.array(v.string())),
+    wholePointsOnly: v.optional(v.boolean()),
+  }),
   ...squadEvents,
 );
 

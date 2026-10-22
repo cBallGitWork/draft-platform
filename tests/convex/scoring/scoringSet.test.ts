@@ -28,17 +28,17 @@ test.each([
   [
     "a rule of no known shape",
     setOf({ shape: "perMinute", stat: "minutes", values: { all: 1 } }),
-    'the minutes rule has the shape "perMinute", which is not one of the three',
+    'the Minutes rule has the shape "perMinute", which is not one of the three',
   ],
   [
     "a band rule that doesn't say whether it stacks",
     minutes(MINUTES_BANDS, {}),
-    "the minutes rule must say whether its bands stack, true or false, not undefined",
+    "the Minutes rule must say whether its bands stack, true or false, not undefined",
   ],
   [
     "a band rule whose stack is the text \"false\"",
     minutes(MINUTES_BANDS, { stack: "false" }),
-    'the minutes rule must say whether its bands stack, true or false, not "false"',
+    'the Minutes rule must say whether its bands stack, true or false, not "false"',
   ],
   ["a rule with no values by area", goals(undefined), "the goals rule has no values by area"],
   ["a rule with no values for its last area", goals(noAttack), "the goals rule has no values for attack"],
@@ -54,29 +54,29 @@ test.each([
   [
     "a per-count rule of every 0 actions",
     saves(everyArea({ every: 0, points: 1 })),
-    "the saves rule in goalkeeper pays for every 0 actions; it must be more than 0",
+    "the Saves rule in goalkeeper pays for every 0 actions; it must be more than 0",
   ],
   [
     "a per-count rule of every \"3\" actions",
     saves(everyArea({ every: "3", points: 1 })),
-    'the saves rule in goalkeeper pays for every "3", not a number',
+    'the Saves rule in goalkeeper pays for every "3", not a number',
   ],
   [
     "a per-count rule with no points",
     saves(everyArea({ every: 3 })),
-    "the saves rule in goalkeeper pays undefined, not a number",
+    "the Saves rule in goalkeeper pays undefined, not a number",
   ],
   ["band values that are no list", minutes({ atLeast: 60, points: 2 }), "in goalkeeper has no list of bands"],
-  ["a band that is not a band", minutes([null]), "the minutes rule in goalkeeper, band 1, is not a band"],
+  ["a band that is not a band", minutes([null]), "the Minutes rule in goalkeeper, band 1, is not a band"],
   [
     "a band with no points, in a rule that pays only the highest",
     minutes([{ atLeast: 1, points: 1 }, { atLeast: 60 }]),
-    "the minutes rule in goalkeeper, band 2, pays undefined, not a number",
+    "the Minutes rule in goalkeeper, band 2, pays undefined, not a number",
   ],
   [
     "a band starting at NaN",
     minutes([{ atLeast: NaN, points: 2 }]),
-    "the minutes rule in goalkeeper, band 1, starts at NaN, not a number",
+    "the Minutes rule in goalkeeper, band 1, starts at NaN, not a number",
   ],
   ["a band with no start", minutes([{ points: 2 }]), "band 1, starts at undefined, not a number"],
   [
@@ -85,7 +85,7 @@ test.each([
       { atLeast: 60, points: 1 },
       { atLeast: 60, points: 2 },
     ]),
-    "the minutes rule in goalkeeper has two bands at one threshold",
+    "the Minutes rule in goalkeeper has two bands at one threshold",
   ],
 ])("%s is refused, with the reason", (_what, set, reason) => {
   expect(() => validateScoringSet(set)).toThrow(reason);

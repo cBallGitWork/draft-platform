@@ -41,6 +41,10 @@
   /* The width each of Mail's two panels grows from; with less room than both, the form wraps under */
   --flex-basis-letters: 480px;
   --flex-basis-letter-form: 320px;
+  /* The rules editor's list of categories, beside the one chosen on the desk */
+  --flex-basis-categories: 360px;
+  /* A box for one number of a rule: room for "-10.5" */
+  --spacing-number-box: 72px;
 
   --text-data: 13px;
   --text-data--line-height: 20px;
@@ -148,4 +152,19 @@
   color: var(--color-fact);
   font-size: var(--text-lead);
   line-height: var(--text-lead--line-height);
+}
+
+/* A box for one number of a scoring rule: a figure (plate.md, Colour roles), so yellow. */
+@utility number-box {
+  width: var(--spacing-number-box);
+  min-height: var(--spacing-tap);
+  border: 1px solid var(--color-soft);
+  background: var(--color-ground);
+  padding-inline: calc(var(--spacing) * 2);
+  color: var(--color-figure);
+  font-size: var(--text-lead);
+  line-height: var(--text-lead--line-height);
+  &[aria-invalid="true"] {
+    border-color: var(--color-event);
+  }
 }

@@ -1,27 +1,12 @@
 import { useMutation, useQuery } from "convex/react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
-import { MINUTE_MS } from "../../convex/shared/time";
 import { refusalOf } from "../refusal";
 import type { AdminSeam } from "./seam";
+import { useMinute } from "../useMinute";
 import { changeFailedWords } from "../words";
 
 const useQueue: AdminSeam["useQueue"] = () => useQuery(api.positions.playerPositions.queue, {});
-
-/** The start of the current minute, moving on at the next: the time the feeds are judged at, so a
- *  feed that stops turns late on screen (why, in convex/admin/feeds.ts). */
-function useMinute(): number {
-  const [minute, setMinute] = useState(() => startOfMinute(Date.now()));
-  useEffect(() => {
-    const timer = setTimeout(() => setMinute(startOfMinute(Date.now())), minute + MINUTE_MS - Date.now());
-    return () => clearTimeout(timer);
-  }, [minute]);
-  return minute;
-}
-
-function startOfMinute(at: number): number {
-  return at - (at % MINUTE_MS);
-}
 
 const useFeeds: AdminSeam["useFeeds"] = () => {
   const now = useMinute();

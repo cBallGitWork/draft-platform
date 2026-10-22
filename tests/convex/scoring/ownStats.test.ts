@@ -90,6 +90,11 @@ describe("refused, with the reason", () => {
   });
 });
 
+test("a refusal names an own stat's rule by its own name, as the rules editor shows it", () => {
+  const fractional = { ...setWith([TACKLES_AND_CLEARANCES], true), rules: [{ shape: "perAction" as const, stat: TACKLES_AND_CLEARANCES.stat, values: { all: 0.5 } }] };
+  expect(() => validateScoringSet(fractional)).toThrow("the Tackles and clearances rule pays 0.5, but the league counts whole points only");
+});
+
 describe("the catalogue, placeholders for now (spec/14)", () => {
   test("every stat has a name and a short code, and no two share a key or a code", () => {
     const keys = STAT_CATALOGUE.map((entry) => entry.stat);

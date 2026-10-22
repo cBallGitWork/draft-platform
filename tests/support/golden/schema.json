@@ -3215,6 +3215,21 @@
                         }
                       },
                       "optional": false
+                    },
+                    "categories": {
+                      "fieldType": {
+                        "type": "array",
+                        "value": {
+                          "type": "string"
+                        }
+                      },
+                      "optional": true
+                    },
+                    "wholePointsOnly": {
+                      "fieldType": {
+                        "type": "boolean"
+                      },
+                      "optional": true
                     }
                   }
                 },

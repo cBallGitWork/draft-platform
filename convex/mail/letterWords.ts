@@ -1,6 +1,7 @@
 import type { Infer } from "convex/values";
 import { aNewTeamWords } from "../joining/joiningShared";
 import { londonTime } from "../shared/londonTime";
+import type { LeagueRules } from "../rules/leagueRulesShape";
 import type { leagueEvent } from "../schema";
 
 // What the letters Mail files about a league's events say (spec/15: nothing changes quietly), in
@@ -100,7 +101,42 @@ export function eventLetter(event: LeagueEvent, who: string): Words {
     case "rulesChanged":
       return {
         subject: `The league's rules change from gameweek ${event.fromGameweek}`,
-        body: `${who} changed the league's ${event.changed.join(", ")}, from gameweek ${event.fromGameweek}.`,
+        body: rulesChangedBody(event, who),
       };
   }
 }
+
+/** Each part of a league's rules as a letter names it. */
+const RULES_PART_WORDS: Record<keyof LeagueRules, string> = {
+  format: "format",
+  squad: "squad limits",
+  areaLimits: "limits on the pitch",
+  presets: "formations",
+  deadline: "deadline",
+  doubleGameweek: "double gameweek rule",
+  tieBreaks: "tie-breaks",
+  oddTeamOut: "odd team out",
+  gamesPerGameweek: "games a gameweek",
+  waivers: "waivers",
+  scoring: "scoring",
+};
+
+const partWords = (part: string) => (Object.hasOwn(RULES_PART_WORDS, part) ? RULES_PART_WORDS[part as keyof LeagueRules] : part);
+
+/** "Ann changed the league's scoring and deadline, from gameweek 9. The scoring changed for Goals
+ *  scored and Assists, and points are now whole only." */
+function rulesChangedBody(event: Extract<LeagueEvent, { kind: "rulesChanged" }>, who: string): string {
+  const changed = `${who} changed the league's ${listWords(event.changed.map(partWords))}, from gameweek ${event.fromGameweek}.`;
+  const details = [
+    ...(event.categories ? [`the scoring changed for ${listWords(event.categories)}`] : []),
+    ...(event.wholePointsOnly === undefined ? [] : [event.wholePointsOnly ? "points are now whole only" : "points can now be fractions"]),
+  ];
+  return details.length === 0 ? changed : `${changed} ${capitalised(details.join(", and "))}.`;
+}
+
+/** "a", "a and b", "a, b and c". */
+function listWords(items: readonly string[]): string {
+  return items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
+}
+
+const capitalised = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);

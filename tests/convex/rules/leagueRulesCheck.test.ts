@@ -135,7 +135,7 @@ describe.each<[string, Partial<LeagueRules>, string]>([
   [
     "a scoring set missing an area's value",
     { scoring: { rules: [{ shape: "perCount", stat: "saves", values: { byArea: { ...everyArea(ONE_PER_3), attack: { every: 0, points: 1 } } } }], wholePointsOnly: false } },
-    "The scoring set can't be saved: the saves rule in attack pays for every 0 actions; it must be more than 0.",
+    "The scoring set can't be saved: the Saves rule in attack pays for every 0 actions; it must be more than 0.",
   ],
 ])("%s", (_name, change, reason) => {
   test("is refused with the reason", () => {

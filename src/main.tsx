@@ -12,6 +12,7 @@ import { previewJoining } from "./joining/preview";
 import { previewMail, previewTopBar } from "./mail/preview";
 import { previewAuth, previewLeagues, previewSession } from "./preview";
 import { ShellApp } from "./ShellApp";
+import { previewScoring } from "./scoring/preview";
 import { previewSquads } from "./squads/preview";
 import { previewTable } from "./table/preview";
 
@@ -31,6 +32,7 @@ createRoot(root).render(
         topBar={previewTopBar}
         gameweeks={previewGameweeks}
         squads={previewSquads}
+        scoring={previewScoring}
         table={previewTable}
         admin={previewAdmin}
       />
