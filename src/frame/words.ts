@@ -38,5 +38,14 @@ export const menuWords = {
 export const currentLeagueLabel = "League:";
 export const allLeaguesWords = "All your leagues";
 
+/** Leaving the league the app is in, from the foot of the switcher's list (LeaveLeague.tsx). */
+export const leaveWords = {
+  open: "Leave this league",
+  confirm: (leagueName: string, teamName: string) =>
+    `Leave ${leagueName}? You stop running ${teamName} at once. ${teamName} stays in the league, for the commissioner to hand on.`,
+  yes: "Leave",
+  no: "Stay",
+} as const;
+
 /** A page the menu reaches before its screen is built (PageNotBuilt.tsx). */
 export const notBuiltWords = "This screen isn't built yet.";

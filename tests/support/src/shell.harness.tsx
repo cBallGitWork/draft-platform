@@ -94,6 +94,7 @@ const fakeLeagues = () => ({
   deleteLeague: vi.fn<LeaguesSeam["deleteLeague"]>(async () => null),
   undoDeletion: vi.fn<LeaguesSeam["undoDeletion"]>(async () => null),
   switchLeague: vi.fn<LeaguesSeam["switchLeague"]>(async () => null),
+  leaveLeague: vi.fn<LeaguesSeam["leaveLeague"]>(async () => null),
 });
 
 /** Mail holding `letters`, whose letter to the league is sent, unless a test says otherwise;
