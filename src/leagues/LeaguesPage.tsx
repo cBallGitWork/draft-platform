@@ -21,6 +21,7 @@ import {
   noTeamCellWords,
   notInALeagueWords,
   roleWords,
+  teamsOfMostWords,
   unsentLink,
   unsentLinkWords,
 } from "./words";
@@ -104,7 +105,9 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
             <td className={cellClasses}>{league.roles.map((role) => roleWords[role]).join(", ") || adminWords}</td>
             <td className={cellClasses}>{league.teamName ?? <span className="text-muted">{noTeamCellWords}</span>}</td>
             <td className={`${cellClasses} text-right whitespace-nowrap`}>
-              <span className="text-figure">{league.teams}</span> of <span className="text-figure">{league.maxTeams}</span>
+              <span className="text-figure">{league.teams}</span>
+              {teamsOfMostWords}
+              <span className="text-figure">{league.maxTeams}</span>
             </td>
           </tr>
           {league.unsentCommissionerLink && (

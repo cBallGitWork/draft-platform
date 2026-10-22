@@ -27,6 +27,8 @@ export const invitedHereWords = "When a commissioner invites you to one, it will
 export const leagueColumns = { league: "League", you: "You", team: "Your team", teams: "Teams" } as const;
 export const commissionerLine = (email: string) => `Commissioner: ${email}`;
 export const noTeamCellWords = "None";
+/** Between a league's teams and its most, each its own figure: "6 of 8". */
+export const teamsOfMostWords = " of ";
 
 /** The admin's "Create a league" form. */
 export const newLeagueLabels = {

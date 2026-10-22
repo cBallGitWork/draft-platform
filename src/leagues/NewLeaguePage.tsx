@@ -6,7 +6,7 @@ import { useChange } from "../useChange";
 import type { LeagueActions } from "./actions";
 import { BackToLeagues } from "./LeagueLinks";
 import { LEAGUES_PATH, NEW_LEAGUE_TITLE } from "./paths";
-import { commissionerHint, newLeagueLabels, maxTeamsHint } from "./words";
+import { commissionerHint, maxTeamsHint, newLeagueLabels } from "./words";
 
 /** The admin's "Create a league" (spec/13, Creating a league): its name, its maximum teams and its
  *  commissioner's email. Once made, it is on the admin's leagues page. */
