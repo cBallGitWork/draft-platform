@@ -10,12 +10,11 @@ npm run verify   # install check, vitest run, then tsc on convex/ and on the app
 npm test -- <file>   # one test file
 ```
 
-`npm run verify` is the local gate: the install check, the tests, the typecheck and the hook
-checks. The Stop hook runs the same script, so a session can't end on a failure it didn't mention.
+`npm run verify` is the local gate, and the Stop hook runs the same script, so a session can't
+end on a failure it didn't mention.
 
-CI also runs `npm run build` and `npm run smoke`. Smoke needs Google Chrome locally, because
-`playwright.config.ts` picks the `chrome` channel when `CI` is unset: see the Screenshots and Smoke
-tests rows in [ARCHITECTURE.md](../../../ARCHITECTURE.md#libraries-claudes).
+CI also runs `npm run build` and `npm run smoke`. Smoke needs Google Chrome locally (the Smoke
+tests row in [ARCHITECTURE.md](../../../ARCHITECTURE.md#libraries-claudes)).
 
 **After a change to a screen, the router, `src/main.tsx`, `index.html` or the Vite config,** run
 `npm run build` and `npm run smoke` yourself, or report them as "not run (CI runs them)".

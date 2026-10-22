@@ -169,8 +169,7 @@ meant to land with the first code; the ones still open are tracked in issues, li
       and an id token for the app. It needs the Claude GitHub app and a `CLAUDE_CODE_OAUTH_TOKEN`
       secret from Craig (`claude setup-token`). The gate alone already runs there (Services, above).
       Lessons it is built to:
-      - It runs on its own when a pull request opens, is marked ready or reopens, never only on a
-        mention: a reviewer that waited for a mention was skipped on every run.
+      - It never runs only on a mention: a reviewer that waited for one was skipped on every run.
       - It skips draft pull requests and comments from bots.
       - One review per pull request at a time (concurrency group `review-<PR>`, no cancelling).
       - The action restores `.claude/` from the base branch, so the pull request that adds the
