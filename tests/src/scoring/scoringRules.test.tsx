@@ -16,6 +16,7 @@ import {
   byAreaWords,
   byPositionWords,
   columnWords,
+  discardWords,
   everyoneWords,
   limitWords,
   minutesWords,
@@ -118,6 +119,15 @@ describe("the categories", () => {
     await retype(columnWords.points, everyoneWords, "0.5");
     await save();
     expect(savedSet(app).rules.at(-1)).toEqual({ shape: "perAction", stat: "tackles", values: { all: 0.5 } });
+  });
+
+  it("discarding a category added opens the last one left", async () => {
+    openScoring();
+    await userEvent.click(await screen.findByRole("button", { name: addCategoryWords }));
+    await userEvent.click(screen.getByRole("button", { name: addWords }));
+    await userEvent.click(screen.getByRole("button", { name: discardWords }));
+
+    expect(screen.getByRole("heading", { level: 2, name: "Own goals" })).toBeTruthy();
   });
 
   it("removes one", async () => {

@@ -32,7 +32,6 @@ import {
   byPositionWords,
   columnWords,
   everyoneWords,
-  limitEndWords,
   limitHint,
   limitWords,
   minutesWords,
@@ -49,6 +48,7 @@ import {
 
 const CATEGORY_TITLE_ID = "category-title";
 const PAYS_LABEL_ID = "pays-label";
+const SHAPE_CHOICE = "shape";
 
 /** A row's name in the values table. */
 function rowWords(key: PriceKey): string {
@@ -75,7 +75,7 @@ export function CategoryEditor({ name, rule, onChange, onRemove }: { name: strin
                 key={shape}
                 className="flex min-h-tap cursor-pointer items-center border border-soft px-3 has-checked:border-fact has-checked:bg-plate has-checked:font-semibold has-focus-visible:outline-2 has-focus-visible:outline-derived"
               >
-                <input type="radio" name="shape" className="sr-only" checked={rule.shape === shape} onChange={() => onChange(withShape(rule, shape))} />
+                <input type="radio" name={SHAPE_CHOICE} className="sr-only" checked={rule.shape === shape} onChange={() => onChange(withShape(rule, shape))} />
                 {shapeWords[shape]}
               </label>
             ))}
@@ -182,11 +182,11 @@ function columnsOf(rule: Rule, onChange: (rule: Rule) => void): Column[] {
     rule.limit === undefined
       ? []
       : (["max", "min"] as const).map((end) => ({
-          head: limitEndWords[end],
+          head: columnWords[end],
           cell: (key: PriceKey, row: string) => (
             <NumberBox
               optional
-              label={boxLabel(limitEndWords[end], row)}
+              label={boxLabel(columnWords[end], row)}
               value={valueAt<PointsLimit>(rule.limit!, key)[end]}
               onChange={(points) => onChange(withLimitAt(rule, key, end, points))}
             />

@@ -101,7 +101,6 @@ function changedParts(from: LeagueRules | undefined, to: LeagueRules): (keyof Le
   return parts.filter((part) => from === undefined || sortedJson(from[part]) !== sortedJson(to[part]));
 }
 
-
 /** The league's latest rules, and the gameweek they take effect from: the next gameweek's, when a
  *  change is waiting for it. Null for a league made before rules were held. */
 export const latest = query({

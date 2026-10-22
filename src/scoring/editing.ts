@@ -25,6 +25,9 @@ const FINENESS: Record<Pricing, number> = { all: 0, byArea: 1, byPosition: 2 };
  *  commissioner sets both. */
 const FIRST_COUNT = 1;
 const NEW_POINTS = 0;
+/** A points limit just ticked, neither end set; and minutes just ticked, none. */
+const NO_LIMIT: PointsLimit = { max: null, min: null };
+const NO_MINUTES = 0;
 
 /** Each area's positions, wide then centre, once each (pitch.ts's `positionOfSlot`). */
 const POSITIONS_OF: Record<Area, SlotPosition[]> = Object.fromEntries(
@@ -111,26 +114,26 @@ export function withValue(rule: Rule, key: PriceKey, value: ValueOf<Shape>): Rul
 /** The rule's points limit in this row: `end` is "max" (at most) or "min" (at least); null is none. */
 export function withLimitAt(rule: Rule, key: PriceKey, end: keyof PointsLimit, points: number | null): Rule {
   const aligned = withPricing(rule, rulePricing(rule));
-  const limit = aligned.limit ?? reprice<PointsLimit>({ all: { max: null, min: null } }, rulePricing(rule));
+  const limit = aligned.limit ?? reprice<PointsLimit>({ all: NO_LIMIT }, rulePricing(rule));
   return { ...aligned, limit: setAt(limit, key, { ...valueAt(limit, key), [end]: points }) };
 }
 
 /** The rule's minutes before it pays, in this row. */
 export function withMinMinutesAt(rule: Rule, key: PriceKey, minutes: number): Rule {
   const aligned = withPricing(rule, rulePricing(rule));
-  return { ...aligned, minMinutes: setAt(aligned.minMinutes ?? { all: 0 }, key, minutes) };
+  return { ...aligned, minMinutes: setAt(aligned.minMinutes ?? reprice({ all: NO_MINUTES }, rulePricing(rule)), key, minutes) };
 }
 
 /** The rule with a points limit, none yet at either end, or without one. */
 export function withLimit(rule: Rule, on: boolean): Rule {
   const { limit: _dropped, ...rest } = rule;
-  return on ? ({ ...rest, limit: reprice<PointsLimit>({ all: { max: null, min: null } }, rulePricing(rule)) } as Rule) : (rest as Rule);
+  return on ? ({ ...rest, limit: reprice<PointsLimit>({ all: NO_LIMIT }, rulePricing(rule)) } as Rule) : (rest as Rule);
 }
 
 /** The rule paying only after so many minutes, none to begin with, or from the first minute. */
 export function withMinMinutes(rule: Rule, on: boolean): Rule {
   const { minMinutes: _dropped, ...rest } = rule;
-  return on ? ({ ...rest, minMinutes: reprice({ all: 0 }, rulePricing(rule)) } as Rule) : (rest as Rule);
+  return on ? ({ ...rest, minMinutes: reprice({ all: NO_MINUTES }, rulePricing(rule)) } as Rule) : (rest as Rule);
 }
 
 /** Whether a band rule pays every band reached, or only the highest. */

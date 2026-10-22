@@ -8,7 +8,7 @@ import { Loading, PageSection, PanelNote, PanelTitle, Problem } from "../frame/P
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { useChange } from "../useChange";
 import { CategoryEditor } from "./CategoryEditor";
-import { firstBlankRule, newRule, rulePricing, type Rule, type Scoring } from "./editing";
+import { firstBlankRule, newRule, rulePricing, valueAt, type Rule, type Scoring } from "./editing";
 import type { ScoringSeam, ScoringView } from "./seam";
 import {
   addCategoryLabel,
@@ -64,11 +64,13 @@ export function ScoringPage({ league, seam }: { league: LeagueSummary; seam: Sco
  *  starts from the set as it was when the page opened. */
 function Editor({ league, seam, view }: { league: LeagueSummary; seam: ScoringSeam; view: ScoringView }) {
   const [draft, setDraft] = useState<Scoring>(view.scoring);
-  const [chosen, choose] = useState(0);
+  const [picked, choose] = useState(0);
   const [savedFrom, setSavedFrom] = useState<number | null>(null);
   const save = useChange();
   const nameOf = (stat: string) => categoryName(stat, draft.ownStats);
   const unchanged = sortedJson(draft) === sortedJson(view.scoring);
+  // The last, once removing or discarding leaves fewer than the one picked.
+  const chosen = Math.max(0, Math.min(picked, draft.rules.length - 1));
   const rule = draft.rules[chosen] as Rule | undefined;
 
   function edit(next: Scoring) {
@@ -78,7 +80,6 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: ScoringSe
   const setRule = (index: number, changed: Rule) => edit({ ...draft, rules: draft.rules.map((each, at) => (at === index ? changed : each)) });
   function remove(index: number) {
     edit({ ...draft, rules: draft.rules.filter((_, at) => at !== index) });
-    choose(Math.max(0, Math.min(index, draft.rules.length - 2)));
   }
   function add(stat: string) {
     edit({ ...draft, rules: [...draft.rules, newRule(stat)] });
@@ -159,8 +160,8 @@ function Summary({ rule }: { rule: Rule }) {
   const pricing = rulePricing(rule);
   if (pricing !== "all") return <span className="text-derived">{pricingWords[pricing]}</span>;
   if (rule.shape === "bands") return <span className="text-derived">{bandsWords}</span>;
-  const value = (rule.values as Priced<unknown> & { all: unknown }).all;
-  const words = rule.shape === "perAction" ? pointsWords(value as number) : perCountSummary((value as { points: number }).points, (value as { every: number }).every);
+  const value = valueAt(rule.values as Priced<unknown>, "all");
+  const words = rule.shape === "perAction" ? pointsWords(value as number) : perCountSummary(value as { every: number; points: number });
   return <span className="text-figure">{words}</span>;
 }
 

@@ -4,7 +4,7 @@
 
 import type { Area, SlotPosition } from "../../convex/lineup/pitch";
 import { failedWords, gameweekWords } from "../words";
-import type { Pricing, PointsLimit, Shape } from "./editing";
+import type { Pricing, Shape } from "./editing";
 
 export { gameweekWords };
 
@@ -17,7 +17,7 @@ export const noRulesWords = "This league was made before leagues held their rule
 export const pricingWords: Record<Exclude<Pricing, "all">, string> = { byArea: "By area", byPosition: "By position" };
 export const bandsWords = "Bands";
 /** "1 per 3", for a per-number rule the same for all. */
-export const perCountSummary = (points: number, every: number) => `${pointsWords(points)} per ${every}`;
+export const perCountSummary = ({ points, every }: { points: number; every: number }) => `${pointsWords(points)} per ${every}`;
 
 /** A number of points as the editor shows it outside a box: a minus sign, not a hyphen. */
 export const pointsWords = (points: number) => (points < 0 ? `−${-points}` : String(points));
@@ -98,6 +98,3 @@ export const savedWords = (gameweek: number) => `Saved. The new scoring applies 
 export const blankBoxWords = (category: string) => `${category} has a box without a number. Fill it in, then save.`;
 
 export const saveFailedWords = failedWords("the scoring didn't change");
-
-/** Which end of a points limit a box sets. */
-export const limitEndWords: Record<keyof PointsLimit, string> = { max: columnWords.max, min: columnWords.min };

@@ -220,9 +220,8 @@ test("defaults set before any league is made are the first league's rules", asyn
 describe("the rules editor", () => {
   type Scoring = LeagueRules["scoring"];
   type Rule = Scoring["rules"][number];
-  const NOW = () => Date.now();
   const scoringOf = async (leagueId: Id<"leagues">, email = COMMISSIONER) =>
-    (await actingAs(t, email)).query(api.rules.leagueRules.scoring, { leagueId, now: NOW() });
+    (await actingAs(t, email)).query(api.rules.leagueRules.scoring, { leagueId, now: Date.now() });
   const changeScoring = async (leagueId: Id<"leagues">, scoring: Scoring, email = COMMISSIONER) =>
     (await actingAs(t, email)).mutation(api.rules.leagueRules.changeScoring, { leagueId, scoring });
   /** The first scoring set with assists paying 4 and one more category, tackles at 1. */
