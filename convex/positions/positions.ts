@@ -4,6 +4,7 @@
 // not its engine. Pure: the same inputs always give the same positions.
 
 import type { Infer } from "convex/values";
+import { startsElsewhere, type ChangeThresholds } from "./positionChanges";
 import { labelPositions, placePosition, POSITIONS, type Position } from "./positionTables";
 import type { approveMode, startRecord } from "../schema";
 
@@ -24,6 +25,9 @@ export interface HeldPosition {
   source: PositionSource;
   /** False until the admin has approved it; an admin's own position always is. */
   confirmed: boolean;
+  /** Flagged (spec/06, When positions change): how many of his newest starts in a row were
+   *  elsewhere. Null while it isn't, as an admin's or a label's position never is. */
+  flaggedElsewhere: number | null;
 }
 
 /** The admin's say on one player, kept apart from the feeds so no read overwrites it. */
@@ -48,12 +52,19 @@ export interface PositionInputs {
   plLabel: string | null;
   admin: AdminPositions;
   approveMode: ApproveMode;
+  thresholds: ChangeThresholds;
+  /** Starts from this kickoff on wait for the next gameweek to be judged for a change; null
+   *  judges every start (`startsElsewhere`). */
+  judgedBefore: number | null;
 }
 
 export interface PlayerPositions {
   positions: HeldPosition[];
   /** Positions his starts give that the admin has not approved: his queue (spec/15). */
   proposals: Position[];
+  /** Positions his starts would give him that a run elsewhere took away (spec/06): each counted
+   *  until it did. */
+  removed: Position[];
   /** Formations in his window that `FORMATION_PLACES` does not know: those starts gave nothing. */
   unknownFormations: string[];
   /** His label, when `labelPositions` does not know it. */
@@ -80,25 +91,35 @@ export function positionsFromStarts(starts: Start[]): { positions: Position[]; u
 
 /** His positions, each once, in `POSITIONS` order. An admin's position wins over one from starts,
  *  and starts over his label. His label counts only while no start-position does (spec/06: a new
- *  signing, too few starts anywhere, or starts the admin has not yet approved). */
-export function positionsOf({ starts, plLabel, admin, approveMode }: PositionInputs): PlayerPositions {
+ *  signing, too few starts anywhere, or starts the admin has not yet approved). A position from
+ *  starts is flagged, then removed, by a run of starts elsewhere (positionChanges.ts). */
+export function positionsOf({ starts, plLabel, admin, approveMode, thresholds, judgedBefore }: PositionInputs): PlayerPositions {
   const fromStarts = positionsFromStarts(starts);
   const kept = fromStarts.positions.filter((position) => !admin.removed.includes(position));
+  const runElsewhere = new Map(kept.map((position) => [position, startsElsewhere(starts, position, judgedBefore)]));
   const isApproved = (position: Position) => admin.approved.includes(position);
-  const counted = approveMode === "countAtOnce" ? kept : kept.filter(isApproved);
+  const wouldCount = (position: Position) => approveMode === "countAtOnce" || isApproved(position);
+  const isRemoved = (position: Position) => runElsewhere.get(position)! >= thresholds.removeAfter;
+  const standing = kept.filter((position) => !isRemoved(position));
+  const counted = standing.filter(wouldCount);
   const fromLabel = plLabel === null ? [] : labelPositions(plLabel);
   const held = new Map<Position, HeldPosition>();
-  const hold = (position: Position, source: PositionSource, confirmed: boolean) => {
-    if (!held.has(position) && !admin.removed.includes(position)) held.set(position, { position, source, confirmed });
+  const hold = (position: Position, source: PositionSource, confirmed: boolean, flaggedElsewhere: number | null = null) => {
+    if (!held.has(position) && !admin.removed.includes(position)) held.set(position, { position, source, confirmed, flaggedElsewhere });
   };
   for (const position of admin.set) hold(position, "admin", true);
-  for (const position of counted) hold(position, "starts", isApproved(position));
+  for (const position of counted) {
+    const run = runElsewhere.get(position)!;
+    hold(position, "starts", isApproved(position), run >= thresholds.flagAfter ? run : null);
+  }
+  // A position his run elsewhere removed stays gone: a vague label ("Defender") never hands it back.
   if (counted.length === 0) {
-    for (const position of fromLabel ?? []) hold(position, "label", plLabel === admin.confirmedLabel);
+    for (const position of fromLabel ?? []) if (!kept.some((each) => each === position && isRemoved(each))) hold(position, "label", plLabel === admin.confirmedLabel);
   }
   return {
     positions: POSITIONS.flatMap((position) => held.get(position) ?? []),
-    proposals: kept.filter((position) => !isApproved(position)),
+    proposals: standing.filter((position) => !isApproved(position)),
+    removed: kept.filter((position) => isRemoved(position) && wouldCount(position) && !admin.set.includes(position)),
     unknownFormations: fromStarts.unknownFormations,
     unknownLabel: fromLabel === null ? plLabel : null,
   };
