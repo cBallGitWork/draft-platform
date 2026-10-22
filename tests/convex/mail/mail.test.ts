@@ -5,7 +5,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { adminByline } from "../../../convex/mail/letterWords";
 import { mailRefusals } from "../../../convex/mail/mail";
-import { BODY_MAX, SUBJECT_MAX, UNREAD_COUNTED } from "../../../convex/mail/mailLimits";
+import { BODY_MAX, LETTERS_SHOWN, SUBJECT_MAX, UNREAD_COUNTED } from "../../../convex/mail/mailLimits";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { MINUTE_MS } from "../../../convex/shared/time";
 
@@ -148,12 +148,27 @@ describe("unread", () => {
     await expect(t.mutation(api.mail.mail.open, { letterId: annsLetter.letterId })).rejects.toThrow(refusals.signedOut);
   });
 
-  test(`the count stops one past ${UNREAD_COUNTED}`, async () => {
+  test(`the count stops at the ${LETTERS_SHOWN} letters listed, past the ${UNREAD_COUNTED} the menu shows`, async () => {
     await addManagers(t, leagueId, [ANN]);
     const commissioner = await mailOf(COMMISSIONER);
-    for (let letter = 0; letter < UNREAD_COUNTED + 5; letter += 1) await commissioner.writeToLeague(`Letter ${letter}`, "Hello");
+    for (let letter = 0; letter < LETTERS_SHOWN + 5; letter += 1) await commissioner.writeToLeague(`Letter ${letter}`, "Hello");
 
-    expect(await (await mailOf(ANN)).unread()).toBe(UNREAD_COUNTED + 1);
+    expect(await (await mailOf(ANN)).unread()).toBe(LETTERS_SHOWN);
+    expect(LETTERS_SHOWN).toBeGreaterThan(UNREAD_COUNTED);
+  });
+
+  test(`a letter older than the latest ${LETTERS_SHOWN} isn't counted, so opening every listed letter clears the count`, async () => {
+    // Ann's oldest letter, saying she joined, is unread and falls off the list once she has one more.
+    await addManagers(t, leagueId, [ANN]);
+    vi.advanceTimersByTime(MINUTE_MS);
+    const commissioner = await mailOf(COMMISSIONER);
+    for (let letter = 0; letter < LETTERS_SHOWN; letter += 1) await commissioner.writeToLeague(`Letter ${letter}`, "Hello");
+    expect((await everyLetter()).filter(([to]) => to === ANN)).toHaveLength(LETTERS_SHOWN + 1);
+
+    const ann = await mailOf(ANN);
+    for (const letter of await ann.letters()) await ann.open(letter.letterId);
+
+    expect(await ann.unread()).toBe(0);
   });
 
   test("signed out, there is no Mail", async () => {

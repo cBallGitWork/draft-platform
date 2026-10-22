@@ -1,8 +1,8 @@
 import { v, type Infer } from "convex/values";
-import { mutation, query } from "../_generated/server";
+import { mutation, query, type QueryCtx } from "../_generated/server";
 import { callerEmail, refuse, runnerOf, signedInEmail } from "../shared/leagueAccess";
 import { fileLetter, wholeLeague } from "./letters";
-import { BODY_MAX, LETTERS_SHOWN, SUBJECT_MAX, UNREAD_COUNTED } from "./mailLimits";
+import { BODY_MAX, LETTERS_SHOWN, SUBJECT_MAX } from "./mailLimits";
 
 // A manager's Mail (#26, spec/16): their letters, newest first, each unread until they open it,
 // and the commissioner's one-way letter to the whole league.
@@ -27,18 +27,22 @@ export const letterSummary = v.object({
 });
 export type LetterSummary = Infer<typeof letterSummary>;
 
-/** The signed-in person's letters, newest first: the latest LETTERS_SHOWN. None when signed out. */
+/** The letters Mail lists for someone: their latest LETTERS_SHOWN, newest first. */
+const listedLetters = (ctx: QueryCtx, email: string) =>
+  ctx.db
+    .query("letters")
+    .withIndex("by_to_and_at", (q) => q.eq("to", email))
+    .order("desc")
+    .take(LETTERS_SHOWN);
+
+/** The signed-in person's `listedLetters`. None when signed out. */
 export const letters = query({
   args: {},
   returns: v.array(letterSummary),
   handler: async (ctx) => {
     const email = await signedInEmail(ctx);
     if (email === null) return [];
-    const rows = await ctx.db
-      .query("letters")
-      .withIndex("by_to_and_at", (q) => q.eq("to", email))
-      .order("desc")
-      .take(LETTERS_SHOWN);
+    const rows = await listedLetters(ctx, email);
     return rows.map((row) => ({
       letterId: row._id,
       leagueName: row.leagueName,
@@ -51,18 +55,15 @@ export const letters = query({
   },
 });
 
-/** How many of the signed-in person's letters are unread, counted up to one past UNREAD_COUNTED. */
+/** How many of the letters `letters` lists are unread, so opening every one clears it. At most
+ *  LETTERS_SHOWN; the screens show anything past UNREAD_COUNTED as that number and a "+". */
 export const unreadCount = query({
   args: {},
   returns: v.number(),
   handler: async (ctx) => {
     const email = await signedInEmail(ctx);
     if (email === null) return 0;
-    const unread = await ctx.db
-      .query("letters")
-      .withIndex("by_to_and_readAt", (q) => q.eq("to", email).eq("readAt", undefined))
-      .take(UNREAD_COUNTED + 1);
-    return unread.length;
+    return (await listedLetters(ctx, email)).filter((row) => row.readAt === undefined).length;
   },
 });
 
