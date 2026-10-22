@@ -135,8 +135,6 @@ isn't built yet". `none` in the Path and File columns means no route yet.
 
 ## Gaps
 
-- `/leagues/$leagueId/invites` has no router guard; its own data says "You don't run this
-  league" to anyone else.
 - Your leagues has no link into a league's frame pages: the menu, or `/`, gets there.
 - An admin in no league can't open the frame, so `/table` and `/team` send him to Your leagues.
 - Continue only ever leads to Mail until lineups and trades are built.
