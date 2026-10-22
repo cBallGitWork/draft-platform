@@ -21,6 +21,6 @@ export function leagueRunBy(session: Session, leagueId: string): LeagueSummary |
   return league && !league.deletion && runs(league, session.isAdmin) ? league : undefined;
 }
 
-/** The league the app is in, or undefined when signed out. */
+/** The league the app is in, or undefined when signed out or no longer among their leagues. */
 export const currentLeagueOf = (session: Session): LeagueSummary | undefined =>
   session.signedIn ? session.leagues.find((league) => league.leagueId === session.currentLeagueId) : undefined;
