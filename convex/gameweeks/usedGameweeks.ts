@@ -12,11 +12,13 @@ import type { QueryCtx } from "../_generated/server";
 export const FIRST_GAMEWEEK = 1;
 export const GAMEWEEKS = 38;
 
-/** FPL's deadline, when it begins; null while the app doesn't have it. */
-export const fplDeadline = v.union(v.number(), v.null());
+/** A gameweek's deadline as the screens get it: the league's own (leagueRules.ts's
+ *  `leagueDeadlines`), when the gameweek begins; null while none of its matches has a kickoff time. */
+export const shownDeadline = v.union(v.number(), v.null());
 
-/** FPL's deadline for each of gameweeks 1 to 38 the app holds, by gameweek. It reads dropped rows
- *  too; leagueRules.ts's `heldSchedule` skips them, and whether these should too is Craig's call. */
+/** FPL's deadline for each of gameweeks 1 to 38 the app holds, by gameweek: feed data, which never
+ *  decides when a league's gameweek begins (#138). It reads dropped rows too; leagueRules.ts's
+ *  `heldSchedule` skips them, and whether these should too is Craig's call. */
 export async function fplDeadlines(ctx: QueryCtx): Promise<Map<number, number>> {
   const rows = await ctx.db
     .query("gameweeks")

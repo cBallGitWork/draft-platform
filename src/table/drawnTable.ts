@@ -12,7 +12,7 @@ type Drawn = Partial<DrawOptions> & {
   format?: LeagueTable["format"];
   /** The gameweeks the league plays: all 38 by default. */
   gameweeks?: readonly number[];
-  /** FPL's deadline for each gameweek: none known by default. */
+  /** The league's own deadline for each gameweek: none known by default. */
   deadlineOf?: (gameweek: number) => number | null;
   scores?: GameweekScores<string>;
 };

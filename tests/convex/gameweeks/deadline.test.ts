@@ -3,6 +3,7 @@ import {
   FPL_DEADLINE_RULE,
   gameweekDeadline,
   isLocked,
+  leagueDeadline,
   type DeadlineReading,
   type DeadlineRule,
 } from "../../../convex/gameweeks/deadline";
@@ -112,6 +113,13 @@ describe("from a gameweek's matches", () => {
     const withUnscheduled = [match(GAMEWEEK, null), ...weekend];
 
     expect(gameweekDeadline(GAMEWEEK, withUnscheduled, rule, NOTHING_RECORDED)).toBe(deadlineBefore(FRIDAY_8PM));
+  });
+
+  test("the league's own deadline, the one every caller reads (#138), is the rule's with nothing recorded", () => {
+    for (const minutes of [180, 90, 0]) {
+      expect(leagueDeadline(GAMEWEEK, weekend, minutesBefore(minutes))).toBe(FRIDAY_8PM - minutes * MINUTE_MS);
+    }
+    expect(leagueDeadline(NEXT_GAMEWEEK, weekend, rule)).toBeNull();
   });
 
   describe("against the deadline recorded for it", () => {

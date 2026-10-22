@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
-import type { DeadlineRule } from "../gameweeks/deadline";
+import { leagueDeadline, type DeadlineRule } from "../gameweeks/deadline";
 import { FIRST_RULES } from "./firstRules";
 import { memberOf, refuse, runnerOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
@@ -10,7 +10,7 @@ import { leagueRulesShape, scoringSetShape, type LeagueRules } from "./leagueRul
 import { categoryName } from "../scoring/categories";
 import { sortedJson } from "../shared/sortedJson";
 import { nextGameweek } from "../gameweeks/nextGameweek";
-import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
+import { FIRST_GAMEWEEK, SEASON_GAMEWEEKS } from "../gameweeks/usedGameweeks";
 
 // A league's rules, held as data (spec/03; #25): a new league copies the admin's default rules, and
 // its commissioner changes them from the next gameweek, so a past gameweek keeps the rules it had.
@@ -84,8 +84,8 @@ export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">
 /** The season's gameweeks and matches as held, less those the football layer no longer sends. */
 async function heldSchedule(ctx: QueryCtx) {
   const gameweeks = [];
-  for await (const { number, deadline, droppedAt } of ctx.db.query("gameweeks")) {
-    if (droppedAt === undefined) gameweeks.push({ number, deadline });
+  for await (const { number, droppedAt } of ctx.db.query("gameweeks")) {
+    if (droppedAt === undefined) gameweeks.push({ number });
   }
   const matches = [];
   // A season's 380, at most a few seasons' worth: the fixtures table has no gameweek index.
@@ -93,6 +93,21 @@ async function heldSchedule(ctx: QueryCtx) {
     if (droppedAt === undefined) matches.push({ gameweek, kickoff });
   }
   return { gameweeks, matches };
+}
+
+/** The league's own deadline for each of gameweeks 1 to 38, under the rule in force in it: when
+ *  each begins, for its screens and refusals (#138, #139). Null where none of the gameweek's
+ *  matches has a kickoff time held, and for every gameweek of a league made before rules were held,
+ *  which has no deadline rule. */
+export async function leagueDeadlines(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, number | null>> {
+  const history = await historyOf(ctx, leagueId);
+  const { matches } = await heldSchedule(ctx);
+  return new Map(
+    SEASON_GAMEWEEKS.map((gameweek) => {
+      const row = inForce(history, gameweek);
+      return [gameweek, row === undefined ? null : leagueDeadline(gameweek, matches, row.rules.deadline)];
+    }),
+  );
 }
 
 /** The parts of the rules that differ, by name: all of them, from a league that had none. */

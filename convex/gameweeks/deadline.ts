@@ -55,6 +55,18 @@ export function gameweekDeadline(
   return Math.min(...kickoffs) - minutes * MINUTE_MS;
 }
 
+/**
+ * The league's own deadline for a gameweek, under the rule in force in it: the one function that
+ * decides when a gameweek begins, for every caller (#138, #139). FPL's deadline never decides
+ * (Craig, 22 Oct 2026: "ours, we arent fpl so stop copying them"); it stays feed data. Nothing
+ * records a passed deadline yet, so this reads none, and a first match postponed after the
+ * deadline moves it back until something does (the gap the header names).
+ */
+export function leagueDeadline(gameweek: number, matches: readonly ScheduledMatch[], rule: DeadlineRule): number | null {
+  // With nothing recorded, the reading's time is never read.
+  return gameweekDeadline(gameweek, matches, rule, { recorded: null, now: 0 });
+}
+
 /** Whether a lineup change made `now` is refused: at the deadline and after it, the gameweek is
  *  locked. A gameweek with no deadline yet has no kickoff to lock before. */
 export function isLocked(deadline: number | null, now: number): boolean {
