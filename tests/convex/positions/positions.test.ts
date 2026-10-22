@@ -152,7 +152,7 @@ describe("when positions change (spec/06)", () => {
     expect(flags(inputs({ starts: movedToFullBack(5), admin: bothApproved }))).toEqual({ CB: "starts!5", FB: "starts" });
   });
 
-  test("it is removed after 6, and no longer counts", () => {
+  test("it is removed after 6, not 5, and no longer counts", () => {
     const given = inputs({ starts: movedToFullBack(6), admin: bothApproved });
     expect(flags(given)).toEqual({ FB: "starts" });
     expect(positionsOf(given).removed).toEqual(["CB"]);

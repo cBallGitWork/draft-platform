@@ -79,11 +79,11 @@ longer counts, nor is it proposed.
 - A start that gives no position (a sheet that drew none, a formation the table doesn't know)
   neither adds to a run nor ends it. One start back at a position ends its run, and a removed one
   counts again while his window still holds 3 starts there.
-- Only between gameweeks: a start is judged once a gameweek deadline after it has passed, so the
-  starts judged are those before the last FPL deadline the newest positions sync ran after
-  (`judgedBefore` in `positionSettings.ts`). A query can't read the clock, and every start held was
-  played before that run, so a sync within a gameweek moves nothing. Before any sync, or before
-  the season's first deadline, every start is judged. Gaining a position is not held back this way.
+- Only between gameweeks: the starts judged are those before the last FPL deadline the newest
+  positions sync ran after (`judgedBefore` in `positionSettings.ts`), so a sync within a gameweek
+  moves nothing; the sync's time stands in for the clock, which a query can't read. Before any
+  sync, or the season's first deadline, every start is judged. Gaining a position is not held
+  back this way.
 - Nothing is refused for it: losing a position never makes a squad illegal (spec/06).
 
 ## Held, and read
@@ -92,8 +92,8 @@ longer counts, nor is it proposed.
 six-hourly football sync never touches it: his newest 38 starts and his label, from the feeds,
 and the admin's approvals and corrections, written only by his functions. `positionsOf` runs on
 every read (`positions/playerPositions:ofPlayer`), so neither a change of approve mode nor a corrected
-table needs a recount. `positionSettings` holds the approve mode and the thresholds, each absent until he sets it;
-`positionSheets` each match filed.
+table needs a recount. `positionSettings` holds the approve mode and the thresholds, each absent
+until he sets it; `positionSheets` each match filed.
 
 The admin's functions, his alone by his email on the server (#124): `queue` (new signings, the
 men whose starts wait for him, and positions flagged or removed), `ofPlayer`, `find`,
