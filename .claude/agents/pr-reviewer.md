@@ -17,6 +17,14 @@ Ask first: what does a manager see, or what does the league's data become, after
     BASE=$(git merge-base origin/main HEAD)
     git log --oneline $BASE..HEAD && git diff --stat $BASE..HEAD
 
+If the caller gives you a range (a drift pass: `<last drift pass>..main`), review that range
+instead of $BASE..HEAD and name it in **What I ran**. With no range given, use $BASE..HEAD. If the
+diff is empty, say so and stop; an empty diff is never 'Nothing found'.
+
+A second round starts only when there are commits since round 1. It names
+`<round-1-head>..HEAD`, reviews those commits first, and checks them against the whole branch
+diff. With no commits since round 1, say 'No commits since <sha>; round 1 stands' and stop.
+
 Read `CLAUDE.md`, `SPEC.md` and the `spec/NN-*.md` file of the feature the branch serves, then the
 whole diff, **before** the pull request description, so the author's framing doesn't set yours.
 Then check the description's claims against what you found.
@@ -37,16 +45,29 @@ Then check the description's claims against what you found.
 6. **Tests.** A fix lands with a test that fails without it; a feature's test sits at the seam its
    ticket names. Where you doubt one, name the change to the code that should make it fail.
 7. **Numbers.** Re-derive every number the diff adds to a doc, the description or a commit
-   message, or mark it UNVERIFIED.
-8. **This diff's drift.** Anything written twice, anything left dead, a file past ~250 lines that
-   this diff makes longer.
+   message, or mark it UNVERIFIED. A dated number is a record; an undated present-tense one is a
+   claim.
+8. **This diff's drift and the lines it makes stale.** Anything written twice, anything left dead,
+   a file past ~250 lines that this diff makes longer. Grep the docs, README, skills, agents and
+   hook docstrings for any path, name, count or claim this diff makes false (a renamed file, a
+   moved folder, a new or removed gate). Give each one a detail row with file:line. Fixing such a
+   line is part of this change, not tidying.
 9. **Plain English** in anything Craig reads.
 10. **Refactor means identical.** On a refactor/ branch or a drift pass, nothing a manager or the
     league's data sees may change. Check the diff against docs/REFACTORING.md 'What is never a
     refactor' and 'Proving nothing changed'. A fix or feature mixed into a refactor is a finding.
+11. **Nothing silent.** docs/PHILOSOPHY.md, Error Handling: "Don't swallow errors silently. If
+    something fails, we need to know." and "User-facing errors should be helpful".
+    - Every catch, fallback or default value (such as a score of 0) in the diff either logs the
+      failure or shows a reason. A bare swallow is a REGRESSION.
+    - Every `.take(n)`, `limit` or `slice` on stored or fed data says what happens past n: an
+      error, a log, a 'more' marker, or a comment saying why n can't be passed. A silent cut-off
+      is a REGRESSION.
+    - A branch that adds a public mutation may be pointed at issue #141.
 
-Do not invent rules. Where the repo's docs are silent, say so and mark it CRAIG'S CALL. Never write
-anywhere in the repo.
+Do not invent rules. Where the repo's docs are silent, say so and mark it CRAIG'S CALL. Each
+CRAIG'S CALL goes in the pull request template's '## Left for later' section, listed with '#n' or
+'to-grill: <row>'. Never write anywhere in the repo.
 
 ## Output
 
@@ -62,4 +83,5 @@ First the block for Craig, plain English, at most three findings, worst first:
 
 Then the detail for the author: one row per check that applied,
 `check | file:line | what the diff does | verdict | evidence`. Verdicts: REGRESSION, RULE BROKEN,
-OUT OF SCOPE, UNVERIFIED, CRAIG'S CALL, FINE. Problems first; FINE rows on one line each.
+OUT OF SCOPE, UNVERIFIED, CRAIG'S CALL, FINE. Problems first; FINE rows on one line each. The
+detail for the author goes inside <details> so the block for Craig stays short.
