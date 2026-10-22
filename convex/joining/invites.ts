@@ -73,7 +73,7 @@ export const send = mutation({
   },
 });
 
-/** Sends the invite again, for its lifetime anew from when it goes. */
+/** Sends the invite again; it lasts a whole lifetime from when it goes. */
 export const resend = mutation({
   args: { inviteId: v.id("invites") },
   returns: v.null(),

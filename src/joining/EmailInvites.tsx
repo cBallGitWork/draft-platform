@@ -14,7 +14,6 @@ import {
   noInvitesWords,
 } from "./words";
 
-/** The ids that pair a heading, label or hint with what it describes. */
 const TITLE_ID = "email-invites-title";
 const EMAIL_ID = "invite-email";
 

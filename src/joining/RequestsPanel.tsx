@@ -4,7 +4,6 @@ import type { InvitesPageData, JoiningSeam } from "./seam";
 import { TeamSelect, useTeamChoice } from "./TeamChoice";
 import { noRequestsWords, requestsWords } from "./words";
 
-/** The ids that pair a heading, label or hint with what it describes. */
 const TITLE_ID = "requests-title";
 
 type Request = InvitesPageData["requests"][number];

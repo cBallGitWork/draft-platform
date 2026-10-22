@@ -30,7 +30,6 @@ import {
   warningWords,
 } from "./words";
 
-/** The ids that pair a heading, label or hint with what it describes. */
 const FIND_TITLE_ID = "find-title";
 const FIND_NAME_ID = "find-name";
 

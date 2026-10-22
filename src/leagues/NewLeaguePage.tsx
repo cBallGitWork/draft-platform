@@ -8,7 +8,6 @@ import { BackToLeagues } from "./LeagueLinks";
 import { LEAGUES_PATH, NEW_LEAGUE_TITLE } from "./paths";
 import { commissionerHint, maxTeamsHint, newLeagueLabels } from "./words";
 
-/** The ids that pair a heading, label or hint with what it describes. */
 const NAME_ID = "league-name";
 const MAX_TEAMS_ID = "league-max-teams";
 const MAX_TEAMS_HINT_ID = "league-max-teams-hint";

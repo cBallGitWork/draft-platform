@@ -5,7 +5,6 @@ import { PanelTitle, Problem } from "../frame/Panel";
 import type { Mail } from "./actions";
 import { WRITE_TITLE, sendToWords, sentWords, writeHint, writeLabels } from "./words";
 
-/** The ids that pair a heading, label or hint with what it describes. */
 const TITLE_ID = "write-title";
 const LEAGUE_CHOICE_ID = "letter-league";
 const SUBJECT_ID = "letter-subject";

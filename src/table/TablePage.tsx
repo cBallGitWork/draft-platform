@@ -4,7 +4,6 @@ import { FixturesPanel } from "./FixturesPanel";
 import type { LeagueTable, TableSeam } from "./seam";
 import { columns, differenceWords, loadingWords, noResultsWords, noRulesWords, TABLE_PAGE_TITLE, TABLE_TITLE } from "./words";
 
-/** The ids that pair a heading, label or hint with what it describes. */
 const TITLE_ID = "table-title";
 
 type Column = keyof typeof columns;

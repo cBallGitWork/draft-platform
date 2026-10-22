@@ -38,7 +38,7 @@
   --spacing-tap: 44px; /* every target, at the phone's width (plate.md, The phone) */
   --spacing-subtab: 36px; /* a section's tabs, on the desk */
 
-  /* Mail's two panels: each grows from its width, and the form wraps under the letters below both */
+  /* The width each of Mail's two panels grows from; with less room than both, the form wraps under */
   --flex-basis-letters: 480px;
   --flex-basis-letter-form: 320px;
 

@@ -20,7 +20,6 @@ import {
   versusWords,
 } from "./words";
 
-/** The ids that pair a heading, label or hint with what it describes. */
 const TITLE_ID = "fixtures-title";
 
 type Gameweek = LeagueTable["gameweeks"][number];

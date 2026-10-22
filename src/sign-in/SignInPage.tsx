@@ -3,7 +3,6 @@ import { PanelTitle } from "../frame/Panel";
 import { PRODUCT_NAME } from "../product";
 import { linkProblemWords, signInWords, type LinkProblem } from "./words";
 
-/** The ids that pair a heading, label or hint with what it describes. */
 const TITLE_ID = "sign-in-title";
 const EMAIL_ID = "sign-in-email";
 
