@@ -137,7 +137,7 @@ export async function tickAt(t: TestConvex, time: number, payloads: Gw6Payloads,
   const fetch = fakeFeeds(payloads, refuse);
   vi.stubGlobal("fetch", fetch);
   await t.action(internal.stats.liveStatsSync.tick, {});
-  const [latest] = await t.query(internal.stats.liveStats.latestTicks, {});
+  const [latest] = await t.query(internal.stats.liveStats.latest, {});
   return { fetch, latest };
 }
 
