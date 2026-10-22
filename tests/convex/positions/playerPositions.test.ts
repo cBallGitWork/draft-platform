@@ -3,16 +3,9 @@ import { api } from "../../../convex/_generated/api";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, actingAs } from "../../support/convex/leagues.harness";
 import { PL_LAST_COMP_SEASON } from "../../../convex/football/football";
-import { asAdmin, heldPositions, syncPositionsWith } from "../../support/convex/positionsSync.harness";
+import { asAdmin, heldPositions, reported, syncPositionsWith } from "../../support/convex/positionsSync.harness";
 import { BRENTFORD_CODE, NEWCASTLE, PLAYER, recordedPositions, SHEET } from "../../support/recorded/positions.payloads";
 import { freshConvex, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
-
-/** What every sync of the recorded payloads logs: one match's sheet doesn't add up (positionsSync.test.ts). */
-const REPORTED = `positions sync: ${JSON.stringify({
-  unknownFormations: [],
-  unknownLabels: [],
-  matchesRefused: [`PL fixture ${SHEET.cityCoventryRefused}, team 11's 4-2-3-1 does not draw the 11 men it lists as starting`],
-})}`;
 
 /** The recorded men FPL lists at Newcastle. */
 function newcastleMen() {
@@ -25,7 +18,7 @@ async function synced(): Promise<TestConvex> {
   const t = freshConvex();
   const logged = silenceConsoleError();
   await syncPositionsWith(t, recordedPositions());
-  expect(logged).toHaveBeenCalledWith(REPORTED);
+  expect(logged).toHaveBeenCalledWith(reported());
   await t.run(async (ctx) => {
     for (const element of newcastleMen()) {
       await ctx.db.insert("players", { code: element.code, name: element.web_name, fullName: element.web_name, clubCode: NEWCASTLE.code });
@@ -100,7 +93,7 @@ test("the admin's corrections survive a recount: SS he marks stays, and a positi
   await syncPositionsWith(t, recordedPositions()); // his fourth start up front arrives
 
   expect(await heldPositions(t, PLAYER.woltemade)).toEqual({ SS: "admin" });
-  expect(logged).toHaveBeenCalledWith(REPORTED);
+  expect(logged).toHaveBeenCalledWith(reported());
   expect((await (await asAdmin(t)).query(api.positions.playerPositions.ofPlayer, { code: PLAYER.woltemade })).proposals).toEqual([]);
 });
 

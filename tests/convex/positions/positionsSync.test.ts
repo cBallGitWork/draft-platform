@@ -1,19 +1,11 @@
 import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import { FPL_BOOTSTRAP_URL, PL_COMP_SEASON, PL_LAST_COMP_SEASON, plFixturesUrl, plFixtureUrl } from "../../../convex/football/football";
-import { asAdmin, heldPositions, syncPositionsWith } from "../../support/convex/positionsSync.harness";
+import { REFUSED_MATCH, asAdmin, heldPositions, reported, syncPositionsWith } from "../../support/convex/positionsSync.harness";
 import { MATCHES_PER_RUN } from "../../../convex/positions/positionsSync";
 import type { RawPlSquadPlayer } from "../../../convex/football/premierLeague";
 import { NEWCASTLE, PLAYER, recordedPositions, SHEET, UNPLAYED_MATCH } from "../../support/recorded/positions.payloads";
 import { freshConvex, refusedError, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
-
-const REFUSED_MATCH = `PL fixture ${SHEET.cityCoventryRefused}, team 11's 4-2-3-1 does not draw the 11 men it lists as starting`;
-
-/** The line a run logs for what it could not place: the recorded payloads' refused match, and any
- *  formation or label the table does not know. */
-function reported(unknown: { unknownFormations?: string[]; unknownLabels?: string[] } = {}): string {
-  return `positions sync: ${JSON.stringify({ unknownFormations: [], unknownLabels: [], matchesRefused: [REFUSED_MATCH], ...unknown })}`;
-}
 
 /** The line a run logs when its read of url is refused. */
 function reportedFailure(url: string): string {

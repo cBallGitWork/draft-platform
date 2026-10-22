@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { adminByline } from "../../../convex/mail/letterWords";
 import { mailRefusals } from "../../../convex/mail/mail";
 import { BODY_MAX, LETTERS_SHOWN, SUBJECT_MAX, UNREAD_COUNTED } from "../../../convex/mail/mailLimits";
@@ -67,7 +67,7 @@ describe("letters about the league's events", () => {
     await addManagers(t, leagueId, [ANN]);
 
     expect((await (await mailOf(CAT)).letters()).map((letter) => letter.leagueName)).toEqual(["Other"]);
-    expect((await (await mailOf(ANN)).letters()).map((letter) => letter.leagueName)).toEqual(["Tim Hortons Pro League"]);
+    expect((await (await mailOf(ANN)).letters()).map((letter) => letter.leagueName)).toEqual([LEAGUE_NAME]);
   });
 
   test("the copy to whoever did it is filed read, and everyone else's unread", async () => {

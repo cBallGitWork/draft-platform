@@ -14,6 +14,9 @@ export const COMMISSIONER = "commish@example.com";
 export const CO_COMMISSIONER = "co@example.com";
 export const MANAGERS = ["ann@example.com", "bob@example.com", "cat@example.com", "dan@example.com", "eve@example.com"];
 
+/** The name adminCreatesLeague gives a league unless told another. */
+export const LEAGUE_NAME = "Tim Hortons Pro League";
+
 /** `email` signed in, with a verified account made for it if it has none, as opening a sign-in
  *  link makes. */
 export async function actingAs(t: TestConvex, email: string) {
@@ -29,7 +32,7 @@ export async function actingAs(t: TestConvex, email: string) {
 }
 
 /** The admin makes a league of `maxTeams` run by COMMISSIONER, and its scheduled link is sent. */
-export async function adminCreatesLeague(t: TestConvex, maxTeams = 4, name = "Tim Hortons Pro League"): Promise<Id<"leagues">> {
+export async function adminCreatesLeague(t: TestConvex, maxTeams = 4, name = LEAGUE_NAME): Promise<Id<"leagues">> {
   const admin = await actingAs(t, ADMIN);
   const leagueId = await admin.mutation(api.leagues.leagues.create, { name, maxTeams, commissionerEmail: COMMISSIONER });
   await t.finishAllScheduledFunctions(vi.runAllTimers);
