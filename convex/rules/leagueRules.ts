@@ -3,9 +3,9 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import type { DeadlineRule } from "../gameweeks/deadline";
 import { FIRST_RULES } from "./firstRules";
-import { memberOf, refuse, runnerOf } from "../shared/leagueAccess";
+import { getLeague, memberOf, refuse, runnerOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
-import { checkLeagueRules, UnsoundRules } from "./leagueRulesCheck";
+import { checkGamesFor, checkLeagueRules, UnsoundRules } from "./leagueRulesCheck";
 import { leagueRulesShape, scoringSetShape, type LeagueRules } from "./leagueRulesShape";
 import { categoryName } from "../scoring/categories";
 import { sortedJson } from "../shared/sortedJson";
@@ -22,10 +22,16 @@ export const rulesRefusals = {
   noRules: "This league was made before leagues held their rules, so it has none to change yet.",
 };
 
-/** Refuses unsound rules, telling the commissioner or admin why. */
-function refuseUnsound(rules: LeagueRules): void {
+/** Refuses unsound rules, telling the commissioner or admin why: a league's of `maxTeams`, or the
+ *  admin's defaults, for no league. */
+function refuseUnsound(rules: LeagueRules, maxTeams?: number): void {
+  asRefusal(() => checkLeagueRules(rules, maxTeams));
+}
+
+/** Runs a check of the rules, its UnsoundRules a refusal and anything else the bug it is. */
+function asRefusal(check: () => void): void {
   try {
-    checkLeagueRules(rules);
+    check();
   } catch (error) {
     if (error instanceof UnsoundRules) refuse(error.message);
     throw error;
@@ -73,12 +79,23 @@ async function writeDefaults(ctx: MutationCtx, rules: LeagueRules): Promise<void
   else await ctx.db.patch("defaultLeagueRules", row._id, { rules });
 }
 
-/** Gives a new league the admin's default rules from gameweek 1. The first league a deployment
- *  makes writes the first rules (firstRules.ts) as those defaults. */
-export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">): Promise<void> {
+/** Gives a new league of `maxTeams` the admin's default rules from gameweek 1, refused if that
+ *  many teams can't play their games a gameweek. The first league a deployment makes writes the
+ *  first rules (firstRules.ts) as those defaults. */
+export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">, maxTeams: number): Promise<void> {
   const defaults = (await defaultsRow(ctx))?.rules;
   if (defaults === undefined) await writeDefaults(ctx, FIRST_RULES);
-  await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, rules: defaults ?? FIRST_RULES });
+  const rules = defaults ?? FIRST_RULES;
+  refuseTooFewForGames(rules, maxTeams);
+  await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, rules });
+}
+
+/** Refuses `maxTeams` for a league whose `rules` play more games a gameweek than that many teams
+ *  can, each against a different opponent: checked when a league is made and when its maximum
+ *  changes. A team joining needs no check, as the check reads the maximum, not the teams. */
+export function refuseTooFewForGames(rules: LeagueRules | null, maxTeams: number): void {
+  const games = rules?.gamesPerGameweek;
+  if (games !== undefined) asRefusal(() => checkGamesFor(games, maxTeams));
 }
 
 /** The season's gameweeks and matches as held, less those the football layer no longer sends. */
@@ -136,7 +153,7 @@ async function takesEffectFrom(
  *  saying what changed and from when. The same rules again change nothing and file nothing.
  *  Returns that gameweek. Refused, with the reason, if unsound. */
 async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: string, rules: LeagueRules): Promise<number> {
-  refuseUnsound(rules);
+  refuseUnsound(rules, (await getLeague(ctx, leagueId)).maxTeams);
   const history = await historyOf(ctx, leagueId);
   const fromGameweek = await takesEffectFrom(ctx, history, rules, Date.now());
   const latestRow = history.at(-1);

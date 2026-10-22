@@ -13,8 +13,8 @@ import {
   teamsOf,
 } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
-import { FEWEST_TEAMS, MOST_TEAMS } from "./leagueLimits";
-import { giveDefaultRules } from "../rules/leagueRules";
+import { FEWEST_TEAMS, LEAGUE_NAME_MAX, MOST_TEAMS } from "./leagueLimits";
+import { giveDefaultRules, latestRules, refuseTooFewForGames } from "../rules/leagueRules";
 import { askForLink, hasOpenedALink, signInReply } from "../signIn/signInLinks";
 
 // A league, and who runs it (#24, spec/13). Each change files an event for Mail (#26).
@@ -32,7 +32,8 @@ async function admitCommissioner(ctx: MutationCtx, email: string, leagueId: Id<"
   }
 }
 
-/** For the admin alone: refuses a blank name, a maximum of teams out of range and a commissioner
+/** For the admin alone: refuses a blank name or one over LEAGUE_NAME_MAX characters, a maximum of
+ *  teams out of range or too few for the default rules' games a gameweek, and a commissioner
  *  email without an "@". */
 export const create = mutation({
   args: { name: v.string(), maxTeams: v.number(), commissionerEmail: v.string() },
@@ -41,19 +42,21 @@ export const create = mutation({
     const by = await adminOf(ctx);
     const name = args.name.trim();
     if (!name) refuse(refusals.blankName);
+    if ([...name].length > LEAGUE_NAME_MAX) refuse(refusals.leagueNameTooLong);
     checkMaxTeams(args.maxTeams);
     const commissionerEmail = namedEmail(args.commissionerEmail);
 
     const leagueId = await ctx.db.insert("leagues", { name, maxTeams: args.maxTeams, commissionerEmail });
     await recordEvent(ctx, leagueId, by, { kind: "created", name, maxTeams: args.maxTeams });
     await recordEvent(ctx, leagueId, by, { kind: "commissionerNamed", email: commissionerEmail, replaced: null });
-    await giveDefaultRules(ctx, leagueId);
+    await giveDefaultRules(ctx, leagueId, args.maxTeams);
     await admitCommissioner(ctx, commissionerEmail, leagueId);
     return leagueId;
   },
 });
 
-/** spec/13: the commissioner raises or lowers the maximum, never below the teams already there. */
+/** spec/13: the commissioner raises or lowers the maximum, never below the teams already there,
+ *  nor below the teams its latest rules' games a gameweek need. */
 export const setMaxTeams = mutation({
   args: { leagueId: v.id("leagues"), maxTeams: v.number() },
   returns: v.null(),
@@ -62,6 +65,7 @@ export const setMaxTeams = mutation({
     checkMaxTeams(maxTeams);
     const teamCount = (await teamsOf(ctx, leagueId)).length;
     if (maxTeams < teamCount) refuse(refusals.belowTeams(teamCount));
+    refuseTooFewForGames(await latestRules(ctx, leagueId), maxTeams);
     if (maxTeams === league.maxTeams) return null;
     await ctx.db.patch("leagues", leagueId, { maxTeams });
     await recordEvent(ctx, leagueId, email, { kind: "maxTeamsChanged", from: league.maxTeams, to: maxTeams });

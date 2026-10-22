@@ -57,7 +57,8 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
   multiplied or divided by each other, and are only catalogue stats, never another own
   stat.
 - It then works like any category: any of the three kinds of rule, roles can use it, and it has
-  its own name and short code in the category tables.
+  its own name and short code in the category tables. One named or short-coded as a catalogue
+  stat is, case and spaces aside, is refused when saved (22 Oct 2026).
 
 ## Changes and corrections
 

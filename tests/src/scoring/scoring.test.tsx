@@ -121,9 +121,11 @@ describe("#30 Done: an edit saves, from the next gameweek", () => {
     expect((await screen.findByRole("status")).textContent).toBe(savedWords(CHANGES_FROM));
   });
 
-  it("shows why the server refused it", async () => {
+  it.each([
+    "The scoring set can't be saved: the Assists rule pays 0.25; points are kept in tenths.",
+    'The scoring set can\'t be saved: the own stat own_assists has the name "assists", which the catalogue\'s Assists has.',
+  ])("shows why the server refused it: %s", async (refusal) => {
     const app = openScoring();
-    const refusal = "The scoring set can't be saved: the Assists rule pays 0.25; points are kept in tenths.";
     app.scoring.save.mockResolvedValueOnce(refusal);
     await choose("Assists");
     await retype(columnWords.points, everyoneWords, "0.25");

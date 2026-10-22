@@ -2,27 +2,53 @@ import { STARTER_COUNT, type AreaLimit } from "../lineup/lineup";
 import { AREAS, type Area } from "../lineup/pitch";
 import type { LeagueRules } from "./leagueRulesShape";
 import { validateScoringSet } from "../scoring/scoringSet";
+import { checkOwnStatsAgainstCatalogue } from "../scoring/ownStats";
+import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
+import { roundsInARoundRobin } from "../table/roundRobin";
 
 // What makes a league's rules sound beyond their stored shape (spec/03; #25): each check throws an
 // UnsoundRules carrying the reason a commissioner is told. The shape (a known format, a number
-// where one belongs) is leagueRulesShape.ts's, checked by Convex before this runs. Pure: no I/O.
+// where one belongs) is leagueRulesShape.ts's, checked by Convex before this runs. The limits the
+// rules are checked against are the platform's (leagueLimits.ts), never a rule. Pure: no I/O.
 
 /** Why rules can't be saved, told apart from a bug, which is never shown as a reason. */
 export class UnsoundRules extends Error {}
 
-/** Throws the first reason these rules can't be saved. */
-export function checkLeagueRules(rules: LeagueRules): void {
+/** Throws the first reason these rules can't be saved. Given the league's maximum teams, also
+ *  checks its games a gameweek can each be against a different opponent: the admin's defaults
+ *  belong to no league, so are checked against one when a league is made with them. */
+export function checkLeagueRules(rules: LeagueRules, maxTeams?: number): void {
   checkSquad(rules.squad);
   checkAreaLimits(rules.areaLimits);
   checkPresets(rules.presets, rules.areaLimits);
   checkWholeNumber(rules.deadline.minutesBeforeFirstKickoff, "The deadline's minutes before the first kickoff", 0);
   checkNoneTwice(rules.tieBreaks, (tieBreak) => `The tie-break ${tieBreak} is listed twice.`);
-  if (rules.gamesPerGameweek !== undefined) checkWholeNumber(rules.gamesPerGameweek, "The head-to-head games each team plays a gameweek", 1);
+  if (rules.gamesPerGameweek !== undefined) {
+    checkWholeNumber(rules.gamesPerGameweek, "The head-to-head games each team plays a gameweek", 1);
+    if (maxTeams !== undefined) checkGamesFor(rules.gamesPerGameweek, maxTeams);
+  }
   checkWaivers(rules.waivers);
   try {
     validateScoringSet(rules.scoring);
+    // Here, on saving, never in validateScoringSet, which scoring runs: a catalogue stat renamed
+    // later mustn't stop a league's saved set scoring (#212).
+    checkOwnStatsAgainstCatalogue(rules.scoring.ownStats ?? []);
   } catch (error) {
     throw new UnsoundRules(`The scoring set can't be saved: ${(error as Error).message}.`);
+  }
+}
+
+const gamesWords = (games: number) => (games === 1 ? "1 game" : `${games} games`);
+
+/** Each of a team's games in a gameweek is against a different opponent, so with `maxTeams` teams
+ *  it plays at most one round robin's rounds (roundRobin.ts); a league asking more would quietly
+ *  play fewer (Craig, 22 Oct 2026: refused instead, naming the most). */
+export function checkGamesFor(games: number, maxTeams: number): void {
+  const most = roundsInARoundRobin(maxTeams);
+  if (games > most) {
+    throw new UnsoundRules(
+      `With ${maxTeams} teams, a team can play at most ${gamesWords(most)} a gameweek, each against a different opponent, not ${games}.`,
+    );
   }
 }
 
@@ -58,6 +84,9 @@ function checkSquad({ size, byArea, maxPerClub }: LeagueRules["squad"]): void {
     checkLimit(size, "The squad size");
     if (size.maximum < STARTER_COUNT) {
       throw new UnsoundRules(`The squad's maximum, ${size.maximum}, can't field the ${STARTER_COUNT} who start.`);
+    }
+    if (size.maximum > MOST_IN_SQUAD) {
+      throw new UnsoundRules(`The squad's maximum, ${size.maximum}, is above the ${MOST_IN_SQUAD} players any team can hold.`);
     }
   }
   if (byArea !== null) {
