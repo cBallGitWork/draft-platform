@@ -206,8 +206,8 @@ test("every recorded line of Hull v Everton, from both feeds, in every area, sco
   const rows = [...scoredBy("fpl", fplLines), ...scoredBy("pl", plLines)];
 
   // One row per man per area, each on its own line, so a diff of the golden names exactly what moved.
-  const golden = `[\n${rows.map((row) => `  ${JSON.stringify(row)}`).join(",\n")}\n]\n`;
-  await expect(golden).toMatchFileSnapshot("../../support/golden/hull-everton.scores.json");
+  const scoredJson = `[\n${rows.map((row) => `  ${JSON.stringify(row)}`).join(",\n")}\n]\n`;
+  await expect(scoredJson).toMatchFileSnapshot("../../support/golden/hull-everton.scores.json");
 });
 
 describe("a double gameweek, his two matches", () => {
