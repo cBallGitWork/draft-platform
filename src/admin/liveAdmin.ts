@@ -8,8 +8,8 @@ import { changeFailedWords } from "./words";
 
 const useQueue: AdminSeam["useQueue"] = () => useQuery(api.positions.playerPositions.queue, {});
 
-/** The start of the current minute, moving on at the next: a query can't read the clock, so the
- *  feeds page asks again with each new minute, and a feed that stops turns late on the screen. */
+/** The start of the current minute, moving on at the next: the time the feeds are judged at, so a
+ *  feed that stops turns late on screen (why, in convex/admin/feeds.ts). */
 function useMinute(): number {
   const [minute, setMinute] = useState(() => startOfMinute(Date.now()));
   useEffect(() => {

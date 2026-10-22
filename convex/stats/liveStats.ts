@@ -23,12 +23,15 @@ export const live = internalQuery({
     (await liveMatches(ctx, now)).map(({ fixtureCode, gameweek }) => ({ fixtureCode, gameweek })),
 });
 
-/** `live`'s matches with their kickoffs, which the feeds page judges the tick's lateness from. */
-export async function liveMatches(ctx: QueryCtx, now: number): Promise<(DueMatch & { kickoff: number })[]> {
+/** A match being played, with its kickoff, which the feeds page judges the tick's lateness from. */
+type LiveMatch = DueMatch & { kickoff: number };
+
+/** `live`'s matches, with their kickoffs. */
+export async function liveMatches(ctx: QueryCtx, now: number): Promise<LiveMatch[]> {
   const kickedOff = ctx.db
     .query("fixtures")
     .withIndex("by_kickoff", (q) => q.gt("kickoff", now - LIVE_WINDOW_MS).lte("kickoff", now));
-  const found: (DueMatch & { kickoff: number })[] = [];
+  const found: LiveMatch[] = [];
   for await (const { code, gameweek, kickoff, droppedAt } of kickedOff) {
     if (droppedAt !== undefined || gameweek === null || kickoff === null) continue;
     const status = await statusOf(ctx, code);

@@ -1,6 +1,6 @@
 // The seam for the admin's dashboard (#87): what it reads and asks of players' positions, and the
-// feeds page's report (#35). Convex
-// fills it in live (liveAdmin.ts); the preview and the tests hand the screen their own.
+// feeds page's report (#35). Convex fills it in live (liveAdmin.ts); the preview and the tests hand
+// the screen their own.
 
 import type { FeedsReport } from "../../convex/admin/feeds";
 import type { FoundPlayerPositions, PositionsQueue } from "../../convex/positions/playerPositions";

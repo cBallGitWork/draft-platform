@@ -15,8 +15,8 @@ import { lateStatChange } from "../schema";
 // nothing, would never turn late (convex/_generated/ai/guidelines.md). So the screen passes `now`,
 // moved on each minute, and the query judges against it: a new minute is a new query.
 
-/** Runs read back per feed, newest first, for its last success and last error: four days of the
- *  football sync, and a match's first hundred minutes of live ticks. */
+/** Runs read back per feed, newest first, for its last success and last error: 25 days of the
+ *  football sync, or an hour and 40 minutes of live ticks. */
 export const RUNS_READ = 100;
 /** Matches behind, and late corrections, the page lists at most: newest corrections first. */
 export const BEHIND_SHOWN = 20;
