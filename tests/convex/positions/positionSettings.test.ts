@@ -3,6 +3,7 @@
 
 import { describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
+import type { Doc } from "../../../convex/_generated/dataModel";
 import { thresholdRefusals } from "../../../convex/positions/positionSettings";
 import type { Start } from "../../../convex/positions/positions";
 import { DAY_MS } from "../../../convex/shared/time";
@@ -130,8 +131,20 @@ describe("only between gameweeks", () => {
       await ctx.db.insert("gameweeks", { number: 2, deadline: 20 * DAY_MS });
     });
   }
-  const positionsSyncRanOnDay = (t: TestConvex, day: number) =>
-    t.run((ctx) => ctx.db.insert("positionsSyncs", { trigger: "manual", ranAt: day * DAY_MS, outcome: { ok: false, error: "not read" } }));
+  const READ = {
+    ok: true as const,
+    matchesRead: 1,
+    matchesLeft: 0,
+    matchesRefused: [],
+    startsAdded: 1,
+    unmatchedPlayers: 0,
+    labelsReceived: 0,
+    labelsChanged: 0,
+    unknownFormations: [],
+    unknownLabels: [],
+  };
+  const positionsSyncRanOnDay = (t: TestConvex, day: number, outcome: Doc<"positionsSyncs">["outcome"] = READ) =>
+    t.run((ctx) => ctx.db.insert("positionsSyncs", { trigger: "manual", ranAt: day * DAY_MS, outcome }));
 
   /** Five at centre back to day 5, four at full back to day 9, then two more on days 11 and 12. */
   const acrossTheDeadline = () => [...played(...times(CENTRE_BACK, 5), ...times(RIGHT_BACK, 4)), ...startsFrom(11, ...times(RIGHT_BACK, 2))];
@@ -146,6 +159,17 @@ describe("only between gameweeks", () => {
 
     await positionsSyncRanOnDay(t, 21);
     expect(await queueOf(t)).toMatchObject({ flagged: [], removed: [{ position: "CB" }] });
+  });
+
+  test("a sync that failed read nothing, so it moves no boundary", async () => {
+    const t = freshConvex();
+    await holdPlayer(t, BARNES, acrossTheDeadline());
+    await gameweeksAtDays10And20(t);
+    await positionsSyncRanOnDay(t, 13);
+
+    await positionsSyncRanOnDay(t, 21, { ok: false, error: "the feed was down" });
+
+    expect(await queueOf(t)).toMatchObject({ flagged: [{ position: "CB", startsElsewhere: 4 }], removed: [] });
   });
 
   test("before any sync, or before the season's first deadline, every start is judged", async () => {

@@ -112,8 +112,9 @@ export function positionsOf({ starts, plLabel, admin, approveMode, thresholds, j
     const run = runElsewhere.get(position)!;
     hold(position, "starts", isApproved(position), run >= thresholds.flagAfter ? run : null);
   }
+  // A position his run elsewhere removed stays gone: a vague label ("Defender") never hands it back.
   if (counted.length === 0) {
-    for (const position of fromLabel ?? []) hold(position, "label", plLabel === admin.confirmedLabel);
+    for (const position of fromLabel ?? []) if (!kept.some((each) => each === position && isRemoved(each))) hold(position, "label", plLabel === admin.confirmedLabel);
   }
   return {
     positions: POSITIONS.flatMap((position) => held.get(position) ?? []),

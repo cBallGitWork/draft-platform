@@ -215,6 +215,12 @@ describe("when positions change (spec/06)", () => {
     expect(positionsOf(given).removed).toEqual(["CB"]);
   });
 
+  test("a position a run removed never comes back from a vague label that would give it", () => {
+    const given = inputs({ starts: played(...times(RIGHT_BACK, 5), ...times(LEFT_WINGER, 6)), plLabel: "Defender", admin: { ...NO_ADMIN, approved: ["FB"] } });
+    expect(positionsOf(given).removed).toEqual(["FB"]);
+    expect(flags(given)).toEqual({ CB: "label" });
+  });
+
   test("an unapproved position from starts that a run removes is no longer proposed, nor listed as removed", () => {
     const result = positionsOf(inputs({ starts: movedToFullBack(6) }));
     expect([result.proposals, result.removed]).toEqual([["FB"], []]);

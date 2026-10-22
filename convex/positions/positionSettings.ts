@@ -66,14 +66,20 @@ function thresholdsOf(settings: Doc<"positionSettings"> | null): ChangeThreshold
 }
 
 /** Positions change only between gameweeks (spec/06): the starts judged are those before the last
- *  FPL deadline the newest positions sync ran after, so a sync within a gameweek moves nothing.
+ *  FPL deadline the newest good positions sync ran after, so a sync within a gameweek moves nothing.
  *  The sync's time stands in for the clock, which a query can't read. Null, judging every start,
  *  before any sync or the season's first deadline (docs/positions.md, When positions change). */
 async function judgedBefore(ctx: QueryCtx): Promise<number | null> {
-  const newestSync = await ctx.db.query("positionsSyncs").order("desc").first();
+  const newestSync = await newestGoodSync(ctx);
   if (newestSync === null) return null;
   const passed = [...(await fplDeadlines(ctx)).values()].filter((deadline) => deadline <= newestSync.ranAt);
   return passed.length === 0 ? null : Math.max(...passed);
+}
+
+/** The newest sync that read its starts: a failed one read nothing, so it moves no boundary. */
+async function newestGoodSync(ctx: QueryCtx): Promise<Doc<"positionsSyncs"> | null> {
+  for await (const sync of ctx.db.query("positionsSyncs").order("desc")) if (sync.outcome.ok) return sync;
+  return null;
 }
 
 function settingsRow(ctx: QueryCtx) {
