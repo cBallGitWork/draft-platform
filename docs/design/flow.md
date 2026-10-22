@@ -40,7 +40,7 @@ flowchart TD
   end
   LP -.->|"signed out (an invite link keeps ?join)"| SIGNIN
   NEW & ADMIN -.->|"not the admin"| LEAGUES
-  GW & SQ -.->|"doesn't run it, or it's being deleted"| LEAGUES
+  GW & SQ & INV -.->|"doesn't run it, or it's being deleted"| LEAGUES
   LEAGUES -- "Create a league" --> NEW
   LEAGUES -- "Admin dashboard" --> ADMIN
   LEAGUES -- "Gameweeks" --> GW
