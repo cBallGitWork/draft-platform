@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { Band, Priced } from "../../convex/scoring/scoringSet";
+import { Keys, TickBox } from "../frame/Controls";
 import { PanelTitle } from "../frame/Panel";
 import {
   keysOf,
@@ -47,8 +48,6 @@ import {
 } from "./words";
 
 const CATEGORY_TITLE_ID = "category-title";
-const PAYS_LABEL_ID = "pays-label";
-const SHAPE_CHOICE = "shape";
 
 /** A row's name in the values table. */
 function rowWords(key: PriceKey): string {
@@ -65,22 +64,7 @@ export function CategoryEditor({ name, rule, onChange, onRemove }: { name: strin
     <section aria-labelledby={CATEGORY_TITLE_ID} className="bg-panel">
       <PanelTitle id={CATEGORY_TITLE_ID}>{name}</PanelTitle>
       <div className="flex flex-col gap-1 p-3">
-        <div role="radiogroup" aria-labelledby={PAYS_LABEL_ID} className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span id={PAYS_LABEL_ID} className="text-soft">
-            {paysLabel}
-          </span>
-          <span className="flex">
-            {SHAPES.map((shape) => (
-              <label
-                key={shape}
-                className="flex min-h-tap cursor-pointer items-center border border-soft px-3 has-checked:border-fact has-checked:bg-plate has-checked:font-semibold has-focus-visible:outline-2 has-focus-visible:outline-derived"
-              >
-                <input type="radio" name={SHAPE_CHOICE} className="sr-only" checked={rule.shape === shape} onChange={() => onChange(withShape(rule, shape))} />
-                {shapeWords[shape]}
-              </label>
-            ))}
-          </span>
-        </div>
+        <Keys label={paysLabel} choices={SHAPES} words={shapeWords} chosen={rule.shape} onChoose={(shape) => onChange(withShape(rule, shape))} />
         <p className="text-muted">{shapeHints[rule.shape]}</p>
         <TickBox checked={pricing === "byArea"} onChange={pricedBy("byArea")}>
           {byAreaWords}
@@ -108,15 +92,6 @@ export function CategoryEditor({ name, rule, onChange, onRemove }: { name: strin
         </button>
       </div>
     </section>
-  );
-}
-
-function TickBox({ checked, onChange, children }: { checked: boolean; onChange: (checked: boolean) => void; children: ReactNode }) {
-  return (
-    <label className="flex min-h-tap cursor-pointer items-center gap-2 self-start lg:min-h-0 lg:py-1">
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
-      {children}
-    </label>
   );
 }
 

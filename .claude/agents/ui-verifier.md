@@ -59,6 +59,9 @@ never enough.
 - Archivo Narrow throughout; figures in tabular numerals.
 - Radius 0; the 2px bevel on the top bar and each title plate; tabs butted with 1px rules.
 - Panels 8px apart, aligned to the top, none stretched empty.
+- Controls (plate.md, Controls): a tick box is a dark sunken well with a soft rim and a white drawn
+  tick, never the browser's own; the chosen key is pressed in (dark, white 600), the others the
+  plate; Save is outlined grey with nothing to save, Discard the plate's secondary beside it.
 - The "Never" list, every item.
 
 ## Output

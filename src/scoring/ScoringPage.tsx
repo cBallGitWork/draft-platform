@@ -4,6 +4,7 @@ import { categoryName } from "../../convex/scoring/categories";
 import type { Priced } from "../../convex/scoring/scoringSet";
 import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogue";
 import { sortedJson } from "../../convex/shared/sortedJson";
+import { DiscardSave, TickBox } from "../frame/Controls";
 import { Loading, PageSection, PanelNote, PanelTitle, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { useChange } from "../useChange";
@@ -127,20 +128,17 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: ScoringSe
             <span>
               <span className="text-soft">{appliesFromWords}</span> <span className="font-semibold text-derived">{gameweekWords(view.changesFrom)}</span>
             </span>
-            <label className="flex min-h-tap cursor-pointer items-center gap-2">
-              <input type="checkbox" checked={draft.wholePointsOnly} onChange={(event) => edit({ ...draft, wholePointsOnly: event.target.checked })} />
+            <TickBox checked={draft.wholePointsOnly} onChange={(on) => edit({ ...draft, wholePointsOnly: on })}>
               {wholePointsWords}
-            </label>
-            <span className="flex grow flex-wrap justify-end gap-2">
-              {!unchanged && (
-                <button type="button" onClick={() => edit(view.scoring)} className="secondary-action">
-                  {discardWords}
-                </button>
-              )}
-              <button type="button" disabled={unchanged || save.busy} onClick={() => void saveDraft()} className="action">
-                {saveWords}
-              </button>
-            </span>
+            </TickBox>
+            <DiscardSave
+              discardWords={discardWords}
+              saveWords={saveWords}
+              onDiscard={unchanged ? undefined : () => edit(view.scoring)}
+              onSave={() => void saveDraft()}
+              nothingToSave={unchanged}
+              busy={save.busy}
+            />
           </div>
           {unchanged && savedFrom === null && <PanelNote edge="b">{unchangedWords}</PanelNote>}
           {savedFrom !== null && (
