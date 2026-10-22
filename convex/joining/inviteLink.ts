@@ -5,7 +5,8 @@ import { action, internalMutation, mutation, type QueryCtx } from "../_generated
 import { admitEmail } from "../signIn/allowedEmails";
 import { joinPath } from "./joiningShared";
 import { joiningRefusals } from "./joining";
-import { namedEmail, recordEvent, refuse, runnerOf } from "../shared/leagueAccess";
+import { namedEmail, refuse, runnerOf } from "../shared/leagueAccess";
+import { recordEvent } from "../mail/letters";
 import { askForLink, signInReply } from "../signIn/signInLinks";
 
 // A league's one invite link (#73, spec/13 Joining): opening it only asks to join. Its runners
