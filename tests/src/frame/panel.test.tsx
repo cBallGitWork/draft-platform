@@ -14,7 +14,8 @@ it("names a page's section by its title, with the aside on the plate and the cal
   );
   const section = screen.getByRole("region", { name: "Mail" });
   expect(section.className).toBe("max-w-xl bg-panel");
-  expect(screen.getByRole("heading", { level: 1, name: "Mail" })).toBeTruthy();
+  const plate = screen.getByRole("heading", { level: 1, name: "Mail" }).parentElement;
+  expect(plate?.textContent).toBe("Mail2 unread");
   expect(section.textContent).toBe("Mail2 unreadA letter");
 });
 
