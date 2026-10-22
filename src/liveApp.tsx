@@ -1,8 +1,10 @@
 import { ConvexAuthProvider, useAuthActions } from "@convex-dev/auth/react";
 import { ConvexReactClient, useAction, useConvexAuth, useQuery } from "convex/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { api } from "../convex/_generated/api";
 import { useLiveAdmin } from "./admin/liveAdmin";
+import { PageTitle, Problem } from "./frame/Panel";
+import { ERROR_PAGE_TITLE, readFailedWords, reloadWords } from "./frame/words";
 import type { AuthActions, Session } from "./auth";
 import { liveGameweeks } from "./gameweeks/liveGameweeks";
 import { useLiveJoining } from "./joining/liveJoining";
@@ -11,7 +13,7 @@ import { useLiveLeagueActions } from "./leagues/liveLeagueActions";
 import { useLiveMail } from "./mail/liveMail";
 import { useLiveSquads } from "./squads/liveSquads";
 import { liveTable } from "./table/liveTable";
-import { answerOf } from "./refusal";
+import { answerOf, refusalIn } from "./refusal";
 import { SIGN_IN_PATH } from "./router";
 import { ShellApp } from "./ShellApp";
 import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "./sign-in/words";
@@ -49,9 +51,35 @@ export function LiveApp({ linkCode }: { linkCode: string | null }) {
   // would turn a good link into "expired" (liveApp.provider.test.tsx).
   return (
     <ConvexAuthProvider client={client} shouldHandleCode={false}>
-      <LiveShell linkCode={linkCode} />
+      <ShellFailed>
+        <LiveShell linkCode={linkCode} />
+      </ShellFailed>
     </ConvexAuthProvider>
   );
+}
+
+/** What the app shows when something above the router threw, such as a query the top bar reads:
+ *  what ErrorScreen.tsx says, and a reload, as the router's way back isn't there. React logs the
+ *  error itself (its onCaughtError). */
+class ShellFailed extends Component<{ children: ReactNode }, { failed: { error: unknown } | null }> {
+  state: { failed: { error: unknown } | null } = { failed: null };
+
+  static getDerivedStateFromError(error: unknown) {
+    return { failed: { error } };
+  }
+
+  render() {
+    if (this.state.failed === null) return this.props.children;
+    return (
+      <section aria-labelledby="page-title" className="max-w-xl bg-panel">
+        <PageTitle>{ERROR_PAGE_TITLE}</PageTitle>
+        <Problem problem={refusalIn(this.state.failed.error) ?? readFailedWords} />
+        <button type="button" onClick={() => location.reload()} className="action m-3">
+          {reloadWords}
+        </button>
+      </section>
+    );
+  }
 }
 
 function LiveShell({ linkCode }: { linkCode: string | null }) {
