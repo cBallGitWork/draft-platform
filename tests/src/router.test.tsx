@@ -9,9 +9,9 @@ import { gameweeksPath } from "../../src/gameweeks/paths";
 import { invitesPath } from "../../src/joining/paths";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../src/leagues/paths";
 import { squadsPath } from "../../src/squads/paths";
-import { adminSeeing, beingDeleted, deleterOf, league, manager, openApp } from "../support/src/shell.harness";
+import { adminSeeing, beingDeleted, commissioned, deleterOf, league, manager, openApp } from "../support/src/shell.harness";
 
-const deleting = beingDeleted({ ...league, roles: ["commissioner", "manager"] });
+const deleting = beingDeleted(commissioned);
 
 const pagesOf = (leagueId: string) => [squadsPath(leagueId), gameweeksPath(leagueId), invitesPath(leagueId)];
 

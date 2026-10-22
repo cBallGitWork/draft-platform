@@ -4,15 +4,13 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { GAMEWEEKS_TITLE } from "../../../src/gameweeks/words";
 import { invitesTitle } from "../../../src/joining/words";
 import { SQUADS_TITLE } from "../../../src/squads/words";
-import { adminSeeing, beingDeleted, deleterOf, league, managerIn, openApp } from "../../support/src/shell.harness";
+import { adminSeeing, beingDeleted, commissioned, deleterOf, league, managerIn, openApp } from "../../support/src/shell.harness";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { confirmDelete, unemailed, unsentLinkWords } from "../../../src/leagues/words";
 
-const commissioned: LeagueSummary = { ...league, roles: ["commissioner", "manager"] };
 const deleter = deleterOf(
   beingDeleted(commissioned, {
     deletesAt: Date.parse("2026-10-21T09:00:00Z"),

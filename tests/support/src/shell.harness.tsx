@@ -43,6 +43,8 @@ export const managerIn = (...leagues: LeagueSummary[]) =>
 export const manager = managerIn(league);
 /** The commissioner of `league`, running no team in it. */
 export const commissioner = managerIn({ ...league, roles: ["commissioner"], teamName: null });
+/** `league` as `manager` sees it when they run it as well as Team 1. */
+export const commissioned: LeagueSummary = { ...league, roles: ["commissioner", "manager"] };
 export const newcomer: Session = { ...signedIn, inLeague: false, leagues: [], currentLeagueId: null };
 /** The admin, seeing every league, with no part in any. */
 export const adminSeeing = (...leagues: LeagueSummary[]) =>
