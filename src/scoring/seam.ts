@@ -2,15 +2,12 @@
 // Convex fills it in live (liveScoring.ts); the preview and the tests hand the screen their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
+import type { Revision, RulesView } from "../rules/rulesDraft";
 import type { Scoring } from "./editing";
-
-/** The rules row a set was read from: a save carries it, so one made over someone else's is
- *  refused (convex/rules/leagueRules.ts). */
-export type Revision = Id<"leagueRules">;
 
 /** The league's scoring set, the rules row it is from, and the gameweek a change saved now would
  *  take effect from. */
-export type ScoringView = { scoring: Scoring; revision: Revision; changesFrom: number };
+export type ScoringView = RulesView<Scoring>;
 
 export type ScoringSeam = {
   /** Live (a hook): undefined while it loads, null for a league made before leagues held rules. */

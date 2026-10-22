@@ -3,35 +3,28 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { categoryName } from "../../convex/scoring/categories";
 import type { Priced } from "../../convex/scoring/scoringSet";
 import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogue";
-import { sortedJson } from "../../convex/shared/sortedJson";
-import { Loading, Notice, PageSection, PanelNote, PanelTitle, Problem } from "../frame/Panel";
+import { Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
-import { useChange } from "../useChange";
+import { useRulesDraft } from "../rules/rulesDraft";
+import { SaveBar } from "../rules/SaveBar";
 import { CategoryEditor } from "./CategoryEditor";
 import { firstBlankRule, newRule, rulePricing, valueAt, type Rule, type Scoring } from "./editing";
-import type { Revision, ScoringSeam, ScoringView } from "./seam";
+import type { ScoringSeam, ScoringView } from "./seam";
 import {
   addCategoryLabel,
   addCategoryWords,
   addWords,
   allScoredWords,
-  appliesFromWords,
   bandsWords,
   blankBoxWords,
   categoriesLabel,
-  discardWords,
-  gameweekWords,
   loadingWords,
-  loadLatestWords,
   noRulesWords,
-  overtakenWords,
   perCountSummary,
   pointsWords,
   pricingWords,
   savedWords,
-  saveWords,
   SCORING_TITLE,
-  unchangedWords,
   wholePointsWords,
 } from "./words";
 
@@ -62,35 +55,17 @@ export function ScoringPage({ league, seam }: { league: LeagueSummary; seam: Sco
   );
 }
 
-/** The commissioner's edits, and the rules row they were made from. */
-type Edits = { scoring: Scoring; revision: Revision };
-
-/** The two panes: the categories, and the one chosen; and the bar that saves them. Until the
- *  commissioner edits, it shows the latest set as it arrives; once they have, it keeps their edits,
- *  and should someone else save meanwhile, it says so and offers the latest in their place. */
+/** The two panes: the categories, and the one chosen; and the bar that saves them (rulesDraft.ts
+ *  says how the draft follows the latest set, and what a save over someone else's does). */
 function Editor({ league, seam, view }: { league: LeagueSummary; seam: ScoringSeam; view: ScoringView }) {
-  const [edits, setEdits] = useState<Edits | null>(null);
-  const draft = edits?.scoring ?? view.scoring;
-  const revision = edits?.revision ?? view.revision;
-  const overtaken = revision !== view.revision;
+  const rulesDraft = useRulesDraft(view, (scoring, revision) => seam.save(league.leagueId, scoring, revision), blankBoxRefusal);
+  const { draft, edit } = rulesDraft;
   const [picked, choose] = useState(0);
-  const [savedFrom, setSavedFrom] = useState<number | null>(null);
-  const save = useChange();
   const nameOf = (stat: string) => categoryName(stat, draft.ownStats);
-  const unchanged = sortedJson(draft) === sortedJson(view.scoring);
   // The last, once removing or discarding leaves fewer than the one picked.
   const chosen = Math.max(0, Math.min(picked, draft.rules.length - 1));
   const rule = draft.rules[chosen] as Rule | undefined;
 
-  function edit(next: Scoring) {
-    setEdits({ scoring: next, revision });
-    setSavedFrom(null);
-  }
-  /** Drops the edits for the latest set: discarding them, or after someone else's save. */
-  function dropEdits() {
-    setEdits(null);
-    save.clear();
-  }
   const setRule = (index: number, changed: Rule) => edit({ ...draft, rules: draft.rules.map((each, at) => (at === index ? changed : each)) });
   function remove(index: number) {
     edit({ ...draft, rules: draft.rules.filter((_, at) => at !== index) });
@@ -98,22 +73,6 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: ScoringSe
   function add(stat: string) {
     edit({ ...draft, rules: [...draft.rules, newRule(stat)] });
     choose(draft.rules.length);
-  }
-
-  async function saveDraft() {
-    const blank = firstBlankRule(draft);
-    let from: number | null = null;
-    const made = await save.run(async () => {
-      if (blank !== -1) return blankBoxWords(nameOf(draft.rules[blank].stat));
-      const answer = await seam.save(league.leagueId, draft, revision);
-      if (typeof answer === "string") return answer;
-      from = answer;
-      return null;
-    });
-    if (!made) return;
-    // The live set has this save in it by now: Convex answers a mutation after its queries.
-    setEdits(null);
-    setSavedFrom(from);
   }
 
   return (
@@ -139,47 +98,22 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: ScoringSe
       </section>
       <div className="flex min-w-0 grow flex-col gap-2">
         {rule && <CategoryEditor key={chosen} name={nameOf(rule.stat)} rule={rule} onChange={(changed) => setRule(chosen, changed)} onRemove={() => remove(chosen)} />}
-        <div className="bg-panel">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2">
-            <span>
-              <span className="text-soft">{appliesFromWords}</span> <span className="font-semibold text-derived">{gameweekWords(view.changesFrom)}</span>
-            </span>
-            <label className="flex min-h-tap cursor-pointer items-center gap-2">
-              <input type="checkbox" checked={draft.wholePointsOnly} onChange={(event) => edit({ ...draft, wholePointsOnly: event.target.checked })} />
-              {wholePointsWords}
-            </label>
-            <span className="flex grow flex-wrap justify-end gap-2">
-              {!unchanged && !overtaken && (
-                <button type="button" onClick={dropEdits} className="secondary-action">
-                  {discardWords}
-                </button>
-              )}
-              <button type="button" disabled={unchanged || save.busy} onClick={() => void saveDraft()} className="action">
-                {saveWords}
-              </button>
-            </span>
-          </div>
-          {unchanged && savedFrom === null && <PanelNote edge="b">{unchangedWords}</PanelNote>}
-          {savedFrom !== null && (
-            <p role="status" className="px-3 pb-2">
-              {savedWords(savedFrom)}
-            </p>
-          )}
-          <Problem problem={save.problem} />
-          {overtaken && (
-            <>
-              {save.problem === null && <Notice>{overtakenWords}</Notice>}
-              <p className="px-3 py-2">
-                <button type="button" onClick={dropEdits} className="secondary-action">
-                  {loadLatestWords}
-                </button>
-              </p>
-            </>
-          )}
-        </div>
+        <SaveBar draft={rulesDraft} savedWords={savedWords}>
+          <label className="flex min-h-tap cursor-pointer items-center gap-2">
+            <input type="checkbox" checked={draft.wholePointsOnly} onChange={(event) => edit({ ...draft, wholePointsOnly: event.target.checked })} />
+            {wholePointsWords}
+          </label>
+        </SaveBar>
       </div>
     </div>
   );
+}
+
+/** Why a set holding a box left without a number isn't sent: the server would refuse it as data
+ *  of the wrong shape, never with a reason the commissioner can act on. */
+function blankBoxRefusal(scoring: Scoring): string | null {
+  const blank = firstBlankRule(scoring);
+  return blank === -1 ? null : blankBoxWords(categoryName(scoring.rules[blank].stat, scoring.ownStats));
 }
 
 /** A category's values beside its name: the number when there's one for all, else how it's set. */

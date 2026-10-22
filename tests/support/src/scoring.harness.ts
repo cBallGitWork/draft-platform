@@ -2,7 +2,8 @@
 
 import { vi } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
-import type { Revision, ScoringSeam, ScoringView } from "../../../src/scoring/seam";
+import type { Revision } from "../../../src/rules/rulesDraft";
+import type { ScoringSeam, ScoringView } from "../../../src/scoring/seam";
 
 /** The gameweek the fake server says a change takes effect from. */
 export const CHANGES_FROM = 9;
@@ -14,7 +15,7 @@ export const REVISION = "rules-1" as Revision;
 export type ScoringData = { view?: ScoringView | null; loading?: boolean };
 
 /** Saving succeeds from CHANGES_FROM, unless a test says otherwise. */
-export function fakeScoring({ view = { scoring: structuredClone(FIRST_RULES.scoring), revision: REVISION, changesFrom: CHANGES_FROM }, loading = false }: ScoringData = {}) {
+export function fakeScoring({ view = { part: structuredClone(FIRST_RULES.scoring), revision: REVISION, changesFrom: CHANGES_FROM }, loading = false }: ScoringData = {}) {
   return {
     useScoring: vi.fn<ScoringSeam["useScoring"]>(() => (loading ? undefined : view)),
     save: vi.fn<ScoringSeam["save"]>(async () => CHANGES_FROM),

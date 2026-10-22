@@ -60,6 +60,7 @@ import type * as rules_firstRules from "../rules/firstRules.js";
 import type * as rules_leagueRules from "../rules/leagueRules.js";
 import type * as rules_leagueRulesCheck from "../rules/leagueRulesCheck.js";
 import type * as rules_leagueRulesShape from "../rules/leagueRulesShape.js";
+import type * as rules_leagueSettings from "../rules/leagueSettings.js";
 import type * as scoring_categories from "../scoring/categories.js";
 import type * as scoring_ownStats from "../scoring/ownStats.js";
 import type * as scoring_scoring from "../scoring/scoring.js";
@@ -147,6 +148,7 @@ declare const fullApi: ApiFromModules<{
   "rules/leagueRules": typeof rules_leagueRules;
   "rules/leagueRulesCheck": typeof rules_leagueRulesCheck;
   "rules/leagueRulesShape": typeof rules_leagueRulesShape;
+  "rules/leagueSettings": typeof rules_leagueSettings;
   "scoring/categories": typeof scoring_categories;
   "scoring/ownStats": typeof scoring_ownStats;
   "scoring/scoring": typeof scoring_scoring;

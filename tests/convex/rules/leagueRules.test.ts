@@ -244,7 +244,7 @@ describe("the rules editor", () => {
     await holdGameweeks(t, { next: 9 });
     const leagueId = await adminCreatesLeague(t);
 
-    expect(await scoringOf(leagueId)).toEqual({ scoring: FIRST_RULES.scoring, revision: await rulesRevision(t, leagueId), changesFrom: 9 });
+    expect(await scoringOf(leagueId)).toEqual({ part: FIRST_RULES.scoring, revision: await rulesRevision(t, leagueId), changesFrom: 9 });
   });
 
   test("says a change waits for gameweek 10 once one already waits for it", async () => {
@@ -320,7 +320,7 @@ describe("the rules editor", () => {
     const leagueId = await adminCreatesLeague(t);
     await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
 
-    expect((await scoringOf(leagueId, email))?.scoring).toEqual(FIRST_RULES.scoring);
+    expect((await scoringOf(leagueId, email))?.part).toEqual(FIRST_RULES.scoring);
     await changeScoring(leagueId, EDITED, email);
     expect((await latest(leagueId))?.rules.scoring).toEqual(EDITED);
   });

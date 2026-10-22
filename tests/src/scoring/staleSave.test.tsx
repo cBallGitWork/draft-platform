@@ -7,15 +7,17 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import type { Scoring } from "../../../src/scoring/editing";
-import type { Revision, ScoringView } from "../../../src/scoring/seam";
-import { columnWords, discardWords, everyoneWords, loadLatestWords, overtakenWords, unchangedWords } from "../../../src/scoring/words";
+import type { Revision } from "../../../src/rules/rulesDraft";
+import type { ScoringView } from "../../../src/scoring/seam";
+import { columnWords, everyoneWords } from "../../../src/scoring/words";
+import { discardWords, loadLatestWords, overtakenWords, unchangedWords } from "../../../src/rules/words";
 import { CHANGES_FROM, REVISION } from "../../support/src/scoring.harness";
 import { box, choose, openScoring, retype, save } from "../../support/src/scoringScreen.harness";
 import { commissioner } from "../../support/src/shell.harness";
 
 /** The set someone else saved: assists paying 5, in a newer rules row. */
 const THEIRS: ScoringView = {
-  scoring: {
+  part: {
     ...structuredClone(FIRST_RULES.scoring),
     rules: FIRST_RULES.scoring.rules.map((rule): Scoring["rules"][number] =>
       rule.stat === "assists" ? { shape: "perAction", stat: "assists", values: { all: 5 } } : structuredClone(rule),
