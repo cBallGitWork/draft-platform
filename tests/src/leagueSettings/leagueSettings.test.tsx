@@ -14,6 +14,7 @@ import {
   loadingWords,
   noRulesWords,
   oddTeamOutWords,
+  redrawWords,
   savedWords,
   SETTINGS_TITLE,
 } from "../../../src/leagueSettings/words";
@@ -76,6 +77,11 @@ describe("editing them", () => {
     expect(screen.getByText(gameweekWords(CHANGES_FROM))).toBeTruthy();
     expect(screen.getByText(unchangedWords)).toBeTruthy();
     expect((screen.getByRole("button", { name: saveWords }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("says saving redraws the whole season's fixtures (#266)", async () => {
+    openSettings();
+    expect(await screen.findByText(redrawWords)).toBeTruthy();
   });
 
   it("saves both changed, with the rules they were made from, and says from when", async () => {

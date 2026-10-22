@@ -17,6 +17,7 @@ import {
   noRulesWords,
   oddTeamOutLabel,
   oddTeamOutWords,
+  redrawWords,
   savedWords,
   SETTINGS_TITLE,
 } from "./words";
@@ -73,6 +74,7 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
             <NumberBox label={gamesLabel} value={draft.gamesPerGameweek} onChange={(games) => edit({ ...draft, gamesPerGameweek: games ?? NaN })} />
           </div>
           <p className="text-muted">{gamesHint}</p>
+          <p className="text-muted">{redrawWords}</p>
         </div>
       </section>
       <SaveBar draft={rulesDraft} savedWords={savedWords} />
