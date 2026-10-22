@@ -3,6 +3,8 @@
 anywhere but a bare "Closes #n" line. On gh pr create it also denies a body that lacks the
 template's headings; one with neither pr-reviewer's pasted signature nor an unticked "not run" line
 for it; and one with a ticked box that says "not run". A body the guard can't read is denied too.
+Their titles get a soft limit (Craig, 22 Oct 2026): over 120 characters is denied, and over 100
+is a note, not a denial (pr_title_note).
 Stdlib only, Python 3.9+.
 """
 
@@ -17,6 +19,8 @@ from where import options, runs_at
 PR_CALLS = (["pr", "create"], ["pr", "edit"])
 BODY_OPTS = {"-b", "--body"}
 BODY_FILE_OPTS = {"-F", "--body-file"}
+TITLE_OPTS = {"-t", "--title"}
+TITLE_SOFT, TITLE_HARD = 100, 120  # characters
 REQUIRED = ("## Merge danger", "## Checks", "## Fresh-eyes review", "## Left for later")  # the template
 SIGNATURE = "*Reviewer: pr-reviewer ("  # starts the last line of pr-reviewer's block
 NOT_RUN_LINE = "- [ ] pr-reviewer: not run"
@@ -53,6 +57,31 @@ def bodies(args, cwd):
                 out.append(_read(value, cwd))
         i += 1
     return out
+
+
+def titles(args):
+    """Each title these gh args give; one the shell fills in ($(…)) can't be measured, so is skipped."""
+    out, i = [], 0
+    while i < len(args):
+        found, i = options(args, i, TITLE_OPTS | BODY_OPTS | BODY_FILE_OPTS)
+        out += [value for opt, value in found if opt in TITLE_OPTS and not MARKED.search(value)]
+        i += 1
+    return out
+
+
+def long_titles(cmds, limit):
+    """The titles of gh pr create or edit calls among cmds longer than limit characters."""
+    calls = (pr_call(words) for words, _ in cmds)
+    return [title for call in calls if call for title in titles(call[1]) if len(title) > limit]
+
+
+def pr_title_note(cmds):
+    """A note, never a denial, for a pull request title past the soft limit, else None."""
+    long = long_titles(cmds, TITLE_SOFT)
+    if not long:
+        return None
+    return (f"That pull request title is {len(long[0])} characters, past the soft limit of {TITLE_SOFT} "
+            f"(denied past {TITLE_HARD}). Say what was wrong and what is now true in fewer words.")
 
 
 def _read(path, cwd):
@@ -92,7 +121,11 @@ def body_problem(body, creating):
 
 def pr_body_problem(cmds, cwd):
     """A deny reason if a gh pr create or edit among cmds (every simple command, with its folder:
-    commands.py) breaks the body rules or can't be checked, else None."""
+    commands.py) breaks the body rules or can't be checked, or has a title past the hard limit, else None."""
+    long = long_titles(cmds, TITLE_HARD)
+    if long:
+        return (f"Pull request title: it is {len(long[0])} characters, past the limit of {TITLE_HARD}. "
+                f"Keep it under {TITLE_SOFT}: what was wrong, and what is now true.")
     for words, here in cmds:
         call = pr_call(words)
         if not call:

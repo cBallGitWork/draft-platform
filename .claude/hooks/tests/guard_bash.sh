@@ -98,6 +98,20 @@ check allow guard_bash.py "$(bash_in "$tmp" 'gh pr edit 3 --body-file pr-no-dang
 check allow guard_bash.py "$(bash_in "$tmp" 'gh pr create --title x --body-file pr-not-run.md')"  # said, not ticked
 check allow guard_bash.py "$(bash_in "$tmp" 'gh pr edit 3 --body-file pr-unsigned.md')"  # create only
 
+# a pull request's title: a soft limit of 100 characters (a note, not a denial), denied past 120
+t100=$(printf 'x%.0s' {1..100}) t101=$(printf 'x%.0s' {1..101}) t120=$(printf 'x%.0s' {1..120})
+t121=$(printf 'x%.0s' {1..121})
+silent guard_bash.py "$(bash_in "$tmp" "gh pr create --title $t100 --body-file pr.md")"
+says 'past the soft limit of 100' guard_bash.py "$(bash_in "$tmp" "gh pr create --title $t101 --body-file pr.md")"
+says '"additionalContext"' guard_bash.py "$(bash_in "$tmp" "gh pr edit 3 -t $t120")"
+check allow guard_bash.py "$(bash_in "$tmp" "gh pr edit 3 --title=$t120")"
+for c in "gh pr create --title $t121 --body-file pr.md" "gh pr edit 3 -t $t121" "gh pr edit 3 --title=$t121" \
+  "git status && gh pr edit 3 --body 'Part of #3' --title $t121"; do
+  check deny guard_bash.py "$(bash_in "$tmp" "$c")"
+done
+silent guard_bash.py "$(bash_in "$tmp" 'gh pr edit 3 --title "$(cat long-title.txt)"')"  # can't be measured
+silent guard_bash.py "$(bash_in "$tmp" "echo --title $t121")"  # not a pull request
+
 git -C "$tmp" switch -q -c main
 check deny guard_bash.py "$(bash_cmd 'git commit -m "x"')"
 check deny guard_bash.py "$(bash_cmd 'git -C . commit -m x')"
