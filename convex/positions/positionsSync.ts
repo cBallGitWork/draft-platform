@@ -1,7 +1,8 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalAction, internalMutation, internalQuery, type ActionCtx } from "../_generated/server";
-import { errorMessage, logFailure, PL_COMP_SEASON, PL_LAST_COMP_SEASON } from "../football/football";
+import { PL_COMP_SEASON, PL_LAST_COMP_SEASON } from "../football/football";
+import { errorMessage, logFailure } from "../shared/errors";
 import { codesByOpta, namedMen } from "../football/feedIds";
 import { readFplBootstrap } from "../football/fpl";
 import { heldRow } from "./playerPositions";

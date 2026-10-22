@@ -3,7 +3,7 @@ import { v, type Infer, type Value } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalAction, internalMutation, internalQuery, type ActionCtx, type MutationCtx } from "../_generated/server";
-import { logFailure } from "./football";
+import { logFailure } from "../shared/errors";
 import { readFpl } from "./fpl";
 import {
   clubRecord,

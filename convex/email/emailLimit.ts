@@ -1,4 +1,5 @@
 import type { MutationCtx, QueryCtx } from "../_generated/server";
+import { DAY_MS } from "../shared/time";
 
 // The day's email limit. Every email the app sends counts against it: sign-in links
 // (signInLinks.ts), joining's (joinRequests.ts) and the deletion notices (deletionNotices.ts).
@@ -11,6 +12,11 @@ export const EMAILS_PER_DAY = 100;
 /** The UTC day a time falls on, as Resend's daily limit is counted here: "2026-10-20". */
 export function dayOf(time: number): string {
   return new Date(time).toISOString().slice(0, 10);
+}
+
+/** The start of the UTC day after `time`'s, when Resend's daily limit starts again. */
+export function startOfNextDay(time: number): number {
+  return Date.parse(dayOf(time)) + DAY_MS;
 }
 
 function sentToday(ctx: QueryCtx) {

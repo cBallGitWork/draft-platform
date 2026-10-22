@@ -1,7 +1,7 @@
 import type { Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalAction } from "../_generated/server";
-import { logFailure } from "../football/football";
+import { logFailure } from "../shared/errors";
 import { syncDue } from "./matchStatsSync";
 import type { liveStatsTickFields } from "../schema";
 

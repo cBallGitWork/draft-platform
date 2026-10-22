@@ -60,6 +60,7 @@ import type * as scoring_ownStats from "../scoring/ownStats.js";
 import type * as scoring_scoring from "../scoring/scoring.js";
 import type * as scoring_scoringSet from "../scoring/scoringSet.js";
 import type * as scoring_statCatalogue from "../scoring/statCatalogue.js";
+import type * as shared_errors from "../shared/errors.js";
 import type * as shared_leagueAccess from "../shared/leagueAccess.js";
 import type * as shared_londonTime from "../shared/londonTime.js";
 import type * as shared_players from "../shared/players.js";
@@ -139,6 +140,7 @@ declare const fullApi: ApiFromModules<{
   "scoring/scoring": typeof scoring_scoring;
   "scoring/scoringSet": typeof scoring_scoringSet;
   "scoring/statCatalogue": typeof scoring_statCatalogue;
+  "shared/errors": typeof shared_errors;
   "shared/leagueAccess": typeof shared_leagueAccess;
   "shared/londonTime": typeof shared_londonTime;
   "shared/players": typeof shared_players;
