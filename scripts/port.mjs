@@ -14,7 +14,8 @@ export const PORT_RANGE_SIZE = 700;
 const CHECKOUT = dirname(dirname(fileURLToPath(import.meta.url)));
 
 export function appPort() {
-  return PORT_RANGE_START + (createHash("sha256").update(CHECKOUT).digest().readUInt32BE(0) % PORT_RANGE_SIZE);
+  const checkoutHash = createHash("sha256").update(CHECKOUT).digest().readUInt32BE(0);
+  return PORT_RANGE_START + (checkoutHash % PORT_RANGE_SIZE);
 }
 
 // `npm run smoke`'s two servers, one and two ranges above appPort(): clear of every checkout's app
