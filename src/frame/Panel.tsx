@@ -28,7 +28,7 @@ export function PageSection({
   );
 }
 
-/** A page's title plate (plate.md, Shape): the heading its section is labelled by, `PAGE_TITLE_ID`. */
+/** A page's title plate (plate.md, Shape). */
 function PageTitle({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
   if (aside === undefined) {
     return (

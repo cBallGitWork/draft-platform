@@ -37,11 +37,11 @@ it("says a notice as a status in the alert strip, where a problem is an alert", 
 });
 
 it.each([
-  [undefined, "px-3 py-2 text-muted"],
-  ["y", "px-3 py-2 text-muted"],
-  ["b", "px-3 pb-2 text-muted"],
-  ["t", "px-3 pt-2 text-muted"],
-] as const)("pads a muted panel line on edge %s with %s", (edge, classes) => {
+  ["no edge given", undefined, "px-3 py-2 text-muted"],
+  ["edge y", "y", "px-3 py-2 text-muted"],
+  ["edge b", "b", "px-3 pb-2 text-muted"],
+  ["edge t", "t", "px-3 pt-2 text-muted"],
+] as const)("pads a muted panel line with %s as %s", (_, edge, classes) => {
   render(<PanelNote edge={edge}>None found</PanelNote>);
   expect(screen.getByText("None found").className).toBe(classes);
 });
