@@ -47,6 +47,11 @@ describe("reaching it", () => {
     expect(app.table.useLeagueTable).toHaveBeenCalledWith(league.leagueId);
   });
 
+  it("is a region named by its title, so screen readers list it", async () => {
+    openTable({ leagueTable: leagueTableOf(FIVE) });
+    expect(await screen.findByRole("region", { name: TABLE_PAGE_TITLE })).toBeTruthy();
+  });
+
   it("says so while it loads", async () => {
     openTable({ loading: true });
     expect((await screen.findByRole("status")).textContent).toBe(loadingWords);
