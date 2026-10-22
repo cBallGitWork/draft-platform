@@ -29,7 +29,8 @@ type Played = Map<number, TeamsGameweek>;
  *  `seasonRules`). */
 export type RulesInForce = { inGameweek: (gameweek: number) => LeagueRules };
 
-/** The league's stored fixtures, by gameweek: those of each gameweek it has played. */
+/** The league's stored fixtures, by gameweek: those of each gameweek it has played, one row each
+ *  at most (`storeBegunFixtures` skips one stored), so a season's gameweeks are all there are. */
 async function playedFixturesOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Played> {
   const rows = await ctx.db
     .query("playedFixtures")
