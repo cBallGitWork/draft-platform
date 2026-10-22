@@ -64,7 +64,7 @@ and then only the previews work.
 `npm run verify` runs the local gate; the [verify skill](../.claude/skills/verify/SKILL.md) lists
 what it checks and what CI runs besides.
 
-The app is in `src/` and the server in `convex/`, one folder per feature in each. Every test of the
-app and the server is in `tests/`, mirroring them (`tests/convex/`, `tests/src/`, `tests/scripts/`),
-with the shared harnesses and recorded feeds in `tests/support/` and the browser smoke suite in
-`tests/smoke/`. The hooks' own checks are in `.claude/hooks/tests/`.
+The app is in `src/` and the server in `convex/`, one folder per feature in each. The tests are in
+`tests/`, mirroring them (`tests/convex/`, `tests/src/`, `tests/scripts/`), with the shared
+harnesses and recorded feeds in `tests/support/` and the browser smoke suite in `tests/smoke/`;
+the hooks' own checks are in `.claude/hooks/tests/`.
