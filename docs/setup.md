@@ -55,6 +55,9 @@ renaming teams, the maximum and the co-commissioner have no screen yet, so they 
 CLI as the person allowed to, by their `_id` in the `users` table (without `--identity` the
 server refuses):
 `npx convex run leagues/teams:removeManager '{"leagueId":"…","teamId":"…"}' --identity '{"subject":"<their _id>|cli"}'`.
+The admin alone names a team's manager directly, the same way with the admin's `_id`:
+`npx convex run leagues/teams:addManager '{"leagueId":"…","email":"someone@example.com"}' --identity '{"subject":"<admin's _id>|cli"}'`
+(add `"teamId"` to hand them a vacated team).
 
 To see the screens without signing in, add `?preview=` to the address: `manager` (in two leagues),
 `commissioner` (running them), `newcomer` (in none), `admin` (seeing every league) or `visitor`

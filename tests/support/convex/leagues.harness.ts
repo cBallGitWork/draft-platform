@@ -39,11 +39,15 @@ export async function adminCreatesLeague(t: TestConvex, maxTeams = 4, name = LEA
   return leagueId;
 }
 
-/** The commissioner adds each email as a manager: their new teams' ids, in order. */
+/** The admin makes `email` the manager of the vacated team `teamId`, or of a new team: its id. */
+export async function addManager(t: TestConvex, leagueId: Id<"leagues">, email: string, teamId?: Id<"teams">): Promise<Id<"teams">> {
+  return (await actingAs(t, ADMIN)).mutation(api.leagues.teams.addManager, { leagueId, email, teamId });
+}
+
+/** The admin adds each email as a manager: their new teams' ids, in order. */
 export async function addManagers(t: TestConvex, leagueId: Id<"leagues">, emails: string[]): Promise<Id<"teams">[]> {
-  const commissioner = await actingAs(t, COMMISSIONER);
   const teamIds = [];
-  for (const email of emails) teamIds.push(await commissioner.mutation(api.leagues.teams.addManager, { leagueId, email }));
+  for (const email of emails) teamIds.push(await addManager(t, leagueId, email));
   return teamIds;
 }
 

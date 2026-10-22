@@ -70,12 +70,12 @@ export const switchFailedWords = failedWords("you're still in this league");
 export const deleteLeagueWords = "Delete league";
 export const confirmDeleteWords = { yes: "Delete it", no: "Keep it" };
 export const confirmDelete = (leagueName: string) =>
-  `Delete ${leagueName}? At once it's frozen and hidden from everyone in it, and they're emailed. ` +
+  `Delete ${leagueName}? At once it's frozen and hidden from everyone but its commissioner and the admin, and everyone else in it is emailed. ` +
   `You can undo it for ${DELETION_UNDO_HOURS} hours; then it's gone for good, with its teams, Mail and history.`;
 
 /** When it goes is said as the email says it (convex/shared/londonTime.ts). */
 export const beingDeleted = (deletesAt: number) =>
-  `Being deleted: it goes for good on ${londonTime(deletesAt)}. Until then it's frozen and hidden from everyone in it.`;
+  `Being deleted: it goes for good on ${londonTime(deletesAt)}. Until then it's frozen and hidden from everyone but its commissioner and the admin.`;
 export const undoWords = "Undo";
 export const unemailed = (email: string, reason: string) => `${email} wasn't told: ${reason}.`;
 

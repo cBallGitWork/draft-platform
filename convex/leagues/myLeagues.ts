@@ -24,7 +24,7 @@ export const leagueSummary = v.object({
   /** For the admin only: what asking for the commissioner's sign-in link answered, when that
    *  wasn't "check your email" and they haven't signed in since, so a link that never went is seen. */
   unsentCommissionerLink: v.union(v.null(), v.object({ email: v.string(), reply: noLinkReply })),
-  /** While it is being deleted (#75), which only whoever deleted it and the admin see: when it
+  /** While it is being deleted (#75), which only its commissioner and the admin see: when it
    *  goes, and who wasn't emailed. */
   deletion: v.optional(leagueDeletion.pick("deletesAt", "unemailed")),
 });

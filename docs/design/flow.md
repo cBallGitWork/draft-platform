@@ -6,8 +6,8 @@ Every route in `src/router.tsx` and how a person moves between them, plus the sc
 names that have no route yet. Read with [plate.md](plate.md), which is the look. The spec is the
 product; this map only draws it. `tests/src/flow.test.ts` fails when a route is missing from the
 Screens table, isn't its own box in the map or has no arrow touching it, the table lists a path
-the router doesn't have, a file it names is gone, or a Status disagrees with its file
-(PageNotBuilt is a placeholder, any other page is built). It doesn't check where arrows go.
+the router doesn't have, a file it names is gone, or a Status disagrees with its route
+(no route, a PageNotBuilt placeholder, or built). It doesn't check where arrows go.
 
 ## The map
 
@@ -103,8 +103,10 @@ flowchart TD
 
 ## Screens
 
-A built screen has a route and its own page. A placeholder has a route that says "This screen
-isn't built yet". `none` in the Path and File columns means no route yet.
+Status is the route's state only. A built screen has a route and its own page. A placeholder has
+a route that says "This screen isn't built yet". `none` in the Path and File columns means no
+route yet. Whether a screen is spec'd or to grill, and its issue, is in [SPEC.md](../../SPEC.md)'s
+Features table (feature 12), the one home for screen status.
 
 | Screen | Path | File | Spec | Status |
 |---|---|---|---|---|
@@ -122,19 +124,19 @@ isn't built yet". `none` in the Path and File columns means no route yet.
 | Admin dashboard (Positions) | `/admin` | src/admin/AdminPage.tsx | spec/15 The admin, spec/06 | built |
 | Feeds, a tab of the admin dashboard | `/admin/feeds` | src/admin/FeedsPage.tsx | spec/15 The admin | built |
 | Table and fixtures | `/table` | src/table/TablePage.tsx | spec/12, spec/09 | built |
-| League home | `/home` | src/frame/PageNotBuilt.tsx | spec/12:16 | to grill (placeholder) |
-| My team (Tactics) | `/team` | src/frame/PageNotBuilt.tsx | spec/12:11, spec/12:28, spec/05 | spec'd (placeholder, #14) |
-| Squad | `/team/squad` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | to grill (placeholder) |
-| Fixtures | `/team/fixtures` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | to grill (placeholder) |
-| Transactions | `/team/transactions` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | to grill (placeholder) |
-| Matchup | `/matchup` | src/frame/PageNotBuilt.tsx | spec/10 The matchup | spec'd (placeholder, #34) |
-| Players | `/players` | src/frame/PageNotBuilt.tsx | spec/12:16 | to grill (placeholder) |
-| Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12:16, spec/08 | to grill (placeholder) |
-| Premier League | `/premier-league` | src/frame/PageNotBuilt.tsx | spec/18 | spec'd (placeholder, #49) |
-| Match | none | none | spec/10 The match page | spec'd (#45) |
-| Player card | none | none | spec/12:16, spec/05:59, spec/14 | to grill |
-| Draft room | none | none | spec/12:16, spec/04 | spec'd, waits for the summer |
-| Club pages | none | none | spec/18:22 | spec'd, after the mini beta |
+| League home | `/home` | src/frame/PageNotBuilt.tsx | spec/12:16 | placeholder |
+| My team (Tactics) | `/team` | src/frame/PageNotBuilt.tsx | spec/12:11, spec/12:28, spec/05 | placeholder |
+| Squad | `/team/squad` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | placeholder |
+| Fixtures | `/team/fixtures` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | placeholder |
+| Transactions | `/team/transactions` | src/frame/PageNotBuilt.tsx | tab from mock-up R3·1, not the spec | placeholder |
+| Matchup | `/matchup` | src/frame/PageNotBuilt.tsx | spec/10 The matchup | placeholder |
+| Players | `/players` | src/frame/PageNotBuilt.tsx | spec/12:16 | placeholder |
+| Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12:16, spec/08 | placeholder |
+| Premier League | `/premier-league` | src/frame/PageNotBuilt.tsx | spec/18 | placeholder |
+| Match | none | none | spec/10 The match page | no route |
+| Player card | none | none | spec/12:16, spec/05:59, spec/14 | no route |
+| Draft room | none | none | spec/12:16, spec/04 | no route |
+| Club pages | none | none | spec/18:22 | no route |
 
 ## Gaps
 

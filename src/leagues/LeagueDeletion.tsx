@@ -10,7 +10,7 @@ export type DeletionActions = Pick<LeaguesSeam, "deleteLeague" | "undoDeletion">
 
 /** A league's row on "Your leagues" for deleting it (spec/13, Deleting): "Delete league" with a
  *  plain confirm for the admin or its commissioner; while it is being deleted, when it goes, who
- *  wasn't told, and Undo, which only whoever deleted it and the admin see. */
+ *  wasn't told, and Undo, which only its commissioner and the admin see. */
 export function LeagueDeletionRow({ league, canDelete, actions }: { league: LeagueSummary; canDelete: boolean; actions: DeletionActions }) {
   const [confirming, setConfirming] = useState(false);
   const { busy, problem, run: runChange } = useChange();

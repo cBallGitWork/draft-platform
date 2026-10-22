@@ -6,6 +6,7 @@ import { answerOf, refusalOf } from "../refusal";
 import { askFailedWords, replyWords } from "../sign-in/words";
 import type { JoiningSeam } from "./seam";
 import { changeFailedWords } from "../words";
+import { useMinute } from "../useMinute";
 
 // The joining seam filled in by Convex. A refusal comes back as the server's own words; any other
 // failure is logged and said plainly (src/refusal.ts).
@@ -14,6 +15,7 @@ const change = (doing: string, attempt: () => Promise<unknown>) => refusalOf(att
 
 const useInvitesPage: JoiningSeam["useInvitesPage"] = (leagueId) => useQuery(api.joining.invitesPage.page, { leagueId });
 const useJoinPage: JoiningSeam["useJoinPage"] = (token) => useQuery(api.joining.joinRequests.joinPage, { token });
+const useEndedInvite: JoiningSeam["useEndedInvite"] = () => useQuery(api.joining.endedInvite.mine, { now: useMinute() });
 
 export function useLiveJoining(): JoiningSeam {
   const send = useMutation(api.joining.invites.send);
@@ -29,6 +31,7 @@ export function useLiveJoining(): JoiningSeam {
     () => ({
       useInvitesPage,
       useJoinPage,
+      useEndedInvite,
       invite: (leagueId, email, teamId) => change("Sending an invite", () => send({ leagueId, email, teamId: teamId ?? undefined })),
       resendInvite: (inviteId) => change("Resending an invite", () => resend({ inviteId })),
       cancelInvite: (inviteId) => change("Cancelling an invite", () => cancel({ inviteId })),

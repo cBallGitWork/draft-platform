@@ -29,6 +29,7 @@ import type * as gameweeks_leagueGameweeks from "../gameweeks/leagueGameweeks.js
 import type * as gameweeks_nextGameweek from "../gameweeks/nextGameweek.js";
 import type * as gameweeks_usedGameweeks from "../gameweeks/usedGameweeks.js";
 import type * as http from "../http.js";
+import type * as joining_endedInvite from "../joining/endedInvite.js";
 import type * as joining_inviteLink from "../joining/inviteLink.js";
 import type * as joining_invites from "../joining/invites.js";
 import type * as joining_invitesPage from "../joining/invitesPage.js";
@@ -117,6 +118,7 @@ declare const fullApi: ApiFromModules<{
   "gameweeks/nextGameweek": typeof gameweeks_nextGameweek;
   "gameweeks/usedGameweeks": typeof gameweeks_usedGameweeks;
   http: typeof http;
+  "joining/endedInvite": typeof joining_endedInvite;
   "joining/inviteLink": typeof joining_inviteLink;
   "joining/invites": typeof joining_invites;
   "joining/invitesPage": typeof joining_invitesPage;

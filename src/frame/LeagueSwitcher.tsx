@@ -56,7 +56,7 @@ export function LeagueSwitcher({
   }, [open]);
 
   if (!session.signedIn) return null;
-  // A league being deleted is frozen: whoever deleted it sees it on "Your leagues", never here.
+  // A league being deleted is frozen: its commissioner sees it on "Your leagues", never here.
   const theirs = session.leagues.filter((league) => league.roles.length > 0 && !league.deletion);
   const current = currentLeagueOf(session);
   // signIn/account:signedInAs names one of theirs whenever they have any, and the frame is only theirs then.
