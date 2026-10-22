@@ -85,4 +85,4 @@ First the block for Craig, plain English, at most three findings, worst first:
 Then the detail for the author: one row per check that applied,
 `check | file:line | what the diff does | verdict | evidence`. Verdicts: REGRESSION, RULE BROKEN,
 OUT OF SCOPE, UNVERIFIED, CRAIG'S CALL, FINE. Problems first; FINE rows on one line each. Put
-it all inside <details> so the block for Craig stays short.
+the detail for the author inside <details>, so the block for Craig stays short and outside it.
