@@ -20,6 +20,9 @@ import {
   loadingWords,
   moveLabel,
   noneFoundWords,
+  noOtherTeamWords,
+  noTeamsWords,
+  noTeamToPutOnWords,
   releaseLabel,
   searchingWords,
   SQUADS_TITLE,
@@ -124,6 +127,29 @@ describe("finding a player", () => {
     await userEvent.click(within(foundRow("Alexander Isak")).getByRole("button", { name: assignLabel("Isak") }));
 
     expect((await screen.findByRole("alert")).textContent).toBe("Isak is already on Team 1. Move him instead.");
+  });
+});
+
+describe("with no team to offer", () => {
+  it("says the league has no teams yet, and a free agent found has none to go on", async () => {
+    openSquads({ ...TWO_TEAMS, squads: [] });
+    const find = await screen.findByRole("region", { name: findTitle });
+    expect(within(find).getByRole("status").textContent).toBe(noTeamsWords);
+
+    await search("Isak");
+    const isak = foundRow("Alexander Isak");
+    expect(within(isak).getByText(noTeamToPutOnWords)).toBeTruthy();
+    expect(within(isak).queryByRole("combobox")).toBeNull();
+    expect(within(isak).queryByRole("button")).toBeNull();
+  });
+
+  it("says a player on the league's only team has no other to move to", async () => {
+    openSquads({ ...TWO_TEAMS, squads: TWO_TEAMS.squads!.slice(0, 1) });
+    await search("Saka");
+    const sakaRow = foundRow("Bukayo Saka");
+    expect(within(sakaRow).getByText(noOtherTeamWords)).toBeTruthy();
+    expect(within(sakaRow).queryByRole("button")).toBeNull();
+    expect(within(screen.getByRole("region", { name: findTitle })).queryByText(noTeamsWords)).toBeNull();
   });
 });
 

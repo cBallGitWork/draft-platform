@@ -20,6 +20,9 @@ import {
   loadingWords,
   moveWords,
   noneFoundWords,
+  noOtherTeamWords,
+  noTeamsWords,
+  noTeamToPutOnWords,
   onTeamWords,
   playersCount,
   releaseLabel,
@@ -71,6 +74,7 @@ function FindPlayer({ league, seam, squads, change }: { league: LeagueSummary; s
   return (
     <section aria-labelledby={FIND_TITLE_ID} className="bg-panel">
       <PanelTitle id={FIND_TITLE_ID}>{findTitle}</PanelTitle>
+      {squads.length === 0 && <Notice>{noTeamsWords}</Notice>}
       <div className="flex flex-col gap-2 p-3">
         <label htmlFor={FIND_NAME_ID} className="font-semibold">
           {findLabel}
@@ -121,7 +125,9 @@ function FoundRow({
     <li className="flex flex-col gap-1 border-b border-panel-rule px-3 py-2">
       <span className="text-lead font-semibold">{player.fullName}</span>
       <span className="text-muted">{free ? freeAgentWords : onTeamWords(player.teamName!)}</span>
-      {teamId !== undefined && (
+      {teamId === undefined ? (
+        <span className="text-muted">{free ? noTeamToPutOnWords : noOtherTeamWords}</span>
+      ) : (
         <span className="flex flex-wrap items-center gap-2">
           <label htmlFor={selectId} className="sr-only">
             {teamChoiceLabel(player.name)}
