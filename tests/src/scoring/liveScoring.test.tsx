@@ -26,27 +26,28 @@ afterEach(() => {
 
 const leagueId = "league-1" as Id<"leagues">;
 const scoring = FIRST_RULES.scoring;
+const revision = "rules-1" as Id<"leagueRules">;
 const seam = () => renderHook(() => useLiveScoring()).result.current;
 
 test("the scoring is read from rules/leagueRules:scoring, at the start of the current minute", () => {
   vi.useFakeTimers({ now: Date.parse("2026-10-22T09:30:42Z") });
-  const view = { scoring, changesFrom: 9 };
+  const view = { scoring, revision, changesFrom: 9 };
   convex.scoring.mockReturnValue(view);
 
   expect(renderHook(() => useLiveScoring().useScoring(leagueId)).result.current).toBe(view);
   expect(convex.scoring).toHaveBeenLastCalledWith({ leagueId, now: Date.parse("2026-10-22T09:30:00Z") });
 });
 
-test("saving calls rules/leagueRules:changeScoring, and resolves with the gameweek it applies from", async () => {
+test("saving calls rules/leagueRules:changeScoring with the rules row it was edited from, and resolves with the gameweek it applies from", async () => {
   convex.changeScoring.mockResolvedValue(9);
-  expect(await seam().save(leagueId, scoring)).toBe(9);
-  expect(convex.changeScoring).toHaveBeenCalledExactlyOnceWith({ leagueId, scoring });
+  expect(await seam().save(leagueId, scoring, revision)).toBe(9);
+  expect(convex.changeScoring).toHaveBeenCalledExactlyOnceWith({ leagueId, scoring, revision });
 });
 
 test("a save the server refuses resolves with the server's own words", async () => {
   const refusal = "The scoring set can't be saved: the Assists rule pays 0.25; points are kept in tenths.";
   convex.changeScoring.mockRejectedValue(new ConvexError(refusal));
-  expect(await seam().save(leagueId, scoring)).toBe(refusal);
+  expect(await seam().save(leagueId, scoring, revision)).toBe(refusal);
 });
 
 test("any other failure is logged and said plainly", async () => {
@@ -54,6 +55,6 @@ test("any other failure is logged and said plainly", async () => {
   convex.changeScoring.mockRejectedValue(failure);
   const logged = silenceConsoleError();
 
-  expect(await seam().save(leagueId, scoring)).toBe(saveFailedWords);
+  expect(await seam().save(leagueId, scoring, revision)).toBe(saveFailedWords);
   expect(logged).toHaveBeenCalledWith("Saving the scoring failed:", failure);
 });
