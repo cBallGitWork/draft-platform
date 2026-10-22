@@ -2,20 +2,20 @@ import { spawnSync } from "node:child_process";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { expect, test } from "vitest";
-import { appPort, smokePorts } from "../../scripts/port.mjs";
+import { PORT_RANGE_SIZE, PORT_RANGE_START, appPort, smokePorts } from "../../scripts/port.mjs";
 
 const SCRIPT = join(import.meta.dirname, "../../scripts/port.mjs");
-const FIRST = 5200;
-const HOW_MANY = 700;
 
 test("smoke's two ports sit one and two ranges above this checkout's app port", () => {
-  expect(smokePorts()).toEqual({ dev: appPort() + HOW_MANY, bundle: appPort() + 2 * HOW_MANY });
+  const app = appPort();
+  expect(smokePorts()).toEqual({ dev: app + PORT_RANGE_SIZE, bundle: app + 2 * PORT_RANGE_SIZE });
 });
 
-// Every checkout's app port is in [FIRST, FIRST + HOW_MANY), so each server keeping to its own
-// range means no checkout's smoke server can land on any checkout's app port, or on another's.
+// Every checkout's app port is in the first range, so each server keeping to its own range means
+// no checkout's smoke server can land on any checkout's app port, or on another's.
 test("the app, smoke dev and smoke bundle ports each keep to their own range", () => {
-  const inRange = (port, nth) => port >= FIRST + nth * HOW_MANY && port < FIRST + (nth + 1) * HOW_MANY;
+  const rangeStart = (nth) => PORT_RANGE_START + nth * PORT_RANGE_SIZE;
+  const inRange = (port, nth) => port >= rangeStart(nth) && port < rangeStart(nth + 1);
   const { dev, bundle } = smokePorts();
   expect(inRange(appPort(), 0)).toBe(true);
   expect(inRange(dev, 1)).toBe(true);
