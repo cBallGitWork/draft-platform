@@ -5,8 +5,11 @@
 /** The English every date and list is written in, on a screen or in an email. */
 export const LOCALE = "en-GB";
 
+/** The Premier League's own zone, every moment is told in; vitest.config.ts runs the tests in it. */
+export const LONDON_ZONE = "Europe/London";
+
 const londonFormat = new Intl.DateTimeFormat(LOCALE, {
-  timeZone: "Europe/London",
+  timeZone: LONDON_ZONE,
   weekday: "long",
   day: "numeric",
   month: "long",
