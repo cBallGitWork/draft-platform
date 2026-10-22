@@ -5,7 +5,7 @@
 import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
-import { LEAGUES_PATH } from "../../../src/leagues/paths";
+import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { admin, commissioner, openApp } from "../../support/src/shell.harness";
 import type { AdminData } from "../../support/src/admin.harness";
 import { EMPTY_QUEUE } from "../../support/src/admin.harness";
@@ -63,12 +63,12 @@ describe("reaching the dashboard", () => {
 
   it("anyone else isn't offered it, and is sent back to Your leagues if they go there", async () => {
     openApp(LEAGUES_PATH, commissioner);
-    await screen.findByRole("heading", { level: 1, name: "Your leagues" });
+    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
     expect(screen.queryByRole("link", { name: ADMIN_TITLE })).toBeNull();
 
     cleanup();
     const app = openApp(ADMIN_PATH, commissioner);
-    await screen.findByRole("heading", { level: 1, name: "Your leagues" });
+    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 });

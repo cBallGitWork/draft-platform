@@ -7,6 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { ConvexError } from "convex/values";
 import { afterEach, expect, it, vi } from "vitest";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
+import { backToLeaguesWords } from "../../../src/leagues/words";
 import { manager, openApp } from "../../support/src/shell.harness";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { ERROR_PAGE_TITLE, readFailedWords } from "../../../src/frame/words";
@@ -26,7 +27,7 @@ async function openTableThrowing(error: unknown) {
 
 /** Follows the error page's way back, which lands on Your leagues and leaves the error behind. */
 async function goBackToLeagues(app: ReturnType<typeof openApp>) {
-  await userEvent.click(screen.getByRole("link", { name: "Back to your leagues" }));
+  await userEvent.click(screen.getByRole("link", { name: backToLeaguesWords }));
   expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
   expect(app.path()).toBe(LEAGUES_PATH);
   expect(screen.queryByRole("heading", { name: ERROR_PAGE_TITLE })).toBeNull();

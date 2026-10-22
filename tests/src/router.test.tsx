@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../../src/auth";
 import { gameweeksPath } from "../../src/gameweeks/paths";
-import { LEAGUES_PATH } from "../../src/leagues/paths";
+import { LEAGUES_PATH, LEAGUES_TITLE } from "../../src/leagues/paths";
 import { adminSeeing, league, managerIn, openApp } from "../support/src/shell.harness";
 import { squadsPath } from "../../src/squads/paths";
 
@@ -30,7 +30,7 @@ describe("a league being deleted", () => {
   ])("sends %s opening its squads or gameweeks back to Your leagues", async (_, session) => {
     for (const page of pages) {
       const app = openApp(page, session);
-      expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
+      expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
       expect(app.path()).toBe(LEAGUES_PATH);
       expect(app.gameweeks.useLeagueGameweeks).not.toHaveBeenCalled();
       cleanup();

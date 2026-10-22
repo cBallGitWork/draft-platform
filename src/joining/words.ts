@@ -5,6 +5,7 @@
 import type { Delivery } from "../../convex/joining/joining";
 import { INVITE_DAYS, aNewTeamWords } from "../../convex/joining/joiningShared";
 import { unsentLinkWords } from "../leagues/words";
+import { LOCALE } from "../../convex/shared/londonTime";
 import { failedWords } from "../words";
 
 /** The commissioner's page: its title, and the link to it from their leagues. */
@@ -17,7 +18,7 @@ export const forTeamWords = (teamName: string | null) => `For ${teamName ?? aNew
 
 export const inviteHint = `They join when they sign in, with no approval. An invite lasts ${INVITE_DAYS} days.`;
 
-const dayFormat = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" });
+const dayFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short" });
 /** A day, as the page shows when an invite ends or a request was made: "Tue 27 Oct". */
 export const dayWords = (time: number) => dayFormat.format(time);
 

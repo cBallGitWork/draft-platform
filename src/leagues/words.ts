@@ -16,6 +16,9 @@ export const roleWords: Record<LeagueSummary["roles"][number], string> = {
 /** The admin's part in a league where he has no other. */
 export const adminWords = "Admin";
 
+/** The way back to "Your leagues" from a page about one league. */
+export const backToLeaguesWords = "Back to your leagues";
+
 /** Why the commissioner's sign-in link didn't go, for each answer but "check your email". */
 export const unsentLinkWords: Record<NoLinkReply, string> = {
   tryLater: "too many links were asked for that email in the last hour",

@@ -63,6 +63,7 @@ import type * as scoring_scoringSet from "../scoring/scoringSet.js";
 import type * as scoring_statCatalogue from "../scoring/statCatalogue.js";
 import type * as shared_leagueAccess from "../shared/leagueAccess.js";
 import type * as shared_londonTime from "../shared/londonTime.js";
+import type * as shared_players from "../shared/players.js";
 import type * as shared_product from "../shared/product.js";
 import type * as shared_time from "../shared/time.js";
 import type * as signIn_account from "../signIn/account.js";
@@ -141,6 +142,7 @@ declare const fullApi: ApiFromModules<{
   "scoring/statCatalogue": typeof scoring_statCatalogue;
   "shared/leagueAccess": typeof shared_leagueAccess;
   "shared/londonTime": typeof shared_londonTime;
+  "shared/players": typeof shared_players;
   "shared/product": typeof shared_product;
   "shared/time": typeof shared_time;
   "signIn/account": typeof signIn_account;

@@ -5,7 +5,8 @@ import { cleanup, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { admin, openApp } from "../../support/src/shell.harness";
-import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
+import { LEAGUES_PATH, LEAGUES_TITLE, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
+import { backToLeaguesWords } from "../../../src/leagues/words";
 
 afterEach(cleanup);
 
@@ -25,7 +26,7 @@ describe("creating a league", () => {
     await fillIn();
 
     expect(app.leagues.createLeague).toHaveBeenCalledWith({ name: "Mini beta", maxTeams: 4, commissionerEmail: "commish@example.com" });
-    expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 
@@ -49,9 +50,9 @@ describe("creating a league", () => {
 
   it("goes back to the admin's leagues without making one", async () => {
     const app = openApp(NEW_LEAGUE_PATH, admin);
-    await userEvent.click(await screen.findByRole("link", { name: "Back to your leagues" }));
+    await userEvent.click(await screen.findByRole("link", { name: backToLeaguesWords }));
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
     expect(app.leagues.createLeague).not.toHaveBeenCalled();
   });
 });

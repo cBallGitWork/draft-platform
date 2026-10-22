@@ -8,6 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { joinPath } from "../../../convex/joining/joiningShared";
 import { DAY_MS } from "../../../convex/shared/time";
 import { commissioner, league, managerIn, openApp } from "../../support/src/shell.harness";
+import { LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { invitesPath } from "../../../src/joining/paths";
 import type { InvitesPageData } from "../../../src/joining/seam";
 import { dayWords, expiredWords, invitesTitle, joinedWords, loadingWords, noTeamWords, notYoursWords, waitingStrip } from "../../../src/joining/words";
@@ -48,7 +49,7 @@ describe("the invites page", () => {
     cleanup();
 
     openApp("/leagues", managerIn(league));
-    await screen.findByRole("heading", { level: 1, name: "Your leagues" });
+    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
     expect(screen.queryByRole("link", { name: invitesTitle })).toBeNull();
   });
 

@@ -8,7 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../../convex/mail/mail";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../../convex/mail/mailLimits";
 import { MAIL_PATH } from "../../../src/frame/menu";
-import { LEAGUES_PATH } from "../../../src/leagues/paths";
+import { LEAGUES_PATH, LEAGUES_TITLE } from "../../../src/leagues/paths";
 import { league, manager, managerIn, newcomer, openApp } from "../../support/src/shell.harness";
 import { MAIL_TITLE, WRITE_TITLE, loadingWords, noLettersWords, onlyLatestWords, sentWords } from "../../../src/mail/words";
 
@@ -120,8 +120,8 @@ describe("someone in no league, as a manager removed from their last one is (spe
     expect(await screen.findByRole("heading", { level: 1, name: "Mail" })).toBeTruthy();
     expect(app.path()).toBe(MAIL_PATH);
 
-    await userEvent.click(screen.getByRole("link", { name: "Your leagues" }));
-    expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
+    await userEvent.click(screen.getByRole("link", { name: LEAGUES_TITLE }));
+    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 });

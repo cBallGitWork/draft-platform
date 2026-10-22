@@ -4,6 +4,8 @@
 import type { ApproveMode, PositionSource } from "../../convex/positions/positions";
 import { failedWords } from "../words";
 
+export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../words";
+
 export const ADMIN_TITLE = "Admin dashboard";
 export const loadingWords = "Loading the queue…";
 
@@ -35,11 +37,7 @@ export const switchModeWords: Record<ApproveMode, string> = {
   countAtOnce: "Let them count at once",
 };
 
-export const findTitle = "Find a player";
-export const findLabel = "Name";
 export const findHint = "Set or remove any player's positions. What you set stays until you remove it, and a position you remove stays off.";
-export const searchingWords = "Searching…";
-export const noneFoundWords = "No player of that name in the Premier League.";
 export const noPositionsWords = "No positions yet.";
 export const sourceWords: Record<PositionSource, string> = { starts: "from his starts", label: "from his label", admin: "set by you" };
 export const unconfirmedWords = "unconfirmed";
@@ -47,7 +45,6 @@ export const removeLabel = (position: string, name: string) => `Remove ${positio
 export const setLabel = (name: string) => `Position to give ${name}`;
 export const setWords = "Set";
 export const removeWords = "Remove";
-export const foundListLabel = "Players found";
 export const positionsListLabel = (name: string) => `${name}'s positions`;
 
 /** Where to read up on a player, as a web search on one site each: nothing is fetched (spec/06). */

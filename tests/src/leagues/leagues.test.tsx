@@ -8,7 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { SIGN_IN_PATH } from "../../../src/router";
 import { admin, adminSeeing, league, manager, managerIn, newcomer, openApp, visitor } from "../../support/src/shell.harness";
-import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
+import { LEAGUES_PATH, LEAGUES_TITLE, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
 import { unsentLink, unsentLinkWords } from "../../../src/leagues/words";
 
 afterEach(cleanup);
@@ -16,14 +16,14 @@ afterEach(cleanup);
 describe("someone signed in, in no league", () => {
   it.each(["/", MY_TEAM_PATH, SIGN_IN_PATH])("opening %s sees their leagues page, saying they're in none", async (path) => {
     const app = openApp(path, newcomer);
-    expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
     expect(screen.getByText("You're signed in as manager@example.com, and you're not in a league yet.")).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 
   it("sees no league menu and no Create a league, and can sign out", async () => {
     const app = openApp(LEAGUES_PATH, newcomer);
-    await screen.findByRole("heading", { level: 1, name: "Your leagues" });
+    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
     expect(screen.queryByRole("navigation")).toBeNull();
     expect(screen.queryByRole("link", { name: "Create a league" })).toBeNull();
 
@@ -36,7 +36,7 @@ describe("someone signed in, in no league", () => {
 
   it("opening Create a league, not being the admin, is sent back to their leagues", async () => {
     const app = openApp(NEW_LEAGUE_PATH, newcomer);
-    expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 });

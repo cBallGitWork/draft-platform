@@ -3,6 +3,7 @@
 // screen as is.
 
 import { GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
+import { LOCALE } from "../../convex/shared/londonTime";
 import { failedWords } from "../words";
 
 export const GAMEWEEKS_TITLE = "Gameweeks";
@@ -19,7 +20,7 @@ export const begunWords = "Begun";
 export const noDeadlineWords = "Not known yet";
 export const loadingWords = "Loading the gameweeks…";
 
-const deadlineFormat = new Intl.DateTimeFormat("en-GB", {
+const deadlineFormat = new Intl.DateTimeFormat(LOCALE, {
   weekday: "short",
   day: "numeric",
   month: "short",

@@ -3,6 +3,7 @@
 // league's events say is in convex/mail/letterWords.ts.
 
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mail/mailLimits";
+import { LOCALE } from "../../convex/shared/londonTime";
 import { failedWords } from "../words";
 
 export const MAIL_TITLE = "Mail";
@@ -18,8 +19,8 @@ export const unreadCount = (unread: number) => `${unreadFigure(unread)} unread`;
 /** Where a letter came from: its league, and who wrote it, if someone did. */
 export const letterSource = (leagueName: string, from: string | null) => (from === null ? leagueName : `${leagueName}, from ${from}`);
 
-const day = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" });
-const time = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" });
+const day = new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "short" });
+const time = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minute: "2-digit" });
 /** When a letter was filed, in the reader's own time: "20 Oct" and "09:00". */
 export const letterDay = (at: number) => day.format(at);
 export const letterTime = (at: number) => time.format(at);

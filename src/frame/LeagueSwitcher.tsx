@@ -4,7 +4,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../auth";
 import type { LeagueActions } from "../leagues/actions";
-import { LEAGUES_PATH } from "../leagues/paths";
+import { LEAGUES_PATH, LEAGUES_TITLE } from "../leagues/paths";
 import { roleWords } from "../leagues/words";
 import { Problem } from "./Panel";
 
@@ -97,7 +97,7 @@ export function LeagueSwitcher({
       {open && (
         <div id={listId} className="absolute top-full left-0 z-10 w-full bg-panel shadow-bevel-panel lg:w-72">
           <Problem problem={problem} />
-          <ul aria-label="Your leagues">
+          <ul aria-label={LEAGUES_TITLE}>
             {theirs.map((league) => (
               <li key={league.leagueId} className="border-b border-panel-rule">
                 <LeagueChoice league={league} isCurrent={league === current} disabled={switching} onChoose={switchTo} />

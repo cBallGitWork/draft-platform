@@ -4,13 +4,11 @@
 import type { SquadWarning } from "../../convex/squads/squads";
 import { failedWords } from "../words";
 
+export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../words";
+
 export const SQUADS_TITLE = "Squads";
-export const findTitle = "Find a player";
-export const findLabel = "Name";
 export const findHint = "Put any player on any team, move him to another, or release him to free agency. Every change is in the league's Mail.";
 export const loadingWords = "Loading the squads…";
-export const searchingWords = "Searching…";
-export const noneFoundWords = "No player of that name in the Premier League.";
 export const freeAgentWords = "Free agent";
 export const onTeamWords = (teamName: string) => `On ${teamName}`;
 export const emptySquadWords = "No players yet.";
@@ -22,7 +20,6 @@ export const releaseWords = "Release";
 export const releaseLabel = (name: string) => `Release ${name}`;
 export const assignLabel = (name: string) => `Put ${name} on the team chosen`;
 export const moveLabel = (name: string) => `Move ${name} to the team chosen`;
-export const foundListLabel = "Players found";
 export const squadListLabel = (teamName: string) => `${teamName}'s players`;
 export const playersCount = (count: number) => (count === 1 ? "1 player" : `${count} players`);
 

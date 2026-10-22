@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { signInToJoinWords } from "../../src/joining/words";
-import { LEAGUES_PATH } from "../../src/leagues/paths";
+import { LEAGUES_PATH, LEAGUES_TITLE } from "../../src/leagues/paths";
 import { LiveApp, NO_CONVEX_URL, takeLinkCode } from "../../src/liveApp";
 import { SIGN_IN_PATH } from "../../src/router";
 import { askFailedWords, linkProblemWords, replyWords, waitingWords } from "../../src/sign-in/words";
@@ -110,7 +110,7 @@ test("signed in, in no league, the app opens on the leagues page", async () => {
 
   openAt("/");
 
-  expect(await screen.findByRole("heading", { level: 1, name: "Your leagues" })).toBeTruthy();
+  expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
   expect(window.location.pathname).toBe(LEAGUES_PATH);
 });
 
