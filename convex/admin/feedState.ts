@@ -26,8 +26,8 @@ export function failureOf(outcome: RunOutcome): string | null {
   return failed === undefined || failed.ok ? null : failed.error;
 }
 
-/** From when a feed owes a success: always, on a fixed schedule; only while a match is live, for
- *  the live tick, from its kickoff; or null, while it owes none. */
+/** `judgeFeed`'s `owedSince` for a feed that always owes a success. Otherwise it is when the feed
+ *  began to owe one (the live tick: the live match's kickoff), or null while it owes none. */
 export const ALWAYS_OWED = Number.NEGATIVE_INFINITY;
 
 export type FeedRuns = {

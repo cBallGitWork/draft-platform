@@ -30,10 +30,6 @@ test("with no run on record, every feed is not running yet", async () => {
   );
 });
 
-test("the football sync the cron runs is late once six and a half hours pass with no success", () => {
-  expect(FOOTBALL_LATE_AFTER).toBe(6 * HOUR_MS + 30 * MINUTE_MS);
-});
-
 test("a football sync that stops is late once its schedule's interval passes with no success, and fine up to then", async () => {
   vi.useFakeTimers({ now: T0 });
   const t = freshConvex();

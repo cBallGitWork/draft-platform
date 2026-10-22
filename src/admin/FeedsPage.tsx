@@ -143,21 +143,23 @@ function Corrections({ report: { corrections } }: { report: FeedsReport }) {
     <section aria-labelledby="corrections-title" className="bg-panel">
       <PanelTitle id="corrections-title">{correctionsTitle}</PanelTitle>
       <p className="px-3 py-2 text-muted">{corrections.length === 0 ? noCorrectionsWords : correctionsHint}</p>
-      <ul aria-labelledby="corrections-title">
-        {corrections.map(({ fixtureCode, match, playerCode, player, seenAt, changes }) => (
-          <li key={`${fixtureCode}-${playerCode}-${seenAt}`} className="border-t border-panel-rule px-3 py-1">
-            <span className="block font-semibold">
-              {playerWords(player, playerCode)}, {matchWords(match, fixtureCode)}
-            </span>
-            {changes.map((change) => (
-              <span key={change.stat} className="block">
-                {changeWords(change)}
+      {corrections.length > 0 && (
+        <ul aria-labelledby="corrections-title">
+          {corrections.map(({ fixtureCode, match, playerCode, player, seenAt, changes }) => (
+            <li key={`${fixtureCode}-${playerCode}-${seenAt}`} className="border-t border-panel-rule px-3 py-1">
+              <span className="block font-semibold">
+                {playerWords(player, playerCode)}, {matchWords(match, fixtureCode)}
               </span>
-            ))}
-            <span className="text-muted">{seenWords(seenAt)}</span>
-          </li>
-        ))}
-      </ul>
+              {changes.map((change) => (
+                <span key={change.stat} className="block">
+                  {changeWords(change)}
+                </span>
+              ))}
+              <span className="text-muted">{seenWords(seenAt)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

@@ -23,7 +23,7 @@ const queue: PositionsQueue = {
 };
 
 const now = Date.now();
-const hullEverton = { home: "Hull City", away: "Everton" };
+const hullEverton = { fixtureCode: 2561902, match: { home: "Hull City", away: "Everton" } };
 const feeds: FeedsReport = {
   now,
   feeds: [
@@ -38,12 +38,11 @@ const feeds: FeedsReport = {
     },
     { feed: "liveStats", state: "fine", lastRunAt: now - 26 * HOUR_MS, lastSuccessAt: now - 26 * HOUR_MS, lastError: null },
   ],
-  behind: [{ fixtureCode: 2561902, match: hullEverton, fullTimeAt: now - 3 * HOUR_MS }],
+  behind: [{ ...hullEverton, fullTimeAt: now - 3 * HOUR_MS }],
   moreBehind: false,
   corrections: [
     {
-      fixtureCode: 2561902,
-      match: hullEverton,
+      ...hullEverton,
       playerCode: 7,
       player: "Ndiaye",
       seenAt: now - 2 * HOUR_MS,

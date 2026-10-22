@@ -22,19 +22,17 @@ export const RUNS_READ = 100;
 export const BEHIND_SHOWN = 20;
 export const CORRECTIONS_SHOWN = 20;
 
-const nullable = <T extends Parameters<typeof v.union>[0]>(validator: T) => v.union(validator, v.null());
-
 const feedReport = v.object({
   feed: v.union(...FEEDS.map((feed) => v.literal(feed))),
   state: feedState,
-  lastRunAt: nullable(v.number()),
-  lastSuccessAt: nullable(v.number()),
+  lastRunAt: v.union(v.number(), v.null()),
+  lastSuccessAt: v.union(v.number(), v.null()),
   /** The newest failure among the runs read, and when its run started. */
-  lastError: nullable(v.object({ at: v.number(), error: v.string() })),
+  lastError: v.union(v.object({ at: v.number(), error: v.string() }), v.null()),
 });
 
 /** A match by its clubs' names; null if the football sync holds no such match or club. */
-const matchNamed = nullable(v.object({ home: v.string(), away: v.string() }));
+const matchNamed = v.union(v.object({ home: v.string(), away: v.string() }), v.null());
 
 const feedsReport = v.object({
   /** The time the feeds were judged at, for the screen's "ago". */
@@ -50,7 +48,7 @@ const feedsReport = v.object({
       fixtureCode: v.number(),
       match: matchNamed,
       playerCode: v.number(),
-      player: nullable(v.string()),
+      player: v.union(v.string(), v.null()),
       seenAt: v.number(),
       changes: v.array(lateStatChange),
     }),
@@ -97,6 +95,7 @@ async function owedSinceAt(ctx: QueryCtx, now: number): Promise<Record<Feed, num
 }
 
 type Run = { ranAt: number; outcome: RunOutcome };
+type RunsRead = FeedRuns & { lastError: { at: number; error: string } | null };
 
 /** A feed's run rows, newest first. */
 function runsOf(ctx: QueryCtx, feed: Feed): AsyncIterable<Run> {
@@ -105,8 +104,8 @@ function runsOf(ctx: QueryCtx, feed: Feed): AsyncIterable<Run> {
 }
 
 /** The newest run, the newest success and the newest error, among the newest `RUNS_READ`. */
-async function readRuns(runs: AsyncIterable<Run>): Promise<FeedRuns & { lastError: { at: number; error: string } | null }> {
-  const read: FeedRuns & { lastError: { at: number; error: string } | null } = { lastRun: null, lastSuccessAt: null, lastError: null };
+async function readRuns(runs: AsyncIterable<Run>): Promise<RunsRead> {
+  const read: RunsRead = { lastRun: null, lastSuccessAt: null, lastError: null };
   let count = 0;
   for await (const { ranAt, outcome } of runs) {
     const failure = failureOf(outcome);

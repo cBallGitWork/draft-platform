@@ -17,7 +17,7 @@ export type FeedSchedule = { readonly every: Every; readonly graceMs: number };
 
 /** Null for a feed no cron runs yet (ARCHITECTURE.md): it can't be late, so the page says so. */
 export const FEED_SCHEDULES = {
-  // Why six hours is soon enough: ARCHITECTURE.md. A run reads FPL in a minute or two.
+  // A run reads FPL in a minute or two.
   football: { every: { hours: 6 }, graceMs: 30 * MINUTE_MS },
   // Run by hand for now: spec/06 names no cadence.
   positions: null,
