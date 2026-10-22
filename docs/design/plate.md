@@ -13,7 +13,7 @@ How the screens link, and which the spec names but nobody has built: [flow.md](f
 | ground | `#0a1240` | the page |
 | panel | `#1a2a80` | a panel's body |
 | plate | `#173a94` | the top bar, a panel's title plate, date blocks |
-| stepper | `#2a44a8` | the `◄ GW9 ►` gameweek stepper; a control on the plate under the pointer, and a toggle on the plate while its list is open (the top bar's league) |
+| stepper | `#1d2a98` | the `◄ GW9 ►` gameweek stepper; a control on the plate under the pointer, and a toggle on the plate while its list is open (the top bar's league) |
 | name plate | `#050a30` | under a player's name on the pitch, the alert strip |
 | column head | `#b9bcc4`, ink `#0a1240` | one continuous plate over a table's columns |
 | fact | `#ffffff` | names, labels that are facts, a role |
@@ -24,7 +24,7 @@ How the screens link, and which the spec names but nobody has built: [flow.md](f
 | role text | `#c9d1ff` | the role under a name on the pitch |
 | pitch | stripes `#2f8535` / `#276f2c`, lines 2px `#e6f2e6` | |
 | action | fill `#ffffff`, ink `#0a1240`, bevel `#b9bcc4` | Continue; hover `#c9d1ff`, pressed `#b9bcc4` (bevel flipped); `#ff9b3d` (hover `#ffb36b`, pressed `#e07f1f`) when the deadline is near; with nothing to do, no fill, 1px `#9aa4b8` border, "Nothing needs you" |
-| secondary action | fill `#173a94`, 1px border `#c9d1ff`, ink `#ffffff` | hover fill `#2a44a8`, border `#ffffff`; pressed fill `#0a1240` |
+| secondary action | fill `#173a94`, 1px border `#c9d1ff`, ink `#ffffff` | hover fill `#1d2a98`, border `#ffffff`; pressed fill `#0a1240` |
 | active tab | text `#ffffff` 600, 3px underline `#6bfdfa` (2px on a sub-tab) | inactive tabs `#c9d1ff`; never muted `#9aa4b8` on the bar (4.05:1) |
 | focus | 2px outline `#6bfdfa`, offset 2px | every control |
 | link | `#ffffff`, 1px underline; hover underline `#6bfdfa` | |
