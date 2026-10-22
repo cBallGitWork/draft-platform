@@ -1,6 +1,13 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
-import { FPL_BOOTSTRAP_URL, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../../../convex/football/football";
+import {
+  FPL_BOOTSTRAP_URL,
+  PL_SEASON_IDS_STALE,
+  PL_SEASON_IDS_STALE_FROM,
+  plCommentaryUrl,
+  plFixtureUrl,
+  plTeamStatsUrl,
+} from "../../../convex/football/football";
 import type { RawPlFixture } from "../../../convex/football/premierLeague";
 import {
   COMMENTARY_MATCH,
@@ -62,6 +69,21 @@ test("a feed that refuses is recorded with its status, and the other feed still 
   expect(row.fplPlayers).toEqual({ ok: true, count: 3 });
   expect(row.plFixtures).toMatchObject({ ok: false, error: expect.stringContaining("answered 403") });
   expect(row.arsenalSquadNumbers).toMatchObject({ ok: false });
+});
+
+test("once the season ids are out of date, both Premier League reads are recorded as failing, saying so (#201)", async () => {
+  vi.stubGlobal("fetch", fakeFeeds());
+  const logged = silenceConsoleError();
+  vi.setSystemTime(PL_SEASON_IDS_STALE_FROM);
+  const t = freshConvex();
+
+  await t.action(internal.football.feeds.check, { trigger: "manual" });
+
+  const [row] = await t.query(internal.football.feeds.latest, {});
+  expect(row.fplPlayers).toEqual({ ok: true, count: 3 });
+  expect(row.plFixtures).toEqual({ ok: false, error: PL_SEASON_IDS_STALE });
+  expect(row.arsenalSquadNumbers).toEqual({ ok: false, error: PL_SEASON_IDS_STALE });
+  expect(logged).toHaveBeenCalledWith(`feed check failed: ${PL_SEASON_IDS_STALE}`);
 });
 
 /** Serves a match's commentary, fixture and team stats as recorded; any other URL answers 404. */
