@@ -69,8 +69,9 @@ function thresholdsOf(settings: Doc<"positionSettings"> | null): ChangeThreshold
  *  FPL deadline the newest good positions sync ran after, so a sync within a gameweek moves nothing.
  *  The sync's time stands in for the clock, which a query can't read. Null, judging every start,
  *  before any sync or the season's first deadline (docs/positions.md, When positions change).
- *  FPL's deadline, not a league's: positions are the whole deployment's, not one league's, so the
- *  one cut-off every league shares is FPL's (22 Oct 2026; a league's begins at its own, #138). */
+ *  FPL's deadline, not a league's, by Claude's choice: positions are the whole deployment's, not
+ *  one league's, so the one cut-off every league shares is FPL's. A league's gameweek begins at
+ *  its own deadline (#138). */
 async function judgedBefore(ctx: QueryCtx): Promise<number | null> {
   const newestSync = await newestGoodSync(ctx);
   if (newestSync === null) return null;

@@ -1,5 +1,6 @@
 // A made-up season, for the gameweeks screen's preview (preview.ts) and its tests
-// (gameweeks.harness.ts): a deadline a week apart for each of FPL's gameweeks.
+// (gameweeks.harness.ts): the league's own deadline for each of the season's gameweeks, a week
+// apart.
 
 import type { LeagueGameweek } from "../../convex/gameweeks/leagueGameweeks";
 import { WEEK_MS } from "../../convex/shared/time";

@@ -17,7 +17,7 @@ import {
 } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { DAY_MS, HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { giveDeadlineRule, moveFplDeadline } from "../../support/convex/leagueRules.harness";
+import { expectRefused, giveDeadlineRule, moveFplDeadline } from "../../support/convex/leagueRules.harness";
 import { GAMEWEEKS, isGameweekUsed } from "../../../convex/gameweeks/usedGameweeks";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 
@@ -200,5 +200,14 @@ describe("what can't be ticked", () => {
     await expect(setUsed(COMMISSIONER, 30, false)).rejects.toThrow(gameweekRefusals.noDeadline(30));
     const shown = await (await actingAs(t, COMMISSIONER)).query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId });
     expect(shown[29]).toEqual({ gameweek: 30, used: true, deadline: null });
+  });
+
+  test("a league made before rules were held has no deadline, and is told that, not that a kickoff is missing", async () => {
+    await holdGameweeks();
+    await t.run(async (ctx) => {
+      for await (const row of ctx.db.query("leagueRules")) await ctx.db.delete("leagueRules", row._id);
+    });
+    await expectRefused(setUsed(COMMISSIONER, NEXT, false), gameweekRefusals.noRules);
+    expect(await unusedGameweeks()).toBeUndefined();
   });
 });

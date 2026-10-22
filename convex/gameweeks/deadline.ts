@@ -22,7 +22,7 @@ export interface DeadlineRule {
 export const FPL_DEADLINE_RULE: DeadlineRule = { minutesBeforeFirstKickoff: 90 };
 
 /** All of a match a deadline reads. */
-type ScheduledMatch = Pick<Infer<typeof fixtureRecord>, "gameweek" | "kickoff">;
+export type ScheduledMatch = Pick<Infer<typeof fixtureRecord>, "gameweek" | "kickoff">;
 
 /** The deadline last recorded for the gameweek (null only before one is), and the time it is read. */
 export interface DeadlineReading {

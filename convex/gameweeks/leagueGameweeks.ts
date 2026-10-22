@@ -3,7 +3,7 @@ import { mutation, query } from "../_generated/server";
 import { isLocked } from "./deadline";
 import { refuse, runnerOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
-import { leagueDeadlines } from "../rules/leagueRules";
+import { latestRules, leagueDeadlines } from "../rules/leagueRules";
 import { isGameweek, isGameweekUsed, noSuchGameweek, SEASON_GAMEWEEKS, shownDeadline, unusedAfter } from "./usedGameweeks";
 
 // The commissioner ticks the gameweeks the league plays, all 38 by default (#74; spec/13,
@@ -16,6 +16,7 @@ import { isGameweek, isGameweekUsed, noSuchGameweek, SEASON_GAMEWEEKS, shownDead
 export const gameweekRefusals = {
   notAGameweek: noSuchGameweek,
   begun: (gameweek: number) => `Gameweek ${gameweek} has begun, so it can't be ticked or unticked.`,
+  noRules: "This league has no rules yet, so it has no deadline, and its gameweeks can't be ticked or unticked. It was made before leagues held their rules.",
   noDeadline: (gameweek: number) =>
     `The app doesn't have a kickoff time for gameweek ${gameweek} yet, so it can't tell when its deadline falls or whether it has begun. Try again once the season's matches have arrived.`,
 } as const;
@@ -50,6 +51,7 @@ export const setUsed = mutation({
   handler: async (ctx, { leagueId, gameweek, used }) => {
     const { email, league } = await runnerOf(ctx, leagueId);
     if (!isGameweek(gameweek)) refuse(gameweekRefusals.notAGameweek(gameweek));
+    if ((await latestRules(ctx, leagueId)) === null) refuse(gameweekRefusals.noRules);
     const deadline = (await leagueDeadlines(ctx, leagueId)).get(gameweek) ?? null;
     if (deadline === null) refuse(gameweekRefusals.noDeadline(gameweek));
     if (isLocked(deadline, Date.now())) refuse(gameweekRefusals.begun(gameweek));

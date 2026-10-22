@@ -7,6 +7,7 @@ import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../
 import { giveDeadlineRule } from "../../support/convex/leagueRules.harness";
 import { syncWith } from "../../support/convex/footballSync.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { silenceConsoleError } from "../../support/convex/test.harness";
 import { recordedSeason } from "../../support/recorded/fpl.payloads";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 
@@ -80,6 +81,26 @@ describe("recording", () => {
     expect(await recordPassed()).toBe(0);
     expect(await passedRows()).toEqual(first);
   });
+});
+
+test("it fails closed: a league whose deadlines can't be worked out fails the sync, logged and filed, and no kickoff moves", async () => {
+  const error = silenceConsoleError();
+  fakeResend();
+  const broken = await adminCreatesLeague(t, 4, "Broken");
+  // Only a row written by hand can be unsound: a commissioner's change is checked.
+  await t.run(async (ctx) => {
+    await ctx.db.insert("leagueRules", { leagueId: broken, fromGameweek: 1, rules: { ...FIRST_RULES, deadline: { minutesBeforeFirstKickoff: -1 } } });
+  });
+  vi.setSystemTime(deadlineBefore(OPENER) + HOUR_MS);
+
+  const outcome = await syncWith(t, openerPostponed());
+
+  expect(outcome).toMatchObject({ ok: false, error: expect.stringContaining(`League ${broken} (Broken)`) });
+  expect(error).toHaveBeenCalledWith(expect.stringContaining("football sync failed"));
+  const kickoffs = await t.run(async (ctx) => (await ctx.db.query("fixtures").collect()).map((fixture) => fixture.kickoff));
+  expect(kickoffs).toContain(OPENER);
+  expect(await passedRows()).toEqual([]);
+  expect(await shownDeadline(GAMEWEEK)).toBe(deadlineBefore(OPENER));
 });
 
 describe("a postponed first match", () => {

@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { leagueDeadline, type DeadlineRule } from "../gameweeks/deadline";
+import { leagueDeadline, type DeadlineRule, type ScheduledMatch } from "../gameweeks/deadline";
 import { FIRST_RULES } from "./firstRules";
 import { memberOf, refuse, runnerOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
@@ -83,7 +83,7 @@ export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">
 }
 
 /** The season's gameweeks and matches as held, less those the football layer no longer sends. */
-async function heldSchedule(ctx: QueryCtx) {
+export async function heldSchedule(ctx: QueryCtx) {
   const gameweeks = [];
   for await (const { number, droppedAt } of ctx.db.query("gameweeks")) {
     if (droppedAt === undefined) gameweeks.push({ number });
@@ -101,9 +101,18 @@ async function heldSchedule(ctx: QueryCtx) {
  *  and recorder (#138, #139). Null where none of the gameweek's matches has a kickoff time held,
  *  and for every gameweek of a league made before rules were held, which has no deadline rule. */
 export async function leagueDeadlines(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, number | null>> {
+  return leagueDeadlinesIn(ctx, leagueId, (await heldSchedule(ctx)).matches);
+}
+
+/** `leagueDeadlines` against matches already read (`heldSchedule`), so one read serves every
+ *  league. */
+export async function leagueDeadlinesIn(
+  ctx: QueryCtx,
+  leagueId: Id<"leagues">,
+  matches: readonly ScheduledMatch[],
+): Promise<Map<number, number | null>> {
   const history = await historyOf(ctx, leagueId);
   const passed = await passedDeadlinesOf(ctx, leagueId);
-  const { matches } = await heldSchedule(ctx);
   return new Map(
     SEASON_GAMEWEEKS.map((gameweek) => {
       const row = inForce(history, gameweek);
