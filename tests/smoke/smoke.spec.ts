@@ -4,7 +4,7 @@
 import { expect, test as base, type ConsoleMessage } from "@playwright/test";
 import { ERROR_PAGE_TITLE } from "../../src/frame/words";
 import { NO_CONVEX_URL } from "../../src/words";
-import { SIGN_IN_PATH } from "../../src/router";
+import { SIGN_IN_PATH } from "../../src/sign-in/paths";
 
 /** The one error every page load logs: the app has no favicon, and the browser asks for one. */
 const isFaviconMiss = (message: ConsoleMessage) => new URL(message.location().url || "about:blank").pathname === "/favicon.ico";

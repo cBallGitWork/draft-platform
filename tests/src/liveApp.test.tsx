@@ -10,7 +10,7 @@ import { signInToJoinWords } from "../../src/joining/words";
 import { LEAGUES_PATH, LEAGUES_TITLE } from "../../src/leagues/paths";
 import { LiveApp, takeLinkCode } from "../../src/liveApp";
 import { NO_CONVEX_URL } from "../../src/words";
-import { SIGN_IN_PATH } from "../../src/router";
+import { SIGN_IN_PATH } from "../../src/sign-in/paths";
 import { askFailedWords, linkProblemWords, replyWords, signInWords, waitingWords } from "../../src/sign-in/words";
 
 const convex = vi.hoisted(() => ({

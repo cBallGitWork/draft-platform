@@ -12,21 +12,24 @@ import { useLiveMail } from "./mail/liveMail";
 import { useLiveSquads } from "./squads/liveSquads";
 import { liveTable } from "./table/liveTable";
 import { answerOf } from "./refusal";
-import { SIGN_IN_PATH } from "./router";
 import { ShellApp } from "./ShellApp";
+import { SIGN_IN_PATH } from "./sign-in/paths";
 import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "./sign-in/words";
 import { NO_CONVEX_URL } from "./words";
 
 // The app signed in for real: Convex Auth's session (convex/auth.ts), the email links asked for
 // through signIn/signInLinks:ask, and a link's code redeemed when the app is opened from one.
 
+/** The search param a sign-in link carries its code in (Convex Auth's). */
+const LINK_CODE_PARAM = "code";
+
 /** The code a sign-in link opened the app with, taken out of the address so a reload or a
  *  bookmark can't carry it. */
 export function takeLinkCode(): string | null {
   const url = new URL(window.location.href);
-  const code = url.searchParams.get("code");
+  const code = url.searchParams.get(LINK_CODE_PARAM);
   if (code === null) return null;
-  url.searchParams.delete("code");
+  url.searchParams.delete(LINK_CODE_PARAM);
   window.history.replaceState(null, "", url);
   return code;
 }

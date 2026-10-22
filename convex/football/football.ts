@@ -40,6 +40,9 @@ export function fplLiveUrl(gameweek: number): string {
   return `${FPL_API_BASE}/event/${gameweek}/live/`;
 }
 
+/** The most fixtures one read of the list asks for: a season's 380 in one page. */
+export const PL_FIXTURES_PAGE_SIZE = 400;
+
 /** One gameweek's fixtures, or the season's when omitted; this season's unless another is named.
  *  It always asks for `altIds`: without it the fixtures arrive with no join to FPL, and nothing
  *  says so. */
@@ -47,7 +50,7 @@ export function plFixturesUrl(gameweek?: number, compSeason = PL_COMP_SEASON): s
   const round = gameweek === undefined ? "" : `&gameweekNumbers=${gameweek}`;
   return (
     `${PL_API_BASE}/fixtures?comps=${PL_COMPETITION}&compSeasons=${compSeason}` +
-    `${round}&pageSize=400&page=0&sort=asc&altIds=true`
+    `${round}&pageSize=${PL_FIXTURES_PAGE_SIZE}&page=0&sort=asc&altIds=true`
   );
 }
 
