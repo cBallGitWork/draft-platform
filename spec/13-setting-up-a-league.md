@@ -44,9 +44,13 @@ comes to exist, fills, changes and ends.
 - The commissioner approves or refuses each join request. A person has at most one request
   waiting, sees that it is waiting for the commissioner, and gets an email once approved.
   Refusing files no Mail letter.
-- Until invites are built, a sign-in link goes only to emails the admin puts on an allowed list;
-  invites add to that list once they exist. The invite link lets anyone who opens it sign in to
-  ask to join (`/grill sign-in`): it's a beta, and a leak needs no guarding.
+- In the beta, a sign-in link goes only to emails on the allowed list; the admin adds emails, and
+  so do an invite, the live invite link and naming a team's manager (Craig, 22 Oct 2026). The
+  invite link lets anyone who opens it sign in to ask to join (`/grill sign-in`): it's a beta,
+  and a leak needs no guarding.
+- Joining mid-season: "teams probably cant join mid season (unless its a league with splits
+  etc.)" (Craig, 22 Oct 2026). A played gameweek's fixtures never change because a team joined;
+  leagues with splits are to grill (`docs/to-grill.md`).
 - Invites past the email service's daily limit (100 a day for now) wait for the next day, and the
   commissioner is told.
 
@@ -60,6 +64,8 @@ comes to exist, fills, changes and ends.
 
 - The commissioner ticks the gameweeks the league uses, all 38 by default: a league can end early
   or take a break, such as at Christmas.
+- A gameweek begins at the league's own deadline, never FPL's: "ours, we arent fpl so stop
+  copying them" (Craig, 22 Oct 2026).
 - After the season starts, only gameweeks that haven't begun can be ticked or unticked.
 - An unticked gameweek scores nothing and has no head-to-head; its lineups don't matter. Waivers,
   free agency and trades carry on through it.
