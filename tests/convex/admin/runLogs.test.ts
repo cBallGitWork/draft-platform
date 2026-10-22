@@ -91,6 +91,17 @@ test("a feed's newest success stays however old while every newer run failed", a
   expect(old(await ranAtOf(t, "positions"))).toEqual([newestSuccess]);
 });
 
+test("an old success goes once a younger one is kept, though every newest run failed", async () => {
+  const t = freshConvex();
+  const youngerSuccess = NOW - SUCCESS_KEPT_MS + DAY_MS;
+  await recordRun(t, "positions", NOW - SUCCESS_KEPT_MS - DAY_MS);
+  await recordRun(t, "positions", youngerSuccess);
+  await recentRuns(t, "positions", { error: "PL answered 503" });
+
+  await prune(t);
+  expect(old(await ranAtOf(t, "positions"))).toEqual([youngerSuccess]);
+});
+
 // The feeds page's last success is a run with no failed match, so one that read a failed match
 // mustn't stand in for it.
 test("a run with a failed match never stands in for the newest success", async () => {

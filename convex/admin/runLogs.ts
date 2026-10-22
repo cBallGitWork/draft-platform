@@ -12,7 +12,7 @@ import { BATCH_SIZE, FAILURE_KEPT_MS, LATEST_RUNS, SUCCESS_KEPT_MS } from "../sh
 // - a failure younger than `FAILURE_KEPT_MS`, a run with one failed match counting as a failure;
 // - the newest run that succeeded, however old, which positionSettings.ts judges positions from.
 //   The oldest rows come first, so an old success is held until a newer one is seen: a later old
-//   one, or one among the newest `LATEST_RUNS`.
+//   one, the first one kept for its age, or one among the newest `LATEST_RUNS`.
 // A batch of rows a run, oldest first by `_creationTime`, handing on to the next as
 // leagueDeletion.deleteForGood does.
 
@@ -56,6 +56,10 @@ export const prune = internalMutation({
     let reachedKept = rows.length < BATCH_SIZE;
     for (const row of rows) {
       if (row.ranAt >= startedAt - SUCCESS_KEPT_MS) {
+        if (held !== null && succeeded(row)) {
+          await remove(held);
+          held = null;
+        }
         reachedKept = true;
         break;
       }
