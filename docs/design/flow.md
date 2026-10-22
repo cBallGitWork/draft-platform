@@ -36,13 +36,14 @@ flowchart TD
     JOIN["Join a league<br/>/join/$token<br/>manager, commissioner, admin"]
     GW["Gameweeks<br/>/leagues/$leagueId/gameweeks<br/>commissioner, admin"]
     SQ["Squads<br/>/leagues/$leagueId/squads<br/>commissioner, admin"]
-    SC["Scoring, the rules editor<br/>/leagues/$leagueId/scoring<br/>commissioner, admin"]
+    SC["Player scoring, the rules editor<br/>/leagues/$leagueId/scoring<br/>commissioner, admin"]
+    SET["League settings<br/>/leagues/$leagueId/settings<br/>commissioner, admin"]
     ADMIN["Admin dashboard, tab Positions<br/>/admin<br/>admin"]
     FEEDS["Feeds, a tab of the admin dashboard<br/>/admin/feeds<br/>admin"]
   end
   LP -.->|"signed out (an invite link keeps ?join)"| SIGNIN
   NEW & ADMIN & FEEDS -.->|"not the admin"| LEAGUES
-  GW & SQ & SC & INV -.->|"doesn't run it, or it's being deleted"| LEAGUES
+  GW & SQ & SC & SET & INV -.->|"doesn't run it, or it's being deleted"| LEAGUES
   LEAGUES -- "Create a league" --> NEW
   LEAGUES -- "Admin dashboard" --> ADMIN
   ADMIN -- "Feeds" --> FEEDS
@@ -50,9 +51,10 @@ flowchart TD
   LEAGUES -- "Gameweeks" --> GW
   LEAGUES -- "Invites and join requests" --> INV
   LEAGUES -- "Squads" --> SQ
-  LEAGUES -- "Scoring" --> SC
+  LEAGUES -- "Player scoring" --> SC
+  LEAGUES -- "League settings" --> SET
   NEW -- "Create the league / Back to your leagues" --> LEAGUES
-  GW & SQ & SC & ADMIN & FEEDS & INV -- "Back to your leagues" --> LEAGUES
+  GW & SQ & SC & SET & ADMIN & FEEDS & INV -- "Back to your leagues" --> LEAGUES
   JOIN -- "Your leagues" --> LEAGUES
   INV -- "the invite link, sent outside the app" --> JOIN
 
@@ -92,10 +94,9 @@ flowchart TD
     MATCH["Match<br/>spec/10:17<br/>manager"]
     CARD["Player card<br/>spec/12:16<br/>manager"]
     DRAFT["Draft room<br/>spec/12:16, spec/04<br/>manager, commissioner"]
-    SETTINGS["League settings<br/>spec/12:16<br/>commissioner"]
     CLUBS["Club pages<br/>spec/18:22<br/>after the mini beta"]
   end
-  class MATCH,CARD,DRAFT,SETTINGS,CLUBS planned
+  class MATCH,CARD,DRAFT,CLUBS planned
   MATCHUP -- "a player's status (spec/10:23)" --> MATCH
   PL -- "each fixture (spec/18:12)" --> MATCH
 ```
@@ -118,7 +119,8 @@ Features table (feature 12), the one home for screen status.
 | Join a league | `/join/$token` | src/joining/JoinPage.tsx | spec/13 Joining | built |
 | Gameweeks | `/leagues/$leagueId/gameweeks` | src/gameweeks/GameweeksPage.tsx | spec/13 Gameweeks | built |
 | Squads | `/leagues/$leagueId/squads` | src/squads/SquadsPage.tsx | spec/15 Assigning players | built |
-| Scoring, the rules editor | `/leagues/$leagueId/scoring` | src/scoring/ScoringPage.tsx | spec/14 The rules editor | built |
+| Player scoring, the rules editor | `/leagues/$leagueId/scoring` | src/scoring/ScoringPage.tsx | spec/14 The rules editor | built |
+| League settings | `/leagues/$leagueId/settings` | src/leagueSettings/SettingsPage.tsx | spec/03, spec/09 | built |
 | Admin dashboard (Positions) | `/admin` | src/admin/AdminPage.tsx | spec/15 The admin, spec/06 | built |
 | Feeds, a tab of the admin dashboard | `/admin/feeds` | src/admin/FeedsPage.tsx | spec/15 The admin | built |
 | Table and fixtures | `/table` | src/table/TablePage.tsx | spec/12, spec/09 | built |
@@ -134,7 +136,6 @@ Features table (feature 12), the one home for screen status.
 | Match | none | none | spec/10 The match page | no route |
 | Player card | none | none | spec/12:16, spec/05:59, spec/14 | no route |
 | Draft room | none | none | spec/12:16, spec/04 | no route |
-| League settings | none | none | spec/12:16 | no route |
 | Club pages | none | none | spec/18:22 | no route |
 
 ## Gaps

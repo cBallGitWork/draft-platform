@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { v, type Validator } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import type { DeadlineRule } from "../gameweeks/deadline";
@@ -203,36 +203,52 @@ export const change = mutation({
   },
 });
 
-/** The league's scoring set as the rules editor (#30) edits it: the latest, a waiting change's
- *  among them, the rules row it is from (for the save to carry), and the gameweek a change made at
- *  `now` would take effect from. Null for a league made before rules were held. For whoever runs
- *  the league. `now` is the screen's, moved on each minute, as a query must not read the clock
- *  (convex/admin/feeds.ts says why). */
+/** What a screen editing part of the rules reads (`editorViewOf` validates it): the part as the
+ *  latest rules have it, a waiting change's among them, the rules row it is from (for
+ *  the save to carry), and the gameweek a change made at `now` would take effect from. Null for a
+ *  league made before rules were held. For whoever runs the league. `now` is the screen's, moved on
+ *  each minute, as a query must not read the clock (convex/admin/feeds.ts says why). */
+export async function editorView<Part>(ctx: QueryCtx, leagueId: Id<"leagues">, now: number, partOf: (rules: LeagueRules) => Part) {
+  await runnerOf(ctx, leagueId);
+  const history = await historyOf(ctx, leagueId);
+  const latestRow = history.at(-1);
+  if (latestRow === undefined) return null;
+  return { part: partOf(latestRow.rules), revision: latestRow._id, changesFrom: await takesEffectFrom(ctx, history, latestRow.rules, now) };
+}
+
+/** `editorView`'s returns validator, for a part shaped as `part`. */
+export const editorViewOf = <Part extends Validator<unknown, "required", string>>(part: Part) =>
+  v.union(v.null(), v.object({ part, revision: v.id("leagueRules"), changesFrom: v.number() }));
+
+/** A screen's change to part of the rules: the league's latest with `changed` applied, saved as
+ *  `change` saves them, made from the rules `revision` names, so a change to the rest made
+ *  meanwhile is neither undone nor saved over. Returns the gameweek it takes effect from. Refused,
+ *  with the reason, if the league has no rules yet, if they changed since, or if unsound. */
+export async function changeLatest(
+  ctx: MutationCtx,
+  leagueId: Id<"leagues">,
+  revision: Revision,
+  changed: (latest: LeagueRules) => LeagueRules,
+): Promise<number> {
+  const { email } = await runnerOf(ctx, leagueId);
+  const latest = await latestRules(ctx, leagueId);
+  if (latest === null) refuse(rulesRefusals.noRules);
+  return await changeRules(ctx, leagueId, email, changed(latest), revision);
+}
+
+/** The league's scoring set as Player scoring, the rules editor (#30), edits it. */
 export const scoring = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
-  returns: v.union(v.null(), v.object({ scoring: scoringSetShape, revision: v.id("leagueRules"), changesFrom: v.number() })),
-  handler: async (ctx, { leagueId, now }) => {
-    await runnerOf(ctx, leagueId);
-    const history = await historyOf(ctx, leagueId);
-    const latestRow = history.at(-1);
-    if (latestRow === undefined) return null;
-    return { scoring: latestRow.rules.scoring, revision: latestRow._id, changesFrom: await takesEffectFrom(ctx, history, latestRow.rules, now) };
-  },
+  returns: editorViewOf(scoringSetShape),
+  handler: (ctx, { leagueId, now }) => editorView(ctx, leagueId, now, (rules) => rules.scoring),
 });
 
-/** The rules editor's change (#30): the league's latest rules with this scoring set, saved as
- *  `change` saves them, made from the rules `revision` names. Returns the gameweek it takes effect
- *  from. Refused, with the reason, if the league has no rules yet, if they changed since, or if
- *  unsound. */
+/** The rules editor's change (#30): the latest rules with this scoring set, as `changeLatest`
+ *  saves them. */
 export const changeScoring = mutation({
   args: { leagueId: v.id("leagues"), scoring: scoringSetShape, revision: revisionShape },
   returns: v.number(),
-  handler: async (ctx, { leagueId, scoring, revision }) => {
-    const { email } = await runnerOf(ctx, leagueId);
-    const latest = await latestRules(ctx, leagueId);
-    if (latest === null) refuse(rulesRefusals.noRules);
-    return await changeRules(ctx, leagueId, email, { ...latest, scoring }, revision);
-  },
+  handler: (ctx, { leagueId, scoring, revision }) => changeLatest(ctx, leagueId, revision, (latest) => ({ ...latest, scoring })),
 });
 
 /** The admin changes the rules new leagues get. Leagues already made keep their own. */

@@ -31,7 +31,7 @@ const seam = () => renderHook(() => useLiveScoring()).result.current;
 
 test("the scoring is read from rules/leagueRules:scoring, at the start of the current minute", () => {
   vi.useFakeTimers({ now: Date.parse("2026-10-22T09:30:42Z") });
-  const view = { scoring, revision, changesFrom: 9 };
+  const view = { part: scoring, revision, changesFrom: 9 };
   convex.scoring.mockReturnValue(view);
 
   expect(renderHook(() => useLiveScoring().useScoring(leagueId)).result.current).toBe(view);

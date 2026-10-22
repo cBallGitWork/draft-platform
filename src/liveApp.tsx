@@ -12,6 +12,7 @@ import { useLiveJoining } from "./joining/liveJoining";
 import { joinTokenAt } from "./joining/paths";
 import { useLiveLeagueActions } from "./leagues/liveLeagueActions";
 import { useLiveMail } from "./mail/liveMail";
+import { useLiveLeagueSettings } from "./leagueSettings/liveSettings";
 import { useLiveScoring } from "./scoring/liveScoring";
 import { useLiveSquads } from "./squads/liveSquads";
 import { liveTable } from "./table/liveTable";
@@ -115,6 +116,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   const admin = useLiveAdmin();
   const squads = useLiveSquads();
   const scoring = useLiveScoring();
+  const leagueSettings = useLiveLeagueSettings();
   const account = useQuery(api.signIn.account.signedInAs, isAuthenticated ? {} : "skip");
   const [checkingLink, setCheckingLink] = useState(linkCode !== null);
   const redeemed = useRef(false);
@@ -147,7 +149,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
       <Loading className="p-2">{checkingLink ? waitingWords.checkingLink : waitingWords.connecting}</Loading>
     );
   }
-  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} table={liveTable} admin={admin} />;
+  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} admin={admin} />;
 }
 
 /** The sign-in page saying what was wrong with a link, and, for one that led to a league's invite
