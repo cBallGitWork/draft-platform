@@ -48,7 +48,7 @@ lightness from easiest to hardest, so the order survives red-green colour blindn
 hard), a five-step legend sits above the table, and rows keep a 1px `#08090b` gap.
 
 The pairs the reviewer computed meet WCAG 2.1 AA (muted on panel 6.8:1, every difficulty ink on
-its fill 5.2:1 or better, the unread badge 8.5:1); check any new pair before using it. Cyan never
+its fill 5.2:1 or better, the unread badge 9.49:1); check any new pair before using it. Cyan never
 sits straight on the pitch: it fails there (3.77:1 on the light stripe).
 
 ## Type
@@ -90,7 +90,7 @@ screens, in `src/rules/` (`TickBox`, `Choice`, `SaveBar`).
 
 - **Tick box**: a real checkbox drawn as a 22px well: name plate fill, the panel bevel flipped
   (`inset 0 2px 0 #050608`, `inset 0 -2px 0 #34363c`), a 1px `#caced4` rim like a box to type in
-  (the rim is ours: the well alone is 1.54:1 on the panel), stepper fill under the pointer, and
+  (the rim is ours: the well alone is 1.2:1 on the panel), stepper fill under the pointer, and
   a white drawn tick (stroke 2.5, square caps) when on. Its row is 44px and toggles it anywhere;
   the words are white when on, `#caced4` when off.
 - **Keys**, one of a few chosen (a rule's Pays): butted 44px keys, 1px `#001a5e` rules between.
@@ -122,9 +122,10 @@ bar above the pitch; the pitch's player blocks narrow to 84px. The app needs a v
   tab is a cyan underline: the UX expert's call, which Craig handed them (16 Oct 2026).
 - **Fixture difficulty** is a filled cell without a digit (Craig).
 - **Pitch, squad and Mail** stay side by side; no panel is made dominant (Craig).
-- **Blue on neutral** (Craig, 23 Oct 2026). The app was "a lot of blue on blue"; Craig likes the blue
-  and wants it as the primary colour, on the top bar. Of three takes, A1 ranked first in review and Craig
-  said go ahead to its refined board, "A1 refined" on <https://claude.ai/artifact/RSU7FzEB9rB98QnM5mTqT6>: grey page and panels, blue bar and title
+- **Blue on neutral** (Craig, 23 Oct 2026). The app was "a lot of blue on blue"; Craig likes the
+  blue and wants it as the primary colour, on the top bar. Of three takes, A1 ranked first in
+  review and Craig said go ahead to its refined board, "A1 refined" on
+  <https://claude.ai/artifact/RSU7FzEB9rB98QnM5mTqT6>: grey page and panels, blue bar and title
   plates, the plates a deeper blue than the bar. Why grey: the research on
   <https://claude.ai/artifact/2FXidXSXxa1ZqmTBsqapYq> found fantasy apps and design systems keep
   surfaces neutral and spend colour on meaning. The grey stays truly neutral, never slate (Never 3).
