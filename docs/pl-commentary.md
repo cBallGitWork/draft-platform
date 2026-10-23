@@ -2,7 +2,7 @@
 
 **Contents:** [Where](#where) · [A line](#a-line) · [The event types seen](#the-event-types-seen) ·
 [Matching to FPL](#matching-to-fpl) · [Team stats](#team-stats) · [Before kickoff](#before-kickoff) ·
-[Still to learn from a live match](#still-to-learn-from-a-live-match)
+[What a live match showed](#what-a-live-match-showed)
 
 What spec/10's commentary and match page would stand on (#37). Read from Craig's Mac on 20 Oct
 2026, over all twenty finished matches of gameweeks 6 and 7, of which four are recorded for the
@@ -114,13 +114,18 @@ Ipswich v Forest, three days before kickoff: the commentary's `content` is empty
 the fixture's `teamLists` is `[null, null]`, and the team stats have no `data`. All three are read
 as they are, not refused (`tests/convex/football/premierLeague.test.ts`).
 
-## Still to learn from a live match
+## What a live match showed
 
-#37's questions that need one, the first being Ipswich v Nott'm Forest on Fri 23 Oct 2026, 20:00
-BST (Premier League fixture 128999), recorded from 90 minutes before kickoff by
-`scripts/record-match.mjs`:
+Ipswich 1–1 Nott'm Forest, Fri 23 Oct 2026 (fixture 128999), read every 30 s by
+`scripts/record-match.mjs` from 19:02 BST, 58 minutes before kickoff:
 
-- How soon after an event its line appears, and whether lines change or vanish (a goal VAR rules out).
-- When the lineups first appear, and when the `lineup` line does.
-- Whether the team stats move during the match, and how often.
-- Whether the feed answers Convex's servers mid-match (`football/feeds:commentaryCheck`).
+- **Timing.** A line appears within a minute or two of its event: the 13th-minute goal was read at
+  13½ minutes after kickoff, the 41st-minute one at 42½. The longest gap in play was 6 minutes;
+  15½ at half-time.
+- **Lines change.** 103 lines were read and 94 remained: 9 vanished (two pairs of a foul and its
+  free kick, delays in added time) and 15 were reworded after they first appeared. A read
+  replaces what came before; it is never appended to.
+- **Lineups.** Already out, with the `lineup` line, at the first read, so at least 58 minutes
+  before kickoff.
+- **Team stats** were present at the first read and first moved in the 7th minute.
+- **Convex** was answered all match (`football/feeds:commentaryCheck`, every 5 minutes).
