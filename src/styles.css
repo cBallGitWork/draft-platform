@@ -11,24 +11,26 @@
   --font-*: initial;
   --font-weight-*: initial;
 
-  --color-ground: #0a1240;
-  --color-panel: #1a2a80;
-  --color-plate: #173a94;
+  --color-ground: #08090b;
+  --color-panel: #1c1d21;
+  --color-bar: #173a94; /* the top bar */
+  --color-plate: #15317f; /* a title plate, a date block, a key */
   --color-stepper: #1d2a98;
-  --color-name-plate: #050a30;
+  --color-name-plate: #050608;
+  --color-alert: #2a1d10; /* the alert strip */
   --color-head: #b9bcc4;
   --color-fact: #ffffff;
   --color-figure: #ffe600;
   --color-derived: #6bfdfa;
   --color-event: #ff9b3d;
-  --color-muted: #9aa4b8;
-  --color-soft: #c9d1ff; /* role text, inactive tabs, the action's hover */
-  /* the 1px rules between butted tabs: on the plate, and on a panel */
+  --color-muted: #a1a5ab;
+  --color-soft: #caced4; /* role text, inactive tabs, the action's hover */
+  /* the 1px rules between butted tabs: on the bar or the plate, and on a panel */
   --color-plate-rule: #001a5e;
   --color-panel-rule: var(--color-ground);
-  /* the lit top of a bevel: on the plate, and on a panel (also the line above a section's tabs) */
+  /* the lit top of a bevel: on the bar or the plate, and on a panel (also the line above a section's tabs) */
   --color-plate-edge: #4a6cc8;
-  --color-panel-edge: #4556b8;
+  --color-panel-edge: #34363c;
 
   --font-sans: "Archivo Narrow", "Arial Narrow", sans-serif;
   --font-weight-normal: 400;
@@ -103,6 +105,13 @@
   a:hover {
     text-decoration-color: var(--color-derived);
   }
+  /* High-contrast mode drops every bevel (plate.md, Shape), so a border keeps each edge */
+  @media (forced-colors: active) {
+    header,
+    section {
+      border: 1px solid CanvasText;
+    }
+  }
 }
 
 /* The action (plate.md, Colour roles): Continue, and a page's one main button. */
@@ -159,9 +168,9 @@
   }
 }
 
-/* The alert strip (plate.md, Colour roles: name plate, event): something that needs you. */
+/* The alert strip (plate.md, Colour roles: alert, event): something that needs you. */
 @utility alert-strip {
-  background: var(--color-name-plate);
+  background: var(--color-alert);
   padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
   color: var(--color-event);
   box-shadow: var(--shadow-event-edge);
