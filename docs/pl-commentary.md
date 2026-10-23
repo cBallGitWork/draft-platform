@@ -119,13 +119,16 @@ as they are, not refused (`tests/convex/football/premierLeague.test.ts`).
 Ipswich 1–1 Nott'm Forest, Fri 23 Oct 2026 (fixture 128999), read every 30 s by
 `scripts/record-match.mjs` from 19:02 BST, 58 minutes before kickoff:
 
-- **Timing.** A line appears within a minute or two of its event: the 13th-minute goal was read at
-  13½ minutes after kickoff, the 41st-minute one at 42½. The longest gap in play was 6 minutes;
-  15½ at half-time.
-- **Lines change.** 103 lines were read and 94 remained: 9 vanished (two pairs of a foul and its
-  free kick, delays in added time) and 15 were reworded after they first appeared. A read
-  replaces what came before; it is never appended to.
+- **Timing.** A line appears within a minute or two of its event: the 13th-minute goal was read
+  13½ minutes after the fixture first read "L", the 41st-minute one at 42½ (reads were 30 s
+  apart and the minutes are whole, so 0.5–1.5 min). The longest gap in play was 6½ minutes;
+  16 at half-time.
+- **Lines change.** 103 lines were read and 94 remained: 9 vanished (a foul and its free kick at
+  49', a free kick and a handball at 83', a free kick at 90+6', three delay lines at 90+8') and 15
+  were reworded after they first appeared. So a read should replace what came before, never be
+  appended to.
 - **Lineups.** Already out, with the `lineup` line, at the first read, so at least 58 minutes
   before kickoff.
-- **Team stats** were present at the first read and first moved in the 7th minute.
+- **Team stats** held only each side's formation (`formation_used`) until the 8th minute, then
+  moved during play.
 - **Convex** was answered all match (`football/feeds:commentaryCheck`, every 5 minutes).

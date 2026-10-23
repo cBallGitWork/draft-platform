@@ -15,7 +15,7 @@ import type { matchStatsState } from "../../../convex/schema";
 import type { TestConvex } from "./test.harness";
 import { MINUTE_MS } from "../../../convex/shared/time";
 
-/** A match in play's `status`: a guess until a live match is recorded; anything but full time reads the same. */
+/** A match in play's `status`, as read live on 23 Oct 2026; anything but full time reads the same. */
 const IN_PLAY = "L";
 const SECS_PER_MINUTE = MINUTE_MS / 1000;
 /** Opta's per-man flags, sent from kickoff; and those sent once he is on. */

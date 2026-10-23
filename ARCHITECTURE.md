@@ -37,7 +37,7 @@ Supabase was the runner-up.
   no browser and no `convex dev` running.
 - The stats per player per match, for roles: [docs/pl-match-stats.md](docs/pl-match-stats.md).
 
-**The commentary stream (#37): proven live on 23 Oct 2026.** spec/10's commentary stands on the
+**The commentary stream (#37): read live on 23 Oct 2026; the recording isn't kept for the tests yet.** spec/10's commentary stands on the
 Premier League's `/fixtures/{id}/textstream/EN?pageSize=200&sort=desc`; the team stats on
 `/stats/match/{id}`. Neither needs the `Origin` header the premierleague.com site sends (from
 the Mac, 20 Oct 2026). Each line's `playerIds` are the team sheets' ids, so they map to FPL's
@@ -46,12 +46,13 @@ the Mac, 20 Oct 2026). Each line's `playerIds` are the team sheets' ids, so they
 recorded (`tests/support/recorded/commentary.payloads.ts`).
 
 Ipswich 1–1 Nott'm Forest (fixture 128999), recorded every 30 s by `scripts/record-match.mjs`
-and checked from Convex every 5 min with `football/feeds:commentaryCheck`. The stream answered
-Convex's servers all match (no refusal) and grew from 1 line to 94. A line appears within a
-minute or two of its event; the longest gap in play was 6 min, 15½ at half-time. It is not
-append-only: 9 lines vanished before full time and 15 were reworded, so the commentary replaces
-what it shows on each read. The lineups were out before the first read, 58 min before kickoff;
-the team stats were present then and moved from the 7th minute. The live poller ran a tick a
+and checked from Convex every 5 min with `football/feeds:commentaryCheck`. Convex's servers were
+answered at every check, and the line count they saw rose at every check in play (2 to 83 by
+90+2'); the Mac's recorder saw 1 line grow to 94. A line appears within a minute or two of its
+event; the longest gap in play was 6½ min, 16 at half-time. It is not append-only: 9 lines
+vanished before full time and 15 were reworded, so the commentary should replace what it shows
+on each read. The lineups were out before the first read, 58 min before kickoff; the team stats
+held only each side's formation until the 8th minute. The live poller ran a tick a
 minute for all 119 minutes with no failure, and saw full time the minute it came
 ([docs/pl-match-stats.md](docs/pl-match-stats.md)). Still open: a slice of the recording kept
 for the tests.
