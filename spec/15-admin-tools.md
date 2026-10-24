@@ -15,8 +15,9 @@ each league's **commissioner**.
 - Can remove a manager from a league. The team stays, for the commissioner to hand to someone
   new (`spec/09`).
 - A feeds page: when FPL's and the Premier League's data last arrived, and whether scoring is
-  behind. A feed that stops silently is the failure to catch. It also shows a stat correction
-  that arrives after a match's points have locked ([7](07-scoring.md#match-stats)).
+  behind. A feed that stops silently is the failure to catch. A feed or sync that fails also
+  emails the admin, at most once a day for each feed (24 Oct 2026). The page also shows a stat
+  correction that arrives after a match's points have locked ([7](07-scoring.md#match-stats)).
 - His actions are logged where only he sees them. One files a Mail letter in a league when it
   changes a score, a squad or who runs a team there; a position correction doesn't, since managers
   already get its warning (`spec/06`). (Craig left this to Claude.)

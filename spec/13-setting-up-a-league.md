@@ -76,6 +76,10 @@ comes to exist, fills, changes and ends.
   free agency and trades carry on through it.
 - The head-to-head round robin ([9. Season admin](09-season-admin.md)) is drawn over the ticked
   gameweeks only, and a change reshuffles only fixtures not yet played.
+- Once a gameweek has begun, its fixtures are fixed: neither the commissioner's edits nor a rule
+  change touches them (24 Oct 2026).
+- A league made mid-season has no head-to-head fixtures in the gameweeks that began before it
+  existed (24 Oct 2026).
 
 ## Several leagues
 
@@ -85,7 +89,8 @@ comes to exist, fills, changes and ends.
 ## Deleting
 
 - The admin or the league's commissioner can delete a league; the co-commissioner can't.
-- For 24 hours it can be undone. In that time the league is frozen and hidden from its managers,
-  and each gets an email saying it will be deleted, and when. When the admin deletes it, its
-  commissioner still sees it and can undo it (22 Oct 2026).
-- After 24 hours it is gone for good, not archived.
+- For 24 hours it can be undone. In that time the league is frozen and hidden from its managers.
+  When the admin deletes it, its commissioner still sees it and can undo it (22 Oct 2026).
+- After 24 hours it is gone for good, not archived. Only then is each manager told, by email:
+  "just delay the deletion email until its actually gone" (24 Oct 2026). An undone deletion
+  tells no one.
