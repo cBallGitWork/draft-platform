@@ -8,6 +8,7 @@ import { rulesWith } from "../../support/convex/leagueRules.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadRefusals } from "../../../convex/squads/squads";
+import { CURRENT_CLUBS_MOST } from "../../../convex/shared/players";
 
 // Assigning players (#31, spec/15 Assigning players): the commissioners and the admin put any
 // player on any team, move him, or release him; one team per player in a league; each files a
@@ -217,5 +218,32 @@ describe("finding a player", () => {
       await ctx.db.insert("players", { code: 4000, name: "Smith", fullName: "Here Smith", clubCode: 3 });
     });
     expect((await (await as(COMMISSIONER)).find("Smith")).map((player) => player.code)).toEqual([4000]);
+  });
+});
+
+// Clubs are never deleted, only marked dropped, so seasons pile up (#142).
+describe("a player's club", () => {
+  test(`is named however many clubs were held before his, past ${CURRENT_CLUBS_MOST}`, async () => {
+    const PROMOTED = { code: 90, name: "Promoted", shortName: "PRO" };
+    const NEWCOMER = 5000;
+    await t.run(async (ctx) => {
+      for (let index = 0; index < CURRENT_CLUBS_MOST; index += 1) {
+        await ctx.db.insert("clubs", { code: 100 + index, name: `Old ${index}`, shortName: "OLD", droppedAt: Date.now() });
+      }
+      await ctx.db.insert("clubs", PROMOTED);
+      await ctx.db.insert("players", { code: NEWCOMER, name: "Newcomer", fullName: "New Comer", clubCode: PROMOTED.code });
+    });
+    const commissioner = await as(COMMISSIONER);
+    await commissioner.assign(NEWCOMER, teams[0]);
+    expect((await commissioner.squads())[0].players).toEqual([{ code: NEWCOMER, name: "Newcomer", clubShortName: PROMOTED.shortName, gone: false }]);
+  });
+
+  test("that isn't held fails the squads loudly, never a blank name", async () => {
+    const UNKNOWN_CLUB = 999;
+    const ORPHAN = 5001;
+    await t.run((ctx) => ctx.db.insert("players", { code: ORPHAN, name: "Orphan", fullName: "Or Phan", clubCode: UNKNOWN_CLUB }));
+    const commissioner = await as(COMMISSIONER);
+    await commissioner.assign(ORPHAN, teams[0]);
+    await expect(commissioner.squads()).rejects.toThrow(`No club with code ${UNKNOWN_CLUB} is held`);
   });
 });

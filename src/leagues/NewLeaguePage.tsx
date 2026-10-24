@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leagues/leagueLimits";
-import { PageSection, Problem } from "../frame/Panel";
+import { PageSection, PANEL_BODY, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { LeaguesSeam } from "./seam";
 import { BackToLeagues } from "./LeagueLinks";
@@ -31,7 +31,7 @@ export function NewLeaguePage({ createLeague }: { createLeague: LeaguesSeam["cre
   return (
     <PageSection title={NEW_LEAGUE_TITLE} className="max-w-md bg-panel">
       <Problem problem={problem} />
-      <form onSubmit={create} className="flex flex-col gap-2 p-3">
+      <form onSubmit={create} className={PANEL_BODY}>
         <label htmlFor={NAME_ID} className="font-semibold">
           {newLeagueLabels.name}
         </label>

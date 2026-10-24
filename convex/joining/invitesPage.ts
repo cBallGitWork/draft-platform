@@ -16,8 +16,9 @@ export const invitesPageData = v.union(
   v.object({
     leagueId: v.id("leagues"),
     leagueName: v.string(),
-    /** Each team, so an invite or an approval can name a vacated one. */
-    teams: v.array(v.object({ teamId: v.id("teams"), name: v.string(), vacated: v.boolean() })),
+    /** Each team and its manager, null while it is vacated: an invite or an approval can name a
+     *  vacated team, and a managed team's manager can be removed. */
+    teams: v.array(v.object({ teamId: v.id("teams"), name: v.string(), managerEmail: v.union(v.string(), v.null()) })),
     /** Whether the league is under its maximum, so a new team can be made. */
     hasRoom: v.boolean(),
     /** The live invite link's token, or null while it has none. */
@@ -74,7 +75,7 @@ export const page = query({
     return {
       leagueId,
       leagueName: league.name,
-      teams: teams.map((team) => ({ teamId: team._id, name: team.name, vacated: team.managerEmail === undefined })),
+      teams: teams.map((team) => ({ teamId: team._id, name: team.name, managerEmail: team.managerEmail ?? null })),
       hasRoom: teams.length < league.maxTeams,
       linkToken: (await linkOf(ctx, leagueId))?.token ?? null,
       invites: invites

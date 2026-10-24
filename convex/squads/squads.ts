@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type QueryCtx } from "../_generated/server";
 import { memberOf, refuse, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
-import { heldClubs, playersNamed } from "../shared/players";
+import { clubByCode, playersNamed } from "../shared/players";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { latestRules } from "../rules/leagueRules";
 import type { LeagueRules } from "../rules/leagueRulesShape";
@@ -131,7 +131,12 @@ export const squads = query({
   handler: async (ctx, { leagueId }) => {
     await memberOf(ctx, leagueId);
     const rules = await latestRules(ctx, leagueId);
-    const clubs = new Map((await heldClubs(ctx)).map((club) => [club.code, club]));
+    const shortNames = new Map<number, string>();
+    const shortNameOf = async (clubCode: number) => {
+      const shortName = shortNames.get(clubCode) ?? (await clubByCode(ctx, clubCode)).shortName;
+      shortNames.set(clubCode, shortName);
+      return shortName;
+    };
     return Promise.all(
       (await teamsOf(ctx, leagueId)).map(async (team) => {
         const players = await Promise.all(
@@ -140,7 +145,7 @@ export const squads = query({
             return {
               code: player.code,
               name: player.name,
-              clubShortName: clubs.get(player.clubCode)?.shortName ?? "",
+              clubShortName: await shortNameOf(player.clubCode),
               gone: player.droppedAt !== undefined,
             };
           }),

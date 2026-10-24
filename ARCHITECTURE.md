@@ -17,7 +17,7 @@ reason, and a change to either changes this file.
 | Backend | [Convex](https://docs.convex.dev): database, live queries, timers, sign-in | a pick's timer is saved with the pick, so pause and undo cancel it; live scores reach browsers with no extra service; one vendor, hard-capped free plan |
 | Pages | Vercel, free (Hobby) plan | the companion's host |
 | Timed work | Convex scheduled functions and crons | Vercel Hobby cron runs once a day and GitHub Actions cron can't hold a minute, so every timer lives with the data |
-| The gate in CI | GitHub Actions on `ubuntu-latest`: `.github/workflows/verify.yml` runs `npm run verify` and then `npm run build`, and after them a `smoke` job runs `npm run smoke`, on every pull request to main and every push to main (Craig, 20 Oct 2026); the verify job checks out full history, so verify's add-only check on recorded payloads and goldens can compare with origin/main (22 Oct 2026) | two pull requests that pass alone can break main together (#69 and #77); Linux is the cheapest runner, and the hook checks need only bash, Python, git and jq; no secrets, since no test touches a deployment |
+| The gate in CI | GitHub Actions on `ubuntu-latest`: `.github/workflows/verify.yml` runs `npm run verify` and then `npm run build`, and after them a `smoke` job runs `npm run smoke`, on every pull request to main and every push to main (Craig, 20 Oct 2026); the verify job checks out full history, so verify's add-only check on recorded payloads and goldens can compare with origin/main (22 Oct 2026); the smoke job caches Playwright's Chromium by the installed Playwright version and cuts each install try off on a timer, since a download once hung until the job's cancel (#281) | two pull requests that pass alone can break main together (#69 and #77); Linux is the cheapest runner, and the hook checks need only bash, Python, git and jq; no secrets, since no test touches a deployment |
 | Email | Resend | free: 3,000 a month, **100 a day**, which is why a live draft sends no "on the clock" email |
 | Money | free plans through the mini beta; Craig sets a monthly ceiling before August 2027 | |
 
@@ -37,7 +37,7 @@ Supabase was the runner-up.
   no browser and no `convex dev` running.
 - The stats per player per match, for roles: [docs/pl-match-stats.md](docs/pl-match-stats.md).
 
-**The commentary stream (#37): read, not yet proven live.** spec/10's commentary stands on the
+**The commentary stream (#37): read live on 23 Oct 2026.** spec/10's commentary stands on the
 Premier League's `/fixtures/{id}/textstream/EN?pageSize=200&sort=desc`; the team stats on
 `/stats/match/{id}`. Neither needs the `Origin` header the premierleague.com site sends (from
 the Mac, 20 Oct 2026). Each line's `playerIds` are the team sheets' ids, so they map to FPL's
@@ -45,13 +45,17 @@ the Mac, 20 Oct 2026). Each line's `playerIds` are the team sheets' ids, so they
 [docs/pl-commentary.md](docs/pl-commentary.md). Four finished matches and one before kickoff are
 recorded (`tests/support/recorded/commentary.payloads.ts`).
 
-TODO after Fri 23 Oct 2026 (Ipswich v Nott'm Forest, fixture 128999, recorded by
-`scripts/record-match.mjs`, and `football/feeds:commentaryCheck` run on Convex during it): how often the
-stream updates live; whether it answers Convex's servers mid-match; when the lineups and the
-team stats first arrive and whether the stats move during play; a recorded live match kept for
-the tests. If the stream doesn't update live, or refuses Convex, the commentary goes back to Craig.
-The steps (push the action to the dev deployment, run it twice, how to read what it prints) head
-`commentaryCheck` in `convex/football/feeds.ts`.
+Ipswich 1–1 Nott'm Forest (fixture 128999), recorded every 30 s by `scripts/record-match.mjs`
+and checked from Convex every 5 min with `football/feeds:commentaryCheck`. Convex's servers were
+answered at every check, and the line count they saw rose at every check in play (2 to 83 by
+90+2'); the Mac's recorder saw 1 line grow to 94. A line appears within a minute or two of its
+event; the longest gap in play was 6½ min, 16 at half-time. It is not append-only: 9 lines
+vanished before full time and 15 were reworded, so the commentary should replace what it shows
+on each read. The lineups were out before the first read, 58 min before kickoff; the team stats
+held only each side's formation until the 8th minute. The live poller ran a tick a
+minute for all 119 minutes with no failure, and saw full time the minute it came
+([docs/pl-match-stats.md](docs/pl-match-stats.md)). Three of its commentary reads and three of
+its team stats reads are kept for the tests (`tests/support/recorded/pl-live-match.json`).
 
 **When the free plans stop being enough:**
 
@@ -153,9 +157,10 @@ styling, typeface, test, screenshot and smoke-test rows, and the rest are the pl
 - Squads (#122): a `squadPlayers` row (league, team, FPL `code`) for each player on a team, one
   team per player per league (index `by_leagueId_and_playerCode`). Assigning, moving and
   releasing a player are filed as `leagueEvents` for Mail.
-- Fixtures and the table (#129, #131): the round robin is drawn on every read, seeded by the
-  league's id, and never stored. That is harmless only while nothing is scored, so it must be
-  stored or frozen before scores are kept (#29).
+- Fixtures and the table (#129, #131, #137): a gameweek's fixtures are stored in
+  `playedFixtures` once it begins, at the league's own deadline, and read from there ever after;
+  the gameweeks still to come are drawn on every read, seeded by the league's id. The football
+  sync's deadline recorder stores them, and a new team is never made without them stored first.
 
 ## With the first code
 

@@ -15,4 +15,6 @@ export type LeaguesSeam = {
   deleteLeague(leagueId: Id<"leagues">): Change;
   /** Undoes deleting a league (its commissioner or the admin, whichever deleted it). */
   undoDeletion(leagueId: Id<"leagues">): Change;
+  /** The person leaves the league, giving up their team in it (spec/13, Leaving). */
+  leaveLeague(leagueId: Id<"leagues">): Change;
 };
