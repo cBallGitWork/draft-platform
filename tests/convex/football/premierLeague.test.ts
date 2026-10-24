@@ -28,6 +28,7 @@ import {
   recordedTeamStats,
   UPCOMING_MATCH,
 } from "../../support/recorded/commentary.payloads";
+import { LIVE_MATCH, recordedLiveTeamStats } from "../../support/recorded/live.payloads";
 
 /** Answers each URL with its body in `bodies`, or every URL with `status` and no body when one is
  *  given; records the URLs. A URL with no body is the test's mistake: it fails the read. */
@@ -133,6 +134,20 @@ test("before a match, an empty commentary and team stats with no sides are read,
 
   expect(await readPlCommentary(UPCOMING_MATCH)).toEqual([]);
   expect(await readPlTeamStats(UPCOMING_MATCH)).toEqual(teamStats);
+});
+
+test("live, the team stats are read as they come: only each side's formation before kickoff, then the match's", async () => {
+  const statNames = (stats: Awaited<ReturnType<typeof readPlTeamStats>>) =>
+    Object.values(stats.data ?? {}).map((side) => side.M.map((stat) => stat.name));
+  const readAs = async (read: Parameters<typeof recordedLiveTeamStats>[0]) => {
+    fakeFeed({ [plTeamStatsUrl(LIVE_MATCH)]: recordedLiveTeamStats(read) });
+    return statNames(await readPlTeamStats(LIVE_MATCH));
+  };
+
+  expect(await readAs("beforeKickoff")).toEqual([["formation_used"], ["formation_used"]]);
+  for (const read of ["firstMoved", "final"] as const) {
+    for (const side of await readAs(read)) expect(side.length).toBeGreaterThan(1);
+  }
 });
 
 test("a commentary longer than one read holds throws rather than lose its oldest lines", async () => {

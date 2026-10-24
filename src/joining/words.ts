@@ -87,6 +87,18 @@ export const requestsWords = {
   refuseLabel: (email: string) => `Refuse ${email}`,
 } as const;
 export const noRequestsWords = "No one is waiting.";
+
+/** The league's teams, each with its manager, who can be removed (spec/13, Leaving). */
+export const teamsWords = {
+  title: "Teams",
+  noManager: "No manager",
+  remove: "Remove",
+  removeLabel: (email: string, teamName: string) => `Remove ${email} from ${teamName}`,
+  confirm: (email: string, teamName: string) =>
+    `Remove ${email} from ${teamName}? They lose the league at once. ${teamName} keeps its name, for you to hand on with an invite or a request.`,
+  yes: "Remove them",
+  no: "Keep them",
+} as const;
 export const noInvitesWords = "No invites yet.";
 
 /** The sign-in page, opened from an invite link while signed out. */

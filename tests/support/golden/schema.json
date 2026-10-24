@@ -660,6 +660,12 @@
           "fields": [
             "code"
           ]
+        },
+        {
+          "indexDescriptor": "by_droppedAt",
+          "fields": [
+            "droppedAt"
+          ]
         }
       ],
       "stagedDbIndexes": [],
@@ -707,9 +713,10 @@
           ]
         },
         {
-          "indexDescriptor": "by_clubCode",
+          "indexDescriptor": "by_clubCode_and_droppedAt",
           "fields": [
-            "clubCode"
+            "clubCode",
+            "droppedAt"
           ]
         }
       ],
@@ -11924,6 +11931,91 @@
             "optional": false
           },
           "recordedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "playedFixtures",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_gameweek",
+          "fields": [
+            "leagueId",
+            "gameweek"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "gameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "fixtures": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "team": {
+                    "fieldType": {
+                      "type": "id",
+                      "tableName": "teams"
+                    },
+                    "optional": false
+                  },
+                  "opponent": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "id",
+                          "tableName": "teams"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "leagueAverage"
+                        }
+                      ]
+                    },
+                    "optional": false
+                  }
+                }
+              }
+            },
+            "optional": false
+          },
+          "byes": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "id",
+                "tableName": "teams"
+              }
+            },
+            "optional": false
+          },
+          "storedAt": {
             "fieldType": {
               "type": "number"
             },

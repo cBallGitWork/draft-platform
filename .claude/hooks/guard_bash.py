@@ -8,7 +8,8 @@ its redirections (commands.py; where.py lists what it can't see), each in the fo
 (the shell's cwd, any cd before it, its -C: where.py), so a worktree is judged on its own branch,
 not the project's. Also denies publishing a word on Craig's private list (private_words.py),
 and a pull request body that breaks the template's rules or a title far too long (pr_body.py);
-a title only somewhat long gets a note, not a denial.
+a title only somewhat long, or publishing where there is no private list to check, gets a note,
+not a denial.
 Where it can't be sure what runs or where, it refuses and says how to run the command plainly.
 
 Reads the hook payload (JSON) on stdin; prints a deny decision, a note, or nothing.
@@ -24,7 +25,7 @@ import sys
 
 from commands import XARGS, Unbalanced, Unreadable, UnreadableStdin, commands, runs_unknown, short_flags
 from pr_body import pr_body_problem, pr_title_note
-from private_words import private_word_problem
+from private_words import list_missing_note, private_word_problem
 from where import current_branch, git_call, git_dir, options, previous_branch, runners
 
 COMMIT_VALUE_SHORT = set("mFCct")  # in `-am msg` everything after m is the value
@@ -210,11 +211,14 @@ def decide(cmd, cwd):
 
 
 def note(cmd, cwd):
-    """Advice that doesn't deny (a long pull request title), or None. Asked only when decide allows."""
+    """Advice that doesn't deny (no private list to check against, a long pull request title), or
+    None. Asked only when decide allows."""
     try:
-        return pr_title_note(commands(cmd, cwd))
+        cmds = commands(cmd, cwd)
     except (Unbalanced, Unreadable, UnreadableStdin):
         return None
+    notes = [n for n in (list_missing_note(cmds), pr_title_note(cmds)) if n]
+    return "\n".join(notes) or None
 
 
 def main():

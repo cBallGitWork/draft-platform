@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { INVITES_TO_ONE_EMAIL_READ } from "../../../convex/joining/invites";
+import { INVITES_TO_ONE_EMAIL_READ } from "../../../convex/joining/liveInvites";
 import { INVITE_LIFETIME_MS } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { asCommissioner, invite, openLastLinkTo } from "../../support/convex/joining.harness";

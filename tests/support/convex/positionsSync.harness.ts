@@ -1,13 +1,14 @@
 /// <reference types="vite/client" />
 // The positions tests' shared setup: both feeds faked from the recorded payloads, one sync run
-// against them, the line it logs, and a player's positions read back.
+// against them, the line it logs, a player's positions read back, and a deployment synced with
+// Newcastle's men held.
 
-import { vi } from "vitest";
+import { expect, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import { FPL_BOOTSTRAP_URL, plFixturesUrl, plFixtureUrl, plSquadUrl } from "../../../convex/football/football";
 import { ADMIN, actingAs } from "./leagues.harness";
-import { SHEET, type PositionsPayloads } from "../recorded/positions.payloads";
-import { fakeFetch, type TestConvex } from "./test.harness";
+import { BRENTFORD_CODE, NEWCASTLE, PLAYER, recordedPositions, SHEET, type PositionsPayloads } from "../recorded/positions.payloads";
+import { fakeFetch, freshConvex, silenceConsoleError, type TestConvex } from "./test.harness";
 
 /** The recorded payloads' one match whose sheet doesn't add up, as a run reports it refused. */
 export const REFUSED_MATCH = `PL fixture ${SHEET.cityCoventryRefused}, team 11's 4-2-3-1 does not draw the 11 men it lists as starting`;
@@ -53,4 +54,25 @@ export function asAdmin(t: TestConvex) {
 export async function heldPositions(t: TestConvex, code: number): Promise<Record<string, string>> {
   const { positions } = await (await asAdmin(t)).query(api.positions.playerPositions.ofPlayer, { code });
   return Object.fromEntries(positions.map((held) => [held.position, held.source + (held.confirmed ? "" : "?")]));
+}
+
+/** The recorded men FPL lists at Newcastle. */
+export function newcastleMen() {
+  return recordedPositions().fplElements.filter((each) => each.team === NEWCASTLE.fplId);
+}
+
+/** Synced from the recorded payloads, with Newcastle's men and Brentford's keeper held by the
+ *  football sync (#21). */
+export async function synced(): Promise<TestConvex> {
+  const t = freshConvex();
+  const logged = silenceConsoleError();
+  await syncPositionsWith(t, recordedPositions());
+  expect(logged).toHaveBeenCalledWith(reported());
+  await t.run(async (ctx) => {
+    for (const element of newcastleMen()) {
+      await ctx.db.insert("players", { code: element.code, name: element.web_name, fullName: element.web_name, clubCode: NEWCASTLE.code });
+    }
+    await ctx.db.insert("players", { code: PLAYER.kelleher, name: "Kelleher", fullName: "Caoimhín Kelleher", clubCode: BRENTFORD_CODE });
+  });
+  return t;
 }

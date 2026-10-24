@@ -11,13 +11,14 @@ import { askFailedWords, replyWords } from "../../../src/sign-in/words";
 import { useLiveJoining } from "../../../src/joining/liveJoining";
 import { changeFailedWords } from "../../../src/words";
 
-const convex = vi.hoisted(() => ({ send: vi.fn(), make: vi.fn(), ask: vi.fn(), signInToJoin: vi.fn() }));
+const convex = vi.hoisted(() => ({ send: vi.fn(), remove: vi.fn(), make: vi.fn(), ask: vi.fn(), signInToJoin: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
     mutations: {
       "joining/invites:send": convex.send,
       "joining/invites:resend": vi.fn(),
       "joining/invites:cancel": vi.fn(),
+      "leagues/teams:removeManager": convex.remove,
       "joining/inviteLink:make": convex.make,
       "joining/inviteLink:switchOff": vi.fn(),
       "joining/joinRequests:approve": vi.fn(),
@@ -39,6 +40,13 @@ test("an invite joining/invites:send makes resolves with no problem, a new team 
   convex.send.mockResolvedValue(null);
   expect(await joining().invite(leagueId, "ann@example.com", null)).toBeNull();
   expect(convex.send).toHaveBeenCalledWith({ leagueId, email: "ann@example.com", teamId: undefined });
+});
+
+test("removing a manager asks leagues/teams:removeManager for the league and team, and resolves with no problem", async () => {
+  convex.remove.mockResolvedValue(null);
+  const teamId = "team-1" as Id<"teams">;
+  expect(await joining().removeManager(leagueId, teamId)).toBeNull();
+  expect(convex.remove).toHaveBeenCalledExactlyOnceWith({ leagueId, teamId });
 });
 
 test("a change the server refuses resolves with the server's own words", async () => {

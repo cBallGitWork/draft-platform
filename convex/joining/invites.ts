@@ -11,37 +11,11 @@ import { getLeague, namedEmail, refuse, refusals, runnerOf, teamsOf } from "../s
 import { recordEvent } from "../mail/letters";
 import { askForLink, signInReply } from "../signIn/signInLinks";
 import { checkCanJoin, putOnTeam } from "../leagues/teams";
+import { hasEnded, liveInvitesTo } from "./liveInvites";
 
 // Emailed invites (#73, spec/13 Joining): an invite names a vacated team or a new one, carries a
 // sign-in link, and the person joins on signing in, with no approval, while it lasts (an invite's lifetime).
 // Each change the league's runners make files an event for Mail (#26).
-
-/** The most invites to one email read at once: far more than anyone is sent in the closed beta.
- *  Past it, the first this many in the index's order are kept and the rest ignored, and a read
- *  that fills it is logged (`warnIfFull`). */
-export const INVITES_TO_ONE_EMAIL_READ = 100;
-
-/** Says so when a read of one email's invites filled INVITES_TO_ONE_EMAIL_READ, so those past it
- *  aren't ignored silently. */
-export function warnIfFull(invites: readonly Doc<"invites">[], email: string): void {
-  if (invites.length >= INVITES_TO_ONE_EMAIL_READ) {
-    console.warn(`${email} has ${INVITES_TO_ONE_EMAIL_READ} or more invites: only ${INVITES_TO_ONE_EMAIL_READ} were read`);
-  }
-}
-
-/** Whether the invite was cancelled, or the person signed in and it was taken up or couldn't be. */
-const hasEnded = (invite: Doc<"invites">) =>
-  invite.cancelledAt !== undefined || invite.joined !== undefined || invite.couldNotJoin !== undefined;
-
-/** The invites to this email that can still be taken up at `now`. */
-async function liveInvitesTo(ctx: QueryCtx, email: string, now: number) {
-  const unexpired = await ctx.db
-    .query("invites")
-    .withIndex("by_email_and_expiresAt", (q) => q.eq("email", email).gt("expiresAt", now))
-    .take(INVITES_TO_ONE_EMAIL_READ);
-  warnIfFull(unexpired, email);
-  return unexpired.filter((invite) => !hasEnded(invite));
-}
 
 /** The name of the vacated team the invite names, or null for a new team. */
 async function teamNameOf(ctx: QueryCtx, invite: Doc<"invites">): Promise<string | null> {
