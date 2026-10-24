@@ -31,7 +31,7 @@ export function SignInPage({
 
   return (
     <>
-      <header className="flex flex-wrap items-stretch bg-plate shadow-bevel-plate">
+      <header className="flex flex-wrap items-stretch bg-bar shadow-bevel-plate">
         <h1 className="px-4 py-1 text-title font-bold">{PRODUCT_NAME}</h1>
         <p className="flex items-center border-l border-plate-rule px-4 text-lead font-semibold">{signInWords.inviteOnly}</p>
       </header>

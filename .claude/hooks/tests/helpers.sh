@@ -32,6 +32,16 @@ says() { # text hook payload [env...]: the hook exits 0 and prints something hol
     fail "$hook: expected exit 0 and \"$text\", got $code: $out: $payload $*"
   fi
 }
+fails_loudly() { # text hook payload [env...]: the hook exits 1, prints nothing on stdout, says text on stderr
+  local text=$1 hook=$2 payload=$3 out err code; shift 3
+  out=$(printf '%s' "$payload" | env "$@" "$hooks/$hook" 2>"$tmp/stderr"); code=$?; err=$(cat "$tmp/stderr")
+  if [ "$code" -ne 1 ] || [ -n "$out" ] || ! printf '%s' "$err" | grep -qF -- "$text"; then
+    fail "$hook: expected exit 1 and \"$text\" on stderr, got $code: $out / $err: $payload"
+  fi
+}
+bad_payloads=( # each with what the hook says of it
+  '' 'is empty'  'not json' "isn't JSON"  '[]' 'is JSON but not an object'  '"x"' 'is JSON but not an object'
+)
 blocks() { says '"decision": "block"' "$@"; }  # hook payload [env...]: it blocks the stop
 silent() { # hook payload [env...]: the hook exits 0 and prints nothing
   local hook=$1 payload=$2 out code; shift 2
