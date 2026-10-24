@@ -83,8 +83,7 @@ function asRefusal(check: () => void): void {
   }
 }
 
-/** Every rules row the league has, oldest first: one per change, so a few a season, and never
- *  more than RULES_CHANGES_MOST, as `changeRules` refuses one past it. */
+/** Every rules row the league has, oldest first: one per change, at most RULES_CHANGES_MOST. */
 async function historyOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"leagueRules">[]> {
   const rows = await ctx.db
     .query("leagueRules")
