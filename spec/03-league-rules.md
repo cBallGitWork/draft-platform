@@ -17,8 +17,8 @@ Among them:
 - With an odd number of teams, whether the team left over plays the league's average
   (`spec/09`).
 - Squad make-up (24 Oct 2026): a minimum squad size, and a maximum the commissioner sets in League
-  settings. The maximum starts from a default by the league's size, which the site keeps and edits
-  itself ("an 8 man league would have 16 id say ish"), and is never above 25, a Premier League
+  settings. The maximum starts from a default by the league's size, which Craig keeps and edits ("an
+  8 man league would have 16 id say ish"; "we can edit that ourselves"), and is never above 25, a Premier League
   squad ("a prem squad is 25"); more is refused when saved. A minimum per area, and nothing else
   per area: "a squad can be full of whatever you want with a few minimum counts". A player who can
   play two areas fills one minimum, whichever helps the squad. A maximum per club, off by default.
