@@ -146,6 +146,7 @@ const leaguesRoute = createRoute({
         email={session.email}
         isAdmin={session.isAdmin}
         leagues={session.leagues}
+        leaguesCut={session.leaguesCut === true}
         actions={leagues}
         useEndedInvite={joining.useEndedInvite}
       />

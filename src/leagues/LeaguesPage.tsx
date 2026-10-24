@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { ADMIN_PATH } from "../admin/paths";
 import { ADMIN_TITLE } from "../admin/words";
-import { PageSection } from "../frame/Panel";
+import { Notice, PageSection } from "../frame/Panel";
 import { gameweeksPath } from "../gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../gameweeks/words";
 import { invitesPath } from "../joining/paths";
@@ -23,6 +23,7 @@ import {
   commissionerLine,
   invitedHereWords,
   leagueColumns,
+  leaguesCutWords,
   LEAGUES_TITLE,
   NEW_LEAGUE_TITLE,
   noTeamCellWords,
@@ -57,17 +58,21 @@ export function LeaguesPage({
   email,
   isAdmin,
   leagues,
+  leaguesCut,
   actions,
   useEndedInvite,
 }: {
   email: string;
   isAdmin: boolean;
   leagues: readonly LeagueSummary[];
+  /** More leagues exist than `leagues` holds. */
+  leaguesCut: boolean;
   actions: DeletionActions;
   useEndedInvite: JoiningSeam["useEndedInvite"];
 }) {
   return (
     <PageSection title={LEAGUES_TITLE} className="max-w-3xl bg-panel">
+      {leaguesCut && <Notice>{leaguesCutWords}</Notice>}
       <div className="flex flex-col gap-2 px-3 py-2">
         {leagues.length === 0 ? (
           <>
