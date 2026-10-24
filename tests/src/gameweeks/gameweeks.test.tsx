@@ -10,7 +10,8 @@ import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
 import { BEGUN, season } from "../../support/src/gameweeks.harness";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
-import { begunWords, deadlineWords, GAMEWEEKS_TITLE, loadingWords } from "../../../src/gameweeks/words";
+import { begunWords, GAMEWEEKS_TITLE, loadingWords } from "../../../src/gameweeks/words";
+import { whenWords } from "../../../src/words";
 import { gameweekWords } from "../../../src/words";
 
 const PAGE = gameweeksPath(league.leagueId);
@@ -60,7 +61,7 @@ describe("the gameweeks page", () => {
     expect(screen.getAllByRole("checkbox")).toHaveLength(GAMEWEEKS);
     expect(screen.getAllByRole("checkbox").every((box) => box.getAttribute("aria-checked") === "true")).toBe(true);
     expect(playsLine()).toBe(`${league.name} plays ${GAMEWEEKS} of ${GAMEWEEKS} gameweeks.`);
-    expect(within(rowOf(BEGUN + 1)).getByText(deadlineWords(app.gameweeks.gameweeks[BEGUN].deadline!))).toBeTruthy();
+    expect(within(rowOf(BEGUN + 1)).getByText(whenWords(app.gameweeks.gameweeks[BEGUN].deadline!))).toBeTruthy();
   });
 
   it("an unticked gameweek shows unticked, and isn't counted", async () => {

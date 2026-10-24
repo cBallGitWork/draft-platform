@@ -7,7 +7,7 @@ import type { FeedState } from "../../convex/admin/feedState";
 import type { Feed } from "../../convex/shared/feedSchedule";
 import { LOCALE } from "../../convex/shared/londonTime";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
-import { versusWords } from "../words";
+import { versusWords, whenWords } from "../words";
 import { READING_SITES, siteSearchUrl } from "./paths";
 
 export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../words";
@@ -115,9 +115,6 @@ export const agoWords = (at: number, now: number) => {
   if (-since < DAYS_FROM_MS) return relative.format(Math.trunc(since / HOUR_MS), "hour");
   return relative.format(Math.trunc(since / DAY_MS), "day");
 };
-const whenFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-/** A time in the viewer's own zone, e.g. "Sat 17 Oct, 13:00". */
-export const whenWords = (at: number) => whenFormat.format(at);
 export const lastErrorWords = (at: number) => `Last error, ${whenWords(at)}:`;
 
 /** A match by its clubs' names, or null while the football sync holds no such match. */
