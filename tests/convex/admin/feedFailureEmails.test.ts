@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { FAILURE_EMAIL_GAP_MS, emailsNow } from "../../../convex/admin/feedFailureEmails";
 import { EMAILS_PER_DAY } from "../../../convex/outbound/emailLimit";
-import { FEED_NAMES, FEEDS } from "../../../convex/shared/feedSchedule";
+import { FEED_NAMES, FEEDS, type Feed } from "../../../convex/shared/feedSchedule";
 import { PRODUCT_NAME } from "../../../convex/shared/product";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import { ADMIN, fakeResend, sentToday, setSentToday, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
@@ -13,6 +13,9 @@ import { silenceConsoleError, type TestConvex } from "../../support/convex/test.
 
 const ERROR = "https://fantasy.premierleague.com/api/bootstrap-static/ answered 503";
 const MATCH_ERROR = "match 1 has no team sheet";
+
+/** The subject of the email saying `feed` failed. */
+const subjectOf = (feed: Feed) => `${PRODUCT_NAME}: ${FEED_NAMES[feed].name} failed`;
 
 let t: TestConvex;
 let sent: SentEmail[];
@@ -45,7 +48,7 @@ describe("a feed that fails", () => {
 
     expect(sent).toHaveLength(1);
     expect(sent[0].to).toBe(ADMIN);
-    expect(sent[0].subject).toBe(`${PRODUCT_NAME}: ${FEED_NAMES.liveStats.name} failed`);
+    expect(sent[0].subject).toBe(subjectOf("liveStats"));
     // 09:00 UTC on 20 Oct 2026 is 10:00 in London.
     expect(sent[0].text).toContain(`${FEED_NAMES.liveStats.name}, from ${FEED_NAMES.liveStats.source}, failed in the run on Tuesday 20 October at 10:00 BST:`);
     expect(sent[0].text).toContain(ERROR);
@@ -64,7 +67,7 @@ describe("a feed that fails", () => {
     await t.mutation(internal.stats.matchStats.record, { trigger: "manual", ranAt: now, outcome: failed });
     await t.mutation(internal.stats.liveStats.recordTick, { ranAt: now, outcome: failed });
     await t.finishAllScheduledFunctions(vi.runAllTimers);
-    expect(sent.map((email) => email.subject)).toEqual(FEEDS.map((feed) => `${PRODUCT_NAME}: ${FEED_NAMES[feed].name} failed`));
+    expect(sent.map((email) => email.subject)).toEqual(FEEDS.map(subjectOf));
   });
 
   test("emails nothing when the run succeeds", async () => {
@@ -92,10 +95,7 @@ describe("at most once a day for each feed", () => {
     await tick(now);
     await footballFails(now + HOUR_MS);
     await footballFails(now + 2 * HOUR_MS);
-    expect(sent.map((email) => email.subject)).toEqual([
-      `${PRODUCT_NAME}: ${FEED_NAMES.liveStats.name} failed`,
-      `${PRODUCT_NAME}: ${FEED_NAMES.football.name} failed`,
-    ]);
+    expect(sent.map((email) => email.subject)).toEqual([subjectOf("liveStats"), subjectOf("football")]);
   });
 
   test("a day is the gap since the last email, to the millisecond", () => {

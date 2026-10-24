@@ -10,11 +10,9 @@ import { PRODUCT_NAME } from "../shared/product";
 import { DAY_MS } from "../shared/time";
 import { adminEmail } from "../signIn/allowedEmails";
 
-// The email the admin gets when a feed or sync fails (#319, spec/15): "at most once a day for each
-// feed". Each feed's run is recorded by its own mutation, which calls `emailIfFailed` in the same
-// transaction, so the email follows a failure whenever the feed runs, by cron or by hand. A run
-// with one failed match fails, as the feeds page counts it (feedState.ts `failureOf`).
-// The email counts against the day's emails before it is sent (emailLimit.ts); when none is left
+// The email the admin gets when a feed or sync fails, "at most once a day for each feed" (#319,
+// spec/15). Each feed's record mutation calls `emailIfFailed`, so the email follows a failure
+// however the feed was run. It counts against the day's emails (emailLimit.ts); with none left
 // it isn't sent, the failure is logged, and the next failure tries again.
 
 /** How long after emailing that a feed failed before its next failure emails again. */
