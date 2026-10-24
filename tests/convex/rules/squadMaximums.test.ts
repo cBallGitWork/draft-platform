@@ -18,6 +18,9 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // A new league's squad maximum by its size (spec/03, Squad make-up; #316): the site's table, which
 // Craig edits, read when a league is made, never after.
 
+const FIRST_BAND_NOT_AT_FEWEST = "The first squad maximum must start at 2 teams, the fewest a league may have.";
+const MAXIMUM_OF_26 = "A squad maximum is a whole number from 11 to 25, not 26.";
+
 describe("the bands", () => {
   test.each([
     [2, 20],
@@ -38,8 +41,8 @@ describe("the bands", () => {
   });
 
   test.each<[string, SquadMaximumBand[], string]>([
-    ["none", [], "The first squad maximum must start at 2 teams, the fewest a league may have."],
-    ["a first band above the fewest teams", [{ fromTeams: 4, maximum: 20 }], "The first squad maximum must start at 2 teams, the fewest a league may have."],
+    ["none", [], FIRST_BAND_NOT_AT_FEWEST],
+    ["a first band above the fewest teams", [{ fromTeams: 4, maximum: 20 }], FIRST_BAND_NOT_AT_FEWEST],
     [
       "bands out of order",
       [{ fromTeams: 2, maximum: 20 }, { fromTeams: 9, maximum: 15 }, { fromTeams: 7, maximum: 16 }],
@@ -50,7 +53,7 @@ describe("the bands", () => {
       [{ fromTeams: 2, maximum: 20 }, { fromTeams: 21, maximum: 14 }],
       "Each squad maximum starts at a whole number of teams, above the one before and at most 20, not 21.",
     ],
-    ["a maximum above a Premier League squad", [{ fromTeams: 2, maximum: 26 }], "A squad maximum is a whole number from 11 to 25, not 26."],
+    ["a maximum above a Premier League squad", [{ fromTeams: 2, maximum: 26 }], MAXIMUM_OF_26],
     ["a maximum that can't field a team", [{ fromTeams: 2, maximum: 10 }], "A squad maximum is a whole number from 11 to 25, not 10."],
   ])("refuse %s", (_name, bands, reason) => {
     expect(() => checkSquadMaximums(bands)).toThrow(new UnsoundRules(reason));
@@ -91,7 +94,7 @@ describe("a new league", () => {
   });
 
   test("an unsound table is refused with the reason, and the table stays", async () => {
-    await expectRefused(setBands([{ fromTeams: 2, maximum: 26 }]), "A squad maximum is a whole number from 11 to 25, not 26.");
+    await expectRefused(setBands([{ fromTeams: 2, maximum: 26 }]), MAXIMUM_OF_26);
     const leagueId = await adminCreatesLeague(t, 8);
     expect((await squadSize(leagueId))?.maximum).toBe(16);
   });
