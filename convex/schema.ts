@@ -109,7 +109,10 @@ const footballTables = {
     .index("by_code", ["code"])
     .index("by_clubCode_and_droppedAt", ["clubCode", "droppedAt"])
     .searchIndex("search_fullName", { searchField: "fullName", filterFields: ["droppedAt"] }),
-  fixtures: defineTable(fixtureRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_kickoff", ["kickoff"]),
+  fixtures: defineTable(fixtureRecord.extend({ droppedAt }))
+    .index("by_code", ["code"])
+    .index("by_kickoff", ["kickoff"])
+    .index("by_droppedAt_and_kickoff", ["droppedAt", "kickoff"]),
   gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]),
   footballSyncs: defineTable(footballSyncFields),
 };
