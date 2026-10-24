@@ -127,6 +127,8 @@ test("a live goal's line can name only the scorer at first, and a later read rew
   });
 });
 
+// A record of the feed, not of our code: `commentaryLines` maps one read at a time. It earns its keep
+// at the seam of whatever shows the commentary, which must replace each read, never append it.
 test("a line the feed drops mid-match is in an earlier read and missing from a later one", () => {
   expect(mappedLive("withVanished").lines.map((line) => line.id)).toContain(LIVE_LINE.droppedFoul);
   expect(mappedLive("final").lines.map((line) => line.id)).not.toContain(LIVE_LINE.droppedFoul);
