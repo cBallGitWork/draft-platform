@@ -58,16 +58,14 @@ export const latest = internalQuery({
 });
 
 // Issue #37: does the commentary stream answer Convex's servers during a live match, and move?
-// Friday 23 Oct 2026, Ipswich v Nott'm Forest (fixture 128999), kickoff 20:00 BST:
-// 1. Before kickoff, push this action to the dev deployment from main: `npx convex dev --once`.
-// 2. During play, run `npx convex run football/feeds:commentaryCheck '{"plFixtureId":128999}'`, then again
-//    a minute or more later.
+// It did for Ipswich v Nott'm Forest on 23 Oct 2026 (ARCHITECTURE.md, the #37 note). To check a
+// match again: push to the dev deployment from main (`npx convex dev --once`), then during play run
+// `npx convex run football/feeds:commentaryCheck '{"plFixtureId":<id>}'` twice, a minute or more apart.
 // Good: the second run's `lines` is higher and `newest.id` differs (a quiet minute may add none, so
-// try once more); `namedMen` up to 40 once the lineups are out. `teamStats` was false three days
-// before kickoff; when it turns true is one of #37's questions, so note it, whichever it is.
+// try once more); `namedMen` up to 40 once the lineups are out.
 // Bad: an error ending `answered 403` (or another status) means Convex is refused; the same `lines`
 // and `newest` over several minutes while `scripts/record-match.mjs` on the Mac moves means Convex
-// is served a stale stream. Either way the commentary goes back to Craig (ARCHITECTURE.md, the TODO).
+// is served a stale stream. Either way the commentary goes back to Craig.
 // A changed body throws, naming the URL. Nothing is saved: the answer is the printout.
 export const commentaryCheck = internalAction({
   args: { plFixtureId: v.number() },

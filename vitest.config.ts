@@ -5,11 +5,9 @@ import { LONDON_ZONE } from "./convex/shared/londonTime.ts";
 // So no test depends on the host's zone.
 process.env.TZ = LONDON_ZONE;
 
-// Every test sits in tests/, mirroring the code it tests. Only tests/convex/, tests/src/ and
-// tests/scripts/ at the root are searched, so one anywhere else never runs: an agent's worktree,
-// inside the repo under .claude/worktrees/, runs its own. tests/support/ holds the harnesses and
-// setup files; tests/smoke/ is Playwright's, run by `npm run smoke` (playwright.config.ts), never
-// by Vitest.
+// Where tests go and what tests/support/ holds: tests/README.md. Only the roots below are
+// searched, never the whole repo: an agent's worktree, inside it under .claude/worktrees/, runs
+// its own.
 // Each project puts back every stubbed global, stubbed env and spy before each test, and
 // tests/support/test.setup.ts puts the real timers back after each, so no test file needs its own
 // afterEach for them. In the convex and app projects, tests/support/console.setup.ts fails a test
