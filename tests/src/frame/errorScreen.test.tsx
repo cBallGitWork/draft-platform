@@ -19,6 +19,7 @@ import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { backToLeaguesWords, LEAGUES_TITLE } from "../../../src/leagues/words";
 import { scoringPath } from "../../../src/scoring/paths";
 import { squadsPath } from "../../../src/squads/paths";
+import { findLabel } from "../../../src/words";
 import { silenceConsoleError } from "../../support/console.setup";
 import type { JoiningData } from "../../support/src/joining.harness";
 import { admin, commissioned, league, manager, managerIn, newcomer, openApp, type AppSetUp } from "../../support/src/shell.harness";
@@ -119,8 +120,12 @@ const leagueId = league.leagueId;
 const runner = managerIn(commissioned);
 
 /** How a screen's read is made to fail: through the data the app opens with, or by its hook
- *  throwing once the app is open, before the router draws the page. */
-type Failing = { setUp?: (error: unknown) => AppSetUp; fail?: (app: App, error: unknown) => void };
+ *  throwing once the app is open, before the router draws the page; `ask` is what the manager
+ *  does before the page reads it, such as searching. */
+type Failing = { setUp?: (error: unknown) => AppSetUp; fail?: (app: App, error: unknown) => void; ask?: () => Promise<void> };
+
+/** Types a name into "Find a player", which reads the players found. */
+const searchForAPlayer = async () => userEvent.type(await screen.findByRole("searchbox", { name: findLabel }), "Saka");
 const joiningFails: Failing = { setUp: (error) => ({ joining: joiningFailing(error) }) };
 
 /** Each screen that reads, where it is, who may open it, and how to make its read fail. The top
@@ -133,18 +138,21 @@ const screensThatRead: [string, string, Session, Failing][] = [
   ["an invite link", `${JOIN_PATH}/the-token`, manager, joiningFails],
   ["Gameweeks", gameweeksPath(leagueId), runner, { fail: (app, error) => app.gameweeks.useLeagueGameweeks.mockImplementation(failing(error)) }],
   ["Squads", squadsPath(leagueId), runner, { fail: (app, error) => app.squads.useSquads.mockImplementation(failing(error)) }],
+  ["Squads' Find a player", squadsPath(leagueId), runner, { fail: (app, error) => app.squads.useFoundPlayers.mockImplementation((_leagueId, text) => (text.trim() ? failing(error)() : [])), ask: searchForAPlayer }],
   ["Player scoring", scoringPath(leagueId), runner, { fail: (app, error) => app.scoring.useScoring.mockImplementation(failing(error)) }],
   ["League settings", settingsPath(leagueId), runner, { fail: (app, error) => app.leagueSettings.useSettings.mockImplementation(failing(error)) }],
   ["the admin's dashboard", ADMIN_PATH, admin, { fail: (app, error) => app.admin.useQueue.mockImplementation(failing(error)) }],
+  ["the admin's Find a player", ADMIN_PATH, admin, { fail: (app, error) => app.admin.useFoundPlayers.mockImplementation((text) => (text.trim() ? failing(error)() : [])), ask: searchForAPlayer }],
   ["the admin's feeds", ADMIN_FEEDS_PATH, admin, { fail: (app, error) => app.admin.useFeeds.mockImplementation(failing(error)) }],
 ];
 
 describe("no screen shows a failed read as the server's words", () => {
-  it.each(screensThatRead)("%s", async (_, path, session, { setUp, fail }) => {
+  it.each(screensThatRead)("%s", async (_, path, session, { setUp, fail, ask }) => {
     silenceConsoleError();
     const error = new Error(serverWords);
     const app = openApp(path, session, setUp?.(error));
     fail?.(app, error);
+    await ask?.();
 
     expect(await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE })).toBeTruthy();
     expect(screen.getByRole("alert").textContent).toBe(readFailedWords);
