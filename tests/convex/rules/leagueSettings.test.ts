@@ -1,10 +1,11 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { rulesInGameweek, rulesRefusals } from "../../../convex/rules/leagueRules";
 import type { LeagueSettings } from "../../../convex/rules/leagueSettings";
 import { refusals } from "../../../convex/shared/leagueAccess";
+import { WEEK_MS } from "../../../convex/shared/time";
 import { expectRefused, holdGameweeks, rulesRevision } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -18,9 +19,13 @@ let leagueId: Id<"leagues">;
 beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
-  await holdGameweeks(t, { next: 9 });
+  await holdGameweeks(t, { next: NEXT });
   leagueId = await adminCreatesLeague(t);
 });
+
+/** The gameweek next to begin, and long enough ago that none of the season had. */
+const NEXT = 9;
+const SEASON_SO_FAR = NEXT * WEEK_MS;
 
 const FIRST: LeagueSettings = { oddTeamOut: "leagueAverage", gamesPerGameweek: 1 };
 /** The fixtures in one round of the four-team leagues the table tests make. */
@@ -108,7 +113,13 @@ describe("changing them", () => {
   });
 
   test("more games a gameweek reach the table from the gameweek the change applies from, never the one before it (#266)", async () => {
+    // Made before the season, so the gameweeks begun have fixtures: a league made mid-season has
+    // none in those (#282).
+    const now = Date.now();
+    vi.setSystemTime(now - SEASON_SO_FAR);
+    leagueId = await adminCreatesLeague(t, 4, "Made before the season");
     await addManagers(t, leagueId, MANAGERS.slice(0, 4));
+    vi.setSystemTime(now);
     const games = 3;
     const from = await change({ ...FIRST, gamesPerGameweek: games });
     const table = await (await actingAs(t, COMMISSIONER)).query(api.table.leagueTable.ofLeague, { leagueId });
