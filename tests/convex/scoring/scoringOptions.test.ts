@@ -94,30 +94,30 @@ describe("a minimum of minutes", () => {
   test("is priced like values: 45 for a forward, 60 for the rest", () => {
     const shots: ScoringRule = {
       shape: "perAction",
-      stat: "shots",
+      stat: "total_scoring_att",
       values: { all: 1 },
       minMinutes: { byPosition: { ...everyPosition(60), ST: 45 } },
     };
-    expect(scoreMatch({ minutes: 50, shots: 2 }, setOf(shots), centreOf("attack")).total).toBe(2);
-    expect(scoreMatch({ minutes: 50, shots: 2 }, setOf(shots), LEFT_WINGER).total).toBe(0);
+    expect(scoreMatch({ minutes: 50, total_scoring_att: 2 }, setOf(shots), centreOf("attack")).total).toBe(2);
+    expect(scoreMatch({ minutes: 50, total_scoring_att: 2 }, setOf(shots), LEFT_WINGER).total).toBe(0);
   });
 });
 
 describe("points in tenths", () => {
   test("0.1 a pass three times is 0.3, and two tenths' rules add to 0.3, never floating point's noise", () => {
-    const passes: ScoringRule = { shape: "perAction", stat: "passes", values: { all: 0.1 } };
+    const passes: ScoringRule = { shape: "perAction", stat: "accurate_pass", values: { all: 0.1 } };
     const touches: ScoringRule = { shape: "perAction", stat: "touches", values: { all: 0.2 } };
-    expect(scoreMatch({ passes: 3 }, setOf(passes), CENTRE_BACK).categories).toEqual([{ stat: "passes", points: 0.3 }]);
-    expect(scoreMatch({ passes: 1, touches: 1 }, setOf(passes, touches), CENTRE_BACK).total).toBe(0.3);
+    expect(scoreMatch({ accurate_pass: 3 }, setOf(passes), CENTRE_BACK).categories).toEqual([{ stat: "accurate_pass", points: 0.3 }]);
+    expect(scoreMatch({ accurate_pass: 1, touches: 1 }, setOf(passes, touches), CENTRE_BACK).total).toBe(0.3);
   });
 
   test("tenths that cancel out total 0, never -0", () => {
     const set = setOf(
-      { shape: "perAction", stat: "passes", values: { all: 0.3 } },
+      { shape: "perAction", stat: "accurate_pass", values: { all: 0.3 } },
       { shape: "perAction", stat: "fouls", values: { all: -0.1 } },
-      { shape: "perAction", stat: "offsides", values: { all: -0.2 } },
+      { shape: "perAction", stat: "dispossessed", values: { all: -0.2 } },
     );
-    expect(Object.is(scoreMatch({ passes: 1, fouls: 1, offsides: 1 }, set, CENTRE_BACK).total, 0)).toBe(true);
+    expect(Object.is(scoreMatch({ accurate_pass: 1, fouls: 1, dispossessed: 1 }, set, CENTRE_BACK).total, 0)).toBe(true);
   });
 
   test("a league counting whole points only scores as any other", () => {
@@ -128,17 +128,17 @@ describe("points in tenths", () => {
 
 describe("a set is refused, with the reason", () => {
   const { ST: _leftOut, ...withoutStriker } = everyPosition(5);
-  const rule = (extra: object) => ({ shape: "perAction", stat: "goals", values: { all: 5 }, ...extra });
+  const rule = (extra: object) => ({ shape: "perAction", stat: "goals_scored", values: { all: 5 }, ...extra });
   test.each([
     ["one that doesn't say whether points are whole only", { rules: [] }, "a scoring set must say whether its points are whole only, true or false, not undefined"],
-    ["a rule priced two ways", setOf(rule({ values: { all: 5, byArea: everyArea(5) } }) as ScoringRule), "the goals rule must be priced one way, the same for all, by area or by position, not 2"],
-    ["a rule priced no way", setOf(rule({ values: {} }) as ScoringRule), "the goals rule must be priced one way, the same for all, by area or by position, not 0"],
-    ["a rule by position missing the striker", setOf(rule({ values: { byPosition: withoutStriker } }) as ScoringRule), "the goals rule has no values for ST"],
-    ["a value finer than a tenth", setOf(rule({ values: { all: 0.25 } }) as ScoringRule), "the goals rule pays 0.25; points are kept in tenths"],
-    ["a points limit whose least is above its most", setOf(rule({ limit: { all: { max: 2, min: 3 } } }) as ScoringRule), "the goals rule's points limit pays at least 3, more than its most, 2"],
-    ["a points limit of text", setOf(rule({ limit: { all: { max: "2", min: null } } }) as ScoringRule), 'the goals rule\'s points limit pays at most "2", not a number'],
-    ["minimum minutes below 0", setOf(rule({ minMinutes: { all: -1 } }) as ScoringRule), "the goals rule's minimum minutes is -1; it can't be less than 0"],
-    ["minimum minutes of text", setOf(rule({ minMinutes: { all: "60" } }) as ScoringRule), 'the goals rule\'s minimum minutes is "60", not a number'],
+    ["a rule priced two ways", setOf(rule({ values: { all: 5, byArea: everyArea(5) } }) as ScoringRule), "the Goals scored rule must be priced one way, the same for all, by area or by position, not 2"],
+    ["a rule priced no way", setOf(rule({ values: {} }) as ScoringRule), "the Goals scored rule must be priced one way, the same for all, by area or by position, not 0"],
+    ["a rule by position missing the striker", setOf(rule({ values: { byPosition: withoutStriker } }) as ScoringRule), "the Goals scored rule has no values for ST"],
+    ["a value finer than a tenth", setOf(rule({ values: { all: 0.25 } }) as ScoringRule), "the Goals scored rule pays 0.25; points are kept in tenths"],
+    ["a points limit whose least is above its most", setOf(rule({ limit: { all: { max: 2, min: 3 } } }) as ScoringRule), "the Goals scored rule's points limit pays at least 3, more than its most, 2"],
+    ["a points limit of text", setOf(rule({ limit: { all: { max: "2", min: null } } }) as ScoringRule), 'the Goals scored rule\'s points limit pays at most "2", not a number'],
+    ["minimum minutes below 0", setOf(rule({ minMinutes: { all: -1 } }) as ScoringRule), "the Goals scored rule's minimum minutes is -1; it can't be less than 0"],
+    ["minimum minutes of text", setOf(rule({ minMinutes: { all: "60" } }) as ScoringRule), 'the Goals scored rule\'s minimum minutes is "60", not a number'],
   ])("%s", (_what, set, reason) => {
     expect(() => validateScoringSet(set)).toThrow(reason);
   });

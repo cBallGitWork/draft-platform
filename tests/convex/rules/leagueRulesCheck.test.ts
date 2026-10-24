@@ -147,6 +147,11 @@ describe.each<[string, Partial<LeagueRules>, string]>([
     "The scoring set can't be saved: the Saves rule in attack pays for every 0 actions; it must be more than 0.",
   ],
   [
+    "a scoring rule on a stat that doesn't exist, which would pay every player 0 in it (#135)",
+    { scoring: { rules: [{ shape: "perAction", stat: "goals_scroed", values: { all: 5 } }], wholePointsOnly: false } },
+    `The scoring set can't be saved: rule 1 of the scoring set scores "goals_scroed", which is neither a catalogue stat nor one of the league's own.`,
+  ],
+  [
     "a squad maximum above the most any team can hold",
     { squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum: MOST_IN_SQUAD + 1 } } },
     `The squad's maximum, ${MOST_IN_SQUAD + 1}, is above the ${MOST_IN_SQUAD} players any team can hold.`,

@@ -4,7 +4,7 @@ import { fplStatLines } from "../../../convex/football/fplLive";
 import { plStatLines } from "../../../convex/football/plMatch";
 import { FULL_STATS, hullEvertonReads, MATCH, recordedGw6, recordedPlFixture } from "../../support/recorded/gw6.payloads";
 import { centreOf, everyArea, EXAMPLE_SET, MINUTES_BANDS } from "../../support/convex/scoring.example";
-import { scoreGameweek, scoreMatch, type DoubleGameweekRule, type MatchStats } from "../../../convex/scoring/scoring";
+import { scoreGameweek, scoreMatch, statIn, type DoubleGameweekRule, type MatchStats } from "../../../convex/scoring/scoring";
 import { AREAS, type Area, type Band, type ScoringSet } from "../../../convex/scoring/scoringSet";
 
 // Every record is a recorded line from Hull v Everton, gameweek 6 of 2026/27.
@@ -116,20 +116,20 @@ describe("once his record has arrived, a stat it leaves out is 0", () => {
   // The Premier League's lines, which leave most noughts out (docs/pl-match-stats.md).
   const PL_SET: ScoringSet = {
     rules: [
-      { shape: "perAction", stat: "goals", values: { all: 5 } },
+      { shape: "perAction", stat: "total_scoring_att", values: { all: 5 } },
       { shape: "perAction", stat: "won_tackle", values: { all: 1 } },
     ],
     wholePointsOnly: false,
   };
 
-  test("a right back who didn't score has 0 for goals, not \"—\"", () => {
+  test("a right back who didn't shoot has 0 for shots, not \"—\"", () => {
     const coyle = recordOf(plLines, FULL_STATS.coyle.code);
-    expect("goals" in coyle).toBe(false);
+    expect("total_scoring_att" in coyle).toBe(false);
 
     expect(scoreMatch(coyle, PL_SET, centreOf("defence"))).toEqual({
       total: 1,
       categories: [
-        { stat: "goals", points: 0 },
+        { stat: "total_scoring_att", points: 0 },
         { stat: "won_tackle", points: 1 },
       ],
     });
@@ -143,8 +143,7 @@ describe("once his record has arrived, a stat it leaves out is 0", () => {
   });
 
   test("a stat named like an object's own property is left out like any other", () => {
-    const set: ScoringSet = { rules: [{ shape: "perAction", stat: "constructor", values: { all: 1 } }], wholePointsOnly: false };
-    expect(scoreMatch(dewsburyHall, set, centreOf("midfield")).total).toBe(0);
+    expect(statIn(dewsburyHall, "constructor")).toBe(0);
   });
 });
 
@@ -158,6 +157,13 @@ test("FPL's bonus in a record scores nothing: no rule names it", () => {
 
 describe("bad data throws rather than score", () => {
   // Each way a rule itself can be bad is in scoringSet.test.ts; these are what scoreMatch adds.
+  test("a set saved before #135, with a rule on a stat no record holds, throws rather than pay 0 in it", () => {
+    const typo: ScoringSet = { rules: [{ shape: "perAction", stat: "goals_scroed", values: { all: 5 } }], wholePointsOnly: false };
+    expect(() => scoreMatch(dewsburyHall, typo, centreOf("midfield"))).toThrow(
+      'rule 1 of the scoring set scores "goals_scroed", which is neither a catalogue stat nor one of the league\'s own',
+    );
+  });
+
   const { goalkeeper: _leftOut, ...outfieldOnly } = everyArea(5);
   const noGoalkeeperValues = {
     rules: [{ shape: "perAction", stat: "goals_scored", values: { byArea: outfieldOnly } }],
