@@ -15,7 +15,7 @@ export const squadMaximumBandShape = v.object({ fromTeams: v.number(), maximum: 
 export type SquadMaximumBand = Infer<typeof squadMaximumBandShape>;
 
 /** Claude's starting data, never Craig's (#316): written as the table by the first league a
- *  deployment makes, and read by nothing after. #316 gave 4–6 teams 20; the band starts at the
+ *  deployment makes; after that the app reads only the table. #316 gave 4–6 teams 20; the band starts at the
  *  fewest a league may have, so 2 and 3 teams take 20 too. */
 export const STARTING_SQUAD_MAXIMUMS: readonly SquadMaximumBand[] = [
   { fromTeams: FEWEST_TEAMS, maximum: 20 },
