@@ -12,3 +12,10 @@ silent line_ceiling.py "$(edited long.md)"
 for suffix in tsx js mjs css py sh; do  # .sh: a shell script is code too, these suites among them
   seq 251 > "$tmp/long.$suffix" && says "closing on" line_ceiling.py "$(edited "long.$suffix")"
 done
+# a payload it can't read is said on stderr, never taken for "no file"
+for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
+  fails_loudly "${bad_payloads[i + 1]}" line_ceiling.py "${bad_payloads[i]}"
+done
+fails_loudly "tool_input is list where dict was expected" line_ceiling.py '{"tool_input":[]}'
+fails_loudly "file_path is int where str was expected" line_ceiling.py '{"tool_input":{"file_path":7}}'
+silent line_ceiling.py '{"tool_input":null}'  # no file named: nothing to measure
