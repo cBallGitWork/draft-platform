@@ -1,6 +1,13 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
-import { FPL_BOOTSTRAP_URL, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../../../convex/football/football";
+import {
+  FPL_BOOTSTRAP_URL,
+  PL_SEASON_IDS_STALE,
+  PL_SEASON_IDS_STALE_FROM,
+  plCommentaryUrl,
+  plFixtureUrl,
+  plTeamStatsUrl,
+} from "../../../convex/football/football";
 import type { RawPlFixture } from "../../../convex/football/premierLeague";
 import {
   COMMENTARY_MATCH,
@@ -9,6 +16,7 @@ import {
   recordedTeamStats,
   UPCOMING_MATCH,
 } from "../../support/recorded/commentary.payloads";
+import { LIVE_MATCH, recordedLiveCommentary, recordedLiveSheets, recordedLiveTeamStats } from "../../support/recorded/live.payloads";
 import { freshConvex, silenceConsoleError } from "../../support/convex/test.harness";
 import { MINUTE_MS } from "../../../convex/shared/time";
 
@@ -64,6 +72,21 @@ test("a feed that refuses is recorded with its status, and the other feed still 
   expect(row.arsenalSquadNumbers).toMatchObject({ ok: false });
 });
 
+test("once the season ids are out of date, both Premier League reads are recorded as failing, saying so (#201)", async () => {
+  vi.stubGlobal("fetch", fakeFeeds());
+  const logged = silenceConsoleError();
+  vi.setSystemTime(PL_SEASON_IDS_STALE_FROM);
+  const t = freshConvex();
+
+  await t.action(internal.football.feeds.check, { trigger: "manual" });
+
+  const [row] = await t.query(internal.football.feeds.latest, {});
+  expect(row.fplPlayers).toEqual({ ok: true, count: 3 });
+  expect(row.plFixtures).toEqual({ ok: false, error: PL_SEASON_IDS_STALE });
+  expect(row.arsenalSquadNumbers).toEqual({ ok: false, error: PL_SEASON_IDS_STALE });
+  expect(logged).toHaveBeenCalledWith(`feed check failed: ${PL_SEASON_IDS_STALE}`);
+});
+
 /** Serves a match's commentary, fixture and team stats as recorded; any other URL answers 404. */
 function serveMatch(match: number, sheets: RawPlFixture) {
   const bodies: Record<string, unknown> = {
@@ -101,6 +124,26 @@ test("the commentary check before kickoff says no lines, no named men and no tea
   const report = await t.action(internal.football.feeds.commentaryCheck, { plFixtureId: UPCOMING_MATCH });
 
   expect(report).toEqual({ readAt: new Date().toISOString(), lines: 0, newest: null, namedMen: 0, teamStats: false });
+});
+
+test("the commentary check mid-match, on Ipswich v Forest as read live, says the lines so far and the newest", async () => {
+  const bodies: Record<string, unknown> = {
+    [plCommentaryUrl(LIVE_MATCH)]: recordedLiveCommentary("goal"),
+    [plFixtureUrl(LIVE_MATCH)]: recordedLiveSheets(),
+    [plTeamStatsUrl(LIVE_MATCH)]: recordedLiveTeamStats("firstMoved"),
+  };
+  vi.stubGlobal("fetch", vi.fn(async (url: string) => Response.json(bodies[url])));
+  const t = freshConvex();
+
+  const report = await t.action(internal.football.feeds.commentaryCheck, { plFixtureId: LIVE_MATCH });
+
+  expect(report).toEqual({
+    readAt: new Date().toISOString(),
+    lines: 9,
+    newest: { id: 2878012, minuteLabel: "13", text: expect.stringMatching(/^Goal! Ipswich Town 0, Nottingham Forest 1\./) },
+    namedMen: 40,
+    teamStats: true,
+  });
 });
 
 test("a commentary check whose read is refused throws, naming the URL", async () => {

@@ -3,13 +3,11 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { isAdmin, leagueRole, rolesIn, seesWhileDeleted, teamsOf } from "../shared/leagueAccess";
 import { leagueDeletion } from "../schema";
+import { LEAGUES_SHOWN } from "./leagueLimits";
 import { hasOpenedALink, noLinkReply } from "../signIn/signInLinks";
 
 // "Your leagues" (spec/12): each league the signed-in person has a part in, or, for the admin, who
 // keeps an override on every league (spec/15), every league.
-
-/** The most leagues one list shows, and of each kind of part in one: the closed beta has a handful. */
-const LEAGUES_SHOWN = 200;
 
 export const leagueSummary = v.object({
   leagueId: v.id("leagues"),
@@ -37,19 +35,21 @@ async function unsentLinkOf(ctx: QueryCtx, league: Doc<"leagues">): Promise<Leag
   return (await hasOpenedALink(ctx, link.email)) ? null : { email: link.email, reply: link.reply };
 }
 
-export async function leaguesOf(ctx: QueryCtx, email: string): Promise<LeagueSummary[]> {
-  const commissioned = await ctx.db
-    .query("leagues")
-    .withIndex("by_commissionerEmail", (q) => q.eq("commissionerEmail", email))
-    .take(LEAGUES_SHOWN);
-  const coCommissioned = await ctx.db
-    .query("leagues")
-    .withIndex("by_coCommissionerEmail", (q) => q.eq("coCommissionerEmail", email))
-    .take(LEAGUES_SHOWN);
-  const managed = await ctx.db
-    .query("teams")
-    .withIndex("by_managerEmail", (q) => q.eq("managerEmail", email))
-    .take(LEAGUES_SHOWN);
+/** A person's leagues by name, and whether any read of them held more than LEAGUES_SHOWN, so some
+ *  are missing from `leagues`. */
+export type LeagueList = { leagues: LeagueSummary[]; cut: boolean };
+
+export async function leaguesOf(ctx: QueryCtx, email: string): Promise<LeagueList> {
+  let cut = false;
+  /** The first LEAGUES_SHOWN rows, noting whether there were more. */
+  async function shown<Row>(rows: { take(count: number): Promise<Row[]> }): Promise<Row[]> {
+    const taken = await rows.take(LEAGUES_SHOWN + 1);
+    if (taken.length > LEAGUES_SHOWN) cut = true;
+    return taken.slice(0, LEAGUES_SHOWN);
+  }
+  const commissioned = await shown(ctx.db.query("leagues").withIndex("by_commissionerEmail", (q) => q.eq("commissionerEmail", email)));
+  const coCommissioned = await shown(ctx.db.query("leagues").withIndex("by_coCommissionerEmail", (q) => q.eq("coCommissionerEmail", email)));
+  const managed = await shown(ctx.db.query("teams").withIndex("by_managerEmail", (q) => q.eq("managerEmail", email)));
 
   const admin = isAdmin(email);
   const leagues = new Map<Id<"leagues">, Doc<"leagues">>();
@@ -59,7 +59,7 @@ export async function leaguesOf(ctx: QueryCtx, email: string): Promise<LeagueSum
     if (!league) throw new Error(`Team ${team._id} is in league ${team.leagueId}, which doesn't exist`);
     leagues.set(league._id, league);
   }
-  if (admin) for (const league of await ctx.db.query("leagues").take(LEAGUES_SHOWN)) leagues.set(league._id, league);
+  if (admin) for (const league of await shown(ctx.db.query("leagues"))) leagues.set(league._id, league);
 
   const summaries = [];
   for (const league of leagues.values()) {
@@ -79,5 +79,5 @@ export async function leaguesOf(ctx: QueryCtx, email: string): Promise<LeagueSum
       deletion: deletion && { deletesAt: deletion.deletesAt, unemailed: deletion.unemailed },
     });
   }
-  return summaries.sort((a, b) => a.name.localeCompare(b.name));
+  return { leagues: summaries.sort((a, b) => a.name.localeCompare(b.name)), cut };
 }

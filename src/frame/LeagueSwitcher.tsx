@@ -9,6 +9,7 @@ import { LEAGUES_PATH } from "../leagues/paths";
 import { currentLeagueOf } from "../leagues/roles";
 import { LEAGUES_TITLE, rolesWords } from "../leagues/words";
 import { useChange } from "../useChange";
+import { LeaveLeague } from "./LeaveLeague";
 import { Problem } from "./Panel";
 import { allLeaguesWords, currentLeagueLabel } from "./words";
 
@@ -22,13 +23,16 @@ const choiceClasses =
 
 /** The top bar's league (spec/13, Several leagues): for someone in several, a list to switch
  *  between them; for someone in one, its name. The admin's leagues he has no part in aren't his
- *  to switch to. */
+ *  to switch to. A manager's list ends with leaving the league they're in (spec/13, Leaving), so
+ *  it opens for a manager in one league too. */
 export function LeagueSwitcher({
   session,
   switchLeague,
+  leaveLeague,
 }: {
   session: Session;
   switchLeague: LeaguesSeam["switchLeague"];
+  leaveLeague: LeaguesSeam["leaveLeague"];
 }) {
   const [open, setOpen] = useState(false);
   const { busy: switching, problem, run, clear } = useChange();
@@ -63,7 +67,8 @@ export function LeagueSwitcher({
   if (!current || !theirs.includes(current))
     throw new Error(`The league the app is in, ${session.currentLeagueId}, isn't one of ${session.email}'s`);
 
-  if (theirs.length === 1) {
+  const teamName = current.teamName;
+  if (theirs.length === 1 && teamName === null) {
     return <span className={`flex min-h-tap items-center px-4 text-lead font-semibold ${placementClasses}`}>{current.name}</span>;
   }
 
@@ -104,6 +109,9 @@ export function LeagueSwitcher({
           <Link to={LEAGUES_PATH} className="flex min-h-tap items-center px-3">
             {allLeaguesWords}
           </Link>
+          {teamName !== null && (
+            <LeaveLeague league={current} teamName={teamName} leaveLeague={leaveLeague} onLeft={() => setOpen(false)} />
+          )}
         </div>
       )}
     </div>

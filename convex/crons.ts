@@ -11,4 +11,8 @@ crons.interval("football sync", FEED_SCHEDULES.football.every, internal.football
 // The live poller's tick (#28): every minute, a no-op outside match windows (ARCHITECTURE.md).
 crons.interval("live stats tick", FEED_SCHEDULES.liveStats.every, internal.stats.liveStatsSync.tick, {});
 
+// Pruning the run logs (#146, admin/runLogs.ts) has no cron yet, like match stats and positions:
+// Craig turns it on with them, once a day:
+// crons.interval("prune run logs", { hours: 24 }, internal.admin.runLogs.prune, {});
+
 export default crons;

@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { query } from "../_generated/server";
 import { signedInEmail } from "../shared/leagueAccess";
-import { INVITES_TO_ONE_EMAIL_READ, warnIfFull } from "./invites";
+import { INVITES_TO_ONE_EMAIL_READ, warnIfFull } from "./liveInvites";
 
 // What became of an invite that let someone sign in but not join (spec/13, Joining): their leagues
 // page says it expired, was cancelled, or couldn't be used and why, instead of only that they're in

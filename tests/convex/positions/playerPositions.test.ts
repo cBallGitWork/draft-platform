@@ -3,30 +3,9 @@ import { api } from "../../../convex/_generated/api";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, actingAs } from "../../support/convex/leagues.harness";
 import { PL_LAST_COMP_SEASON } from "../../../convex/football/football";
-import { asAdmin, heldPositions, reported, syncPositionsWith } from "../../support/convex/positionsSync.harness";
-import { BRENTFORD_CODE, NEWCASTLE, PLAYER, recordedPositions, SHEET } from "../../support/recorded/positions.payloads";
-import { freshConvex, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
-
-/** The recorded men FPL lists at Newcastle. */
-function newcastleMen() {
-  return recordedPositions().fplElements.filter((each) => each.team === NEWCASTLE.fplId);
-}
-
-/** Synced from the recorded payloads, with Newcastle's men and Brentford's keeper held by the
- *  football sync (#21). */
-async function synced(): Promise<TestConvex> {
-  const t = freshConvex();
-  const logged = silenceConsoleError();
-  await syncPositionsWith(t, recordedPositions());
-  expect(logged).toHaveBeenCalledWith(reported());
-  await t.run(async (ctx) => {
-    for (const element of newcastleMen()) {
-      await ctx.db.insert("players", { code: element.code, name: element.web_name, fullName: element.web_name, clubCode: NEWCASTLE.code });
-    }
-    await ctx.db.insert("players", { code: PLAYER.kelleher, name: "Kelleher", fullName: "Caoimhín Kelleher", clubCode: BRENTFORD_CODE });
-  });
-  return t;
-}
+import { asAdmin, heldPositions, newcastleMen, reported, synced, syncPositionsWith } from "../../support/convex/positionsSync.harness";
+import { NEWCASTLE, PLAYER, recordedPositions, SHEET } from "../../support/recorded/positions.payloads";
+import { freshConvex, silenceConsoleError } from "../../support/convex/test.harness";
 
 test("until the admin approves them, a player's starts are proposals and he plays on his label, unconfirmed", async () => {
   const t = await synced();

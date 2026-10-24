@@ -3,6 +3,8 @@ import {
   FPL_BOOTSTRAP_URL,
   fplLiveUrl,
   PL_LAST_COMP_SEASON,
+  PL_SEASON_IDS_STALE,
+  PL_SEASON_IDS_STALE_FROM,
   plCommentaryUrl,
   plFixturesUrl,
   plFixtureUrl,
@@ -26,6 +28,7 @@ import {
   recordedTeamStats,
   UPCOMING_MATCH,
 } from "../../support/recorded/commentary.payloads";
+import { LIVE_MATCH, recordedLiveTeamStats } from "../../support/recorded/live.payloads";
 
 /** Answers each URL with its body in `bodies`, or every URL with `status` and no body when one is
  *  given; records the URLs. A URL with no body is the test's mistake: it fails the read. */
@@ -52,6 +55,24 @@ test("one gameweek's fixture list asks for that gameweek of this season's Premie
 test("a named season's fixture list asks for that season, with altIds", () => {
   const query = new URL(plFixturesUrl(undefined, PL_LAST_COMP_SEASON)).searchParams;
   expect(["compSeasons", "altIds"].map((key) => query.get(key))).toEqual(["777", "true"]);
+});
+
+test("the season ids go out of date on 1 July after the season they name (#201)", () => {
+  expect(PL_SEASON_IDS_STALE_FROM).toBe(Date.parse("2027-07-01T00:00:00Z"));
+  expect(PL_SEASON_IDS_STALE).toContain("are for 2026/27, which has ended");
+  expect(PL_SEASON_IDS_STALE).toContain("https://footballapi.pulselive.com/football/competitions/1/compseasons");
+});
+
+test("from then, every read naming a season throws, saying what to update; up to then, none does (#201)", () => {
+  const namingASeason = [() => plFixturesUrl(), () => plFixturesUrl(6), () => plFixturesUrl(undefined, PL_LAST_COMP_SEASON), () => plSquadUrl(1)];
+  vi.useFakeTimers({ toFake: ["Date"] });
+
+  vi.setSystemTime(PL_SEASON_IDS_STALE_FROM - 1);
+  for (const url of namingASeason) expect(url).not.toThrow();
+
+  vi.setSystemTime(PL_SEASON_IDS_STALE_FROM);
+  for (const url of namingASeason) expect(url).toThrow(PL_SEASON_IDS_STALE);
+  expect(plFixtureUrl(128978)).toBe("https://footballapi.pulselive.com/football/fixtures/128978");
 });
 
 test("a squad read asks for altIds, the join to FPL, as well as every kind of player", () => {
@@ -113,6 +134,20 @@ test("before a match, an empty commentary and team stats with no sides are read,
 
   expect(await readPlCommentary(UPCOMING_MATCH)).toEqual([]);
   expect(await readPlTeamStats(UPCOMING_MATCH)).toEqual(teamStats);
+});
+
+test("live, the team stats are read as they come: only each side's formation before kickoff, then the match's", async () => {
+  const statNames = (stats: Awaited<ReturnType<typeof readPlTeamStats>>) =>
+    Object.values(stats.data ?? {}).map((side) => side.M.map((stat) => stat.name));
+  const readAs = async (read: Parameters<typeof recordedLiveTeamStats>[0]) => {
+    fakeFeed({ [plTeamStatsUrl(LIVE_MATCH)]: recordedLiveTeamStats(read) });
+    return statNames(await readPlTeamStats(LIVE_MATCH));
+  };
+
+  expect(await readAs("beforeKickoff")).toEqual([["formation_used"], ["formation_used"]]);
+  for (const read of ["firstMoved", "final"] as const) {
+    for (const side of await readAs(read)) expect(side.length).toBeGreaterThan(1);
+  }
 });
 
 test("a commentary longer than one read holds throws rather than lose its oldest lines", async () => {

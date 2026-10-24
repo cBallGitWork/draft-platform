@@ -11,6 +11,7 @@
 import type * as admin_feedState from "../admin/feedState.js";
 import type * as admin_feeds from "../admin/feeds.js";
 import type * as admin_platformSettings from "../admin/platformSettings.js";
+import type * as admin_runLogs from "../admin/runLogs.js";
 import type * as auth from "../auth.js";
 import type * as crons from "../crons.js";
 import type * as football_feedIds from "../football/feedIds.js";
@@ -37,6 +38,7 @@ import type * as joining_joinRequests from "../joining/joinRequests.js";
 import type * as joining_joining from "../joining/joining.js";
 import type * as joining_joiningEmails from "../joining/joiningEmails.js";
 import type * as joining_joiningShared from "../joining/joiningShared.js";
+import type * as joining_liveInvites from "../joining/liveInvites.js";
 import type * as leagues_deletionNotices from "../leagues/deletionNotices.js";
 import type * as leagues_lastLeague from "../leagues/lastLeague.js";
 import type * as leagues_leagueDeletion from "../leagues/leagueDeletion.js";
@@ -102,6 +104,7 @@ declare const fullApi: ApiFromModules<{
   "admin/feedState": typeof admin_feedState;
   "admin/feeds": typeof admin_feeds;
   "admin/platformSettings": typeof admin_platformSettings;
+  "admin/runLogs": typeof admin_runLogs;
   auth: typeof auth;
   crons: typeof crons;
   "football/feedIds": typeof football_feedIds;
@@ -128,6 +131,7 @@ declare const fullApi: ApiFromModules<{
   "joining/joining": typeof joining_joining;
   "joining/joiningEmails": typeof joining_joiningEmails;
   "joining/joiningShared": typeof joining_joiningShared;
+  "joining/liveInvites": typeof joining_liveInvites;
   "leagues/deletionNotices": typeof leagues_deletionNotices;
   "leagues/lastLeague": typeof leagues_lastLeague;
   "leagues/leagueDeletion": typeof leagues_leagueDeletion;

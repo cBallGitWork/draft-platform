@@ -21,6 +21,7 @@ export function useLiveJoining(): JoiningSeam {
   const send = useMutation(api.joining.invites.send);
   const resend = useMutation(api.joining.invites.resend);
   const cancel = useMutation(api.joining.invites.cancel);
+  const remove = useMutation(api.leagues.teams.removeManager);
   const make = useMutation(api.joining.inviteLink.make);
   const switchOff = useMutation(api.joining.inviteLink.switchOff);
   const approve = useMutation(api.joining.joinRequests.approve);
@@ -35,6 +36,7 @@ export function useLiveJoining(): JoiningSeam {
       invite: (leagueId, email, teamId) => change("Sending an invite", () => send({ leagueId, email, teamId: teamId ?? undefined })),
       resendInvite: (inviteId) => change("Resending an invite", () => resend({ inviteId })),
       cancelInvite: (inviteId) => change("Cancelling an invite", () => cancel({ inviteId })),
+      removeManager: (leagueId, teamId) => change("Removing a manager", () => remove({ leagueId, teamId })),
       makeLink: (leagueId) => change("Making the invite link", () => make({ leagueId })),
       switchOffLink: (leagueId) => change("Switching off the invite link", () => switchOff({ leagueId })),
       approve: (requestId, teamId) => change("Approving a join request", () => approve({ requestId, teamId: teamId ?? undefined })),
@@ -50,6 +52,6 @@ export function useLiveJoining(): JoiningSeam {
           askFailedWords,
         ),
     }),
-    [send, resend, cancel, make, switchOff, approve, refuse, ask, signInToJoin],
+    [send, resend, cancel, remove, make, switchOff, approve, refuse, ask, signInToJoin],
   );
 }

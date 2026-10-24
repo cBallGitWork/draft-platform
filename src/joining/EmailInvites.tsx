@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { PanelNote, PanelTitle, Problem } from "../frame/Panel";
+import { PANEL_BODY, PanelNote, PanelTitle, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { TeamSelect, useTeamChoice } from "./TeamChoice";
@@ -54,7 +54,7 @@ export function EmailInvites({ page, joining }: { page: InvitesPageData; joining
     <section aria-labelledby={TITLE_ID} className="bg-panel">
       <PanelTitle id={TITLE_ID}>{emailInvitesWords.title}</PanelTitle>
       <Problem problem={problem} />
-      <form onSubmit={send} className="flex flex-col gap-2 p-3">
+      <form onSubmit={send} className={PANEL_BODY}>
         <label htmlFor={EMAIL_ID} className="font-semibold">
           {emailInvitesWords.emailLabel}
         </label>
