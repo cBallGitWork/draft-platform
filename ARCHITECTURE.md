@@ -154,6 +154,8 @@ styling, typeface, test, screenshot and smoke-test rows, and the rest are the pl
 - Each ask for a sign-in link that was answered "check your email" is a row in `signInAsks`, a
   failed send kept with its error, and each day's emails are counted in `emailSends` against
   Resend's 100 (#20).
+- When the admin was last emailed that a feed failed is a row in `feedFailureEmails`, one per
+  feed, so he hears at most once a day for each (#319).
 - The league each person used last is a row in `lastLeagues`, by email, not in the browser, so
   the app opens it on any device they sign in on (#76).
 - Squads (#122): a `squadPlayers` row (league, team, FPL `code`) for each player on a team, one
