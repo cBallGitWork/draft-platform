@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { BODY_MAX, SUBJECT_MAX } from "../../convex/mail/mailLimits";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { PanelTitle, Problem } from "../frame/Panel";
+import { PANEL_BODY, PanelTitle, Problem } from "../frame/Panel";
 import type { MailSeam } from "./seam";
 import { WRITE_TITLE, sendToWords, sentWords, writeHint, writeLabels } from "./words";
 
@@ -47,7 +47,7 @@ export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly Le
           {sentWords(outcome.leagueName)}
         </p>
       )}
-      <form onSubmit={send} className="flex flex-col gap-2 p-3">
+      <form onSubmit={send} className={PANEL_BODY}>
         <p className="text-muted">{writeHint}</p>
         {leagues.length > 1 && (
           <>

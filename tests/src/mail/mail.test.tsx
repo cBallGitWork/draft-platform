@@ -81,6 +81,21 @@ describe("the letters", () => {
   });
 });
 
+describe("who reads the letters (#211)", () => {
+  it("another screen never asks for them, so a letter filed doesn't re-send them all to it", async () => {
+    const app = openApp(LEAGUES_PATH, manager, { topBar: twoUnread, letters });
+    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Mail, 2 unread" })).toBeTruthy();
+    expect(app.mail.useLetters).not.toHaveBeenCalled();
+  });
+
+  it("Mail asks for them", async () => {
+    const app = openApp(MAIL_PATH, manager, { topBar: twoUnread, letters });
+    await screen.findByRole("list");
+    expect(app.mail.useLetters).toHaveBeenCalled();
+  });
+});
+
 describe("the unread count", () => {
   it("is the same on Mail's plate and in the menu", async () => {
     openApp(MAIL_PATH, manager, { topBar: twoUnread, letters });

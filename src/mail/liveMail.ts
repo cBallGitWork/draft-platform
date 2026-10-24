@@ -7,19 +7,23 @@ import { refusalOf } from "../refusal";
 import type { MailSeam } from "./seam";
 import { sendFailedWords, unreadCount } from "./words";
 
+const useLetters: MailSeam["useLetters"] = () => {
+  const { isAuthenticated } = useConvexAuth();
+  return useQuery(api.mail.mail.letters, isAuthenticated ? {} : "skip");
+};
+
 /** The Mail seam filled in by Convex, and the top bar's count from it: Continue goes to Mail while
  *  a letter is unread, as nothing else it looks for (spec/12) is built yet. A refusal comes back as
  *  the server's own words (convex/mail/mail.ts); any other failure is logged and said plainly. */
 export function useLiveMail(): { mail: MailSeam; topBar: TopBarState } {
   const { isAuthenticated } = useConvexAuth();
-  const letters = useQuery(api.mail.mail.letters, isAuthenticated ? {} : "skip");
   const unread = useQuery(api.mail.mail.unreadCount, isAuthenticated ? {} : "skip") ?? 0;
   const open = useMutation(api.mail.mail.open);
   const write = useMutation(api.mail.mail.writeToLeague);
 
   const mail = useMemo<MailSeam>(
     () => ({
-      letters,
+      useLetters,
       open: async (letterId) => {
         try {
           await open({ letterId });
@@ -29,7 +33,7 @@ export function useLiveMail(): { mail: MailSeam; topBar: TopBarState } {
       },
       writeToLeague: (letter) => refusalOf(() => write(letter), "Sending a letter to the league", sendFailedWords),
     }),
-    [letters, open, write],
+    [open, write],
   );
   const topBar = useMemo<TopBarState>(
     () => ({ unreadMail: unread, next: unread > 0 ? { path: MAIL_PATH, reason: unreadCount(unread) } : null }),

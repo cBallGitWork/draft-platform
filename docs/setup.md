@@ -50,10 +50,11 @@ The admin can sign in at once; anyone else is put on the allowed list first:
 
 The admin creates a league from **Create a league** on the leagues page; its commissioner is
 let sign in, and sent a link if they have no account. A commissioner adds managers from
-**Invites and join requests** on the league's row of the leagues page. Removing managers,
-renaming teams, the maximum and the co-commissioner have no screen yet, so they are run from the
-CLI as the person allowed to, by their `_id` in the `users` table (without `--identity` the
-server refuses):
+**Invites and join requests** on the league's row of the leagues page, and removes one from its
+**Teams** panel; a manager leaves from the foot of the top bar's league list. Renaming teams, the
+maximum and the co-commissioner have no screen yet, so they are run from the CLI as the person
+allowed to, by their `_id` in the `users` table (without `--identity` the server refuses), as
+removing a manager still can be:
 `npx convex run leagues/teams:removeManager '{"leagueId":"…","teamId":"…"}' --identity '{"subject":"<their _id>|cli"}'`.
 The admin alone names a team's manager directly, the same way with the admin's `_id`:
 `npx convex run leagues/teams:addManager '{"leagueId":"…","email":"someone@example.com"}' --identity '{"subject":"<admin's _id>|cli"}'`

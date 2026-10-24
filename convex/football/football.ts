@@ -22,16 +22,36 @@ export const FPL_FIXTURES_URL = `${FPL_API_BASE}/fixtures/`;
 export const PL_API_BASE = "https://footballapi.pulselive.com/football";
 /** The Premier League's id for its own competition. */
 export const PL_COMPETITION = 1;
-/** The Premier League's id for the 2026/27 season. */
+/** The year the season the two ids below name starts: 2026 for 2026/27. Each summer, the three
+ *  change together (#201). */
+export const PL_SEASON_START_YEAR = 2026;
+/** The Premier League's id for this season, PL_SEASON_START_YEAR's (from `/competitions/1/compseasons`). */
 export const PL_COMP_SEASON = 841;
-/** The Premier League's id for the 2025/26 season, last season (from `/competitions/1/compseasons`). */
+/** The Premier League's id for the season before. */
 export const PL_LAST_COMP_SEASON = 777;
+/** `Date.UTC`'s month for July: a season's last match is in May and the next one's first in August,
+ *  so from 1 July after it ends, its ids are out of date. */
+const JULY = 6;
+/** When PL_COMP_SEASON and PL_LAST_COMP_SEASON stop naming this season and the last. */
+export const PL_SEASON_IDS_STALE_FROM = Date.UTC(PL_SEASON_START_YEAR + 1, JULY, 1);
+/** Why every Premier League read naming a season fails from PL_SEASON_IDS_STALE_FROM. */
+export const PL_SEASON_IDS_STALE =
+  `The Premier League season ids (PL_COMP_SEASON ${PL_COMP_SEASON}, PL_LAST_COMP_SEASON ${PL_LAST_COMP_SEASON}) are for ` +
+  `${PL_SEASON_START_YEAR}/${String(PL_SEASON_START_YEAR + 1).slice(-2)}, which has ended: update them and ` +
+  `PL_SEASON_START_YEAR in convex/football/football.ts from ${PL_API_BASE}/competitions/${PL_COMPETITION}/compseasons.`;
+
+/** Throws once the season ids are out of date, so the rollover fails loudly instead of quietly
+ *  reading old seasons' squads and fixtures (#201). */
+function requireCurrentSeasonIds(): void {
+  if (Date.now() >= PL_SEASON_IDS_STALE_FROM) throw new Error(PL_SEASON_IDS_STALE);
+}
 /** The Premier League's id for Arsenal, whose squad list proves squad numbers can be read. */
 export const PL_ARSENAL = 1;
 
 /** A club's registered squad this season, each man with his squad number, his label and, asked
  *  with `altIds=true`, the join to FPL. */
 export function plSquadUrl(teamId: number): string {
+  requireCurrentSeasonIds();
   return `${PL_API_BASE}/teams/${teamId}/compseasons/${PL_COMP_SEASON}/staff?type=all&altIds=true`;
 }
 
@@ -47,6 +67,7 @@ export const PL_FIXTURES_PAGE_SIZE = 400;
  *  It always asks for `altIds`: without it the fixtures arrive with no join to FPL, and nothing
  *  says so. */
 export function plFixturesUrl(gameweek?: number, compSeason = PL_COMP_SEASON): string {
+  requireCurrentSeasonIds();
   const round = gameweek === undefined ? "" : `&gameweekNumbers=${gameweek}`;
   return (
     `${PL_API_BASE}/fixtures?comps=${PL_COMPETITION}&compSeasons=${compSeason}` +
