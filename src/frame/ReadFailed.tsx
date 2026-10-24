@@ -6,8 +6,9 @@ import { ERROR_PAGE_TITLE, readFailedWords, tryAgainWords } from "./words";
 export const READ_FAILED_LOG = "Reading the page failed:";
 
 /** What every screen shows in place of itself when reading its data failed (spec/12, The frame):
- *  plain words in the alert strip, never the server's, even for a refusal, and Try again, which
- *  reads again; the failure is logged. `children` are the other ways out beside Try again. */
+ *  plain words in the alert strip, never the server's, even for a refusal, and Try again, whose
+ *  `onTryAgain` draws the failed part afresh so its queries are asked again; the failure is
+ *  logged. `children` are the other ways out beside Try again. */
 export function ReadFailed({ error, onTryAgain, children }: { error: unknown; onTryAgain: () => void; children?: ReactNode }) {
   useEffect(() => {
     console.error(READ_FAILED_LOG, error);

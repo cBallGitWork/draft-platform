@@ -11,7 +11,7 @@ import type { Session } from "../../../src/auth";
 import { ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../../src/admin/paths";
 import { MAIL_PATH, MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
 import { READ_FAILED_LOG } from "../../../src/frame/ReadFailed";
-import { ERROR_PAGE_TITLE, readFailedWords, tryAgainWords } from "../../../src/frame/words";
+import { ERROR_PAGE_TITLE, menuWords, readFailedWords, tryAgainWords } from "../../../src/frame/words";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { invitesPath } from "../../../src/joining/paths";
 import { settingsPath } from "../../../src/leagueSettings/paths";
@@ -31,7 +31,7 @@ async function openTableThrowing(error: unknown) {
   app.table.useLeagueTable.mockImplementation(() => {
     throw error;
   });
-  await userEvent.click(await screen.findByRole("link", { name: "Table" }));
+  await userEvent.click(await screen.findByRole("link", { name: menuWords.table }));
   expect(await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE })).toBeTruthy();
   return app;
 }
@@ -72,10 +72,9 @@ it("says the same plain words for a refusal, never the server's, and logs it", a
   expect(logged).toHaveBeenCalledWith(READ_FAILED_LOG, refusal);
 });
 
-it("reads again on Try again, and shows the page once the read succeeds", async () => {
+it("reads again on Try again, and draws the page in place of the error while the read is on its way", async () => {
   silenceConsoleError();
   const app = await openTableThrowing(new Error(serverWords));
-  // Still on its way, as a read asked again is: the page, not the error, is drawn.
   app.table.useLeagueTable.mockReset();
   app.table.useLeagueTable.mockReturnValue(undefined);
 
@@ -86,12 +85,14 @@ it("reads again on Try again, and shows the page once the read succeeds", async 
   expect(app.path()).toBe(TABLE_PATH);
 });
 
-it("shows the error page again if reading fails again", async () => {
+it("reads again on Try again, and shows the error page again if reading fails again", async () => {
   silenceConsoleError();
-  await openTableThrowing(new Error(serverWords));
+  const app = await openTableThrowing(new Error(serverWords));
+  app.table.useLeagueTable.mockClear();
 
   await userEvent.click(screen.getByRole("button", { name: tryAgainWords }));
 
+  expect(app.table.useLeagueTable).toHaveBeenCalled();
   expect(await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE })).toBeTruthy();
   expect(screen.getByRole("alert").textContent).toBe(readFailedWords);
 });

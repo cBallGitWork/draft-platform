@@ -67,8 +67,7 @@ export function LiveApp({ linkCode }: { linkCode: string | null }) {
 type ShellFailedState = { failed: { error: unknown } | null };
 
 /** What the app shows when something above the router threw, such as a query the top bar reads:
- *  the shared failed read, whose Try again draws the app afresh, so its queries are asked again,
- *  and Sign out, as the top bar's isn't there. */
+ *  the failed read, and Sign out, as the top bar's isn't there. */
 class ShellFailed extends Component<{ children: ReactNode }, ShellFailedState> {
   state: ShellFailedState = { failed: null };
 
