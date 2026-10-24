@@ -105,13 +105,14 @@ export function previewSession(): Session | null {
   return name !== null && Object.hasOwn(previewSessions, name) ? previewSessions[name] : null;
 }
 
-/** Creating or deleting a league, or undoing that, does nothing, and switching league stays put,
- *  each saying so. */
+/** Creating or deleting a league, or undoing that, does nothing, and switching or leaving a league
+ *  stays put, each saying so. */
 export const previewLeagues: LeaguesSeam = {
   createLeague: previewSays("no league was made"),
   deleteLeague: previewSays("no league was deleted"),
   undoDeletion: previewSays("nothing was undone"),
   switchLeague: previewSays("you're still in this league"),
+  leaveLeague: previewSays("you didn't leave"),
 };
 
 /** Asking for a link gets the reply everyone gets; nothing is sent, and signing out does nothing. */

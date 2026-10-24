@@ -4,22 +4,13 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import { adminSeeing, beingDeleted, league, manager, managerIn, openApp } from "../../support/src/shell.harness";
+import { adminSeeing, beingDeleted, commissioner, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { allLeaguesWords } from "../../../src/frame/words";
 
-const miniBeta: LeagueSummary = {
-  ...league,
-  leagueId: "league-2" as Id<"leagues">,
-  name: "Mini beta",
-  roles: ["commissioner"],
-  teamName: null,
-};
 const inTwo = managerIn(league, miniBeta);
 const inMiniBeta = { ...inTwo, currentLeagueId: miniBeta.leagueId };
 
@@ -110,23 +101,29 @@ describe("a manager in two leagues", () => {
 });
 
 describe("the top bar's league, for someone in one", () => {
-  it("is the league's plain name, with nothing to switch", async () => {
-    openApp(MY_TEAM_PATH, manager);
+  it("is the league's plain name, with nothing to switch, when they run no team in it", async () => {
+    openApp(MY_TEAM_PATH, commissioner);
     const main = await screen.findByRole("banner");
     expect(within(main).getByText(league.name)).toBeTruthy();
     expect(screen.queryByRole("button", { name: SWITCHER_NAME })).toBeNull();
   });
 
+  it("opens to the one league for a manager, so they can leave it (spec/13, Leaving)", async () => {
+    openApp(MY_TEAM_PATH, manager);
+    await userEvent.click(await switcher());
+    expect(choices().map((choice) => choice.textContent)).toEqual(["Tim Hortons Pro LeagueTeam 1"]);
+  });
+
   it("leaves out a league they're deleting, which is frozen", async () => {
     openApp(MY_TEAM_PATH, managerIn(league, beingDeleted(miniBeta)));
-    expect(within(await screen.findByRole("banner")).getByText(league.name)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: SWITCHER_NAME })).toBeNull();
+    await userEvent.click(await switcher());
+    expect(choices().map((choice) => choice.textContent)).toEqual(["Tim Hortons Pro LeagueTeam 1"]);
   });
 
   it("is the admin's own league alone, not those he only oversees", async () => {
     openApp(MY_TEAM_PATH, { ...adminSeeing(league, { ...miniBeta, roles: [] }), inLeague: true, currentLeagueId: league.leagueId });
-    expect(within(await screen.findByRole("banner")).getByText(league.name)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: SWITCHER_NAME })).toBeNull();
+    await userEvent.click(await switcher());
+    expect(choices().map((choice) => choice.textContent)).toEqual(["Tim Hortons Pro LeagueTeam 1"]);
   });
 });
 

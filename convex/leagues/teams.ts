@@ -19,6 +19,7 @@ import { recordEvent } from "../mail/letters";
 import { leagueDeadlines, seasonRules } from "../rules/leagueRules";
 import { storeBegunFixtures } from "../table/playedFixtures";
 import { TEAM_NAME_MAX } from "./leagueLimits";
+import { cancelLiveInvites } from "../joining/liveInvites";
 
 // A league's teams and their managers (#24, spec/13, Teams and Leaving). Each change files an
 // event for Mail (#26). One manager runs one team; a team whose manager goes stays, vacated.
@@ -101,7 +102,8 @@ export const addManager = mutation({
 });
 
 /** spec/13, Leaving: the admin, the commissioner or the co-commissioner removes a team's manager.
- *  They lose the league at once; the team stays, keeps its name, and can be handed on. */
+ *  They lose the league at once, and any live invite of theirs to it is cancelled (#133); the team
+ *  stays, keeps its name, and can be handed on. */
 export const removeManager = mutation({
   args: { leagueId: v.id("leagues"), teamId: v.id("teams") },
   returns: v.null(),
@@ -110,12 +112,13 @@ export const removeManager = mutation({
     const team = await teamIn(ctx, leagueId, teamId);
     if (team.managerEmail === undefined) refuse(refusals.noManager);
     await ctx.db.patch("teams", teamId, { managerEmail: undefined });
+    await cancelLiveInvites(ctx, leagueId, team.managerEmail);
     await recordEvent(ctx, leagueId, by, { kind: "managerRemoved", email: team.managerEmail, teamId, teamName: team.name });
     return null;
   },
 });
 
-/** spec/13, Leaving: a manager leaves, which works like a removal. */
+/** spec/13, Leaving: a manager leaves, which works like a removal, their live invites included. */
 export const leave = mutation({
   args: { leagueId: v.id("leagues") },
   returns: v.null(),
@@ -125,6 +128,7 @@ export const leave = mutation({
     const team = await teamOf(ctx, leagueId, email);
     if (!team) refuse(refusals.runsNoTeam);
     await ctx.db.patch("teams", team._id, { managerEmail: undefined });
+    await cancelLiveInvites(ctx, leagueId, email);
     await recordEvent(ctx, leagueId, email, { kind: "managerLeft", email, teamId: team._id, teamName: team.name });
     return null;
   },

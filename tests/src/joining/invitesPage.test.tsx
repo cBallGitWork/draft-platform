@@ -33,8 +33,8 @@ const page: InvitesPageData = {
   leagueId: league.leagueId,
   leagueName: league.name,
   teams: [
-    { teamId: "team-1" as Id<"teams">, name: "Team 1", vacated: false },
-    { teamId: TEAM_2, name: "Saka Potatoes", vacated: true },
+    { teamId: "team-1" as Id<"teams">, name: "Team 1", managerEmail: "dan@example.com" },
+    { teamId: TEAM_2, name: "Saka Potatoes", managerEmail: null },
   ],
   hasRoom: true,
   linkToken: "the-token",

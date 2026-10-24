@@ -3,6 +3,7 @@ import { BackToLeagues } from "../leagues/LeagueLinks";
 import { EmailInvites } from "./EmailInvites";
 import { InviteLinkPanel } from "./InviteLinkPanel";
 import { RequestsPanel } from "./RequestsPanel";
+import { TeamsPanel } from "./TeamsPanel";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { INVITES_TITLE, loadingWords, notYoursWords, waitingStrip } from "./words";
 
@@ -11,7 +12,8 @@ const waitsForTomorrow = (invite: InvitesPageData["invites"][number]) =>
   invite.delivery === "waiting" && invite.joinedTeamName === null && invite.couldNotJoin === null;
 
 /** A league's invites and join requests (spec/13 Joining, spec/15 Joining a league), for its
- *  runners: invite by email, the invite link, and the requests it made. */
+ *  runners: invite by email, the invite link, the requests it made, and the teams, whose managers
+ *  can be removed (spec/13 Leaving). */
 export function InvitesPage({ leagueId, joining }: { leagueId: string; joining: JoiningSeam }) {
   const page = joining.useInvitesPage(leagueId);
   const waiting = page?.invites.filter(waitsForTomorrow).length ?? 0;
@@ -37,6 +39,7 @@ export function InvitesPage({ leagueId, joining }: { leagueId: string; joining: 
           <div className="flex flex-col gap-2">
             <InviteLinkPanel page={page} joining={joining} />
             <RequestsPanel page={page} joining={joining} />
+            <TeamsPanel page={page} joining={joining} />
           </div>
         </div>
       )}

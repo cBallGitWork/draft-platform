@@ -189,9 +189,11 @@ How #28 reads a match while it is played (`convex/stats/liveStatsSync.ts`, `conv
   men whose records moved. Each league's scoring set is stored (#120), but no lineup is yet (#8)
   and nothing recomputes points from them, so none are; once something does, it recomputes them
   for those men.
-- Assumed until a live match is recorded: a match in play's `status` is anything but "C"; both
-  feeds send running totals, so the next tick catches up one that failed; FPL's match blocks fill
-  in during play, as Opta's per-man reads do.
+- Seen live (23 Oct 2026, Ipswich v Nott'm Forest): a match in play's `status` is "L", then "C"
+  at full time. The records filled in during play: the 22 starters' minutes moved each minute,
+  and both goals, the assist and Diop's yellow card reached the men's records within a few
+  minutes. Full time was seen the minute it came, at the tick that made all 40 records
+  complete. 119 ticks, one a minute, none failed.
 
 **The replay the tests use is not a live recording.** `tests/support/convex/liveStats.harness.ts` cuts Hull v
 Everton, recorded finished, into a stage a minute: each man's stats grow with his share of his
@@ -200,5 +202,4 @@ minutes on the pitch, and goals, assists and yellow cards land at the minutes th
 128999, by `scripts/record-match.mjs`) reads the commentary, the fixture and the team stats, not
 the per-man stats or FPL's live read. To replay it instead, extend that script to save, each poll,
 FPL's `/event/{gw}/live/` and each named man's `/stats/player/{id}?fixtures=128999` for a later
-match, then swap `stagedGw6(minute)` for that match's poll nearest each minute; Friday's own run
-settles the `status` a match in play carries, and whether the stats move during play.
+match, then swap `stagedGw6(minute)` for that match's poll nearest each minute.
