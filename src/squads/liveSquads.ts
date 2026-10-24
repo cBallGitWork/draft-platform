@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { refusalOf } from "../refusal";
 import type { SquadsSeam } from "./seam";
-import { changeFailedWords } from "./words";
+import { squadChangeFailedWords } from "./words";
 
 const useSquads: SquadsSeam["useSquads"] = (leagueId) => useQuery(api.squads.squads.squads, { leagueId });
 
@@ -24,9 +24,9 @@ export function useLiveSquads(): SquadsSeam {
     () => ({
       useSquads,
       useFoundPlayers,
-      assign: (leagueId, playerCode, teamId) => refusalOf(() => assign({ leagueId, playerCode, teamId }), "Assigning a player", changeFailedWords),
-      move: (leagueId, playerCode, teamId) => refusalOf(() => move({ leagueId, playerCode, teamId }), "Moving a player", changeFailedWords),
-      release: (leagueId, playerCode) => refusalOf(() => release({ leagueId, playerCode }), "Releasing a player", changeFailedWords),
+      assign: (leagueId, playerCode, teamId) => refusalOf(() => assign({ leagueId, playerCode, teamId }), "Assigning a player", squadChangeFailedWords),
+      move: (leagueId, playerCode, teamId) => refusalOf(() => move({ leagueId, playerCode, teamId }), "Moving a player", squadChangeFailedWords),
+      release: (leagueId, playerCode) => refusalOf(() => release({ leagueId, playerCode }), "Releasing a player", squadChangeFailedWords),
     }),
     [assign, move, release],
   );
