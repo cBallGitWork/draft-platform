@@ -3,9 +3,9 @@ import { ConvexReactClient, useAction, useConvexAuth, useQuery } from "convex/re
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { api } from "../convex/_generated/api";
 import { useLiveAdmin } from "./admin/liveAdmin";
-import { Loading, PageSection, Problem } from "./frame/Panel";
+import { Loading } from "./frame/Panel";
+import { ReadFailed } from "./frame/ReadFailed";
 import { SignOut } from "./frame/SignOut";
-import { ERROR_PAGE_TITLE, readFailedWords, reloadWords } from "./frame/words";
 import type { AuthActions, Session } from "./auth";
 import { liveGameweeks } from "./gameweeks/liveGameweeks";
 import { useLiveJoining } from "./joining/liveJoining";
@@ -16,7 +16,7 @@ import { useLiveLeagueSettings } from "./leagueSettings/liveSettings";
 import { useLiveScoring } from "./scoring/liveScoring";
 import { useLiveSquads } from "./squads/liveSquads";
 import { liveTable } from "./table/liveTable";
-import { answerOf, refusalIn } from "./refusal";
+import { answerOf } from "./refusal";
 import { ShellApp } from "./ShellApp";
 import { SIGN_IN_PATH } from "./sign-in/paths";
 import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "./sign-in/words";
@@ -67,8 +67,8 @@ export function LiveApp({ linkCode }: { linkCode: string | null }) {
 type ShellFailedState = { failed: { error: unknown } | null };
 
 /** What the app shows when something above the router threw, such as a query the top bar reads:
- *  what ErrorScreen.tsx says, a reload, as the router's way back isn't there, and Sign out, as the
- *  top bar's isn't either. React logs the error itself (its onCaughtError). */
+ *  the shared failed read, whose Try again draws the app afresh, so its queries are asked again,
+ *  and Sign out, as the top bar's isn't there. */
 class ShellFailed extends Component<{ children: ReactNode }, ShellFailedState> {
   state: ShellFailedState = { failed: null };
 
@@ -78,16 +78,11 @@ class ShellFailed extends Component<{ children: ReactNode }, ShellFailedState> {
 
   render() {
     if (this.state.failed === null) return this.props.children;
+    const drawAfresh = () => this.setState({ failed: null });
     return (
-      <PageSection title={ERROR_PAGE_TITLE} className="max-w-xl bg-panel">
-        <Problem problem={refusalIn(this.state.failed.error) ?? readFailedWords} />
-        <div className="m-3 flex flex-wrap gap-2">
-          <button type="button" onClick={() => location.reload()} className="action">
-            {reloadWords}
-          </button>
-          <SignOutAfresh onSignedOut={() => this.setState({ failed: null })} />
-        </div>
-      </PageSection>
+      <ReadFailed error={this.state.failed.error} onTryAgain={drawAfresh}>
+        <SignOutAfresh onSignedOut={drawAfresh} />
+      </ReadFailed>
     );
   }
 }
