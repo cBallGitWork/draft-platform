@@ -104,10 +104,10 @@ export const footballSyncFields = {
 };
 
 const footballTables = {
-  clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
+  clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_droppedAt", ["droppedAt"]),
   players: defineTable(playerRecord.extend({ droppedAt }))
     .index("by_code", ["code"])
-    .index("by_clubCode", ["clubCode"])
+    .index("by_clubCode_and_droppedAt", ["clubCode", "droppedAt"])
     .searchIndex("search_fullName", { searchField: "fullName", filterFields: ["droppedAt"] }),
   fixtures: defineTable(fixtureRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_kickoff", ["kickoff"]),
   gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]),

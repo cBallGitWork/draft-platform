@@ -660,6 +660,12 @@
           "fields": [
             "code"
           ]
+        },
+        {
+          "indexDescriptor": "by_droppedAt",
+          "fields": [
+            "droppedAt"
+          ]
         }
       ],
       "stagedDbIndexes": [],
@@ -707,9 +713,10 @@
           ]
         },
         {
-          "indexDescriptor": "by_clubCode",
+          "indexDescriptor": "by_clubCode_and_droppedAt",
           "fields": [
-            "clubCode"
+            "clubCode",
+            "droppedAt"
           ]
         }
       ],
