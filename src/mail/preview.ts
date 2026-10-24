@@ -49,7 +49,7 @@ const previewLetters: LetterSummary[] = [
 ];
 
 export const previewMail: MailSeam = {
-  letters: previewLetters,
+  useLetters: () => previewLetters,
   open: async () => {},
   writeToLeague: previewSays("no letter was sent"),
 };
