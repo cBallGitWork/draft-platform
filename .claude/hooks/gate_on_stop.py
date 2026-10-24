@@ -9,9 +9,9 @@ checks) there; on failure, it blocks the stop and hands Claude the end of the ou
 `stop_hook_active`, so it blocks once and never loops. If git status fails, the gate times out
 or the payload can't be read (hook_payload.py), it exits 1 with one line on stderr saying what
 failed and in which checkout: Claude Code shows it, but the stop goes ahead (it fails open, never
-quietly). A subagent's `cwd` is the folder it works in: an agent spawned with its own worktree has that worktree, but one that only
-names a worktree by absolute path has the main checkout (checked 20 Oct 2026 in subagent
-transcripts). A subagent stopping in the main checkout isn't gated: the session's own Stop gates
+quietly). A subagent's `cwd` is the folder it works in: an agent spawned with its own worktree
+has that worktree, but one that only names a worktree by absolute path has the main checkout
+(checked 20 Oct 2026 in subagent transcripts). A subagent stopping in the main checkout isn't gated: the session's own Stop gates
 it, and a builder or a reviewer there would otherwise be held up by changes that aren't its own.
 DRAFT_GATE_CMD overrides the command and DRAFT_GATE_TIMEOUT its timeout in seconds, both for
 .claude/hooks/tests/gate_on_stop.sh.
