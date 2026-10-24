@@ -22,9 +22,10 @@ import { currentFixtures } from "../shared/fixtures";
 // Until the admin has a screen, the defaults are set from the dashboard or the command line:
 // `npx convex run rules/leagueRules:setDefaults '{"rules": {…}}'`, checked as a commissioner's are.
 
-/** The most rules rows a league holds: one per change saved, a second before the same deadline
- *  among them, so five every gameweek of a season. A change past it is refused, and a read of more
- *  throws, never a silent cut, as the rules in force are the newest row (#214). */
+/** The most rules rows a league holds: one per change saved, and a save made again before the same
+ *  deadline is a row too, so five every gameweek of a season; rows are kept across seasons. A change
+ *  past it is refused, and a read of more throws, never a silent cut, as the rules in force are the
+ *  newest row (#214). Claude's choice, not yet Craig's. */
 export const RULES_CHANGES_MOST = 200;
 
 /** How many of a league's newest events a stale save looks through for the letter naming who saved
