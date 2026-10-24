@@ -3,6 +3,7 @@ import { defineSchema, defineTable } from "convex/server";
 import { v, type VLiteral } from "convex/values";
 import { leagueRulesShape } from "./rules/leagueRulesShape";
 import { POSITIONS, type Position } from "./positions/positionTables";
+import { feedValidator } from "./shared/feedSchedule";
 import { signInReply } from "./signIn/signInLinks";
 import { LEAGUE_AVERAGE } from "./table/roundRobin";
 
@@ -318,6 +319,12 @@ const liveStatsTables = {
   liveStatsTicks: defineTable(liveStatsTickFields),
 };
 
+// When the admin was last emailed that each feed failed (#319, spec/15): one row a feed, so he
+// hears at most once a day for each (admin/feedFailureEmails.ts).
+const feedFailureEmailTables = {
+  feedFailureEmails: defineTable({ feed: feedValidator, emailedAt: v.number() }).index("by_feed", ["feed"]),
+};
+
 // Deleting a league (#75): how it works is in leagueDeletion.ts.
 
 /** Why one person wasn't emailed that their league is being deleted: the day's emails had all
@@ -574,6 +581,7 @@ export default defineSchema({
   ...squadTables,
   ...matchStatsTables,
   ...liveStatsTables,
+  ...feedFailureEmailTables,
   ...leagueTables,
   ...joiningTables,
   ...mailTables,
