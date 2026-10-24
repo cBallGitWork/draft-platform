@@ -5,12 +5,11 @@ import { sendEmail } from "../outbound/email";
 import { takeTodaysEmail as takeOne } from "../outbound/emailLimit";
 import { unemailedReason } from "../schema";
 
-// The email each person with a part in a league gets once it is gone for good (#320, spec/13,
-// Deleting): "just delay the deletion email until its actually gone". Nobody hears while it can
-// still be undone, and an undone deletion tells no one; leagueDeletion.deleteForGood sends it
-// after the league's last row is gone. Each counts against the day's emails as a sign-in link does
-// (emailLimit.ts). One the limit or the email service stops is logged and kept in
-// unemailedDeletions, which names the league, as there is no league left to keep it on.
+// The email each person with a part in a league gets once leagueDeletion.deleteForGood has removed
+// it (#320, spec/13, Deleting): "just delay the deletion email until its actually gone". Each
+// counts against the day's emails as a sign-in link does (emailLimit.ts). One the limit or the
+// email service stops is logged and kept in unemailedDeletions, as there is no league left to
+// keep it on.
 
 /** Wording for Craig to change in the pull request. */
 export function deletionEmail(leagueName: string, by: string) {
@@ -20,10 +19,10 @@ export function deletionEmail(leagueName: string, by: string) {
   };
 }
 
-/** What the log says when one person wasn't emailed. */
-const notEmailedLog = (to: string) => `The email saying a league has been deleted wasn't sent to ${to}:`;
-/** What the log says for a person the day's limit stopped. */
-const pausedLog = "today's emails have all been sent";
+/** What the log says when one person wasn't emailed, before why. */
+export const notEmailedLog = (to: string) => `The email saying a league has been deleted wasn't sent to ${to}:`;
+/** Why, when the day's limit stopped it. */
+export const PAUSED_LOG = "today's emails have all been sent";
 
 export const send = internalAction({
   args: { leagueName: v.string(), by: v.string(), emails: v.array(v.string()) },
@@ -45,7 +44,7 @@ async function sendOne(
   email: ReturnType<typeof deletionEmail>,
 ): Promise<Infer<typeof unemailedReason> | null> {
   if (!(await ctx.runMutation(internal.leagues.deletionNotices.takeTodaysEmail, {}))) {
-    console.error(notEmailedLog(to), pausedLog);
+    console.error(notEmailedLog(to), PAUSED_LOG);
     return "paused";
   }
   try {

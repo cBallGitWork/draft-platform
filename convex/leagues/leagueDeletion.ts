@@ -122,20 +122,20 @@ export const undo = mutation({
 });
 
 /** Deletes the league for good: every row keyed to it, a batch of each table a run, then the
- *  league itself last, so it stays frozen and hidden until nothing of it is left. The first run
- *  reads who to tell before its teams go and hands them on; the last emails them. */
+ *  league itself last, so it stays frozen and hidden until nothing of it is left. The last run
+ *  emails everyone it had (deletionNotices.ts). */
 export const deleteForGood = internalMutation({
   args: {
     leagueId: v.id("leagues"),
-    /** Who is emailed once it is gone, read by the first run. Absent on the first run. */
+    /** Whom to email once it is gone: absent on the first run, which reads them before the teams
+     *  go and hands them on. */
     tell: v.optional(v.array(v.string())),
   },
   returns: v.null(),
-  handler: async (ctx, args) => {
-    const { leagueId } = args;
+  handler: async (ctx, { leagueId, tell: handedOn }) => {
     const league = await ctx.db.get("leagues", leagueId);
     if (!league?.deletion) throw new Error(`League ${leagueId} isn't being deleted, so it wasn't deleted for good`);
-    const tell = args.tell ?? (await othersIn(ctx, league, league.deletion.by));
+    const tell = handedOn ?? (await othersIn(ctx, league, league.deletion.by));
     let more = false;
     for (const batchOf of Object.values(leagueRows)) {
       const rows = await batchOf(ctx, leagueId);

@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { ANN, BOB, deletes, laterBy, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
+import { ANN, BOB, deletes, laterBy, leagueWithPeople, moreEventsThanOneRun } from "../../support/convex/leagueDeletion.harness";
+import { PAUSED_LOG, notEmailedLog } from "../../../convex/leagues/deletionNotices";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, type TestConvex } from "../../support/convex/leagues.harness";
 import { EMAILS_PER_DAY } from "../../../convex/outbound/emailLimit";
 import { fakeResend, sentToday, setSentToday, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
@@ -25,19 +26,18 @@ const goneForGood = () => t.finishAllScheduledFunctions(vi.runAllTimers);
 
 /** The commissioner deletes the league and the clock reaches the moment before it goes: the day's
  *  emails counted from here are the day it goes, not the day it was deleted. */
-async function onTheDayItGoes() {
+async function toTheMomentBeforeItGoes() {
   const deletesAt = await deletes(t, COMMISSIONER, leagueId);
   await laterBy(t, deletesAt - 1 - Date.now());
 }
 
 /** Each row kept for someone who wasn't told, without when it was kept. */
-const unemailedRows = () =>
-  t.run(async (ctx) => (await ctx.db.query("unemailedDeletions").collect()).map(({ leagueName, by, email, reason }) => ({ leagueName, by, email, reason })));
+const unemailedRows = async () =>
+  (await t.run((ctx) => ctx.db.query("unemailedDeletions").collect())).map(({ leagueName, by, email, reason }) => ({ leagueName, by, email, reason }));
 
 describe("while a deletion can be undone", () => {
   test("deleting a league emails nobody, up to the moment before it goes", async () => {
-    const deletesAt = await deletes(t, COMMISSIONER, leagueId);
-    await laterBy(t, deletesAt - 1 - Date.now());
+    await toTheMomentBeforeItGoes();
     expect(sent).toEqual([]);
   });
 
@@ -67,18 +67,14 @@ describe("once it is gone for good, it emails", () => {
   });
 
   test("the same people once each, when the league takes more than one run to delete", async () => {
-    await t.run(async (ctx) => {
-      for (let i = 0; i < 1200; i += 1) {
-        await ctx.db.insert("leagueEvents", { leagueId, at: i, by: ADMIN, event: { kind: "maxTeamsChanged", from: 4, to: 5 } });
-      }
-    });
+    await moreEventsThanOneRun(t, leagueId);
     await deletes(t, COMMISSIONER, leagueId);
     await goneForGood();
     expect(sent.map((email) => email.to)).toEqual([CO_COMMISSIONER, ANN, BOB]);
   });
 
   test("each counting against the day's emails: the day it goes", async () => {
-    await onTheDayItGoes();
+    await toTheMomentBeforeItGoes();
     const before = await sentToday(t);
     await goneForGood();
     expect(await sentToday(t)).toBe(before + 3);
@@ -86,8 +82,8 @@ describe("once it is gone for good, it emails", () => {
 });
 
 describe("someone who isn't emailed", () => {
-  test("past the day's limit, isn't, and is kept by name with the league's, and logged", async () => {
-    await onTheDayItGoes();
+  test("past the day's limit, isn't, and is kept with the league's name and who deleted it, and logged", async () => {
+    await toTheMomentBeforeItGoes();
     await setSentToday(t, EMAILS_PER_DAY - 1);
     const logged = silenceConsoleError();
     await goneForGood();
@@ -98,10 +94,7 @@ describe("someone who isn't emailed", () => {
       { leagueName: LEAGUE_NAME, by: COMMISSIONER, email: ANN, reason: "paused" },
       { leagueName: LEAGUE_NAME, by: COMMISSIONER, email: BOB, reason: "paused" },
     ]);
-    expect(logged).toHaveBeenCalledWith(
-      `The email saying a league has been deleted wasn't sent to ${ANN}:`,
-      "today's emails have all been sent",
-    );
+    expect(logged).toHaveBeenCalledWith(notEmailedLog(ANN), PAUSED_LOG);
   });
 
   test("when the email service refuses it, is kept as not sent, and the failure logged", async () => {
@@ -116,9 +109,6 @@ describe("someone who isn't emailed", () => {
       { email: BOB, reason: "notSent" },
     ]);
     expect(logged).toHaveBeenCalledTimes(3);
-    expect(logged).toHaveBeenCalledWith(
-      `The email saying a league has been deleted wasn't sent to ${ANN}:`,
-      new Error("Resend refused the email (500): refused"),
-    );
+    expect(logged).toHaveBeenCalledWith(notEmailedLog(ANN), new Error("Resend refused the email (500): refused"));
   });
 });

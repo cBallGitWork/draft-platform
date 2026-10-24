@@ -6,7 +6,7 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { rulesRevision } from "../../support/convex/leagueRules.harness";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { tablesKeyedToLeague } from "../../../convex/leagues/leagueDeletion";
-import { ANN, BOB, CAT, DAN, accountOf, deletes, laterBy, leagueWithPeople, mutationsGivenALeague } from "../../support/convex/leagueDeletion.harness";
+import { ANN, BOB, CAT, DAN, accountOf, deletes, laterBy, leagueWithPeople, moreEventsThanOneRun, mutationsGivenALeague } from "../../support/convex/leagueDeletion.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, eventsIn, leagueRow, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import schema from "../../../convex/schema";
 import { fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
@@ -213,11 +213,7 @@ describe("after the day", () => {
   });
 
   test("a league with more events than one run deletes is gone all the same", async () => {
-    await t.run(async (ctx) => {
-      for (let i = 0; i < 1200; i += 1) {
-        await ctx.db.insert("leagueEvents", { leagueId, at: i, by: ADMIN, event: { kind: "maxTeamsChanged", from: 4, to: 5 } });
-      }
-    });
+    await moreEventsThanOneRun(t, leagueId);
     await deletes(t, COMMISSIONER, leagueId);
     await t.finishAllScheduledFunctions(vi.runAllTimers);
     expect(await everythingOf(leagueId)).toEqual(GONE);
