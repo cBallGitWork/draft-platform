@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { Loading, Notice, PageSection, PanelNote, PanelTitle, Problem } from "../frame/Panel";
+import { Loading, Notice, PageSection, PANEL_BODY, PanelNote, PanelTitle, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { useChange, type Changing } from "../useChange";
 import type { FoundPlayer, SquadsSeam, TeamSquad } from "./seam";
@@ -71,7 +71,7 @@ function FindPlayer({ league, seam, squads, change }: { league: LeagueSummary; s
   return (
     <section aria-labelledby={FIND_TITLE_ID} className="bg-panel">
       <PanelTitle id={FIND_TITLE_ID}>{findTitle}</PanelTitle>
-      <div className="flex flex-col gap-2 p-3">
+      <div className={PANEL_BODY}>
         <label htmlFor={FIND_NAME_ID} className="font-semibold">
           {findLabel}
         </label>

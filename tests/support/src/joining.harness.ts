@@ -17,6 +17,7 @@ export function fakeJoining(data: JoiningData, linkReply: string) {
     invite: vi.fn<JoiningSeam["invite"]>(made),
     resendInvite: vi.fn<JoiningSeam["resendInvite"]>(made),
     cancelInvite: vi.fn<JoiningSeam["cancelInvite"]>(made),
+    removeManager: vi.fn<JoiningSeam["removeManager"]>(made),
     makeLink: vi.fn<JoiningSeam["makeLink"]>(made),
     switchOffLink: vi.fn<JoiningSeam["switchOffLink"]>(made),
     approve: vi.fn<JoiningSeam["approve"]>(made),

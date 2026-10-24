@@ -35,4 +35,5 @@ export function warningWords(warning: SquadWarning): string {
   }
 }
 
-export const changeFailedWords = failedWords("the squads didn't change");
+/** The shared `changeFailedWords` (src/words.ts), naming the squads as what didn't change. */
+export const squadChangeFailedWords = failedWords("the squads didn't change");
