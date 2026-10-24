@@ -8,7 +8,7 @@ import { afterEach, expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { useLiveSquads } from "../../../src/squads/liveSquads";
-import { changeFailedWords } from "../../../src/squads/words";
+import { squadChangeFailedWords } from "../../../src/squads/words";
 
 const convex = vi.hoisted(() => ({
   squads: vi.fn(),
@@ -75,6 +75,6 @@ test("any other failure is logged and said plainly", async () => {
   convex.release.mockRejectedValue(failure);
   const logged = silenceConsoleError();
 
-  expect(await seam().release(leagueId, playerCode)).toBe(changeFailedWords);
+  expect(await seam().release(leagueId, playerCode)).toBe(squadChangeFailedWords);
   expect(logged).toHaveBeenCalledWith("Releasing a player failed:", failure);
 });

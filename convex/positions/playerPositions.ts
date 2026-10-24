@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { adminOf } from "../shared/leagueAccess";
-import { heldClubs, playersNamed } from "../shared/players";
+import { currentClubs, currentPlayersAt, playersNamed } from "../shared/players";
 import { howPositionsCount, type HowPositionsCount } from "./positionSettings";
 import { positionsFromStarts, positionsOf, type PlayerPositions } from "./positions";
 import type { Position } from "./positionTables";
@@ -16,9 +16,6 @@ import { approveMode, changeThresholds, position } from "../schema";
 type Row = Doc<"playerPositions">;
 /** What a row holds about a player, without what identifies it. */
 type RowFields = Omit<Row, "_id" | "_creationTime" | "code">;
-
-/** The most players one club's approval reads: a club's squad, with room. */
-const CLUB_PLAYERS_MOST = 100;
 
 /** A player's row before any feed or the admin has written to it. */
 const EMPTY_ROW: RowFields = { starts: [], approved: [], set: [], removed: [] };
@@ -53,13 +50,14 @@ export const approvePlayer = mutation({
   },
 });
 
-/** Approves every player at the club, as `approvePlayer` does, and says how many. */
+/** Approves every player at the club now, as `approvePlayer` does, and says how many. One who
+ *  has left the Premier League is not approved, nor given a row. */
 export const approveClub = mutation({
   args: { clubCode: v.number() },
   returns: v.number(),
   handler: async (ctx, { clubCode }): Promise<number> => {
     await adminOf(ctx);
-    const players = await ctx.db.query("players").withIndex("by_clubCode", (q) => q.eq("clubCode", clubCode)).take(CLUB_PLAYERS_MOST);
+    const players = await currentPlayersAt(ctx, clubCode);
     for (const player of players) await approve(ctx, await heldRow(ctx, player.code));
     return players.length;
   },
@@ -135,8 +133,7 @@ export const queue = query({
       for (const lost of positionsNow.removed) removed.push({ ...who, position: lost });
     }
     const byName = (one: { name: string }, other: { name: string }) => one.name.localeCompare(other.name);
-    const clubs = (await heldClubs(ctx))
-      .filter((club) => club.droppedAt === undefined)
+    const clubs = (await currentClubs(ctx))
       .map(({ code, name }) => ({ code, name }))
       .sort(byName);
     return {

@@ -6,13 +6,13 @@ builder in .claude/worktrees/ is judged on its own worktree), else of CLAUDE_PRO
 the folder it runs in; one with no git or no package.json has no gate, so it says nothing. While
 the watched paths there have uncommitted changes, it runs `npm run verify` (tests, typecheck, hook
 checks) there; on failure, it blocks the stop and hands Claude the end of the output. Respects
-`stop_hook_active`, so it blocks once and never loops. If git status fails or the gate times
-out, it exits 1 with the error on stderr: Claude Code shows it, but the stop goes ahead (it fails
-open, never quietly). A subagent's `cwd` is the folder it works in: an agent spawned with its own
-worktree has that worktree, but one that only names a worktree by absolute path has the main
-checkout (checked 20 Oct 2026 in subagent transcripts). A subagent stopping in the main checkout
-isn't gated: the session's own Stop gates it, and a builder or a reviewer there would otherwise
-be held up by changes that aren't its own.
+`stop_hook_active`, so it blocks once and never loops. If git status fails, the gate times out
+or the payload can't be read (hook_payload.py), it exits 1 with the error on stderr: Claude Code
+shows it, but the stop goes ahead (it fails open, never quietly). A subagent's `cwd` is the
+folder it works in: an agent spawned with its own worktree has that worktree, but one that only
+names a worktree by absolute path has the main checkout (checked 20 Oct 2026 in subagent
+transcripts). A subagent stopping in the main checkout isn't gated: the session's own Stop gates
+it, and a builder or a reviewer there would otherwise be held up by changes that aren't its own.
 DRAFT_GATE_CMD overrides the command, for .claude/hooks/tests/gate_on_stop.sh.
 Stdlib only, Python 3.9+.
 """
@@ -26,6 +26,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from hook_payload import BadPayload, field, read_payload, report
+
 PACKAGE = "package.json"  # a checkout without one has no gate
 # what `npm run verify` checks: it changes with verify's scope (a new vitest project, say)
 WATCHED = ("convex", "src", "scripts", "tests", PACKAGE, "package-lock.json", "tsconfig.json", "vite.config.ts",
@@ -35,9 +37,9 @@ GATE = "npm run verify"
 GATE_TIMEOUT_SECONDS = 170  # inside settings.json's hook timeout; .claude/hooks/tests/settings.sh checks the pair
 
 
-def checkout_of(payload):
+def checkout_of(cwd):
     """The top-level of the checkout the stop came from, None if it has no gate to run."""
-    folder = payload.get("cwd") or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+    folder = cwd or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
     proc = subprocess.run(
         ["git", "-C", folder, "rev-parse", "--show-toplevel"], capture_output=True, text=True
     )
@@ -67,14 +69,19 @@ def changed(checkout):
 
 
 def main():
-    raw = sys.stdin.read()
-    payload = json.loads(raw) if raw.strip() else {}
-    if payload.get("stop_hook_active"):
+    try:
+        payload = read_payload()
+        active = field(payload, "stop_hook_active", bool, False)
+        cwd = field(payload, "cwd", str, "")
+        event = field(payload, "hook_event_name", str, "")
+    except BadPayload as error:
+        return report(error, "the gate didn't run")
+    if active:
         return 0
-    checkout = checkout_of(payload)
+    checkout = checkout_of(cwd)
     if checkout is None:
         return 0
-    if payload.get("hook_event_name") == "SubagentStop" and is_main_checkout(checkout):
+    if event == "SubagentStop" and is_main_checkout(checkout):
         return 0
     if not changed(checkout):
         return 0

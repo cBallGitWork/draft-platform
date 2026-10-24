@@ -4,6 +4,7 @@ import { v, type VLiteral } from "convex/values";
 import { leagueRulesShape } from "./rules/leagueRulesShape";
 import { POSITIONS, type Position } from "./positions/positionTables";
 import { signInReply } from "./signIn/signInLinks";
+import { LEAGUE_AVERAGE } from "./table/roundRobin";
 
 /** What one read of a feed found: a count of what came back, or why it failed. */
 export const feedOutcome = v.union(
@@ -103,10 +104,10 @@ export const footballSyncFields = {
 };
 
 const footballTables = {
-  clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
+  clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_droppedAt", ["droppedAt"]),
   players: defineTable(playerRecord.extend({ droppedAt }))
     .index("by_code", ["code"])
-    .index("by_clubCode", ["clubCode"])
+    .index("by_clubCode_and_droppedAt", ["clubCode", "droppedAt"])
     .searchIndex("search_fullName", { searchField: "fullName", filterFields: ["droppedAt"] }),
   fixtures: defineTable(fixtureRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_kickoff", ["kickoff"]),
   gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]),
@@ -550,6 +551,20 @@ const leagueRulesTables = {
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
 };
 
+// A league's head-to-head fixtures in each gameweek it has played, stored once the gameweek begins
+// and read from here ever after (#137). One row a league and gameweek, written only by
+// convex/table/playedFixtures.ts, which says why.
+const playedFixtureTables = {
+  playedFixtures: defineTable({
+    leagueId: v.id("leagues"),
+    gameweek: v.number(),
+    fixtures: v.array(v.object({ team: v.id("teams"), opponent: v.union(v.id("teams"), v.literal(LEAGUE_AVERAGE)) })),
+    /** The teams left over with a bye, in a league whose odd team out has one. */
+    byes: v.array(v.id("teams")),
+    storedAt: v.number(),
+  }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
+};
+
 export default defineSchema({
   ...authTables,
   ...signInTables,
@@ -563,4 +578,5 @@ export default defineSchema({
   ...joiningTables,
   ...mailTables,
   ...leagueRulesTables,
+  ...playedFixtureTables,
 });

@@ -40,6 +40,13 @@ code=$?
 if [ "$code" -eq 0 ] || [ -z "$err" ]; then
   fail "gate_on_stop.py: a failed git status exited $code with no error"
 fi
+# a payload it can't read is said on stderr, never taken for {} (here, a dirty checkout whose gate fails)
+for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
+  fails_loudly "${bad_payloads[i + 1]}" gate_on_stop.py "${bad_payloads[i]}" DRAFT_GATE_CMD=false
+done
+fails_loudly "cwd is int where str was expected" gate_on_stop.py '{"cwd":3}' DRAFT_GATE_CMD=false
+fails_loudly "stop_hook_active is str where bool was expected" gate_on_stop.py '{"stop_hook_active":"yes"}' DRAFT_GATE_CMD=false
+fails_loudly "hook_event_name is list where str was expected" gate_on_stop.py '{"hook_event_name":[]}' DRAFT_GATE_CMD=false
 # each is watched (verify tests or reads it), so a change there alone runs the gate
 for path in scripts/a.mjs tests/a.test.ts playwright.config.ts; do
   repo=$tmp/gate-watch-${path%%[/.]*} && gate_repo "$repo"

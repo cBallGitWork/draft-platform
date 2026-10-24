@@ -67,6 +67,9 @@ export const createFailedWords = failedWords("the league wasn't made");
 /** When switching league failed before the server could say why. */
 export const switchFailedWords = failedWords("you're still in this league");
 
+/** When leaving a league failed before the server could say why. */
+export const leaveFailedWords = failedWords("you're still in the league, running your team");
+
 // Deleting a league (#75, spec/13, Deleting).
 
 export const deleteLeagueWords = "Delete league";

@@ -1,6 +1,14 @@
 import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
-import { FPL_BOOTSTRAP_URL, PL_COMP_SEASON, PL_LAST_COMP_SEASON, plFixturesUrl, plFixtureUrl } from "../../../convex/football/football";
+import {
+  FPL_BOOTSTRAP_URL,
+  PL_COMP_SEASON,
+  PL_LAST_COMP_SEASON,
+  PL_SEASON_IDS_STALE,
+  PL_SEASON_IDS_STALE_FROM,
+  plFixturesUrl,
+  plFixtureUrl,
+} from "../../../convex/football/football";
 import { REFUSED_MATCH, asAdmin, heldPositions, reported, syncPositionsWith } from "../../support/convex/positionsSync.harness";
 import { MATCHES_PER_RUN } from "../../../convex/positions/positionsSync";
 import type { RawPlSquadPlayer } from "../../../convex/football/premierLeague";
@@ -156,6 +164,17 @@ test.each([
 
   expect(outcome).toEqual({ ok: false, error: refusedError(url) });
   expect(logged).toHaveBeenCalledWith(reportedFailure(url));
+  expect(await heldStarts(t, PLAYER.barnes)).toEqual([]);
+});
+
+test("a run once the season ids are out of date fails, saying so, and files nothing (#201)", async () => {
+  const t = freshConvex();
+  const logged = silenceConsoleError();
+
+  const { outcome } = await syncPositionsWith(t, recordedPositions(), undefined, PL_SEASON_IDS_STALE_FROM);
+
+  expect(outcome).toEqual({ ok: false, error: PL_SEASON_IDS_STALE });
+  expect(logged).toHaveBeenCalledWith(`positions sync failed: ${PL_SEASON_IDS_STALE}`);
   expect(await heldStarts(t, PLAYER.barnes)).toEqual([]);
 });
 
