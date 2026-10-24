@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { rulesInGameweek } from "../../../convex/rules/leagueRules";
-import { holdGameweeks, moveFplDeadline, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { holdGameweeks, moveFplDeadline, rulesRevision, rulesWith, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -34,7 +33,7 @@ describe("a commissioner's change of deadline", () => {
     const leagueId = await adminCreatesLeague(t);
 
     expect(await change(leagueId, THREE_HOURS_BEFORE)).toBe(10);
-    expect(await inGameweek(leagueId, 9)).toEqual(FIRST_RULES);
+    expect(await inGameweek(leagueId, 9)).toEqual(HELD_FIRST_RULES);
   });
 
   test("to a later deadline waits for gameweek 10 if gameweek 9 has begun under the old one", async () => {
@@ -67,10 +66,10 @@ describe("a commissioner's change of deadline", () => {
     const leagueId = await adminCreatesLeague(t);
     await change(leagueId, THREE_HOURS_BEFORE);
 
-    expect(await change(leagueId, structuredClone(FIRST_RULES))).toBe(10);
-    expect(await inGameweek(leagueId, 9)).toEqual(FIRST_RULES);
-    expect(await inGameweek(leagueId, 10)).toEqual(FIRST_RULES);
-    expect(await latest(leagueId)).toEqual({ fromGameweek: 10, rules: FIRST_RULES, revision: await rulesRevision(t, leagueId) });
+    expect(await change(leagueId, structuredClone(HELD_FIRST_RULES))).toBe(10);
+    expect(await inGameweek(leagueId, 9)).toEqual(HELD_FIRST_RULES);
+    expect(await inGameweek(leagueId, 10)).toEqual(HELD_FIRST_RULES);
+    expect(await latest(leagueId)).toEqual({ fromGameweek: 10, rules: HELD_FIRST_RULES, revision: await rulesRevision(t, leagueId) });
   });
 });
 

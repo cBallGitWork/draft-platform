@@ -5,7 +5,7 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { rulesRefusals } from "../../../convex/rules/leagueRules";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { adminByline } from "../../../convex/mail/letterWords";
-import { expectRefused, holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { expectRefused, holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { ADMIN, actingAs, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -76,7 +76,7 @@ describe("a save made from rules someone has saved over since", () => {
       (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules: TOTAL_POINTS, revision: opened }),
       refusal,
     );
-    expect(await latestRules()).toEqual({ ...FIRST_RULES, scoring: assistsPaying(4) });
+    expect(await latestRules()).toEqual({ ...HELD_FIRST_RULES, scoring: assistsPaying(4) });
   });
 
   test("is refused as stale, not as unsound, when its rules are unsound too", async () => {

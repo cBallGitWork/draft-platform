@@ -56,7 +56,19 @@ const as = async (email: string) => {
 const squadCodes = async () => (await (await as(COMMISSIONER)).squads()).map((team) => team.players.map((player) => player.code));
 const lastEvent = async () => (await eventsIn(t, leagueId)).at(-1);
 
+/** Gives the league these squad limits, written straight into its rules. */
+const setSquadRules = async (squad: typeof FIRST_RULES.squad) => {
+  await t.run(async (ctx) => {
+    const row = await ctx.db
+      .query("leagueRules")
+      .withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId))
+      .first();
+    await ctx.db.patch("leagueRules", row!._id, { rules: rulesWith({ squad }) });
+  });
+};
+
 test("#31 Done: four teams of 15 can be filled, and each squad says it's over the league's 14", async () => {
+  await setSquadRules({ size: { minimum: 11, maximum: 14 }, byArea: null, maxPerClub: null });
   const commissioner = await as(COMMISSIONER);
   for (const [i, code] of PLAYER_CODES.entries()) await commissioner.assign(code, teams[i % 4]);
 
@@ -171,16 +183,6 @@ describe("refused, saying why, and nothing changes", () => {
 });
 
 describe("squad limits warn, never block", () => {
-  const setSquadRules = async (squad: typeof FIRST_RULES.squad) => {
-    await t.run(async (ctx) => {
-      const row = await ctx.db
-        .query("leagueRules")
-        .withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId))
-        .first();
-      await ctx.db.patch("leagueRules", row!._id, { rules: rulesWith({ squad }) });
-    });
-  };
-
   test("under the minimum, and over the most per club", async () => {
     await setSquadRules({ size: { minimum: 11, maximum: 14 }, byArea: null, maxPerClub: 1 });
     const commissioner = await as(COMMISSIONER);

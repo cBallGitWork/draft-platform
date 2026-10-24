@@ -2,6 +2,7 @@ import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v, type VLiteral } from "convex/values";
 import { leagueRulesShape } from "./rules/leagueRulesShape";
+import { squadMaximumBandShape } from "./rules/squadMaximums";
 import { POSITIONS, type Position } from "./positions/positionTables";
 import { signInReply } from "./signIn/signInLinks";
 import { LEAGUE_AVERAGE } from "./table/roundRobin";
@@ -540,6 +541,8 @@ const leagueRulesTables = {
   ),
   /** One row: the rules the admin gives each new league. */
   defaultLeagueRules: defineTable({ rules: leagueRulesShape }),
+  /** One row: the squad maximum a new league takes by its size, which Craig edits (#316). */
+  squadMaximums: defineTable({ bands: v.array(squadMaximumBandShape) }),
   /** A league's deadline for a gameweek once it has passed (#150): where it fell stays put, even if
    *  the first match is then postponed (spec/05). One row a league and gameweek, written at or
    *  after the deadline by deadlineRecorder.ts. */

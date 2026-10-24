@@ -1,11 +1,10 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { rulesInGameweek, rulesRefusals } from "../../../convex/rules/leagueRules";
 import type { LeagueSettings } from "../../../convex/rules/leagueSettings";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { expectRefused, holdGameweeks, rulesRevision } from "../../support/convex/leagueRules.harness";
+import { expectRefused, holdGameweeks, rulesRevision, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -63,8 +62,8 @@ describe("changing them", () => {
   test("applies from the next gameweek only, keeps the rest of the rules, and files one letter", async () => {
     expect(await change({ oddTeamOut: "bye", gamesPerGameweek: 2 })).toBe(9);
 
-    expect(await inGameweek(8)).toEqual(FIRST_RULES);
-    expect(await inGameweek(9)).toEqual({ ...FIRST_RULES, oddTeamOut: "bye", gamesPerGameweek: 2 });
+    expect(await inGameweek(8)).toEqual(HELD_FIRST_RULES);
+    expect(await inGameweek(9)).toEqual({ ...HELD_FIRST_RULES, oddTeamOut: "bye", gamesPerGameweek: 2 });
     expect((await eventsIn(t, leagueId)).filter((event) => event.kind === "rulesChanged")).toEqual([
       { by: COMMISSIONER, kind: "rulesChanged", fromGameweek: 9, changed: ["oddTeamOut", "gamesPerGameweek"] },
     ]);
@@ -83,7 +82,7 @@ describe("changing them", () => {
       change({ ...FIRST, gamesPerGameweek: games }),
       `The head-to-head games each team plays a gameweek must be a whole number, 1 or more, not ${games}.`,
     );
-    expect(await inGameweek(9)).toEqual(FIRST_RULES);
+    expect(await inGameweek(9)).toEqual(HELD_FIRST_RULES);
   });
 
   test("more games a gameweek than the league's teams have opponents for is refused, and saves nothing", async () => {
@@ -91,7 +90,7 @@ describe("changing them", () => {
       change({ ...FIRST, gamesPerGameweek: 10 }),
       "With 4 teams, a team can play at most 3 games a gameweek, not 10: one against each of the other 3.",
     );
-    expect(await inGameweek(9)).toEqual(FIRST_RULES);
+    expect(await inGameweek(9)).toEqual(HELD_FIRST_RULES);
   });
 
   test("rules saved before that refusal, with more games than rounds, play as many as the round robin has", async () => {

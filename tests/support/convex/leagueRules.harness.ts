@@ -4,15 +4,21 @@ import { ConvexError } from "convex/values";
 import { expect } from "vitest";
 import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
-import type { TestConvex } from "./leagues.harness";
+import { TEST_LEAGUE_TEAMS, type TestConvex } from "./leagues.harness";
+import { squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum } from "../../../convex/rules/squadMaximums";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { DAY_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 
-/** The first rules with some parts changed, as a copy the test may change further. */
+/** The first rules as a league `adminCreatesLeague` makes holds them: with the starting squad
+ *  maximum for its size (#316). */
+export const HELD_FIRST_RULES = withSquadMaximum(FIRST_RULES, squadMaximumFor(STARTING_SQUAD_MAXIMUMS, TEST_LEAGUE_TEAMS));
+
+/** The first rules as a test league holds them, with some parts changed, as a copy the test may
+ *  change further. */
 export function rulesWith(change: Partial<LeagueRules>): LeagueRules {
-  return structuredClone({ ...FIRST_RULES, ...change });
+  return structuredClone({ ...HELD_FIRST_RULES, ...change });
 }
 
 /** The league's latest rules row, as a screen that loaded them now would carry it to a save; null

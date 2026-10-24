@@ -15,11 +15,15 @@ import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { FIRST_GAMEWEEK, SEASON_GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { londonTime } from "../shared/londonTime";
 import { adminByline } from "../mail/letterWords";
+import { checkSquadMaximums, squadMaximumBandShape, squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum, type SquadMaximumBand } from "./squadMaximums";
 
 // A league's rules, held as data (spec/03; #25): a new league copies the admin's default rules, and
 // its commissioner changes them from the next gameweek, so a past gameweek keeps the rules it had.
-// Until the admin has a screen, the defaults are set from the dashboard or the command line:
-// `npx convex run rules/leagueRules:setDefaults '{"rules": {…}}'`, checked as a commissioner's are.
+// Its squad maximum is the site's for its size instead (squadMaximums.ts). Until the admin has a
+// screen, the defaults are set from the dashboard or the command line:
+// `npx convex run rules/leagueRules:setDefaults '{"rules": {…}}'`, checked as a commissioner's are,
+// and the squad maximums by size likewise:
+// `npx convex run rules/leagueRules:setSquadMaximums '{"bands": [{"fromTeams": 2, "maximum": 20}, …]}'`.
 
 /** Why a change to the rules is refused besides unsound rules, in the words the person is shown. */
 export const rulesRefusals = {
@@ -33,6 +37,10 @@ export const rulesRefusals = {
   defaultGamesTooMany: (games: number, maxTeams: number) =>
     `The admin's default rules play ${gamesWords(games)} a gameweek, but with ${maxTeams} teams a team can play at most ` +
     `${gamesWords(roundsInARoundRobin(maxTeams))}: ${whyMostGames(maxTeams)}.`,
+  /** A new league whose defaults, with the squad maximum for its size, are unsound: the defaults
+   *  or the squad maximums are the cause, not the person making the league. */
+  defaultsUnsound: (maxTeams: number, reason: string) =>
+    `The admin's default rules, with the squad maximum for ${maxTeams} teams, can't make this league: ${reason}`,
 };
 
 /** The rules row a screen loaded, carried with its change so a save over someone else's is
@@ -127,15 +135,35 @@ async function writeDefaults(ctx: MutationCtx, rules: LeagueRules): Promise<void
   else await ctx.db.patch("defaultLeagueRules", row._id, { rules });
 }
 
-/** Gives a new league of `maxTeams` the admin's default rules from gameweek 1, refused if that
- *  many teams can't play their games a gameweek. The first league a deployment makes writes the
- *  first rules (firstRules.ts) as those defaults. */
+function squadMaximumsRow(ctx: QueryCtx) {
+  return ctx.db.query("squadMaximums").unique();
+}
+
+/** The site's squad maximums by size; the first league a deployment makes writes the starting
+ *  data (squadMaximums.ts) as them. */
+async function squadMaximumBands(ctx: MutationCtx): Promise<readonly SquadMaximumBand[]> {
+  const row = await squadMaximumsRow(ctx);
+  if (row !== null) return row.bands;
+  await ctx.db.insert("squadMaximums", { bands: [...STARTING_SQUAD_MAXIMUMS] });
+  return STARTING_SQUAD_MAXIMUMS;
+}
+
+/** Gives a new league of `maxTeams` the admin's default rules from gameweek 1, its squad maximum
+ *  the site's for that many teams. Refused if that many teams can't play their games a gameweek, or
+ *  if that maximum leaves the rules unsound. The first league a deployment makes writes the first
+ *  rules (firstRules.ts) as those defaults. */
 export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">, maxTeams: number): Promise<void> {
   const defaults = (await defaultsRow(ctx))?.rules;
   if (defaults === undefined) await writeDefaults(ctx, FIRST_RULES);
-  const rules = defaults ?? FIRST_RULES;
+  const rules = withSquadMaximum(defaults ?? FIRST_RULES, squadMaximumFor(await squadMaximumBands(ctx), maxTeams));
   const games = rules.gamesPerGameweek;
   if (games !== undefined && games > roundsInARoundRobin(maxTeams)) refuse(rulesRefusals.defaultGamesTooMany(games, maxTeams));
+  try {
+    checkLeagueRules(rules, maxTeams);
+  } catch (error) {
+    if (error instanceof UnsoundRules) refuse(rulesRefusals.defaultsUnsound(maxTeams, error.message));
+    throw error;
+  }
   await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, rules });
 }
 
@@ -328,6 +356,20 @@ export const setDefaults = internalMutation({
   handler: async (ctx, { rules }) => {
     refuseUnsound(rules);
     await writeDefaults(ctx, rules);
+    return null;
+  },
+});
+
+/** Craig changes the squad maximums by size that new leagues take theirs from (#316). Leagues
+ *  already made keep their own. Refused, with the reason, if unsound. */
+export const setSquadMaximums = internalMutation({
+  args: { bands: v.array(squadMaximumBandShape) },
+  returns: v.null(),
+  handler: async (ctx, { bands }) => {
+    asRefusal(() => checkSquadMaximums(bands));
+    const row = await squadMaximumsRow(ctx);
+    if (row === null) await ctx.db.insert("squadMaximums", { bands });
+    else await ctx.db.patch("squadMaximums", row._id, { bands });
     return null;
   },
 });

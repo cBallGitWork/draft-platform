@@ -7,7 +7,7 @@ import { rulesInGameweek } from "../../../convex/rules/leagueRules";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { centreOf, EXAMPLE_SET } from "../../support/convex/scoring.example";
-import { expectRefused, holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { expectRefused, holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import {
   actingAs,
   addManagers,
@@ -42,7 +42,7 @@ describe("a new league", () => {
   test("starts on the first rules, from gameweek 1, which become the admin's defaults", async () => {
     const leagueId = await adminCreatesLeague(t);
 
-    expect(await latest(leagueId)).toEqual({ fromGameweek: 1, rules: FIRST_RULES, revision: await rulesRevision(t, leagueId) });
+    expect(await latest(leagueId)).toEqual({ fromGameweek: 1, rules: HELD_FIRST_RULES, revision: await rulesRevision(t, leagueId) });
     expect(await defaults()).toEqual(FIRST_RULES);
   });
 
@@ -51,7 +51,7 @@ describe("a new league", () => {
     await t.mutation(internal.rules.leagueRules.setDefaults, { rules: TOTAL_POINTS });
     const after = await adminCreatesLeague(t, 4, "After");
 
-    expect((await latest(before))?.rules).toEqual(FIRST_RULES);
+    expect((await latest(before))?.rules).toEqual(HELD_FIRST_RULES);
     expect((await latest(after))?.rules).toEqual(TOTAL_POINTS);
   });
 });
@@ -62,7 +62,7 @@ test("two leagues hold different rules side by side, and the same match scores d
   const priced = rulesWith({ format: "totalPoints", scoring: structuredClone(EXAMPLE_SET) as LeagueRules["scoring"] });
   await change(second, priced);
 
-  expect((await latest(first))?.rules).toEqual(FIRST_RULES);
+  expect((await latest(first))?.rules).toEqual(HELD_FIRST_RULES);
   expect((await latest(second))?.rules).toEqual(priced);
   const goalIn = async (leagueId: Id<"leagues">) =>
     scoreMatch({ minutes: 90, goals_scored: 1 }, (await inGameweek(leagueId, 1)).scoring, centreOf("defensiveMidfield")).total;
@@ -76,7 +76,7 @@ describe("a commissioner's change", () => {
     const leagueId = await adminCreatesLeague(t);
 
     expect(await change(leagueId)).toBe(9);
-    expect(await inGameweek(leagueId, 8)).toEqual(FIRST_RULES);
+    expect(await inGameweek(leagueId, 8)).toEqual(HELD_FIRST_RULES);
     expect(await inGameweek(leagueId, 9)).toEqual(TOTAL_POINTS);
     expect(await inGameweek(leagueId, 38)).toEqual(TOTAL_POINTS);
   });
@@ -103,7 +103,7 @@ describe("a commissioner's change", () => {
     await change(leagueId, rulesWith({ tieBreaks: ["headToHead"] }));
 
     expect(await inGameweek(leagueId, 9)).toEqual(rulesWith({ tieBreaks: ["headToHead"] }));
-    expect(await inGameweek(leagueId, 8)).toEqual(FIRST_RULES);
+    expect(await inGameweek(leagueId, 8)).toEqual(HELD_FIRST_RULES);
     const filed = (await eventsIn(t, leagueId)).filter((event) => event.kind === "rulesChanged");
     expect(filed.map((event) => event.kind === "rulesChanged" && event.changed)).toEqual([["format"], ["format", "tieBreaks"]]);
   });
@@ -132,7 +132,7 @@ describe("a commissioner's change", () => {
     const leagueId = await adminCreatesLeague(t);
     const eventsBefore = await eventsIn(t, leagueId);
 
-    expect(await change(leagueId, structuredClone(FIRST_RULES))).toBe(1);
+    expect(await change(leagueId, structuredClone(HELD_FIRST_RULES))).toBe(1);
     expect(await eventsIn(t, leagueId)).toEqual(eventsBefore);
   });
 
@@ -141,7 +141,7 @@ describe("a commissioner's change", () => {
     const unsound = rulesWith({ areaLimits: { ...FIRST_RULES.areaLimits, attack: { minimum: 3, maximum: 2 } } });
 
     await expectRefused(change(leagueId, unsound), "On the pitch, attack's minimum, 3, is above its maximum, 2.");
-    expect((await latest(leagueId))?.rules).toEqual(FIRST_RULES);
+    expect((await latest(leagueId))?.rules).toEqual(HELD_FIRST_RULES);
   });
 
   test("a rule of the wrong shape is refused before it is read", async () => {
@@ -156,7 +156,7 @@ describe("a commissioner's change", () => {
     await addManagers(t, leagueId, [MANAGERS[0]]);
 
     await expectRefused(change(leagueId, TOTAL_POINTS, MANAGERS[0]), refusals.notRunner);
-    expect((await latest(leagueId, MANAGERS[0]))?.rules).toEqual(FIRST_RULES);
+    expect((await latest(leagueId, MANAGERS[0]))?.rules).toEqual(HELD_FIRST_RULES);
   });
 });
 

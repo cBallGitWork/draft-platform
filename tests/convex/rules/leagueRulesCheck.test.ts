@@ -152,9 +152,9 @@ describe.each<[string, Partial<LeagueRules>, string]>([
     `The scoring set can't be saved: rule 1 of the scoring set scores "goals_scroed", which is neither a catalogue stat nor one of the league's own.`,
   ],
   [
-    "a squad maximum above the most any team can hold",
-    { squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum: MOST_IN_SQUAD + 1 } } },
-    `The squad's maximum, ${MOST_IN_SQUAD + 1}, is above the ${MOST_IN_SQUAD} players any team can hold.`,
+    "a squad maximum of 26, above a Premier League squad of 25 (spec/03)",
+    { squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum: 26 } } },
+    "The squad's maximum, 26, is above 25, a Premier League squad.",
   ],
   [
     "an own stat named as a catalogue stat is, case and spaces aside",
@@ -172,8 +172,9 @@ describe.each<[string, Partial<LeagueRules>, string]>([
   });
 });
 
-test(`a squad maximum of ${MOST_IN_SQUAD}, the most any team can hold, is sound`, () => {
-  expect(() => checkLeagueRules(rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum: MOST_IN_SQUAD } } }))).not.toThrow();
+test("a squad maximum of 25, a Premier League squad, is sound (spec/03)", () => {
+  expect(MOST_IN_SQUAD).toBe(25);
+  expect(() => checkLeagueRules(rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum: 25 } } }))).not.toThrow();
 });
 
 test("an own stat whose name and short code are its own is sound", () => {
