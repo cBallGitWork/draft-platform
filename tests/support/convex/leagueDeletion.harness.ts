@@ -17,8 +17,8 @@ export async function leagueWithPeople(t: TestConvex, name?: string): Promise<Id
   return leagueId;
 }
 
-/** `email` deletes the league, and the emails saying so are sent; the deletion itself waits.
- *  When it will be gone. */
+/** `email` deletes the league, and whatever that schedules at once runs; the deletion itself
+ *  waits. When it will be gone. */
 export async function deletes(t: TestConvex, email: string, leagueId: Id<"leagues">): Promise<number> {
   const deletesAt = Date.now() + UNDO_MS;
   await (await actingAs(t, email)).mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId });

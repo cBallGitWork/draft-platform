@@ -124,7 +124,7 @@ describe("while it can be undone", () => {
     for (const email of [CO_COMMISSIONER, ANN, BOB]) expect(await accountOf(t, email)).toMatchObject({ inLeague: false, leagues: [] });
     expect(await accountOf(t, COMMISSIONER)).toMatchObject({
       inLeague: false,
-      leagues: [{ leagueId, deletion: { deletesAt, unemailed: [] } }],
+      leagues: [{ leagueId, deletion: { deletesAt } }],
     });
   });
 

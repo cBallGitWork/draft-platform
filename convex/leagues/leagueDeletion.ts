@@ -9,9 +9,9 @@ import { HOUR_MS } from "../shared/time";
 
 // Deleting a league (#75, spec/13, Deleting). For DELETION_UNDO_HOURS it can be undone: it is
 // frozen (leagueAccess's getLeague refuses every change to it), hidden from everyone with a part
-// in it but its commissioner (myLeagues.ts), and everyone with a part in it but whoever deleted it
-// is emailed (deletionNotices.ts).
-// Then deleteForGood removes it and every row keyed to it: nothing is archived.
+// in it but its commissioner (myLeagues.ts), and nobody is emailed.
+// Then deleteForGood removes it and every row keyed to it: nothing is archived. Only once it is
+// gone is everyone with a part in it but whoever deleted it emailed (deletionNotices.ts, #320).
 
 /** How long after it is deleted a league is gone for good. */
 export const UNDO_MS = DELETION_UNDO_HOURS * HOUR_MS;
@@ -83,7 +83,7 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
 
 export const tablesKeyedToLeague = Object.keys(leagueRows);
 
-/** Everyone with a part in the league but `by`: who is told it is being deleted. */
+/** Everyone with a part in the league but `by`: who is told once it is gone. */
 async function othersIn(ctx: QueryCtx, league: Doc<"leagues">, by: string): Promise<string[]> {
   return [...new Set(await wholeLeague(ctx, league))].filter((email) => email !== by);
 }
@@ -96,15 +96,8 @@ export const deleteLeague = mutation({
     const { email: by, league } = await deleterOf(ctx, leagueId);
     const deletesAt = Date.now() + UNDO_MS;
     const scheduledId = await ctx.scheduler.runAt(deletesAt, internal.leagues.leagueDeletion.deleteForGood, { leagueId });
-    await ctx.db.patch("leagues", leagueId, { deletion: { by, deletesAt, scheduledId, unemailed: [] } });
+    await ctx.db.patch("leagues", leagueId, { deletion: { by, deletesAt, scheduledId } });
     await recordEvent(ctx, leagueId, by, { kind: "deletionStarted", name: league.name, deletesAt });
-    await ctx.scheduler.runAfter(0, internal.leagues.deletionNotices.send, {
-      leagueId,
-      leagueName: league.name,
-      by,
-      deletesAt,
-      emails: await othersIn(ctx, league, by),
-    });
     return null;
   },
 });
@@ -129,13 +122,20 @@ export const undo = mutation({
 });
 
 /** Deletes the league for good: every row keyed to it, a batch of each table a run, then the
- *  league itself last, so it stays frozen and hidden until nothing of it is left. */
+ *  league itself last, so it stays frozen and hidden until nothing of it is left. The first run
+ *  reads who to tell before its teams go and hands them on; the last emails them. */
 export const deleteForGood = internalMutation({
-  args: { leagueId: v.id("leagues") },
+  args: {
+    leagueId: v.id("leagues"),
+    /** Who is emailed once it is gone, read by the first run. Absent on the first run. */
+    tell: v.optional(v.array(v.string())),
+  },
   returns: v.null(),
-  handler: async (ctx, { leagueId }) => {
+  handler: async (ctx, args) => {
+    const { leagueId } = args;
     const league = await ctx.db.get("leagues", leagueId);
     if (!league?.deletion) throw new Error(`League ${leagueId} isn't being deleted, so it wasn't deleted for good`);
+    const tell = args.tell ?? (await othersIn(ctx, league, league.deletion.by));
     let more = false;
     for (const batchOf of Object.values(leagueRows)) {
       const rows = await batchOf(ctx, leagueId);
@@ -143,8 +143,12 @@ export const deleteForGood = internalMutation({
       more ||= rows.length === ROWS_PER_RUN;
     }
     // The league goes last: joining/endedInvite.ts reads an invite's league as always there.
-    if (more) await ctx.scheduler.runAfter(0, internal.leagues.leagueDeletion.deleteForGood, { leagueId });
-    else await ctx.db.delete("leagues", leagueId);
+    if (more) {
+      await ctx.scheduler.runAfter(0, internal.leagues.leagueDeletion.deleteForGood, { leagueId, tell });
+      return null;
+    }
+    await ctx.db.delete("leagues", leagueId);
+    await ctx.scheduler.runAfter(0, internal.leagues.deletionNotices.send, { leagueName: league.name, by: league.deletion.by, emails: tell });
     return null;
   },
 });

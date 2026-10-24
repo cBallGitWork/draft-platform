@@ -46,13 +46,7 @@ const sundayLeague: LeagueSummary = {
   teams: 6,
   maxTeams: 8,
   unsentCommissionerLink: null,
-  deletion: {
-    deletesAt: Date.now() + 23 * HOUR_MS,
-    unemailed: [
-      { email: "late.joiner@example.com", reason: "paused" },
-      { email: "last.manager@example.com", reason: "paused" },
-    ],
-  },
+  deletion: { deletesAt: Date.now() + 23 * HOUR_MS },
 };
 
 export const manager = {
