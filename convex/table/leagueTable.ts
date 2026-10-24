@@ -13,9 +13,9 @@ import { shownDeadline } from "../gameweeks/usedGameweeks";
 // part in it. Each gameweek the league has begun has its fixtures as stored once it began, none in
 // one begun with no head-to-head (before the league was made, say: #282), and the rest are drawn
 // from the teams, the gameweeks the league plays and the rules in force in each (playedFixtures.ts;
-// #137, #266). The table counts the same fixtures the screen shows. No matchup is scored yet (no lineups or scores are kept), so
-// the table is all noughts until #29's scores reach it; the commissioner editing fixtures (spec/09)
-// comes later.
+// #137, #266). The table counts the same fixtures the screen shows. No matchup is scored yet (no
+// lineups or scores are kept), so the table is all noughts until #29's scores reach it; the
+// commissioner editing fixtures (spec/09) comes later.
 
 const fixture = v.object({
   team: v.string(),

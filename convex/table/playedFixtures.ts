@@ -38,7 +38,7 @@ type Stored = Map<number, TeamsGameweek>;
 export type RulesInForce = { inGameweek: (gameweek: number) => LeagueRules };
 
 /** What a gameweek that began with no head-to-head in it is stored as. */
-const NO_HEAD_TO_HEAD = { fixtures: [], byes: [] } as const;
+const NO_HEAD_TO_HEAD: Pick<TeamsGameweek, "fixtures" | "byes"> = { fixtures: [], byes: [] };
 
 /** Whether a stored gameweek began with no head-to-head in it. With two teams or more, every
  *  gameweek drawn has a fixture, so only NO_HEAD_TO_HEAD has none. */
@@ -103,23 +103,22 @@ export async function storeBegunFixtures(
   now: number,
 ): Promise<void> {
   if (rules === null) return;
-  const deadlineOf = (gameweek: number) => deadlines.get(gameweek) ?? null;
-  const begun = (gameweek: number) => {
-    const deadline = deadlineOf(gameweek);
-    return deadline !== null && isLocked(deadline, now);
-  };
   const stored = await storedFixturesOf(ctx, league._id);
-  const toStore = usedGameweeksOf(league).filter((gameweek) => !stored.has(gameweek) && begun(gameweek));
+  const toStore = usedGameweeksOf(league).flatMap((gameweek) => {
+    const deadline = deadlines.get(gameweek) ?? null;
+    return !stored.has(gameweek) && deadline !== null && isLocked(deadline, now) ? [{ gameweek, deadline }] : [];
+  });
   // The football sync calls this for every league on each batch: most find nothing to store, and
   // skip the draw.
   if (toStore.length === 0) return;
-  const playsHeadToHead = (gameweek: number) =>
-    deadlineOf(gameweek)! >= league._creationTime && rules.inGameweek(gameweek).format === "headToHead";
-  // Those stored with no fixtures now are left out of the draw, as every read will leave them out.
-  const without = new Set([...withoutHeadToHead(stored), ...toStore.filter((gameweek) => !playsHeadToHead(gameweek))]);
+  const noHeadToHeadIn = toStore.flatMap(({ gameweek, deadline }) =>
+    deadline < league._creationTime || rules.inGameweek(gameweek).format !== "headToHead" ? [gameweek] : [],
+  );
+  // Left out of the draw, as every read will leave them out once they are stored.
+  const without = new Set([...withoutHeadToHead(stored), ...noHeadToHeadIn]);
   const drawn = new Map((await scheduleAround(ctx, league, rules, stored, without)).map((each) => [each.gameweek, each]));
-  for (const gameweek of toStore) {
+  for (const { gameweek } of toStore) {
     const { fixtures, byes } = drawn.get(gameweek) ?? NO_HEAD_TO_HEAD;
-    await ctx.db.insert("playedFixtures", { leagueId: league._id, gameweek, fixtures: [...fixtures], byes: [...byes], storedAt: now });
+    await ctx.db.insert("playedFixtures", { leagueId: league._id, gameweek, fixtures, byes, storedAt: now });
   }
 }
