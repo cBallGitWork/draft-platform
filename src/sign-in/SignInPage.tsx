@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { PanelTitle, Problem } from "../frame/Panel";
+import { PANEL_BODY, PanelTitle, Problem } from "../frame/Panel";
 import { PRODUCT_NAME } from "../../convex/shared/product";
 import { linkProblemWords, signInWords, type LinkProblem } from "./words";
 
@@ -40,7 +40,7 @@ export function SignInPage({
           <PanelTitle id={TITLE_ID}>{signInWords.title}</PanelTitle>
           <Problem problem={linkProblem && !outcome ? linkProblemWords[linkProblem] : null} />
           {intro && <p className="px-3 pt-2">{intro}</p>}
-          <form onSubmit={sendLink} className="flex flex-col gap-2 p-3">
+          <form onSubmit={sendLink} className={PANEL_BODY}>
             <label htmlFor={EMAIL_ID} className="font-semibold">
               {signInWords.emailLabel}
             </label>

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { PanelTitle } from "../frame/Panel";
+import { PANEL_BODY, PanelTitle } from "../frame/Panel";
 import type { PanelProps } from "./panelProps";
 import {
   approveClubWords,
@@ -59,7 +59,7 @@ export function ApproveMode({ queue, seam, change }: PanelProps) {
   return (
     <section aria-labelledby={MODE_TITLE_ID} className="bg-panel">
       <PanelTitle id={MODE_TITLE_ID}>{modeTitle}</PanelTitle>
-      <div className="flex flex-col gap-2 p-3">
+      <div className={PANEL_BODY}>
         <p>{modeWords[queue.approveMode]}</p>
         <button type="button" disabled={change.busy} onClick={() => void change.run(() => seam.setApproveMode(other))} className="secondary-action self-start">
           {switchModeWords[other]}
@@ -85,7 +85,7 @@ export function Thresholds({ queue, seam, change }: PanelProps) {
   return (
     <section aria-labelledby={THRESHOLDS_TITLE_ID} className="bg-panel">
       <PanelTitle id={THRESHOLDS_TITLE_ID}>{thresholdsTitle}</PanelTitle>
-      <form onSubmit={save} className="flex flex-col gap-2 p-3">
+      <form onSubmit={save} className={PANEL_BODY}>
         {fields.map((field) => (
           <span key={field.id} className="flex flex-col gap-1">
             <label htmlFor={field.id} className="font-semibold">
