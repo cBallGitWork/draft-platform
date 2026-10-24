@@ -30,7 +30,7 @@ export function AppFrame({
 
   return (
     <>
-      <header className="bg-plate shadow-bevel-plate">
+      <header className="bg-bar shadow-bevel-plate">
         <div className="flex flex-wrap items-stretch">
           <ProductName />
           {leagueSwitcher}

@@ -10,3 +10,6 @@ Read `convex/_generated/ai/guidelines.md` before writing Convex code: Convex's o
 version in `package.json`, which override what Claude learned in training. After bumping
 `convex`, refresh it with `npx convex ai-files update`, then delete what that adds besides the
 guidelines (skills, `AGENTS.md`, a block in `CLAUDE.md`).
+
+Where tests go, and what `tests/support/` holds (harnesses, recorded feeds, goldens):
+`tests/README.md`.
