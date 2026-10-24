@@ -33,6 +33,8 @@ Supabase was the runner-up.
   `/api/bootstrap-static/` (668 players) and the Premier League's
   `footballapi.pulselive.com/football/fixtures?comps=1&compSeasons=841` (380 fixtures).
 - Squad numbers come from `/teams/{id}/compseasons/841/staff` (Arsenal: 29).
+- 841 is 2026/27's id, and 777 2025/26's: they change each summer. From 1 July after the season,
+  every read naming one throws until they are updated in `convex/football/football.ts` (#201).
 - A check scheduled 10 minutes ahead fired at 11:50:40 BST, 0.6 seconds after it was due, with
   no browser and no `convex dev` running.
 - The stats per player per match, for roles: [docs/pl-match-stats.md](docs/pl-match-stats.md).
