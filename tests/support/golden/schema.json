@@ -2494,6 +2494,39 @@
                     "tableName": "_scheduled_functions"
                   },
                   "optional": false
+                },
+                "unemailed": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "email": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "reason": {
+                          "fieldType": {
+                            "type": "union",
+                            "value": [
+                              {
+                                "type": "literal",
+                                "value": "paused"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "notSent"
+                              }
+                            ]
+                          },
+                          "optional": false
+                        }
+                      }
+                    }
+                  },
+                  "optional": true
                 }
               }
             },

@@ -330,6 +330,9 @@ export const leagueDeletion = v.object({
   deletesAt: v.number(),
   /** The scheduled deleteForGood, which undoing cancels. */
   scheduledId: v.id("_scheduled_functions"),
+  /** Left by #75, which emailed while a league could be undone: nothing writes or reads it now
+   *  (#320). Kept only so a league deleted before then still matches; drop it once none is left. */
+  unemailed: v.optional(v.array(v.object({ email: v.string(), reason: unemailedReason }))),
 });
 
 /** One person who wasn't emailed that a league has been deleted (#320). The league is gone by

@@ -73,6 +73,16 @@ describe("once it is gone for good, it emails", () => {
     expect(sent.map((email) => email.to)).toEqual([CO_COMMISSIONER, ANN, BOB]);
   });
 
+  test("the same people, for a league deleted before #320 that still holds its old list of who wasn't told", async () => {
+    await deletes(t, COMMISSIONER, leagueId);
+    await t.run(async (ctx) => {
+      const { deletion } = (await ctx.db.get("leagues", leagueId))!;
+      await ctx.db.patch("leagues", leagueId, { deletion: { ...deletion!, unemailed: [{ email: ANN, reason: "paused" }] } });
+    });
+    await goneForGood();
+    expect(sent.map((email) => email.to)).toEqual([CO_COMMISSIONER, ANN, BOB]);
+  });
+
   test("each counting against the day's emails: the day it goes", async () => {
     await toTheMomentBeforeItGoes();
     const before = await sentToday(t);
