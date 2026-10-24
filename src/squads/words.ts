@@ -12,6 +12,11 @@ export const loadingWords = "Loading the squads…";
 export const freeAgentWords = "Free agent";
 export const onTeamWords = (teamName: string) => `On ${teamName}`;
 export const emptySquadWords = "No players yet.";
+export const noTeamsWords = "No teams yet: a player can go on a team once one joins the league.";
+/** A free agent found while the league has no teams. */
+export const noTeamToPutOnWords = "No team to put him on yet.";
+/** A player found on the league's only team. */
+export const noOtherTeamWords = "No other team to move him to.";
 export const goneWords = "Not available: he has left the Premier League.";
 export const teamChoiceLabel = (name: string) => `Team for ${name}`;
 export const assignWords = "Put on team";
