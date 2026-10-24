@@ -38,6 +38,15 @@ export const league: LeagueSummary = {
   unsentCommissionerLink: null,
 };
 
+/** A second league, which `manager` commissions with no team of their own. */
+export const miniBeta: LeagueSummary = {
+  ...league,
+  leagueId: "league-2" as Id<"leagues">,
+  name: "Mini beta",
+  roles: ["commissioner"],
+  teamName: null,
+};
+
 const signedIn = { signedIn: true, email: "manager@example.com", isAdmin: false } as const;
 /** A manager in these leagues, the app in the first. */
 export const managerIn = (...leagues: LeagueSummary[]) =>
@@ -94,6 +103,7 @@ const fakeLeagues = () => ({
   deleteLeague: vi.fn<LeaguesSeam["deleteLeague"]>(async () => null),
   undoDeletion: vi.fn<LeaguesSeam["undoDeletion"]>(async () => null),
   switchLeague: vi.fn<LeaguesSeam["switchLeague"]>(async () => null),
+  leaveLeague: vi.fn<LeaguesSeam["leaveLeague"]>(async () => null),
 });
 
 /** Mail holding `letters`, whose letter to the league is sent, unless a test says otherwise;

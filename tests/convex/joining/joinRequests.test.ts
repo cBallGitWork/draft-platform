@@ -122,8 +122,8 @@ describe("the commissioner's page", () => {
     expect(await invitesPage(t, leagueId)).toMatchObject({
       leagueName: LEAGUE_NAME,
       teams: [
-        { name: "Team 1", vacated: true },
-        { name: "Team 2", vacated: false },
+        { name: "Team 1", managerEmail: null },
+        { name: "Team 2", managerEmail: BOB },
       ],
       hasRoom: true,
       linkToken: token,

@@ -2,22 +2,26 @@ import type { MutationCtx } from "../_generated/server";
 import { errorMessage } from "../shared/errors";
 import { isLocked } from "./deadline";
 import { passedDeadlinesOf } from "./passedDeadlines";
-import { heldSchedule, leagueDeadlinesIn } from "../rules/leagueRules";
+import { heldSchedule, leagueDeadlinesIn, seasonRules } from "../rules/leagueRules";
+import { storeBegunFixtures } from "../table/playedFixtures";
 
 // Records each league's passed deadlines (#150), so a postponement after one can't move it
 // (deadline.ts). No kickoff moves without the deadlines it passed recorded first: the football
 // sync is the only writer of kickoffs, and both of its mutations that can move one, upsertFixtures
 // (each batch) and markDropped (for fixtures), call this first, in the same transaction. Until
 // then, the deadline worked out from the kickoffs is the one that passed. A deadline already
-// recorded is left as it is, so calling this again does no harm.
+// recorded is left as it is, so calling this again does no harm. With them, it stores each begun
+// gameweek's head-to-head fixtures (playedFixtures.ts, #137), as harmless to repeat.
 //
-// It fails closed: if recording throws, for any league, that fixtures mutation fails with it, so
-// no kickoff moves; the sync is logged and filed in footballSyncs as failed. The feed stands still
-// for every league until it is fixed. A league whose rules can't be read (only a row written by
-// hand can be: a commissioner's change is checked) isn't skipped, because skipping it would let
-// its kickoffs move with its passed deadlines unrecorded, and that could reopen its gameweek.
+// It fails closed: if recording or storing throws, for any league, that fixtures mutation fails
+// with it, so no kickoff moves; the sync is logged and filed in footballSyncs as failed. The feed
+// stands still for every league until it is fixed. A league whose rules can't be read (only a row
+// written by hand can be: a commissioner's change is checked) isn't skipped, because skipping it
+// would let its kickoffs move with its passed deadlines unrecorded, and that could reopen its
+// gameweek.
 
-/** Records every league's deadlines that have passed and aren't yet recorded; returns how many. */
+/** Records every league's deadlines that have passed and aren't yet recorded, and stores the
+ *  fixtures of the gameweeks they began; returns how many deadlines it recorded. */
 export async function recordPassedDeadlines(ctx: MutationCtx): Promise<number> {
   const now = Date.now();
   // Read once for every league: the fixtures are the season's 380, the most of any table here.
@@ -34,6 +38,8 @@ export async function recordPassedDeadlines(ctx: MutationCtx): Promise<number> {
       await ctx.db.insert("passedDeadlines", { leagueId: league._id, gameweek, deadline, recordedAt: now });
       recorded += 1;
     }
+    // Once a gameweek has begun, its fixtures are stored, so nothing after can redraw them (#137).
+    await storeBegunFixtures(ctx, league, await seasonRules(ctx, league._id), deadlines, now);
   }
   return recorded;
 }

@@ -1,5 +1,5 @@
 import { joinPath, noLinkWords } from "../../convex/joining/joiningShared";
-import { PanelTitle, Problem } from "../frame/Panel";
+import { PANEL_BODY, PanelTitle, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { inviteLinkWords, linkHint } from "./words";
@@ -17,7 +17,7 @@ export function InviteLinkPanel({ page, joining }: { page: InvitesPageData; join
     <section aria-labelledby={TITLE_ID} className="bg-panel">
       <PanelTitle id={TITLE_ID}>{inviteLinkWords.title}</PanelTitle>
       <Problem problem={problem} />
-      <div className="flex flex-col gap-2 p-3">
+      <div className={PANEL_BODY}>
         {page.linkToken === null ? (
           <>
             <p>{noLinkWords}</p>

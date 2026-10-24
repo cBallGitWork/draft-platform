@@ -37,7 +37,9 @@ jobs:
   smoke:
     needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12  # the install step's 7 plus npm ci and smoke, so a double hang fails as that step, not as a cancel
+    env:
+      BROWSER: chromium  # the one browser CI installs for smoke
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -45,7 +47,29 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      # Why the cache and the cut-off: ARCHITECTURE.md, Services (#281).
+      - name: Read the installed Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Restore Playwright's browser from the cache
+        id: browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ env.BROWSER }}-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      # The fresh runner always needs the OS packages; on a cache hit the browser is already there.
+      - name: Install Chromium and its OS packages (download skipped on a cache hit; timed tries)
+        timeout-minutes: 7  # TRIES x TRY_SECONDS, plus a minute
+        env:
+          TRIES: 2
+          TRY_SECONDS: 180
+          KILL_AFTER_SECONDS: 10
+        run: |
+          for try in $(seq "$TRIES"); do
+            timeout --kill-after="$KILL_AFTER_SECONDS" "$TRY_SECONDS" npx playwright install --with-deps "$BROWSER" && exit 0
+            echo "::warning::playwright install: try $try of $TRIES failed or ran past ${TRY_SECONDS}s"
+          done
+          exit 1
       - run: npm run smoke
       - if: failure()
         uses: actions/upload-artifact@v4

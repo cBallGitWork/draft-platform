@@ -81,7 +81,7 @@ const rootRoute = createRootRouteWithContext<ShellContext>()({
 
 /** The app's frame for someone in a league: the menu, the top bar and the league switcher. */
 function LeagueFrame({ context: { session, topBar, auth, leagues } }: { context: ShellContext }) {
-  const leagueSwitcher = <LeagueSwitcher session={session} switchLeague={leagues.switchLeague} />;
+  const leagueSwitcher = <LeagueSwitcher session={session} switchLeague={leagues.switchLeague} leaveLeague={leagues.leaveLeague} />;
   return <AppFrame topBar={topBar} onSignOut={auth.signOut} leagueSwitcher={leagueSwitcher} />;
 }
 
