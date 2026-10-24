@@ -1,20 +1,20 @@
 import { v, type Infer } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { query } from "../_generated/server";
-import { drawRulesOf } from "../rules/firstRules";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { leagueDeadlines, seasonRules } from "../rules/leagueRules";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
-import { drawFixtures, LEAGUE_AVERAGE, roundsOf } from "./roundRobin";
+import { LEAGUE_AVERAGE, roundsOf } from "./roundRobin";
+import { scheduleOf } from "./playedFixtures";
 import { headToHeadTable, totalPointsTable, type GameweekScores } from "./standings";
-import { shownDeadline, usedGameweeksOf } from "../gameweeks/usedGameweeks";
+import { shownDeadline } from "../gameweeks/usedGameweeks";
 
 // The league's fixtures and table (#33; spec/09, spec/12 "table and fixtures"), for anyone with a
-// part in it. The fixtures are drawn afresh on every read from the teams, the gameweeks the league
-// plays and the rules in force in each, so a change of rules never moves a gameweek before it
-// takes effect (#266). None is stored, so a team joining redraws them all (#29). No
-// matchup is scored yet (no lineups or scores are kept), so the table is all noughts until #29's
-// scores reach it; the commissioner editing fixtures (spec/09) comes later.
+// part in it. Each gameweek the league has played has its fixtures as stored once it began, and the
+// rest are drawn from the teams, the gameweeks the league plays and the rules in force in each
+// (playedFixtures.ts; #137, #266). No matchup is scored yet (no lineups or scores are kept), so
+// the table is all noughts until #29's scores reach it; the commissioner editing fixtures (spec/09)
+// comes later.
 
 const fixture = v.object({
   team: v.string(),
@@ -73,9 +73,7 @@ export const ofLeague = query({
     const named = (teamId: Id<"teams">) => nameOf.get(teamId)!;
 
     const headToHead = rules.format === "headToHead";
-    const drawRulesIn = (gameweek: number) => drawRulesOf(season.inGameweek(gameweek));
-    // Seeded by the league, so its draw comes out the same each time it's read.
-    const schedule = headToHead ? drawFixtures(teamIds, usedGameweeksOf(league), drawRulesIn, leagueId) : [];
+    const schedule = headToHead ? await scheduleOf(ctx, league, season) : [];
     const scores: GameweekScores<Id<"teams">> = new Map();
     const table = headToHead ? headToHeadTable(teamIds, schedule, scores, rules.tieBreaks) : totalPointsTable(teamIds, scores);
 
