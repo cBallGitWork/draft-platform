@@ -16,6 +16,8 @@ export const signedInAs = query({
       isAdmin: v.boolean(),
       inLeague: v.boolean(),
       leagues: v.array(leagueSummary),
+      /** Only when the list stops short: more leagues exist than `leagues` holds. */
+      leaguesCut: v.optional(v.literal(true)),
       currentLeagueId: v.union(v.id("leagues"), v.null()),
     }),
   ),
@@ -23,8 +25,8 @@ export const signedInAs = query({
     const email = await signedInEmail(ctx);
     if (email === null) return null;
     const admin = isAdmin(email);
-    const leagues = await leaguesOf(ctx, email);
+    const { leagues, cut } = await leaguesOf(ctx, email);
     const currentLeagueId = await currentLeagueOf(ctx, email, leagues);
-    return { email, isAdmin: admin, inLeague: currentLeagueId !== null, leagues, currentLeagueId };
+    return { email, isAdmin: admin, inLeague: currentLeagueId !== null, leagues, ...(cut && { leaguesCut: true as const }), currentLeagueId };
   },
 });

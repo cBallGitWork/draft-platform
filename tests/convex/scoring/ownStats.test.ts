@@ -6,7 +6,7 @@ import { plStatLines } from "../../../convex/football/plMatch";
 import { FULL_STATS, hullEvertonReads, MATCH, recordedGw6, recordedPlFixture } from "../../support/recorded/gw6.payloads";
 import { withOwnStats } from "../../../convex/scoring/ownStats";
 import { scoreMatch, type MatchStats } from "../../../convex/scoring/scoring";
-import { centreOf } from "../../support/convex/scoring.example";
+import { centreOf, TACKLES_AND_CLEARANCES } from "../../support/convex/scoring.example";
 import { validateScoringSet, type OwnStat, type ScoringSet } from "../../../convex/scoring/scoringSet";
 import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogue";
 
@@ -22,15 +22,6 @@ const coyle: MatchStats = {
   ...plLines.find((line) => line.playerCode === FULL_STATS.coyle.code)!.stats,
 };
 
-const TACKLES_AND_CLEARANCES: OwnStat = {
-  stat: "own_tackles_and_clearances",
-  name: "Tackles and clearances",
-  shortCode: "T+C",
-  parts: [
-    { stat: "won_tackle", weight: 1 },
-    { stat: "total_clearance", weight: 0.5 },
-  ],
-};
 const setWith = (ownStats: OwnStat[], wholePointsOnly = false): ScoringSet => ({
   rules: [{ shape: "perAction", stat: TACKLES_AND_CLEARANCES.stat, values: { all: 1 } }],
   wholePointsOnly,

@@ -10,7 +10,7 @@ import { mainMenuLabel, signOutWords } from "../../../src/frame/words";
 import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
 import { admin, adminSeeing, commissioned, league, manager, managerIn, newcomer, openApp, visitor, withNoPart } from "../../support/src/shell.harness";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
-import { commissionerLine, LEAGUES_TITLE, newLeagueLabels, notInALeagueWords, unsentLink, unsentLinkWords } from "../../../src/leagues/words";
+import { commissionerLine, LEAGUES_TITLE, leaguesCutWords, newLeagueLabels, notInALeagueWords, unsentLink, unsentLinkWords } from "../../../src/leagues/words";
 import { signInWords } from "../../../src/sign-in/words";
 
 describe("someone signed in, in no league", () => {
@@ -85,6 +85,13 @@ describe("the admin, with no part in a league", () => {
     expect(cellsOf(row)).toEqual(["Admin", "None", "3 of 4"]);
     expect(screen.getByText(unsentLink(league.commissionerEmail, unsentLinkWords.paused))).toBeTruthy();
     expect(screen.getByRole("link", { name: "Create a league" })).toBeTruthy();
+    expect(screen.queryByText(leaguesCutWords)).toBeNull();
+  });
+
+  it("is told when there are more leagues than the list shows (#144)", async () => {
+    openApp(LEAGUES_PATH, { ...adminSeeing(withNoPart(league)), leaguesCut: true });
+    await rowOf(league.name);
+    expect(screen.getByRole("status").textContent).toBe(leaguesCutWords);
   });
 });
 

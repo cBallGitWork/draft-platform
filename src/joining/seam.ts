@@ -24,6 +24,8 @@ export type JoiningSeam = {
   invite(leagueId: Id<"leagues">, email: string, teamId: Id<"teams"> | null): Change;
   resendInvite(inviteId: Id<"invites">): Change;
   cancelInvite(inviteId: Id<"invites">): Change;
+  /** Removes the manager of a team in the league (spec/13, Leaving); the team stays, vacated. */
+  removeManager(leagueId: Id<"leagues">, teamId: Id<"teams">): Change;
   /** Makes the league's invite link, replacing any. */
   makeLink(leagueId: Id<"leagues">): Change;
   switchOffLink(leagueId: Id<"leagues">): Change;

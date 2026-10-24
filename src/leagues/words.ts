@@ -1,7 +1,7 @@
 // What the league screens say, in one place for Craig to change in the pull request. Why the
 // server refused a change is in convex/shared/leagueAccess.ts (`refusals`), and reaches the screen as is.
 
-import { DELETION_UNDO_HOURS, FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leagues/leagueLimits";
+import { DELETION_UNDO_HOURS, FEWEST_TEAMS, LEAGUES_SHOWN, MOST_TEAMS } from "../../convex/leagues/leagueLimits";
 import { londonTime } from "../../convex/shared/londonTime";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { NoLinkReply } from "../../convex/signIn/signInLinks";
@@ -9,6 +9,8 @@ import { failedWords } from "../words";
 
 /** "Your leagues" (spec/12), which says so when there are none (spec/02). */
 export const LEAGUES_TITLE = "Your leagues";
+/** When there are more leagues than "Your leagues" lists, so some are missing from it. */
+export const leaguesCutWords = `More leagues exist than this list can show (it stops at ${LEAGUES_SHOWN}), so some are missing from it.`;
 /** The admin's "Create a league". */
 export const NEW_LEAGUE_TITLE = "Create a league";
 
@@ -64,6 +66,9 @@ export const createFailedWords = failedWords("the league wasn't made");
 
 /** When switching league failed before the server could say why. */
 export const switchFailedWords = failedWords("you're still in this league");
+
+/** When leaving a league failed before the server could say why. */
+export const leaveFailedWords = failedWords("you're still in the league, running your team");
 
 // Deleting a league (#75, spec/13, Deleting).
 

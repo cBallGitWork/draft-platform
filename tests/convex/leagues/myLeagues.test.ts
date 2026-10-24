@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
+import { LEAGUES_SHOWN } from "../../../convex/leagues/leagueLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import {
   ADMIN,
@@ -66,6 +67,34 @@ describe("a person's leagues", () => {
       { name: "First", roles: [], unsentCommissionerLink: null },
       { name: "Second", roles: [], unsentCommissionerLink: null },
     ]);
+  });
+});
+
+describe("more leagues than the list shows (#144)", () => {
+  /** `count` leagues in all: one made as the admin makes them, and copies of its row. */
+  async function leaguesInAll(count: number) {
+    const leagueId = await adminCreatesLeague(t, 4);
+    await t.run(async (ctx) => {
+      const { _id, _creationTime, ...row } = (await ctx.db.get("leagues", leagueId))!;
+      for (let copy = 1; copy < count; copy++) await ctx.db.insert("leagues", { ...row, name: `${row.name} ${copy}` });
+    });
+  }
+
+  test.each([
+    ["the admin, who sees every league", ADMIN],
+    ["a commissioner of them all", COMMISSIONER],
+  ])("%s is told the list stops short, and shows as many as it can", async (_, email) => {
+    await leaguesInAll(LEAGUES_SHOWN + 1);
+    const account = await accountOf(email);
+    expect(account.leaguesCut).toBe(true);
+    expect(account.leagues).toHaveLength(LEAGUES_SHOWN);
+  });
+
+  test("a list that holds them all says nothing of more", async () => {
+    await leaguesInAll(LEAGUES_SHOWN);
+    const account = await accountOf(ADMIN);
+    expect(account.leaguesCut).toBeUndefined();
+    expect(account.leagues).toHaveLength(LEAGUES_SHOWN);
   });
 });
 

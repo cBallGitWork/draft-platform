@@ -15,8 +15,8 @@ const invitesPage: InvitesPageData = {
   leagueId: miniBeta.leagueId,
   leagueName: miniBeta.name,
   teams: [
-    { teamId: id("team-1"), name: "Team 1", vacated: false },
-    { teamId: id("team-2"), name: "Saka Potatoes", vacated: true },
+    { teamId: id("team-1"), name: "Team 1", managerEmail: "dan@example.com" },
+    { teamId: id("team-2"), name: "Saka Potatoes", managerEmail: null },
   ],
   hasRoom: true,
   linkToken: "preview",
@@ -42,6 +42,7 @@ export const previewJoining: JoiningSeam = {
   invite: nothingChanged,
   resendInvite: nothingChanged,
   cancelInvite: nothingChanged,
+  removeManager: nothingChanged,
   makeLink: nothingChanged,
   switchOffLink: nothingChanged,
   approve: nothingChanged,

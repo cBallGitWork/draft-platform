@@ -57,6 +57,38 @@ somepoint").
 - A league's gameweek begins at its own deadline already (`spec/13` Gameweeks); what an own
   gameweek is beyond that, and how it maps to FPL's rounds.
 
+**Scoring the site owns, patched like League of Legends** (Craig, 24 Oct 2026: "i might just
+hardcode it for the site, set standards to follow and we control that"; "like a league of legends
+patch, old scores locked in, site wide announcement with week notice for udpates").
+- Which rules the site owns (category values, the gap rule below) and which stay each league's
+  (formations, area limits, roles: `spec/03`). Today every league edits its own scoring set
+  (`spec/14`).
+- Kept as data the site locks, not code (CLAUDE.md: the league's rules are data), so a patch is
+  a new version, not a deploy.
+- A patch takes effect from a deadline a week after it's announced; gameweeks already played keep
+  the rules in force in them, as League settings already do (#276).
+- Where the announcement lives: a Mail letter to every manager, patch notes, or both.
+
+**Anyone can play anywhere, the gap rule** (Craig, 24 Oct 2026: stop Haaland at centre-back
+getting "his clean sheet points AND goals", but not "oh he didnt play cb so no points", and "i like
+the fun idea of putting someobdy as a make shift striker").
+- Claude's proposal: a player earns the slot's price for each category, but where the slot pays
+  more than his own position would, he gets only part of the gap: all of it in his own area, then
+  less the further away the slot is (75%, 50%, 25% makeshift, as a starting point).
+- He counts as natural for a match when the real team sheet put him in that line
+  (`docs/pl-match-stats.md`, Where a man lined up), so a centre-back who fills in at DM loses
+  nothing.
+- It reopens three answers: scoring by the slot, never his own positions (`spec/14`); no
+  out-of-position penalty (`spec/05`); the areas each position can play (`spec/06`).
+- A substitute's team sheet says nowhere where he played (`docs/pl-match-stats.md`): does a
+  sub who comes on count as natural, or by his own positions?
+- What else punishes an extreme shape, such as two at the back. FM blocks no shape; it punishes
+  through the match engine, tactical familiarity (a new shape starts "awkward",
+  passion4fm.com/how-to-maximize-tactical-familiarity), position familiarity (SI's FM22 manual,
+  Players page) and staff warnings (footballmanager.com, FM26 in and out of possession). Options for ours: goals conceded cost more in a thin area, a new
+  shape earns role points at a fraction for its first gameweeks, and a warning on the board before
+  the deadline, never a block.
+
 ## Suggested, not yet picked
 
 | What | Why |
@@ -69,19 +101,17 @@ somepoint").
 | Match rating and Man of the Match | CM's Av R and MoM: a 1–10 rating from his points against his area; MoM the top scorer in each head-to-head |
 | Saved tactics | FM's: a few formations kept to switch between, say one for a double gameweek |
 | One player on several teams | Not now; maybe later (Craig, 20 Oct 2026). A draft is normally one owner per league; some leagues do one per division. The draft, waivers, trades and "owned in the league" all assume one owner |
-| More games a gameweek than opponents | `convex/table/roundRobin.ts`: "A league asking for more plays as many as there are." It caps them without saying so; should it refuse, or meet the same team twice? |
-| An own stat named like a catalogue stat | `convex/scoring/ownStats.ts` requires "a key, a name and a short code of its own, none a catalogue stat's", but checks names and codes only against other own stats. May one be called Minutes, or M? Keys: #136 |
-| A league name's length | A team's name has one (`convex/shared/leagueAccess.ts`: "A team's name is up to ${TEAM_NAME_MAX} characters.", 30 in `convex/leagues/leagueLimits.ts`); `leagues.create` refuses only a blank name ("Give it a name."). Should a league's have a maximum? |
-| Frozen fixtures | `spec/13`: "a change reshuffles only fixtures not yet played". Open: a rule change from its `fromGameweek`, and the commissioner's fixture edits (`spec/09`: "the commissioner can edit them"). #137 |
+| Frozen fixtures | `spec/13`: "a change reshuffles only fixtures not yet played". A gameweek's fixtures are stored once it begins (#137). Open: a rule change from its `fromGameweek`, the commissioner's fixture edits (`spec/09`: "the commissioner can edit them"), how the gameweeks to come are drawn after a team joins at a split (`convex/table/playedFixtures.ts`, `scheduleAround`), and the gameweeks a league made mid-season has from before it existed, which are drawn, never stored (#282) |
 | How the admin hears a feed or sync failure | `spec/15`: "A feed that stops silently is the failure to catch." The feeds page only (#35), or email too, out of Resend's "100 a day" (`ARCHITECTURE.md`)? |
 | How a player's areas count against a squad's limit per area | `spec/03` Squad make-up. The limits are saved and validated by `leagueRulesCheck` but not checked by `squadWarnings` |
+| The platform's squad ceiling of 60 | `convex/leagues/leagueLimits.ts`: `MOST_IN_SQUAD = 60`, "The most players one team can hold, whatever the league's own squad limits". A league's squad maximum above it is refused when saved (`spec/03`). Is 60 the right ceiling? (#213) |
 | A screen whose read fails | What it shows, and whether it shows the server's words. `docs/PHILOSOPHY.md`: "Don't swallow errors silently. If something fails, we need to know." |
 | Retry deletion warnings past the day's email limit | A manager the 100-a-day limit stopped is marked "not told" and never retried. Left as it is for the beta (Craig agreed, 22 Oct 2026) |
 
-The rows from more games a gameweek than opponents down are open questions from the repo audit
-of 21 Oct 2026, details the spec doesn't settle rather than new features.
+The rows from frozen fixtures down are open questions from the repo audits of 21 and 22 Oct
+2026, details the spec doesn't settle rather than new features.
 
-Also Claude's suggestions, from the same audit:
+Also Claude's suggestions, from the audit of 21 Oct 2026:
 - #117's undo sends no email, so managers told "will be deleted" never hear it was undone.
 
 Thought of and set aside, as they clash with what's settled: board confidence and the sack

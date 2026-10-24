@@ -4,6 +4,7 @@
 import { AREAS, SLOT_POSITIONS, type Area, type SlotPosition } from "../lineup/pitch";
 import { categoryName } from "./categories";
 import { validateOwnStats, type OwnStat } from "./ownStats";
+import { CATALOGUE_STATS } from "./statCatalogue";
 
 export type { OwnStat };
 
@@ -98,14 +99,28 @@ export function validateScoringSet(set: unknown): asserts set is ScoringSet {
   const { wholePointsOnly } = set;
   if (set.ownStats !== undefined) validateOwnStats(set.ownStats);
   const ownStats = set.ownStats as readonly OwnStat[] | undefined;
-  set.rules.forEach((rule, index) => validateRule(rule, index + 1, wholePointsOnly, (stat) => categoryName(stat, ownStats)));
+  const isScorable = (stat: string) => CATALOGUE_STATS.has(stat) || (ownStats ?? []).some((own) => own.stat === stat);
+  set.rules.forEach((rule, index) =>
+    validateRule(rule, index + 1, wholePointsOnly, isScorable, (stat) => categoryName(stat, ownStats)),
+  );
 }
 
-/** A rule is named by its category's full name, as the rules editor shows it (spec/14). */
-function validateRule(rule: unknown, position: number, wholePointsOnly: boolean, nameOf: (stat: string) => string): void {
+/** A rule is named by its category's full name, as the rules editor shows it (spec/14). It scores
+ *  a catalogue stat or one of the league's own, never a key no record holds: a typo such as
+ *  `goals_scroed` would otherwise pay every player 0 in it, with no error (#135). */
+function validateRule(
+  rule: unknown,
+  position: number,
+  wholePointsOnly: boolean,
+  isScorable: (stat: string) => boolean,
+  nameOf: (stat: string) => string,
+): void {
   if (!isObject(rule)) throw new Error(`rule ${position} of the scoring set is not a rule`);
   const { stat, shape } = rule;
   if (typeof stat !== "string" || stat === "") throw new Error(`rule ${position} of the scoring set names no stat`);
+  if (!isScorable(stat)) {
+    throw new Error(`rule ${position} of the scoring set scores ${showValue(stat)}, which is neither a catalogue stat nor one of the league's own`);
+  }
   const named = `the ${nameOf(stat)} rule`;
   if (shape !== "perAction" && shape !== "perCount" && shape !== "bands") {
     throw new Error(`${named} has the shape ${showValue(shape)}, which is not one of the three`);
