@@ -37,7 +37,7 @@ Supabase was the runner-up.
   no browser and no `convex dev` running.
 - The stats per player per match, for roles: [docs/pl-match-stats.md](docs/pl-match-stats.md).
 
-**The commentary stream (#37): read live on 23 Oct 2026; the recording isn't kept for the tests yet.** spec/10's commentary stands on the
+**The commentary stream (#37): read live on 23 Oct 2026.** spec/10's commentary stands on the
 Premier League's `/fixtures/{id}/textstream/EN?pageSize=200&sort=desc`; the team stats on
 `/stats/match/{id}`. Neither needs the `Origin` header the premierleague.com site sends (from
 the Mac, 20 Oct 2026). Each line's `playerIds` are the team sheets' ids, so they map to FPL's
@@ -54,8 +54,8 @@ vanished before full time and 15 were reworded, so the commentary should replace
 on each read. The lineups were out before the first read, 58 min before kickoff; the team stats
 held only each side's formation until the 8th minute. The live poller ran a tick a
 minute for all 119 minutes with no failure, and saw full time the minute it came
-([docs/pl-match-stats.md](docs/pl-match-stats.md)). Still open: a slice of the recording kept
-for the tests.
+([docs/pl-match-stats.md](docs/pl-match-stats.md)). Three of its commentary reads and three of
+its team stats reads are kept for the tests (`tests/support/recorded/pl-live-match.json`).
 
 **When the free plans stop being enough:**
 
