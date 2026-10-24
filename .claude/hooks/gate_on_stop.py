@@ -11,8 +11,9 @@ or the payload can't be read (hook_payload.py), it exits 1 with one line on stde
 failed and in which checkout: Claude Code shows it, but the stop goes ahead (it fails open, never
 quietly). A subagent's `cwd` is the folder it works in: an agent spawned with its own worktree
 has that worktree, but one that only names a worktree by absolute path has the main checkout
-(checked 20 Oct 2026 in subagent transcripts). A subagent stopping in the main checkout isn't gated: the session's own Stop gates
-it, and a builder or a reviewer there would otherwise be held up by changes that aren't its own.
+(checked 20 Oct 2026 in subagent transcripts). A subagent stopping in the main checkout isn't
+gated: the session's own Stop gates it, and a builder or a reviewer there would otherwise be held
+up by changes that aren't its own.
 DRAFT_GATE_CMD overrides the command and DRAFT_GATE_TIMEOUT its timeout in seconds, both for
 .claude/hooks/tests/gate_on_stop.sh.
 Stdlib only, Python 3.9+.
