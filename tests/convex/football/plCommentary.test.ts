@@ -9,6 +9,12 @@ import {
   recordedFplPlayers,
   recordedSheets,
 } from "../../support/recorded/commentary.payloads";
+import {
+  LIVE_COMMENTARY,
+  recordedLiveCommentary,
+  recordedLiveFplPlayers,
+  recordedLiveSheets,
+} from "../../support/recorded/live.payloads";
 import { FULL_STATS } from "../../support/recorded/gw6.payloads";
 
 const codeByOpta = codesByOpta(recordedFplPlayers());
@@ -41,6 +47,15 @@ function hullEvertonWith(id: number, change: (line: RawPlCommentaryLine) => void
   change(line);
   return () => mapped(COMMENTARY_MATCH.hullEverton, codeByOpta, stream);
 }
+
+/** One live read of Ipswich v Forest mapped. */
+function mappedLive(read: keyof typeof LIVE_COMMENTARY) {
+  return commentaryLines(recordedLiveSheets(), recordedLiveCommentary(read).events.content, codesByOpta(recordedLiveFplPlayers()));
+}
+
+/** Ipswich v Forest, read live: its first goal's line, and the foul whose line the feed later dropped. */
+const LIVE_LINE = { firstGoal: 2878012, droppedFoul: 2878263 };
+const LIVE_CODE = { williams: 215136, munoz: 247348 } as const;
 
 const HULL_EVERTON_LINE = { equaliser: 2855247, belloumiOn: 2855172, firstHalfAddedMiss: 2855025, lineups: 2854691 };
 
@@ -89,6 +104,34 @@ test.each(FINISHED_MATCHES)("every line of recorded match %i comes through in th
   expect(lines.map((line) => line.playerCodes.length)).toEqual(stream.map((line) => line.playerIds?.length ?? 0));
   expect(lines.flatMap((line) => line.playerCodes)).not.toContain(null);
   expect(unmatched).toEqual([]);
+});
+
+test.each(Object.values(LIVE_COMMENTARY))("every line of the live match's %s read comes through in the feed's order, every man an FPL code", (read) => {
+  const stream = recordedLiveCommentary(read).events.content;
+
+  const { lines, unmatched } = mappedLive(read);
+
+  expect(lines.map((line) => line.id)).toEqual(stream.map((line) => line.id));
+  expect(lines.flatMap((line) => line.playerCodes)).not.toContain(null);
+  expect(unmatched).toEqual([]);
+});
+
+test("a live goal's line can name only the scorer at first, and a later read rewords it to name the assister", () => {
+  expect(lineOf(mappedLive("goal").lines, LIVE_LINE.firstGoal)).toMatchObject({
+    text: expect.not.stringContaining("Assisted"),
+    playerCodes: [LIVE_CODE.williams],
+  });
+  expect(lineOf(mappedLive("final").lines, LIVE_LINE.firstGoal)).toMatchObject({
+    text: expect.stringMatching(/Assisted by Daniel Muñoz with a cross\.$/),
+    playerCodes: [LIVE_CODE.williams, LIVE_CODE.munoz],
+  });
+});
+
+// A record of the feed, not of our code: `commentaryLines` maps one read at a time. It earns its keep
+// at the seam of whatever shows the commentary, which must replace each read, never append it.
+test("a line the feed drops mid-match is in an earlier read and missing from a later one", () => {
+  expect(mappedLive("withVanished").lines.map((line) => line.id)).toContain(LIVE_LINE.droppedFoul);
+  expect(mappedLive("final").lines.map((line) => line.id)).not.toContain(LIVE_LINE.droppedFoul);
 });
 
 test("a man FPL does not list keeps his place in each line as null, and is reported", () => {

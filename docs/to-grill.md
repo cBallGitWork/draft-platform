@@ -57,6 +57,38 @@ somepoint").
 - A league's gameweek begins at its own deadline already (`spec/13` Gameweeks); what an own
   gameweek is beyond that, and how it maps to FPL's rounds.
 
+**Scoring the site owns, patched like League of Legends** (Craig, 24 Oct 2026: "i might just
+hardcode it for the site, set standards to follow and we control that"; "like a league of legends
+patch, old scores locked in, site wide announcement with week notice for udpates").
+- Which rules the site owns (category values, the gap rule below) and which stay each league's
+  (formations, area limits, roles: `spec/03`). Today every league edits its own scoring set
+  (`spec/14`).
+- Kept as data the site locks, not code (CLAUDE.md: the league's rules are data), so a patch is
+  a new version, not a deploy.
+- A patch takes effect from a deadline a week after it's announced; gameweeks already played keep
+  the rules in force in them, as League settings already do (#276).
+- Where the announcement lives: a Mail letter to every manager, patch notes, or both.
+
+**Anyone can play anywhere, the gap rule** (Craig, 24 Oct 2026: stop Haaland at centre-back
+getting "his clean sheet points AND goals", but not "oh he didnt play cb so no points", and "i like
+the fun idea of putting someobdy as a make shift striker").
+- Claude's proposal: a player earns the slot's price for each category, but where the slot pays
+  more than his own position would, he gets only part of the gap: all of it in his own area, then
+  less the further away the slot is (75%, 50%, 25% makeshift, as a starting point).
+- He counts as natural for a match when the real team sheet put him in that line
+  (`docs/pl-match-stats.md`, Where a man lined up), so a centre-back who fills in at DM loses
+  nothing.
+- It reopens three answers: scoring by the slot, never his own positions (`spec/14`); no
+  out-of-position penalty (`spec/05`); the areas each position can play (`spec/06`).
+- A substitute's team sheet says nowhere where he played (`docs/pl-match-stats.md`): does a
+  sub who comes on count as natural, or by his own positions?
+- What else punishes an extreme shape, such as two at the back. FM blocks no shape; it punishes
+  through the match engine, tactical familiarity (a new shape starts "awkward",
+  passion4fm.com/how-to-maximize-tactical-familiarity), position familiarity (SI's FM22 manual,
+  Players page) and staff warnings (footballmanager.com, FM26 in and out of possession). Options for ours: goals conceded cost more in a thin area, a new
+  shape earns role points at a fraction for its first gameweeks, and a warning on the board before
+  the deadline, never a block.
+
 ## Suggested, not yet picked
 
 | What | Why |
