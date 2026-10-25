@@ -24,6 +24,7 @@ import {
   patchNotesLinkWords,
 } from "../../../src/patches/words";
 import { scoringPath } from "../../../src/scoring/paths";
+import { SCORING_TITLE } from "../../../src/scoring/words";
 import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
 import { league, manager, newcomer, openApp, visitor } from "../../support/src/shell.harness";
 
@@ -112,7 +113,7 @@ describe("the patch notes", () => {
 
   it("Player scoring links to them", async () => {
     const app = openApp(scoringPath(league.leagueId), manager);
-    const title = await screen.findByRole("heading", { level: 1, name: /Player scoring/ });
+    const title = await screen.findByRole("heading", { level: 1, name: SCORING_TITLE });
     await userEvent.click(within(title.parentElement!).getByRole("link", { name: patchNotesLinkWords }));
     expect(app.path()).toBe(PATCH_NOTES_PATH);
   });

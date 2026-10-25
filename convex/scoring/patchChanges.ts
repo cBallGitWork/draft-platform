@@ -22,9 +22,12 @@ const AREA_OF: ReadonlyMap<SlotPosition, Area> = new Map(
   AREAS.flatMap((area) => LANES.map((lane) => [positionOfSlot({ area, lane }), area] as const)),
 );
 
-/** What a priced setting gives each position, as words; an absent setting is `words(undefined)`. */
-function wordsByPosition<Value>(priced: Priced<Value> | undefined, words: (value: Value | undefined) => string): PositionWords {
-  return new Map(SLOT_POSITIONS.map((position) => [position, words(priced && priceFor(priced, AREA_OF.get(position)!, position))]));
+/** An optional setting not set, such as no points limit. */
+const NONE = "none";
+
+/** What a priced setting gives each position, as words; an optional one not set is NONE. */
+function wordsByPosition<Value>(priced: Priced<Value> | undefined, words: (value: Value) => string): PositionWords {
+  return new Map(SLOT_POSITIONS.map((position) => [position, priced === undefined ? NONE : words(priceFor(priced, AREA_OF.get(position)!, position))]));
 }
 
 const pointsWords = (points: number) => (points < 0 ? `−${-points}` : String(points));
@@ -35,23 +38,22 @@ const bandWords = (bands: readonly Band[]) =>
 function valueWords(rule: Rule): PositionWords {
   switch (rule.shape) {
     case "perAction":
-      return wordsByPosition(rule.values, (value) => pointsWords(value!));
+      return wordsByPosition(rule.values, pointsWords);
     case "perCount":
-      return wordsByPosition(rule.values, (value) => `${pointsWords(value!.points)} per ${value!.every}`);
+      return wordsByPosition(rule.values, ({ points, every }) => `${pointsWords(points)} per ${every}`);
     case "bands":
-      return wordsByPosition<readonly Band[]>(rule.values, (value) => bandWords(value!));
+      return wordsByPosition<readonly Band[]>(rule.values, bandWords);
   }
 }
 
-const NONE = "none";
-function limitWords(limit: PointsLimit | undefined): string {
+function limitWords({ max, min }: PointsLimit): string {
   const ends = [
-    ...(limit?.max == null ? [] : [`at most ${pointsWords(limit.max)}`]),
-    ...(limit?.min == null ? [] : [`at least ${pointsWords(limit.min)}`]),
+    ...(max === null ? [] : [`at most ${pointsWords(max)}`]),
+    ...(min === null ? [] : [`at least ${pointsWords(min)}`]),
   ];
   return ends.length === 0 ? NONE : ends.join(", ");
 }
-const minutesWords = (minutes: number | undefined) => (minutes === undefined ? NONE : `${minutes} minutes`);
+const minutesWords = (minutes: number) => `${minutes} minutes`;
 
 /** Positions' words grouped where alike: "5" when every position says the same, else each group,
  *  "GK: 10; FB, CB: 6". Only the positions given are named. */
