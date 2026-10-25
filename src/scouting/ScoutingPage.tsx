@@ -12,6 +12,7 @@ import { PositionCodes } from "../PositionCodes";
 import { POSITION_NAMES } from "../words";
 import { ComparePanel, type PickedPlayer } from "./ComparePanel";
 import type { Availability, ListedPlayer, PlayersFilters, PlayersList, PlayersSort, ScoutingSeam, SortColumn } from "./seam";
+import { ShortlistPanel } from "./ShortlistPanel";
 import {
   availabilityLabel,
   ascendingGlyph,
@@ -84,6 +85,7 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
   return (
     <PageSection title={SCOUTING_TITLE} className="flex max-w-6xl flex-col gap-2">
       {picked.length > 0 && <ComparePanel picked={picked} comparison={comparison} clear={() => setPicked([])} />}
+      <ShortlistPanel leagueId={league.leagueId} seam={seam} />
       <section aria-labelledby={TITLE_ID} className="bg-panel">
         <PanelTitle id={TITLE_ID}>{PLAYERS_TITLE}</PanelTitle>
         <Filters filters={filters} clubs={list?.clubs} filterBy={filterBy} />

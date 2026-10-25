@@ -3,10 +3,12 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { PlayedMatch, PlayerCard } from "../../convex/playerCard/playerCard";
+import type { ShortlistSeam } from "../scouting/shortlistSeam";
 
 export type { PlayedMatch, PlayerCard };
 
-export type PlayerCardSeam = {
+/** His card, and the manager's shortlist, for the card's shortlist action. */
+export type PlayerCardSeam = ShortlistSeam & {
   /** His card at `now`, live (a hook): undefined while it loads, null for a code no feed holds. */
   usePlayerCard(leagueId: Id<"leagues">, playerCode: number, now: number): PlayerCard | null | undefined;
 };

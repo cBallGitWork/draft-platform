@@ -6,22 +6,26 @@ import { vi } from "vitest";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { listOf } from "../../../convex/scouting/playersOrder";
 import type { ComparedPlayer, PlayersList, ScoutingSeam } from "../../../src/scouting/seam";
+import { fakeShortlist, type ShortlistData } from "./shortlist.harness";
 
 /** What the fake server holds: its clubs and players, each one's season to compare (matches and
- *  stats added up) by his code, or nothing yet while the list or the comparison loads. */
+ *  stats added up) by his code, or nothing yet while the list or the comparison loads, and the
+ *  shortlist. */
 export type ScoutingData = {
   clubs?: PlayersList["clubs"];
   players?: readonly ListedPlayer[];
   seasons?: Record<number, Pick<ComparedPlayer, "matches" | "stats">>;
   loading?: boolean;
   comparing?: boolean;
+  shortlist?: ShortlistData;
 };
 
 /** A player with no season held: no matches yet. */
 const NO_SEASON = { matches: 0, stats: {} };
 
-export function fakeScouting({ clubs = [], players = [], seasons = {}, loading = false, comparing = false }: ScoutingData = {}) {
+export function fakeScouting({ clubs = [], players = [], seasons = {}, loading = false, comparing = false, shortlist }: ScoutingData = {}) {
   return {
+    ...fakeShortlist(shortlist),
     usePlayersList: vi.fn<ScoutingSeam["usePlayersList"]>((_leagueId, filters, sort) =>
       loading ? undefined : { clubs, players: listOf(players, filters, sort) },
     ),
