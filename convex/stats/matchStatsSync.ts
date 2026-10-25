@@ -10,6 +10,8 @@ import type { DueMatch } from "./matchStats";
 import { matchSlots, plStatLines } from "../football/plMatch";
 import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlPlayerStats, type RawPlFixture } from "../football/premierLeague";
 import { matchStatsSyncFields, syncTrigger, type matchSyncOutcome } from "../schema";
+import { writeScores } from "../football/matchScores";
+import { plScoreRead, readEach, type ScoreReads } from "../football/scoreReads";
 
 // Issue #27: every due match's stats from both feeds, one record per named man, upserted with
 // `matchStats.upsertMatch`. No cron runs it yet (ARCHITECTURE.md); from the CLI:
@@ -53,12 +55,16 @@ export async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number, b
   const codeByOpta = codesByOpta(bootstrap.elements);
   const matches: MatchOutcome[] = [];
   const waiting: number[] = [];
+  const scores: ScoreReads = { reads: [], problems: [] };
   for (const [gameweek, codes] of byGameweek(due)) {
     let reads: GameweekReads;
     try {
       const [live, round] = await Promise.all([readFplLive(gameweek), readPlFixtures(gameweek)]);
       const fplLines = fplStatLines(live, bootstrap.elements, fixtures);
       reads = { gameweek, codeByOpta, fplLines, listed: new Map(round.map((each) => [fixtureCodeIn(each), each])) };
+      const scored = dueScores(reads.listed, codes);
+      scores.reads.push(...scored.reads);
+      scores.problems.push(...scored.problems);
     } catch (error: unknown) {
       const message = logFailure(`gameweek ${gameweek}'s reads failed`, error);
       matches.push(...codes.map((fixtureCode) => ({ fixtureCode, ok: false as const, error: message })));
@@ -74,7 +80,29 @@ export async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number, b
       }
     }
   }
-  return { matches, waiting };
+  return { matches, waiting, scores: await writeDueScores(ctx, readAt, scores) };
+}
+
+/** The due matches' scores written; a failed write fails each read's score on the run row, not
+ *  the run, whose matches are already saved. */
+async function writeDueScores(ctx: ActionCtx, readAt: number, scores: ScoreReads) {
+  try {
+    return await writeScores(ctx, "pl", readAt, scores);
+  } catch (error: unknown) {
+    const problem = logFailure("writing the due matches' scores failed", error);
+    const unwritten = scores.reads.map(({ fixtureCode }) => ({ fixtureCode, problem }));
+    return { received: scores.reads.length + scores.problems.length, written: 0, problems: [...scores.problems, ...unwritten] };
+  }
+}
+
+/** Each due match's score from the Premier League's list. One the list leaves out is `syncMatch`'s
+ *  to fail. */
+function dueScores(listed: GameweekReads["listed"], codes: number[]): ScoreReads {
+  const found = codes.flatMap((fixtureCode) => {
+    const fixture = listed.get(fixtureCode);
+    return fixture === undefined ? [] : [{ fixtureCode, fixture }];
+  });
+  return readEach(found, ({ fixtureCode }) => fixtureCode, ({ fixture, fixtureCode }) => plScoreRead(fixture, fixtureCode));
 }
 
 /** One match: its sheets and every named man's Premier League stats, merged with FPL's and

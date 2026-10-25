@@ -69,7 +69,11 @@ test("a failed tick is recorded and logged, and the next one catches up", async 
 
   const failed = await tickAt(t, stageTime(30), stagedGw6(30), fplLiveUrl(GAMEWEEK));
   const error = refusedError(fplLiveUrl(GAMEWEEK));
-  expect(failed.latest.outcome).toEqual({ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: false, error }] });
+  expect(failed.latest.outcome).toEqual({
+    ok: true,
+    matches: [{ fixtureCode: HULL_EVERTON, ok: false, error }],
+    scores: { received: 0, written: 0, problems: [] },
+  });
   expect(errors).toHaveBeenCalledWith(`gameweek ${GAMEWEEK}'s reads failed: ${error}`);
   expect(await heldRecords(t)).toEqual(recordsIn(stagedGw6(29), "provisional"));
 
