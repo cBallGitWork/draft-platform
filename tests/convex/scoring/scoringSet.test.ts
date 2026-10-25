@@ -121,7 +121,7 @@ describe("a rule scores a catalogue stat or one of the league's own, never a key
   });
 });
 
-test("points in tenths are never -0, so a table's difference or average of nothing is a plain 0 (#422)", () => {
+test("inTenths never gives -0: not for a sum just under 0, nor for 0 times -1 (#422)", () => {
   expect(Object.is(inTenths(-0.04), 0)).toBe(true);
   expect(Object.is(inTenths(0 * -1), 0)).toBe(true);
   expect(inTenths(-0.06)).toBe(-0.1);
