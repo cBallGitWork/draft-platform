@@ -37,15 +37,13 @@ export function ShortlistPanel({ leagueId, seam }: { leagueId: Id<"leagues">; se
         <ul aria-label={shortlistListLabel}>
           {players.map((player) => (
             <li key={player.code} className="flex items-center justify-between gap-2 border-t border-panel-rule px-3 py-1">
-              <span className="flex flex-col">
-                <span className="font-semibold">
-                  <Link to={playerCardPath(leagueId, player.code)} title={player.fullName} className="inline-flex min-h-tap items-center">
-                    {player.name}
-                  </Link>{" "}
-                  <abbr title={player.club.name} className="font-normal text-muted no-underline">
-                    {player.club.shortName}
-                  </abbr>
-                </span>
+              <span className="flex flex-wrap items-baseline gap-x-2">
+                <Link to={playerCardPath(leagueId, player.code)} title={player.fullName} className="inline-flex min-h-tap items-center font-semibold">
+                  {player.name}
+                </Link>
+                <abbr title={player.club.name} className="text-muted no-underline">
+                  {player.club.shortName}
+                </abbr>
                 {player.gone ? (
                   <span className="text-event">{goneWords}</span>
                 ) : (
