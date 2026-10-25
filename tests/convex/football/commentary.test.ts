@@ -114,7 +114,8 @@ test.each([
   { change: { type: FEED_TYPE.penaltyLost }, expected: "62' PENALTY conceded by N.Williams" },
   { change: { type: FEED_TYPE.playerRetired }, expected: "62' OFF INJURED N.Williams" },
   { change: { type: FEED_TYPE.refereeDecision, playerCodes: [] }, expected: "62' VAR" },
-])("a \"$change.type\" line, a kind the live match lacks, is written $expected", ({ change, expected }) => {
+  { change: { type: FEED_TYPE.lineup, minute: null, addedMinute: null, playerCodes: [] }, expected: "Lineups out" },
+])("a \"$change.type\" line, is written $expected", ({ change, expected }) => {
   expect(writeCommentary([lineOf(change)], liveInput).lines.map((line) => line.text)).toEqual([expected]);
 });
 
