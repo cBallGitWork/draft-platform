@@ -7,6 +7,7 @@
 //   the fields `RawBootstrap` types.
 
 import type { RawBootstrap } from "../../../convex/football/fpl";
+import { withNoNews } from "./fpl.payloads";
 import type { RawPlCommentary, RawPlFixture, RawPlTeamStats } from "../../../convex/football/premierLeague";
 import live from "./pl-live-match.json";
 
@@ -49,5 +50,5 @@ export function recordedLiveSheets(): RawPlFixture {
 
 /** FPL's players the sheets name, a fresh copy. */
 export function recordedLiveFplPlayers(): RawBootstrap["elements"] {
-  return structuredClone(live.fplPlayers);
+  return withNoNews(structuredClone(live.fplPlayers));
 }

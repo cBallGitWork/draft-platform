@@ -30,6 +30,12 @@ export const PLAYER_CODE = { haaland: 223094, raya: 154561, saka: 223340 } as co
 /** Season-stable codes of matches the tests name. */
 export const FIXTURE_CODE = { arsenalVCoventry: 2645195 } as const;
 
+/** Players from a recording cut to `RawBootstrap`'s fields before it typed FPL's news (#381), with
+ *  the news of a player FPL has no doubt about. */
+export function withNoNews(elements: Omit<RawBootstrap["elements"][number], "news" | "chance_of_playing_next_round">[]): RawBootstrap["elements"] {
+  return elements.map((element) => ({ ...element, news: "", chance_of_playing_next_round: null }));
+}
+
 /** A fresh copy of the first recording, safe to change for one test. */
 export function recordedFpl(): FplPayloads {
   return structuredClone({ bootstrap: bootstrap as RawBootstrap, fixtures: fixtures as RawFixture[] });
