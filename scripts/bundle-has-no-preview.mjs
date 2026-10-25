@@ -25,6 +25,7 @@ const NEEDLES = {
   "src/joining/preview.ts": "dan@example.com",
   "src/leagueSettings/preview.ts": null,
   "src/mail/preview.ts": "Draft night is Friday at eight",
+  "src/home/preview.ts": "Expected Toulouse",
   "src/myTeam/preview.ts": null,
   "src/patches/preview.ts": "preview-patch-",
   "src/playerCard/preview.ts": "Hamstring injury - 75% chance of playing",

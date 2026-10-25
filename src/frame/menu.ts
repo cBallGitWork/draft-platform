@@ -10,6 +10,7 @@ import { menuWords } from "./words";
 export type Page = { label: string; path: string };
 export type Section = Page & { tabs: readonly Page[] };
 
+export const HOME_PATH = "/home";
 export const MY_TEAM_PATH = "/team";
 export const MY_TEAM_FIXTURES_PATH = `${MY_TEAM_PATH}/fixtures`;
 export const MAIL_PATH = "/mail";
@@ -17,7 +18,7 @@ export const TABLE_PATH = "/table";
 export const SCOUTING_PATH = "/scouting";
 
 export const sections: readonly Section[] = [
-  { label: menuWords.home, path: "/home", tabs: [] },
+  { label: menuWords.home, path: HOME_PATH, tabs: [] },
   {
     label: menuWords.myTeam,
     path: MY_TEAM_PATH,

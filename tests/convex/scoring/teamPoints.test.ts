@@ -190,25 +190,34 @@ describe("a double gameweek, under the league's rule", () => {
   });
 });
 
-test("fractions add up in tenths, never drifting", () => {
+describe("fractions add up in tenths, never drifting", () => {
+  /** A tenth of a point a minute. */
   const tenths: ScoringSet = {
     rules: [{ shape: "perAction", stat: "minutes", values: { all: 0.1 } }],
     wholePointsOnly: false,
   };
-  const threeMen: Lineup = {
-    starters: [
-      { playerCode: 1, ...KEEPER },
-      { playerCode: 2, ...MIDFIELD },
-      { playerCode: 3, ...ATTACK },
-    ],
-    bench: [],
-  };
-  const oneMinute: PlayerMatch[] = [{ record: { minutes: 1 }, final: true }];
-  const scored = team({
-    lineup: threeMen,
-    set: tenths,
-    matches: new Map([1, 2, 3].map((code) => [code, oneMinute])),
-    benchCells: new Map(),
+  const minutesPlayed = (minutes: number): PlayerMatch => ({ record: { minutes }, final: true });
+
+  test("across the team's slots", () => {
+    const threeMen: Lineup = {
+      starters: [
+        { playerCode: 1, ...KEEPER },
+        { playerCode: 2, ...MIDFIELD },
+        { playerCode: 3, ...ATTACK },
+      ],
+      bench: [],
+    };
+    const scored = team({
+      lineup: threeMen,
+      set: tenths,
+      matches: new Map([1, 2, 3].map((code) => [code, [minutesPlayed(1)]])),
+      benchCells: new Map(),
+    });
+    expect(scored.total).toBe(0.3);
   });
-  expect(scored.total).toBe(0.3);
+
+  test("in one slot's double gameweek, both matches counting (#412)", () => {
+    const scored = team({ set: tenths, matches: withMatches(GELHARDT, [minutesPlayed(1), minutesPlayed(2)]) });
+    expect(scored.starters[2]?.points).toBe(0.3);
+  });
 });

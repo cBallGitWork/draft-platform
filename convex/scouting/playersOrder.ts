@@ -1,6 +1,7 @@
 // Which of Scouting's players the filters keep, and in what order (#373): the list's rule, apart
 // from playersList.ts so the preview and the tests share it without the server's imports.
 
+import type { Stats } from "../stats/statTotals";
 import type { Availability, ListedPlayer, PlayersFilters, PlayersSort } from "./playersList";
 
 /** The players the filters keep, in the sort's order. No player is on waivers until waivers are built. */
@@ -42,6 +43,8 @@ function sortedPlayers(players: readonly ListedPlayer[], { by, descending }: Pla
         return direction * one.club.shortName.localeCompare(other.club.shortName) || byName(one, other);
       case "seasonPoints":
         return compareFigures(one.seasonPoints, other.seasonPoints, direction) || byName(one, other);
+      case "stat":
+        return compareFigures(one.stat, other.stat, direction) || byName(one, other);
     }
   };
   return [...players].sort(compare);
@@ -51,4 +54,10 @@ function sortedPlayers(players: readonly ListedPlayer[], { by, descending }: Pla
 function compareFigures(one: number | null, other: number | null, direction: number): number {
   if (one === null || other === null) return (one === null ? 1 : 0) - (other === null ? 1 : 0);
   return direction * (one - other);
+}
+
+/** A player's season total of the shown stat, from his totals (undefined if he hasn't played this
+ *  season, so 0), or null with no stat shown. */
+export function shownStat(totals: Stats | undefined, stat: string | null): number | null {
+  return stat === null ? null : (totals?.[stat] ?? 0);
 }

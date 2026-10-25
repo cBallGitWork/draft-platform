@@ -274,6 +274,14 @@ const matchStatsTables = {
   }).index("by_fixtureCode_and_playerCode", ["fixtureCode", "playerCode"]),
   platformSettings: defineTable({ name: platformSettingName, value: v.number() }).index("by_name", ["name"]),
   matchStatsSyncs: defineTable(matchStatsSyncFields),
+  /** Each player's records added up for a season (#373, seasonStats.ts), so Scouting sorts every
+   *  player by any stat without reading a season of records: one row a player and season, kept
+   *  in step as each record is written. `season` is the year it starts (football.ts's
+   *  `seasonStartYear` of the match's kickoff). */
+  playerSeasonStats: defineTable({ season: v.number(), playerCode: v.number(), stats: v.record(v.string(), v.number()) }).index(
+    "by_season_and_playerCode",
+    ["season", "playerCode"],
+  ),
   /** When a run last tried each match, read or not: one that never reads steps behind the rest. */
   matchStatsTries: defineTable({ fixtureCode: v.number(), triedAt: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
 };
@@ -408,6 +416,9 @@ const unemailedDeletionFields = {
 // Leagues (#24, spec/13). People are known by their email, trimmed and lower-cased, so a
 // commissioner or manager can be named before they have an account; the admin is ADMIN_EMAIL.
 
+/** A letter to the whole league, as league home pins it (spec/12). */
+export const pinnedLetter = v.object({ at: v.number(), from: v.string(), subject: v.string(), body: v.string() });
+
 const leagueFields = {
   name: v.string(),
   /** The league's own maximum, 2 to 20 (spec/13), which its commissioner changes. */
@@ -423,6 +434,10 @@ const leagueFields = {
   /** The gameweeks its commissioner unticked, in order (#74, convex/gameweeks/usedGameweeks.ts). Absent while
    *  it plays all 38, the default, so a league needs no write to have it. */
   unusedGameweeks: v.optional(v.array(v.number())),
+  /** The latest letter its commissioner, co-commissioner or the admin wrote to the whole league
+   *  (spec/16), pinned on league home until a newer one (spec/12); absent before the first. Its
+   *  copies are in `letters`, one a person, so this saves finding the newest among them. */
+  pinnedLetter: v.optional(pinnedLetter),
 };
 
 const teamFields = {
@@ -582,7 +597,10 @@ const leagueTables = {
   teams: defineTable(teamFields)
     .index("by_leagueId_and_number", ["leagueId", "number"])
     .index("by_managerEmail", ["managerEmail"]),
-  leagueEvents: defineTable(leagueEventFields).index("by_leagueId_and_at", ["leagueId", "at"]),
+  leagueEvents: defineTable(leagueEventFields)
+    .index("by_leagueId_and_at", ["leagueId", "at"])
+    // League home's latest squad moves of each kind (spec/12), without reading every other event.
+    .index("by_leagueId_and_kind_and_at", ["leagueId", "event.kind", "at"]),
   lastLeagues: defineTable(lastLeagueFields).index("by_email", ["email"]).index("by_leagueId", ["leagueId"]),
   unemailedDeletions: defineTable(unemailedDeletionFields),
 };
@@ -672,6 +690,16 @@ const leagueRulesTables = {
     deadline: v.number(),
     recordedAt: v.number(),
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
+  /** A gameweek's first kickoff once it has passed (#414): where it fell stays put, even if that
+   *  match then leaves the gameweek, so the site's scoring version for it can't change. One row a
+   *  season and gameweek, site-wide, written by gameweeks/gameweekStarts.ts. */
+  gameweekStarts: defineTable({
+    /** The year the season starts, as football.ts's `seasonStartYear`. */
+    season: v.number(),
+    gameweek: v.number(),
+    firstKickoff: v.number(),
+    recordedAt: v.number(),
+  }).index("by_season_and_gameweek", ["season", "gameweek"]),
 };
 
 // A league's head-to-head fixtures in each gameweek it has begun, stored once the gameweek begins
