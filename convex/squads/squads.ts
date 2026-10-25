@@ -28,8 +28,8 @@ import { takeAllOrThrow } from "../shared/cappedRead";
  *  (#31); waiver claims and trades join them when built. */
 export const SQUAD_MOVES = ["playerAssigned", "playerMoved", "playerReleased"] as const;
 
-/** The most squad moves of each kind `squadAt` reads after a moment. A season's moves in one
- *  league are a few hundred at most; past this it throws rather than return a wrong squad. */
+/** The most squad moves of each kind `squadAt` reads after a moment: Claude's sizing, well above a
+ *  season's moves in one league. Past it this throws rather than return a wrong squad. */
 export const SQUAD_MOVES_READ_MOST = 2000;
 
 export const squadRefusals = {

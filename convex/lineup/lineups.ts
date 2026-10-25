@@ -32,8 +32,9 @@ const sentLineup = v.object({
 
 /** A team's lineup in a gameweek: none while it has never saved one (what a team with none plays
  *  at a deadline is not settled), else the newest saved from that gameweek or before, as the squad
- *  has it (now, or at the deadline once the gameweek has begun). `leftSquad` names who dropped out of it for leaving the squad, `joinedBench` who
- *  joined the squad since and was put at the end of the bench, so a screen can say so. */
+ *  has it (now, or at the deadline once the gameweek has begun). `leftSquad` names who dropped out
+ *  of it for leaving the squad, `joinedBench` who joined the squad since and was put at the end of
+ *  the bench, so a screen can say so. */
 export const heldLineupShape = v.union(
   v.object({ kind: v.literal("none") }),
   v.object({
@@ -60,8 +61,8 @@ function rowInForce(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">,
 }
 
 /** The team's lineup in the gameweek, as `heldLineupShape` says: for its screen, auto-subs and
- *  scoring. Begun means its deadline is recorded (deadlineRecorder.ts); in the minutes before the
- *  football sync records it, the squad now is read, and a move made then leaves once it is.
+ *  scoring. Begun means its deadline is recorded (deadlineRecorder.ts); until the football sync
+ *  records it, the squad now is read, and a move made in between leaves the lineup once it does.
  *  Positions aren't checked again: a starter who has lost one since stays in his cell (spec/06,
  *  When positions change). */
 export async function lineupInGameweek(
