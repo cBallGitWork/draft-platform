@@ -9,13 +9,17 @@ import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { MY_TEAM_PATH, SCOUTING_PATH } from "../../../src/frame/menu";
 import {
   availabilityWords,
+  clubLabel,
   columns,
   countWords,
+  everyClubWords,
+  everyPositionWords,
   freeAgentWords,
   loadingWords,
   noFigureWords,
   noneMatchWords,
   noWaiversWords,
+  positionLabel,
   SCOUTING_TITLE,
   sortByLabel,
 } from "../../../src/scouting/words";
@@ -134,23 +138,36 @@ describe("the filters ask the server", () => {
 
   it("by position", async () => {
     const app = openScouting();
-    await userEvent.selectOptions(await screen.findByRole("combobox", { name: "Position" }), POSITION_NAMES.CAM);
+    await userEvent.selectOptions(await screen.findByRole("combobox", { name: positionLabel }), POSITION_NAMES.CAM);
     expect(lastAsk(app)[1].position).toBe("CAM");
     expect(namesShown()).toEqual(["Palmer"]);
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Position" }), "Every position");
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: positionLabel }), everyPositionWords);
     expect(lastAsk(app)[1].position).toBeNull();
   });
 
   it("by club, from the clubs the server holds", async () => {
     const app = openScouting();
-    await userEvent.selectOptions(await screen.findByRole("combobox", { name: "Club" }), "Arsenal");
+    await userEvent.selectOptions(await screen.findByRole("combobox", { name: clubLabel }), "Arsenal");
     expect(lastAsk(app)[1].clubCode).toBe(ARSENAL.code);
     expect(namesShown()).toEqual(["Rice", "Saka"]);
   });
 
+  it("while the next list loads, the last stays up and the club filter keeps its clubs and choice", async () => {
+    const app = openScouting();
+    const held = app.scouting.usePlayersList.getMockImplementation()!;
+    app.scouting.usePlayersList.mockImplementation((leagueId, filters, sort) => (filters.clubCode === null ? held(leagueId, filters, sort) : undefined));
+    const club = await screen.findByRole("combobox", { name: clubLabel });
+    await userEvent.selectOptions(club, "Arsenal");
+
+    expect((club as HTMLSelectElement).value).toBe(String(ARSENAL.code));
+    expect(within(club).getAllByRole("option").map((option) => option.textContent)).toEqual([everyClubWords, "Arsenal", "Chelsea"]);
+    expect(namesShown()).toEqual(["Palmer", "Rice", "Saka"]);
+    expect(screen.queryByText(loadingWords)).toBeNull();
+  });
+
   it("says so when none match", async () => {
     openScouting();
-    await userEvent.selectOptions(await screen.findByRole("combobox", { name: "Position" }), POSITION_NAMES.GK);
+    await userEvent.selectOptions(await screen.findByRole("combobox", { name: positionLabel }), POSITION_NAMES.GK);
     expect(screen.getByText(noneMatchWords)).toBeTruthy();
   });
 });

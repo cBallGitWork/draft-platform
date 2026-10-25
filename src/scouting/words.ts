@@ -41,5 +41,11 @@ export const noFigureWords = "—";
 export const noPointsYetWords = "No points yet: the app doesn't score matches yet.";
 export const noRoleFitYetWords = "No role fit yet: roles aren't built yet.";
 export const freeAgentWords = "Free agent";
+/** Between a player's positions: "CDM, CM". */
+export const positionsSeparator = ", ";
+/** Beside the head of the column sorted by, which way: decoration, as the head says so to screen
+ *  readers through aria-sort. */
+export const ascendingGlyph = "▲";
+export const descendingGlyph = "▼";
 /** A sortable column's head, for screen readers: what pressing it does. */
 export const sortByLabel = (column: string) => `Sort by ${column}`;

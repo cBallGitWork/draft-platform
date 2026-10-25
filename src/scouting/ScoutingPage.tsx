@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
 import { Loading, PANEL_BODY, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
@@ -7,10 +7,12 @@ import { POSITION_NAMES } from "../words";
 import type { Availability, ListedPlayer, PlayersFilters, PlayersList, PlayersSort, ScoutingSeam, SortColumn } from "./seam";
 import {
   availabilityLabel,
+  ascendingGlyph,
   availabilityWords,
   clubLabel,
   columns,
   countWords,
+  descendingGlyph,
   everyClubWords,
   everyPositionWords,
   freeAgentWords,
@@ -22,6 +24,7 @@ import {
   noWaiversWords,
   PLAYERS_TITLE,
   positionLabel,
+  positionsSeparator,
   SCOUTING_TITLE,
   sortByLabel,
 } from "./words";
@@ -34,7 +37,8 @@ const EVERY = "";
 
 const AVAILABILITIES: readonly Availability[] = ["all", "freeAgents", "onWaivers", "owned"];
 const OPENING_FILTERS: PlayersFilters = { availability: "all", position: null, clubCode: null };
-/** The list opens with the most points first; each column sorts first the way its head says. */
+/** The list opens with the most points first; a head pressed first sorts names A to Z and figures
+ *  most first. */
 const OPENING_SORT: PlayersSort = { by: "seasonPoints", descending: true };
 const FIRST_DESCENDING: Record<SortColumn, boolean> = { name: false, club: false, seasonPoints: true };
 
@@ -55,7 +59,13 @@ const cellClasses = (column: Column) =>
 export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: ScoutingSeam }) {
   const [filters, setFilters] = useState(OPENING_FILTERS);
   const [sort, setSort] = useState(OPENING_SORT);
-  const list = seam.usePlayersList(league.leagueId, filters, sort);
+  const loaded = seam.usePlayersList(league.leagueId, filters, sort);
+  // While a changed filter or sort loads, the last list stays up, so the club filter keeps its clubs.
+  const lastLoaded = useRef(loaded);
+  useEffect(() => {
+    if (loaded !== undefined) lastLoaded.current = loaded;
+  }, [loaded]);
+  const list = loaded ?? lastLoaded.current;
   const filterBy = (change: Partial<PlayersFilters>) => setFilters({ ...filters, ...change });
   const sortBy = (by: SortColumn) => setSort(by === sort.by ? { by, descending: !sort.descending } : { by, descending: FIRST_DESCENDING[by] });
   return (
@@ -176,13 +186,11 @@ function ColumnHead({ column, sort, sortBy }: { column: Column; sort: PlayersSor
       className={cellClasses(column)}
     >
       {by === undefined ? (
-        <abbr title={long} className="no-underline">
-          {short}
-        </abbr>
+        short
       ) : (
         <button type="button" aria-label={sortByLabel(long)} onClick={() => sortBy(by)} className="min-h-tap font-bold">
           {short}
-          {sorted && <span aria-hidden="true">{sort.descending ? " ▼" : " ▲"}</span>}
+          {sorted && <span aria-hidden="true"> {sort.descending ? descendingGlyph : ascendingGlyph}</span>}
         </button>
       )}
     </th>
@@ -212,7 +220,7 @@ function PlayerCell({ column, player }: { column: Column; player: ListedPlayer }
         <td className={className}>
           {player.positions.map((position, index) => (
             <span key={position}>
-              {index > 0 && ", "}
+              {index > 0 && positionsSeparator}
               <abbr title={POSITION_NAMES[position]} className="no-underline">
                 {position}
               </abbr>
