@@ -82,8 +82,9 @@ export const open = mutation({
   },
 });
 
-/** spec/16: the commissioner's one-way letter to the whole league. The co-commissioner and the
- *  admin may send one too, as they may do anything the commissioner does (spec/15). */
+/** spec/16: the commissioner's one-way letter to the whole league, pinned on league home until a
+ *  newer one (spec/12). The co-commissioner and the admin may send one too, as they may do anything
+ *  the commissioner does (spec/15). */
 export const writeToLeague = mutation({
   args: { leagueId: v.id("leagues"), subject: v.string(), body: v.string() },
   returns: v.null(),
@@ -96,6 +97,7 @@ export const writeToLeague = mutation({
     if ([...subject].length > SUBJECT_MAX) refuse(mailRefusals.subjectTooLong);
     if ([...body].length > BODY_MAX) refuse(mailRefusals.bodyTooLong);
     await fileLetter(ctx, league, await wholeLeague(ctx, league), { subject, body, from: email }, email);
+    await ctx.db.patch("leagues", league._id, { pinnedLetter: { at: Date.now(), from: email, subject, body } });
     return null;
   },
 });

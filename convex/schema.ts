@@ -408,6 +408,9 @@ const unemailedDeletionFields = {
 // Leagues (#24, spec/13). People are known by their email, trimmed and lower-cased, so a
 // commissioner or manager can be named before they have an account; the admin is ADMIN_EMAIL.
 
+/** A letter to the whole league, as league home pins it (spec/12). */
+export const pinnedLetter = v.object({ at: v.number(), from: v.string(), subject: v.string(), body: v.string() });
+
 const leagueFields = {
   name: v.string(),
   /** The league's own maximum, 2 to 20 (spec/13), which its commissioner changes. */
@@ -423,6 +426,10 @@ const leagueFields = {
   /** The gameweeks its commissioner unticked, in order (#74, convex/gameweeks/usedGameweeks.ts). Absent while
    *  it plays all 38, the default, so a league needs no write to have it. */
   unusedGameweeks: v.optional(v.array(v.number())),
+  /** The latest letter its commissioner, co-commissioner or the admin wrote to the whole league
+   *  (spec/16), pinned on league home until a newer one (spec/12); absent before the first. Its
+   *  copies are in `letters`, one a person, so this saves finding the newest among them. */
+  pinnedLetter: v.optional(pinnedLetter),
 };
 
 const teamFields = {
@@ -582,7 +589,10 @@ const leagueTables = {
   teams: defineTable(teamFields)
     .index("by_leagueId_and_number", ["leagueId", "number"])
     .index("by_managerEmail", ["managerEmail"]),
-  leagueEvents: defineTable(leagueEventFields).index("by_leagueId_and_at", ["leagueId", "at"]),
+  leagueEvents: defineTable(leagueEventFields)
+    .index("by_leagueId_and_at", ["leagueId", "at"])
+    // League home's latest squad moves of each kind (spec/12), without reading every other event.
+    .index("by_leagueId_and_kind_and_at", ["leagueId", "event.kind", "at"]),
   lastLeagues: defineTable(lastLeagueFields).index("by_email", ["email"]).index("by_leagueId", ["leagueId"]),
   unemailedDeletions: defineTable(unemailedDeletionFields),
 };
