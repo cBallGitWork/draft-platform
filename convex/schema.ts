@@ -1,7 +1,7 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v, type VLiteral } from "convex/values";
-import { scoringSetShape, storedLeagueRulesShape } from "./rules/leagueRulesShape";
+import { cellShape, scoringSetShape, storedLeagueRulesShape } from "./rules/leagueRulesShape";
 import { squadMaximumBandShape } from "./rules/squadMaximums";
 import { POSITIONS, type Position } from "./positions/positionTables";
 import { feedValidator } from "./shared/feedSchedule";
@@ -639,6 +639,24 @@ const playedFixtureTables = {
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
 };
 
+// Each team's lineup (#8, spec/05): a save is a row from the next gameweek not yet begun, and the
+// lineup in a gameweek is the newest row from it or before, so a lineup rolls over untouched
+// (lineup/lineups.ts). A second save before the same deadline replaces that gameweek's row.
+
+/** A starter and the cell he stands in: lineup.ts's Placement, its cell checked. */
+export const placementShape = cellShape.extend({ playerCode: v.number() });
+
+const lineupTables = {
+  lineups: defineTable({
+    leagueId: v.id("leagues"),
+    teamId: v.id("teams"),
+    fromGameweek: v.number(),
+    starters: v.array(placementShape),
+    /** Player codes, in the order auto-subs use. */
+    bench: v.array(v.number()),
+  }).index("by_leagueId_and_teamId_and_fromGameweek", ["leagueId", "teamId", "fromGameweek"]),
+};
+
 export default defineSchema({
   ...authTables,
   ...signInTables,
@@ -655,4 +673,5 @@ export default defineSchema({
   ...feedbackTables,
   ...leagueRulesTables,
   ...playedFixtureTables,
+  ...lineupTables,
 });
