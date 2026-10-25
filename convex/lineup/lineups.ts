@@ -4,9 +4,9 @@ import { mutation, query, type QueryCtx } from "../_generated/server";
 import { callerEmail, getLeague, refuse, refusals, teamOf } from "../shared/leagueAccess";
 import { heldSchedule, seasonRules, type SeasonRules } from "../rules/leagueRules";
 import { nextGameweek } from "../gameweeks/nextGameweek";
-import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
+import { passedDeadlineOf, passedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { GAMEWEEKS, isGameweek, noSuchGameweek } from "../gameweeks/usedGameweeks";
-import { squadOf } from "../squads/squads";
+import { squadAt, squadOf } from "../squads/squads";
 import { playerByCode } from "../shared/players";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
@@ -18,7 +18,9 @@ import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords"
 // Each team's lineup, stored (spec/05, The pitch; #8). A save is a row from the next gameweek
 // whose league deadline hasn't passed, and the lineup in a gameweek is the newest row from it or
 // before: "a lineup rolls over to the next gameweek if the manager doesn't touch it", with no cron.
-// It is read against the squad as it is now: a player who has left drops out, and one who has
+// It is read against the squad: as it is now for a gameweek not yet begun, and as it stood at the
+// deadline for one begun, so a move after the lock never reaches a locked lineup (spec/05, The
+// deadline: "it locks the whole lineup"; #415). A player who has left drops out, and one who has
 // joined sits at the end of the bench. Whether a lineup may stand is lineup.ts's; the screen,
 // auto-subs and scoring are not here.
 
@@ -30,7 +32,7 @@ const sentLineup = v.object({
 
 /** A team's lineup in a gameweek: none while it has never saved one (what a team with none plays
  *  at a deadline is not settled), else the newest saved from that gameweek or before, as the squad
- *  now has it. `leftSquad` names who dropped out of it for leaving the squad, `joinedBench` who
+ *  has it (now, or at the deadline once the gameweek has begun). `leftSquad` names who dropped out of it for leaving the squad, `joinedBench` who
  *  joined the squad since and was put at the end of the bench, so a screen can say so. */
 export const heldLineupShape = v.union(
   v.object({ kind: v.literal("none") }),
@@ -57,9 +59,11 @@ function rowInForce(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">,
     .first();
 }
 
-/** The team's lineup in the gameweek, as `heldLineupShape` says: for its screen now, and for
- *  auto-subs and scoring once they read it. Positions aren't checked again: a starter who has
- *  lost one since stays in his cell (spec/06, When positions change). */
+/** The team's lineup in the gameweek, as `heldLineupShape` says: for its screen, auto-subs and
+ *  scoring. Begun means its deadline is recorded (deadlineRecorder.ts); in the minutes before the
+ *  football sync records it, the squad now is read, and a move made then leaves once it is.
+ *  Positions aren't checked again: a starter who has lost one since stays in his cell (spec/06,
+ *  When positions change). */
 export async function lineupInGameweek(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
@@ -68,7 +72,9 @@ export async function lineupInGameweek(
 ): Promise<HeldLineup> {
   const row = await rowInForce(ctx, leagueId, teamId, gameweek);
   if (row === null) return { kind: "none" };
-  return { kind: "saved", fromGameweek: row.fromGameweek, ...reconciled(row, await squadCodes(ctx, teamId)) };
+  const deadline = await passedDeadlineOf(ctx, leagueId, gameweek);
+  const squad = deadline === null ? await squadCodes(ctx, teamId) : await squadAt(ctx, leagueId, teamId, deadline);
+  return { kind: "saved", fromGameweek: row.fromGameweek, ...reconciled(row, squad) };
 }
 
 /** The squad's player codes, in the order they joined it. */
@@ -76,7 +82,7 @@ async function squadCodes(ctx: QueryCtx, teamId: Id<"teams">): Promise<number[]>
   return (await squadOf(ctx, teamId)).map(({ playerCode }) => playerCode);
 }
 
-/** The saved lineup against the squad now: who has left drops out, leaving his cell empty, and
+/** The saved lineup against the squad: who has left drops out, leaving his cell empty, and
  *  who has joined goes to the end of the bench, in the order he joined. The bench is the smallest
  *  sound choice for a newcomer (a starter's cell would need a position check and a free cell):
  *  Claude's, not yet Craig's. */

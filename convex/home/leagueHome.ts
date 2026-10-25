@@ -3,7 +3,8 @@ import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines, seasonRules } from "../rules/leagueRules";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
-import { pinnedLetter, type leagueEvent } from "../schema";
+import { pinnedLetter } from "../schema";
+import { isSquadMove, SQUAD_MOVES } from "../squads/squads";
 import { memberOf, teamOf } from "../shared/leagueAccess";
 import { namedFixture } from "../table/roundRobin";
 import { fixture, standingsOf } from "../table/leagueTable";
@@ -16,10 +17,6 @@ import { shownRows, thisGameweekOf, TICKER_MOST } from "./glance";
 //
 // Whether a gameweek has begun needs the time, and a query must not read the clock: Convex caches a
 // query by its arguments (convex/_generated/ai/guidelines.md). So the screen passes `now`.
-
-/** The league's events league home lists as its claims, drops and trades. Today a commissioner
- *  assigns, moves and releases players (#31); waiver claims and trades join them when built. */
-export const SQUAD_MOVES = ["playerAssigned", "playerMoved", "playerReleased"] as const;
 
 const homeRow = v.object({
   position: v.number(),
@@ -59,10 +56,6 @@ export const leagueHome = v.object({
   pinnedLetter: v.union(v.null(), pinnedLetter),
 });
 export type LeagueHome = Infer<typeof leagueHome>;
-
-type LeagueEvent = Infer<typeof leagueEvent>;
-const isSquadMove = (event: LeagueEvent): event is Extract<LeagueEvent, { kind: (typeof SQUAD_MOVES)[number] }> =>
-  (SQUAD_MOVES as readonly string[]).includes(event.kind);
 
 /** The league's latest TICKER_MOST squad moves, newest first: that many of each kind read, by the
  *  index, so no other event is read. */

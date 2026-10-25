@@ -12,10 +12,14 @@ import { expectRefused, holdGameweeks, KICKS_OFF_IN, rulesWith } from "../../sup
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { FIRST_SUB, filledLineup, presetNamed } from "../../support/convex/lineup.harness";
+import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
+import { lineupInGameweek } from "../../../convex/lineup/lineups";
+import { SQUAD_MOVES_READ_MOST } from "../../../convex/squads/squads";
 
 // Storing a lineup (#8, spec/05: "A lineup rolls over to the next gameweek if the manager doesn't
 // touch it"): a save is from the next gameweek not begun, a read takes the newest from that
-// gameweek or before, and the squad as it is now decides who is still in it.
+// gameweek or before, and the squad decides who is still in it: as it is now for a gameweek not
+// begun, as it stood at the deadline for one begun (#415).
 
 const [ANN, BOB, , , OUTSIDER] = MANAGERS;
 const NEXT = 9;
@@ -140,6 +144,107 @@ describe("read against the squad as it is now", () => {
       leftSquad: [goneStarter, goneSub],
       joinedBench: [newcomer],
     });
+  });
+});
+
+describe("a begun gameweek keeps the squad as it stood at its deadline (#415)", () => {
+  /** Past gameweek NEXT's deadline, recorded as the football sync records it. */
+  const passNextDeadline = async () => {
+    vi.advanceTimersByTime(KICKS_OFF_IN - FPL_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS);
+    await t.run((ctx) => recordPassedDeadlines(ctx));
+  };
+  const commissioner = async () => {
+    const person = await actingAs(t, COMMISSIONER);
+    return {
+      assign: (playerCode: number, teamId: Id<"teams">) => person.mutation(api.squads.squads.assign, { leagueId, playerCode, teamId }),
+      move: (playerCode: number, teamId: Id<"teams">) => person.mutation(api.squads.squads.move, { leagueId, playerCode, teamId }),
+      release: (playerCode: number) => person.mutation(api.squads.squads.release, { leagueId, playerCode }),
+    };
+  };
+  /** Bob's lineup, written as it is stored: his one player on the bench. */
+  const bobsLineup = () =>
+    t.run((ctx) => ctx.db.insert("lineups", { leagueId, teamId: bobsTeam, fromGameweek: NEXT, starters: [], bench: [BOBS] }));
+  const lineupOf = (teamId: Id<"teams">, gameweek: number) => t.run((ctx) => lineupInGameweek(ctx, leagueId, teamId, gameweek));
+
+  test("a starter released, one moved and a newcomer assigned after it change only the next gameweek", async () => {
+    await (await as(ANN)).save(FOUR_FOUR_TWO);
+    await bobsLineup();
+    await passNextDeadline();
+    const [released, moved] = STARTERS;
+    const by = await commissioner();
+    await by.release(released);
+    await by.move(moved, bobsTeam);
+    await by.assign(FREE_AGENT, annsTeam);
+
+    expect(await lineupOf(annsTeam, NEXT)).toEqual(saved(FOUR_FOUR_TWO, NEXT));
+    expect(await lineupOf(bobsTeam, NEXT)).toEqual(saved({ starters: [], bench: [BOBS] }, NEXT));
+    expect(await lineupOf(annsTeam, NEXT + 1)).toEqual({
+      kind: "saved",
+      fromGameweek: NEXT,
+      starters: FOUR_FOUR_TWO.starters.filter(({ playerCode }) => playerCode !== released && playerCode !== moved),
+      bench: [...FOUR_FOUR_TWO.bench, FREE_AGENT],
+      leftSquad: [released, moved],
+      joinedBench: [FREE_AGENT],
+    });
+    expect(await lineupOf(bobsTeam, NEXT + 1)).toEqual({ ...saved({ starters: [], bench: [BOBS] }, NEXT), bench: [BOBS, moved], joinedBench: [moved] });
+  });
+
+  test("a player released after it and assigned back is in it once, as he was", async () => {
+    await (await as(ANN)).save(FOUR_FOUR_TWO);
+    await passNextDeadline();
+    const by = await commissioner();
+    await by.release(FIRST_SUB);
+    await by.assign(FIRST_SUB, annsTeam);
+
+    expect(await lineupOf(annsTeam, NEXT)).toEqual(saved(FOUR_FOUR_TWO, NEXT));
+  });
+
+  test("a player who left before it stays out of it, though he is back since", async () => {
+    await (await as(ANN)).save(FOUR_FOUR_TWO);
+    const by = await commissioner();
+    await by.release(FIRST_SUB);
+    await passNextDeadline();
+    await by.assign(FIRST_SUB, annsTeam);
+
+    expect(await lineupOf(annsTeam, NEXT)).toEqual({
+      ...saved(FOUR_FOUR_TWO, NEXT),
+      bench: FOUR_FOUR_TWO.bench.filter((playerCode) => playerCode !== FIRST_SUB),
+      leftSquad: [FIRST_SUB],
+    });
+  });
+
+  test("a player who joined before it but after the lineup was saved sits at the end of its bench", async () => {
+    await (await as(ANN)).save(FOUR_FOUR_TWO);
+    const by = await commissioner();
+    await by.assign(FREE_AGENT, annsTeam);
+    await passNextDeadline();
+    await by.release(FREE_AGENT);
+
+    expect(await lineupOf(annsTeam, NEXT)).toEqual({ ...saved(FOUR_FOUR_TWO, NEXT), bench: [...FOUR_FOUR_TWO.bench, FREE_AGENT], joinedBench: [FREE_AGENT] });
+  });
+
+  test("a squad history that doesn't fit the squad throws, never a quiet guess", async () => {
+    await (await as(ANN)).save(FOUR_FOUR_TWO);
+    await passNextDeadline();
+    await (await commissioner()).assign(FREE_AGENT, annsTeam);
+    // His row taken away by hand, with no event saying so.
+    await t.run(async (ctx) => {
+      const row = await ctx.db.query("squadPlayers").filter((q) => q.eq(q.field("playerCode"), FREE_AGENT)).unique();
+      if (row !== null) await ctx.db.delete("squadPlayers", row._id);
+    });
+
+    await expect(lineupOf(annsTeam, NEXT)).rejects.toThrow(`put player ${FREE_AGENT} on team ${annsTeam}, but he isn't in its squad after it`);
+  });
+
+  test(`more than ${SQUAD_MOVES_READ_MOST} moves of a kind since the deadline throws, never a cut`, async () => {
+    await (await as(ANN)).save(FOUR_FOUR_TWO);
+    await passNextDeadline();
+    const event = { kind: "playerReleased" as const, playerCode: FREE_AGENT, playerName: nameOf(FREE_AGENT), teamId: bobsTeam, teamName: "Bob's" };
+    await t.run(async (ctx) => {
+      for (let n = 0; n <= SQUAD_MOVES_READ_MOST; n += 1) await ctx.db.insert("leagueEvents", { leagueId, at: Date.now(), by: COMMISSIONER, event });
+    });
+
+    await expect(lineupOf(annsTeam, NEXT)).rejects.toThrow(`more than ${SQUAD_MOVES_READ_MOST} playerReleased moves`);
   });
 });
 
