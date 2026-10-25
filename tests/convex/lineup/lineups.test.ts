@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lineup } from "../../../convex/lineup/lineup";
 import { lineupRefusals } from "../../../convex/lineup/lineupWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { GAMEWEEKS, noSuchGameweek } from "../../../convex/gameweeks/usedGameweeks";
+import { FIRST_GAMEWEEK, GAMEWEEKS, noSuchGameweek } from "../../../convex/gameweeks/usedGameweeks";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import type { Position } from "../../../convex/positions/positionTables";
@@ -100,6 +100,13 @@ describe("a saved lineup", () => {
     expect(await ann.save(REVERSED_BENCH)).toBe(NEXT + 1);
     expect(await ann.mine(NEXT)).toEqual(saved(FOUR_FOUR_TWO, NEXT));
     expect(await ann.mine(NEXT + 1)).toEqual(saved(REVERSED_BENCH, NEXT + 1));
+  });
+
+  test("is from gameweek 1 before the season's gameweeks have arrived", async () => {
+    await t.run(async (ctx) => {
+      for (const row of await ctx.db.query("gameweeks").collect()) await ctx.db.delete("gameweeks", row._id);
+    });
+    expect(await (await as(ANN)).save(FOUR_FOUR_TWO)).toBe(FIRST_GAMEWEEK);
   });
 
   test("is refused once every gameweek has begun", async () => {
