@@ -38,7 +38,8 @@ function placeOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number) {
     .unique();
 }
 
-function squadOf(ctx: QueryCtx, teamId: Id<"teams">) {
+/** The team's squad rows, in the order its players joined it. */
+export function squadOf(ctx: QueryCtx, teamId: Id<"teams">) {
   return ctx.db
     .query("squadPlayers")
     .withIndex("by_teamId", (q) => q.eq("teamId", teamId))
