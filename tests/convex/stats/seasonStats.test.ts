@@ -2,9 +2,9 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { seasonStartYear } from "../../../convex/football/football";
 import { HOUR_MS } from "../../../convex/shared/time";
-import { REBUILD_PAGE } from "../../../convex/stats/seasonStats";
+import { countedStats, REBUILD_PAGE } from "../../../convex/stats/seasonStats";
 import { addStats, sumStats } from "../../../convex/stats/statTotals";
-import { FULL_TIME_READ, GAMEWEEK, KICKOFF, heldMatch, syncAt, withBelloumiGoalRemoved, withHullEverton } from "../../support/convex/matchStats.harness";
+import { FULL_TIME_READ, GAMEWEEK, KICKOFF, heldMatch, syncAt, withBelloumiGoalRemoved, withHullEverton, withPlReadEmpty } from "../../support/convex/matchStats.harness";
 import type { TestConvex } from "../../support/convex/test.harness";
 import { FULL_STATS, recordedGw6 } from "../../support/recorded/gw6.payloads";
 
@@ -21,7 +21,7 @@ const totalsHeld = async (t: TestConvex) =>
 
 /** Each player's held records at Hull v Everton, added up: what his totals should be. */
 async function recordsAddedUp(t: TestConvex) {
-  return new Map([...(await heldMatch(t)).records].map(([code, row]) => [code, sumStats([row.stats])] as const));
+  return new Map([...(await heldMatch(t)).records].map(([code, row]) => [code, sumStats([countedStats(row)])] as const));
 }
 
 test("a match's records written for the first time become each man's totals for its season", async () => {
@@ -29,9 +29,10 @@ test("a match's records written for the first time become each man's totals for 
   await syncAt(t, FULL_TIME_READ, recordedGw6());
 
   const totals = await totalsHeld(t);
-  const expected = await recordsAddedUp(t);
-  expect(totals.size).toBe(expected.size);
-  for (const [code, stats] of expected) expect(totals.get(code)).toMatchObject({ season: SEASON, stats });
+  for (const [code, stats] of await recordsAddedUp(t)) expect(totals.get(code)?.stats ?? {}).toEqual(stats);
+  expect([...totals.values()].every((row) => row.season === SEASON)).toBe(true);
+  // An unused substitute, all zeros, has nothing to count, so no row.
+  expect(totals.size).toBeLessThan((await heldMatch(t)).records.size);
 });
 
 test("a re-read that changes nothing leaves the totals as they were", async () => {
@@ -55,6 +56,28 @@ test("a correction moves his totals by the difference: a goal taken away comes o
   expect(goalsBefore).toBeGreaterThan(0);
   expect(belloumi.stats.goals_scored ?? 0).toBe(0);
   expect(belloumi.stats).toEqual((await recordsAddedUp(t)).get(FULL_STATS.belloumi.code));
+});
+
+test("a record counts once whole: one the Premier League hasn't sent yet adds nothing until it has", async () => {
+  const t = await withHullEverton();
+  await syncAt(t, FULL_TIME_READ, withPlReadEmpty(recordedGw6(), FULL_STATS.coyle.pl));
+  expect((await totalsHeld(t)).get(FULL_STATS.coyle.code)).toBeUndefined();
+
+  await syncAt(t, FULL_TIME_READ + HOUR_MS / 2, recordedGw6());
+
+  expect((await totalsHeld(t)).get(FULL_STATS.coyle.code)!.stats).toEqual((await recordsAddedUp(t)).get(FULL_STATS.coyle.code));
+});
+
+test("a correction to a record held before his totals were kept sets them from his records, never below them", async () => {
+  const t = await withHullEverton();
+  await syncAt(t, FULL_TIME_READ, recordedGw6());
+  await t.run(async (ctx) => {
+    for (const row of await ctx.db.query("playerSeasonStats").collect()) await ctx.db.delete("playerSeasonStats", row._id);
+  });
+
+  await syncAt(t, FULL_TIME_READ + HOUR_MS / 2, withBelloumiGoalRemoved(recordedGw6()));
+
+  expect((await totalsHeld(t)).get(FULL_STATS.belloumi.code)!.stats).toEqual((await recordsAddedUp(t)).get(FULL_STATS.belloumi.code));
 });
 
 test("two matches in a season add up; one in another season is kept apart", async () => {
@@ -107,7 +130,7 @@ test("rebuild sets every player's totals to his records added up, however wrong 
   await t.mutation(internal.stats.seasonStats.rebuild, { cursor: null });
   await t.finishAllScheduledFunctions(vi.runAllTimers);
   const rebuilt = await totalsHeld(t);
-  for (const [code, stats] of await recordsAddedUp(t)) expect(rebuilt.get(code)).toMatchObject({ season: SEASON, stats });
+  for (const [code, stats] of await recordsAddedUp(t)) expect(rebuilt.get(code)?.stats ?? {}).toEqual(stats);
 
   await t.mutation(internal.stats.seasonStats.rebuild, { cursor: null });
   await t.finishAllScheduledFunctions(vi.runAllTimers);

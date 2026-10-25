@@ -9,7 +9,7 @@ import { LATEST_RUNS } from "../shared/syncRuns";
 import { HOUR_MS, MINUTE_MS } from "../shared/time";
 import { currentFixtures } from "../shared/fixtures";
 import { emailIfFailed } from "../admin/feedFailureEmails";
-import { moveSeasonTotals, type RecordChange } from "./seasonStats";
+import { countedStats, moveSeasonTotals, type RecordChange } from "./seasonStats";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -167,13 +167,13 @@ export async function writeRecords(
       await ctx.db.insert("playerMatchStats", { ...record, state });
       inserted += 1;
       changed.push(record.playerCode);
-      moved.push({ playerCode: record.playerCode, fixtureCode: record.fixtureCode, before: undefined, after: record.stats });
+      moved.push({ playerCode: record.playerCode, fixtureCode: record.fixtureCode, before: undefined, after: countedStats(record) });
       continue;
     }
     const differs = !sameRecord(row, record);
     if (differs) {
       changed.push(record.playerCode);
-      moved.push({ playerCode: record.playerCode, fixtureCode: record.fixtureCode, before: row.stats, after: record.stats });
+      moved.push({ playerCode: record.playerCode, fixtureCode: record.fixtureCode, before: countedStats(row), after: countedStats(record) });
     }
     if (differs || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state });
   }
