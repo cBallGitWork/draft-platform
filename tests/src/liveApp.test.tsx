@@ -43,8 +43,6 @@ vi.mock("@convex-dev/auth/react", () => ({
   useAuthActions: () => ({ signIn: convex.signIn, signOut: convex.signOut }),
 }));
 
-window.scrollTo = () => {};
-
 /** A signed-in manager's account before joining any league. */
 const inNoLeague: NonNullable<typeof convex.account> = {
   email: "manager@example.com",
