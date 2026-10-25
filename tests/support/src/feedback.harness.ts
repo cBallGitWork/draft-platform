@@ -6,7 +6,7 @@ import type { FeedbackList, FeedbackSeam } from "../../../src/feedback/seam";
 /** What the fake server holds: the admin's list, and whether it is still on its way. */
 export type FeedbackData = { list?: FeedbackList; loading?: boolean };
 
-export const NO_FEEDBACK: FeedbackList = { entries: [], more: false };
+const NO_FEEDBACK: FeedbackList = { entries: [], more: false };
 
 /** Sending succeeds, unless a test says otherwise; `loading` keeps the list undefined. */
 export function fakeFeedback({ list = NO_FEEDBACK, loading = false }: FeedbackData = {}) {

@@ -5,6 +5,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { HOUR_MS } from "../../convex/shared/time";
 import { previewSays } from "../preview";
 import type { FeedbackList, FeedbackSeam } from "./seam";
+import { notSentWords } from "./words";
 
 const NEWEST = Date.parse("2026-10-24T21:15:00Z");
 
@@ -30,6 +31,6 @@ const list: FeedbackList = {
 };
 
 export const previewFeedback: FeedbackSeam = {
-  send: previewSays("your feedback wasn't sent"),
+  send: previewSays(notSentWords),
   useFeedbackList: () => list,
 };

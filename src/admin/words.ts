@@ -5,6 +5,7 @@ import type { ChangeThresholds } from "../../convex/positions/positionChanges";
 import type { ApproveMode, PositionSource } from "../../convex/positions/positions";
 import type { FeedState } from "../../convex/admin/feedState";
 import { FEED_NAMES } from "../../convex/shared/feedSchedule";
+import { FEEDBACK_TITLE } from "../feedback/words";
 import { LOCALE } from "../../convex/shared/londonTime";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
 import { versusWords, whenWords } from "../words";
@@ -19,7 +20,7 @@ export const loadingWords = "Loading the queue…";
 export const adminTabsLabel = "Admin";
 export const positionsTabWords = "Positions";
 export const feedsTabWords = "Feeds";
-export const feedbackTabWords = "Feedback";
+export const feedbackTabWords = FEEDBACK_TITLE;
 
 export const newSigningsTitle = "New signings";
 export const newSigningsHint = "No starts to go on yet, so each plays on the Premier League's label for him until you confirm it.";

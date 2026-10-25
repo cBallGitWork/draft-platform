@@ -2,11 +2,13 @@
 // opens one text box, which sends to the admin; the admin reads what was sent on his dashboard's
 // Feedback tab, with who sent it and when.
 
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { feedbackRefusals } from "../../../convex/feedback/feedback";
 import { FEEDBACK_MAX, FEEDBACK_SHOWN } from "../../../convex/feedback/feedbackLimits";
+import { MINUTE_MS } from "../../../convex/shared/time";
 import { ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH } from "../../../src/admin/paths";
 import {
   ADMIN_TITLE,
@@ -23,14 +25,15 @@ import { FEEDBACK_TITLE, feedbackLinkWords, messageLabel, sendWords, sentWords }
 import { TABLE_PATH } from "../../../src/frame/menu";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
+import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
 import { whenWords } from "../../../src/words";
-import { admin, commissioner, manager, newcomer, openApp } from "../../support/src/shell.harness";
+import { admin, commissioner, manager, newcomer, openApp, visitor } from "../../support/src/shell.harness";
 
 const SENT_AT = Date.parse("2026-10-24T20:00:00Z");
 const entry = (number: number, from: string, message: string): FeedbackList["entries"][number] => ({
   feedbackId: `feedback-${number}` as Id<"feedback">,
   from,
-  at: SENT_AT - number * 60_000,
+  at: SENT_AT - number * MINUTE_MS,
   message,
 });
 
@@ -53,9 +56,8 @@ describe("the Feedback link", () => {
   });
 
   it("a visitor is sent to sign in", async () => {
-    const app = openApp(FEEDBACK_PATH, { signedIn: false });
-    await screen.findByRole("button", { name: /link/i });
-    expect(app.path()).not.toBe(FEEDBACK_PATH);
+    const app = openApp(FEEDBACK_PATH, visitor);
+    await waitFor(() => expect(app.path()).toBe(SIGN_IN_PATH));
   });
 });
 
@@ -72,11 +74,11 @@ describe("sending", () => {
 
   it("the server's refusal is said in the alert strip, and what was typed stays", async () => {
     const app = openApp(FEEDBACK_PATH, manager);
-    app.feedback.send.mockResolvedValue("Write something first.");
+    app.feedback.send.mockResolvedValue(feedbackRefusals.blank);
     await userEvent.type(await screen.findByRole("textbox", { name: messageLabel }), "   ");
     await userEvent.click(screen.getByRole("button", { name: sendWords }));
 
-    expect(await screen.findByRole("alert")).toHaveProperty("textContent", "Write something first.");
+    expect(await screen.findByRole("alert")).toHaveProperty("textContent", feedbackRefusals.blank);
     expect(screen.queryByText(sentWords)).toBeNull();
     expect(box()).toHaveProperty("value", "   ");
   });
@@ -89,8 +91,8 @@ describe("the admin's Feedback tab", () => {
     openList({ entries: [entry(1, "ann@example.com", "Newest.\nTwo lines."), entry(2, "bob@example.com", "Older.")], more: false });
     const items = within(await screen.findByRole("list", { name: feedbackListTitle })).getAllByRole("listitem");
     expect(items.map((item) => item.textContent)).toEqual([
-      `ann@example.com${whenWords(SENT_AT - 60_000)}Newest.\nTwo lines.`,
-      `bob@example.com${whenWords(SENT_AT - 120_000)}Older.`,
+      `ann@example.com${whenWords(SENT_AT - MINUTE_MS)}Newest.\nTwo lines.`,
+      `bob@example.com${whenWords(SENT_AT - 2 * MINUTE_MS)}Older.`,
     ]);
   });
 

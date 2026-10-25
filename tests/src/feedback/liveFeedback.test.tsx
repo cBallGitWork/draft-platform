@@ -6,6 +6,7 @@ import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { afterEach, expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
+import { feedbackRefusals } from "../../../convex/feedback/feedback";
 import { useLiveFeedback } from "../../../src/feedback/liveFeedback";
 import { sendFailedWords } from "../../../src/feedback/words";
 
@@ -30,8 +31,8 @@ test("sending asks feedback/feedback:send with the message, and resolves with no
 });
 
 test("a refusal resolves with the server's own words", async () => {
-  convex.send.mockRejectedValue(new ConvexError("Write something first."));
-  expect(await seam().send(" ")).toBe("Write something first.");
+  convex.send.mockRejectedValue(new ConvexError(feedbackRefusals.blank));
+  expect(await seam().send(" ")).toBe(feedbackRefusals.blank);
 });
 
 test("any other failure is logged and said plainly", async () => {

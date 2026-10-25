@@ -21,6 +21,13 @@ beforeEach(async () => {
 
 const send = async (email: string, message: string) => (await actingAs(t, email)).mutation(api.feedback.feedback.send, { message });
 const list = async (email: string) => (await actingAs(t, email)).query(api.feedback.feedback.list, {});
+/** Stores messages numbered `first` to `last` from Ann straight into the table, a minute apart. */
+const storeMessages = (first: number, last: number) =>
+  t.run(async (ctx) => {
+    for (let number = first; number <= last; number++) {
+      await ctx.db.insert("feedback", { from: ANN, at: SENT_AT + number * MINUTE_MS, message: `Message ${number}` });
+    }
+  });
 /** Every stored message, as [from, message]. */
 const stored = () => t.run(async (ctx) => (await ctx.db.query("feedback").collect()).map((row) => [row.from, row.message]));
 
@@ -51,8 +58,8 @@ describe("sending", () => {
     expect(await stored()).toHaveLength(1);
   });
 
-  test("the limit counts characters, not UTF-16 units, so an emoji is one", async () => {
-    await send(ANN, "⚽".repeat(FEEDBACK_MAX));
+  test("the limit counts characters, not UTF-16 units, so an emoji of two units is one", async () => {
+    await send(ANN, "🙂".repeat(FEEDBACK_MAX));
     expect(await stored()).toHaveLength(1);
   });
 
@@ -86,11 +93,7 @@ describe("the admin's list", () => {
   });
 
   test(`past ${FEEDBACK_SHOWN}, it lists the newest and says more came, never a silent cut`, async () => {
-    await t.run(async (ctx) => {
-      for (let number = 0; number <= FEEDBACK_SHOWN; number++) {
-        await ctx.db.insert("feedback", { from: ANN, at: SENT_AT + number * MINUTE_MS, message: `Message ${number}` });
-      }
-    });
+    await storeMessages(0, FEEDBACK_SHOWN);
     const { entries, more } = await list(ADMIN);
     expect(entries).toHaveLength(FEEDBACK_SHOWN);
     expect(entries[0].message).toBe(`Message ${FEEDBACK_SHOWN}`);
@@ -99,11 +102,7 @@ describe("the admin's list", () => {
   });
 
   test(`at exactly ${FEEDBACK_SHOWN}, nothing more is said`, async () => {
-    await t.run(async (ctx) => {
-      for (let number = 1; number <= FEEDBACK_SHOWN; number++) {
-        await ctx.db.insert("feedback", { from: ANN, at: SENT_AT + number * MINUTE_MS, message: `Message ${number}` });
-      }
-    });
+    await storeMessages(1, FEEDBACK_SHOWN);
     expect((await list(ADMIN)).more).toBe(false);
   });
 });
