@@ -68,7 +68,7 @@ export function plTable<Club>(
     return row;
   };
   for (const result of results) {
-    checked(result);
+    throwIfUncountable(result);
     addResult(rowOf(result.home), result.homeGoals, result.awayGoals);
     addResult(rowOf(result.away), result.awayGoals, result.homeGoals);
   }
@@ -84,7 +84,7 @@ export function plTable<Club>(
   });
 }
 
-function checked<Club>({ home, away, homeGoals, awayGoals }: PlResult<Club>): void {
+function throwIfUncountable<Club>({ home, away, homeGoals, awayGoals }: PlResult<Club>): void {
   if (home === away) throw new Error(`A result has ${String(home)} playing itself`);
   for (const goals of [homeGoals, awayGoals]) {
     if (!Number.isInteger(goals) || goals < 0) {
