@@ -49,7 +49,8 @@ function TeamFixturesBody({ league, seam }: { league: LeagueSummary; seam: MyTea
 
 function GamesTable({ teamName, games }: { teamName: string; games: readonly Game[] }) {
   const now = useMinute();
-  // The next gameweek to play: the first whose deadline hasn't passed.
+  // The next gameweek to play: the first whose deadline hasn't passed. One with no deadline yet
+  // (no kickoff time) hasn't begun, as a passed deadline is always recorded (deadline.ts).
   const next = games.find((game) => !isLocked(game.deadline, now))?.gameweek;
   return (
     <table aria-label={fixturesTableLabel(teamName)} className="w-full border-collapse">
@@ -67,7 +68,7 @@ function GamesTable({ teamName, games }: { teamName: string; games: readonly Gam
           <tr
             key={`${game.gameweek}-${index}`}
             aria-current={game.gameweek === next || undefined}
-            className="border-t border-panel-rule aria-current:bg-stepper aria-current:shadow-current-edge"
+            className="border-t border-panel-rule aria-current:shadow-current-edge"
           >
             <td className="px-3 text-right">{game.gameweek}</td>
             <td className="px-3">{game.deadline === null ? noFigureWords : whenWords(game.deadline)}</td>
