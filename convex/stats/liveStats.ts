@@ -33,6 +33,8 @@ export async function liveMatches(ctx: QueryCtx, now: number): Promise<LiveMatch
     .query("fixtures")
     .withIndex("by_kickoff", (q) => q.gt("kickoff", now - LIVE_WINDOW_MS).lte("kickoff", now));
   const found: LiveMatch[] = [];
+  // Uncapped, as it stays small: matches kicked off within one LIVE_WINDOW_MS, so at most the ten
+  // a final day plays at once (#214).
   for await (const { code, gameweek, kickoff, droppedAt } of kickedOff) {
     if (droppedAt !== undefined || gameweek === null || kickoff === null) continue;
     const status = await statusOf(ctx, code);

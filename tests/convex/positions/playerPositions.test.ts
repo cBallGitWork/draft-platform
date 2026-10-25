@@ -4,7 +4,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, actingAs } from "../../support/convex/leagues.harness";
 import { PL_LAST_COMP_SEASON } from "../../../convex/football/football";
 import { asAdmin, heldPositions, newcastleMen, reported, synced, syncPositionsWith } from "../../support/convex/positionsSync.harness";
-import { NEWCASTLE, PLAYER, recordedPositions, SHEET } from "../../support/recorded/positions.payloads";
+import { BRENTFORD_CODE, NEWCASTLE, PLAYER, recordedPositions, SHEET } from "../../support/recorded/positions.payloads";
 import { freshConvex, silenceConsoleError } from "../../support/convex/test.harness";
 
 test("until the admin approves them, a player's starts are proposals and he plays on his label, unconfirmed", async () => {
@@ -204,7 +204,6 @@ describe("finding a player to correct (#87)", () => {
   test("the queue carries the clubs, by name, and how starts count", async () => {
     const t = await synced();
     await t.run(async (ctx) => {
-      await ctx.db.insert("clubs", { code: NEWCASTLE.code, name: "Newcastle", shortName: "NEW" });
       await ctx.db.insert("clubs", { code: 3, name: "Arsenal", shortName: "ARS" });
       await ctx.db.insert("clubs", { code: 99, name: "Relegated", shortName: "REL", droppedAt: Date.now() });
     });
@@ -212,6 +211,7 @@ describe("finding a player to correct (#87)", () => {
     expect(await admin.query(api.positions.playerPositions.queue, {})).toMatchObject({
       clubs: [
         { code: 3, name: "Arsenal" },
+        { code: BRENTFORD_CODE, name: "Brentford" },
         { code: NEWCASTLE.code, name: "Newcastle" },
       ],
       approveMode: "proposals",
