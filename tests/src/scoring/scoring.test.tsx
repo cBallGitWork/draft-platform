@@ -5,11 +5,11 @@
 import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { gameweekWords } from "../../../src/words";
-import { blankBoxWords, byAreaWords, byPositionWords, columnWords, everyoneWords, limitWords, loadingWords, minutesWords, noRulesWords, savedWords, SCORING_TITLE, shapeWords, wholePointsWords } from "../../../src/scoring/words";
+import { blankBoxWords, byAreaWords, byPositionWords, columnWords, everyoneWords, limitWords, loadingWords, minutesWords, savedWords, SCORING_TITLE, shapeWords, wholePointsWords } from "../../../src/scoring/words";
 import { discardWords, saveWords, unchangedWords } from "../../../src/rules/words";
 import { CHANGES_FROM } from "../../support/src/scoring.harness";
 import { box, categories, choose, openScoring, retype, save, savedSet, SCORING_PAGE } from "../../support/src/scoringScreen.harness";
@@ -28,7 +28,7 @@ describe("reaching the editor", () => {
 
     expect(await screen.findByRole("heading", { level: 1, name: SCORING_TITLE })).toBeTruthy();
     expect(app.path()).toBe(PAGE);
-    expect(app.scoring.useScoring).toHaveBeenCalledWith(league.leagueId);
+    expect(app.scoring.useScoring).toHaveBeenCalled();
   });
 
   it("a manager isn't offered it, and is sent back to Your leagues if they go there", async () => {
@@ -97,10 +97,9 @@ describe("#30 Done: an edit saves, from the next gameweek", () => {
     await save();
 
     expect(app.scoring.save).toHaveBeenCalledOnce();
-    expect(app.scoring.save.mock.calls[0][0]).toBe(league.leagueId);
     expect(savedSet(app)).toEqual({
-      ...FIRST_RULES.scoring,
-      rules: FIRST_RULES.scoring.rules.map((rule) => (rule.stat === "assists" ? { ...rule, values: { all: 4 } } : rule)),
+      ...FIRST_SCORING,
+      rules: FIRST_SCORING.rules.map((rule) => (rule.stat === "assists" ? { ...rule, values: { all: 4 } } : rule)),
     });
     expect((await screen.findByRole("status")).textContent).toBe(savedWords(CHANGES_FROM));
   });
@@ -159,15 +158,8 @@ describe("#30 Done: an edit saves, from the next gameweek", () => {
   });
 });
 
-describe("while the server answers, or has nothing", () => {
-  it("says the scoring is loading, to screen readers too", async () => {
-    openScoring({ loading: true });
-    await screen.findByRole("heading", { level: 1, name: SCORING_TITLE });
-    expect(screen.getByRole("status").textContent).toBe(loadingWords);
-  });
-
-  it("says a league made before rules were held has none to edit", async () => {
-    openScoring({ view: null });
-    expect(await screen.findByText(noRulesWords)).toBeTruthy();
-  });
+it("says the scoring is loading while the server answers, to screen readers too", async () => {
+  openScoring({ loading: true });
+  await screen.findByRole("heading", { level: 1, name: SCORING_TITLE });
+  expect(screen.getByRole("status").textContent).toBe(loadingWords);
 });

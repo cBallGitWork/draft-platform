@@ -2,7 +2,8 @@ import { expect, expectTypeOf, test } from "vitest";
 import type { DeadlineRule } from "../../../convex/gameweeks/deadline";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { lineupProblems, type LineupRules } from "../../../convex/lineup/lineup";
-import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
+import type { LeagueRules, StoredScoringSet } from "../../../convex/rules/leagueRulesShape";
+import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { DEFAULT_PRESETS, type Preset } from "../../../convex/lineup/presets";
 import type { DrawRules, OddTeamOut } from "../../../convex/table/roundRobin";
 import { scoreGameweek, scoreMatch, type DoubleGameweekRule } from "../../../convex/scoring/scoring";
@@ -22,7 +23,7 @@ type Writable<T> = T extends readonly (infer Item)[]
     : T;
 
 test("each stored part is its module's input type", () => {
-  expectTypeOf<LeagueRules["scoring"]>().toEqualTypeOf<Writable<ScoringSet>>();
+  expectTypeOf<StoredScoringSet>().toEqualTypeOf<Writable<ScoringSet>>();
   expectTypeOf<LeagueRules["areaLimits"]>().toEqualTypeOf<Writable<LineupRules["areaLimits"]>>();
   expectTypeOf<LeagueRules["presets"]>().toEqualTypeOf<Writable<Preset[]>>();
   expectTypeOf<LeagueRules["deadline"]>().toEqualTypeOf<DeadlineRule>();
@@ -38,8 +39,8 @@ test("the first rules' presets are the eleven every league starts with", () => {
 });
 
 test("stored rules pass straight into scoring and the lineup check", () => {
-  const { scoring, areaLimits, doubleGameweek } = FIRST_RULES;
-  const match = scoreMatch({ minutes: 90, goals_scored: 1 }, scoring, centreOf("attack"));
+  const { areaLimits, doubleGameweek } = FIRST_RULES;
+  const match = scoreMatch({ minutes: 90, goals_scored: 1 }, FIRST_SCORING, centreOf("attack"));
   expect(match.total).toBe(6);
   expect(scoreGameweek([match], doubleGameweek)).toEqual({ points: 6, provisional: false });
   expect(lineupProblems({ starters: [], bench: [] }, new Map(), { areaLimits })).toContainEqual({

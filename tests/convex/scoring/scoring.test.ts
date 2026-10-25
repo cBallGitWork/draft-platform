@@ -160,7 +160,7 @@ describe("bad data throws rather than score", () => {
   test("a set saved before #135, with a rule on a stat no record holds, throws rather than pay 0 in it", () => {
     const typo: ScoringSet = { rules: [{ shape: "perAction", stat: "goals_scroed", values: { all: 5 } }], wholePointsOnly: false };
     expect(() => scoreMatch(dewsburyHall, typo, centreOf("midfield"))).toThrow(
-      'rule 1 of the scoring set scores "goals_scroed", which is neither a catalogue stat nor one of the league\'s own',
+      'rule 1 of the scoring set scores "goals_scroed", which is neither a catalogue stat nor one of the set\'s own stats',
     );
   });
 

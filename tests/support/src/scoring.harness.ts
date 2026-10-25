@@ -1,21 +1,23 @@
-// The rules editor's tests' fake seam (shell.harness.tsx hands it to the app).
+// Player scoring's tests' fake seam (shell.harness.tsx hands it to the app).
 
 import { vi } from "vitest";
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
-import type { Revision } from "../../../src/rules/rulesDraft";
-import type { ScoringSeam, ScoringView } from "../../../src/scoring/seam";
+import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
+import type { ScoringSeam, ScoringView, SiteRevision } from "../../../src/scoring/seam";
 
 /** The gameweek the fake server says a change takes effect from. */
 export const CHANGES_FROM = 9;
-/** The rules row the fake server's set is from. */
-export const REVISION = "rules-1" as Revision;
+/** The site's version the fake server's set is. */
+export const REVISION = "site-scoring-1" as SiteRevision;
 
-/** What the fake server holds: the scoring set as `view` says, the first rules' by default; null
- *  for a league with no rules; `loading` keeps it on its way (undefined). */
-export type ScoringData = { view?: ScoringView | null; loading?: boolean };
+/** What the fake server holds: the scoring set as `view` says, the first set by default, which
+ *  the reader may edit (the admin); `loading` keeps it on its way (undefined). */
+export type ScoringData = { view?: ScoringView; loading?: boolean };
+
+/** The view the fake server gives by default: the first set, as the admin reads it. */
+export const ADMINS_VIEW: ScoringView = { part: FIRST_SCORING, revision: REVISION, changesFrom: CHANGES_FROM, canEdit: true };
 
 /** Saving succeeds from CHANGES_FROM, unless a test says otherwise. */
-export function fakeScoring({ view = { part: structuredClone(FIRST_RULES.scoring), revision: REVISION, changesFrom: CHANGES_FROM }, loading = false }: ScoringData = {}) {
+export function fakeScoring({ view = structuredClone(ADMINS_VIEW), loading = false }: ScoringData = {}) {
   return {
     useScoring: vi.fn<ScoringSeam["useScoring"]>(() => (loading ? undefined : view)),
     save: vi.fn<ScoringSeam["save"]>(async () => CHANGES_FROM),

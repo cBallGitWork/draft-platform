@@ -2,15 +2,14 @@ import { FPL_DEADLINE_RULE } from "../gameweeks/deadline";
 import type { LeagueRules } from "./leagueRulesShape";
 import { AREAS, type Area } from "../lineup/pitch";
 import { DEFAULT_PRESETS } from "../lineup/presets";
-import { FIRST_SCORING } from "../scoring/firstScoring";
 import type { DrawRules, OddTeamOut } from "../table/roundRobin";
 
 // The first rules a deployment gives a new league (#25), used once: the first league created
 // copies them into the admin's default rules row (`defaultLeagueRules`), and every league after
 // copies that row, which the admin edits (leagueRules.ts says how). Once that row exists, nothing
 // reads this file but `drawRulesOf`, for rules saved before the odd team out and games a gameweek
-// were among them. The scoring is the site's first set (../scoring/firstScoring.ts; spec/14, Who
-// owns it), which leagues stop holding in #354.
+// were among them. The scoring is not a league's rule but the site's (spec/14, Who owns it):
+// ../scoring/firstScoring.ts holds the first set.
 //
 // Only the presets, the deadline, the double-gameweek rule, the odd team out and games a gameweek
 // are the spec's own (spec/05, spec/03, spec/09). The rest is a guess marked where it stands,
@@ -56,5 +55,4 @@ export const FIRST_RULES: LeagueRules = {
   // guess: the doc's live 23-hour minimum waiver period has no rule here: spec/03
   // sets only when waivers run and the order.
   waivers: { runs: [{ day: "tuesday", hour: 23, minute: 0 }], order: "reverseStandings" },
-  scoring: structuredClone(FIRST_SCORING),
 };

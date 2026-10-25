@@ -6,18 +6,18 @@ import { useMinute } from "../useMinute";
 import type { ScoringSeam } from "./seam";
 import { saveFailedWords } from "./words";
 
-/** Asked again each minute, so the gameweek a change takes effect from moves on at a deadline. */
-const useScoring: ScoringSeam["useScoring"] = (leagueId) => useQuery(api.rules.leagueRules.scoring, { leagueId, now: useMinute() });
+/** Asked again each minute, so the gameweek a change takes effect from moves on at a kickoff. */
+const useScoring: ScoringSeam["useScoring"] = () => useQuery(api.scoring.siteScoring.view, { now: useMinute() });
 
-/** The rules editor's seam filled in by Convex. A refusal comes back as the server's own words
- *  (convex/rules/leagueRules.ts); any other failure is logged and said plainly. */
+/** Player scoring's seam filled in by Convex. A refusal comes back as the server's own words
+ *  (convex/scoring/siteScoring.ts); any other failure is logged and said plainly. */
 export function useLiveScoring(): ScoringSeam {
-  const changeScoring = useMutation(api.rules.leagueRules.changeScoring);
+  const change = useMutation(api.scoring.siteScoring.change);
   return useMemo(
     () => ({
       useScoring,
-      save: (leagueId, scoring, revision) => answerOf(() => changeScoring({ leagueId, scoring, revision }), "Saving the scoring", saveFailedWords),
+      save: (scoring, revision) => answerOf(() => change({ scoring, revision }), "Saving the scoring", saveFailedWords),
     }),
-    [changeScoring],
+    [change],
   );
 }

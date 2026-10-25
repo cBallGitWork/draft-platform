@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import { drawRulesOf, FIRST_RULES } from "../../../convex/rules/firstRules";
+import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { fplStatLines } from "../../../convex/football/fplLive";
 import bootstrap from "../../support/recorded/fpl-gw6-bootstrap.json";
 import live from "../../support/recorded/fpl-gw6-live.json";
@@ -27,7 +28,7 @@ test("the first scoring set gives FPL's points less bonus to all 40 recorded men
     const line = lines.find((each) => each.playerCode === code);
     const position = positionOf.get(code ?? -1);
     if (line === undefined || position === undefined) throw new Error(`no recorded line for FPL player ${element.id}`);
-    const { total } = scoreMatch(line.stats, FIRST_RULES.scoring, centreOf(AREA_OF_POSITION[position]));
+    const { total } = scoreMatch(line.stats, FIRST_SCORING, centreOf(AREA_OF_POSITION[position]));
     expect({ code, total }).toEqual({ code, total: element.stats.total_points - element.stats.bonus });
   }
 });
@@ -53,7 +54,7 @@ const RARE: [string, Area, Record<string, number>, number][] = [
 ];
 
 test.each(RARE)("the first scoring set pays %s in %s as FPL does", (_name, area, stat, points) => {
-  expect(scoreMatch({ minutes: 90, ...stat }, FIRST_RULES.scoring, centreOf(area)).total).toBe(2 + points);
+  expect(scoreMatch({ minutes: 90, ...stat }, FIRST_SCORING, centreOf(area)).total).toBe(2 + points);
 });
 
 test("the team left over plays the league's average, one game a gameweek, in the first rules and in rules saved before those were rules", () => {

@@ -4,7 +4,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { rulesInGameweek } from "../../../convex/rules/leagueRules";
-import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
+import type { LeagueRules, StoredScoringSet } from "../../../convex/rules/leagueRulesShape";
+import { siteScoringInGameweek } from "../../../convex/scoring/siteScoring";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { centreOf, EXAMPLE_SET } from "../../support/convex/scoring.example";
 import { expectRefused, holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
@@ -56,18 +57,29 @@ describe("a new league", () => {
   });
 });
 
-test("two leagues hold different rules side by side, and the same match scores differently", async () => {
+test("two leagues hold different rules side by side, and the same match scores the same in both, by the site's set (#354)", async () => {
   const first = await adminCreatesLeague(t, 4, "First");
   const second = await adminCreatesLeague(t, 4, "Second");
-  const priced = rulesWith({ format: "totalPoints", scoring: structuredClone(EXAMPLE_SET) as LeagueRules["scoring"] });
-  await change(second, priced);
+  await change(second, TOTAL_POINTS);
 
   expect((await latest(first))?.rules).toEqual(HELD_FIRST_RULES);
-  expect((await latest(second))?.rules).toEqual(priced);
-  const goalIn = async (leagueId: Id<"leagues">) =>
-    scoreMatch({ minutes: 90, goals_scored: 1 }, (await inGameweek(leagueId, 1)).scoring, centreOf("defensiveMidfield")).total;
+  expect((await latest(second))?.rules).toEqual(TOTAL_POINTS);
+  const goalIn = async (leagueId: Id<"leagues">) => {
+    expect(await inGameweek(leagueId, 1)).not.toHaveProperty("scoring");
+    return scoreMatch({ minutes: 90, goals_scored: 1 }, await t.run((ctx) => siteScoringInGameweek(ctx, 1)), centreOf("defensiveMidfield")).total;
+  };
   expect(await goalIn(first)).toBe(7);
-  expect(await goalIn(second)).toBe(8);
+  expect(await goalIn(second)).toBe(7);
+});
+
+test("a rules row saved before #354, carrying the league's own scoring, reads without it", async () => {
+  const leagueId = await adminCreatesLeague(t);
+  await t.run(async (ctx) => {
+    await ctx.db.insert("leagueRules", { leagueId, fromGameweek: 1, rules: { ...TOTAL_POINTS, scoring: structuredClone(EXAMPLE_SET) as StoredScoringSet } });
+  });
+
+  expect((await latest(leagueId))?.rules).toEqual(TOTAL_POINTS);
+  expect(await inGameweek(leagueId, 1)).toEqual(TOTAL_POINTS);
 });
 
 describe("a commissioner's change", () => {

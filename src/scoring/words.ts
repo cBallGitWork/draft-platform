@@ -1,6 +1,7 @@
-// What the rules editor says, in one place for Craig to change in the pull request. Why the server
-// refused a change is in convex/rules/ (`rulesRefusals`, and the scoring set's reasons in
-// convex/scoring/scoringSet.ts), and reaches the screen as is.
+// What Player scoring and the rules editor say, in one place for Craig to change in the pull
+// request. Why the server refused a change is in convex/scoring/siteScoring.ts
+// (`siteScoringRefusals`, and the scoring set's reasons in convex/scoring/scoringSet.ts), and
+// reaches the screen as is.
 
 import type { SlotPosition } from "../../convex/lineup/pitch";
 import { failedWords, gameweekWords } from "../words";
@@ -9,7 +10,6 @@ import type { PerCount, Pricing, Shape } from "./editing";
 export const SCORING_TITLE = "Player scoring";
 export const categoriesLabel = "Categories";
 export const loadingWords = "Loading the scoring…";
-export const noRulesWords = "This league was made before leagues held their rules, so it has no scoring to edit yet.";
 
 /** The left pane's summary of a category's values, beside its name. */
 export const pricingWords: Record<Exclude<Pricing, "all">, string> = { byArea: "By area", byPosition: "By position" };
@@ -79,7 +79,7 @@ export const POSITION_WORDS: Record<SlotPosition, string> = {
 
 /** The bottom bar. */
 export const wholePointsWords = "Whole points only";
-export const savedWords = (gameweek: number) => `Saved. The new scoring applies from ${gameweekWords(gameweek)}, and the league has a letter saying so.`;
+export const savedWords = (gameweek: number) => `Saved. The new scoring applies to every league from ${gameweekWords(gameweek)}.`;
 export const blankBoxWords = (category: string) => `${category} has a box without a number. Fill it in, then save.`;
 
 /** What a failed save leaves, live or in the preview. */

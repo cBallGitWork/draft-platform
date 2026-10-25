@@ -1,5 +1,6 @@
-// A league's scoring set: the shape #25 stores, and the check that refuses a bad one (spec/14, How
-// a rule scores). The set is the league's rule, so it is always data handed in, never a constant.
+// The site's scoring set (spec/14, Who owns it; #354): its shape, and the check that refuses a
+// bad one (spec/14, How a rule scores). The set is data the admin saves, so scoring is always handed
+// it.
 
 import { AREAS, SLOT_POSITIONS, type Area, type SlotPosition } from "../lineup/pitch";
 import { categoryName } from "./categories";
@@ -69,7 +70,7 @@ export interface BandsRule extends RuleOptions {
  *  record (#27); the catalogue fixes those names (spec/14, written with the first scoring set). */
 export type ScoringRule = PerActionRule | PerCountRule | BandsRule;
 
-/** A league's scoring set. A stat no rule names scores nothing, FPL's bonus among them. Points
+/** A scoring set. A stat no rule names scores nothing, FPL's bonus among them. Points
  *  are kept in tenths; `wholePointsOnly` refuses any fraction, and counts an own stat's whole
  *  actions only (spec/14). */
 export interface ScoringSet {
@@ -106,7 +107,7 @@ export function validateScoringSet(set: unknown): asserts set is ScoringSet {
 }
 
 /** A rule is named by its category's full name, as the rules editor shows it (spec/14). It scores
- *  a catalogue stat or one of the league's own, never a key no record holds: a typo such as
+ *  a catalogue stat or one of the set's own, never a key no record holds: a typo such as
  *  `goals_scroed` would otherwise pay every player 0 in it, with no error (#135). */
 function validateRule(
   rule: unknown,
@@ -119,7 +120,7 @@ function validateRule(
   const { stat, shape } = rule;
   if (typeof stat !== "string" || stat === "") throw new Error(`rule ${position} of the scoring set names no stat`);
   if (!isScorable(stat)) {
-    throw new Error(`rule ${position} of the scoring set scores ${showValue(stat)}, which is neither a catalogue stat nor one of the league's own`);
+    throw new Error(`rule ${position} of the scoring set scores ${showValue(stat)}, which is neither a catalogue stat nor one of the set's own stats`);
   }
   const named = `the ${nameOf(stat)} rule`;
   if (shape !== "perAction" && shape !== "perCount" && shape !== "bands") {
@@ -201,11 +202,11 @@ function validateMinutes(minutes: unknown, where: string): void {
   if (minutes < 0) throw new Error(`${where} is ${minutes}; it can't be less than 0`);
 }
 
-/** A number of points: a number, in tenths, and whole when the league counts whole points only. */
+/** A number of points: a number, in tenths, and whole when the set counts whole points only. */
 function requirePoints(value: unknown, what: string, wholePointsOnly: boolean): void {
   requireNumber(value, what);
   if (wholePointsOnly && !Number.isInteger(value)) {
-    throw new Error(`${what} ${value}, but the league counts whole points only`);
+    throw new Error(`${what} ${value}, but the set counts whole points only`);
   }
   if (!isInTenths(value)) throw new Error(`${what} ${value}; points are kept in tenths`);
 }

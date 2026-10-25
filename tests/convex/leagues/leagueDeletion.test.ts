@@ -88,7 +88,6 @@ describe("while it can be undone", () => {
       "joining/joinRequests:refuseRequest": () => admin.mutation(api.joining.joinRequests.refuseRequest, { requestId }),
       "gameweeks/leagueGameweeks:setUsed": () => admin.mutation(api.gameweeks.leagueGameweeks.setUsed, { leagueId, gameweek: 38, used: false }),
       "rules/leagueRules:change": () => admin.mutation(api.rules.leagueRules.change, { leagueId, rules: structuredClone(FIRST_RULES), revision }),
-      "rules/leagueRules:changeScoring": () => admin.mutation(api.rules.leagueRules.changeScoring, { leagueId, scoring: structuredClone(FIRST_RULES.scoring), revision }),
       "rules/leagueSettings:changeSettings": () =>
         admin.mutation(api.rules.leagueSettings.changeSettings, { leagueId, settings: { ...leagueSettingsOf(FIRST_RULES), oddTeamOut: "bye", gamesPerGameweek: 2 }, revision }),
       "leagues/lastLeague:switchTo": () => commissioner.mutation(api.leagues.lastLeague.switchTo, { leagueId }),

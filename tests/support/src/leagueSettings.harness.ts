@@ -4,7 +4,11 @@ import { vi } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
 import type { LeagueSettingsSeam, SettingsView } from "../../../src/leagueSettings/seam";
-import { CHANGES_FROM, REVISION } from "./scoring.harness";
+import type { Revision } from "../../../src/rules/rulesDraft";
+import { CHANGES_FROM } from "./scoring.harness";
+
+/** The rules row the fake server's settings are from. */
+export const REVISION = "rules-1" as Revision;
 
 /** What the fake server holds: the settings as `view` says, the first rules' by default; null for
  *  a league with no rules; `loading` keeps them on their way (undefined). */
