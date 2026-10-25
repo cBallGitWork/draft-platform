@@ -51,6 +51,7 @@ export const siteScoringRefusals = {
   noDraft: "There's no draft patch to announce: save one first.",
   draftOvertaken: (name: string) => `Version ${name} was announced after this draft was made, so it can't be announced: make it again from ${name}.`,
   draftUnchanged: "The draft patch changes nothing, so it wasn't announced.",
+  notAMoment: "The moment the patch takes effect from isn't a date and time, so it wasn't announced.",
   tooSoon: (earliest: number) =>
     `A patch takes effect at least ${PATCH_NOTICE_DAYS} days after it is announced: no sooner than ${londonTime(earliest)}, so it wasn't announced.`,
   beforeWaiting: (name: string, at: number) => `Version ${name} takes effect on ${londonTime(at)}, so this one can't take effect before it.`,
@@ -200,6 +201,8 @@ export const announce = mutation({
     const latest = history.at(-1);
     if (latest !== undefined && latest._id !== draft.madeFrom) refuse(siteScoringRefusals.draftOvertaken(versionName(latest)));
     if (sortedJson(latest?.scoring ?? FIRST_SCORING) === sortedJson(draft.scoring)) refuse(siteScoringRefusals.draftUnchanged);
+    // NaN is never less than the earliest, so it would pass the check below.
+    if (!Number.isFinite(takesEffectAt)) refuse(siteScoringRefusals.notAMoment);
     const earliest = Date.now() + PATCH_NOTICE_MS;
     if (takesEffectAt < earliest) refuse(siteScoringRefusals.tooSoon(earliest));
     if (latest !== undefined && takesEffectAt < latest.takesEffectAt) refuse(siteScoringRefusals.beforeWaiting(versionName(latest), latest.takesEffectAt));

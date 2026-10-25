@@ -162,6 +162,13 @@ describe("announcing a patch", () => {
     expect(await eventsIn(t, leagueId)).toEqual(events);
   });
 
+  test.each([Number.NaN, Number.POSITIVE_INFINITY])("at %s is refused, as no moment", async (takesEffectAt) => {
+    await saveDraftAs(ADMIN, EDITED);
+
+    await expectRefused(announceAs(ADMIN, takesEffectAt), siteScoringRefusals.notAMoment);
+    expect(await versions()).toBe(0);
+  });
+
   test("with no draft is refused", async () => {
     await expectRefused(announceAs(ADMIN, TODAY + NOTICE, TODAY), siteScoringRefusals.noDraft);
   });
