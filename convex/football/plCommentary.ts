@@ -1,6 +1,6 @@
 // One match's commentary as the Premier League writes it, each line with its minute and its men
 // as FPL's codes (#37). The feed's own words and event types are kept as they came: the platform's
-// own CM-terse lines (spec/10, The commentary) are built from these later.
+// own CM-terse lines (spec/10, The commentary) are written from these by `commentary.ts`.
 // Men are matched through the bridge in `feedIds.ts`, on the match's own team sheets.
 
 import { matchPlayers, namedMen, type UnmatchedPlayer } from "./feedIds";
