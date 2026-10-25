@@ -4,11 +4,10 @@ import type { LeagueGameweek } from "../../convex/gameweeks/leagueGameweeks";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, PageSection, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
-import { gameweekWords } from "../words";
+import { gameweekWords, whenWords } from "../words";
 import type { LeagueGameweeksView } from "./seam";
 import {
   begunWords,
-  deadlineWords,
   gameweekColumns,
   GAMEWEEKS_TITLE,
   howTickingWorks,
@@ -113,7 +112,7 @@ function DeadlineCell({ deadline, begun }: { deadline: number | null; begun: boo
   if (deadline === null || begun) {
     return <td className={`${cellClasses} text-muted`}>{deadline === null ? noDeadlineWords : begunWords}</td>;
   }
-  return <td className={cellClasses}>{deadlineWords(deadline)}</td>;
+  return <td className={cellClasses}>{whenWords(deadline)}</td>;
 }
 
 /** The box's look: white when ticked, muted when it can't be changed. */

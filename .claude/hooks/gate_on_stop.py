@@ -7,13 +7,15 @@ the folder it runs in; one with no git or no package.json has no gate, so it say
 the watched paths there have uncommitted changes, it runs `npm run verify` (tests, typecheck, hook
 checks) there; on failure, it blocks the stop and hands Claude the end of the output. Respects
 `stop_hook_active`, so it blocks once and never loops. If git status fails, the gate times out
-or the payload can't be read (hook_payload.py), it exits 1 with the error on stderr: Claude Code
-shows it, but the stop goes ahead (it fails open, never quietly). A subagent's `cwd` is the
-folder it works in: an agent spawned with its own worktree has that worktree, but one that only
-names a worktree by absolute path has the main checkout (checked 20 Oct 2026 in subagent
-transcripts). A subagent stopping in the main checkout isn't gated: the session's own Stop gates
-it, and a builder or a reviewer there would otherwise be held up by changes that aren't its own.
-DRAFT_GATE_CMD overrides the command, for .claude/hooks/tests/gate_on_stop.sh.
+or the payload can't be read (hook_payload.py), it exits 1 with one line on stderr saying what
+failed and in which checkout: Claude Code shows it, but the stop goes ahead (it fails open, never
+quietly). A subagent's `cwd` is the folder it works in: an agent spawned with its own worktree
+has that worktree, but one that only names a worktree by absolute path has the main checkout
+(checked 20 Oct 2026 in subagent transcripts). A subagent stopping in the main checkout isn't
+gated: the session's own Stop gates it, and a builder or a reviewer there would otherwise be held
+up by changes that aren't its own.
+DRAFT_GATE_CMD overrides the command and DRAFT_GATE_TIMEOUT its timeout in seconds, both for
+.claude/hooks/tests/gate_on_stop.sh.
 Stdlib only, Python 3.9+.
 """
 
@@ -68,6 +70,16 @@ def changed(checkout):
     return bool(proc.stdout.strip())
 
 
+def failure(error, checkout):
+    """One line for a git call that failed or a gate that ran past its timeout, where Python would
+    print a 20-line traceback."""
+    command = shlex.join(error.cmd)
+    if isinstance(error, subprocess.TimeoutExpired):
+        return f"the gate ({command}) ran past its {error.timeout:g}-second timeout in {checkout}"
+    said = (error.stderr or "").strip().splitlines()
+    return f"{command} failed in {checkout} (exit {error.returncode}{': ' + said[0] if said else ''})"
+
+
 def main():
     try:
         payload = read_payload()
@@ -81,14 +93,16 @@ def main():
     checkout = checkout_of(cwd)
     if checkout is None:
         return 0
-    if event == "SubagentStop" and is_main_checkout(checkout):
-        return 0
-    if not changed(checkout):
-        return 0
-    command = shlex.split(os.environ.get("DRAFT_GATE_CMD") or GATE)
-    proc = subprocess.run(
-        command, cwd=checkout, capture_output=True, text=True, timeout=GATE_TIMEOUT_SECONDS
-    )
+    try:
+        if event == "SubagentStop" and is_main_checkout(checkout):
+            return 0
+        if not changed(checkout):
+            return 0
+        command = shlex.split(os.environ.get("DRAFT_GATE_CMD") or GATE)
+        timeout = float(os.environ.get("DRAFT_GATE_TIMEOUT") or GATE_TIMEOUT_SECONDS)
+        proc = subprocess.run(command, cwd=checkout, capture_output=True, text=True, timeout=timeout)
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+        return report(failure(error, checkout), "the stop goes ahead ungated")
     if proc.returncode != 0:
         tail = "\n".join((proc.stdout + proc.stderr).strip().splitlines()[-TAIL_LINES:])
         reason = (
