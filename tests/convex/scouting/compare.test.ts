@@ -8,7 +8,8 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 
 // Two players side by side (#373, spec/19 The players list): who each is and who owns him in the
 // league, and his stats this season added up from the matches his card lists: not last season's,
-// not a match he sat out unused, not one postponed with no new date. Season points are "—" (null)
+// not a match he sat out unused, not one postponed with no new date, and a match's stats only once
+// both feeds' parts are in. Season points are "—" (null)
 // until matches are scored (#29).
 
 const [ANN, BOB] = MANAGERS;
@@ -37,12 +38,12 @@ const LAST_SEASON = fixture(4, 30, true);
 /** Postponed with no new date. */
 const POSTPONED = fixture(5, null);
 
-const record = (playerCode: number, fixtureCode: number, stats: Record<string, number>, played: boolean | null = true) => ({
+const record = (playerCode: number, fixtureCode: number, stats: Record<string, number>, played: boolean | null = true, pl = true) => ({
   playerCode,
   fixtureCode,
   started: played === true,
   played,
-  arrived: { fpl: true, pl: true },
+  arrived: { fpl: true, pl },
   stats,
   state: "complete" as const,
 });
@@ -72,6 +73,8 @@ beforeEach(async () => {
       // An unused substitute.
       record(PALMER.code, GW2.code, { minutes: 0 }, false),
       record(PALMER.code, GW3.code, { minutes: 80, assists: 1, goals_scored: 1 }),
+      // Only FPL's part has arrived: a match he was in, whose stats don't count until whole.
+      record(SAKA.code, GW3.code, { minutes: 90, goals_scored: 4 }, true, false),
     ]) {
       await ctx.db.insert("playerMatchStats", each);
     }
@@ -91,7 +94,7 @@ test("two players side by side, in the order asked: who each is, his matches thi
       positions: ["W"],
       ownerTeamName: await teamName(teams[0]),
       seasonPoints: null,
-      matches: 2,
+      matches: 3,
       stats: { minutes: 154, goals_scored: 3, expected_goals: 1.14, assists: 1 },
     },
     {

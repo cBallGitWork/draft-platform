@@ -7,12 +7,14 @@ import { howPositionsCount, type HowPositionsCount } from "../positions/position
 import { clubRecord, position } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
+import { isWhole } from "../stats/matchRecords";
 import { sumStats } from "../stats/statTotals";
 import { COMPARED_PLAYERS } from "./comparedPlayers";
 
 // Two players side by side (spec/19, The players list: "Two players side by side, to compare";
 // #373), for anyone in the league: who each is and who owns him here, and his stats this season
-// added up, from the same matches his card lists (seasonRecords). Every stat is open to everyone
+// added up, from the same matches his card lists (seasonRecords), a record counting once whole as
+// the card prices it (both feeds in, or an unused substitute). Every stat is open to everyone
 // (spec/19). Season points are null ("—") until #29 scores matches, as on the players list.
 
 const comparedPlayer = v.object({
@@ -27,8 +29,8 @@ const comparedPlayer = v.object({
   seasonPoints: v.union(v.number(), v.null()),
   /** This season's matches he was in. */
   matches: v.number(),
-  /** His stats this season added up, by the name the merged record keeps each under; a stat left
-   *  out is 0. */
+  /** His stats this season added up from his whole records, by the name the merged record keeps
+   *  each under; a stat left out is 0. */
   stats: v.record(v.string(), v.number()),
 });
 export type ComparedPlayer = Infer<typeof comparedPlayer>;
@@ -66,6 +68,6 @@ async function compared(ctx: QueryCtx, leagueId: Id<"leagues">, code: number, ho
     ownerTeamName: await ownerIn(ctx, leagueId, code),
     seasonPoints: null,
     matches: season.length,
-    stats: sumStats(season.map(({ record }) => record.stats)),
+    stats: sumStats(season.filter(({ record }) => isWhole(record)).map(({ record }) => record.stats)),
   };
 }
