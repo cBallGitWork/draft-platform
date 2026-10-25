@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { autoSubs, gameweekPlay, type GameweekPlay } from "../../../convex/lineup/autoSubs";
+import { autoSubs, gameweekPlay, type GameweekPlay, type PlayerMatch } from "../../../convex/lineup/autoSubs";
 import { lineupProblems, type Lineup, type LineupRules, type PlayerPositions } from "../../../convex/lineup/lineup";
 import type { Position } from "../../../convex/positions/positionTables";
 import { FIRST_SUB, filledLineup, openLimits, presetNamed, withPositions } from "../../support/convex/lineup.harness";
@@ -46,6 +46,9 @@ function subbed(
   return result;
 }
 
+/** What auto-subs give when they change nothing: `unfilled` starters' slots score nothing. */
+const untouched = (lineup: Lineup, unfilled: number[] = []) => ({ substitutions: [], unfilled, lineup });
+
 const STRIKERS_CELL = { area: "attack", lane: "leftCentre" } as const;
 const strikerReplacedBy = (on: number) => ({ off: STRIKER, on, ...STRIKERS_CELL, into: "theSlot" });
 
@@ -64,12 +67,8 @@ describe("a starter who didn't play is replaced", () => {
     const { lineup, positions } = withBench(["ST"]);
     const stillToPlay = plays(lineup, [], [[STRIKER, "stillToPlay"]]);
 
-    expect(subbed(lineup, positions, stillToPlay)).toEqual({ substitutions: [], unfilled: [], lineup: lineup });
-    expect(subbed(lineup, positions, plays(lineup, []))).toEqual({
-      substitutions: [],
-      unfilled: [],
-      lineup: lineup,
-    });
+    expect(subbed(lineup, positions, stillToPlay)).toEqual(untouched(lineup));
+    expect(subbed(lineup, positions, plays(lineup, []))).toEqual(untouched(lineup));
   });
 
   test("every one who didn't play, with no limit", () => {
@@ -190,7 +189,7 @@ describe("a keeper", () => {
     const { lineup, positions } = withBench(["CB"], ["ST"]);
     const result = subbed(lineup, positions, plays(lineup, [KEEPER]));
 
-    expect(result).toEqual({ substitutions: [], unfilled: [KEEPER], lineup: lineup });
+    expect(result).toEqual(untouched(lineup, [KEEPER]));
   });
 });
 
@@ -204,7 +203,7 @@ describe("when no one can come on legally", () => {
     });
     const result = subbed(lineup, positions, plays(lineup, [STRIKER]), noRoomElsewhere);
 
-    expect(result).toEqual({ substitutions: [], unfilled: [STRIKER], lineup: lineup });
+    expect(result).toEqual(untouched(lineup, [STRIKER]));
   });
 
   test("one slot scoring nothing doesn't stop the next being filled", () => {
@@ -232,7 +231,7 @@ describe("a double gameweek", () => {
 
   test("is subbed only once both his matches end with him on 0 minutes", () => {
     const { lineup, positions } = withBench(["ST"]);
-    const after = (matches: { finished: boolean; minutes: number }[]) =>
+    const after = (matches: PlayerMatch[]) =>
       subbed(lineup, positions, plays(lineup, [], [[STRIKER, gameweekPlay(matches)]])).substitutions;
 
     expect(after([finished(0), toCome])).toEqual([]);
@@ -251,13 +250,13 @@ describe("what auto-subs refuse", () => {
     const played = plays(lineup, []);
     played.delete(FIRST);
 
-    expect(() => autoSubs(lineup, positions, played, openLimits())).toThrow(/whether player 101 played/);
+    expect(() => autoSubs(lineup, positions, played, openLimits())).toThrow(`whether player ${FIRST} played`);
   });
 
   test("a sub whose positions aren't known", () => {
     const { lineup } = withBench(["ST"]);
 
-    expect(() => autoSubs(lineup, startersPositions, plays(lineup, []), openLimits())).toThrow(/player 101's positions/);
+    expect(() => autoSubs(lineup, startersPositions, plays(lineup, []), openLimits())).toThrow(`player ${FIRST}'s positions`);
   });
 
   test("a lineup that may not stand", () => {
