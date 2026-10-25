@@ -2624,6 +2624,38 @@
               }
             },
             "optional": true
+          },
+          "pinnedLetter": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "at": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "from": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                },
+                "subject": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                },
+                "body": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
           }
         }
       }
@@ -2688,6 +2720,14 @@
           "indexDescriptor": "by_leagueId_and_at",
           "fields": [
             "leagueId",
+            "at"
+          ]
+        },
+        {
+          "indexDescriptor": "by_leagueId_and_kind_and_at",
+          "fields": [
+            "leagueId",
+            "event.kind",
             "at"
           ]
         }

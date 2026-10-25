@@ -381,6 +381,10 @@ const leagueFields = {
   /** The gameweeks its commissioner unticked, in order (#74, convex/gameweeks/usedGameweeks.ts). Absent while
    *  it plays all 38, the default, so a league needs no write to have it. */
   unusedGameweeks: v.optional(v.array(v.number())),
+  /** The latest letter its commissioner, co-commissioner or the admin wrote to the whole league
+   *  (spec/16), pinned on league home until a newer one (spec/12); absent before the first. Its
+   *  copies are in `letters`, one a person, so this saves finding the newest among them. */
+  pinnedLetter: v.optional(v.object({ at: v.number(), from: v.string(), subject: v.string(), body: v.string() })),
 };
 
 const teamFields = {
@@ -532,7 +536,10 @@ const leagueTables = {
   teams: defineTable(teamFields)
     .index("by_leagueId_and_number", ["leagueId", "number"])
     .index("by_managerEmail", ["managerEmail"]),
-  leagueEvents: defineTable(leagueEventFields).index("by_leagueId_and_at", ["leagueId", "at"]),
+  leagueEvents: defineTable(leagueEventFields)
+    .index("by_leagueId_and_at", ["leagueId", "at"])
+    // League home's latest squad moves of each kind (spec/12), without reading every other event.
+    .index("by_leagueId_and_kind_and_at", ["leagueId", "event.kind", "at"]),
   lastLeagues: defineTable(lastLeagueFields).index("by_email", ["email"]).index("by_leagueId", ["leagueId"]),
   unemailedDeletions: defineTable(unemailedDeletionFields),
 };
