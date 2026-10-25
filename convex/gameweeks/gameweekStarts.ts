@@ -3,15 +3,11 @@ import { seasonStartYear } from "../football/football";
 import type { ScheduledMatch } from "./deadline";
 import { GAMEWEEKS } from "./usedGameweeks";
 
-// When each gameweek kicked off, once it has (#414): the first kickoff stays where it fell, even if
-// that match is then postponed or abandoned and leaves the gameweek, as a passed deadline does
-// (deadline.ts, #150). The site's scoring version for a gameweek hangs on it (siteScoring.ts), so a
-// version that took effect after the gameweek began never reaches it (spec/14, Changes and
-// corrections). deadlineRecorder.ts records it in the same transaction as, and before, every write
-// that can move a kickoff. Site-wide, as the scoring is: no league's deadline plays a part.
-//
-// FPL numbers each season's gameweeks 1 to 38 again, so a start is kept by season and gameweek, and
-// read for the season of the matches held.
+// Each gameweek's first kickoff, once passed, kept where it fell even if that match then leaves the
+// gameweek (#414), as a passed deadline is (#150). The site's scoring version for a gameweek hangs
+// on it (siteScoring.ts). deadlineRecorder.ts records it before every write that can move a kickoff.
+// FPL numbers each season's gameweeks 1 to 38 again, so it is kept by season and read for the
+// season of the matches held.
 
 /** Each gameweek's earliest kickoff among `matches`, by gameweek: none for a gameweek with no
  *  kickoff time. */

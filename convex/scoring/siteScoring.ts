@@ -97,9 +97,9 @@ export async function siteScoringInGameweek(ctx: QueryCtx, gameweek: number): Pr
 export async function siteScoringByGameweek(ctx: QueryCtx): Promise<(gameweek: number) => StoredScoringSet> {
   const history = await historyOf(ctx);
   const { matches } = await heldSchedule(ctx);
-  const started = await gameweekStartsOf(ctx, matches);
+  const recordedStarts = await gameweekStartsOf(ctx, matches);
   return (gameweek) => {
-    const firstKickoff = started.get(gameweek) ?? gameweekDeadline(gameweek, matches, AT_FIRST_KICKOFF, { recorded: null, now: 0 });
+    const firstKickoff = recordedStarts.get(gameweek) ?? gameweekDeadline(gameweek, matches, AT_FIRST_KICKOFF, { recorded: null, now: 0 });
     const inForce = firstKickoff === null ? history.at(-1) : history.findLast((row) => row.takesEffectAt <= firstKickoff);
     return inForce?.scoring ?? FIRST_SCORING;
   };

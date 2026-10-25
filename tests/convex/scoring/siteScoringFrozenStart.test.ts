@@ -17,7 +17,9 @@ const GAMEWEEK = 9;
 /** holdGameweeks codes each gameweek's one match with its number. */
 const OPENER = { code: GAMEWEEK, gameweek: GAMEWEEK, homeClubCode: 1, awayClubCode: 2, kickoff: kickoffOf(GAMEWEEK) };
 /** Gameweek 9's second match, two hours after the opener. */
-const SECOND = { code: 100, gameweek: GAMEWEEK, homeClubCode: 3, awayClubCode: 4, kickoff: kickoffOf(GAMEWEEK) + 2 * HOUR_MS };
+const SECOND = { code: 100, gameweek: GAMEWEEK, homeClubCode: 3, awayClubCode: 4, kickoff: OPENER.kickoff + 2 * HOUR_MS };
+/** Half an hour after the opener's kickoff time. */
+const AFTER_OPENER_KICKOFF = OPENER.kickoff + 30 * MINUTE_MS;
 /** The opener postponed, as the feed sends one: no gameweek, no kickoff. */
 const OPENER_POSTPONED = { ...OPENER, gameweek: null, kickoff: null };
 
@@ -27,7 +29,7 @@ beforeEach(async () => {
 });
 
 test("a fix made between a gameweek's kickoffs never reaches it, even once its first match is postponed", async () => {
-  vi.setSystemTime(kickoffOf(GAMEWEEK) + 30 * MINUTE_MS);
+  vi.setSystemTime(AFTER_OPENER_KICKOFF);
   expect(await fixAs(ADMIN, EDITED)).toBe(GAMEWEEK + 1);
 
   await t.mutation(internal.football.footballSync.upsertFixtures, { rows: [OPENER_POSTPONED] });
@@ -38,9 +40,9 @@ test("a fix made between a gameweek's kickoffs never reaches it, even once its f
 });
 
 test("a first match postponed before it kicks off moves the gameweek's start: a fix made before the next match reaches it", async () => {
-  vi.setSystemTime(kickoffOf(GAMEWEEK) - HOUR_MS);
+  vi.setSystemTime(OPENER.kickoff - HOUR_MS);
   await t.mutation(internal.football.footballSync.upsertFixtures, { rows: [OPENER_POSTPONED] });
-  vi.setSystemTime(kickoffOf(GAMEWEEK) + 30 * MINUTE_MS);
+  vi.setSystemTime(AFTER_OPENER_KICKOFF);
 
   expect(await fixAs(ADMIN, EDITED)).toBe(GAMEWEEK);
   expect(await inGameweek(GAMEWEEK)).toEqual(EDITED);
