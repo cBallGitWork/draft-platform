@@ -1,7 +1,8 @@
 // A team's points for one gameweek (spec/14, On screen; spec/05, Auto-subs; #29): one pure
 // function over the lineup, each player's matches, the site's scoring set and the league's
 // double-gameweek rule. Who came on for whom is an argument, decided by the auto-subs; storing
-// the points, the query and the screen are not here.
+// the points, the query and the screen are not here. Nor yet are roles' adjustments (spec/05,
+// #10) or the captain (spec/17): until they are, a total here is not a team's final score.
 
 import type { Lineup } from "../lineup/lineup";
 import type { Cell } from "../lineup/pitch";
