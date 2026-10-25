@@ -4,6 +4,7 @@
 
 import type { Infer } from "convex/values";
 import type { clubRecord, fixtureRecord, gameweekRecord, playerRecord } from "../schema";
+import type { ScoreReads } from "./scoreReads";
 
 /** The football layer's one seam: the real Premier League as any feed hands it to the platform.
  *  FPL's feed fills it today (`fpl.ts`); a paid feed replaces it by returning the same. */
@@ -12,6 +13,8 @@ export interface Football {
   players: Infer<typeof playerRecord>[];
   fixtures: Infer<typeof fixtureRecord>[];
   gameweeks: Infer<typeof gameweekRecord>[];
+  /** Each match's score and clock, or why the feed's read gives none. */
+  scores: ScoreReads;
 }
 
 export const FPL_API_BASE = "https://fantasy.premierleague.com/api";
