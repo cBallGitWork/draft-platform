@@ -3,6 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { seasonStartYear } from "../football/football";
 import { gameweekDeadline, type DeadlineRule } from "../gameweeks/deadline";
+import { gameweekStartsOf } from "../gameweeks/gameweekStarts";
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { heldSchedule } from "../rules/leagueRules";
 import { siteScoringKind } from "../schema";
@@ -28,7 +29,8 @@ import { validateScoringSet } from "./scoringSet";
 // - a fix: a mistake corrected at once, taking effect from the moment it is made.
 // A gameweek plays the newest version to take effect at or before its first kickoff, so a version
 // never reaches a gameweek already begun, and a re-score of a played one never reads a later
-// version; before any, the first set (firstScoring.ts). Scoring a league's match reads
+// version. Once passed, the first kickoff is the one recorded (gameweekStarts.ts, #414), so a
+// postponed first match can't move it; before any, the first set (firstScoring.ts). Scoring a league's match reads
 // `siteScoringInGameweek`, never the league's rules. Versions take effect in the order they are
 // announced, so a newer one never lands before an older one it was made from.
 
@@ -95,8 +97,9 @@ export async function siteScoringInGameweek(ctx: QueryCtx, gameweek: number): Pr
 export async function siteScoringByGameweek(ctx: QueryCtx): Promise<(gameweek: number) => StoredScoringSet> {
   const history = await historyOf(ctx);
   const { matches } = await heldSchedule(ctx);
+  const started = await gameweekStartsOf(ctx, matches);
   return (gameweek) => {
-    const firstKickoff = gameweekDeadline(gameweek, matches, AT_FIRST_KICKOFF, { recorded: null, now: 0 });
+    const firstKickoff = started.get(gameweek) ?? gameweekDeadline(gameweek, matches, AT_FIRST_KICKOFF, { recorded: null, now: 0 });
     const inForce = firstKickoff === null ? history.at(-1) : history.findLast((row) => row.takesEffectAt <= firstKickoff);
     return inForce?.scoring ?? FIRST_SCORING;
   };
@@ -108,7 +111,7 @@ export async function siteScoringByGameweek(ctx: QueryCtx): Promise<(gameweek: n
 async function firstGameweekFrom(ctx: QueryCtx, at: number): Promise<number> {
   const { gameweeks, matches } = await heldSchedule(ctx);
   // nextGameweek counts a gameweek begun at its kickoff; a version taking effect then still reaches it.
-  return nextGameweek(gameweeks, matches, () => AT_FIRST_KICKOFF, new Map(), at - 1);
+  return nextGameweek(gameweeks, matches, () => AT_FIRST_KICKOFF, await gameweekStartsOf(ctx, matches), at - 1);
 }
 
 /** Refuses, with the reason, a set that would score wrong or an own stat named as a catalogue
