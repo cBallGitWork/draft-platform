@@ -3,7 +3,8 @@ import { errorMessage } from "../shared/errors";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { isLocked } from "./deadline";
 import { passedDeadlinesOf } from "./passedDeadlines";
-import { heldSchedule, leagueDeadlinesIn, seasonRules } from "../rules/leagueRules";
+import { seasonRules } from "../rules/rulesHistory";
+import { heldSchedule, leagueDeadlinesIn } from "./leagueDeadlines";
 import { storeBegunFixtures } from "../table/playedFixtures";
 
 // Records each league's passed deadlines (#150), so a postponement after one can't move it

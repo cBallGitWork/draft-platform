@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { rulesInGameweek, rulesRefusals } from "../../../convex/rules/leagueRules";
+import { rulesRefusals } from "../../../convex/rules/leagueRules";
+import { rulesInGameweek } from "../../../convex/rules/rulesHistory";
 import { settingsRefusals } from "../../../convex/rules/leagueSettings";
 import type { LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
 import { refusals } from "../../../convex/shared/leagueAccess";

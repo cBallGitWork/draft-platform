@@ -4,7 +4,7 @@ import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/
 import { seasonStartYear } from "../football/football";
 import { gameweekDeadline, type DeadlineRule } from "../gameweeks/deadline";
 import { nextGameweek } from "../gameweeks/nextGameweek";
-import { heldSchedule } from "../rules/leagueRules";
+import { heldSchedule } from "../gameweeks/leagueDeadlines";
 import { siteScoringKind } from "../schema";
 import { scoringSetShape, type StoredScoringSet } from "../rules/leagueRulesShape";
 import { takeAllOrThrow } from "../shared/cappedRead";
