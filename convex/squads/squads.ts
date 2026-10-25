@@ -1,8 +1,9 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type QueryCtx } from "../_generated/server";
-import { memberOf, refuse, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
+import { memberOf, refuse, refusals, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
+import { tellShortlisters } from "../scouting/shortlist";
 import { clubByCode, playerByCode, playersNamed } from "../shared/players";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { latestRules } from "../rules/leagueRules";
@@ -14,10 +15,11 @@ import { areasShort } from "./areaMinimums";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
 // team, one at a time, move him between teams, or release him to free agency. Each files a Mail
-// letter (spec/15: nothing changes quietly). The league's squad limits warn, never block.
+// letter (spec/15: nothing changes quietly), and a release also tells each manager whose shortlist
+// holds him (spec/19). The league's squad limits warn, never block.
 
 export const squadRefusals = {
-  noPlayer: "There's no such player in the Premier League.",
+  noPlayer: refusals.noPlayer,
   playerGone: (name: string) => `${name} has left the Premier League, so he can't join a team.`,
   alreadyOwned: (name: string, teamName: string) => `${name} is already on ${teamName}. Move him instead.`,
   freeAgent: (name: string) => `${name} isn't on a team in this league.`,
@@ -101,12 +103,13 @@ export const release = mutation({
   args: { leagueId: v.id("leagues"), playerCode: v.number() },
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
-    const { email: by } = await runnerOf(ctx, leagueId);
+    const { email: by, league } = await runnerOf(ctx, leagueId);
     const player = await heldPlayer(ctx, playerCode);
     const place = (await placeOf(ctx, leagueId, playerCode)) ?? refuse(squadRefusals.freeAgent(player.name));
     const team = await teamIn(ctx, leagueId, place.teamId);
     await ctx.db.delete("squadPlayers", place._id);
     await recordEvent(ctx, leagueId, by, { kind: "playerReleased", playerCode, playerName: player.name, teamId: team._id, teamName: team.name });
+    await tellShortlisters(ctx, league, player, team, by);
     return null;
   },
 });

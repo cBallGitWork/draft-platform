@@ -1,0 +1,70 @@
+import { Link } from "@tanstack/react-router";
+import type { Id } from "../../convex/_generated/dataModel";
+import { Loading, PanelNote, PanelTitle, Problem } from "../frame/Panel";
+import { playerCardPath } from "../playerCard/paths";
+import { useChange } from "../useChange";
+import type { ShortlistSeam } from "./shortlistSeam";
+import {
+  emptyShortlistWords,
+  freeAgentWords,
+  goneWords,
+  loadingShortlistWords,
+  removeNamedLabel,
+  SHORTLIST_TITLE,
+  shortlistListLabel,
+  takeOffWords,
+} from "./shortlistWords";
+
+const TITLE_ID = "shortlist-title";
+
+/** The manager's own shortlist (spec/19, The shortlist), on Scouting: each player by name, opening
+ *  his card, with his club and who owns him, and a button taking him off. A player is added from
+ *  his card. Nothing shows for someone in the league who runs no team, who has none. */
+export function ShortlistPanel({ leagueId, seam }: { leagueId: Id<"leagues">; seam: ShortlistSeam }) {
+  const players = seam.useShortlist(leagueId);
+  const changes = seam.useShortlistChanges();
+  const change = useChange();
+  if (players === null) return null;
+  return (
+    <section aria-labelledby={TITLE_ID} className="bg-panel">
+      <PanelTitle id={TITLE_ID}>{SHORTLIST_TITLE}</PanelTitle>
+      <Problem problem={change.problem} />
+      {players === undefined ? (
+        <Loading className="px-3 py-2">{loadingShortlistWords}</Loading>
+      ) : players.length === 0 ? (
+        <PanelNote>{emptyShortlistWords}</PanelNote>
+      ) : (
+        <ul aria-label={shortlistListLabel}>
+          {players.map((player) => (
+            <li key={player.code} className="flex items-center justify-between gap-2 border-t border-panel-rule px-3 py-1">
+              <span className="flex flex-col">
+                <span className="font-semibold">
+                  <Link to={playerCardPath(leagueId, player.code)} title={player.fullName} className="inline-flex min-h-tap items-center">
+                    {player.name}
+                  </Link>{" "}
+                  <abbr title={player.club.name} className="font-normal text-muted no-underline">
+                    {player.club.shortName}
+                  </abbr>
+                </span>
+                {player.gone ? (
+                  <span className="text-event">{goneWords}</span>
+                ) : (
+                  <span className={player.ownerTeamName === null ? "text-muted" : undefined}>{player.ownerTeamName ?? freeAgentWords}</span>
+                )}
+              </span>
+              <button
+                type="button"
+                disabled={change.busy}
+                onClick={() => void change.run(() => changes.remove(leagueId, player.code))}
+                className="secondary-action"
+                aria-label={removeNamedLabel(player.name)}
+              >
+                {takeOffWords}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}

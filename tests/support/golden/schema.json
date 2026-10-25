@@ -1664,6 +1664,55 @@
       }
     },
     {
+      "tableName": "shortlistPlayers",
+      "indexes": [
+        {
+          "indexDescriptor": "by_teamId_and_playerCode",
+          "fields": [
+            "teamId",
+            "playerCode"
+          ]
+        },
+        {
+          "indexDescriptor": "by_leagueId_and_playerCode",
+          "fields": [
+            "leagueId",
+            "playerCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "playerCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "playerMatchStats",
       "indexes": [
         {

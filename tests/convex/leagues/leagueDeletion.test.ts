@@ -95,6 +95,8 @@ describe("while it can be undone", () => {
       "squads/squads:assign": () => admin.mutation(api.squads.squads.assign, { leagueId, playerCode: 1, teamId: annsTeam._id }),
       "squads/squads:move": () => admin.mutation(api.squads.squads.move, { leagueId, playerCode: 1, teamId: annsTeam._id }),
       "squads/squads:release": () => admin.mutation(api.squads.squads.release, { leagueId, playerCode: 1 }),
+      "scouting/shortlist:add": () => ann.mutation(api.scouting.shortlist.add, { leagueId, playerCode: 1 }),
+      "scouting/shortlist:remove": () => ann.mutation(api.scouting.shortlist.remove, { leagueId, playerCode: 1 }),
     };
     for (const change of Object.values(changes)) await expect(change()).rejects.toThrow(refusals.beingDeleted);
     expect(await everythingOf(leagueId)).toEqual(before);
