@@ -70,7 +70,6 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - **Licensed data**: a licensed feed if FPL's and the Premier League's terms, checked before the
   mini beta (above), don't allow a public product.
 - **Traits** (what a player does in real life), if a source for them turns up.
-- **The platform's own scoring sets**, designed once the first scoring set has been played.
 - **A landing page** for the public, when signups open to anyone; its own `/grill` then.
 - **Carrying a league into next season**, a different thing from spec/03's carry-over rule
   (redraft, keeper, dynasty).
@@ -90,8 +89,8 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - Injured reserve.
 - A limit on auto-subs, or a switch to turn them off.
 - Public league pages: no league is visible without signing in.
-- FPL's bonus points, and a ready-made FPL-style or Fantrax-copy scoring set for a league to pick.
-  The mini beta's first set starts from FPL's values as a draft Craig changes (spec/14).
+- FPL's bonus points, and any scoring set for a league to pick: there is one set, the site's,
+  changed by patch (spec/14, 25 Oct 2026). It starts from FPL's values as a draft Craig changes.
 - A limit on a player's whole match, or on a team's gameweek total.
 - A lock at each player's kickoff: there is one deadline per gameweek.
 - A squad ceiling above a Premier League squad's 25 (spec/03).
