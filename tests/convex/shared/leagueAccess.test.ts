@@ -58,7 +58,6 @@ beforeEach(async () => {
   });
 });
 
-/** Every row in every table. */
 const everyRow = () =>
   t.run(async (ctx) => {
     const rows: Record<string, unknown[]> = {};

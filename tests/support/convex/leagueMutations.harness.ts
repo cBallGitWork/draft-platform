@@ -14,6 +14,9 @@ import { rulesRevision } from "./leagueRules.harness";
 import { teamsIn } from "./leagues.harness";
 import { modules, type TestConvex } from "./test.harness";
 
+/** Someone in no league, whom `changesTo` adds as a manager and invites. */
+const NEWCOMER = "new@example.com";
+
 /** Whoever calls a mutation: someone signed in, or the deployment itself when no one is. */
 export type Caller = Pick<TestConvex, "mutation">;
 
@@ -44,12 +47,12 @@ export function changesTo(
     "leagues/leagues:setMaxTeams": () => admin.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 6 }),
     "leagues/leagues:nameCommissioner": () => admin.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: ANN }),
     "leagues/leagues:nameCoCommissioner": () => admin.mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: null }),
-    "leagues/teams:addManager": () => admin.mutation(api.leagues.teams.addManager, { leagueId, email: "new@example.com" }),
+    "leagues/teams:addManager": () => admin.mutation(api.leagues.teams.addManager, { leagueId, email: NEWCOMER }),
     "leagues/teams:removeManager": () => admin.mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam._id }),
     "leagues/teams:rename": () => ann.mutation(api.leagues.teams.rename, { teamId: annsTeam._id, name: "Saka Potatoes" }),
     "leagues/teams:leave": () => ann.mutation(api.leagues.teams.leave, { leagueId }),
     "leagues/leagueDeletion:deleteLeague": () => admin.mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId }),
-    "joining/invites:send": () => admin.mutation(api.joining.invites.send, { leagueId, email: "new@example.com" }),
+    "joining/invites:send": () => admin.mutation(api.joining.invites.send, { leagueId, email: NEWCOMER }),
     "joining/invites:resend": () => admin.mutation(api.joining.invites.resend, { inviteId }),
     "joining/invites:cancel": () => admin.mutation(api.joining.invites.cancel, { inviteId }),
     "joining/inviteLink:make": () => admin.mutation(api.joining.inviteLink.make, { leagueId }),
