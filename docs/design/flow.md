@@ -73,7 +73,7 @@ flowchart TD
     TTR["Transactions<br/>/team/transactions<br/>manager"]
     MATCHUP["Matchup<br/>/matchup<br/>manager"]
     TABLE["Table and fixtures<br/>/table<br/>manager"]
-    PLAYERS["Players<br/>/players<br/>manager"]
+    PLAYERS["Scouting<br/>/players<br/>manager"]
     TRADES["Trades<br/>/trades<br/>manager"]
     PL["Premier League<br/>/premier-league<br/>manager"]
   end
@@ -86,7 +86,7 @@ flowchart TD
   MENU -- "My team" --> TEAM
   MENU -- "Matchup" --> MATCHUP
   MENU -- "Table" --> TABLE
-  MENU -- "Players" --> PLAYERS
+  MENU -- "Scouting" --> PLAYERS
   MENU -- "Trades" --> TRADES
   MENU -- "Premier League" --> PL
   MENU -- "Mail / Continue (unread)" --> MAIL
@@ -142,7 +142,7 @@ Features table (feature 12), the one home for screen status.
 | Fixtures | `/team/fixtures` | src/frame/PageNotBuilt.tsx | spec/12 My team's tabs | placeholder |
 | Transactions | `/team/transactions` | src/frame/PageNotBuilt.tsx | spec/12 My team's tabs | placeholder |
 | Matchup | `/matchup` | src/frame/PageNotBuilt.tsx | spec/10 The matchup | placeholder |
-| Players | `/players` | src/frame/PageNotBuilt.tsx | spec/12:16 | placeholder |
+| Scouting | `/players` | src/frame/PageNotBuilt.tsx | spec/19 | placeholder |
 | Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12:16, spec/08 | placeholder |
 | Premier League | `/premier-league` | src/frame/PageNotBuilt.tsx | spec/18 | placeholder |
 | Match | none | none | spec/10 The match page | no route |
