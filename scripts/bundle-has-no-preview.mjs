@@ -10,9 +10,8 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
 
-const SRC = "src";
 const DIST = "dist";
-const SOURCES = [SRC, "convex"];
+const SOURCES = ["src", "convex"];
 const PREVIEW_FILE = "preview.ts";
 
 /** A string only that preview module holds, by its path; null for one that holds no data of its

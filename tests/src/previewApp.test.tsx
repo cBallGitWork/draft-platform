@@ -24,7 +24,7 @@ test("on the dev server, ?preview=manager mounts the frame on the preview's data
 test.each([
   { where: "on the dev server with no preview named", dev: true, search: "" },
   { where: "in the built site", dev: false, search: "?preview=manager" },
-])("$where, there is no preview frame: main.tsx mounts the live app", ({ dev, search }) => {
+])("$where, there is no preview frame", ({ dev, search }) => {
   vi.stubEnv("DEV", dev);
   window.history.replaceState(null, "", `/${search}`);
   expect(previewApp()).toBeNull();

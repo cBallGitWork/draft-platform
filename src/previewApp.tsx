@@ -1,7 +1,6 @@
 // The frame on the made-up data every screen's preview module holds, for the session `?preview=`
-// names (src/preview.ts). main.tsx loads this file with a dynamic import() behind
-// import.meta.env.DEV, so `vite build` leaves it and every preview module out of the bundle;
-// scripts/bundle-has-no-preview.mjs fails the build if any of their data gets in.
+// names (src/preview.ts). Only main.tsx's dev-server import() loads this file; nothing else may
+// import it, or the preview's data ships (scripts/bundle-has-no-preview.mjs fails the build).
 
 import type { ReactNode } from "react";
 import { previewAdmin } from "./admin/preview";
