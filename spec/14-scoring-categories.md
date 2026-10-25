@@ -7,19 +7,19 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 ## Who owns it
 
 - The site owns the scoring set: the categories and their values, points limits, minutes, whole
-  points only, roles' adjustments (`spec/05`) and the gap rule. "At first its better for us to be
-  games master" (Craig, 25 Oct 2026): the admin and the site's staff run it, and leagues don't
-  edit it. Each league keeps the rest of its rules in League settings (`spec/03`).
+  points only and roles' adjustments (`spec/05`). "At first its better for us to be games master"
+  (Craig, 25 Oct 2026): the admin and the site's staff run it, and leagues don't edit it. Each
+  league keeps the rest of its rules in League settings (`spec/03`).
 - Every manager can read the scoring on Player scoring; only the admin changes it.
 - The site's first set is the first scoring set below, and every league plays on it.
 
 ## The catalogue
 
-- Every stat the two free feeds give per player per match (confirmed by #7), each with a plain
-  name and a short code. A league can score any of them; roles (`spec/05`) draw on the same list.
+- Every stat the two free feeds give per player per match (confirmed by #7), each with a plain name
+  and a short code. The site's set can score any of them; roles (`spec/05`) draw on the same list.
   The names and codes are written with the first scoring set (`/grill match stats`, 20 Oct 2026).
-  For now they are placeholders copied from the feeds' own names, for Craig to refine later
-  (21 Oct 2026).
+  For now they are placeholders copied from the feeds' own names, for Craig to refine later (21 Oct
+  2026).
 - No FPL bonus points.
 
 ## How a rule scores
@@ -53,9 +53,9 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
   Each is one number for the rule, or set by area or position like its values. A points limit
   holds only the rule's own points: a role's adjustment is added on top.
 - Points can be fractions (0.5 per tackle), kept in tenths so totals never drift. The site's set can
-  choose whole points only (25 Oct 2026; once each league's choice): a fractional value is then
-  refused with the reason, and an own stat counts whole actions, rounded down (tackles + 0.5 ×
-  clearances = 3.5 counts 3). Whole points only starts off.
+  choose whole points only (25 Oct 2026): a fractional value is then refused with the reason, and an
+  own stat counts whole actions, rounded down (tackles + 0.5 × clearances = 3.5 counts 3). Whole
+  points only starts off.
 - A stat the feed hasn't sent yet for a finished match shows "—", and the match stays
   provisional until it arrives. Nothing is guessed. "—" means a player's whole record for the
   match hasn't arrived; once it has, a stat it leaves out is 0 (`/grill match stats`, 20 Oct 2026).
