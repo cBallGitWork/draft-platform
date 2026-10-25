@@ -1,10 +1,10 @@
 import { useCanGoBack, useRouter } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import type { Position } from "../../convex/positions/positionTables";
+import { PositionCode, PositionCodes } from "../PositionCodes";
 import { SCOUTING_PATH } from "../frame/menu";
 import { Loading, PageSection, PANEL_BODY, PanelNote, PanelTitle } from "../frame/Panel";
 import { useMinute } from "../useMinute";
-import { gameweekWords, POSITION_NAMES, versusWords, whenWords } from "../words";
+import { gameweekWords, versusWords, whenWords } from "../words";
 import type { PlayedMatch, PlayerCard, PlayerCardSeam } from "./seam";
 import {
   backWords,
@@ -89,7 +89,7 @@ function Facts({ card }: { card: PlayerCard }) {
         <dt className="text-soft">{clubLabel}</dt>
         <dd>{card.club.name}</dd>
         <dt className="text-soft">{positionsLabel}</dt>
-        <dd>{card.positions.length === 0 ? <span className="text-muted">{noPositionsWords}</span> : <Positions positions={card.positions} />}</dd>
+        <dd>{card.positions.length === 0 ? <span className="text-muted">{noPositionsWords}</span> : <PositionCodes positions={card.positions} />}</dd>
         <dt className="text-soft">{ownerLabel}</dt>
         <dd className={card.ownerTeamName === null ? "text-muted" : undefined}>{card.ownerTeamName ?? freeAgentWords}</dd>
         <dt className="text-soft">{newsLabel}</dt>
@@ -104,24 +104,6 @@ function Facts({ card }: { card: PlayerCard }) {
       </dl>
       {card.gone && <PanelNote edge="b">{goneWords}</PanelNote>}
     </section>
-  );
-}
-
-function Positions({ positions }: { positions: readonly Position[] }) {
-  return positions.map((position, index) => (
-    <span key={position}>
-      {index > 0 && listSeparator}
-      <PositionCode position={position} />
-    </span>
-  ));
-}
-
-/** A position's code, its name on hover. */
-function PositionCode({ position }: { position: Position }) {
-  return (
-    <abbr title={POSITION_NAMES[position]} className="no-underline">
-      {position}
-    </abbr>
   );
 }
 

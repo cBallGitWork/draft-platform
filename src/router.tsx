@@ -242,12 +242,13 @@ const patchNotesRoute = createRoute({
 
 // A player's card (#381), for anyone in the league, opened from his name. A code that isn't a
 // number names no player, so it goes to Scouting.
+const PLAYER_CODE_DIGITS = /^\d+$/;
 const playerCardRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: PLAYER_CARD_ROUTE,
   beforeLoad: ({ context, params }) => {
     membersOnly({ context, params });
-    if (!Number.isSafeInteger(Number(params.playerCode))) throw redirect({ to: SCOUTING_PATH });
+    if (!PLAYER_CODE_DIGITS.test(params.playerCode)) throw redirect({ to: SCOUTING_PATH });
   },
   component: function PlayerCard() {
     const context = playerCardRoute.useRouteContext();

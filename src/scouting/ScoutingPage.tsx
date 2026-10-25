@@ -6,6 +6,7 @@ import { POSITIONS, type Position } from "../../convex/positions/positionTables"
 import { Loading, PANEL_BODY, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
 import { playerCardPath } from "../playerCard/paths";
 import { Choice } from "../rules/Choice";
+import { PositionCodes } from "../PositionCodes";
 import { POSITION_NAMES } from "../words";
 import type { Availability, ListedPlayer, PlayersFilters, PlayersList, PlayersSort, ScoutingSeam, SortColumn } from "./seam";
 import {
@@ -27,7 +28,6 @@ import {
   noWaiversWords,
   PLAYERS_TITLE,
   positionLabel,
-  listSeparator,
   SCOUTING_TITLE,
   sortByLabel,
 } from "./words";
@@ -233,14 +233,7 @@ function PlayerCell({ column, player, leagueId }: { column: Column; player: List
     case "positions":
       return (
         <td className={className}>
-          {player.positions.map((position, index) => (
-            <span key={position}>
-              {index > 0 && listSeparator}
-              <abbr title={POSITION_NAMES[position]} className="no-underline">
-                {position}
-              </abbr>
-            </span>
-          ))}
+          <PositionCodes positions={player.positions} />
         </td>
       );
     case "owner":

@@ -101,7 +101,7 @@ flowchart TD
   ERR(["This page can't be shown: any page that throws"]) -- "Back to your leagues" --> LEAGUES
   SCOUTING & SQ -- "a player's name" --> CARD
   CARD -- "Back (to Scouting, opened from a link)" --> SCOUTING
-  CARD -.->|"not a player's code"| SCOUTING
+  CARD -.->|"its code isn't a number"| SCOUTING
 
   subgraph PLAN["Named in the spec, no route yet"]
     MATCH["Match<br/>spec/10:17<br/>manager"]

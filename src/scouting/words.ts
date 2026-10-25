@@ -2,7 +2,7 @@
 
 import type { Availability } from "./seam";
 
-export { freeAgentWords, listSeparator, noFigureWords } from "../words";
+export { freeAgentWords, noFigureWords } from "../words";
 
 export const SCOUTING_TITLE = "Scouting";
 export const PLAYERS_TITLE = "Players";
