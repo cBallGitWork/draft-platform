@@ -101,7 +101,7 @@ function firstLegalSub(
   // the slot's area" means can stand in the slot's own cell.
   for (const playerCode of available) {
     if (!playsCell(positionsOf(positions, playerCode), slot)) continue;
-    const tried = tryOn(lineup, absentee, playerCode, slot, "theSlot", positions, rules);
+    const tried = legalSubstitution(lineup, absentee, playerCode, slot, "theSlot", positions, rules);
     if (tried) return tried;
   }
   if (slot.area === "goalkeeper") return undefined;
@@ -110,7 +110,7 @@ function firstLegalSub(
   for (const playerCode of available) {
     const playerPositions = positionsOf(positions, playerCode);
     for (const cell of freeCells.filter((free) => playsCell(playerPositions, free))) {
-      const tried = tryOn(lineup, absentee, playerCode, cell, "hisOwnArea", positions, rules);
+      const tried = legalSubstitution(lineup, absentee, playerCode, cell, "hisOwnArea", positions, rules);
       if (tried) return tried;
     }
   }
@@ -118,7 +118,7 @@ function firstLegalSub(
 }
 
 /** The substitution, if the lineup it leaves may stand. */
-function tryOn(
+function legalSubstitution(
   lineup: Lineup,
   absentee: Placement,
   playerCode: PlayerCode,
@@ -138,33 +138,29 @@ function tryOn(
 /** Every cell no other starter stands in, nearest the absentee's first: the fewest areas away,
  *  then the fewest lanes, then the further back and the further left. */
 function freeCellsNearest(lineup: Lineup, absentee: Placement): Cell[] {
-  const slot = cellOf(absentee);
-  const taken = new Set(
-    lineup.starters.filter((starter) => starter !== absentee).map(({ area, lane }) => `${area}/${lane}`),
-  );
-  const distance = (cell: Cell): number[] => [
-    Math.abs(AREAS.indexOf(cell.area) - AREAS.indexOf(slot.area)),
-    Math.abs(LANES.indexOf(cell.lane) - LANES.indexOf(slot.lane)),
-    AREAS.indexOf(cell.area),
-    LANES.indexOf(cell.lane),
-  ];
+  const [slotArea, slotLane] = pitchOrder(cellOf(absentee));
+  const taken = new Set(lineup.starters.filter((starter) => starter !== absentee).map(cellOf).map(cellKey));
+  const distance = (cell: Cell): number[] => {
+    const [area, lane] = pitchOrder(cell);
+    return [Math.abs(area - slotArea), Math.abs(lane - slotLane), area, lane];
+  };
   return AREAS.flatMap((area) => LANES.map((lane) => ({ area, lane })))
-    .filter(({ area, lane }) => !taken.has(`${area}/${lane}`))
+    .filter((cell) => !taken.has(cellKey(cell)))
     .sort((one, other) => compareInOrder(distance(one), distance(other)));
 }
+
+const cellKey = ({ area, lane }: Cell): string => `${area}/${lane}`;
+
+/** Back to front, then left to right. */
+const pitchOrder = ({ area, lane }: Cell): [number, number] => [AREAS.indexOf(area), LANES.indexOf(lane)];
 
 function compareInOrder(one: number[], other: number[]): number {
   const differing = one.findIndex((value, index) => value !== other[index]);
   return differing === -1 ? 0 : one[differing] - other[differing];
 }
 
-const byPitchOrder = (one: Placement, other: Placement): number => {
-  const [first, second] = [cellOf(one), cellOf(other)];
-  return compareInOrder(
-    [AREAS.indexOf(first.area), LANES.indexOf(first.lane)],
-    [AREAS.indexOf(second.area), LANES.indexOf(second.lane)],
-  );
-};
+const byPitchOrder = (one: Placement, other: Placement): number =>
+  compareInOrder(pitchOrder(cellOf(one)), pitchOrder(cellOf(other)));
 
 /** A lineup that may stand, minus a starter outside his areas: one who lost a position after he
  *  was placed stays in his slot for the gameweek (spec/06), and lineup.ts reports it alone so a

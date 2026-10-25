@@ -5,7 +5,7 @@ import type { Position } from "../../../convex/positions/positionTables";
 import { FIRST_SUB, filledLineup, openLimits, presetNamed, withPositions } from "../../support/convex/lineup.harness";
 
 // 4-4-2, starters 1 to 11 back to front and left to right: 1 the keeper, 2–5 the back four, 6–9
-// the midfield four, 10 and 11 the strikers. The bench is 101–104, in that order.
+// the midfield four, 10 and 11 the strikers. The bench runs from 101, as long as each test needs.
 const { lineup: fourFourTwo, positions: startersPositions } = filledLineup(presetNamed("4-4-2"));
 const KEEPER = 1;
 const LEFT_BACK = 2;
@@ -46,16 +46,17 @@ function subbed(
   return result;
 }
 
-const STRIKER_OUT_FOR = (on: number) => ({ off: STRIKER, on, area: "attack", lane: "leftCentre", into: "theSlot" });
+const STRIKERS_CELL = { area: "attack", lane: "leftCentre" } as const;
+const strikerReplacedBy = (on: number) => ({ off: STRIKER, on, ...STRIKERS_CELL, into: "theSlot" });
 
 describe("a starter who didn't play is replaced", () => {
   test("once his match has ended with him on 0 minutes", () => {
     const { lineup, positions } = withBench(["ST"]);
     const result = subbed(lineup, positions, plays(lineup, [STRIKER]));
 
-    expect(result.substitutions).toEqual([STRIKER_OUT_FOR(FIRST)]);
+    expect(result.substitutions).toEqual([strikerReplacedBy(FIRST)]);
     expect(result.unfilled).toEqual([]);
-    expect(result.lineup.starters).toContainEqual({ playerCode: FIRST, area: "attack", lane: "leftCentre" });
+    expect(result.lineup.starters).toContainEqual({ playerCode: FIRST, ...STRIKERS_CELL });
     expect(result.lineup.bench).toEqual([STRIKER]);
   });
 
@@ -91,14 +92,14 @@ describe("who comes on", () => {
     const { lineup, positions } = withBench(["CB"], ["CM"], ["SS"], ["ST"]);
     const result = subbed(lineup, positions, plays(lineup, [STRIKER]));
 
-    expect(result.substitutions).toEqual([STRIKER_OUT_FOR(THIRD)]);
+    expect(result.substitutions).toEqual([strikerReplacedBy(THIRD)]);
   });
 
   test("a sub who also didn't play is passed over", () => {
     const { lineup, positions } = withBench(["ST"], ["ST"]);
     const result = subbed(lineup, positions, plays(lineup, [STRIKER, FIRST]));
 
-    expect(result.substitutions).toEqual([STRIKER_OUT_FOR(SECOND)]);
+    expect(result.substitutions).toEqual([strikerReplacedBy(SECOND)]);
     expect(result.lineup.bench).toEqual([FIRST, STRIKER]);
   });
 
@@ -106,7 +107,7 @@ describe("who comes on", () => {
     const { lineup, positions } = withBench(["ST"], ["ST"]);
     const result = subbed(lineup, positions, plays(lineup, [STRIKER], [[FIRST, "stillToPlay"]]));
 
-    expect(result.substitutions).toEqual([STRIKER_OUT_FOR(FIRST)]);
+    expect(result.substitutions).toEqual([strikerReplacedBy(FIRST)]);
   });
 
   test("a wing back can't take a central midfield slot, only a wide one", () => {
@@ -236,7 +237,7 @@ describe("a double gameweek", () => {
 
     expect(after([finished(0), toCome])).toEqual([]);
     expect(after([finished(0), finished(1)])).toEqual([]);
-    expect(after([finished(0), finished(0)])).toEqual([STRIKER_OUT_FOR(FIRST)]);
+    expect(after([finished(0), finished(0)])).toEqual([strikerReplacedBy(FIRST)]);
   });
 
   test("a player with no match in the gameweek didn't play", () => {
@@ -265,11 +266,11 @@ describe("what auto-subs refuse", () => {
     expect(() => autoSubs(tenMen, startersPositions, plays(tenMen, []), openLimits())).toThrow(/wrongStarterCount/);
   });
 
-  test("but not a starter who lost a position after he was placed: he stays, and so do his subs' rules", () => {
+  test("but not a starter who lost a position after he was placed: he stays, and the subs around him still come on", () => {
     const { lineup, positions } = withBench(["ST"]);
     const strikerNowAMidfielder = withPositions(positions, OTHER_STRIKER, ["CM"]);
     const result = autoSubs(lineup, strikerNowAMidfielder, plays(lineup, [STRIKER]), openLimits());
 
-    expect(result.substitutions).toEqual([STRIKER_OUT_FOR(FIRST)]);
+    expect(result.substitutions).toEqual([strikerReplacedBy(FIRST)]);
   });
 });
