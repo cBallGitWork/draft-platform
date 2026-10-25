@@ -92,6 +92,12 @@ describe("with no substitutions, the starters count", () => {
   });
 });
 
+test("a cell left empty, as a stored lineup leaves one when a starter leaves the squad, scores nothing and isn't refused", () => {
+  const oneLeft = team({ lineup: { ...LINEUP, starters: LINEUP.starters.filter((starter) => starter.playerCode !== GELHARDT) } });
+  expect(oneLeft.starters.map((slot) => slot.playerCode)).toEqual([TZOLAKIS, DEWSBURY_HALL]);
+  expect(oneLeft).toMatchObject({ total: 2 + 10, provisional: false });
+});
+
 describe("the bench: points shown, counted only if subbed on", () => {
   test("bench points show in bench order but don't count", () => {
     const scored = team();

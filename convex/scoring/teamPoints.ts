@@ -74,7 +74,8 @@ export interface TeamPoints {
  * A team's gameweek. Starters count unless subbed off; bench players count only once subbed on,
  * and their points are shown either way. A substitution naming a non-starter, a non-bench player,
  * a player twice, or a cell someone who counts already stands in throws, as does a player with no
- * entry in `matches` or a bench player with no cell: never a silent 0.
+ * entry in `matches` or a bench player with no cell: never a silent 0. Fewer than eleven starters is
+ * no refusal: a stored lineup leaves a cell empty when its player leaves the squad, and it scores nothing.
  */
 export function scoreTeam(input: TeamPointsInput): TeamPoints {
   const { lineup, substitutions, benchCells } = input;
