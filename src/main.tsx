@@ -3,43 +3,24 @@ import "@fontsource/archivo-narrow/600.css";
 import "@fontsource/archivo-narrow/700.css";
 import "./styles.css";
 
-import { StrictMode } from "react";
+import { StrictMode, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
-import { previewAdmin } from "./admin/preview";
-import { previewGameweeks } from "./gameweeks/preview";
-import { previewLeagueSettings } from "./leagueSettings/preview";
 import { LiveApp, takeLinkCode } from "./liveApp";
-import { previewJoining } from "./joining/preview";
-import { previewMail, previewTopBar } from "./mail/preview";
-import { previewAuth, previewLeagues, previewSession } from "./preview";
-import { ShellApp } from "./ShellApp";
-import { previewScoring } from "./scoring/preview";
-import { previewSquads } from "./squads/preview";
-import { previewTable } from "./table/preview";
-
-const preview = previewSession();
 
 const root = document.getElementById("root");
 if (!root) throw new Error("index.html has no #root element to mount the app in");
-createRoot(root).render(
-  <StrictMode>
-    {preview ? (
-      <ShellApp
-        session={preview}
-        auth={previewAuth}
-        leagues={previewLeagues}
-        mail={previewMail}
-        joining={previewJoining}
-        topBar={previewTopBar}
-        gameweeks={previewGameweeks}
-        squads={previewSquads}
-        scoring={previewScoring}
-        leagueSettings={previewLeagueSettings}
-        table={previewTable}
-        admin={previewAdmin}
-      />
-    ) : (
-      <LiveApp linkCode={takeLinkCode()} />
-    )}
-  </StrictMode>,
-);
+const mount = (app: ReactNode) => createRoot(root).render(<StrictMode>{app}</StrictMode>);
+const liveAppElement = () => <LiveApp linkCode={takeLinkCode()} />;
+
+// The preview's made-up data loads only on the dev server: `vite build` folds
+// import.meta.env.DEV to false and drops this import(), and with it every preview module.
+if (import.meta.env.DEV) {
+  import("./previewApp").then(
+    ({ previewApp }) => mount(previewApp() ?? liveAppElement()),
+    (error: unknown) => {
+      throw new Error("the preview modules failed to load, so the app didn't mount", { cause: error });
+    },
+  );
+} else {
+  mount(liveAppElement());
+}

@@ -33,13 +33,20 @@ silent gate_on_stop.py "$(stop_in "$nogit")" DRAFT_GATE_CMD=false  # not a git c
 git init -q "$nopkg" && mkdir "$nopkg/src" && touch "$nopkg/src/a.ts"
 silent gate_on_stop.py '{}' CLAUDE_PROJECT_DIR="$nopkg" DRAFT_GATE_CMD=false  # no package.json: no gate
 rm -rf "$nogit"
-# a git status that fails (here a corrupt index) is an error on stderr, never "nothing changed"
+# a git status that fails (here a corrupt index) is one line on stderr, never "nothing changed" or a traceback
 broken=$tmp/gate-broken && gate_repo "$broken" && printf 'not an index' > "$broken/.git/index"
-err=$(stop_in "$broken" Stop | env DRAFT_GATE_CMD=true "$hooks/gate_on_stop.py" 2>&1 >/dev/null)
-code=$?
-if [ "$code" -eq 0 ] || [ -z "$err" ]; then
-  fail "gate_on_stop.py: a failed git status exited $code with no error"
-fi
+broken_stop=$(stop_in "$broken" Stop)
+one_line() { # what: fails_loudly's stderr (in $tmp/stderr) is a single line
+  [ "$(wc -l < "$tmp/stderr")" -eq 1 ] || fail "gate_on_stop.py: $1 said other than one line: $(cat "$tmp/stderr")"
+}
+fails_loudly "gate_on_stop.py: git status --porcelain -- " gate_on_stop.py "$broken_stop" DRAFT_GATE_CMD=true
+one_line "a failed git status"
+fails_loudly "failed in $(git -C "$broken" rev-parse --show-toplevel) (exit 128: " gate_on_stop.py "$broken_stop" DRAFT_GATE_CMD=true
+# a gate that runs past its timeout is one line saying so, never a traceback (here src/a.ts is changed in $dirty)
+slow='sleep 5' short=0.2
+fails_loudly "gate_on_stop.py: the gate ($slow) ran past its $short-second timeout in $(git -C "$dirty" rev-parse --show-toplevel), so the stop goes ahead ungated." \
+  gate_on_stop.py "$(stop_in "$dirty" Stop)" DRAFT_GATE_CMD="$slow" DRAFT_GATE_TIMEOUT=$short
+one_line "a gate past its timeout"
 # a payload it can't read is said on stderr, never taken for {} (here, a dirty checkout whose gate fails)
 for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
   fails_loudly "${bad_payloads[i + 1]}" gate_on_stop.py "${bad_payloads[i]}" DRAFT_GATE_CMD=false

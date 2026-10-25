@@ -15,6 +15,7 @@ import {
 import { FULL_STATS, recordedGw6, type Gw6Payloads } from "../../support/recorded/gw6.payloads";
 import { freshConvex, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
+import { CURRENT_FIXTURES_MOST } from "../../../convex/shared/fixtures";
 
 beforeEach(() => vi.useFakeTimers());
 
@@ -169,6 +170,25 @@ test("a run takes due matches never tried oldest first, a gameweek's worth at mo
   expect(due.map((match) => match.fixtureCode)).toEqual(
     Array.from({ length: MATCHES_PER_RUN }, (_, index) => count - index),
   );
+});
+
+test(`past seasons' dropped matches aren't read, and more than ${CURRENT_FIXTURES_MOST} current ones fail loudly`, async () => {
+  const t = freshConvex();
+  /** `count` matches past full time, codes from `firstCode`, dropped when `droppedAt` is given. */
+  const holdPastMatches = (count: number, firstCode: number, droppedAt?: number) =>
+    t.run(async (ctx) => {
+      for (let index = 0; index < count; index += 1) {
+        await ctx.db.insert("fixtures", { code: firstCode + index, gameweek: GAMEWEEK, homeClubCode: 1, awayClubCode: 2, kickoff: KICKOFF, droppedAt });
+      }
+    });
+  const dueCount = async () => (await t.query(internal.stats.matchStats.due, { now: FULL_TIME_READ })).length;
+
+  await holdPastMatches(CURRENT_FIXTURES_MOST, 1, KICKOFF);
+  await holdPastMatches(CURRENT_FIXTURES_MOST, 10_000);
+  expect(await dueCount()).toBe(MATCHES_PER_RUN);
+
+  await holdPastMatches(1, 20_000);
+  await expect(dueCount()).rejects.toThrow(`More than ${CURRENT_FIXTURES_MOST} matches are held as current`);
 });
 
 /** A Premier League id for each stuck match the list names, clear of the recorded ones. */

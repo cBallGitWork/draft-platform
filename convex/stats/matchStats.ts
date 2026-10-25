@@ -7,6 +7,8 @@ import { statCorrectionWindowMs } from "../admin/platformSettings";
 import { matchStatsState, matchStatsSyncFields, playerMatchRecord } from "../schema";
 import { LATEST_RUNS } from "../shared/syncRuns";
 import { HOUR_MS, MINUTE_MS } from "../shared/time";
+import { currentFixtures } from "../shared/fixtures";
+import { emailIfFailed } from "../admin/feedFailureEmails";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -33,12 +35,10 @@ export const due = internalQuery({
   args: { now: v.number() },
   handler: async (ctx, { now }): Promise<DueMatch[]> => {
     const found: (DueMatch & { kickoff: number; triedAt: number })[] = [];
-    // A fixture with no kickoff sorts before every time in the index, so it is read and passed over.
-    const pastFullTime = ctx.db
-      .query("fixtures")
-      .withIndex("by_kickoff", (q) => q.lte("kickoff", now - EARLIEST_FULL_TIME_MS));
-    for await (const { code, gameweek, kickoff, droppedAt } of pastFullTime) {
-      if (droppedAt !== undefined || gameweek === null || kickoff === null) continue;
+    // Only the current season's (#214): a fixture with no kickoff sorts before every time in the
+    // index, so it is read and passed over.
+    for (const { code, gameweek, kickoff } of await currentFixtures(ctx, now - EARLIEST_FULL_TIME_MS)) {
+      if (gameweek === null || kickoff === null) continue;
       const status = await statusOf(ctx, code);
       const lateWatched =
         status?.lockedAt !== undefined &&
@@ -112,6 +112,7 @@ export const record = internalMutation({
   args: matchStatsSyncFields,
   handler: async (ctx, row) => {
     await ctx.db.insert("matchStatsSyncs", row);
+    await emailIfFailed(ctx, "matchStats", row);
     if (!row.outcome.ok) return;
     for (const fixtureCode of [...row.outcome.matches.map((match) => match.fixtureCode), ...row.outcome.waiting]) {
       const tried = await triedOf(ctx, fixtureCode);

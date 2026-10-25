@@ -4,6 +4,7 @@ import { recordsOf, statusOf, writeRecords, type DueMatch } from "./matchStats";
 import { liveStatsTickFields, playerMatchRecord } from "../schema";
 import { LATEST_RUNS } from "../shared/syncRuns";
 import { HOUR_MS } from "../shared/time";
+import { emailIfFailed } from "../admin/feedFailureEmails";
 
 // Issue #28: the stored side of the live poller. `liveStatsSync.tick` asks `live` which matches
 // are being played, reads them, and hands each one before full time to `upsertLive`; from full
@@ -32,6 +33,8 @@ export async function liveMatches(ctx: QueryCtx, now: number): Promise<LiveMatch
     .query("fixtures")
     .withIndex("by_kickoff", (q) => q.gt("kickoff", now - LIVE_WINDOW_MS).lte("kickoff", now));
   const found: LiveMatch[] = [];
+  // Uncapped, as it stays small: matches kicked off within one LIVE_WINDOW_MS, so at most the ten
+  // a final day plays at once (#214).
   for await (const { code, gameweek, kickoff, droppedAt } of kickedOff) {
     if (droppedAt !== undefined || gameweek === null || kickoff === null) continue;
     const status = await statusOf(ctx, code);
@@ -60,6 +63,7 @@ export const recordTick = internalMutation({
   args: liveStatsTickFields,
   handler: async (ctx, row) => {
     await ctx.db.insert("liveStatsTicks", row);
+    await emailIfFailed(ctx, "liveStats", row);
   },
 });
 
