@@ -4,12 +4,11 @@
 import type { SquadWarning } from "../../convex/squads/squads";
 import { AREA_WORDS, failedWords } from "../words";
 
-export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../words";
+export { findLabel, findTitle, foundListLabel, freeAgentWords, noneFoundWords, searchingWords } from "../words";
 
 export const SQUADS_TITLE = "Squads";
 export const findHint = "Put any player on any team, move him to another, or release him to free agency. Every change is in the league's Mail.";
 export const loadingWords = "Loading the squads…";
-export const freeAgentWords = "Free agent";
 export const onTeamWords = (teamName: string) => `On ${teamName}`;
 export const emptySquadWords = "No players yet.";
 export const noTeamsWords = "No teams yet: a player can go on a team once one joins the league.";

@@ -12,6 +12,7 @@ import { previewMail, previewTopBar } from "./mail/preview";
 import { previewPatches } from "./patches/preview";
 import { previewAuth, previewLeagues, previewSession } from "./preview";
 import { previewScoringFor } from "./scoring/preview";
+import { previewPlayerCard } from "./playerCard/preview";
 import { previewScouting } from "./scouting/preview";
 import { ShellApp } from "./ShellApp";
 import { previewSquads } from "./squads/preview";
@@ -35,6 +36,7 @@ export function previewApp(): ReactNode | null {
       leagueSettings={previewLeagueSettings}
       table={previewTable}
       scouting={previewScouting}
+      playerCard={previewPlayerCard}
       admin={previewAdmin}
       feedback={previewFeedback}
       patches={previewPatches}
