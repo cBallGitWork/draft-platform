@@ -9,6 +9,7 @@ import { previewGameweeks } from "./gameweeks/preview";
 import { previewJoining } from "./joining/preview";
 import { previewLeagueSettings } from "./leagueSettings/preview";
 import { previewMail, previewTopBar } from "./mail/preview";
+import { previewMyTeam } from "./myTeam/preview";
 import { previewPatches } from "./patches/preview";
 import { previewAuth, previewLeagues, previewSession } from "./preview";
 import { previewScoringFor } from "./scoring/preview";
@@ -37,6 +38,7 @@ export function previewApp(): ReactNode | null {
       table={previewTable}
       scouting={previewScouting}
       playerCard={previewPlayerCard}
+      myTeam={previewMyTeam}
       admin={previewAdmin}
       feedback={previewFeedback}
       patches={previewPatches}

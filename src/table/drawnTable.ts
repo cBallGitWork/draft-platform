@@ -1,14 +1,18 @@
-// A league's table and fixtures as the server would send them, for the preview and the tests:
-// drawn by the server's pure functions (convex/table/roundRobin.ts, convex/table/standings.ts), with the
-// mapping copied from convex/table/leagueTable.ts's ofLeague, and with no tie-breaks.
+// A league's table and fixtures, and one team's (My team's Fixtures tab), as the server would send
+// them, for the preview and the tests: drawn by the server's pure functions
+// (convex/table/roundRobin.ts, convex/table/standings.ts, convex/table/teamGames.ts), with the
+// mapping copied from convex/table/leagueTable.ts's ofLeague and teamFixtures.ts's ofMyTeam, and
+// with no tie-breaks.
 
 import type { Id } from "../../convex/_generated/dataModel";
 import { drawFixtures, LEAGUE_AVERAGE, roundsOf, type DrawRules } from "../../convex/table/roundRobin";
 import { headToHeadTable, totalPointsTable, type GameweekScores } from "../../convex/table/standings";
 import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
+import type { TeamFixtures } from "../../convex/table/teamFixtures";
+import { gamesOf } from "../../convex/table/teamGames";
 import type { LeagueTable } from "./seam";
 
-type Drawn = Partial<DrawRules> & {
+export type Drawn = Partial<DrawRules> & {
   /** What the order is drawn from, as the league's id is on the server. */
   seed?: string;
   format?: LeagueTable["format"];
@@ -19,21 +23,20 @@ type Drawn = Partial<DrawRules> & {
   scores?: GameweekScores<string>;
 };
 
+/** The draw's defaults, as the server's would be for a league with no rule changed. */
+const DRAW_DEFAULTS = { oddTeamOut: "leagueAverage", gamesPerGameweek: 1, seed: "preview-league", gameweeks: SEASON_GAMEWEEKS } as const;
+
+/** The head-to-head schedule of teams with these names, as `drawn` says to draw it. */
+function scheduleOf(teamNames: string[], drawn: Drawn) {
+  const { oddTeamOut, gamesPerGameweek, seed, gameweeks } = { ...DRAW_DEFAULTS, ...drawn };
+  return drawFixtures(teamNames, gameweeks, () => ({ oddTeamOut, gamesPerGameweek }), seed);
+}
+
 /** The league's table and fixtures for teams with these names, made in this order. */
-export function leagueTableOf(
-  teamNames: string[],
-  {
-    format = "headToHead",
-    oddTeamOut = "leagueAverage",
-    gamesPerGameweek = 1,
-    seed = "preview-league",
-    gameweeks = SEASON_GAMEWEEKS,
-    deadlineOf = () => null,
-    scores = new Map(),
-  }: Drawn = {},
-): LeagueTable {
+export function leagueTableOf(teamNames: string[], drawn: Drawn = {}): LeagueTable {
+  const { format = "headToHead", deadlineOf = () => null, scores = new Map() } = drawn;
   const headToHead = format === "headToHead";
-  const schedule = headToHead ? drawFixtures(teamNames, gameweeks, () => ({ oddTeamOut, gamesPerGameweek }), seed) : [];
+  const schedule = headToHead ? scheduleOf(teamNames, drawn) : [];
   const table = headToHead ? headToHeadTable(teamNames, schedule, scores, []) : totalPointsTable(teamNames, scores);
   return {
     format,
@@ -45,5 +48,20 @@ export function leagueTableOf(
       byes,
     })),
     table: table.map(({ team, ...row }) => ({ teamId: `id-${team}` as Id<"teams">, teamName: team, ...row })),
+  };
+}
+
+/** My team's fixtures for `teamName`, one of `teamNames`, in the same draw as `leagueTableOf`'s. */
+export function teamFixturesOf(teamNames: string[], teamName: string, drawn: Drawn = {}): TeamFixtures {
+  const { format = "headToHead", deadlineOf = () => null } = drawn;
+  const schedule = format === "headToHead" ? scheduleOf(teamNames, drawn) : [];
+  return {
+    teamName,
+    format,
+    games: gamesOf(schedule, teamName).map(({ gameweek, against }) => ({
+      gameweek,
+      deadline: deadlineOf(gameweek),
+      against: against.kind === "team" ? { kind: "team" as const, teamName: against.team } : against,
+    })),
   };
 }

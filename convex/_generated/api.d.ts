@@ -103,6 +103,7 @@ import type * as stats_matchStatsSync from "../stats/matchStatsSync.js";
 import type * as table_leagueTable from "../table/leagueTable.js";
 import type * as table_roundRobin from "../table/roundRobin.js";
 import type * as table_standings from "../table/standings.js";
+import type * as table_teamFixtures from "../table/teamFixtures.js";
 
 import type {
   ApiFromModules,
@@ -206,6 +207,7 @@ declare const fullApi: ApiFromModules<{
   "table/leagueTable": typeof table_leagueTable;
   "table/roundRobin": typeof table_roundRobin;
   "table/standings": typeof table_standings;
+  "table/teamFixtures": typeof table_teamFixtures;
 }>;
 
 /**

@@ -143,7 +143,7 @@ Features table (feature 12), the one home for screen status.
 | League home | `/home` | src/frame/PageNotBuilt.tsx | spec/12 League home | placeholder |
 | My team (Tactics) | `/team` | src/frame/PageNotBuilt.tsx | spec/12:11, spec/12:28, spec/05 | placeholder |
 | Squad | `/team/squad` | src/frame/PageNotBuilt.tsx | spec/12 My team's tabs | placeholder |
-| Fixtures | `/team/fixtures` | src/frame/PageNotBuilt.tsx | spec/12 My team's tabs | placeholder |
+| Fixtures | `/team/fixtures` | src/myTeam/FixturesPage.tsx | spec/12 My team's tabs | built |
 | Transactions | `/team/transactions` | src/frame/PageNotBuilt.tsx | spec/12 My team's tabs | placeholder |
 | Matchup | `/matchup` | src/frame/PageNotBuilt.tsx | spec/10 The matchup | placeholder |
 | Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12 Trades, spec/08 Trades | placeholder |
