@@ -227,6 +227,12 @@ describe("a double gameweek, his two matches", () => {
     expect(scoreGameweek([first, second], "bothMatches")).toEqual({ points: 17, provisional: false });
   });
 
+  test("both count: fractions add up in tenths, never drifting (#412)", () => {
+    const tenth = { total: 0.1, categories: [] };
+    const twoTenths = { total: 0.2, categories: [] };
+    expect(scoreGameweek([tenth, twoTenths], "bothMatches")).toEqual({ points: 0.3, provisional: false });
+  });
+
   test("best match: only the higher-scoring, whichever came first", () => {
     expect(scoreGameweek([first, second], "bestMatch")).toEqual({ points: 10, provisional: false });
     expect(scoreGameweek([second, first], "bestMatch")).toEqual({ points: 10, provisional: false });
