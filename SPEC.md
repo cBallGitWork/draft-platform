@@ -62,6 +62,9 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   fee, trades can involve money, and the market could take a more footballing form, like a
   transfer market. Auction drafts and bidding waivers go with it.
 - **Payments**, its own feature.
+- **Makeshift positions**, after the rest is built: a player outside his areas, at a penalty, so a
+  good side's forward isn't parked at the back for easy clean sheets. Craig's starting point, "a 2
+  area rule": his own area and the next, no further (spec/05; `docs/to-grill.md`).
 - **Cups**, after the beta, with a plate competition beside them (Craig, 20 Oct 2026). Their
   own `/grill` then (`docs/to-grill.md`).
 - **Other leagues**: Scotland and the rest of Europe. None has a free public feed like the
