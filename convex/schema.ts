@@ -567,6 +567,10 @@ const feedbackTables = {
   }).index("by_at", ["at"]),
 };
 
+/** How a version of the site's scoring was announced: a patch with a week's notice, or a fix at
+ *  once (spec/14, Changes and corrections). */
+export const siteScoringKind = v.union(v.literal("patch"), v.literal("fix"));
+
 // A league's rules (#25, spec/03). Each change is a new row from the gameweek it takes effect, so
 // past gameweeks keep the rules they were played under; who changed them is in leagueEvents.
 const leagueRulesTables = {
@@ -582,7 +586,7 @@ const leagueRulesTables = {
    *  With none, the first set (scoring/firstScoring.ts). */
   siteScoring: defineTable({
     scoring: scoringSetShape,
-    kind: v.union(v.literal("patch"), v.literal("fix")),
+    kind: siteScoringKind,
     /** The year its season starts, 2026 for 2026/27 (football.ts's `seasonStartYear` of
      *  `takesEffectAt`); with `number`, its name: 26_27.1. */
     season: v.number(),

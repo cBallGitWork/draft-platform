@@ -1,10 +1,11 @@
 import { v } from "convex/values";
-import type { Doc } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { seasonStartYear } from "../football/football";
 import { gameweekDeadline, type DeadlineRule } from "../gameweeks/deadline";
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { heldSchedule } from "../rules/leagueRules";
+import { siteScoringKind } from "../schema";
 import { scoringSetShape, type StoredScoringSet } from "../rules/leagueRulesShape";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { adminOf, callerEmail, isAdmin, refuse } from "../shared/leagueAccess";
@@ -111,24 +112,24 @@ function checkScoringSet(scoring: StoredScoringSet): void {
 }
 
 /** Refuses a change made from a version other than the latest. */
-function checkRevision(latest: Doc<"siteScoring"> | undefined, revision: Doc<"siteScoring">["_id"] | null): void {
+function checkRevision(latest: Doc<"siteScoring"> | undefined, revision: Id<"siteScoring"> | null): void {
   if ((latest?._id ?? null) !== revision) refuse(siteScoringRefusals.changedSince(latest?._creationTime ?? Date.now()));
 }
 
-/** Adds a version taking effect at `takesEffectAt`, numbered next in its season. */
+/** Adds a version taking effect at `takesEffectAt`, numbered next in its season; returns its name. */
 async function addVersion(
   ctx: MutationCtx,
   history: readonly Doc<"siteScoring">[],
   version: Pick<Doc<"siteScoring">, "scoring" | "kind" | "takesEffectAt">,
-): Promise<Doc<"siteScoring">> {
+): Promise<string> {
   if (history.length >= SITE_SCORING_VERSIONS_MOST) refuse(siteScoringRefusals.tooManyVersions);
   const season = seasonStartYear(version.takesEffectAt);
   const number = Math.max(0, ...history.filter((row) => row.season === season).map((row) => row.number)) + 1;
-  const id = await ctx.db.insert("siteScoring", { ...version, season, number, announcedAt: Date.now() });
-  return (await ctx.db.get("siteScoring", id))!;
+  await ctx.db.insert("siteScoring", { ...version, season, number, announcedAt: Date.now() });
+  return versionName({ season, number });
 }
 
-const versionSummary = v.object({ name: v.string(), kind: v.union(v.literal("patch"), v.literal("fix")), takesEffectAt: v.number() });
+const versionSummary = v.object({ name: v.string(), kind: siteScoringKind, takesEffectAt: v.number() });
 const draftShape = v.object({ part: scoringSetShape, savedAt: v.number() });
 
 /** Player scoring's read: the site's latest set, a waiting patch's among them; the version it is
@@ -202,9 +203,9 @@ export const announce = mutation({
     const earliest = Date.now() + PATCH_NOTICE_MS;
     if (takesEffectAt < earliest) refuse(siteScoringRefusals.tooSoon(earliest));
     if (latest !== undefined && takesEffectAt < latest.takesEffectAt) refuse(siteScoringRefusals.beforeWaiting(versionName(latest), latest.takesEffectAt));
-    const patch = await addVersion(ctx, history, { scoring: draft.scoring, kind: "patch", takesEffectAt });
+    const name = await addVersion(ctx, history, { scoring: draft.scoring, kind: "patch", takesEffectAt });
     await ctx.db.delete("siteScoringDraft", draft._id);
-    return { name: versionName(patch), fromGameweek: await firstGameweekFrom(ctx, takesEffectAt) };
+    return { name, fromGameweek: await firstGameweekFrom(ctx, takesEffectAt) };
   },
 });
 

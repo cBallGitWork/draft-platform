@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import type { Doc, Id } from "../../../convex/_generated/dataModel";
+import type { Id } from "../../../convex/_generated/dataModel";
 import { seasonStartYear } from "../../../convex/football/football";
 import { rulesInGameweek } from "../../../convex/rules/leagueRules";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
@@ -228,9 +228,8 @@ describe("names", () => {
   test("a season runs from 1 July to 30 June, and its name's years are two digits each", () => {
     expect(seasonStartYear(Date.parse("2027-06-30T23:59:59.999Z"))).toBe(2026);
     expect(seasonStartYear(Date.parse("2027-07-01T00:00:00Z"))).toBe(2027);
-    const named = (season: number, number: number) => versionName({ season, number } as Pick<Doc<"siteScoring">, "season" | "number">);
-    expect(named(2026, 1)).toBe("26_27.1");
-    expect(named(2099, 12)).toBe("99_00.12");
-    expect(named(2105, 3)).toBe("05_06.3");
+    expect(versionName({ season: 2026, number: 1 })).toBe("26_27.1");
+    expect(versionName({ season: 2099, number: 12 })).toBe("99_00.12");
+    expect(versionName({ season: 2105, number: 3 })).toBe("05_06.3");
   });
 });
