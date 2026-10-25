@@ -3,8 +3,8 @@ import type { QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { heldRules, type LeagueRules } from "./leagueRulesShape";
 
-// A league's rules history (spec/03; #25): one row per change saved, each from a gameweek, so a
-// past gameweek keeps the rules it had. Changes are saved by leagueRules.ts.
+// A league's rules history (spec/03; #25), read: its rows, and the rules in force in a gameweek.
+// leagueRules.ts saves the changes.
 
 /** The most rules rows a league holds: one per change saved, and a save made again before the same
  *  deadline is a row too, so five every gameweek of a season; rows are kept across seasons. A change
