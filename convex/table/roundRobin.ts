@@ -28,6 +28,12 @@ export const FEWEST_TO_DRAW = 2;
 export const LEAGUE_AVERAGE = "leagueAverage";
 
 export type Fixture<Team> = { team: Team; opponent: Team | typeof LEAGUE_AVERAGE };
+
+/** A fixture as the screens get it: each side by its `named` name, the league's average as null. */
+export const namedFixture = <Team>({ team, opponent }: Fixture<Team>, named: (team: Team) => string) => ({
+  team: named(team),
+  opponent: opponent === LEAGUE_AVERAGE ? null : named(opponent),
+});
 export type GameweekFixtures<Team> = {
   gameweek: number;
   fixtures: Fixture<Team>[];

@@ -1,10 +1,10 @@
 import { v, type Infer } from "convex/values";
-import type { Id } from "../_generated/dataModel";
-import { query } from "../_generated/server";
+import type { Doc, Id } from "../_generated/dataModel";
+import { query, type QueryCtx } from "../_generated/server";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
-import { leagueDeadlines, seasonRules } from "../rules/leagueRules";
+import { leagueDeadlines, seasonRules, type SeasonRules } from "../rules/leagueRules";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
-import { LEAGUE_AVERAGE, roundsOf } from "./roundRobin";
+import { namedFixture, roundsOf } from "./roundRobin";
 import { scheduleOf } from "./playedFixtures";
 import { headToHeadTable, totalPointsTable, type GameweekScores } from "./standings";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
@@ -17,7 +17,7 @@ import { shownDeadline } from "../gameweeks/usedGameweeks";
 // lineups or scores are kept), so the table is all noughts until #29's scores reach it; the
 // commissioner editing fixtures (spec/09) comes later.
 
-const fixture = v.object({
+export const fixture = v.object({
   team: v.string(),
   /** The opponent's name, or null for the league's average. */
   opponent: v.union(v.string(), v.null()),
@@ -57,6 +57,24 @@ export const leagueTable = v.object({
 });
 export type LeagueTable = Infer<typeof leagueTable>;
 
+/** What a league's table and fixtures are drawn from, as `ofLeague` and league home read them:
+ *  the latest rules, the teams, the head-to-head schedule (none in total points), the scores so far
+ *  (none until #29) and the table they make. */
+export async function standingsOf(ctx: QueryCtx, league: Doc<"leagues">, season: SeasonRules) {
+  // The format and tie-breaks are the latest rules'; the draw is each gameweek's own.
+  const rules = season.latest;
+  const teams = await teamsOf(ctx, league._id);
+  const teamIds = teams.map((team) => team._id);
+  const nameOf = new Map(teams.map((team) => [team._id, team.name]));
+  const named = (teamId: Id<"teams">) => nameOf.get(teamId)!;
+
+  const headToHead = rules.format === "headToHead";
+  const schedule = headToHead ? await scheduleOf(ctx, league, season) : [];
+  const scores: GameweekScores<Id<"teams">> = new Map();
+  const table = headToHead ? headToHeadTable(teamIds, schedule, scores, rules.tieBreaks) : totalPointsTable(teamIds, scores);
+  return { rules, teamIds, schedule, scores, table, named };
+}
+
 /** The league's fixtures by gameweek and its table, or null for a league made before rules were
  *  held (#25), which has no format to draw them by. */
 export const ofLeague = query({
@@ -66,18 +84,7 @@ export const ofLeague = query({
     const { league } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     if (season === null) return null;
-    // The format and tie-breaks are the latest rules'; the draw is each gameweek's own.
-    const rules = season.latest;
-    const teams = await teamsOf(ctx, leagueId);
-    const teamIds = teams.map((team) => team._id);
-    const nameOf = new Map(teams.map((team) => [team._id, team.name]));
-    const named = (teamId: Id<"teams">) => nameOf.get(teamId)!;
-
-    const headToHead = rules.format === "headToHead";
-    const schedule = headToHead ? await scheduleOf(ctx, league, season) : [];
-    const scores: GameweekScores<Id<"teams">> = new Map();
-    const table = headToHead ? headToHeadTable(teamIds, schedule, scores, rules.tieBreaks) : totalPointsTable(teamIds, scores);
-
+    const { rules, teamIds, schedule, table, named } = await standingsOf(ctx, league, season);
     const deadlines = await leagueDeadlines(ctx, leagueId);
     return {
       format: rules.format,
@@ -85,10 +92,7 @@ export const ofLeague = query({
       gameweeks: schedule.map(({ gameweek, fixtures, byes }) => ({
         gameweek,
         deadline: deadlines.get(gameweek) ?? null,
-        fixtures: fixtures.map(({ team, opponent }) => ({
-          team: named(team),
-          opponent: opponent === LEAGUE_AVERAGE ? null : named(opponent),
-        })),
+        fixtures: fixtures.map((each) => namedFixture(each, named)),
         byes: byes.map(named),
       })),
       table: table.map(({ team, ...row }) => ({ teamId: team, teamName: named(team), ...row })),
