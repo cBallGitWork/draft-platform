@@ -3,8 +3,8 @@
 // (`siteScoringRefusals`, and the scoring set's reasons in convex/scoring/scoringSet.ts), and
 // reaches the screen as is.
 
-import type { SlotPosition } from "../../convex/lineup/pitch";
-import { failedWords, gameweekWords } from "../words";
+import { SLOT_POSITIONS, type SlotPosition } from "../../convex/lineup/pitch";
+import { failedWords, gameweekWords, POSITION_NAMES } from "../words";
 import type { PerCount, Pricing, Shape } from "./editing";
 
 export const SCORING_TITLE = "Player scoring";
@@ -68,18 +68,10 @@ export const removeBandWords = "×";
 export const removeBandLabel = (bandRow: string) => `Remove ${bandRow}`;
 export const noBandsWords = "No bands: pays nothing.";
 
-export const POSITION_WORDS: Record<SlotPosition, string> = {
-  GK: "Goalkeeper (GK)",
-  FB: "Full-back (FB)",
-  CB: "Centre-back (CB)",
-  WB: "Wing-back (WB)",
-  CDM: "Defensive midfielder (CDM)",
-  WM: "Wide midfielder (WM)",
-  CM: "Central midfielder (CM)",
-  W: "Winger (W)",
-  CAM: "Attacking midfielder (CAM)",
-  ST: "Striker (ST)",
-};
+/** Each slot position by its name and code, as "Centre-back (CB)". */
+export const POSITION_WORDS = Object.fromEntries(
+  SLOT_POSITIONS.map((position) => [position, `${POSITION_NAMES[position]} (${position})`]),
+) as Record<SlotPosition, string>;
 
 /** The bottom bar. */
 export const wholePointsWords = "Whole points only";
