@@ -783,6 +783,13 @@
           "fields": [
             "kickoff"
           ]
+        },
+        {
+          "indexDescriptor": "by_droppedAt_and_kickoff",
+          "fields": [
+            "droppedAt",
+            "kickoff"
+          ]
         }
       ],
       "stagedDbIndexes": [],

@@ -15,15 +15,28 @@ import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { FIRST_GAMEWEEK, SEASON_GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { londonTime } from "../shared/londonTime";
 import { adminByline } from "../mail/letterWords";
+import { currentFixtures } from "../shared/fixtures";
 
 // A league's rules, held as data (spec/03; #25): a new league copies the admin's default rules, and
 // its commissioner changes them from the next gameweek, so a past gameweek keeps the rules it had.
 // Until the admin has a screen, the defaults are set from the dashboard or the command line:
 // `npx convex run rules/leagueRules:setDefaults '{"rules": {…}}'`, checked as a commissioner's are.
 
+/** The most rules rows a league holds: one per change saved, and a save made again before the same
+ *  deadline is a row too, so five every gameweek of a season; rows are kept across seasons. A change
+ *  past it is refused, and a read of more throws, never a silent cut, as the rules in force are the
+ *  newest row (#214). Claude's choice, not yet Craig's. */
+export const RULES_CHANGES_MOST = 200;
+
+/** How many of a league's newest events a stale save looks through for the letter naming who saved
+ *  over it. That save came after the screen opened, so its letter is among the few filed since;
+ *  past them the refusal still refuses, at the time the rules were saved, without the name. */
+export const EVENTS_SEARCHED_FOR_SAVER = 100;
+
 /** Why a change to the rules is refused besides unsound rules, in the words the person is shown. */
 export const rulesRefusals = {
   noRules: "This league was made before leagues held their rules, so it has none to change yet.",
+  tooManyChanges: `This league's rules have been changed ${RULES_CHANGES_MOST} times, the most a league can hold, so this change wasn't saved.`,
   /** Someone saved the rules after these were loaded (Craig, 22 Oct 2026: a second save warns,
    *  never silently replaces the first). `who` is an email, or `adminByline`; null when no letter
    *  names them. */
@@ -44,8 +57,12 @@ type Revision = Id<"leagueRules"> | null;
  *  when, from the letter that said so. */
 async function refuseStale(ctx: QueryCtx, leagueId: Id<"leagues">, latestRow: Doc<"leagueRules"> | undefined, loaded: Revision): Promise<void> {
   if ((latestRow?._id ?? null) === loaded) return;
-  const events = ctx.db.query("leagueEvents").withIndex("by_leagueId_and_at", (q) => q.eq("leagueId", leagueId)).order("desc");
-  for await (const { by, at, event } of events) {
+  const events = await ctx.db
+    .query("leagueEvents")
+    .withIndex("by_leagueId_and_at", (q) => q.eq("leagueId", leagueId))
+    .order("desc")
+    .take(EVENTS_SEARCHED_FOR_SAVER);
+  for (const { by, at, event } of events) {
     if (event.kind === "rulesChanged") refuse(rulesRefusals.changedSince(isAdmin(by) ? adminByline : by, at));
   }
   refuse(rulesRefusals.changedSince(null, latestRow?._creationTime ?? Date.now()));
@@ -67,14 +84,13 @@ function asRefusal(check: () => void): void {
   }
 }
 
-/** Every rules row the league has, oldest first: one per change, so a few a season. */
+/** Every rules row the league has, oldest first: one per change, at most RULES_CHANGES_MOST. */
 async function historyOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"leagueRules">[]> {
-  const rows = [];
-  for await (const row of ctx.db
+  const rows = await ctx.db
     .query("leagueRules")
-    .withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId))) {
-    rows.push(row);
-  }
+    .withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId))
+    .take(RULES_CHANGES_MOST + 1);
+  if (rows.length > RULES_CHANGES_MOST) throw new Error(`League ${leagueId} holds more than ${RULES_CHANGES_MOST} rules rows, so its rules in force can't be known`);
   return rows;
 }
 
@@ -149,14 +165,12 @@ export function refuseTooFewForGames(rules: LeagueRules | null, maxTeams: number
 /** The season's gameweeks and matches as held, less those the football layer no longer sends. */
 export async function heldSchedule(ctx: QueryCtx) {
   const gameweeks = [];
+  // At most FPL's 38, whatever the seasons: the football sync keeps one row per gameweek number,
+  // a new season's updating the last's (footballSync.ts's upsertGameweeks).
   for await (const { number, droppedAt } of ctx.db.query("gameweeks")) {
     if (droppedAt === undefined) gameweeks.push({ number });
   }
-  const matches = [];
-  // A season's 380, at most a few seasons' worth: the fixtures table has no gameweek index.
-  for await (const { gameweek, kickoff, droppedAt } of ctx.db.query("fixtures")) {
-    if (droppedAt === undefined) matches.push({ gameweek, kickoff });
-  }
+  const matches = (await currentFixtures(ctx)).map(({ gameweek, kickoff }) => ({ gameweek, kickoff }));
   return { gameweeks, matches };
 }
 
@@ -237,6 +251,7 @@ async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: str
   const fromGameweek = await takesEffectFrom(ctx, leagueId, history, rules, Date.now());
   const changed = changedParts(latestRow?.rules, rules);
   if (latestRow !== undefined && changed.length === 0) return latestRow.fromGameweek;
+  if (history.length >= RULES_CHANGES_MOST) refuse(rulesRefusals.tooManyChanges);
   // A second change before the same deadline is a newer row from the same gameweek: it wins.
   await ctx.db.insert("leagueRules", { leagueId, fromGameweek, rules });
   await recordEvent(ctx, leagueId, email, { kind: "rulesChanged", fromGameweek, changed, ...scoringChanges(latestRow?.rules.scoring, rules.scoring) });
