@@ -10,7 +10,8 @@ export type { Availability, ListedPlayer, SortColumn } from "../../convex/scouti
 
 /** The players list, and beside it the manager's shortlist. */
 export type ScoutingSeam = ShortlistSeam & {
-  /** The players the filters keep, in the sort's order, and every club for the club filter, live
-   *  (a hook): undefined while they load. */
-  usePlayersList(leagueId: Id<"leagues">, filters: PlayersFilters, sort: PlayersSort): PlayersList | undefined;
+  /** The players the filters keep, in the sort's order, each with his season total of the shown
+   *  stat (a catalogue key, or null for none), and every club for the club filter, live (a hook):
+   *  undefined while they load. */
+  usePlayersList(leagueId: Id<"leagues">, filters: PlayersFilters, sort: PlayersSort, stat: string | null): PlayersList | undefined;
 };
