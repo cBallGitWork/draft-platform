@@ -12,7 +12,7 @@ import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
 import { isWhole, MINUTES_STAT, statValue } from "../stats/matchRecords";
-import { cardPoints } from "./cardPoints";
+import { cardPoints, scoredAs } from "./cardPoints";
 
 // A player's card (spec/12, The player card; #381), for anyone in the league: who he is and who
 // owns him here, FPL's news on him, this season's matches priced under the site's scoring, and his
@@ -23,8 +23,8 @@ import { cardPoints } from "./cardPoints";
  *  not yet Craig's. */
 export const NEXT_FIXTURES_SHOWN = 5;
 
-/** The most match records one player's read takes: a season's 38 and the cups' none, kept season
- *  on season, so ten seasons with room. More throws, never a silent cut. */
+/** The most match records one player's read takes: 38 a season, kept season on season, so ten
+ *  seasons with room. More throws, never a silent cut. */
 export const PLAYER_RECORDS_MOST = 500;
 
 // `v.union` takes two or more members, which a mapped array cannot promise its type (as schema.ts's `position`).
@@ -44,7 +44,7 @@ const playedMatch = v.object({
   /** Null while his whole record hasn't arrived. */
   minutes: v.union(v.number(), v.null()),
   points: v.object({
-    scoredAs: v.union(v.literal("slot"), v.literal("bestPosition")),
+    scoredAs,
     position: v.union(slotPosition, v.null()),
     total: v.union(v.number(), v.null()),
     /** Each of the set's categories, by full name, in its order. */
@@ -93,7 +93,7 @@ export const card = query({
       gone: player.droppedAt !== undefined,
       positions,
       ownerTeamName: await ownerIn(ctx, leagueId, playerCode),
-      news: player.news ? player.news : null,
+      news: player.news || null,
       chanceOfPlaying: player.chanceOfPlaying ?? null,
       matches: await seasonMatches(ctx, player, positions, clubs),
       nextFixtures: await nextFixtures(ctx, player.clubCode, now, clubs),
@@ -146,7 +146,10 @@ async function seasonMatches(ctx: QueryCtx, player: Doc<"players">, positions: r
           .query("fixtures")
           .withIndex("by_code", (q) => q.eq("code", record.fixtureCode))
           .unique();
-        if (fixture === null || fixture.droppedAt !== undefined || fixture.gameweek === null) return [];
+        // A record is filed only for a match the sync holds, so one missing is bad data.
+        if (fixture === null) throw new Error(`Player ${player.code} has a record for match ${record.fixtureCode}, which isn't held`);
+        // A match with no gameweek is postponed with no new date, so not yet played: nothing to price.
+        if (fixture.droppedAt !== undefined || fixture.gameweek === null) return [];
         const set = setIn(fixture.gameweek);
         // No lineup is kept until #29, so nobody stands in a slot yet.
         const points = cardPoints(isWhole(record) ? record.stats : null, set, positions, null);

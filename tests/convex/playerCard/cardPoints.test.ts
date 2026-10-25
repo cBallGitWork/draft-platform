@@ -5,8 +5,6 @@ import { centreOf, EXAMPLE_SET } from "../../support/convex/scoring.example";
 // A match on a player's card (#381, spec/12 The player card): his slot's points when he stood in a
 // lineup, else what he would score at his best position, labelled so. Figures from EXAMPLE_SET.
 
-const totalOf = (points: { total: number | null }) => points.total;
-
 test("a player in no lineup is priced at the slot his positions allow that scores the most", () => {
   // Ten defensive actions pay 2 in defensive midfield and nothing in midfield, where it takes 12.
   const points = cardPoints({ minutes: 90, defensive_contribution: 10 }, EXAMPLE_SET, ["CDM", "CM"], null);
@@ -32,7 +30,7 @@ test("a player with two areas is priced in the one that pays more for his match"
   // A goal and an assist: 5 + 4 + 2 in attacking midfield, 4 + 3 + 2 up front.
   expect(cardPoints({ minutes: 90, goals_scored: 1, assists: 1 }, EXAMPLE_SET, ["W", "ST"], null)).toMatchObject({ position: "W", total: 11 });
   // A striker alone has only the front: 4 × 2 + 2 for two goals.
-  expect(totalOf(cardPoints({ minutes: 90, goals_scored: 2 }, EXAMPLE_SET, ["ST"], null))).toBe(10);
+  expect(cardPoints({ minutes: 90, goals_scored: 2 }, EXAMPLE_SET, ["ST"], null).total).toBe(10);
 });
 
 test("each category's points come with the total, in the set's order", () => {

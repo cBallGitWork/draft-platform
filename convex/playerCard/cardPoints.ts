@@ -4,13 +4,15 @@
 // (pitch.ts's playsCell) that scores the most for the match. Pure, so the card's query and its
 // tests price alike.
 
+import { v, type Infer } from "convex/values";
 import { AREAS, LANES, playsCell, positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
 import type { Position } from "../positions/positionTables";
 import { scoreMatch, type MatchPoints, type MatchStats } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
 
 /** How a match was priced: from his slot in a lineup, or at his best position. */
-export type ScoredAs = "slot" | "bestPosition";
+export const scoredAs = v.union(v.literal("slot"), v.literal("bestPosition"));
+export type ScoredAs = Infer<typeof scoredAs>;
 
 export interface CardPoints extends MatchPoints {
   scoredAs: ScoredAs;

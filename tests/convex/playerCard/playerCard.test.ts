@@ -20,9 +20,17 @@ const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
 const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
 const COVENTRY = { code: 9, name: "Coventry", shortName: "COV" };
 
-const SAKA = { code: 1001, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code, positions: ["W"] as Position[] };
-/** A centre-back who played for Arsenal in gameweek 1 and has since joined Chelsea. */
-const MOVER = { code: 1002, name: "Mover", fullName: "Moving Man", clubCode: CHELSEA.code, positions: ["CB"] as Position[] };
+const SAKA = {
+  code: 1001,
+  name: "Saka",
+  fullName: "Bukayo Saka",
+  clubCode: ARSENAL.code,
+  news: "Knock - 75% chance of playing",
+  chanceOfPlaying: 75,
+  positions: ["W"] as Position[],
+};
+/** A centre-back FPL has no doubt about, who played for Arsenal in gameweek 1 and has since joined Chelsea. */
+const MOVER = { code: 1002, name: "Mover", fullName: "Moving Man", clubCode: CHELSEA.code, news: "", chanceOfPlaying: null, positions: ["CB"] as Position[] };
 const GONE = { code: 1003, name: "Gone", fullName: "Long Gone", clubCode: ARSENAL.code, positions: [] as Position[] };
 
 const NOW = Date.parse("2026-09-01T12:00:00Z");
@@ -71,10 +79,6 @@ beforeEach(async () => {
     }
     const { positions: _none, ...gone } = GONE;
     await ctx.db.insert("players", { ...gone, droppedAt: NOW });
-    await ctx.db.patch("players", (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", SAKA.code)).unique())!._id, {
-      news: "Knock - 75% chance of playing",
-      chanceOfPlaying: 75,
-    });
     for (const each of [ARS_COV, CHE_ARS, LAST_SEASON, COV_CHE, ...ARSENAL_AHEAD, NO_KICKOFF_YET]) await ctx.db.insert("fixtures", each);
     await ctx.db.insert("siteScoring", { scoring: structuredClone(EXAMPLE_SET) as StoredScoringSet, kind: "fix", season: 2025, number: 1, announcedAt: 0, takesEffectAt: 0 });
     await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: SAKA.code });
@@ -85,7 +89,7 @@ beforeEach(async () => {
       record(SAKA.code, LAST_SEASON.code, { minutes: 90, goals_scored: 3 }),
       record(MOVER.code, ARS_COV.code, { minutes: 90, goals_conceded: 4 }),
       // An unused substitute.
-      record(MOVER.code, COV_CHE.code, {}, { played: false }),
+      record(MOVER.code, CHE_ARS.code, {}, { played: false }),
     ]) {
       await ctx.db.insert("playerMatchStats", each);
     }
@@ -104,8 +108,8 @@ test("the card names him, his club, his positions, his owner in the league and F
     gone: false,
     positions: ["W"],
     ownerTeamName: await teamName(teams[0]),
-    news: "Knock - 75% chance of playing",
-    chanceOfPlaying: 75,
+    news: SAKA.news,
+    chanceOfPlaying: SAKA.chanceOfPlaying,
   });
 });
 
