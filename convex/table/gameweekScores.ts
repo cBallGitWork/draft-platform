@@ -24,9 +24,10 @@ import { playerByCode } from "../shared/players";
 // spec/07): its lineup in the gameweek, auto-subs from who played, then scoreTeam under the site's
 // scoring set in force that gameweek. Worked out on every read and never stored: the table's query
 // then re-runs whenever a record, a match's state or a lineup changes, so live matches move it
-// minute by minute (#28) and nothing stored can go stale. What a played gameweek reads is fixed
-// already: its fixtures are stored (playedFixtures.ts), the site's set never reaches a gameweek
-// begun (siteScoring.ts) and a locked match's records no longer change (matchStats.ts).
+// minute by minute (#28) and nothing stored can go stale. Most of what a played gameweek reads is
+// fixed already: its fixtures are stored (playedFixtures.ts), the site's set never reaches a
+// gameweek begun (siteScoring.ts) and a locked match's records no longer change (matchStats.ts).
+// Its lineup isn't yet: lineups.ts reads it against today's squad (#415).
 //
 // A gameweek that can't be scored (a site set holding a rule no longer sound, say: #287) is left
 // out and named with the reason, logged, rather than blanking or breaking the league's table.
