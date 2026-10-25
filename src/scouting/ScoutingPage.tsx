@@ -8,6 +8,7 @@ import { Loading, PANEL_BODY, PageSection, PanelNote, PanelTitle } from "../fram
 import { playerCardPath } from "../playerCard/paths";
 import { Choice } from "../rules/Choice";
 import { PositionCodes } from "../PositionCodes";
+import { statFigure } from "./figures";
 import { POSITION_NAMES } from "../words";
 import type { Availability, ListedPlayer, PlayersFilters, PlayersList, PlayersSort, ScoutingSeam, SortColumn } from "./seam";
 import {
@@ -48,9 +49,6 @@ const OPENING_FILTERS: PlayersFilters = { availability: "all", position: null, c
  *  A head pressed first sorts names A to Z and figures most first. */
 const OPENING_SORT: PlayersSort = { by: "name", descending: false };
 const FIRST_DESCENDING: Record<SortColumn, boolean> = { name: false, club: false, seasonPoints: true, stat: true };
-/** The decimal places a stat's season total shows: expected goals come in hundredths. */
-const STAT_DECIMALS_SHOWN = 2;
-const statFigure = (value: number) => String(Number(value.toFixed(STAT_DECIMALS_SHOWN)));
 
 /** The list's columns: the fixed ones, and "stat" for the shown stat's season total. */
 type Column = keyof typeof columns | "stat";
