@@ -38,6 +38,21 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
     League fixtures belong on the players screen.
   - **Transactions**: the team's claims, drops, trades and commissioner assignments, newest first,
     from the same events Mail files.
+- **The player card** is its own page, with Back, opened from any player's name anywhere (25 Oct
+  2026). It holds:
+  - his name, club and positions, who owns him in the league, and FPL's injury news and chance of
+    playing;
+  - this season's matches, each broken down by category and role (`spec/14`, `spec/05`): for a
+    player in a lineup, the points his team got from his slot; for anyone else, what he would score
+    at his best position, labelled so;
+  - one line of last season's totals, under the site's scoring as it stands (`spec/14`);
+  - his role stars and the manager's latest scout report on him, where the manager can see them
+    (`spec/19`);
+  - his club's next few Premier League fixtures;
+  - the actions that apply to him and the manager: shortlist, send a scout, claim or drop, offer a
+    trade.
+- The player card follows `docs/design/plate.md`, and comes by the mini beta; its stars and report
+  join when scouts do.
 - A real pitch with shirts. The shirts are our own, drawn in club colours (not FPL's kit images),
   with the player's squad number on the shirt.
 - The number leads; a verdict sits beside it only where there is a real one (role stars, fixture
