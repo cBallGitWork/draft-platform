@@ -18,6 +18,8 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      playwright: ${{ steps.playwright.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,15 +33,24 @@ jobs:
       - run: npm ci
       - run: npm run verify
       - run: npm run build  # the production bundle builds and holds no preview data; verify never runs vite build
+      # smoke's container tag, read from the lockfile so the image's browsers match the Playwright npm ci installs
+      - name: Read the locked Playwright version
+        id: playwright
+        run: |
+          version=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test']?.version ?? ''")
+          [ -n "$version" ] || { echo "::error::package-lock.json names no @playwright/test version, so smoke has no container image"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
   # `npm run smoke`: the dev server and the production bundle loaded in Chromium, with no Convex
   # deployment (playwright.config.ts); its report and traces are kept when it fails.
+  # It runs in Playwright's own image, whose browsers and OS packages are baked in, so no run
+  # installs from apt (#372). Why: ARCHITECTURE.md, Services.
   smoke:
     needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 12  # the install step's 7 plus npm ci and smoke, so a double hang fails as that step, not as a cancel
-    env:
-      BROWSER: chromium  # the one browser CI installs for smoke
+    timeout-minutes: 10
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.verify.outputs.playwright }}-noble
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -47,29 +58,6 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      # Why the cache and the cut-off: ARCHITECTURE.md, Services (#281).
-      - name: Read the installed Playwright version
-        id: playwright
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-      - name: Restore Playwright's browser from the cache
-        id: browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ env.BROWSER }}-${{ runner.os }}-${{ steps.playwright.outputs.version }}
-      # The fresh runner always needs the OS packages; on a cache hit the browser is already there.
-      - name: Install Chromium and its OS packages (download skipped on a cache hit; timed tries)
-        timeout-minutes: 7  # TRIES x TRY_SECONDS, plus a minute
-        env:
-          TRIES: 2
-          TRY_SECONDS: 180
-          KILL_AFTER_SECONDS: 10
-        run: |
-          for try in $(seq "$TRIES"); do
-            timeout --kill-after="$KILL_AFTER_SECONDS" "$TRY_SECONDS" npx playwright install --with-deps "$BROWSER" && exit 0
-            echo "::warning::playwright install: try $try of $TRIES failed or ran past ${TRY_SECONDS}s"
-          done
-          exit 1
       - run: npm run smoke
       - if: failure()
         uses: actions/upload-artifact@v4
