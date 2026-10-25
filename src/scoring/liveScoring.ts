@@ -12,12 +12,12 @@ const useScoring: ScoringSeam["useScoring"] = () => useQuery(api.scoring.siteSco
 /** Player scoring's seam filled in by Convex. A refusal comes back as the server's own words
  *  (convex/scoring/siteScoring.ts); any other failure is logged and said plainly. */
 export function useLiveScoring(): ScoringSeam {
-  const change = useMutation(api.scoring.siteScoring.change);
+  const fix = useMutation(api.scoring.siteScoring.fix);
   return useMemo(
     () => ({
       useScoring,
-      save: (scoring, revision) => answerOf(() => change({ scoring, revision }), "Saving the scoring", saveFailedWords),
+      save: (scoring, revision) => answerOf(() => fix({ scoring, revision }), "Saving the scoring", saveFailedWords),
     }),
-    [change],
+    [fix],
   );
 }

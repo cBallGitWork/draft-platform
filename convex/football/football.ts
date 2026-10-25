@@ -32,6 +32,12 @@ export const PL_LAST_COMP_SEASON = 777;
 /** `Date.UTC`'s month for July: a season's last match is in May and the next one's first in August,
  *  so from 1 July after it ends, its ids are out of date. */
 const JULY = 6;
+/** The year the season `at` falls in starts, 2026 for 2026/27: a season runs from 1 July (JULY)
+ *  to 30 June. The one way the platform knows a season (#355). */
+export function seasonStartYear(at: number): number {
+  const date = new Date(at);
+  return date.getUTCFullYear() - (date.getUTCMonth() < JULY ? 1 : 0);
+}
 /** When PL_COMP_SEASON and PL_LAST_COMP_SEASON stop naming this season and the last. */
 export const PL_SEASON_IDS_STALE_FROM = Date.UTC(PL_SEASON_START_YEAR + 1, JULY, 1);
 /** Why every Premier League read naming a season fails from PL_SEASON_IDS_STALE_FROM. */
