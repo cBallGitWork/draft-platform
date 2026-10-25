@@ -4,7 +4,7 @@ import { query, type QueryCtx } from "../_generated/server";
 import { MOST_IN_SQUAD, MOST_TEAMS } from "../leagues/leagueLimits";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
-import { position } from "../schema";
+import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { currentClubs, currentPlayersAt } from "../shared/players";
@@ -44,13 +44,11 @@ export type PlayersFilters = Infer<typeof filters>;
 const sort = v.object({ by: sortColumn, descending: v.boolean() });
 export type PlayersSort = Infer<typeof sort>;
 
-const club = v.object({ code: v.number(), name: v.string(), shortName: v.string() });
-
 const listedPlayer = v.object({
   code: v.number(),
   name: v.string(),
   fullName: v.string(),
-  club,
+  club: clubRecord,
   positions: v.array(position),
   /** The team in this league that owns him, or null for a free agent. */
   ownerTeamName: v.union(v.string(), v.null()),
@@ -61,13 +59,13 @@ export type ListedPlayer = Infer<typeof listedPlayer>;
 
 const playersList = v.object({
   /** Every club now, by name, for the club filter. */
-  clubs: v.array(club),
+  clubs: v.array(clubRecord),
   players: v.array(listedPlayer),
 });
 export type PlayersList = Infer<typeof playersList>;
 
 /** Every club now, and the players the filters keep in the sort's order (`listOf`). Only the chosen
- *  club's players are read. Anyone else in the league is refused. */
+ *  club's players are read. Anyone not in the league is refused. */
 export const list = query({
   args: { leagueId: v.id("leagues"), filters, sort },
   returns: playersList,

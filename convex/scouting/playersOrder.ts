@@ -7,7 +7,7 @@ import type { Availability, ListedPlayer, PlayersFilters, PlayersSort } from "./
 export function listOf(players: readonly ListedPlayer[], filters: PlayersFilters, sort: PlayersSort): ListedPlayer[] {
   const kept = players.filter(
     (player) =>
-      heldAs(filters.availability, player.ownerTeamName) &&
+      keptByAvailability(filters.availability, player.ownerTeamName) &&
       (filters.position === null || player.positions.includes(filters.position)) &&
       (filters.clubCode === null || player.club.code === filters.clubCode),
   );
@@ -15,7 +15,7 @@ export function listOf(players: readonly ListedPlayer[], filters: PlayersFilters
 }
 
 /** Whether a player with this owner (null for none) is one the availability keeps. */
-function heldAs(chosen: Availability, ownerTeamName: string | null): boolean {
+function keptByAvailability(chosen: Availability, ownerTeamName: string | null): boolean {
   switch (chosen) {
     case "all":
       return true;
