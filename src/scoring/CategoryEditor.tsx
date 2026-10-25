@@ -168,13 +168,13 @@ function columnsOf(rule: Rule, readOnly: boolean, onChange: (rule: Rule) => void
   const value = (key: PriceKey) => valueAt(rule.values as Priced<unknown>, key);
   const pays: Column[] =
     rule.shape === "perAction"
-      ? [{ head: columnWords.points, cell: (key, row) => <NumberBox label={boxLabel(columnWords.points, row)} value={value(key) as number} onChange={(points) => onChange(withValue(rule, key, points ?? NaN))} /> }]
+      ? [{ head: columnWords.points, cell: (key, row) => <NumberBox label={boxLabel(columnWords.points, row)} value={value(key) as number} onChange={(points) => onChange(withValue(rule, key, points))} /> }]
       : rule.shape === "perCount"
         ? (["points", "every"] as const).map((part) => ({
             head: columnWords[part],
             cell: (key: PriceKey, row: string) => {
               const each = value(key) as PerCount;
-              return <NumberBox label={boxLabel(columnWords[part], row)} value={each[part]} onChange={(number) => onChange(withValue(rule, key, { ...each, [part]: number ?? NaN }))} />;
+              return <NumberBox label={boxLabel(columnWords[part], row)} value={each[part]} onChange={(number) => onChange(withValue(rule, key, { ...each, [part]: number }))} />;
             },
           }))
         : [{ head: columnWords.bands, cell: (key, row) => <Bands row={row} bands={value(key) as Band[]} readOnly={readOnly} onChange={(bands) => onChange(withValue(rule, key, bands))} /> }];
@@ -199,7 +199,7 @@ function columnsOf(rule: Rule, readOnly: boolean, onChange: (rule: Rule) => void
           {
             head: columnWords.minutes,
             cell: (key, row) => (
-              <NumberBox label={boxLabel(columnWords.minutes, row)} value={valueAt(rule.minMinutes!, key)} onChange={(at) => onChange(withMinMinutesAt(rule, key, at ?? NaN))} />
+              <NumberBox label={boxLabel(columnWords.minutes, row)} value={valueAt(rule.minMinutes!, key)} onChange={(at) => onChange(withMinMinutesAt(rule, key, at))} />
             ),
           },
         ];
@@ -218,9 +218,9 @@ function Bands({ row, bands, readOnly, onChange }: { row: string; bands: Band[];
         return (
           <span key={index} className="flex items-center gap-2">
             {bandFromWords}
-            <NumberBox label={boxLabel(bandFromWords, which)} value={band.atLeast} onChange={(atLeast) => setBand(index, { ...band, atLeast: atLeast ?? NaN })} />
+            <NumberBox label={boxLabel(bandFromWords, which)} value={band.atLeast} onChange={(atLeast) => setBand(index, { ...band, atLeast })} />
             {bandPaysWords}
-            <NumberBox label={boxLabel(columnWords.points, which)} value={band.points} onChange={(points) => setBand(index, { ...band, points: points ?? NaN })} />
+            <NumberBox label={boxLabel(columnWords.points, which)} value={band.points} onChange={(points) => setBand(index, { ...band, points })} />
             {!readOnly && (
               <button type="button" aria-label={removeBandLabel(which)} onClick={() => onChange(bands.filter((_, at) => at !== index))} className="secondary-action">
                 {removeBandWords}
