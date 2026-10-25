@@ -65,7 +65,9 @@ export async function siteScoringInGameweek(ctx: QueryCtx, gameweek: number): Pr
 }
 
 /** The gameweek a change made at `now` takes effect from (AT_FIRST_KICKOFF), never earlier than a
- *  change already waiting, which would otherwise override it. */
+ *  change already waiting, which would otherwise override it. Once every gameweek has kicked off,
+ *  the one after the last (`nextGameweek`), 39, which no match is scored in: a save at the season's
+ *  end waits for patches (#355) to carry it into the next season. */
 async function takesEffectFrom(ctx: QueryCtx, history: readonly Doc<"siteScoring">[], now: number): Promise<number> {
   const { gameweeks, matches } = await heldSchedule(ctx);
   const notKickedOff = nextGameweek(gameweeks, matches, () => AT_FIRST_KICKOFF, new Map(), now);

@@ -57,8 +57,10 @@ describe("reading it", () => {
     }
   });
 
-  test("someone signed out can't", async () => {
+  test("someone signed out can't, nor change it", async () => {
     await expectRefused(t.query(api.scoring.siteScoring.view, { now: Date.now() }), refusals.signedOut);
+    await expectRefused(t.mutation(api.scoring.siteScoring.change, { scoring: EDITED, revision: null }), refusals.signedOut);
+    expect(await versions()).toBe(0);
   });
 });
 
