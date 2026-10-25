@@ -43,11 +43,12 @@ flowchart TD
     AFB["Feedback, a tab of the admin dashboard<br/>/admin/feedback<br/>admin"]
     FB["Feedback<br/>/feedback<br/>manager, commissioner, admin"]
     PN["Patch notes<br/>/patch-notes<br/>manager, commissioner, admin"]
+    CARD["Player card<br/>/leagues/$leagueId/players/$playerCode<br/>manager, commissioner"]
   end
   LP -.->|"signed out (an invite link keeps ?join)"| SIGNIN
   NEW & ADMIN & FEEDS & AFB -.->|"not the admin"| LEAGUES
   GW & SQ & SET & INV -.->|"doesn't run it, or it's being deleted"| LEAGUES
-  SC -.->|"not in it, or it's being deleted"| LEAGUES
+  SC & CARD -.->|"not in it, or it's being deleted"| LEAGUES
   LEAGUES -- "Create a league" --> NEW
   LEAGUES -- "Admin dashboard" --> ADMIN
   ADMIN -- "Feeds" --> FEEDS
@@ -98,14 +99,16 @@ flowchart TD
   MENU & NOLEAGUE -- "Patch notes (the banner, while a patch waits)" --> PN
   MENU & NOLEAGUE -.->|"Sign out, then signed out"| SIGNIN
   ERR(["This page can't be shown: any page that throws"]) -- "Back to your leagues" --> LEAGUES
+  SCOUTING & SQ -- "a player's name" --> CARD
+  CARD -- "Back (to Scouting, opened from a link)" --> SCOUTING
+  CARD -.->|"not a player's code"| SCOUTING
 
   subgraph PLAN["Named in the spec, no route yet"]
     MATCH["Match<br/>spec/10:17<br/>manager"]
-    CARD["Player card<br/>spec/12 The player card<br/>manager"]
     DRAFT["Draft room<br/>spec/12:16, spec/04<br/>manager, commissioner"]
     CLUBS["Club pages<br/>spec/18:22<br/>after the mini beta"]
   end
-  class MATCH,CARD,DRAFT,CLUBS planned
+  class MATCH,DRAFT,CLUBS planned
   MATCHUP -- "a player's status (spec/10:23)" --> MATCH
   PL -- "each fixture (spec/18:12)" --> MATCH
 ```
@@ -146,7 +149,7 @@ Features table (feature 12), the one home for screen status.
 | Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12 Trades, spec/08 Trades | placeholder |
 | Premier League | `/premier-league` | src/frame/PageNotBuilt.tsx | spec/18 | placeholder |
 | Match | none | none | spec/10 The match page | no route |
-| Player card | none | none | spec/12 The player card, spec/05, spec/14, spec/19 | no route |
+| Player card | `/leagues/$leagueId/players/$playerCode` | src/playerCard/PlayerCardPage.tsx | spec/12 The player card, spec/05, spec/14, spec/19 | built |
 | Draft room | none | none | spec/12:16, spec/04 | no route |
 | Club pages | none | none | spec/18:22 | no route |
 

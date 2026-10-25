@@ -1,7 +1,10 @@
+import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
 import { Loading, PANEL_BODY, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
+import { playerCardPath } from "../playerCard/paths";
 import { Choice } from "../rules/Choice";
 import { POSITION_NAMES } from "../words";
 import type { Availability, ListedPlayer, PlayersFilters, PlayersList, PlayersSort, ScoutingSeam, SortColumn } from "./seam";
@@ -24,7 +27,7 @@ import {
   noWaiversWords,
   PLAYERS_TITLE,
   positionLabel,
-  positionsSeparator,
+  listSeparator,
   SCOUTING_TITLE,
   sortByLabel,
 } from "./words";
@@ -80,7 +83,7 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
         ) : (
           <>
             <PanelNote edge="b">{countWords(list.players.length)}</PanelNote>
-            <PlayersTable players={list.players} sort={sort} sortBy={sortBy} />
+            <PlayersTable leagueId={league.leagueId} players={list.players} sort={sort} sortBy={sortBy} />
           </>
         )}
       </section>
@@ -149,7 +152,17 @@ function Filters({
   );
 }
 
-function PlayersTable({ players, sort, sortBy }: { players: readonly ListedPlayer[]; sort: PlayersSort; sortBy: (by: SortColumn) => void }) {
+function PlayersTable({
+  leagueId,
+  players,
+  sort,
+  sortBy,
+}: {
+  leagueId: Id<"leagues">;
+  players: readonly ListedPlayer[];
+  sort: PlayersSort;
+  sortBy: (by: SortColumn) => void;
+}) {
   return (
     <table className="w-full border-collapse">
       <thead className="bg-head text-ground">
@@ -163,7 +176,7 @@ function PlayersTable({ players, sort, sortBy }: { players: readonly ListedPlaye
         {players.map((player) => (
           <tr key={player.code} className="border-t border-panel-rule">
             {COLUMNS.map((column) => (
-              <PlayerCell key={column} column={column} player={player} />
+              <PlayerCell key={column} column={column} player={player} leagueId={leagueId} />
             ))}
           </tr>
         ))}
@@ -198,13 +211,15 @@ function ColumnHead({ column, sort, sortBy }: { column: Column; sort: PlayersSor
 }
 
 /** One cell of a player's row: his name heads it, his points are its figure. */
-function PlayerCell({ column, player }: { column: Column; player: ListedPlayer }) {
+function PlayerCell({ column, player, leagueId }: { column: Column; player: ListedPlayer; leagueId: Id<"leagues"> }) {
   const className = cellClasses(column);
   switch (column) {
     case "name":
       return (
         <th scope="row" title={player.fullName} className={`${className} text-lead font-semibold`}>
-          {player.name}
+          <Link to={playerCardPath(leagueId, player.code)} className="flex min-h-tap items-center">
+            {player.name}
+          </Link>
         </th>
       );
     case "club":
@@ -220,7 +235,7 @@ function PlayerCell({ column, player }: { column: Column; player: ListedPlayer }
         <td className={className}>
           {player.positions.map((position, index) => (
             <span key={position}>
-              {index > 0 && positionsSeparator}
+              {index > 0 && listSeparator}
               <abbr title={POSITION_NAMES[position]} className="no-underline">
                 {position}
               </abbr>

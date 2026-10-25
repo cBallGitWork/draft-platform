@@ -26,6 +26,7 @@ const NEEDLES = {
   "src/leagueSettings/preview.ts": null,
   "src/mail/preview.ts": "Draft night is Friday at eight",
   "src/patches/preview.ts": "preview-patch-",
+  "src/playerCard/preview.ts": "Hamstring injury - 75% chance of playing",
   "src/rules/preview.ts": "preview-rules",
   "src/scoring/preview.ts": null,
   "src/scouting/preview.ts": "Virgil van Dijk",
