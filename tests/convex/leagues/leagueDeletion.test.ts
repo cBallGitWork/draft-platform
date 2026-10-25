@@ -3,6 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { askToJoin, invite, makeLink, openLastLinkTo } from "../../support/convex/joining.harness";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
 import { rulesRevision } from "../../support/convex/leagueRules.harness";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { tablesKeyedToLeague } from "../../../convex/leagues/leagueDeletion";
@@ -89,7 +90,7 @@ describe("while it can be undone", () => {
       "rules/leagueRules:change": () => admin.mutation(api.rules.leagueRules.change, { leagueId, rules: structuredClone(FIRST_RULES), revision }),
       "rules/leagueRules:changeScoring": () => admin.mutation(api.rules.leagueRules.changeScoring, { leagueId, scoring: structuredClone(FIRST_RULES.scoring), revision }),
       "rules/leagueSettings:changeSettings": () =>
-        admin.mutation(api.rules.leagueSettings.changeSettings, { leagueId, settings: { oddTeamOut: "bye", gamesPerGameweek: 2 }, revision }),
+        admin.mutation(api.rules.leagueSettings.changeSettings, { leagueId, settings: { ...leagueSettingsOf(FIRST_RULES), oddTeamOut: "bye", gamesPerGameweek: 2 }, revision }),
       "leagues/lastLeague:switchTo": () => commissioner.mutation(api.leagues.lastLeague.switchTo, { leagueId }),
       "mail/mail:writeToLeague": () => admin.mutation(api.mail.mail.writeToLeague, { leagueId, subject: "Still here?", body: "It's being deleted." }),
       "squads/squads:assign": () => admin.mutation(api.squads.squads.assign, { leagueId, playerCode: 1, teamId: annsTeam._id }),

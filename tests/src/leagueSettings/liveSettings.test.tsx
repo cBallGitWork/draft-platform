@@ -6,7 +6,8 @@ import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { afterEach, expect, test, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { LeagueSettings } from "../../../convex/rules/leagueSettings";
+import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { leagueSettingsOf, type LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
 import { useLiveLeagueSettings } from "../../../src/leagueSettings/liveSettings";
 import { saveFailedWords } from "../../../src/leagueSettings/words";
 import { silenceConsoleError } from "../../support/console.setup";
@@ -26,7 +27,7 @@ afterEach(() => {
 });
 
 const leagueId = "league-1" as Id<"leagues">;
-const settings: LeagueSettings = { oddTeamOut: "bye", gamesPerGameweek: 2 };
+const settings: LeagueSettings = { ...leagueSettingsOf(FIRST_RULES), oddTeamOut: "bye", gamesPerGameweek: 2 };
 const seam = () => renderHook(() => useLiveLeagueSettings()).result.current;
 
 test("the settings are read from rules/leagueSettings:settings, at the start of the current minute", () => {

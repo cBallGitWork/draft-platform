@@ -2,7 +2,7 @@
 // Convex fills it in live (liveSettings.ts); the preview and the tests hand the screen their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import type { LeagueSettings } from "../../convex/rules/leagueSettings";
+import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import type { Revision, RulesView } from "../rules/rulesDraft";
 
 export type SettingsView = RulesView<LeagueSettings>;

@@ -1,22 +1,32 @@
 // League settings (Craig, 22 Oct 2026): reached from "Your leagues" by whoever runs the league,
-// beside Player scoring; the odd team out and games a gameweek, saved from the next gameweek, or
+// beside Player scoring; the odd team out, games a gameweek and the squad's make-up (#341), saved from the next gameweek, or
 // the reason they weren't; and never over someone else's save.
 
 import { cleanup, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import type { LeagueSettings } from "../../../convex/rules/leagueSettings";
+import { AREAS } from "../../../convex/lineup/pitch";
+import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { leagueSettingsOf, type LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
 import { settingsPath } from "../../../src/leagueSettings/paths";
 import type { SettingsView } from "../../../src/leagueSettings/seam";
 import {
+  areaMinimumLabel,
+  blankAreaMinimumWords,
+  blankClubMaximumWords,
   blankGamesWords,
+  blankSquadMaximumWords,
+  clubMaximumLabel,
+  clubMaximumWords,
   gamesLabel,
   loadingWords,
   noRulesWords,
+  noSquadSizeWords,
   oddTeamOutWords,
   redrawWords,
   savedWords,
   SETTINGS_TITLE,
+  squadMaximumLabel,
 } from "../../../src/leagueSettings/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
@@ -28,15 +38,20 @@ import { CHANGES_FROM, REVISION } from "../../support/src/scoring.harness";
 import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
 
 const PAGE = settingsPath(league.leagueId);
+/** The settings the fake server holds unless a test says otherwise: the first rules'. */
+const FIRST = leagueSettingsOf(FIRST_RULES);
 const openSettings = (data: LeagueSettingsData = {}) => openApp(PAGE, commissioner, { leagueSettings: data });
 type App = ReturnType<typeof openSettings>;
 
 const gamesBox = () => screen.getByRole("textbox", { name: gamesLabel }) as HTMLInputElement;
 const option = (oddTeamOut: keyof typeof oddTeamOutWords) => screen.getByRole("radio", { name: oddTeamOutWords[oddTeamOut] }) as HTMLInputElement;
-async function setGames(text: string) {
-  await userEvent.clear(gamesBox());
-  if (text !== "") await userEvent.type(gamesBox(), text);
+const box = (name: string) => screen.getByRole("textbox", { name }) as HTMLInputElement;
+async function fill(name: string, text: string) {
+  await userEvent.clear(box(name));
+  if (text !== "") await userEvent.type(box(name), text);
 }
+const setGames = (text: string) => fill(gamesLabel, text);
+const clubTick = () => screen.getByRole("checkbox", { name: clubMaximumWords }) as HTMLInputElement;
 const save = () => userEvent.click(screen.getByRole("button", { name: saveWords }));
 const savedSettings = (app: App): LeagueSettings => app.leagueSettings.save.mock.calls[0][1];
 
@@ -90,7 +105,7 @@ describe("editing them", () => {
     await setGames("2");
     await save();
 
-    expect(app.leagueSettings.save).toHaveBeenCalledExactlyOnceWith(league.leagueId, { oddTeamOut: "bye", gamesPerGameweek: 2 }, REVISION);
+    expect(app.leagueSettings.save).toHaveBeenCalledExactlyOnceWith(league.leagueId, { ...FIRST, oddTeamOut: "bye", gamesPerGameweek: 2 }, REVISION);
     expect((await screen.findByRole("status")).textContent).toBe(savedWords(CHANGES_FROM));
   });
 
@@ -117,11 +132,109 @@ describe("editing them", () => {
   });
 });
 
+describe("the squad (#341)", () => {
+  const opened = async (data?: LeagueSettingsData) => {
+    const app = openSettings(data);
+    await screen.findByRole("heading", { level: 1, name: SETTINGS_TITLE });
+    return app;
+  };
+
+  it("opens on the league's maximum, no area with a minimum, and no club maximum", async () => {
+    await opened();
+
+    expect(box(squadMaximumLabel).value).toBe(String(FIRST.squadMaximum));
+    for (const area of AREAS) expect(box(areaMinimumLabel(area)).value).toBe("0");
+    expect(clubTick().checked).toBe(false);
+    expect(screen.queryByRole("textbox", { name: clubMaximumLabel })).toBeNull();
+  });
+
+  it("saves each field changed: the maximum, a minimum in an area, and the club maximum turned on and set", async () => {
+    const app = await opened();
+    await fill(squadMaximumLabel, "20");
+    await fill(areaMinimumLabel("defence"), "4");
+    await userEvent.click(clubTick());
+    await fill(clubMaximumLabel, "3");
+    await save();
+
+    expect(savedSettings(app)).toEqual({
+      ...FIRST,
+      squadMaximum: 20,
+      minimumByArea: { goalkeeper: 0, defence: 4, defensiveMidfield: 0, midfield: 0, attackingMidfield: 0, attack: 0 },
+      maxPerClub: 3,
+    });
+    expect((await screen.findByRole("status")).textContent).toBe(savedWords(CHANGES_FROM));
+  });
+
+  it("saves the minimums and the club maximum off again, as none", async () => {
+    const minimumByArea = { goalkeeper: 1, defence: 0, defensiveMidfield: 0, midfield: 0, attackingMidfield: 0, attack: 0 };
+    const app = await opened({ view: { part: { ...FIRST, minimumByArea, maxPerClub: 3 }, revision: REVISION, changesFrom: CHANGES_FROM } });
+    expect(box(clubMaximumLabel).value).toBe("3");
+    await fill(areaMinimumLabel("goalkeeper"), "0");
+    await userEvent.click(clubTick());
+    await save();
+
+    expect(savedSettings(app)).toEqual(FIRST);
+  });
+
+  it("putting a minimum back to 0 leaves nothing to save", async () => {
+    await opened();
+    await fill(areaMinimumLabel("attack"), "2");
+    await fill(areaMinimumLabel("attack"), "0");
+
+    expect(screen.getByText(unchangedWords)).toBeTruthy();
+  });
+
+  it.each([
+    ["a maximum above 25", squadMaximumLabel, "26", "The squad's maximum, 26, is above 25, a Premier League squad."],
+    ["minimums above the maximum", areaMinimumLabel("defence"), "15", `The squad's minimums by area add up to 15, more than its maximum size, ${FIRST.squadMaximum}.`],
+  ])("shows the server's refusal of %s", async (_, name, text, refusal) => {
+    const app = await opened();
+    app.leagueSettings.save.mockResolvedValueOnce(refusal);
+    await fill(name, text);
+    await save();
+
+    expect((await screen.findByRole("alert")).textContent).toBe(refusal);
+  });
+
+  it("shows the server's refusal of a club maximum of 0", async () => {
+    const app = await opened();
+    const refusal = "The most players from one club must be a whole number, 1 or more, not 0.";
+    app.leagueSettings.save.mockResolvedValueOnce(refusal);
+    await userEvent.click(clubTick());
+    await fill(clubMaximumLabel, "0");
+    await save();
+
+    expect(savedSettings(app).maxPerClub).toBe(0);
+    expect((await screen.findByRole("alert")).textContent).toBe(refusal);
+  });
+
+  it.each([
+    ["the maximum", () => fill(squadMaximumLabel, ""), blankSquadMaximumWords],
+    ["an area's minimum", () => fill(areaMinimumLabel("midfield"), ""), blankAreaMinimumWords("midfield")],
+    ["the club maximum, once turned on", () => userEvent.click(clubTick()), blankClubMaximumWords],
+  ])("refuses %s left without a number itself, and asks the server nothing", async (_, leaveBlank, words) => {
+    const app = await opened();
+    await leaveBlank();
+    await fill(gamesLabel, "2");
+    await save();
+
+    expect((await screen.findByRole("alert")).textContent).toBe(words);
+    expect(app.leagueSettings.save).not.toHaveBeenCalled();
+  });
+
+  it("says a league with no squad size limit has none, with no box for it", async () => {
+    await opened({ view: { part: { ...FIRST, squadMaximum: null }, revision: REVISION, changesFrom: CHANGES_FROM } });
+
+    expect(screen.getByText(noSquadSizeWords)).toBeTruthy();
+    expect(screen.queryByRole("textbox", { name: squadMaximumLabel })).toBeNull();
+  });
+});
+
 it("keeps the edits when someone else saves, says so, and loads the latest on asking", async () => {
   const app = openSettings();
   await screen.findByRole("heading", { level: 1, name: SETTINGS_TITLE });
   await setGames("2");
-  const theirs: SettingsView = { part: { oddTeamOut: "bye", gamesPerGameweek: 3 }, revision: "rules-2" as Revision, changesFrom: CHANGES_FROM };
+  const theirs: SettingsView = { part: { ...FIRST, oddTeamOut: "bye", gamesPerGameweek: 3 }, revision: "rules-2" as Revision, changesFrom: CHANGES_FROM };
   app.leagueSettings.useSettings.mockReturnValue(theirs);
   app.becomes({ ...commissioner });
   await waitFor(() => expect(app.leagueSettings.useSettings).toHaveLastReturnedWith(theirs));
