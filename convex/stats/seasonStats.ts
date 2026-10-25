@@ -1,4 +1,4 @@
-import { paginationOptsValidator } from "convex/server";
+import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
@@ -11,7 +11,8 @@ import { addStats, sumStats, type Stats } from "./statTotals";
 // Scouting can sort every player by any stat with one small row a player, where adding up a
 // season's records on each read would pass a query's limits by mid-season. `writeRecords`
 // (matchStats.ts) keeps them in step, taking a changed record's old stats away and adding its new
-// ones; `rebuild` adds every record up afresh, for the records written before the table existed.
+// ones, so a match being played counts as it stands; `rebuild` adds every record up afresh, for
+// the records written before the table existed.
 
 /** The most players with totals in one season: FPL lists about 800 a season, with room. More
  *  throws, never a silent cut. */
@@ -65,20 +66,17 @@ export async function seasonTotals(ctx: QueryCtx, season: number): Promise<Map<n
   return new Map(rows.map((row) => [row.playerCode, row.stats]));
 }
 
-/** Sets a page of players' totals to their records added up afresh, season by season, then runs on
- *  to the next page until every player is done. Safe to run again: it sets, never adds. Run once
- *  after deploying the table: `npx convex run stats/seasonStats:rebuild '{"paginationOpts":{"numItems":25,"cursor":null}}'`. */
+/** Sets a page of players' totals, from `cursor` (null for the first), to their records added up
+ *  afresh, season by season, then runs on to the next page until every player is done. Safe to run
+ *  again: it sets, never adds. Run once after deploying the table:
+ *  `npx convex run stats/seasonStats:rebuild '{"cursor":null}'`. */
 export const rebuild = internalMutation({
-  args: { paginationOpts: paginationOptsValidator },
-  handler: async (ctx, { paginationOpts }) => {
-    const page = await ctx.db.query("players").paginate(paginationOpts);
+  args: { cursor: v.union(v.string(), v.null()) },
+  handler: async (ctx, { cursor }) => {
+    const page = await ctx.db.query("players").paginate({ numItems: REBUILD_PAGE, cursor });
     const seasonOf = matchSeasons(ctx);
     for (const player of page.page) await rebuildPlayer(ctx, player, seasonOf);
-    if (!page.isDone) {
-      await ctx.scheduler.runAfter(0, internal.stats.seasonStats.rebuild, {
-        paginationOpts: { numItems: paginationOpts.numItems, cursor: page.continueCursor },
-      });
-    }
+    if (!page.isDone) await ctx.scheduler.runAfter(0, internal.stats.seasonStats.rebuild, { cursor: page.continueCursor });
   },
 });
 

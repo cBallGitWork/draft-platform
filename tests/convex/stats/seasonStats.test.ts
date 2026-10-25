@@ -2,6 +2,7 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { seasonStartYear } from "../../../convex/football/football";
 import { HOUR_MS } from "../../../convex/shared/time";
+import { REBUILD_PAGE } from "../../../convex/stats/seasonStats";
 import { addStats, sumStats } from "../../../convex/stats/statTotals";
 import { FULL_TIME_READ, GAMEWEEK, KICKOFF, heldMatch, syncAt, withBelloumiGoalRemoved, withHullEverton } from "../../support/convex/matchStats.harness";
 import type { TestConvex } from "../../support/convex/test.harness";
@@ -14,7 +15,6 @@ import { FULL_STATS, recordedGw6 } from "../../support/recorded/gw6.payloads";
 beforeEach(() => vi.useFakeTimers());
 
 const SEASON = seasonStartYear(KICKOFF);
-const PAGE = { numItems: 25, cursor: null };
 
 const totalsHeld = async (t: TestConvex) =>
   new Map((await t.run((ctx) => ctx.db.query("playerSeasonStats").collect())).map((row) => [row.playerCode, row] as const));
@@ -82,8 +82,8 @@ test("two matches in a season add up; one in another season is kept apart", asyn
 
 test("a record for a match that isn't held throws rather than going uncounted", async () => {
   const t = await withHullEverton();
-  const [first] = (await syncAt(t, FULL_TIME_READ, recordedGw6()), [...(await heldMatch(t)).records.values()]);
-  const { _id, _creationTime, state: _state, ...record } = first;
+  await syncAt(t, FULL_TIME_READ, recordedGw6());
+  const { _id, _creationTime, state: _state, ...record } = (await heldMatch(t)).records.get(FULL_STATS.belloumi.code)!;
 
   await expect(t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: 404, records: [{ ...record, fixtureCode: 404 }] })).rejects.toThrow(
     "Match 404 has records but isn't held",
@@ -95,6 +95,8 @@ test("rebuild sets every player's totals to his records added up, however wrong 
   await syncAt(t, FULL_TIME_READ, recordedGw6());
   const right = await totalsHeld(t);
   const codes = [...right.keys()];
+  // More than a page's worth, so the rebuild runs on to the next.
+  expect(codes.length).toBeGreaterThan(REBUILD_PAGE);
   await t.run(async (ctx) => {
     // The football sync's players, so the rebuild has someone to page through; one row wrong and one gone.
     for (const code of codes) await ctx.db.insert("players", { code, name: `P${code}`, fullName: `Player ${code}`, clubCode: 1 });
@@ -102,12 +104,12 @@ test("rebuild sets every player's totals to his records added up, however wrong 
     await ctx.db.delete("playerSeasonStats", right.get(codes[1])!._id);
   });
 
-  await t.mutation(internal.stats.seasonStats.rebuild, { paginationOpts: { ...PAGE, numItems: 7 } });
+  await t.mutation(internal.stats.seasonStats.rebuild, { cursor: null });
   await t.finishAllScheduledFunctions(vi.runAllTimers);
   const rebuilt = await totalsHeld(t);
   for (const [code, stats] of await recordsAddedUp(t)) expect(rebuilt.get(code)).toMatchObject({ season: SEASON, stats });
 
-  await t.mutation(internal.stats.seasonStats.rebuild, { paginationOpts: PAGE });
+  await t.mutation(internal.stats.seasonStats.rebuild, { cursor: null });
   await t.finishAllScheduledFunctions(vi.runAllTimers);
   expect([...(await totalsHeld(t)).values()].map((row) => row.stats)).toEqual([...rebuilt.values()].map((row) => row.stats));
 });
