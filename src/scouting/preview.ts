@@ -3,6 +3,7 @@
 
 import type { ListedPlayer } from "../../convex/scouting/playersList";
 import { listOf } from "../../convex/scouting/playersOrder";
+import { previewShortlistOf } from "./previewShortlist";
 import type { ScoutingSeam } from "./seam";
 
 export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
@@ -29,6 +30,10 @@ export const previewPlayers: readonly ListedPlayer[] = [
   player(7, "Van Dijk", "Virgil van Dijk", LIVERPOOL, ["CB"]),
 ];
 
+/** Rice and Salah are on the preview manager's shortlist to begin with. */
+export const previewShortlist = previewShortlistOf(previewPlayers, [2, 6]);
+
 export const previewScouting: ScoutingSeam = {
+  ...previewShortlist,
   usePlayersList: (_leagueId, filters, sort) => ({ clubs: [ARSENAL, CHELSEA, LIVERPOOL], players: listOf(previewPlayers, filters, sort) }),
 };

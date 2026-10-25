@@ -1,0 +1,187 @@
+{
+  "beforeKickoff": {
+    "readAt": "2026-10-23T18:02:16.140Z",
+    "fixture": {
+      "id": 128999,
+      "altIds": {
+        "opta": "g2645271"
+      },
+      "kickoff": {
+        "completeness": 3,
+        "millis": 1792782000000,
+        "label": "Fri 23 Oct 2026, 20:00 BST",
+        "gmtOffset": 1
+      },
+      "status": "U",
+      "phase": "0",
+      "clock": {
+        "secs": 0,
+        "label": "00'00"
+      },
+      "teams": [
+        {
+          "team": {
+            "id": 8,
+            "shortName": "Ipswich"
+          },
+          "score": 0
+        },
+        {
+          "team": {
+            "id": 15,
+            "shortName": "Nott'm Forest"
+          },
+          "score": 0
+        }
+      ]
+    }
+  },
+  "firstGoal": {
+    "readAt": "2026-10-23T19:14:16.299Z",
+    "fixture": {
+      "id": 128999,
+      "altIds": {
+        "opta": "g2645271"
+      },
+      "kickoff": {
+        "completeness": 3,
+        "millis": 1792782000000,
+        "label": "Fri 23 Oct 2026, 20:00 BST",
+        "gmtOffset": 1
+      },
+      "status": "L",
+      "phase": "1",
+      "clock": {
+        "secs": 780,
+        "label": "13'00"
+      },
+      "teams": [
+        {
+          "team": {
+            "id": 8,
+            "shortName": "Ipswich"
+          },
+          "score": 0
+        },
+        {
+          "team": {
+            "id": 15,
+            "shortName": "Nott'm Forest"
+          },
+          "score": 1
+        }
+      ]
+    }
+  },
+  "halfTime": {
+    "readAt": "2026-10-23T19:48:46.356Z",
+    "fixture": {
+      "id": 128999,
+      "altIds": {
+        "opta": "g2645271"
+      },
+      "kickoff": {
+        "completeness": 3,
+        "millis": 1792782000000,
+        "label": "Fri 23 Oct 2026, 20:00 BST",
+        "gmtOffset": 1
+      },
+      "status": "L",
+      "phase": "H",
+      "clock": {
+        "secs": 2880,
+        "label": "45+3'00"
+      },
+      "teams": [
+        {
+          "team": {
+            "id": 8,
+            "shortName": "Ipswich"
+          },
+          "score": 1
+        },
+        {
+          "team": {
+            "id": 15,
+            "shortName": "Nott'm Forest"
+          },
+          "score": 1
+        }
+      ]
+    }
+  },
+  "secondHalf": {
+    "readAt": "2026-10-23T20:04:46.424Z",
+    "fixture": {
+      "id": 128999,
+      "altIds": {
+        "opta": "g2645271"
+      },
+      "kickoff": {
+        "completeness": 3,
+        "millis": 1792782000000,
+        "label": "Fri 23 Oct 2026, 20:00 BST",
+        "gmtOffset": 1
+      },
+      "status": "L",
+      "phase": "2",
+      "clock": {
+        "secs": 2700,
+        "label": "45'00"
+      },
+      "teams": [
+        {
+          "team": {
+            "id": 8,
+            "shortName": "Ipswich"
+          },
+          "score": 1
+        },
+        {
+          "team": {
+            "id": 15,
+            "shortName": "Nott'm Forest"
+          },
+          "score": 1
+        }
+      ]
+    }
+  },
+  "fullTime": {
+    "readAt": "2026-10-23T20:58:16.964Z",
+    "fixture": {
+      "id": 128999,
+      "altIds": {
+        "opta": "g2645271"
+      },
+      "kickoff": {
+        "completeness": 3,
+        "millis": 1792782000000,
+        "label": "Fri 23 Oct 2026, 20:00 BST",
+        "gmtOffset": 1
+      },
+      "status": "C",
+      "phase": "F",
+      "clock": {
+        "secs": 5940,
+        "label": "90+9'00"
+      },
+      "teams": [
+        {
+          "team": {
+            "id": 8,
+            "shortName": "Ipswich"
+          },
+          "score": 1
+        },
+        {
+          "team": {
+            "id": 15,
+            "shortName": "Nott'm Forest"
+          },
+          "score": 1
+        }
+      ]
+    }
+  }
+}
