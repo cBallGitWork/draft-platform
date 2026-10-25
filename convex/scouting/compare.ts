@@ -8,6 +8,7 @@ import { clubRecord, position } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
 import { sumStats } from "../stats/statTotals";
+import { COMPARED_PLAYERS } from "./comparedPlayers";
 
 // Two players side by side (spec/19, The players list: "Two players side by side, to compare";
 // #373), for anyone in the league: who each is and who owns him here, and his stats this season
@@ -34,9 +35,6 @@ export type ComparedPlayer = Infer<typeof comparedPlayer>;
 
 const comparison = v.array(comparedPlayer);
 export type Comparison = Infer<typeof comparison>;
-
-/** How many players are compared at once: two, side by side (spec/19). */
-export const COMPARED_PLAYERS = 2;
 
 /** The players with these codes, in that order, side by side. Anyone not in the league is
  *  refused, as is asking for other than two players, the same one twice, or one the football sync

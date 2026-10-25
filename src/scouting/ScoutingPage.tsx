@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
+import { COMPARED_PLAYERS } from "../../convex/scouting/comparedPlayers";
 import { Loading, PANEL_BODY, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
 import { playerCardPath } from "../playerCard/paths";
 import { Choice } from "../rules/Choice";
@@ -50,8 +51,6 @@ const FIRST_DESCENDING: Record<SortColumn, boolean> = { name: false, club: false
 
 type Column = keyof typeof columns;
 const COLUMNS: readonly Column[] = ["compare", "name", "club", "positions", "owner", "seasonPoints", "roleFit"];
-/** How many players the comparison holds: two, side by side (spec/19). */
-const COMPARED = 2;
 const SORTED_BY: Partial<Record<Column, SortColumn>> = { name: "name", club: "club", seasonPoints: "seasonPoints" };
 /** Columns a phone leaves out, for room: the filters say who owns whom. */
 const DESK_ONLY: readonly Column[] = ["owner", "roleFit"];
@@ -76,10 +75,10 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
   }, [loaded]);
   const list = loaded ?? lastLoaded.current;
   const [picked, setPicked] = useState<readonly PickedPlayer[]>([]);
-  const comparison = seam.useComparison(league.leagueId, picked.length === COMPARED ? picked.map((each) => each.code) : null);
+  const comparison = seam.useComparison(league.leagueId, picked.length === COMPARED_PLAYERS ? picked.map((each) => each.code) : null);
   // A third ticked takes the place of the first, so the comparison always holds the last two.
   const pick = ({ code, name }: ListedPlayer, ticked: boolean) =>
-    setPicked(ticked ? [...picked, { code, name }].slice(-COMPARED) : picked.filter((each) => each.code !== code));
+    setPicked(ticked ? [...picked, { code, name }].slice(-COMPARED_PLAYERS) : picked.filter((each) => each.code !== code));
   const filterBy = (change: Partial<PlayersFilters>) => setFilters({ ...filters, ...change });
   const sortBy = (by: SortColumn) => setSort(by === sort.by ? { by, descending: !sort.descending } : { by, descending: FIRST_DESCENDING[by] });
   return (

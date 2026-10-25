@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { COMPARED_PLAYERS } from "../../convex/scouting/comparedPlayers";
 import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogue";
 import { Loading, PanelNote, PanelTitle } from "../frame/Panel";
 import { PositionCodes } from "../PositionCodes";
@@ -28,14 +29,14 @@ export function ComparePanel({ picked, comparison, clear }: { picked: readonly P
   return (
     <section aria-labelledby={TITLE_ID} className="bg-panel">
       <PanelTitle id={TITLE_ID}>{COMPARE_TITLE}</PanelTitle>
-      {picked.length < 2 ? (
+      {picked.length < COMPARED_PLAYERS ? (
         <PanelNote>{pickOneMoreWords(picked[0].name)}</PanelNote>
       ) : comparison === undefined ? (
         <Loading className="px-3 py-2">{comparingWords}</Loading>
       ) : (
         <SideBySide comparison={comparison} />
       )}
-      <div className="px-3 pb-3">
+      <div className="px-3 pt-2 pb-3">
         <button type="button" onClick={clear} className="secondary-action min-h-tap px-3">
           {clearComparisonWords}
         </button>
@@ -52,7 +53,8 @@ const FIXED_ROWS: readonly Row[] = [
   { label: columns.positions.long, cell: (player) => <PositionCodes positions={player.positions} /> },
   { label: columns.owner.short, title: columns.owner.long, cell: (player) => player.ownerTeamName ?? <span className="text-muted">{freeAgentWords}</span> },
   {
-    label: columns.seasonPoints.long,
+    label: columns.seasonPoints.short,
+    title: columns.seasonPoints.long,
     cell: (player) =>
       player.seasonPoints === null ? (
         <span title={noPointsYetWords} className="text-muted">
@@ -75,7 +77,7 @@ function SideBySide({ comparison }: { comparison: Comparison }) {
   }));
   return (
     <>
-      <table className="w-full border-collapse">
+      <table className="w-full max-w-2xl border-collapse">
         <thead className="bg-head text-ground">
           <tr>
             <td className="px-2" />

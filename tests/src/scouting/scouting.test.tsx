@@ -266,7 +266,7 @@ describe("comparing two players", () => {
     expect(within(comparisonTable()).getAllByRole("columnheader").map((head) => head.textContent)).toEqual(["Saka", "Palmer"]);
     expect(cellsOf(columns.club.long)).toEqual(["ARS", "CHE"]);
     expect(cellsOf(columns.owner.short)).toEqual(["Saka Potatoes", "Kroos Control"]);
-    expect(cellsOf(columns.seasonPoints.long)).toEqual([noFigureWords, noFigureWords]);
+    expect(cellsOf(columns.seasonPoints.short)).toEqual([noFigureWords, noFigureWords]);
     expect(cellsOf(matchesWords)).toEqual(["9", "8"]);
     expect(cellsOf(nameOf("goals_scored"))).toEqual(["4", "6"]);
     expect(cellsOf(nameOf("expected_goals"))).toEqual(["3.46", "0"]);
