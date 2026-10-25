@@ -2577,7 +2577,7 @@
                       }
                     }
                   },
-                  "optional": false
+                  "optional": true
                 }
               }
             },
@@ -3456,6 +3456,60 @@
             "fieldType": {
               "type": "id",
               "tableName": "leagues"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "unemailedDeletions",
+      "indexes": [],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueName": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "by": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "email": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "reason": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "paused"
+                },
+                {
+                  "type": "literal",
+                  "value": "notSent"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "at": {
+            "fieldType": {
+              "type": "number"
             },
             "optional": false
           }
