@@ -9,11 +9,15 @@ import {
   type RouterHistory,
 } from "@tanstack/react-router";
 import { AdminPage } from "./admin/AdminPage";
+import { FeedbackTab } from "./admin/FeedbackTab";
 import { FeedsPage } from "./admin/FeedsPage";
-import { ADMIN_FEEDS_PATH, ADMIN_PATH } from "./admin/paths";
+import { ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "./admin/paths";
 import type { AdminSeam } from "./admin/seam";
 import type { AuthActions, Session } from "./auth";
 import { AppFrame } from "./frame/AppFrame";
+import { FeedbackPage } from "./feedback/FeedbackPage";
+import { FEEDBACK_PATH } from "./feedback/paths";
+import type { FeedbackSeam } from "./feedback/seam";
 import { ErrorScreen } from "./frame/ErrorScreen";
 import { LeagueSwitcher } from "./frame/LeagueSwitcher";
 import type { TopBarState } from "./frame/topBarState";
@@ -52,7 +56,7 @@ import type { TableSeam } from "./table/seam";
 import { TableRoute } from "./table/TableRoute";
 
 // A seam is a top-level useLive* hook holding root state (mail, joining, squads, scoring, league
-// settings, admin, leagues) or a constant object of hooks (gameweeks, table). Each new one needs a
+// settings, admin, leagues, feedback) or a constant object of hooks (gameweeks, table). Each new one needs a
 // preview (previewApp.tsx), a live value (liveApp.tsx) and a fake (shell.harness.tsx), and the
 // typechecker flags any that's missing.
 export type ShellContext = {
@@ -68,6 +72,7 @@ export type ShellContext = {
   leagueSettings: LeagueSettingsSeam;
   table: TableSeam;
   admin: AdminSeam;
+  feedback: FeedbackSeam;
 };
 
 /** Where the app opens: the guards below send each visitor on from here. */
@@ -203,6 +208,15 @@ const squadsRoute = runnersPage(SQUADS_ROUTE, "squads", SquadsPage); // #31
 const scoringRoute = runnersPage(SCORING_ROUTE, "scoring", ScoringPage); // Player scoring, #30
 const settingsRoute = runnersPage(SETTINGS_ROUTE, "leagueSettings", SettingsPage); // League settings
 
+// Feedback to the admin (#357), from the top bar's link on either frame.
+const feedbackRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: FEEDBACK_PATH,
+  component: function Feedback() {
+    return <FeedbackPage send={feedbackRoute.useRouteContext({ select: (context) => context.feedback.send })} />;
+  },
+});
+
 // The admin's dashboard (#87), his alone.
 const adminRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
@@ -222,6 +236,17 @@ const adminFeedsRoute = createRoute({
   component: function AdminFeeds() {
     const admin = adminFeedsRoute.useRouteContext({ select: (context) => context.admin });
     return <FeedsPage seam={admin} />;
+  },
+});
+
+// The dashboard's Feedback tab (#357), his alone too.
+const adminFeedbackRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: ADMIN_FEEDBACK_PATH,
+  beforeLoad: adminOnly,
+  component: function AdminFeedback() {
+    const feedback = adminFeedbackRoute.useRouteContext({ select: (context) => context.feedback });
+    return <FeedbackTab seam={feedback} />;
   },
 });
 
@@ -288,7 +313,7 @@ const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map(
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
-  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, settingsRoute, adminRoute, adminFeedsRoute]),
+  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, feedbackRoute]),
   frameRoute.addChildren([landingRoute, tableRoute, ...pageRoutes]),
 ]);
 

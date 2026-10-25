@@ -15,6 +15,8 @@ import type * as admin_platformSettings from "../admin/platformSettings.js";
 import type * as admin_runLogs from "../admin/runLogs.js";
 import type * as auth from "../auth.js";
 import type * as crons from "../crons.js";
+import type * as feedback_feedback from "../feedback/feedback.js";
+import type * as feedback_feedbackLimits from "../feedback/feedbackLimits.js";
 import type * as football_feedIds from "../football/feedIds.js";
 import type * as football_feeds from "../football/feeds.js";
 import type * as football_football from "../football/football.js";
@@ -109,6 +111,8 @@ declare const fullApi: ApiFromModules<{
   "admin/runLogs": typeof admin_runLogs;
   auth: typeof auth;
   crons: typeof crons;
+  "feedback/feedback": typeof feedback_feedback;
+  "feedback/feedbackLimits": typeof feedback_feedbackLimits;
   "football/feedIds": typeof football_feedIds;
   "football/feeds": typeof football_feeds;
   "football/football": typeof football_football;

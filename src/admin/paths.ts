@@ -2,6 +2,8 @@
 export const ADMIN_PATH = "/admin";
 /** The dashboard's feeds page (#35, spec/15 The admin): a tab of it. */
 export const ADMIN_FEEDS_PATH = `${ADMIN_PATH}/feeds`;
+/** The dashboard's Feedback tab (#357, spec/15 The admin): what managers sent. */
+export const ADMIN_FEEDBACK_PATH = `${ADMIN_PATH}/feedback`;
 
 /** Where the dashboard sends the admin to read up on a player: a web search on one site each. */
 const WEB_SEARCH_URL = "https://www.google.com/search";

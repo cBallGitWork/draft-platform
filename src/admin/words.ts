@@ -5,6 +5,7 @@ import type { ChangeThresholds } from "../../convex/positions/positionChanges";
 import type { ApproveMode, PositionSource } from "../../convex/positions/positions";
 import type { FeedState } from "../../convex/admin/feedState";
 import { FEED_NAMES } from "../../convex/shared/feedSchedule";
+import { FEEDBACK_TITLE } from "../feedback/words";
 import { LOCALE } from "../../convex/shared/londonTime";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
 import { versusWords, whenWords } from "../words";
@@ -15,10 +16,11 @@ export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } 
 export const ADMIN_TITLE = "Admin dashboard";
 export const loadingWords = "Loading the queue…";
 
-/** The dashboard's tabs (#35): the positions queue, and the feeds page. */
+/** The dashboard's tabs (#35, #357): the positions queue, the feeds page, and managers' feedback. */
 export const adminTabsLabel = "Admin";
 export const positionsTabWords = "Positions";
 export const feedsTabWords = "Feeds";
+export const feedbackTabWords = FEEDBACK_TITLE;
 
 export const newSigningsTitle = "New signings";
 export const newSigningsHint = "No starts to go on yet, so each plays on the Premier League's label for him until you confirm it.";
@@ -138,3 +140,10 @@ export const correctionOfWords = (player: string | null, playerCode: number, mat
   `${playerWords(player, playerCode)}, ${matchWords(match, fixtureCode)}`;
 export const changeWords = ({ stat, locked, sent }: { stat: string; locked: number; sent: number }) => `${stat}: locked at ${locked}, sent ${sent}`;
 export const seenWords = (at: number) => `Seen ${whenWords(at)}`;
+
+/** The Feedback tab (#357): what managers sent from the top bar. */
+export const feedbackListTitle = "Feedback from managers";
+export const feedbackLoadingWords = "Loading the feedback…";
+export const noFeedbackWords = "No feedback yet.";
+/** Past the newest the list shows, said as the late corrections say it. */
+export const moreFeedbackWords = moreCorrectionsWords;

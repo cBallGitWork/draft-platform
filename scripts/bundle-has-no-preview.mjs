@@ -20,6 +20,7 @@ const PREVIEW_FILE = "preview.ts";
 const NEEDLES = {
   "src/preview.ts": "preview-pro-league",
   "src/admin/preview.ts": "Nick Woltemade",
+  "src/feedback/preview.ts": "preview-feedback-",
   "src/gameweeks/preview.ts": "no gameweek was changed",
   "src/joining/preview.ts": "dan@example.com",
   "src/leagueSettings/preview.ts": null,

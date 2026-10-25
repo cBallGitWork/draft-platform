@@ -556,6 +556,16 @@ const mailTables = {
     .index("by_leagueId", ["leagueId"]),
 };
 
+// Feedback to the admin (#357, spec/15): one row a message, kept for him to read on his dashboard.
+const feedbackTables = {
+  feedback: defineTable({
+    /** Who sent it, by email. */
+    from: v.string(),
+    at: v.number(),
+    message: v.string(),
+  }).index("by_at", ["at"]),
+};
+
 // A league's rules (#25, spec/03). Each change is a new row from the gameweek it takes effect, so
 // past gameweeks keep the rules they were played under; who changed them is in leagueEvents.
 const leagueRulesTables = {
@@ -606,6 +616,7 @@ export default defineSchema({
   ...leagueTables,
   ...joiningTables,
   ...mailTables,
+  ...feedbackTables,
   ...leagueRulesTables,
   ...playedFixtureTables,
 });

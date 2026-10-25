@@ -9,6 +9,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../../convex/mail/mail";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { fakeAdmin, type AdminData } from "./admin.harness";
+import { fakeFeedback, type FeedbackData } from "./feedback.harness";
 import type { AuthActions, Session } from "../../../src/auth";
 import type { TopBarState } from "../../../src/frame/topBarState";
 import { fakeGameweeks } from "./gameweeks.harness";
@@ -125,11 +126,12 @@ export type AppSetUp = {
   leagueSettings?: LeagueSettingsData;
   table?: TableData;
   admin?: AdminData;
+  feedback?: FeedbackData;
 };
 
 /** The app opened at `path` for `session`, set up as `setUp` says: where it is, the fake sign-in,
- *  league, Mail, joining, gameweeks, squads, scoring, league settings, table and admin seams, and a way to change the session as
- *  signing in or out, or a league changing, would. */
+ *  league, Mail, joining, gameweeks, squads, scoring, league settings, table, admin and feedback
+ *  seams, and a way to change the session as signing in or out, or a league changing, would. */
 export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const {
     topBar = { unreadMail: 0, next: null },
@@ -141,6 +143,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     leagueSettings: leagueSettingsData = {},
     table: tableData = {},
     admin: adminData = {},
+    feedback: feedbackData = {},
   } = setUp;
   const history = createMemoryHistory({ initialEntries: [path] });
   const auth = fakeAuth();
@@ -153,6 +156,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const leagueSettings = fakeLeagueSettings(leagueSettingsData);
   const table = fakeTable(tableData);
   const admin = fakeAdmin(adminData);
+  const feedback = fakeFeedback(feedbackData);
   const app = (current: Session) => (
     <ShellApp
       session={current}
@@ -167,6 +171,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
       leagueSettings={leagueSettings}
       table={table}
       admin={admin}
+      feedback={feedback}
       history={history}
     />
   );
@@ -182,6 +187,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     leagueSettings,
     table,
     admin,
+    feedback,
     path: () => history.location.pathname,
     search: () => history.location.search,
     becomes: (next: Session) => view.rerender(app(next)),

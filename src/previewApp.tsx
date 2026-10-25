@@ -4,6 +4,7 @@
 
 import type { ReactNode } from "react";
 import { previewAdmin } from "./admin/preview";
+import { previewFeedback } from "./feedback/preview";
 import { previewGameweeks } from "./gameweeks/preview";
 import { previewJoining } from "./joining/preview";
 import { previewLeagueSettings } from "./leagueSettings/preview";
@@ -32,6 +33,7 @@ export function previewApp(): ReactNode | null {
       leagueSettings={previewLeagueSettings}
       table={previewTable}
       admin={previewAdmin}
+      feedback={previewFeedback}
     />
   );
 }
