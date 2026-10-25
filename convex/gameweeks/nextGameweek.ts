@@ -11,8 +11,8 @@ type Gameweek = Pick<Infer<typeof gameweekRecord>, "number">;
  * The first gameweek that hasn't begun after the last that has: begun is past its league deadline
  * (deadline.ts's `leagueDeadline`). FPL's deadline plays no part (#138). A gameweek with no kickoff
  * time behind a begun one has no deadline and never begins, so it is passed over (#413). With no
- * gameweeks held yet, gameweek 1; once all have begun, the one after the last. `deadlineFor` is the league's deadline rule in force in that gameweek,
- * and `passed` its recorded passed deadlines, by gameweek.
+ * gameweeks held yet, gameweek 1; once all have begun, the one after the last. `deadlineFor` is the
+ * league's deadline rule in force in that gameweek, and `passed` its recorded passed deadlines.
  */
 export function nextGameweek(
   gameweeks: readonly Gameweek[],
