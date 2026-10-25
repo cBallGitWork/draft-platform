@@ -157,7 +157,10 @@ export const squads = query({
             };
           }),
         );
-        const playersAreas = await Promise.all(squad.map(async ({ playerCode }) => areasOf(await positionsNow(ctx, playerCode, how))));
+        // Positions are read only for a league with area minimums, the one limit that needs them.
+        const playersAreas = rules?.squad.minimumByArea
+          ? await Promise.all(squad.map(async ({ playerCode }) => areasOf(await positionsNow(ctx, playerCode, how))))
+          : [];
         players.sort((one, other) => one.name.localeCompare(other.name));
         return { teamId: team._id, teamName: team.name, players, warnings: squadWarnings(players, playersAreas, rules?.squad ?? null) };
       }),
