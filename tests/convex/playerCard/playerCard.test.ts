@@ -69,7 +69,7 @@ let teams: Id<"teams">[];
 beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
   teams = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
     for (const club of [ARSENAL, CHELSEA, COVENTRY]) await ctx.db.insert("clubs", club);
