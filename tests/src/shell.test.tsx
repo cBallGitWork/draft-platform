@@ -92,7 +92,7 @@ describe("a signed-in manager", () => {
       "My team",
       "Matchup",
       "Table",
-      "Players",
+      "Scouting",
       "Trades",
       "Premier League",
       "Mail",

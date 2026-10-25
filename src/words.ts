@@ -1,6 +1,7 @@
 // What every screen says alike, in one place for Craig to change in the pull request.
 
 import type { Area } from "../convex/lineup/pitch";
+import type { Position } from "../convex/positions/positionTables";
 import { LOCALE } from "../convex/shared/londonTime";
 
 /** The pitch's areas, as the rules screens name them. */
@@ -11,6 +12,21 @@ export const AREA_WORDS: Record<Area, string> = {
   midfield: "Midfield",
   attackingMidfield: "Attacking midfield",
   attack: "Attack",
+};
+
+/** Each position by name, for a short code's hover (positionTables.ts has the codes). */
+export const POSITION_NAMES: Record<Position, string> = {
+  GK: "Goalkeeper",
+  CB: "Centre-back",
+  FB: "Full-back",
+  WB: "Wing-back",
+  CDM: "Defensive midfielder",
+  CM: "Central midfielder",
+  WM: "Wide midfielder",
+  CAM: "Attacking midfielder",
+  W: "Winger",
+  SS: "Second striker",
+  ST: "Striker",
 };
 
 /** What a screen says when a change or a read failed for any reason but the server's refusal (src/refusal.ts):

@@ -16,6 +16,7 @@ import { useLiveLeagueActions } from "./leagues/liveLeagueActions";
 import { useLiveMail } from "./mail/liveMail";
 import { useLiveLeagueSettings } from "./leagueSettings/liveSettings";
 import { useLiveScoring } from "./scoring/liveScoring";
+import { liveScouting } from "./scouting/liveScouting";
 import { useLiveSquads } from "./squads/liveSquads";
 import { liveTable } from "./table/liveTable";
 import { answerOf } from "./refusal";
@@ -147,7 +148,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
       <Loading className="p-2">{checkingLink ? waitingWords.checkingLink : waitingWords.connecting}</Loading>
     );
   }
-  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} admin={admin} feedback={feedback} patches={patches} />;
+  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} scouting={liveScouting} admin={admin} feedback={feedback} patches={patches} />;
 }
 
 /** The sign-in page saying what was wrong with a link, and, for one that led to a league's invite

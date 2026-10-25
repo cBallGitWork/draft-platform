@@ -21,6 +21,7 @@ import { fakeLeagueSettings, type LeagueSettingsData } from "./leagueSettings.ha
 import { fakePatches, type PatchesData } from "./patches.harness";
 import { fakeScoring, type ScoringData } from "./scoring.harness";
 import { fakeSquads, type SquadsData } from "./squads.harness";
+import { fakeScouting, type ScoutingData } from "./scouting.harness";
 import { fakeTable, type TableData } from "./table.harness";
 
 // The router restores scroll on every navigation, and jsdom has no scrolling to restore.
@@ -126,13 +127,14 @@ export type AppSetUp = {
   scoring?: ScoringData;
   leagueSettings?: LeagueSettingsData;
   table?: TableData;
+  scouting?: ScoutingData;
   admin?: AdminData;
   feedback?: FeedbackData;
   patches?: PatchesData;
 };
 
 /** The app opened at `path` for `session`, set up as `setUp` says: where it is, the fake sign-in,
- *  league, Mail, joining, gameweeks, squads, scoring, league settings, table, admin, feedback and patches
+ *  league, Mail, joining, gameweeks, squads, scoring, league settings, table, scouting, admin, feedback and patches
  *  seams, and a way to change the session as signing in or out, or a league changing, would. */
 export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const {
@@ -144,6 +146,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     scoring: scoringData = {},
     leagueSettings: leagueSettingsData = {},
     table: tableData = {},
+    scouting: scoutingData = {},
     admin: adminData = {},
     feedback: feedbackData = {},
     patches: patchesData = {},
@@ -158,6 +161,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const scoring = fakeScoring(scoringData);
   const leagueSettings = fakeLeagueSettings(leagueSettingsData);
   const table = fakeTable(tableData);
+  const scouting = fakeScouting(scoutingData);
   const admin = fakeAdmin(adminData);
   const feedback = fakeFeedback(feedbackData);
   const patches = fakePatches(patchesData);
@@ -174,6 +178,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
       scoring={scoring}
       leagueSettings={leagueSettings}
       table={table}
+      scouting={scouting}
       admin={admin}
       feedback={feedback}
       patches={patches}
@@ -191,6 +196,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     scoring,
     leagueSettings,
     table,
+    scouting,
     admin,
     feedback,
     patches,

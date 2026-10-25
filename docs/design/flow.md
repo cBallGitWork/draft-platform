@@ -73,7 +73,7 @@ flowchart TD
     TTR["Transactions<br/>/team/transactions<br/>manager"]
     MATCHUP["Matchup<br/>/matchup<br/>manager"]
     TABLE["Table and fixtures<br/>/table<br/>manager"]
-    PLAYERS["Scouting<br/>/players<br/>manager"]
+    SCOUTING["Scouting<br/>/scouting<br/>manager"]
     TRADES["Trades<br/>/trades<br/>manager"]
     PL["Premier League<br/>/premier-league<br/>manager"]
   end
@@ -86,7 +86,7 @@ flowchart TD
   MENU -- "My team" --> TEAM
   MENU -- "Matchup" --> MATCHUP
   MENU -- "Table" --> TABLE
-  MENU -- "Scouting" --> PLAYERS
+  MENU -- "Scouting" --> SCOUTING
   MENU -- "Trades" --> TRADES
   MENU -- "Premier League" --> PL
   MENU -- "Mail / Continue (unread)" --> MAIL
@@ -136,13 +136,13 @@ Features table (feature 12), the one home for screen status.
 | Feedback | `/feedback` | src/feedback/FeedbackPage.tsx | spec/12 The frame, spec/15 The admin | built |
 | Patch notes | `/patch-notes` | src/patches/PatchNotesPage.tsx | spec/14 Changes and corrections | built |
 | Table and fixtures | `/table` | src/table/TablePage.tsx | spec/12, spec/09 | built |
+| Scouting | `/scouting` | src/scouting/ScoutingPage.tsx | spec/19 The players list | built |
 | League home | `/home` | src/frame/PageNotBuilt.tsx | spec/12:16 | placeholder |
 | My team (Tactics) | `/team` | src/frame/PageNotBuilt.tsx | spec/12:11, spec/12:28, spec/05 | placeholder |
 | Squad | `/team/squad` | src/frame/PageNotBuilt.tsx | spec/12 My team's tabs | placeholder |
 | Fixtures | `/team/fixtures` | src/frame/PageNotBuilt.tsx | spec/12 My team's tabs | placeholder |
 | Transactions | `/team/transactions` | src/frame/PageNotBuilt.tsx | spec/12 My team's tabs | placeholder |
 | Matchup | `/matchup` | src/frame/PageNotBuilt.tsx | spec/10 The matchup | placeholder |
-| Scouting | `/players` | src/frame/PageNotBuilt.tsx | spec/19 | placeholder |
 | Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12:16, spec/08 | placeholder |
 | Premier League | `/premier-league` | src/frame/PageNotBuilt.tsx | spec/18 | placeholder |
 | Match | none | none | spec/10 The match page | no route |
