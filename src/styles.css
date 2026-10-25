@@ -187,7 +187,7 @@
   line-height: var(--text-lead--line-height);
 }
 
-/* A box for one number of a scoring rule: a figure (plate.md, Colour roles), so yellow. */
+/* A box for one number of a rule: a figure (plate.md, Colour roles), so yellow. */
 @utility number-box {
   width: var(--spacing-number-box);
   min-height: var(--spacing-tap);

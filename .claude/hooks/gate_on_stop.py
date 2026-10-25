@@ -4,8 +4,8 @@
 It judges the checkout the stop came from: the git top-level of the payload's `cwd` (so a
 builder in .claude/worktrees/ is judged on its own worktree), else of CLAUDE_PROJECT_DIR, else of
 the folder it runs in; one with no git or no package.json has no gate, so it says nothing. While
-the watched paths there have uncommitted changes, it runs `npm run verify` (tests, typecheck, hook
-checks) there; on failure, it blocks the stop and hands Claude the end of the output. Respects
+the watched paths there have uncommitted changes, it runs `npm run verify` (the install check, tests,
+typecheck, the recorded-payload check, hook checks) there; on failure, it blocks the stop and hands Claude the end of the output. Respects
 `stop_hook_active`, so it blocks once and never loops. If git status fails, the gate times out
 or the payload can't be read (hook_payload.py), it exits 1 with one line on stderr saying what
 failed and in which checkout: Claude Code shows it, but the stop goes ahead (it fails open, never
@@ -28,7 +28,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from hook_payload import BadPayload, field, read_payload, report
+from hook_payload import BadPayload, field, project_dir, read_payload, report
 
 PACKAGE = "package.json"  # a checkout without one has no gate
 # what `npm run verify` checks: it changes with verify's scope (a new vitest project, say)
@@ -41,7 +41,7 @@ GATE_TIMEOUT_SECONDS = 170  # inside settings.json's hook timeout; .claude/hooks
 
 def checkout_of(cwd):
     """The top-level of the checkout the stop came from, None if it has no gate to run."""
-    folder = cwd or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+    folder = cwd or project_dir()
     proc = subprocess.run(
         ["git", "-C", folder, "rev-parse", "--show-toplevel"], capture_output=True, text=True
     )

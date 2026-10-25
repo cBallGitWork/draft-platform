@@ -1,12 +1,11 @@
 import type { Infer } from "convex/values";
-import { isLocked, leagueDeadline, type DeadlineRule } from "./deadline";
-import type { fixtureRecord, gameweekRecord } from "../schema";
+import { isLocked, leagueDeadline, type DeadlineRule, type ScheduledMatch } from "./deadline";
+import type { gameweekRecord } from "../schema";
 
 // Which gameweek a rule change made now takes effect from (spec/03, spec/14: "it applies from the
 // next gameweek; past gameweeks are locked"; #25). Pure: the clock is an argument.
 
 type Gameweek = Pick<Infer<typeof gameweekRecord>, "number">;
-type ScheduledMatch = Pick<Infer<typeof fixtureRecord>, "gameweek" | "kickoff">;
 
 /**
  * The first gameweek that hasn't begun: whose league deadline (deadline.ts's `leagueDeadline`) is

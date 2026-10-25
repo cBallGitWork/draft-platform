@@ -8,11 +8,8 @@ process.env.TZ = LONDON_ZONE;
 // Where tests go and what tests/support/ holds: tests/README.md. Only the roots below are
 // searched, never the whole repo: an agent's worktree, inside it under .claude/worktrees/, runs
 // its own.
-// Each project puts back every stubbed global, stubbed env and spy before each test, and
-// tests/support/test.setup.ts puts the real timers back after each, so no test file needs its own
-// afterEach for them. In the convex and app projects, tests/support/console.setup.ts fails a test
-// that logs with console.error and didn't call silenceConsoleError(); the app project's
-// tests/support/app.setup.ts unmounts whatever a test rendered.
+// Each project puts back every stubbed global, stubbed env and spy before each test, so no test
+// file needs its own afterEach for them; what each setup file does is in tests/README.md.
 
 const RESTORED = {
   unstubGlobals: true,

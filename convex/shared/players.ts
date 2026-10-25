@@ -1,5 +1,6 @@
 import type { Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
+import { takeAllOrThrow } from "./cappedRead";
 
 // The Premier League's clubs and players as the football sync holds them (#21): the reads that
 // squads and the admin's positions both make, so each limit and the search have one home. Clubs
@@ -17,13 +18,12 @@ export const CLUB_PLAYERS_MOST = 100;
 const FOUND_MOST = 20;
 
 /** The clubs in the Premier League now, the ones the feed has dropped left out. */
-export async function currentClubs(ctx: QueryCtx): Promise<Doc<"clubs">[]> {
-  const clubs = await ctx.db
-    .query("clubs")
-    .withIndex("by_droppedAt", (q) => q.eq("droppedAt", undefined))
-    .take(CURRENT_CLUBS_MOST + 1);
-  if (clubs.length > CURRENT_CLUBS_MOST) throw new Error(`More than ${CURRENT_CLUBS_MOST} clubs are held as current, so the list would be cut short`);
-  return clubs;
+export function currentClubs(ctx: QueryCtx): Promise<Doc<"clubs">[]> {
+  return takeAllOrThrow(
+    ctx.db.query("clubs").withIndex("by_droppedAt", (q) => q.eq("droppedAt", undefined)),
+    CURRENT_CLUBS_MOST,
+    `More than ${CURRENT_CLUBS_MOST} clubs are held as current, so the list would be cut short`,
+  );
 }
 
 /** The club with `code`, dropped or not. A player's club is always held, so one missing throws. */
@@ -46,13 +46,12 @@ export function playerByCode(ctx: QueryCtx, code: number): Promise<Doc<"players"
 }
 
 /** The players at the club now, the ones the feed has dropped left out. */
-export async function currentPlayersAt(ctx: QueryCtx, clubCode: number): Promise<Doc<"players">[]> {
-  const players = await ctx.db
-    .query("players")
-    .withIndex("by_clubCode_and_droppedAt", (q) => q.eq("clubCode", clubCode).eq("droppedAt", undefined))
-    .take(CLUB_PLAYERS_MOST + 1);
-  if (players.length > CLUB_PLAYERS_MOST) throw new Error(`More than ${CLUB_PLAYERS_MOST} players are held at club ${clubCode}, so they would be cut short`);
-  return players;
+export function currentPlayersAt(ctx: QueryCtx, clubCode: number): Promise<Doc<"players">[]> {
+  return takeAllOrThrow(
+    ctx.db.query("players").withIndex("by_clubCode_and_droppedAt", (q) => q.eq("clubCode", clubCode).eq("droppedAt", undefined)),
+    CLUB_PLAYERS_MOST,
+    `More than ${CLUB_PLAYERS_MOST} players are held at club ${clubCode}, so they would be cut short`,
+  );
 }
 
 /** Players still in the Premier League whose full name matches `text`, best first. */

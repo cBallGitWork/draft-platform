@@ -17,15 +17,16 @@ import {
   withShape,
   withStack,
   withValue,
+  type PerCount,
   type PointsLimit,
   type PriceKey,
   type Pricing,
   type Rule,
 } from "./editing";
-import { NumberBox } from "./NumberBox";
+import { NumberBox } from "../rules/NumberBox";
+import { AREA_WORDS } from "../words";
 import {
   addBandWords,
-  AREA_WORDS,
   bandFromWords,
   bandPaysWords,
   bandRowWords,
@@ -154,7 +155,7 @@ function columnsOf(rule: Rule, onChange: (rule: Rule) => void): Column[] {
         ? (["points", "every"] as const).map((part) => ({
             head: columnWords[part],
             cell: (key: PriceKey, row: string) => {
-              const each = value(key) as { every: number; points: number };
+              const each = value(key) as PerCount;
               return <NumberBox label={boxLabel(columnWords[part], row)} value={each[part]} onChange={(number) => onChange(withValue(rule, key, { ...each, [part]: number ?? NaN }))} />;
             },
           }))

@@ -1,5 +1,6 @@
 import type { MutationCtx } from "../_generated/server";
 import { errorMessage } from "../shared/errors";
+import { takeAllOrThrow } from "../shared/cappedRead";
 import { isLocked } from "./deadline";
 import { passedDeadlinesOf } from "./passedDeadlines";
 import { heldSchedule, leagueDeadlinesIn, seasonRules } from "../rules/leagueRules";
@@ -32,8 +33,11 @@ export async function recordPassedDeadlines(ctx: MutationCtx): Promise<number> {
   const now = Date.now();
   // Read once for every league: the fixtures are the season's 380, the most of any table here.
   const { matches } = await heldSchedule(ctx);
-  const leagues = await ctx.db.query("leagues").take(LEAGUES_RECORDED_MOST + 1);
-  if (leagues.length > LEAGUES_RECORDED_MOST) throw new Error(`More than ${LEAGUES_RECORDED_MOST} leagues are held, so some would have their deadlines unrecorded`);
+  const leagues = await takeAllOrThrow(
+    ctx.db.query("leagues"),
+    LEAGUES_RECORDED_MOST,
+    `More than ${LEAGUES_RECORDED_MOST} leagues are held, so some would have their deadlines unrecorded`,
+  );
   let recorded = 0;
   for (const league of leagues) {
     const passed = await passedDeadlinesOf(ctx, league._id);

@@ -4,7 +4,7 @@ import { statCorrectionWindowMs } from "./platformSettings";
 import { ALWAYS_OWED, failureOf, feedState, judgeFeed, type FeedRuns, type RunOutcome } from "./feedState";
 import { adminOf } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
-import { FEED_RUN_TABLES, FEED_SCHEDULES, FEEDS, type Feed } from "../shared/feedSchedule";
+import { FEED_RUN_TABLES, FEED_SCHEDULES, FEEDS, feedValidator, type Feed } from "../shared/feedSchedule";
 import { liveMatches } from "../stats/liveStats";
 import { lateStatChange } from "../schema";
 
@@ -24,7 +24,7 @@ export const BEHIND_SHOWN = 20;
 export const CORRECTIONS_SHOWN = 20;
 
 const feedReport = v.object({
-  feed: v.union(...FEEDS.map((feed) => v.literal(feed))),
+  feed: feedValidator,
   state: feedState,
   lastRunAt: v.union(v.number(), v.null()),
   lastSuccessAt: v.union(v.number(), v.null()),

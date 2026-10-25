@@ -2,8 +2,7 @@
 // server refused a change is in convex/squads/squads.ts (`squadRefusals`), and reaches the screen as is.
 
 import type { SquadWarning } from "../../convex/squads/squads";
-import { failedWords } from "../words";
-import { AREA_WORDS } from "../scoring/words";
+import { AREA_WORDS, failedWords } from "../words";
 
 export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../words";
 

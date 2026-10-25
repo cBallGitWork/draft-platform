@@ -1,6 +1,5 @@
 /** One of a few options, butted keys with the chosen one pressed in (plate.md, Controls), as the
- *  rules screens choose them: the rule's kind in
- *  Player scoring, the odd team out in League settings. `name` groups its radio inputs. */
+ *  rules screens choose them. `name` groups its radio inputs. */
 export function Choice<Option extends string>({
   label,
   name,

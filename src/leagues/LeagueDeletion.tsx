@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { Confirm } from "../frame/Confirm";
 import { Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { LeaguesSeam } from "./seam";
@@ -33,17 +34,14 @@ export function LeagueDeletionRow({ league, canDelete, actions }: { league: Leag
               </button>
             </>
           ) : confirming ? (
-            <>
-              <p className="text-event">{confirmDelete(league.name)}</p>
-              <div className="flex flex-wrap gap-2">
-                <button type="button" disabled={busy} onClick={() => run(actions.deleteLeague)} className="action">
-                  {confirmDeleteWords.yes}
-                </button>
-                <button type="button" onClick={() => setConfirming(false)} className="secondary-action">
-                  {confirmDeleteWords.no}
-                </button>
-              </div>
-            </>
+            <Confirm
+              question={confirmDelete(league.name)}
+              yes={confirmDeleteWords.yes}
+              no={confirmDeleteWords.no}
+              busy={busy}
+              onYes={() => void run(actions.deleteLeague)}
+              onNo={() => setConfirming(false)}
+            />
           ) : (
             <button type="button" onClick={() => setConfirming(true)} className="secondary-action">
               {deleteLeagueWords}

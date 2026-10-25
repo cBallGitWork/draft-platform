@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, Notice, PageSection, PANEL_BODY, PanelNote, PanelTitle, Problem } from "../frame/Panel";
-import { BackToLeagues } from "../leagues/LeagueLinks";
+import { LeagueHeading } from "../leagues/LeagueLinks";
 import { useChange, type Changing } from "../useChange";
 import type { FoundPlayer, SquadsSeam, TeamSquad } from "./seam";
 import {
@@ -45,10 +45,7 @@ export function SquadsPage({ league, seam }: { league: LeagueSummary; seam: Squa
   return (
     <div className="flex max-w-5xl flex-col gap-2">
       <PageSection title={SQUADS_TITLE} className="bg-panel">
-        <p className="flex flex-wrap items-center gap-4 px-3 py-2">
-          <span className="text-lead font-semibold">{league.name}</span>
-          <BackToLeagues />
-        </p>
+        <LeagueHeading name={league.name} />
         <Problem problem={change.problem} />
       </PageSection>
       {squads === undefined ? (

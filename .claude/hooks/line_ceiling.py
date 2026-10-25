@@ -14,7 +14,7 @@ import json
 import os
 import sys
 
-from hook_payload import BadPayload, field, read_payload, report
+from hook_payload import BadPayload, field, project_dir, read_payload, report
 
 CODE = (".ts", ".tsx", ".js", ".mjs", ".css", ".py", ".sh")
 SOFT, HARD = 250, 300
@@ -29,7 +29,7 @@ def main():
         return 0
     with open(path, encoding="utf-8", errors="replace") as f:
         lines = sum(1 for _ in f)
-    root = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+    root = project_dir()
     rel = os.path.relpath(path, root)
     if lines > HARD:
         note = f"{rel} is now {lines} lines, past the {HARD}-line ceiling. Split it by responsibility before committing."

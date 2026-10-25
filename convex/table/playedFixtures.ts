@@ -3,7 +3,7 @@ import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { isLocked } from "../gameweeks/deadline";
 import { GAMEWEEKS, usedGameweeksOf } from "../gameweeks/usedGameweeks";
 import { drawRulesOf } from "../rules/firstRules";
-import type { LeagueRules } from "../rules/leagueRulesShape";
+import type { SeasonRules } from "../rules/leagueRules";
 import { teamsOf } from "../shared/leagueAccess";
 import { drawFixtures, type GameweekFixtures } from "./roundRobin";
 
@@ -33,9 +33,8 @@ export type Schedule = TeamsGameweek[];
 /** Stored gameweeks, by number. */
 type Stored = Map<number, TeamsGameweek>;
 
-/** All of a league's rules this reads: those in force in each gameweek (leagueRules.ts's
- *  `seasonRules`). */
-export type RulesInForce = { inGameweek: (gameweek: number) => LeagueRules };
+/** All of a league's rules this reads: those in force in each gameweek. */
+type RulesInForce = Pick<SeasonRules, "inGameweek">;
 
 /** What a gameweek that began with no head-to-head in it is stored as. */
 const NO_HEAD_TO_HEAD: Pick<TeamsGameweek, "fixtures" | "byes"> = { fixtures: [], byes: [] };

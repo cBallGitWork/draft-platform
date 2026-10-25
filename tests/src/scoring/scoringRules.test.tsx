@@ -5,7 +5,8 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
-import { addBandWords, addCategoryLabel, addCategoryWords, addWords, AREA_WORDS, bandFromWords, bandRowWords, byAreaWords, byPositionWords, columnWords, everyoneWords, limitWords, minutesWords, POSITION_WORDS, removeCategoryWords, shapeWords } from "../../../src/scoring/words";
+import { AREA_WORDS } from "../../../src/words";
+import { addBandWords, addCategoryLabel, addCategoryWords, addWords, bandFromWords, bandRowWords, byAreaWords, byPositionWords, columnWords, everyoneWords, limitWords, minutesWords, POSITION_WORDS, removeCategoryWords, shapeWords } from "../../../src/scoring/words";
 import { discardWords } from "../../../src/rules/words";
 import { box, choose, openScoring, retype, save, savedRule, savedSet } from "../../support/src/scoringScreen.harness";
 

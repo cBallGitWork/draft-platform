@@ -2,6 +2,7 @@ import { Outlet } from "@tanstack/react-router";
 import type { AuthActions } from "../auth";
 import { MAIL_PATH } from "../frame/menu";
 import { MenuTab } from "../frame/MenuTab";
+import { TOP_BAR, TOP_BAR_ROW } from "../frame/Panel";
 import { ProductName } from "../frame/ProductName";
 import { SignOut } from "../frame/SignOut";
 import { MAIL_TITLE } from "../mail/words";
@@ -13,7 +14,7 @@ import { LEAGUES_TITLE } from "./words";
 export function LeaguelessFrame({ unreadMail, onSignOut }: { unreadMail: number; onSignOut: AuthActions["signOut"] }) {
   return (
     <>
-      <header className="flex flex-wrap items-stretch bg-bar shadow-bevel-plate">
+      <header className={`${TOP_BAR_ROW} ${TOP_BAR}`}>
         <ProductName />
         {/* On a phone the two tabs take their own row under the name and Sign out, as the menu does. */}
         <div className="order-last flex w-full border-t border-plate-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-r">

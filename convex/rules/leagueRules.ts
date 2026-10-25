@@ -17,6 +17,7 @@ import { londonTime } from "../shared/londonTime";
 import { adminByline } from "../mail/letterWords";
 import { checkSquadMaximums, squadMaximumBandShape, squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum, type SquadMaximumBand } from "./squadMaximums";
 import { currentFixtures } from "../shared/fixtures";
+import { takeAllOrThrow } from "../shared/cappedRead";
 
 // A league's rules, held as data (spec/03; #25): a new league copies the admin's default rules, and
 // its commissioner changes them from the next gameweek, so a past gameweek keeps the rules it had.
@@ -82,24 +83,24 @@ function refuseUnsound(rules: LeagueRules, maxTeams?: number): void {
   asRefusal(() => checkLeagueRules(rules, maxTeams));
 }
 
-/** Runs a check of the rules, its UnsoundRules a refusal and anything else the bug it is. */
-function asRefusal(check: () => void): void {
+/** Runs a check of the rules, its UnsoundRules a refusal (in `reworded`'s words, when given) and
+ *  anything else the bug it is. */
+function asRefusal(check: () => void, reworded: (reason: string) => string = (reason) => reason): void {
   try {
     check();
   } catch (error) {
-    if (error instanceof UnsoundRules) refuse(error.message);
+    if (error instanceof UnsoundRules) refuse(reworded(error.message));
     throw error;
   }
 }
 
 /** Every rules row the league has, oldest first: one per change, at most RULES_CHANGES_MOST. */
-async function historyOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"leagueRules">[]> {
-  const rows = await ctx.db
-    .query("leagueRules")
-    .withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId))
-    .take(RULES_CHANGES_MOST + 1);
-  if (rows.length > RULES_CHANGES_MOST) throw new Error(`League ${leagueId} holds more than ${RULES_CHANGES_MOST} rules rows, so its rules in force can't be known`);
-  return rows;
+function historyOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"leagueRules">[]> {
+  return takeAllOrThrow(
+    ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)),
+    RULES_CHANGES_MOST,
+    `League ${leagueId} holds more than ${RULES_CHANGES_MOST} rules rows, so its rules in force can't be known`,
+  );
 }
 
 /** The row in force in this gameweek: the latest to take effect at or before it, and of two from
@@ -128,13 +129,13 @@ export async function rulesInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, ga
   return rulesInForce(await historyOf(ctx, leagueId), leagueId, gameweek);
 }
 
-/** The league's rules over the season from one read of its history: its latest, a waiting
- *  change's among them, and those in force in each gameweek, as the fixtures read them (#266).
- *  Null for a league made before #25. */
-export async function seasonRules(
-  ctx: QueryCtx,
-  leagueId: Id<"leagues">,
-): Promise<{ latest: LeagueRules; inGameweek: (gameweek: number) => LeagueRules } | null> {
+/** The league's rules over the season: its latest, a waiting change's among them, and those in
+ *  force in each gameweek. */
+export type SeasonRules = { latest: LeagueRules; inGameweek: (gameweek: number) => LeagueRules };
+
+/** The league's SeasonRules from one read of its history, as the fixtures read them (#266). Null
+ *  for a league made before #25. */
+export async function seasonRules(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<SeasonRules | null> {
   const history = await historyOf(ctx, leagueId);
   const latest = history.at(-1);
   if (latest === undefined) return null;
@@ -174,12 +175,7 @@ export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">
   const rules = withSquadMaximum(defaults ?? FIRST_RULES, squadMaximumFor(await squadMaximumBands(ctx), maxTeams));
   const games = rules.gamesPerGameweek;
   if (games !== undefined && games > roundsInARoundRobin(maxTeams)) refuse(rulesRefusals.defaultGamesTooMany(games, maxTeams));
-  try {
-    checkLeagueRules(rules, maxTeams);
-  } catch (error) {
-    if (error instanceof UnsoundRules) refuse(rulesRefusals.defaultsUnsound(maxTeams, error.message));
-    throw error;
-  }
+  asRefusal(() => checkLeagueRules(rules, maxTeams), (reason) => rulesRefusals.defaultsUnsound(maxTeams, reason));
   await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, rules });
 }
 

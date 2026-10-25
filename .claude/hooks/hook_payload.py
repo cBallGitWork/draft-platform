@@ -1,5 +1,5 @@
 """Reads a hook's payload, for gate_on_stop.py and line_ceiling.py: the JSON object Claude Code
-writes on stdin. Anything else (nothing, text that isn't JSON, a JSON list or string) raises
+writes on stdin; and names the project folder those two and guard_bash.py fall back to. Anything else (nothing, text that isn't JSON, a JSON list or string) raises
 BadPayload saying what came, and the hook exits 1 with it on stderr: Claude Code shows that,
 where a payload read as {} would have checked nothing and said nothing. guard_bash.py reads its
 own, since it denies where these two only report. Stdlib only, Python 3.9+.
@@ -14,6 +14,11 @@ import sys
 
 class BadPayload(Exception):
     """The payload isn't what Claude Code sends; the message says what it was."""
+
+
+def project_dir():
+    """The project's folder: CLAUDE_PROJECT_DIR, else the folder the hook runs in."""
+    return os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
 
 
 def read_payload():

@@ -6,10 +6,11 @@ import { leagueSettingsOf } from "../../convex/rules/leagueSettingsPart";
 import { previewSays } from "../preview";
 import { PREVIEW_CHANGES_FROM, PREVIEW_REVISION } from "../rules/preview";
 import type { LeagueSettingsSeam } from "./seam";
+import { unsavedOutcome } from "./words";
 
 const view = { part: leagueSettingsOf(FIRST_RULES), revision: PREVIEW_REVISION, changesFrom: PREVIEW_CHANGES_FROM };
 
 export const previewLeagueSettings: LeagueSettingsSeam = {
   useSettings: () => view,
-  save: previewSays("the settings didn't change"),
+  save: previewSays(unsavedOutcome),
 };
