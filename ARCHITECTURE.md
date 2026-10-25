@@ -122,6 +122,13 @@ styling, typeface, test, screenshot and smoke-test rows, and the rest are the pl
   bootstrap and about 40 Premier League reads per match, each tick.
   Revisit the bootstrap read each tick when Convex usage nears the plan's limit, or when
   `liveStatsTicks` rows fail from throttling.
+- Match scores (#49): each match's state, score and clock in `matchScores`, apart from
+  `fixtures`, because two feeds write it: the football sync from FPL's fixtures, and the live tick
+  (and the match-stats sync) from the Premier League's list it already reads, so it costs no extra
+  read. The newest read wins, but a feed never moves a match back a state the other moved it on to
+  (`convex/football/matchScores.ts`). A read that gives no score for a match (none sent once it has
+  kicked off, or a status never seen) is a problem on that run's row, and the held score stands.
+  `football/matchScores:ofGameweek` reads a gameweek's matches with their scores.
 - The run logs (#146): `admin/runLogs:prune` deletes a run row 30 days after its run if it
   succeeded, and 180 days after if it failed (Craig, 22 Oct 2026). It always keeps each feed's
   newest five rows and its newest success. It goes in batches, `liveStatsTicks` first.

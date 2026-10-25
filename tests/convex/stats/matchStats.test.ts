@@ -22,6 +22,11 @@ import { HOUR_MS } from "../../../convex/shared/time";
 
 beforeEach(() => vi.useFakeTimers());
 
+/** A run's scores when the Premier League's list gave Hull v Everton's, a row new or changed. */
+const HULL_EVERTON_SCORED = { received: 1, written: 1, problems: [] };
+/** A run's scores when no list was read, or none listed the match. */
+const NONE_SCORED = { received: 0, written: 0, problems: [] };
+
 test("a finished match lands complete: a record for every named man, both feeds merged", async () => {
   const t = await withHullEverton();
 
@@ -43,6 +48,7 @@ test("a finished match lands complete: a record for every named man, both feeds 
       },
     ],
     waiting: [],
+    scores: HULL_EVERTON_SCORED,
   });
   const { records, status } = await heldMatch(t);
   expect(status).toMatchObject({ state: "complete", fullTimeAt: FULL_TIME_READ, completeAt: FULL_TIME_READ });
@@ -138,7 +144,7 @@ test("a match the Premier League does not yet call full time waits, and nothing 
 
   const run = await syncAt(t, FULL_TIME_READ, payloads);
 
-  expect(run.outcome).toEqual({ ok: true, matches: [], waiting: [HULL_EVERTON] });
+  expect(run.outcome).toEqual({ ok: true, matches: [], waiting: [HULL_EVERTON], scores: HULL_EVERTON_SCORED });
   expect((await heldMatch(t)).records.size).toBe(0);
 });
 
@@ -149,6 +155,7 @@ test.each([
       delete listed.altIds;
     },
     `the Premier League lists no match ${HULL_EVERTON} in gameweek ${GAMEWEEK}`,
+    NONE_SCORED,
   ],
   [
     "listed with no status",
@@ -156,8 +163,9 @@ test.each([
       delete listed.status;
     },
     `PL fixture ${MATCH.hullEverton.pl} carries no status`,
+    { received: 1, written: 0, problems: [{ fixtureCode: HULL_EVERTON, problem: "the Premier League sent status undefined" }] },
   ],
-] as const)("a match %s fails on the run row", async (_what, change, error) => {
+] as const)("a match %s fails on the run row", async (_what, change, error, scores) => {
   silenceConsoleError();
   const t = await withHullEverton();
   const payloads = recordedGw6();
@@ -165,7 +173,7 @@ test.each([
 
   const run = await syncAt(t, FULL_TIME_READ, payloads);
 
-  expect(run.outcome).toEqual({ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: false, error }], waiting: [] });
+  expect(run.outcome).toEqual({ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: false, error }], waiting: [], scores });
 });
 
 test("a refused read is on the run row with its URL and status, logged, and nothing is written", async () => {
@@ -179,6 +187,7 @@ test("a refused read is on the run row with its URL and status, logged, and noth
     ok: true,
     matches: [{ fixtureCode: HULL_EVERTON, ok: false, error: refusedError(refused) }],
     waiting: [],
+    scores: HULL_EVERTON_SCORED,
   });
   expect(errors).toHaveBeenCalledWith(`match ${HULL_EVERTON} failed: ${refusedError(refused)}`);
   expect((await heldMatch(t)).records.size).toBe(0);
