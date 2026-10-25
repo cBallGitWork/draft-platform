@@ -63,8 +63,8 @@ export interface AutoSubs {
 
 /** What a saved lineup can carry into a gameweek (#392): a player who left the squad leaves his
  *  cell empty, and a later rules change isn't checked against it. Auto-subs work around both and
- *  leave an empty cell empty: they replace only a starter who didn't play. Any other problem is
- *  data gone wrong, and is thrown. */
+ *  never add a starter: they replace only one who didn't play, though a sub coming on in his own
+ *  area may stand in an empty cell. Any other problem is data gone wrong, and is thrown. */
 const CARRIED_KINDS: ReadonlySet<LineupProblem["kind"]> = new Set(["wrongStarterCount", "belowMinimum", "aboveMaximum"]);
 
 /** The substitutions for every starter who didn't play, back to front and left to right, and the
@@ -207,7 +207,8 @@ function shortfall(problem: LineupProblem): number {
     case "wrongStarterCount":
       return Math.abs(STARTER_COUNT - problem.starterCount);
     default:
-      return 1;
+      // The rest were thrown or set aside before any sub, and a sub never makes them.
+      throw new Error(`A sub can't be weighed against ${problem.kind}`);
   }
 }
 

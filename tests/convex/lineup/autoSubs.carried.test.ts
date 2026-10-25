@@ -3,6 +3,7 @@
 
 import { describe, expect, test } from "vitest";
 import { autoSubs } from "../../../convex/lineup/autoSubs";
+import type { Placement } from "../../../convex/lineup/lineup";
 import { openLimits, withPositions } from "../../support/convex/lineup.harness";
 import {
   startersPositions,
@@ -32,6 +33,18 @@ describe("what auto-subs refuse", () => {
     expect(() => autoSubs(lineup, startersPositions, plays(lineup, []), openLimits())).toThrow(`player ${FIRST}'s positions`);
   });
 
+  const STARTER_CELL_GONE_WRONG: [string, (starter: Placement) => Placement][] = [
+    ["noSuchCell", (starter) => ({ ...starter, area: "sideline" })],
+    ["cellShared", (starter) => ({ ...starter, lane: "rightCentre" })],
+    ["positionsUnknown", (starter) => ({ ...starter, playerCode: 999 })],
+  ];
+  test.each(STARTER_CELL_GONE_WRONG)("a lineup whose data has gone wrong: %s", (kind, spoil) => {
+    const { lineup, positions } = withBench(["ST"]);
+    const spoilt = { ...lineup, starters: lineup.starters.map((starter) => (starter.playerCode === STRIKER ? spoil(starter) : starter)) };
+
+    expect(() => autoSubs(spoilt, positions, plays(spoilt, []), openLimits())).toThrow(kind);
+  });
+
   test("a lineup whose data has gone wrong: twelve starters, or one player twice", () => {
     const { lineup, positions } = withBench(["ST"]);
     const twelveMen = { ...lineup, starters: [...lineup.starters, { playerCode: FIRST, area: "attack", lane: "centre" }] };
@@ -51,7 +64,7 @@ describe("what auto-subs refuse", () => {
 });
 
 describe("a saved lineup that can't quite stand", () => {
-  test("with a cell left empty by a player who left the squad, the others are still subbed and the cell stays empty", () => {
+  test("with a cell left empty by a player who left the squad, the others are still subbed and no one is added", () => {
     // The centre back first on the bench doesn't fill the empty cell at the back.
     const { lineup, positions } = withBench(["CB"], ["ST"]);
     const tenMen = { ...lineup, starters: lineup.starters.filter((starter) => starter.playerCode !== LEFT_BACK) };
