@@ -25,7 +25,7 @@ import {
 } from "../../../src/scouting/words";
 import { POSITION_NAMES } from "../../../src/words";
 import type { ScoutingData } from "../../support/src/scouting.harness";
-import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
+import { commissioner, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 
 const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
 const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
@@ -78,10 +78,10 @@ describe("reaching it", () => {
 });
 
 describe("the list", () => {
-  it("opens on every player, the most season points first, and says how many", async () => {
+  it("opens on every player by name, as none has season points yet, and says how many", async () => {
     const app = openScouting();
     await screen.findByRole("table");
-    expect(lastAsk(app).slice(1)).toEqual([{ availability: "all", position: null, clubCode: null }, { by: "seasonPoints", descending: true }]);
+    expect(lastAsk(app).slice(1)).toEqual([{ availability: "all", position: null, clubCode: null }, { by: "name", descending: false }]);
     expect(namesShown()).toEqual(["Palmer", "Rice", "Saka"]);
     expect(screen.getByText(countWords(3))).toBeTruthy();
   });
@@ -165,6 +165,16 @@ describe("the filters ask the server", () => {
     expect(screen.queryByText(loadingWords)).toBeNull();
   });
 
+  it("a league switch drops the last league's list rather than keeping it up while the next loads", async () => {
+    const app = openScouting();
+    await screen.findByRole("table");
+    app.scouting.usePlayersList.mockImplementation(() => undefined);
+    app.becomes(managerIn(miniBeta, league));
+
+    expect((await screen.findByRole("status")).textContent).toBe(loadingWords);
+    expect(screen.queryByRole("table")).toBeNull();
+  });
+
   it("says so when none match", async () => {
     openScouting();
     await userEvent.selectOptions(await screen.findByRole("combobox", { name: positionLabel }), POSITION_NAMES.GK);
@@ -175,29 +185,33 @@ describe("the filters ask the server", () => {
 describe("the sort asks the server", () => {
   it("a column's head sorts by it, and again the other way", async () => {
     const app = openScouting();
-    const byName = await screen.findByRole("button", { name: sortByLabel(columns.name.long) });
-    await userEvent.click(byName);
-    expect(lastAsk(app)[2]).toEqual({ by: "name", descending: false });
-    expect(namesShown()).toEqual(["Palmer", "Rice", "Saka"]);
-    expect(byName.closest("th")!.getAttribute("aria-sort")).toBe("ascending");
+    const byClub = await screen.findByRole("button", { name: sortByLabel(columns.club.long) });
+    await userEvent.click(byClub);
+    expect(lastAsk(app)[2]).toEqual({ by: "club", descending: false });
+    expect(byClub.closest("th")!.getAttribute("aria-sort")).toBe("ascending");
 
-    await userEvent.click(byName);
-    expect(lastAsk(app)[2]).toEqual({ by: "name", descending: true });
-    expect(namesShown()).toEqual(["Saka", "Rice", "Palmer"]);
-    expect(byName.closest("th")!.getAttribute("aria-sort")).toBe("descending");
+    await userEvent.click(byClub);
+    expect(lastAsk(app)[2]).toEqual({ by: "club", descending: true });
+    expect(namesShown()).toEqual(["Palmer", "Rice", "Saka"]);
+    expect(byClub.closest("th")!.getAttribute("aria-sort")).toBe("descending");
   });
 
   it("by club, A to Z first", async () => {
-    const app = openScouting();
+    openScouting();
     await userEvent.click(await screen.findByRole("button", { name: sortByLabel(columns.club.long) }));
-    expect(lastAsk(app)[2]).toEqual({ by: "club", descending: false });
     expect(namesShown()).toEqual(["Rice", "Saka", "Palmer"]);
   });
 
-  it("by season points, the most first, after another column", async () => {
+  it("by name, pressed again, Z to A", async () => {
     const app = openScouting();
     await userEvent.click(await screen.findByRole("button", { name: sortByLabel(columns.name.long) }));
-    await userEvent.click(screen.getByRole("button", { name: sortByLabel(columns.seasonPoints.long) }));
+    expect(lastAsk(app)[2]).toEqual({ by: "name", descending: true });
+    expect(namesShown()).toEqual(["Saka", "Rice", "Palmer"]);
+  });
+
+  it("by season points, the most first", async () => {
+    const app = openScouting();
+    await userEvent.click(await screen.findByRole("button", { name: sortByLabel(columns.seasonPoints.long) }));
     expect(lastAsk(app)[2]).toEqual({ by: "seasonPoints", descending: true });
   });
 });

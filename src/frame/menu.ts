@@ -1,7 +1,8 @@
 // The top menu and each section's second row of tabs (spec/12-screens.md, "The frame").
 // The sections are the screens spec/12 lists, in R3·1's order (docs/design/mockups/PlateOne.dc.html),
-// with the Premier League as its own section (spec/18) and Scouting in place of Players (spec/19). My team's tabs are R3·1's; a section
-// gets tabs when its screen is grilled, and until then has no second row.
+// with the Premier League as its own section (spec/18) and Scouting in place of Players (spec/19).
+// My team's tabs are R3·1's; a section gets tabs when its screen is grilled, and until then has no
+// second row.
 
 import { MAIL_TITLE } from "../mail/words";
 import { menuWords } from "./words";

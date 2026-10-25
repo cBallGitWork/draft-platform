@@ -37,9 +37,9 @@ const EVERY = "";
 
 const AVAILABILITIES: readonly Availability[] = ["all", "freeAgents", "onWaivers", "owned"];
 const OPENING_FILTERS: PlayersFilters = { availability: "all", position: null, clubCode: null };
-/** The list opens with the most points first; a head pressed first sorts names A to Z and figures
- *  most first. */
-const OPENING_SORT: PlayersSort = { by: "seasonPoints", descending: true };
+/** The list opens by name: no player has season points to rank by until matches are scored (#29).
+ *  A head pressed first sorts names A to Z and figures most first. */
+const OPENING_SORT: PlayersSort = { by: "name", descending: false };
 const FIRST_DESCENDING: Record<SortColumn, boolean> = { name: false, club: false, seasonPoints: true };
 
 type Column = keyof typeof columns;
