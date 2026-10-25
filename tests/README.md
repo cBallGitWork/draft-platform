@@ -32,7 +32,7 @@ Nothing in it is a test. Each kind of file:
 - **`recorded/*.json`**, real feed payloads, recorded once and cut down. A **`*.payloads.ts`**
   beside them loads and types each set, and says when it was recorded and how it was cut.
 - **`convex/scoring.example.ts`**, a scoring set for the tests only, never one anyone plays; the
-  first real set is in `convex/rules/firstRules.ts`.
+  first real set is in `convex/scoring/firstScoring.ts`.
 - **`golden/`**, the expected output a test compares with (`toMatchFileSnapshot`):
   `hull-everton.scores.json` (scoring), `round-robin.txt` (the round-robin fixture draws) and
   `schema.json` (the saved tables).

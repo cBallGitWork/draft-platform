@@ -118,3 +118,4 @@ export const leagueRulesShape = v.object({
 });
 
 export type LeagueRules = Infer<typeof leagueRulesShape>;
+export type StoredScoringSet = Infer<typeof scoringSetShape>;

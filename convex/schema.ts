@@ -1,7 +1,7 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v, type VLiteral } from "convex/values";
-import { leagueRulesShape } from "./rules/leagueRulesShape";
+import { leagueRulesShape, scoringSetShape } from "./rules/leagueRulesShape";
 import { squadMaximumBandShape } from "./rules/squadMaximums";
 import { POSITIONS, type Position } from "./positions/positionTables";
 import { feedValidator } from "./shared/feedSchedule";
@@ -575,6 +575,10 @@ const leagueRulesTables = {
   ),
   /** One row: the rules the admin gives each new league. */
   defaultLeagueRules: defineTable({ rules: leagueRulesShape }),
+  /** The site's scoring set, which every league plays on and only the admin changes (spec/14, Who
+   *  owns it; #354): one row per version, from the gameweek it takes effect, so past gameweeks keep
+   *  the set they were played under. With none, the first set (scoring/firstScoring.ts). */
+  siteScoring: defineTable({ fromGameweek: v.number(), scoring: scoringSetShape }).index("by_fromGameweek", ["fromGameweek"]),
   /** One row: the squad maximum a new league takes by its size, which Craig edits (#316). */
   squadMaximums: defineTable({ bands: v.array(squadMaximumBandShape) }),
   /** A league's deadline for a gameweek once it has passed (#150): where it fell stays put, even if
