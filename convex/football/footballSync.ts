@@ -17,10 +17,11 @@ import {
 import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
 import { recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
 import { emailIfFailed } from "../admin/feedFailureEmails";
+import { writeScores } from "./matchScores";
 
 // Issue #21: the real Premier League's clubs, players, fixtures and gameweeks, copied in from the
-// football layer. crons.ts runs it on a schedule; from the CLI:
-// `npx convex run football/footballSync:run '{"trigger":"manual"}'`, then `football/footballSync:latest`.
+// football layer, and each match's score (#49, matchScores.ts). crons.ts runs it on a schedule;
+// from the CLI: `npx convex run football/footballSync:run '{"trigger":"manual"}'`, then `football/footballSync:latest`.
 // A held row the feed stops sending is kept and marked `droppedAt`, never deleted, and only by a
 // sync that read the whole list (#64). Rows are matched on their stable key, a player on his
 // `code`, so one sent again is unmarked in his own row.
@@ -51,6 +52,7 @@ export const run = internalAction({
         players: await syncTable(ctx, "players", internal.football.footballSync.upsertPlayers, football.players, ranAt),
         fixtures: await syncTable(ctx, "fixtures", internal.football.footballSync.upsertFixtures, football.fixtures, ranAt),
         gameweeks: await syncTable(ctx, "gameweeks", internal.football.footballSync.upsertGameweeks, football.gameweeks, ranAt),
+        scores: await writeScores(ctx, "fpl", ranAt, football.scores),
       };
     } catch (error: unknown) {
       outcome = { ok: false, error: logFailure("football sync failed", error) };
