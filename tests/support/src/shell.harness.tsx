@@ -19,6 +19,7 @@ import type { MailSeam } from "../../../src/mail/seam";
 import { ShellApp } from "../../../src/ShellApp";
 import { fakeLeagueSettings, type LeagueSettingsData } from "./leagueSettings.harness";
 import { fakePatches, type PatchesData } from "./patches.harness";
+import { fakePlayerCard, type PlayerCardData } from "./playerCard.harness";
 import { fakeScoring, type ScoringData } from "./scoring.harness";
 import { fakeSquads, type SquadsData } from "./squads.harness";
 import { fakeScouting, type ScoutingData } from "./scouting.harness";
@@ -129,6 +130,7 @@ export type AppSetUp = {
   leagueSettings?: LeagueSettingsData;
   table?: TableData;
   scouting?: ScoutingData;
+  playerCard?: PlayerCardData;
   home?: HomeData;
   admin?: AdminData;
   feedback?: FeedbackData;
@@ -136,7 +138,7 @@ export type AppSetUp = {
 };
 
 /** The app opened at `path` for `session`, set up as `setUp` says: where it is, the fake sign-in,
- *  league, Mail, joining, gameweeks, squads, scoring, league settings, table, scouting, home, admin, feedback and patches
+ *  league, Mail, joining, gameweeks, squads, scoring, league settings, table, scouting, player card, home, admin, feedback and patches
  *  seams, and a way to change the session as signing in or out, or a league changing, would. */
 export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const {
@@ -149,6 +151,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     leagueSettings: leagueSettingsData = {},
     table: tableData = {},
     scouting: scoutingData = {},
+    playerCard: playerCardData = {},
     home: homeData = {},
     admin: adminData = {},
     feedback: feedbackData = {},
@@ -165,6 +168,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const leagueSettings = fakeLeagueSettings(leagueSettingsData);
   const table = fakeTable(tableData);
   const scouting = fakeScouting(scoutingData);
+  const playerCard = fakePlayerCard(playerCardData);
   const home = fakeHome(homeData);
   const admin = fakeAdmin(adminData);
   const feedback = fakeFeedback(feedbackData);
@@ -183,6 +187,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
       leagueSettings={leagueSettings}
       table={table}
       scouting={scouting}
+      playerCard={playerCard}
       home={home}
       admin={admin}
       feedback={feedback}
@@ -202,6 +207,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     leagueSettings,
     table,
     scouting,
+    playerCard,
     home,
     admin,
     feedback,

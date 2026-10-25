@@ -5,9 +5,9 @@ import type { ListedPlayer } from "../../convex/scouting/playersList";
 import { listOf } from "../../convex/scouting/playersOrder";
 import type { ScoutingSeam } from "./seam";
 
-const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
-const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
-const LIVERPOOL = { code: 14, name: "Liverpool", shortName: "LIV" };
+export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
+export const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
+export const LIVERPOOL = { code: 14, name: "Liverpool", shortName: "LIV" };
 
 const player = (code: number, name: string, fullName: string, club: ListedPlayer["club"], positions: ListedPlayer["positions"], ownerTeamName: string | null = null): ListedPlayer => ({
   code,
@@ -19,7 +19,7 @@ const player = (code: number, name: string, fullName: string, club: ListedPlayer
   seasonPoints: null,
 });
 
-const players: readonly ListedPlayer[] = [
+export const previewPlayers: readonly ListedPlayer[] = [
   player(1, "Saka", "Bukayo Saka", ARSENAL, ["W"], "Saka Potatoes"),
   player(2, "Rice", "Declan Rice", ARSENAL, ["CDM", "CM"]),
   player(3, "Raya", "David Raya Martín", ARSENAL, ["GK"]),
@@ -30,5 +30,5 @@ const players: readonly ListedPlayer[] = [
 ];
 
 export const previewScouting: ScoutingSeam = {
-  usePlayersList: (_leagueId, filters, sort) => ({ clubs: [ARSENAL, CHELSEA, LIVERPOOL], players: listOf(players, filters, sort) }),
+  usePlayersList: (_leagueId, filters, sort) => ({ clubs: [ARSENAL, CHELSEA, LIVERPOOL], players: listOf(previewPlayers, filters, sort) }),
 };

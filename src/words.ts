@@ -1,18 +1,10 @@
 // What every screen says alike, in one place for Craig to change in the pull request.
 
-import type { Area } from "../convex/lineup/pitch";
 import type { Position } from "../convex/positions/positionTables";
 import { LOCALE } from "../convex/shared/londonTime";
 
-/** The pitch's areas, as the rules screens name them. */
-export const AREA_WORDS: Record<Area, string> = {
-  goalkeeper: "Goalkeeper",
-  defence: "Defence",
-  defensiveMidfield: "Defensive midfield",
-  midfield: "Midfield",
-  attackingMidfield: "Attacking midfield",
-  attack: "Attack",
-};
+/** The pitch's areas, as the rules screens name them: the server's refusals name them too. */
+export { AREA_WORDS } from "../convex/lineup/pitchWords";
 
 /** Each position by name, for a short code's hover (positionTables.ts has the codes). */
 export const POSITION_NAMES: Record<Position, string> = {
@@ -44,6 +36,13 @@ export const gameweekWords = (gameweek: number) => `Gameweek ${gameweek}`;
 const whenFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 /** A time in the viewer's own zone, e.g. "Sat 17 Oct, 13:00": a deadline, a feed's last run. */
 export const whenWords = (at: number) => whenFormat.format(at);
+
+/** A figure not there yet, such as points before a match's record has arrived. */
+export const noFigureWords = "—";
+/** A player no team in the league owns. */
+export const freeAgentWords = "Free agent";
+/** Between the items of a short list in a line: a player's positions, "CDM, CM". */
+export const listSeparator = ", ";
 
 /** Between the two sides of a match or a fixture: "Hull City v Everton". */
 export const versusWords = "v";
