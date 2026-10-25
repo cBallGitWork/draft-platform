@@ -57,25 +57,21 @@ somepoint").
 - A league's gameweek begins at its own deadline already (`spec/13` Gameweeks); what an own
   gameweek is beyond that, and how it maps to FPL's rounds.
 
-**Anyone can play anywhere, the gap rule** (Craig, 24 Oct 2026: stop Haaland at centre-back
-getting "his clean sheet points AND goals", but not "oh he didnt play cb so no points", and "i like
-the fun idea of putting someobdy as a make shift striker").
-- Claude's proposal: a player earns the slot's price for each category, but where the slot pays
-  more than his own position would, he gets only part of the gap: all of it in his own area, then
-  less the further away the slot is (75%, 50%, 25% makeshift, as a starting point).
-- He counts as natural for a match when the real team sheet put him in that line
-  (`docs/pl-match-stats.md`, Where a man lined up), so a centre-back who fills in at DM loses
-  nothing.
-- It reopens three answers: scoring by the slot, never his own positions (`spec/14`); no
-  out-of-position penalty (`spec/05`); the areas each position can play (`spec/06`).
-- A substitute's team sheet says nowhere where he played (`docs/pl-match-stats.md`): does a
-  sub who comes on count as natural, or by his own positions?
-- What else punishes an extreme shape, such as two at the back. FM blocks no shape; it punishes
-  through the match engine, tactical familiarity (a new shape starts "awkward",
-  passion4fm.com/how-to-maximize-tactical-familiarity), position familiarity (SI's FM22 manual,
-  Players page) and staff warnings (footballmanager.com, FM26 in and out of possession). Options for ours: goals conceded cost more in a thin area, a new
-  shape earns role points at a fraction for its first gameweeks, and a warning on the board before
-  the deadline, never a block.
+**Makeshift positions, after the rest is built** (Craig, 24-25 Oct 2026; SPEC.md, Later). For now
+a player fills only his own areas, and only a keeper plays in goal, both ways (`spec/05`).
+- What it must stop: "we want to stop people just playing players in good teams at the back to get
+  easy clean sheets", but not "oh he didnt play cb so no points"; "i like the fun idea of putting
+  someobdy as a make shift striker".
+- Craig's starting point: "maybe a 2 area rule, like haaland could go am (still a penalty) but
+  further than that, same for cb, could go dm i guess, needs a think".
+- Claude's earlier proposal, the gap rule: the slot's price, but where it pays more than his own
+  position, only part of the gap. Craig took these as starting points (25 Oct 2026): his own
+  position's price is the best of his positions ("some players will have multi roles"); where the
+  slot pays less, he gets the slot's lower price; he is natural where the real team sheet put him
+  (`docs/pl-match-stats.md`); a sub counts by his own positions; auto-subs take the first bench
+  player who can play the area, as now. Other punishments for an extreme shape wait until it plays.
+- It reopens three answers: scoring by the slot (`spec/14`), no out-of-position penalty
+  (`spec/05`), the areas each position can play (`spec/06`). The site owns it (`spec/14`).
 
 ## Suggested, not yet picked
 

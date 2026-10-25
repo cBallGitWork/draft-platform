@@ -16,6 +16,11 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   editable as league rules.
 - Any player who plays in an area can fill any slot in it: the game should not get in the way of
   managers. A centre-back can fill a full-back's cell.
+- For now that is the hard rule: a player fills only slots in the areas his positions play (Craig,
+  25 Oct 2026: "for now im happy to just do hard rules on poisitons while we build the rest").
+  Makeshift play comes later (SPEC.md, Later).
+- Only a keeper plays in goal, and a keeper plays only in goal, always: "only keeper goes keeper"
+  (25 Oct 2026).
 - Each area's minimum and maximum are league rules. There are no defaults yet: leagues get a lot
   of freedom.
 - A lineup rolls over to the next gameweek if the manager doesn't touch it.
