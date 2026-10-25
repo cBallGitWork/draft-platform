@@ -138,7 +138,7 @@ export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Pr
       gameweek: GAMEWEEK,
       fixtures: [
         { team: annsTeam, opponent: bobsTeam },
-        ...(catsTeam === undefined ? [] : [{ team: catsTeam, opponent: LEAGUE_AVERAGE }]),
+        ...(catsTeam === undefined ? [] : [{ team: catsTeam, opponent: LEAGUE_AVERAGE as typeof LEAGUE_AVERAGE }]),
       ],
       byes: [],
       storedAt: DEADLINE,
