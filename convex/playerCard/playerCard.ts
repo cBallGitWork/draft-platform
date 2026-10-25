@@ -113,7 +113,8 @@ function clubsByCode(ctx: QueryCtx): Clubs {
   };
 }
 
-async function ownerIn(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<string | null> {
+/** The team in this league that owns him, or null for a free agent. */
+export async function ownerIn(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<string | null> {
   const owned = await ctx.db
     .query("squadPlayers")
     .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode))
@@ -129,16 +130,19 @@ const asMatch = async (fixture: Doc<"fixtures">, clubs: Clubs) => ({
   away: await clubs(fixture.awayClubCode),
 });
 
-/** This season's matches he was in, for whichever club, newest first: a match the feed still
- *  sends is this season's. An unused substitute's match is left out, as one he wasn't named for is. */
-async function seasonMatches(ctx: QueryCtx, player: Doc<"players">, positions: readonly Position[], clubs: Clubs): Promise<PlayedMatch[]> {
+/** One of his records this season, with its match and the gameweek it was played in. */
+export type SeasonRecord = { record: Doc<"playerMatchStats">; fixture: Doc<"fixtures">; gameweek: number };
+
+/** His records this season, for whichever club, each with its match: a match the feed still sends
+ *  is this season's, and one with no gameweek is postponed with no new date, so not yet played. An
+ *  unused substitute's match is left out, as one he wasn't named for is. */
+export async function seasonRecords(ctx: QueryCtx, playerCode: number): Promise<SeasonRecord[]> {
   const records = await takeAllOrThrow(
-    ctx.db.query("playerMatchStats").withIndex("by_playerCode", (q) => q.eq("playerCode", player.code)),
+    ctx.db.query("playerMatchStats").withIndex("by_playerCode", (q) => q.eq("playerCode", playerCode)),
     PLAYER_RECORDS_MOST,
-    `More than ${PLAYER_RECORDS_MOST} match records are held for player ${player.code}, so his card would be cut short`,
+    `More than ${PLAYER_RECORDS_MOST} match records are held for player ${playerCode}, so his season would be cut short`,
   );
-  const setIn = await siteScoringByGameweek(ctx);
-  const played = await Promise.all(
+  const withMatches = await Promise.all(
     records
       .filter((record) => record.played !== false)
       .map(async (record) => {
@@ -147,17 +151,26 @@ async function seasonMatches(ctx: QueryCtx, player: Doc<"players">, positions: r
           .withIndex("by_code", (q) => q.eq("code", record.fixtureCode))
           .unique();
         // A record is filed only for a match the sync holds, so one missing is bad data.
-        if (fixture === null) throw new Error(`Player ${player.code} has a record for match ${record.fixtureCode}, which isn't held`);
-        // A match with no gameweek is postponed with no new date, so not yet played: nothing to price.
-        if (fixture.droppedAt !== undefined || fixture.gameweek === null) return [];
-        const set = setIn(fixture.gameweek);
-        // No lineup is kept until #29, so nobody stands in a slot yet.
-        const points = cardPoints(isWhole(record) ? record.stats : null, set, positions, null);
-        const categories = points.categories.map((each) => ({ ...each, name: categoryName(each.stat, set.ownStats) }));
-        return [{ ...(await asMatch(fixture, clubs)), minutes: statValue(record, MINUTES_STAT), points: { ...points, categories } }];
+        if (fixture === null) throw new Error(`Player ${playerCode} has a record for match ${record.fixtureCode}, which isn't held`);
+        return fixture.droppedAt !== undefined || fixture.gameweek === null ? [] : [{ record, fixture, gameweek: fixture.gameweek }];
       }),
   );
-  return played.flat().sort((one, other) => (other.kickoff ?? 0) - (one.kickoff ?? 0));
+  return withMatches.flat();
+}
+
+/** This season's matches he was in (seasonRecords), each priced under the site's set, newest first. */
+async function seasonMatches(ctx: QueryCtx, player: Doc<"players">, positions: readonly Position[], clubs: Clubs): Promise<PlayedMatch[]> {
+  const setIn = await siteScoringByGameweek(ctx);
+  const played = await Promise.all(
+    (await seasonRecords(ctx, player.code)).map(async ({ record, fixture, gameweek }) => {
+      const set = setIn(gameweek);
+      // No lineup is kept until #29, so nobody stands in a slot yet.
+      const points = cardPoints(isWhole(record) ? record.stats : null, set, positions, null);
+      const categories = points.categories.map((each) => ({ ...each, name: categoryName(each.stat, set.ownStats) }));
+      return { ...(await asMatch(fixture, clubs)), minutes: statValue(record, MINUTES_STAT), points: { ...points, categories } };
+    }),
+  );
+  return played.sort((one, other) => (other.kickoff ?? 0) - (one.kickoff ?? 0));
 }
 
 /** His club's next matches after `now`, soonest first. A match with no kickoff time is left out. */

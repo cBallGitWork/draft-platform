@@ -2,12 +2,17 @@
 // (liveScouting.ts); the preview and the tests hand the screen their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
+import type { Comparison } from "../../convex/scouting/compare";
 import type { PlayersFilters, PlayersList, PlayersSort } from "../../convex/scouting/playersList";
 
-export type { PlayersFilters, PlayersList, PlayersSort };
+export type { Comparison, PlayersFilters, PlayersList, PlayersSort };
+export type { ComparedPlayer } from "../../convex/scouting/compare";
 export type { Availability, ListedPlayer, SortColumn } from "../../convex/scouting/playersList";
 
 export type ScoutingSeam = {
+  /** The two players with these codes side by side, live (a hook): undefined while it loads, and
+   *  with null for the codes, as nothing is asked. */
+  useComparison(leagueId: Id<"leagues">, codes: readonly number[] | null): Comparison | undefined;
   /** The players the filters keep, in the sort's order, and every club for the club filter, live
    *  (a hook): undefined while they load. */
   usePlayersList(leagueId: Id<"leagues">, filters: PlayersFilters, sort: PlayersSort): PlayersList | undefined;
