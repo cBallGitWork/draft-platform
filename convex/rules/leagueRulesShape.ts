@@ -35,6 +35,8 @@ function priced<Value extends Validator<unknown, "required", string>>(value: Val
 /** One of the pitch's six areas. */
 export const areaShape = v.union(...AREAS.map((name) => v.literal(name)));
 const lane = v.union(...LANES.map((name) => v.literal(name)));
+/** One cell of the pitch: pitch.ts's Cell. */
+export const cellShape = v.object({ area: areaShape, lane });
 
 /** A minimum and maximum, as lineup.ts's AreaLimit. */
 const limit = v.object({ minimum: v.number(), maximum: v.number() });
@@ -76,7 +78,7 @@ export const scoringSetShape = v.object({
 });
 
 /** presets.ts's Preset. */
-const preset = v.object({ name: v.string(), cells: v.array(v.object({ area: areaShape, lane })) });
+const preset = v.object({ name: v.string(), cells: v.array(cellShape) });
 
 const WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
 const weekday = v.union(...WEEKDAYS.map((day) => v.literal(day)));
