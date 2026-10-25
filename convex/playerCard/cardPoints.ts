@@ -26,10 +26,10 @@ export interface CardPoints extends MatchPoints {
 export function cardPoints(record: MatchStats | null, set: ScoringSet, positions: readonly Position[], slot: Cell | null): CardPoints {
   if (slot !== null) return { scoredAs: "slot", position: positionOfSlot(slot), ...scoreMatch(record, set, slot) };
   const priced = slotsFor(positions).map((cell) => ({ position: positionOfSlot(cell), ...scoreMatch(record, set, cell) }));
-  const best = priced.reduce<(typeof priced)[number] | undefined>(
-    (most, each) => (each.total !== null && (most === undefined || each.total > most.total!) ? each : most),
-    undefined,
-  );
+  let best: (typeof priced)[number] | undefined;
+  for (const each of priced) {
+    if (each.total !== null && (best === undefined || each.total > best.total!)) best = each;
+  }
   if (best !== undefined) return { scoredAs: "bestPosition", ...best };
   return { scoredAs: "bestPosition", position: null, total: null, categories: set.rules.map((rule) => ({ stat: rule.stat, points: null })) };
 }
