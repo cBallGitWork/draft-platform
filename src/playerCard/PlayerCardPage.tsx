@@ -111,11 +111,18 @@ function Positions({ positions }: { positions: readonly Position[] }) {
   return positions.map((position, index) => (
     <span key={position}>
       {index > 0 && listSeparator}
-      <abbr title={POSITION_NAMES[position]} className="no-underline">
-        {position}
-      </abbr>
+      <PositionCode position={position} />
     </span>
   ));
+}
+
+/** A position's code, its name on hover. */
+function PositionCode({ position }: { position: Position }) {
+  return (
+    <abbr title={POSITION_NAMES[position]} className="no-underline">
+      {position}
+    </abbr>
+  );
 }
 
 /** "ARS v COV", each club's full name on hover. */
@@ -146,6 +153,7 @@ function Season({ card }: { card: PlayerCard }) {
         <PanelNote>{noMatchesWords}</PanelNote>
       ) : (
         <>
+          {/* Every match is priced alike until #29 keeps lineups. */}
           <PanelNote>{pricedNotes[card.matches[0].points.scoredAs]}</PanelNote>
           <table className="w-full border-collapse">
             <thead className="bg-head text-ground">
@@ -180,13 +188,7 @@ function MatchRows({ match }: { match: PlayedMatch }) {
         </th>
         <td className={cellClasses("minutes")}>{match.minutes ?? noFigureWords}</td>
         <td className={cellClasses("position")}>
-          {position === null ? (
-            noFigureWords
-          ) : (
-            <abbr title={POSITION_NAMES[position]} className="no-underline">
-              {position}
-            </abbr>
-          )}
+          {position === null ? noFigureWords : <PositionCode position={position} />}
         </td>
         {total === null ? (
           <td title={notArrivedWords} className={`${cellClasses("points")} text-muted`}>
