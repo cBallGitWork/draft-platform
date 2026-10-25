@@ -559,8 +559,9 @@ const leagueRulesTables = {
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
 };
 
-// A league's head-to-head fixtures in each gameweek it has played, stored once the gameweek begins
-// and read from here ever after (#137). One row a league and gameweek, written only by
+// A league's head-to-head fixtures in each gameweek it has begun, stored once the gameweek begins
+// and read from here ever after (#137); none in one begun with no head-to-head, such as before the
+// league was made (#282). One row a league and gameweek, written only by
 // convex/table/playedFixtures.ts, which says why.
 const playedFixtureTables = {
   playedFixtures: defineTable({
