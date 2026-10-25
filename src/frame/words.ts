@@ -26,7 +26,7 @@ export const menuWords = {
   transactions: "Transactions",
   matchup: "Matchup",
   table: "Table",
-  players: "Players",
+  scouting: "Scouting",
   trades: "Trades",
   premierLeague: "Premier League",
 } as const;

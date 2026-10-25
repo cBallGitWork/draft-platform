@@ -1,6 +1,6 @@
 // The top menu and each section's second row of tabs (spec/12-screens.md, "The frame").
 // The sections are the screens spec/12 lists, in R3·1's order (docs/design/mockups/PlateOne.dc.html),
-// with the Premier League as its own section (spec/18). My team's tabs are R3·1's; a section
+// with the Premier League as its own section (spec/18) and Scouting in place of Players (spec/19). My team's tabs are R3·1's; a section
 // gets tabs when its screen is grilled, and until then has no second row.
 
 import { MAIL_TITLE } from "../mail/words";
@@ -12,6 +12,7 @@ export type Section = Page & { tabs: readonly Page[] };
 export const MY_TEAM_PATH = "/team";
 export const MAIL_PATH = "/mail";
 export const TABLE_PATH = "/table";
+export const SCOUTING_PATH = "/scouting";
 
 export const sections: readonly Section[] = [
   { label: menuWords.home, path: "/home", tabs: [] },
@@ -27,7 +28,7 @@ export const sections: readonly Section[] = [
   },
   { label: menuWords.matchup, path: "/matchup", tabs: [] },
   { label: menuWords.table, path: TABLE_PATH, tabs: [] },
-  { label: menuWords.players, path: "/players", tabs: [] },
+  { label: menuWords.scouting, path: SCOUTING_PATH, tabs: [] },
   { label: menuWords.trades, path: "/trades", tabs: [] },
   { label: menuWords.premierLeague, path: "/premier-league", tabs: [] },
   { label: MAIL_TITLE, path: MAIL_PATH, tabs: [] },
