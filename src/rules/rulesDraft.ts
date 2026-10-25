@@ -1,7 +1,8 @@
-// What the screens that edit part of a league's rules share (Player scoring, League settings): the
-// part as the server reads it, and the commissioner's draft of it, saved from the next gameweek.
-// A save carries the rules row the draft was made from, so one made over someone else's is
-// refused (Craig, 22 Oct 2026; convex/rules/leagueRules.ts).
+// What the rules screens share (League settings, a part of a league's rules; Player scoring, the
+// site's scoring set): the part as the server reads it, and the editor's draft of it, saved from
+// the gameweek the server gives. A save carries the version the draft was made from, so one made
+// over someone else's is refused (Craig, 22 Oct 2026; convex/rules/leagueRules.ts,
+// convex/scoring/siteScoring.ts).
 
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
