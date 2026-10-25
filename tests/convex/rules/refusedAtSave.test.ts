@@ -98,7 +98,7 @@ test("an own stat named as a catalogue stat is, case aside, is refused from the 
   };
 
   await expectRefused(
-    (await actingAs(t, ADMIN)).mutation(api.scoring.siteScoring.change, { scoring, revision: null }),
+    (await actingAs(t, ADMIN)).mutation(api.scoring.siteScoring.fix, { scoring, revision: null }),
     'The scoring set can\'t be saved: the own stat own_assists has the name "assists", which the catalogue\'s Assists has.',
   );
 });

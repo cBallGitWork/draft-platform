@@ -42,6 +42,7 @@ flowchart TD
     FEEDS["Feeds, a tab of the admin dashboard<br/>/admin/feeds<br/>admin"]
     AFB["Feedback, a tab of the admin dashboard<br/>/admin/feedback<br/>admin"]
     FB["Feedback<br/>/feedback<br/>manager, commissioner, admin"]
+    PN["Patch notes<br/>/patch-notes<br/>manager, commissioner, admin"]
   end
   LP -.->|"signed out (an invite link keeps ?join)"| SIGNIN
   NEW & ADMIN & FEEDS & AFB -.->|"not the admin"| LEAGUES
@@ -57,6 +58,7 @@ flowchart TD
   LEAGUES -- "Invites and join requests" --> INV
   LEAGUES -- "Squads" --> SQ
   LEAGUES -- "Player scoring" --> SC
+  SC -- "Patch notes" --> PN
   LEAGUES -- "League settings" --> SET
   NEW -- "Create the league / Back to your leagues" --> LEAGUES
   GW & SQ & SC & SET & ADMIN & FEEDS & AFB & INV -- "Back to your leagues" --> LEAGUES
@@ -93,6 +95,7 @@ flowchart TD
   NOLEAGUE -- "Your leagues" --> LEAGUES
   NOLEAGUE -- "Mail" --> MAIL
   MENU & NOLEAGUE -- "Feedback" --> FB
+  MENU & NOLEAGUE -- "Patch notes (the banner, while a patch waits)" --> PN
   MENU & NOLEAGUE -.->|"Sign out, then signed out"| SIGNIN
   ERR(["This page can't be shown: any page that throws"]) -- "Back to your leagues" --> LEAGUES
 
@@ -131,6 +134,7 @@ Features table (feature 12), the one home for screen status.
 | Feeds, a tab of the admin dashboard | `/admin/feeds` | src/admin/FeedsPage.tsx | spec/15 The admin | built |
 | Feedback, a tab of the admin dashboard | `/admin/feedback` | src/admin/FeedbackTab.tsx | spec/15 The admin | built |
 | Feedback | `/feedback` | src/feedback/FeedbackPage.tsx | spec/12 The frame, spec/15 The admin | built |
+| Patch notes | `/patch-notes` | src/patches/PatchNotesPage.tsx | spec/14 Changes and corrections | built |
 | Table and fixtures | `/table` | src/table/TablePage.tsx | spec/12, spec/09 | built |
 | League home | `/home` | src/frame/PageNotBuilt.tsx | spec/12:16 | placeholder |
 | My team (Tactics) | `/team` | src/frame/PageNotBuilt.tsx | spec/12:11, spec/12:28, spec/05 | placeholder |

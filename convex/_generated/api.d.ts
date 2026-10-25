@@ -72,6 +72,8 @@ import type * as rules_leagueSettings from "../rules/leagueSettings.js";
 import type * as scoring_categories from "../scoring/categories.js";
 import type * as scoring_firstScoring from "../scoring/firstScoring.js";
 import type * as scoring_ownStats from "../scoring/ownStats.js";
+import type * as scoring_patchChanges from "../scoring/patchChanges.js";
+import type * as scoring_patchNotes from "../scoring/patchNotes.js";
 import type * as scoring_scoring from "../scoring/scoring.js";
 import type * as scoring_scoringSet from "../scoring/scoringSet.js";
 import type * as scoring_siteScoring from "../scoring/siteScoring.js";
@@ -170,6 +172,8 @@ declare const fullApi: ApiFromModules<{
   "scoring/categories": typeof scoring_categories;
   "scoring/firstScoring": typeof scoring_firstScoring;
   "scoring/ownStats": typeof scoring_ownStats;
+  "scoring/patchChanges": typeof scoring_patchChanges;
+  "scoring/patchNotes": typeof scoring_patchNotes;
   "scoring/scoring": typeof scoring_scoring;
   "scoring/scoringSet": typeof scoring_scoringSet;
   "scoring/siteScoring": typeof scoring_siteScoring;
