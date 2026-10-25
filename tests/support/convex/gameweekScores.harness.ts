@@ -176,3 +176,21 @@ export function sideTotal(records: readonly PlayerMatchRecord[], counting: reado
 export const HULL_AFTER_SUB: Starter[] = HULL_STARTERS.map((starter) =>
   starter.playerCode === PHILLIPS ? { ...starter, playerCode: HULL_KEEPER } : starter,
 );
+
+/** A stat no record holds: a typo of goals_scored. */
+export const TYPO_STAT = "goals_scroed";
+
+/** The site's set from now on holds a rule on TYPO_STAT, as a set written by hand could (#287). */
+export async function holdTypoRule({ t }: ScoresLeague) {
+  const [rule] = FIRST_SCORING.rules;
+  await t.run((ctx) =>
+    ctx.db.insert("siteScoring", {
+      scoring: { ...FIRST_SCORING, rules: [...FIRST_SCORING.rules, { ...rule, stat: TYPO_STAT }] },
+      kind: "fix",
+      season: 2026,
+      number: 1,
+      announcedAt: 0,
+      takesEffectAt: 0,
+    }),
+  );
+}

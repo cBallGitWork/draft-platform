@@ -716,6 +716,18 @@ const playedFixtureTables = {
     byes: v.array(v.id("teams")),
     storedAt: v.number(),
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
+  /** Each team's points in a gameweek once they are final: every match in it locked, so no
+   *  correction can change them (spec/07). One row a league, gameweek and team, written only by
+   *  convex/table/finalScores.ts, which says when (#418). */
+  finalScores: defineTable({
+    leagueId: v.id("leagues"),
+    gameweek: v.number(),
+    teamId: v.id("teams"),
+    points: v.number(),
+    /** It had never saved a lineup, so it scored 0 (gameweekScores.ts's TeamGameweek). */
+    noLineup: v.boolean(),
+    storedAt: v.number(),
+  }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
 };
 
 // Each team's lineup (#8, spec/05): one row for each gameweek it was saved from, which
