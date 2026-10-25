@@ -90,11 +90,14 @@ describe("while it can be undone", () => {
       "rules/leagueRules:change": () => admin.mutation(api.rules.leagueRules.change, { leagueId, rules: structuredClone(FIRST_RULES), revision }),
       "rules/leagueSettings:changeSettings": () =>
         admin.mutation(api.rules.leagueSettings.changeSettings, { leagueId, settings: { ...leagueSettingsOf(FIRST_RULES), oddTeamOut: "bye", gamesPerGameweek: 2 }, revision }),
+      "lineup/lineups:save": () => ann.mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [], bench: [] } }),
       "leagues/lastLeague:switchTo": () => commissioner.mutation(api.leagues.lastLeague.switchTo, { leagueId }),
       "mail/mail:writeToLeague": () => admin.mutation(api.mail.mail.writeToLeague, { leagueId, subject: "Still here?", body: "It's being deleted." }),
       "squads/squads:assign": () => admin.mutation(api.squads.squads.assign, { leagueId, playerCode: 1, teamId: annsTeam._id }),
       "squads/squads:move": () => admin.mutation(api.squads.squads.move, { leagueId, playerCode: 1, teamId: annsTeam._id }),
       "squads/squads:release": () => admin.mutation(api.squads.squads.release, { leagueId, playerCode: 1 }),
+      "scouting/shortlist:add": () => ann.mutation(api.scouting.shortlist.add, { leagueId, playerCode: 1 }),
+      "scouting/shortlist:remove": () => ann.mutation(api.scouting.shortlist.remove, { leagueId, playerCode: 1 }),
     };
     for (const change of Object.values(changes)) await expect(change()).rejects.toThrow(refusals.beingDeleted);
     expect(await everythingOf(leagueId)).toEqual(before);

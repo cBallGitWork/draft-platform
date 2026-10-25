@@ -108,6 +108,15 @@ export function eventLetter(event: LeagueEvent, who: string): Words {
   }
 }
 
+/** The letter to a manager whose shortlist holds a player just released to free agency (spec/16,
+ *  spec/19 The shortlist), released by `who`. */
+export function shortlistedReleasedLetter(playerName: string, teamName: string, who: string): Words {
+  return {
+    subject: `${playerName}, on your shortlist, was released`,
+    body: `${who} released ${playerName} from ${teamName}. He is a free agent, and on your shortlist.`,
+  };
+}
+
 /** Each part of a league's rules as a letter names it, and the scoring, which letters filed before
  *  it became the site's (#354) name. */
 const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring", string> = {

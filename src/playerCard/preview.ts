@@ -7,7 +7,7 @@ import { categoryName } from "../../convex/scoring/categories";
 import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import type { MatchStats } from "../../convex/scoring/scoring";
 import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
-import { ARSENAL, CHELSEA, LIVERPOOL, previewPlayers } from "../scouting/preview";
+import { ARSENAL, CHELSEA, LIVERPOOL, previewPlayers, previewShortlist } from "../scouting/preview";
 import type { PlayedMatch, PlayerCard, PlayerCardSeam } from "./seam";
 
 const CLUBS = [ARSENAL, CHELSEA, LIVERPOOL];
@@ -57,4 +57,4 @@ function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
 
 const cards = new Map(previewPlayers.map((player) => [player.code, cardOf(player)]));
 
-export const previewPlayerCard: PlayerCardSeam = { usePlayerCard: (_leagueId, playerCode) => cards.get(playerCode) ?? null };
+export const previewPlayerCard: PlayerCardSeam = { ...previewShortlist, usePlayerCard: (_leagueId, playerCode) => cards.get(playerCode) ?? null };

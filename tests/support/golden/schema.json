@@ -810,6 +810,13 @@
             "droppedAt",
             "kickoff"
           ]
+        },
+        {
+          "indexDescriptor": "by_gameweek_and_droppedAt",
+          "fields": [
+            "gameweek",
+            "droppedAt"
+          ]
         }
       ],
       "stagedDbIndexes": [],
@@ -1112,6 +1119,49 @@
                         }
                       },
                       "optional": false
+                    },
+                    "scores": {
+                      "fieldType": {
+                        "type": "object",
+                        "value": {
+                          "received": {
+                            "fieldType": {
+                              "type": "number"
+                            },
+                            "optional": false
+                          },
+                          "written": {
+                            "fieldType": {
+                              "type": "number"
+                            },
+                            "optional": false
+                          },
+                          "problems": {
+                            "fieldType": {
+                              "type": "array",
+                              "value": {
+                                "type": "object",
+                                "value": {
+                                  "fixtureCode": {
+                                    "fieldType": {
+                                      "type": "number"
+                                    },
+                                    "optional": false
+                                  },
+                                  "problem": {
+                                    "fieldType": {
+                                      "type": "string"
+                                    },
+                                    "optional": false
+                                  }
+                                }
+                              }
+                            },
+                            "optional": false
+                          }
+                        }
+                      },
+                      "optional": true
                     }
                   }
                 },
@@ -1134,6 +1184,135 @@
                   }
                 }
               ]
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "matchScores",
+      "indexes": [
+        {
+          "indexDescriptor": "by_fixtureCode",
+          "fields": [
+            "fixtureCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "fixtureCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "state": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "upcoming"
+                },
+                {
+                  "type": "literal",
+                  "value": "live"
+                },
+                {
+                  "type": "literal",
+                  "value": "halfTime"
+                },
+                {
+                  "type": "literal",
+                  "value": "fullTime"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "homeGoals": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "awayGoals": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "minutes": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "clockLabel": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "feed": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "fpl"
+                },
+                {
+                  "type": "literal",
+                  "value": "pl"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "readAt": {
+            "fieldType": {
+              "type": "number"
             },
             "optional": false
           }
@@ -1664,6 +1843,55 @@
       }
     },
     {
+      "tableName": "shortlistPlayers",
+      "indexes": [
+        {
+          "indexDescriptor": "by_teamId_and_playerCode",
+          "fields": [
+            "teamId",
+            "playerCode"
+          ]
+        },
+        {
+          "indexDescriptor": "by_leagueId_and_playerCode",
+          "fields": [
+            "leagueId",
+            "playerCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "playerCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "playerMatchStats",
       "indexes": [
         {
@@ -2157,6 +2385,49 @@
                         }
                       },
                       "optional": false
+                    },
+                    "scores": {
+                      "fieldType": {
+                        "type": "object",
+                        "value": {
+                          "received": {
+                            "fieldType": {
+                              "type": "number"
+                            },
+                            "optional": false
+                          },
+                          "written": {
+                            "fieldType": {
+                              "type": "number"
+                            },
+                            "optional": false
+                          },
+                          "problems": {
+                            "fieldType": {
+                              "type": "array",
+                              "value": {
+                                "type": "object",
+                                "value": {
+                                  "fixtureCode": {
+                                    "fieldType": {
+                                      "type": "number"
+                                    },
+                                    "optional": false
+                                  },
+                                  "problem": {
+                                    "fieldType": {
+                                      "type": "string"
+                                    },
+                                    "optional": false
+                                  }
+                                }
+                              }
+                            },
+                            "optional": false
+                          }
+                        }
+                      },
+                      "optional": true
                     }
                   }
                 },
@@ -2391,6 +2662,49 @@
                         }
                       },
                       "optional": false
+                    },
+                    "scores": {
+                      "fieldType": {
+                        "type": "object",
+                        "value": {
+                          "received": {
+                            "fieldType": {
+                              "type": "number"
+                            },
+                            "optional": false
+                          },
+                          "written": {
+                            "fieldType": {
+                              "type": "number"
+                            },
+                            "optional": false
+                          },
+                          "problems": {
+                            "fieldType": {
+                              "type": "array",
+                              "value": {
+                                "type": "object",
+                                "value": {
+                                  "fixtureCode": {
+                                    "fieldType": {
+                                      "type": "number"
+                                    },
+                                    "optional": false
+                                  },
+                                  "problem": {
+                                    "fieldType": {
+                                      "type": "string"
+                                    },
+                                    "optional": false
+                                  }
+                                }
+                              }
+                            },
+                            "optional": false
+                          }
+                        }
+                      },
+                      "optional": true
                     }
                   }
                 },
@@ -19121,6 +19435,135 @@
           "storedAt": {
             "fieldType": {
               "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "lineups",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_teamId_and_fromGameweek",
+          "fields": [
+            "leagueId",
+            "teamId",
+            "fromGameweek"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "fromGameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "starters": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "area": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "goalkeeper"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "defence"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "defensiveMidfield"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "midfield"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "attackingMidfield"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "attack"
+                        }
+                      ]
+                    },
+                    "optional": false
+                  },
+                  "lane": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "left"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "leftCentre"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "centre"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "rightCentre"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "right"
+                        }
+                      ]
+                    },
+                    "optional": false
+                  },
+                  "playerCode": {
+                    "fieldType": {
+                      "type": "number"
+                    },
+                    "optional": false
+                  }
+                }
+              }
+            },
+            "optional": false
+          },
+          "bench": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "number"
+              }
             },
             "optional": false
           }
