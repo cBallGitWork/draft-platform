@@ -32,7 +32,9 @@ export async function recordGameweekStarts(ctx: MutationCtx, matches: readonly S
   const season = heldSeason(matches);
   if (season === null) return;
   const recorded = await gameweekStartsOf(ctx, matches);
-  for (const [gameweek, firstKickoff] of firstKickoffs(matches)) {
+  // While a new season's matches arrive, last season's are still held: they start nothing in this one.
+  const thisSeason = matches.filter(({ kickoff }) => kickoff !== null && seasonStartYear(kickoff) === season);
+  for (const [gameweek, firstKickoff] of firstKickoffs(thisSeason)) {
     if (firstKickoff > now || recorded.has(gameweek)) continue;
     await ctx.db.insert("gameweekStarts", { season, gameweek, firstKickoff, recordedAt: now });
   }

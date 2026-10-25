@@ -30,8 +30,8 @@ import { validateScoringSet } from "./scoringSet";
 // A gameweek plays the newest version to take effect at or before its first kickoff, so a version
 // never reaches a gameweek already begun, and a re-score of a played one never reads a later
 // version. Once passed, the first kickoff is the one recorded (gameweekStarts.ts, #414), so a
-// postponed first match can't move it; before any, the first set (firstScoring.ts). Scoring a league's match reads
-// `siteScoringInGameweek`, never the league's rules. Versions take effect in the order they are
+// postponed first match can't move it. Before any version, the first set (firstScoring.ts).
+// Scoring a league's match reads `siteScoringInGameweek`, never the league's rules. Versions take effect in the order they are
 // announced, so a newer one never lands before an older one it was made from.
 
 /** The most versions the site holds: a version each gameweek of five seasons is 190. One past it is

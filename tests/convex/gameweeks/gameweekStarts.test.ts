@@ -14,6 +14,8 @@ const MATCHES: ScheduledMatch[] = [
   { gameweek: 9, kickoff: SATURDAY_3PM + 2 * HOUR_MS },
   { gameweek: 10, kickoff: SATURDAY_3PM + WEEK_MS },
 ];
+/** The same day of the week a year on: next season. */
+const A_SEASON_ON = 52 * WEEK_MS;
 /** Gameweek 9 with its opener postponed: no gameweek, no kickoff. */
 const OPENER_POSTPONED: ScheduledMatch[] = [{ gameweek: null, kickoff: null }, ...MATCHES.slice(1)];
 
@@ -51,12 +53,19 @@ test("recording twice is harmless: one row a gameweek", async () => {
 });
 
 test("a start recorded last season isn't read for the same gameweek this season", async () => {
-  const nextSeason = MATCHES.map((match) => ({ ...match, kickoff: match.kickoff! + 52 * WEEK_MS }));
+  const nextSeason = MATCHES.map((match) => ({ ...match, kickoff: match.kickoff! + A_SEASON_ON }));
   await record(MATCHES, SATURDAY_3PM);
 
   expect(await startsOf(nextSeason)).toEqual(new Map());
   await record(nextSeason, nextSeason[0].kickoff!);
   expect(await startsOf(nextSeason)).toEqual(new Map([[9, nextSeason[0].kickoff]]));
+});
+
+test("while a new season's matches arrive beside last season's, last season's start nothing in the new one", async () => {
+  const nextSeasonOpener = { gameweek: 9, kickoff: SATURDAY_3PM + A_SEASON_ON };
+  await record([...MATCHES, nextSeasonOpener], SATURDAY_3PM + 2 * WEEK_MS);
+
+  expect(await rows()).toEqual([]);
 });
 
 test("with no kickoff held, nothing is recorded or read", async () => {
