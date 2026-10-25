@@ -760,6 +760,26 @@
             },
             "optional": false
           },
+          "news": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "chanceOfPlaying": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "optional": true
+          },
           "droppedAt": {
             "fieldType": {
               "type": "number"
@@ -1650,6 +1670,12 @@
           "indexDescriptor": "by_fixtureCode_and_playerCode",
           "fields": [
             "fixtureCode",
+            "playerCode"
+          ]
+        },
+        {
+          "indexDescriptor": "by_playerCode",
+          "fields": [
             "playerCode"
           ]
         }

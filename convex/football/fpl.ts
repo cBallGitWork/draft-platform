@@ -1,6 +1,6 @@
 // FPL's public API, mapped onto the football layer's seam (`Football`, in football.ts). The raw
 // shapes and the mapping are copied from epl-draft's packages/core/src/football/fpl/ (raw.ts,
-// map.ts and client.ts, 19 Oct 2026), not shared, and cut to the fields #21 holds. One change:
+// map.ts and client.ts, 19 Oct 2026), not shared, and cut to the fields #21 holds and each player's news (#381). One change:
 // FPL names a club by its per-season id, and this hands on the club's season-stable code instead.
 
 import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, getJson, getShaped, type Football } from "./football";
@@ -24,6 +24,10 @@ interface RawElement {
   second_name: string;
   /** The club's per-season id. */
   team: number;
+  /** Why he may miss the next match, e.g. "Back injury - Unknown return date"; "" with nothing to say. */
+  news: string;
+  /** The chance he plays in the next round, in percent; null while FPL has no doubt about him. */
+  chance_of_playing_next_round: number | null;
   /** `"p"` + `code`: the Premier League's `altIds.opta` for him, the join between the two feeds. */
   opta_code: string | null;
 }
@@ -87,6 +91,8 @@ export function mapFpl(bootstrap: RawBootstrap, fixtures: RawFixture[]): Footbal
         name: element.web_name,
         fullName: `${element.first_name} ${element.second_name}`.trim(),
         clubCode: clubCode(element.team),
+        news: element.news,
+        chanceOfPlaying: element.chance_of_playing_next_round,
       })),
       (player) => player.code,
     ),

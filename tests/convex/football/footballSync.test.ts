@@ -104,6 +104,23 @@ test("a player who changes clubs is updated in his own row, not added again", as
   expect(sakas[0].clubCode).toBe(MAN_CITY.code);
 });
 
+test("a player's new injury news and chance of playing update his row (#381)", async () => {
+  const t = freshConvex();
+  await syncWith(t, recordedFpl());
+
+  const injured = recordedFpl();
+  const saka = injured.bootstrap.elements.find((player) => player.code === SAKA)!;
+  saka.news = "Hamstring injury - 25% chance of playing";
+  saka.chance_of_playing_next_round = 25;
+  const outcome = await syncWith(t, injured);
+
+  expect(outcome).toMatchObject({ ok: true, players: { inserted: 0, updated: 1 } });
+  expect((await held(t)).players.find((player) => player.code === SAKA)).toMatchObject({
+    news: "Hamstring injury - 25% chance of playing",
+    chanceOfPlaying: 25,
+  });
+});
+
 test("a rescheduled match and its moved deadline are updated in their own rows", async () => {
   const t = freshConvex();
   await syncWith(t, recordedFpl());

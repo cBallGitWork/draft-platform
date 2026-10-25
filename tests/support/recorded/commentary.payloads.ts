@@ -9,6 +9,7 @@
 // - pl-team-stats.json: `/stats/match/{id}` whole, for Brentford v Liverpool and for Ipswich v Forest.
 
 import type { RawBootstrap } from "../../../convex/football/fpl";
+import { withNoNews } from "./fpl.payloads";
 import type { RawPlCommentary, RawPlFixture, RawPlTeamStats } from "../../../convex/football/premierLeague";
 import { MATCH, recordedPlFixture } from "./gw6.payloads";
 import streams from "./pl-commentary.json";
@@ -49,7 +50,7 @@ export function recordedSheets(plId: number): RawPlFixture {
 
 /** FPL's players named in the four finished matches, a fresh copy. */
 export function recordedFplPlayers(): RawBootstrap["elements"] {
-  return structuredClone(fplPlayers);
+  return withNoNews(structuredClone(fplPlayers));
 }
 
 /** One recorded team stats read, a fresh copy. */
