@@ -80,10 +80,6 @@ export const FEED_TYPE = {
   playerRetired: "player retired",
 } as const;
 
-/** The second half ends one line before the match does: the full-time line is written once, from
- *  "Match ends", so the second half's own end writes nothing. */
-const SILENT_TYPES: ReadonlySet<string> = new Set([FEED_TYPE.end2]);
-
 /** One line's names, by the part the feed's order gives each man (docs/pl-commentary.md). */
 type Named = (index: number) => string;
 
@@ -124,7 +120,8 @@ export function writeCommentary(stream: readonly CommentaryLine[], input: Commen
   const lines: WrittenLine[] = [];
   const unworded: CommentaryLine[] = [];
   for (const line of stream) {
-    if (SILENT_TYPES.has(line.type)) continue;
+    // The second half ends one line before the match does; full time is written once, from "Match ends".
+    if (line.type === FEED_TYPE.end2) continue;
     const text = textOf(line, line === kickOff, input);
     if (text === null) unworded.push(line);
     else lines.push({ sourceId: line.id, text });

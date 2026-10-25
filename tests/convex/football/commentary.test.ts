@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import type { RawBootstrap } from "../../../convex/football/fpl";
 import { codesByOpta } from "../../../convex/football/feedIds";
-import { UNLISTED_NAME, writeCommentary, type CommentaryInput, type MatchHeader } from "../../../convex/football/commentary";
+import { FEED_TYPE, UNLISTED_NAME, writeCommentary, type CommentaryInput, type MatchHeader } from "../../../convex/football/commentary";
 import { commentaryLines, type CommentaryLine } from "../../../convex/football/plCommentary";
 import {
   FINISHED_MATCHES,
@@ -22,6 +22,8 @@ const LIVE_HEADER: MatchHeader = { home: "IPS", away: "NFO", homeGoals: 1, awayG
 const LIVE_CODE = { williams: 215136, munoz: 247348, enciso: 474120 } as const;
 /** Ipswich v Forest's lines the replay follows, by feed id. */
 const LIVE_LINE = { firstGoal: 2878012, droppedFoul: 2878263 } as const;
+/** An FPL code the tests give no name. */
+const NAMELESS_CODE = 1;
 /** Made-up points for the full-time line: scoring is not this file's (the caller passes them). */
 const FULL_TIME_POINTS = [
   { code: LIVE_CODE.williams, points: 8 },
@@ -45,13 +47,13 @@ function writtenLive(read: keyof typeof LIVE_COMMENTARY, input: CommentaryInput 
   return writeCommentary(lines, input);
 }
 
-function textOf(written: ReturnType<typeof writeCommentary>, sourceId: number): string | undefined {
+function writtenText(written: ReturnType<typeof writeCommentary>, sourceId: number): string | undefined {
   return written.lines.find((line) => line.sourceId === sourceId)?.text;
 }
 
-/** One made-up line, for the kinds the recordings lack. */
+/** One made-up line: a goal at 62' by Williams, unless changed. */
 function lineOf(change: Partial<CommentaryLine>): CommentaryLine {
-  return { id: 1, minute: 62, addedMinute: 0, type: "goal", text: "", playerCodes: [LIVE_CODE.williams], ...change };
+  return { id: 1, minute: 62, addedMinute: 0, type: FEED_TYPE.goal, text: "", playerCodes: [LIVE_CODE.williams], ...change };
 }
 
 test("the live match's full-time read writes every line, kick-off to full time, as the golden file has them", async () => {
@@ -73,13 +75,13 @@ test("the kick-off and full-time lines carry the clubs, the score and each man's
 });
 
 test("replayed, the first goal names only the scorer until a later read names the assister", () => {
-  expect(textOf(writtenLive("goal"), LIVE_LINE.firstGoal)).toBe("13' GOAL N.Williams");
-  expect(textOf(writtenLive("final"), LIVE_LINE.firstGoal)).toBe("13' GOAL N.Williams, assist Muñoz");
+  expect(writtenText(writtenLive("goal"), LIVE_LINE.firstGoal)).toBe("13' GOAL N.Williams");
+  expect(writtenText(writtenLive("final"), LIVE_LINE.firstGoal)).toBe("13' GOAL N.Williams, assist Muñoz");
 });
 
 test("replayed, a line the feed drops is gone from the next read's commentary", () => {
-  expect(textOf(writtenLive("withVanished"), LIVE_LINE.droppedFoul)).toBeDefined();
-  expect(textOf(writtenLive("final"), LIVE_LINE.droppedFoul)).toBeUndefined();
+  expect(writtenText(writtenLive("withVanished"), LIVE_LINE.droppedFoul)).toBeDefined();
+  expect(writtenText(writtenLive("final"), LIVE_LINE.droppedFoul)).toBeUndefined();
 });
 
 test("before full time no full-time line is written", () => {
@@ -95,24 +97,24 @@ test.each(FINISHED_MATCHES)("every line of recorded match %i is worded, but the 
   const stream = recordedCommentary(plId).events.content;
   const { lines } = commentaryLines(recordedSheets(plId), stream, codesByOpta(fplPlayers));
 
-  const written = writeCommentary(lines, { header: LIVE_HEADER, nameByCode: namesOf(fplPlayers), fullTimePoints: [] });
+  const written = writeCommentary(lines, { ...liveInput, nameByCode: namesOf(fplPlayers), fullTimePoints: [] });
 
   expect(written.unworded).toEqual([]);
-  expect(written.lines.map((line) => line.sourceId)).toEqual(stream.filter((line) => line.type !== "end 2").map((line) => line.id));
+  expect(written.lines.map((line) => line.sourceId)).toEqual(stream.filter((line) => line.type !== FEED_TYPE.end2).map((line) => line.id));
 });
 
 test.each([
-  [{ type: "penalty goal" }, "62' GOAL N.Williams, penalty"],
-  [{ type: "own goal" }, "62' OWN GOAL N.Williams"],
-  [{ type: "VAR cancelled goal", playerCodes: [LIVE_CODE.williams, LIVE_CODE.munoz] }, "62' NO GOAL N.Williams, VAR"],
-  [{ type: "secondyellow card", minute: 90, addedMinute: 3 }, "90+3' RED N.Williams, second yellow"],
-  [{ type: "red card" }, "62' RED N.Williams"],
-  [{ type: "post" }, "62' SHOT N.Williams, off the woodwork"],
-  [{ type: "penalty won" }, "62' PENALTY won by N.Williams"],
-  [{ type: "penalty lost" }, "62' PENALTY conceded by N.Williams"],
-  [{ type: "player retired" }, "62' OFF INJURED N.Williams"],
-  [{ type: "contentious referee decisions", playerCodes: [] }, "62' VAR"],
-])("a %o line the live match lacks is written %j", (change, expected) => {
+  { change: { type: FEED_TYPE.penaltyGoal }, expected: "62' GOAL N.Williams, penalty" },
+  { change: { type: FEED_TYPE.ownGoal }, expected: "62' OWN GOAL N.Williams" },
+  { change: { type: FEED_TYPE.varCancelledGoal, playerCodes: [LIVE_CODE.williams, LIVE_CODE.munoz] }, expected: "62' NO GOAL N.Williams, VAR" },
+  { change: { type: FEED_TYPE.secondYellow, minute: 90, addedMinute: 3 }, expected: "90+3' RED N.Williams, second yellow" },
+  { change: { type: FEED_TYPE.redCard }, expected: "62' RED N.Williams" },
+  { change: { type: FEED_TYPE.post }, expected: "62' SHOT N.Williams, off the woodwork" },
+  { change: { type: FEED_TYPE.penaltyWon }, expected: "62' PENALTY won by N.Williams" },
+  { change: { type: FEED_TYPE.penaltyLost }, expected: "62' PENALTY conceded by N.Williams" },
+  { change: { type: FEED_TYPE.playerRetired }, expected: "62' OFF INJURED N.Williams" },
+  { change: { type: FEED_TYPE.refereeDecision, playerCodes: [] }, expected: "62' VAR" },
+])("a \"$change.type\" line, a kind the live match lacks, is written $expected", ({ change, expected }) => {
   expect(writeCommentary([lineOf(change)], liveInput).lines.map((line) => line.text)).toEqual([expected]);
 });
 
@@ -127,6 +129,6 @@ test("a man FPL does not list is written as unknown", () => {
 });
 
 test("a man with no name given, or a part the line lacks, throws rather than write a wrong line", () => {
-  expect(() => writeCommentary([lineOf({ playerCodes: [1] })], liveInput)).toThrow("no name given for FPL code 1");
-  expect(() => writeCommentary([lineOf({ type: "substitution" })], liveInput)).toThrow("names 1 men, not a man 2");
+  expect(() => writeCommentary([lineOf({ playerCodes: [NAMELESS_CODE] })], liveInput)).toThrow(`no name given for FPL code ${NAMELESS_CODE}`);
+  expect(() => writeCommentary([lineOf({ type: FEED_TYPE.substitution })], liveInput)).toThrow("names 1 men, not a man 2");
 });
