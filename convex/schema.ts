@@ -3,6 +3,7 @@ import { defineSchema, defineTable } from "convex/server";
 import { v, type VLiteral } from "convex/values";
 import { leagueRulesShape } from "./rules/leagueRulesShape";
 import { POSITIONS, type Position } from "./positions/positionTables";
+import { feedValidator } from "./shared/feedSchedule";
 import { signInReply } from "./signIn/signInLinks";
 import { LEAGUE_AVERAGE } from "./table/roundRobin";
 
@@ -318,6 +319,13 @@ const liveStatsTables = {
   liveStatsTicks: defineTable(liveStatsTickFields),
 };
 
+// When the admin was last emailed that each feed failed (#319, spec/15): one row a feed, so he
+// hears at most once a day for each (admin/feedFailureEmails.ts). `emailedAt` is the start of the
+// failed run it emailed for, as the next failure is measured from its run's start.
+const feedFailureEmailTables = {
+  feedFailureEmails: defineTable({ feed: feedValidator, emailedAt: v.number() }).index("by_feed", ["feed"]),
+};
+
 // Deleting a league (#75): how it works is in leagueDeletion.ts.
 
 /** Why one person wasn't emailed that their league has been deleted: the day's emails had all
@@ -564,8 +572,9 @@ const leagueRulesTables = {
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
 };
 
-// A league's head-to-head fixtures in each gameweek it has played, stored once the gameweek begins
-// and read from here ever after (#137). One row a league and gameweek, written only by
+// A league's head-to-head fixtures in each gameweek it has begun, stored once the gameweek begins
+// and read from here ever after (#137); none in one begun with no head-to-head, such as before the
+// league was made (#282). One row a league and gameweek, written only by
 // convex/table/playedFixtures.ts, which says why.
 const playedFixtureTables = {
   playedFixtures: defineTable({
@@ -587,6 +596,7 @@ export default defineSchema({
   ...squadTables,
   ...matchStatsTables,
   ...liveStatsTables,
+  ...feedFailureEmailTables,
   ...leagueTables,
   ...joiningTables,
   ...mailTables,

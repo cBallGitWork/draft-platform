@@ -2387,6 +2387,57 @@
       }
     },
     {
+      "tableName": "feedFailureEmails",
+      "indexes": [
+        {
+          "indexDescriptor": "by_feed",
+          "fields": [
+            "feed"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "feed": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "football"
+                },
+                {
+                  "type": "literal",
+                  "value": "positions"
+                },
+                {
+                  "type": "literal",
+                  "value": "matchStats"
+                },
+                {
+                  "type": "literal",
+                  "value": "liveStats"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "emailedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "leagues",
       "indexes": [
         {

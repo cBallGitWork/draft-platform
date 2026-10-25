@@ -2,8 +2,9 @@
 // `commissioner` (running the same two, so Mail offers a letter to either, and deleting a third),
 // `newcomer` (in none), `admin` (in none, seeing every league and offered "Create a league") or
 // `visitor` (signed out), on the dev server only (the ui-verifier agent's way in).
-// `import.meta.env.DEV` is false in `vite build`, so the production bundle drops this and a
-// logged-out visitor can never reach the frame through it.
+// The production bundle leaves this file out (main.tsx), and previewSession's own
+// `import.meta.env.DEV` guard holds if something imports it anyway, so a logged-out visitor can
+// never reach the frame through it.
 
 import type { Id } from "../convex/_generated/dataModel";
 import type { LeagueSummary } from "../convex/leagues/myLeagues";
