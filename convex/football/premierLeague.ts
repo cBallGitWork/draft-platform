@@ -54,12 +54,18 @@ export interface RawPlTeamList {
 /** A fixture from the fixture list or its own read. */
 export interface RawPlFixture {
   id: number;
-  /** `PL_FULL_TIME` ("C") once the match is over; "U" before. Other values are not read. Every
-   *  read recorded so far carries it. */
+  /** `PL_UPCOMING` ("U") before kickoff, `PL_IN_PLAY` ("L") during, `PL_FULL_TIME` ("C") once
+   *  over. Every read recorded so far carries it. */
   status?: string;
+  /** "1" and "2" for the halves, `PL_HALF_TIME_PHASE` between them, "F" at full time ("0" before).
+   *  Only half-time's is read. */
+  phase?: string;
+  /** The match clock: `secs` played, restarting at 45 minutes for the second half, and its label
+   *  ("13'00", "45+3'00"). "00'00" before kickoff. */
+  clock?: { secs: number; label: string };
   kickoff?: { millis: number };
-  /** Both sides, home first, by the Premier League's team ids. */
-  teams?: { team: { id: number } }[];
+  /** Both sides, home first, by the Premier League's team ids, each with its goals (0 before kickoff). */
+  teams?: { team: { id: number }; score?: number }[];
   /** `g` + FPL's fixture `code`. Sent only when the read asks with `altIds=true`. */
   altIds?: RawPlAltIds;
   /** On the fixture's own read: two entries, each null until that side is named. */
@@ -69,6 +75,12 @@ export interface RawPlFixture {
 /** A fixture's `status` at full time: "C", completed, on all ten of gameweek 6's recorded. Full time
  *  is the Premier League's word here, not FPL's flags (spec/07). */
 export const PL_FULL_TIME = "C";
+/** A fixture's `status` before kickoff, and while it is played (half-time included): seen on
+ *  Ipswich v Nott'm Forest, read live on 23 Oct 2026. */
+export const PL_UPCOMING = "U";
+export const PL_IN_PLAY = "L";
+/** A fixture's `phase` at half-time, its `status` still `PL_IN_PLAY`. */
+export const PL_HALF_TIME_PHASE = "H";
 
 export interface RawPlFixturePage {
   content: RawPlFixture[];
