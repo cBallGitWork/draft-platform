@@ -100,6 +100,10 @@ describe("the Premier League table", () => {
     expect(placed(plTable(clubs, results, SEASON_OVER))).toEqual([[1, ARS], [2, BOU], [3, CHE], [4, DER]]);
   });
 
+  test("a club listed twice throws", () => {
+    expect(() => plTable([ARS, BOU, ARS], [], IN_SEASON)).toThrow(/listed twice in Arsenal, Bournemouth, Arsenal/);
+  });
+
   test("a result it can't count throws, naming the clubs", () => {
     expect(() => plTable([ARS], [result(ARS, 1, 0, BOU)], IN_SEASON)).toThrow(/Bournemouth/);
     expect(() => plTable([ARS], [result(ARS, 1, 0, ARS)], IN_SEASON)).toThrow(/Arsenal playing itself/);
