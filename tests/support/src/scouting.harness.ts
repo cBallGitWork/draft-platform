@@ -5,12 +5,14 @@ import { vi } from "vitest";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { listOf } from "../../../convex/scouting/playersOrder";
 import type { PlayersList, ScoutingSeam } from "../../../src/scouting/seam";
+import { fakeShortlist, type ShortlistData } from "./shortlist.harness";
 
 /** What the fake server holds: its clubs and players, or nothing yet while it loads. */
-export type ScoutingData = { clubs?: PlayersList["clubs"]; players?: readonly ListedPlayer[]; loading?: boolean };
+export type ScoutingData = { clubs?: PlayersList["clubs"]; players?: readonly ListedPlayer[]; loading?: boolean; shortlist?: ShortlistData };
 
-export function fakeScouting({ clubs = [], players = [], loading = false }: ScoutingData = {}) {
+export function fakeScouting({ clubs = [], players = [], loading = false, shortlist }: ScoutingData = {}) {
   return {
+    ...fakeShortlist(shortlist),
     usePlayersList: vi.fn<ScoutingSeam["usePlayersList"]>((_leagueId, filters, sort) =>
       loading ? undefined : { clubs, players: listOf(players, filters, sort) },
     ),

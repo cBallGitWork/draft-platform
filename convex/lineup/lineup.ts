@@ -1,5 +1,5 @@
 // Whether a lineup may stand (spec/05, The pitch; #8): one pure function, the league's rules always
-// an argument. Storing a lineup, rolling it over and the screen are not here.
+// an argument. Storing a lineup and rolling it over are lineups.ts's; the screen is not here.
 // It judges a lineup as a manager sets it, on the positions their players hold now. A starter who
 // loses a position after he was placed stays in his slot for the gameweek, only warned (spec/06,
 // When positions change): the deadline, rollover and auto team must not take that outsideHisAreas

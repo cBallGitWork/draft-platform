@@ -1,4 +1,5 @@
 import { useCanGoBack, useRouter } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PositionCode, PositionCodes } from "../PositionCodes";
 import { SCOUTING_PATH } from "../frame/menu";
@@ -6,6 +7,7 @@ import { Loading, PageSection, PANEL_BODY, PanelNote, PanelTitle } from "../fram
 import { useMinute } from "../useMinute";
 import { gameweekWords, versusWords, whenWords } from "../words";
 import type { PlayedMatch, PlayerCard, PlayerCardSeam } from "./seam";
+import { ShortlistAction } from "./ShortlistAction";
 import {
   backWords,
   breakdownLabel,
@@ -43,7 +45,7 @@ const FIXTURES_ID = "card-fixtures";
 /** A player's card (spec/12, The player card), its own page, for anyone in the league: who he is
  *  and who owns him, FPL's news, this season's matches by category, last season's line and his
  *  club's next fixtures. Its actions (shortlist, scout, claim or drop, trade) join below the facts
- *  as each is built; none is yet, so it offers none. */
+ *  as each is built: the shortlist is (#374). */
 export function PlayerCardPage({ league, playerCode, seam }: { league: LeagueSummary; playerCode: number; seam: PlayerCardSeam }) {
   const card = seam.usePlayerCard(league.leagueId, playerCode, useMinute());
   return (
@@ -55,7 +57,9 @@ export function PlayerCardPage({ league, playerCode, seam }: { league: LeagueSum
       ) : (
         <div className="grid items-start gap-2 lg:grid-cols-[2fr_3fr]">
           <div className="flex flex-col gap-2">
-            <Facts card={card} />
+            <Facts card={card}>
+              <ShortlistAction leagueId={league.leagueId} playerCode={card.code} gone={card.gone} seam={seam} />
+            </Facts>
             <section aria-labelledby={LAST_SEASON_ID} className="bg-panel">
               <PanelTitle id={LAST_SEASON_ID}>{LAST_SEASON_TITLE}</PanelTitle>
               <PanelNote>{lastSeasonNotHeldWords}</PanelNote>
@@ -81,7 +85,8 @@ function Back() {
   );
 }
 
-function Facts({ card }: { card: PlayerCard }) {
+/** The facts at the card's head, and under them its actions. */
+function Facts({ card, children }: { card: PlayerCard; children: ReactNode }) {
   return (
     <section aria-labelledby={FACTS_ID} className="bg-panel">
       <PanelTitle id={FACTS_ID}>{PLAYER_TITLE}</PanelTitle>
@@ -103,6 +108,7 @@ function Facts({ card }: { card: PlayerCard }) {
         )}
       </dl>
       {card.gone && <PanelNote edge="b">{goneWords}</PanelNote>}
+      {children}
     </section>
   );
 }
