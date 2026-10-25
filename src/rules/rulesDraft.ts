@@ -12,18 +12,19 @@ import { useChange } from "../useChange";
 export type Revision = Id<"leagueRules">;
 
 /** A part of the league's latest rules, the row it is from, and the gameweek a change saved now
- *  would take effect from (`editorView` on the server). */
-export type RulesView<Part> = { part: Part; revision: Revision; changesFrom: number };
+ *  would take effect from (`editorView` on the server); or the same of the site's scoring, its
+ *  revision the site's (`Rev`). */
+export type RulesView<Part, Rev = Revision> = { part: Part; revision: Rev; changesFrom: number };
 
 /** Saves a part: resolves with the gameweek it takes effect from, or the words saying why not. */
-type SavePart<Part> = (part: Part, revision: Revision) => Promise<number | string>;
+type SavePart<Part, Rev> = (part: Part, revision: Rev) => Promise<number | string>;
 
 /** The commissioner's draft of `view`'s part. Until they edit, it is the latest as it arrives;
  *  once they have, it keeps their edits and the row they were made from, and is `overtaken` once
  *  someone else saves. `drop` lets the edits go for the latest. `saveDraft` saves it with `save`,
  *  unless `refusal` finds a reason not to ask the server. */
-export function useRulesDraft<Part>(view: RulesView<Part>, save: SavePart<Part>, refusal: (draft: Part) => string | null = () => null) {
-  const [edits, setEdits] = useState<{ part: Part; revision: Revision } | null>(null);
+export function useRulesDraft<Part, Rev = Revision>(view: RulesView<Part, Rev>, save: SavePart<Part, Rev>, refusal: (draft: Part) => string | null = () => null) {
+  const [edits, setEdits] = useState<{ part: Part; revision: Rev } | null>(null);
   const [savedFrom, setSavedFrom] = useState<number | null>(null);
   const saving = useChange();
   const draft = edits?.part ?? view.part;

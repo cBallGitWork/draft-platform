@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { everyArea, EXAMPLE_SET, MINUTES_BANDS, TACKLES_AND_CLEARANCES } from "../../support/convex/scoring.example";
 import { validateScoringSet } from "../../../convex/scoring/scoringSet";
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 
 // What #25 refuses on save, and scoreMatch before scoring, with the reason. Unchecked, many of
 // these scored with no error: a typo underpaid a whole category, or text was read as a number.
@@ -97,7 +97,7 @@ describe("a rule scores a catalogue stat or one of the league's own, never a key
 
   test("a typo of a catalogue stat is refused, naming it", () => {
     expect(() => validateScoringSet(setOf(perAction("goals_scroed")))).toThrow(
-      `rule 1 of the scoring set scores "goals_scroed", which is neither a catalogue stat nor one of the league's own`,
+      `rule 1 of the scoring set scores "goals_scroed", which is neither a catalogue stat nor one of the set's own stats`,
     );
   });
 
@@ -117,6 +117,6 @@ describe("a rule scores a catalogue stat or one of the league's own, never a key
   });
 
   test("the first rules every league starts from still pass", () => {
-    expect(() => validateScoringSet(FIRST_RULES.scoring)).not.toThrow();
+    expect(() => validateScoringSet(FIRST_SCORING)).not.toThrow();
   });
 });

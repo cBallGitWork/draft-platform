@@ -33,8 +33,8 @@ import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import type { Revision } from "../../../src/rules/rulesDraft";
 import { gameweekWords, loadLatestWords, overtakenWords, saveWords, unchangedWords } from "../../../src/rules/words";
 import { SCORING_TITLE } from "../../../src/scoring/words";
-import type { LeagueSettingsData } from "../../support/src/leagueSettings.harness";
-import { CHANGES_FROM, REVISION } from "../../support/src/scoring.harness";
+import { REVISION, type LeagueSettingsData } from "../../support/src/leagueSettings.harness";
+import { CHANGES_FROM } from "../../support/src/scoring.harness";
 import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
 
 const PAGE = settingsPath(league.leagueId);

@@ -11,7 +11,7 @@ import { leagueSettingsOf, type LeagueSettings } from "../../../convex/rules/lea
 import { useLiveLeagueSettings } from "../../../src/leagueSettings/liveSettings";
 import { saveFailedWords } from "../../../src/leagueSettings/words";
 import { silenceConsoleError } from "../../support/console.setup";
-import { REVISION as revision } from "../../support/src/scoring.harness";
+import { REVISION as revision } from "../../support/src/leagueSettings.harness";
 
 const convex = vi.hoisted(() => ({ settings: vi.fn(), changeSettings: vi.fn() }));
 vi.mock("convex/react", async () =>

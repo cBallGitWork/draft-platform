@@ -4,7 +4,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { AREA_WORDS } from "../../../src/words";
 import { addBandWords, addCategoryLabel, addCategoryWords, addWords, bandFromWords, bandRowWords, byAreaWords, byPositionWords, columnWords, everyoneWords, limitWords, minutesWords, POSITION_WORDS, removeCategoryWords, shapeWords } from "../../../src/scoring/words";
 import { discardWords } from "../../../src/rules/words";
@@ -121,7 +121,7 @@ describe("the categories", () => {
     await save();
 
     expect(savedRule(app, "own_goals")).toBeUndefined();
-    expect(savedSet(app).rules).toHaveLength(FIRST_RULES.scoring.rules.length - 1);
+    expect(savedSet(app).rules).toHaveLength(FIRST_SCORING.rules.length - 1);
   });
 });
 

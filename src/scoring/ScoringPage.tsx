@@ -20,7 +20,6 @@ import {
   blankBoxWords,
   categoriesLabel,
   loadingWords,
-  noRulesWords,
   perCountSummary,
   pointsWords,
   pricingWords,
@@ -32,31 +31,25 @@ import {
 const CATEGORIES_TITLE_ID = "categories-title";
 const ADD_CATEGORY_ID = "category-to-add";
 
-/** The rules editor (spec/14, The rules editor; #30), for a league's commissioners and the admin:
- *  the league's scoring categories in full names, each opened beside the list, saved together
- *  from the next gameweek, with a letter to the league. */
+/** The rules editor (spec/14, The rules editor; #30): the site's scoring categories (#354) in full
+ *  names, each opened beside the list, saved together for every league from the gameweek the server
+ *  gives. Only the admin's save is taken. */
 export function ScoringPage({ league, seam }: { league: LeagueSummary; seam: ScoringSeam }) {
-  const view = seam.useScoring(league.leagueId);
+  const view = seam.useScoring();
   return (
     <div className="flex max-w-6xl flex-col gap-2">
       <PageSection title={SCORING_TITLE} className="bg-panel">
         <LeagueHeading name={league.name} />
       </PageSection>
-      {view === undefined ? (
-        <Loading>{loadingWords}</Loading>
-      ) : view === null ? (
-        <PanelNote>{noRulesWords}</PanelNote>
-      ) : (
-        <Editor league={league} seam={seam} view={view} />
-      )}
+      {view === undefined ? <Loading>{loadingWords}</Loading> : <Editor seam={seam} view={view} />}
     </div>
   );
 }
 
 /** The two panes: the categories, and the one chosen; and the bar that saves them (rulesDraft.ts
  *  says how the draft follows the latest set, and what a save over someone else's does). */
-function Editor({ league, seam, view }: { league: LeagueSummary; seam: ScoringSeam; view: ScoringView }) {
-  const rulesDraft = useRulesDraft(view, (scoring, revision) => seam.save(league.leagueId, scoring, revision), blankBoxRefusal);
+function Editor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
+  const rulesDraft = useRulesDraft(view, seam.save, blankBoxRefusal);
   const { draft, edit } = rulesDraft;
   const [picked, choose] = useState(0);
   const nameOf = (stat: string) => categoryName(stat, draft.ownStats);

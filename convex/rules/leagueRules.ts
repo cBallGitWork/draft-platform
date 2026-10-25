@@ -7,8 +7,7 @@ import { getLeague, isAdmin, memberOf, refuse, runnerOf } from "../shared/league
 import { recordEvent } from "../mail/letters";
 import { checkGamesFor, checkLeagueRules, gamesWords, UnsoundRules, whyMostGames } from "./leagueRulesCheck";
 import { roundsInARoundRobin } from "../table/roundRobin";
-import { leagueRulesShape, scoringSetShape, type LeagueRules } from "./leagueRulesShape";
-import { categoryName } from "../scoring/categories";
+import { heldRules, leagueRulesShape, type LeagueRules } from "./leagueRulesShape";
 import { sortedJson } from "../shared/sortedJson";
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
@@ -21,6 +20,7 @@ import { takeAllOrThrow } from "../shared/cappedRead";
 
 // A league's rules, held as data (spec/03; #25): a new league copies the admin's default rules, and
 // its commissioner changes them from the next gameweek, so a past gameweek keeps the rules it had.
+// The scoring is not among them: every league plays on the site's (../scoring/siteScoring.ts).
 // Its squad maximum is the site's for its size instead (squadMaximums.ts). Until the admin has a
 // screen, the defaults are set from the dashboard or the command line:
 // `npx convex run rules/leagueRules:setDefaults '{"rules": {…}}'`, checked as a commissioner's are,
@@ -64,7 +64,7 @@ type Revision = Id<"leagueRules"> | null;
 
 /** Refuses a change made from rules older than the league's latest, naming who saved those and
  *  when, from the letter that said so. */
-async function refuseStale(ctx: QueryCtx, leagueId: Id<"leagues">, latestRow: Doc<"leagueRules"> | undefined, loaded: Revision): Promise<void> {
+async function refuseStale(ctx: QueryCtx, leagueId: Id<"leagues">, latestRow: RulesRow | undefined, loaded: Revision): Promise<void> {
   if ((latestRow?._id ?? null) === loaded) return;
   const events = await ctx.db
     .query("leagueEvents")
@@ -94,18 +94,22 @@ function asRefusal(check: () => void, reworded: (reason: string) => string = (re
   }
 }
 
+/** A rules row with its rules as `heldRules` reads them. */
+type RulesRow = Omit<Doc<"leagueRules">, "rules"> & { rules: LeagueRules };
+
 /** Every rules row the league has, oldest first: one per change, at most RULES_CHANGES_MOST. */
-function historyOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"leagueRules">[]> {
-  return takeAllOrThrow(
+async function historyOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<RulesRow[]> {
+  const rows = await takeAllOrThrow(
     ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)),
     RULES_CHANGES_MOST,
     `League ${leagueId} holds more than ${RULES_CHANGES_MOST} rules rows, so its rules in force can't be known`,
   );
+  return rows.map((row) => ({ ...row, rules: heldRules(row.rules) }));
 }
 
 /** The row in force in this gameweek: the latest to take effect at or before it, and of two from
  *  one gameweek, the newer. */
-function inForce(history: readonly Doc<"leagueRules">[], gameweek: number): Doc<"leagueRules"> | undefined {
+function inForce(history: readonly RulesRow[], gameweek: number): RulesRow | undefined {
   return history.findLast((row) => row.fromGameweek <= gameweek);
 }
 
@@ -117,13 +121,13 @@ export async function latestRules(ctx: QueryCtx, leagueId: Id<"leagues">): Promi
 
 /** The rules in force in this gameweek, from the league's history. Throws if none is, which only a
  *  league made before #25 can have. */
-function rulesInForce(history: readonly Doc<"leagueRules">[], leagueId: Id<"leagues">, gameweek: number): LeagueRules {
+function rulesInForce(history: readonly RulesRow[], leagueId: Id<"leagues">, gameweek: number): LeagueRules {
   const row = inForce(history, gameweek);
   if (row === undefined) throw new Error(`League ${leagueId} has no rules for gameweek ${gameweek}`);
   return row.rules;
 }
 
-/** The league's rules in a gameweek, for scoring (#29) and the lineup's checks. Throws for a
+/** The league's rules in a gameweek, for its table and the lineup's checks. Throws for a
  *  league with none, which only one made before #25 can be. */
 export async function rulesInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number): Promise<LeagueRules> {
   return rulesInForce(await historyOf(ctx, leagueId), leagueId, gameweek);
@@ -170,7 +174,8 @@ async function squadMaximumBands(ctx: MutationCtx): Promise<readonly SquadMaximu
  *  if that maximum leaves the rules unsound. The first league a deployment makes writes the first
  *  rules (firstRules.ts) as those defaults. */
 export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">, maxTeams: number): Promise<void> {
-  const defaults = (await defaultsRow(ctx))?.rules;
+  const row = await defaultsRow(ctx);
+  const defaults = row === null ? undefined : heldRules(row.rules);
   if (defaults === undefined) await writeDefaults(ctx, FIRST_RULES);
   const rules = withSquadMaximum(defaults ?? FIRST_RULES, squadMaximumFor(await squadMaximumBands(ctx), maxTeams));
   const games = rules.gamesPerGameweek;
@@ -249,7 +254,7 @@ export const latest = query({
 async function takesEffectFrom(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
-  history: readonly Doc<"leagueRules">[],
+  history: readonly RulesRow[],
   rules: LeagueRules,
   now: number,
 ): Promise<number> {
@@ -278,26 +283,8 @@ async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: str
   if (history.length >= RULES_CHANGES_MOST) refuse(rulesRefusals.tooManyChanges);
   // A second change before the same deadline is a newer row from the same gameweek: it wins.
   await ctx.db.insert("leagueRules", { leagueId, fromGameweek, rules });
-  await recordEvent(ctx, leagueId, email, { kind: "rulesChanged", fromGameweek, changed, ...scoringChanges(latestRow?.rules.scoring, rules.scoring) });
+  await recordEvent(ctx, leagueId, email, { kind: "rulesChanged", fromGameweek, changed });
   return fromGameweek;
-}
-
-type Scoring = LeagueRules["scoring"];
-
-/** What a letter says of a scoring change (spec/15: nothing changes quietly): the categories whose
- *  rules were added, removed or changed, by full name as they were named then, and whole points
- *  only, when it was switched. Nothing for a league that had no rules. */
-function scoringChanges(from: Scoring | undefined, to: Scoring): { categories?: string[]; wholePointsOnly?: boolean } {
-  if (from === undefined) return {};
-  const rulesFor = (scoring: Scoring, stat: string) => sortedJson(scoring.rules.filter((rule) => rule.stat === stat));
-  const stats = [...new Set([...to.rules, ...from.rules].map((rule) => rule.stat))];
-  const categories = stats
-    .filter((stat) => rulesFor(from, stat) !== rulesFor(to, stat))
-    .map((stat) => categoryName(stat, to.ownStats ?? from.ownStats));
-  return {
-    ...(categories.length > 0 && { categories }),
-    ...(from.wholePointsOnly !== to.wholePointsOnly && { wholePointsOnly: to.wholePointsOnly }),
-  };
 }
 
 /** The commissioner's change, whole, made from the rules `revision` names: it takes effect from
@@ -344,21 +331,6 @@ export async function changeLatest(
   if (latest === null) refuse(rulesRefusals.noRules);
   return await changeRules(ctx, leagueId, email, changed(latest), revision);
 }
-
-/** The league's scoring set as Player scoring, the rules editor (#30), edits it. */
-export const scoring = query({
-  args: { leagueId: v.id("leagues"), now: v.number() },
-  returns: editorViewOf(scoringSetShape),
-  handler: (ctx, { leagueId, now }) => editorView(ctx, leagueId, now, (rules) => rules.scoring),
-});
-
-/** The rules editor's change (#30): the latest rules with this scoring set, as `changeLatest`
- *  saves them. */
-export const changeScoring = mutation({
-  args: { leagueId: v.id("leagues"), scoring: scoringSetShape, revision: revisionShape },
-  returns: v.number(),
-  handler: (ctx, { leagueId, scoring, revision }) => changeLatest(ctx, leagueId, revision, (latest) => ({ ...latest, scoring })),
-});
 
 /** The admin changes the rules new leagues get. Leagues already made keep their own. */
 export const setDefaults = internalMutation({

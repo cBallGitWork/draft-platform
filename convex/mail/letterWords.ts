@@ -106,8 +106,9 @@ export function eventLetter(event: LeagueEvent, who: string): Words {
   }
 }
 
-/** Each part of a league's rules as a letter names it. */
-const RULES_PART_WORDS: Record<keyof LeagueRules, string> = {
+/** Each part of a league's rules as a letter names it, and the scoring, which letters filed before
+ *  it became the site's (#354) name. */
+const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring", string> = {
   format: "format",
   squad: "squad limits",
   areaLimits: "limits on the pitch",
@@ -121,7 +122,7 @@ const RULES_PART_WORDS: Record<keyof LeagueRules, string> = {
   scoring: "scoring",
 };
 
-const partWords = (part: string) => (Object.hasOwn(RULES_PART_WORDS, part) ? RULES_PART_WORDS[part as keyof LeagueRules] : part);
+const partWords = (part: string) => (Object.hasOwn(RULES_PART_WORDS, part) ? RULES_PART_WORDS[part as keyof typeof RULES_PART_WORDS] : part);
 
 /** "Ann changed the league's scoring and deadline, from gameweek 9. The scoring changed for Goals
  *  scored and Assists, and points are now whole only." */

@@ -3,10 +3,11 @@ import { AREAS, LANES } from "../lineup/pitch";
 import { ODD_TEAM_OUTS } from "../table/roundRobin";
 import { TIE_BREAKS } from "../table/standings";
 
-// The shape a league's rules are stored in (spec/03; #25). Each part is the input type of the pure
-// module that reads it, so a stored rule passes straight in: the scoring set to scoring.ts, the
-// area limits to lineup.ts, the deadline to deadline.ts, the tie-breaks to standings.ts and the odd
-// team out to roundRobin.ts. leagueRulesShape.test.ts holds them equal.
+// The shape a league's rules are stored in (spec/03; #25), and the site's scoring set's, which a
+// league's rules held until #354 (spec/14, Who owns it; ../scoring/siteScoring.ts). Each part is
+// the input type of the pure module that reads it, so a stored rule passes straight in: the scoring
+// set to scoring.ts, the area limits to lineup.ts, the deadline to deadline.ts, the tie-breaks to
+// standings.ts and the odd team out to roundRobin.ts. leagueRulesShape.test.ts holds them equal.
 // What makes a rule sound beyond its shape (a minimum above its maximum) is leagueRulesCheck.ts's.
 
 /** The same validator for each of the pitch's six areas: a ByArea<Value>, or a Record<Area, …>. */
@@ -114,8 +115,16 @@ export const leagueRulesShape = v.object({
     runs: v.array(v.object({ day: weekday, hour: v.number(), minute: v.number() })),
     order: v.union(v.literal("reverseStandings"), v.literal("rotating")),
   }),
-  scoring: scoringSetShape,
 });
 
 export type LeagueRules = Infer<typeof leagueRulesShape>;
 export type StoredScoringSet = Infer<typeof scoringSetShape>;
+
+/** A league's rules as rows hold them: rows saved before #354 also carry the scoring set the
+ *  league then had, which nothing reads (`heldRules` drops it), optional so they need no migration. */
+export const storedLeagueRulesShape = v.object({ ...leagueRulesShape.fields, scoring: v.optional(scoringSetShape) });
+
+/** A rules row's rules without the scoring a row saved before #354 carries. */
+export function heldRules({ scoring: _scoring, ...rules }: Infer<typeof storedLeagueRulesShape>): LeagueRules {
+  return rules;
+}

@@ -88,7 +88,7 @@ test("an own stat named as a catalogue stat now is, saved before, still scores: 
 
 test("a refusal names an own stat's rule by its own name, as the rules editor shows it", () => {
   const fractional = { ...setWith([TACKLES_AND_CLEARANCES], true), rules: [{ shape: "perAction" as const, stat: TACKLES_AND_CLEARANCES.stat, values: { all: 0.5 } }] };
-  expect(() => validateScoringSet(fractional)).toThrow("the Tackles and clearances rule pays 0.5, but the league counts whole points only");
+  expect(() => validateScoringSet(fractional)).toThrow("the Tackles and clearances rule pays 0.5, but the set counts whole points only");
 });
 
 describe("the catalogue, placeholders for now (spec/14)", () => {
