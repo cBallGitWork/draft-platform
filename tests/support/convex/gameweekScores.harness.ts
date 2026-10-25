@@ -14,16 +14,12 @@ import type { PlayerMatchRecord } from "../../../convex/stats/matchRecords";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "./leagues.harness";
-import { GAMEWEEK, HULL_EVERTON, elapse, mergedHullEverton } from "./matchStats.harness";
+import { EVERTON, GAMEWEEK, HULL, HULL_EVERTON, elapse, mergedHullEverton } from "./matchStats.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
 import { recordedGw6 } from "../recorded/gw6.payloads";
 
 export { GAMEWEEK };
 export const [ANN, BOB] = MANAGERS;
-
-/** FPL's club codes for the two sides. */
-const HULL = 88;
-const EVERTON = 11;
 
 /** Hull v Everton's kickoff here: a week after signInDeployment's clock, so the league is made
  *  before gameweek 6 begins (a document can't be made earlier than the deployment's first). The
@@ -88,11 +84,12 @@ const SLOT_POSITION: Record<string, Position> = {
   "attack/centre": "ST",
 };
 /** Each bench player's position, by where FPL lists him: keeper, defender, midfielder, forward. */
+const playing = (position: Position, codes: number[]) => codes.map((code) => [code, position] as const);
 const BENCH_POSITION = new Map<number, Position>([
-  ...([HULL_KEEPER, 229600] as const).map((code) => [code, "GK"] as const),
-  ...([496181, 160817, 597462, 512462] as const).map((code) => [code, "CB"] as const),
-  ...([540324, 608227, 445028, 490094, 502697, 496661, 244860, 629068, 550615, 513466, 128295] as const).map((code) => [code, "CM"] as const),
-  [631000, "ST"],
+  ...playing("GK", [HULL_KEEPER, 229600]),
+  ...playing("CB", [496181, 160817, 597462, 512462]),
+  ...playing("CM", [540324, 608227, 445028, 490094, 502697, 496661, 244860, 629068, 550615, 513466, 128295]),
+  ...playing("ST", [631000]),
 ]);
 
 export interface ScoresLeague {
