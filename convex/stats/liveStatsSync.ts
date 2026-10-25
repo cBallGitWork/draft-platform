@@ -7,7 +7,8 @@ import type { liveStatsTickFields } from "../schema";
 
 // Issue #28: the live poller's tick, run every minute by `crons.ts`. Outside every match window
 // it reads no feed and writes nothing; inside one, it reads each live match as `matchStatsSync`
-// does. Why a cron, and how a failed tick is caught up: ARCHITECTURE.md.
+// does, and keeps its score and clock fresh (#49, football/matchScores.ts). Why a cron, and how
+// a failed tick is caught up: ARCHITECTURE.md.
 
 type Outcome = Infer<typeof liveStatsTickFields.outcome>;
 
@@ -19,7 +20,8 @@ export const tick = internalAction({
     try {
       const live = await ctx.runQuery(internal.stats.liveStats.live, { now: ranAt });
       if (live.length === 0) return;
-      outcome = { ok: true, matches: (await syncDue(ctx, live, ranAt, "live")).matches };
+      const { matches, scores } = await syncDue(ctx, live, ranAt, "live");
+      outcome = { ok: true, matches, scores };
     } catch (error: unknown) {
       outcome = { ok: false, error: logFailure("live stats tick failed", error) };
     }
