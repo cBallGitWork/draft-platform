@@ -4,7 +4,7 @@ import { query, type QueryCtx } from "../_generated/server";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { leagueDeadlines, seasonRules, type SeasonRules } from "../rules/leagueRules";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
-import { LEAGUE_AVERAGE, roundsOf } from "./roundRobin";
+import { namedFixture, roundsOf } from "./roundRobin";
 import { scheduleOf } from "./playedFixtures";
 import { headToHeadTable, totalPointsTable, type GameweekScores } from "./standings";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
@@ -17,7 +17,7 @@ import { shownDeadline } from "../gameweeks/usedGameweeks";
 // lineups or scores are kept), so the table is all noughts until #29's scores reach it; the
 // commissioner editing fixtures (spec/09) comes later.
 
-const fixture = v.object({
+export const fixture = v.object({
   team: v.string(),
   /** The opponent's name, or null for the league's average. */
   opponent: v.union(v.string(), v.null()),
@@ -92,10 +92,7 @@ export const ofLeague = query({
       gameweeks: schedule.map(({ gameweek, fixtures, byes }) => ({
         gameweek,
         deadline: deadlines.get(gameweek) ?? null,
-        fixtures: fixtures.map(({ team, opponent }) => ({
-          team: named(team),
-          opponent: opponent === LEAGUE_AVERAGE ? null : named(opponent),
-        })),
+        fixtures: fixtures.map((each) => namedFixture(each, named)),
         byes: byes.map(named),
       })),
       table: table.map(({ team, ...row }) => ({ teamId: team, teamName: named(team), ...row })),

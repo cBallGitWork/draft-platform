@@ -6,7 +6,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { shownRows, thisGameweekOf } from "../../convex/home/glance";
 import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
-import { drawFixtures, LEAGUE_AVERAGE } from "../../convex/table/roundRobin";
+import { drawFixtures, namedFixture } from "../../convex/table/roundRobin";
 import { formOf, headToHeadTable } from "../../convex/table/standings";
 import type { HomeSeam, LeagueHome } from "./seam";
 
@@ -27,7 +27,7 @@ const home: LeagueHome = {
   format: "headToHead",
   thisGameweek: {
     gameweek: current.gameweek,
-    fixtures: current.fixtures.map(({ team, opponent }) => ({ team, opponent: opponent === LEAGUE_AVERAGE ? null : opponent })),
+    fixtures: current.fixtures.map((each) => namedFixture(each, (team) => team)),
     byes: current.byes,
   },
   table: shownRows(

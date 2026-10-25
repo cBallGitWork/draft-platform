@@ -3,9 +3,10 @@ import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines, seasonRules } from "../rules/leagueRules";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
+import { pinnedLetter, type leagueEvent } from "../schema";
 import { memberOf, teamOf } from "../shared/leagueAccess";
-import { LEAGUE_AVERAGE } from "../table/roundRobin";
-import { standingsOf } from "../table/leagueTable";
+import { namedFixture } from "../table/roundRobin";
+import { fixture, standingsOf } from "../table/leagueTable";
 import { formOf, RESULTS } from "../table/standings";
 import { shownRows, thisGameweekOf, TICKER_MOST } from "./glance";
 
@@ -19,12 +20,6 @@ import { shownRows, thisGameweekOf, TICKER_MOST } from "./glance";
 /** The league's events league home lists as its claims, drops and trades. Today a commissioner
  *  assigns, moves and releases players (#31); waiver claims and trades join them when built. */
 export const SQUAD_MOVES = ["playerAssigned", "playerMoved", "playerReleased"] as const;
-
-const headToHead = v.object({
-  team: v.string(),
-  /** The opponent's name, or null for the league's average. */
-  opponent: v.union(v.string(), v.null()),
-});
 
 const homeRow = v.object({
   position: v.number(),
@@ -41,6 +36,10 @@ const homeRow = v.object({
   mine: v.boolean(),
 });
 
+type LeagueEvent = Infer<typeof leagueEvent>;
+const isSquadMove = (event: LeagueEvent): event is Extract<LeagueEvent, { kind: (typeof SQUAD_MOVES)[number] }> =>
+  (SQUAD_MOVES as readonly string[]).includes(event.kind);
+
 const squadMove = v.object({
   at: v.number(),
   kind: v.union(...SQUAD_MOVES.map((kind) => v.literal(kind))),
@@ -54,14 +53,14 @@ export const leagueHome = v.object({
   format: leagueRulesShape.fields.format,
   /** This gameweek's head-to-heads (glance.ts's `thisGameweekOf`); null with none, as in total
    *  points or with fewer than two teams. */
-  thisGameweek: v.union(v.null(), v.object({ gameweek: v.number(), fixtures: v.array(headToHead), byes: v.array(v.string()) })),
+  thisGameweek: v.union(v.null(), v.object({ gameweek: v.number(), fixtures: v.array(fixture), byes: v.array(v.string()) })),
   /** The rows league home shows (glance.ts's `shownRows`), in the table's order. */
   table: v.array(homeRow),
   /** How many teams the whole table has. */
   teams: v.number(),
   /** The latest TICKER_MOST squad moves, newest first. */
   squadMoves: v.array(squadMove),
-  pinnedLetter: v.union(v.null(), v.object({ at: v.number(), from: v.string(), subject: v.string(), body: v.string() })),
+  pinnedLetter: v.union(v.null(), pinnedLetter),
 });
 export type LeagueHome = Infer<typeof leagueHome>;
 
@@ -83,9 +82,7 @@ async function latestSquadMoves(ctx: QueryCtx, leagueId: Id<"leagues">): Promise
     .slice(0, TICKER_MOST)
     .map(({ _id, at, event }) => {
       // The index read only these kinds; any other is a bug in it.
-      if (event.kind !== "playerAssigned" && event.kind !== "playerMoved" && event.kind !== "playerReleased") {
-        throw new Error(`League event ${_id} is a ${event.kind}, not a squad move`);
-      }
+      if (!isSquadMove(event)) throw new Error(`League event ${_id} is a ${event.kind}, not a squad move`);
       const fromTeamName = event.kind === "playerMoved" ? event.fromTeamName : null;
       return { at, kind: event.kind, playerName: event.playerName, teamName: event.teamName, fromTeamName };
     });
@@ -110,10 +107,7 @@ export const ofLeague = query({
       thisGameweek: current
         ? {
             gameweek: current.gameweek,
-            fixtures: current.fixtures.map(({ team, opponent }) => ({
-              team: named(team),
-              opponent: opponent === LEAGUE_AVERAGE ? null : named(opponent),
-            })),
+            fixtures: current.fixtures.map((each) => namedFixture(each, named)),
             byes: current.byes.map(named),
           }
         : null,

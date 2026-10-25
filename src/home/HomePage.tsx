@@ -64,7 +64,7 @@ export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSe
       ) : home === null ? (
         <p className="text-muted">{noRulesWords}</p>
       ) : (
-        <div className="grid items-start gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="grid items-start gap-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_minmax(0,2fr)]">
           <HeadToHeads home={home} />
           <TablePanel home={home} />
           <div className="flex flex-col gap-2">
@@ -105,17 +105,19 @@ function PanelLink({ to, children }: { to: string; children: string }) {
   );
 }
 
+const HEAD_TO_HEADS_ID = "head-to-heads-title";
+
 function HeadToHeads({ home: { format, thisGameweek } }: { home: LeagueHome }) {
   if (thisGameweek === null) {
     return (
-      <Panel id="head-to-heads-title" title={HEAD_TO_HEADS_TITLE}>
+      <Panel id={HEAD_TO_HEADS_ID} title={HEAD_TO_HEADS_TITLE}>
         <PanelNote>{noHeadToHeadsWords[format]}</PanelNote>
       </Panel>
     );
   }
   const title = gameweekWords(thisGameweek.gameweek);
   return (
-    <Panel id="head-to-heads-title" title={title}>
+    <Panel id={HEAD_TO_HEADS_ID} title={title}>
       <ul aria-label={headToHeadsLabel(title)}>
         {thisGameweek.fixtures.map(({ team, opponent }) => (
           <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-2 border-b border-panel-rule px-3 py-1 text-lead">
@@ -208,7 +210,7 @@ function PinnedLetter({ letter }: { letter: LeagueHome["pinnedLetter"] }) {
       {letter === null ? (
         <PanelNote>{noLetterWords}</PanelNote>
       ) : (
-        <article className="flex flex-col gap-1 px-3 py-2">
+        <article className="flex flex-col gap-1 px-3 pt-2">
           <div className="flex flex-wrap items-baseline gap-2">
             <DateBlock at={letter.at} />
             <h3 className="text-lead font-bold">{letter.subject}</h3>
