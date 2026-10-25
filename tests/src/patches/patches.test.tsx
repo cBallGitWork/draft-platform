@@ -43,6 +43,11 @@ describe("the banner", () => {
     expect((await banner()).closest("[role=status]")).toBeTruthy();
   });
 
+  it("tells the moment on London's clock with its zone, as the patch's letter does", () => {
+    expect(bannerWords(WAITING.name, TAKES_EFFECT)).toBe("Scoring patch 26_27.2 takes effect on Sunday 1 November at 12:00 GMT.");
+    expect(fromWords(TAKES_EFFECT)).toBe("From Sunday 1 November at 12:00 GMT");
+  });
+
   it("shows on the frame of someone in no league too", async () => {
     openApp(LEAGUES_PATH, newcomer, { patches: { banner: WAITING } });
     expect(await banner()).toBeTruthy();
