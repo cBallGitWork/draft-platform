@@ -19,7 +19,8 @@ import type { ScoreRead, ScoreReads } from "./scoreReads";
 type ScoreFeed = Infer<typeof scoreFeed>;
 type ScoreWrites = Infer<typeof scoreWrites>;
 
-/** How far on each state is; a half-time is no further on than play. */
+/** How far on each state is; a half-time is no further on than play, so FPL, which has none, may
+ *  read a Premier League half-time as live until the next tick. */
 const STATE_ORDER: Record<Infer<typeof matchState>, number> = { upcoming: 0, live: 1, halfTime: 1, fullTime: 2 };
 
 /** One read's scores written in batches of `BATCH_SIZE`, and its problems kept for the run row. */

@@ -4,7 +4,7 @@ import { HULL_EVERTON, withHullEverton } from "../../support/convex/matchStats.h
 import { plScoreRead } from "../../../convex/football/scoreReads";
 import { MATCH, type Gw6Payloads } from "../../support/recorded/gw6.payloads";
 import { LIVE_SCORE, recordedLiveScore } from "../../support/recorded/scores.payloads";
-import type { TestConvex } from "../../support/convex/test.harness";
+import { silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 
 // The live tick keeps each match's score and clock fresh (#49), from the Premier League's list it
 // already reads every minute. The replay serves Hull v Everton's stats as liveStats.harness.ts
@@ -71,4 +71,24 @@ test("a live match listed with no score is on the tick's row, its stats still re
     },
   });
   expect(await heldScore(t)).toEqual(before);
+});
+
+test("a score write that fails is on the tick's row against the match, and its stats are still saved", async () => {
+  const errors = silenceConsoleError();
+  const t = await withHullEverton();
+  const twice = { ...plScoreRead(recordedLiveScore("beforeKickoff").fixture, HULL_EVERTON), feed: "pl" as const, readAt: 0 };
+  // Two rows for one match: `unique()` throws on the next write, as a broken table would.
+  await t.run(async (ctx) => {
+    await ctx.db.insert("matchScores", twice);
+    await ctx.db.insert("matchScores", twice);
+  });
+
+  const { latest } = await tickAt(t, stageTime(SERVED_AT.firstGoal), withLiveScore("firstGoal"));
+
+  expect(latest.outcome).toMatchObject({
+    ok: true,
+    matches: [{ fixtureCode: HULL_EVERTON, ok: true }],
+    scores: { received: 1, written: 0, problems: [{ fixtureCode: HULL_EVERTON, problem: expect.stringContaining("unique() query returned more than one result") }] },
+  });
+  expect(errors).toHaveBeenCalledWith(expect.stringContaining("writing the due matches' scores failed"));
 });

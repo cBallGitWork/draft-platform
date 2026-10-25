@@ -80,7 +80,19 @@ export async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number, b
       }
     }
   }
-  return { matches, waiting, scores: await writeScores(ctx, "pl", readAt, scores) };
+  return { matches, waiting, scores: await writeDueScores(ctx, readAt, scores) };
+}
+
+/** The due matches' scores written; a failed write fails each read's score on the run row, not
+ *  the run, whose matches are already saved. */
+async function writeDueScores(ctx: ActionCtx, readAt: number, scores: ScoreReads) {
+  try {
+    return await writeScores(ctx, "pl", readAt, scores);
+  } catch (error: unknown) {
+    const problem = logFailure("writing the due matches' scores failed", error);
+    const unwritten = scores.reads.map(({ fixtureCode }) => ({ fixtureCode, problem }));
+    return { received: scores.reads.length + scores.problems.length, written: 0, problems: [...scores.problems, ...unwritten] };
+  }
 }
 
 /** Each due match's score from the Premier League's list. One the list leaves out is `syncMatch`'s
