@@ -2,12 +2,12 @@
 // banner shows, and the notes of it and of a fix before it. Dismissing says it's a preview.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import { DAY_MS } from "../../convex/shared/time";
+import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
 import { previewSays } from "../preview";
 import type { PatchesSeam, VersionNotes } from "./seam";
 
 const ANNOUNCED = Date.parse("2026-10-25T12:00:00Z");
-const TAKES_EFFECT = ANNOUNCED + 7 * DAY_MS;
+const TAKES_EFFECT = ANNOUNCED + WEEK_MS;
 
 const notes: readonly VersionNotes[] = [
   {

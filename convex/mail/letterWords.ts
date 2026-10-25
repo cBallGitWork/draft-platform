@@ -146,13 +146,13 @@ const capitalised = (words: string) => words.charAt(0).toUpperCase() + words.sli
 
 /** A new version of the site's scoring, as its letter to every manager reports it (spec/14, Changes
  *  and corrections; #356). */
-export type VersionNews = { name: string; kind: SiteScoringKind; takesEffectAt: number; fromGameweek: number; changes: readonly string[] };
+type VersionNews = { name: string; kind: SiteScoringKind; takesEffectAt: number; fromGameweek: number; changes: readonly string[] };
 
 /** The letter announcing a patch to the site's scoring, or a fix to it, with what changes. A fix
  *  takes effect as it is made, so its letter names no moment. */
 export function versionLetter({ name, kind, takesEffectAt, fromGameweek, changes }: VersionNews): Words {
   const kept = "Gameweeks played before it keep the scoring they had.";
-  const what = changes.length === 0 ? NOTHING_SCORES_DIFFERENTLY :`What changes:\n${changes.map((change) => `- ${change}`).join("\n")}`;
+  const what = changes.length === 0 ? NOTHING_SCORES_DIFFERENTLY : `What changes:\n${changes.map((change) => `- ${change}`).join("\n")}`;
   if (kind === "patch") {
     return {
       subject: `Scoring patch ${name} takes effect on ${londonTime(takesEffectAt)}`,
