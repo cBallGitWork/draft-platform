@@ -66,7 +66,8 @@ describe("while it can be undone", () => {
     expect(await everythingOf(leagueId)).toEqual(before);
 
     // A mutation added later that is given a league, or a row in one, fails here until changesTo
-    // tries it (leagueMutations.harness.ts): the freeze holds only where a change starts at getLeague (leagueAccess.ts).
+    // tries it (leagueMutations.harness.ts): the freeze holds only where a change starts at
+    // getLeague (leagueAccess.ts).
     // Opening one's own letter marks it read, which changes nothing in the league.
     const allowedWhileFrozen = ["leagues/leagueDeletion:undo", "mail/mail:open"];
     expect(Object.keys(changes).sort()).toEqual((await mutationsGivenALeague()).filter((name) => !allowedWhileFrozen.includes(name)));
