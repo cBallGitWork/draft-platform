@@ -105,10 +105,9 @@ export type PositionsQueue = Infer<typeof positionsQueue>;
 
 /** The admin's queue (spec/06; spec/15): new signings, whose starts give no position yet (fewer than
  *  3 at a place) and who play on their label until he confirms it, the men whose starts give
- *  positions waiting for his approval, and positions flagged or removed. By name. It reads every
- *  current player's row, each club's within players.ts's caps, which throw past them: one cut short
- *  would lose the newest, who are the new signings. Rows of men no longer in the league, which pile
- *  up each season, aren't read (#214). */
+ *  positions waiting for his approval, and positions flagged or removed. By name. It reads the rows
+ *  of today's players only, within players.ts's caps, which throw past them rather than lose the
+ *  newest, who are the new signings (#214). */
 export const queue = query({
   args: {},
   returns: positionsQueue,
