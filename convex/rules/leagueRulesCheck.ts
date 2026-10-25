@@ -84,7 +84,7 @@ function checkAreaLimits(limits: Record<Area, AreaLimit>): void {
   }
 }
 
-function checkSquad({ size, byArea, maxPerClub }: LeagueRules["squad"]): void {
+function checkSquad({ size, minimumByArea, maxPerClub }: LeagueRules["squad"]): void {
   if (size !== null) {
     checkLimit(size, "The squad size");
     if (size.maximum < STARTER_COUNT) {
@@ -94,9 +94,9 @@ function checkSquad({ size, byArea, maxPerClub }: LeagueRules["squad"]): void {
       throw new UnsoundRules(`The squad's maximum, ${size.maximum}, is above ${MOST_IN_SQUAD}, a Premier League squad.`);
     }
   }
-  if (byArea !== null) {
-    for (const area of AREAS) checkLimit(byArea[area], `In the squad, ${area}`);
-    const minimums = sumOf(byArea, "minimum");
+  if (minimumByArea !== null) {
+    for (const area of AREAS) checkWholeNumber(minimumByArea[area], `The squad's minimum in ${area}`, 0);
+    const minimums = AREAS.reduce((total, area) => total + minimumByArea[area], 0);
     if (size !== null && minimums > size.maximum) {
       throw new UnsoundRules(`The squad's minimums by area add up to ${minimums}, more than its maximum size, ${size.maximum}.`);
     }

@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { checkLeagueRules } from "../../../convex/rules/leagueRulesCheck";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
-import { rulesWith } from "../../support/convex/leagueRules.harness";
+import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
 import { ODD_TEAM_OUTS } from "../../../convex/table/roundRobin";
 import { everyArea } from "../../support/convex/scoring.example";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
@@ -29,7 +29,7 @@ test("the first rules are sound", () => {
 });
 
 test("no squad limits, no club limit, no presets and no tie-breaks are all sound", () => {
-  const free = rulesWith({ squad: { size: null, byArea: null, maxPerClub: null }, presets: [], tieBreaks: [] });
+  const free = rulesWith({ squad: { size: null, minimumByArea: null, maxPerClub: null }, presets: [], tieBreaks: [] });
   expect(() => checkLeagueRules(free)).not.toThrow();
 });
 
@@ -61,8 +61,13 @@ describe.each<[string, Partial<LeagueRules>, string]>([
   ],
   [
     "squad minimums by area above the squad's maximum",
-    { squad: { ...FIRST_RULES.squad, byArea: { ...limits, defence: { minimum: 6, maximum: 8 }, attack: { minimum: 9, maximum: 9 } } } },
+    { squad: { ...FIRST_RULES.squad, minimumByArea: { ...NO_AREA_MINIMUMS, goalkeeper: 1, defence: 6, attack: 9 } } },
     "The squad's minimums by area add up to 16, more than its maximum size, 14.",
+  ],
+  [
+    "a squad minimum in an area of a fraction",
+    { squad: { ...FIRST_RULES.squad, minimumByArea: { ...NO_AREA_MINIMUMS, defence: 2.5 } } },
+    "The squad's minimum in defence must be a whole number, 0 or more, not 2.5.",
   ],
   [
     "a club limit of 0",

@@ -3,6 +3,7 @@
 
 import type { SquadWarning } from "../../convex/squads/squads";
 import { failedWords } from "../words";
+import { AREA_WORDS } from "../scoring/words";
 
 export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../words";
 
@@ -37,6 +38,8 @@ export function warningWords(warning: SquadWarning): string {
       return `${warning.players} players, under the league's least of ${warning.minimum}.`;
     case "overClubMaximum":
       return `${warning.players} from ${warning.clubShortName}, over the league's most of ${warning.maximum} from one club.`;
+    case "underAreaMinimum":
+      return `${AREA_WORDS[warning.area]}: ${warning.minimum - warning.players} short of the league's least of ${warning.minimum}.`;
   }
 }
 

@@ -6,7 +6,11 @@ import { recordEvent } from "../mail/letters";
 import { clubByCode, playerByCode, playersNamed } from "../shared/players";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { latestRules } from "../rules/leagueRules";
-import type { LeagueRules } from "../rules/leagueRulesShape";
+import { areaShape, type LeagueRules } from "../rules/leagueRulesShape";
+import { areasOf, type Area } from "../lineup/pitch";
+import { currentPositions } from "../positions/playerPositions";
+import { howPositionsCount } from "../positions/positionSettings";
+import { areasShort } from "./areaMinimums";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
 // team, one at a time, move him between teams, or release him to free agency. Each files a Mail
@@ -114,6 +118,7 @@ const squadWarning = v.union(
   v.object({ kind: v.literal("overMaximum"), players: v.number(), maximum: v.number() }),
   v.object({ kind: v.literal("underMinimum"), players: v.number(), minimum: v.number() }),
   v.object({ kind: v.literal("overClubMaximum"), clubShortName: v.string(), players: v.number(), maximum: v.number() }),
+  v.object({ kind: v.literal("underAreaMinimum"), area: areaShape, players: v.number(), minimum: v.number() }),
 );
 export type SquadWarning = Infer<typeof squadWarning>;
 
@@ -128,6 +133,7 @@ export const squads = query({
   handler: async (ctx, { leagueId }) => {
     await memberOf(ctx, leagueId);
     const rules = await latestRules(ctx, leagueId);
+    const how = await howPositionsCount(ctx);
     const shortNames = new Map<number, string>();
     const shortNameOf = async (clubCode: number) => {
       const shortName = shortNames.get(clubCode) ?? (await clubByCode(ctx, clubCode)).shortName;
@@ -136,8 +142,9 @@ export const squads = query({
     };
     return Promise.all(
       (await teamsOf(ctx, leagueId)).map(async (team) => {
+        const squad = await squadOf(ctx, team._id);
         const players = await Promise.all(
-          (await squadOf(ctx, team._id)).map(async ({ playerCode }) => {
+          squad.map(async ({ playerCode }) => {
             const player = await heldPlayer(ctx, playerCode);
             return {
               code: player.code,
@@ -147,20 +154,27 @@ export const squads = query({
             };
           }),
         );
+        // Positions are read only for a league with area minimums, the one limit that needs them.
+        const playersAreas = rules?.squad.minimumByArea
+          ? await Promise.all(squad.map(async ({ playerCode }) => areasOf(await currentPositions(ctx, playerCode, how))))
+          : [];
         players.sort((one, other) => one.name.localeCompare(other.name));
-        return { teamId: team._id, teamName: team.name, players, warnings: squadWarnings(players, rules?.squad ?? null) };
+        return { teamId: team._id, teamName: team.name, players, warnings: squadWarnings(players, playersAreas, rules?.squad ?? null) };
       }),
     );
   },
 });
 
-/** The league's squad limits a squad breaks (spec/03, Squad make-up). How a player's areas count
- *  against a limit per area is not settled (docs/to-grill.md, the row on limits per area), so those
- *  limits aren't checked yet. */
-function squadWarnings(players: readonly { clubShortName: string }[], squad: LeagueRules["squad"] | null): SquadWarning[] {
+/** The league's squad limits a squad breaks (spec/03, Squad make-up), given each player's areas
+ *  (areaMinimums.ts says how they fill the minimums). */
+function squadWarnings(
+  players: readonly { clubShortName: string }[],
+  playersAreas: readonly (readonly Area[])[],
+  squad: LeagueRules["squad"] | null,
+): SquadWarning[] {
   if (squad === null) return [];
   const warnings: SquadWarning[] = [];
-  const { size, maxPerClub } = squad;
+  const { size, minimumByArea, maxPerClub } = squad;
   if (size !== null && players.length > size.maximum) warnings.push({ kind: "overMaximum", players: players.length, maximum: size.maximum });
   if (size !== null && players.length < size.minimum) warnings.push({ kind: "underMinimum", players: players.length, minimum: size.minimum });
   if (maxPerClub !== null) {
@@ -169,6 +183,9 @@ function squadWarnings(players: readonly { clubShortName: string }[], squad: Lea
     for (const [clubShortName, count] of byClub) {
       if (count > maxPerClub) warnings.push({ kind: "overClubMaximum", clubShortName, players: count, maximum: maxPerClub });
     }
+  }
+  if (minimumByArea !== null) {
+    for (const short of areasShort(playersAreas, minimumByArea)) warnings.push({ kind: "underAreaMinimum", ...short });
   }
   return warnings;
 }

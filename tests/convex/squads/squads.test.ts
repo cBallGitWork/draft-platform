@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
-import { rulesWith } from "../../support/convex/leagueRules.harness";
+import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadRefusals } from "../../../convex/squads/squads";
@@ -68,7 +68,7 @@ const setSquadRules = async (squad: typeof FIRST_RULES.squad) => {
 };
 
 test("#31 Done: four teams of 15 can be filled, and each squad says it's over the league's 14", async () => {
-  await setSquadRules({ size: { minimum: 11, maximum: 14 }, byArea: null, maxPerClub: null });
+  await setSquadRules({ size: { minimum: 11, maximum: 14 }, minimumByArea: null, maxPerClub: null });
   const commissioner = await as(COMMISSIONER);
   for (const [i, code] of PLAYER_CODES.entries()) await commissioner.assign(code, teams[i % 4]);
 
@@ -184,7 +184,7 @@ describe("refused, saying why, and nothing changes", () => {
 
 describe("squad limits warn, never block", () => {
   test("under the minimum, and over the most per club", async () => {
-    await setSquadRules({ size: { minimum: 11, maximum: 14 }, byArea: null, maxPerClub: 1 });
+    await setSquadRules({ size: { minimum: 11, maximum: 14 }, minimumByArea: null, maxPerClub: 1 });
     const commissioner = await as(COMMISSIONER);
     // 1001 and 1004 are both Arsenal's.
     await commissioner.assign(1001, teams[0]);
@@ -196,8 +196,18 @@ describe("squad limits warn, never block", () => {
     ]);
   });
 
+  test("short of an area's minimum, with a wing back filling only one of defence and midfield (#317)", async () => {
+    await setSquadRules({ size: null, minimumByArea: { ...NO_AREA_MINIMUMS, defence: 1, midfield: 1 }, maxPerClub: null });
+    await t.run(async (ctx) => {
+      await ctx.db.insert("playerPositions", { code: SAKA, starts: [], approved: [], set: ["WB"], removed: [] });
+    });
+    await (await as(COMMISSIONER)).assign(SAKA, teams[0]);
+
+    expect((await (await as(COMMISSIONER)).squads())[0].warnings).toEqual([{ kind: "underAreaMinimum", area: "midfield", players: 0, minimum: 1 }]);
+  });
+
   test("a league with no squad limits warns of nothing", async () => {
-    await setSquadRules({ size: null, byArea: null, maxPerClub: null });
+    await setSquadRules({ size: null, minimumByArea: null, maxPerClub: null });
     await (await as(COMMISSIONER)).assign(SAKA, teams[0]);
     expect((await (await as(COMMISSIONER)).squads())[0].warnings).toEqual([]);
   });

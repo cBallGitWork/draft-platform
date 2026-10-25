@@ -60,7 +60,7 @@ describe("the bands", () => {
   });
 
   test("leave rules with no squad size limit with none", () => {
-    const free = rulesWith({ squad: { size: null, byArea: null, maxPerClub: null } });
+    const free = rulesWith({ squad: { size: null, minimumByArea: null, maxPerClub: null } });
     expect(withSquadMaximum(free, 16)).toEqual(free);
   });
 });

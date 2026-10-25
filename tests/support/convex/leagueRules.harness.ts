@@ -7,6 +7,7 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { TEST_LEAGUE_TEAMS, type TestConvex } from "./leagues.harness";
 import { squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum } from "../../../convex/rules/squadMaximums";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
+import type { Area } from "../../../convex/lineup/pitch";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { DAY_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
@@ -14,6 +15,9 @@ import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGamewee
 /** The first rules as a league `adminCreatesLeague` makes holds them: with the starting squad
  *  maximum for its size (#316). */
 export const HELD_FIRST_RULES = withSquadMaximum(FIRST_RULES, squadMaximumFor(STARTING_SQUAD_MAXIMUMS, TEST_LEAGUE_TEAMS));
+
+/** A squad's minimum in each area, every one 0: to set a few on (#317). */
+export const NO_AREA_MINIMUMS: Record<Area, number> = { goalkeeper: 0, defence: 0, defensiveMidfield: 0, midfield: 0, attackingMidfield: 0, attack: 0 };
 
 /** The first rules as a test league holds them, with some parts changed, as a copy the test may
  *  change further. */

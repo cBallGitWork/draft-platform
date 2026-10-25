@@ -61,7 +61,7 @@ export const FIRST_RULES: LeagueRules = {
     // maximum; 11 is only enough to field a team. No league is made with 14: a new league's
     // maximum is the site's for its size (squadMaximums.ts).
     size: { minimum: 11, maximum: 14 },
-    byArea: null,
+    minimumByArea: null,
     maxPerClub: null,
   },
   // guess: spec/05 sets no defaults. One goalkeeper, and room for every preset.

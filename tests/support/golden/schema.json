@@ -3945,7 +3945,7 @@
                         },
                         "optional": false
                       },
-                      "byArea": {
+                      "minimumByArea": {
                         "fieldType": {
                           "type": "union",
                           "value": [
@@ -3954,121 +3954,37 @@
                               "value": {
                                 "goalkeeper": {
                                   "fieldType": {
-                                    "type": "object",
-                                    "value": {
-                                      "minimum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      },
-                                      "maximum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      }
-                                    }
+                                    "type": "number"
                                   },
                                   "optional": false
                                 },
                                 "defence": {
                                   "fieldType": {
-                                    "type": "object",
-                                    "value": {
-                                      "minimum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      },
-                                      "maximum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      }
-                                    }
+                                    "type": "number"
                                   },
                                   "optional": false
                                 },
                                 "defensiveMidfield": {
                                   "fieldType": {
-                                    "type": "object",
-                                    "value": {
-                                      "minimum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      },
-                                      "maximum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      }
-                                    }
+                                    "type": "number"
                                   },
                                   "optional": false
                                 },
                                 "midfield": {
                                   "fieldType": {
-                                    "type": "object",
-                                    "value": {
-                                      "minimum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      },
-                                      "maximum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      }
-                                    }
+                                    "type": "number"
                                   },
                                   "optional": false
                                 },
                                 "attackingMidfield": {
                                   "fieldType": {
-                                    "type": "object",
-                                    "value": {
-                                      "minimum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      },
-                                      "maximum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      }
-                                    }
+                                    "type": "number"
                                   },
                                   "optional": false
                                 },
                                 "attack": {
                                   "fieldType": {
-                                    "type": "object",
-                                    "value": {
-                                      "minimum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      },
-                                      "maximum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      }
-                                    }
+                                    "type": "number"
                                   },
                                   "optional": false
                                 }
@@ -8006,7 +7922,7 @@
                         },
                         "optional": false
                       },
-                      "byArea": {
+                      "minimumByArea": {
                         "fieldType": {
                           "type": "union",
                           "value": [
@@ -8015,121 +7931,37 @@
                               "value": {
                                 "goalkeeper": {
                                   "fieldType": {
-                                    "type": "object",
-                                    "value": {
-                                      "minimum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      },
-                                      "maximum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      }
-                                    }
+                                    "type": "number"
                                   },
                                   "optional": false
                                 },
                                 "defence": {
                                   "fieldType": {
-                                    "type": "object",
-                                    "value": {
-                                      "minimum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      },
-                                      "maximum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      }
-                                    }
+                                    "type": "number"
                                   },
                                   "optional": false
                                 },
                                 "defensiveMidfield": {
                                   "fieldType": {
-                                    "type": "object",
-                                    "value": {
-                                      "minimum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      },
-                                      "maximum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      }
-                                    }
+                                    "type": "number"
                                   },
                                   "optional": false
                                 },
                                 "midfield": {
                                   "fieldType": {
-                                    "type": "object",
-                                    "value": {
-                                      "minimum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      },
-                                      "maximum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      }
-                                    }
+                                    "type": "number"
                                   },
                                   "optional": false
                                 },
                                 "attackingMidfield": {
                                   "fieldType": {
-                                    "type": "object",
-                                    "value": {
-                                      "minimum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      },
-                                      "maximum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      }
-                                    }
+                                    "type": "number"
                                   },
                                   "optional": false
                                 },
                                 "attack": {
                                   "fieldType": {
-                                    "type": "object",
-                                    "value": {
-                                      "minimum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      },
-                                      "maximum": {
-                                        "fieldType": {
-                                          "type": "number"
-                                        },
-                                        "optional": false
-                                      }
-                                    }
+                                    "type": "number"
                                   },
                                   "optional": false
                                 }
