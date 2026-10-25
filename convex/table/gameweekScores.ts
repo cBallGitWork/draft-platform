@@ -28,6 +28,7 @@ import { playerByCode } from "../shared/players";
 // fixed already: its fixtures are stored (playedFixtures.ts), the site's set never reaches a
 // gameweek begun (siteScoring.ts) and a locked match's records no longer change (matchStats.ts).
 // Its lineup isn't yet: lineups.ts reads it against today's squad (#415).
+// A season's worth outgrows one read; storing a gameweek once final is #418.
 //
 // A gameweek that can't be scored (a site set holding a rule no longer sound, say: #287) is left
 // out and named with the reason, logged, rather than blanking or breaking the league's table.
