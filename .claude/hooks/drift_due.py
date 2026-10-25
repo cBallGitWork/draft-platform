@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """SessionStart note: says when a drift pass is due, since the 10-merge trigger was missed every
-time by hand (passes ran after 18, 14 and 35 merges).
+time by hand (passes ran after 18, 14 and 35 merges: the second repo audit, 22 Oct 2026).
 
 It runs docs/REFACTORING.md's count, the commits on main since the last commit whose message has
 a line starting "refactor: drift pass" (each merged pull request is one commit), against
