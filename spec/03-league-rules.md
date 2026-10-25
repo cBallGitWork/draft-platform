@@ -2,9 +2,10 @@
 
 Feature 3 of [SPEC.md](../SPEC.md). Only Craig's answers.
 
-The league's rules are data. A commissioner edits them on two screens (Craig, 22 Oct 2026):
-**League settings**, the rules that build the league, starting with the odd team out and the games
-a gameweek; and **Player scoring** (once called Scoring), players' points by position.
+The league's rules are data. A commissioner edits them on **League settings**, the rules that
+build the league, starting with the odd team out and the games a gameweek (Craig, 22 Oct 2026).
+Players' points by position, on **Player scoring** (once called Scoring), are the site's, not the
+league's: the admin changes them by patch, and every manager can read them (`spec/14`, 25 Oct 2026).
 
 Among them:
 
@@ -32,5 +33,5 @@ Among them:
 - Waivers: when they run, set by the league; can be more than once a week. The waiver order:
   reverse standings, or rotating (reset weekly).
 - The draft clock (see [4. The draft](04-the-draft.md)).
-- Roles and their scoring adjustments (see [5. Tactics](05-tactics.md)).
+- Roles (see [5. Tactics](05-tactics.md)); their scoring adjustments are the site's (`spec/14`).
 - Trade review: none, a commissioner veto, or a league vote (see [8. Between gameweeks](08-between-gameweeks.md)).

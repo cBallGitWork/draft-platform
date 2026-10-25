@@ -14,6 +14,9 @@ each league's **commissioner**.
 - Sets the stat-correction window (`spec/07`).
 - Can remove a manager from a league. The team stays, for the commissioner to hand to someone
   new (`spec/09`).
+- Owns the site's scoring set and changes it by patch (`spec/14`, 25 Oct 2026).
+- Reads managers' feedback: a Feedback link in the top bar opens one text box, and what is sent
+  lands in a list on the admin dashboard, with no email (25 Oct 2026).
 - A feeds page: when FPL's and the Premier League's data last arrived, and whether scoring is
   behind. A feed that stops silently is the failure to catch. A feed or sync that fails also
   emails the admin, at most once a day for each feed (24 Oct 2026). The page also shows a stat
@@ -24,8 +27,8 @@ each league's **commissioner**.
 
 ## The commissioner
 
-- Everything the other features give the commissioner: the league's rules and scoring
-  (`spec/03`, `spec/14`), the draft's schedule and controls (`spec/04`), trade vetoes where the
+- Everything the other features give the commissioner: the league's rules (`spec/03`; the scoring is
+  the site's, `spec/14`), the draft's schedule and controls (`spec/04`), trade vetoes where the
   league uses them (`spec/08`), the head-to-head fixtures, handing a team on and the auto team
   (`spec/09`), one-way letters (`spec/16`) and overriding a past score (`spec/14`).
 - Can remove a manager from the league, as the admin can ([13](13-setting-up-a-league.md#leaving)).

@@ -30,7 +30,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 |---|---|---|---|
 | 1 | [Leagues](spec/01-leagues.md) | the admin creates a league and names its commissioner (#24); it starts from the admin's default rules (#25); the platform's own rule sets come later | a league created from a ready-made rule set carries every rule in it |
 | 2 | [Sign-in](spec/02-sign-in.md) | built, awaiting the live email proof | an email on the allowed list gets a link that works once within the hour; one not on it gets the same reply and no link |
-| 3 | [League rules](spec/03-league-rules.md) | each league's rules held as data, changed from the next gameweek (#25); Player scoring, the scoring editor, built (#30); League settings built for the odd team out, games a gameweek and the squad's make-up (#341); a save over someone else's is refused; the first scoring set is FPL's (spec/14) | the same week scores differently under two leagues' rules |
+| 3 | [League rules](spec/03-league-rules.md) | each league's rules held as data, changed from the next gameweek (#25); Player scoring, the scoring editor, built (#30); League settings built for the odd team out, games a gameweek and the squad's make-up (#341); a save over someone else's is refused; the first scoring set is FPL's (spec/14) | the same week's table differs under two leagues' League settings, and every league scores it by the site's set |
 | 4 | [The draft](spec/04-the-draft.md) | not built | a timed-out pick takes the queue's best available player, then the default ranking's |
 | 5 | [Tactics](spec/05-tactics.md) | the pitch, eleven presets and the check of whether a lineup may stand (#8), and the deadline (#9) built; not yet a saved lineup or its screen (#14), roles (#10, #11), auto-subs (#12) or squad numbers (#13) | the same player and match score differently in two roles, and an empty slot is filled by the first fitting sub |
 | 6 | [Positions](spec/06-positions.md) | positions from real starts, labels and the admin's say built on the server (#22), and the admin dashboard: the queue, approving a club, how starts count and correcting any player (#126); not yet the thresholds and positions changing with a role (#23), and nothing runs the sync on a schedule | a player flagged, then losing a position, at the admin's thresholds |
@@ -70,7 +70,6 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - **Licensed data**: a licensed feed if FPL's and the Premier League's terms, checked before the
   mini beta (above), don't allow a public product.
 - **Traits** (what a player does in real life), if a source for them turns up.
-- **The platform's own scoring sets**, designed once the first scoring set has been played.
 - **A landing page** for the public, when signups open to anyone; its own `/grill` then.
 - **Carrying a league into next season**, a different thing from spec/03's carry-over rule
   (redraft, keeper, dynasty).
@@ -90,19 +89,23 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - Injured reserve.
 - A limit on auto-subs, or a switch to turn them off.
 - Public league pages: no league is visible without signing in.
-- FPL's bonus points, and a ready-made FPL-style or Fantrax-copy scoring set for a league to pick.
-  The mini beta's first set starts from FPL's values as a draft Craig changes (spec/14).
+- FPL's bonus points, and any scoring set for a league to pick: there is one set, the site's,
+  changed by patch (spec/14, 25 Oct 2026). It starts from FPL's values as a draft Craig changes.
 - A limit on a player's whole match, or on a team's gameweek total.
 - A lock at each player's kickoff: there is one deadline per gameweek.
 - A squad ceiling above a Premier League squad's 25 (spec/03).
 - A maximum per area in a squad: above each area's minimum, a squad holds whatever its manager likes (spec/03).
 - Warning managers before a league is deleted: they hear once it is gone (spec/13).
+- A league's own scoring: the site owns the scoring set and patches it (spec/14).
+- A commissioner's own stats: only the admin makes one (spec/14).
+- Emailing a patch: Mail and the site banner announce it (spec/14).
 
 ## Glossary
 
 | Term | Meaning | Avoid |
 |---|---|---|
 | team | a fantasy side: a manager's draft team | |
+| patch | a new version of the site's scoring set, named like 26_27.1, announced a week before it takes effect | update |
 | manager | the person who runs a team | player (for a person) |
 | admin | Craig, running the whole platform | |
 | commissioner | the person who runs one league, with or without a team in it | |
@@ -122,7 +125,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | formation | how a lineup stands on the pitch's grid, preset or placed freely | shape |
 | preset | a ready-made formation, such as 4-2-3-1 | |
 | category | one stat a league can score, such as goals or tackles won | |
-| own stat | a stat a league makes by adding catalogue stats with weights | custom stat, formula |
+| own stat | a stat the admin makes for the site's set by adding catalogue stats with weights | custom stat, formula |
 | points limit | a rule's maximum or minimum points for one player in one match | cap (that is the salary cap), floor, ceiling |
 | short code | a category's abbreviation in dense tables: G, A, CS, KP, TW | |
 | lineup | a team's starters and bench for one gameweek | |

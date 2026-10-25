@@ -24,7 +24,8 @@ takers` (16 Oct 2026). It sits on tactics ([5](05-tactics.md)).
   only if an auto-sub brings him into the eleven.
 - The first on the list who plays holds the duty for the whole match, and only he is paid for it.
   If no one on the list plays, the duty pays nothing.
-- A taker earns role-style adjustments, give and take, as league rules: the penalty taker per
+- A taker earns role-style adjustments, give and take, set by the site and changed by patch like
+  roles' (`spec/14`, 25 Oct 2026; "maybe we dont use first"): the penalty taker per
   penalty scored and missed; the free-kick taker for free-kick goals and set-piece chances; the
   corner taker for corners into the box and set-piece assists. These are per-match stats the
   Premier League's feed already gives, so they are categories already (`spec/14`).
