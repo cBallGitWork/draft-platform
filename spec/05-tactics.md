@@ -32,7 +32,8 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - Every role gives something and takes something. Each is checked against last season's
   real stats: for an average player in its area it comes out close to the base scoring, so a role
   pays only for the player it suits.
-- Roles and their adjustments are league rules; the ready-made rules carry a default set.
+- Roles' scoring adjustments are the site's, changed by patch (`spec/14`, 25 Oct 2026); the
+  ready-made rules carry a default set.
 - The default set starts as this list, made long before roles are built: every area and lane gets
   as many roles as fit, for Craig to cut much later (21 Oct 2026):
   - goalkeeper: shot-stopper, sweeper keeper

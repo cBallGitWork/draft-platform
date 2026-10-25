@@ -97,12 +97,16 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - A squad ceiling above a Premier League squad's 25 (spec/03).
 - A maximum per area in a squad: above each area's minimum, a squad holds whatever its manager likes (spec/03).
 - Warning managers before a league is deleted: they hear once it is gone (spec/13).
+- A league's own scoring: the site owns the scoring set and patches it (spec/14).
+- A commissioner's own stats: only the admin makes one (spec/14).
+- Emailing a patch: Mail and the site banner announce it (spec/14).
 
 ## Glossary
 
 | Term | Meaning | Avoid |
 |---|---|---|
 | team | a fantasy side: a manager's draft team | |
+| patch | a new version of the site's scoring set, named like 26_27.1, announced a week before it takes effect | update |
 | manager | the person who runs a team | player (for a person) |
 | admin | Craig, running the whole platform | |
 | commissioner | the person who runs one league, with or without a team in it | |
