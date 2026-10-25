@@ -11,8 +11,8 @@ Craig hasn't picked says so.
 Each with the questions its grill starts from. The questions are Claude's.
 
 **Awards**: history, Mail.
-- Manager of the Month, Team of the Week, Player of the Season. Where they live once Mail has
-  filed them (see History, below).
+- Manager of the Month and Player of the Season (Team of the Week is on league home, `spec/12`).
+  Where they live once Mail has filed them (see History, below).
 
 **Our own home stadiums**: the pitch view, the matchup.
 - Each team names its ground; the pitch view shows it with the team's logo.
