@@ -2,12 +2,13 @@ import { Link } from "@tanstack/react-router";
 import { sectionTabClasses } from "../frame/AppFrame";
 import { PageSection, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
-import { ADMIN_FEEDS_PATH, ADMIN_PATH } from "./paths";
-import { ADMIN_TITLE, adminTabsLabel, feedsTabWords, positionsTabWords } from "./words";
+import { ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "./paths";
+import { ADMIN_TITLE, adminTabsLabel, feedbackTabWords, feedsTabWords, positionsTabWords } from "./words";
 
 const TABS = [
   { path: ADMIN_PATH, label: positionsTabWords },
   { path: ADMIN_FEEDS_PATH, label: feedsTabWords },
+  { path: ADMIN_FEEDBACK_PATH, label: feedbackTabWords },
 ];
 
 /** The dashboard's title plate over each of its tabs: the tabs, the way back, and why the last

@@ -1,5 +1,6 @@
 import { Outlet } from "@tanstack/react-router";
 import type { AuthActions } from "../auth";
+import { FeedbackLink } from "../feedback/FeedbackPage";
 import { MAIL_PATH } from "../frame/menu";
 import { MenuTab } from "../frame/MenuTab";
 import { ProductName } from "../frame/ProductName";
@@ -9,7 +10,7 @@ import { LEAGUES_PATH } from "./paths";
 import { LEAGUES_TITLE } from "./words";
 
 /** The frame for someone signed in but in no league: the name, their leagues, Mail with its count,
- *  and Sign out. No league menu. */
+ *  Feedback and Sign out. No league menu. */
 export function LeaguelessFrame({ unreadMail, onSignOut }: { unreadMail: number; onSignOut: AuthActions["signOut"] }) {
   return (
     <>
@@ -21,6 +22,7 @@ export function LeaguelessFrame({ unreadMail, onSignOut }: { unreadMail: number;
           <MenuTab path={MAIL_PATH} label={MAIL_TITLE} unreadMail={unreadMail} />
         </div>
         <span className="grow" />
+        <FeedbackLink />
         <SignOut onSignOut={onSignOut} />
       </header>
       <main className="p-2">
