@@ -16,8 +16,9 @@ import { listOf } from "./playersOrder";
 // null ("—") until #29 scores matches: a player's points depend on the slot he starts in
 // (scoring.ts), and no lineups are kept yet. Waivers aren't built, so no player is on waivers.
 
-/** The most players the list reads: the Premier League's 20 squads as FPL lists them, about 800 by
- *  a season's end, with room. More throws, never a silent cut. */
+/** The most players the list reads: the Premier League's 20 squads as FPL lists them, a few dozen
+ *  a club, with room. Each costs one read of his positions row, so a full list stays far inside a
+ *  query's read limits. More throws, never a silent cut. */
 export const LISTED_PLAYERS_MOST = 1200;
 
 /** The most players a league can own: every team's squad full. */
