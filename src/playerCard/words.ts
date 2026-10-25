@@ -1,6 +1,7 @@
 // What the player card says, in one place for Craig to change in the pull request.
 
 import type { ScoredAs } from "../../convex/playerCard/cardPoints";
+import { gameweekWords } from "../words";
 
 export { freeAgentWords, listSeparator, noFigureWords } from "../words";
 
@@ -36,7 +37,7 @@ export const columns = {
 } as const;
 export const notArrivedWords = "His record for this match hasn't fully arrived yet.";
 /** The line under a match: each category that paid, as "Goals scored 5". */
-export const breakdownLabel = (gameweek: number | null) => (gameweek === null ? "Points by category" : `Gameweek ${gameweek} points by category`);
+export const breakdownLabel = (gameweek: number | null) => (gameweek === null ? "Points by category" : `${gameweekWords(gameweek)} points by category`);
 export const nothingPaidWords = "No category paid.";
 
 /** Last season's one line (spec/12): not held yet. */

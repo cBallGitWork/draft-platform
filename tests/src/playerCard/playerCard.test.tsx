@@ -13,6 +13,7 @@ import { playerCardPath } from "../../../src/playerCard/paths";
 import type { PlayedMatch, PlayerCard } from "../../../src/playerCard/seam";
 import {
   backWords,
+  breakdownLabel,
   chanceWords,
   columns,
   freeAgentWords,
@@ -26,6 +27,7 @@ import {
   noNewsWords,
   noSuchPlayerWords,
   nothingPaidWords,
+  PLAYER_TITLE,
   pricedNotes,
   SEASON_TITLE,
 } from "../../../src/playerCard/words";
@@ -136,7 +138,7 @@ describe("reaching it", () => {
 describe("the card", () => {
   it("names his club, positions and owner, and FPL's news, which says his chance of playing itself", async () => {
     openCard();
-    const facts = within(await screen.findByRole("region", { name: "Player" }));
+    const facts = within(await screen.findByRole("region", { name: PLAYER_TITLE }));
 
     expect(facts.getByText(ARSENAL.name)).toBeTruthy();
     expect(facts.getByTitle("Winger").textContent).toBe("W");
@@ -148,12 +150,12 @@ describe("the card", () => {
 
   it("a chance of playing with no news stands alone", async () => {
     openCard(SAKA, { cards: [{ ...SAKA, news: null }] });
-    expect(within(await screen.findByRole("region", { name: "Player" })).getByText(chanceWords(75))).toBeTruthy();
+    expect(within(await screen.findByRole("region", { name: PLAYER_TITLE })).getByText(chanceWords(75))).toBeTruthy();
   });
 
   it("a free agent FPL has no doubt about says so", async () => {
     openCard(RICE);
-    const facts = within(await screen.findByRole("region", { name: "Player" }));
+    const facts = within(await screen.findByRole("region", { name: PLAYER_TITLE }));
 
     expect(facts.getByText(freeAgentWords)).toBeTruthy();
     expect(facts.getByText(noNewsWords)).toBeTruthy();
@@ -172,7 +174,7 @@ describe("the card", () => {
     expect(season.getAllByRole("columnheader").map((head) => head.textContent)).toEqual(Object.values(columns).map((column) => column.short));
     const row = season.getAllByRole("rowheader", { name: `${ARSENAL.shortName} ${versusWords} ${COVENTRY.shortName}` })[1].closest("tr")!;
     expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2", "90", "W", "11"]);
-    expect(season.getByLabelText("Gameweek 2 points by category").textContent).toBe("Goals scored 5, Assists 4, Minutes 2");
+    expect(season.getByLabelText(breakdownLabel(2)).textContent).toBe("Goals scored 5, Assists 4, Minutes 2");
   });
 
   it("a match whose record hasn't arrived reads '—' and has no breakdown", async () => {
@@ -181,7 +183,7 @@ describe("the card", () => {
     const row = season.getAllByRole("rowheader")[0].closest("tr")!;
 
     expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["3", noFigureWords, noFigureWords, noFigureWords]);
-    expect(season.queryByLabelText("Gameweek 3 points by category")).toBeNull();
+    expect(season.queryByLabelText(breakdownLabel(3))).toBeNull();
   });
 
   it("a match where no category paid says so", async () => {
