@@ -20,8 +20,8 @@ import { emailIfFailed } from "../admin/feedFailureEmails";
 import { writeScores } from "./matchScores";
 
 // Issue #21: the real Premier League's clubs, players, fixtures and gameweeks, copied in from the
-// football layer, and each match's score (#49, matchScores.ts). crons.ts runs it on a schedule; from the CLI:
-// `npx convex run football/footballSync:run '{"trigger":"manual"}'`, then `football/footballSync:latest`.
+// football layer, and each match's score (#49, matchScores.ts). crons.ts runs it on a schedule;
+// from the CLI: `npx convex run football/footballSync:run '{"trigger":"manual"}'`, then `football/footballSync:latest`.
 // A held row the feed stops sending is kept and marked `droppedAt`, never deleted, and only by a
 // sync that read the whole list (#64). Rows are matched on their stable key, a player on his
 // `code`, so one sent again is unmarked in his own row.

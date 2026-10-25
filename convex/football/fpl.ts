@@ -1,8 +1,8 @@
 // FPL's public API, mapped onto the football layer's seam (`Football`, in football.ts). The raw
 // shapes and the mapping are copied from epl-draft's packages/core/src/football/fpl/ (raw.ts,
 // map.ts and client.ts, 19 Oct 2026), not shared, and cut to the fields #21 holds, each
-// player's news (#381) and each match's score (#49). One change: FPL names a club by its per-season id, and this hands on the
-// club's season-stable code instead.
+// player's news (#381) and each match's score (#49). One change: FPL names a club by its
+// per-season id, and this hands on the club's season-stable code instead.
 
 import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, getJson, getShaped, type Football } from "./football";
 import { fplScoreRead, readEach } from "./scoreReads";

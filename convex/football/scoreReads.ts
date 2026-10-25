@@ -19,6 +19,10 @@ export type ScoreRead = Infer<typeof scoreRead>;
 export type ScoreProblem = Infer<typeof scoreProblem>;
 type MatchState = Infer<typeof matchState>;
 
+/** Each feed as a problem names it. */
+const FPL = "FPL";
+const PL = "the Premier League";
+
 /** What one feed's read gives: a score for each match it could read, a problem for each it could not. */
 export interface ScoreReads {
   reads: ScoreRead[];
@@ -48,17 +52,17 @@ function upcoming(fixtureCode: number): ScoreRead {
  *  `started` says; one kicked off must carry both scores and its minutes. */
 export function fplScoreRead(fixture: RawFixture): ScoreRead {
   if (fixture.started === false || (fixture.started !== true && fixture.kickoff_time === null)) return upcoming(fixture.code);
-  if (fixture.started !== true) throw new Error(`FPL sent started ${JSON.stringify(fixture.started)}`);
+  if (fixture.started !== true) throw new Error(`${FPL} sent started ${JSON.stringify(fixture.started)}`);
   if (typeof fixture.finished_provisional !== "boolean") {
-    throw new Error(`FPL sent finished_provisional ${JSON.stringify(fixture.finished_provisional)}`);
+    throw new Error(`${FPL} sent finished_provisional ${JSON.stringify(fixture.finished_provisional)}`);
   }
   const state: MatchState = fixture.finished_provisional ? "fullTime" : "live";
   return {
     fixtureCode: fixture.code,
     state,
-    homeGoals: goals("FPL", state, fixture.team_h_score),
-    awayGoals: goals("FPL", state, fixture.team_a_score),
-    minutes: requireNumber("FPL", "minutes", fixture.minutes),
+    homeGoals: goals(FPL, state, fixture.team_h_score),
+    awayGoals: goals(FPL, state, fixture.team_a_score),
+    minutes: requireNumber(FPL, "minutes", fixture.minutes),
     clockLabel: null,
   };
 }
@@ -71,14 +75,14 @@ export function plScoreRead(fixture: RawPlFixture, fixtureCode: number): ScoreRe
   let state: MatchState;
   if (status === PL_FULL_TIME) state = "fullTime";
   else if (status === PL_IN_PLAY) state = phase === PL_HALF_TIME_PHASE ? "halfTime" : "live";
-  else throw new Error(`the Premier League sent status ${JSON.stringify(status)}`);
-  const secs = requireNumber("the Premier League", "clock secs", clock?.secs);
-  if (typeof clock?.label !== "string") throw new Error(`the Premier League sent clock label ${JSON.stringify(clock?.label)}`);
+  else throw new Error(`${PL} sent status ${JSON.stringify(status)}`);
+  const secs = requireNumber(PL, "clock secs", clock?.secs);
+  if (typeof clock?.label !== "string") throw new Error(`${PL} sent clock label ${JSON.stringify(clock?.label)}`);
   return {
     fixtureCode,
     state,
-    homeGoals: goals("the Premier League", state, teams?.[0]?.score),
-    awayGoals: goals("the Premier League", state, teams?.[1]?.score),
+    homeGoals: goals(PL, state, teams?.[0]?.score),
+    awayGoals: goals(PL, state, teams?.[1]?.score),
     minutes: Math.floor((secs * SECOND_MS) / MINUTE_MS),
     clockLabel: clock.label,
   };

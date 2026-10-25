@@ -72,9 +72,8 @@ export const gameweekRecord = v.object({
   deadline: v.number(),
 });
 
-// Each match's score and clock (#49, #50), kept apart from `fixtures`: two feeds write it, FPL's
-// fixtures at each football sync and the Premier League's list at each live tick, where a fixture
-// row is one feed's record, rewritten whole. How the two reads meet: football/matchScores.ts.
+// Each match's score and clock (#49, #50), written by both feeds, so kept apart from `fixtures`,
+// FPL's record rewritten whole: football/matchScores.ts.
 
 /** Where a match stands. The Premier League's half-time is its own; FPL's feed has none. */
 export const matchState = v.union(v.literal("upcoming"), v.literal("live"), v.literal("halfTime"), v.literal("fullTime"));

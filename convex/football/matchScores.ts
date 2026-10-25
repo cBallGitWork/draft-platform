@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
-import { internalMutation, query, type ActionCtx, type MutationCtx } from "../_generated/server";
+import { internalMutation, query, type ActionCtx, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { clubRecord, scoreFeed, scoreRead, type matchState, type scoreWrites } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { callerEmail } from "../shared/leagueAccess";
@@ -47,11 +47,15 @@ export const upsertScores = internalMutation({
 
 type HeldScore = Omit<Doc<"matchScores">, "_id" | "_creationTime">;
 
-async function upsertScore(ctx: MutationCtx, sent: HeldScore): Promise<boolean> {
-  const held = await ctx.db
+function scoreOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"matchScores"> | null> {
+  return ctx.db
     .query("matchScores")
-    .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", sent.fixtureCode))
+    .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
     .unique();
+}
+
+async function upsertScore(ctx: MutationCtx, sent: HeldScore): Promise<boolean> {
+  const held = await scoreOf(ctx, sent.fixtureCode);
   if (held === null) {
     await ctx.db.insert("matchScores", sent);
     return true;
@@ -108,24 +112,23 @@ export const ofGameweek = query({
     const inOrder = fixtures.toSorted((a, b) => (a.kickoff ?? Infinity) - (b.kickoff ?? Infinity));
     return Promise.all(
       inOrder.map(async ({ code, kickoff, homeClubCode, awayClubCode }) => {
-        const held = await ctx.db
-          .query("matchScores")
-          .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", code))
-          .unique();
+        const held = await scoreOf(ctx, code);
         return {
           fixtureCode: code,
           kickoff,
           home: clubOf(await clubByCode(ctx, homeClubCode)),
           away: clubOf(await clubByCode(ctx, awayClubCode)),
-          score:
-            held === null
-              ? null
-              : { state: held.state, homeGoals: held.homeGoals, awayGoals: held.awayGoals, minutes: held.minutes, clockLabel: held.clockLabel },
+          score: held === null ? null : scoreOnly(held),
         };
       }),
     );
   },
 });
+
+/** The held row less which feed gave it, when, and Convex's own fields. */
+function scoreOnly({ _id, _creationTime, fixtureCode, feed, readAt, ...score }: Doc<"matchScores">) {
+  return score;
+}
 
 function clubOf({ code, name, shortName }: Doc<"clubs">) {
   return { code, name, shortName };

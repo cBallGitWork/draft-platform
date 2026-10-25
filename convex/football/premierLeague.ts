@@ -54,8 +54,8 @@ export interface RawPlTeamList {
 /** A fixture from the fixture list or its own read. */
 export interface RawPlFixture {
   id: number;
-  /** `PL_FULL_TIME` ("C") once the match is over; "U" before. Other values are not read. Every
-   *  read recorded so far carries it. */
+  /** `PL_UPCOMING` ("U") before kickoff, `PL_IN_PLAY` ("L") during, `PL_FULL_TIME` ("C") once
+   *  over. Every read recorded so far carries it. */
   status?: string;
   /** "1" and "2" for the halves, `PL_HALF_TIME_PHASE` between them, "F" at full time ("0" before).
    *  Only half-time's is read. */
