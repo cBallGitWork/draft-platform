@@ -40,6 +40,7 @@ def field(payload, key, kind, default):
 
 
 def report(error, consequence):
-    """Says on stderr that the hook running couldn't read its payload; returns the exit code for it."""
+    """Says on stderr, in one line, why the hook running couldn't do its job (an unreadable payload,
+    or gate_on_stop.py's failed git call or timeout); returns the exit code for it."""
     print(f"{os.path.basename(sys.argv[0])}: {error}, so {consequence}.", file=sys.stderr)
     return 1

@@ -20,14 +20,22 @@ import { storeBegunFixtures } from "../table/playedFixtures";
 // would let its kickoffs move with its passed deadlines unrecorded, and that could reopen its
 // gameweek.
 
+/** The most leagues one recording reads, all in the fixtures mutation's one transaction: the closed
+ *  beta has a handful, and each league reads its rules, deadlines and fixtures. Past it this throws,
+ *  failing closed as above, rather than leave a league's deadlines unrecorded; by then the
+ *  recording wants splitting across transactions (#214). */
+export const LEAGUES_RECORDED_MOST = 200;
+
 /** Records every league's deadlines that have passed and aren't yet recorded, and stores the
  *  fixtures of the gameweeks they began; returns how many deadlines it recorded. */
 export async function recordPassedDeadlines(ctx: MutationCtx): Promise<number> {
   const now = Date.now();
   // Read once for every league: the fixtures are the season's 380, the most of any table here.
   const { matches } = await heldSchedule(ctx);
+  const leagues = await ctx.db.query("leagues").take(LEAGUES_RECORDED_MOST + 1);
+  if (leagues.length > LEAGUES_RECORDED_MOST) throw new Error(`More than ${LEAGUES_RECORDED_MOST} leagues are held, so some would have their deadlines unrecorded`);
   let recorded = 0;
-  for await (const league of ctx.db.query("leagues")) {
+  for (const league of leagues) {
     const passed = await passedDeadlinesOf(ctx, league._id);
     const deadlines = await leagueDeadlinesIn(ctx, league._id, matches).catch((error: unknown) => {
       // Named, so the failed sync's log and run row say which league to fix.

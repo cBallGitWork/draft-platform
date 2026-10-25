@@ -100,19 +100,9 @@ the fun idea of putting someobdy as a make shift striker").
 | Going on holiday | CM's holiday: the manager switches the auto team on himself until a gameweek he names (`spec/09` lets him switch it on; the end date is the new part) |
 | Match rating and Man of the Match | CM's Av R and MoM: a 1–10 rating from his points against his area; MoM the top scorer in each head-to-head |
 | Saved tactics | FM's: a few formations kept to switch between, say one for a double gameweek |
+| Gameweeks to come after a team joins at a split | Once begun, a gameweek's fixtures are fixed (`spec/13`). Open: how the gameweeks still to come are drawn when a team joins at a split (`convex/table/playedFixtures.ts`, `scheduleAround`); goes with the split season above |
+| A league's deletion email past the day's email limit | Managers are told only once a league is gone (`spec/13`). One the 100-a-day limit stops is never told: retried, or left? Craig left the old warnings as they were for the beta (22 Oct 2026) |
 | One player on several teams | Not now; maybe later (Craig, 20 Oct 2026). A draft is normally one owner per league; some leagues do one per division. The draft, waivers, trades and "owned in the league" all assume one owner |
-| Frozen fixtures | `spec/13`: "a change reshuffles only fixtures not yet played". A gameweek's fixtures are stored once it begins (#137). Open: a rule change from its `fromGameweek`, the commissioner's fixture edits (`spec/09`: "the commissioner can edit them"), how the gameweeks to come are drawn after a team joins at a split (`convex/table/playedFixtures.ts`, `scheduleAround`), and the gameweeks a league made mid-season has from before it existed, which are drawn, never stored (#282) |
-| How the admin hears a feed or sync failure | `spec/15`: "A feed that stops silently is the failure to catch." The feeds page only (#35), or email too, out of Resend's "100 a day" (`ARCHITECTURE.md`)? |
-| How a player's areas count against a squad's limit per area | `spec/03` Squad make-up. The limits are saved and validated by `leagueRulesCheck` but not checked by `squadWarnings` |
-| The platform's squad ceiling of 60 | `convex/leagues/leagueLimits.ts`: `MOST_IN_SQUAD = 60`, "The most players one team can hold, whatever the league's own squad limits". A league's squad maximum above it is refused when saved (`spec/03`). Is 60 the right ceiling? (#213) |
-| A screen whose read fails | What it shows, and whether it shows the server's words. `docs/PHILOSOPHY.md`: "Don't swallow errors silently. If something fails, we need to know." |
-| Retry deletion warnings past the day's email limit | A manager the 100-a-day limit stopped is marked "not told" and never retried. Left as it is for the beta (Craig agreed, 22 Oct 2026) |
-
-The rows from frozen fixtures down are open questions from the repo audits of 21 and 22 Oct
-2026, details the spec doesn't settle rather than new features.
-
-Also Claude's suggestions, from the audit of 21 Oct 2026:
-- #117's undo sends no email, so managers told "will be deleted" never hear it was undone.
 
 Thought of and set aside, as they clash with what's settled: board confidence and the sack
 (storylines are out of scope), counter-tactics (your tactics never touch your opponent's points),

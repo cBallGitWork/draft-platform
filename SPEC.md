@@ -94,6 +94,9 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   The mini beta's first set starts from FPL's values as a draft Craig changes (spec/14).
 - A limit on a player's whole match, or on a team's gameweek total.
 - A lock at each player's kickoff: there is one deadline per gameweek.
+- A squad ceiling above a Premier League squad's 25 (spec/03).
+- A maximum per area in a squad: above each area's minimum, a squad holds whatever its manager likes (spec/03).
+- Warning managers before a league is deleted: they hear once it is gone (spec/13).
 
 ## Glossary
 

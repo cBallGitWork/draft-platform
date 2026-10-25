@@ -4,13 +4,13 @@ import { Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { LeaguesSeam } from "./seam";
 import { leagueColumnCount } from "./LeagueLinks";
-import { beingDeleted, confirmDelete, confirmDeleteWords, deleteLeagueWords, unemailed, undoWords, unsentLinkWords } from "./words";
+import { beingDeleted, confirmDelete, confirmDeleteWords, deleteLeagueWords, undoWords } from "./words";
 
 export type DeletionActions = Pick<LeaguesSeam, "deleteLeague" | "undoDeletion">;
 
 /** A league's row on "Your leagues" for deleting it (spec/13, Deleting): "Delete league" with a
- *  plain confirm for the admin or its commissioner; while it is being deleted, when it goes, who
- *  wasn't told, and Undo, which only its commissioner and the admin see. */
+ *  plain confirm for the admin or its commissioner; while it is being deleted, when it goes, and
+ *  Undo, which only its commissioner and the admin see. */
 export function LeagueDeletionRow({ league, canDelete, actions }: { league: LeagueSummary; canDelete: boolean; actions: DeletionActions }) {
   const [confirming, setConfirming] = useState(false);
   const { busy, problem, run: runChange } = useChange();
@@ -28,9 +28,6 @@ export function LeagueDeletionRow({ league, canDelete, actions }: { league: Leag
           {deletion ? (
             <>
               <p>{beingDeleted(deletion.deletesAt)}</p>
-              {deletion.unemailed.map(({ email, reason }) => (
-                <p key={email}>{unemailed(email, unsentLinkWords[reason])}</p>
-              ))}
               <button type="button" disabled={busy} onClick={() => run(actions.undoDeletion)} className="action">
                 {undoWords}
               </button>

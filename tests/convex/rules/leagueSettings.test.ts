@@ -1,10 +1,11 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { rulesInGameweek, rulesRefusals } from "../../../convex/rules/leagueRules";
 import { settingsRefusals } from "../../../convex/rules/leagueSettings";
 import type { LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
 import { refusals } from "../../../convex/shared/leagueAccess";
+import { WEEK_MS } from "../../../convex/shared/time";
 import { expectRefused, holdGameweeks, rulesRevision, HELD_FIRST_RULES, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -13,12 +14,17 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // (spec/03; #341), read and changed as any part of the rules is: from the next gameweek, with a letter, and never over someone else's
 // save.
 
+/** The gameweek next to begin, so the one a change takes effect from. */
+const NEXT = 9;
+/** Long enough ago that no gameweek had begun. */
+const SEASON_SO_FAR = NEXT * WEEK_MS;
+
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
-  await holdGameweeks(t, { next: 9 });
+  await holdGameweeks(t, { next: NEXT });
   leagueId = await adminCreatesLeague(t);
 });
 
@@ -51,7 +57,7 @@ const inGameweek = (gameweek: number) => t.run((ctx) => rulesInGameweek(ctx, lea
 
 describe("reading them", () => {
   test("gives the settings the draw plays by, the row they're from and the next gameweek a change would take effect from", async () => {
-    expect(await read()).toEqual({ part: FIRST, revision: await rulesRevision(t, leagueId), changesFrom: 9 });
+    expect(await read()).toEqual({ part: FIRST, revision: await rulesRevision(t, leagueId), changesFrom: NEXT });
   });
 
   test("gives rules saved before they were rules the first rules' values", async () => {
@@ -68,12 +74,12 @@ describe("reading them", () => {
 
 describe("changing them", () => {
   test("applies from the next gameweek only, keeps the rest of the rules, and files one letter", async () => {
-    expect(await change({ ...FIRST, oddTeamOut: "bye", gamesPerGameweek: 2 })).toBe(9);
+    expect(await change({ ...FIRST, oddTeamOut: "bye", gamesPerGameweek: 2 })).toBe(NEXT);
 
-    expect(await inGameweek(8)).toEqual(HELD_FIRST_RULES);
-    expect(await inGameweek(9)).toEqual({ ...HELD_FIRST_RULES, oddTeamOut: "bye", gamesPerGameweek: 2 });
+    expect(await inGameweek(NEXT - 1)).toEqual(HELD_FIRST_RULES);
+    expect(await inGameweek(NEXT)).toEqual({ ...HELD_FIRST_RULES, oddTeamOut: "bye", gamesPerGameweek: 2 });
     expect((await eventsIn(t, leagueId)).filter((event) => event.kind === "rulesChanged")).toEqual([
-      { by: COMMISSIONER, kind: "rulesChanged", fromGameweek: 9, changed: ["oddTeamOut", "gamesPerGameweek"] },
+      { by: COMMISSIONER, kind: "rulesChanged", fromGameweek: NEXT, changed: ["oddTeamOut", "gamesPerGameweek"] },
     ]);
   });
 
@@ -81,7 +87,7 @@ describe("changing them", () => {
     await savedBeforeTheyWereRules();
     await change({ ...FIRST, gamesPerGameweek: 2 });
 
-    expect((await inGameweek(9)).oddTeamOut).toBeUndefined();
+    expect((await inGameweek(NEXT)).oddTeamOut).toBeUndefined();
     expect((await eventsIn(t, leagueId)).at(-1)).toMatchObject({ kind: "rulesChanged", changed: ["gamesPerGameweek"] });
   });
 
@@ -90,7 +96,7 @@ describe("changing them", () => {
       change({ ...FIRST, gamesPerGameweek: games }),
       `The head-to-head games each team plays a gameweek must be a whole number, 1 or more, not ${games}.`,
     );
-    expect(await inGameweek(9)).toEqual(HELD_FIRST_RULES);
+    expect(await inGameweek(NEXT)).toEqual(HELD_FIRST_RULES);
   });
 
   test("more games a gameweek than the league's teams have opponents for is refused, and saves nothing", async () => {
@@ -98,7 +104,7 @@ describe("changing them", () => {
       change({ ...FIRST, gamesPerGameweek: 10 }),
       "With 4 teams, a team can play at most 3 games a gameweek, not 10: one against each of the other 3.",
     );
-    expect(await inGameweek(9)).toEqual(HELD_FIRST_RULES);
+    expect(await inGameweek(NEXT)).toEqual(HELD_FIRST_RULES);
   });
 
   test("rules saved before that refusal, with more games than rounds, play as many as the round robin has", async () => {
@@ -115,7 +121,13 @@ describe("changing them", () => {
   });
 
   test("more games a gameweek reach the table from the gameweek the change applies from, never the one before it (#266)", async () => {
+    // Made before the season, so the gameweeks begun have fixtures: a league made mid-season has
+    // none in those (#282).
+    const now = Date.now();
+    vi.setSystemTime(now - SEASON_SO_FAR);
+    leagueId = await adminCreatesLeague(t, 4, "Made before the season");
     await addManagers(t, leagueId, MANAGERS.slice(0, 4));
+    vi.setSystemTime(now);
     const games = 3;
     const from = await change({ ...FIRST, gamesPerGameweek: games });
     const table = await (await actingAs(t, COMMISSIONER)).query(api.table.leagueTable.ofLeague, { leagueId });
@@ -133,7 +145,7 @@ describe("changing them", () => {
 
     const refusal = change({ ...FIRST, oddTeamOut: "bye", gamesPerGameweek: 3 }, COMMISSIONER, opened);
     await expect(refusal).rejects.toThrow(`${CO_COMMISSIONER} saved the league's rules on`);
-    expect((await inGameweek(9)).gamesPerGameweek).toBe(2);
+    expect((await inGameweek(NEXT)).gamesPerGameweek).toBe(2);
     expect(await eventsIn(t, leagueId)).toEqual(events);
   });
 
@@ -150,8 +162,8 @@ describe("the squad's make-up (#341)", () => {
   test("saves the maximum, the minimums by area and the club maximum from the next gameweek, keeping the least squad size, with a letter", async () => {
     await change({ ...FIRST, squadMaximum: 25, minimumByArea: MINIMUMS, maxPerClub: 3 });
 
-    expect((await inGameweek(9)).squad).toEqual({ size: { minimum: SIZE.minimum, maximum: 25 }, minimumByArea: MINIMUMS, maxPerClub: 3 });
-    expect((await inGameweek(8)).squad).toEqual(HELD_FIRST_RULES.squad);
+    expect((await inGameweek(NEXT)).squad).toEqual({ size: { minimum: SIZE.minimum, maximum: 25 }, minimumByArea: MINIMUMS, maxPerClub: 3 });
+    expect((await inGameweek(NEXT - 1)).squad).toEqual(HELD_FIRST_RULES.squad);
     expect((await eventsIn(t, leagueId)).at(-1)).toMatchObject({ kind: "rulesChanged", changed: ["squad"] });
     expect((await read())?.part).toEqual({ ...FIRST, squadMaximum: 25, minimumByArea: MINIMUMS, maxPerClub: 3 });
   });
@@ -160,7 +172,7 @@ describe("the squad's make-up (#341)", () => {
     await change({ ...FIRST, minimumByArea: MINIMUMS, maxPerClub: 3 });
     await change(FIRST);
 
-    expect((await inGameweek(9)).squad).toEqual(HELD_FIRST_RULES.squad);
+    expect((await inGameweek(NEXT)).squad).toEqual(HELD_FIRST_RULES.squad);
   });
 
   test.each([
@@ -175,7 +187,7 @@ describe("the squad's make-up (#341)", () => {
     ["a club maximum of 0", { maxPerClub: 0 }, "The most players from one club must be a whole number, 1 or more, not 0."],
   ])("refuses %s with the reason, and saves nothing", async (_, settings, reason) => {
     await expectRefused(change({ ...FIRST, ...settings }), reason);
-    expect(await inGameweek(9)).toEqual(HELD_FIRST_RULES);
+    expect(await inGameweek(NEXT)).toEqual(HELD_FIRST_RULES);
   });
 
   describe("for rules with no squad size limit", () => {
@@ -190,7 +202,7 @@ describe("the squad's make-up (#341)", () => {
       expect((await read())?.part.squadMaximum).toBeNull();
       await change({ ...FIRST, squadMaximum: null, maxPerClub: 2 });
 
-      expect((await inGameweek(9)).squad).toEqual({ size: null, minimumByArea: null, maxPerClub: 2 });
+      expect((await inGameweek(NEXT)).squad).toEqual({ size: null, minimumByArea: null, maxPerClub: 2 });
     });
 
     test("refuses a maximum, as the screen can't add a limit", async () => {
@@ -200,7 +212,7 @@ describe("the squad's make-up (#341)", () => {
 
   test("refuses no maximum for rules with a squad size limit, as the screen can't take one away", async () => {
     await expectRefused(change({ ...FIRST, squadMaximum: null }), settingsRefusals.squadSizeFixed);
-    expect(await inGameweek(9)).toEqual(HELD_FIRST_RULES);
+    expect(await inGameweek(NEXT)).toEqual(HELD_FIRST_RULES);
   });
 
   test("is refused for a league made before leagues held rules", async () => {

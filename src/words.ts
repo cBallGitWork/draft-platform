@@ -1,5 +1,7 @@
 // What every screen says alike, in one place for Craig to change in the pull request.
 
+import { LOCALE } from "../convex/shared/londonTime";
+
 /** What a screen says when a change or a read failed for any reason but the server's refusal (src/refusal.ts):
  *  `outcome` is what that left, such as "nothing changed". */
 export const failedWords = (outcome: string) => `Something went wrong, so ${outcome}. Check your connection and try again.`;
@@ -11,6 +13,10 @@ export const NO_CONVEX_URL = "VITE_CONVEX_URL isn't set, so the app can't reach 
 
 /** A gameweek by name, as its tick box and the fixtures' stepper say it. */
 export const gameweekWords = (gameweek: number) => `Gameweek ${gameweek}`;
+
+const whenFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+/** A time in the viewer's own zone, e.g. "Sat 17 Oct, 13:00": a deadline, a feed's last run. */
+export const whenWords = (at: number) => whenFormat.format(at);
 
 /** Between the two sides of a match or a fixture: "Hull City v Everton". */
 export const versusWords = "v";

@@ -10,11 +10,12 @@ import { headToHeadTable, totalPointsTable, type GameweekScores } from "./standi
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 
 // The league's fixtures and table (#33; spec/09, spec/12 "table and fixtures"), for anyone with a
-// part in it. Each gameweek the league has played has its fixtures as stored once it began, and the
-// rest are drawn from the teams, the gameweeks the league plays and the rules in force in each
-// (playedFixtures.ts; #137, #266). No matchup is scored yet (no lineups or scores are kept), so
-// the table is all noughts until #29's scores reach it; the commissioner editing fixtures (spec/09)
-// comes later.
+// part in it. Each gameweek the league has begun has its fixtures as stored once it began, none in
+// one begun with no head-to-head (before the league was made, say: #282), and the rest are drawn
+// from the teams, the gameweeks the league plays and the rules in force in each (playedFixtures.ts;
+// #137, #266). The table counts the same fixtures the screen shows. No matchup is scored yet (no
+// lineups or scores are kept), so the table is all noughts until #29's scores reach it; the
+// commissioner editing fixtures (spec/09) comes later.
 
 const fixture = v.object({
   team: v.string(),
@@ -49,8 +50,8 @@ export const leagueTable = v.object({
   format: leagueRulesShape.fields.format,
   /** How many rounds one round robin has, every team meeting every other once; 0 with no fixtures. */
   roundRobinRounds: v.number(),
-  /** Each gameweek the league plays, with its fixtures; none in total points, or with fewer than
-   *  two teams. */
+  /** Each gameweek the league plays head-to-head, with its fixtures: none in total points, with
+   *  fewer than two teams, nor one begun with no head-to-head (playedFixtures.ts). */
   gameweeks: v.array(gameweekFixtures),
   table: v.array(tableRow),
 });

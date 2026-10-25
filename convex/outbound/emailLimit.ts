@@ -2,7 +2,8 @@ import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { DAY_MS } from "../shared/time";
 
 // The day's email limit. Every email the app sends counts against it: sign-in links
-// (signInLinks.ts), joining's (joinRequests.ts) and the deletion notices (deletionNotices.ts).
+// (signInLinks.ts), joining's (joinRequests.ts), the deletion notices (deletionNotices.ts) and the
+// admin's feed failure emails (admin/feedFailureEmails.ts).
 // Each is counted before it is sent, so two sends at once can't both take the day's last email;
 // one that then fails stays counted, as Resend may have counted it too.
 
