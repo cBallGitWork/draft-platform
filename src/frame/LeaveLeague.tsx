@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { LeaguesSeam } from "../leagues/seam";
 import { useChange } from "../useChange";
+import { Confirm } from "./Confirm";
 import { Problem } from "./Panel";
 import { leaveWords } from "./words";
 
@@ -30,15 +31,14 @@ export function LeaveLeague({
       <Problem problem={problem} />
       {confirming ? (
         <div className="flex flex-col gap-2 px-3 py-2">
-          <p className="text-event">{leaveWords.confirm(league.name, teamName)}</p>
-          <span className="flex flex-wrap gap-2">
-            <button type="button" disabled={busy} onClick={() => void leave()} className="action">
-              {leaveWords.yes}
-            </button>
-            <button type="button" onClick={() => setConfirming(false)} className="secondary-action">
-              {leaveWords.no}
-            </button>
-          </span>
+          <Confirm
+            question={leaveWords.confirm(league.name, teamName)}
+            yes={leaveWords.yes}
+            no={leaveWords.no}
+            busy={busy}
+            onYes={() => void leave()}
+            onNo={() => setConfirming(false)}
+          />
         </div>
       ) : (
         <button type="button" onClick={() => setConfirming(true)} className="flex min-h-tap w-full items-center px-3 text-left">

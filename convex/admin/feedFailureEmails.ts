@@ -24,7 +24,7 @@ export function emailsNow(lastEmailedAt: number | null, failedAt: number): boole
 }
 
 /** Wording for Craig to change in the pull request. */
-export function failureEmail(feed: Feed, ranAt: number, error: string) {
+function failureEmail(feed: Feed, ranAt: number, error: string) {
   const { name, source } = FEED_NAMES[feed];
   return {
     subject: `${PRODUCT_NAME}: ${name} failed`,

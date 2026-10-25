@@ -2,11 +2,9 @@
 // refused a change is in convex/rules/ (`rulesRefusals`, and the scoring set's reasons in
 // convex/scoring/scoringSet.ts), and reaches the screen as is.
 
-import type { Area, SlotPosition } from "../../convex/lineup/pitch";
+import type { SlotPosition } from "../../convex/lineup/pitch";
 import { failedWords, gameweekWords } from "../words";
-import type { Pricing, Shape } from "./editing";
-
-export { gameweekWords };
+import type { PerCount, Pricing, Shape } from "./editing";
 
 export const SCORING_TITLE = "Player scoring";
 export const categoriesLabel = "Categories";
@@ -17,7 +15,7 @@ export const noRulesWords = "This league was made before leagues held their rule
 export const pricingWords: Record<Exclude<Pricing, "all">, string> = { byArea: "By area", byPosition: "By position" };
 export const bandsWords = "Bands";
 /** "1 per 3", for a per-number rule the same for all. */
-export const perCountSummary = ({ points, every }: { points: number; every: number }) => `${pointsWords(points)} per ${every}`;
+export const perCountSummary = ({ points, every }: PerCount) => `${pointsWords(points)} per ${every}`;
 
 /** A number of points as the editor shows it outside a box: a minus sign, not a hyphen. */
 export const pointsWords = (points: number) => (points < 0 ? `−${-points}` : String(points));
@@ -66,15 +64,6 @@ export const removeBandWords = "×";
 export const removeBandLabel = (bandRow: string) => `Remove ${bandRow}`;
 export const noBandsWords = "No bands: pays nothing.";
 
-export const AREA_WORDS: Record<Area, string> = {
-  goalkeeper: "Goalkeeper",
-  defence: "Defence",
-  defensiveMidfield: "Defensive midfield",
-  midfield: "Midfield",
-  attackingMidfield: "Attacking midfield",
-  attack: "Attack",
-};
-
 export const POSITION_WORDS: Record<SlotPosition, string> = {
   GK: "Goalkeeper (GK)",
   FB: "Full-back (FB)",
@@ -93,4 +82,6 @@ export const wholePointsWords = "Whole points only";
 export const savedWords = (gameweek: number) => `Saved. The new scoring applies from ${gameweekWords(gameweek)}, and the league has a letter saying so.`;
 export const blankBoxWords = (category: string) => `${category} has a box without a number. Fill it in, then save.`;
 
-export const saveFailedWords = failedWords("the scoring didn't change");
+/** What a failed save leaves, live or in the preview. */
+export const unsavedOutcome = "the scoring didn't change";
+export const saveFailedWords = failedWords(unsavedOutcome);

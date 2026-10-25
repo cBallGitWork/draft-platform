@@ -49,14 +49,10 @@ recorded (`tests/support/recorded/commentary.payloads.ts`).
 
 Ipswich 1–1 Nott'm Forest (fixture 128999), recorded every 30 s by `scripts/record-match.mjs`
 and checked from Convex every 5 min with `football/feeds:commentaryCheck`. Convex's servers were
-answered at every check, and the line count they saw rose at every check in play (2 to 83 by
-90+2'); the Mac's recorder saw 1 line grow to 94. A line appears within a minute or two of its
-event; the longest gap in play was 6½ min, 16 at half-time. It is not append-only: 9 lines
-vanished before full time and 15 were reworded, so the commentary should replace what it shows
-on each read. The lineups were out before the first read, 58 min before kickoff; the team stats
-held only each side's formation until the 8th minute. The live poller ran a tick a
-minute for all 119 minutes with no failure, and saw full time the minute it came
-([docs/pl-match-stats.md](docs/pl-match-stats.md)). Three of its commentary reads and three of
+answered at every check, and the live poller never failed. The commentary is not append-only
+(lines vanish and are reworded), so it should replace what it shows on each read. The timings and
+counts: [docs/pl-commentary.md](docs/pl-commentary.md) and
+[docs/pl-match-stats.md](docs/pl-match-stats.md). Three of its commentary reads and three of
 its team stats reads are kept for the tests (`tests/support/recorded/pl-live-match.json`).
 
 **When the free plans stop being enough:**
@@ -73,7 +69,7 @@ its team stats reads are kept for the tests (`tests/support/recorded/pl-live-mat
 | What | Choice | Why |
 |---|---|---|
 | App | a Vite single-page React app with TanStack Router | Convex's main path, and the only setup its own sign-in officially supports; typed routes for filter-heavy tables; server rendering buys little where everyone is signed in and every screen is live. TanStack Start uses the same router if that changes |
-| Sign-in | Convex Auth (`@convex-dev/auth`) magic links, with Auth.js's Resend provider (`@auth/core`, its required peer); the email is sent with one `fetch` to Resend's API, no Resend package | the backend's own; beta, so read its current docs first. The hourly and daily limits are counted in our own tables (`convex/signIn/signInLinks.ts`), not `@convex-dev/rate-limiter`: a Convex mutation is one transaction, so the count can't race, and it's one component less to install |
+| Sign-in | Convex Auth (`@convex-dev/auth`) magic links, with Auth.js's Resend provider (`@auth/core`, its required peer); the email is sent with one `fetch` to Resend's API, no Resend package | the backend's own; beta, so read its current docs first. The hourly and daily limits are counted in our own tables (the hour's in `convex/signIn/signInLinks.ts`, the day's in `convex/outbound/emailLimit.ts`), not `@convex-dev/rate-limiter`: a Convex mutation is one transaction, so the count can't race, and it's one component less to install |
 | Components | shadcn/ui on Base UI, added with the first component that needs Base UI's behaviour (a dialog, or a true ARIA menu with arrow-key roving focus); a disclosure list like the league switcher (`src/frame/LeagueSwitcher.tsx`) is hand-built and needs none | the code is copied into the repo, so it is ours to restyle |
 | Styling | Tailwind 4 with our own design values | the defaults are the generic AI look Craig wants to get far from |
 | Typeface | Archivo Narrow from Fontsource | plate.md's one face, served with the app: no call to Google from the sign-in page, and screenshots don't wait on a font server |

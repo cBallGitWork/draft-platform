@@ -1,6 +1,17 @@
 // What every screen says alike, in one place for Craig to change in the pull request.
 
+import type { Area } from "../convex/lineup/pitch";
 import { LOCALE } from "../convex/shared/londonTime";
+
+/** The pitch's areas, as the rules screens name them. */
+export const AREA_WORDS: Record<Area, string> = {
+  goalkeeper: "Goalkeeper",
+  defence: "Defence",
+  defensiveMidfield: "Defensive midfield",
+  midfield: "Midfield",
+  attackingMidfield: "Attacking midfield",
+  attack: "Attack",
+};
 
 /** What a screen says when a change or a read failed for any reason but the server's refusal (src/refusal.ts):
  *  `outcome` is what that left, such as "nothing changed". */

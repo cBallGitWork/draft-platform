@@ -3,13 +3,13 @@ import { AREAS, type Area } from "../../convex/lineup/pitch";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import { ODD_TEAM_OUTS } from "../../convex/table/roundRobin";
 import { Loading, PageSection, PANEL_BODY, PanelNote, PanelTitle } from "../frame/Panel";
-import { BackToLeagues } from "../leagues/LeagueLinks";
+import { LeagueHeading } from "../leagues/LeagueLinks";
 import { Choice } from "../rules/Choice";
 import { useRulesDraft } from "../rules/rulesDraft";
 import { SaveBar } from "../rules/SaveBar";
 import { TickBox } from "../rules/TickBox";
-import { NumberBox } from "../scoring/NumberBox";
-import { AREA_WORDS } from "../scoring/words";
+import { NumberBox } from "../rules/NumberBox";
+import { AREA_WORDS } from "../words";
 import type { LeagueSettingsSeam, SettingsView } from "./seam";
 import {
   areaMinimumLabel,
@@ -51,10 +51,7 @@ export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: Le
   return (
     <div className="flex max-w-3xl flex-col gap-2">
       <PageSection title={SETTINGS_TITLE} className="bg-panel">
-        <p className="flex flex-wrap items-center gap-4 px-3 py-2">
-          <span className="text-lead font-semibold">{league.name}</span>
-          <BackToLeagues />
-        </p>
+        <LeagueHeading name={league.name} />
       </PageSection>
       {view === undefined ? (
         <Loading>{loadingWords}</Loading>

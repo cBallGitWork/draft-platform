@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Confirm } from "../frame/Confirm";
 import { PanelTitle, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
@@ -41,17 +42,14 @@ function TeamRow({ team, page, joining }: { team: Team; page: InvitesPageData; j
       <Problem problem={problem} />
       {managerEmail !== null &&
         (confirming ? (
-          <>
-            <p className="text-event">{teamsWords.confirm(managerEmail, team.name)}</p>
-            <span className="flex flex-wrap gap-2">
-              <button type="button" disabled={busy} onClick={() => void remove()} className="action">
-                {teamsWords.yes}
-              </button>
-              <button type="button" onClick={() => setConfirming(false)} className="secondary-action">
-                {teamsWords.no}
-              </button>
-            </span>
-          </>
+          <Confirm
+            question={teamsWords.confirm(managerEmail, team.name)}
+            yes={teamsWords.yes}
+            no={teamsWords.no}
+            busy={busy}
+            onYes={() => void remove()}
+            onNo={() => setConfirming(false)}
+          />
         ) : (
           <button
             type="button"

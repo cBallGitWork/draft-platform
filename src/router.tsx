@@ -20,6 +20,7 @@ import type { TopBarState } from "./frame/topBarState";
 import { MAIL_PATH, MY_TEAM_PATH, pages, TABLE_PATH } from "./frame/menu";
 import { PageNotBuilt } from "./frame/PageNotBuilt";
 import { GameweeksRoute } from "./gameweeks/GameweeksRoute";
+import type { LeagueSummary } from "../convex/leagues/myLeagues";
 import { GAMEWEEKS_ROUTE } from "./gameweeks/paths";
 import type { GameweeksSeam } from "./gameweeks/seam";
 import { InvitesPage } from "./joining/InvitesPage";
@@ -39,20 +40,21 @@ import { SIGN_IN_PATH } from "./sign-in/paths";
 import { SignInPage } from "./sign-in/SignInPage";
 import { SETTINGS_ROUTE } from "./leagueSettings/paths";
 import type { LeagueSettingsSeam } from "./leagueSettings/seam";
-import { SettingsRoute } from "./leagueSettings/SettingsRoute";
+import { SettingsPage } from "./leagueSettings/SettingsPage";
 import { SCORING_ROUTE } from "./scoring/paths";
 import type { ScoringSeam } from "./scoring/seam";
-import { ScoringRoute } from "./scoring/ScoringRoute";
+import { ScoringPage } from "./scoring/ScoringPage";
 import { SQUADS_ROUTE } from "./squads/paths";
 import type { SquadsSeam } from "./squads/seam";
-import { SquadsRoute } from "./squads/SquadsRoute";
+import { SquadsPage } from "./squads/SquadsPage";
 import { linkProblemWords, type LinkProblem } from "./sign-in/words";
 import type { TableSeam } from "./table/seam";
 import { TableRoute } from "./table/TableRoute";
 
-// A seam is a top-level useLive* hook holding root state (mail, joining, squads, scoring, league settings, admin, leagues) or a
-// constant object of hooks (gameweeks, table). Each new one needs a preview (main.tsx), a live value
-// (liveApp.tsx) and a fake (shell.harness.tsx), and the typechecker flags any that's missing.
+// A seam is a top-level useLive* hook holding root state (mail, joining, squads, scoring, league
+// settings, admin, leagues) or a constant object of hooks (gameweeks, table). Each new one needs a
+// preview (previewApp.tsx), a live value (liveApp.tsx) and a fake (shell.harness.tsx), and the
+// typechecker flags any that's missing.
 export type ShellContext = {
   session: Session;
   auth: AuthActions;
@@ -175,12 +177,13 @@ const mailRoute = createRoute({
 /** The seams of the pages a league's runners open from its row on Your leagues. */
 type RunnerSeams = Pick<ShellContext, "gameweeks" | "squads" | "scoring" | "leagueSettings">;
 
-/** A page of one league's for whoever runs it, at `path`: `Page` is given the session, its seam
- *  from the context and the league in the address. */
+/** A page of one league's for whoever runs it, at `path`: `Page` is given the league in the address
+ *  and its seam from the context. The guard lets in only someone who runs the league; should they
+ *  stop while here, this shows nothing until the guard sends them on. */
 function runnersPage<Seam extends keyof RunnerSeams, Path extends `${string}/$leagueId/${string}`>(
   path: Path,
   seam: Seam,
-  Page: ComponentType<{ session: Session; seam: RunnerSeams[Seam]; leagueId: string }>,
+  Page: ComponentType<{ league: LeagueSummary; seam: RunnerSeams[Seam] }>,
 ) {
   const route = createRoute({
     getParentRoute: () => leaguePagesRoute,
@@ -188,16 +191,17 @@ function runnersPage<Seam extends keyof RunnerSeams, Path extends `${string}/$le
     beforeLoad: runnersOnly,
     component: function RunnersPage() {
       const context = route.useRouteContext();
-      return <Page session={context.session} seam={context[seam]} leagueId={route.useParams().leagueId} />;
+      const league = leagueRunBy(context.session, route.useParams().leagueId);
+      return league ? <Page league={league} seam={context[seam]} /> : null;
     },
   });
   return route;
 }
 
 const gameweeksRoute = runnersPage(GAMEWEEKS_ROUTE, "gameweeks", GameweeksRoute); // #74
-const squadsRoute = runnersPage(SQUADS_ROUTE, "squads", SquadsRoute); // #31
-const scoringRoute = runnersPage(SCORING_ROUTE, "scoring", ScoringRoute); // Player scoring, #30
-const settingsRoute = runnersPage(SETTINGS_ROUTE, "leagueSettings", SettingsRoute); // League settings
+const squadsRoute = runnersPage(SQUADS_ROUTE, "squads", SquadsPage); // #31
+const scoringRoute = runnersPage(SCORING_ROUTE, "scoring", ScoringPage); // Player scoring, #30
+const settingsRoute = runnersPage(SETTINGS_ROUTE, "leagueSettings", SettingsPage); // League settings
 
 // The admin's dashboard (#87), his alone.
 const adminRoute = createRoute({

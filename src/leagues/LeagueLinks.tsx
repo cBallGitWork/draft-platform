@@ -13,3 +13,13 @@ export function BackToLeagues({ className }: { className?: string }) {
     </Link>
   );
 }
+
+/** The league's name over a page its runner opens, with the way back to "Your leagues". */
+export function LeagueHeading({ name }: { name: string }) {
+  return (
+    <p className="flex flex-wrap items-center gap-4 px-3 py-2">
+      <span className="text-lead font-semibold">{name}</span>
+      <BackToLeagues />
+    </p>
+  );
+}

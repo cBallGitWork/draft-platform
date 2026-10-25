@@ -198,7 +198,7 @@ How #28 reads a match while it is played (`convex/stats/liveStatsSync.ts`, `conv
 **The replay the tests use is not a live recording.** `tests/support/convex/liveStats.harness.ts` cuts Hull v
 Everton, recorded finished, into a stage a minute: each man's stats grow with his share of his
 minutes on the pitch, and goals, assists and yellow cards land at the minutes the fixture's
-`events` give them. Friday's recording (#37: Ipswich v Nott'm Forest, Premier League fixture
+`events` give them. The 23 Oct 2026 recording (#37: Ipswich v Nott'm Forest, Premier League fixture
 128999, by `scripts/record-match.mjs`) reads the commentary, the fixture and the team stats, not
 the per-man stats or FPL's live read. To replay it instead, extend that script to save, each poll,
 FPL's `/event/{gw}/live/` and each named man's `/stats/player/{id}?fixtures=128999` for a later

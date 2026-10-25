@@ -53,7 +53,8 @@ never enough.
 **3. Read every PNG.** Then say, per image, what is in it, against `docs/design/plate.md`:
 
 - Overflow, clipping, a page that scrolls sideways at 390.
-- Colour roles: yellow only on a figure, never a button or a tab; Continue white (orange only when
+- Colour roles: the top bar and title plates blue, the page and panels neutral grey, never slate;
+  yellow only on a figure, never a button or a tab; Continue white (orange only when
   the deadline is near; outlined "Nothing needs you" with nothing to do); the active tab white with
   a cyan underline; orange for what happened or needs you; muted grey never on the top bar.
 - Archivo Narrow throughout; figures in tabular numerals.

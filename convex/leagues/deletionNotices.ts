@@ -12,7 +12,7 @@ import { unemailedReason } from "../schema";
 // keep it on.
 
 /** Wording for Craig to change in the pull request. */
-export function deletionEmail(leagueName: string, by: string) {
+function deletionEmail(leagueName: string, by: string) {
   return {
     subject: `${leagueName} has been deleted`,
     text: `${by} deleted ${leagueName}. It is gone for good, with its teams, Mail and history.`,

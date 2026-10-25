@@ -1,6 +1,7 @@
 #!/bin/bash
 # Runs every hook's checks (.claude/hooks/tests/, one suite per hook, plus settings.sh for their
-# wiring) and fails if any suite fails. A suite also runs alone: .claude/hooks/tests/<suite>.sh.
+# wiring and recorded_add_only.sh for scripts/recorded-add-only.mjs, which needs a scratch git
+# repo) and fails if any suite fails. A suite also runs alone: .claude/hooks/tests/<suite>.sh.
 # Every .sh there runs, except a file whose first line starts "# Sourced" (helpers.sh and the like).
 # Usage: .claude/hooks/test.sh   (exits 1 on any wrong answer)
 set -uo pipefail

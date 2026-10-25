@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalMutation } from "../_generated/server";
 import { failureOf, type RunOutcome } from "./feedState";
-import { FEED_RUN_TABLES, FEEDS, type Feed } from "../shared/feedSchedule";
+import { FEED_RUN_TABLES, feedValidator, type Feed } from "../shared/feedSchedule";
 import { BATCH_SIZE, FAILURE_KEPT_MS, LATEST_RUNS, SUCCESS_KEPT_MS } from "../shared/syncRuns";
 
 // Pruning the feeds' run logs (#146): every run of a sync or tick is a row, and nothing else ever
@@ -28,7 +28,7 @@ const succeeded = (row: RunRow) => failureOf(row.outcome) === null;
 export const prune = internalMutation({
   args: {
     /** The feed being pruned; the first in `PRUNE_ORDER` when absent. */
-    feed: v.optional(v.union(...FEEDS.map((feed) => v.literal(feed)))),
+    feed: v.optional(feedValidator),
     /** When this pruning began, so every batch keeps the same rows. Now when absent. */
     startedAt: v.optional(v.number()),
     /** The `_creationTime` of the last row the batch before read. */

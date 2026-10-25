@@ -10,6 +10,8 @@ export type Scoring = LeagueRules["scoring"];
 export type Rule = Scoring["rules"][number];
 export type Shape = Rule["shape"];
 export type PointsLimit = { max: number | null; min: number | null };
+/** A per-number rule's price: `points` for every `every` he makes. */
+export type PerCount = { every: number; points: number };
 
 /** The three kinds of rule, in the order the editor offers them. */
 export const SHAPES = ["perAction", "perCount", "bands"] as const satisfies readonly Shape[];
@@ -42,7 +44,7 @@ export function keysOf(pricing: Pricing): readonly PriceKey[] {
   return pricing === "all" ? ["all"] : pricing === "byArea" ? AREAS : SLOT_POSITIONS;
 }
 
-export function pricingOf(priced: Priced<unknown>): Pricing {
+function pricingOf(priced: Priced<unknown>): Pricing {
   return "all" in priced ? "all" : "byArea" in priced ? "byArea" : "byPosition";
 }
 
@@ -103,7 +105,7 @@ function setAt<Value>(priced: Priced<Value>, key: PriceKey, value: Value): Price
 }
 
 /** What one row of a rule pays: a number per action, points for every so many, or bands. */
-export type ValueOf<S extends Shape> = S extends "perAction" ? number : S extends "perCount" ? { every: number; points: number } : Band[];
+type ValueOf<S extends Shape> = S extends "perAction" ? number : S extends "perCount" ? PerCount : Band[];
 
 /** The rule paying `value` in this row, all its parts priced as the row is. */
 export function withValue(rule: Rule, key: PriceKey, value: ValueOf<Shape>): Rule {

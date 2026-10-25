@@ -16,7 +16,7 @@ export type Revision = Id<"leagueRules">;
 export type RulesView<Part> = { part: Part; revision: Revision; changesFrom: number };
 
 /** Saves a part: resolves with the gameweek it takes effect from, or the words saying why not. */
-export type SavePart<Part> = (part: Part, revision: Revision) => Promise<number | string>;
+type SavePart<Part> = (part: Part, revision: Revision) => Promise<number | string>;
 
 /** The commissioner's draft of `view`'s part. Until they edit, it is the latest as it arrives;
  *  once they have, it keeps their edits and the row they were made from, and is `overtaken` once

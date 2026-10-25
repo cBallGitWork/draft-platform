@@ -6,10 +6,7 @@ import { MOST_IN_SQUAD } from "../../convex/leagues/leagueLimits";
 import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import type { Area } from "../../convex/lineup/pitch";
 import type { OddTeamOut } from "../../convex/table/roundRobin";
-import { AREA_WORDS } from "../scoring/words";
-import { failedWords, gameweekWords } from "../words";
-
-export { gameweekWords };
+import { AREA_WORDS, failedWords, gameweekWords } from "../words";
 
 export const SETTINGS_TITLE = "League settings";
 export const loadingWords = "Loading the league settings…";
@@ -41,4 +38,6 @@ export const blankClubMaximumWords = `${clubMaximumLabel} has no number. Fill it
 
 export const savedWords = (gameweek: number) => `Saved. The new settings apply from ${gameweekWords(gameweek)}, and the league has a letter saying so.`;
 
-export const saveFailedWords = failedWords("the settings didn't change");
+/** What a failed save leaves, live or in the preview. */
+export const unsavedOutcome = "the settings didn't change";
+export const saveFailedWords = failedWords(unsavedOutcome);

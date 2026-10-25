@@ -4,12 +4,12 @@ import { categoryName } from "../../convex/scoring/categories";
 import type { Priced } from "../../convex/scoring/scoringSet";
 import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogue";
 import { Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
-import { BackToLeagues } from "../leagues/LeagueLinks";
+import { LeagueHeading } from "../leagues/LeagueLinks";
 import { useRulesDraft } from "../rules/rulesDraft";
 import { SaveBar } from "../rules/SaveBar";
 import { TickBox } from "../rules/TickBox";
 import { CategoryEditor } from "./CategoryEditor";
-import { firstBlankRule, newRule, rulePricing, valueAt, type Rule, type Scoring } from "./editing";
+import { firstBlankRule, newRule, rulePricing, valueAt, type PerCount, type Rule, type Scoring } from "./editing";
 import type { ScoringSeam, ScoringView } from "./seam";
 import {
   addCategoryLabel,
@@ -40,10 +40,7 @@ export function ScoringPage({ league, seam }: { league: LeagueSummary; seam: Sco
   return (
     <div className="flex max-w-6xl flex-col gap-2">
       <PageSection title={SCORING_TITLE} className="bg-panel">
-        <p className="flex flex-wrap items-center gap-4 px-3 py-2">
-          <span className="text-lead font-semibold">{league.name}</span>
-          <BackToLeagues />
-        </p>
+        <LeagueHeading name={league.name} />
       </PageSection>
       {view === undefined ? (
         <Loading>{loadingWords}</Loading>
@@ -122,7 +119,7 @@ function Summary({ rule }: { rule: Rule }) {
   if (pricing !== "all") return <span className="text-derived">{pricingWords[pricing]}</span>;
   if (rule.shape === "bands") return <span className="text-derived">{bandsWords}</span>;
   const value = valueAt(rule.values as Priced<unknown>, "all");
-  const words = rule.shape === "perAction" ? pointsWords(value as number) : perCountSummary(value as { every: number; points: number });
+  const words = rule.shape === "perAction" ? pointsWords(value as number) : perCountSummary(value as PerCount);
   return <span className="text-figure">{words}</span>;
 }
 
