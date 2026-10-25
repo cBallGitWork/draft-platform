@@ -47,6 +47,7 @@ export async function gameweekStartsOf(ctx: QueryCtx, matches: readonly Schedule
   const rows = await ctx.db
     .query("gameweekStarts")
     .withIndex("by_season_and_gameweek", (q) => q.eq("season", season))
+    // Never more: `recordGameweekStarts` writes one row a season and gameweek, of FPL's 38.
     .take(GAMEWEEKS);
   return new Map(rows.map((row) => [row.gameweek, row.firstKickoff]));
 }
