@@ -5,12 +5,13 @@
 // names one string in NEEDLES, and the check fails first if a preview module names none, its
 // string is no longer in it, or another source file holds it too, so a renamed string or a new
 // preview module can't leave it blind and a shared one can't fail it for nothing.
-// Run from the repo after `vite build`: `npm run build` runs both, so CI does.
+// Run from the repo after `vite build`: `npm run build` runs both, so CI does. An argument names
+// another built folder than dist/ (its tests do).
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
 
-const DIST = "dist";
+const DIST = process.argv[2] ?? "dist";
 const SOURCES = ["src", "convex"];
 const PREVIEW_FILE = "preview.ts";
 
