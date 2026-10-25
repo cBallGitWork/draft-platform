@@ -49,6 +49,11 @@ export const playerRecord = v.object({
   name: v.string(),
   fullName: v.string(),
   clubCode: v.number(),
+  /** FPL's news on why he may miss the next match, "" with none (#381); absent on rows from before it. */
+  news: v.optional(v.string()),
+  /** FPL's chance he plays in the next round, in percent, null while it has no doubt about him
+   *  (#381); absent on rows from before it. */
+  chanceOfPlaying: v.optional(v.union(v.number(), v.null())),
 });
 
 export const fixtureRecord = v.object({
@@ -216,10 +221,10 @@ export const matchStatsSyncFields = {
 };
 
 const matchStatsTables = {
-  playerMatchStats: defineTable(playerMatchRecord.extend({ state: matchStatsState })).index("by_fixtureCode_and_playerCode", [
-    "fixtureCode",
-    "playerCode",
-  ]),
+  playerMatchStats: defineTable(playerMatchRecord.extend({ state: matchStatsState }))
+    .index("by_fixtureCode_and_playerCode", ["fixtureCode", "playerCode"])
+    // A player's matches, for his card (#381), whichever clubs he played them for.
+    .index("by_playerCode", ["playerCode"]),
   matchStatsStatus: defineTable(matchStatsStatusFields)
     .index("by_fixtureCode", ["fixtureCode"])
     // The feeds page's matches still provisional past their window (spec/15).

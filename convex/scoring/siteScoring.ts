@@ -87,11 +87,19 @@ export function historyOf(ctx: QueryCtx): Promise<Doc<"siteScoring">[]> {
  *  newest version to take effect at or before its first kickoff, the first set before any. A
  *  gameweek with no kickoff time yet plays the newest. */
 export async function siteScoringInGameweek(ctx: QueryCtx, gameweek: number): Promise<StoredScoringSet> {
+  return (await siteScoringByGameweek(ctx))(gameweek);
+}
+
+/** `siteScoringInGameweek` for any gameweek, reading the versions and the schedule once: for a
+ *  read that prices matches across many gameweeks, such as a player's card (#381). */
+export async function siteScoringByGameweek(ctx: QueryCtx): Promise<(gameweek: number) => StoredScoringSet> {
   const history = await historyOf(ctx);
   const { matches } = await heldSchedule(ctx);
-  const firstKickoff = gameweekDeadline(gameweek, matches, AT_FIRST_KICKOFF, { recorded: null, now: 0 });
-  const inForce = firstKickoff === null ? history.at(-1) : history.findLast((row) => row.takesEffectAt <= firstKickoff);
-  return inForce?.scoring ?? FIRST_SCORING;
+  return (gameweek) => {
+    const firstKickoff = gameweekDeadline(gameweek, matches, AT_FIRST_KICKOFF, { recorded: null, now: 0 });
+    const inForce = firstKickoff === null ? history.at(-1) : history.findLast((row) => row.takesEffectAt <= firstKickoff);
+    return inForce?.scoring ?? FIRST_SCORING;
+  };
 }
 
 /** The first gameweek a version taking effect at `at` reaches: the first whose first kickoff is at
