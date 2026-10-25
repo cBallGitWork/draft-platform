@@ -13,8 +13,8 @@ letters, newest first. It reports; it never advises.
   (an assignment, a rule change, a fixture edit, a team handed on, the auto team
   switched on, a manager joining, removed or leaving (`spec/13`), a score override: `spec/15`), and the admin's actions that change a score,
   a squad or who runs a team;
-  draft-day letters (on the clock, pick made); a scout's report being in, and a shortlisted
-  player dropped or clearing waivers (`spec/19`); and every patch to the site's scoring, to every
-  manager (`spec/14`, 25 Oct 2026).
+  draft-day letters (on the clock, pick made); a scout's report being in, the league's weekly recap
+  being up (`spec/12`), and a shortlisted player dropped or clearing waivers (`spec/19`); and every
+  patch to the site's scoring, to every manager (`spec/14`, 25 Oct 2026).
 - Real-life news, once there is a source for it.
 - The commissioner can send a one-way letter to the whole league. There is still no chat.
