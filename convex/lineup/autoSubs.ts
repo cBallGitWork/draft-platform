@@ -3,7 +3,15 @@
 // built (#10, #11): a sub's role, the slot's or his best-star one, is told by `into` for them.
 // Storing the result, scoring it and showing it are not here.
 
-import { lineupProblems, type Lineup, type LineupRules, type Placement, type PlayerPositions } from "./lineup";
+import {
+  STARTER_COUNT,
+  lineupProblems,
+  type Lineup,
+  type LineupProblem,
+  type LineupRules,
+  type Placement,
+  type PlayerPositions,
+} from "./lineup";
 import { AREAS, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
 
 /** Players are FPL's season-stable `code`. */
@@ -45,10 +53,19 @@ export interface AutoSubs {
   substitutions: Substitution[];
   /** Starters who didn't play and whom no one could replace legally: each one's slot scores nothing. */
   unfilled: PlayerCode[];
-  /** After the substitutions: each player off sits on the bench where his sub sat. Always legal,
-   *  but for a starter who lost a position after he was placed, who stays (spec/06). */
+  /** After the substitutions: each player off sits on the bench where his sub sat. No sub makes it
+   *  less legal than it started, so a legal lineup stays legal. */
   lineup: Lineup;
+  /** What the lineup carried in and still carries: fewer than eleven, or area limits a later rules
+   *  change broke. Empty when it may stand, a starter who lost a position aside (spec/06). */
+  carriedProblems: LineupProblem[];
 }
+
+/** What a saved lineup can carry into a gameweek (#392): a player who left the squad leaves his
+ *  cell empty, and a later rules change isn't checked against it. Auto-subs work around both and
+ *  leave an empty cell empty: they replace only a starter who didn't play. Any other problem is
+ *  data gone wrong, and is thrown. */
+const CARRIED_KINDS: ReadonlySet<LineupProblem["kind"]> = new Set(["wrongStarterCount", "belowMinimum", "aboveMaximum"]);
 
 /** The substitutions for every starter who didn't play, back to front and left to right, and the
  *  lineup they leave. There is no limit on them (spec/05). */
@@ -59,9 +76,11 @@ export function autoSubs(
   plays: ReadonlyMap<PlayerCode, GameweekPlay>,
   rules: LineupRules,
 ): AutoSubs {
-  const problems = standingProblems(lineup, positions, rules);
-  if (problems.length > 0) {
-    throw new Error(`Auto-subs start from a lineup that may stand, not one with ${problems.map((p) => p.kind).join(", ")}`);
+  const corrupt = standingProblems(lineup, positions, rules).filter(
+    (problem) => !CARRIED_KINDS.has(problem.kind) || (problem.kind === "wrongStarterCount" && problem.starterCount > STARTER_COUNT),
+  );
+  if (corrupt.length > 0) {
+    throw new Error(`Auto-subs can't work round ${corrupt.map((problem) => problem.kind).join(", ")}`);
   }
   const playOf = (playerCode: PlayerCode): GameweekPlay => {
     const play = plays.get(playerCode);
@@ -90,7 +109,7 @@ export function autoSubs(
       current = sub.lineup;
     }
   }
-  return { substitutions, unfilled, lineup: current };
+  return { substitutions, unfilled, lineup: current, carriedProblems: standingProblems(current, positions, rules) };
 }
 
 /** The first on the bench who can play the slot takes it. If none can, the first who keeps the
@@ -123,7 +142,7 @@ function firstLegalSub(
   return undefined;
 }
 
-/** The substitution, if the lineup it leaves may stand. */
+/** The substitution, if it leaves the lineup no less legal than it was. */
 function legalSubstitution(
   lineup: Lineup,
   absentee: Placement,
@@ -137,7 +156,7 @@ function legalSubstitution(
     starters: lineup.starters.map((starter) => (starter === absentee ? { playerCode, ...cell } : starter)),
     bench: lineup.bench.map((benched) => (benched === playerCode ? absentee.playerCode : benched)),
   };
-  if (standingProblems(after, positions, rules).length > 0) return undefined;
+  if (isWorse(standingProblems(after, positions, rules), standingProblems(lineup, positions, rules))) return undefined;
   return { substitution: { off: absentee.playerCode, on: playerCode, ...cell, into }, lineup: after };
 }
 
@@ -167,6 +186,30 @@ function compareInOrder(one: number[], other: number[]): number {
 
 const byPitchOrder = (one: Placement, other: Placement): number =>
   compareInOrder(pitchOrder(cellOf(one)), pitchOrder(cellOf(other)));
+
+/** Whether `after` has a problem `before` hadn't, or any further from legal: a limit missed by more
+ *  players. */
+function isWorse(after: LineupProblem[], before: LineupProblem[]): boolean {
+  const shortfalls = new Map(before.map((problem) => [problemKey(problem), shortfall(problem)]));
+  return after.some((problem) => shortfall(problem) > (shortfalls.get(problemKey(problem)) ?? 0));
+}
+
+/** The same problem before and after a sub: per area for a limit. */
+const problemKey = (problem: LineupProblem): string => ("area" in problem ? `${problem.kind}/${problem.area}` : problem.kind);
+
+/** How many players a problem is from legal. */
+function shortfall(problem: LineupProblem): number {
+  switch (problem.kind) {
+    case "belowMinimum":
+      return problem.minimum - problem.starterCount;
+    case "aboveMaximum":
+      return problem.starterCount - problem.maximum;
+    case "wrongStarterCount":
+      return Math.abs(STARTER_COUNT - problem.starterCount);
+    default:
+      return 1;
+  }
+}
 
 /** A lineup that may stand, minus a starter outside his areas: one who lost a position after he
  *  was placed stays in his slot for the gameweek (spec/06), and lineup.ts reports it alone so a

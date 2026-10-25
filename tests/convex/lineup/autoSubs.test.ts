@@ -1,56 +1,24 @@
 import { describe, expect, test } from "vitest";
-import { autoSubs, gameweekPlay, type GameweekPlay, type PlayerMatch } from "../../../convex/lineup/autoSubs";
-import { lineupProblems, type Lineup, type LineupRules, type PlayerPositions } from "../../../convex/lineup/lineup";
-import type { Position } from "../../../convex/positions/positionTables";
-import { FIRST_SUB, filledLineup, openLimits, presetNamed, withPositions } from "../../support/convex/lineup.harness";
-
-// 4-4-2, starters 1 to 11 back to front and left to right: 1 the keeper, 2–5 the back four, 6–9
-// the midfield four, 10 and 11 the strikers. The bench runs from 101, as long as each test needs.
-const { lineup: fourFourTwo, positions: startersPositions } = filledLineup(presetNamed("4-4-2"));
-const KEEPER = 1;
-const LEFT_BACK = 2;
-const LEFT_CENTRE_BACK = 3;
-const LEFT_MIDFIELDER = 6;
-const STRIKER = 10;
-const OTHER_STRIKER = 11;
-const [FIRST, SECOND, THIRD, FOURTH] = [0, 1, 2, 3].map((index) => FIRST_SUB + index);
-
-/** The 4-4-2 with a bench of one player per label list, first to last, and everyone's positions. */
-function withBench(...benchPositions: Position[][]): { lineup: Lineup; positions: PlayerPositions } {
-  const lineup = { ...fourFourTwo, bench: fourFourTwo.bench.slice(0, benchPositions.length) };
-  const positions = benchPositions.reduce<PlayerPositions>(
-    (soFar, labels, index) => withPositions(soFar, lineup.bench[index], labels),
-    startersPositions,
-  );
-  return { lineup, positions };
-}
-
-/** Everyone in the lineup played, but `absent` didn't and `overrides` say otherwise. */
-function plays(lineup: Lineup, absent: number[], overrides: [number, GameweekPlay][] = []) {
-  const everyone = [...lineup.starters.map((starter) => starter.playerCode), ...lineup.bench];
-  const played = new Map<number, GameweekPlay>(everyone.map((playerCode) => [playerCode, "played"]));
-  for (const playerCode of absent) played.set(playerCode, "didNotPlay");
-  for (const [playerCode, play] of overrides) played.set(playerCode, play);
-  return played;
-}
-
-/** Auto-subs, checked to leave a lineup that may stand. */
-function subbed(
-  lineup: Lineup,
-  positions: PlayerPositions,
-  played: ReadonlyMap<number, GameweekPlay>,
-  rules: LineupRules = openLimits(),
-) {
-  const result = autoSubs(lineup, positions, played, rules);
-  expect(lineupProblems(result.lineup, positions, rules)).toEqual([]);
-  return result;
-}
-
-/** What auto-subs give when they change nothing: `unfilled` starters' slots score nothing. */
-const untouched = (lineup: Lineup, unfilled: number[] = []) => ({ substitutions: [], unfilled, lineup });
-
-const STRIKERS_CELL = { area: "attack", lane: "leftCentre" } as const;
-const strikerReplacedBy = (on: number) => ({ off: STRIKER, on, ...STRIKERS_CELL, into: "theSlot" });
+import { gameweekPlay, type PlayerMatch } from "../../../convex/lineup/autoSubs";
+import { filledLineup, openLimits, presetNamed, withPositions } from "../../support/convex/lineup.harness";
+import {
+  KEEPER,
+  LEFT_BACK,
+  LEFT_CENTRE_BACK,
+  LEFT_MIDFIELDER,
+  STRIKER,
+  OTHER_STRIKER,
+  FIRST,
+  SECOND,
+  THIRD,
+  FOURTH,
+  withBench,
+  plays,
+  subbed,
+  untouched,
+  strikerReplacedBy,
+  STRIKERS_CELL,
+} from "../../support/convex/autoSubs.harness";
 
 describe("a starter who didn't play is replaced", () => {
   test("by the bench's first who can play his slot, and sits where that sub sat", () => {
@@ -276,35 +244,5 @@ describe("a double gameweek", () => {
 
   test("a player with no match in the gameweek didn't play", () => {
     expect(gameweekPlay([])).toBe("didNotPlay");
-  });
-});
-
-describe("what auto-subs refuse", () => {
-  test("a player whose play isn't known", () => {
-    const { lineup, positions } = withBench(["ST"]);
-    const played = plays(lineup, []);
-    played.delete(FIRST);
-
-    expect(() => autoSubs(lineup, positions, played, openLimits())).toThrow(`whether player ${FIRST} played`);
-  });
-
-  test("a sub whose positions aren't known", () => {
-    const { lineup } = withBench(["ST"]);
-
-    expect(() => autoSubs(lineup, startersPositions, plays(lineup, []), openLimits())).toThrow(`player ${FIRST}'s positions`);
-  });
-
-  test("a lineup that may not stand", () => {
-    const tenMen = { ...fourFourTwo, starters: fourFourTwo.starters.slice(1) };
-
-    expect(() => autoSubs(tenMen, startersPositions, plays(tenMen, []), openLimits())).toThrow(/wrongStarterCount/);
-  });
-
-  test("but not a starter who lost a position after he was placed: he stays, and the subs around him still come on", () => {
-    const { lineup, positions } = withBench(["ST"]);
-    const strikerNowAMidfielder = withPositions(positions, OTHER_STRIKER, ["CM"]);
-    const result = autoSubs(lineup, strikerNowAMidfielder, plays(lineup, [STRIKER]), openLimits());
-
-    expect(result.substitutions).toEqual([strikerReplacedBy(FIRST)]);
   });
 });
