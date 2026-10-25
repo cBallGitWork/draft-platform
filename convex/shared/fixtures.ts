@@ -10,12 +10,14 @@ import type { QueryCtx } from "../_generated/server";
 export const CURRENT_FIXTURES_MOST = 500;
 
 /** The matches the feed still sends, dropped ones left out, in kickoff order (those with no
- *  kickoff time first). */
-export async function currentFixtures(ctx: QueryCtx): Promise<Doc<"fixtures">[]> {
+ *  kickoff time first); only those kicked off by `kickedOffBy`, when given. */
+export async function currentFixtures(ctx: QueryCtx, kickedOffBy?: number): Promise<Doc<"fixtures">[]> {
   const fixtures = await ctx.db
     .query("fixtures")
-    .withIndex("by_droppedAt_and_kickoff", (q) => q.eq("droppedAt", undefined))
+    .withIndex("by_droppedAt_and_kickoff", (q) =>
+      kickedOffBy === undefined ? q.eq("droppedAt", undefined) : q.eq("droppedAt", undefined).lte("kickoff", kickedOffBy),
+    )
     .take(CURRENT_FIXTURES_MOST + 1);
-  if (fixtures.length > CURRENT_FIXTURES_MOST) throw new Error(`More than ${CURRENT_FIXTURES_MOST} matches are held as current, so the schedule would be cut short`);
+  if (fixtures.length > CURRENT_FIXTURES_MOST) throw new Error(`More than ${CURRENT_FIXTURES_MOST} matches are held as current, so they would be cut short`);
   return fixtures;
 }

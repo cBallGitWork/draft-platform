@@ -106,7 +106,9 @@ export type PositionsQueue = Infer<typeof positionsQueue>;
 /** The admin's queue (spec/06; spec/15): new signings, whose starts give no position yet (fewer than
  *  3 at a place) and who play on their label until he confirms it, the men whose starts give
  *  positions waiting for his approval, and positions flagged or removed. By name. It reads every
- *  row: one cut short would lose the newest, who are the new signings. */
+ *  current player's row, each club's within players.ts's caps, which throw past them: one cut short
+ *  would lose the newest, who are the new signings. Rows of men no longer in the league, which pile
+ *  up each season, aren't read (#214). */
 export const queue = query({
   args: {},
   returns: positionsQueue,
@@ -117,9 +119,11 @@ export const queue = query({
     const waiting = [];
     const flagged = [];
     const removed = [];
-    for await (const row of ctx.db.query("playerPositions")) {
-      const player = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", row.code)).unique();
-      if (player === null || player.droppedAt !== undefined) continue;
+    const currentClubsHeld = await currentClubs(ctx);
+    const currentPlayers = (await Promise.all(currentClubsHeld.map((club) => currentPlayersAt(ctx, club.code)))).flat();
+    for (const player of currentPlayers) {
+      const row = await findRow(ctx, player.code);
+      if (row === null) continue;
       const positionsNow = positionsFrom(row, how);
       const who = { code: row.code, name: player.name, fullName: player.fullName, clubCode: player.clubCode };
       const onLabel = positionsFromStarts(row.starts).positions.length === 0;
@@ -133,7 +137,7 @@ export const queue = query({
       for (const lost of positionsNow.removed) removed.push({ ...who, position: lost });
     }
     const byName = (one: { name: string }, other: { name: string }) => one.name.localeCompare(other.name);
-    const clubs = (await currentClubs(ctx))
+    const clubs = currentClubsHeld
       .map(({ code, name }) => ({ code, name }))
       .sort(byName);
     return {

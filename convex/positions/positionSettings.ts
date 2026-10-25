@@ -79,9 +79,17 @@ async function judgedBefore(ctx: QueryCtx): Promise<number | null> {
   return passed.length === 0 ? null : Math.max(...passed);
 }
 
+/** How many of the newest positions syncs are looked through for one that read its starts: the
+ *  sync is run by hand for now, and even run daily, a thousand failing in a row is years of a feed
+ *  nobody fixed. Past it this throws rather than judge every start as if none had run (#214). */
+export const SYNCS_SEARCHED_MOST = 1000;
+
 /** The newest sync that read its starts: a failed one read nothing, so it moves no boundary. */
 async function newestGoodSync(ctx: QueryCtx): Promise<Doc<"positionsSyncs"> | null> {
-  for await (const sync of ctx.db.query("positionsSyncs").order("desc")) if (sync.outcome.ok) return sync;
+  const syncs = await ctx.db.query("positionsSyncs").order("desc").take(SYNCS_SEARCHED_MOST);
+  const good = syncs.find((sync) => sync.outcome.ok);
+  if (good !== undefined) return good;
+  if (syncs.length === SYNCS_SEARCHED_MOST) throw new Error(`None of the newest ${SYNCS_SEARCHED_MOST} positions syncs read its starts`);
   return null;
 }
 

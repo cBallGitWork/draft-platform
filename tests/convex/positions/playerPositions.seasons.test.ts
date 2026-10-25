@@ -5,7 +5,7 @@
 import { describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { CLUB_PLAYERS_MOST, CURRENT_CLUBS_MOST } from "../../../convex/shared/players";
-import { asAdmin, newcastleMen, synced } from "../../support/convex/positionsSync.harness";
+import { asAdmin, newcastleMen, synced, SYNCED_CLUBS } from "../../support/convex/positionsSync.harness";
 import { NEWCASTLE } from "../../support/recorded/positions.payloads";
 import type { TestConvex } from "../../support/convex/test.harness";
 
@@ -45,8 +45,9 @@ describe("as seasons pile up, nothing is cut short silently", () => {
   test(`the queue's clubs are today's, however many clubs have been dropped before them`, async () => {
     const t = await synced();
     await holdClubs(t, CURRENT_CLUBS_MOST + 5);
-    await t.run((ctx) => ctx.db.insert("clubs", { code: NEWCASTLE.code, name: "Newcastle", shortName: "NEW" }));
-    expect((await (await asAdmin(t)).query(api.positions.playerPositions.queue, {})).clubs).toEqual([{ code: NEWCASTLE.code, name: "Newcastle" }]);
+    expect((await (await asAdmin(t)).query(api.positions.playerPositions.queue, {})).clubs).toEqual(
+      SYNCED_CLUBS.map(({ code, name }) => ({ code, name })).sort((one, other) => one.name.localeCompare(other.name)),
+    );
   });
 
   test(`more than ${CURRENT_CLUBS_MOST} current clubs fail the queue loudly, never a list cut short`, async () => {
