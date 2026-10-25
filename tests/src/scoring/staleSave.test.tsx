@@ -1,32 +1,31 @@
-// The rules editor when someone else saves the league's rules while it's open (Craig, 22 Oct
-// 2026: the second save warns, never silently replaces the first). The edits stay on screen, the
-// refusal is shown, and the latest rules are offered in their place.
+// The rules editor when the site's scoring is saved from elsewhere while it's open, in the admin's
+// other tab (Craig, 22 Oct 2026: the second save warns, never silently replaces the first). The
+// edits stay on screen, the refusal is shown, and the latest set is offered in their place.
 
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { Scoring } from "../../../src/scoring/editing";
-import type { Revision } from "../../../src/rules/rulesDraft";
-import type { ScoringView } from "../../../src/scoring/seam";
+import type { ScoringView, SiteRevision } from "../../../src/scoring/seam";
 import { columnWords, everyoneWords } from "../../../src/scoring/words";
 import { discardWords, loadLatestWords, overtakenWords, unchangedWords } from "../../../src/rules/words";
-import { CHANGES_FROM, REVISION } from "../../support/src/scoring.harness";
+import { ADMINS_VIEW, REVISION } from "../../support/src/scoring.harness";
 import { box, choose, openScoring, retype, save } from "../../support/src/scoringScreen.harness";
-import { commissioner } from "../../support/src/shell.harness";
+import { adminSeeing, league, withNoPart } from "../../support/src/shell.harness";
 
-/** The set someone else saved: assists paying 5, in a newer rules row. */
+/** The set saved elsewhere: assists paying 5, in a newer version. */
 const THEIRS: ScoringView = {
+  ...ADMINS_VIEW,
   part: {
-    ...structuredClone(FIRST_RULES.scoring),
-    rules: FIRST_RULES.scoring.rules.map((rule): Scoring["rules"][number] =>
+    ...structuredClone(FIRST_SCORING),
+    rules: FIRST_SCORING.rules.map((rule): Scoring["rules"][number] =>
       rule.stat === "assists" ? { shape: "perAction", stat: "assists", values: { all: 5 } } : structuredClone(rule),
     ),
   },
-  revision: "rules-2" as Revision,
-  changesFrom: CHANGES_FROM,
+  revision: "site-scoring-2" as SiteRevision,
 };
-const REFUSAL = "co@example.com saved the league's rules on Thursday 22 October at 10:00 BST, after you opened them, so yours weren't saved.";
+const REFUSAL = "The site's scoring was saved on Thursday 22 October at 10:00 BST, after you opened it, so yours wasn't saved.";
 
 /** The editor open on the first rules, then someone else's save arriving, as the live set would. */
 function openThenOvertaken() {
@@ -35,7 +34,7 @@ function openThenOvertaken() {
     app,
     overtake: async () => {
       app.scoring.useScoring.mockReturnValue(THEIRS);
-      app.becomes({ ...commissioner });
+      app.becomes(adminSeeing(withNoPart(league)));
       await waitFor(() => expect(app.scoring.useScoring).toHaveLastReturnedWith(THEIRS));
     },
   };
@@ -54,7 +53,7 @@ describe("with edits made", () => {
     app.scoring.save.mockResolvedValueOnce(REFUSAL);
     await save();
 
-    expect(app.scoring.save.mock.calls[0][2]).toBe(REVISION);
+    expect(app.scoring.save.mock.calls[0][1]).toBe(REVISION);
     expect((await screen.findByRole("alert")).textContent).toBe(REFUSAL);
     expect(screen.queryByText(overtakenWords)).toBeNull();
     expect(box(columnWords.points, everyoneWords).value).toBe("4");

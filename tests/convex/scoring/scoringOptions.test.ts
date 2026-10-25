@@ -149,6 +149,6 @@ describe("a set is refused, with the reason", () => {
     ["a per-count rule's points", { shape: "perCount", stat: "saves", values: { all: { every: 3, points: 0.5 } } }, "the Saves rule pays 0.5"],
     ["a points limit", { shape: "perAction", stat: "tackles", values: { all: 1 }, limit: { all: { max: 2.5, min: null } } }, "pays at most 2.5"],
   ])("in a league counting whole points only, %s that is a fraction", (_what, rule, reason) => {
-    expect(() => validateScoringSet({ rules: [rule], wholePointsOnly: true })).toThrow(`${reason}, but the league counts whole points only`);
+    expect(() => validateScoringSet({ rules: [rule], wholePointsOnly: true })).toThrow(`${reason}, but the set counts whole points only`);
   });
 });

@@ -13,12 +13,19 @@ export const runs = (league: LeagueSummary, isAdmin: boolean) =>
  *  commissioner or the admin. */
 export const deletes = (league: LeagueSummary, isAdmin: boolean) => isAdmin || league.roles.includes("commissioner");
 
-/** The league with this id, if the person runs it and it isn't being deleted: a league being
- *  deleted is frozen and hidden (spec/13, Deleting), so none of its pages open. */
-export function leagueRunBy(session: Session, leagueId: string): LeagueSummary | undefined {
+/** The league with this id, if the person has a part in it (or is the admin) and it isn't being
+ *  deleted: a league being deleted is frozen and hidden (spec/13, Deleting), so none of its pages
+ *  open. */
+export function leagueIn(session: Session, leagueId: string): LeagueSummary | undefined {
   if (!session.signedIn) return undefined;
   const league = session.leagues.find((each) => each.leagueId === leagueId);
-  return league && !league.deletion && runs(league, session.isAdmin) ? league : undefined;
+  return league && !league.deletion ? league : undefined;
+}
+
+/** The league with this id, as `leagueIn` finds it, if the person runs it. */
+export function leagueRunBy(session: Session, leagueId: string): LeagueSummary | undefined {
+  const league = leagueIn(session, leagueId);
+  return league && session.signedIn && runs(league, session.isAdmin) ? league : undefined;
 }
 
 /** The league the app is in, or undefined when signed out or no longer among their leagues. */

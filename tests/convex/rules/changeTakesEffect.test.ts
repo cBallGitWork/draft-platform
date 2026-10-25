@@ -73,11 +73,11 @@ describe("a commissioner's change of deadline", () => {
   });
 });
 
-test("the rules editor (#30) says a change waits for gameweek 10 once one already waits for it", async () => {
+test("League settings says a change waits for gameweek 10 once one already waits for it", async () => {
   await holdGameweeks(t, { next: 9, kicksOffIn: 2 * HOUR_MS });
   const leagueId = await adminCreatesLeague(t);
   await change(leagueId, THREE_HOURS_BEFORE);
 
-  const editor = await (await actingAs(t, COMMISSIONER)).query(api.rules.leagueRules.scoring, { leagueId, now: Date.now() });
+  const editor = await (await actingAs(t, COMMISSIONER)).query(api.rules.leagueSettings.settings, { leagueId, now: Date.now() });
   expect(editor?.changesFrom).toBe(10);
 });

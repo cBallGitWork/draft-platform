@@ -3,10 +3,10 @@
 // the server's (convex/scoring/scoringSet.ts), checked again when it is saved.
 
 import { AREAS, LANES, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition } from "../../convex/lineup/pitch";
-import type { LeagueRules } from "../../convex/rules/leagueRulesShape";
+import type { StoredScoringSet } from "../../convex/rules/leagueRulesShape";
 import { priceFor, type Band, type Priced } from "../../convex/scoring/scoringSet";
 
-export type Scoring = LeagueRules["scoring"];
+export type Scoring = StoredScoringSet;
 export type Rule = Scoring["rules"][number];
 export type Shape = Rule["shape"];
 export type PointsLimit = { max: number | null; min: number | null };

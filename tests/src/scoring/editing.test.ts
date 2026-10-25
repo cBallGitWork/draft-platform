@@ -2,7 +2,7 @@
 // the parts behind its tick boxes, each giving a set the server's check accepts.
 
 import { describe, expect, it } from "vitest";
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { validateScoringSet } from "../../../convex/scoring/scoringSet";
 import {
   firstBlankRule,
@@ -18,7 +18,7 @@ import {
   type Rule,
 } from "../../../src/scoring/editing";
 
-const ruleFor = (stat: string) => structuredClone(FIRST_RULES.scoring.rules.find((rule) => rule.stat === stat)!);
+const ruleFor = (stat: string) => structuredClone(FIRST_SCORING.rules.find((rule) => rule.stat === stat)!);
 const GOALS = ruleFor("goals_scored");
 const DEFENSIVE = ruleFor("defensive_contribution");
 const ASSISTS = ruleFor("assists");
@@ -115,7 +115,7 @@ describe("behind the tick boxes", () => {
 });
 
 it("finds the first rule holding a box left without a number", () => {
-  const scoring = structuredClone(FIRST_RULES.scoring);
+  const scoring = structuredClone(FIRST_SCORING);
   expect(firstBlankRule(scoring)).toBe(-1);
   scoring.rules[3] = withValue(scoring.rules[3], "midfield", NaN);
   expect(firstBlankRule(scoring)).toBe(3);

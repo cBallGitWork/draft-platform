@@ -1,7 +1,7 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v, type VLiteral } from "convex/values";
-import { leagueRulesShape } from "./rules/leagueRulesShape";
+import { scoringSetShape, storedLeagueRulesShape } from "./rules/leagueRulesShape";
 import { squadMaximumBandShape } from "./rules/squadMaximums";
 import { POSITIONS, type Position } from "./positions/positionTables";
 import { feedValidator } from "./shared/feedSchedule";
@@ -498,9 +498,10 @@ export const leagueEvent = v.union(
   v.object({ kind: v.literal("deletionUndone"), name: v.string() }),
   v.object({ kind: v.literal("gameweekUsed"), gameweek: v.number(), used: v.boolean() }),
   ...joiningEvents,
-  /** `changed` names the parts of LeagueRules that changed, such as "scoring"; `categories`, the
-   *  scoring categories whose rules changed, by full name; `wholePointsOnly`, its new value when
-   *  it was switched. Both are absent when they didn't change, and from events before #30. */
+  /** `changed` names the parts of LeagueRules that changed, such as "deadline". Events filed
+   *  before the scoring became the site's (#354) may name "scoring" too, with `categories`, the
+   *  scoring categories whose rules changed, by full name, and `wholePointsOnly`, its new value
+   *  when it was switched; both absent when they didn't change, and from events before #30. */
   v.object({
     kind: v.literal("rulesChanged"),
     fromGameweek: v.number(),
@@ -569,12 +570,16 @@ const feedbackTables = {
 // A league's rules (#25, spec/03). Each change is a new row from the gameweek it takes effect, so
 // past gameweeks keep the rules they were played under; who changed them is in leagueEvents.
 const leagueRulesTables = {
-  leagueRules: defineTable({ leagueId: v.id("leagues"), fromGameweek: v.number(), rules: leagueRulesShape }).index(
+  leagueRules: defineTable({ leagueId: v.id("leagues"), fromGameweek: v.number(), rules: storedLeagueRulesShape }).index(
     "by_leagueId_and_fromGameweek",
     ["leagueId", "fromGameweek"],
   ),
   /** One row: the rules the admin gives each new league. */
-  defaultLeagueRules: defineTable({ rules: leagueRulesShape }),
+  defaultLeagueRules: defineTable({ rules: storedLeagueRulesShape }),
+  /** The site's scoring set, which every league plays on and only the admin changes (spec/14, Who
+   *  owns it; #354): one row per version, from the gameweek it takes effect, so past gameweeks keep
+   *  the set they were played under. With none, the first set (scoring/firstScoring.ts). */
+  siteScoring: defineTable({ fromGameweek: v.number(), scoring: scoringSetShape }).index("by_fromGameweek", ["fromGameweek"]),
   /** One row: the squad maximum a new league takes by its size, which Craig edits (#316). */
   squadMaximums: defineTable({ bands: v.array(squadMaximumBandShape) }),
   /** A league's deadline for a gameweek once it has passed (#150): where it fell stays put, even if

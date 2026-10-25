@@ -3,7 +3,7 @@ import { drawRulesOf } from "./firstRules";
 import { leagueRulesShape, oddTeamOutShape, type LeagueRules } from "./leagueRulesShape";
 
 // The part of a league's rules League settings edits (Craig, 22 Oct 2026): those that build the
-// league, apart from players' points, which Player scoring edits. The round robin's two (spec/09)
+// league; players' points are the site's (spec/14, Who owns it). The round robin's two (spec/09)
 // and the squad's make-up (spec/03, Squad make-up; #341). Pure, so the screens' previews read it
 // too; leagueSettings.ts reads and saves it.
 

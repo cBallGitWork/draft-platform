@@ -36,7 +36,7 @@ flowchart TD
     JOIN["Join a league<br/>/join/$token<br/>manager, commissioner, admin"]
     GW["Gameweeks<br/>/leagues/$leagueId/gameweeks<br/>commissioner, admin"]
     SQ["Squads<br/>/leagues/$leagueId/squads<br/>commissioner, admin"]
-    SC["Player scoring, the rules editor<br/>/leagues/$leagueId/scoring<br/>commissioner, admin"]
+    SC["Player scoring, the rules editor<br/>/leagues/$leagueId/scoring<br/>manager, commissioner; the admin edits"]
     SET["League settings<br/>/leagues/$leagueId/settings<br/>commissioner, admin"]
     ADMIN["Admin dashboard, tab Positions<br/>/admin<br/>admin"]
     FEEDS["Feeds, a tab of the admin dashboard<br/>/admin/feeds<br/>admin"]
@@ -45,7 +45,8 @@ flowchart TD
   end
   LP -.->|"signed out (an invite link keeps ?join)"| SIGNIN
   NEW & ADMIN & FEEDS & AFB -.->|"not the admin"| LEAGUES
-  GW & SQ & SC & SET & INV -.->|"doesn't run it, or it's being deleted"| LEAGUES
+  GW & SQ & SET & INV -.->|"doesn't run it, or it's being deleted"| LEAGUES
+  SC -.->|"not in it, or it's being deleted"| LEAGUES
   LEAGUES -- "Create a league" --> NEW
   LEAGUES -- "Admin dashboard" --> ADMIN
   ADMIN -- "Feeds" --> FEEDS
@@ -124,7 +125,7 @@ Features table (feature 12), the one home for screen status.
 | Join a league | `/join/$token` | src/joining/JoinPage.tsx | spec/13 Joining | built |
 | Gameweeks | `/leagues/$leagueId/gameweeks` | src/gameweeks/GameweeksPage.tsx | spec/13 Gameweeks | built |
 | Squads | `/leagues/$leagueId/squads` | src/squads/SquadsPage.tsx | spec/15 Assigning players | built |
-| Player scoring, the rules editor | `/leagues/$leagueId/scoring` | src/scoring/ScoringPage.tsx | spec/14 The rules editor | built |
+| Player scoring, the rules editor | `/leagues/$leagueId/scoring` | src/scoring/ScoringPage.tsx | spec/14 Who owns it, The rules editor | built |
 | League settings | `/leagues/$leagueId/settings` | src/leagueSettings/SettingsPage.tsx | spec/03, spec/09 | built |
 | Admin dashboard (Positions) | `/admin` | src/admin/AdminPage.tsx | spec/15 The admin, spec/06 | built |
 | Feeds, a tab of the admin dashboard | `/admin/feeds` | src/admin/FeedsPage.tsx | spec/15 The admin | built |

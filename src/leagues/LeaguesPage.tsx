@@ -49,6 +49,9 @@ const runnerLinks = (leagueId: string) => [
   { to: settingsPath(leagueId), title: SETTINGS_TITLE },
 ];
 
+/** The ways into a league from its row, for a manager who doesn't run it. */
+const managerLinks = (leagueId: string) => [{ to: scoringPath(leagueId), title: SCORING_TITLE }];
+
 /** "Your leagues" (spec/12): each league the person has a part in, or, for the admin, every
  *  league; with none, a page saying so (spec/02), and what became of their newest invite if it
  *  ended without them joining (spec/13, Joining). The admin is offered "Create a league", as only
@@ -122,8 +125,7 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
               <span className="block text-lead">{league.name}</span>
               <span className="block font-normal text-muted wrap-anywhere">{commissionerLine(league.commissionerEmail)}</span>
               {!league.deletion &&
-                runs(league, isAdmin) &&
-                runnerLinks(league.leagueId).map(({ to, title }) => (
+                (runs(league, isAdmin) ? runnerLinks : managerLinks)(league.leagueId).map(({ to, title }) => (
                   <Link key={to} to={to} className={leagueRowLinkClasses}>
                     {title}
                   </Link>

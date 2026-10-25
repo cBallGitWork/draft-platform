@@ -1,5 +1,5 @@
-// A player's points for one match under a league's scoring set (spec/14, How a rule scores; #29).
-// The scoring set is the league's rule, so it is always an argument, never a constant.
+// A player's points for one match under a scoring set (spec/14, How a rule scores; #29): the
+// site's in force that gameweek (siteScoring.ts), data the admin saves, so always an argument.
 
 import { MINUTES_STAT } from "../stats/matchRecords";
 import { withOwnStats } from "./ownStats";

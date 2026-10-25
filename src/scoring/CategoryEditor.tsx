@@ -59,41 +59,59 @@ function rowWords(key: PriceKey): string {
 }
 
 /** The chosen category (spec/14, The rules editor): the kind of rule, and everything past one value
- *  behind a tick box, so it opens simple. `onChange` hands up the changed rule; `onRemove` drops it. */
-export function CategoryEditor({ name, rule, onChange, onRemove }: { name: string; rule: Rule; onChange: (rule: Rule) => void; onRemove: () => void }) {
+ *  behind a tick box, so it opens simple. `onChange` hands up the changed rule; `onRemove` drops it.
+ *  `readOnly`, for everyone but the admin (spec/14, Who owns it), shows the same with every control
+ *  disabled and nothing to add or remove. */
+export function CategoryEditor({
+  name,
+  rule,
+  readOnly,
+  onChange,
+  onRemove,
+}: {
+  name: string;
+  rule: Rule;
+  readOnly: boolean;
+  onChange: (rule: Rule) => void;
+  onRemove: () => void;
+}) {
   const pricing = rulePricing(rule);
   const pricedBy = (by: Exclude<Pricing, "all">) => (on: boolean) => onChange(withPricing(rule, on ? by : "all"));
   return (
     <section aria-labelledby={CATEGORY_TITLE_ID} className="bg-panel">
       <PanelTitle id={CATEGORY_TITLE_ID}>{name}</PanelTitle>
-      <div className="flex flex-col gap-1 p-3">
-        <Choice label={paysLabel} name={SHAPE_CHOICE} options={SHAPES} words={shapeWords} chosen={rule.shape} onChoose={(shape) => onChange(withShape(rule, shape))} />
-        <p className="text-muted">{shapeHints[rule.shape]}</p>
-        <TickBox checked={pricing === "byArea"} onChange={pricedBy("byArea")}>
-          {byAreaWords}
-        </TickBox>
-        <TickBox checked={pricing === "byPosition"} onChange={pricedBy("byPosition")}>
-          {byPositionWords}
-        </TickBox>
-        {rule.shape === "bands" && (
-          <TickBox checked={rule.stack} onChange={(on) => onChange(withStack(rule, on))}>
-            {stackWords}
+      <fieldset disabled={readOnly} className="contents">
+        <div className="flex flex-col gap-1 p-3">
+          <Choice label={paysLabel} name={SHAPE_CHOICE} options={SHAPES} words={shapeWords} chosen={rule.shape} onChoose={(shape) => onChange(withShape(rule, shape))} />
+          <p className="text-muted">{shapeHints[rule.shape]}</p>
+          <TickBox checked={pricing === "byArea"} onChange={pricedBy("byArea")}>
+            {byAreaWords}
           </TickBox>
-        )}
-        <TickBox checked={rule.limit !== undefined} onChange={(on) => onChange(withLimit(rule, on))}>
-          {limitWords}
-        </TickBox>
-        {rule.limit !== undefined && <p className="text-muted">{limitHint}</p>}
-        <TickBox checked={rule.minMinutes !== undefined} onChange={(on) => onChange(withMinMinutes(rule, on))}>
-          {minutesWords}
-        </TickBox>
-      </div>
-      <ValuesTable rule={rule} pricing={pricing} onChange={onChange} />
-      <div className="p-3">
-        <button type="button" onClick={onRemove} className="secondary-action">
-          {removeCategoryWords}
-        </button>
-      </div>
+          <TickBox checked={pricing === "byPosition"} onChange={pricedBy("byPosition")}>
+            {byPositionWords}
+          </TickBox>
+          {rule.shape === "bands" && (
+            <TickBox checked={rule.stack} onChange={(on) => onChange(withStack(rule, on))}>
+              {stackWords}
+            </TickBox>
+          )}
+          <TickBox checked={rule.limit !== undefined} onChange={(on) => onChange(withLimit(rule, on))}>
+            {limitWords}
+          </TickBox>
+          {rule.limit !== undefined && <p className="text-muted">{limitHint}</p>}
+          <TickBox checked={rule.minMinutes !== undefined} onChange={(on) => onChange(withMinMinutes(rule, on))}>
+            {minutesWords}
+          </TickBox>
+        </div>
+        <ValuesTable rule={rule} pricing={pricing} readOnly={readOnly} onChange={onChange} />
+      </fieldset>
+      {!readOnly && (
+        <div className="p-3">
+          <button type="button" onClick={onRemove} className="secondary-action">
+            {removeCategoryWords}
+          </button>
+        </div>
+      )}
     </section>
   );
 }
@@ -103,8 +121,8 @@ type Column = { head: string; cell: (key: PriceKey, row: string) => ReactNode };
 /** The rule's values, a row for everyone or for each area or position, with a column for each
  *  part it has: what it pays, its points limit's two ends, and its minutes. On the phone each row
  *  is a block, its boxes wrapping under its name, each with its column's name beside it. */
-function ValuesTable({ rule, pricing, onChange }: { rule: Rule; pricing: Pricing; onChange: (rule: Rule) => void }) {
-  const columns = columnsOf(rule, onChange);
+function ValuesTable({ rule, pricing, readOnly, onChange }: { rule: Rule; pricing: Pricing; readOnly: boolean; onChange: (rule: Rule) => void }) {
+  const columns = columnsOf(rule, readOnly, onChange);
   const rowHead = pricing === "byPosition" ? columnWords.position : columnWords.area;
   return (
     <div className="overflow-x-auto">
@@ -146,7 +164,7 @@ function ValuesTable({ rule, pricing, onChange }: { rule: Rule; pricing: Pricing
   );
 }
 
-function columnsOf(rule: Rule, onChange: (rule: Rule) => void): Column[] {
+function columnsOf(rule: Rule, readOnly: boolean, onChange: (rule: Rule) => void): Column[] {
   const value = (key: PriceKey) => valueAt(rule.values as Priced<unknown>, key);
   const pays: Column[] =
     rule.shape === "perAction"
@@ -159,7 +177,7 @@ function columnsOf(rule: Rule, onChange: (rule: Rule) => void): Column[] {
               return <NumberBox label={boxLabel(columnWords[part], row)} value={each[part]} onChange={(number) => onChange(withValue(rule, key, { ...each, [part]: number ?? NaN }))} />;
             },
           }))
-        : [{ head: columnWords.bands, cell: (key, row) => <Bands row={row} bands={value(key) as Band[]} onChange={(bands) => onChange(withValue(rule, key, bands))} /> }];
+        : [{ head: columnWords.bands, cell: (key, row) => <Bands row={row} bands={value(key) as Band[]} readOnly={readOnly} onChange={(bands) => onChange(withValue(rule, key, bands))} /> }];
   const limit: Column[] =
     rule.limit === undefined
       ? []
@@ -188,8 +206,9 @@ function columnsOf(rule: Rule, onChange: (rule: Rule) => void): Column[] {
   return [...pays, ...limit, ...minutes];
 }
 
-/** One row's bands: each from a number, paying points; a band added starts one past the highest. */
-function Bands({ row, bands, onChange }: { row: string; bands: Band[]; onChange: (bands: Band[]) => void }) {
+/** One row's bands: each from a number, paying points; a band added starts one past the highest.
+ *  Read only, no band is added or removed. */
+function Bands({ row, bands, readOnly, onChange }: { row: string; bands: Band[]; readOnly: boolean; onChange: (bands: Band[]) => void }) {
   const setBand = (index: number, band: Band) => onChange(bands.map((each, at) => (at === index ? band : each)));
   return (
     <div className="flex flex-col gap-1">
@@ -202,15 +221,19 @@ function Bands({ row, bands, onChange }: { row: string; bands: Band[]; onChange:
             <NumberBox label={boxLabel(bandFromWords, which)} value={band.atLeast} onChange={(atLeast) => setBand(index, { ...band, atLeast: atLeast ?? NaN })} />
             {bandPaysWords}
             <NumberBox label={boxLabel(columnWords.points, which)} value={band.points} onChange={(points) => setBand(index, { ...band, points: points ?? NaN })} />
-            <button type="button" aria-label={removeBandLabel(which)} onClick={() => onChange(bands.filter((_, at) => at !== index))} className="secondary-action">
-              {removeBandWords}
-            </button>
+            {!readOnly && (
+              <button type="button" aria-label={removeBandLabel(which)} onClick={() => onChange(bands.filter((_, at) => at !== index))} className="secondary-action">
+                {removeBandWords}
+              </button>
+            )}
           </span>
         );
       })}
-      <button type="button" onClick={() => onChange([...bands, nextBand(bands)])} className="secondary-action self-start">
-        {addBandWords}
-      </button>
+      {!readOnly && (
+        <button type="button" onClick={() => onChange([...bands, nextBand(bands)])} className="secondary-action self-start">
+          {addBandWords}
+        </button>
+      )}
     </div>
   );
 }

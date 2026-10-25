@@ -1,8 +1,6 @@
 import { STARTER_COUNT, type AreaLimit } from "../lineup/lineup";
 import { AREAS, type Area } from "../lineup/pitch";
 import type { LeagueRules } from "./leagueRulesShape";
-import { validateScoringSet } from "../scoring/scoringSet";
-import { checkOwnStatsAgainstCatalogue } from "../scoring/ownStats";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { roundsInARoundRobin } from "../table/roundRobin";
 
@@ -27,13 +25,6 @@ export function checkLeagueRules(rules: LeagueRules, maxTeams?: number): void {
     if (maxTeams !== undefined) checkGamesFor(rules.gamesPerGameweek, maxTeams);
   }
   checkWaivers(rules.waivers);
-  try {
-    validateScoringSet(rules.scoring);
-    // On saving only: ownStats.ts's validateOwnStats says why.
-    checkOwnStatsAgainstCatalogue(rules.scoring.ownStats ?? []);
-  } catch (error) {
-    throw new UnsoundRules(`The scoring set can't be saved: ${(error as Error).message}.`);
-  }
 }
 
 export const gamesWords = (games: number) => (games === 1 ? "1 game" : `${games} games`);

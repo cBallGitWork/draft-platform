@@ -1,5 +1,5 @@
-// The rules editor opened and worked as a commissioner would, by role and name, for its screen
-// tests (scoring.harness.ts is its fake seam).
+// Player scoring opened and worked as the admin would, by role and name, for its screen tests
+// (scoring.harness.ts is its fake seam).
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -8,12 +8,12 @@ import { scoringPath } from "../../../src/scoring/paths";
 import { boxLabel, categoriesLabel } from "../../../src/scoring/words";
 import { saveWords } from "../../../src/rules/words";
 import type { ScoringData } from "./scoring.harness";
-import { commissioner, league, openApp } from "./shell.harness";
+import { adminSeeing, league, openApp, withNoPart } from "./shell.harness";
 
 export const SCORING_PAGE = scoringPath(league.leagueId);
 
-/** The editor opened by the league's commissioner, on the fake server's `data`. */
-export const openScoring = (data: ScoringData = {}) => openApp(SCORING_PAGE, commissioner, { scoring: data });
+/** The editor opened by the admin, who has no part in the league, on the fake server's `data`. */
+export const openScoring = (data: ScoringData = {}) => openApp(SCORING_PAGE, adminSeeing(withNoPart(league)), { scoring: data });
 type App = ReturnType<typeof openScoring>;
 
 /** The list of categories, once it has loaded. */
@@ -29,5 +29,5 @@ export async function retype(column: string, row: string, text: string) {
 }
 export const save = () => userEvent.click(screen.getByRole("button", { name: saveWords }));
 /** The scoring set the seam was asked to save. */
-export const savedSet = (app: App): Scoring => app.scoring.save.mock.calls[0][1];
+export const savedSet = (app: App): Scoring => app.scoring.save.mock.calls[0][0];
 export const savedRule = (app: App, stat: string): Rule | undefined => savedSet(app).rules.find((rule) => rule.stat === stat);
