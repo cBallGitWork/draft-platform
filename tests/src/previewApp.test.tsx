@@ -3,6 +3,7 @@
 
 import { render, screen } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
+import { proLeague } from "../../src/preview";
 import { previewApp } from "../../src/previewApp";
 
 // The router restores scroll on every navigation, and jsdom has no scrolling to restore.
@@ -19,6 +20,7 @@ test("on the dev server, ?preview=manager mounts the frame on the preview's data
   expect(app).not.toBeNull();
   render(app);
   expect(await screen.findByRole("navigation", { name: "Main" })).toBeTruthy();
+  expect(screen.getAllByText(proLeague.name).length).toBeGreaterThan(0);
 });
 
 test.each([

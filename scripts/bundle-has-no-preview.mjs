@@ -41,8 +41,8 @@ function filesUnder(dir) {
     .filter((path) => statSync(path).isFile());
 }
 
-const sources = SOURCES.flatMap(filesUnder);
-const previewFiles = sources.filter((path) => basename(path) === PREVIEW_FILE);
+const sources = new Map(SOURCES.flatMap(filesUnder).map((path) => [path, readFileSync(path, "utf8")]));
+const previewFiles = [...sources.keys()].filter((path) => basename(path) === PREVIEW_FILE);
 const unnamed = previewFiles.filter((path) => !Object.hasOwn(NEEDLES, path));
 if (unnamed.length > 0) fail(`${unnamed.join(", ")} has no entry in NEEDLES; name a string only it holds.`);
 for (const path of Object.keys(NEEDLES)) {
@@ -50,8 +50,8 @@ for (const path of Object.keys(NEEDLES)) {
 }
 const named = Object.entries(NEEDLES).filter(([, needle]) => needle !== null);
 for (const [path, needle] of named) {
-  if (!readFileSync(path, "utf8").includes(needle)) fail(`${path} no longer holds "${needle}"; name a string it does hold.`);
-  const shared = sources.filter((file) => file !== path && readFileSync(file, "utf8").includes(needle));
+  if (!sources.get(path).includes(needle)) fail(`${path} no longer holds "${needle}"; name a string it does hold.`);
+  const shared = [...sources].filter(([file, text]) => file !== path && text.includes(needle)).map(([file]) => file);
   if (shared.length > 0) fail(`"${needle}" (${path}) is in ${shared.join(", ")} too; name a string only ${path} holds.`);
 }
 
