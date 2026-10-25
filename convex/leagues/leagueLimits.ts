@@ -9,9 +9,10 @@ export const TEAM_NAME_MAX = 30;
 export const LEAGUE_NAME_MAX = TEAM_NAME_MAX;
 /** How long a deleted league can be undone before it is gone for good (spec/13, Deleting). */
 export const DELETION_UNDO_HOURS = 24;
-/** The most players one team can hold, whatever the league's own squad limits (spec/03), which
- *  only warn: a bound for reading a squad (#31), so a league's squad maximum can't be above it. */
-export const MOST_IN_SQUAD = 60;
+/** A Premier League squad, the most a league's squad maximum may be (spec/03, Squad make-up: "a
+ *  prem squad is 25"). Also the most players one team can hold whatever its league's maximum,
+ *  which only warns: a bound for reading a squad (#31). */
+export const MOST_IN_SQUAD = 25;
 /** The most leagues "Your leagues" lists, and of each kind of part in one: the closed beta has a
  *  handful. Past it the list says more exist rather than dropping them unsaid (#144). */
 export const LEAGUES_SHOWN = 200;

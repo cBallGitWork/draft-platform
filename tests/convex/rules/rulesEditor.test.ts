@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { rulesInGameweek, rulesRefusals } from "../../../convex/rules/leagueRules";
-import { expectRefused, holdGameweeks, rulesRevision, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { expectRefused, holdGameweeks, rulesRevision, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -106,7 +106,7 @@ describe("the rules editor", () => {
       changeScoring(leagueId, fractional),
       "The scoring set can't be saved: the Tackles rule pays 0.5, but the league counts whole points only.",
     );
-    expect((await latest(leagueId))?.rules).toEqual(FIRST_RULES);
+    expect((await latest(leagueId))?.rules).toEqual(HELD_FIRST_RULES);
   });
 
   test.each([
@@ -127,7 +127,7 @@ describe("the rules editor", () => {
 
     await expectRefused(scoringOf(leagueId, MANAGERS[0]), refusals.notRunner);
     await expectRefused(changeScoring(leagueId, EDITED, MANAGERS[0]), refusals.notRunner);
-    expect((await latest(leagueId))?.rules).toEqual(FIRST_RULES);
+    expect((await latest(leagueId))?.rules).toEqual(HELD_FIRST_RULES);
   });
 
   test("a league made before leagues held rules has none to read, and its scoring can't be changed", async () => {

@@ -3,15 +3,15 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
-import { LEAGUE_NAME_MAX, MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
+import { LEAGUE_NAME_MAX } from "../../../convex/leagues/leagueLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { expectRefused, rulesRevision, rulesWith } from "../../support/convex/leagueRules.harness";
+import { expectRefused, rulesRevision, rulesWith, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { ADMIN, actingAs, adminCreatesLeague, COMMISSIONER, leagueRow, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // League settings that could be saved and then never met, refused when saved instead, with the
 // reason (Craig, 22 Oct 2026): games a gameweek beyond the league's opponents, a squad maximum
-// beyond what any team can hold, an own stat that reads as a catalogue stat (#212), and a league
+// above a Premier League squad, an own stat that reads as a catalogue stat (#212), and a league
 // name longer than a team's may be.
 
 let t: TestConvex;
@@ -80,12 +80,14 @@ describe("games a gameweek, no more than the league's teams can play", () => {
   });
 });
 
-test(`a squad maximum above the ${MOST_IN_SQUAD} any team can hold is refused, and nothing is saved`, async () => {
+test("a squad maximum of 26 is refused naming 25, and nothing is saved; 25 is saved (#316)", async () => {
   const leagueId = await adminCreatesLeague(t);
-  const tooBig = rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum: MOST_IN_SQUAD + 1 } } });
+  const withMaximum = (maximum: number) => rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum } } });
 
-  await expectRefused(change(leagueId, tooBig), `The squad's maximum, ${MOST_IN_SQUAD + 1}, is above the ${MOST_IN_SQUAD} players any team can hold.`);
-  expect(await latestRules(leagueId)).toEqual(FIRST_RULES);
+  await expectRefused(change(leagueId, withMaximum(26)), "The squad's maximum, 26, is above 25, a Premier League squad.");
+  expect(await latestRules(leagueId)).toEqual(HELD_FIRST_RULES);
+  await change(leagueId, withMaximum(25));
+  expect((await latestRules(leagueId))?.squad.size).toEqual({ minimum: 15, maximum: 25 });
 });
 
 test("an own stat named as a catalogue stat is, case aside, is refused from the rules editor (#212)", async () => {

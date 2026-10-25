@@ -58,7 +58,8 @@ export const FIRST_RULES: LeagueRules = {
   format: "headToHead", // guess: the Tim Hortons league plays head-to-head matchups
   squad: {
     // guess: 14 is the Tim Hortons league's draft rounds on Fantrax, which spec/04 makes the
-    // maximum; 11 is only enough to field a team.
+    // maximum; 11 is only enough to field a team. No league is made with 14: a new league's
+    // maximum is the site's for its size (squadMaximums.ts).
     size: { minimum: 11, maximum: 14 },
     byArea: null,
     maxPerClub: null,

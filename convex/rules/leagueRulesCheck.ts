@@ -91,7 +91,7 @@ function checkSquad({ size, byArea, maxPerClub }: LeagueRules["squad"]): void {
       throw new UnsoundRules(`The squad's maximum, ${size.maximum}, can't field the ${STARTER_COUNT} who start.`);
     }
     if (size.maximum > MOST_IN_SQUAD) {
-      throw new UnsoundRules(`The squad's maximum, ${size.maximum}, is above the ${MOST_IN_SQUAD} players any team can hold.`);
+      throw new UnsoundRules(`The squad's maximum, ${size.maximum}, is above ${MOST_IN_SQUAD}, a Premier League squad.`);
     }
   }
   if (byArea !== null) {

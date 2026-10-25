@@ -143,7 +143,8 @@ styling, typeface, test, screenshot and smoke-test rows, and the rest are the pl
   ([docs/positions.md](docs/positions.md)).
 - League rules are rows, never constants; FPL's own rules can be constants. Each league's are rows
   in `leagueRules`, one from each gameweek they changed in, copied at creation from
-  `defaultLeagueRules` (#25).
+  `defaultLeagueRules` (#25), the squad maximum read instead from `squadMaximums` by the league's
+  size (#316).
 - Leagues (#24): `leagues`, `teams` and `leagueEvents`, people known by their email, so one can be
   named before they have an account; joining's rows are `invites`, `inviteLinks` and
   `joinRequests` (#73).
