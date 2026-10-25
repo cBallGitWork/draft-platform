@@ -16,6 +16,7 @@ import {
 } from "../schema";
 import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
 import { recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
+import { emailIfFailed } from "../admin/feedFailureEmails";
 
 // Issue #21: the real Premier League's clubs, players, fixtures and gameweeks, copied in from the
 // football layer. crons.ts runs it on a schedule; from the CLI:
@@ -117,6 +118,7 @@ export const record = internalMutation({
   args: footballSyncFields,
   handler: async (ctx, row) => {
     await ctx.db.insert("footballSyncs", row);
+    await emailIfFailed(ctx, "football", row);
   },
 });
 
