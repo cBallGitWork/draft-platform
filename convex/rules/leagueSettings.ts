@@ -24,8 +24,8 @@ export const settings = query({
 
 /** League settings' change: the latest rules with these settings, as `changeLatest` saves them.
  *  Its limits are the rules' check's (leagueRulesCheck.ts): games a gameweek a whole number, 1 or
- *  more, and no more than the league's teams have rounds for; the squad's maximum no more than 25;
- *  the minimums by area no more than it. */
+ *  more, and no more than the league's teams have rounds for; the squad's maximum no more than a
+ *  Premier League squad, and the minimums by area adding up to no more than it. */
 export const changeSettings = mutation({
   args: { leagueId: v.id("leagues"), settings: leagueSettingsShape, revision: revisionShape },
   returns: v.number(),

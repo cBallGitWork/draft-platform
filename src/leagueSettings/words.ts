@@ -28,16 +28,16 @@ export const squadTitle = "Squad";
 export const squadMaximumLabel = "Most players in a squad";
 export const squadMaximumHint = `A whole number, ${STARTER_COUNT} to ${MOST_IN_SQUAD}, a Premier League squad, and no fewer than the league's least squad size.`;
 export const noSquadSizeWords = "This league's squads have no size limit.";
-export const blankSquadMaximumWords = "Most players in a squad has no number. Fill it in, then save.";
+export const blankSquadMaximumWords = `${squadMaximumLabel} has no number. Fill it in, then save.`;
 export const areaMinimumsLabel = "Fewest players in each area";
 /** One area's box, for screen readers: "Fewest in Defence". */
 export const areaMinimumLabel = (area: Area) => `Fewest in ${AREA_WORDS[area]}`;
 export const areaMinimumsHint = "Whole numbers, 0 for none, adding up to no more than the squad's most. A player who plays two areas counts in one, whichever helps.";
-export const blankAreaMinimumWords = (area: Area) => `Fewest in ${AREA_WORDS[area]} has no number. Fill it in, or put 0, then save.`;
+export const blankAreaMinimumWords = (area: Area) => `${areaMinimumLabel(area)} has no number. Fill it in, or put 0, then save.`;
 export const clubMaximumWords = "A limit on players from one club";
 export const clubMaximumLabel = "Most players from one club";
 export const clubMaximumHint = "A whole number, 1 or more.";
-export const blankClubMaximumWords = "Most players from one club has no number. Fill it in, or turn the limit off, then save.";
+export const blankClubMaximumWords = `${clubMaximumLabel} has no number. Fill it in, or turn the limit off, then save.`;
 
 export const savedWords = (gameweek: number) => `Saved. The new settings apply from ${gameweekWords(gameweek)}, and the league has a letter saying so.`;
 
