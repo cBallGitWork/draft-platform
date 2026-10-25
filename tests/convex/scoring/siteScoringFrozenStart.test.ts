@@ -39,6 +39,21 @@ test("a fix made between a gameweek's kickoffs never reaches it, even once its f
   expect((await viewAs(COMMISSIONER)).changesFrom).toBe(GAMEWEEK + 1);
 });
 
+test("a first match dropped from the feed after kickoff leaves the gameweek's version as it was", async () => {
+  vi.setSystemTime(AFTER_OPENER_KICKOFF);
+  await fixAs(ADMIN, EDITED);
+
+  const heldCodes = await t.run(async (ctx) => (await ctx.db.query("fixtures").collect()).map(({ code }) => code));
+  await t.mutation(internal.football.footballSync.markDropped, {
+    table: "fixtures",
+    sentKeys: heldCodes.filter((code) => code !== OPENER.code),
+    droppedAt: Date.now(),
+    paginationOpts: { numItems: heldCodes.length, cursor: null },
+  });
+
+  expect(await inGameweek(GAMEWEEK)).toEqual(FIRST_SCORING);
+});
+
 test("a first match postponed before it kicks off moves the gameweek's start: a fix made before the next match reaches it", async () => {
   vi.setSystemTime(OPENER.kickoff - HOUR_MS);
   await t.mutation(internal.football.footballSync.upsertFixtures, { rows: [OPENER_POSTPONED] });
