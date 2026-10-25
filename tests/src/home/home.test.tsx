@@ -116,7 +116,7 @@ describe("the table", () => {
     expect(screen.getByText(partTableWords(12, true))).toBeTruthy();
   });
 
-  it("cut with the reader in the top rows, or running no team, adds no row and says none", async () => {
+  it("cut with none of the reader's rows past the top, adds no row and says so", async () => {
     withHome({ table: Array.from({ length: TOP_ROWS }, (_, i) => homeRow(i + 1, `Team ${i + 1}`)), teams: 12 });
     expect(await screen.findByText(partTableWords(12, false))).toBeTruthy();
   });

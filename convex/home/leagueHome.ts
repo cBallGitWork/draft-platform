@@ -36,10 +36,6 @@ const homeRow = v.object({
   mine: v.boolean(),
 });
 
-type LeagueEvent = Infer<typeof leagueEvent>;
-const isSquadMove = (event: LeagueEvent): event is Extract<LeagueEvent, { kind: (typeof SQUAD_MOVES)[number] }> =>
-  (SQUAD_MOVES as readonly string[]).includes(event.kind);
-
 const squadMove = v.object({
   at: v.number(),
   kind: v.union(...SQUAD_MOVES.map((kind) => v.literal(kind))),
@@ -63,6 +59,10 @@ export const leagueHome = v.object({
   pinnedLetter: v.union(v.null(), pinnedLetter),
 });
 export type LeagueHome = Infer<typeof leagueHome>;
+
+type LeagueEvent = Infer<typeof leagueEvent>;
+const isSquadMove = (event: LeagueEvent): event is Extract<LeagueEvent, { kind: (typeof SQUAD_MOVES)[number] }> =>
+  (SQUAD_MOVES as readonly string[]).includes(event.kind);
 
 /** The league's latest TICKER_MOST squad moves, newest first: that many of each kind read, by the
  *  index, so no other event is read. */
