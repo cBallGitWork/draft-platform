@@ -111,9 +111,9 @@ export async function leagueScores(
     player: playerReader(ctx, await howPositionsCount(ctx)),
   };
   for (const gameweek of gameweeks) {
-    const final = stored.get(gameweek);
-    if (final !== undefined) {
-      result.scores.set(gameweek, final);
+    const storedScores = stored.get(gameweek);
+    if (storedScores !== undefined) {
+      result.scores.set(gameweek, storedScores);
       continue;
     }
     try {
