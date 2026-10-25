@@ -1,4 +1,4 @@
-/** A plain confirm: the question, then yes (held while `busy`) and no. The caller lays it out. */
+/** A plain confirm: the question, then yes (disabled while `busy`) and no. The caller lays it out. */
 export function Confirm({
   question,
   yes,
