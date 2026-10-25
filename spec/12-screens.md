@@ -47,7 +47,7 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
     at his best position, labelled so;
   - one line of last season's totals, under the site's scoring as it stands (`spec/14`);
   - his role stars and the manager's latest scout report on him, where the manager can see them
-    (`spec/19`);
+    (`spec/19`), and the captain and set-piece hints `spec/17` adds after the mini beta;
   - his club's next few Premier League fixtures;
   - the actions that apply to him and the manager: shortlist, send a scout, claim or drop, offer a
     trade.
