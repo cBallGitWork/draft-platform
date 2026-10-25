@@ -101,7 +101,7 @@ flowchart TD
 
   subgraph PLAN["Named in the spec, no route yet"]
     MATCH["Match<br/>spec/10:17<br/>manager"]
-    CARD["Player card<br/>spec/12:16<br/>manager"]
+    CARD["Player card<br/>spec/12 The player card<br/>manager"]
     DRAFT["Draft room<br/>spec/12:16, spec/04<br/>manager, commissioner"]
     CLUBS["Club pages<br/>spec/18:22<br/>after the mini beta"]
   end
@@ -143,10 +143,10 @@ Features table (feature 12), the one home for screen status.
 | Fixtures | `/team/fixtures` | src/frame/PageNotBuilt.tsx | spec/12 My team's tabs | placeholder |
 | Transactions | `/team/transactions` | src/frame/PageNotBuilt.tsx | spec/12 My team's tabs | placeholder |
 | Matchup | `/matchup` | src/frame/PageNotBuilt.tsx | spec/10 The matchup | placeholder |
-| Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12:16, spec/08 | placeholder |
+| Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12 Trades, spec/08 Trades | placeholder |
 | Premier League | `/premier-league` | src/frame/PageNotBuilt.tsx | spec/18 | placeholder |
 | Match | none | none | spec/10 The match page | no route |
-| Player card | none | none | spec/12:16, spec/05:59, spec/14 | no route |
+| Player card | none | none | spec/12 The player card, spec/05, spec/14, spec/19 | no route |
 | Draft room | none | none | spec/12:16, spec/04 | no route |
 | Club pages | none | none | spec/18:22 | no route |
 
