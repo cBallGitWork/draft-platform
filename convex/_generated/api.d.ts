@@ -84,6 +84,7 @@ import type * as scoring_scoringSet from "../scoring/scoringSet.js";
 import type * as scoring_siteScoring from "../scoring/siteScoring.js";
 import type * as scoring_statCatalogue from "../scoring/statCatalogue.js";
 import type * as scouting_playersList from "../scouting/playersList.js";
+import type * as scouting_shortlist from "../scouting/shortlist.js";
 import type * as shared_errors from "../shared/errors.js";
 import type * as shared_feedSchedule from "../shared/feedSchedule.js";
 import type * as shared_leagueAccess from "../shared/leagueAccess.js";
@@ -190,6 +191,7 @@ declare const fullApi: ApiFromModules<{
   "scoring/siteScoring": typeof scoring_siteScoring;
   "scoring/statCatalogue": typeof scoring_statCatalogue;
   "scouting/playersList": typeof scouting_playersList;
+  "scouting/shortlist": typeof scouting_shortlist;
   "shared/errors": typeof shared_errors;
   "shared/feedSchedule": typeof shared_feedSchedule;
   "shared/leagueAccess": typeof shared_leagueAccess;

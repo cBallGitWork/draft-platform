@@ -3,11 +3,13 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { PlayersFilters, PlayersList, PlayersSort } from "../../convex/scouting/playersList";
+import type { ShortlistSeam } from "./shortlistSeam";
 
 export type { PlayersFilters, PlayersList, PlayersSort };
 export type { Availability, ListedPlayer, SortColumn } from "../../convex/scouting/playersList";
 
-export type ScoutingSeam = {
+/** The players list, and beside it the manager's shortlist. */
+export type ScoutingSeam = ShortlistSeam & {
   /** The players the filters keep, in the sort's order, and every club for the club filter, live
    *  (a hook): undefined while they load. */
   usePlayersList(leagueId: Id<"leagues">, filters: PlayersFilters, sort: PlayersSort): PlayersList | undefined;

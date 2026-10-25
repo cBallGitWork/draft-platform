@@ -15,6 +15,7 @@ export const refusals = {
   signedOut: "Sign in first.",
   noLeague: "That league doesn't exist.",
   noTeam: "That team isn't in this league.",
+  noPlayer: "There's no such player in the Premier League.",
   notAdmin: "Only the admin can do that.",
   notRunner: "Only the league's commissioner, its co-commissioner or the admin can do that.",
   notNamer: "Only the league's commissioner or the admin can name or remove a commissioner or co-commissioner.",

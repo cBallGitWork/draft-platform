@@ -8,6 +8,9 @@ What spec/10's commentary and match page would stand on (#37). Read from Craig's
 2026, over all twenty finished matches of gameweeks 6 and 7, of which four are recorded for the
 tests (`tests/support/recorded/commentary.payloads.ts`). The read is `readPlCommentary` and the mapping
 `commentaryLines` (`convex/football/premierLeague.ts`, `convex/football/plCommentary.ts`).
+Our own short lines are written from those by `writeCommentary` (`convex/football/commentary.ts`,
+#43); the live match's, kick-off to full time, are in
+`tests/support/golden/ipswich-forest.commentary.txt`.
 
 ## Where
 

@@ -1,7 +1,8 @@
 // A player's card (#381, spec/12 The player card): its own page with Back, opened from a player's
 // name on Scouting and the squads page, by anyone in the league; who he is and who owns him, FPL's
 // news, this season's matches by category at his best position, last season's line (not held yet)
-// and his club's next fixtures. No action is built yet, so it offers none.
+// and his club's next fixtures. Of its actions only the shortlist is built (#374, its own tests in
+// tests/src/scouting/shortlist.test.tsx).
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -31,6 +32,7 @@ import {
   pricedNotes,
   SEASON_TITLE,
 } from "../../../src/playerCard/words";
+import { addToShortlistWords } from "../../../src/scouting/shortlistWords";
 import { squadsPath } from "../../../src/squads/paths";
 import { gameweekWords, versusWords } from "../../../src/words";
 import type { PlayerCardData } from "../../support/src/playerCard.harness";
@@ -212,9 +214,9 @@ describe("the card", () => {
     expect(next.textContent).toContain(`${COVENTRY.shortName} ${versusWords} ${ARSENAL.shortName}`);
   });
 
-  it("offers no action but Back while none is built", async () => {
+  it("offers no action but Back and the shortlist, the one built", async () => {
     openCard();
     await screen.findByRole("region", { name: SEASON_TITLE });
-    expect(screen.getAllByRole("button").filter((button) => button.closest("main")).map((button) => button.textContent)).toEqual([backWords]);
+    expect(screen.getAllByRole("button").filter((button) => button.closest("main")).map((button) => button.textContent)).toEqual([backWords, addToShortlistWords]);
   });
 });
