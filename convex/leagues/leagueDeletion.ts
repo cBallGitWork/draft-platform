@@ -79,6 +79,11 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
       .query("shortlistPlayers")
       .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId))
       .take(ROWS_PER_RUN),
+  lineups: (ctx, leagueId) =>
+    ctx.db
+      .query("lineups")
+      .withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
   letters: (ctx, leagueId) =>
     ctx.db
       .query("letters")

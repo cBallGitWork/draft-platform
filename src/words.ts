@@ -1,18 +1,10 @@
 // What every screen says alike, in one place for Craig to change in the pull request.
 
-import type { Area } from "../convex/lineup/pitch";
 import type { Position } from "../convex/positions/positionTables";
 import { LOCALE } from "../convex/shared/londonTime";
 
-/** The pitch's areas, as the rules screens name them. */
-export const AREA_WORDS: Record<Area, string> = {
-  goalkeeper: "Goalkeeper",
-  defence: "Defence",
-  defensiveMidfield: "Defensive midfield",
-  midfield: "Midfield",
-  attackingMidfield: "Attacking midfield",
-  attack: "Attack",
-};
+/** The pitch's areas, as the rules screens name them: the server's refusals name them too. */
+export { AREA_WORDS } from "../convex/lineup/pitchWords";
 
 /** Each position by name, for a short code's hover (positionTables.ts has the codes). */
 export const POSITION_NAMES: Record<Position, string> = {
