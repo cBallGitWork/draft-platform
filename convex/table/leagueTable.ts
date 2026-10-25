@@ -6,21 +6,33 @@ import { leagueDeadlines, seasonRules } from "../rules/leagueRules";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { LEAGUE_AVERAGE, roundsOf } from "./roundRobin";
 import { scheduleOf } from "./playedFixtures";
-import { headToHeadTable, totalPointsTable, type GameweekScores } from "./standings";
+import { averageOf, headToHeadTable, totalPointsTable, type GameweekScores } from "./standings";
+import { leagueScores } from "./gameweekScores";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 
 // The league's fixtures and table (#33; spec/09, spec/12 "table and fixtures"), for anyone with a
 // part in it. Each gameweek the league has begun has its fixtures as stored once it began, none in
 // one begun with no head-to-head (before the league was made, say: #282), and the rest are drawn
 // from the teams, the gameweeks the league plays and the rules in force in each (playedFixtures.ts;
-// #137, #266). The table counts the same fixtures the screen shows. No matchup is scored yet (no
-// lineups or scores are kept), so the table is all noughts until #29's scores reach it; the
+// #137, #266). The table counts the same fixtures the screen shows, each scored once its gameweek
+// has begun (gameweekScores.ts, #29): live points count, marked provisional until final. The
 // commissioner editing fixtures (spec/09) comes later.
 
 const fixture = v.object({
   team: v.string(),
   /** The opponent's name, or null for the league's average. */
   opponent: v.union(v.string(), v.null()),
+  /** Each side's points, the average's for the league's average; null until the gameweek is scored. */
+  points: v.union(v.object({ team: v.number(), opponent: v.number() }), v.null()),
+});
+
+/** A team's points in a gameweek scored (gameweekScores.ts's TeamGameweek). */
+const teamResult = v.object({
+  teamId: v.id("teams"),
+  teamName: v.string(),
+  points: v.number(),
+  provisional: v.boolean(),
+  noLineup: v.boolean(),
 });
 
 const gameweekFixtures = v.object({
@@ -54,6 +66,10 @@ export const leagueTable = v.object({
    *  fewer than two teams, nor one begun with no head-to-head (playedFixtures.ts). */
   gameweeks: v.array(gameweekFixtures),
   table: v.array(tableRow),
+  /** Every team's points in each gameweek begun and scored, in gameweek order: in either format. */
+  results: v.array(v.object({ gameweek: v.number(), teams: v.array(teamResult) })),
+  /** Each gameweek begun that couldn't be scored, and why: it counts for nothing in the table (#287). */
+  unscored: v.array(v.object({ gameweek: v.number(), reason: v.string() })),
 });
 export type LeagueTable = Infer<typeof leagueTable>;
 
@@ -75,7 +91,10 @@ export const ofLeague = query({
 
     const headToHead = rules.format === "headToHead";
     const schedule = headToHead ? await scheduleOf(ctx, league, season) : [];
-    const scores: GameweekScores<Id<"teams">> = new Map();
+    const { scores: scored, unscored } = await leagueScores(ctx, league, season, teamIds);
+    const scores: GameweekScores<Id<"teams">> = new Map(
+      [...scored].map(([gameweek, teamScores]) => [gameweek, new Map([...teamScores].map(([teamId, { points }]) => [teamId, points]))]),
+    );
     const table = headToHead ? headToHeadTable(teamIds, schedule, scores, rules.tieBreaks) : totalPointsTable(teamIds, scores);
 
     const deadlines = await leagueDeadlines(ctx, leagueId);
@@ -85,13 +104,28 @@ export const ofLeague = query({
       gameweeks: schedule.map(({ gameweek, fixtures, byes }) => ({
         gameweek,
         deadline: deadlines.get(gameweek) ?? null,
-        fixtures: fixtures.map(({ team, opponent }) => ({
-          team: named(team),
-          opponent: opponent === LEAGUE_AVERAGE ? null : named(opponent),
-        })),
+        fixtures: fixtures.map(({ team, opponent }) => {
+          const inGameweek = scores.get(gameweek);
+          const pointsOf = (scored: ReadonlyMap<Id<"teams">, number>, side: Id<"teams"> | typeof LEAGUE_AVERAGE) => {
+            if (side === LEAGUE_AVERAGE) return averageOf(teamIds, scored, gameweek);
+            const points = scored.get(side);
+            if (points === undefined) throw new Error(`Gameweek ${gameweek} is scored, but not for ${named(side)}`);
+            return points;
+          };
+          return {
+            team: named(team),
+            opponent: opponent === LEAGUE_AVERAGE ? null : named(opponent),
+            points: inGameweek === undefined ? null : { team: pointsOf(inGameweek, team), opponent: pointsOf(inGameweek, opponent) },
+          };
+        }),
         byes: byes.map(named),
       })),
       table: table.map(({ team, ...row }) => ({ teamId: team, teamName: named(team), ...row })),
+      results: [...scored].map(([gameweek, teamScores]) => ({
+        gameweek,
+        teams: [...teamScores].map(([teamId, result]) => ({ teamId, teamName: named(teamId), ...result })),
+      })),
+      unscored,
     };
   },
 });

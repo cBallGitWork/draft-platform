@@ -4,7 +4,7 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import { drawFixtures, LEAGUE_AVERAGE, roundsOf, type DrawRules } from "../../convex/table/roundRobin";
-import { headToHeadTable, totalPointsTable, type GameweekScores } from "../../convex/table/standings";
+import { averageOf, headToHeadTable, totalPointsTable, type GameweekScores } from "../../convex/table/standings";
 import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import type { LeagueTable } from "./seam";
 
@@ -17,7 +17,13 @@ type Drawn = Partial<DrawRules> & {
   /** The league's own deadline for each gameweek: none known by default. */
   deadlineOf?: (gameweek: number) => number | null;
   scores?: GameweekScores<string>;
+  /** The teams whose scores are still provisional, and those that saved no lineup. */
+  provisional?: readonly string[];
+  noLineup?: readonly string[];
+  unscored?: LeagueTable["unscored"];
 };
+
+const idOf = (team: string) => `id-${team}` as Id<"teams">;
 
 /** The league's table and fixtures for teams with these names, made in this order. */
 export function leagueTableOf(
@@ -30,6 +36,9 @@ export function leagueTableOf(
     gameweeks = SEASON_GAMEWEEKS,
     deadlineOf = () => null,
     scores = new Map(),
+    provisional = [],
+    noLineup = [],
+    unscored = [],
   }: Drawn = {},
 ): LeagueTable {
   const headToHead = format === "headToHead";
@@ -41,9 +50,28 @@ export function leagueTableOf(
     gameweeks: schedule.map(({ gameweek, fixtures, byes }) => ({
       gameweek,
       deadline: deadlineOf(gameweek),
-      fixtures: fixtures.map(({ team, opponent }) => ({ team, opponent: opponent === LEAGUE_AVERAGE ? null : opponent })),
+      fixtures: fixtures.map(({ team, opponent }) => {
+        const scored = scores.get(gameweek);
+        const pointsOf = (side: string) => (side === LEAGUE_AVERAGE ? averageOf(teamNames, scored!, gameweek) : scored!.get(side)!);
+        return {
+          team,
+          opponent: opponent === LEAGUE_AVERAGE ? null : opponent,
+          points: scored === undefined ? null : { team: pointsOf(team), opponent: pointsOf(opponent) },
+        };
+      }),
       byes,
     })),
-    table: table.map(({ team, ...row }) => ({ teamId: `id-${team}` as Id<"teams">, teamName: team, ...row })),
+    table: table.map(({ team, ...row }) => ({ teamId: idOf(team), teamName: team, ...row })),
+    results: [...scores].map(([gameweek, scored]) => ({
+      gameweek,
+      teams: [...scored].map(([team, points]) => ({
+        teamId: idOf(team),
+        teamName: team,
+        points,
+        provisional: provisional.includes(team),
+        noLineup: noLineup.includes(team),
+      })),
+    })),
+    unscored,
   };
 }
