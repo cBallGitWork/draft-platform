@@ -1,9 +1,12 @@
 import { expect, test } from "vitest";
+import { api } from "../../../convex/_generated/api";
+import { actingAs } from "../../support/convex/leagues.harness";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { inTenths } from "../../../convex/scoring/scoringSet";
 import { mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 import {
+  ANN,
   EVERTON_STARTERS,
   fullTimeRecords,
   GAMEWEEK,
@@ -156,5 +159,17 @@ test("a total-points league has each team's gameweek in its results, and ranks b
   expect(read.table.map(({ teamName, played, points }) => ({ teamName, played, points }))).toEqual([
     { teamName: "Team 2", played: 1, points: EVERTON_POINTS },
     { teamName: "Team 1", played: 1, points: HULL_POINTS },
+  ]);
+});
+
+test("league home's table and form read the same scores as the table", async () => {
+  const league = await scoresLeague();
+  await fullTimeRecords(league);
+  await lockMatch(league);
+  const home = await (await actingAs(league.t, ANN)).query(api.home.leagueHome.ofLeague, { leagueId: league.leagueId, now: Date.now() });
+
+  expect(home!.table.map(({ teamName, played, won, lost, points, form }) => ({ teamName, played, won, lost, points, form }))).toEqual([
+    { teamName: "Team 2", played: 1, won: 1, lost: 0, points: 3, form: ["won"] },
+    { teamName: "Team 1", played: 1, won: 0, lost: 1, points: 0, form: ["lost"] },
   ]);
 });
