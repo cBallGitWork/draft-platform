@@ -9,6 +9,7 @@ import { Choice } from "../rules/Choice";
 import { PositionCodes } from "../PositionCodes";
 import { POSITION_NAMES } from "../words";
 import type { Availability, ListedPlayer, PlayersFilters, PlayersList, PlayersSort, ScoutingSeam, SortColumn } from "./seam";
+import { ShortlistPanel } from "./ShortlistPanel";
 import {
   availabilityLabel,
   ascendingGlyph,
@@ -73,6 +74,7 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
   const sortBy = (by: SortColumn) => setSort(by === sort.by ? { by, descending: !sort.descending } : { by, descending: FIRST_DESCENDING[by] });
   return (
     <PageSection title={SCOUTING_TITLE} className="flex max-w-6xl flex-col gap-2">
+      <ShortlistPanel leagueId={league.leagueId} seam={seam} />
       <section aria-labelledby={TITLE_ID} className="bg-panel">
         <PanelTitle id={TITLE_ID}>{PLAYERS_TITLE}</PanelTitle>
         <Filters filters={filters} clubs={list?.clubs} filterBy={filterBy} />

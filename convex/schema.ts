@@ -494,6 +494,14 @@ const squadTables = {
     .index("by_teamId", ["teamId"]),
 };
 
+// The shortlist (#374, spec/19 The shortlist): each team's own list of players for the season, by
+// FPL's season-stable code. Private to the team: only its manager reads or changes it.
+const shortlistTables = {
+  shortlistPlayers: defineTable({ leagueId: v.id("leagues"), teamId: v.id("teams"), playerCode: v.number() })
+    .index("by_teamId_and_playerCode", ["teamId", "playerCode"])
+    .index("by_leagueId_and_playerCode", ["leagueId", "playerCode"]),
+};
+
 /** What happened in a league, for Mail (#26) to turn into letters (spec/15, The commissioner):
  *  each says all a letter needs, as it was at the time. */
 export const leagueEvent = v.union(
@@ -673,6 +681,7 @@ export default defineSchema({
   ...footballTables,
   ...positionsTables,
   ...squadTables,
+  ...shortlistTables,
   ...matchStatsTables,
   ...liveStatsTables,
   ...feedFailureEmailTables,
