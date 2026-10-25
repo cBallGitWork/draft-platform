@@ -30,7 +30,7 @@ jobs:
       - run: bash --version | head -1 && python3 --version && git --version && /usr/bin/jq --version
       - run: npm ci
       - run: npm run verify
-      - run: npm run build  # the production bundle builds; verify never runs vite build
+      - run: npm run build  # the production bundle builds and holds no preview data; verify never runs vite build
 
   # `npm run smoke`: the dev server and the production bundle loaded in Chromium, with no Convex
   # deployment (playwright.config.ts); its report and traces are kept when it fails.

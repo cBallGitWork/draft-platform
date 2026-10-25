@@ -1,3 +1,4 @@
+import { v } from "convex/values";
 import { HOUR_MS, MINUTE_MS } from "./time";
 
 // How often each feed the app reads is run, and how long past that the feeds page (spec/15) calls
@@ -7,6 +8,17 @@ import { HOUR_MS, MINUTE_MS } from "./time";
 /** The feeds, each a sync or tick with its own run table. */
 export const FEEDS = ["football", "positions", "matchStats", "liveStats"] as const;
 export type Feed = (typeof FEEDS)[number];
+/** A feed, as a function's argument or a saved field takes one. */
+export const feedValidator = v.union(...FEEDS.map((feed) => v.literal(feed)));
+
+/** What the feeds page and the admin's failure email call each feed, and where its data comes
+ *  from: wording for Craig to change in the pull request. */
+export const FEED_NAMES: Record<Feed, { name: string; source: string }> = {
+  football: { name: "Clubs, players and fixtures", source: "FPL" },
+  positions: { name: "Team sheets", source: "the Premier League" },
+  matchStats: { name: "Match stats", source: "FPL and the Premier League" },
+  liveStats: { name: "Live stats", source: "FPL and the Premier League, during matches" },
+};
 
 /** Each feed's run table: one row a run, newest last. */
 export const FEED_RUN_TABLES = {

@@ -9,7 +9,8 @@ import { StrictMode } from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../support/console.setup";
 import { signInToJoinWords } from "../../src/joining/words";
-import { ERROR_PAGE_TITLE, readFailedWords, reloadWords, signOutWords } from "../../src/frame/words";
+import { ERROR_PAGE_TITLE, readFailedWords, signOutWords, tryAgainWords } from "../../src/frame/words";
+import { READ_FAILED_LOG } from "../../src/frame/ReadFailed";
 import { LEAGUES_PATH } from "../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../src/leagues/words";
 import { LiveApp, takeLinkCode } from "../../src/liveApp";
@@ -135,10 +136,11 @@ test("signed in, in no league, the app opens on the leagues page", async () => {
 const notInLeague = "You're not in this league.";
 const serverDown = new Error("server down");
 
+// Never the server's words, even for a refusal (spec/12, The frame).
 test.each([
-  ["plain words for a failure", serverDown, readFailedWords],
-  ["the server's words for a refusal", new ConvexError(notInLeague), notInLeague],
-])("a query failing above the pages shows %s and a reload, and logs the error", async (_, error, words) => {
+  ["a failure", serverDown],
+  ["a refusal", new ConvexError(notInLeague)],
+])("a query failing above the pages, for %s, says so in plain words, logs it, and offers Try again", async (_, error) => {
   convex.auth = { isLoading: false, isAuthenticated: true };
   convex.account = inNoLeague;
   convex.unreadFails = error;
@@ -147,9 +149,24 @@ test.each([
   openAt("/");
 
   expect(await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE })).toBeTruthy();
-  expect(screen.getByRole("alert").textContent).toBe(words);
-  expect(screen.getByRole("button", { name: reloadWords })).toBeTruthy();
-  expect(logged.mock.calls.some((call) => call.includes(error))).toBe(true);
+  expect(screen.getByRole("alert").textContent).toBe(readFailedWords);
+  expect(screen.getByRole("button", { name: tryAgainWords })).toBeTruthy();
+  expect(logged).toHaveBeenCalledWith(READ_FAILED_LOG, error);
+});
+
+test("Try again above the pages reads again, and shows the app once the read succeeds", async () => {
+  convex.auth = { isLoading: false, isAuthenticated: true };
+  convex.account = inNoLeague;
+  convex.unreadFails = serverDown;
+  silenceConsoleError();
+
+  openAt("/");
+  const tryAgain = await screen.findByRole("button", { name: tryAgainWords });
+  convex.unreadFails = null;
+  await userEvent.click(tryAgain);
+
+  expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+  expect(screen.queryByRole("heading", { name: ERROR_PAGE_TITLE })).toBeNull();
 });
 
 test("a query failing above the pages offers Sign out, which leaves for the sign-in page", async () => {

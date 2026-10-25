@@ -23,8 +23,8 @@ export const leagueSummary = v.object({
    *  wasn't "check your email" and they haven't signed in since, so a link that never went is seen. */
   unsentCommissionerLink: v.union(v.null(), v.object({ email: v.string(), reply: noLinkReply })),
   /** While it is being deleted (#75), which only its commissioner and the admin see: when it
-   *  goes, and who wasn't emailed. */
-  deletion: v.optional(leagueDeletion.pick("deletesAt", "unemailed")),
+   *  goes. */
+  deletion: v.optional(leagueDeletion.pick("deletesAt")),
 });
 export type LeagueSummary = Infer<typeof leagueSummary>;
 
@@ -76,7 +76,7 @@ export async function leaguesOf(ctx: QueryCtx, email: string): Promise<LeagueLis
       teams: teams.length,
       maxTeams: league.maxTeams,
       unsentCommissionerLink: admin ? await unsentLinkOf(ctx, league) : null,
-      deletion: deletion && { deletesAt: deletion.deletesAt, unemailed: deletion.unemailed },
+      deletion: deletion && { deletesAt: deletion.deletesAt },
     });
   }
   return { leagues: summaries.sort((a, b) => a.name.localeCompare(b.name)), cut };

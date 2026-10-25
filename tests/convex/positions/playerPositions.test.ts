@@ -137,6 +137,19 @@ describe("the admin's queue (#87)", () => {
     expect(newSignings.map((each) => each.code)).not.toContain(PLAYER.steur);
   });
 
+  test("a man whose positions row has no player held is in neither list, and the queue still loads", async () => {
+    const t = await synced();
+    await t.run(async (ctx) => {
+      for (const code of [PLAYER.steur, PLAYER.barnes]) {
+        const player = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", code)).unique();
+        await ctx.db.delete("players", player!._id);
+      }
+    });
+    const { newSignings, waiting } = await (await asAdmin(t)).query(api.positions.playerPositions.queue, {});
+    expect(waiting.map((each) => each.code)).not.toContain(PLAYER.barnes);
+    expect(newSignings.map((each) => each.code)).not.toContain(PLAYER.steur);
+  });
+
   test("a man whose starts wait for approval is in it with what they'd give him, until approved", async () => {
     const t = await synced();
     const admin = await asAdmin(t);
