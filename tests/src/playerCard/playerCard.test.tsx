@@ -80,7 +80,7 @@ const RICE: PlayerCard = { ...SAKA, code: 1002, name: "Rice", fullName: "Declan 
 const HELD: PlayerCardData = { cards: [SAKA, RICE] };
 
 /** His row on Scouting's list. */
-const listed = ({ code, name, fullName, club, positions, ownerTeamName }: PlayerCard): ListedPlayer => ({ code, name, fullName, club, positions, ownerTeamName, seasonPoints: null });
+const listed = ({ code, name, fullName, club, positions, ownerTeamName }: PlayerCard): ListedPlayer => ({ code, name, fullName, club, positions, ownerTeamName, seasonPoints: null, stat: null });
 const openCard = (card: PlayerCard = SAKA, playerCard: PlayerCardData = HELD) => openApp(playerCardPath(league.leagueId, card.code), manager, { playerCard });
 
 describe("reaching it", () => {

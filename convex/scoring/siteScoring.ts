@@ -105,8 +105,9 @@ export async function siteScoringByGameweek(ctx: QueryCtx): Promise<(gameweek: n
 }
 
 /** The first gameweek a version taking effect at `at` reaches: the first whose first kickoff is at
- *  or after it, as `siteScoringInGameweek` reads it. Once every held gameweek has kicked off, the
- *  one after the last (`nextGameweek`). */
+ *  or after it, as `siteScoringInGameweek` reads it, after the last that kicked off before it (a
+ *  postponed gameweek behind one is passed over, #413). Once every held gameweek has kicked off,
+ *  the one after the last (`nextGameweek`). */
 async function firstGameweekFrom(ctx: QueryCtx, at: number): Promise<number> {
   const { gameweeks, matches } = await heldSchedule(ctx);
   // nextGameweek counts a gameweek begun at its kickoff; a version taking effect then still reaches it.

@@ -20,14 +20,16 @@ const leagueId = "league-1" as Id<"leagues">;
 const filters: PlayersFilters = { availability: "freeAgents", position: "CB", clubCode: 3 };
 const sort: PlayersSort = { by: "club", descending: true };
 
-test("it asks scouting/playersList:list with the league, the filters and the sort, and hands on what comes back", () => {
+const stat = "goals_scored";
+
+test("it asks scouting/playersList:list with the league, the filters, the sort and the shown stat, and hands on what comes back", () => {
   const list = { clubs: [], players: [] };
   convex.list.mockReturnValue(list);
-  expect(renderHook(() => liveScouting.usePlayersList(leagueId, filters, sort)).result.current).toBe(list);
-  expect(convex.list).toHaveBeenCalledWith({ leagueId, filters, sort });
+  expect(renderHook(() => liveScouting.usePlayersList(leagueId, filters, sort, stat)).result.current).toBe(list);
+  expect(convex.list).toHaveBeenCalledWith({ leagueId, filters, sort, stat });
 });
 
 test("it is undefined while loading", () => {
   convex.list.mockReturnValue(undefined);
-  expect(renderHook(() => liveScouting.usePlayersList(leagueId, filters, sort)).result.current).toBeUndefined();
+  expect(renderHook(() => liveScouting.usePlayersList(leagueId, filters, sort, null)).result.current).toBeUndefined();
 });

@@ -6,9 +6,6 @@ import { afterEach, expect, test, vi } from "vitest";
 import { proLeague } from "../../src/preview";
 import { previewApp } from "../../src/previewApp";
 
-// The router restores scroll on every navigation, and jsdom has no scrolling to restore.
-window.scrollTo = () => {};
-
 afterEach(() => {
   window.history.replaceState(null, "", "/");
 });
