@@ -211,9 +211,12 @@ function requirePoints(value: unknown, what: string, wholePointsOnly: boolean): 
   if (!isInTenths(value)) throw new Error(`${what} ${value}; points are kept in tenths`);
 }
 
-/** Points to the nearest tenth, which is all they are kept in: floating point's own noise goes. */
+/** Points to the nearest tenth, which is all they are kept in: floating point's own noise goes.
+ *  Never -0, which JavaScript makes of 0 yellow cards at -1, or of tenths that cancel out (0.3,
+ *  -0.1 and -0.2 add to just under 0), and which a saved row or a test tells apart from 0 (#422). */
 export function inTenths(points: number): number {
-  return Math.round(points * 10) / 10;
+  const rounded = Math.round(points * 10) / 10;
+  return rounded === 0 ? 0 : rounded;
 }
 
 /** How far a number may sit from its tenth and still be in tenths: floating point's own noise. */
