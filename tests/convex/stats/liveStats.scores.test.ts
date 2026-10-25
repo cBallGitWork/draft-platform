@@ -1,6 +1,7 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { REPLAY_MINUTES, stagedGw6, stageTime, tickAt } from "../../support/convex/liveStats.harness";
 import { HULL_EVERTON, withHullEverton } from "../../support/convex/matchStats.harness";
+import { plScoreRead } from "../../../convex/football/scoreReads";
 import { MATCH, type Gw6Payloads } from "../../support/recorded/gw6.payloads";
 import { LIVE_SCORE, recordedLiveScore } from "../../support/recorded/scores.payloads";
 import type { TestConvex } from "../../support/convex/test.harness";
@@ -40,20 +41,14 @@ async function heldScore(t: TestConvex) {
 
 test("each tick writes the match's state, score and clock as the Premier League lists it, to full time", async () => {
   const t = await withHullEverton();
-  const expected = {
-    beforeKickoff: { state: "upcoming", homeGoals: null, awayGoals: null, minutes: null, clockLabel: null },
-    firstGoal: { state: "live", homeGoals: 0, awayGoals: 1, minutes: 13, clockLabel: "13'00" },
-    halfTime: { state: "halfTime", homeGoals: 1, awayGoals: 1, minutes: 48, clockLabel: "45+3'00" },
-    secondHalf: { state: "live", homeGoals: 1, awayGoals: 1, minutes: 45, clockLabel: "45'00" },
-    fullTime: { state: "fullTime", homeGoals: 1, awayGoals: 1, minutes: 99, clockLabel: "90+9'00" },
-  } as const;
-
   for (const stage of Object.values(LIVE_SCORE)) {
     const readAt = stageTime(SERVED_AT[stage]);
     const { latest } = await tickAt(t, readAt, withLiveScore(stage));
 
     expect(latest.outcome).toMatchObject({ ok: true, scores: { received: 1, written: 1, problems: [] } });
-    expect(await heldScore(t)).toEqual({ fixtureCode: HULL_EVERTON, ...expected[stage], feed: "pl", readAt });
+    // The read's values are pinned in tests/convex/football/scoreReads.test.ts.
+    const read = plScoreRead(recordedLiveScore(stage).fixture, HULL_EVERTON);
+    expect(await heldScore(t)).toEqual({ ...read, feed: "pl", readAt });
   }
 });
 
