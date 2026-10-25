@@ -9,6 +9,7 @@ import { LATEST_RUNS } from "../shared/syncRuns";
 import { HOUR_MS, MINUTE_MS } from "../shared/time";
 import { currentFixtures } from "../shared/fixtures";
 import { emailIfFailed } from "../admin/feedFailureEmails";
+import { moveSeasonTotals, type RecordChange } from "./seasonStats";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -149,8 +150,8 @@ export function recordsOf(ctx: MutationCtx, fixtureCode: number) {
     .collect();
 }
 
-/** Each record as sent, in the match's state: a new man inserted, a changed one replaced whole.
- *  `changed` names every man inserted or updated. */
+/** Each record as sent, in the match's state: a new man inserted, a changed one replaced whole,
+ *  and his season totals moved with it. `changed` names every man inserted or updated. */
 export async function writeRecords(
   ctx: MutationCtx,
   records: PlayerMatchRecord[],
@@ -159,18 +160,24 @@ export async function writeRecords(
 ): Promise<{ inserted: number; updated: number; changed: number[] }> {
   let inserted = 0;
   const changed: number[] = [];
+  const moved: RecordChange[] = [];
   for (const record of records) {
     const row = held.get(record.playerCode);
     if (row === undefined) {
       await ctx.db.insert("playerMatchStats", { ...record, state });
       inserted += 1;
       changed.push(record.playerCode);
+      moved.push({ playerCode: record.playerCode, fixtureCode: record.fixtureCode, before: undefined, after: record.stats });
       continue;
     }
     const differs = !sameRecord(row, record);
-    if (differs) changed.push(record.playerCode);
+    if (differs) {
+      changed.push(record.playerCode);
+      moved.push({ playerCode: record.playerCode, fixtureCode: record.fixtureCode, before: row.stats, after: record.stats });
+    }
     if (differs || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state });
   }
+  await moveSeasonTotals(ctx, moved);
   return { inserted, updated: changed.length - inserted, changed };
 }
 

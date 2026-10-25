@@ -1,8 +1,9 @@
-// Scouting in the preview (src/preview.ts): a few players at three clubs, two of them owned, filtered
-// and sorted by the server's own rule (listOf).
+// Scouting in the preview (src/preview.ts): a few players at three clubs, two of them owned, a few
+// stats added up for each, filtered and sorted by the server's own rule (listOf).
 
 import type { ListedPlayer } from "../../convex/scouting/playersList";
-import { listOf } from "../../convex/scouting/playersOrder";
+import { listOf, shownStat } from "../../convex/scouting/playersOrder";
+import type { Stats } from "../../convex/stats/statTotals";
 import type { ScoutingSeam } from "./seam";
 
 export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
@@ -17,6 +18,7 @@ const player = (code: number, name: string, fullName: string, club: ListedPlayer
   positions,
   ownerTeamName,
   seasonPoints: null,
+  stat: null,
 });
 
 export const previewPlayers: readonly ListedPlayer[] = [
@@ -29,6 +31,24 @@ export const previewPlayers: readonly ListedPlayer[] = [
   player(7, "Van Dijk", "Virgil van Dijk", LIVERPOOL, ["CB"]),
 ];
 
+/** A few of each player's season totals, by his code; a stat left out is 0. */
+const previewTotals: Record<number, Stats> = {
+  1: { goals_scored: 4, assists: 3, minutes: 720, expected_goals: 3.41 },
+  2: { goals_scored: 1, assists: 2, minutes: 810, expected_goals: 0.92 },
+  3: { saves: 21, clean_sheets: 4, minutes: 810 },
+  4: { goals_scored: 6, assists: 2, minutes: 765, expected_goals: 4.87 },
+  5: { assists: 1, minutes: 430, expected_goals: 0.3 },
+  6: { goals_scored: 7, assists: 4, minutes: 800, expected_goals: 6.12 },
+  7: { goals_scored: 1, clean_sheets: 4, minutes: 810, expected_goals: 0.65 },
+};
+
 export const previewScouting: ScoutingSeam = {
-  usePlayersList: (_leagueId, filters, sort) => ({ clubs: [ARSENAL, CHELSEA, LIVERPOOL], players: listOf(previewPlayers, filters, sort) }),
+  usePlayersList: (_leagueId, filters, sort, stat) => ({
+    clubs: [ARSENAL, CHELSEA, LIVERPOOL],
+    players: listOf(
+      previewPlayers.map((player) => ({ ...player, stat: shownStat(previewTotals[player.code], stat) })),
+      filters,
+      sort,
+    ),
+  }),
 };
