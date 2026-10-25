@@ -5,6 +5,7 @@ import type { Priced } from "../../convex/scoring/scoringSet";
 import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogue";
 import { Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
+import { PatchNotesLink } from "../patches/PatchBanner";
 import { useRulesDraft } from "../rules/rulesDraft";
 import { SaveBar } from "../rules/SaveBar";
 import { TickBox } from "../rules/TickBox";
@@ -41,7 +42,7 @@ export function ScoringPage({ league, seam }: { league: LeagueSummary; seam: Sco
   const view = seam.useScoring();
   return (
     <div className="flex max-w-6xl flex-col gap-2">
-      <PageSection title={SCORING_TITLE} className="bg-panel">
+      <PageSection title={SCORING_TITLE} aside={<PatchNotesLink />} className="bg-panel">
         <LeagueHeading name={league.name} />
       </PageSection>
       {view === undefined ? <Loading>{loadingWords}</Loading> : <Editor seam={seam} view={view} />}

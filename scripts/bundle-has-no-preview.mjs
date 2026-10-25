@@ -25,6 +25,7 @@ const NEEDLES = {
   "src/joining/preview.ts": "dan@example.com",
   "src/leagueSettings/preview.ts": null,
   "src/mail/preview.ts": "Draft night is Friday at eight",
+  "src/patches/preview.ts": "preview-patch-",
   "src/rules/preview.ts": "preview-rules",
   "src/scoring/preview.ts": null,
   "src/squads/preview.ts": "preview-team-1",

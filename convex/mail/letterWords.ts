@@ -2,7 +2,8 @@ import type { Infer } from "convex/values";
 import { aNewTeamWords } from "../joining/joiningShared";
 import { londonTime } from "../shared/londonTime";
 import type { LeagueRules } from "../rules/leagueRulesShape";
-import type { leagueEvent } from "../schema";
+import { NOTHING_SCORES_DIFFERENTLY } from "../scoring/patchChanges";
+import type { leagueEvent, siteScoringKind } from "../schema";
 
 // What the letters Mail files about a league's events say (spec/15: nothing changes quietly), in
 // one place for Craig to change. Each names who did it: an email, or `adminByline`.
@@ -10,6 +11,7 @@ import type { leagueEvent } from "../schema";
 export const adminByline = "The admin";
 
 type LeagueEvent = Infer<typeof leagueEvent>;
+type SiteScoringKind = Infer<typeof siteScoringKind>;
 type Words = { subject: string; body: string };
 
 const handOn = "The team stays, for the commissioner to hand to someone new.";
@@ -141,3 +143,26 @@ function listWords(items: readonly string[]): string {
 }
 
 const capitalised = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
+
+/** A new version of the site's scoring, as its letter to every manager reports it (spec/14, Changes
+ *  and corrections; #356). */
+export type VersionNews = { name: string; kind: SiteScoringKind; takesEffectAt: number; fromGameweek: number; changes: readonly string[] };
+
+/** The letter announcing a patch to the site's scoring, or a fix to it, with what changes. A fix
+ *  takes effect as it is made, so its letter names no moment. */
+export function versionLetter({ name, kind, takesEffectAt, fromGameweek, changes }: VersionNews): Words {
+  const kept = "Gameweeks played before it keep the scoring they had.";
+  const what = changes.length === 0 ? NOTHING_SCORES_DIFFERENTLY :`What changes:\n${changes.map((change) => `- ${change}`).join("\n")}`;
+  if (kind === "patch") {
+    return {
+      subject: `Scoring patch ${name} takes effect on ${londonTime(takesEffectAt)}`,
+      body:
+        `${adminByline} announced patch ${name} to the scoring every league plays on. It takes effect on ` +
+        `${londonTime(takesEffectAt)}, from gameweek ${fromGameweek}. ${kept}\n\n${what}`,
+    };
+  }
+  return {
+    subject: `Scoring fix ${name}`,
+    body: `${adminByline} fixed a mistake in the scoring every league plays on: version ${name}, in force from gameweek ${fromGameweek}. ${kept}\n\n${what}`,
+  };
+}

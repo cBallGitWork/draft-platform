@@ -18,6 +18,7 @@ import type { LeaguesSeam } from "../../../src/leagues/seam";
 import type { MailSeam } from "../../../src/mail/seam";
 import { ShellApp } from "../../../src/ShellApp";
 import { fakeLeagueSettings, type LeagueSettingsData } from "./leagueSettings.harness";
+import { fakePatches, type PatchesData } from "./patches.harness";
 import { fakeScoring, type ScoringData } from "./scoring.harness";
 import { fakeSquads, type SquadsData } from "./squads.harness";
 import { fakeTable, type TableData } from "./table.harness";
@@ -127,10 +128,11 @@ export type AppSetUp = {
   table?: TableData;
   admin?: AdminData;
   feedback?: FeedbackData;
+  patches?: PatchesData;
 };
 
 /** The app opened at `path` for `session`, set up as `setUp` says: where it is, the fake sign-in,
- *  league, Mail, joining, gameweeks, squads, scoring, league settings, table, admin and feedback
+ *  league, Mail, joining, gameweeks, squads, scoring, league settings, table, admin, feedback and patches
  *  seams, and a way to change the session as signing in or out, or a league changing, would. */
 export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const {
@@ -144,6 +146,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     table: tableData = {},
     admin: adminData = {},
     feedback: feedbackData = {},
+    patches: patchesData = {},
   } = setUp;
   const history = createMemoryHistory({ initialEntries: [path] });
   const auth = fakeAuth();
@@ -157,6 +160,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const table = fakeTable(tableData);
   const admin = fakeAdmin(adminData);
   const feedback = fakeFeedback(feedbackData);
+  const patches = fakePatches(patchesData);
   const app = (current: Session) => (
     <ShellApp
       session={current}
@@ -172,6 +176,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
       table={table}
       admin={admin}
       feedback={feedback}
+      patches={patches}
       history={history}
     />
   );
@@ -188,6 +193,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     table,
     admin,
     feedback,
+    patches,
     path: () => history.location.pathname,
     search: () => history.location.search,
     becomes: (next: Session) => view.rerender(app(next)),

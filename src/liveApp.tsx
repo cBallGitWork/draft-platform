@@ -4,6 +4,7 @@ import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from 
 import { api } from "../convex/_generated/api";
 import { useLiveAdmin } from "./admin/liveAdmin";
 import { useLiveFeedback } from "./feedback/liveFeedback";
+import { useLivePatches } from "./patches/livePatches";
 import { Loading } from "./frame/Panel";
 import { ReadFailed } from "./frame/ReadFailed";
 import { SignOut } from "./frame/SignOut";
@@ -113,6 +114,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   const scoring = useLiveScoring();
   const leagueSettings = useLiveLeagueSettings();
   const feedback = useLiveFeedback();
+  const patches = useLivePatches();
   const account = useQuery(api.signIn.account.signedInAs, isAuthenticated ? {} : "skip");
   const [checkingLink, setCheckingLink] = useState(linkCode !== null);
   const redeemed = useRef(false);
@@ -145,7 +147,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
       <Loading className="p-2">{checkingLink ? waitingWords.checkingLink : waitingWords.connecting}</Loading>
     );
   }
-  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} admin={admin} feedback={feedback} />;
+  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} admin={admin} feedback={feedback} patches={patches} />;
 }
 
 /** The sign-in page saying what was wrong with a link, and, for one that led to a league's invite

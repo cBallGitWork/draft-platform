@@ -3820,13 +3820,13 @@
               "type": "id",
               "tableName": "leagues"
             },
-            "optional": false
+            "optional": true
           },
           "leagueName": {
             "fieldType": {
               "type": "string"
             },
-            "optional": false
+            "optional": true
           },
           "at": {
             "fieldType": {
@@ -18891,6 +18891,41 @@
           "savedAt": {
             "fieldType": {
               "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "patchBannerDismissals",
+      "indexes": [
+        {
+          "indexDescriptor": "by_email_and_versionId",
+          "fields": [
+            "email",
+            "versionId"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "email": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "versionId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "siteScoring"
             },
             "optional": false
           }

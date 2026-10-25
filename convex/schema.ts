@@ -538,9 +538,11 @@ const leagueTables = {
 const letterFields = {
   /** Whom this copy is to, by email. */
   to: v.string(),
-  leagueId: v.id("leagues"),
-  /** The league's name when it was filed. */
-  leagueName: v.string(),
+  /** The league it is from; absent on a letter from the site to everyone, such as a patch to its
+   *  scoring (#356), which no league's deletion takes with it. */
+  leagueId: v.optional(v.id("leagues")),
+  /** The league's name when it was filed; absent with `leagueId`. */
+  leagueName: v.optional(v.string()),
   at: v.number(),
   /** Who wrote it, by email: absent on a letter the app files about something that happened. */
   from: v.optional(v.string()),
@@ -598,6 +600,12 @@ const leagueRulesTables = {
   /** One row at most: the admin's patch saved as a draft, which changes nothing until announced,
    *  and the version it was made from (null for the first set). */
   siteScoringDraft: defineTable({ scoring: scoringSetShape, madeFrom: v.union(v.null(), v.id("siteScoring")), savedAt: v.number() }),
+  /** Who dismissed a waiting patch's banner (spec/14, Changes and corrections; #356): one row a
+   *  person and version, so it stays dismissed on every device. */
+  patchBannerDismissals: defineTable({ email: v.string(), versionId: v.id("siteScoring") }).index("by_email_and_versionId", [
+    "email",
+    "versionId",
+  ]),
   /** One row: the squad maximum a new league takes by its size, which Craig edits (#316). */
   squadMaximums: defineTable({ bands: v.array(squadMaximumBandShape) }),
   /** A league's deadline for a gameweek once it has passed (#150): where it fell stays put, even if

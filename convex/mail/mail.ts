@@ -1,6 +1,7 @@
 import { v, type Infer } from "convex/values";
 import { mutation, query, type QueryCtx } from "../_generated/server";
 import { callerEmail, refuse, runnerOf, signedInEmail } from "../shared/leagueAccess";
+import { PRODUCT_NAME } from "../shared/product";
 import { fileLetter, wholeLeague } from "./letters";
 import { BODY_MAX, LETTERS_SHOWN, SUBJECT_MAX } from "./mailLimits";
 
@@ -18,6 +19,7 @@ export const mailRefusals = {
 
 export const letterSummary = v.object({
   letterId: v.id("letters"),
+  /** Where it came from: its league's name, or the product's for a letter from the site. */
   leagueName: v.string(),
   at: v.number(),
   from: v.union(v.string(), v.null()),
@@ -45,7 +47,7 @@ export const letters = query({
     const rows = await listedLetters(ctx, email);
     return rows.map((row) => ({
       letterId: row._id,
-      leagueName: row.leagueName,
+      leagueName: row.leagueName ?? PRODUCT_NAME,
       at: row.at,
       from: row.from ?? null,
       subject: row.subject,

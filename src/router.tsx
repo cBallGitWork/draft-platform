@@ -39,6 +39,10 @@ import { NewLeaguePage } from "./leagues/NewLeaguePage";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "./leagues/paths";
 import { leagueIn, leagueRunBy } from "./leagues/roles";
 import type { MailSeam } from "./mail/seam";
+import { PatchBanner } from "./patches/PatchBanner";
+import { PatchNotesPage } from "./patches/PatchNotesPage";
+import { PATCH_NOTES_PATH } from "./patches/paths";
+import type { PatchesSeam } from "./patches/seam";
 import { MailPage, leaguesToWriteFrom } from "./mail/MailPage";
 import { SIGN_IN_PATH } from "./sign-in/paths";
 import { SignInPage } from "./sign-in/SignInPage";
@@ -56,7 +60,7 @@ import type { TableSeam } from "./table/seam";
 import { TableRoute } from "./table/TableRoute";
 
 // A seam is a top-level useLive* hook holding root state (mail, joining, squads, scoring, league
-// settings, admin, leagues, feedback) or a constant object of hooks (gameweeks, table). Each new one needs a
+// settings, admin, leagues, feedback, patches) or a constant object of hooks (gameweeks, table). Each new one needs a
 // preview (previewApp.tsx), a live value (liveApp.tsx) and a fake (shell.harness.tsx), and the
 // typechecker flags any that's missing.
 export type ShellContext = {
@@ -73,6 +77,7 @@ export type ShellContext = {
   table: TableSeam;
   admin: AdminSeam;
   feedback: FeedbackSeam;
+  patches: PatchesSeam;
 };
 
 /** Where the app opens: the guards below send each visitor on from here. */
@@ -87,9 +92,9 @@ const rootRoute = createRootRouteWithContext<ShellContext>()({
 });
 
 /** The app's frame for someone in a league: the menu, the top bar and the league switcher. */
-function LeagueFrame({ context: { session, topBar, auth, leagues } }: { context: ShellContext }) {
+function LeagueFrame({ context: { session, topBar, auth, leagues, patches } }: { context: ShellContext }) {
   const leagueSwitcher = <LeagueSwitcher session={session} switchLeague={leagues.switchLeague} leaveLeague={leagues.leaveLeague} />;
-  return <AppFrame topBar={topBar} onSignOut={auth.signOut} leagueSwitcher={leagueSwitcher} />;
+  return <AppFrame topBar={topBar} onSignOut={auth.signOut} leagueSwitcher={leagueSwitcher} banner={<PatchBanner seam={patches} />} />;
 }
 
 // The guards on a page for the admin alone, on a league's page for whoever runs it, and on one for
@@ -141,7 +146,7 @@ const leaguePagesRoute = createRoute({
     return context.session.signedIn && context.session.inLeague ? (
       <LeagueFrame context={context} />
     ) : (
-      <LeaguelessFrame unreadMail={context.topBar.unreadMail} onSignOut={context.auth.signOut} />
+      <LeaguelessFrame unreadMail={context.topBar.unreadMail} onSignOut={context.auth.signOut} banner={<PatchBanner seam={context.patches} />} />
     );
   },
 });
@@ -216,6 +221,15 @@ const feedbackRoute = createRoute({
   path: FEEDBACK_PATH,
   component: function Feedback() {
     return <FeedbackPage send={feedbackRoute.useRouteContext({ select: (context) => context.feedback.send })} />;
+  },
+});
+
+// The patch notes (#356), from the banner's link and Player scoring's, for anyone signed in.
+const patchNotesRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: PATCH_NOTES_PATH,
+  component: function PatchNotes() {
+    return <PatchNotesPage seam={patchNotesRoute.useRouteContext({ select: (context) => context.patches })} />;
   },
 });
 
@@ -328,7 +342,7 @@ const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map(
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
-  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, feedbackRoute]),
+  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, feedbackRoute, patchNotesRoute]),
   frameRoute.addChildren([landingRoute, tableRoute, ...pageRoutes]),
 ]);
 
