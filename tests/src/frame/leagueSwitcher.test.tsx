@@ -5,6 +5,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { refusals } from "../../../convex/shared/leagueAccess";
+import { ESCAPE_KEY } from "../../../src/browserEvents";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { adminSeeing, beingDeleted, commissioner, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
@@ -18,6 +19,12 @@ const SWITCHER_NAME = /^League: /;
 const switcher = () => screen.findByRole("button", { name: SWITCHER_NAME });
 const switcherOrName = async () => within(await screen.findByRole("banner")).findByText(league.name);
 const choices = () => within(screen.getByRole("list", { name: LEAGUES_TITLE })).getAllByRole("button");
+const miniBetaChoice = () => screen.getByRole("button", { name: /^Mini beta/ });
+type Closer = [way: string, close: () => Promise<unknown>];
+const closersBesideTheSwitcher: Closer[] = [
+  [ESCAPE_KEY, () => userEvent.keyboard(`{${ESCAPE_KEY}}`)],
+  ["a tap on the page", () => userEvent.click(screen.getByRole("heading", { level: 1 }))],
+];
 
 describe("a manager in two leagues", () => {
   it("opening the app is in the league they used last, named in the top bar", async () => {
@@ -40,7 +47,7 @@ describe("a manager in two leagues", () => {
   it("switches to the other league, staying on the page, and the top bar names it once the app is in it", async () => {
     const app = openApp("/team/squad", inTwo);
     await userEvent.click(await switcher());
-    await userEvent.click(screen.getByRole("button", { name: /^Mini beta/ }));
+    await userEvent.click(miniBetaChoice());
 
     expect(app.leagues.switchLeague).toHaveBeenCalledWith(miniBeta.leagueId);
     expect(screen.queryByRole("list", { name: LEAGUES_TITLE })).toBeNull();
@@ -62,25 +69,40 @@ describe("a manager in two leagues", () => {
     const app = openApp(MY_TEAM_PATH, inTwo);
     app.leagues.switchLeague.mockResolvedValue(refusals.notInLeague);
     await userEvent.click(await switcher());
-    await userEvent.click(screen.getByRole("button", { name: /^Mini beta/ }));
+    await userEvent.click(miniBetaChoice());
 
     expect((await screen.findByRole("alert")).textContent).toBe(refusals.notInLeague);
     expect(choices()).toHaveLength(2);
+  });
+
+  it.each<Closer>([
+    ["the switcher", async () => userEvent.click(await switcher())],
+    ...closersBesideTheSwitcher,
+  ])("reopening the list after a refused switch, closed with %s, shows no old refusal", async (_, close) => {
+    const app = openApp(MY_TEAM_PATH, inTwo);
+    app.leagues.switchLeague.mockResolvedValue(refusals.notInLeague);
+    await userEvent.click(await switcher());
+    await userEvent.click(miniBetaChoice());
+    await screen.findByRole("alert");
+
+    await close();
+    expect(screen.queryByRole("list", { name: LEAGUES_TITLE })).toBeNull();
+    await userEvent.click(await switcher());
+
+    expect(choices()).toHaveLength(2);
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it("can't switch twice while the first is on its way", async () => {
     const app = openApp(MY_TEAM_PATH, inTwo);
     app.leagues.switchLeague.mockReturnValue(new Promise(() => {}));
     await userEvent.click(await switcher());
-    await userEvent.click(screen.getByRole("button", { name: /^Mini beta/ }));
+    await userEvent.click(miniBetaChoice());
 
     expect(choices().every((choice) => (choice as HTMLButtonElement).disabled)).toBe(true);
   });
 
-  it.each([
-    ["Escape", () => userEvent.keyboard("{Escape}")],
-    ["a tap on the page", () => userEvent.click(screen.getByRole("heading", { level: 1 }))],
-  ])("closes the list with %s, switching nothing", async (_, close) => {
+  it.each(closersBesideTheSwitcher)("closes the list with %s, switching nothing", async (_, close) => {
     const app = openApp(MY_TEAM_PATH, inTwo);
     await userEvent.click(await switcher());
     await close();
