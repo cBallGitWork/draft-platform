@@ -31,7 +31,8 @@ function priced<Value extends Validator<unknown, "required", string>>(value: Val
   return v.union(v.object({ all: value }), v.object({ byArea: byArea(value) }), v.object({ byPosition: byPosition(value) }));
 }
 
-const area = v.union(...AREAS.map((name) => v.literal(name)));
+/** One of the pitch's six areas. */
+export const areaShape = v.union(...AREAS.map((name) => v.literal(name)));
 const lane = v.union(...LANES.map((name) => v.literal(name)));
 
 /** A minimum and maximum, as lineup.ts's AreaLimit. */
@@ -74,7 +75,7 @@ export const scoringSetShape = v.object({
 });
 
 /** presets.ts's Preset. */
-const preset = v.object({ name: v.string(), cells: v.array(v.object({ area, lane })) });
+const preset = v.object({ name: v.string(), cells: v.array(v.object({ area: areaShape, lane })) });
 
 const WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
 const weekday = v.union(...WEEKDAYS.map((day) => v.literal(day)));
@@ -87,10 +88,10 @@ export const leagueRulesShape = v.object({
   squad: v.object({
     /** Null: no limit on squad size. */
     size: v.union(limit, v.null()),
-    /** How many of a squad may play each area (how a player's areas count is open: docs/to-grill.md,
-     *  the row on limits per area); null: no limits. */
-    byArea: v.union(byArea(limit), v.null()),
-    /** Null: no limit. */
+    /** The fewest of a squad who play each area, and nothing else per area (spec/03, Squad make-up:
+     *  "a squad can be full of whatever you want with a few minimum counts"); null: none. */
+    minimumByArea: v.union(byArea(v.number()), v.null()),
+    /** Null: no limit, as the first rules have it (spec/03: off by default). */
     maxPerClub: v.union(v.number(), v.null()),
   }),
   /** Each area's minimum and maximum on the pitch: lineup.ts's LineupRules["areaLimits"]. */

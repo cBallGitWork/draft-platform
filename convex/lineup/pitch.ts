@@ -73,6 +73,12 @@ export function positionOfSlot({ area, lane }: Cell): SlotPosition {
   return SLOT_POSITION_BY_AREA[area][WIDE_LANES.includes(lane) ? "wide" : "centre"];
 }
 
+/** The areas a player with these positions plays any cell of, back to front: a wing back's are
+ *  defence and both midfield rows his wide lanes reach. */
+export function areasOf(positions: readonly Position[]): Area[] {
+  return AREAS.filter((area) => positions.some((position) => PLAYABLE_CELLS[position].some((cell) => cell.area === area)));
+}
+
 /** Whether a player with these positions may stand in this cell. Any one of them is enough, and
  *  one still unconfirmed counts the same (spec/06, New signings). */
 export function playsCell(positions: readonly Position[], cell: Cell): boolean {

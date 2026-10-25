@@ -179,6 +179,12 @@ export const find = query({
   },
 });
 
+/** His positions now, for anyone's screen (a squad's area minimums, #317): none for a player no
+ *  feed has named yet. `how` is read once by the caller (`howPositionsCount`). */
+export async function positionsNow(ctx: QueryCtx, code: number, how: HowPositionsCount): Promise<Position[]> {
+  return positionsFrom((await findRow(ctx, code)) ?? EMPTY_ROW, how).positions.map(({ position }) => position);
+}
+
 /** His row, made empty if he has none yet. */
 export async function heldRow(ctx: MutationCtx, code: number): Promise<Row> {
   const row = await findRow(ctx, code);

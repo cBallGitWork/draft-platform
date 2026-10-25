@@ -79,6 +79,13 @@ describe("each team's squad", () => {
     expect(within(team2).getByRole("status").textContent).toBe("0 players, under the league's least of 11.");
   });
 
+  it("warns of an area short of the league's minimum, naming the area (#317)", async () => {
+    openSquads({ squads: [teamSquad("team-1", "Team 1", [saka], [{ kind: "underAreaMinimum", area: "defensiveMidfield", players: 1, minimum: 2 }])] });
+
+    const team1 = await screen.findByRole("region", { name: "Team 1" });
+    expect(within(team1).getByRole("status").textContent).toBe("Defensive midfield: 1, under the league's least of 2.");
+  });
+
   it("releases a player", async () => {
     const app = openSquads();
     await userEvent.click(await screen.findByRole("button", { name: releaseLabel("Saka") }));
