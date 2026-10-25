@@ -4,7 +4,6 @@ import type { AuthActions } from "../auth";
 import { Continue } from "./Continue";
 import { MAIL_PATH, sectionAt, sections } from "./menu";
 import { MenuTab } from "./MenuTab";
-import { TOP_BAR, TOP_BAR_ROW } from "./Panel";
 import { ProductName } from "./ProductName";
 import { SignOut } from "./SignOut";
 import type { TopBarState } from "./topBarState";
@@ -31,8 +30,8 @@ export function AppFrame({
 
   return (
     <>
-      <header className={TOP_BAR}>
-        <div className={TOP_BAR_ROW}>
+      <header className="bg-bar shadow-bevel-plate">
+        <div className="flex flex-wrap items-stretch">
           <ProductName />
           {leagueSwitcher}
           {/* On a phone the menu takes its own row under the name, Continue and Sign out. */}

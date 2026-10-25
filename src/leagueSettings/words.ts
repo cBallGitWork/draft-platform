@@ -8,7 +8,6 @@ import type { Area } from "../../convex/lineup/pitch";
 import type { OddTeamOut } from "../../convex/table/roundRobin";
 import { AREA_WORDS, failedWords, gameweekWords } from "../words";
 
-
 export const SETTINGS_TITLE = "League settings";
 export const loadingWords = "Loading the league settings…";
 export const noRulesWords = "This league was made before leagues held their rules, so it has no settings to edit yet.";

@@ -100,7 +100,3 @@ const PANEL_NOTE_EDGES = {
 export function PanelNote({ edge = "y", children }: { edge?: keyof typeof PANEL_NOTE_EDGES; children: ReactNode }) {
   return <p className={`${PANEL_NOTE_EDGES[edge]} text-muted`}>{children}</p>;
 }
-
-/** The top bar every frame draws, and the row its name and controls sit in. */
-export const TOP_BAR = "bg-bar shadow-bevel-plate";
-export const TOP_BAR_ROW = "flex flex-wrap items-stretch";

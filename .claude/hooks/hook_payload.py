@@ -2,8 +2,7 @@
 writes on stdin. Anything else (nothing, text that isn't JSON, a JSON list or string) raises
 BadPayload saying what came, and the hook exits 1 with it on stderr: Claude Code shows that,
 where a payload read as {} would have checked nothing and said nothing. guard_bash.py reads its
-own, since it denies where these two only report; all three take the project's folder from
-project_dir(). Stdlib only, Python 3.9+.
+own, since it denies where these two only report. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -15,11 +14,6 @@ import sys
 
 class BadPayload(Exception):
     """The payload isn't what Claude Code sends; the message says what it was."""
-
-
-def project_dir():
-    """The project's folder: CLAUDE_PROJECT_DIR, else the folder the hook runs in."""
-    return os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
 
 
 def read_payload():
