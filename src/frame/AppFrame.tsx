@@ -16,15 +16,17 @@ export const sectionTabClasses =
   "data-[status=active]:text-fact data-[status=active]:shadow-subtab-active";
 
 /** The signed-in frame: the top menu with the league it is in, Feedback, Continue and Sign out, the
- *  active section's tabs under it, and the page. */
+ *  active section's tabs under it, and the page, under the banner, if one shows. */
 export function AppFrame({
   topBar,
   onSignOut,
   leagueSwitcher,
+  banner,
 }: {
   topBar: TopBarState;
   onSignOut: AuthActions["signOut"];
   leagueSwitcher: ReactNode;
+  banner: ReactNode;
 }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const tabs = sectionAt(pathname)?.tabs ?? [];
@@ -65,6 +67,7 @@ export function AppFrame({
         )}
       </header>
       <main className="p-2">
+        {banner}
         <Outlet />
       </main>
     </>

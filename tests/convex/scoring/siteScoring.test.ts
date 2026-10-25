@@ -94,7 +94,7 @@ describe("a fix", () => {
     expect(await inGameweek(10)).toEqual(EDITED);
   });
 
-  test("files no letter in any league: #356 announces it", async () => {
+  test("records no league's event: its letter is the site's (#356, patchAnnouncements.test.ts)", async () => {
     await holdGameweeks(t, { next: 9 });
     const leagueId = await adminCreatesLeague(t);
     const events = await eventsIn(t, leagueId);

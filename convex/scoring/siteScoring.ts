@@ -12,7 +12,10 @@ import { adminOf, callerEmail, isAdmin, refuse } from "../shared/leagueAccess";
 import { londonTime } from "../shared/londonTime";
 import { sortedJson } from "../shared/sortedJson";
 import { DAY_MS } from "../shared/time";
+import { fileSiteLetter } from "../mail/letters";
+import { versionLetter } from "../mail/letterWords";
 import { FIRST_SCORING } from "./firstScoring";
+import { scoringChanges } from "./patchChanges";
 import { checkOwnStatsAgainstCatalogue } from "./ownStats";
 import { validateScoringSet } from "./scoringSet";
 
@@ -72,7 +75,7 @@ export function versionName({ season, number }: Pick<Doc<"siteScoring">, "season
 }
 
 /** Every version the site has, in the order they take effect, at most SITE_SCORING_VERSIONS_MOST. */
-function historyOf(ctx: QueryCtx): Promise<Doc<"siteScoring">[]> {
+export function historyOf(ctx: QueryCtx): Promise<Doc<"siteScoring">[]> {
   return takeAllOrThrow(
     ctx.db.query("siteScoring").withIndex("by_takesEffectAt"),
     SITE_SCORING_VERSIONS_MOST,
@@ -117,17 +120,25 @@ function checkRevision(latest: Doc<"siteScoring"> | undefined, revision: Id<"sit
   if ((latest?._id ?? null) !== revision) refuse(siteScoringRefusals.changedSince(latest?._creationTime ?? Date.now()));
 }
 
-/** Adds a version taking effect at `takesEffectAt`, numbered next in its season; returns its name. */
+/** Adds a version taking effect at `takesEffectAt`, numbered next in its season, and files the
+ *  letter telling every manager what it changes (spec/14: a patch is announced by a Mail letter, and
+ *  a fix is announced as a fix, so it gets one too; #356). Returns its name and the first gameweek
+ *  it reaches. */
 async function addVersion(
   ctx: MutationCtx,
   history: readonly Doc<"siteScoring">[],
   version: Pick<Doc<"siteScoring">, "scoring" | "kind" | "takesEffectAt">,
-): Promise<string> {
+  by: string,
+): Promise<{ name: string; fromGameweek: number }> {
   if (history.length >= SITE_SCORING_VERSIONS_MOST) refuse(siteScoringRefusals.tooManyVersions);
   const season = seasonStartYear(version.takesEffectAt);
   const number = Math.max(0, ...history.filter((row) => row.season === season).map((row) => row.number)) + 1;
   await ctx.db.insert("siteScoring", { ...version, season, number, announcedAt: Date.now() });
-  return versionName({ season, number });
+  const name = versionName({ season, number });
+  const fromGameweek = await firstGameweekFrom(ctx, version.takesEffectAt);
+  const changes = scoringChanges(history.at(-1)?.scoring ?? FIRST_SCORING, version.scoring);
+  await fileSiteLetter(ctx, versionLetter({ name, kind: version.kind, takesEffectAt: version.takesEffectAt, fromGameweek, changes }), by);
+  return { name, fromGameweek };
 }
 
 const versionSummary = v.object({ name: v.string(), kind: siteScoringKind, takesEffectAt: v.number() });
@@ -193,7 +204,7 @@ export const announce = mutation({
   args: { draftSavedAt: v.number(), takesEffectAt: v.number() },
   returns: v.object({ name: v.string(), fromGameweek: v.number() }),
   handler: async (ctx, { draftSavedAt, takesEffectAt }) => {
-    await adminOf(ctx);
+    const admin = await adminOf(ctx);
     const draft = await ctx.db.query("siteScoringDraft").unique();
     if (draft === null) refuse(siteScoringRefusals.noDraft);
     if (draft.savedAt !== draftSavedAt) refuse(siteScoringRefusals.draftChangedSince(draft.savedAt));
@@ -206,9 +217,9 @@ export const announce = mutation({
     const earliest = Date.now() + PATCH_NOTICE_MS;
     if (takesEffectAt < earliest) refuse(siteScoringRefusals.tooSoon(earliest));
     if (latest !== undefined && takesEffectAt < latest.takesEffectAt) refuse(siteScoringRefusals.beforeWaiting(versionName(latest), latest.takesEffectAt));
-    const name = await addVersion(ctx, history, { scoring: draft.scoring, kind: "patch", takesEffectAt });
+    const added = await addVersion(ctx, history, { scoring: draft.scoring, kind: "patch", takesEffectAt }, admin);
     await ctx.db.delete("siteScoringDraft", draft._id);
-    return { name, fromGameweek: await firstGameweekFrom(ctx, takesEffectAt) };
+    return added;
   },
 });
 
@@ -220,7 +231,7 @@ export const fix = mutation({
   args: { scoring: scoringSetShape, revision: siteRevisionShape },
   returns: v.number(),
   handler: async (ctx, { scoring, revision }) => {
-    await adminOf(ctx);
+    const admin = await adminOf(ctx);
     const history = await historyOf(ctx);
     const latest = history.at(-1);
     checkRevision(latest, revision);
@@ -228,7 +239,6 @@ export const fix = mutation({
     const now = Date.now();
     if (sortedJson(latest?.scoring ?? FIRST_SCORING) === sortedJson(scoring)) return firstGameweekFrom(ctx, now);
     if (latest !== undefined && latest.takesEffectAt > now) refuse(siteScoringRefusals.fixWhileWaiting(versionName(latest), latest.takesEffectAt));
-    await addVersion(ctx, history, { scoring, kind: "fix", takesEffectAt: now });
-    return firstGameweekFrom(ctx, now);
+    return (await addVersion(ctx, history, { scoring, kind: "fix", takesEffectAt: now }, admin)).fromGameweek;
   },
 });
