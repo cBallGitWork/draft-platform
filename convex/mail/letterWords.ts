@@ -1,6 +1,6 @@
 import type { Infer } from "convex/values";
 import { aNewTeamWords } from "../joining/joiningShared";
-import { londonTime } from "../shared/londonTime";
+import { LOCALE, londonTime } from "../shared/londonTime";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { NOTHING_SCORES_DIFFERENTLY } from "../scoring/patchChanges";
 import type { leagueEvent, siteScoringKind } from "../schema";
@@ -138,9 +138,8 @@ function rulesChangedBody(event: Extract<LeagueEvent, { kind: "rulesChanged" }>,
 }
 
 /** "a", "a and b", "a, b and c". */
-function listWords(items: readonly string[]): string {
-  return items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
-}
+const andList = new Intl.ListFormat(LOCALE, { type: "conjunction" });
+const listWords = (items: readonly string[]) => andList.format(items);
 
 const capitalised = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
 
