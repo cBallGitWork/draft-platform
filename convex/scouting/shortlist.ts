@@ -91,12 +91,12 @@ export const mine = query({
   },
 });
 
-const change = { leagueId: v.id("leagues"), playerCode: v.number() };
+const playerInLeague = { leagueId: v.id("leagues"), playerCode: v.number() };
 
 /** Puts a player on the caller's own shortlist; one already on it stays, once. Any player still in
  *  the Premier League, whoever owns him. */
 export const add = mutation({
-  args: change,
+  args: playerInLeague,
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
     const team = await ownTeam(ctx, leagueId);
@@ -111,7 +111,7 @@ export const add = mutation({
 
 /** Takes a player off the caller's own shortlist; one not on it is already off. */
 export const remove = mutation({
-  args: change,
+  args: playerInLeague,
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
     const team = await ownTeam(ctx, leagueId);

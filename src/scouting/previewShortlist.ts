@@ -12,14 +12,14 @@ export function previewShortlistOf(players: readonly ListedPlayer[], openingCode
     const player = players.find((each) => each.code === code)!;
     return { code, name: player.name, fullName: player.fullName, club: player.club, ownerTeamName: player.ownerTeamName, gone: false };
   };
-  const listOf = (codes: Iterable<number>) => [...codes].map(shortlisted).sort((one, other) => one.name.localeCompare(other.name));
+  const sortedPlayers = (codes: Iterable<number>) => [...codes].map(shortlisted).sort((one, other) => one.name.localeCompare(other.name));
 
   // A new array only when it changes, as useSyncExternalStore needs.
   let codes = new Set(openingCodes);
-  let list = listOf(codes);
+  let list = sortedPlayers(codes);
   const changeTo = (next: Set<number>) => {
     codes = next;
-    list = listOf(codes);
+    list = sortedPlayers(codes);
     for (const listener of listeners) listener();
   };
   const subscribe = (listener: () => void) => {

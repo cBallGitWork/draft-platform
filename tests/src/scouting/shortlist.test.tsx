@@ -5,6 +5,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { shortlistRefusals } from "../../../convex/scouting/shortlist";
 import { SCOUTING_PATH } from "../../../src/frame/menu";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import type { PlayerCard } from "../../../src/playerCard/seam";
@@ -26,7 +27,7 @@ import { commissioner, league, manager, openApp } from "../../support/src/shell.
 
 const SAKA = shortlisted(1001, "Saka", "Saka Potatoes");
 const RICE = shortlisted(1002, "Rice");
-const REFUSAL = "A shortlist holds at most 100 players. Take one off first.";
+const REFUSAL = shortlistRefusals.full;
 
 const openScouting = (shortlist: ShortlistData, session = manager) => openApp(SCOUTING_PATH, session, { scouting: { shortlist } });
 const shortlistPanel = () => screen.findByRole("region", { name: SHORTLIST_TITLE });
@@ -119,7 +120,7 @@ describe("on the player card", () => {
     expect((await screen.findByRole("alert")).textContent).toBe(REFUSAL);
   });
 
-  it("offers no adding a player who has left the Premier League, but takes one on it off", async () => {
+  it("offers no adding a player who has left the Premier League", async () => {
     openCard(card(SAKA.code, "Saka", true), { players: [] });
     await screen.findByRole("heading", { level: 1, name: "Saka" });
     expect(screen.queryByRole("button", { name: addToShortlistWords })).toBeNull();
