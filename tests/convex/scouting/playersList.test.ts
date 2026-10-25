@@ -9,7 +9,9 @@ import {
   type PlayersSort,
 } from "../../../convex/scouting/playersList";
 import { listOf } from "../../../convex/scouting/playersOrder";
+import { PL_SEASON_START_YEAR } from "../../../convex/football/football";
 import { refusals } from "../../../convex/shared/leagueAccess";
+import { SEASON_TOTALS_MOST } from "../../../convex/stats/seasonStats";
 import { CLUB_PLAYERS_MOST } from "../../../convex/shared/players";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -54,8 +56,8 @@ beforeEach(async () => {
   });
 });
 
-const listAs = async (email: string, filters: Partial<PlayersFilters> = {}, sort: PlayersSort = BY_NAME) =>
-  (await actingAs(t, email)).query(api.scouting.playersList.list, { leagueId, filters: { ...ALL, ...filters }, sort });
+const listAs = async (email: string, filters: Partial<PlayersFilters> = {}, sort: PlayersSort = BY_NAME, stat: string | null = null) =>
+  (await actingAs(t, email)).query(api.scouting.playersList.list, { leagueId, filters: { ...ALL, ...filters }, sort, stat });
 const namesListed = async (filters: Partial<PlayersFilters> = {}, sort: PlayersSort = BY_NAME) =>
   (await listAs(ANN, filters, sort)).players.map((player) => player.name);
 const teamName = (teamId: Id<"teams">) => t.run(async (ctx) => (await ctx.db.get("teams", teamId))!.name);
@@ -71,6 +73,7 @@ test("every Premier League player now is listed, with his club, positions and ow
     positions: ["W"],
     ownerTeamName: await teamName(teams[0]),
     seasonPoints: null,
+    stat: null,
   });
   expect(players.find((player) => player.code === RICE.code)?.ownerTeamName).toBeNull();
 });
@@ -140,6 +143,7 @@ describe("sorting by a figure", () => {
     positions: [],
     ownerTeamName: null,
     seasonPoints,
+    stat: null,
   });
   const players = [withPoints("Ann", 1, 4), withPoints("Bea", 2, null), withPoints("Cal", 3, 12), withPoints("Dee", 4, 4)];
   const order = (descending: boolean) => listOf(players, ALL, { by: "seasonPoints", descending }).map((player) => player.name);
@@ -150,6 +154,67 @@ describe("sorting by a figure", () => {
 
   test("fewest first, and a null still last", () => {
     expect(order(false)).toEqual(["Ann", "Dee", "Cal", "Bea"]);
+  });
+});
+
+describe("any stat, as a season total (spec/19, sortable by any stat)", () => {
+  const THIS_SEASON = PL_SEASON_START_YEAR;
+  // Saka and Mbeumo have goals this season, Palmer more last season, and Rice no totals at all.
+  beforeEach(() =>
+    t.run(async (ctx) => {
+      await ctx.db.insert("playerSeasonStats", { season: THIS_SEASON, playerCode: SAKA.code, stats: { goals_scored: 3, expected_goals: 2.5 } });
+      await ctx.db.insert("playerSeasonStats", { season: THIS_SEASON, playerCode: MBEUMO.code, stats: { goals_scored: 5, expected_goals: 1.25 } });
+      await ctx.db.insert("playerSeasonStats", { season: THIS_SEASON, playerCode: PALMER.code, stats: { expected_goals: 0.5 } });
+      await ctx.db.insert("playerSeasonStats", { season: THIS_SEASON - 1, playerCode: PALMER.code, stats: { goals_scored: 22 } });
+    }),
+  );
+  const totalsListed = async (stat: string, sort: PlayersSort = { by: "stat", descending: true }, filters: Partial<PlayersFilters> = {}) =>
+    (await listAs(ANN, filters, sort, stat)).players.map((player) => [player.name, player.stat]);
+
+  test("each player has this season's total of the shown stat, 0 with none held, sorted the most first", async () => {
+    expect(await totalsListed("goals_scored")).toEqual([
+      ["Mbeumo", 5],
+      ["Saka", 3],
+      ["Palmer", 0],
+      ["Rice", 0],
+    ]);
+  });
+
+  test("the fewest first, ties by name", async () => {
+    expect(await totalsListed("expected_goals", { by: "stat", descending: false })).toEqual([
+      ["Rice", 0],
+      ["Palmer", 0.5],
+      ["Mbeumo", 1.25],
+      ["Saka", 2.5],
+    ]);
+  });
+
+  test("shown while another column sorts, and with the filters", async () => {
+    expect(await totalsListed("goals_scored", BY_NAME, { clubCode: ARSENAL.code })).toEqual([
+      ["Rice", 0],
+      ["Saka", 3],
+    ]);
+  });
+
+  test("with no stat shown, no player has one", async () => {
+    expect((await listAs(ANN)).players.every((player) => player.stat === null)).toBe(true);
+  });
+
+  test("a stat the catalogue doesn't hold is refused", async () => {
+    await expect(listAs(ANN, {}, BY_NAME, "not_a_stat")).rejects.toThrow("No stat not_a_stat is in the catalogue");
+  });
+
+  test("a sort by the stat with none shown is refused", async () => {
+    await expect(listAs(ANN, {}, { by: "stat", descending: true })).rejects.toThrow("with none shown");
+  });
+
+  test(`more than ${SEASON_TOTALS_MOST} players with totals in a season throws, never a silent cut`, async () => {
+    await t.run(async (ctx) => {
+      for (let code = 0; code < SEASON_TOTALS_MOST; code += 1) {
+        await ctx.db.insert("playerSeasonStats", { season: THIS_SEASON, playerCode: 50_000 + code, stats: {} });
+      }
+    });
+    await expect(listAs(ANN, {}, BY_NAME, "goals_scored")).rejects.toThrow(`More than ${SEASON_TOTALS_MOST} players have totals`);
   });
 });
 

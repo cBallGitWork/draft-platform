@@ -2457,6 +2457,55 @@
       }
     },
     {
+      "tableName": "playerSeasonStats",
+      "indexes": [
+        {
+          "indexDescriptor": "by_season_and_playerCode",
+          "fields": [
+            "season",
+            "playerCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "season": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "playerCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "stats": {
+            "fieldType": {
+              "type": "record",
+              "keys": {
+                "type": "string"
+              },
+              "values": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              }
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "matchStatsTries",
       "indexes": [
         {
@@ -2938,6 +2987,38 @@
               }
             },
             "optional": true
+          },
+          "pinnedLetter": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "at": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "from": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                },
+                "subject": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                },
+                "body": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
           }
         }
       }
@@ -3002,6 +3083,14 @@
           "indexDescriptor": "by_leagueId_and_at",
           "fields": [
             "leagueId",
+            "at"
+          ]
+        },
+        {
+          "indexDescriptor": "by_leagueId_and_kind_and_at",
+          "fields": [
+            "leagueId",
+            "event.kind",
             "at"
           ]
         }

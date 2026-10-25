@@ -21,11 +21,13 @@ import type { FeedbackSeam } from "./feedback/seam";
 import { ErrorScreen } from "./frame/ErrorScreen";
 import { LeagueSwitcher } from "./frame/LeagueSwitcher";
 import type { TopBarState } from "./frame/topBarState";
-import { MAIL_PATH, MY_TEAM_PATH, pages, SCOUTING_PATH, TABLE_PATH } from "./frame/menu";
+import { HOME_PATH, MAIL_PATH, MY_TEAM_PATH, pages, SCOUTING_PATH, TABLE_PATH } from "./frame/menu";
 import { PageNotBuilt } from "./frame/PageNotBuilt";
 import { GameweeksRoute } from "./gameweeks/GameweeksRoute";
 import type { LeagueSummary } from "../convex/leagues/myLeagues";
 import { GAMEWEEKS_ROUTE } from "./gameweeks/paths";
+import { HomeRoute } from "./home/HomeRoute";
+import type { HomeSeam } from "./home/seam";
 import type { GameweeksSeam } from "./gameweeks/seam";
 import { InvitesPage } from "./joining/InvitesPage";
 import { JoinPage } from "./joining/JoinPage";
@@ -65,7 +67,7 @@ import type { TableSeam } from "./table/seam";
 import { TableRoute } from "./table/TableRoute";
 
 // A seam is a top-level useLive* hook holding root state (mail, joining, squads, scoring, league
-// settings, admin, leagues, feedback, patches) or a constant object of hooks (gameweeks, table, scouting, player card). Each new one needs a
+// settings, admin, leagues, feedback, patches) or a constant object of hooks (gameweeks, table, scouting, player card, home). Each new one needs a
 // preview (previewApp.tsx), a live value (liveApp.tsx) and a fake (shell.harness.tsx), and the
 // typechecker flags any that's missing.
 export type ShellContext = {
@@ -82,6 +84,7 @@ export type ShellContext = {
   table: TableSeam;
   scouting: ScoutingSeam;
   playerCard: PlayerCardSeam;
+  home: HomeSeam;
   admin: AdminSeam;
   feedback: FeedbackSeam;
   patches: PatchesSeam;
@@ -357,6 +360,16 @@ const tableRoute = createRoute({
   },
 });
 
+// League home (#387), for anyone in the league.
+const homeRoute = createRoute({
+  getParentRoute: () => frameRoute,
+  path: HOME_PATH,
+  component: function Home() {
+    const { session, home } = homeRoute.useRouteContext();
+    return <HomeRoute session={session} seam={home} />;
+  },
+});
+
 // Scouting's players list (#373), for anyone in the league.
 const scoutingRoute = createRoute({
   getParentRoute: () => frameRoute,
@@ -367,7 +380,7 @@ const scoutingRoute = createRoute({
   },
 });
 
-const BUILT_PAGES: readonly string[] = [MAIL_PATH, TABLE_PATH, SCOUTING_PATH];
+const BUILT_PAGES: readonly string[] = [MAIL_PATH, TABLE_PATH, SCOUTING_PATH, HOME_PATH];
 const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map((page) =>
   createRoute({
     getParentRoute: () => frameRoute,
@@ -379,7 +392,7 @@ const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map(
 const routeTree = rootRoute.addChildren([
   signInRoute,
   leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, playerCardRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, feedbackRoute, patchNotesRoute]),
-  frameRoute.addChildren([landingRoute, tableRoute, scoutingRoute, ...pageRoutes]),
+  frameRoute.addChildren([landingRoute, homeRoute, tableRoute, scoutingRoute, ...pageRoutes]),
 ]);
 
 // Not registered for typed links yet: the pages above are made in a loop, so their paths are plain
