@@ -7,13 +7,21 @@ import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { listOf, shownStat } from "../../../convex/scouting/playersOrder";
 import type { Stats } from "../../../convex/stats/statTotals";
 import type { PlayersList, ScoutingSeam } from "../../../src/scouting/seam";
+import { fakeShortlist, type ShortlistData } from "./shortlist.harness";
 
 /** What the fake server holds: its clubs, players and their season totals by code, or nothing yet
- *  while it loads. */
-export type ScoutingData = { clubs?: PlayersList["clubs"]; players?: readonly ListedPlayer[]; totals?: Record<number, Stats>; loading?: boolean };
+ *  while it loads, and the shortlist. */
+export type ScoutingData = {
+  clubs?: PlayersList["clubs"];
+  players?: readonly ListedPlayer[];
+  totals?: Record<number, Stats>;
+  loading?: boolean;
+  shortlist?: ShortlistData;
+};
 
-export function fakeScouting({ clubs = [], players = [], totals = {}, loading = false }: ScoutingData = {}) {
+export function fakeScouting({ clubs = [], players = [], totals = {}, loading = false, shortlist }: ScoutingData = {}) {
   return {
+    ...fakeShortlist(shortlist),
     usePlayersList: vi.fn<ScoutingSeam["usePlayersList"]>((_leagueId, filters, sort, stat) =>
       loading
         ? undefined

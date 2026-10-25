@@ -1664,6 +1664,55 @@
       }
     },
     {
+      "tableName": "shortlistPlayers",
+      "indexes": [
+        {
+          "indexDescriptor": "by_teamId_and_playerCode",
+          "fields": [
+            "teamId",
+            "playerCode"
+          ]
+        },
+        {
+          "indexDescriptor": "by_leagueId_and_playerCode",
+          "fields": [
+            "leagueId",
+            "playerCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "playerCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "playerMatchStats",
       "indexes": [
         {
@@ -19170,6 +19219,135 @@
           "storedAt": {
             "fieldType": {
               "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "lineups",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_teamId_and_fromGameweek",
+          "fields": [
+            "leagueId",
+            "teamId",
+            "fromGameweek"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "fromGameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "starters": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "area": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "goalkeeper"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "defence"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "defensiveMidfield"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "midfield"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "attackingMidfield"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "attack"
+                        }
+                      ]
+                    },
+                    "optional": false
+                  },
+                  "lane": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "left"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "leftCentre"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "centre"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "rightCentre"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "right"
+                        }
+                      ]
+                    },
+                    "optional": false
+                  },
+                  "playerCode": {
+                    "fieldType": {
+                      "type": "number"
+                    },
+                    "optional": false
+                  }
+                }
+              }
+            },
+            "optional": false
+          },
+          "bench": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "number"
+              }
             },
             "optional": false
           }

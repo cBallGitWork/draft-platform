@@ -4,6 +4,7 @@
 import type { ListedPlayer } from "../../convex/scouting/playersList";
 import { listOf, shownStat } from "../../convex/scouting/playersOrder";
 import type { Stats } from "../../convex/stats/statTotals";
+import { previewShortlistOf } from "./previewShortlist";
 import type { ScoutingSeam } from "./seam";
 
 export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
@@ -42,7 +43,11 @@ const previewTotals: Record<number, Stats> = {
   7: { goals_scored: 1, clean_sheets: 4, minutes: 810, expected_goals: 0.65 },
 };
 
+/** Rice and Salah are on the preview manager's shortlist to begin with. */
+export const previewShortlist = previewShortlistOf(previewPlayers, [2, 6]);
+
 export const previewScouting: ScoutingSeam = {
+  ...previewShortlist,
   usePlayersList: (_leagueId, filters, sort, stat) => ({
     clubs: [ARSENAL, CHELSEA, LIVERPOOL],
     players: listOf(

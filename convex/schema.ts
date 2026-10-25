@@ -1,7 +1,7 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v, type VLiteral } from "convex/values";
-import { scoringSetShape, storedLeagueRulesShape } from "./rules/leagueRulesShape";
+import { cellShape, scoringSetShape, storedLeagueRulesShape } from "./rules/leagueRulesShape";
 import { squadMaximumBandShape } from "./rules/squadMaximums";
 import { POSITIONS, type Position } from "./positions/positionTables";
 import { feedValidator } from "./shared/feedSchedule";
@@ -495,6 +495,14 @@ const squadTables = {
     .index("by_teamId", ["teamId"]),
 };
 
+// The shortlist (#374, spec/19 The shortlist): each team's own list of players for the season, by
+// FPL's season-stable code. Private to the team: only its manager reads or changes it.
+const shortlistTables = {
+  shortlistPlayers: defineTable({ leagueId: v.id("leagues"), teamId: v.id("teams"), playerCode: v.number() })
+    .index("by_teamId_and_playerCode", ["teamId", "playerCode"])
+    .index("by_leagueId_and_playerCode", ["leagueId", "playerCode"]),
+};
+
 /** What happened in a league, for Mail (#26) to turn into letters (spec/15, The commissioner):
  *  each says all a letter needs, as it was at the time. */
 export const leagueEvent = v.union(
@@ -647,6 +655,23 @@ const playedFixtureTables = {
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
 };
 
+// Each team's lineup (#8, spec/05): one row for each gameweek it was saved from, which
+// lineup/lineups.ts writes and reads.
+
+/** A starter and the cell he stands in: lineup.ts's Placement, its cell checked. */
+export const placementShape = cellShape.extend({ playerCode: v.number() });
+
+const lineupTables = {
+  lineups: defineTable({
+    leagueId: v.id("leagues"),
+    teamId: v.id("teams"),
+    fromGameweek: v.number(),
+    starters: v.array(placementShape),
+    /** Player codes, in the order auto-subs use. */
+    bench: v.array(v.number()),
+  }).index("by_leagueId_and_teamId_and_fromGameweek", ["leagueId", "teamId", "fromGameweek"]),
+};
+
 export default defineSchema({
   ...authTables,
   ...signInTables,
@@ -654,6 +679,7 @@ export default defineSchema({
   ...footballTables,
   ...positionsTables,
   ...squadTables,
+  ...shortlistTables,
   ...matchStatsTables,
   ...liveStatsTables,
   ...feedFailureEmailTables,
@@ -663,4 +689,5 @@ export default defineSchema({
   ...feedbackTables,
   ...leagueRulesTables,
   ...playedFixtureTables,
+  ...lineupTables,
 });
