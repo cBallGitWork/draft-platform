@@ -1,8 +1,8 @@
 # Tests
 
-Every Vitest and Playwright test sits here (the hook checks, and the recorded add-only check's, are in `.claude/hooks/tests/`), under
-one of four roots: at the path of the code it tests, or at the root for a test that spans many
-files (`tests/src/flow.test.ts`).
+Every Vitest and Playwright test sits here (the hook checks, and the recorded add-only check's,
+are in `.claude/hooks/tests/`), under one of four roots: at the path of the code it tests, or at
+the root for a test that spans many files (`tests/src/flow.test.ts`).
 
 ## The four roots
 
@@ -14,8 +14,9 @@ files (`tests/src/flow.test.ts`).
 | `tests/smoke/` | the app loaded in a real browser, no Convex | Playwright (`npm run smoke`, `playwright.config.ts`) | `tests/smoke/smoke.spec.ts` |
 
 `npm test` runs the three Vitest projects (`vitest.config.ts` holds their include patterns); a
-file that matches none of them never runs. `npm run verify` runs them with the install check, the type
-check, the recorded-payload check and the hook checks; CI also runs `npm run build` and `npm run smoke`.
+file that matches none of them never runs. `npm run verify` runs them with the install check, the
+type check, the recorded-payload check and the hook checks; CI also runs `npm run build` and
+`npm run smoke`.
 
 ## What `tests/support/` holds
 

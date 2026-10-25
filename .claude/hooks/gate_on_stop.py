@@ -4,11 +4,11 @@
 It judges the checkout the stop came from: the git top-level of the payload's `cwd` (so a
 builder in .claude/worktrees/ is judged on its own worktree), else of CLAUDE_PROJECT_DIR, else of
 the folder it runs in; one with no git or no package.json has no gate, so it says nothing. While
-the watched paths there have uncommitted changes, it runs `npm run verify` (the install check, tests,
-typecheck, the recorded-payload check, hook checks) there; on failure, it blocks the stop and hands Claude the end of the output. Respects
-`stop_hook_active`, so it blocks once and never loops. If git status fails, the gate times out
-or the payload can't be read (hook_payload.py), it exits 1 with one line on stderr saying what
-failed and in which checkout: Claude Code shows it, but the stop goes ahead (it fails open, never
+the watched paths there have uncommitted changes, it runs `npm run verify` (the install check,
+tests, typecheck, the recorded-payload check, hook checks) there; on failure, it blocks the stop
+and hands Claude the end of the output. Respects `stop_hook_active`, so it blocks once and never
+loops. If git status fails, the gate times out or the payload can't be read (hook_payload.py), it
+exits 1 with one line on stderr saying what failed and in which checkout: Claude Code shows it, but the stop goes ahead (it fails open, never
 quietly). A subagent's `cwd` is the folder it works in: an agent spawned with its own worktree
 has that worktree, but one that only names a worktree by absolute path has the main checkout
 (checked 20 Oct 2026 in subagent transcripts). A subagent stopping in the main checkout isn't

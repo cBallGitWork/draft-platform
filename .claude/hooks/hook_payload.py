@@ -1,8 +1,9 @@
 """Reads a hook's payload, for gate_on_stop.py and line_ceiling.py: the JSON object Claude Code
-writes on stdin; and names the project folder those two and guard_bash.py fall back to. Anything else (nothing, text that isn't JSON, a JSON list or string) raises
+writes on stdin. Anything else (nothing, text that isn't JSON, a JSON list or string) raises
 BadPayload saying what came, and the hook exits 1 with it on stderr: Claude Code shows that,
 where a payload read as {} would have checked nothing and said nothing. guard_bash.py reads its
-own, since it denies where these two only report. Stdlib only, Python 3.9+.
+own, since it denies where these two only report; all three take the project's folder from
+project_dir(). Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
