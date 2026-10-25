@@ -10,7 +10,7 @@ import { previewJoining } from "./joining/preview";
 import { previewLeagueSettings } from "./leagueSettings/preview";
 import { previewMail, previewTopBar } from "./mail/preview";
 import { previewAuth, previewLeagues, previewSession } from "./preview";
-import { previewScoring } from "./scoring/preview";
+import { previewScoringFor } from "./scoring/preview";
 import { ShellApp } from "./ShellApp";
 import { previewSquads } from "./squads/preview";
 import { previewTable } from "./table/preview";
@@ -29,7 +29,7 @@ export function previewApp(): ReactNode | null {
       topBar={previewTopBar}
       gameweeks={previewGameweeks}
       squads={previewSquads}
-      scoring={previewScoring}
+      scoring={previewScoringFor(session)}
       leagueSettings={previewLeagueSettings}
       table={previewTable}
       admin={previewAdmin}
