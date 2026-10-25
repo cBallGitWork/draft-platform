@@ -16,15 +16,15 @@ export function namesWords(names: readonly string[]): string {
   return names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
 }
 
-const isOrAre = (names: readonly string[]) => (names.length === 1 ? "isn't" : "aren't");
+const isNot = (names: readonly string[]) => (names.length === 1 ? "isn't" : "aren't");
 
 /** Why a lineup can't be saved, as the manager is told it. */
 export const lineupRefusals = {
   noRules: "This league has no rules yet, so it has no deadline and no area limits to set a lineup under. It was made before leagues held their rules.",
   seasonOver: `All ${GAMEWEEKS} gameweeks have begun, so there's no gameweek left to set a lineup for.`,
-  notInSquad: (names: readonly string[]) => `${namesWords(names)} ${isOrAre(names)} in your squad.`,
+  notInSquad: (names: readonly string[]) => `${namesWords(names)} ${isNot(names)} in your squad.`,
   leftOut: (names: readonly string[]) =>
-    `${namesWords(names)} ${isOrAre(names)} in the lineup: every player in your squad starts or sits on the bench.`,
+    `${namesWords(names)} ${isNot(names)} in the lineup: every player in your squad starts or sits on the bench.`,
 };
 
 /** One of lineup.ts's problems, as the manager is told it. */

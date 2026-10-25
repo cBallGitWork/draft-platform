@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lineup } from "../../../convex/lineup/lineup";
 import { lineupRefusals } from "../../../convex/lineup/lineupWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { noSuchGameweek } from "../../../convex/gameweeks/usedGameweeks";
+import { GAMEWEEKS, noSuchGameweek } from "../../../convex/gameweeks/usedGameweeks";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import type { Position } from "../../../convex/positions/positionTables";
@@ -27,6 +27,8 @@ const FREE_AGENT = 999;
 /** Bob's player. */
 const BOBS = 998;
 const BENCH_POSITION: Position = "CM";
+/** Each test player is named for his code. */
+const nameOf = (code: number) => `Player ${code}`;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -40,7 +42,7 @@ beforeEach(async () => {
   [annsTeam, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
     for (const code of [...SQUAD, FREE_AGENT, BOBS]) {
-      await ctx.db.insert("players", { code, name: `Player ${code}`, fullName: `Player ${code}`, clubCode: 1 });
+      await ctx.db.insert("players", { code, name: nameOf(code), fullName: nameOf(code), clubCode: 1 });
       const positions = STARTER_POSITIONS.get(code) ?? [BENCH_POSITION];
       await ctx.db.insert("playerPositions", { code, starts: [], approved: [], set: [...positions], removed: [] });
     }
@@ -70,7 +72,6 @@ const saved = (lineup: Lineup, fromGameweek: number) => ({
 /** The lineup with its bench reversed: another lineup of the same squad. */
 const REVERSED_BENCH: Lineup = { ...FOUR_FOUR_TWO, bench: FOUR_FOUR_TWO.bench.toReversed() };
 const lineupRows = () => t.run((ctx) => ctx.db.query("lineups").collect());
-const nameOf = (code: number) => `Player ${code}`;
 
 describe("a saved lineup", () => {
   test("is saved from the next gameweek not begun and rolls over to every one after it", async () => {
@@ -102,7 +103,7 @@ describe("a saved lineup", () => {
   });
 
   test("is refused once every gameweek has begun", async () => {
-    vi.advanceTimersByTime((38 - NEXT + 1) * WEEK_MS);
+    vi.advanceTimersByTime((GAMEWEEKS - NEXT + 1) * WEEK_MS);
     await expectRefused((await as(ANN)).save(FOUR_FOUR_TWO), lineupRefusals.seasonOver);
   });
 });
@@ -150,7 +151,7 @@ describe("who may save and read", () => {
   });
 
   test("a gameweek outside the season is refused", async () => {
-    await expectRefused((await as(ANN)).mine(39), noSuchGameweek(39));
+    await expectRefused((await as(ANN)).mine(GAMEWEEKS + 1), noSuchGameweek(GAMEWEEKS + 1));
   });
 
   test("saves only to the caller's own team", async () => {

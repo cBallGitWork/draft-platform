@@ -639,9 +639,8 @@ const playedFixtureTables = {
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
 };
 
-// Each team's lineup (#8, spec/05): a save is a row from the next gameweek not yet begun, and the
-// lineup in a gameweek is the newest row from it or before, so a lineup rolls over untouched
-// (lineup/lineups.ts). A second save before the same deadline replaces that gameweek's row.
+// Each team's lineup (#8, spec/05): one row for each gameweek it was saved from, which
+// lineup/lineups.ts writes and reads.
 
 /** A starter and the cell he stands in: lineup.ts's Placement, its cell checked. */
 export const placementShape = cellShape.extend({ playerCode: v.number() });

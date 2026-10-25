@@ -11,7 +11,7 @@ import { playerByCode } from "../shared/players";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { placementShape } from "../schema";
-import { lineupProblems, type Placement } from "./lineup";
+import { lineupProblems } from "./lineup";
 import type { Area, Lane } from "./pitch";
 import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords";
 
@@ -157,7 +157,7 @@ export const save = mutation({
     if (problems.length > 0) refuse(problems.map((problem) => problemWords(problem, nameOf)).join(" "));
 
     // lineupProblems refused any cell not on the pitch, so every starter's is one.
-    const starters = lineup.starters.map((starter: Placement) => ({ ...starter, area: starter.area as Area, lane: starter.lane as Lane }));
+    const starters = lineup.starters.map((starter) => ({ ...starter, area: starter.area as Area, lane: starter.lane as Lane }));
     const existing = await ctx.db
       .query("lineups")
       .withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) =>
