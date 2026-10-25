@@ -1,5 +1,6 @@
 // The league's table and fixtures (#33; spec/12, spec/09): reached from the menu by anyone in the
-// league; the table, all noughts and saying so until matchups are scored; the fixtures a gameweek
+// league; the table, all noughts and saying so until a gameweek is scored, then each fixture's
+// score, live points marked provisional and a gameweek that can't be scored named; the fixtures a gameweek
 // at a time, over the gameweeks the league plays, the team left over against the league's average
 // or on a bye; and a total-points league's table with no fixtures.
 
