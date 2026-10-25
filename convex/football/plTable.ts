@@ -54,8 +54,8 @@ type Row<Club> = Omit<PlTableRow<Club>, "position">;
 
 /** The table: every club in `clubs`, a club with no results on nothing. `seasonOver` brings in
  *  the head-to-head steps (C.17), which apply only once every match is played. A club listed
- *  twice, a result naming a club not in `clubs`, a club playing itself, or goals that aren't a whole number from 0 throws:
- *  each is the caller's bug. */
+ *  twice, a result naming a club not in `clubs`, a club playing itself, or goals that aren't a
+ *  whole number from 0 throws: each is the caller's bug. */
 export function plTable<Club>(
   clubs: readonly Club[],
   results: readonly PlResult<Club>[],
