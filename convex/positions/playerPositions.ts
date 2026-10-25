@@ -181,7 +181,7 @@ export const find = query({
 
 /** His positions now, for anyone's screen (a squad's area minimums, #317): none for a player no
  *  feed has named yet. `how` is read once by the caller (`howPositionsCount`). */
-export async function positionsNow(ctx: QueryCtx, code: number, how: HowPositionsCount): Promise<Position[]> {
+export async function currentPositions(ctx: QueryCtx, code: number, how: HowPositionsCount): Promise<Position[]> {
   return positionsFrom((await findRow(ctx, code)) ?? EMPTY_ROW, how).positions.map(({ position }) => position);
 }
 

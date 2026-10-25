@@ -8,7 +8,7 @@ import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { latestRules } from "../rules/leagueRules";
 import { areaShape, type LeagueRules } from "../rules/leagueRulesShape";
 import { areasOf, type Area } from "../lineup/pitch";
-import { positionsNow } from "../positions/playerPositions";
+import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { areasShort } from "./areaMinimums";
 
@@ -159,7 +159,7 @@ export const squads = query({
         );
         // Positions are read only for a league with area minimums, the one limit that needs them.
         const playersAreas = rules?.squad.minimumByArea
-          ? await Promise.all(squad.map(async ({ playerCode }) => areasOf(await positionsNow(ctx, playerCode, how))))
+          ? await Promise.all(squad.map(async ({ playerCode }) => areasOf(await currentPositions(ctx, playerCode, how))))
           : [];
         players.sort((one, other) => one.name.localeCompare(other.name));
         return { teamId: team._id, teamName: team.name, players, warnings: squadWarnings(players, playersAreas, rules?.squad ?? null) };

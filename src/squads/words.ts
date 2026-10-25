@@ -39,7 +39,7 @@ export function warningWords(warning: SquadWarning): string {
     case "overClubMaximum":
       return `${warning.players} from ${warning.clubShortName}, over the league's most of ${warning.maximum} from one club.`;
     case "underAreaMinimum":
-      return `${AREA_WORDS[warning.area]}: ${warning.players}, under the league's least of ${warning.minimum}.`;
+      return `${AREA_WORDS[warning.area]}: ${warning.minimum - warning.players} short of the league's least of ${warning.minimum}.`;
   }
 }
 
