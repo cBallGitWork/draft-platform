@@ -10,6 +10,7 @@ import { ReadFailed } from "./frame/ReadFailed";
 import { SignOut } from "./frame/SignOut";
 import type { AuthActions, Session } from "./auth";
 import { liveGameweeks } from "./gameweeks/liveGameweeks";
+import { liveHome } from "./home/liveHome";
 import { useLiveJoining } from "./joining/liveJoining";
 import { joinTokenAt } from "./joining/paths";
 import { useLiveLeagueActions } from "./leagues/liveLeagueActions";
@@ -149,7 +150,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
       <Loading className="p-2">{checkingLink ? waitingWords.checkingLink : waitingWords.connecting}</Loading>
     );
   }
-  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} scouting={liveScouting} playerCard={livePlayerCard} admin={admin} feedback={feedback} patches={patches} />;
+  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} scouting={liveScouting} playerCard={livePlayerCard} home={liveHome} admin={admin} feedback={feedback} patches={patches} />;
 }
 
 /** The sign-in page saying what was wrong with a link, and, for one that led to a league's invite
