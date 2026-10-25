@@ -9,15 +9,15 @@ import { actingAs } from "../../support/convex/leagues.harness";
 import { syncRun, syncWith } from "../../support/convex/footballSync.harness";
 import { freshConvex, type TestConvex } from "../../support/convex/test.harness";
 import { CLUB_CODE, FIXTURE_CODE, recordedFpl } from "../../support/recorded/fpl.payloads";
+import { FPL_RECORDED_LIVE, IPSWICH_FOREST } from "../../support/recorded/scores.payloads";
 
 // Each match's score and clock, stored (#49): written by the football sync from FPL's fixtures,
 // kept fresh by the live tick (tests/convex/stats/liveStats.scores.test.ts), and read a gameweek
 // at a time. Where two reads disagree, the newest wins, unless it moves the other feed's state back.
 
 const FINISHED = FIXTURE_CODE.arsenalVCoventry;
-/** The recording's live match, Spurs v Coventry in gameweek 7, and its upcoming one in gameweek 8. */
-const LIVE = 2645264;
-const UPCOMING = 2645271;
+const LIVE = FPL_RECORDED_LIVE;
+const UPCOMING = IPSWICH_FOREST;
 const SPURS = { code: 6, name: "Spurs", shortName: "TOT" };
 const COVENTRY = { code: CLUB_CODE.coventry, name: "Coventry City", shortName: "COV" };
 

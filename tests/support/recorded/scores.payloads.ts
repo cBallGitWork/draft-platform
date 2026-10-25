@@ -3,13 +3,16 @@
 // pl-live-scores.json keeps five reads, each with when it was asked, cut to what a score is read
 // from: the ids, kickoff, `status`, `phase`, `clock` and each side's id, name and `score`. The
 // fixture list's entries (`readPlFixtures`) carry the same fields as this read of the one fixture.
-// FPL's code for the match is 2645271, upcoming in fpl.payloads.ts's first recording.
+// The match is upcoming in fpl.payloads.ts's first recording (IPSWICH_FOREST, below).
 
 import type { RawPlFixture } from "../../../convex/football/premierLeague";
 import live from "./pl-live-scores.json";
 
 /** FPL's code for Ipswich v Nott'm Forest. */
 export const IPSWICH_FOREST = 2645271;
+
+/** FPL's code for Spurs v Coventry in gameweek 7, the match fpl.payloads.ts's first recording holds live. */
+export const FPL_RECORDED_LIVE = 2645264;
 
 /** Each read kept, by what it was picked for. */
 export const LIVE_SCORE = {

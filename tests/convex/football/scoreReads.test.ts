@@ -3,14 +3,13 @@ import { mapFpl } from "../../../convex/football/fpl";
 import type { RawPlFixture } from "../../../convex/football/premierLeague";
 import { fplScoreRead, plScoreRead, readEach } from "../../../convex/football/scoreReads";
 import { FIXTURE_CODE, recordedFpl } from "../../support/recorded/fpl.payloads";
-import { IPSWICH_FOREST, recordedLiveScore } from "../../support/recorded/scores.payloads";
+import { FPL_RECORDED_LIVE, IPSWICH_FOREST, recordedLiveScore } from "../../support/recorded/scores.payloads";
 
 // How each feed's read becomes a match's score and clock (#49): FPL's fixtures, recorded with a
 // match finished, one live and one upcoming, and the Premier League's reads of Ipswich v Nott'm
 // Forest, recorded live from before kickoff to full time.
 
-/** The recording's live and upcoming matches, by FPL's code. */
-const LIVE_MATCH = 2645264;
+const LIVE_MATCH = FPL_RECORDED_LIVE;
 const UPCOMING_MATCH = IPSWICH_FOREST;
 
 const noScore = { homeGoals: null, awayGoals: null, minutes: null, clockLabel: null };
