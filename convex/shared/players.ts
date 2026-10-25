@@ -36,6 +36,15 @@ export async function clubByCode(ctx: QueryCtx, code: number): Promise<Doc<"club
   return club;
 }
 
+/** The player with `code`, dropped or not, or null while the football sync holds no such player:
+ *  each caller says what a missing one means. */
+export function playerByCode(ctx: QueryCtx, code: number): Promise<Doc<"players"> | null> {
+  return ctx.db
+    .query("players")
+    .withIndex("by_code", (q) => q.eq("code", code))
+    .unique();
+}
+
 /** The players at the club now, the ones the feed has dropped left out. */
 export async function currentPlayersAt(ctx: QueryCtx, clubCode: number): Promise<Doc<"players">[]> {
   const players = await ctx.db

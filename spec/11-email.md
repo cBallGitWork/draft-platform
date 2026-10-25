@@ -4,7 +4,7 @@ Feature 11 of [SPEC.md](../SPEC.md). Only Craig's answers.
 
 - The only way the app reaches a manager outside it: sign-in links (spec/02), on the clock in the
   draft, and waiver results; and from setting up a league ([13](13-setting-up-a-league.md)),
-  invites, the email once a join request is approved, and the warning that a league will be
-  deleted.
+  invites, the email once a join request is approved, and the email once a league has been
+  deleted (24 Oct 2026).
 - "On the clock" is sent only when the pick clock is long (over 10 minutes): in a live draft
   managers are on the draft page.

@@ -3,6 +3,7 @@ import { defineSchema, defineTable } from "convex/server";
 import { v, type VLiteral } from "convex/values";
 import { leagueRulesShape } from "./rules/leagueRulesShape";
 import { POSITIONS, type Position } from "./positions/positionTables";
+import { feedValidator } from "./shared/feedSchedule";
 import { signInReply } from "./signIn/signInLinks";
 import { LEAGUE_AVERAGE } from "./table/roundRobin";
 
@@ -321,9 +322,16 @@ const liveStatsTables = {
   liveStatsTicks: defineTable(liveStatsTickFields),
 };
 
+// When the admin was last emailed that each feed failed (#319, spec/15): one row a feed, so he
+// hears at most once a day for each (admin/feedFailureEmails.ts). `emailedAt` is the start of the
+// failed run it emailed for, as the next failure is measured from its run's start.
+const feedFailureEmailTables = {
+  feedFailureEmails: defineTable({ feed: feedValidator, emailedAt: v.number() }).index("by_feed", ["feed"]),
+};
+
 // Deleting a league (#75): how it works is in leagueDeletion.ts.
 
-/** Why one person wasn't emailed that their league is being deleted: the day's emails had all
+/** Why one person wasn't emailed that their league has been deleted: the day's emails had all
  *  gone, or the email service didn't send it. */
 export const unemailedReason = v.union(v.literal("paused"), v.literal("notSent"));
 
@@ -333,9 +341,21 @@ export const leagueDeletion = v.object({
   deletesAt: v.number(),
   /** The scheduled deleteForGood, which undoing cancels. */
   scheduledId: v.id("_scheduled_functions"),
-  /** Each person who wasn't emailed, so the commissioner and the admin are told. */
-  unemailed: v.array(v.object({ email: v.string(), reason: unemailedReason })),
+  /** Left by #75, which emailed while a league could be undone: nothing writes or reads it now
+   *  (#320). Kept only so a league deleted before then still matches; drop it once none is left (#328). */
+  unemailed: v.optional(v.array(v.object({ email: v.string(), reason: unemailedReason }))),
 });
+
+/** One person who wasn't emailed that a league has been deleted (#320). The league is gone by
+ *  then, so the row stands alone: it names the league rather than pointing at it. */
+const unemailedDeletionFields = {
+  leagueName: v.string(),
+  /** Who deleted it, by email. */
+  by: v.string(),
+  email: v.string(),
+  reason: unemailedReason,
+  at: v.number(),
+};
 
 // Leagues (#24, spec/13). People are known by their email, trimmed and lower-cased, so a
 // commissioner or manager can be named before they have an account; the admin is ADMIN_EMAIL.
@@ -507,6 +527,7 @@ const leagueTables = {
     .index("by_managerEmail", ["managerEmail"]),
   leagueEvents: defineTable(leagueEventFields).index("by_leagueId_and_at", ["leagueId", "at"]),
   lastLeagues: defineTable(lastLeagueFields).index("by_email", ["email"]).index("by_leagueId", ["leagueId"]),
+  unemailedDeletions: defineTable(unemailedDeletionFields),
 };
 
 // Mail (#26, spec/16). A letter is filed as one row for each person it's to, so who got it is
@@ -554,8 +575,9 @@ const leagueRulesTables = {
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
 };
 
-// A league's head-to-head fixtures in each gameweek it has played, stored once the gameweek begins
-// and read from here ever after (#137). One row a league and gameweek, written only by
+// A league's head-to-head fixtures in each gameweek it has begun, stored once the gameweek begins
+// and read from here ever after (#137); none in one begun with no head-to-head, such as before the
+// league was made (#282). One row a league and gameweek, written only by
 // convex/table/playedFixtures.ts, which says why.
 const playedFixtureTables = {
   playedFixtures: defineTable({
@@ -577,6 +599,7 @@ export default defineSchema({
   ...squadTables,
   ...matchStatsTables,
   ...liveStatsTables,
+  ...feedFailureEmailTables,
   ...leagueTables,
   ...joiningTables,
   ...mailTables,

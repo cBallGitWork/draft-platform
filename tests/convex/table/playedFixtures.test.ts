@@ -39,7 +39,8 @@ const recordPassed = () => t.run((ctx) => recordPassedDeadlines(ctx));
 const storedRows = () => t.run((ctx) => ctx.db.query("playedFixtures").collect());
 const storedGameweeksOf = async (league: Id<"leagues">) =>
   (await storedRows()).flatMap((row) => (row.leagueId === league ? [row.gameweek] : [])).toSorted((a, b) => a - b);
-const read = async () => (await (await actingAs(t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId }))!.gameweeks;
+const readOf = async (league: Id<"leagues">) => (await (await actingAs(t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId: league }))!.gameweeks;
+const read = () => readOf(leagueId);
 type Gameweeks = Awaited<ReturnType<typeof read>>;
 const played = (gameweeks: Gameweeks) => gameweeks.filter(({ gameweek }) => gameweek <= PLAYED);
 const toCome = (gameweeks: Gameweeks) => gameweeks.filter(({ gameweek }) => gameweek > PLAYED);
@@ -88,31 +89,43 @@ describe("storing", () => {
     expect(stored.fixtures).toEqual(drawn.fixtures.toReversed());
   });
 
-  test("a gameweek that began before the league was made isn't stored: the league never played it (#282)", async () => {
+});
+
+describe("a gameweek begun with no head-to-head never gets fixtures (#282)", () => {
+  const firstWithFixtures = async (league: Id<"leagues">) => (await readOf(league))[0].gameweek;
+
+  test("a league made mid-season has none in the gameweeks begun before it, and starts its round robin at the next", async () => {
     playUpTo(PLAYED);
     const later = await adminCreatesLeague(t, 4, "Later");
-    await addManagers(t, later, [ANN, BOB]);
-    await recordPassed();
-    expect(await storedGameweeksOf(later)).toEqual([]);
+    await addManagers(t, later, [ANN, BOB, CAT, DAN]);
+    const before = await readOf(later);
+    expect(before[0].gameweek).toBe(PLAYED + 1);
 
+    await recordPassed();
     playUpTo(PLAYED + 1);
     await recordPassed();
-    expect(await storedGameweeksOf(later)).toEqual([PLAYED + 1]);
+    const after = await readOf(later);
+    expect(after).toEqual(before);
+    // Four teams meet each other once in a round robin's three gameweeks: the first three it plays.
+    const pairs = after.slice(0, 3).flatMap(({ fixtures }) => fixtures.map(({ team, opponent }) => [team, opponent].toSorted().join(" v ")));
+    expect(new Set(pairs).size).toBe(6);
   });
 
-  test("nothing is stored for a league of one team, which has no fixtures", async () => {
+  test("a gameweek begun with one team has none when a second joins", async () => {
     const lonely = await adminCreatesLeague(t, 4, "Lonely");
-    await addManager(t, lonely, DAN);
+    await addManager(t, lonely, ANN);
     playUpTo(PLAYED);
     await recordPassed();
-    expect(await storedGameweeksOf(lonely)).toEqual([]);
+    await addManager(t, lonely, BOB);
+    expect(await firstWithFixtures(lonely)).toBe(PLAYED + 1);
   });
 
-  test("nothing is stored for a gameweek played as total points", async () => {
+  test("a gameweek begun as total points has none once the league plays head-to-head", async () => {
     await changeRules({ format: "totalPoints" });
     playUpTo(PLAYED);
     await recordPassed();
-    expect(await storedRows()).toEqual([]);
+    expect(await changeRules({ format: "headToHead" })).toBe(PLAYED + 1);
+    expect(await firstWithFixtures(leagueId)).toBe(PLAYED + 1);
   });
 });
 

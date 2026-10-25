@@ -7,7 +7,7 @@ import { ConvexError } from "convex/values";
 export type Change = Promise<string | null>;
 
 /** The server's words for a refusal, or null for any other failure. */
-export const refusalIn = (error: unknown) => (error instanceof ConvexError && typeof error.data === "string" ? error.data : null);
+const refusalIn = (error: unknown) => (error instanceof ConvexError && typeof error.data === "string" ? error.data : null);
 
 /** What `attempt` resolves with, the server's words if it refused, or `failedWords` (and the
  *  failure logged as what `doing` failed) if anything else went wrong. */

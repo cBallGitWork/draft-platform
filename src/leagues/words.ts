@@ -82,7 +82,6 @@ export const confirmDelete = (leagueName: string) =>
 export const beingDeleted = (deletesAt: number) =>
   `Being deleted: it goes for good on ${londonTime(deletesAt)}. Until then it's frozen and hidden from everyone but its commissioner and the admin.`;
 export const undoWords = "Undo";
-export const unemailed = (email: string, reason: string) => `${email} wasn't told: ${reason}.`;
 
 /** When deleting a league, or undoing it, failed before the server could say why. */
 export const deleteFailedWords = failedWords("the league wasn't deleted");
