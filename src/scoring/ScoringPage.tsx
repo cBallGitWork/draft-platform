@@ -19,21 +19,24 @@ import {
   bandsWords,
   blankBoxWords,
   categoriesLabel,
+  fractionsReadWords,
   loadingWords,
   perCountSummary,
   pointsWords,
   pricingWords,
+  readOnlyWords,
   savedWords,
   SCORING_TITLE,
+  wholePointsReadWords,
   wholePointsWords,
 } from "./words";
 
 const CATEGORIES_TITLE_ID = "categories-title";
 const ADD_CATEGORY_ID = "category-to-add";
 
-/** The rules editor (spec/14, The rules editor; #30): the site's scoring categories (#354) in full
- *  names, each opened beside the list, saved together for every league from the gameweek the server
- *  gives. Only the admin's save is taken. */
+/** Player scoring (spec/14, Who owns it, and The rules editor; #30, #354): the site's scoring
+ *  categories in full names, each opened beside the list. The admin edits them here, saved together
+ *  for every league from the gameweek the server gives; everyone else in the league reads them. */
 export function ScoringPage({ league, seam }: { league: LeagueSummary; seam: ScoringSeam }) {
   const view = seam.useScoring();
   return (
@@ -46,10 +49,12 @@ export function ScoringPage({ league, seam }: { league: LeagueSummary; seam: Sco
   );
 }
 
-/** The two panes: the categories, and the one chosen; and the bar that saves them (rulesDraft.ts
- *  says how the draft follows the latest set, and what a save over someone else's does). */
+/** The two panes: the categories, and the one chosen; and, for the admin, the bar that saves them
+ *  (rulesDraft.ts says how the draft follows the latest set, and what a save over someone else's
+ *  does). For anyone else, the same panes read only, and a line saying who sets them. */
 function Editor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
   const rulesDraft = useRulesDraft(view, seam.save, blankBoxRefusal);
+  const readOnly = !view.canEdit;
   const { draft, edit } = rulesDraft;
   const [picked, choose] = useState(0);
   const nameOf = (stat: string) => categoryName(stat, draft.ownStats);
@@ -85,15 +90,24 @@ function Editor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
             </li>
           ))}
         </ul>
-        <AddCategory ruled={draft.rules.map((each) => each.stat)} onAdd={add} />
+        {!readOnly && <AddCategory ruled={draft.rules.map((each) => each.stat)} onAdd={add} />}
       </section>
       <div className="flex min-w-0 grow flex-col gap-2">
-        {rule && <CategoryEditor key={chosen} name={nameOf(rule.stat)} rule={rule} onChange={(changed) => setRule(chosen, changed)} onRemove={() => remove(chosen)} />}
-        <SaveBar draft={rulesDraft} savedWords={savedWords}>
-          <TickBox checked={draft.wholePointsOnly} onChange={(on) => edit({ ...draft, wholePointsOnly: on })}>
-            {wholePointsWords}
-          </TickBox>
-        </SaveBar>
+        {rule && (
+          <CategoryEditor key={chosen} name={nameOf(rule.stat)} rule={rule} readOnly={readOnly} onChange={(changed) => setRule(chosen, changed)} onRemove={() => remove(chosen)} />
+        )}
+        {readOnly ? (
+          <div className="bg-panel px-3 py-2">
+            <p>{draft.wholePointsOnly ? wholePointsReadWords : fractionsReadWords}</p>
+            <p className="text-muted">{readOnlyWords}</p>
+          </div>
+        ) : (
+          <SaveBar draft={rulesDraft} savedWords={savedWords}>
+            <TickBox checked={draft.wholePointsOnly} onChange={(on) => edit({ ...draft, wholePointsOnly: on })}>
+              {wholePointsWords}
+            </TickBox>
+          </SaveBar>
+        )}
       </div>
     </div>
   );

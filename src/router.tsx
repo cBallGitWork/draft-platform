@@ -37,7 +37,7 @@ import { LeaguelessFrame } from "./leagues/LeaguelessFrame";
 import { LeaguesPage } from "./leagues/LeaguesPage";
 import { NewLeaguePage } from "./leagues/NewLeaguePage";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "./leagues/paths";
-import { leagueRunBy } from "./leagues/roles";
+import { leagueIn, leagueRunBy } from "./leagues/roles";
 import type { MailSeam } from "./mail/seam";
 import { MailPage, leaguesToWriteFrom } from "./mail/MailPage";
 import { SIGN_IN_PATH } from "./sign-in/paths";
@@ -92,13 +92,16 @@ function LeagueFrame({ context: { session, topBar, auth, leagues } }: { context:
   return <AppFrame topBar={topBar} onSignOut={auth.signOut} leagueSwitcher={leagueSwitcher} />;
 }
 
-// The guards on a page for the admin alone, and on a league's page for whoever runs it: anyone else
-// is sent back to their leagues.
+// The guards on a page for the admin alone, on a league's page for whoever runs it, and on one for
+// anyone in it: anyone else is sent back to their leagues.
 const adminOnly = ({ context }: { context: ShellContext }) => {
   if (!(context.session.signedIn && context.session.isAdmin)) throw redirect({ to: LEAGUES_PATH });
 };
 const runnersOnly = ({ context, params }: { context: ShellContext; params: { leagueId: string } }) => {
   if (!leagueRunBy(context.session, params.leagueId)) throw redirect({ to: LEAGUES_PATH });
+};
+const membersOnly = ({ context, params }: { context: ShellContext; params: { leagueId: string } }) => {
+  if (!leagueIn(context.session, params.leagueId)) throw redirect({ to: LEAGUES_PATH });
 };
 
 const isLinkProblem = (value: unknown): value is LinkProblem =>
@@ -180,7 +183,7 @@ const mailRoute = createRoute({
 });
 
 /** The seams of the pages a league's runners open from its row on Your leagues. */
-type RunnerSeams = Pick<ShellContext, "gameweeks" | "squads" | "scoring" | "leagueSettings">;
+type RunnerSeams = Pick<ShellContext, "gameweeks" | "squads" | "leagueSettings">;
 
 /** A page of one league's for whoever runs it, at `path`: `Page` is given the league in the address
  *  and its seam from the context. The guard lets in only someone who runs the league; should they
@@ -205,7 +208,6 @@ function runnersPage<Seam extends keyof RunnerSeams, Path extends `${string}/$le
 
 const gameweeksRoute = runnersPage(GAMEWEEKS_ROUTE, "gameweeks", GameweeksRoute); // #74
 const squadsRoute = runnersPage(SQUADS_ROUTE, "squads", SquadsPage); // #31
-const scoringRoute = runnersPage(SCORING_ROUTE, "scoring", ScoringPage); // Player scoring, #30
 const settingsRoute = runnersPage(SETTINGS_ROUTE, "leagueSettings", SettingsPage); // League settings
 
 // Feedback to the admin (#357), from the top bar's link on either frame.
@@ -214,6 +216,19 @@ const feedbackRoute = createRoute({
   path: FEEDBACK_PATH,
   component: function Feedback() {
     return <FeedbackPage send={feedbackRoute.useRouteContext({ select: (context) => context.feedback.send })} />;
+  },
+});
+
+// Player scoring (#30): the site's scoring, which anyone in the league reads and the admin alone
+// edits (spec/14, Who owns it; #354).
+const scoringRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: SCORING_ROUTE,
+  beforeLoad: membersOnly,
+  component: function Scoring() {
+    const context = scoringRoute.useRouteContext();
+    const league = leagueIn(context.session, scoringRoute.useParams().leagueId);
+    return league ? <ScoringPage league={league} seam={context.scoring} /> : null;
   },
 });
 

@@ -10,6 +10,10 @@ import type { PerCount, Pricing, Shape } from "./editing";
 export const SCORING_TITLE = "Player scoring";
 export const categoriesLabel = "Categories";
 export const loadingWords = "Loading the scoring…";
+/** Under the panes for everyone but the admin (spec/14, Who owns it). */
+export const readOnlyWords = "The site sets the scoring for every league. Only the admin changes it.";
+export const wholePointsReadWords = "Points are whole only.";
+export const fractionsReadWords = "Points can be fractions, such as 0.5 a tackle.";
 
 /** The left pane's summary of a category's values, beside its name. */
 export const pricingWords: Record<Exclude<Pricing, "all">, string> = { byArea: "By area", byPosition: "By position" };
