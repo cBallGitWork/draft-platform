@@ -30,6 +30,21 @@ Chosen after three rounds of mock-ups and a designer's review: Championship Mana
 homage, simple, in CM's blue, with a top menu. The canvas with every round is
 <https://claude.ai/artifact/Qz9zn3FrMHgPB189UtbjoB>; "R3·1 · Plate, chosen" is the one.
 
+- **League home** is the league's hub, designed by us: managers don't rearrange it (25 Oct 2026).
+  Ideas and research: [League home: ideas](https://claude.ai/artifact/J63VHnGNV2fqrSXTm7EDki). By
+  the mini beta it holds:
+  - the glance: this gameweek's head-to-heads, the table (all of it up to 10 teams; beyond that
+    the top five and the manager's row) and each team's form;
+  - matchday mode: from 3 hours before each matchday's first kickoff to 2 hours after its last
+    final whistle (hours the site can tune), the home turns live, with every head-to-head moving
+    and a Vidiprinter of the goals, cards and subs that move one of the league's head-to-heads
+    (the matchup vidiprinter's lines from `spec/10`, league-wide, so no auto-sub lines);
+  - the league's last five claims, drops and trades;
+  - a weekly recap, written by AI from facts only once every match of the gameweek is final: top
+    performers, letdowns and points left on the bench; Mail says when it is up (`spec/16`);
+  - Team of the Week: the best eleven from the league's lineups, in a legal formation, under the
+    site's scoring (`spec/14`);
+  - the commissioner's latest letter, pinned until a newer one.
 - **My team** shows the tactics pitch, the squad and Mail side by side.
 - My team's other tabs, after the Tactics tab (25 Oct 2026):
   - **Squad**: every player in the squad in one table, with his position, club, next fixture,
