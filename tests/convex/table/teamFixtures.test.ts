@@ -29,8 +29,10 @@ const readTable = async () => (await actingAs(t, ANN)).query(api.table.leagueTab
 const changeRules = async (change: Parameters<typeof rulesWith>[0]) =>
   (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules: rulesWith(change), revision: await rulesRevision(t, leagueId) });
 type Games = NonNullable<Awaited<ReturnType<typeof read>>>["games"];
-/** Each game as a line: "3 Team 2", "4 average", "5 bye". */
-const lines = (games: Games) => games.map(({ gameweek, against }) => `${gameweek} ${against.kind === "team" ? against.teamName : against.kind}`);
+/** Who a game is against: the team's name, "leagueAverage" or "bye". */
+const opponentOf = ({ against }: Games[number]) => (against.kind === "team" ? against.teamName : against.kind);
+/** Each game as a line: "3 Team 2", "4 leagueAverage", "5 bye". */
+const lines = (games: Games) => games.map((game) => `${game.gameweek} ${opponentOf(game)}`);
 
 describe("who may read it", () => {
   beforeEach(() => addManagers(t, leagueId, [ANN, BOB]));
@@ -53,7 +55,7 @@ describe("the games", () => {
     expect(format).toBe("headToHead");
     expect(games.map(({ gameweek }) => gameweek)).toEqual(Array.from({ length: GAMEWEEKS }, (_, index) => index + 1));
     // Three teams' round robin has three rounds: Ann meets Bob, Cat and the league's average once each.
-    expect(lines(games.slice(0, 3)).map((line) => line.split(" ").slice(1).join(" ")).toSorted()).toEqual(["Team 2", "Team 3", "leagueAverage"]);
+    expect(games.slice(0, 3).map(opponentOf).toSorted()).toEqual(["Team 2", "Team 3", "leagueAverage"]);
   });
 
   test("are the table's fixtures that hold the team, and none of another team's", async () => {
