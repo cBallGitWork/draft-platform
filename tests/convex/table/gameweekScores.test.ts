@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
+import { inTenths } from "../../../convex/scoring/scoringSet";
 import { mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 import {
@@ -124,4 +125,36 @@ test("a site set holding a rule on a stat that doesn't exist leaves the gameweek
   expect(read.table.every((row) => row.played === 0)).toBe(true);
   expect(read.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures[0].points).toBeNull();
   expect(logged).toHaveBeenCalledWith(expect.stringContaining(`can't score gameweek ${GAMEWEEK}`));
+});
+
+test("the team left over plays the league's average, every team's score counted once in it", async () => {
+  const league = await scoresLeague({ catToo: true });
+  await fullTimeRecords(league);
+  await lockMatch(league);
+  const read = (await readTable(league))!;
+
+  // Cat's team saved no lineup, so it scores 0 and counts in the average as 0.
+  const average = inTenths((HULL_POINTS + EVERTON_POINTS + 0) / 3);
+  const fixtures = read.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures;
+  expect(fixtures).toContainEqual({ team: "Team 3", opponent: null, points: { team: 0, opponent: average } });
+  expect(read.table.find((row) => row.teamName === "Team 3")).toMatchObject({ played: 1, lost: 1, pointsFor: 0, pointsAgainst: average });
+});
+
+test("a total-points league has each team's gameweek in its results, and ranks by points for", async () => {
+  const league = await scoresLeague();
+  await league.t.run(async (ctx) => {
+    for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", league.leagueId)).collect()) {
+      await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules, format: "totalPoints" } });
+    }
+  });
+  await fullTimeRecords(league);
+  await lockMatch(league);
+
+  const { read, ann, bob } = await gameweek6(league);
+  expect(read.format).toBe("totalPoints");
+  expect([ann?.points, bob?.points]).toEqual([HULL_POINTS, EVERTON_POINTS]);
+  expect(read.table.map(({ teamName, played, points }) => ({ teamName, played, points }))).toEqual([
+    { teamName: "Team 2", played: 1, points: EVERTON_POINTS },
+    { teamName: "Team 1", played: 1, points: HULL_POINTS },
+  ]);
 });

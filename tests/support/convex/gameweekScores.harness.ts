@@ -12,6 +12,7 @@ import { scoreMatch } from "../../../convex/scoring/scoring";
 import { inTenths } from "../../../convex/scoring/scoringSet";
 import type { PlayerMatchRecord } from "../../../convex/stats/matchRecords";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { LEAGUE_AVERAGE } from "../../../convex/table/roundRobin";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "./leagues.harness";
 import { EVERTON, GAMEWEEK, HULL, HULL_EVERTON, elapse, mergedHullEverton } from "./matchStats.harness";
@@ -19,7 +20,7 @@ import { fakeResend, signInDeployment } from "./signIn.harness";
 import { recordedGw6 } from "../recorded/gw6.payloads";
 
 export { GAMEWEEK };
-export const [ANN, BOB] = MANAGERS;
+export const [ANN, BOB, CAT] = MANAGERS;
 
 /** Hull v Everton's kickoff here: a week after signInDeployment's clock, so the league is made
  *  before gameweek 6 begins (a document can't be made earlier than the deployment's first). The
@@ -97,15 +98,18 @@ export interface ScoresLeague {
   leagueId: Id<"leagues">;
   annsTeam: Id<"teams">;
   bobsTeam: Id<"teams">;
+  /** Cat's, with no squad or lineup, when the league has a third team. */
+  catsTeam?: Id<"teams">;
 }
 
 /** A league made before gameweek 6 began, Ann's and Bob's teams playing each other in it, both
- *  squads held and Ann's lineup saved; Bob's too, unless `bobSaves` is false. */
-export async function scoresLeague({ bobSaves = true } = {}): Promise<ScoresLeague> {
+ *  squads held and Ann's lineup saved; Bob's too, unless `bobSaves` is false. With `catToo`, a
+ *  third team, Cat's, with no squad or lineup, plays the league's average. */
+export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Promise<ScoresLeague> {
   const t = await signInDeployment();
   fakeResend();
   const leagueId = await adminCreatesLeague(t);
-  const [annsTeam, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
+  const [annsTeam, bobsTeam, catsTeam] = await addManagers(t, leagueId, catToo ? [ANN, BOB, CAT] : [ANN, BOB]);
   const elements = new Map(recordedGw6().fpl.bootstrap.elements.map((element) => [element.code, element]));
   await t.run(async (ctx) => {
     await ctx.db.insert("fixtures", { code: HULL_EVERTON, gameweek: GAMEWEEK, homeClubCode: HULL, awayClubCode: EVERTON, kickoff: KICKOFF });
@@ -132,12 +136,15 @@ export async function scoresLeague({ bobSaves = true } = {}): Promise<ScoresLeag
     await ctx.db.insert("playedFixtures", {
       leagueId,
       gameweek: GAMEWEEK,
-      fixtures: [{ team: annsTeam, opponent: bobsTeam }],
+      fixtures: [
+        { team: annsTeam, opponent: bobsTeam },
+        ...(catsTeam === undefined ? [] : [{ team: catsTeam, opponent: LEAGUE_AVERAGE }]),
+      ],
       byes: [],
       storedAt: DEADLINE,
     });
   });
-  return { t, leagueId, annsTeam, bobsTeam };
+  return { t, leagueId, annsTeam, bobsTeam, catsTeam };
 }
 
 export const readTable = ({ t, leagueId }: ScoresLeague) => actingAs(t, ANN).then((ann) => ann.query(api.table.leagueTable.ofLeague, { leagueId }));
