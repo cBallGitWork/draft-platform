@@ -61,7 +61,7 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   stats scored under that role over the last 38 matches he played (last season counts until this
   one fills in). Five stars is the top 5%, in half-star steps below that; the exact cut points
   are tunable. A new signing with no data shows "—". Stars are a hint; they never change his
-  points.
+  points. A manager sees them for their own squad and for players they have scouted (`spec/19`).
 - The player card shows what his role did to his points ("Attacking full-back: +2, two key
   passes").
 - Your tactics change only your own players' points, never your opponent's.

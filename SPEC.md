@@ -46,6 +46,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 16 | [Mail](spec/16-mail.md) | the letter store, letters about a league's events, the commissioner's letter, the Mail screen and its count built (#26), and letters from the site to everyone, such as a scoring patch (#356); down the side of My team waits for My team; each feature files its own letters | a claim, a drop and a trade each file one letter for every manager in the league |
 | 17 | [Captain and set pieces](spec/17-captain-and-set-pieces.md) | after the mini beta | the first on a set-piece list who plays is paid for the duty for the whole match, and no one else on the list is |
 | 18 | [Premier League](spec/18-premier-league.md) | not built | a goal in a live match moves the Premier League table at once, marked provisional |
+| 19 | [Scouting](spec/19-scouting.md) | not built; the players list and shortlist by the mini beta, scouts after | a scout's report is ready 24 hours after he is sent, and no other team can tell who was scouted |
 
 ## Second release
 
@@ -62,6 +63,9 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   fee, trades can involve money, and the market could take a more footballing form, like a
   transfer market. Auction drafts and bidding waivers go with it.
 - **Payments**, its own feature.
+- **Scouting searches**: a scout sent to find a kind of player ("a CAM under 25"), not only one
+  player (spec/19).
+- **Saved views** on Scouting's players list (spec/19).
 - **Makeshift positions**, after the rest is built: a player outside his areas, at a penalty, so a
   good side's forward isn't parked at the back for easy clean sheets. Craig's starting point, "a 2
   area rule": his own area and the next, no further (spec/05; `docs/to-grill.md`).
@@ -102,12 +106,18 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - A league's own scoring: the site owns the scoring set and patches it (spec/14).
 - A commissioner's own stats: only the admin makes one (spec/14).
 - Emailing a patch: Mail and the site banner announce it (spec/14).
+- Hiding public stats until a player is scouted: scouting rations judgement, never numbers
+  (spec/19).
+- Showing other teams who a manager scouts (spec/19).
 
 ## Glossary
 
 | Term | Meaning | Avoid |
 |---|---|---|
 | team | a fantasy side: a manager's draft team | |
+| scout | one of a team's three, sent to one player; the report is ready 24 hours later | |
+| report | a scout's judgement on a player, in a few plain sentences | scout report card |
+| shortlist | a manager's own list of players for the season | watchlist |
 | patch | a new version of the site's scoring set, named like 26_27.1, announced a week before it takes effect | update |
 | manager | the person who runs a team | player (for a person) |
 | admin | Craig, running the whole platform | |

@@ -10,15 +10,6 @@ Craig hasn't picked says so.
 
 Each with the questions its grill starts from. The questions are Claude's.
 
-**The shortlist**: scouting.
-- A season-long watchlist. Mail already files every claim and drop (`spec/16`); the new part is
-  the personal list and a letter when a shortlisted player is dropped or clears waivers.
-
-**Scouting, a strong focus**: its own section. "It's a more detailed league."
-- Scouting advises; Mail never does (`spec/16`). Settle where advice is allowed.
-- Whether the Players screen (`spec/12`) becomes part of it.
-- Scout reports, and comparing two players side by side.
-
 **Awards**: history, Mail.
 - Manager of the Month, Team of the Week, Player of the Season. Where they live once Mail has
   filed them (see History, below).

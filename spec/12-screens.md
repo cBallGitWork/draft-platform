@@ -18,11 +18,11 @@ The look's exact values are in [docs/design/plate.md](../docs/design/plate.md).
   unread letter, a lineup before the deadline, a trade offer, or "nothing to do".
 - Logged out, in the closed beta: a sign-in page only (the name, "invite only", an email box for
   the sign-in link). No league is visible without signing in.
-- The screens: sign in, your leagues, league home, my team (squad and tactics pitch), matchup
-  (live head-to-head; live matchday is folded in here), match (one real match, live: `spec/10`),
-  table and fixtures (the draft league's), Premier League (`spec/18`), players (free agents,
-  waivers, stats), player card, trades, draft room (with the queue before it), Mail, league
-  settings (commissioner), admin (Craig).
+- The screens: sign in, your leagues, league home, my team (squad and tactics pitch), matchup (live
+  head-to-head; live matchday is folded in here), match (one real match, live: `spec/10`), table and
+  fixtures (the draft league's), Premier League (`spec/18`), Scouting (`spec/19`: the players list,
+  free agents, waivers, stats), player card, trades, draft room (with the queue before it), Mail,
+  league settings (commissioner), admin (Craig).
 
 ## The look: Plate
 
