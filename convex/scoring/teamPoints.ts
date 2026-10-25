@@ -77,14 +77,14 @@ export interface TeamPoints {
  */
 export function scoreTeam(input: TeamPointsInput): TeamPoints {
   const { lineup, substitutions, benchCells } = input;
-  const cameOn = substitutionsByPlayer(lineup, substitutions);
+  const substituted = substitutionsByPlayer(lineup, substitutions);
 
   const starters = lineup.starters.map((starter) => {
     const cell = { area: starter.area, lane: starter.lane } as Cell;
-    return slotPoints(input, starter.playerCode, cell, !cameOn.subbedOff.has(starter.playerCode));
+    return slotPoints(input, starter.playerCode, cell, !substituted.subbedOff.has(starter.playerCode));
   });
   const bench = lineup.bench.map((playerCode) => {
-    const substitution = cameOn.subbedOn.get(playerCode);
+    const substitution = substituted.subbedOn.get(playerCode);
     if (substitution !== undefined) return slotPoints(input, playerCode, substitution.cell, true);
     const cell = benchCells.get(playerCode);
     if (cell === undefined) throw new Error(`bench player ${playerCode} has no cell to price his points at`);

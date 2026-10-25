@@ -8,7 +8,7 @@ import {
   ATTACK,
   BELLOUMI,
   DEWSBURY_HALL,
-  final,
+  finalMatch,
   fplRecordOf,
   GELHARDT,
   KEEPER,
@@ -142,11 +142,7 @@ describe("the bench: points shown, counted only if subbed on", () => {
 
 describe("a double gameweek, under the league's rule", () => {
   // Gelhardt's two matches: his own recorded line, then Dewsbury-Hall's standing in for a second.
-  const second: PlayerMatch = {
-    record: fplRecordOf(DEWSBURY_HALL),
-    final: true,
-  };
-  const double = withMatches(GELHARDT, [final(GELHARDT), second]);
+  const double = withMatches(GELHARDT, [finalMatch(GELHARDT), finalMatch(DEWSBURY_HALL)]);
 
   test("both matches count: his slot adds the two, and so does the total", () => {
     const scored = team({ matches: double, doubleGameweekRule: "bothMatches" });
@@ -166,7 +162,7 @@ describe("a double gameweek, under the league's rule", () => {
     "under %s, a second match not yet arrived leaves the first's points, provisional",
     (rule) => {
       const scored = team({
-        matches: withMatches(GELHARDT, [final(GELHARDT), NOT_ARRIVED]),
+        matches: withMatches(GELHARDT, [finalMatch(GELHARDT), NOT_ARRIVED]),
         doubleGameweekRule: rule,
       });
       expect(scored.starters[2]).toMatchObject({

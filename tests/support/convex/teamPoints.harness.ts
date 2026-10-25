@@ -43,7 +43,7 @@ export const ATTACK: Cell = centreOf("attack");
 export const RIGHT_BACK: Cell = { area: "defence", lane: "right" };
 
 /** A final match with his recorded FPL line. */
-export const final = (playerCode: number): PlayerMatch => ({
+export const finalMatch = (playerCode: number): PlayerMatch => ({
   record: fplRecordOf(playerCode),
   final: true,
 });
@@ -64,11 +64,11 @@ export const BENCH_CELLS: ReadonlyMap<number, Cell> = new Map([
 ]);
 
 export const ALL_FINAL: GameweekMatches = new Map([
-  [TZOLAKIS, [final(TZOLAKIS)]],
-  [DEWSBURY_HALL, [final(DEWSBURY_HALL)]],
-  [GELHARDT, [final(GELHARDT)]],
-  [BELLOUMI, [final(BELLOUMI)]],
-  [PHILLIPS, [final(PHILLIPS)]],
+  [TZOLAKIS, [finalMatch(TZOLAKIS)]],
+  [DEWSBURY_HALL, [finalMatch(DEWSBURY_HALL)]],
+  [GELHARDT, [finalMatch(GELHARDT)]],
+  [BELLOUMI, [finalMatch(BELLOUMI)]],
+  [PHILLIPS, [finalMatch(PHILLIPS)]],
 ]);
 
 /** Every match final but this player's, which are these. */
