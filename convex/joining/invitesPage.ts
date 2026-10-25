@@ -9,7 +9,7 @@ import { delivery } from "../schema";
 
 /** The most invites and waiting requests the page lists, newest first: the closed beta's leagues
  *  are small. */
-const ROWS_SHOWN = 50;
+export const ROWS_SHOWN = 50;
 
 export const invitesPageData = v.union(
   v.null(),
@@ -63,7 +63,7 @@ export const page = query({
     const teamName = new Map(teams.map((team) => [team._id, team.name]));
     const invites = await ctx.db
       .query("invites")
-      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
+      .withIndex("by_leagueId_and_cancelledAt", (q) => q.eq("leagueId", leagueId).eq("cancelledAt", undefined))
       .order("desc")
       .take(ROWS_SHOWN);
     const requests = await ctx.db
@@ -78,17 +78,15 @@ export const page = query({
       teams: teams.map((team) => ({ teamId: team._id, name: team.name, managerEmail: team.managerEmail ?? null })),
       hasRoom: teams.length < league.maxTeams,
       linkToken: (await linkOf(ctx, leagueId))?.token ?? null,
-      invites: invites
-        .filter((invite) => invite.cancelledAt === undefined)
-        .map((invite) => ({
-          inviteId: invite._id,
-          email: invite.email,
-          teamName: invite.teamId === undefined ? null : (teamName.get(invite.teamId) ?? null),
-          delivery: invite.delivery,
-          expiresAt: invite.expiresAt,
-          joinedTeamName: invite.joined?.teamName ?? null,
-          couldNotJoin: invite.couldNotJoin ?? null,
-        })),
+      invites: invites.map((invite) => ({
+        inviteId: invite._id,
+        email: invite.email,
+        teamName: invite.teamId === undefined ? null : (teamName.get(invite.teamId) ?? null),
+        delivery: invite.delivery,
+        expiresAt: invite.expiresAt,
+        joinedTeamName: invite.joined?.teamName ?? null,
+        couldNotJoin: invite.couldNotJoin ?? null,
+      })),
       requests: requests.map((request) => ({ requestId: request._id, email: request.email, askedAt: request._creationTime })),
     };
   },

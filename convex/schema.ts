@@ -447,6 +447,7 @@ const joinRequestFields = {
 const joiningTables = {
   invites: defineTable(inviteFields)
     .index("by_leagueId", ["leagueId"])
+    .index("by_leagueId_and_cancelledAt", ["leagueId", "cancelledAt"])
     .index("by_email_and_expiresAt", ["email", "expiresAt"]),
   inviteLinks: defineTable(inviteLinkFields).index("by_leagueId", ["leagueId"]).index("by_token", ["token"]),
   joinRequests: defineTable(joinRequestFields)
