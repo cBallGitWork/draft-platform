@@ -83,10 +83,7 @@ test("once every gameweek has begun, a change applies from the one after the las
   expect(nextGameweek(gameweeks, matches, ninetyMinutes, NOTHING_PASSED, NEXT_SATURDAY_3PM)).toBe(11);
 });
 
-// A whole gameweek postponed, its matches waiting for new dates with no gameweek or kickoff (as FPL
-// did in September 2022), has no deadline, so it never begins (#413). Behind a gameweek that has
-// begun, it isn't the next one: the next is the first not begun after the last that has. What such
-// a gameweek means for its head-to-heads is not settled.
+// A whole gameweek postponed (as FPL's was in September 2022) has no deadline, so never begins.
 describe("a gameweek with no kickoff time behind one that has begun (#413)", () => {
   const eight = [{ number: 8 }, ...gameweeks];
   const eightPostponed = [{ gameweek: null, kickoff: null }, ...matches];

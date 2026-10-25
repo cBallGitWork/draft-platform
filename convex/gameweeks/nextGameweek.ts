@@ -10,9 +10,8 @@ type Gameweek = Pick<Infer<typeof gameweekRecord>, "number">;
 /**
  * The first gameweek that hasn't begun after the last that has: begun is past its league deadline
  * (deadline.ts's `leagueDeadline`). FPL's deadline plays no part (#138). A gameweek with no kickoff
- * time behind a begun one, every match postponed, has no deadline and never begins, so it is passed
- * over, not taken for the next (#413). With no gameweeks held yet, gameweek 1; once all have begun,
- * the one after the last. `deadlineFor` is the league's deadline rule in force in that gameweek,
+ * time behind a begun one has no deadline and never begins, so it is passed over (#413). With no
+ * gameweeks held yet, gameweek 1; once all have begun, the one after the last. `deadlineFor` is the league's deadline rule in force in that gameweek,
  * and `passed` its recorded passed deadlines, by gameweek.
  */
 export function nextGameweek(
@@ -23,8 +22,8 @@ export function nextGameweek(
   now: number,
 ): number {
   const inOrder = gameweeks.toSorted((one, other) => one.number - other.number);
-  const lastBegun = inOrder.findLastIndex(({ number }) =>
+  const lastBegunIndex = inOrder.findLastIndex(({ number }) =>
     isLocked(leagueDeadline(number, matches, deadlineFor(number), passed.get(number) ?? null), now),
   );
-  return inOrder[lastBegun + 1]?.number ?? (inOrder.at(-1)?.number ?? 0) + 1;
+  return inOrder[lastBegunIndex + 1]?.number ?? (inOrder.at(-1)?.number ?? 0) + 1;
 }

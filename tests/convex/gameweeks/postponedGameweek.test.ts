@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lineup } from "../../../convex/lineup/lineup";
@@ -24,6 +24,7 @@ const NEXT = 9;
 const { lineup: FOUR_FOUR_TWO, positions: STARTER_POSITIONS } = filledLineup(presetNamed("4-4-2"));
 const SQUAD = [...FOUR_FOUR_TWO.starters.map(({ playerCode }) => playerCode), ...FOUR_FOUR_TWO.bench];
 const BENCH_POSITION: Position = "CM";
+const nameOf = (code: number) => `Player ${code}`;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -49,7 +50,7 @@ test("a lineup saved now is from the gameweek after the one under way, and that 
   const [annsTeam] = await addManagers(t, leagueId, [ANN]);
   await t.run(async (ctx) => {
     for (const code of SQUAD) {
-      await ctx.db.insert("players", { code, name: `Player ${code}`, fullName: `Player ${code}`, clubCode: 1 });
+      await ctx.db.insert("players", { code, name: nameOf(code), fullName: nameOf(code), clubCode: 1 });
       const positions = STARTER_POSITIONS.get(code) ?? [BENCH_POSITION];
       await ctx.db.insert("playerPositions", { code, starts: [], approved: [], set: [...positions], removed: [] });
       await ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode: code });
@@ -61,12 +62,10 @@ test("a lineup saved now is from the gameweek after the one under way, and that 
   expect(await ann.query(api.lineup.lineups.mine, { leagueId, gameweek: UNDER_WAY })).toEqual({ kind: "none" });
 });
 
-describe("a commissioner's rule change made now", () => {
-  test("takes effect from the gameweek after the one under way, which keeps the rules it began with", async () => {
-    const commissioner = await actingAs(t, COMMISSIONER);
-    const revision = await rulesRevision(t, leagueId);
+test("a rule change made now takes effect from the gameweek after the one under way, which keeps its rules", async () => {
+  const commissioner = await actingAs(t, COMMISSIONER);
+  const revision = await rulesRevision(t, leagueId);
 
-    expect(await commissioner.mutation(api.rules.leagueRules.change, { leagueId, rules: TOTAL_POINTS, revision })).toBe(NEXT);
-    expect(await t.run((ctx) => rulesInGameweek(ctx, leagueId, UNDER_WAY))).toEqual(HELD_FIRST_RULES);
-  });
+  expect(await commissioner.mutation(api.rules.leagueRules.change, { leagueId, rules: TOTAL_POINTS, revision })).toBe(NEXT);
+  expect(await t.run((ctx) => rulesInGameweek(ctx, leagueId, UNDER_WAY))).toEqual(HELD_FIRST_RULES);
 });
