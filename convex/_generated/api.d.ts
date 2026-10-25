@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as admin_feedFailureEmails from "../admin/feedFailureEmails.js";
 import type * as admin_feedState from "../admin/feedState.js";
 import type * as admin_feeds from "../admin/feeds.js";
 import type * as admin_platformSettings from "../admin/platformSettings.js";
@@ -101,6 +102,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "admin/feedFailureEmails": typeof admin_feedFailureEmails;
   "admin/feedState": typeof admin_feedState;
   "admin/feeds": typeof admin_feeds;
   "admin/platformSettings": typeof admin_platformSettings;

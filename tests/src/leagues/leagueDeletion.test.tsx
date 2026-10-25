@@ -9,14 +9,9 @@ import { INVITES_TITLE } from "../../../src/joining/words";
 import { SQUADS_TITLE } from "../../../src/squads/words";
 import { adminSeeing, beingDeleted, commissioned, deleterOf, league, managerIn, openApp } from "../../support/src/shell.harness";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { confirmDelete, unemailed, unsentLinkWords } from "../../../src/leagues/words";
+import { confirmDelete } from "../../../src/leagues/words";
 
-const deleter = deleterOf(
-  beingDeleted(commissioned, {
-    deletesAt: Date.parse("2026-10-21T09:00:00Z"),
-    unemailed: [{ email: "ann@example.com", reason: "paused" }],
-  }),
-);
+const deleter = deleterOf(beingDeleted(commissioned, { deletesAt: Date.parse("2026-10-21T09:00:00Z") }));
 
 const deleteButton = () => screen.queryByRole("button", { name: "Delete league" });
 const deleteButtonShown = () => screen.findByRole("button", { name: "Delete league" });
@@ -73,12 +68,10 @@ describe("Delete league", () => {
 });
 
 describe("a league being deleted", () => {
-  it("shows when it goes on the email's clock, and who wasn't told, and Undo undoes it", async () => {
+  it("shows when it goes on London's clock, and Undo undoes it", async () => {
     const app = openApp(LEAGUES_PATH, deleter);
 
-    // The moment tests/convex/leagues/deletionNotices.test.ts finds in the email, said the same way.
     expect(await screen.findByText(/goes for good on Wednesday 21 October at 10:00 BST\./)).toBeTruthy();
-    expect(screen.getByText(unemailed("ann@example.com", unsentLinkWords.paused))).toBeTruthy();
     expect(deleteButton()).toBeNull();
     // Frozen, it offers nothing to change: no gameweeks, no invites, no squads.
     expect(screen.queryByRole("link", { name: GAMEWEEKS_TITLE })).toBeNull();

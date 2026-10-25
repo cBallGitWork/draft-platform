@@ -61,14 +61,21 @@ export function newcastleMen() {
   return recordedPositions().fplElements.filter((each) => each.team === NEWCASTLE.fplId);
 }
 
-/** Synced from the recorded payloads, with Newcastle's men and Brentford's keeper held by the
- *  football sync (#21). */
+/** The clubs `synced` holds, as the football sync names them (#21). */
+export const SYNCED_CLUBS = [
+  { code: NEWCASTLE.code, name: "Newcastle", shortName: "NEW" },
+  { code: BRENTFORD_CODE, name: "Brentford", shortName: "BRE" },
+];
+
+/** Synced from the recorded payloads, with Newcastle's men, Brentford's keeper and their clubs
+ *  held by the football sync (#21). */
 export async function synced(): Promise<TestConvex> {
   const t = freshConvex();
   const logged = silenceConsoleError();
   await syncPositionsWith(t, recordedPositions());
   expect(logged).toHaveBeenCalledWith(reported());
   await t.run(async (ctx) => {
+    for (const club of SYNCED_CLUBS) await ctx.db.insert("clubs", club);
     for (const element of newcastleMen()) {
       await ctx.db.insert("players", { code: element.code, name: element.web_name, fullName: element.web_name, clubCode: NEWCASTLE.code });
     }

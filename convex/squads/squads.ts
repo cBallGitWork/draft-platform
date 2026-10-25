@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type QueryCtx } from "../_generated/server";
 import { memberOf, refuse, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
-import { clubByCode, playersNamed } from "../shared/players";
+import { clubByCode, playerByCode, playersNamed } from "../shared/players";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { latestRules } from "../rules/leagueRules";
 import { areaShape, type LeagueRules } from "../rules/leagueRulesShape";
@@ -25,12 +25,9 @@ export const squadRefusals = {
   squadFull: `A team holds at most ${MOST_IN_SQUAD} players.`,
 };
 
-async function playerByCode(ctx: QueryCtx, code: number): Promise<Doc<"players">> {
-  const player = await ctx.db
-    .query("players")
-    .withIndex("by_code", (q) => q.eq("code", code))
-    .unique();
-  return player ?? refuse(squadRefusals.noPlayer);
+/** The player with `code`, or the refusal that there is none. */
+async function heldPlayer(ctx: QueryCtx, code: number): Promise<Doc<"players">> {
+  return (await playerByCode(ctx, code)) ?? refuse(squadRefusals.noPlayer);
 }
 
 /** The player's place in this league, or null while he is a free agent. */
@@ -61,7 +58,7 @@ export const assign = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode, teamId }) => {
     const { email: by } = await runnerOf(ctx, leagueId);
-    const player = await playerByCode(ctx, playerCode);
+    const player = await heldPlayer(ctx, playerCode);
     if (player.droppedAt !== undefined) refuse(squadRefusals.playerGone(player.name));
     const team = await teamIn(ctx, leagueId, teamId);
     const place = await placeOf(ctx, leagueId, playerCode);
@@ -79,7 +76,7 @@ export const move = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode, teamId }) => {
     const { email: by } = await runnerOf(ctx, leagueId);
-    const player = await playerByCode(ctx, playerCode);
+    const player = await heldPlayer(ctx, playerCode);
     const team = await teamIn(ctx, leagueId, teamId);
     const place = (await placeOf(ctx, leagueId, playerCode)) ?? refuse(squadRefusals.freeAgent(player.name));
     if (place.teamId === teamId) refuse(squadRefusals.alreadyThere(player.name, team.name));
@@ -105,7 +102,7 @@ export const release = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
     const { email: by } = await runnerOf(ctx, leagueId);
-    const player = await playerByCode(ctx, playerCode);
+    const player = await heldPlayer(ctx, playerCode);
     const place = (await placeOf(ctx, leagueId, playerCode)) ?? refuse(squadRefusals.freeAgent(player.name));
     const team = await teamIn(ctx, leagueId, place.teamId);
     await ctx.db.delete("squadPlayers", place._id);
@@ -148,7 +145,7 @@ export const squads = query({
         const squad = await squadOf(ctx, team._id);
         const players = await Promise.all(
           squad.map(async ({ playerCode }) => {
-            const player = await playerByCode(ctx, playerCode);
+            const player = await heldPlayer(ctx, playerCode);
             return {
               code: player.code,
               name: player.name,

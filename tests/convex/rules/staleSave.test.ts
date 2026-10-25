@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
-import { rulesRefusals } from "../../../convex/rules/leagueRules";
+import { EVENTS_SEARCHED_FOR_SAVER, rulesRefusals } from "../../../convex/rules/leagueRules";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { adminByline } from "../../../convex/mail/letterWords";
 import { expectRefused, holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
@@ -77,6 +77,21 @@ describe("a save made from rules someone has saved over since", () => {
       refusal,
     );
     expect(await latestRules()).toEqual({ ...HELD_FIRST_RULES, scoring: assistsPaying(4) });
+  });
+
+  test(`is still refused, without the name, when the letter is past the newest ${EVENTS_SEARCHED_FOR_SAVER} events`, async () => {
+    const { opened } = await coCommissionerSavesOver();
+    const saved = (await rulesRevision(t, leagueId))!;
+    const savedAt = await t.run(async (ctx) => (await ctx.db.get("leagueRules", saved))!._creationTime);
+    const after = await lastEventAt();
+    await t.run(async (ctx) => {
+      for (let index = 1; index <= EVENTS_SEARCHED_FOR_SAVER; index += 1) {
+        await ctx.db.insert("leagueEvents", { leagueId, at: after + index, by: COMMISSIONER, event: { kind: "inviteLinkSwitchedOff" } });
+      }
+    });
+
+    await expectRefused(changeScoring(COMMISSIONER, assistsPaying(5), opened), rulesRefusals.changedSince(null, savedAt));
+    expect((await latestRules())?.scoring).toEqual(assistsPaying(4));
   });
 
   test("is refused as stale, not as unsound, when its rules are unsound too", async () => {

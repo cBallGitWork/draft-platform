@@ -4,7 +4,7 @@
 import { describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
-import { thresholdRefusals } from "../../../convex/positions/positionSettings";
+import { SYNCS_SEARCHED_MOST, thresholdRefusals } from "../../../convex/positions/positionSettings";
 import type { Start } from "../../../convex/positions/positions";
 import { DAY_MS } from "../../../convex/shared/time";
 import type { Position } from "../../../convex/positions/positionTables";
@@ -22,6 +22,8 @@ const BURN = { code: 4, name: "Burn", fullName: "Dan Burn", clubCode: 4 };
 /** A Premier League player whose starts are `starts`, CB and FB approved unless `set` says more. */
 async function holdPlayer(t: TestConvex, player: typeof BARNES, starts: Start[], set: Position[] = []) {
   await t.run(async (ctx) => {
+    const clubHeld = await ctx.db.query("clubs").withIndex("by_code", (q) => q.eq("code", player.clubCode)).unique();
+    if (clubHeld === null) await ctx.db.insert("clubs", { code: player.clubCode, name: "Newcastle", shortName: "NEW" });
     await ctx.db.insert("players", player);
     await ctx.db.insert("playerPositions", { code: player.code, starts, approved: ["CB", "FB"], set, removed: [] });
   });
@@ -170,6 +172,27 @@ describe("only between gameweeks", () => {
     await positionsSyncRanOnDay(t, 21, { ok: false, error: "the feed was down" });
 
     expect(await queueOf(t)).toMatchObject({ flagged: [{ position: "CB", startsElsewhere: 4 }], removed: [] });
+  });
+
+  /** `count` failed syncs, each a minute later than the last, from day 22. */
+  const failedSyncs = (t: TestConvex, count: number) =>
+    t.run(async (ctx) => {
+      for (let index = 0; index < count; index += 1) {
+        await ctx.db.insert("positionsSyncs", { trigger: "manual", ranAt: 22 * DAY_MS + index, outcome: { ok: false, error: "the feed was down" } });
+      }
+    });
+
+  test(`a good sync behind ${SYNCS_SEARCHED_MOST - 1} failed ones still moves the boundary; behind ${SYNCS_SEARCHED_MOST} the queue fails loudly`, async () => {
+    const t = freshConvex();
+    await holdPlayer(t, BARNES, acrossTheDeadline());
+    await gameweeksAtDays10And20(t);
+    await positionsSyncRanOnDay(t, 21);
+
+    await failedSyncs(t, SYNCS_SEARCHED_MOST - 1);
+    expect(await queueOf(t)).toMatchObject({ removed: [{ position: "CB" }] });
+
+    await failedSyncs(t, 1);
+    await expect(queueOf(t)).rejects.toThrow(`None of the newest ${SYNCS_SEARCHED_MOST} positions syncs read its starts`);
   });
 
   test("before any sync, or before the season's first deadline, every start is judged", async () => {

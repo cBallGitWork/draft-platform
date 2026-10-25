@@ -5,7 +5,7 @@
 import { describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { CLUB_PLAYERS_MOST, CURRENT_CLUBS_MOST } from "../../../convex/shared/players";
-import { asAdmin, newcastleMen, synced } from "../../support/convex/positionsSync.harness";
+import { asAdmin, newcastleMen, synced, SYNCED_CLUBS } from "../../support/convex/positionsSync.harness";
 import { NEWCASTLE } from "../../support/recorded/positions.payloads";
 import type { TestConvex } from "../../support/convex/test.harness";
 
@@ -45,8 +45,23 @@ describe("as seasons pile up, nothing is cut short silently", () => {
   test(`the queue's clubs are today's, however many clubs have been dropped before them`, async () => {
     const t = await synced();
     await holdClubs(t, CURRENT_CLUBS_MOST + 5);
-    await t.run((ctx) => ctx.db.insert("clubs", { code: NEWCASTLE.code, name: "Newcastle", shortName: "NEW" }));
-    expect((await (await asAdmin(t)).query(api.positions.playerPositions.queue, {})).clubs).toEqual([{ code: NEWCASTLE.code, name: "Newcastle" }]);
+    expect((await (await asAdmin(t)).query(api.positions.playerPositions.queue, {})).clubs).toEqual(
+      SYNCED_CLUBS.map(({ code, name }) => ({ code, name })).sort((one, other) => one.name.localeCompare(other.name)),
+    );
+  });
+
+  test("the queue reads today's players only: a row of a man at a dropped club, as squads read them, isn't listed", async () => {
+    const t = await synced();
+    const RELEGATED = 99;
+    const STAYED = 778;
+    await t.run(async (ctx) => {
+      await ctx.db.insert("clubs", { code: RELEGATED, name: "Relegated", shortName: "REL", droppedAt: Date.now() });
+      await ctx.db.insert("players", { code: STAYED, name: "Stayed", fullName: "Stayed Behind", clubCode: RELEGATED });
+      await ctx.db.insert("playerPositions", { code: STAYED, plLabel: "Defender", starts: [], approved: [], set: [], removed: [] });
+    });
+
+    const { newSignings } = await (await asAdmin(t)).query(api.positions.playerPositions.queue, {});
+    expect(newSignings.map((signing) => signing.code)).not.toContain(STAYED);
   });
 
   test(`more than ${CURRENT_CLUBS_MOST} current clubs fail the queue loudly, never a list cut short`, async () => {
