@@ -1,10 +1,11 @@
 // FPL's public API, mapped onto the football layer's seam (`Football`, in football.ts). The raw
 // shapes and the mapping are copied from epl-draft's packages/core/src/football/fpl/ (raw.ts,
-// map.ts and client.ts, 19 Oct 2026), not shared, and cut to the fields #21 holds and each
-// player's news (#381). One change: FPL names a club by its per-season id, and this hands on the
-// club's season-stable code instead.
+// map.ts and client.ts, 19 Oct 2026), not shared, and cut to the fields #21 holds, each
+// player's news (#381) and each match's score (#49). One change: FPL names a club by its
+// per-season id, and this hands on the club's season-stable code instead.
 
 import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, getJson, getShaped, type Football } from "./football";
+import { fplScoreRead, readEach } from "./scoreReads";
 
 // The shapes FPL's public API returns: data we do not control. Only the fields read below are typed.
 
@@ -55,6 +56,17 @@ export interface RawFixture {
   kickoff_time: string | null;
   team_h: number;
   team_a: number;
+  // The score's fields (#49). Typed optional, as one missing is the match's problem alone
+  // (scoreReads.ts), not a changed payload refusing the sync; recordings cut before #49 lack them.
+  /** Whether the match has kicked off. */
+  started?: boolean | null;
+  /** True from full time; `finished` waits for FPL's bonus points, which the platform never reads. */
+  finished_provisional?: boolean;
+  /** Minutes played: 0 before kickoff, 90 at full time. */
+  minutes?: number;
+  /** Null before kickoff. */
+  team_h_score?: number | null;
+  team_a_score?: number | null;
 }
 
 /** Bootstrap and the season's fixtures as FPL sent them. */
@@ -113,6 +125,8 @@ export function mapFpl(bootstrap: RawBootstrap, fixtures: RawFixture[]): Footbal
       bootstrap.events.map((event) => ({ number: event.id, deadline: epochMs(event.deadline_time) })),
       (gameweek) => gameweek.number,
     ),
+    // After `fixtures`, so a list sending a match twice is refused before its scores are read.
+    scores: readEach(fixtures, (fixture) => fixture.code, fplScoreRead),
   };
 }
 
