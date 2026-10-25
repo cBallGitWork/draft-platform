@@ -53,7 +53,7 @@ const STRIKERS_CELL = { area: "attack", lane: "leftCentre" } as const;
 const strikerReplacedBy = (on: number) => ({ off: STRIKER, on, ...STRIKERS_CELL, into: "theSlot" });
 
 describe("a starter who didn't play is replaced", () => {
-  test("once his match has ended with him on 0 minutes", () => {
+  test("by the bench's first who can play his slot, and sits where that sub sat", () => {
     const { lineup, positions } = withBench(["ST"]);
     const result = subbed(lineup, positions, plays(lineup, [STRIKER]));
 
@@ -164,6 +164,33 @@ describe("when no one on the bench can play the slot", () => {
     ]);
   });
 
+  test("the nearest area before the nearest lane", () => {
+    // The other striker drops into the hole behind: a sub who plays the area in front of the
+    // midfield, or the one behind it, takes the nearer, though only the other has a free lane.
+    const { lineup, positions } = withBench(["CAM", "CDM"]);
+    const supportStriker = withPositions(positions, OTHER_STRIKER, ["SS"]);
+    const strikerInTheHole = {
+      ...lineup,
+      starters: lineup.starters.map((starter) =>
+        starter.playerCode === OTHER_STRIKER ? { ...starter, area: "attackingMidfield", lane: "leftCentre" } : starter,
+      ),
+    };
+    const result = subbed(strikerInTheHole, supportStriker, plays(strikerInTheHole, [STRIKER]));
+
+    expect(result.substitutions).toEqual([
+      { off: STRIKER, on: FIRST, area: "attackingMidfield", lane: "left", into: "hisOwnArea" },
+    ]);
+  });
+
+  test("the further back of two areas as near", () => {
+    const { lineup, positions } = withBench(["CDM", "CAM"]);
+    const result = subbed(lineup, positions, plays(lineup, [LEFT_MIDFIELDER]));
+
+    expect(result.substitutions).toEqual([
+      { off: LEFT_MIDFIELDER, on: FIRST, area: "defensiveMidfield", lane: "left", into: "hisOwnArea" },
+    ]);
+  });
+
   test("of his areas, the nearest the slot's", () => {
     // A support striker plays attacking midfield and attack: for a full back's slot, the nearer.
     const { lineup, positions } = withBench(["SS"]);
@@ -183,6 +210,14 @@ describe("a keeper", () => {
     expect(result.substitutions).toEqual([
       { off: KEEPER, on: SECOND, area: "goalkeeper", lane: "centre", into: "theSlot" },
     ]);
+  });
+
+  test("never comes on for an outfield player, even with room in goal", () => {
+    const { lineup, positions } = withBench(["GK"]);
+    const roomForTwo = openLimits({ goalkeeper: { minimum: 1, maximum: 2 } });
+    const result = subbed(lineup, positions, plays(lineup, [STRIKER]), roomForTwo);
+
+    expect(result).toEqual(untouched(lineup, [STRIKER]));
   });
 
   test("with no keeper on the bench, the keeper's slot scores nothing", () => {

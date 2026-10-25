@@ -9,6 +9,10 @@ import { AREAS, LANES, playsCell, type Area, type Cell, type Lane } from "./pitc
 /** Players are FPL's season-stable `code`. */
 type PlayerCode = number;
 
+/** Only a keeper plays in goal and he plays only there, so he is replaced only by a keeper and
+ *  never comes on for anyone else (spec/05). */
+const GOALKEEPER: Area = "goalkeeper";
+
 /** Whether a player played in the gameweek. Known only once he has: until his last match ends on
  *  0 minutes, he is still to play. */
 export type GameweekPlay = "played" | "didNotPlay" | "stillToPlay";
@@ -20,7 +24,8 @@ export interface PlayerMatch {
 }
 
 /** A player who plays in either match of a double gameweek played; one whose every match ended
- *  with him on 0 minutes didn't. With no match at all he didn't play. */
+ *  with him on 0 minutes didn't. With no match at all he didn't play, so pass none only once his
+ *  club's fixtures are known; a match postponed but still passed keeps him still to play. */
 export function gameweekPlay(matches: readonly PlayerMatch[]): GameweekPlay {
   if (matches.some((match) => match.minutes > 0)) return "played";
   return matches.every((match) => match.finished) ? "didNotPlay" : "stillToPlay";
@@ -40,7 +45,8 @@ export interface AutoSubs {
   substitutions: Substitution[];
   /** Starters who didn't play and whom no one could replace legally: each one's slot scores nothing. */
   unfilled: PlayerCode[];
-  /** After the substitutions: each player off sits on the bench where his sub sat. Always legal. */
+  /** After the substitutions: each player off sits on the bench where his sub sat. Always legal,
+   *  but for a starter who lost a position after he was placed, who stays (spec/06). */
   lineup: Lineup;
 }
 
@@ -88,7 +94,7 @@ export function autoSubs(
 }
 
 /** The first on the bench who can play the slot takes it. If none can, the first who keeps the
- *  area limits legal comes on in his own area; a keeper is replaced only by a keeper. */
+ *  area limits legal comes on in his own area. */
 function firstLegalSub(
   lineup: Lineup,
   absentee: Placement,
@@ -104,7 +110,7 @@ function firstLegalSub(
     const tried = legalSubstitution(lineup, absentee, playerCode, slot, "theSlot", positions, rules);
     if (tried) return tried;
   }
-  if (slot.area === "goalkeeper") return undefined;
+  if (slot.area === GOALKEEPER) return undefined;
 
   const freeCells = freeCellsNearest(lineup, absentee);
   for (const playerCode of available) {
@@ -135,7 +141,7 @@ function legalSubstitution(
   return { substitution: { off: absentee.playerCode, on: playerCode, ...cell, into }, lineup: after };
 }
 
-/** Every cell no other starter stands in, nearest the absentee's first: the fewest areas away,
+/** Every outfield cell no other starter stands in, nearest the absentee's first: the fewest areas away,
  *  then the fewest lanes, then the further back and the further left. */
 function freeCellsNearest(lineup: Lineup, absentee: Placement): Cell[] {
   const [slotArea, slotLane] = pitchOrder(cellOf(absentee));
@@ -145,7 +151,7 @@ function freeCellsNearest(lineup: Lineup, absentee: Placement): Cell[] {
     return [Math.abs(area - slotArea), Math.abs(lane - slotLane), area, lane];
   };
   return AREAS.flatMap((area) => LANES.map((lane) => ({ area, lane })))
-    .filter((cell) => !taken.has(cellKey(cell)))
+    .filter((cell) => cell.area !== GOALKEEPER && !taken.has(cellKey(cell)))
     .sort((one, other) => compareInOrder(distance(one), distance(other)));
 }
 
