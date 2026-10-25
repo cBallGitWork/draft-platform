@@ -78,6 +78,11 @@ export function PanelTitle({ id, children }: { id: string; children: string }) {
 /** The body under a panel's title plate, as a form or a block: its fields and lines stacked. */
 export const PANEL_BODY = "flex flex-col gap-2 p-3";
 
+/** The top bar every frame opens with: its plate (plate.md, Shape) and the row its parts sit in,
+ *  apart because the signed-in frame puts the row inside the bar. */
+export const TOP_BAR = "bg-bar shadow-bevel-plate";
+export const TOP_BAR_ROW = "flex flex-wrap items-stretch";
+
 /** A muted line saying something is still loading or being searched for, announced to screen
  *  readers; `className` adds the caller's spacing. */
 export function Loading({ className, children }: { className?: string; children: ReactNode }) {

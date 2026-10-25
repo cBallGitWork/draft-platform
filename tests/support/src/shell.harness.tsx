@@ -26,9 +26,6 @@ import { fakeSquads, type SquadsData } from "./squads.harness";
 import { fakeScouting, type ScoutingData } from "./scouting.harness";
 import { fakeTable, type TableData } from "./table.harness";
 
-// The router restores scroll on every navigation, and jsdom has no scrolling to restore.
-window.scrollTo = () => {};
-
 export const visitor: Session = { signedIn: false };
 
 /** A league as signIn/account:signedInAs sends it, for `manager`, who runs Team 1 in it. */
