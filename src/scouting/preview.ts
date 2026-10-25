@@ -2,7 +2,7 @@
 // stats added up for each, filtered and sorted by the server's own rule (listOf).
 
 import type { ListedPlayer } from "../../convex/scouting/playersList";
-import { listOf } from "../../convex/scouting/playersOrder";
+import { listOf, shownStat } from "../../convex/scouting/playersOrder";
 import type { Stats } from "../../convex/stats/statTotals";
 import { previewShortlistOf } from "./previewShortlist";
 import type { ScoutingSeam } from "./seam";
@@ -19,6 +19,7 @@ const player = (code: number, name: string, fullName: string, club: ListedPlayer
   positions,
   ownerTeamName,
   seasonPoints: null,
+  stat: null,
 });
 
 export const previewPlayers: readonly ListedPlayer[] = [
@@ -51,5 +52,12 @@ export const previewScouting: ScoutingSeam = {
   ...previewShortlist,
   useComparison: (_leagueId, codes) =>
     codes?.map((code) => ({ ...previewPlayers.find((each) => each.code === code)!, matches: PREVIEW_MATCHES, stats: previewTotals[code] ?? {} })),
-  usePlayersList: (_leagueId, filters, sort) => ({ clubs: [ARSENAL, CHELSEA, LIVERPOOL], players: listOf(previewPlayers, filters, sort) }),
+  usePlayersList: (_leagueId, filters, sort, stat) => ({
+    clubs: [ARSENAL, CHELSEA, LIVERPOOL],
+    players: listOf(
+      previewPlayers.map((player) => ({ ...player, stat: shownStat(previewTotals[player.code], stat) })),
+      filters,
+      sort,
+    ),
+  }),
 };

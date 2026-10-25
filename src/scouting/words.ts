@@ -20,6 +20,9 @@ export const positionLabel = "Position";
 export const everyPositionWords = "Every position";
 export const clubLabel = "Club";
 export const everyClubWords = "Every club";
+/** The stat shown as a season total beside the list, and sorted by (spec/19, "sortable by any stat"). */
+export const statLabel = "Stat";
+export const noStatWords = "None";
 
 /** How many players the filters keep. */
 export const countWords = (count: number) => (count === 1 ? "1 player" : `${count} players`);

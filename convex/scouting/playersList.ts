@@ -1,20 +1,26 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
+import { PL_SEASON_START_YEAR } from "../football/football";
 import { MOST_IN_SQUAD, MOST_TEAMS } from "../leagues/leagueLimits";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { clubRecord, position } from "../schema";
+import { STAT_CATALOGUE } from "../scoring/statCatalogue";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { currentClubs, currentPlayersAt } from "../shared/players";
-import { listOf } from "./playersOrder";
+import { seasonTotals } from "../stats/seasonStats";
+import type { Stats } from "../stats/statTotals";
+import { listOf, shownStat } from "./playersOrder";
 
 // Scouting's players list (spec/19, The players list; #373): every Premier League player now, for
 // anyone in the league, filtered and sorted here on the server so the screen never holds a cut
 // list. Each player says who owns him in this league. Season points under the site's scoring are
 // null ("—") until #29 scores matches: a player's points depend on the slot he starts in
 // (scoring.ts), and no lineups are kept yet. Waivers aren't built, so no player is on waivers.
+// Any stat of the catalogue can be shown beside them as a season total and sorted by (spec/19,
+// "sortable by any stat"), read from the totals kept as records are written (seasonStats.ts).
 
 /** The most players the list reads: the Premier League's 20 squads as FPL lists them, a few dozen
  *  a club, with room. Each costs one read of his positions row, so a full list stays far inside a
@@ -29,8 +35,8 @@ const OWNED_IN_LEAGUE_MOST = MOST_TEAMS * MOST_IN_SQUAD;
 export const availability = v.union(v.literal("all"), v.literal("freeAgents"), v.literal("onWaivers"), v.literal("owned"));
 export type Availability = Infer<typeof availability>;
 
-/** What the list can be sorted by. */
-export const sortColumn = v.union(v.literal("name"), v.literal("club"), v.literal("seasonPoints"));
+/** What the list can be sorted by: "stat" is the shown stat's season total. */
+export const sortColumn = v.union(v.literal("name"), v.literal("club"), v.literal("seasonPoints"), v.literal("stat"));
 export type SortColumn = Infer<typeof sortColumn>;
 
 const filters = v.object({
@@ -55,6 +61,8 @@ const listedPlayer = v.object({
   ownerTeamName: v.union(v.string(), v.null()),
   /** His points this season under the site's scoring, or null ("—") until matches are scored (#29). */
   seasonPoints: v.union(v.number(), v.null()),
+  /** His season total of the shown stat, 0 if he hasn't played; null with no stat shown. */
+  stat: v.union(v.number(), v.null()),
 });
 export type ListedPlayer = Infer<typeof listedPlayer>;
 
@@ -65,18 +73,23 @@ const playersList = v.object({
 });
 export type PlayersList = Infer<typeof playersList>;
 
-/** Every club now, and the players the filters keep in the sort's order (`listOf`). Only the chosen
- *  club's players are read. Anyone not in the league is refused. */
+/** Every club now, and the players the filters keep in the sort's order (`listOf`), each with his
+ *  season total of `stat` when one is shown (a catalogue stat's key, or null). Only the chosen
+ *  club's players are read. Anyone not in the league is refused, as is a stat the catalogue doesn't
+ *  hold, or a sort by the stat with none shown. */
 export const list = query({
-  args: { leagueId: v.id("leagues"), filters, sort },
+  args: { leagueId: v.id("leagues"), filters, sort, stat: v.union(v.string(), v.null()) },
   returns: playersList,
-  handler: async (ctx, { leagueId, filters, sort }) => {
+  handler: async (ctx, { leagueId, filters, sort, stat }) => {
     await memberOf(ctx, leagueId);
+    if (stat !== null && !STAT_CATALOGUE.some((each) => each.stat === stat)) throw new Error(`No stat ${stat} is in the catalogue`);
+    if (sort.by === "stat" && stat === null) throw new Error("The list can't be sorted by the stat with none shown");
     const clubs = (await currentClubs(ctx)).sort((one, other) => one.name.localeCompare(other.name));
     const listedClubs = filters.clubCode === null ? clubs : clubs.filter((each) => each.code === filters.clubCode);
     const players = await currentPlayersOf(ctx, listedClubs);
     const ownerOf = await ownersIn(ctx, leagueId);
     const how = await howPositionsCount(ctx);
+    const totals = stat === null ? new Map<number, Stats>() : await seasonTotals(ctx, PL_SEASON_START_YEAR);
     const clubOf = new Map(clubs.map((each) => [each.code, { code: each.code, name: each.name, shortName: each.shortName }]));
 
     const rows = await Promise.all(
@@ -88,6 +101,7 @@ export const list = query({
         positions: await currentPositions(ctx, player.code, how),
         ownerTeamName: ownerOf.get(player.code) ?? null,
         seasonPoints: null,
+        stat: shownStat(totals.get(player.code), stat),
       })),
     );
     return { clubs: [...clubOf.values()], players: listOf(rows, filters, sort) };

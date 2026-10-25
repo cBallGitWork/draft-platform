@@ -72,6 +72,35 @@ export const gameweekRecord = v.object({
   deadline: v.number(),
 });
 
+// Each match's score and clock (#49, #50), written by both feeds, so kept apart from `fixtures`,
+// FPL's record rewritten whole: football/matchScores.ts.
+
+/** Where a match stands. The Premier League's half-time is its own; FPL's feed has none. */
+export const matchState = v.union(v.literal("upcoming"), v.literal("live"), v.literal("halfTime"), v.literal("fullTime"));
+
+/** The feed a score was read from. */
+export const scoreFeed = v.union(v.literal("fpl"), v.literal("pl"));
+
+/** One match's score as one read gives it. */
+export const scoreRead = v.object({
+  fixtureCode: v.number(),
+  state: matchState,
+  /** Null before kickoff, when there is no score yet (the Premier League sends 0–0 then). */
+  homeGoals: v.union(v.number(), v.null()),
+  awayGoals: v.union(v.number(), v.null()),
+  /** The minute on the match clock, null before kickoff: FPL's `minutes`, or the whole minutes of
+   *  the Premier League's clock, which restarts at 45 for the second half and runs on in stoppage. */
+  minutes: v.union(v.number(), v.null()),
+  /** The Premier League's own clock label, e.g. "45+3'00"; null from FPL, which sends none. */
+  clockLabel: v.union(v.string(), v.null()),
+});
+
+/** A match whose score a read could not give, and why: kept on the run row, never written. */
+export const scoreProblem = v.object({ fixtureCode: v.number(), problem: v.string() });
+
+/** One run's share of the scores: the matches read, how many rows changed, and the problems. */
+export const scoreWrites = v.object({ received: v.number(), written: v.number(), problems: v.array(scoreProblem) });
+
 // The schema is live: clubs, players, fixtures, gameweeks and footballSyncs hold rows written
 // before #64, so every field added since is optional, or the next push would refuse those rows.
 // Renaming a field is a migration, never an edit here.
@@ -105,6 +134,8 @@ export const footballSyncFields = {
       players: tableWrites,
       fixtures: tableWrites,
       gameweeks: tableWrites,
+      /** Absent on runs before #49's scores. */
+      scores: v.optional(scoreWrites),
     }),
     v.object({ ok: v.literal(false), error: v.string() }),
   ),
@@ -119,9 +150,13 @@ const footballTables = {
   fixtures: defineTable(fixtureRecord.extend({ droppedAt }))
     .index("by_code", ["code"])
     .index("by_kickoff", ["kickoff"])
-    .index("by_droppedAt_and_kickoff", ["droppedAt", "kickoff"]),
+    .index("by_droppedAt_and_kickoff", ["droppedAt", "kickoff"])
+    // A gameweek's matches, for the Premier League's fixtures and results (#49).
+    .index("by_gameweek_and_droppedAt", ["gameweek", "droppedAt"]),
   gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]),
   footballSyncs: defineTable(footballSyncFields),
+  /** Each match's newest score, which feed gave it and when that read was made. */
+  matchScores: defineTable(scoreRead.extend({ feed: scoreFeed, readAt: v.number() })).index("by_fixtureCode", ["fixtureCode"]),
 };
 
 // Sign-in (#20, spec/02). Emails are stored trimmed and lower-cased (`normaliseEmail`).
@@ -215,6 +250,8 @@ export const matchStatsSyncFields = {
       matches: v.array(matchSyncOutcome),
       /** Matches due whose Premier League status is not yet full time. */
       waiting: v.array(v.number()),
+      /** The due matches' scores; absent on runs before #49's scores, and on a run with none due. */
+      scores: v.optional(scoreWrites),
     }),
     v.object({ ok: v.literal(false), error: v.string() }),
   ),
@@ -237,6 +274,14 @@ const matchStatsTables = {
   }).index("by_fixtureCode_and_playerCode", ["fixtureCode", "playerCode"]),
   platformSettings: defineTable({ name: platformSettingName, value: v.number() }).index("by_name", ["name"]),
   matchStatsSyncs: defineTable(matchStatsSyncFields),
+  /** Each player's records added up for a season (#373, seasonStats.ts), so Scouting sorts every
+   *  player by any stat without reading a season of records: one row a player and season, kept
+   *  in step as each record is written. `season` is the year it starts (football.ts's
+   *  `seasonStartYear` of the match's kickoff). */
+  playerSeasonStats: defineTable({ season: v.number(), playerCode: v.number(), stats: v.record(v.string(), v.number()) }).index(
+    "by_season_and_playerCode",
+    ["season", "playerCode"],
+  ),
   /** When a run last tried each match, read or not: one that never reads steps behind the rest. */
   matchStatsTries: defineTable({ fixtureCode: v.number(), triedAt: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
 };
@@ -319,7 +364,12 @@ const positionsTables = {
 export const liveStatsTickFields = {
   ranAt: v.number(),
   outcome: v.union(
-    v.object({ ok: v.literal(true), matches: v.array(matchSyncOutcome) }),
+    v.object({
+      ok: v.literal(true),
+      matches: v.array(matchSyncOutcome),
+      /** The live matches' scores; absent on ticks before #49's scores. */
+      scores: v.optional(scoreWrites),
+    }),
     v.object({ ok: v.literal(false), error: v.string() }),
   ),
 };
@@ -366,6 +416,9 @@ const unemailedDeletionFields = {
 // Leagues (#24, spec/13). People are known by their email, trimmed and lower-cased, so a
 // commissioner or manager can be named before they have an account; the admin is ADMIN_EMAIL.
 
+/** A letter to the whole league, as league home pins it (spec/12). */
+export const pinnedLetter = v.object({ at: v.number(), from: v.string(), subject: v.string(), body: v.string() });
+
 const leagueFields = {
   name: v.string(),
   /** The league's own maximum, 2 to 20 (spec/13), which its commissioner changes. */
@@ -381,6 +434,10 @@ const leagueFields = {
   /** The gameweeks its commissioner unticked, in order (#74, convex/gameweeks/usedGameweeks.ts). Absent while
    *  it plays all 38, the default, so a league needs no write to have it. */
   unusedGameweeks: v.optional(v.array(v.number())),
+  /** The latest letter its commissioner, co-commissioner or the admin wrote to the whole league
+   *  (spec/16), pinned on league home until a newer one (spec/12); absent before the first. Its
+   *  copies are in `letters`, one a person, so this saves finding the newest among them. */
+  pinnedLetter: v.optional(pinnedLetter),
 };
 
 const teamFields = {
@@ -540,7 +597,10 @@ const leagueTables = {
   teams: defineTable(teamFields)
     .index("by_leagueId_and_number", ["leagueId", "number"])
     .index("by_managerEmail", ["managerEmail"]),
-  leagueEvents: defineTable(leagueEventFields).index("by_leagueId_and_at", ["leagueId", "at"]),
+  leagueEvents: defineTable(leagueEventFields)
+    .index("by_leagueId_and_at", ["leagueId", "at"])
+    // League home's latest squad moves of each kind (spec/12), without reading every other event.
+    .index("by_leagueId_and_kind_and_at", ["leagueId", "event.kind", "at"]),
   lastLeagues: defineTable(lastLeagueFields).index("by_email", ["email"]).index("by_leagueId", ["leagueId"]),
   unemailedDeletions: defineTable(unemailedDeletionFields),
 };

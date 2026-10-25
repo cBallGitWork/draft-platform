@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "../../../convex/table/roundRobin";
-import { headToHeadTable, totalPointsTable, type GameweekScores, type TableRow, type TieBreak } from "../../../convex/table/standings";
+import { FORM_RESULTS, formOf, headToHeadTable, totalPointsTable, type GameweekScores, type TableRow, type TieBreak } from "../../../convex/table/standings";
 
 // The table (#33; spec/09, spec/03): 3 for a win, 1 for a draw, none for a loss, equal scores a
 // draw; for, against and the difference; the team left over against the league's average or on a
@@ -124,5 +124,33 @@ describe("a total-points table", () => {
     const table = totalPointsTable([ANN, BOB, CAT], scores({ 1: { Ann: 10, Bob: 20.5, Cat: 15 }, 2: { Ann: 15, Bob: 1, Cat: 20.5 } }));
     expect(table.map((row) => [row.team, row.played, row.points])).toEqual([[CAT, 2, 35.5], [ANN, 2, 25], [BOB, 2, 21.5]]);
     expect(order(totalPointsTable([ANN, BOB], scores({ 1: { Ann: 5, Bob: 5 } })))).toEqual([ANN, BOB]);
+  });
+});
+
+describe("each team's form", () => {
+  test(`is its latest ${FORM_RESULTS} results, oldest first, over the gameweeks scored`, () => {
+    // Ann beats Bob in odd gameweeks and loses in even ones; gameweek 7 is a draw, and 8 isn't scored.
+    const schedule = Array.from({ length: 8 }, (_, i) => week(i + 1, [[ANN, BOB]]));
+    const byGameweek = Object.fromEntries(
+      Array.from({ length: 7 }, (_, i) => [i + 1, i + 1 === 7 ? { Ann: 4, Bob: 4 } : { Ann: (i + 1) % 2 === 1 ? 5 : 1, Bob: 3 }]),
+    );
+    const form = formOf([ANN, BOB], schedule, scores(byGameweek));
+
+    expect(form.get(ANN)).toEqual(["won", "lost", "won", "lost", "drawn"]);
+    expect(form.get(BOB)).toEqual(["lost", "won", "lost", "won", "drawn"]);
+  });
+
+  test("counts a matchup against the league's average, and nothing for a bye", () => {
+    const schedule = [{ gameweek: 1, fixtures: [{ team: ANN, opponent: BOB }, { team: CAT, opponent: LEAGUE_AVERAGE }], byes: [] }, week(2, [[ANN, BOB]], [CAT])];
+    const form = formOf([ANN, BOB, CAT], schedule, scores({ 1: { Ann: 10, Bob: 10, Cat: 11 }, 2: { Ann: 1, Bob: 2, Cat: 99 } }));
+    expect([form.get(ANN), form.get(BOB), form.get(CAT)]).toEqual([["drawn", "lost"], ["drawn", "won"], ["won"]]);
+  });
+
+  test("is empty for every team before any gameweek is scored", () => {
+    expect([...formOf([ANN, BOB], [week(1, [[ANN, BOB]])], new Map()).values()]).toEqual([[], []]);
+  });
+
+  test("a fixture for a team not in the league is a bug, and says whose", () => {
+    expect(() => formOf([ANN], [week(1, [[ANN, BOB]])], scores({ 1: { Ann: 1, Bob: 2 } }))).toThrow(`${BOB} has a fixture but isn't one of the league's teams`);
   });
 });
