@@ -1,5 +1,6 @@
 import type { FeedState } from "../../convex/admin/feedState";
 import { Loading, PanelNote, PanelTitle } from "../frame/Panel";
+import { whenWords } from "../words";
 import { AdminHeader } from "./AdminHeader";
 import type { AdminSeam, FeedsReport } from "./seam";
 import {
@@ -24,7 +25,6 @@ import {
   noCorrectionsWords,
   noneBehindWords,
   seenWords,
-  whenWords,
 } from "./words";
 
 const FEEDS_TITLE_ID = "feeds-title";

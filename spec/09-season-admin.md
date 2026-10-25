@@ -2,7 +2,8 @@
 
 Feature 9 of [SPEC.md](../SPEC.md). Only Craig's answers.
 
-- The platform generates the head-to-head fixtures as a round robin; the commissioner can edit them.
+- The platform generates the head-to-head fixtures as a round robin; the commissioner can edit them,
+  only in gameweeks that haven't begun (24 Oct 2026).
   It is drawn over the gameweeks the league uses ([13](13-setting-up-a-league.md#gameweeks)).
 - The round robin needn't repeat in one order: it is drawn as evenly as possible. A league can
   choose more than one game per gameweek (21 Oct 2026).
