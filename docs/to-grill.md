@@ -77,6 +77,8 @@ a player fills only his own areas, and only a keeper plays in goal, both ways (`
 | Saved tactics | FM's: a few formations kept to switch between, say one for a double gameweek |
 | Gameweeks to come after a team joins at a split | Once begun, a gameweek's fixtures are fixed (`spec/13`). Open: how the gameweeks still to come are drawn when a team joins at a split (`convex/table/playedFixtures.ts`, `scheduleAround`); goes with the split season above |
 | A league's deletion email past the day's email limit | Managers are told only once a league is gone (`spec/13`). One the 100-a-day limit stops is never told: retried, or left? Craig left the old warnings as they were for the beta (22 Oct 2026) |
+| Trade review letters | `spec/08`'s 24-hour veto and vote windows: does the commissioner or each voter get a letter to act on, and does a blocked or expired review file one (`spec/16`)? |
+| Trades with the auto team, and when the vote ships | `spec/09` pauses trades for a team on the auto team; `spec/08` doesn't say so. Trades come by August "with the veto": does the league vote come then too? |
 | One player on several teams | Not now; maybe later (Craig, 20 Oct 2026). A draft is normally one owner per league; some leagues do one per division. The draft, waivers, trades and "owned in the league" all assume one owner |
 
 Thought of and set aside, as they clash with what's settled: board confidence and the sack
