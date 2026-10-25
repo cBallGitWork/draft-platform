@@ -3,6 +3,7 @@ import { query, type QueryCtx } from "../_generated/server";
 import { statCorrectionWindowMs } from "./platformSettings";
 import { ALWAYS_OWED, failureOf, feedState, judgeFeed, type FeedRuns, type RunOutcome } from "./feedState";
 import { adminOf } from "../shared/leagueAccess";
+import { playerByCode } from "../shared/players";
 import { FEED_RUN_TABLES, FEED_SCHEDULES, FEEDS, type Feed } from "../shared/feedSchedule";
 import { liveMatches } from "../stats/liveStats";
 import { lateStatChange } from "../schema";
@@ -82,7 +83,7 @@ export const feeds = query({
     const corrections = [];
     const latestCorrections = await ctx.db.query("lateStatCorrections").order("desc").take(CORRECTIONS_SHOWN + 1);
     for (const { fixtureCode, playerCode, seenAt, changes } of latestCorrections.slice(0, CORRECTIONS_SHOWN)) {
-      const player = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", playerCode)).unique();
+      const player = await playerByCode(ctx, playerCode);
       corrections.push({ fixtureCode, match: await matchName(ctx, fixtureCode), playerCode, player: player?.name ?? null, seenAt, changes });
     }
     return { now, feeds, behind, moreBehind: provisional.length > BEHIND_SHOWN, moreCorrections: latestCorrections.length > CORRECTIONS_SHOWN, corrections };

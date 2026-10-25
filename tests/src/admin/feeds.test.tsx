@@ -28,8 +28,8 @@ import {
   noneBehindWords,
   positionsTabWords,
   seenWords,
-  whenWords,
 } from "../../../src/admin/words";
+import { whenWords } from "../../../src/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { admin, commissioner, openApp } from "../../support/src/shell.harness";

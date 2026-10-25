@@ -5,7 +5,7 @@
   "scripts": {
     "setup": "convex login && convex dev --once --configure existing --team craigdavidball14 --project draft-platform --dev-deployment cloud",
     "dev": "convex dev --start vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/bundle-has-no-preview.mjs",
     "test": "node scripts/with-deadline.mjs 120 vitest run",
     "typecheck": "tsc --noEmit -p convex && tsc --noEmit -p .",
     "smoke": "playwright test",
