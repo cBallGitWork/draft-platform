@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { adminOf } from "../shared/leagueAccess";
-import { currentClubs, currentPlayersAt, playersNamed } from "../shared/players";
+import { currentClubs, currentPlayersAt, playerByCode, playersNamed } from "../shared/players";
 import { howPositionsCount, type HowPositionsCount } from "./positionSettings";
 import { positionsFromStarts, positionsOf, type PlayerPositions } from "./positions";
 import type { Position } from "./positionTables";
@@ -118,7 +118,7 @@ export const queue = query({
     const flagged = [];
     const removed = [];
     for await (const row of ctx.db.query("playerPositions")) {
-      const player = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", row.code)).unique();
+      const player = await playerByCode(ctx, row.code);
       if (player === null || player.droppedAt !== undefined) continue;
       const positionsNow = positionsFrom(row, how);
       const who = { code: row.code, name: player.name, fullName: player.fullName, clubCode: player.clubCode };

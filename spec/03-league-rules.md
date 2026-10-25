@@ -16,9 +16,13 @@ Among them:
   saved, naming the most, and so is lowering the maximum below what the games need (22 Oct 2026).
 - With an odd number of teams, whether the team left over plays the league's average
   (`spec/09`).
-- Squad make-up: a minimum and maximum squad size, or no limits; a minimum and maximum per area;
-  a maximum per club. A squad maximum above the 60 players any team can hold is refused when
-  saved (22 Oct 2026).
+- Squad make-up (24 Oct 2026): a minimum squad size, and a maximum the commissioner sets in League
+  settings. The maximum starts from a default by the league's size, which Craig keeps and edits ("an
+  8 man league would have 16 id say ish"; "we can edit that ourselves"), and is never above 25, a
+  Premier League squad ("a prem squad is 25"); more is refused when saved. A minimum per area, and
+  nothing else per area: "a squad can be full of whatever you want with a few minimum counts". A
+  player who can play two areas fills one minimum, whichever helps the squad. A maximum per club,
+  off by default.
 - Carry-over: redraft, keeper (the league sets how many each team keeps; keeping costs nothing)
   or dynasty (the whole squad carries over).
 - The deadline: when it falls, as a time before the gameweek's first kickoff, starting at FPL's

@@ -2,14 +2,11 @@
 
 import { failedWords } from "../words";
 
-/** The title over a page that couldn't be drawn because reading it failed (ErrorScreen.tsx). */
+/** A page whose data couldn't be read (ReadFailed.tsx): its title, why, in the alert strip, the
+ *  same whatever failed, a refusal too (spec/12), and the button that reads again. */
 export const ERROR_PAGE_TITLE = "This page can't be shown";
-
-/** Why, when the failure wasn't a refusal, which shows the server's own words instead (refusalIn, src/refusal.ts). */
 export const readFailedWords = failedWords("this page can't be shown");
-
-/** The way back when the whole app failed, above the pages and their menu (liveApp.tsx). */
-export const reloadWords = "Reload";
+export const tryAgainWords = "Try again";
 
 /** The top bar: its two menus, named for screen readers, Continue, and Sign out. */
 export const mainMenuLabel = "Main";

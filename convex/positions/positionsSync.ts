@@ -12,6 +12,7 @@ import { labelPositions, placePosition } from "./positionTables";
 import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlSquad, type RawPlFixture, type RawPlSquadPlayer } from "../football/premierLeague";
 import { positionsSyncFields, startRecord, syncTrigger } from "../schema";
 import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
+import { emailIfFailed } from "../admin/feedFailureEmails";
 
 // Issue #22: each player's starts, from the Premier League's team sheets for last season and this
 // (spec/06: his last 38 starts count, across both), and his label, from this season's squads or
@@ -94,6 +95,7 @@ export const record = internalMutation({
   args: positionsSyncFields,
   handler: async (ctx, row) => {
     await ctx.db.insert("positionsSyncs", row);
+    await emailIfFailed(ctx, "positions", row);
   },
 });
 

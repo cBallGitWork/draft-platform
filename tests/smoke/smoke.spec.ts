@@ -36,6 +36,12 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
     await expect(page.getByRole("heading", { name: ERROR_PAGE_TITLE })).toHaveCount(0);
   });
 
+  // main.tsx's dev-only import() of the preview, naming no session, falls through to the live app.
+  test("/ with no preview mounts the live app, which says VITE_CONVEX_URL isn't set", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("alert")).toHaveText(NO_CONVEX_URL);
+  });
+
   test("?preview=visitor shows the sign-in page", async ({ page }) => {
     await page.goto("/?preview=visitor");
     await expect(page).toHaveURL((url) => url.pathname === SIGN_IN_PATH);

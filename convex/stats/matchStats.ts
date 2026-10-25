@@ -7,6 +7,7 @@ import { statCorrectionWindowMs } from "../admin/platformSettings";
 import { matchStatsState, matchStatsSyncFields, playerMatchRecord } from "../schema";
 import { LATEST_RUNS } from "../shared/syncRuns";
 import { HOUR_MS, MINUTE_MS } from "../shared/time";
+import { emailIfFailed } from "../admin/feedFailureEmails";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -112,6 +113,7 @@ export const record = internalMutation({
   args: matchStatsSyncFields,
   handler: async (ctx, row) => {
     await ctx.db.insert("matchStatsSyncs", row);
+    await emailIfFailed(ctx, "matchStats", row);
     if (!row.outcome.ok) return;
     for (const fixtureCode of [...row.outcome.matches.map((match) => match.fixtureCode), ...row.outcome.waiting]) {
       const tried = await triedOf(ctx, fixtureCode);
