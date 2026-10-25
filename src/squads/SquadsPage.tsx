@@ -1,8 +1,10 @@
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, Notice, PageSection, PANEL_BODY, PanelNote, PanelTitle, Problem } from "../frame/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
+import { playerCardPath } from "../playerCard/paths";
 import { useChange, type Changing } from "../useChange";
 import type { FoundPlayer, SquadsSeam, TeamSquad } from "./seam";
 import {
@@ -120,7 +122,9 @@ function FoundRow({
   const selectId = `team-for-${player.code}`;
   return (
     <li className="flex flex-col gap-1 border-b border-panel-rule px-3 py-2">
-      <span className="text-lead font-semibold">{player.fullName}</span>
+      <Link to={playerCardPath(league.leagueId, player.code)} className="flex min-h-tap items-center text-lead font-semibold">
+        {player.fullName}
+      </Link>
       <span className="text-muted">{free ? freeAgentWords : onTeamWords(player.teamName!)}</span>
       {teamId === undefined ? (
         <span className="text-muted">{free ? noTeamToPutOnWords : noOtherTeamWords}</span>
@@ -169,7 +173,10 @@ function Squad({ league, seam, squad, change }: { league: LeagueSummary; seam: S
             <li key={player.code} className="flex items-center justify-between gap-2 border-b border-panel-rule px-3 py-1">
               <span className="flex flex-col">
                 <span className="font-semibold">
-                  {player.name} <span className="font-normal text-muted">{player.clubShortName}</span>
+                  <Link to={playerCardPath(league.leagueId, player.code)} className="inline-flex min-h-tap items-center">
+                    {player.name}
+                  </Link>{" "}
+                  <span className="font-normal text-muted">{player.clubShortName}</span>
                 </span>
                 {player.gone && <span className="text-event">{goneWords}</span>}
               </span>

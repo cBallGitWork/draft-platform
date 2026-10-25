@@ -58,6 +58,8 @@ import type * as mail_mail from "../mail/mail.js";
 import type * as mail_mailLimits from "../mail/mailLimits.js";
 import type * as outbound_email from "../outbound/email.js";
 import type * as outbound_emailLimit from "../outbound/emailLimit.js";
+import type * as playerCard_cardPoints from "../playerCard/cardPoints.js";
+import type * as playerCard_playerCard from "../playerCard/playerCard.js";
 import type * as positions_playerPositions from "../positions/playerPositions.js";
 import type * as positions_positionChanges from "../positions/positionChanges.js";
 import type * as positions_positionSettings from "../positions/positionSettings.js";
@@ -159,6 +161,8 @@ declare const fullApi: ApiFromModules<{
   "mail/mailLimits": typeof mail_mailLimits;
   "outbound/email": typeof outbound_email;
   "outbound/emailLimit": typeof outbound_emailLimit;
+  "playerCard/cardPoints": typeof playerCard_cardPoints;
+  "playerCard/playerCard": typeof playerCard_playerCard;
   "positions/playerPositions": typeof positions_playerPositions;
   "positions/positionChanges": typeof positions_positionChanges;
   "positions/positionSettings": typeof positions_positionSettings;

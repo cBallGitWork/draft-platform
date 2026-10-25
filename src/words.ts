@@ -45,6 +45,13 @@ const whenFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "num
 /** A time in the viewer's own zone, e.g. "Sat 17 Oct, 13:00": a deadline, a feed's last run. */
 export const whenWords = (at: number) => whenFormat.format(at);
 
+/** A figure not there yet, such as points before a match's record has arrived. */
+export const noFigureWords = "—";
+/** A player no team in the league owns. */
+export const freeAgentWords = "Free agent";
+/** Between the items of a short list in a line: a player's positions, "CDM, CM". */
+export const listSeparator = ", ";
+
 /** Between the two sides of a match or a fixture: "Hull City v Everton". */
 export const versusWords = "v";
 

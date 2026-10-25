@@ -2,6 +2,8 @@
 
 import type { Availability } from "./seam";
 
+export { freeAgentWords, noFigureWords } from "../words";
+
 export const SCOUTING_TITLE = "Scouting";
 export const PLAYERS_TITLE = "Players";
 export const loadingWords = "Loading the players…";
@@ -36,13 +38,9 @@ export const columns = {
   roleFit: { short: "Fit", long: "Role fit" },
 } as const;
 
-/** A figure not there yet: season points before matches are scored, role fit before roles exist. */
-export const noFigureWords = "—";
+/** Why a figure isn't there yet: season points before matches are scored, role fit before roles exist. */
 export const noPointsYetWords = "No points yet: the app doesn't score matches yet.";
 export const noRoleFitYetWords = "No role fit yet: roles aren't built yet.";
-export const freeAgentWords = "Free agent";
-/** Between a player's positions: "CDM, CM". */
-export const positionsSeparator = ", ";
 /** Beside the head of the column sorted by, which way: decoration, as the head says so to screen
  *  readers through aria-sort. */
 export const ascendingGlyph = "▲";

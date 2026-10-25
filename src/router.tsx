@@ -56,13 +56,16 @@ import { SQUADS_ROUTE } from "./squads/paths";
 import type { SquadsSeam } from "./squads/seam";
 import { SquadsPage } from "./squads/SquadsPage";
 import { linkProblemWords, type LinkProblem } from "./sign-in/words";
+import { PLAYER_CARD_ROUTE } from "./playerCard/paths";
+import { PlayerCardPage } from "./playerCard/PlayerCardPage";
+import type { PlayerCardSeam } from "./playerCard/seam";
 import type { ScoutingSeam } from "./scouting/seam";
 import { ScoutingRoute } from "./scouting/ScoutingRoute";
 import type { TableSeam } from "./table/seam";
 import { TableRoute } from "./table/TableRoute";
 
 // A seam is a top-level useLive* hook holding root state (mail, joining, squads, scoring, league
-// settings, admin, leagues, feedback, patches) or a constant object of hooks (gameweeks, table, scouting). Each new one needs a
+// settings, admin, leagues, feedback, patches) or a constant object of hooks (gameweeks, table, scouting, player card). Each new one needs a
 // preview (previewApp.tsx), a live value (liveApp.tsx) and a fake (shell.harness.tsx), and the
 // typechecker flags any that's missing.
 export type ShellContext = {
@@ -78,6 +81,7 @@ export type ShellContext = {
   leagueSettings: LeagueSettingsSeam;
   table: TableSeam;
   scouting: ScoutingSeam;
+  playerCard: PlayerCardSeam;
   admin: AdminSeam;
   feedback: FeedbackSeam;
   patches: PatchesSeam;
@@ -236,6 +240,25 @@ const patchNotesRoute = createRoute({
   },
 });
 
+// A player's card (#381), for anyone in the league, opened from his name. A code that isn't a
+// number names no player, so it goes to Scouting.
+const PLAYER_CODE_DIGITS = /^\d+$/;
+const playerCardRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: PLAYER_CARD_ROUTE,
+  beforeLoad: ({ context, params }) => {
+    membersOnly({ context, params });
+    if (!PLAYER_CODE_DIGITS.test(params.playerCode)) throw redirect({ to: SCOUTING_PATH });
+  },
+  component: function PlayerCard() {
+    const context = playerCardRoute.useRouteContext();
+    const { leagueId, playerCode } = playerCardRoute.useParams();
+    const league = leagueIn(context.session, leagueId);
+    // Keyed by the player, so going from one card to another starts afresh.
+    return league ? <PlayerCardPage key={playerCode} league={league} playerCode={Number(playerCode)} seam={context.playerCard} /> : null;
+  },
+});
+
 // Player scoring (#30): the site's scoring, which anyone in the league reads and the admin alone
 // edits (spec/14, Who owns it; #354).
 const scoringRoute = createRoute({
@@ -355,7 +378,7 @@ const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map(
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
-  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, feedbackRoute, patchNotesRoute]),
+  leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, playerCardRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, feedbackRoute, patchNotesRoute]),
   frameRoute.addChildren([landingRoute, tableRoute, scoutingRoute, ...pageRoutes]),
 ]);
 
