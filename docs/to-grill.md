@@ -96,7 +96,6 @@ be tabs on screens `spec/12` already lists rather than pages of their own.
 | Page | Why |
 |---|---|
 | Import from Fantrax | The league moves from Fantrax: its squads and its history come with it |
-| Trade block | Players a manager will listen to offers for; the cheapest way to start trades |
 | Draft board and draft results | The pick grid during the draft, and the record after it, by round and by team |
 | Matchup preview | The week's head-to-head before the deadline: both lineups, fixtures, doubts |
 | Every squad on one page | For scouting rivals |

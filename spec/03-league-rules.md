@@ -35,3 +35,4 @@ Among them:
 - The draft clock (see [4. The draft](04-the-draft.md)).
 - Roles (see [5. Tactics](05-tactics.md)); their scoring adjustments are the site's (`spec/14`).
 - Trade review: none, a commissioner veto, or a league vote (see [8. Between gameweeks](08-between-gameweeks.md)).
+- A trade deadline: off by default, or the gameweek after which no trades are made (`spec/08`).
