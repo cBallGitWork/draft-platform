@@ -57,18 +57,6 @@ somepoint").
 - A league's gameweek begins at its own deadline already (`spec/13` Gameweeks); what an own
   gameweek is beyond that, and how it maps to FPL's rounds.
 
-**Scoring the site owns, patched like League of Legends** (Craig, 24 Oct 2026: "i might just
-hardcode it for the site, set standards to follow and we control that"; "like a league of legends
-patch, old scores locked in, site wide announcement with week notice for udpates").
-- Which rules the site owns (category values, the gap rule below) and which stay each league's
-  (formations, area limits, roles: `spec/03`). Today every league edits its own scoring set
-  (`spec/14`).
-- Kept as data the site locks, not code (CLAUDE.md: the league's rules are data), so a patch is
-  a new version, not a deploy.
-- A patch takes effect from a deadline a week after it's announced; gameweeks already played keep
-  the rules in force in them, as League settings already do (#276).
-- Where the announcement lives: a Mail letter to every manager, patch notes, or both.
-
 **Anyone can play anywhere, the gap rule** (Craig, 24 Oct 2026: stop Haaland at centre-back
 getting "his clean sheet points AND goals", but not "oh he didnt play cb so no points", and "i like
 the fun idea of putting someobdy as a make shift striker").
@@ -95,7 +83,7 @@ the fun idea of putting someobdy as a make shift striker").
 |---|---|
 | History | Past seasons, champions, league records; where awards live after Mail files them |
 | The manager's profile | A record across every league on the platform |
-| The rules, readable by every manager | Only the commissioner's settings screen shows them now. With a glossary of what each category counts |
+| What each category counts | Every manager can read the scoring on Player scoring (`spec/14`); a glossary there of what each category counts |
 | Your account | Display name, email preferences, your leagues; leaving a league; deleting the account |
 | Going on holiday | CM's holiday: the manager switches the auto team on himself until a gameweek he names (`spec/09` lets him switch it on; the end date is the new part) |
 | Match rating and Man of the Match | CM's Av R and MoM: a 1–10 rating from his points against his area; MoM the top scorer in each head-to-head |
