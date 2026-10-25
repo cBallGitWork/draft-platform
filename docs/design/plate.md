@@ -111,7 +111,7 @@ From the designer's review, the tells that make a screen look AI-made:
 
 ## The phone (to draw when the phone design is grilled)
 
-From the reviewer, for a 390px screen: a bottom bar of five (Team, Matchup, Table, Players, Mail
+From the reviewer, for a 390px screen: a bottom bar of five (Team, Matchup, Table, Scouting, Mail
 with its count); the deadline and Continue in a 48px bar at the top; every target 44px; the squad table
 keeps the player column fixed and drops Club, Role and Role fit; Mail collapses to an "N unread"
 bar above the pitch; the pitch's player blocks narrow to 84px. The app needs a viewport meta.

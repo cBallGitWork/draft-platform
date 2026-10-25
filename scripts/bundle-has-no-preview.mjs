@@ -28,6 +28,7 @@ const NEEDLES = {
   "src/patches/preview.ts": "preview-patch-",
   "src/rules/preview.ts": "preview-rules",
   "src/scoring/preview.ts": null,
+  "src/scouting/preview.ts": "Virgil van Dijk",
   "src/squads/preview.ts": "preview-team-1",
   "src/table/preview.ts": "Ctrl Alt Defeat",
 };
