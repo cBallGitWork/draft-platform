@@ -2457,6 +2457,55 @@
       }
     },
     {
+      "tableName": "playerSeasonStats",
+      "indexes": [
+        {
+          "indexDescriptor": "by_season_and_playerCode",
+          "fields": [
+            "season",
+            "playerCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "season": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "playerCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "stats": {
+            "fieldType": {
+              "type": "record",
+              "keys": {
+                "type": "string"
+              },
+              "values": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              }
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "matchStatsTries",
       "indexes": [
         {

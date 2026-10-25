@@ -274,6 +274,14 @@ const matchStatsTables = {
   }).index("by_fixtureCode_and_playerCode", ["fixtureCode", "playerCode"]),
   platformSettings: defineTable({ name: platformSettingName, value: v.number() }).index("by_name", ["name"]),
   matchStatsSyncs: defineTable(matchStatsSyncFields),
+  /** Each player's records added up for a season (#373, seasonStats.ts), so Scouting sorts every
+   *  player by any stat without reading a season of records: one row a player and season, kept
+   *  in step as each record is written. `season` is the year it starts (football.ts's
+   *  `seasonStartYear` of the match's kickoff). */
+  playerSeasonStats: defineTable({ season: v.number(), playerCode: v.number(), stats: v.record(v.string(), v.number()) }).index(
+    "by_season_and_playerCode",
+    ["season", "playerCode"],
+  ),
   /** When a run last tried each match, read or not: one that never reads steps behind the rest. */
   matchStatsTries: defineTable({ fixtureCode: v.number(), triedAt: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
 };
