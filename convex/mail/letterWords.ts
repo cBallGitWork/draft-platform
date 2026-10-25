@@ -1,6 +1,6 @@
 import type { Infer } from "convex/values";
 import { aNewTeamWords } from "../joining/joiningShared";
-import { londonTime } from "../shared/londonTime";
+import { LOCALE, londonTime } from "../shared/londonTime";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { NOTHING_SCORES_DIFFERENTLY } from "../scoring/patchChanges";
 import type { leagueEvent, siteScoringKind } from "../schema";
@@ -135,6 +135,10 @@ const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring", string> = {
 
 const partWords = (part: string) => (Object.hasOwn(RULES_PART_WORDS, part) ? RULES_PART_WORDS[part as keyof typeof RULES_PART_WORDS] : part);
 
+/** "a", "a and b", "a, b and c". */
+const andList = new Intl.ListFormat(LOCALE, { type: "conjunction" });
+const listWords = (items: readonly string[]) => andList.format(items);
+
 /** "Ann changed the league's scoring and deadline, from gameweek 9. The scoring changed for Goals
  *  scored and Assists, and points are now whole only." */
 function rulesChangedBody(event: Extract<LeagueEvent, { kind: "rulesChanged" }>, who: string): string {
@@ -144,11 +148,6 @@ function rulesChangedBody(event: Extract<LeagueEvent, { kind: "rulesChanged" }>,
     ...(event.wholePointsOnly === undefined ? [] : [event.wholePointsOnly ? "points are now whole only" : "points can now be fractions"]),
   ];
   return details.length === 0 ? changed : `${changed} ${capitalised(details.join(", and "))}.`;
-}
-
-/** "a", "a and b", "a, b and c". */
-function listWords(items: readonly string[]): string {
-  return items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
 }
 
 const capitalised = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
