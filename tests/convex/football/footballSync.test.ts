@@ -29,6 +29,7 @@ test("a sync fills clubs, players, fixtures and gameweeks, and records what it w
     players: { received: players, inserted: players, updated: 0, marked: 0, unmarked: 0 },
     fixtures: { received: fixtures, inserted: fixtures, updated: 0, marked: 0, unmarked: 0 },
     gameweeks: { received: gameweeks, inserted: gameweeks, updated: 0, marked: 0, unmarked: 0 },
+    scores: { received: fixtures, written: fixtures, problems: [] },
   });
   expect(await heldCounts(t)).toEqual(RECORDED_COUNT);
 });

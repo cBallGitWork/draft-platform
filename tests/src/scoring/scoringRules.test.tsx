@@ -36,6 +36,26 @@ describe("behind the tick boxes", () => {
     expect(savedRule(app, "goals_scored")?.values).toEqual({ all: 5 });
   });
 
+  it("names each position's row by its name and its code, back to front", async () => {
+    openScoring();
+    await choose("Goals scored");
+    await userEvent.click(screen.getByRole("checkbox", { name: byPositionWords }));
+
+    expect(Object.values(POSITION_WORDS)).toEqual([
+      "Goalkeeper (GK)",
+      "Full-back (FB)",
+      "Centre-back (CB)",
+      "Wing-back (WB)",
+      "Defensive midfielder (CDM)",
+      "Wide midfielder (WM)",
+      "Central midfielder (CM)",
+      "Winger (W)",
+      "Attacking midfielder (CAM)",
+      "Striker (ST)",
+    ]);
+    expect(box(columnWords.points, "Centre-back (CB)").value).toBe("6");
+  });
+
   it("gives a rule a points limit, an end left empty being no limit", async () => {
     const app = openScoring();
     await choose("Assists");
