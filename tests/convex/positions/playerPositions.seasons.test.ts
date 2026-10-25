@@ -50,6 +50,20 @@ describe("as seasons pile up, nothing is cut short silently", () => {
     );
   });
 
+  test("the queue reads today's players only: a row of a man at a dropped club, as squads read them, isn't listed", async () => {
+    const t = await synced();
+    const RELEGATED = 99;
+    const STAYED = 778;
+    await t.run(async (ctx) => {
+      await ctx.db.insert("clubs", { code: RELEGATED, name: "Relegated", shortName: "REL", droppedAt: Date.now() });
+      await ctx.db.insert("players", { code: STAYED, name: "Stayed", fullName: "Stayed Behind", clubCode: RELEGATED });
+      await ctx.db.insert("playerPositions", { code: STAYED, plLabel: "Defender", starts: [], approved: [], set: [], removed: [] });
+    });
+
+    const { newSignings } = await (await asAdmin(t)).query(api.positions.playerPositions.queue, {});
+    expect(newSignings.map((signing) => signing.code)).not.toContain(STAYED);
+  });
+
   test(`more than ${CURRENT_CLUBS_MOST} current clubs fail the queue loudly, never a list cut short`, async () => {
     const t = await synced();
     await holdClubs(t, CURRENT_CLUBS_MOST + 1, true);
