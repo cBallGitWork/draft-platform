@@ -73,6 +73,15 @@ export const leagueTable = v.object({
 });
 export type LeagueTable = Infer<typeof leagueTable>;
 
+/** A side's points in a gameweek scored: a team's own, or the league's average. A team with none
+ *  is a gameweek scored short, and throws. */
+function sidePoints(teamIds: readonly Id<"teams">[], scored: ReadonlyMap<Id<"teams">, number>, gameweek: number, side: Id<"teams"> | typeof LEAGUE_AVERAGE) {
+  if (side === LEAGUE_AVERAGE) return averageOf(teamIds, scored, gameweek);
+  const points = scored.get(side);
+  if (points === undefined) throw new Error(`Gameweek ${gameweek} is scored, but not for team ${side}`);
+  return points;
+}
+
 /** The league's fixtures by gameweek and its table, or null for a league made before rules were
  *  held (#25), which has no format to draw them by. */
 export const ofLeague = query({
@@ -91,9 +100,9 @@ export const ofLeague = query({
 
     const headToHead = rules.format === "headToHead";
     const schedule = headToHead ? await scheduleOf(ctx, league, season) : [];
-    const { scores: scored, unscored } = await leagueScores(ctx, league, season, teamIds);
+    const { scores: results, unscored } = await leagueScores(ctx, league, season, teamIds);
     const scores: GameweekScores<Id<"teams">> = new Map(
-      [...scored].map(([gameweek, teamScores]) => [gameweek, new Map([...teamScores].map(([teamId, { points }]) => [teamId, points]))]),
+      [...results].map(([gameweek, teamScores]) => [gameweek, new Map([...teamScores].map(([teamId, { points }]) => [teamId, points]))]),
     );
     const table = headToHead ? headToHeadTable(teamIds, schedule, scores, rules.tieBreaks) : totalPointsTable(teamIds, scores);
 
@@ -105,23 +114,20 @@ export const ofLeague = query({
         gameweek,
         deadline: deadlines.get(gameweek) ?? null,
         fixtures: fixtures.map(({ team, opponent }) => {
-          const inGameweek = scores.get(gameweek);
-          const pointsOf = (scored: ReadonlyMap<Id<"teams">, number>, side: Id<"teams"> | typeof LEAGUE_AVERAGE) => {
-            if (side === LEAGUE_AVERAGE) return averageOf(teamIds, scored, gameweek);
-            const points = scored.get(side);
-            if (points === undefined) throw new Error(`Gameweek ${gameweek} is scored, but not for ${named(side)}`);
-            return points;
-          };
+          const scored = scores.get(gameweek);
           return {
             team: named(team),
             opponent: opponent === LEAGUE_AVERAGE ? null : named(opponent),
-            points: inGameweek === undefined ? null : { team: pointsOf(inGameweek, team), opponent: pointsOf(inGameweek, opponent) },
+            points:
+              scored === undefined
+                ? null
+                : { team: sidePoints(teamIds, scored, gameweek, team), opponent: sidePoints(teamIds, scored, gameweek, opponent) },
           };
         }),
         byes: byes.map(named),
       })),
       table: table.map(({ team, ...row }) => ({ teamId: team, teamName: named(team), ...row })),
-      results: [...scored].map(([gameweek, teamScores]) => ({
+      results: [...results].map(([gameweek, teamScores]) => ({
         gameweek,
         teams: [...teamScores].map(([teamId, result]) => ({ teamId, teamName: named(teamId), ...result })),
       })),

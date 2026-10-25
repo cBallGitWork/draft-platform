@@ -25,7 +25,7 @@ export const unscoredWords = (gameweek: number, reason: string) =>
 export const noLineupWords = (teamNames: readonly string[]) =>
   `${andList.format(teamNames)} never saved a lineup, so ${teamNames.length === 1 ? "it scores" : "they score"} 0.`;
 
-/** A fixture's score, for then against. */
+/** A fixture's score: the team's, then its opponent's. */
 export const scoreWords = (team: number, opponent: number) => `${team}–${opponent}`;
 
 /** The table's columns: a short head, and what it stands for. */

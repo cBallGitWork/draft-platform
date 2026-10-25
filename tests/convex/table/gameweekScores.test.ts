@@ -61,7 +61,7 @@ test("a gameweek replayed from the recorded match gives each team its points, th
   expect(read.gameweeks.filter((each) => each.gameweek !== GAMEWEEK).every((each) => each.fixtures.every((fixture) => fixture.points === null))).toBe(true);
 });
 
-test("a starter who didn't play is replaced by the first on the bench who can play his slot, and the sub's points count", async () => {
+test("a starter who didn't play is subbed once his match is over, and the sub's points count in his place", async () => {
   const league = await scoresLeague();
   await fullTimeRecords(league);
   const { ann } = await gameweek6(league);

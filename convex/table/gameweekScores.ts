@@ -48,12 +48,12 @@ export interface TeamGameweek {
 }
 
 /** A gameweek left out of the table, and why. */
-export interface Unscored {
+interface Unscored {
   gameweek: number;
   reason: string;
 }
 
-export interface LeagueScores {
+interface LeagueScores {
   /** Gameweek to team to points: each gameweek begun and scored. */
   scores: Map<number, Map<TeamId, TeamGameweek>>;
   unscored: Unscored[];
@@ -149,9 +149,9 @@ async function gameweekScores(ctx: QueryCtx, reads: LeagueReads, gameweek: numbe
     const playerMatches = new Map<PlayerCode, PlayerMatch[]>();
     const plays = new Map<PlayerCode, GameweekPlay>();
     for (const code of codes) {
-      const { clubCode, positions: his } = await reads.player(code);
+      const { clubCode, positions: hisPositions } = await reads.player(code);
       const hisMatches = matches.filter((match) => match.records.has(code) || playsIn(match.fixture, clubCode));
-      positions.set(code, his);
+      positions.set(code, hisPositions);
       playerMatches.set(code, hisMatches.map((match) => forPoints(match, code)));
       plays.set(code, gameweekPlay(hisMatches.map((match) => forPlay(match, code))));
     }
@@ -204,6 +204,10 @@ function forPoints(match: HeldMatch, code: PlayerCode): PlayerMatch {
   return { record: stats, final: match.status?.state === "locked" };
 }
 
+/** The minutes counted for a man the sheets say played whose minutes no feed has sent yet: any
+ *  above none tells auto-subs he played. */
+const PLAYED_MINUTES_UNKNOWN = 1;
+
 /** His match for auto-subs: whether it is over, and his minutes. The sheets saying he came on
  *  count before either feed has sent his minutes, so he is never subbed off for a feed's delay. */
 function forPlay(match: HeldMatch, code: PlayerCode) {
@@ -211,10 +215,6 @@ function forPlay(match: HeldMatch, code: PlayerCode) {
   const minutes = record?.stats[MINUTES_STAT] ?? 0;
   return { finished: isFinished(match), minutes: record?.played === true ? Math.max(minutes, PLAYED_MINUTES_UNKNOWN) : minutes };
 }
-
-/** The minutes counted for a man the sheets say played whose minutes no feed has sent yet: any
- *  above none tells auto-subs he played. */
-const PLAYED_MINUTES_UNKNOWN = 1;
 
 /** Where a bench player's greyed points are priced while he hasn't come on: the first cell he plays,
  *  back to front, or the first cell of all for a man with no position yet. The table reads only
