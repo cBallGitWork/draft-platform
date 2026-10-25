@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
-      playwright: ${{ steps.playwright.outputs.version }}
+      playwright_version: ${{ steps.playwright.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,14 +43,14 @@ jobs:
 
   # `npm run smoke`: the dev server and the production bundle loaded in Chromium, with no Convex
   # deployment (playwright.config.ts); its report and traces are kept when it fails.
-  # It runs in Playwright's own image, whose browsers and OS packages are baked in, so no run
-  # installs from apt (#372). Why: ARCHITECTURE.md, Services.
+  # Playwright's image has Chromium and its OS packages baked in, so no run installs from apt,
+  # which failed about one run in four (#372).
   smoke:
     needs: verify
     runs-on: ubuntu-latest
     timeout-minutes: 10
     container:
-      image: mcr.microsoft.com/playwright:v${{ needs.verify.outputs.playwright }}-noble
+      image: mcr.microsoft.com/playwright:v${{ needs.verify.outputs.playwright_version }}-noble
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
