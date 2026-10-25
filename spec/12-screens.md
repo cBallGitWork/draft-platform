@@ -31,6 +31,13 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
 <https://claude.ai/artifact/Qz9zn3FrMHgPB189UtbjoB>; "R3·1 · Plate, chosen" is the one.
 
 - **My team** shows the tactics pitch, the squad and Mail side by side.
+- My team's other tabs, after the Tactics tab (25 Oct 2026):
+  - **Squad**: every player in the squad in one table, with his position, club, next fixture,
+    season points and last gameweek's points.
+  - **Fixtures**: the team's head-to-head fixtures and results for the season. A player's Premier
+    League fixtures belong on the players screen.
+  - **Transactions**: the team's claims, drops, trades and commissioner assignments, newest first,
+    from the same events Mail files.
 - A real pitch with shirts. The shirts are our own, drawn in club colours (not FPL's kit images),
   with the player's squad number on the shirt.
 - The number leads; a verdict sits beside it only where there is a real one (role stars, fixture

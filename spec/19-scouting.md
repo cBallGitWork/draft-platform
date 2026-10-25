@@ -5,7 +5,7 @@ Feature 19 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill players 
 do](https://claude.ai/artifact/5PV38c1qDtyNuqkeGh2i62).
 
 **Scouting** is its own section of the menu, in place of Players: everything about finding
-players. Scouting advises; Mail never does (`spec/16`).
+players. A scout's report judges a player; Mail only reports (`spec/16`).
 
 ## What's open to everyone
 
@@ -43,4 +43,5 @@ players. Scouting advises; Mail never does (`spec/16`).
 ## Role stars
 
 - A player's role stars (`spec/05`) show for the manager's own squad and for players the manager
-  has scouted, and stay shown for the season. For everyone else they are hidden.
+  has scouted, and stay shown for the season. For everyone else they are hidden, once scouts
+  exist; until then they show for every player (25 Oct 2026).

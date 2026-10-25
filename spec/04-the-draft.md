@@ -8,7 +8,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - Each pick runs on a clock the league sets, from seconds (live) to hours (a slow draft over
   days), and the clock can pause. A timeout picks for the manager: from their own
   queue first, then a default ranking: last season's points under the site's scoring (`spec/14`).
-- Before the draft, each manager ranks players into their queue.
+- Before the draft, each manager ranks players into their queue; their Scouting shortlist feeds
+  it (`spec/19`).
 - Draft order is a league setting: random, set by the commissioner, or last season's finish.
 - Picks in the current draft can be traded in every league.
 - A drafted player who leaves the Premier League brings his team nothing in return (Craig,
