@@ -18,7 +18,7 @@ import {
 
 type Column = keyof typeof transactionColumns;
 const COLUMNS: readonly Column[] = ["when", "player", "move", "by"];
-/** Who did it is left off a phone, for room (plate.md, The phone, drops secondary columns). */
+/** Who did it is left off a phone, for room, as Table and Scouting leave out columns there. */
 const DESK_ONLY = "hidden sm:table-cell";
 
 /** My team's Transactions tab (spec/12, My team's tabs): the team's transactions, newest first. */
