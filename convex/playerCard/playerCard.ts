@@ -102,10 +102,10 @@ export const card = query({
 });
 
 type Club = Infer<typeof clubRecord>;
-type Clubs = (code: number) => Promise<Club>;
+export type Clubs = (code: number) => Promise<Club>;
 
 /** Clubs by code, each read once. */
-function clubsByCode(ctx: QueryCtx): Clubs {
+export function clubsByCode(ctx: QueryCtx): Clubs {
   const read = new Map<number, Promise<Club>>();
   return (code) => {
     if (!read.has(code)) read.set(code, clubByCode(ctx, code).then(({ code, name, shortName }) => ({ code, name, shortName })));
