@@ -39,7 +39,7 @@ import { LeaguelessFrame } from "./leagues/LeaguelessFrame";
 import { LeaguesPage } from "./leagues/LeaguesPage";
 import { NewLeaguePage } from "./leagues/NewLeaguePage";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "./leagues/paths";
-import { leagueIn, leagueRunBy } from "./leagues/roles";
+import { leagueIn, leagueRunBy, runs } from "./leagues/roles";
 import type { MailSeam } from "./mail/seam";
 import { MatchupRoute } from "./matchup/MatchupRoute";
 import { matchupSearchOf } from "./matchup/paths";
@@ -270,7 +270,16 @@ const playerCardRoute = createRoute({
     const { leagueId, playerCode } = playerCardRoute.useParams();
     const league = leagueIn(context.session, leagueId);
     // Keyed by the player, so going from one card to another starts afresh.
-    return league ? <PlayerCardPage key={playerCode} league={league} playerCode={Number(playerCode)} seam={context.playerCard} /> : null;
+    if (!league || !context.session.signedIn) return null;
+    return (
+      <PlayerCardPage
+        key={playerCode}
+        league={league}
+        runs={runs(league, context.session.isAdmin)}
+        playerCode={Number(playerCode)}
+        seam={context.playerCard}
+      />
+    );
   },
 });
 

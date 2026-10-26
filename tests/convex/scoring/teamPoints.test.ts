@@ -237,3 +237,20 @@ describe("fractions add up in tenths, never drifting", () => {
     expect(scored.starters[2]?.points).toBe(0.3);
   });
 });
+
+describe("a commissioner's override (#32)", () => {
+  test("stands in for the match's total, which the slot and the team add up; its categories stay the record's", () => {
+    const scored = team({ matches: withMatches(GELHARDT, [{ ...finalMatch(GELHARDT), override: 1.5 }]) });
+    const gelhardt = scored.starters[2];
+
+    expect(gelhardt.matches[0]).toEqual({ ...scoreMatch(fplRecordOf(GELHARDT), EXAMPLE_SET, ATTACK), total: 1.5 });
+    expect(gelhardt.points).toBe(1.5);
+    expect(scored.total).toBe(2 + 10 + 1.5);
+  });
+
+  test("counts only one match of a double gameweek, the other still scored from its record", () => {
+    const scored = team({ matches: withMatches(GELHARDT, [finalMatch(GELHARDT), { ...finalMatch(GELHARDT), override: -2 }]) });
+
+    expect(scored.starters[2].points).toBe(6 - 2);
+  });
+});

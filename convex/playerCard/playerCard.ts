@@ -50,6 +50,8 @@ const playedMatch = v.object({
     /** Each of the set's categories, by full name, in its order. */
     categories: v.array(v.object({ stat: v.string(), name: v.string(), points: v.union(v.number(), v.null()) })),
   }),
+  /** The league's override of his points in the match (#32), or null with none. */
+  override: v.union(v.object({ points: v.number(), reason: v.string() }), v.null()),
 });
 export type PlayedMatch = Infer<typeof playedMatch>;
 
@@ -95,7 +97,7 @@ export const card = query({
       ownerTeamName: await ownerIn(ctx, leagueId, playerCode),
       news: player.news || null,
       chanceOfPlaying: player.chanceOfPlaying ?? null,
-      matches: await seasonMatches(ctx, player, positions, clubs),
+      matches: await seasonMatches(ctx, leagueId, player, positions, clubs),
       nextFixtures: await nextFixtures(ctx, player.clubCode, now, clubs),
     };
   },
@@ -158,19 +160,43 @@ export async function seasonRecords(ctx: QueryCtx, playerCode: number): Promise<
   return withMatches.flat();
 }
 
-/** This season's matches he was in (seasonRecords), each priced under the site's set, newest first. */
-async function seasonMatches(ctx: QueryCtx, player: Doc<"players">, positions: readonly Position[], clubs: Clubs): Promise<PlayedMatch[]> {
+/** This season's matches he was in (seasonRecords), each priced under the site's set with the
+ *  league's override of his points there, if any, newest first. */
+async function seasonMatches(
+  ctx: QueryCtx,
+  leagueId: Id<"leagues">,
+  player: Doc<"players">,
+  positions: readonly Position[],
+  clubs: Clubs,
+): Promise<PlayedMatch[]> {
   const setIn = await siteScoringByGameweek(ctx);
+  const overrides = await overridesOf(ctx, leagueId, player.code);
   const played = await Promise.all(
     (await seasonRecords(ctx, player.code)).map(async ({ record, fixture, gameweek }) => {
       const set = setIn(gameweek);
       // No lineup is kept until #29, so nobody stands in a slot yet.
       const points = cardPoints(isWhole(record) ? record.stats : null, set, positions, null);
       const categories = points.categories.map((each) => ({ ...each, name: categoryName(each.stat, set.ownStats) }));
-      return { ...(await asMatch(fixture, clubs)), minutes: statValue(record, MINUTES_STAT), points: { ...points, categories } };
+      const override = overrides.get(fixture.code);
+      return {
+        ...(await asMatch(fixture, clubs)),
+        minutes: statValue(record, MINUTES_STAT),
+        points: { ...points, categories },
+        override: override === undefined ? null : { points: override.points, reason: override.reason },
+      };
     }),
   );
   return played.sort((one, other) => (other.kickoff ?? 0) - (one.kickoff ?? 0));
+}
+
+/** The league's overrides of his points, by match: one a match at most, so never more than his records. */
+async function overridesOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<Map<number, Doc<"pointsOverrides">>> {
+  const rows = await takeAllOrThrow(
+    ctx.db.query("pointsOverrides").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode)),
+    PLAYER_RECORDS_MOST,
+    `League ${leagueId} holds more than ${PLAYER_RECORDS_MOST} overrides for player ${playerCode}, so his season would be cut short`,
+  );
+  return new Map(rows.map((row) => [row.fixtureCode, row]));
 }
 
 /** His club's next matches after `now`, soonest first. A match with no kickoff time is left out. */

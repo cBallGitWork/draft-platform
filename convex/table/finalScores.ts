@@ -16,9 +16,9 @@ import { leagueScores } from "./gameweekScores";
 //
 // A stored score can still go stale if the code that scores changes (a bug fixed in scoring, say),
 // the admin corrects a player's positions after the gameweek (auto-subs read positions as they are
-// when it is stored), or, once built, a commissioner overrides a player's points for a match
-// (spec/14, #32). `rescore`
-// is that path: it drops a gameweek's stored scores and stores them again from the records.
+// when it is stored), or a commissioner overrides a player's points for a match (spec/14, #32).
+// `rescore` is that path: it drops a gameweek's stored scores and stores them again from the
+// records; an override calls `rescoreGameweek` itself, in its own transaction.
 
 /** The most leagues one lock asks to store their scores; past it this throws, and the lock still
  *  stands (it is scheduled apart). The closed beta has a handful. */
@@ -59,10 +59,15 @@ export const rescore = internalMutation({
   handler: async (ctx, { leagueId, gameweek }) => {
     const league = await ctx.db.get("leagues", leagueId);
     if (league === null) throw new Error(`No league ${leagueId} to rescore`);
-    await dropGameweek(ctx, leagueId, gameweek);
-    return (await storeFinal(ctx, league)).includes(gameweek);
+    return await rescoreGameweek(ctx, league, gameweek);
   },
 });
+
+/** `rescore`'s work, for a mutation that changes what a gameweek scores. */
+export async function rescoreGameweek(ctx: MutationCtx, league: Doc<"leagues">, gameweek: number): Promise<boolean> {
+  await dropGameweek(ctx, league._id, gameweek);
+  return (await storeFinal(ctx, league)).includes(gameweek);
+}
 
 /** Scores the league as the table does, and stores each team's points worked out that are final:
  *  the whole gameweek afresh when its matches have changed since it was stored, else only the
