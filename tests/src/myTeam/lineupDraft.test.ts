@@ -2,7 +2,8 @@
 // bench, and when two lineups stand the same.
 
 import { describe, expect, it } from "vitest";
-import { benched, benchedAt, openingLineup, placed, sameLineup, withSquad } from "../../../src/myTeam/lineupDraft";
+import type { Cell } from "../../../convex/lineup/pitch";
+import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, withSquad } from "../../../src/myTeam/lineupDraft";
 
 const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
 const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;
@@ -53,4 +54,31 @@ it("for a team that has never saved one opens with the whole squad on the bench,
 
 it("against the squad now drops who left and puts who joined at the end of the bench", () => {
   expect(withSquad(DRAFT, [1, 3, 4, 9])).toEqual({ starters: [KEEPER], bench: [3, 4, 9] });
+});
+
+describe("a preset picked (spec/05; Craig, 26 Oct 2026)", () => {
+  const cell = (area: Cell["area"], lane: Cell["lane"]) => ({ area, lane });
+  const FOUR_BACK = [cell("goalkeeper", "centre"), cell("defence", "left"), cell("defence", "leftCentre"), cell("defence", "rightCentre"), cell("defence", "right")];
+
+  it("moves each starter to a free cell of the shape in his own area, the nearest lane first", () => {
+    const draft = { starters: [KEEPER, { playerCode: 2, area: "defence", lane: "centre" } as const], bench: [3] };
+    expect(reshaped(draft, FOUR_BACK)).toEqual({
+      starters: [KEEPER, { playerCode: 2, area: "defence", lane: "leftCentre" }],
+      bench: [3],
+    });
+  });
+
+  it("puts anyone the shape has no room for at the front of the bench, back to front", () => {
+    const draft = {
+      starters: [KEEPER, { playerCode: 5, area: "attack", lane: "centre" } as const, { playerCode: 6, area: "midfield", lane: "left" } as const],
+      bench: [3],
+    };
+    expect(reshaped(draft, FOUR_BACK)).toEqual({ starters: [KEEPER], bench: [6, 5, 3] });
+  });
+
+  it("two starters in an area take its cells in turn, never the same one", () => {
+    const draft = { starters: [{ playerCode: 2, area: "defence", lane: "left" } as const, { playerCode: 7, area: "defence", lane: "leftCentre" } as const], bench: [] };
+    const result = reshaped(draft, [cell("defence", "left"), cell("defence", "right")]);
+    expect(result.starters).toEqual([{ playerCode: 2, area: "defence", lane: "left" }, { playerCode: 7, area: "defence", lane: "right" }]);
+  });
 });

@@ -40,6 +40,11 @@ export const putHereLabel = (name: string, area: Area, lane: Lane) => `Put ${nam
 export const playerOnPitchLabel = (name: string, positions: readonly string[], area: Area, lane: Lane) =>
   `${name}, ${positionsWords(positions)}, in ${cellWords(area, lane)}`;
 
+/** The preset picker (spec/05, The pitch), and a slot of the preset picked that is still empty. */
+export const presetLabel = "Formation";
+export const pickPresetWords = "Pick a preset…";
+export const emptySlotLabel = (area: Area, lane: Lane) => `Empty slot: ${cellWords(area, lane)}`;
+
 /** What to do, under the pitch's plate: before a player is picked up, and while one is. */
 export const pickHintWords = "Choose a player, on the pitch or with Move in the squad, then a free cell he plays. Or drag him there.";
 export const movingHintWords = (name: string, positions: readonly string[]) =>
