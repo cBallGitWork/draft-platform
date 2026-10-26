@@ -10,7 +10,7 @@ import { clubByCode, playerByCode } from "../shared/players";
 import { statusOf } from "../stats/matchStats";
 import { rescoreGameweek } from "./finalScores";
 import { begunGameweeks } from "./gameweekScores";
-import { OVERRIDE_REASON_MAX } from "./overrideLimits";
+import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "./overrideLimits";
 import { gameweekInputs, heldFixtures, leagueReads, playsIn, teamInGameweek, type LeagueReads } from "./teamGameweek";
 
 // A commissioner overrides one player's points for one match, with a reason (spec/14, Changes and
@@ -32,6 +32,7 @@ export const overrideRefusals = {
   notInMatch: (name: string) => `${name} wasn't in that match.`,
   notPoints: "Points are a number, kept to a tenth.",
   notWhole: "The scoring counts whole points only.",
+  outOfRange: `An override is from -${OVERRIDE_POINTS_MOST} to ${OVERRIDE_POINTS_MOST} points.`,
   blankReason: "Say why: the whole league is told.",
   reasonTooLong: `A reason is up to ${OVERRIDE_REASON_MAX} characters.`,
 } as const;
@@ -57,6 +58,7 @@ export const override = mutation({
     const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
     if (!(await wasInMatch(ctx, fixture, player))) refuse(overrideRefusals.notInMatch(player.name));
     if (!Number.isFinite(points) || inTenths(points) !== points) refuse(overrideRefusals.notPoints);
+    if (Math.abs(points) > OVERRIDE_POINTS_MOST) refuse(overrideRefusals.outOfRange);
     const reads = await leagueReads(ctx, league, season);
     if (reads.setIn(gameweek).wholePointsOnly && !Number.isInteger(points)) refuse(overrideRefusals.notWhole);
 
@@ -120,6 +122,7 @@ async function workedOut(
   let playerPoints: number | null = null;
   for (const teamId of teamIds) {
     const scored = await teamInGameweek(reads, inputs, teamId);
+    // A team that never saved a lineup scores 0 (gameweekScores.ts), before and after alike.
     totals.set(teamId, scored?.team.total ?? 0);
     const slot = scored && [...scored.team.starters, ...scored.team.bench].find((each) => each.playerCode === playerCode);
     const index = slot ? scored.matchesOf.get(playerCode)!.findIndex((match) => match.fixture.code === fixtureCode) : -1;

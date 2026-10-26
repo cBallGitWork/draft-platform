@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
-import { OVERRIDE_REASON_MAX } from "../../convex/table/overrideLimits";
+import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "../../convex/table/overrideLimits";
 import { PANEL_BODY, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { PlayerCard, PlayerCardSeam } from "./seam";
-import { OVERRIDE_TITLE, overriddenDoneWords, overrideHint, overrideLabels, overrideMatchWords, overrideWords } from "./words";
+import { cancelOverrideWords, OVERRIDE_TITLE, overriddenDoneWords, overrideHint, overrideLabels, overrideMatchWords, overrideWords } from "./words";
 
 const MATCH_ID = "override-match";
 const POINTS_ID = "override-points";
@@ -13,8 +13,8 @@ const REASON_ID = "override-reason";
 const POINTS_STEP = 0.1;
 
 /** The card's override (spec/14, Changes and corrections; #32), for whoever runs the league: one of
- *  his matches this season, his points there and why. Shut until asked for; nothing while he has
- *  played no match. The server refuses a match not yet final, and says why. */
+ *  his matches this season, his points there and why. Shut until asked for, and again on Cancel;
+ *  nothing while he has played no match. The server refuses a match not yet final, and says why. */
 export function OverridePoints({ leagueId, card, seam }: { leagueId: Id<"leagues">; card: PlayerCard; seam: PlayerCardSeam }) {
   const override = seam.useOverride();
   const change = useChange();
@@ -25,6 +25,16 @@ export function OverridePoints({ leagueId, card, seam }: { leagueId: Id<"leagues
   const [done, setDone] = useState(false);
   if (fixtureCode === undefined) return null;
   const picked = fixtureCode;
+  const unfilled = points === "" || reason.trim() === "";
+
+  /** Shuts the form, forgetting what was typed and said. */
+  function shut() {
+    setOpen(false);
+    setPoints("");
+    setReason("");
+    setDone(false);
+    change.clear();
+  }
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -72,6 +82,8 @@ export function OverridePoints({ leagueId, card, seam }: { leagueId: Id<"leagues
               type="number"
               required
               step={POINTS_STEP}
+              min={-OVERRIDE_POINTS_MOST}
+              max={OVERRIDE_POINTS_MOST}
               value={points}
               onChange={(event) => setPoints(event.target.value)}
               className="text-box"
@@ -87,9 +99,14 @@ export function OverridePoints({ leagueId, card, seam }: { leagueId: Id<"leagues
               onChange={(event) => setReason(event.target.value)}
               className="text-box"
             />
-            <button type="submit" disabled={change.busy} className="action self-start">
-              {overrideWords}
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button type="submit" disabled={unfilled || change.busy} className={unfilled ? "action-idle" : "action"}>
+                {overrideWords}
+              </button>
+              <button type="button" onClick={shut} className="secondary-action">
+                {cancelOverrideWords}
+              </button>
+            </div>
           </form>
         </>
       )}

@@ -8,7 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import type { PlayedMatch, PlayerCard } from "../../../src/playerCard/seam";
-import { OVERRIDE_TITLE, overriddenDoneWords, overriddenWords, overrideLabels, overrideMatchWords, overrideWords, SEASON_TITLE } from "../../../src/playerCard/words";
+import { cancelOverrideWords, OVERRIDE_TITLE, overriddenDoneWords, overriddenWords, overrideLabels, overrideMatchWords, overrideWords, SEASON_TITLE } from "../../../src/playerCard/words";
 import type { PlayerCardData } from "../../support/src/playerCard.harness";
 import { adminSeeing, coCommissioned, commissioned, league, manager, managerIn, openApp } from "../../support/src/shell.harness";
 import type { Session } from "../../../src/auth";
@@ -69,6 +69,21 @@ describe("who may override", () => {
 });
 
 describe("overriding", () => {
+  it("Override waits for his points and why, and Cancel shuts the form, forgetting them", async () => {
+    openCard(managerIn(commissioned));
+    await userEvent.click(await screen.findByRole("button", { name: OVERRIDE_TITLE }));
+    const form = within(screen.getByRole("form", { name: OVERRIDE_TITLE }));
+    expect((form.getByRole("button", { name: overrideWords }) as HTMLButtonElement).disabled).toBe(true);
+    await userEvent.type(form.getByLabelText(overrideLabels.points), "3");
+    await userEvent.type(form.getByLabelText(overrideLabels.reason), REASON);
+    expect((form.getByRole("button", { name: overrideWords }) as HTMLButtonElement).disabled).toBe(false);
+
+    await userEvent.click(form.getByRole("button", { name: cancelOverrideWords }));
+    expect(screen.queryByRole("form", { name: OVERRIDE_TITLE })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: OVERRIDE_TITLE }));
+    expect((screen.getByLabelText(overrideLabels.reason) as HTMLInputElement).value).toBe("");
+  });
+
   it("sends the match picked, his points and why, then says it is done and clears the form", async () => {
     const app = openCard(managerIn(commissioned));
     await userEvent.click(await screen.findByRole("button", { name: OVERRIDE_TITLE }));

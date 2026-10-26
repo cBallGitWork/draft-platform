@@ -6,7 +6,7 @@ import { adminByline, matchWords } from "../../../convex/mail/letterWords";
 import schema from "../../../convex/schema";
 import { inTenths } from "../../../convex/scoring/scoringSet";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { OVERRIDE_REASON_MAX } from "../../../convex/table/overrideLimits";
+import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "../../../convex/table/overrideLimits";
 import { overrideRefusals } from "../../../convex/table/pointsOverrides";
 import {
   ANN,
@@ -171,6 +171,8 @@ test("an override is refused with a reason when it can't be sound", async () => 
   expect(await refusalFor({ playerCode: NOBODY })).toBe(refusals.noPlayer);
   expect(await refusalFor({ points: 0.05 })).toBe(overrideRefusals.notPoints);
   expect(await refusalFor({ points: Number.POSITIVE_INFINITY })).toBe(overrideRefusals.notPoints);
+  expect(await refusalFor({ points: OVERRIDE_POINTS_MOST + 1 })).toBe(overrideRefusals.outOfRange);
+  expect(await refusalFor({ points: -OVERRIDE_POINTS_MOST - 1 })).toBe(overrideRefusals.outOfRange);
   // A man of a club not in the match, and named on neither sheet.
   await league.t.run((ctx) => ctx.db.insert("players", { code: NOBODY, name: "Elsewhere", fullName: "Elsewhere", clubCode: 1 }));
   expect(await refusalFor({ playerCode: NOBODY })).toBe(overrideRefusals.notInMatch("Elsewhere"));
