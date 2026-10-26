@@ -6,7 +6,7 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import { drawFixtures, LEAGUE_AVERAGE, roundsOf, type DrawRules } from "../../convex/table/roundRobin";
-import { headToHeadTable, totalPointsTable, type GameweekScores } from "../../convex/table/standings";
+import { averageOf, headToHeadTable, totalPointsTable, type GameweekScores } from "../../convex/table/standings";
 import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import type { TeamFixtures } from "../../convex/table/teamFixtures";
 import { gamesOf } from "../../convex/table/teamGames";
@@ -21,7 +21,13 @@ export type Drawn = Partial<DrawRules> & {
   /** The league's own deadline for each gameweek: none known by default. */
   deadlineOf?: (gameweek: number) => number | null;
   scores?: GameweekScores<string>;
+  /** The teams whose scores are still provisional, and those that saved no lineup. */
+  provisional?: readonly string[];
+  noLineup?: readonly string[];
+  unscored?: LeagueTable["unscored"];
 };
+
+const idOf = (team: string) => `id-${team}` as Id<"teams">;
 
 /** The draw's defaults, as the server's would be for a league with no rule changed. */
 const DRAW_DEFAULTS = { oddTeamOut: "leagueAverage", gamesPerGameweek: 1, seed: "preview-league", gameweeks: SEASON_GAMEWEEKS } as const;
@@ -34,7 +40,14 @@ function scheduleOf(teamNames: string[], drawn: Drawn) {
 
 /** The league's table and fixtures for teams with these names, made in this order. */
 export function leagueTableOf(teamNames: string[], drawn: Drawn = {}): LeagueTable {
-  const { format = "headToHead", deadlineOf = () => null, scores = new Map() } = drawn;
+  const {
+    format = "headToHead",
+    deadlineOf = () => null,
+    scores = new Map(),
+    provisional = [],
+    noLineup = [],
+    unscored = [],
+  } = drawn;
   const headToHead = format === "headToHead";
   const schedule = headToHead ? scheduleOf(teamNames, drawn) : [];
   const table = headToHead ? headToHeadTable(teamNames, schedule, scores, []) : totalPointsTable(teamNames, scores);
@@ -44,10 +57,29 @@ export function leagueTableOf(teamNames: string[], drawn: Drawn = {}): LeagueTab
     gameweeks: schedule.map(({ gameweek, fixtures, byes }) => ({
       gameweek,
       deadline: deadlineOf(gameweek),
-      fixtures: fixtures.map(({ team, opponent }) => ({ team, opponent: opponent === LEAGUE_AVERAGE ? null : opponent })),
+      fixtures: fixtures.map(({ team, opponent }) => {
+        const scored = scores.get(gameweek);
+        const pointsOf = (side: string) => (side === LEAGUE_AVERAGE ? averageOf(teamNames, scored!, gameweek) : scored!.get(side)!);
+        return {
+          team,
+          opponent: opponent === LEAGUE_AVERAGE ? null : opponent,
+          points: scored === undefined ? null : { team: pointsOf(team), opponent: pointsOf(opponent) },
+        };
+      }),
       byes,
     })),
-    table: table.map(({ team, ...row }) => ({ teamId: `id-${team}` as Id<"teams">, teamName: team, ...row })),
+    table: table.map(({ team, ...row }) => ({ teamId: idOf(team), teamName: team, ...row })),
+    results: [...scores].map(([gameweek, scored]) => ({
+      gameweek,
+      teams: [...scored].map(([team, points]) => ({
+        teamId: idOf(team),
+        teamName: team,
+        points,
+        provisional: provisional.includes(team),
+        noLineup: noLineup.includes(team),
+      })),
+    })),
+    unscored,
   };
 }
 

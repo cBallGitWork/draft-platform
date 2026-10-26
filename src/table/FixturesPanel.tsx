@@ -12,9 +12,11 @@ import {
   nextGlyph,
   nextLabel,
   noGameweeksWords,
+  noLineupWords,
   previousGlyph,
   previousLabel,
   roundRobinWords,
+  scoreWords,
   tooFewTeamsWords,
   totalPointsWords,
   versusWords,
@@ -23,10 +25,11 @@ import {
 const TITLE_ID = "fixtures-title";
 
 type Gameweek = LeagueTable["gameweeks"][number];
+type Result = LeagueTable["results"][number];
 
 /** The league's fixtures, a gameweek at a time, or why it has none. */
 export function FixturesPanel({ leagueTable }: { leagueTable: LeagueTable }) {
-  const { format, gameweeks, roundRobinRounds, table } = leagueTable;
+  const { format, gameweeks, roundRobinRounds, table, results } = leagueTable;
   return (
     <section aria-labelledby={TITLE_ID} className="bg-panel">
       <PanelTitle id={TITLE_ID}>{FIXTURES_TITLE}</PanelTitle>
@@ -36,7 +39,7 @@ export function FixturesPanel({ leagueTable }: { leagueTable: LeagueTable }) {
         <p className="px-3 py-2">{table.length < FEWEST_TO_DRAW ? tooFewTeamsWords : noGameweeksWords}</p>
       ) : (
         <>
-          <GameweekFixtures gameweeks={gameweeks} />
+          <GameweekFixtures gameweeks={gameweeks} results={results} />
           <PanelNote>{roundRobinWords(roundRobinRounds)}</PanelNote>
         </>
       )}
@@ -53,11 +56,12 @@ function openingIndex(gameweeks: readonly Gameweek[], now: number): number {
 const stepClasses = "flex min-w-tap items-center justify-center text-lead font-bold hover:bg-plate disabled:text-muted disabled:hover:bg-stepper";
 
 /** One gameweek's fixtures, under CM's ◄ GW ► stepper over the gameweeks the league plays. */
-function GameweekFixtures({ gameweeks }: { gameweeks: readonly Gameweek[] }) {
+function GameweekFixtures({ gameweeks, results }: { gameweeks: readonly Gameweek[]; results: readonly Result[] }) {
   const [chosen, choose] = useState(() => openingIndex(gameweeks, Date.now()));
   // The list is live: unticking a gameweek can shorten it under the stepper, so the chosen index is held inside it (it keeps a place in the list, not a gameweek number).
   const index = Math.min(chosen, gameweeks.length - 1);
   const { gameweek, fixtures, byes } = gameweeks[index];
+  const noLineup = (results.find((result) => result.gameweek === gameweek)?.teams ?? []).filter((team) => team.noLineup).map((team) => team.teamName);
   return (
     <>
       <div className="flex min-h-tap items-stretch bg-stepper">
@@ -78,15 +82,20 @@ function GameweekFixtures({ gameweeks }: { gameweeks: readonly Gameweek[] }) {
         </button>
       </div>
       <ul aria-label={fixturesListLabel(gameweek)}>
-        {fixtures.map(({ team, opponent }) => (
-          <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-3 border-b border-panel-rule px-3 py-1 text-lead">
+        {fixtures.map(({ team, opponent, points }) => (
+          <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-[minmax(0,1fr)_5rem_minmax(0,1fr)] gap-3 border-b border-panel-rule px-3 py-1 text-lead">
             <span className="text-right font-semibold">{team}</span>
-            <span className="text-muted">{versusWords}</span>
+            {points === null ? (
+              <span className="text-center text-muted">{versusWords}</span>
+            ) : (
+              <span className="whitespace-nowrap text-center font-bold text-figure tabular-nums">{scoreWords(points.team, points.opponent)}</span>
+            )}
             {opponent === null ? <span className="text-derived">{leagueAverageWords}</span> : <span className="font-semibold">{opponent}</span>}
           </li>
         ))}
       </ul>
       {byes.length > 0 && <p className="px-3 py-2">{byeWords(byes)}</p>}
+      {noLineup.length > 0 && <p className="px-3 py-2">{noLineupWords(noLineup)}</p>}
     </>
   );
 }

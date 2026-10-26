@@ -23,8 +23,8 @@ import { HOUR_MS } from "../../../convex/shared/time";
 
 export const GAMEWEEK = 6;
 /** FPL's club codes for the two sides. */
-const HULL = 88;
-const EVERTON = 11;
+export const HULL = 88;
+export const EVERTON = 11;
 
 export const HULL_EVERTON = MATCH.hullEverton.code;
 /** Hull v Everton's kickoff, as FPL recorded it, and when the tests first read it at full time. */

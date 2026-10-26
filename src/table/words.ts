@@ -11,8 +11,22 @@ export const FIXTURES_TITLE = "Fixtures";
 export const loadingWords = "Loading the table and fixtures…";
 export const noRulesWords = "This league was made before leagues had rules, so it has no fixtures or table to draw.";
 
-/** Said while every team has played nothing: no matchup is scored yet (#29). */
-export const noResultsWords = "No results yet: the app doesn't score matchups yet, so every team is on 0 until it does.";
+/** Said while every team has played nothing: no gameweek scored since the league was made. */
+export const noResultsWords = "No results yet: every team is on 0 until the league's first gameweek is played.";
+
+/** Said while a live match counts: points move until every match is final (spec/07). */
+export const provisionalWords = "Live: points are provisional until every match in the gameweek is final.";
+
+/** A gameweek begun that couldn't be scored, and why (#287): it counts for nothing until it can. */
+export const unscoredWords = (gameweek: number, reason: string) =>
+  `${gameweekWords(gameweek)} can't be scored, so it counts for nothing in the table: ${reason}.`;
+
+/** The teams on 0 in a gameweek for never saving a lineup: what such a team fields isn't settled. */
+export const noLineupWords = (teamNames: readonly string[]) =>
+  `${andList.format(teamNames)} never saved a lineup, so ${teamNames.length === 1 ? "it scores" : "they score"} 0.`;
+
+/** A fixture's score: the team's, then its opponent's. */
+export const scoreWords = (team: number, opponent: number) => `${team}–${opponent}`;
 
 /** The table's columns: a short head, and what it stands for. */
 export const columns = {
