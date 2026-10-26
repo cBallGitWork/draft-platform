@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import { actingAs } from "../../support/convex/leagues.harness";
+import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { inTenths } from "../../../convex/scoring/scoringSet";
 import { mergedHullEverton } from "../../support/convex/matchStats.harness";
@@ -172,4 +172,14 @@ test("league home's table and form read the same scores as the table", async () 
     { teamName: "Team 2", played: 1, won: 1, lost: 0, points: 3, form: ["won"] },
     { teamName: "Team 1", played: 1, won: 0, lost: 1, points: 0, form: ["lost"] },
   ]);
+});
+
+test("a starter released after the deadline still scores for his team in that gameweek (#415)", async () => {
+  const league = await scoresLeague();
+  await fullTimeRecords(league);
+  await lockMatch(league);
+  await (await actingAs(league.t, COMMISSIONER)).mutation(api.squads.squads.release, { leagueId: league.leagueId, playerCode: HULL_SCORER });
+
+  const { ann } = await gameweek6(league);
+  expect(ann).toMatchObject({ points: HULL_POINTS, provisional: false });
 });
