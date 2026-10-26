@@ -39,12 +39,13 @@ import { LeaguelessFrame } from "./leagues/LeaguelessFrame";
 import { LeaguesPage } from "./leagues/LeaguesPage";
 import { NewLeaguePage } from "./leagues/NewLeaguePage";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "./leagues/paths";
-import { currentLeagueOf, leagueIn, leagueRunBy } from "./leagues/roles";
+import { currentLeagueOf, leagueIn, leagueRunBy, runs } from "./leagues/roles";
 import type { MailSeam } from "./mail/seam";
 import { MatchupRoute } from "./matchup/MatchupRoute";
 import { matchupSearchOf } from "./matchup/paths";
 import type { MatchupSeam } from "./matchup/seam";
 import { FixturesPage } from "./myTeam/FixturesPage";
+import { TacticsPage } from "./myTeam/TacticsPage";
 import { MyTeamRoute } from "./myTeam/MyTeamRoute";
 import { TransactionsPage } from "./myTeam/TransactionsPage";
 import type { MyTeamSeam } from "./myTeam/seam";
@@ -274,7 +275,16 @@ const playerCardRoute = createRoute({
     const { leagueId, playerCode } = playerCardRoute.useParams();
     const league = leagueIn(context.session, leagueId);
     // Keyed by the player, so going from one card to another starts afresh.
-    return league ? <PlayerCardPage key={playerCode} league={league} playerCode={Number(playerCode)} seam={context.playerCard} /> : null;
+    if (!league || !context.session.signedIn) return null;
+    return (
+      <PlayerCardPage
+        key={playerCode}
+        league={league}
+        runs={runs(league, context.session.isAdmin)}
+        playerCode={Number(playerCode)}
+        seam={context.playerCard}
+      />
+    );
   },
 });
 
@@ -410,6 +420,8 @@ function myTeamTab(path: string, Tab: ComponentProps<typeof MyTeamRoute>["Tab"])
   return route;
 }
 
+// My team's Tactics tab (#14), where a manager lands: his own team's lineup on the pitch.
+const myTeamTacticsRoute = myTeamTab(MY_TEAM_PATH, TacticsPage);
 const myTeamFixturesRoute = myTeamTab(MY_TEAM_FIXTURES_PATH, FixturesPage); // #365
 const myTeamTransactionsRoute = myTeamTab(MY_TEAM_TRANSACTIONS_PATH, TransactionsPage); // #366
 
@@ -452,7 +464,7 @@ const matchRoute = createRoute({
   },
 });
 
-const BUILT_PAGES: readonly string[] = [MAIL_PATH, TABLE_PATH, SCOUTING_PATH, HOME_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_TRANSACTIONS_PATH, MATCHUP_PATH, PREMIER_LEAGUE_PATH];
+const BUILT_PAGES: readonly string[] = [MAIL_PATH, TABLE_PATH, SCOUTING_PATH, HOME_PATH, MY_TEAM_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_TRANSACTIONS_PATH, MATCHUP_PATH, PREMIER_LEAGUE_PATH];
 const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map((page) =>
   createRoute({
     getParentRoute: () => frameRoute,
@@ -464,7 +476,7 @@ const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map(
 const routeTree = rootRoute.addChildren([
   signInRoute,
   leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, playerCardRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, feedbackRoute, patchNotesRoute]),
-  frameRoute.addChildren([landingRoute, homeRoute, tableRoute, scoutingRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute, ...pageRoutes]),
+  frameRoute.addChildren([landingRoute, homeRoute, tableRoute, scoutingRoute, myTeamTacticsRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute, ...pageRoutes]),
 ]);
 
 // Not registered for typed links yet: the pages above are made in a loop, so their paths are plain

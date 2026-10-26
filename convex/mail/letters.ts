@@ -88,6 +88,7 @@ function takenOut(event: LeagueEvent): string[] {
     case "playerAssigned":
     case "playerMoved":
     case "playerReleased":
+    case "pointsOverridden":
       return [];
   }
 }

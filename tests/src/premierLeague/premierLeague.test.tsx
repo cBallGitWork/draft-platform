@@ -64,13 +64,13 @@ describe("reaching it", () => {
 
   it("says so while the gameweeks load", async () => {
     openSection({ loading: true });
-    expect((await screen.findByRole("status")).textContent).toBe(loadingWords);
+    expect(within(await screen.findByRole("region", { name: FIXTURES_TITLE })).getByRole("status").textContent).toBe(loadingWords);
   });
 
   it("says so while a gameweek's matches load", async () => {
     const app = openSection({ firstKickoffs: kickoffsTo10 });
     app.premierLeague.send(9, undefined);
-    expect((await screen.findByRole("status")).textContent).toBe(loadingGameweekWords(9));
+    expect(within(await screen.findByRole("region", { name: FIXTURES_TITLE })).getByRole("status").textContent).toBe(loadingGameweekWords(9));
   });
 });
 

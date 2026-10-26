@@ -6,6 +6,7 @@ import { adminByline } from "../../convex/mail/letterWords";
 import { HOUR_MS } from "../../convex/shared/time";
 import { teamFixturesOf } from "../table/drawnTable";
 import { previewSeason, previewTeams } from "../table/preview";
+import { previewTactics } from "./previewTactics";
 import type { MyTeamSeam, TeamTransactions } from "./seam";
 
 const [previewTeam, otherTeam] = previewTeams;
@@ -21,4 +22,4 @@ const transactions: TeamTransactions = {
   cut: false,
 };
 
-export const previewMyTeam: MyTeamSeam = { useTeamFixtures: () => fixtures, useTeamTransactions: () => transactions };
+export const previewMyTeam: MyTeamSeam = { ...previewTactics, useTeamFixtures: () => fixtures, useTeamTransactions: () => transactions };

@@ -7,10 +7,15 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { livePremierLeague } from "../../../src/premierLeague/livePremierLeague";
 import { ARSENAL, CHELSEA, plMatch } from "../../support/src/premierLeague.harness";
 
-const convex = vi.hoisted(() => ({ firstKickoffs: vi.fn(), ofGameweek: vi.fn(), ofMatch: vi.fn() }));
+const convex = vi.hoisted(() => ({ firstKickoffs: vi.fn(), ofGameweek: vi.fn(), ofSeason: vi.fn(), ofMatch: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
-    queries: { "football/plGameweeks:firstKickoffs": convex.firstKickoffs, "football/matchScores:ofGameweek": convex.ofGameweek, "match/matchPage:ofMatch": convex.ofMatch },
+    queries: {
+      "football/plGameweeks:firstKickoffs": convex.firstKickoffs,
+      "football/matchScores:ofGameweek": convex.ofGameweek,
+      "football/plStandings:ofSeason": convex.ofSeason,
+      "match/matchPage:ofMatch": convex.ofMatch,
+    },
   }),
 );
 
@@ -18,6 +23,7 @@ afterEach(() => {
   convex.firstKickoffs.mockReset();
   convex.ofGameweek.mockReset();
   convex.ofMatch.mockReset();
+  convex.ofSeason.mockReset();
 });
 
 test("it asks football/plGameweeks:firstKickoffs with nothing, and hands on what comes back", () => {
@@ -49,4 +55,11 @@ test("each is undefined while loading", () => {
   expect(renderHook(() => livePremierLeague.useGameweekMatches(9)).result.current).toBeUndefined();
   convex.ofMatch.mockReturnValue(undefined);
   expect(renderHook(() => livePremierLeague.useMatch("league-1" as Id<"leagues">, 7)).result.current).toBeUndefined();
+});
+
+test("it asks football/plStandings:ofSeason with nothing, and hands on the table", () => {
+  const table = { rows: [], provisional: false };
+  convex.ofSeason.mockReturnValue(table);
+  expect(renderHook(() => livePremierLeague.useStandings()).result.current).toBe(table);
+  expect(convex.ofSeason).toHaveBeenCalledWith({});
 });

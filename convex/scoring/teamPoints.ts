@@ -17,6 +17,9 @@ type PlayerCode = number;
 export interface PlayerMatch {
   record: MatchStats | null;
   final: boolean;
+  /** A commissioner's override of his points in the match (spec/14, #32): his total there in
+   *  place of the record's, its categories still shown as the record has them. */
+  override?: number;
 }
 
 /** Each player's matches in the gameweek, one per fixture his club plays: none in a blank
@@ -106,7 +109,10 @@ export function scoreTeam(input: TeamPointsInput): TeamPoints {
 function slotPoints(input: TeamPointsInput, playerCode: PlayerCode, cell: Cell, counts: boolean): SlotPoints {
   const playerMatches = input.matches.get(playerCode);
   if (playerMatches === undefined) throw new Error(`player ${playerCode} has no entry in the gameweek's matches`);
-  const matches = playerMatches.map((match) => scoreMatch(match.record, input.set, cell));
+  const matches = playerMatches.map((match) => {
+    const scored = scoreMatch(match.record, input.set, cell);
+    return match.override === undefined ? scored : { ...scored, total: match.override };
+  });
   const gameweek = scoreGameweek(matches, input.doubleGameweekRule);
   const provisional = gameweek.provisional || playerMatches.some((match) => !match.final);
   return {

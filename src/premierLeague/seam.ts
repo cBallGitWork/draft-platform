@@ -13,6 +13,9 @@ export type { MatchMan, MatchPage };
 export type FirstKickoff = FunctionReturnType<typeof api.football.plGameweeks.firstKickoffs>[number];
 /** A match of one gameweek, its clubs and its newest score (football/matchScores:ofGameweek). */
 export type GameweekMatch = FunctionReturnType<typeof api.football.matchScores.ofGameweek>[number];
+/** The Premier League table, and whether a match in it is still being played
+ *  (football/plStandings:ofSeason). */
+export type PlStandings = FunctionReturnType<typeof api.football.plStandings.ofSeason>;
 
 export type PremierLeagueSeam = {
   /** Each gameweek's first kickoff, live (a hook): undefined while they load. */
@@ -22,4 +25,6 @@ export type PremierLeagueSeam = {
   /** One match as the league sees it (match/matchPage:ofMatch), live (a hook): undefined while it
    *  loads, null while no match with its code is held. */
   useMatch(leagueId: Id<"leagues">, fixtureCode: number): MatchPage | null | undefined;
+  /** The table, live (a hook): undefined while it loads. */
+  useStandings(): PlStandings | undefined;
 };
