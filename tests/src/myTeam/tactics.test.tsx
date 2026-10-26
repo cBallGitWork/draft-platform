@@ -256,6 +256,36 @@ describe("the bench order (spec/05 Auto-subs; Craig, 26 Oct 2026)", () => {
     expect(benchNames().map((row) => row.split(" ARS")[0])).toEqual(["GKArrizabalaga", "STHavertz", "FB, WBWhite"]);
   });
 
+  it("a bench player dragged along the bench takes the place he is dropped on, earlier or later", async () => {
+    await openedPitch();
+    const dataTransfer = { setData: () => undefined, effectAllowed: "" };
+    const dragOnto = (player: Member, onto: Member) => {
+      fireEvent.dragStart(down(player).closest("tr")!, { dataTransfer });
+      const row = down(onto).closest("tr")!;
+      fireEvent.dragOver(row, { dataTransfer });
+      fireEvent.drop(row, { dataTransfer });
+    };
+    dragOnto(WHITE, ARRIZABALAGA);
+    expect(benchNames().map((row) => row.split(" ARS")[0])).toEqual(["FB, WBWhite", "GKArrizabalaga"]);
+    dragOnto(WHITE, ARRIZABALAGA);
+    expect(benchNames().map((row) => row.split(" ARS")[0])).toEqual(["GKArrizabalaga", "FB, WBWhite"]);
+  });
+
+  it("a drop on a bench row with nobody picked up changes nothing", async () => {
+    await openedPitch();
+    fireEvent.drop(down(WHITE).closest("tr")!, { dataTransfer: { setData: () => undefined, effectAllowed: "" } });
+    expect(benchNames().map((row) => row.split(" ARS")[0])).toEqual(["GKArrizabalaga", "FB, WBWhite"]);
+    expect(save().hasAttribute("disabled")).toBe(true);
+  });
+
+  it("Up and Down keep the focus on the button pressed, or its partner once it stops at an end", async () => {
+    await openedPitch();
+    await userEvent.click(up(WHITE));
+    expect(document.activeElement).toBe(down(WHITE));
+    await userEvent.click(down(WHITE));
+    expect(document.activeElement).toBe(up(WHITE));
+  });
+
   it("is saved as it stands", async () => {
     const app = await openedPitch();
     await userEvent.click(up(WHITE));

@@ -38,7 +38,7 @@ export function SquadTable({
   squad: ReadonlyMap<number, SquadMember>;
   moving: Moving;
   onBench(): void;
-  onBenchAt(playerCode: number, index: number): void;
+  onBenchAt(playerCode: number, index: number, pressed?: "up" | "down"): void;
 }) {
   const { picked } = moving;
   const pickedStarts = picked !== null && draft.starters.some((starter) => starter.playerCode === picked.playerCode);
@@ -97,8 +97,12 @@ export function SquadTable({
   );
 }
 
+/** Up and Down: a whole tap wide on the phone, as "Up" alone is narrower (plate.md, The phone). */
+const BENCH_ORDER_BUTTON =
+  "min-h-tap min-w-tap font-semibold text-fact underline disabled:text-muted disabled:no-underline lg:min-h-0 lg:min-w-0";
+
 /** A bench row's place in the bench order, the last place, and how to move a player to one. */
-type BenchPlace = { index: number; last: number; onBenchAt(playerCode: number, index: number): void };
+type BenchPlace = { index: number; last: number; onBenchAt(playerCode: number, index: number, pressed?: "up" | "down"): void };
 
 function SquadRow({ leagueId, player, bench, moving }: { leagueId: string; player: SquadMember; bench: BenchPlace | null; moving: Moving }) {
   const isPicked = moving.picked?.playerCode === player.playerCode;
@@ -149,18 +153,20 @@ function SquadRow({ leagueId, player, bench, moving }: { leagueId: string; playe
             <button
               type="button"
               aria-label={upLabel(player.name)}
+              data-bench-up={player.playerCode}
               disabled={bench.index === 0}
-              onClick={() => bench.onBenchAt(player.playerCode, bench.index - 1)}
-              className="min-h-tap font-semibold text-fact underline disabled:text-muted disabled:no-underline lg:min-h-0"
+              onClick={() => bench.onBenchAt(player.playerCode, bench.index - 1, "up")}
+              className={BENCH_ORDER_BUTTON}
             >
               {upWords}
             </button>{" "}
             <button
               type="button"
               aria-label={downLabel(player.name)}
+              data-bench-down={player.playerCode}
               disabled={bench.index === bench.last}
-              onClick={() => bench.onBenchAt(player.playerCode, bench.index + 1)}
-              className="min-h-tap font-semibold text-fact underline disabled:text-muted disabled:no-underline lg:min-h-0"
+              onClick={() => bench.onBenchAt(player.playerCode, bench.index + 1, "down")}
+              className={BENCH_ORDER_BUTTON}
             >
               {downWords}
             </button>
