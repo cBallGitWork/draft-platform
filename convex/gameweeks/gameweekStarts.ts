@@ -11,7 +11,7 @@ import { GAMEWEEKS } from "./usedGameweeks";
 
 /** Each gameweek's earliest kickoff among `matches`, by gameweek: none for a gameweek with no
  *  kickoff time. */
-function firstKickoffs(matches: readonly ScheduledMatch[]): Map<number, number> {
+export function firstKickoffs(matches: readonly ScheduledMatch[]): Map<number, number> {
   const first = new Map<number, number>();
   for (const { gameweek, kickoff } of matches) {
     if (gameweek === null || kickoff === null) continue;
