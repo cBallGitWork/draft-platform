@@ -13,3 +13,12 @@ export async function passedDeadlinesOf(ctx: QueryCtx, leagueId: Id<"leagues">):
     .take(GAMEWEEKS);
   return new Map(rows.map((row) => [row.gameweek, row.deadline]));
 }
+
+/** The league's passed deadline for the gameweek, or null while none is recorded. */
+export async function passedDeadlineOf(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number): Promise<number | null> {
+  const row = await ctx.db
+    .query("passedDeadlines")
+    .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId).eq("gameweek", gameweek))
+    .unique();
+  return row?.deadline ?? null;
+}

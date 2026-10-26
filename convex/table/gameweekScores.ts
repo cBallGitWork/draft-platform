@@ -1,7 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { autoSubs, gameweekPlay, type GameweekPlay } from "../lineup/autoSubs";
-import { lineupInGameweek } from "../lineup/lineups";
+import { lineupsInGameweek } from "../lineup/lineups";
 import { AREAS, LANES, playsCell, type Cell } from "../lineup/pitch";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount, type HowPositionsCount } from "../positions/positionSettings";
@@ -27,7 +27,7 @@ import { playerByCode } from "../shared/players";
 // minute by minute (#28) and nothing stored can go stale. Most of what a played gameweek reads is
 // fixed already: its fixtures are stored (playedFixtures.ts), the site's set never reaches a
 // gameweek begun (siteScoring.ts) and a locked match's records no longer change (matchStats.ts).
-// Its lineup isn't yet: lineups.ts reads it against today's squad (#415).
+// So is its lineup: lineups.ts reads it against the squad as it stood at the deadline (#415).
 // A season's worth outgrows one read; storing a gameweek once final is #418.
 //
 // A gameweek that can't be scored (a site set holding a rule no longer sound, say: #287) is left
@@ -139,8 +139,9 @@ async function gameweekScores(ctx: QueryCtx, reads: LeagueReads, gameweek: numbe
   const rules = reads.season.inGameweek(gameweek);
   const matches = await heldMatches(ctx, gameweek);
   const scores = new Map<TeamId, TeamGameweek>();
+  const lineups = await lineupsInGameweek(ctx, reads.leagueId, reads.teamIds, gameweek);
   for (const teamId of reads.teamIds) {
-    const held = await lineupInGameweek(ctx, reads.leagueId, teamId, gameweek);
+    const held = lineups.get(teamId)!;
     if (held.kind === "none") {
       scores.set(teamId, { points: 0, provisional: false, noLineup: true });
       continue;
