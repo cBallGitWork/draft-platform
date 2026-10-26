@@ -12,6 +12,7 @@ import {
 } from "../../support/convex/joining.harness";
 import { joiningRefusals } from "../../../convex/joining/joining";
 import { INVITE_LIFETIME_MS, invitedPath } from "../../../convex/joining/joiningShared";
+import { ROWS_SHOWN } from "../../../convex/joining/invitesPage";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import {
   COMMISSIONER,
@@ -147,6 +148,26 @@ describe("how long an invite lasts", () => {
     expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "inviteCancelled", email: ANN, teamId: null, teamName: null });
     expect(await inviteRow(inviteId)).toBeUndefined();
     await expect((await asCommissioner(t)).mutation(api.joining.invites.resend, { inviteId })).rejects.toThrow(joiningRefusals.inviteEnded);
+  });
+});
+
+describe("the invites page", () => {
+  test("lists an older live invite behind a page's worth of cancelled ones made after it (#143)", async () => {
+    const inviteId = await invite(t, leagueId, ANN);
+    await t.run(async (ctx) => {
+      for (let n = 0; n < ROWS_SHOWN; n++) {
+        await ctx.db.insert("invites", {
+          leagueId,
+          email: `cancelled${n}@example.com`,
+          invitedBy: COMMISSIONER,
+          expiresAt: Date.now() + INVITE_LIFETIME_MS,
+          delivery: "sent",
+          cancelledAt: Date.now(),
+        });
+      }
+    });
+
+    expect((await invitesPage(t, leagueId))?.invites.map((row) => row.inviteId)).toEqual([inviteId]);
   });
 });
 
