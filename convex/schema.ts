@@ -274,6 +274,14 @@ const matchStatsTables = {
   }).index("by_fixtureCode_and_playerCode", ["fixtureCode", "playerCode"]),
   platformSettings: defineTable({ name: platformSettingName, value: v.number() }).index("by_name", ["name"]),
   matchStatsSyncs: defineTable(matchStatsSyncFields),
+  /** Each player's records added up for a season (#373, seasonStats.ts), so Scouting sorts every
+   *  player by any stat without reading a season of records: one row a player and season, kept
+   *  in step as each record is written. `season` is the year it starts (football.ts's
+   *  `seasonStartYear` of the match's kickoff). */
+  playerSeasonStats: defineTable({ season: v.number(), playerCode: v.number(), stats: v.record(v.string(), v.number()) }).index(
+    "by_season_and_playerCode",
+    ["season", "playerCode"],
+  ),
   /** When a run last tried each match, read or not: one that never reads steps behind the rest. */
   matchStatsTries: defineTable({ fixtureCode: v.number(), triedAt: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
 };
@@ -496,6 +504,7 @@ const joinRequestFields = {
 const joiningTables = {
   invites: defineTable(inviteFields)
     .index("by_leagueId", ["leagueId"])
+    .index("by_leagueId_and_cancelledAt", ["leagueId", "cancelledAt"])
     .index("by_email_and_expiresAt", ["email", "expiresAt"]),
   inviteLinks: defineTable(inviteLinkFields).index("by_leagueId", ["leagueId"]).index("by_token", ["token"]),
   joinRequests: defineTable(joinRequestFields)
@@ -682,6 +691,16 @@ const leagueRulesTables = {
     deadline: v.number(),
     recordedAt: v.number(),
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
+  /** A gameweek's first kickoff once it has passed (#414): where it fell stays put, even if that
+   *  match then leaves the gameweek, so the site's scoring version for it can't change. One row a
+   *  season and gameweek, site-wide, written by gameweeks/gameweekStarts.ts. */
+  gameweekStarts: defineTable({
+    /** The year the season starts, as football.ts's `seasonStartYear`. */
+    season: v.number(),
+    gameweek: v.number(),
+    firstKickoff: v.number(),
+    recordedAt: v.number(),
+  }).index("by_season_and_gameweek", ["season", "gameweek"]),
 };
 
 // A league's head-to-head fixtures in each gameweek it has begun, stored once the gameweek begins

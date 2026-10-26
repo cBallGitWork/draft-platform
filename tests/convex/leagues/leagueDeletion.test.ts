@@ -2,12 +2,10 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { askToJoin, invite, makeLink, openLastLinkTo } from "../../support/convex/joining.harness";
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
-import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
-import { rulesRevision } from "../../support/convex/leagueRules.harness";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { tablesKeyedToLeague } from "../../../convex/leagues/leagueDeletion";
-import { ANN, BOB, CAT, DAN, accountOf, deletes, laterBy, leagueWithPeople, moreEventsThanOneRun, mutationsGivenALeague } from "../../support/convex/leagueDeletion.harness";
+import { ANN, BOB, CAT, DAN, accountOf, deletes, laterBy, leagueWithPeople, moreEventsThanOneRun } from "../../support/convex/leagueDeletion.harness";
+import { changesTo, mutationsGivenALeague, rowsToChange } from "../../support/convex/leagueMutations.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, eventsIn, leagueRow, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import schema from "../../../convex/schema";
 import { fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
@@ -60,50 +58,16 @@ describe("who deletes a league", () => {
 
 describe("while it can be undone", () => {
   test("every change to it is refused, saying why, and every mutation given a league is tried", async () => {
-    const [annsTeam] = await teamsIn(t, leagueId);
-    const inviteId = await invite(t, leagueId, CAT);
-    const requestId = await askToJoin(t, leagueId, await makeLink(t, leagueId), DAN);
-    const revision = await rulesRevision(t, leagueId);
+    const rows = await rowsToChange(t, leagueId);
     await deletes(t, COMMISSIONER, leagueId);
     const before = await everythingOf(leagueId);
-    const admin = await actingAs(t, ADMIN);
-    const ann = await actingAs(t, ANN);
-    const commissioner = await actingAs(t, COMMISSIONER);
-
-    const changes: Record<string, () => Promise<unknown>> = {
-      "leagues/leagues:setMaxTeams": () => admin.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 6 }),
-      "leagues/leagues:nameCommissioner": () => admin.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: ANN }),
-      "leagues/leagues:nameCoCommissioner": () => admin.mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: null }),
-      "leagues/teams:addManager": () => admin.mutation(api.leagues.teams.addManager, { leagueId, email: "new@example.com" }),
-      "leagues/teams:removeManager": () => admin.mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam._id }),
-      "leagues/teams:rename": () => ann.mutation(api.leagues.teams.rename, { teamId: annsTeam._id, name: "Saka Potatoes" }),
-      "leagues/teams:leave": () => ann.mutation(api.leagues.teams.leave, { leagueId }),
-      "leagues/leagueDeletion:deleteLeague": () => admin.mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId }),
-      "joining/invites:send": () => admin.mutation(api.joining.invites.send, { leagueId, email: "new@example.com" }),
-      "joining/invites:resend": () => admin.mutation(api.joining.invites.resend, { inviteId }),
-      "joining/invites:cancel": () => admin.mutation(api.joining.invites.cancel, { inviteId }),
-      "joining/inviteLink:make": () => admin.mutation(api.joining.inviteLink.make, { leagueId }),
-      "joining/inviteLink:switchOff": () => admin.mutation(api.joining.inviteLink.switchOff, { leagueId }),
-      "joining/joinRequests:approve": () => admin.mutation(api.joining.joinRequests.approve, { requestId }),
-      "joining/joinRequests:refuseRequest": () => admin.mutation(api.joining.joinRequests.refuseRequest, { requestId }),
-      "gameweeks/leagueGameweeks:setUsed": () => admin.mutation(api.gameweeks.leagueGameweeks.setUsed, { leagueId, gameweek: 38, used: false }),
-      "rules/leagueRules:change": () => admin.mutation(api.rules.leagueRules.change, { leagueId, rules: structuredClone(FIRST_RULES), revision }),
-      "rules/leagueSettings:changeSettings": () =>
-        admin.mutation(api.rules.leagueSettings.changeSettings, { leagueId, settings: { ...leagueSettingsOf(FIRST_RULES), oddTeamOut: "bye", gamesPerGameweek: 2 }, revision }),
-      "lineup/lineups:save": () => ann.mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [], bench: [] } }),
-      "leagues/lastLeague:switchTo": () => commissioner.mutation(api.leagues.lastLeague.switchTo, { leagueId }),
-      "mail/mail:writeToLeague": () => admin.mutation(api.mail.mail.writeToLeague, { leagueId, subject: "Still here?", body: "It's being deleted." }),
-      "squads/squads:assign": () => admin.mutation(api.squads.squads.assign, { leagueId, playerCode: 1, teamId: annsTeam._id }),
-      "squads/squads:move": () => admin.mutation(api.squads.squads.move, { leagueId, playerCode: 1, teamId: annsTeam._id }),
-      "squads/squads:release": () => admin.mutation(api.squads.squads.release, { leagueId, playerCode: 1 }),
-      "scouting/shortlist:add": () => ann.mutation(api.scouting.shortlist.add, { leagueId, playerCode: 1 }),
-      "scouting/shortlist:remove": () => ann.mutation(api.scouting.shortlist.remove, { leagueId, playerCode: 1 }),
-    };
+    const changes = changesTo({ admin: await actingAs(t, ADMIN), ann: await actingAs(t, ANN), commissioner: await actingAs(t, COMMISSIONER) }, rows);
     for (const change of Object.values(changes)) await expect(change()).rejects.toThrow(refusals.beingDeleted);
     expect(await everythingOf(leagueId)).toEqual(before);
 
-    // A mutation added later that is given a league, or a row in one, fails here until it is tried
-    // above: the freeze holds only where a change starts at getLeague (leagueAccess.ts).
+    // A mutation added later that is given a league, or a row in one, fails here until changesTo
+    // tries it (leagueMutations.harness.ts): the freeze holds only where a change starts at
+    // getLeague (leagueAccess.ts).
     // Opening one's own letter marks it read, which changes nothing in the league.
     const allowedWhileFrozen = ["leagues/leagueDeletion:undo", "mail/mail:open"];
     expect(Object.keys(changes).sort()).toEqual((await mutationsGivenALeague()).filter((name) => !allowedWhileFrozen.includes(name)));

@@ -19,6 +19,7 @@ import type { MailSeam } from "../../../src/mail/seam";
 import { ShellApp } from "../../../src/ShellApp";
 import { fakeLeagueSettings, type LeagueSettingsData } from "./leagueSettings.harness";
 import { fakePatches, type PatchesData } from "./patches.harness";
+import { fakeMyTeam, type MyTeamData } from "./myTeam.harness";
 import { fakePlayerCard, type PlayerCardData } from "./playerCard.harness";
 import { fakeScoring, type ScoringData } from "./scoring.harness";
 import { fakeSquads, type SquadsData } from "./squads.harness";
@@ -129,14 +130,16 @@ export type AppSetUp = {
   scouting?: ScoutingData;
   playerCard?: PlayerCardData;
   home?: HomeData;
+  myTeam?: MyTeamData;
   admin?: AdminData;
   feedback?: FeedbackData;
   patches?: PatchesData;
 };
 
 /** The app opened at `path` for `session`, set up as `setUp` says: where it is, the fake sign-in,
- *  league, Mail, joining, gameweeks, squads, scoring, league settings, table, scouting, player card, home, admin, feedback and patches
- *  seams, and a way to change the session as signing in or out, or a league changing, would. */
+ *  league, Mail, joining, gameweeks, squads, scoring, league settings, table, scouting, player
+ *  card, home, my team, admin, feedback and patches seams, and a way to change the session as
+ *  signing in or out, or a league changing, would. */
 export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const {
     topBar = { unreadMail: 0, next: null },
@@ -150,6 +153,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     scouting: scoutingData = {},
     playerCard: playerCardData = {},
     home: homeData = {},
+    myTeam: myTeamData = {},
     admin: adminData = {},
     feedback: feedbackData = {},
     patches: patchesData = {},
@@ -167,6 +171,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const scouting = fakeScouting(scoutingData);
   const playerCard = fakePlayerCard(playerCardData);
   const home = fakeHome(homeData);
+  const myTeam = fakeMyTeam(myTeamData);
   const admin = fakeAdmin(adminData);
   const feedback = fakeFeedback(feedbackData);
   const patches = fakePatches(patchesData);
@@ -186,6 +191,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
       scouting={scouting}
       playerCard={playerCard}
       home={home}
+      myTeam={myTeam}
       admin={admin}
       feedback={feedback}
       patches={patches}
@@ -206,6 +212,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     scouting,
     playerCard,
     home,
+    myTeam,
     admin,
     feedback,
     patches,
