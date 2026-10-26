@@ -168,14 +168,14 @@ const VIDIPRINTER_ID = "vidiprinter";
  *  team's men in the figure colour, and "Commentary delayed" while the stream falls behind. */
 function Vidiprinter({ commentary }: { commentary: MatchupCommentary }) {
   return (
-    <section aria-labelledby={VIDIPRINTER_ID} className="bg-panel">
+    <section aria-labelledby={VIDIPRINTER_ID} className="bg-panel lg:col-span-2">
       <PanelTitle id={VIDIPRINTER_ID}>{VIDIPRINTER_TITLE}</PanelTitle>
       {commentary.kind === "unread" ? (
         <PanelNote>{unreadCommentaryWords(commentary.reason)}</PanelNote>
       ) : (
         <>
           {commentary.delayed && (
-            <p role="status" className="px-3 py-1 font-semibold text-event shadow-event-edge">
+            <p role="status" className="alert-strip">
               {commentaryDelayedWords}
             </p>
           )}
