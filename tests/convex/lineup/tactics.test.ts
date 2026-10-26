@@ -58,7 +58,7 @@ describe("the lineup to set", () => {
     });
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
     expect(tactics.squad).toEqual(
-      SQUAD.map((code) => ({ playerCode: code, name: nameOf(code), clubShortName: CLUB.shortName, positions: STARTER_POSITIONS.get(code) ?? ["CM"] })),
+      SQUAD.map((code) => ({ playerCode: code, name: nameOf(code), clubShortName: CLUB.shortName, positions: STARTER_POSITIONS.get(code) ?? ["CM"], number: null })),
     );
   });
 

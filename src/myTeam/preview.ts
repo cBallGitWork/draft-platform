@@ -33,6 +33,8 @@ const squadPlayer = (code: number, name: string, positions: TeamSquad["players"]
   positions,
   club,
   gone: false,
+  // Made-up squad numbers, one left ungiven (#13).
+  number: code === 7 ? null : code + 10,
   nextFixture: nextMatch(club === arsenal ? chelsea : arsenal, club !== chelsea),
   seasonPoints: points[0],
   lastGameweekPoints: points[1],
@@ -51,4 +53,7 @@ const squad: TeamSquad = {
   ],
 };
 
-export const previewMyTeam: MyTeamSeam = { ...previewTactics, useTeamFixtures: () => fixtures, useTeamTransactions: () => transactions, useTeamSquad: () => squad };
+/** The preview holds no server: a number changed there is taken, and goes when the page reloads. */
+const previewNumbers = { set: async () => null };
+
+export const previewMyTeam: MyTeamSeam = { ...previewTactics, useTeamFixtures: () => fixtures, useTeamTransactions: () => transactions, useTeamSquad: () => squad, useSquadNumbers: () => previewNumbers };

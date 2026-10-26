@@ -1,6 +1,7 @@
 // What My team's tabs say, in one place for Craig to change in the pull request.
 
 import { menuWords } from "../frame/words";
+import { failedWords } from "../words";
 import type { TeamTransactions } from "./seam";
 
 export { noFigureWords, whenWords } from "../words";
@@ -53,6 +54,7 @@ export const SQUAD_TITLE = menuWords.squad;
 export const squadLoadingWords = "Loading your squad…";
 export const squadTableLabel = (teamName: string) => `${teamName}'s squad`;
 export const squadColumns = {
+  number: { short: "No.", long: "Squad number" },
   positions: { short: "Pos", long: "Positions" },
   player: { short: "Player", long: "Player" },
   club: { short: "Club", long: "Club" },
@@ -72,3 +74,7 @@ export const noNextFixtureWords = "No match with a kickoff time yet.";
 export const noPointsWords = "No points yet: none of his matches has been priced.";
 export { goneWords } from "../squads/words";
 export const noSquadWords = "Your squad is empty: players the commissioner assigns show here.";
+
+/** The squad number box's name, for one player (#13). */
+export const numberLabel = (name: string) => `${name}'s squad number`;
+export const numberFailedWords = failedWords("the squad number wasn't changed");

@@ -85,18 +85,25 @@ function PlayerBlock({ player, cell, moving }: { player: SquadMember; cell: Cell
       onDragEnd={moving.onDragEnd}
       className="flex w-full min-w-0 cursor-grab flex-col items-center"
     >
-      <Shirt />
+      <Shirt number={player.number} />
       <span className={`max-w-full truncate px-1 text-lead font-semibold ${plate}`}>{player.name}</span>
       <span className={`max-w-full truncate px-1 ${isPicked ? plate : "bg-name-plate text-soft"}`}>{positionsWords(player.positions)}</span>
     </button>
   );
 }
 
-/** Our own shirt outline (plate.md, Marks). Club colours and squad numbers aren't held yet (#13). */
-function Shirt() {
+/** Our own shirt outline (plate.md, Marks), with his squad number on it once his manager gives
+ *  him one (#13). Club colours aren't held yet. */
+function Shirt({ number }: { number: number | null }) {
   return (
     <svg viewBox="0 0 40 40" aria-hidden="true" className="size-shirt shrink-0 fill-fact stroke-name-plate">
       <path d="M13 4 L7 7 L2 13 L7 18 L10 16 L10 37 L30 37 L30 16 L33 18 L38 13 L33 7 L27 4 Q20 10 13 4 Z" />
+      {number !== null && (
+        // In the shirt's own units, as the shirt is drawn 40 wide and shown smaller (size-shirt).
+        <text x="20" y="30" textAnchor="middle" fontSize="16" className="fill-ground stroke-none font-bold">
+          {number}
+        </text>
+      )}
     </svg>
   );
 }

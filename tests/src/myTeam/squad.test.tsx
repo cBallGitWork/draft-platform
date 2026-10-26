@@ -14,6 +14,7 @@ import {
   lastGameweekLong,
   nextFixtureLong,
   noFigureWords,
+  numberLabel,
   noSquadWords,
   noTeamWords,
   squadLoadingWords,
@@ -44,11 +45,12 @@ const SAKA: Row = {
   positions: ["W", "CAM"],
   club: ARSENAL,
   gone: false,
+  number: 7,
   nextFixture: { gameweek: 10, kickoff: KICKOFF, opponent: CHELSEA, home: true },
   seasonPoints: 42,
   lastGameweekPoints: 7,
 };
-const PALMER: Row = { ...SAKA, code: 1002, name: "Palmer", fullName: "Cole Palmer", positions: ["CAM"], club: CHELSEA, nextFixture: { ...SAKA.nextFixture!, opponent: ARSENAL, home: false }, seasonPoints: null, lastGameweekPoints: null };
+const PALMER: Row = { ...SAKA, code: 1002, name: "Palmer", fullName: "Cole Palmer", number: null, positions: ["CAM"], club: CHELSEA, nextFixture: { ...SAKA.nextFixture!, opponent: ARSENAL, home: false }, seasonPoints: null, lastGameweekPoints: null };
 const squadOf = (players: Row[], lastGameweek: number | null = 9): TeamSquad => ({ teamName: "Team 1", lastGameweek, players });
 
 describe("reaching it", () => {
@@ -80,13 +82,13 @@ describe("reaching it", () => {
 });
 
 describe("the rows", () => {
-  it("list each player in the server's order: positions, name, club, next match, last gameweek's and the season's points", async () => {
+  it("list each player in the server's order: his number's box, positions, name, club, next match, last gameweek's and the season's points", async () => {
     openSquad({ squad: squadOf([SAKA, PALMER]) });
     await screen.findByRole("table");
 
     expect(rows().map(cells)).toEqual([
-      ["W, CAM", "Saka", "ARS", `CHE ${homeWords}`, "7", "42"],
-      ["CAM", "Palmer", "CHE", `ARS ${awayWords}`, noFigureWords, noFigureWords],
+      ["", "W, CAM", "Saka", "ARS", `CHE ${homeWords}`, "7", "42"],
+      ["", "CAM", "Palmer", "CHE", `ARS ${awayWords}`, noFigureWords, noFigureWords],
     ]);
   });
 
@@ -110,6 +112,53 @@ describe("the rows", () => {
   it("say when a player has left the Premier League, and when his club has no next match", async () => {
     openSquad({ squad: squadOf([{ ...SAKA, gone: true, nextFixture: null }]) });
     expect(await screen.findByText(goneWords)).toBeTruthy();
-    expect(cells(rows()[0])[3]).toBe(noFigureWords);
+    expect(cells(rows()[0])[4]).toBe(noFigureWords);
+  });
+});
+
+describe("squad numbers (#13)", () => {
+  const box = (name: string) => screen.getByRole<HTMLInputElement>("textbox", { name: numberLabel(name) });
+  const retype = async (name: string, typed: string) => {
+    await userEvent.clear(box(name));
+    if (typed !== "") await userEvent.type(box(name), typed);
+  };
+
+  it("each box holds the number his manager gave him, empty while he has none", async () => {
+    openSquad({ squad: squadOf([SAKA, PALMER]) });
+    await screen.findByRole("table");
+    expect(box("Saka").value).toBe("7");
+    expect(box("Palmer").value).toBe("");
+  });
+
+  it("a number typed is sent when the box is left, or Enter is pressed", async () => {
+    const app = openSquad({ squad: squadOf([SAKA, PALMER]) });
+    await screen.findByRole("table");
+    await retype("Palmer", "10");
+    await userEvent.tab();
+    expect(app.myTeam.useSquadNumbers().set).toHaveBeenLastCalledWith(league.leagueId, PALMER.code, 10);
+    await retype("Saka", "11{Enter}");
+    expect(app.myTeam.useSquadNumbers().set).toHaveBeenLastCalledWith(league.leagueId, SAKA.code, 11);
+  });
+
+  it("an emptied box takes his number away, and one left as it was sends nothing", async () => {
+    const app = openSquad({ squad: squadOf([SAKA, PALMER]) });
+    await screen.findByRole("table");
+    await userEvent.click(box("Palmer"));
+    await userEvent.tab();
+    expect(app.myTeam.useSquadNumbers().set).not.toHaveBeenCalled();
+    await retype("Saka", "");
+    await userEvent.tab();
+    expect(app.myTeam.useSquadNumbers().set).toHaveBeenCalledWith(league.leagueId, SAKA.code, null);
+  });
+
+  it("a number refused says why, in the server's words, and the box goes back to the one held", async () => {
+    const refusal = "A squad number is a whole number from 1 to 99.";
+    const app = openSquad({ squad: squadOf([SAKA]), numberAnswer: refusal });
+    await screen.findByRole("table");
+    await retype("Saka", "100");
+    await userEvent.tab();
+    expect(app.myTeam.useSquadNumbers().set).toHaveBeenCalledWith(league.leagueId, SAKA.code, 100);
+    expect(await screen.findByText(refusal)).toBeTruthy();
+    expect(box("Saka").value).toBe("7");
   });
 });

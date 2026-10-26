@@ -15,7 +15,14 @@ export const squadEvents = [
 ] as const;
 
 export const squadTables = {
-  squadPlayers: defineTable({ leagueId: v.id("leagues"), teamId: v.id("teams"), playerCode: v.number() })
+  squadPlayers: defineTable({
+    leagueId: v.id("leagues"),
+    teamId: v.id("teams"),
+    playerCode: v.number(),
+    /** The number his manager gave him (#13, spec/05 Squad numbers): absent until given, and gone
+     *  when he moves, so he starts afresh on another team. */
+    number: v.optional(v.number()),
+  })
     .index("by_leagueId_and_playerCode", ["leagueId", "playerCode"])
     .index("by_teamId", ["teamId"]),
 };

@@ -47,6 +47,7 @@ import {
   pitch,
   squadRows,
   targets,
+  type Member,
 } from "../../support/src/tacticsScreen.harness";
 
 describe("reaching it", () => {
@@ -99,6 +100,15 @@ describe("the lineup held", () => {
     await screen.findByRole("group", { name: pitchLabel });
     for (const { playerCode, area, lane } of STARTERS) expect(blockOf(SQUAD.find((each) => each.playerCode === playerCode)!, { area, lane })).toBeTruthy();
     expect(screen.getByText(startingWords(STARTERS.length))).toBeTruthy();
+  });
+
+  it("each starter wears the squad number his manager gave him, and a blank shirt until then (#13)", async () => {
+    const numbered = { ...RAYA, number: 22 };
+    const squad = SQUAD.map((each) => (each.playerCode === RAYA.playerCode ? numbered : each));
+    await openedPitch({ tactics: { ...SAVED, squad } });
+    const shirtNumber = (player: Member, cell: Cell) => blockOf(player, cell).querySelector("svg text")?.textContent ?? null;
+    expect(shirtNumber(numbered, { area: "goalkeeper", lane: "centre" })).toBe("22");
+    expect(shirtNumber(SALIBA, { area: "defence", lane: "leftCentre" })).toBeNull();
   });
 
   it("is listed beside it: the eleven back to front, then the bench in order", async () => {

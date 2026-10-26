@@ -97,3 +97,6 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 
 - A manager can give his players numbers, shown on their shirts. They start from each player's
   real club number.
+- A manager changes them on My team's Squad tab, any number from 1 to 99. Two of a team's players
+  may wear the same number. A player who moves to another team starts afresh there, on his real
+  club number (Craig, 26 Oct 2026; #13).
