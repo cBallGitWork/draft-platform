@@ -101,7 +101,7 @@ export const ofLeague = query({
       thisGameweek: current
         ? {
             gameweek: current.gameweek,
-            fixtures: current.fixtures.map((each) => namedFixture(each, named)),
+            fixtures: current.fixtures.map((each) => ({ teamId: each.team, ...namedFixture(each, named) })),
             byes: current.byes.map(named),
           }
         : null,

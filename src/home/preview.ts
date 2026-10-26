@@ -12,6 +12,7 @@ import type { HomeSeam, LeagueHome } from "./seam";
 
 const TEAMS = ["Saka Potatoes", "Kroos Control", "Lingard Franca", "Neville Wears Prada", "Team 5", "Murder on Zidane's Floor", "Dinamo Kiev Leave", "Haaland Oates", "Expected Toulouse"];
 const MINE = "Saka Potatoes";
+const previewIdOf = (team: string) => `preview-${team}` as Id<"teams">;
 const SCORED = 6;
 const firstDeadline = Date.now() - SCORED * WEEK_MS + DAY_MS;
 
@@ -27,7 +28,7 @@ const home: LeagueHome = {
   format: "headToHead",
   thisGameweek: {
     gameweek: current.gameweek,
-    fixtures: current.fixtures.map((each) => namedFixture(each, (team) => team)),
+    fixtures: current.fixtures.map((each) => ({ teamId: previewIdOf(each.team), ...namedFixture(each, (team) => team) })),
     byes: current.byes,
   },
   table: shownRows(
@@ -35,7 +36,7 @@ const home: LeagueHome = {
     MINE,
   ).map(({ teamId, position, played, won, drawn, lost, points }) => ({
     position,
-    teamId: `preview-${teamId}` as Id<"teams">,
+    teamId: previewIdOf(teamId),
     teamName: teamId,
     played,
     won,

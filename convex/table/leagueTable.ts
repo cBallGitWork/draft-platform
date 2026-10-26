@@ -20,6 +20,8 @@ import { shownDeadline } from "../gameweeks/usedGameweeks";
 // commissioner editing fixtures (spec/09) comes later.
 
 export const fixture = v.object({
+  /** The team's own, for a link to its matchup (#34). */
+  teamId: v.id("teams"),
   team: v.string(),
   /** The opponent's name, or null for the league's average. */
   opponent: v.union(v.string(), v.null()),
@@ -130,6 +132,7 @@ export const ofLeague = query({
         fixtures: fixtures.map((each) => {
           const scored = scores.get(gameweek);
           return {
+            teamId: each.team,
             ...namedFixture(each, named),
             points:
               scored === undefined

@@ -61,6 +61,7 @@ export function leagueTableOf(teamNames: string[], drawn: Drawn = {}): LeagueTab
         const scored = scores.get(gameweek);
         const pointsOf = (side: string) => (side === LEAGUE_AVERAGE ? averageOf(teamNames, scored!, gameweek) : scored!.get(side)!);
         return {
+          teamId: idOf(team),
           team,
           opponent: opponent === LEAGUE_AVERAGE ? null : opponent,
           points: scored === undefined ? null : { team: pointsOf(team), opponent: pointsOf(opponent) },
