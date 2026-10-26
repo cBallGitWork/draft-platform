@@ -47,12 +47,12 @@ export const movingHintWords = (name: string, positions: readonly string[]) =>
 
 /** The squad beside the pitch: the eleven, then the bench in order. */
 export const squadTableLabel = "Your squad: the eleven, then the bench in order";
+export const moveWords = "Move";
 export const squadColumns = {
   position: { short: "Pos", long: "Positions" },
   player: { short: "Player", long: "Player" },
-  move: { short: "Move", long: "Move him" },
+  move: { short: moveWords, long: "Move him" },
 } as const;
-export const moveWords = "Move";
 export const movingWords = "Moving";
 export const moveLabel = (name: string) => `Move ${name}`;
 export const toBenchWords = (name: string) => `Put ${name} on the bench`;

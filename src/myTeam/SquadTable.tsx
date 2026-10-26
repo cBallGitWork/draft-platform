@@ -15,6 +15,8 @@ import {
   toBenchWords,
 } from "./tacticsWords";
 
+const COLUMNS = ["position", "player", "move"] as const;
+
 /** The eleven back to front, then the bench in order under its own plate (plate.md, Marks). Each
  *  row's Move picks the player up, and a row drags onto the pitch; with a starter picked up, the
  *  bench's plate offers to take him. */
@@ -47,7 +49,7 @@ export function SquadTable({
     <table aria-label={squadTableLabel} className="w-full border-collapse">
       <thead className="bg-head text-ground">
         <tr>
-          {(["position", "player", "move"] as const).map((column) => (
+          {COLUMNS.map((column) => (
             <th key={column} scope="col" title={squadColumns[column].long} aria-label={squadColumns[column].long} className="px-2 text-left">
               {squadColumns[column].short}
             </th>
@@ -57,7 +59,7 @@ export function SquadTable({
       <tbody>{startersInOrder(draft).map(({ playerCode }) => row(playerCode, false))}</tbody>
       <tbody onDragOver={allowDrop} onDrop={drop}>
         <tr>
-          <th scope="rowgroup" colSpan={3} className="bg-plate px-2 text-left font-bold">
+          <th scope="rowgroup" colSpan={COLUMNS.length} className="bg-plate px-2 text-left font-bold">
             <span className="flex flex-wrap items-center justify-between gap-2">
               {BENCH_TITLE}
               {pickedStarts && (
@@ -70,7 +72,7 @@ export function SquadTable({
         </tr>
         {draft.bench.length === 0 ? (
           <tr>
-            <td colSpan={3} className="px-2 text-muted">
+            <td colSpan={COLUMNS.length} className="px-2 text-muted">
               {emptyBenchWords}
             </td>
           </tr>
