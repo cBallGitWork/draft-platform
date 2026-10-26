@@ -75,6 +75,10 @@ export const scoringSetShape = v.object({
       }),
     ),
   ),
+  /** scoringSet.ts's RoleAdjustments (spec/05 Roles; #10). */
+  roleAdjustments: v.optional(
+    v.array(v.object({ role: v.string(), adjustments: v.array(v.object({ stat: v.string(), points: v.number() })) })),
+  ),
 });
 
 /** presets.ts's Preset. */

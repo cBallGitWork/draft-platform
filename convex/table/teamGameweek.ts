@@ -138,7 +138,13 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
     matches: playerMatches,
     set,
     doubleGameweekRule: rules.doubleGameweek,
-    substitutions: subs.substitutions.map(({ off, on, area, lane }) => ({ off, on, cell: { area, lane } })),
+    // A sub plays the role auto-subs gave him: the empty slot's, into it (autoSubs.ts).
+    substitutions: subs.substitutions.map(({ off, on, area, lane }) => ({
+      off,
+      on,
+      cell: { area, lane },
+      role: subs.lineup.starters.find((starter) => starter.playerCode === on)?.role,
+    })),
     benchCells: new Map(lineup.bench.map((code) => [code, benchCell(positions.get(code)!)])),
   });
   return { team, autoSubs: subs, matchesOf };
