@@ -121,7 +121,10 @@ function slotPoints(input: TeamPointsInput, playerCode: PlayerCode, cell: Cell, 
   if (playerMatches === undefined) throw new Error(`player ${playerCode} has no entry in the gameweek's matches`);
   const matches = playerMatches.map((match) => {
     const scored = scoreMatch(match.record, input.set, cell, playing);
-    return match.override === undefined ? scored : { ...scored, total: match.override };
+    // An override is the match's whole score: no role line shows beside a total it isn't in.
+    if (match.override === undefined) return scored;
+    const { role: _overridden, ...rest } = scored;
+    return { ...rest, total: match.override };
   });
   const gameweek = scoreGameweek(matches, input.doubleGameweekRule);
   const provisional = gameweek.provisional || playerMatches.some((match) => !match.final);

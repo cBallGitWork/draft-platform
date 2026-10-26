@@ -36,11 +36,26 @@ export const rolesOfSlot = (cell: Cell): readonly Role[] => DEFAULT_ROLES[positi
 export const roleIn = (cell: Cell, given: string | undefined): Role =>
   rolesOfSlot(cell).find(({ key }) => key === given) ?? rolesOfSlot(cell)[0];
 
-/** A role's name as managers say it, by its key; the key itself for one no slot offers. */
+/** Each slot position as spec/05's list names it, to tell apart two roles of one name. */
+const POSITION_WORDS: Record<SlotPosition, string> = {
+  GK: "goalkeeper",
+  FB: "full-back",
+  CB: "centre-back",
+  WB: "wing-back",
+  CDM: "defensive midfield",
+  WM: "wide midfield",
+  CM: "centre midfield",
+  W: "attacking midfield, wide",
+  CAM: "attacking midfield, centre",
+  ST: "attack",
+};
+
+/** A role's name as managers say it, by its key, with its position where another role shares the
+ *  name ("Winger (wide midfield)"); the key itself for one no slot offers. */
 export function roleName(key: string): string {
-  for (const roles of Object.values(DEFAULT_ROLES)) {
-    const found = roles.find((each) => each.key === key);
-    if (found !== undefined) return found.name;
-  }
-  return key;
+  const entries = Object.entries(DEFAULT_ROLES) as [SlotPosition, readonly Role[]][];
+  const found = entries.flatMap(([position, roles]) => roles.filter((each) => each.key === key).map((each) => ({ position, ...each })))[0];
+  if (found === undefined) return key;
+  const shared = entries.some(([, roles]) => roles.some((each) => each.name === found.name && each.key !== key));
+  return shared ? `${found.name} (${POSITION_WORDS[found.position]})` : found.name;
 }

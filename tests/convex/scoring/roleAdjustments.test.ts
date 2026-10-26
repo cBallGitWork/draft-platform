@@ -76,3 +76,52 @@ test("a patch that adjusts a role says so in its notes", () => {
   expect(scoringChanges(FIRST_SCORING, stored)).toEqual(["Attacking full-back: now +1 per Accurate cross, −1 per Clean sheets"]);
   expect(scoringChanges(stored, FIRST_SCORING)).toEqual(["Attacking full-back: no longer adjusted"]);
 });
+
+describe("a role adjustment, at the edges", () => {
+  test("a record not yet arrived scores null, with no role line", () => {
+    const pending = scoreMatch(null, SET, FULL_BACK, "attackingFullBack");
+    expect(pending.total).toBeNull();
+    expect(pending.role).toBeUndefined();
+  });
+
+  test("a fraction is kept in tenths: 0.1 a cross, three crosses, 0.3", () => {
+    const tenth: ScoringSet = { ...FIRST_SCORING, roleAdjustments: [{ role: "attackingFullBack", adjustments: [{ stat: "accurate_cross", points: 0.1 }] }] };
+    expect(scoreMatch({ minutes: 90, accurate_cross: 3 }, tenth, FULL_BACK, "attackingFullBack").role?.points).toBe(0.3);
+  });
+
+  const lineup = { starters: [{ playerCode: 1, ...FULL_BACK, role: "attackingFullBack" }], bench: [2] };
+  const team = (override?: number, substitutions: { off: number; on: number; cell: typeof FULL_BACK; role?: string }[] = []) =>
+    scoreTeam({
+      lineup,
+      matches: new Map([
+        [1, [{ record: RECORD, final: true, ...(override === undefined ? {} : { override }) }]],
+        [2, [{ record: RECORD, final: true }]],
+      ]),
+      set: SET,
+      doubleGameweekRule: "bothMatches",
+      substitutions,
+      benchCells: new Map([[2, FULL_BACK]]),
+    });
+
+  test("an overridden match keeps the override as its whole score, with no role line", () => {
+    const [starter] = team(9).starters;
+    expect(starter.points).toBe(9);
+    expect(starter.matches[0].role).toBeUndefined();
+  });
+
+  test("a sub into the empty slot plays the role he's given there", () => {
+    const subbed = team(undefined, [{ off: 1, on: 2, cell: FULL_BACK, role: "attackingFullBack" }]);
+    expect(subbed.bench[0].matches[0].role?.role).toBe("attackingFullBack");
+  });
+});
+
+test("two roles of one name are told apart in patch notes by their position", () => {
+  const both = structuredClone({ ...FIRST_SCORING, roleAdjustments: [
+    { role: "wideMidfielder", adjustments: [{ stat: "accurate_cross", points: 1 }] },
+    { role: "winger", adjustments: [{ stat: "accurate_cross", points: 1 }] },
+  ] }) as StoredScoringSet;
+  expect(scoringChanges(FIRST_SCORING, both)).toEqual([
+    "Winger (wide midfield): now +1 per Accurate cross",
+    "Winger (attacking midfield, wide): now +1 per Accurate cross",
+  ]);
+});
