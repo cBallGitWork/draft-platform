@@ -100,7 +100,7 @@ function Shirt({ number }: { number: number | null }) {
       <path d="M13 4 L7 7 L2 13 L7 18 L10 16 L10 37 L30 37 L30 16 L33 18 L38 13 L33 7 L27 4 Q20 10 13 4 Z" />
       {number !== null && (
         // In the shirt's own units, as the shirt is drawn 40 wide and shown smaller (size-shirt).
-        <text x="20" y="30" textAnchor="middle" fontSize="16" className="fill-ground stroke-none font-bold">
+        <text x="20" y="29" textAnchor="middle" fontSize="14" className="fill-ground stroke-none font-bold">
           {number}
         </text>
       )}
