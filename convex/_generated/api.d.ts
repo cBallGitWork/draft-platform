@@ -30,6 +30,7 @@ import type * as football_premierLeague from "../football/premierLeague.js";
 import type * as football_scoreReads from "../football/scoreReads.js";
 import type * as gameweeks_deadline from "../gameweeks/deadline.js";
 import type * as gameweeks_deadlineRecorder from "../gameweeks/deadlineRecorder.js";
+import type * as gameweeks_gameweekStarts from "../gameweeks/gameweekStarts.js";
 import type * as gameweeks_leagueGameweeks from "../gameweeks/leagueGameweeks.js";
 import type * as gameweeks_nextGameweek from "../gameweeks/nextGameweek.js";
 import type * as gameweeks_passedDeadlines from "../gameweeks/passedDeadlines.js";
@@ -115,6 +116,7 @@ import type * as stats_statTotals from "../stats/statTotals.js";
 import type * as table_leagueTable from "../table/leagueTable.js";
 import type * as table_roundRobin from "../table/roundRobin.js";
 import type * as table_standings from "../table/standings.js";
+import type * as table_teamFixtures from "../table/teamFixtures.js";
 
 import type {
   ApiFromModules,
@@ -145,6 +147,7 @@ declare const fullApi: ApiFromModules<{
   "football/scoreReads": typeof football_scoreReads;
   "gameweeks/deadline": typeof gameweeks_deadline;
   "gameweeks/deadlineRecorder": typeof gameweeks_deadlineRecorder;
+  "gameweeks/gameweekStarts": typeof gameweeks_gameweekStarts;
   "gameweeks/leagueGameweeks": typeof gameweeks_leagueGameweeks;
   "gameweeks/nextGameweek": typeof gameweeks_nextGameweek;
   "gameweeks/passedDeadlines": typeof gameweeks_passedDeadlines;
@@ -230,6 +233,7 @@ declare const fullApi: ApiFromModules<{
   "table/leagueTable": typeof table_leagueTable;
   "table/roundRobin": typeof table_roundRobin;
   "table/standings": typeof table_standings;
+  "table/teamFixtures": typeof table_teamFixtures;
 }>;
 
 /**

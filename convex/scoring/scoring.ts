@@ -140,6 +140,7 @@ export function scoreGameweek(matches: readonly MatchPoints[], rule: DoubleGamew
   const provisional = arrived.length < matches.length;
   if (matches.length === 0) return { points: 0, provisional };
   if (arrived.length === 0) return { points: null, provisional };
-  const points = rule === "bestMatch" ? Math.max(...arrived) : sum(arrived);
+  // Each match's total is in tenths; their sum is put back in tenths too (spec/14).
+  const points = rule === "bestMatch" ? Math.max(...arrived) : inTenths(sum(arrived));
   return { points, provisional };
 }

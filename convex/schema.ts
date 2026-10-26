@@ -504,6 +504,7 @@ const joinRequestFields = {
 const joiningTables = {
   invites: defineTable(inviteFields)
     .index("by_leagueId", ["leagueId"])
+    .index("by_leagueId_and_cancelledAt", ["leagueId", "cancelledAt"])
     .index("by_email_and_expiresAt", ["email", "expiresAt"]),
   inviteLinks: defineTable(inviteLinkFields).index("by_leagueId", ["leagueId"]).index("by_token", ["token"]),
   joinRequests: defineTable(joinRequestFields)
@@ -690,6 +691,16 @@ const leagueRulesTables = {
     deadline: v.number(),
     recordedAt: v.number(),
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
+  /** A gameweek's first kickoff once it has passed (#414): where it fell stays put, even if that
+   *  match then leaves the gameweek, so the site's scoring version for it can't change. One row a
+   *  season and gameweek, site-wide, written by gameweeks/gameweekStarts.ts. */
+  gameweekStarts: defineTable({
+    /** The year the season starts, as football.ts's `seasonStartYear`. */
+    season: v.number(),
+    gameweek: v.number(),
+    firstKickoff: v.number(),
+    recordedAt: v.number(),
+  }).index("by_season_and_gameweek", ["season", "gameweek"]),
 };
 
 // A league's head-to-head fixtures in each gameweek it has begun, stored once the gameweek begins

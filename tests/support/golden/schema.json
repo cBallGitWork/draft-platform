@@ -3962,6 +3962,13 @@
           ]
         },
         {
+          "indexDescriptor": "by_leagueId_and_cancelledAt",
+          "fields": [
+            "leagueId",
+            "cancelledAt"
+          ]
+        },
+        {
           "indexDescriptor": "by_email_and_expiresAt",
           "fields": [
             "email",
@@ -19431,6 +19438,52 @@
             "optional": false
           },
           "deadline": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "recordedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "gameweekStarts",
+      "indexes": [
+        {
+          "indexDescriptor": "by_season_and_gameweek",
+          "fields": [
+            "season",
+            "gameweek"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "season": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "gameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "firstKickoff": {
             "fieldType": {
               "type": "number"
             },
