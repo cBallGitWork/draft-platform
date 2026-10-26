@@ -131,6 +131,19 @@ test("a final gameweek's stored scores are its totals, as the table reads them, 
   expect(cats).toMatchObject({ game: { opponent: { kind: "leagueAverage", points: inTenths((WRITTEN_OVER + EVERTON_POINTS) / 3) } } });
 });
 
+test("a final gameweek whose matches have changed since it was stored is worked out again, as the table does", async () => {
+  const league = await scoresLeague();
+  await fullTimeRecords(league);
+  await lockMatch(league);
+  await league.t.mutation(internal.table.finalScores.storeLeague, { leagueId: league.leagueId });
+  await league.t.run(async (ctx) => {
+    for (const row of await ctx.db.query("finalScores").collect()) await ctx.db.patch("finalScores", row._id, { points: 99 });
+    await ctx.db.insert("fixtures", { code: HULL_EVERTON + 1, gameweek: GAMEWEEK, homeClubCode: ARSENAL, awayClubCode: ARSENAL + 1, kickoff: KICKOFF });
+  });
+  const game = await annsGame(league);
+  expect([game.team.points, game.opponent.points]).toEqual([HULL_POINTS, EVERTON_POINTS]);
+});
+
 test("in a double gameweek a man is yet to play while his second match is to come, and no auto-sub comes before it", async () => {
   const league = await scoresLeague();
   const secondKickoff = KICKOFF + 3 * DAY_MS;

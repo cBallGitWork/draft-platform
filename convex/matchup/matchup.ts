@@ -100,7 +100,10 @@ async function gameOf(
 }
 
 /** Each side of the matchup, from gameweekScores.ts's own scoring: each slot worked out, and each
- *  total read from the gameweek's stored final scores where the table reads it from them. */
+ *  total read from the gameweek's stored final scores where the table reads it from them. A stored
+ *  total is final, so should the data behind a slot change after storing (a position corrected,
+ *  say), the slots may no longer add up to it; and a gameweek whose slots can't be worked out is
+ *  unscored here even while the table shows its stored totals. */
 class SideScorer {
   private readonly names = new Map<PlayerCode, Promise<string>>();
   private readonly scores = new Map<number, Promise<Doc<"matchScores"> | null>>();
