@@ -3962,6 +3962,13 @@
           ]
         },
         {
+          "indexDescriptor": "by_leagueId_and_cancelledAt",
+          "fields": [
+            "leagueId",
+            "cancelledAt"
+          ]
+        },
+        {
           "indexDescriptor": "by_email_and_expiresAt",
           "fields": [
             "email",
