@@ -6,7 +6,7 @@ import { heldSchedule, seasonRules, type SeasonRules } from "../rules/leagueRule
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { passedDeadlineOf, passedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { GAMEWEEKS, isGameweek, noSuchGameweek } from "../gameweeks/usedGameweeks";
-import { squadAt, squadOf } from "../squads/squads";
+import { squadAt, squadMovesSince, squadOf, type SquadMovesSince } from "../squads/squads";
 import { playerByCode } from "../shared/players";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
@@ -60,22 +60,40 @@ function rowInForce(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">,
     .first();
 }
 
-/** The team's lineup in the gameweek, as `heldLineupShape` says: for its screen, auto-subs and
+/** Each team's lineup in the gameweek, as `heldLineupShape` says: for its screen, auto-subs and
  *  scoring. Begun means its deadline is recorded (deadlineRecorder.ts); until the football sync
  *  records it, the squad now is read, and a move made in between leaves the lineup once it does.
- *  Positions aren't checked again: a starter who has lost one since stays in his cell (spec/06,
- *  When positions change). */
-export async function lineupInGameweek(
+ *  The league's moves since the deadline are read once for every team. Positions aren't checked
+ *  again: a starter who has lost one since stays in his cell (spec/06, When positions change). */
+export async function lineupsInGameweek(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
-  teamId: Id<"teams">,
+  teamIds: readonly Id<"teams">[],
   gameweek: number,
-): Promise<HeldLineup> {
-  const row = await rowInForce(ctx, leagueId, teamId, gameweek);
-  if (row === null) return { kind: "none" };
+): Promise<Map<Id<"teams">, HeldLineup>> {
   const deadline = await passedDeadlineOf(ctx, leagueId, gameweek);
-  const squad = deadline === null ? await squadCodes(ctx, teamId) : await squadAt(ctx, leagueId, teamId, deadline);
-  return { kind: "saved", fromGameweek: row.fromGameweek, ...reconciled(row, squad) };
+  let movesSince: Promise<SquadMovesSince> | undefined;
+  const lineups = new Map<Id<"teams">, HeldLineup>();
+  for (const teamId of teamIds) {
+    const row = await rowInForce(ctx, leagueId, teamId, gameweek);
+    if (row === null) {
+      lineups.set(teamId, { kind: "none" });
+      continue;
+    }
+    let squad: number[];
+    if (deadline === null) squad = await squadCodes(ctx, teamId);
+    else {
+      movesSince ??= squadMovesSince(ctx, leagueId, deadline);
+      squad = await squadAt(ctx, teamId, await movesSince);
+    }
+    lineups.set(teamId, { kind: "saved", fromGameweek: row.fromGameweek, ...reconciled(row, squad) });
+  }
+  return lineups;
+}
+
+/** One team's lineup in the gameweek, as `lineupsInGameweek` gives it. */
+export async function lineupInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, gameweek: number): Promise<HeldLineup> {
+  return (await lineupsInGameweek(ctx, leagueId, [teamId], gameweek)).get(teamId)!;
 }
 
 /** The squad's player codes, in the order they joined it. */

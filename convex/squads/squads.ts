@@ -66,11 +66,11 @@ type LeagueEvent = Infer<typeof leagueEvent>;
 type SquadMove = Extract<LeagueEvent, { kind: (typeof SQUAD_MOVES)[number] }>;
 export const isSquadMove = (event: LeagueEvent): event is SquadMove => (SQUAD_MOVES as readonly string[]).includes(event.kind);
 
-/** The team's player codes as its squad stood at `at`: today's squad with every squad move filed
- *  at `at` or after undone, newest first. Those still in it keep the order they joined; those who
- *  have left since follow, in the order they left. A move that doesn't fit the squad it undoes
- *  (one who joined but isn't there, one who left but is) throws: the history is broken. */
-export async function squadAt(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, at: number): Promise<number[]> {
+/** A league's squad moves filed at `at` or after, newest first: what `squadAt` undoes. */
+export type SquadMovesSince = Doc<"leagueEvents">[];
+
+/** The league's squad moves filed at `at` or after, newest first. Read once for every team. */
+export async function squadMovesSince(ctx: QueryCtx, leagueId: Id<"leagues">, at: number): Promise<SquadMovesSince> {
   const movesOfEachKind = await Promise.all(
     SQUAD_MOVES.map((kind) =>
       takeAllOrThrow(
@@ -82,11 +82,18 @@ export async function squadAt(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id
       ),
     ),
   );
+  return movesOfEachKind.flat().toSorted((one, other) => other._creationTime - one._creationTime);
+}
+
+/** The team's player codes as its squad stood before `movesSince`: today's squad with each of them
+ *  undone, newest first. Those still in it keep the order they joined; those who have left since
+ *  follow, in the order they left. A move that doesn't fit the squad it undoes (one who joined but
+ *  isn't there, one who left but is) throws: the history is broken. */
+export async function squadAt(ctx: QueryCtx, teamId: Id<"teams">, movesSince: SquadMovesSince): Promise<number[]> {
   let stayed = (await squadOf(ctx, teamId)).map(({ playerCode }) => playerCode);
   let leftSince: number[] = [];
-  const newestFirst = movesOfEachKind.flat().toSorted((one, other) => other._creationTime - one._creationTime);
-  for (const { _id, event } of newestFirst) {
-    // The index read only these kinds; any other is a bug in it.
+  for (const { _id, event } of movesSince) {
+    // Only these kinds were read; any other is a bug in the read.
     if (!isSquadMove(event)) throw new Error(`League event ${_id} is a ${event.kind}, not a squad move`);
     const { playerCode } = event;
     const held = stayed.includes(playerCode) || leftSince.includes(playerCode);

@@ -1,7 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { autoSubs, gameweekPlay, type GameweekPlay } from "../lineup/autoSubs";
-import { lineupInGameweek } from "../lineup/lineups";
+import { lineupsInGameweek } from "../lineup/lineups";
 import { AREAS, LANES, playsCell, type Cell } from "../lineup/pitch";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount, type HowPositionsCount } from "../positions/positionSettings";
@@ -139,8 +139,9 @@ async function gameweekScores(ctx: QueryCtx, reads: LeagueReads, gameweek: numbe
   const rules = reads.season.inGameweek(gameweek);
   const matches = await heldMatches(ctx, gameweek);
   const scores = new Map<TeamId, TeamGameweek>();
+  const lineups = await lineupsInGameweek(ctx, reads.leagueId, reads.teamIds, gameweek);
   for (const teamId of reads.teamIds) {
-    const held = await lineupInGameweek(ctx, reads.leagueId, teamId, gameweek);
+    const held = lineups.get(teamId)!;
     if (held.kind === "none") {
       scores.set(teamId, { points: 0, provisional: false, noLineup: true });
       continue;
