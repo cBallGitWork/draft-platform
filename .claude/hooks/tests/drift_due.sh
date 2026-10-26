@@ -33,6 +33,13 @@ git -C "$repo" checkout -q -b ahead && commits "$repo" 12 && git -C "$repo" chec
 git -C "$repo" update-ref refs/remotes/origin/main ahead
 says "drift pass due: 23 merged since $pass" drift_due.py '{}'
 
+# a shallow clone may cut off the last pass, so with none in reach it says so rather than count
+shallow=$tmp/drift-shallow && git clone -q --depth 3 "file://$repo" "$shallow"
+fails_loudly "is a shallow clone with no drift pass in reach" drift_due.py '{}' CLAUDE_PROJECT_DIR="$shallow"
+# but a pass inside the shallow history is counted as usual
+git clone -q --depth 15 "file://$repo" "$tmp/drift-deep" 2>/dev/null
+says "merged since $pass" drift_due.py '{}' CLAUDE_PROJECT_DIR="$tmp/drift-deep"
+
 # a checkout with neither, or no git at all, says so in one line on stderr, never silence
 nomain=$tmp/drift-nomain && git init -q -b trunk "$nomain" && commits "$nomain" 1
 fails_loudly "drift_due.py: neither origin/main nor main exists in $nomain" drift_due.py '{}' CLAUDE_PROJECT_DIR="$nomain"

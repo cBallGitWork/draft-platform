@@ -7,8 +7,9 @@ a line starting "refactor: drift pass" (each merged pull request is one commit),
 origin/main, falling back to main. At DUE_AFTER or more it prints `drift pass due: N merged since
 <sha>`, which Claude Code hands Claude as context; otherwise it says nothing. It never fetches,
 so origin/main is as fresh as the last fetch. Main with no drift pass yet counts every commit,
-"since the start". A git call that fails exits 1 with one line on stderr: Claude Code shows it,
-and the session goes ahead. It judges CLAUDE_PROJECT_DIR, else the folder it runs in.
+"since the start", unless the clone is shallow: there the pass may lie past the cut, so it says
+so on stderr rather than miscount (cloud sessions clone 50 commits deep). A git call that fails
+exits 1 with one line on stderr: Claude Code shows it, and the session goes ahead. It judges CLAUDE_PROJECT_DIR, else the folder it runs in.
 Stdlib only, Python 3.9+.
 """
 
@@ -49,6 +50,8 @@ def main():
     try:
         ref = main_ref(folder)
         last_pass = git(folder, "log", "-1", "--format=%h", f"--grep={PASS_MARK}", ref)
+        if not last_pass and git(folder, "rev-parse", "--is-shallow-repository") == "true":
+            raise GitFailed(f"{folder} is a shallow clone with no drift pass in reach (git fetch --unshallow)")
         merged = int(git(folder, "rev-list", "--count", f"{last_pass}..{ref}" if last_pass else ref))
     except GitFailed as error:
         name = os.path.basename(sys.argv[0])
