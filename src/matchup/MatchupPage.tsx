@@ -121,7 +121,7 @@ const sideName = (side: MatchupSide) => (side.kind === "team" ? side.teamName : 
 /** Two sides, the score between them once there is one. */
 function Fixture({ teamName, opponent, score }: { teamName: string; opponent: string; score?: string }) {
   return (
-    <p className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-3 px-3 py-2 text-title font-bold">
+    <p className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-3 px-3 py-2 text-lead font-bold sm:text-title">
       <span className="text-right">{teamName}</span>
       {score === undefined ? <span className="text-muted">{versusWords}</span> : <span className="text-figure tabular-nums whitespace-nowrap">{score}</span>}
       <span>{opponent}</span>
@@ -192,7 +192,7 @@ function SidePanel({ side }: { side: MatchupSide }) {
 function SlotRow({ slot }: { slot: MatchupSlot }) {
   const { area, name, points, counts, status, autoSub } = slot;
   return (
-    <tr className={`border-t border-panel-rule ${counts ? "" : "text-muted"}`}>
+    <tr className={`border-t border-panel-rule align-top ${counts ? "" : "text-muted"}`}>
       <td className="px-2 text-right">
         <abbr title={AREA_WORDS[area]} className="no-underline">
           {AREA_CODES[area]}
@@ -210,7 +210,7 @@ function SlotRow({ slot }: { slot: MatchupSlot }) {
         <span className="sr-only">{statusLabels[status.kind]} </span>
         <span aria-hidden={status.kind === "finished" || status.kind === "noMatch" ? true : undefined}>{statusText(status)}</span>
       </td>
-      <td className={`px-2 text-right tabular-nums ${counts ? "font-bold text-figure" : ""}`}>
+      <td className={`px-2 text-right tabular-nums ${counts && points !== null ? "font-bold text-figure" : "text-muted"}`}>
         {points ?? noFigureWords}
         {!counts && <span className="sr-only"> {notCountingLabel}</span>}
       </td>

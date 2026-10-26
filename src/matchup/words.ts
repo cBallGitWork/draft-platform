@@ -2,9 +2,12 @@
 
 import type { Area } from "../../convex/lineup/pitch";
 import { leagueAverageWords } from "../table/words";
+import { LOCALE } from "../../convex/shared/londonTime";
 import { gameweekWords, versusWords, whenWords } from "../words";
 
-export { AREA_WORDS, gameweekWords, noFigureWords, versusWords, whenWords } from "../words";
+const kickoffFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit" });
+
+export { AREA_WORDS, gameweekWords, noFigureWords, versusWords } from "../words";
 export { leagueAverageWords, nextGlyph, nextLabel, previousGlyph, previousLabel, scoreWords } from "../table/words";
 
 export const MATCHUP_TITLE = "Matchup";
@@ -53,7 +56,8 @@ export const AREA_CODES: Record<Area, string> = {
 
 /** His match, as the status column says it. */
 export const statusWords = {
-  yetToPlay: (kickoff: number | null) => (kickoff === null ? "To play" : whenWords(kickoff)),
+  /** His kickoff, short as the column is: "Sat 15:00". */
+  yetToPlay: (kickoff: number | null) => (kickoff === null ? "To play" : kickoffFormat.format(kickoff)),
   playing: (minute: number | null) => (minute === null ? "On" : `${minute}'`),
   finished: "FT",
   noMatch: "No match",

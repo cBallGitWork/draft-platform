@@ -36,9 +36,9 @@ import {
   SCORE_LABEL,
   scoreWords,
   statusLabels,
+  statusWords,
   totalPointsWords,
   unscoredWords,
-  whenWords,
 } from "../../../src/matchup/words";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 import { homeFixture, quietHome } from "../../support/src/home.harness";
@@ -127,8 +127,8 @@ describe("a replayed gameweek plays out on screen", () => {
     expect(top.textContent).toContain(scoreWords(0, 0));
     expect(within(top).getByText(provisionalWords)).toBeTruthy();
     expect(lineupRows("Team 1")).toEqual([
-      `${AREA_CODES.goalkeeper}Phillips${statusLabels.yetToPlay} ${whenWords(KICKOFF)}—`,
-      `${AREA_CODES.midfield}Coyle${statusLabels.yetToPlay} ${whenWords(KICKOFF)}—`,
+      `${AREA_CODES.goalkeeper}Phillips${statusLabels.yetToPlay} ${statusWords.yetToPlay(KICKOFF)}—`,
+      `${AREA_CODES.midfield}Coyle${statusLabels.yetToPlay} ${statusWords.yetToPlay(KICKOFF)}—`,
       BENCH_TITLE,
       `${AREA_CODES.goalkeeper}Pandur${statusLabels.yetToPlay} To play— ${notCountingLabel}`,
     ]);
