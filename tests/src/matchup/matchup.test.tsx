@@ -169,6 +169,16 @@ describe("while the next minute loads", () => {
     expect(screen.getByText(scoreWords(2, 5))).toBeTruthy();
     expect(screen.queryByText(loadingWords)).toBeNull();
   });
+
+  it("loads another gameweek afresh, never showing the last one's in its place", async () => {
+    const live = liveMatchup(stages.live);
+    openMatchup({ live });
+    const stepper = await screen.findByRole("navigation", { name: gameweekWords(6) });
+    live.play(undefined);
+    await userEvent.click(within(stepper).getByRole("link", { name: nextLabel }));
+    expect(await screen.findByText(loadingWords)).toBeTruthy();
+    expect(screen.queryByText(scoreWords(2, 5))).toBeNull();
+  });
 });
 
 describe("the gameweek stepper", () => {
