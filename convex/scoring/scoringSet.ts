@@ -199,14 +199,14 @@ function validatePriced(priced: unknown, named: string, what: string, check: (va
 function validateValues(shape: ScoringRule["shape"], values: unknown, where: string, points: CheckPoints): void {
   switch (shape) {
     case "perAction":
-      return points(values, `${where} pays`);
+      return points(values, `${where} is worth`);
     case "perCount": {
       if (!isObject(values)) throw new Error(`${where} has no number of actions and points`);
-      requireNumber(values.every, `${where} pays for every`);
+      requireNumber(values.every, `${where} is worth points for every`);
       if (!(values.every > 0)) {
-        throw new Error(`${where} pays for every ${values.every} actions; it must be more than 0`);
+        throw new Error(`${where} is worth points for every ${values.every} actions; it must be more than 0`);
       }
-      return points(values.points, `${where} pays`);
+      return points(values.points, `${where} is worth`);
     }
     case "bands":
       return validateBands(values, where, points);
@@ -219,7 +219,7 @@ function validateBands(bands: unknown, where: string, points: CheckPoints): void
     const which = `${where}, band ${index + 1},`;
     if (!isObject(band)) throw new Error(`${which} is not a band`);
     requireNumber(band.atLeast, `${which} starts at`);
-    points(band.points, `${which} pays`);
+    points(band.points, `${which} is worth`);
   });
   if (new Set(bands.map((band: Band) => band.atLeast)).size !== bands.length) {
     throw new Error(`${where} has two bands at one threshold`);
@@ -228,10 +228,10 @@ function validateBands(bands: unknown, where: string, points: CheckPoints): void
 
 function validateLimit(limit: unknown, where: string, points: CheckPoints): void {
   if (!isObject(limit)) throw new Error(`${where} has no most and least`);
-  if (limit.max !== null) points(limit.max, `${where} pays at most`);
-  if (limit.min !== null) points(limit.min, `${where} pays at least`);
+  if (limit.max !== null) points(limit.max, `${where} is worth at most`);
+  if (limit.min !== null) points(limit.min, `${where} is worth at least`);
   if (limit.max !== null && limit.min !== null && (limit.min as number) > (limit.max as number)) {
-    throw new Error(`${where} pays at least ${limit.min}, more than its most, ${limit.max}`);
+    throw new Error(`${where} is worth at least ${limit.min}, more than its most, ${limit.max}`);
   }
 }
 

@@ -9,7 +9,7 @@ takers` (16 Oct 2026). It sits on tactics ([5](05-tactics.md)).
 - The captain leads by example, like a real club captain: a role-style adjustment, give and take,
   as a league rule. He gains for playing the full 90 and for his club winning; he loses more than
   usual for a yellow card, and far more for a red. The defaults are priced against last season, as
-  roles are, so the armband pays only on a captain who suits it.
+  roles are, so the armband earns only for a captain who suits it.
 - His club's result is not a per-player stat in the feeds: it comes from the match's score, so
   scoring takes it in as a new category (`spec/14`).
 - There is no points multiplier.
@@ -22,8 +22,8 @@ takers` (16 Oct 2026). It sits on tactics ([5](05-tactics.md)).
   of his players, pre-filled from FPL's order for that duty.
 - A bench player can be on a list (a manager benches a player carrying a knock). He takes the duty
   only if an auto-sub brings him into the eleven.
-- The first on the list who plays holds the duty for the whole match, and only he is paid for it.
-  If no one on the list plays, the duty pays nothing.
+- The first on the list who plays holds the duty for the whole match, and only he earns its adjustment.
+  If no one on the list plays, no one earns it.
 - A taker earns role-style adjustments, give and take, set by the site and changed by patch like
   roles' (`spec/14`, 25 Oct 2026; "maybe we dont use first"): the penalty taker per
   penalty scored and missed; the free-kick taker for free-kick goals and set-piece chances; the

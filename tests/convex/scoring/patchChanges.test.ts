@@ -49,14 +49,14 @@ describe("a rule's values", () => {
 
     expect(scoringChanges(set([MINUTES]), set([after]))).toEqual([
       "Minutes: 1 at 1+, 2 at 60+ → 3 at 60+",
-      "Minutes: every band reached now pays",
+      "Minutes: every band reached now counts",
     ]);
   });
 
   test("a new shape describes the rule afresh", () => {
     const after: Rule = { shape: "bands", stat: "assists", stack: false, values: { all: [] } };
 
-    expect(scoringChanges(set([assists(3)]), set([after]))).toEqual(["Assists: now pays nothing in bands"]);
+    expect(scoringChanges(set([assists(3)]), set([after]))).toEqual(["Assists: now worth nothing in bands"]);
   });
 });
 
@@ -67,11 +67,11 @@ describe("a rule's options", () => {
 
     expect(scoringChanges(set([assists(3)]), set([limited]))).toEqual([
       "Assists, points limit: none → at most 2",
-      "Assists, pays only after: none → 60 minutes",
+      "Assists, earned only after: none → 60 minutes",
     ]);
     expect(scoringChanges(set([limited]), set([loosened]))).toEqual([
       "Assists, points limit: at most 2 → at most 4, at least −1",
-      "Assists, pays only after: 60 minutes → none",
+      "Assists, earned only after: 60 minutes → none",
     ]);
   });
 });

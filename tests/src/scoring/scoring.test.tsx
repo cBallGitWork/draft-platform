@@ -144,7 +144,7 @@ describe("#30 Done: an edit saves, from the next gameweek", () => {
   });
 
   it.each([
-    "The scoring set can't be saved: the Assists rule pays 0.25; points are kept in tenths.",
+    "The scoring set can't be saved: the Assists rule is worth 0.25; points are kept in tenths.",
     'The scoring set can\'t be saved: the own stat own_assists has the name "assists", which the catalogue\'s Assists has.',
   ])("shows why the server refused it: %s", async (refusal) => {
     const app = openScoring();
