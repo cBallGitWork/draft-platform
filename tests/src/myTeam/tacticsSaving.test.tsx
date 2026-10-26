@@ -91,6 +91,6 @@ describe("the squad changing under an edit", () => {
 
     expect(await screen.findByText(startingWords(STARTERS.length))).toBeTruthy();
     expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${WHITE.name},`) })).toBeNull();
-    expect(squadRows().at(-1)).toBe("WSaka ARSMove");
+    expect(squadRows().at(-1)).toBe("WSaka ARSMove Up Down");
   });
 });

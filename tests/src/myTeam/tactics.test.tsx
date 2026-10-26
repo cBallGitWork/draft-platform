@@ -12,6 +12,7 @@ import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import {
   BENCH_TITLE,
+  downLabel,
   emptyBenchWords,
   joinedBenchWords,
   locksWords,
@@ -27,6 +28,7 @@ import {
   tacticsLoadingWords,
   tacticsNoRulesWords,
   toBenchWords,
+  upLabel,
 } from "../../../src/myTeam/tacticsWords";
 import { noTeamWords } from "../../../src/myTeam/words";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
@@ -45,6 +47,7 @@ import {
   openTacticsTab,
   openedPitch,
   pitch,
+  save,
   squadRows,
   targets,
   type Member,
@@ -114,7 +117,7 @@ describe("the lineup held", () => {
   it("is listed beside it: the eleven back to front, then the bench in order", async () => {
     openTacticsTab();
     await screen.findByRole("table", { name: squadTableLabel });
-    expect(squadRows()).toEqual(["GKRaya ARSMove", "CBSaliba ARSMove", "CDM, CMRice ARSMove", "STHavertz ARSMove", BENCH_TITLE, "GKArrizabalaga ARSMove", "FB, WBWhite ARSMove"]);
+    expect(squadRows()).toEqual(["GKRaya ARSMove", "CBSaliba ARSMove", "CDM, CMRice ARSMove", "STHavertz ARSMove", BENCH_TITLE, "GKArrizabalaga ARSMove Up Down", "FB, WBWhite ARSMove Up Down"]);
   });
 
   it("for a team that has never saved one, is the whole squad on the bench", async () => {
@@ -196,7 +199,7 @@ describe("moving a player", () => {
     await openedPitch();
     await userEvent.click(blockOf(RICE, { area: "midfield", lane: "centre" }));
     await userEvent.click(screen.getByRole("button", { name: toBenchWords(RICE.name) }));
-    expect(squadRows().at(-1)).toBe("CDM, CMRice ARSMove");
+    expect(squadRows().at(-1)).toBe("CDM, CMRice ARSMove Up Down");
     expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${RICE.name},`) })).toBeNull();
   });
 
@@ -224,6 +227,39 @@ describe("moving a player", () => {
     const dataTransfer = { setData: () => undefined, effectAllowed: "" };
     fireEvent.dragStart(blockOf(HAVERTZ, { area: "attack", lane: "centre" }), { dataTransfer });
     fireEvent.drop(screen.getByText(BENCH_TITLE), { dataTransfer });
-    expect(squadRows().at(-1)).toBe("STHavertz ARSMove");
+    expect(squadRows().at(-1)).toBe("STHavertz ARSMove Up Down");
+  });
+});
+
+describe("the bench order (spec/05 Auto-subs; Craig, 26 Oct 2026)", () => {
+  const up = (player: Member) => screen.getByRole("button", { name: upLabel(player.name) });
+  const down = (player: Member) => screen.getByRole("button", { name: downLabel(player.name) });
+  const benchNames = () => squadRows().slice(squadRows().indexOf(BENCH_TITLE) + 1);
+
+  it("Up and Down move a bench player one place, and neither runs off the end", async () => {
+    await openedPitch();
+    expect(up(ARRIZABALAGA).hasAttribute("disabled")).toBe(true);
+    expect(down(WHITE).hasAttribute("disabled")).toBe(true);
+    await userEvent.click(down(ARRIZABALAGA));
+    expect(benchNames().map((row) => row.split(" ARS")[0])).toEqual(["FB, WBWhite", "GKArrizabalaga"]);
+    await userEvent.click(up(ARRIZABALAGA));
+    expect(benchNames().map((row) => row.split(" ARS")[0])).toEqual(["GKArrizabalaga", "FB, WBWhite"]);
+  });
+
+  it("a starter dragged onto a bench row takes its place there", async () => {
+    await openedPitch();
+    const dataTransfer = { setData: () => undefined, effectAllowed: "" };
+    fireEvent.dragStart(blockOf(HAVERTZ, { area: "attack", lane: "centre" }), { dataTransfer });
+    const whitesRow = down(WHITE).closest("tr")!;
+    fireEvent.dragOver(whitesRow, { dataTransfer });
+    fireEvent.drop(whitesRow, { dataTransfer });
+    expect(benchNames().map((row) => row.split(" ARS")[0])).toEqual(["GKArrizabalaga", "STHavertz", "FB, WBWhite"]);
+  });
+
+  it("is saved as it stands", async () => {
+    const app = await openedPitch();
+    await userEvent.click(up(WHITE));
+    await userEvent.click(save());
+    expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, { starters: STARTERS, bench: [WHITE.playerCode, ARRIZABALAGA.playerCode] });
   });
 });

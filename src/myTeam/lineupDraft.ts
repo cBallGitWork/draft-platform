@@ -59,11 +59,16 @@ export function placed(draft: DraftLineup, playerCode: number, cell: Cell): Draf
   return { starters: [...rest.starters, { playerCode, ...cell }], bench: rest.bench };
 }
 
-/** The starter taken off the pitch, to the end of the bench. */
-export function benched(draft: DraftLineup, playerCode: number): DraftLineup {
+/** The player put on the bench at `index`, 0 being first on, from the pitch or from elsewhere on
+ *  the bench (spec/05 Auto-subs: the manager's bench order). Past either end is that end. */
+export function benchedAt(draft: DraftLineup, playerCode: number, index: number): DraftLineup {
   const rest = without(draft, playerCode);
-  return { starters: rest.starters, bench: [...rest.bench, playerCode] };
+  const at = Math.max(0, Math.min(index, rest.bench.length));
+  return { starters: rest.starters, bench: [...rest.bench.slice(0, at), playerCode, ...rest.bench.slice(at)] };
 }
+
+/** The starter taken off the pitch, to the end of the bench. */
+export const benched = (draft: DraftLineup, playerCode: number): DraftLineup => benchedAt(draft, playerCode, Infinity);
 
 /** Back to front, left to right: the order the squad lists the eleven. */
 const cellOrder = ({ area, lane }: Cell) => AREAS.indexOf(area) * LANES.length + LANES.indexOf(lane);

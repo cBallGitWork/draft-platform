@@ -14,6 +14,9 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - Free placement: drag a player into any free cell, Championship Manager style. Or pick a preset:
   4-4-2, 4-3-3, 4-2-3-1, 4-1-4-1, 4-4-1-1, 4-3-1-2, 3-5-2, 3-4-3, 3-4-1-2, 5-3-2, 5-4-1, all
   editable as league rules.
+- Picking a preset reshapes the pitch and keeps the players: each starter moves to a slot of the
+  new shape in his own area, if one is free, and anyone left over goes to the front of the bench.
+  The shape's empty slots show where to drag (Craig, 26 Oct 2026; #14).
 - Any player who plays in an area can fill any slot in it: the game should not get in the way of
   managers. A centre-back can fill a full-back's cell.
 - For now that is the hard rule: a player fills only slots in the areas his positions play (Craig,
@@ -81,6 +84,8 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 
 - A starter whose match ends with him on 0 minutes is replaced straight away, provisional like
   live points, final when the gameweek ends.
+- The manager sets the bench order with up and down on each bench player, or by dragging him
+  along the bench (Craig, 26 Oct 2026; #14).
 - The first player in the manager's bench order who can play the empty slot's area takes that
   slot and its role. If none can, the first who keeps the area limits legal comes on in his own
   area, on his best-star role, and the formation changes. If no one can come on without breaking the
