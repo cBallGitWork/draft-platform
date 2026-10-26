@@ -76,7 +76,11 @@ async function gameOf(
   if (against === undefined) return { kind: "none" };
   if (against.kind === BYE) return { kind: BYE };
   const teams = await teamsOf(ctx, league._id);
-  const nameOf = (teamId: TeamId) => teams.find((each) => each._id === teamId)!.name;
+  const nameOf = (teamId: TeamId) => {
+    const named = teams.find((each) => each._id === teamId);
+    if (named === undefined) throw new Error(`gameweek ${gameweek}'s fixtures name team ${teamId}, which isn't in the league`);
+    return named.name;
+  };
   const opponent = against.kind === "team" ? { kind: "team" as const, teamName: nameOf(against.team) } : { kind: LEAGUE_AVERAGE as typeof LEAGUE_AVERAGE };
   if (!(await begunGameweeks(ctx, league)).includes(gameweek)) return { kind: "notBegun", opponent };
   try {
@@ -173,7 +177,8 @@ class SideScorer {
     return score;
   }
 
-  /** On while any of his matches is; over once all are; otherwise yet to play, at the next kickoff. */
+  /** On while any of his matches is; over once all are (at full time, though his points stay
+   *  provisional until the match locks); otherwise yet to play, at the next kickoff. */
   private async status(matches: readonly HeldMatch[]): Promise<SlotStatus> {
     if (matches.length === 0) return { kind: "noMatch" };
     const states = await Promise.all(matches.map(async (match) => ({ match, score: await this.score(match.fixture.code) })));
