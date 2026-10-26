@@ -1,6 +1,7 @@
 // The player card in the preview (src/preview.ts): a card for each of Scouting's preview players,
 // with three matches priced at his best position under the first scoring set by the server's own
-// rule (cardPoints), and his club's next fixtures. Saka carries FPL's news.
+// rule (cardPoints), and his club's next fixtures. Saka carries FPL's news, and an override on
+// one match.
 
 import { cardPoints } from "../../convex/playerCard/cardPoints";
 import { categoryName } from "../../convex/scoring/categories";
@@ -17,6 +18,10 @@ const opponentOf = (clubCode: number, index: number) => CLUBS.filter((club) => c
 /** His three newest matches, newest first: the last one's record not yet whole. */
 const RECORDS: readonly (MatchStats | null)[] = [null, { minutes: 90, goals_scored: 1, assists: 1 }, { minutes: 64, yellow_cards: 1 }];
 
+/** One match the league overrode, so the card shows how an override reads (#32). */
+const PREVIEW_OVERRIDDEN = "Saka";
+const PREVIEW_OVERRIDE = { points: 9, reason: "The feed gave his assist to Odegaard" };
+
 function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
   return RECORDS.map((record, index) => {
     const points = cardPoints(record, FIRST_SCORING, player.positions, null);
@@ -28,6 +33,7 @@ function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
       away: index % 2 === 0 ? opponentOf(player.club.code, index) : player.club,
       minutes: record?.minutes ?? null,
       points: { ...points, categories: points.categories.map((each) => ({ ...each, name: categoryName(each.stat) })) },
+      override: player.name === PREVIEW_OVERRIDDEN && index === 1 ? PREVIEW_OVERRIDE : null,
     };
   });
 }
@@ -57,4 +63,11 @@ function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
 
 const cards = new Map(previewPlayers.map((player) => [player.code, cardOf(player)]));
 
-export const previewPlayerCard: PlayerCardSeam = { ...previewShortlist, usePlayerCard: (_leagueId, playerCode) => cards.get(playerCode) ?? null };
+/** The preview saves nothing: an override is taken and forgotten. */
+const overrideNothing = () => Promise.resolve(null);
+
+export const previewPlayerCard: PlayerCardSeam = {
+  ...previewShortlist,
+  usePlayerCard: (_leagueId, playerCode) => cards.get(playerCode) ?? null,
+  useOverride: () => overrideNothing,
+};

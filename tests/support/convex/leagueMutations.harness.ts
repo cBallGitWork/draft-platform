@@ -69,6 +69,8 @@ export function changesTo(
     "squads/squads:assign": () => admin.mutation(api.squads.squads.assign, { leagueId, playerCode: 1, teamId: annsTeam._id }),
     "squads/squads:move": () => admin.mutation(api.squads.squads.move, { leagueId, playerCode: 1, teamId: annsTeam._id }),
     "squads/squads:release": () => admin.mutation(api.squads.squads.release, { leagueId, playerCode: 1 }),
+    "table/pointsOverrides:override": () =>
+      admin.mutation(api.table.pointsOverrides.override, { leagueId, fixtureCode: 1, playerCode: 1, points: 10, reason: "A goal the feed gave someone else" }),
     "scouting/shortlist:add": () => ann.mutation(api.scouting.shortlist.add, { leagueId, playerCode: 1 }),
     "scouting/shortlist:remove": () => ann.mutation(api.scouting.shortlist.remove, { leagueId, playerCode: 1 }),
   };

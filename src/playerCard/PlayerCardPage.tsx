@@ -7,6 +7,7 @@ import { Loading, PageSection, PANEL_BODY, PanelNote, PanelTitle } from "../fram
 import { useMinute } from "../useMinute";
 import { gameweekWords, versusWords, whenWords } from "../words";
 import type { PlayedMatch, PlayerCard, PlayerCardSeam } from "./seam";
+import { OverridePoints } from "./OverridePoints";
 import { ShortlistAction } from "./ShortlistAction";
 import {
   backWords,
@@ -30,6 +31,7 @@ import {
   noSuchPlayerWords,
   notArrivedWords,
   nothingPaidWords,
+  overriddenWords,
   ownerLabel,
   PLAYER_TITLE,
   positionsLabel,
@@ -45,8 +47,8 @@ const FIXTURES_ID = "card-fixtures";
 /** A player's card (spec/12, The player card), its own page, for anyone in the league: who he is
  *  and who owns him, FPL's news, this season's matches by category, last season's line and his
  *  club's next fixtures. Its actions (shortlist, scout, claim or drop, trade) join below the facts
- *  as each is built: the shortlist is (#374). */
-export function PlayerCardPage({ league, playerCode, seam }: { league: LeagueSummary; playerCode: number; seam: PlayerCardSeam }) {
+ *  as each is built: the shortlist is (#374), and for whoever `runs` the league, the override (#32). */
+export function PlayerCardPage({ league, runs, playerCode, seam }: { league: LeagueSummary; runs: boolean; playerCode: number; seam: PlayerCardSeam }) {
   const card = seam.usePlayerCard(league.leagueId, playerCode, useMinute());
   return (
     <PageSection title={card?.fullName ?? PLAYER_TITLE} aside={<Back />} className="flex max-w-6xl flex-col gap-2">
@@ -59,6 +61,7 @@ export function PlayerCardPage({ league, playerCode, seam }: { league: LeagueSum
           <div className="flex flex-col gap-2">
             <Facts card={card}>
               <ShortlistAction leagueId={league.leagueId} playerCode={card.code} gone={card.gone} seam={seam} />
+              {runs && <OverridePoints leagueId={league.leagueId} card={card} seam={seam} />}
             </Facts>
             <section aria-labelledby={LAST_SEASON_ID} className="bg-panel">
               <PanelTitle id={LAST_SEASON_ID}>{LAST_SEASON_TITLE}</PanelTitle>
@@ -163,9 +166,12 @@ function Season({ card }: { card: PlayerCard }) {
   );
 }
 
-/** One match: its row of figures, and under it each category that paid. */
+/** One match: its row of figures, the league's override in place of its points, and under it each
+ *  category that paid, and the override's reason. */
 function MatchRows({ match }: { match: PlayedMatch }) {
-  const { position, total, categories } = match.points;
+  const { position, categories } = match.points;
+  const { override } = match;
+  const total = override?.points ?? match.points.total;
   const paid = categories.filter((category) => category.points !== null && category.points !== 0);
   return (
     <tbody className="border-t border-panel-rule">
@@ -199,6 +205,14 @@ function MatchRows({ match }: { match: PlayedMatch }) {
                     {category.name} <span className="text-figure">{category.points}</span>
                   </span>
                 ))}
+          </td>
+        </tr>
+      )}
+      {override !== null && (
+        <tr>
+          <td />
+          <td colSpan={COLUMNS.length - 1} className="px-2 pb-1 text-event">
+            {overriddenWords(override.points, override.reason)}
           </td>
         </tr>
       )}
