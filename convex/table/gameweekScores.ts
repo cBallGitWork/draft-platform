@@ -1,13 +1,14 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { autoSubs, gameweekPlay, type GameweekPlay } from "../lineup/autoSubs";
-import { lineupInGameweek } from "../lineup/lineups";
+import { lineupsInGameweek } from "../lineup/lineups";
 import { AREAS, LANES, playsCell, type Cell } from "../lineup/pitch";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount, type HowPositionsCount } from "../positions/positionSettings";
 import type { Position } from "../positions/positionTables";
 import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
-import { isGameweekUsed } from "../gameweeks/usedGameweeks";
+import { GAMEWEEKS, isGameweekUsed } from "../gameweeks/usedGameweeks";
+import { MOST_TEAMS } from "../leagues/leagueLimits";
 import type { SeasonRules } from "../rules/rulesHistory";
 import type { StoredScoringSet } from "../rules/leagueRulesShape";
 import { siteScoringByGameweek } from "../scoring/siteScoring";
@@ -22,13 +23,15 @@ import { playerByCode } from "../shared/players";
 
 // Each team's points in each gameweek the league has begun (#29; spec/14; spec/05, Auto-subs;
 // spec/07): its lineup in the gameweek, auto-subs from who played, then scoreTeam under the site's
-// scoring set in force that gameweek. Worked out on every read and never stored: the table's query
-// then re-runs whenever a record, a match's state or a lineup changes, so live matches move it
-// minute by minute (#28) and nothing stored can go stale. Most of what a played gameweek reads is
-// fixed already: its fixtures are stored (playedFixtures.ts), the site's set never reaches a
-// gameweek begun (siteScoring.ts) and a locked match's records no longer change (matchStats.ts).
-// Its lineup isn't yet: lineups.ts reads it against today's squad (#415).
-// A season's worth outgrows one read; storing a gameweek once final is #418.
+// scoring set in force that gameweek. A gameweek not yet final is worked out on every read: the
+// table's query then re-runs whenever a record, a match's state or a lineup changes, so live matches
+// move it minute by minute (#28). One final (every match in it locked, so no correction changes it:
+// spec/07) is read from finalScores.ts's stored rows, so a season's worth never outgrows one read
+// (#418). Little a final gameweek reads changes after: its head-to-heads are stored
+// (playedFixtures.ts), the site's set never reaches a gameweek begun (siteScoring.ts), a locked
+// match's records no longer change (matchStats.ts) and its lineup is read against the squad at its
+// deadline (#415). Its matches can: the stored rows name those they were scored from, and a match
+// moved in or out by the football sync reopens the gameweek, to be worked out and stored again.
 //
 // A gameweek that can't be scored (a site set holding a rule no longer sound, say: #287) is left
 // out and named with the reason, logged, rather than blanking or breaking the league's table.
@@ -55,10 +58,24 @@ interface Unscored {
   reason: string;
 }
 
+type TeamScores = Map<TeamId, TeamGameweek>;
+
+/** Teams' final points worked out here, not read from finalScores: for it to store. */
+interface FinalUnstored {
+  gameweek: number;
+  /** The teams worked out: every team, or only those added since the rest were stored. */
+  teamIds: TeamId[];
+  /** The gameweek's matches they were scored from, stored with them. */
+  fixtureCodes: number[];
+  /** Whether the gameweek's stored rows go first: its matches have changed since, or it had none. */
+  replace: boolean;
+}
+
 interface LeagueScores {
   /** Gameweek to team to points: each gameweek begun and scored. */
-  scores: Map<number, Map<TeamId, TeamGameweek>>;
+  scores: Map<number, TeamScores>;
   unscored: Unscored[];
+  finalUnstored: FinalUnstored[];
 }
 
 /** One of the gameweek's matches as held: its state, if read at full time, and its records. */
@@ -71,7 +88,6 @@ interface HeldMatch {
 /** What every gameweek's scoring reads, read once for the league. */
 interface LeagueReads {
   leagueId: Id<"leagues">;
-  teamIds: readonly TeamId[];
   season: SeasonRules;
   setIn: (gameweek: number) => StoredScoringSet;
   player: (code: PlayerCode) => Promise<{ clubCode: number; positions: Position[] }>;
@@ -86,7 +102,9 @@ async function begunGameweeks(ctx: QueryCtx, league: Doc<"leagues">): Promise<nu
     .sort((one, other) => one - other);
 }
 
-/** Every team's points in each gameweek the league has begun. */
+/** Every team's points in each gameweek the league has begun: read from finalScores while the
+ *  gameweek holds the same matches it was stored from, else worked out. A team added since the
+ *  rest were stored is worked out alone. */
 export async function leagueScores(
   ctx: QueryCtx,
   league: Doc<"leagues">,
@@ -94,18 +112,26 @@ export async function leagueScores(
   teamIds: readonly TeamId[],
 ): Promise<LeagueScores> {
   const gameweeks = await begunGameweeks(ctx, league);
-  const result: LeagueScores = { scores: new Map(), unscored: [] };
+  const result: LeagueScores = { scores: new Map(), unscored: [], finalUnstored: [] };
   if (gameweeks.length === 0 || teamIds.length === 0) return result;
+  const stored = await storedFinalScores(ctx, league._id);
   const reads: LeagueReads = {
     leagueId: league._id,
-    teamIds,
     season,
     setIn: await siteScoringByGameweek(ctx),
     player: playerReader(ctx, await howPositionsCount(ctx)),
   };
   for (const gameweek of gameweeks) {
     try {
-      result.scores.set(gameweek, await gameweekScores(ctx, reads, gameweek));
+      const fixtures = await heldFixtures(ctx, gameweek);
+      const fixtureCodes = fixtures.map((fixture) => fixture.code);
+      const held = stored.get(gameweek);
+      const storedScores = held !== undefined && sameCodes(held.fixtureCodes, fixtureCodes) ? held.scores : new Map<TeamId, TeamGameweek>();
+      const unstored = teamIds.filter((teamId) => !storedScores.has(teamId));
+      const worked = unstored.length === 0 ? null : await gameweekScores(ctx, reads, gameweek, fixtures, unstored);
+      const scores = new Map(teamIds.map((teamId) => [teamId, storedScores.get(teamId) ?? worked!.scores.get(teamId)!]));
+      result.scores.set(gameweek, scores);
+      if (worked?.final) result.finalUnstored.push({ gameweek, teamIds: unstored, fixtureCodes, replace: storedScores.size === 0 });
     } catch (error) {
       const reason = logFailure(`League ${league._id} (${league.name}) can't score gameweek ${gameweek}`, error);
       result.unscored.push({ gameweek, reason });
@@ -132,15 +158,60 @@ function playerReader(ctx: QueryCtx, how: HowPositionsCount) {
   };
 }
 
-/** Every team's points in one gameweek. */
-async function gameweekScores(ctx: QueryCtx, reads: LeagueReads, gameweek: number): Promise<Map<TeamId, TeamGameweek>> {
+/** The most final rows a league holds: one for each team in each gameweek. */
+const FINAL_SCORES_MOST = GAMEWEEKS * MOST_TEAMS;
+
+/** A gameweek's stored final scores, and the matches they were scored from. */
+interface StoredGameweek {
+  fixtureCodes: number[];
+  scores: TeamScores;
+}
+
+/** Each gameweek's stored final scores. A gameweek whose rows disagree on its matches counts as
+ *  holding none, to be stored again whole. */
+async function storedFinalScores(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, StoredGameweek>> {
+  const rows = await takeAllOrThrow(
+    ctx.db.query("finalScores").withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId)),
+    FINAL_SCORES_MOST,
+    `League ${leagueId} holds more than ${FINAL_SCORES_MOST} final scores, so some would be left out`,
+  );
+  const rowsByGameweek = new Map<number, Doc<"finalScores">[]>();
+  for (const row of rows) rowsByGameweek.set(row.gameweek, [...(rowsByGameweek.get(row.gameweek) ?? []), row]);
+  const byGameweek = new Map<number, StoredGameweek>();
+  for (const [gameweek, [first, ...rest]] of rowsByGameweek) {
+    const agree = rest.every((row) => sameCodes(row.fixtureCodes, first.fixtureCodes));
+    const scores = new Map<TeamId, TeamGameweek>(
+      agree ? [first, ...rest].map(({ teamId, points, noLineup }) => [teamId, { points, provisional: false, noLineup }]) : [],
+    );
+    byGameweek.set(gameweek, { fixtureCodes: first.fixtureCodes, scores });
+  }
+  return byGameweek;
+}
+
+/** Whether two lists hold the same match codes, in any order. */
+function sameCodes(one: readonly number[], other: readonly number[]): boolean {
+  const others = new Set(other);
+  return one.length === others.size && one.every((code) => others.has(code));
+}
+
+/** The teams' points in one gameweek, from its held fixtures, and whether they are final: the
+ *  gameweek holds a match and every match in it is locked, so nothing counted is provisional. One
+ *  with no match held (each postponed, say) is never final. */
+async function gameweekScores(
+  ctx: QueryCtx,
+  reads: LeagueReads,
+  gameweek: number,
+  fixtures: readonly Doc<"fixtures">[],
+  teamIds: readonly TeamId[],
+): Promise<{ scores: TeamScores; final: boolean }> {
   const set = reads.setIn(gameweek);
   validateScoringSet(set);
   const rules = reads.season.inGameweek(gameweek);
-  const matches = await heldMatches(ctx, gameweek);
+  const matches = await heldMatches(ctx, fixtures);
   const scores = new Map<TeamId, TeamGameweek>();
-  for (const teamId of reads.teamIds) {
-    const held = await lineupInGameweek(ctx, reads.leagueId, teamId, gameweek);
+  const lineups = await lineupsInGameweek(ctx, reads.leagueId, teamIds, gameweek);
+  for (const teamId of teamIds) {
+    const held = lineups.get(teamId)!;
     if (held.kind === "none") {
       scores.set(teamId, { points: 0, provisional: false, noLineup: true });
       continue;
@@ -168,16 +239,21 @@ async function gameweekScores(ctx: QueryCtx, reads: LeagueReads, gameweek: numbe
     });
     scores.set(teamId, { points: team.total, provisional: team.provisional, noLineup: false });
   }
-  return scores;
+  const final = matches.length > 0 && matches.every(isLocked) && [...scores.values()].every((team) => !team.provisional);
+  return { scores, final };
 }
 
-/** The gameweek's matches the feed still sends, each with its state and records. */
-async function heldMatches(ctx: QueryCtx, gameweek: number): Promise<HeldMatch[]> {
-  const fixtures = await takeAllOrThrow(
+/** The gameweek's fixtures the feed still sends. */
+function heldFixtures(ctx: QueryCtx, gameweek: number): Promise<Doc<"fixtures">[]> {
+  return takeAllOrThrow(
     ctx.db.query("fixtures").withIndex("by_gameweek_and_droppedAt", (q) => q.eq("gameweek", gameweek).eq("droppedAt", undefined)),
     GAMEWEEK_MATCHES_MOST,
     `More than ${GAMEWEEK_MATCHES_MOST} matches are held for gameweek ${gameweek}, so its points would be cut short`,
   );
+}
+
+/** The fixtures' matches, each with its state and records. */
+async function heldMatches(ctx: QueryCtx, fixtures: readonly Doc<"fixtures">[]): Promise<HeldMatch[]> {
   return Promise.all(
     fixtures.map(async (fixture) => {
       const rows = await takeAllOrThrow(
@@ -194,6 +270,8 @@ const playsIn = (fixture: Doc<"fixtures">, clubCode: number) => fixture.homeClub
 
 /** A match read at full time has a state; one still live has none (liveStats.ts). */
 const isFinished = (match: HeldMatch) => match.status !== null;
+/** Its corrections window shut: nothing changes its points after (spec/07). */
+const isLocked = (match: HeldMatch) => match.status?.state === "locked";
 
 /** What a man neither team sheet named did in a match his club has finished: nothing. */
 const NOT_NAMED: Readonly<Record<string, number>> = {};
@@ -203,7 +281,7 @@ const NOT_NAMED: Readonly<Record<string, number>> = {};
 function forPoints(match: HeldMatch, code: PlayerCode): PlayerMatch {
   const record = match.records.get(code);
   const stats = record === undefined ? (isFinished(match) ? NOT_NAMED : null) : isWhole(record) ? record.stats : null;
-  return { record: stats, final: match.status?.state === "locked" };
+  return { record: stats, final: isLocked(match) };
 }
 
 /** The minutes counted for a man the sheets say played whose minutes no feed has sent yet: any

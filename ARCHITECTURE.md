@@ -50,7 +50,10 @@ recorded (`tests/support/recorded/commentary.payloads.ts`).
 Ipswich 1–1 Nott'm Forest (fixture 128999), recorded every 30 s by `scripts/record-match.mjs`
 and checked from Convex every 5 min with `football/feeds:commentaryCheck`. Convex's servers were
 answered at every check, and the live poller never failed. The commentary is not append-only
-(lines vanish and are reworded), so it should replace what it shows on each read. The timings and
+(lines vanish and are reworded), so each read replaces what it shows: the live tick reads each
+live match's stream with its points and stores the written lines whole, one row a match, delayed
+when a read fails or the stream trails the clock (`COMMENTARY_BEHIND_MINUTES`)
+(`convex/football/matchCommentary.ts`, #43). The timings and
 counts: [docs/pl-commentary.md](docs/pl-commentary.md) and
 [docs/pl-match-stats.md](docs/pl-match-stats.md). Three of its commentary reads and three of
 its team stats reads are kept for the tests (`tests/support/recorded/pl-live-match.json`).
