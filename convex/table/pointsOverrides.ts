@@ -2,9 +2,10 @@ import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, type MutationCtx } from "../_generated/server";
 import { recordEvent } from "../mail/letters";
+import { matchWords } from "../mail/letterWords";
 import { seasonRules } from "../rules/rulesHistory";
 import { inTenths } from "../scoring/scoringSet";
-import { refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
+import { refuse, refusals, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
 import { statusOf } from "../stats/matchStats";
 import { rescoreGameweek } from "./finalScores";
@@ -28,7 +29,6 @@ export const overrideRefusals = {
   noMatch: "There's no such match this season.",
   notBegun: (gameweek: number) => `Gameweek ${gameweek} hasn't begun for this league, so it has no points to override.`,
   notLocked: "That match isn't final yet: its points can still be corrected, so it can be overridden once it locks.",
-  noPlayer: "There's no such player in the Premier League.",
   notInMatch: (name: string) => `${name} wasn't in that match.`,
   notPoints: "Points are a number, kept to a tenth.",
   notWhole: "The scoring counts whole points only.",
@@ -54,7 +54,7 @@ export const override = mutation({
     const { gameweek } = fixture;
     if (!(await begunGameweeks(ctx, league)).includes(gameweek)) refuse(overrideRefusals.notBegun(gameweek));
     if ((await statusOf(ctx, fixtureCode))?.state !== "locked") refuse(overrideRefusals.notLocked);
-    const player = (await playerByCode(ctx, playerCode)) ?? refuse(overrideRefusals.noPlayer);
+    const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
     if (!(await wasInMatch(ctx, fixture, player))) refuse(overrideRefusals.notInMatch(player.name));
     if (!Number.isFinite(points) || inTenths(points) !== points) refuse(overrideRefusals.notPoints);
     const reads = await leagueReads(ctx, league, season);
@@ -80,7 +80,7 @@ export const override = mutation({
       playerCode,
       playerName: player.name,
       fixtureCode,
-      matchName: `${home.name} v ${away.name}`,
+      matchName: matchWords(home.name, away.name),
       gameweek,
       from: before.playerPoints ?? held?.points ?? null,
       to: points,

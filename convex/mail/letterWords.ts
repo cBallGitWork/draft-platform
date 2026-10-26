@@ -110,6 +110,9 @@ export function eventLetter(event: LeagueEvent, who: string): Words {
   }
 }
 
+/** A match as a letter names it: "Arsenal v Chelsea". */
+export const matchWords = (home: string, away: string) => `${home} v ${away}`;
+
 /** "Ann overrode Saka's points in Arsenal v Chelsea, gameweek 6: 2 to 8. Why: a goal the feed
  *  gave to Rice. / Lions now have 61 in gameweek 6, not 55." */
 function overriddenBody(event: Extract<LeagueEvent, { kind: "pointsOverridden" }>, who: string): string {

@@ -2,7 +2,7 @@ import { ConvexError } from "convex/values";
 import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { TableNames } from "../../../convex/_generated/dataModel";
-import { adminByline } from "../../../convex/mail/letterWords";
+import { adminByline, matchWords } from "../../../convex/mail/letterWords";
 import schema from "../../../convex/schema";
 import { inTenths } from "../../../convex/scoring/scoringSet";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -36,7 +36,8 @@ const RECORDS = mergedHullEverton();
 const SCORERS_POINTS = sideTotal(RECORDS, HULL_STARTERS.filter((starter) => starter.playerCode === HULL_SCORER));
 const OVERRIDDEN = 12.5;
 const REASON = "The feed gave his second goal to an Everton defender";
-const MATCH_NAME = "Hull v Everton";
+const [HULL_NAME, EVERTON_NAME] = ["Hull", "Everton"];
+const MATCH_NAME = matchWords(HULL_NAME, EVERTON_NAME);
 const ANNS_AFTER = inTenths(HULL_POINTS - SCORERS_POINTS + OVERRIDDEN);
 /** A code no feed holds. */
 const NOBODY = 999_999;
@@ -45,8 +46,8 @@ const NOBODY = 999_999;
 async function storedLeague(): Promise<ScoresLeague> {
   const league = await scoresLeague();
   await league.t.run(async (ctx) => {
-    await ctx.db.insert("clubs", { code: HULL, name: "Hull", shortName: "HUL" });
-    await ctx.db.insert("clubs", { code: EVERTON, name: "Everton", shortName: "EVE" });
+    await ctx.db.insert("clubs", { code: HULL, name: HULL_NAME, shortName: "HUL" });
+    await ctx.db.insert("clubs", { code: EVERTON, name: EVERTON_NAME, shortName: "EVE" });
   });
   await fullTimeRecords(league);
   await lockMatch(league);
@@ -151,7 +152,7 @@ test("overriding a man whose points don't count moves no total, and the letter s
   expect(last.body).toMatch(new RegExp(`^${adminByline} overrode .*: 0 to 3\\. Why: ${REASON}\\n\\nNo team's total moved: no lineup counted him\\.$`));
 });
 
-test("only the league's commissioner, co-commissioner or the admin may override, and nothing changes when refused", async () => {
+test("a manager who doesn't run the league is refused, and nothing changes", async () => {
   const league = await storedLeague();
   const before = await tablePoints(league);
 
@@ -167,7 +168,7 @@ test("an override is refused with a reason when it can't be sound", async () => 
   expect(await refusalFor({ reason: "  " })).toBe(overrideRefusals.blankReason);
   expect(await refusalFor({ reason: "x".repeat(OVERRIDE_REASON_MAX + 1) })).toBe(overrideRefusals.reasonTooLong);
   expect(await refusalFor({ fixtureCode: NOBODY })).toBe(overrideRefusals.noMatch);
-  expect(await refusalFor({ playerCode: NOBODY })).toBe(overrideRefusals.noPlayer);
+  expect(await refusalFor({ playerCode: NOBODY })).toBe(refusals.noPlayer);
   expect(await refusalFor({ points: 0.05 })).toBe(overrideRefusals.notPoints);
   expect(await refusalFor({ points: Number.POSITIVE_INFINITY })).toBe(overrideRefusals.notPoints);
   // A man of a club not in the match, and named on neither sheet.

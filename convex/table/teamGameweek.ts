@@ -172,12 +172,12 @@ async function heldMatches(ctx: QueryCtx, leagueId: Id<"leagues">, fixtures: rea
   );
 }
 
-/** The most overrides a league holds in one match: one a man, so never more than its records
- *  may be. More throws, never a silent cut. */
+/** The most overrides a league holds in one match: one a man, as many as the records allow. More
+ *  throws, never a silent cut. */
 const MATCH_OVERRIDES_MOST = MATCH_RECORDS_MOST;
 
 /** The league's overrides of men's points in the match (#32), by player. */
-export async function overridesIn(ctx: QueryCtx, leagueId: Id<"leagues">, fixtureCode: number): Promise<Map<PlayerCode, number>> {
+async function overridesIn(ctx: QueryCtx, leagueId: Id<"leagues">, fixtureCode: number): Promise<Map<PlayerCode, number>> {
   const rows = await takeAllOrThrow(
     ctx.db
       .query("pointsOverrides")
