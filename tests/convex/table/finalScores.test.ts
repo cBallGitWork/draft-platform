@@ -2,6 +2,7 @@ import { expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 import { addManagers } from "../../support/convex/leagues.harness";
+import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import {
   CAT,
   EVERTON_POINTS,
@@ -103,19 +104,66 @@ test("a team added after a gameweek was stored is worked out alone and stored be
   ]);
 });
 
-test("a match moved into a stored gameweek reopens it: worked out live, stored again once that match locks too", async () => {
+/** A match between two clubs no squad here holds, put in gameweek 6 as the football sync would. */
+const holdOtherMatch = ({ t }: ScoresLeague) =>
+  t.run((ctx) =>
+    ctx.db.insert("fixtures", { code: MOVED_IN, gameweek: GAMEWEEK, homeClubCode: OTHER_CLUBS[0], awayClubCode: OTHER_CLUBS[1], kickoff: Date.now() }),
+  );
+/** That match read at full time, its window passed and locked. */
+const lockOtherMatch = ({ t }: ScoresLeague) =>
+  t.run((ctx) => ctx.db.insert("matchStatsStatus", { fixtureCode: MOVED_IN, state: "locked", fullTimeAt: Date.now(), lockedAt: Date.now(), lastReadAt: Date.now() }));
+const storedCodes = async (league: ScoresLeague) => (await finalRows(league)).map((row) => row.fixtureCodes.toSorted());
+
+test("a match moved into a stored gameweek reopens it: worked out live, then stored afresh once that match locks", async () => {
   const league = await scoresLeague();
   await fullTimeRecords(league);
   await lockMatch(league);
   await storeLeague(league);
   await writeOverAnns(league);
-  await league.t.run((ctx) =>
-    ctx.db.insert("fixtures", { code: MOVED_IN, gameweek: GAMEWEEK, homeClubCode: OTHER_CLUBS[0], awayClubCode: OTHER_CLUBS[1], kickoff: Date.now() }),
-  );
+  await holdOtherMatch(league);
 
   expect(await annsPoints(league)).toMatchObject({ points: HULL_POINTS });
   // Not final while the moved match hasn't locked, so nothing is stored over the old rows yet.
   expect(await storeLeague(league)).toEqual([]);
+
+  await lockOtherMatch(league);
+  expect(await storeLeague(league)).toEqual([GAMEWEEK]);
+  expect((await stored(league)).map(({ points }) => points)).toEqual([HULL_POINTS, EVERTON_POINTS]);
+  expect(await storedCodes(league)).toEqual([[HULL_EVERTON, MOVED_IN].toSorted(), [HULL_EVERTON, MOVED_IN].toSorted()]);
+});
+
+test("a match moved out of a stored gameweek reopens it, and it is stored afresh from the matches left", async () => {
+  const league = await scoresLeague();
+  await holdOtherMatch(league);
+  await lockOtherMatch(league);
+  await fullTimeRecords(league);
+  await lockMatch(league);
+  await storeLeague(league);
+  await writeOverAnns(league);
+  await league.t.run(async (ctx) => {
+    const moved = (await ctx.db.query("fixtures").collect()).find((fixture) => fixture.code === MOVED_IN)!;
+    await ctx.db.patch("fixtures", moved._id, { gameweek: GAMEWEEK + 1 });
+  });
+
+  expect(await annsPoints(league)).toMatchObject({ points: HULL_POINTS, provisional: false });
+  expect(await storeLeague(league)).toEqual([GAMEWEEK]);
+  expect(await storedCodes(league)).toEqual([[HULL_EVERTON], [HULL_EVERTON]]);
+});
+
+test("rows of one gameweek that disagree on its matches count as none, and it is stored afresh", async () => {
+  const league = await scoresLeague();
+  await fullTimeRecords(league);
+  await lockMatch(league);
+  await storeLeague(league);
+  await writeOverAnns(league);
+  await league.t.run(async (ctx) => {
+    const bobs = (await ctx.db.query("finalScores").collect()).find((row) => row.teamId === league.bobsTeam)!;
+    await ctx.db.patch("finalScores", bobs._id, { fixtureCodes: [MOVED_IN] });
+  });
+
+  expect(await annsPoints(league)).toMatchObject({ points: HULL_POINTS });
+  expect(await storeLeague(league)).toEqual([GAMEWEEK]);
+  expect(await storedCodes(league)).toEqual([[HULL_EVERTON], [HULL_EVERTON]]);
 });
 
 test("rescore drops a gameweek's stored points and stores them again from the records", async () => {
