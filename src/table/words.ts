@@ -42,11 +42,7 @@ export const columns = {
   points: { short: "Pts", long: "Points" },
 } as const;
 
-export const previousLabel = "Previous gameweek";
-export const nextLabel = "Next gameweek";
-/** CM's stepper arrows, either side of the gameweek: decoration, as each button carries its label. */
-export const previousGlyph = "◄";
-export const nextGlyph = "►";
+export { nextGameweekLabel as nextLabel, previousGameweekLabel as previousLabel } from "../words";
 export const leagueAverageWords = "League average";
 const andList = new Intl.ListFormat(LOCALE, { type: "conjunction" });
 /** The teams with a bye in a gameweek: one a game, so several when a league plays more than one. */

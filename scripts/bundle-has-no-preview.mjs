@@ -29,6 +29,7 @@ const NEEDLES = {
   "src/myTeam/preview.ts": null,
   "src/patches/preview.ts": "preview-patch-",
   "src/playerCard/preview.ts": "Hamstring injury - 75% chance of playing",
+  "src/premierLeague/preview.ts": "Leeds United",
   "src/rules/preview.ts": "preview-rules",
   "src/scoring/preview.ts": null,
   "src/scouting/preview.ts": "Virgil van Dijk",
