@@ -1,5 +1,5 @@
 // The roles a slot offers (spec/05 Roles; #10; Craig, 26 Oct 2026): the default set's list for
-// the position the slot stands for (pitch.ts's positionOfSlot). What each role pays comes with
+// the position the slot stands for (pitch.ts's positionOfSlot). Each role's adjustment comes with
 // the site's scoring (spec/14), not here; this is only who may be asked to play what.
 
 import { positionOfSlot, type Cell, type SlotPosition } from "./pitch";
