@@ -120,7 +120,12 @@ function matchupAt(minute: number, gameweek: number): Matchup {
     gameweeks: [...previewSeason.gameweeks],
     gameweek,
     deadline: previewSeason.deadlineOf(gameweek),
-    game: { kind: "scored", team: sideAt(MINE, SAKA_POTATOES, minute), opponent: sideAt(OPPONENT, KROOS_CONTROL, minute) },
+    game: {
+      kind: "scored",
+      team: sideAt(MINE, SAKA_POTATOES, minute),
+      opponent: sideAt(OPPONENT, KROOS_CONTROL, minute),
+      commentary: { kind: "read", lines: [], delayed: false },
+    },
   };
 }
 

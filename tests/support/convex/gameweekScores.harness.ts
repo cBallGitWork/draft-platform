@@ -150,9 +150,9 @@ export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Pr
 export const readTable = ({ t, leagueId }: ScoresLeague) => actingAs(t, ANN).then((ann) => ann.query(api.table.leagueTable.ofLeague, { leagueId }));
 
 /** The match's records as the live tick lands them, before full time. */
-export async function liveRecords({ t }: ScoresLeague, records: PlayerMatchRecord[]) {
+export async function liveRecords({ t }: ScoresLeague, records: PlayerMatchRecord[], minute: number | null = null) {
   vi.setSystemTime(KICKOFF + HOUR_MS);
-  await t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: HULL_EVERTON, records });
+  await t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: HULL_EVERTON, minute, records });
 }
 
 /** The match's records as the full-time read lands them: complete, its corrections window open. */
