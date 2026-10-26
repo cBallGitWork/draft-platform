@@ -76,7 +76,7 @@ const SHAPE_WORDS: Record<Rule["shape"], string> = { perAction: "per action", pe
 
 /** A whole rule, as a category newly scored or newly shaped is described: "3 per action". */
 function ruleWords(rule: Rule): string {
-  const stacking = rule.shape === "bands" && rule.stack ? ", every band reached paying" : "";
+  const stacking = rule.shape === "bands" && rule.stack ? ", every band reached counting" : "";
   return `${grouped([...valueWords(rule)])} ${SHAPE_WORDS[rule.shape]}${stacking}`;
 }
 
