@@ -61,6 +61,7 @@ import type * as lineup_lineups from "../lineup/lineups.js";
 import type * as lineup_pitch from "../lineup/pitch.js";
 import type * as lineup_pitchWords from "../lineup/pitchWords.js";
 import type * as lineup_presets from "../lineup/presets.js";
+import type * as lineup_tactics from "../lineup/tactics.js";
 import type * as mail_letterWords from "../mail/letterWords.js";
 import type * as mail_letters from "../mail/letters.js";
 import type * as mail_mail from "../mail/mail.js";
@@ -182,6 +183,7 @@ declare const fullApi: ApiFromModules<{
   "lineup/pitch": typeof lineup_pitch;
   "lineup/pitchWords": typeof lineup_pitchWords;
   "lineup/presets": typeof lineup_presets;
+  "lineup/tactics": typeof lineup_tactics;
   "mail/letterWords": typeof mail_letterWords;
   "mail/letters": typeof mail_letters;
   "mail/mail": typeof mail_mail;

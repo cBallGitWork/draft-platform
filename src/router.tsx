@@ -45,6 +45,7 @@ import { MatchupRoute } from "./matchup/MatchupRoute";
 import { matchupSearchOf } from "./matchup/paths";
 import type { MatchupSeam } from "./matchup/seam";
 import { FixturesPage } from "./myTeam/FixturesPage";
+import { TacticsPage } from "./myTeam/TacticsPage";
 import { MyTeamRoute } from "./myTeam/MyTeamRoute";
 import type { MyTeamSeam } from "./myTeam/seam";
 import { PatchBanner } from "./patches/PatchBanner";
@@ -388,6 +389,16 @@ const scoutingRoute = createRoute({
   },
 });
 
+// My team's Tactics tab (#14), where a manager lands: his own team's lineup on the pitch.
+const myTeamTacticsRoute = createRoute({
+  getParentRoute: () => frameRoute,
+  path: MY_TEAM_PATH,
+  component: function MyTeamTactics() {
+    const { session, myTeam } = myTeamTacticsRoute.useRouteContext();
+    return <MyTeamRoute session={session} seam={myTeam} Tab={TacticsPage} />;
+  },
+});
+
 // My team's Fixtures tab (#365), for anyone in the league: a manager's own team's games.
 const myTeamFixturesRoute = createRoute({
   getParentRoute: () => frameRoute,
@@ -411,7 +422,7 @@ const matchupRoute = createRoute({
   },
 });
 
-const BUILT_PAGES: readonly string[] = [MAIL_PATH, TABLE_PATH, SCOUTING_PATH, HOME_PATH, MY_TEAM_FIXTURES_PATH, MATCHUP_PATH];
+const BUILT_PAGES: readonly string[] = [MAIL_PATH, TABLE_PATH, SCOUTING_PATH, HOME_PATH, MY_TEAM_PATH, MY_TEAM_FIXTURES_PATH, MATCHUP_PATH];
 const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map((page) =>
   createRoute({
     getParentRoute: () => frameRoute,
@@ -423,7 +434,7 @@ const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map(
 const routeTree = rootRoute.addChildren([
   signInRoute,
   leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, playerCardRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, feedbackRoute, patchNotesRoute]),
-  frameRoute.addChildren([landingRoute, homeRoute, tableRoute, scoutingRoute, myTeamFixturesRoute, matchupRoute, ...pageRoutes]),
+  frameRoute.addChildren([landingRoute, homeRoute, tableRoute, scoutingRoute, myTeamTacticsRoute, myTeamFixturesRoute, matchupRoute, ...pageRoutes]),
 ]);
 
 // Not registered for typed links yet: the pages above are made in a loop, so their paths are plain

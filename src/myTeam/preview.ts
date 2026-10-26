@@ -3,9 +3,10 @@
 
 import { teamFixturesOf } from "../table/drawnTable";
 import { previewSeason, previewTeams } from "../table/preview";
+import { previewTactics } from "./previewTactics";
 import type { MyTeamSeam } from "./seam";
 
 const [previewTeam] = previewTeams;
 const fixtures = teamFixturesOf(previewTeams, previewTeam, previewSeason);
 
-export const previewMyTeam: MyTeamSeam = { useTeamFixtures: () => fixtures };
+export const previewMyTeam: MyTeamSeam = { ...previewTactics, useTeamFixtures: () => fixtures };
