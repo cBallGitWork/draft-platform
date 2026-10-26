@@ -20,7 +20,7 @@ LIST_ENV = "DRAFT_PRIVATE_WORDS_LIST"  # the words themselves, set in a cloud en
 DEFAULT_LIST = "~/.claude/private-words.txt"
 PRIVATE_WORDS = os.environ.get(LIST_OVERRIDE_ENV) or os.path.expanduser(DEFAULT_LIST)
 NO_LIST = (f"No private-word list at {DEFAULT_LIST} on this machine, "
-           "so this commit/PR wasn't checked for private words. "
+           "so this wasn't checked for private words. "
            f"In a cloud environment, set {LIST_ENV} in its settings.")
 GH_PUBLISHING = {("pr", "create"), ("pr", "edit"), ("pr", "comment"), ("pr", "merge"), ("pr", "review"),
                  ("issue", "create"), ("issue", "edit"), ("issue", "comment"),
@@ -80,8 +80,10 @@ def list_missing_note(cmds):
 
 
 def has_list():
-    """True if there is a list to check against, however it is held."""
-    return bool(os.environ.get(LIST_ENV, "").strip() or os.environ.get(LIST_OVERRIDE_ENV) or os.path.exists(PRIVATE_WORDS))
+    """True if there is a list to check against, however it is held: one that holds no word (a lone
+    comma, an empty file) would check nothing, so it counts as none and gets the note. One that
+    can't be read is text_problem's denial."""
+    return private_words() != []
 
 
 def text_problem(texts):

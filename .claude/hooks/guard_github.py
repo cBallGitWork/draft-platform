@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """PreToolUse guard for the GitHub tools (mcp__github__*), which a cloud session publishes through
-in place of gh, so guard_bash.py never sees them: denies a call that writes (an issue, a pull
-request, a comment, a review, a file) naming a word on Craig's private list (private_words.py), in
-any text it sends. Reads publish nothing, so they aren't checked. With no list to check against,
-a write gets a note, never a denial, as guard_bash.py gives. A payload it can't read is denied:
+in place of gh, so guard_bash.py never sees them: denies a call naming a word on Craig's private
+list (private_words.py) in any text it sends. Every tool is checked but the reads (READS), which
+publish nothing, so a write tool added or renamed is checked rather than missed. With no list to
+check against, a write gets a note, never a denial, as guard_bash.py gives. A payload it can't read is denied:
 allowing it would check nothing. Stdlib only, Python 3.9+.
 """
 
@@ -15,12 +15,16 @@ import sys
 from private_words import NO_LIST, has_list, text_problem
 
 PREFIX = "mcp__github__"
-WRITES = ("create", "update", "write", "add_", "push", "merge", "reply", "delete", "fork", "resolve")
+READ_PREFIXES = ("get_", "list_", "search_")
+READS = {"issue_read", "pull_request_read", "actions_get", "actions_list"}
 
 
 def writes(tool):
-    """True if this GitHub tool sends text that others read."""
-    return tool.startswith(PREFIX) and any(verb in tool[len(PREFIX):] for verb in WRITES)
+    """True if this GitHub tool may send text that others read: any but a read."""
+    if not tool.startswith(PREFIX):
+        return False
+    name = tool[len(PREFIX):]
+    return not (name.startswith(READ_PREFIXES) or name in READS)
 
 
 def strings(value):
