@@ -12,6 +12,7 @@ import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlPlayerStats, type Ra
 import { matchStatsSyncFields, syncTrigger, type matchSyncOutcome } from "../schema";
 import { writeScores } from "../football/matchScores";
 import { plScoreRead, readEach, type ScoreReads } from "../football/scoreReads";
+import { commentaryContext, delayCommentary, syncCommentary } from "../football/matchCommentary";
 
 // Issue #27: every due match's stats from both feeds, one record per named man, upserted with
 // `matchStats.upsertMatch`. No cron runs it yet (ARCHITECTURE.md); from the CLI:
@@ -53,6 +54,8 @@ export type BeforeFullTime = "wait" | "live";
 export async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number, beforeFullTime: BeforeFullTime) {
   const { bootstrap, fixtures } = await readFplPayloads();
   const codeByOpta = codesByOpta(bootstrap.elements);
+  // The live tick reads each match's commentary too (#43), after its points and apart from them.
+  const commentary = beforeFullTime === "live" ? commentaryContext(bootstrap, codeByOpta) : null;
   const matches: MatchOutcome[] = [];
   const waiting: number[] = [];
   const scores: ScoreReads = { reads: [], problems: [] };
@@ -68,6 +71,7 @@ export async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number, b
     } catch (error: unknown) {
       const message = logFailure(`gameweek ${gameweek}'s reads failed`, error);
       matches.push(...codes.map((fixtureCode) => ({ fixtureCode, ok: false as const, error: message })));
+      if (commentary !== null) await delayCommentary(ctx, codes, message, readAt);
       continue;
     }
     for (const fixtureCode of codes) {
@@ -78,6 +82,7 @@ export async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number, b
       } catch (error: unknown) {
         matches.push({ fixtureCode, ok: false, error: logFailure(`match ${fixtureCode} failed`, error) });
       }
+      if (commentary !== null) await syncCommentary(ctx, fixtureCode, reads.listed.get(fixtureCode), commentary, readAt);
     }
   }
   return { matches, waiting, scores: await writeDueScores(ctx, readAt, scores) };
