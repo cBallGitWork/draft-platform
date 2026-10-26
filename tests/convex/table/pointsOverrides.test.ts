@@ -179,6 +179,14 @@ test("an override is refused with a reason when it can't be sound", async () => 
   expect(await league.t.run((ctx) => ctx.db.query("pointsOverrides").collect())).toEqual([]);
 });
 
+test("an override of exactly the most points either way is let in", async () => {
+  const league = await storedLeague();
+  await overrides(league, COMMISSIONER, { points: OVERRIDE_POINTS_MOST });
+  await overrides(league, COMMISSIONER, { points: -OVERRIDE_POINTS_MOST });
+
+  expect((await league.t.run((ctx) => ctx.db.query("pointsOverrides").collect())).map((row) => row.points)).toEqual([-OVERRIDE_POINTS_MOST]);
+});
+
 test("a match still inside its corrections window can't be overridden: its own corrections still move it", async () => {
   const league = await scoresLeague();
   await fullTimeRecords(league);
