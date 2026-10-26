@@ -65,7 +65,7 @@ const changes = {
     if (problems.length > 0) return problems.map((problem) => problemWords(problem, nameOf)).join(" ");
     tactics = tacticsWith(lineup);
     for (const listener of listeners) listener();
-    return null;
+    return PREVIEW_GAMEWEEK;
   },
 };
 

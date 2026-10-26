@@ -8,13 +8,10 @@ import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Cell } from "../../../convex/lineup/pitch";
-import type { Position } from "../../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
-import type { OpenTactics } from "../../../src/myTeam/tacticsSeam";
 import {
   BENCH_TITLE,
-  discardWords,
   emptyBenchWords,
   joinedBenchWords,
   locksWords,
@@ -23,11 +20,7 @@ import {
   noDeadlineWords,
   pickHintWords,
   pitchLabel,
-  playerOnPitchLabel,
   putHereLabel,
-  saveFailedWords,
-  saveWords,
-  savedWords,
   seasonOverWords,
   squadTableLabel,
   startingWords,
@@ -36,50 +29,25 @@ import {
   toBenchWords,
 } from "../../../src/myTeam/tacticsWords";
 import { noTeamWords } from "../../../src/myTeam/words";
-import type { MyTeamData } from "../../support/src/myTeam.harness";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 import { TACTICS_GAMEWEEK, openTactics } from "../../support/src/tactics.harness";
-
-type Member = OpenTactics["squad"][number];
-const member = (playerCode: number, name: string, positions: Position[]): Member => ({ playerCode, name, clubShortName: "ARS", positions });
-
-const RAYA = member(1, "Raya", ["GK"]);
-const SALIBA = member(2, "Saliba", ["CB"]);
-const RICE = member(3, "Rice", ["CDM", "CM"]);
-const HAVERTZ = member(4, "Havertz", ["ST"]);
-const ARRIZABALAGA = member(5, "Arrizabalaga", ["GK"]);
-const WHITE = member(6, "White", ["FB", "WB"]);
-const SQUAD = [RAYA, SALIBA, RICE, HAVERTZ, ARRIZABALAGA, WHITE];
-
-const at = (player: Member, cell: Cell) => ({ playerCode: player.playerCode, ...cell });
-/** Four starters and two on the bench: the screen never judges whether eleven stand. */
-const STARTERS = [
-  at(RAYA, { area: "goalkeeper", lane: "centre" }),
-  at(SALIBA, { area: "defence", lane: "leftCentre" }),
-  at(RICE, { area: "midfield", lane: "centre" }),
-  at(HAVERTZ, { area: "attack", lane: "centre" }),
-];
-const SAVED = openTactics({
-  squad: SQUAD,
-  lineup: { kind: "saved", fromGameweek: TACTICS_GAMEWEEK, starters: STARTERS, bench: [ARRIZABALAGA.playerCode, WHITE.playerCode], leftSquad: [], joinedBench: [] },
-});
-
-const openTacticsTab = (myTeam: MyTeamData = { tactics: SAVED }, session = manager) => openApp(MY_TEAM_PATH, session, { myTeam });
-const pitch = () => screen.getByRole("group", { name: pitchLabel });
-const squadRows = () =>
-  within(screen.getByRole("table", { name: squadTableLabel }))
-    .getAllByRole("row")
-    .slice(1)
-    .map((row) => row.textContent);
-const blockOf = (player: Member, cell: Cell) => within(pitch()).getByRole("button", { name: playerOnPitchLabel(player.name, player.positions, cell.area, cell.lane) });
-const targets = () => within(pitch()).queryAllByRole("button", { name: /^Put / }).map((target) => target.getAttribute("aria-label"));
-const save = () => screen.getByRole("button", { name: saveWords });
-/** The tab opened on the lineup held, once its pitch is up. */
-async function openedPitch(myTeam?: MyTeamData) {
-  const app = openTacticsTab(myTeam);
-  await screen.findByRole("group", { name: pitchLabel });
-  return app;
-}
+import {
+  ARRIZABALAGA,
+  HAVERTZ,
+  RAYA,
+  RICE,
+  SALIBA,
+  SAVED,
+  SQUAD,
+  STARTERS,
+  WHITE,
+  blockOf,
+  openTacticsTab,
+  openedPitch,
+  pitch,
+  squadRows,
+  targets,
+} from "../../support/src/tacticsScreen.harness";
 
 describe("reaching it", () => {
   it("is where a manager lands, titled by his team, reading his lineup for the league the app is in", async () => {
@@ -247,52 +215,5 @@ describe("moving a player", () => {
     fireEvent.dragStart(blockOf(HAVERTZ, { area: "attack", lane: "centre" }), { dataTransfer });
     fireEvent.drop(screen.getByText(BENCH_TITLE), { dataTransfer });
     expect(squadRows().at(-1)).toBe("STHavertz ARSMove");
-  });
-});
-
-describe("saving", () => {
-  it("has nothing to save until something moves, then saves the lineup as it stands", async () => {
-    const app = openTacticsTab();
-    expect((await screen.findByRole("button", { name: saveWords })).hasAttribute("disabled")).toBe(true);
-
-    await userEvent.click(blockOf(HAVERTZ, { area: "attack", lane: "centre" }));
-    await userEvent.click(screen.getByRole("button", { name: putHereLabel(HAVERTZ.name, "attack", "left") }));
-    await userEvent.click(save());
-
-    expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, {
-      starters: [...STARTERS.slice(0, 3), at(HAVERTZ, { area: "attack", lane: "left" })],
-      bench: [ARRIZABALAGA.playerCode, WHITE.playerCode],
-    });
-    expect(await screen.findByText(savedWords(TACTICS_GAMEWEEK))).toBeTruthy();
-  });
-
-  it("shows the server's refusal in its words, keeping the edit", async () => {
-    const refusal = "A lineup starts 11 players; this one starts 4.";
-    openTacticsTab({ tactics: SAVED, saveAnswer: refusal });
-    await userEvent.click(await screen.findByRole("button", { name: moveLabel(WHITE.name) }));
-    await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "left") }));
-    await userEvent.click(save());
-
-    expect((await screen.findByRole("alert")).textContent).toBe(refusal);
-    expect(blockOf(WHITE, { area: "defence", lane: "left" })).toBeTruthy();
-  });
-
-  it("says a save that failed for another reason plainly", async () => {
-    openTacticsTab({ tactics: SAVED, saveAnswer: saveFailedWords });
-    await userEvent.click(await screen.findByRole("button", { name: moveLabel(WHITE.name) }));
-    await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "left") }));
-    await userEvent.click(save());
-    expect((await screen.findByRole("alert")).textContent).toBe(saveFailedWords);
-  });
-
-  it("discards an edit, back to the lineup held", async () => {
-    openTacticsTab();
-    await userEvent.click(await screen.findByRole("button", { name: moveLabel(WHITE.name) }));
-    await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "left") }));
-    await userEvent.click(screen.getByRole("button", { name: discardWords }));
-
-    expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${WHITE.name},`) })).toBeNull();
-    expect(save().hasAttribute("disabled")).toBe(true);
-    expect(screen.queryByRole("button", { name: discardWords })).toBeNull();
   });
 });

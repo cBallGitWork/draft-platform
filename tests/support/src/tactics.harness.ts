@@ -1,5 +1,6 @@
 // The Tactics tab's tests' fake seam (#14): My team's fake (myTeam.harness.ts) holds it.
 
+import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import type { LineupChanges, OpenTactics, Tactics, TacticsSeam } from "../../../src/myTeam/tacticsSeam";
@@ -21,13 +22,25 @@ export const openTactics = (change: Partial<OpenTactics> = {}): OpenTactics => (
 });
 
 /** What the fake server holds: the tactics, or nothing yet while they load; and what a save
- *  answers, saved by default. */
-export type TacticsData = { tactics?: Tactics; saveAnswer?: string | null };
+ *  answers, the gameweek it saved from (the tactics' by default) or the words refusing it. */
+export type TacticsData = { tactics?: Tactics; saveAnswer?: number | string };
 
-export function fakeTactics({ tactics = openTactics(), saveAnswer = null }: TacticsData, loading: boolean) {
+export function fakeTactics({ tactics = openTactics(), saveAnswer = TACTICS_GAMEWEEK }: TacticsData, loading: boolean) {
   const changes = { save: vi.fn<LineupChanges["save"]>(async () => saveAnswer) };
+  // A store, so a test can change what the server holds under an open screen, as Convex would.
+  let held = tactics;
+  const listeners = new Set<() => void>();
+  const subscribe = (listener: () => void) => {
+    listeners.add(listener);
+    return () => void listeners.delete(listener);
+  };
   return {
-    useTactics: vi.fn<TacticsSeam["useTactics"]>(() => (loading ? undefined : tactics)),
+    useTactics: vi.fn<TacticsSeam["useTactics"]>(() => useSyncExternalStore(subscribe, () => (loading ? undefined : held))),
+    /** What the server holds from now on (inside act). */
+    serverHolds: (next: Tactics) => {
+      held = next;
+      for (const listener of listeners) listener();
+    },
     useLineupChanges: vi.fn<TacticsSeam["useLineupChanges"]>(() => changes),
     lineupChanges: changes,
   };

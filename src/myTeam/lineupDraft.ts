@@ -22,6 +22,18 @@ export function openingLineup({ lineup, squad }: Pick<OpenTactics, "lineup" | "s
   return { starters: lineup.starters, bench: lineup.bench };
 }
 
+/** The lineup against the squad as it is now, as the server reads a saved one (lineups.ts): who has
+ *  left drops out, and who has joined goes to the end of the bench, so an edit made before either
+ *  never names a player the squad no longer holds. */
+export function withSquad(draft: DraftLineup, squadCodes: readonly number[]): DraftLineup {
+  const inSquad = new Set(squadCodes);
+  const named = new Set([...draft.starters.map(({ playerCode }) => playerCode), ...draft.bench]);
+  return {
+    starters: draft.starters.filter(({ playerCode }) => inSquad.has(playerCode)),
+    bench: [...draft.bench.filter((playerCode) => inSquad.has(playerCode)), ...squadCodes.filter((playerCode) => !named.has(playerCode))],
+  };
+}
+
 const sameCell = (one: Cell, other: Cell) => one.area === other.area && one.lane === other.lane;
 
 /** Who stands in the cell, if anyone. */

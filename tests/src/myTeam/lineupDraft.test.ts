@@ -2,7 +2,7 @@
 // bench, and when two lineups stand the same.
 
 import { describe, expect, it } from "vitest";
-import { benched, openingLineup, placed, sameLineup } from "../../../src/myTeam/lineupDraft";
+import { benched, openingLineup, placed, sameLineup, withSquad } from "../../../src/myTeam/lineupDraft";
 
 const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
 const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;
@@ -38,4 +38,8 @@ describe("the same lineup", () => {
 it("for a team that has never saved one opens with the whole squad on the bench, in the order it joined", () => {
   const squad = [7, 5, 6].map((playerCode) => ({ playerCode, name: `${playerCode}`, clubShortName: "ARS", positions: [] }));
   expect(openingLineup({ squad, lineup: { kind: "none" } })).toEqual({ starters: [], bench: [7, 5, 6] });
+});
+
+it("against the squad now drops who left and puts who joined at the end of the bench", () => {
+  expect(withSquad(DRAFT, [1, 3, 4, 9])).toEqual({ starters: [KEEPER], bench: [3, 4, 9] });
 });

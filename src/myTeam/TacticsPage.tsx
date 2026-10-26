@@ -3,9 +3,8 @@ import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import type { Cell } from "../../convex/lineup/pitch";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, Notice, PageSection, PanelNote, Problem } from "../frame/Panel";
-import { useChange } from "../useChange";
 import { useMinute } from "../useMinute";
-import { benched, openingLineup, placed, sameLineup, type DraftLineup } from "./lineupDraft";
+import { benched, openingLineup, placed, sameLineup, withSquad, type DraftLineup } from "./lineupDraft";
 import { Pitch, type Moving } from "./Pitch";
 import { SquadTable } from "./SquadTable";
 import type { MyTeamSeam } from "./seam";
@@ -86,9 +85,10 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
   const [edited, setEdited] = useState<DraftLineup | null>(null);
   const [pickedCode, setPickedCode] = useState<number | null>(null);
   const [savedFrom, setSavedFrom] = useState<number | null>(null);
-  const changing = useChange();
+  const [saving, setSaving] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
   const changes = seam.useLineupChanges();
-  const draft = edited ?? opening;
+  const draft = useMemo(() => (edited === null ? opening : withSquad(edited, tactics.squad.map(({ playerCode }) => playerCode))), [edited, opening, tactics.squad]);
   const unchanged = sameLineup(draft, opening);
   const picked = pickedCode === null ? null : (squad.get(pickedCode) ?? null);
 
@@ -128,13 +128,18 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
   const toBench = () => {
     if (picked !== null) change(benched(draft, picked.playerCode), picked.playerCode);
   };
+  // The gameweek is the server's: a save sent just after the deadline is from the one after.
   const save = async () => {
-    if (await changing.run(() => changes.save(league.leagueId, draft))) setSavedFrom(tactics.gameweek);
+    setSaving(true);
+    const answer = await changes.save(league.leagueId, draft);
+    setSaving(false);
+    setProblem(typeof answer === "string" ? answer : null);
+    setSavedFrom(typeof answer === "number" ? answer : null);
   };
   const discard = () => {
     setEdited(null);
     setPickedCode(null);
-    changing.clear();
+    setProblem(null);
   };
 
   const joined = tactics.lineup.kind === "saved" ? tactics.lineup.joinedBench : [];
@@ -148,7 +153,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
               {discardWords}
             </button>
           )}
-          <button type="button" disabled={unchanged || changing.busy} onClick={() => void save()} className={unchanged ? "action-idle" : "action"}>
+          <button type="button" disabled={unchanged || saving} onClick={() => void save()} className={unchanged ? "action-idle" : "action"}>
             {saveWords}
           </button>
         </div>
@@ -157,7 +162,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
             {savedWords(savedFrom)}
           </p>
         )}
-        <Problem problem={changing.problem} />
+        <Problem problem={problem} />
       </div>
       {joined.length > 0 && <Notice>{joinedBenchWords(joined.map((code) => squad.get(code)!.name))}</Notice>}
       <div className="flex flex-wrap items-start gap-2">

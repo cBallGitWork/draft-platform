@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
-import { refusalOf } from "../refusal";
+import { answerOf } from "../refusal";
 import type { TacticsSeam } from "./tacticsSeam";
 import { saveFailedWords } from "./tacticsWords";
 
@@ -14,7 +14,7 @@ export const liveTactics: TacticsSeam = {
     return useMemo(
       () => ({
         save: (leagueId, { starters, bench }) =>
-          refusalOf(() => save({ leagueId, lineup: { starters: [...starters], bench: [...bench] } }), "Saving a lineup", saveFailedWords),
+          answerOf(() => save({ leagueId, lineup: { starters: [...starters], bench: [...bench] } }), "Saving a lineup", saveFailedWords),
       }),
       [save],
     );
