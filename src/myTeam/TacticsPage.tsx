@@ -4,7 +4,7 @@ import type { Cell } from "../../convex/lineup/pitch";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, Notice, PageSection, PanelNote, Problem } from "../frame/Panel";
 import { useMinute } from "../useMinute";
-import { benched, openingLineup, placed, sameLineup, withSquad, type DraftLineup } from "./lineupDraft";
+import { benched, benchedAt, openingLineup, placed, sameLineup, withSquad, type DraftLineup } from "./lineupDraft";
 import { Pitch, type Moving } from "./Pitch";
 import { SquadTable } from "./SquadTable";
 import type { MyTeamSeam } from "./seam";
@@ -94,12 +94,14 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
 
   // After a move, the moved player keeps the focus, wherever he now stands.
   const root = useRef<HTMLDivElement>(null);
-  const [focusCode, setFocusCode] = useState<number | null>(null);
+  // Up and Down keep it on the button pressed, or its partner once that one stops at an end.
+  const [focusOn, setFocusOn] = useState<readonly string[] | null>(null);
   useEffect(() => {
-    if (focusCode === null) return;
-    root.current?.querySelector<HTMLElement>(`[data-player="${focusCode}"]`)?.focus();
-    setFocusCode(null);
-  }, [focusCode]);
+    if (focusOn === null) return;
+    const found = focusOn.map((selector) => root.current?.querySelector<HTMLButtonElement>(selector)).find((each) => each && !each.disabled);
+    found?.focus();
+    setFocusOn(null);
+  }, [focusOn]);
 
   useEffect(() => {
     if (pickedCode === null) return;
@@ -110,11 +112,11 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     return () => document.removeEventListener("keydown", putBack);
   }, [pickedCode]);
 
-  const change = (next: DraftLineup, moved: number) => {
+  const change = (next: DraftLineup, moved: number, focus: readonly string[] = [`[data-player="${moved}"]`]) => {
     setEdited(next);
     setPickedCode(null);
     setSavedFrom(null);
-    setFocusCode(moved);
+    setFocusOn(focus);
   };
   const moving: Moving = {
     picked,
@@ -127,6 +129,13 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
   };
   const toBench = () => {
     if (picked !== null) change(benched(draft, picked.playerCode), picked.playerCode);
+  };
+  /** Up, down, or a drop on a bench row: the player at that place in the bench order. Up or Down
+   *  keeps the focus on the button pressed. */
+  const toBenchAt = (playerCode: number, index: number, pressed?: "up" | "down") => {
+    const other = pressed === "up" ? "down" : "up";
+    const focus = pressed && [`[data-bench-${pressed}="${playerCode}"]`, `[data-bench-${other}="${playerCode}"]`, `[data-player="${playerCode}"]`];
+    change(benchedAt(draft, playerCode, index), playerCode, focus || undefined);
   };
   // The gameweek is the server's: a save sent just after the deadline is from the one after.
   const save = async () => {
@@ -188,7 +197,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
           <h2 id={SQUAD_TITLE_ID} className="bg-plate px-3 py-1 text-lead font-bold shadow-bevel-plate">
             {SQUAD_PANEL_TITLE}
           </h2>
-          <SquadTable leagueId={league.leagueId} draft={draft} squad={squad} moving={moving} onBench={toBench} />
+          <SquadTable leagueId={league.leagueId} draft={draft} squad={squad} moving={moving} onBench={toBench} onBenchAt={toBenchAt} />
         </section>
       </div>
     </div>

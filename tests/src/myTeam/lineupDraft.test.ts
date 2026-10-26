@@ -2,7 +2,7 @@
 // bench, and when two lineups stand the same.
 
 import { describe, expect, it } from "vitest";
-import { benched, openingLineup, placed, sameLineup, withSquad } from "../../../src/myTeam/lineupDraft";
+import { benched, benchedAt, openingLineup, placed, sameLineup, withSquad } from "../../../src/myTeam/lineupDraft";
 
 const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
 const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;
@@ -22,6 +22,17 @@ describe("a move", () => {
 
   it("to the bench puts him at its end", () => {
     expect(benched(DRAFT, 2)).toEqual({ starters: [KEEPER], bench: [3, 4, 2] });
+  });
+
+  it("to a place on the bench puts him there, from the pitch or along the bench", () => {
+    expect(benchedAt(DRAFT, 2, 0)).toEqual({ starters: [KEEPER], bench: [2, 3, 4] });
+    expect(benchedAt(DRAFT, 3, 1)).toEqual({ starters: [KEEPER, BACK], bench: [4, 3] }); // down one
+    expect(benchedAt(DRAFT, 4, 0)).toEqual({ starters: [KEEPER, BACK], bench: [4, 3] }); // up one
+  });
+
+  it("past either end of the bench is that end", () => {
+    expect(benchedAt(DRAFT, 2, -1).bench).toEqual([2, 3, 4]);
+    expect(benchedAt(DRAFT, 3, 9).bench).toEqual([4, 3]);
   });
 });
 

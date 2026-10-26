@@ -5,6 +5,8 @@ import { startersInOrder, type DraftLineup, type SquadMember } from "./lineupDra
 import { startDrag, type Moving } from "./Pitch";
 import {
   BENCH_TITLE,
+  downLabel,
+  downWords,
   emptyBenchWords,
   moveLabel,
   moveWords,
@@ -13,25 +15,30 @@ import {
   squadColumns,
   squadTableLabel,
   toBenchWords,
+  upLabel,
+  upWords,
 } from "./tacticsWords";
 
 const COLUMNS = ["position", "player", "move"] as const;
 
 /** The eleven back to front, then the bench in order under its own plate (plate.md, Marks). Each
  *  row's Move picks the player up, and a row drags onto the pitch; with a starter picked up, the
- *  bench's plate offers to take him. */
+ *  bench's plate offers to take him. A bench row's Up and Down set the bench order, and a player
+ *  dropped on a bench row takes its place (spec/05 Auto-subs). */
 export function SquadTable({
   leagueId,
   draft,
   squad,
   moving,
   onBench,
+  onBenchAt,
 }: {
   leagueId: string;
   draft: DraftLineup;
   squad: ReadonlyMap<number, SquadMember>;
   moving: Moving;
   onBench(): void;
+  onBenchAt(playerCode: number, index: number, pressed?: "up" | "down"): void;
 }) {
   const { picked } = moving;
   const pickedStarts = picked !== null && draft.starters.some((starter) => starter.playerCode === picked.playerCode);
@@ -42,8 +49,14 @@ export function SquadTable({
     event.preventDefault();
     if (pickedStarts) onBench();
   };
-  const row = (playerCode: number, onBenchRow: boolean) => (
-    <SquadRow key={playerCode} leagueId={leagueId} player={squad.get(playerCode)!} onBenchRow={onBenchRow} moving={moving} />
+  const row = (playerCode: number, benchIndex: number | null) => (
+    <SquadRow
+      key={playerCode}
+      leagueId={leagueId}
+      player={squad.get(playerCode)!}
+      bench={benchIndex === null ? null : { index: benchIndex, last: draft.bench.length - 1, onBenchAt }}
+      moving={moving}
+    />
   );
   return (
     <table aria-label={squadTableLabel} className="w-full border-collapse">
@@ -56,7 +69,7 @@ export function SquadTable({
           ))}
         </tr>
       </thead>
-      <tbody>{startersInOrder(draft).map(({ playerCode }) => row(playerCode, false))}</tbody>
+      <tbody>{startersInOrder(draft).map(({ playerCode }) => row(playerCode, null))}</tbody>
       <tbody onDragOver={allowDrop} onDrop={drop}>
         <tr>
           <th scope="rowgroup" colSpan={COLUMNS.length} className="bg-plate px-2 text-left font-bold">
@@ -77,20 +90,42 @@ export function SquadTable({
             </td>
           </tr>
         ) : (
-          draft.bench.map((playerCode) => row(playerCode, true))
+          draft.bench.map((playerCode, index) => row(playerCode, index))
         )}
       </tbody>
     </table>
   );
 }
 
-function SquadRow({ leagueId, player, onBenchRow, moving }: { leagueId: string; player: SquadMember; onBenchRow: boolean; moving: Moving }) {
+/** Up and Down: a whole tap wide on the phone, as "Up" alone is narrower (plate.md, The phone). */
+const BENCH_ORDER_BUTTON =
+  "min-h-tap min-w-tap font-semibold text-fact underline disabled:text-muted disabled:no-underline lg:min-h-0 lg:min-w-0";
+
+/** A bench row's place in the bench order, the last place, and how to move a player to one. */
+type BenchPlace = { index: number; last: number; onBenchAt(playerCode: number, index: number, pressed?: "up" | "down"): void };
+
+function SquadRow({ leagueId, player, bench, moving }: { leagueId: string; player: SquadMember; bench: BenchPlace | null; moving: Moving }) {
   const isPicked = moving.picked?.playerCode === player.playerCode;
+  const onBenchRow = bench !== null;
+  const picked = moving.picked;
+  // A player dragged onto a bench row takes its place; the bench's own drop (to the end) is for
+  // the rest of it.
+  const allowDrop = (event: DragEvent) => {
+    if (bench !== null && picked !== null) event.preventDefault();
+  };
+  const drop = (event: DragEvent) => {
+    if (bench === null || picked === null) return;
+    event.preventDefault();
+    event.stopPropagation();
+    bench.onBenchAt(picked.playerCode, bench.index);
+  };
   return (
     <tr
       draggable
       onDragStart={(event) => startDrag(event, player.playerCode, moving)}
       onDragEnd={moving.onDragEnd}
+      onDragOver={allowDrop}
+      onDrop={drop}
       aria-current={isPicked || undefined}
       className={`border-t border-panel-rule aria-current:shadow-current-edge ${onBenchRow ? "text-muted" : ""}`}
     >
@@ -112,6 +147,31 @@ function SquadRow({ leagueId, player, onBenchRow, moving }: { leagueId: string; 
         >
           {isPicked ? movingWords : moveWords}
         </button>
+        {bench !== null && (
+          <>
+            {" "}
+            <button
+              type="button"
+              aria-label={upLabel(player.name)}
+              data-bench-up={player.playerCode}
+              disabled={bench.index === 0}
+              onClick={() => bench.onBenchAt(player.playerCode, bench.index - 1, "up")}
+              className={BENCH_ORDER_BUTTON}
+            >
+              {upWords}
+            </button>{" "}
+            <button
+              type="button"
+              aria-label={downLabel(player.name)}
+              data-bench-down={player.playerCode}
+              disabled={bench.index === bench.last}
+              onClick={() => bench.onBenchAt(player.playerCode, bench.index + 1, "down")}
+              className={BENCH_ORDER_BUTTON}
+            >
+              {downWords}
+            </button>
+          </>
+        )}
       </td>
     </tr>
   );

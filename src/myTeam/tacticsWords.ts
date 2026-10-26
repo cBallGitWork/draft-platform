@@ -56,6 +56,11 @@ export const squadColumns = {
 export const movingWords = "Moving";
 export const moveLabel = (name: string) => `Move ${name}`;
 export const toBenchWords = (name: string) => `Put ${name} on the bench`;
+/** A bench player's buttons for the bench order (spec/05 Auto-subs), and what each says. */
+export const upWords = "Up";
+export const downWords = "Down";
+export const upLabel = (name: string) => `Move ${name} up the bench`;
+export const downLabel = (name: string) => `Move ${name} down the bench`;
 export const emptyBenchWords = "Nobody on the bench.";
 
 /** Who joined the squad since the lineup was saved. */
