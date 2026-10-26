@@ -24,11 +24,12 @@ export function OverridePoints({ leagueId, card, seam }: { leagueId: Id<"leagues
   const [reason, setReason] = useState("");
   const [done, setDone] = useState(false);
   if (fixtureCode === undefined) return null;
+  const picked = fixtureCode;
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setDone(false);
-    const made = await change.run(() => override(leagueId, { fixtureCode: fixtureCode!, playerCode: card.code, points: Number(points), reason }));
+    const made = await change.run(() => override(leagueId, { fixtureCode: picked, playerCode: card.code, points: Number(points), reason }));
     if (!made) return;
     setDone(true);
     setPoints("");
