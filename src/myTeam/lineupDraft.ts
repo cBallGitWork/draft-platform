@@ -6,9 +6,11 @@
 import { AREAS, LANES, playsCell, type Cell } from "../../convex/lineup/pitch";
 import type { Position } from "../../convex/positions/positionTables";
 import type { OpenTactics } from "../../convex/lineup/tactics";
+import { rolesOfSlot } from "../../convex/lineup/roles";
 
 export type SquadMember = OpenTactics["squad"][number];
-export type Starter = Cell & { playerCode: number };
+/** A starter, his cell and the role he plays there (roles.ts), none given meaning the slot's first. */
+export type Starter = Cell & { playerCode: number; role?: string };
 
 export interface DraftLineup {
   starters: readonly Starter[];
@@ -56,7 +58,13 @@ export function placed(draft: DraftLineup, playerCode: number, cell: Cell): Draf
     throw new Error(`The ${cell.area} ${cell.lane} cell is taken by player ${standing.playerCode}`);
   }
   const rest = without(draft, playerCode);
+  // A new slot offers its own roles: he starts on its first (spec/05).
   return { starters: [...rest.starters, { playerCode, ...cell }], bench: rest.bench };
+}
+
+/** The starter given a role his slot offers (spec/05 Roles). */
+export function withRole(draft: DraftLineup, playerCode: number, role: string): DraftLineup {
+  return { ...draft, starters: draft.starters.map((starter) => (starter.playerCode === playerCode ? { ...starter, role } : starter)) };
 }
 
 /** The player put on the bench at `index`, 0 being first on, from the pitch or from elsewhere on
@@ -77,7 +85,7 @@ export const startersInOrder = (draft: DraftLineup): Starter[] => draft.starters
 /** Whether two lineups stand the same: the same players in the same cells, the same bench order. */
 export function sameLineup(one: DraftLineup, other: DraftLineup): boolean {
   const key = (draft: DraftLineup) =>
-    [...startersInOrder(draft).map(({ playerCode, area, lane }) => `${playerCode}@${area}/${lane}`), "bench", ...draft.bench].join(" ");
+    [...startersInOrder(draft).map(({ playerCode, area, lane, role }) => `${playerCode}@${area}/${lane}:${role ?? ""}`), "bench", ...draft.bench].join(" ");
   return key(one) === key(other);
 }
 
@@ -99,7 +107,9 @@ export function reshaped(draft: DraftLineup, cells: readonly Cell[]): DraftLineu
       continue;
     }
     free.splice(free.indexOf(nearest), 1);
-    starters.push({ playerCode: starter.playerCode, area: nearest.area, lane: nearest.lane });
+    // He keeps his role where the new slot offers it too.
+    const kept = starter.role !== undefined && rolesOfSlot(nearest).some(({ key }) => key === starter.role);
+    starters.push({ playerCode: starter.playerCode, area: nearest.area, lane: nearest.lane, ...(kept && { role: starter.role }) });
   }
   return { starters, bench: [...leftOver, ...draft.bench] };
 }

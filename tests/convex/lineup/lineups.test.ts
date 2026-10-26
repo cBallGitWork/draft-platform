@@ -87,6 +87,16 @@ describe("a saved lineup", () => {
     expect(await ann.mine(NEXT - 1)).toEqual({ kind: "none" });
   });
 
+  test("keeps each starter's role as given, and refuses one his slot doesn't offer (#10)", async () => {
+    const ann = await as(ANN);
+    const [keeper, ...rest] = FOUR_FOUR_TWO.starters;
+    const sweeper: Lineup = { ...FOUR_FOUR_TWO, starters: [{ ...keeper, role: "sweeperKeeper" }, ...rest] };
+    await ann.save(sweeper);
+    expect(await ann.mine(NEXT)).toEqual(saved(sweeper, NEXT));
+    const misplaced: Lineup = { ...FOUR_FOUR_TWO, starters: [{ ...keeper, role: "poacher" }, ...rest] };
+    await expect(ann.save(misplaced)).rejects.toThrow(/doesn't offer the role/);
+  });
+
   test("saved again before the same deadline replaces the first, one row for the gameweek", async () => {
     const ann = await as(ANN);
     await ann.save(FOUR_FOUR_TWO);

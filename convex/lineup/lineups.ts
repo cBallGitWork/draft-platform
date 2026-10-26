@@ -27,7 +27,7 @@ import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords"
 
 /** A lineup as a manager's browser sends it: lineup.ts's Lineup, its cells still unchecked. */
 const sentLineup = v.object({
-  starters: v.array(v.object({ playerCode: v.number(), area: v.string(), lane: v.string() })),
+  starters: v.array(v.object({ playerCode: v.number(), area: v.string(), lane: v.string(), role: v.optional(v.string()) })),
   bench: v.array(v.number()),
 });
 

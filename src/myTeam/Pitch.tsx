@@ -1,7 +1,8 @@
 import type { DragEvent } from "react";
 import { AREAS, LANES, type Cell } from "../../convex/lineup/pitch";
+import { roleIn } from "../../convex/lineup/roles";
 import { canStandIn, standingIn, type DraftLineup, type SquadMember } from "./lineupDraft";
-import { emptySlotLabel, pitchLabel, playerOnPitchLabel, positionsWords, putHereLabel } from "./tacticsWords";
+import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel } from "./tacticsWords";
 
 // The Tactics tab's pitch (#14; spec/05, The pitch): six areas by five lanes, attack at the top, CM
 // style. A player is moved by picking him up (a click, a tap or Enter on him) and then choosing a
@@ -61,7 +62,7 @@ export function Pitch({
           return (
             <div key={`${area}/${lane}`} onDragOver={allowDrop} onDrop={drop} className="relative flex h-pitch-row min-w-0 items-center justify-center p-1">
               {standing !== undefined ? (
-                <PlayerBlock player={squad.get(standing.playerCode)!} cell={cell} moving={moving} />
+                <PlayerBlock player={squad.get(standing.playerCode)!} cell={cell} role={roleIn(cell, standing.role).name} moving={moving} />
               ) : picked !== null && opensTo(cell) ? (
                 <button
                   type="button"
@@ -81,9 +82,9 @@ export function Pitch({
   );
 }
 
-/** A player on the pitch: his shirt over his name plate, his positions under his name (no role
- *  until roles are built, #10). Picked up, the plate turns white. */
-function PlayerBlock({ player, cell, moving }: { player: SquadMember; cell: Cell; moving: Moving }) {
+/** A player on the pitch: his shirt over his name plate, the role he plays under his name (spec/05
+ *  Roles; his positions are in his name for screen readers). Picked up, the plate turns white. */
+function PlayerBlock({ player, cell, role, moving }: { player: SquadMember; cell: Cell; role: string; moving: Moving }) {
   const isPicked = moving.picked?.playerCode === player.playerCode;
   const plate = isPicked ? "bg-fact text-ground" : "bg-name-plate";
   return (
@@ -100,7 +101,7 @@ function PlayerBlock({ player, cell, moving }: { player: SquadMember; cell: Cell
     >
       <Shirt number={player.number} />
       <span className={`max-w-full truncate px-1 text-lead font-semibold ${plate}`}>{player.name}</span>
-      <span className={`max-w-full truncate px-1 ${isPicked ? plate : "bg-name-plate text-soft"}`}>{positionsWords(player.positions)}</span>
+      <span className={`max-w-full truncate px-1 ${isPicked ? plate : "bg-name-plate text-soft"}`}>{role}</span>
     </button>
   );
 }

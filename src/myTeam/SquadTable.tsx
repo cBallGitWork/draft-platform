@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import type { DragEvent } from "react";
 import { playerCardPath } from "../playerCard/paths";
-import { startersInOrder, type DraftLineup, type SquadMember } from "./lineupDraft";
+import { roleIn, rolesOfSlot } from "../../convex/lineup/roles";
+import { startersInOrder, type DraftLineup, type SquadMember, type Starter } from "./lineupDraft";
 import { startDrag, type Moving } from "./Pitch";
 import {
   BENCH_TITLE,
@@ -10,6 +11,7 @@ import {
   emptyBenchWords,
   moveLabel,
   moveWords,
+  roleLabel,
   movingWords,
   positionsWords,
   squadColumns,
@@ -19,7 +21,7 @@ import {
   upWords,
 } from "./tacticsWords";
 
-const COLUMNS = ["position", "player", "move"] as const;
+const COLUMNS = ["position", "player", "role", "move"] as const;
 
 /** The eleven back to front, then the bench in order under its own plate (plate.md, Marks). Each
  *  row's Move picks the player up, and a row drags onto the pitch; with a starter picked up, the
@@ -32,6 +34,7 @@ export function SquadTable({
   moving,
   onBench,
   onBenchAt,
+  onRole,
 }: {
   leagueId: string;
   draft: DraftLineup;
@@ -39,6 +42,7 @@ export function SquadTable({
   moving: Moving;
   onBench(): void;
   onBenchAt(playerCode: number, index: number, pressed?: "up" | "down"): void;
+  onRole(playerCode: number, role: string): void;
 }) {
   const { picked } = moving;
   const pickedStarts = picked !== null && draft.starters.some((starter) => starter.playerCode === picked.playerCode);
@@ -49,12 +53,14 @@ export function SquadTable({
     event.preventDefault();
     if (pickedStarts) onBench();
   };
-  const row = (playerCode: number, benchIndex: number | null) => (
+  const row = (playerCode: number, benchIndex: number | null, starter: Starter | null = null) => (
     <SquadRow
       key={playerCode}
       leagueId={leagueId}
       player={squad.get(playerCode)!}
       bench={benchIndex === null ? null : { index: benchIndex, last: draft.bench.length - 1, onBenchAt }}
+      starter={starter}
+      onRole={onRole}
       moving={moving}
     />
   );
@@ -69,7 +75,7 @@ export function SquadTable({
           ))}
         </tr>
       </thead>
-      <tbody>{startersInOrder(draft).map(({ playerCode }) => row(playerCode, null))}</tbody>
+      <tbody>{startersInOrder(draft).map((starter) => row(starter.playerCode, null, starter))}</tbody>
       <tbody onDragOver={allowDrop} onDrop={drop}>
         <tr>
           <th scope="rowgroup" colSpan={COLUMNS.length} className="bg-plate px-2 text-left font-bold">
@@ -104,7 +110,22 @@ const BENCH_ORDER_BUTTON =
 /** A bench row's place in the bench order, the last place, and how to move a player to one. */
 type BenchPlace = { index: number; last: number; onBenchAt(playerCode: number, index: number, pressed?: "up" | "down"): void };
 
-function SquadRow({ leagueId, player, bench, moving }: { leagueId: string; player: SquadMember; bench: BenchPlace | null; moving: Moving }) {
+function SquadRow({
+  leagueId,
+  player,
+  bench,
+  starter,
+  onRole,
+  moving,
+}: {
+  leagueId: string;
+  player: SquadMember;
+  bench: BenchPlace | null;
+  /** His slot and role, for a starter; null on the bench, where no one has a role. */
+  starter: Starter | null;
+  onRole(playerCode: number, role: string): void;
+  moving: Moving;
+}) {
   const isPicked = moving.picked?.playerCode === player.playerCode;
   const onBenchRow = bench !== null;
   const picked = moving.picked;
@@ -135,6 +156,23 @@ function SquadRow({ leagueId, player, bench, moving }: { leagueId: string; playe
           {player.name}
         </Link>{" "}
         <span className="text-muted">{player.clubShortName}</span>
+      </td>
+      <td className="px-2">
+        {starter !== null && (
+          <select
+            aria-label={roleLabel(player.name)}
+            data-role={player.playerCode}
+            value={roleIn(starter, starter.role).key}
+            onChange={(event) => onRole(player.playerCode, event.target.value)}
+            className="text-box"
+          >
+            {rolesOfSlot(starter).map(({ key, name }) => (
+              <option key={key} value={key}>
+                {name}
+              </option>
+            ))}
+          </select>
+        )}
       </td>
       <td className="px-2">
         <button
