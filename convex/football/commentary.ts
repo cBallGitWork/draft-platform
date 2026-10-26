@@ -1,6 +1,7 @@
 // Our own commentary: one match's Premier League lines, as `commentaryLines` maps them, written as
 // short CM-terse lines ("62' GOAL Saka, assist Ødegaard") with a kick-off and a full-time line
-// (spec/10, The commentary; #43). Pure: storing the lines and reading the stream live come later.
+// (spec/10, The commentary; #43). Pure: the live tick reads the stream and stores the lines
+// (matchCommentary.ts).
 // Championship Manager's and Football Manager's commentary is a style reference only; none of it
 // is copied.
 
@@ -24,6 +25,12 @@ export interface WrittenLine {
   /** The feed line it was written from, so a later read can replace it. */
   sourceId: number;
   text: string;
+  /** The feed line's minute, type and men, as `commentaryLines` gives them: what the matchup sorts
+   *  its matches' lines by, prices a goal, an assist or a card by, and finds the full-time line by (#44). */
+  minute: number | null;
+  addedMinute: number | null;
+  type: string;
+  playerCodes: (number | null)[];
 }
 
 export interface WrittenCommentary {
@@ -124,7 +131,7 @@ export function writeCommentary(stream: readonly CommentaryLine[], input: Commen
     if (line.type === FEED_TYPE.end2) continue;
     const text = textOf(line, line === kickOff, input);
     if (text === null) unworded.push(line);
-    else lines.push({ sourceId: line.id, text });
+    else lines.push({ sourceId: line.id, text, minute: line.minute, addedMinute: line.addedMinute, type: line.type, playerCodes: line.playerCodes });
   }
   return { lines, unworded };
 }
@@ -142,9 +149,14 @@ function textOf(line: CommentaryLine, isKickOff: boolean, input: CommentaryInput
 /** "FT ARS 2–1 CHE: Saka 11, Palmer 6"; with no one to list, the score alone. */
 function fullTime({ header, nameByCode, fullTimePoints }: CommentaryInput): string {
   const score = `FT ${header.home} ${header.homeGoals}${SCORE_DASH}${header.awayGoals} ${header.away}`;
-  if (fullTimePoints.length === 0) return score;
-  const points = fullTimePoints.map((each) => `${named(each.code, nameByCode)} ${each.points}`);
-  return `${score}: ${points.join(", ")}`;
+  return withFullTimePoints(score, fullTimePoints.map((each) => ({ name: named(each.code, nameByCode), points: each.points })));
+}
+
+/** The full-time line's score with each man's points after it, in the order given: the writer's,
+ *  and the matchup's, which adds its own lineups' men to the stored line (#44). */
+export function withFullTimePoints(score: string, points: readonly { name: string; points: number }[]): string {
+  if (points.length === 0) return score;
+  return `${score}: ${points.map((each) => `${each.name} ${each.points}`).join(", ")}`;
 }
 
 /** "62'", "45+2'". */

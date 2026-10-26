@@ -3,6 +3,7 @@ import { isLocked } from "../../convex/gameweeks/deadline";
 import { FEWEST_TO_DRAW } from "../../convex/table/roundRobin";
 import { GameweekStepper } from "../frame/GameweekStepper";
 import { PanelNote, PanelTitle } from "../frame/Panel";
+import { MatchupLink } from "../matchup/MatchupLink";
 import type { LeagueTable } from "./seam";
 import {
   byeWords,
@@ -66,14 +67,16 @@ function GameweekFixtures({ gameweeks, results }: { gameweeks: readonly Gameweek
         onNext={() => choose(index + 1)}
       />
       <ul aria-label={fixturesListLabel(gameweek)}>
-        {fixtures.map(({ team, opponent, points }) => (
-          <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-[minmax(0,1fr)_5rem_minmax(0,1fr)] gap-3 border-b border-panel-rule px-3 py-1 text-lead">
+        {fixtures.map(({ teamId, team, opponent, points }) => (
+          <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-[minmax(0,1fr)_5rem_minmax(0,1fr)] items-center gap-3 border-b border-panel-rule px-3 py-1 text-lead">
             <span className="text-right font-semibold">{team}</span>
-            {points === null ? (
-              <span className="text-center text-muted">{versusWords}</span>
-            ) : (
-              <span className="whitespace-nowrap text-center font-bold text-figure tabular-nums">{scoreWords(points.team, points.opponent)}</span>
-            )}
+            <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={gameweek}>
+              {points === null ? (
+                <span>{versusWords}</span>
+              ) : (
+                <span className="whitespace-nowrap font-bold text-figure tabular-nums">{scoreWords(points.team, points.opponent)}</span>
+              )}
+            </MatchupLink>
             {opponent === null ? <span className="text-derived">{leagueAverageWords}</span> : <span className="font-semibold">{opponent}</span>}
           </li>
         ))}

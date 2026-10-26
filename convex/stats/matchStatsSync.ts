@@ -12,6 +12,7 @@ import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlPlayerStats, type Ra
 import { matchStatsSyncFields, syncTrigger, type matchSyncOutcome } from "../schema";
 import { writeScores } from "../football/matchScores";
 import { plScoreRead, readEach, type ScoreReads } from "../football/scoreReads";
+import { commentaryContext, delayCommentary, syncCommentary } from "../football/matchCommentary";
 
 // Issue #27: every due match's stats from both feeds, one record per named man, upserted with
 // `matchStats.upsertMatch`. No cron runs it yet (ARCHITECTURE.md); from the CLI:
@@ -27,6 +28,9 @@ interface GameweekReads {
   fplLines: FplStatLine[];
   /** The Premier League's list for the gameweek, by FPL's fixture code. */
   listed: Map<number | null, RawPlFixture>;
+  /** Each match's clock as the list reads it, for the threshold lines' "~58'" (#44); a match the
+   *  list gives no score for is absent, its problem on the run row. */
+  clocks: Map<number, number | null>;
 }
 
 export const run = internalAction({
@@ -53,6 +57,8 @@ export type BeforeFullTime = "wait" | "live";
 export async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number, beforeFullTime: BeforeFullTime) {
   const { bootstrap, fixtures } = await readFplPayloads();
   const codeByOpta = codesByOpta(bootstrap.elements);
+  // The live tick reads each match's commentary too (#43), after its points and apart from them.
+  const commentary = beforeFullTime === "live" ? commentaryContext(bootstrap, codeByOpta) : null;
   const matches: MatchOutcome[] = [];
   const waiting: number[] = [];
   const scores: ScoreReads = { reads: [], problems: [] };
@@ -61,13 +67,15 @@ export async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number, b
     try {
       const [live, round] = await Promise.all([readFplLive(gameweek), readPlFixtures(gameweek)]);
       const fplLines = fplStatLines(live, bootstrap.elements, fixtures);
-      reads = { gameweek, codeByOpta, fplLines, listed: new Map(round.map((each) => [fixtureCodeIn(each), each])) };
-      const scored = dueScores(reads.listed, codes);
+      const listed = new Map(round.map((each) => [fixtureCodeIn(each), each]));
+      const scored = dueScores(listed, codes);
+      reads = { gameweek, codeByOpta, fplLines, listed, clocks: new Map(scored.reads.map((read) => [read.fixtureCode, read.minutes])) };
       scores.reads.push(...scored.reads);
       scores.problems.push(...scored.problems);
     } catch (error: unknown) {
       const message = logFailure(`gameweek ${gameweek}'s reads failed`, error);
       matches.push(...codes.map((fixtureCode) => ({ fixtureCode, ok: false as const, error: message })));
+      if (commentary !== null) await delayCommentary(ctx, codes, message, readAt);
       continue;
     }
     for (const fixtureCode of codes) {
@@ -78,6 +86,7 @@ export async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number, b
       } catch (error: unknown) {
         matches.push({ fixtureCode, ok: false, error: logFailure(`match ${fixtureCode} failed`, error) });
       }
+      if (commentary !== null) await syncCommentary(ctx, fixtureCode, reads.listed.get(fixtureCode), commentary, readAt);
     }
   }
   return { matches, waiting, scores: await writeDueScores(ctx, readAt, scores) };
@@ -110,7 +119,7 @@ function dueScores(listed: GameweekReads["listed"], codes: number[]): ScoreReads
 async function syncMatch(
   ctx: ActionCtx,
   fixtureCode: number,
-  { gameweek, codeByOpta, fplLines, listed }: GameweekReads,
+  { gameweek, codeByOpta, fplLines, listed, clocks }: GameweekReads,
   readAt: number,
   beforeFullTime: BeforeFullTime,
 ): Promise<MatchOutcome | null> {
@@ -128,7 +137,7 @@ async function syncMatch(
   const records = matchRecords(fixtureCode, slots, fplLines, lines);
   const written = fullTime
     ? await ctx.runMutation(internal.stats.matchStats.upsertMatch, { fixtureCode, readAt, records })
-    : await ctx.runMutation(internal.stats.liveStats.upsertLive, { fixtureCode, records });
+    : await ctx.runMutation(internal.stats.liveStats.upsertLive, { fixtureCode, minute: clocks.get(fixtureCode) ?? null, records });
   return { fixtureCode, ok: true, ...written, players: records.length, unmatched };
 }
 

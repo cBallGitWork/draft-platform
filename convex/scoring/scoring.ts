@@ -59,7 +59,7 @@ export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cel
     stat: rule.stat,
     points: rulePoints(rule, slot, statIn(record, rule.stat), minutes),
   }));
-  return { total: notNegativeZero(inTenths(sum(categories.map((category) => category.points)))), categories };
+  return { total: inTenths(sum(categories.map((category) => category.points))), categories };
 }
 
 /** Only the record's own keys count: a rule on `constructor` must not read Object's. A stat the
@@ -83,13 +83,13 @@ function rulePoints(rule: ScoringRule, slot: Slot, actions: number, minutes: num
     if (min !== null) points = Math.max(points, min);
   }
   if (!Number.isFinite(points)) throw new Error(`the ${rule.stat} rule gives ${points} points as ${slot.position}`);
-  return notNegativeZero(inTenths(points));
+  return inTenths(points);
 }
 
-/** No points as -0, which JavaScript makes of 0 yellow cards at -1, or of tenths that cancel out,
- *  and which a saved row or a test tells apart from 0. */
-function notNegativeZero(points: number): number {
-  return points === 0 ? 0 : points;
+/** One rule's points for a man priced at `cell`, with `actions` of its stat and `minutes` played:
+ *  what a threshold line prices the step it shows by (#44). A bad cell is the caller's to check. */
+export function rulePointsIn(rule: ScoringRule, cell: Cell, actions: number, minutes: number): number {
+  return rulePoints(rule, { area: cell.area, position: positionOfSlot(cell) }, actions, minutes);
 }
 
 /** A rule's setting for the slot being scored. */

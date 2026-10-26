@@ -10,6 +10,7 @@ import { previewHome } from "./home/preview";
 import { previewJoining } from "./joining/preview";
 import { previewLeagueSettings } from "./leagueSettings/preview";
 import { previewMail, previewTopBar } from "./mail/preview";
+import { previewMatchup } from "./matchup/preview";
 import { previewMyTeam } from "./myTeam/preview";
 import { previewPatches } from "./patches/preview";
 import { previewAuth, previewLeagues, previewSession } from "./preview";
@@ -42,6 +43,7 @@ export function previewApp(): ReactNode | null {
       playerCard={previewPlayerCard}
       home={previewHome}
       myTeam={previewMyTeam}
+      matchup={previewMatchup}
       premierLeague={previewPremierLeague}
       admin={previewAdmin}
       feedback={previewFeedback}

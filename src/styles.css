@@ -49,6 +49,7 @@
   --spacing-number-box: 72px;
   /* A tick box's well (plate.md, Controls) */
   --spacing-tick: 22px;
+  --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */
   --spacing-tick-mark: 14px; /* the tick drawn in it */
 
   --text-data: 13px;

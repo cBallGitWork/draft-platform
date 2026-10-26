@@ -87,7 +87,8 @@ export const upsertMatch = internalMutation({
 });
 
 /** Locks a complete match once its window has passed, reading the window again in case the admin
- *  changed it; too early, it reschedules itself. A match provisional again has its lock scheduled
+ *  changed it, and asks every league to store the scores it made final; too early, it reschedules
+ *  itself. A match provisional again has its lock scheduled
  *  anew when it is next complete, and one already locked stays as it is. */
 export const lock = internalMutation({
   args: { fixtureCode: v.number() },
@@ -105,6 +106,9 @@ export const lock = internalMutation({
     for (const row of await recordsOf(ctx, fixtureCode)) {
       await ctx.db.patch("playerMatchStats", row._id, { state: "locked" });
     }
+    // Its gameweek may now be final in each league: stored apart, so a league that can't be scored
+    // never undoes the lock (finalScores.ts, #418).
+    await ctx.scheduler.runAfter(0, internal.table.finalScores.storeEveryLeague, {});
   },
 });
 
