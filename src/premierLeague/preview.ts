@@ -3,7 +3,7 @@
 // the rest to come; earlier gameweeks finished, later ones to come. Made-up scores.
 
 import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
-import { HOUR_MS, WEEK_MS } from "../../convex/shared/time";
+import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import type { FirstKickoff, GameweekMatch, PremierLeagueSeam } from "./seam";
 
 const CLUBS = [
@@ -30,11 +30,15 @@ const CLUBS = [
 ].map(([name, shortName], index) => ({ code: index + 1, name, shortName }));
 
 const CURRENT = 9;
-/** The current gameweek's first kickoff, two hours ago; each gameweek a week apart. */
-const currentStart = Date.now() - 2 * HOUR_MS;
+/** The current gameweek's first kickoff: 12:30 today, or yesterday before 14:30, so its first
+ *  match is always under way or over; each gameweek a week apart. */
+const today = new Date();
+today.setHours(12, 30, 0, 0);
+const currentStart = today.getTime() - (Date.now() < today.getTime() + 2 * HOUR_MS ? DAY_MS : 0);
 const startOf = (gameweek: number) => currentStart + (gameweek - CURRENT) * WEEK_MS;
-/** How many hours after its start each of a gameweek's ten matches kicks off: over four days. */
-const KICKOFF_OFFSETS = [0, 2.5, 2.5, 2.5, 2.5, 5, 24, 26.5, 29, 72].map((hours) => hours * HOUR_MS);
+/** How many hours after its 12:30 start each of a gameweek's ten matches kicks off, a Saturday's
+ *  12:30, 15:00 and 17:30, then the next day's 14:00 and 16:30, and Monday's 20:00. */
+const KICKOFF_OFFSETS = [0, 2.5, 2.5, 2.5, 2.5, 5, 25.5, 25.5, 28, 55.5].map((hours) => hours * HOUR_MS);
 
 /** The current gameweek's states, match by match; the rest of it is to come. */
 const CURRENT_STATES = [

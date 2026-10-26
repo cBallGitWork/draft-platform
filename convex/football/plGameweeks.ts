@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query } from "../_generated/server";
+import { firstKickoffs as firstKickoffsOf } from "../gameweeks/gameweekStarts";
 import { currentFixtures } from "../shared/fixtures";
 import { callerEmail } from "../shared/leagueAccess";
 
@@ -18,12 +19,7 @@ export const firstKickoffs = query({
   returns: v.array(firstKickoff),
   handler: async (ctx) => {
     await callerEmail(ctx);
-    const first = new Map<number, number>();
-    for (const { gameweek, kickoff } of await currentFixtures(ctx)) {
-      if (gameweek === null || kickoff === null) continue;
-      first.set(gameweek, Math.min(kickoff, first.get(gameweek) ?? kickoff));
-    }
-    return [...first]
+    return [...firstKickoffsOf(await currentFixtures(ctx))]
       .map(([gameweek, kickoff]) => ({ gameweek, firstKickoff: kickoff }))
       .toSorted((one, other) => one.gameweek - other.gameweek);
   },
