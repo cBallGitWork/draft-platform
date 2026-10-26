@@ -76,23 +76,23 @@ const SHAPE_WORDS: Record<Rule["shape"], string> = { perAction: "per action", pe
 
 /** A whole rule, as a category newly scored or newly shaped is described: "3 per action". */
 function ruleWords(rule: Rule): string {
-  const stacking = rule.shape === "bands" && rule.stack ? ", every band reached paying" : "";
+  const stacking = rule.shape === "bands" && rule.stack ? ", every band reached counting" : "";
   return `${grouped([...valueWords(rule)])} ${SHAPE_WORDS[rule.shape]}${stacking}`;
 }
 
 /** The lines saying how one category's rule changed, each naming it. */
 function ruleChanges(name: string, before: Rule, after: Rule): string[] {
-  if (before.shape !== after.shape) return [`${name}: now pays ${ruleWords(after)}`];
+  if (before.shape !== after.shape) return [`${name}: now worth ${ruleWords(after)}`];
   const lines: string[] = [];
   const values = settingChange(valueWords(before), valueWords(after));
   if (values) lines.push(`${name}: ${values}`);
   if (before.shape === "bands" && after.shape === "bands" && before.stack !== after.stack) {
-    lines.push(`${name}: ${after.stack ? "every band reached now pays" : "only the highest band reached now pays"}`);
+    lines.push(`${name}: ${after.stack ? "every band reached now counts" : "only the highest band reached now counts"}`);
   }
   const limit = settingChange(wordsByPosition(before.limit, limitWords), wordsByPosition(after.limit, limitWords));
   if (limit) lines.push(`${name}, points limit: ${limit}`);
   const minutes = settingChange(wordsByPosition(before.minMinutes, minutesWords), wordsByPosition(after.minMinutes, minutesWords));
-  if (minutes) lines.push(`${name}, pays only after: ${minutes}`);
+  if (minutes) lines.push(`${name}, earned only after: ${minutes}`);
   return lines;
 }
 

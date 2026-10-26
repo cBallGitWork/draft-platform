@@ -55,10 +55,10 @@ a player fills only his own areas, and only a keeper plays in goal, both ways (`
   someobdy as a make shift striker".
 - Craig's starting point: "maybe a 2 area rule, like haaland could go am (still a penalty) but
   further than that, same for cb, could go dm i guess, needs a think".
-- Claude's earlier proposal, the gap rule: the slot's price, but where it pays more than his own
+- Claude's earlier proposal, the gap rule: the slot's price, but where it's priced higher than his own
   position, only part of the gap. Craig took these as starting points (25 Oct 2026): his own
   position's price is the best of his positions ("some players will have multi roles"); where the
-  slot pays less, he gets the slot's lower price; he is natural where the real team sheet put him
+  slot's priced lower, he gets the slot's lower price; he is natural where the real team sheet put him
   (`docs/pl-match-stats.md`); a sub counts by his own positions; auto-subs take the first bench
   player who can play the area, as now. Other punishments for an extreme shape wait until it plays.
 - It reopens three answers: scoring by the slot (`spec/14`), no out-of-position penalty

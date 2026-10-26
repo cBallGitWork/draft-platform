@@ -30,7 +30,7 @@ export const addWords = "Add";
 export const allScoredWords = "Every stat in the catalogue already has a category.";
 export const removeCategoryWords = "Remove this category";
 
-export const paysLabel = "Pays";
+export const paysLabel = "Points";
 export const shapeWords: Record<Shape, string> = { perAction: "Per action", perCount: "Per number", bands: "Bands" };
 export const shapeHints: Record<Shape, string> = {
   perAction: "Points for each one he makes.",
@@ -39,9 +39,9 @@ export const shapeHints: Record<Shape, string> = {
 };
 export const byAreaWords = "Different by area";
 export const byPositionWords = "Different by position (FB, CB, CDM…)";
-export const stackWords = "Every band he reaches pays, not only the highest";
+export const stackWords = "He earns every band he reaches, not only the highest";
 export const limitWords = "Points limit: at most, at least";
-export const minutesWords = "Pays only after a number of minutes";
+export const minutesWords = "Earned only after a number of minutes";
 export const limitHint = "Leave either box empty for no limit at that end.";
 
 /** The values table's columns, and each box's own name for screen readers. */
@@ -60,13 +60,13 @@ export const everyoneWords = "Everyone";
 export const boxLabel = (column: string, row: string) => `${column}, ${row}`;
 
 export const bandFromWords = "From";
-export const bandPaysWords = "pays";
+export const bandPaysWords = "earns";
 export const addBandWords = "Add a band";
 /** A band's row, for its boxes' names: "Goalkeeper, band 2". */
 export const bandRowWords = (row: string, band: number) => `${row}, band ${band}`;
 export const removeBandWords = "×";
 export const removeBandLabel = (bandRow: string) => `Remove ${bandRow}`;
-export const noBandsWords = "No bands: pays nothing.";
+export const noBandsWords = "No bands: earns nothing.";
 
 /** Each slot position by its name and code, as "Centre-back (CB)". */
 export const POSITION_WORDS = Object.fromEntries(

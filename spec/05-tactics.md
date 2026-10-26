@@ -56,7 +56,7 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   later, by patch (26 Oct 2026).
 - Every role gives something and takes something. Each is checked against last season's
   real stats: for an average player in its area it comes out within 0.25 points a match of the
-  base scoring, so a role pays only for the player it suits. Roles are built before the check
+  base scoring, so a role helps only the player it suits. Roles are built before the check
   can run, as last season's stats aren't recorded yet; the check comes once they are (26 Oct
   2026).
 - Roles' scoring adjustments are the site's, changed by patch (`spec/14`, 25 Oct 2026); the
@@ -74,13 +74,13 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   - attacking midfield, wide: inside forward, winger
   - attack: poacher, target man, pressing forward, shadow striker, false 9
 - Roles stack with the second release's team instructions: a pressing forward under a high press
-  is paid by both, and a sweeper keeper suits a high defensive line.
+  earns both adjustments, and a sweeper keeper suits a high defensive line.
 - A player dropped into a slot starts on the role he has the most stars for; until stars are
   built, on the slot's first role. The manager can change his slot and his role, on the Tactics
   tab's squad list, which has a role column for the starters; the pitch shows each starter's role
   under his name (26 Oct 2026).
-- Being better suited to a role comes out of the scoring: a full-back makes more of what an
-  attacking full-back slot pays. There is no out-of-position penalty.
+- Being better suited to a role comes out of the scoring: a full-back makes more of an
+  attacking full-back slot's role adjustment. There is no out-of-position penalty.
 - Stars: a player's rating for a role ranks him against the other players in that area, on his
   stats scored under that role over the last 38 matches he played (last season counts until this
   one fills in). Five stars is the top 5%, in half-star steps below that; the exact cut points

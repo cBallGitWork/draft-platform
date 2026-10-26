@@ -77,7 +77,7 @@ describe("with no substitutions, the starters count", () => {
     });
   });
 
-  test("a player is priced by the slot he starts in: Dewsbury-Hall's goal pays 5 in midfield, 4 up front", () => {
+  test("a player is priced by the slot he starts in: Dewsbury-Hall's goal earns 5 in midfield, 4 up front", () => {
     const upFront = team({
       lineup: {
         ...LINEUP,
