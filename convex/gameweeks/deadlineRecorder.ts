@@ -2,6 +2,7 @@ import type { MutationCtx } from "../_generated/server";
 import { errorMessage } from "../shared/errors";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { isLocked } from "./deadline";
+import { recordGameweekStarts } from "./gameweekStarts";
 import { passedDeadlinesOf } from "./passedDeadlines";
 import { seasonRules } from "../rules/rulesHistory";
 import { heldSchedule, leagueDeadlinesIn } from "./leagueDeadlines";
@@ -13,7 +14,8 @@ import { storeBegunFixtures } from "../table/playedFixtures";
 // (each batch) and markDropped (for fixtures), call this first, in the same transaction. Until
 // then, the deadline worked out from the kickoffs is the one that passed. A deadline already
 // recorded is left as it is, so calling this again does no harm. With them, it stores each begun
-// gameweek's head-to-head fixtures (playedFixtures.ts, #137), as harmless to repeat.
+// gameweek's head-to-head fixtures (playedFixtures.ts, #137), and first of all, for the whole site,
+// each gameweek's first kickoff once passed (gameweekStarts.ts, #414): both as harmless to repeat.
 //
 // It fails closed: if recording or storing throws, for any league, that fixtures mutation fails
 // with it, so no kickoff moves; the sync is logged and filed in footballSyncs as failed. The feed
@@ -28,12 +30,14 @@ import { storeBegunFixtures } from "../table/playedFixtures";
  *  recording wants splitting across transactions (#214). */
 export const LEAGUES_RECORDED_MOST = 200;
 
-/** Records every league's deadlines that have passed and aren't yet recorded, and stores the
- *  fixtures of the gameweeks they began; returns how many deadlines it recorded. */
+/** Records each gameweek's first kickoff once passed, every league's deadlines that have passed
+ *  and aren't yet recorded, and stores the fixtures of the gameweeks they began; returns how many
+ *  deadlines it recorded. */
 export async function recordPassedDeadlines(ctx: MutationCtx): Promise<number> {
   const now = Date.now();
   // Read once for every league: the fixtures are the season's 380, the most of any table here.
   const { matches } = await heldSchedule(ctx);
+  await recordGameweekStarts(ctx, matches, now);
   const leagues = await takeAllOrThrow(
     ctx.db.query("leagues"),
     LEAGUES_RECORDED_MOST,

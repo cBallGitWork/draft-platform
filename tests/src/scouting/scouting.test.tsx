@@ -6,22 +6,32 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
+import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogue";
 import { MY_TEAM_PATH, SCOUTING_PATH } from "../../../src/frame/menu";
 import {
   availabilityWords,
+  clearComparisonWords,
   clubLabel,
   columns,
+  COMPARE_TITLE,
+  compareLabel,
+  comparingWords,
   countWords,
   everyClubWords,
   everyPositionWords,
   freeAgentWords,
   loadingWords,
+  matchesWords,
   noFigureWords,
   noneMatchWords,
+  noStatsYetWords,
   noWaiversWords,
+  pickOneMoreWords,
   positionLabel,
   SCOUTING_TITLE,
+  noStatWords,
   sortByLabel,
+  statLabel,
 } from "../../../src/scouting/words";
 import { POSITION_NAMES } from "../../../src/words";
 import type { ScoutingData } from "../../support/src/scouting.harness";
@@ -37,10 +47,12 @@ const player = (code: number, name: string, club: ListedPlayer["club"], position
   positions,
   ownerTeamName,
   seasonPoints: null,
+  stat: null,
 });
 const SAKA = player(1, "Saka", ARSENAL, ["W"], "Saka Potatoes");
 const RICE = player(2, "Rice", ARSENAL, ["CDM", "CM"], null);
 const PALMER = player(3, "Palmer", CHELSEA, ["CAM"], "Kroos Control");
+const nameOf = (stat: string) => STAT_CATALOGUE.find((each) => each.stat === stat)!.name;
 const HELD: ScoutingData = { clubs: [ARSENAL, CHELSEA], players: [SAKA, RICE, PALMER] };
 
 const openScouting = (scouting: ScoutingData = HELD) => openApp(SCOUTING_PATH, manager, { scouting });
@@ -81,7 +93,7 @@ describe("the list", () => {
   it("opens on every player by name, as none has season points yet, and says how many", async () => {
     const app = openScouting();
     await screen.findByRole("table");
-    expect(lastAsk(app).slice(1)).toEqual([{ availability: "all", position: null, clubCode: null }, { by: "name", descending: false }]);
+    expect(lastAsk(app).slice(1)).toEqual([{ availability: "all", position: null, clubCode: null }, { by: "name", descending: false }, null]);
     expect(namesShown()).toEqual(["Palmer", "Rice", "Saka"]);
     expect(screen.getByText(countWords(3))).toBeTruthy();
   });
@@ -155,7 +167,9 @@ describe("the filters ask the server", () => {
   it("while the next list loads, the last stays up and the club filter keeps its clubs and choice", async () => {
     const app = openScouting();
     const held = app.scouting.usePlayersList.getMockImplementation()!;
-    app.scouting.usePlayersList.mockImplementation((leagueId, filters, sort) => (filters.clubCode === null ? held(leagueId, filters, sort) : undefined));
+    app.scouting.usePlayersList.mockImplementation((leagueId, filters, sort, stat) =>
+      filters.clubCode === null ? held(leagueId, filters, sort, stat) : undefined,
+    );
     const club = await screen.findByRole("combobox", { name: clubLabel });
     await userEvent.selectOptions(club, "Arsenal");
 
@@ -213,5 +227,168 @@ describe("the sort asks the server", () => {
     const app = openScouting();
     await userEvent.click(await screen.findByRole("button", { name: sortByLabel(columns.seasonPoints.long) }));
     expect(lastAsk(app)[2]).toEqual({ by: "seasonPoints", descending: true });
+  });
+});
+
+describe("any stat, as a season total", () => {
+  const GOALS = STAT_CATALOGUE.find((each) => each.stat === "goals_scored")!;
+  const XG = STAT_CATALOGUE.find((each) => each.stat === "expected_goals")!;
+  // Saka has no goals held: he hasn't scored, so his total is 0.
+  const TOTALS = { [RICE.code]: { goals_scored: 2, expected_goals: 1.234 }, [PALMER.code]: { goals_scored: 5, expected_goals: 4.5 } };
+  const openWithTotals = () => openScouting({ ...HELD, totals: TOTALS });
+  const chooseStat = async (name: string) => userEvent.selectOptions(await screen.findByRole("combobox", { name: statLabel }), name);
+  const statCells = () => within(table()).getAllByRole("row").slice(1).map((row) => within(row).getAllByRole("cell").at(-1)!.textContent);
+
+  it("offers every stat of the catalogue, and none by default", async () => {
+    const app = openWithTotals();
+    const picker = await screen.findByRole("combobox", { name: statLabel });
+    expect(within(picker).getAllByRole("option").map((option) => option.textContent)).toEqual([noStatWords, ...STAT_CATALOGUE.map((each) => each.name)]);
+    expect((picker as HTMLSelectElement).value).toBe("");
+    expect(lastAsk(app)[3]).toBeNull();
+  });
+
+  it("a stat chosen is asked for and sorted by, the most first, in a column headed by its short code", async () => {
+    const app = openWithTotals();
+    await chooseStat(GOALS.name);
+    expect(lastAsk(app).slice(2)).toEqual([{ by: "stat", descending: true }, GOALS.stat]);
+    expect(namesShown()).toEqual(["Palmer", "Rice", "Saka"]);
+    expect(statCells()).toEqual(["5", "2", "0"]);
+    const head = screen.getByRole("button", { name: sortByLabel(GOALS.name) });
+    expect(head.textContent).toContain(GOALS.shortCode);
+    expect(head.closest("th")!.getAttribute("title")).toBe(GOALS.name);
+    expect(head.closest("th")!.getAttribute("aria-sort")).toBe("descending");
+  });
+
+  it("its head pressed again sorts the fewest first", async () => {
+    const app = openWithTotals();
+    await chooseStat(GOALS.name);
+    await userEvent.click(screen.getByRole("button", { name: sortByLabel(GOALS.name) }));
+    expect(lastAsk(app)[2]).toEqual({ by: "stat", descending: false });
+    expect(namesShown()).toEqual(["Saka", "Rice", "Palmer"]);
+  });
+
+  it("shows a total to two decimal places at most", async () => {
+    openWithTotals();
+    await chooseStat(XG.name);
+    expect(statCells()).toEqual(["4.5", "1.23", "0"]);
+  });
+
+  it("stays shown while another column sorts the list", async () => {
+    const app = openWithTotals();
+    await chooseStat(GOALS.name);
+    await userEvent.click(screen.getByRole("button", { name: sortByLabel(columns.name.long) }));
+    expect(lastAsk(app).slice(2)).toEqual([{ by: "name", descending: false }, GOALS.stat]);
+    expect(statCells()).toEqual(["5", "2", "0"]);
+  });
+
+  it("none chosen again drops the column, and a sort by it goes back to names", async () => {
+    const app = openWithTotals();
+    await chooseStat(GOALS.name);
+    await chooseStat(noStatWords);
+    expect(lastAsk(app).slice(2)).toEqual([{ by: "name", descending: false }, null]);
+    expect(screen.queryByRole("button", { name: sortByLabel(GOALS.name) })).toBeNull();
+  });
+});
+
+describe("comparing two players", () => {
+  const SEASONS: ScoutingData["seasons"] = {
+    [SAKA.code]: { matches: 9, stats: { goals_scored: 4, expected_goals: 3.456, minutes: 720 } },
+    [PALMER.code]: { matches: 8, stats: { goals_scored: 6, minutes: 765 } },
+  };
+  const openToCompare = (data: Partial<ScoutingData> = {}) => openScouting({ ...HELD, seasons: SEASONS, ...data });
+  const tick = async (name: string) => userEvent.click(await screen.findByRole("checkbox", { name: compareLabel(name) }));
+  const panel = () => screen.getByRole("region", { name: COMPARE_TITLE });
+  const comparisonTable = () => within(panel()).getByRole("table");
+  const rowIn = (label: string) =>
+    within(comparisonTable())
+      .getByRole("rowheader", { name: label })
+      .closest("tr")!;
+  const cellsOf = (label: string) =>
+    within(rowIn(label))
+      .getAllByRole("cell")
+      .map((cell) => cell.textContent);
+
+  it("nothing is compared, or asked for, until a player is ticked", async () => {
+    const app = openToCompare();
+    await screen.findByRole("table");
+    expect(screen.queryByRole("region", { name: COMPARE_TITLE })).toBeNull();
+    expect(app.scouting.useComparison.mock.lastCall![1]).toBeNull();
+  });
+
+  it("one ticked asks for one more", async () => {
+    const app = openToCompare();
+    await tick("Saka");
+    expect(within(panel()).getByText(pickOneMoreWords("Saka"))).toBeTruthy();
+    expect(app.scouting.useComparison.mock.lastCall![1]).toBeNull();
+  });
+
+  it("two ticked are asked for and shown side by side: who each is, his matches, and every stat either has", async () => {
+    const app = openToCompare();
+    await tick("Saka");
+    await tick("Palmer");
+
+    expect(app.scouting.useComparison.mock.lastCall!).toEqual([league.leagueId, [SAKA.code, PALMER.code]]);
+    expect(within(comparisonTable()).getAllByRole("columnheader").map((head) => head.textContent)).toEqual(["Saka", "Palmer"]);
+    expect(cellsOf(columns.club.long)).toEqual(["ARS", "CHE"]);
+    expect(cellsOf(columns.owner.short)).toEqual(["Saka Potatoes", "Kroos Control"]);
+    expect(cellsOf(columns.seasonPoints.short)).toEqual([noFigureWords, noFigureWords]);
+    expect(cellsOf(matchesWords)).toEqual(["9", "8"]);
+    expect(cellsOf(nameOf("goals_scored"))).toEqual(["4", "6"]);
+    expect(cellsOf(nameOf("expected_goals"))).toEqual(["3.46", "0"]);
+    expect(cellsOf(nameOf("minutes"))).toEqual(["720", "765"]);
+    // A stat neither has is left out.
+    expect(within(comparisonTable()).queryByRole("rowheader", { name: nameOf("saves") })).toBeNull();
+  });
+
+  it("a free agent is said to be one", async () => {
+    openToCompare();
+    await tick("Saka");
+    await tick("Rice");
+    expect(cellsOf(columns.owner.short)).toEqual(["Saka Potatoes", freeAgentWords]);
+    expect(within(panel()).getByText(nameOf("goals_scored"))).toBeTruthy();
+  });
+
+  it("says when neither has a stat this season", async () => {
+    openToCompare({ seasons: {} });
+    await tick("Rice");
+    await tick("Palmer");
+    expect(within(panel()).getByText(noStatsYetWords)).toBeTruthy();
+  });
+
+  it("says so while the comparison loads", async () => {
+    openToCompare({ comparing: true });
+    await tick("Saka");
+    await tick("Palmer");
+    expect(within(panel()).getByRole("status").textContent).toBe(comparingWords);
+  });
+
+  it("a third ticked takes the first one's place", async () => {
+    const app = openToCompare();
+    await tick("Saka");
+    await tick("Palmer");
+    await tick("Rice");
+    expect(app.scouting.useComparison.mock.lastCall![1]).toEqual([PALMER.code, RICE.code]);
+    expect((screen.getByRole("checkbox", { name: compareLabel("Saka") }) as HTMLInputElement).checked).toBe(false);
+  });
+
+  it("unticking one goes back to asking for another, and Clear drops the comparison", async () => {
+    openToCompare();
+    await tick("Saka");
+    await tick("Palmer");
+    await tick("Saka");
+    expect(within(panel()).getByText(pickOneMoreWords("Palmer"))).toBeTruthy();
+
+    await userEvent.click(within(panel()).getByRole("button", { name: clearComparisonWords }));
+    expect(screen.queryByRole("region", { name: COMPARE_TITLE })).toBeNull();
+    expect((screen.getByRole("checkbox", { name: compareLabel("Palmer") }) as HTMLInputElement).checked).toBe(false);
+  });
+
+  it("the ticks stay while a filter hides one of them", async () => {
+    const app = openToCompare();
+    await tick("Saka");
+    await tick("Palmer");
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: clubLabel }), "Arsenal");
+    expect(app.scouting.useComparison.mock.lastCall![1]).toEqual([SAKA.code, PALMER.code]);
+    expect(within(panel()).getAllByRole("columnheader").map((head) => head.textContent)).toEqual(["Saka", "Palmer"]);
   });
 });

@@ -74,7 +74,7 @@ function scoreIn<Team>(scores: ReadonlyMap<Team, number>, team: Team, gameweek: 
 /** The league's average score in a gameweek, every team's counted once, kept in tenths as points
  *  are. A team has one score a gameweek however many games it plays, and plays the average once a
  *  gameweek at most (roundRobin.ts never leaves a team over twice in one). */
-function averageOf<Team>(teams: readonly Team[], scores: ReadonlyMap<Team, number>, gameweek: number): number {
+export function averageOf<Team>(teams: readonly Team[], scores: ReadonlyMap<Team, number>, gameweek: number): number {
   const total = teams.reduce((sum, team) => sum + scoreIn(scores, team, gameweek), 0);
   return inTenths(total / teams.length);
 }
@@ -111,6 +111,46 @@ export function headToHeadTable<Team>(
   }
   const byPoints = groupedBy([...rows.values()], (row) => row.points);
   return byPoints.flatMap((level) => brokenTies(level, tieBreaks, meetings));
+}
+
+/** How many results a team's form shows, its latest (spec/12, League home: "each team's form"). */
+export const FORM_RESULTS = 5;
+
+/** A matchup's result for one team in it. */
+export const RESULTS = ["won", "drawn", "lost"] as const;
+export type Result = (typeof RESULTS)[number];
+
+function resultOf(score: number, against: number): Result {
+  const earned = matchPoints(score, against);
+  if (earned === MATCH_POINTS.win) return "won";
+  return earned === MATCH_POINTS.draw ? "drawn" : "lost";
+}
+
+/** Each team's form in a head-to-head league: its latest FORM_RESULTS results, oldest first, over
+ *  the same fixtures `headToHeadTable` counts (the league's average a matchup, a bye none). A team
+ *  with two games in a gameweek has two results in it, in the fixtures' order. */
+export function formOf<Team>(
+  teams: readonly Team[],
+  schedule: readonly GameweekFixtures<Team>[],
+  scores: GameweekScores<Team>,
+): Map<Team, Result[]> {
+  const form = new Map(teams.map((team): [Team, Result[]] => [team, []]));
+  const add = (team: Team, result: Result) => {
+    const results = form.get(team);
+    if (results === undefined) throw new Error(`${String(team)} has a fixture but isn't one of the league's teams`);
+    results.push(result);
+  };
+  for (const { gameweek, fixtures } of schedule) {
+    const scored = scores.get(gameweek);
+    if (scored === undefined) continue;
+    for (const { team, opponent } of fixtures) {
+      const teamScore = scoreIn(scored, team, gameweek);
+      const opponentScore = opponent === LEAGUE_AVERAGE ? averageOf(teams, scored, gameweek) : scoreIn(scored, opponent, gameweek);
+      add(team, resultOf(teamScore, opponentScore));
+      if (opponent !== LEAGUE_AVERAGE) add(opponent, resultOf(opponentScore, teamScore));
+    }
+  }
+  return new Map([...form].map(([team, results]) => [team, results.slice(-FORM_RESULTS)]));
 }
 
 /** The total-points table: each team's points for, over the gameweeks scored, highest first. */

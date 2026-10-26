@@ -23,15 +23,20 @@ import type * as football_football from "../football/football.js";
 import type * as football_footballSync from "../football/footballSync.js";
 import type * as football_fpl from "../football/fpl.js";
 import type * as football_fplLive from "../football/fplLive.js";
+import type * as football_matchScores from "../football/matchScores.js";
 import type * as football_plCommentary from "../football/plCommentary.js";
 import type * as football_plMatch from "../football/plMatch.js";
 import type * as football_premierLeague from "../football/premierLeague.js";
+import type * as football_scoreReads from "../football/scoreReads.js";
 import type * as gameweeks_deadline from "../gameweeks/deadline.js";
 import type * as gameweeks_deadlineRecorder from "../gameweeks/deadlineRecorder.js";
+import type * as gameweeks_gameweekStarts from "../gameweeks/gameweekStarts.js";
 import type * as gameweeks_leagueGameweeks from "../gameweeks/leagueGameweeks.js";
 import type * as gameweeks_nextGameweek from "../gameweeks/nextGameweek.js";
 import type * as gameweeks_passedDeadlines from "../gameweeks/passedDeadlines.js";
 import type * as gameweeks_usedGameweeks from "../gameweeks/usedGameweeks.js";
+import type * as home_glance from "../home/glance.js";
+import type * as home_leagueHome from "../home/leagueHome.js";
 import type * as http from "../http.js";
 import type * as joining_endedInvite from "../joining/endedInvite.js";
 import type * as joining_inviteLink from "../joining/inviteLink.js";
@@ -83,6 +88,8 @@ import type * as scoring_scoring from "../scoring/scoring.js";
 import type * as scoring_scoringSet from "../scoring/scoringSet.js";
 import type * as scoring_siteScoring from "../scoring/siteScoring.js";
 import type * as scoring_statCatalogue from "../scoring/statCatalogue.js";
+import type * as scouting_compare from "../scouting/compare.js";
+import type * as scouting_comparedPlayers from "../scouting/comparedPlayers.js";
 import type * as scouting_playersList from "../scouting/playersList.js";
 import type * as scouting_shortlist from "../scouting/shortlist.js";
 import type * as shared_errors from "../shared/errors.js";
@@ -104,9 +111,12 @@ import type * as stats_liveStatsSync from "../stats/liveStatsSync.js";
 import type * as stats_matchRecords from "../stats/matchRecords.js";
 import type * as stats_matchStats from "../stats/matchStats.js";
 import type * as stats_matchStatsSync from "../stats/matchStatsSync.js";
+import type * as stats_seasonStats from "../stats/seasonStats.js";
+import type * as stats_statTotals from "../stats/statTotals.js";
 import type * as table_leagueTable from "../table/leagueTable.js";
 import type * as table_roundRobin from "../table/roundRobin.js";
 import type * as table_standings from "../table/standings.js";
+import type * as table_teamFixtures from "../table/teamFixtures.js";
 
 import type {
   ApiFromModules,
@@ -130,15 +140,20 @@ declare const fullApi: ApiFromModules<{
   "football/footballSync": typeof football_footballSync;
   "football/fpl": typeof football_fpl;
   "football/fplLive": typeof football_fplLive;
+  "football/matchScores": typeof football_matchScores;
   "football/plCommentary": typeof football_plCommentary;
   "football/plMatch": typeof football_plMatch;
   "football/premierLeague": typeof football_premierLeague;
+  "football/scoreReads": typeof football_scoreReads;
   "gameweeks/deadline": typeof gameweeks_deadline;
   "gameweeks/deadlineRecorder": typeof gameweeks_deadlineRecorder;
+  "gameweeks/gameweekStarts": typeof gameweeks_gameweekStarts;
   "gameweeks/leagueGameweeks": typeof gameweeks_leagueGameweeks;
   "gameweeks/nextGameweek": typeof gameweeks_nextGameweek;
   "gameweeks/passedDeadlines": typeof gameweeks_passedDeadlines;
   "gameweeks/usedGameweeks": typeof gameweeks_usedGameweeks;
+  "home/glance": typeof home_glance;
+  "home/leagueHome": typeof home_leagueHome;
   http: typeof http;
   "joining/endedInvite": typeof joining_endedInvite;
   "joining/inviteLink": typeof joining_inviteLink;
@@ -190,6 +205,8 @@ declare const fullApi: ApiFromModules<{
   "scoring/scoringSet": typeof scoring_scoringSet;
   "scoring/siteScoring": typeof scoring_siteScoring;
   "scoring/statCatalogue": typeof scoring_statCatalogue;
+  "scouting/compare": typeof scouting_compare;
+  "scouting/comparedPlayers": typeof scouting_comparedPlayers;
   "scouting/playersList": typeof scouting_playersList;
   "scouting/shortlist": typeof scouting_shortlist;
   "shared/errors": typeof shared_errors;
@@ -211,9 +228,12 @@ declare const fullApi: ApiFromModules<{
   "stats/matchRecords": typeof stats_matchRecords;
   "stats/matchStats": typeof stats_matchStats;
   "stats/matchStatsSync": typeof stats_matchStatsSync;
+  "stats/seasonStats": typeof stats_seasonStats;
+  "stats/statTotals": typeof stats_statTotals;
   "table/leagueTable": typeof table_leagueTable;
   "table/roundRobin": typeof table_roundRobin;
   "table/standings": typeof table_standings;
+  "table/teamFixtures": typeof table_teamFixtures;
 }>;
 
 /**

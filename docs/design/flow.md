@@ -140,10 +140,10 @@ Features table (feature 12), the one home for screen status.
 | Patch notes | `/patch-notes` | src/patches/PatchNotesPage.tsx | spec/14 Changes and corrections | built |
 | Table and fixtures | `/table` | src/table/TablePage.tsx | spec/12, spec/09 | built |
 | Scouting | `/scouting` | src/scouting/ScoutingPage.tsx | spec/19 The players list, The shortlist | built |
-| League home | `/home` | src/frame/PageNotBuilt.tsx | spec/12 League home | placeholder |
+| League home | `/home` | src/home/HomePage.tsx | spec/12 League home | built |
 | My team (Tactics) | `/team` | src/frame/PageNotBuilt.tsx | spec/12:11, spec/12:28, spec/05 | placeholder |
 | Squad | `/team/squad` | src/frame/PageNotBuilt.tsx | spec/12 My team's tabs | placeholder |
-| Fixtures | `/team/fixtures` | src/frame/PageNotBuilt.tsx | spec/12 My team's tabs | placeholder |
+| Fixtures | `/team/fixtures` | src/myTeam/FixturesPage.tsx | spec/12 My team's tabs | built |
 | Transactions | `/team/transactions` | src/frame/PageNotBuilt.tsx | spec/12 My team's tabs | placeholder |
 | Matchup | `/matchup` | src/frame/PageNotBuilt.tsx | spec/10 The matchup | placeholder |
 | Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12 Trades, spec/08 Trades | placeholder |

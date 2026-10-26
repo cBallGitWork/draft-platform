@@ -148,7 +148,7 @@ function NumberRow({ label, shown = label, value, onChange }: { label: string; s
       <span aria-hidden className="text-soft">
         {shown}
       </span>
-      <NumberBox label={label} value={value} onChange={(read) => onChange(read ?? NaN)} />
+      <NumberBox label={label} value={value} onChange={onChange} />
     </div>
   );
 }

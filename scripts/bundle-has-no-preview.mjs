@@ -16,7 +16,7 @@ const SOURCES = ["src", "convex"];
 const PREVIEW_FILE = "preview.ts";
 
 /** A string only that preview module holds, by its path; null for one that holds no data of its
- *  own (its words are the app's, its rules row src/rules/preview.ts's). */
+ *  own (its words are the app's, its rules row src/rules/preview.ts's, its teams the table's). */
 const NEEDLES = {
   "src/preview.ts": "preview-pro-league",
   "src/admin/preview.ts": "Nick Woltemade",
@@ -25,6 +25,8 @@ const NEEDLES = {
   "src/joining/preview.ts": "dan@example.com",
   "src/leagueSettings/preview.ts": null,
   "src/mail/preview.ts": "Draft night is Friday at eight",
+  "src/home/preview.ts": "Expected Toulouse",
+  "src/myTeam/preview.ts": null,
   "src/patches/preview.ts": "preview-patch-",
   "src/playerCard/preview.ts": "Hamstring injury - 75% chance of playing",
   "src/rules/preview.ts": "preview-rules",
