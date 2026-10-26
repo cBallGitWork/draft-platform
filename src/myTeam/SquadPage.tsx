@@ -157,8 +157,10 @@ function NumberBox({ player, change, save }: { player: Row; change: Changing; sa
     setSending(true);
     const made = await change.run(() => save(number));
     setSending(false);
-    // Made, "07" shows as the 7 it was taken as; refused, the one held comes back.
-    setTyped(made && number !== null ? String(number) : held);
+    // Made, the box shows what was sent ("07" as the 7 it was taken as, an emptied box empty);
+    // refused, the one held comes back.
+    if (made) setTyped(number === null ? "" : String(number));
+    else setTyped(held);
   };
   return (
     <input

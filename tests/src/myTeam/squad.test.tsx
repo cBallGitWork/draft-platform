@@ -149,6 +149,16 @@ describe("squad numbers (#13)", () => {
     await retype("Saka", "");
     await userEvent.tab();
     expect(app.myTeam.useSquadNumbers().set).toHaveBeenCalledWith(league.leagueId, SAKA.code, null);
+    // Made, it stays empty, though the squad read here still holds his old 7.
+    expect(box("Saka").value).toBe("");
+  });
+
+  it("a number made shows as it was taken: 07 as 7", async () => {
+    openSquad({ squad: squadOf([PALMER]) });
+    await screen.findByRole("table");
+    await retype("Palmer", "07");
+    await userEvent.tab();
+    expect(box("Palmer").value).toBe("7");
   });
 
   it("a number refused says why, in the server's words, and the box goes back to the one held", async () => {
