@@ -108,6 +108,29 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
   expect(final.opponent).toMatchObject({ kind: "team", teamId: league.bobsTeam, teamName: "Team 2", points: EVERTON_POINTS, provisional: false });
 });
 
+test("a final gameweek's stored scores are its totals, as the table reads them, while its slots are still shown", async () => {
+  const league = await scoresLeague({ catToo: true });
+  await fullTimeRecords(league);
+  await lockMatch(league);
+  await league.t.mutation(internal.table.finalScores.storeLeague, { leagueId: league.leagueId });
+  // Written over, so only a read of the stored rows can give it.
+  const WRITTEN_OVER = 99;
+  await league.t.run(async (ctx) => {
+    const row = (await ctx.db.query("finalScores").collect()).find((each) => each.teamId === league.annsTeam)!;
+    await ctx.db.patch("finalScores", row._id, { points: WRITTEN_OVER });
+  });
+
+  const game = await annsGame(league);
+  const table = await (await actingAs(league.t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId: league.leagueId });
+  const fixtures = table!.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures;
+  expect(game.team).toMatchObject({ points: WRITTEN_OVER, provisional: false });
+  expect(fixtures.find((each) => each.teamId === league.annsTeam)!.points).toEqual({ team: game.team.points, opponent: game.opponent.points });
+  expect(lineupOf(game.team).starters).toHaveLength(HULL_STARTERS.length);
+  // The league's average counts the stored total too.
+  const cats = await matchupAs(league, CAT, { gameweek: GAMEWEEK });
+  expect(cats).toMatchObject({ game: { opponent: { kind: "leagueAverage", points: inTenths((WRITTEN_OVER + EVERTON_POINTS) / 3) } } });
+});
+
 test("in a double gameweek a man is yet to play while his second match is to come, and no auto-sub comes before it", async () => {
   const league = await scoresLeague();
   const secondKickoff = KICKOFF + 3 * DAY_MS;

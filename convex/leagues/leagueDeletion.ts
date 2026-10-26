@@ -64,6 +64,11 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
       .query("playedFixtures")
       .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
       .take(ROWS_PER_RUN),
+  finalScores: (ctx, leagueId) =>
+    ctx.db
+      .query("finalScores")
+      .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
   lastLeagues: (ctx, leagueId) =>
     ctx.db
       .query("lastLeagues")

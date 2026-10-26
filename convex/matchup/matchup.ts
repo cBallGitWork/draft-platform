@@ -11,13 +11,16 @@ import { playerByCode } from "../shared/players";
 import {
   begunGameweeks,
   gameweekInputs,
+  heldFixtures,
   isFinished,
   leagueReads,
+  storedScoresIn,
   teamInGameweek,
   type HeldMatch,
   type LeagueReads,
   type GameweekInputs,
   type TeamInGameweek,
+  type TeamScores,
 } from "../table/gameweekScores";
 import { scheduleOf } from "../table/playedFixtures";
 import { LEAGUE_AVERAGE } from "../table/roundRobin";
@@ -84,9 +87,11 @@ async function gameOf(
   const opponent = against.kind === "team" ? { kind: "team" as const, teamName: nameOf(against.team) } : { kind: LEAGUE_AVERAGE as typeof LEAGUE_AVERAGE };
   if (!(await begunGameweeks(ctx, league)).includes(gameweek)) return { kind: "notBegun", opponent };
   try {
-    const reads = await leagueReads(ctx, league, season, teams.map((each) => each._id));
-    const inputs = await gameweekInputs(ctx, reads, gameweek);
-    const scorer = new SideScorer(ctx, reads, inputs);
+    const reads = await leagueReads(ctx, league, season);
+    const fixtures = await heldFixtures(ctx, gameweek);
+    const teamIds = teams.map((each) => each._id);
+    const inputs = await gameweekInputs(ctx, reads, gameweek, fixtures, teamIds);
+    const scorer = new SideScorer(ctx, reads, inputs, teamIds, gameweek, await storedScoresIn(ctx, league._id, gameweek, fixtures));
     return { kind: "scored", team: await scorer.team(team._id, team.name), opponent: await scorer.opponent(against, nameOf) };
   } catch (error) {
     const reason = logFailure(`League ${league._id} (${league.name}) can't score ${team.name}'s matchup in gameweek ${gameweek}`, error);
@@ -94,7 +99,8 @@ async function gameOf(
   }
 }
 
-/** Each side of the matchup, from gameweekScores.ts's own scoring. */
+/** Each side of the matchup, from gameweekScores.ts's own scoring: each slot worked out, and each
+ *  total read from the gameweek's stored final scores where the table reads it from them. */
 class SideScorer {
   private readonly names = new Map<PlayerCode, Promise<string>>();
   private readonly scores = new Map<number, Promise<Doc<"matchScores"> | null>>();
@@ -103,18 +109,30 @@ class SideScorer {
     private readonly ctx: QueryCtx,
     private readonly reads: LeagueReads,
     private readonly inputs: GameweekInputs,
+    private readonly teamIds: readonly TeamId[],
+    private readonly gameweek: number,
+    private readonly stored: TeamScores,
   ) {}
+
+  /** The team's total as the table has it: stored once final, else the one worked out. */
+  private total(teamId: TeamId, scored: TeamInGameweek | null) {
+    return (
+      this.stored.get(teamId) ??
+      (scored === null ? { points: 0, provisional: false } : { points: scored.team.total, provisional: scored.team.provisional })
+    );
+  }
 
   async team(teamId: TeamId, teamName: string): Promise<MatchupSide> {
     const scored = await teamInGameweek(this.reads, this.inputs, teamId);
-    if (scored === null) return { kind: "team", teamId, teamName, points: 0, provisional: false, lineup: null };
+    const { points, provisional } = this.total(teamId, scored);
+    if (scored === null) return { kind: "team", teamId, teamName, points, provisional, lineup: null };
     const slotOf = (slotPoints: SlotPoints) => this.slot(slotPoints, scored);
     return {
       kind: "team",
       teamId,
       teamName,
-      points: scored.team.total,
-      provisional: scored.team.provisional,
+      points,
+      provisional,
       lineup: { starters: await Promise.all(scored.team.starters.map(slotOf)), bench: await Promise.all(scored.team.bench.map(slotOf)) },
     };
   }
@@ -122,12 +140,14 @@ class SideScorer {
   async opponent(against: Opponent, nameOf: (teamId: TeamId) => string): Promise<MatchupSide> {
     if (against.kind === "team") return this.team(against.team, nameOf(against.team));
     // The average of every team's points, a team with no lineup on 0, as the table counts it.
-    const every = await Promise.all(this.reads.teamIds.map((teamId) => teamInGameweek(this.reads, this.inputs, teamId)));
-    const points = new Map(this.reads.teamIds.map((teamId, index) => [teamId, every[index]?.team.total ?? 0]));
+    const every = await Promise.all(
+      this.teamIds.map(async (teamId) => this.stored.get(teamId) ?? this.total(teamId, await teamInGameweek(this.reads, this.inputs, teamId))),
+    );
+    const points = new Map(this.teamIds.map((teamId, index) => [teamId, every[index].points]));
     return {
       kind: LEAGUE_AVERAGE,
-      points: averageOf(this.reads.teamIds, points, this.inputs.gameweek),
-      provisional: every.some((each) => each?.team.provisional === true),
+      points: averageOf(this.teamIds, points, this.gameweek),
+      provisional: every.some((each) => each.provisional),
     };
   }
 
