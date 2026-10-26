@@ -13,7 +13,7 @@ import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { FIRST_SUB, filledLineup, presetNamed } from "../../support/convex/lineup.harness";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
-import { lineupInGameweek } from "../../../convex/lineup/lineups";
+import { lineupInGameweek, lineupsInGameweek } from "../../../convex/lineup/lineups";
 import { SQUAD_MOVES_READ_MOST } from "../../../convex/squads/squads";
 
 // Storing a lineup (#8, spec/05: "A lineup rolls over to the next gameweek if the manager doesn't
@@ -187,6 +187,19 @@ describe("a begun gameweek keeps the squad as it stood at its deadline (#415)", 
       joinedBench: [FREE_AGENT],
     });
     expect(await lineupOf(bobsTeam, NEXT + 1)).toEqual({ ...saved({ starters: [], bench: [BOBS] }, NEXT), bench: [BOBS, moved], joinedBench: [moved] });
+  });
+
+  test("read for both teams at once, each undoes only its own moves from the one list", async () => {
+    await (await as(ANN)).save(FOUR_FOUR_TWO);
+    await bobsLineup();
+    await passNextDeadline();
+    const [moved] = STARTERS;
+    await (await commissioner()).move(moved, bobsTeam);
+
+    // As entries: t.run returns only Convex values.
+    const lineups = new Map(await t.run(async (ctx) => [...(await lineupsInGameweek(ctx, leagueId, [annsTeam, bobsTeam], NEXT))]));
+    expect(lineups.get(annsTeam)).toEqual(saved(FOUR_FOUR_TWO, NEXT));
+    expect(lineups.get(bobsTeam)).toEqual(saved({ starters: [], bench: [BOBS] }, NEXT));
   });
 
   test("a player released after it and assigned back is in it once, as he was", async () => {
