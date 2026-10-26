@@ -35,3 +35,12 @@ export const rolesOfSlot = (cell: Cell): readonly Role[] => DEFAULT_ROLES[positi
 /** The role a starter plays: the one he was given, or the slot's first. */
 export const roleIn = (cell: Cell, given: string | undefined): Role =>
   rolesOfSlot(cell).find(({ key }) => key === given) ?? rolesOfSlot(cell)[0];
+
+/** A role's name as managers say it, by its key; the key itself for one no slot offers. */
+export function roleName(key: string): string {
+  for (const roles of Object.values(DEFAULT_ROLES)) {
+    const found = roles.find((each) => each.key === key);
+    if (found !== undefined) return found.name;
+  }
+  return key;
+}

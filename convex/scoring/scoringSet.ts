@@ -77,6 +77,17 @@ export interface ScoringSet {
   rules: readonly ScoringRule[];
   wholePointsOnly: boolean;
   ownStats?: readonly OwnStat[];
+  /** Each role's adjustment (spec/05 Roles): flat points per action, added to a starter's base
+   *  points on top of every rule and its points limit (spec/14). A role it doesn't name adjusts
+   *  nothing; a set with none adjusts no one. */
+  roleAdjustments?: readonly RoleAdjustments[];
+}
+
+/** One role's adjustment: so many points per action of each stat, plus or minus. */
+export interface RoleAdjustments {
+  /** A role's key (lineup/roles.ts). */
+  role: string;
+  adjustments: readonly { stat: string; points: number }[];
 }
 
 /** The value a priced setting gives the slot he starts in. */
@@ -104,6 +115,33 @@ export function validateScoringSet(set: unknown): asserts set is ScoringSet {
   set.rules.forEach((rule, index) =>
     validateRule(rule, index + 1, wholePointsOnly, isScorable, (stat) => categoryName(stat, ownStats)),
   );
+  if (set.roleAdjustments !== undefined) validateRoleAdjustments(set.roleAdjustments, wholePointsOnly, isScorable, (stat) => categoryName(stat, ownStats));
+}
+
+/** Each role named once, each of its stats scorable and named once, each adjustment points. */
+function validateRoleAdjustments(
+  roles: unknown,
+  wholePointsOnly: boolean,
+  isScorable: (stat: string) => boolean,
+  nameOf: (stat: string) => string,
+): void {
+  if (!Array.isArray(roles)) throw new Error("a scoring set's role adjustments must be a list");
+  const seen = new Set<string>();
+  for (const each of roles as unknown[]) {
+    if (!isObject(each) || typeof each.role !== "string" || each.role === "") throw new Error("a role adjustment names no role");
+    if (seen.has(each.role)) throw new Error(`the role ${showValue(each.role)} is adjusted twice`);
+    seen.add(each.role);
+    if (!Array.isArray(each.adjustments)) throw new Error(`the role ${showValue(each.role)} has no list of adjustments`);
+    const stats = new Set<string>();
+    for (const adjustment of each.adjustments as unknown[]) {
+      if (!isObject(adjustment) || typeof adjustment.stat !== "string" || !isScorable(adjustment.stat)) {
+        throw new Error(`the role ${showValue(each.role)} adjusts ${showValue(isObject(adjustment) ? adjustment.stat : adjustment)}, which is neither a catalogue stat nor one of the set's own stats`);
+      }
+      if (stats.has(adjustment.stat)) throw new Error(`the role ${showValue(each.role)} adjusts ${nameOf(adjustment.stat)} twice`);
+      stats.add(adjustment.stat);
+      requirePoints(adjustment.points, `the role ${showValue(each.role)}'s ${nameOf(adjustment.stat)} adjustment is worth`, wholePointsOnly);
+    }
+  }
 }
 
 /** A rule is named by its category's full name, as the rules editor shows it (spec/14). It scores

@@ -30,6 +30,17 @@ export interface CategoryPoints {
 export interface MatchPoints {
   total: number | null;
   categories: CategoryPoints[];
+  /** His role's adjustment, in the total, when the set adjusts the role he played: each stat it
+   *  adjusts that he made, and the points for it (spec/05: "Attacking full-back: +2, two key
+   *  passes"). Absent when no role was given or the set adjusts none. */
+  role?: RolePoints;
+}
+
+export interface RolePoints {
+  /** A role's key (lineup/roles.ts). */
+  role: string;
+  points: number;
+  lines: { stat: string; actions: number; points: number }[];
 }
 
 /** Where he starts: the slot's area, and the position its area and lane make it (pitch.ts). */
@@ -45,7 +56,7 @@ interface Slot {
  * Once it has arrived, a stat it leaves out is 0 (spec/14). A bad set, cell or stat throws.
  * Points are kept in tenths, so 0.1 three times is 0.3, never 0.30000000000000004.
  */
-export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cell): MatchPoints {
+export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cell, role?: string): MatchPoints {
   validateScoringSet(set);
   if (!AREAS.includes(cell.area)) throw new Error(`${showValue(cell.area)} is not one of the pitch's six areas`);
   if (!LANES.includes(cell.lane)) throw new Error(`${showValue(cell.lane)} is not one of the pitch's five lanes`);
@@ -59,7 +70,21 @@ export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cel
     stat: rule.stat,
     points: rulePoints(rule, slot, statIn(record, rule.stat), minutes),
   }));
-  return { total: inTenths(sum(categories.map((category) => category.points))), categories };
+  const base = sum(categories.map((category) => category.points));
+  const adjusted = role === undefined ? undefined : rolePoints(record, set, role);
+  if (adjusted === undefined) return { total: inTenths(base), categories };
+  return { total: inTenths(base + adjusted.points), categories, role: adjusted };
+}
+
+/** The role's adjustment for this record: flat points per action, on top of every rule and its
+ *  points limit (spec/14). Undefined when the set doesn't adjust the role. */
+function rolePoints(record: MatchStats, set: ScoringSet, role: string): RolePoints | undefined {
+  const adjusting = set.roleAdjustments?.find((each) => each.role === role);
+  if (adjusting === undefined) return undefined;
+  const lines = adjusting.adjustments
+    .map(({ stat, points }) => ({ stat, actions: statIn(record, stat), points: inTenths(statIn(record, stat) * points) }))
+    .filter(({ actions }) => actions !== 0);
+  return { role, points: inTenths(sum(lines.map((line) => line.points))), lines };
 }
 
 /** Only the record's own keys count: a rule on `constructor` must not read Object's. A stat the
