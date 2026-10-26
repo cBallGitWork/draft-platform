@@ -286,6 +286,16 @@ describe("the bench order (spec/05 Auto-subs; Craig, 26 Oct 2026)", () => {
     expect(document.activeElement).toBe(up(WHITE));
   });
 
+  it("in the middle of the bench the button pressed keeps the focus", async () => {
+    await openedPitch();
+    const dataTransfer = { setData: () => undefined, effectAllowed: "" };
+    fireEvent.dragStart(blockOf(HAVERTZ, { area: "attack", lane: "centre" }), { dataTransfer });
+    fireEvent.drop(screen.getByText(BENCH_TITLE), { dataTransfer });
+    await userEvent.click(down(ARRIZABALAGA));
+    expect(benchNames().map((row) => row.split(" ARS")[0])).toEqual(["FB, WBWhite", "GKArrizabalaga", "STHavertz"]);
+    expect(document.activeElement).toBe(down(ARRIZABALAGA));
+  });
+
   it("is saved as it stands", async () => {
     const app = await openedPitch();
     await userEvent.click(up(WHITE));
