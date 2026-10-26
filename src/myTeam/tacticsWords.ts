@@ -62,9 +62,9 @@ export const squadColumns = {
 export const movingWords = "Moving";
 export const moveLabel = (name: string) => `Move ${name}`;
 export const toBenchWords = (name: string) => `Put ${name} on the bench`;
-/** A bench player's buttons for the bench order (spec/05 Auto-subs), and what each says. */
 /** A starter's role picker, for screen readers (spec/05 Roles). */
 export const roleLabel = (name: string) => `${name}'s role`;
+/** A bench player's buttons for the bench order (spec/05 Auto-subs), and what each says. */
 export const upWords = "Up";
 export const downWords = "Down";
 export const upLabel = (name: string) => `Move ${name} up the bench`;

@@ -101,7 +101,8 @@ function PlayerBlock({ player, cell, role, moving }: { player: SquadMember; cell
     >
       <Shirt number={player.number} />
       <span className={`max-w-full truncate px-1 text-lead font-semibold ${plate}`}>{player.name}</span>
-      <span className={`max-w-full truncate px-1 ${isPicked ? plate : "bg-name-plate text-soft"}`}>{role}</span>
+      {/* Up to two lines, so "Defensive full-back" and "Defensive winger" stay apart on a phone. */}
+      <span className={`line-clamp-2 max-w-full px-1 text-center ${isPicked ? plate : "bg-name-plate text-soft"}`}>{role}</span>
     </button>
   );
 }

@@ -104,8 +104,7 @@ export function SquadTable({
 }
 
 /** Up and Down: a whole tap wide on the phone, as "Up" alone is narrower (plate.md, The phone). */
-const BENCH_ORDER_BUTTON =
-  "min-h-tap min-w-tap font-semibold text-fact underline disabled:text-muted disabled:no-underline lg:min-h-0 lg:min-w-0";
+const BENCH_ORDER_BUTTON = "min-h-tap min-w-tap font-semibold text-fact underline disabled:text-muted disabled:no-underline lg:min-h-0 lg:min-w-0";
 
 /** A bench row's place in the bench order, the last place, and how to move a player to one. */
 type BenchPlace = { index: number; last: number; onBenchAt(playerCode: number, index: number, pressed?: "up" | "down"): void };
@@ -157,14 +156,15 @@ function SquadRow({
         </Link>{" "}
         <span className="text-muted">{player.clubShortName}</span>
       </td>
-      <td className="px-2">
-        {starter !== null && (
+      {/* The bench plays no role, so its buttons take the Role column's room too. */}
+      {starter !== null && (
+        <td className="px-2">
           <select
             aria-label={roleLabel(player.name)}
             data-role={player.playerCode}
             value={roleIn(starter, starter.role).key}
             onChange={(event) => onRole(player.playerCode, event.target.value)}
-            className="text-box"
+            className="text-box w-full"
           >
             {rolesOfSlot(starter).map(({ key, name }) => (
               <option key={key} value={key}>
@@ -172,9 +172,9 @@ function SquadRow({
               </option>
             ))}
           </select>
-        )}
-      </td>
-      <td className="px-2">
+        </td>
+      )}
+      <td colSpan={starter === null ? 2 : 1} className="px-2">
         <button
           type="button"
           data-player={onBenchRow ? player.playerCode : undefined}
