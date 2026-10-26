@@ -37,6 +37,8 @@ const squadRow = v.object({
   club: clubRecord,
   /** Left the Premier League: he stays on the team until released. */
   gone: v.boolean(),
+  /** The squad number his manager gave him, or null until given (#13). */
+  number: v.union(v.number(), v.null()),
   /** His club's next match after `now`, or null while it has none with a kickoff time. */
   nextFixture: v.union(nextFixture, v.null()),
   /** His matches this season added up, or null ("—") while none has been priced. */
@@ -87,21 +89,22 @@ export const ofMyTeam = query({
     const lastGameweek = begun.length === 0 ? null : Math.max(...begun);
     const price = await pricer(ctx, leagueId, team._id);
     const players = await Promise.all(
-      (await squadOf(ctx, team._id)).map(async ({ playerCode }) => {
+      (await squadOf(ctx, team._id)).map(async ({ playerCode, number }) => {
         const player = await playerByCode(ctx, playerCode);
         if (player === null) throw new Error(`Player ${playerCode} is in team ${team._id}'s squad but the football sync doesn't hold him`);
         const positions = await currentPositions(ctx, playerCode, how);
-        return { player, positions, club: await clubs(player.clubCode), matches: await price(player.code, positions) };
+        return { player, number: number ?? null, positions, club: await clubs(player.clubCode), matches: await price(player.code, positions) };
       }),
     );
     const next = await nextFixturesOf(ctx, new Set(players.map(({ player }) => player.clubCode)), now, clubs);
-    const rows = players.map(({ player, positions, club, matches }) => ({
+    const rows = players.map(({ player, number, positions, club, matches }) => ({
       code: player.code,
       name: player.name,
       fullName: player.fullName,
       positions,
       club,
       gone: player.droppedAt !== undefined,
+      number,
       nextFixture: next.get(player.clubCode) ?? null,
       ...squadPoints(matches, lastGameweek),
     }));

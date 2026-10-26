@@ -2,15 +2,17 @@
 // that it hands on what comes back as it comes.
 
 import { renderHook } from "@testing-library/react";
+import { ConvexError } from "convex/values";
 import { afterEach, expect, test, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { liveMyTeam } from "../../../src/myTeam/liveMyTeam";
 
-const convex = vi.hoisted(() => ({ ofMyTeam: vi.fn(), transactions: vi.fn(), squad: vi.fn() }));
+const convex = vi.hoisted(() => ({ ofMyTeam: vi.fn(), transactions: vi.fn(), squad: vi.fn(), setNumber: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
     queries: { "table/teamFixtures:ofMyTeam": convex.ofMyTeam, "squads/teamTransactions:ofMyTeam": convex.transactions, "squads/teamSquad:ofMyTeam": convex.squad },
+    mutations: { "squads/squadNumbers:set": convex.setNumber },
   }),
 );
 
@@ -18,6 +20,7 @@ afterEach(() => {
   convex.ofMyTeam.mockReset();
   convex.transactions.mockReset();
   convex.squad.mockReset();
+  convex.setNumber.mockReset();
 });
 
 const leagueId = "league-1" as Id<"leagues">;
@@ -48,4 +51,13 @@ test("it asks squads/teamSquad:ofMyTeam for the league at the start of the curre
   const [{ leagueId: asked, now }] = convex.squad.mock.calls[0];
   expect(asked).toBe(leagueId);
   expect(now % MINUTE_MS).toBe(0);
+});
+
+test("a squad number is set through squads/squadNumbers:set, and a refusal comes back as the server's words (#13)", async () => {
+  const { set } = renderHook(() => liveMyTeam.useSquadNumbers()).result.current;
+  convex.setNumber.mockResolvedValue(null);
+  expect(await set(leagueId, 1001, 7)).toBeNull();
+  expect(convex.setNumber).toHaveBeenCalledWith({ leagueId, playerCode: 1001, number: 7 });
+  convex.setNumber.mockRejectedValue(new ConvexError("That player isn't in your squad."));
+  expect(await set(leagueId, 1001, null)).toBe("That player isn't in your squad.");
 });

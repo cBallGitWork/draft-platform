@@ -34,7 +34,8 @@ const PLAYERS: readonly [number, string, string, Position[], Cell | null][] = [
   [15, "Watkins", "AVL", ["ST"], null],
 ];
 
-const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({ playerCode, name, clubShortName, positions }));
+// Squad numbers are made up too: each player wears his code, the last one none yet (#13).
+const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({ playerCode, name, clubShortName, positions, number: playerCode === 15 ? null : playerCode }));
 const positionsOf = new Map(squad.map(({ playerCode, positions }) => [playerCode, positions]));
 const nameOf = (playerCode: number) => squad.find((member) => member.playerCode === playerCode)!.name;
 

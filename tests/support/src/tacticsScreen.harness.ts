@@ -12,7 +12,7 @@ import { manager, openApp } from "./shell.harness";
 import { TACTICS_GAMEWEEK, openTactics } from "./tactics.harness";
 
 export type Member = OpenTactics["squad"][number];
-export const member = (playerCode: number, name: string, positions: Position[]): Member => ({ playerCode, name, clubShortName: "ARS", positions });
+export const member = (playerCode: number, name: string, positions: Position[], number: number | null = null): Member => ({ playerCode, name, clubShortName: "ARS", positions, number });
 
 export const RAYA = member(1, "Raya", ["GK"]);
 export const SALIBA = member(2, "Saliba", ["CB"]);

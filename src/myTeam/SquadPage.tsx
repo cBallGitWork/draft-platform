@@ -1,10 +1,12 @@
 import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { Loading, PageSection, PanelNote } from "../frame/Panel";
+import { Loading, PageSection, PanelNote, Problem } from "../frame/Panel";
 import { playerCardPath } from "../playerCard/paths";
 import { PositionCodes } from "../PositionCodes";
-import type { MyTeamSeam, TeamSquad } from "./seam";
+import { useChange, type Changing } from "../useChange";
+import type { MyTeamSeam, SquadNumberChanges, TeamSquad } from "./seam";
 import {
   awayWords,
   goneWords,
@@ -16,6 +18,7 @@ import {
   noPointsWords,
   noSquadWords,
   noTeamWords,
+  numberLabel,
   squadColumns,
   squadLoadingWords,
   squadTableLabel,
@@ -25,7 +28,7 @@ import {
 
 type Row = TeamSquad["players"][number];
 type Column = keyof typeof squadColumns;
-const COLUMNS: readonly Column[] = ["positions", "player", "club", "next", "last", "season"];
+const COLUMNS: readonly Column[] = ["number", "positions", "player", "club", "next", "last", "season"];
 /** A phone leaves out the club, for room (plate.md, The phone: the squad table drops Club). */
 const DESK_ONLY: readonly Column[] = ["club"];
 const FIGURES: readonly Column[] = ["last", "season"];
@@ -46,39 +49,62 @@ function SquadBody({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }
   const squad = seam.useTeamSquad(league.leagueId);
   if (squad === undefined) return <Loading className="px-3 py-2">{squadLoadingWords}</Loading>;
   if (squad.players.length === 0) return <PanelNote>{noSquadWords}</PanelNote>;
-  return <SquadTable leagueId={league.leagueId} squad={squad} />;
+  return <SquadTable leagueId={league.leagueId} squad={squad} numbers={seam.useSquadNumbers()} />;
 }
 
-function SquadTable({ leagueId, squad }: { leagueId: Id<"leagues">; squad: TeamSquad }) {
+/** The squad, each row's number his manager's to change in place (#13). */
+function SquadTable({ leagueId, squad, numbers }: { leagueId: Id<"leagues">; squad: TeamSquad; numbers: SquadNumberChanges }) {
+  const change = useChange();
   const longOf = (column: Column) => (column === "last" && squad.lastGameweek !== null ? lastGameweekLong(squad.lastGameweek) : squadColumns[column].long);
   return (
-    <table aria-label={squadTableLabel(squad.teamName)} className="w-full border-collapse">
-      <thead className="bg-head text-ground">
-        <tr>
-          {COLUMNS.map((column) => (
-            <th key={column} scope="col" title={longOf(column)} aria-label={longOf(column)} className={cellClasses(column)}>
-              {squadColumns[column].short}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {squad.players.map((player) => (
-          <tr key={player.code} className="border-t border-panel-rule">
+    <>
+      <Problem problem={change.problem} />
+      <table aria-label={squadTableLabel(squad.teamName)} className="w-full border-collapse">
+        <thead className="bg-head text-ground">
+          <tr>
             {COLUMNS.map((column) => (
-              <SquadCell key={column} column={column} player={player} leagueId={leagueId} />
+              <th key={column} scope="col" title={longOf(column)} aria-label={longOf(column)} className={cellClasses(column)}>
+                {squadColumns[column].short}
+              </th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {squad.players.map((player) => (
+            <tr key={player.code} className="border-t border-panel-rule">
+              {COLUMNS.map((column) => (
+                <SquadCell key={column} column={column} player={player} leagueId={leagueId} numbers={numbers} change={change} />
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
   );
 }
 
 /** One cell of a player's row: his name heads it, his points are its figures. */
-function SquadCell({ column, player, leagueId }: { column: Column; player: Row; leagueId: Id<"leagues"> }) {
+function SquadCell({
+  column,
+  player,
+  leagueId,
+  numbers,
+  change,
+}: {
+  column: Column;
+  player: Row;
+  leagueId: Id<"leagues">;
+  numbers: SquadNumberChanges;
+  change: Changing;
+}) {
   const className = cellClasses(column);
   switch (column) {
+    case "number":
+      return (
+        <td className={className}>
+          <NumberBox player={player} change={change} save={(number) => numbers.set(leagueId, player.code, number)} />
+        </td>
+      );
     case "positions":
       return (
         <td className={className}>
@@ -109,6 +135,48 @@ function SquadCell({ column, player, leagueId }: { column: Column; player: Row; 
     case "season":
       return <PointsCell className={className} points={player.seasonPoints} />;
   }
+}
+
+/** His number, changed in place: it is sent when the box is left or Enter is pressed, and goes
+ *  back to the one held if refused. An empty box takes his number away. What isn't a number from
+ *  1 to 99 is sent as typed, and the server's refusal says why (squadNumbers.ts). */
+function NumberBox({ player, change, save }: { player: Row; change: Changing; save: (number: number | null) => ReturnType<SquadNumberChanges["set"]> }) {
+  const held = player.number === null ? "" : String(player.number);
+  const [typed, setTyped] = useState(held);
+  // Only this box waits while its number is sent, so a click into the next one isn't lost.
+  const [sending, setSending] = useState(false);
+  // A number changed on another screen, or put back after a refusal, shows here too.
+  useEffect(() => setTyped(held), [held]);
+  const send = async () => {
+    const trimmed = typed.trim();
+    if (trimmed === held) {
+      change.clear();
+      return;
+    }
+    const number = trimmed === "" ? null : Number(trimmed);
+    setSending(true);
+    const made = await change.run(() => save(number));
+    setSending(false);
+    // Made, the box shows what was sent ("07" as the 7 it was taken as, an emptied box empty);
+    // refused, the one held comes back.
+    if (made) setTyped(number === null ? "" : String(number));
+    else setTyped(held);
+  };
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      aria-label={numberLabel(player.name)}
+      value={typed}
+      disabled={sending}
+      onChange={(event) => setTyped(event.target.value)}
+      onBlur={() => void send()}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") event.currentTarget.blur();
+      }}
+      className="text-box w-squad-number lg:min-h-0"
+    />
+  );
 }
 
 function NextFixture({ next }: { next: NonNullable<Row["nextFixture"]> }) {
