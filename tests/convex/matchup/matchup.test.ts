@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { MatchupSide, MatchupSlot } from "../../../convex/matchup/matchupShape";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { inTenths } from "../../../convex/scoring/scoringSet";
-import { HOUR_MS } from "../../../convex/shared/time";
+import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import {
   ANN,
   BOB,
@@ -110,7 +110,7 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
 
 test("in a double gameweek a man is yet to play while his second match is to come, and no auto-sub comes before it", async () => {
   const league = await scoresLeague();
-  const secondKickoff = KICKOFF + 3 * 24 * HOUR_MS;
+  const secondKickoff = KICKOFF + 3 * DAY_MS;
   await league.t.run((ctx) =>
     ctx.db.insert("fixtures", { code: HULL_EVERTON + 1, gameweek: GAMEWEEK, homeClubCode: HULL, awayClubCode: ARSENAL, kickoff: secondKickoff }),
   );

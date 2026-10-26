@@ -75,7 +75,7 @@ function HeadToHeadMatchup({ matchup }: { matchup: HeadToHead }) {
       {game.kind === "scored" ? (
         <ScoredMatchup game={game} />
       ) : (
-        <section aria-label={gameweekWords(gameweek)} className="bg-panel">
+        <div className="bg-panel">
           {game.kind === "none" ? (
             <PanelNote>{noGameWords(teamName, gameweek)}</PanelNote>
           ) : game.kind === "bye" ? (
@@ -86,7 +86,7 @@ function HeadToHeadMatchup({ matchup }: { matchup: HeadToHead }) {
               <PanelNote>{game.kind === "notBegun" ? notBegunWords(deadline) : unscoredWords(game.reason)}</PanelNote>
             </>
           )}
-        </section>
+        </div>
       )}
     </>
   );
