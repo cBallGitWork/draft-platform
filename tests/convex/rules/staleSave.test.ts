@@ -46,7 +46,7 @@ const lastEventAt = () =>
 const coCommissionerSavesOver = async () => {
   const opened = await rulesRevision(t, leagueId);
   await changeGames(CO_COMMISSIONER, 2, opened);
-  return { opened, refusal: rulesRefusals.changedSince(CO_COMMISSIONER, await lastEventAt()) };
+  return { opened, refusal: rulesRefusals.changedSince(CO_COMMISSIONER, await lastEventAt(), undefined) };
 };
 
 describe("a save made from rules someone has saved over since", () => {
@@ -64,7 +64,7 @@ describe("a save made from rules someone has saved over since", () => {
     const opened = await rulesRevision(t, leagueId);
     await changeGames(ADMIN, 2, opened);
 
-    await expectRefused(changeGames(COMMISSIONER, 3, opened), rulesRefusals.changedSince(adminByline, await lastEventAt()));
+    await expectRefused(changeGames(COMMISSIONER, 3, opened), rulesRefusals.changedSince(adminByline, await lastEventAt(), undefined));
   });
 
   test("is refused through the whole-rules change too", async () => {
@@ -88,7 +88,7 @@ describe("a save made from rules someone has saved over since", () => {
       }
     });
 
-    await expectRefused(changeGames(COMMISSIONER, 3, opened), rulesRefusals.changedSince(null, savedAt));
+    await expectRefused(changeGames(COMMISSIONER, 3, opened), rulesRefusals.changedSince(null, savedAt, undefined));
     expect((await latestRules())?.gamesPerGameweek).toBe(2);
   });
 

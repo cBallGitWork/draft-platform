@@ -479,6 +479,39 @@
       }
     },
     {
+      "tableName": "timeZones",
+      "indexes": [
+        {
+          "indexDescriptor": "by_email",
+          "fields": [
+            "email"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "email": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "zone": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "feedChecks",
       "indexes": [],
       "stagedDbIndexes": [],

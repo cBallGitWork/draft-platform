@@ -80,3 +80,11 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
 ## Data in mock-ups
 
 Real Premier League players and clubs, so the design is tested on real names.
+
+## Times
+
+Managers are around the world, so every time a person reads tells it in their own time zone:
+on a screen, in Mail's letters, and in what the site writes to them. Their zone is taken from
+their browser automatically each time the app opens, so it follows a manager who travels, and
+there is nothing to set. Until a person's zone is known, a time is told in London's, with the
+zone named (Craig, 26 Oct 2026; #442).

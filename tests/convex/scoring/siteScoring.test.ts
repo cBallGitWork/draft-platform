@@ -90,7 +90,7 @@ describe("a fix", () => {
     await holdGameweeks(t, { next: 9 });
     await patch(EDITED, TODAY + NOTICE);
 
-    await expectRefused(fixAs(ADMIN, EDITED_AGAIN), siteScoringRefusals.fixWhileWaiting("26_27.1", TODAY + NOTICE));
+    await expectRefused(fixAs(ADMIN, EDITED_AGAIN), siteScoringRefusals.fixWhileWaiting("26_27.1", TODAY + NOTICE, undefined));
     expect(await inGameweek(10)).toEqual(EDITED);
   });
 
@@ -114,7 +114,7 @@ describe("a fix", () => {
     const saved = (await siteRevision())!;
     const savedAt = await t.run(async (ctx) => (await ctx.db.get("siteScoring", saved))!._creationTime);
 
-    await expectRefused(fixAs(ADMIN, structuredClone(FIRST_SCORING), null), siteScoringRefusals.changedSince(savedAt));
+    await expectRefused(fixAs(ADMIN, structuredClone(FIRST_SCORING), null), siteScoringRefusals.changedSince(savedAt, undefined));
     expect(await inGameweek(9)).toEqual(EDITED);
   });
 

@@ -184,6 +184,9 @@ const signInTables = {
   allowedEmails: defineTable(allowedEmailFields).index("by_email", ["email"]),
   signInAsks: defineTable(signInAskFields).index("by_email_and_askedAt", ["email", "askedAt"]),
   emailSends: defineTable(emailSendFields).index("by_day", ["day"]),
+  /** Each person's own time zone, as their browser last named it, so what they read tells time
+   *  in it (#442). One row per email. */
+  timeZones: defineTable({ email: v.string(), zone: v.string() }).index("by_email", ["email"]),
 };
 
 // Match stats (#27, spec/07 "Match stats"): one record per player per match, both feeds merged,
