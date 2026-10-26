@@ -131,8 +131,12 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
   // The gameweek is the server's: a save sent just after the deadline is from the one after.
   const save = async () => {
     setSaving(true);
-    const answer = await changes.save(league.leagueId, draft);
-    setSaving(false);
+    let answer: number | string;
+    try {
+      answer = await changes.save(league.leagueId, draft);
+    } finally {
+      setSaving(false);
+    }
     setProblem(typeof answer === "string" ? answer : null);
     setSavedFrom(typeof answer === "number" ? answer : null);
   };
