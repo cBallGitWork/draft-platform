@@ -156,8 +156,8 @@ function ScoredMatchup({ game: { team, opponent, commentary } }: { game: Scored 
       <div className="grid items-start gap-2 lg:grid-cols-2">
         <SidePanel side={team} />
         <SidePanel side={opponent} />
+        <Vidiprinter commentary={commentary} />
       </div>
-      <Vidiprinter commentary={commentary} />
     </>
   );
 }

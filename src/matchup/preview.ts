@@ -5,7 +5,7 @@
 // match is over; then the result is final, and the replay starts again. `?minute=N` holds it at
 // minute N of the replay, `?minute=final` at the end, for screenshots.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { Area } from "../../convex/lineup/pitch";
 import type { MatchupCommentary, MatchupSide, MatchupSlot } from "../../convex/matchup/matchupShape";
@@ -179,6 +179,13 @@ function useReplayMinute(): number {
   return minute;
 }
 
+/** The replay's matchup, the same object until the minute or the gameweek moves, as Convex's
+ *  live query holds its result: the screen keeps the last one it was given. */
+function usePreviewMatchup(gameweek: number): Matchup {
+  const minute = useReplayMinute();
+  return useMemo(() => matchupAt(minute, gameweek), [minute, gameweek]);
+}
+
 export const previewMatchup: MatchupSeam = {
-  useMatchup: (_leagueId, _now, asked) => matchupAt(useReplayMinute(), asked.gameweek ?? GAMEWEEK),
+  useMatchup: (_leagueId, _now, asked) => usePreviewMatchup(asked.gameweek ?? GAMEWEEK),
 };
