@@ -38,7 +38,7 @@ export const fullTime = { short: "FT", long: "Full time" } as const;
 // The match page (#45; spec/10, The match page), which each fixture opens.
 
 export { noFigureWords } from "../words";
-export { commentaryDelayedWords, notCountingLabel } from "../matchup/words";
+export { commentaryDelayedWords, notCountingLabel, SCORE_LABEL } from "../matchup/words";
 
 /** A fixture's link to its match page, read out for the score or "v" it wraps. */
 export const matchLinkLabel = (home: string, away: string) => `${home} ${versusWords} ${away}: the match`;
@@ -46,8 +46,8 @@ export const matchLinkLabel = (home: string, away: string) => `${home} ${versusW
 export const MATCH_TITLE = "Match";
 export const loadingMatchWords = "Loading the match…";
 export const noMatchWords = "No match with this code is held.";
-/** Where the match stands, read out with the score. */
-export const SCORE_LABEL = "Score";
+/** After where the match stands, the gameweek it is in. */
+export const inGameweekWords = (gameweek: number) => ` (${gameweekWords(gameweek)})`;
 /** Before kickoff, the day and time it kicks off, in the viewer's own zone. */
 export const kickoffDayWords = (at: number) => `${dayWords(at)}, ${kickoffWords(at)}`;
 /** When the league's points can't be worked out, while the rest still shows. */

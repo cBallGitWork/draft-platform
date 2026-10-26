@@ -77,7 +77,7 @@ flowchart TD
     SCOUTING["Scouting<br/>/scouting<br/>manager"]
     TRADES["Trades<br/>/trades<br/>manager"]
     PL["Premier League<br/>/premier-league<br/>manager"]
-    MATCH["Match<br/>/match/$fixtureCode<br/>manager"]
+    MATCH["Match<br/>/premier-league/match/$fixtureCode<br/>manager"]
   end
   FR -.->|"signed out"| SIGNIN
   FR -.->|"in no league"| LEAGUES
@@ -152,7 +152,7 @@ Features table (feature 12), the one home for screen status.
 | Matchup | `/matchup` | src/matchup/MatchupPage.tsx | spec/10 The matchup, spec/12 | built |
 | Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12 Trades, spec/08 Trades | placeholder |
 | Premier League | `/premier-league` | src/premierLeague/PremierLeaguePage.tsx | spec/18 | built |
-| Match | `/match/$fixtureCode` | src/premierLeague/MatchPage.tsx | spec/10 The match page | built |
+| Match | `/premier-league/match/$fixtureCode` | src/premierLeague/MatchPage.tsx | spec/10 The match page | built |
 | Player card | `/leagues/$leagueId/players/$playerCode` | src/playerCard/PlayerCardPage.tsx | spec/12 The player card, spec/05, spec/14, spec/19 | built |
 | Draft room | none | none | spec/12:16, spec/04 | no route |
 | Club pages | none | none | spec/18:22 | no route |

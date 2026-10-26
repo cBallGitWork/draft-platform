@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { heldOf } from "../football/matchCommentary";
-import { scoreOf } from "../football/matchScores";
+import { clubOf, scoreOf, scoreOnly } from "../football/matchScores";
 import { inMatchOf } from "../matchup/matchup";
 import { commentary, type MatchupCommentary } from "../matchup/matchupShape";
 import { vidiprinter, type VidiprinterPlayer } from "../matchup/vidiprinter";
@@ -98,7 +98,7 @@ export const ofMatch = query({
       kickoff: fixture.kickoff,
       home: clubOf(await clubByCode(ctx, fixture.homeClubCode)),
       away: clubOf(await clubByCode(ctx, fixture.awayClubCode)),
-      score: held === null ? null : { state: held.state, homeGoals: held.homeGoals, awayGoals: held.awayGoals, minutes: held.minutes, clockLabel: held.clockLabel },
+      score: held === null ? null : scoreOnly(held),
       men: await menOf(ctx, fixture, records, owners, priced),
       pointsProblem: priced.problem,
       commentary: await commentaryOf(ctx, fixture, priced),
@@ -133,23 +133,23 @@ interface Priced {
   problem: string | null;
 }
 
-const UNPRICED = (problem: string | null): Priced => ({ slots: new Map(), players: new Map(), set: null, problem });
+const unpriced = (problem: string | null): Priced => ({ slots: new Map(), players: new Map(), set: null, problem });
 
 /** The match priced, or why it can't be: a set holding a rule no longer sound (#287), say. */
 async function pricedOrProblem(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtures">, owners: Map<PlayerCode, Doc<"teams">>): Promise<Priced> {
   try {
     return await priced(ctx, league, fixture, owners);
   } catch (error) {
-    return UNPRICED(logFailure(`League ${league._id} (${league.name}) can't price match ${fixture.code}`, error));
+    return unpriced(logFailure(`League ${league._id} (${league.name}) can't price match ${fixture.code}`, error));
   }
 }
 
 async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtures">, owners: Map<PlayerCode, Doc<"teams">>): Promise<Priced> {
   const { gameweek } = fixture;
-  if (gameweek === null || !(await begunGameweeks(ctx, league)).includes(gameweek)) return UNPRICED(null);
+  if (gameweek === null || !(await begunGameweeks(ctx, league)).includes(gameweek)) return unpriced(null);
   const season = await seasonRules(ctx, league._id);
   // A league made before rules were held has no scoring (#25).
-  if (season === null) return UNPRICED(null);
+  if (season === null) return unpriced(null);
   const reads = await leagueReads(ctx, league, season);
   const teamIds = [...new Set([...owners.values()].map((team) => team._id))];
   const inputs = await gameweekInputs(ctx, reads, gameweek, await heldFixtures(ctx, gameweek), teamIds);
@@ -158,7 +158,7 @@ async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtu
     const scored = await teamInGameweek(reads, inputs, teamId);
     if (scored === null) continue;
     for (const slot of [...scored.team.starters, ...scored.team.bench]) {
-      // His owner's lineup: only the men in this match.
+      // Only the men in this match, whom alone `owners` holds, and each in his own team's lineup.
       if (owners.get(slot.playerCode)?._id !== teamId) continue;
       const his = scored.matchesOf.get(slot.playerCode) ?? [];
       const index = his.findIndex((match) => match.fixture.code === fixture.code);
@@ -226,8 +226,4 @@ async function commentaryOf(ctx: QueryCtx, fixture: Doc<"fixtures">, { players, 
   } catch (error) {
     return { kind: "unread", reason: logFailure(`Match ${fixture.code}'s commentary can't be read`, error) };
   }
-}
-
-function clubOf({ code, name, shortName }: Doc<"clubs">) {
-  return { code, name, shortName };
 }

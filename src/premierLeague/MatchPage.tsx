@@ -9,7 +9,7 @@ import {
   clockWords,
   COMMENTARY_TITLE,
   fullTime,
-  gameweekWords,
+  inGameweekWords,
   halfTime,
   kickoffDayWords,
   loadingMatchWords,
@@ -77,7 +77,7 @@ function Scoreboard({ match: { home, away, score, kickoff, gameweek } }: { match
       </p>
       <p aria-live="polite" className="px-3 pb-2 text-center">
         <MatchState score={score} kickoff={kickoff} />
-        {gameweek !== null && <span className="text-muted"> ({gameweekWords(gameweek)})</span>}
+        {gameweek !== null && <span className="text-muted">{inGameweekWords(gameweek)}</span>}
       </p>
     </section>
   );

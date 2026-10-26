@@ -106,6 +106,8 @@ describe("reaching it", () => {
     expect(await screen.findByRole("heading", { level: 1, name: MATCH_TITLE })).toBeTruthy();
     expect(app.path()).toBe(matchPath(FIXTURE));
     expect(app.premierLeague.useMatch).toHaveBeenLastCalledWith(league.leagueId, FIXTURE);
+    // Under the Premier League section, whose tab stays lit.
+    expect(screen.getByRole("link", { name: "Premier League" }).getAttribute("data-status")).toBe("active");
   });
 
   it("a fixture before kickoff links from its v", async () => {
@@ -119,12 +121,12 @@ describe("reaching it", () => {
   });
 
   it("an address whose code isn't a number goes to the Premier League's fixtures", async () => {
-    const app = openMatch({}, "/match/saka");
+    const app = openMatch({}, `${PREMIER_LEAGUE_PATH}/match/saka`);
     await screen.findByRole("heading", { level: 1, name: "Premier League" });
     expect(app.path()).toBe(PREMIER_LEAGUE_PATH);
   });
 
-  it("says so while the match loads, and when no match with the code is held", async () => {
+  it("says so while the match loads", async () => {
     openMatch({ loading: true });
     expect((await screen.findByRole("status")).textContent).toBe(loadingMatchWords);
   });
@@ -143,7 +145,7 @@ describe("the score and clock", () => {
     expect(await scoreboard()).toBe(`${ARSENAL.name}${scoreWords(2, 1)}${CHELSEA.name}67' (${gameweekWords(9)})`);
   });
 
-  it("at half-time and at full time, says so", async () => {
+  it("at half-time, says so", async () => {
     openMatch({ match: matchOf({ score: { state: "halfTime", homeGoals: 0, awayGoals: 0, minutes: 45, clockLabel: null } }) });
     expect(await scoreboard()).toContain(halfTime.long);
   });
