@@ -160,6 +160,16 @@ test("once every match is at full time, head-to-head parts the clubs level after
   expect(third.slice(0, 2)).toEqual([3, 3]);
 });
 
+test("a match held as played with no score throws, never left out of the table", async () => {
+  const t = freshConvex();
+  await holdSeason(t, [{ code: 1, home: 3, away: 1, score: null }]);
+  await t.run(async (ctx) => {
+    await ctx.db.insert("matchScores", { fixtureCode: 1, state: "live", homeGoals: null, awayGoals: null, minutes: 10, clockLabel: null, feed: "pl", readAt: 0 });
+  });
+
+  await expect(table(t)).rejects.toThrow("Match 1 is held at live with no score");
+});
+
 test("someone signed out is refused the table", async () => {
   const t = freshConvex();
 

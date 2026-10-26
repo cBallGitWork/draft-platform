@@ -56,7 +56,10 @@ export const ofSeason = query({
     for (const [index, { code, homeClubCode, awayClubCode }] of fixtures.entries()) {
       const score = scores[index];
       if (score?.state !== "fullTime") seasonOver = false;
-      if (score === null || !COUNTED_STATES.has(score.state) || score.homeGoals === null || score.awayGoals === null) continue;
+      if (score === null || !COUNTED_STATES.has(score.state)) continue;
+      // The score reads refuse a kicked-off match without both scores (scoreReads.ts), so one held
+      // here is a bug, never a match to leave out.
+      if (score.homeGoals === null || score.awayGoals === null) throw new Error(`Match ${code} is held at ${score.state} with no score`);
       if (PLAYING_STATES.has(score.state)) provisional = true;
       results.push({ home: clubOf(homeClubCode, code), away: clubOf(awayClubCode, code), homeGoals: score.homeGoals, awayGoals: score.awayGoals });
     }
