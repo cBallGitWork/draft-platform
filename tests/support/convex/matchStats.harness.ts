@@ -9,6 +9,7 @@ import {
   FPL_BOOTSTRAP_URL,
   FPL_FIXTURES_URL,
   fplLiveUrl,
+  plCommentaryUrl,
   plFixturesUrl,
   plFixtureUrl,
   plPlayerStatsUrl,
@@ -17,6 +18,7 @@ import { fplStatLines } from "../../../convex/football/fplLive";
 import { matchRecords } from "../../../convex/stats/matchRecords";
 import { matchSlots, plStatLines } from "../../../convex/football/plMatch";
 import { FULL_STATS, hullEvertonReads, MATCH, recordedGw6, type Gw6Payloads } from "../recorded/gw6.payloads";
+import { recordedCommentary } from "../recorded/commentary.payloads";
 import type { syncTrigger } from "../../../convex/schema";
 import { fakeFetch, freshConvex, type TestConvex } from "./test.harness";
 import { HOUR_MS } from "../../../convex/shared/time";
@@ -31,7 +33,8 @@ export const HULL_EVERTON = MATCH.hullEverton.code;
 export const KICKOFF = Date.parse("2026-10-11T13:00:00Z");
 export const FULL_TIME_READ = KICKOFF + 2 * HOUR_MS;
 
-/** Every feed's read for gameweek 6 as recorded; a URL containing `refuse` answers `REFUSED_STATUS`. */
+/** Every feed's read for gameweek 6 as recorded, and Hull v Everton's commentary at full time,
+ *  which the live tick reads (#43); a URL containing `refuse` answers `REFUSED_STATUS`. */
 export function fakeFeeds(payloads: Gw6Payloads, refuse?: string) {
   const bodies = new Map<string, unknown>([
     [FPL_BOOTSTRAP_URL, payloads.fpl.bootstrap],
@@ -40,22 +43,25 @@ export function fakeFeeds(payloads: Gw6Payloads, refuse?: string) {
     [plFixturesUrl(GAMEWEEK), payloads.pl.round],
     ...payloads.pl.fixtures.map((fixture) => [plFixtureUrl(fixture.id), fixture] as const),
     ...payloads.pl.playerStats.map((read) => [plPlayerStatsUrl(read.player, read.fixture), read.payload] as const),
+    [plCommentaryUrl(MATCH.hullEverton.pl), recordedCommentary(MATCH.hullEverton.pl)],
   ]);
   return fakeFetch(bodies, (url) => refuse !== undefined && url.includes(refuse));
 }
 
-/** A test's Convex, holding Hull v Everton as the football sync would. */
+/** A test's Convex, holding Hull v Everton and both clubs as the football sync would. */
 export async function withHullEverton() {
   const t = freshConvex();
-  await t.run((ctx) =>
-    ctx.db.insert("fixtures", {
+  await t.run(async (ctx) => {
+    await ctx.db.insert("fixtures", {
       code: HULL_EVERTON,
       gameweek: GAMEWEEK,
       homeClubCode: HULL,
       awayClubCode: EVERTON,
       kickoff: KICKOFF,
-    }),
-  );
+    });
+    await ctx.db.insert("clubs", { code: HULL, name: "Hull City", shortName: "HUL" });
+    await ctx.db.insert("clubs", { code: EVERTON, name: "Everton", shortName: "EVE" });
+  });
   return t;
 }
 

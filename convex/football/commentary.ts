@@ -1,6 +1,7 @@
 // Our own commentary: one match's Premier League lines, as `commentaryLines` maps them, written as
 // short CM-terse lines ("62' GOAL Saka, assist Ødegaard") with a kick-off and a full-time line
-// (spec/10, The commentary; #43). Pure: storing the lines and reading the stream live come later.
+// (spec/10, The commentary; #43). Pure: the live tick reads the stream and stores the lines
+// (matchCommentary.ts).
 // Championship Manager's and Football Manager's commentary is a style reference only; none of it
 // is copied.
 
