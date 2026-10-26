@@ -5,6 +5,7 @@
 . "$(dirname "$0")/helpers.sh"
 
 wiring=(  # event|matcher|script, the matcher empty where the entry has none
+  'SessionStart||drift_due.py'
   'PreToolUse|Bash|guard_bash.py'
   'PostToolUse|Write|Edit|line_ceiling.py'
   'Stop||gate_on_stop.py'

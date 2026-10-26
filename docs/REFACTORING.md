@@ -48,7 +48,8 @@ Each pull request is reviewed on its own diff, so nothing looks across them: dup
 back, names drift, docs desync. The drift pass is a scheduled step back.
 
 **When**, whichever comes first:
-- 10 merged pull requests since the last drift pass;
+- 10 merged pull requests since the last drift pass (the session-start hook
+  `.claude/hooks/drift_due.py` runs *Record*'s count and says `drift pass due` when it is);
 - before the mini beta, and before the draft goes live;
 - a file passes 300 lines (the line-ceiling hook will say when, `ARCHITECTURE.md`).
 
