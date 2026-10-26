@@ -99,7 +99,8 @@ function placedOf(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode, Vidi
     placed.push({ line, at, kickoff, order: match.lines.length - index });
   });
   for (const line of thresholdLines(match, players, set)) {
-    placed.push({ line: line.line, at: atMinute(kickoff, line.minute, null), kickoff, order: 0 });
+    // A step with no clock read sorts at its match's kickoff, never before the lineups.
+    placed.push({ line: line.line, at: line.minute === null ? kickoff : atMinute(kickoff, line.minute, null), kickoff, order: 0 });
   }
   return placed;
 }
@@ -122,6 +123,8 @@ function priced(
     counted.set(tallyKey(code, stat), nth);
     const player = players.get(code);
     const stats = player?.inMatch.get(fixtureCode)?.stats ?? null;
+    // Not one of the lineups' men, or his record not yet whole: nothing to price him by yet. The
+    // line shows unpriced until a read brings it, as his slot shows "—".
     if (player === undefined || stats === null) return [];
     const points = inTenths(totalWith(stats, stat, nth, player.cell, set) - totalWith(stats, stat, nth - 1, player.cell, set));
     return points === 0 ? [] : [{ name: player.name, points }];

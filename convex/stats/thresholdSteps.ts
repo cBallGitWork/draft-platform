@@ -27,8 +27,10 @@ export interface ThresholdStep {
   to: number;
 }
 
-/** The most steps one match holds. Under the first set it is about 60 (every man's minutes past 1
- *  and 60, and the defence's goals conceded); more throws, never a silent cut. Claude's choice. */
+/** The most steps one match holds. Under the first set it is about 60, by count of its rules, not
+ *  measured (every man's minutes past 1 and 60, the defence's goals conceded, the keepers' saves).
+ *  More throws, never a silent cut: the matchup then says its commentary can't be read, and logs
+ *  why, while its scores still show. Claude's choice. */
 export const THRESHOLD_STEPS_MOST = 1000;
 
 /** Every cell a man can be priced at. */
