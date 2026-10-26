@@ -39,7 +39,13 @@ const recordPassed = () => t.run((ctx) => recordPassedDeadlines(ctx));
 const storedRows = () => t.run((ctx) => ctx.db.query("playedFixtures").collect());
 const storedGameweeksOf = async (league: Id<"leagues">) =>
   (await storedRows()).flatMap((row) => (row.leagueId === league ? [row.gameweek] : [])).toSorted((a, b) => a - b);
-const readOf = async (league: Id<"leagues">) => (await (await actingAs(t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId: league }))!.gameweeks;
+/** The league's fixtures by gameweek, without their points: a gameweek begun is scored once its
+ *  deadline is recorded (gameweekScores.ts), and the draw is what these tests are about. */
+const readOf = async (league: Id<"leagues">) =>
+  (await (await actingAs(t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId: league }))!.gameweeks.map(({ fixtures, ...gameweek }) => ({
+    ...gameweek,
+    fixtures: fixtures.map(({ points: _points, ...fixture }) => fixture),
+  }));
 const read = () => readOf(leagueId);
 type Gameweeks = Awaited<ReturnType<typeof read>>;
 const played = (gameweeks: Gameweeks) => gameweeks.filter(({ gameweek }) => gameweek <= PLAYED);

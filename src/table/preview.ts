@@ -15,6 +15,14 @@ export const previewSeason = {
   gameweeks: usedGameweeksOf({ unusedGameweeks: previewChristmasBreak }),
   deadlineOf: (gameweek: number) => firstDeadline + (gameweek - 1) * WEEK_MS,
 } satisfies Drawn;
-const table = leagueTableOf(previewTeams, previewSeason);
+/** The gameweeks begun, scored with made-up points; the last still live, and Team 2 never saving a lineup. */
+const BEGUN = 8;
+const scores = new Map(
+  Array.from({ length: BEGUN }, (_, index) => [
+    index + 1,
+    new Map(previewTeams.map((team, teamIndex) => [team, team === "Team 2" ? 0 : 30 + ((index * 7 + teamIndex * 11) % 29)])),
+  ]),
+);
+const table = leagueTableOf(previewTeams, { ...previewSeason, scores, provisional: previewTeams, noLineup: ["Team 2"] });
 
 export const previewTable: TableSeam = { useLeagueTable: () => table };

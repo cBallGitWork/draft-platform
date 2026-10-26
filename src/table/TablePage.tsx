@@ -2,7 +2,17 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, PageSection, PanelTitle } from "../frame/Panel";
 import { FixturesPanel } from "./FixturesPanel";
 import type { LeagueTable, TableSeam } from "./seam";
-import { columns, differenceWords, loadingWords, noResultsWords, noRulesWords, TABLE_PAGE_TITLE, TABLE_TITLE } from "./words";
+import {
+  columns,
+  differenceWords,
+  loadingWords,
+  noResultsWords,
+  noRulesWords,
+  provisionalWords,
+  TABLE_PAGE_TITLE,
+  TABLE_TITLE,
+  unscoredWords,
+} from "./words";
 
 const TITLE_ID = "table-title";
 
@@ -43,12 +53,19 @@ export function TablePage({ league, seam }: { league: LeagueSummary; seam: Table
   );
 }
 
-function StandingsPanel({ leagueTable: { format, table } }: { leagueTable: LeagueTable }) {
+function StandingsPanel({ leagueTable: { format, table, results, unscored } }: { leagueTable: LeagueTable }) {
   const shown = COLUMNS_OF[format];
+  const provisional = results.some(({ teams }) => teams.some((team) => team.provisional));
   return (
     <section aria-labelledby={TITLE_ID} className="bg-panel">
       <PanelTitle id={TITLE_ID}>{TABLE_TITLE}</PanelTitle>
+      {unscored.map(({ gameweek, reason }) => (
+        <p key={gameweek} className="px-3 py-2 text-event">
+          {unscoredWords(gameweek, reason)}
+        </p>
+      ))}
       {table.every((row) => row.played === 0) && <p className="px-3 py-2">{noResultsWords}</p>}
+      {provisional && <p className="px-3 py-2 text-derived">{provisionalWords}</p>}
       <table className="w-full border-collapse">
         <thead className="bg-head text-ground">
           <tr>

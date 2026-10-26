@@ -1,5 +1,6 @@
 // The league's table and fixtures (#33; spec/12, spec/09): reached from the menu by anyone in the
-// league; the table, all noughts and saying so until matchups are scored; the fixtures a gameweek
+// league; the table, all noughts and saying so until a gameweek is scored, then each fixture's
+// score, live points marked provisional and a gameweek that can't be scored named; the fixtures a gameweek
 // at a time, over the gameweeks the league plays, the team left over against the league's average
 // or on a bye; and a total-points league's table with no fixtures.
 
@@ -19,8 +20,12 @@ import {
   leagueAverageWords,
   loadingWords,
   nextLabel,
+  noLineupWords,
   noResultsWords,
   noRulesWords,
+  provisionalWords,
+  scoreWords,
+  unscoredWords,
   previousLabel,
   TABLE_PAGE_TITLE,
   tooFewTeamsWords,
@@ -88,6 +93,19 @@ describe("the table", () => {
     expect(screen.queryByText(noResultsWords)).toBeNull();
   });
 
+  it("says when live points count, provisional until final", async () => {
+    const scores = new Map([[1, new Map([["Ann's", 10], ["Bob's", 30.5]])]]);
+    openTable({ leagueTable: leagueTableOf(["Ann's", "Bob's"], { scores, provisional: ["Bob's"] }) });
+    expect(await screen.findByText(provisionalWords)).toBeTruthy();
+  });
+
+  it("names a gameweek that couldn't be scored, and why, rather than going blank (#287)", async () => {
+    const reason = 'rule 8 of the scoring set scores "goals_scroed", which is neither a catalogue stat nor one of the league\'s own';
+    openTable({ leagueTable: leagueTableOf(FIVE, { unscored: [{ gameweek: 6, reason }] }) });
+    expect(await screen.findByText(unscoredWords(6, reason))).toBeTruthy();
+    expect(screen.queryByText(provisionalWords)).toBeNull();
+  });
+
   it("in total points, has only played and points, and no fixtures", async () => {
     openTable({ leagueTable: leagueTableOf(FIVE, { format: "totalPoints" }) });
     const heads = within(await screen.findByRole("table")).getAllByRole("columnheader");
@@ -108,6 +126,19 @@ describe("the fixtures", () => {
     const { fixtures } = drawn.gameweeks[2];
     expect(fixtures.filter((fixture) => fixture.opponent === null)).toHaveLength(1);
     expect(fixtureLines(3)).toEqual(fixtures.map(({ team, opponent }) => `${team}v${opponent ?? leagueAverageWords}`));
+  });
+
+  it("show each scored fixture's score, the league's average's too, and name a team on 0 for saving no lineup", async () => {
+    const scores = new Map([[1, new Map([["Ann's", 20], ["Bob's", 0], ["Cat's", 41.5], ["Dan's", 33], ["Eve's", 18]])]]);
+    const drawn = leagueTableOf(FIVE, { scores, noLineup: ["Bob's"], deadlineOf: () => Date.now() - HOUR_MS, gameweeks: [1] });
+    openTable({ leagueTable: drawn });
+    expect(await screen.findByRole("heading", { level: 3, name: gameweekWords(1) })).toBeTruthy();
+    expect(fixtureLines(1)).toEqual(
+      drawn.gameweeks[0].fixtures.map(({ team, opponent, points }) => `${team}${scoreWords(points!.team, points!.opponent)}${opponent ?? leagueAverageWords}`),
+    );
+    const average = drawn.gameweeks[0].fixtures.find((fixture) => fixture.opponent === null)!;
+    expect(average.points!.opponent).toBe(22.5);
+    expect(screen.getByText(noLineupWords(["Bob's"]))).toBeTruthy();
   });
 
   it("step through only the gameweeks the league plays, no further than its first or last", async () => {

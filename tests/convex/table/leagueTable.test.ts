@@ -10,7 +10,8 @@ import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 
 // The league's fixtures and table (#33), read from its teams, the gameweeks it plays and its
-// rules, by anyone with a part in it. No matchup is scored yet, so the table is all noughts.
+// rules, by anyone with a part in it. No gameweek has begun in these, so the table is all noughts;
+// its scores are gameweekScores.test.ts's.
 
 const [ANN, BOB, CAT, DAN] = MANAGERS;
 const STRANGER = "stranger@example.com";
