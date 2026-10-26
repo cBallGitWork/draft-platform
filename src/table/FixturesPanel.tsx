@@ -88,7 +88,7 @@ function GameweekFixtures({ gameweeks, results }: { gameweeks: readonly Gameweek
             <span className="text-right font-semibold">{team}</span>
             <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={gameweek}>
               {points === null ? (
-                <span className="text-muted">{versusWords}</span>
+                <span>{versusWords}</span>
               ) : (
                 <span className="whitespace-nowrap font-bold text-figure tabular-nums">{scoreWords(points.team, points.opponent)}</span>
               )}

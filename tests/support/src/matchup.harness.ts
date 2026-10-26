@@ -8,7 +8,7 @@ import type { MatchupSide, MatchupSlot } from "../../../convex/matchup/matchupSh
 import type { Matchup, MatchupSeam } from "../../../src/matchup/seam";
 
 /** A matchup the test moves on, as Convex's live query would: each `play` re-renders the screen. */
-export function liveMatchup(first: Matchup) {
+export function liveMatchup(first: Matchup | undefined) {
   let current = first;
   const listeners = new Set<() => void>();
   return {
@@ -17,7 +17,7 @@ export function liveMatchup(first: Matchup) {
       return () => listeners.delete(listener);
     },
     get: () => current,
-    play: (next: Matchup) => {
+    play: (next: Matchup | undefined) => {
       current = next;
       act(() => listeners.forEach((listener) => listener()));
     },

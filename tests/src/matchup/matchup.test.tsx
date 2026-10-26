@@ -160,6 +160,17 @@ describe("a replayed gameweek plays out on screen", () => {
   });
 });
 
+describe("while the next minute loads", () => {
+  it("keeps the matchup on screen rather than blanking it", async () => {
+    const live = liveMatchup(stages.live);
+    openMatchup({ live });
+    expect(await screen.findByText(scoreWords(2, 5))).toBeTruthy();
+    live.play(undefined);
+    expect(screen.getByText(scoreWords(2, 5))).toBeTruthy();
+    expect(screen.queryByText(loadingWords)).toBeNull();
+  });
+});
+
 describe("the gameweek stepper", () => {
   it("links to the team's matchup in the gameweeks either side", async () => {
     const app = openMatchup({ matchup: stages.live });

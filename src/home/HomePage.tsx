@@ -124,7 +124,7 @@ function HeadToHeads({ home: { format, thisGameweek } }: { home: LeagueHome }) {
           <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 border-b border-panel-rule px-3 py-1 text-lead">
             <span className="text-right font-semibold">{team}</span>
             <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={thisGameweek.gameweek}>
-              <span className="text-muted">{versusWords}</span>
+              <span>{versusWords}</span>
             </MatchupLink>
             {opponent === null ? <span className="text-derived">{leagueAverageWords}</span> : <span className="font-semibold">{opponent}</span>}
           </li>

@@ -195,6 +195,25 @@ test("a gameweek that can't be scored says why, and logs it", async () => {
   expect(logged).toHaveBeenCalledWith(expect.stringContaining(`can't score Team 1's matchup in gameweek ${GAMEWEEK}`));
 });
 
+test("a lineup player the football sync no longer holds leaves the matchup unscored, saying who", async () => {
+  const league = await scoresLeague();
+  await league.t.run(async (ctx) => {
+    const player = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", HULL_SCORER)).unique();
+    await ctx.db.delete("players", player!._id);
+  });
+  const logged = silenceConsoleError();
+  expect(await matchupAs(league, ANN, { gameweek: GAMEWEEK })).toMatchObject({
+    game: { kind: "unscored", reason: expect.stringContaining(`player ${HULL_SCORER} is in a lineup but the football sync doesn't hold him`) },
+  });
+  expect(logged).toHaveBeenCalled();
+});
+
+test("a stored fixture naming a team gone from the league throws, naming it", async () => {
+  const league = await scoresLeague();
+  await league.t.run((ctx) => ctx.db.delete("teams", league.bobsTeam));
+  await expect(matchupAs(league, ANN, { gameweek: GAMEWEEK })).rejects.toThrow(`name team ${league.bobsTeam}, which isn't in the league`);
+});
+
 test("a total-points league has no head-to-heads", async () => {
   const league = await scoresLeague();
   await league.t.run(async (ctx) => {
