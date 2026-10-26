@@ -197,16 +197,16 @@ describe("fractions add up in tenths, never drifting", () => {
     wholePointsOnly: false,
   };
   const minutesPlayed = (minutes: number): PlayerMatch => ({ record: { minutes }, final: true });
+  const threeMen: Lineup = {
+    starters: [
+      { playerCode: 1, ...KEEPER },
+      { playerCode: 2, ...MIDFIELD },
+      { playerCode: 3, ...ATTACK },
+    ],
+    bench: [],
+  };
 
   test("across the team's slots", () => {
-    const threeMen: Lineup = {
-      starters: [
-        { playerCode: 1, ...KEEPER },
-        { playerCode: 2, ...MIDFIELD },
-        { playerCode: 3, ...ATTACK },
-      ],
-      bench: [],
-    };
     const scored = team({
       lineup: threeMen,
       set: tenths,
@@ -214,6 +214,22 @@ describe("fractions add up in tenths, never drifting", () => {
       benchCells: new Map(),
     });
     expect(scored.total).toBe(0.3);
+  });
+
+  test("slots of 0.3, -0.1 and -0.2 total 0, never -0 (#422)", () => {
+    const withFouls: ScoringSet = { ...tenths, rules: [...tenths.rules, { shape: "perAction", stat: "fouls", values: { all: -0.1 } }] };
+    const scored = team({
+      lineup: threeMen,
+      set: withFouls,
+      matches: new Map([
+        [1, [{ record: { minutes: 3 }, final: true }]],
+        [2, [{ record: { fouls: 1 }, final: true }]],
+        [3, [{ record: { fouls: 2 }, final: true }]],
+      ]),
+      benchCells: new Map(),
+    });
+    expect(scored.starters.map((slot) => slot.points)).toEqual([0.3, -0.1, -0.2]);
+    expect(Object.is(scored.total, 0)).toBe(true);
   });
 
   test("in one slot's double gameweek, both matches counting (#412)", () => {

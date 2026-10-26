@@ -378,6 +378,27 @@ const liveStatsTables = {
   liveStatsTicks: defineTable(liveStatsTickFields),
 };
 
+// Each match's commentary as written from the Premier League's stream (#43, spec/10): one row a
+// match, its lines replaced whole by each read, and kept after the gameweek as written
+// (football/matchCommentary.ts).
+
+/** One of our lines, with the feed line it was written from. */
+export const commentaryLine = v.object({ sourceId: v.number(), text: v.string() });
+
+/** Why a match's commentary is delayed, and since when: a read that failed, a stream behind the
+ *  match clock, or a line it could not word. */
+const commentaryDelay = v.object({ reason: v.string(), since: v.number() });
+
+const commentaryTables = {
+  matchCommentary: defineTable({
+    fixtureCode: v.number(),
+    /** Newest first, as the feed's. */
+    lines: v.array(commentaryLine),
+    /** Null while the stream keeps up. */
+    delayed: v.union(commentaryDelay, v.null()),
+  }).index("by_fixtureCode", ["fixtureCode"]),
+};
+
 // When the admin was last emailed that each feed failed (#319, spec/15): one row a feed, so he
 // hears at most once a day for each (admin/feedFailureEmails.ts). `emailedAt` is the start of the
 // failed run it emailed for, as the next failure is measured from its run's start.
@@ -759,6 +780,7 @@ export default defineSchema({
   ...shortlistTables,
   ...matchStatsTables,
   ...liveStatsTables,
+  ...commentaryTables,
   ...feedFailureEmailTables,
   ...leagueTables,
   ...joiningTables,

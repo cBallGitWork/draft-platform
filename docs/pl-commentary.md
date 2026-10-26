@@ -10,7 +10,8 @@ tests (`tests/support/recorded/commentary.payloads.ts`). The read is `readPlComm
 `commentaryLines` (`convex/football/premierLeague.ts`, `convex/football/plCommentary.ts`).
 Our own short lines are written from those by `writeCommentary` (`convex/football/commentary.ts`,
 #43); the live match's, kick-off to full time, are in
-`tests/support/golden/ipswich-forest.commentary.txt`.
+`tests/support/golden/ipswich-forest.commentary.txt`. The live tick reads each live match's stream
+and stores those lines (`convex/football/matchCommentary.ts`).
 
 ## Where
 
