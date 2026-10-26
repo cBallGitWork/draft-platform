@@ -39,6 +39,8 @@ export const fullTime = { short: "FT", long: "Full time" } as const;
 
 export const TABLE_TITLE = "Table";
 export const loadingTableWords = "Loading the Premier League table…";
+/** Said before the football sync has held the season's clubs. */
+export const noClubsWords = "No clubs are held yet, so there is no table to show.";
 /** Said while a match in the table is being played: its result counts as it stands (spec/18). */
 export const provisionalWords = "Live: the table is provisional until every match being played is at full time.";
 

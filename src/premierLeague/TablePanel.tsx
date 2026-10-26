@@ -1,13 +1,13 @@
-import { Loading, PanelTitle } from "../frame/Panel";
+import { Loading, PanelNote, PanelTitle } from "../frame/Panel";
 import type { PlStandings, PremierLeagueSeam } from "./seam";
-import { goalDifferenceWords, loadingTableWords, provisionalWords, TABLE_TITLE, tableColumns } from "./words";
+import { goalDifferenceWords, loadingTableWords, noClubsWords, provisionalWords, TABLE_TITLE, tableColumns } from "./words";
 
 const TITLE_ID = "pl-table-title";
 
 type Column = keyof typeof tableColumns;
 type Row = PlStandings["rows"][number];
 
-const COLUMNS: readonly Column[] = ["position", "club", "played", "won", "drawn", "lost", "goalsFor", "goalsAgainst", "goalDifference", "points"];
+const COLUMNS = Object.keys(tableColumns) as Column[];
 /** Columns a phone leaves out, for room: the difference says what they would. */
 const DESK_ONLY: readonly Column[] = ["goalsFor", "goalsAgainst"];
 
@@ -23,6 +23,8 @@ export function TablePanel({ seam }: { seam: PremierLeagueSeam }) {
       <PanelTitle id={TITLE_ID}>{TABLE_TITLE}</PanelTitle>
       {standings === undefined ? (
         <Loading className="px-3 py-2">{loadingTableWords}</Loading>
+      ) : standings.rows.length === 0 ? (
+        <PanelNote>{noClubsWords}</PanelNote>
       ) : (
         <>
           {standings.provisional && <p className="px-3 py-2 text-derived">{provisionalWords}</p>}

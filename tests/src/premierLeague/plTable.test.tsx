@@ -5,7 +5,7 @@ import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
 import type { PlStandings } from "../../../src/premierLeague/seam";
-import { loadingTableWords, provisionalWords, TABLE_TITLE, tableColumns } from "../../../src/premierLeague/words";
+import { loadingTableWords, noClubsWords, provisionalWords, TABLE_TITLE, tableColumns } from "../../../src/premierLeague/words";
 import { ARSENAL, CHELSEA, FOREST, SPURS, standingsRow, type PremierLeagueData } from "../../support/src/premierLeague.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 
@@ -32,6 +32,12 @@ describe("the Premier League table", () => {
   it("says so while it loads", async () => {
     openSection({ loading: true });
     expect(within(await panel()).getByRole("status").textContent).toBe(loadingTableWords);
+  });
+
+  it("says why it has no table before any club is held", async () => {
+    openSection({ standings: { rows: [], provisional: false } });
+    expect(within(await panel()).getByText(noClubsWords)).toBeTruthy();
+    expect(within(await panel()).queryByRole("table")).toBeNull();
   });
 
   it("heads its columns P W D L GF GA GD Pts, each named in full for a screen reader", async () => {

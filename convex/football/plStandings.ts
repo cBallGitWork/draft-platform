@@ -51,8 +51,10 @@ export const ofSeason = query({
     const results: PlResult<Club>[] = [];
     let provisional = false;
     let seasonOver = true;
-    for (const { code, homeClubCode, awayClubCode } of await currentFixtures(ctx)) {
-      const score = await scoreOf(ctx, code);
+    const fixtures = await currentFixtures(ctx);
+    const scores = await Promise.all(fixtures.map(({ code }) => scoreOf(ctx, code)));
+    for (const [index, { code, homeClubCode, awayClubCode }] of fixtures.entries()) {
+      const score = scores[index];
       if (score?.state !== "fullTime") seasonOver = false;
       if (score === null || !COUNTED_STATES.has(score.state) || score.homeGoals === null || score.awayGoals === null) continue;
       if (PLAYING_STATES.has(score.state)) provisional = true;
