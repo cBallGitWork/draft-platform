@@ -18,6 +18,8 @@ import {
 
 type Column = keyof typeof transactionColumns;
 const COLUMNS: readonly Column[] = ["when", "player", "move", "by"];
+/** Who did it is left off a phone, for room (plate.md, The phone, drops secondary columns). */
+const DESK_ONLY = "hidden sm:table-cell";
 
 /** My team's Transactions tab (spec/12, My team's tabs): the team's transactions, newest first. */
 export function TransactionsPage({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }) {
@@ -45,15 +47,15 @@ function TransactionsTable({ leagueId, teamName, transactions }: { leagueId: Id<
       <thead className="bg-head text-ground">
         <tr>
           {COLUMNS.map((column) => (
-            <th key={column} scope="col" className="px-3 text-left">
+            <th key={column} scope="col" className={`px-3 text-left ${column === "by" ? DESK_ONLY : ""}`}>
               {transactionColumns[column]}
             </th>
           ))}
         </tr>
       </thead>
       <tbody>
-        {transactions.map((transaction, index) => (
-          <tr key={index} className="border-t border-panel-rule">
+        {transactions.map((transaction) => (
+          <tr key={`${transaction.at}-${transaction.playerCode}-${transaction.kind}`} className="border-t border-panel-rule">
             <td className="px-3 whitespace-nowrap">{whenWords(transaction.at)}</td>
             <th scope="row" className="px-3 text-left text-lead font-semibold">
               <Link to={playerCardPath(leagueId, transaction.playerCode)} className="inline-flex min-h-tap items-center">
@@ -61,7 +63,7 @@ function TransactionsTable({ leagueId, teamName, transactions }: { leagueId: Id<
               </Link>
             </th>
             <td className="px-3">{transactionWords(transaction)}</td>
-            <td className="px-3 text-muted">{transaction.by}</td>
+            <td className={`px-3 text-muted ${DESK_ONLY}`}>{transaction.by}</td>
           </tr>
         ))}
       </tbody>
