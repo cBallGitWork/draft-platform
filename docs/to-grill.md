@@ -10,6 +10,11 @@ Craig hasn't picked says so.
 
 Each with the questions its grill starts from. The questions are Claude's.
 
+**Cutting the role set**: tactics (`spec/05` Roles; from #10's review, 26 Oct 2026).
+- A saved lineup can hold a role a later cut removes. Does it fall back to the slot's first role,
+  or is the lineup refused until the manager picks again? Today it is refused at the next save,
+  and the pitch quietly shows the slot's first.
+
 **Awards**: history, Mail.
 - Manager of the Month and Player of the Season (Team of the Week is on league home, `spec/12`).
   Where they live once Mail has filed them (see History, below).
