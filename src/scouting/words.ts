@@ -33,6 +33,7 @@ export const noWaiversWords = "No player is on waivers: the app doesn't run waiv
 /** The list's columns: a short head, and what it stands for (spec/14: dense tables use short codes,
  *  the full name on hover). */
 export const columns = {
+  compare: { short: "Cmp", long: "Compare: tick two players" },
   name: { short: "Player", long: "Player" },
   club: { short: "Club", long: "Club" },
   positions: { short: "Pos", long: "Positions" },
@@ -50,3 +51,13 @@ export const ascendingGlyph = "▲";
 export const descendingGlyph = "▼";
 /** A sortable column's head, for screen readers: what pressing it does. */
 export const sortByLabel = (column: string) => `Sort by ${column}`;
+
+/** Two players side by side (spec/19, The players list). */
+export const COMPARE_TITLE = "Compare";
+/** A player's tick box in the list, for screen readers. */
+export const compareLabel = (name: string) => `Compare ${name}`;
+export const pickOneMoreWords = (name: string) => `${name} is ticked: tick one more player to compare him with.`;
+export const comparingWords = "Loading the comparison…";
+export const clearComparisonWords = "Clear";
+export const matchesWords = "Matches this season";
+export const noStatsYetWords = "Neither has a stat this season yet.";

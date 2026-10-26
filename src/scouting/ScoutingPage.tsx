@@ -3,13 +3,16 @@ import { useEffect, useRef, useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
+import { COMPARED_PLAYERS } from "../../convex/scouting/comparedPlayers";
 import { STAT_CATALOGUE, type CatalogueStat } from "../../convex/scoring/statCatalogue";
 import { Loading, PANEL_BODY, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
 import { playerCardPath } from "../playerCard/paths";
 import { Choice } from "../rules/Choice";
+import { TickBox } from "../rules/TickBox";
 import { PositionCodes } from "../PositionCodes";
 import { statFigure } from "./figures";
 import { POSITION_NAMES } from "../words";
+import { ComparePanel, type PickedPlayer } from "./ComparePanel";
 import type { Availability, ListedPlayer, PlayersFilters, PlayersList, PlayersSort, ScoutingSeam, SortColumn } from "./seam";
 import { ShortlistPanel } from "./ShortlistPanel";
 import {
@@ -18,6 +21,7 @@ import {
   availabilityWords,
   clubLabel,
   columns,
+  compareLabel,
   countWords,
   descendingGlyph,
   everyClubWords,
@@ -53,7 +57,7 @@ const FIRST_DESCENDING: Record<SortColumn, boolean> = { name: false, club: false
 
 /** The list's columns: the fixed ones, and "stat" for the shown stat's season total. */
 type Column = keyof typeof columns | "stat";
-const COLUMNS: readonly Column[] = ["name", "club", "positions", "owner", "seasonPoints", "roleFit"];
+const COLUMNS: readonly Column[] = ["compare", "name", "club", "positions", "owner", "seasonPoints", "roleFit"];
 const SORTED_BY: Partial<Record<Column, SortColumn>> = { name: "name", club: "club", seasonPoints: "seasonPoints", stat: "stat" };
 /** Columns a phone leaves out, for room: the filters say who owns whom. */
 const DESK_ONLY: readonly Column[] = ["owner", "roleFit"];
@@ -67,7 +71,7 @@ const cellClasses = (column: Column) =>
 
 /** Scouting (spec/19), for anyone in the league: every Premier League player, filtered by who holds
  *  him, his position and his club, any stat shown as a season total, and sorted by a column's head,
- *  all on the server. */
+ *  all on the server; any two ticked are compared side by side above the list. */
 export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: ScoutingSeam }) {
   const [filters, setFilters] = useState(OPENING_FILTERS);
   const [sort, setSort] = useState(OPENING_SORT);
@@ -79,6 +83,11 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
     if (loaded !== undefined) lastLoaded.current = loaded;
   }, [loaded]);
   const list = loaded ?? lastLoaded.current;
+  const [picked, setPicked] = useState<readonly PickedPlayer[]>([]);
+  const comparison = seam.useComparison(league.leagueId, picked.length === COMPARED_PLAYERS ? picked.map((each) => each.code) : null);
+  // A third ticked takes the place of the first, so the comparison always holds the last two.
+  const pick = ({ code, name }: ListedPlayer, ticked: boolean) =>
+    setPicked(ticked ? [...picked, { code, name }].slice(-COMPARED_PLAYERS) : picked.filter((each) => each.code !== code));
   const filterBy = (change: Partial<PlayersFilters>) => setFilters({ ...filters, ...change });
   const sortBy = (by: SortColumn) => setSort(by === sort.by ? { by, descending: !sort.descending } : { by, descending: FIRST_DESCENDING[by] });
   // A stat chosen is sorted by, most first; with none, a sort by the stat goes back to the opening one.
@@ -89,6 +98,7 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
   };
   return (
     <PageSection title={SCOUTING_TITLE} className="flex max-w-6xl flex-col gap-2">
+      {picked.length > 0 && <ComparePanel picked={picked} comparison={comparison} clear={() => setPicked([])} />}
       <ShortlistPanel leagueId={league.leagueId} seam={seam} />
       <section aria-labelledby={TITLE_ID} className="bg-panel">
         <PanelTitle id={TITLE_ID}>{PLAYERS_TITLE}</PanelTitle>
@@ -100,7 +110,7 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
         ) : (
           <>
             <PanelNote edge="b">{countWords(list.players.length)}</PanelNote>
-            <PlayersTable leagueId={league.leagueId} players={list.players} stat={stat} sort={sort} sortBy={sortBy} />
+            <PlayersTable leagueId={league.leagueId} players={list.players} stat={stat} sort={sort} sortBy={sortBy} picked={picked} pick={pick} />
           </>
         )}
       </section>
@@ -197,12 +207,16 @@ function PlayersTable({
   stat,
   sort,
   sortBy,
+  picked,
+  pick,
 }: {
   leagueId: Id<"leagues">;
   players: readonly ListedPlayer[];
   stat: CatalogueStat | null;
   sort: PlayersSort;
   sortBy: (by: SortColumn) => void;
+  picked: readonly PickedPlayer[];
+  pick: (player: ListedPlayer, ticked: boolean) => void;
 }) {
   const shown: readonly Column[] = stat === null ? COLUMNS : [...COLUMNS, "stat"];
   return (
@@ -218,7 +232,14 @@ function PlayersTable({
         {players.map((player) => (
           <tr key={player.code} className="border-t border-panel-rule">
             {shown.map((column) => (
-              <PlayerCell key={column} column={column} player={player} leagueId={leagueId} />
+              <PlayerCell
+                key={column}
+                column={column}
+                player={player}
+                leagueId={leagueId}
+                ticked={picked.some((each) => each.code === player.code)}
+                pick={pick}
+              />
             ))}
           </tr>
         ))}
@@ -263,9 +284,29 @@ function ColumnHead({
 }
 
 /** One cell of a player's row: his name heads it, his points are its figure. */
-function PlayerCell({ column, player, leagueId }: { column: Column; player: ListedPlayer; leagueId: Id<"leagues"> }) {
+function PlayerCell({
+  column,
+  player,
+  leagueId,
+  ticked,
+  pick,
+}: {
+  column: Column;
+  player: ListedPlayer;
+  leagueId: Id<"leagues">;
+  ticked: boolean;
+  pick: (player: ListedPlayer, ticked: boolean) => void;
+}) {
   const className = cellClasses(column);
   switch (column) {
+    case "compare":
+      return (
+        <td className={className}>
+          <TickBox checked={ticked} onChange={(checked) => pick(player, checked)}>
+            <span className="sr-only">{compareLabel(player.name)}</span>
+          </TickBox>
+        </td>
+      );
     case "name":
       return (
         <th scope="row" title={player.fullName} className={`${className} text-lead font-semibold`}>

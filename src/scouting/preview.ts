@@ -42,12 +42,16 @@ const previewTotals: Record<number, Stats> = {
   6: { goals_scored: 7, assists: 4, minutes: 800, expected_goals: 6.12 },
   7: { goals_scored: 1, clean_sheets: 4, minutes: 810, expected_goals: 0.65 },
 };
+/** Matches this season, the same for everyone in the preview. */
+const PREVIEW_MATCHES = 9;
 
 /** Rice and Salah are on the preview manager's shortlist to begin with. */
 export const previewShortlist = previewShortlistOf(previewPlayers, [2, 6]);
 
 export const previewScouting: ScoutingSeam = {
   ...previewShortlist,
+  useComparison: (_leagueId, codes) =>
+    codes?.map((code) => ({ ...previewPlayers.find((each) => each.code === code)!, matches: PREVIEW_MATCHES, stats: previewTotals[code] ?? {} })),
   usePlayersList: (_leagueId, filters, sort, stat) => ({
     clubs: [ARSENAL, CHELSEA, LIVERPOOL],
     players: listOf(
