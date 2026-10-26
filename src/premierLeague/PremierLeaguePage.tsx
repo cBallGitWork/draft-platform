@@ -3,6 +3,7 @@ import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks"
 import { GameweekStepper } from "../frame/GameweekStepper";
 import { Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
 import { openingGameweek } from "./openingGameweek";
+import { TablePanel } from "./TablePanel";
 import type { GameweekMatch, PremierLeagueSeam } from "./seam";
 import {
   clockWords,
@@ -24,7 +25,8 @@ import {
 const FIXTURES_TITLE_ID = "pl-fixtures-title";
 
 /** The Premier League section (spec/18), the real competition: its fixtures and results, a
- *  gameweek at a time. No fixture difficulty and no count of owned players here (spec/18). */
+ *  gameweek at a time, beside its table. No fixture difficulty and no count of owned players here
+ *  (spec/18). */
 export function PremierLeaguePage({ seam }: { seam: PremierLeagueSeam }) {
   const firstKickoffs = seam.useFirstKickoffs();
   return (
@@ -38,6 +40,7 @@ export function PremierLeaguePage({ seam }: { seam: PremierLeagueSeam }) {
             <GameweekMatches seam={seam} opening={openingGameweek(firstKickoffs, Date.now())} />
           )}
         </section>
+        <TablePanel seam={seam} />
       </div>
     </PageSection>
   );
