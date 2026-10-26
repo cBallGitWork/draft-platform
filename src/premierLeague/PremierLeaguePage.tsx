@@ -1,8 +1,10 @@
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import { GameweekStepper } from "../frame/GameweekStepper";
 import { Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
 import { openingGameweek } from "./openingGameweek";
+import { matchPath } from "./paths";
 import type { GameweekMatch, PremierLeagueSeam } from "./seam";
 import {
   clockWords,
@@ -14,6 +16,7 @@ import {
   loadingGameweekWords,
   loadingWords,
   matchesListLabel,
+  matchLinkLabel,
   noDateWords,
   noMatchesWords,
   PREMIER_LEAGUE_TITLE,
@@ -93,8 +96,8 @@ function byDay(matches: readonly GameweekMatch[]): { day: string; dayMatches: Ga
 }
 
 /** A match: where it stands (its kickoff, the clock, half-time or full time), the home club, the
- *  score or "v" before kickoff, and the away club. */
-function MatchRow({ match: { kickoff, home, away, score } }: { match: GameweekMatch }) {
+ *  score or "v" before kickoff as a link to its match page (spec/18), and the away club. */
+function MatchRow({ match: { fixtureCode, kickoff, home, away, score } }: { match: GameweekMatch }) {
   const goals =
     score !== null && score.state !== "upcoming" && score.homeGoals !== null && score.awayGoals !== null
       ? scoreWords(score.homeGoals, score.awayGoals)
@@ -103,11 +106,13 @@ function MatchRow({ match: { kickoff, home, away, score } }: { match: GameweekMa
     <li className="grid grid-cols-[3.5rem_minmax(0,1fr)_3.5rem_minmax(0,1fr)] items-center gap-2 border-b border-panel-rule px-3 py-1 text-lead">
       <MatchState kickoff={kickoff} score={score} />
       <ClubName club={home} className="text-right" />
-      {goals === null ? (
-        <span className="text-center text-muted">{versusWords}</span>
-      ) : (
-        <span className="whitespace-nowrap text-center font-bold text-figure tabular-nums">{goals}</span>
-      )}
+      <Link
+        to={matchPath(fixtureCode)}
+        aria-label={matchLinkLabel(home.name, away.name)}
+        className={`flex min-h-tap items-center justify-center lg:min-h-0 ${goals === null ? "text-muted" : "whitespace-nowrap font-bold text-figure tabular-nums"}`}
+      >
+        {goals ?? versusWords}
+      </Link>
       <ClubName club={away} className="text-left" />
     </li>
   );

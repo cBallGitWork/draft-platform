@@ -39,7 +39,7 @@ import { LeaguelessFrame } from "./leagues/LeaguelessFrame";
 import { LeaguesPage } from "./leagues/LeaguesPage";
 import { NewLeaguePage } from "./leagues/NewLeaguePage";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "./leagues/paths";
-import { leagueIn, leagueRunBy } from "./leagues/roles";
+import { currentLeagueOf, leagueIn, leagueRunBy } from "./leagues/roles";
 import type { MailSeam } from "./mail/seam";
 import { MatchupRoute } from "./matchup/MatchupRoute";
 import { matchupSearchOf } from "./matchup/paths";
@@ -67,6 +67,8 @@ import { SquadsPage } from "./squads/SquadsPage";
 import { linkProblemWords, type LinkProblem } from "./sign-in/words";
 import { PLAYER_CARD_ROUTE } from "./playerCard/paths";
 import { PlayerCardPage } from "./playerCard/PlayerCardPage";
+import { MatchPage } from "./premierLeague/MatchPage";
+import { MATCH_ROUTE } from "./premierLeague/paths";
 import { PremierLeaguePage } from "./premierLeague/PremierLeaguePage";
 import type { PremierLeagueSeam } from "./premierLeague/seam";
 import type { PlayerCardSeam } from "./playerCard/seam";
@@ -255,15 +257,17 @@ const patchNotesRoute = createRoute({
   },
 });
 
+/** A player's or a match's code in an address: FPL's codes are whole numbers. */
+const CODE_DIGITS = /^\d+$/;
+
 // A player's card (#381), for anyone in the league, opened from his name. A code that isn't a
 // number names no player, so it goes to Scouting.
-const PLAYER_CODE_DIGITS = /^\d+$/;
 const playerCardRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: PLAYER_CARD_ROUTE,
   beforeLoad: ({ context, params }) => {
     membersOnly({ context, params });
-    if (!PLAYER_CODE_DIGITS.test(params.playerCode)) throw redirect({ to: SCOUTING_PATH });
+    if (!CODE_DIGITS.test(params.playerCode)) throw redirect({ to: SCOUTING_PATH });
   },
   component: function PlayerCard() {
     const context = playerCardRoute.useRouteContext();
@@ -431,6 +435,23 @@ const premierLeagueRoute = createRoute({
   },
 });
 
+// A real match's page (#45; spec/10, The match page), for anyone in a league, opened from the
+// Premier League's fixtures. A code that isn't a number names no match, so it goes to them.
+const matchRoute = createRoute({
+  getParentRoute: () => frameRoute,
+  path: MATCH_ROUTE,
+  beforeLoad: ({ params }) => {
+    if (!CODE_DIGITS.test(params.fixtureCode)) throw redirect({ to: PREMIER_LEAGUE_PATH });
+  },
+  component: function Match() {
+    const { session, premierLeague } = matchRoute.useRouteContext();
+    const { fixtureCode } = matchRoute.useParams();
+    const league = currentLeagueOf(session);
+    // Keyed by the league and the match, so a switch starts afresh.
+    return league ? <MatchPage key={`${league.leagueId}/${fixtureCode}`} league={league} seam={premierLeague} fixtureCode={Number(fixtureCode)} /> : null;
+  },
+});
+
 const BUILT_PAGES: readonly string[] = [MAIL_PATH, TABLE_PATH, SCOUTING_PATH, HOME_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_TRANSACTIONS_PATH, MATCHUP_PATH, PREMIER_LEAGUE_PATH];
 const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map((page) =>
   createRoute({
@@ -443,7 +464,7 @@ const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map(
 const routeTree = rootRoute.addChildren([
   signInRoute,
   leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, playerCardRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, feedbackRoute, patchNotesRoute]),
-  frameRoute.addChildren([landingRoute, homeRoute, tableRoute, scoutingRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, ...pageRoutes]),
+  frameRoute.addChildren([landingRoute, homeRoute, tableRoute, scoutingRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute, ...pageRoutes]),
 ]);
 
 // Not registered for typed links yet: the pages above are made in a loop, so their paths are plain

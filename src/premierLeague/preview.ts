@@ -4,6 +4,7 @@
 
 import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
+import { previewMatch } from "./matchPreview";
 import type { FirstKickoff, GameweekMatch, PremierLeagueSeam } from "./seam";
 
 const CLUBS = [
@@ -81,4 +82,6 @@ const matches = new Map(SEASON_GAMEWEEKS.map((gameweek) => [gameweek, matchesOf(
 export const previewPremierLeague: PremierLeagueSeam = {
   useFirstKickoffs: () => firstKickoffs,
   useGameweekMatches: (gameweek) => matches.get(gameweek) ?? [],
+  // Every fixture opens the one recorded match (matchPreview.ts).
+  useMatch: () => previewMatch,
 };

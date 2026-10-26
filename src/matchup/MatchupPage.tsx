@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import type { MatchupCommentary, MatchupSide, MatchupSlot } from "../../convex/matchup/matchupShape";
+import type { MatchupSide, MatchupSlot } from "../../convex/matchup/matchupShape";
 import { Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
 import { useMinute } from "../useMinute";
 import { matchupLink } from "./paths";
+import { Vidiprinter } from "./Vidiprinter";
 import type { Matchup, MatchupAsked, MatchupSeam } from "./seam";
 import {
   AREA_CODES,
@@ -14,7 +15,6 @@ import {
   BENCH_TITLE,
   byeWords,
   columns,
-  commentaryDelayedWords,
   finalWords,
   gameweekWords,
   leagueAverageWords,
@@ -40,7 +40,6 @@ import {
   statusLabels,
   statusWords,
   totalPointsWords,
-  unreadCommentaryWords,
   unscoredWords,
   versusWords,
   VIDIPRINTER_TITLE,
@@ -156,45 +155,9 @@ function ScoredMatchup({ game: { team, opponent, commentary } }: { game: Scored 
       <div className="grid items-start gap-2 lg:grid-cols-2">
         <SidePanel side={team} />
         <SidePanel side={opponent} />
-        <Vidiprinter commentary={commentary} />
+        <Vidiprinter commentary={commentary} title={VIDIPRINTER_TITLE} noLinesWords={noCommentaryWords} className="lg:col-span-2" />
       </div>
     </>
-  );
-}
-
-const VIDIPRINTER_ID = "vidiprinter";
-
-/** CM's vidiprinter (spec/10): every line, newest first, each with what it is worth to either
- *  team's men in the figure colour, and "Commentary delayed" while the stream falls behind. */
-function Vidiprinter({ commentary }: { commentary: MatchupCommentary }) {
-  return (
-    <section aria-labelledby={VIDIPRINTER_ID} className="bg-panel lg:col-span-2">
-      <PanelTitle id={VIDIPRINTER_ID}>{VIDIPRINTER_TITLE}</PanelTitle>
-      {commentary.kind === "unread" ? (
-        <PanelNote>{unreadCommentaryWords(commentary.reason)}</PanelNote>
-      ) : (
-        <>
-          {commentary.delayed && (
-            <p role="status" className="alert-strip">
-              {commentaryDelayedWords}
-            </p>
-          )}
-          {commentary.lines.length === 0 ? (
-            <PanelNote>{noCommentaryWords}</PanelNote>
-          ) : (
-            // Scrolled within itself, so it is a stop for the keyboard too.
-            <ol aria-labelledby={VIDIPRINTER_ID} tabIndex={0} className="max-h-vidiprinter overflow-y-auto">
-              {commentary.lines.map((line) => (
-                <li key={line.key} className="flex items-baseline justify-between gap-3 border-t border-panel-rule px-3">
-                  <span>{line.text}</span>
-                  {line.points !== null && <span className="shrink-0 whitespace-nowrap font-bold text-figure tabular-nums">{line.points}</span>}
-                </li>
-              ))}
-            </ol>
-          )}
-        </>
-      )}
-    </section>
   );
 }
 

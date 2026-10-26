@@ -63,7 +63,7 @@ const opponent = v.union(v.object({ kind: v.literal("team"), teamName: v.string(
 /** The matchup's commentary (spec/10; matchup/vidiprinter.ts): every line of every match with
  *  either lineup's men in it, newest first, and whether any of those matches' commentary is
  *  delayed ("Commentary delayed"); or why it can't be read, while the scores still show. */
-const commentary = v.union(
+export const commentary = v.union(
   v.object({
     kind: v.literal("read"),
     lines: v.array(v.object({ key: v.string(), text: v.string(), points: v.union(v.string(), v.null()) })),

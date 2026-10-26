@@ -3,7 +3,7 @@
 import { act } from "@testing-library/react";
 import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
-import type { FirstKickoff, GameweekMatch, PremierLeagueSeam } from "../../../src/premierLeague/seam";
+import type { FirstKickoff, GameweekMatch, MatchPage, PremierLeagueSeam } from "../../../src/premierLeague/seam";
 
 export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
 export const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
@@ -32,12 +32,14 @@ export const plMatch = (
 export type PremierLeagueData = {
   firstKickoffs?: FirstKickoff[];
   matches?: Record<number, GameweekMatch[]>;
+  /** The match page's match, whichever fixture is asked for; null for none held. */
+  match?: MatchPage | null;
   loading?: boolean;
 };
 
 /** The fake seam, whose matches a test can change as a live query would (`send`): each screen
  *  reading them draws again. */
-export function fakePremierLeague({ firstKickoffs = [], matches = {}, loading = false }: PremierLeagueData = {}) {
+export function fakePremierLeague({ firstKickoffs = [], matches = {}, match = null, loading = false }: PremierLeagueData = {}) {
   let held: Record<number, GameweekMatch[] | undefined> = { ...matches };
   const listeners = new Set<() => void>();
   const subscribe = (listener: () => void) => {
@@ -50,6 +52,7 @@ export function fakePremierLeague({ firstKickoffs = [], matches = {}, loading = 
     useGameweekMatches: vi.fn<PremierLeagueSeam["useGameweekMatches"]>((gameweek) =>
       useSyncExternalStore(subscribe, () => heldOf(gameweek)),
     ),
+    useMatch: vi.fn<PremierLeagueSeam["useMatch"]>(() => (loading ? undefined : match)),
     /** The server's new read of a gameweek's matches; undefined puts them back to loading. */
     send(gameweek: number, sent: GameweekMatch[] | undefined) {
       held = { ...held, [gameweek]: sent };

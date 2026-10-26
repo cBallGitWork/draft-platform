@@ -262,8 +262,9 @@ class SideScorer {
 }
 
 /** His part in each of his matches he has a record in: the record once whole, whether he played,
- *  and his points there, in the order `scoreTeam` scored his matches. */
-function inMatchOf(slot: SlotPoints, matches: readonly HeldMatch[]): VidiprinterPlayer["inMatch"] {
+ *  and his points there, in the order `scoreTeam` scored his matches. The match page prices its
+ *  lines by it too. */
+export function inMatchOf(slot: SlotPoints, matches: readonly HeldMatch[]): VidiprinterPlayer["inMatch"] {
   return new Map(
     matches.flatMap((match, index) => {
       const record = match.records.get(slot.playerCode);

@@ -1,7 +1,7 @@
 // What the Premier League section says, in one place for Craig to change in the pull request.
 
 import { LOCALE } from "../../convex/shared/londonTime";
-import { gameweekWords } from "../words";
+import { gameweekWords, versusWords } from "../words";
 
 export { gameweekWords, versusWords } from "../words";
 
@@ -34,3 +34,38 @@ export const clockWords = (clockLabel: string | null, minutes: number | null) =>
 export const liveWords = "Live";
 export const halfTime = { short: "HT", long: "Half-time" } as const;
 export const fullTime = { short: "FT", long: "Full time" } as const;
+
+// The match page (#45; spec/10, The match page), which each fixture opens.
+
+export { noFigureWords } from "../words";
+export { commentaryDelayedWords, notCountingLabel } from "../matchup/words";
+
+/** A fixture's link to its match page, read out for the score or "v" it wraps. */
+export const matchLinkLabel = (home: string, away: string) => `${home} ${versusWords} ${away}: the match`;
+
+export const MATCH_TITLE = "Match";
+export const loadingMatchWords = "Loading the match…";
+export const noMatchWords = "No match with this code is held.";
+/** Where the match stands, read out with the score. */
+export const SCORE_LABEL = "Score";
+/** Before kickoff, the day and time it kicks off, in the viewer's own zone. */
+export const kickoffDayWords = (at: number) => `${dayWords(at)}, ${kickoffWords(at)}`;
+/** When the league's points can't be worked out, while the rest still shows. */
+export const pointsProblemWords = (reason: string) => `The league's points can't be worked out for this match: ${reason}.`;
+
+export const sheetLabel = (club: string) => `${club}'s team sheet`;
+export const SUBSTITUTES_TITLE = "Substitutes";
+export const MOVED_TITLE = "Since left both clubs";
+export const noMenWords = "The team sheets show here once the match kicks off.";
+export const matchColumns = {
+  position: { short: "Pos", long: "Position" },
+  player: { short: "Player", long: "Player, and the team that owns him" },
+  points: { short: "Pts", long: "Points for his team" },
+} as const;
+/** A substitute who came on. */
+export const cameOnWords = "On";
+/** Read out for a substitute who never came on, greyed on screen. */
+export const unusedLabel = "unused substitute";
+
+export const COMMENTARY_TITLE = "Commentary";
+export const noLinesWords = "No lines yet: they come in as the match is played.";
