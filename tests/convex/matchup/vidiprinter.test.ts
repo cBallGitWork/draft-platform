@@ -135,3 +135,10 @@ test("a line for a man whose record hasn't arrived shows no points yet", () => {
   const goal = vidiprinter([MATCH], waiting, FIRST_SCORING as ScoringSet).find((line) => line.text.startsWith("13'"));
   expect(goal?.points).toBe("N.Williams +4");
 });
+
+test("a step the clock gave no minute for sorts at its match's kickoff, after the lineups, not as the oldest line", () => {
+  const unclocked: StoredStep = { ...STEPS[0], minute: null };
+  const texts = vidiprinter([{ ...MATCH, steps: [unclocked] }], PLAYERS, FIRST_SCORING as ScoringSet).map((line) => line.text);
+  expect(texts.at(-1)).toBe("Lineups out");
+  expect(texts.indexOf("N.Williams: 60 minutes")).toBeLessThan(texts.indexOf("Lineups out"));
+});
