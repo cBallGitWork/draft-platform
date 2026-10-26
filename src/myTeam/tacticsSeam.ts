@@ -3,11 +3,11 @@
 // their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import type { Tactics } from "../../convex/lineup/tactics";
+import type { OpenTactics, Tactics } from "../../convex/lineup/tactics";
 import type { Change } from "../refusal";
 import type { DraftLineup } from "./lineupDraft";
 
-export type { Tactics };
+export type { OpenTactics, Tactics };
 
 export type LineupChanges = {
   /** Saves the manager's own team's lineup, from the next gameweek not begun. */

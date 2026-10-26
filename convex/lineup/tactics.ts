@@ -41,6 +41,7 @@ export const tacticsShape = v.union(
   }),
 );
 export type Tactics = Infer<typeof tacticsShape>;
+export type OpenTactics = Extract<Tactics, { kind: "open" }>;
 
 /** The caller's own team's lineup to set, for the next gameweek not begun at `now` (the screen's:
  *  a query may not read the clock). Refused for anyone who runs no team in the league. */

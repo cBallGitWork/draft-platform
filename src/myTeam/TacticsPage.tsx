@@ -9,7 +9,7 @@ import { benched, openingLineup, placed, sameLineup, type DraftLineup } from "./
 import { Pitch, type Moving } from "./Pitch";
 import { SquadTable } from "./SquadTable";
 import type { MyTeamSeam } from "./seam";
-import type { Tactics } from "./tacticsSeam";
+import type { OpenTactics } from "./tacticsSeam";
 import {
   countdownWords,
   discardWords,
@@ -28,8 +28,6 @@ import {
   tacticsNoRulesWords,
 } from "./tacticsWords";
 import { noTeamWords } from "./words";
-
-type Open = Extract<Tactics, { kind: "open" }>;
 
 /** The key that puts a picked-up player back. */
 const PUT_BACK_KEY = "Escape";
@@ -71,7 +69,7 @@ function TacticsBody({ league, teamName, seam }: { league: LeagueSummary; teamNa
 }
 
 /** When the lineup locks, and the countdown to it (plate.md: a countdown is a derived reading). */
-function Deadline({ tactics: { gameweek, deadline }, now }: { tactics: Open; now: number }) {
+function Deadline({ tactics: { gameweek, deadline }, now }: { tactics: OpenTactics; now: number }) {
   if (deadline === null) return <span className="text-soft">{noDeadlineWords(gameweek)}</span>;
   return (
     <span className="text-right">
@@ -80,7 +78,7 @@ function Deadline({ tactics: { gameweek, deadline }, now }: { tactics: Open; now
   );
 }
 
-function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactics: Open; seam: MyTeamSeam }) {
+function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactics: OpenTactics; seam: MyTeamSeam }) {
   const squad = useMemo(() => new Map(tactics.squad.map((member) => [member.playerCode, member])), [tactics.squad]);
   const opening = useMemo(() => openingLineup(tactics), [tactics]);
   // The manager's edit; it stays after a save until the held lineup catches up with it, so the
@@ -121,6 +119,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
   const moving: Moving = {
     picked,
     onPick: (playerCode) => setPickedCode((current) => (current === playerCode ? null : playerCode)),
+    onGrab: setPickedCode,
     onPlace: (cell: Cell) => {
       if (picked !== null) change(placed(draft, picked.playerCode, cell), picked.playerCode);
     },

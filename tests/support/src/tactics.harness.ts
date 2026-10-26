@@ -2,12 +2,10 @@
 
 import { vi } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
-import type { LineupChanges, Tactics, TacticsSeam } from "../../../src/myTeam/tacticsSeam";
+import type { LineupChanges, OpenTactics, Tactics, TacticsSeam } from "../../../src/myTeam/tacticsSeam";
 
 /** The gameweek the fake server sets a lineup for, unless a test says. */
 export const TACTICS_GAMEWEEK = 9;
-
-type OpenTactics = Extract<Tactics, { kind: "open" }>;
 
 /** An open gameweek under the first rules, with this squad and lineup: an empty squad that has
  *  never saved one, and no deadline, unless a test says. */

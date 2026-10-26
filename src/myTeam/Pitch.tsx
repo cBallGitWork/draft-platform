@@ -13,16 +13,19 @@ const ROWS_DRAWN = AREAS.toReversed();
 /** Who is picked up and how to move him: the page holds it, as the squad beside picks up too. */
 export type Moving = {
   picked: SquadMember | null;
+  /** A click, a tap or Enter: picks him up, or puts him back if he is already. */
   onPick(playerCode: number): void;
+  /** A drag starting: picks him up, whoever was. */
+  onGrab(playerCode: number): void;
   onPlace(cell: Cell): void;
   onDragEnd(): void;
 };
 
 /** Every drag carries the player's code, as some browsers start no drag without data. */
-export function startDrag(event: DragEvent, playerCode: number, onPick: (playerCode: number) => void) {
+export function startDrag(event: DragEvent, playerCode: number, moving: Moving) {
   event.dataTransfer.setData("text/plain", String(playerCode));
   event.dataTransfer.effectAllowed = "move";
-  onPick(playerCode);
+  moving.onGrab(playerCode);
 }
 
 export function Pitch({ draft, squad, moving }: { draft: DraftLineup; squad: ReadonlyMap<number, SquadMember>; moving: Moving }) {
@@ -78,7 +81,7 @@ function PlayerBlock({ player, cell, moving }: { player: SquadMember; cell: Cell
       aria-pressed={isPicked}
       aria-label={playerOnPitchLabel(player.name, player.positions, cell.area, cell.lane)}
       onClick={() => moving.onPick(player.playerCode)}
-      onDragStart={(event) => startDrag(event, player.playerCode, moving.onPick)}
+      onDragStart={(event) => startDrag(event, player.playerCode, moving)}
       onDragEnd={moving.onDragEnd}
       className="flex w-full min-w-0 cursor-grab flex-col items-center"
     >

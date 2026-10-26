@@ -87,7 +87,7 @@ function SquadRow({ leagueId, player, onBenchRow, moving }: { leagueId: string; 
   return (
     <tr
       draggable
-      onDragStart={(event) => startDrag(event, player.playerCode, moving.onPick)}
+      onDragStart={(event) => startDrag(event, player.playerCode, moving)}
       onDragEnd={moving.onDragEnd}
       aria-current={isPicked || undefined}
       className={`border-t border-panel-rule aria-current:shadow-current-edge ${onBenchRow ? "text-muted" : ""}`}

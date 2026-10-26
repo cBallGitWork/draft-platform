@@ -5,10 +5,9 @@
 
 import { AREAS, LANES, playsCell, type Cell } from "../../convex/lineup/pitch";
 import type { Position } from "../../convex/positions/positionTables";
-import type { Tactics } from "../../convex/lineup/tactics";
+import type { OpenTactics } from "../../convex/lineup/tactics";
 
-type Open = Extract<Tactics, { kind: "open" }>;
-export type SquadMember = Open["squad"][number];
+export type SquadMember = OpenTactics["squad"][number];
 export type Starter = Cell & { playerCode: number };
 
 export interface DraftLineup {
@@ -18,7 +17,7 @@ export interface DraftLineup {
 
 /** The lineup the screen opens on: the one held for the gameweek, or, for a team that has never
  *  saved one, the whole squad on the bench in the order it joined. */
-export function openingLineup({ lineup, squad }: Pick<Open, "lineup" | "squad">): DraftLineup {
+export function openingLineup({ lineup, squad }: Pick<OpenTactics, "lineup" | "squad">): DraftLineup {
   if (lineup.kind === "none") return { starters: [], bench: squad.map(({ playerCode }) => playerCode) };
   return { starters: lineup.starters, bench: lineup.bench };
 }

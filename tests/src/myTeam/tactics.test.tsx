@@ -11,7 +11,7 @@ import type { Cell } from "../../../convex/lineup/pitch";
 import type { Position } from "../../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
-import type { Tactics } from "../../../src/myTeam/tacticsSeam";
+import type { OpenTactics } from "../../../src/myTeam/tacticsSeam";
 import {
   BENCH_TITLE,
   discardWords,
@@ -40,7 +40,7 @@ import type { MyTeamData } from "../../support/src/myTeam.harness";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 import { TACTICS_GAMEWEEK, openTactics } from "../../support/src/tactics.harness";
 
-type Member = Extract<Tactics, { kind: "open" }>["squad"][number];
+type Member = OpenTactics["squad"][number];
 const member = (playerCode: number, name: string, positions: Position[]): Member => ({ playerCode, name, clubShortName: "ARS", positions });
 
 const RAYA = member(1, "Raya", ["GK"]);
@@ -231,6 +231,14 @@ describe("moving a player", () => {
     fireEvent.dragOver(cell, { dataTransfer });
     fireEvent.drop(cell, { dataTransfer });
     expect(blockOf(WHITE, { area: "defence", lane: "left" })).toBeTruthy();
+  });
+
+  it("dragging a player already picked up keeps him picked up", async () => {
+    await openedPitch();
+    const move = screen.getByRole("button", { name: moveLabel(WHITE.name) });
+    await userEvent.click(move);
+    fireEvent.dragStart(move.closest("tr")!, { dataTransfer: { setData: () => undefined, effectAllowed: "" } });
+    expect(screen.getByText(movingHintWords(WHITE.name, WHITE.positions))).toBeTruthy();
   });
 
   it("drags a starter onto the bench", async () => {
