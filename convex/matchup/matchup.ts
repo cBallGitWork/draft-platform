@@ -9,21 +9,19 @@ import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { memberOf, teamIn, teamOf, teamsOf } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
+import { begunGameweeks, storedScoresIn, type TeamScores } from "../table/gameweekScores";
+import { scheduleOf } from "../table/playedFixtures";
 import {
-  begunGameweeks,
   gameweekInputs,
   heldFixtures,
   isFinished,
   leagueReads,
-  storedScoresIn,
   teamInGameweek,
   type HeldMatch,
   type LeagueReads,
   type GameweekInputs,
   type TeamInGameweek,
-  type TeamScores,
-} from "../table/gameweekScores";
-import { scheduleOf } from "../table/playedFixtures";
+} from "../table/teamGameweek";
 import { LEAGUE_AVERAGE } from "../table/roundRobin";
 import { averageOf } from "../table/standings";
 import { BYE, gamesOf, type Against } from "../table/teamGames";
@@ -36,7 +34,7 @@ import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vi
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
 // screen): both lineups slot by slot, each player's points and whether his match is yet to come,
 // on with its minute, or over, the auto-subs, the bench greyed, and the totals, provisional until
-// final. Scored by gameweekScores.ts's own functions, so the matchup and the table never disagree.
+// final. Scored by teamGameweek.ts's own functions, so the matchup and the table never disagree.
 //
 // Lineups show only once the gameweek has begun, at the league's deadline: nothing is secret after
 // lock. Who may see another team's lineup before then is Craig's to settle (#392); a manager's own
@@ -110,7 +108,7 @@ async function gameOf(
   }
 }
 
-/** Each side of the matchup, from gameweekScores.ts's own scoring: each slot worked out, and each
+/** Each side of the matchup, from teamGameweek.ts's own scoring: each slot worked out, and each
  *  total read from the gameweek's stored final scores where the table reads it from them. A stored
  *  total is final, so should the data behind a slot change after storing (a position corrected,
  *  say), the slots may no longer add up to it; and a gameweek whose slots can't be worked out is
