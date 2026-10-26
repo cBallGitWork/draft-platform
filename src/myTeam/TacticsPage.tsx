@@ -162,6 +162,8 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     }
     setProblem(typeof answer === "string" ? answer : null);
     setSavedFrom(typeof answer === "number" ? answer : null);
+    // Saved, the lineup stands as it is: the shape's slots are no longer asked for.
+    if (typeof answer === "number") setShape("");
   };
   const discard = () => {
     setEdited(null);
@@ -205,7 +207,8 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
             <label htmlFor={PRESET_ID} className="text-soft">
               {presetLabel}
             </label>
-            <select id={PRESET_ID} value={shape} onChange={(event) => pickPreset(event.target.value)} className="text-box">
+            {/* Always back on "Pick a preset", so the same one can be picked again after moves. */}
+            <select id={PRESET_ID} value="" onChange={(event) => pickPreset(event.target.value)} className="text-box">
               <option value="" disabled>
                 {pickPresetWords}
               </option>

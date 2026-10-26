@@ -70,7 +70,8 @@ export function Pitch({
                   className="h-full w-full border-2 border-dashed border-pitch-line"
                 />
               ) : (
-                isSlot(cell) && <div role="img" aria-label={emptySlotLabel(area, lane)} className="h-full w-full border-2 border-dashed border-pitch-line" />
+                // Quieter than a put-here target (bold dashes), so a slot to fill never reads as a place to tap.
+                isSlot(cell) && <div role="img" aria-label={emptySlotLabel(area, lane)} className="h-full w-full border border-dotted border-pitch-line" />
               )}
             </div>
           );

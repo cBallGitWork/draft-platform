@@ -25,6 +25,7 @@ import {
   pitchLabel,
   presetLabel,
   putHereLabel,
+  savedWords,
   seasonOverWords,
   squadTableLabel,
   startingWords,
@@ -322,6 +323,16 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
     expect(blockOf(HAVERTZ, { area: "attack", lane: "leftCentre" })).toBeTruthy();
   });
 
+  it("can be picked again after moves, to snap back to it", async () => {
+    await openedPitch();
+    await userEvent.selectOptions(picker(), "4-4-2");
+    expect(picker().value).toBe("");
+    await userEvent.click(blockOf(SALIBA, { area: "defence", lane: "leftCentre" }));
+    await userEvent.click(screen.getByRole("button", { name: putHereLabel(SALIBA.name, "defence", "centre") }));
+    await userEvent.selectOptions(picker(), "4-4-2");
+    expect(blockOf(SALIBA, { area: "defence", lane: "leftCentre" })).toBeTruthy();
+  });
+
   it("marks the shape's empty slots, to show where to drag", async () => {
     await openedPitch();
     await userEvent.selectOptions(picker(), "4-4-2");
@@ -343,6 +354,8 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
     await userEvent.selectOptions(picker(), "4-4-2");
     await userEvent.click(save());
     expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, expect.objectContaining({ bench: [ARRIZABALAGA.playerCode, WHITE.playerCode] }));
+    await screen.findByText(savedWords(TACTICS_GAMEWEEK));
+    expect(within(pitch()).queryAllByRole("img", { name: /^Empty slot/ })).toEqual([]);
     await userEvent.selectOptions(picker(), "5-4-1");
     await userEvent.click(screen.getByRole("button", { name: discardWords }));
     expect(within(pitch()).queryAllByRole("img", { name: /^Empty slot/ })).toEqual([]);
