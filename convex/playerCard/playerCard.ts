@@ -27,7 +27,7 @@ export const NEXT_FIXTURES_SHOWN = 5;
  *  seasons with room. More throws, never a silent cut. */
 export const PLAYER_RECORDS_MOST = 500;
 
-// `v.union` takes two or more members, which a mapped array cannot promise its type (as schema.ts's `position`).
+// `v.union` takes two or more members, which a mapped array cannot promise its type (as convex/tables/positions.ts's `position`).
 const slotLiterals = SLOT_POSITIONS.map((each) => v.literal(each));
 const slotPosition = v.union(...(slotLiterals as [VLiteral<SlotPosition>, VLiteral<SlotPosition>, ...VLiteral<SlotPosition>[]]));
 

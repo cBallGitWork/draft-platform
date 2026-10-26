@@ -9,7 +9,7 @@ import type { leagueEvent } from "../schema";
 
 // Filing Mail's letters (#26, spec/16): the one way any feature puts a letter in someone's Mail.
 
-/** What a letter says, and who wrote it, if someone did (schema.ts, `letterFields`). */
+/** What a letter says, and who wrote it, if someone did (convex/tables/mail.ts, `letterFields`). */
 export type Letter = Pick<Doc<"letters">, "subject" | "body" | "from">;
 
 /** A letter, or one written for each reader's own zone when it tells a time (#442). */
