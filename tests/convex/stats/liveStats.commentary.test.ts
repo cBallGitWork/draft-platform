@@ -1,9 +1,9 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
-import { FPL_BOOTSTRAP_URL, plCommentaryUrl } from "../../../convex/football/football";
+import { FPL_BOOTSTRAP_URL, fplLiveUrl, plCommentaryUrl } from "../../../convex/football/football";
 import { FEED_TYPE } from "../../../convex/football/commentary";
 import { REPLAY_MINUTES, stagedGw6, stageTime, tickAt } from "../../support/convex/liveStats.harness";
-import { fakeFeeds, HULL_EVERTON, withHullEverton } from "../../support/convex/matchStats.harness";
+import { fakeFeeds, GAMEWEEK, HULL_EVERTON, withHullEverton } from "../../support/convex/matchStats.harness";
 import { refusedError, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import { recordedCommentary } from "../../support/recorded/commentary.payloads";
 import { MATCH, recordedGw6 } from "../../support/recorded/gw6.payloads";
@@ -87,6 +87,16 @@ test("a tick whose first read fails delays every live match's commentary", async
   await tickAt(t, stageTime(MINUTE + 1), stagedGw6(MINUTE + 1), FPL_BOOTSTRAP_URL);
 
   expect(await heldCommentary(t)).toMatchObject({ delayed: { reason: refusedError(FPL_BOOTSTRAP_URL), since: stageTime(MINUTE + 1) } });
+});
+
+test("a gameweek whose reads fail delays its matches' commentary", async () => {
+  silenceConsoleError();
+  const t = await withHullEverton();
+  await tickAt(t, stageTime(MINUTE), stagedGw6(MINUTE));
+
+  await tickAt(t, stageTime(MINUTE + 1), stagedGw6(MINUTE + 1), fplLiveUrl(GAMEWEEK));
+
+  expect(await heldCommentary(t)).toMatchObject({ delayed: { reason: refusedError(fplLiveUrl(GAMEWEEK)), since: stageTime(MINUTE + 1) } });
 });
 
 test("once the match is complete its commentary is no longer read, and its lines are kept as written", async () => {
