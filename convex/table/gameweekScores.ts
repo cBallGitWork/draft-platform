@@ -15,11 +15,10 @@ import {
   type LeagueReads,
 } from "./teamGameweek";
 
-// Each team's points in each gameweek the league has begun (#29; spec/14; spec/05, Auto-subs;
-// spec/07), each worked out by teamGameweek.ts: its lineup in the gameweek, auto-subs from who played, then scoreTeam under the site's
-// scoring set in force that gameweek. A gameweek not yet final is worked out on every read: the
-// table's query then re-runs whenever a record, a match's state or a lineup changes, so live matches
-// move it minute by minute (#28). One final (every match in it locked, so no correction changes it:
+// Each team's points in each gameweek the league has begun (#29; spec/14), each worked out by
+// teamGameweek.ts. A gameweek not yet final is worked out on every read: the table's query then
+// re-runs whenever a record, a match's state or a lineup changes, so live matches move it minute
+// by minute (#28). One final (every match in it locked, so no correction changes it:
 // spec/07) is read from finalScores.ts's stored rows, so a season's worth never outgrows one read
 // (#418). Little a final gameweek reads changes after: its head-to-heads are stored
 // (playedFixtures.ts), the site's set never reaches a gameweek begun (siteScoring.ts), a locked
