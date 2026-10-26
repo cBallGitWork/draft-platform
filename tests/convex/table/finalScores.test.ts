@@ -4,9 +4,11 @@ import { silenceConsoleError } from "../../support/convex/test.harness";
 import { addManagers } from "../../support/convex/leagues.harness";
 import {
   CAT,
+  EVERTON_POINTS,
   fullTimeRecords,
   GAMEWEEK,
   holdTypoRule,
+  HULL_POINTS,
   TYPO_STAT,
   lockMatch,
   readTable,
@@ -18,9 +20,6 @@ import {
 // stored and read from then on, so the table never scores the whole season on each read. A gameweek
 // not yet final is still worked out live; `rescore` stores one again.
 
-/** Hull's and Everton's points once the match is over (gameweekScores.test.ts works them out). */
-const HULL_POINTS = 26;
-const EVERTON_POINTS = 38;
 /** A score no team made, written over a stored one to tell a stored read from a worked-out one. */
 const WRITTEN_OVER = 99;
 
