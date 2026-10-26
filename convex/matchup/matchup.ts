@@ -102,7 +102,7 @@ class SideScorer {
   ) {}
 
   async team(teamId: TeamId, teamName: string): Promise<MatchupSide> {
-    const scored = await teamInGameweek(this.ctx, this.reads, this.inputs, teamId);
+    const scored = await teamInGameweek(this.reads, this.inputs, teamId);
     if (scored === null) return { kind: "team", teamId, teamName, points: 0, provisional: false, lineup: null };
     const slotOf = (slotPoints: SlotPoints) => this.slot(slotPoints, scored);
     return {
@@ -118,7 +118,7 @@ class SideScorer {
   async opponent(against: Opponent, nameOf: (teamId: TeamId) => string): Promise<MatchupSide> {
     if (against.kind === "team") return this.team(against.team, nameOf(against.team));
     // The average of every team's points, a team with no lineup on 0, as the table counts it.
-    const every = await Promise.all(this.reads.teamIds.map((teamId) => teamInGameweek(this.ctx, this.reads, this.inputs, teamId)));
+    const every = await Promise.all(this.reads.teamIds.map((teamId) => teamInGameweek(this.reads, this.inputs, teamId)));
     const points = new Map(this.reads.teamIds.map((teamId, index) => [teamId, every[index]?.team.total ?? 0]));
     return {
       kind: LEAGUE_AVERAGE,

@@ -1,7 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { autoSubs, gameweekPlay, type AutoSubs, type GameweekPlay } from "../lineup/autoSubs";
-import { lineupInGameweek } from "../lineup/lineups";
+import { lineupsInGameweek, type HeldLineup } from "../lineup/lineups";
 import { AREAS, LANES, playsCell, type Cell } from "../lineup/pitch";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount, type HowPositionsCount } from "../positions/positionSettings";
@@ -27,7 +27,7 @@ import { playerByCode } from "../shared/players";
 // minute by minute (#28) and nothing stored can go stale. Most of what a played gameweek reads is
 // fixed already: its fixtures are stored (playedFixtures.ts), the site's set never reaches a
 // gameweek begun (siteScoring.ts) and a locked match's records no longer change (matchStats.ts).
-// Its lineup isn't yet: lineups.ts reads it against today's squad (#415).
+// So is its lineup: lineups.ts reads it against the squad as it stood at the deadline (#415).
 // A season's worth outgrows one read; storing a gameweek once final is #418.
 //
 // A gameweek that can't be scored (a site set holding a rule no longer sound, say: #287) is left
@@ -148,7 +148,7 @@ async function gameweekScores(ctx: QueryCtx, reads: LeagueReads, gameweek: numbe
   const inputs = await gameweekInputs(ctx, reads, gameweek);
   const scores = new Map<TeamId, TeamGameweek>();
   for (const teamId of reads.teamIds) {
-    const scored = await teamInGameweek(ctx, reads, inputs, teamId);
+    const scored = await teamInGameweek(reads, inputs, teamId);
     scores.set(
       teamId,
       scored === null ? { points: 0, provisional: false, noLineup: true } : { points: scored.team.total, provisional: scored.team.provisional, noLineup: false },
@@ -157,20 +157,27 @@ async function gameweekScores(ctx: QueryCtx, reads: LeagueReads, gameweek: numbe
   return scores;
 }
 
-/** What scoring any team in one gameweek reads: the site's set in force then, checked, the league's
- *  rules in force then, and the gameweek's matches. */
+/** What scoring any of the league's teams in one gameweek reads: the site's set in force then,
+ *  checked, the league's rules in force then, the gameweek's matches and each team's lineup. */
 export interface GameweekInputs {
   gameweek: number;
   set: StoredScoringSet;
   rules: ReturnType<SeasonRules["inGameweek"]>;
   matches: HeldMatch[];
+  lineups: Map<TeamId, HeldLineup>;
 }
 
 /** The gameweek's inputs. A set holding a rule no longer sound throws (#287). */
 export async function gameweekInputs(ctx: QueryCtx, reads: LeagueReads, gameweek: number): Promise<GameweekInputs> {
   const set = reads.setIn(gameweek);
   validateScoringSet(set);
-  return { gameweek, set, rules: reads.season.inGameweek(gameweek), matches: await heldMatches(ctx, gameweek) };
+  return {
+    gameweek,
+    set,
+    rules: reads.season.inGameweek(gameweek),
+    matches: await heldMatches(ctx, gameweek),
+    lineups: await lineupsInGameweek(ctx, reads.leagueId, reads.teamIds, gameweek),
+  };
 }
 
 /** A team's gameweek, slot by slot, for a screen that shows it so (the matchup, #34) as well as
@@ -184,9 +191,10 @@ export interface TeamInGameweek {
 
 /** The team's gameweek: its lineup, auto-subs from who played, then scoreTeam. Null while it has
  *  never saved a lineup, so it scores 0: what such a team fields isn't settled. */
-export async function teamInGameweek(ctx: QueryCtx, reads: LeagueReads, inputs: GameweekInputs, teamId: TeamId): Promise<TeamInGameweek | null> {
-  const { gameweek, set, rules, matches } = inputs;
-  const held = await lineupInGameweek(ctx, reads.leagueId, teamId, gameweek);
+export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs, teamId: TeamId): Promise<TeamInGameweek | null> {
+  const { set, rules, matches, lineups } = inputs;
+  const held = lineups.get(teamId);
+  if (held === undefined) throw new Error(`team ${teamId} isn't one of the teams this gameweek's lineups were read for`);
   if (held.kind === "none") return null;
   const lineup = { starters: held.starters, bench: held.bench };
   const codes = [...lineup.starters.map(({ playerCode }) => playerCode), ...lineup.bench];
