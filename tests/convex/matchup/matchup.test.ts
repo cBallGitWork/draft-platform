@@ -9,10 +9,12 @@ import {
   ANN,
   BOB,
   CAT,
+  EVERTON_POINTS,
   EVERTON_STARTERS,
   fullTimeRecords,
   GAMEWEEK,
   HULL_AFTER_SUB,
+  HULL_POINTS,
   HULL_KEEPER,
   HULL_SCORER,
   HULL_STARTERS,
@@ -34,8 +36,6 @@ import { silenceConsoleError } from "../../support/convex/test.harness";
 // once it locks: the table's own numbers (gameweekScores.test.ts pins them).
 
 const RECORDS = mergedHullEverton();
-const HULL_POINTS = 26;
-const EVERTON_POINTS = 38;
 /** An hour into the match, as the clock reads then. */
 const LIVE_MINUTE = 60;
 

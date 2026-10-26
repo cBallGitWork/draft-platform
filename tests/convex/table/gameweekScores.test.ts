@@ -7,10 +7,12 @@ import { mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 import {
   ANN,
+  EVERTON_POINTS,
   EVERTON_STARTERS,
   fullTimeRecords,
   GAMEWEEK,
   HULL_AFTER_SUB,
+  HULL_POINTS,
   HULL_SCORER,
   HULL_STARTERS,
   liveRecords,
@@ -26,11 +28,6 @@ import {
 // move it, provisional until the match locks; a gameweek that can't be scored is named, not blank.
 
 const RECORDS = mergedHullEverton();
-/** Hull's points once the match is over, their keeper on for Phillips, and Everton's: each the sum
- *  of its eleven's FPL lines in golden/hull-everton.scores.json, area by area. Pinned as well as
- *  worked out player by player, so a change in how a match scores shows here. */
-const HULL_POINTS = 26;
-const EVERTON_POINTS = 38;
 
 /** Each team's result in gameweek 6, by name. */
 async function gameweek6(league: ScoresLeague) {

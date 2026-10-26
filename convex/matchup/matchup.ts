@@ -57,10 +57,10 @@ export const ofTeam = query({
     const games = gamesOf(await scheduleOf(ctx, league, season), team._id);
     const deadlines = await leagueDeadlines(ctx, leagueId);
     const gameweek = asked ?? thisGameweekOf(games, (each) => deadlines.get(each) ?? null, now)?.gameweek ?? null;
-    const shown = { kind: "headToHead" as const, teamId: team._id, teamName: team.name, gameweeks: [...new Set(games.map((each) => each.gameweek))] };
-    if (gameweek === null) return { ...shown, gameweek, deadline: null, game: { kind: "none" as const } };
+    const heading = { kind: "headToHead" as const, teamId: team._id, teamName: team.name, gameweeks: [...new Set(games.map((each) => each.gameweek))] };
+    if (gameweek === null) return { ...heading, gameweek, deadline: null, game: { kind: "none" as const } };
     const against = games.find((each) => each.gameweek === gameweek)?.against;
-    return { ...shown, gameweek, deadline: deadlines.get(gameweek) ?? null, game: await gameOf(ctx, league, season, team, gameweek, against) };
+    return { ...heading, gameweek, deadline: deadlines.get(gameweek) ?? null, game: await gameOf(ctx, league, season, team, gameweek, against) };
   },
 });
 

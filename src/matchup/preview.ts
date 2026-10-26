@@ -72,6 +72,7 @@ const KROOS_CONTROL: { starters: Man[]; bench: Man[] } = {
 /** Saka Potatoes' keeper and the bench keeper who comes on for him. */
 const [UNUSED_KEEPER, BENCH_KEEPER] = ["Raya", "Pickford"];
 
+const previewIdOf = (teamName: string) => `preview-${teamName}` as Id<"teams">;
 const codeOf = (name: string) => [...name].reduce((code, letter) => code * 31 + letter.charCodeAt(0), 7);
 
 /** A man `minute` minutes into the replay. */
@@ -103,7 +104,7 @@ function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): Ma
   for (const slot of [...starters, ...bench]) slot.provisional = !final;
   return {
     kind: "team",
-    teamId: `preview-${teamName}` as Id<"teams">,
+    teamId: previewIdOf(teamName),
     teamName,
     points: counting.reduce((total, slot) => total + (slot.points ?? 0), 0),
     provisional: !final,
@@ -114,7 +115,7 @@ function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): Ma
 function matchupAt(minute: number, gameweek: number): Matchup {
   return {
     kind: "headToHead",
-    teamId: `preview-${MINE}` as Id<"teams">,
+    teamId: previewIdOf(MINE),
     teamName: MINE,
     gameweeks: [...previewSeason.gameweeks],
     gameweek,
