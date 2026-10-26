@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { rulesInGameweek } from "../../../convex/rules/leagueRules";
+import { rulesInGameweek } from "../../../convex/rules/rulesHistory";
 import { holdGameweeks, moveFplDeadline, rulesRevision, rulesWith, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
