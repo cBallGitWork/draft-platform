@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import type { TopBarState } from "../../src/frame/topBarState";
 import { MAIL_PATH, MY_TEAM_PATH } from "../../src/frame/menu";
 import { SIGN_IN_PATH } from "../../src/sign-in/paths";
-import { LINK_REPLY, manager, openApp, visitor } from "../support/src/shell.harness";
+import { LINK_REPLY, league, manager, openApp, visitor } from "../support/src/shell.harness";
 import { linkProblemWords } from "../../src/sign-in/words";
 
 const threeUnread: TopBarState = { unreadMail: 3, next: { path: MAIL_PATH, reason: "3 unread letters" } };
@@ -70,7 +70,7 @@ describe("a logged-out visitor", () => {
 describe("a signed-in manager", () => {
   it("lands on My team, with its tabs under the menu", async () => {
     const app = openApp("/", manager);
-    expect(await screen.findByRole("heading", { level: 1, name: "My team" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: league.teamName! })).toBeTruthy();
     expect(app.path()).toBe(MY_TEAM_PATH);
     const main = screen.getByRole("navigation", { name: "Main" });
     expect(within(main).getByRole("link", { current: "page" }).textContent).toBe("My team");
@@ -131,7 +131,7 @@ describe("a signed-in manager", () => {
 
   it("opening the sign-in page is sent to My team", async () => {
     const app = openApp(SIGN_IN_PATH, manager);
-    expect(await screen.findByRole("heading", { level: 1, name: "My team" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: league.teamName! })).toBeTruthy();
     expect(app.path()).toBe(MY_TEAM_PATH);
   });
 

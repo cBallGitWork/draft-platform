@@ -54,7 +54,7 @@ const PRICED: PlayedMatch = {
     position: "W",
     total: 11,
     categories: [category("goals_scored", "Goals scored", 5), category("assists", "Assists", 4), category("minutes", "Minutes", 2), category("yellow_cards", "Yellow cards", 0)],
-  },
+  },  override: null,
 };
 const NOT_ARRIVED: PlayedMatch = {
   ...PRICED,

@@ -120,7 +120,7 @@ describe("a manager in a league", () => {
 
   it("opening the app still lands on My team", async () => {
     const app = openApp("/", manager);
-    expect(await screen.findByRole("heading", { level: 1, name: "My team" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: league.teamName! })).toBeTruthy();
     expect(app.path()).toBe(MY_TEAM_PATH);
   });
 });

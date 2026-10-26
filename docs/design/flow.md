@@ -81,6 +81,7 @@ flowchart TD
   FR -.->|"signed out"| SIGNIN
   FR -.->|"in no league"| LEAGUES
   TEAM -- "Squad / Fixtures / Transactions" --> TSQ & TFX & TTR
+  TEAM -- "a player's name" --> CARD
 
   MENU(["League frame: top menu and top bar"])
   MENU -- "Home" --> HOME
@@ -144,7 +145,7 @@ Features table (feature 12), the one home for screen status.
 | Table and fixtures | `/table` | src/table/TablePage.tsx | spec/12, spec/09 | built |
 | Scouting | `/scouting` | src/scouting/ScoutingPage.tsx | spec/19 The players list, The shortlist | built |
 | League home | `/home` | src/home/HomePage.tsx | spec/12 League home | built |
-| My team (Tactics) | `/team` | src/frame/PageNotBuilt.tsx | spec/12:11, spec/12:28, spec/05 | placeholder |
+| My team (Tactics) | `/team` | src/myTeam/TacticsPage.tsx | spec/12:11, spec/12:28, spec/05 | built |
 | Squad | `/team/squad` | src/myTeam/SquadPage.tsx | spec/12 My team's tabs | built |
 | Fixtures | `/team/fixtures` | src/myTeam/FixturesPage.tsx | spec/12 My team's tabs | built |
 | Transactions | `/team/transactions` | src/myTeam/TransactionsPage.tsx | spec/12 My team's tabs | built |

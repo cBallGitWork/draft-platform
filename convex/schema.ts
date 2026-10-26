@@ -628,6 +628,21 @@ export const leagueEvent = v.union(
     wholePointsOnly: v.optional(v.boolean()),
   }),
   ...squadEvents,
+  /** A commissioner's override of one player's points in one match (#32, spec/14): `from` is
+   *  what he had there before, null when no lineup fielded him and no override held, and `teams`
+   *  each team whose gameweek total it moved. */
+  v.object({
+    kind: v.literal("pointsOverridden"),
+    playerCode: v.number(),
+    playerName: v.string(),
+    fixtureCode: v.number(),
+    matchName: v.string(),
+    gameweek: v.number(),
+    from: v.union(v.number(), v.null()),
+    to: v.number(),
+    reason: v.string(),
+    teams: v.array(v.object({ teamName: v.string(), from: v.number(), to: v.number() })),
+  }),
 );
 
 const leagueEventFields = {
@@ -777,6 +792,22 @@ const playedFixtureTables = {
     fixtureCodes: v.array(v.number()),
     storedAt: v.number(),
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
+  /** A commissioner's override of one player's points in one locked match (#32, spec/14): his
+   *  points there in place of what his record scores. One row a league, match and player, a
+   *  second override replacing the first; written only by convex/table/pointsOverrides.ts. */
+  pointsOverrides: defineTable({
+    leagueId: v.id("leagues"),
+    gameweek: v.number(),
+    fixtureCode: v.number(),
+    playerCode: v.number(),
+    points: v.number(),
+    reason: v.string(),
+    /** Who set it, by email, and when. */
+    by: v.string(),
+    at: v.number(),
+  })
+    .index("by_leagueId_and_fixtureCode_and_playerCode", ["leagueId", "fixtureCode", "playerCode"])
+    .index("by_leagueId_and_playerCode", ["leagueId", "playerCode"]),
 };
 
 // Each team's lineup (#8, spec/05): one row for each gameweek it was saved from, which

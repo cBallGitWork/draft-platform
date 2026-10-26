@@ -1,7 +1,7 @@
 // What the player card says, in one place for Craig to change in the pull request.
 
 import type { ScoredAs } from "../../convex/playerCard/cardPoints";
-import { gameweekWords } from "../words";
+import { gameweekWords, versusWords } from "../words";
 
 export { freeAgentWords, listSeparator, noFigureWords } from "../words";
 
@@ -47,3 +47,15 @@ export const lastSeasonNotHeldWords = "Not held yet: the app keeps match stats f
 /** His club's next fixtures. */
 export const NEXT_FIXTURES_TITLE = "Next fixtures";
 export const noFixturesWords = "No fixtures ahead with a date.";
+
+/** A commissioner's override of his points in a match (#32, spec/14). */
+export const overriddenWords = (points: number, reason: string) => `Overridden to ${points} in this league: ${reason}`;
+export const OVERRIDE_TITLE = "Override points";
+export const overrideHint = "Sets his points for one final match in this league, in place of his record's. The whole league gets a letter saying what changed and why.";
+export const overrideLabels = { match: "Match", points: "Points", reason: "Why" } as const;
+export const overrideMatchWords = (gameweek: number | null, home: string, away: string) =>
+  `${gameweek === null ? "" : `${gameweekWords(gameweek)}: `}${home} ${versusWords} ${away}`;
+export const overrideWords = "Override";
+export const cancelOverrideWords = "Cancel";
+export const overriddenDoneWords = "Overridden: the league has a letter saying why.";
+export const overrideFailedWords = "The override couldn't be saved. Try again.";
