@@ -82,17 +82,17 @@ function ruleWords(rule: Rule): string {
 
 /** The lines saying how one category's rule changed, each naming it. */
 function ruleChanges(name: string, before: Rule, after: Rule): string[] {
-  if (before.shape !== after.shape) return [`${name}: now pays ${ruleWords(after)}`];
+  if (before.shape !== after.shape) return [`${name}: now worth ${ruleWords(after)}`];
   const lines: string[] = [];
   const values = settingChange(valueWords(before), valueWords(after));
   if (values) lines.push(`${name}: ${values}`);
   if (before.shape === "bands" && after.shape === "bands" && before.stack !== after.stack) {
-    lines.push(`${name}: ${after.stack ? "every band reached now pays" : "only the highest band reached now pays"}`);
+    lines.push(`${name}: ${after.stack ? "every band reached now counts" : "only the highest band reached now counts"}`);
   }
   const limit = settingChange(wordsByPosition(before.limit, limitWords), wordsByPosition(after.limit, limitWords));
   if (limit) lines.push(`${name}, points limit: ${limit}`);
   const minutes = settingChange(wordsByPosition(before.minMinutes, minutesWords), wordsByPosition(after.minMinutes, minutesWords));
-  if (minutes) lines.push(`${name}, pays only after: ${minutes}`);
+  if (minutes) lines.push(`${name}, earned only after: ${minutes}`);
   return lines;
 }
 

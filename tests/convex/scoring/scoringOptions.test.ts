@@ -134,9 +134,9 @@ describe("a set is refused, with the reason", () => {
     ["a rule priced two ways", setOf(rule({ values: { all: 5, byArea: everyArea(5) } }) as ScoringRule), "the Goals scored rule must be priced one way, the same for all, by area or by position, not 2"],
     ["a rule priced no way", setOf(rule({ values: {} }) as ScoringRule), "the Goals scored rule must be priced one way, the same for all, by area or by position, not 0"],
     ["a rule by position missing the striker", setOf(rule({ values: { byPosition: withoutStriker } }) as ScoringRule), "the Goals scored rule has no values for ST"],
-    ["a value finer than a tenth", setOf(rule({ values: { all: 0.25 } }) as ScoringRule), "the Goals scored rule pays 0.25; points are kept in tenths"],
-    ["a points limit whose least is above its most", setOf(rule({ limit: { all: { max: 2, min: 3 } } }) as ScoringRule), "the Goals scored rule's points limit pays at least 3, more than its most, 2"],
-    ["a points limit of text", setOf(rule({ limit: { all: { max: "2", min: null } } }) as ScoringRule), 'the Goals scored rule\'s points limit pays at most "2", not a number'],
+    ["a value finer than a tenth", setOf(rule({ values: { all: 0.25 } }) as ScoringRule), "the Goals scored rule is worth 0.25; points are kept in tenths"],
+    ["a points limit whose least is above its most", setOf(rule({ limit: { all: { max: 2, min: 3 } } }) as ScoringRule), "the Goals scored rule's points limit is worth at least 3, more than its most, 2"],
+    ["a points limit of text", setOf(rule({ limit: { all: { max: "2", min: null } } }) as ScoringRule), 'the Goals scored rule\'s points limit is worth at most "2", not a number'],
     ["minimum minutes below 0", setOf(rule({ minMinutes: { all: -1 } }) as ScoringRule), "the Goals scored rule's minimum minutes is -1; it can't be less than 0"],
     ["minimum minutes of text", setOf(rule({ minMinutes: { all: "60" } }) as ScoringRule), 'the Goals scored rule\'s minimum minutes is "60", not a number'],
   ])("%s", (_what, set, reason) => {
@@ -144,10 +144,10 @@ describe("a set is refused, with the reason", () => {
   });
 
   test.each([
-    ["a per-action value", { shape: "perAction", stat: "tackles", values: { all: 0.5 } }, "the Tackles rule pays 0.5"],
-    ["a band's points", { shape: "bands", stat: "minutes", stack: false, values: { all: [{ atLeast: 60, points: 1.5 }] } }, "band 1, pays 1.5"],
-    ["a per-count rule's points", { shape: "perCount", stat: "saves", values: { all: { every: 3, points: 0.5 } } }, "the Saves rule pays 0.5"],
-    ["a points limit", { shape: "perAction", stat: "tackles", values: { all: 1 }, limit: { all: { max: 2.5, min: null } } }, "pays at most 2.5"],
+    ["a per-action value", { shape: "perAction", stat: "tackles", values: { all: 0.5 } }, "the Tackles rule is worth 0.5"],
+    ["a band's points", { shape: "bands", stat: "minutes", stack: false, values: { all: [{ atLeast: 60, points: 1.5 }] } }, "band 1, is worth 1.5"],
+    ["a per-count rule's points", { shape: "perCount", stat: "saves", values: { all: { every: 3, points: 0.5 } } }, "the Saves rule is worth 0.5"],
+    ["a points limit", { shape: "perAction", stat: "tackles", values: { all: 1 }, limit: { all: { max: 2.5, min: null } } }, "is worth at most 2.5"],
   ])("in a league counting whole points only, %s that is a fraction", (_what, rule, reason) => {
     expect(() => validateScoringSet({ rules: [rule], wholePointsOnly: true })).toThrow(`${reason}, but the set counts whole points only`);
   });

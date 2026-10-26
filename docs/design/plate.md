@@ -93,7 +93,7 @@ screens, in `src/rules/` (`TickBox`, `Choice`, `SaveBar`).
   (the rim is ours: the well alone is 1.2:1 on the panel), stepper fill under the pointer, and
   a white drawn tick (stroke 2.5, square caps) when on. Its row is 44px and toggles it anywhere;
   the words are white when on, `#caced4` when off.
-- **Keys**, one of a few chosen (a rule's Pays): butted 44px keys, 1px `#001a5e` rules between.
+- **Keys**, one of a few chosen (a rule's Points): butted 44px keys, 1px `#001a5e` rules between.
   The others are the plate with its bevel and `#caced4` text; the chosen one is pressed in:
   ground fill, the plate bevel flipped (`inset 0 2px 0 #001a5e`, `inset 0 -2px 0 #4a6cc8`), white
   600. A radio group, so the arrow keys move it.
