@@ -12,7 +12,8 @@ import { sortedJson } from "../shared/sortedJson";
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
-import { londonTime } from "../shared/londonTime";
+import { momentIn } from "../shared/londonTime";
+import { zoneOf } from "../signIn/timeZone";
 import { adminByline } from "../mail/letterWords";
 import { checkSquadMaximums, squadMaximumBandShape, squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum, type SquadMaximumBand } from "./squadMaximums";
 import { historyOf, inForce, latestRules, RULES_CHANGES_MOST, type RulesRow } from "./rulesHistory";
@@ -39,8 +40,8 @@ export const rulesRefusals = {
   /** Someone saved the rules after these were loaded (Craig, 22 Oct 2026: a second save warns,
    *  never silently replaces the first). `who` is an email, or `adminByline`; null when no letter
    *  names them. */
-  changedSince: (who: string | null, at: number) =>
-    `${who ?? "Someone"} saved the league's rules on ${londonTime(at)}, after you opened them, so yours weren't saved.`,
+  changedSince: (who: string | null, at: number, zone: string | undefined) =>
+    `${who ?? "Someone"} saved the league's rules on ${momentIn(at, zone)}, after you opened them, so yours weren't saved.`,
   /** A new league too small for the admin's default games a gameweek: the defaults are the cause. */
   defaultGamesTooMany: (games: number, maxTeams: number) =>
     `The admin's default rules play ${gamesWords(games)} a gameweek, but with ${maxTeams} teams a team can play at most ` +
@@ -57,18 +58,19 @@ export const revisionShape = v.union(v.null(), v.id("leagueRules"));
 type Revision = Id<"leagueRules"> | null;
 
 /** Refuses a change made from rules older than the league's latest, naming who saved those and
- *  when, from the letter that said so. */
-async function refuseStale(ctx: QueryCtx, leagueId: Id<"leagues">, latestRow: RulesRow | undefined, loaded: Revision): Promise<void> {
+ *  when, from the letter that said so, in the zone of `email`, who made it. */
+async function refuseStale(ctx: QueryCtx, leagueId: Id<"leagues">, email: string, latestRow: RulesRow | undefined, loaded: Revision): Promise<void> {
   if ((latestRow?._id ?? null) === loaded) return;
+  const zone = await zoneOf(ctx, email);
   const events = await ctx.db
     .query("leagueEvents")
     .withIndex("by_leagueId_and_at", (q) => q.eq("leagueId", leagueId))
     .order("desc")
     .take(EVENTS_SEARCHED_FOR_SAVER);
   for (const { by, at, event } of events) {
-    if (event.kind === "rulesChanged") refuse(rulesRefusals.changedSince(isAdmin(by) ? adminByline : by, at));
+    if (event.kind === "rulesChanged") refuse(rulesRefusals.changedSince(isAdmin(by) ? adminByline : by, at, zone));
   }
-  refuse(rulesRefusals.changedSince(null, latestRow?._creationTime ?? Date.now()));
+  refuse(rulesRefusals.changedSince(null, latestRow?._creationTime ?? Date.now(), zone));
 }
 
 /** Refuses unsound rules, telling the commissioner or admin why: a league's, of `maxTeams` teams,
@@ -179,7 +181,7 @@ async function takesEffectFrom(
 async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: string, rules: LeagueRules, loaded: Revision): Promise<number> {
   const history = await historyOf(ctx, leagueId);
   const latestRow = history.at(-1);
-  await refuseStale(ctx, leagueId, latestRow, loaded);
+  await refuseStale(ctx, leagueId, email, latestRow, loaded);
   refuseUnsound(rules, (await getLeague(ctx, leagueId)).maxTeams);
   const fromGameweek = await takesEffectFrom(ctx, leagueId, history, rules, Date.now());
   const changed = changedParts(latestRow?.rules, rules);

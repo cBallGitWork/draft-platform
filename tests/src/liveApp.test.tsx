@@ -24,6 +24,7 @@ const convex = vi.hoisted(() => ({
   signIn: vi.fn(),
   signOut: vi.fn(async () => {}),
   ask: vi.fn(),
+  recordZone: vi.fn(async () => null),
   unreadFails: null as Error | null,
 }));
 
@@ -36,7 +37,8 @@ vi.mock("convex/react", () => ({
     return convex.account;
   },
   useAction: () => convex.ask,
-  useMutation: () => vi.fn(),
+  useMutation: (mutation: FunctionReference<"mutation">) =>
+    getFunctionName(mutation) === "signIn/timeZone:recordZone" ? convex.recordZone : vi.fn(),
 }));
 vi.mock("@convex-dev/auth/react", () => ({
   ConvexAuthProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -129,6 +131,8 @@ test("signed in, in no league, the app opens on the leagues page", async () => {
 
   expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
   expect(window.location.pathname).toBe(LEAGUES_PATH);
+  // The browser's zone is kept each time the app opens signed in (#442); the tests run in London's.
+  expect(convex.recordZone).toHaveBeenCalledWith({ zone: "Europe/London" });
 });
 
 const notInLeague = "You're not in this league.";

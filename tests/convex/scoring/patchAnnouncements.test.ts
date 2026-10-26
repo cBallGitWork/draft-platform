@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { LEAGUES_WRITTEN_TO_MOST } from "../../../convex/mail/letters";
 import { patchBannerRefusals } from "../../../convex/scoring/patchNotes";
 import { siteScoringRefusals } from "../../../convex/scoring/siteScoring";
-import { londonTime } from "../../../convex/shared/londonTime";
+import { momentIn } from "../../../convex/shared/londonTime";
 import { PRODUCT_NAME } from "../../../convex/shared/product";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
@@ -74,9 +74,9 @@ describe("the letter", () => {
       leagueName: PRODUCT_NAME,
       from: null,
       read: false,
-      subject: `Scoring patch 26_27.1 takes effect on ${londonTime(TODAY + NOTICE)}`,
+      subject: `Scoring patch 26_27.1 takes effect on ${momentIn(TODAY + NOTICE, undefined)}`,
     });
-    expect(letter.body).toContain(`It takes effect on ${londonTime(TODAY + NOTICE)}, from gameweek 10.`);
+    expect(letter.body).toContain(`It takes effect on ${momentIn(TODAY + NOTICE, undefined)}, from gameweek 10.`);
     expect(letter.body).toContain("- Assists: 3 → 4\n- Tackles: newly scored, 1 per action");
   });
 
@@ -115,7 +115,7 @@ describe("the letter", () => {
     await saveDraftAs(ADMIN, EDITED);
     const before = await everyLetter();
 
-    await expectRefused(announceAs(ADMIN, TODAY + MINUTE_MS), siteScoringRefusals.tooSoon(TODAY + NOTICE));
+    await expectRefused(announceAs(ADMIN, TODAY + MINUTE_MS), siteScoringRefusals.tooSoon(TODAY + NOTICE, undefined));
     expect(await everyLetter()).toEqual(before);
   });
 

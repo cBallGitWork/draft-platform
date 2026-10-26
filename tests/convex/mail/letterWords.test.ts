@@ -51,7 +51,7 @@ const LETTERS: [Infer<typeof leagueEvent>, string, string][] = [
 ];
 
 test.each(LETTERS)("the %o letter names it and who did it", (event, subject, inBody) => {
-  const letter = eventLetter(event, WHO);
+  const letter = eventLetter(event, WHO, undefined);
   expect(letter.subject).toBe(subject);
   expect(letter.body).toContain(inBody);
   if (event.kind !== "joinedByInvite") expect(letter.body).toContain(WHO);

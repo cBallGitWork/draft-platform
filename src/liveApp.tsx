@@ -1,7 +1,8 @@
 import { ConvexAuthProvider, useAuthActions } from "@convex-dev/auth/react";
-import { ConvexReactClient, useAction, useConvexAuth, useQuery } from "convex/react";
+import { ConvexReactClient, useAction, useConvexAuth, useMutation, useQuery } from "convex/react";
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { api } from "../convex/_generated/api";
+import { browserZone } from "../convex/shared/londonTime";
 import { useLiveAdmin } from "./admin/liveAdmin";
 import { useLiveFeedback } from "./feedback/liveFeedback";
 import { useLivePatches } from "./patches/livePatches";
@@ -124,6 +125,14 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   const account = useQuery(api.signIn.account.signedInAs, isAuthenticated ? {} : "skip");
   const [checkingLink, setCheckingLink] = useState(linkCode !== null);
   const redeemed = useRef(false);
+  const recordZone = useMutation(api.signIn.timeZone.recordZone);
+  const email = account?.email;
+
+  useEffect(() => {
+    // Each time the app opens signed in, so the zone follows a manager who travels (#442).
+    if (email === undefined) return;
+    recordZone({ zone: browserZone() }).catch((error: unknown) => console.error("Keeping this browser's time zone failed", error));
+  }, [email, recordZone]);
 
   useEffect(() => {
     // Once, though React runs a first effect twice in development: a code works only once.

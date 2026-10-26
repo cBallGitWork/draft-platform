@@ -10,7 +10,8 @@ import { siteScoringKind } from "../schema";
 import { scoringSetShape, type StoredScoringSet } from "../rules/leagueRulesShape";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { adminOf, callerEmail, isAdmin, refuse } from "../shared/leagueAccess";
-import { londonTime } from "../shared/londonTime";
+import { momentIn } from "../shared/londonTime";
+import { zoneOf } from "../signIn/timeZone";
 import { sortedJson } from "../shared/sortedJson";
 import { DAY_MS } from "../shared/time";
 import { fileSiteLetter } from "../mail/letters";
@@ -50,17 +51,17 @@ const AT_FIRST_KICKOFF: DeadlineRule = { minutesBeforeFirstKickoff: 0 };
 export const siteScoringRefusals = {
   /** A save made in one tab after another's (spec/03: a second save never silently replaces the
    *  first). */
-  changedSince: (at: number) => `The site's scoring was saved on ${londonTime(at)}, after you opened it, so yours wasn't saved.`,
-  draftChangedSince: (at: number) => `The draft patch was saved on ${londonTime(at)}, after you opened it, so yours wasn't saved.`,
+  changedSince: (at: number, zone: string | undefined) => `The site's scoring was saved on ${momentIn(at, zone)}, after you opened it, so yours wasn't saved.`,
+  draftChangedSince: (at: number, zone: string | undefined) => `The draft patch was saved on ${momentIn(at, zone)}, after you opened it, so yours wasn't saved.`,
   noDraft: "There's no draft patch to announce: save one first.",
   draftOvertaken: (name: string) => `Version ${name} was announced after this draft was made, so it can't be announced: make it again from ${name}.`,
   draftUnchanged: "The draft patch changes nothing, so it wasn't announced.",
   notAMoment: "The moment the patch takes effect from isn't a date and time, so it wasn't announced.",
-  tooSoon: (earliest: number) =>
-    `A patch takes effect at least ${PATCH_NOTICE_DAYS} days after it is announced: no sooner than ${londonTime(earliest)}, so it wasn't announced.`,
-  beforeWaiting: (name: string, at: number) => `Version ${name} takes effect on ${londonTime(at)}, so this one can't take effect before it.`,
-  fixWhileWaiting: (name: string, at: number) =>
-    `Version ${name} is announced to take effect on ${londonTime(at)} and was made without this fix, so the fix wasn't saved. Fix it once ${name} has taken effect.`,
+  tooSoon: (earliest: number, zone: string | undefined) =>
+    `A patch takes effect at least ${PATCH_NOTICE_DAYS} days after it is announced: no sooner than ${momentIn(earliest, zone)}, so it wasn't announced.`,
+  beforeWaiting: (name: string, at: number, zone: string | undefined) => `Version ${name} takes effect on ${momentIn(at, zone)}, so this one can't take effect before it.`,
+  fixWhileWaiting: (name: string, at: number, zone: string | undefined) =>
+    `Version ${name} is announced to take effect on ${momentIn(at, zone)} and was made without this fix, so the fix wasn't saved. Fix it once ${name} has taken effect.`,
   tooManyVersions: `The site's scoring has been changed ${SITE_SCORING_VERSIONS_MOST} times, the most it can hold, so this change wasn't saved.`,
   unsound: (reason: string) => `The scoring set can't be saved: ${reason}.`,
 };
@@ -126,9 +127,9 @@ function checkScoringSet(scoring: StoredScoringSet): void {
   }
 }
 
-/** Refuses a change made from a version other than the latest. */
-function checkRevision(latest: Doc<"siteScoring"> | undefined, revision: Id<"siteScoring"> | null): void {
-  if ((latest?._id ?? null) !== revision) refuse(siteScoringRefusals.changedSince(latest?._creationTime ?? Date.now()));
+/** Refuses a change made from a version other than the latest, telling the time in `zone`, the admin's. */
+function checkRevision(latest: Doc<"siteScoring"> | undefined, revision: Id<"siteScoring"> | null, zone: string | undefined): void {
+  if ((latest?._id ?? null) !== revision) refuse(siteScoringRefusals.changedSince(latest?._creationTime ?? Date.now(), zone));
 }
 
 /** Adds a version taking effect at `takesEffectAt`, numbered next in its season, and files the
@@ -148,7 +149,8 @@ async function addVersion(
   const name = versionName({ season, number });
   const fromGameweek = await firstGameweekFrom(ctx, version.takesEffectAt);
   const changes = scoringChanges(history.at(-1)?.scoring ?? FIRST_SCORING, version.scoring);
-  await fileSiteLetter(ctx, versionLetter({ name, kind: version.kind, takesEffectAt: version.takesEffectAt, fromGameweek, changes }), by);
+  const news = { name, kind: version.kind, takesEffectAt: version.takesEffectAt, fromGameweek, changes };
+  await fileSiteLetter(ctx, (zone) => versionLetter(news, zone), by);
   return { name, fromGameweek };
 }
 
@@ -194,10 +196,10 @@ export const saveDraft = mutation({
   args: { scoring: scoringSetShape, revision: siteRevisionShape, draftSavedAt: v.union(v.null(), v.number()) },
   returns: v.number(),
   handler: async (ctx, { scoring, revision, draftSavedAt }) => {
-    await adminOf(ctx);
-    checkRevision((await historyOf(ctx)).at(-1), revision);
+    const zone = await zoneOf(ctx, await adminOf(ctx));
+    checkRevision((await historyOf(ctx)).at(-1), revision, zone);
     const held = await ctx.db.query("siteScoringDraft").unique();
-    if ((held?.savedAt ?? null) !== draftSavedAt) refuse(siteScoringRefusals.draftChangedSince(held?.savedAt ?? Date.now()));
+    if ((held?.savedAt ?? null) !== draftSavedAt) refuse(siteScoringRefusals.draftChangedSince(held?.savedAt ?? Date.now(), zone));
     checkScoringSet(scoring);
     const draft = { scoring, madeFrom: revision, savedAt: Date.now() };
     if (held) await ctx.db.replace("siteScoringDraft", held._id, draft);
@@ -216,9 +218,10 @@ export const announce = mutation({
   returns: v.object({ name: v.string(), fromGameweek: v.number() }),
   handler: async (ctx, { draftSavedAt, takesEffectAt }) => {
     const admin = await adminOf(ctx);
+    const zone = await zoneOf(ctx, admin);
     const draft = await ctx.db.query("siteScoringDraft").unique();
     if (draft === null) refuse(siteScoringRefusals.noDraft);
-    if (draft.savedAt !== draftSavedAt) refuse(siteScoringRefusals.draftChangedSince(draft.savedAt));
+    if (draft.savedAt !== draftSavedAt) refuse(siteScoringRefusals.draftChangedSince(draft.savedAt, zone));
     const history = await historyOf(ctx);
     const latest = history.at(-1);
     if (latest !== undefined && latest._id !== draft.madeFrom) refuse(siteScoringRefusals.draftOvertaken(versionName(latest)));
@@ -226,8 +229,8 @@ export const announce = mutation({
     // NaN is never less than the earliest, so it would pass the check below.
     if (!Number.isFinite(takesEffectAt)) refuse(siteScoringRefusals.notAMoment);
     const earliest = Date.now() + PATCH_NOTICE_MS;
-    if (takesEffectAt < earliest) refuse(siteScoringRefusals.tooSoon(earliest));
-    if (latest !== undefined && takesEffectAt < latest.takesEffectAt) refuse(siteScoringRefusals.beforeWaiting(versionName(latest), latest.takesEffectAt));
+    if (takesEffectAt < earliest) refuse(siteScoringRefusals.tooSoon(earliest, zone));
+    if (latest !== undefined && takesEffectAt < latest.takesEffectAt) refuse(siteScoringRefusals.beforeWaiting(versionName(latest), latest.takesEffectAt, zone));
     const added = await addVersion(ctx, history, { scoring: draft.scoring, kind: "patch", takesEffectAt }, admin);
     await ctx.db.delete("siteScoringDraft", draft._id);
     return added;
@@ -243,13 +246,14 @@ export const fix = mutation({
   returns: v.number(),
   handler: async (ctx, { scoring, revision }) => {
     const admin = await adminOf(ctx);
+    const zone = await zoneOf(ctx, admin);
     const history = await historyOf(ctx);
     const latest = history.at(-1);
-    checkRevision(latest, revision);
+    checkRevision(latest, revision, zone);
     checkScoringSet(scoring);
     const now = Date.now();
     if (sortedJson(latest?.scoring ?? FIRST_SCORING) === sortedJson(scoring)) return firstGameweekFrom(ctx, now);
-    if (latest !== undefined && latest.takesEffectAt > now) refuse(siteScoringRefusals.fixWhileWaiting(versionName(latest), latest.takesEffectAt));
+    if (latest !== undefined && latest.takesEffectAt > now) refuse(siteScoringRefusals.fixWhileWaiting(versionName(latest), latest.takesEffectAt, zone));
     return (await addVersion(ctx, history, { scoring, kind: "fix", takesEffectAt: now }, admin)).fromGameweek;
   },
 });

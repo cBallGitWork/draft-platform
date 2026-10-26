@@ -111,6 +111,7 @@ import type * as signIn_account from "../signIn/account.js";
 import type * as signIn_allowedEmails from "../signIn/allowedEmails.js";
 import type * as signIn_signInEmail from "../signIn/signInEmail.js";
 import type * as signIn_signInLinks from "../signIn/signInLinks.js";
+import type * as signIn_timeZone from "../signIn/timeZone.js";
 import type * as squads_squads from "../squads/squads.js";
 import type * as squads_teamSquad from "../squads/teamSquad.js";
 import type * as squads_teamTransactions from "../squads/teamTransactions.js";
@@ -238,6 +239,7 @@ declare const fullApi: ApiFromModules<{
   "signIn/allowedEmails": typeof signIn_allowedEmails;
   "signIn/signInEmail": typeof signIn_signInEmail;
   "signIn/signInLinks": typeof signIn_signInLinks;
+  "signIn/timeZone": typeof signIn_timeZone;
   "squads/squads": typeof squads_squads;
   "squads/teamSquad": typeof squads_teamSquad;
   "squads/teamTransactions": typeof squads_teamTransactions;
