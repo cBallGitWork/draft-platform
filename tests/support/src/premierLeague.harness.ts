@@ -3,7 +3,7 @@
 import { act } from "@testing-library/react";
 import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
-import type { FirstKickoff, GameweekMatch, PremierLeagueSeam } from "../../../src/premierLeague/seam";
+import type { FirstKickoff, GameweekMatch, PlStandings, PremierLeagueSeam } from "../../../src/premierLeague/seam";
 
 export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
 export const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
@@ -32,13 +32,15 @@ export const plMatch = (
 export type PremierLeagueData = {
   firstKickoffs?: FirstKickoff[];
   matches?: Record<number, GameweekMatch[]>;
+  standings?: PlStandings;
   loading?: boolean;
 };
 
-/** The fake seam, whose matches a test can change as a live query would (`send`): each screen
- *  reading them draws again. */
-export function fakePremierLeague({ firstKickoffs = [], matches = {}, loading = false }: PremierLeagueData = {}) {
+/** The fake seam, whose matches and table a test can change as a live query would (`send`,
+ *  `sendStandings`): each screen reading them draws again. */
+export function fakePremierLeague({ firstKickoffs = [], matches = {}, standings = NO_STANDINGS, loading = false }: PremierLeagueData = {}) {
   let held: Record<number, GameweekMatch[] | undefined> = { ...matches };
+  let heldStandings = standings;
   const listeners = new Set<() => void>();
   const subscribe = (listener: () => void) => {
     listeners.add(listener);
@@ -50,9 +52,17 @@ export function fakePremierLeague({ firstKickoffs = [], matches = {}, loading = 
     useGameweekMatches: vi.fn<PremierLeagueSeam["useGameweekMatches"]>((gameweek) =>
       useSyncExternalStore(subscribe, () => heldOf(gameweek)),
     ),
+    useStandings: vi.fn<PremierLeagueSeam["useStandings"]>(() =>
+      useSyncExternalStore(subscribe, () => (loading ? undefined : heldStandings)),
+    ),
     /** The server's new read of a gameweek's matches; undefined puts them back to loading. */
     send(gameweek: number, sent: GameweekMatch[] | undefined) {
       held = { ...held, [gameweek]: sent };
+      act(() => listeners.forEach((listener) => listener()));
+    },
+    /** The server's new read of the table. */
+    sendStandings(sent: PlStandings) {
+      heldStandings = sent;
       act(() => listeners.forEach((listener) => listener()));
     },
   };
@@ -60,3 +70,22 @@ export function fakePremierLeague({ firstKickoffs = [], matches = {}, loading = 
 
 /** One empty list, so the store hands back the same value until something is sent. */
 const NO_MATCHES: GameweekMatch[] = [];
+
+type StandingsRow = PlStandings["rows"][number];
+/** A table row for `club` at `position`, played nothing unless `rest` says. */
+export const standingsRow = (position: number, club: StandingsRow["club"], rest: Partial<StandingsRow> = {}): StandingsRow => ({
+  club,
+  position,
+  played: 0,
+  won: 0,
+  drawn: 0,
+  lost: 0,
+  goalsFor: 0,
+  goalsAgainst: 0,
+  goalDifference: 0,
+  points: 0,
+  ...rest,
+});
+
+/** No club held yet. */
+const NO_STANDINGS: PlStandings = { rows: [], provisional: false };
