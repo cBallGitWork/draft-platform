@@ -7,4 +7,5 @@ import type { MyTeamSeam } from "./seam";
 export const liveMyTeam: MyTeamSeam = {
   ...liveTactics,
   useTeamFixtures: (leagueId) => useQuery(api.table.teamFixtures.ofMyTeam, { leagueId }),
+  useTeamTransactions: (leagueId) => useQuery(api.squads.teamTransactions.ofMyTeam, { leagueId }),
 };

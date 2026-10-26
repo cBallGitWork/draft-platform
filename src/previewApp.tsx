@@ -16,6 +16,7 @@ import { previewPatches } from "./patches/preview";
 import { previewAuth, previewLeagues, previewSession } from "./preview";
 import { previewScoringFor } from "./scoring/preview";
 import { previewPlayerCard } from "./playerCard/preview";
+import { previewPremierLeague } from "./premierLeague/preview";
 import { previewScouting } from "./scouting/preview";
 import { ShellApp } from "./ShellApp";
 import { previewSquads } from "./squads/preview";
@@ -43,6 +44,7 @@ export function previewApp(): ReactNode | null {
       home={previewHome}
       myTeam={previewMyTeam}
       matchup={previewMatchup}
+      premierLeague={previewPremierLeague}
       admin={previewAdmin}
       feedback={previewFeedback}
       patches={previewPatches}

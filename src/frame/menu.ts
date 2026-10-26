@@ -13,10 +13,12 @@ export type Section = Page & { tabs: readonly Page[] };
 export const HOME_PATH = "/home";
 export const MY_TEAM_PATH = "/team";
 export const MY_TEAM_FIXTURES_PATH = `${MY_TEAM_PATH}/fixtures`;
+export const MY_TEAM_TRANSACTIONS_PATH = `${MY_TEAM_PATH}/transactions`;
 export const MAIL_PATH = "/mail";
 export const TABLE_PATH = "/table";
 export const SCOUTING_PATH = "/scouting";
 export const MATCHUP_PATH = "/matchup";
+export const PREMIER_LEAGUE_PATH = "/premier-league";
 
 export const sections: readonly Section[] = [
   { label: menuWords.home, path: HOME_PATH, tabs: [] },
@@ -27,14 +29,14 @@ export const sections: readonly Section[] = [
       { label: menuWords.tactics, path: MY_TEAM_PATH },
       { label: menuWords.squad, path: `${MY_TEAM_PATH}/squad` },
       { label: menuWords.fixtures, path: MY_TEAM_FIXTURES_PATH },
-      { label: menuWords.transactions, path: `${MY_TEAM_PATH}/transactions` },
+      { label: menuWords.transactions, path: MY_TEAM_TRANSACTIONS_PATH },
     ],
   },
   { label: menuWords.matchup, path: MATCHUP_PATH, tabs: [] },
   { label: menuWords.table, path: TABLE_PATH, tabs: [] },
   { label: menuWords.scouting, path: SCOUTING_PATH, tabs: [] },
   { label: menuWords.trades, path: "/trades", tabs: [] },
-  { label: menuWords.premierLeague, path: "/premier-league", tabs: [] },
+  { label: menuWords.premierLeague, path: PREMIER_LEAGUE_PATH, tabs: [] },
   { label: MAIL_TITLE, path: MAIL_PATH, tabs: [] },
 ];
 

@@ -26,6 +26,7 @@ import { fakeScoring, type ScoringData } from "./scoring.harness";
 import { fakeSquads, type SquadsData } from "./squads.harness";
 import { fakeScouting, type ScoutingData } from "./scouting.harness";
 import { fakeHome, type HomeData } from "./home.harness";
+import { fakePremierLeague, type PremierLeagueData } from "./premierLeague.harness";
 import { fakeTable, type TableData } from "./table.harness";
 
 export const visitor: Session = { signedIn: false };
@@ -133,6 +134,7 @@ export type AppSetUp = {
   home?: HomeData;
   myTeam?: MyTeamData;
   matchup?: MatchupData;
+  premierLeague?: PremierLeagueData;
   admin?: AdminData;
   feedback?: FeedbackData;
   patches?: PatchesData;
@@ -140,7 +142,7 @@ export type AppSetUp = {
 
 /** The app opened at `path` for `session`, set up as `setUp` says: where it is, the fake sign-in,
  *  league, Mail, joining, gameweeks, squads, scoring, league settings, table, scouting, player
- *  card, home, my team, matchup, admin, feedback and patches seams, and a way to change the session as
+ *  card, home, my team, matchup, Premier League, admin, feedback and patches seams, and a way to change the session as
  *  signing in or out, or a league changing, would. */
 export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const {
@@ -157,6 +159,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     home: homeData = {},
     myTeam: myTeamData = {},
     matchup: matchupData = {},
+    premierLeague: premierLeagueData = {},
     admin: adminData = {},
     feedback: feedbackData = {},
     patches: patchesData = {},
@@ -176,6 +179,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
   const home = fakeHome(homeData);
   const myTeam = fakeMyTeam(myTeamData);
   const matchup = fakeMatchup(matchupData);
+  const premierLeague = fakePremierLeague(premierLeagueData);
   const admin = fakeAdmin(adminData);
   const feedback = fakeFeedback(feedbackData);
   const patches = fakePatches(patchesData);
@@ -197,6 +201,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
       home={home}
       myTeam={myTeam}
       matchup={matchup}
+      premierLeague={premierLeague}
       admin={admin}
       feedback={feedback}
       patches={patches}
@@ -219,6 +224,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     home,
     myTeam,
     matchup,
+    premierLeague,
     admin,
     feedback,
     patches,

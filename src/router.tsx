@@ -1,4 +1,4 @@
-import type { ComponentType } from "react";
+import type { ComponentProps, ComponentType } from "react";
 import {
   Navigate,
   Outlet,
@@ -21,7 +21,7 @@ import type { FeedbackSeam } from "./feedback/seam";
 import { ErrorScreen } from "./frame/ErrorScreen";
 import { LeagueSwitcher } from "./frame/LeagueSwitcher";
 import type { TopBarState } from "./frame/topBarState";
-import { HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH, pages, SCOUTING_PATH, TABLE_PATH } from "./frame/menu";
+import { HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH, MY_TEAM_TRANSACTIONS_PATH, pages, PREMIER_LEAGUE_PATH, SCOUTING_PATH, TABLE_PATH } from "./frame/menu";
 import { PageNotBuilt } from "./frame/PageNotBuilt";
 import { GameweeksRoute } from "./gameweeks/GameweeksRoute";
 import type { LeagueSummary } from "../convex/leagues/myLeagues";
@@ -47,6 +47,7 @@ import type { MatchupSeam } from "./matchup/seam";
 import { FixturesPage } from "./myTeam/FixturesPage";
 import { TacticsPage } from "./myTeam/TacticsPage";
 import { MyTeamRoute } from "./myTeam/MyTeamRoute";
+import { TransactionsPage } from "./myTeam/TransactionsPage";
 import type { MyTeamSeam } from "./myTeam/seam";
 import { PatchBanner } from "./patches/PatchBanner";
 import { PatchNotesPage } from "./patches/PatchNotesPage";
@@ -67,6 +68,8 @@ import { SquadsPage } from "./squads/SquadsPage";
 import { linkProblemWords, type LinkProblem } from "./sign-in/words";
 import { PLAYER_CARD_ROUTE } from "./playerCard/paths";
 import { PlayerCardPage } from "./playerCard/PlayerCardPage";
+import { PremierLeaguePage } from "./premierLeague/PremierLeaguePage";
+import type { PremierLeagueSeam } from "./premierLeague/seam";
 import type { PlayerCardSeam } from "./playerCard/seam";
 import type { ScoutingSeam } from "./scouting/seam";
 import { ScoutingRoute } from "./scouting/ScoutingRoute";
@@ -74,7 +77,7 @@ import type { TableSeam } from "./table/seam";
 import { TableRoute } from "./table/TableRoute";
 
 // A seam is a top-level useLive* hook holding root state (mail, joining, squads, scoring, league
-// settings, admin, leagues, feedback, patches) or a constant object of hooks (gameweeks, table, scouting, player card, home, my team, matchup). Each new one needs a
+// settings, admin, leagues, feedback, patches) or a constant object of hooks (gameweeks, table, scouting, player card, home, my team, matchup, Premier League). Each new one needs a
 // preview (previewApp.tsx), a live value (liveApp.tsx) and a fake (shell.harness.tsx), and the
 // typechecker flags any that's missing.
 export type ShellContext = {
@@ -94,6 +97,7 @@ export type ShellContext = {
   home: HomeSeam;
   myTeam: MyTeamSeam;
   matchup: MatchupSeam;
+  premierLeague: PremierLeagueSeam;
   admin: AdminSeam;
   feedback: FeedbackSeam;
   patches: PatchesSeam;
@@ -389,25 +393,24 @@ const scoutingRoute = createRoute({
   },
 });
 
-// My team's Tactics tab (#14), where a manager lands: his own team's lineup on the pitch.
-const myTeamTacticsRoute = createRoute({
-  getParentRoute: () => frameRoute,
-  path: MY_TEAM_PATH,
-  component: function MyTeamTactics() {
-    const { session, myTeam } = myTeamTacticsRoute.useRouteContext();
-    return <MyTeamRoute session={session} seam={myTeam} Tab={TacticsPage} />;
-  },
-});
+/** One of My team's tabs at `path`, for anyone in the league: `Tab` is given the league the app is
+ *  in and the My team seam. */
+function myTeamTab(path: string, Tab: ComponentProps<typeof MyTeamRoute>["Tab"]) {
+  const route = createRoute({
+    getParentRoute: () => frameRoute,
+    path,
+    component: function MyTeamTab() {
+      const { session, myTeam } = route.useRouteContext();
+      return <MyTeamRoute session={session} seam={myTeam} Tab={Tab} />;
+    },
+  });
+  return route;
+}
 
-// My team's Fixtures tab (#365), for anyone in the league: a manager's own team's games.
-const myTeamFixturesRoute = createRoute({
-  getParentRoute: () => frameRoute,
-  path: MY_TEAM_FIXTURES_PATH,
-  component: function MyTeamFixtures() {
-    const { session, myTeam } = myTeamFixturesRoute.useRouteContext();
-    return <MyTeamRoute session={session} seam={myTeam} Tab={FixturesPage} />;
-  },
-});
+// My team's Tactics tab (#14), where a manager lands: his own team's lineup on the pitch.
+const myTeamTacticsRoute = myTeamTab(MY_TEAM_PATH, TacticsPage);
+const myTeamFixturesRoute = myTeamTab(MY_TEAM_FIXTURES_PATH, FixturesPage); // #365
+const myTeamTransactionsRoute = myTeamTab(MY_TEAM_TRANSACTIONS_PATH, TransactionsPage); // #366
 
 // The matchup (#34), for anyone in the league: a team's head-to-head in a gameweek, the manager's
 // own in the latest begun unless the address names another.
@@ -422,7 +425,16 @@ const matchupRoute = createRoute({
   },
 });
 
-const BUILT_PAGES: readonly string[] = [MAIL_PATH, TABLE_PATH, SCOUTING_PATH, HOME_PATH, MY_TEAM_PATH, MY_TEAM_FIXTURES_PATH, MATCHUP_PATH];
+// The Premier League section (#49), for anyone in a league: the real competition, the same for all.
+const premierLeagueRoute = createRoute({
+  getParentRoute: () => frameRoute,
+  path: PREMIER_LEAGUE_PATH,
+  component: function PremierLeague() {
+    return <PremierLeaguePage seam={premierLeagueRoute.useRouteContext({ select: (context) => context.premierLeague })} />;
+  },
+});
+
+const BUILT_PAGES: readonly string[] = [MAIL_PATH, TABLE_PATH, SCOUTING_PATH, HOME_PATH, MY_TEAM_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_TRANSACTIONS_PATH, MATCHUP_PATH, PREMIER_LEAGUE_PATH];
 const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map((page) =>
   createRoute({
     getParentRoute: () => frameRoute,
@@ -434,7 +446,7 @@ const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map(
 const routeTree = rootRoute.addChildren([
   signInRoute,
   leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, playerCardRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, feedbackRoute, patchNotesRoute]),
-  frameRoute.addChildren([landingRoute, homeRoute, tableRoute, scoutingRoute, myTeamTacticsRoute, myTeamFixturesRoute, matchupRoute, ...pageRoutes]),
+  frameRoute.addChildren([landingRoute, homeRoute, tableRoute, scoutingRoute, myTeamTacticsRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, ...pageRoutes]),
 ]);
 
 // Not registered for typed links yet: the pages above are made in a loop, so their paths are plain
