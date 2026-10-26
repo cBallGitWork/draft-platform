@@ -4,7 +4,7 @@ import type { Cell } from "../../convex/lineup/pitch";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, Notice, PageSection, PanelNote, Problem } from "../frame/Panel";
 import { useMinute } from "../useMinute";
-import { benched, benchedAt, openingLineup, placed, sameLineup, withSquad, type DraftLineup } from "./lineupDraft";
+import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, withSquad, type DraftLineup } from "./lineupDraft";
 import { Pitch, type Moving } from "./Pitch";
 import { SquadTable } from "./SquadTable";
 import type { MyTeamSeam } from "./seam";
@@ -15,6 +15,8 @@ import {
   joinedBenchWords,
   locksWords,
   movingHintWords,
+  pickPresetWords,
+  presetLabel,
   noDeadlineWords,
   pickHintWords,
   saveWords,
@@ -31,6 +33,7 @@ import { noTeamWords } from "./words";
 /** The key that puts a picked-up player back. */
 const PUT_BACK_KEY = "Escape";
 const PITCH_TITLE_ID = "tactics-pitch";
+const PRESET_ID = "tactics-preset";
 const SQUAD_TITLE_ID = "tactics-squad";
 
 /** My team's Tactics tab (#14; spec/12, My team; spec/05): the pitch where the manager sets the
@@ -84,6 +87,8 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
   // pitch never shows the old one in between.
   const [edited, setEdited] = useState<DraftLineup | null>(null);
   const [pickedCode, setPickedCode] = useState<number | null>(null);
+  // The preset last picked, whose empty slots the pitch marks; none until one is.
+  const [shape, setShape] = useState<string>("");
   const [savedFrom, setSavedFrom] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
@@ -130,6 +135,15 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
   const toBench = () => {
     if (picked !== null) change(benched(draft, picked.playerCode), picked.playerCode);
   };
+  /** A preset picked reshapes the pitch, keeping the players (spec/05; Craig, 26 Oct 2026). */
+  const pickPreset = (name: string) => {
+    const preset = tactics.presets.find((each) => each.name === name);
+    if (preset === undefined) return;
+    setShape(name);
+    setEdited(reshaped(draft, preset.cells));
+    setPickedCode(null);
+    setSavedFrom(null);
+  };
   /** Up, down, or a drop on a bench row: the player at that place in the bench order. Up or Down
    *  keeps the focus on the button pressed. */
   const toBenchAt = (playerCode: number, index: number, pressed?: "up" | "down") => {
@@ -148,9 +162,12 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     }
     setProblem(typeof answer === "string" ? answer : null);
     setSavedFrom(typeof answer === "number" ? answer : null);
+    // Saved, the lineup stands as it is: the shape's slots are no longer asked for.
+    if (typeof answer === "number") setShape("");
   };
   const discard = () => {
     setEdited(null);
+    setShape("");
     setPickedCode(null);
     setProblem(null);
   };
@@ -186,11 +203,27 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
             </h2>
             <span className={draft.starters.length === STARTER_COUNT ? "text-derived" : "text-event"}>{startingWords(draft.starters.length)}</span>
           </div>
+          <div className="flex items-center gap-2 px-3 pt-2">
+            <label htmlFor={PRESET_ID} className="text-soft">
+              {presetLabel}
+            </label>
+            {/* Always back on "Pick a preset", so the same one can be picked again after moves. */}
+            <select id={PRESET_ID} value="" onChange={(event) => pickPreset(event.target.value)} className="text-box">
+              <option value="" disabled>
+                {pickPresetWords}
+              </option>
+              {tactics.presets.map(({ name }) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
           <p role="status" className="px-3 py-2 text-soft">
             {picked === null ? pickHintWords : movingHintWords(picked.name, picked.positions)}
           </p>
           <div className="px-2 pb-2">
-            <Pitch draft={draft} squad={squad} moving={moving} />
+            <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === shape)?.cells ?? []} />
           </div>
         </section>
         <section aria-labelledby={SQUAD_TITLE_ID} className="min-w-0 grow-2 basis-squad bg-panel">

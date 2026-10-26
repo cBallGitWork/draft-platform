@@ -12,7 +12,9 @@ import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import {
   BENCH_TITLE,
+  discardWords,
   downLabel,
+  emptySlotLabel,
   emptyBenchWords,
   joinedBenchWords,
   locksWords,
@@ -21,7 +23,9 @@ import {
   noDeadlineWords,
   pickHintWords,
   pitchLabel,
+  presetLabel,
   putHereLabel,
+  savedWords,
   seasonOverWords,
   squadTableLabel,
   startingWords,
@@ -301,5 +305,59 @@ describe("the bench order (spec/05 Auto-subs; Craig, 26 Oct 2026)", () => {
     await userEvent.click(up(WHITE));
     await userEvent.click(save());
     expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, { starters: STARTERS, bench: [WHITE.playerCode, ARRIZABALAGA.playerCode] });
+  });
+});
+
+describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
+  const picker = () => screen.getByRole<HTMLSelectElement>("combobox", { name: presetLabel });
+
+  it("offers the league's presets, and picking one reshapes the pitch keeping the players", async () => {
+    await openedPitch();
+    expect(Array.from(picker().options).slice(1).map((option) => option.value)).toEqual(SAVED.presets.map(({ name }) => name));
+    await userEvent.selectOptions(picker(), "4-4-2");
+    // Saliba, at left-centre of defence, keeps that cell, a 4-4-2 back four's; Rice, centre of
+    // midfield, takes the nearest of its flat four's; Havertz takes a strike pair's place.
+    expect(blockOf(RAYA, { area: "goalkeeper", lane: "centre" })).toBeTruthy();
+    expect(blockOf(SALIBA, { area: "defence", lane: "leftCentre" })).toBeTruthy();
+    expect(blockOf(RICE, { area: "midfield", lane: "leftCentre" })).toBeTruthy();
+    expect(blockOf(HAVERTZ, { area: "attack", lane: "leftCentre" })).toBeTruthy();
+  });
+
+  it("can be picked again after moves, to snap back to it", async () => {
+    await openedPitch();
+    await userEvent.selectOptions(picker(), "4-4-2");
+    expect(picker().value).toBe("");
+    await userEvent.click(blockOf(SALIBA, { area: "defence", lane: "leftCentre" }));
+    await userEvent.click(screen.getByRole("button", { name: putHereLabel(SALIBA.name, "defence", "centre") }));
+    await userEvent.selectOptions(picker(), "4-4-2");
+    expect(blockOf(SALIBA, { area: "defence", lane: "leftCentre" })).toBeTruthy();
+  });
+
+  it("marks the shape's empty slots, to show where to drag", async () => {
+    await openedPitch();
+    await userEvent.selectOptions(picker(), "4-4-2");
+    const slots = within(pitch()).getAllByRole("img", { name: /^Empty slot/ }).map((slot) => slot.getAttribute("aria-label"));
+    expect(slots).toHaveLength(11 - STARTERS.length);
+    expect(slots).toContain(emptySlotLabel("defence", "left"));
+  });
+
+  it("sends a starter the shape has no room for to the front of the bench", async () => {
+    await openedPitch();
+    // A 4-2-3-1 has no one in midfield, where Rice stands.
+    await userEvent.selectOptions(picker(), "4-2-3-1");
+    expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${RICE.name},`) })).toBeNull();
+    expect(squadRows()[squadRows().indexOf(BENCH_TITLE) + 1]).toBe("CDM, CMRice ARSMove Up Down");
+  });
+
+  it("is saved as it stands, and Discard puts the shape away too", async () => {
+    const app = await openedPitch();
+    await userEvent.selectOptions(picker(), "4-4-2");
+    await userEvent.click(save());
+    expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, expect.objectContaining({ bench: [ARRIZABALAGA.playerCode, WHITE.playerCode] }));
+    await screen.findByText(savedWords(TACTICS_GAMEWEEK));
+    expect(within(pitch()).queryAllByRole("img", { name: /^Empty slot/ })).toEqual([]);
+    await userEvent.selectOptions(picker(), "5-4-1");
+    await userEvent.click(screen.getByRole("button", { name: discardWords }));
+    expect(within(pitch()).queryAllByRole("img", { name: /^Empty slot/ })).toEqual([]);
   });
 });

@@ -80,3 +80,26 @@ export function sameLineup(one: DraftLineup, other: DraftLineup): boolean {
     [...startersInOrder(draft).map(({ playerCode, area, lane }) => `${playerCode}@${area}/${lane}`), "bench", ...draft.bench].join(" ");
   return key(one) === key(other);
 }
+
+/** The lineup reshaped to a preset's cells (spec/05; Craig, 26 Oct 2026): each starter, back to
+ *  front, moves to a free cell of the shape in his own area, the nearest lane to his own first;
+ *  anyone left over goes to the front of the bench, in that order. Cells left empty are the
+ *  shape's slots still to fill. */
+export function reshaped(draft: DraftLineup, cells: readonly Cell[]): DraftLineup {
+  const free = [...cells];
+  const starters: Starter[] = [];
+  const leftOver: number[] = [];
+  for (const starter of startersInOrder(draft)) {
+    const distance = (cell: Cell) => Math.abs(LANES.indexOf(cell.lane) - LANES.indexOf(starter.lane));
+    const nearest = free
+      .filter((cell) => cell.area === starter.area)
+      .toSorted((one, other) => distance(one) - distance(other) || LANES.indexOf(one.lane) - LANES.indexOf(other.lane))[0];
+    if (nearest === undefined) {
+      leftOver.push(starter.playerCode);
+      continue;
+    }
+    free.splice(free.indexOf(nearest), 1);
+    starters.push({ playerCode: starter.playerCode, area: nearest.area, lane: nearest.lane });
+  }
+  return { starters, bench: [...leftOver, ...draft.bench] };
+}

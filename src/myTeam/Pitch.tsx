@@ -1,7 +1,7 @@
 import type { DragEvent } from "react";
 import { AREAS, LANES, type Cell } from "../../convex/lineup/pitch";
 import { canStandIn, standingIn, type DraftLineup, type SquadMember } from "./lineupDraft";
-import { pitchLabel, playerOnPitchLabel, positionsWords, putHereLabel } from "./tacticsWords";
+import { emptySlotLabel, pitchLabel, playerOnPitchLabel, positionsWords, putHereLabel } from "./tacticsWords";
 
 // The Tactics tab's pitch (#14; spec/05, The pitch): six areas by five lanes, attack at the top, CM
 // style. A player is moved by picking him up (a click, a tap or Enter on him) and then choosing a
@@ -28,8 +28,21 @@ export function startDrag(event: DragEvent, playerCode: number, moving: Moving) 
   moving.onGrab(playerCode);
 }
 
-export function Pitch({ draft, squad, moving }: { draft: DraftLineup; squad: ReadonlyMap<number, SquadMember>; moving: Moving }) {
+/** `slots` are the cells of the preset last picked, if any: those still empty are marked, to show
+ *  where to drag (spec/05). */
+export function Pitch({
+  draft,
+  squad,
+  moving,
+  slots,
+}: {
+  draft: DraftLineup;
+  squad: ReadonlyMap<number, SquadMember>;
+  moving: Moving;
+  slots: readonly Cell[];
+}) {
   const { picked } = moving;
+  const isSlot = (cell: Cell) => slots.some((slot) => slot.area === cell.area && slot.lane === cell.lane);
   const opensTo = (cell: Cell) => picked !== null && canStandIn(draft, picked.positions, cell);
   return (
     <div role="group" aria-label={pitchLabel} className="pitch relative grid grid-cols-5">
@@ -49,16 +62,16 @@ export function Pitch({ draft, squad, moving }: { draft: DraftLineup; squad: Rea
             <div key={`${area}/${lane}`} onDragOver={allowDrop} onDrop={drop} className="relative flex h-pitch-row min-w-0 items-center justify-center p-1">
               {standing !== undefined ? (
                 <PlayerBlock player={squad.get(standing.playerCode)!} cell={cell} moving={moving} />
+              ) : picked !== null && opensTo(cell) ? (
+                <button
+                  type="button"
+                  aria-label={putHereLabel(picked.name, area, lane)}
+                  onClick={() => moving.onPlace(cell)}
+                  className="h-full w-full border-2 border-dashed border-pitch-line"
+                />
               ) : (
-                picked !== null &&
-                opensTo(cell) && (
-                  <button
-                    type="button"
-                    aria-label={putHereLabel(picked.name, area, lane)}
-                    onClick={() => moving.onPlace(cell)}
-                    className="h-full w-full border-2 border-dashed border-pitch-line"
-                  />
-                )
+                // Quieter than a put-here target (bold dashes), so a slot to fill never reads as a place to tap.
+                isSlot(cell) && <div role="img" aria-label={emptySlotLabel(area, lane)} className="h-full w-full border border-dotted border-pitch-line" />
               )}
             </div>
           );
