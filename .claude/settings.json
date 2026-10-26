@@ -26,6 +26,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "mcp__github__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard_github.py",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [

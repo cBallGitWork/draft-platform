@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+"""PreToolUse guard for the GitHub tools (mcp__github__*), which a cloud session publishes through
+in place of gh, so guard_bash.py never sees them: denies a call that writes (an issue, a pull
+request, a comment, a review, a file) naming a word on Craig's private list (private_words.py), in
+any text it sends. Reads publish nothing, so they aren't checked. With no list to check against,
+a write gets a note, never a denial, as guard_bash.py gives. A payload it can't read is denied:
+allowing it would check nothing. Stdlib only, Python 3.9+.
+"""
+
+from __future__ import annotations
+
+import json
+import sys
+
+from private_words import NO_LIST, has_list, text_problem
+
+PREFIX = "mcp__github__"
+WRITES = ("create", "update", "write", "add_", "push", "merge", "reply", "delete", "fork", "resolve")
+
+
+def writes(tool):
+    """True if this GitHub tool sends text that others read."""
+    return tool.startswith(PREFIX) and any(verb in tool[len(PREFIX):] for verb in WRITES)
+
+
+def strings(value):
+    """Every string inside a tool's input, however deep: a file's content, a review's comments."""
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, dict):
+        return [s for v in value.values() for s in strings(v)]
+    if isinstance(value, list):
+        return [s for v in value for s in strings(v)]
+    return []
+
+
+def decide(payload):
+    """(deny reason, note): at most one of them."""
+    tool = payload.get("tool_name") or ""
+    if not writes(tool):
+        return None, None
+    if not has_list():
+        return None, NO_LIST
+    return text_problem(strings(payload.get("tool_input") or {})), None
+
+
+def main():
+    reason = advice = None
+    try:
+        payload = json.load(sys.stdin)
+        if isinstance(payload, dict):
+            reason, advice = decide(payload)
+        else:
+            reason = (f"The GitHub guard couldn't read the hook payload (a JSON {type(payload).__name__}, "
+                      "not an object), so nothing was checked.")
+    except Exception as error:  # a guard that crashes prints nothing, which would allow
+        reason = f"The GitHub guard failed ({type(error).__name__}: {error}), so nothing was checked."
+    if reason:
+        print(json.dumps({"hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": reason,
+        }}))
+    elif advice:  # additionalContext reaches Claude; systemMessage shows it to Craig
+        print(json.dumps({"systemMessage": advice,
+                          "hookSpecificOutput": {"hookEventName": "PreToolUse", "additionalContext": advice}}))
+
+
+if __name__ == "__main__":
+    main()

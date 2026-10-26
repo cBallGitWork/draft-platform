@@ -7,6 +7,7 @@
 wiring=(  # event|matcher|script, the matcher empty where the entry has none
   'SessionStart||drift_due.py'
   'PreToolUse|Bash|guard_bash.py'
+  'PreToolUse|mcp__github__.*|guard_github.py'
   'PostToolUse|Write|Edit|line_ceiling.py'
   'Stop||gate_on_stop.py'
   'SubagentStop||gate_on_stop.py'
@@ -29,7 +30,7 @@ problems=$(unwired "$settings")
 [ -z "$problems" ] || fail "$problems"
 
 # a copy without the Bash guard must be caught, or these checks prove nothing
-"$jq" 'del(.hooks.PreToolUse)' "$settings" > "$tmp/no-guard.json"
+"$jq" 'del(.hooks.PreToolUse[] | select(.matcher == "Bash"))' "$settings" > "$tmp/no-guard.json"
 problems=$(unwired "$tmp/no-guard.json")
 [ "$problems" = "settings.json: no PreToolUse/Bash hook runs guard_bash.py" ] ||
   fail "settings.sh: a settings.json with no Bash guard gave: ${problems:-nothing}"

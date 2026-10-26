@@ -78,6 +78,13 @@ printf 'acmecorp\n' > "$tmp/.claude/private-words.txt"
 silent guard_bash.py "$(bash_cmd 'git commit -m "clean"')"  # checked, nothing to say
 check deny guard_bash.py "$(bash_cmd 'git commit -m "from acmecorp"')"
 unset DRAFT_PRIVATE_WORDS
+rm "$tmp/.claude/private-words.txt"
+# a cloud environment holds the words themselves, with no file: checked, and no note
+export DRAFT_PRIVATE_WORDS_LIST=acmecorp
+check deny guard_bash.py "$(bash_cmd 'git commit -m "from acmecorp"')"
+silent guard_bash.py "$(bash_cmd 'git commit -m "clean"')"
+unset DRAFT_PRIVATE_WORDS_LIST
+printf 'acmecorp\n' > "$tmp/.claude/private-words.txt"
 
 # a pull request's body: the whole template with a bare Closes line and a verdict passes; a closing
 # word by an issue number elsewhere, a local path, a missing section, no pr-reviewer verdict or a
