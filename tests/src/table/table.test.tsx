@@ -7,6 +7,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { nextGameweekLabel, previousGameweekLabel } from "../../../src/words";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
@@ -19,14 +20,12 @@ import {
   gameweekWords,
   leagueAverageWords,
   loadingWords,
-  nextLabel,
   noLineupWords,
   noResultsWords,
   noRulesWords,
   provisionalWords,
   scoreWords,
   unscoredWords,
-  previousLabel,
   TABLE_PAGE_TITLE,
   tooFewTeamsWords,
   totalPointsWords,
@@ -111,7 +110,7 @@ describe("the table", () => {
     const heads = within(await screen.findByRole("table")).getAllByRole("columnheader");
     expect(heads.map((head) => head.textContent)).toEqual(["Pos", "Team", "P", "Pts"]);
     expect(screen.getByText(totalPointsWords)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: nextLabel })).toBeNull();
+    expect(screen.queryByRole("button", { name: nextGameweekLabel })).toBeNull();
   });
 });
 
@@ -146,13 +145,13 @@ describe("the fixtures", () => {
     openTable({ leagueTable: leagueTableOf(FIVE, { gameweeks }) });
 
     expect(await screen.findByRole("heading", { level: 3, name: gameweekWords(1) })).toBeTruthy();
-    expect((screen.getByRole("button", { name: previousLabel }) as HTMLButtonElement).disabled).toBe(true);
-    await userEvent.click(screen.getByRole("button", { name: nextLabel }));
-    await userEvent.click(screen.getByRole("button", { name: nextLabel }));
+    expect((screen.getByRole("button", { name: previousGameweekLabel }) as HTMLButtonElement).disabled).toBe(true);
+    await userEvent.click(screen.getByRole("button", { name: nextGameweekLabel }));
+    await userEvent.click(screen.getByRole("button", { name: nextGameweekLabel }));
     expect(screen.getByRole("heading", { level: 3, name: gameweekWords(5) })).toBeTruthy();
-    await userEvent.click(screen.getByRole("button", { name: nextLabel }));
-    expect((screen.getByRole("button", { name: nextLabel }) as HTMLButtonElement).disabled).toBe(true);
-    await userEvent.click(screen.getByRole("button", { name: previousLabel }));
+    await userEvent.click(screen.getByRole("button", { name: nextGameweekLabel }));
+    expect((screen.getByRole("button", { name: nextGameweekLabel }) as HTMLButtonElement).disabled).toBe(true);
+    await userEvent.click(screen.getByRole("button", { name: previousGameweekLabel }));
     expect(screen.getByRole("heading", { level: 3, name: gameweekWords(5) })).toBeTruthy();
   });
 
