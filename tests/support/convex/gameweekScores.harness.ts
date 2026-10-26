@@ -25,7 +25,7 @@ export const [ANN, BOB, CAT] = MANAGERS;
 /** Hull v Everton's kickoff here: a week after signInDeployment's clock, so the league is made
  *  before gameweek 6 begins (a document can't be made earlier than the deployment's first). The
  *  records don't hang on it. */
-const KICKOFF = Date.parse("2026-10-27T15:00:00Z");
+export const KICKOFF = Date.parse("2026-10-27T15:00:00Z");
 export const FULL_TIME_READ = KICKOFF + 2 * HOUR_MS;
 /** The league's deadline for gameweek 6: the first rules', before Hull v Everton's kickoff. */
 const DEADLINE = KICKOFF - FIRST_RULES.deadline.minutesBeforeFirstKickoff * MINUTE_MS;
@@ -150,9 +150,9 @@ export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Pr
 export const readTable = ({ t, leagueId }: ScoresLeague) => actingAs(t, ANN).then((ann) => ann.query(api.table.leagueTable.ofLeague, { leagueId }));
 
 /** The match's records as the live tick lands them, before full time. */
-export async function liveRecords({ t }: ScoresLeague, records: PlayerMatchRecord[]) {
+export async function liveRecords({ t }: ScoresLeague, records: PlayerMatchRecord[], minute: number | null = null) {
   vi.setSystemTime(KICKOFF + HOUR_MS);
-  await t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: HULL_EVERTON, records });
+  await t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: HULL_EVERTON, minute, records });
 }
 
 /** The match's records as the full-time read lands them: complete, its corrections window open. */
@@ -172,7 +172,31 @@ export function sideTotal(records: readonly PlayerMatchRecord[], counting: reado
   return inTenths(points.reduce((sum, each) => sum + each, 0));
 }
 
+/** Hull's points once the match is over, their keeper on for Phillips, and Everton's: each the sum
+ *  of its eleven's FPL lines in golden/hull-everton.scores.json, area by area. Pinned as well as
+ *  worked out player by player (gameweekScores.test.ts), so a change in how a match scores shows. */
+export const HULL_POINTS = 26;
+export const EVERTON_POINTS = 38;
+
 /** Hull's side once the match is over: their keeper in goal for Phillips. */
 export const HULL_AFTER_SUB: Starter[] = HULL_STARTERS.map((starter) =>
   starter.playerCode === PHILLIPS ? { ...starter, playerCode: HULL_KEEPER } : starter,
 );
+
+/** A stat no record holds: a typo of goals_scored. */
+export const TYPO_STAT = "goals_scroed";
+
+/** The site's set from now on holds a rule on TYPO_STAT, as a set written by hand could (#287). */
+export async function holdTypoRule({ t }: ScoresLeague) {
+  const [rule] = FIRST_SCORING.rules;
+  await t.run((ctx) =>
+    ctx.db.insert("siteScoring", {
+      scoring: { ...FIRST_SCORING, rules: [...FIRST_SCORING.rules, { ...rule, stat: TYPO_STAT }] },
+      kind: "fix",
+      season: 2026,
+      number: 1,
+      announcedAt: 0,
+      takesEffectAt: 0,
+    }),
+  );
+}

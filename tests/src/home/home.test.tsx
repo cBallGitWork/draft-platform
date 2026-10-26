@@ -28,7 +28,7 @@ import {
   wholeTableLink,
   yourTeamWords,
 } from "../../../src/home/words";
-import { homeRow, quietHome, type HomeData } from "../../support/src/home.harness";
+import { homeFixture, homeRow, quietHome, type HomeData } from "../../support/src/home.harness";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 
 const openHome = (home: HomeData = {}) => openApp(HOME_PATH, manager, { home });
@@ -64,7 +64,7 @@ describe("reaching it", () => {
 
 describe("this gameweek's head-to-heads", () => {
   it("lists each, under the gameweek, with the league's average and a bye", async () => {
-    withHome({ thisGameweek: { gameweek: 9, fixtures: [{ team: "Ann's", opponent: "Bob's" }, { team: "Cat's", opponent: null }], byes: ["Dan's"] } });
+    withHome({ thisGameweek: { gameweek: 9, fixtures: [homeFixture("Ann's", "Bob's"), homeFixture("Cat's", null)], byes: ["Dan's"] } });
     const gameweek = await panel(gameweekWords(9));
     expect(within(gameweek).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["Ann'svBob's", "Cat'svLeague average", "Dan's: bye"]);
   });

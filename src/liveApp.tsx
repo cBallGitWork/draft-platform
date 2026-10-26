@@ -11,10 +11,12 @@ import { SignOut } from "./frame/SignOut";
 import type { AuthActions, Session } from "./auth";
 import { liveGameweeks } from "./gameweeks/liveGameweeks";
 import { liveHome } from "./home/liveHome";
+import { livePremierLeague } from "./premierLeague/livePremierLeague";
 import { useLiveJoining } from "./joining/liveJoining";
 import { joinTokenAt } from "./joining/paths";
 import { useLiveLeagueActions } from "./leagues/liveLeagueActions";
 import { useLiveMail } from "./mail/liveMail";
+import { liveMatchup } from "./matchup/liveMatchup";
 import { liveMyTeam } from "./myTeam/liveMyTeam";
 import { useLiveLeagueSettings } from "./leagueSettings/liveSettings";
 import { useLiveScoring } from "./scoring/liveScoring";
@@ -151,7 +153,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
       <Loading className="p-2">{checkingLink ? waitingWords.checkingLink : waitingWords.connecting}</Loading>
     );
   }
-  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} scouting={liveScouting} playerCard={livePlayerCard} home={liveHome} myTeam={liveMyTeam} admin={admin} feedback={feedback} patches={patches} />;
+  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} scouting={liveScouting} playerCard={livePlayerCard} home={liveHome} myTeam={liveMyTeam} matchup={liveMatchup} premierLeague={livePremierLeague} admin={admin} feedback={feedback} patches={patches} />;
 }
 
 /** The sign-in page saying what was wrong with a link, and, for one that led to a league's invite

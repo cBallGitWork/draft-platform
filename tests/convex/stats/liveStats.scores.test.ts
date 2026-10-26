@@ -52,7 +52,8 @@ test("each tick writes the match's state, score and clock as the Premier League 
   }
 });
 
-test("a live match listed with no score is on the tick's row, its stats still read, and the score held stands", async () => {
+test("a live match listed with no score is on the tick's row, its stats still read, the score held stands, and its commentary is delayed", async () => {
+  const errors = silenceConsoleError();
   const t = await withHullEverton();
   await tickAt(t, stageTime(SERVED_AT.firstGoal), withLiveScore("firstGoal"));
   const before = await heldScore(t);
@@ -71,6 +72,11 @@ test("a live match listed with no score is on the tick's row, its stats still re
     },
   });
   expect(await heldScore(t)).toEqual(before);
+  // The full-time line needs the score, so the commentary keeps its held lines and says it is delayed.
+  expect(errors).toHaveBeenCalledWith(`match ${HULL_EVERTON}'s commentary failed: the Premier League sent score undefined for a match at live`);
+  const commentary = await t.run((ctx) => ctx.db.query("matchCommentary").unique());
+  expect(commentary).toMatchObject({ delayed: { since: stageTime(SERVED_AT.firstGoal + 1) } });
+  expect(commentary!.lines.length).toBeGreaterThan(0);
 });
 
 test("a score write that fails is on the tick's row against the match, and its stats are still saved", async () => {

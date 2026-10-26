@@ -99,6 +99,9 @@ flowchart TD
   MENU & NOLEAGUE -- "Patch notes (the banner, while a patch waits)" --> PN
   MENU & NOLEAGUE -.->|"Sign out, then signed out"| SIGNIN
   ERR(["This page can't be shown: any page that throws"]) -- "Back to your leagues" --> LEAGUES
+  TABLE -- "a fixture's score" --> MATCHUP
+  HOME -- "a head-to-head's v" --> MATCHUP
+  MATCHUP -- "◄ ► (another gameweek's)" --> MATCHUP
   SCOUTING & SQ -- "a player's name" --> CARD
   CARD -- "Back (to Scouting, opened from a link)" --> SCOUTING
   CARD -.->|"its code isn't a number"| SCOUTING
@@ -145,9 +148,9 @@ Features table (feature 12), the one home for screen status.
 | Squad | `/team/squad` | src/frame/PageNotBuilt.tsx | spec/12 My team's tabs | placeholder |
 | Fixtures | `/team/fixtures` | src/myTeam/FixturesPage.tsx | spec/12 My team's tabs | built |
 | Transactions | `/team/transactions` | src/frame/PageNotBuilt.tsx | spec/12 My team's tabs | placeholder |
-| Matchup | `/matchup` | src/frame/PageNotBuilt.tsx | spec/10 The matchup | placeholder |
+| Matchup | `/matchup` | src/matchup/MatchupPage.tsx | spec/10 The matchup, spec/12 | built |
 | Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12 Trades, spec/08 Trades | placeholder |
-| Premier League | `/premier-league` | src/frame/PageNotBuilt.tsx | spec/18 | placeholder |
+| Premier League | `/premier-league` | src/premierLeague/PremierLeaguePage.tsx | spec/18 | built |
 | Match | none | none | spec/10 The match page | no route |
 | Player card | `/leagues/$leagueId/players/$playerCode` | src/playerCard/PlayerCardPage.tsx | spec/12 The player card, spec/05, spec/14, spec/19 | built |
 | Draft room | none | none | spec/12:16, spec/04 | no route |

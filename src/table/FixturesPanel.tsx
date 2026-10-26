@@ -1,20 +1,17 @@
 import { useState } from "react";
 import { isLocked } from "../../convex/gameweeks/deadline";
 import { FEWEST_TO_DRAW } from "../../convex/table/roundRobin";
+import { GameweekStepper } from "../frame/GameweekStepper";
 import { PanelNote, PanelTitle } from "../frame/Panel";
+import { MatchupLink } from "../matchup/MatchupLink";
 import type { LeagueTable } from "./seam";
 import {
   byeWords,
   FIXTURES_TITLE,
   fixturesListLabel,
-  gameweekWords,
   leagueAverageWords,
-  nextGlyph,
-  nextLabel,
   noGameweeksWords,
   noLineupWords,
-  previousGlyph,
-  previousLabel,
   roundRobinWords,
   scoreWords,
   tooFewTeamsWords,
@@ -53,8 +50,6 @@ function openingIndex(gameweeks: readonly Gameweek[], now: number): number {
   return next === -1 ? gameweeks.length - 1 : next;
 }
 
-const stepClasses = "flex min-w-tap items-center justify-center text-lead font-bold hover:bg-plate disabled:text-muted disabled:hover:bg-stepper";
-
 /** One gameweek's fixtures, under CM's ◄ GW ► stepper over the gameweeks the league plays. */
 function GameweekFixtures({ gameweeks, results }: { gameweeks: readonly Gameweek[]; results: readonly Result[] }) {
   const [chosen, choose] = useState(() => openingIndex(gameweeks, Date.now()));
@@ -64,32 +59,24 @@ function GameweekFixtures({ gameweeks, results }: { gameweeks: readonly Gameweek
   const noLineup = (results.find((result) => result.gameweek === gameweek)?.teams ?? []).filter((team) => team.noLineup).map((team) => team.teamName);
   return (
     <>
-      <div className="flex min-h-tap items-stretch bg-stepper">
-        <button type="button" aria-label={previousLabel} disabled={index === 0} onClick={() => choose(index - 1)} className={stepClasses}>
-          <span aria-hidden="true">{previousGlyph}</span>
-        </button>
-        <h3 aria-live="polite" className="flex grow items-center justify-center text-lead font-bold">
-          {gameweekWords(gameweek)}
-        </h3>
-        <button
-          type="button"
-          aria-label={nextLabel}
-          disabled={index === gameweeks.length - 1}
-          onClick={() => choose(index + 1)}
-          className={stepClasses}
-        >
-          <span aria-hidden="true">{nextGlyph}</span>
-        </button>
-      </div>
+      <GameweekStepper
+        gameweek={gameweek}
+        hasPrevious={index > 0}
+        hasNext={index < gameweeks.length - 1}
+        onPrevious={() => choose(index - 1)}
+        onNext={() => choose(index + 1)}
+      />
       <ul aria-label={fixturesListLabel(gameweek)}>
-        {fixtures.map(({ team, opponent, points }) => (
-          <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-[minmax(0,1fr)_5rem_minmax(0,1fr)] gap-3 border-b border-panel-rule px-3 py-1 text-lead">
+        {fixtures.map(({ teamId, team, opponent, points }) => (
+          <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-[minmax(0,1fr)_5rem_minmax(0,1fr)] items-center gap-3 border-b border-panel-rule px-3 py-1 text-lead">
             <span className="text-right font-semibold">{team}</span>
-            {points === null ? (
-              <span className="text-center text-muted">{versusWords}</span>
-            ) : (
-              <span className="whitespace-nowrap text-center font-bold text-figure tabular-nums">{scoreWords(points.team, points.opponent)}</span>
-            )}
+            <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={gameweek}>
+              {points === null ? (
+                <span>{versusWords}</span>
+              ) : (
+                <span className="whitespace-nowrap font-bold text-figure tabular-nums">{scoreWords(points.team, points.opponent)}</span>
+              )}
+            </MatchupLink>
             {opponent === null ? <span className="text-derived">{leagueAverageWords}</span> : <span className="font-semibold">{opponent}</span>}
           </li>
         ))}
