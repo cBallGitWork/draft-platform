@@ -4,6 +4,8 @@ import { LOCALE } from "../../convex/shared/londonTime";
 import { gameweekWords } from "../words";
 
 export { gameweekWords, versusWords } from "../words";
+/** Goals for less against, signed: "+4", "-3", "0", as the league table signs its difference. */
+export { differenceWords as goalDifferenceWords } from "../table/words";
 
 export const PREMIER_LEAGUE_TITLE = "Premier League";
 export const FIXTURES_TITLE = "Fixtures and results";
@@ -34,3 +36,22 @@ export const clockWords = (clockLabel: string | null, minutes: number | null) =>
 export const liveWords = "Live";
 export const halfTime = { short: "HT", long: "Half-time" } as const;
 export const fullTime = { short: "FT", long: "Full time" } as const;
+
+export const TABLE_TITLE = "Table";
+export const loadingTableWords = "Loading the Premier League table…";
+/** Said while a match in the table is being played: its result counts as it stands (spec/18). */
+export const provisionalWords = "Live: the table is provisional until every match being played is at full time.";
+
+/** The table's columns: a short head, and what it stands for. */
+export const tableColumns = {
+  position: { short: "Pos", long: "Position" },
+  club: { short: "Club", long: "Club" },
+  played: { short: "P", long: "Played" },
+  won: { short: "W", long: "Won" },
+  drawn: { short: "D", long: "Drawn" },
+  lost: { short: "L", long: "Lost" },
+  goalsFor: { short: "GF", long: "Goals for" },
+  goalsAgainst: { short: "GA", long: "Goals against" },
+  goalDifference: { short: "GD", long: "Goal difference" },
+  points: { short: "Pts", long: "Points" },
+} as const;
