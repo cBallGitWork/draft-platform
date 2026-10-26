@@ -69,7 +69,10 @@ says "$no_list" guard_bash.py "$(bash_in "$tmp" "$long_title_edit")"
 says 'past the soft limit' guard_bash.py "$(bash_in "$tmp" "$long_title_edit")"
 silent guard_bash.py "$(bash_cmd 'git status')"  # publishes nothing, so there is nothing to say
 # an override names the list to use, so there is no note, though there is none at the default path
-silent guard_bash.py "$(bash_cmd 'git commit -m "clean"')" DRAFT_PRIVATE_WORDS=/dev/null
+printf 'acmecorp\n' > "$tmp/override.txt"
+silent guard_bash.py "$(bash_cmd 'git commit -m "clean"')" DRAFT_PRIVATE_WORDS="$tmp/override.txt"
+# a list that holds no word checks nothing, so it says so as if there were none
+says "$no_list" guard_bash.py "$(bash_cmd 'git commit -m "clean"')" DRAFT_PRIVATE_WORDS=/dev/null
 mkdir -p "$tmp/.claude/private-words.txt"  # something at the default path that can't be read
 check deny guard_bash.py "$(bash_cmd 'git commit -m "clean"')"
 rmdir "$tmp/.claude/private-words.txt"
@@ -78,6 +81,13 @@ printf 'acmecorp\n' > "$tmp/.claude/private-words.txt"
 silent guard_bash.py "$(bash_cmd 'git commit -m "clean"')"  # checked, nothing to say
 check deny guard_bash.py "$(bash_cmd 'git commit -m "from acmecorp"')"
 unset DRAFT_PRIVATE_WORDS
+rm "$tmp/.claude/private-words.txt"
+# a cloud environment holds the words themselves, with no file: checked, and no note
+export DRAFT_PRIVATE_WORDS_LIST=acmecorp
+check deny guard_bash.py "$(bash_cmd 'git commit -m "from acmecorp"')"
+silent guard_bash.py "$(bash_cmd 'git commit -m "clean"')"
+unset DRAFT_PRIVATE_WORDS_LIST
+printf 'acmecorp\n' > "$tmp/.claude/private-words.txt"
 
 # a pull request's body: the whole template with a bare Closes line and a verdict passes; a closing
 # word by an issue number elsewhere, a local path, a missing section, no pr-reviewer verdict or a
