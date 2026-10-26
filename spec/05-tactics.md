@@ -13,9 +13,9 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   midfield, attack.
 - Each area has five lanes across: left, left-centre, centre, right-centre, right. A slot is one
   cell of that grid; one player per cell; no rule about gaps.
-- A wing-back plays in a wide lane of the defensive midfield row. He is a defender, standing
-  further forward than a full-back would; on the pitch a defensive midfielder and a wing-back
-  stand in the same row (Craig, 26 Oct 2026). There is no wing-back row.
+- A wing-back plays in a wide lane of the defensive midfield or midfield row. There is no
+  wing-back row. He is a defender, standing further forward than a full-back would; on the pitch
+  a defensive midfielder and a wing-back stand in the same row (Craig, 26 Oct 2026).
 - Free placement: drag a player into any free cell, Championship Manager style. Or pick a preset:
   4-4-2, 4-3-3, 4-2-3-1, 4-1-4-1, 4-4-1-1, 4-3-1-2, 3-5-2, 3-4-3, 3-4-1-2, 5-3-2, 5-4-1, all
   editable as league rules.
