@@ -14,7 +14,6 @@ import { callerEmail, getLeague, isAdmin, refuse, refusals, teamOf } from "../sh
 export const EVENTS_SEARCHED = 1000;
 
 const transactionKind = v.union(v.literal("assigned"), v.literal("movedIn"), v.literal("movedOut"), v.literal("released"));
-export type TransactionKind = Infer<typeof transactionKind>;
 
 const transaction = v.object({
   at: v.number(),
@@ -37,19 +36,15 @@ type Transaction = Infer<typeof transaction>;
 
 /** The team's transaction in a league event, if it is one. */
 function transactionOf({ at, by, event }: Doc<"leagueEvents">, teamId: Id<"teams">): Transaction | null {
-  const done = { at, by: isAdmin(by) ? adminByline : by };
-  switch (event.kind) {
-    case "playerAssigned":
-    case "playerReleased":
-      if (event.teamId !== teamId) return null;
-      return { ...done, kind: event.kind === "playerAssigned" ? "assigned" : "released", playerCode: event.playerCode, playerName: event.playerName, otherTeamName: null };
-    case "playerMoved":
-      if (event.teamId === teamId) return { ...done, kind: "movedIn", playerCode: event.playerCode, playerName: event.playerName, otherTeamName: event.fromTeamName };
-      if (event.fromTeamId === teamId) return { ...done, kind: "movedOut", playerCode: event.playerCode, playerName: event.playerName, otherTeamName: event.teamName };
-      return null;
-    default:
-      return null;
+  if (event.kind !== "playerAssigned" && event.kind !== "playerReleased" && event.kind !== "playerMoved") return null;
+  const done = { at, by: isAdmin(by) ? adminByline : by, playerCode: event.playerCode, playerName: event.playerName };
+  if (event.kind === "playerMoved") {
+    if (event.teamId === teamId) return { ...done, kind: "movedIn", otherTeamName: event.fromTeamName };
+    if (event.fromTeamId === teamId) return { ...done, kind: "movedOut", otherTeamName: event.teamName };
+    return null;
   }
+  if (event.teamId !== teamId) return null;
+  return { ...done, kind: event.kind === "playerAssigned" ? "assigned" : "released", otherTeamName: null };
 }
 
 /** The caller's team's transactions in the league, newest first. Refused for anyone who runs no

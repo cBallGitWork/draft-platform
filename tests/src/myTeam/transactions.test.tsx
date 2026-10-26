@@ -7,6 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { MY_TEAM_PATH, MY_TEAM_TRANSACTIONS_PATH } from "../../../src/frame/menu";
 import type { TeamTransactions } from "../../../src/myTeam/seam";
+import { playerCardPath } from "../../../src/playerCard/paths";
 import {
   noTeamWords,
   noTransactionsWords,
@@ -29,10 +30,11 @@ const rows = () =>
 const cells = (row: HTMLTableRowElement) => Array.from(row.cells, (cell) => cell.textContent);
 
 const AT = Date.parse("2026-10-20T18:00:00Z");
+const SAKA = 1001;
 const transaction = (kind: Transaction["kind"], otherTeamName: string | null = null): Transaction => ({
   at: AT,
   kind,
-  playerCode: 1001,
+  playerCode: SAKA,
   playerName: "Saka",
   otherTeamName,
   by: "commish@example.com",
@@ -72,6 +74,12 @@ describe("the transactions", () => {
       [whenWords(AT), "Saka", "Moved out to Team 3", "commish@example.com"],
       [whenWords(AT), "Saka", "Assigned to the team", "commish@example.com"],
     ]);
+  });
+
+  it("opens a player's card from his name", async () => {
+    const app = openTransactions({ transactions: { transactions: [transaction("assigned")], cut: false } });
+    await userEvent.click(await screen.findByRole("link", { name: "Saka" }));
+    expect(app.path()).toBe(playerCardPath(league.leagueId, SAKA));
   });
 
   it("says when none are held yet", async () => {

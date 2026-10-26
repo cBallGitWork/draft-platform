@@ -1,5 +1,8 @@
+import { Link } from "@tanstack/react-router";
+import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, PageSection, PanelNote } from "../frame/Panel";
+import { playerCardPath } from "../playerCard/paths";
 import type { MyTeamSeam, TeamTransactions } from "./seam";
 import {
   noTeamWords,
@@ -30,13 +33,13 @@ function TransactionsBody({ league, teamName, seam }: { league: LeagueSummary; t
   if (found === undefined) return <Loading className="px-3 py-2">{transactionsLoadingWords}</Loading>;
   return (
     <>
-      {found.transactions.length === 0 ? <PanelNote>{noTransactionsWords}</PanelNote> : <TransactionsTable teamName={teamName} transactions={found.transactions} />}
+      {found.transactions.length === 0 ? <PanelNote>{noTransactionsWords}</PanelNote> : <TransactionsTable leagueId={league.leagueId} teamName={teamName} transactions={found.transactions} />}
       {found.cut && <PanelNote>{transactionsCutWords}</PanelNote>}
     </>
   );
 }
 
-function TransactionsTable({ teamName, transactions }: { teamName: string; transactions: TeamTransactions["transactions"] }) {
+function TransactionsTable({ leagueId, teamName, transactions }: { leagueId: Id<"leagues">; teamName: string; transactions: TeamTransactions["transactions"] }) {
   return (
     <table aria-label={transactionsTableLabel(teamName)} className="w-full border-collapse">
       <thead className="bg-head text-ground">
@@ -53,7 +56,9 @@ function TransactionsTable({ teamName, transactions }: { teamName: string; trans
           <tr key={index} className="border-t border-panel-rule">
             <td className="px-3 whitespace-nowrap">{whenWords(transaction.at)}</td>
             <th scope="row" className="px-3 text-left text-lead font-semibold">
-              {transaction.playerName}
+              <Link to={playerCardPath(leagueId, transaction.playerCode)} className="inline-flex min-h-tap items-center">
+                {transaction.playerName}
+              </Link>
             </th>
             <td className="px-3">{transactionWords(transaction)}</td>
             <td className="px-3 text-muted">{transaction.by}</td>
