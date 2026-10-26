@@ -48,7 +48,7 @@ export const upsertScores = internalMutation({
 
 type HeldScore = Omit<Doc<"matchScores">, "_id" | "_creationTime">;
 
-function scoreOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"matchScores"> | null> {
+export function scoreOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"matchScores"> | null> {
   return ctx.db
     .query("matchScores")
     .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
