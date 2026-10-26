@@ -88,6 +88,8 @@ import type * as scoring_scoring from "../scoring/scoring.js";
 import type * as scoring_scoringSet from "../scoring/scoringSet.js";
 import type * as scoring_siteScoring from "../scoring/siteScoring.js";
 import type * as scoring_statCatalogue from "../scoring/statCatalogue.js";
+import type * as scouting_compare from "../scouting/compare.js";
+import type * as scouting_comparedPlayers from "../scouting/comparedPlayers.js";
 import type * as scouting_playersList from "../scouting/playersList.js";
 import type * as scouting_shortlist from "../scouting/shortlist.js";
 import type * as shared_errors from "../shared/errors.js";
@@ -204,6 +206,8 @@ declare const fullApi: ApiFromModules<{
   "scoring/scoringSet": typeof scoring_scoringSet;
   "scoring/siteScoring": typeof scoring_siteScoring;
   "scoring/statCatalogue": typeof scoring_statCatalogue;
+  "scouting/compare": typeof scouting_compare;
+  "scouting/comparedPlayers": typeof scouting_comparedPlayers;
   "scouting/playersList": typeof scouting_playersList;
   "scouting/shortlist": typeof scouting_shortlist;
   "shared/errors": typeof shared_errors;
