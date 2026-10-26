@@ -28,7 +28,7 @@ commentary` (16 Oct 2026).
   Ødegaard". Championship Manager's and Football Manager's commentary is a style reference only;
   none of it is copied.
 - A goal, an assist or a card shows the points it moves, for a player owned in the league.
-- A threshold line when a player's running total reaches a point the league's rules pay: "~58'
+- A threshold line when a player's running total reaches a point where he earns more under the league's rules: "~58'
   Rice: 3 key passes, +1". The "~" because it's when the totals showed it, not when it happened.
   Only for players owned in the league.
 - A kick-off and a full-time line for each match with either team's players in it, on the matchup

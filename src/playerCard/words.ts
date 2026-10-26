@@ -36,9 +36,9 @@ export const columns = {
   points: { short: "Pts", long: "Points under the site's scoring" },
 } as const;
 export const notArrivedWords = "His record for this match hasn't fully arrived yet.";
-/** The line under a match: each category that paid, as "Goals scored 5". */
+/** The line under a match: each category he earned or lost points in, as "Goals scored 5". */
 export const breakdownLabel = (gameweek: number | null) => (gameweek === null ? "Points by category" : `${gameweekWords(gameweek)} points by category`);
-export const nothingPaidWords = "No category paid.";
+export const nothingPaidWords = "No category earned him points.";
 
 /** Last season's one line (spec/12): not held yet. */
 export const LAST_SEASON_TITLE = "Last season";
