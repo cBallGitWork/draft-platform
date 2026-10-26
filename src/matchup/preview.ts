@@ -5,10 +5,10 @@
 // match is over; then the result is final, and the replay starts again. `?minute=N` holds it at
 // minute N of the replay, `?minute=final` at the end, for screenshots.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { Area } from "../../convex/lineup/pitch";
-import type { MatchupSide, MatchupSlot } from "../../convex/matchup/matchupShape";
+import type { MatchupCommentary, MatchupSide, MatchupSlot } from "../../convex/matchup/matchupShape";
 import { MINUTE_MS } from "../../convex/shared/time";
 import { previewSeason, previewTeams } from "../table/preview";
 import type { Matchup, MatchupSeam } from "./seam";
@@ -112,6 +112,37 @@ function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): Ma
   };
 }
 
+/** Each match's made-up lines: which match, its minute, the line, and its worth to either team.
+ *  The second match's minutes count from its own kickoff. */
+const LINES: [0 | 1, number, string, string | null][] = [
+  [0, 0, "KO ARS v LIV", null],
+  [0, 12, "12' YELLOW Van Dijk", "-1"],
+  [0, 23, "23' GOAL Saka, assist Rice", "Saka +5, Rice +3"],
+  [1, 0, "KO CHE v MCI", null],
+  [0, 38, "38' Corner, conceded by Konaté", null],
+  [1, 17, "17' GOAL Haaland", "+4"],
+  [0, 45, "45+2' HT", null],
+  [0, 61, "~61' Saka: 60 minutes", "+1"],
+  [1, 40, "40' SHOT Palmer, saved", null],
+  [0, 77, "77' GOAL Szoboszlai, penalty", "+5"],
+  [1, 58, "58' GOAL Palmer, assist Ødegaard", "Palmer +4, Ødegaard +3"],
+  [0, MATCH_MINUTES, "FT ARS 1–1 LIV: Saka 11, Szoboszlai 9, Van Dijk 6, Rice 3, Isak 2", null],
+  [1, 88, "88' RED Cucurella", "-3"],
+  [1, MATCH_MINUTES, "FT CHE 1–1 MCI: Haaland 13, Gabriel 8, Palmer 7, Ødegaard 5", null],
+];
+/** The replay's minutes the commentary is delayed for, so the note shows. */
+const DELAYED_FROM = 70;
+const DELAYED_UNTIL = 75;
+
+/** The lines `minute` minutes into the replay, newest first. */
+function commentaryAt(minute: number): MatchupCommentary {
+  const lines = LINES.map(([match, at, text, points], index) => ({ when: at + match * SECOND_KICKOFF, line: { key: `${index}`, text, points } }))
+    .filter(({ when }) => when <= minute)
+    .sort((one, other) => other.when - one.when)
+    .map(({ line }) => line);
+  return { kind: "read", lines, delayed: minute >= DELAYED_FROM && minute < DELAYED_UNTIL };
+}
+
 function matchupAt(minute: number, gameweek: number): Matchup {
   return {
     kind: "headToHead",
@@ -124,7 +155,7 @@ function matchupAt(minute: number, gameweek: number): Matchup {
       kind: "scored",
       team: sideAt(MINE, SAKA_POTATOES, minute),
       opponent: sideAt(OPPONENT, KROOS_CONTROL, minute),
-      commentary: { kind: "read", lines: [], delayed: false },
+      commentary: commentaryAt(minute),
     },
   };
 }
@@ -148,6 +179,13 @@ function useReplayMinute(): number {
   return minute;
 }
 
+/** The replay's matchup, the same object until the minute or the gameweek moves, as Convex's
+ *  live query holds its result: the screen keeps the last one it was given. */
+function usePreviewMatchup(gameweek: number): Matchup {
+  const minute = useReplayMinute();
+  return useMemo(() => matchupAt(minute, gameweek), [minute, gameweek]);
+}
+
 export const previewMatchup: MatchupSeam = {
-  useMatchup: (_leagueId, _now, asked) => matchupAt(useReplayMinute(), asked.gameweek ?? GAMEWEEK),
+  useMatchup: (_leagueId, _now, asked) => usePreviewMatchup(asked.gameweek ?? GAMEWEEK),
 };
