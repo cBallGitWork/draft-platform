@@ -20,6 +20,10 @@ import {
 // stored and read from then on, so the table never scores the whole season on each read. A gameweek
 // not yet final is still worked out live; `rescore` stores one again.
 
+/** A match the football sync moves into gameweek 6 after it was stored, between two clubs no
+ *  squad here holds. */
+const MOVED_IN = 999_001;
+const OTHER_CLUBS = [901, 902] as const;
 /** A score no team made, written over a stored one to tell a stored read from a worked-out one. */
 const WRITTEN_OVER = 99;
 
@@ -82,7 +86,7 @@ test("a gameweek with no match held is never final, so a match moved into it lat
   expect(await annsPoints(league)).toMatchObject({ points: 0, provisional: false });
 });
 
-test("a team added after a gameweek was stored has the gameweek worked out again, then stored again with it", async () => {
+test("a team added after a gameweek was stored is worked out alone and stored beside the rest, which stay as stored", async () => {
   const league = await scoresLeague();
   await fullTimeRecords(league);
   await lockMatch(league);
@@ -90,14 +94,28 @@ test("a team added after a gameweek was stored has the gameweek worked out again
   await writeOverAnns(league);
   const [catsTeam] = await addManagers(league.t, league.leagueId, [CAT]);
 
-  // Worked out, not read: Ann's points are hers again, not the stored row's.
-  expect(await annsPoints(league)).toMatchObject({ points: HULL_POINTS, provisional: false });
+  expect(await annsPoints(league)).toMatchObject({ points: WRITTEN_OVER, provisional: false });
   expect(await storeLeague(league)).toEqual([GAMEWEEK]);
   expect(await stored(league)).toEqual([
-    { gameweek: GAMEWEEK, teamId: league.annsTeam, points: HULL_POINTS, noLineup: false },
+    { gameweek: GAMEWEEK, teamId: league.annsTeam, points: WRITTEN_OVER, noLineup: false },
     { gameweek: GAMEWEEK, teamId: league.bobsTeam, points: EVERTON_POINTS, noLineup: false },
     { gameweek: GAMEWEEK, teamId: catsTeam, points: 0, noLineup: true },
   ]);
+});
+
+test("a match moved into a stored gameweek reopens it: worked out live, stored again once that match locks too", async () => {
+  const league = await scoresLeague();
+  await fullTimeRecords(league);
+  await lockMatch(league);
+  await storeLeague(league);
+  await writeOverAnns(league);
+  await league.t.run((ctx) =>
+    ctx.db.insert("fixtures", { code: MOVED_IN, gameweek: GAMEWEEK, homeClubCode: OTHER_CLUBS[0], awayClubCode: OTHER_CLUBS[1], kickoff: Date.now() }),
+  );
+
+  expect(await annsPoints(league)).toMatchObject({ points: HULL_POINTS });
+  // Not final while the moved match hasn't locked, so nothing is stored over the old rows yet.
+  expect(await storeLeague(league)).toEqual([]);
 });
 
 test("rescore drops a gameweek's stored points and stores them again from the records", async () => {

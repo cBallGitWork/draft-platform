@@ -19634,6 +19634,15 @@
             },
             "optional": false
           },
+          "fixtureCodes": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "number"
+              }
+            },
+            "optional": false
+          },
           "storedAt": {
             "fieldType": {
               "type": "number"

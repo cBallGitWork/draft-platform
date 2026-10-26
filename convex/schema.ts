@@ -726,6 +726,8 @@ const playedFixtureTables = {
     points: v.number(),
     /** It had never saved a lineup, so it scored 0 (gameweekScores.ts's TeamGameweek). */
     noLineup: v.boolean(),
+    /** The gameweek's matches it was scored from: a match moved in or out since reopens it. */
+    fixtureCodes: v.array(v.number()),
     storedAt: v.number(),
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
 };

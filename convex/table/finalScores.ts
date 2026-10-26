@@ -9,13 +9,15 @@ import { leagueScores } from "./gameweekScores";
 
 // Stores each team's points in a gameweek once they are final (#418), so the table reads them
 // rather than scoring the whole season on every read. Final means every match in the gameweek has
-// locked: after the lock "a correction doesn't change points" (spec/07), and nothing else a played
-// gameweek reads changes (gameweekScores.ts says why). Each match's lock (matchStats.ts) asks every
+// locked: after the lock "a correction doesn't change points" (spec/07). A match moved into or out
+// of it later reopens it (gameweekScores.ts says how). Each match's lock (matchStats.ts) asks every
 // league to store what is newly final, in its own transaction, so a league that can't be scored
 // never holds up a lock or another league.
 //
-// A stored score can still go stale if the code that scores changes (a bug fixed in scoring, say)
-// or, once built, a commissioner overrides a player's points for a match (spec/14, #32). `rescore`
+// A stored score can still go stale if the code that scores changes (a bug fixed in scoring, say),
+// the admin corrects a player's positions after the gameweek (auto-subs read positions as they are
+// when it is stored), or, once built, a commissioner overrides a player's points for a match
+// (spec/14, #32). `rescore`
 // is that path: it drops a gameweek's stored scores and stores them again from the records.
 
 /** The most leagues one lock asks to store their scores; past it this throws, and the lock still
@@ -62,21 +64,24 @@ export const rescore = internalMutation({
   },
 });
 
-/** Scores the league as the table does, and stores each gameweek worked out that is final. A
- *  league made before rules were held has no table to store. */
+/** Scores the league as the table does, and stores each team's points worked out that are final:
+ *  the whole gameweek afresh when its matches have changed since it was stored, else only the
+ *  teams added since, leaving the rest as stored. A league made before rules were held has no
+ *  table to store. */
 async function storeFinal(ctx: MutationCtx, league: Doc<"leagues">): Promise<number[]> {
   const season = await seasonRules(ctx, league._id);
   if (season === null) return [];
   const teamIds = (await teamsOf(ctx, league._id)).map((team) => team._id);
   const { scores, finalUnstored } = await leagueScores(ctx, league, season, teamIds);
   const storedAt = Date.now();
-  for (const gameweek of finalUnstored) {
-    await dropGameweek(ctx, league._id, gameweek);
-    for (const [teamId, { points, noLineup }] of scores.get(gameweek)!) {
-      await ctx.db.insert("finalScores", { leagueId: league._id, gameweek, teamId, points, noLineup, storedAt });
+  for (const { gameweek, teamIds: worked, fixtureCodes, replace } of finalUnstored) {
+    if (replace) await dropGameweek(ctx, league._id, gameweek);
+    for (const teamId of worked) {
+      const { points, noLineup } = scores.get(gameweek)!.get(teamId)!;
+      await ctx.db.insert("finalScores", { leagueId: league._id, gameweek, teamId, points, noLineup, fixtureCodes, storedAt });
     }
   }
-  return finalUnstored;
+  return finalUnstored.map(({ gameweek }) => gameweek);
 }
 
 /** The gameweek's stored rows go: a team's left from before it was removed among them. */
