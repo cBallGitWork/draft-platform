@@ -9,6 +9,8 @@
 //
 // No line for an auto-sub: whether a man played is known only after his match (spec/10).
 
+import type { Infer } from "convex/values";
+import type { Doc } from "../_generated/dataModel";
 import { FEED_TYPE, withFullTimePoints } from "../football/commentary";
 import type { Cell } from "../lineup/pitch";
 import { rulePointsIn, scoreMatch, type MatchStats } from "../scoring/scoring";
@@ -16,28 +18,12 @@ import { inTenths, type ScoringSet } from "../scoring/scoringSet";
 import { STAT_CATALOGUE } from "../scoring/statCatalogue";
 import { EVENT_STATS } from "../stats/matchRecords";
 import { MINUTE_MS } from "../shared/time";
+import type { commentaryLine } from "../schema";
 
 type PlayerCode = number;
 
-/** A stored line, as matchCommentary.ts keeps it. */
-export interface StoredLine {
-  sourceId: number;
-  text: string;
-  minute?: number | null;
-  addedMinute?: number | null;
-  type?: string;
-  playerCodes?: (number | null)[];
-}
-
-/** A stored step, as thresholdSteps.ts keeps it. */
-export interface StoredStep {
-  playerCode: PlayerCode;
-  stat: string;
-  from: number;
-  to: number;
-  minutes: number;
-  minute: number | null;
-}
+type StoredLine = Infer<typeof commentaryLine>;
+export type StoredStep = Pick<Doc<"thresholdSteps">, "playerCode" | "stat" | "from" | "to" | "minutes" | "minute">;
 
 export interface VidiprinterMatch {
   fixtureCode: number;
@@ -132,8 +118,8 @@ function priced(
   const moves = (STATS_MOVED[stored.type ?? ""] ?? []).flatMap((stat, index) => {
     const code = codes[index];
     if (code === undefined || code === null) return [];
-    const nth = (counted.get(`${code}/${stat}`) ?? 0) + 1;
-    counted.set(`${code}/${stat}`, nth);
+    const nth = (counted.get(tallyKey(code, stat)) ?? 0) + 1;
+    counted.set(tallyKey(code, stat), nth);
     const player = players.get(code);
     const stats = player?.inMatch.get(fixtureCode)?.stats ?? null;
     if (player === undefined || stats === null) return [];
@@ -142,6 +128,9 @@ function priced(
   });
   return { text: stored.text, points: worth(moves, codes.length) };
 }
+
+/** One man's count of one stat, as a match's lines and steps tally them. */
+const tallyKey = (playerCode: PlayerCode, stat: string) => `${playerCode}/${stat}`;
 
 /** His match's total with `stat` at `actions`, the rest of his record as it stands. */
 function totalWith(stats: MatchStats, stat: string, actions: number, cell: Cell, set: ScoringSet): number {
@@ -164,7 +153,7 @@ function thresholdLines(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode
   const highest = new Map<string, number>();
   return match.steps.flatMap((step, index) => {
     const player = players.get(step.playerCode);
-    const key = `${step.playerCode}/${step.stat}`;
+    const key = tallyKey(step.playerCode, step.stat);
     if (player === undefined || step.to <= (highest.get(key) ?? Number.NEGATIVE_INFINITY)) return [];
     highest.set(key, step.to);
     const rules = set.rules.filter((rule) => rule.stat === step.stat && rule.shape !== "perAction");

@@ -275,7 +275,7 @@ test("the commentary is the match's stored lines, the goal priced for its scorer
     }),
   );
 
-  const { commentary, team } = await annsGame(league);
+  const { commentary, team, opponent } = await annsGame(league);
   if (commentary.kind !== "read") throw new Error(`the commentary wasn't read: ${commentary.reason}`);
   const scorerSlot = slotOf(team, HULL_SCORER);
   expect(commentary.delayed).toBe(true);
@@ -285,6 +285,8 @@ test("the commentary is the match's stored lines, the goal priced for its scorer
   expect(commentary.lines[1].points).toBe(`+${MIDFIELD_GOAL}`);
   expect(commentary.lines[0].text).toMatch(/^FT HUL 1–2 EVE: /);
   expect(commentary.lines[0].text).toContain(`${scorer} ${scorerSlot.points}`);
+  const evertonKeeper = EVERTON_STARTERS[0].playerCode;
+  expect(commentary.lines[0].text).toContain(`${await nameOf(league, evertonKeeper)} ${slotOf(opponent, evertonKeeper).points}`);
   // Phillips, Hull's unused keeper, didn't play, so isn't listed.
   expect(commentary.lines[0].text).not.toContain(await nameOf(league, PHILLIPS));
 });
