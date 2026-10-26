@@ -9,7 +9,7 @@ import type { Position } from "../positions/positionTables";
 import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { GAMEWEEKS, isGameweekUsed } from "../gameweeks/usedGameweeks";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
-import type { SeasonRules } from "../rules/leagueRules";
+import type { SeasonRules } from "../rules/rulesHistory";
 import type { StoredScoringSet } from "../rules/leagueRulesShape";
 import { siteScoringByGameweek } from "../scoring/siteScoring";
 import { validateScoringSet } from "../scoring/scoringSet";

@@ -3,7 +3,7 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { rulesInGameweek } from "../../../convex/rules/leagueRules";
+import { rulesInGameweek } from "../../../convex/rules/rulesHistory";
 import type { LeagueRules, StoredScoringSet } from "../../../convex/rules/leagueRulesShape";
 import { siteScoringInGameweek } from "../../../convex/scoring/siteScoring";
 import { scoreMatch } from "../../../convex/scoring/scoring";

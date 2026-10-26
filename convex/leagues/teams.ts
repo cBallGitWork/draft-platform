@@ -16,7 +16,8 @@ import {
   teamsOf,
 } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
-import { leagueDeadlines, seasonRules } from "../rules/leagueRules";
+import { seasonRules } from "../rules/rulesHistory";
+import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { storeBegunFixtures } from "../table/playedFixtures";
 import { TEAM_NAME_MAX } from "./leagueLimits";
 import { cancelLiveInvites } from "../joining/liveInvites";

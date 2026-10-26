@@ -2,7 +2,7 @@ import { beforeEach, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lineup } from "../../../convex/lineup/lineup";
-import { rulesInGameweek } from "../../../convex/rules/leagueRules";
+import { rulesInGameweek } from "../../../convex/rules/rulesHistory";
 import type { Position } from "../../../convex/positions/positionTables";
 import { HELD_FIRST_RULES, holdGameweeks, rulesRevision, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
