@@ -108,8 +108,8 @@ test("rescore drops a gameweek's stored points and stores them again from the re
   await writeOverAnns(league);
 
   expect(await league.t.mutation(internal.table.finalScores.rescore, { leagueId: league.leagueId, gameweek: GAMEWEEK })).toBe(true);
+  expect((await stored(league)).map(({ points }) => points)).toEqual([HULL_POINTS, EVERTON_POINTS]);
   expect(await annsPoints(league)).toMatchObject({ points: HULL_POINTS, provisional: false });
-  expect(await finalRows(league)).toHaveLength(2);
 });
 
 test("a gameweek that can't be scored is stored for nobody, logged, and named on the table (#287)", async () => {
