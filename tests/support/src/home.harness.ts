@@ -21,10 +21,13 @@ export const homeRow = (position: number, teamName: string, rest: Partial<Row> =
   ...rest,
 });
 
+/** A head-to-head of `team` against `opponent`, null for the league's average. */
+export const homeFixture = (team: string, opponent: string | null) => ({ teamId: `team-${team}` as Id<"teams">, team, opponent });
+
 /** Two teams in gameweek 1, nothing scored, moved or written: what league home holds by default. */
 export const quietHome: LeagueHome = {
   format: "headToHead",
-  thisGameweek: { gameweek: 1, fixtures: [{ team: "Team 1", opponent: "Team 2" }], byes: [] },
+  thisGameweek: { gameweek: 1, fixtures: [homeFixture("Team 1", "Team 2")], byes: [] },
   table: [homeRow(1, "Team 1", { mine: true }), homeRow(2, "Team 2")],
   teams: 2,
   squadMoves: [],

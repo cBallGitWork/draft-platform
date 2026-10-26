@@ -4,6 +4,7 @@ import { TOP_ROWS } from "../../convex/home/glance";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
 import { MAIL_PATH, TABLE_PATH } from "../frame/menu";
+import { MatchupLink } from "../matchup/MatchupLink";
 import { letterDay, letterTime } from "../mail/words";
 import { useMinute } from "../useMinute";
 import type { HomeSeam, LeagueHome } from "./seam";
@@ -119,10 +120,12 @@ function HeadToHeads({ home: { format, thisGameweek } }: { home: LeagueHome }) {
   return (
     <Panel id={HEAD_TO_HEADS_ID} title={title}>
       <ul aria-label={headToHeadsLabel(title)}>
-        {thisGameweek.fixtures.map(({ team, opponent }) => (
-          <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-2 border-b border-panel-rule px-3 py-1 text-lead">
+        {thisGameweek.fixtures.map(({ teamId, team, opponent }) => (
+          <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 border-b border-panel-rule px-3 py-1 text-lead">
             <span className="text-right font-semibold">{team}</span>
-            <span className="text-muted">{versusWords}</span>
+            <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={thisGameweek.gameweek}>
+              <span className="text-muted">{versusWords}</span>
+            </MatchupLink>
             {opponent === null ? <span className="text-derived">{leagueAverageWords}</span> : <span className="font-semibold">{opponent}</span>}
           </li>
         ))}

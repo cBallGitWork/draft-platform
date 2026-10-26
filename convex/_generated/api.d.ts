@@ -64,6 +64,8 @@ import type * as mail_letterWords from "../mail/letterWords.js";
 import type * as mail_letters from "../mail/letters.js";
 import type * as mail_mail from "../mail/mail.js";
 import type * as mail_mailLimits from "../mail/mailLimits.js";
+import type * as matchup_matchup from "../matchup/matchup.js";
+import type * as matchup_matchupShape from "../matchup/matchupShape.js";
 import type * as outbound_email from "../outbound/email.js";
 import type * as outbound_emailLimit from "../outbound/emailLimit.js";
 import type * as playerCard_cardPoints from "../playerCard/cardPoints.js";
@@ -181,6 +183,8 @@ declare const fullApi: ApiFromModules<{
   "mail/letters": typeof mail_letters;
   "mail/mail": typeof mail_mail;
   "mail/mailLimits": typeof mail_mailLimits;
+  "matchup/matchup": typeof matchup_matchup;
+  "matchup/matchupShape": typeof matchup_matchupShape;
   "outbound/email": typeof outbound_email;
   "outbound/emailLimit": typeof outbound_emailLimit;
   "playerCard/cardPoints": typeof playerCard_cardPoints;

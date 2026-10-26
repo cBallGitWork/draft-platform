@@ -25,7 +25,7 @@ export const [ANN, BOB, CAT] = MANAGERS;
 /** Hull v Everton's kickoff here: a week after signInDeployment's clock, so the league is made
  *  before gameweek 6 begins (a document can't be made earlier than the deployment's first). The
  *  records don't hang on it. */
-const KICKOFF = Date.parse("2026-10-27T15:00:00Z");
+export const KICKOFF = Date.parse("2026-10-27T15:00:00Z");
 export const FULL_TIME_READ = KICKOFF + 2 * HOUR_MS;
 /** The league's deadline for gameweek 6: the first rules', before Hull v Everton's kickoff. */
 const DEADLINE = KICKOFF - FIRST_RULES.deadline.minutesBeforeFirstKickoff * MINUTE_MS;

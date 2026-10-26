@@ -53,7 +53,7 @@ test("a gameweek replayed from the recorded match gives each team its points, th
   expect(read.unscored).toEqual([]);
 
   const fixtures = read.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures;
-  expect(fixtures).toEqual([{ team: "Team 1", opponent: "Team 2", points: { team: HULL_POINTS, opponent: EVERTON_POINTS } }]);
+  expect(fixtures).toEqual([{ teamId: league.annsTeam, team: "Team 1", opponent: "Team 2", points: { team: HULL_POINTS, opponent: EVERTON_POINTS } }]);
   expect(read.table.map(({ teamName, played, won, drawn, lost, pointsFor, pointsAgainst, difference, points }) => ({
     teamName, played, won, drawn, lost, pointsFor, pointsAgainst, difference, points,
   }))).toEqual([
@@ -139,7 +139,7 @@ test("the team left over plays the league's average, every team's score counted 
   // Cat's team saved no lineup, so it scores 0 and counts in the average as 0.
   const average = inTenths((HULL_POINTS + EVERTON_POINTS + 0) / 3);
   const fixtures = read.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures;
-  expect(fixtures).toContainEqual({ team: "Team 3", opponent: null, points: { team: 0, opponent: average } });
+  expect(fixtures).toContainEqual({ teamId: league.catsTeam, team: "Team 3", opponent: null, points: { team: 0, opponent: average } });
   expect(read.table.find((row) => row.teamName === "Team 3")).toMatchObject({ played: 1, lost: 1, pointsFor: 0, pointsAgainst: average });
 });
 
