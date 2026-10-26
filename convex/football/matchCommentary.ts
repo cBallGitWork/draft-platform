@@ -22,7 +22,8 @@ import { plScoreRead, type ScoreRead } from "./scoreReads";
 type CommentaryLineRow = Infer<typeof commentaryLine>;
 
 /** How far the newest timed line may trail the match clock before the stream counts as behind.
- *  The longest quiet spell in the five recorded matches is under 8 minutes. Claude's choice. */
+ *  The longest gap between timed lines in the five recorded streams (pl-commentary.json's four and
+ *  Ipswich v Forest's final read) is 7.7 minutes, measured 26 Oct 2026. Claude's choice. */
 export const COMMENTARY_BEHIND_MINUTES = 10;
 
 /** What every live match's commentary is read against, from FPL's bootstrap the tick already holds. */
@@ -106,6 +107,7 @@ export async function readCommentary(
 ): Promise<CommentaryRead> {
   if (listed === undefined) throw new Error(`the Premier League lists no match ${fixtureCode}`);
   const score = plScoreRead(listed, fixtureCode);
+  // The sheets are read again, not shared with the points' read, so neither can fail the other.
   const [sheets, stream] = await Promise.all([readPlFixture(listed.id), readPlCommentary(listed.id)]);
   const { lines } = commentaryLines(sheets, stream, context.codeByOpta);
   const written = writeCommentary(lines, {
