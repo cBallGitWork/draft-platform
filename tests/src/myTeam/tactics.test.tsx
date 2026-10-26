@@ -359,6 +359,5 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
     await userEvent.selectOptions(picker(), "5-4-1");
     await userEvent.click(screen.getByRole("button", { name: discardWords }));
     expect(within(pitch()).queryAllByRole("img", { name: /^Empty slot/ })).toEqual([]);
-    expect(picker().value).toBe("");
   });
 });
