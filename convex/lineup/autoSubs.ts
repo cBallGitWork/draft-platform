@@ -153,7 +153,13 @@ function legalSubstitution(
   rules: LineupRules,
 ): { substitution: Substitution; lineup: Lineup } | undefined {
   const after: Lineup = {
-    starters: lineup.starters.map((starter) => (starter === absentee ? { playerCode, ...cell } : starter)),
+    // Into the absentee's own slot he takes its role too (spec/05 Auto-subs); elsewhere he plays
+    // the new slot's first, until stars choose his best.
+    starters: lineup.starters.map((starter) => {
+      if (starter !== absentee) return starter;
+      const sameSlot = cell.area === absentee.area && cell.lane === absentee.lane;
+      return sameSlot && absentee.role !== undefined ? { playerCode, ...cell, role: absentee.role } : { playerCode, ...cell };
+    }),
     bench: lineup.bench.map((benched) => (benched === playerCode ? absentee.playerCode : benched)),
   };
   if (isWorse(standingProblems(after, positions, rules), standingProblems(lineup, positions, rules))) return undefined;

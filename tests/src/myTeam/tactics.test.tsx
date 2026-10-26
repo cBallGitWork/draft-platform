@@ -23,6 +23,7 @@ import {
   noDeadlineWords,
   pickHintWords,
   pitchLabel,
+  roleLabel,
   presetLabel,
   putHereLabel,
   savedWords,
@@ -121,7 +122,12 @@ describe("the lineup held", () => {
   it("is listed beside it: the eleven back to front, then the bench in order", async () => {
     openTacticsTab();
     await screen.findByRole("table", { name: squadTableLabel });
-    expect(squadRows()).toEqual(["GKRaya ARSMove", "CBSaliba ARSMove", "CDM, CMRice ARSMove", "STHavertz ARSMove", BENCH_TITLE, "GKArrizabalaga ARSMove Up Down", "FB, WBWhite ARSMove Up Down"]);
+    expect(squadRows()).toEqual([
+      "GKRaya ARSShot-stopperSweeper keeperMove",
+      "CBSaliba ARSStopperBall-playing defenderMove",
+      "CDM, CMRice ARSBox-to-boxPlaymakerBall-winnerMove",
+      "STHavertz ARSPoacherTarget manPressing forwardShadow strikerFalse 9Move",
+      BENCH_TITLE, "GKArrizabalaga ARSMove Up Down", "FB, WBWhite ARSMove Up Down"]);
   });
 
   it("for a team that has never saved one, is the whole squad on the bench", async () => {
@@ -359,5 +365,40 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
     await userEvent.selectOptions(picker(), "5-4-1");
     await userEvent.click(screen.getByRole("button", { name: discardWords }));
     expect(within(pitch()).queryAllByRole("img", { name: /^Empty slot/ })).toEqual([]);
+  });
+});
+
+describe("roles (spec/05 Roles; #10; Craig, 26 Oct 2026)", () => {
+  const picker = (player: Member) => screen.getByRole<HTMLSelectElement>("combobox", { name: roleLabel(player.name) });
+  const SALIBAS_CELL = { area: "defence", lane: "leftCentre" } as const;
+
+  it("each starter has a picker of his slot's roles, on its first until he is given one; the bench has none", async () => {
+    await openedPitch();
+    expect(Array.from(picker(SALIBA).options).map((option) => option.text)).toEqual(["Stopper", "Ball-playing defender"]);
+    expect(picker(SALIBA).value).toBe("stopper");
+    expect(screen.queryByRole("combobox", { name: roleLabel(WHITE.name) })).toBeNull();
+  });
+
+  it("the pitch shows the role under his name", async () => {
+    await openedPitch();
+    await userEvent.selectOptions(picker(SALIBA), "ballPlayingDefender");
+    expect(within(blockOf(SALIBA, SALIBAS_CELL)).getByText("Ball-playing defender")).toBeTruthy();
+    expect(document.activeElement).toBe(picker(SALIBA));
+  });
+
+  it("is saved with the lineup", async () => {
+    const app = await openedPitch();
+    await userEvent.selectOptions(picker(SALIBA), "ballPlayingDefender");
+    await userEvent.click(save());
+    const [, sent] = app.myTeam.lineupChanges.save.mock.lastCall!;
+    expect(sent.starters.find((starter) => starter.playerCode === SALIBA.playerCode)).toEqual({ playerCode: SALIBA.playerCode, ...SALIBAS_CELL, role: "ballPlayingDefender" });
+  });
+
+  it("a starter moved to another slot starts on its first role", async () => {
+    await openedPitch();
+    await userEvent.selectOptions(picker(SALIBA), "ballPlayingDefender");
+    await userEvent.click(blockOf(SALIBA, SALIBAS_CELL));
+    await userEvent.click(screen.getByRole("button", { name: putHereLabel(SALIBA.name, "defence", "centre") }));
+    expect(picker(SALIBA).value).toBe("stopper");
   });
 });

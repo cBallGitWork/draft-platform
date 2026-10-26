@@ -20178,6 +20178,12 @@
                       "type": "number"
                     },
                     "optional": false
+                  },
+                  "role": {
+                    "fieldType": {
+                      "type": "string"
+                    },
+                    "optional": true
                   }
                 }
               }

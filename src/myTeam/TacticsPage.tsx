@@ -4,7 +4,7 @@ import type { Cell } from "../../convex/lineup/pitch";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, Notice, PageSection, PanelNote, Problem } from "../frame/Panel";
 import { useMinute } from "../useMinute";
-import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, withSquad, type DraftLineup } from "./lineupDraft";
+import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, withRole, withSquad, type DraftLineup } from "./lineupDraft";
 import { Pitch, type Moving } from "./Pitch";
 import { SquadTable } from "./SquadTable";
 import type { MyTeamSeam } from "./seam";
@@ -135,6 +135,8 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
   const toBench = () => {
     if (picked !== null) change(benched(draft, picked.playerCode), picked.playerCode);
   };
+  /** A starter given another role his slot offers; the picker keeps the focus. */
+  const toRole = (playerCode: number, role: string) => change(withRole(draft, playerCode, role), playerCode, [`[data-role="${playerCode}"]`]);
   /** A preset picked reshapes the pitch, keeping the players (spec/05; Craig, 26 Oct 2026). */
   const pickPreset = (name: string) => {
     const preset = tactics.presets.find((each) => each.name === name);
@@ -230,7 +232,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
           <h2 id={SQUAD_TITLE_ID} className="bg-plate px-3 py-1 text-lead font-bold shadow-bevel-plate">
             {SQUAD_PANEL_TITLE}
           </h2>
-          <SquadTable leagueId={league.leagueId} draft={draft} squad={squad} moving={moving} onBench={toBench} onBenchAt={toBenchAt} />
+          <SquadTable leagueId={league.leagueId} draft={draft} squad={squad} moving={moving} onBench={toBench} onBenchAt={toBenchAt} onRole={toRole} />
         </section>
       </div>
     </div>

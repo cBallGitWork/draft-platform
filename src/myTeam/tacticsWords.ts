@@ -56,11 +56,14 @@ export const moveWords = "Move";
 export const squadColumns = {
   position: { short: "Pos", long: "Positions" },
   player: { short: "Player", long: "Player" },
+  role: { short: "Role", long: "The role he plays in his slot" },
   move: { short: moveWords, long: "Move him" },
 } as const;
 export const movingWords = "Moving";
 export const moveLabel = (name: string) => `Move ${name}`;
 export const toBenchWords = (name: string) => `Put ${name} on the bench`;
+/** A starter's role picker, for screen readers (spec/05 Roles). */
+export const roleLabel = (name: string) => `${name}'s role`;
 /** A bench player's buttons for the bench order (spec/05 Auto-subs), and what each says. */
 export const upWords = "Up";
 export const downWords = "Down";

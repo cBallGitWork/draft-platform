@@ -44,6 +44,8 @@ export function problemWords(problem: LineupProblem, nameOf: NameOf): string {
       return `${nameOf(problem.playerCode)} plays ${problem.positions.join(", ")}, so he can't stand in the ${LANE_WORDS[problem.lane]} cell in ${AREA_WORDS[problem.area]}.`;
     case "aboveMaximum":
       return `The league starts at most ${problem.maximum} in ${AREA_WORDS[problem.area]}; this lineup starts ${problem.starterCount} there.`;
+    case "roleNotOffered":
+      return `The ${LANE_WORDS[problem.lane]} cell in ${AREA_WORDS[problem.area]} doesn't offer the role "${problem.role}" ${nameOf(problem.playerCode)} was given.`;
     case "belowMinimum":
       return `The league starts at least ${problem.minimum} in ${AREA_WORDS[problem.area]}; this lineup starts ${problem.starterCount} there.`;
   }

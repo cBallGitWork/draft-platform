@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from "vitest";
 import type { Cell } from "../../../convex/lineup/pitch";
-import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, withSquad } from "../../../src/myTeam/lineupDraft";
+import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, withRole, withSquad } from "../../../src/myTeam/lineupDraft";
 
 const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
 const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;
@@ -80,5 +80,20 @@ describe("a preset picked (spec/05; Craig, 26 Oct 2026)", () => {
     const draft = { starters: [{ playerCode: 2, area: "defence", lane: "left" } as const, { playerCode: 7, area: "defence", lane: "leftCentre" } as const], bench: [] };
     const result = reshaped(draft, [cell("defence", "left"), cell("defence", "right")]);
     expect(result.starters).toEqual([{ playerCode: 2, area: "defence", lane: "left" }, { playerCode: 7, area: "defence", lane: "right" }]);
+  });
+});
+
+describe("a role (spec/05 Roles)", () => {
+  it("given, is the starter's until he moves; the same lineup with another role isn't the same", () => {
+    const given = withRole(DRAFT, 2, "attackingFullBack");
+    expect(given.starters[1]).toEqual({ ...BACK, role: "attackingFullBack" });
+    expect(sameLineup(given, DRAFT)).toBe(false);
+    expect(placed(given, 2, { area: "defence", lane: "centre" }).starters.at(-1)).toEqual({ playerCode: 2, area: "defence", lane: "centre" });
+  });
+
+  it("kept by a preset that puts him in a slot offering it, dropped where it isn't offered", () => {
+    const given = withRole(DRAFT, 2, "attackingFullBack");
+    expect(reshaped(given, [KEEPER, { area: "defence", lane: "left" }]).starters[1]).toEqual({ ...BACK, role: "attackingFullBack" });
+    expect(reshaped(given, [KEEPER, { area: "defence", lane: "centre" }]).starters[1]).toEqual({ playerCode: 2, area: "defence", lane: "centre" });
   });
 });

@@ -113,7 +113,11 @@ export const playedFixtureTables = {
 // lineup/lineups.ts writes and reads.
 
 /** A starter and the cell he stands in: lineup.ts's Placement, its cell checked. */
-export const placementShape = cellShape.extend({ playerCode: v.number() });
+export const placementShape = cellShape.extend({
+  playerCode: v.number(),
+  /** The role he plays (lineup/roles.ts), absent until given: the slot's first (#10). */
+  role: v.optional(v.string()),
+});
 
 export const lineupTables = {
   lineups: defineTable({
