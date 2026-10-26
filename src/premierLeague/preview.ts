@@ -1,7 +1,9 @@
 // The Premier League section in the preview (src/preview.ts): twenty clubs over a made-up season,
 // the current gameweek kicked off today, with a match at full time, one live, one at half-time and
-// the rest to come; earlier gameweeks finished, later ones to come. Made-up scores.
+// the rest to come; earlier gameweeks finished, later ones to come; the table worked out from
+// them. Made-up scores.
 
+import { plTable } from "../../convex/football/plTable";
 import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import type { FirstKickoff, GameweekMatch, PremierLeagueSeam } from "./seam";
@@ -78,7 +80,15 @@ const firstKickoffs: FirstKickoff[] = SEASON_GAMEWEEKS.map((gameweek) => ({
 }));
 const matches = new Map(SEASON_GAMEWEEKS.map((gameweek) => [gameweek, matchesOf(gameweek)]));
 
+/** The table from the made-up results by the server's own rules (plTable.ts): the current
+ *  gameweek's live and half-time matches count as they stand, so it is provisional. */
+const results = [...matches.values()].flat().flatMap(({ home, away, score }) =>
+  score === null || score.homeGoals === null || score.awayGoals === null ? [] : [{ home, away, homeGoals: score.homeGoals, awayGoals: score.awayGoals }],
+);
+const standings = { rows: plTable(CLUBS, results, { seasonOver: false }), provisional: true };
+
 export const previewPremierLeague: PremierLeagueSeam = {
   useFirstKickoffs: () => firstKickoffs,
   useGameweekMatches: (gameweek) => matches.get(gameweek) ?? [],
+  useStandings: () => standings,
 };
