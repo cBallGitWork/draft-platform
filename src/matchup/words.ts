@@ -79,3 +79,10 @@ export const autoSubWords = {
 
 /** Read out for a bench player whose points don't count, greyed on screen (spec/14, On screen). */
 export const notCountingLabel = "not counting";
+
+/** The matchup's commentary (spec/10): every line of every match either team's men play in. */
+export const VIDIPRINTER_TITLE = "Vidiprinter";
+/** When the stream falls behind or stops; points carry on from FPL (spec/10, The commentary). */
+export const commentaryDelayedWords = "Commentary delayed";
+export const noCommentaryWords = "No lines yet: they come in from the lineups, about an hour before each match with either team's men in it.";
+export const unreadCommentaryWords = (reason: string) => `The commentary can't be shown: ${reason}.`;
