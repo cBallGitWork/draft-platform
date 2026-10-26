@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import { rulesInGameweek } from "../../../convex/rules/leagueRules";
+import { rulesInGameweek } from "../../../convex/rules/rulesHistory";
 import type { StoredScoringSet } from "../../../convex/rules/leagueRulesShape";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { SITE_SCORING_VERSIONS_MOST, siteScoringRefusals } from "../../../convex/scoring/siteScoring";

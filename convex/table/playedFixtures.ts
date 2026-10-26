@@ -3,7 +3,7 @@ import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { isLocked } from "../gameweeks/deadline";
 import { GAMEWEEKS, usedGameweeksOf } from "../gameweeks/usedGameweeks";
 import { drawRulesOf } from "../rules/firstRules";
-import type { SeasonRules } from "../rules/leagueRules";
+import type { SeasonRules } from "../rules/rulesHistory";
 import { teamsOf } from "../shared/leagueAccess";
 import { drawFixtures, type GameweekFixtures } from "./roundRobin";
 
@@ -89,7 +89,7 @@ async function scheduleAround(
 }
 
 /** Stores each gameweek the league plays that has begun by `now`, by its `deadlines`
- *  (leagueRules.ts's `leagueDeadlines`), and isn't stored yet: as it is drawn now when the league
+ *  (leagueDeadlines.ts's `leagueDeadlines`), and isn't stored yet: as it is drawn now when the league
  *  plays it head-to-head, and with no fixtures when it began before the league was made, is
  *  played as total points, or has fewer than two teams to draw. A gameweek already stored is left
  *  as it is, so storing again does no harm. Null rules are a league made before #25, which has no

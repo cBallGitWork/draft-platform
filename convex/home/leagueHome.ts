@@ -1,7 +1,8 @@
 import { v, type Infer } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { leagueDeadlines, seasonRules } from "../rules/leagueRules";
+import { seasonRules } from "../rules/rulesHistory";
+import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { pinnedLetter } from "../schema";
 import { isSquadMove, SQUAD_MOVES } from "../squads/squads";

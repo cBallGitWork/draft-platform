@@ -6,7 +6,7 @@ import { recordEvent } from "../mail/letters";
 import { tellShortlisters } from "../scouting/shortlist";
 import { clubByCode, playerByCode, playersNamed } from "../shared/players";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
-import { latestRules } from "../rules/leagueRules";
+import { latestRules } from "../rules/rulesHistory";
 import { areaShape, type LeagueRules } from "../rules/leagueRulesShape";
 import type { leagueEvent } from "../schema";
 import { areasOf, type Area } from "../lineup/pitch";

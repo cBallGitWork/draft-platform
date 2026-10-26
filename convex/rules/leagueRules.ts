@@ -1,7 +1,7 @@
 import { v, type Validator } from "convex/values";
-import type { Doc, Id } from "../_generated/dataModel";
+import type { Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { leagueDeadline, type DeadlineRule, type ScheduledMatch } from "../gameweeks/deadline";
+import type { DeadlineRule } from "../gameweeks/deadline";
 import { FIRST_RULES } from "./firstRules";
 import { getLeague, isAdmin, memberOf, refuse, runnerOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
@@ -11,12 +11,12 @@ import { heldRules, leagueRulesShape, type LeagueRules } from "./leagueRulesShap
 import { sortedJson } from "../shared/sortedJson";
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
-import { FIRST_GAMEWEEK, SEASON_GAMEWEEKS } from "../gameweeks/usedGameweeks";
+import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
 import { londonTime } from "../shared/londonTime";
 import { adminByline } from "../mail/letterWords";
 import { checkSquadMaximums, squadMaximumBandShape, squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum, type SquadMaximumBand } from "./squadMaximums";
-import { currentFixtures } from "../shared/fixtures";
-import { takeAllOrThrow } from "../shared/cappedRead";
+import { historyOf, inForce, latestRules, RULES_CHANGES_MOST, type RulesRow } from "./rulesHistory";
+import { heldSchedule } from "../gameweeks/leagueDeadlines";
 
 // A league's rules, held as data (spec/03; #25): a new league copies the admin's default rules, and
 // its commissioner changes them from the next gameweek, so a past gameweek keeps the rules it had.
@@ -26,12 +26,6 @@ import { takeAllOrThrow } from "../shared/cappedRead";
 // `npx convex run rules/leagueRules:setDefaults '{"rules": {…}}'`, checked as a commissioner's are,
 // and the squad maximums by size likewise:
 // `npx convex run rules/leagueRules:setSquadMaximums '{"bands": [{"fromTeams": 2, "maximum": 20}, …]}'`.
-
-/** The most rules rows a league holds: one per change saved, and a save made again before the same
- *  deadline is a row too, so five every gameweek of a season; rows are kept across seasons. A change
- *  past it is refused, and a read of more throws, never a silent cut, as the rules in force are the
- *  newest row (#214). Claude's choice, not yet Craig's. */
-export const RULES_CHANGES_MOST = 200;
 
 /** How many of a league's newest events a stale save looks through for the letter naming who saved
  *  over it. That save came after the screen opened, so its letter is among the few filed since;
@@ -94,58 +88,6 @@ function asRefusal(check: () => void, reworded: (reason: string) => string = (re
   }
 }
 
-/** A rules row with its rules as `heldRules` reads them. */
-type RulesRow = Omit<Doc<"leagueRules">, "rules"> & { rules: LeagueRules };
-
-/** Every rules row the league has, oldest first: one per change, at most RULES_CHANGES_MOST. */
-async function historyOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<RulesRow[]> {
-  const rows = await takeAllOrThrow(
-    ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)),
-    RULES_CHANGES_MOST,
-    `League ${leagueId} holds more than ${RULES_CHANGES_MOST} rules rows, so its rules in force can't be known`,
-  );
-  return rows.map((row) => ({ ...row, rules: heldRules(row.rules) }));
-}
-
-/** The row in force in this gameweek: the latest to take effect at or before it, and of two from
- *  one gameweek, the newer. */
-function inForce(history: readonly RulesRow[], gameweek: number): RulesRow | undefined {
-  return history.findLast((row) => row.fromGameweek <= gameweek);
-}
-
-/** The league's latest rules, a waiting change's among them, or null for a league made before #25:
- *  what the squad's warnings read (#31), as a change of squad limits is best known at once. */
-export async function latestRules(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<LeagueRules | null> {
-  return (await historyOf(ctx, leagueId)).at(-1)?.rules ?? null;
-}
-
-/** The rules in force in this gameweek, from the league's history. Throws if none is, which only a
- *  league made before #25 can have. */
-function rulesInForce(history: readonly RulesRow[], leagueId: Id<"leagues">, gameweek: number): LeagueRules {
-  const row = inForce(history, gameweek);
-  if (row === undefined) throw new Error(`League ${leagueId} has no rules for gameweek ${gameweek}`);
-  return row.rules;
-}
-
-/** The league's rules in a gameweek, for its table and the lineup's checks. Throws for a
- *  league with none, which only one made before #25 can be. */
-export async function rulesInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number): Promise<LeagueRules> {
-  return rulesInForce(await historyOf(ctx, leagueId), leagueId, gameweek);
-}
-
-/** The league's rules over the season: its latest, a waiting change's among them, and those in
- *  force in each gameweek. */
-export type SeasonRules = { latest: LeagueRules; inGameweek: (gameweek: number) => LeagueRules };
-
-/** The league's SeasonRules from one read of its history, as the fixtures read them (#266). Null
- *  for a league made before #25. */
-export async function seasonRules(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<SeasonRules | null> {
-  const history = await historyOf(ctx, leagueId);
-  const latest = history.at(-1);
-  if (latest === undefined) return null;
-  return { latest: latest.rules, inGameweek: (gameweek) => rulesInForce(history, leagueId, gameweek) };
-}
-
 function defaultsRow(ctx: QueryCtx) {
   return ctx.db.query("defaultLeagueRules").unique();
 }
@@ -189,44 +131,6 @@ export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">
 export function refuseTooFewForGames(rules: LeagueRules | null, maxTeams: number): void {
   const games = rules?.gamesPerGameweek;
   if (games !== undefined) asRefusal(() => checkGamesFor(games, maxTeams));
-}
-
-/** The season's gameweeks and matches as held, less those the football layer no longer sends. */
-export async function heldSchedule(ctx: QueryCtx) {
-  const gameweeks = [];
-  // At most FPL's 38, whatever the seasons: the football sync keeps one row per gameweek number,
-  // a new season's updating the last's (footballSync.ts's upsertGameweeks).
-  for await (const { number, droppedAt } of ctx.db.query("gameweeks")) {
-    if (droppedAt === undefined) gameweeks.push({ number });
-  }
-  const matches = (await currentFixtures(ctx)).map(({ gameweek, kickoff }) => ({ gameweek, kickoff }));
-  return { gameweeks, matches };
-}
-
-/** The league's own deadline for each of gameweeks 1 to 38: the one recorded once it passed
- *  (#150), else the one under the rule in force in it. When each begins, for its screens, refusals
- *  and recorder (#138, #139). Null where none of the gameweek's matches has a kickoff time held,
- *  and for every gameweek of a league made before rules were held, which has no deadline rule. */
-export async function leagueDeadlines(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, number | null>> {
-  return leagueDeadlinesIn(ctx, leagueId, (await heldSchedule(ctx)).matches);
-}
-
-/** `leagueDeadlines` against matches already read (`heldSchedule`), so one read serves every
- *  league. */
-export async function leagueDeadlinesIn(
-  ctx: QueryCtx,
-  leagueId: Id<"leagues">,
-  matches: readonly ScheduledMatch[],
-): Promise<Map<number, number | null>> {
-  const history = await historyOf(ctx, leagueId);
-  const passed = await passedDeadlinesOf(ctx, leagueId);
-  return new Map(
-    SEASON_GAMEWEEKS.map((gameweek) => {
-      const row = inForce(history, gameweek);
-      const recorded = passed.get(gameweek) ?? null;
-      return [gameweek, row === undefined ? recorded : leagueDeadline(gameweek, matches, row.rules.deadline, recorded)];
-    }),
-  );
 }
 
 /** The parts of the rules that differ, by name: all of them, from a league that had none. */
