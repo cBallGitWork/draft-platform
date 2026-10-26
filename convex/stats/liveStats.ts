@@ -5,6 +5,7 @@ import { liveStatsTickFields, playerMatchRecord } from "../schema";
 import { LATEST_RUNS } from "../shared/syncRuns";
 import { HOUR_MS } from "../shared/time";
 import { emailIfFailed } from "../admin/feedFailureEmails";
+import { storeThresholdSteps } from "./thresholdSteps";
 
 // Issue #28: the stored side of the live poller. `liveStatsSync.tick` asks `live` which matches
 // are being played, reads them, and hands each one before full time to `upsertLive`; from full
@@ -46,13 +47,15 @@ export async function liveMatches(ctx: QueryCtx, now: number): Promise<LiveMatch
 /** One match's records as read before full time, every one provisional. A match already read at
  *  full time (a status row) is `upsertMatch`'s alone, so a tick racing the sync writes nothing.
  *  `changed` names the men whose records moved. Nothing is recomputed here: the table works its
- *  points out on read (table/gameweekScores.ts), so the records written move it. */
+ *  points out on read (table/gameweekScores.ts), so the records written move it. The totals each
+ *  passing a point a rule pays are stored as steps with the clock's `minute` (#44). */
 export const upsertLive = internalMutation({
-  args: { fixtureCode: v.number(), records: v.array(playerMatchRecord) },
-  handler: async (ctx, { fixtureCode, records }) => {
+  args: { fixtureCode: v.number(), minute: v.union(v.number(), v.null()), records: v.array(playerMatchRecord) },
+  handler: async (ctx, { fixtureCode, minute, records }) => {
     const status = await statusOf(ctx, fixtureCode);
     if (status !== null) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections: 0 };
     const held = new Map((await recordsOf(ctx, fixtureCode)).map((row) => [row.playerCode, row]));
+    await storeThresholdSteps(ctx, fixtureCode, minute, records, held);
     const state = "provisional" as const;
     return { state, ...(await writeRecords(ctx, records, held, state)), lateCorrections: 0 };
   },

@@ -2,13 +2,15 @@
 // opened from any fixture's score on the table and from league home's head-to-heads; the totals as
 // the score at the top, provisional until final; both lineups with each man's points and his
 // match's state, the auto-subs, the bench greyed under its own plate; a replayed gameweek playing
-// out to its result; and why there is nothing to show, when there isn't.
+// out to its result; the vidiprinter under them, newest first, delayed when it says so; and why
+// there is nothing to show, when there isn't.
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { HOME_PATH, MATCHUP_PATH, MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
+import type { MatchupCommentary } from "../../../convex/matchup/matchupShape";
 import type { Matchup } from "../../../src/matchup/seam";
 import {
   AREA_CODES,
@@ -37,7 +39,11 @@ import {
   scoreWords,
   statusLabels,
   statusWords,
+  commentaryDelayedWords,
+  noCommentaryWords,
   totalPointsWords,
+  unreadCommentaryWords,
+  VIDIPRINTER_TITLE,
   unscoredWords,
 } from "../../../src/matchup/words";
 import { leagueTableOf } from "../../../src/table/drawnTable";
@@ -237,5 +243,53 @@ describe("when there's nothing to score", () => {
     expect(await screen.findByText(notBegunWords(deadline))).toBeTruthy();
     expect(screen.getByText("Team 2")).toBeTruthy();
     expect(screen.queryByRole("table")).toBeNull();
+  });
+});
+
+describe("the vidiprinter", () => {
+  const scored = (commentary: MatchupCommentary) =>
+    headToHead({ kind: "scored", team: teamSide("Team 1", [], []), opponent: teamSide("Team 2", [], []), commentary });
+  const vidiprinterLines = () =>
+    within(screen.getByRole("list", { name: VIDIPRINTER_TITLE }))
+      .getAllByRole("listitem")
+      .map((item) => item.textContent);
+
+  it("plays out with the gameweek, newest first, each line with what it's worth to either team's men", async () => {
+    const live = liveMatchup(scored({ kind: "read", lines: [{ key: "1", text: "KO HUL v EVE", points: null }], delayed: false }));
+    openMatchup({ live });
+    await screen.findByRole("list", { name: VIDIPRINTER_TITLE });
+    expect(vidiprinterLines()).toEqual(["KO HUL v EVE"]);
+
+    live.play(
+      scored({
+        kind: "read",
+        lines: [
+          { key: "3", text: "~61' Coyle: 60 minutes", points: "+1" },
+          { key: "2", text: "52' GOAL Coyle, assist Phillips", points: "Coyle +5, Phillips +3" },
+          { key: "1", text: "KO HUL v EVE", points: null },
+        ],
+        delayed: false,
+      }),
+    );
+    expect(await screen.findByText("Coyle +5, Phillips +3")).toBeTruthy();
+    expect(vidiprinterLines()).toEqual(["~61' Coyle: 60 minutes+1", "52' GOAL Coyle, assist PhillipsCoyle +5, Phillips +3", "KO HUL v EVE"]);
+    expect(screen.queryByText(commentaryDelayedWords)).toBeNull();
+  });
+
+  it("says when the commentary is delayed, keeping the lines it has", async () => {
+    openMatchup({ matchup: scored({ kind: "read", lines: [{ key: "1", text: "KO HUL v EVE", points: null }], delayed: true }) });
+    expect((await screen.findByRole("status")).textContent).toBe(commentaryDelayedWords);
+    expect(vidiprinterLines()).toEqual(["KO HUL v EVE"]);
+  });
+
+  it("says when there are no lines yet", async () => {
+    openMatchup({ matchup: scored({ kind: "read", lines: [], delayed: false }) });
+    expect(await screen.findByText(noCommentaryWords)).toBeTruthy();
+  });
+
+  it("says why the commentary can't be shown, while the score still does", async () => {
+    openMatchup({ matchup: scored({ kind: "unread", reason: "the store is down" }) });
+    expect(await screen.findByText(unreadCommentaryWords("the store is down"))).toBeTruthy();
+    expect(screen.getByRole("region", { name: SCORE_LABEL }).textContent).toContain(scoreWords(0, 0));
   });
 });

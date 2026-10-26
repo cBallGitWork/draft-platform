@@ -60,6 +60,19 @@ export type MatchupSide = Infer<typeof side>;
 
 const opponent = v.union(v.object({ kind: v.literal("team"), teamName: v.string() }), v.object({ kind: v.literal(LEAGUE_AVERAGE) }));
 
+/** The matchup's commentary (spec/10; matchup/vidiprinter.ts): every line of every match with
+ *  either lineup's men in it, newest first, and whether any of those matches' commentary is
+ *  delayed ("Commentary delayed"); or why it can't be read, while the scores still show. */
+const commentary = v.union(
+  v.object({
+    kind: v.literal("read"),
+    lines: v.array(v.object({ key: v.string(), text: v.string(), points: v.union(v.string(), v.null()) })),
+    delayed: v.boolean(),
+  }),
+  v.object({ kind: v.literal("unread"), reason: v.string() }),
+);
+export type MatchupCommentary = Infer<typeof commentary>;
+
 export const game = v.union(
   /** The team plays nobody in the gameweek: one begun before it joined, say. */
   v.object({ kind: v.literal("none") }),
@@ -69,7 +82,7 @@ export const game = v.union(
   /** Begun, but it can't be scored (#287), and why. */
   v.object({ kind: v.literal("unscored"), opponent, reason: v.string() }),
   /** The team on the left, its opponent on the right. */
-  v.object({ kind: v.literal("scored"), team: side, opponent: side }),
+  v.object({ kind: v.literal("scored"), team: side, opponent: side, commentary }),
 );
 
 export const matchup = v.union(

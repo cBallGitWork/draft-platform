@@ -4,7 +4,7 @@ import { act } from "@testing-library/react";
 import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { MatchupSide, MatchupSlot } from "../../../convex/matchup/matchupShape";
+import type { MatchupCommentary, MatchupSide, MatchupSlot } from "../../../convex/matchup/matchupShape";
 import type { Matchup, MatchupSeam } from "../../../src/matchup/seam";
 
 /** A matchup the test moves on, as Convex's live query would: each `play` re-renders the screen. */
@@ -64,13 +64,23 @@ export const teamSide = (teamName: string, starters: Slot[], bench: Slot[], poin
   lineup: { starters, bench },
 });
 
-/** Team 1's matchup in `gameweek`, of the gameweeks it plays, holding `game`. */
-export const headToHead = (game: HeadToHead["game"], { gameweek = 6, gameweeks = [5, 6, 7], deadline = null as number | null } = {}): HeadToHead => ({
+type Game = HeadToHead["game"];
+type Scored = Extract<Game, { kind: "scored" }>;
+
+/** Commentary with no lines yet, keeping up: what a scored game holds unless a test says. */
+export const NO_COMMENTARY: MatchupCommentary = { kind: "read", lines: [], delayed: false };
+
+/** Team 1's matchup in `gameweek`, of the gameweeks it plays, holding `game`; a scored one with no
+ *  commentary unless it gives some. */
+export const headToHead = (
+  game: Exclude<Game, Scored> | (Omit<Scored, "commentary"> & { commentary?: MatchupCommentary }),
+  { gameweek = 6, gameweeks = [5, 6, 7], deadline = null as number | null } = {},
+): HeadToHead => ({
   kind: "headToHead",
   teamId: "team-Team 1" as Id<"teams">,
   teamName: "Team 1",
   gameweeks,
   gameweek,
   deadline,
-  game,
+  game: game.kind === "scored" ? { commentary: NO_COMMENTARY, ...game } : game,
 });

@@ -150,7 +150,7 @@ Features table (feature 12), the one home for screen status.
 | Transactions | `/team/transactions` | src/myTeam/TransactionsPage.tsx | spec/12 My team's tabs | built |
 | Matchup | `/matchup` | src/matchup/MatchupPage.tsx | spec/10 The matchup, spec/12 | built |
 | Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12 Trades, spec/08 Trades | placeholder |
-| Premier League | `/premier-league` | src/frame/PageNotBuilt.tsx | spec/18 | placeholder |
+| Premier League | `/premier-league` | src/premierLeague/PremierLeaguePage.tsx | spec/18 | built |
 | Match | none | none | spec/10 The match page | no route |
 | Player card | `/leagues/$leagueId/players/$playerCode` | src/playerCard/PlayerCardPage.tsx | spec/12 The player card, spec/05, spec/14, spec/19 | built |
 | Draft room | none | none | spec/12:16, spec/04 | no route |

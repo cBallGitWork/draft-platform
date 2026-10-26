@@ -86,6 +86,12 @@ function rulePoints(rule: ScoringRule, slot: Slot, actions: number, minutes: num
   return inTenths(points);
 }
 
+/** One rule's points for a man priced at `cell`, with `actions` of its stat and `minutes` played:
+ *  what a threshold line prices the step it shows by (#44). A bad cell is the caller's to check. */
+export function rulePointsIn(rule: ScoringRule, cell: Cell, actions: number, minutes: number): number {
+  return rulePoints(rule, { area: cell.area, position: positionOfSlot(cell) }, actions, minutes);
+}
+
 /** A rule's setting for the slot being scored. */
 type Price = <Value>(priced: Priced<Value>) => Value;
 

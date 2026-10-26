@@ -94,7 +94,7 @@ test("two matches in a season add up; one in another season is kept apart", asyn
   const { _id, _creationTime, state: _state, ...again } = record;
 
   for (const fixtureCode of [LATER, LAST_SEASON]) {
-    await t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode, records: [{ ...again, fixtureCode }] });
+    await t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode, minute: null, records: [{ ...again, fixtureCode }] });
   }
 
   const rows = await t.run((ctx) => ctx.db.query("playerSeasonStats").collect());
@@ -108,7 +108,7 @@ test("a record for a match that isn't held throws rather than going uncounted", 
   await syncAt(t, FULL_TIME_READ, recordedGw6());
   const { _id, _creationTime, state: _state, ...record } = (await heldMatch(t)).records.get(FULL_STATS.belloumi.code)!;
 
-  await expect(t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: 404, records: [{ ...record, fixtureCode: 404 }] })).rejects.toThrow(
+  await expect(t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: 404, minute: null, records: [{ ...record, fixtureCode: 404 }] })).rejects.toThrow(
     "Match 404 has records but isn't held",
   );
 });

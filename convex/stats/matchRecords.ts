@@ -20,16 +20,25 @@ const MINUTES: StatInBothFeeds = { fpl: "minutes", pl: "mins_played", kept: "fpl
 /** A record's minutes, under the name it is kept by. */
 export const MINUTES_STAT = MINUTES.fpl;
 
+const GOALS: StatInBothFeeds = { fpl: "goals_scored", pl: "goals", kept: "fpl" };
+const ASSISTS: StatInBothFeeds = { fpl: "assists", pl: "goal_assist", kept: "fpl" };
+const YELLOW_CARDS: StatInBothFeeds = { fpl: "yellow_cards", pl: "yellow_card", kept: "fpl" };
+const RED_CARDS: StatInBothFeeds = { fpl: "red_cards", pl: "red_card", kept: "fpl" }; // Opta's name, not yet seen
+
+/** The stats a goal, an assist or a card moves, under the names they are kept by: what the
+ *  matchup's commentary prices them by (#44). */
+export const EVENT_STATS = { goals: GOALS.fpl, assists: ASSISTS.fpl, yellowCards: YELLOW_CARDS.fpl, redCards: RED_CARDS.fpl } as const;
+
 /** Whose count is kept where both feeds send a stat (spec/07: FPL's for goals, assists, minutes,
  *  cards, saves, clean sheets, goals conceded and penalties; the Premier League's for the rest).
  *  Those marked are Opta's usual names, not yet seen in a recording: a wrong one only leaves both
  *  feeds' counts stored. */
 const STATS_IN_BOTH_FEEDS: StatInBothFeeds[] = [
-  { fpl: "goals_scored", pl: "goals", kept: "fpl" },
-  { fpl: "assists", pl: "goal_assist", kept: "fpl" },
+  GOALS,
+  ASSISTS,
   MINUTES,
-  { fpl: "yellow_cards", pl: "yellow_card", kept: "fpl" },
-  { fpl: "red_cards", pl: "red_card", kept: "fpl" }, // Opta's name, not yet seen
+  YELLOW_CARDS,
+  RED_CARDS,
   { fpl: "saves", pl: "saves", kept: "fpl" },
   { fpl: "clean_sheets", pl: "clean_sheet", kept: "fpl" },
   { fpl: "goals_conceded", pl: "goals_conceded", kept: "fpl" },
