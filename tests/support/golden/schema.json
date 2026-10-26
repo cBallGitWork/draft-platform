@@ -2823,6 +2823,57 @@
                       "type": "string"
                     },
                     "optional": false
+                  },
+                  "minute": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "optional": true
+                  },
+                  "addedMinute": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "optional": true
+                  },
+                  "type": {
+                    "fieldType": {
+                      "type": "string"
+                    },
+                    "optional": true
+                  },
+                  "playerCodes": {
+                    "fieldType": {
+                      "type": "array",
+                      "value": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "optional": true
                   }
                 }
               }
@@ -2849,6 +2900,77 @@
                       "optional": false
                     }
                   }
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "thresholdSteps",
+      "indexes": [
+        {
+          "indexDescriptor": "by_fixtureCode",
+          "fields": [
+            "fixtureCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "fixtureCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "playerCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "stat": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "from": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "to": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "minutes": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "minute": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "number"
                 },
                 {
                   "type": "null"

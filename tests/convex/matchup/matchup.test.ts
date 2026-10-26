@@ -259,3 +259,32 @@ test("a total-points league has no head-to-heads", async () => {
   });
   expect(await matchupAs(league, ANN)).toEqual({ kind: "totalPoints" });
 });
+
+test("the commentary is the match's stored lines, the goal priced for its scorer, the full-time line listing both lineups' men's points, and says when delayed", async () => {
+  const league = await scoresLeague();
+  expect((await annsGame(league)).commentary).toEqual({ kind: "read", lines: [], delayed: false });
+
+  await fullTimeRecords(league);
+  const scorer = await nameOf(league, HULL_SCORER);
+  const line = (sourceId: number, text: string, minute: number | null, type: string, playerCodes: number[] = []) => ({ sourceId, text, minute, addedMinute: 0, type, playerCodes });
+  await league.t.run((ctx) =>
+    ctx.db.insert("matchCommentary", {
+      fixtureCode: HULL_EVERTON,
+      lines: [line(3, "FT HUL 1–2 EVE", 1, "end 14"), line(2, `64' GOAL ${scorer}`, 64, "goal", [HULL_SCORER]), line(1, "KO HUL v EVE", 0, "start")],
+      delayed: { reason: "the stream is over 10 minutes behind the clock", since: KICKOFF },
+    }),
+  );
+
+  const { commentary, team } = await annsGame(league);
+  if (commentary.kind !== "read") throw new Error(`the commentary wasn't read: ${commentary.reason}`);
+  const scorerSlot = slotOf(team, HULL_SCORER);
+  expect(commentary.delayed).toBe(true);
+  expect(commentary.lines.map((each) => each.text).slice(1)).toEqual([`64' GOAL ${scorer}`, "KO HUL v EVE"]);
+  // The first set's goal for a man in midfield, where he stands.
+  const MIDFIELD_GOAL = 5;
+  expect(commentary.lines[1].points).toBe(`+${MIDFIELD_GOAL}`);
+  expect(commentary.lines[0].text).toMatch(/^FT HUL 1–2 EVE: /);
+  expect(commentary.lines[0].text).toContain(`${scorer} ${scorerSlot.points}`);
+  // Phillips, Hull's unused keeper, didn't play, so isn't listed.
+  expect(commentary.lines[0].text).not.toContain(await nameOf(league, PHILLIPS));
+});

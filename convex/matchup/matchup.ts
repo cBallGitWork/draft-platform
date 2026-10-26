@@ -1,6 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
+import { heldOf } from "../football/matchCommentary";
 import { scoreOf } from "../football/matchScores";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { thisGameweekOf } from "../home/glance";
@@ -27,7 +28,10 @@ import { LEAGUE_AVERAGE } from "../table/roundRobin";
 import { averageOf } from "../table/standings";
 import { BYE, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
-import { game, matchup, type MatchupSide, type MatchupSlot, type SlotStatus } from "./matchupShape";
+import { isWhole } from "../stats/matchRecords";
+import { thresholdStepsOf } from "../stats/thresholdSteps";
+import { game, matchup, type MatchupCommentary, type MatchupSide, type MatchupSlot, type SlotStatus } from "./matchupShape";
+import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vidiprinter";
 
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
 // screen): both lineups slot by slot, each player's points and whether his match is yet to come,
@@ -36,7 +40,8 @@ import { game, matchup, type MatchupSide, type MatchupSlot, type SlotStatus } fr
 //
 // Lineups show only once the gameweek has begun, at the league's deadline: nothing is secret after
 // lock. Who may see another team's lineup before then is Craig's to settle (#392); a manager's own
-// is on My team. The commentary is #46.
+// is on My team. The commentary is every line of the matches either lineup's men play in, each
+// priced for them (vidiprinter.ts, #44).
 
 type TeamId = Id<"teams">;
 type PlayerCode = number;
@@ -92,7 +97,13 @@ async function gameOf(
     const teamIds = teams.map((each) => each._id);
     const inputs = await gameweekInputs(ctx, reads, gameweek, fixtures, teamIds);
     const scorer = new SideScorer(ctx, reads, inputs, teamIds, gameweek, await storedScoresIn(ctx, league._id, gameweek, fixtures));
-    return { kind: "scored", team: await scorer.team(team._id, team.name), opponent: await scorer.opponent(against, nameOf) };
+    const sides = against.kind === "team" ? [team._id, against.team] : [team._id];
+    return {
+      kind: "scored",
+      team: await scorer.team(team._id, team.name),
+      opponent: await scorer.opponent(against, nameOf),
+      commentary: await scorer.commentary(sides, `League ${league._id} (${league.name}) can't read ${team.name}'s commentary in gameweek ${gameweek}`),
+    };
   } catch (error) {
     const reason = logFailure(`League ${league._id} (${league.name}) can't score ${team.name}'s matchup in gameweek ${gameweek}`, error);
     return { kind: "unscored", opponent, reason };
@@ -107,6 +118,7 @@ async function gameOf(
 class SideScorer {
   private readonly names = new Map<PlayerCode, Promise<string>>();
   private readonly scores = new Map<number, Promise<Doc<"matchScores"> | null>>();
+  private readonly scored = new Map<TeamId, Promise<TeamInGameweek | null>>();
 
   constructor(
     private readonly ctx: QueryCtx,
@@ -125,8 +137,18 @@ class SideScorer {
     );
   }
 
+  /** The team's gameweek, worked out once for its side and the commentary. */
+  private inGameweek(teamId: TeamId): Promise<TeamInGameweek | null> {
+    let scored = this.scored.get(teamId);
+    if (scored === undefined) {
+      scored = teamInGameweek(this.reads, this.inputs, teamId);
+      this.scored.set(teamId, scored);
+    }
+    return scored;
+  }
+
   async team(teamId: TeamId, teamName: string): Promise<MatchupSide> {
-    const scored = await teamInGameweek(this.reads, this.inputs, teamId);
+    const scored = await this.inGameweek(teamId);
     const { points, provisional } = this.total(teamId, scored);
     if (scored === null) return { kind: "team", teamId, teamName, points, provisional, lineup: null };
     const slotOf = (slotPoints: SlotPoints) => this.slot(slotPoints, scored);
@@ -144,7 +166,7 @@ class SideScorer {
     if (against.kind === "team") return this.team(against.team, nameOf(against.team));
     // The average of every team's points, a team with no lineup on 0, as the table counts it.
     const every = await Promise.all(
-      this.teamIds.map(async (teamId) => this.stored.get(teamId) ?? this.total(teamId, await teamInGameweek(this.reads, this.inputs, teamId))),
+      this.teamIds.map(async (teamId) => this.stored.get(teamId) ?? this.total(teamId, await this.inGameweek(teamId))),
     );
     const points = new Map(this.teamIds.map((teamId, index) => [teamId, every[index].points]));
     return {
@@ -152,6 +174,33 @@ class SideScorer {
       points: averageOf(this.teamIds, points, this.gameweek),
       provisional: every.some((each) => each.provisional),
     };
+  }
+
+  /** The commentary of every match the sides' men play in, priced for them. One that can't be read
+   *  is logged and says why, while the scores still show. */
+  async commentary(teamIds: readonly TeamId[], failure: string): Promise<MatchupCommentary> {
+    try {
+      const players = new Map<PlayerCode, VidiprinterPlayer>();
+      const matches = new Map<number, HeldMatch>();
+      for (const teamId of teamIds) {
+        const scored = await this.inGameweek(teamId);
+        if (scored === null) continue;
+        for (const slot of [...scored.team.starters, ...scored.team.bench]) {
+          const his = scored.matchesOf.get(slot.playerCode) ?? [];
+          for (const match of his) matches.set(match.fixture.code, match);
+          players.set(slot.playerCode, { name: await this.name(slot.playerCode), cell: slot.cell, inMatch: inMatchOf(slot, his) });
+        }
+      }
+      const held = await Promise.all(
+        [...matches.values()].map(async ({ fixture }) => ({ fixture, row: await heldOf(this.ctx, fixture.code), steps: await thresholdStepsOf(this.ctx, fixture.code) })),
+      );
+      const read: VidiprinterMatch[] = held.flatMap(({ fixture, row, steps }) =>
+        row === null ? [] : [{ fixtureCode: fixture.code, kickoff: fixture.kickoff, lines: row.lines, steps }],
+      );
+      return { kind: "read", lines: vidiprinter(read, players, this.inputs.set), delayed: held.some(({ row }) => row !== null && row.delayed !== null) };
+    } catch (error) {
+      return { kind: "unread", reason: logFailure(failure, error) };
+    }
   }
 
   private async slot(slotPoints: SlotPoints, { autoSubs, matchesOf }: TeamInGameweek): Promise<MatchupSlot> {
@@ -212,4 +261,16 @@ class SideScorer {
     const kickoffs = toCome.map(({ match }) => match.fixture.kickoff).filter((kickoff) => kickoff !== null);
     return { kind: "yetToPlay", kickoff: kickoffs.length === 0 ? null : Math.min(...kickoffs) };
   }
+}
+
+/** His part in each of his matches he has a record in: the record once whole, whether he played,
+ *  and his points there, in the order `scoreTeam` scored his matches. */
+function inMatchOf(slot: SlotPoints, matches: readonly HeldMatch[]): VidiprinterPlayer["inMatch"] {
+  return new Map(
+    matches.flatMap((match, index) => {
+      const record = match.records.get(slot.playerCode);
+      if (record === undefined) return [];
+      return [[match.fixture.code, { stats: isWhole(record) ? record.stats : null, played: record.played === true, points: slot.matches[index].total }] as const];
+    }),
+  );
 }

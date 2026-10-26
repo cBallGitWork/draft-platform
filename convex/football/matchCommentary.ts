@@ -149,7 +149,8 @@ function unworded(lines: readonly CommentaryLine[]): string | null {
   return `${lines.length} lines of a type with no wording (${types.join(", ")})`;
 }
 
-function heldOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"matchCommentary"> | null> {
+/** A match's stored commentary; null before its first read. */
+export function heldOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"matchCommentary"> | null> {
   return ctx.db
     .query("matchCommentary")
     .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
