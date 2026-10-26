@@ -117,6 +117,22 @@ describe("the points", () => {
     expect((await read()).lastGameweek).toBe(2);
   });
 
+  test("leave out a match whose whole record hasn't arrived", async () => {
+    await t.run(async (ctx) => {
+      await ctx.db.insert("playerMatchStats", { ...record(PALMER.code, GW2.code, { minutes: 90, goals_scored: 1 }), arrived: { fpl: true, pl: false } });
+    });
+    expect(await rowOf(PALMER.code)).toMatchObject({ seasonPoints: null, lastGameweekPoints: null });
+  });
+
+  test("mark a player who has left the Premier League", async () => {
+    await t.run(async (ctx) => {
+      const row = (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", NOBODY.code)).unique())!;
+      await ctx.db.patch("players", row._id, { droppedAt: NOW });
+    });
+    expect(await rowOf(NOBODY.code)).toMatchObject({ gone: true });
+    expect(await rowOf(SAKA.code)).toMatchObject({ gone: false });
+  });
+
   test("are '—' for a player with no match priced", async () => {
     expect(await rowOf(RAYA.code)).toMatchObject({ seasonPoints: null, lastGameweekPoints: null });
   });

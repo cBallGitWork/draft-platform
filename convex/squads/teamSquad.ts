@@ -111,7 +111,14 @@ export const ofMyTeam = query({
 });
 
 /** Prices a player's season's matches as his card does: at the cell he started in for the team in
- *  that gameweek, else at his best position. Each gameweek's lineup and set is read once. */
+ *  that gameweek, else at his best position. Each gameweek's lineup and set is read once.
+ *
+ *  What a full squad costs: each player's records and their matches (seasonRecords, about 25 x 2
+ *  x the gameweeks played), and each gameweek's lineup, which reads the league's squad moves since
+ *  that gameweek's deadline (lineups.ts). Inside a query's limits for a season of an ordinary
+ *  league; past SQUAD_MOVES_READ_MOST moves of a kind it throws rather than mis-price. Reading the
+ *  moves once for every gameweek, or storing a gameweek's priced matches once final, as
+ *  finalScores.ts does the totals, is the way on if it grows. */
 async function pricer(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">) {
   const setIn = await siteScoringByGameweek(ctx);
   const startersIn = new Map<number, Promise<Map<number, Cell>>>();
