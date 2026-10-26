@@ -90,7 +90,7 @@ describe("a draft patch", () => {
   test("that would score wrong is refused with the reason", async () => {
     const fractional = { ...structuredClone(EDITED), wholePointsOnly: true, rules: [{ shape: "perAction" as const, stat: "tackles", values: { all: 0.5 } }] };
 
-    await expectRefused(saveDraftAs(ADMIN, fractional), "The scoring set can't be saved: the Tackles rule pays 0.5, but the set counts whole points only.");
+    await expectRefused(saveDraftAs(ADMIN, fractional), "The scoring set can't be saved: the Tackles rule is worth 0.5, but the set counts whole points only.");
     expect(await draftSavedAt()).toBeNull();
   });
 });

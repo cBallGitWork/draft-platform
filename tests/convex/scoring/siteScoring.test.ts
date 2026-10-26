@@ -172,12 +172,12 @@ describe.each<[string, StoredScoringSet, string]>([
   [
     "a set whose whole points only meets a fractional value, naming the category",
     { ...structuredClone(EDITED), wholePointsOnly: true, rules: [{ shape: "perAction", stat: "tackles", values: { all: 0.5 } }] },
-    "The scoring set can't be saved: the Tackles rule pays 0.5, but the set counts whole points only.",
+    "The scoring set can't be saved: the Tackles rule is worth 0.5, but the set counts whole points only.",
   ],
   [
     "a set missing an area's value",
     { rules: [{ shape: "perCount", stat: "saves", values: { byArea: { ...everyArea(ONE_PER_3), attack: { every: 0, points: 1 } } } }], wholePointsOnly: false },
-    "The scoring set can't be saved: the Saves rule in attack pays for every 0 actions; it must be more than 0.",
+    "The scoring set can't be saved: the Saves rule in attack is worth points for every 0 actions; it must be more than 0.",
   ],
   [
     "a rule on a stat that doesn't exist, which would pay every player 0 in it (#135)",

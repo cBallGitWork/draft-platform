@@ -44,11 +44,11 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
   - per action (+3 per assist);
   - per number of actions (+1 per 3 saves);
   - bands by threshold (2 for 60+ minutes, +2 for 10+ defensive actions). Each band rule either
-    stacks or pays only its highest band.
+    stacks or earns only its highest band.
 - A rule can also carry, each optional:
-  - points limits: a maximum and a minimum on the points it pays one player in one match (FPL's
-    defensive contribution pays at most 2);
-  - the minutes he must play before it pays anything (a clean sheet only at 60+).
+  - points limits: a maximum and a minimum on the points one player earns from it in one match (FPL's
+    defensive contribution earns at most 2);
+  - the minutes he must play before he earns anything from it (a clean sheet only at 60+).
 
   Each is one number for the rule, or set by area or position like its values. A points limit
   holds only the rule's own points: a role's adjustment is added on top.
