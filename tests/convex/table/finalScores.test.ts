@@ -1,7 +1,7 @@
 import { expect, test, vi } from "vitest";
-import { internal } from "../../../convex/_generated/api";
+import { api, internal } from "../../../convex/_generated/api";
 import { silenceConsoleError } from "../../support/convex/test.harness";
-import { addManagers } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import {
   CAT,
@@ -10,6 +10,7 @@ import {
   GAMEWEEK,
   holdTypoRule,
   HULL_POINTS,
+  HULL_SCORER,
   TYPO_STAT,
   lockMatch,
   readTable,
@@ -57,6 +58,16 @@ test("once the match locks, each team's points are stored, and the table reads t
   expect(await annsPoints(league)).toMatchObject({ points: WRITTEN_OVER, provisional: false });
   // Stored once: a second ask stores nothing more.
   expect(await storeLeague(league)).toEqual([]);
+});
+
+test("a starter released after the deadline is in the stored score: it freezes the squad at the deadline (#415)", async () => {
+  const league = await scoresLeague();
+  await fullTimeRecords(league);
+  await (await actingAs(league.t, COMMISSIONER)).mutation(api.squads.squads.release, { leagueId: league.leagueId, playerCode: HULL_SCORER });
+  await lockMatch(league);
+
+  expect(await storeLeague(league)).toEqual([GAMEWEEK]);
+  expect((await stored(league)).map(({ points }) => points)).toEqual([HULL_POINTS, EVERTON_POINTS]);
 });
 
 test("the lock itself asks every league to store what it made final", async () => {
