@@ -3,6 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { squadNumberRefusals } from "../../../convex/squads/squadNumbers";
+import { deletes } from "../../support/convex/leagueDeletion.harness";
 import { expectRefused } from "../../support/convex/leagueRules.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -69,6 +70,12 @@ describe("only his own", () => {
     await expectRefused(setAs(BOB, SAKA, 9), squadNumberRefusals.notInSquad);
     await expectRefused(setAs(OUTSIDER, SAKA, 9), refusals.runsNoTeam);
     await expectRefused(setAs(COMMISSIONER, SAKA, 9), refusals.runsNoTeam);
+    expect(await numberOf(SAKA)).toBeNull();
+  });
+
+  test("nothing is numbered in a league being deleted", async () => {
+    await deletes(t, COMMISSIONER, leagueId);
+    await expectRefused(setAs(ANN, SAKA, 9), refusals.beingDeleted);
     expect(await numberOf(SAKA)).toBeNull();
   });
 

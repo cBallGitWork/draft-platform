@@ -143,12 +143,22 @@ function SquadCell({
 function NumberBox({ player, change, save }: { player: Row; change: Changing; save: (number: number | null) => ReturnType<SquadNumberChanges["set"]> }) {
   const held = player.number === null ? "" : String(player.number);
   const [typed, setTyped] = useState(held);
+  // Only this box waits while its number is sent, so a click into the next one isn't lost.
+  const [sending, setSending] = useState(false);
   // A number changed on another screen, or put back after a refusal, shows here too.
   useEffect(() => setTyped(held), [held]);
   const send = async () => {
     const trimmed = typed.trim();
-    if (trimmed === held) return;
-    if (!(await change.run(() => save(trimmed === "" ? null : Number(trimmed))))) setTyped(held);
+    if (trimmed === held) {
+      change.clear();
+      return;
+    }
+    const number = trimmed === "" ? null : Number(trimmed);
+    setSending(true);
+    const made = await change.run(() => save(number));
+    setSending(false);
+    // Made, "07" shows as the 7 it was taken as; refused, the one held comes back.
+    setTyped(made && number !== null ? String(number) : held);
   };
   return (
     <input
@@ -156,7 +166,7 @@ function NumberBox({ player, change, save }: { player: Row; change: Changing; sa
       inputMode="numeric"
       aria-label={numberLabel(player.name)}
       value={typed}
-      disabled={change.busy}
+      disabled={sending}
       onChange={(event) => setTyped(event.target.value)}
       onBlur={() => void send()}
       onKeyDown={(event) => {
