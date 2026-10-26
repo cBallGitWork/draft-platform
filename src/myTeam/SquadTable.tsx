@@ -94,7 +94,7 @@ function SquadRow({ leagueId, player, onBenchRow, moving }: { leagueId: string; 
     >
       <td className="px-2">{positionsWords(player.positions)}</td>
       <td className="px-2">
-        <Link to={playerCardPath(leagueId, player.playerCode)} className="font-semibold">
+        <Link to={playerCardPath(leagueId, player.playerCode)} className="inline-flex min-h-tap items-center font-semibold lg:min-h-0">
           {player.name}
         </Link>{" "}
         <span className="text-muted">{player.clubShortName}</span>
@@ -106,7 +106,7 @@ function SquadRow({ leagueId, player, onBenchRow, moving }: { leagueId: string; 
           aria-pressed={isPicked}
           aria-label={moveLabel(player.name)}
           onClick={() => moving.onPick(player.playerCode)}
-          className="min-h-tap px-2 font-semibold text-fact underline lg:min-h-0"
+          className="min-h-tap font-semibold text-fact underline lg:min-h-0"
         >
           {isPicked ? movingWords : moveWords}
         </button>
