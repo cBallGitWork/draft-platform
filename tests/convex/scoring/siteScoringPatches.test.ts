@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { seasonStartYear } from "../../../convex/football/football";
-import { rulesInGameweek } from "../../../convex/rules/leagueRules";
+import { rulesInGameweek } from "../../../convex/rules/rulesHistory";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { PATCH_NOTICE_DAYS, siteScoringRefusals, versionName } from "../../../convex/scoring/siteScoring";
