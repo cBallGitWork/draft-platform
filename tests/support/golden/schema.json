@@ -4050,6 +4050,103 @@
                       "optional": false
                     }
                   }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "kind": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": "pointsOverridden"
+                      },
+                      "optional": false
+                    },
+                    "playerCode": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "playerName": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "fixtureCode": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "matchName": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "gameweek": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "from": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "optional": false
+                    },
+                    "to": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "reason": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "teams": {
+                      "fieldType": {
+                        "type": "array",
+                        "value": {
+                          "type": "object",
+                          "value": {
+                            "teamName": {
+                              "fieldType": {
+                                "type": "string"
+                              },
+                              "optional": false
+                            },
+                            "from": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "to": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          }
+                        }
+                      },
+                      "optional": false
+                    }
+                  }
                 }
               ]
             },
@@ -19844,6 +19941,85 @@
             "optional": false
           },
           "storedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "pointsOverrides",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_fixtureCode_and_playerCode",
+          "fields": [
+            "leagueId",
+            "fixtureCode",
+            "playerCode"
+          ]
+        },
+        {
+          "indexDescriptor": "by_leagueId_and_playerCode",
+          "fields": [
+            "leagueId",
+            "playerCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "gameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "fixtureCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "playerCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "points": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "reason": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "by": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "at": {
             "fieldType": {
               "type": "number"
             },

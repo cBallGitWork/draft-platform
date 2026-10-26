@@ -29,11 +29,13 @@ export const MATCH_RECORDS_MOST = 80;
 type TeamId = Id<"teams">;
 type PlayerCode = number;
 
-/** One of the gameweek's matches as held: its state, if read at full time, and its records. */
+/** One of the gameweek's matches as held: its state, if read at full time, its records, and the
+ *  league's overrides of men's points in it (#32). */
 export interface HeldMatch {
   fixture: Doc<"fixtures">;
   status: Doc<"matchStatsStatus"> | null;
   records: Map<PlayerCode, Doc<"playerMatchStats">>;
+  overrides: Map<PlayerCode, number>;
 }
 
 /** What every gameweek's scoring reads, read once for the league. */
@@ -73,7 +75,8 @@ function playerReader(ctx: QueryCtx, how: HowPositionsCount) {
 }
 
 /** What scoring the `teamIds` in one gameweek reads: the site's set in force then, checked, the
- *  league's rules in force then, the matches of its `fixtures` and each team's lineup. */
+ *  league's rules in force then, the matches of its `fixtures` with the league's overrides in
+ *  them, and each team's lineup. */
 export interface GameweekInputs {
   set: StoredScoringSet;
   rules: ReturnType<SeasonRules["inGameweek"]>;
@@ -94,7 +97,7 @@ export async function gameweekInputs(
   return {
     set,
     rules: reads.season.inGameweek(gameweek),
-    matches: await heldMatches(ctx, fixtures),
+    matches: await heldMatches(ctx, reads.leagueId, fixtures),
     lineups: await lineupsInGameweek(ctx, reads.leagueId, teamIds, gameweek),
   };
 }
@@ -150,8 +153,8 @@ export function heldFixtures(ctx: QueryCtx, gameweek: number): Promise<Doc<"fixt
   );
 }
 
-/** The fixtures' matches, each with its state and records. */
-async function heldMatches(ctx: QueryCtx, fixtures: readonly Doc<"fixtures">[]): Promise<HeldMatch[]> {
+/** The fixtures' matches, each with its state, its records and the league's overrides in it. */
+async function heldMatches(ctx: QueryCtx, leagueId: Id<"leagues">, fixtures: readonly Doc<"fixtures">[]): Promise<HeldMatch[]> {
   return Promise.all(
     fixtures.map(async (fixture) => {
       const rows = await takeAllOrThrow(
@@ -159,12 +162,33 @@ async function heldMatches(ctx: QueryCtx, fixtures: readonly Doc<"fixtures">[]):
         MATCH_RECORDS_MOST,
         `Match ${fixture.code} holds more than ${MATCH_RECORDS_MOST} records, so its points would be cut short`,
       );
-      return { fixture, status: await statusOf(ctx, fixture.code), records: new Map(rows.map((row) => [row.playerCode, row])) };
+      return {
+        fixture,
+        status: await statusOf(ctx, fixture.code),
+        records: new Map(rows.map((row) => [row.playerCode, row])),
+        overrides: await overridesIn(ctx, leagueId, fixture.code),
+      };
     }),
   );
 }
 
-const playsIn = (fixture: Doc<"fixtures">, clubCode: number) => fixture.homeClubCode === clubCode || fixture.awayClubCode === clubCode;
+/** The most overrides a league holds in one match: one a man, so never more than its records
+ *  may be. More throws, never a silent cut. */
+const MATCH_OVERRIDES_MOST = MATCH_RECORDS_MOST;
+
+/** The league's overrides of men's points in the match (#32), by player. */
+export async function overridesIn(ctx: QueryCtx, leagueId: Id<"leagues">, fixtureCode: number): Promise<Map<PlayerCode, number>> {
+  const rows = await takeAllOrThrow(
+    ctx.db
+      .query("pointsOverrides")
+      .withIndex("by_leagueId_and_fixtureCode_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("fixtureCode", fixtureCode)),
+    MATCH_OVERRIDES_MOST,
+    `League ${leagueId} holds more than ${MATCH_OVERRIDES_MOST} overrides in match ${fixtureCode}, so its points would be cut short`,
+  );
+  return new Map(rows.map((row) => [row.playerCode, row.points]));
+}
+
+export const playsIn = (fixture: Doc<"fixtures">, clubCode: number) => fixture.homeClubCode === clubCode || fixture.awayClubCode === clubCode;
 
 /** A match read at full time has a state; one still live has none (liveStats.ts). */
 export const isFinished = (match: HeldMatch) => match.status !== null;
@@ -175,11 +199,12 @@ export const isLocked = (match: HeldMatch) => match.status?.state === "locked";
 const NOT_NAMED: Readonly<Record<string, number>> = {};
 
 /** His match for scoreTeam: his record once whole, null ("—") until then, and nothing if the match
- *  is over and no sheet named him. Final once the match is locked, its corrections window shut. */
+ *  is over and no sheet named him; with the league's override of his points there, if it holds
+ *  one. Final once the match is locked, its corrections window shut. */
 function forPoints(match: HeldMatch, code: PlayerCode): PlayerMatch {
   const record = match.records.get(code);
   const stats = record === undefined ? (isFinished(match) ? NOT_NAMED : null) : isWhole(record) ? record.stats : null;
-  return { record: stats, final: isLocked(match) };
+  return { record: stats, final: isLocked(match), override: match.overrides.get(code) };
 }
 
 /** The minutes counted for a man the sheets say played whose minutes no feed has sent yet: any

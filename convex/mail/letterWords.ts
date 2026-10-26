@@ -105,7 +105,21 @@ export function eventLetter(event: LeagueEvent, who: string): Words {
         subject: `The league's rules change from gameweek ${event.fromGameweek}`,
         body: rulesChangedBody(event, who),
       };
+    case "pointsOverridden":
+      return { subject: `${event.playerName}'s points in ${event.matchName} were overridden`, body: overriddenBody(event, who) };
   }
+}
+
+/** "Ann overrode Saka's points in Arsenal v Chelsea, gameweek 6: 2 to 8. Why: a goal the feed
+ *  gave to Rice. / Lions now have 61 in gameweek 6, not 55." */
+function overriddenBody(event: Extract<LeagueEvent, { kind: "pointsOverridden" }>, who: string): string {
+  const { playerName, matchName, gameweek, from, to, reason, teams } = event;
+  const change = from === null ? `now ${to}` : `${from} to ${to}`;
+  const totals =
+    teams.length === 0
+      ? "No team's total moved: no lineup counted him."
+      : teams.map((team) => `${team.teamName} now have ${team.to} in gameweek ${gameweek}, not ${team.from}.`).join("\n");
+  return `${who} overrode ${playerName}'s points in ${matchName}, gameweek ${gameweek}: ${change}. Why: ${reason}\n\n${totals}`;
 }
 
 /** The letter to a manager whose shortlist holds a player just released to free agency (spec/16,
