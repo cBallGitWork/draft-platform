@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { everyArea, EXAMPLE_SET, MINUTES_BANDS, TACKLES_AND_CLEARANCES } from "../../support/convex/scoring.example";
-import { validateScoringSet } from "../../../convex/scoring/scoringSet";
+import { inTenths, validateScoringSet } from "../../../convex/scoring/scoringSet";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 
 // What #25 refuses on save, and scoreMatch before scoring, with the reason. Unchecked, many of
@@ -119,4 +119,10 @@ describe("a rule scores a catalogue stat or one of the league's own, never a key
   test("the first rules every league starts from still pass", () => {
     expect(() => validateScoringSet(FIRST_SCORING)).not.toThrow();
   });
+});
+
+test("inTenths never gives -0: not for a sum just under 0, nor for 0 times -1 (#422)", () => {
+  expect(Object.is(inTenths(-0.04), 0)).toBe(true);
+  expect(Object.is(inTenths(0 * -1), 0)).toBe(true);
+  expect(inTenths(-0.06)).toBe(-0.1);
 });
