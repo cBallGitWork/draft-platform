@@ -31,6 +31,10 @@
   /* the lit top of a bevel: on the bar or the plate, and on a panel (also the line above a section's tabs) */
   --color-plate-edge: #4a6cc8;
   --color-panel-edge: #34363c;
+  /* the pitch: its two stripes, and its lines */
+  --color-pitch: #2f8535;
+  --color-pitch-stripe: #276f2c;
+  --color-pitch-line: #e6f2e6;
 
   --font-sans: "Archivo Narrow", "Arial Narrow", sans-serif;
   --font-weight-normal: 400;
@@ -51,6 +55,15 @@
   --spacing-tick: 22px;
   --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */
   --spacing-tick-mark: 14px; /* the tick drawn in it */
+  /* The Tactics tab: the pitch beside the squad on the desk, each of its six rows, a player's shirt,
+     the centre circle and the penalty boxes */
+  --flex-basis-pitch: 440px;
+  --flex-basis-squad: 320px;
+  --spacing-pitch-row: 84px;
+  --spacing-shirt: 32px;
+  --spacing-centre-circle: 96px;
+  --spacing-penalty-box: 56px;
+  --radius-circle: 50%; /* the centre circle only: everything else is square (plate.md, Shape) */
 
   --text-data: 13px;
   --text-data--line-height: 20px;
@@ -147,6 +160,16 @@
   color: var(--color-muted);
   font-size: var(--text-lead);
   font-weight: var(--font-weight-semibold);
+}
+
+/* The pitch (plate.md, Colour roles: pitch): a stripe to each of its six rows, inside its line. */
+@utility pitch {
+  background: repeating-linear-gradient(
+    180deg,
+    var(--color-pitch) 0 var(--spacing-pitch-row),
+    var(--color-pitch-stripe) var(--spacing-pitch-row) calc(2 * var(--spacing-pitch-row))
+  );
+  border: 2px solid var(--color-pitch-line);
 }
 
 /* The secondary action (plate.md, Colour roles): Sign out. */

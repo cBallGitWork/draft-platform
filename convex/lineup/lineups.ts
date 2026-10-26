@@ -119,7 +119,7 @@ function reconciled(row: Doc<"lineups">, squad: readonly number[]) {
 }
 
 /** The caller's team in the league, or the refusal: signed out, or running no team there. */
-async function ownTeam(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"teams">> {
+export async function ownTeam(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"teams">> {
   const email = await callerEmail(ctx);
   await getLeague(ctx, leagueId);
   return (await teamOf(ctx, leagueId, email)) ?? refuse(refusals.runsNoTeam);
@@ -137,8 +137,9 @@ export const mine = query({
   },
 });
 
-/** The first gameweek whose league deadline, under the rule in force in it, hasn't passed. */
-async function nextOpenGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, season: SeasonRules, now: number): Promise<number> {
+/** The first gameweek whose league deadline, under the rule in force in it, hasn't passed: the one
+ *  a save now is from. */
+export async function nextOpenGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, season: SeasonRules, now: number): Promise<number> {
   const { gameweeks, matches } = await heldSchedule(ctx);
   return nextGameweek(gameweeks, matches, (gameweek) => season.inGameweek(gameweek).deadline, await passedDeadlinesOf(ctx, leagueId), now);
 }

@@ -4,10 +4,11 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import type { TeamTransactions } from "../../convex/squads/teamTransactions";
 import type { TeamFixtures } from "../../convex/table/teamFixtures";
+import type { TacticsSeam } from "./tacticsSeam";
 
 export type { TeamFixtures, TeamTransactions };
 
-export type MyTeamSeam = {
+export type MyTeamSeam = TacticsSeam & {
   /** The manager's team's games for the season, live (a hook): undefined while they load, null
    *  for a league made before rules were held. */
   useTeamFixtures(leagueId: Id<"leagues">): TeamFixtures | null | undefined;
