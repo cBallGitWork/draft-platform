@@ -172,7 +172,31 @@ export function sideTotal(records: readonly PlayerMatchRecord[], counting: reado
   return inTenths(points.reduce((sum, each) => sum + each, 0));
 }
 
+/** Hull's points once the match is over, their keeper on for Phillips, and Everton's: each the sum
+ *  of its eleven's FPL lines in golden/hull-everton.scores.json, area by area. Pinned as well as
+ *  worked out player by player (gameweekScores.test.ts), so a change in how a match scores shows. */
+export const HULL_POINTS = 26;
+export const EVERTON_POINTS = 38;
+
 /** Hull's side once the match is over: their keeper in goal for Phillips. */
 export const HULL_AFTER_SUB: Starter[] = HULL_STARTERS.map((starter) =>
   starter.playerCode === PHILLIPS ? { ...starter, playerCode: HULL_KEEPER } : starter,
 );
+
+/** A stat no record holds: a typo of goals_scored. */
+export const TYPO_STAT = "goals_scroed";
+
+/** The site's set from now on holds a rule on TYPO_STAT, as a set written by hand could (#287). */
+export async function holdTypoRule({ t }: ScoresLeague) {
+  const [rule] = FIRST_SCORING.rules;
+  await t.run((ctx) =>
+    ctx.db.insert("siteScoring", {
+      scoring: { ...FIRST_SCORING, rules: [...FIRST_SCORING.rules, { ...rule, stat: TYPO_STAT }] },
+      kind: "fix",
+      season: 2026,
+      number: 1,
+      announcedAt: 0,
+      takesEffectAt: 0,
+    }),
+  );
+}

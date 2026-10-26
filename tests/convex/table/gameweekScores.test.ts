@@ -1,16 +1,18 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
-import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { inTenths } from "../../../convex/scoring/scoringSet";
 import { mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 import {
   ANN,
+  EVERTON_POINTS,
   EVERTON_STARTERS,
   fullTimeRecords,
   GAMEWEEK,
+  holdTypoRule,
   HULL_AFTER_SUB,
+  HULL_POINTS,
   HULL_SCORER,
   HULL_STARTERS,
   liveRecords,
@@ -18,6 +20,7 @@ import {
   readTable,
   scoresLeague,
   sideTotal,
+  TYPO_STAT,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 
@@ -26,11 +29,6 @@ import {
 // move it, provisional until the match locks; a gameweek that can't be scored is named, not blank.
 
 const RECORDS = mergedHullEverton();
-/** Hull's points once the match is over, their keeper on for Phillips, and Everton's: each the sum
- *  of its eleven's FPL lines in golden/hull-everton.scores.json, area by area. Pinned as well as
- *  worked out player by player, so a change in how a match scores shows here. */
-const HULL_POINTS = 26;
-const EVERTON_POINTS = 38;
 
 /** Each team's result in gameweek 6, by name. */
 async function gameweek6(league: ScoresLeague) {
@@ -109,21 +107,11 @@ test("a team that never saved a lineup scores 0, marked so a screen can say why"
 test("a site set holding a rule on a stat that doesn't exist leaves the gameweek out, named with the reason, and logged (#287)", async () => {
   const league = await scoresLeague();
   await fullTimeRecords(league);
-  const [rule] = FIRST_SCORING.rules;
-  await league.t.run((ctx) =>
-    ctx.db.insert("siteScoring", {
-      scoring: { ...FIRST_SCORING, rules: [...FIRST_SCORING.rules, { ...rule, stat: "goals_scroed" }] },
-      kind: "fix",
-      season: 2026,
-      number: 1,
-      announcedAt: 0,
-      takesEffectAt: 0,
-    }),
-  );
+  await holdTypoRule(league);
   const logged = silenceConsoleError();
 
   const read = (await readTable(league))!;
-  expect(read.unscored).toEqual([{ gameweek: GAMEWEEK, reason: expect.stringContaining('"goals_scroed"') }]);
+  expect(read.unscored).toEqual([{ gameweek: GAMEWEEK, reason: expect.stringContaining(`"${TYPO_STAT}"`) }]);
   expect(read.results).toEqual([]);
   expect(read.table.every((row) => row.played === 0)).toBe(true);
   expect(read.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures[0].points).toBeNull();
