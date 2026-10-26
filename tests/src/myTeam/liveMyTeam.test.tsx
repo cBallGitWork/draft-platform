@@ -6,14 +6,17 @@ import { afterEach, expect, test, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { liveMyTeam } from "../../../src/myTeam/liveMyTeam";
 
-const convex = vi.hoisted(() => ({ ofMyTeam: vi.fn() }));
+const convex = vi.hoisted(() => ({ ofMyTeam: vi.fn(), transactions: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
-    queries: { "table/teamFixtures:ofMyTeam": convex.ofMyTeam },
+    queries: { "table/teamFixtures:ofMyTeam": convex.ofMyTeam, "squads/teamTransactions:ofMyTeam": convex.transactions },
   }),
 );
 
-afterEach(() => convex.ofMyTeam.mockReset());
+afterEach(() => {
+  convex.ofMyTeam.mockReset();
+  convex.transactions.mockReset();
+});
 
 const leagueId = "league-1" as Id<"leagues">;
 
@@ -27,4 +30,11 @@ test("it asks table/teamFixtures:ofMyTeam for the league, and hands on what come
 test("it is undefined while loading", () => {
   convex.ofMyTeam.mockReturnValue(undefined);
   expect(renderHook(() => liveMyTeam.useTeamFixtures(leagueId)).result.current).toBeUndefined();
+});
+
+test("it asks squads/teamTransactions:ofMyTeam for the league, and hands on what comes back", () => {
+  const transactions = { transactions: [], cut: false };
+  convex.transactions.mockReturnValue(transactions);
+  expect(renderHook(() => liveMyTeam.useTeamTransactions(leagueId)).result.current).toBe(transactions);
+  expect(convex.transactions).toHaveBeenCalledWith({ leagueId });
 });

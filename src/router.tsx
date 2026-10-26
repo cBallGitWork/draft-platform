@@ -1,4 +1,4 @@
-import type { ComponentType } from "react";
+import type { ComponentProps, ComponentType } from "react";
 import {
   Navigate,
   Outlet,
@@ -21,7 +21,7 @@ import type { FeedbackSeam } from "./feedback/seam";
 import { ErrorScreen } from "./frame/ErrorScreen";
 import { LeagueSwitcher } from "./frame/LeagueSwitcher";
 import type { TopBarState } from "./frame/topBarState";
-import { HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH, pages, PREMIER_LEAGUE_PATH, SCOUTING_PATH, TABLE_PATH } from "./frame/menu";
+import { HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH, MY_TEAM_TRANSACTIONS_PATH, pages, PREMIER_LEAGUE_PATH, SCOUTING_PATH, TABLE_PATH } from "./frame/menu";
 import { PageNotBuilt } from "./frame/PageNotBuilt";
 import { GameweeksRoute } from "./gameweeks/GameweeksRoute";
 import type { LeagueSummary } from "../convex/leagues/myLeagues";
@@ -46,6 +46,7 @@ import { matchupSearchOf } from "./matchup/paths";
 import type { MatchupSeam } from "./matchup/seam";
 import { FixturesPage } from "./myTeam/FixturesPage";
 import { MyTeamRoute } from "./myTeam/MyTeamRoute";
+import { TransactionsPage } from "./myTeam/TransactionsPage";
 import type { MyTeamSeam } from "./myTeam/seam";
 import { PatchBanner } from "./patches/PatchBanner";
 import { PatchNotesPage } from "./patches/PatchNotesPage";
@@ -391,15 +392,22 @@ const scoutingRoute = createRoute({
   },
 });
 
-// My team's Fixtures tab (#365), for anyone in the league: a manager's own team's games.
-const myTeamFixturesRoute = createRoute({
-  getParentRoute: () => frameRoute,
-  path: MY_TEAM_FIXTURES_PATH,
-  component: function MyTeamFixtures() {
-    const { session, myTeam } = myTeamFixturesRoute.useRouteContext();
-    return <MyTeamRoute session={session} seam={myTeam} Tab={FixturesPage} />;
-  },
-});
+/** One of My team's tabs at `path`, for anyone in the league: `Tab` is given the league the app is
+ *  in and the My team seam. */
+function myTeamTab(path: string, Tab: ComponentProps<typeof MyTeamRoute>["Tab"]) {
+  const route = createRoute({
+    getParentRoute: () => frameRoute,
+    path,
+    component: function MyTeamTab() {
+      const { session, myTeam } = route.useRouteContext();
+      return <MyTeamRoute session={session} seam={myTeam} Tab={Tab} />;
+    },
+  });
+  return route;
+}
+
+const myTeamFixturesRoute = myTeamTab(MY_TEAM_FIXTURES_PATH, FixturesPage); // #365
+const myTeamTransactionsRoute = myTeamTab(MY_TEAM_TRANSACTIONS_PATH, TransactionsPage); // #366
 
 // The matchup (#34), for anyone in the league: a team's head-to-head in a gameweek, the manager's
 // own in the latest begun unless the address names another.
@@ -423,7 +431,7 @@ const premierLeagueRoute = createRoute({
   },
 });
 
-const BUILT_PAGES: readonly string[] = [MAIL_PATH, TABLE_PATH, SCOUTING_PATH, HOME_PATH, MY_TEAM_FIXTURES_PATH, MATCHUP_PATH, PREMIER_LEAGUE_PATH];
+const BUILT_PAGES: readonly string[] = [MAIL_PATH, TABLE_PATH, SCOUTING_PATH, HOME_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_TRANSACTIONS_PATH, MATCHUP_PATH, PREMIER_LEAGUE_PATH];
 const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map((page) =>
   createRoute({
     getParentRoute: () => frameRoute,
@@ -435,7 +443,7 @@ const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map(
 const routeTree = rootRoute.addChildren([
   signInRoute,
   leaguePagesRoute.addChildren([leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, playerCardRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, feedbackRoute, patchNotesRoute]),
-  frameRoute.addChildren([landingRoute, homeRoute, tableRoute, scoutingRoute, myTeamFixturesRoute, matchupRoute, premierLeagueRoute, ...pageRoutes]),
+  frameRoute.addChildren([landingRoute, homeRoute, tableRoute, scoutingRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, ...pageRoutes]),
 ]);
 
 // Not registered for typed links yet: the pages above are made in a loop, so their paths are plain
