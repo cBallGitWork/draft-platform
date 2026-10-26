@@ -12,14 +12,12 @@ import { commentaryLines, type CommentaryLine } from "./plCommentary";
 import { readPlCommentary, readPlFixture, type RawPlFixture } from "./premierLeague";
 import { plScoreRead, type ScoreRead } from "./scoreReads";
 
-// Each live match's commentary, read by the live tick (#28) at the cadence of live points, written
-// as our lines by `commentary.ts` and stored one row a match (#43, spec/10, The commentary). Each
-// read replaces the match's lines whole, so a line the feed rewords is rewritten and one it deletes
-// goes. Once the match is no longer polled its lines stay as written, after the gameweek too.
-// A read that fails, a stream behind the clock, or a line with no wording marks the commentary
-// delayed, logged and on its row, never silent; the held lines stand and points carry on.
-// The full-time line carries the score alone: each league scores its own way (#421), so the points
-// it lists are the matchup's to add, not this per-match row's.
+// Each live match's commentary, read by the live tick (#28) with its points, written by
+// `commentary.ts` and stored one row a match (#43, spec/10, The commentary). Each read replaces the
+// lines whole, so a reworded line is rewritten and a deleted one goes; once the match is no longer
+// polled they stay as written. A failed read, a stream behind the clock or an unworded line marks
+// the commentary delayed, logged, while the points carry on. The full-time line carries the score
+// alone: each league scores its own way (#421), so its points are the matchup's to add.
 
 type CommentaryLineRow = Infer<typeof commentaryLine>;
 
@@ -38,6 +36,11 @@ export function commentaryContext(bootstrap: RawBootstrap, codeByOpta: ReadonlyM
   return { codeByOpta, nameByCode: new Map(bootstrap.elements.map((element) => [element.code, element.web_name])) };
 }
 
+interface MatchClubs {
+  home: string;
+  away: string;
+}
+
 /** Both clubs' short names ("ARS") for the match's header, as the football sync holds them. */
 export const clubsOf = internalQuery({
   args: { fixtureCode: v.number() },
@@ -51,11 +54,6 @@ export const clubsOf = internalQuery({
     return { home: home.shortName, away: away.shortName };
   },
 });
-
-interface MatchClubs {
-  home: string;
-  away: string;
-}
 
 /** One read's result: the match's lines written, or null to keep the held ones, and why the
  *  commentary is delayed, or null while it keeps up. */
@@ -78,7 +76,7 @@ export async function syncCommentary(
   try {
     const clubs = await ctx.runQuery(internal.football.matchCommentary.clubsOf, { fixtureCode });
     read = await readCommentary(fixtureCode, listed, clubs, context);
-    if (read.delayed !== null) console.error(`match ${fixtureCode}'s commentary is delayed: ${read.delayed}`);
+    if (read.delayed !== null) logDelay(fixtureCode, read.delayed);
   } catch (error: unknown) {
     read = { lines: null, delayed: logFailure(`match ${fixtureCode}'s commentary failed`, error) };
   }
@@ -116,14 +114,13 @@ export async function readCommentary(
     nameByCode: context.nameByCode,
     fullTimePoints: [],
   });
-  const delays = [behind(lines, score), unworded(written.unworded)].filter((reason) => reason !== null);
-  return { lines: written.lines, delayed: delays.length === 0 ? null : delays.join("; ") };
+  return { lines: written.lines, delayed: joinedReasons([behind(lines, score), unworded(written.unworded)]) };
 }
 
 /** Why the stream counts as behind: its newest timed line trails the clock of a match in play by
  *  more than `COMMENTARY_BEHIND_MINUTES`. Not judged before kickoff, at half-time, when the clock
  *  stops, or at full time. A line's minute and the clock count alike, the second half from 45. */
-export function behind(stream: readonly CommentaryLine[], score: ScoreRead): string | null {
+function behind(stream: readonly CommentaryLine[], score: ScoreRead): string | null {
   if (score.state !== "live" || score.minutes === null) return null;
   const newest = stream.find((line) => line.minute !== null && line.type !== FEED_TYPE.matchEnds);
   const newestMinute = (newest?.minute ?? 0) + (newest?.addedMinute ?? 0);
@@ -131,6 +128,17 @@ export function behind(stream: readonly CommentaryLine[], score: ScoreRead): str
   return score.minutes - newestMinute > COMMENTARY_BEHIND_MINUTES
     ? `the stream is over ${COMMENTARY_BEHIND_MINUTES} minutes behind the clock`
     : null;
+}
+
+/** Each reason a commentary is delayed, as one; null with none. */
+function joinedReasons(reasons: (string | null)[]): string | null {
+  const given = reasons.filter((reason) => reason !== null);
+  return given.length === 0 ? null : given.join("; ");
+}
+
+/** A delay that is not a thrown failure, logged as `logFailure` logs one. */
+function logDelay(fixtureCode: number, reason: string): void {
+  console.error(`match ${fixtureCode}'s commentary is delayed: ${reason}`);
 }
 
 function unworded(lines: readonly CommentaryLine[]): string | null {
@@ -160,9 +168,8 @@ export const store = internalMutation({
     const heldLines = held?.lines ?? [];
     const wipes = lines !== null && lines.length === 0 && heldLines.length > 0;
     const nextLines = lines === null || wipes ? heldLines : lines;
-    const reasons = [wipes ? EMPTY_STREAM : null, delayed].filter((reason) => reason !== null);
-    const reason = reasons.length === 0 ? null : reasons.join("; ");
-    if (wipes) console.error(`match ${fixtureCode}'s commentary is delayed: ${EMPTY_STREAM}`);
+    const reason = joinedReasons([wipes ? EMPTY_STREAM : null, delayed]);
+    if (wipes) logDelay(fixtureCode, EMPTY_STREAM);
     const next = {
       fixtureCode,
       lines: nextLines,

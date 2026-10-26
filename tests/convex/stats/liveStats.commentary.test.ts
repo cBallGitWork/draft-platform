@@ -17,6 +17,8 @@ beforeEach(() => vi.useFakeTimers());
 
 const COMMENTARY_URL = plCommentaryUrl(MATCH.hullEverton.pl);
 const MINUTE = 30;
+/** Hull v Everton's full-time line, from the recorded 2–2. */
+const FULL_TIME_LINE = "FT HUL 2–2 EVE";
 
 async function heldCommentary(t: TestConvex) {
   return t.run((ctx) => ctx.db.query("matchCommentary").unique());
@@ -32,7 +34,7 @@ test("a tick stores the live match's commentary, written from its stream, alongs
   expect(held).toMatchObject({ fixtureCode: HULL_EVERTON, delayed: null });
   const stream = recordedCommentary(MATCH.hullEverton.pl).events.content;
   expect(held.lines.map((line) => line.sourceId)).toEqual(stream.filter((line) => line.type !== FEED_TYPE.end2).map((line) => line.id));
-  expect(held.lines[0]?.text).toBe("FT HUL 2–2 EVE");
+  expect(held.lines[0]?.text).toBe(FULL_TIME_LINE);
   expect(held.lines.at(-2)?.text).toBe("KO HUL v EVE");
 });
 
@@ -96,5 +98,5 @@ test("once the match is complete its commentary is no longer read, and its lines
 
   expect(fetch).not.toHaveBeenCalled();
   expect(await heldCommentary(t)).toEqual(atFullTime);
-  expect(atFullTime?.lines[0]?.text).toBe("FT HUL 2–2 EVE");
+  expect(atFullTime?.lines[0]?.text).toBe(FULL_TIME_LINE);
 });

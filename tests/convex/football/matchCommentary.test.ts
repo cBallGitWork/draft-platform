@@ -21,6 +21,7 @@ import {
   recordedLiveFplPlayers,
   recordedLiveSheets,
 } from "../../support/recorded/live.payloads";
+import live from "../../support/recorded/pl-live-match.json";
 
 // Ipswich v Nott'm Forest's commentary, recorded live on 23 Oct 2026, replayed read by read into
 // the store the live tick writes (#43): each read replaces the match's lines, a stalled stream is
@@ -74,7 +75,7 @@ function textOf(lines: { sourceId: number; text: string }[], sourceId: number) {
 
 /** When a read was made, from the recording. */
 function polledAt(read: Read): number {
-  return Date.parse({ goal: "2026-10-23T19:14:45.160Z", withVanished: "2026-10-23T20:09:45.322Z", final: "2026-10-23T21:13:15.568Z" }[read]);
+  return Date.parse(live.commentary[read].polledAt);
 }
 
 test("replayed read by read, the match's lines are replaced whole, kick-off to full time", async () => {

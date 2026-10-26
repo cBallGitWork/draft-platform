@@ -387,7 +387,7 @@ export const commentaryLine = v.object({ sourceId: v.number(), text: v.string() 
 
 /** Why a match's commentary is delayed, and since when: a read that failed, a stream behind the
  *  match clock, or a line it could not word. */
-export const commentaryDelay = v.object({ reason: v.string(), since: v.number() });
+const commentaryDelay = v.object({ reason: v.string(), since: v.number() });
 
 const commentaryTables = {
   matchCommentary: defineTable({
