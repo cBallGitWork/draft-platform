@@ -151,11 +151,14 @@ class SideScorer {
     };
   }
 
-  /** A player in a lineup the football sync doesn't hold is data gone wrong: scoring threw already. */
+  /** A player in a lineup the football sync doesn't hold is data gone wrong, and throws. */
   private name(playerCode: PlayerCode): Promise<string> {
     let name = this.names.get(playerCode);
     if (name === undefined) {
-      name = playerByCode(this.ctx, playerCode).then((player) => player!.name);
+      name = playerByCode(this.ctx, playerCode).then((player) => {
+        if (player === null) throw new Error(`player ${playerCode} is in a lineup but the football sync doesn't hold him`);
+        return player.name;
+      });
       this.names.set(playerCode, name);
     }
     return name;

@@ -27,7 +27,7 @@ import {
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 import { actingAs, ADMIN, adminCreatesLeague } from "../../support/convex/leagues.harness";
-import { HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
+import { HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 
 // The matchup (#34; spec/10, The matchup, as a live match): Hull v Everton replayed through one
@@ -38,6 +38,8 @@ import { silenceConsoleError } from "../../support/convex/test.harness";
 const RECORDS = mergedHullEverton();
 /** An hour into the match, as the clock reads then. */
 const LIVE_MINUTE = 60;
+/** A club Hull meet again in a double gameweek: FPL's code for Arsenal. */
+const ARSENAL = 3;
 
 /** The match's score as a feed reads it: `state`, and the minute on its clock. */
 async function scoreRead({ t }: ScoresLeague, state: "live" | "fullTime", minutes: number) {
@@ -104,6 +106,21 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
   expect(sideTotal(RECORDS, HULL_AFTER_SUB)).toBe(HULL_POINTS);
   expect(final.team).toMatchObject({ kind: "team", teamId: league.annsTeam, teamName: "Team 1", points: HULL_POINTS, provisional: false });
   expect(final.opponent).toMatchObject({ kind: "team", teamId: league.bobsTeam, teamName: "Team 2", points: EVERTON_POINTS, provisional: false });
+});
+
+test("in a double gameweek a man is yet to play while his second match is to come, and no auto-sub comes before it", async () => {
+  const league = await scoresLeague();
+  const secondKickoff = KICKOFF + 3 * 24 * HOUR_MS;
+  await league.t.run((ctx) =>
+    ctx.db.insert("fixtures", { code: HULL_EVERTON + 1, gameweek: GAMEWEEK, homeClubCode: HULL, awayClubCode: ARSENAL, kickoff: secondKickoff }),
+  );
+  await fullTimeRecords(league);
+  await scoreRead(league, "fullTime", 90);
+  const game = await annsGame(league);
+  expect(slotOf(game.team, HULL_SCORER).status).toEqual({ kind: "yetToPlay", kickoff: secondKickoff });
+  expect(slotOf(game.team, PHILLIPS)).toMatchObject({ counts: true, autoSub: null });
+  // Everton play once, and are done.
+  expect(slotOf(game.opponent, EVERTON_STARTERS[0].playerCode).status).toEqual({ kind: "finished" });
 });
 
 test("each side's total is the same as the table's for the gameweek", async () => {
