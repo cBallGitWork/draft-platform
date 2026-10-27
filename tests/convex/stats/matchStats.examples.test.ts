@@ -19,15 +19,19 @@ function minutesOf(clock: string): number {
   return Number(match[1]) * 60 + Number(match[2]);
 }
 
-const locks = exampleTable(spec, "S07.2");
+/** The answers whose tables this file runs. */
+const LOCKS = "S07.2";
+const FEEDS = "S07.5";
+
+const locks = exampleTable(spec, LOCKS);
 const windowMinutes = Number(/window at (\d+) minutes/.exec(locks.caption)?.[1] ?? NaN);
 
-test("S07.2's caption names the window its rows assume", () => {
+test(`${LOCKS}'s caption names the window its rows assume`, () => {
   expect(windowMinutes).toBeGreaterThan(0);
 });
 
 test.each(locks.rows.map((row) => [row["full time"]!, row["last record arrives"]!, row["locks"]!]))(
-  "S07.2: full time at %s, the last record arriving at %s, locks at %s",
+  `${LOCKS}: full time at %s, the last record arriving at %s, locks at %s`,
   async (fullTime, arrives, locksAt) => {
     // Each time is read against the table's full time, which the harness's full-time read stands for.
     const at = (clock: string) => FULL_TIME_READ + (minutesOf(clock) - minutesOf(fullTime)) * MINUTE_MS;
@@ -50,7 +54,7 @@ test.each(locks.rows.map((row) => [row["full time"]!, row["last record arrives"]
   },
 );
 
-/** Each stat S07.5's table names, under FPL's name and the Premier League's (Opta's). */
+/** Each stat FEEDS' table names, under FPL's name and the Premier League's (Opta's). */
 const FEED_NAMES: Record<string, { fpl: string; pl: string }> = {
   goals: { fpl: "goals_scored", pl: "goals" },
   assists: { fpl: "assists", pl: "goal_assist" },
@@ -66,17 +70,17 @@ const FEED_NAMES: Record<string, { fpl: string; pl: string }> = {
   starts: { fpl: "starts", pl: "game_started" },
 };
 
-const feeds = exampleTable(spec, "S07.5");
+const feeds = exampleTable(spec, FEEDS);
 
 test.each(feeds.rows.map((row) => [row["stat"]!, row["counts from"]!]))(
-  "S07.5: where both feeds send %s, %s's count is kept",
+  `${FEEDS}: where both feeds send %s, %s's count is kept`,
   (stat, countsFrom) => {
     const names = FEED_NAMES[stat];
-    if (names === undefined) throw new Error(`S07.5 names "${stat}", which this test can't map to the feeds' names`);
+    if (names === undefined) throw new Error(`${FEEDS} names "${stat}", which this test can't map to the feeds' names`);
     // FPL sends 1 and the Premier League 2, so the value kept says whose count it is.
     const merged = mergeStats({ [names.fpl]: 1 }, { [names.pl]: 2 });
     if (countsFrom === "FPL") expect(merged).toEqual({ [names.fpl]: 1 });
     else if (countsFrom === "Premier League") expect(merged).toEqual({ [names.pl]: 2 });
-    else throw new Error(`S07.5's "${countsFrom}" is neither FPL nor Premier League`);
+    else throw new Error(`${FEEDS}'s "${countsFrom}" is neither FPL nor Premier League`);
   },
 );

@@ -20,7 +20,7 @@ const TEST_FILE = /\.(ts|tsx|mjs)$/;
 const OWN_TEST = "tests/scripts/spec-ids.test.mjs";
 
 /** What the spec files give and mention, and what's wrong in them. `specs` maps a file's name to its text. */
-export function readSpecs(specs) {
+function readSpecs(specs) {
   const answers = new Map();
   const mentions = [];
   const problems = [];
