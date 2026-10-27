@@ -92,6 +92,25 @@ describe("the table", () => {
     expect(screen.queryByText(noResultsWords)).toBeNull();
   });
 
+  it("breaks a tie on points by the league's tie-breaks, as the server does (#168)", async () => {
+    const teams = ["Ann's", "Bob's", "Cat's", "Dan's"];
+    const [one, other] = leagueTableOf(teams).gameweeks[0].fixtures;
+    // Both home sides win, so they tie on points; the one made later scores more, so only the
+    // tie-break (points for, a new league's) puts it first.
+    const [earlier, later] = [one.team, other.team].sort((a, b) => teams.indexOf(a) - teams.indexOf(b));
+    const scored = new Map([
+      [earlier, 20],
+      [later, 30],
+      [one.opponent!, 10],
+      [other.opponent!, 10],
+    ]);
+    openTable({ leagueTable: leagueTableOf(teams, { scores: new Map([[1, scored]]) }) });
+
+    const [first, second] = (await screen.findAllByRole("row")).slice(1);
+    expect(within(first).getByRole("rowheader").textContent).toBe(later);
+    expect(within(second).getByRole("rowheader").textContent).toBe(earlier);
+  });
+
   it("says when live points count, provisional until final", async () => {
     const scores = new Map([[1, new Map([["Ann's", 10], ["Bob's", 30.5]])]]);
     openTable({ leagueTable: leagueTableOf(["Ann's", "Bob's"], { scores, provisional: ["Bob's"] }) });

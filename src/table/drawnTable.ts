@@ -1,12 +1,12 @@
 // A league's table and fixtures, and one team's (My team's Fixtures tab), as the server would send
 // them, for the preview and the tests: drawn by the server's pure functions
 // (convex/table/roundRobin.ts, convex/table/standings.ts, convex/table/teamGames.ts), with the
-// mapping copied from convex/table/leagueTable.ts's ofLeague and teamFixtures.ts's ofMyTeam, and
-// with no tie-breaks.
+// mapping copied from convex/table/leagueTable.ts's ofLeague and teamFixtures.ts's ofMyTeam.
 
 import type { Id } from "../../convex/_generated/dataModel";
 import { drawFixtures, LEAGUE_AVERAGE, roundsOf, type DrawRules } from "../../convex/table/roundRobin";
-import { averageOf, headToHeadTable, totalPointsTable, type GameweekScores } from "../../convex/table/standings";
+import { FIRST_RULES } from "../../convex/rules/firstRules";
+import { averageOf, headToHeadTable, totalPointsTable, type GameweekScores, type TieBreak } from "../../convex/table/standings";
 import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import type { TeamFixtures } from "../../convex/table/teamFixtures";
 import { gamesOf } from "../../convex/table/teamGames";
@@ -21,6 +21,8 @@ export type Drawn = Partial<DrawRules> & {
   /** The league's own deadline for each gameweek: none known by default. */
   deadlineOf?: (gameweek: number) => number | null;
   scores?: GameweekScores<string>;
+  /** The league's tie-breaks, in its order: a new league's by default, as the server's would be. */
+  tieBreaks?: readonly TieBreak[];
   /** The teams whose scores are still provisional, and those that saved no lineup. */
   provisional?: readonly string[];
   noLineup?: readonly string[];
@@ -47,10 +49,11 @@ export function leagueTableOf(teamNames: string[], drawn: Drawn = {}): LeagueTab
     provisional = [],
     noLineup = [],
     unscored = [],
+    tieBreaks = FIRST_RULES.tieBreaks,
   } = drawn;
   const headToHead = format === "headToHead";
   const schedule = headToHead ? scheduleOf(teamNames, drawn) : [];
-  const table = headToHead ? headToHeadTable(teamNames, schedule, scores, []) : totalPointsTable(teamNames, scores);
+  const table = headToHead ? headToHeadTable(teamNames, schedule, scores, tieBreaks) : totalPointsTable(teamNames, scores);
   return {
     format,
     roundRobinRounds: schedule.length === 0 ? 0 : roundsOf(teamNames).length,
