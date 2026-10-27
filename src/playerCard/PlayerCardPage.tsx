@@ -30,7 +30,7 @@ import {
   noPositionsWords,
   noSuchPlayerWords,
   notArrivedWords,
-  nothingPaidWords,
+  nothingEarnedWords,
   overriddenWords,
   ownerLabel,
   PLAYER_TITLE,
@@ -167,12 +167,12 @@ function Season({ card }: { card: PlayerCard }) {
 }
 
 /** One match: its row of figures, the league's override in place of its points, and under it each
- *  category that paid, and the override's reason. */
+ *  category he earned or lost points in, and the override's reason. */
 function MatchRows({ match }: { match: PlayedMatch }) {
   const { position, categories } = match.points;
   const { override } = match;
   const total = override?.points ?? match.points.total;
-  const paid = categories.filter((category) => category.points !== null && category.points !== 0);
+  const earned = categories.filter((category) => category.points !== null && category.points !== 0);
   return (
     <tbody className="border-t border-panel-rule">
       <tr>
@@ -197,9 +197,9 @@ function MatchRows({ match }: { match: PlayedMatch }) {
           {/* Under the match it breaks down, past the gameweek's column. */}
           <td />
           <td colSpan={COLUMNS.length - 1} aria-label={breakdownLabel(match.gameweek)} className="px-2 pb-1 text-soft">
-            {paid.length === 0
-              ? nothingPaidWords
-              : paid.map((category, index) => (
+            {earned.length === 0
+              ? nothingEarnedWords
+              : earned.map((category, index) => (
                   <span key={category.stat}>
                     {index > 0 && listSeparator}
                     {category.name} <span className="text-figure">{category.points}</span>

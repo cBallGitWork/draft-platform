@@ -27,7 +27,7 @@ import {
   noMatchesWords,
   noNewsWords,
   noSuchPlayerWords,
-  nothingPaidWords,
+  nothingEarnedWords,
   PLAYER_TITLE,
   pricedNotes,
   SEASON_TITLE,
@@ -192,7 +192,7 @@ describe("the card", () => {
   it("a match where no category paid says so", async () => {
     const nothing = { ...PRICED, points: { ...PRICED.points, total: 0, categories: PRICED.points.categories.map((each) => ({ ...each, points: 0 })) } };
     openCard(SAKA, { cards: [{ ...SAKA, matches: [nothing] }] });
-    expect(await screen.findByText(nothingPaidWords)).toBeTruthy();
+    expect(await screen.findByText(nothingEarnedWords)).toBeTruthy();
   });
 
   it("a player with no matches this season says so", async () => {

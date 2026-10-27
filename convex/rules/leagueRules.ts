@@ -12,7 +12,7 @@ import { sortedJson } from "../shared/sortedJson";
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
-import { momentIn } from "../shared/londonTime";
+import { momentIn } from "../shared/moments";
 import { zoneOf } from "../signIn/timeZone";
 import { adminByline } from "../mail/letterWords";
 import { checkSquadMaximums, squadMaximumBandShape, squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum, type SquadMaximumBand } from "./squadMaximums";

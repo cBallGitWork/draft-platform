@@ -32,6 +32,9 @@ export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
 /** The roles this slot offers, its first the one a player starts on until stars exist (spec/05). */
 export const rolesOfSlot = (cell: Cell): readonly Role[] => DEFAULT_ROLES[positionOfSlot(cell)];
 
+/** Whether this slot offers the role with this key. */
+export const offersRole = (cell: Cell, key: string): boolean => rolesOfSlot(cell).some((role) => role.key === key);
+
 /** The role a starter plays: the one he was given, or the slot's first. */
 export const roleIn = (cell: Cell, given: string | undefined): Role =>
   rolesOfSlot(cell).find(({ key }) => key === given) ?? rolesOfSlot(cell)[0];

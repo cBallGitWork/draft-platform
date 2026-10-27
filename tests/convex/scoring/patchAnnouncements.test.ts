@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { LEAGUES_WRITTEN_TO_MOST } from "../../../convex/mail/letters";
 import { patchBannerRefusals } from "../../../convex/scoring/patchNotes";
 import { siteScoringRefusals } from "../../../convex/scoring/siteScoring";
-import { momentIn } from "../../../convex/shared/londonTime";
+import { momentIn } from "../../../convex/shared/moments";
 import { PRODUCT_NAME } from "../../../convex/shared/product";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";

@@ -6,7 +6,7 @@
 import { AREAS, LANES, playsCell, type Cell } from "../../convex/lineup/pitch";
 import type { Position } from "../../convex/positions/positionTables";
 import type { OpenTactics } from "../../convex/lineup/tactics";
-import { rolesOfSlot } from "../../convex/lineup/roles";
+import { offersRole } from "../../convex/lineup/roles";
 
 export type SquadMember = OpenTactics["squad"][number];
 /** A starter, his cell and the role he plays there (roles.ts), none given meaning the slot's first. */
@@ -108,7 +108,7 @@ export function reshaped(draft: DraftLineup, cells: readonly Cell[]): DraftLineu
     }
     free.splice(free.indexOf(nearest), 1);
     // He keeps his role where the new slot offers it too.
-    const kept = starter.role !== undefined && rolesOfSlot(nearest).some(({ key }) => key === starter.role);
+    const kept = starter.role !== undefined && offersRole(nearest, starter.role);
     starters.push({ playerCode: starter.playerCode, area: nearest.area, lane: nearest.lane, ...(kept && { role: starter.role }) });
   }
   return { starters, bench: [...leftOver, ...draft.bench] };

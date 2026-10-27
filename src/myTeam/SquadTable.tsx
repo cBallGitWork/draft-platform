@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { DragEvent } from "react";
 import { playerCardPath } from "../playerCard/paths";
 import { roleIn, rolesOfSlot } from "../../convex/lineup/roles";
+import { markOf } from "./focusMarks";
 import { startersInOrder, type DraftLineup, type SquadMember, type Starter } from "./lineupDraft";
 import { startDrag, type Moving } from "./Pitch";
 import {
@@ -161,7 +162,7 @@ function SquadRow({
         <td className="px-2">
           <select
             aria-label={roleLabel(player.name)}
-            data-role={player.playerCode}
+            {...markOf("role", player.playerCode)}
             value={roleIn(starter, starter.role).key}
             onChange={(event) => onRole(player.playerCode, event.target.value)}
             className="text-box w-full"
@@ -177,7 +178,7 @@ function SquadRow({
       <td colSpan={starter === null ? 2 : 1} className="px-2">
         <button
           type="button"
-          data-player={onBenchRow ? player.playerCode : undefined}
+          {...(onBenchRow ? markOf("player", player.playerCode) : {})}
           aria-pressed={isPicked}
           aria-label={moveLabel(player.name)}
           onClick={() => moving.onPick(player.playerCode)}
@@ -191,7 +192,7 @@ function SquadRow({
             <button
               type="button"
               aria-label={upLabel(player.name)}
-              data-bench-up={player.playerCode}
+              {...markOf("bench-up", player.playerCode)}
               disabled={bench.index === 0}
               onClick={() => bench.onBenchAt(player.playerCode, bench.index - 1, "up")}
               className={BENCH_ORDER_BUTTON}
@@ -201,7 +202,7 @@ function SquadRow({
             <button
               type="button"
               aria-label={downLabel(player.name)}
-              data-bench-down={player.playerCode}
+              {...markOf("bench-down", player.playerCode)}
               disabled={bench.index === bench.last}
               onClick={() => bench.onBenchAt(player.playerCode, bench.index + 1, "down")}
               className={BENCH_ORDER_BUTTON}

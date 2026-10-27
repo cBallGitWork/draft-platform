@@ -1,6 +1,7 @@
 import type { DragEvent } from "react";
 import { AREAS, LANES, type Cell } from "../../convex/lineup/pitch";
 import { roleIn } from "../../convex/lineup/roles";
+import { markOf } from "./focusMarks";
 import { canStandIn, standingIn, type DraftLineup, type SquadMember } from "./lineupDraft";
 import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel } from "./tacticsWords";
 
@@ -91,7 +92,7 @@ function PlayerBlock({ player, cell, role, moving }: { player: SquadMember; cell
     <button
       type="button"
       draggable
-      data-player={player.playerCode}
+      {...markOf("player", player.playerCode)}
       aria-pressed={isPicked}
       aria-label={playerOnPitchLabel(player.name, player.positions, cell.area, cell.lane)}
       onClick={() => moving.onPick(player.playerCode)}

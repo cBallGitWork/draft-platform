@@ -5,7 +5,7 @@ import { failureOf, type RunOutcome } from "./feedState";
 import { sendEmail } from "../outbound/email";
 import { takeTodaysEmail } from "../outbound/emailLimit";
 import { FEED_NAMES, feedValidator, type Feed } from "../shared/feedSchedule";
-import { momentIn } from "../shared/londonTime";
+import { momentIn } from "../shared/moments";
 import { PRODUCT_NAME } from "../shared/product";
 import { DAY_MS } from "../shared/time";
 import { adminEmail } from "../signIn/allowedEmails";

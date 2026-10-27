@@ -2,7 +2,7 @@ import { ConvexAuthProvider, useAuthActions } from "@convex-dev/auth/react";
 import { ConvexReactClient, useAction, useConvexAuth, useMutation, useQuery } from "convex/react";
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { api } from "../convex/_generated/api";
-import { browserZone } from "../convex/shared/londonTime";
+import { browserZone } from "../convex/shared/moments";
 import { useLiveAdmin } from "./admin/liveAdmin";
 import { useLiveFeedback } from "./feedback/liveFeedback";
 import { useLivePatches } from "./patches/livePatches";

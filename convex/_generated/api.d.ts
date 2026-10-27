@@ -102,7 +102,7 @@ import type * as scouting_shortlist from "../scouting/shortlist.js";
 import type * as shared_errors from "../shared/errors.js";
 import type * as shared_feedSchedule from "../shared/feedSchedule.js";
 import type * as shared_leagueAccess from "../shared/leagueAccess.js";
-import type * as shared_londonTime from "../shared/londonTime.js";
+import type * as shared_moments from "../shared/moments.js";
 import type * as shared_players from "../shared/players.js";
 import type * as shared_product from "../shared/product.js";
 import type * as shared_sortedJson from "../shared/sortedJson.js";
@@ -232,7 +232,7 @@ declare const fullApi: ApiFromModules<{
   "shared/errors": typeof shared_errors;
   "shared/feedSchedule": typeof shared_feedSchedule;
   "shared/leagueAccess": typeof shared_leagueAccess;
-  "shared/londonTime": typeof shared_londonTime;
+  "shared/moments": typeof shared_moments;
   "shared/players": typeof shared_players;
   "shared/product": typeof shared_product;
   "shared/sortedJson": typeof shared_sortedJson;

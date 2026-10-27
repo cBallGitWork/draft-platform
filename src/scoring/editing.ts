@@ -23,7 +23,7 @@ export type PriceKey = "all" | Area | SlotPosition;
 
 const FINENESS: Record<Pricing, number> = { all: 0, byArea: 1, byPosition: 2 };
 
-/** Where a new per-number or band rule starts counting, and the points a new category pays: the
+/** Where a new per-number or band rule starts counting, and the points a new category is worth: the
  *  commissioner sets both. */
 const FIRST_COUNT = 1;
 const NEW_POINTS = 0;
@@ -104,10 +104,10 @@ function setAt<Value>(priced: Priced<Value>, key: PriceKey, value: Value): Price
   throw new Error(`A rule priced the same for all has no row for ${key}`);
 }
 
-/** What one row of a rule pays: a number per action, points for every so many, or bands. */
+/** What one row of a rule is worth: a number per action, points for every so many, or bands. */
 type ValueOf<S extends Shape> = S extends "perAction" ? number : S extends "perCount" ? PerCount : Band[];
 
-/** The rule paying `value` in this row, all its parts priced as the row is. */
+/** The rule worth `value` in this row, all its parts priced as the row is. */
 export function withValue(rule: Rule, key: PriceKey, value: ValueOf<Shape>): Rule {
   const aligned = withPricing(rule, rulePricing(rule));
   return { ...aligned, values: setAt(aligned.values as Priced<unknown>, key, value) } as Rule;
@@ -120,7 +120,7 @@ export function withLimitAt(rule: Rule, key: PriceKey, end: keyof PointsLimit, p
   return { ...aligned, limit: setAt(limit, key, { ...valueAt(limit, key), [end]: points }) };
 }
 
-/** The rule's minutes before it pays, in this row. */
+/** The rule's minutes before he earns anything from it, in this row. */
 export function withMinMinutesAt(rule: Rule, key: PriceKey, minutes: number): Rule {
   const aligned = withPricing(rule, rulePricing(rule));
   return { ...aligned, minMinutes: setAt(aligned.minMinutes ?? reprice({ all: NO_MINUTES }, rulePricing(rule)), key, minutes) };
@@ -132,20 +132,20 @@ export function withLimit(rule: Rule, on: boolean): Rule {
   return on ? ({ ...rest, limit: reprice<PointsLimit>({ all: NO_LIMIT }, rulePricing(rule)) } as Rule) : (rest as Rule);
 }
 
-/** The rule paying only after so many minutes, none to begin with, or from the first minute. */
+/** The rule earned only after so many minutes, none to begin with, or from the first minute. */
 export function withMinMinutes(rule: Rule, on: boolean): Rule {
   const { minMinutes: _dropped, ...rest } = rule;
   return on ? ({ ...rest, minMinutes: reprice({ all: NO_MINUTES }, rulePricing(rule)) } as Rule) : (rest as Rule);
 }
 
-/** Whether a band rule pays every band reached, or only the highest. */
+/** Whether a band rule earns every band reached, or only the highest. */
 export function withStack(rule: Rule, stack: boolean): Rule {
   if (rule.shape !== "bands") throw new Error(`Only a band rule stacks, not the ${rule.stat} rule`);
   return { ...rule, stack };
 }
 
-/** The rule as another kind, each row keeping its points: per action pays them per action, per
- *  number for every so many, and bands from so many. A band rule pays only its highest band. */
+/** The rule as another kind, each row keeping its points: per action gives them per action, per
+ *  number for every so many, and bands from so many. A band rule earns only its highest band. */
 export function withShape(rule: Rule, shape: Shape): Rule {
   if (shape === rule.shape) return rule;
   const { stack: _dropped, ...common } = rule as Rule & { stack?: boolean };
@@ -168,13 +168,13 @@ function convert(value: ValueOf<Shape>, from: Shape, to: Shape): ValueOf<Shape> 
 /** How far past the highest band a new band starts. */
 const NEXT_BAND_STEP = 1;
 
-/** A band to add to these: one past the highest, paying nothing until the commissioner sets it. */
+/** A band to add to these: one past the highest, worth nothing until the commissioner sets it. */
 export function nextBand(bands: readonly Band[]): Band {
   const highest = Math.max(0, ...bands.map((band) => band.atLeast).filter(Number.isFinite));
   return { atLeast: highest + NEXT_BAND_STEP, points: NEW_POINTS };
 }
 
-/** A new category's rule: per action, paying nothing until the commissioner sets it. */
+/** A new category's rule: per action, worth nothing until the commissioner sets it. */
 export const newRule = (stat: string): Rule => ({ shape: "perAction", stat, values: { all: NEW_POINTS } });
 
 /** The index of the first rule holding a box left without a number, or -1: the server would

@@ -10,7 +10,7 @@ import { siteScoringKind } from "../schema";
 import { scoringSetShape, type StoredScoringSet } from "../rules/leagueRulesShape";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { adminOf, callerEmail, isAdmin, refuse } from "../shared/leagueAccess";
-import { momentIn } from "../shared/londonTime";
+import { momentIn } from "../shared/moments";
 import { zoneOf } from "../signIn/timeZone";
 import { sortedJson } from "../shared/sortedJson";
 import { DAY_MS } from "../shared/time";
