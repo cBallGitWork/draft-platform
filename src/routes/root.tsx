@@ -1,9 +1,11 @@
-import { Navigate, Outlet, createRootRouteWithContext, createRoute, redirect } from "@tanstack/react-router";
+import { Navigate, Outlet, createRootRouteWithContext, createRoute, redirect, type ErrorComponentProps } from "@tanstack/react-router";
 import type { AdminSeam } from "../admin/seam";
 import type { AuthActions, Session } from "../auth";
 import { AppFrame } from "../frame/AppFrame";
+import { ErrorScreen } from "../frame/ErrorScreen";
 import type { FeedbackSeam } from "../feedback/seam";
 import { LeagueSwitcher } from "../frame/LeagueSwitcher";
+import { SignOut } from "../frame/SignOut";
 import type { TopBarState } from "../frame/topBarState";
 import type { GameweeksSeam } from "../gameweeks/seam";
 import type { HomeSeam } from "../home/seam";
@@ -77,6 +79,18 @@ function LeagueFrame({ context: { session, topBar, auth, leagues, patches } }: {
   return <AppFrame topBar={topBar} onSignOut={auth.signOut} leagueSwitcher={leagueSwitcher} banner={<PatchBanner seam={patches} />} />;
 }
 
+/** What a frame shows when drawing the frame itself threw, such as the league switcher finding the
+ *  app in a league that isn't one of theirs (#207): the error page, with Sign out, as the top bar's
+ *  isn't there, and "Your leagues" may well throw the same way. */
+function FrameFailed(failed: ErrorComponentProps) {
+  const { auth } = rootRoute.useRouteContext();
+  return (
+    <ErrorScreen {...failed}>
+      <SignOut onSignOut={auth.signOut} />
+    </ErrorScreen>
+  );
+}
+
 // The guards on a page for the admin alone, on a league's page for whoever runs it, and on one for
 // anyone in it: anyone else is sent back to their leagues.
 export const adminOnly = ({ context }: { context: ShellContext }) => {
@@ -129,6 +143,7 @@ export const leaguePagesRoute = createRoute({
       <LeaguelessFrame unreadMail={context.topBar.unreadMail} onSignOut={context.auth.signOut} banner={<PatchBanner seam={context.patches} />} />
     );
   },
+  errorComponent: FrameFailed,
 });
 
 export const frameRoute = createRoute({
@@ -141,4 +156,5 @@ export const frameRoute = createRoute({
   component: function Frame() {
     return <LeagueFrame context={frameRoute.useRouteContext()} />;
   },
+  errorComponent: FrameFailed,
 });

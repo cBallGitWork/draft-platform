@@ -8,9 +8,23 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { ESCAPE_KEY } from "../../../src/browserEvents";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import { adminSeeing, beingDeleted, commissioner, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
+import { READ_FAILED_LOG } from "../../../src/frame/ReadFailed";
+import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
+import { silenceConsoleError } from "../../support/console.setup";
+import {
+  adminSeeing,
+  beingDeleted,
+  commissioner,
+  league,
+  manager,
+  managerIn,
+  miniBeta,
+  openApp,
+  visitor,
+  withNoPart,
+} from "../../support/src/shell.harness";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
-import { allLeaguesWords, currentLeagueLabel } from "../../../src/frame/words";
+import { allLeaguesWords, currentLeagueLabel, ERROR_PAGE_TITLE, signOutWords } from "../../../src/frame/words";
 
 const inTwo = managerIn(league, miniBeta);
 const inMiniBeta = { ...inTwo, currentLeagueId: miniBeta.leagueId };
@@ -149,11 +163,47 @@ describe("the top bar's league, for someone in one", () => {
   });
 });
 
+describe("the leagues to switch between (#207)", () => {
+  it("are the server's list, leaving out a league it leaves out", async () => {
+    openApp(MY_TEAM_PATH, { ...inTwo, switchableLeagueIds: [league.leagueId] });
+    await userEvent.click(await switcher());
+    expect(choices().map((choice) => choice.textContent)).toEqual(["Tim Hortons Pro LeagueTeam 1"]);
+  });
+
+  // The switcher's old rule (a part, and not being deleted) dropped each of these.
+  it.each([
+    { kept: "one they have no part in", other: withNoPart(miniBeta), otherChoice: "Mini beta" },
+    { kept: "one being deleted", other: beingDeleted(miniBeta), otherChoice: "Mini betaCommissioner" },
+  ])("are the server's list, which the switcher doesn't judge again: it keeps $kept", async ({ other, otherChoice }) => {
+    openApp(MY_TEAM_PATH, { ...managerIn(league, other), switchableLeagueIds: [league.leagueId, other.leagueId] });
+    await userEvent.click(await switcher());
+    expect(choices().map((choice) => choice.textContent)).toEqual(["Tim Hortons Pro LeagueTeam 1", otherChoice]);
+  });
+
+  // signIn/account:signedInAs never sends this: the app is always in one of the leagues it lists.
+  it.each([MY_TEAM_PATH, LEAGUES_PATH])(
+    "leaving out the one the app is in is a loud error at %s, where Sign out still leads out",
+    async (path) => {
+      const logged = silenceConsoleError();
+      const app = openApp(path, { ...inTwo, switchableLeagueIds: [miniBeta.leagueId] });
+
+      expect(await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE })).toBeTruthy();
+      expect(logged).toHaveBeenCalledWith(READ_FAILED_LOG, new Error(`The league the app is in, ${league.leagueId}, isn't one of manager@example.com's`));
+      await userEvent.click(screen.getByRole("button", { name: signOutWords }));
+      expect(app.auth.signOut).toHaveBeenCalledOnce();
+
+      app.becomes(visitor);
+      expect(await screen.findByRole("textbox", { name: "Email" })).toBeTruthy();
+      expect(app.path()).toBe(SIGN_IN_PATH);
+    },
+  );
+});
+
 describe("a league deleted under someone on its pages", () => {
   it("takes them to their leagues, not a broken page", async () => {
     const app = openApp(MY_TEAM_PATH, manager);
     await switcherOrName();
-    app.becomes({ ...manager, inLeague: false, leagues: [], currentLeagueId: null });
+    app.becomes({ ...manager, inLeague: false, leagues: [], switchableLeagueIds: [], currentLeagueId: null });
 
     expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);

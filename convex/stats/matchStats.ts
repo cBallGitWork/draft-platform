@@ -16,7 +16,16 @@ import { countedStats, moveSeasonTotals, type RecordChange } from "./seasonStats
 
 type State = Infer<typeof matchStatsState>;
 /** A match to read, and the gameweek its live stats come under. */
-export type DueMatch = { fixtureCode: number; gameweek: number };
+export const dueMatch = v.object({ fixtureCode: v.number(), gameweek: v.number() });
+export type DueMatch = Infer<typeof dueMatch>;
+/** What writing one match's records did: upsertMatch's, and upsertLive's before full time. Stored as tables/matchStats.ts's matchSyncOutcome. */
+export const matchWrites = v.object({
+  state: matchStatsState,
+  inserted: v.number(),
+  updated: v.number(),
+  changed: v.array(v.number()),
+  lateCorrections: v.number(),
+});
 
 /** Ninety minutes and a fifteen-minute half-time: no match reaches full time sooner after kickoff,
  *  so none is read before. */
@@ -34,6 +43,7 @@ export const MATCHES_PER_RUN = 10;
  *  cannot keep a newer match from being read. */
 export const due = internalQuery({
   args: { now: v.number() },
+  returns: v.array(dueMatch),
   handler: async (ctx, { now }): Promise<DueMatch[]> => {
     const found: (DueMatch & { kickoff: number; triedAt: number })[] = [];
     // Only the current season's (#214): a fixture with no kickoff sorts before every time in the
@@ -63,6 +73,7 @@ export const due = internalQuery({
  *  is written but the changes, for the feeds page. */
 export const upsertMatch = internalMutation({
   args: { fixtureCode: v.number(), readAt: v.number(), records: v.array(playerMatchRecord) },
+  returns: matchWrites,
   handler: async (ctx, { fixtureCode, readAt, records }) => {
     const status = await statusOf(ctx, fixtureCode);
     const held = new Map((await recordsOf(ctx, fixtureCode)).map((row) => [row.playerCode, row]));
@@ -92,15 +103,16 @@ export const upsertMatch = internalMutation({
  *  anew when it is next complete, and one already locked stays as it is. */
 export const lock = internalMutation({
   args: { fixtureCode: v.number() },
+  returns: v.null(),
   handler: async (ctx, { fixtureCode }) => {
     const status = await statusOf(ctx, fixtureCode);
-    if (status?.state !== "complete") return;
+    if (status?.state !== "complete") return null;
     if (status.completeAt === undefined) throw new Error(`match ${fixtureCode} is complete with no completeAt`);
     const lockAt = lockTime(status.fullTimeAt, status.completeAt, await statCorrectionWindowMs(ctx));
     const now = Date.now();
     if (now < lockAt) {
       await ctx.scheduler.runAt(lockAt, internal.stats.matchStats.lock, { fixtureCode });
-      return;
+      return null;
     }
     await ctx.db.patch("matchStatsStatus", status._id, { state: "locked", lockedAt: now });
     for (const row of await recordsOf(ctx, fixtureCode)) {
@@ -109,26 +121,30 @@ export const lock = internalMutation({
     // Its gameweek may now be final in each league: stored apart, so a league that can't be scored
     // never undoes the lock (finalScores.ts, #418).
     await ctx.scheduler.runAfter(0, internal.table.finalScores.storeEveryLeague, {});
+    return null;
   },
 });
 
 /** The run's row, and every match it tried marked tried then, whether it read, waited or failed. */
 export const record = internalMutation({
   args: matchStatsSyncFields,
+  returns: v.null(),
   handler: async (ctx, row) => {
     await ctx.db.insert("matchStatsSyncs", row);
     await emailIfFailed(ctx, "matchStats", row);
-    if (!row.outcome.ok) return;
+    if (!row.outcome.ok) return null;
     for (const fixtureCode of [...row.outcome.matches.map((match) => match.fixtureCode), ...row.outcome.waiting]) {
       const tried = await triedOf(ctx, fixtureCode);
       if (tried === null) await ctx.db.insert("matchStatsTries", { fixtureCode, triedAt: row.ranAt });
       else await ctx.db.patch("matchStatsTries", tried._id, { triedAt: row.ranAt });
     }
+    return null;
   },
 });
 
 export const latest = internalQuery({
   args: {},
+  returns: v.array(v.object({ _id: v.id("matchStatsSyncs"), _creationTime: v.number(), ...matchStatsSyncFields })),
   handler: async (ctx) => ctx.db.query("matchStatsSyncs").order("desc").take(LATEST_RUNS),
 });
 

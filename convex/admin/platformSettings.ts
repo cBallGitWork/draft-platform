@@ -19,6 +19,7 @@ export async function statCorrectionWindowMs(ctx: QueryCtx): Promise<number> {
 /** Sets the window. A lock already scheduled reads it again when it fires. */
 export const setStatCorrectionWindow = internalMutation({
   args: { minutes: v.number() },
+  returns: v.null(),
   handler: async (ctx, { minutes }) => {
     if (!Number.isInteger(minutes) || minutes < 0) {
       throw new Error(`The stat-correction window is a whole number of minutes, 0 or more, not ${minutes}`);
@@ -26,6 +27,7 @@ export const setStatCorrectionWindow = internalMutation({
     const row = await windowRow(ctx);
     if (row === null) await ctx.db.insert("platformSettings", { name: STAT_CORRECTION_WINDOW, value: minutes });
     else await ctx.db.patch("platformSettings", row._id, { value: minutes });
+    return null;
   },
 });
 

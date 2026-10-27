@@ -37,14 +37,13 @@ export function commentaryContext(bootstrap: RawBootstrap, codeByOpta: ReadonlyM
   return { codeByOpta, nameByCode: new Map(bootstrap.elements.map((element) => [element.code, element.web_name])) };
 }
 
-interface MatchClubs {
-  home: string;
-  away: string;
-}
+const matchClubs = v.object({ home: v.string(), away: v.string() });
+type MatchClubs = Infer<typeof matchClubs>;
 
 /** Both clubs' short names ("ARS") for the match's header, as the football sync holds them. */
 export const clubsOf = internalQuery({
   args: { fixtureCode: v.number() },
+  returns: matchClubs,
   handler: async (ctx, { fixtureCode }): Promise<MatchClubs> => {
     const fixture = await ctx.db
       .query("fixtures")
@@ -166,6 +165,7 @@ export const EMPTY_STREAM = "the stream sent no lines";
  *  written, so a screen reading the row is not woken each minute. */
 export const store = internalMutation({
   args: { fixtureCode: v.number(), readAt: v.number(), lines: v.union(v.array(commentaryLine), v.null()), delayed: v.union(v.string(), v.null()) },
+  returns: v.null(),
   handler: async (ctx, { fixtureCode, readAt, lines, delayed }) => {
     const held = await heldOf(ctx, fixtureCode);
     const heldLines = held?.lines ?? [];
@@ -180,10 +180,11 @@ export const store = internalMutation({
     };
     if (held === null) {
       await ctx.db.insert("matchCommentary", next);
-      return;
+      return null;
     }
-    if (JSON.stringify(next.lines) === JSON.stringify(held.lines) && next.delayed?.reason === held.delayed?.reason) return;
+    if (JSON.stringify(next.lines) === JSON.stringify(held.lines) && next.delayed?.reason === held.delayed?.reason) return null;
     await ctx.db.patch("matchCommentary", held._id, next);
+    return null;
   },
 });
 
