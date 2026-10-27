@@ -1,7 +1,8 @@
 # 7. Scoring
 
 Feature 7 of [SPEC.md](../SPEC.md). Only Craig's answers; the last section from `/grill match
-stats` (20 Oct 2026).
+stats` (20 Oct 2026). The Examples section works his answers through, row by row, for him to
+approve (#454).
 
 - Only stats from the two free feeds: FPL's public API and the Premier League's public API. What
   can be scored and how: [14. Scoring categories](14-scoring-categories.md).
@@ -27,11 +28,11 @@ stats` (20 Oct 2026).
 
 ### Examples
 
-Craig's answers above, worked through with his numbers. Each table names the answer it shows, and
-a test runs every row (`tests/convex/stats/matchStats.examples.test.ts`): change a number here and
-the test fails until the code agrees.
+Craig's answers above, worked through by Claude for Craig to approve. Each table names the answer
+it shows, and a test runs every row (`tests/convex/stats/matchStats.examples.test.ts`): change a number here and
+the test fails until the code agrees. The lock times take the window from `S07.2` itself.
 
-**When a match locks** (`S07.2`), with the window at 60 minutes:
+**When a match locks** (`S07.2`):
 
 | full time | last record arrives | locks |
 |---|---|---|

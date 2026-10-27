@@ -1,9 +1,7 @@
 // Reads an example table out of a spec file, so a test runs Craig's own rows (#454). A table sits
-// under a bold caption naming the answer it shows, such as "**When a match locks** (`S07.2`), …",
+// under a bold caption naming the answer it shows, such as "**When a match locks** (`S07.2`):",
 // and each row comes back keyed by its column's heading. A missing or empty table throws: a test
 // that quietly ran no rows would pass while proving nothing.
-
-export type ExampleTable = { caption: string; rows: Record<string, string>[] };
 
 const cells = (line: string) =>
   line
@@ -12,8 +10,8 @@ const cells = (line: string) =>
     .split("|")
     .map((cell) => cell.trim());
 
-/** The example table captioned with answer `id` in `markdown`, a spec file's text. */
-export function exampleTable(markdown: string, id: string): ExampleTable {
+/** The rows of the example table captioned with answer `id` in `markdown`, a spec file's text. */
+export function exampleTable(markdown: string, id: string): Record<string, string>[] {
   const lines = markdown.split("\n");
   const at = lines.findIndex((line) => line.startsWith("**") && line.includes(`(\`${id}\`)`));
   if (at === -1) throw new Error(`no example table is captioned with ${id}`);
@@ -31,5 +29,5 @@ export function exampleTable(markdown: string, id: string): ExampleTable {
     if (values.length !== columns.length) throw new Error(`${id}'s row "${line}" has ${values.length} cells, not ${columns.length}`);
     return Object.fromEntries(columns.map((column, index) => [column, values[index]!]));
   });
-  return { caption: lines[at]!, rows };
+  return rows;
 }

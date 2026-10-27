@@ -100,6 +100,7 @@ test("a match FPL has not filled in stays provisional, and a starter's minutes a
   expect(statValue(mcBurnie, "goals_scored")).toBeNull();
 });
 
+// S07.2
 test("a correction after the lock changes nothing, and is recorded once for the feeds page", async () => {
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, recordedGw6());

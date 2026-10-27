@@ -24,19 +24,21 @@ const LOCKS = "S07.2";
 const FEEDS = "S07.5";
 
 const locks = exampleTable(spec, LOCKS);
-const windowMinutes = Number(/window at (\d+) minutes/.exec(locks.caption)?.[1] ?? NaN);
+/** The window as the answer itself words it, "is 1 hour after full time", so the rows and the
+ *  answer can't drift apart. */
+const windowHours = Number(/is (\d+) hours? after full time/.exec(spec)?.[1] ?? NaN);
 
-test(`${LOCKS}'s caption names the window its rows assume`, () => {
-  expect(windowMinutes).toBeGreaterThan(0);
+test(`${LOCKS} names the window its rows assume`, () => {
+  expect(windowHours).toBeGreaterThan(0);
 });
 
-test.each(locks.rows.map((row) => [row["full time"]!, row["last record arrives"]!, row["locks"]!]))(
+test.each(locks.map((row) => [row["full time"]!, row["last record arrives"]!, row["locks"]!]))(
   `${LOCKS}: full time at %s, the last record arriving at %s, locks at %s`,
   async (fullTime, arrives, locksAt) => {
     // Each time is read against the table's full time, which the harness's full-time read stands for.
     const at = (clock: string) => FULL_TIME_READ + (minutesOf(clock) - minutesOf(fullTime)) * MINUTE_MS;
     const t = await withHullEverton();
-    await t.mutation(internal.admin.platformSettings.setStatCorrectionWindow, { minutes: windowMinutes });
+    await t.mutation(internal.admin.platformSettings.setStatCorrectionWindow, { minutes: windowHours * 60 });
 
     if (at(arrives) > FULL_TIME_READ) {
       // Coyle is the record still to come.
@@ -72,7 +74,12 @@ const FEED_NAMES: Record<string, { fpl: string; pl: string }> = {
 
 const feeds = exampleTable(spec, FEEDS);
 
-test.each(feeds.rows.map((row) => [row["stat"]!, row["counts from"]!]))(
+test(`${FEEDS}'s table names every stat this test knows both feeds' names for, once each`, () => {
+  // Without this, a row deleted from the table would just stop being run.
+  expect(feeds.map((row) => row["stat"]).sort()).toEqual(Object.keys(FEED_NAMES).sort());
+});
+
+test.each(feeds.map((row) => [row["stat"]!, row["counts from"]!]))(
   `${FEEDS}: where both feeds send %s, %s's count is kept`,
   (stat, countsFrom) => {
     const names = FEED_NAMES[stat];
