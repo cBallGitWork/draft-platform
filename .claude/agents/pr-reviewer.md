@@ -36,7 +36,7 @@ Then check the description's claims against what you found.
    players: walk one real case through it.
 2. **The spec.** Name the spec item each change serves. A change that serves none is OUT OF
    SCOPE. Anything SPEC.md lists under Out of scope, Second release or Later arriving early is a
-   finding.
+   finding, as is a feat/ branch that changes what a feature does but not its SPEC.md status row.
 3. **Rules are data.** A league's rule written as a constant is a RULE BROKEN; FPL's own rules may
    be constants (CLAUDE.md).
 4. **Player identity.** Anything persisted keys on FPL's season-stable `code`, never the

@@ -138,10 +138,6 @@ const isNumber = (value: unknown): value is number => typeof value === "number";
 /** An id the feeds send as a number (the Premier League's arrive as `128978.0`, still a number). */
 export const hasId = (value: unknown): boolean => isNumber((value as { id?: unknown } | null)?.id);
 
-interface RawBootstrap {
-  elements: unknown[];
-}
-
 interface RawPlFixturePage {
   content: unknown[];
 }
@@ -149,11 +145,6 @@ interface RawPlFixturePage {
 /** `/teams/{id}/compseasons/{season}/staff`: a club's registered squad, each with his squad number. */
 export interface RawPlStaff {
   players: { id: number; info?: { shirtNum?: number } }[];
-}
-
-export async function fplPlayerCount(): Promise<number> {
-  const bootstrap = (await getJson(FPL_BOOTSTRAP_URL)) as RawBootstrap;
-  return bootstrap.elements.length;
 }
 
 export async function plFixtureCount(): Promise<number> {
