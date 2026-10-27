@@ -1,4 +1,4 @@
-import type { Infer } from "convex/values";
+import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalAction } from "../_generated/server";
 import { logFailure } from "../shared/errors";
@@ -17,13 +17,14 @@ type Outcome = Infer<typeof liveStatsTickFields.outcome>;
 
 export const tick = internalAction({
   args: {},
+  returns: v.null(),
   handler: async (ctx) => {
     const ranAt = Date.now();
     let outcome: Outcome;
     let live: DueMatch[] = [];
     try {
       live = await ctx.runQuery(internal.stats.liveStats.live, { now: ranAt });
-      if (live.length === 0) return;
+      if (live.length === 0) return null;
       const { matches, scores } = await syncDue(ctx, live, ranAt, "live");
       outcome = { ok: true, matches, scores };
     } catch (error: unknown) {
@@ -32,5 +33,6 @@ export const tick = internalAction({
       await delayCommentary(ctx, live.map(({ fixtureCode }) => fixtureCode), outcome.error, ranAt);
     }
     await ctx.runMutation(internal.stats.liveStats.recordTick, { ranAt, outcome });
+    return null;
   },
 });
