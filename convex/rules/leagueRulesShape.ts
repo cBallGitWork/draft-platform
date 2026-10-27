@@ -1,5 +1,6 @@
 import { v, type Infer, type Validator } from "convex/values";
 import { AREAS, LANES } from "../lineup/pitch";
+import { DOUBLE_GAMEWEEK_RULES } from "../scoring/scoring";
 import { ODD_TEAM_OUTS } from "../table/roundRobin";
 import { TIE_BREAKS } from "../table/standings";
 
@@ -107,7 +108,7 @@ export const leagueRulesShape = v.object({
   /** deadline.ts's DeadlineRule. */
   deadline: v.object({ minutesBeforeFirstKickoff: v.number() }),
   /** scoring.ts's DoubleGameweekRule. */
-  doubleGameweek: v.union(v.literal("bothMatches"), v.literal("bestMatch")),
+  doubleGameweek: v.union(...DOUBLE_GAMEWEEK_RULES.map((name) => v.literal(name))),
   /** standings.ts's TieBreak, in the league's order. */
   tieBreaks: v.array(v.union(...TIE_BREAKS.map((name) => v.literal(name)))),
   /** roundRobin.ts's OddTeamOut. Absent only from rules saved before #33, which play the first
