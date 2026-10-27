@@ -7,8 +7,12 @@ import type { LeagueSummary } from "./myLeagues";
 // The league switcher (#76, spec/13, Several leagues): the app opens the league a person used
 // last. It is kept on the server, by email, so it follows them to every device.
 
-/** Having a part in a league is a role in it (`leaguesOf`), which the admin's override alone isn't. */
-const hasPart = (league: LeagueSummary) => league.roles.length > 0;
+/** The leagues a person can be in and switch between, in `leagues`' order: those they have a part
+ *  in, a role (`leaguesOf`), which the admin's override alone isn't, and that aren't being deleted,
+ *  which freezes a league even for whoever is deleting it (#75). The one rule for both the league
+ *  the app is in and the switcher's list, which signIn/account:signedInAs sends (#207). */
+export const switchableLeagues = (leagues: readonly LeagueSummary[]): LeagueSummary[] =>
+  leagues.filter((league) => league.roles.length > 0 && !league.deletion);
 
 const rememberedRow = (ctx: QueryCtx, email: string) =>
   ctx.db
@@ -16,11 +20,11 @@ const rememberedRow = (ctx: QueryCtx, email: string) =>
     .withIndex("by_email", (q) => q.eq("email", email))
     .unique();
 
-/** The league the app is in: the one used last while the person still has a part in it, or else
- *  the first of theirs by name, or null when they have a part in none. A league being deleted is
- *  never it (#75). `leagues` are theirs, by name (`leaguesOf`), the admin's partless ones among them. */
+/** The league the app is in: the one used last while it is still among their `switchableLeagues`,
+ *  or else the first of those by name, or null when there are none. `leagues` are theirs, by name
+ *  (`leaguesOf`), the admin's partless ones among them. */
 export async function currentLeagueOf(ctx: QueryCtx, email: string, leagues: readonly LeagueSummary[]): Promise<Id<"leagues"> | null> {
-  const theirs = leagues.filter((league) => hasPart(league) && !league.deletion);
+  const theirs = switchableLeagues(leagues);
   const remembered = await rememberedRow(ctx, email);
   const current = theirs.find((league) => league.leagueId === remembered?.leagueId) ?? theirs[0];
   return current?.leagueId ?? null;
