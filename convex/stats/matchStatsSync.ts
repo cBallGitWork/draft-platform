@@ -1,4 +1,4 @@
-import type { Infer } from "convex/values";
+import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalAction, type ActionCtx } from "../_generated/server";
 import { codesByOpta, fixtureCodeIn, namedMen } from "../football/feedIds";
@@ -35,6 +35,7 @@ interface GameweekReads {
 
 export const run = internalAction({
   args: { trigger: syncTrigger },
+  returns: v.null(),
   handler: async (ctx, { trigger }) => {
     const ranAt = Date.now();
     let outcome: Outcome;
@@ -45,6 +46,7 @@ export const run = internalAction({
       outcome = { ok: false, error: logFailure("match stats sync failed", error) };
     }
     await ctx.runMutation(internal.stats.matchStats.record, { trigger, ranAt, outcome });
+    return null;
   },
 });
 
