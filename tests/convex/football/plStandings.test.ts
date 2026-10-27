@@ -71,27 +71,38 @@ function read(t: TestConvex, readAt: number, score: Omit<ScoreRead, "fixtureCode
   return t.mutation(internal.football.matchScores.upsertScores, { feed: "pl", readAt, reads: [{ fixtureCode, ...score }] });
 }
 
-test("a replayed goal moves the table at once, marked provisional, until full time makes it final", async () => {
+// 1.4s alone and up to 3.9s on a busy core (27 Oct 2026), too near vitest's 5s; none of it is spare (#473).
+test("a replayed goal moves the table at once, marked provisional, until full time makes it final", { timeout: 30_000 }, async () => {
   const t = freshConvex();
   const { payloads, code } = coventrySunderland();
   const run = await syncRun(t, payloads);
-  const rowOf = async (club: number) => (await table(t)).rows.find((row) => row.club.code === club)!;
-  expect(await rowOf(COVENTRY)).toMatchObject({ position: 19, played: 8, points: 6 });
-  expect(await rowOf(SUNDERLAND)).toMatchObject({ position: 20, played: 8, points: 5 });
+  // One read of the table at each point of the match: in convex-test a read costs about a third of
+  // a second, each of its 380 index reads scanning every held row, and a read per row timed out.
+  const standing = async () => {
+    const { rows, provisional } = await table(t);
+    const rowOf = (club: number) => rows.find((row) => row.club.code === club)!;
+    return { coventry: rowOf(COVENTRY), sunderland: rowOf(SUNDERLAND), provisional };
+  };
+  const before = await standing();
+  expect(before.coventry).toMatchObject({ position: 19, played: 8, points: 6 });
+  expect(before.sunderland).toMatchObject({ position: 20, played: 8, points: 5 });
 
   await read(t, run.ranAt + HOUR_MS, { state: "live", homeGoals: 0, awayGoals: 1, minutes: 12, clockLabel: "12'30" }, code);
-  expect(await rowOf(SUNDERLAND)).toMatchObject({ position: 16, played: 9, won: 2, points: 8, goalsFor: 7 });
-  expect(await rowOf(COVENTRY)).toMatchObject({ position: 20, played: 9, lost: 7, points: 6 });
-  expect((await table(t)).provisional).toBe(true);
+  const live = await standing();
+  expect(live.sunderland).toMatchObject({ position: 16, played: 9, won: 2, points: 8, goalsFor: 7 });
+  expect(live.coventry).toMatchObject({ position: 20, played: 9, lost: 7, points: 6 });
+  expect(live.provisional).toBe(true);
 
   await read(t, run.ranAt + 2 * HOUR_MS, { state: "halfTime", homeGoals: 1, awayGoals: 1, minutes: 45, clockLabel: "45+1'00" }, code);
-  expect(await rowOf(SUNDERLAND)).toMatchObject({ played: 9, drawn: 3, points: 6 });
-  expect(await rowOf(COVENTRY)).toMatchObject({ played: 9, drawn: 1, points: 7 });
-  expect((await table(t)).provisional).toBe(true);
+  const halfTime = await standing();
+  expect(halfTime.sunderland).toMatchObject({ played: 9, drawn: 3, points: 6 });
+  expect(halfTime.coventry).toMatchObject({ played: 9, drawn: 1, points: 7 });
+  expect(halfTime.provisional).toBe(true);
 
   await read(t, run.ranAt + 3 * HOUR_MS, { state: "fullTime", homeGoals: 1, awayGoals: 2, minutes: 90, clockLabel: "90+5'00" }, code);
-  expect(await rowOf(SUNDERLAND)).toMatchObject({ position: 16, played: 9, won: 2, points: 8 });
-  expect((await table(t)).provisional).toBe(false);
+  const fullTime = await standing();
+  expect(fullTime.sunderland).toMatchObject({ position: 16, played: 9, won: 2, points: 8 });
+  expect(fullTime.provisional).toBe(false);
 });
 
 // Small seasons held by hand: three clubs, each pair meeting once at home and once away.
