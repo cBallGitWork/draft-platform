@@ -10,12 +10,12 @@ import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { adminSeeing, beingDeleted, commissioner, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
-import { allLeaguesWords } from "../../../src/frame/words";
+import { allLeaguesWords, currentLeagueLabel } from "../../../src/frame/words";
 
 const inTwo = managerIn(league, miniBeta);
 const inMiniBeta = { ...inTwo, currentLeagueId: miniBeta.leagueId };
 
-const SWITCHER_NAME = /^League: /;
+const SWITCHER_NAME = new RegExp(`^${currentLeagueLabel} `);
 const switcher = () => screen.findByRole("button", { name: SWITCHER_NAME });
 const switcherOrName = async () => within(await screen.findByRole("banner")).findByText(league.name);
 const choices = () => within(screen.getByRole("list", { name: LEAGUES_TITLE })).getAllByRole("button");
@@ -29,7 +29,7 @@ const closersBesideTheSwitcher: Closer[] = [
 describe("a manager in two leagues", () => {
   it("opening the app is in the league they used last, named in the top bar", async () => {
     const app = openApp("/", inMiniBeta);
-    expect((await switcher()).textContent).toBe("League: Mini beta");
+    expect((await switcher()).textContent).toBe(`${currentLeagueLabel} ${miniBeta.name}`);
     expect(app.path()).toBe(MY_TEAM_PATH);
   });
 
@@ -52,7 +52,7 @@ describe("a manager in two leagues", () => {
     expect(app.leagues.switchLeague).toHaveBeenCalledWith(miniBeta.leagueId);
     expect(screen.queryByRole("list", { name: LEAGUES_TITLE })).toBeNull();
     app.becomes(inMiniBeta);
-    expect((await switcher()).textContent).toBe("League: Mini beta");
+    expect((await switcher()).textContent).toBe(`${currentLeagueLabel} ${miniBeta.name}`);
     expect(app.path()).toBe("/team/squad");
   });
 

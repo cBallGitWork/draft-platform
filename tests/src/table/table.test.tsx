@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 import { nextGameweekLabel, previousGameweekLabel } from "../../../src/words";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
+import { menuWords } from "../../../src/frame/words";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 import type { TableData } from "../../support/src/table.harness";
@@ -44,7 +45,7 @@ describe("reaching it", () => {
     ["a commissioner running no team", commissioner],
   ])("%s opens it from the menu's Table, for the league the app is in", async (_, session) => {
     const app = openApp(MY_TEAM_PATH, session);
-    await userEvent.click(await screen.findByRole("link", { name: "Table" }));
+    await userEvent.click(await screen.findByRole("link", { name: menuWords.table }));
 
     expect(await screen.findByRole("heading", { level: 1, name: TABLE_PAGE_TITLE })).toBeTruthy();
     expect(app.path()).toBe(TABLE_PATH);

@@ -6,6 +6,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { MY_TEAM_PATH, MY_TEAM_TRANSACTIONS_PATH } from "../../../src/frame/menu";
+import { sectionTabsLabel } from "../../../src/frame/words";
 import type { TeamTransactions } from "../../../src/myTeam/seam";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import {
@@ -43,7 +44,7 @@ const transaction = (kind: Transaction["kind"], otherTeamName: string | null = n
 describe("reaching it", () => {
   it("a manager opens it from My team's Transactions tab, for the league the app is in", async () => {
     const app = openApp(MY_TEAM_PATH, manager);
-    await userEvent.click(within(await screen.findByRole("navigation", { name: "Section" })).getByRole("link", { name: TRANSACTIONS_TITLE }));
+    await userEvent.click(within(await screen.findByRole("navigation", { name: sectionTabsLabel })).getByRole("link", { name: TRANSACTIONS_TITLE }));
 
     expect(await screen.findByRole("heading", { level: 1, name: TRANSACTIONS_TITLE })).toBeTruthy();
     expect(app.path()).toBe(MY_TEAM_TRANSACTIONS_PATH);

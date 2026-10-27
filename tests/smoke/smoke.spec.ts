@@ -2,7 +2,7 @@
 // error or uncaught page error it didn't expect, so a boot crash can't pass.
 
 import { expect, test as base, type ConsoleMessage } from "@playwright/test";
-import { ERROR_PAGE_TITLE } from "../../src/frame/words";
+import { ERROR_PAGE_TITLE, mainMenuLabel } from "../../src/frame/words";
 import { NO_CONVEX_URL } from "../../src/words";
 import { SIGN_IN_PATH } from "../../src/sign-in/paths";
 
@@ -32,7 +32,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
   test("?preview=manager mounts the manager's landing page", async ({ page }) => {
     await page.goto("/?preview=manager");
     await expect(page.getByRole("main").getByRole("heading", { level: 1 })).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Main" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: mainMenuLabel })).toBeVisible();
     await expect(page.getByRole("heading", { name: ERROR_PAGE_TITLE })).toHaveCount(0);
   });
 
@@ -60,7 +60,7 @@ test.describe("production bundle, no VITE_CONVEX_URL", { tag: "@bundle" }, () =>
   test("?preview=manager does not open the preview frame", async ({ page }) => {
     await page.goto("/?preview=manager");
     await expect(page.getByRole("alert")).toHaveText(NO_CONVEX_URL);
-    await expect(page.getByRole("navigation", { name: "Main" })).toHaveCount(0);
+    await expect(page.getByRole("navigation", { name: mainMenuLabel })).toHaveCount(0);
     await expect(page.getByRole("banner")).toHaveCount(0);
   });
 });

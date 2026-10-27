@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogue";
 import { MY_TEAM_PATH, SCOUTING_PATH } from "../../../src/frame/menu";
+import { mainMenuLabel, menuWords } from "../../../src/frame/words";
 import {
   availabilityWords,
   clearComparisonWords,
@@ -70,7 +71,7 @@ describe("reaching it", () => {
     ["a commissioner running no team", commissioner],
   ])("%s opens it from the menu's Scouting, for the league the app is in", async (_, session) => {
     const app = openApp(MY_TEAM_PATH, session, { scouting: HELD });
-    await userEvent.click(await screen.findByRole("link", { name: "Scouting" }));
+    await userEvent.click(await screen.findByRole("link", { name: menuWords.scouting }));
 
     expect(await screen.findByRole("heading", { level: 1, name: SCOUTING_TITLE })).toBeTruthy();
     expect(app.path()).toBe(SCOUTING_PATH);
@@ -79,7 +80,7 @@ describe("reaching it", () => {
 
   it("the menu has no Players any more", async () => {
     openApp(MY_TEAM_PATH, manager);
-    const main = await screen.findByRole("navigation", { name: "Main" });
+    const main = await screen.findByRole("navigation", { name: mainMenuLabel });
     expect(within(main).queryByRole("link", { name: "Players" })).toBeNull();
   });
 
