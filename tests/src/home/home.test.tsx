@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import { TOP_ROWS } from "../../../convex/home/glance";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { HOME_PATH, MAIL_PATH, MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
+import { menuWords } from "../../../src/frame/words";
 import type { LeagueHome } from "../../../src/home/seam";
 import {
   columns,
@@ -42,7 +43,7 @@ describe("reaching it", () => {
     ["a commissioner running no team", commissioner],
   ])("%s opens it from the menu's Home, for the league the app is in, at this minute", async (_, session) => {
     const app = openApp(MY_TEAM_PATH, session);
-    await userEvent.click(await screen.findByRole("link", { name: "Home" }));
+    await userEvent.click(await screen.findByRole("link", { name: menuWords.home }));
 
     expect(await screen.findByRole("heading", { level: 1, name: HOME_TITLE })).toBeTruthy();
     expect(app.path()).toBe(HOME_PATH);

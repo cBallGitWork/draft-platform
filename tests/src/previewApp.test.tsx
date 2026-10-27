@@ -3,6 +3,7 @@
 
 import { render, screen } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
+import { mainMenuLabel } from "../../src/frame/words";
 import { proLeague } from "../../src/preview";
 import { previewApp } from "../../src/previewApp";
 
@@ -16,7 +17,7 @@ test("on the dev server, ?preview=manager mounts the frame on the preview's data
   const app = previewApp();
   expect(app).not.toBeNull();
   render(app);
-  expect(await screen.findByRole("navigation", { name: "Main" })).toBeTruthy();
+  expect(await screen.findByRole("navigation", { name: mainMenuLabel })).toBeTruthy();
   expect(screen.getAllByText(proLeague.name).length).toBeGreaterThan(0);
 });
 

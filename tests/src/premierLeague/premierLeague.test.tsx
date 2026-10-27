@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH, PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
+import { menuWords } from "../../../src/frame/words";
 import type { GameweekMatch } from "../../../src/premierLeague/seam";
 import {
   dayWords,
@@ -55,7 +56,7 @@ async function matchLines(gameweek: number) {
 describe("reaching it", () => {
   it("is its own section of the menu, opened by anyone in a league", async () => {
     const app = openApp(MY_TEAM_PATH, manager, { premierLeague: { firstKickoffs: kickoffsTo10 } });
-    await userEvent.click(await screen.findByRole("link", { name: "Premier League" }));
+    await userEvent.click(await screen.findByRole("link", { name: menuWords.premierLeague }));
 
     expect(await screen.findByRole("heading", { level: 1, name: PREMIER_LEAGUE_TITLE })).toBeTruthy();
     expect(screen.getByRole("heading", { level: 2, name: FIXTURES_TITLE })).toBeTruthy();

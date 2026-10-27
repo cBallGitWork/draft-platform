@@ -6,7 +6,7 @@ import { joinPath } from "../../convex/joining/joiningShared";
 import { ADMIN_PATH } from "../../src/admin/paths";
 import { ADMIN_TITLE } from "../../src/admin/words";
 import { MAIL_PATH, TABLE_PATH } from "../../src/frame/menu";
-import { ERROR_PAGE_TITLE } from "../../src/frame/words";
+import { ERROR_PAGE_TITLE, mainMenuLabel } from "../../src/frame/words";
 import { gameweeksPath } from "../../src/gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../../src/gameweeks/words";
 import { invitesPath } from "../../src/joining/paths";
@@ -68,7 +68,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
   test("?preview=manager mounts the manager's landing page", async ({ page }) => {
     await page.goto("/?preview=manager");
     await expect(page.getByRole("main").getByRole("heading", { level: 1 })).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Main" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: mainMenuLabel })).toBeVisible();
     await expect(page.getByRole("heading", { name: ERROR_PAGE_TITLE })).toHaveCount(0);
   });
 
@@ -113,7 +113,7 @@ test.describe("production bundle, no VITE_CONVEX_URL", { tag: "@bundle" }, () =>
   test("?preview=manager does not open the preview frame", async ({ page }) => {
     await page.goto("/?preview=manager");
     await expect(page.getByRole("alert")).toHaveText(NO_CONVEX_URL);
-    await expect(page.getByRole("navigation", { name: "Main" })).toHaveCount(0);
+    await expect(page.getByRole("navigation", { name: mainMenuLabel })).toHaveCount(0);
     await expect(page.getByRole("banner")).toHaveCount(0);
   });
 });
