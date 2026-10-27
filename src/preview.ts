@@ -90,6 +90,10 @@ const previewSessions: Record<string, Session> = {
   visitor: { signedIn: false },
 };
 
+/** Each name `?preview=` takes, so a test can check every preview person's leagues against the
+ *  server's rule, which this file can't import (#488). */
+export const previewNames = Object.keys(previewSessions);
+
 /** The gameweeks the preview's league leaves unticked: a Christmas break. */
 export const previewChristmasBreak: readonly number[] = [17, 18, 19];
 

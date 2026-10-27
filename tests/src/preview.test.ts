@@ -1,6 +1,7 @@
 import { afterEach, expect, test, vi } from "vitest";
+import { switchableLeagues } from "../../convex/leagues/lastLeague";
 import { leaguesToWriteFrom } from "../../src/mail/MailPage";
-import { previewSession } from "../../src/preview";
+import { previewNames, previewSession } from "../../src/preview";
 
 /** The preview session the app reads on load, with the address bar at `search`. */
 function previewOnLoad(search: string) {
@@ -28,6 +29,17 @@ test("on the dev server, ?preview=newcomer and ?preview=admin are signed in to n
   vi.stubEnv("DEV", true);
   expect(previewOnLoad("?preview=newcomer")).toMatchObject({ signedIn: true, isAdmin: false, inLeague: false });
   expect(previewOnLoad("?preview=admin")).toMatchObject({ signedIn: true, isAdmin: true, inLeague: false });
+});
+
+test("#488: on the dev server, each signed-in preview person's switcher lists the leagues the server's rule would, and the app is in the first", () => {
+  vi.stubEnv("DEV", true);
+  for (const name of previewNames) {
+    const session = previewOnLoad(`?preview=${name}`);
+    if (!session?.signedIn) continue;
+    const switchable = switchableLeagues(session.leagues).map((league) => league.leagueId);
+    expect(session.switchableLeagueIds, name).toEqual(switchable);
+    expect(session.currentLeagueId, name).toBe(switchable[0] ?? null);
+  }
 });
 
 test("on the dev server, ?preview=visitor is signed out", () => {
