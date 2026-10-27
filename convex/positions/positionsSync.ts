@@ -30,6 +30,7 @@ const matchStarts = v.array(v.object({ playerCode: v.number(), start: startRecor
 
 export const run = internalAction({
   args: { trigger: syncTrigger },
+  returns: v.null(),
   handler: async (ctx, { trigger }) => {
     const ranAt = Date.now();
     let outcome: Infer<typeof positionsSyncFields.outcome>;
@@ -44,12 +45,14 @@ export const run = internalAction({
       outcome = { ok: false, error: logFailure("positions sync failed", error) };
     }
     await ctx.runMutation(internal.positions.positionsSync.record, { trigger, ranAt, outcome });
+    return null;
   },
 });
 
 /** Of these matches, by FPL fixture code, those whose sheets are not yet read. */
 export const unreadMatches = internalQuery({
   args: { fixtureCodes: v.array(v.number()) },
+  returns: v.array(v.number()),
   handler: async (ctx, { fixtureCodes }): Promise<number[]> => {
     const read = await Promise.all(
       fixtureCodes.map((fixtureCode) =>
@@ -64,6 +67,7 @@ export const unreadMatches = internalQuery({
  *  read adds nothing. Returns how many starts were added. */
 export const recordStarts = internalMutation({
   args: { fixtureCode: v.number(), starts: matchStarts },
+  returns: v.number(),
   handler: async (ctx, { fixtureCode, starts }): Promise<number> => {
     const read = await ctx.db.query("positionSheets").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode)).unique();
     if (read !== null) return 0;
@@ -79,6 +83,7 @@ export const recordStarts = internalMutation({
 /** Each player's label, as the run found it. Returns how many changed. */
 export const recordLabels = internalMutation({
   args: { labels: v.array(v.object({ code: v.number(), plLabel: v.string() })) },
+  returns: v.number(),
   handler: async (ctx, { labels }): Promise<number> => {
     let changed = 0;
     for (const { code, plLabel } of labels) {
@@ -93,14 +98,17 @@ export const recordLabels = internalMutation({
 
 export const record = internalMutation({
   args: positionsSyncFields,
+  returns: v.null(),
   handler: async (ctx, row) => {
     await ctx.db.insert("positionsSyncs", row);
     await emailIfFailed(ctx, "positions", row);
+    return null;
   },
 });
 
 export const latest = internalQuery({
   args: {},
+  returns: v.array(v.object({ _id: v.id("positionsSyncs"), _creationTime: v.number(), ...positionsSyncFields })),
   handler: async (ctx) => ctx.db.query("positionsSyncs").order("desc").take(LATEST_RUNS),
 });
 
