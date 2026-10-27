@@ -2,10 +2,15 @@ import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalAction, internalMutation, internalQuery } from "../_generated/server";
 import { namedMen } from "./feedIds";
-import { arsenalSquadNumbers, plFixtureCount } from "./football";
 import { fplPlayerCount } from "./fpl";
 import { logFailure } from "../shared/errors";
-import { readPlCommentary, readPlFixture, readPlTeamStats } from "./premierLeague";
+import {
+  arsenalSquadNumbers,
+  plFixtureCount,
+  readPlCommentary,
+  readPlFixture,
+  readPlTeamStats,
+} from "./premierLeague";
 import { feedCheckFields, feedCheckTrigger, feedOutcome } from "../schema";
 import { LATEST_RUNS } from "../shared/syncRuns";
 import { MINUTE_MS } from "../shared/time";
