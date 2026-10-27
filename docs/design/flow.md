@@ -100,6 +100,7 @@ flowchart TD
   MENU & NOLEAGUE -- "Patch notes (the banner, while a patch waits)" --> PN
   MENU & NOLEAGUE -.->|"Sign out, then signed out"| SIGNIN
   ERR(["This page can't be shown: any page that throws"]) -- "Back to your leagues" --> LEAGUES
+  ERR -.->|"Sign out, when the league frame itself threw, then signed out"| SIGNIN
   TABLE -- "a fixture's score" --> MATCHUP
   HOME -- "a head-to-head's v" --> MATCHUP
   MATCHUP -- "◄ ► (another gameweek's)" --> MATCHUP
