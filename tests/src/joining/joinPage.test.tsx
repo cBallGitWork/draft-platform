@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { joinPath, linkOffWords } from "../../../convex/joining/joiningShared";
 import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
+import { signInWords } from "../../../src/sign-in/words";
 import { LINK_REPLY, newcomer, openApp, visitor } from "../../support/src/shell.harness";
 import type { JoinPageData } from "../../../src/joining/seam";
 import { joinPageWords, signInToJoinWords } from "../../../src/joining/words";
@@ -24,8 +25,8 @@ describe("a signed-out visitor opening the invite link", () => {
 
   it("asks for a sign-in link that leads back to the invite link, and is told the reply", async () => {
     const app = openLink({ leagueName: LEAGUE, standing: "mayAsk" }, visitor);
-    await userEvent.type(await screen.findByRole("textbox", { name: "Email" }), "ann@example.com");
-    await userEvent.click(screen.getByRole("button", { name: "Send the link" }));
+    await userEvent.type(await screen.findByRole("textbox", { name: signInWords.emailLabel }), "ann@example.com");
+    await userEvent.click(screen.getByRole("button", { name: signInWords.send }));
 
     expect((await screen.findByRole("status")).textContent).toBe(LINK_REPLY);
     expect(app.joining.signInToJoin).toHaveBeenCalledWith(TOKEN, "ann@example.com");
@@ -43,7 +44,7 @@ describe("a signed-out visitor opening the invite link", () => {
 
 it("a visitor opening the plain sign-in page sees no word of joining", async () => {
   openApp(SIGN_IN_PATH, visitor);
-  await screen.findByRole("textbox", { name: "Email" });
+  await screen.findByRole("textbox", { name: signInWords.emailLabel });
   expect(screen.queryByText(signInToJoinWords)).toBeNull();
 });
 

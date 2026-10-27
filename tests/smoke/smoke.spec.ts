@@ -5,6 +5,7 @@ import { expect, test as base, type ConsoleMessage } from "@playwright/test";
 import { ERROR_PAGE_TITLE } from "../../src/frame/words";
 import { NO_CONVEX_URL } from "../../src/words";
 import { SIGN_IN_PATH } from "../../src/sign-in/paths";
+import { signInWords } from "../../src/sign-in/words";
 
 /** The one error every page load logs: the app has no favicon, and the browser asks for one. */
 const isFaviconMiss = (message: ConsoleMessage) => new URL(message.location().url || "about:blank").pathname === "/favicon.ico";
@@ -45,8 +46,8 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
   test("?preview=visitor shows the sign-in page", async ({ page }) => {
     await page.goto("/?preview=visitor");
     await expect(page).toHaveURL((url) => url.pathname === SIGN_IN_PATH);
-    await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Send the link" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: signInWords.title })).toBeVisible();
+    await expect(page.getByRole("button", { name: signInWords.send })).toBeVisible();
   });
 });
 

@@ -3,35 +3,36 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { PRODUCT_NAME } from "../../convex/shared/product";
 import type { TopBarState } from "../../src/frame/topBarState";
 import { MAIL_PATH, MY_TEAM_PATH } from "../../src/frame/menu";
 import { SIGN_IN_PATH } from "../../src/sign-in/paths";
 import { LINK_REPLY, league, manager, openApp, visitor } from "../support/src/shell.harness";
-import { linkProblemWords } from "../../src/sign-in/words";
+import { linkProblemWords, signInWords } from "../../src/sign-in/words";
 
 const threeUnread: TopBarState = { unreadMail: 3, next: { path: MAIL_PATH, reason: "3 unread letters" } };
 
 describe("a logged-out visitor", () => {
   it("opening the app sees the sign-in page: the name, invite only, an email box", async () => {
     const app = openApp("/", visitor);
-    expect(await screen.findByRole("heading", { level: 1, name: "Draft Manager" })).toBeTruthy();
-    expect(screen.getByText("Invite only")).toBeTruthy();
-    expect(screen.getByRole("textbox", { name: "Email" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: PRODUCT_NAME })).toBeTruthy();
+    expect(screen.getByText(signInWords.inviteOnly)).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: signInWords.emailLabel })).toBeTruthy();
     expect(app.path()).toBe(SIGN_IN_PATH);
   });
 
   it("sees the sign-in panel titled by its plate, with the same email box as every other text box", async () => {
     openApp("/", visitor);
-    const panel = await screen.findByRole("region", { name: "Sign in" });
-    expect(within(panel).getByRole("heading", { level: 2, name: "Sign in" })).toBeTruthy();
-    expect(within(panel).getByRole("textbox", { name: "Email" }).classList.contains("text-box")).toBe(true);
+    const panel = await screen.findByRole("region", { name: signInWords.title });
+    expect(within(panel).getByRole("heading", { level: 2, name: signInWords.title })).toBeTruthy();
+    expect(within(panel).getByRole("textbox", { name: signInWords.emailLabel }).classList.contains("text-box")).toBe(true);
   });
 
   it.each([MY_TEAM_PATH, "/team/squad", MAIL_PATH, "/leagues", "/leagues/new", "/no-such-page"])(
     "opening %s sees only the sign-in page",
     async (path) => {
       const app = openApp(path, visitor);
-      expect(await screen.findByRole("textbox", { name: "Email" })).toBeTruthy();
+      expect(await screen.findByRole("textbox", { name: signInWords.emailLabel })).toBeTruthy();
       expect(screen.queryByRole("navigation")).toBeNull();
       expect(screen.queryByRole("button", { name: "Sign out" })).toBeNull();
       expect(app.path()).toBe(SIGN_IN_PATH);
@@ -40,8 +41,8 @@ describe("a logged-out visitor", () => {
 
   it("asking for a link asks for it for the email typed, and shows the reply", async () => {
     const app = openApp(SIGN_IN_PATH, visitor);
-    await userEvent.type(await screen.findByRole("textbox", { name: "Email" }), "craig@example.com");
-    await userEvent.click(screen.getByRole("button", { name: "Send the link" }));
+    await userEvent.type(await screen.findByRole("textbox", { name: signInWords.emailLabel }), "craig@example.com");
+    await userEvent.click(screen.getByRole("button", { name: signInWords.send }));
     expect((await screen.findByRole("status")).textContent).toBe(LINK_REPLY);
     expect(app.auth.requestSignInLink).toHaveBeenCalledWith("craig@example.com");
   });
@@ -49,20 +50,20 @@ describe("a logged-out visitor", () => {
   it("opened from a used or expired link, is told it has expired, above the box to send a new one", async () => {
     openApp(`${SIGN_IN_PATH}?link=expired`, visitor);
     expect((await screen.findByRole("alert")).textContent).toBe(linkProblemWords.expired);
-    expect(screen.getByRole("textbox", { name: "Email" })).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: signInWords.emailLabel })).toBeTruthy();
   });
 
   it("asking for a new link replaces the expired notice with the reply", async () => {
     openApp(`${SIGN_IN_PATH}?link=expired`, visitor);
-    await userEvent.type(await screen.findByRole("textbox", { name: "Email" }), "craig@example.com");
-    await userEvent.click(screen.getByRole("button", { name: "Send the link" }));
+    await userEvent.type(await screen.findByRole("textbox", { name: signInWords.emailLabel }), "craig@example.com");
+    await userEvent.click(screen.getByRole("button", { name: signInWords.send }));
     expect((await screen.findByRole("status")).textContent).toBe(LINK_REPLY);
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it.each([SIGN_IN_PATH, `${SIGN_IN_PATH}?link=nonsense`])("opening %s, with no link problem it knows, sees no notice", async (path) => {
     openApp(path, visitor);
-    expect(await screen.findByRole("textbox", { name: "Email" })).toBeTruthy();
+    expect(await screen.findByRole("textbox", { name: signInWords.emailLabel })).toBeTruthy();
     expect(screen.queryByRole("alert")).toBeNull();
   });
 });
@@ -142,7 +143,7 @@ describe("a signed-in manager", () => {
 
     app.becomes(visitor);
 
-    expect(await screen.findByRole("textbox", { name: "Email" })).toBeTruthy();
+    expect(await screen.findByRole("textbox", { name: signInWords.emailLabel })).toBeTruthy();
     expect(app.path()).toBe(SIGN_IN_PATH);
   });
 });
