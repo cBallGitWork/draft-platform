@@ -1,5 +1,5 @@
 import { expect, test, vi } from "vitest";
-import { getJson, squadNumbers } from "../../../convex/football/football";
+import { getJson } from "../../../convex/football/football";
 
 const URL = "https://example.test/feed";
 
@@ -28,9 +28,4 @@ test("a read gives up after 15 seconds, so a feed that never answers can't hold 
   expect(timeout).toHaveBeenCalledWith(15_000);
   const [, init] = fetch.mock.calls[0];
   expect(init?.signal).toBe(timeout.mock.results[0].value);
-});
-
-test("a registered player with no squad number is left out", () => {
-  const numbers = squadNumbers({ players: [{ id: 10, info: { shirtNum: 4 } }, { id: 11, info: {} }, { id: 12 }] });
-  expect([...numbers]).toEqual([[10, 4]]);
 });

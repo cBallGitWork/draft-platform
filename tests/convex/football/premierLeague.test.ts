@@ -21,6 +21,7 @@ import {
   readPlPlayerStats,
   readPlSquad,
   readPlTeamStats,
+  squadNumbers,
 } from "../../../convex/football/premierLeague";
 import {
   COMMENTARY_MATCH,
@@ -78,6 +79,11 @@ test("from then, every read naming a season throws, saying what to update; up to
 test("a squad read asks for altIds, the join to FPL, as well as every kind of player", () => {
   const query = new URL(plSquadUrl(23)).searchParams;
   expect(["type", "altIds"].map((key) => query.get(key))).toEqual(["all", "true"]);
+});
+
+test("a registered player with no squad number is left out", () => {
+  const numbers = squadNumbers({ players: [{ id: 10, info: { shirtNum: 4 } }, { id: 11, info: {} }, { id: 12 }] });
+  expect([...numbers]).toEqual([[10, 4]]);
 });
 
 test("each read asks the URL it names and hands back all that came", async () => {

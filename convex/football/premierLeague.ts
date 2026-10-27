@@ -1,11 +1,13 @@
 // The Premier League's public API: who was named for a match, in what shape, and what each man did.
 // The raw shapes and the reads are copied from epl-draft's packages/core/src/football/premierleague/
 // (raw.ts, rawStats.ts and client.ts, 20 Oct 2026), not shared, and cut to what #27 and #22 read;
-// the commentary and the team stats (#37) are new here.
+// the commentary and the team stats (#37) are new here, and #7's feed check moved here from the seam.
 // The reads sit behind the football seam (`football.ts`), on its URLs and its `getJson`, so every
 // failed read throws with the URL and the status, and every body missing what is read with the URL.
+// #7's two counts, at the end, are the exception: they read the body unchecked.
 
 import {
+  getJson,
   getShaped,
   hasId,
   PL_COMMENTARY_PAGE_SIZE,
@@ -36,6 +38,11 @@ export interface RawPlSquadPlayer {
 /** `/teams/{id}/compseasons/{season}/staff`: a club's registered squad. */
 export interface RawPlSquad {
   players: RawPlSquadPlayer[];
+}
+
+/** `/teams/{id}/compseasons/{season}/staff`: a club's registered squad, each with his squad number. */
+export interface RawPlStaff {
+  players: { id: number; info?: { shirtNum?: number } }[];
 }
 
 /** A side's shape: `label` ("4-2-3-1") drawn as `players`, lines of player ids, keeper first. */
@@ -184,4 +191,29 @@ export async function readPlTeamStats(fixtureId: number): Promise<RawPlTeamStats
       (data === undefined ||
         (typeof data === "object" && data !== null && Object.values(data).every((side: any) => Array.isArray(side?.M)))),
   );
+}
+
+// #7's check that Convex can read the Premier League (`feeds.ts`).
+
+/** The Premier League's id for Arsenal, whose squad list proves squad numbers can be read. */
+export const PL_ARSENAL = 1;
+
+export async function plFixtureCount(): Promise<number> {
+  const page = (await getJson(plFixturesUrl())) as RawPlFixturePage;
+  return page.content.length;
+}
+
+export async function arsenalSquadNumbers(): Promise<number> {
+  const staff = (await getJson(plSquadUrl(PL_ARSENAL))) as RawPlStaff;
+  return squadNumbers(staff).size;
+}
+
+/** Premier League player id → squad number, for every registered player who has one. */
+export function squadNumbers(staff: RawPlStaff): Map<number, number> {
+  const numbers = new Map<number, number>();
+  for (const player of staff.players) {
+    const shirt = player.info?.shirtNum;
+    if (shirt !== undefined) numbers.set(player.id, shirt);
+  }
+  return numbers;
 }
