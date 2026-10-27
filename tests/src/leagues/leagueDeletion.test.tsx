@@ -9,12 +9,13 @@ import { INVITES_TITLE } from "../../../src/joining/words";
 import { SQUADS_TITLE } from "../../../src/squads/words";
 import { adminSeeing, beingDeleted, commissioned, deleterOf, league, managerIn, openApp } from "../../support/src/shell.harness";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { confirmDelete } from "../../../src/leagues/words";
+import { beingDeleted as beingDeletedLine, confirmDelete, confirmDeleteWords, deleteLeagueWords, undoWords } from "../../../src/leagues/words";
 
-const deleter = deleterOf(beingDeleted(commissioned, { deletesAt: Date.parse("2026-10-21T09:00:00Z") }));
+const DELETES_AT = Date.parse("2026-10-21T09:00:00Z");
+const deleter = deleterOf(beingDeleted(commissioned, { deletesAt: DELETES_AT }));
 
-const deleteButton = () => screen.queryByRole("button", { name: "Delete league" });
-const deleteButtonShown = () => screen.findByRole("button", { name: "Delete league" });
+const deleteButton = () => screen.queryByRole("button", { name: deleteLeagueWords });
+const deleteButtonShown = () => screen.findByRole("button", { name: deleteLeagueWords });
 
 describe("Delete league", () => {
   it.each([
@@ -40,14 +41,14 @@ describe("Delete league", () => {
     expect(screen.getByText(confirmDelete(league.name))).toBeTruthy();
     expect(app.leagues.deleteLeague).not.toHaveBeenCalled();
 
-    await userEvent.click(screen.getByRole("button", { name: "Delete it" }));
+    await userEvent.click(screen.getByRole("button", { name: confirmDeleteWords.yes }));
     expect(app.leagues.deleteLeague).toHaveBeenCalledExactlyOnceWith(league.leagueId);
   });
 
   it("Keep it deletes nothing", async () => {
     const app = openApp(LEAGUES_PATH, managerIn(commissioned));
     await userEvent.click(await deleteButtonShown());
-    await userEvent.click(screen.getByRole("button", { name: "Keep it" }));
+    await userEvent.click(screen.getByRole("button", { name: confirmDeleteWords.no }));
 
     expect(screen.queryByText(confirmDelete(league.name))).toBeNull();
     expect(deleteButton()).toBeTruthy();
@@ -58,7 +59,7 @@ describe("Delete league", () => {
     const app = openApp(LEAGUES_PATH, managerIn(commissioned));
     app.leagues.deleteLeague.mockResolvedValue("Only the league's commissioner or the admin can delete it.");
     await userEvent.click(await deleteButtonShown());
-    await userEvent.click(screen.getByRole("button", { name: "Delete it" }));
+    await userEvent.click(screen.getByRole("button", { name: confirmDeleteWords.yes }));
 
     const refusal = await screen.findByRole("alert");
     expect(refusal.textContent).toBe("Only the league's commissioner or the admin can delete it.");
@@ -71,20 +72,20 @@ describe("a league being deleted", () => {
   it("shows when it goes on London's clock, and Undo undoes it", async () => {
     const app = openApp(LEAGUES_PATH, deleter);
 
-    expect(await screen.findByText(/goes for good on Wednesday 21 October at 10:00 BST\./)).toBeTruthy();
+    expect((await screen.findByText(beingDeletedLine(DELETES_AT))).textContent).toContain("Wednesday 21 October at 10:00 BST");
     expect(deleteButton()).toBeNull();
     // Frozen, it offers nothing to change: no gameweeks, no invites, no squads.
     expect(screen.queryByRole("link", { name: GAMEWEEKS_TITLE })).toBeNull();
     expect(screen.queryByRole("link", { name: INVITES_TITLE })).toBeNull();
     expect(screen.queryByRole("link", { name: SQUADS_TITLE })).toBeNull();
-    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+    await userEvent.click(screen.getByRole("button", { name: undoWords }));
     expect(app.leagues.undoDeletion).toHaveBeenCalledExactlyOnceWith(league.leagueId);
   });
 
   it("says why Undo didn't work", async () => {
     const app = openApp(LEAGUES_PATH, deleter);
     app.leagues.undoDeletion.mockResolvedValue("It's too late to undo: the league is being deleted for good.");
-    await userEvent.click(await screen.findByRole("button", { name: "Undo" }));
+    await userEvent.click(await screen.findByRole("button", { name: undoWords }));
 
     const refusal = await screen.findByRole("alert");
     expect(refusal.textContent).toBe("It's too late to undo: the league is being deleted for good.");
