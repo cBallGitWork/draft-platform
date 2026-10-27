@@ -4,7 +4,8 @@ import type { QueryCtx } from "../_generated/server";
 import { isAdmin, leagueRole, rolesIn, seesWhileDeleted, teamsOf } from "../shared/leagueAccess";
 import { leagueDeletion } from "../schema";
 import { LEAGUES_SHOWN } from "./leagueLimits";
-import { hasOpenedALink, noLinkReply } from "../signIn/signInLinks";
+import { hasOpenedALink } from "../signIn/signInLinks";
+import { noLinkReply } from "../signIn/signInReplies";
 
 // "Your leagues" (spec/12): each league the signed-in person has a part in, or, for the admin, who
 // keeps an override on every league (spec/15), every league.

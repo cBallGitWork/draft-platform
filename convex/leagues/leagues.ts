@@ -16,7 +16,8 @@ import { recordEvent } from "../mail/letters";
 import { FEWEST_TEAMS, LEAGUE_NAME_MAX, MOST_TEAMS } from "./leagueLimits";
 import { giveDefaultRules, refuseTooFewForGames } from "../rules/leagueRules";
 import { latestRules } from "../rules/rulesHistory";
-import { askForLink, hasOpenedALink, signInReply } from "../signIn/signInLinks";
+import { askForLink, hasOpenedALink } from "../signIn/signInLinks";
+import { signInReply } from "../signIn/signInReplies";
 
 // A league, and who runs it (#24, spec/13). Each change files an event for Mail (#26).
 

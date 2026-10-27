@@ -1,7 +1,7 @@
 import type { Infer } from "convex/values";
 import { linkOffWords, noLinkWords } from "./joiningShared";
 import type { delivery } from "../schema";
-import type { SignInReply } from "../signIn/signInLinks";
+import type { SignInReply } from "../signIn/signInReplies";
 
 // What emailed invites, the invite link and join requests share (#73, spec/13 Joining).
 

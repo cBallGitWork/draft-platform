@@ -1,6 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
-import { signInReply } from "../signIn/signInLinks";
+import { signInReply } from "../signIn/signInReplies";
 import { joiningEvents } from "./joining";
 import { managerOfTeam, replaced } from "./people";
 import { squadEvents } from "./squads";
