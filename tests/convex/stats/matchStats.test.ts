@@ -67,6 +67,7 @@ test("each run row says whether the cron or a hand started it, and when it ran",
   expect(byCron).toMatchObject({ trigger: "cron", ranAt: FULL_TIME_READ + HOUR_MS / 2 });
 });
 
+// S07.1
 test("a starter's record not yet arrived shows — and keeps the match provisional until it does", async () => {
   const t = await withHullEverton();
 

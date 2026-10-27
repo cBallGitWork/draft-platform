@@ -27,6 +27,7 @@ test("a re-read of the same match writes nothing new, and keeps when it reached 
   expect((await heldMatch(t)).status).toMatchObject({ fullTimeAt: FULL_TIME_READ, completeAt: FULL_TIME_READ });
 });
 
+// S07.3
 test("a correction inside the window updates the record, and a stat taken away goes back to 0", async () => {
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, recordedGw6());
