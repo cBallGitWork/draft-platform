@@ -69,6 +69,16 @@ a player fills only his own areas, and only a keeper plays in goal, both ways (`
 - It reopens three answers: scoring by the slot (`spec/14`), no out-of-position penalty
   (`spec/05`), the areas each position can play (`spec/06`). The site owns it (`spec/14`).
 
+**A project manager tool**: for how we build, not the game (Craig, 27 Oct 2026: "a tool where
+can define what you're building add project scaffolding to mvp and audit what agents actually did
+to get you there"). It lives in this repo; the rest is open.
+- What we hand-built here and in sideband, made into one tool: defining (`SPEC.md`, `/grill`),
+  scaffolding (CLAUDE.md, hooks, `/verify`) and auditing (`pr-reviewer`).
+- Who it's for: Craig across his own projects, or other people too.
+- Its shape: files and skills copied into each repo, a command-line tool, or a web app.
+- What auditing checks first: the spec against the tests (#454), work beyond what's been
+  grilled, the hard rules, or a readable log of what each agent session did and why.
+
 ## Suggested, not yet picked
 
 | What | Why |
