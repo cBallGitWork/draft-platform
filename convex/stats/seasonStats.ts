@@ -82,11 +82,13 @@ export async function seasonTotals(ctx: QueryCtx, season: number): Promise<Map<n
  *  `npx convex run stats/seasonStats:rebuild '{"cursor":null}'`. */
 export const rebuild = internalMutation({
   args: { cursor: v.union(v.string(), v.null()) },
+  returns: v.null(),
   handler: async (ctx, { cursor }) => {
     const page = await ctx.db.query("players").paginate({ numItems: REBUILD_PAGE, cursor });
     const seasonOf = matchSeasons(ctx);
     for (const player of page.page) await rebuildPlayer(ctx, player.code, seasonOf);
     if (!page.isDone) await ctx.scheduler.runAfter(0, internal.stats.seasonStats.rebuild, { cursor: page.continueCursor });
+    return null;
   },
 });
 
