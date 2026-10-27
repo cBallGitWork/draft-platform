@@ -4,7 +4,7 @@
 import { DELETION_UNDO_HOURS, FEWEST_TEAMS, LEAGUES_SHOWN, MOST_TEAMS } from "../../convex/leagues/leagueLimits";
 import { screenMoment } from "../../convex/shared/moments";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import type { NoLinkReply } from "../../convex/signIn/signInLinks";
+import type { NoLinkReply } from "../../convex/signIn/signInReplies";
 import { failedWords } from "../words";
 
 /** "Your leagues" (spec/12), which says so when there are none (spec/02). */

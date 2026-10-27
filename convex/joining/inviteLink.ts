@@ -7,7 +7,8 @@ import { joinPath } from "./joiningShared";
 import { joiningRefusals } from "./joining";
 import { namedEmail, refuse, runnerOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
-import { askForLink, signInReply } from "../signIn/signInLinks";
+import { askForLink } from "../signIn/signInLinks";
+import { signInReply } from "../signIn/signInReplies";
 
 // A league's one invite link (#73, spec/13 Joining): opening it only asks to join. Its runners
 // make it, replace it or switch it off, and the old one then stops working. A beta: a leaked link

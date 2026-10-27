@@ -9,7 +9,8 @@ import { startOfNextDay } from "../outbound/emailLimit";
 import { inviteEmail } from "./joiningEmails";
 import { getLeague, namedEmail, refuse, refusals, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
-import { askForLink, signInReply } from "../signIn/signInLinks";
+import { askForLink } from "../signIn/signInLinks";
+import { signInReply } from "../signIn/signInReplies";
 import { checkCanJoin, putOnTeam } from "../leagues/teams";
 import { hasEnded, liveInvitesTo } from "./liveInvites";
 

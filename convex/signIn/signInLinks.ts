@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import { api, internal } from "../_generated/api";
 import { action, internalMutation, type ActionCtx, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { isAllowed, normaliseEmail } from "./allowedEmails";
+import { signInReply, type SignInReply } from "./signInReplies";
 import { anEmailLeftToday, countTodaysEmail } from "../outbound/emailLimit";
 import { logFailure } from "../shared/errors";
 import { HOUR_MS, MINUTE_MS } from "../shared/time";
@@ -27,13 +28,6 @@ export async function hasOpenedALink(ctx: QueryCtx, email: string): Promise<bool
 export const ASKS_PER_HOUR = 3;
 /** How long after `ask` lets an email through its link may take that ask. */
 const CLAIM_WINDOW_MS = MINUTE_MS;
-
-/** The replies that mean no link went. */
-export const noLinkReply = v.union(v.literal("tryLater"), v.literal("paused"), v.literal("notSent"));
-export type NoLinkReply = Infer<typeof noLinkReply>;
-/** What the sign-in page tells the visitor. `checkYourEmail` goes to listed and unlisted alike. */
-export const signInReply = v.union(v.literal("checkYourEmail"), ...noLinkReply.members);
-export type SignInReply = Infer<typeof signInReply>;
 
 const askOutcome = v.union(
   v.object({ outcome: v.literal("send"), askId: v.id("signInAsks") }),
