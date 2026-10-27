@@ -12,9 +12,10 @@ import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { invitesPath } from "../../../src/joining/paths";
 import type { InvitesPageData } from "../../../src/joining/seam";
 import {
-  dayWords,
+  deliveryWords,
   emailInvitesWords,
   expiredWords,
+  forTeamWords,
   inviteLinkWords,
   INVITES_TITLE,
   joinedWords,
@@ -66,9 +67,9 @@ describe("the invites page", () => {
   it("shows how each invite stands, and says when invites wait for tomorrow", async () => {
     openPage();
     expect(await within(await screen.findByRole("main")).findByText(league.name)).toBeTruthy();
-    expect(within(inviteItem("ann@example.com")).getByText(`Sent. It lasts until ${dayWords(Date.UTC(2030, 9, 27))}.`)).toBeTruthy();
-    expect(within(inviteItem("bob@example.com")).getByText(/^Waits for tomorrow/)).toBeTruthy();
-    expect(within(inviteItem("bob@example.com")).getByText("For Saka Potatoes")).toBeTruthy();
+    expect(within(inviteItem("ann@example.com")).getByText(deliveryWords.sent(Date.UTC(2030, 9, 27)))).toBeTruthy();
+    expect(within(inviteItem("bob@example.com")).getByText(deliveryWords.waiting(page.invites[1].expiresAt))).toBeTruthy();
+    expect(within(inviteItem("bob@example.com")).getByText(forTeamWords("Saka Potatoes"))).toBeTruthy();
     expect(within(inviteItem("cat@example.com")).getByText(expiredWords)).toBeTruthy();
     expect(within(inviteItem("dan@example.com")).getByText(joinedWords("Team 1"))).toBeTruthy();
     expect(screen.getByRole("status").textContent).toBe(waitingStrip(1));
@@ -155,7 +156,7 @@ describe("join requests", () => {
 
   it("show the day each was asked", async () => {
     openPage();
-    expect(await screen.findByText(`Asked ${dayWords(Date.UTC(2026, 9, 19))}`)).toBeTruthy();
+    expect(await screen.findByText(requestsWords.asked(Date.UTC(2026, 9, 19)))).toBeTruthy();
   });
 });
 
