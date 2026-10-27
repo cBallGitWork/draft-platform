@@ -2,8 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
-import type { Cell } from "../lineup/pitch";
-import { lineupInGameweek } from "../lineup/lineups";
+import { startersByGameweek } from "../lineup/lineups";
 import { cardPoints } from "../playerCard/cardPoints";
 import { clubsByCode, seasonRecords, type Clubs } from "../playerCard/playerCard";
 import { currentPositions } from "../positions/playerPositions";
@@ -124,18 +123,7 @@ export const ofMyTeam = query({
  *  finalScores.ts does the totals, is the way on if it grows. */
 async function pricer(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">) {
   const setIn = await siteScoringByGameweek(ctx);
-  const startersIn = new Map<number, Promise<Map<number, Cell & { role?: string }>>>();
-  const starters = (gameweek: number) => {
-    if (!startersIn.has(gameweek)) {
-      startersIn.set(
-        gameweek,
-        lineupInGameweek(ctx, leagueId, teamId, gameweek).then((lineup) =>
-          lineup.kind === "none" ? new Map() : new Map(lineup.starters.map(({ playerCode, area, lane, role }) => [playerCode, { area, lane, role }])),
-        ),
-      );
-    }
-    return startersIn.get(gameweek)!;
-  };
+  const starters = startersByGameweek(ctx, leagueId, teamId);
   return async (playerCode: number, positions: readonly Position[]): Promise<PricedMatch[]> =>
     Promise.all(
       (await seasonRecords(ctx, playerCode)).map(async ({ record, gameweek }) => {
