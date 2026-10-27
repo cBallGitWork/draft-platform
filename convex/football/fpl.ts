@@ -87,6 +87,12 @@ export async function readFplBootstrap(): Promise<RawBootstrap> {
   return getShaped<RawBootstrap>(FPL_BOOTSTRAP_URL, "list of players", (body) => Array.isArray(body.elements));
 }
 
+/** How many players FPL lists: #7's check that Convex can read FPL (`feeds.ts`). */
+export async function fplPlayerCount(): Promise<number> {
+  const bootstrap = (await getJson(FPL_BOOTSTRAP_URL)) as RawBootstrap;
+  return bootstrap.elements.length;
+}
+
 /** Pure raw → seam mapping: no I/O and no clock, so the same payloads always give the same records. */
 export function mapFpl(bootstrap: RawBootstrap, fixtures: RawFixture[]): Football {
   const clubCode = clubCodes(bootstrap.teams);
