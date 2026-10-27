@@ -4,6 +4,7 @@ import type { Cell } from "../../convex/lineup/pitch";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, Notice, PageSection, PanelNote, Problem } from "../frame/Panel";
 import { useMinute } from "../useMinute";
+import { markedBy } from "./focusMarks";
 import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, withRole, withSquad, type DraftLineup } from "./lineupDraft";
 import { Pitch, type Moving } from "./Pitch";
 import { SquadTable } from "./SquadTable";
@@ -117,7 +118,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     return () => document.removeEventListener("keydown", putBack);
   }, [pickedCode]);
 
-  const change = (next: DraftLineup, moved: number, focus: readonly string[] = [`[data-player="${moved}"]`]) => {
+  const change = (next: DraftLineup, moved: number, focus: readonly string[] = [markedBy("player", moved)]) => {
     setEdited(next);
     setPickedCode(null);
     setSavedFrom(null);
@@ -136,7 +137,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     if (picked !== null) change(benched(draft, picked.playerCode), picked.playerCode);
   };
   /** A starter given another role his slot offers; the picker keeps the focus. */
-  const toRole = (playerCode: number, role: string) => change(withRole(draft, playerCode, role), playerCode, [`[data-role="${playerCode}"]`]);
+  const toRole = (playerCode: number, role: string) => change(withRole(draft, playerCode, role), playerCode, [markedBy("role", playerCode)]);
   /** A preset picked reshapes the pitch, keeping the players (spec/05; Craig, 26 Oct 2026). */
   const pickPreset = (name: string) => {
     const preset = tactics.presets.find((each) => each.name === name);
@@ -150,7 +151,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
    *  keeps the focus on the button pressed. */
   const toBenchAt = (playerCode: number, index: number, pressed?: "up" | "down") => {
     const other = pressed === "up" ? "down" : "up";
-    const focus = pressed && [`[data-bench-${pressed}="${playerCode}"]`, `[data-bench-${other}="${playerCode}"]`, `[data-player="${playerCode}"]`];
+    const focus = pressed && [markedBy(`bench-${pressed}`, playerCode), markedBy(`bench-${other}`, playerCode), markedBy("player", playerCode)];
     change(benchedAt(draft, playerCode, index), playerCode, focus || undefined);
   };
   // The gameweek is the server's: a save sent just after the deadline is from the one after.

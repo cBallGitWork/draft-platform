@@ -52,7 +52,7 @@ export const commentaryTables = {
 };
 
 // The threshold lines' moments (#44, spec/10): each live read that showed a man's running total
-// pass a point a rule pays, with the clock then (stats/thresholdSteps.ts).
+// pass a point where a rule's points change, with the clock then (stats/thresholdSteps.ts).
 export const thresholdStepTables = {
   thresholdSteps: defineTable({
     fixtureCode: v.number(),

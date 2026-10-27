@@ -30,7 +30,7 @@ export const addWords = "Add";
 export const allScoredWords = "Every stat in the catalogue already has a category.";
 export const removeCategoryWords = "Remove this category";
 
-export const paysLabel = "Points";
+export const shapeLabel = "Points";
 export const shapeWords: Record<Shape, string> = { perAction: "Per action", perCount: "Per number", bands: "Bands" };
 export const shapeHints: Record<Shape, string> = {
   perAction: "Points for each one he makes.",
@@ -60,7 +60,7 @@ export const everyoneWords = "Everyone";
 export const boxLabel = (column: string, row: string) => `${column}, ${row}`;
 
 export const bandFromWords = "From";
-export const bandPaysWords = "earns";
+export const bandEarnsWords = "earns";
 export const addBandWords = "Add a band";
 /** A band's row, for its boxes' names: "Goalkeeper, band 2". */
 export const bandRowWords = (row: string, band: number) => `${row}, band ${band}`;

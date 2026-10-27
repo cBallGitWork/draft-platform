@@ -1,6 +1,6 @@
 // What the table and fixtures screen says, in one place for Craig to change in the pull request.
 
-import { LOCALE } from "../../convex/shared/londonTime";
+import { LOCALE } from "../../convex/shared/moments";
 import { gameweekWords } from "../words";
 
 export { gameweekWords, versusWords } from "../words";

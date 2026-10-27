@@ -28,7 +28,7 @@ import { AREA_WORDS } from "../words";
 import {
   addBandWords,
   bandFromWords,
-  bandPaysWords,
+  bandEarnsWords,
   bandRowWords,
   boxLabel,
   byAreaWords,
@@ -39,7 +39,7 @@ import {
   limitWords,
   minutesWords,
   noBandsWords,
-  paysLabel,
+  shapeLabel,
   POSITION_WORDS,
   removeBandLabel,
   removeBandWords,
@@ -82,7 +82,7 @@ export function CategoryEditor({
       <PanelTitle id={CATEGORY_TITLE_ID}>{name}</PanelTitle>
       <fieldset disabled={readOnly} className="contents">
         <div className="flex flex-col gap-1 p-3">
-          <Choice label={paysLabel} name={SHAPE_CHOICE} options={SHAPES} words={shapeWords} chosen={rule.shape} onChoose={(shape) => onChange(withShape(rule, shape))} />
+          <Choice label={shapeLabel} name={SHAPE_CHOICE} options={SHAPES} words={shapeWords} chosen={rule.shape} onChoose={(shape) => onChange(withShape(rule, shape))} />
           <p className="text-muted">{shapeHints[rule.shape]}</p>
           <TickBox checked={pricing === "byArea"} onChange={pricedBy("byArea")}>
             {byAreaWords}
@@ -119,7 +119,7 @@ export function CategoryEditor({
 type Column = { head: string; cell: (key: PriceKey, row: string) => ReactNode };
 
 /** The rule's values, a row for everyone or for each area or position, with a column for each
- *  part it has: what it pays, its points limit's two ends, and its minutes. On the phone each row
+ *  part it has: its points, its points limit's two ends, and its minutes. On the phone each row
  *  is a block, its boxes wrapping under its name, each with its column's name beside it. */
 function ValuesTable({ rule, pricing, readOnly, onChange }: { rule: Rule; pricing: Pricing; readOnly: boolean; onChange: (rule: Rule) => void }) {
   const columns = columnsOf(rule, readOnly, onChange);
@@ -166,7 +166,7 @@ function ValuesTable({ rule, pricing, readOnly, onChange }: { rule: Rule; pricin
 
 function columnsOf(rule: Rule, readOnly: boolean, onChange: (rule: Rule) => void): Column[] {
   const value = (key: PriceKey) => valueAt(rule.values as Priced<unknown>, key);
-  const pays: Column[] =
+  const points: Column[] =
     rule.shape === "perAction"
       ? [{ head: columnWords.points, cell: (key, row) => <NumberBox label={boxLabel(columnWords.points, row)} value={value(key) as number} onChange={(points) => onChange(withValue(rule, key, points))} /> }]
       : rule.shape === "perCount"
@@ -203,10 +203,10 @@ function columnsOf(rule: Rule, readOnly: boolean, onChange: (rule: Rule) => void
             ),
           },
         ];
-  return [...pays, ...limit, ...minutes];
+  return [...points, ...limit, ...minutes];
 }
 
-/** One row's bands: each from a number, paying points; a band added starts one past the highest.
+/** One row's bands: each from a number, worth points; a band added starts one past the highest.
  *  Read only, no band is added or removed. */
 function Bands({ row, bands, readOnly, onChange }: { row: string; bands: Band[]; readOnly: boolean; onChange: (bands: Band[]) => void }) {
   const setBand = (index: number, band: Band) => onChange(bands.map((each, at) => (at === index ? band : each)));
@@ -219,7 +219,7 @@ function Bands({ row, bands, readOnly, onChange }: { row: string; bands: Band[];
           <span key={index} className="flex items-center gap-2">
             {bandFromWords}
             <NumberBox label={boxLabel(bandFromWords, which)} value={band.atLeast} onChange={(atLeast) => setBand(index, { ...band, atLeast })} />
-            {bandPaysWords}
+            {bandEarnsWords}
             <NumberBox label={boxLabel(columnWords.points, which)} value={band.points} onChange={(points) => setBand(index, { ...band, points })} />
             {!readOnly && (
               <button type="button" aria-label={removeBandLabel(which)} onClick={() => onChange(bands.filter((_, at) => at !== index))} className="secondary-action">

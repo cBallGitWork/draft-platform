@@ -6,7 +6,7 @@ import type { ApproveMode, PositionSource } from "../../convex/positions/positio
 import type { FeedState } from "../../convex/admin/feedState";
 import { FEED_NAMES } from "../../convex/shared/feedSchedule";
 import { FEEDBACK_TITLE } from "../feedback/words";
-import { LOCALE } from "../../convex/shared/londonTime";
+import { LOCALE } from "../../convex/shared/moments";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
 import { versusWords, whenWords } from "../words";
 import { READING_SITES, siteSearchUrl } from "./paths";

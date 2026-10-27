@@ -68,7 +68,7 @@ const SLOT_POSITION_BY_AREA: Record<Area, { wide: SlotPosition; centre: SlotPosi
 };
 
 /** The position of the slot at this cell, left and right alike: what a rule priced by position
- *  pays (spec/14). */
+ *  prices (spec/14). */
 export function positionOfSlot({ area, lane }: Cell): SlotPosition {
   return SLOT_POSITION_BY_AREA[area][WIDE_LANES.includes(lane) ? "wide" : "centre"];
 }

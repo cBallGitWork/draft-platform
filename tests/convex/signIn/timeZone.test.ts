@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { LONDON_ZONE, momentIn, screenMoment } from "../../../convex/shared/londonTime";
+import { LONDON_ZONE, momentIn, screenMoment } from "../../../convex/shared/moments";
 import { notAZone, zoneOf } from "../../../convex/signIn/timeZone";
 import { ANN, BOB, deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
 import { COMMISSIONER, actingAs, leagueRow, type TestConvex } from "../../support/convex/leagues.harness";

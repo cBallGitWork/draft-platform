@@ -2,7 +2,7 @@
 // request. What each version changed is worked out on the server (convex/scoring/patchChanges.ts),
 // and reaches the screen as is.
 
-import { screenMoment } from "../../convex/shared/londonTime";
+import { screenMoment } from "../../convex/shared/moments";
 import { failedWords } from "../words";
 import type { VersionNotes } from "./seam";
 

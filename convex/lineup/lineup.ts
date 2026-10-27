@@ -6,7 +6,7 @@
 // as illegal. It is reported alone, so a caller can set it aside; the rule is #23's to keep.
 
 import { AREAS, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
-import { rolesOfSlot } from "./roles";
+import { offersRole } from "./roles";
 import type { Position } from "../positions/positionTables";
 
 /** A football side's eleven: the product's rule, not a league's. */
@@ -83,7 +83,7 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
       problems.push({ kind: "noSuchCell", playerCode, area, lane });
       continue;
     }
-    if (role !== undefined && !rolesOfSlot({ area, lane }).some(({ key }) => key === role)) {
+    if (role !== undefined && !offersRole({ area, lane }, role)) {
       problems.push({ kind: "roleNotOffered", playerCode, area, lane, role });
     }
     const cellKey = `${area}/${lane}`;

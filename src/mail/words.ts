@@ -3,7 +3,7 @@
 // league's events say is in convex/mail/letterWords.ts.
 
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mail/mailLimits";
-import { LOCALE } from "../../convex/shared/londonTime";
+import { LOCALE } from "../../convex/shared/moments";
 import { failedWords } from "../words";
 
 export const MAIL_TITLE = "Mail";

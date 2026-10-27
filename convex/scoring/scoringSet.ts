@@ -28,7 +28,7 @@ export interface Band {
   points: number;
 }
 
-/** The most and the least a rule pays one player for one match (FPL's defensive contribution pays
+/** The most and the least one player earns from a rule in one match (FPL's defensive contribution gives
  *  at most 2); null where there is none, so a limit by area can leave an area unlimited. It holds
  *  only the rule's own points, never a role's. */
 export interface PointsLimit {
@@ -39,7 +39,7 @@ export interface PointsLimit {
 /** What any rule may carry besides its values, each optional and priced like them (spec/14). */
 interface RuleOptions {
   limit?: Priced<PointsLimit>;
-  /** The minutes he must play before the rule pays anything: a clean sheet only at 60+. */
+  /** The minutes he must play before he earns anything from the rule: a clean sheet only at 60+. */
   minMinutes?: Priced<number>;
 }
 
@@ -57,8 +57,8 @@ export interface PerCountRule extends RuleOptions {
   values: Priced<{ every: number; points: number }>;
 }
 
-/** 2 for 60+ minutes, +2 for 10+ defensive actions: each band he reaches pays when the rule
- *  stacks, or only the highest he reaches when it doesn't. A slot with no bands pays nothing. */
+/** 2 for 60+ minutes, +2 for 10+ defensive actions: he earns each band he reaches when the rule
+ *  stacks, or only the highest he reaches when it doesn't. A slot with no bands earns nothing. */
 export interface BandsRule extends RuleOptions {
   shape: "bands";
   stat: string;
@@ -146,7 +146,7 @@ function validateRoleAdjustments(
 
 /** A rule is named by its category's full name, as the rules editor shows it (spec/14). It scores
  *  a catalogue stat or one of the set's own, never a key no record holds: a typo such as
- *  `goals_scroed` would otherwise pay every player 0 in it, with no error (#135). */
+ *  `goals_scroed` would otherwise give every player 0 in it, with no error (#135). */
 function validateRule(
   rule: unknown,
   position: number,

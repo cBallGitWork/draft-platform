@@ -5,7 +5,7 @@
 import type { EndedInvite } from "../../convex/joining/endedInvite";
 import type { Delivery } from "../../convex/joining/joining";
 import { INVITE_DAYS, aNewTeamWords } from "../../convex/joining/joiningShared";
-import { LOCALE } from "../../convex/shared/londonTime";
+import { LOCALE } from "../../convex/shared/moments";
 import { unsentLinkWords } from "../leagues/words";
 
 /** The commissioner's page: its title, and the link to it from their leagues. */

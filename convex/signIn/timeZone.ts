@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { internalQuery, mutation, type QueryCtx } from "../_generated/server";
 import { callerEmail, refuse } from "../shared/leagueAccess";
-import { isTimeZone } from "../shared/londonTime";
+import { isTimeZone } from "../shared/moments";
 
 // Each person's own time zone (Craig, 26 Oct 2026, #442): taken from their browser every time the
 // app opens, so it follows them when they travel, and nothing to set. What the server writes for

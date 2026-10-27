@@ -1,6 +1,6 @@
 import type { Infer } from "convex/values";
 import { aNewTeamWords } from "../joining/joiningShared";
-import { LOCALE, momentIn } from "../shared/londonTime";
+import { LOCALE, momentIn } from "../shared/moments";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { NOTHING_SCORES_DIFFERENTLY } from "../scoring/patchChanges";
 import type { leagueEvent, siteScoringKind } from "../schema";
