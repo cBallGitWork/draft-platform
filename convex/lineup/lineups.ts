@@ -92,7 +92,6 @@ export async function lineupsInGameweek(
   return lineups;
 }
 
-/** One team's lineup in the gameweek, as `lineupsInGameweek` gives it. */
 /** A team's starters by gameweek, each at his cell and role, read once a gameweek however often
  *  asked: what a player's points in that gameweek are priced at (the Squad tab, the card). */
 export function startersByGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">) {
@@ -110,6 +109,7 @@ export function startersByGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, teamI
   };
 }
 
+/** One team's lineup in the gameweek, as `lineupsInGameweek` gives it. */
 export async function lineupInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, gameweek: number): Promise<HeldLineup> {
   return (await lineupsInGameweek(ctx, leagueId, [teamId], gameweek)).get(teamId)!;
 }
