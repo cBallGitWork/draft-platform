@@ -1,7 +1,7 @@
 #!/bin/bash
 # settings.json's checks: each hook is wired to the event and matcher it guards, and its script is
-# there and executable, and the Stop gates' timeouts sit over gate_on_stop.py's own. A hook that
-# isn't wired never runs, and nothing else would say so.
+# there and executable, the Stop gates' timeouts sit over gate_on_stop.py's own, and package.json's
+# test deadline under that. A hook that isn't wired never runs, and nothing else would say so.
 . "$(dirname "$0")/helpers.sh"
 
 wiring=(  # event|matcher|script, the matcher empty where the entry has none
@@ -57,3 +57,10 @@ short=100
 problems=$(short_timeouts "$tmp/short-stop.json")
 [ "$problems" = "settings.json: the Stop gate's timeout isn't over gate_on_stop.py's $gate_timeout seconds" ] ||
   fail "settings.sh: a settings.json with a $short-second Stop timeout gave: ${problems:-nothing}"
+
+# package.json's test deadline must sit inside the gate's, with room for the rest of verify
+# (typecheck, the hook checks), or the gate times out on a slow run before the tests can say why
+test_deadline=$("$jq" -r '.scripts.test' "$hooks/../../package.json" | sed -n 's/.*with-deadline\.mjs \([0-9][0-9]*\) .*/\1/p')
+[ -n "$test_deadline" ] || fail "settings.sh: package.json's test script names no with-deadline.mjs seconds"
+[ "${test_deadline:-0}" -lt $((gate_timeout - 60)) ] ||
+  fail "settings.sh: package.json's ${test_deadline}s test deadline leaves under a minute of gate_on_stop.py's ${gate_timeout}s"

@@ -22,7 +22,7 @@ tests row in [ARCHITECTURE.md](../../../ARCHITECTURE.md#libraries-claudes)).
 
 Never run bare `npx vitest`: `npm test` wraps vitest in `scripts/with-deadline.mjs`, which kills
 the run at its deadline (`package.json`'s `test` script), so a test that loops forever fails
-instead of hanging the session. That deadline sits under the Stop hook's own
+instead of hanging the session. That deadline (300s, raised from 120 in #467) sits under the Stop hook's own
 (`GATE_TIMEOUT_SECONDS`, `.claude/hooks/gate_on_stop.py`).
 
 **Report the test count.** "3 passed" is a fact the next session can compare against;

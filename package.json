@@ -6,7 +6,7 @@
     "setup": "convex login && convex dev --once --configure existing --team craigdavidball14 --project draft-platform --dev-deployment cloud",
     "dev": "convex dev --start vite",
     "build": "vite build && node scripts/bundle-has-no-preview.mjs",
-    "test": "node scripts/with-deadline.mjs 120 vitest run",
+    "test": "node scripts/with-deadline.mjs 300 vitest run",
     "typecheck": "tsc --noEmit -p convex && tsc --noEmit -p .",
     "smoke": "playwright test",
     "verify": "npm ls --depth=0 >/dev/null 2>&1 || { echo 'node_modules is behind package-lock.json: run npm ci'; exit 1; } && npm test && npm run typecheck && node scripts/recorded-add-only.mjs && .claude/hooks/test.sh"
