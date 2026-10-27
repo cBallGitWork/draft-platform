@@ -1,9 +1,9 @@
-// Mail's live wiring, with Convex faked: the top bar's count and Continue from the server's
-// unread count, the letters asked for only by the hook Mail calls (#211), and what opening and
-// sending resolve with when the server refuses or can't be reached.
+// Mail's live wiring, with Convex's hooks faked by name: the top bar's count and Continue from the
+// server's unread count, the letters asked for only by the hook Mail calls (#211), and what opening
+// and sending resolve with when the server refuses or can't be reached.
 
 import { renderHook } from "@testing-library/react";
-import { getFunctionName, type FunctionReference } from "convex/server";
+import { getFunctionName } from "convex/server";
 import { ConvexError } from "convex/values";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
@@ -19,18 +19,26 @@ const convex = vi.hoisted(() => ({
   letters: [] as unknown[],
   /** Each query asked for, by name, and "skip" when it was skipped. */
   queried: [] as string[],
-  mutate: vi.fn(),
+  open: vi.fn(),
+  write: vi.fn(),
 }));
-vi.mock("convex/react", () => ({
-  useConvexAuth: () => ({ isAuthenticated: convex.signedIn }),
-  useQuery: (query: FunctionReference<"query">, args: unknown) => {
-    const name = getFunctionName(query);
+vi.mock("convex/react", async () => {
+  /** A query's fake that notes it was asked for, and gives what `answer` reads unless skipped. */
+  const noted = (name: string, answer: () => unknown) => (args: unknown) => {
     convex.queried.push(args === "skip" ? "skip" : name);
-    if (args === "skip") return undefined;
-    return name === LETTERS_QUERY ? convex.letters : convex.unread;
-  },
-  useMutation: () => convex.mutate,
-}));
+    return args === "skip" ? undefined : answer();
+  };
+  return {
+    ...(await import("../../support/src/convexReact.harness")).fakeConvexReact({
+      queries: {
+        "mail/mail:letters": noted("mail/mail:letters", () => convex.letters),
+        "mail/mail:unreadCount": noted("mail/mail:unreadCount", () => convex.unread),
+      },
+      mutations: { "mail/mail:open": convex.open, "mail/mail:writeToLeague": convex.write },
+    }),
+    useConvexAuth: () => ({ isAuthenticated: convex.signedIn }),
+  };
+});
 
 beforeEach(() => {
   convex.signedIn = true;
@@ -39,7 +47,8 @@ beforeEach(() => {
   convex.queried = [];
 });
 afterEach(() => {
-  convex.mutate.mockReset();
+  convex.open.mockReset();
+  convex.write.mockReset();
 });
 
 const LETTERS_QUERY = getFunctionName(api.mail.mail.letters);
@@ -78,19 +87,19 @@ test("signed out, Mail isn't asked for", () => {
 });
 
 test("a letter the server sends resolves with no problem", async () => {
-  convex.mutate.mockResolvedValue(null);
+  convex.write.mockResolvedValue(null);
   expect(await live().mail.writeToLeague(letter)).toBeNull();
-  expect(convex.mutate).toHaveBeenCalledWith(letter);
+  expect(convex.write).toHaveBeenCalledWith(letter);
 });
 
 test("a letter the server refuses resolves with the server's own words", async () => {
-  convex.mutate.mockRejectedValue(new ConvexError("Give the letter a subject."));
+  convex.write.mockRejectedValue(new ConvexError("Give the letter a subject."));
   expect(await live().mail.writeToLeague(letter)).toBe("Give the letter a subject.");
 });
 
 test("any other failure to send is logged and said plainly", async () => {
   const failure = new Error("offline");
-  convex.mutate.mockRejectedValue(failure);
+  convex.write.mockRejectedValue(failure);
   const logged = silenceConsoleError();
 
   expect(await live().mail.writeToLeague(letter)).toBe(sendFailedWords);
@@ -99,10 +108,10 @@ test("any other failure to send is logged and said plainly", async () => {
 
 test("a letter that can't be marked read is logged, and opening it doesn't reject", async () => {
   const failure = new Error("offline");
-  convex.mutate.mockRejectedValue(failure);
+  convex.open.mockRejectedValue(failure);
   const logged = silenceConsoleError();
 
   await live().mail.open("letter-1" as Id<"letters">);
-  expect(convex.mutate).toHaveBeenCalledWith({ letterId: "letter-1" });
+  expect(convex.open).toHaveBeenCalledWith({ letterId: "letter-1" });
   expect(logged).toHaveBeenCalledWith("Marking a letter read failed:", failure);
 });
