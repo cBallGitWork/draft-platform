@@ -59,3 +59,10 @@ export const overrideWords = "Override";
 export const cancelOverrideWords = "Cancel";
 export const overriddenDoneWords = "Overridden: the league has a letter saying why.";
 export const overrideFailedWords = "The override couldn't be saved. Try again.";
+
+/** A role's adjustment, signed: "+2", "\u22121". */
+export const adjustmentWords = (points: number) => (points < 0 ? `\u2212${-points}` : `+${points}`);
+/** What made his role's adjustment, under it: "Accurate cross 2, Clean sheets 1". */
+export const roleMadeOfWords = (lines: readonly { name: string; actions: number }[]) => lines.map(({ name, actions }) => `${name} ${actions}`).join(", ");
+/** The role line's name for screen readers: "Role adjustment, Attacking full-back". */
+export const roleLineLabel = (name: string) => `Role adjustment, ${name}`;

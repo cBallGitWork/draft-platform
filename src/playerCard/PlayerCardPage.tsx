@@ -31,6 +31,9 @@ import {
   noSuchPlayerWords,
   notArrivedWords,
   nothingEarnedWords,
+  roleLineLabel,
+  roleMadeOfWords,
+  adjustmentWords,
   overriddenWords,
   ownerLabel,
   PLAYER_TITLE,
@@ -144,8 +147,11 @@ function Season({ card }: { card: PlayerCard }) {
         <PanelNote>{noMatchesWords}</PanelNote>
       ) : (
         <>
-          {/* Every match is priced alike until #29 keeps lineups. */}
-          <PanelNote>{pricedNotes[card.matches[0].points.scoredAs]}</PanelNote>
+          {/* A match his team started him in is priced at his slot, any other at his best position:
+              each way the card prices says so. */}
+          {[...new Set(card.matches.map((match) => match.points.scoredAs))].map((scoredAs) => (
+            <PanelNote key={scoredAs}>{pricedNotes[scoredAs]}</PanelNote>
+          ))}
           <table className="w-full border-collapse">
             <thead className="bg-head text-ground">
               <tr>
@@ -163,6 +169,20 @@ function Season({ card }: { card: PlayerCard }) {
         </>
       )}
     </section>
+  );
+}
+
+/** Under a match his team started him in, what his role did to his points (spec/05 Roles):
+ *  "Attacking full-back +2", and what made it. Not shown under an override, the match's whole score. */
+function RoleLine({ role }: { role: NonNullable<PlayedMatch["points"]["role"]> }) {
+  return (
+    <tr>
+      <td />
+      <td colSpan={COLUMNS.length - 1} aria-label={roleLineLabel(role.name)} className="px-2 pb-1 text-soft">
+        {role.name} <span className="text-figure">{adjustmentWords(role.points)}</span>
+        {role.lines.length > 0 && <span className="text-muted"> ({roleMadeOfWords(role.lines)})</span>}
+      </td>
+    </tr>
   );
 }
 
@@ -208,6 +228,7 @@ function MatchRows({ match }: { match: PlayedMatch }) {
           </td>
         </tr>
       )}
+      {total !== null && override === null && match.points.role !== undefined && <RoleLine role={match.points.role} />}
       {override !== null && (
         <tr>
           <td />

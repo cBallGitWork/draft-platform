@@ -22,9 +22,17 @@ const RECORDS: readonly (MatchStats | null)[] = [null, { minutes: 90, goals_scor
 const PREVIEW_OVERRIDDEN = "Saka";
 const PREVIEW_OVERRIDE = { points: 9, reason: "The feed gave his assist to Odegaard" };
 
+/** A made-up role line, for the preview alone. */
+const PREVIEW_ROLE_PLAYER = "Palmer";
+const PREVIEW_ROLE = { name: "Number 10", points: 1, lines: [{ stat: "big_chance_created", name: categoryName("big_chance_created"), actions: 1, points: 1 }] };
+
 function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
   return RECORDS.map((record, index) => {
-    const points = cardPoints(record, FIRST_SCORING, player.positions, null);
+    const { role: _none, ...points } = cardPoints(record, FIRST_SCORING, player.positions, null);
+    // One match shows how a role's line reads (spec/05), though the first set adjusts no role.
+    // As his team started him: at the slot, its role's points in the total.
+    const started = player.name === PREVIEW_ROLE_PLAYER && index === 1 && points.total !== null;
+    const role = started ? { scoredAs: "slot" as const, position: "CAM" as const, total: points.total! + PREVIEW_ROLE.points, role: PREVIEW_ROLE } : {};
     return {
       fixtureCode: player.code * 100 + index,
       gameweek: 9 - index,
@@ -32,7 +40,7 @@ function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
       home: index % 2 === 0 ? player.club : opponentOf(player.club.code, index),
       away: index % 2 === 0 ? opponentOf(player.club.code, index) : player.club,
       minutes: record?.minutes ?? null,
-      points: { ...points, categories: points.categories.map((each) => ({ ...each, name: categoryName(each.stat) })) },
+      points: { ...points, categories: points.categories.map((each) => ({ ...each, name: categoryName(each.stat) })), ...role },
       override: player.name === PREVIEW_OVERRIDDEN && index === 1 ? PREVIEW_OVERRIDE : null,
     };
   });
