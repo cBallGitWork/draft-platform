@@ -28,16 +28,19 @@ import { writeScores } from "./matchScores";
 
 // The schema's counts are optional only for runs before #64; every run since writes them all.
 type TableWrites = Required<Infer<typeof tableWrites>>;
-type Upserted = Pick<TableWrites, "inserted" | "updated" | "unmarked">;
+const upserted = v.object({ inserted: v.number(), updated: v.number(), unmarked: v.number() });
+type Upserted = Infer<typeof upserted>;
 
 const footballTable = v.union(v.literal("clubs"), v.literal("players"), v.literal("fixtures"), v.literal("gameweeks"));
 type FootballTable = Infer<typeof footballTable>;
 /** A record or a held row, by the key it is matched on. */
 type Keyed = { code: number } | { number: number };
-type MarkedPage = { marked: number; cursor: string; isDone: boolean };
+const markedPage = v.object({ marked: v.number(), cursor: v.string(), isDone: v.boolean() });
+type MarkedPage = Infer<typeof markedPage>;
 
 export const run = internalAction({
   args: { trigger: syncTrigger },
+  returns: v.null(),
   handler: async (ctx, { trigger }) => {
     const ranAt = Date.now();
     let outcome: Infer<typeof footballSyncFields.outcome>;
@@ -58,11 +61,13 @@ export const run = internalAction({
       outcome = { ok: false, error: logFailure("football sync failed", error) };
     }
     await ctx.runMutation(internal.football.footballSync.record, { trigger, ranAt, outcome });
+    return null;
   },
 });
 
 export const upsertClubs = internalMutation({
   args: { rows: v.array(clubRecord) },
+  returns: upserted,
   handler: (ctx, { rows }): Promise<Upserted> =>
     upsertEach(ctx, "clubs", rows, (row) =>
       ctx.db.query("clubs").withIndex("by_code", (q) => q.eq("code", row.code)).unique(),
@@ -71,6 +76,7 @@ export const upsertClubs = internalMutation({
 
 export const upsertPlayers = internalMutation({
   args: { rows: v.array(playerRecord) },
+  returns: upserted,
   handler: (ctx, { rows }): Promise<Upserted> =>
     upsertEach(ctx, "players", rows, (row) =>
       ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", row.code)).unique(),
@@ -79,6 +85,7 @@ export const upsertPlayers = internalMutation({
 
 export const upsertFixtures = internalMutation({
   args: { rows: v.array(fixtureRecord) },
+  returns: upserted,
   handler: async (ctx, { rows }): Promise<Upserted> => {
     // In the same transaction as the kickoffs it may move (#150, deadlineRecorder.ts).
     await recordPassedDeadlines(ctx);
@@ -90,6 +97,7 @@ export const upsertFixtures = internalMutation({
 
 export const upsertGameweeks = internalMutation({
   args: { rows: v.array(gameweekRecord) },
+  returns: upserted,
   handler: (ctx, { rows }): Promise<Upserted> =>
     upsertEach(ctx, "gameweeks", rows, (row) =>
       ctx.db.query("gameweeks").withIndex("by_number", (q) => q.eq("number", row.number)).unique(),
@@ -105,6 +113,7 @@ export const markDropped = internalMutation({
     droppedAt: v.number(),
     paginationOpts: paginationOptsValidator,
   },
+  returns: markedPage,
   handler: async (ctx, { table, sentKeys, droppedAt, paginationOpts }): Promise<MarkedPage> => {
     // Dropping a match can move its gameweek's first kickoff: as upsertFixtures (#150).
     if (table === "fixtures") await recordPassedDeadlines(ctx);
@@ -118,14 +127,17 @@ export const markDropped = internalMutation({
 
 export const record = internalMutation({
   args: footballSyncFields,
+  returns: v.null(),
   handler: async (ctx, row) => {
     await ctx.db.insert("footballSyncs", row);
     await emailIfFailed(ctx, "football", row);
+    return null;
   },
 });
 
 export const latest = internalQuery({
   args: {},
+  returns: v.array(v.object({ _id: v.id("footballSyncs"), _creationTime: v.number(), ...footballSyncFields })),
   handler: async (ctx) => ctx.db.query("footballSyncs").order("desc").take(LATEST_RUNS),
 });
 
