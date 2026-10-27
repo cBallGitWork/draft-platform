@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { Loading, Notice, PageSection, PANEL_BODY, PanelNote, PanelTitle, Problem } from "../frame/Panel";
+import { Loading, Notice, PageSection, PANEL_BODY, PANEL_LIST_ROW, PanelNote, PanelTitle, Problem } from "../frame/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { playerCardPath } from "../playerCard/paths";
 import { useChange, type Changing } from "../useChange";
@@ -121,7 +121,7 @@ function FoundRow({
   }
   const selectId = `team-for-${player.code}`;
   return (
-    <li className="flex flex-col gap-1 border-b border-panel-rule px-3 py-2">
+    <li className={PANEL_LIST_ROW}>
       <Link to={playerCardPath(league.leagueId, player.code)} className="flex min-h-tap items-center text-lead font-semibold">
         {player.fullName}
       </Link>

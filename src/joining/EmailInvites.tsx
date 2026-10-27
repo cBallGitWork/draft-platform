@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { PANEL_BODY, PanelNote, PanelTitle, Problem } from "../frame/Panel";
+import { PANEL_BODY, PANEL_LIST_ROW, PanelNote, PanelTitle, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { TeamSelect, useTeamChoice } from "./TeamChoice";
@@ -90,7 +90,7 @@ function InviteItem({ invite, now, change }: { invite: Invite; now: number; chan
   const standing = standingOf(invite, now);
   const ended = invite.joinedTeamName !== null || invite.couldNotJoin !== null;
   return (
-    <li className="flex flex-col gap-1 border-b border-panel-rule px-3 py-2">
+    <li className={PANEL_LIST_ROW}>
       <span className="text-lead font-semibold wrap-anywhere">{invite.email}</span>
       <span className="text-muted">{forTeamWords(invite.teamName)}</span>
       <span className={standing.needsYou ? "text-event" : undefined}>{standing.words}</span>

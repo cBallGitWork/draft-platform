@@ -78,6 +78,9 @@ export function PanelTitle({ id, children }: { id: string; children: string }) {
 /** The body under a panel's title plate, as a form or a block: its fields and lines stacked. */
 export const PANEL_BODY = "flex flex-col gap-2 p-3";
 
+/** One row of a list in a panel: its lines stacked, ruled off from the next (#292). */
+export const PANEL_LIST_ROW = "flex flex-col gap-1 border-b border-panel-rule px-3 py-2";
+
 /** The top bar every frame opens with: its plate (plate.md, Shape) and the row its parts sit in,
  *  apart because the signed-in frame puts the row inside the bar. */
 export const TOP_BAR = "bg-bar shadow-bevel-plate";
