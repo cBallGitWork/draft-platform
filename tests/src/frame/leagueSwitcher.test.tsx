@@ -11,7 +11,18 @@ import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { READ_FAILED_LOG } from "../../../src/frame/ReadFailed";
 import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
 import { silenceConsoleError } from "../../support/console.setup";
-import { adminSeeing, beingDeleted, commissioner, league, manager, managerIn, miniBeta, openApp, visitor } from "../../support/src/shell.harness";
+import {
+  adminSeeing,
+  beingDeleted,
+  commissioner,
+  league,
+  manager,
+  managerIn,
+  miniBeta,
+  openApp,
+  visitor,
+  withNoPart,
+} from "../../support/src/shell.harness";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { allLeaguesWords, ERROR_PAGE_TITLE, signOutWords } from "../../../src/frame/words";
 
@@ -153,10 +164,20 @@ describe("the top bar's league, for someone in one", () => {
 });
 
 describe("the leagues to switch between (#207)", () => {
-  it("are the server's list, which the switcher doesn't judge again", async () => {
+  it("are the server's list, leaving out a league it leaves out", async () => {
     openApp(MY_TEAM_PATH, { ...inTwo, switchableLeagueIds: [league.leagueId] });
     await userEvent.click(await switcher());
     expect(choices().map((choice) => choice.textContent)).toEqual(["Tim Hortons Pro LeagueTeam 1"]);
+  });
+
+  // The switcher's old rule (a part, and not being deleted) dropped each of these.
+  it.each([
+    { kept: "one they have no part in", other: withNoPart(miniBeta), otherChoice: "Mini beta" },
+    { kept: "one being deleted", other: beingDeleted(miniBeta), otherChoice: "Mini betaCommissioner" },
+  ])("are the server's list, which the switcher doesn't judge again: it keeps $kept", async ({ other, otherChoice }) => {
+    openApp(MY_TEAM_PATH, { ...managerIn(league, other), switchableLeagueIds: [league.leagueId, other.leagueId] });
+    await userEvent.click(await switcher());
+    expect(choices().map((choice) => choice.textContent)).toEqual(["Tim Hortons Pro LeagueTeam 1", otherChoice]);
   });
 
   // signIn/account:signedInAs never sends this: the app is always in one of the leagues it lists.
