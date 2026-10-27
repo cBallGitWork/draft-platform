@@ -8,7 +8,7 @@ import {
   plFixtureUrl,
   plTeamStatsUrl,
 } from "../../../convex/football/football";
-import type { RawPlFixture } from "../../../convex/football/premierLeague";
+import type { RawPlCommentary, RawPlFixture } from "../../../convex/football/premierLeague";
 import {
   COMMENTARY_MATCH,
   recordedCommentary,
@@ -16,7 +16,13 @@ import {
   recordedTeamStats,
   UPCOMING_MATCH,
 } from "../../support/recorded/commentary.payloads";
-import { LIVE_MATCH, recordedLiveCommentary, recordedLiveSheets, recordedLiveTeamStats } from "../../support/recorded/live.payloads";
+import {
+  LIVE_MATCH,
+  type LIVE_TEAM_STATS,
+  recordedLiveCommentary,
+  recordedLiveSheets,
+  recordedLiveTeamStats,
+} from "../../support/recorded/live.payloads";
 import { freshConvex, silenceConsoleError } from "../../support/convex/test.harness";
 import { MINUTE_MS } from "../../../convex/shared/time";
 
@@ -126,13 +132,36 @@ test("the commentary check before kickoff says no lines, no named men and no tea
   expect(report).toEqual({ readAt: new Date().toISOString(), lines: 0, newest: null, namedMen: 0, teamStats: false });
 });
 
-test("the commentary check mid-match, on Ipswich v Forest as read live, says the lines so far and the newest", async () => {
+/** Serves Ipswich v Forest as read live: this commentary, the team sheets and one team stats read. */
+function serveLiveMatch(commentary: RawPlCommentary, teamStats: keyof typeof LIVE_TEAM_STATS) {
   const bodies: Record<string, unknown> = {
-    [plCommentaryUrl(LIVE_MATCH)]: recordedLiveCommentary("goal"),
+    [plCommentaryUrl(LIVE_MATCH)]: commentary,
     [plFixtureUrl(LIVE_MATCH)]: recordedLiveSheets(),
-    [plTeamStatsUrl(LIVE_MATCH)]: recordedLiveTeamStats("firstMoved"),
+    [plTeamStatsUrl(LIVE_MATCH)]: recordedLiveTeamStats(teamStats),
   };
   vi.stubGlobal("fetch", vi.fn(async (url: string) => Response.json(bodies[url])));
+}
+
+test("the commentary check between the lineups and kickoff says the lineups line, which has no minute", async () => {
+  // Ipswich v Forest's stream once the lineups were out: its first live read cut to its oldest line.
+  const commentary = recordedLiveCommentary("goal");
+  commentary.events.content = commentary.events.content.slice(-1);
+  serveLiveMatch(commentary, "beforeKickoff");
+  const t = freshConvex();
+
+  const report = await t.action(internal.football.feeds.commentaryCheck, { plFixtureId: LIVE_MATCH });
+
+  expect(report).toEqual({
+    readAt: new Date().toISOString(),
+    lines: 1,
+    newest: { id: 2877807, minuteLabel: null, text: "Lineups are announced and players are warming up." },
+    namedMen: 40,
+    teamStats: true,
+  });
+});
+
+test("the commentary check mid-match, on Ipswich v Forest as read live, says the lines so far and the newest", async () => {
+  serveLiveMatch(recordedLiveCommentary("goal"), "firstMoved");
   const t = freshConvex();
 
   const report = await t.action(internal.football.feeds.commentaryCheck, { plFixtureId: LIVE_MATCH });
