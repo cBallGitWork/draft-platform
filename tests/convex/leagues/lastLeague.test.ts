@@ -1,6 +1,7 @@
 import { beforeEach, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { switchableLeagues } from "../../../convex/leagues/lastLeague";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, actingAs, CO_COMMISSIONER, COMMISSIONER, MANAGERS, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -16,7 +17,8 @@ beforeEach(async () => {
   fakeResend();
 });
 
-const currentLeagueOf = async (email: string) => (await (await actingAs(t, email)).query(api.signIn.account.signedInAs, {}))!.currentLeagueId;
+const accountOf = async (email: string) => (await (await actingAs(t, email)).query(api.signIn.account.signedInAs, {}))!;
+const currentLeagueOf = async (email: string) => (await accountOf(email)).currentLeagueId;
 const switchTo = async (email: string, leagueId: Id<"leagues">) =>
   (await actingAs(t, email)).mutation(api.leagues.lastLeague.switchTo, { leagueId });
 
@@ -150,4 +152,26 @@ test("switching to a league that doesn't exist is refused as one they have no pa
   await expect(switchTo(ANN, gone)).rejects.toThrow(refusals.notInLeague);
   await expect(switchTo(ADMIN, gone)).rejects.toThrow(refusals.notInLeague);
   expect(await currentLeagueOf(ANN)).toBe(second);
+});
+
+test("#207: the switcher's list is the server's, by the one rule that picks the league the app is in", async () => {
+  const { first, second } = await annInTwoLeagues();
+  const third = await adminCreatesLeague(t, 4, "Third");
+  await addManagers(t, second, [ADMIN]);
+  await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId: first });
+
+  // Who, the leagues they see, and those they can switch between: never one being deleted, nor
+  // one the admin only oversees.
+  const cases: [email: string, sees: Id<"leagues">[], switchable: Id<"leagues">[]][] = [
+    [ANN, [second], [second]],
+    [COMMISSIONER, [first, second, third], [second, third]],
+    [ADMIN, [first, second, third], [second]],
+  ];
+  for (const [email, sees, switchable] of cases) {
+    const account = await accountOf(email);
+    expect(account.leagues.map((league) => league.leagueId)).toEqual(sees);
+    expect(account.switchableLeagueIds).toEqual(switchable);
+    expect(account.switchableLeagueIds).toEqual(switchableLeagues(account.leagues).map((league) => league.leagueId));
+    expect(account.currentLeagueId).toBe(switchable[0]);
+  }
 });

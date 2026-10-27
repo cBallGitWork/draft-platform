@@ -19,7 +19,10 @@ import { askFailedWords, linkProblemWords, replyWords, signInWords, waitingWords
 
 const convex = vi.hoisted(() => ({
   auth: { isLoading: false, isAuthenticated: false },
-  account: undefined as { email: string; isAdmin: boolean; inLeague: boolean; leagues: []; currentLeagueId: null } | null | undefined,
+  account: undefined as
+    | { email: string; isAdmin: boolean; inLeague: boolean; leagues: []; switchableLeagueIds: []; currentLeagueId: null }
+    | null
+    | undefined,
   signIn: vi.fn(),
   signOut: vi.fn(async () => {}),
   ask: vi.fn(),
@@ -80,6 +83,7 @@ const inNoLeague: NonNullable<typeof convex.account> = {
   isAdmin: false,
   inLeague: false,
   leagues: [],
+  switchableLeagueIds: [],
   currentLeagueId: null,
 };
 

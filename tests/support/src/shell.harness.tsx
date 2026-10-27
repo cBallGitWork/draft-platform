@@ -7,6 +7,7 @@ import { render } from "@testing-library/react";
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../../convex/mail/mail";
+import { switchableLeagues } from "../../../convex/leagues/lastLeague";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { fakeAdmin, type AdminData } from "./admin.harness";
 import { fakeFeedback, type FeedbackData } from "./feedback.harness";
@@ -53,9 +54,17 @@ export const miniBeta: LeagueSummary = {
 };
 
 const signedIn = { signedIn: true, email: "manager@example.com", isAdmin: false } as const;
+/** Of `leagues`, those the switcher offers, by the server's own rule. */
+const switchableIdsOf = (leagues: readonly LeagueSummary[]) => switchableLeagues(leagues).map((each) => each.leagueId);
 /** A manager in these leagues, the app in the first. */
 export const managerIn = (...leagues: LeagueSummary[]) =>
-  ({ ...signedIn, inLeague: true, leagues, currentLeagueId: leagues[0].leagueId }) satisfies Session;
+  ({
+    ...signedIn,
+    inLeague: true,
+    leagues,
+    switchableLeagueIds: switchableIdsOf(leagues),
+    currentLeagueId: leagues[0].leagueId,
+  }) satisfies Session;
 export const manager = managerIn(league);
 /** The commissioner of `league`, running no team in it. */
 export const commissioner = managerIn({ ...league, roles: ["commissioner"], teamName: null });
@@ -65,7 +74,7 @@ export const commissioned: LeagueSummary = { ...league, roles: ["commissioner", 
 export const coCommissioned: LeagueSummary = { ...league, roles: ["co-commissioner"] };
 /** `summary` as someone with no part in its league sees it: no role, no team. */
 export const withNoPart = (summary: LeagueSummary): LeagueSummary => ({ ...summary, roles: [], teamName: null });
-export const newcomer: Session = { ...signedIn, inLeague: false, leagues: [], currentLeagueId: null };
+export const newcomer: Session = { ...signedIn, inLeague: false, leagues: [], switchableLeagueIds: [], currentLeagueId: null };
 /** The admin, seeing every league, with no part in any. */
 export const adminSeeing = (...leagues: LeagueSummary[]) =>
   ({
@@ -74,6 +83,7 @@ export const adminSeeing = (...leagues: LeagueSummary[]) =>
     isAdmin: true,
     inLeague: false,
     leagues,
+    switchableLeagueIds: switchableIdsOf(leagues),
     currentLeagueId: null,
   }) satisfies Session;
 export const admin = adminSeeing();
