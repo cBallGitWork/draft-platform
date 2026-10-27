@@ -23,9 +23,9 @@ tests row in [ARCHITECTURE.md](../../../ARCHITECTURE.md#libraries-claudes)).
 Never run bare `npx vitest`: `npm test` wraps vitest in `scripts/with-deadline.mjs`, which kills
 the run at its deadline (`package.json`'s `test` script), so a test that loops forever fails
 instead of hanging the session. That deadline sits under the Stop hook's own
-(`GATE_TIMEOUT_SECONDS`, `.claude/hooks/gate_on_stop.py`). The suite takes over two minutes on a
-cloud box, past the Bash tool's default timeout, so give the tool call a timeout over the deadline
-or run it in the background.
+(`GATE_TIMEOUT_SECONDS`, `.claude/hooks/gate_on_stop.py`). On a 4-core cloud box vitest alone took
+108-134s (27 Oct 2026, #467), about the Bash tool's default timeout, so give the tool call a
+timeout over the deadline or run it in the background.
 
 **Report the test count.** "3 passed" is a fact the next session can compare against;
 "tests pass" is not. If the count fell, say which file lost tests before anything else.
