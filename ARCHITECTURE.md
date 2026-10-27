@@ -82,11 +82,12 @@ its team stats reads are kept for the tests (`tests/support/recorded/pl-live-mat
 | Forms | React Hook Form with Zod, when a form needs them | the league-rules forms are large. The scoring editor (#30) didn't: its form is the scoring set itself, edited as data (`src/scoring/editing.ts`) and checked by the server's `validateScoringSet`, which a Zod schema would only repeat |
 | Charts | Recharts | what shadcn's charts use |
 | Tests | Vitest; `convex-test` with fake timers for the backend, on `@edge-runtime/vm`; Testing Library on jsdom for the app; a test that logs with `console.error` fails unless it calls `silenceConsoleError()` | the companion's runner; the draft clock can be tested without waiting; `convex-test` needs Convex's runtime mimicked; screens are tested by role and name, as a manager finds them |
+| Coverage | `@vitest/coverage-v8`, at Vitest's exact version, since it names that one version as its peer, so the two are bumped together; `npm run coverage` prints a text summary for every file under `convex/`, `src/` and `scripts/` | read, never gated: no thresholds, and neither `npm run verify` nor CI runs it, because we don't write tests for a coverage number ([docs/PHILOSOPHY.md](docs/PHILOSOPHY.md)); V8 counts natively, so no source is rewritten to count it, and it is Vitest's default (#155) |
 | Screenshots | Playwright, on the Mac's Chrome (`scripts/shoot.mjs`) | the `ui-verifier` agent's camera, and the same tool as the Playwright MCP |
 | Smoke tests | `@playwright/test` (`npm run smoke`, `tests/smoke/`), on the Mac's Chrome locally and Chromium in CI | loads the built app in a real browser on the preview sessions, no deployment needed |
 
 Each is installed with the first feature that needs it; for now package.json has the app, sign-in,
-styling, typeface, test, screenshot and smoke-test rows, and the rest are the plan.
+styling, typeface, test, coverage, screenshot and smoke-test rows, and the rest are the plan.
 
 ## Data
 
