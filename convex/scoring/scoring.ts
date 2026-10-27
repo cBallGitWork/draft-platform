@@ -145,7 +145,8 @@ function sum(numbers: readonly number[]): number {
 }
 
 /** A league's double-gameweek rule (spec/03): both matches count, or only his best match. */
-export type DoubleGameweekRule = "bothMatches" | "bestMatch";
+export const DOUBLE_GAMEWEEK_RULES = ["bothMatches", "bestMatch"] as const;
+export type DoubleGameweekRule = (typeof DOUBLE_GAMEWEEK_RULES)[number];
 
 /** A player's gameweek. Provisional while any of his matches' records hasn't arrived: the points
  *  are those of the matches that have, and null while none has. A match still live or inside its
@@ -158,7 +159,7 @@ export interface GameweekPoints {
 /** A player's gameweek from his matches in it, under the league's double-gameweek rule. With one
  *  match the rule changes nothing; with none he scores 0. */
 export function scoreGameweek(matches: readonly MatchPoints[], rule: DoubleGameweekRule): GameweekPoints {
-  if (rule !== "bothMatches" && rule !== "bestMatch") {
+  if (!DOUBLE_GAMEWEEK_RULES.includes(rule)) {
     throw new Error(`a double-gameweek rule of ${JSON.stringify(rule)} is neither both matches nor best match`);
   }
   const arrived = matches.flatMap((match) => (match.total === null ? [] : [match.total]));
