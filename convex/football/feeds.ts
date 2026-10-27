@@ -18,6 +18,7 @@ import { MINUTE_MS } from "../shared/time";
 
 export const check = internalAction({
   args: { trigger: feedCheckTrigger, scheduledFor: v.optional(v.number()) },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const [fplPlayers, plFixtures, squadNumbers] = await Promise.all([
       outcome(fplPlayerCount),
@@ -31,29 +32,35 @@ export const check = internalAction({
       plFixtures,
       arsenalSquadNumbers: squadNumbers,
     });
+    return null;
   },
 });
 
 export const checkLater = internalMutation({
   args: { minutes: v.number() },
+  returns: v.null(),
   handler: async (ctx, { minutes }) => {
     const delay = minutes * MINUTE_MS;
     await ctx.scheduler.runAfter(delay, internal.football.feeds.check, {
       trigger: "timer",
       scheduledFor: Date.now() + delay,
     });
+    return null;
   },
 });
 
 export const record = internalMutation({
   args: feedCheckFields,
+  returns: v.null(),
   handler: async (ctx, row) => {
     await ctx.db.insert("feedChecks", row);
+    return null;
   },
 });
 
 export const latest = internalQuery({
   args: {},
+  returns: v.array(v.object({ _id: v.id("feedChecks"), _creationTime: v.number(), ...feedCheckFields })),
   handler: async (ctx) => ctx.db.query("feedChecks").order("desc").take(LATEST_RUNS),
 });
 
@@ -69,6 +76,13 @@ export const latest = internalQuery({
 // A changed body throws, naming the URL. Nothing is saved: the answer is the printout.
 export const commentaryCheck = internalAction({
   args: { plFixtureId: v.number() },
+  returns: v.object({
+    readAt: v.string(),
+    lines: v.number(),
+    newest: v.union(v.object({ id: v.number(), minuteLabel: v.union(v.string(), v.null()), text: v.string() }), v.null()),
+    namedMen: v.number(),
+    teamStats: v.boolean(),
+  }),
   handler: async (_ctx, { plFixtureId }) => {
     // One after another, to go easy on the feed.
     const stream = await readPlCommentary(plFixtureId);
