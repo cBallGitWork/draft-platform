@@ -16,8 +16,16 @@ import { countedStats, moveSeasonTotals, type RecordChange } from "./seasonStats
 
 type State = Infer<typeof matchStatsState>;
 /** A match to read, and the gameweek its live stats come under. */
-const dueMatch = v.object({ fixtureCode: v.number(), gameweek: v.number() });
+export const dueMatch = v.object({ fixtureCode: v.number(), gameweek: v.number() });
 export type DueMatch = Infer<typeof dueMatch>;
+/** What writing one match's records did: upsertMatch's, and upsertLive's before full time. Stored as tables/matchStats.ts's matchSyncOutcome. */
+export const matchWrites = v.object({
+  state: matchStatsState,
+  inserted: v.number(),
+  updated: v.number(),
+  changed: v.array(v.number()),
+  lateCorrections: v.number(),
+});
 
 /** Ninety minutes and a fifteen-minute half-time: no match reaches full time sooner after kickoff,
  *  so none is read before. */
@@ -65,13 +73,7 @@ export const due = internalQuery({
  *  is written but the changes, for the feeds page. */
 export const upsertMatch = internalMutation({
   args: { fixtureCode: v.number(), readAt: v.number(), records: v.array(playerMatchRecord) },
-  returns: v.object({
-    state: matchStatsState,
-    inserted: v.number(),
-    updated: v.number(),
-    changed: v.array(v.number()),
-    lateCorrections: v.number(),
-  }),
+  returns: matchWrites,
   handler: async (ctx, { fixtureCode, readAt, records }) => {
     const status = await statusOf(ctx, fixtureCode);
     const held = new Map((await recordsOf(ctx, fixtureCode)).map((row) => [row.playerCode, row]));
