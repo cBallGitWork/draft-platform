@@ -15,7 +15,7 @@ import { liveHome } from "./home/liveHome";
 import { livePremierLeague } from "./premierLeague/livePremierLeague";
 import { useLiveJoining } from "./joining/liveJoining";
 import { joinTokenAt } from "./joining/paths";
-import { useLiveLeagueActions } from "./leagues/liveLeagueActions";
+import { useLiveLeagues } from "./leagues/liveLeagues";
 import { useLiveMail } from "./mail/liveMail";
 import { liveMatchup } from "./matchup/liveMatchup";
 import { liveMyTeam } from "./myTeam/liveMyTeam";
@@ -113,7 +113,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   const { isLoading, isAuthenticated } = useConvexAuth();
   const { signIn, signOut } = useAuthActions();
   const ask = useAction(api.signIn.signInLinks.ask);
-  const leagues = useLiveLeagueActions();
+  const leagues = useLiveLeagues();
   const { mail, topBar } = useLiveMail();
   const joining = useLiveJoining();
   const admin = useLiveAdmin();

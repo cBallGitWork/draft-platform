@@ -8,7 +8,7 @@ import { ConvexError } from "convex/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { afterEach, expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
-import { useLiveLeagueActions } from "../../../src/leagues/liveLeagueActions";
+import { useLiveLeagues } from "../../../src/leagues/liveLeagues";
 import { createFailedWords, deleteFailedWords, leaveFailedWords, switchFailedWords, undoFailedWords } from "../../../src/leagues/words";
 
 const create = vi.hoisted(() => vi.fn());
@@ -33,7 +33,7 @@ afterEach(() => {
 });
 
 const newLeague = { name: "Mini beta", maxTeams: 4, commissionerEmail: "commish@example.com" };
-const createLeague = () => renderHook(useLiveLeagueActions).result.current.createLeague(newLeague);
+const createLeague = () => renderHook(useLiveLeagues).result.current.createLeague(newLeague);
 
 test("a league the server makes resolves with no problem", async () => {
   create.mockResolvedValue("league-id");
@@ -56,7 +56,7 @@ test("any other failure is logged and said plainly", async () => {
 });
 
 const leagueId = "league-1" as Id<"leagues">;
-const liveActions = () => renderHook(useLiveLeagueActions).result.current;
+const liveActions = () => renderHook(useLiveLeagues).result.current;
 
 test.each([
   ["deleting", () => liveActions().deleteLeague(leagueId), deleteLeague],

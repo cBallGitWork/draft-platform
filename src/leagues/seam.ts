@@ -1,5 +1,5 @@
 // The seam for leagues (#24): what the screens can ask of them. Convex fills it in live
-// (liveLeagueActions.ts); the preview and the tests hand the screens their own.
+// (liveLeagues.ts); the preview and the tests hand the screens their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { Change } from "../refusal";
