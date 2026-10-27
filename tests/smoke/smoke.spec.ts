@@ -16,6 +16,7 @@ import { LEAGUES_TITLE, NEW_LEAGUE_TITLE } from "../../src/leagues/words";
 import { MAIL_TITLE } from "../../src/mail/words";
 import { miniBeta } from "../../src/preview";
 import { SIGN_IN_PATH } from "../../src/sign-in/paths";
+import { signInWords } from "../../src/sign-in/words";
 import { squadsPath } from "../../src/squads/paths";
 import { SQUADS_TITLE } from "../../src/squads/words";
 import { TABLE_PAGE_TITLE } from "../../src/table/words";
@@ -81,8 +82,8 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
   test("?preview=visitor shows the sign-in page", async ({ page }) => {
     await page.goto("/?preview=visitor");
     await expect(page).toHaveURL((url) => url.pathname === SIGN_IN_PATH);
-    await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Send the link" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: signInWords.title })).toBeVisible();
+    await expect(page.getByRole("button", { name: signInWords.send })).toBeVisible();
   });
 
   test.describe("each built screen, on the phone", () => {
