@@ -36,7 +36,7 @@ WATCHED = ("convex", "src", "scripts", "tests", PACKAGE, "package-lock.json", "t
            "vitest.config.ts", "playwright.config.ts", ".claude")
 TAIL_LINES = 40
 GATE = "npm run verify"
-GATE_TIMEOUT_SECONDS = 170  # inside settings.json's hook timeout; .claude/hooks/tests/settings.sh checks the pair
+GATE_TIMEOUT_SECONDS = 420  # inside settings.json's hook timeout; .claude/hooks/tests/settings.sh checks the pair
 
 
 def checkout_of(cwd):

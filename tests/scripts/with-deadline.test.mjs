@@ -54,8 +54,10 @@ test("a quick command's exit code passes through the wrapper", async () => {
   expect((await run(["5", "sh", "-c", "exit 3"])).code).toBe(3);
 });
 
-test("a command that never ends is killed near the deadline, and the wrapper fails saying why", async () => {
-  const { code, output, seconds } = await run(["1", "sh", "-c", "while :; do :; done"]);
+test("a command that outlasts the deadline is killed near it, and the wrapper fails saying why", async () => {
+  // It spins for at most a minute: if the suite itself is killed mid-test, this wrapper dies with
+  // it and its detached command would otherwise spin on forever (#467).
+  const { code, output, seconds } = await run(["1", "sh", "-c", 'end=$(($(date +%s) + 60)); while [ "$(date +%s)" -lt "$end" ]; do :; done']);
   expect(code).toBe(1);
   expect(output).toContain(DEADLINE_MESSAGE);
   expect(seconds).toBeGreaterThanOrEqual(1);
