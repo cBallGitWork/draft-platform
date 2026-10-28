@@ -8,11 +8,11 @@ import { howPositionsCount } from "../positions/positionSettings";
 import { clubRecord, position } from "../schema";
 import { categoryName } from "../scoring/categories";
 import { siteScoringByGameweek } from "../scoring/siteScoring";
-import { takeAllOrThrow } from "../shared/cappedRead";
-import { fixtureByCode } from "../shared/fixtures";
 import { memberOf } from "../shared/leagueAccess";
-import { clubByCode, playerByCode } from "../shared/players";
+import { clubsByCode, playerByCode, type Clubs } from "../shared/players";
+import { ownerNameOf, placeOf } from "../squads/squadPlaces";
 import { isWhole, MINUTES_STAT, statValue } from "../stats/matchRecords";
+import { currentFixturesByCode, overridesOf, seasonRecords } from "../stats/seasonRecords";
 import { cardPoints, scoredAs } from "./cardPoints";
 import { startersByGameweek } from "../lineup/lineups";
 import { roleName } from "../lineup/roles";
@@ -26,10 +26,6 @@ import { roleName } from "../lineup/roles";
 /** How many of his club's next matches the card shows: "the next few" (spec/12). Claude's choice,
  *  not yet Craig's. */
 export const NEXT_FIXTURES_SHOWN = 5;
-
-/** The most match records one player's read takes: 38 a season, kept season on season, so ten
- *  seasons with room. More throws, never a silent cut. */
-export const PLAYER_RECORDS_MOST = 500;
 
 // `v.union` takes two or more members, which a mapped array cannot promise its type (as convex/tables/positions.ts's `position`).
 const slotLiterals = SLOT_POSITIONS.map((each) => v.literal(each));
@@ -100,6 +96,7 @@ export const card = query({
     if (player === null) return null;
     const positions = await currentPositions(ctx, playerCode, await howPositionsCount(ctx));
     const clubs = clubsByCode(ctx);
+    const place = await placeOf(ctx, leagueId, playerCode);
     return {
       code: player.code,
       name: player.name,
@@ -107,35 +104,14 @@ export const card = query({
       club: await clubs(player.clubCode),
       gone: player.droppedAt !== undefined,
       positions,
-      ownerTeamName: await ownerIn(ctx, leagueId, playerCode),
+      ownerTeamName: await ownerNameOf(ctx, place),
       news: player.news || null,
       chanceOfPlaying: player.chanceOfPlaying ?? null,
-      matches: await seasonMatches(ctx, leagueId, player, positions, clubs),
+      matches: await seasonMatches(ctx, leagueId, player, place, positions, clubs),
       nextFixtures: await nextFixtures(ctx, player.clubCode, now, clubs),
     };
   },
 });
-
-type Club = Infer<typeof clubRecord>;
-export type Clubs = (code: number) => Promise<Club>;
-
-/** Clubs by code, each read once. */
-export function clubsByCode(ctx: QueryCtx): Clubs {
-  const read = new Map<number, Promise<Club>>();
-  return (code) => {
-    if (!read.has(code)) read.set(code, clubByCode(ctx, code).then(({ code, name, shortName }) => ({ code, name, shortName })));
-    return read.get(code)!;
-  };
-}
-
-/** The team in this league that owns him, or null for a free agent. */
-export async function ownerIn(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<string | null> {
-  const owned = await ctx.db
-    .query("squadPlayers")
-    .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode))
-    .unique();
-  return owned === null ? null : (await ctx.db.get("teams", owned.teamId))!.name;
-}
 
 const asMatch = async (fixture: Doc<"fixtures">, clubs: Clubs) => ({
   fixtureCode: fixture.code,
@@ -145,50 +121,22 @@ const asMatch = async (fixture: Doc<"fixtures">, clubs: Clubs) => ({
   away: await clubs(fixture.awayClubCode),
 });
 
-/** One of his records this season, with its match and the gameweek it was played in. */
-export type SeasonRecord = { record: Doc<"playerMatchStats">; fixture: Doc<"fixtures">; gameweek: number };
-
-/** His records this season, for whichever club, each with its match: a match the feed still sends
- *  is this season's, and one with no gameweek is postponed with no new date, so not yet played. An
- *  unused substitute's match is left out, as one he wasn't named for is. */
-export async function seasonRecords(ctx: QueryCtx, playerCode: number): Promise<SeasonRecord[]> {
-  const records = await takeAllOrThrow(
-    ctx.db.query("playerMatchStats").withIndex("by_playerCode", (q) => q.eq("playerCode", playerCode)),
-    PLAYER_RECORDS_MOST,
-    `More than ${PLAYER_RECORDS_MOST} match records are held for player ${playerCode}, so his season would be cut short`,
-  );
-  const withMatches = await Promise.all(
-    records
-      .filter((record) => record.played !== false)
-      .map(async (record) => {
-        const fixture = await fixtureByCode(ctx, record.fixtureCode);
-        // A record is filed only for a match the sync holds, so one missing is bad data.
-        if (fixture === null) throw new Error(`Player ${playerCode} has a record for match ${record.fixtureCode}, which isn't held`);
-        return fixture.droppedAt !== undefined || fixture.gameweek === null ? [] : [{ record, fixture, gameweek: fixture.gameweek }];
-      }),
-  );
-  return withMatches.flat();
-}
-
 /** This season's matches he was in (seasonRecords), each priced under the site's set with the
  *  league's override of his points there, if any, newest first. */
 async function seasonMatches(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
   player: Doc<"players">,
+  place: Doc<"squadPlayers"> | null,
   positions: readonly Position[],
   clubs: Clubs,
 ): Promise<PlayedMatch[]> {
   const setIn = await siteScoringByGameweek(ctx);
   const overrides = await overridesOf(ctx, leagueId, player.code);
   // His team's lineups, for the slot and role he started in: priced as the Squad tab prices him.
-  const owner = await ctx.db
-    .query("squadPlayers")
-    .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", player.code))
-    .unique();
-  const starters = owner === null ? null : startersByGameweek(ctx, leagueId, owner.teamId);
+  const starters = place === null ? null : startersByGameweek(ctx, leagueId, place.teamId);
   const played = await Promise.all(
-    (await seasonRecords(ctx, player.code)).map(async ({ record, fixture, gameweek }) => {
+    (await seasonRecords(ctx, player.code, await currentFixturesByCode(ctx))).map(async ({ record, fixture, gameweek }) => {
       const set = setIn(gameweek);
       const slot = starters === null ? null : ((await starters(gameweek)).get(player.code) ?? null);
       const { role, ...points } = cardPoints(isWhole(record) ? record.stats : null, set, positions, slot);
@@ -208,17 +156,6 @@ async function seasonMatches(
     }),
   );
   return played.sort((one, other) => (other.kickoff ?? 0) - (one.kickoff ?? 0));
-}
-
-/** The league's overrides of his points, by match: one a match at most, so never more than his
- *  records. The card and the Squad tab both read them. */
-export async function overridesOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<Map<number, Doc<"pointsOverrides">>> {
-  const rows = await takeAllOrThrow(
-    ctx.db.query("pointsOverrides").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode)),
-    PLAYER_RECORDS_MOST,
-    `League ${leagueId} holds more than ${PLAYER_RECORDS_MOST} overrides for player ${playerCode}, so his season would be cut short`,
-  );
-  return new Map(rows.map((row) => [row.fixtureCode, row]));
 }
 
 /** His club's next matches after `now`, soonest first. A match with no kickoff time is left out. */

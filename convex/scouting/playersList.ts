@@ -2,16 +2,15 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { PL_SEASON_START_YEAR } from "../football/football";
-import { MOST_IN_SQUAD, MOST_TEAMS } from "../leagues/leagueLimits";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { clubRecord, position } from "../schema";
 import { STAT_CATALOGUE } from "../scoring/statCatalogue";
-import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { currentClubs, currentPlayersAt } from "../shared/players";
 import { seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
+import { ownersIn } from "../squads/squadPlaces";
 import { listOf, shownStat } from "./playersOrder";
 
 // Scouting's players list (spec/19, The players list; #373): every Premier League player now, for
@@ -26,9 +25,6 @@ import { listOf, shownStat } from "./playersOrder";
  *  a club, with room. Each costs one read of his positions row, so a full list stays far inside a
  *  query's read limits. More throws, never a silent cut. */
 export const LISTED_PLAYERS_MOST = 1200;
-
-/** The most players a league can own: every team's squad full. */
-export const OWNED_IN_LEAGUE_MOST = MOST_TEAMS * MOST_IN_SQUAD;
 
 /** Which players by who holds them in this league: all, the unowned (free agents), those on
  *  waivers, or those on a team. */
@@ -87,7 +83,7 @@ export const list = query({
     const clubs = (await currentClubs(ctx)).sort((one, other) => one.name.localeCompare(other.name));
     const listedClubs = filters.clubCode === null ? clubs : clubs.filter((each) => each.code === filters.clubCode);
     const players = await currentPlayersOf(ctx, listedClubs);
-    const ownerOf = await ownersIn(ctx, leagueId);
+    const ownerOf = await ownerNamesIn(ctx, leagueId);
     const how = await howPositionsCount(ctx);
     const totals = stat === null ? new Map<number, Stats>() : await seasonTotals(ctx, PL_SEASON_START_YEAR);
     const clubOf = new Map(clubs.map((each) => [each.code, { code: each.code, name: each.name, shortName: each.shortName }]));
@@ -118,12 +114,8 @@ async function currentPlayersOf(ctx: QueryCtx, clubs: readonly Doc<"clubs">[]): 
 }
 
 /** Each owned player's team name in the league, by his code. */
-async function ownersIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, string>> {
+async function ownerNamesIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, string>> {
   const teamName = new Map((await teamsOf(ctx, leagueId)).map((team) => [team._id, team.name]));
-  const owned = await takeAllOrThrow(
-    ctx.db.query("squadPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)),
-    OWNED_IN_LEAGUE_MOST,
-    `More than ${OWNED_IN_LEAGUE_MOST} players are owned in league ${leagueId}, so the list would be cut short`,
-  );
-  return new Map(owned.map((row) => [row.playerCode, teamName.get(row.teamId)!]));
+  const owners = await ownersIn(ctx, leagueId, "the list would be cut short");
+  return new Map([...owners].map(([playerCode, teamId]) => [playerCode, teamName.get(teamId)!]));
 }

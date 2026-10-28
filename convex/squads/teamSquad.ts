@@ -3,7 +3,6 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { startersByGameweek } from "../lineup/lineups";
 import { cardPoints } from "../playerCard/cardPoints";
-import { clubsByCode, overridesOf, seasonRecords, type Clubs } from "../playerCard/playerCard";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { POSITIONS, type Position } from "../positions/positionTables";
@@ -11,8 +10,9 @@ import { clubRecord, position } from "../schema";
 import { inTenths } from "../scoring/scoringSet";
 import { siteScoringByGameweek } from "../scoring/siteScoring";
 import { managerOf } from "../shared/leagueAccess";
-import { playerByCode } from "../shared/players";
+import { clubsByCode, playerByCode, type Clubs } from "../shared/players";
 import { isWhole } from "../stats/matchRecords";
+import { currentFixturesByCode, overridesOf, seasonRecords } from "../stats/seasonRecords";
 import { begunGameweeks } from "../table/gameweekScores";
 import { squadOf } from "./squads";
 
@@ -115,8 +115,8 @@ export const ofMyTeam = query({
  *  that gameweek, else at his best position, and a match the league overrode at the override,
  *  whole record or not (as teamPoints.ts scores it). Each gameweek's lineup and set is read once.
  *
- *  What a full squad costs: each player's records and their matches (seasonRecords, about 25 x 2
- *  x the gameweeks played), his overrides in the league (one read a player), and each gameweek's
+ *  What a full squad costs: each player's records (seasonRecords, about 25 x the gameweeks played)
+ *  against the season's matches, read once for the squad, his overrides in the league (one read a player), and each gameweek's
  *  lineup, which reads the league's squad moves since that gameweek's deadline (lineups.ts). Inside a query's limits for a season of an ordinary
  *  league; past SQUAD_MOVES_READ_MOST moves of a kind it throws rather than mis-price. Reading the
  *  moves once for every gameweek, or storing a gameweek's priced matches once final, as
@@ -124,10 +124,11 @@ export const ofMyTeam = query({
 async function pricer(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">) {
   const setIn = await siteScoringByGameweek(ctx);
   const starters = startersByGameweek(ctx, leagueId, teamId);
+  const current = await currentFixturesByCode(ctx);
   return async (playerCode: number, positions: readonly Position[]): Promise<PricedMatch[]> => {
     const overrides = await overridesOf(ctx, leagueId, playerCode);
     return Promise.all(
-      (await seasonRecords(ctx, playerCode)).map(async ({ record, fixture, gameweek }) => {
+      (await seasonRecords(ctx, playerCode, current)).map(async ({ record, fixture, gameweek }) => {
         const override = overrides.get(fixture.code);
         if (override !== undefined) return { gameweek, points: override.points };
         const slot = (await starters(gameweek)).get(playerCode) ?? null;

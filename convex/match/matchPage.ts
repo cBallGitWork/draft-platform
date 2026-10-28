@@ -19,6 +19,7 @@ import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
+import { ownersIn } from "../squads/squadPlaces";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { begunGameweeks } from "../table/gameweekScores";
 import { gameweekInputs, heldFixtures, leagueReads, MATCH_RECORDS_MOST, teamInGameweek } from "../table/teamGameweek";
@@ -122,18 +123,17 @@ async function sheetMenOf(ctx: QueryCtx, fixtureCode: number): Promise<NamedMan[
   return (sheets?.men ?? []).map(({ playerCode, started }) => ({ playerCode, started, played: null }));
 }
 
-/** Each man the match names who is owned in the league, by the team that owns him. */
+/** Each man the match names who is owned in the league, by the team that owns him: the league's
+ *  owned players are read once (ownersIn), not one a man. */
 async function ownersOf(ctx: QueryCtx, leagueId: Id<"leagues">, named: readonly NamedMan[]): Promise<Map<PlayerCode, Doc<"teams">>> {
   const teams = new Map((await teamsOf(ctx, leagueId)).map((team) => [team._id, team]));
+  const ownerIds = await ownersIn(ctx, leagueId, "the match's owners would be cut short");
   const owners = new Map<PlayerCode, Doc<"teams">>();
   for (const { playerCode } of named) {
-    const owned = await ctx.db
-      .query("squadPlayers")
-      .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode))
-      .unique();
-    if (owned === null) continue;
-    const team = teams.get(owned.teamId);
-    if (team === undefined) throw new Error(`player ${playerCode} is owned by team ${owned.teamId}, which isn't in league ${leagueId}`);
+    const teamId = ownerIds.get(playerCode);
+    if (teamId === undefined) continue;
+    const team = teams.get(teamId);
+    if (team === undefined) throw new Error(`player ${playerCode} is owned by team ${teamId}, which isn't in league ${leagueId}`);
     owners.set(playerCode, team);
   }
   return owners;

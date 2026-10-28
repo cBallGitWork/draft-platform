@@ -1,5 +1,7 @@
+import type { Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
+import type { clubRecord } from "../schema";
 import { takeAllOrThrow } from "./cappedRead";
 
 // The Premier League's clubs and players as the football sync holds them (#21): the reads that
@@ -34,6 +36,18 @@ export async function clubByCode(ctx: QueryCtx, code: number): Promise<Doc<"club
     .unique();
   if (club === null) throw new Error(`No club with code ${code} is held`);
   return club;
+}
+
+type Club = Infer<typeof clubRecord>;
+export type Clubs = (code: number) => Promise<Club>;
+
+/** Clubs by code, each read once. */
+export function clubsByCode(ctx: QueryCtx): Clubs {
+  const read = new Map<number, Promise<Club>>();
+  return (code) => {
+    if (!read.has(code)) read.set(code, clubByCode(ctx, code).then(({ code, name, shortName }) => ({ code, name, shortName })));
+    return read.get(code)!;
+  };
 }
 
 /** The player with `code`, dropped or not, or null while the football sync holds no such player:

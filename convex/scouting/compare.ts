@@ -1,13 +1,14 @@
 import { v, type Infer } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { ownerIn, seasonRecords } from "../playerCard/playerCard";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount, type HowPositionsCount } from "../positions/positionSettings";
 import { clubRecord, position } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
+import { ownerNameOf, placeOf } from "../squads/squadPlaces";
 import { isWhole } from "../stats/matchRecords";
+import { currentFixturesByCode, seasonRecords, type CurrentFixtures } from "../stats/seasonRecords";
 import { sumStats } from "../stats/statTotals";
 import { COMPARED_PLAYERS } from "./comparedPlayers";
 
@@ -51,22 +52,29 @@ export const players = query({
       throw new Error(`Compare ${COMPARED_PLAYERS} different players, not ${codes.join(", ")}`);
     }
     const how = await howPositionsCount(ctx);
-    return Promise.all(codes.map((code) => compared(ctx, leagueId, code, how)));
+    const current = await currentFixturesByCode(ctx);
+    return Promise.all(codes.map((code) => compared(ctx, leagueId, code, how, current)));
   },
 });
 
-async function compared(ctx: QueryCtx, leagueId: Id<"leagues">, code: number, how: HowPositionsCount): Promise<ComparedPlayer> {
+async function compared(
+  ctx: QueryCtx,
+  leagueId: Id<"leagues">,
+  code: number,
+  how: HowPositionsCount,
+  current: CurrentFixtures,
+): Promise<ComparedPlayer> {
   const player = await playerByCode(ctx, code);
   if (player === null) throw new Error(`No player ${code} is held to compare`);
   const { name, shortName } = await clubByCode(ctx, player.clubCode);
-  const season = await seasonRecords(ctx, code);
+  const season = await seasonRecords(ctx, code, current);
   return {
     code,
     name: player.name,
     fullName: player.fullName,
     club: { code: player.clubCode, name, shortName },
     positions: await currentPositions(ctx, code, how),
-    ownerTeamName: await ownerIn(ctx, leagueId, code),
+    ownerTeamName: await ownerNameOf(ctx, await placeOf(ctx, leagueId, code)),
     seasonPoints: null,
     matches: season.length,
     stats: sumStats(season.filter(({ record }) => isWhole(record)).map(({ record }) => record.stats)),

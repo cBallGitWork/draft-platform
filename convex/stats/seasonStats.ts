@@ -2,9 +2,10 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { seasonStartYear } from "../shared/time";
-import { PLAYER_RECORDS_MOST } from "../playerCard/playerCard";
 import { takeAllOrThrow } from "../shared/cappedRead";
+import { fixtureByCode } from "../shared/fixtures";
 import { isWhole, type PlayerMatchRecord } from "./matchRecords";
+import { PLAYER_RECORDS_MOST } from "./seasonRecords";
 import { addStats, sumStats, type Stats } from "./statTotals";
 
 // Each player's season totals (#373, the playerSeasonStats table): his match records added up, so
@@ -28,10 +29,7 @@ export type RecordChange = { playerCode: number; fixtureCode: number; before: St
 /** The season a match falls in, by its kickoff. A record is only filed for a match the sync holds
  *  that has kicked off, so one missing either is bad data. */
 async function seasonOfMatch(ctx: QueryCtx, fixtureCode: number): Promise<number> {
-  const fixture = await ctx.db
-    .query("fixtures")
-    .withIndex("by_code", (q) => q.eq("code", fixtureCode))
-    .unique();
+  const fixture = await fixtureByCode(ctx, fixtureCode);
   if (fixture === null) throw new Error(`Match ${fixtureCode} has records but isn't held`);
   if (fixture.kickoff === null) throw new Error(`Match ${fixtureCode} has records but no kickoff`);
   return seasonStartYear(fixture.kickoff);

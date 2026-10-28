@@ -3,10 +3,11 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../../../convex/_generated/server";
 import { FIRST_GAMEWEEK } from "../../../convex/gameweeks/usedGameweeks";
-import { seasonRecords, PLAYER_RECORDS_MOST } from "../../../convex/playerCard/playerCard";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
-import { OWNED_IN_LEAGUE_MOST, type PlayersFilters, type PlayersSort } from "../../../convex/scouting/playersList";
+import { type PlayersFilters, type PlayersSort } from "../../../convex/scouting/playersList";
 import { GAMEWEEK_MATCHES_MOST } from "../../../convex/shared/fixtures";
+import { OWNED_IN_LEAGUE_MOST } from "../../../convex/squads/squadPlaces";
+import { currentFixturesByCode, seasonRecords, PLAYER_RECORDS_MOST } from "../../../convex/stats/seasonRecords";
 import { thresholdStepsOf, THRESHOLD_STEPS_MOST } from "../../../convex/stats/thresholdSteps";
 import { LEAGUES_STORED_MOST } from "../../../convex/table/finalScores";
 import { FINAL_SCORES_MOST, leagueScores } from "../../../convex/table/gameweekScores";
@@ -240,7 +241,7 @@ test(`a player's records for his card: ${PLAYER_RECORDS_MOST} are read, one more
   await readsToTheCapThenThrows(
     PLAYER_RECORDS_MOST,
     holdPhillipsRecords,
-    () => league.t.run((ctx) => seasonRecords(ctx, PHILLIPS)),
+    () => league.t.run(async (ctx) => seasonRecords(ctx, PHILLIPS, await currentFixturesByCode(ctx))),
     `More than ${PLAYER_RECORDS_MOST} match records are held for player ${PHILLIPS}, so his season would be cut short`,
   );
 });

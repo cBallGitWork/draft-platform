@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
 import { managerOf, refuse } from "../shared/leagueAccess";
+import { placeOf } from "./squadPlaces";
 
 // Squad numbers (#13, spec/05 Squad numbers; Craig, 26 Oct 2026): a manager gives his own players
 // numbers on My team's Squad tab, any from 1 to 99, two of them alike if he likes. The number is
@@ -25,10 +26,7 @@ export const set = mutation({
     if (number !== null && !(Number.isInteger(number) && number >= LOWEST_NUMBER && number <= HIGHEST_NUMBER)) {
       refuse(squadNumberRefusals.outOfRange);
     }
-    const place = await ctx.db
-      .query("squadPlayers")
-      .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode))
-      .unique();
+    const place = await placeOf(ctx, leagueId, playerCode);
     if (place === null || place.teamId !== team._id) refuse(squadNumberRefusals.notInSquad);
     await ctx.db.patch("squadPlayers", place._id, { number: number ?? undefined });
     return null;

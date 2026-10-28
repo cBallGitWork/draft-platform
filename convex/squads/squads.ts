@@ -13,6 +13,7 @@ import { areasOf, type Area } from "../lineup/pitch";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { areasShort } from "./areaMinimums";
+import { placeOf } from "./squadPlaces";
 import { takeAllOrThrow } from "../shared/cappedRead";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
@@ -44,14 +45,6 @@ export const squadRefusals = {
 /** The player with `code`, or the refusal that there is none. */
 async function heldPlayer(ctx: QueryCtx, code: number): Promise<Doc<"players">> {
   return (await playerByCode(ctx, code)) ?? refuse(squadRefusals.noPlayer);
-}
-
-/** The player's place in this league, or null while he is a free agent. */
-function placeOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number) {
-  return ctx.db
-    .query("squadPlayers")
-    .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode))
-    .unique();
 }
 
 /** The team's squad rows, in the order its players joined it. */
