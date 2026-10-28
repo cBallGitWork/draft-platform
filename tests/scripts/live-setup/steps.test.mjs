@@ -6,18 +6,23 @@ import {
   LIVE_DOMAIN,
   LIVE_SENDER,
   LIVE_SITE_URL,
+  POSITIONS_SYNC_RUN,
   RELEASE_CHECK_SECRET,
   RESEND_REGION,
   RESEND_VERIFIED,
   SETTING,
   VERCEL_PRODUCTION,
+  VERCEL_PROJECT,
 } from "../../../scripts/live-setup/live.mjs";
 import { HIDDEN, secretKeeper, signInKeys } from "../../../scripts/live-setup/secrets.mjs";
 import { ALREADY_DONE, DONE, FAILED, NOT_YET } from "../../../scripts/live-setup/outcomes.mjs";
 import { STEPS, setUpLive } from "../../../scripts/live-setup/steps.mjs";
-import { ADMIN, CHECK_EMAIL, DEPLOY_KEY, NO_DEPLOYMENT, RESEND_KEY, RESEND_RECORDS, fakeWorld } from "../../support/scripts/liveSetup.harness.mjs";
+import { ADMIN, CHECK_EMAIL, DEPLOY_KEY, NO_DEPLOYMENT, RESEND_KEY, RESEND_RECORDS, fakeWorld, setUpWorld } from "../../support/scripts/liveSetup.harness.mjs";
 
 const OTHER_ADMIN = "someone@example.com";
+const OTHER_VERCEL_PROJECT = "someone-elses-project";
+const NOT_AN_EMAIL = "craig.example.com";
+const SYNC_ERROR = "the FPL feed timed out";
 /** The lines a run printed for its steps, each a step's title and what it said. */
 const stepLines = (world) => world.printed.filter((line) => STEPS.some((step) => line.startsWith(`${step.title}: `)));
 const outcomes = (world) => stepLines(world).map((line) => line.slice(line.lastIndexOf(": ") + 2));
@@ -79,7 +84,45 @@ test("a deploy key Vercel holds for previews too is refused: a preview could dep
   const world = fakeWorld();
   world.vercel.env.push({ key: DEPLOY_KEY_SETTING, target: "preview", value: DEPLOY_KEY });
   expect(await setUpLive(world.tools)).toBe(false);
-  expect(world.printed.at(-1)).toContain(`${FAILED}: Vercel holds ${DEPLOY_KEY_SETTING} for preview too`);
+  expect(world.printed.at(-1)).toContain(
+    `${FAILED}: Vercel holds ${DEPLOY_KEY_SETTING} for preview too: remove it there, in the project's settings`,
+  );
+  expect(world.changes).not.toContain(`vercel env ${DEPLOY_KEY_SETTING}`);
+});
+
+test("a checkout linked to another Vercel project is refused, and nothing is changed", async () => {
+  const world = await setUpWorld();
+  world.vercel.linked.projectName = OTHER_VERCEL_PROJECT;
+  expect(await setUpLive(world.tools)).toBe(false);
+  expect(world.printed.at(-1)).toContain(
+    `${FAILED}: this checkout is linked to the Vercel project "${OTHER_VERCEL_PROJECT}", not "${VERCEL_PROJECT}"`,
+  );
+  expect(world.changes).toEqual([]);
+  expect(world.vercel.linked.projectName).toBe(OTHER_VERCEL_PROJECT);
+});
+
+test("an admin address that isn't an email is refused, and the admin held stays", async () => {
+  const world = await setUpWorld();
+  expect(await setUpLive(world.tools, { adminEmail: NOT_AN_EMAIL })).toBe(false);
+  expect(world.printed.at(-1)).toContain(`${SETTING.adminEmail}): ${FAILED}: "${NOT_AN_EMAIL}" isn't an email address: nothing was saved`);
+  expect(world.changes).toEqual([]);
+  expect(world.convex.settings.get(SETTING.adminEmail)).toBe(ADMIN);
+});
+
+test("a positions sync that runs but fails is a failure, saying why, and the run stops there", async () => {
+  const world = await setUpWorld();
+  world.convex.syncs.length = 0;
+  const { run } = world.tools.convex;
+  world.tools.convex.run = async (fn, args) => {
+    if (fn !== POSITIONS_SYNC_RUN) return run(fn, args);
+    world.convex.syncs.push({ outcome: { ok: false, error: SYNC_ERROR } });
+    return null;
+  };
+  expect(await setUpLive(world.tools)).toBe(false);
+  expect(world.printed.at(-1)).toContain(`${FAILED}: the sync ran but failed: ${SYNC_ERROR}`);
+  const ranAfter = STEPS.slice(STEPS.findIndex((step) => world.printed.at(-1).startsWith(`${step.title}: `)) + 1);
+  expect(ranAfter.length).toBeGreaterThan(0);
+  expect(world.printed.filter((line) => ranAfter.some((step) => line.startsWith(`${step.title}: `)))).toEqual([]);
 });
 
 test("an address that isn't Resend's receiving one is refused for the release check, and nothing is saved", async () => {

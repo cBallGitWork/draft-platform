@@ -13,7 +13,8 @@ const useLetters: MailSeam["useLetters"] = () => {
 };
 
 /** The Mail seam filled in by Convex, and the top bar's count from it: Continue goes to Mail while
- *  a letter is unread, as nothing else it looks for (spec/12) is built yet. A refusal comes back as
+ *  a letter is unread, as nothing else it looks for (spec/12) is wired in yet: the lineup before
+ *  the deadline waits on #526, and trades aren't built. A refusal comes back as
  *  the server's own words (convex/mail/mail.ts); any other failure is logged and said plainly. */
 export function useLiveMail(): { mail: MailSeam; topBar: TopBarState } {
   const { isAuthenticated } = useConvexAuth();

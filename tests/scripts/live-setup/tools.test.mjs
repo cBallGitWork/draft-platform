@@ -13,7 +13,8 @@ import {
   VERCEL_PRODUCTION,
   VERCEL_PROJECT,
 } from "../../../scripts/live-setup/live.mjs";
-import { RESEND_API, VERCEL_LINK_FILE, captured, realTools } from "../../../scripts/live-setup/tools.mjs";
+import { VERCEL_LINK_FILE, captured, realTools } from "../../../scripts/live-setup/tools.mjs";
+import { RESEND_API_URL } from "../../../convex/outbound/resend.ts";
 import { CHECK_EMAIL, RESEND_KEY } from "../../support/scripts/liveSetup.harness.mjs";
 
 const SECRET = "a-secret-value-0123456789";
@@ -172,7 +173,7 @@ test("Resend's key goes only in the Authorization header, and a refusal says why
   const { tools } = toolsWith({ fetchImpl });
   await tools.resend.createDomain(RESEND_KEY, LIVE_DOMAIN, RESEND_REGION);
   const [url, init] = fetchImpl.mock.calls[0];
-  expect(url).toBe(`${RESEND_API}/domains`);
+  expect(url).toBe(`${RESEND_API_URL}/domains`);
   expect(init.headers.Authorization).toBe(`Bearer ${RESEND_KEY}`);
   expect(JSON.parse(init.body)).toEqual({ name: LIVE_DOMAIN, region: RESEND_REGION });
   expect(`${url}${init.body}`).not.toContain(RESEND_KEY);

@@ -22,8 +22,8 @@ import {
   type GameweekInputs,
   type TeamInGameweek,
 } from "../table/teamGameweek";
-import { LEAGUE_AVERAGE } from "../table/roundRobin";
-import { averageOf } from "../table/standings";
+import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
+import { averageOf, teamsInGameweek } from "../table/standings";
 import { BYE, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
 import { isWhole } from "../stats/matchRecords";
@@ -60,26 +60,30 @@ export const ofTeam = query({
     const team = teamId === undefined ? await teamOf(ctx, leagueId, email) : await teamIn(ctx, leagueId, teamId);
     if (team === undefined) return { kind: "noTeam" as const };
 
-    const games = gamesOf(await scheduleOf(ctx, league, season), team._id);
+    const schedule = await scheduleOf(ctx, league, season);
+    const games = gamesOf(schedule, team._id);
     const deadlines = await leagueDeadlines(ctx, leagueId);
     const gameweek = asked ?? thisGameweekOf(games, (each) => deadlines.get(each) ?? null, now)?.gameweek ?? null;
     const heading = { kind: "headToHead" as const, teamId: team._id, teamName: team.name, gameweeks: [...new Set(games.map((each) => each.gameweek))] };
     if (gameweek === null) return { ...heading, gameweek, deadline: null, game: { kind: "none" as const } };
     const against = games.find((each) => each.gameweek === gameweek)?.against;
-    return { ...heading, gameweek, deadline: deadlines.get(gameweek) ?? null, game: await gameOf(ctx, league, season, team, gameweek, against) };
+    const drawn = schedule.find((each) => each.gameweek === gameweek);
+    return { ...heading, gameweek, deadline: deadlines.get(gameweek) ?? null, game: await gameOf(ctx, league, season, team, drawn, against) };
   },
 });
 
-/** The team's game in the gameweek: scored once begun, with both lineups. */
+/** The team's game in the gameweek `drawn`: scored once begun, with both lineups. */
 async function gameOf(
   ctx: QueryCtx,
   league: Doc<"leagues">,
   season: SeasonRules,
   team: Doc<"teams">,
-  gameweek: number,
+  drawn: GameweekFixtures<TeamId> | undefined,
   against: Against<TeamId> | undefined,
 ): Promise<Game> {
-  if (against === undefined) return { kind: "none" };
+  // A game is one of the gameweek's fixtures or byes, so there is one only where it is drawn.
+  if (against === undefined || drawn === undefined) return { kind: "none" };
+  const { gameweek } = drawn;
   if (against.kind === BYE) return { kind: BYE };
   const teams = await teamsOf(ctx, league._id);
   const nameOf = (teamId: TeamId) => {
@@ -94,7 +98,7 @@ async function gameOf(
     const fixtures = await heldFixtures(ctx, gameweek);
     const teamIds = teams.map((each) => each._id);
     const inputs = await gameweekInputs(ctx, reads, gameweek, fixtures, teamIds);
-    const scorer = new SideScorer(ctx, reads, inputs, teamIds, gameweek, await storedScoresIn(ctx, league._id, gameweek, fixtures));
+    const scorer = new SideScorer(ctx, reads, inputs, teamsInGameweek(drawn), gameweek, await storedScoresIn(ctx, league._id, gameweek, fixtures));
     const sides = against.kind === "team" ? [team._id, against.team] : [team._id];
     return {
       kind: "scored",
@@ -122,7 +126,8 @@ class SideScorer {
     private readonly ctx: QueryCtx,
     private readonly reads: LeagueReads,
     private readonly inputs: GameweekInputs,
-    private readonly teamIds: readonly TeamId[],
+    /** The teams the league's average is over: the gameweek's own (standings.ts's teamsInGameweek). */
+    private readonly averaged: readonly TeamId[],
     private readonly gameweek: number,
     private readonly stored: TeamScores,
   ) {}
@@ -162,14 +167,14 @@ class SideScorer {
 
   async opponent(against: Opponent, nameOf: (teamId: TeamId) => string): Promise<MatchupSide> {
     if (against.kind === "team") return this.team(against.team, nameOf(against.team));
-    // The average of every team's points, a team with no lineup on 0, as the table counts it.
+    // The average of the gameweek's teams' points, one with no lineup on 0, as the table counts it.
     const every = await Promise.all(
-      this.teamIds.map(async (teamId) => this.stored.get(teamId) ?? this.total(teamId, await this.inGameweek(teamId))),
+      this.averaged.map(async (teamId) => this.stored.get(teamId) ?? this.total(teamId, await this.inGameweek(teamId))),
     );
-    const points = new Map(this.teamIds.map((teamId, index) => [teamId, every[index].points]));
+    const points = new Map(this.averaged.map((teamId, index) => [teamId, every[index].points]));
     return {
       kind: LEAGUE_AVERAGE,
-      points: averageOf(this.teamIds, points, this.gameweek),
+      points: averageOf(this.averaged, points, this.gameweek),
       provisional: every.some((each) => each.provisional),
     };
   }
