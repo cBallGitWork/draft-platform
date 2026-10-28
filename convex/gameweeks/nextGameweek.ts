@@ -22,8 +22,19 @@ export function nextGameweek(
   now: number,
 ): number {
   const inOrder = gameweeks.toSorted((one, other) => one.number - other.number);
-  const lastBegunIndex = inOrder.findLastIndex(({ number }) =>
-    isLocked(leagueDeadline(number, matches, deadlineFor(number), passed.get(number) ?? null), now),
+  const next = nextByDeadlines(
+    inOrder,
+    ({ number }) => leagueDeadline(number, matches, deadlineFor(number), passed.get(number) ?? null),
+    now,
   );
-  return inOrder[lastBegunIndex + 1]?.number ?? (inOrder.at(-1)?.number ?? 0) + 1;
+  return next?.number ?? (inOrder.at(-1)?.number ?? 0) + 1;
+}
+
+/**
+ * The one after the last begun of `inOrder` (in gameweek order), by each one's deadline: one with
+ * no deadline behind a begun one is passed over (#413). Undefined once the last has begun. The
+ * screens call it with their own ticking clock, so they mark the gameweek the server would.
+ */
+export function nextByDeadlines<G>(inOrder: readonly G[], deadlineOf: (gameweek: G) => number | null, now: number): G | undefined {
+  return inOrder[inOrder.findLastIndex((gameweek) => isLocked(deadlineOf(gameweek), now)) + 1];
 }
