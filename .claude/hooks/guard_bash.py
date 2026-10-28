@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """PreToolUse guard for Bash: the CLAUDE.md "Working" rules, as machinery.
 
-Denies staging everything, force pushes, pushing to main, and committing or pushing while on
-main. Every command the line runs is checked, those it passes to sh -c, eval, $(…), a heredoc,
-here-string or pipe into a shell (or a group around one), find -exec or ssh included, whatever
-its redirections (commands.py; where.py lists what it can't see), each in the folder it runs in
-(the shell's cwd, any cd before it, its -C: where.py), so a worktree is judged on its own branch,
-not the project's. Also denies publishing a word on Craig's private list (private_words.py),
+Denies staging everything, force pushes, pushing to main, a gh api write to main (main_writes.py),
+and committing or pushing while on main. Every command the line runs is checked, those it passes
+to sh -c, eval, $(…), a heredoc, here-string or pipe into a shell (or a group around one), find
+-exec or ssh included, whatever its redirections (commands.py; where.py lists what it can't see),
+each in the folder it runs in (the shell's cwd, any cd before it, its -C: where.py), so a worktree
+is judged on its own branch, not the project's. Also denies publishing a word on Craig's private list (private_words.py),
 and a pull request body that breaks the template's rules or a title far too long (pr_body.py);
 a title only somewhat long, or publishing where there is no private list to check, gets a note,
 not a denial.
@@ -24,13 +24,12 @@ import re
 import sys
 
 from commands import XARGS, Unbalanced, Unreadable, UnreadableStdin, commands, runs_unknown, short_flags
+from main_writes import MAIN, MAIN_REFS, gh_api_problem
 from pr_body import pr_body_problem, pr_title_note
 from private_words import list_missing_note, private_word_problem
 from where import current_branch, git_call, git_dir, options, previous_branch, runners
 
 COMMIT_VALUE_SHORT = set("mFCct")  # in `-am msg` everything after m is the value
-MAIN = "main"
-MAIN_REFS = {MAIN, "refs/heads/" + MAIN}
 MAIN_NAMES = {MAIN, "origin/" + MAIN}  # git switch main, git checkout origin/main
 CREATES_BRANCH = {"-c", "-C", "-b", "-B", "--create", "--force-create", "--orphan"}
 ATTACHED_CREATE = re.compile(r"^-[a-zA-Z]*?([cCbB])(.*)$")  # -cmain, -qb main
@@ -167,7 +166,7 @@ def decide(cmd, cwd):
         return UNREADABLE
     except UnreadableStdin:
         return UNREADABLE_STDIN
-    problem = private_word_problem(cmd, cmds, cwd) or pr_body_problem(cmds, cwd)
+    problem = private_word_problem(cmd, cmds, cwd) or pr_body_problem(cmds, cwd) or gh_api_problem(cmds)
     if problem:
         return problem
     switched, switched_to_main = False, False
