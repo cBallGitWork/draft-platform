@@ -3,7 +3,7 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../../../convex/_generated/server";
 import { FIRST_GAMEWEEK } from "../../../convex/gameweeks/usedGameweeks";
-import { seasonRecords, PLAYER_RECORDS_MOST } from "../../../convex/playerCard/playerCard";
+import { seasonRecords, PLAYER_RECORDS_MOST } from "../../../convex/table/scoredMatches";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { OWNED_IN_LEAGUE_MOST, type PlayersFilters, type PlayersSort } from "../../../convex/scouting/playersList";
 import { GAMEWEEK_MATCHES_MOST } from "../../../convex/shared/fixtures";

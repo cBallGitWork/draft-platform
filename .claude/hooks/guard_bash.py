@@ -6,10 +6,10 @@ and committing or pushing while on main. Every command the line runs is checked,
 to sh -c, eval, $(…), a heredoc, here-string or pipe into a shell (or a group around one), find
 -exec or ssh included, whatever its redirections (commands.py; where.py lists what it can't see),
 each in the folder it runs in (the shell's cwd, any cd before it, its -C: where.py), so a worktree
-is judged on its own branch, not the project's. Also denies publishing a word on Craig's private list (private_words.py),
-and a pull request body that breaks the template's rules or a title far too long (pr_body.py);
-a title only somewhat long, or publishing where there is no private list to check, gets a note,
-not a denial.
+is judged on its own branch, not the project's. Also denies publishing a word on Craig's private
+list (private_words.py), and a pull request body that breaks the template's rules or a title far
+too long (pr_body.py); a title only somewhat long, or publishing where there is no private list to
+check, gets a note, not a denial.
 Where it can't be sure what runs or where, it refuses and says how to run the command plainly.
 
 Reads the hook payload (JSON) on stdin; prints a deny decision, a note, or nothing.

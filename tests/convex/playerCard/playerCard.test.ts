@@ -135,6 +135,9 @@ test("this season's matches are newest first, priced at his best position, by ca
 
 test("a match his team started him in is priced at his slot and role, with the role's line (#10)", async () => {
   await t.run(async (ctx) => {
+    // Gameweek 1 begun for the league, so its table scores it (#577).
+    const madeAt = (await ctx.db.get("leagues", leagueId))!._creationTime;
+    await ctx.db.insert("passedDeadlines", { leagueId, gameweek: 1, deadline: madeAt, recordedAt: madeAt });
     const row = (await ctx.db.query("siteScoring").first())!;
     const scoring = { ...row.scoring, roleAdjustments: [{ role: "insideForward", adjustments: [{ stat: "goals_scored", points: 2 }] }] };
     await ctx.db.patch("siteScoring", row._id, { scoring });
