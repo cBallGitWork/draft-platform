@@ -35,8 +35,8 @@ test("the live site sends a sign-in link, and the link signs in", async ({ page,
   const reply = page.getByRole("status");
   await expect(reply).not.toBeEmpty();
   // The hour's limit on links for one address, reached by a run of releases: the site answered,
-  // but sends no link this time. Skipped and said, not red: Craig's call (ARCHITECTURE.md, The
-  // after-release check).
+  // but sends no link this time. Skipped and said, not red, until Craig decides (asked in #512's
+  // pull request).
   if ((await reply.textContent()) === replyWords.tryLater) return skipSaying(`skipped: the site answered "${replyWords.tryLater}"`);
   await expect(reply).toHaveText(replyWords.checkYourEmail);
 
