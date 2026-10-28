@@ -9,7 +9,7 @@ import { takeAllOrThrow } from "../shared/cappedRead";
 import { isWhole } from "../stats/matchRecords";
 import { statusOf } from "../stats/matchStats";
 import { begunGameweeks } from "./gameweekScores";
-import { heldFixtures, leagueReads, teamGameweekInputs, teamInGameweek, type PlayerRows, type TeamInGameweek } from "./teamGameweek";
+import { heldFixtures, isLocked, leagueReads, teamGameweekInputs, teamInGameweek, type PlayerRows, type TeamInGameweek } from "./teamGameweek";
 
 // A player's matches in a league as his team scored them (#577; spec/12, The player card and
 // Squad): the one place his card and the Squad tab read his points from. A gameweek the league has
@@ -37,56 +37,57 @@ export interface ScoredMatch extends SeasonRecord {
   provisional: boolean;
 }
 
-/** A player's season's matches, newest last as the records were read. */
+/** A player's season's matches, in the order his records were filed. */
 export type ScoredMatches = (player: { code: number; positions: readonly Position[] }) => Promise<ScoredMatch[]>;
 
 /** His matches as `teamId` scored them: his team in the league now, or null for a free agent. Each
  *  player's rows and each gameweek's scoring are read once, however many players are asked for. */
 export async function scoredMatches(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"teams"> | null): Promise<ScoredMatches> {
   const setIn = await siteScoringByGameweek(ctx);
-  const rows = new Map<number, Promise<HisRows>>();
-  const rowsOf = (code: number) => {
-    if (!rows.has(code)) rows.set(code, hisRows(ctx, league._id, code));
-    return rows.get(code)!;
+  const read = new Map<number, Promise<HeldRows>>();
+  const heldRowsOf = (code: number) => {
+    if (!read.has(code)) read.set(code, heldRows(ctx, league._id, code));
+    return read.get(code)!;
   };
-  const teamIn = teamId === null ? null : await teamGameweeks(ctx, league, teamId, rowsOf);
+  const teamGameweekOf = teamId === null ? null : await teamGameweeks(ctx, league, teamId, heldRowsOf);
   return async ({ code, positions }) => {
-    const { records, overrides } = await rowsOf(code);
+    const { records, overrides } = await heldRowsOf(code);
     return Promise.all(
       (await seasonRecordsOf(ctx, code, records)).map(async (held) => {
         const override = overrides.get(held.fixture.code) ?? null;
-        const team = teamIn === null ? null : await teamIn(held.gameweek);
+        const team = teamGameweekOf === null ? null : await teamGameweekOf(held.gameweek);
         const fromTeam = team === null ? null : asScored(team, code, held.fixture.code);
         if (fromTeam?.counts) return { ...held, points: fromTeam.points, override, provisional: fromTeam.provisional };
         const best = cardPoints(isWhole(held.record) ? held.record.stats : null, setIn(held.gameweek), positions, null);
         const points = { ...best, total: override?.points ?? best.total, ...(fromTeam === null ? {} : { scoredAs: "notCounted" as const }) };
-        const provisional = fromTeam?.provisional ?? (!isWhole(held.record) || (await statusOf(ctx, held.fixture.code))?.state !== "locked");
+        const provisional = fromTeam?.provisional ?? (!isWhole(held.record) || !isLocked({ status: await statusOf(ctx, held.fixture.code) }));
         return { ...held, points, override, provisional };
       }),
     );
   };
 }
 
-/** His records and the league's overrides of his points, whole. */
-interface HisRows {
+/** His records and the league's overrides of his points, as held. */
+interface HeldRows {
   records: Doc<"playerMatchStats">[];
   overrides: Map<number, Doc<"pointsOverrides">>;
 }
 
-async function hisRows(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<HisRows> {
+async function heldRows(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<HeldRows> {
   return { records: await recordsOf(ctx, playerCode), overrides: await overridesOf(ctx, leagueId, playerCode) };
 }
 
 /** The team's scoring in each gameweek the league has begun, read once a gameweek; null for a
  *  gameweek it hasn't, or while it has never saved a lineup. Null for a league made before rules
- *  were held, which has no scoring (#25). */
-async function teamGameweeks(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"teams">, rowsOf: (code: number) => Promise<HisRows>) {
+ *  were held, which has no scoring (#25). A set holding a rule no longer sound throws, as the
+ *  card's best-position pricing always has (#287). */
+async function teamGameweeks(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"teams">, heldRowsOf: (code: number) => Promise<HeldRows>) {
   const season = await seasonRules(ctx, league._id);
   if (season === null) return null;
   const reads = await leagueReads(ctx, league, season);
   const begun = new Set(await begunGameweeks(ctx, league));
-  const asRows = async (code: number): Promise<PlayerRows> => {
-    const { records, overrides } = await rowsOf(code);
+  const rowsByMatch = async (code: number): Promise<PlayerRows> => {
+    const { records, overrides } = await heldRowsOf(code);
     return {
       records: new Map(records.map((record) => [record.fixtureCode, record])),
       overrides: new Map([...overrides].map(([fixtureCode, override]) => [fixtureCode, override.points])),
@@ -99,7 +100,7 @@ async function teamGameweeks(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"
       read.set(
         gameweek,
         heldFixtures(ctx, gameweek)
-          .then((fixtures) => teamGameweekInputs(ctx, reads, gameweek, fixtures, teamId, asRows))
+          .then((fixtures) => teamGameweekInputs(ctx, reads, gameweek, fixtures, teamId, rowsByMatch))
           .then((inputs) => teamInGameweek(reads, inputs, teamId)),
       );
     }

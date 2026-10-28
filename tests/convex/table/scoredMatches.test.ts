@@ -119,13 +119,15 @@ test("once the match locks, the cards add up to the table's final total", async 
   await expectCardsAddUpToTheTable(league, false);
 });
 
+const OVERRIDDEN = 12.5;
+
 test("the league's override of a sub's points counts on his card as in the table", async () => {
   const league = await annsLeague();
   await fullTimeRecords(league);
   await league.t.run(async (ctx) => {
     const fixture = (await ctx.db.query("fixtures").first())!;
-    await ctx.db.insert("pointsOverrides", { leagueId: league.leagueId, gameweek: GAMEWEEK, fixtureCode: fixture.code, playerCode: ON_IN_HIS_OWN_AREA, points: 12.5, reason: "The feed was wrong", by: ANN, at: FULL_TIME_READ });
+    await ctx.db.insert("pointsOverrides", { leagueId: league.leagueId, gameweek: GAMEWEEK, fixtureCode: fixture.code, playerCode: ON_IN_HIS_OWN_AREA, points: OVERRIDDEN, reason: "The feed was wrong", by: ANN, at: FULL_TIME_READ });
   });
   const cards = await expectCardsAddUpToTheTable(league, true);
-  expect(cards.get(ON_IN_HIS_OWN_AREA)![0].points).toMatchObject({ scoredAs: "slot", total: 12.5 });
+  expect(cards.get(ON_IN_HIS_OWN_AREA)![0].points).toMatchObject({ scoredAs: "slot", total: OVERRIDDEN });
 });

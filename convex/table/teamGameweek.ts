@@ -240,7 +240,7 @@ export const playsIn = (fixture: Doc<"fixtures">, clubCode: number) => fixture.h
 /** A match read at full time has a state; one still live has none (liveStats.ts). */
 export const isFinished = (match: HeldMatch) => match.status !== null;
 /** Its corrections window shut: nothing changes its points after (spec/07). */
-export const isLocked = (match: HeldMatch) => match.status?.state === "locked";
+export const isLocked = (match: Pick<HeldMatch, "status">) => match.status?.state === "locked";
 
 /** What a man neither team sheet named did in a match his club has finished: nothing. */
 const NOT_NAMED: Readonly<Record<string, number>> = {};

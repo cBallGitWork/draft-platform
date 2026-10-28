@@ -31,8 +31,9 @@ export const pricedNotes: Record<ScoredAs, string> = {
 };
 /** Under a match his team's points didn't include (spec/12): a bench player who didn't come on. */
 export const notCountedWords = "Not counted: his team's points didn't include him this gameweek.";
-/** Beside points that may still move: the match isn't final, or his team's auto-subs aren't (spec/12). */
-export const liveWords = "Live";
+/** Beside points that may still move ("Live", as on My team's fixtures): the match isn't final, or
+ *  his team's auto-subs aren't (spec/12). */
+export { liveWords } from "../myTeam/words";
 export const provisionalWords = "Live: points are provisional until the match is final and his team's auto-subs are settled.";
 export const columns = {
   gameweek: { short: "GW", long: "Gameweek" },
