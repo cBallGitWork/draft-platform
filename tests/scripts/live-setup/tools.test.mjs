@@ -127,6 +127,20 @@ test("Resend's key goes only in the Authorization header, and a refusal says why
   await expect(tools.resend.domains(RESEND_KEY)).rejects.toThrow("Resend refused GET /domains (401): restricted key");
 });
 
+test("a project Vercel neither shows nor makes stops the link, saying both", async () => {
+  const { tools, calls } = toolsWith({ answer: () => ({ code: 1, stdout: "", stderr: "offline" }) });
+  await expect(tools.vercel.link(VERCEL_PROJECT)).rejects.toThrow(
+    "`vercel project` failed (exit 1): offline; then `vercel project` failed (exit 1): offline",
+  );
+  expect(calls.map((call) => call.args[0])).toEqual(["project", "project"]);
+});
+
+test("the live deployment's absence is given as what Convex said, never as a bare no", async () => {
+  const { tools } = toolsWith({ answer: () => ({ code: 1, stdout: "", stderr: "not logged in" }) });
+  expect(await tools.convex.deploymentProblem()).toBe("`convex env` failed (exit 1): not logged in");
+  expect(await toolsWith().tools.convex.deploymentProblem()).toBeNull();
+});
+
 test("linking makes the Vercel project first when there is none", async () => {
   const { tools, calls } = toolsWith({ answer: (args) => ({ code: args[1] === "inspect" ? 1 : 0, stdout: "", stderr: "" }) });
   await tools.vercel.link(LINKED.projectName);

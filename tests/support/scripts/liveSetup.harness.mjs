@@ -12,6 +12,8 @@ import {
 
 export const RESEND_KEY = "re_FakeResendKey_0123456789abcdef";
 export const CHECK_EMAIL = "release-check@abc123def.resend.app";
+/** What the faked Convex says of a live deployment it hasn't got. */
+export const NO_DEPLOYMENT = "no production deployment";
 export const DEPLOY_KEY = "prod:fake-deployment-123|eyFakeDeployKey0123456789abcdef";
 export const ADMIN = "craig@example.com";
 
@@ -37,7 +39,7 @@ export function fakeWorld({ checksBeforeVerified = 0 } = {}) {
   };
   const change = (what) => world.changes.push(what);
   const needsDeployment = () => {
-    if (!world.convex.exists) throw new Error("no production deployment");
+    if (!world.convex.exists) throw new Error(NO_DEPLOYMENT);
   };
   const resendDomain = (id) => world.resend.domains.find((domain) => domain.id === id);
   let polls = 0;
@@ -47,7 +49,7 @@ export function fakeWorld({ checksBeforeVerified = 0 } = {}) {
     sleep: async () => {},
     ask: async (question) => {
       world.asked.push(question);
-      return ADMIN;
+      return question.startsWith("Make a live deployment") ? "yes" : ADMIN;
     },
     askHidden: async (question) => {
       world.asked.push(question);
@@ -55,7 +57,7 @@ export function fakeWorld({ checksBeforeVerified = 0 } = {}) {
       return question.includes("Resend") ? RESEND_KEY : DEPLOY_KEY;
     },
     convex: {
-      deploymentExists: async () => world.convex.exists,
+      deploymentProblem: async () => (world.convex.exists ? null : NO_DEPLOYMENT),
       createDeployment: async () => {
         change("convex deployment");
         world.convex.exists = true;

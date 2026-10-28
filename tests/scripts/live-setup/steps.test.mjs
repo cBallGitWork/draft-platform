@@ -15,11 +15,12 @@ import {
 import { HIDDEN, secretKeeper, signInKeys } from "../../../scripts/live-setup/secrets.mjs";
 import { ALREADY_DONE, DONE, FAILED, NOT_YET } from "../../../scripts/live-setup/outcomes.mjs";
 import { STEPS, setUpLive } from "../../../scripts/live-setup/steps.mjs";
-import { ADMIN, CHECK_EMAIL, DEPLOY_KEY, RESEND_KEY, RESEND_RECORDS, fakeWorld } from "../../support/scripts/liveSetup.harness.mjs";
+import { ADMIN, CHECK_EMAIL, DEPLOY_KEY, NO_DEPLOYMENT, RESEND_KEY, RESEND_RECORDS, fakeWorld } from "../../support/scripts/liveSetup.harness.mjs";
 
 const OTHER_ADMIN = "someone@example.com";
-/** The lines a run printed, each step's title and what it said. */
-const outcomes = (world) => world.printed.map((line) => line.slice(line.lastIndexOf(": ") + 2));
+/** The lines a run printed for its steps, each a step's title and what it said. */
+const stepLines = (world) => world.printed.filter((line) => STEPS.some((step) => line.startsWith(`${step.title}: `)));
+const outcomes = (world) => stepLines(world).map((line) => line.slice(line.lastIndexOf(": ") + 2));
 
 /** Every secret the world holds once set up: the pasted keys and the keys the command made. */
 function secretsIn(world) {
@@ -41,7 +42,8 @@ function expectNoSecretPrinted(world) {
 test("a first run on nothing sets up every part of the live site (spec/20, Setting it up)", async () => {
   const world = fakeWorld();
   expect(await setUpLive(world.tools)).toBe(true);
-  expect(world.printed).toHaveLength(STEPS.length);
+  expect(world.printed[0]).toBe(`Convex couldn't reach a live deployment: ${NO_DEPLOYMENT}`);
+  expect(stepLines(world)).toHaveLength(STEPS.length);
   expect(outcomes(world)).toEqual(STEPS.map(() => DONE));
 
   const { settings } = world.convex;
@@ -60,6 +62,17 @@ test("a first run on nothing sets up every part of the live site (spec/20, Setti
   expect(world.vercel.repo).toBe(GITHUB_REPO);
   expect(Object.fromEntries(world.github.secrets)).toEqual({ [RELEASE_CHECK_SECRET.email]: CHECK_EMAIL, [RELEASE_CHECK_SECRET.resendKey]: RESEND_KEY });
   expect(world.convex.allowed).toEqual([CHECK_EMAIL]);
+});
+
+test("when Convex can't reach a live deployment, none is made unless Craig says yes", async () => {
+  const world = fakeWorld();
+  world.tools.ask = async () => "no";
+  expect(await setUpLive(world.tools)).toBe(false);
+  expect(world.printed).toEqual([
+    `Convex couldn't reach a live deployment: ${NO_DEPLOYMENT}`,
+    `${STEPS[0].title}: ${FAILED}: no live deployment was made: sign in, or check Convex, and run again`,
+  ]);
+  expect(world.changes).toEqual([]);
 });
 
 test("a deploy key Vercel holds for previews too is refused: a preview could deploy to the live database", async () => {
@@ -113,7 +126,7 @@ test("a tool that fails saying a secret has it hidden, and the run stops there",
 
   // Fixed, a re-run picks up at the step that failed.
   world.tools.vercel.addEnv = addEnv;
-  const stoppedAt = world.printed.length - 1;
+  const stoppedAt = stepLines(world).length - 1;
   world.printed.length = 0;
   expect(await setUpLive(world.tools)).toBe(true);
   expect(outcomes(world).slice(0, stoppedAt)).toEqual(STEPS.slice(0, stoppedAt).map(() => ALREADY_DONE));
@@ -139,7 +152,7 @@ test("a key pasted into the wrong prompt is refused, unsaved and unprinted", asy
 test("Resend not seeing the DNS in time is 'not yet', and the rest still runs", async () => {
   const world = fakeWorld({ checksBeforeVerified: Infinity });
   expect(await setUpLive(world.tools)).toBe(false);
-  expect(world.printed).toHaveLength(STEPS.length);
+  expect(stepLines(world)).toHaveLength(STEPS.length);
   const waiting = world.printed.filter((line) => line.includes(`: ${NOT_YET}: `));
   expect(waiting).toHaveLength(1);
   expect(waiting[0]).toContain(`Resend's check of ${LIVE_DOMAIN}: ${NOT_YET}: Resend says "pending"`);

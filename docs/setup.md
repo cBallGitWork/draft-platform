@@ -50,8 +50,9 @@ in (its `.env.local` names your dev deployment):
 - `npx convex env set ADMIN_EMAIL` names the admin, and `npx convex env set AUTH_RESEND_KEY`
   holds Resend's API key: pipe each value in, so it stays out of your shell history. Until there
   is a sending domain, mail comes from Resend's test sender (`onboarding@resend.dev`, used
-  wherever the deployment has no `EMAIL_FROM`, `convex/outbound/sender.ts`), which reaches only the Resend account's own address, so `ADMIN_EMAIL`
-  must be that address and no one else gets a link yet.
+  wherever the deployment has no `EMAIL_FROM`, `convex/outbound/sender.ts`), which reaches only
+  the Resend account's own address, so `ADMIN_EMAIL` must be that address and no one else gets a
+  link yet.
 
 The admin can sign in at once; anyone else is put on the allowed list first:
 `npx convex run signIn/allowedEmails:add '{"email":"someone@example.com"}'`.
@@ -110,10 +111,12 @@ npm run setup:live -- --admin-email craig@example.com
 ```
 
 It asks for the two keys and the receiving address when it needs them, with nothing shown as
-they're pasted, and never prints them. Without `--admin-email` it asks for the admin's address. Each step checks first, and
-prints one line: `done`, `already done`, or `failed` with why, where it stops. In order, it:
+they're pasted, and never prints them. Without `--admin-email` it asks for the admin's address.
+Each step checks first, and prints one line: `done`, `already done`, or `failed` with why, where
+it stops. In order, it:
 
-- makes the live Convex deployment, if there is none;
+- makes the live Convex deployment, if Convex can't reach one: it shows what Convex said and asks
+  first, since being signed out looks the same;
 - sets its five sign-in settings (`JWT_PRIVATE_KEY` and `JWKS` made as `npx @convex-dev/auth`
   makes them, `SITE_URL`, `ADMIN_EMAIL`, `AUTH_RESEND_KEY`) and the sender, `EMAIL_FROM`;
 - deploys the server code to it (`npx convex deploy`), if it has none;

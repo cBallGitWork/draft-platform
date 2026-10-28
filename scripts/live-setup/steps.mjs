@@ -22,6 +22,9 @@ import { RELEASE_STEPS } from "./releaseSteps.mjs";
 import { RESEND_STEPS } from "./resendSteps.mjs";
 import { pastedKey, resendKey, secretKeeper, signInKeys } from "./secrets.mjs";
 
+/** The answer that lets the command make the live deployment. */
+const CONFIRM = "yes";
+
 /** A setting with a value anyone may see: set unless it already holds `value`. */
 async function plainSetting(setup, name, value) {
   if ((await setup.tools.convex.getSetting(name)) === value) return ALREADY_DONE;
@@ -33,7 +36,12 @@ const CONVEX_STEPS = [
   {
     title: "The live database",
     async run(setup) {
-      if (await setup.tools.convex.deploymentExists()) return ALREADY_DONE;
+      const problem = await setup.tools.convex.deploymentProblem();
+      if (!problem) return ALREADY_DONE;
+      // Convex says the same when signed out or offline, so Craig reads it and decides.
+      setup.say(`Convex couldn't reach a live deployment: ${problem}`);
+      const answer = await setup.tools.ask(`Make a live deployment? (${CONFIRM}/no): `);
+      if (answer.trim().toLowerCase() !== CONFIRM) throw new Error("no live deployment was made: sign in, or check Convex, and run again");
       await setup.tools.convex.createDeployment();
       return DONE;
     },
@@ -148,15 +156,16 @@ export const STEPS = [...CONVEX_STEPS, ...VERCEL_STEPS, ...RESEND_STEPS, POSITIO
 export async function setUpLive(tools, options = {}, steps = STEPS) {
   const secrets = secretKeeper();
   let names;
+  const say = (line) => tools.print(secrets.hide(line));
   const setup = {
     tools,
     options,
     secrets,
+    say,
     // The live deployment's setting names, read once and again after a step adds one.
     convexNames: async () => (names ??= await tools.convex.settingNames()),
     forgetConvexNames: () => (names = undefined),
   };
-  const say = (line) => tools.print(secrets.hide(line));
   let allDone = true;
   for (const step of steps) {
     try {

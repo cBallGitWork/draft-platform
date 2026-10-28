@@ -24,6 +24,10 @@ const PROD = "--prod";
 const GITHUB_LINK_TYPE = "github";
 /** The live site's allowed list (convex/signIn/allowedEmails.ts), read to see the check's address. */
 const ALLOWED_EMAILS_TABLE = "allowedEmails";
+/** One page of the domain's DNS records, read whole: a new domain holds a handful, and Vercel's
+ *  default page is smaller than this. Resend's domain list needs no limit: without one it gives
+ *  every domain. */
+const DNS_RECORDS_READ = 100;
 
 /** Runs a command and resolves with how it ended and what it printed, never showing either. */
 export function captured(command, args, { cwd, input = "" } = {}) {
@@ -90,8 +94,9 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
     ask: (question) => askInTerminal(question, { hidden: false }),
     askHidden: (question) => askInTerminal(question, { hidden: true }),
     convex: {
-      // A missing live deployment makes `env list --prod` fail.
-      deploymentExists: () => settingNameList().then(() => true, () => false),
+      // A missing live deployment makes `env list --prod` fail, but so does being signed out or
+      // offline, so this gives back what Convex said (null when it answered) for the step to show.
+      deploymentProblem: () => settingNameList().then(() => null, (error) => error.message),
       createDeployment: () => convexCli(["deployment", "create", "--type", "prod", "--default"]),
       settingNames: async () => (await settingNameList()).split("\n").map((line) => line.trim()).filter(Boolean),
       getSetting: async (name) => (await convexCli(["env", "get", PROD, name])).replace(/\n$/, ""),
@@ -114,11 +119,16 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
     },
     vercel: {
       linkedProject,
-      // `link --project` links a project that exists, so one is made first if it doesn't; a missing
-      // project makes `project inspect` fail.
+      // `link --project` links a project that exists, so one is made first if `project inspect`
+      // fails; a name is unique, so `project create` refuses one that was there after all, and then
+      // both failures are said.
       link: async (project) => {
-        const exists = await vercelCli(["project", "inspect", project]).then(() => true, () => false);
-        if (!exists) await vercelCli(["project", "create", project]);
+        const missing = await vercelCli(["project", "inspect", project]).then(() => null, (error) => error.message);
+        if (missing) {
+          await vercelCli(["project", "create", project]).catch((error) => {
+            throw new Error(`${missing}; then ${error.message}`);
+          });
+        }
         await vercelCli(["link", "--yes", "--project", project]);
       },
       envTargets: async (name) => {
@@ -130,7 +140,7 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
       projectDomains: async () => (await vercelApi("/v9/projects/:project/domains")).domains.map((domain) => domain.name),
       addDomain: (domain, project) => vercelCli(["domains", "add", domain, project]),
       dnsRecords: async (domain) =>
-        (await vercelApi(`/v5/domains/${domain}/records`)).records.map(({ name, type, value }) => ({ name, type, value })),
+        (await vercelApi(`/v5/domains/${domain}/records?limit=${DNS_RECORDS_READ}`)).records.map(({ name, type, value }) => ({ name, type, value })),
       addDnsRecord: (domain, { name, type, value, priority }) =>
         vercelCli(["dns", "add", domain, name, type, value, ...(priority === undefined ? [] : [String(priority)])]),
       /** The GitHub repository ("owner/name") the project builds from, or null. */
