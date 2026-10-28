@@ -73,6 +73,13 @@ export const recordAsk = internalMutation({
   args: { email: v.string() },
   returns: askOutcome,
   handler: async (ctx, { email }) => {
+    // Checked before any index is read, so a string too long for an index key never reaches one,
+    // and never stored: anyone can call `ask` with any string. Told the same as an unlisted email,
+    // or paused on a paused day; never tryLater, since no ask of its is ever counted.
+    if (!isEmailAddress(email) || email.length > EMAIL_MAX) {
+      return { outcome: (await anEmailLeftToday(ctx)) ? ("unlisted" as const) : ("paused" as const) };
+    }
+
     const now = Date.now();
     const lastHour = await ctx.db
       .query("signInAsks")
@@ -82,9 +89,6 @@ export const recordAsk = internalMutation({
 
     // Before the list is read, so a paused day reads the same for every email.
     if (!(await anEmailLeftToday(ctx))) return { outcome: "paused" as const };
-
-    // Told the same as an unlisted email, but not stored: anyone can call `ask` with any string.
-    if (!isEmailAddress(email) || email.length > EMAIL_MAX) return { outcome: "unlisted" as const };
 
     const listed = await isAllowed(ctx, email);
     const askId = await ctx.db.insert("signInAsks", { email, askedAt: now, listed });

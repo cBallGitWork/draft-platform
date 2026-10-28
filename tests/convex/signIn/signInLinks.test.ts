@@ -79,6 +79,7 @@ describe("asking for a link", () => {
   test.each([
     ["isn't an address", "not an email"],
     ["is longer than an address can be", `${"a".repeat(EMAIL_MAX)}@example.com`],
+    ["runs to thousands of characters", `${"a".repeat(EMAIL_MAX * 20)}@example.com`],
   ])("something that %s gets the same reply, and nothing is stored or sent", async (_, typed) => {
     const sent = fakeResend();
 
@@ -192,6 +193,7 @@ describe("the day's email limit", () => {
   test.each([
     ["on the list", LISTED],
     ["off the list", UNLISTED],
+    ["that isn't an address", "not an email"],
   ])("once the day's emails are spent, an email %s is told links are paused", async (_, email) => {
     const sent = fakeResend();
     await sendTodaysLastEmail();

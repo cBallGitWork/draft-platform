@@ -175,7 +175,9 @@ styling, typeface, test, coverage, screenshot, smoke-test and going-live rows, a
   it and every row keyed to it, in batches, archiving nothing (#75).
 - Each ask for a sign-in link that was answered "check your email" is a row in `signInAsks`, a
   failed send kept with its error, and each day's emails are counted in `emailSends` against
-  Resend's 100 (#20).
+  Resend's 100 (#20). An ask that isn't an email address, or is longer than one can be, is not
+  stored. `pruneSignInAsks` clears asks older than a week, in batches, started by the daily
+  run-log prune once its own rows are done.
 - When the admin was last emailed that a feed failed is a row in `feedFailureEmails`, one per
   feed, so he hears at most once a day for each (#319).
 - The league each person used last is a row in `lastLeagues`, by email, not in the browser, so
