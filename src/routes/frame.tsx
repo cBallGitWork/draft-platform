@@ -10,10 +10,12 @@ import { MyTeamRoute } from "../myTeam/MyTeamRoute";
 import { SquadPage } from "../myTeam/SquadPage";
 import { TacticsPage } from "../myTeam/TacticsPage";
 import { TransactionsPage } from "../myTeam/TransactionsPage";
+import { MatchRoute } from "../premierLeague/MatchRoute";
+import { MATCH_ROUTE } from "../premierLeague/paths";
 import { PremierLeaguePage } from "../premierLeague/PremierLeaguePage";
 import { ScoutingRoute } from "../scouting/ScoutingRoute";
 import { TableRoute } from "../table/TableRoute";
-import { LANDING_PATH, frameRoute } from "./root";
+import { CODE_DIGITS, LANDING_PATH, frameRoute } from "./root";
 
 // The pages under root.tsx's frameRoute, for anyone in a league, in its frame; and a placeholder for
 // each menu page not built yet.
@@ -99,6 +101,21 @@ const premierLeagueRoute = createRoute({
   },
 });
 
+// A real match's page (#45; spec/10, The match page), for anyone in a league, opened from the
+// Premier League's fixtures and a player's status on the matchup. A code that isn't a number names no match, so it goes to them.
+const matchRoute = createRoute({
+  getParentRoute: () => frameRoute,
+  path: MATCH_ROUTE,
+  beforeLoad: ({ params }) => {
+    if (!CODE_DIGITS.test(params.fixtureCode)) throw redirect({ to: PREMIER_LEAGUE_PATH });
+  },
+  component: function Match() {
+    const { session, premierLeague } = matchRoute.useRouteContext();
+    const { fixtureCode } = matchRoute.useParams();
+    return <MatchRoute session={session} seam={premierLeague} fixtureCode={Number(fixtureCode)} />;
+  },
+});
+
 const BUILT_PAGES: readonly string[] = [MAIL_PATH, TABLE_PATH, SCOUTING_PATH, HOME_PATH, MY_TEAM_PATH, MY_TEAM_SQUAD_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_TRANSACTIONS_PATH, MATCHUP_PATH, PREMIER_LEAGUE_PATH];
 const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map((page) =>
   createRoute({
@@ -108,4 +125,4 @@ const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map(
   }),
 );
 
-export const frameChildren = [landingRoute, homeRoute, tableRoute, scoutingRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, ...pageRoutes];
+export const frameChildren = [landingRoute, homeRoute, tableRoute, scoutingRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute, ...pageRoutes];

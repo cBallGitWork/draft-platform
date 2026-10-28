@@ -41,6 +41,9 @@ type HeadToHead = Extract<Matchup, { kind: "headToHead" }>;
 type Side = Extract<MatchupSide, { kind: "team" }>;
 type Slot = MatchupSlot;
 
+/** FPL's code for the match a made-up man plays in, unless his status names another. */
+export const SLOT_MATCH = 101;
+
 /** A man in a lineup, yet to play and counting unless `rest` says. */
 export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
   playerCode: [...name].reduce((code, letter) => code * 31 + letter.charCodeAt(0), 7),
@@ -49,7 +52,7 @@ export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
   points: null,
   counts: true,
   provisional: true,
-  status: { kind: "yetToPlay", kickoff: null },
+  status: { kind: "yetToPlay", fixtureCode: SLOT_MATCH, kickoff: null },
   autoSub: null,
   ...rest,
 });

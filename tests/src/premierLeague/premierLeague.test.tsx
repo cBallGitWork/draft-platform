@@ -199,7 +199,8 @@ describe("a gameweek's matches", () => {
     const [row] = within(await screen.findByRole("group", { name: matchesListLabel(9) })).getAllByRole("listitem");
     expect(row.children).toHaveLength(4);
     expect(row.textContent).toBe(`${kickoffWords(saturday)}ArsenalARS${versusWords}ChelseaCHE`);
-    expect(row.querySelector("[aria-label], [title*='difficulty' i]")).toBeNull();
+    // The score's link to the match page (#45) is labelled with the match, and nothing else is.
+    expect(row.querySelector("[aria-label]:not([href]), [title*='difficulty' i]")).toBeNull();
   });
 });
 

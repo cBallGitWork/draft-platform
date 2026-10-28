@@ -28,7 +28,7 @@ import { SCORING_ROUTE } from "../scoring/paths";
 import { ScoringPage } from "../scoring/ScoringPage";
 import { SQUADS_ROUTE } from "../squads/paths";
 import { SquadsPage } from "../squads/SquadsPage";
-import { adminOnly, leaguePagesRoute, membersOnly, runnersOnly, type ShellContext } from "./root";
+import { adminOnly, CODE_DIGITS, leaguePagesRoute, membersOnly, runnersOnly, type ShellContext } from "./root";
 
 // The pages under root.tsx's leaguePagesRoute, for anyone signed in, in a league or not.
 
@@ -116,13 +116,12 @@ const patchNotesRoute = createRoute({
 
 // A player's card (#381), for anyone in the league, opened from his name. A code that isn't a
 // number names no player, so it goes to Scouting.
-const PLAYER_CODE_DIGITS = /^\d+$/;
 const playerCardRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: PLAYER_CARD_ROUTE,
   beforeLoad: ({ context, params }) => {
     membersOnly({ context, params });
-    if (!PLAYER_CODE_DIGITS.test(params.playerCode)) throw redirect({ to: SCOUTING_PATH });
+    if (!CODE_DIGITS.test(params.playerCode)) throw redirect({ to: SCOUTING_PATH });
   },
   component: function PlayerCard() {
     const context = playerCardRoute.useRouteContext();

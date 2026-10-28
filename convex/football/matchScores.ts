@@ -128,11 +128,12 @@ export const ofGameweek = query({
   },
 });
 
-/** The held row less which feed gave it, when, and Convex's own fields. */
-function scoreOnly({ _id, _creationTime, fixtureCode, feed, readAt, ...score }: Doc<"matchScores">) {
+/** The held row less which feed gave it, when, and Convex's own fields: as a screen shows it. */
+export function scoreOnly({ _id, _creationTime, fixtureCode, feed, readAt, ...score }: Doc<"matchScores">) {
   return score;
 }
 
-function clubOf({ code, name, shortName }: Doc<"clubs">) {
+/** A club as a screen names it. */
+export function clubOf({ code, name, shortName }: Doc<"clubs">) {
   return { code, name, shortName };
 }

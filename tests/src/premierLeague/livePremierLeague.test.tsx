@@ -3,19 +3,26 @@
 
 import { renderHook } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
+import type { Id } from "../../../convex/_generated/dataModel";
 import { livePremierLeague } from "../../../src/premierLeague/livePremierLeague";
 import { ARSENAL, CHELSEA, plMatch } from "../../support/src/premierLeague.harness";
 
-const convex = vi.hoisted(() => ({ firstKickoffs: vi.fn(), ofGameweek: vi.fn(), ofSeason: vi.fn() }));
+const convex = vi.hoisted(() => ({ firstKickoffs: vi.fn(), ofGameweek: vi.fn(), ofSeason: vi.fn(), ofMatch: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
-    queries: { "football/plGameweeks:firstKickoffs": convex.firstKickoffs, "football/matchScores:ofGameweek": convex.ofGameweek, "football/plStandings:ofSeason": convex.ofSeason },
+    queries: {
+      "football/plGameweeks:firstKickoffs": convex.firstKickoffs,
+      "football/matchScores:ofGameweek": convex.ofGameweek,
+      "football/plStandings:ofSeason": convex.ofSeason,
+      "match/matchPage:ofMatch": convex.ofMatch,
+    },
   }),
 );
 
 afterEach(() => {
   convex.firstKickoffs.mockReset();
   convex.ofGameweek.mockReset();
+  convex.ofMatch.mockReset();
   convex.ofSeason.mockReset();
 });
 
@@ -33,11 +40,21 @@ test("it asks football/matchScores:ofGameweek with the gameweek, and hands on wh
   expect(convex.ofGameweek).toHaveBeenCalledWith({ gameweek: 9 });
 });
 
+test("it asks match/matchPage:ofMatch with the league and the fixture code, and hands on what comes back", () => {
+  const page = { fixtureCode: 7 };
+  convex.ofMatch.mockReturnValue(page);
+  const leagueId = "league-1" as Id<"leagues">;
+  expect(renderHook(() => livePremierLeague.useMatch(leagueId, 7)).result.current).toBe(page);
+  expect(convex.ofMatch).toHaveBeenCalledWith({ leagueId, fixtureCode: 7 });
+});
+
 test("each is undefined while loading", () => {
   convex.firstKickoffs.mockReturnValue(undefined);
   convex.ofGameweek.mockReturnValue(undefined);
   expect(renderHook(() => livePremierLeague.useFirstKickoffs()).result.current).toBeUndefined();
   expect(renderHook(() => livePremierLeague.useGameweekMatches(9)).result.current).toBeUndefined();
+  convex.ofMatch.mockReturnValue(undefined);
+  expect(renderHook(() => livePremierLeague.useMatch("league-1" as Id<"leagues">, 7)).result.current).toBeUndefined();
 });
 
 test("it asks football/plStandings:ofSeason with nothing, and hands on the table", () => {

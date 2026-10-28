@@ -10,6 +10,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { Area } from "../../convex/lineup/pitch";
 import type { MatchupCommentary, MatchupSide, MatchupSlot } from "../../convex/matchup/matchupShape";
 import { MINUTE_MS } from "../../convex/shared/time";
+import { previewFixtureCode } from "../premierLeague/preview";
 import { previewSeason, previewTeams } from "../table/preview";
 import type { Matchup, MatchupSeam } from "./seam";
 
@@ -78,12 +79,14 @@ const codeOf = (name: string) => [...name].reduce((code, letter) => code * 31 + 
 /** A man `minute` minutes into the replay. */
 function slotAt([area, name, match, finalPoints]: Man, minute: number, onBench: boolean): MatchupSlot {
   const played = minute - match * SECOND_KICKOFF;
+  // The Premier League preview's code for the match, whose page every fixture there opens.
+  const fixtureCode = previewFixtureCode(GAMEWEEK, match);
   const status: MatchupSlot["status"] =
     played < 0
-      ? { kind: "yetToPlay", kickoff: startedAt + match * SECOND_KICKOFF * MINUTE_MS }
+      ? { kind: "yetToPlay", fixtureCode, kickoff: startedAt + match * SECOND_KICKOFF * MINUTE_MS }
       : played <= MATCH_MINUTES
-        ? { kind: "playing", minute: Math.min(played, MATCH_MINUTES) }
-        : { kind: "finished" };
+        ? { kind: "playing", fixtureCode, minute: Math.min(played, MATCH_MINUTES) }
+        : { kind: "finished", fixtureCode };
   const points = played < 0 ? null : Math.floor((finalPoints * Math.min(played, MATCH_MINUTES)) / MATCH_MINUTES);
   const autoSub = name === UNUSED_KEEPER && status.kind === "finished" ? { kind: "off" as const, playerName: BENCH_KEEPER } : null;
   return { playerCode: codeOf(name), name, area, points, counts: !onBench, provisional: true, status, autoSub };

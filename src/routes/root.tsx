@@ -65,6 +65,9 @@ export type ShellContext = {
 /** Where the app opens: the guards below send each visitor on from here. */
 export const LANDING_PATH = "/";
 
+/** A player's or a match's code in an address: FPL's codes are whole numbers. */
+export const CODE_DIGITS = /^\d+$/;
+
 // Any address nobody knows goes back to `/`, which the guards below send on: to the sign-in page
 // for a visitor, to their leagues for someone in none, to My team for a manager. So a visitor only
 // ever sees the sign-in page (spec/12).
