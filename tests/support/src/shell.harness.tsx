@@ -32,12 +32,23 @@ import { fakeTable } from "./table.harness";
 
 export const visitor: Session = { signedIn: false };
 
+/** What a person with these roles may do in a league, as the server's powersIn sends it (pinned
+ *  in tests/convex/leagues/myLeagues.test.ts), so a fake league's powers follow its roles. */
+function powersOf(roles: LeagueSummary["roles"], admin: boolean): LeagueSummary["powers"] {
+  const names = admin || roles.includes("commissioner");
+  return { names, runs: names || roles.includes("co-commissioner") };
+}
+/** `leagues` with the powers the server would send this person in each. */
+const withPowers = (leagues: readonly LeagueSummary[], admin: boolean) =>
+  leagues.map((summary) => ({ ...summary, powers: powersOf(summary.roles, admin) }));
+
 /** A league as signIn/account:signedInAs sends it, for `manager`, who runs Team 1 in it. */
 export const league: LeagueSummary = {
   leagueId: "league-1" as Id<"leagues">,
   name: "Tim Hortons Pro League",
   commissionerEmail: "commish@example.com",
   roles: ["manager"],
+  powers: powersOf(["manager"], false),
   teamName: "Team 1",
   teams: 3,
   maxTeams: 4,
@@ -56,12 +67,12 @@ export const miniBeta: LeagueSummary = {
 const signedIn = { signedIn: true, email: "manager@example.com", isAdmin: false } as const;
 /** Of `leagues`, those the switcher offers, by the server's own rule. */
 const switchableIdsOf = (leagues: readonly LeagueSummary[]) => switchableLeagues(leagues).map((each) => each.leagueId);
-/** A manager in these leagues, the app in the first. */
+/** A manager in these leagues, the app in the first. Each league's powers follow its roles. */
 export const managerIn = (...leagues: LeagueSummary[]) =>
   ({
     ...signedIn,
     inLeague: true,
-    leagues,
+    leagues: withPowers(leagues, false),
     switchableLeagueIds: switchableIdsOf(leagues),
     currentLeagueId: leagues[0].leagueId,
   }) satisfies Session;
@@ -75,14 +86,14 @@ export const coCommissioned: LeagueSummary = { ...league, roles: ["co-commission
 /** `summary` as someone with no part in its league sees it: no role, no team. */
 export const withNoPart = (summary: LeagueSummary): LeagueSummary => ({ ...summary, roles: [], teamName: null });
 export const newcomer: Session = { ...signedIn, inLeague: false, leagues: [], switchableLeagueIds: [], currentLeagueId: null };
-/** The admin, seeing every league, with no part in any. */
+/** The admin, seeing every league, with no part in any, and every power in each. */
 export const adminSeeing = (...leagues: LeagueSummary[]) =>
   ({
     ...signedIn,
     email: "craig@example.com",
     isAdmin: true,
     inLeague: false,
-    leagues,
+    leagues: withPowers(leagues, true),
     switchableLeagueIds: switchableIdsOf(leagues),
     currentLeagueId: null,
   }) satisfies Session;

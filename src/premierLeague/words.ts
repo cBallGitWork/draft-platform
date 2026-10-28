@@ -77,7 +77,7 @@ export const sheetLabel = (club: string) => `${club}'s team sheet`;
 export const SUBSTITUTES_TITLE = "Substitutes";
 export const MOVED_TITLE = "Since left both clubs";
 /** Before the sheets are out: spec/10's words for when the live tick starts reading them
- *  (SHEETS_BEFORE_KICKOFF_MS, convex/football/matchTeamSheets.ts). */
+ *  (LINEUPS_OUT_BEFORE_KICKOFF_MS, convex/shared/time.ts). */
 export const noMenWords = "The team sheets show here about an hour before kickoff.";
 export const matchColumns = {
   position: { short: "Pos", long: "Position" },

@@ -1,9 +1,8 @@
 import { useState, type FormEvent } from "react";
-import { PANEL_BODY, PanelTitle, Problem, TOP_BAR, TOP_BAR_ROW } from "../frame/Panel";
+import { PANEL_BODY, Panel, Problem, TOP_BAR, TOP_BAR_ROW } from "../frame/Panel";
 import { PRODUCT_NAME } from "../../convex/shared/product";
 import { linkProblemWords, signInWords, type LinkProblem } from "./words";
 
-const TITLE_ID = "sign-in-title";
 const EMAIL_ID = "sign-in-email";
 
 /** All a logged-out visitor sees (spec/12): the name, "Invite only", and an email box for the link.
@@ -36,8 +35,7 @@ export function SignInPage({
         <p className="flex items-center border-l border-plate-rule px-4 text-lead font-semibold">{signInWords.inviteOnly}</p>
       </header>
       <main className="p-2">
-        <section aria-labelledby={TITLE_ID} className="max-w-md bg-panel">
-          <PanelTitle id={TITLE_ID}>{signInWords.title}</PanelTitle>
+        <Panel title={signInWords.title} className="max-w-md">
           <Problem problem={linkProblem && !outcome ? linkProblemWords[linkProblem] : null} />
           {intro && <p className="px-3 pt-2">{intro}</p>}
           <form onSubmit={sendLink} className={PANEL_BODY}>
@@ -62,7 +60,7 @@ export function SignInPage({
           <p role="status" className={outcome ? "alert-strip" : undefined}>
             {outcome}
           </p>
-        </section>
+        </Panel>
       </main>
     </>
   );

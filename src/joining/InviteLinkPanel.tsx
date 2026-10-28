@@ -1,10 +1,9 @@
 import { joinPath, noLinkWords } from "../../convex/joining/joiningShared";
-import { PANEL_BODY, PanelTitle, Problem } from "../frame/Panel";
+import { PANEL_BODY, Panel, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { inviteLinkWords, linkHint } from "./words";
 
-const TITLE_ID = "invite-link-title";
 const LINK_ID = "invite-link";
 
 /** spec/13, Joining: the league's one invite link, to share; switching it off or replacing it
@@ -14,8 +13,7 @@ export function InviteLinkPanel({ page, joining }: { page: InvitesPageData; join
   const makeLink = () => void run(() => joining.makeLink(page.leagueId));
 
   return (
-    <section aria-labelledby={TITLE_ID} className="bg-panel">
-      <PanelTitle id={TITLE_ID}>{inviteLinkWords.title}</PanelTitle>
+    <Panel title={inviteLinkWords.title}>
       <Problem problem={problem} />
       <div className={PANEL_BODY}>
         {page.linkToken === null ? (
@@ -54,6 +52,6 @@ export function InviteLinkPanel({ page, joining }: { page: InvitesPageData; join
           </>
         )}
       </div>
-    </section>
+    </Panel>
   );
 }

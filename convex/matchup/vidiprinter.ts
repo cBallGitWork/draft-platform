@@ -12,13 +12,12 @@
 import type { Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { FEED_TYPE, withFullTimePoints } from "../football/commentary";
-import { SHEETS_BEFORE_KICKOFF_MS } from "../football/matchTeamSheets";
 import type { Cell } from "../lineup/pitch";
 import { rulePointsIn, scoreMatch, type MatchStats } from "../scoring/scoring";
 import { inTenths, type ScoringSet } from "../scoring/scoringSet";
 import { STAT_CATALOGUE } from "../scoring/statCatalogue";
 import { EVENT_STATS } from "../stats/matchRecords";
-import { MINUTE_MS } from "../shared/time";
+import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../shared/time";
 import type { commentaryLine } from "../schema";
 
 type PlayerCode = number;
@@ -88,10 +87,10 @@ function placedOf(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode, Vidi
   const kickoff = match.kickoff ?? 0;
   const placed: Placed[] = [];
   // Oldest first, so each goal or card is counted in turn, and each line sorts no earlier than the
-  // one before it: the full-time line's minute is always 1, and an untimed line has none, so sorts
-  // from when the team sheets are out (spec/10, The match page).
+  // one before it: the full-time line's minute is always 1, and an untimed line has none.
   const counted = new Map<string, number>();
-  let at = kickoff - SHEETS_BEFORE_KICKOFF_MS;
+  // An untimed line sorts from when the lineups are out.
+  let at = kickoff - LINEUPS_OUT_BEFORE_KICKOFF_MS;
   match.lines.toReversed().forEach((stored, index) => {
     at = Math.max(at, atMinute(kickoff, stored.minute ?? null, stored.addedMinute ?? null));
     const line = { key: `${match.fixtureCode}:${stored.sourceId}`, ...priced(stored, match.fixtureCode, players, set, counted) };

@@ -7,7 +7,7 @@ import { delayCommentary } from "../football/matchCommentary";
 import { readFplPayloads } from "../football/fpl";
 import { syncTeamSheets } from "../football/matchTeamSheets";
 import type { liveStatsTickFields } from "../schema";
-import type { DueMatch } from "./matchStats";
+import type { DueMatch } from "../shared/dueMatches";
 
 // Issue #28: the live poller's tick, run every minute by `crons.ts`. Outside every match window
 // it reads no feed and writes nothing; inside one, it reads each live match as `matchStatsSync`

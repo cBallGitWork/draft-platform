@@ -1,5 +1,5 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { Loading, PageSection, PanelTitle } from "../frame/Panel";
+import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { FixturesPanel } from "./FixturesPanel";
 import type { LeagueTable, TableSeam } from "./seam";
 import {
@@ -13,8 +13,6 @@ import {
   TABLE_TITLE,
   unscoredWords,
 } from "./words";
-
-const TITLE_ID = "table-title";
 
 type Column = keyof typeof columns;
 type Row = LeagueTable["table"][number];
@@ -57,14 +55,13 @@ function StandingsPanel({ leagueTable: { format, table, results, unscored } }: {
   const shown = COLUMNS_OF[format];
   const provisional = results.some(({ teams }) => teams.some((team) => team.provisional));
   return (
-    <section aria-labelledby={TITLE_ID} className="bg-panel">
-      <PanelTitle id={TITLE_ID}>{TABLE_TITLE}</PanelTitle>
+    <Panel title={TABLE_TITLE}>
       {unscored.map(({ gameweek, reason }) => (
         <p key={gameweek} className="px-3 py-2 text-event">
           {unscoredWords(gameweek, reason)}
         </p>
       ))}
-      {table.every((row) => row.played === 0) && <p className="px-3 py-2">{noResultsWords}</p>}
+      {table.every((row) => row.played === 0) && <PanelNote>{noResultsWords}</PanelNote>}
       {provisional && <p className="px-3 py-2 text-derived">{provisionalWords}</p>}
       <table className="w-full border-collapse">
         <thead className="bg-head text-ground">
@@ -92,7 +89,7 @@ function StandingsPanel({ leagueTable: { format, table, results, unscored } }: {
           ))}
         </tbody>
       </table>
-    </section>
+    </Panel>
   );
 }
 

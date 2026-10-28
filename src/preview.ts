@@ -13,6 +13,13 @@ import type { AuthActions, Session } from "./auth";
 import type { LeaguesSeam } from "./leagues/seam";
 import { replyWords } from "./sign-in/words";
 
+/** What each made-up person may do in a league, as the server's powersIn would send it. */
+const managerPowers = { names: false, runs: false };
+const coCommissionerPowers = { names: false, runs: true };
+const commissionerPowers = { names: true, runs: true };
+/** The admin may do everything the commissioner may, in every league. */
+const adminPowers = commissionerPowers;
+
 /** Made-up leagues, in the shape signIn/account:signedInAs sends. */
 const unreachedCommissioner = "first.commissioner@example.com";
 export const proLeague: LeagueSummary = {
@@ -20,6 +27,7 @@ export const proLeague: LeagueSummary = {
   name: "Tim Hortons Pro League",
   commissionerEmail: "commish@example.com",
   roles: ["manager"],
+  powers: managerPowers,
   teamName: "Saka Potatoes",
   teams: 9,
   maxTeams: 12,
@@ -30,6 +38,8 @@ export const miniBeta: LeagueSummary = {
   name: "Mini beta",
   commissionerEmail: unreachedCommissioner,
   roles: [],
+  // Only the admin sees a league he has no part in.
+  powers: adminPowers,
   teamName: null,
   teams: 0,
   maxTeams: 4,
@@ -44,6 +54,7 @@ const sundayLeague: LeagueSummary = {
   name: "Sunday League",
   commissionerEmail: "manager@example.com",
   roles: ["commissioner"],
+  powers: commissionerPowers,
   teams: 6,
   maxTeams: 8,
   unsentCommissionerLink: null,
@@ -57,7 +68,7 @@ export const manager = {
   inLeague: true,
   leagues: [
     proLeague,
-    { ...miniBeta, roles: ["manager"], teamName: "Team 1", teams: 1, unsentCommissionerLink: null },
+    { ...miniBeta, roles: ["manager"], powers: managerPowers, teamName: "Team 1", teams: 1, unsentCommissionerLink: null },
   ],
   switchableLeagueIds: [proLeague.leagueId, miniBeta.leagueId],
   currentLeagueId: proLeague.leagueId,
@@ -68,8 +79,8 @@ export const manager = {
 const commissioner: Session = {
   ...manager,
   leagues: [
-    { ...proLeague, roles: ["co-commissioner", "manager"] },
-    { ...manager.leagues[1], commissionerEmail: manager.email, roles: ["commissioner", "manager"] },
+    { ...proLeague, roles: ["co-commissioner", "manager"], powers: coCommissionerPowers },
+    { ...manager.leagues[1], commissionerEmail: manager.email, roles: ["commissioner", "manager"], powers: commissionerPowers },
     sundayLeague,
   ],
 };
@@ -83,7 +94,7 @@ const previewSessions: Record<string, Session> = {
     email: "admin@example.com",
     isAdmin: true,
     inLeague: false,
-    leagues: [miniBeta, { ...proLeague, roles: [], teamName: null }],
+    leagues: [miniBeta, { ...proLeague, roles: [], powers: adminPowers, teamName: null }],
     switchableLeagueIds: [],
     currentLeagueId: null,
   },

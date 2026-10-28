@@ -12,6 +12,7 @@ import {
 } from "../../support/convex/footballSync.harness";
 import { CLUB_CODE, RECORDED_COUNT, recordedFpl } from "../../support/recorded/fpl.payloads";
 import { freshConvex, refusedError, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
+import { BATCH_SIZE } from "../../../convex/shared/syncRuns";
 
 // #64: a club, player, fixture or gameweek FPL stops sending is kept and marked, never deleted.
 
@@ -21,6 +22,9 @@ const THIRD_SYNC = Date.parse("2026-10-19T18:00:00Z");
 const ONE_MARKED = { ...NOTHING_CHANGED, marked: 1 };
 const ONE_UNMARKED = { ...NOTHING_CHANGED, unmarked: 1 };
 const NO_ROW_MARKED = { clubs: [], players: [], fixtures: [], gameweeks: [] };
+const FOOTBALL_TABLES = ["clubs", "players", "fixtures", "gameweeks"] as const;
+/** The first key of the rows a test holds that the recording never sends. */
+const UNSENT_KEY_FROM = 900_000;
 
 /** The recording less one of each: Jesus (gone abroad), a club no kept player or match names,
  *  the last match and the last gameweek. Returns the payloads and each dropped row's key. */
@@ -182,6 +186,48 @@ test("held rows past the first page are checked too, and each missing one is mar
   expect(outcome).toMatchObject({ ok: true, players: { received: kept, marked: count - kept } });
   const markedCodes = (await marks(t)).players.map(([code]) => code);
   expect(markedCodes).toEqual(Array.from({ length: count - kept }, (_, index) => kept + index + 1));
+});
+
+test("past several pages of every table, only unsent rows not yet marked are marked, and old marks keep their time", async () => {
+  const t = freshConvex();
+  await syncWith(t, recordedFpl());
+  // Rows the feed never sends, more than two pages of each table, every other one already marked
+  // at the first sync, so marked and unmarked rows share each page.
+  const unsent = BATCH_SIZE * 2 + 50;
+  const expected = await t.run(async (ctx) => {
+    const marksBy: Record<(typeof FOOTBALL_TABLES)[number], (number | undefined)[][]> = {
+      clubs: [],
+      players: [],
+      fixtures: [],
+      gameweeks: [],
+    };
+    for (const table of FOOTBALL_TABLES) {
+      const { _id, _creationTime, ...template } = (await ctx.db.query(table).first())!;
+      for (let index = 0; index < unsent; index++) {
+        const key = UNSENT_KEY_FROM + index;
+        const alreadyMarked = index % 2 === 0;
+        const keyed = table === "gameweeks" ? { number: key } : { code: key };
+        const mark = alreadyMarked ? { droppedAt: FIRST_SYNC } : {};
+        // The template is the table's own row, so only its key and mark change.
+        await ctx.db.insert(table, { ...template, ...keyed, ...mark } as never);
+        marksBy[table].push([key, alreadyMarked ? FIRST_SYNC : SECOND_SYNC]);
+      }
+    }
+    return marksBy;
+  });
+
+  vi.setSystemTime(SECOND_SYNC);
+  const outcome = await syncWith(t, recordedFpl());
+
+  const newlyMarked = { ...NOTHING_CHANGED, marked: unsent / 2 };
+  expect(outcome).toMatchObject({
+    ok: true,
+    clubs: newlyMarked,
+    players: newlyMarked,
+    fixtures: newlyMarked,
+    gameweeks: newlyMarked,
+  });
+  expect(await marks(t)).toEqual(expected);
 });
 
 test("rows written before #64, without its marks and counts, still fit the schema", async () => {

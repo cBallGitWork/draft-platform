@@ -133,7 +133,7 @@ const playerCardRoute = createRoute({
       <PlayerCardPage
         key={playerCode}
         league={league}
-        runs={runs(league, context.session.isAdmin)}
+        runs={runs(league)}
         playerCode={Number(playerCode)}
         seam={context.playerCard}
       />

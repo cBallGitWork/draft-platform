@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
-import { callerEmail, getLeague, refuse, refusals, teamOf } from "../shared/leagueAccess";
+import { managerOf, refuse } from "../shared/leagueAccess";
 
 // Squad numbers (#13, spec/05 Squad numbers; Craig, 26 Oct 2026): a manager gives his own players
 // numbers on My team's Squad tab, any from 1 to 99, two of them alike if he likes. The number is
@@ -21,9 +21,7 @@ export const set = mutation({
   args: { leagueId: v.id("leagues"), playerCode: v.number(), number: v.union(v.number(), v.null()) },
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode, number }) => {
-    const email = await callerEmail(ctx);
-    await getLeague(ctx, leagueId);
-    const team = (await teamOf(ctx, leagueId, email)) ?? refuse(refusals.runsNoTeam);
+    const { team } = await managerOf(ctx, leagueId);
     if (number !== null && !(Number.isInteger(number) && number >= LOWEST_NUMBER && number <= HIGHEST_NUMBER)) {
       refuse(squadNumberRefusals.outOfRange);
     }

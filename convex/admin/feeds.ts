@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import { query, type QueryCtx } from "../_generated/server";
 import { statCorrectionWindowMs } from "./platformSettings";
 import { ALWAYS_OWED, failureOf, feedState, judgeFeed, type FeedRuns, type RunOutcome } from "./feedState";
+import { fixtureByCode } from "../shared/fixtures";
 import { adminOf } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { FEED_RUN_TABLES, FEED_SCHEDULES, FEEDS, feedValidator, type Feed } from "../shared/feedSchedule";
@@ -122,7 +123,7 @@ async function readRuns(runs: AsyncIterable<Run>): Promise<RunsRead> {
 }
 
 async function matchName(ctx: QueryCtx, fixtureCode: number): Promise<Infer<typeof matchNamed>> {
-  const fixture = await ctx.db.query("fixtures").withIndex("by_code", (q) => q.eq("code", fixtureCode)).unique();
+  const fixture = await fixtureByCode(ctx, fixtureCode);
   if (fixture === null) return null;
   const [home, away] = await Promise.all([clubName(ctx, fixture.homeClubCode), clubName(ctx, fixture.awayClubCode)]);
   return home === null || away === null ? null : { home, away };

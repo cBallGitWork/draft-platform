@@ -3,7 +3,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { categoryName } from "../../convex/scoring/categories";
 import type { Priced } from "../../convex/scoring/scoringSet";
 import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogue";
-import { Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
+import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { PatchNotesLink } from "../patches/PatchBanner";
 import { useRulesDraft } from "../rules/rulesDraft";
@@ -33,7 +33,6 @@ import {
   wholePointsWords,
 } from "./words";
 
-const CATEGORIES_TITLE_ID = "categories-title";
 const ADD_CATEGORY_ID = "category-to-add";
 
 /** Player scoring (spec/14, Who owns it, and The rules editor; #30, #354): the site's scoring
@@ -75,8 +74,7 @@ function Editor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
 
   return (
     <div className="flex flex-col gap-2 lg:flex-row lg:items-start">
-      <section aria-labelledby={CATEGORIES_TITLE_ID} className="bg-panel lg:shrink-0 lg:basis-categories">
-        <PanelTitle id={CATEGORIES_TITLE_ID}>{categoriesLabel}</PanelTitle>
+      <Panel title={categoriesLabel} className="lg:shrink-0 lg:basis-categories">
         <ul aria-label={categoriesLabel}>
           {draft.rules.map((each, index) => (
             <li key={index} className="border-b border-panel-rule">
@@ -93,7 +91,7 @@ function Editor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
           ))}
         </ul>
         {!readOnly && <AddCategory ruled={draft.rules.map((each) => each.stat)} onAdd={add} />}
-      </section>
+      </Panel>
       <div className="flex min-w-0 grow flex-col gap-2">
         {rule && (
           <CategoryEditor key={chosen} name={nameOf(rule.stat)} rule={rule} readOnly={readOnly} onChange={(changed) => setRule(chosen, changed)} onRemove={() => remove(chosen)} />

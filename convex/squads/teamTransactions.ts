@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query } from "../_generated/server";
 import { adminByline } from "../mail/letterWords";
-import { callerEmail, getLeague, isAdmin, refuse, refusals, teamOf } from "../shared/leagueAccess";
+import { isAdmin, managerOf } from "../shared/leagueAccess";
 
 // My team's Transactions tab (#366; spec/12, My team's tabs: "the team's claims, drops, trades and
 // commissioner assignments, newest first, from the same events Mail files"). Claims, drops and
@@ -53,9 +53,7 @@ export const ofMyTeam = query({
   args: { leagueId: v.id("leagues") },
   returns: teamTransactions,
   handler: async (ctx, { leagueId }) => {
-    const email = await callerEmail(ctx);
-    await getLeague(ctx, leagueId);
-    const team = (await teamOf(ctx, leagueId, email)) ?? refuse(refusals.runsNoTeam);
+    const { team } = await managerOf(ctx, leagueId);
     const events = await ctx.db
       .query("leagueEvents")
       .withIndex("by_leagueId_and_at", (q) => q.eq("leagueId", leagueId))

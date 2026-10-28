@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import type { Cell } from "../../convex/lineup/pitch";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { Loading, Notice, PageSection, PanelNote, Problem } from "../frame/Panel";
+import { Loading, Notice, PageSection, Panel, PanelNote, Problem } from "../frame/Panel";
 import { useMinute } from "../useMinute";
 import { markedBy } from "./focusMarks";
 import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, withRole, withSquad, type DraftLineup } from "./lineupDraft";
@@ -33,9 +33,7 @@ import { noTeamWords } from "./words";
 
 /** The key that puts a picked-up player back. */
 const PUT_BACK_KEY = "Escape";
-const PITCH_TITLE_ID = "tactics-pitch";
 const PRESET_ID = "tactics-preset";
-const SQUAD_TITLE_ID = "tactics-squad";
 
 /** My team's Tactics tab (#14; spec/12, My team; spec/05): the pitch where the manager sets the
  *  lineup for the next gameweek not begun and each starter's role, the squad beside it with the
@@ -199,13 +197,11 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
       </div>
       {joined.length > 0 && <Notice>{joinedBenchWords(joined.map((code) => squad.get(code)!.name))}</Notice>}
       <div className="flex flex-wrap items-start gap-2">
-        <section aria-labelledby={PITCH_TITLE_ID} className="min-w-0 grow-3 basis-pitch bg-panel">
-          <div className="flex items-baseline justify-between bg-plate px-3 py-1 shadow-bevel-plate">
-            <h2 id={PITCH_TITLE_ID} className="text-lead font-bold">
-              {TACTICS_TITLE}
-            </h2>
-            <span className={draft.starters.length === STARTER_COUNT ? "text-derived" : "text-event"}>{startingWords(draft.starters.length)}</span>
-          </div>
+        <Panel
+          title={TACTICS_TITLE}
+          aside={<span className={draft.starters.length === STARTER_COUNT ? "text-derived" : "text-event"}>{startingWords(draft.starters.length)}</span>}
+          className="min-w-0 grow-3 basis-pitch"
+        >
           <div className="flex items-center gap-2 px-3 pt-2">
             <label htmlFor={PRESET_ID} className="text-soft">
               {presetLabel}
@@ -228,13 +224,10 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
           <div className="px-2 pb-2">
             <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === shape)?.cells ?? []} />
           </div>
-        </section>
-        <section aria-labelledby={SQUAD_TITLE_ID} className="min-w-0 grow-2 basis-squad bg-panel">
-          <h2 id={SQUAD_TITLE_ID} className="bg-plate px-3 py-1 text-lead font-bold shadow-bevel-plate">
-            {SQUAD_PANEL_TITLE}
-          </h2>
+        </Panel>
+        <Panel title={SQUAD_PANEL_TITLE} className="min-w-0 grow-2 basis-squad">
           <SquadTable leagueId={league.leagueId} draft={draft} squad={squad} moving={moving} onBench={toBench} onBenchAt={toBenchAt} onRole={toRole} />
-        </section>
+        </Panel>
       </div>
     </div>
   );

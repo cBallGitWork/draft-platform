@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
-import { Loading, PANEL_BODY, PANEL_LIST_ROW, PanelNote, PanelTitle } from "../frame/Panel";
+import { Loading, PANEL_BODY, PANEL_LIST_ROW, Panel, PanelNote } from "../frame/Panel";
 import type { Changing } from "../useChange";
 import { useChoiceAmong } from "../useChoiceAmong";
 import type { AdminSeam, FoundPlayerPositions } from "./seam";
@@ -22,7 +22,6 @@ import {
   unconfirmedNote,
 } from "./words";
 
-const FIND_TITLE_ID = "admin-find-title";
 const FIND_NAME_ID = "admin-find-name";
 
 // Correcting any player's positions (spec/06): find him, then remove a position or set one, SS among them.
@@ -31,8 +30,7 @@ export function FindPlayer({ seam, change }: { seam: AdminSeam; change: Changing
   const [text, setText] = useState("");
   const found = seam.useFoundPlayers(text);
   return (
-    <section aria-labelledby={FIND_TITLE_ID} className="bg-panel">
-      <PanelTitle id={FIND_TITLE_ID}>{findTitle}</PanelTitle>
+    <Panel title={findTitle}>
       <div className={PANEL_BODY}>
         <label htmlFor={FIND_NAME_ID} className="font-semibold">
           {findLabel}
@@ -52,7 +50,7 @@ export function FindPlayer({ seam, change }: { seam: AdminSeam; change: Changing
             ))}
           </ul>
         ))}
-    </section>
+    </Panel>
   );
 }
 
