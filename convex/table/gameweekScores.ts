@@ -110,7 +110,7 @@ export async function leagueScores(
 }
 
 /** The most final rows a league holds: one for each team in each gameweek. */
-const FINAL_SCORES_MOST = GAMEWEEKS * MOST_TEAMS;
+export const FINAL_SCORES_MOST = GAMEWEEKS * MOST_TEAMS;
 
 /** A gameweek's stored final scores, and the matches they were scored from. */
 interface StoredGameweek {

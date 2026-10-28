@@ -9,6 +9,10 @@ import { CATALOGUE_STATS } from "./statCatalogue";
 
 export type { OwnStat };
 
+/** Why a scoring set can't be saved or scored with, told apart from a bug, which is never shown
+ *  as a reason. Every check here and in ownStats.ts throws it. */
+export class UnsoundScoring extends Error {}
+
 // The pitch's six areas are the pitch's (../lineup/pitch.ts), so a lineup and a scoring set can't disagree.
 export { AREAS, type Area };
 
@@ -104,9 +108,9 @@ export function priceFor<Value>(priced: Priced<Value>, area: Area, position: Slo
  * fail mid-gameweek. Every number must be a number, never text JavaScript would quietly coerce.
  */
 export function validateScoringSet(set: unknown): asserts set is ScoringSet {
-  if (!isObject(set) || !Array.isArray(set.rules)) throw new Error("a scoring set must be a list of rules");
+  if (!isObject(set) || !Array.isArray(set.rules)) throw new UnsoundScoring("a scoring set must be a list of rules");
   if (typeof set.wholePointsOnly !== "boolean") {
-    throw new Error(`a scoring set must say whether its points are whole only, true or false, not ${showValue(set.wholePointsOnly)}`);
+    throw new UnsoundScoring(`a scoring set must say whether its points are whole only, true or false, not ${showValue(set.wholePointsOnly)}`);
   }
   const { wholePointsOnly } = set;
   if (set.ownStats !== undefined) validateOwnStats(set.ownStats);
@@ -125,19 +129,19 @@ function validateRoleAdjustments(
   isScorable: (stat: string) => boolean,
   nameOf: (stat: string) => string,
 ): void {
-  if (!Array.isArray(roles)) throw new Error("a scoring set's role adjustments must be a list");
+  if (!Array.isArray(roles)) throw new UnsoundScoring("a scoring set's role adjustments must be a list");
   const seen = new Set<string>();
   for (const each of roles as unknown[]) {
-    if (!isObject(each) || typeof each.role !== "string" || each.role === "") throw new Error("a role adjustment names no role");
-    if (seen.has(each.role)) throw new Error(`the role ${showValue(each.role)} is adjusted twice`);
+    if (!isObject(each) || typeof each.role !== "string" || each.role === "") throw new UnsoundScoring("a role adjustment names no role");
+    if (seen.has(each.role)) throw new UnsoundScoring(`the role ${showValue(each.role)} is adjusted twice`);
     seen.add(each.role);
-    if (!Array.isArray(each.adjustments)) throw new Error(`the role ${showValue(each.role)} has no list of adjustments`);
+    if (!Array.isArray(each.adjustments)) throw new UnsoundScoring(`the role ${showValue(each.role)} has no list of adjustments`);
     const stats = new Set<string>();
     for (const adjustment of each.adjustments as unknown[]) {
       if (!isObject(adjustment) || typeof adjustment.stat !== "string" || !isScorable(adjustment.stat)) {
-        throw new Error(`the role ${showValue(each.role)} adjusts ${showValue(isObject(adjustment) ? adjustment.stat : adjustment)}, which is neither a catalogue stat nor one of the set's own stats`);
+        throw new UnsoundScoring(`the role ${showValue(each.role)} adjusts ${showValue(isObject(adjustment) ? adjustment.stat : adjustment)}, which is neither a catalogue stat nor one of the set's own stats`);
       }
-      if (stats.has(adjustment.stat)) throw new Error(`the role ${showValue(each.role)} adjusts ${nameOf(adjustment.stat)} twice`);
+      if (stats.has(adjustment.stat)) throw new UnsoundScoring(`the role ${showValue(each.role)} adjusts ${nameOf(adjustment.stat)} twice`);
       stats.add(adjustment.stat);
       requirePoints(adjustment.points, `the role ${showValue(each.role)}'s ${nameOf(adjustment.stat)} adjustment is worth`, wholePointsOnly);
     }
@@ -154,18 +158,18 @@ function validateRule(
   isScorable: (stat: string) => boolean,
   nameOf: (stat: string) => string,
 ): void {
-  if (!isObject(rule)) throw new Error(`rule ${position} of the scoring set is not a rule`);
+  if (!isObject(rule)) throw new UnsoundScoring(`rule ${position} of the scoring set is not a rule`);
   const { stat, shape } = rule;
-  if (typeof stat !== "string" || stat === "") throw new Error(`rule ${position} of the scoring set names no stat`);
+  if (typeof stat !== "string" || stat === "") throw new UnsoundScoring(`rule ${position} of the scoring set names no stat`);
   if (!isScorable(stat)) {
-    throw new Error(`rule ${position} of the scoring set scores ${showValue(stat)}, which is neither a catalogue stat nor one of the set's own stats`);
+    throw new UnsoundScoring(`rule ${position} of the scoring set scores ${showValue(stat)}, which is neither a catalogue stat nor one of the set's own stats`);
   }
   const named = `the ${nameOf(stat)} rule`;
   if (shape !== "perAction" && shape !== "perCount" && shape !== "bands") {
-    throw new Error(`${named} has the shape ${showValue(shape)}, which is not one of the three`);
+    throw new UnsoundScoring(`${named} has the shape ${showValue(shape)}, which is not one of the three`);
   }
   if (shape === "bands" && typeof rule.stack !== "boolean") {
-    throw new Error(`${named} must say whether its bands stack, true or false, not ${showValue(rule.stack)}`);
+    throw new UnsoundScoring(`${named} must say whether its bands stack, true or false, not ${showValue(rule.stack)}`);
   }
   const points = (value: unknown, what: string) => requirePoints(value, what, wholePointsOnly);
   validatePriced(rule.values, named, "values", (values, where) => validateValues(shape, values, where, points));
@@ -181,17 +185,17 @@ type CheckPoints = (value: unknown, what: string) => void;
 
 /** Checks a priced setting has exactly one way of pricing, and a good value everywhere it says. */
 function validatePriced(priced: unknown, named: string, what: string, check: (value: unknown, where: string) => void): void {
-  if (!isObject(priced)) throw new Error(`${named} has no ${what}`);
+  if (!isObject(priced)) throw new UnsoundScoring(`${named} has no ${what}`);
   const ways = ["all", "byArea", "byPosition"].filter((way) => Object.hasOwn(priced, way));
   if (ways.length !== 1) {
-    throw new Error(`${named} must be priced one way, the same for all, by area or by position, not ${ways.length}`);
+    throw new UnsoundScoring(`${named} must be priced one way, the same for all, by area or by position, not ${ways.length}`);
   }
   if (ways[0] === "all") return check(priced.all, named);
   const keys: readonly string[] = ways[0] === "byArea" ? AREAS : SLOT_POSITIONS;
   const each = priced[ways[0]];
-  if (!isObject(each)) throw new Error(`${named} has no ${what} ${ways[0] === "byArea" ? "by area" : "by position"}`);
+  if (!isObject(each)) throw new UnsoundScoring(`${named} has no ${what} ${ways[0] === "byArea" ? "by area" : "by position"}`);
   for (const key of keys) {
-    if (!Object.hasOwn(each, key)) throw new Error(`${named} has no ${what} for ${key}`);
+    if (!Object.hasOwn(each, key)) throw new UnsoundScoring(`${named} has no ${what} for ${key}`);
     check(each[key], `${named} in ${key}`);
   }
 }
@@ -201,10 +205,10 @@ function validateValues(shape: ScoringRule["shape"], values: unknown, where: str
     case "perAction":
       return points(values, `${where} is worth`);
     case "perCount": {
-      if (!isObject(values)) throw new Error(`${where} has no number of actions and points`);
+      if (!isObject(values)) throw new UnsoundScoring(`${where} has no number of actions and points`);
       requireNumber(values.every, `${where} is worth points for every`);
       if (!(values.every > 0)) {
-        throw new Error(`${where} is worth points for every ${values.every} actions; it must be more than 0`);
+        throw new UnsoundScoring(`${where} is worth points for every ${values.every} actions; it must be more than 0`);
       }
       return points(values.points, `${where} is worth`);
     }
@@ -214,39 +218,39 @@ function validateValues(shape: ScoringRule["shape"], values: unknown, where: str
 }
 
 function validateBands(bands: unknown, where: string, points: CheckPoints): void {
-  if (!Array.isArray(bands)) throw new Error(`${where} has no list of bands`);
+  if (!Array.isArray(bands)) throw new UnsoundScoring(`${where} has no list of bands`);
   bands.forEach((band: unknown, index) => {
     const which = `${where}, band ${index + 1},`;
-    if (!isObject(band)) throw new Error(`${which} is not a band`);
+    if (!isObject(band)) throw new UnsoundScoring(`${which} is not a band`);
     requireNumber(band.atLeast, `${which} starts at`);
     points(band.points, `${which} is worth`);
   });
   if (new Set(bands.map((band: Band) => band.atLeast)).size !== bands.length) {
-    throw new Error(`${where} has two bands at one threshold`);
+    throw new UnsoundScoring(`${where} has two bands at one threshold`);
   }
 }
 
 function validateLimit(limit: unknown, where: string, points: CheckPoints): void {
-  if (!isObject(limit)) throw new Error(`${where} has no most and least`);
+  if (!isObject(limit)) throw new UnsoundScoring(`${where} has no most and least`);
   if (limit.max !== null) points(limit.max, `${where} is worth at most`);
   if (limit.min !== null) points(limit.min, `${where} is worth at least`);
   if (limit.max !== null && limit.min !== null && (limit.min as number) > (limit.max as number)) {
-    throw new Error(`${where} is worth at least ${limit.min}, more than its most, ${limit.max}`);
+    throw new UnsoundScoring(`${where} is worth at least ${limit.min}, more than its most, ${limit.max}`);
   }
 }
 
 function validateMinutes(minutes: unknown, where: string): void {
   requireNumber(minutes, `${where} is`);
-  if (minutes < 0) throw new Error(`${where} is ${minutes}; it can't be less than 0`);
+  if (minutes < 0) throw new UnsoundScoring(`${where} is ${minutes}; it can't be less than 0`);
 }
 
 /** A number of points: a number, in tenths, and whole when the set counts whole points only. */
 function requirePoints(value: unknown, what: string, wholePointsOnly: boolean): void {
   requireNumber(value, what);
   if (wholePointsOnly && !Number.isInteger(value)) {
-    throw new Error(`${what} ${value}, but the set counts whole points only`);
+    throw new UnsoundScoring(`${what} ${value}, but the set counts whole points only`);
   }
-  if (!isInTenths(value)) throw new Error(`${what} ${value}; points are kept in tenths`);
+  if (!isInTenths(value)) throw new UnsoundScoring(`${what} ${value}; points are kept in tenths`);
 }
 
 /** Points to the nearest tenth, which is all they are kept in: floating point's own noise goes.
@@ -267,7 +271,7 @@ function isInTenths(value: number): boolean {
 
 /** Throws "<what> <value>, not a number" unless it is a finite number, never coerced from text. */
 export function requireNumber(value: unknown, what: string): asserts value is number {
-  if (!Number.isFinite(value)) throw new Error(`${what} ${showValue(value)}, not a number`);
+  if (!Number.isFinite(value)) throw new UnsoundScoring(`${what} ${showValue(value)}, not a number`);
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {

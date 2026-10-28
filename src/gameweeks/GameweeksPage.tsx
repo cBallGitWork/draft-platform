@@ -4,6 +4,7 @@ import type { LeagueGameweek } from "../../convex/gameweeks/leagueGameweeks";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, PageSection, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
+import { TickBox } from "../rules/TickBox";
 import { gameweekWords, whenWords } from "../words";
 import type { LeagueGameweeksView } from "./seam";
 import {
@@ -92,12 +93,9 @@ function GameweekTable({
               <th scope="row" className={`${cellClasses} font-semibold`}>{row.gameweek}</th>
               <DeadlineCell deadline={row.deadline} begun={begun} />
               <td className={cellClasses}>
-                <TickBox
-                  label={gameweekWords(row.gameweek)}
-                  ticked={row.used}
-                  disabled={begun || sending === row.gameweek}
-                  onTick={() => onTick(row)}
-                />
+                <TickBox checked={row.used} disabled={begun || sending === row.gameweek} onChange={() => onTick(row)} labelHidden>
+                  {gameweekWords(row.gameweek)}
+                </TickBox>
               </td>
             </tr>
           );
@@ -113,33 +111,4 @@ function DeadlineCell({ deadline, begun }: { deadline: number | null; begun: boo
     return <td className={`${cellClasses} text-muted`}>{deadline === null ? noDeadlineWords : begunWords}</td>;
   }
   return <td className={cellClasses}>{whenWords(deadline)}</td>;
-}
-
-/** The box's look: white when ticked, muted when it can't be changed. */
-function tickBoxClasses(ticked: boolean, disabled: boolean): string {
-  if (disabled) return ticked ? "border-muted bg-muted" : "border-muted";
-  return ticked ? "border-fact bg-fact" : "border-soft bg-ground";
-}
-
-/** A square tick box, CM's, with the whole cell's height to tap. */
-function TickBox({ label, ticked, disabled, onTick }: { label: string; ticked: boolean; disabled: boolean; onTick: () => void }) {
-  return (
-    <button
-      type="button"
-      role="checkbox"
-      aria-checked={ticked}
-      aria-label={label}
-      disabled={disabled}
-      onClick={onTick}
-      className="flex min-h-tap items-center px-2 lg:min-h-0"
-    >
-      <span aria-hidden="true" className={`flex size-4 items-center justify-center border ${tickBoxClasses(ticked, disabled)}`}>
-        {ticked && (
-          <svg viewBox="0 0 16 16" className="size-3 stroke-ground" fill="none" strokeWidth="3">
-            <path d="M2 8.5 6 12.5 14 3.5" />
-          </svg>
-        )}
-      </span>
-    </button>
-  );
 }

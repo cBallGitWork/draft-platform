@@ -80,8 +80,9 @@ PR's checks box.
 - The Vitest suite and the type check pass before and after.
 - Scoring: the whole-match golden in `tests/convex/scoring/scoring.test.ts` scores every recorded
   line of Hull v Everton, from both feeds, in all six areas, and must match
-  `tests/support/golden/hull-everton.scores.json` before and after. A whole gameweek, every player
-  and every head-to-head, replaces it once #28 or the league score lands.
+  `tests/support/golden/hull-everton.scores.json` before and after, and
+  `tests/convex/endToEnd/miniBetaGameweek.test.ts`, which checks gameweek 6's team points against
+  points worked out man by man, passes before and after.
 - The Convex schema is unchanged: `tests/convex/schema.contract.test.ts` passes without `-u`; a
   refactor/ branch that changes `tests/support/golden/schema.json` is not a refactor.
 - A test that still passes with the fix deleted pins the wrong thing: delete it, run it, see.
