@@ -78,9 +78,9 @@ its team stats reads are kept for the tests (`tests/support/recorded/pl-live-mat
 | Components | shadcn/ui on Base UI, added with the first component that needs Base UI's behaviour (a dialog, or a true ARIA menu with arrow-key roving focus); a disclosure list like the league switcher (`src/frame/LeagueSwitcher.tsx`) is hand-built and needs none | the code is copied into the repo, so it is ours to restyle |
 | Styling | Tailwind 4 with our own design values | the defaults are the generic AI look Craig wants to get far from |
 | Typeface | Archivo Narrow from Fontsource | plate.md's one face, served with the app: no call to Google from the sign-in page, and screenshots don't wait on a font server |
-| Tables | TanStack Table and TanStack Virtual | unstyled, so they take Championship Manager density; v9 is newer than Claude's knowledge, so read its docs first |
-| Tactics pitch | Pragmatic drag and drop, plus tap to swap | maintained; a phone needs taps anyway |
-| Motion | Motion | live picks and ticking points |
+| Tables | hand-built `<table>`s styled with Tailwind, such as Scouting's players list (`src/scouting/PlayersTable.tsx`), sorted by the server; TanStack Table and TanStack Virtual when a table needs virtualising | a plain table takes Championship Manager density with no library to learn; TanStack's are unstyled, so they would too, and its Table v9 is newer than Claude's knowledge, so read its docs first |
+| Tactics pitch | the browser's own drag and drop (`draggable`, in `src/myTeam/Pitch.tsx` and `SquadTable.tsx`), plus a tap, click or Enter to pick a player up and another to place him, both reaching one `onPlace` | a phone and a keyboard need the tap anyway, so drag is only the desk's shortcut and needs no package; Pragmatic drag and drop if drag ever needs more than the browser gives |
+| Motion | considered, not needed yet: Motion when a screen needs animating | the live points change without it |
 | Forms | React Hook Form with Zod, when a form needs them | the league-rules forms are large. The scoring editor (#30) didn't: its form is the scoring set itself, edited as data (`src/scoring/editing.ts`) and checked by the server's `validateScoringSet`, which a Zod schema would only repeat |
 | Charts | Recharts | what shadcn's charts use |
 | Tests | Vitest; `convex-test` with fake timers for the backend, on `@edge-runtime/vm`; Testing Library on jsdom for the app; a test that logs with `console.error` fails unless it calls `silenceConsoleError()` | the companion's runner; the draft clock can be tested without waiting; `convex-test` needs Convex's runtime mimicked; screens are tested by role and name, as a manager finds them |
@@ -90,14 +90,20 @@ its team stats reads are kept for the tests (`tests/support/recorded/pl-live-mat
 | Going live | the Vercel CLI (`vercel`, a devDependency pinned to one version), driven by `npm run setup:live` (`scripts/live-setup/`, docs/setup.md) with the Convex CLI and one `fetch` per call to Resend's API | Craig signs in to each CLI once and the setup command does the rest, with no token of ours to keep; pinned because the command's flags were read from that version's `--help` |
 
 Each is installed with the first feature that needs it; for now package.json has the app, sign-in,
-styling, typeface, test, coverage, screenshot, smoke-test and going-live rows, and the rest are the plan.
+styling, typeface, test, coverage, screenshot, smoke-test and going-live rows. Tables and the
+Tactics pitch are built with no package, and components, motion, forms and charts are the plan.
 
 ## Data
 
 - The football layer (FPL and the Premier League's public APIs) is copied from epl-draft's
-  `packages/core` when needed, not shared, and kept behind one seam so a paid feed can replace it
-  for other leagues (SPEC, Later).
-  The seam is `Football` in `convex/football/football.ts`; FPL's adapter is `convex/football/fpl.ts` (#21).
+  `packages/core` when needed, not shared. Clubs, players, fixtures and gameweeks sit behind one
+  seam so a paid feed can replace them for other leagues (SPEC, Later): `Football` in
+  `convex/football/football.ts`, filled by FPL's adapter `convex/football/fpl.ts` (#21) and read
+  by `convex/football/footballSync.ts`. Nothing else goes through it: match stats, live stats,
+  team sheets, commentary and positions read FPL's and the Premier League's own shapes
+  (`convex/stats/matchStatsSync.ts`, `convex/stats/liveStatsSync.ts` and
+  `convex/positions/positionsSync.ts` import `fpl.ts`, `fplLive.ts`, `plMatch.ts` and
+  `premierLeague.ts` directly), so a paid feed would replace those modules too.
 - Players are keyed on FPL's season-stable `code`, never the per-season `id`.
 - The two feeds are matched on Opta's ids (`convex/football/feedIds.ts`): a Premier League fixture's
   `altIds.opta` is `g` + FPL's fixture `code`, and a man's is FPL's `opta_code`; one that matches
@@ -165,7 +171,21 @@ styling, typeface, test, coverage, screenshot, smoke-test and going-live rows, a
 - League rules are rows, never constants; FPL's own rules can be constants. Each league's are rows
   in `leagueRules`, one from each gameweek they changed in, copied at creation from
   `defaultLeagueRules` (#25), the squad maximum read instead from `squadMaximums` by the league's
-  size (#316).
+  size (#316). The scoring set moved out of them to the site's scoring (#354, below): a row saved
+  before then still carries one, which is ignored (`heldRules` in
+  `convex/rules/leagueRulesShape.ts`).
+- The site's scoring (#354-#356): every league plays on one scoring set, which only the admin
+  changes. Each version is a row in `siteScoring`, announced as a patch or a fix, and found by
+  `takesEffectAt`, so a past gameweek keeps the set it was played under; with none, the first set
+  (`convex/scoring/firstScoring.ts`). A gameweek's first kickoff is kept once it passes, in
+  `gameweekStarts` (#414), so the version it plays on can't change if that match moves. The
+  admin's unannounced patch is the one row in `siteScoringDraft`, and who dismissed a waiting
+  patch's banner is a row a person and version in `patchBannerDismissals`, so it stays dismissed on
+  every device (`convex/scoring/siteScoring.ts`).
+- Lineups (#8): a row in `lineups` for each gameweek a team saved one from
+  (`convex/lineup/lineups.ts`). A league's deadline for a gameweek is kept once it passes, in
+  `passedDeadlines` (#150, `convex/gameweeks/deadlineRecorder.ts`), so it stays put if the first
+  match is then postponed.
 - Leagues (#24): `leagues`, `teams` and `leagueEvents`, people known by their email, so one can be
   named before they have an account; joining's rows are `invites`, `inviteLinks` and
   `joinRequests` (#73).
@@ -187,6 +207,23 @@ styling, typeface, test, coverage, screenshot, smoke-test and going-live rows, a
   `playedFixtures` once it begins, at the league's own deadline, and read from there ever after;
   the gameweeks still to come are drawn on every read, seeded by the league's id. The football
   sync's deadline recorder stores them, and a new team is never made without them stored first.
+  Each team's points in a gameweek are worked out on every read until every match in it has
+  locked, then stored in `finalScores` (#418, `convex/table/finalScores.ts`) and read from there,
+  while the gameweek holds the matches they were scored from. `rescore` drops a gameweek's stored
+  scores and stores them again, for when scoring code or a player's positions change after.
+- Points overrides (#32): a commissioner's override of one player's points in one locked match is a
+  row in `pointsOverrides`, a second replacing the first, and it rescores that gameweek
+  (`convex/table/pointsOverrides.ts`).
+- Season totals: each player's stats for a season are a row in `playerSeasonStats`, kept in step as
+  each match record is written, so Scouting sorts by any stat without reading a season of records
+  (`convex/stats/seasonStats.ts`).
+- The shortlist (#374): each team's own list of players for the season, a row each in
+  `shortlistPlayers` by FPL's `code`, read and changed only by its manager
+  (`convex/scouting/shortlist.ts`).
+- Feedback (#357): each message to the admin is a row in `feedback`, kept for him to read on his
+  dashboard (`convex/feedback/feedback.ts`).
+- Each person's time zone, as their browser last named it, is a row in `timeZones` by email, so
+  what they read tells time in it (#442, `convex/signIn/timeZone.ts`).
 
 ## With the first code
 
