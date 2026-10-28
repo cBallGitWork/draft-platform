@@ -98,6 +98,19 @@ describe("the games", () => {
     expect(rows().map((row) => row.getAttribute("aria-current"))).toEqual([null, "true", null]);
   });
 
+  it("passes over a gameweek with no kickoff time behind one begun, as the server does (#413)", async () => {
+    const now = Date.now();
+    openFixtures({
+      fixtures: fixturesOf([
+        game(30, { kind: "team", teamName: "Team 2" }),
+        game(31, { kind: "team", teamName: "Team 3" }, now - HOUR_MS),
+        game(32, { kind: "team", teamName: "Team 4" }, now + WEEK_MS),
+      ]),
+    });
+    await screen.findByRole("table");
+    expect(rows().map((row) => row.getAttribute("aria-current"))).toEqual([null, null, "true"]);
+  });
+
   it("with two games a gameweek, shows each", async () => {
     openFixtures({ fixtures: teamFixturesOf(["Team 1", "Team 2", "Team 3", "Team 4"], "Team 1", { gamesPerGameweek: 2, gameweeks: [1] }) });
     await screen.findByRole("table");

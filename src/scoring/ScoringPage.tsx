@@ -9,6 +9,7 @@ import { PatchNotesLink } from "../patches/PatchBanner";
 import { useRulesDraft } from "../rules/rulesDraft";
 import { SaveBar } from "../rules/SaveBar";
 import { TickBox } from "../rules/TickBox";
+import { useChoiceAmong } from "../useChoiceAmong";
 import { CategoryEditor } from "./CategoryEditor";
 import { firstBlankRule, newRule, rulePricing, valueAt, type PerCount, type Rule, type Scoring } from "./editing";
 import type { ScoringSeam, ScoringView } from "./seam";
@@ -135,8 +136,7 @@ function Summary({ rule }: { rule: Rule }) {
 function AddCategory({ ruled, onAdd }: { ruled: readonly string[]; onAdd: (stat: string) => void }) {
   const [open, setOpen] = useState(false);
   const choices = STAT_CATALOGUE.filter((entry) => !ruled.includes(entry.stat)).toSorted((one, other) => one.name.localeCompare(other.name));
-  const [picked, pick] = useState("");
-  const stat = choices.some((entry) => entry.stat === picked) ? picked : choices[0]?.stat;
+  const [stat, pick] = useChoiceAmong(choices.map((entry) => entry.stat));
   if (!open) {
     return (
       <div className="p-3">
