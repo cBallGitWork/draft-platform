@@ -3,7 +3,8 @@ import { isLocked, leagueDeadline, type DeadlineRule, type ScheduledMatch } from
 import type { gameweekRecord } from "../schema";
 
 // Which gameweek a rule change made now takes effect from (spec/03, spec/14: "it applies from the
-// next gameweek; past gameweeks are locked"; #25). Pure: the clock is an argument.
+// next gameweek; past gameweeks are locked"; #25), and which is this gameweek (spec/12, League
+// home). Pure: the clock is an argument.
 
 type Gameweek = Pick<Infer<typeof gameweekRecord>, "number">;
 
@@ -37,4 +38,15 @@ export function nextGameweek(
  */
 export function nextByDeadlines<G>(inOrder: readonly G[], deadlineOf: (gameweek: G) => number | null, now: number): G | undefined {
   return inOrder[inOrder.findLastIndex((gameweek) => isLocked(deadlineOf(gameweek), now)) + 1];
+}
+
+/** The gameweek league home and the matchup show the head-to-heads of: the latest the league has
+ *  begun, by its own deadlines, or before any has, the first to come. Undefined with no
+ *  head-to-head gameweeks. */
+export function thisGameweekOf<Gameweek extends { gameweek: number }>(
+  gameweeks: readonly Gameweek[],
+  deadlineOf: (gameweek: number) => number | null,
+  now: number,
+): Gameweek | undefined {
+  return gameweeks.findLast(({ gameweek }) => isLocked(deadlineOf(gameweek), now)) ?? gameweeks[0];
 }
