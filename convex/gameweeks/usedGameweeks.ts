@@ -1,9 +1,9 @@
 // Which gameweeks a league plays (#74; spec/13, Gameweeks): every one of FPL's season unless its
 // commissioner unticked it. An unticked gameweek scores nothing and has no head-to-head: the
-// fixtures (#33) skip it via `usedGameweeksOf`, and scoring (#29) is still to apply it with
-// `isGameweekUsed`; waivers, free agency and trades carry on through it. Its only imports are a
-// type, which compiles away, and Convex's validators, which the screens already load, so the
-// screens can read it too.
+// fixtures (#33) skip it via `usedGameweeksOf`, and scoring's `begunGameweeks`
+// (convex/table/gameweekScores.ts) applies `isGameweekUsed`, so it is never scored; waivers, free
+// agency and trades carry on through it. Its only imports are a type, which compiles away, and
+// Convex's validators, which the screens already load, so the screens can read it too.
 
 import { v } from "convex/values";
 import type { QueryCtx } from "../_generated/server";

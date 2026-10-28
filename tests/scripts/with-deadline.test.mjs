@@ -1,11 +1,16 @@
 import { spawn } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, expect, test } from "vitest";
 
 const WRAPPER = join(import.meta.dirname, "../../scripts/with-deadline.mjs");
 const DEADLINE_MESSAGE = "sh ran past the 1s deadline: likely an endless loop";
+// How often the polls below look again, and how long each waits before giving up.
+const POLL_INTERVAL_MS = 50;
+const DEATH_WAIT_MS = 2_500;
+// Generous, so a slow runner still gets there, yet well inside the signal test's 30s deadline.
+const PID_FILE_WAIT_MS = 10_000;
 
 let scratch;
 afterEach(() => scratch && rmSync(scratch, { recursive: true, force: true }));
@@ -32,10 +37,31 @@ function alive(pid) {
   }
 }
 
+const pause = () => new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+
 // A killed process can take a moment to be reaped once its parent is gone.
 async function waitUntilDead(pid) {
-  for (let tries = 0; tries < 50 && alive(pid); tries++) await new Promise((r) => setTimeout(r, 50));
+  const giveUpAt = Date.now() + DEATH_WAIT_MS;
+  while (Date.now() < giveUpAt && alive(pid)) await pause();
   return !alive(pid);
+}
+
+// The pid in a file, or 0 while the file is missing or not yet a whole positive number.
+function readPid(pidFile) {
+  if (!existsSync(pidFile)) return 0;
+  const pid = Number(readFileSync(pidFile, "utf8"));
+  return Number.isInteger(pid) && pid > 0 ? pid : 0;
+}
+
+// Resolves with the pid once the shell has written it, or fails saying it never came.
+async function waitForPid(pidFile) {
+  const giveUpAt = Date.now() + PID_FILE_WAIT_MS;
+  while (Date.now() < giveUpAt) {
+    const pid = readPid(pidFile);
+    if (pid > 0) return pid;
+    await pause();
+  }
+  throw new Error(`no pid in ${pidFile} after ${PID_FILE_WAIT_MS}ms`);
 }
 
 // A fresh scratch folder, removed after the test, and the file in it for a grandchild's pid.
@@ -75,10 +101,17 @@ test("at the deadline the command's own children die too, not just the command",
 
 test("a signal to the wrapper reaches the command's group, which sits outside the terminal's", async () => {
   const pidFile = grandchildPidFile();
+  let grandchildPid;
   const { code, output } = await run(["30", ...grandchildCommand(pidFile)], {
-    onSpawn: (wrapper) => setTimeout(() => wrapper.kill("SIGTERM"), 500),
+    // Signal once the grandchild's pid is written; signal anyway if it never is, so the run ends.
+    onSpawn: (wrapper) => {
+      grandchildPid = waitForPid(pidFile).finally(() => wrapper.kill("SIGTERM"));
+      grandchildPid.catch(() => {}); // awaited below, once the wrapper has closed
+    },
   });
+  const grandchild = await grandchildPid;
   expect(code).not.toBe(0);
   expect(output).not.toContain("deadline");
-  expect(await waitUntilDead(Number(readFileSync(pidFile, "utf8")))).toBe(true);
+  expect(grandchild).toBeGreaterThan(0);
+  expect(await waitUntilDead(grandchild)).toBe(true);
 });

@@ -3,6 +3,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "../../convex/table/overrideLimits";
 import { PANEL_BODY, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
+import { useChoiceAmong } from "../useChoiceAmong";
 import type { PlayerCard, PlayerCardSeam } from "./seam";
 import { cancelOverrideWords, OVERRIDE_TITLE, overriddenDoneWords, overrideHint, overrideLabels, overrideMatchWords, overrideWords } from "./words";
 
@@ -19,7 +20,7 @@ export function OverridePoints({ leagueId, card, seam }: { leagueId: Id<"leagues
   const override = seam.useOverride();
   const change = useChange();
   const [open, setOpen] = useState(false);
-  const [fixtureCode, setFixtureCode] = useState(card.matches[0]?.fixtureCode);
+  const [fixtureCode, setFixtureCode] = useChoiceAmong(card.matches.map((match) => match.fixtureCode));
   const [points, setPoints] = useState("");
   const [reason, setReason] = useState("");
   const [done, setDone] = useState(false);
