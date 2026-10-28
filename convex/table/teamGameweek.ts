@@ -92,14 +92,18 @@ export async function gameweekInputs(
   fixtures: readonly Doc<"fixtures">[],
   teamIds: readonly TeamId[],
 ): Promise<GameweekInputs> {
-  const set = reads.setIn(gameweek);
-  validateScoringSet(set);
   return {
-    set,
-    rules: reads.season.inGameweek(gameweek),
+    ...rulesIn(reads, gameweek),
     matches: await heldMatches(ctx, reads.leagueId, fixtures),
     lineups: await lineupsInGameweek(ctx, reads.leagueId, teamIds, gameweek),
   };
+}
+
+/** The site's set in force in the gameweek, checked, and the league's rules then. */
+export function rulesIn(reads: LeagueReads, gameweek: number) {
+  const set = reads.setIn(gameweek);
+  validateScoringSet(set);
+  return { set, rules: reads.season.inGameweek(gameweek) };
 }
 
 /** A team's gameweek, slot by slot, for a screen that shows it so (the matchup, #34) as well as
@@ -195,7 +199,7 @@ export const playsIn = (fixture: Doc<"fixtures">, clubCode: number) => fixture.h
 /** A match read at full time has a state; one still live has none (liveStats.ts). */
 export const isFinished = (match: HeldMatch) => match.status !== null;
 /** Its corrections window shut: nothing changes its points after (spec/07). */
-export const isLocked = (match: HeldMatch) => match.status?.state === "locked";
+export const isLocked = (match: Pick<HeldMatch, "status">) => match.status?.state === "locked";
 
 /** What a man neither team sheet named did in a match his club has finished: nothing. */
 const NOT_NAMED: Readonly<Record<string, number>> = {};
@@ -223,7 +227,8 @@ function forPlay(match: HeldMatch, code: PlayerCode) {
 
 /** Where a bench player's greyed points are priced while he hasn't come on: the first cell he plays,
  *  back to front, or the first cell of all for a man with no position yet. The table reads only
- *  totals, which those points never reach; where a screen prices them is not settled (#29). */
+ *  totals, which those points never reach, and his card prices them at his best position
+ *  (scoredMatches.ts). */
 function benchCell(positions: readonly Position[]): Cell {
   const cells = AREAS.flatMap((area) => LANES.map((lane) => ({ area, lane })));
   return cells.find((cell) => playsCell(positions, cell)) ?? cells[0];
