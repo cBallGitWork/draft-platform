@@ -80,14 +80,22 @@ export async function getLeague(ctx: QueryCtx, leagueId: Id<"leagues">): Promise
 /** Whether this (normalised) email is the admin's. */
 export const isAdmin = (email: string) => email === adminEmail();
 
-/** What this email may do in this league. */
-function powersIn(league: Doc<"leagues">, email: string) {
+/** What a person may do in a league, as `powersIn` judges it. */
+export const leaguePowers = v.object({
+  /** Names and removes the commissioner and co-commissioner, and deletes the league. */
+  names: v.boolean(),
+  /** Every other commissioner power. */
+  runs: v.boolean(),
+});
+export type LeaguePowers = Infer<typeof leaguePowers>;
+
+/** What this email may do in this league: the one rule, which "Your leagues" also sends the
+ *  screens (myLeagues.ts) so they offer only what the server would allow. */
+export function powersIn(league: Doc<"leagues">, email: string): LeaguePowers {
   const admin = isAdmin(email);
   const isCommissioner = email === league.commissionerEmail;
   return {
-    /** Names and removes the commissioner and co-commissioner, and deletes the league. */
     names: admin || isCommissioner,
-    /** Every other commissioner power. */
     runs: admin || isCommissioner || email === league.coCommissionerEmail,
   };
 }
@@ -120,7 +128,7 @@ export async function adminOf(ctx: QueryCtx): Promise<string> {
 }
 
 /** The caller and the league, if the caller holds `power` in it; otherwise `refusal`. */
-async function callerWith(ctx: QueryCtx, leagueId: Id<"leagues">, power: "runs" | "names", refusal: string) {
+async function callerWith(ctx: QueryCtx, leagueId: Id<"leagues">, power: keyof LeaguePowers, refusal: string) {
   const email = await callerEmail(ctx);
   const league = await getLeague(ctx, leagueId);
   if (!powersIn(league, email)[power]) refuse(refusal);
@@ -143,6 +151,16 @@ export async function memberOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
   const league = await getLeague(ctx, leagueId);
   if (!powersIn(league, email).runs && !(await teamOf(ctx, leagueId, email))) refuse(refusals.notInLeague);
   return { email, league };
+}
+
+/** The caller, the league and the caller's own team in it; otherwise the refusal, in this order:
+ *  signed out, no such league (or being deleted), running no team there. Being the league's
+ *  commissioner or the admin doesn't count: these are a manager's own team's pages. */
+export async function managerOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
+  const email = await callerEmail(ctx);
+  const league = await getLeague(ctx, leagueId);
+  const team = (await teamOf(ctx, leagueId, email)) ?? refuse(refusals.runsNoTeam);
+  return { email, league, team };
 }
 
 /** The caller and the league, if the caller may delete it (spec/13, Deleting). */
