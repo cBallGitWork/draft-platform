@@ -1,7 +1,6 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
-import { seasonStartYear } from "../../../convex/football/football";
-import { HOUR_MS } from "../../../convex/shared/time";
+import { HOUR_MS, seasonStartYear } from "../../../convex/shared/time";
 import { countedStats, REBUILD_PAGE } from "../../../convex/stats/seasonStats";
 import { addStats, sumStats } from "../../../convex/stats/statTotals";
 import { FULL_TIME_READ, GAMEWEEK, KICKOFF, heldMatch, syncAt, withBelloumiGoalRemoved, withHullEverton, withPlReadEmpty } from "../../support/convex/matchStats.harness";

@@ -48,7 +48,8 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
 - **My team** shows the tactics pitch, the squad and Mail side by side.
 - My team's other tabs, after the Tactics tab (25 Oct 2026):
   - **Squad**: every player in the squad in one table, with his position, club, next fixture,
-    season points and last gameweek's points.
+    season points and last gameweek's points. His season points are the sum of what his card
+    shows, so the two always agree (Craig, 28 Oct 2026).
   - **Fixtures**: the team's head-to-head fixtures and results for the season. A player's Premier
     League fixtures belong on the players screen.
   - **Transactions**: the team's claims, drops, trades and commissioner assignments, newest first,
@@ -59,7 +60,11 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
     playing;
   - this season's matches, each broken down by category and role (`spec/14`, `spec/05`): for a
     player in a lineup, the points his team got from his slot; for anyone else, what he would score
-    at his best position, labelled so;
+    at his best position, labelled so. A bench player who came on as an auto-sub shows the points
+    from the slot and role he took over, as roles' multipliers can differ each week; one who didn't
+    come on shows what he would score at his best position, labelled as not counted, since the card
+    always shows what he scored. While a match is live the card follows the table, auto-subs
+    included, provisional until final (Craig, 28 Oct 2026);
   - one line of last season's totals, under the site's scoring as it stands (`spec/14`);
   - his role stars and the manager's latest scout report on him, where the manager can see them
     (`spec/19`), and the captain and set-piece hints `spec/17` adds after the mini beta;

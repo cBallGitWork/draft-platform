@@ -8,6 +8,7 @@ import { matchStatsState, matchStatsSyncFields, playerMatchRecord } from "../sch
 import { LATEST_RUNS } from "../shared/syncRuns";
 import { HOUR_MS, MINUTE_MS } from "../shared/time";
 import { currentFixtures } from "../shared/fixtures";
+import { dueMatch, type DueMatch } from "../shared/dueMatches";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { countedStats, moveSeasonTotals, type RecordChange } from "./seasonStats";
 
@@ -15,9 +16,6 @@ import { countedStats, moveSeasonTotals, type RecordChange } from "./seasonStats
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
 
 type State = Infer<typeof matchStatsState>;
-/** A match to read, and the gameweek its live stats come under. */
-export const dueMatch = v.object({ fixtureCode: v.number(), gameweek: v.number() });
-export type DueMatch = Infer<typeof dueMatch>;
 /** What writing one match's records did: upsertMatch's, and upsertLive's before full time. Stored as tables/matchStats.ts's matchSyncOutcome. */
 export const matchWrites = v.object({
   state: matchStatsState,
