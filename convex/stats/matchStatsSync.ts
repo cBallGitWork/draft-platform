@@ -56,9 +56,16 @@ export const run = internalAction({
 export type BeforeFullTime = "wait" | "live";
 
 /** Each due match a gameweek at a time, since FPL's live stats and the Premier League's list come
- *  by gameweek. A gameweek whose reads fail fails each of its matches; a match that fails fails alone. */
-export async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number, beforeFullTime: BeforeFullTime) {
-  const { bootstrap, fixtures } = await readFplPayloads();
+ *  by gameweek. A gameweek whose reads fail fails each of its matches; a match that fails fails alone.
+ *  `fpl` reads FPL's bootstrap and fixtures, which the live tick shares with the sheets' read. */
+export async function syncDue(
+  ctx: ActionCtx,
+  due: DueMatch[],
+  readAt: number,
+  beforeFullTime: BeforeFullTime,
+  fpl: typeof readFplPayloads = readFplPayloads,
+) {
+  const { bootstrap, fixtures } = await fpl();
   const codeByOpta = codesByOpta(bootstrap.elements);
   // The live tick reads each match's commentary too (#43), after its points and apart from them.
   const commentary = beforeFullTime === "live" ? commentaryContext(bootstrap, codeByOpta) : null;
@@ -147,7 +154,8 @@ async function syncMatch(
   return { fixtureCode, ok: true, ...written, players: records.length, unmatched };
 }
 
-function byGameweek(due: DueMatch[]): Map<number, number[]> {
+/** The matches by gameweek, each gameweek's in the order given. */
+export function byGameweek(due: DueMatch[]): Map<number, number[]> {
   const codes = new Map<number, number[]>();
   for (const { fixtureCode, gameweek } of due) codes.set(gameweek, [...(codes.get(gameweek) ?? []), fixtureCode]);
   return codes;

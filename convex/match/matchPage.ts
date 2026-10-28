@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { heldOf } from "../football/matchCommentary";
+import { heldTeamSheetsOf } from "../football/matchTeamSheets";
 import { heldTeamStatsOf } from "../football/matchTeamStats";
 import { clubOf, scoreOf, scoreOnly } from "../football/matchScores";
 import { inMatchOf } from "../matchup/matchup";
@@ -29,11 +30,14 @@ import { gameweekInputs, heldFixtures, leagueReads, MATCH_RECORDS_MOST, teamInGa
 // matchup and the table work them, so the three never disagree; only once the league's gameweek has
 // begun, as the matchup shows lineups only then.
 //
-// The men come from the match's records, which the live poller writes from kickoff (#28): the
-// sheets an hour before it aren't stored yet (#45 stays open for them). The five team stats are as
-// the live poller last read them (football/matchTeamStats.ts).
+// The men come from the match's records, which the live poller writes from kickoff (#28); before
+// any, from the team sheets it reads in the hour before kickoff (football/matchTeamSheets.ts). The
+// five team stats are as the live poller last read them (football/matchTeamStats.ts).
 
 type PlayerCode = number;
+
+/** A man the match names: from his record, or before any, from the sheets, not yet played. */
+type NamedMan = Pick<Doc<"playerMatchStats">, "playerCode" | "started" | "played">;
 
 const side = v.union(v.literal("home"), v.literal("away"));
 
@@ -93,7 +97,8 @@ export const ofMatch = query({
       MATCH_RECORDS_MOST,
       `Match ${fixtureCode} holds more than ${MATCH_RECORDS_MOST} records, so its men would be cut short`,
     );
-    const owners = await ownersOf(ctx, leagueId, records);
+    const named = records.length > 0 ? records : await sheetMenOf(ctx, fixtureCode);
+    const owners = await ownersOf(ctx, leagueId, named);
     const priced = await pricedOrProblem(ctx, league, fixture, owners);
     const held = await scoreOf(ctx, fixtureCode);
     const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
@@ -104,7 +109,7 @@ export const ofMatch = query({
       home: clubOf(await clubByCode(ctx, fixture.homeClubCode)),
       away: clubOf(await clubByCode(ctx, fixture.awayClubCode)),
       score: held === null ? null : scoreOnly(held),
-      men: await menOf(ctx, fixture, records, owners, priced),
+      men: await menOf(ctx, fixture, named, owners, priced),
       pointsProblem: priced.problem,
       teamStats: teamStats === null ? null : { home: teamStats.home, away: teamStats.away },
       commentary: await commentaryOf(ctx, fixture, priced),
@@ -112,11 +117,17 @@ export const ofMatch = query({
   },
 });
 
-/** Each man the match's records hold who is owned in the league, by the team that owns him. */
-async function ownersOf(ctx: QueryCtx, leagueId: Id<"leagues">, records: readonly Doc<"playerMatchStats">[]): Promise<Map<PlayerCode, Doc<"teams">>> {
+/** The men the held sheets name, before kickoff; none before a read has named any. */
+async function sheetMenOf(ctx: QueryCtx, fixtureCode: number): Promise<NamedMan[]> {
+  const sheets = await heldTeamSheetsOf(ctx, fixtureCode);
+  return (sheets?.men ?? []).map(({ playerCode, started }) => ({ playerCode, started, played: null }));
+}
+
+/** Each man the match names who is owned in the league, by the team that owns him. */
+async function ownersOf(ctx: QueryCtx, leagueId: Id<"leagues">, named: readonly NamedMan[]): Promise<Map<PlayerCode, Doc<"teams">>> {
   const teams = new Map((await teamsOf(ctx, leagueId)).map((team) => [team._id, team]));
   const owners = new Map<PlayerCode, Doc<"teams">>();
-  for (const { playerCode } of records) {
+  for (const { playerCode } of named) {
     const owned = await ctx.db
       .query("squadPlayers")
       .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode))
@@ -177,19 +188,19 @@ async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtu
   return result;
 }
 
-/** Each man the records hold, with his club's side, his owner and his points, in the page's order.
- *  His side is by the club he is at now, as a record holds no club: a man since moved between the
+/** Each man the match names, with his club's side, his owner and his points, in the page's order.
+ *  His side is by the club he is at now, as neither a record nor the sheets hold a club: a man since moved between the
  *  two shows under his new one (#502). */
 async function menOf(
   ctx: QueryCtx,
   fixture: Doc<"fixtures">,
-  records: readonly Doc<"playerMatchStats">[],
+  named: readonly NamedMan[],
   owners: Map<PlayerCode, Doc<"teams">>,
   { slots }: Priced,
 ): Promise<MatchMan[]> {
   const how = await howPositionsCount(ctx);
   const men = await Promise.all(
-    records.map(async ({ playerCode, started, played }) => {
+    named.map(async ({ playerCode, started, played }) => {
       const player = await heldPlayer(ctx, fixture.code, playerCode);
       const slot = slots.get(playerCode);
       return {
@@ -208,11 +219,11 @@ async function menOf(
   return men.toSorted((one, other) => sideOrder(one) - sideOrder(other) || Number(other.started) - Number(one.started) || positionOrder(one) - positionOrder(other) || one.name.localeCompare(other.name));
 }
 
-/** A man with a record in the match. A record is filed only for a man FPL lists, so one the
+/** A man the match names. A record or a sheet's man is kept only for a man FPL lists, so one the
  *  football sync doesn't hold is bad data, and throws. */
 async function heldPlayer(ctx: QueryCtx, fixtureCode: number, playerCode: PlayerCode): Promise<Doc<"players">> {
   const player = await playerByCode(ctx, playerCode);
-  if (player === null) throw new Error(`match ${fixtureCode} has a record for player ${playerCode}, whom the football sync doesn't hold`);
+  if (player === null) throw new Error(`match ${fixtureCode} names player ${playerCode}, whom the football sync doesn't hold`);
   return player;
 }
 

@@ -2,6 +2,7 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { FPL_BOOTSTRAP_URL, fplLiveUrl } from "../../../convex/football/football";
 import { LIVE_WINDOW_MS } from "../../../convex/stats/liveStats";
+import { SHEETS_BEFORE_KICKOFF_MS } from "../../../convex/football/matchTeamSheets";
 import { heldRecords, recordsIn, stagedGw6, stageTime, tickAt } from "../../support/convex/liveStats.harness";
 import {
   FULL_TIME_READ,
@@ -56,7 +57,8 @@ test("a match the feed has dropped, or postponed out of its gameweek, is never l
 test("a tick outside every match window reads no feed and records no row", async () => {
   const t = await withHullEverton();
 
-  const { fetch, latest } = await tickAt(t, KICKOFF - MINUTE_MS, stagedGw6(0));
+  // Before the hour in which its team sheets are read (liveStats.teamSheets.test.ts).
+  const { fetch, latest } = await tickAt(t, KICKOFF - SHEETS_BEFORE_KICKOFF_MS - MINUTE_MS, stagedGw6(0));
 
   expect(fetch).not.toHaveBeenCalled();
   expect(latest).toBeUndefined();

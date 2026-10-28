@@ -89,6 +89,28 @@ test("at full time each club's men show, starters first, each owned man with his
   expect(manOf(page.men, EVERTON_STARTERS[0].playerCode)).toMatchObject({ side: "away", ownerTeamName: "Team 2" });
 });
 
+test("before kickoff, the men the team sheets name show as the sheets have them, each owned man with his team, none yet played", async () => {
+  const league = await matchLeague();
+  const sheets = mergedHullEverton().map(({ playerCode, started }) => ({ playerCode, started }));
+  await league.t.mutation(internal.football.matchTeamSheets.store, { fixtureCode: HULL_EVERTON, men: sheets });
+  const page = (await matchAs(league, ANN))!;
+
+  expect(page.men.map(({ playerCode, started }) => ({ playerCode, started })).toSorted((a, b) => a.playerCode - b.playerCode)).toEqual(sheets.toSorted((a, b) => a.playerCode - b.playerCode));
+  expect(page.men.every((man) => man.played === null)).toBe(true);
+  expect(page.men[0]).toMatchObject({ side: "home", started: true, position: "GK" });
+  expect(manOf(page.men, PHILLIPS)).toMatchObject({ side: "home", started: false, ownerTeamName: "Team 1" });
+  expect(manOf(page.men, EVERTON_STARTERS[0].playerCode)).toMatchObject({ side: "away", started: true, ownerTeamName: "Team 2" });
+});
+
+test("once the match has records, they are its men, not the sheets", async () => {
+  const league = await matchLeague();
+  await league.t.mutation(internal.football.matchTeamSheets.store, { fixtureCode: HULL_EVERTON, men: [{ playerCode: PHILLIPS, started: true }] });
+  await fullTimeRecords(league);
+  const page = (await matchAs(league, ANN))!;
+  expect(page.men).toHaveLength(mergedHullEverton().length);
+  expect(manOf(page.men, PHILLIPS).started).toBe(false);
+});
+
 test("a man owned by no team shows no owner and no points; a man who has left both clubs has no side", async () => {
   const league = await matchLeague();
   await fullTimeRecords(league);

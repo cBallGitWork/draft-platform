@@ -1,0 +1,109 @@
+import { v, type Infer } from "convex/values";
+import { internal } from "../_generated/api";
+import type { Doc } from "../_generated/dataModel";
+import { internalMutation, internalQuery, type ActionCtx, type QueryCtx } from "../_generated/server";
+import { teamSheetMan } from "../schema";
+import { logFailure } from "../shared/errors";
+import { HOUR_MS } from "../shared/time";
+import { dueMatch, type DueMatch } from "../stats/matchStats";
+import { byGameweek } from "../stats/matchStatsSync";
+import { codesByOpta, fixtureCodeIn } from "./feedIds";
+import type { readFplPayloads } from "./fpl";
+import { matchSlots } from "./plMatch";
+import { readPlFixture, readPlFixtures } from "./premierLeague";
+
+// Each match's team sheets before kickoff (#45; spec/10, The match page: "From the lineups, about
+// an hour before kickoff"), read by the live tick (#28) for every match kicking off within the hour
+// and stored one row a match. Only the sheets are read: the Premier League's list for the gameweek,
+// for the match's id, and the match's own read, which names both sides' men; its points, commentary
+// and team stats wait for kickoff. Each read replaces the held sheets, so a change made in the
+// warm-up shows; a read with neither side named leaves them. A failed read is logged and the held
+// sheets stand. From kickoff the match's records, written from the same sheets, take over on the
+// page (match/matchPage.ts). A man FPL doesn't list is left out, as from kickoff, where the tick's
+// row names him.
+
+type TeamSheetMan = Infer<typeof teamSheetMan>;
+
+/** How long before kickoff the sheets are read: spec/10's "about an hour". The Premier League had
+ *  them out at the first read 58 minutes before (docs/pl-commentary.md, What a live match showed). */
+export const SHEETS_BEFORE_KICKOFF_MS = HOUR_MS;
+
+/** The matches whose sheets to read at `now`: kicking off within the hour, not yet kicked off. */
+export const due = internalQuery({
+  args: { now: v.number() },
+  returns: v.array(dueMatch),
+  handler: async (ctx, { now }): Promise<DueMatch[]> => {
+    const upcoming = ctx.db
+      .query("fixtures")
+      .withIndex("by_kickoff", (q) => q.gt("kickoff", now).lte("kickoff", now + SHEETS_BEFORE_KICKOFF_MS));
+    const found: DueMatch[] = [];
+    // Uncapped, as it stays small: matches kicking off within one hour, at most the ten a final day plays at once.
+    for await (const { code, gameweek, droppedAt } of upcoming) {
+      if (droppedAt !== undefined || gameweek === null) continue;
+      found.push({ fixtureCode: code, gameweek });
+    }
+    return found;
+  },
+});
+
+/** Every due match's sheets read and stored. Never throws: a failure is logged, and the held sheets
+ *  stand. `fpl` is the tick's read of FPL, shared with its live matches, for each man's FPL code. */
+export async function syncTeamSheets(ctx: ActionCtx, now: number, fpl: typeof readFplPayloads): Promise<void> {
+  try {
+    const due = await ctx.runQuery(internal.football.matchTeamSheets.due, { now });
+    if (due.length === 0) return;
+    const codeByOpta = codesByOpta((await fpl()).bootstrap.elements);
+    for (const [gameweek, codes] of byGameweek(due)) {
+      let listed: Map<number | null, number>;
+      try {
+        listed = new Map((await readPlFixtures(gameweek)).map((each) => [fixtureCodeIn(each), each.id]));
+      } catch (error: unknown) {
+        logFailure(`gameweek ${gameweek}'s team sheets failed`, error);
+        continue;
+      }
+      for (const fixtureCode of codes) {
+        try {
+          const id = listed.get(fixtureCode);
+          if (id === undefined) throw new Error(`the Premier League lists no match ${fixtureCode} in gameweek ${gameweek}`);
+          const { slots } = matchSlots(await readPlFixture(id), codeByOpta);
+          const men = slots.map(({ playerCode, started }) => ({ playerCode, started }));
+          if (men.length > 0) await ctx.runMutation(internal.football.matchTeamSheets.store, { fixtureCode, men });
+        } catch (error: unknown) {
+          logFailure(`match ${fixtureCode}'s team sheets failed`, error);
+        }
+      }
+    }
+  } catch (error: unknown) {
+    logFailure("the team sheets before kickoff failed", error);
+  }
+}
+
+/** A match's held sheets; null before a read has named anyone. */
+export function heldTeamSheetsOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"matchTeamSheets"> | null> {
+  return ctx.db
+    .query("matchTeamSheets")
+    .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
+    .unique();
+}
+
+/** One read's sheets over the match's row. A read that changes nothing is not written, so a screen
+ *  reading the row is not woken each minute. */
+export const store = internalMutation({
+  args: { fixtureCode: v.number(), men: v.array(teamSheetMan) },
+  returns: v.null(),
+  handler: async (ctx, next) => {
+    const held = await heldTeamSheetsOf(ctx, next.fixtureCode);
+    if (held === null) {
+      await ctx.db.insert("matchTeamSheets", next);
+      return null;
+    }
+    if (sameMen(held.men, next.men)) return null;
+    await ctx.db.patch("matchTeamSheets", held._id, { men: next.men });
+    return null;
+  },
+});
+
+/** The same men, in the same order, each starting or not as before. */
+function sameMen(held: TeamSheetMan[], next: TeamSheetMan[]): boolean {
+  return held.length === next.length && held.every((man, index) => man.playerCode === next[index].playerCode && man.started === next[index].started);
+}

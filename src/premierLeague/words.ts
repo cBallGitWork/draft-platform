@@ -80,7 +80,9 @@ export const pointsProblemWords = (reason: string) => `The league's points can't
 export const sheetLabel = (club: string) => `${club}'s team sheet`;
 export const SUBSTITUTES_TITLE = "Substitutes";
 export const MOVED_TITLE = "Since left both clubs";
-export const noMenWords = "The team sheets show here once the match kicks off.";
+/** Before the sheets are out: spec/10's words for when the live tick starts reading them
+ *  (SHEETS_BEFORE_KICKOFF_MS, convex/football/matchTeamSheets.ts). */
+export const noMenWords = "The team sheets show here about an hour before kickoff.";
 export const matchColumns = {
   position: { short: "Pos", long: "Position" },
   player: { short: "Player", long: "Player, and the team that owns him" },
