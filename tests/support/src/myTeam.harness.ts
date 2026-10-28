@@ -1,6 +1,7 @@
 // My team's tabs' tests' fake seam (shell.harness.tsx hands it to the app).
 
 import { vi } from "vitest";
+import type { Id } from "../../../convex/_generated/dataModel";
 import type { MyTeamSeam, SquadNumberChanges, TeamFixtures, TeamSquad, TeamTransactions } from "../../../src/myTeam/seam";
 import { fakeTactics, type TacticsData } from "./tactics.harness";
 
@@ -17,7 +18,7 @@ export type MyTeamData = TacticsData & {
 };
 
 export function fakeMyTeam({
-  fixtures = { teamName: "Team 1", format: "headToHead", games: [] },
+  fixtures = { teamId: "id-Team 1" as Id<"teams">, teamName: "Team 1", format: "headToHead", games: [], unscored: [] },
   transactions = { transactions: [], cut: false },
   squad = { teamName: "Team 1", lastGameweek: null, players: [] },
   numberAnswer = null,

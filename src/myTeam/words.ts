@@ -4,7 +4,7 @@ import { menuWords } from "../frame/words";
 import { failedWords } from "../words";
 import type { TeamTransactions } from "./seam";
 
-export { noFigureWords, whenWords } from "../words";
+export { noFigureWords, versusWords, whenWords } from "../words";
 
 /** Said on any tab to someone who runs no team in the league, such as a commissioner who doesn't
  *  play. */
@@ -19,11 +19,13 @@ export const fixtureColumns = {
   gameweek: { short: "GW", long: "Gameweek" },
   deadline: { short: "Deadline", long: "The league's deadline" },
   opponent: { short: "Opponent", long: "Opponent" },
+  result: { short: "Result", long: "Your points, then the opponent's: the matchup" },
 } as const;
 export const leagueAverageWords = "League average";
 export const byeWords = "Bye";
-/** Under the fixtures while no matchup is scored (#29). */
-export const noResultsWords = "No results yet: the app doesn't score matchups yet, so each game shows as a fixture until it does.";
+/** Beside a score that may still move: a match it counts is live, or not yet final (spec/07). */
+export const liveWords = "Live";
+export { provisionalWords, scoreWords, unscoredWords } from "../table/words";
 export const totalPointsWords = "The league plays total points, so your team has no head-to-head fixtures.";
 export const noFixturesWords = "No fixtures yet: they're drawn once the league has two teams and a gameweek to play.";
 
