@@ -22,6 +22,7 @@ says "The drift pass is overdue: 20 pull requests merged since" guard_bash.py \
   "$(bash_in "$repo" 'gh pr create --title x --body-file pr.md')"
 check allow guard_bash.py "$(bash_in "$repo" 'gh pr create --title "refactor: drift pass 2: y" --body-file pr.md')"
 check deny guard_bash.py "$(bash_in "$repo" 'gh pr create --title "chore: before the refactor: drift pass" --body-file pr.md')"
+check deny guard_bash.py "$(bash_in "$repo" 'gh pr create --title "$(echo refactor: drift pass)" --body-file pr.md')"  # a title the shell fills in can't be read, so isn't the pass
 check allow guard_bash.py "$(bash_in "$repo" 'gh pr create --title x --head fix/live --body-file pr.md')"
 check allow guard_bash.py "$(bash_in "$repo" 'gh pr create -H fix/live --title x --body-file pr.md')"
 check allow guard_bash.py "$(bash_in "$repo" 'gh pr create -H someone:fix/live --title x --body-file pr.md')"
