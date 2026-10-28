@@ -2,9 +2,10 @@
 
 Every Vitest and Playwright test sits here (the hook checks, and the recorded add-only check's,
 are in `.claude/hooks/tests/`), under one of five roots: at the path of the code it tests, or at
-the root for a test that spans many files (`tests/src/flow.test.ts`). A Convex test that plays the
-whole product through, from a league made to a gameweek's scores stored, is under
-`tests/convex/endToEnd/`.
+the root for a test that spans many files (`tests/src/flow.test.ts`). The Convex tests that play
+the whole product through are under `tests/convex/endToEnd/`: `miniBetaGameweek.test.ts`, from a
+league made to a gameweek's scores stored, and `matchPageReplay.test.ts`, a replayed match on its
+page from the team sheets to full time.
 
 ## The five roots
 
@@ -31,14 +32,17 @@ Nothing in it is a test. Each kind of file:
   test rendered and stubs `window.scrollTo`, which jsdom lacks and the router calls.
 - **`*.harness.ts`** (and `.tsx`), one feature's shared setup: `convex/` for the Convex tests
   (`test.harness.ts` is their common base: a fresh Convex, a faked fetch, a refused read), `src/`
-  for the screens' (`shell.harness.tsx` opens the app at an address with its actions faked).
+  for the screens' (`shell.harness.tsx` opens the app at an address with its actions faked), and
+  `scripts/` for the scripts' (`liveSetup.harness.mjs` fakes Convex, Vercel and Resend for the
+  live-setup command).
 - **`recorded/*.json`**, real feed payloads, recorded once and cut down. A **`*.payloads.ts`**
   beside them loads and types each set, and says when it was recorded and how it was cut.
 - **`convex/scoring.example.ts`**, a scoring set for the tests only, never one anyone plays; the
   first real set is in `convex/scoring/firstScoring.ts`.
 - **`golden/`**, the expected output a test compares with (`toMatchFileSnapshot`):
-  `hull-everton.scores.json` (scoring), `round-robin.txt` (the round-robin fixture draws) and
-  `schema.json` (the saved tables).
+  `hull-everton.scores.json` (scoring), `ipswich-forest.commentary.txt` (Ipswich v Forest's
+  written commentary, `tests/convex/football/commentary.test.ts`), `round-robin.txt` (the
+  round-robin fixture draws) and `schema.json` (the saved tables).
 
 `recorded/` and `golden/` are add-only: `scripts/recorded-add-only.mjs`, run by `npm run verify`,
 fails on a changed or deleted file unless a commit on the branch carries the trailer
@@ -46,9 +50,11 @@ fails on a changed or deleted file unless a commit on the branch carries the tra
 
 ## The scoring proof
 
-A change near scoring proves nothing moved with the whole-match golden: every recorded line of
-Hull v Everton, from both feeds, in every area, scored in `tests/convex/scoring/scoring.test.ts`
-and matched against `golden/hull-everton.scores.json`. How, and the other proofs a refactor owes:
+A change near scoring proves nothing moved with two tests, green before and after. The
+whole-match golden: every recorded line of Hull v Everton, from both feeds, in every area, scored
+in `tests/convex/scoring/scoring.test.ts` and matched against `golden/hull-everton.scores.json`.
+The gameweek: `tests/convex/endToEnd/miniBetaGameweek.test.ts`, gameweek 6's team points checked
+against points worked out man by man. How, and the other proofs a refactor owes:
 `docs/REFACTORING.md`, *Proving nothing changed*.
 
 ## Citing the spec

@@ -1,7 +1,10 @@
 import { describe, expect, test } from "vitest";
 import { everyArea, EXAMPLE_SET, MINUTES_BANDS, TACKLES_AND_CLEARANCES } from "../../support/convex/scoring.example";
-import { inTenths, validateScoringSet } from "../../../convex/scoring/scoringSet";
+import { checkOwnStatsAgainstCatalogue } from "../../../convex/scoring/ownStats";
+import { inTenths, UnsoundScoring, validateScoringSet } from "../../../convex/scoring/scoringSet";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
+import ownStatsSource from "../../../convex/scoring/ownStats.ts?raw";
+import scoringSetSource from "../../../convex/scoring/scoringSet.ts?raw";
 
 // What #25 refuses on save, and scoreMatch before scoring, with the reason. Unchecked, many of
 // these scored with no error: a typo underpaid a whole category, or text was read as a number.
@@ -125,4 +128,94 @@ test("inTenths never gives -0: not for a sum just under 0, nor for 0 times -1 (#
   expect(Object.is(inTenths(-0.04), 0)).toBe(true);
   expect(Object.is(inTenths(0 * -1), 0)).toBe(true);
   expect(inTenths(-0.06)).toBe(-0.1);
+});
+
+describe("every reason a set is unsound is an UnsoundScoring, so saving refuses it and a bug is never a reason", () => {
+  const tackles = (rule: object = {}) => ({ shape: "perAction", stat: "tackles", values: { all: 1 }, ...rule });
+  const minutesAll = (all: unknown) => setOf({ shape: "bands", stat: "minutes", stack: false, values: { all } });
+  const roles = (roleAdjustments: unknown) => ({ ...setOf(), roleAdjustments });
+  const anchor = (adjustments: unknown) => ({ role: "anchor", adjustments });
+  const own = (ownStats: unknown) => ({ ...setOf(), ownStats });
+  const ownWith = (change: object) => own([{ ...TACKLES_AND_CLEARANCES, ...change }]);
+  const T_C = TACKLES_AND_CLEARANCES.stat;
+
+  // One case for each throw in scoringSet.ts and ownStats.ts but the last, in their order.
+  const SWEEP: readonly (readonly [unknown, string])[] = [
+    [{}, "a scoring set must be a list of rules"],
+    [{ rules: [] }, "a scoring set must say whether its points are whole only, true or false, not undefined"],
+    [roles({}), "a scoring set's role adjustments must be a list"],
+    [roles([{ role: "" }]), "a role adjustment names no role"],
+    [roles([anchor([]), anchor([])]), 'the role "anchor" is adjusted twice'],
+    [roles([{ role: "anchor" }]), 'the role "anchor" has no list of adjustments'],
+    [
+      roles([anchor([{ stat: "goals_scroed", points: 1 }])]),
+      `the role "anchor" adjusts "goals_scroed", which is neither a catalogue stat nor one of the set's own stats`,
+    ],
+    [roles([anchor([{ stat: "tackles", points: 1 }, { stat: "tackles", points: 1 }])]), 'the role "anchor" adjusts Tackles twice'],
+    [setOf(null), "rule 1 of the scoring set is not a rule"],
+    [setOf(tackles({ stat: "" })), "rule 1 of the scoring set names no stat"],
+    [setOf(tackles({ stat: "goals_scroed" })), `rule 1 of the scoring set scores "goals_scroed", which is neither a catalogue stat nor one of the set's own stats`],
+    [setOf(tackles({ shape: "perMinute" })), 'the Tackles rule has the shape "perMinute", which is not one of the three'],
+    [setOf({ shape: "bands", stat: "minutes", values: { all: [] } }), "the Minutes rule must say whether its bands stack, true or false, not undefined"],
+    [setOf(tackles({ values: undefined })), "the Tackles rule has no values"],
+    [setOf(tackles({ values: { all: 1, byArea: everyArea(1) } })), "the Tackles rule must be priced one way, the same for all, by area or by position, not 2"],
+    [setOf(tackles({ values: { byPosition: null } })), "the Tackles rule has no values by position"],
+    [setOf(tackles({ values: { byArea: {} } })), "the Tackles rule has no values for goalkeeper"],
+    [setOf({ shape: "perCount", stat: "saves", values: { all: 3 } }), "the Saves rule has no number of actions and points"],
+    [setOf({ shape: "perCount", stat: "saves", values: { all: { every: 0, points: 1 } } }), "the Saves rule is worth points for every 0 actions; it must be more than 0"],
+    [minutesAll({ atLeast: 60, points: 2 }), "the Minutes rule has no list of bands"],
+    [minutesAll([null]), "the Minutes rule, band 1, is not a band"],
+    [
+      minutesAll([
+        { atLeast: 60, points: 1 },
+        { atLeast: 60, points: 2 },
+      ]),
+      "the Minutes rule has two bands at one threshold",
+    ],
+    [setOf(tackles({ limit: { all: null } })), "the Tackles rule's points limit has no most and least"],
+    [setOf(tackles({ limit: { all: { max: 1, min: 2 } } })), "the Tackles rule's points limit is worth at least 2, more than its most, 1"],
+    [setOf(tackles({ minMinutes: { all: -1 } })), "the Tackles rule's minimum minutes is -1; it can't be less than 0"],
+    [{ rules: [tackles({ values: { all: 0.5 } })], wholePointsOnly: true }, "the Tackles rule is worth 0.5, but the set counts whole points only"],
+    [setOf(tackles({ values: { all: 0.25 } })), "the Tackles rule is worth 0.25; points are kept in tenths"],
+    [setOf(tackles({ values: { all: "1" } })), 'the Tackles rule is worth "1", not a number'],
+    [own({}), "a scoring set's own stats must be a list"],
+    [own([{ stat: "" }]), "own stat 1 has no key"],
+    [ownWith({ stat: "tackles" }), "the own stat tackles has a catalogue stat's key"],
+    [own([TACKLES_AND_CLEARANCES, TACKLES_AND_CLEARANCES]), `the own stat ${T_C} is made twice`],
+    [ownWith({ name: " " }), `the own stat ${T_C} has no name`],
+    [
+      own([TACKLES_AND_CLEARANCES, { ...TACKLES_AND_CLEARANCES, stat: "own_other" }]),
+      'the own stat own_other has the name "Tackles and clearances", which another own stat has',
+    ],
+    [ownWith({ parts: [] }), `the own stat ${T_C} adds up no stats`],
+    [ownWith({ parts: [null] }), `the own stat ${T_C} has a part that names no stat`],
+    [ownWith({ parts: [{ stat: "goals_scroed", weight: 1 }] }), `the own stat ${T_C} adds "goals_scroed", which isn't a catalogue stat`],
+  ];
+
+  const thrownBy = (check: () => void): unknown => {
+    try {
+      check();
+    } catch (error) {
+      return error;
+    }
+    return null;
+  };
+
+  test.each(SWEEP)("%j is refused as unsound, with the reason %j", (set, reason) => {
+    const error = thrownBy(() => validateScoringSet(set));
+    expect(error).toBeInstanceOf(UnsoundScoring);
+    expect((error as Error).message).toBe(reason);
+  });
+
+  test("the last, checked on saving only: an own stat named as a catalogue stat is refused as unsound, with the reason", () => {
+    const error = thrownBy(() => checkOwnStatsAgainstCatalogue([{ ...TACKLES_AND_CLEARANCES, name: "Won tackle" }]));
+    expect(error).toBeInstanceOf(UnsoundScoring);
+    expect((error as Error).message).toBe(`the own stat ${T_C} has the name "Won tackle", which the catalogue's Won tackle has`);
+  });
+
+  test("the sweep has a case for each throw, and every throw is an UnsoundScoring", () => {
+    const source = `${scoringSetSource}\n${ownStatsSource}`;
+    expect(source.match(/throw new (?!UnsoundScoring\()/g)).toBeNull();
+    expect(source.match(/throw new UnsoundScoring\(/g)?.length).toBe(SWEEP.length + 1);
+  });
 });

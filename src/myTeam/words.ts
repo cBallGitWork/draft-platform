@@ -21,11 +21,10 @@ export const fixtureColumns = {
   opponent: { short: "Opponent", long: "Opponent" },
   result: { short: "Result", long: "Your points, then the opponent's: the matchup" },
 } as const;
-export const leagueAverageWords = "League average";
 export const byeWords = "Bye";
 /** Beside a score that may still move: a match it counts is live, or not yet final (spec/07). */
 export const liveWords = "Live";
-export { provisionalWords, scoreWords, unscoredWords } from "../table/words";
+export { leagueAverageWords, provisionalWords, scoreWords, unscoredWords } from "../table/words";
 export const totalPointsWords = "The league plays total points, so your team has no head-to-head fixtures.";
 export const noFixturesWords = "No fixtures yet: they're drawn once the league has two teams and a gameweek to play.";
 
