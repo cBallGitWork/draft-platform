@@ -15,7 +15,8 @@ import { COMPARED_PLAYERS } from "./comparedPlayers";
 // #373), for anyone in the league: who each is and who owns him here, and his stats this season
 // added up, from the same matches his card lists (seasonRecords), a record counting once whole as
 // the card prices it (both feeds in, or an unused substitute). Every stat is open to everyone
-// (spec/19). Season points are null ("—") until #29 scores matches, as on the players list.
+// (spec/19). Season points are null ("—"), as on the players list, until a season of them is
+// added up.
 
 const comparedPlayer = v.object({
   code: v.number(),
