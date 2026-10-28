@@ -2,7 +2,9 @@
 
 Every Vitest and Playwright test sits here (the hook checks, and the recorded add-only check's,
 are in `.claude/hooks/tests/`), under one of four roots: at the path of the code it tests, or at
-the root for a test that spans many files (`tests/src/flow.test.ts`).
+the root for a test that spans many files (`tests/src/flow.test.ts`). A Convex test that plays the
+whole product through, from a league made to a gameweek's scores stored, is under
+`tests/convex/endToEnd/`.
 
 ## The four roots
 

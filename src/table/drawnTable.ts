@@ -9,7 +9,7 @@ import { FIRST_RULES } from "../../convex/rules/firstRules";
 import { averageOf, headToHeadTable, totalPointsTable, type GameweekScores, type TieBreak } from "../../convex/table/standings";
 import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import type { TeamFixtures } from "../../convex/table/teamFixtures";
-import { gamesOf } from "../../convex/table/teamGames";
+import { BYE, gameScore, gamesOf } from "../../convex/table/teamGames";
 import type { LeagueTable } from "./seam";
 
 export type Drawn = Partial<DrawRules> & {
@@ -87,17 +87,26 @@ export function leagueTableOf(teamNames: string[], drawn: Drawn = {}): LeagueTab
   };
 }
 
-/** My team's fixtures for `teamName`, one of `teamNames`, in the same draw as `leagueTableOf`'s. */
+/** My team's fixtures for `teamName`, one of `teamNames`, in the same draw and scores as `leagueTableOf`'s. */
 export function teamFixturesOf(teamNames: string[], teamName: string, drawn: Drawn = {}): TeamFixtures {
-  const { format = "headToHead", deadlineOf = () => null } = drawn;
+  const { format = "headToHead", deadlineOf = () => null, scores = new Map(), provisional = [], unscored = [] } = drawn;
   const schedule = format === "headToHead" ? scheduleOf(teamNames, drawn) : [];
+  const games = gamesOf(schedule, teamName);
   return {
+    teamId: idOf(teamName),
     teamName,
     format,
-    games: gamesOf(schedule, teamName).map(({ gameweek, against }) => ({
-      gameweek,
-      deadline: deadlineOf(gameweek),
-      against: against.kind === "team" ? { kind: "team" as const, teamName: against.team } : against,
-    })),
+    games: games.map(({ gameweek, against }) => {
+      const points = scores.get(gameweek);
+      const scored = points === undefined ? undefined : new Map([...points].map(([team, each]) => [team, { points: each, provisional: provisional.includes(team) }]));
+      const opponent = against.kind === "team" ? against.team : against.kind;
+      return {
+        gameweek,
+        deadline: deadlineOf(gameweek),
+        against: against.kind === "team" ? { kind: "team" as const, teamName: against.team } : against,
+        score: scored === undefined || opponent === BYE ? null : gameScore(teamNames, scored, gameweek, teamName, opponent),
+      };
+    }),
+    unscored: unscored.filter(({ gameweek }) => games.some((game) => game.gameweek === gameweek)),
   };
 }

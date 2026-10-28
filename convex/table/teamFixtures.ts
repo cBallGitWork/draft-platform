@@ -1,19 +1,19 @@
 import { v, type Infer } from "convex/values";
-import type { Id } from "../_generated/dataModel";
 import { query } from "../_generated/server";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { seasonRules } from "../rules/rulesHistory";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
-import { callerEmail, getLeague, refuse, refusals, teamOf, teamsOf } from "../shared/leagueAccess";
-import { scheduleOf } from "./playedFixtures";
+import { callerEmail, getLeague, refuse, refusals, teamOf } from "../shared/leagueAccess";
+import { standingsOf } from "./leagueTable";
 import { LEAGUE_AVERAGE } from "./roundRobin";
-import { BYE, gamesOf } from "./teamGames";
+import { BYE, gameScore, gamesOf } from "./teamGames";
 
-// My team's Fixtures tab (#365; spec/12, My team's tabs): the caller's team's head-to-head games
-// for the season, from the same schedule the table and fixtures screen reads (leagueTable.ts), so
-// a gameweek begun is as stored and one begun before the league existed has none (#282). No
-// matchup is scored yet, so each game is a fixture until #29's scores give it a result.
+// My team's Fixtures tab (#365, #436; spec/12, My team's tabs: "the team's head-to-head fixtures
+// and results for the season"): the caller's team's head-to-head games, from the same schedule and
+// scores the table and fixtures screen reads (leagueTable.ts's standingsOf), so a gameweek begun is
+// as stored, one begun before the league existed has none (#282), and each game's score is the
+// table's, provisional while live.
 
 const against = v.union(
   v.object({ kind: v.literal("team"), teamName: v.string() }),
@@ -26,14 +26,22 @@ const teamGame = v.object({
   /** The league's own deadline in the gameweek (#139), as the table's fixtures show it. */
   deadline: shownDeadline,
   against,
+  /** Each side's points, the average's for the league's average, once the gameweek is scored, and
+   *  whether either may still move (spec/07); null before, on a bye, or in a gameweek unscored. */
+  score: v.union(v.object({ team: v.number(), opponent: v.number(), provisional: v.boolean() }), v.null()),
 });
 
 export const teamFixtures = v.object({
+  /** The team's own, for a link to its matchup in each gameweek (#34). */
+  teamId: v.id("teams"),
   teamName: v.string(),
   format: leagueRulesShape.fields.format,
   /** Every game the team plays, in gameweek order: none in total points, with fewer than two
    *  teams, or in a gameweek begun with no head-to-head (playedFixtures.ts). */
   games: v.array(teamGame),
+  /** Each gameweek the team has a game in that began but couldn't be scored, and why, as the table
+   *  names them (#287). */
+  unscored: v.array(v.object({ gameweek: v.number(), reason: v.string() })),
 });
 export type TeamFixtures = Infer<typeof teamFixtures>;
 
@@ -49,19 +57,24 @@ export const ofMyTeam = query({
     const season = await seasonRules(ctx, leagueId);
     if (season === null) return null;
     // As the table reads it: the format is the latest rules', the draw each gameweek's own.
-    const format = season.latest.format;
-    const schedule = format === "headToHead" ? await scheduleOf(ctx, league, season) : [];
-    const nameOf = new Map((await teamsOf(ctx, leagueId)).map(({ _id, name }) => [_id, name]));
-    const named = (teamId: Id<"teams">) => nameOf.get(teamId)!;
+    const { rules, teamIds, schedule, results, unscored, named } = await standingsOf(ctx, league, season);
     const deadlines = await leagueDeadlines(ctx, leagueId);
+    const games = gamesOf(schedule, team._id);
     return {
+      teamId: team._id,
       teamName: team.name,
-      format,
-      games: gamesOf(schedule, team._id).map(({ gameweek, against }) => ({
-        gameweek,
-        deadline: deadlines.get(gameweek) ?? null,
-        against: against.kind === "team" ? { kind: "team" as const, teamName: named(against.team) } : against,
-      })),
+      format: rules.format,
+      games: games.map(({ gameweek, against }) => {
+        const scored = results.get(gameweek);
+        const opponent = against.kind === "team" ? against.team : against.kind;
+        return {
+          gameweek,
+          deadline: deadlines.get(gameweek) ?? null,
+          against: against.kind === "team" ? { kind: "team" as const, teamName: named(against.team) } : against,
+          score: scored === undefined || opponent === BYE ? null : gameScore(teamIds, scored, gameweek, team._id, opponent),
+        };
+      }),
+      unscored: unscored.filter(({ gameweek }) => games.some((game) => game.gameweek === gameweek)),
     };
   },
 });

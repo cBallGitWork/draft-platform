@@ -26,7 +26,7 @@ afterEach(() => {
 const leagueId = "league-1" as Id<"leagues">;
 
 test("it asks table/teamFixtures:ofMyTeam for the league, and hands on what comes back", () => {
-  const fixtures = { teamName: "Team 1", format: "headToHead", games: [] };
+  const fixtures = { teamId: "team-1", teamName: "Team 1", format: "headToHead", games: [], unscored: [] };
   convex.ofMyTeam.mockReturnValue(fixtures);
   expect(renderHook(() => liveMyTeam.useTeamFixtures(leagueId)).result.current).toBe(fixtures);
   expect(convex.ofMyTeam).toHaveBeenCalledWith({ leagueId });

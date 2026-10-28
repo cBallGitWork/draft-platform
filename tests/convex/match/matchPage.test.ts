@@ -18,7 +18,7 @@ import {
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 import { actingAs } from "../../support/convex/leagues.harness";
-import { EVERTON, HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
+import { EVERTON, HULL, HULL_EVERTON, HULL_EVERTON_TEAM_STATS, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 
 // The match page (#45; spec/10, The match page): Hull v Everton, Ann owning Hull's men and Bob
@@ -50,7 +50,7 @@ const manOf = (men: readonly MatchMan[], playerCode: number) => men.find((man) =
 test("before any record, the match shows its clubs and kickoff, no men and no lines", async () => {
   const league = await matchLeague();
   const page = await matchAs(league, ANN);
-  expect(page).toMatchObject({ fixtureCode: HULL_EVERTON, kickoff: KICKOFF, score: null, men: [], pointsProblem: null });
+  expect(page).toMatchObject({ fixtureCode: HULL_EVERTON, kickoff: KICKOFF, score: null, men: [], pointsProblem: null, teamStats: null });
   expect(page!.commentary).toEqual({ kind: "read", lines: [], delayed: false });
   expect([page!.home.shortName, page!.away.shortName]).toEqual(["HUL", "EVE"]);
 });
@@ -123,6 +123,12 @@ test("the commentary is the match's lines newest first, the goal priced for its 
   // The same lines, priced alike, as the matchup's.
   expect(page.commentary).toEqual({ kind: "read", lines: matchup.commentary.lines, delayed: true });
   expect(page.commentary.kind === "read" && page.commentary.lines[0].points).toMatch(/^\+/);
+});
+
+test("the five team stats show each side's, home and away, as the live poller last stored them", async () => {
+  const league = await matchLeague();
+  await league.t.mutation(internal.football.matchTeamStats.store, { fixtureCode: HULL_EVERTON, ...HULL_EVERTON_TEAM_STATS });
+  expect((await matchAs(league, BOB))!.teamStats).toEqual(HULL_EVERTON_TEAM_STATS);
 });
 
 test("before the league's gameweek begins, the men show their owners but no points, and the lines are unpriced", async () => {
