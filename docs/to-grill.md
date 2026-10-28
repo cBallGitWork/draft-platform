@@ -72,7 +72,7 @@ a player fills only his own areas, and only a keeper plays in goal, both ways (`
 **A project manager tool**: for how we build, not the game (Craig, 27 Oct 2026: "a tool where
 can define what you're building add project scaffolding to mvp and audit what agents actually did
 to get you there"). It lives in this repo; the rest is open.
-- What we hand-built here and in sideband, made into one tool: defining (`SPEC.md`, `/grill`),
+- What we hand-built here, made into one tool: defining (`SPEC.md`, `/grill`),
   scaffolding (CLAUDE.md, hooks, `/verify`) and auditing (`pr-reviewer`).
 - Who it's for: Craig across his own projects, or other people too.
 - Its shape: files and skills copied into each repo, a command-line tool, or a web app.
