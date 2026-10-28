@@ -199,12 +199,15 @@ describe("the last gameweek", () => {
     expect(squad.players.find((each) => each.code === SAKA.code)).toMatchObject({ seasonPoints: sakaGw1() + sakaGw2(), lastGameweekPoints: sakaGw1() });
   });
 
-  test("is none for a league made after the deadlines passed, until its first gameweek begins", async () => {
+  test("is none for a league made after the deadlines passed, until its first gameweek begins, and its matches are at his best", async () => {
     await t.run(async (ctx) => {
       for (const row of await ctx.db.query("passedDeadlines").collect()) await ctx.db.patch("passedDeadlines", row._id, { deadline: MADE - DAY_MS });
     });
     const squad = await read();
     expect(squad.lastGameweek).toBeNull();
-    expect(squad.players.find((each) => each.code === SAKA.code)).toMatchObject({ seasonPoints: sakaGw1() + sakaGw2(), lastGameweekPoints: null });
+    // The table scores none of the league's gameweeks, so his team got nothing from him (#577).
+    const best = priced(SAKA_GW1, ["W"], null) + sakaGw2();
+    expect(best).not.toBe(sakaGw1() + sakaGw2());
+    expect(squad.players.find((each) => each.code === SAKA.code)).toMatchObject({ seasonPoints: best, lastGameweekPoints: null });
   });
 });

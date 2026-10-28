@@ -1,7 +1,8 @@
 import { v, type Infer } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { ownerIn, seasonRecords } from "../playerCard/playerCard";
+import { ownerIn } from "../playerCard/playerCard";
+import { seasonRecords } from "../table/scoredMatches";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount, type HowPositionsCount } from "../positions/positionSettings";
 import { clubRecord, position } from "../schema";
