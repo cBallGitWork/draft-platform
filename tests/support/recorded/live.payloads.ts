@@ -2,7 +2,8 @@
 // scripts/record-match.mjs every 30 s (#37). pl-live-match.json keeps, from its 383 reads:
 // - commentary: three whole `/fixtures/{id}/textstream/EN` reads, each with when it was read;
 // - teamStats: three whole `/stats/match/{id}` reads, likewise;
-// - sheets: the full-time `/fixtures/{id}` read cut as pl-commentary-sheets.json's are;
+// - sheets: the full-time `/fixtures/{id}` read cut as pl-commentary-sheets.json's are (the first
+//   read, 58 minutes before kickoff, cut the same, names the same men in the same places);
 // - fplPlayers: FPL's bootstrap-static of 24 Oct 2026 cut to the 40 men the sheets name, and to
 //   the fields `RawBootstrap` types.
 

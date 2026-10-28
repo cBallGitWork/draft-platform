@@ -90,3 +90,19 @@ export const teamStatsTables = {
     away: sideTeamStats,
   }).index("by_fixtureCode", ["fixtureCode"]),
 };
+
+// Each match's team sheets before kickoff (#45, spec/10, The match page: "From the lineups, about
+// an hour before kickoff"): one row a match, replaced by each read that changes them, so a change
+// made in the warm-up shows. From kickoff the match's records, written from the same sheets, are
+// what the page shows (football/matchTeamSheets.ts).
+
+/** One man the sheets name, by FPL's code: a starter, or a substitute. */
+export const teamSheetMan = v.object({ playerCode: v.number(), started: v.boolean() });
+
+export const teamSheetTables = {
+  matchTeamSheets: defineTable({
+    fixtureCode: v.number(),
+    /** Both sides' men in the feed's order, home's sheet first. */
+    men: v.array(teamSheetMan),
+  }).index("by_fixtureCode", ["fixtureCode"]),
+};

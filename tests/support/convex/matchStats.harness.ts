@@ -34,6 +34,9 @@ export const HULL_EVERTON = MATCH.hullEverton.code;
 export const KICKOFF = Date.parse("2026-10-11T13:00:00Z");
 export const FULL_TIME_READ = KICKOFF + 2 * HOUR_MS;
 
+/** Both sides' starters, eleven a side, as Hull v Everton's sheets name them. */
+export const BOTH_ELEVENS = 22;
+
 /** Hull v Everton's five team stats at full time, as football/plTeamStats.ts maps the recording. */
 export const HULL_EVERTON_TEAM_STATS = {
   home: { shots: 9, shotsOnTarget: 5, possession: 34.8, corners: 7, yellowCards: 2, redCards: 0 },

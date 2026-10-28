@@ -116,7 +116,8 @@ styling, typeface, test, coverage, screenshot and smoke-test rows, and the rest 
   each named man's stats, and its team stats), and a locked match is read again hourly for a day
   to catch late corrections.
 - Live stats (#28): a cron every minute (`liveStatsSync.tick`) reads each match from kickoff
-  until it is complete, or four hours on; outside those windows it reads no feed and writes no row.
+  until it is complete, or four hours on, and its team sheets alone in the hour before kickoff
+  (#45); outside those windows it reads no feed and writes no row.
   A cron, not a function rescheduling itself, because Convex runs a scheduled action at most
   once: a chain would end, unseen, at the first tick that failed before scheduling the next, and
   need re-arming whenever a kickoff moved. Convex runs one tick at a time, skipping one due while
@@ -126,7 +127,11 @@ styling, typeface, test, coverage, screenshot and smoke-test rows, and the rest 
   action and one indexed query a minute, about 43,000 calls a month. Inside: FPL's ~1.8 MB
   bootstrap and about 40 Premier League reads per match, each tick: its sheets, each named
   man's stats, its commentary with the sheets again, and its five team stats (#45) in one read,
-  kept as one row a match in `matchTeamStats` (`convex/football/matchTeamStats.ts`).
+  kept as one row a match in `matchTeamStats` (`convex/football/matchTeamStats.ts`). In the hour
+  before a kickoff: FPL's bootstrap (once a tick, shared with any live match), the gameweek's
+  list and one read per match, its sheets, kept as one row a match in `matchTeamSheets`
+  (`convex/football/matchTeamSheets.ts`); no tick row, as nothing is scored yet. The Premier
+  League had them out 58 minutes before kickoff (docs/pl-commentary.md).
   Revisit the bootstrap read each tick when Convex usage nears the plan's limit, or when
   `liveStatsTicks` rows fail from throttling.
 - Match scores (#49): each match's state, score and clock in `matchScores`, apart from

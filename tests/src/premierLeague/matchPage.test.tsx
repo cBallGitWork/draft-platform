@@ -212,9 +212,18 @@ describe("the team sheets", () => {
     expect(sheetRows(CHELSEA.name)).toEqual([["CM", "PalmerTeam 2", "7"]]);
   });
 
-  it("before kickoff, says the sheets come once it kicks off", async () => {
+  it("before the sheets are out, says they come about an hour before kickoff", async () => {
     openMatch({ match: matchOf({ men: [] }) });
     expect(await screen.findAllByText(noMenWords)).toHaveLength(2);
+  });
+
+  it("before kickoff, the sheets as named: a substitute neither greyed nor marked as on", async () => {
+    const before = { played: null, points: null };
+    const men = [man(1, "Raya", "home", { ...before, position: "GK", ownerTeamName: "Team 1" }), man(4, "Ødegaard", "home", { ...before, started: false })];
+    openMatch({ match: matchOf({ kickoff: Date.now() + HOUR_MS, score: null, men }) });
+    await screen.findByRole("table", { name: sheetLabel(ARSENAL.name) });
+    expect(sheetRows(ARSENAL.name)).toEqual([["GK", "RayaTeam 1", noFigureWords], [SUBSTITUTES_TITLE], ["CM", "Ødegaard", ""]]);
+    expect(screen.getByRole("rowheader", { name: "Ødegaard" }).closest("tr")!.className).not.toContain("text-muted");
   });
 
   it("a man who has since left both clubs has his own panel", async () => {
