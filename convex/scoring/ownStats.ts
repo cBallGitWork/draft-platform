@@ -2,7 +2,7 @@
 // and how one is worked out from a player's record before the league's rules score it.
 
 import { statIn, type MatchStats } from "./scoring";
-import { requireNumber, showValue, type ScoringSet } from "./scoringSet";
+import { requireNumber, showValue, UnsoundScoring, type ScoringSet } from "./scoringSet";
 import { CATALOGUE_STATS, STAT_CATALOGUE } from "./statCatalogue";
 
 /** What an own stat is rounded to before it counts: a millionth, far finer than any weight, so
@@ -26,26 +26,26 @@ const FIELD_WORDS = { name: "name", shortCode: "short code" } as const;
  *  short code is a catalogue stat's is checked on saving only (`checkOwnStatsAgainstCatalogue`),
  *  as scoring runs this, and a catalogue stat renamed later mustn't stop the scoring (#212). */
 export function validateOwnStats(ownStats: unknown): void {
-  if (!Array.isArray(ownStats)) throw new Error("a scoring set's own stats must be a list");
+  if (!Array.isArray(ownStats)) throw new UnsoundScoring("a scoring set's own stats must be a list");
   const keys = new Set<string>();
   const names = new Set<string>();
   const codes = new Set<string>();
   ownStats.forEach((own: unknown, index) => {
-    if (!isRecord(own) || typeof own.stat !== "string" || own.stat === "") throw new Error(`own stat ${index + 1} has no key`);
+    if (!isRecord(own) || typeof own.stat !== "string" || own.stat === "") throw new UnsoundScoring(`own stat ${index + 1} has no key`);
     const named = `the own stat ${own.stat}`;
-    if (CATALOGUE_STATS.has(own.stat)) throw new Error(`${named} has a catalogue stat's key`);
-    if (keys.has(own.stat)) throw new Error(`${named} is made twice`);
+    if (CATALOGUE_STATS.has(own.stat)) throw new UnsoundScoring(`${named} has a catalogue stat's key`);
+    if (keys.has(own.stat)) throw new UnsoundScoring(`${named} is made twice`);
     keys.add(own.stat);
     for (const [field, seen] of [["name", names], ["shortCode", codes]] as const) {
       const value = own[field];
-      if (typeof value !== "string" || value.trim() === "") throw new Error(`${named} has no ${FIELD_WORDS[field]}`);
-      if (seen.has(value)) throw new Error(`${named} has the ${FIELD_WORDS[field]} ${showValue(value)}, which another own stat has`);
+      if (typeof value !== "string" || value.trim() === "") throw new UnsoundScoring(`${named} has no ${FIELD_WORDS[field]}`);
+      if (seen.has(value)) throw new UnsoundScoring(`${named} has the ${FIELD_WORDS[field]} ${showValue(value)}, which another own stat has`);
       seen.add(value);
     }
-    if (!Array.isArray(own.parts) || own.parts.length === 0) throw new Error(`${named} adds up no stats`);
+    if (!Array.isArray(own.parts) || own.parts.length === 0) throw new UnsoundScoring(`${named} adds up no stats`);
     own.parts.forEach((part: unknown) => {
-      if (!isRecord(part) || typeof part.stat !== "string") throw new Error(`${named} has a part that names no stat`);
-      if (!CATALOGUE_STATS.has(part.stat)) throw new Error(`${named} adds ${showValue(part.stat)}, which isn't a catalogue stat`);
+      if (!isRecord(part) || typeof part.stat !== "string") throw new UnsoundScoring(`${named} has a part that names no stat`);
+      if (!CATALOGUE_STATS.has(part.stat)) throw new UnsoundScoring(`${named} adds ${showValue(part.stat)}, which isn't a catalogue stat`);
       requireNumber(part.weight, `${named} weighs ${part.stat} at`);
     });
   });
@@ -68,7 +68,7 @@ export function checkOwnStatsAgainstCatalogue(ownStats: readonly OwnStat[]): voi
     for (const field of ["name", "shortCode"] as const) {
       const catalogueStat = CATALOGUE_STAT_NAME_BY[field].get(nameKey(own[field]));
       if (catalogueStat !== undefined) {
-        throw new Error(`the own stat ${own.stat} has the ${FIELD_WORDS[field]} ${showValue(own[field])}, which the catalogue's ${catalogueStat} has`);
+        throw new UnsoundScoring(`the own stat ${own.stat} has the ${FIELD_WORDS[field]} ${showValue(own[field])}, which the catalogue's ${catalogueStat} has`);
       }
     }
   }

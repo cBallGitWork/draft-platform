@@ -19,7 +19,7 @@ import { versionLetter } from "../mail/letterWords";
 import { FIRST_SCORING } from "./firstScoring";
 import { scoringChanges } from "./patchChanges";
 import { checkOwnStatsAgainstCatalogue } from "./ownStats";
-import { validateScoringSet } from "./scoringSet";
+import { UnsoundScoring, validateScoringSet } from "./scoringSet";
 
 // The site's scoring set (spec/14, Who owns it, and Changes and corrections; #354, #355): one set
 // every league plays on, which every signed-in person reads on Player scoring and only the admin
@@ -116,14 +116,15 @@ async function firstGameweekFrom(ctx: QueryCtx, at: number): Promise<number> {
 }
 
 /** Refuses, with the reason, a set that would score wrong or an own stat named as a catalogue
- *  stat is. */
+ *  stat is. Anything else the checks throw is the bug it is, never a refusal. */
 function checkScoringSet(scoring: StoredScoringSet): void {
   try {
     validateScoringSet(scoring);
     // On saving only: ownStats.ts's validateOwnStats says why.
     checkOwnStatsAgainstCatalogue(scoring.ownStats ?? []);
   } catch (error) {
-    refuse(siteScoringRefusals.unsound((error as Error).message));
+    if (error instanceof UnsoundScoring) refuse(siteScoringRefusals.unsound(error.message));
+    throw error;
   }
 }
 

@@ -1,4 +1,7 @@
-import type { MutationCtx } from "../_generated/server";
+import { getFunctionName } from "convex/server";
+import { v } from "convex/values";
+import { internal } from "../_generated/api";
+import { internalMutation, type MutationCtx } from "../_generated/server";
 import { errorMessage } from "../shared/errors";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { isLocked } from "./deadline";
@@ -23,6 +26,16 @@ import { storeBegunFixtures } from "../table/playedFixtures";
 // written by hand can be: a commissioner's change is checked) isn't skipped, because skipping it
 // would let its kickoffs move with its passed deadlines unrecorded, and that could reopen its
 // gameweek.
+//
+// Recording only on the six-hourly sync would leave a gameweek unbegun for hours after its deadline
+// passed: unscored, its matchup "not begun". So each recording also sets one alarm,
+// `recordDueDeadlines`, for the soonest deadline still to come in any league, and that alarm records
+// again and sets the next. The deadline is worked out from the kickoffs held before the sync writes
+// its batch, so a kickoff moved earlier in that batch is caught by the next recording: no later than
+// the next sync, or at once if the alarm already set fires first. Lineups lock on the worked-out
+// deadline either way (lineups.ts), so this decides only how soon scoring sees the gameweek begun.
+// An alarm whose recording throws fails closed as the sync's does, in Convex's logs, and the next
+// sync sets the alarm again.
 
 /** The most leagues one recording reads, all in the fixtures mutation's one transaction: the closed
  *  beta has a handful, and each league reads its rules, deadlines and fixtures. Past it this throws,
@@ -44,6 +57,7 @@ export async function recordPassedDeadlines(ctx: MutationCtx): Promise<number> {
     `More than ${LEAGUES_RECORDED_MOST} leagues are held, so some would have their deadlines unrecorded`,
   );
   let recorded = 0;
+  let soonestToCome: number | null = null;
   for (const league of leagues) {
     const passed = await passedDeadlinesOf(ctx, league._id);
     const deadlines = await leagueDeadlinesIn(ctx, league._id, matches).catch((error: unknown) => {
@@ -51,12 +65,47 @@ export async function recordPassedDeadlines(ctx: MutationCtx): Promise<number> {
       throw new Error(`League ${league._id} (${league.name}): its deadlines can't be worked out: ${errorMessage(error)}`);
     });
     for (const [gameweek, deadline] of deadlines) {
-      if (deadline === null || passed.has(gameweek) || !isLocked(deadline, now)) continue;
+      if (deadline === null) continue;
+      if (!isLocked(deadline, now)) {
+        soonestToCome = Math.min(soonestToCome ?? deadline, deadline);
+        continue;
+      }
+      if (passed.has(gameweek)) continue;
       await ctx.db.insert("passedDeadlines", { leagueId: league._id, gameweek, deadline, recordedAt: now });
       recorded += 1;
     }
     // Once a gameweek has begun, its fixtures are stored, so nothing after can redraw them (#137).
     await storeBegunFixtures(ctx, league, await seasonRules(ctx, league._id), deadlines, now);
   }
+  await setDeadlineAlarm(ctx, soonestToCome);
   return recorded;
+}
+
+/** The alarm `recordPassedDeadlines` sets for the soonest deadline to come: it records again, and
+ *  that recording sets the next one. */
+export const recordDueDeadlines = internalMutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    await recordPassedDeadlines(ctx);
+    return null;
+  },
+});
+
+/** The alarm's name as `_scheduled_functions` holds it, less any `.js` the deployment adds to the
+ *  module's path. */
+const DEADLINE_ALARM = getFunctionName(internal.gameweeks.deadlineRecorder.recordDueDeadlines);
+const JS_EXTENSION = /\.js(?=:)/;
+
+/** Leaves exactly one alarm pending, at `at`, or none when no deadline is to come. Every sync and
+ *  every alarm records, so without this each would start a chain of its own. The scan reads every
+ *  scheduled function Convex keeps: those pending, and those finished in the last week. */
+async function setDeadlineAlarm(ctx: MutationCtx, at: number | null): Promise<void> {
+  let kept = false;
+  for await (const job of ctx.db.system.query("_scheduled_functions")) {
+    if (job.state.kind !== "pending" || job.name.replace(JS_EXTENSION, "") !== DEADLINE_ALARM) continue;
+    if (!kept && job.scheduledTime === at) kept = true;
+    else await ctx.scheduler.cancel(job._id);
+  }
+  if (at !== null && !kept) await ctx.scheduler.runAt(at, internal.gameweeks.deadlineRecorder.recordDueDeadlines, {});
 }

@@ -16,6 +16,9 @@ export function normaliseEmail(email: string): string {
 /** Whether a (normalised) email can be an address at all: the closed beta checks no more. */
 export const isEmailAddress = (email: string) => email.includes("@");
 
+/** The longest an email address can be (RFC 5321's path limit, less its angle brackets). */
+export const EMAIL_MAX = 254;
+
 /** The admin's email, set on the server (spec/13#who-runs-it), never in the code. */
 export function adminEmail(): string {
   const email = process.env.ADMIN_EMAIL;
