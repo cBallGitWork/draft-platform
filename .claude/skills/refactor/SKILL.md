@@ -1,6 +1,6 @@
 ---
 name: refactor
-description: The refactor check every pull request gets before pr-reviewer runs. Runs a six-point checklist twice over the branch's diff, code and docs alike, reports every finding, then verifies. Use before opening a pull request, or when Craig asks for a refactor pass or "one more pass".
+description: The refactor check every pull request over 30 non-test lines gets before pr-reviewer runs. Runs a six-point checklist twice over the branch's diff, code and docs alike, reports every finding, then verifies. Use before opening a pull request, or when Craig asks for a refactor pass or "one more pass".
 allowed-tools: Bash(git diff:*), Bash(git status:*)
 ---
 

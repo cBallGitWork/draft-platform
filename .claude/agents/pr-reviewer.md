@@ -102,9 +102,9 @@ First the block for Craig, plain English, at most three findings, worst first:
     *Reviewer: pr-reviewer (<model>), <date>, <base>..<head>, round <n>: <k> to fix, <m> FINE*
 
 "Nothing found" is a normal answer: say so, and say what you ran. The signature's counts are
-how often review finds something: `<k> to fix` counts every verdict but FINE. A later round
-replaces the block for Craig but never round 1's: the author keeps it in the PR, inside
-<details>, so what round 1 caught stays on record.
+how often review finds something: `<k> to fix` counts every verdict but FINE. When there is a
+second round, its block goes under Fresh-eyes review and round 1's block moves inside <details>,
+never out of the PR, so what round 1 caught stays on record.
 
 Then the detail for the author: one row per check that applied,
 `check | file:line | what the diff does | verdict | evidence`. Verdicts: REGRESSION, RULE BROKEN,

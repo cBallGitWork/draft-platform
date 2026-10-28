@@ -39,7 +39,8 @@ its own reason, never a cleanup:
 ## With every pull request
 
 `/refactor` (`.claude/skills/refactor/`), before `pr-reviewer` runs: a six-point checklist, twice,
-over the branch's own diff, then the checks. The checklist lives in the skill, not here. The pull
+over the branch's own diff, then the checks. Under 30 non-test lines it may be skipped, as the
+skill says. The checklist lives in the skill, not here. The pull
 request template has a box for it.
 
 ## The drift pass
@@ -50,9 +51,9 @@ back, names drift, docs desync. The drift pass is a scheduled step back.
 **When**, whichever comes first:
 - 10 merged pull requests since the last drift pass (the session-start hook
   `.claude/hooks/drift_due.py` runs *Record*'s count and says `drift pass due` when it is). The
-  note alone was passed over (72 merges after #461, 28 Oct 2026), so at 20 the Bash guard
-  refuses `gh pr create` for anything but the drift pass or a fix/ branch
-  (`.claude/hooks/drift_block.py`);
+  note alone was passed over (72 merges after #461, 28 Oct 2026), so at 20 the guards
+  refuse to open a pull request (`gh pr create`, or the GitHub tool in the cloud) for anything
+  but the drift pass or a fix/ branch (`.claude/hooks/drift_block.py`);
 - before the mini beta, and before the draft goes live;
 - a file passes 300 lines (the line-ceiling hook will say when, `ARCHITECTURE.md`).
 
@@ -76,7 +77,7 @@ counts, including what was declined ("3 things written three times: 2 lifted, 1 
 commit on `main`, so the count since the last pass is
 `git rev-list --count $(git log -1 --format=%H --grep '^refactor: drift pass' main)..main`.
 `Self-review:` is the drift pass's record line only; a feature branch records /refactor in its
-PR's checks box.
+PR's checks box, ticked, or unticked with `not run — <n> non-test lines`.
 
 ## Proving nothing changed
 
@@ -101,7 +102,7 @@ numbers, not "looks fine".
 
 ## Toolkit
 
-- `/refactor` (`.claude/skills/`): the check every pull request gets.
+- `/refactor` (`.claude/skills/`): the check every pull request over 30 non-test lines gets.
 - `/simplify` and `/code-review` are Claude Code's own skills.
 - `/simplify`: reuse and simplification cleanups, applied. The driver for mode 1.
 - `/code-review`: a correctness pass; run it after an untangle.

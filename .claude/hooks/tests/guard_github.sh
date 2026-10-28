@@ -4,6 +4,9 @@
 # can come from DRAFT_PRIVATE_WORDS_LIST, as a cloud environment holds it.
 . "$(dirname "$0")/helpers.sh"
 
+git -C "$tmp" init -q -b chore/x  # a main for drift_block.py to count, far from blocked
+git -C "$tmp" "${as_tester[@]}" commit -q --allow-empty -m x && git -C "$tmp" update-ref refs/remotes/origin/main HEAD
+
 gh_call() { "$jq" -nc --arg t "mcp__github__$1" --argjson i "$2" '{tool_name:$t,tool_input:$i}'; }  # tool input-json
 
 # the list as a cloud environment holds it: a made-up word, so this file names nothing real
