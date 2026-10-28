@@ -18,7 +18,7 @@ import {
   HULL_KEEPER,
   HULL_SCORER,
   HULL_STARTERS,
-  KICKOFF,
+  LEAGUE_KICKOFF,
   liveRecords,
   lockMatch,
   PHILLIPS,
@@ -77,7 +77,7 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
   const before = await annsGame(league);
   expect(lineupOf(before.team).starters.map((slot) => slot.playerCode)).toEqual(HULL_STARTERS.map((starter) => starter.playerCode));
   expect(lineupOf(before.opponent).starters.map((slot) => slot.playerCode)).toEqual(EVERTON_STARTERS.map((starter) => starter.playerCode));
-  expect(slotOf(before.team, HULL_SCORER)).toMatchObject({ status: { kind: "yetToPlay", fixtureCode: HULL_EVERTON, kickoff: KICKOFF }, points: null, counts: true });
+  expect(slotOf(before.team, HULL_SCORER)).toMatchObject({ status: { kind: "yetToPlay", fixtureCode: HULL_EVERTON, kickoff: LEAGUE_KICKOFF }, points: null, counts: true });
   expect(before.team).toMatchObject({ points: 0, provisional: true });
 
   // An hour in, Hull's goal not yet scored: every man on with the clock's minute, the bench greyed,
@@ -138,7 +138,7 @@ test("a final gameweek whose matches have changed since it was stored is worked 
   await league.t.mutation(internal.table.finalScores.storeLeague, { leagueId: league.leagueId });
   await league.t.run(async (ctx) => {
     for (const row of await ctx.db.query("finalScores").collect()) await ctx.db.patch("finalScores", row._id, { points: 99 });
-    await ctx.db.insert("fixtures", { code: HULL_EVERTON + 1, gameweek: GAMEWEEK, homeClubCode: ARSENAL, awayClubCode: ARSENAL + 1, kickoff: KICKOFF });
+    await ctx.db.insert("fixtures", { code: HULL_EVERTON + 1, gameweek: GAMEWEEK, homeClubCode: ARSENAL, awayClubCode: ARSENAL + 1, kickoff: LEAGUE_KICKOFF });
   });
   const game = await annsGame(league);
   expect([game.team.points, game.opponent.points]).toEqual([HULL_POINTS, EVERTON_POINTS]);
@@ -146,7 +146,7 @@ test("a final gameweek whose matches have changed since it was stored is worked 
 
 test("in a double gameweek a man is yet to play while his second match is to come, and no auto-sub comes before it", async () => {
   const league = await scoresLeague();
-  const secondKickoff = KICKOFF + 3 * DAY_MS;
+  const secondKickoff = LEAGUE_KICKOFF + 3 * DAY_MS;
   await league.t.run((ctx) =>
     ctx.db.insert("fixtures", { code: HULL_EVERTON + 1, gameweek: GAMEWEEK, homeClubCode: HULL, awayClubCode: ARSENAL, kickoff: secondKickoff }),
   );
@@ -161,7 +161,7 @@ test("in a double gameweek a man is yet to play while his second match is to com
 
 test("in a double gameweek, once both his matches are over, his status opens the later one", async () => {
   const league = await scoresLeague();
-  const secondKickoff = KICKOFF + 3 * DAY_MS;
+  const secondKickoff = LEAGUE_KICKOFF + 3 * DAY_MS;
   await league.t.run((ctx) =>
     ctx.db.insert("fixtures", { code: HULL_EVERTON + 1, gameweek: GAMEWEEK, homeClubCode: HULL, awayClubCode: ARSENAL, kickoff: secondKickoff }),
   );
@@ -183,7 +183,7 @@ test("each side's total is the same as the table's for the gameweek", async () =
 
 test("with no team or gameweek named, it opens on the caller's own team in the latest gameweek begun", async () => {
   const league = await scoresLeague();
-  vi.setSystemTime(KICKOFF + HOUR_MS);
+  vi.setSystemTime(LEAGUE_KICKOFF + HOUR_MS);
   const read = await matchupAs(league, BOB);
   expect(read).toMatchObject({ kind: "headToHead", teamId: league.bobsTeam, gameweek: GAMEWEEK, game: { kind: "scored" } });
   // Bob's own team is on the left.
@@ -284,7 +284,7 @@ test("the commentary is the match's stored lines, the goal priced for its scorer
     ctx.db.insert("matchCommentary", {
       fixtureCode: HULL_EVERTON,
       lines: [line(3, "FT HUL 1–2 EVE", 1, "end 14"), line(2, `64' GOAL ${scorer}`, 64, "goal", [HULL_SCORER]), line(1, "KO HUL v EVE", 0, "start")],
-      delayed: { reason: "the stream is over 10 minutes behind the clock", since: KICKOFF },
+      delayed: { reason: "the stream is over 10 minutes behind the clock", since: LEAGUE_KICKOFF },
     }),
   );
 

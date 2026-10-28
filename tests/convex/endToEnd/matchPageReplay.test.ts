@@ -1,9 +1,8 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import { SHEETS_BEFORE_KICKOFF_MS } from "../../../convex/football/matchTeamSheets";
 import type { MatchPage } from "../../../convex/match/matchPage";
 import { inTenths } from "../../../convex/scoring/scoringSet";
-import { MINUTE_MS } from "../../../convex/shared/time";
+import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { HULL_POINTS } from "../../support/convex/gameweekScores.harness";
 import { BOTH_ELEVENS, FULL_TIME_READ, HULL_EVERTON, KICKOFF } from "../../support/convex/matchStats.harness";
@@ -16,7 +15,7 @@ import { ANN, DEADLINE, ELEVENS, footballSyncAt, leagueWorld, liveTickAt, miniBe
 // recorded, through the live tick as its cron runs it: the team sheets half an hour before kickoff,
 // the first half, and full time, the page read as Ann at each.
 
-const HALF_AN_HOUR_BEFORE = KICKOFF - SHEETS_BEFORE_KICKOFF_MS / 2;
+const HALF_AN_HOUR_BEFORE = KICKOFF - LINEUPS_OUT_BEFORE_KICKOFF_MS / 2;
 const FIRST_HALF = 30;
 
 async function pageAs(league: MiniBeta, email: string): Promise<MatchPage> {
