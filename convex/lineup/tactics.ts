@@ -8,8 +8,9 @@ import { clubByCode, playerByCode } from "../shared/players";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { position } from "../schema";
+import { managerOf } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squads";
-import { heldLineupShape, lineupInGameweek, nextOpenGameweek, ownTeam } from "./lineups";
+import { heldLineupShape, lineupInGameweek, nextOpenGameweek } from "./lineups";
 
 // My team's Tactics tab (#14; spec/05, The pitch): what the pitch is set from. The gameweek is the
 // one a save now is from (lineups.ts's `save`), so the screen edits the lineup that save replaces,
@@ -51,7 +52,7 @@ export const ofMyTeam = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
   returns: tacticsShape,
   handler: async (ctx, { leagueId, now }) => {
-    const team = await ownTeam(ctx, leagueId);
+    const { team } = await managerOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     if (season === null) return { kind: "noRules" as const };
     const gameweek = await nextOpenGameweek(ctx, leagueId, season, now);

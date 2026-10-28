@@ -1,8 +1,6 @@
-import { Loading, PanelNote, PanelTitle } from "../frame/Panel";
+import { Loading, Panel, PanelNote } from "../frame/Panel";
 import type { PlStandings, PremierLeagueSeam } from "./seam";
 import { goalDifferenceWords, loadingTableWords, noClubsWords, provisionalWords, TABLE_TITLE, tableColumns } from "./words";
-
-const TITLE_ID = "pl-table-title";
 
 type Column = keyof typeof tableColumns;
 type Row = PlStandings["rows"][number];
@@ -19,8 +17,7 @@ const cellClasses = (column: Column) =>
 export function TablePanel({ seam }: { seam: PremierLeagueSeam }) {
   const standings = seam.useStandings();
   return (
-    <section aria-labelledby={TITLE_ID} className="bg-panel">
-      <PanelTitle id={TITLE_ID}>{TABLE_TITLE}</PanelTitle>
+    <Panel title={TABLE_TITLE}>
       {standings === undefined ? (
         <Loading className="px-3 py-2">{loadingTableWords}</Loading>
       ) : standings.rows.length === 0 ? (
@@ -50,7 +47,7 @@ export function TablePanel({ seam }: { seam: PremierLeagueSeam }) {
           </table>
         </>
       )}
-    </section>
+    </Panel>
   );
 }
 

@@ -36,7 +36,9 @@ const shortlistedPlayer = v.object({
 });
 export type ShortlistedPlayer = Infer<typeof shortlistedPlayer>;
 
-/** The caller's team in the league, or the refusal that they run none. */
+/** The caller's team in the league, or the refusal that they run none. Unlike `managerOf`, a
+ *  stranger is told they aren't in the league (memberOf), and only a member who runs no team (its
+ *  commissioner, say) is told they run none: the refusals the shortlist has always given. */
 async function ownTeam(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"teams">> {
   const { email } = await memberOf(ctx, leagueId);
   return (await teamOf(ctx, leagueId, email)) ?? refuse(refusals.runsNoTeam);

@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type QueryCtx } from "../_generated/server";
-import { callerEmail, getLeague, refuse, refusals, teamOf } from "../shared/leagueAccess";
+import { managerOf, refuse } from "../shared/leagueAccess";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { heldSchedule } from "../gameweeks/leagueDeadlines";
 import { nextGameweek } from "../gameweeks/nextGameweek";
@@ -118,20 +118,13 @@ function reconciled(row: Doc<"lineups">, squad: readonly number[]) {
   };
 }
 
-/** The caller's team in the league, or the refusal: signed out, or running no team there. */
-export async function ownTeam(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"teams">> {
-  const email = await callerEmail(ctx);
-  await getLeague(ctx, leagueId);
-  return (await teamOf(ctx, leagueId, email)) ?? refuse(refusals.runsNoTeam);
-}
-
 /** The caller's own team's lineup in the gameweek. Whether anyone else may see a team's lineup,
  *  and when, is not settled, so nobody else can yet. */
 export const mine = query({
   args: { leagueId: v.id("leagues"), gameweek: v.number() },
   returns: heldLineupShape,
   handler: async (ctx, { leagueId, gameweek }) => {
-    const team = await ownTeam(ctx, leagueId);
+    const { team } = await managerOf(ctx, leagueId);
     if (!isGameweek(gameweek)) refuse(noSuchGameweek(gameweek));
     return await lineupInGameweek(ctx, leagueId, team._id, gameweek);
   },
@@ -161,7 +154,7 @@ export const save = mutation({
   args: { leagueId: v.id("leagues"), lineup: sentLineup },
   returns: v.number(),
   handler: async (ctx, { leagueId, lineup }) => {
-    const team = await ownTeam(ctx, leagueId);
+    const { team } = await managerOf(ctx, leagueId);
     const season = (await seasonRules(ctx, leagueId)) ?? refuse(lineupRefusals.noRules);
     const fromGameweek = await nextOpenGameweek(ctx, leagueId, season, Date.now());
     if (fromGameweek > GAMEWEEKS) refuse(lineupRefusals.seasonOver);

@@ -2,7 +2,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { AREAS, type Area } from "../../convex/lineup/pitch";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import { ODD_TEAM_OUTS } from "../../convex/table/roundRobin";
-import { Loading, PageSection, PANEL_BODY, PanelNote, PanelTitle } from "../frame/Panel";
+import { Loading, PANEL_BODY, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { Choice } from "../rules/Choice";
 import { useRulesDraft } from "../rules/rulesDraft";
@@ -38,8 +38,6 @@ import {
   squadTitle,
 } from "./words";
 
-const FIXTURES_TITLE_ID = "fixtures-title";
-const SQUAD_TITLE_ID = "squad-title";
 const AREA_MINIMUMS_ID = "area-minimums";
 const ODD_TEAM_OUT_CHOICE = "odd-team-out";
 
@@ -71,8 +69,7 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
   const { draft, edit } = rulesDraft;
   return (
     <>
-      <section aria-labelledby={FIXTURES_TITLE_ID} className="bg-panel">
-        <PanelTitle id={FIXTURES_TITLE_ID}>{fixturesTitle}</PanelTitle>
+      <Panel title={fixturesTitle}>
         <div className={PANEL_BODY}>
           <Choice
             label={oddTeamOutLabel}
@@ -86,7 +83,7 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
           <p className="text-muted">{gamesHint}</p>
           <p className="text-muted">{redrawWords}</p>
         </div>
-      </section>
+      </Panel>
       <SquadPanel draft={draft} edit={edit} />
       <SaveBar draft={rulesDraft} savedWords={savedWords} />
     </>
@@ -97,8 +94,7 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
  *  the most from one club, off by default. */
 function SquadPanel({ draft, edit }: { draft: LeagueSettings; edit: (settings: LeagueSettings) => void }) {
   return (
-    <section aria-labelledby={SQUAD_TITLE_ID} className="bg-panel">
-      <PanelTitle id={SQUAD_TITLE_ID}>{squadTitle}</PanelTitle>
+    <Panel title={squadTitle}>
       <div className={PANEL_BODY}>
         {draft.squadMaximum === null ? (
           <p>{noSquadSizeWords}</p>
@@ -135,7 +131,7 @@ function SquadPanel({ draft, edit }: { draft: LeagueSettings; edit: (settings: L
           </>
         )}
       </div>
-    </section>
+    </Panel>
   );
 }
 

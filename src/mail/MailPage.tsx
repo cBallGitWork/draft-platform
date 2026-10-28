@@ -24,7 +24,7 @@ import {
  *  admin, every league, but never one being deleted. The server checks again. */
 export function leaguesToWriteFrom(session: Session): readonly LeagueSummary[] {
   if (!session.signedIn) return [];
-  return session.leagues.filter((league) => !league.deletion && runs(league, session.isAdmin));
+  return session.leagues.filter((league) => !league.deletion && runs(league));
 }
 
 /** Mail (spec/16): the person's letters, newest first, each opened in place, which marks it read;

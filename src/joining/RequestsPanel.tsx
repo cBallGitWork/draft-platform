@@ -1,10 +1,8 @@
-import { PanelNote, PanelTitle, Problem } from "../frame/Panel";
+import { Panel, PanelNote, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { TeamSelect, useTeamChoice } from "./TeamChoice";
 import { noRequestsWords, requestsWords } from "./words";
-
-const TITLE_ID = "requests-title";
 
 type Request = InvitesPageData["requests"][number];
 
@@ -12,8 +10,7 @@ type Request = InvitesPageData["requests"][number];
  *  commissioner picks, a vacated one included, or refused. */
 export function RequestsPanel({ page, joining }: { page: InvitesPageData; joining: JoiningSeam }) {
   return (
-    <section aria-labelledby={TITLE_ID} className="bg-panel">
-      <PanelTitle id={TITLE_ID}>{requestsWords.title}</PanelTitle>
+    <Panel title={requestsWords.title}>
       {page.requests.length === 0 ? (
         <PanelNote>{noRequestsWords}</PanelNote>
       ) : (
@@ -23,7 +20,7 @@ export function RequestsPanel({ page, joining }: { page: InvitesPageData; joinin
           ))}
         </ul>
       )}
-    </section>
+    </Panel>
   );
 }
 

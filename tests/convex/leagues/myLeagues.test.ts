@@ -68,6 +68,19 @@ describe("a person's leagues", () => {
       { name: "Second", roles: [], unsentCommissionerLink: null },
     ]);
   });
+
+  test.each([
+    ["its commissioner", COMMISSIONER, { names: true, runs: true }],
+    ["its co-commissioner", CO_COMMISSIONER, { names: false, runs: true }],
+    ["a manager", ANN, { names: false, runs: false }],
+    ["the admin", ADMIN, { names: true, runs: true }],
+  ])("%s is sent the powers the server judges changes by", async (_who, email, powers) => {
+    const leagueId = await adminCreatesLeague(t, 4);
+    await addManagers(t, leagueId, [ANN]);
+    await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
+
+    expect((await accountOf(email)).leagues).toMatchObject([{ leagueId, powers }]);
+  });
 });
 
 describe("more leagues than the list shows (#144)", () => {

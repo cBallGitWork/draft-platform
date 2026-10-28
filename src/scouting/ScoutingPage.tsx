@@ -2,15 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { COMPARED_PLAYERS } from "../../convex/scouting/comparedPlayers";
 import type { CatalogueStat } from "../../convex/scoring/statCatalogue";
-import { Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
+import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { ComparePanel, type PickedPlayer } from "./ComparePanel";
 import { Filters } from "./Filters";
 import { PlayersTable } from "./PlayersTable";
 import type { ListedPlayer, PlayersFilters, PlayersSort, ScoutingSeam, SortColumn } from "./seam";
 import { ShortlistPanel } from "./ShortlistPanel";
 import { countWords, loadingWords, noneMatchWords, noWaiversWords, PLAYERS_TITLE, SCOUTING_TITLE } from "./words";
-
-const TITLE_ID = "players-title";
 
 const OPENING_FILTERS: PlayersFilters = { availability: "all", position: null, clubCode: null };
 /** The list opens by name: no player has season points to rank by until matches are scored (#29).
@@ -49,8 +47,7 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
     <PageSection title={SCOUTING_TITLE} className="flex max-w-6xl flex-col gap-2">
       {picked.length > 0 && <ComparePanel picked={picked} comparison={comparison} clear={() => setPicked([])} />}
       <ShortlistPanel leagueId={league.leagueId} seam={seam} />
-      <section aria-labelledby={TITLE_ID} className="bg-panel">
-        <PanelTitle id={TITLE_ID}>{PLAYERS_TITLE}</PanelTitle>
+      <Panel title={PLAYERS_TITLE}>
         <Filters filters={filters} clubs={list?.clubs} filterBy={filterBy} stat={stat} show={show} />
         {list === undefined ? (
           <Loading className="px-3 py-2">{loadingWords}</Loading>
@@ -62,7 +59,7 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
             <PlayersTable leagueId={league.leagueId} players={list.players} stat={stat} sort={sort} sortBy={sortBy} picked={picked} pick={pick} />
           </>
         )}
-      </section>
+      </Panel>
     </PageSection>
   );
 }
