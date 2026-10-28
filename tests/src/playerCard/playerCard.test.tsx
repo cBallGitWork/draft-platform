@@ -29,8 +29,11 @@ import {
   noNewsWords,
   noSuchPlayerWords,
   nothingEarnedWords,
+  notCountedWords,
+  liveWords,
   PLAYER_TITLE,
   pricedNotes,
+  provisionalWords,
   SEASON_TITLE,
 } from "../../../src/playerCard/words";
 import { addToShortlistWords } from "../../../src/scouting/shortlistWords";
@@ -55,7 +58,9 @@ const PRICED: PlayedMatch = {
     position: "W",
     total: 11,
     categories: [category("goals_scored", "Goals scored", 5), category("assists", "Assists", 4), category("minutes", "Minutes", 2), category("yellow_cards", "Yellow cards", 0)],
-  },  override: null,
+  },
+  override: null,
+  provisional: false,
 };
 const NOT_ARRIVED: PlayedMatch = {
   ...PRICED,
@@ -209,6 +214,30 @@ describe("the card", () => {
     const season = within(await screen.findByRole("region", { name: SEASON_TITLE }));
     expect(season.getByText(pricedNotes.slot)).toBeTruthy();
     expect(season.getByText(pricedNotes.bestPosition)).toBeTruthy();
+  });
+
+  it("a match he sat on his team's bench and didn't come on is labelled as not counted (#577)", async () => {
+    const benched = { ...PRICED, points: { ...PRICED.points, scoredAs: "notCounted" as const } };
+    openCard(SAKA, { cards: [{ ...SAKA, matches: [benched] }] });
+    const season = within(await screen.findByRole("region", { name: SEASON_TITLE }));
+    expect(season.getByText(notCountedWords)).toBeTruthy();
+    expect(season.getByText(pricedNotes.notCounted)).toBeTruthy();
+    expect(season.queryByText(pricedNotes.slot)).toBeNull();
+  });
+
+  it("a match whose points may still move is marked live, and the card says why (#577)", async () => {
+    openCard(SAKA, { cards: [{ ...SAKA, matches: [{ ...PRICED, provisional: true }] }] });
+    const season = within(await screen.findByRole("region", { name: SEASON_TITLE }));
+    expect(season.getByText(provisionalWords)).toBeTruthy();
+    expect(season.getByText(liveWords)).toBeTruthy();
+  });
+
+  it("a final match has no live mark", async () => {
+    openCard(SAKA, { cards: [{ ...SAKA, matches: [PRICED] }] });
+    const season = within(await screen.findByRole("region", { name: SEASON_TITLE }));
+    expect(season.queryByText(provisionalWords)).toBeNull();
+    expect(season.queryByText(liveWords)).toBeNull();
+    expect(season.queryByText(notCountedWords)).toBeNull();
   });
 
   it("an overridden match shows no role line: the override is its whole score", async () => {

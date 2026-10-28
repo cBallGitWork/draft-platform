@@ -25,6 +25,7 @@ const MATCH: PlayedMatch = {
   minutes: 90,
   points: { scoredAs: "bestPosition", position: "W", total: 7, categories: [{ stat: "goals_scored", name: "Goals scored", points: 5 }] },
   override: null,
+  provisional: false,
 };
 const EARLIER: PlayedMatch = { ...MATCH, fixtureCode: 31, gameweek: 3, home: COVENTRY, away: ARSENAL };
 const SAKA: PlayerCard = {

@@ -27,7 +27,13 @@ export const noMatchesWords = "He hasn't played a match this season.";
 export const pricedNotes: Record<ScoredAs, string> = {
   slot: "Points from his slot in the lineup, under the site's scoring.",
   bestPosition: "Points at his best position, under the site's scoring: what he'd score where he scores most.",
+  notCounted: "Not counted: a match he sat on his team's bench and didn't come on, at his best position.",
 };
+/** Under a match his team's points didn't include (spec/12): a bench player who didn't come on. */
+export const notCountedWords = "Not counted: his team's points didn't include him this gameweek.";
+/** Beside points that may still move: the match isn't final, or his team's auto-subs aren't (spec/12). */
+export const liveWords = "Live";
+export const provisionalWords = "Live: points are provisional until the match is final and his team's auto-subs are settled.";
 export const columns = {
   gameweek: { short: "GW", long: "Gameweek" },
   match: { short: "Match", long: "Match" },

@@ -13,7 +13,7 @@ import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { placementShape } from "../schema";
 import { lineupProblems } from "./lineup";
-import type { Area, Cell, Lane } from "./pitch";
+import type { Area, Lane } from "./pitch";
 import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords";
 
 // Each team's lineup, stored (spec/05, The pitch; #8). A save is a row from the next gameweek
@@ -90,23 +90,6 @@ export async function lineupsInGameweek(
     lineups.set(teamId, { kind: "saved", fromGameweek: row.fromGameweek, ...reconciled(row, squad) });
   }
   return lineups;
-}
-
-/** A team's starters by gameweek, each at his cell and role, read once a gameweek however often
- *  asked: what a player's points in that gameweek are priced at (the Squad tab, the card). */
-export function startersByGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">) {
-  const read = new Map<number, Promise<Map<number, Cell & { role?: string }>>>();
-  return (gameweek: number) => {
-    if (!read.has(gameweek)) {
-      read.set(
-        gameweek,
-        lineupInGameweek(ctx, leagueId, teamId, gameweek).then((lineup) =>
-          lineup.kind === "none" ? new Map() : new Map(lineup.starters.map(({ playerCode, area, lane, role }) => [playerCode, { area, lane, role }])),
-        ),
-      );
-    }
-    return read.get(gameweek)!;
-  };
 }
 
 /** One team's lineup in the gameweek, as `lineupsInGameweek` gives it. */
