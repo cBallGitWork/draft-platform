@@ -1,24 +1,27 @@
-import type { ComponentProps } from "react";
+import type { ComponentType } from "react";
 import { createRoute, redirect } from "@tanstack/react-router";
+import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { CurrentLeague } from "../frame/CurrentLeague";
 import { HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH, MY_TEAM_SQUAD_PATH, MY_TEAM_TRANSACTIONS_PATH, pages, PREMIER_LEAGUE_PATH, SCOUTING_PATH, TABLE_PATH } from "../frame/menu";
 import { PageNotBuilt } from "../frame/PageNotBuilt";
-import { HomeRoute } from "../home/HomeRoute";
-import { MatchupRoute } from "../matchup/MatchupRoute";
+import { HomePage } from "../home/HomePage";
+import { MatchupPage } from "../matchup/MatchupPage";
 import { matchupSearchOf } from "../matchup/paths";
 import { FixturesPage } from "../myTeam/FixturesPage";
-import { MyTeamRoute } from "../myTeam/MyTeamRoute";
+import type { MyTeamSeam } from "../myTeam/seam";
 import { SquadPage } from "../myTeam/SquadPage";
 import { TacticsPage } from "../myTeam/TacticsPage";
 import { TransactionsPage } from "../myTeam/TransactionsPage";
-import { MatchRoute } from "../premierLeague/MatchRoute";
+import { MatchPage } from "../premierLeague/MatchPage";
 import { MATCH_ROUTE } from "../premierLeague/paths";
 import { PremierLeaguePage } from "../premierLeague/PremierLeaguePage";
-import { ScoutingRoute } from "../scouting/ScoutingRoute";
-import { TableRoute } from "../table/TableRoute";
+import { ScoutingPage } from "../scouting/ScoutingPage";
+import { TablePage } from "../table/TablePage";
 import { CODE_DIGITS, LANDING_PATH, frameRoute } from "./root";
 
 // The pages under root.tsx's frameRoute, for anyone in a league, in its frame; and a placeholder for
-// each menu page not built yet.
+// each menu page not built yet. Each league page is the current league's (frame/CurrentLeague.tsx),
+// so a switch to another league starts it afresh.
 
 // A signed-in manager lands on My team (spec/12).
 const landingRoute = createRoute({
@@ -35,7 +38,7 @@ const tableRoute = createRoute({
   path: TABLE_PATH,
   component: function Table() {
     const { session, table } = tableRoute.useRouteContext();
-    return <TableRoute session={session} seam={table} />;
+    return <CurrentLeague session={session} page={(league) => <TablePage league={league} seam={table} />} />;
   },
 });
 
@@ -45,7 +48,7 @@ const homeRoute = createRoute({
   path: HOME_PATH,
   component: function Home() {
     const { session, home } = homeRoute.useRouteContext();
-    return <HomeRoute session={session} seam={home} />;
+    return <CurrentLeague session={session} page={(league) => <HomePage league={league} seam={home} />} />;
   },
 });
 
@@ -55,19 +58,19 @@ const scoutingRoute = createRoute({
   path: SCOUTING_PATH,
   component: function Scouting() {
     const { session, scouting } = scoutingRoute.useRouteContext();
-    return <ScoutingRoute session={session} seam={scouting} />;
+    return <CurrentLeague session={session} page={(league) => <ScoutingPage league={league} seam={scouting} />} />;
   },
 });
 
 /** One of My team's tabs at `path`, for anyone in the league: `Tab` is given the league the app is
  *  in and the My team seam. */
-function myTeamTab(path: string, Tab: ComponentProps<typeof MyTeamRoute>["Tab"]) {
+function myTeamTab(path: string, Tab: ComponentType<{ league: LeagueSummary; seam: MyTeamSeam }>) {
   const route = createRoute({
     getParentRoute: () => frameRoute,
     path,
     component: function MyTeamTab() {
       const { session, myTeam } = route.useRouteContext();
-      return <MyTeamRoute session={session} seam={myTeam} Tab={Tab} />;
+      return <CurrentLeague session={session} page={(league) => <Tab league={league} seam={myTeam} />} />;
     },
   });
   return route;
@@ -88,7 +91,7 @@ const matchupRoute = createRoute({
   component: function MatchupScreen() {
     const { session, matchup } = matchupRoute.useRouteContext();
     const { team, gameweek } = matchupRoute.useSearch();
-    return <MatchupRoute session={session} seam={matchup} asked={{ teamId: team, gameweek }} />;
+    return <CurrentLeague session={session} page={(league) => <MatchupPage league={league} seam={matchup} asked={{ teamId: team, gameweek }} />} />;
   },
 });
 
@@ -112,12 +115,24 @@ const matchRoute = createRoute({
   component: function Match() {
     const { session, premierLeague } = matchRoute.useRouteContext();
     const { fixtureCode } = matchRoute.useParams();
-    return <MatchRoute session={session} seam={premierLeague} fixtureCode={Number(fixtureCode)} />;
+    const code = Number(fixtureCode);
+    return (
+      <CurrentLeague
+        session={session}
+        page={(league) => <MatchPage league={league} seam={premierLeague} fixtureCode={code} />}
+        // Keyed by the match as well as the league, so going to another match starts afresh too.
+        keyOf={(league) => `${league.leagueId}/${code}`}
+      />
+    );
   },
 });
 
-const BUILT_PAGES: readonly string[] = [MAIL_PATH, TABLE_PATH, SCOUTING_PATH, HOME_PATH, MY_TEAM_PATH, MY_TEAM_SQUAD_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_TRANSACTIONS_PATH, MATCHUP_PATH, PREMIER_LEAGUE_PATH];
-const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map((page) =>
+const builtRoutes = [landingRoute, homeRoute, tableRoute, scoutingRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute];
+
+/** Every address with its own screen: each route above, and Mail, whose route is with the league
+ *  pages (leaguePages.tsx). Any other menu page gets a placeholder. */
+const built: ReadonlySet<string | undefined> = new Set([...builtRoutes.map((route) => ("path" in route.options ? route.options.path : undefined)), MAIL_PATH]);
+const pageRoutes = pages.filter((page) => !built.has(page.path)).map((page) =>
   createRoute({
     getParentRoute: () => frameRoute,
     path: page.path,
@@ -125,4 +140,4 @@ const pageRoutes = pages.filter((page) => !BUILT_PAGES.includes(page.path)).map(
   }),
 );
 
-export const frameChildren = [landingRoute, homeRoute, tableRoute, scoutingRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute, ...pageRoutes];
+export const frameChildren = [...builtRoutes, ...pageRoutes];
