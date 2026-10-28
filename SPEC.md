@@ -87,6 +87,8 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - **Carrying a league into next season**, a different thing from spec/03's carry-over rule
   (redraft, keeper, dynasty).
 - **Archiving a league**: deleting is for good for now (`spec/13`).
+- **A player's card across a move**: his matches before he changed teams show what his old team
+  got from him; a move changes only his owner, never his history (Craig, 28 Oct 2026; spec/12).
 - **Preview sites** for unmerged changes (spec/20).
 - **A staging site**, if real leagues arrive (spec/20).
 
