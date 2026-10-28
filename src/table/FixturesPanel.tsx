@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { isLocked } from "../../convex/gameweeks/deadline";
+import { nextByDeadlines } from "../../convex/gameweeks/nextGameweek";
 import { FEWEST_TO_DRAW } from "../../convex/table/roundRobin";
 import { GameweekStepper } from "../frame/GameweekStepper";
 import { PanelNote, PanelTitle } from "../frame/Panel";
@@ -44,10 +44,11 @@ export function FixturesPanel({ leagueTable }: { leagueTable: LeagueTable }) {
   );
 }
 
-/** Where the fixtures open: the first gameweek not yet begun, or the last once all have. */
+/** Where the fixtures open: the next gameweek by the server's rule (the one after the last begun),
+ *  or the last once all have begun. */
 function openingIndex(gameweeks: readonly Gameweek[], now: number): number {
-  const next = gameweeks.findIndex((each) => !isLocked(each.deadline, now));
-  return next === -1 ? gameweeks.length - 1 : next;
+  const next = nextByDeadlines(gameweeks, (each) => each.deadline, now);
+  return next === undefined ? gameweeks.length - 1 : gameweeks.indexOf(next);
 }
 
 /** One gameweek's fixtures, under CM's ◄ GW ► stepper over the gameweeks the league plays. */

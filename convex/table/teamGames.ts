@@ -35,9 +35,10 @@ export type SideScore = { points: number; provisional: boolean };
  *  either may still move (spec/07), the average while any team's may. */
 export type GameScore = { team: number; opponent: number; provisional: boolean };
 
-/** The score of `team`'s fixture against `opponent` in a gameweek scored, `scored` holding every
- *  one of `teams`: as the table's fixtures (leagueTable.ts) and My team's Fixtures tab show it. A
- *  team missing from it is a gameweek scored short, and throws. */
+/** The score of `team`'s fixture against `opponent` in a gameweek scored, the league's average over
+ *  `teams`, the gameweek's own (standings.ts's `teamsInGameweek`), `scored` holding every one of
+ *  them: as the table's fixtures (leagueTable.ts) and My team's Fixtures tab show it. A team
+ *  missing from it is a gameweek scored short, and throws. */
 export function gameScore<Team>(
   teams: readonly Team[],
   scored: ReadonlyMap<Team, SideScore>,

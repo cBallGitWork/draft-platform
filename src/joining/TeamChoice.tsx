@@ -1,5 +1,5 @@
-import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
+import { useChoiceAmong } from "../useChoiceAmong";
 import type { InvitesPageData } from "./seam";
 import { newTeamWords, noTeamWords } from "./words";
 
@@ -13,8 +13,7 @@ export function useTeamChoice(page: InvitesPageData) {
     ...(page.hasRoom ? [{ value: NEW_TEAM, label: newTeamWords }] : []),
     ...page.teams.filter((team) => team.managerEmail === null).map((team) => ({ value: team.teamId, label: team.name })),
   ];
-  const [chosen, choose] = useState<string>(NEW_TEAM);
-  const value = options.some((option) => option.value === chosen) ? chosen : options[0]?.value;
+  const [value, choose] = useChoiceAmong(options.map((option) => option.value), NEW_TEAM);
   /** The vacated team chosen, or null for a new team; undefined when nothing can be chosen. */
   const teamId = value === undefined ? undefined : value === NEW_TEAM ? null : (value as Id<"teams">);
   return { options, value, choose, teamId };

@@ -212,8 +212,9 @@ async function seasonMatches(
   return played.sort((one, other) => (other.kickoff ?? 0) - (one.kickoff ?? 0));
 }
 
-/** The league's overrides of his points, by match: one a match at most, so never more than his records. */
-async function overridesOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<Map<number, Doc<"pointsOverrides">>> {
+/** The league's overrides of his points, by match: one a match at most, so never more than his
+ *  records. The card and the Squad tab both read them. */
+export async function overridesOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<Map<number, Doc<"pointsOverrides">>> {
   const rows = await takeAllOrThrow(
     ctx.db.query("pointsOverrides").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode)),
     PLAYER_RECORDS_MOST,
