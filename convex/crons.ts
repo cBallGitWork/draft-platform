@@ -19,7 +19,7 @@ crons.interval("live stats tick", FEED_SCHEDULES.liveStats.every, internal.stats
 // live tick's window ends is still read, corrected and locked (spec/07).
 crons.interval("late stats", FEED_SCHEDULES.matchStats.every, internal.stats.matchStatsSync.run, BY_CRON);
 
-// Clearing old run logs (#146, admin/runLogs.ts).
+// Clearing old run logs (#146, admin/runLogs.ts), then old sign-in asks (signInLinks.ts).
 crons.interval("prune run logs", PRUNE_EVERY, internal.admin.runLogs.prune, {});
 
 export default crons;
