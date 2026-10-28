@@ -12,15 +12,12 @@ import type { readFplPayloads } from "./fpl";
 import { matchSlots } from "./plMatch";
 import { readPlFixture, readPlFixtures } from "./premierLeague";
 
-// Each match's team sheets before kickoff (#45; spec/10, The match page: "From the lineups, about
-// an hour before kickoff"), read by the live tick (#28) for every match kicking off within the hour
-// and stored one row a match. Only the sheets are read: the Premier League's list for the gameweek,
-// for the match's id, and the match's own read, which names both sides' men; its points, commentary
-// and team stats wait for kickoff. Each read replaces the held sheets, so a change made in the
-// warm-up shows; a read with neither side named leaves them. A failed read is logged and the held
-// sheets stand. From kickoff the match's records, written from the same sheets, take over on the
-// page (match/matchPage.ts). A man FPL doesn't list is left out, as from kickoff, where the tick's
-// row names him.
+// Each match's team sheets before kickoff (#45; spec/10, The match page), read by the live tick
+// (#28) and stored one row a match. Only the sheets are read: the gameweek's list for the match's
+// id, then the match's own read; its points, commentary and team stats wait for kickoff. Each read
+// replaces the held sheets, so a change made in the warm-up shows; a read naming nobody, or one
+// that fails (logged), leaves them. A man FPL doesn't list is left out, as he is from kickoff,
+// when the tick's row names him.
 
 type TeamSheetMan = Infer<typeof teamSheetMan>;
 

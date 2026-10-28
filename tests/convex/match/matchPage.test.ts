@@ -95,7 +95,8 @@ test("before kickoff, the men the team sheets name show as the sheets have them,
   await league.t.mutation(internal.football.matchTeamSheets.store, { fixtureCode: HULL_EVERTON, men: sheets });
   const page = (await matchAs(league, ANN))!;
 
-  expect(page.men.map(({ playerCode, started }) => ({ playerCode, started })).toSorted((a, b) => a.playerCode - b.playerCode)).toEqual(sheets.toSorted((a, b) => a.playerCode - b.playerCode));
+  const byCode = (one: { playerCode: number }, other: { playerCode: number }) => one.playerCode - other.playerCode;
+  expect(page.men.map(({ playerCode, started }) => ({ playerCode, started })).toSorted(byCode)).toEqual(sheets.toSorted(byCode));
   expect(page.men.every((man) => man.played === null)).toBe(true);
   expect(page.men[0]).toMatchObject({ side: "home", started: true, position: "GK" });
   expect(manOf(page.men, PHILLIPS)).toMatchObject({ side: "home", started: false, ownerTeamName: "Team 1" });

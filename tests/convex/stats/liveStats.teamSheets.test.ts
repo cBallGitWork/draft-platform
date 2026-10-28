@@ -7,7 +7,7 @@ import { matchSlots } from "../../../convex/football/plMatch";
 import { PL_UPCOMING } from "../../../convex/football/premierLeague";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { stagedGw6, stageTime, tickAt } from "../../support/convex/liveStats.harness";
-import { GAMEWEEK, HULL_EVERTON, KICKOFF, withHullEverton } from "../../support/convex/matchStats.harness";
+import { BOTH_ELEVENS, GAMEWEEK, HULL_EVERTON, KICKOFF, withHullEverton } from "../../support/convex/matchStats.harness";
 import { refusedError, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import { MATCH, recordedGw6, type Gw6Payloads } from "../../support/recorded/gw6.payloads";
 
@@ -70,7 +70,7 @@ test("a tick within the hour reads only the match's sheets and keeps both sides'
     [FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, plFixturesUrl(GAMEWEEK), plFixtureUrl(MATCH.hullEverton.pl)].toSorted(),
   );
   const men = sheetMen(payloads, MATCH.hullEverton.pl);
-  expect(men.filter((man) => man.started)).toHaveLength(22);
+  expect(men.filter((man) => man.started)).toHaveLength(BOTH_ELEVENS);
   expect(await heldSheets(t)).toMatchObject({ fixtureCode: HULL_EVERTON, men });
   expect(latest).toBeUndefined();
   expect(await t.run((ctx) => ctx.db.query("playerMatchStats").collect())).toEqual([]);
@@ -90,7 +90,7 @@ test("a change to the sheets replaces the held men; a read naming nobody leaves 
   delete hullSheet.formation;
   await tickAt(t, SHEETS_OPEN + MINUTE_MS, changed);
   const men = sheetMen(changed, MATCH.hullEverton.pl);
-  expect(men.filter((man) => man.started)).toHaveLength(21);
+  expect(men.filter((man) => man.started)).toHaveLength(BOTH_ELEVENS - 1);
   expect((await heldSheets(t))!.men).toEqual(men);
 
   const unnamed = beforeKickoff();

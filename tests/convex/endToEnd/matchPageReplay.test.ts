@@ -6,7 +6,7 @@ import { inTenths } from "../../../convex/scoring/scoringSet";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { HULL_POINTS } from "../../support/convex/gameweekScores.harness";
-import { FULL_TIME_READ, HULL_EVERTON, KICKOFF } from "../../support/convex/matchStats.harness";
+import { BOTH_ELEVENS, FULL_TIME_READ, HULL_EVERTON, KICKOFF } from "../../support/convex/matchStats.harness";
 import { REPLAY_MINUTES, stagedGw6, stageTime } from "../../support/convex/liveStats.harness";
 import { actingAs } from "../../support/convex/leagues.harness";
 import { ANN, DEADLINE, ELEVENS, footballSyncAt, leagueWorld, liveTickAt, miniBetaLeague, type MiniBeta } from "../../support/convex/miniBeta.harness";
@@ -44,7 +44,7 @@ test("the match page plays out from its team sheets before kickoff to full time,
   // Half an hour before kickoff: both sheets, every man not yet played, and no record kept.
   await liveTickAt(league.t, HALF_AN_HOUR_BEFORE, beforeKickoff());
   const sheets = await pageAs(league, ANN);
-  expect(sheets.men.filter((man) => man.started)).toHaveLength(22);
+  expect(sheets.men.filter((man) => man.started)).toHaveLength(BOTH_ELEVENS);
   expect(sheets.men.every((man) => man.played === null)).toBe(true);
   annsMen(sheets, teamName);
   expect(await league.t.run((ctx) => ctx.db.query("playerMatchStats").collect())).toEqual([]);
