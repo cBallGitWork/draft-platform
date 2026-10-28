@@ -89,14 +89,21 @@ const matches = new Map(SEASON_GAMEWEEKS.map((gameweek) => [gameweek, matchesOf(
 const results = [...matches.values()].flat().flatMap(({ home, away, score }) =>
   score === null || score.homeGoals === null || score.awayGoals === null ? [] : [{ home, away, homeGoals: score.homeGoals, awayGoals: score.awayGoals }],
 );
-/** The matches still to come, which open the recorded match as it stood before kickoff. */
-const upcoming = new Set([...matches.values()].flat().flatMap(({ fixtureCode, score }) => (score?.state === "upcoming" ? [fixtureCode] : [])));
+/** Each match still to come, opening the recorded match as it stood before kickoff, on its own
+ *  day and in its own gameweek. */
+const upcoming = new Map(
+  [...matches].flatMap(([gameweek, gameweekMatches]) =>
+    gameweekMatches.flatMap(({ fixtureCode, kickoff, score }) =>
+      score?.state === "upcoming" ? [[fixtureCode, { ...previewMatchBeforeKickoff, fixtureCode, gameweek, kickoff }] as const] : [],
+    ),
+  ),
+);
 const standings = { rows: plTable(CLUBS, results, { seasonOver: false }), provisional: true };
 
 export const previewPremierLeague: PremierLeagueSeam = {
   useFirstKickoffs: () => firstKickoffs,
   useGameweekMatches: (gameweek) => matches.get(gameweek) ?? [],
   // Every fixture opens the one recorded match (matchPreview.ts): one to come, as before kickoff.
-  useMatch: (_leagueId, fixtureCode) => (upcoming.has(fixtureCode) ? previewMatchBeforeKickoff : previewMatch),
+  useMatch: (_leagueId, fixtureCode) => upcoming.get(fixtureCode) ?? previewMatch,
   useStandings: () => standings,
 };
