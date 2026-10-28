@@ -24,6 +24,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # The deployed commit, so the check reads the words that site shows; main's on a run by hand.
+  CHECKED_SHA: ${{ github.event.client_payload.git.sha || github.sha }}
+
 # One check at a time, never cancelled: a run of releases queues, and only the newest waiting one runs.
 concurrency:
   group: release-check
@@ -54,7 +58,7 @@ jobs:
       - if: steps.secrets.outputs.ready == 'true'
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.client_payload.git.sha || github.sha }}
+          ref: ${{ env.CHECKED_SHA }}
       - if: steps.secrets.outputs.ready == 'true'
         id: playwright
         run: |
@@ -71,10 +75,9 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v${{ needs.ready.outputs.playwright_version }}-noble
     steps:
-      # The deployed commit, so the check reads the words that site shows; main's on a run by hand.
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.client_payload.git.sha || github.sha }}
+          ref: ${{ env.CHECKED_SHA }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc

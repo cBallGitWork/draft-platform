@@ -17,10 +17,10 @@ export const POLL_MS = 5_000;
  *  clock and Resend's can differ by a few seconds. */
 export const CLOCK_SKEW_MS = 30_000;
 
-/** Every web address in an email's body, `&amp;` undone for an HTML one. */
+/** A web address in an email's body, up to a space, a quote or a tag's bracket. */
 const ADDRESSES = /https?:\/\/[^\s"'<>]+/g;
 
-/** The first link in `body` on `siteUrl`'s site, or null. */
+/** The first link in `body` on `siteUrl`'s site, or null; an HTML body's `&amp;` is undone first. */
 export function linkIn(body, siteUrl) {
   const site = new URL(siteUrl).origin;
   const found = (body ?? "").replaceAll("&amp;", "&").match(ADDRESSES) ?? [];

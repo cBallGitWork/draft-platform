@@ -17,9 +17,15 @@ const SIGNED_IN_WAIT_MS = 30_000;
 
 const secrets = checkSecrets();
 
+/** Skips the check, saying why where the run's log shows it: GitHub's notice, and the console. */
+function skipSaying(reason: string) {
+  console.log(`::notice::${reason}`);
+  test.skip(true, reason);
+}
+
 test("the live site sends a sign-in link, and the link signs in", async ({ page, baseURL }) => {
-  test.skip(secrets === null, SKIPPED_NO_SECRETS);
-  if (!secrets || !baseURL) throw new Error("the check has no site to open");
+  if (!secrets) return skipSaying(SKIPPED_NO_SECRETS);
+  if (!baseURL) throw new Error("the check has no site to open");
 
   await page.goto("/");
   await page.getByLabel(signInWords.emailLabel).fill(secrets.email);
@@ -29,8 +35,9 @@ test("the live site sends a sign-in link, and the link signs in", async ({ page,
   const reply = page.getByRole("status");
   await expect(reply).not.toBeEmpty();
   // The hour's limit on links for one address, reached by a run of releases: the site answered,
-  // but sends no link this time. Skipped and said, not red (the PR leaves this to Craig).
-  test.skip((await reply.textContent()) === replyWords.tryLater, `skipped: the site answered "${replyWords.tryLater}"`);
+  // but sends no link this time. Skipped and said, not red: Craig's call (ARCHITECTURE.md, The
+  // after-release check).
+  if ((await reply.textContent()) === replyWords.tryLater) return skipSaying(`skipped: the site answered "${replyWords.tryLater}"`);
   await expect(reply).toHaveText(replyWords.checkYourEmail);
 
   const link = await receivedSignInLink({ apiKey: secrets.resendKey, to: secrets.email, subject: SIGN_IN_SUBJECT, siteUrl: baseURL, since: askedAt });
