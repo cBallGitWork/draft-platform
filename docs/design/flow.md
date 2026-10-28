@@ -111,7 +111,7 @@ flowchart TD
   CARD -.->|"its code isn't a number"| SCOUTING
 
   subgraph PLAN["Named in the spec, no route yet"]
-    DRAFT["Draft room<br/>spec/12:16, spec/04<br/>manager, commissioner"]
+    DRAFT["Draft room<br/>spec/12 The frame, spec/04<br/>manager, commissioner"]
     CLUBS["Club pages<br/>spec/18:22<br/>after the mini beta"]
   end
   class DRAFT,CLUBS planned
@@ -148,7 +148,7 @@ Features table (feature 12), the one home for screen status.
 | Table and fixtures | `/table` | src/table/TablePage.tsx | spec/12, spec/09 | built |
 | Scouting | `/scouting` | src/scouting/ScoutingPage.tsx | spec/19 The players list, The shortlist | built |
 | League home | `/home` | src/home/HomePage.tsx | spec/12 League home | built |
-| My team (Tactics) | `/team` | src/myTeam/TacticsPage.tsx | spec/12:11, spec/12:28, spec/05 | built |
+| My team (Tactics) | `/team` | src/myTeam/TacticsPage.tsx | spec/12 The frame, spec/12 My team's tabs, spec/05 | built |
 | Squad | `/team/squad` | src/myTeam/SquadPage.tsx | spec/12 My team's tabs | built |
 | Fixtures | `/team/fixtures` | src/myTeam/FixturesPage.tsx | spec/12 My team's tabs | built |
 | Transactions | `/team/transactions` | src/myTeam/TransactionsPage.tsx | spec/12 My team's tabs | built |
@@ -157,11 +157,12 @@ Features table (feature 12), the one home for screen status.
 | Premier League | `/premier-league` | src/premierLeague/PremierLeaguePage.tsx | spec/18 | built |
 | Match | `/premier-league/match/$fixtureCode` | src/premierLeague/MatchPage.tsx | spec/10 The match page | built |
 | Player card | `/leagues/$leagueId/players/$playerCode` | src/playerCard/PlayerCardPage.tsx | spec/12 The player card, spec/05, spec/14, spec/19 | built |
-| Draft room | none | none | spec/12:16, spec/04 | no route |
+| Draft room | none | none | spec/12 The frame, spec/04 | no route |
 | Club pages | none | none | spec/18:22 | no route |
 
 ## Gaps
 
 - Your leagues has no link into a league's frame pages: the menu, or `/`, gets there.
 - An admin in no league can't open the frame, so `/table` and `/team` send him to Your leagues.
-- Continue only ever leads to Mail until lineups and trades are built.
+- Continue only ever leads to Mail: a lineup before the deadline has what it needs built but isn't
+  wired into Continue yet (#526), and trades aren't built.
