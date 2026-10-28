@@ -2,25 +2,11 @@
 // error or uncaught page error it didn't expect, so a boot crash can't pass.
 
 import { expect, test as base, type ConsoleMessage } from "@playwright/test";
-import { joinPath } from "../../convex/joining/joiningShared";
-import { ADMIN_PATH } from "../../src/admin/paths";
-import { ADMIN_TITLE } from "../../src/admin/words";
-import { MAIL_PATH, TABLE_PATH } from "../../src/frame/menu";
 import { ERROR_PAGE_TITLE, mainMenuLabel } from "../../src/frame/words";
-import { gameweeksPath } from "../../src/gameweeks/paths";
-import { GAMEWEEKS_TITLE } from "../../src/gameweeks/words";
-import { invitesPath } from "../../src/joining/paths";
-import { INVITES_TITLE, joinPageWords } from "../../src/joining/words";
-import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../../src/leagues/paths";
-import { LEAGUES_TITLE, NEW_LEAGUE_TITLE } from "../../src/leagues/words";
-import { MAIL_TITLE } from "../../src/mail/words";
-import { miniBeta } from "../../src/preview";
 import { SIGN_IN_PATH } from "../../src/sign-in/paths";
 import { signInWords } from "../../src/sign-in/words";
-import { squadsPath } from "../../src/squads/paths";
-import { SQUADS_TITLE } from "../../src/squads/words";
-import { TABLE_PAGE_TITLE } from "../../src/table/words";
 import { NO_CONVEX_URL } from "../../src/words";
+import { BUILT_SCREENS } from "../support/smoke/builtScreens";
 
 /** The one error every page load logs: the app has no favicon, and the browser asks for one. */
 const isFaviconMiss = (message: ConsoleMessage) => new URL(message.location().url || "about:blank").pathname === "/favicon.ico";
@@ -46,24 +32,6 @@ const test = base.extend<{ errors: string[] }>({
 
 /** The phone, as scripts/shoot.mjs shoots it. */
 const PHONE = { width: 390, height: 844 };
-
-/** Built screens past the landing page: the preview session that reaches each (src/preview.ts),
- *  its address, and its page's title. The invite link's tokens are joining/preview.ts's: one to
- *  ask with, one asked, one switched off. */
-const BUILT_SCREENS: readonly (readonly [session: string, path: string, title: string])[] = [
-  ["manager", TABLE_PATH, TABLE_PAGE_TITLE],
-  ["manager", MAIL_PATH, MAIL_TITLE],
-  ["manager", LEAGUES_PATH, LEAGUES_TITLE],
-  ["commissioner", gameweeksPath(miniBeta.leagueId), GAMEWEEKS_TITLE],
-  ["commissioner", squadsPath(miniBeta.leagueId), SQUADS_TITLE],
-  ["commissioner", invitesPath(miniBeta.leagueId), INVITES_TITLE],
-  // The admin's alone: a commissioner is sent back to Your leagues.
-  ["admin", NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE],
-  ["newcomer", joinPath("preview"), miniBeta.name],
-  ["newcomer", joinPath("waiting"), miniBeta.name],
-  ["newcomer", joinPath("gone"), joinPageWords.title],
-  ["admin", ADMIN_PATH, ADMIN_TITLE],
-];
 
 test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
   test("?preview=manager mounts the manager's landing page", async ({ page }) => {
