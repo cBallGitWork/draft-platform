@@ -23,7 +23,7 @@ import {
   recordedLiveSheets,
   recordedLiveTeamStats,
 } from "../../support/recorded/live.payloads";
-import { freshConvex, silenceConsoleError } from "../../support/convex/test.harness";
+import { fakeFetch, freshConvex, silenceConsoleError } from "../../support/convex/test.harness";
 import { MINUTE_MS } from "../../../convex/shared/time";
 
 /** Answers each feed as it answered on 17 Oct 2026, cut down; `refuse` makes URLs containing it answer 403. */
@@ -132,14 +132,15 @@ test("the commentary check before kickoff says no lines, no named men and no tea
   expect(report).toEqual({ readAt: new Date().toISOString(), lines: 0, newest: null, namedMen: 0, teamStats: false });
 });
 
-/** Serves Ipswich v Forest as read live: this commentary, the team sheets and one team stats read. */
+/** Serves Ipswich v Forest as read live: this commentary, the team sheets and one team stats read;
+ *  any other URL fails the read, as `fakeFetch` does. */
 function serveLiveMatch(commentary: RawPlCommentary, teamStats: keyof typeof LIVE_TEAM_STATS) {
   const bodies: Record<string, unknown> = {
     [plCommentaryUrl(LIVE_MATCH)]: commentary,
     [plFixtureUrl(LIVE_MATCH)]: recordedLiveSheets(),
     [plTeamStatsUrl(LIVE_MATCH)]: recordedLiveTeamStats(teamStats),
   };
-  vi.stubGlobal("fetch", vi.fn(async (url: string) => Response.json(bodies[url])));
+  vi.stubGlobal("fetch", fakeFetch(new Map(Object.entries(bodies))));
 }
 
 test("the commentary check between the lineups and kickoff says the lineups line, which has no minute", async () => {
