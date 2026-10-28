@@ -1,8 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import type { ReactNode } from "react";
 import { TOP_ROWS } from "../../convex/home/glance";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
+import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { MAIL_PATH, TABLE_PATH } from "../frame/menu";
 import { MatchupLink } from "../matchup/MatchupLink";
 import { letterDay, letterTime } from "../mail/words";
@@ -78,16 +77,6 @@ export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSe
   );
 }
 
-/** A panel of league home: its title plate, and what it holds. */
-function Panel({ id, title, children }: { id: string; title: string; children: ReactNode }) {
-  return (
-    <section aria-labelledby={id} className="bg-panel">
-      <PanelTitle id={id}>{title}</PanelTitle>
-      {children}
-    </section>
-  );
-}
-
 /** A day and time in a date block, as Mail shows a letter's. */
 function DateBlock({ at }: { at: number }) {
   return (
@@ -106,19 +95,17 @@ function PanelLink({ to, children }: { to: string; children: string }) {
   );
 }
 
-const HEAD_TO_HEADS_ID = "head-to-heads-title";
-
 function HeadToHeads({ home: { format, thisGameweek } }: { home: LeagueHome }) {
   if (thisGameweek === null) {
     return (
-      <Panel id={HEAD_TO_HEADS_ID} title={HEAD_TO_HEADS_TITLE}>
+      <Panel title={HEAD_TO_HEADS_TITLE}>
         <PanelNote>{noHeadToHeadsWords[format]}</PanelNote>
       </Panel>
     );
   }
   const title = gameweekWords(thisGameweek.gameweek);
   return (
-    <Panel id={HEAD_TO_HEADS_ID} title={title}>
+    <Panel title={title}>
       <ul aria-label={headToHeadsLabel(title)}>
         {thisGameweek.fixtures.map(({ teamId, team, opponent }) => (
           <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 border-b border-panel-rule px-3 py-1 text-lead">
@@ -143,7 +130,7 @@ function TablePanel({ home: { format, table, teams } }: { home: LeagueHome }) {
   const shown = COLUMNS_OF[format];
   const cut = table.length < teams;
   return (
-    <Panel id="home-table-title" title={TABLE_TITLE}>
+    <Panel title={TABLE_TITLE}>
       {table.every((row) => row.played === 0) && <PanelNote>{noResultsWords}</PanelNote>}
       <table className="w-full border-collapse">
         <thead className="bg-head text-ground">
@@ -209,7 +196,7 @@ function TableCell({ column, row }: { column: Column; row: Row }) {
 
 function PinnedLetter({ letter }: { letter: LeagueHome["pinnedLetter"] }) {
   return (
-    <Panel id="pinned-letter-title" title={LETTER_TITLE}>
+    <Panel title={LETTER_TITLE}>
       {letter === null ? (
         <PanelNote>{noLetterWords}</PanelNote>
       ) : (
@@ -229,7 +216,7 @@ function PinnedLetter({ letter }: { letter: LeagueHome["pinnedLetter"] }) {
 
 function SquadMoves({ moves }: { moves: LeagueHome["squadMoves"] }) {
   return (
-    <Panel id="squad-moves-title" title={MOVES_TITLE}>
+    <Panel title={MOVES_TITLE}>
       {moves.length === 0 ? (
         <PanelNote>{noMovesWords}</PanelNote>
       ) : (

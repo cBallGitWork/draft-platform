@@ -1,6 +1,5 @@
-import { useId } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { Loading, Notice, PageSection, PanelTitle } from "../frame/Panel";
+import { Loading, Notice, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { Vidiprinter } from "../matchup/Vidiprinter";
 import { PositionCode } from "../PositionCodes";
 import type { MatchMan, MatchPage as Match, PremierLeagueSeam } from "./seam";
@@ -111,12 +110,10 @@ type SideStats = NonNullable<Match["teamStats"]>["home"];
 
 /** Each side's five, home's figure left of the stat and away's right, as a scoreboard reads. */
 function TeamStats({ home, away, stats }: { home: string; away: string; stats: Match["teamStats"] }) {
-  const titleId = useId();
   return (
-    <section aria-labelledby={titleId} className="bg-panel">
-      <PanelTitle id={titleId}>{TEAM_STATS_TITLE}</PanelTitle>
+    <Panel title={TEAM_STATS_TITLE}>
       {stats === null ? (
-        <p className="px-3 py-2 text-muted">{noTeamStatsWords}</p>
+        <PanelNote>{noTeamStatsWords}</PanelNote>
       ) : (
         <table aria-label={teamStatsLabel(home, away)} className="w-full table-fixed border-collapse">
           <thead className="bg-head text-ground">
@@ -139,7 +136,7 @@ function TeamStats({ home, away, stats }: { home: string; away: string; stats: M
           </tbody>
         </table>
       )}
-    </section>
+    </Panel>
   );
 }
 
@@ -151,14 +148,12 @@ function statWords(side: SideStats, stat: keyof SideStats): string {
 
 /** A club's men as the sheet named them: the starters, then a Substitutes plate and the bench. */
 function TeamSheet({ title, men }: { title: string; men: MatchMan[] }) {
-  const titleId = useId();
   const starters = men.filter((man) => man.started);
   const substitutes = men.filter((man) => !man.started);
   return (
-    <section aria-labelledby={titleId} className="bg-panel">
-      <PanelTitle id={titleId}>{title}</PanelTitle>
+    <Panel title={title}>
       {men.length === 0 ? (
-        <p className="px-3 py-2 text-muted">{noMenWords}</p>
+        <PanelNote>{noMenWords}</PanelNote>
       ) : (
         <table aria-label={sheetLabel(title)} className="w-full border-collapse">
           <thead className="bg-head text-ground">
@@ -187,7 +182,7 @@ function TeamSheet({ title, men }: { title: string; men: MatchMan[] }) {
           </tbody>
         </table>
       )}
-    </section>
+    </Panel>
   );
 }
 

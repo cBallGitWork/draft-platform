@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PositionCode, PositionCodes } from "../PositionCodes";
 import { SCOUTING_PATH } from "../frame/menu";
-import { Loading, PageSection, PANEL_BODY, PanelNote, PanelTitle } from "../frame/Panel";
+import { Loading, PANEL_BODY, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { useMinute } from "../useMinute";
 import { gameweekWords, versusWords, whenWords } from "../words";
 import type { PlayedMatch, PlayerCard, PlayerCardSeam } from "./seam";
@@ -42,11 +42,6 @@ import {
   SEASON_TITLE,
 } from "./words";
 
-const FACTS_ID = "card-facts";
-const SEASON_ID = "card-season";
-const LAST_SEASON_ID = "card-last-season";
-const FIXTURES_ID = "card-fixtures";
-
 /** A player's card (spec/12, The player card), its own page, for anyone in the league: who he is
  *  and who owns him, FPL's news, this season's matches by category, last season's line and his
  *  club's next fixtures. Its actions (shortlist, scout, claim or drop, trade) join below the facts
@@ -66,10 +61,9 @@ export function PlayerCardPage({ league, runs, playerCode, seam }: { league: Lea
               <ShortlistAction leagueId={league.leagueId} playerCode={card.code} gone={card.gone} seam={seam} />
               {runs && <OverridePoints leagueId={league.leagueId} card={card} seam={seam} />}
             </Facts>
-            <section aria-labelledby={LAST_SEASON_ID} className="bg-panel">
-              <PanelTitle id={LAST_SEASON_ID}>{LAST_SEASON_TITLE}</PanelTitle>
+            <Panel title={LAST_SEASON_TITLE}>
               <PanelNote>{lastSeasonNotHeldWords}</PanelNote>
-            </section>
+            </Panel>
             <NextFixtures card={card} />
           </div>
           <Season card={card} />
@@ -94,8 +88,7 @@ function Back() {
 /** The facts at the card's head, and under them its actions. */
 function Facts({ card, children }: { card: PlayerCard; children: ReactNode }) {
   return (
-    <section aria-labelledby={FACTS_ID} className="bg-panel">
-      <PanelTitle id={FACTS_ID}>{PLAYER_TITLE}</PanelTitle>
+    <Panel title={PLAYER_TITLE}>
       <dl className={`${PANEL_BODY} grid grid-cols-[auto_1fr] gap-x-3`}>
         <dt className="text-soft">{clubLabel}</dt>
         <dd>{card.club.name}</dd>
@@ -115,7 +108,7 @@ function Facts({ card, children }: { card: PlayerCard; children: ReactNode }) {
       </dl>
       {card.gone && <PanelNote edge="b">{goneWords}</PanelNote>}
       {children}
-    </section>
+    </Panel>
   );
 }
 
@@ -141,8 +134,7 @@ const cellClasses = (column: Column) => `px-2 align-middle ${FIGURES.includes(co
 
 function Season({ card }: { card: PlayerCard }) {
   return (
-    <section aria-labelledby={SEASON_ID} className="bg-panel">
-      <PanelTitle id={SEASON_ID}>{SEASON_TITLE}</PanelTitle>
+    <Panel title={SEASON_TITLE}>
       {card.matches.length === 0 ? (
         <PanelNote>{noMatchesWords}</PanelNote>
       ) : (
@@ -168,7 +160,7 @@ function Season({ card }: { card: PlayerCard }) {
           </table>
         </>
       )}
-    </section>
+    </Panel>
   );
 }
 
@@ -243,8 +235,7 @@ function MatchRows({ match }: { match: PlayedMatch }) {
 
 function NextFixtures({ card }: { card: PlayerCard }) {
   return (
-    <section aria-labelledby={FIXTURES_ID} className="bg-panel">
-      <PanelTitle id={FIXTURES_ID}>{NEXT_FIXTURES_TITLE}</PanelTitle>
+    <Panel title={NEXT_FIXTURES_TITLE}>
       {card.nextFixtures.length === 0 ? (
         <PanelNote>{noFixturesWords}</PanelNote>
       ) : (
@@ -260,6 +251,6 @@ function NextFixtures({ card }: { card: PlayerCard }) {
           ))}
         </ul>
       )}
-    </section>
+    </Panel>
   );
 }

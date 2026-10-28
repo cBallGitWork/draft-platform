@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Band, Priced } from "../../convex/scoring/scoringSet";
-import { PanelTitle } from "../frame/Panel";
+import { Panel } from "../frame/Panel";
 import { Choice } from "../rules/Choice";
 import { TickBox } from "../rules/TickBox";
 import {
@@ -49,7 +49,6 @@ import {
   stackWords,
 } from "./words";
 
-const CATEGORY_TITLE_ID = "category-title";
 const SHAPE_CHOICE = "shape";
 
 /** A row's name in the values table. */
@@ -78,8 +77,7 @@ export function CategoryEditor({
   const pricing = rulePricing(rule);
   const pricedBy = (by: Exclude<Pricing, "all">) => (on: boolean) => onChange(withPricing(rule, on ? by : "all"));
   return (
-    <section aria-labelledby={CATEGORY_TITLE_ID} className="bg-panel">
-      <PanelTitle id={CATEGORY_TITLE_ID}>{name}</PanelTitle>
+    <Panel title={name}>
       <fieldset disabled={readOnly} className="contents">
         <div className="flex flex-col gap-1 p-3">
           <Choice label={shapeLabel} name={SHAPE_CHOICE} options={SHAPES} words={shapeWords} chosen={rule.shape} onChoose={(shape) => onChange(withShape(rule, shape))} />
@@ -112,7 +110,7 @@ export function CategoryEditor({
           </button>
         </div>
       )}
-    </section>
+    </Panel>
   );
 }
 
