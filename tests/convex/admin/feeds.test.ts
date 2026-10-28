@@ -15,6 +15,7 @@ import { freshConvex } from "../../support/convex/test.harness";
 
 const FOOTBALL_LATE_AFTER = lateAfterMs(FEED_SCHEDULES.football);
 const LIVE_LATE_AFTER = lateAfterMs(FEED_SCHEDULES.liveStats);
+const MATCH_STATS_LATE_AFTER = lateAfterMs(FEED_SCHEDULES.matchStats);
 
 test("the page is the admin's alone", async () => {
   const t = freshConvex();
@@ -75,11 +76,18 @@ test("a run whose every match failed is a failure, though the run itself finishe
 test("a feed no cron runs is not scheduled, never late, however old its last success", async () => {
   const t = freshConvex();
   await recordRun(t, "positions", T0);
-  await recordRun(t, "matchStats", T0);
 
   const long = T0 + 30 * 24 * HOUR_MS;
   expect(await feedAt(t, "positions", long)).toMatchObject({ state: "notScheduled", lastSuccessAt: T0 });
-  expect(await feedAt(t, "matchStats", long)).toMatchObject({ state: "notScheduled", lastSuccessAt: T0 });
+});
+
+// A late-stats run with no match due still records a success, so a quiet week is never late.
+test("late stats that stop are late once their 10-minute schedule passes with no success, and fine up to then", async () => {
+  const t = freshConvex();
+  await recordRun(t, "matchStats", T0);
+
+  expect(await feedAt(t, "matchStats", T0 + MATCH_STATS_LATE_AFTER)).toMatchObject({ state: "fine", lastSuccessAt: T0 });
+  expect(await feedAt(t, "matchStats", T0 + MATCH_STATS_LATE_AFTER + 1)).toMatchObject({ state: "late", lastSuccessAt: T0 });
 });
 
 test("a success further back than the runs read is not found, and the feed is failing", async () => {
