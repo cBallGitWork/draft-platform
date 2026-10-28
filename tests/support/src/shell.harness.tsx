@@ -9,8 +9,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../../convex/mail/mail";
 import { switchableLeagues } from "../../../convex/leagues/lastLeague";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
-import { fakeAdmin, type AdminData } from "./admin.harness";
-import { fakeFeedback, type FeedbackData } from "./feedback.harness";
+import { fakeAdmin } from "./admin.harness";
+import { fakeFeedback } from "./feedback.harness";
 import type { AuthActions, Session } from "../../../src/auth";
 import type { TopBarState } from "../../../src/frame/topBarState";
 import { fakeGameweeks } from "./gameweeks.harness";
@@ -18,17 +18,17 @@ import { fakeJoining, type JoiningData } from "./joining.harness";
 import type { LeaguesSeam } from "../../../src/leagues/seam";
 import type { MailSeam } from "../../../src/mail/seam";
 import { ShellApp } from "../../../src/ShellApp";
-import { fakeLeagueSettings, type LeagueSettingsData } from "./leagueSettings.harness";
-import { fakePatches, type PatchesData } from "./patches.harness";
-import { fakeMatchup, type MatchupData } from "./matchup.harness";
-import { fakeMyTeam, type MyTeamData } from "./myTeam.harness";
-import { fakePlayerCard, type PlayerCardData } from "./playerCard.harness";
-import { fakeScoring, type ScoringData } from "./scoring.harness";
-import { fakeSquads, type SquadsData } from "./squads.harness";
-import { fakeScouting, type ScoutingData } from "./scouting.harness";
-import { fakeHome, type HomeData } from "./home.harness";
-import { fakePremierLeague, type PremierLeagueData } from "./premierLeague.harness";
-import { fakeTable, type TableData } from "./table.harness";
+import { fakeLeagueSettings } from "./leagueSettings.harness";
+import { fakePatches } from "./patches.harness";
+import { fakeMatchup } from "./matchup.harness";
+import { fakeMyTeam } from "./myTeam.harness";
+import { fakePlayerCard } from "./playerCard.harness";
+import { fakeScoring } from "./scoring.harness";
+import { fakeSquads } from "./squads.harness";
+import { fakeScouting } from "./scouting.harness";
+import { fakeHome } from "./home.harness";
+import { fakePremierLeague } from "./premierLeague.harness";
+import { fakeTable } from "./table.harness";
 
 export const visitor: Session = { signedIn: false };
 
@@ -129,70 +129,52 @@ const fakeMail = (letters: readonly LetterSummary[], loading: boolean) => ({
   writeToLeague: vi.fn<MailSeam["writeToLeague"]>(async () => null),
 });
 
+/** The seams faked straight from a test's data, by the name both the set-up and ShellApp give
+ *  them. A new screen's seam that takes only its data goes here and nowhere else. */
+const FAKES = {
+  squads: fakeSquads,
+  scoring: fakeScoring,
+  leagueSettings: fakeLeagueSettings,
+  table: fakeTable,
+  scouting: fakeScouting,
+  playerCard: fakePlayerCard,
+  home: fakeHome,
+  myTeam: fakeMyTeam,
+  matchup: fakeMatchup,
+  premierLeague: fakePremierLeague,
+  admin: fakeAdmin,
+  feedback: fakeFeedback,
+  patches: fakePatches,
+};
+type Faked = typeof FAKES;
+type FakedSeams = { [K in keyof Faked]: ReturnType<Faked[K]> };
+
+/** Each seam in FAKES faked from `setUp`'s data for it, or its own default when there's none. */
+function fakeSeams(setUp: AppSetUp): FakedSeams {
+  const fake = <K extends keyof Faked>(key: K) => (FAKES[key] as (data: AppSetUp[K]) => FakedSeams[K])(setUp[key]);
+  return Object.fromEntries((Object.keys(FAKES) as (keyof Faked)[]).map((key) => [key, fake(key)])) as FakedSeams;
+}
+
 /** What a test may set besides the address and the session: each seam's data, and the top bar. */
 export type AppSetUp = {
   topBar?: TopBarState;
   letters?: readonly LetterSummary[];
   mailLoading?: boolean;
   joining?: JoiningData;
-  squads?: SquadsData;
-  scoring?: ScoringData;
-  leagueSettings?: LeagueSettingsData;
-  table?: TableData;
-  scouting?: ScoutingData;
-  playerCard?: PlayerCardData;
-  home?: HomeData;
-  myTeam?: MyTeamData;
-  matchup?: MatchupData;
-  premierLeague?: PremierLeagueData;
-  admin?: AdminData;
-  feedback?: FeedbackData;
-  patches?: PatchesData;
-};
+} & { [K in keyof Faked]?: Parameters<Faked[K]>[0] };
 
 /** The app opened at `path` for `session`, set up as `setUp` says: where it is, the fake sign-in,
- *  league, Mail, joining, gameweeks, squads, scoring, league settings, table, scouting, player
- *  card, home, my team, matchup, Premier League, admin, feedback and patches seams, and a way to change the session as
- *  signing in or out, or a league changing, would. */
+ *  league, Mail, joining and gameweeks seams and each seam in FAKES, and a way to change the
+ *  session as signing in or out, or a league changing, would. */
 export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
-  const {
-    topBar = { unreadMail: 0, next: null },
-    letters = [],
-    mailLoading = false,
-    joining: joiningData = {},
-    squads: squadsData = {},
-    scoring: scoringData = {},
-    leagueSettings: leagueSettingsData = {},
-    table: tableData = {},
-    scouting: scoutingData = {},
-    playerCard: playerCardData = {},
-    home: homeData = {},
-    myTeam: myTeamData = {},
-    matchup: matchupData = {},
-    premierLeague: premierLeagueData = {},
-    admin: adminData = {},
-    feedback: feedbackData = {},
-    patches: patchesData = {},
-  } = setUp;
+  const { topBar = { unreadMail: 0, next: null }, letters = [], mailLoading = false, joining: joiningData = {} } = setUp;
   const history = createMemoryHistory({ initialEntries: [path] });
   const auth = fakeAuth();
   const leagues = fakeLeagues();
   const mail = fakeMail(letters, mailLoading);
   const joining = fakeJoining(joiningData, LINK_REPLY);
   const gameweeks = fakeGameweeks();
-  const squads = fakeSquads(squadsData);
-  const scoring = fakeScoring(scoringData);
-  const leagueSettings = fakeLeagueSettings(leagueSettingsData);
-  const table = fakeTable(tableData);
-  const scouting = fakeScouting(scoutingData);
-  const playerCard = fakePlayerCard(playerCardData);
-  const home = fakeHome(homeData);
-  const myTeam = fakeMyTeam(myTeamData);
-  const matchup = fakeMatchup(matchupData);
-  const premierLeague = fakePremierLeague(premierLeagueData);
-  const admin = fakeAdmin(adminData);
-  const feedback = fakeFeedback(feedbackData);
-  const patches = fakePatches(patchesData);
+  const seams = fakeSeams(setUp);
   const app = (current: Session) => (
     <ShellApp
       session={current}
@@ -202,19 +184,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
       joining={joining}
       topBar={topBar}
       gameweeks={gameweeks}
-      squads={squads}
-      scoring={scoring}
-      leagueSettings={leagueSettings}
-      table={table}
-      scouting={scouting}
-      playerCard={playerCard}
-      home={home}
-      myTeam={myTeam}
-      matchup={matchup}
-      premierLeague={premierLeague}
-      admin={admin}
-      feedback={feedback}
-      patches={patches}
+      {...seams}
       history={history}
     />
   );
@@ -225,19 +195,7 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     mail,
     gameweeks,
     joining,
-    squads,
-    scoring,
-    leagueSettings,
-    table,
-    scouting,
-    playerCard,
-    home,
-    myTeam,
-    matchup,
-    premierLeague,
-    admin,
-    feedback,
-    patches,
+    ...seams,
     path: () => history.location.pathname,
     search: () => history.location.search,
     becomes: (next: Session) => view.rerender(app(next)),
