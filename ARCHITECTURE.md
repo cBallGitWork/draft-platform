@@ -112,11 +112,14 @@ styling, typeface, test, coverage, screenshot and smoke-test rows, and the rest 
   lately tried first (`matchStatsTries`), so ones that fail or wait every run hold up no newer
   match. The lock is a scheduled function, so it fires
   with no run due; the window is a row in `platformSettings`.
-  **No cron runs it yet.** The suggestion is every 10 minutes: full time counts from the first
+  A cron runs it every 10 minutes (spec/20): full time counts from the first
   read that finds it, so a match locks up to one interval after its true hour. A run with no
   match due reads no feed; one due reads about 40 Premier League URLs per match (its sheets,
   each named man's stats, and its team stats), and a locked match is read again hourly for a day
-  to catch late corrections.
+  to catch late corrections. Finding the due matches (`matchStats.due`) reads each of the
+  season's matches kicked off so far and its status row, every run: about 760 reads a run by
+  May, some 110,000 a day (28 Oct 2026, counted by hand from `matchStats.due`). Measure it on
+  the Convex usage page before #199 bounds it.
 - Live stats (#28): a cron every minute (`liveStatsSync.tick`) reads each match from kickoff
   until it is complete, or four hours on, and its team sheets alone in the hour before kickoff
   (#45); outside those windows it reads no feed and writes no row.
@@ -146,9 +149,9 @@ styling, typeface, test, coverage, screenshot and smoke-test rows, and the rest 
 - The run logs (#146): `admin/runLogs:prune` deletes a run row 30 days after its run if it
   succeeded, and 180 days after if it failed (Craig, 22 Oct 2026). It always keeps each feed's
   newest five rows and its newest success. It goes in batches, `liveStatsTicks` first.
-  **No cron runs it yet**: `crons.ts` holds the daily line Craig turns on with the others. A
-  match-stats run with no match due is still a row: the feeds page needs it as a success to judge
-  lateness, and pruning keeps a 10-minute cron's runs to about 4,300.
+  A cron runs it daily (spec/20). A match-stats run with no match due is still a row: the feeds
+  page needs it as a success to judge lateness, and pruning keeps a 10-minute cron's runs to
+  about 4,300.
 - The feeds page (#35): `admin/feeds:feeds` reads each run table back and calls a feed late
   when it has gone longer than its schedule allows without a success. Each feed's interval is in
   `convex/shared/feedSchedule.ts`, which `crons.ts` runs from; a feed no cron runs is "not

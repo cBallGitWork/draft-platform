@@ -16,8 +16,8 @@ import { commentaryContext, delayCommentary, syncCommentary } from "../football/
 import { syncTeamStats } from "../football/matchTeamStats";
 
 // Issue #27: every due match's stats from both feeds, one record per named man, upserted with
-// `matchStats.upsertMatch`. No cron runs it yet (ARCHITECTURE.md); from the CLI:
-// `npx convex run stats/matchStatsSync:run '{"trigger":"manual"}'`, then `stats/matchStats:latest`.
+// `matchStats.upsertMatch`. `crons.ts` runs it every 10 minutes (ARCHITECTURE.md); by hand from
+// the CLI: `npx convex run stats/matchStatsSync:run '{"trigger":"manual"}'`, then `stats/matchStats:latest`.
 
 type Outcome = Infer<typeof matchStatsSyncFields.outcome>;
 type MatchOutcome = Infer<typeof matchSyncOutcome>;

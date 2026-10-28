@@ -29,20 +29,21 @@ export const FEED_RUN_TABLES = {
 } as const satisfies Record<Feed, string>;
 
 /** A run's interval, as `crons.interval` takes it. */
-type Every = { readonly hours: number } | { readonly minutes: number };
+export type Every = { readonly hours: number } | { readonly minutes: number };
 
 /** A cron's interval, and how long past it a feed with no success is still on time: a run's own
  *  length, and the tick Convex skips while the one before it still runs. */
 export type FeedSchedule = { readonly every: Every; readonly graceMs: number };
 
-/** Null for a feed no cron runs yet (ARCHITECTURE.md): it can't be late, so the page says so. */
+/** Null for a feed no cron runs (ARCHITECTURE.md): it can't be late, so the page says so. */
 export const FEED_SCHEDULES = {
   // A run reads FPL in a minute or two.
   football: { every: { hours: 6 }, graceMs: 30 * MINUTE_MS },
   // Run by hand for now: spec/06 names no cadence.
   positions: null,
-  // ARCHITECTURE.md suggests every 10 minutes; no cron runs it yet.
-  matchStats: null,
+  // Late stats, every 10 minutes (spec/20). A run of ten due matches can take most of Convex's
+  // 10-minute action limit, and Convex skips the next while it runs.
+  matchStats: { every: { minutes: 10 }, graceMs: 10 * MINUTE_MS },
   // A tick reading several matches can outrun its minute, and Convex skips the next while it runs.
   liveStats: { every: { minutes: 1 }, graceMs: 4 * MINUTE_MS },
 } as const satisfies Record<Feed, FeedSchedule | null>;
