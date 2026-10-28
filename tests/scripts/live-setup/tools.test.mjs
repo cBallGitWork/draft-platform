@@ -2,12 +2,12 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { DEPLOYED_FUNCTION, DEPLOY_KEY_SETTING, LIVE_DOMAIN, RESEND_REGION, VERCEL_PRODUCTION } from "../../../scripts/live-setup/live.mjs";
+import { DEPLOYED_FUNCTION, DEPLOY_KEY_SETTING, LIVE_DOMAIN, RESEND_REGION, VERCEL_PRODUCTION, VERCEL_PROJECT } from "../../../scripts/live-setup/live.mjs";
 import { RESEND_API, VERCEL_LINK_FILE, captured, realTools } from "../../../scripts/live-setup/tools.mjs";
 import { RESEND_KEY } from "../../support/scripts/liveSetup.harness.mjs";
 
 const SECRET = "a-secret-value-0123456789";
-const LINKED = { projectId: "prj_123", orgId: "team_456", projectName: "draft-platform" };
+const LINKED = { projectId: "prj_123", orgId: "team_456", projectName: VERCEL_PROJECT };
 
 let checkout;
 beforeEach(() => (checkout = mkdtempSync(join(tmpdir(), "live-setup-"))));

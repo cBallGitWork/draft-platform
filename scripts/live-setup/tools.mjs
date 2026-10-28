@@ -46,6 +46,7 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
   }
   const convexCli = (args, input) => cli("convex", args, input);
   const vercelCli = (args, input) => cli("vercel", args, input);
+  const settingNameList = () => convexCli(["env", "list", PROD, "--names-only"]);
 
   async function linkedProject() {
     try {
@@ -83,9 +84,9 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
     askHidden: (question) => askInTerminal(question, { hidden: true }),
     convex: {
       // A missing live deployment makes `env list --prod` fail.
-      deploymentExists: () => convexCli(["env", "list", PROD, "--names-only"]).then(() => true, () => false),
+      deploymentExists: () => settingNameList().then(() => true, () => false),
       createDeployment: () => convexCli(["deployment", "create", "--type", "prod", "--default"]),
-      settingNames: async () => (await convexCli(["env", "list", PROD, "--names-only"])).split("\n").map((line) => line.trim()).filter(Boolean),
+      settingNames: async () => (await settingNameList()).split("\n").map((line) => line.trim()).filter(Boolean),
       getSetting: async (name) => (await convexCli(["env", "get", PROD, name])).replace(/\n$/, ""),
       // With no value in its arguments, `env set` reads it from stdin.
       setSetting: (name, value) => convexCli(["env", "set", PROD, name], value),

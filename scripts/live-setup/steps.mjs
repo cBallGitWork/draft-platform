@@ -39,30 +39,30 @@ const sameRecord = (resend, vercel) =>
   vercel.value === resend.value;
 
 /** A pasted key, kept as a secret, or a refusal that names what was wrong and never the key. */
-async function pastedKey(run, question, prefix) {
-  const key = run.secrets.keep((await run.tools.askHidden(question)).trim());
+async function pastedKey(setup, question, prefix) {
+  const key = setup.secrets.keep((await setup.tools.askHidden(question)).trim());
   if (!key.startsWith(prefix)) throw new Error(`that key doesn't start with "${prefix}", so it isn't the one asked for: nothing was saved`);
   return key;
 }
 
 /** Resend's API key: the one pasted this run, or the one already on the live deployment. */
-async function resendKey(run) {
-  run.resendKey ??= (await run.convexNames()).includes(SETTING.resendKey)
-    ? run.secrets.keep(await run.tools.convex.getSetting(SETTING.resendKey))
-    : await pastedKey(run, `Paste the Resend API key, full access (it won't show): `, RESEND_KEY_PREFIX);
-  return run.resendKey;
+async function resendKey(setup) {
+  setup.resendKey ??= (await setup.convexNames()).includes(SETTING.resendKey)
+    ? setup.secrets.keep(await setup.tools.convex.getSetting(SETTING.resendKey))
+    : await pastedKey(setup, `Paste the Resend API key, full access (it won't show): `, RESEND_KEY_PREFIX);
+  return setup.resendKey;
 }
 
-async function resendDomain(run) {
-  const key = await resendKey(run);
-  const listed = (await run.tools.resend.domains(key)).find((domain) => domain.name === LIVE_DOMAIN);
-  return listed && run.tools.resend.domain(key, listed.id);
+async function resendDomain(setup) {
+  const key = await resendKey(setup);
+  const listed = (await setup.tools.resend.domains(key)).find((domain) => domain.name === LIVE_DOMAIN);
+  return listed && setup.tools.resend.domain(key, listed.id);
 }
 
 /** A setting with a value anyone may see: set unless it already holds `value`. */
-async function plainSetting(run, name, value) {
-  if ((await run.tools.convex.getSetting(name)) === value) return ALREADY_DONE;
-  await run.tools.convex.setSetting(name, value);
+async function plainSetting(setup, name, value) {
+  if ((await setup.tools.convex.getSetting(name)) === value) return ALREADY_DONE;
+  await setup.tools.convex.setSetting(name, value);
   return DONE;
 }
 
@@ -71,123 +71,123 @@ async function plainSetting(run, name, value) {
 export const STEPS = [
   {
     title: "The live database",
-    async run(run) {
-      if (await run.tools.convex.deploymentExists()) return ALREADY_DONE;
-      await run.tools.convex.createDeployment();
+    async run(setup) {
+      if (await setup.tools.convex.deploymentExists()) return ALREADY_DONE;
+      await setup.tools.convex.createDeployment();
       return DONE;
     },
   },
   {
     title: `Sign-in keys (${SETTING.jwtPrivateKey}, ${SETTING.jwks})`,
-    async run(run) {
-      const names = await run.convexNames();
+    async run(setup) {
+      const names = await setup.convexNames();
       if (names.includes(SETTING.jwtPrivateKey) && names.includes(SETTING.jwks)) return ALREADY_DONE;
       // The two are a pair, so one missing makes both again.
-      for (const [name, value] of Object.entries(signInKeys())) await run.tools.convex.setSetting(name, run.secrets.keep(value));
-      run.forgetConvexNames();
+      for (const [name, value] of Object.entries(signInKeys())) await setup.tools.convex.setSetting(name, setup.secrets.keep(value));
+      setup.forgetConvexNames();
       return DONE;
     },
   },
   {
     title: `Where links point (${SETTING.siteUrl})`,
-    run: (run) => plainSetting(run, SETTING.siteUrl, LIVE_SITE_URL),
+    run: (setup) => plainSetting(setup, SETTING.siteUrl, LIVE_SITE_URL),
   },
   {
     title: `The admin (${SETTING.adminEmail})`,
-    async run(run) {
-      const held = (await run.convexNames()).includes(SETTING.adminEmail) ? await run.tools.convex.getSetting(SETTING.adminEmail) : null;
-      if (held && (!run.options.adminEmail || run.options.adminEmail === held)) return ALREADY_DONE;
-      const email = run.options.adminEmail || (await run.tools.ask("The admin's email address: ")).trim();
+    async run(setup) {
+      const held = (await setup.convexNames()).includes(SETTING.adminEmail) ? await setup.tools.convex.getSetting(SETTING.adminEmail) : null;
+      if (held && (!setup.options.adminEmail || setup.options.adminEmail === held)) return ALREADY_DONE;
+      const email = setup.options.adminEmail || (await setup.tools.ask("The admin's email address: ")).trim();
       if (!email.includes("@")) throw new Error(`"${email}" isn't an email address: nothing was saved`);
-      await run.tools.convex.setSetting(SETTING.adminEmail, email);
+      await setup.tools.convex.setSetting(SETTING.adminEmail, email);
       return DONE;
     },
   },
   {
     title: `Resend's key (${SETTING.resendKey})`,
-    async run(run) {
-      if ((await run.convexNames()).includes(SETTING.resendKey)) return ALREADY_DONE;
-      await run.tools.convex.setSetting(SETTING.resendKey, await resendKey(run));
-      run.forgetConvexNames();
+    async run(setup) {
+      if ((await setup.convexNames()).includes(SETTING.resendKey)) return ALREADY_DONE;
+      await setup.tools.convex.setSetting(SETTING.resendKey, await resendKey(setup));
+      setup.forgetConvexNames();
       return DONE;
     },
   },
   {
     title: `The sender (${SETTING.sender}, ${LIVE_SENDER})`,
-    run: (run) => plainSetting(run, SETTING.sender, LIVE_SENDER),
+    run: (setup) => plainSetting(setup, SETTING.sender, LIVE_SENDER),
   },
   {
     title: "The server code on the live database",
-    async run(run) {
-      if (await run.tools.convex.hasFunction(DEPLOYED_FUNCTION)) return ALREADY_DONE;
-      await run.tools.convex.deploy();
+    async run(setup) {
+      if (await setup.tools.convex.hasFunction(DEPLOYED_FUNCTION)) return ALREADY_DONE;
+      await setup.tools.convex.deploy();
       return DONE;
     },
   },
   {
     title: `The Vercel project (${VERCEL_PROJECT})`,
-    async run(run) {
-      const linked = await run.tools.vercel.linkedProject();
+    async run(setup) {
+      const linked = await setup.tools.vercel.linkedProject();
       if (linked) {
         if (linked.projectName && linked.projectName !== VERCEL_PROJECT) {
           throw new Error(`this checkout is linked to the Vercel project "${linked.projectName}", not "${VERCEL_PROJECT}"`);
         }
         return ALREADY_DONE;
       }
-      await run.tools.vercel.link(VERCEL_PROJECT);
+      await setup.tools.vercel.link(VERCEL_PROJECT);
       return DONE;
     },
   },
   {
     title: `The deploy key in Vercel (${DEPLOY_KEY_SETTING}, ${VERCEL_PRODUCTION})`,
-    async run(run) {
-      if ((await run.tools.vercel.envNames(VERCEL_PRODUCTION)).includes(DEPLOY_KEY_SETTING)) return ALREADY_DONE;
-      const key = await pastedKey(run, "Paste the Convex production deploy key (it won't show): ", DEPLOY_KEY_PREFIX);
-      await run.tools.vercel.addEnv(DEPLOY_KEY_SETTING, VERCEL_PRODUCTION, key);
+    async run(setup) {
+      if ((await setup.tools.vercel.envNames(VERCEL_PRODUCTION)).includes(DEPLOY_KEY_SETTING)) return ALREADY_DONE;
+      const key = await pastedKey(setup, "Paste the Convex production deploy key (it won't show): ", DEPLOY_KEY_PREFIX);
+      await setup.tools.vercel.addEnv(DEPLOY_KEY_SETTING, VERCEL_PRODUCTION, key);
       return DONE;
     },
   },
   {
     title: `The domain on the Vercel project (${LIVE_DOMAIN})`,
-    async run(run) {
-      if ((await run.tools.vercel.projectDomains()).includes(LIVE_DOMAIN)) return ALREADY_DONE;
-      await run.tools.vercel.addDomain(LIVE_DOMAIN, VERCEL_PROJECT);
+    async run(setup) {
+      if ((await setup.tools.vercel.projectDomains()).includes(LIVE_DOMAIN)) return ALREADY_DONE;
+      await setup.tools.vercel.addDomain(LIVE_DOMAIN, VERCEL_PROJECT);
       return DONE;
     },
   },
   {
     title: `The domain in Resend (${LIVE_DOMAIN})`,
-    async run(run) {
-      if (await resendDomain(run)) return ALREADY_DONE;
-      await run.tools.resend.createDomain(await resendKey(run), LIVE_DOMAIN, RESEND_REGION);
+    async run(setup) {
+      if (await resendDomain(setup)) return ALREADY_DONE;
+      await setup.tools.resend.createDomain(await resendKey(setup), LIVE_DOMAIN, RESEND_REGION);
       return DONE;
     },
   },
   {
     title: "Resend's DNS records in Vercel's DNS",
-    async run(run) {
-      const domain = await resendDomain(run);
+    async run(setup) {
+      const domain = await resendDomain(setup);
       if (!domain) throw new Error(`Resend has no ${LIVE_DOMAIN}`);
-      const held = await run.tools.vercel.dnsRecords(LIVE_DOMAIN);
+      const held = await setup.tools.vercel.dnsRecords(LIVE_DOMAIN);
       const missing = domain.records.filter((record) => !held.some((existing) => sameRecord(record, existing)));
       if (missing.length === 0) return ALREADY_DONE;
       for (const record of missing) {
-        await run.tools.vercel.addDnsRecord(LIVE_DOMAIN, { ...record, name: relativeName(record.name) });
+        await setup.tools.vercel.addDnsRecord(LIVE_DOMAIN, { ...record, name: relativeName(record.name) });
       }
       return DONE;
     },
   },
   {
     title: `Resend's check of ${LIVE_DOMAIN}`,
-    async run(run) {
-      const key = await resendKey(run);
-      let domain = await resendDomain(run);
+    async run(setup) {
+      const key = await resendKey(setup);
+      let domain = await resendDomain(setup);
       if (!domain) throw new Error(`Resend has no ${LIVE_DOMAIN}`);
       if (domain.status === RESEND_VERIFIED) return ALREADY_DONE;
-      await run.tools.resend.verify(key, domain.id);
+      await setup.tools.resend.verify(key, domain.id);
       for (let waited = 0; waited < VERIFY_POLL_FOR_MS; waited += VERIFY_POLL_EVERY_MS) {
-        await run.tools.sleep(VERIFY_POLL_EVERY_MS);
-        domain = await run.tools.resend.domain(key, domain.id);
+        await setup.tools.sleep(VERIFY_POLL_EVERY_MS);
+        domain = await setup.tools.resend.domain(key, domain.id);
         if (domain.status === RESEND_VERIFIED) return DONE;
       }
       return { outcome: NOT_YET, why: `Resend says "${domain.status}": new DNS records can take hours to be seen, so run this again later` };
@@ -195,11 +195,11 @@ export const STEPS = [
   },
   {
     title: "One player-positions sync",
-    async run(run) {
+    async run(setup) {
       const ranWell = (rows) => rows.some((row) => row.outcome.ok);
-      if (ranWell(await run.tools.convex.run(POSITIONS_SYNC_LATEST))) return ALREADY_DONE;
-      await run.tools.convex.run(POSITIONS_SYNC_RUN, MANUAL_TRIGGER);
-      const [newest] = await run.tools.convex.run(POSITIONS_SYNC_LATEST);
+      if (ranWell(await setup.tools.convex.run(POSITIONS_SYNC_LATEST))) return ALREADY_DONE;
+      await setup.tools.convex.run(POSITIONS_SYNC_RUN, MANUAL_TRIGGER);
+      const [newest] = await setup.tools.convex.run(POSITIONS_SYNC_LATEST);
       if (!newest?.outcome.ok) throw new Error(`the sync ran but failed: ${newest?.outcome.error ?? "it left no row"}`);
       return DONE;
     },
@@ -211,7 +211,7 @@ export const STEPS = [
 export async function setUpLive(tools, options = {}, steps = STEPS) {
   const secrets = secretKeeper();
   let names;
-  const run = {
+  const setup = {
     tools,
     options,
     secrets,
@@ -223,7 +223,7 @@ export async function setUpLive(tools, options = {}, steps = STEPS) {
   let allDone = true;
   for (const step of steps) {
     try {
-      const result = await step.run(run);
+      const result = await step.run(setup);
       if (typeof result === "string") {
         say(`${step.title}: ${result}`);
       } else {
