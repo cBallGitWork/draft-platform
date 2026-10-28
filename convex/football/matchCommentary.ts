@@ -4,6 +4,7 @@ import type { Doc } from "../_generated/dataModel";
 import { internalMutation, internalQuery, query, type ActionCtx, type QueryCtx } from "../_generated/server";
 import { commentaryLine } from "../schema";
 import { logFailure } from "../shared/errors";
+import { fixtureByCode } from "../shared/fixtures";
 import { callerEmail } from "../shared/leagueAccess";
 import { FEED_TYPE, writeCommentary } from "./commentary";
 import type { RawBootstrap } from "./fpl";
@@ -45,10 +46,7 @@ export const clubsOf = internalQuery({
   args: { fixtureCode: v.number() },
   returns: matchClubs,
   handler: async (ctx, { fixtureCode }): Promise<MatchClubs> => {
-    const fixture = await ctx.db
-      .query("fixtures")
-      .withIndex("by_code", (q) => q.eq("code", fixtureCode))
-      .unique();
+    const fixture = await fixtureByCode(ctx, fixtureCode);
     if (fixture === null) throw new Error(`No match with code ${fixtureCode} is held`);
     const [home, away] = await Promise.all([clubByCode(ctx, fixture.homeClubCode), clubByCode(ctx, fixture.awayClubCode)]);
     return { home: home.shortName, away: away.shortName };

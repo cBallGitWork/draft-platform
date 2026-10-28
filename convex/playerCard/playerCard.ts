@@ -9,6 +9,7 @@ import { clubRecord, position } from "../schema";
 import { categoryName } from "../scoring/categories";
 import { siteScoringByGameweek } from "../scoring/siteScoring";
 import { takeAllOrThrow } from "../shared/cappedRead";
+import { fixtureByCode } from "../shared/fixtures";
 import { memberOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
 import { isWhole, MINUTES_STAT, statValue } from "../stats/matchRecords";
@@ -160,10 +161,7 @@ export async function seasonRecords(ctx: QueryCtx, playerCode: number): Promise<
     records
       .filter((record) => record.played !== false)
       .map(async (record) => {
-        const fixture = await ctx.db
-          .query("fixtures")
-          .withIndex("by_code", (q) => q.eq("code", record.fixtureCode))
-          .unique();
+        const fixture = await fixtureByCode(ctx, record.fixtureCode);
         // A record is filed only for a match the sync holds, so one missing is bad data.
         if (fixture === null) throw new Error(`Player ${playerCode} has a record for match ${record.fixtureCode}, which isn't held`);
         return fixture.droppedAt !== undefined || fixture.gameweek === null ? [] : [{ record, fixture, gameweek: fixture.gameweek }];

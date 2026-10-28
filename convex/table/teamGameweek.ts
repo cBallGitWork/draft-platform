@@ -13,8 +13,8 @@ import { validateScoringSet } from "../scoring/scoringSet";
 import { scoreTeam, type PlayerMatch, type TeamPoints } from "../scoring/teamPoints";
 import { isWhole, MINUTES_STAT } from "../stats/matchRecords";
 import { statusOf } from "../stats/matchStats";
-import { GAMEWEEK_MATCHES_MOST } from "../football/matchScores";
 import { takeAllOrThrow } from "../shared/cappedRead";
+import { gameweekFixtures } from "../shared/fixtures";
 import { playerByCode } from "../shared/players";
 
 // One team's points in one gameweek (#29; spec/05, Auto-subs; spec/07): its lineup, auto-subs from
@@ -152,11 +152,7 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
 
 /** The gameweek's fixtures the feed still sends. */
 export function heldFixtures(ctx: QueryCtx, gameweek: number): Promise<Doc<"fixtures">[]> {
-  return takeAllOrThrow(
-    ctx.db.query("fixtures").withIndex("by_gameweek_and_droppedAt", (q) => q.eq("gameweek", gameweek).eq("droppedAt", undefined)),
-    GAMEWEEK_MATCHES_MOST,
-    `More than ${GAMEWEEK_MATCHES_MOST} matches are held for gameweek ${gameweek}, so its points would be cut short`,
-  );
+  return gameweekFixtures(ctx, gameweek, "its points would be cut short");
 }
 
 /** The fixtures' matches, each with its state, its records and the league's overrides in it. */

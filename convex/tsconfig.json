@@ -13,6 +13,8 @@
     "jsx": "react-jsx",
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
+    /* Files scripts/*.mjs load under plain node (football/football.ts) import others by explicit `.ts` path. */
+    "allowImportingTsExtensions": true,
 
     /* These compiler options are required by Convex */
     "target": "ESNext",
