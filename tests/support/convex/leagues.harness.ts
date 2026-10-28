@@ -34,11 +34,13 @@ export async function actingAs(t: TestConvex, email: string) {
 /** How many teams a league `adminCreatesLeague` makes may hold, unless a test says. */
 export const TEST_LEAGUE_TEAMS = 4;
 
-/** The admin makes a league of `maxTeams` run by COMMISSIONER, and its scheduled link is sent. */
+/** The admin makes a league of `maxTeams` run by COMMISSIONER, and its scheduled link is sent.
+ *  Only what is due now runs, and the clock stays put: a held season has an alarm pending for its
+ *  next deadline (deadlineRecorder.ts), which running every timer would fire. */
 export async function adminCreatesLeague(t: TestConvex, maxTeams = TEST_LEAGUE_TEAMS, name = LEAGUE_NAME): Promise<Id<"leagues">> {
   const admin = await actingAs(t, ADMIN);
   const leagueId = await admin.mutation(api.leagues.leagues.create, { name, maxTeams, commissionerEmail: COMMISSIONER });
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await t.finishAllScheduledFunctions(() => vi.advanceTimersByTime(0));
   return leagueId;
 }
 

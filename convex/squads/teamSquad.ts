@@ -1,24 +1,26 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { startersByGameweek } from "../lineup/lineups";
 import { cardPoints } from "../playerCard/cardPoints";
-import { clubsByCode, seasonRecords, type Clubs } from "../playerCard/playerCard";
+import { clubsByCode, overridesOf, seasonRecords, type Clubs } from "../playerCard/playerCard";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { POSITIONS, type Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
+import { inTenths } from "../scoring/scoringSet";
 import { siteScoringByGameweek } from "../scoring/siteScoring";
 import { callerEmail, getLeague, refuse, refusals, teamOf } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { isWhole } from "../stats/matchRecords";
+import { begunGameweeks } from "../table/gameweekScores";
 import { squadOf } from "./squads";
 
 // My team's Squad tab (#364; spec/12, My team's tabs: "every player in the squad in one table,
 // with his position, club, next fixture, season points and last gameweek's points"). Each match is
 // priced as his card prices it (cardPoints.ts; spec/12, The player card): at his slot when he
-// started for this team that gameweek, else at his best position.
+// started for this team that gameweek, else at his best position; a match the league overrode
+// his points in scores the override, as the table and the matchup score it (#32).
 
 const nextFixture = v.object({
   gameweek: v.union(v.number(), v.null()),
@@ -60,12 +62,12 @@ export type TeamSquad = Infer<typeof teamSquad>;
 /** One priced match: its gameweek and points, null while his whole record hasn't arrived. */
 export type PricedMatch = { gameweek: number; points: number | null };
 
-/** Season and last gameweek's points from his priced matches: each the sum of those priced, or
- *  null while none is. */
+/** Season and last gameweek's points from his priced matches: each the sum of those priced, kept
+ *  to tenths as the table keeps them, or null while none is. */
 export function squadPoints(matches: readonly PricedMatch[], lastGameweek: number | null) {
   const sum = (some: readonly PricedMatch[]) => {
     const priced = some.flatMap(({ points }) => (points === null ? [] : [points]));
-    return priced.length === 0 ? null : priced.reduce((total, points) => total + points, 0);
+    return priced.length === 0 ? null : inTenths(priced.reduce((total, points) => total + points, 0));
   };
   return { seasonPoints: sum(matches), lastGameweekPoints: sum(matches.filter(({ gameweek }) => gameweek === lastGameweek)) };
 }
@@ -80,12 +82,11 @@ export const ofMyTeam = query({
   returns: teamSquad,
   handler: async (ctx, { leagueId, now }) => {
     const email = await callerEmail(ctx);
-    await getLeague(ctx, leagueId);
+    const league = await getLeague(ctx, leagueId);
     const team = (await teamOf(ctx, leagueId, email)) ?? refuse(refusals.runsNoTeam);
     const how = await howPositionsCount(ctx);
     const clubs = clubsByCode(ctx);
-    const begun = [...(await passedDeadlinesOf(ctx, leagueId)).keys()];
-    const lastGameweek = begun.length === 0 ? null : Math.max(...begun);
+    const lastGameweek = (await begunGameweeks(ctx, league)).at(-1) ?? null;
     const price = await pricer(ctx, leagueId, team._id);
     const players = await Promise.all(
       (await squadOf(ctx, team._id)).map(async ({ playerCode, number }) => {
@@ -113,24 +114,29 @@ export const ofMyTeam = query({
 });
 
 /** Prices a player's season's matches as his card does: at the cell he started in for the team in
- *  that gameweek, else at his best position. Each gameweek's lineup and set is read once.
+ *  that gameweek, else at his best position, and a match the league overrode at the override,
+ *  whole record or not (as teamPoints.ts scores it). Each gameweek's lineup and set is read once.
  *
  *  What a full squad costs: each player's records and their matches (seasonRecords, about 25 x 2
- *  x the gameweeks played), and each gameweek's lineup, which reads the league's squad moves since
- *  that gameweek's deadline (lineups.ts). Inside a query's limits for a season of an ordinary
+ *  x the gameweeks played), his overrides in the league (one read a player), and each gameweek's
+ *  lineup, which reads the league's squad moves since that gameweek's deadline (lineups.ts). Inside a query's limits for a season of an ordinary
  *  league; past SQUAD_MOVES_READ_MOST moves of a kind it throws rather than mis-price. Reading the
  *  moves once for every gameweek, or storing a gameweek's priced matches once final, as
  *  finalScores.ts does the totals, is the way on if it grows. */
 async function pricer(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">) {
   const setIn = await siteScoringByGameweek(ctx);
   const starters = startersByGameweek(ctx, leagueId, teamId);
-  return async (playerCode: number, positions: readonly Position[]): Promise<PricedMatch[]> =>
-    Promise.all(
-      (await seasonRecords(ctx, playerCode)).map(async ({ record, gameweek }) => {
+  return async (playerCode: number, positions: readonly Position[]): Promise<PricedMatch[]> => {
+    const overrides = await overridesOf(ctx, leagueId, playerCode);
+    return Promise.all(
+      (await seasonRecords(ctx, playerCode)).map(async ({ record, fixture, gameweek }) => {
+        const override = overrides.get(fixture.code);
+        if (override !== undefined) return { gameweek, points: override.points };
         const slot = (await starters(gameweek)).get(playerCode) ?? null;
         return { gameweek, points: cardPoints(isWhole(record) ? record.stats : null, setIn(gameweek), positions, slot).total };
       }),
     );
+  };
 }
 
 /** Each of these clubs' next match after `now`, by club code: the matches ahead are read soonest

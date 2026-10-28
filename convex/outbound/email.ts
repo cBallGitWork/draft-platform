@@ -1,9 +1,11 @@
 import { PRODUCT_NAME } from "../shared/product";
+import { RESEND_API_URL } from "./resend";
 import { EMAIL_FROM_SETTING, TEST_SENDER } from "./sender";
 
 // The app's emails go out through Resend's API (ARCHITECTURE.md, Services).
 
-export const RESEND_EMAILS_URL = "https://api.resend.com/emails";
+/** Where Resend takes an email to send. */
+export const RESEND_EMAILS_URL = `${RESEND_API_URL}/emails`;
 /** Who the emails come from: the deployment's own sender, or Resend's test sender where it has none
  *  (sender.ts). */
 function sender(): string {
