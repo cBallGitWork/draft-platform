@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
 import { CHECK_ENV } from "../live/releaseCheck";
+import { DEPLOY_ARGS } from "../../scripts/release.mjs";
 
 const REPO = join(import.meta.dirname, "../..");
 const vercel = JSON.parse(readFileSync(join(REPO, "vercel.json"), "utf8"));
@@ -16,8 +17,9 @@ function ignoreExit(environment) {
   return spawnSync("sh", ["-c", vercel.ignoreCommand], { env: { ...process.env, VERCEL_ENV: environment } }).status;
 }
 
-test("a production build puts the server code live and builds the site with it", () => {
-  expect(vercel.buildCommand).toBe("npx convex deploy --cmd 'npm run build'");
+test("a production build runs the release, which puts the server code live and builds the site with it", () => {
+  expect(vercel.buildCommand).toBe("node scripts/release.mjs");
+  expect(DEPLOY_ARGS).toEqual(["deploy", "--cmd", "npm run build"]);
 });
 
 test("only production builds: a preview's is skipped before it can deploy Convex", () => {

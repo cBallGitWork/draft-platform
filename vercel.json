@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npx convex deploy --cmd 'npm run build'",
+  "buildCommand": "node scripts/release.mjs",
   "ignoreCommand": "[ \"$VERCEL_ENV\" != production ]",
   "git": {
     "deploymentEnabled": { "**": false, "main": true }
