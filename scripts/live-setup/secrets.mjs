@@ -2,7 +2,7 @@
 // touched in anything about to be printed (spec/20: no secret is ever printed).
 
 import { generateKeyPairSync } from "node:crypto";
-import { SETTING } from "./live.mjs";
+import { RESEND_KEY_PREFIX, SETTING } from "./live.mjs";
 
 /** What stands in for a secret in anything printed. */
 export const HIDDEN = "[hidden]";
@@ -40,4 +40,19 @@ export function signInKeys() {
     [SETTING.jwtPrivateKey]: pem.trimEnd().replace(/\n/g, " "),
     [SETTING.jwks]: JSON.stringify({ keys: [{ use: "sig", ...publicKey.export({ format: "jwk" }) }] }),
   };
+}
+
+/** A pasted key, kept as a secret, or a refusal that names what was wrong and never the key. */
+export async function pastedKey(setup, question, prefix) {
+  const key = setup.secrets.keep((await setup.tools.askHidden(question)).trim());
+  if (!key.startsWith(prefix)) throw new Error(`that key doesn't start with "${prefix}", so it isn't the one asked for: nothing was saved`);
+  return key;
+}
+
+/** Resend's API key: the one pasted this run, or the one already on the live deployment. */
+export async function resendKey(setup) {
+  setup.resendKey ??= (await setup.convexNames()).includes(SETTING.resendKey)
+    ? setup.secrets.keep(await setup.tools.convex.getSetting(SETTING.resendKey))
+    : await pastedKey(setup, "Paste the Resend API key, full access (it won't show): ", RESEND_KEY_PREFIX);
+  return setup.resendKey;
 }

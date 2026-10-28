@@ -13,51 +13,14 @@ import {
   MANUAL_TRIGGER,
   POSITIONS_SYNC_LATEST,
   POSITIONS_SYNC_RUN,
-  RESEND_KEY_PREFIX,
-  RESEND_REGION,
-  RESEND_VERIFIED,
   SETTING,
   VERCEL_PRODUCTION,
   VERCEL_PROJECT,
-  VERIFY_POLL_EVERY_MS,
-  VERIFY_POLL_FOR_MS,
 } from "./live.mjs";
-import { secretKeeper, signInKeys } from "./secrets.mjs";
-
-export const ALREADY_DONE = "already done";
-export const DONE = "done";
-/** What a step that is waiting on someone else (Resend's check of the DNS) reports. */
-export const NOT_YET = "not yet";
-export const FAILED = "failed";
-
-/** A Resend DNS record's name relative to the domain, as Vercel's DNS names it. */
-const relativeName = (name) => (name.endsWith(`.${LIVE_DOMAIN}`) ? name.slice(0, -LIVE_DOMAIN.length - 1) : name);
-
-const sameRecord = (resend, vercel) =>
-  vercel.type === resend.type &&
-  relativeName(vercel.name).toLowerCase() === relativeName(resend.name).toLowerCase() &&
-  vercel.value === resend.value;
-
-/** A pasted key, kept as a secret, or a refusal that names what was wrong and never the key. */
-async function pastedKey(setup, question, prefix) {
-  const key = setup.secrets.keep((await setup.tools.askHidden(question)).trim());
-  if (!key.startsWith(prefix)) throw new Error(`that key doesn't start with "${prefix}", so it isn't the one asked for: nothing was saved`);
-  return key;
-}
-
-/** Resend's API key: the one pasted this run, or the one already on the live deployment. */
-async function resendKey(setup) {
-  setup.resendKey ??= (await setup.convexNames()).includes(SETTING.resendKey)
-    ? setup.secrets.keep(await setup.tools.convex.getSetting(SETTING.resendKey))
-    : await pastedKey(setup, `Paste the Resend API key, full access (it won't show): `, RESEND_KEY_PREFIX);
-  return setup.resendKey;
-}
-
-async function resendDomain(setup) {
-  const key = await resendKey(setup);
-  const listed = (await setup.tools.resend.domains(key)).find((domain) => domain.name === LIVE_DOMAIN);
-  return listed && setup.tools.resend.domain(key, listed.id);
-}
+import { ALREADY_DONE, DONE, FAILED } from "./outcomes.mjs";
+import { RELEASE_STEPS } from "./releaseSteps.mjs";
+import { RESEND_STEPS } from "./resendSteps.mjs";
+import { pastedKey, resendKey, secretKeeper, signInKeys } from "./secrets.mjs";
 
 /** A setting with a value anyone may see: set unless it already holds `value`. */
 async function plainSetting(setup, name, value) {
@@ -66,9 +29,7 @@ async function plainSetting(setup, name, value) {
   return DONE;
 }
 
-/** The steps, in order. Each `run` returns ALREADY_DONE, DONE, or `{ outcome: NOT_YET, why }`, and
- *  throws when it can't be done. */
-export const STEPS = [
+const CONVEX_STEPS = [
   {
     title: "The live database",
     async run(setup) {
@@ -124,6 +85,9 @@ export const STEPS = [
       return DONE;
     },
   },
+];
+
+const VERCEL_STEPS = [
   {
     title: `The Vercel project (${VERCEL_PROJECT})`,
     async run(setup) {
@@ -139,9 +103,15 @@ export const STEPS = [
     },
   },
   {
-    title: `The deploy key in Vercel (${DEPLOY_KEY_SETTING}, ${VERCEL_PRODUCTION})`,
+    title: `The deploy key in Vercel (${DEPLOY_KEY_SETTING}, ${VERCEL_PRODUCTION} only)`,
     async run(setup) {
-      if ((await setup.tools.vercel.envNames(VERCEL_PRODUCTION)).includes(DEPLOY_KEY_SETTING)) return ALREADY_DONE;
+      const targets = await setup.tools.vercel.envTargets(DEPLOY_KEY_SETTING);
+      // Anywhere else, a preview's build could deploy to the live database.
+      const elsewhere = targets.filter((target) => target !== VERCEL_PRODUCTION);
+      if (elsewhere.length > 0) {
+        throw new Error(`Vercel holds ${DEPLOY_KEY_SETTING} for ${elsewhere.join(", ")} too: remove it there, in the project's settings`);
+      }
+      if (targets.includes(VERCEL_PRODUCTION)) return ALREADY_DONE;
       const key = await pastedKey(setup, "Paste the Convex production deploy key (it won't show): ", DEPLOY_KEY_PREFIX);
       await setup.tools.vercel.addEnv(DEPLOY_KEY_SETTING, VERCEL_PRODUCTION, key);
       return DONE;
@@ -155,56 +125,23 @@ export const STEPS = [
       return DONE;
     },
   },
-  {
-    title: `The domain in Resend (${LIVE_DOMAIN})`,
-    async run(setup) {
-      if (await resendDomain(setup)) return ALREADY_DONE;
-      await setup.tools.resend.createDomain(await resendKey(setup), LIVE_DOMAIN, RESEND_REGION);
-      return DONE;
-    },
-  },
-  {
-    title: "Resend's DNS records in Vercel's DNS",
-    async run(setup) {
-      const domain = await resendDomain(setup);
-      if (!domain) throw new Error(`Resend has no ${LIVE_DOMAIN}`);
-      const held = await setup.tools.vercel.dnsRecords(LIVE_DOMAIN);
-      const missing = domain.records.filter((record) => !held.some((existing) => sameRecord(record, existing)));
-      if (missing.length === 0) return ALREADY_DONE;
-      for (const record of missing) {
-        await setup.tools.vercel.addDnsRecord(LIVE_DOMAIN, { ...record, name: relativeName(record.name) });
-      }
-      return DONE;
-    },
-  },
-  {
-    title: `Resend's check of ${LIVE_DOMAIN}`,
-    async run(setup) {
-      const key = await resendKey(setup);
-      let domain = await resendDomain(setup);
-      if (!domain) throw new Error(`Resend has no ${LIVE_DOMAIN}`);
-      if (domain.status === RESEND_VERIFIED) return ALREADY_DONE;
-      await setup.tools.resend.verify(key, domain.id);
-      for (let waited = 0; waited < VERIFY_POLL_FOR_MS; waited += VERIFY_POLL_EVERY_MS) {
-        await setup.tools.sleep(VERIFY_POLL_EVERY_MS);
-        domain = await setup.tools.resend.domain(key, domain.id);
-        if (domain.status === RESEND_VERIFIED) return DONE;
-      }
-      return { outcome: NOT_YET, why: `Resend says "${domain.status}": new DNS records can take hours to be seen, so run this again later` };
-    },
-  },
-  {
-    title: "One player-positions sync",
-    async run(setup) {
-      const ranWell = (rows) => rows.some((row) => row.outcome.ok);
-      if (ranWell(await setup.tools.convex.run(POSITIONS_SYNC_LATEST))) return ALREADY_DONE;
-      await setup.tools.convex.run(POSITIONS_SYNC_RUN, MANUAL_TRIGGER);
-      const [newest] = await setup.tools.convex.run(POSITIONS_SYNC_LATEST);
-      if (!newest?.outcome.ok) throw new Error(`the sync ran but failed: ${newest?.outcome.error ?? "it left no row"}`);
-      return DONE;
-    },
-  },
 ];
+
+const POSITIONS_STEP = {
+  title: "One player-positions sync",
+  async run(setup) {
+    const ranWell = (rows) => rows.some((row) => row.outcome.ok);
+    if (ranWell(await setup.tools.convex.run(POSITIONS_SYNC_LATEST))) return ALREADY_DONE;
+    await setup.tools.convex.run(POSITIONS_SYNC_RUN, MANUAL_TRIGGER);
+    const [newest] = await setup.tools.convex.run(POSITIONS_SYNC_LATEST);
+    if (!newest?.outcome.ok) throw new Error(`the sync ran but failed: ${newest?.outcome.error ?? "it left no row"}`);
+    return DONE;
+  },
+};
+
+/** The steps, in order. Each `run` returns ALREADY_DONE, DONE, or `{ outcome: NOT_YET, why }`, and
+ *  throws when it can't be done. */
+export const STEPS = [...CONVEX_STEPS, ...VERCEL_STEPS, ...RESEND_STEPS, POSITIONS_STEP, ...RELEASE_STEPS];
 
 /** Runs every step, printing one line each, and stops at the first that fails: after a fix, a
  *  re-run picks up where it stopped. True when every step is done. */

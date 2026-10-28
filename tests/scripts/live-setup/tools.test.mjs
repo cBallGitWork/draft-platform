@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { DEPLOYED_FUNCTION, DEPLOY_KEY_SETTING, LIVE_DOMAIN, RESEND_REGION, VERCEL_PRODUCTION, VERCEL_PROJECT } from "../../../scripts/live-setup/live.mjs";
+import { DEPLOYED_FUNCTION, DEPLOY_KEY_SETTING, GITHUB_REPO, LIVE_DOMAIN, RESEND_REGION, VERCEL_PRODUCTION, VERCEL_PROJECT } from "../../../scripts/live-setup/live.mjs";
 import { RESEND_API, VERCEL_LINK_FILE, captured, realTools } from "../../../scripts/live-setup/tools.mjs";
 import { RESEND_KEY } from "../../support/scripts/liveSetup.harness.mjs";
 
@@ -60,15 +60,40 @@ test("a function returning null prints nothing, which reads as null", async () =
   expect(await tools.convex.run("positions/positionsSync:run", { trigger: "manual" })).toBeNull();
 });
 
-test("Vercel's API is read for the linked project's team, and only production's settings count", async () => {
+test("Vercel's API is read for the linked project's team, giving every environment a setting is in", async () => {
   linkCheckout();
   const envs = [
-    { key: DEPLOY_KEY_SETTING, target: [VERCEL_PRODUCTION] },
-    { key: "PREVIEW_ONLY", target: ["preview"] },
+    { key: DEPLOY_KEY_SETTING, target: [VERCEL_PRODUCTION, "preview"] },
+    { key: "OTHER", target: ["development"] },
   ];
   const { tools, calls } = toolsWith({ answer: () => ({ code: 0, stdout: JSON.stringify({ envs }), stderr: "" }) });
-  expect(await tools.vercel.envNames(VERCEL_PRODUCTION)).toEqual([DEPLOY_KEY_SETTING]);
+  expect(await tools.vercel.envTargets(DEPLOY_KEY_SETTING)).toEqual([VERCEL_PRODUCTION, "preview"]);
   expect(calls[0].args).toEqual(["api", `/v10/projects/${LINKED.projectId}/env?teamId=${LINKED.orgId}`]);
+});
+
+test("the project's GitHub connection reads as owner/name, and none as null", async () => {
+  linkCheckout();
+  const project = (link) => ({ code: 0, stdout: JSON.stringify({ link }), stderr: "" });
+  const [org, repo] = GITHUB_REPO.split("/");
+  expect(await toolsWith({ answer: () => project({ type: "github", org, repo }) }).tools.vercel.connectedRepo()).toBe(GITHUB_REPO);
+  expect(await toolsWith({ answer: () => project(undefined) }).tools.vercel.connectedRepo()).toBeNull();
+});
+
+test("GitHub's secrets are named from the repository, and set on stdin", async () => {
+  const { tools, calls } = toolsWith({ answer: () => ({ code: 0, stdout: JSON.stringify([{ name: "A" }]), stderr: "" }) });
+  expect(await tools.github.secretNames()).toEqual(["A"]);
+  await tools.github.setSecret("A", SECRET);
+  expect(calls.map(({ cli, args, input }) => ({ cli, args, input }))).toEqual([
+    { cli: "gh", args: ["secret", "list", "--repo", GITHUB_REPO, "--json", "name"], input: undefined },
+    { cli: "gh", args: ["secret", "set", "A", "--repo", GITHUB_REPO], input: SECRET },
+  ]);
+});
+
+test("the allowed list is read from the live deployment as its addresses", async () => {
+  const rows = [{ _id: "1", email: "a@x.resend.app" }];
+  const { tools, calls } = toolsWith({ answer: () => ({ code: 0, stdout: JSON.stringify(rows), stderr: "" }) });
+  expect(await tools.convex.allowedEmails()).toEqual(["a@x.resend.app"]);
+  expect(calls[0].args.slice(0, 3)).toEqual(["run", "--prod", "--inline-query"]);
 });
 
 test("an unlinked checkout has no project, and Vercel's API isn't read for one", async () => {

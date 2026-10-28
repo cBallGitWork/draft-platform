@@ -2,17 +2,20 @@ import { createPrivateKey, createPublicKey, sign, verify } from "node:crypto";
 import { expect, test } from "vitest";
 import {
   DEPLOY_KEY_SETTING,
+  GITHUB_REPO,
   LIVE_DOMAIN,
   LIVE_SENDER,
   LIVE_SITE_URL,
+  RELEASE_CHECK_SECRET,
   RESEND_REGION,
   RESEND_VERIFIED,
   SETTING,
   VERCEL_PRODUCTION,
 } from "../../../scripts/live-setup/live.mjs";
 import { HIDDEN, secretKeeper, signInKeys } from "../../../scripts/live-setup/secrets.mjs";
-import { ALREADY_DONE, DONE, FAILED, NOT_YET, STEPS, setUpLive } from "../../../scripts/live-setup/steps.mjs";
-import { ADMIN, DEPLOY_KEY, RESEND_KEY, RESEND_RECORDS, fakeWorld } from "../../support/scripts/liveSetup.harness.mjs";
+import { ALREADY_DONE, DONE, FAILED, NOT_YET } from "../../../scripts/live-setup/outcomes.mjs";
+import { STEPS, setUpLive } from "../../../scripts/live-setup/steps.mjs";
+import { ADMIN, CHECK_EMAIL, DEPLOY_KEY, RESEND_KEY, RESEND_RECORDS, fakeWorld } from "../../support/scripts/liveSetup.harness.mjs";
 
 const OTHER_ADMIN = "someone@example.com";
 /** The lines a run printed, each step's title and what it said. */
@@ -20,7 +23,8 @@ const outcomes = (world) => world.printed.map((line) => line.slice(line.lastInde
 
 /** Every secret the world holds once set up: the pasted keys and the keys the command made. */
 function secretsIn(world) {
-  return [RESEND_KEY, DEPLOY_KEY, world.convex.settings.get(SETTING.jwtPrivateKey), world.convex.settings.get(SETTING.jwks)].filter(Boolean);
+  const made = [world.convex.settings.get(SETTING.jwtPrivateKey), world.convex.settings.get(SETTING.jwks)];
+  return [RESEND_KEY, DEPLOY_KEY, CHECK_EMAIL, ...made].filter(Boolean);
 }
 
 /** Each whitespace-separated piece of a secret long enough to identify it. */
@@ -53,6 +57,26 @@ test("a first run on nothing sets up every part of the live site (spec/20, Setti
   );
   expect(world.resend.domains).toMatchObject([{ name: LIVE_DOMAIN, region: RESEND_REGION, status: RESEND_VERIFIED }]);
   expect(world.convex.syncs).toHaveLength(1);
+  expect(world.vercel.repo).toBe(GITHUB_REPO);
+  expect(Object.fromEntries(world.github.secrets)).toEqual({ [RELEASE_CHECK_SECRET.email]: CHECK_EMAIL, [RELEASE_CHECK_SECRET.resendKey]: RESEND_KEY });
+  expect(world.convex.allowed).toEqual([CHECK_EMAIL]);
+});
+
+test("a deploy key Vercel holds for previews too is refused: a preview could deploy to the live database", async () => {
+  const world = fakeWorld();
+  world.vercel.env.push({ key: DEPLOY_KEY_SETTING, target: "preview", value: DEPLOY_KEY });
+  expect(await setUpLive(world.tools)).toBe(false);
+  expect(world.printed.at(-1)).toContain(`${FAILED}: Vercel holds ${DEPLOY_KEY_SETTING} for preview too`);
+});
+
+test("an address that isn't Resend's receiving one is refused for the release check, and nothing is saved", async () => {
+  const world = fakeWorld();
+  const { askHidden } = world.tools;
+  world.tools.askHidden = async (question) => (question.includes("receiving address") ? ADMIN : askHidden(question));
+  expect(await setUpLive(world.tools)).toBe(false);
+  expect(world.printed.at(-1)).toContain(`${FAILED}: that isn't a Resend receiving address`);
+  expect(world.github.secrets.size).toBe(0);
+  expect(world.convex.allowed).toEqual([]);
 });
 
 test("a second run changes nothing, asks nothing, and says every step is already done", async () => {
@@ -70,7 +94,7 @@ test("no secret is printed, whole or in part, on a first run or a second (spec/2
   const world = fakeWorld();
   await setUpLive(world.tools);
   await setUpLive(world.tools);
-  expect(secretsIn(world)).toHaveLength(4);
+  expect(secretsIn(world)).toHaveLength(5);
   expectNoSecretPrinted(world);
 });
 
@@ -115,8 +139,11 @@ test("a key pasted into the wrong prompt is refused, unsaved and unprinted", asy
 test("Resend not seeing the DNS in time is 'not yet', and the rest still runs", async () => {
   const world = fakeWorld({ checksBeforeVerified: Infinity });
   expect(await setUpLive(world.tools)).toBe(false);
-  expect(outcomes(world).at(-1)).toBe(DONE);
-  expect(world.printed.at(-2)).toContain(`${NOT_YET}: Resend says "pending"`);
+  expect(world.printed).toHaveLength(STEPS.length);
+  const waiting = world.printed.filter((line) => line.includes(`: ${NOT_YET}: `));
+  expect(waiting).toHaveLength(1);
+  expect(waiting[0]).toContain(`Resend's check of ${LIVE_DOMAIN}: ${NOT_YET}: Resend says "pending"`);
+  expect(outcomes(world).filter((said) => said === DONE)).toHaveLength(STEPS.length - 1);
 
   // Once the DNS is seen, a re-run finishes it.
   world.resend.domains[0].status = RESEND_VERIFIED;

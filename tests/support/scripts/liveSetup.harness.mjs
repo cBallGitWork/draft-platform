@@ -2,9 +2,16 @@
 // told, answer as the real ones do (scripts/live-setup/tools.mjs), and note every change, so a
 // test can run the command twice and see the second run change nothing.
 
-import { DEPLOYED_FUNCTION, POSITIONS_SYNC_LATEST, POSITIONS_SYNC_RUN, RESEND_VERIFIED } from "../../../scripts/live-setup/live.mjs";
+import {
+  ALLOW_EMAIL,
+  DEPLOYED_FUNCTION,
+  POSITIONS_SYNC_LATEST,
+  POSITIONS_SYNC_RUN,
+  RESEND_VERIFIED,
+} from "../../../scripts/live-setup/live.mjs";
 
 export const RESEND_KEY = "re_FakeResendKey_0123456789abcdef";
+export const CHECK_EMAIL = "release-check@abc123def.resend.app";
 export const DEPLOY_KEY = "prod:fake-deployment-123|eyFakeDeployKey0123456789abcdef";
 export const ADMIN = "craig@example.com";
 
@@ -20,8 +27,9 @@ export const RESEND_RECORDS = [
  *  is seen (Infinity: never). */
 export function fakeWorld({ checksBeforeVerified = 0 } = {}) {
   const world = {
-    convex: { exists: false, settings: new Map(), deployed: false, syncs: [] },
-    vercel: { linked: null, env: [], domains: [], dns: [] },
+    convex: { exists: false, settings: new Map(), deployed: false, syncs: [], allowed: [] },
+    vercel: { linked: null, env: [], domains: [], dns: [], repo: null },
+    github: { secrets: new Map() },
     resend: { domains: [] },
     printed: [],
     asked: [],
@@ -43,6 +51,7 @@ export function fakeWorld({ checksBeforeVerified = 0 } = {}) {
     },
     askHidden: async (question) => {
       world.asked.push(question);
+      if (question.includes("receiving address")) return CHECK_EMAIL;
       return question.includes("Resend") ? RESEND_KEY : DEPLOY_KEY;
     },
     convex: {
@@ -70,9 +79,19 @@ export function fakeWorld({ checksBeforeVerified = 0 } = {}) {
         change("convex deploy");
         world.convex.deployed = true;
       },
-      run: async (fn) => {
+      allowedEmails: async () => {
+        needsDeployment();
+        return [...world.convex.allowed];
+      },
+      run: async (fn, args) => {
         if (!world.convex.deployed) throw new Error(`no function ${fn}`);
         if (fn === POSITIONS_SYNC_LATEST) return [...world.convex.syncs].reverse();
+        if (fn === ALLOW_EMAIL) {
+          if (world.convex.allowed.includes(args.email)) return "already on the list";
+          change("convex allowed email");
+          world.convex.allowed.push(args.email);
+          return "added";
+        }
         if (fn !== POSITIONS_SYNC_RUN) throw new Error(`no fake for ${fn}`);
         change("positions sync");
         world.convex.syncs.push({ outcome: { ok: true } });
@@ -85,7 +104,7 @@ export function fakeWorld({ checksBeforeVerified = 0 } = {}) {
         change("vercel link");
         world.vercel.linked = { projectId: "prj_fake", orgId: "team_fake", projectName };
       },
-      envNames: async (target) => world.vercel.env.filter((env) => env.target === target).map((env) => env.key),
+      envTargets: async (key) => world.vercel.env.filter((env) => env.key === key).map((env) => env.target),
       addEnv: async (key, target, value) => {
         change(`vercel env ${key}`);
         world.vercel.env.push({ key, target, value });
@@ -99,6 +118,18 @@ export function fakeWorld({ checksBeforeVerified = 0 } = {}) {
       addDnsRecord: async (_domain, record) => {
         change(`vercel dns ${record.type} ${record.name}`);
         world.vercel.dns.push(record);
+      },
+      connectedRepo: async () => world.vercel.repo,
+      connectRepo: async (url) => {
+        change("vercel git connect");
+        world.vercel.repo = new URL(url).pathname.slice(1);
+      },
+    },
+    github: {
+      secretNames: async () => [...world.github.secrets.keys()],
+      setSecret: async (name, value) => {
+        change(`github secret ${name}`);
+        world.github.secrets.set(name, value);
       },
     },
     resend: {

@@ -1,5 +1,5 @@
 // The real services behind the setup command's steps (steps.mjs): the Convex and Vercel CLIs from
-// node_modules, Resend's API, and the terminal. A secret only ever goes to a CLI on its stdin,
+// node_modules, the gh CLI, Resend's API, and the terminal. A secret only ever goes to a CLI on its stdin,
 // never in its arguments (which any process on the machine can read), and a CLI's output is
 // captured, never passed through: steps.mjs prints only its own lines, with every secret hidden.
 //
@@ -12,6 +12,7 @@ import { join } from "node:path";
 import { createInterface } from "node:readline";
 import { Writable } from "node:stream";
 import { setTimeout as sleep } from "node:timers/promises";
+import { GITHUB_REPO } from "./live.mjs";
 
 export const RESEND_API = "https://api.resend.com";
 /** Where `vercel link` records the project this checkout is linked to. */
@@ -19,6 +20,10 @@ export const VERCEL_LINK_FILE = join(".vercel", "project.json");
 /** The start of a Vercel team's id; a personal account's API calls take no team. */
 const VERCEL_TEAM_ID_PREFIX = "team_";
 const PROD = "--prod";
+/** How Vercel's API names a project's link to a GitHub repository. */
+const GITHUB_LINK_TYPE = "github";
+/** The live site's allowed list (convex/signIn/allowedEmails.ts), read to see the check's address. */
+const ALLOWED_EMAILS_TABLE = "allowedEmails";
 
 /** Runs a command and resolves with how it ended and what it printed, never showing either. */
 export function captured(command, args, { cwd, input = "" } = {}) {
@@ -39,13 +44,15 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
   const bin = (name) => join(cwd, "node_modules", ".bin", name);
 
   /** Runs a CLI, resolving with its stdout, or throwing with what it said when it fails. */
-  async function cli(name, args, input) {
-    const { code, stdout, stderr } = await exec(bin(name), args, { cwd, input });
+  async function cli(name, command, args, input) {
+    const { code, stdout, stderr } = await exec(command, args, { cwd, input });
     if (code !== 0) throw new Error(`\`${name} ${args[0]}\` failed (exit ${code}): ${(stderr || stdout).trim()}`);
     return stdout;
   }
-  const convexCli = (args, input) => cli("convex", args, input);
-  const vercelCli = (args, input) => cli("vercel", args, input);
+  const convexCli = (args, input) => cli("convex", bin("convex"), args, input);
+  const vercelCli = (args, input) => cli("vercel", bin("vercel"), args, input);
+  // gh is the machine's own, signed in to the repository (docs/setup.md, Start).
+  const ghCli = (args, input) => cli("gh", "gh", args, input);
   const settingNameList = () => convexCli(["env", "list", PROD, "--names-only"]);
 
   async function linkedProject() {
@@ -100,6 +107,10 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
         const printed = (await convexCli(["run", PROD, fn, JSON.stringify(args)])).trim();
         return printed ? JSON.parse(printed) : null;
       },
+      allowedEmails: async () => {
+        const query = `await ctx.db.query("${ALLOWED_EMAILS_TABLE}").collect()`;
+        return JSON.parse(await convexCli(["run", PROD, "--inline-query", query])).map(({ email }) => email);
+      },
     },
     vercel: {
       linkedProject,
@@ -110,9 +121,9 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
         if (!exists) await vercelCli(["project", "create", project]);
         await vercelCli(["link", "--yes", "--project", project]);
       },
-      envNames: async (target) => {
+      envTargets: async (name) => {
         const { envs } = await vercelApi("/v10/projects/:project/env");
-        return envs.filter((env) => [env.target].flat().includes(target)).map((env) => env.key);
+        return envs.filter((env) => env.key === name).flatMap((env) => [env.target].flat());
       },
       // With no --value, `env add` reads the value from stdin.
       addEnv: (name, target, value) => vercelCli(["env", "add", name, target, "--sensitive"], value),
@@ -122,6 +133,18 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
         (await vercelApi(`/v5/domains/${domain}/records`)).records.map(({ name, type, value }) => ({ name, type, value })),
       addDnsRecord: (domain, { name, type, value, priority }) =>
         vercelCli(["dns", "add", domain, name, type, value, ...(priority === undefined ? [] : [String(priority)])]),
+      /** The GitHub repository ("owner/name") the project builds from, or null. */
+      connectedRepo: async () => {
+        const { link } = await vercelApi("/v9/projects/:project");
+        return link?.type === GITHUB_LINK_TYPE ? `${link.org}/${link.repo}` : null;
+      },
+      // Vercel's GitHub app must be installed on the repository; the CLI says so if it isn't.
+      connectRepo: (url) => vercelCli(["git", "connect", url, "--yes"]),
+    },
+    github: {
+      secretNames: async () => JSON.parse(await ghCli(["secret", "list", "--repo", GITHUB_REPO, "--json", "name"])).map(({ name }) => name),
+      // With no --body, `secret set` reads the value from stdin.
+      setSecret: (name, value) => ghCli(["secret", "set", name, "--repo", GITHUB_REPO], value),
     },
     resend: {
       domains: async (key) => (await resendApi(key, "GET", "/domains")).data,

@@ -93,9 +93,11 @@ Craig's four steps, once, before the setup command:
    the site will live in. The command puts Resend's records in Vercel's DNS, so a domain bought
    elsewhere needs its records added there by hand instead: say so before running it.
 2. **Log in to Convex and Vercel** in a terminal in this checkout: `npx convex login` (done already
-   if `npm run setup` ran here) and `npx vercel login`.
+   if `npm run setup` ran here) and `npx vercel login`. The gh CLI is signed in already (Start).
 3. **Make a Resend API key** at resend.com, under API Keys, with **Full access**: the command adds
-   the domain to Resend with it, and the live site sends its emails with it.
+   the domain to Resend with it, the live site sends its emails with it, and the after-release
+   check reads its received email with it. While there, note the account's receiving address
+   from the Receiving tab (`<anything>@<id>.resend.app`): the command asks for it too.
 4. **Make the Convex production deploy key** in the Convex dashboard: the `draft-platform`
    project, its Production deployment, then Settings, where the deploy key is generated. Vercel's
    build uses it to put the server code live.
@@ -107,8 +109,8 @@ the project):
 npm run setup:live -- --admin-email craig@example.com
 ```
 
-It asks for the two keys when it needs them, with nothing shown as they're pasted, and never
-prints them. Without `--admin-email` it asks for the admin's address. Each step checks first, and
+It asks for the two keys and the receiving address when it needs them, with nothing shown as
+they're pasted, and never prints them. Without `--admin-email` it asks for the admin's address. Each step checks first, and
 prints one line: `done`, `already done`, or `failed` with why, where it stops. In order, it:
 
 - makes the live Convex deployment, if there is none;
@@ -116,12 +118,18 @@ prints one line: `done`, `already done`, or `failed` with why, where it stops. I
   makes them, `SITE_URL`, `ADMIN_EMAIL`, `AUTH_RESEND_KEY`) and the sender, `EMAIL_FROM`;
 - deploys the server code to it (`npx convex deploy`), if it has none;
 - links this checkout to the Vercel project `draft-platform`, making it if needed, and puts the
-  deploy key in its production settings as `CONVEX_DEPLOY_KEY`;
+  deploy key in its production settings, and only there, as `CONVEX_DEPLOY_KEY`;
 - adds the domain to the Vercel project;
 - adds the domain to Resend (Ireland), puts Resend's DNS records in Vercel's DNS, and asks Resend
   to check them, waiting up to five minutes; DNS can take longer, and then the line says
   `not yet` and the rest still runs;
-- runs the player-positions sync once.
+- runs the player-positions sync once;
+- connects the Vercel project to this GitHub repository, so each merge to `main` goes live and
+  Vercel tells GitHub when it has (if Vercel's GitHub app isn't installed on the repository yet,
+  this line fails saying so: install it, then run again);
+- sets the after-release check's two GitHub secrets: `RELEASE_CHECK_EMAIL`, the receiving
+  address, which it also puts on the live site's allowed list, and `RELEASE_CHECK_RESEND_KEY`,
+  the same Resend key.
 
 It is safe to run again: a second run changes nothing and says every step is already done. What
 it reads from and sends to each service: `scripts/live-setup/`. On the live site, anyone but the
