@@ -7,6 +7,7 @@ import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { callerEmail, getLeague, refuse, refusals, teamOf } from "../shared/leagueAccess";
 import { standingsOf } from "./leagueTable";
 import { LEAGUE_AVERAGE } from "./roundRobin";
+import { teamsInGameweek } from "./standings";
 import { BYE, gameScore, gamesOf } from "./teamGames";
 
 // My team's Fixtures tab (#365, #436; spec/12, My team's tabs: "the team's head-to-head fixtures
@@ -57,9 +58,11 @@ export const ofMyTeam = query({
     const season = await seasonRules(ctx, leagueId);
     if (season === null) return null;
     // As the table reads it: the format is the latest rules', the draw each gameweek's own.
-    const { rules, teamIds, schedule, results, unscored, named } = await standingsOf(ctx, league, season);
+    const { rules, schedule, results, unscored, named } = await standingsOf(ctx, league, season);
     const deadlines = await leagueDeadlines(ctx, leagueId);
     const games = gamesOf(schedule, team._id);
+    // Each game is one of the schedule's, so its gameweek is there.
+    const drawnIn = new Map(schedule.map((drawn) => [drawn.gameweek, drawn]));
     return {
       teamId: team._id,
       teamName: team.name,
@@ -71,7 +74,7 @@ export const ofMyTeam = query({
           gameweek,
           deadline: deadlines.get(gameweek) ?? null,
           against: against.kind === "team" ? { kind: "team" as const, teamName: named(against.team) } : against,
-          score: scored === undefined || opponent === BYE ? null : gameScore(teamIds, scored, gameweek, team._id, opponent),
+          score: scored === undefined || opponent === BYE ? null : gameScore(teamsInGameweek(drawnIn.get(gameweek)!), scored, gameweek, team._id, opponent),
         };
       }),
       unscored: unscored.filter(({ gameweek }) => games.some((game) => game.gameweek === gameweek)),
