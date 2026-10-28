@@ -6,7 +6,7 @@ import { renderHook } from "@testing-library/react";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ConvexError } from "convex/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
 import { useLiveLeagues } from "../../../src/leagues/liveLeagues";
 import { createFailedWords, deleteFailedWords, leaveFailedWords, switchFailedWords, undoFailedWords } from "../../../src/leagues/words";
@@ -27,10 +27,6 @@ vi.mock("convex/react", async () =>
     },
   }),
 );
-
-afterEach(() => {
-  for (const mutation of [create, deleteLeague, undo, switchTo, leave]) mutation.mockReset();
-});
 
 const newLeague = { name: "Mini beta", maxTeams: 4, commissionerEmail: "commish@example.com" };
 const createLeague = () => renderHook(useLiveLeagues).result.current.createLeague(newLeague);

@@ -5,7 +5,7 @@
 import { renderHook } from "@testing-library/react";
 import { getFunctionName } from "convex/server";
 import { ConvexError } from "convex/values";
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -45,10 +45,6 @@ beforeEach(() => {
   convex.unread = 0;
   convex.letters = [];
   convex.queried = [];
-});
-afterEach(() => {
-  convex.open.mockReset();
-  convex.write.mockReset();
 });
 
 const LETTERS_QUERY = getFunctionName(api.mail.mail.letters);

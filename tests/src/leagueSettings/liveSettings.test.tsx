@@ -4,7 +4,7 @@
 
 import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { leagueSettingsOf, type LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
@@ -20,11 +20,6 @@ vi.mock("convex/react", async () =>
     mutations: { "rules/leagueSettings:changeSettings": convex.changeSettings },
   }),
 );
-
-afterEach(() => {
-  vi.useRealTimers();
-  for (const fake of Object.values(convex)) fake.mockReset();
-});
 
 const leagueId = "league-1" as Id<"leagues">;
 const settings: LeagueSettings = { ...leagueSettingsOf(FIRST_RULES), oddTeamOut: "bye", gamesPerGameweek: 2 };
