@@ -64,7 +64,9 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
     from the slot and role he took over, as roles' multipliers can differ each week; one who didn't
     come on shows what he would score at his best position, labelled as not counted, since the card
     always shows what he scored. While a match is live the card follows the table, auto-subs
-    included, provisional until final (Craig, 28 Oct 2026);
+    included, provisional until final (Craig, 28 Oct 2026). In a league whose double gameweeks
+    count the best match (`spec/03`), his other match there is labelled as not counted, the same
+    way, so the Squad tab never comes out above what his team got (Craig, 28 Oct 2026);
   - one line of last season's totals, under the site's scoring as it stands (`spec/14`);
   - his role stars and the manager's latest scout report on him, where the manager can see them
     (`spec/19`), and the captain and set-piece hints `spec/17` adds after the mini beta;
