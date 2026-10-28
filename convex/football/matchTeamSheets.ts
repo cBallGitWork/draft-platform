@@ -4,6 +4,7 @@ import type { Doc } from "../_generated/dataModel";
 import { internalMutation, internalQuery, type ActionCtx, type QueryCtx } from "../_generated/server";
 import { teamSheetMan } from "../schema";
 import { logFailure } from "../shared/errors";
+import { playerByCode } from "../shared/players";
 import { HOUR_MS } from "../shared/time";
 import { dueMatch, type DueMatch } from "../stats/matchStats";
 import { byGameweek } from "../stats/matchStatsSync";
@@ -83,19 +84,23 @@ export function heldTeamSheetsOf(ctx: QueryCtx, fixtureCode: number): Promise<Do
     .unique();
 }
 
-/** One read's sheets over the match's row. A read that changes nothing is not written, so a screen
- *  reading the row is not woken each minute. */
+/** One read's sheets over the match's row. A man the football sync doesn't hold yet (a signing FPL
+ *  has listed since its last run) is logged and left out until a later read, as the page names
+ *  only held men. A read that changes nothing is not written, so a screen reading the row is not
+ *  woken each minute. */
 export const store = internalMutation({
   args: { fixtureCode: v.number(), men: v.array(teamSheetMan) },
   returns: v.null(),
-  handler: async (ctx, next) => {
-    const held = await heldTeamSheetsOf(ctx, next.fixtureCode);
-    if (held === null) {
-      await ctx.db.insert("matchTeamSheets", next);
-      return null;
+  handler: async (ctx, { fixtureCode, men: named }) => {
+    const men: TeamSheetMan[] = [];
+    for (const man of named) {
+      if ((await playerByCode(ctx, man.playerCode)) !== null) men.push(man);
+      else logFailure(`match ${fixtureCode}'s team sheets`, `player ${man.playerCode} isn't held by the football sync yet`);
     }
-    if (sameMen(held.men, next.men)) return null;
-    await ctx.db.patch("matchTeamSheets", held._id, { men: next.men });
+    if (men.length === 0) return null;
+    const held = await heldTeamSheetsOf(ctx, fixtureCode);
+    if (held === null) await ctx.db.insert("matchTeamSheets", { fixtureCode, men });
+    else if (!sameMen(held.men, men)) await ctx.db.patch("matchTeamSheets", held._id, { men });
     return null;
   },
 });

@@ -7,7 +7,7 @@ import { matchSlots } from "../../../convex/football/plMatch";
 import { PL_UPCOMING } from "../../../convex/football/premierLeague";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { stagedGw6, stageTime, tickAt } from "../../support/convex/liveStats.harness";
-import { BOTH_ELEVENS, GAMEWEEK, HULL_EVERTON, KICKOFF, withHullEverton } from "../../support/convex/matchStats.harness";
+import { BOTH_ELEVENS, GAMEWEEK, HULL, HULL_EVERTON, KICKOFF, withHullEverton } from "../../support/convex/matchStats.harness";
 import { refusedError, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import { MATCH, recordedGw6, type Gw6Payloads } from "../../support/recorded/gw6.payloads";
 
@@ -23,6 +23,18 @@ const SHEETS_OPEN = KICKOFF - SHEETS_BEFORE_KICKOFF_MS;
 const dueAt = (t: TestConvex, now: number) => t.query(internal.football.matchTeamSheets.due, { now });
 const heldSheets = (t: TestConvex, fixtureCode = HULL_EVERTON) =>
   t.run((ctx) => ctx.db.query("matchTeamSheets").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode)).unique());
+
+/** Hull v Everton held, with every man FPL's recording lists, as the football sync holds them;
+ *  their clubs don't matter here. */
+async function withHullEvertonMen(): Promise<TestConvex> {
+  const t = await withHullEverton();
+  await t.run(async (ctx) => {
+    for (const { code, web_name } of recordedGw6().fpl.bootstrap.elements) {
+      await ctx.db.insert("players", { code, name: web_name, fullName: web_name, clubCode: HULL });
+    }
+  });
+  return t;
+}
 
 /** Gameweek 6 as the feeds send it before Hull v Everton kicks off: its sheets out, the match not begun. */
 function beforeKickoff(): Gw6Payloads {
@@ -61,7 +73,7 @@ test("a match the feed has dropped, or postponed out of its gameweek, has no she
 });
 
 test("a tick within the hour reads only the match's sheets and keeps both sides' men, with no tick row", async () => {
-  const t = await withHullEverton();
+  const t = await withHullEvertonMen();
   const payloads = beforeKickoff();
 
   const { fetch, latest } = await tickAt(t, SHEETS_OPEN + MINUTE_MS, payloads);
@@ -77,7 +89,7 @@ test("a tick within the hour reads only the match's sheets and keeps both sides'
 });
 
 test("a change to the sheets replaces the held men; a read naming nobody leaves them", async () => {
-  const t = await withHullEverton();
+  const t = await withHullEvertonMen();
   const payloads = beforeKickoff();
   await tickAt(t, SHEETS_OPEN, payloads);
 
@@ -99,9 +111,25 @@ test("a change to the sheets replaces the held men; a read naming nobody leaves 
   expect((await heldSheets(t))!.men).toEqual(men);
 });
 
+test("a man the football sync doesn't hold yet is logged and left out, and the rest kept", async () => {
+  const errors = silenceConsoleError();
+  const t = await withHullEvertonMen();
+  const payloads = beforeKickoff();
+  const [unheld, ...rest] = sheetMen(payloads, MATCH.hullEverton.pl);
+  await t.run(async (ctx) => {
+    const player = (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", unheld.playerCode)).unique())!;
+    await ctx.db.delete("players", player._id);
+  });
+
+  await tickAt(t, SHEETS_OPEN, payloads);
+
+  expect(errors).toHaveBeenCalledWith(`match ${HULL_EVERTON}'s team sheets: player ${unheld.playerCode} isn't held by the football sync yet`);
+  expect((await heldSheets(t))!.men).toEqual(rest);
+});
+
 test("sheets that will not read are logged and the held men stand", async () => {
   const errors = silenceConsoleError();
-  const t = await withHullEverton();
+  const t = await withHullEvertonMen();
   const payloads = beforeKickoff();
   await tickAt(t, SHEETS_OPEN, payloads);
   const url = plFixtureUrl(MATCH.hullEverton.pl);
