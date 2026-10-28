@@ -8,6 +8,9 @@ import { fakeTactics, type TacticsData } from "./tactics.harness";
 /** What the fake server holds: the team's fixtures, null for a league with no rules, its
  *  transactions and squad, and its tactics (tactics.harness.ts), or nothing yet while they load. A
  *  team with no games, transactions or players by default. */
+/** The fake server's team for the manager, as src/table/drawnTable.ts names Team 1's. */
+export const MY_TEAM_ID = "id-Team 1" as Id<"teams">;
+
 export type MyTeamData = TacticsData & {
   fixtures?: TeamFixtures | null;
   transactions?: TeamTransactions;
@@ -18,7 +21,7 @@ export type MyTeamData = TacticsData & {
 };
 
 export function fakeMyTeam({
-  fixtures = { teamId: "id-Team 1" as Id<"teams">, teamName: "Team 1", format: "headToHead", games: [], unscored: [] },
+  fixtures = { teamId: MY_TEAM_ID, teamName: "Team 1", format: "headToHead", games: [], unscored: [] },
   transactions = { transactions: [], cut: false },
   squad = { teamName: "Team 1", lastGameweek: null, players: [] },
   numberAnswer = null,

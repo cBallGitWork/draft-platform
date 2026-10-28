@@ -2,8 +2,9 @@ import { LEAGUE_AVERAGE, type GameweekFixtures } from "./roundRobin";
 import { averageOf } from "./standings";
 
 // One team's games in a league's head-to-head schedule (#365; spec/12, My team's tabs: "the team's
-// head-to-head fixtures and results for the season"), pure so the query (teamFixtures.ts) and the
-// preview read them alike.
+// head-to-head fixtures and results for the season"), and each game's score once its gameweek is
+// scored (#436), pure so the queries (teamFixtures.ts, leagueTable.ts) and the preview read them
+// alike.
 
 /** Who a team meets in one game: another team, the league's average, or nobody, on a bye. */
 export const BYE = "bye";

@@ -8,7 +8,6 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
-import type { Id } from "../../../convex/_generated/dataModel";
 import { MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH } from "../../../src/frame/menu";
 import { matchupLinkLabel } from "../../../src/matchup/words";
 import { sectionTabsLabel } from "../../../src/frame/words";
@@ -31,8 +30,8 @@ import {
   versusWords,
   whenWords,
 } from "../../../src/myTeam/words";
-import { teamFixturesOf } from "../../../src/table/drawnTable";
-import type { MyTeamData } from "../../support/src/myTeam.harness";
+import { leagueTableOf, teamFixturesOf } from "../../../src/table/drawnTable";
+import { MY_TEAM_ID, type MyTeamData } from "../../support/src/myTeam.harness";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 
 const openFixtures = (myTeam: MyTeamData = {}, session = manager) => openApp(MY_TEAM_FIXTURES_PATH, session, { myTeam });
@@ -44,8 +43,7 @@ const cells = (row: HTMLElement) => Array.from((row as HTMLTableRowElement).cell
 
 type Game = TeamFixtures["games"][number];
 const game = (gameweek: number, against: Game["against"], deadline: number | null = null, score: Game["score"] = null): Game => ({ gameweek, deadline, against, score });
-const TEAM_ID = "id-Team 1" as Id<"teams">;
-const fixturesOf = (games: TeamFixtures["games"], unscored: TeamFixtures["unscored"] = []): TeamFixtures => ({ teamId: TEAM_ID, teamName: "Team 1", format: "headToHead", games, unscored });
+const fixturesOf = (games: TeamFixtures["games"], unscored: TeamFixtures["unscored"] = []): TeamFixtures => ({ teamId: MY_TEAM_ID, teamName: "Team 1", format: "headToHead", games, unscored });
 
 describe("reaching it", () => {
   it("a manager opens it from My team's Fixtures tab, for the league the app is in", async () => {
@@ -134,16 +132,16 @@ describe("the results", () => {
     expect(await screen.findByText(unscoredWords(1, "a rule is no longer sound"))).toBeTruthy();
   });
 
-  it("draws the results from the table's own scores", async () => {
-    const scores = new Map([[1, new Map([["Team 1", 40], ["Team 2", 35], ["Team 3", 51]])]]);
-    const fixtures = teamFixturesOf(["Team 1", "Team 2", "Team 3"], "Team 1", { gameweeks: [1, 2, 3], scores, provisional: ["Team 3"] });
-    openFixtures({ fixtures });
+  it("shows the score the table's fixtures show for the same game, the team's points first", async () => {
+    const teams = ["Team 1", "Team 2", "Team 3", "Team 4"];
+    const drawn = { gameweeks: [1, 2], scores: new Map([[1, new Map([["Team 1", 40], ["Team 2", 35], ["Team 3", 51], ["Team 4", 22]])]]) };
+    const fixture = leagueTableOf(teams, drawn).gameweeks[0].fixtures.find(({ team, opponent }) => team === "Team 1" || opponent === "Team 1")!;
+    const [own, other] = fixture.team === "Team 1" ? [fixture.points!.team, fixture.points!.opponent] : [fixture.points!.opponent, fixture.points!.team];
+    openFixtures({ fixtures: teamFixturesOf(teams, "Team 1", drawn) });
     await screen.findByRole("table");
 
-    const [first] = fixtures.games;
-    expect(first.score).not.toBeNull();
-    expect(cells(rows()[0])[3]).toBe(`${scoreWords(first.score!.team, first.score!.opponent)}${first.score!.provisional ? liveWords : ""}`);
-    expect(rows().slice(1).map((row) => cells(row)[3])).toEqual([versusWords, versusWords]);
+    expect(rows().map((row) => cells(row)[3])).toEqual([scoreWords(own, other), versusWords]);
+    expect(own).toBe(40);
   });
 
   it.each([
@@ -155,7 +153,7 @@ describe("the results", () => {
     await userEvent.click(await screen.findByRole("link", { name: matchupLinkLabel("Team 1", opponent, 4) }));
 
     expect(app.path()).toBe(MATCHUP_PATH);
-    expect(app.matchup.useMatchup).toHaveBeenLastCalledWith(league.leagueId, expect.any(Number), { teamId: TEAM_ID, gameweek: 4 });
+    expect(app.matchup.useMatchup).toHaveBeenLastCalledWith(league.leagueId, expect.any(Number), { teamId: MY_TEAM_ID, gameweek: 4 });
   });
 
   it("has no link on a bye", async () => {
