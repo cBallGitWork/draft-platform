@@ -1,3 +1,4 @@
+import type { Every } from "./feedSchedule";
 import { DAY_MS } from "./time";
 
 // Numbers the syncs and probes share. The run code is not shared: footballSync, positionsSync,
@@ -15,3 +16,7 @@ export const BATCH_SIZE = 200;
  *  2026, #146): a success for 30 days, a failure for 180, so an old fault stays on record. */
 export const SUCCESS_KEPT_MS = 30 * DAY_MS;
 export const FAILURE_KEPT_MS = 180 * DAY_MS;
+
+/** How often `admin/runLogs:prune` clears the rows past those times (spec/20): daily, as they are
+ *  counted in days. */
+export const PRUNE_EVERY = { hours: 24 } as const satisfies Every;
