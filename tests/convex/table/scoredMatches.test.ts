@@ -6,6 +6,8 @@ import { actingAs } from "../../support/convex/leagues.harness";
 import { EVERTON, HULL, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import {
   ANN,
+  BOB,
+  EVERTON_STARTERS,
   LEAGUE_FULL_TIME_READ,
   GAMEWEEK,
   HULL_BENCH,
@@ -41,8 +43,8 @@ const ANNS_STARTERS = HULL_STARTERS.map((starter) => (starter.playerCode === PLA
 const ANNS_BENCH = HULL_BENCH.filter((code) => code !== UNUSED_CENTRE_BACK);
 const ANNS_MEN = [...ANNS_STARTERS.map(({ playerCode }) => playerCode), ...ANNS_BENCH];
 
-async function annsLeague(): Promise<ScoresLeague> {
-  const league = await scoresLeague();
+async function annsLeague({ bobSaves = true } = {}): Promise<ScoresLeague> {
+  const league = await scoresLeague({ bobSaves });
   await league.t.run(async (ctx) => {
     // The card names each match's clubs.
     await ctx.db.insert("clubs", { code: HULL, name: "Hull City", shortName: "HUL" });
@@ -130,4 +132,15 @@ test("the league's override of a sub's points counts on his card as in the table
   });
   const cards = await expectCardsAddUpToTheTable(league, true);
   expect(cards.get(ON_IN_HIS_OWN_AREA)![0].points).toMatchObject({ scoredAs: "slot", total: OVERRIDDEN });
+});
+
+test("a team that never saved a lineup got nothing from its men, so their cards are at their best position", async () => {
+  const league = await annsLeague({ bobSaves: false });
+  await fullTimeRecords(league);
+  const [{ playerCode: evertonKeeper }] = EVERTON_STARTERS;
+  const bob = await actingAs(league.t, BOB);
+  const card = await bob.query(api.playerCard.playerCard.card, { leagueId: league.leagueId, playerCode: evertonKeeper, now: LEAGUE_FULL_TIME_READ });
+  const bobs = (await readTable(league))!.results.find((each) => each.gameweek === GAMEWEEK)!.teams.find((team) => team.teamId === league.bobsTeam)!;
+  expect(bobs).toMatchObject({ points: 0, noLineup: true });
+  expect(card!.matches[0].points.scoredAs).toBe("bestPosition");
 });

@@ -44,8 +44,8 @@ function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
       minutes: record?.minutes ?? null,
       points: { ...points, categories: points.categories.map((each) => ({ ...each, name: categoryName(each.stat) })), ...role, ...benched },
       override: player.name === PREVIEW_OVERRIDDEN && index === 1 ? PREVIEW_OVERRIDE : null,
-      // The newest, its record not yet whole, is still being played.
-      provisional: record === null,
+      // The two newest may still move: one still being played, one inside its corrections window.
+      provisional: index <= 1,
     };
   });
 }

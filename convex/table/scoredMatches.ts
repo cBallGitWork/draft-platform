@@ -1,5 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
+import { lineupsInGameweek } from "../lineup/lineups";
 import { positionOfSlot } from "../lineup/pitch";
 import { cardPoints, type CardPoints } from "../playerCard/cardPoints";
 import type { Position } from "../positions/positionTables";
@@ -10,7 +11,16 @@ import { fixtureByCode } from "../shared/fixtures";
 import { isWhole } from "../stats/matchRecords";
 import { statusOf } from "../stats/matchStats";
 import { begunGameweeks } from "./gameweekScores";
-import { heldFixtures, isLocked, leagueReads, teamGameweekInputs, teamInGameweek, type PlayerRows, type TeamInGameweek } from "./teamGameweek";
+import {
+  heldFixtures,
+  isLocked,
+  leagueReads,
+  rulesIn,
+  teamInGameweek,
+  type GameweekInputs,
+  type LeagueReads,
+  type TeamInGameweek,
+} from "./teamGameweek";
 
 // A player's matches in a league as his team scored them (#577; spec/12, The player card and
 // Squad): the one place his card and the Squad tab read his points from. A gameweek the league has
@@ -107,6 +117,43 @@ async function teamGameweeks(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"
     }
     return read.get(gameweek)!;
   };
+}
+
+/** A player's rows scoring reads, each by match code: his records, and the league's overrides of
+ *  his points. */
+interface PlayerRows {
+  records: ReadonlyMap<number, Doc<"playerMatchStats">>;
+  overrides: ReadonlyMap<number, number>;
+}
+
+/** One team's inputs for the gameweek, each match holding only the rows of the men its lineup
+ *  names. That is all teamInGameweek reads of a match, so the team scores as from gameweekInputs,
+ *  from reads the size of a squad rather than of every match: what a season of a player's card or
+ *  the Squad tab can afford (#577). */
+async function teamGameweekInputs(
+  ctx: QueryCtx,
+  reads: LeagueReads,
+  gameweek: number,
+  fixtures: readonly Doc<"fixtures">[],
+  teamId: Id<"teams">,
+  rowsOf: (code: number) => Promise<PlayerRows>,
+): Promise<GameweekInputs> {
+  const ruled = rulesIn(reads, gameweek);
+  const lineups = await lineupsInGameweek(ctx, reads.leagueId, [teamId], gameweek);
+  const lineup = lineups.get(teamId)!;
+  const codes = lineup.kind === "none" ? [] : [...lineup.starters.map(({ playerCode }) => playerCode), ...lineup.bench];
+  const rows = await Promise.all(codes.map(async (code) => [code, await rowsOf(code)] as const));
+  const inMatch = <Row>(fixtureCode: number, held: (row: PlayerRows) => ReadonlyMap<number, Row>) =>
+    new Map(rows.flatMap(([code, row]) => (held(row).has(fixtureCode) ? [[code, held(row).get(fixtureCode)!] as const] : [])));
+  const matches = await Promise.all(
+    fixtures.map(async (fixture) => ({
+      fixture,
+      status: await statusOf(ctx, fixture.code),
+      records: inMatch(fixture.code, (row) => row.records),
+      overrides: inMatch(fixture.code, (row) => row.overrides),
+    })),
+  );
+  return { ...ruled, matches, lineups };
 }
 
 /** His match in the team's gameweek: whether it counted, its points at the cell he was scored in
