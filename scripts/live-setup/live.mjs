@@ -1,11 +1,13 @@
-// What the live site is, in one home: its address, its sender, and the names the setup command
-// (`npm run setup:live`, scripts/live-setup.mjs) gives each service (spec/20, The live site).
+// What the setup command (`npm run setup:live`, scripts/live-setup.mjs) sets up, in one home: the
+// live site's sender, and the names it gives each service (spec/20, The live site). The site's
+// address and the after-release check's secrets are the check's own (tests/live/releaseCheck.ts).
 
 import { EMAIL_FROM_SETTING } from "../../convex/outbound/sender.ts";
 import { MINUTE_MS, SECOND_MS } from "../../convex/shared/time.ts";
+import { CHECK_ENV, LIVE_SITE_URL } from "../../tests/live/releaseCheck.ts";
 
-export const LIVE_DOMAIN = "fantasydraftmanager.co.uk";
-export const LIVE_SITE_URL = `https://${LIVE_DOMAIN}`;
+export { LIVE_SITE_URL };
+export const LIVE_DOMAIN = new URL(LIVE_SITE_URL).hostname;
 /** The mailbox sign-in links come from, at the live domain. */
 const SENDER_MAILBOX = "signin";
 export const LIVE_SENDER = `${SENDER_MAILBOX}@${LIVE_DOMAIN}`;
@@ -44,7 +46,7 @@ export const VERIFY_POLL_FOR_MS = 5 * MINUTE_MS;
 export const GITHUB_REPO = "cBallGitWork/draft-platform";
 export const GITHUB_REPO_URL = `https://github.com/${GITHUB_REPO}`;
 /** The after-release check's two GitHub secrets (.github/workflows/release-check.yml). */
-export const RELEASE_CHECK_SECRET = { email: "RELEASE_CHECK_EMAIL", resendKey: "RELEASE_CHECK_RESEND_KEY" };
+export const RELEASE_CHECK_SECRET = { email: CHECK_ENV.email, resendKey: CHECK_ENV.resendKey };
 /** How a Resend receiving address ends (`<anything>@<id>.resend.app`, its Receiving tab). */
 export const RESEND_RECEIVING_SUFFIX = ".resend.app";
 
