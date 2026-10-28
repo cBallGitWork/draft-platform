@@ -21,8 +21,9 @@ const routeTree = rootRoute.addChildren([
   frameRoute.addChildren(frameChildren),
 ]);
 
-// Not registered for typed links yet: the pages above are made in a loop, so their paths are plain
-// strings. Each screen that gets built gets its own route, and the types come with them.
+// Not registered for typed links yet. Every built screen has its own route; only the menu pages not
+// built yet (Trades) are still made in a loop (routes/frame.tsx). Registering is its own change,
+// since it may turn up type errors in links across many files.
 export function createShellRouter(context: ShellContext, history?: RouterHistory) {
   return createRouter({ routeTree, context, history, defaultErrorComponent: ErrorScreen });
 }
