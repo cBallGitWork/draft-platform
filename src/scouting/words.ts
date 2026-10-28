@@ -42,9 +42,10 @@ export const columns = {
   roleFit: { short: "Fit", long: "Role fit" },
 } as const;
 
-/** Why a figure isn't there yet: season points before matches are scored, role fit before roles exist. */
-export const noPointsYetWords = "No points yet: the app doesn't score matches yet.";
-export const noRoleFitYetWords = "No role fit yet: roles aren't built yet.";
+/** Why a figure isn't there yet: Scouting doesn't read season points yet, and role fit waits on
+ *  role stars and scouts (spec/19, Role stars). */
+export const noPointsYetWords = "No points yet: Scouting doesn't show season points yet.";
+export const noRoleFitYetWords = "No role fit yet: it waits on stars and scouts.";
 /** Beside the head of the column sorted by, which way: decoration, as the head says so to screen
  *  readers through aria-sort. */
 export const ascendingGlyph = "▲";
