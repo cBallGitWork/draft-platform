@@ -171,7 +171,9 @@ async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtu
   return result;
 }
 
-/** Each man the records hold, with his club's side, his owner and his points, in the page's order. */
+/** Each man the records hold, with his club's side, his owner and his points, in the page's order.
+ *  His side is by the club he is at now, as a record holds no club: a man since moved between the
+ *  two shows under his new one (#502). */
 async function menOf(
   ctx: QueryCtx,
   fixture: Doc<"fixtures">,

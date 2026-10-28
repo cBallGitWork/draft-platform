@@ -111,7 +111,7 @@ function MatchRow({ match: { fixtureCode, kickoff, home, away, score } }: { matc
       <ClubName club={home} className="text-right" />
       <Link
         to={matchPath(fixtureCode)}
-        aria-label={matchLinkLabel(home.name, away.name)}
+        aria-label={matchLinkLabel(home.name, away.name, goals)}
         className={`flex min-h-tap items-center justify-center lg:min-h-0 ${goals === null ? "text-muted" : "whitespace-nowrap font-bold text-figure tabular-nums"}`}
       >
         {goals ?? versusWords}

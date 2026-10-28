@@ -63,8 +63,9 @@ export const tableColumns = {
 export { noFigureWords } from "../words";
 export { commentaryDelayedWords, notCountingLabel, SCORE_LABEL } from "../matchup/words";
 
-/** A fixture's link to its match page, read out for the score or "v" it wraps. */
-export const matchLinkLabel = (home: string, away: string) => `${home} ${versusWords} ${away}: the match`;
+/** A fixture's link to its match page, read out for the score or "v" it wraps, which it names:
+ *  "Arsenal 2–1 Chelsea: the match". */
+export const matchLinkLabel = (home: string, away: string, goals: string | null) => `${home} ${goals ?? versusWords} ${away}: the match`;
 
 export const MATCH_TITLE = "Match";
 export const loadingMatchWords = "Loading the match…";

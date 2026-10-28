@@ -104,7 +104,7 @@ describe("reaching it", () => {
         match: matchOf(),
       },
     });
-    await userEvent.click(await screen.findByRole("link", { name: matchLinkLabel(ARSENAL.name, CHELSEA.name) }));
+    await userEvent.click(await screen.findByRole("link", { name: matchLinkLabel(ARSENAL.name, CHELSEA.name, scoreWords(2, 1)) }));
 
     expect(await screen.findByRole("heading", { level: 1, name: MATCH_TITLE })).toBeTruthy();
     expect(app.path()).toBe(matchPath(FIXTURE));
@@ -144,7 +144,7 @@ describe("reaching it", () => {
     openApp(PREMIER_LEAGUE_PATH, manager, {
       premierLeague: { firstKickoffs: [{ gameweek: 9, firstKickoff: soon }], matches: { 9: [plMatch(FIXTURE, ARSENAL, CHELSEA, soon)] } },
     });
-    const link = await screen.findByRole("link", { name: matchLinkLabel(ARSENAL.name, CHELSEA.name) });
+    const link = await screen.findByRole("link", { name: matchLinkLabel(ARSENAL.name, CHELSEA.name, null) });
     expect(link.textContent).toBe(versusWords);
     expect(link.getAttribute("href")).toBe(matchPath(FIXTURE));
   });
