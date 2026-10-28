@@ -4,7 +4,7 @@ import { query, type QueryCtx } from "../_generated/server";
 import { heldOf } from "../football/matchCommentary";
 import { scoreOf } from "../football/matchScores";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import { thisGameweekOf } from "../home/glance";
+import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { memberOf, teamIn, teamOf, teamsOf } from "../shared/leagueAccess";

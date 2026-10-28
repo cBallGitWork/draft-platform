@@ -10,6 +10,29 @@ import { takeAllOrThrow } from "./cappedRead";
  *  silent cut. */
 export const CURRENT_FIXTURES_MOST = 500;
 
+/** The most matches one gameweek holds: ten, or more with a match moved into it, with room. More
+ *  throws, never a silent cut. */
+export const GAMEWEEK_MATCHES_MOST = 40;
+
+/** The match with `code`, dropped or not, or null while the football sync holds no such match:
+ *  each caller says what a missing one means. */
+export function fixtureByCode(ctx: QueryCtx, code: number): Promise<Doc<"fixtures"> | null> {
+  return ctx.db
+    .query("fixtures")
+    .withIndex("by_code", (q) => q.eq("code", code))
+    .unique();
+}
+
+/** The gameweek's matches the feed still sends, in no set order. Past GAMEWEEK_MATCHES_MOST it
+ *  throws, its message ending in `why`: what the caller would cut short. */
+export function gameweekFixtures(ctx: QueryCtx, gameweek: number, why: string): Promise<Doc<"fixtures">[]> {
+  return takeAllOrThrow(
+    ctx.db.query("fixtures").withIndex("by_gameweek_and_droppedAt", (q) => q.eq("gameweek", gameweek).eq("droppedAt", undefined)),
+    GAMEWEEK_MATCHES_MOST,
+    `More than ${GAMEWEEK_MATCHES_MOST} matches are held for gameweek ${gameweek}, so ${why}`,
+  );
+}
+
 /** The matches the feed still sends, dropped ones left out, in kickoff order (those with no
  *  kickoff time first); only those kicked off by `kickedOffBy`, when given. */
 export function currentFixtures(ctx: QueryCtx, kickedOffBy?: number): Promise<Doc<"fixtures">[]> {

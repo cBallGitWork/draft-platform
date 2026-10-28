@@ -24,7 +24,7 @@ export const leagueRulesTables = {
   siteScoring: defineTable({
     scoring: scoringSetShape,
     kind: siteScoringKind,
-    /** The year its season starts, 2026 for 2026/27 (football.ts's `seasonStartYear` of
+    /** The year its season starts, 2026 for 2026/27 (shared/time.ts's `seasonStartYear` of
      *  `takesEffectAt`); with `number`, its name: 26_27.1. */
     season: v.number(),
     /** 1 for the season's first version, each one after it the next. */
@@ -56,7 +56,7 @@ export const leagueRulesTables = {
    *  match then leaves the gameweek, so the site's scoring version for it can't change. One row a
    *  season and gameweek, site-wide, written by gameweeks/gameweekStarts.ts. */
   gameweekStarts: defineTable({
-    /** The year the season starts, as football.ts's `seasonStartYear`. */
+    /** The year the season starts, as shared/time.ts's `seasonStartYear`. */
     season: v.number(),
     gameweek: v.number(),
     firstKickoff: v.number(),
