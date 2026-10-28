@@ -2,7 +2,7 @@
 // that it hands on what comes back as it comes.
 
 import { renderHook } from "@testing-library/react";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayersFilters, PlayersSort } from "../../../convex/scouting/playersList";
 import { liveScouting } from "../../../src/scouting/liveScouting";
@@ -13,11 +13,6 @@ vi.mock("convex/react", async () =>
     queries: { "scouting/playersList:list": convex.list, "scouting/compare:players": convex.compare },
   }),
 );
-
-afterEach(() => {
-  convex.list.mockReset();
-  convex.compare.mockReset();
-});
 
 const leagueId = "league-1" as Id<"leagues">;
 const filters: PlayersFilters = { availability: "freeAgents", position: "CB", clubCode: 3 };

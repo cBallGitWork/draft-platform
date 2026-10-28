@@ -1,4 +1,4 @@
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import { codesByOpta, fixtureCodeIn } from "../../../convex/football/feedIds";
 import { plCommentaryUrl, plFixtureUrl } from "../../../convex/football/football";
@@ -27,8 +27,6 @@ import live from "../../support/recorded/pl-live-match.json";
 // the store the live tick writes (#43): each read replaces the match's lines, a stalled stream is
 // recorded as delayed, and a screen reads the lines back. The tick's own part, on Hull v Everton,
 // is in tests/convex/stats/liveStats.commentary.test.ts.
-
-afterEach(() => vi.unstubAllGlobals());
 
 const IPSWICH_FOREST = fixtureCodeIn(recordedLiveSheets())!;
 const CLUBS = { home: "IPS", away: "NFO" };

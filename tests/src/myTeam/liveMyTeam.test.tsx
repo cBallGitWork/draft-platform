@@ -3,7 +3,7 @@
 
 import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { liveMyTeam } from "../../../src/myTeam/liveMyTeam";
@@ -15,13 +15,6 @@ vi.mock("convex/react", async () =>
     mutations: { "squads/squadNumbers:set": convex.setNumber },
   }),
 );
-
-afterEach(() => {
-  convex.ofMyTeam.mockReset();
-  convex.transactions.mockReset();
-  convex.squad.mockReset();
-  convex.setNumber.mockReset();
-});
 
 const leagueId = "league-1" as Id<"leagues">;
 
