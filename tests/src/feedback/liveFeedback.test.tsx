@@ -4,7 +4,7 @@
 
 import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
 import { feedbackRefusals } from "../../../convex/feedback/feedback";
 import { useLiveFeedback } from "../../../src/feedback/liveFeedback";
@@ -17,10 +17,6 @@ vi.mock("convex/react", async () =>
     mutations: { "feedback/feedback:send": convex.send },
   }),
 );
-
-afterEach(() => {
-  for (const fake of Object.values(convex)) fake.mockReset();
-});
 
 const seam = () => renderHook(() => useLiveFeedback()).result.current;
 

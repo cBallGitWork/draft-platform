@@ -3,7 +3,7 @@
 
 import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { linkOffWords } from "../../../convex/joining/joiningShared";
@@ -28,10 +28,6 @@ vi.mock("convex/react", async () =>
     actions: { "joining/inviteLink:signInToJoin": convex.signInToJoin },
   }),
 );
-
-afterEach(() => {
-  for (const fake of Object.values(convex)) fake.mockReset();
-});
 
 const joining = () => renderHook(useLiveJoining).result.current;
 const leagueId = "league-1" as Id<"leagues">;
