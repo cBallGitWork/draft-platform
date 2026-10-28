@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { COMPARED_PLAYERS } from "../../convex/scouting/comparedPlayers";
 import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogue";
-import { Loading, PanelNote, PanelTitle } from "../frame/Panel";
+import { Loading, Panel, PanelNote } from "../frame/Panel";
 import { PositionCodes } from "../PositionCodes";
 import { statFigure } from "./figures";
 import type { ComparedPlayer, Comparison } from "./seam";
@@ -18,8 +18,6 @@ import {
   pickOneMoreWords,
 } from "./words";
 
-const TITLE_ID = "compare-title";
-
 /** A player ticked to compare: his code, and his name to say so before the comparison loads. */
 export type PickedPlayer = { code: number; name: string };
 
@@ -27,8 +25,7 @@ export type PickedPlayer = { code: number; name: string };
  *  up. With one ticked, it asks for another. */
 export function ComparePanel({ picked, comparison, clear }: { picked: readonly PickedPlayer[]; comparison: Comparison | undefined; clear: () => void }) {
   return (
-    <section aria-labelledby={TITLE_ID} className="bg-panel">
-      <PanelTitle id={TITLE_ID}>{COMPARE_TITLE}</PanelTitle>
+    <Panel title={COMPARE_TITLE}>
       {picked.length < COMPARED_PLAYERS ? (
         <PanelNote>{pickOneMoreWords(picked[0].name)}</PanelNote>
       ) : comparison === undefined ? (
@@ -41,7 +38,7 @@ export function ComparePanel({ picked, comparison, clear }: { picked: readonly P
           {clearComparisonWords}
         </button>
       </div>
-    </section>
+    </Panel>
   );
 }
 

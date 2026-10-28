@@ -2,7 +2,7 @@ import { useState } from "react";
 import { nextByDeadlines } from "../../convex/gameweeks/nextGameweek";
 import { FEWEST_TO_DRAW } from "../../convex/table/roundRobin";
 import { GameweekStepper } from "../frame/GameweekStepper";
-import { PanelNote, PanelTitle } from "../frame/Panel";
+import { Panel, PanelNote } from "../frame/Panel";
 import { MatchupLink } from "../matchup/MatchupLink";
 import type { LeagueTable } from "./seam";
 import {
@@ -19,8 +19,6 @@ import {
   versusWords,
 } from "./words";
 
-const TITLE_ID = "fixtures-title";
-
 type Gameweek = LeagueTable["gameweeks"][number];
 type Result = LeagueTable["results"][number];
 
@@ -28,19 +26,18 @@ type Result = LeagueTable["results"][number];
 export function FixturesPanel({ leagueTable }: { leagueTable: LeagueTable }) {
   const { format, gameweeks, roundRobinRounds, table, results } = leagueTable;
   return (
-    <section aria-labelledby={TITLE_ID} className="bg-panel">
-      <PanelTitle id={TITLE_ID}>{FIXTURES_TITLE}</PanelTitle>
+    <Panel title={FIXTURES_TITLE}>
       {format === "totalPoints" ? (
-        <p className="px-3 py-2">{totalPointsWords}</p>
+        <PanelNote>{totalPointsWords}</PanelNote>
       ) : gameweeks.length === 0 ? (
-        <p className="px-3 py-2">{table.length < FEWEST_TO_DRAW ? tooFewTeamsWords : noGameweeksWords}</p>
+        <PanelNote>{table.length < FEWEST_TO_DRAW ? tooFewTeamsWords : noGameweeksWords}</PanelNote>
       ) : (
         <>
           <GameweekFixtures gameweeks={gameweeks} results={results} />
           <PanelNote>{roundRobinWords(roundRobinRounds)}</PanelNote>
         </>
       )}
-    </section>
+    </Panel>
   );
 }
 

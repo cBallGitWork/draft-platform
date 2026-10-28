@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { PANEL_BODY, PANEL_LIST_ROW, PanelNote, PanelTitle, Problem } from "../frame/Panel";
+import { PANEL_BODY, PANEL_LIST_ROW, Panel, PanelNote, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { TeamSelect, useTeamChoice } from "./TeamChoice";
@@ -14,7 +14,6 @@ import {
   noInvitesWords,
 } from "./words";
 
-const TITLE_ID = "email-invites-title";
 const EMAIL_ID = "invite-email";
 
 type Invite = InvitesPageData["invites"][number];
@@ -51,8 +50,7 @@ export function EmailInvites({ page, joining }: { page: InvitesPageData; joining
     cancel: (invite) => void run(() => joining.cancelInvite(invite.inviteId)),
   };
   return (
-    <section aria-labelledby={TITLE_ID} className="bg-panel">
-      <PanelTitle id={TITLE_ID}>{emailInvitesWords.title}</PanelTitle>
+    <Panel title={emailInvitesWords.title}>
       <Problem problem={problem} />
       <form onSubmit={send} className={PANEL_BODY}>
         <label htmlFor={EMAIL_ID} className="font-semibold">
@@ -81,7 +79,7 @@ export function EmailInvites({ page, joining }: { page: InvitesPageData; joining
           ))}
         </ul>
       )}
-    </section>
+    </Panel>
   );
 }
 

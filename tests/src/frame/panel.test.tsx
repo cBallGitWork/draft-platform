@@ -1,10 +1,10 @@
-// The panel pieces every screen shares (src/frame/Panel.tsx): a page's section is named by its
-// title plate, a notice is a status rather than an alert, and a muted panel line pads the side
-// it's asked to.
+// The panel pieces every screen shares (src/frame/Panel.tsx): a page's section and a panel are each
+// named by their title plate, a notice is a status rather than an alert, and a muted panel line pads
+// the side it's asked to.
 
 import { render, screen } from "@testing-library/react";
 import { expect, it } from "vitest";
-import { Notice, PageSection, PanelNote, Problem } from "../../../src/frame/Panel";
+import { Notice, PageSection, Panel, PanelNote, Problem } from "../../../src/frame/Panel";
 
 it("names a page's section by its title, with the aside on the plate and the caller's classes kept", () => {
   render(
@@ -23,6 +23,35 @@ it("labels a page's section by its own heading's id, with no aside or children",
   render(<PageSection title="Your leagues" />);
   const heading = screen.getByRole("heading", { level: 1, name: "Your leagues" });
   expect(screen.getByRole("region").getAttribute("aria-labelledby")).toBe(heading.id);
+});
+
+it("names a panel by its title plate, a level-2 heading, keeping the panel ground and the caller's classes", () => {
+  render(
+    <Panel title="Squad" className="min-w-0 grow-2">
+      <p>A row</p>
+    </Panel>,
+  );
+  const panel = screen.getByRole("region", { name: "Squad" });
+  expect(panel.className).toBe("bg-panel min-w-0 grow-2");
+  const heading = screen.getByRole("heading", { level: 2, name: "Squad" });
+  expect(panel.getAttribute("aria-labelledby")).toBe(heading.id);
+  expect(heading.className).toBe("bg-plate px-3 py-1 shadow-bevel-plate text-lead font-bold");
+  expect(panel.textContent).toBe("SquadA row");
+});
+
+it("puts a panel's aside at the plate's far end, and gives two panels their own ids", () => {
+  render(
+    <>
+      <Panel title="Tactics" aside={<span>11 starting</span>} />
+      <Panel title="Fixtures" />
+    </>,
+  );
+  const heading = screen.getByRole("heading", { level: 2, name: "Tactics" });
+  expect(heading.className).toBe("text-lead font-bold");
+  expect(heading.parentElement?.className).toBe("flex items-baseline justify-between bg-plate px-3 py-1 shadow-bevel-plate");
+  expect(heading.parentElement?.textContent).toBe("Tactics11 starting");
+  expect(screen.getByRole("region", { name: "Tactics" }).className).toBe("bg-panel");
+  expect(heading.id).not.toBe(screen.getByRole("heading", { level: 2, name: "Fixtures" }).id);
 });
 
 it("says a notice as a status in the alert strip, where a problem is an alert", () => {

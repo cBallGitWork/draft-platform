@@ -1,11 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { BODY_MAX, SUBJECT_MAX } from "../../convex/mail/mailLimits";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { PANEL_BODY, PanelTitle, Problem } from "../frame/Panel";
+import { PANEL_BODY, Panel, Problem } from "../frame/Panel";
 import type { MailSeam } from "./seam";
 import { WRITE_TITLE, sendToWords, sentWords, writeHint, writeLabels } from "./words";
 
-const TITLE_ID = "write-title";
 const LEAGUE_CHOICE_ID = "letter-league";
 const SUBJECT_ID = "letter-subject";
 const BODY_ID = "letter-body";
@@ -39,8 +38,7 @@ export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly Le
   }
 
   return (
-    <section aria-labelledby={TITLE_ID} className="min-w-0 max-w-xl grow basis-letter-form bg-panel">
-      <PanelTitle id={TITLE_ID}>{WRITE_TITLE}</PanelTitle>
+    <Panel title={WRITE_TITLE} className="min-w-0 max-w-xl grow basis-letter-form">
       <Problem problem={outcome?.sent === false ? outcome.problem : null} />
       {outcome?.sent && (
         <p role="status" className="px-3 pt-2 text-derived">
@@ -95,6 +93,6 @@ export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly Le
           {sendToWords(league.name)}
         </button>
       </form>
-    </section>
+    </Panel>
   );
 }
