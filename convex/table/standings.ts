@@ -71,16 +71,27 @@ function scoreIn<Team>(scores: ReadonlyMap<Team, number>, team: Team, gameweek: 
   return inTenths(score);
 }
 
-/** The league's average score in a gameweek, every team's counted once, kept in tenths as points
- *  are. A team has one score a gameweek however many games it plays, and plays the average once a
- *  gameweek at most (roundRobin.ts never leaves a team over twice in one). */
+/** The teams a gameweek's league average is over: each in its fixtures or on a bye, once, in that
+ *  order. A gameweek begun has its fixtures as stored then (playedFixtures.ts), so a team that
+ *  joined since, scored 0 there, is no part of it, while one drawn then with no lineup counts its
+ *  0. One not yet stored is drawn from today's teams, each in a fixture or on a bye, so it gives
+ *  every team, as the average always counted. */
+export function teamsInGameweek<Team>({ fixtures, byes }: GameweekFixtures<Team>): Team[] {
+  const named = fixtures.flatMap(({ team, opponent }) => (opponent === LEAGUE_AVERAGE ? [team] : [team, opponent]));
+  return [...new Set([...named, ...byes])];
+}
+
+/** The league's average score in a gameweek, each of `teams` counted once, kept in tenths as
+ *  points are. A team has one score a gameweek however many games it plays, and plays the average
+ *  once a gameweek at most (roundRobin.ts never leaves a team over twice in one). */
 export function averageOf<Team>(teams: readonly Team[], scores: ReadonlyMap<Team, number>, gameweek: number): number {
   const total = teams.reduce((sum, team) => sum + scoreIn(scores, team, gameweek), 0);
   return inTenths(total / teams.length);
 }
 
 /** The head-to-head table: each fixture of a gameweek scored counts once for each team in it; the
- *  team left over plays the league's average, or, on a bye, nothing. */
+ *  team left over plays the league's average of the gameweek's teams (`teamsInGameweek`), or, on a
+ *  bye, nothing. */
 export function headToHeadTable<Team>(
   teams: readonly Team[],
   schedule: readonly GameweekFixtures<Team>[],
@@ -94,13 +105,14 @@ export function headToHeadTable<Team>(
     return row;
   };
   const meetings: Meeting<Team>[] = [];
-  for (const { gameweek, fixtures } of schedule) {
+  for (const drawn of schedule) {
+    const { gameweek, fixtures } = drawn;
     const scored = scores.get(gameweek);
     if (scored === undefined) continue;
     for (const { team, opponent } of fixtures) {
       const teamScore = scoreIn(scored, team, gameweek);
       if (opponent === LEAGUE_AVERAGE) {
-        addResult(rowOf(team), teamScore, averageOf(teams, scored, gameweek));
+        addResult(rowOf(team), teamScore, averageOf(teamsInGameweek(drawn), scored, gameweek));
         continue;
       }
       const opponentScore = scoreIn(scored, opponent, gameweek);
@@ -140,12 +152,13 @@ export function formOf<Team>(
     if (results === undefined) throw new Error(`${String(team)} has a fixture but isn't one of the league's teams`);
     results.push(result);
   };
-  for (const { gameweek, fixtures } of schedule) {
+  for (const drawn of schedule) {
+    const { gameweek, fixtures } = drawn;
     const scored = scores.get(gameweek);
     if (scored === undefined) continue;
     for (const { team, opponent } of fixtures) {
       const teamScore = scoreIn(scored, team, gameweek);
-      const opponentScore = opponent === LEAGUE_AVERAGE ? averageOf(teams, scored, gameweek) : scoreIn(scored, opponent, gameweek);
+      const opponentScore = opponent === LEAGUE_AVERAGE ? averageOf(teamsInGameweek(drawn), scored, gameweek) : scoreIn(scored, opponent, gameweek);
       add(team, resultOf(teamScore, opponentScore));
       if (opponent !== LEAGUE_AVERAGE) add(opponent, resultOf(opponentScore, teamScore));
     }
