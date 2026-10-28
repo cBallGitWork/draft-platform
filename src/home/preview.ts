@@ -1,9 +1,10 @@
 // League home in the preview (src/preview.ts): the Pro League's nine teams, six gameweeks scored so
-// the form shows, the server's own rules picking this gameweek and the rows (glance.ts), a pinned
-// letter and a few squad moves. Made up: nothing scores a matchup yet (#29).
+// the form shows, the server's own rules picking this gameweek (nextGameweek.ts) and the rows
+// (glance.ts), a pinned letter and a few squad moves. Made up: nothing scores a matchup yet (#29).
 
 import type { Id } from "../../convex/_generated/dataModel";
-import { shownRows, thisGameweekOf } from "../../convex/home/glance";
+import { shownRows } from "../../convex/home/glance";
+import { thisGameweekOf } from "../../convex/gameweeks/nextGameweek";
 import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { drawFixtures, namedFixture } from "../../convex/table/roundRobin";
