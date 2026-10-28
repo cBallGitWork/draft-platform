@@ -175,6 +175,12 @@ describe("the fixtures", () => {
     expect(screen.getByRole("heading", { level: 3, name: gameweekWords(5) })).toBeTruthy();
   });
 
+  it("pass over a gameweek with no kickoff time behind one begun, as the server does (#413)", async () => {
+    const deadlines = new Map([[30, null], [31, Date.now() - HOUR_MS], [32, Date.now() + WEEK_MS]]);
+    openTable({ leagueTable: leagueTableOf(FIVE, { gameweeks: [30, 31, 32], deadlineOf: (gameweek) => deadlines.get(gameweek) ?? null }) });
+    expect(await screen.findByRole("heading", { level: 3, name: gameweekWords(32) })).toBeTruthy();
+  });
+
   it("open on the last gameweek once every one has begun", async () => {
     openTable({ leagueTable: leagueTableOf(FIVE, { gameweeks: [1, 2], deadlineOf: () => Date.now() - HOUR_MS }) });
     expect(await screen.findByRole("heading", { level: 3, name: gameweekWords(2) })).toBeTruthy();
