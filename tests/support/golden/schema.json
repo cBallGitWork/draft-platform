@@ -757,6 +757,12 @@
             "clubCode",
             "droppedAt"
           ]
+        },
+        {
+          "indexDescriptor": "by_droppedAt",
+          "fields": [
+            "droppedAt"
+          ]
         }
       ],
       "stagedDbIndexes": [],
@@ -928,6 +934,12 @@
           "indexDescriptor": "by_number",
           "fields": [
             "number"
+          ]
+        },
+        {
+          "indexDescriptor": "by_droppedAt",
+          "fields": [
+            "droppedAt"
           ]
         }
       ],

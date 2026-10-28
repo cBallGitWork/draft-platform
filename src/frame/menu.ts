@@ -19,6 +19,7 @@ export const MAIL_PATH = "/mail";
 export const TABLE_PATH = "/table";
 export const SCOUTING_PATH = "/scouting";
 export const MATCHUP_PATH = "/matchup";
+export const TRADES_PATH = "/trades";
 export const PREMIER_LEAGUE_PATH = "/premier-league";
 
 export const sections: readonly Section[] = [
@@ -36,7 +37,7 @@ export const sections: readonly Section[] = [
   { label: menuWords.matchup, path: MATCHUP_PATH, tabs: [] },
   { label: menuWords.table, path: TABLE_PATH, tabs: [] },
   { label: menuWords.scouting, path: SCOUTING_PATH, tabs: [] },
-  { label: menuWords.trades, path: "/trades", tabs: [] },
+  { label: menuWords.trades, path: TRADES_PATH, tabs: [] },
   { label: menuWords.premierLeague, path: PREMIER_LEAGUE_PATH, tabs: [] },
   { label: MAIL_TITLE, path: MAIL_PATH, tabs: [] },
 ];

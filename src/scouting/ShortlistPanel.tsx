@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
-import { Loading, PanelNote, PanelTitle, Problem } from "../frame/Panel";
+import { Loading, Panel, PanelNote, Problem } from "../frame/Panel";
 import { playerCardPath } from "../playerCard/paths";
 import { useChange } from "../useChange";
 import type { ShortlistSeam } from "./shortlistSeam";
@@ -15,8 +15,6 @@ import {
   takeOffWords,
 } from "./shortlistWords";
 
-const TITLE_ID = "shortlist-title";
-
 /** The manager's own shortlist (spec/19, The shortlist), on Scouting: each player by name, opening
  *  his card, with his club and who owns him, and a button taking him off. A player is added from
  *  his card. Nothing shows for someone in the league who runs no team, who has none. */
@@ -26,8 +24,7 @@ export function ShortlistPanel({ leagueId, seam }: { leagueId: Id<"leagues">; se
   const change = useChange();
   if (players === null) return null;
   return (
-    <section aria-labelledby={TITLE_ID} className="bg-panel">
-      <PanelTitle id={TITLE_ID}>{SHORTLIST_TITLE}</PanelTitle>
+    <Panel title={SHORTLIST_TITLE}>
       <Problem problem={change.problem} />
       {players === undefined ? (
         <Loading className="px-3 py-2">{loadingShortlistWords}</Loading>
@@ -63,6 +60,6 @@ export function ShortlistPanel({ leagueId, seam }: { leagueId: Id<"leagues">; se
           ))}
         </ul>
       )}
-    </section>
+    </Panel>
   );
 }

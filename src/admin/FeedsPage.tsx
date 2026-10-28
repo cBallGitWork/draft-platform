@@ -1,5 +1,5 @@
 import type { FeedState } from "../../convex/admin/feedState";
-import { Loading, PanelNote, PanelTitle } from "../frame/Panel";
+import { Loading, Panel, PanelNote } from "../frame/Panel";
 import { whenWords } from "../words";
 import { AdminHeader } from "./AdminHeader";
 import type { AdminSeam, FeedsReport } from "./seam";
@@ -26,10 +26,6 @@ import {
   noneBehindWords,
   seenWords,
 } from "./words";
-
-const FEEDS_TITLE_ID = "feeds-title";
-const BEHIND_TITLE_ID = "behind-title";
-const CORRECTIONS_TITLE_ID = "corrections-title";
 
 const cellClasses = "px-2 py-1 text-left align-top";
 /** A row across the whole feeds table spans its columns. */
@@ -71,8 +67,7 @@ export function FeedsPage({ seam }: { seam: AdminSeam }) {
 
 function Feeds({ report }: { report: FeedsReport }) {
   return (
-    <section aria-labelledby={FEEDS_TITLE_ID} className="bg-panel">
-      <PanelTitle id={FEEDS_TITLE_ID}>{feedsTitle}</PanelTitle>
+    <Panel title={feedsTitle}>
       <PanelNote>{feedsHint}</PanelNote>
       <table className="w-full border-collapse">
         <thead className="bg-head text-ground">
@@ -115,15 +110,14 @@ function Feeds({ report }: { report: FeedsReport }) {
           );
         })}
       </table>
-    </section>
+    </Panel>
   );
 }
 
 function Behind({ report: { behind, moreBehind } }: { report: FeedsReport }) {
   const count = behindWords(behind.length, moreBehind);
   return (
-    <section aria-labelledby={BEHIND_TITLE_ID} className="bg-panel">
-      <PanelTitle id={BEHIND_TITLE_ID}>{behindTitle}</PanelTitle>
+    <Panel title={behindTitle}>
       {behind.length === 0 ? (
         <PanelNote>{noneBehindWords}</PanelNote>
       ) : (
@@ -132,7 +126,7 @@ function Behind({ report: { behind, moreBehind } }: { report: FeedsReport }) {
             <span className="text-figure">{count.figure}</span>
             {count.after}
           </p>
-          <ul aria-labelledby={BEHIND_TITLE_ID}>
+          <ul aria-label={behindTitle}>
             {behind.map(({ fixtureCode, match, fullTimeAt }) => (
               <li key={fixtureCode} className="border-t border-panel-rule px-3 py-1">
                 <span className="block font-semibold">{matchWords(match, fixtureCode)}</span>
@@ -142,18 +136,17 @@ function Behind({ report: { behind, moreBehind } }: { report: FeedsReport }) {
           </ul>
         </>
       )}
-    </section>
+    </Panel>
   );
 }
 
 function Corrections({ report: { corrections, moreCorrections } }: { report: FeedsReport }) {
   return (
-    <section aria-labelledby={CORRECTIONS_TITLE_ID} className="bg-panel">
-      <PanelTitle id={CORRECTIONS_TITLE_ID}>{correctionsTitle}</PanelTitle>
+    <Panel title={correctionsTitle}>
       <PanelNote>{corrections.length === 0 ? noCorrectionsWords : correctionsHint}</PanelNote>
       {moreCorrections && <p className="px-3 pb-2 text-event">{moreCorrectionsWords(corrections.length)}</p>}
       {corrections.length > 0 && (
-        <ul aria-labelledby={CORRECTIONS_TITLE_ID}>
+        <ul aria-label={correctionsTitle}>
           {corrections.map(({ fixtureCode, match, playerCode, player, seenAt, changes }) => (
             <li key={`${fixtureCode}-${playerCode}-${seenAt}`} className="border-t border-panel-rule px-3 py-1">
               <span className="block font-semibold">
@@ -169,6 +162,6 @@ function Corrections({ report: { corrections, moreCorrections } }: { report: Fee
           ))}
         </ul>
       )}
-    </section>
+    </Panel>
   );
 }

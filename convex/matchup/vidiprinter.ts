@@ -17,7 +17,7 @@ import { rulePointsIn, scoreMatch, type MatchStats } from "../scoring/scoring";
 import { inTenths, type ScoringSet } from "../scoring/scoringSet";
 import { STAT_CATALOGUE } from "../scoring/statCatalogue";
 import { EVENT_STATS } from "../stats/matchRecords";
-import { MINUTE_MS } from "../shared/time";
+import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../shared/time";
 import type { commentaryLine } from "../schema";
 
 type PlayerCode = number;
@@ -59,9 +59,6 @@ const STATS_MOVED: Readonly<Record<string, readonly string[]>> = {
   [FEED_TYPE.redCard]: [EVENT_STATS.redCards],
 };
 
-/** About when the lineups are out before kickoff (spec/10, The match page): where an untimed line
- *  sorts. */
-const LINEUPS_BEFORE_KICKOFF_MS = 60 * MINUTE_MS;
 /** A half's minutes, and the break after the first, so a second-half line sorts after the first
  *  half's added time. */
 const HALF_MINUTES = 45;
@@ -92,7 +89,8 @@ function placedOf(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode, Vidi
   // Oldest first, so each goal or card is counted in turn, and each line sorts no earlier than the
   // one before it: the full-time line's minute is always 1, and an untimed line has none.
   const counted = new Map<string, number>();
-  let at = kickoff - LINEUPS_BEFORE_KICKOFF_MS;
+  // An untimed line sorts from when the lineups are out.
+  let at = kickoff - LINEUPS_OUT_BEFORE_KICKOFF_MS;
   match.lines.toReversed().forEach((stored, index) => {
     at = Math.max(at, atMinute(kickoff, stored.minute ?? null, stored.addedMinute ?? null));
     const line = { key: `${match.fixtureCode}:${stored.sourceId}`, ...priced(stored, match.fixtureCode, players, set, counted) };

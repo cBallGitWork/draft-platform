@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import { GameweekStepper } from "../frame/GameweekStepper";
-import { Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
+import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { openingGameweek } from "./openingGameweek";
 import { matchPath } from "./paths";
 import { TablePanel } from "./TablePanel";
@@ -25,8 +25,6 @@ import {
   versusWords,
 } from "./words";
 
-const FIXTURES_TITLE_ID = "pl-fixtures-title";
-
 /** The Premier League section (spec/18), the real competition: its fixtures and results, a
  *  gameweek at a time, beside its table. No fixture difficulty and no count of owned players here
  *  (spec/18). */
@@ -35,14 +33,13 @@ export function PremierLeaguePage({ seam }: { seam: PremierLeagueSeam }) {
   return (
     <PageSection title={PREMIER_LEAGUE_TITLE} className="flex max-w-6xl flex-col gap-2">
       <div className="grid items-start gap-2 lg:grid-cols-2">
-        <section aria-labelledby={FIXTURES_TITLE_ID} className="bg-panel">
-          <PanelTitle id={FIXTURES_TITLE_ID}>{FIXTURES_TITLE}</PanelTitle>
+        <Panel title={FIXTURES_TITLE}>
           {firstKickoffs === undefined ? (
             <Loading className="px-3 py-2">{loadingWords}</Loading>
           ) : (
             <GameweekMatches seam={seam} opening={openingGameweek(firstKickoffs, Date.now())} />
           )}
-        </section>
+        </Panel>
         <TablePanel seam={seam} />
       </div>
     </PageSection>

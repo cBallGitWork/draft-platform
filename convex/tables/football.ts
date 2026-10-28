@@ -116,6 +116,7 @@ export const footballTables = {
   players: defineTable(playerRecord.extend({ droppedAt }))
     .index("by_code", ["code"])
     .index("by_clubCode_and_droppedAt", ["clubCode", "droppedAt"])
+    .index("by_droppedAt", ["droppedAt"])
     .searchIndex("search_fullName", { searchField: "fullName", filterFields: ["droppedAt"] }),
   fixtures: defineTable(fixtureRecord.extend({ droppedAt }))
     .index("by_code", ["code"])
@@ -123,7 +124,7 @@ export const footballTables = {
     .index("by_droppedAt_and_kickoff", ["droppedAt", "kickoff"])
     // A gameweek's matches, for the Premier League's fixtures and results (#49).
     .index("by_gameweek_and_droppedAt", ["gameweek", "droppedAt"]),
-  gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]),
+  gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]).index("by_droppedAt", ["droppedAt"]),
   footballSyncs: defineTable(footballSyncFields),
   /** Each match's newest score, which feed gave it and when that read was made. */
   matchScores: defineTable(scoreRead.extend({ feed: scoreFeed, readAt: v.number() })).index("by_fixtureCode", ["fixtureCode"]),

@@ -2,10 +2,9 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, plFixturesUrl, plFixtureUrl } from "../../../convex/football/football";
 import { codesByOpta } from "../../../convex/football/feedIds";
-import { SHEETS_BEFORE_KICKOFF_MS } from "../../../convex/football/matchTeamSheets";
 import { matchSlots } from "../../../convex/football/plMatch";
 import { PL_UPCOMING } from "../../../convex/football/premierLeague";
-import { MINUTE_MS } from "../../../convex/shared/time";
+import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { stagedGw6, stageTime, tickAt } from "../../support/convex/liveStats.harness";
 import { BOTH_ELEVENS, GAMEWEEK, HULL, HULL_EVERTON, KICKOFF, withHullEverton } from "../../support/convex/matchStats.harness";
 import { refusedError, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
@@ -19,7 +18,7 @@ import { MATCH, recordedGw6, type Gw6Payloads } from "../../support/recorded/gw6
 
 beforeEach(() => vi.useFakeTimers());
 
-const SHEETS_OPEN = KICKOFF - SHEETS_BEFORE_KICKOFF_MS;
+const SHEETS_OPEN = KICKOFF - LINEUPS_OUT_BEFORE_KICKOFF_MS;
 const dueAt = (t: TestConvex, now: number) => t.query(internal.football.matchTeamSheets.due, { now });
 const heldSheets = (t: TestConvex, fixtureCode = HULL_EVERTON) =>
   t.run((ctx) => ctx.db.query("matchTeamSheets").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode)).unique());
@@ -145,7 +144,7 @@ test("with a match live and another within the hour, a tick reads FPL once, the 
   const PALACE_FOREST = MATCH.palaceForest.code;
   const minute = 45;
   await t.run((ctx) =>
-    ctx.db.insert("fixtures", { code: PALACE_FOREST, gameweek: GAMEWEEK, homeClubCode: 31, awayClubCode: 17, kickoff: stageTime(minute) + SHEETS_BEFORE_KICKOFF_MS / 2 }),
+    ctx.db.insert("fixtures", { code: PALACE_FOREST, gameweek: GAMEWEEK, homeClubCode: 31, awayClubCode: 17, kickoff: stageTime(minute) + LINEUPS_OUT_BEFORE_KICKOFF_MS / 2 }),
   );
   const payloads = stagedGw6(minute);
 

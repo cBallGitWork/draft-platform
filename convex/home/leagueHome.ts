@@ -3,6 +3,7 @@ import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { seasonRules } from "../rules/rulesHistory";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { pinnedLetter } from "../schema";
 import { isSquadMove, SQUAD_MOVES } from "../squads/squads";
@@ -10,7 +11,7 @@ import { memberOf, teamOf } from "../shared/leagueAccess";
 import { namedFixture } from "../table/roundRobin";
 import { fixture, standingsOf } from "../table/leagueTable";
 import { formOf, RESULTS } from "../table/standings";
-import { shownRows, thisGameweekOf, TICKER_MOST } from "./glance";
+import { shownRows, TICKER_MOST } from "./glance";
 
 // League home (spec/12, League home; #387), its first slice: the glance (this gameweek's
 // head-to-heads, the table and each team's form), the league's latest squad moves from its events
@@ -45,7 +46,7 @@ const squadMove = v.object({
 
 export const leagueHome = v.object({
   format: leagueRulesShape.fields.format,
-  /** This gameweek's head-to-heads (glance.ts's `thisGameweekOf`); null with none, as in total
+  /** This gameweek's head-to-heads (nextGameweek.ts's `thisGameweekOf`); null with none, as in total
    *  points or with fewer than two teams. */
   thisGameweek: v.union(v.null(), v.object({ gameweek: v.number(), fixtures: v.array(fixture), byes: v.array(v.string()) })),
   /** The rows league home shows (glance.ts's `shownRows`), in the table's order. */

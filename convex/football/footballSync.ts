@@ -1,4 +1,10 @@
-import { paginationOptsValidator, type FunctionReference, type WithoutSystemFields } from "convex/server";
+import {
+  paginationOptsValidator,
+  type FunctionReference,
+  type PaginationOptions,
+  type PaginationResult,
+  type WithoutSystemFields,
+} from "convex/server";
 import { v, type Infer, type Value } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
@@ -104,8 +110,8 @@ export const upsertGameweeks = internalMutation({
     ),
 });
 
-/** One page of `table`'s held rows: each not in `sentKeys` and not yet marked is marked
- *  `droppedAt`. A page at a time, because a table's every row is read. */
+/** One page of `table`'s held rows not yet marked: each not in `sentKeys` is marked `droppedAt`.
+ *  A page at a time, because a table's every unmarked row is read. */
 export const markDropped = internalMutation({
   args: {
     table: footballTable,
@@ -118,8 +124,8 @@ export const markDropped = internalMutation({
     // Dropping a match can move its gameweek's first kickoff: as upsertFixtures (#150).
     if (table === "fixtures") await recordPassedDeadlines(ctx);
     const sent = new Set(sentKeys);
-    const page = await ctx.db.query(table).paginate(paginationOpts);
-    const dropped = page.page.filter((held) => !sent.has(keyOf(held)) && held.droppedAt === undefined);
+    const page = await unmarkedPage(ctx, table, paginationOpts);
+    const dropped = page.page.filter((held) => !sent.has(keyOf(held)));
     await Promise.all(dropped.map((held) => ctx.db.patch(table, held._id, { droppedAt })));
     return { marked: dropped.length, cursor: page.continueCursor, isDone: page.isDone };
   },
@@ -140,6 +146,31 @@ export const latest = internalQuery({
   returns: v.array(v.object({ _id: v.id("footballSyncs"), _creationTime: v.number(), ...footballSyncFields })),
   handler: async (ctx) => ctx.db.query("footballSyncs").order("desc").take(LATEST_RUNS),
 });
+
+/** One page of `table`'s rows not yet marked dropped, so a row marked by an earlier sync is never
+ *  read again. Paging an index on `droppedAt` while marking is safe: a row this page marks leaves
+ *  the range at or before the cursor, so no later page skips or repeats a row; and this run's
+ *  upserts all finish before its first mark page (syncTable), so no kickoff moves a fixture past
+ *  the cursor. */
+function unmarkedPage(
+  ctx: MutationCtx,
+  table: FootballTable,
+  paginationOpts: PaginationOptions,
+): Promise<PaginationResult<Doc<FootballTable>>> {
+  switch (table) {
+    case "clubs":
+      return ctx.db.query("clubs").withIndex("by_droppedAt", (q) => q.eq("droppedAt", undefined)).paginate(paginationOpts);
+    case "players":
+      return ctx.db.query("players").withIndex("by_droppedAt", (q) => q.eq("droppedAt", undefined)).paginate(paginationOpts);
+    case "fixtures":
+      return ctx.db
+        .query("fixtures")
+        .withIndex("by_droppedAt_and_kickoff", (q) => q.eq("droppedAt", undefined))
+        .paginate(paginationOpts);
+    case "gameweeks":
+      return ctx.db.query("gameweeks").withIndex("by_droppedAt", (q) => q.eq("droppedAt", undefined)).paginate(paginationOpts);
+  }
+}
 
 /** A row's stable key: a club's, player's or match's season-stable code, or a gameweek's number. */
 function keyOf(row: Keyed): number {
