@@ -7,6 +7,7 @@ import { validateScoringSet, type ScoringSet } from "../scoring/scoringSet";
 import { siteScoringInGameweek } from "../scoring/siteScoring";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
+import { fixtureByCode } from "../shared/fixtures";
 import { isWhole, MINUTES_STAT, type PlayerMatchRecord } from "./matchRecords";
 
 // The threshold lines' moments (spec/10, The commentary; #44): "~58' Rice: 3 key passes, +1". A
@@ -68,10 +69,7 @@ export async function storeThresholdSteps(
 ): Promise<void> {
   let rows: Omit<Doc<"thresholdSteps">, "_id" | "_creationTime">[];
   try {
-    const fixture = await ctx.db
-      .query("fixtures")
-      .withIndex("by_code", (q) => q.eq("code", fixtureCode))
-      .unique();
+    const fixture = await fixtureByCode(ctx, fixtureCode);
     // A match not held, or with no gameweek, has no set to price by; the records' own write says so.
     if (fixture === null || fixture.gameweek === null) return;
     const set = await siteScoringInGameweek(ctx, fixture.gameweek);

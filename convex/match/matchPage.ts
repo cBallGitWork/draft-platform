@@ -16,6 +16,7 @@ import { clubRecord, position, scoreRead, sideTeamStats } from "../schema";
 import type { ScoringSet } from "../scoring/scoringSet";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
+import { fixtureByCode } from "../shared/fixtures";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
@@ -88,10 +89,7 @@ export const ofMatch = query({
   returns: v.union(matchPage, v.null()),
   handler: async (ctx, { leagueId, fixtureCode }) => {
     const { league } = await memberOf(ctx, leagueId);
-    const fixture = await ctx.db
-      .query("fixtures")
-      .withIndex("by_code", (q) => q.eq("code", fixtureCode))
-      .unique();
+    const fixture = await fixtureByCode(ctx, fixtureCode);
     if (fixture === null) return null;
     const records = await takeAllOrThrow(
       ctx.db.query("playerMatchStats").withIndex("by_fixtureCode_and_playerCode", (q) => q.eq("fixtureCode", fixtureCode)),

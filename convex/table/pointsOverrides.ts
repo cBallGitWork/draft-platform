@@ -5,6 +5,7 @@ import { recordEvent } from "../mail/letters";
 import { matchWords } from "../mail/letterWords";
 import { seasonRules } from "../rules/rulesHistory";
 import { inTenths } from "../scoring/scoringSet";
+import { fixtureByCode } from "../shared/fixtures";
 import { refuse, refusals, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
 import { statusOf } from "../stats/matchStats";
@@ -47,10 +48,7 @@ export const override = mutation({
     if (reason === "") refuse(overrideRefusals.blankReason);
     if (reason.length > OVERRIDE_REASON_MAX) refuse(overrideRefusals.reasonTooLong);
     const season = (await seasonRules(ctx, leagueId)) ?? refuse(overrideRefusals.noRules);
-    const fixture = await ctx.db
-      .query("fixtures")
-      .withIndex("by_code", (q) => q.eq("code", fixtureCode))
-      .unique();
+    const fixture = await fixtureByCode(ctx, fixtureCode);
     if (fixture === null || fixture.droppedAt !== undefined || fixture.gameweek === null) refuse(overrideRefusals.noMatch);
     const { gameweek } = fixture;
     if (!(await begunGameweeks(ctx, league)).includes(gameweek)) refuse(overrideRefusals.notBegun(gameweek));
