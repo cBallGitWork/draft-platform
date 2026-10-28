@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { joinPath, linkOffWords } from "../../../convex/joining/joiningShared";
 import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
+import { signInWords } from "../../../src/sign-in/words";
 import { LINK_REPLY, newcomer, openApp, visitor } from "../../support/src/shell.harness";
 import type { JoinPageData } from "../../../src/joining/seam";
 import { joinPageWords, signInToJoinWords } from "../../../src/joining/words";
@@ -24,8 +25,8 @@ describe("a signed-out visitor opening the invite link", () => {
 
   it("asks for a sign-in link that leads back to the invite link, and is told the reply", async () => {
     const app = openLink({ leagueName: LEAGUE, standing: "mayAsk" }, visitor);
-    await userEvent.type(await screen.findByRole("textbox", { name: "Email" }), "ann@example.com");
-    await userEvent.click(screen.getByRole("button", { name: "Send the link" }));
+    await userEvent.type(await screen.findByRole("textbox", { name: signInWords.emailLabel }), "ann@example.com");
+    await userEvent.click(screen.getByRole("button", { name: signInWords.send }));
 
     expect((await screen.findByRole("status")).textContent).toBe(LINK_REPLY);
     expect(app.joining.signInToJoin).toHaveBeenCalledWith(TOKEN, "ann@example.com");
@@ -36,14 +37,14 @@ describe("a signed-out visitor opening the invite link", () => {
     const app = openLink({ leagueName: LEAGUE, standing: "mayAsk" }, visitor);
     await screen.findByText(signInToJoinWords);
     app.becomes(newcomer);
-    expect(await screen.findByRole("button", { name: "Ask to join" })).toBeTruthy();
+    expect(await screen.findByRole("button", { name: joinPageWords.ask })).toBeTruthy();
     expect(app.path()).toBe(joinPath(TOKEN));
   });
 });
 
 it("a visitor opening the plain sign-in page sees no word of joining", async () => {
   openApp(SIGN_IN_PATH, visitor);
-  await screen.findByRole("textbox", { name: "Email" });
+  await screen.findByRole("textbox", { name: signInWords.emailLabel });
   expect(screen.queryByText(signInToJoinWords)).toBeNull();
 });
 
@@ -52,21 +53,21 @@ describe("someone signed in opening the invite link", () => {
     const app = openLink({ leagueName: LEAGUE, standing: "mayAsk" });
     expect(await screen.findByRole("heading", { level: 1, name: LEAGUE })).toBeTruthy();
     expect(screen.getByText(joinPageWords.mayAsk(LEAGUE))).toBeTruthy();
-    await userEvent.click(screen.getByRole("button", { name: "Ask to join" }));
+    await userEvent.click(screen.getByRole("button", { name: joinPageWords.ask }));
     expect(app.joining.askToJoin).toHaveBeenCalledWith(TOKEN);
   });
 
   it("is told why asking was refused", async () => {
     const app = openLink({ leagueName: LEAGUE, standing: "mayAsk" });
     app.joining.askToJoin.mockResolvedValue(linkOffWords);
-    await userEvent.click(await screen.findByRole("button", { name: "Ask to join" }));
+    await userEvent.click(await screen.findByRole("button", { name: joinPageWords.ask }));
     expect((await screen.findByRole("alert")).textContent).toBe(linkOffWords);
   });
 
   it("having asked, sees the request waiting for the commissioner", async () => {
     openLink({ leagueName: LEAGUE, standing: "waiting" });
     expect((await screen.findByRole("status")).textContent).toBe(joinPageWords.waiting(LEAGUE));
-    expect(screen.queryByRole("button", { name: "Ask to join" })).toBeNull();
+    expect(screen.queryByRole("button", { name: joinPageWords.ask })).toBeNull();
   });
 
   it("already in the league, is told their team", async () => {
@@ -77,12 +78,12 @@ describe("someone signed in opening the invite link", () => {
   it("once it was replaced or switched off, is told it no longer works", async () => {
     openLink(null);
     expect(await screen.findByText(linkOffWords)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Ask to join" })).toBeNull();
+    expect(screen.queryByRole("button", { name: joinPageWords.ask })).toBeNull();
   });
 
   it("on the sign-in page with the invite link's token, is sent back to the invite link", async () => {
     const app = openApp(`${SIGN_IN_PATH}?join=${TOKEN}`, newcomer, { joining: { joinPage: { leagueName: LEAGUE, standing: "mayAsk" } } });
-    expect(await screen.findByRole("button", { name: "Ask to join" })).toBeTruthy();
+    expect(await screen.findByRole("button", { name: joinPageWords.ask })).toBeTruthy();
     expect(app.path()).toBe(joinPath(TOKEN));
   });
 });

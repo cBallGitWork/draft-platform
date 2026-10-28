@@ -5,7 +5,7 @@ import { failureOf, type RunOutcome } from "./feedState";
 import { sendEmail } from "../outbound/email";
 import { takeTodaysEmail } from "../outbound/emailLimit";
 import { FEED_NAMES, feedValidator, type Feed } from "../shared/feedSchedule";
-import { londonTime } from "../shared/londonTime";
+import { momentIn } from "../shared/moments";
 import { PRODUCT_NAME } from "../shared/product";
 import { DAY_MS } from "../shared/time";
 import { adminEmail } from "../signIn/allowedEmails";
@@ -24,12 +24,12 @@ export function emailsNow(lastEmailedAt: number | null, failedAt: number): boole
 }
 
 /** Wording for Craig to change in the pull request. */
-function failureEmail(feed: Feed, ranAt: number, error: string) {
+function failureEmail(feed: Feed, ranAt: number, error: string, zone: string | undefined) {
   const { name, source } = FEED_NAMES[feed];
   return {
     subject: `${PRODUCT_NAME}: ${name} failed`,
     text: [
-      `${name}, from ${source}, failed in the run on ${londonTime(ranAt)}:`,
+      `${name}, from ${source}, failed in the run on ${momentIn(ranAt, zone)}:`,
       "",
       error,
       "",
@@ -59,9 +59,11 @@ export async function emailIfFailed(ctx: MutationCtx, feed: Feed, { ranAt, outco
 export const send = internalAction({
   args: { feed: feedValidator, ranAt: v.number(), error: v.string() },
   returns: v.null(),
-  handler: async (_ctx, { feed, ranAt, error }) => {
+  handler: async (ctx, { feed, ranAt, error }) => {
     try {
-      await sendEmail(adminEmail(), failureEmail(feed, ranAt, error));
+      const admin = adminEmail();
+      const zone = (await ctx.runQuery(internal.signIn.timeZone.zoneFor, { email: admin })) ?? undefined;
+      await sendEmail(admin, failureEmail(feed, ranAt, error, zone));
     } catch (sendError) {
       console.error(`The email saying ${feed} failed wasn't sent to the admin:`, sendError);
     }

@@ -20,9 +20,24 @@ type RowFields = Omit<Row, "_id" | "_creationTime" | "code">;
 /** A player's row before any feed or the admin has written to it. */
 const EMPTY_ROW: RowFields = { starts: [], approved: [], set: [], removed: [] };
 
+const heldPosition = v.object({
+  position,
+  source: v.union(v.literal("starts"), v.literal("label"), v.literal("admin")),
+  confirmed: v.boolean(),
+  flaggedElsewhere: v.union(v.number(), v.null()),
+});
+const playerPositions = v.object({
+  positions: v.array(heldPosition),
+  proposals: v.array(position),
+  removed: v.array(position),
+  unknownFormations: v.array(v.string()),
+  unknownLabel: v.union(v.string(), v.null()),
+});
+
 /** His positions, worked out now; a player no feed has named yet has none. */
 export const ofPlayer = query({
   args: { code: v.number() },
+  returns: playerPositions,
   handler: async (ctx, { code }): Promise<PlayerPositions> => {
     await adminOf(ctx);
     return positionsFrom((await findRow(ctx, code)) ?? EMPTY_ROW, await howPositionsCount(ctx));
@@ -151,12 +166,6 @@ export const queue = query({
   },
 });
 
-const heldPosition = v.object({
-  position,
-  source: v.union(v.literal("starts"), v.literal("label"), v.literal("admin")),
-  confirmed: v.boolean(),
-  flaggedElsewhere: v.union(v.number(), v.null()),
-});
 const foundPlayer = v.object({ ...queuedPlayer, positions: v.array(heldPosition) });
 export type FoundPlayerPositions = Infer<typeof foundPlayer>;
 

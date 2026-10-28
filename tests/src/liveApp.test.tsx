@@ -1,9 +1,8 @@
-// The live app's wiring to Convex Auth, with Convex's React hooks faked: opening the app from a
-// link, who it then thinks is signed in, and the reply to asking for a link.
+// The live app's wiring to Convex Auth, with Convex's React hooks faked by name: opening the app
+// from a link, who it then thinks is signed in, and the reply to asking for a link.
 
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { getFunctionName, type FunctionReference } from "convex/server";
 import { ConvexError } from "convex/values";
 import { StrictMode } from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
@@ -20,24 +19,59 @@ import { askFailedWords, linkProblemWords, replyWords, signInWords, waitingWords
 
 const convex = vi.hoisted(() => ({
   auth: { isLoading: false, isAuthenticated: false },
-  account: undefined as { email: string; isAdmin: boolean; inLeague: boolean; leagues: []; currentLeagueId: null } | null | undefined,
+  account: undefined as
+    | { email: string; isAdmin: boolean; inLeague: boolean; leagues: []; switchableLeagueIds: []; currentLeagueId: null }
+    | null
+    | undefined,
   signIn: vi.fn(),
   signOut: vi.fn(async () => {}),
   ask: vi.fn(),
+  recordZone: vi.fn(async () => null),
   unreadFails: null as Error | null,
 }));
 
-vi.mock("convex/react", () => ({
-  ConvexReactClient: class {},
-  useConvexAuth: () => convex.auth,
-  useQuery: (query: FunctionReference<"query">, args: unknown) => {
-    if (args === "skip") return undefined;
-    if (convex.unreadFails && getFunctionName(query) === "mail/mail:unreadCount") throw convex.unreadFails;
-    return convex.account;
-  },
-  useAction: () => convex.ask,
-  useMutation: () => vi.fn(),
-}));
+vi.mock("convex/react", async () => {
+  /** A query's fake that gives what `answer` reads, or nothing while it is skipped. */
+  const unlessSkipped = (answer: () => unknown) => (args: unknown) => (args === "skip" ? undefined : answer());
+  return {
+    ...(await import("../support/src/convexReact.harness")).fakeConvexReact({
+      queries: {
+        "signIn/account:signedInAs": unlessSkipped(() => convex.account),
+        "mail/mail:unreadCount": unlessSkipped(() => {
+          if (convex.unreadFails) throw convex.unreadFails;
+          return 0;
+        }),
+        // What the leagues page and the patch banner read: no ended invite, no patch waiting.
+        "joining/endedInvite:mine": unlessSkipped(() => null),
+        "scoring/patchNotes:banner": unlessSkipped(() => null),
+      },
+      mutations: {
+        "signIn/timeZone:recordZone": convex.recordZone,
+        // The rest the seams take hold of as the app opens, seam by seam; these tests call none of them.
+        ...Object.fromEntries(
+          [
+            ["leagues/leagues:create", "leagues/leagueDeletion:deleteLeague", "leagues/leagueDeletion:undo", "leagues/lastLeague:switchTo", "leagues/teams:leave"],
+            ["mail/mail:open", "mail/mail:writeToLeague"],
+            ["joining/invites:send", "joining/invites:resend", "joining/invites:cancel", "leagues/teams:removeManager", "joining/inviteLink:make"],
+            ["joining/inviteLink:switchOff", "joining/joinRequests:approve", "joining/joinRequests:refuseRequest", "joining/joinRequests:ask"],
+            ["positions/playerPositions:approvePlayer", "positions/playerPositions:approveClub", "positions/playerPositions:setPosition"],
+            ["positions/playerPositions:removePosition", "positions/positionSettings:setApproveMode", "positions/positionSettings:setChangeThresholds"],
+            ["squads/squads:assign", "squads/squads:move", "squads/squads:release"],
+            ["scoring/siteScoring:fix"],
+            ["rules/leagueSettings:changeSettings"],
+            ["feedback/feedback:send"],
+            ["scoring/patchNotes:dismissBanner"],
+          ]
+            .flat()
+            .map((name) => [name, vi.fn()]),
+        ),
+      },
+      actions: { "signIn/signInLinks:ask": convex.ask, "joining/inviteLink:signInToJoin": vi.fn() },
+    }),
+    ConvexReactClient: class {},
+    useConvexAuth: () => convex.auth,
+  };
+});
 vi.mock("@convex-dev/auth/react", () => ({
   ConvexAuthProvider: ({ children }: { children: React.ReactNode }) => children,
   useAuthActions: () => ({ signIn: convex.signIn, signOut: convex.signOut }),
@@ -49,6 +83,7 @@ const inNoLeague: NonNullable<typeof convex.account> = {
   isAdmin: false,
   inLeague: false,
   leagues: [],
+  switchableLeagueIds: [],
   currentLeagueId: null,
 };
 
@@ -129,6 +164,8 @@ test("signed in, in no league, the app opens on the leagues page", async () => {
 
   expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
   expect(window.location.pathname).toBe(LEAGUES_PATH);
+  // The browser's zone is kept each time the app opens signed in (#442); the tests run in London's.
+  expect(convex.recordZone).toHaveBeenCalledWith({ zone: "Europe/London" });
 });
 
 const notInLeague = "You're not in this league.";

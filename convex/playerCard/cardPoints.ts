@@ -6,6 +6,7 @@
 
 import { v, type Infer } from "convex/values";
 import { AREAS, LANES, playsCell, positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
+import { roleIn } from "../lineup/roles";
 import type { Position } from "../positions/positionTables";
 import { scoreMatch, type MatchPoints, type MatchStats } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
@@ -21,10 +22,14 @@ export interface CardPoints extends MatchPoints {
   position: SlotPosition | null;
 }
 
-/** His points for one match under `set`: `slot`'s when he stood in one, else his best position's.
- *  `record` is null while his whole record hasn't arrived, and every figure is then null. */
-export function cardPoints(record: MatchStats | null, set: ScoringSet, positions: readonly Position[], slot: Cell | null): CardPoints {
-  if (slot !== null) return { scoredAs: "slot", position: positionOfSlot(slot), ...scoreMatch(record, set, slot) };
+/** His points for one match under `set`: `slot`'s when he stood in one, his role's adjustment
+ *  included (none given: the slot's first), else his best position's, with no role. `record` is
+ *  null while his whole record hasn't arrived, and every figure is then null. */
+export function cardPoints(record: MatchStats | null, set: ScoringSet, positions: readonly Position[], slot: (Cell & { role?: string }) | null): CardPoints {
+  if (slot !== null) {
+    const cell = { area: slot.area, lane: slot.lane };
+    return { scoredAs: "slot", position: positionOfSlot(cell), ...scoreMatch(record, set, cell, roleIn(cell, slot.role).key) };
+  }
   const priced = slotsFor(positions).map((cell) => ({ position: positionOfSlot(cell), ...scoreMatch(record, set, cell) }));
   let best: (typeof priced)[number] | undefined;
   for (const each of priced) {

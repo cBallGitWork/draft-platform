@@ -22,6 +22,8 @@ const squadMember = v.object({
   name: v.string(),
   clubShortName: v.string(),
   positions: v.array(position),
+  /** The squad number his manager gave him, on his shirt, or null until given (#13). */
+  number: v.union(v.number(), v.null()),
 });
 
 export const tacticsShape = v.union(
@@ -57,7 +59,7 @@ export const ofMyTeam = query({
 
     const how = await howPositionsCount(ctx);
     const squad = await Promise.all(
-      (await squadOf(ctx, team._id)).map(async ({ playerCode }) => {
+      (await squadOf(ctx, team._id)).map(async ({ playerCode, number }) => {
         // Players are never deleted, and a squad holds only one the football sync held (squads.ts).
         const player = await playerByCode(ctx, playerCode);
         if (player === null) throw new Error(`Player ${playerCode} is in team ${team._id}'s squad but isn't held`);
@@ -66,6 +68,7 @@ export const ofMyTeam = query({
           name: player.name,
           clubShortName: (await clubByCode(ctx, player.clubCode)).shortName,
           positions: await currentPositions(ctx, playerCode, how),
+          number: number ?? null,
         };
       }),
     );

@@ -12,6 +12,7 @@ export type Section = Page & { tabs: readonly Page[] };
 
 export const HOME_PATH = "/home";
 export const MY_TEAM_PATH = "/team";
+export const MY_TEAM_SQUAD_PATH = `${MY_TEAM_PATH}/squad`;
 export const MY_TEAM_FIXTURES_PATH = `${MY_TEAM_PATH}/fixtures`;
 export const MY_TEAM_TRANSACTIONS_PATH = `${MY_TEAM_PATH}/transactions`;
 export const MAIL_PATH = "/mail";
@@ -27,7 +28,7 @@ export const sections: readonly Section[] = [
     path: MY_TEAM_PATH,
     tabs: [
       { label: menuWords.tactics, path: MY_TEAM_PATH },
-      { label: menuWords.squad, path: `${MY_TEAM_PATH}/squad` },
+      { label: menuWords.squad, path: MY_TEAM_SQUAD_PATH },
       { label: menuWords.fixtures, path: MY_TEAM_FIXTURES_PATH },
       { label: menuWords.transactions, path: MY_TEAM_TRANSACTIONS_PATH },
     ],

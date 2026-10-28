@@ -1,6 +1,6 @@
 import type { Infer } from "convex/values";
 import { aNewTeamWords } from "../joining/joiningShared";
-import { LOCALE, londonTime } from "../shared/londonTime";
+import { LOCALE, momentIn } from "../shared/moments";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { NOTHING_SCORES_DIFFERENTLY } from "../scoring/patchChanges";
 import type { leagueEvent, siteScoringKind } from "../schema";
@@ -18,8 +18,8 @@ const handOn = "The team stays, for the commissioner to hand to someone new.";
 const inPlaceOf = (replaced: string | null) => (replaced === null ? "" : ` in place of ${replaced}`);
 const forTeam = (teamName: string | null) => teamName ?? aNewTeamWords;
 
-/** The letter reporting `event`, done by `who`. */
-export function eventLetter(event: LeagueEvent, who: string): Words {
+/** The letter reporting `event`, done by `who`, telling any time in `zone`, the reader's. */
+export function eventLetter(event: LeagueEvent, who: string, zone: string | undefined): Words {
   switch (event.kind) {
     case "created":
       return { subject: `${event.name} was created`, body: `${who} created the league, for up to ${event.maxTeams} teams.` };
@@ -57,7 +57,7 @@ export function eventLetter(event: LeagueEvent, who: string): Words {
     case "deletionStarted":
       return {
         subject: `${event.name} is being deleted`,
-        body: `${who} deleted the league. It goes for good on ${londonTime(event.deletesAt)}, unless that is undone.`,
+        body: `${who} deleted the league. It goes for good on ${momentIn(event.deletesAt, zone)}, unless that is undone.`,
       };
     case "deletionUndone":
       return { subject: `${event.name} is no longer being deleted`, body: `${who} undid deleting the league. It is as it was.` };
@@ -174,16 +174,16 @@ const capitalised = (words: string) => words.charAt(0).toUpperCase() + words.sli
 type VersionNews = { name: string; kind: SiteScoringKind; takesEffectAt: number; fromGameweek: number; changes: readonly string[] };
 
 /** The letter announcing a patch to the site's scoring, or a fix to it, with what changes. A fix
- *  takes effect as it is made, so its letter names no moment. */
-export function versionLetter({ name, kind, takesEffectAt, fromGameweek, changes }: VersionNews): Words {
+ *  takes effect as it is made, so its letter names no moment; a patch's is told in `zone`, the reader's. */
+export function versionLetter({ name, kind, takesEffectAt, fromGameweek, changes }: VersionNews, zone: string | undefined): Words {
   const kept = "Gameweeks played before it keep the scoring they had.";
   const what = changes.length === 0 ? NOTHING_SCORES_DIFFERENTLY : `What changes:\n${changes.map((change) => `- ${change}`).join("\n")}`;
   if (kind === "patch") {
     return {
-      subject: `Scoring patch ${name} takes effect on ${londonTime(takesEffectAt)}`,
+      subject: `Scoring patch ${name} takes effect on ${momentIn(takesEffectAt, zone)}`,
       body:
         `${adminByline} announced patch ${name} to the scoring every league plays on. It takes effect on ` +
-        `${londonTime(takesEffectAt)}, from gameweek ${fromGameweek}. ${kept}\n\n${what}`,
+        `${momentIn(takesEffectAt, zone)}, from gameweek ${fromGameweek}. ${kept}\n\n${what}`,
     };
   }
   return {

@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery, type QueryCtx } from "../_generated/server";
-import { recordsOf, statusOf, writeRecords, type DueMatch } from "./matchStats";
+import { dueMatch, matchWrites, recordsOf, statusOf, writeRecords, type DueMatch } from "./matchStats";
 import { liveStatsTickFields, playerMatchRecord } from "../schema";
 import { LATEST_RUNS } from "../shared/syncRuns";
 import { HOUR_MS } from "../shared/time";
@@ -21,6 +21,7 @@ export const LIVE_WINDOW_MS = 4 * HOUR_MS;
  *  provisional after full time is still polled, so its last records land within the minute. */
 export const live = internalQuery({
   args: { now: v.number() },
+  returns: v.array(dueMatch),
   handler: async (ctx, { now }): Promise<DueMatch[]> =>
     (await liveMatches(ctx, now)).map(({ fixtureCode, gameweek }) => ({ fixtureCode, gameweek })),
 });
@@ -48,9 +49,10 @@ export async function liveMatches(ctx: QueryCtx, now: number): Promise<LiveMatch
  *  full time (a status row) is `upsertMatch`'s alone, so a tick racing the sync writes nothing.
  *  `changed` names the men whose records moved. Nothing is recomputed here: the table works its
  *  points out on read (table/gameweekScores.ts), so the records written move it. The totals each
- *  passing a point a rule pays are stored as steps with the clock's `minute` (#44). */
+ *  passing a point where a rule's points change are stored as steps with the clock's `minute` (#44). */
 export const upsertLive = internalMutation({
   args: { fixtureCode: v.number(), minute: v.union(v.number(), v.null()), records: v.array(playerMatchRecord) },
+  returns: matchWrites,
   handler: async (ctx, { fixtureCode, minute, records }) => {
     const status = await statusOf(ctx, fixtureCode);
     if (status !== null) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections: 0 };
@@ -63,13 +65,16 @@ export const upsertLive = internalMutation({
 
 export const recordTick = internalMutation({
   args: liveStatsTickFields,
+  returns: v.null(),
   handler: async (ctx, row) => {
     await ctx.db.insert("liveStatsTicks", row);
     await emailIfFailed(ctx, "liveStats", row);
+    return null;
   },
 });
 
 export const latest = internalQuery({
   args: {},
+  returns: v.array(v.object({ _id: v.id("liveStatsTicks"), _creationTime: v.number(), ...liveStatsTickFields })),
   handler: async (ctx) => ctx.db.query("liveStatsTicks").order("desc").take(LATEST_RUNS),
 });

@@ -28,7 +28,7 @@ export interface Band {
   points: number;
 }
 
-/** The most and the least a rule pays one player for one match (FPL's defensive contribution pays
+/** The most and the least one player earns from a rule in one match (FPL's defensive contribution gives
  *  at most 2); null where there is none, so a limit by area can leave an area unlimited. It holds
  *  only the rule's own points, never a role's. */
 export interface PointsLimit {
@@ -39,7 +39,7 @@ export interface PointsLimit {
 /** What any rule may carry besides its values, each optional and priced like them (spec/14). */
 interface RuleOptions {
   limit?: Priced<PointsLimit>;
-  /** The minutes he must play before the rule pays anything: a clean sheet only at 60+. */
+  /** The minutes he must play before he earns anything from the rule: a clean sheet only at 60+. */
   minMinutes?: Priced<number>;
 }
 
@@ -57,8 +57,8 @@ export interface PerCountRule extends RuleOptions {
   values: Priced<{ every: number; points: number }>;
 }
 
-/** 2 for 60+ minutes, +2 for 10+ defensive actions: each band he reaches pays when the rule
- *  stacks, or only the highest he reaches when it doesn't. A slot with no bands pays nothing. */
+/** 2 for 60+ minutes, +2 for 10+ defensive actions: he earns each band he reaches when the rule
+ *  stacks, or only the highest he reaches when it doesn't. A slot with no bands earns nothing. */
 export interface BandsRule extends RuleOptions {
   shape: "bands";
   stat: string;
@@ -77,6 +77,17 @@ export interface ScoringSet {
   rules: readonly ScoringRule[];
   wholePointsOnly: boolean;
   ownStats?: readonly OwnStat[];
+  /** Each role's adjustment (spec/05 Roles): flat points per action, added to a starter's base
+   *  points on top of every rule and its points limit (spec/14). A role it doesn't name adjusts
+   *  nothing; a set with none adjusts no one. */
+  roleAdjustments?: readonly RoleAdjustments[];
+}
+
+/** One role's adjustment: so many points per action of each stat, plus or minus. */
+export interface RoleAdjustments {
+  /** A role's key (lineup/roles.ts). */
+  role: string;
+  adjustments: readonly { stat: string; points: number }[];
 }
 
 /** The value a priced setting gives the slot he starts in. */
@@ -104,11 +115,38 @@ export function validateScoringSet(set: unknown): asserts set is ScoringSet {
   set.rules.forEach((rule, index) =>
     validateRule(rule, index + 1, wholePointsOnly, isScorable, (stat) => categoryName(stat, ownStats)),
   );
+  if (set.roleAdjustments !== undefined) validateRoleAdjustments(set.roleAdjustments, wholePointsOnly, isScorable, (stat) => categoryName(stat, ownStats));
+}
+
+/** Each role named once, each of its stats scorable and named once, each adjustment points. */
+function validateRoleAdjustments(
+  roles: unknown,
+  wholePointsOnly: boolean,
+  isScorable: (stat: string) => boolean,
+  nameOf: (stat: string) => string,
+): void {
+  if (!Array.isArray(roles)) throw new Error("a scoring set's role adjustments must be a list");
+  const seen = new Set<string>();
+  for (const each of roles as unknown[]) {
+    if (!isObject(each) || typeof each.role !== "string" || each.role === "") throw new Error("a role adjustment names no role");
+    if (seen.has(each.role)) throw new Error(`the role ${showValue(each.role)} is adjusted twice`);
+    seen.add(each.role);
+    if (!Array.isArray(each.adjustments)) throw new Error(`the role ${showValue(each.role)} has no list of adjustments`);
+    const stats = new Set<string>();
+    for (const adjustment of each.adjustments as unknown[]) {
+      if (!isObject(adjustment) || typeof adjustment.stat !== "string" || !isScorable(adjustment.stat)) {
+        throw new Error(`the role ${showValue(each.role)} adjusts ${showValue(isObject(adjustment) ? adjustment.stat : adjustment)}, which is neither a catalogue stat nor one of the set's own stats`);
+      }
+      if (stats.has(adjustment.stat)) throw new Error(`the role ${showValue(each.role)} adjusts ${nameOf(adjustment.stat)} twice`);
+      stats.add(adjustment.stat);
+      requirePoints(adjustment.points, `the role ${showValue(each.role)}'s ${nameOf(adjustment.stat)} adjustment is worth`, wholePointsOnly);
+    }
+  }
 }
 
 /** A rule is named by its category's full name, as the rules editor shows it (spec/14). It scores
  *  a catalogue stat or one of the set's own, never a key no record holds: a typo such as
- *  `goals_scroed` would otherwise pay every player 0 in it, with no error (#135). */
+ *  `goals_scroed` would otherwise give every player 0 in it, with no error (#135). */
 function validateRule(
   rule: unknown,
   position: number,
@@ -161,14 +199,14 @@ function validatePriced(priced: unknown, named: string, what: string, check: (va
 function validateValues(shape: ScoringRule["shape"], values: unknown, where: string, points: CheckPoints): void {
   switch (shape) {
     case "perAction":
-      return points(values, `${where} pays`);
+      return points(values, `${where} is worth`);
     case "perCount": {
       if (!isObject(values)) throw new Error(`${where} has no number of actions and points`);
-      requireNumber(values.every, `${where} pays for every`);
+      requireNumber(values.every, `${where} is worth points for every`);
       if (!(values.every > 0)) {
-        throw new Error(`${where} pays for every ${values.every} actions; it must be more than 0`);
+        throw new Error(`${where} is worth points for every ${values.every} actions; it must be more than 0`);
       }
-      return points(values.points, `${where} pays`);
+      return points(values.points, `${where} is worth`);
     }
     case "bands":
       return validateBands(values, where, points);
@@ -181,7 +219,7 @@ function validateBands(bands: unknown, where: string, points: CheckPoints): void
     const which = `${where}, band ${index + 1},`;
     if (!isObject(band)) throw new Error(`${which} is not a band`);
     requireNumber(band.atLeast, `${which} starts at`);
-    points(band.points, `${which} pays`);
+    points(band.points, `${which} is worth`);
   });
   if (new Set(bands.map((band: Band) => band.atLeast)).size !== bands.length) {
     throw new Error(`${where} has two bands at one threshold`);
@@ -190,10 +228,10 @@ function validateBands(bands: unknown, where: string, points: CheckPoints): void
 
 function validateLimit(limit: unknown, where: string, points: CheckPoints): void {
   if (!isObject(limit)) throw new Error(`${where} has no most and least`);
-  if (limit.max !== null) points(limit.max, `${where} pays at most`);
-  if (limit.min !== null) points(limit.min, `${where} pays at least`);
+  if (limit.max !== null) points(limit.max, `${where} is worth at most`);
+  if (limit.min !== null) points(limit.min, `${where} is worth at least`);
   if (limit.max !== null && limit.min !== null && (limit.min as number) > (limit.max as number)) {
-    throw new Error(`${where} pays at least ${limit.min}, more than its most, ${limit.max}`);
+    throw new Error(`${where} is worth at least ${limit.min}, more than its most, ${limit.max}`);
   }
 }
 

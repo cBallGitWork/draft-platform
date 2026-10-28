@@ -51,6 +51,7 @@ test("signed in by a link, a manager is seen by their email, as no admin, and in
     isAdmin: false,
     inLeague: false,
     leagues: [],
+    switchableLeagueIds: [],
     currentLeagueId: null,
   });
 });

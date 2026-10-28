@@ -13,6 +13,8 @@ import { memberOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
 import { isWhole, MINUTES_STAT, statValue } from "../stats/matchRecords";
 import { cardPoints, scoredAs } from "./cardPoints";
+import { startersByGameweek } from "../lineup/lineups";
+import { roleName } from "../lineup/roles";
 
 // A player's card (spec/12, The player card; #381), for anyone in the league: who he is and who
 // owns him here, FPL's news on him, this season's matches priced under the site's scoring, and his
@@ -27,7 +29,7 @@ export const NEXT_FIXTURES_SHOWN = 5;
  *  seasons with room. More throws, never a silent cut. */
 export const PLAYER_RECORDS_MOST = 500;
 
-// `v.union` takes two or more members, which a mapped array cannot promise its type (as schema.ts's `position`).
+// `v.union` takes two or more members, which a mapped array cannot promise its type (as convex/tables/positions.ts's `position`).
 const slotLiterals = SLOT_POSITIONS.map((each) => v.literal(each));
 const slotPosition = v.union(...(slotLiterals as [VLiteral<SlotPosition>, VLiteral<SlotPosition>, ...VLiteral<SlotPosition>[]]));
 
@@ -49,6 +51,15 @@ const playedMatch = v.object({
     total: v.union(v.number(), v.null()),
     /** Each of the set's categories, by full name, in its order. */
     categories: v.array(v.object({ stat: v.string(), name: v.string(), points: v.union(v.number(), v.null()) })),
+    /** His role's adjustment, when his team started him and the set adjusts that role (spec/05:
+     *  "Attacking full-back: +2, two key passes"): its name, its points, each stat he made. */
+    role: v.optional(
+      v.object({
+        name: v.string(),
+        points: v.number(),
+        lines: v.array(v.object({ stat: v.string(), name: v.string(), actions: v.number(), points: v.number() })),
+      }),
+    ),
   }),
   /** The league's override of his points in the match (#32), or null with none. */
   override: v.union(v.object({ points: v.number(), reason: v.string() }), v.null()),
@@ -104,10 +115,10 @@ export const card = query({
 });
 
 type Club = Infer<typeof clubRecord>;
-type Clubs = (code: number) => Promise<Club>;
+export type Clubs = (code: number) => Promise<Club>;
 
 /** Clubs by code, each read once. */
-function clubsByCode(ctx: QueryCtx): Clubs {
+export function clubsByCode(ctx: QueryCtx): Clubs {
   const read = new Map<number, Promise<Club>>();
   return (code) => {
     if (!read.has(code)) read.set(code, clubByCode(ctx, code).then(({ code, name, shortName }) => ({ code, name, shortName })));
@@ -171,17 +182,28 @@ async function seasonMatches(
 ): Promise<PlayedMatch[]> {
   const setIn = await siteScoringByGameweek(ctx);
   const overrides = await overridesOf(ctx, leagueId, player.code);
+  // His team's lineups, for the slot and role he started in: priced as the Squad tab prices him.
+  const owner = await ctx.db
+    .query("squadPlayers")
+    .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", player.code))
+    .unique();
+  const starters = owner === null ? null : startersByGameweek(ctx, leagueId, owner.teamId);
   const played = await Promise.all(
     (await seasonRecords(ctx, player.code)).map(async ({ record, fixture, gameweek }) => {
       const set = setIn(gameweek);
-      // No lineup is kept until #29, so nobody stands in a slot yet.
-      const points = cardPoints(isWhole(record) ? record.stats : null, set, positions, null);
+      const slot = starters === null ? null : ((await starters(gameweek)).get(player.code) ?? null);
+      const { role, ...points } = cardPoints(isWhole(record) ? record.stats : null, set, positions, slot);
       const categories = points.categories.map((each) => ({ ...each, name: categoryName(each.stat, set.ownStats) }));
+      const named = (stat: string) => categoryName(stat, set.ownStats);
+      const roleLine =
+        role === undefined
+          ? {}
+          : { role: { name: roleName(role.role), points: role.points, lines: role.lines.map((line) => ({ ...line, name: named(line.stat) })) } };
       const override = overrides.get(fixture.code);
       return {
         ...(await asMatch(fixture, clubs)),
         minutes: statValue(record, MINUTES_STAT),
-        points: { ...points, categories },
+        points: { ...points, categories, ...roleLine },
         override: override === undefined ? null : { points: override.points, reason: override.reason },
       };
     }),

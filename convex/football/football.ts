@@ -54,8 +54,6 @@ export const PL_SEASON_IDS_STALE =
 function requireCurrentSeasonIds(): void {
   if (Date.now() >= PL_SEASON_IDS_STALE_FROM) throw new Error(PL_SEASON_IDS_STALE);
 }
-/** The Premier League's id for Arsenal, whose squad list proves squad numbers can be read. */
-export const PL_ARSENAL = 1;
 
 /** A club's registered squad this season, each man with his squad number, his label and, asked
  *  with `altIds=true`, the join to FPL. */
@@ -137,41 +135,3 @@ export async function getShaped<T>(
 const isNumber = (value: unknown): value is number => typeof value === "number";
 /** An id the feeds send as a number (the Premier League's arrive as `128978.0`, still a number). */
 export const hasId = (value: unknown): boolean => isNumber((value as { id?: unknown } | null)?.id);
-
-interface RawBootstrap {
-  elements: unknown[];
-}
-
-interface RawPlFixturePage {
-  content: unknown[];
-}
-
-/** `/teams/{id}/compseasons/{season}/staff`: a club's registered squad, each with his squad number. */
-export interface RawPlStaff {
-  players: { id: number; info?: { shirtNum?: number } }[];
-}
-
-export async function fplPlayerCount(): Promise<number> {
-  const bootstrap = (await getJson(FPL_BOOTSTRAP_URL)) as RawBootstrap;
-  return bootstrap.elements.length;
-}
-
-export async function plFixtureCount(): Promise<number> {
-  const page = (await getJson(plFixturesUrl())) as RawPlFixturePage;
-  return page.content.length;
-}
-
-export async function arsenalSquadNumbers(): Promise<number> {
-  const staff = (await getJson(plSquadUrl(PL_ARSENAL))) as RawPlStaff;
-  return squadNumbers(staff).size;
-}
-
-/** Premier League player id → squad number, for every registered player who has one. */
-export function squadNumbers(staff: RawPlStaff): Map<number, number> {
-  const numbers = new Map<number, number>();
-  for (const player of staff.players) {
-    const shirt = player.info?.shirtNum;
-    if (shirt !== undefined) numbers.set(player.id, shirt);
-  }
-  return numbers;
-}

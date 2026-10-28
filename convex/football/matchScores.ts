@@ -40,6 +40,7 @@ export async function writeScores(ctx: ActionCtx, feed: ScoreFeed, readAt: numbe
  *  read that changes nothing held is not written. */
 export const upsertScores = internalMutation({
   args: { feed: scoreFeed, readAt: v.number(), reads: v.array(scoreRead) },
+  returns: v.number(),
   handler: async (ctx, { feed, readAt, reads }): Promise<number> => {
     const written = await Promise.all(reads.map((read) => upsertScore(ctx, { ...read, feed, readAt })));
     return written.filter(Boolean).length;

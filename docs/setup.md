@@ -28,6 +28,12 @@ on a deployment on your own machine instead, which proves nothing about Convex's
 
 After pulling a change to `package-lock.json`, run `npm ci`.
 
+The hooks deny a commit, pull request, issue or comment naming a word on Craig's private list,
+kept outside the repo at `~/.claude/private-words.txt`, one per line. A Claude Code cloud
+environment has no such file: put the words in its settings as the environment variable
+`DRAFT_PRIVATE_WORDS_LIST` (one per line or comma-separated). With neither, nothing is checked and
+the hooks say so on every commit or pull request.
+
 `npm run dev` pushes the Convex functions to your dev deployment, keeps pushing as they change,
 and starts the app at <http://localhost:5173>: the sign-in page.
 

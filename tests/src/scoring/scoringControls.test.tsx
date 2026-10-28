@@ -6,7 +6,7 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { discardWords, saveWords } from "../../../src/rules/words";
-import { byAreaWords, columnWords, everyoneWords, paysLabel, shapeWords, wholePointsWords } from "../../../src/scoring/words";
+import { byAreaWords, columnWords, everyoneWords, shapeLabel, shapeWords, wholePointsWords } from "../../../src/scoring/words";
 import { box, categories, choose, openScoring, save, savedRule, savedSet } from "../../support/src/scoringScreen.harness";
 
 const tickBox = (name: string) => screen.getByRole("checkbox", { name }) as HTMLInputElement;
@@ -50,7 +50,7 @@ describe("the Pays keys", () => {
     openScoring();
     await choose("Assists");
 
-    expect(screen.getByRole("radiogroup", { name: paysLabel })).toBeTruthy();
+    expect(screen.getByRole("radiogroup", { name: shapeLabel })).toBeTruthy();
     expect(payKey(shapeWords.perAction).checked).toBe(true);
     expect(payKey(shapeWords.perCount).checked).toBe(false);
     expect(payKey(shapeWords.bands).checked).toBe(false);

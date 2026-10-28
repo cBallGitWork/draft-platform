@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
-import { Loading, PANEL_BODY, PanelNote, PanelTitle } from "../frame/Panel";
+import { Loading, PANEL_BODY, PANEL_LIST_ROW, PanelNote, PanelTitle } from "../frame/Panel";
 import type { Changing } from "../useChange";
 import type { AdminSeam, FoundPlayerPositions } from "./seam";
 import {
@@ -63,7 +63,7 @@ function PlayerPositions({ player, seam, change }: { player: FoundPlayerPosition
   const position = chosen !== undefined && givable.includes(chosen) ? chosen : givable[0];
   const selectId = `give-${player.code}`;
   return (
-    <li className="flex flex-col gap-1 border-b border-panel-rule px-3 py-2">
+    <li className={PANEL_LIST_ROW}>
       <span className="text-lead font-semibold">{player.fullName}</span>
       {player.positions.length === 0 ? (
         <span className="text-muted">{noPositionsWords}</span>

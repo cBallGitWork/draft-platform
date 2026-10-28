@@ -40,6 +40,11 @@ export const putHereLabel = (name: string, area: Area, lane: Lane) => `Put ${nam
 export const playerOnPitchLabel = (name: string, positions: readonly string[], area: Area, lane: Lane) =>
   `${name}, ${positionsWords(positions)}, in ${cellWords(area, lane)}`;
 
+/** The preset picker (spec/05, The pitch), and a slot of the preset picked that is still empty. */
+export const presetLabel = "Formation";
+export const pickPresetWords = "Pick a preset…";
+export const emptySlotLabel = (area: Area, lane: Lane) => `Empty slot: ${cellWords(area, lane)}`;
+
 /** What to do, under the pitch's plate: before a player is picked up, and while one is. */
 export const pickHintWords = "Choose a player, on the pitch or with Move in the squad, then a free cell he plays. Or drag him there.";
 export const movingHintWords = (name: string, positions: readonly string[]) =>
@@ -51,11 +56,19 @@ export const moveWords = "Move";
 export const squadColumns = {
   position: { short: "Pos", long: "Positions" },
   player: { short: "Player", long: "Player" },
+  role: { short: "Role", long: "The role he plays in his slot" },
   move: { short: moveWords, long: "Move him" },
 } as const;
 export const movingWords = "Moving";
 export const moveLabel = (name: string) => `Move ${name}`;
 export const toBenchWords = (name: string) => `Put ${name} on the bench`;
+/** A starter's role picker, for screen readers (spec/05 Roles). */
+export const roleLabel = (name: string) => `${name}'s role`;
+/** A bench player's buttons for the bench order (spec/05 Auto-subs), and what each says. */
+export const upWords = "Up";
+export const downWords = "Down";
+export const upLabel = (name: string) => `Move ${name} up the bench`;
+export const downLabel = (name: string) => `Move ${name} down the bench`;
 export const emptyBenchWords = "Nobody on the bench.";
 
 /** Who joined the squad since the lineup was saved. */

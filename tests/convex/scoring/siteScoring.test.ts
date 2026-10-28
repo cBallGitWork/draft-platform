@@ -90,7 +90,7 @@ describe("a fix", () => {
     await holdGameweeks(t, { next: 9 });
     await patch(EDITED, TODAY + NOTICE);
 
-    await expectRefused(fixAs(ADMIN, EDITED_AGAIN), siteScoringRefusals.fixWhileWaiting("26_27.1", TODAY + NOTICE));
+    await expectRefused(fixAs(ADMIN, EDITED_AGAIN), siteScoringRefusals.fixWhileWaiting("26_27.1", TODAY + NOTICE, undefined));
     expect(await inGameweek(10)).toEqual(EDITED);
   });
 
@@ -114,7 +114,7 @@ describe("a fix", () => {
     const saved = (await siteRevision())!;
     const savedAt = await t.run(async (ctx) => (await ctx.db.get("siteScoring", saved))!._creationTime);
 
-    await expectRefused(fixAs(ADMIN, structuredClone(FIRST_SCORING), null), siteScoringRefusals.changedSince(savedAt));
+    await expectRefused(fixAs(ADMIN, structuredClone(FIRST_SCORING), null), siteScoringRefusals.changedSince(savedAt, undefined));
     expect(await inGameweek(9)).toEqual(EDITED);
   });
 
@@ -172,12 +172,12 @@ describe.each<[string, StoredScoringSet, string]>([
   [
     "a set whose whole points only meets a fractional value, naming the category",
     { ...structuredClone(EDITED), wholePointsOnly: true, rules: [{ shape: "perAction", stat: "tackles", values: { all: 0.5 } }] },
-    "The scoring set can't be saved: the Tackles rule pays 0.5, but the set counts whole points only.",
+    "The scoring set can't be saved: the Tackles rule is worth 0.5, but the set counts whole points only.",
   ],
   [
     "a set missing an area's value",
     { rules: [{ shape: "perCount", stat: "saves", values: { byArea: { ...everyArea(ONE_PER_3), attack: { every: 0, points: 1 } } } }], wholePointsOnly: false },
-    "The scoring set can't be saved: the Saves rule in attack pays for every 0 actions; it must be more than 0.",
+    "The scoring set can't be saved: the Saves rule in attack is worth points for every 0 actions; it must be more than 0.",
   ],
   [
     "a rule on a stat that doesn't exist, which would pay every player 0 in it (#135)",

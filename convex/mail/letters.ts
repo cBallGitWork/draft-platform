@@ -3,13 +3,21 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { isAdmin, teamsOf } from "../shared/leagueAccess";
+import { zoneOf } from "../signIn/timeZone";
 import { adminByline, eventLetter } from "./letterWords";
 import type { leagueEvent } from "../schema";
 
 // Filing Mail's letters (#26, spec/16): the one way any feature puts a letter in someone's Mail.
 
-/** What a letter says, and who wrote it, if someone did (schema.ts, `letterFields`). */
+/** What a letter says, and who wrote it, if someone did (convex/tables/mail.ts, `letterFields`). */
 export type Letter = Pick<Doc<"letters">, "subject" | "body" | "from">;
+
+/** A letter, or one written for each reader's own zone when it tells a time (#442). */
+type Written = Letter | ((zone: string | undefined) => Letter);
+
+/** `letter` as `email` reads it. */
+const copyFor = async (ctx: QueryCtx, letter: Written, email: string): Promise<Letter> =>
+  typeof letter === "function" ? letter(await zoneOf(ctx, email)) : letter;
 
 /** Everyone with a part in the league, by email: its commissioner, co-commissioner and managers. */
 export async function wholeLeague(ctx: QueryCtx, league: Doc<"leagues">): Promise<string[]> {
@@ -23,7 +31,7 @@ export async function fileLetter(
   ctx: MutationCtx,
   league: Doc<"leagues">,
   to: readonly string[],
-  letter: Letter,
+  letter: Written,
   by: string,
 ): Promise<void> {
   const at = Date.now();
@@ -33,7 +41,7 @@ export async function fileLetter(
       leagueId: league._id,
       leagueName: league.name,
       at,
-      ...letter,
+      ...(await copyFor(ctx, letter, email)),
       readAt: email === by ? at : undefined,
     });
   }
@@ -47,7 +55,7 @@ export const LEAGUES_WRITTEN_TO_MOST = 200;
 /** Files `letter` from the site, in no league's name, to everyone with a part in any league, one
  *  copy each however many leagues they are in. The copy to `by`, who did what it reports, is filed
  *  read. */
-export async function fileSiteLetter(ctx: MutationCtx, letter: Letter, by: string): Promise<void> {
+export async function fileSiteLetter(ctx: MutationCtx, letter: Written, by: string): Promise<void> {
   const leagues = await takeAllOrThrow(
     ctx.db.query("leagues"),
     LEAGUES_WRITTEN_TO_MOST,
@@ -55,7 +63,9 @@ export async function fileSiteLetter(ctx: MutationCtx, letter: Letter, by: strin
   );
   const everyone = new Set((await Promise.all(leagues.map((league) => wholeLeague(ctx, league)))).flat());
   const at = Date.now();
-  for (const email of everyone) await ctx.db.insert("letters", { to: email, at, ...letter, readAt: email === by ? at : undefined });
+  for (const email of everyone) {
+    await ctx.db.insert("letters", { to: email, at, ...(await copyFor(ctx, letter, email)), readAt: email === by ? at : undefined });
+  }
 }
 
 type LeagueEvent = Infer<typeof leagueEvent>;
@@ -98,7 +108,8 @@ export async function fileEventLetter(ctx: MutationCtx, leagueId: Id<"leagues">,
   const league = await ctx.db.get("leagues", leagueId);
   if (!league) throw new Error(`League ${leagueId} doesn't exist, so its ${event.kind} letter can't be filed`);
   const to = [...(await wholeLeague(ctx, league)), ...takenOut(event)];
-  await fileLetter(ctx, league, to, eventLetter(event, isAdmin(by) ? adminByline : by), by);
+  const who = isAdmin(by) ? adminByline : by;
+  await fileLetter(ctx, league, to, (zone) => eventLetter(event, who, zone), by);
 }
 
 /** Files what happened, and the Mail letter reporting it (#26). */

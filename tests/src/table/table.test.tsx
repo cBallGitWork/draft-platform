@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 import { nextGameweekLabel, previousGameweekLabel } from "../../../src/words";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
+import { menuWords } from "../../../src/frame/words";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 import type { TableData } from "../../support/src/table.harness";
@@ -44,7 +45,7 @@ describe("reaching it", () => {
     ["a commissioner running no team", commissioner],
   ])("%s opens it from the menu's Table, for the league the app is in", async (_, session) => {
     const app = openApp(MY_TEAM_PATH, session);
-    await userEvent.click(await screen.findByRole("link", { name: "Table" }));
+    await userEvent.click(await screen.findByRole("link", { name: menuWords.table }));
 
     expect(await screen.findByRole("heading", { level: 1, name: TABLE_PAGE_TITLE })).toBeTruthy();
     expect(app.path()).toBe(TABLE_PATH);
@@ -90,6 +91,25 @@ describe("the table", () => {
     expect(within(first).getByText("+20.5")).toBeTruthy();
     expect(within(second).getByText("-20.5")).toBeTruthy();
     expect(screen.queryByText(noResultsWords)).toBeNull();
+  });
+
+  it("breaks a tie on points by the league's tie-breaks, as the server does (#168)", async () => {
+    const teams = ["Ann's", "Bob's", "Cat's", "Dan's"];
+    const [one, other] = leagueTableOf(teams).gameweeks[0].fixtures;
+    // Both home sides win, so they tie on points; the one made later scores more, so only the
+    // tie-break (points for, a new league's) puts it first.
+    const [earlier, later] = [one.team, other.team].sort((a, b) => teams.indexOf(a) - teams.indexOf(b));
+    const scored = new Map([
+      [earlier, 20],
+      [later, 30],
+      [one.opponent!, 10],
+      [other.opponent!, 10],
+    ]);
+    openTable({ leagueTable: leagueTableOf(teams, { scores: new Map([[1, scored]]) }) });
+
+    const [first, second] = (await screen.findAllByRole("row")).slice(1);
+    expect(within(first).getByRole("rowheader").textContent).toBe(later);
+    expect(within(second).getByRole("rowheader").textContent).toBe(earlier);
   });
 
   it("says when live points count, provisional until final", async () => {

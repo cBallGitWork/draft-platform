@@ -7,7 +7,7 @@ import { createFailedWords, deleteFailedWords, leaveFailedWords, switchFailedWor
 
 /** The leagues seam filled in by Convex. A refusal comes back as the server's own words
  *  (convex/shared/leagueAccess.ts); any other failure is logged and said plainly. */
-export function useLiveLeagueActions(): LeaguesSeam {
+export function useLiveLeagues(): LeaguesSeam {
   const create = useMutation(api.leagues.leagues.create);
   const deleteLeague = useMutation(api.leagues.leagueDeletion.deleteLeague);
   const undo = useMutation(api.leagues.leagueDeletion.undo);

@@ -36,9 +36,9 @@ export const columns = {
   points: { short: "Pts", long: "Points under the site's scoring" },
 } as const;
 export const notArrivedWords = "His record for this match hasn't fully arrived yet.";
-/** The line under a match: each category that paid, as "Goals scored 5". */
+/** The line under a match: each category he earned or lost points in, as "Goals scored 5". */
 export const breakdownLabel = (gameweek: number | null) => (gameweek === null ? "Points by category" : `${gameweekWords(gameweek)} points by category`);
-export const nothingPaidWords = "No category paid.";
+export const nothingEarnedWords = "No category earned him points.";
 
 /** Last season's one line (spec/12): not held yet. */
 export const LAST_SEASON_TITLE = "Last season";
@@ -59,3 +59,10 @@ export const overrideWords = "Override";
 export const cancelOverrideWords = "Cancel";
 export const overriddenDoneWords = "Overridden: the league has a letter saying why.";
 export const overrideFailedWords = "The override couldn't be saved. Try again.";
+
+/** A role's adjustment, signed: "+2", "\u22121". */
+export const adjustmentWords = (points: number) => (points < 0 ? `\u2212${-points}` : `+${points}`);
+/** What made his role's adjustment, under it: "Accurate cross 2, Clean sheets 1". */
+export const roleMadeOfWords = (lines: readonly { name: string; actions: number }[]) => lines.map(({ name, actions }) => `${name} ${actions}`).join(", ");
+/** The role line's name for screen readers: "Role adjustment, Attacking full-back". */
+export const roleLineLabel = (name: string) => `Role adjustment, ${name}`;

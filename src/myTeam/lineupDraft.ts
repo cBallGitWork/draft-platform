@@ -6,9 +6,11 @@
 import { AREAS, LANES, playsCell, type Cell } from "../../convex/lineup/pitch";
 import type { Position } from "../../convex/positions/positionTables";
 import type { OpenTactics } from "../../convex/lineup/tactics";
+import { offersRole } from "../../convex/lineup/roles";
 
 export type SquadMember = OpenTactics["squad"][number];
-export type Starter = Cell & { playerCode: number };
+/** A starter, his cell and the role he plays there (roles.ts), none given meaning the slot's first. */
+export type Starter = Cell & { playerCode: number; role?: string };
 
 export interface DraftLineup {
   starters: readonly Starter[];
@@ -56,14 +58,25 @@ export function placed(draft: DraftLineup, playerCode: number, cell: Cell): Draf
     throw new Error(`The ${cell.area} ${cell.lane} cell is taken by player ${standing.playerCode}`);
   }
   const rest = without(draft, playerCode);
+  // A new slot offers its own roles: he starts on its first (spec/05).
   return { starters: [...rest.starters, { playerCode, ...cell }], bench: rest.bench };
 }
 
-/** The starter taken off the pitch, to the end of the bench. */
-export function benched(draft: DraftLineup, playerCode: number): DraftLineup {
-  const rest = without(draft, playerCode);
-  return { starters: rest.starters, bench: [...rest.bench, playerCode] };
+/** The starter given a role his slot offers (spec/05 Roles). */
+export function withRole(draft: DraftLineup, playerCode: number, role: string): DraftLineup {
+  return { ...draft, starters: draft.starters.map((starter) => (starter.playerCode === playerCode ? { ...starter, role } : starter)) };
 }
+
+/** The player put on the bench at `index`, 0 being first on, from the pitch or from elsewhere on
+ *  the bench (spec/05 Auto-subs: the manager's bench order). Past either end is that end. */
+export function benchedAt(draft: DraftLineup, playerCode: number, index: number): DraftLineup {
+  const rest = without(draft, playerCode);
+  const at = Math.max(0, Math.min(index, rest.bench.length));
+  return { starters: rest.starters, bench: [...rest.bench.slice(0, at), playerCode, ...rest.bench.slice(at)] };
+}
+
+/** The starter taken off the pitch, to the end of the bench. */
+export const benched = (draft: DraftLineup, playerCode: number): DraftLineup => benchedAt(draft, playerCode, Infinity);
 
 /** Back to front, left to right: the order the squad lists the eleven. */
 const cellOrder = ({ area, lane }: Cell) => AREAS.indexOf(area) * LANES.length + LANES.indexOf(lane);
@@ -72,6 +85,31 @@ export const startersInOrder = (draft: DraftLineup): Starter[] => draft.starters
 /** Whether two lineups stand the same: the same players in the same cells, the same bench order. */
 export function sameLineup(one: DraftLineup, other: DraftLineup): boolean {
   const key = (draft: DraftLineup) =>
-    [...startersInOrder(draft).map(({ playerCode, area, lane }) => `${playerCode}@${area}/${lane}`), "bench", ...draft.bench].join(" ");
+    [...startersInOrder(draft).map(({ playerCode, area, lane, role }) => `${playerCode}@${area}/${lane}:${role ?? ""}`), "bench", ...draft.bench].join(" ");
   return key(one) === key(other);
+}
+
+/** The lineup reshaped to a preset's cells (spec/05; Craig, 26 Oct 2026): each starter, back to
+ *  front, moves to a free cell of the shape in his own area, the nearest lane to his own first;
+ *  anyone left over goes to the front of the bench, in that order. Cells left empty are the
+ *  shape's slots still to fill. */
+export function reshaped(draft: DraftLineup, cells: readonly Cell[]): DraftLineup {
+  const free = [...cells];
+  const starters: Starter[] = [];
+  const leftOver: number[] = [];
+  for (const starter of startersInOrder(draft)) {
+    const distance = (cell: Cell) => Math.abs(LANES.indexOf(cell.lane) - LANES.indexOf(starter.lane));
+    const nearest = free
+      .filter((cell) => cell.area === starter.area)
+      .toSorted((one, other) => distance(one) - distance(other) || LANES.indexOf(one.lane) - LANES.indexOf(other.lane))[0];
+    if (nearest === undefined) {
+      leftOver.push(starter.playerCode);
+      continue;
+    }
+    free.splice(free.indexOf(nearest), 1);
+    // He keeps his role where the new slot offers it too.
+    const kept = starter.role !== undefined && offersRole(nearest, starter.role);
+    starters.push({ playerCode: starter.playerCode, area: nearest.area, lane: nearest.lane, ...(kept && { role: starter.role }) });
+  }
+  return { starters, bench: [...leftOver, ...draft.bench] };
 }

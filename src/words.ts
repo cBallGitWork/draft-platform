@@ -1,7 +1,7 @@
 // What every screen says alike, in one place for Craig to change in the pull request.
 
 import type { Position } from "../convex/positions/positionTables";
-import { LOCALE } from "../convex/shared/londonTime";
+import { LOCALE } from "../convex/shared/moments";
 
 /** The pitch's areas, as the rules screens name them: the server's refusals name them too. */
 export { AREA_WORDS } from "../convex/lineup/pitchWords";

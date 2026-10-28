@@ -59,10 +59,12 @@ export const manager = {
     proLeague,
     { ...miniBeta, roles: ["manager"], teamName: "Team 1", teams: 1, unsentCommissionerLink: null },
   ],
+  switchableLeagueIds: [proLeague.leagueId, miniBeta.leagueId],
   currentLeagueId: proLeague.leagueId,
 } as const satisfies Session;
 
-/** The manager, as co-commissioner of the Pro League and commissioner of Mini beta, deleting Sunday League. */
+/** The manager, as co-commissioner of the Pro League and commissioner of Mini beta, deleting Sunday
+ *  League, which, being deleted, isn't one to switch to. */
 const commissioner: Session = {
   ...manager,
   leagues: [
@@ -75,17 +77,22 @@ const commissioner: Session = {
 const previewSessions: Record<string, Session> = {
   manager,
   commissioner,
-  newcomer: { ...manager, inLeague: false, leagues: [], currentLeagueId: null },
+  newcomer: { ...manager, inLeague: false, leagues: [], switchableLeagueIds: [], currentLeagueId: null },
   admin: {
     ...manager,
     email: "admin@example.com",
     isAdmin: true,
     inLeague: false,
     leagues: [miniBeta, { ...proLeague, roles: [], teamName: null }],
+    switchableLeagueIds: [],
     currentLeagueId: null,
   },
   visitor: { signedIn: false },
 };
+
+/** Each name `?preview=` takes, so a test can check every preview person's leagues against the
+ *  server's rule, which this file can't import (#488). */
+export const previewNames = Object.keys(previewSessions);
 
 /** The gameweeks the preview's league leaves unticked: a Christmas break. */
 export const previewChristmasBreak: readonly number[] = [17, 18, 19];

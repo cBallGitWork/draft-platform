@@ -11,6 +11,7 @@ const benchSlot = (playerCode: number) =>
   ({ playerCode, fixtureCode: HULL_EVERTON, started: false, formation: null, line: null, place: null }) as const;
 const plLine = (playerCode: number, stats: Record<string, number>) => ({ playerCode, fixtureCode: HULL_EVERTON, stats });
 
+// S07.4
 test("every man either sheet names has a record, keyed on his and the match's FPL codes", () => {
   expect(records).toHaveLength(40);
   expect(records.every((record) => record.fixtureCode === HULL_EVERTON)).toBe(true);
@@ -26,6 +27,7 @@ test("FPL's count is kept for goals and minutes, the Premier League's for the re
   expect(recordOf(FULL_STATS.grealish.code).stats.minutes).toBe(85);
 });
 
+// S07.5
 test("where both feeds send a stat, FPL's count is kept for saves, the Premier League's for own goals and starts", () => {
   expect(mergeStats({ saves: 3, own_goals: 1, starts: 1 }, { saves: 4, own_goals: 0, game_started: 1, touches: 9 })).toEqual({
     saves: 3,
@@ -76,11 +78,13 @@ test("each paired name is one the feeds send: every FPL name, and the Opta names
   }
 });
 
+// S07.6
 test("FPL's bonus, BPS and the points built on them are not stored", () => {
   const stored = new Set(records.flatMap((record) => Object.keys(record.stats)));
   for (const fplPoints of ["bonus", "bps", "total_points", "in_dreamteam"]) expect(stored.has(fplPoints)).toBe(false);
 });
 
+// S07.4
 test("an unused substitute is stored as not having played, his record whole and every stat 0", () => {
   const phillips = recordOf(FULL_STATS.phillips.code);
   expect(phillips).toMatchObject({ started: false, played: false, arrived: { fpl: true, pl: true } });
@@ -140,6 +144,7 @@ test("FPL's line for a man neither sheet names is dropped when he played no minu
   );
 });
 
+// S07.2
 test("a match complete inside the window locks at its end; one complete after it, a window after that", () => {
   const fullTime = 0;
   expect(lockTime(fullTime, fullTime, HOUR_MS)).toBe(HOUR_MS);

@@ -12,6 +12,9 @@ import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import {
   BENCH_TITLE,
+  discardWords,
+  downLabel,
+  emptySlotLabel,
   emptyBenchWords,
   joinedBenchWords,
   locksWords,
@@ -20,13 +23,17 @@ import {
   noDeadlineWords,
   pickHintWords,
   pitchLabel,
+  roleLabel,
+  presetLabel,
   putHereLabel,
+  savedWords,
   seasonOverWords,
   squadTableLabel,
   startingWords,
   tacticsLoadingWords,
   tacticsNoRulesWords,
   toBenchWords,
+  upLabel,
 } from "../../../src/myTeam/tacticsWords";
 import { noTeamWords } from "../../../src/myTeam/words";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
@@ -45,8 +52,10 @@ import {
   openTacticsTab,
   openedPitch,
   pitch,
+  save,
   squadRows,
   targets,
+  type Member,
 } from "../../support/src/tacticsScreen.harness";
 
 describe("reaching it", () => {
@@ -101,10 +110,24 @@ describe("the lineup held", () => {
     expect(screen.getByText(startingWords(STARTERS.length))).toBeTruthy();
   });
 
+  it("each starter wears the squad number his manager gave him, and a blank shirt until then (#13)", async () => {
+    const numbered = { ...RAYA, number: 22 };
+    const squad = SQUAD.map((each) => (each.playerCode === RAYA.playerCode ? numbered : each));
+    await openedPitch({ tactics: { ...SAVED, squad } });
+    const shirtNumber = (player: Member, cell: Cell) => blockOf(player, cell).querySelector("svg text")?.textContent ?? null;
+    expect(shirtNumber(numbered, { area: "goalkeeper", lane: "centre" })).toBe("22");
+    expect(shirtNumber(SALIBA, { area: "defence", lane: "leftCentre" })).toBeNull();
+  });
+
   it("is listed beside it: the eleven back to front, then the bench in order", async () => {
     openTacticsTab();
     await screen.findByRole("table", { name: squadTableLabel });
-    expect(squadRows()).toEqual(["GKRaya ARSMove", "CBSaliba ARSMove", "CDM, CMRice ARSMove", "STHavertz ARSMove", BENCH_TITLE, "GKArrizabalaga ARSMove", "FB, WBWhite ARSMove"]);
+    expect(squadRows()).toEqual([
+      "GKRaya ARSShot-stopperSweeper keeperMove",
+      "CBSaliba ARSStopperBall-playing defenderMove",
+      "CDM, CMRice ARSBox-to-boxPlaymakerBall-winnerMove",
+      "STHavertz ARSPoacherTarget manPressing forwardShadow strikerFalse 9Move",
+      BENCH_TITLE, "GKArrizabalaga ARSMove Up Down", "FB, WBWhite ARSMove Up Down"]);
   });
 
   it("for a team that has never saved one, is the whole squad on the bench", async () => {
@@ -186,7 +209,7 @@ describe("moving a player", () => {
     await openedPitch();
     await userEvent.click(blockOf(RICE, { area: "midfield", lane: "centre" }));
     await userEvent.click(screen.getByRole("button", { name: toBenchWords(RICE.name) }));
-    expect(squadRows().at(-1)).toBe("CDM, CMRice ARSMove");
+    expect(squadRows().at(-1)).toBe("CDM, CMRice ARSMove Up Down");
     expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${RICE.name},`) })).toBeNull();
   });
 
@@ -214,6 +237,168 @@ describe("moving a player", () => {
     const dataTransfer = { setData: () => undefined, effectAllowed: "" };
     fireEvent.dragStart(blockOf(HAVERTZ, { area: "attack", lane: "centre" }), { dataTransfer });
     fireEvent.drop(screen.getByText(BENCH_TITLE), { dataTransfer });
-    expect(squadRows().at(-1)).toBe("STHavertz ARSMove");
+    expect(squadRows().at(-1)).toBe("STHavertz ARSMove Up Down");
+  });
+});
+
+describe("the bench order (spec/05 Auto-subs; Craig, 26 Oct 2026)", () => {
+  const up = (player: Member) => screen.getByRole("button", { name: upLabel(player.name) });
+  const down = (player: Member) => screen.getByRole("button", { name: downLabel(player.name) });
+  const benchNames = () => squadRows().slice(squadRows().indexOf(BENCH_TITLE) + 1);
+
+  it("Up and Down move a bench player one place, and neither runs off the end", async () => {
+    await openedPitch();
+    expect(up(ARRIZABALAGA).hasAttribute("disabled")).toBe(true);
+    expect(down(WHITE).hasAttribute("disabled")).toBe(true);
+    await userEvent.click(down(ARRIZABALAGA));
+    expect(benchNames().map((row) => row.split(" ARS")[0])).toEqual(["FB, WBWhite", "GKArrizabalaga"]);
+    await userEvent.click(up(ARRIZABALAGA));
+    expect(benchNames().map((row) => row.split(" ARS")[0])).toEqual(["GKArrizabalaga", "FB, WBWhite"]);
+  });
+
+  it("a starter dragged onto a bench row takes its place there", async () => {
+    await openedPitch();
+    const dataTransfer = { setData: () => undefined, effectAllowed: "" };
+    fireEvent.dragStart(blockOf(HAVERTZ, { area: "attack", lane: "centre" }), { dataTransfer });
+    const whitesRow = down(WHITE).closest("tr")!;
+    fireEvent.dragOver(whitesRow, { dataTransfer });
+    fireEvent.drop(whitesRow, { dataTransfer });
+    expect(benchNames().map((row) => row.split(" ARS")[0])).toEqual(["GKArrizabalaga", "STHavertz", "FB, WBWhite"]);
+  });
+
+  it("a bench player dragged along the bench takes the place he is dropped on, earlier or later", async () => {
+    await openedPitch();
+    const dataTransfer = { setData: () => undefined, effectAllowed: "" };
+    const dragOnto = (player: Member, onto: Member) => {
+      fireEvent.dragStart(down(player).closest("tr")!, { dataTransfer });
+      const row = down(onto).closest("tr")!;
+      fireEvent.dragOver(row, { dataTransfer });
+      fireEvent.drop(row, { dataTransfer });
+    };
+    dragOnto(WHITE, ARRIZABALAGA);
+    expect(benchNames().map((row) => row.split(" ARS")[0])).toEqual(["FB, WBWhite", "GKArrizabalaga"]);
+    dragOnto(WHITE, ARRIZABALAGA);
+    expect(benchNames().map((row) => row.split(" ARS")[0])).toEqual(["GKArrizabalaga", "FB, WBWhite"]);
+  });
+
+  it("a drop on a bench row with nobody picked up changes nothing", async () => {
+    await openedPitch();
+    fireEvent.drop(down(WHITE).closest("tr")!, { dataTransfer: { setData: () => undefined, effectAllowed: "" } });
+    expect(benchNames().map((row) => row.split(" ARS")[0])).toEqual(["GKArrizabalaga", "FB, WBWhite"]);
+    expect(save().hasAttribute("disabled")).toBe(true);
+  });
+
+  it("Up and Down keep the focus on the button pressed, or its partner once it stops at an end", async () => {
+    await openedPitch();
+    await userEvent.click(up(WHITE));
+    expect(document.activeElement).toBe(down(WHITE));
+    await userEvent.click(down(WHITE));
+    expect(document.activeElement).toBe(up(WHITE));
+  });
+
+  it("in the middle of the bench the button pressed keeps the focus", async () => {
+    await openedPitch();
+    const dataTransfer = { setData: () => undefined, effectAllowed: "" };
+    fireEvent.dragStart(blockOf(HAVERTZ, { area: "attack", lane: "centre" }), { dataTransfer });
+    fireEvent.drop(screen.getByText(BENCH_TITLE), { dataTransfer });
+    await userEvent.click(down(ARRIZABALAGA));
+    expect(benchNames().map((row) => row.split(" ARS")[0])).toEqual(["FB, WBWhite", "GKArrizabalaga", "STHavertz"]);
+    expect(document.activeElement).toBe(down(ARRIZABALAGA));
+  });
+
+  it("is saved as it stands", async () => {
+    const app = await openedPitch();
+    await userEvent.click(up(WHITE));
+    await userEvent.click(save());
+    expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, { starters: STARTERS, bench: [WHITE.playerCode, ARRIZABALAGA.playerCode] });
+  });
+});
+
+describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
+  const picker = () => screen.getByRole<HTMLSelectElement>("combobox", { name: presetLabel });
+
+  it("offers the league's presets, and picking one reshapes the pitch keeping the players", async () => {
+    await openedPitch();
+    expect(Array.from(picker().options).slice(1).map((option) => option.value)).toEqual(SAVED.presets.map(({ name }) => name));
+    await userEvent.selectOptions(picker(), "4-4-2");
+    // Saliba, at left-centre of defence, keeps that cell, a 4-4-2 back four's; Rice, centre of
+    // midfield, takes the nearest of its flat four's; Havertz takes a strike pair's place.
+    expect(blockOf(RAYA, { area: "goalkeeper", lane: "centre" })).toBeTruthy();
+    expect(blockOf(SALIBA, { area: "defence", lane: "leftCentre" })).toBeTruthy();
+    expect(blockOf(RICE, { area: "midfield", lane: "leftCentre" })).toBeTruthy();
+    expect(blockOf(HAVERTZ, { area: "attack", lane: "leftCentre" })).toBeTruthy();
+  });
+
+  it("can be picked again after moves, to snap back to it", async () => {
+    await openedPitch();
+    await userEvent.selectOptions(picker(), "4-4-2");
+    expect(picker().value).toBe("");
+    await userEvent.click(blockOf(SALIBA, { area: "defence", lane: "leftCentre" }));
+    await userEvent.click(screen.getByRole("button", { name: putHereLabel(SALIBA.name, "defence", "centre") }));
+    await userEvent.selectOptions(picker(), "4-4-2");
+    expect(blockOf(SALIBA, { area: "defence", lane: "leftCentre" })).toBeTruthy();
+  });
+
+  it("marks the shape's empty slots, to show where to drag", async () => {
+    await openedPitch();
+    await userEvent.selectOptions(picker(), "4-4-2");
+    const slots = within(pitch()).getAllByRole("img", { name: /^Empty slot/ }).map((slot) => slot.getAttribute("aria-label"));
+    expect(slots).toHaveLength(11 - STARTERS.length);
+    expect(slots).toContain(emptySlotLabel("defence", "left"));
+  });
+
+  it("sends a starter the shape has no room for to the front of the bench", async () => {
+    await openedPitch();
+    // A 4-2-3-1 has no one in midfield, where Rice stands.
+    await userEvent.selectOptions(picker(), "4-2-3-1");
+    expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${RICE.name},`) })).toBeNull();
+    expect(squadRows()[squadRows().indexOf(BENCH_TITLE) + 1]).toBe("CDM, CMRice ARSMove Up Down");
+  });
+
+  it("is saved as it stands, and Discard puts the shape away too", async () => {
+    const app = await openedPitch();
+    await userEvent.selectOptions(picker(), "4-4-2");
+    await userEvent.click(save());
+    expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, expect.objectContaining({ bench: [ARRIZABALAGA.playerCode, WHITE.playerCode] }));
+    await screen.findByText(savedWords(TACTICS_GAMEWEEK));
+    expect(within(pitch()).queryAllByRole("img", { name: /^Empty slot/ })).toEqual([]);
+    await userEvent.selectOptions(picker(), "5-4-1");
+    await userEvent.click(screen.getByRole("button", { name: discardWords }));
+    expect(within(pitch()).queryAllByRole("img", { name: /^Empty slot/ })).toEqual([]);
+  });
+});
+
+describe("roles (spec/05 Roles; #10; Craig, 26 Oct 2026)", () => {
+  const picker = (player: Member) => screen.getByRole<HTMLSelectElement>("combobox", { name: roleLabel(player.name) });
+  const SALIBAS_CELL = { area: "defence", lane: "leftCentre" } as const;
+
+  it("each starter has a picker of his slot's roles, on its first until he is given one; the bench has none", async () => {
+    await openedPitch();
+    expect(Array.from(picker(SALIBA).options).map((option) => option.text)).toEqual(["Stopper", "Ball-playing defender"]);
+    expect(picker(SALIBA).value).toBe("stopper");
+    expect(screen.queryByRole("combobox", { name: roleLabel(WHITE.name) })).toBeNull();
+  });
+
+  it("the pitch shows the role under his name", async () => {
+    await openedPitch();
+    await userEvent.selectOptions(picker(SALIBA), "ballPlayingDefender");
+    expect(within(blockOf(SALIBA, SALIBAS_CELL)).getByText("Ball-playing defender")).toBeTruthy();
+    expect(document.activeElement).toBe(picker(SALIBA));
+  });
+
+  it("is saved with the lineup", async () => {
+    const app = await openedPitch();
+    await userEvent.selectOptions(picker(SALIBA), "ballPlayingDefender");
+    await userEvent.click(save());
+    const [, sent] = app.myTeam.lineupChanges.save.mock.lastCall!;
+    expect(sent.starters.find((starter) => starter.playerCode === SALIBA.playerCode)).toEqual({ playerCode: SALIBA.playerCode, ...SALIBAS_CELL, role: "ballPlayingDefender" });
+  });
+
+  it("a starter moved to another slot starts on its first role", async () => {
+    await openedPitch();
+    await userEvent.selectOptions(picker(SALIBA), "ballPlayingDefender");
+    await userEvent.click(blockOf(SALIBA, SALIBAS_CELL));
+    await userEvent.click(screen.getByRole("button", { name: putHereLabel(SALIBA.name, "defence", "centre") }));
+    expect(picker(SALIBA).value).toBe("stopper");
   });
 });

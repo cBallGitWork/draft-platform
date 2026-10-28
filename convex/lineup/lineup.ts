@@ -6,6 +6,7 @@
 // as illegal. It is reported alone, so a caller can set it aside; the rule is #23's to keep.
 
 import { AREAS, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
+import { offersRole } from "./roles";
 import type { Position } from "../positions/positionTables";
 
 /** A football side's eleven: the product's rule, not a league's. */
@@ -20,6 +21,8 @@ export interface Placement {
   playerCode: PlayerCode;
   area: string;
   lane: string;
+  /** The role he plays there (roles.ts), or none yet: the slot's first. */
+  role?: string;
 }
 
 export interface Lineup {
@@ -54,7 +57,8 @@ export type LineupProblem =
   | { kind: "positionsUnknown"; playerCode: PlayerCode }
   | { kind: "outsideHisAreas"; playerCode: PlayerCode; area: Area; lane: Lane; positions: readonly Position[] }
   | { kind: "aboveMaximum"; area: Area; starterCount: number; maximum: number }
-  | { kind: "belowMinimum"; area: Area; starterCount: number; minimum: number };
+  | { kind: "belowMinimum"; area: Area; starterCount: number; minimum: number }
+  | { kind: "roleNotOffered"; playerCode: PlayerCode; area: Area; lane: Lane; role: string };
 
 const isArea = (area: string): area is Area => (AREAS as readonly string[]).includes(area);
 const isLane = (lane: string): lane is Lane => (LANES as readonly string[]).includes(lane);
@@ -74,10 +78,13 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
   }
 
   const standing = new Map<string, CellStanding>();
-  for (const { playerCode, area, lane } of lineup.starters) {
+  for (const { playerCode, area, lane, role } of lineup.starters) {
     if (!isArea(area) || !isLane(lane)) {
       problems.push({ kind: "noSuchCell", playerCode, area, lane });
       continue;
+    }
+    if (role !== undefined && !offersRole({ area, lane }, role)) {
+      problems.push({ kind: "roleNotOffered", playerCode, area, lane, role });
     }
     const cellKey = `${area}/${lane}`;
     const cell = standing.get(cellKey) ?? { area, lane, playerCodes: [] };

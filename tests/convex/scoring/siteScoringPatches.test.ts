@@ -62,7 +62,7 @@ describe("a draft patch", () => {
   test("saved over a draft saved since it was opened is refused, saying when that was", async () => {
     await saveDraftAs(ADMIN, EDITED);
 
-    await expectRefused(saveDraftAs(ADMIN, EDITED_AGAIN, null), siteScoringRefusals.draftChangedSince(TODAY));
+    await expectRefused(saveDraftAs(ADMIN, EDITED_AGAIN, null), siteScoringRefusals.draftChangedSince(TODAY, undefined));
     expect(await viewAs(ADMIN)).toMatchObject({ draft: { part: EDITED } });
   });
 
@@ -72,7 +72,7 @@ describe("a draft patch", () => {
 
     await expectRefused(
       (await as(ADMIN)).mutation(api.scoring.siteScoring.saveDraft, { scoring: EDITED_AGAIN, revision: null, draftSavedAt: null }),
-      siteScoringRefusals.changedSince(fixedAt),
+      siteScoringRefusals.changedSince(fixedAt, undefined),
     );
   });
 
@@ -90,7 +90,7 @@ describe("a draft patch", () => {
   test("that would score wrong is refused with the reason", async () => {
     const fractional = { ...structuredClone(EDITED), wholePointsOnly: true, rules: [{ shape: "perAction" as const, stat: "tackles", values: { all: 0.5 } }] };
 
-    await expectRefused(saveDraftAs(ADMIN, fractional), "The scoring set can't be saved: the Tackles rule pays 0.5, but the set counts whole points only.");
+    await expectRefused(saveDraftAs(ADMIN, fractional), "The scoring set can't be saved: the Tackles rule is worth 0.5, but the set counts whole points only.");
     expect(await draftSavedAt()).toBeNull();
   });
 });
@@ -99,7 +99,7 @@ describe("announcing a patch", () => {
   test(`#355 Done: under ${PATCH_NOTICE_DAYS} days out is refused, and the draft stays a draft`, async () => {
     await saveDraftAs(ADMIN, EDITED);
 
-    await expectRefused(announceAs(ADMIN, TODAY + NOTICE - 1), siteScoringRefusals.tooSoon(TODAY + NOTICE));
+    await expectRefused(announceAs(ADMIN, TODAY + NOTICE - 1), siteScoringRefusals.tooSoon(TODAY + NOTICE, undefined));
     expect(await versions()).toBe(0);
     expect(await draftSavedAt()).toBe(TODAY);
   });
@@ -178,7 +178,7 @@ describe("announcing a patch", () => {
     vi.setSystemTime(TODAY + HOUR_MS);
     await saveDraftAs(ADMIN, EDITED_AGAIN);
 
-    await expectRefused(announceAs(ADMIN, TODAY + 2 * NOTICE, TODAY), siteScoringRefusals.draftChangedSince(TODAY + HOUR_MS));
+    await expectRefused(announceAs(ADMIN, TODAY + 2 * NOTICE, TODAY), siteScoringRefusals.draftChangedSince(TODAY + HOUR_MS, undefined));
     expect(await versions()).toBe(0);
   });
 
@@ -200,7 +200,7 @@ describe("announcing a patch", () => {
     await patch(EDITED, TODAY + 2 * NOTICE);
     await saveDraftAs(ADMIN, EDITED_AGAIN);
 
-    await expectRefused(announceAs(ADMIN, TODAY + NOTICE), siteScoringRefusals.beforeWaiting("26_27.1", TODAY + 2 * NOTICE));
+    await expectRefused(announceAs(ADMIN, TODAY + NOTICE), siteScoringRefusals.beforeWaiting("26_27.1", TODAY + 2 * NOTICE, undefined));
     expect(await announceAs(ADMIN, TODAY + 3 * NOTICE)).toMatchObject({ name: "26_27.2" });
   });
 

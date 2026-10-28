@@ -43,7 +43,7 @@ test("saving calls scoring/siteScoring:fix with the version it was edited from, 
 });
 
 test("a save the server refuses resolves with the server's own words", async () => {
-  const refusal = "The scoring set can't be saved: the Assists rule pays 0.25; points are kept in tenths.";
+  const refusal = "The scoring set can't be saved: the Assists rule is worth 0.25; points are kept in tenths.";
   convex.fix.mockRejectedValue(new ConvexError(refusal));
   expect(await seam().save(scoring, revision)).toBe(refusal);
 });

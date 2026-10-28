@@ -1,3 +1,4 @@
+import { roleName } from "../lineup/roles";
 import { AREAS, LANES, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition } from "../lineup/pitch";
 import type { StoredScoringSet } from "../rules/leagueRulesShape";
 import { categoryName } from "./categories";
@@ -76,23 +77,23 @@ const SHAPE_WORDS: Record<Rule["shape"], string> = { perAction: "per action", pe
 
 /** A whole rule, as a category newly scored or newly shaped is described: "3 per action". */
 function ruleWords(rule: Rule): string {
-  const stacking = rule.shape === "bands" && rule.stack ? ", every band reached paying" : "";
+  const stacking = rule.shape === "bands" && rule.stack ? ", every band reached counting" : "";
   return `${grouped([...valueWords(rule)])} ${SHAPE_WORDS[rule.shape]}${stacking}`;
 }
 
 /** The lines saying how one category's rule changed, each naming it. */
 function ruleChanges(name: string, before: Rule, after: Rule): string[] {
-  if (before.shape !== after.shape) return [`${name}: now pays ${ruleWords(after)}`];
+  if (before.shape !== after.shape) return [`${name}: now worth ${ruleWords(after)}`];
   const lines: string[] = [];
   const values = settingChange(valueWords(before), valueWords(after));
   if (values) lines.push(`${name}: ${values}`);
   if (before.shape === "bands" && after.shape === "bands" && before.stack !== after.stack) {
-    lines.push(`${name}: ${after.stack ? "every band reached now pays" : "only the highest band reached now pays"}`);
+    lines.push(`${name}: ${after.stack ? "every band reached now counts" : "only the highest band reached now counts"}`);
   }
   const limit = settingChange(wordsByPosition(before.limit, limitWords), wordsByPosition(after.limit, limitWords));
   if (limit) lines.push(`${name}, points limit: ${limit}`);
   const minutes = settingChange(wordsByPosition(before.minMinutes, minutesWords), wordsByPosition(after.minMinutes, minutesWords));
-  if (minutes) lines.push(`${name}, pays only after: ${minutes}`);
+  if (minutes) lines.push(`${name}, earned only after: ${minutes}`);
   return lines;
 }
 
@@ -145,5 +146,29 @@ export function scoringChanges(before: StoredScoringSet, after: StoredScoringSet
   for (const [key, rule] of beforeRules) if (!afterRules.has(key)) lines.push(`${categoryName(rule.stat, before.ownStats)}: no longer scored`);
   if (before.wholePointsOnly !== after.wholePointsOnly) lines.push(after.wholePointsOnly ? "Points are now whole only" : "Points can now be fractions");
   lines.push(...ownStatChanges(before.ownStats ?? [], after.ownStats ?? []));
+  lines.push(...roleAdjustmentChanges(before, after));
+  return lines;
+}
+
+/** "+1" or "−1": an adjustment as the patch notes say it. */
+const signed = (points: number) => (points < 0 ? `\u2212${-points}` : `+${points}`);
+
+/** One line for each role whose adjustment changed, named as managers say it, each stat's points
+ *  per action (spec/05 Roles): "Attacking full-back: now +1 per Accurate cross, −1 per Clean
+ *  sheets", or that it no longer adjusts anything. */
+function roleAdjustmentChanges(before: StoredScoringSet, after: StoredScoringSet): string[] {
+  const words = (set: StoredScoringSet, role: string) =>
+    (set.roleAdjustments ?? [])
+      .find((each) => each.role === role)
+      ?.adjustments.map(({ stat, points }) => `${signed(points)} per ${categoryName(stat, set.ownStats)}`)
+      .join(", ") ?? "";
+  const roles = new Set([...(before.roleAdjustments ?? []), ...(after.roleAdjustments ?? [])].map(({ role }) => role));
+  const lines: string[] = [];
+  for (const role of roles) {
+    const was = words(before, role);
+    const now = words(after, role);
+    if (was === now) continue;
+    lines.push(`${roleName(role)}: ${now === "" ? "no longer adjusted" : `now ${now}`}`);
+  }
   return lines;
 }

@@ -10,6 +10,11 @@ Craig hasn't picked says so.
 
 Each with the questions its grill starts from. The questions are Claude's.
 
+**Cutting the role set**: tactics (`spec/05` Roles; from #10's review, 26 Oct 2026).
+- A saved lineup can hold a role a later cut removes. Does it fall back to the slot's first role,
+  or is the lineup refused until the manager picks again? Today it is refused at the next save,
+  and the pitch quietly shows the slot's first.
+
 **Awards**: history, Mail.
 - Manager of the Month and Player of the Season (Team of the Week is on league home, `spec/12`).
   Where they live once Mail has filed them (see History, below).
@@ -55,10 +60,10 @@ a player fills only his own areas, and only a keeper plays in goal, both ways (`
   someobdy as a make shift striker".
 - Craig's starting point: "maybe a 2 area rule, like haaland could go am (still a penalty) but
   further than that, same for cb, could go dm i guess, needs a think".
-- Claude's earlier proposal, the gap rule: the slot's price, but where it pays more than his own
+- Claude's earlier proposal, the gap rule: the slot's price, but where it's priced higher than his own
   position, only part of the gap. Craig took these as starting points (25 Oct 2026): his own
   position's price is the best of his positions ("some players will have multi roles"); where the
-  slot pays less, he gets the slot's lower price; he is natural where the real team sheet put him
+  slot's priced lower, he gets the slot's lower price; he is natural where the real team sheet put him
   (`docs/pl-match-stats.md`); a sub counts by his own positions; auto-subs take the first bench
   player who can play the area, as now. Other punishments for an extreme shape wait until it plays.
 - It reopens three answers: scoring by the slot (`spec/14`), no out-of-position penalty

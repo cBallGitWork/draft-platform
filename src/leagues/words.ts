@@ -2,9 +2,9 @@
 // server refused a change is in convex/shared/leagueAccess.ts (`refusals`), and reaches the screen as is.
 
 import { DELETION_UNDO_HOURS, FEWEST_TEAMS, LEAGUES_SHOWN, MOST_TEAMS } from "../../convex/leagues/leagueLimits";
-import { londonTime } from "../../convex/shared/londonTime";
+import { screenMoment } from "../../convex/shared/moments";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import type { NoLinkReply } from "../../convex/signIn/signInLinks";
+import type { NoLinkReply } from "../../convex/signIn/signInReplies";
 import { failedWords } from "../words";
 
 /** "Your leagues" (spec/12), which says so when there are none (spec/02). */
@@ -78,9 +78,9 @@ export const confirmDelete = (leagueName: string) =>
   `Delete ${leagueName}? At once it's frozen and hidden from everyone but its commissioner and the admin, and everyone else in it is emailed. ` +
   `You can undo it for ${DELETION_UNDO_HOURS} hours; then it's gone for good, with its teams, Mail and history.`;
 
-/** When it goes is said as the email says it (convex/shared/londonTime.ts). */
+/** When it goes, in the viewer's own zone (convex/shared/moments.ts, #442). */
 export const beingDeleted = (deletesAt: number) =>
-  `Being deleted: it goes for good on ${londonTime(deletesAt)}. Until then it's frozen and hidden from everyone but its commissioner and the admin.`;
+  `Being deleted: it goes for good on ${screenMoment(deletesAt)}. Until then it's frozen and hidden from everyone but its commissioner and the admin.`;
 export const undoWords = "Undo";
 
 /** When deleting a league, or undoing it, failed before the server could say why. */

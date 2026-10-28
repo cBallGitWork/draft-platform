@@ -11,8 +11,8 @@ import { EXAMPLE_SET } from "../../support/convex/scoring.example";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // A player's card (#381, spec/12 The player card): who he is, who owns him in the league, FPL's
-// news, this season's matches priced under the site's scoring at his best position (no lineup is
-// kept until #29), and his club's next fixtures. The site plays EXAMPLE_SET throughout.
+// news, this season's matches priced under the site's scoring at his best position, or at his slot
+// and role where his team started him, and his club's next fixtures. The site plays EXAMPLE_SET throughout.
 
 const [ANN, BOB] = MANAGERS;
 const OUTSIDER = "outsider@example.com";
@@ -131,6 +131,26 @@ test("this season's matches are newest first, priced at his best position, by ca
     { stat: "minutes", name: "Minutes", points: 2 },
   ]);
   expect(unarrived).toMatchObject({ minutes: null, points: { position: null, total: null } });
+});
+
+test("a match his team started him in is priced at his slot and role, with the role's line (#10)", async () => {
+  await t.run(async (ctx) => {
+    const row = (await ctx.db.query("siteScoring").first())!;
+    const scoring = { ...row.scoring, roleAdjustments: [{ role: "insideForward", adjustments: [{ stat: "goals_scored", points: 2 }] }] };
+    await ctx.db.patch("siteScoring", row._id, { scoring });
+    await ctx.db.insert("lineups", {
+      leagueId,
+      teamId: teams[0],
+      fromGameweek: 1,
+      starters: [{ playerCode: SAKA.code, area: "attackingMidfield", lane: "left", role: "insideForward" }],
+      bench: [],
+    });
+  });
+  const priced = (await cardAs(ANN, SAKA.code))!.matches.find((match) => match.fixtureCode === ARS_COV.code)!;
+
+  // His base 11 as a winger, and his role's +2 for the goal.
+  expect(priced.points).toMatchObject({ scoredAs: "slot", position: "W", total: 13 });
+  expect(priced.points.role).toEqual({ name: "Inside forward", points: 2, lines: [{ stat: "goals_scored", name: "Goals scored", actions: 1, points: 2 }] });
 });
 
 test("a player's matches for a club he has left still count, and an unused substitute's don't", async () => {

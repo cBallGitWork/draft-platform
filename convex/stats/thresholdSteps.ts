@@ -10,17 +10,17 @@ import { logFailure } from "../shared/errors";
 import { isWhole, MINUTES_STAT, type PlayerMatchRecord } from "./matchRecords";
 
 // The threshold lines' moments (spec/10, The commentary; #44): "~58' Rice: 3 key passes, +1". A
-// rule paying per number of actions or by bands pays at points a running total reaches, and only
+// rule priced per number of actions or by bands changes a player's points at the totals a running total reaches, and only
 // the live reads see when: each read that shows a man's total pass such a point under any slot's
 // pricing stores a step, with the match clock then (the "~": when the totals showed it, not when
-// it happened). Which slot he stands in, and so what the step pays, is each matchup's to work out
+// it happened). Which slot he stands in, and so what the step is worth, is each matchup's to work out
 // on read (matchup/vidiprinter.ts), under the site's set in force that gameweek, so the step is
 // stored for every man, owned or not. A read at full time stores none: its records are the
 // sync's (matchStats.ts), and the live reads have shown the match by then.
 
 type PlayerCode = number;
 
-/** One man's total of one stat passing a point a rule pays, as a read showed it. */
+/** One man's total of one stat passing a point where a rule's points change, as a read showed it. */
 export interface ThresholdStep {
   stat: string;
   from: number;
@@ -41,7 +41,7 @@ const EVERY_CELL: readonly Cell[] = AREAS.flatMap((area) => cellsOf(area, LANES)
 const ANY_MINUTES = Number.POSITIVE_INFINITY;
 
 /** Each stat whose total rose from `before` to `after` past a point some cell's pricing of a
- *  per-number or bands rule pays: one step a stat, however many rules price it. */
+ *  per-number or bands rule's points change: one step a stat, however many rules price it. */
 export function thresholdSteps(before: MatchStats, after: MatchStats, set: ScoringSet): ThresholdStep[] {
   const was = withOwnStats(before, set);
   const now = withOwnStats(after, set);
@@ -50,8 +50,8 @@ export function thresholdSteps(before: MatchStats, after: MatchStats, set: Scori
     if (rule.shape === "perAction" || steps.has(rule.stat)) continue;
     const from = statIn(was, rule.stat);
     const to = statIn(now, rule.stat);
-    const pays = (actions: number, cell: Cell) => rulePointsIn(rule, cell, actions, ANY_MINUTES);
-    if (to > from && EVERY_CELL.some((cell) => pays(to, cell) !== pays(from, cell))) steps.set(rule.stat, { stat: rule.stat, from, to });
+    const worth = (actions: number, cell: Cell) => rulePointsIn(rule, cell, actions, ANY_MINUTES);
+    if (to > from && EVERY_CELL.some((cell) => worth(to, cell) !== worth(from, cell))) steps.set(rule.stat, { stat: rule.stat, from, to });
   }
   return [...steps.values()];
 }

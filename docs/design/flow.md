@@ -2,7 +2,7 @@
 
 **Contents:** [The map](#the-map) · [Screens](#screens) · [Gaps](#gaps)
 
-Every route in `src/router.tsx` and how a person moves between them, plus the screens the spec
+Every route in `src/routes/` (assembled in `src/router.tsx`) and how a person moves between them, plus the screens the spec
 names that have no route yet. Read with [plate.md](plate.md), which is the look. The spec is the
 product; this map only draws it. `tests/src/flow.test.ts` fails when a route is missing from the
 Screens table, isn't its own box in the map or has no arrow touching it, the table lists a path
@@ -101,6 +101,7 @@ flowchart TD
   MENU & NOLEAGUE -- "Patch notes (the banner, while a patch waits)" --> PN
   MENU & NOLEAGUE -.->|"Sign out, then signed out"| SIGNIN
   ERR(["This page can't be shown: any page that throws"]) -- "Back to your leagues" --> LEAGUES
+  ERR -.->|"Sign out, when the league frame itself threw, then signed out"| SIGNIN
   TABLE -- "a fixture's score" --> MATCHUP
   HOME -- "a head-to-head's v" --> MATCHUP
   MATCHUP -- "◄ ► (another gameweek's)" --> MATCHUP
@@ -127,7 +128,7 @@ Features table (feature 12), the one home for screen status.
 
 | Screen | Path | File | Spec | Status |
 |---|---|---|---|---|
-| Landing (redirects only) | `/` | src/router.tsx | spec/12 The frame | built |
+| Landing (redirects only) | `/` | src/routes/frame.tsx | spec/12 The frame | built |
 | Sign in | `/sign-in` | src/sign-in/SignInPage.tsx | spec/02, spec/12 The frame | built |
 | Your leagues | `/leagues` | src/leagues/LeaguesPage.tsx | spec/12, spec/13 | built |
 | Create a league | `/leagues/new` | src/leagues/NewLeaguePage.tsx | spec/13 Creating a league | built |
@@ -147,7 +148,7 @@ Features table (feature 12), the one home for screen status.
 | Scouting | `/scouting` | src/scouting/ScoutingPage.tsx | spec/19 The players list, The shortlist | built |
 | League home | `/home` | src/home/HomePage.tsx | spec/12 League home | built |
 | My team (Tactics) | `/team` | src/myTeam/TacticsPage.tsx | spec/12:11, spec/12:28, spec/05 | built |
-| Squad | `/team/squad` | src/frame/PageNotBuilt.tsx | spec/12 My team's tabs | placeholder |
+| Squad | `/team/squad` | src/myTeam/SquadPage.tsx | spec/12 My team's tabs | built |
 | Fixtures | `/team/fixtures` | src/myTeam/FixturesPage.tsx | spec/12 My team's tabs | built |
 | Transactions | `/team/transactions` | src/myTeam/TransactionsPage.tsx | spec/12 My team's tabs | built |
 | Matchup | `/matchup` | src/matchup/MatchupPage.tsx | spec/10 The matchup, spec/12 | built |

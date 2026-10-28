@@ -8,6 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH } from "../../../src/frame/menu";
+import { sectionTabsLabel } from "../../../src/frame/words";
 import type { TeamFixtures } from "../../../src/myTeam/seam";
 import {
   byeWords,
@@ -40,7 +41,7 @@ const fixturesOf = (games: TeamFixtures["games"]): TeamFixtures => ({ teamName: 
 describe("reaching it", () => {
   it("a manager opens it from My team's Fixtures tab, for the league the app is in", async () => {
     const app = openApp(MY_TEAM_PATH, manager);
-    await userEvent.click(within(await screen.findByRole("navigation", { name: "Section" })).getByRole("link", { name: FIXTURES_TITLE }));
+    await userEvent.click(within(await screen.findByRole("navigation", { name: sectionTabsLabel })).getByRole("link", { name: FIXTURES_TITLE }));
 
     expect(await screen.findByRole("heading", { level: 1, name: FIXTURES_TITLE })).toBeTruthy();
     expect(app.path()).toBe(MY_TEAM_FIXTURES_PATH);

@@ -16,6 +16,8 @@ export type Session =
       leagues: readonly LeagueSummary[];
       /** Only when `leagues` stops short: more exist than it holds. */
       leaguesCut?: true;
+      /** Of `leagues`, those the league switcher offers, judged on the server alone (#207). */
+      switchableLeagueIds: readonly Id<"leagues">[];
       currentLeagueId: Id<"leagues"> | null;
     };
 

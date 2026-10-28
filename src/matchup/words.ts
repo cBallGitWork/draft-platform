@@ -2,7 +2,7 @@
 
 import type { Area } from "../../convex/lineup/pitch";
 import { leagueAverageWords } from "../table/words";
-import { LOCALE } from "../../convex/shared/londonTime";
+import { LOCALE } from "../../convex/shared/moments";
 import { gameweekWords, versusWords, whenWords } from "../words";
 
 const kickoffFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit" });

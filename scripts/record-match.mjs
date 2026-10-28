@@ -20,7 +20,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { getJson, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../convex/football/football.ts";
 import { errorMessage } from "../convex/shared/errors.ts";
-import { LOCALE } from "../convex/shared/londonTime.ts";
+import { LOCALE } from "../convex/shared/moments.ts";
 import { HOUR_MS, MINUTE_MS, SECOND_MS } from "../convex/shared/time.ts";
 
 const POLL_MS = 30 * SECOND_MS;

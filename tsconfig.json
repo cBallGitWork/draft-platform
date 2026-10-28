@@ -15,7 +15,7 @@
     "skipLibCheck": true,
     /* For the tests' recorded payloads in tests/support/recorded. */
     "resolveJsonModule": true,
-    /* vitest.config.ts names londonTime.ts with its extension, as Vite's native config loader asks. */
+    /* vitest.config.ts names moments.ts with its extension, as Vite's native config loader asks. */
     "allowImportingTsExtensions": true,
     "noEmit": true
   },

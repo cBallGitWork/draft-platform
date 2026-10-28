@@ -15,6 +15,7 @@ import type { PlayedMatch, PlayerCard } from "../../../src/playerCard/seam";
 import {
   backWords,
   breakdownLabel,
+  roleLineLabel,
   chanceWords,
   columns,
   freeAgentWords,
@@ -27,7 +28,7 @@ import {
   noMatchesWords,
   noNewsWords,
   noSuchPlayerWords,
-  nothingPaidWords,
+  nothingEarnedWords,
   PLAYER_TITLE,
   pricedNotes,
   SEASON_TITLE,
@@ -169,7 +170,7 @@ describe("the card", () => {
     expect(await screen.findByText(goneWords)).toBeTruthy();
   });
 
-  it("each match shows its figures at his best position, labelled so, and each category that paid", async () => {
+  it("each match shows its figures at his best position, labelled so, and each category he earned points in", async () => {
     openCard();
     const season = within(await screen.findByRole("region", { name: SEASON_TITLE }));
 
@@ -189,10 +190,33 @@ describe("the card", () => {
     expect(season.queryByLabelText(breakdownLabel(3))).toBeNull();
   });
 
-  it("a match where no category paid says so", async () => {
+  it("a match where no category earned him points says so", async () => {
     const nothing = { ...PRICED, points: { ...PRICED.points, total: 0, categories: PRICED.points.categories.map((each) => ({ ...each, points: 0 })) } };
     openCard(SAKA, { cards: [{ ...SAKA, matches: [nothing] }] });
-    expect(await screen.findByText(nothingPaidWords)).toBeTruthy();
+    expect(await screen.findByText(nothingEarnedWords)).toBeTruthy();
+  });
+
+  it("a match his team started him in shows his role's adjustment and what made it (#10)", async () => {
+    const role = { name: "Inside forward", points: 2, lines: [{ stat: "goals_scored", name: "Goals scored", actions: 1, points: 2 }] };
+    const started = { ...PRICED, points: { ...PRICED.points, scoredAs: "slot" as const, total: 13, role } };
+    openCard(SAKA, { cards: [{ ...SAKA, matches: [started] }] });
+    expect((await screen.findByLabelText(roleLineLabel("Inside forward"))).textContent).toBe("Inside forward +2 (Goals scored 1)");
+  });
+
+  it("says how its matches are priced, both ways when some are at his slot and some at his best position", async () => {
+    const started = { ...PRICED, fixtureCode: 9, points: { ...PRICED.points, scoredAs: "slot" as const } };
+    openCard(SAKA, { cards: [{ ...SAKA, matches: [started, PRICED] }] });
+    const season = within(await screen.findByRole("region", { name: SEASON_TITLE }));
+    expect(season.getByText(pricedNotes.slot)).toBeTruthy();
+    expect(season.getByText(pricedNotes.bestPosition)).toBeTruthy();
+  });
+
+  it("an overridden match shows no role line: the override is its whole score", async () => {
+    const role = { name: "Inside forward", points: 2, lines: [] };
+    const overridden = { ...PRICED, points: { ...PRICED.points, role }, override: { points: 9, reason: "A goal the feed gave someone else" } };
+    openCard(SAKA, { cards: [{ ...SAKA, matches: [overridden] }] });
+    await screen.findByRole("region", { name: SEASON_TITLE });
+    expect(screen.queryByLabelText(roleLineLabel("Inside forward"))).toBeNull();
   });
 
   it("a player with no matches this season says so", async () => {

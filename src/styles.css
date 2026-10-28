@@ -51,6 +51,8 @@
   --flex-basis-categories: 360px;
   /* A box for one number of a rule: room for "-10.5" */
   --spacing-number-box: 72px;
+  /* A squad number's box on the Squad tab: room for "99" (#13) */
+  --spacing-squad-number: 48px;
   /* A tick box's well (plate.md, Controls) */
   --spacing-tick: 22px;
   --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */

@@ -6,7 +6,6 @@ import type { Session } from "../auth";
 import { ESCAPE_KEY, KEY_DOWN, POINTER_DOWN } from "../browserEvents";
 import type { LeaguesSeam } from "../leagues/seam";
 import { LEAGUES_PATH } from "../leagues/paths";
-import { currentLeagueOf } from "../leagues/roles";
 import { LEAGUES_TITLE, rolesWords } from "../leagues/words";
 import { useChange } from "../useChange";
 import { LeaveLeague } from "./LeaveLeague";
@@ -60,12 +59,12 @@ export function LeagueSwitcher({
   }, [open]);
 
   if (!session.signedIn) return null;
-  // A league being deleted is frozen: its commissioner sees it on "Your leagues", never here.
-  const theirs = session.leagues.filter((league) => league.roles.length > 0 && !league.deletion);
-  const current = currentLeagueOf(session);
+  // The server's list (#207), never judged again here: a league being deleted is frozen, so its
+  // commissioner sees it on "Your leagues", never here.
+  const theirs = session.leagues.filter((league) => session.switchableLeagueIds.includes(league.leagueId));
+  const current = theirs.find((league) => league.leagueId === session.currentLeagueId);
   // signIn/account:signedInAs names one of theirs whenever they have any, and the frame is only theirs then.
-  if (!current || !theirs.includes(current))
-    throw new Error(`The league the app is in, ${session.currentLeagueId}, isn't one of ${session.email}'s`);
+  if (!current) throw new Error(`The league the app is in, ${session.currentLeagueId}, isn't one of ${session.email}'s`);
 
   const teamName = current.teamName;
   if (theirs.length === 1 && teamName === null) {

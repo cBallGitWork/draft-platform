@@ -1,4 +1,4 @@
-import { PanelNote, PanelTitle } from "../frame/Panel";
+import { PANEL_LIST_ROW, PanelNote, PanelTitle } from "../frame/Panel";
 import type { PanelProps } from "./panelProps";
 import {
   approveLabel,
@@ -53,7 +53,7 @@ export function NewSignings({ queue, seam, change }: PanelProps) {
       ) : (
         <ul aria-label={newSigningsTitle} className="border-t border-panel-rule">
           {queue.newSignings.map((player) => (
-            <li key={player.code} className="flex flex-col gap-1 border-b border-panel-rule px-3 py-2">
+            <li key={player.code} className={PANEL_LIST_ROW}>
               <span className="text-lead font-semibold">{player.fullName}</span>
               <span className="text-event">{labelWords(player.label)}</span>
               <ReadingLinks fullName={player.fullName} />
