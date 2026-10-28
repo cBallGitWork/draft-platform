@@ -38,9 +38,9 @@ const PRESET_ID = "tactics-preset";
 const SQUAD_TITLE_ID = "tactics-squad";
 
 /** My team's Tactics tab (#14; spec/12, My team; spec/05): the pitch where the manager sets the
- *  lineup for the next gameweek not begun, the squad beside it with the bench in order, and the
- *  countdown to the deadline. Roles, stars, squad numbers and Mail down the side are not here yet
- *  (#10, #11, #13). */
+ *  lineup for the next gameweek not begun and each starter's role, the squad beside it with the
+ *  bench in order, and the countdown to the deadline. Stars (#11) and Mail down the side are not
+ *  here yet. */
 export function TacticsPage({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }) {
   if (league.teamName === null) {
     return (
