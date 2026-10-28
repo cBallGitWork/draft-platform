@@ -116,7 +116,8 @@ styling, typeface, test, coverage, screenshot and smoke-test rows, and the rest 
   each named man's stats, and its team stats), and a locked match is read again hourly for a day
   to catch late corrections. Finding the due matches (`matchStats.due`) reads each of the
   season's matches kicked off so far and its status row, every run: about 760 reads a run by
-  May, some 110,000 a day. Measure it on the Convex usage page before #199 bounds it.
+  May, some 110,000 a day (28 Oct 2026, counted by hand from `matchStats.due`). Measure it on
+  the Convex usage page before #199 bounds it.
 - Live stats (#28): a cron every minute (`liveStatsSync.tick`) reads each match from kickoff
   until it is complete, or four hours on, and its team sheets alone in the hour before kickoff
   (#45); outside those windows it reads no feed and writes no row.
