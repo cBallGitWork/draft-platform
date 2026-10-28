@@ -1,12 +1,21 @@
 import { describe, expect, test } from "vitest";
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "../../../convex/table/roundRobin";
-import { FORM_RESULTS, formOf, headToHeadTable, totalPointsTable, type GameweekScores, type TableRow, type TieBreak } from "../../../convex/table/standings";
+import {
+  FORM_RESULTS,
+  formOf,
+  headToHeadTable,
+  teamsInGameweek,
+  totalPointsTable,
+  type GameweekScores,
+  type TableRow,
+  type TieBreak,
+} from "../../../convex/table/standings";
 
 // The table (#33; spec/09, spec/03): 3 for a win, 1 for a draw, none for a loss, equal scores a
 // draw; for, against and the difference; the team left over against the league's average or on a
 // bye; and the league's tie-breaks, in its order. Total points ranks by points for.
 
-const [ANN, BOB, CAT, DAN] = ["Ann", "Bob", "Cat", "Dan"];
+const [ANN, BOB, CAT, DAN, EVE] = ["Ann", "Bob", "Cat", "Dan", "Eve"];
 
 /** Gameweek `gameweek`'s fixtures, as [team, opponent] pairs, and who has a bye. */
 const week = (gameweek: number, pairs: [string, string][], byes: string[] = []): GameweekFixtures<string> => ({
@@ -79,6 +88,57 @@ describe("a head-to-head table", () => {
 
   test("a gameweek scored without a team's score is a bug, and says whose is missing", () => {
     expect(() => headToHeadTable([ANN, BOB], [week(1, [[ANN, BOB]])], scores({ 1: { Ann: 1 } }), [])).toThrow("Gameweek 1 has scores, but none for Bob");
+  });
+});
+
+describe("a team that joins mid-season", () => {
+  // Ann, Bob and Cat play gameweeks 1 and 2, the one left over against the league's average; Dan
+  // and Eve join before gameweek 3. Their 0s in gameweeks 1 and 2 (gameweekScores.ts scores every
+  // team in each gameweek begun) are no part of those gameweeks' average.
+  const withAverage = (gameweek: number, pairs: [string, string][], against: string): GameweekFixtures<string> => ({
+    gameweek,
+    fixtures: [...pairs.map(([team, opponent]) => ({ team, opponent })), { team: against, opponent: LEAGUE_AVERAGE }],
+    byes: [],
+  });
+  const schedule = [withAverage(1, [[ANN, BOB]], CAT), withAverage(2, [[BOB, CAT]], ANN), withAverage(3, [[ANN, BOB], [CAT, DAN]], EVE)];
+  const joined = scores({
+    1: { Ann: 10, Bob: 20, Cat: 15, Dan: 0, Eve: 0 },
+    2: { Ann: 12, Bob: 30, Cat: 0, Dan: 0, Eve: 0 },
+    3: { Ann: 10, Bob: 20, Cat: 30, Dan: 40, Eve: 25 },
+  });
+  const teams = [ANN, BOB, CAT, DAN, EVE];
+
+  test("leaves the results against the average before it joined as they were", () => {
+    const table = headToHeadTable(teams, schedule, joined, []);
+    // Gameweek 1's average is (10 + 20 + 15) / 3 = 15, so Cat draws; counting Dan's and Eve's 0s
+    // it would be 9, a win. Cat then loses 0 v 30 to Bob and 30 v 40 to Dan.
+    expect(rowOf(table, CAT)).toEqual({ team: CAT, played: 3, won: 0, drawn: 1, lost: 2, pointsFor: 45, pointsAgainst: 85, difference: -40, points: 1 });
+    // Gameweek 2's is (12 + 30 + 0) / 3 = 14, so Ann loses 12 v 14 (against 8.4 she would win),
+    // as she loses 10 v 20 to Bob in gameweeks 1 and 3.
+    expect(rowOf(table, ANN)).toEqual({ team: ANN, played: 3, won: 0, drawn: 0, lost: 3, pointsFor: 32, pointsAgainst: 54, difference: -22, points: 0 });
+  });
+
+  test("counts it in the average once it is in the gameweek's fixtures", () => {
+    // Gameweek 3's average is (10 + 20 + 30 + 40 + 25) / 5 = 25: Eve draws.
+    const table = headToHeadTable(teams, schedule, joined, []);
+    expect(rowOf(table, EVE)).toEqual({ team: EVE, played: 1, won: 0, drawn: 1, lost: 0, pointsFor: 25, pointsAgainst: 25, difference: 0, points: 1 });
+  });
+
+  test("leaves the form of the gameweeks before it joined as it was", () => {
+    const form = formOf(teams, schedule, joined);
+    expect([form.get(ANN), form.get(CAT), form.get(EVE)]).toEqual([["lost", "lost", "lost"], ["drawn", "lost", "lost"], ["drawn"]]);
+  });
+
+  test("a team in the gameweek's fixtures on 0, with no lineup say, still counts in its average", () => {
+    // (30 + 0 + 12) / 3 = 14, which Cat's 12 loses to; leaving out Bob's 0 would make it 21.
+    const table = headToHeadTable([ANN, BOB, CAT], [withAverage(1, [[ANN, BOB]], CAT)], scores({ 1: { Ann: 30, Bob: 0, Cat: 12 } }), []);
+    expect(rowOf(table, CAT)).toMatchObject({ lost: 1, pointsAgainst: 14 });
+  });
+
+  test("a gameweek's teams are those in its fixtures or on a bye, each once, never the average", () => {
+    const twoGames = { gameweek: 1, fixtures: [{ team: ANN, opponent: BOB }, { team: CAT, opponent: ANN }, { team: CAT, opponent: LEAGUE_AVERAGE }], byes: [BOB] };
+    expect(teamsInGameweek(twoGames)).toEqual([ANN, BOB, CAT]);
+    expect(teamsInGameweek(week(2, [[ANN, BOB]], [CAT]))).toEqual([ANN, BOB, CAT]);
   });
 });
 

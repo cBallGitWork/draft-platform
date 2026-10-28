@@ -205,4 +205,14 @@ describe("only between gameweeks", () => {
 
     expect((await queueOf(t)).removed).toEqual([{ ...BARNES, position: "CB" }]);
   });
+
+  test(`with only failed syncs, fewer than ${SYNCS_SEARCHED_MOST}, every start is judged as before any sync`, async () => {
+    const t = freshConvex();
+    await holdPlayer(t, BARNES, acrossTheDeadline());
+    await gameweeksAtDays10And20(t);
+
+    await failedSyncs(t, 3);
+
+    expect((await queueOf(t)).removed).toEqual([{ ...BARNES, position: "CB" }]);
+  });
 });
