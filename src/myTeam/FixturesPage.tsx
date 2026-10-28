@@ -1,5 +1,5 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { isLocked } from "../../convex/gameweeks/deadline";
+import { nextByDeadlines } from "../../convex/gameweeks/nextGameweek";
 import { Loading, PageSection, PanelNote } from "../frame/Panel";
 import { MatchupLink } from "../matchup/MatchupLink";
 import { useMinute } from "../useMinute";
@@ -62,9 +62,8 @@ function TeamFixturesBody({ league, seam }: { league: LeagueSummary; seam: MyTea
 
 function GamesTable({ fixtures: { teamId, teamName, games } }: { fixtures: TeamFixtures }) {
   const now = useMinute();
-  // The next gameweek to play: the first whose deadline hasn't passed. One with no deadline yet
-  // (no kickoff time) hasn't begun, as a passed deadline is always recorded (deadline.ts).
-  const next = games.find((game) => !isLocked(game.deadline, now))?.gameweek;
+  // The next gameweek to play, by the server's rule: the one after the last begun.
+  const next = nextByDeadlines(games, (game) => game.deadline, now)?.gameweek;
   return (
     <table aria-label={fixturesTableLabel(teamName)} className="w-full border-collapse">
       <thead className="bg-head text-ground">

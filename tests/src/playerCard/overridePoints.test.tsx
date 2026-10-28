@@ -3,13 +3,14 @@
 // match it changed. The server's own rules and refusals are tested in
 // tests/convex/table/pointsOverrides.test.ts.
 
-import { screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { OverridePoints } from "../../../src/playerCard/OverridePoints";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import type { PlayedMatch, PlayerCard } from "../../../src/playerCard/seam";
 import { cancelOverrideWords, OVERRIDE_TITLE, overriddenDoneWords, overriddenWords, overrideLabels, overrideMatchWords, overrideWords, SEASON_TITLE } from "../../../src/playerCard/words";
-import type { PlayerCardData } from "../../support/src/playerCard.harness";
+import { fakePlayerCard, type PlayerCardData } from "../../support/src/playerCard.harness";
 import { adminSeeing, coCommissioned, commissioned, league, manager, managerIn, openApp } from "../../support/src/shell.harness";
 import type { Session } from "../../../src/auth";
 
@@ -125,4 +126,34 @@ it("a match the league overrode shows the override's points, and why, to everyon
 
   expect(within(row).getAllByRole("cell").at(-1)!.textContent).toBe("12.5");
   expect(season.getByText(overriddenWords(12.5, REASON))).toBeTruthy();
+});
+
+// The card is live (livePlayerCard.ts), so its matches can change while it is open: the form keeps
+// to one still on the card.
+describe("as the open card changes", () => {
+  const LATER: PlayedMatch = { ...MATCH, fixtureCode: 51, gameweek: 5 };
+  const seam = fakePlayerCard();
+  const form = (card: PlayerCard) => <OverridePoints leagueId={league.leagueId} card={card} seam={seam} />;
+
+  it("is offered once his first match appears", () => {
+    const view = render(form({ ...SAKA, matches: [] }));
+    expect(overrideButton()).toBeNull();
+
+    view.rerender(form({ ...SAKA, matches: [MATCH] }));
+    expect(overrideButton()).toBeTruthy();
+  });
+
+  it("falls back to his first match when the one picked leaves the card, and sends that", async () => {
+    const view = render(form(SAKA));
+    await userEvent.click(screen.getByRole("button", { name: OVERRIDE_TITLE }));
+    await userEvent.selectOptions(screen.getByLabelText(overrideLabels.match), overrideMatchWords(3, "COV", "ARS"));
+
+    view.rerender(form({ ...SAKA, matches: [LATER, MATCH] }));
+    expect((screen.getByLabelText(overrideLabels.match) as HTMLSelectElement).value).toBe(String(LATER.fixtureCode));
+    await userEvent.type(screen.getByLabelText(overrideLabels.points), "3");
+    await userEvent.type(screen.getByLabelText(overrideLabels.reason), REASON);
+    await userEvent.click(screen.getByRole("button", { name: overrideWords }));
+
+    expect(seam.override).toHaveBeenCalledWith(league.leagueId, { fixtureCode: LATER.fixtureCode, playerCode: SAKA.code, points: 3, reason: REASON });
+  });
 });
