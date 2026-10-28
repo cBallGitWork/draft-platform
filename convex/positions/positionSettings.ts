@@ -84,12 +84,15 @@ async function judgedBefore(ctx: QueryCtx): Promise<number | null> {
  *  nobody fixed. Past it this throws rather than judge every start as if none had run (#214). */
 export const SYNCS_SEARCHED_MOST = 1000;
 
-/** The newest sync that read its starts: a failed one read nothing, so it moves no boundary. */
+/** The newest sync that read its starts: a failed one read nothing, so it moves no boundary. Reads
+ *  newest first and stops at the first good one, so it usually reads a single row. */
 async function newestGoodSync(ctx: QueryCtx): Promise<Doc<"positionsSyncs"> | null> {
-  const syncs = await ctx.db.query("positionsSyncs").order("desc").take(SYNCS_SEARCHED_MOST);
-  const good = syncs.find((sync) => sync.outcome.ok);
-  if (good !== undefined) return good;
-  if (syncs.length === SYNCS_SEARCHED_MOST) throw new Error(`None of the newest ${SYNCS_SEARCHED_MOST} positions syncs read its starts`);
+  let read = 0;
+  for await (const sync of ctx.db.query("positionsSyncs").order("desc")) {
+    if (sync.outcome.ok) return sync;
+    read += 1;
+    if (read === SYNCS_SEARCHED_MOST) throw new Error(`None of the newest ${SYNCS_SEARCHED_MOST} positions syncs read its starts`);
+  }
   return null;
 }
 
