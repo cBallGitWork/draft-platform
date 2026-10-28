@@ -2,8 +2,11 @@ import { v } from "convex/values";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 
 // Who may get a sign-in link in the closed beta (spec/02, spec/13#joining): the admin, and the
-// emails on the allowed list. The admin puts an email on it from the CLI:
+// emails on the allowed list. The admin puts an email on it from the CLI, on the development
+// deployment:
 //   npx convex run signIn/allowedEmails:add '{"email":"someone@example.com"}'
+// and on the live site, with `--prod`:
+//   npx convex run --prod signIn/allowedEmails:add '{"email":"someone@example.com"}'
 
 /** How every email is stored and compared, so "Craig@X.com " and "craig@x.com" are one. */
 export function normaliseEmail(email: string): string {
