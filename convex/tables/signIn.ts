@@ -7,7 +7,9 @@ import { v } from "convex/values";
 export const allowedEmailFields = { email: v.string() };
 
 /** One ask for a link that was answered "check your email", on the list or not, so the hourly
- *  limit counts every email alike. A refused ask (too many, or paused) is told so and not stored. */
+ *  limit counts every email alike. A refused ask (too many, or paused) is told so and not stored;
+ *  one for something that can't be an address is answered the same, but not stored either. Kept
+ *  for `SIGN_IN_ASKS_KEPT_MS` (signInLinks.ts). */
 export const signInAskFields = {
   email: v.string(),
   askedAt: v.number(),
@@ -24,7 +26,9 @@ export const emailSendFields = { day: v.string(), count: v.number() };
 
 export const signInTables = {
   allowedEmails: defineTable(allowedEmailFields).index("by_email", ["email"]),
-  signInAsks: defineTable(signInAskFields).index("by_email_and_askedAt", ["email", "askedAt"]),
+  signInAsks: defineTable(signInAskFields)
+    .index("by_email_and_askedAt", ["email", "askedAt"])
+    .index("by_askedAt", ["askedAt"]),
   emailSends: defineTable(emailSendFields).index("by_day", ["day"]),
   /** Each person's own time zone, as their browser last named it, so what they read tells time
    *  in it (#442). One row per email. */
