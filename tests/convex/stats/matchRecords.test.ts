@@ -3,6 +3,7 @@ import { HULL_EVERTON, mergedHullEverton, withPlReadEmpty } from "../../support/
 import { isMatchComplete, isWhole, lockTime, matchRecords, mergeStats, statChanges, statValue } from "../../../convex/stats/matchRecords";
 import { FULL_STATS, recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { HOUR_MS } from "../../../convex/shared/time";
+import { fplStatLines } from "../../../convex/football/fplLive";
 
 const records = mergedHullEverton();
 const recordOf = (code: number, from = records) => from.find((record) => record.playerCode === code)!;
@@ -75,6 +76,61 @@ test("each paired name is one the feeds send: every FPL name, and the Opta names
   for (const pair of PAIRED) {
     expect(fplNames.has(pair.fpl), pair.fpl).toBe(true);
     expect(plNames.has(pair.pl), pair.pl).toBe(pair.recorded);
+  }
+});
+
+// In a double gameweek FPL's line for a match is only its scoring block: what moved his FPL points,
+// plus minutes (docs/pl-match-stats.md, fplLive.ts). A stat kept from FPL that the block leaves
+// out is taken from the Premier League's count, under FPL's name, so league rules can score it.
+test("in a double gameweek, a keeper's saves FPL's block leaves out are the Premier League's 2", () => {
+  const fplBlock = { minutes: 90, goals_conceded: 2 };
+  const plCounts = { mins_played: 90, saves: 2, goals_conceded: 2, touches: 31 };
+
+  expect(mergeStats(fplBlock, plCounts)).toEqual({ minutes: 90, goals_conceded: 2, saves: 2, touches: 31 });
+});
+
+test("in a double gameweek, the 1 goal a man conceded is kept though FPL's block leaves it out", () => {
+  expect(mergeStats({ minutes: 90 }, { mins_played: 90, goals_conceded: 1 })).toEqual({ minutes: 90, goals_conceded: 1 });
+});
+
+test("in a double gameweek, an FPL forward's clean sheet is kept under FPL's name", () => {
+  const merged = mergeStats({ minutes: 90, goals_scored: 1 }, { mins_played: 90, goals: 1, clean_sheet: 1 });
+
+  expect(merged).toEqual({ minutes: 90, goals_scored: 1, clean_sheets: 1 });
+  expect(merged).not.toHaveProperty("clean_sheet");
+});
+
+test("in a double gameweek, the merged record carries the Premier League's saves for scoring", () => {
+  const keeper = FULL_STATS.coyle.code; // Any man the sheet names: the stats are what's tested.
+  const [record] = matchRecords(
+    HULL_EVERTON,
+    [benchSlot(keeper)],
+    [{ playerCode: keeper, fixtureCode: HULL_EVERTON, stats: { minutes: 90 } }],
+    [plLine(keeper, { mins_played: 90, saves: 2 })],
+  );
+
+  expect(statValue(record, "saves")).toBe(2);
+});
+
+test("where FPL's line sends a stat as 0, its 0 is kept over the Premier League's count", () => {
+  expect(mergeStats({ minutes: 90, saves: 0 }, { mins_played: 90, saves: 2 })).toEqual({ minutes: 90, saves: 0 });
+});
+
+test("before FPL's line arrives, the Premier League's counts of stats kept from FPL are still not stored", () => {
+  const plCounts = { mins_played: 90, saves: 2, clean_sheet: 1, goals_conceded: 0, goals: 1, touches: 5 };
+
+  expect(mergeStats(undefined, plCounts)).toEqual({ touches: 5 });
+});
+
+test("in a single gameweek FPL's line holds every stat it keeps, so each is FPL's count, never filled in", () => {
+  const { fpl } = recordedGw6();
+  const fplLines = fplStatLines(fpl.live, fpl.bootstrap.elements, fpl.fixtures);
+  for (const record of records) {
+    const fplLine = fplLines.find((line) => line.playerCode === record.playerCode)!.stats;
+    for (const pair of PAIRED.filter((paired) => paired.kept === "fpl")) {
+      expect(fplLine, `${pair.fpl} for ${record.playerCode}`).toHaveProperty(pair.fpl);
+      expect(record.stats[pair.fpl], `${pair.fpl} for ${record.playerCode}`).toBe(fplLine[pair.fpl]);
+    }
   }
 });
 
