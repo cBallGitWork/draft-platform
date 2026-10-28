@@ -30,18 +30,17 @@ import {
   UPCOMING_MATCH,
 } from "../../support/recorded/commentary.payloads";
 import { LIVE_MATCH, recordedLiveTeamStats } from "../../support/recorded/live.payloads";
+import { fakeFetch } from "../../support/convex/test.harness";
 
-/** Answers each URL with its body in `bodies`, or every URL with `status` and no body when one is
- *  given; records the URLs. A URL with no body is the test's mistake: it fails the read. */
-function fakeFeed(bodies: Record<string, unknown>, status = 200) {
-  const fetch = vi.fn(async (url: string) => {
-    if (status !== 200) return new Response("Forbidden", { status });
-    if (!(url in bodies)) throw new Error(`the fake feed has no body for ${url}`);
-    return Response.json(bodies[url]);
-  });
+/** Stubs fetch to answer each URL with its body in `bodies`, as `fakeFetch` does; records the URLs. */
+function fakeFeed(bodies: Record<string, unknown>) {
+  const fetch = fakeFetch(new Map(Object.entries(bodies)));
   vi.stubGlobal("fetch", fetch);
   return fetch;
 }
+
+/** What the Premier League's feed answers when it refuses Convex, which a refused read fakes here. */
+const FORBIDDEN_STATUS = 403;
 
 test.each([undefined, 6])("the fixture list always asks for altIds, the join to FPL (gameweek %s)", (gameweek) => {
   expect(new URL(plFixturesUrl(gameweek)).searchParams.get("altIds")).toBe("true");
@@ -220,7 +219,7 @@ test.each([
   ["a club's squad", () => readPlSquad(41), plSquadUrl(41)],
   ["FPL's bootstrap", () => readFplBootstrap(), FPL_BOOTSTRAP_URL],
 ] as const)("a refused read of %s throws with its URL and status", async (_what, read, url) => {
-  fakeFeed({}, 403);
+  vi.stubGlobal("fetch", fakeFetch(new Map(), () => true, FORBIDDEN_STATUS));
 
-  await expect(read()).rejects.toThrow(`${url} answered 403`);
+  await expect(read()).rejects.toThrow(`${url} answered ${FORBIDDEN_STATUS}`);
 });

@@ -4,7 +4,7 @@
 
 import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { useLiveSquads } from "../../../src/squads/liveSquads";
@@ -23,10 +23,6 @@ vi.mock("convex/react", async () =>
     mutations: { "squads/squads:assign": convex.assign, "squads/squads:move": convex.move, "squads/squads:release": convex.release },
   }),
 );
-
-afterEach(() => {
-  for (const fake of Object.values(convex)) fake.mockReset();
-});
 
 const leagueId = "league-1" as Id<"leagues">;
 const teamId = "team-2" as Id<"teams">;

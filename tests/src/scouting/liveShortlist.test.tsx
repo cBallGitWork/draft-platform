@@ -3,7 +3,7 @@
 
 import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { liveShortlist } from "../../../src/scouting/liveShortlist";
 import { shortlistChangeFailedWords } from "../../../src/scouting/shortlistWords";
@@ -16,12 +16,6 @@ vi.mock("convex/react", async () =>
     mutations: { "scouting/shortlist:add": convex.add, "scouting/shortlist:remove": convex.remove },
   }),
 );
-
-afterEach(() => {
-  convex.mine.mockReset();
-  convex.add.mockReset();
-  convex.remove.mockReset();
-});
 
 const leagueId = "league-1" as Id<"leagues">;
 const changes = () => renderHook(() => liveShortlist.useShortlistChanges()).result.current;

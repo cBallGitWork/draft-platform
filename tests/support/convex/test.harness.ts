@@ -25,14 +25,18 @@ export async function clockRunsTo(t: TestConvex, time: number): Promise<void> {
   await t.finishAllScheduledFunctions(() => vi.advanceTimersByTime(0));
 }
 
-/** What a faked feed answers a URL it refuses. */
+/** What a faked feed answers a URL it refuses, unless the test names another status. */
 export const REFUSED_STATUS = 503;
 
 /** A fetch answering each URL with its body in `bodies`, and each URL `refuses` picks with
- *  `REFUSED_STATUS`. Any other URL is the test's mistake: it throws, naming the URL. */
-export function fakeFetch(bodies: ReadonlyMap<string, unknown>, refuses: (url: string) => boolean = () => false) {
+ *  `refusedStatus`. Any other URL is the test's mistake: it throws, naming the URL. */
+export function fakeFetch(
+  bodies: ReadonlyMap<string, unknown>,
+  refuses: (url: string) => boolean = () => false,
+  refusedStatus = REFUSED_STATUS,
+) {
   return vi.fn(async (url: string) => {
-    if (refuses(url)) return new Response("Service Unavailable", { status: REFUSED_STATUS });
+    if (refuses(url)) return new Response(null, { status: refusedStatus });
     if (!bodies.has(url)) throw new Error(`no fake for ${url}`);
     return Response.json(bodies.get(url));
   });

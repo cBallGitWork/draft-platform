@@ -35,6 +35,8 @@ beforeEach(() => {
   vi.stubEnv("VITE_CONVEX_URL", "https://happy-otter-123.convex.cloud");
   window.localStorage.clear();
 });
+// cleanup() is app.setup.ts's too, but that one runs after this: the app must unmount before
+// history is reset.
 afterEach(() => {
   cleanup();
   window.history.replaceState(null, "", "/");
