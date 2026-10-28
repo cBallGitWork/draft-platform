@@ -47,6 +47,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 17 | [Captain and set pieces](spec/17-captain-and-set-pieces.md) | after the mini beta | the first on a set-piece list who plays earns the duty's adjustment for the whole match, and no one else on the list does |
 | 18 | [Premier League](spec/18-premier-league.md) | fixtures and results built, a gameweek at a time with live scores, each opening its match page (#49, #45); the table beside them, worked out from the held results, live and marked provisional while a match is being played (#50) | a goal in a live match moves the Premier League table at once, marked provisional |
 | 19 | [Scouting](spec/19-scouting.md) | the players list, in the menu in place of Players, filtered by who holds a player, his position and his club, sorted by name, club or season points, any catalogue stat shown as a season total and sorted by, and any two ticked compared side by side, built (#373); season points read "—" until matches are scored (#29), and role fit until roles are built (spec/05); the shortlist, built (#374): a manager adds a player from his card and takes him off there or on Scouting, and Mail tells him when one is released; not yet a letter when one clears waivers (spec/08) or feeding the draft queue (spec/04); scouts after the mini beta | a scout's report is ready 24 hours after he is sent, and no other team can tell who was scouted |
+| 20 | [Going live](spec/20-going-live.md) | not built | a merge to `main` is live on `fantasydraftmanager.co.uk` with its server code, and the check after it signs in there |
 
 ## Second release
 
@@ -86,6 +87,8 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - **Carrying a league into next season**, a different thing from spec/03's carry-over rule
   (redraft, keeper, dynasty).
 - **Archiving a league**: deleting is for good for now (`spec/13`).
+- **Preview sites** for unmerged changes (spec/20).
+- **A staging site**, if real leagues arrive (spec/20).
 
 ## Out of scope
 
