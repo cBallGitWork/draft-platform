@@ -68,7 +68,7 @@ test("the stored by-area and by-position shapes key exactly the six areas and te
   expectTypeOf<PerAction["minMinutes"]>().toEqualTypeOf<PricedByHand<number> | undefined>();
 });
 
-test("the first rules' presets are the eleven every league starts with", () => {
+test("the first rules' presets are the twenty-one every league starts with", () => {
   expect(FIRST_RULES.presets).toEqual(DEFAULT_PRESETS);
 });
 
