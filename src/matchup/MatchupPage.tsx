@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { MatchupSide, MatchupSlot } from "../../convex/matchup/matchupShape";
-import { Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
+import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { useMinute } from "../useMinute";
 import { matchPath } from "../premierLeague/paths";
 import { matchupLink } from "./paths";
@@ -164,10 +164,8 @@ function ScoredMatchup({ game: { team, opponent, commentary } }: { game: Scored 
 
 function SidePanel({ side }: { side: MatchupSide }) {
   const name = sideName(side);
-  const titleId = `lineup-${side.kind === "team" ? side.teamId : side.kind}`;
   return (
-    <section aria-labelledby={titleId} className="bg-panel">
-      <PanelTitle id={titleId}>{name}</PanelTitle>
+    <Panel title={name}>
       {side.kind === "leagueAverage" ? (
         <PanelNote>{averageWords}</PanelNote>
       ) : side.lineup === null ? (
@@ -198,7 +196,7 @@ function SidePanel({ side }: { side: MatchupSide }) {
           </tbody>
         </table>
       )}
-    </section>
+    </Panel>
   );
 }
 

@@ -1,8 +1,10 @@
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 
 // The pieces the screens' panels share (plate.md, Shape and Colour roles).
 
-const TITLE_PLATE = "bg-plate px-4 py-1 shadow-bevel-plate";
+/** The title plates of a page and of a panel: the panel's sits closer in. */
+const PAGE_PLATE = "bg-plate px-4 py-1 shadow-bevel-plate";
+const PANEL_PLATE = "bg-plate px-3 py-1 shadow-bevel-plate";
 
 /** The id of a page's heading, which its section is labelled by. */
 const PAGE_TITLE_ID = "page-title";
@@ -32,13 +34,13 @@ export function PageSection({
 function PageTitle({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
   if (aside === undefined) {
     return (
-      <h1 id={PAGE_TITLE_ID} className={`${TITLE_PLATE} text-title font-bold`}>
+      <h1 id={PAGE_TITLE_ID} className={`${PAGE_PLATE} text-title font-bold`}>
         {children}
       </h1>
     );
   }
   return (
-    <div className={`flex items-baseline justify-between ${TITLE_PLATE}`}>
+    <div className={`flex items-baseline justify-between ${PAGE_PLATE}`}>
       <h1 id={PAGE_TITLE_ID} className="text-title font-bold">
         {children}
       </h1>
@@ -66,12 +68,46 @@ export function Notice({ children }: { children: ReactNode }) {
   );
 }
 
-/** A panel's title plate (plate.md, Shape). */
-export function PanelTitle({ id, children }: { id: string; children: string }) {
+/** A panel, labelled by its title plate; `aside`, such as how many are starting, sits at the plate's
+ *  far end, and `className` is the caller's own, such as its share of a row. */
+export function Panel({
+  title,
+  aside,
+  className,
+  children,
+}: {
+  title: string;
+  aside?: ReactNode;
+  className?: string;
+  children?: ReactNode;
+}) {
+  const titleId = useId();
   return (
-    <h2 id={id} className="bg-plate px-3 py-1 text-lead font-bold shadow-bevel-plate">
+    <section aria-labelledby={titleId} className={className ? `bg-panel ${className}` : "bg-panel"}>
+      <PanelTitle id={titleId} aside={aside}>
+        {title}
+      </PanelTitle>
       {children}
-    </h2>
+    </section>
+  );
+}
+
+/** A panel's title plate (plate.md, Shape). */
+function PanelTitle({ id, aside, children }: { id: string; aside?: ReactNode; children: string }) {
+  if (aside === undefined) {
+    return (
+      <h2 id={id} className={`${PANEL_PLATE} text-lead font-bold`}>
+        {children}
+      </h2>
+    );
+  }
+  return (
+    <div className={`flex items-baseline justify-between ${PANEL_PLATE}`}>
+      <h2 id={id} className="text-lead font-bold">
+        {children}
+      </h2>
+      {aside}
+    </div>
   );
 }
 

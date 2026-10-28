@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { Confirm } from "../frame/Confirm";
-import { PanelTitle, Problem } from "../frame/Panel";
+import { Panel, Problem } from "../frame/Panel";
 import { useChange } from "../useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { teamsWords } from "./words";
-
-const TITLE_ID = "teams-title";
 
 type Team = InvitesPageData["teams"][number];
 
@@ -13,14 +11,13 @@ type Team = InvitesPageData["teams"][number];
  *  plain confirm. The team stays, keeps its name, and can be handed on. */
 export function TeamsPanel({ page, joining }: { page: InvitesPageData; joining: JoiningSeam }) {
   return (
-    <section aria-labelledby={TITLE_ID} className="bg-panel">
-      <PanelTitle id={TITLE_ID}>{teamsWords.title}</PanelTitle>
+    <Panel title={teamsWords.title}>
       <ul aria-label={teamsWords.title}>
         {page.teams.map((team) => (
           <TeamRow key={team.teamId} team={team} page={page} joining={joining} />
         ))}
       </ul>
-    </section>
+    </Panel>
   );
 }
 

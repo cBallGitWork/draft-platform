@@ -1,4 +1,4 @@
-import { PANEL_LIST_ROW, PanelNote, PanelTitle } from "../frame/Panel";
+import { PANEL_LIST_ROW, Panel, PanelNote } from "../frame/Panel";
 import type { PanelProps } from "./panelProps";
 import {
   approveLabel,
@@ -23,10 +23,6 @@ import {
   waitingTitle,
 } from "./words";
 
-const NEW_SIGNINGS_TITLE_ID = "new-signings-title";
-const WAITING_TITLE_ID = "waiting-title";
-const CHANGES_TITLE_ID = "changes-title";
-
 // The admin's queue (spec/06, The admin oversees them): new signings on their label, starts
 // waiting for his approval, and positions flagged or removed.
 
@@ -45,8 +41,7 @@ function ReadingLinks({ fullName }: { fullName: string }) {
 
 export function NewSignings({ queue, seam, change }: PanelProps) {
   return (
-    <section aria-labelledby={NEW_SIGNINGS_TITLE_ID} className="bg-panel">
-      <PanelTitle id={NEW_SIGNINGS_TITLE_ID}>{newSigningsTitle}</PanelTitle>
+    <Panel title={newSigningsTitle}>
       <PanelNote>{newSigningsHint}</PanelNote>
       {queue.newSignings.length === 0 ? (
         <PanelNote edge="b">{noNewSigningsWords}</PanelNote>
@@ -70,14 +65,13 @@ export function NewSignings({ queue, seam, change }: PanelProps) {
           ))}
         </ul>
       )}
-    </section>
+    </Panel>
   );
 }
 
 export function Waiting({ queue, seam, change }: PanelProps) {
   return (
-    <section aria-labelledby={WAITING_TITLE_ID} className="bg-panel">
-      <PanelTitle id={WAITING_TITLE_ID}>{waitingTitle}</PanelTitle>
+    <Panel title={waitingTitle}>
       <PanelNote>{waitingHint}</PanelNote>
       {queue.waiting.length === 0 ? (
         <PanelNote edge="b">{noWaitingWords}</PanelNote>
@@ -102,7 +96,7 @@ export function Waiting({ queue, seam, change }: PanelProps) {
           ))}
         </ul>
       )}
-    </section>
+    </Panel>
   );
 }
 
@@ -111,8 +105,7 @@ export function Waiting({ queue, seam, change }: PanelProps) {
 export function PositionChanges({ queue }: Pick<PanelProps, "queue">) {
   const { flagged, removed } = queue;
   return (
-    <section aria-labelledby={CHANGES_TITLE_ID} className="bg-panel">
-      <PanelTitle id={CHANGES_TITLE_ID}>{changesTitle}</PanelTitle>
+    <Panel title={changesTitle}>
       <PanelNote>{changesHint(queue.thresholds)}</PanelNote>
       {flagged.length === 0 && removed.length === 0 && <PanelNote edge="b">{noChangesWords}</PanelNote>}
       {flagged.length > 0 && (
@@ -135,6 +128,6 @@ export function PositionChanges({ queue }: Pick<PanelProps, "queue">) {
           ))}
         </ul>
       )}
-    </section>
+    </Panel>
   );
 }

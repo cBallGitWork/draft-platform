@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { Loading, Notice, PageSection, PANEL_BODY, PANEL_LIST_ROW, PanelNote, PanelTitle, Problem } from "../frame/Panel";
+import { Loading, Notice, PANEL_BODY, PANEL_LIST_ROW, PageSection, Panel, PanelNote, Problem } from "../frame/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { playerCardPath } from "../playerCard/paths";
 import { useChange, type Changing } from "../useChange";
@@ -36,7 +36,6 @@ import {
   warningWords,
 } from "./words";
 
-const FIND_TITLE_ID = "find-title";
 const FIND_NAME_ID = "find-name";
 
 /** A league's squads (spec/15, Assigning players), for its commissioners and the admin: find a
@@ -72,8 +71,7 @@ function FindPlayer({ league, seam, squads, change }: { league: LeagueSummary; s
   const [text, setText] = useState("");
   const found = seam.useFoundPlayers(league.leagueId, text);
   return (
-    <section aria-labelledby={FIND_TITLE_ID} className="bg-panel">
-      <PanelTitle id={FIND_TITLE_ID}>{findTitle}</PanelTitle>
+    <Panel title={findTitle}>
       {squads.length === 0 && <Notice>{noTeamsWords}</Notice>}
       <div className={PANEL_BODY}>
         <label htmlFor={FIND_NAME_ID} className="font-semibold">
@@ -94,7 +92,7 @@ function FindPlayer({ league, seam, squads, change }: { league: LeagueSummary; s
             ))}
           </ul>
         ))}
-    </section>
+    </Panel>
   );
 }
 
@@ -157,10 +155,8 @@ function FoundRow({
 
 /** One team's squad: its players by name, the limits it breaks, and releasing a player. */
 function Squad({ league, seam, squad, change }: { league: LeagueSummary; seam: SquadsSeam; squad: TeamSquad; change: Changing }) {
-  const titleId = `squad-${squad.teamId}`;
   return (
-    <section aria-labelledby={titleId} className="bg-panel">
-      <PanelTitle id={titleId}>{squad.teamName}</PanelTitle>
+    <Panel title={squad.teamName}>
       <PanelNote edge="t">{playersCount(squad.players.length)}</PanelNote>
       {squad.warnings.map((warning) => (
         <Notice key={warningWords(warning)}>{warningWords(warning)}</Notice>
@@ -193,6 +189,6 @@ function Squad({ league, seam, squad, change }: { league: LeagueSummary; seam: S
           ))}
         </ul>
       )}
-    </section>
+    </Panel>
   );
 }

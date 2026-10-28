@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { PANEL_BODY, PanelTitle } from "../frame/Panel";
+import { PANEL_BODY, Panel } from "../frame/Panel";
 import type { PanelProps } from "./panelProps";
 import {
   approveClubWords,
@@ -14,10 +14,7 @@ import {
   thresholdsTitle,
 } from "./words";
 
-const CLUB_TITLE_ID = "club-title";
 const CLUB_ID = "approve-club";
-const MODE_TITLE_ID = "mode-title";
-const THRESHOLDS_TITLE_ID = "thresholds-title";
 
 // Approving a club whole, how starts count (spec/06, The admin oversees them), and when positions
 // change (spec/06, When positions change).
@@ -26,8 +23,7 @@ export function ApproveClub({ queue, seam, change }: PanelProps) {
   const [chosen, choose] = useState<number | undefined>(undefined);
   const clubCode = chosen ?? queue.clubs[0]?.code;
   return (
-    <section aria-labelledby={CLUB_TITLE_ID} className="bg-panel">
-      <PanelTitle id={CLUB_TITLE_ID}>{clubTitle}</PanelTitle>
+    <Panel title={clubTitle}>
       <div className="flex flex-wrap items-end gap-2 p-3">
         <span className="flex flex-col gap-1">
           <label htmlFor={CLUB_ID} className="font-semibold">
@@ -50,22 +46,21 @@ export function ApproveClub({ queue, seam, change }: PanelProps) {
           {approveClubWords}
         </button>
       </div>
-    </section>
+    </Panel>
   );
 }
 
 export function ApproveMode({ queue, seam, change }: PanelProps) {
   const other = queue.approveMode === "proposals" ? "countAtOnce" : "proposals";
   return (
-    <section aria-labelledby={MODE_TITLE_ID} className="bg-panel">
-      <PanelTitle id={MODE_TITLE_ID}>{modeTitle}</PanelTitle>
+    <Panel title={modeTitle}>
       <div className={PANEL_BODY}>
         <p>{modeWords[queue.approveMode]}</p>
         <button type="button" disabled={change.busy} onClick={() => void change.run(() => seam.setApproveMode(other))} className="secondary-action self-start">
           {switchModeWords[other]}
         </button>
       </div>
-    </section>
+    </Panel>
   );
 }
 
@@ -83,8 +78,7 @@ export function Thresholds({ queue, seam, change }: PanelProps) {
     { id: "remove-after", label: removeAfterLabel, value: removeAfter, set: setRemoveAfter },
   ];
   return (
-    <section aria-labelledby={THRESHOLDS_TITLE_ID} className="bg-panel">
-      <PanelTitle id={THRESHOLDS_TITLE_ID}>{thresholdsTitle}</PanelTitle>
+    <Panel title={thresholdsTitle}>
       <form onSubmit={save} className={PANEL_BODY}>
         {fields.map((field) => (
           <span key={field.id} className="flex flex-col gap-1">
@@ -105,6 +99,6 @@ export function Thresholds({ queue, seam, change }: PanelProps) {
           {saveThresholdsWords}
         </button>
       </form>
-    </section>
+    </Panel>
   );
 }

@@ -1,6 +1,5 @@
-import { useId } from "react";
 import type { MatchupCommentary } from "../../convex/matchup/matchupShape";
-import { PanelNote, PanelTitle } from "../frame/Panel";
+import { Panel, PanelNote } from "../frame/Panel";
 import { commentaryDelayedWords, unreadCommentaryWords } from "./words";
 
 /** CM's vidiprinter (spec/10): every line, newest first, each with what it is worth to the league's
@@ -18,10 +17,8 @@ export function Vidiprinter({
   noLinesWords: string;
   className?: string;
 }) {
-  const titleId = useId();
   return (
-    <section aria-labelledby={titleId} className={className ? `bg-panel ${className}` : "bg-panel"}>
-      <PanelTitle id={titleId}>{title}</PanelTitle>
+    <Panel title={title} className={className}>
       {commentary.kind === "unread" ? (
         <PanelNote>{unreadCommentaryWords(commentary.reason)}</PanelNote>
       ) : (
@@ -35,7 +32,7 @@ export function Vidiprinter({
             <PanelNote>{noLinesWords}</PanelNote>
           ) : (
             // Scrolled within itself, so it is a stop for the keyboard too.
-            <ol aria-labelledby={titleId} tabIndex={0} className="max-h-vidiprinter overflow-y-auto">
+            <ol aria-label={title} tabIndex={0} className="max-h-vidiprinter overflow-y-auto">
               {commentary.lines.map((line) => (
                 <li key={line.key} className="flex items-baseline justify-between gap-3 border-t border-panel-rule px-3">
                   <span>{line.text}</span>
@@ -46,6 +43,6 @@ export function Vidiprinter({
           )}
         </>
       )}
-    </section>
+    </Panel>
   );
 }
