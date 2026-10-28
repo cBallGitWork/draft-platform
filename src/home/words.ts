@@ -6,7 +6,7 @@ import { columns as tableColumns } from "../table/words";
 import type { LeagueHome } from "./seam";
 
 export { gameweekWords, versusWords } from "../words";
-export { leagueAverageWords, noResultsWords } from "../table/words";
+export { leagueAverageWords, noResultsWords, TABLE_TITLE } from "../table/words";
 
 export const HOME_TITLE = "League home";
 export const loadingWords = "Loading league home…";
@@ -21,7 +21,6 @@ export const noHeadToHeadsWords = {
 } as const satisfies Record<LeagueHome["format"], string>;
 export const byeWords = (teamName: string) => `${teamName}: bye`;
 
-export const TABLE_TITLE = "Table";
 /** Under a table cut to its top rows: how many teams it has, and whether the reader's row is added. */
 export const partTableWords = (teams: number, withMine: boolean) =>
   `The top ${TOP_ROWS} of ${teams} teams${withMine ? ", and yours" : ""}.`;
