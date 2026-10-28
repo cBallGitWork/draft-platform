@@ -2,7 +2,7 @@
 // hands on what comes back as it comes.
 
 import { renderHook } from "@testing-library/react";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { liveTable } from "../../../src/table/liveTable";
 import { leagueTableOf } from "../../../src/table/drawnTable";
@@ -13,8 +13,6 @@ vi.mock("convex/react", async () =>
     queries: { "table/leagueTable:ofLeague": convex.ofLeague },
   }),
 );
-
-afterEach(() => convex.ofLeague.mockReset());
 
 const leagueId = "league-1" as Id<"leagues">;
 

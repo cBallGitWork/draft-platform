@@ -8,8 +8,9 @@ process.env.TZ = LONDON_ZONE;
 // Where tests go and what tests/support/ holds: tests/README.md. Only the roots below are
 // searched, never the whole repo: an agent's worktree, inside it under .claude/worktrees/, runs
 // its own.
-// Each project puts back every stubbed global, stubbed env and spy before each test, so no test
-// file needs its own afterEach for them; what each setup file does is in tests/README.md.
+// Each project puts back every stubbed global, stubbed env and spy before each test (the app
+// project resets its fakes too), so no test file needs its own afterEach for them; what each
+// setup file does is in tests/README.md.
 
 const RESTORED = {
   unstubGlobals: true,
@@ -53,6 +54,9 @@ export default defineConfig({
           include: ["tests/src/**/*.test.{ts,tsx}"],
           environment: "jsdom",
           ...RESTORED,
+          // The screens' tests fake Convex with vi.fn()s. Each test gets them back as declared, with
+          // no calls, so no file resets them by hand and none inherits the test before's answers.
+          mockReset: true,
           setupFiles: [...RESTORED.setupFiles, CONSOLE_SETUP, "./tests/support/app.setup.ts"],
           // Vitest empties every CSS import, `?raw` included. Only the raw read of styles.css is let
           // through, for the theme-color test in tests/src/product.test.ts; plain CSS imports stay empty.

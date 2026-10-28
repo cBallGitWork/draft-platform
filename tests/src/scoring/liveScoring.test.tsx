@@ -4,7 +4,7 @@
 
 import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { useLiveScoring } from "../../../src/scoring/liveScoring";
 import { saveFailedWords } from "../../../src/scoring/words";
@@ -18,11 +18,6 @@ vi.mock("convex/react", async () =>
     mutations: { "scoring/siteScoring:fix": convex.fix },
   }),
 );
-
-afterEach(() => {
-  vi.useRealTimers();
-  for (const fake of Object.values(convex)) fake.mockReset();
-});
 
 const scoring = FIRST_SCORING;
 const seam = () => renderHook(() => useLiveScoring()).result.current;
