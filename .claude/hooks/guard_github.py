@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """PreToolUse guard for the GitHub tools (mcp__github__*), which a cloud session publishes through
 in place of gh, so guard_bash.py never sees them: denies a call naming a word on Craig's private
-list (private_words.py) in any text it sends. Every tool is checked but the reads (READS), which
-publish nothing, so a write tool added or renamed is checked rather than missed. With no list to
-check against, a write gets a note, never a denial, as guard_bash.py gives. A payload it can't read is denied:
-allowing it would check nothing. Stdlib only, Python 3.9+.
+list (private_words.py) in any text it sends, and a write whose branch or ref is main
+(main_writes.py). Every tool is checked but the reads (READS), which publish nothing, so a write
+tool added or renamed is checked rather than missed. With no list to check against, a write gets a
+note, never a denial, as guard_bash.py gives. A payload it can't read is denied: allowing it would
+check nothing. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -12,6 +13,7 @@ from __future__ import annotations
 import json
 import sys
 
+from main_writes import mcp_problem
 from private_words import NO_LIST, has_list, text_problem
 
 PREFIX = "mcp__github__"
@@ -43,9 +45,13 @@ def decide(payload):
     tool = payload.get("tool_name") or ""
     if not writes(tool):
         return None, None
+    tool_input = payload.get("tool_input") or {}
+    to_main = mcp_problem(tool_input)
+    if to_main:
+        return to_main, None
     if not has_list():
         return None, NO_LIST
-    return text_problem(strings(payload.get("tool_input") or {})), None
+    return text_problem(strings(tool_input)), None
 
 
 def main():

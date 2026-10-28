@@ -14,19 +14,35 @@ import { ADMIN_PATH } from "../../../src/admin/paths";
 import { thresholdRefusals } from "../../../convex/positions/positionSettings";
 import {
   ADMIN_TITLE,
+  approveClubWords,
   approveLabel,
+  clubLabel,
   confirmLabel,
   changesTitle,
   findLabel,
   findTitle,
   flagAfterLabel,
+  flaggedTitle,
+  flaggedWords,
   foundListLabel,
+  labelWords,
   loadingWords,
+  newSigningsTitle,
+  noChangesWords,
+  noNewSigningsWords,
+  noWaitingWords,
+  positionsListLabel,
+  proposalsWords,
   removeAfterLabel,
   removeLabel,
+  removedTitle,
+  removedWords,
+  saveThresholdsWords,
   searchingWords,
   setLabel,
+  setWords,
   switchModeWords,
+  waitingTitle,
 } from "../../../src/admin/words";
 
 const STEUR = { code: 1, name: "Steur", fullName: "Jacob Steur", clubCode: 4, label: "Centre Central Midfielder" };
@@ -82,8 +98,8 @@ describe("reaching the dashboard", () => {
 describe("the queue", () => {
   it("#87 Done: a new signing shows his label and links to read up on him, and Confirm approves him", async () => {
     const app = openDashboard();
-    const signings = await screen.findByRole("list", { name: "New signings" });
-    expect(within(signings).getByText("Label: Centre Central Midfielder")).toBeTruthy();
+    const signings = await screen.findByRole("list", { name: newSigningsTitle });
+    expect(within(signings).getByText(labelWords(STEUR.label))).toBeTruthy();
     const links = within(signings).getAllByRole("link");
     expect(links.map((link) => link.textContent)).toEqual(["Transfermarkt", "FotMob", "Understat"]);
     expect(links[0].getAttribute("href")).toContain(encodeURIComponent("site:transfermarkt.co.uk Jacob Steur"));
@@ -94,17 +110,17 @@ describe("the queue", () => {
 
   it("a man whose starts wait shows what they'd give him, and Approve approves him", async () => {
     const app = openDashboard();
-    const waiting = await screen.findByRole("list", { name: "Starts waiting for you" });
-    expect(within(waiting).getByText("From his starts: W")).toBeTruthy();
+    const waiting = await screen.findByRole("list", { name: waitingTitle });
+    expect(within(waiting).getByText(proposalsWords(BARNES.proposals))).toBeTruthy();
     await userEvent.click(within(waiting).getByRole("button", { name: approveLabel("Barnes") }));
     expect(app.admin.approvePlayer).toHaveBeenCalledExactlyOnceWith(BARNES.code);
   });
 
   it("says so when nothing waits", async () => {
     openDashboard({ queue: EMPTY_QUEUE });
-    expect(await screen.findByText("No new signings wait for you.")).toBeTruthy();
-    expect(screen.getByText("No starts wait for you.")).toBeTruthy();
-    expect(screen.getByText("No position is flagged or removed.")).toBeTruthy();
+    expect(await screen.findByText(noNewSigningsWords)).toBeTruthy();
+    expect(screen.getByText(noWaitingWords)).toBeTruthy();
+    expect(screen.getByText(noChangesWords)).toBeTruthy();
   });
 });
 
@@ -114,28 +130,28 @@ describe("position changes", () => {
     const changes = await screen.findByRole("region", { name: changesTitle });
     expect(within(changes).getByText(/flagged after 3 starts in a row elsewhere, and removed after 6/)).toBeTruthy();
 
-    const flagged = within(changes).getByRole("list", { name: "Flagged" });
+    const flagged = within(changes).getByRole("list", { name: flaggedTitle });
     expect(within(flagged).getByText("Nick Woltemade")).toBeTruthy();
-    expect(within(flagged).getByText("ST: 4 starts in a row elsewhere").className).toContain("text-event");
+    expect(within(flagged).getByText(flaggedWords("ST", 4)).className).toContain("text-event");
 
-    const removed = within(changes).getByRole("list", { name: "Removed" });
-    expect(removed.textContent).toBe("Anthony GordonW removed");
+    const removed = within(changes).getByRole("list", { name: removedTitle });
+    expect(removed.textContent).toBe(`Anthony Gordon${removedWords("W")}`);
     expect(removed.className).toContain("text-muted");
   });
 
   it("with only a removed position, doesn't say none changed", async () => {
     openDashboard({ queue: { ...EMPTY_QUEUE, removed: DATA.queue!.removed } });
     const changes = await screen.findByRole("region", { name: changesTitle });
-    expect(within(changes).getByRole("list", { name: "Removed" })).toBeTruthy();
-    expect(within(changes).queryByText("No position is flagged or removed.")).toBeNull();
+    expect(within(changes).getByRole("list", { name: removedTitle })).toBeTruthy();
+    expect(within(changes).queryByText(noChangesWords)).toBeNull();
   });
 });
 
 describe("settings", () => {
   it("approves the club chosen, whole", async () => {
     const app = openDashboard();
-    await userEvent.selectOptions(await screen.findByRole("combobox", { name: "Club" }), "Newcastle");
-    await userEvent.click(screen.getByRole("button", { name: "Approve the club" }));
+    await userEvent.selectOptions(await screen.findByRole("combobox", { name: clubLabel }), "Newcastle");
+    await userEvent.click(screen.getByRole("button", { name: approveClubWords }));
     expect(app.admin.approveClub).toHaveBeenCalledExactlyOnceWith(4);
   });
 
@@ -149,7 +165,7 @@ describe("settings", () => {
     await userEvent.type(flagAfter, "2");
     await userEvent.clear(removeAfter);
     await userEvent.type(removeAfter, "5");
-    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    await userEvent.click(screen.getByRole("button", { name: saveThresholdsWords }));
 
     expect(app.admin.setChangeThresholds).toHaveBeenCalledExactlyOnceWith({ flagAfter: 2, removeAfter: 5 });
   });
@@ -157,7 +173,7 @@ describe("settings", () => {
   it("shows why thresholds were refused", async () => {
     const app = openDashboard();
     app.admin.setChangeThresholds.mockResolvedValueOnce(thresholdRefusals.removeAfter);
-    await userEvent.click(await screen.findByRole("button", { name: "Save" }));
+    await userEvent.click(await screen.findByRole("button", { name: saveThresholdsWords }));
     expect((await screen.findByRole("alert")).textContent).toBe(thresholdRefusals.removeAfter);
   });
 
@@ -176,7 +192,7 @@ describe("correcting a player", () => {
 
   it("shows each position, where it came from, and whether it's confirmed", async () => {
     openDashboard();
-    const positions = within(await findWoltemade()).getByRole("list", { name: "Woltemade's positions" });
+    const positions = within(await findWoltemade()).getByRole("list", { name: positionsListLabel("Woltemade") });
     expect(within(positions).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
       "ST from his starts, flagged: 4 starts in a row elsewhereRemove",
       "CAM from his label, unconfirmedRemove",
@@ -192,7 +208,7 @@ describe("correcting a player", () => {
     const give = within(found).getByRole("combobox", { name: setLabel("Woltemade") });
     expect(within(give).queryByRole("option", { name: "ST" })).toBeNull();
     await userEvent.selectOptions(give, "SS");
-    await userEvent.click(within(found).getByRole("button", { name: "Set" }));
+    await userEvent.click(within(found).getByRole("button", { name: setWords }));
     expect(app.admin.setPosition).toHaveBeenCalledExactlyOnceWith(3, "SS");
   });
 

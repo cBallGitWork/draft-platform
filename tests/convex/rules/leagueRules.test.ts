@@ -57,7 +57,7 @@ describe("a new league", () => {
   });
 });
 
-test("two leagues hold different rules side by side, and the same match scores the same in both, by the site's set (#354)", async () => {
+test("two leagues hold different rules side by side, and neither holds a scoring set, so a match is priced by the site's (#354; their tables: twoLeagues.test.ts)", async () => {
   const first = await adminCreatesLeague(t, 4, "First");
   const second = await adminCreatesLeague(t, 4, "Second");
   await change(second, TOTAL_POINTS);

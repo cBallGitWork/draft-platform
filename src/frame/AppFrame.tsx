@@ -4,12 +4,12 @@ import type { AuthActions } from "../auth";
 import { FeedbackLink } from "../feedback/FeedbackPage";
 import { Continue } from "./Continue";
 import { MAIL_PATH, sectionAt, sections } from "./menu";
-import { MenuTab } from "./MenuTab";
+import { MainMenu, MenuTab } from "./MenuTab";
 import { TOP_BAR, TOP_BAR_ROW } from "./Panel";
 import { ProductName } from "./ProductName";
 import { SignOut } from "./SignOut";
 import type { TopBarState } from "./topBarState";
-import { mainMenuLabel, sectionTabsLabel } from "./words";
+import { sectionTabsLabel } from "./words";
 
 /** A section's tabs, butted like the menu's (plate.md, Shape); the admin's dashboard's too. */
 export const sectionTabClasses =
@@ -38,11 +38,7 @@ export function AppFrame({
         <div className={TOP_BAR_ROW}>
           <ProductName />
           {leagueSwitcher}
-          {/* On a phone the menu takes its own row under the name, Continue and Sign out. */}
-          <nav
-            aria-label={mainMenuLabel}
-            className="order-last flex w-full flex-wrap border-t border-plate-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-r"
-          >
+          <MainMenu>
             {sections.map((section) => (
               <MenuTab
                 key={section.path}
@@ -51,7 +47,7 @@ export function AppFrame({
                 unreadMail={section.path === MAIL_PATH ? topBar.unreadMail : 0}
               />
             ))}
-          </nav>
+          </MainMenu>
           <span className="grow" />
           <FeedbackLink />
           <Continue next={topBar.next} />
