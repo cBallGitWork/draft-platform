@@ -402,6 +402,12 @@
             "email",
             "askedAt"
           ]
+        },
+        {
+          "indexDescriptor": "by_askedAt",
+          "fields": [
+            "askedAt"
+          ]
         }
       ],
       "stagedDbIndexes": [],
