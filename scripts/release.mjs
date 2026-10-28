@@ -26,6 +26,11 @@ export const FINGERPRINT_ENV = "LIVE_SCHEMA_FINGERPRINT";
 export const SCHEMA_PATH = "convex/schema.ts";
 export const DEPLOY_ARGS = ["deploy", "--cmd", "npm run build"];
 export const BACKUP_FILE = "backup.zip";
+/** The dashboard page where Convex keeps the backups. */
+const BACKUP_PAGE = "the production deployment's Backup & Restore page";
+const STOPPED = "Release stopped, nothing went live";
+const SCHEMA_BUNDLE_PREFIX = ".release-schema-";
+const BACKUP_DIR_PREFIX = "release-backup-";
 /** What `npx convex export` prints once Convex has the snapshot (convex/dist/esm/cli/lib/convexExport.js). */
 const SNAPSHOT_TAKEN = /Created snapshot export at timestamp (\d+)/;
 const FINGERPRINT_HASH = "sha256";
@@ -54,7 +59,7 @@ export async function schemaJson(schemaPath = SCHEMA_PATH) {
     packages: "external",
   });
   // Written beside the schema so its packages resolve from this checkout's node_modules.
-  const file = join(process.cwd(), `.release-schema-${process.pid}.mjs`);
+  const file = join(process.cwd(), `${SCHEMA_BUNDLE_PREFIX}${process.pid}.mjs`);
   writeFileSync(file, bundled.outputFiles[0].text);
   try {
     const { default: schema } = await import(pathToFileURL(file).href);
@@ -81,12 +86,12 @@ const failure = (result) => (result.error?.message ?? result.stderr.trim()) || `
 
 /**
  * The release: back up if the shape changed, deploy, then record the shape now live.
- * `fingerprint` is null when the schema couldn't be read. Resolves with the exit code.
+ * `fingerprint` is null when the schema couldn't be read. Returns the exit code.
  */
 export function release({ convex, fingerprint, backupPath, log = console.log }) {
   const recorded = convex(["env", "get", FINGERPRINT_ENV], { capture: true });
   if (recorded.status !== 0) {
-    log(`Release stopped, nothing went live: couldn't read ${FINGERPRINT_ENV} from the live deployment (${failure(recorded)}).`);
+    log(`${STOPPED}: couldn't read ${FINGERPRINT_ENV} from the live deployment (${failure(recorded)}).`);
     return 1;
   }
   const live = recorded.stdout.trim() || null;
@@ -104,17 +109,16 @@ export function release({ convex, fingerprint, backupPath, log = console.log }) 
     const backup = convex(["export", "--path", backupPath], { capture: true });
     if (backup.status !== 0) {
       log(
-        `Release stopped, nothing went live: it changes saved data's shape and the backup before it failed (${failure(backup)}). ` +
-          "Convex's free plan keeps two backups a deployment: if both are there, delete the older on the production " +
-          "deployment's Backup & Restore page, then redeploy from Vercel.",
+        `${STOPPED}: it changes saved data's shape and the backup before it failed (${failure(backup)}). ` +
+          `Convex's free plan keeps two backups a deployment: if both are there, delete the older on ${BACKUP_PAGE}, then redeploy from Vercel.`,
       );
       return 1;
     }
     const snapshot = SNAPSHOT_TAKEN.exec(backup.stdout + backup.stderr)?.[1];
     log(
       snapshot
-        ? `Backup taken: snapshot ${snapshot}, on the production deployment's Backup & Restore page.`
-        : "Backup taken, but the CLI printed no timestamp: it is the newest on the production deployment's Backup & Restore page.",
+        ? `Backup taken: snapshot ${snapshot}, on ${BACKUP_PAGE}.`
+        : `Backup taken, but the CLI printed no timestamp: it is the newest on ${BACKUP_PAGE}.`,
     );
   }
 
@@ -138,7 +142,7 @@ async function main() {
   } catch (error) {
     console.log(`Reading ${SCHEMA_PATH}'s shape failed: ${error.message}`);
   }
-  const dir = mkdtempSync(join(tmpdir(), "release-backup-"));
+  const dir = mkdtempSync(join(tmpdir(), BACKUP_DIR_PREFIX));
   try {
     return release({ convex: convexCli, fingerprint, backupPath: join(dir, BACKUP_FILE) });
   } finally {

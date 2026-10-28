@@ -15,25 +15,28 @@ const LIVE = "a".repeat(64);
 const CHANGED = "b".repeat(64);
 const SNAPSHOT = "1730000000000000000";
 const OK = { status: 0, stdout: "", stderr: "" };
+const SNAPSHOT_LINE = `Created snapshot export at timestamp ${SNAPSHOT}`;
 
-/** A fake `npx convex`: answers each command from `answers`, keyed on its first word, and records the calls. */
+const command = (args) => args.slice(0, 2).join(" ");
+
+/** A fake `npx convex`: answers each command from `answers`, keyed on its first two words, and records the calls. */
 function fakeConvex(answers = {}) {
   const calls = [];
   const convex = (args) => {
     calls.push(args);
-    return { ...OK, ...answers[args[0]] };
+    return { ...OK, ...answers[command(args)] };
   };
-  return { convex, calls, commands: () => calls.map((args) => args.slice(0, 2).join(" ")) };
+  return { convex, calls, commands: () => calls.map(command) };
 }
 
 function run({ fingerprint, live = LIVE, answers = {} }) {
-  const fake = fakeConvex({ env: { stdout: live === null ? "" : `${live}\n` }, ...answers });
+  const fake = fakeConvex({ "env get": { stdout: live === null ? "" : `${live}\n` }, ...answers });
   const lines = [];
   const code = release({ convex: fake.convex, fingerprint, backupPath: BACKUP_PATH, log: (line) => lines.push(line) });
   return { code, ...fake, said: lines.join("\n") };
 }
 
-const exported = { stdout: "", stderr: `Created snapshot export at timestamp ${SNAPSHOT}\n` };
+const exported = { "export --path": { stdout: "", stderr: `${SNAPSHOT_LINE}\n` } };
 
 test("no change to saved data's shape: it deploys straight away, taking no backup and recording nothing", () => {
   const { code, calls, said } = run({ fingerprint: LIVE });
@@ -43,7 +46,7 @@ test("no change to saved data's shape: it deploys straight away, taking no backu
 });
 
 test("a changed shape: a backup is taken, then it deploys, then the new shape is recorded", () => {
-  const { code, calls, said } = run({ fingerprint: CHANGED, answers: { export: exported } });
+  const { code, calls, said } = run({ fingerprint: CHANGED, answers: exported });
   expect(code).toBe(0);
   expect(calls).toEqual([
     ["env", "get", FINGERPRINT_ENV],
@@ -55,7 +58,7 @@ test("a changed shape: a backup is taken, then it deploys, then the new shape is
 });
 
 test("a changed shape whose backup fails: the release stops before deploying, and says why", () => {
-  const { code, commands, said } = run({ fingerprint: CHANGED, answers: { export: { status: 1, stderr: "too many backups" } } });
+  const { code, commands, said } = run({ fingerprint: CHANGED, answers: { "export --path": { status: 1, stderr: "too many backups" } } });
   expect(code).toBe(1);
   expect(commands()).toEqual(["env get", "export --path"]);
   expect(said).toContain("Release stopped, nothing went live");
@@ -63,40 +66,37 @@ test("a changed shape whose backup fails: the release stops before deploying, an
 });
 
 test("a first release, with no shape on record yet, backs up first", () => {
-  const { code, commands, said } = run({ fingerprint: CHANGED, live: null, answers: { export: exported } });
+  const { code, commands, said } = run({ fingerprint: CHANGED, live: null, answers: exported });
   expect(code).toBe(0);
   expect(commands()).toEqual(["env get", "export --path", "deploy --cmd", "env set"]);
   expect(said).toContain("no record of its schema yet");
 });
 
 test("a schema that can't be read backs up first, and records nothing", () => {
-  const { code, commands, said } = run({ fingerprint: null, answers: { export: exported } });
+  const { code, commands, said } = run({ fingerprint: null, answers: exported });
   expect(code).toBe(0);
   expect(commands()).toEqual(["env get", "export --path", "deploy --cmd"]);
   expect(said).toContain("to be safe");
 });
 
 test("the live record can't be read: the release stops before backing up or deploying", () => {
-  const { code, commands, said } = run({ fingerprint: CHANGED, answers: { env: { status: 1, stderr: "no deploy key" } } });
+  const { code, commands, said } = run({ fingerprint: CHANGED, answers: { "env get": { status: 1, stderr: "no deploy key" } } });
   expect(code).toBe(1);
   expect(commands()).toEqual(["env get"]);
   expect(said).toContain("no deploy key");
 });
 
 test("a failed deploy fails the release with its exit code, and records nothing", () => {
-  const { code, commands } = run({ fingerprint: CHANGED, answers: { export: exported, deploy: { status: 3 } } });
+  const { code, commands } = run({ fingerprint: CHANGED, answers: { ...exported, "deploy --cmd": { status: 3 } } });
   expect(code).toBe(3);
   expect(commands()).toEqual(["env get", "export --path", "deploy --cmd"]);
 });
 
 test("released but the record fails: the release still passes, saying the next one will back up again", () => {
-  let sets = 0;
-  const fake = fakeConvex({ export: exported });
-  const convex = (args) => (args[1] === "set" ? (sets++, { status: 1, stdout: "", stderr: "offline" }) : fake.convex(args));
-  const lines = [];
-  expect(release({ convex, fingerprint: CHANGED, backupPath: BACKUP_PATH, log: (line) => lines.push(line) })).toBe(0);
-  expect(sets).toBe(1);
-  expect(lines.join("\n")).toContain("the next release will take a backup");
+  const { code, commands, said } = run({ fingerprint: CHANGED, answers: { ...exported, "env set": { status: 1, stderr: "offline" } } });
+  expect(code).toBe(0);
+  expect(commands()).toEqual(["env get", "export --path", "deploy --cmd", "env set"]);
+  expect(said).toContain("the next release will take a backup");
 });
 
 // The fingerprint, from the real convex/schema.ts.
@@ -108,7 +108,7 @@ test("the fingerprint reads the real schema, and is the same each time", () => {
   expect(shapeFingerprint(JSON.stringify(schema))).toBe(shapeFingerprint(JSON.stringify(schema)));
 });
 
-test("an index change isn't a change of shape; a field, a table or the table order", () => {
+test("an index or the tables' order isn't a change of shape; a dropped table or a changed field is", () => {
   const before = shapeFingerprint(JSON.stringify(schema));
   const [first, ...rest] = schema.tables;
   expect(shapeFingerprint(withTables([{ ...first, indexes: [] }, ...rest]))).toBe(before);
@@ -131,7 +131,7 @@ function runScript(liveFingerprint) {
       "#!/bin/sh",
       `echo "$*" >> "${callLog}"`,
       `if [ "$2 $3" = "env get" ]; then echo "${liveFingerprint}"; fi`,
-      `if [ "$2" = "export" ]; then echo "Created snapshot export at timestamp ${SNAPSHOT}" >&2; fi`,
+      `if [ "$2" = "export" ]; then echo "${SNAPSHOT_LINE}" >&2; fi`,
       "exit 0",
     ].join("\n"),
   );
@@ -153,6 +153,6 @@ test("run as the build command, a schema that matches the live one deploys with 
 test("run as the build command, a schema that differs from the live one is backed up first", () => {
   const { status, output, calls } = runScript(LIVE);
   expect(status).toBe(0);
-  expect(calls.map((call) => call.split(" ").slice(0, 2).join(" "))).toEqual(["convex env", "convex export", "convex deploy", "convex env"]);
+  expect(calls.map((call) => command(call.split(" ").slice(1)))).toEqual(["env get", "export --path", "deploy --cmd", "env set"]);
   expect(output).toContain(`Backup taken: snapshot ${SNAPSHOT}`);
 });
