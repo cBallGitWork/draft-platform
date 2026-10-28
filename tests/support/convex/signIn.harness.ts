@@ -26,11 +26,14 @@ async function makePkcs8PrivateKey(): Promise<string> {
   return `-----BEGIN PRIVATE KEY-----\n${btoa(String.fromCharCode(...der))}\n-----END PRIVATE KEY-----`;
 }
 
+/** The morning signInDeployment stops the clock at, unless a test names another. */
+export const DEPLOYMENT_MORNING = Date.parse("2026-10-20T09:00:00Z");
+
 /** A deployment with the settings `npx @convex-dev/auth` and Craig put on one, LISTED on the
- *  list, and the clock stopped at a known morning. Vitest undoes it all after the test
+ *  list, and the clock stopped at `morning`. Vitest undoes it all after the test
  *  (vitest.config.ts, tests/support/test.setup.ts). */
-export async function signInDeployment(): Promise<TestConvex> {
-  vi.useFakeTimers({ now: new Date("2026-10-20T09:00:00Z") });
+export async function signInDeployment(morning = DEPLOYMENT_MORNING): Promise<TestConvex> {
+  vi.useFakeTimers({ now: morning });
   vi.stubEnv("SITE_URL", SITE_URL);
   vi.stubEnv("CONVEX_SITE_URL", "https://deployment.example.com");
   signingKey ??= makePkcs8PrivateKey();
@@ -46,6 +49,9 @@ export async function signInDeployment(): Promise<TestConvex> {
 
 export type SentEmail = { to: string; subject: string; text: string };
 
+/** What a faked Resend answers a send it takes. */
+export const RESEND_ACCEPTED = { id: "email-id" };
+
 /** Resend answering every send with `status`, and the emails it was asked to send. */
 export function fakeResend(status = 200): SentEmail[] {
   const sent: SentEmail[] = [];
@@ -54,7 +60,7 @@ export function fakeResend(status = 200): SentEmail[] {
     vi.fn(async (url: string, init: RequestInit) => {
       if (url !== RESEND_EMAILS_URL) throw new Error(`no fake for ${url}`);
       sent.push(JSON.parse(String(init.body)));
-      return status === 200 ? Response.json({ id: "email-id" }) : new Response("refused", { status });
+      return status === 200 ? Response.json(RESEND_ACCEPTED) : new Response("refused", { status });
     }),
   );
   return sent;
