@@ -2,7 +2,7 @@
 // server, and that it hands on what comes back as it comes.
 
 import { renderHook } from "@testing-library/react";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { livePremierLeague } from "../../../src/premierLeague/livePremierLeague";
 import { ARSENAL, CHELSEA, plMatch } from "../../support/src/premierLeague.harness";
@@ -18,13 +18,6 @@ vi.mock("convex/react", async () =>
     },
   }),
 );
-
-afterEach(() => {
-  convex.firstKickoffs.mockReset();
-  convex.ofGameweek.mockReset();
-  convex.ofMatch.mockReset();
-  convex.ofSeason.mockReset();
-});
 
 test("it asks football/plGameweeks:firstKickoffs with nothing, and hands on what comes back", () => {
   const kickoffs = [{ gameweek: 1, firstKickoff: 1_000 }];

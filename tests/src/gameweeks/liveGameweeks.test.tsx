@@ -3,7 +3,7 @@
 
 import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { season } from "../../support/src/gameweeks.harness";
@@ -17,11 +17,6 @@ vi.mock("convex/react", async () =>
     mutations: { "gameweeks/leagueGameweeks:setUsed": convex.setUsed },
   }),
 );
-
-afterEach(() => {
-  convex.ofLeague.mockReset();
-  convex.setUsed.mockReset();
-});
 
 const leagueId = "league-1" as Id<"leagues">;
 const REFUSAL = "Gameweek 3 has begun, so it can't be ticked or unticked.";
