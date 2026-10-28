@@ -63,6 +63,7 @@ test("a complete match read again before its lock schedules no second lock", asy
   expect(scheduled.filter((job) => job.state.kind === "pending")).toHaveLength(1);
 });
 
+// S07.2
 test("a record still missing at the hour keeps the match provisional, and it locks an hour after it arrives", async () => {
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, withPlReadEmpty(recordedGw6(), FULL_STATS.coyle.pl));
