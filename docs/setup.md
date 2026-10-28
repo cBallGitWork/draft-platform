@@ -93,7 +93,7 @@ To undo such a release with its data:
    managers saved since the release.
 2. Restore the release's backup, the one named in its build log, from its row's menu, **Restore**.
    Or download it and run `npx convex import --prod --replace <file>.zip`.
-3. Revert the release's merge. Its own release backs up again first, since the shape changes back.
+3. Revert the release's merge. Its build log should say `Backup taken`, since the shape changes back.
 
 Convex refuses a schema the saved data doesn't fit, so the order follows the step it undoes: undo a
 widening (data saved since may not fit the old schema) by restoring, then reverting, as above;

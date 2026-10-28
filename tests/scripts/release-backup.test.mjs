@@ -103,6 +103,12 @@ test("released but the record fails: the release still passes, saying the next o
 const schema = JSON.parse(await schemaJson(join(REPO, "convex/schema.ts")));
 const withTables = (tables) => JSON.stringify({ ...schema, tables });
 
+test("esbuild is pinned to the version Convex bundles with, so there is one copy", () => {
+  const lock = JSON.parse(readFileSync(join(REPO, "package-lock.json"), "utf8"));
+  const pkg = JSON.parse(readFileSync(join(REPO, "package.json"), "utf8"));
+  expect(pkg.devDependencies.esbuild).toBe(lock.packages["node_modules/convex"].dependencies.esbuild);
+});
+
 test("the fingerprint reads the real schema, and is the same each time", () => {
   expect(schema.tables.length).toBeGreaterThan(0);
   expect(shapeFingerprint(JSON.stringify(schema))).toBe(shapeFingerprint(JSON.stringify(schema)));
