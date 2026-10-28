@@ -23,6 +23,8 @@ const scores = new Map(
     new Map(previewTeams.map((team, teamIndex) => [team, team === "Team 2" ? 0 : 30 + ((index * 7 + teamIndex * 11) % 29)])),
   ]),
 );
-const table = leagueTableOf(previewTeams, { ...previewSeason, scores, provisional: previewTeams, noLineup: ["Team 2"] });
+/** How the preview league is scored: My team's preview shows the same scores. */
+export const previewScored = { ...previewSeason, scores, provisional: previewTeams, noLineup: ["Team 2"] } satisfies Drawn;
+const table = leagueTableOf(previewTeams, previewScored);
 
 export const previewTable: TableSeam = { useLeagueTable: () => table };

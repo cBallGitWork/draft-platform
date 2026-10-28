@@ -9,8 +9,8 @@ import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // My team's Fixtures tab (#365): the caller's team's head-to-head games for the season, in
-// gameweek order, from the schedule the table and fixtures screen reads. No matchup is scored yet
-// (#29), so every game is a fixture.
+// gameweek order, from the schedule the table and fixtures screen reads. No gameweek has begun
+// here, so none is scored: the results are teamFixturesScores.test.ts's (#436).
 
 const [ANN, BOB, CAT, DAN] = MANAGERS;
 const STRANGER = "stranger@example.com";
@@ -107,7 +107,7 @@ describe("the games", () => {
     expect((await read())!.games).toEqual([]);
     await addManagers(t, leagueId, [BOB]);
     await changeRules({ format: "totalPoints" });
-    expect(await read()).toEqual({ teamName: "Team 1", format: "totalPoints", games: [] });
+    expect(await read()).toMatchObject({ teamName: "Team 1", format: "totalPoints", games: [], unscored: [] });
   });
 });
 

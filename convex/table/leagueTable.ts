@@ -5,9 +5,10 @@ import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
-import { LEAGUE_AVERAGE, namedFixture, roundsOf } from "./roundRobin";
+import { namedFixture, roundsOf } from "./roundRobin";
 import { scheduleOf } from "./playedFixtures";
-import { averageOf, headToHeadTable, totalPointsTable, type GameweekScores } from "./standings";
+import { headToHeadTable, totalPointsTable, type GameweekScores } from "./standings";
+import { gameScore } from "./teamGames";
 import { leagueScores } from "./gameweekScores";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 
@@ -81,15 +82,6 @@ export const leagueTable = v.object({
 });
 export type LeagueTable = Infer<typeof leagueTable>;
 
-/** A side's points in a gameweek scored: a team's own, or the league's average. A team with none
- *  is a gameweek scored short, and throws. */
-function sidePoints(teamIds: readonly Id<"teams">[], scored: ReadonlyMap<Id<"teams">, number>, gameweek: number, side: Id<"teams"> | typeof LEAGUE_AVERAGE) {
-  if (side === LEAGUE_AVERAGE) return averageOf(teamIds, scored, gameweek);
-  const points = scored.get(side);
-  if (points === undefined) throw new Error(`Gameweek ${gameweek} is scored, but not for team ${side}`);
-  return points;
-}
-
 /** What a league's table and fixtures are drawn from, as `ofLeague` and league home read them:
  *  the latest rules, the teams, the head-to-head schedule (none in total points), each team's points
  *  in each gameweek begun and those that couldn't be scored (gameweekScores.ts), and the table they
@@ -121,7 +113,7 @@ export const ofLeague = query({
     const { league } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     if (season === null) return null;
-    const { rules, teamIds, schedule, results, unscored, scores, table, named } = await standingsOf(ctx, league, season);
+    const { rules, teamIds, schedule, results, unscored, table, named } = await standingsOf(ctx, league, season);
     const deadlines = await leagueDeadlines(ctx, leagueId);
     return {
       format: rules.format,
@@ -130,15 +122,9 @@ export const ofLeague = query({
         gameweek,
         deadline: deadlines.get(gameweek) ?? null,
         fixtures: fixtures.map((each) => {
-          const scored = scores.get(gameweek);
-          return {
-            teamId: each.team,
-            ...namedFixture(each, named),
-            points:
-              scored === undefined
-                ? null
-                : { team: sidePoints(teamIds, scored, gameweek, each.team), opponent: sidePoints(teamIds, scored, gameweek, each.opponent) },
-          };
+          const scored = results.get(gameweek);
+          const score = scored === undefined ? null : gameScore(teamIds, scored, gameweek, each.team, each.opponent);
+          return { teamId: each.team, ...namedFixture(each, named), points: score === null ? null : { team: score.team, opponent: score.opponent } };
         }),
         byes: byes.map(named),
       })),
