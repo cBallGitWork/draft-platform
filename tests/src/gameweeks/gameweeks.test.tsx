@@ -16,9 +16,9 @@ import { gameweekWords, whenWords } from "../../../src/words";
 const PAGE = gameweeksPath(league.leagueId);
 const REFUSAL = "Gameweek 17 has begun, so it can't be ticked or unticked.";
 
-const tickBox = (gameweek: number) => screen.findByRole("checkbox", { name: gameweekWords(gameweek) });
-const isTicked = async (gameweek: number) => (await tickBox(gameweek)).getAttribute("aria-checked") === "true";
-const isDisabled = async (gameweek: number) => ((await tickBox(gameweek)) as HTMLButtonElement).disabled;
+const tickBox = async (gameweek: number) => (await screen.findByRole("checkbox", { name: gameweekWords(gameweek) })) as HTMLInputElement;
+const isTicked = async (gameweek: number) => (await tickBox(gameweek)).checked;
+const isDisabled = async (gameweek: number) => (await tickBox(gameweek)).disabled;
 /** The line saying how many gameweeks the league plays. */
 const playsLine = () => screen.getByText(`${league.name} plays`, { exact: false }).textContent;
 /** The row headed by a gameweek's number. */
@@ -58,7 +58,7 @@ describe("the gameweeks page", () => {
 
     expect(await isTicked(GAMEWEEKS)).toBe(true);
     expect(screen.getAllByRole("checkbox")).toHaveLength(GAMEWEEKS);
-    expect(screen.getAllByRole("checkbox").every((box) => box.getAttribute("aria-checked") === "true")).toBe(true);
+    expect((screen.getAllByRole("checkbox") as HTMLInputElement[]).every((box) => box.checked)).toBe(true);
     expect(playsLine()).toBe(`${league.name} plays ${GAMEWEEKS} of ${GAMEWEEKS} gameweeks.`);
     expect(within(rowOf(BEGUN + 1)).getByText(whenWords(app.gameweeks.gameweeks[BEGUN].deadline!))).toBeTruthy();
   });
