@@ -112,8 +112,9 @@ styling, typeface, test, coverage, screenshot and smoke-test rows, and the rest 
   with no run due; the window is a row in `platformSettings`.
   **No cron runs it yet.** The suggestion is every 10 minutes: full time counts from the first
   read that finds it, so a match locks up to one interval after its true hour. A run with no
-  match due reads no feed; one due reads about 40 Premier League URLs per match, and a locked
-  match is read again hourly for a day to catch late corrections.
+  match due reads no feed; one due reads about 40 Premier League URLs per match (its sheets,
+  each named man's stats, and its team stats), and a locked match is read again hourly for a day
+  to catch late corrections.
 - Live stats (#28): a cron every minute (`liveStatsSync.tick`) reads each match from kickoff
   until it is complete, or four hours on; outside those windows it reads no feed and writes no row.
   A cron, not a function rescheduling itself, because Convex runs a scheduled action at most
@@ -123,7 +124,9 @@ styling, typeface, test, coverage, screenshot and smoke-test rows, and the rest 
   skipped. Each tick that found a match live is a row in `liveStatsTicks`, failed or not
   ([docs/pl-match-stats.md](docs/pl-match-stats.md#during-a-match)). Outside matches: one
   action and one indexed query a minute, about 43,000 calls a month. Inside: FPL's ~1.8 MB
-  bootstrap and about 40 Premier League reads per match, each tick.
+  bootstrap and about 40 Premier League reads per match, each tick: its sheets, each named
+  man's stats, its commentary with the sheets again, and its five team stats (#45), one read
+  stored one row a match in `matchTeamStats` (`convex/football/matchTeamStats.ts`).
   Revisit the bootstrap read each tick when Convex usage nears the plan's limit, or when
   `liveStatsTicks` rows fail from throttling.
 - Match scores (#49): each match's state, score and clock in `matchScores`, apart from

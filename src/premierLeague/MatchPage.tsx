@@ -21,18 +21,24 @@ import {
   noMatchWords,
   noMenWords,
   notCountingLabel,
+  noTeamStatsWords,
   pointsProblemWords,
+  possessionWords,
   SCORE_LABEL,
   scoreWords,
   sheetLabel,
+  STAT_COLUMN_LABEL,
   SUBSTITUTES_TITLE,
+  TEAM_STATS_TITLE,
+  teamStatRows,
+  teamStatsLabel,
   unusedLabel,
   versusWords,
 } from "./words";
 
 /** One real Premier League match (spec/10, The match page), live: the score and clock, each club's
- *  team sheet with every man owned in the league showing his team and his points, and the match's
- *  commentary, newest first. Opened from the Premier League's fixtures (spec/18) and from a
+ *  team sheet with every man owned in the league showing his team and his points, the five team
+ *  stats, and the match's commentary, newest first. Opened from the Premier League's fixtures (spec/18) and from a
  *  player's status on the matchup. */
 export function MatchPage({ league, seam, fixtureCode }: { league: LeagueSummary; seam: PremierLeagueSeam; fixtureCode: number }) {
   const match = seam.useMatch(league.leagueId, fixtureCode);
@@ -50,7 +56,7 @@ export function MatchPage({ league, seam, fixtureCode }: { league: LeagueSummary
 }
 
 function HeldMatch({ match }: { match: Match }) {
-  const { home, away, men, pointsProblem, commentary } = match;
+  const { home, away, men, pointsProblem, teamStats, commentary } = match;
   const moved = men.filter((man) => man.side === null);
   return (
     <>
@@ -59,7 +65,11 @@ function HeldMatch({ match }: { match: Match }) {
       <div className="grid items-start gap-2 lg:grid-cols-2 xl:grid-cols-3">
         <TeamSheet title={home.name} men={men.filter((man) => man.side === "home")} />
         <TeamSheet title={away.name} men={men.filter((man) => man.side === "away")} />
-        <Vidiprinter commentary={commentary} title={COMMENTARY_TITLE} noLinesWords={noLinesWords} className="lg:col-span-2 xl:col-span-1" />
+        {/* Side by side under the sheets on the desk, stacked in the third column on a wide one. */}
+        <div className="grid items-start gap-2 lg:col-span-2 lg:grid-cols-2 xl:col-span-1 xl:grid-cols-1">
+          <TeamStats home={home.shortName} away={away.shortName} stats={teamStats} />
+          <Vidiprinter commentary={commentary} title={COMMENTARY_TITLE} noLinesWords={noLinesWords} />
+        </div>
         {moved.length > 0 && <TeamSheet title={MOVED_TITLE} men={moved} />}
       </div>
     </>
@@ -95,6 +105,48 @@ function MatchState({ score, kickoff }: Pick<Match, "score" | "kickoff">) {
     default:
       return <span className="text-muted">{kickoff === null ? "" : kickoffDayWords(kickoff)}</span>;
   }
+}
+
+type Side = NonNullable<Match["teamStats"]>["home"];
+
+/** Each side's five, home's figure left of the stat and away's right, as a scoreboard reads. */
+function TeamStats({ home, away, stats }: { home: string; away: string; stats: Match["teamStats"] }) {
+  const titleId = useId();
+  return (
+    <section aria-labelledby={titleId} className="bg-panel">
+      <PanelTitle id={titleId}>{TEAM_STATS_TITLE}</PanelTitle>
+      {stats === null ? (
+        <p className="px-3 py-2 text-muted">{noTeamStatsWords}</p>
+      ) : (
+        <table aria-label={teamStatsLabel(home, away)} className="w-full table-fixed border-collapse">
+          <thead className="bg-head text-ground">
+            <tr>
+              <th scope="col" className="px-2 text-right">{home}</th>
+              <th scope="col" className="w-1/2 px-2 text-center">
+                <span className="sr-only">{STAT_COLUMN_LABEL}</span>
+              </th>
+              <th scope="col" className="px-2 text-left">{away}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(Object.keys(teamStatRows) as (keyof typeof teamStatRows)[]).map((stat) => (
+              <tr key={stat} className="border-t border-panel-rule">
+                <td className="px-2 text-right font-bold tabular-nums">{statWords(stats.home, stat)}</td>
+                <th scope="row" className="px-2 text-center font-normal text-muted">{teamStatRows[stat]}</th>
+                <td className="px-2 text-left font-bold tabular-nums">{statWords(stats.away, stat)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+  );
+}
+
+function statWords(side: Side, stat: keyof Side): string {
+  const value = side[stat];
+  if (value === null) return noFigureWords;
+  return stat === "possession" ? possessionWords(value) : String(value);
 }
 
 /** A club's men as the sheet named them: the starters, then a Substitutes plate and the bench. */

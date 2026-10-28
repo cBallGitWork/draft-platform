@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { heldOf } from "../football/matchCommentary";
+import { heldTeamStatsOf } from "../football/matchTeamStats";
 import { clubOf, scoreOf, scoreOnly } from "../football/matchScores";
 import { inMatchOf } from "../matchup/matchup";
 import { commentary, type MatchupCommentary } from "../matchup/matchupShape";
@@ -10,7 +11,7 @@ import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { POSITIONS } from "../positions/positionTables";
 import { seasonRules } from "../rules/rulesHistory";
-import { clubRecord, position, scoreRead } from "../schema";
+import { clubRecord, position, scoreRead, sideTeamStats } from "../schema";
 import type { ScoringSet } from "../scoring/scoringSet";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
@@ -29,8 +30,8 @@ import { gameweekInputs, heldFixtures, leagueReads, MATCH_RECORDS_MOST, teamInGa
 // begun, as the matchup shows lineups only then.
 //
 // The men come from the match's records, which the live poller writes from kickoff (#28): the
-// sheets an hour before it, and the five team stats spec/10 names, aren't stored yet (#45 stays
-// open for them).
+// sheets an hour before it aren't stored yet (#45 stays open for them). The five team stats are as
+// the live poller last read them (football/matchTeamStats.ts).
 
 type PlayerCode = number;
 
@@ -69,6 +70,9 @@ export const matchPage = v.object({
   men: v.array(matchMan),
   /** Why the league's points can't be worked out, while the rest still shows; null when they can. */
   pointsProblem: v.union(v.string(), v.null()),
+  /** Shots, shots on target, possession, corners and cards, each side's; null until a read has
+   *  given any. */
+  teamStats: v.union(v.object({ home: sideTeamStats, away: sideTeamStats }), v.null()),
   commentary,
 });
 export type MatchPage = Infer<typeof matchPage>;
@@ -92,6 +96,7 @@ export const ofMatch = query({
     const owners = await ownersOf(ctx, leagueId, records);
     const priced = await pricedOrProblem(ctx, league, fixture, owners);
     const held = await scoreOf(ctx, fixtureCode);
+    const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
     return {
       fixtureCode,
       gameweek: fixture.gameweek,
@@ -101,6 +106,7 @@ export const ofMatch = query({
       score: held === null ? null : scoreOnly(held),
       men: await menOf(ctx, fixture, records, owners, priced),
       pointsProblem: priced.problem,
+      teamStats: teamStats === null ? null : { home: teamStats.home, away: teamStats.away },
       commentary: await commentaryOf(ctx, fixture, priced),
     };
   },
