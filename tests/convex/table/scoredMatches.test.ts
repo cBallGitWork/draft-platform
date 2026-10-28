@@ -6,7 +6,7 @@ import { actingAs } from "../../support/convex/leagues.harness";
 import { EVERTON, HULL, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import {
   ANN,
-  FULL_TIME_READ,
+  LEAGUE_FULL_TIME_READ,
   GAMEWEEK,
   HULL_BENCH,
   HULL_KEEPER,
@@ -59,11 +59,11 @@ async function annsGameweek(league: ScoresLeague) {
   const ann = await actingAs(league.t, ANN);
   const cards = new Map<number, PlayedMatch[]>();
   for (const playerCode of ANNS_MEN) {
-    const card = await ann.query(api.playerCard.playerCard.card, { leagueId: league.leagueId, playerCode, now: FULL_TIME_READ });
+    const card = await ann.query(api.playerCard.playerCard.card, { leagueId: league.leagueId, playerCode, now: LEAGUE_FULL_TIME_READ });
     cards.set(playerCode, card!.matches.filter((match) => match.gameweek === GAMEWEEK));
   }
   const table = (await readTable(league))!.results.find((each) => each.gameweek === GAMEWEEK)!.teams.find((team) => team.teamId === league.annsTeam)!;
-  const squad = await ann.query(api.squads.teamSquad.ofMyTeam, { leagueId: league.leagueId, now: FULL_TIME_READ });
+  const squad = await ann.query(api.squads.teamSquad.ofMyTeam, { leagueId: league.leagueId, now: LEAGUE_FULL_TIME_READ });
   return { cards, table, squad };
 }
 
@@ -126,7 +126,7 @@ test("the league's override of a sub's points counts on his card as in the table
   await fullTimeRecords(league);
   await league.t.run(async (ctx) => {
     const fixture = (await ctx.db.query("fixtures").first())!;
-    await ctx.db.insert("pointsOverrides", { leagueId: league.leagueId, gameweek: GAMEWEEK, fixtureCode: fixture.code, playerCode: ON_IN_HIS_OWN_AREA, points: OVERRIDDEN, reason: "The feed was wrong", by: ANN, at: FULL_TIME_READ });
+    await ctx.db.insert("pointsOverrides", { leagueId: league.leagueId, gameweek: GAMEWEEK, fixtureCode: fixture.code, playerCode: ON_IN_HIS_OWN_AREA, points: OVERRIDDEN, reason: "The feed was wrong", by: ANN, at: LEAGUE_FULL_TIME_READ });
   });
   const cards = await expectCardsAddUpToTheTable(league, true);
   expect(cards.get(ON_IN_HIS_OWN_AREA)![0].points).toMatchObject({ scoredAs: "slot", total: OVERRIDDEN });

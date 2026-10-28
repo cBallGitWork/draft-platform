@@ -5,9 +5,8 @@ import { internalMutation, internalQuery, type ActionCtx, type QueryCtx } from "
 import { teamSheetMan } from "../schema";
 import { logFailure } from "../shared/errors";
 import { playerByCode } from "../shared/players";
-import { HOUR_MS } from "../shared/time";
-import { dueMatch, type DueMatch } from "../stats/matchStats";
-import { byGameweek } from "../stats/matchStatsSync";
+import { byGameweek, dueMatch, type DueMatch } from "../shared/dueMatches";
+import { LINEUPS_OUT_BEFORE_KICKOFF_MS } from "../shared/time";
 import { codesByOpta, fixtureCodeIn } from "./feedIds";
 import type { readFplPayloads } from "./fpl";
 import { matchSlots } from "./plMatch";
@@ -22,10 +21,6 @@ import { readPlFixture, readPlFixtures } from "./premierLeague";
 
 type TeamSheetMan = Infer<typeof teamSheetMan>;
 
-/** How long before kickoff the sheets are read: spec/10's "about an hour". The Premier League had
- *  them out at the first read 58 minutes before (docs/pl-commentary.md, What a live match showed). */
-export const SHEETS_BEFORE_KICKOFF_MS = HOUR_MS;
-
 /** The matches whose sheets to read at `now`: kicking off within the hour, not yet kicked off. */
 export const due = internalQuery({
   args: { now: v.number() },
@@ -33,7 +28,7 @@ export const due = internalQuery({
   handler: async (ctx, { now }): Promise<DueMatch[]> => {
     const upcoming = ctx.db
       .query("fixtures")
-      .withIndex("by_kickoff", (q) => q.gt("kickoff", now).lte("kickoff", now + SHEETS_BEFORE_KICKOFF_MS));
+      .withIndex("by_kickoff", (q) => q.gt("kickoff", now).lte("kickoff", now + LINEUPS_OUT_BEFORE_KICKOFF_MS));
     const found: DueMatch[] = [];
     // Uncapped, as it stays small: matches kicking off within one hour, at most the ten a final day plays at once.
     for await (const { code, gameweek, droppedAt } of upcoming) {

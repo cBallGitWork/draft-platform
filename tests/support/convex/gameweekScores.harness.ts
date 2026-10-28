@@ -22,13 +22,14 @@ import { recordedGw6 } from "../recorded/gw6.payloads";
 export { GAMEWEEK };
 export const [ANN, BOB, CAT] = MANAGERS;
 
-/** Hull v Everton's kickoff here: a week after signInDeployment's clock, so the league is made
- *  before gameweek 6 begins (a document can't be made earlier than the deployment's first). The
- *  records don't hang on it. */
-export const KICKOFF = Date.parse("2026-10-27T15:00:00Z");
-export const FULL_TIME_READ = KICKOFF + 2 * HOUR_MS;
+/** Hull v Everton's kickoff as this league replays it, not FPL's recorded KICKOFF in
+ *  matchStats.harness: a week after signInDeployment's clock, so the league is made before
+ *  gameweek 6 begins (a document can't be made earlier than the deployment's first). The records
+ *  don't hang on it. */
+export const LEAGUE_KICKOFF = Date.parse("2026-10-27T15:00:00Z");
+export const LEAGUE_FULL_TIME_READ = LEAGUE_KICKOFF + 2 * HOUR_MS;
 /** The league's deadline for gameweek 6: the first rules', before Hull v Everton's kickoff. */
-export const DEADLINE = KICKOFF - FIRST_RULES.deadline.minutesBeforeFirstKickoff * MINUTE_MS;
+export const DEADLINE = LEAGUE_KICKOFF - FIRST_RULES.deadline.minutesBeforeFirstKickoff * MINUTE_MS;
 
 /** Who stands where. Hull's unused substitute keeper starts in goal, so their keeper, who played
  *  the 90 minutes, comes on for him once the match is over. */
@@ -112,7 +113,7 @@ export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Pr
   const [annsTeam, bobsTeam, catsTeam] = await addManagers(t, leagueId, catToo ? [ANN, BOB, CAT] : [ANN, BOB]);
   const elements = new Map(recordedGw6().fpl.bootstrap.elements.map((element) => [element.code, element]));
   await t.run(async (ctx) => {
-    await ctx.db.insert("fixtures", { code: HULL_EVERTON, gameweek: GAMEWEEK, homeClubCode: HULL, awayClubCode: EVERTON, kickoff: KICKOFF });
+    await ctx.db.insert("fixtures", { code: HULL_EVERTON, gameweek: GAMEWEEK, homeClubCode: HULL, awayClubCode: EVERTON, kickoff: LEAGUE_KICKOFF });
     const squads: [Id<"teams">, number, Starter[], number[]][] = [
       [annsTeam, HULL, HULL_STARTERS, HULL_BENCH],
       [bobsTeam, EVERTON, EVERTON_STARTERS, EVERTON_BENCH],
@@ -151,14 +152,14 @@ export const readTable = ({ t, leagueId }: ScoresLeague) => actingAs(t, ANN).the
 
 /** The match's records as the live tick lands them, before full time. */
 export async function liveRecords({ t }: ScoresLeague, records: PlayerMatchRecord[], minute: number | null = null) {
-  vi.setSystemTime(KICKOFF + HOUR_MS);
+  vi.setSystemTime(LEAGUE_KICKOFF + HOUR_MS);
   await t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: HULL_EVERTON, minute, records });
 }
 
 /** The match's records as the full-time read lands them: complete, its corrections window open. */
 export async function fullTimeRecords({ t }: ScoresLeague, records: PlayerMatchRecord[] = mergedHullEverton()) {
-  vi.setSystemTime(FULL_TIME_READ);
-  await t.mutation(internal.stats.matchStats.upsertMatch, { fixtureCode: HULL_EVERTON, readAt: FULL_TIME_READ, records });
+  vi.setSystemTime(LEAGUE_FULL_TIME_READ);
+  await t.mutation(internal.stats.matchStats.upsertMatch, { fixtureCode: HULL_EVERTON, readAt: LEAGUE_FULL_TIME_READ, records });
 }
 
 /** The corrections window passes and the match locks. */

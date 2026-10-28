@@ -1,13 +1,12 @@
 import { describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { seasonStartYear } from "../../../convex/football/football";
 import { rulesInGameweek } from "../../../convex/rules/rulesHistory";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { PATCH_NOTICE_DAYS, siteScoringRefusals, versionName } from "../../../convex/scoring/siteScoring";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { HOUR_MS } from "../../../convex/shared/time";
+import { HOUR_MS, seasonStartYear } from "../../../convex/shared/time";
 import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { expectRefused, holdGameweeks, rulesRevision, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";

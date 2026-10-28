@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery, type QueryCtx } from "../_generated/server";
-import { dueMatch, matchWrites, recordsOf, statusOf, writeRecords, type DueMatch } from "./matchStats";
+import { dueMatch, type DueMatch } from "../shared/dueMatches";
+import { matchWrites, recordsOf, statusOf, writeRecords } from "./matchStats";
 import { liveStatsTickFields, playerMatchRecord } from "../schema";
 import { LATEST_RUNS } from "../shared/syncRuns";
 import { HOUR_MS } from "../shared/time";

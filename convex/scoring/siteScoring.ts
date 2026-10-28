@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { seasonStartYear } from "../football/football";
 import { gameweekDeadline, type DeadlineRule } from "../gameweeks/deadline";
 import { gameweekStartsOf } from "../gameweeks/gameweekStarts";
 import { nextGameweek } from "../gameweeks/nextGameweek";
@@ -13,7 +12,7 @@ import { adminOf, callerEmail, isAdmin, refuse } from "../shared/leagueAccess";
 import { momentIn } from "../shared/moments";
 import { zoneOf } from "../signIn/timeZone";
 import { sortedJson } from "../shared/sortedJson";
-import { DAY_MS } from "../shared/time";
+import { DAY_MS, seasonStartYear } from "../shared/time";
 import { fileSiteLetter } from "../mail/letters";
 import { versionLetter } from "../mail/letterWords";
 import { FIRST_SCORING } from "./firstScoring";

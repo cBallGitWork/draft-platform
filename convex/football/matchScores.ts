@@ -3,7 +3,7 @@ import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalMutation, query, type ActionCtx, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { clubRecord, scoreFeed, scoreRead, type matchState, type scoreWrites } from "../schema";
-import { takeAllOrThrow } from "../shared/cappedRead";
+import { gameweekFixtures } from "../shared/fixtures";
 import { callerEmail } from "../shared/leagueAccess";
 import { clubByCode } from "../shared/players";
 import { BATCH_SIZE } from "../shared/syncRuns";
@@ -84,10 +84,6 @@ function sameScore(sent: ScoreRead, held: ScoreRead): boolean {
   );
 }
 
-/** The most matches one gameweek holds: ten, or more with a match moved into it, with room. More
- *  throws, never a silent cut. */
-export const GAMEWEEK_MATCHES_MOST = 40;
-
 const gameweekMatch = v.object({
   fixtureCode: v.number(),
   /** Null while the match has no kickoff time. */
@@ -105,13 +101,7 @@ export const ofGameweek = query({
   returns: v.array(gameweekMatch),
   handler: async (ctx, { gameweek }) => {
     await callerEmail(ctx);
-    const fixtures = await takeAllOrThrow(
-      ctx.db
-        .query("fixtures")
-        .withIndex("by_gameweek_and_droppedAt", (q) => q.eq("gameweek", gameweek).eq("droppedAt", undefined)),
-      GAMEWEEK_MATCHES_MOST,
-      `More than ${GAMEWEEK_MATCHES_MOST} matches are held for gameweek ${gameweek}, so they would be cut short`,
-    );
+    const fixtures = await gameweekFixtures(ctx, gameweek, "they would be cut short");
     const inOrder = fixtures.toSorted((a, b) => (a.kickoff ?? Infinity) - (b.kickoff ?? Infinity));
     return Promise.all(
       inOrder.map(async ({ code, kickoff, homeClubCode, awayClubCode }) => {
