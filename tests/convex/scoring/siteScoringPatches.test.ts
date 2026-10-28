@@ -138,7 +138,7 @@ describe("announcing a patch", () => {
     expect(await inGameweek(10)).toEqual(EDITED);
   });
 
-  test("two leagues with their own rules score the same match the same, by the version in force in that gameweek", async () => {
+  test("two leagues with their own rules hold no scoring set, so a match is priced by the site's version in force in that gameweek (their tables: twoLeagues.test.ts)", async () => {
     await holdGameweeks(t, { next: 9 });
     const first = await adminCreatesLeague(t, 4, "First");
     const second = await adminCreatesLeague(t, 4, "Second");
