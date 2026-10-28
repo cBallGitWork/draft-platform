@@ -42,7 +42,7 @@ type Side = Extract<MatchupSide, { kind: "team" }>;
 type Slot = MatchupSlot;
 
 /** FPL's code for the match a made-up man plays in, unless his status names another. */
-export const SLOT_MATCH = 2645271;
+export const SLOT_MATCH = 101;
 
 /** A man in a lineup, yet to play and counting unless `rest` says. */
 export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
