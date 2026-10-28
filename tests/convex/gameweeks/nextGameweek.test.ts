@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import type { DeadlineRule } from "../../../convex/gameweeks/deadline";
-import { nextGameweek } from "../../../convex/gameweeks/nextGameweek";
+import { nextByDeadlines, nextGameweek } from "../../../convex/gameweeks/nextGameweek";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 
 // Which gameweek a rule change takes effect from (#25 story 3: "a rule change applies from the next
@@ -98,5 +98,26 @@ describe("a gameweek with no kickoff time behind one that has begun (#413)", () 
 
   test("once every gameweek after it has begun, the next is the one after the last", () => {
     expect(nextGameweek(withEight, eightsMatchPostponed, ninetyMinutes, NOTHING_PASSED, NEXT_SATURDAY_3PM)).toBe(11);
+  });
+});
+
+// The rule the screens share with the server, by each gameweek's deadline and their own clock.
+describe("the next by deadlines", () => {
+  const NOW = SATURDAY_3PM;
+  const begun = NOW - HOUR_MS;
+  const notBegun = NOW + HOUR_MS;
+  const held = (deadlines: readonly [number, number | null][]) => deadlines.map(([gameweek, deadline]) => ({ gameweek, deadline }));
+  const nextOf = (inOrder: ReturnType<typeof held>) => nextByDeadlines(inOrder, (each) => each.deadline, NOW)?.gameweek;
+
+  test("passes over one with no kickoff time behind one begun", () => {
+    expect(nextOf(held([[30, null], [31, begun], [32, notBegun]]))).toBe(32);
+  });
+
+  test("is the first when none has begun", () => {
+    expect(nextOf(held([[30, null], [31, notBegun], [32, notBegun]]))).toBe(30);
+  });
+
+  test("is none once every one has begun", () => {
+    expect(nextOf(held([[30, begun], [31, begun]]))).toBeUndefined();
   });
 });

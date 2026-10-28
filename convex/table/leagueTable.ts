@@ -7,7 +7,7 @@ import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { namedFixture, roundsOf } from "./roundRobin";
 import { scheduleOf } from "./playedFixtures";
-import { headToHeadTable, totalPointsTable, type GameweekScores } from "./standings";
+import { headToHeadTable, teamsInGameweek, totalPointsTable, type GameweekScores } from "./standings";
 import { gameScore } from "./teamGames";
 import { leagueScores } from "./gameweekScores";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
@@ -118,15 +118,15 @@ export const ofLeague = query({
     return {
       format: rules.format,
       roundRobinRounds: schedule.length === 0 ? 0 : roundsOf(teamIds).length,
-      gameweeks: schedule.map(({ gameweek, fixtures, byes }) => ({
-        gameweek,
-        deadline: deadlines.get(gameweek) ?? null,
-        fixtures: fixtures.map((each) => {
-          const scored = results.get(gameweek);
-          const score = scored === undefined ? null : gameScore(teamIds, scored, gameweek, each.team, each.opponent);
+      gameweeks: schedule.map((drawn) => ({
+        gameweek: drawn.gameweek,
+        deadline: deadlines.get(drawn.gameweek) ?? null,
+        fixtures: drawn.fixtures.map((each) => {
+          const scored = results.get(drawn.gameweek);
+          const score = scored === undefined ? null : gameScore(teamsInGameweek(drawn), scored, drawn.gameweek, each.team, each.opponent);
           return { teamId: each.team, ...namedFixture(each, named), points: score === null ? null : { team: score.team, opponent: score.opponent } };
         }),
-        byes: byes.map(named),
+        byes: drawn.byes.map(named),
       })),
       table: table.map(({ team, ...row }) => ({ teamId: team, teamName: named(team), ...row })),
       results: [...results].map(([gameweek, teamScores]) => ({
