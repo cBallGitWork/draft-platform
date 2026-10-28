@@ -1,15 +1,15 @@
 // A league's table and fixtures, and one team's (My team's Fixtures tab), as the server would send
-// them, for the preview and the tests: drawn by the server's pure functions
-// (convex/table/roundRobin.ts, convex/table/standings.ts, convex/table/teamGames.ts), with the
-// mapping copied from convex/table/leagueTable.ts's ofLeague and teamFixtures.ts's ofMyTeam.
+// them, for the preview and the tests: the inputs ofLeague and ofMyTeam read, built here from team
+// names, and handed to the server's own pure mapping (convex/table/sentTables.ts), so the preview
+// and the tests draw exactly what the server sends.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import { drawFixtures, LEAGUE_AVERAGE, roundsOf, type DrawRules } from "../../convex/table/roundRobin";
+import { drawFixtures, type DrawRules } from "../../convex/table/roundRobin";
 import { FIRST_RULES } from "../../convex/rules/firstRules";
-import { averageOf, headToHeadTable, totalPointsTable, type GameweekScores, type TieBreak } from "../../convex/table/standings";
+import type { GameweekScores, TieBreak } from "../../convex/table/standings";
 import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import type { TeamFixtures } from "../../convex/table/teamFixtures";
-import { BYE, gameScore, gamesOf } from "../../convex/table/teamGames";
+import { leagueTableFrom, pointsOf, tableOf, teamFixturesFrom, type Results } from "../../convex/table/sentTables";
 import type { LeagueTable } from "./seam";
 
 export type Drawn = Partial<DrawRules> & {
@@ -29,84 +29,40 @@ export type Drawn = Partial<DrawRules> & {
   unscored?: LeagueTable["unscored"];
 };
 
-const idOf = (team: string) => `id-${team}` as Id<"teams">;
+/** A team's id here is its name behind this, so its name reads back from it. */
+const ID_PREFIX = "id-";
+const idOf = (team: string) => `${ID_PREFIX}${team}` as Id<"teams">;
+const named = (teamId: Id<"teams">) => teamId.slice(ID_PREFIX.length);
 
 /** The draw's defaults, as the server's would be for a league with no rule changed. */
 const DRAW_DEFAULTS = { oddTeamOut: "leagueAverage", gamesPerGameweek: 1, seed: "preview-league", gameweeks: SEASON_GAMEWEEKS } as const;
 
-/** The head-to-head schedule of teams with these names, as `drawn` says to draw it. */
-function scheduleOf(teamNames: string[], drawn: Drawn) {
+/** What the server reads for teams with these names, made in this order, as `drawn` says: the
+ *  format, the teams, the head-to-head schedule (none in total points), each team's points in each
+ *  gameweek scored, those unscored and the deadlines. */
+function inputsOf(teamNames: string[], drawn: Drawn) {
   const { oddTeamOut, gamesPerGameweek, seed, gameweeks } = { ...DRAW_DEFAULTS, ...drawn };
-  return drawFixtures(teamNames, gameweeks, () => ({ oddTeamOut, gamesPerGameweek }), seed);
+  const { format = "headToHead", deadlineOf = () => null, scores = new Map(), provisional = [], noLineup = [], unscored = [] } = drawn;
+  const teamIds = teamNames.map(idOf);
+  const schedule = format === "headToHead" ? drawFixtures(teamIds, gameweeks, () => ({ oddTeamOut, gamesPerGameweek }), seed) : [];
+  const results: Results = new Map(
+    [...scores].map(([gameweek, scored]) => [
+      gameweek,
+      new Map([...scored].map(([team, points]) => [idOf(team), { points, provisional: provisional.includes(team), noLineup: noLineup.includes(team) }])),
+    ]),
+  );
+  return { format, teamIds, schedule, results, unscored, deadlineOf, named };
 }
 
 /** The league's table and fixtures for teams with these names, made in this order. */
 export function leagueTableOf(teamNames: string[], drawn: Drawn = {}): LeagueTable {
-  const {
-    format = "headToHead",
-    deadlineOf = () => null,
-    scores = new Map(),
-    provisional = [],
-    noLineup = [],
-    unscored = [],
-    tieBreaks = FIRST_RULES.tieBreaks,
-  } = drawn;
-  const headToHead = format === "headToHead";
-  const schedule = headToHead ? scheduleOf(teamNames, drawn) : [];
-  const table = headToHead ? headToHeadTable(teamNames, schedule, scores, tieBreaks) : totalPointsTable(teamNames, scores);
-  return {
-    format,
-    roundRobinRounds: schedule.length === 0 ? 0 : roundsOf(teamNames).length,
-    gameweeks: schedule.map(({ gameweek, fixtures, byes }) => ({
-      gameweek,
-      deadline: deadlineOf(gameweek),
-      fixtures: fixtures.map(({ team, opponent }) => {
-        const scored = scores.get(gameweek);
-        const pointsOf = (side: string) => (side === LEAGUE_AVERAGE ? averageOf(teamNames, scored!, gameweek) : scored!.get(side)!);
-        return {
-          teamId: idOf(team),
-          team,
-          opponent: opponent === LEAGUE_AVERAGE ? null : opponent,
-          points: scored === undefined ? null : { team: pointsOf(team), opponent: pointsOf(opponent) },
-        };
-      }),
-      byes,
-    })),
-    table: table.map(({ team, ...row }) => ({ teamId: idOf(team), teamName: team, ...row })),
-    results: [...scores].map(([gameweek, scored]) => ({
-      gameweek,
-      teams: [...scored].map(([team, points]) => ({
-        teamId: idOf(team),
-        teamName: team,
-        points,
-        provisional: provisional.includes(team),
-        noLineup: noLineup.includes(team),
-      })),
-    })),
-    unscored,
-  };
+  const inputs = inputsOf(teamNames, drawn);
+  const { format, teamIds, schedule, results } = inputs;
+  const table = tableOf(format, teamIds, schedule, pointsOf(results), drawn.tieBreaks ?? FIRST_RULES.tieBreaks);
+  return leagueTableFrom({ ...inputs, table });
 }
 
 /** My team's fixtures for `teamName`, one of `teamNames`, in the same draw and scores as `leagueTableOf`'s. */
 export function teamFixturesOf(teamNames: string[], teamName: string, drawn: Drawn = {}): TeamFixtures {
-  const { format = "headToHead", deadlineOf = () => null, scores = new Map(), provisional = [], unscored = [] } = drawn;
-  const schedule = format === "headToHead" ? scheduleOf(teamNames, drawn) : [];
-  const games = gamesOf(schedule, teamName);
-  return {
-    teamId: idOf(teamName),
-    teamName,
-    format,
-    games: games.map(({ gameweek, against }) => {
-      const points = scores.get(gameweek);
-      const scored = points === undefined ? undefined : new Map([...points].map(([team, each]) => [team, { points: each, provisional: provisional.includes(team) }]));
-      const opponent = against.kind === "team" ? against.team : against.kind;
-      return {
-        gameweek,
-        deadline: deadlineOf(gameweek),
-        against: against.kind === "team" ? { kind: "team" as const, teamName: against.team } : against,
-        score: scored === undefined || opponent === BYE ? null : gameScore(teamNames, scored, gameweek, teamName, opponent),
-      };
-    }),
-    unscored: unscored.filter(({ gameweek }) => games.some((game) => game.gameweek === gameweek)),
-  };
+  return teamFixturesFrom({ ...inputsOf(teamNames, drawn), team: { id: idOf(teamName), name: teamName } });
 }
