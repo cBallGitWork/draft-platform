@@ -125,8 +125,8 @@ styling, typeface, test, coverage, screenshot and smoke-test rows, and the rest 
   ([docs/pl-match-stats.md](docs/pl-match-stats.md#during-a-match)). Outside matches: one
   action and one indexed query a minute, about 43,000 calls a month. Inside: FPL's ~1.8 MB
   bootstrap and about 40 Premier League reads per match, each tick: its sheets, each named
-  man's stats, its commentary with the sheets again, and its five team stats (#45), one read
-  stored one row a match in `matchTeamStats` (`convex/football/matchTeamStats.ts`).
+  man's stats, its commentary with the sheets again, and its five team stats (#45) in one read,
+  kept as one row a match in `matchTeamStats` (`convex/football/matchTeamStats.ts`).
   Revisit the bootstrap read each tick when Convex usage nears the plan's limit, or when
   `liveStatsTicks` rows fail from throttling.
 - Match scores (#49): each match's state, score and clock in `matchScores`, apart from

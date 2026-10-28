@@ -75,7 +75,8 @@ export const thresholdStepTables = {
 export const sideTeamStats = v.object({
   shots: v.number(),
   shotsOnTarget: v.number(),
-  /** Null while Opta sends none, early in a match. */
+  /** A share out of 100, to Opta's decimal place (49.4); null while Opta sends none, as in a
+   *  match's first minutes. */
   possession: v.union(v.number(), v.null()),
   corners: v.number(),
   yellowCards: v.number(),

@@ -2,8 +2,9 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { plTeamStatsUrl } from "../../../convex/football/football";
 import type { RawPlTeamStats } from "../../../convex/football/premierLeague";
+import { OPTA_TEAM_STAT } from "../../../convex/football/plTeamStats";
 import { stagedGw6, stageTime, tickAt } from "../../support/convex/liveStats.harness";
-import { fakeFeeds, FULL_TIME_READ, HULL_EVERTON, syncAt, withHullEverton } from "../../support/convex/matchStats.harness";
+import { fakeFeeds, FULL_TIME_READ, HULL_EVERTON, HULL_EVERTON_TEAM_STATS, syncAt, withHullEverton } from "../../support/convex/matchStats.harness";
 import { refusedError, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import { recordedTeamStats } from "../../support/recorded/commentary.payloads";
 import { MATCH, recordedGw6 } from "../../support/recorded/gw6.payloads";
@@ -17,11 +18,6 @@ beforeEach(() => vi.useFakeTimers());
 
 const TEAM_STATS_URL = plTeamStatsUrl(MATCH.hullEverton.pl);
 const MINUTE = 30;
-/** Hull v Everton's recorded five at full time, Hull at home. */
-const FULL_TIME = {
-  home: { shots: 9, shotsOnTarget: 5, possession: 34.8, corners: 7, yellowCards: 2, redCards: 0 },
-  away: { shots: 15, shotsOnTarget: 7, possession: 65.2, corners: 6, yellowCards: 0, redCards: 0 },
-};
 
 async function heldTeamStats(t: TestConvex) {
   return t.run((ctx) => ctx.db.query("matchTeamStats").unique());
@@ -42,7 +38,7 @@ async function tickWith(t: TestConvex, minute: number, read: RawPlTeamStats) {
 function withHullShots(shots: number): RawPlTeamStats {
   const read = recordedTeamStats(MATCH.hullEverton.pl);
   const hull = String(read.entity.teams![0].team.id);
-  read.data![hull].M = read.data![hull].M.map((metric) => (metric.name === "total_scoring_att" ? { ...metric, value: shots } : metric));
+  read.data![hull].M = read.data![hull].M.map((metric) => (metric.name === OPTA_TEAM_STAT.shots ? { ...metric, value: shots } : metric));
   return read;
 }
 
@@ -52,7 +48,7 @@ test("a tick stores the live match's five team stats alongside its points, home 
   const { latest } = await tickAt(t, stageTime(MINUTE), stagedGw6(MINUTE));
 
   expect(latest.outcome).toMatchObject({ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: true }] });
-  expect(await heldTeamStats(t)).toMatchObject({ fixtureCode: HULL_EVERTON, ...FULL_TIME });
+  expect(await heldTeamStats(t)).toMatchObject({ fixtureCode: HULL_EVERTON, ...HULL_EVERTON_TEAM_STATS });
 });
 
 test("each read replaces the held five, as the totals run on", async () => {
@@ -62,7 +58,7 @@ test("each read replaces the held five, as the totals run on", async () => {
 
   await tickWith(t, MINUTE + 1, withHullShots(4));
 
-  expect(await heldTeamStats(t)).toMatchObject({ home: { ...FULL_TIME.home, shots: 4 }, away: FULL_TIME.away });
+  expect(await heldTeamStats(t)).toMatchObject({ home: { ...HULL_EVERTON_TEAM_STATS.home, shots: 4 }, away: HULL_EVERTON_TEAM_STATS.away });
 });
 
 test("a read before kickoff, with no stats in it, leaves the held five", async () => {
@@ -72,7 +68,7 @@ test("a read before kickoff, with no stats in it, leaves the held five", async (
 
   await tickWith(t, MINUTE + 1, empty);
 
-  expect(await heldTeamStats(t)).toMatchObject(FULL_TIME);
+  expect(await heldTeamStats(t)).toMatchObject(HULL_EVERTON_TEAM_STATS);
 });
 
 test("team stats that will not read are logged, the held five stand, and the points and commentary carry on", async () => {
@@ -84,7 +80,7 @@ test("team stats that will not read are logged, the held five stand, and the poi
 
   expect(latest.outcome).toMatchObject({ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: true }] });
   expect(errors).toHaveBeenCalledWith(`match ${HULL_EVERTON}'s team stats failed: ${refusedError(TEAM_STATS_URL)}`);
-  expect(await heldTeamStats(t)).toMatchObject(FULL_TIME);
+  expect(await heldTeamStats(t)).toMatchObject(HULL_EVERTON_TEAM_STATS);
   expect(await t.run((ctx) => ctx.db.query("matchCommentary").unique())).toMatchObject({ delayed: null });
 });
 
@@ -99,5 +95,5 @@ test("the full-time sync stores the final five, and leaves a match not yet at fu
 
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, recordedGw6());
-  expect(await heldTeamStats(t)).toMatchObject({ fixtureCode: HULL_EVERTON, ...FULL_TIME });
+  expect(await heldTeamStats(t)).toMatchObject({ fixtureCode: HULL_EVERTON, ...HULL_EVERTON_TEAM_STATS });
 });

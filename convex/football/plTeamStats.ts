@@ -2,21 +2,14 @@
 // League's `/stats/match/{id}`: which of Opta's names answers each is mapped in
 // docs/pl-commentary.md (Team stats). Pure: `matchTeamStats.ts` reads and stores them.
 
+import type { Infer } from "convex/values";
+import type { sideTeamStats } from "../schema";
 import type { RawPlTeamStats } from "./premierLeague";
 
 /** One side's five, as Opta counts them. A red shown for a second yellow is in `redCards`, and that
  *  man's yellows are then out of `yellowCards` (Brentford v Liverpool: three yellows shown, one of
  *  them to the man sent off for a second, and Opta's 2 yellows and 2 reds). */
-export interface SideTeamStats {
-  shots: number;
-  shotsOnTarget: number;
-  /** A share out of 100, to Opta's decimal place (49.4); null while Opta sends none, which in the
-   *  first minutes of a match it doesn't. */
-  possession: number | null;
-  corners: number;
-  yellowCards: number;
-  redCards: number;
-}
+export type SideTeamStats = Infer<typeof sideTeamStats>;
 
 export interface TeamStats {
   home: SideTeamStats;

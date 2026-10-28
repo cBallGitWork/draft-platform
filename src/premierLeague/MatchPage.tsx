@@ -107,7 +107,7 @@ function MatchState({ score, kickoff }: Pick<Match, "score" | "kickoff">) {
   }
 }
 
-type Side = NonNullable<Match["teamStats"]>["home"];
+type SideStats = NonNullable<Match["teamStats"]>["home"];
 
 /** Each side's five, home's figure left of the stat and away's right, as a scoreboard reads. */
 function TeamStats({ home, away, stats }: { home: string; away: string; stats: Match["teamStats"] }) {
@@ -143,7 +143,7 @@ function TeamStats({ home, away, stats }: { home: string; away: string; stats: M
   );
 }
 
-function statWords(side: Side, stat: keyof Side): string {
+function statWords(side: SideStats, stat: keyof SideStats): string {
   const value = side[stat];
   if (value === null) return noFigureWords;
   return stat === "possession" ? possessionWords(value) : String(value);

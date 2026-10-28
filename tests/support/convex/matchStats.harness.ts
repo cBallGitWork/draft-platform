@@ -34,6 +34,12 @@ export const HULL_EVERTON = MATCH.hullEverton.code;
 export const KICKOFF = Date.parse("2026-10-11T13:00:00Z");
 export const FULL_TIME_READ = KICKOFF + 2 * HOUR_MS;
 
+/** Hull v Everton's five team stats at full time, as football/plTeamStats.ts maps the recording. */
+export const HULL_EVERTON_TEAM_STATS = {
+  home: { shots: 9, shotsOnTarget: 5, possession: 34.8, corners: 7, yellowCards: 2, redCards: 0 },
+  away: { shots: 15, shotsOnTarget: 7, possession: 65.2, corners: 6, yellowCards: 0, redCards: 0 },
+};
+
 /** Every feed's read for gameweek 6 as recorded, and Hull v Everton's commentary (#43) and team
  *  stats (#45) at full time, which the live tick reads; a URL containing `refuse` answers `REFUSED_STATUS`. */
 export function fakeFeeds(payloads: Gw6Payloads, refuse?: string) {

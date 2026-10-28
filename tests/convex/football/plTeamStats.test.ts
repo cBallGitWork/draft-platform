@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { plTeamStats } from "../../../convex/football/plTeamStats";
 import { COMMENTARY_MATCH, recordedTeamStats, UPCOMING_MATCH } from "../../support/recorded/commentary.payloads";
+import { HULL_EVERTON_TEAM_STATS } from "../../support/convex/matchStats.harness";
 import { LIVE_TEAM_STATS, recordedLiveTeamStats } from "../../support/recorded/live.payloads";
 
 // spec/10's five team stats (shots, shots on target, possession, corners, cards), mapped from the
@@ -18,10 +19,7 @@ test("each side is placed by the match's own teams, not by the order the read ke
   // Everton's totals come first in the read; Hull are at home.
   const [hull, everton] = read.entity.teams!.map(({ team }) => String(team.id));
   expect(Object.keys(read.data!)).toEqual([everton, hull]);
-  expect(plTeamStats(read)).toEqual({
-    home: { shots: 9, shotsOnTarget: 5, possession: 34.8, corners: 7, yellowCards: 2, redCards: 0 },
-    away: { shots: 15, shotsOnTarget: 7, possession: 65.2, corners: 6, yellowCards: 0, redCards: 0 },
-  });
+  expect(plTeamStats(read)).toEqual(HULL_EVERTON_TEAM_STATS);
 });
 
 test("days before kickoff there is no data, so there are no stats", () => {
