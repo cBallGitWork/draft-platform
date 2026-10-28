@@ -4,6 +4,7 @@
 // loses a position after he was placed stays in his slot for the gameweek, only warned (spec/06,
 // When positions change): the deadline, rollover and auto team must not take that outsideHisAreas
 // as illegal. It is reported alone, so a caller can set it aside; the rule is #23's to keep.
+// Reading a lineup against a squad (now, or at the deadline) is here too, for server and screen alike.
 
 import { AREAS, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
 import { offersRole } from "./roles";
@@ -110,6 +111,34 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
     if (starterCount < minimum) problems.push({ kind: "belowMinimum", area, starterCount, minimum });
   }
   return problems;
+}
+
+/** A lineup read against the squad, as `againstSquad` gives it: who dropped out for leaving the
+ *  squad, and who joined it since and was put at the end of the bench. */
+export interface SquadReconciled<Starter> {
+  starters: Starter[];
+  bench: PlayerCode[];
+  leftSquad: PlayerCode[];
+  joinedBench: PlayerCode[];
+}
+
+/** The lineup against a squad, given in the order it joined: who has left drops out, leaving his
+ *  cell empty, and who has joined goes to the end of the bench, in the order he joined. The bench is
+ *  the smallest sound choice for a newcomer (a starter's cell would need a position check and a
+ *  free cell): Claude's, not yet Craig's. The starters and the bench keep their order. */
+export function againstSquad<Starter extends { playerCode: PlayerCode }>(
+  lineup: { starters: readonly Starter[]; bench: readonly PlayerCode[] },
+  squad: readonly PlayerCode[],
+): SquadReconciled<Starter> {
+  const inSquad = new Set(squad);
+  const named = new Set([...lineup.starters.map(({ playerCode }) => playerCode), ...lineup.bench]);
+  const joinedBench = squad.filter((playerCode) => !named.has(playerCode));
+  return {
+    starters: lineup.starters.filter(({ playerCode }) => inSquad.has(playerCode)),
+    bench: [...lineup.bench.filter((playerCode) => inSquad.has(playerCode)), ...joinedBench],
+    leftSquad: [...named].filter((playerCode) => !inSquad.has(playerCode)),
+    joinedBench,
+  };
 }
 
 /** An invalid limit is the league's mistake, not the manager's: it is thrown, never reported as

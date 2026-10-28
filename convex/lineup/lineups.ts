@@ -1,5 +1,5 @@
 import { v, type Infer } from "convex/values";
-import type { Doc, Id } from "../_generated/dataModel";
+import type { Id } from "../_generated/dataModel";
 import { mutation, query, type QueryCtx } from "../_generated/server";
 import { managerOf, refuse } from "../shared/leagueAccess";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
@@ -12,7 +12,7 @@ import { playerByCode } from "../shared/players";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { placementShape } from "../schema";
-import { lineupProblems } from "./lineup";
+import { againstSquad, lineupProblems } from "./lineup";
 import type { Area, Cell, Lane } from "./pitch";
 import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords";
 
@@ -87,7 +87,7 @@ export async function lineupsInGameweek(
       movesSince ??= squadMovesSince(ctx, leagueId, deadline);
       squad = await squadAt(ctx, teamId, await movesSince);
     }
-    lineups.set(teamId, { kind: "saved", fromGameweek: row.fromGameweek, ...reconciled(row, squad) });
+    lineups.set(teamId, { kind: "saved", fromGameweek: row.fromGameweek, ...againstSquad(row, squad) });
   }
   return lineups;
 }
@@ -117,22 +117,6 @@ export async function lineupInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, t
 /** The squad's player codes, in the order they joined it. */
 async function squadCodes(ctx: QueryCtx, teamId: Id<"teams">): Promise<number[]> {
   return (await squadOf(ctx, teamId)).map(({ playerCode }) => playerCode);
-}
-
-/** The saved lineup against the squad: who has left drops out, leaving his cell empty, and
- *  who has joined goes to the end of the bench, in the order he joined. The bench is the smallest
- *  sound choice for a newcomer (a starter's cell would need a position check and a free cell):
- *  Claude's, not yet Craig's. */
-function reconciled(row: Doc<"lineups">, squad: readonly number[]) {
-  const inSquad = new Set(squad);
-  const named = new Set([...row.starters.map(({ playerCode }) => playerCode), ...row.bench]);
-  const joinedBench = squad.filter((playerCode) => !named.has(playerCode));
-  return {
-    starters: row.starters.filter(({ playerCode }) => inSquad.has(playerCode)),
-    bench: [...row.bench.filter((playerCode) => inSquad.has(playerCode)), ...joinedBench],
-    leftSquad: [...named].filter((playerCode) => !inSquad.has(playerCode)),
-    joinedBench,
-  };
 }
 
 /** The caller's own team's lineup in the gameweek. Whether anyone else may see a team's lineup,

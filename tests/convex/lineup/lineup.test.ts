@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { lineupProblems, type Lineup, type Placement } from "../../../convex/lineup/lineup";
+import { againstSquad, lineupProblems, type Lineup, type Placement } from "../../../convex/lineup/lineup";
 import { FIRST_SUB, filledLineup, openLimits, presetNamed, withPositions } from "../../support/convex/lineup.harness";
 import type { Area, Lane } from "../../../convex/lineup/pitch";
 
@@ -200,5 +200,28 @@ describe("the league's area limits", () => {
     expect(() => lineupProblems(fourFourTwo, positions, openLimits({ midfield: limit }))).toThrow(
       `not midfield ${limit.minimum}–${limit.maximum}`,
     );
+  });
+});
+
+describe("a lineup against the squad as it is now", () => {
+  const keeper = { playerCode: 1, area: "goalkeeper", lane: "centre" };
+  const back = { playerCode: 2, area: "defence", lane: "left", role: "fullBack" };
+  const saved = { starters: [keeper, back], bench: [3, 4, 5] };
+
+  test("an unchanged squad keeps the lineup as it is, naming nobody", () => {
+    expect(againstSquad(saved, [1, 2, 3, 4, 5])).toEqual({ ...saved, leftSquad: [], joinedBench: [] });
+  });
+
+  test("who left drops out of the starters and the bench, starters named first", () => {
+    expect(againstSquad(saved, [1, 3, 5])).toEqual({ starters: [keeper], bench: [3, 5], leftSquad: [2, 4], joinedBench: [] });
+  });
+
+  test("who joined goes to the end of the bench, in the order he joined the squad", () => {
+    expect(againstSquad(saved, [9, 1, 2, 3, 4, 5, 7])).toEqual({ ...saved, bench: [3, 4, 5, 9, 7], leftSquad: [], joinedBench: [9, 7] });
+  });
+
+  test("the starters and the bench keep their order, and each starter his cell and role", () => {
+    const reordered = { starters: [back, keeper], bench: [5, 3, 4] };
+    expect(againstSquad(reordered, [3, 4, 1, 2, 5, 8])).toEqual({ ...reordered, bench: [5, 3, 4, 8], leftSquad: [], joinedBench: [8] });
   });
 });
