@@ -1,11 +1,12 @@
 import { v, type Infer } from "convex/values";
 import { api, internal } from "../_generated/api";
 import { action, internalMutation, type ActionCtx, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { isAllowed, normaliseEmail } from "./allowedEmails";
+import { EMAIL_MAX, isAllowed, isEmailAddress, normaliseEmail } from "./allowedEmails";
 import { signInReply, type SignInReply } from "./signInReplies";
 import { anEmailLeftToday, countTodaysEmail } from "../outbound/emailLimit";
 import { logFailure } from "../shared/errors";
-import { HOUR_MS, MINUTE_MS } from "../shared/time";
+import { BATCH_SIZE } from "../shared/syncRuns";
+import { HOUR_MS, MINUTE_MS, WEEK_MS } from "../shared/time";
 
 // Asking for a sign-in link (spec/02, #20). The sign-in page asks through `ask`, which applies the
 // hourly limit, the day's email limit and the allowed list before Convex Auth makes a link, so a
@@ -28,6 +29,8 @@ export async function hasOpenedALink(ctx: QueryCtx, email: string): Promise<bool
 export const ASKS_PER_HOUR = 3;
 /** How long after `ask` lets an email through its link may take that ask. */
 const CLAIM_WINDOW_MS = MINUTE_MS;
+/** How long an ask is kept: past the hour the limit reads, so a `sendError` stays readable. */
+export const SIGN_IN_ASKS_KEPT_MS = WEEK_MS;
 
 const askOutcome = v.union(
   v.object({ outcome: v.literal("send"), askId: v.id("signInAsks") }),
@@ -80,6 +83,9 @@ export const recordAsk = internalMutation({
     // Before the list is read, so a paused day reads the same for every email.
     if (!(await anEmailLeftToday(ctx))) return { outcome: "paused" as const };
 
+    // Told the same as an unlisted email, but not stored: anyone can call `ask` with any string.
+    if (!isEmailAddress(email) || email.length > EMAIL_MAX) return { outcome: "unlisted" as const };
+
     const listed = await isAllowed(ctx, email);
     const askId = await ctx.db.insert("signInAsks", { email, askedAt: now, listed });
     if (!listed) return { outcome: "unlisted" as const };
@@ -109,6 +115,23 @@ export const recordSendError = internalMutation({
   returns: v.null(),
   handler: async (ctx, { askId, sendError }) => {
     await ctx.db.patch("signInAsks", askId, { sendError });
+    return null;
+  },
+});
+
+/** Deletes the asks older than `SIGN_IN_ASKS_KEPT_MS`, a batch a run, handing on to the next while
+ *  any are left. The daily run-log prune starts it once it has finished (admin/runLogs.ts). */
+export const pruneSignInAsks = internalMutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    const expired = await ctx.db
+      .query("signInAsks")
+      .withIndex("by_askedAt", (q) => q.lt("askedAt", Date.now() - SIGN_IN_ASKS_KEPT_MS))
+      .take(BATCH_SIZE);
+    for (const asked of expired) await ctx.db.delete("signInAsks", asked._id);
+    console.log(`Pruned ${expired.length} signInAsks rows`);
+    if (expired.length === BATCH_SIZE) await ctx.scheduler.runAfter(0, internal.signIn.signInLinks.pruneSignInAsks, {});
     return null;
   },
 });

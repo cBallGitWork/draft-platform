@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc, Id, TableNames } from "../_generated/dataModel";
-import { internalMutation, mutation, type QueryCtx } from "../_generated/server";
+import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { callerEmail, deleterOf, refuse, refusals, seesWhileDeleted } from "../shared/leagueAccess";
 import { DELETION_UNDO_HOURS } from "./leagueLimits";
 import { recordEvent, wholeLeague } from "../mail/letters";
@@ -103,6 +103,18 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
 
 export const tablesKeyedToLeague = Object.keys(leagueRows);
 
+/** Deletes a batch of the league's rows in `table`: whether it was a full one, so more may be left. */
+async function deleteBatch<Table extends TableNames>(
+  ctx: MutationCtx,
+  table: Table,
+  batchOf: LeagueRowsBatch<Table>,
+  leagueId: Id<"leagues">,
+): Promise<boolean> {
+  const rows = await batchOf(ctx, leagueId);
+  for (const row of rows) await ctx.db.delete(table, row._id);
+  return rows.length === ROWS_PER_RUN;
+}
+
 /** Everyone with a part in the league but `by`: who is told once it is gone. */
 async function othersIn(ctx: QueryCtx, league: Doc<"leagues">, by: string): Promise<string[]> {
   return [...new Set(await wholeLeague(ctx, league))].filter((email) => email !== by);
@@ -157,10 +169,11 @@ export const deleteForGood = internalMutation({
     if (!league?.deletion) throw new Error(`League ${leagueId} isn't being deleted, so it wasn't deleted for good`);
     const tell = handedOn ?? (await othersIn(ctx, league, league.deletion.by));
     let more = false;
-    for (const batchOf of Object.values(leagueRows)) {
-      const rows = await batchOf(ctx, leagueId);
-      for (const row of rows) await ctx.db.delete(row._id);
-      more ||= rows.length === ROWS_PER_RUN;
+    // Object.entries loses which batch goes with which table; leagueRows' type pairs them.
+    for (const [table, batchOf] of Object.entries(leagueRows) as [TableNames, LeagueRowsBatch<TableNames>][]) {
+      // Not `more ||= await deleteBatch(...)`: that would skip every table after a full batch.
+      const full = await deleteBatch(ctx, table, batchOf, leagueId);
+      more ||= full;
     }
     // The league goes last: joining/endedInvite.ts reads an invite's league as always there.
     if (more) {

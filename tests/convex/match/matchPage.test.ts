@@ -17,7 +17,7 @@ import {
   holdTypoRule,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
-import { actingAs } from "../../support/convex/leagues.harness";
+import { ADMIN, actingAs } from "../../support/convex/leagues.harness";
 import { EVERTON, HULL, HULL_EVERTON, HULL_EVERTON_TEAM_STATS, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 
@@ -87,6 +87,27 @@ test("at full time each club's men show, starters first, each owned man with his
   expect(manOf(page.men, PHILLIPS)).toMatchObject({ started: false, played: false, counts: false });
   expect(manOf(page.men, HULL_KEEPER)).toMatchObject({ started: true, played: true, counts: true });
   expect(manOf(page.men, EVERTON_STARTERS[0].playerCode)).toMatchObject({ side: "away", ownerTeamName: "Team 2" });
+});
+
+test("a man moved to another team after the deadline shows the points his old team's locked lineup scores him, as the matchup counts them", async () => {
+  const league = await matchLeague();
+  await fullTimeRecords(league);
+  await (await actingAs(league.t, ADMIN)).mutation(api.squads.squads.move, { leagueId: league.leagueId, playerCode: HULL_SCORER, teamId: league.bobsTeam });
+  const page = (await matchAs(league, ANN))!;
+  const matchup = await annsMatchup(league);
+  const slot = matchup.team.kind === "team" ? matchup.team.lineup!.starters.find((starter) => starter.playerCode === HULL_SCORER) : undefined;
+  expect(slot?.points).toEqual(expect.any(Number));
+  // He scores for Ann's lineup, locked at the deadline, but Bob owns him now.
+  expect(manOf(page.men, HULL_SCORER)).toMatchObject({ ownerTeamName: "Team 2", points: slot!.points, counts: slot!.counts });
+});
+
+test("a man released after the deadline shows no owner but still the points his old team's locked lineup scores him", async () => {
+  const league = await matchLeague();
+  await fullTimeRecords(league);
+  const before = manOf((await matchAs(league, ANN))!.men, HULL_SCORER);
+  await (await actingAs(league.t, ADMIN)).mutation(api.squads.squads.release, { leagueId: league.leagueId, playerCode: HULL_SCORER });
+  expect(before.points).toEqual(expect.any(Number));
+  expect(manOf((await matchAs(league, ANN))!.men, HULL_SCORER)).toMatchObject({ ownerTeamName: null, points: before.points, counts: before.counts });
 });
 
 test("before kickoff, the men the team sheets name show as the sheets have them, each owned man with his team, none yet played", async () => {

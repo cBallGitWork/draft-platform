@@ -18,9 +18,9 @@ import { join } from "node:path";
 import { createInterface } from "node:readline";
 import { Writable } from "node:stream";
 import { setTimeout as sleep } from "node:timers/promises";
+import { RESEND_API_URL } from "../../convex/outbound/resend.ts";
 import { GITHUB_REPO } from "./live.mjs";
 
-export const RESEND_API = "https://api.resend.com";
 /** Where `vercel link` records the project this checkout is linked to. */
 export const VERCEL_LINK_FILE = join(".vercel", "project.json");
 /** The start of a Vercel team's id; a personal account's API calls take no team. */
@@ -95,7 +95,7 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
   }
 
   async function resendApi(key, method, path, body) {
-    const response = await fetchImpl(`${RESEND_API}${path}`, {
+    const response = await fetchImpl(`${RESEND_API_URL}${path}`, {
       method,
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: body && JSON.stringify(body),
