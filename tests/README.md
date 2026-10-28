@@ -37,6 +37,8 @@ Nothing in it is a test. Each kind of file:
   for the screens' (`shell.harness.tsx` opens the app at an address with its actions faked), and
   `scripts/` for the scripts' (`liveSetup.harness.mjs` fakes Convex, Vercel and Resend for the
   live-setup command).
+- **`smoke/builtScreens.ts`**, the screens the smoke run opens on the phone, which
+  `tests/src/smokeScreens.test.ts` checks against every route the router has.
 - **`recorded/*.json`**, real feed payloads, recorded once and cut down. A **`*.payloads.ts`**
   beside them loads and types each set, and says when it was recorded and how it was cut.
 - **`convex/scoring.example.ts`**, a scoring set for the tests only, never one anyone plays; the

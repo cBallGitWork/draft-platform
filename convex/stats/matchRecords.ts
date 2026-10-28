@@ -53,13 +53,21 @@ const FPL_POINTS = new Set(["bonus", "bps", "total_points", "in_dreamteam"]);
 
 const keptFrom = (feed: StatInBothFeeds["kept"]) => STATS_IN_BOTH_FEEDS.filter((stat) => stat.kept === feed);
 const droppedFromFpl = new Set([...FPL_POINTS, ...keptFrom("pl").map((stat) => stat.fpl)]);
-const droppedFromPl = new Set(keptFrom("fpl").map((stat) => stat.pl));
+/** FPL's name for each stat kept from FPL, by the Premier League's name for it. */
+const fplNameForPl = new Map(keptFrom("fpl").map((stat) => [stat.pl, stat.fpl]));
 
 /** Both feeds' stats in one map: each feed's name for what only it sends, and the kept feed's for
- *  what both send. A feed whose record has not arrived adds nothing. */
+ *  what both send. A feed whose record has not arrived adds nothing. A stat kept from FPL that
+ *  FPL's arrived line leaves out takes the Premier League's count, under FPL's name: in a double
+ *  gameweek FPL's line is a match's scoring block only, which lists just what moved his FPL points
+ *  (fplLive.ts), so a keeper's saves or a forward's clean sheet would otherwise be lost. */
 export function mergeStats(fpl: Stats | undefined, pl: Stats | undefined): Stats {
   const merged: Stats = {};
-  for (const [stat, value] of Object.entries(pl ?? {})) if (!droppedFromPl.has(stat)) merged[stat] = value;
+  for (const [stat, value] of Object.entries(pl ?? {})) {
+    const fplName = fplNameForPl.get(stat);
+    if (fplName === undefined) merged[stat] = value;
+    else if (fpl !== undefined && !(fplName in fpl)) merged[fplName] = value;
+  }
   for (const [stat, value] of Object.entries(fpl ?? {})) if (!droppedFromFpl.has(stat)) merged[stat] = value;
   return merged;
 }
