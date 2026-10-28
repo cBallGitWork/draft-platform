@@ -94,8 +94,6 @@ beforeEach(() => {
   convex.unreadFails = null;
 });
 afterEach(() => {
-  convex.signIn.mockReset();
-  convex.ask.mockReset();
   window.history.replaceState(null, "", "/");
 });
 

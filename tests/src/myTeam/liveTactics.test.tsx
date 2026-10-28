@@ -3,7 +3,7 @@
 
 import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { liveTactics } from "../../../src/myTeam/liveTactics";
 import { saveFailedWords } from "../../../src/myTeam/tacticsWords";
@@ -16,11 +16,6 @@ vi.mock("convex/react", async () =>
     mutations: { "lineup/lineups:save": convex.save },
   }),
 );
-
-afterEach(() => {
-  convex.ofMyTeam.mockReset();
-  convex.save.mockReset();
-});
 
 const leagueId = "league-1" as Id<"leagues">;
 const NOW = Date.parse("2026-10-24T10:00:00Z");
