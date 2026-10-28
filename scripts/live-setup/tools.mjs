@@ -1,7 +1,13 @@
 // The real services behind the setup command's steps (steps.mjs): the Convex and Vercel CLIs from
-// node_modules, the gh CLI, Resend's API, and the terminal. A secret only ever goes to a CLI on its stdin,
-// never in its arguments (which any process on the machine can read), and a CLI's output is
-// captured, never passed through: steps.mjs prints only its own lines, with every secret hidden.
+// node_modules, the gh CLI, Resend's API, and the terminal. A credential only ever goes to a CLI on
+// its stdin, or to Resend in its Authorization header, never in a CLI's arguments (which any
+// process on the machine can read), and a CLI's output is captured, never passed through:
+// steps.mjs prints only its own lines, with every secret hidden.
+//
+// The one exception: the after-release check's receiving address goes onto the allowed list as
+// `convex run`'s JSON argument, as `run` takes a function's arguments no other way. It is a
+// mailbox, not a credential: it is kept from the terminal like a secret only so nobody spends the
+// day's emails asking for links to it, and the allowed list holds it in the clear anyway.
 //
 // The flags are from each CLI's --help at the versions in package-lock.json (convex 1.47,
 // vercel 63.1) and Resend's API reference, read 28 Oct 2026.
@@ -24,10 +30,20 @@ const PROD = "--prod";
 const GITHUB_LINK_TYPE = "github";
 /** The live site's allowed list (convex/signIn/allowedEmails.ts), read to see the check's address. */
 const ALLOWED_EMAILS_TABLE = "allowedEmails";
-/** One page of the domain's DNS records, read whole: a new domain holds a handful, and Vercel's
- *  default page is smaller than this. Resend's domain list needs no limit: without one it gives
- *  every domain. */
+/** The page of the domain's DNS records asked for: a new domain holds a handful, and Vercel's
+ *  default page is smaller than this. */
 const DNS_RECORDS_READ = 100;
+
+/** A list read as one page, or a refusal when the answer says there are more: past one page, a
+ *  missing record or domain would look absent and be added twice. Vercel's lists say so with
+ *  `pagination.next`; Resend's with `has_more` (its API reference says a list with no `limit`
+ *  comes whole, but the flag is checked rather than trusted). */
+function onePage(answer, what) {
+  if (answer.pagination?.next || answer.has_more) {
+    throw new Error(`${what} runs past one page, and this reads only one: nothing was changed from it`);
+  }
+  return answer;
+}
 
 /** Runs a command and resolves with how it ended and what it printed, never showing either. */
 export function captured(command, args, { cwd, input = "" } = {}) {
@@ -137,10 +153,13 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
       },
       // With no --value, `env add` reads the value from stdin.
       addEnv: (name, target, value) => vercelCli(["env", "add", name, target, "--sensitive"], value),
-      projectDomains: async () => (await vercelApi("/v9/projects/:project/domains")).domains.map((domain) => domain.name),
+      projectDomains: async () =>
+        onePage(await vercelApi("/v9/projects/:project/domains"), "The Vercel project's domain list").domains.map((domain) => domain.name),
       addDomain: (domain, project) => vercelCli(["domains", "add", domain, project]),
       dnsRecords: async (domain) =>
-        (await vercelApi(`/v5/domains/${domain}/records?limit=${DNS_RECORDS_READ}`)).records.map(({ name, type, value }) => ({ name, type, value })),
+        onePage(await vercelApi(`/v5/domains/${domain}/records?limit=${DNS_RECORDS_READ}`), `${domain}'s DNS records`).records.map(
+          ({ name, type, value }) => ({ name, type, value }),
+        ),
       addDnsRecord: (domain, { name, type, value, priority }) =>
         vercelCli(["dns", "add", domain, name, type, value, ...(priority === undefined ? [] : [String(priority)])]),
       /** The GitHub repository ("owner/name") the project builds from, or null. */
@@ -157,7 +176,7 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
       setSecret: (name, value) => ghCli(["secret", "set", name, "--repo", GITHUB_REPO], value),
     },
     resend: {
-      domains: async (key) => (await resendApi(key, "GET", "/domains")).data,
+      domains: async (key) => onePage(await resendApi(key, "GET", "/domains"), "Resend's domain list").data,
       domain: (key, id) => resendApi(key, "GET", `/domains/${id}`),
       createDomain: (key, name, region) => resendApi(key, "POST", "/domains", { name, region }),
       verify: (key, id) => resendApi(key, "POST", `/domains/${id}/verify`),

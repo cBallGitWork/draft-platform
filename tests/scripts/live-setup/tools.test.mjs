@@ -2,9 +2,19 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { DEPLOYED_FUNCTION, DEPLOY_KEY_SETTING, GITHUB_REPO, LIVE_DOMAIN, RESEND_REGION, VERCEL_PRODUCTION, VERCEL_PROJECT } from "../../../scripts/live-setup/live.mjs";
+import {
+  ALLOW_EMAIL,
+  DEPLOYED_FUNCTION,
+  DEPLOY_KEY_SETTING,
+  GITHUB_REPO,
+  LIVE_DOMAIN,
+  RELEASE_CHECK_SECRET,
+  RESEND_REGION,
+  VERCEL_PRODUCTION,
+  VERCEL_PROJECT,
+} from "../../../scripts/live-setup/live.mjs";
 import { RESEND_API, VERCEL_LINK_FILE, captured, realTools } from "../../../scripts/live-setup/tools.mjs";
-import { RESEND_KEY } from "../../support/scripts/liveSetup.harness.mjs";
+import { CHECK_EMAIL, RESEND_KEY } from "../../support/scripts/liveSetup.harness.mjs";
 
 const SECRET = "a-secret-value-0123456789";
 const LINKED = { projectId: "prj_123", orgId: "team_456", projectName: VERCEL_PROJECT };
@@ -14,7 +24,7 @@ beforeEach(() => (checkout = mkdtempSync(join(tmpdir(), "live-setup-"))));
 afterEach(() => rmSync(checkout, { recursive: true, force: true }));
 
 function linkCheckout(project = LINKED) {
-  mkdirSync(join(checkout, ".vercel"));
+  mkdirSync(join(checkout, ".vercel"), { recursive: true });
   writeFileSync(join(checkout, VERCEL_LINK_FILE), JSON.stringify(project));
 }
 
@@ -29,17 +39,61 @@ function toolsWith({ answer = () => ({ code: 0, stdout: "", stderr: "" }), fetch
   return { tools: realTools({ cwd: checkout, exec, fetchImpl, print }), calls, print };
 }
 
-test("a secret goes to each CLI on its stdin, never in its arguments", async () => {
+test("every credential goes to a CLI on its stdin, never in its arguments", async () => {
   const { tools, calls } = toolsWith();
   await tools.convex.setSetting("AUTH_RESEND_KEY", SECRET);
   await tools.vercel.addEnv(DEPLOY_KEY_SETTING, VERCEL_PRODUCTION, SECRET);
-  expect(calls).toHaveLength(2);
+  await tools.github.setSecret(RELEASE_CHECK_SECRET.resendKey, SECRET);
+  expect(calls).toHaveLength(3);
   for (const call of calls) {
     expect(call.input).toBe(SECRET);
     expect(call.args.join(" ")).not.toContain(SECRET);
   }
   expect(calls[0].args).toEqual(["env", "set", "--prod", "AUTH_RESEND_KEY"]);
   expect(calls[1].args).toEqual(["env", "add", DEPLOY_KEY_SETTING, VERCEL_PRODUCTION, "--sensitive"]);
+});
+
+test("the one value in a CLI's arguments is the check's receiving address, a mailbox, put on the allowed list", async () => {
+  const { tools, calls } = toolsWith();
+  await tools.convex.run(ALLOW_EMAIL, { email: CHECK_EMAIL });
+  expect(calls).toEqual([{ cli: "convex", args: ["run", "--prod", ALLOW_EMAIL, JSON.stringify({ email: CHECK_EMAIL })], input: undefined }]);
+  // Set as GitHub's secret, the same address goes on stdin like a credential.
+  await tools.github.setSecret(RELEASE_CHECK_SECRET.email, CHECK_EMAIL);
+  expect(calls[1].input).toBe(CHECK_EMAIL);
+  expect(calls[1].args.join(" ")).not.toContain(CHECK_EMAIL);
+});
+
+/** Vercel answering every API read with `answer`, and the paths it was asked for. */
+function vercelAnswering(answer) {
+  linkCheckout();
+  return toolsWith({ answer: () => ({ code: 0, stdout: JSON.stringify(answer), stderr: "" }) });
+}
+const MORE_PAGES = { count: 20, next: 1730000000000, prev: null };
+const LAST_PAGE = { count: 3, next: null, prev: null };
+
+test("the domain's DNS records are read as one page of 100, for the linked team", async () => {
+  const records = [{ name: "send", type: "MX", value: "feedback-smtp.example.com", mxPriority: 10 }];
+  const { tools, calls } = vercelAnswering({ records, pagination: LAST_PAGE });
+  expect(await tools.vercel.dnsRecords(LIVE_DOMAIN)).toEqual([{ name: "send", type: "MX", value: "feedback-smtp.example.com" }]);
+  expect(calls[0].args).toEqual(["api", `/v5/domains/${LIVE_DOMAIN}/records?limit=100&teamId=${LINKED.orgId}`]);
+});
+
+test("DNS records past one page stop the step rather than look missing", async () => {
+  const { tools } = vercelAnswering({ records: [], pagination: MORE_PAGES });
+  await expect(tools.vercel.dnsRecords(LIVE_DOMAIN)).rejects.toThrow(`${LIVE_DOMAIN}'s DNS records runs past one page`);
+});
+
+test("the project's domains past one page stop the step rather than look missing", async () => {
+  expect(await vercelAnswering({ domains: [{ name: LIVE_DOMAIN }], pagination: LAST_PAGE }).tools.vercel.projectDomains()).toEqual([LIVE_DOMAIN]);
+  await expect(vercelAnswering({ domains: [], pagination: MORE_PAGES }).tools.vercel.projectDomains()).rejects.toThrow(
+    "The Vercel project's domain list runs past one page",
+  );
+});
+
+test("Resend's domain list with more to come stops the step rather than look missing", async () => {
+  const listing = (hasMore) => vi.fn(async () => Response.json({ object: "list", has_more: hasMore, data: [{ id: "d1", name: LIVE_DOMAIN }] }));
+  expect(await toolsWith({ fetchImpl: listing(false) }).tools.resend.domains(RESEND_KEY)).toEqual([{ id: "d1", name: LIVE_DOMAIN }]);
+  await expect(toolsWith({ fetchImpl: listing(true) }).tools.resend.domains(RESEND_KEY)).rejects.toThrow("Resend's domain list runs past one page");
 });
 
 test("a CLI's output is kept from the terminal, and a failure says what the CLI said", async () => {
