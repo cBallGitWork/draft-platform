@@ -1,9 +1,9 @@
 // What the Premier League section says, in one place for Craig to change in the pull request.
 
 import { LOCALE } from "../../convex/shared/moments";
-import { gameweekWords, versusWords } from "../words";
+import { gameweekWords, liveWords, versusWords } from "../words";
 
-export { gameweekWords, versusWords } from "../words";
+export { gameweekWords, liveWords, scoreWords, versusWords } from "../words";
 /** Goals for less against, signed: "+4", "-3", "0", as the league table signs its difference. */
 export { differenceWords as goalDifferenceWords } from "../table/words";
 
@@ -23,9 +23,6 @@ export const kickoffWords = (at: number) => timeFormat.format(at);
 /** The heading over matches with no kickoff time: postponed, waiting for a new date. */
 export const noDateWords = "Date to be confirmed";
 
-/** A match's score, home first. */
-export const scoreWords = (homeGoals: number, awayGoals: number) => `${homeGoals}–${awayGoals}`;
-
 /** The match clock while it is played: the Premier League's label to the minute ("45+3'"), or
  *  FPL's minutes, which carry no stoppage time; "Live" while a read has given neither. */
 export const clockWords = (clockLabel: string | null, minutes: number | null) => {
@@ -33,7 +30,6 @@ export const clockWords = (clockLabel: string | null, minutes: number | null) =>
   if (label) return `${label}'`;
   return minutes === null ? liveWords : `${minutes}'`;
 };
-export const liveWords = "Live";
 export const halfTime = { short: "HT", long: "Half-time" } as const;
 export const fullTime = { short: "FT", long: "Full time" } as const;
 
@@ -97,7 +93,7 @@ export const COMMENTARY_TITLE = "Commentary";
 export const noLinesWords = "No lines yet: they come in as the match is played.";
 
 export const TEAM_STATS_TITLE = "Team stats";
-export const teamStatsLabel = (home: string, away: string) => `${home} v ${away}: team stats`;
+export const teamStatsLabel = (home: string, away: string) => `${home} ${versusWords} ${away}: team stats`;
 export const noTeamStatsWords = "The team stats show here once the match kicks off.";
 /** The five spec/10 names, in its order, the cards as yellow and red. */
 export const teamStatRows = {

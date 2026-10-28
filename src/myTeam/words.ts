@@ -4,7 +4,7 @@ import { menuWords } from "../frame/words";
 import { failedWords } from "../words";
 import type { TeamTransactions } from "./seam";
 
-export { noFigureWords, versusWords, whenWords } from "../words";
+export { liveWords, noFigureWords, versusWords, whenWords } from "../words";
 
 /** Said on any tab to someone who runs no team in the league, such as a commissioner who doesn't
  *  play. */
@@ -22,8 +22,6 @@ export const fixtureColumns = {
   result: { short: "Result", long: "Your points, then the opponent's: the matchup" },
 } as const;
 export const byeWords = "Bye";
-/** Beside a score that may still move: a match it counts is live, or not yet final (spec/07). */
-export const liveWords = "Live";
 export { leagueAverageWords, provisionalWords, scoreWords, unscoredWords } from "../table/words";
 export const totalPointsWords = "The league plays total points, so your team has no head-to-head fixtures.";
 export const noFixturesWords = "No fixtures yet: they're drawn once the league has two teams and a gameweek to play.";
