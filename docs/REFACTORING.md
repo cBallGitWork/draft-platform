@@ -7,6 +7,7 @@ do a new thing".
 
 **Contents:** [The one line](#the-one-line) · [What is never a refactor](#what-is-never-a-refactor) ·
 [With every pull request](#with-every-pull-request) · [The drift pass](#the-drift-pass) ·
+[The architecture pass](#the-architecture-pass) · [The words](#the-words) ·
 [Proving nothing changed](#proving-nothing-changed) · [The three modes](#the-three-modes) ·
 [Toolkit](#toolkit)
 
@@ -75,6 +76,38 @@ commit on `main`, so the count since the last pass is
 `Self-review:` is the drift pass's record line only; a feature branch records /refactor in its
 PR's checks box.
 
+## The architecture pass
+
+The drift pass tidies what is there; it never asks whether the code is cut into the right pieces.
+As the codebase grows, every change made without the whole in view leaves it a little harder to
+change, and that compounds. `/deepen` (`.claude/skills/deepen/`) looks across the whole codebase
+for modules to deepen, in [the words](#the-words) below.
+
+**When:** when Craig asks, for now (Craig, 28 Oct 2026: "its sizeable now....but later").
+
+**Who decides:** agents find up to six candidates and put them to Craig in plain words; Craig picks.
+A pick goes to `/grill`, which ends in issues; nothing is built from a candidate he didn't pick.
+
+## The words
+
+The shared vocabulary for talking about the code's shape, from John Ousterhout's *A Philosophy of
+Software Design* by way of Matt Pocock (Oct 2026). `/deepen` reads them from here.
+
+- **Module:** a unit of the code with one job: scoring a match, the draft's pick order, a screen
+  with its parts.
+- **Interface:** everything a caller must know to use a module correctly: its functions, what
+  they take and return, and the rules for calling them (call this before that).
+- **Implementation:** what the module does inside, which a caller never needs to know.
+- **Deep / shallow:** a deep module hides a lot behind a small interface; a shallow one has an
+  interface nearly as big as what it does. Deep is better: callers learn less.
+- **Seam:** where one module meets another, through its interface. Tests poke a module at its
+  seam.
+- **Adapter:** a thing that plugs in at a seam. The real feeds and the recorded payloads the tests
+  replay are two adapters at the football layer's one seam.
+- **Locality:** for whoever changes a module: a change, or a bug, sits in one place, not spread
+  across many.
+- **Leverage:** for whoever calls a module: how much it does per thing they must learn.
+
 ## Proving nothing changed
 
 - The Vitest suite and the type check pass before and after.
@@ -99,6 +132,7 @@ numbers, not "looks fine".
 ## Toolkit
 
 - `/refactor` (`.claude/skills/`): the check every pull request gets.
+- `/deepen` (`.claude/skills/`): the architecture pass.
 - `/simplify` and `/code-review` are Claude Code's own skills.
 - `/simplify`: reuse and simplification cleanups, applied. The driver for mode 1.
 - `/code-review`: a correctness pass; run it after an untangle.
