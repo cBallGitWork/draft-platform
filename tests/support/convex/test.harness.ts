@@ -13,6 +13,25 @@ export const modules = import.meta.glob("../../../convex/**/*.ts");
 
 export type TestConvex = TestConvexOf<typeof schema>;
 
+/** A registered function as Convex's runtime marks it, all a sweep reads of one. */
+export type RegisteredFunction = { isMutation?: boolean; isPublic?: boolean; exportArgs?: () => string };
+
+/** Every public query, mutation and action, keyed "folder/module:name". Read from the deployed
+ *  modules, so a function added later is found without anyone listing it. */
+export async function publicFunctions(): Promise<Map<string, RegisteredFunction>> {
+  const found = new Map<string, RegisteredFunction>();
+  for (const [path, load] of Object.entries(modules)) {
+    // Convex deploys only files with one dot in their name, and none of _generated.
+    const module = path.match(/^(?:\.\.\/)+convex\/((?!_generated\/)[^.]+)\.ts$/)?.[1];
+    if (!module) continue;
+    for (const [name, exported] of Object.entries((await load()) as Record<string, unknown>)) {
+      const fn = exported as RegisteredFunction | undefined;
+      if (fn?.isPublic) found.set(`${module}:${name}`, fn);
+    }
+  }
+  return found;
+}
+
 /** A test's own Convex, empty, on the real schema and functions. */
 export function freshConvex(): TestConvex {
   return convexTest(schema, modules);

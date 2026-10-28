@@ -12,7 +12,7 @@ import { askToJoin, invite, makeLink } from "./joining.harness";
 import { ANN, CAT, DAN } from "./leagueDeletion.harness";
 import { rulesRevision } from "./leagueRules.harness";
 import { teamsIn } from "./leagues.harness";
-import { modules, type TestConvex } from "./test.harness";
+import { publicFunctions, type TestConvex } from "./test.harness";
 
 /** Someone in no league, whom `changesTo` adds as a manager and invites. */
 const NEWCOMER = "new@example.com";
@@ -82,14 +82,8 @@ export function changesTo(
 export async function mutationsGivenALeague(): Promise<string[]> {
   const keyedTables = new Set(["leagues", ...tablesKeyedToLeague]);
   const names: string[] = [];
-  for (const [path, load] of Object.entries(modules)) {
-    // Convex deploys only files with one dot in their name, and none of _generated.
-    const module = path.match(/^(?:\.\.\/)+convex\/((?!_generated\/)[^.]+)\.ts$/)?.[1];
-    if (!module) continue;
-    for (const [name, exported] of Object.entries((await load()) as Record<string, unknown>)) {
-      const fn = exported as { isMutation?: boolean; isPublic?: boolean; exportArgs?: () => string };
-      if (fn?.isMutation && fn.isPublic && givesIdOf(JSON.parse(fn.exportArgs!()), keyedTables)) names.push(`${module}:${name}`);
-    }
+  for (const [name, fn] of await publicFunctions()) {
+    if (fn.isMutation && givesIdOf(JSON.parse(fn.exportArgs!()), keyedTables)) names.push(name);
   }
   return names.sort();
 }
