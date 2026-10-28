@@ -59,7 +59,8 @@ never enough.
   a cyan underline; orange for what happened or needs you; muted grey never on the top bar;
   cyan only on a derived reading (a countdown, a preset's name), the active tab's underline, the
   current one of a list's left bar, a link's hover underline and the focus outline; the role
-  under a pitch name in role text (`#caced4`) on its near-black name plate. plate.md's colour table is the whole list.
+  under a pitch name in role text (`#caced4`) on its near-black name plate. plate.md's colour
+  table is the whole list.
 - Archivo Narrow throughout; figures in tabular numerals.
 - Radius 0; the 2px bevel on the top bar and each title plate; tabs butted with 1px rules.
 - Panels 8px apart, aligned to the top, none stretched empty.
