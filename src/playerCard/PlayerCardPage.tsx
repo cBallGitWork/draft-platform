@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PositionCode, PositionCodes } from "../PositionCodes";
 import { SCOUTING_PATH } from "../frame/menu";
+import { ColumnHeads } from "../frame/ColumnHeads";
 import { Loading, PANEL_BODY, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { useMinute } from "../useMinute";
 import { gameweekWords, versusWords, whenWords } from "../words";
@@ -145,15 +146,7 @@ function Season({ card }: { card: PlayerCard }) {
             <PanelNote key={scoredAs}>{pricedNotes[scoredAs]}</PanelNote>
           ))}
           <table className="w-full border-collapse">
-            <thead className="bg-head text-ground">
-              <tr>
-                {COLUMNS.map((column) => (
-                  <th key={column} scope="col" title={columns[column].long} className={cellClasses(column)}>
-                    {columns[column].short}
-                  </th>
-                ))}
-              </tr>
-            </thead>
+            <ColumnHeads columns={columns} shown={COLUMNS} classOf={cellClasses} />
             {card.matches.map((match) => (
               <MatchRows key={match.fixtureCode} match={match} />
             ))}
