@@ -1,12 +1,12 @@
 # Tests
 
 Every Vitest and Playwright test sits here (the hook checks, and the recorded add-only check's,
-are in `.claude/hooks/tests/`), under one of four roots: at the path of the code it tests, or at
+are in `.claude/hooks/tests/`), under one of five roots: at the path of the code it tests, or at
 the root for a test that spans many files (`tests/src/flow.test.ts`). A Convex test that plays the
 whole product through, from a league made to a gameweek's scores stored, is under
 `tests/convex/endToEnd/`.
 
-## The four roots
+## The five roots
 
 | Root | What it tests | Runs with | An example |
 | --- | --- | --- | --- |
@@ -14,6 +14,7 @@ whole product through, from a league made to a gameweek's scores stored, is unde
 | `tests/src/` | `src/`, the screens, in jsdom | Vitest, the `app` project: `*.test.ts`, `*.test.tsx` | `tests/src/table/table.test.tsx` |
 | `tests/scripts/` | `scripts/`, in Node | Vitest, the `scripts` project: `*.test.mjs` | `tests/scripts/port.test.mjs` |
 | `tests/smoke/` | the app loaded in a real browser, no Convex | Playwright (`npm run smoke`, `playwright.config.ts`) | `tests/smoke/smoke.spec.ts` |
+| `tests/live/` | the live site after each release, signed in to for real (ARCHITECTURE.md, The after-release check) | Playwright (`npx playwright test -c playwright.live.config.ts`), run only by `.github/workflows/release-check.yml`; it skips without its two secrets | `tests/live/signIn.live.spec.ts` |
 
 `npm test` runs the three Vitest projects (`vitest.config.ts` holds their include patterns); a
 file that matches none of them never runs. `npm run verify` runs them with the install check, the

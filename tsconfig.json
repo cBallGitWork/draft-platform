@@ -20,5 +20,5 @@
     "noEmit": true
   },
   // The app imports convex/_generated/api, whose types reach into convex/, so process.d.ts too.
-  "include": ["src", "tests", "vite.config.ts", "vitest.config.ts", "playwright.config.ts", "convex/process.d.ts"]
+  "include": ["src", "tests", "vite.config.ts", "vitest.config.ts", "playwright.config.ts", "playwright.live.config.ts", "convex/process.d.ts"]
 }

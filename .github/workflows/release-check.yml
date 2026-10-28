@@ -1,0 +1,96 @@
+# The after-release check (spec/20, Every release): after each production deployment, opens the
+# live site and signs in for real (tests/live/signIn.live.spec.ts). A failure turns the run red, and
+# GitHub emails Craig. Until the live site exists its two secrets aren't set, and it skips, saying so.
+#
+# Secrets (repository settings, Secrets and variables, Actions):
+#   RELEASE_CHECK_EMAIL       an address Resend receives for the account (<anything>@<id>.resend.app),
+#                             put on the live site's allowed list
+#   RELEASE_CHECK_RESEND_KEY  a full-access Resend API key: only full access reads received emails
+# The names are tests/live/releaseCheck.ts's CHECK_ENV.
+name: release-check
+
+on:
+  # Vercel sends this when a deployment is ready; only production's is checked (the `if` below).
+  repository_dispatch:
+    types: [vercel.deployment.success]
+  # By hand, from the Actions tab; `site` points it at another site, to see it fail on one that won't sign in.
+  workflow_dispatch:
+    inputs:
+      site:
+        description: "Another site to check (blank for the live one)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+# One check at a time, never cancelled: a run of releases queues, and only the newest waiting one runs.
+concurrency:
+  group: release-check
+  cancel-in-progress: false
+
+jobs:
+  # Whether there is a live site to check: both secrets set. Secrets can't be read in a job's `if`.
+  ready:
+    if: github.event_name == 'workflow_dispatch' || github.event.client_payload.environment == 'production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      ready: ${{ steps.secrets.outputs.ready }}
+      playwright_version: ${{ steps.playwright.outputs.version }}
+    steps:
+      - id: secrets
+        env:
+          RELEASE_CHECK_EMAIL: ${{ secrets.RELEASE_CHECK_EMAIL }}
+          RELEASE_CHECK_RESEND_KEY: ${{ secrets.RELEASE_CHECK_RESEND_KEY }}
+        run: |
+          if [ -n "$RELEASE_CHECK_EMAIL" ] && [ -n "$RELEASE_CHECK_RESEND_KEY" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Skipped: RELEASE_CHECK_EMAIL or RELEASE_CHECK_RESEND_KEY isn't set, so there's no live site to sign in to yet."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+      # The container's tag, read from the lockfile as verify.yml reads smoke's.
+      - if: steps.secrets.outputs.ready == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.client_payload.git.sha || github.sha }}
+      - if: steps.secrets.outputs.ready == 'true'
+        id: playwright
+        run: |
+          version=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test']?.version ?? ''")
+          [ -n "$version" ] || { echo "::error::package-lock.json names no @playwright/test version, so the check has no container image"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  sign-in:
+    needs: ready
+    if: needs.ready.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Playwright's own image, with Chromium and its OS packages baked in, as smoke's (verify.yml, #372).
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.ready.outputs.playwright_version }}-noble
+    steps:
+      # The deployed commit, so the check reads the words that site shows; main's on a run by hand.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.client_payload.git.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Sign in to the live site
+        env:
+          CI: true
+          RELEASE_CHECK_EMAIL: ${{ secrets.RELEASE_CHECK_EMAIL }}
+          RELEASE_CHECK_RESEND_KEY: ${{ secrets.RELEASE_CHECK_RESEND_KEY }}
+          RELEASE_CHECK_SITE: ${{ inputs.site }}
+        run: npx playwright test -c playwright.live.config.ts
+      # The failure's screenshot only: no trace, which would hold the sign-in link in a public repository.
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-check-screenshot
+          path: test-results/
+          retention-days: 7

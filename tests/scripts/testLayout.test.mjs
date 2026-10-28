@@ -8,8 +8,9 @@ import config from "../../vitest.config.ts";
 
 const REPO_ROOT = join(import.meta.dirname, "../..");
 const TESTS_ROOT = "tests";
-// Playwright runs tests/smoke/ (`npm run smoke`); tests/support/ holds harnesses, not tests.
-const NOT_VITEST = [`${TESTS_ROOT}/smoke/`, `${TESTS_ROOT}/support/`];
+// Playwright runs tests/smoke/ (`npm run smoke`) and tests/live/ (the after-release check,
+// playwright.live.config.ts); tests/support/ holds harnesses, not tests.
+const NOT_VITEST = [`${TESTS_ROOT}/smoke/`, `${TESTS_ROOT}/live/`, `${TESTS_ROOT}/support/`];
 const TEST_FILE = /\.(test|spec)\.[^/]+$/;
 
 const projectIncludes = config.test.projects.flatMap((project) => project.test.include);
