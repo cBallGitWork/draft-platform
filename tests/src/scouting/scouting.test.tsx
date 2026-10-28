@@ -1,6 +1,6 @@
 // Scouting's players list (#373, spec/19 The players list): reached from the menu's Scouting, in
 // place of Players, by anyone in the league; every player with his club, positions and owner; the
-// filters and the sort ask the server; season points and role fit read "—" until they exist.
+// filters and the sort ask the server; season points and role fit read "—", saying why on hover.
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -25,6 +25,8 @@ import {
   matchesWords,
   noFigureWords,
   noneMatchWords,
+  noPointsYetWords,
+  noRoleFitYetWords,
   noStatsYetWords,
   noWaiversWords,
   pickOneMoreWords,
@@ -116,11 +118,12 @@ describe("the list", () => {
     expect(rowOf("Rice").textContent).toContain(freeAgentWords);
   });
 
-  it("reads '—' for season points until matches are scored, and for role fit until roles exist", async () => {
+  it("reads '—' for season points and role fit, saying why on hover", async () => {
     openScouting();
     await screen.findByRole("table");
     const cells = within(rowOf("Saka")).getAllByRole("cell");
     expect(cells.slice(-2).map((cell) => cell.textContent)).toEqual([noFigureWords, noFigureWords]);
+    expect(cells.slice(-2).map((cell) => cell.getAttribute("title"))).toEqual([noPointsYetWords, noRoleFitYetWords]);
   });
 
   it("heads each column with a short code, the full name on hover", async () => {

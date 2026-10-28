@@ -1,5 +1,10 @@
 import { Link } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 import { unreadFigure, unreadTabLabel } from "../mail/words";
+import { mainMenuLabel } from "./words";
+
+// On a phone the menu takes its own row under the name and Sign out (and Continue, in a league).
+const mainMenuClasses = "order-last flex w-full flex-wrap border-t border-plate-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-r";
 
 // Butted tabs with 1px rules between them (plate.md, Shape).
 const menuTabClasses =
@@ -18,5 +23,15 @@ export function MenuTab({ path, label, unreadMail = 0 }: { path: string; label: 
         </span>
       )}
     </Link>
+  );
+}
+
+/** The top bar's menu of tabs, named for screen readers: a league's sections, or, in no league,
+ *  their leagues and Mail. */
+export function MainMenu({ children }: { children: ReactNode }) {
+  return (
+    <nav aria-label={mainMenuLabel} className={mainMenuClasses}>
+      {children}
+    </nav>
   );
 }

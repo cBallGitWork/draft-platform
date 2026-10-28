@@ -18,6 +18,13 @@ export function freshConvex(): TestConvex {
   return convexTest(schema, modules);
 }
 
+/** The clock runs on to `time` with nothing else happening, firing each scheduled function as it
+ *  falls due, and those they schedule that are due by then. */
+export async function clockRunsTo(t: TestConvex, time: number): Promise<void> {
+  vi.advanceTimersByTime(time - Date.now());
+  await t.finishAllScheduledFunctions(() => vi.advanceTimersByTime(0));
+}
+
 /** What a faked feed answers a URL it refuses, unless the test names another status. */
 export const REFUSED_STATUS = 503;
 
