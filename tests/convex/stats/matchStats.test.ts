@@ -67,6 +67,7 @@ test("each run row says whether the cron or a hand started it, and when it ran",
   expect(byCron).toMatchObject({ trigger: "cron", ranAt: FULL_TIME_READ + HOUR_MS / 2 });
 });
 
+// S07.1
 test("a starter's record not yet arrived shows — and keeps the match provisional until it does", async () => {
   const t = await withHullEverton();
 
@@ -99,6 +100,7 @@ test("a match FPL has not filled in stays provisional, and a starter's minutes a
   expect(statValue(mcBurnie, "goals_scored")).toBeNull();
 });
 
+// S07.2
 test("a correction after the lock changes nothing, and is recorded once for the feeds page", async () => {
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, recordedGw6());

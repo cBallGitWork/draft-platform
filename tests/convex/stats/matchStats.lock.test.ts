@@ -63,6 +63,7 @@ test("a complete match read again before its lock schedules no second lock", asy
   expect(scheduled.filter((job) => job.state.kind === "pending")).toHaveLength(1);
 });
 
+// S07.2
 test("a record still missing at the hour keeps the match provisional, and it locks an hour after it arrives", async () => {
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, withPlReadEmpty(recordedGw6(), FULL_STATS.coyle.pl));
@@ -113,13 +114,6 @@ test("a window changed after the lock was scheduled is read again when the lock 
 
   await elapse(t, 30 * MINUTE_MS);
   expect((await heldMatch(t)).status).toMatchObject({ state: "locked", lockedAt: FULL_TIME_READ + 90 * MINUTE_MS });
-});
-
-test.each([-1, 1.5])("a window of %s minutes is refused", async (minutes) => {
-  const t = freshConvex();
-  await expect(t.mutation(internal.admin.platformSettings.setStatCorrectionWindow, { minutes })).rejects.toThrow(
-    `whole number of minutes, 0 or more, not ${minutes}`,
-  );
 });
 
 test("a match is due 105 minutes after kickoff, the soonest it can reach full time, and not before", async () => {

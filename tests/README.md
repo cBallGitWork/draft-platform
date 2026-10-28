@@ -15,8 +15,8 @@ the root for a test that spans many files (`tests/src/flow.test.ts`).
 
 `npm test` runs the three Vitest projects (`vitest.config.ts` holds their include patterns); a
 file that matches none of them never runs. `npm run verify` runs them with the install check, the
-type check, the recorded-payload check and the hook checks; CI also runs `npm run build` and
-`npm run smoke`.
+type check, the recorded-payload check, the spec-ID check and the hook checks; CI also runs
+`npm run build` and `npm run smoke`.
 
 ## What `tests/support/` holds
 
@@ -47,3 +47,12 @@ A change near scoring proves nothing moved with the whole-match golden: every re
 Hull v Everton, from both feeds, in every area, scored in `tests/convex/scoring/scoring.test.ts`
 and matched against `golden/hull-everton.scores.json`. How, and the other proofs a refactor owes:
 `docs/REFACTORING.md`, *Proving nothing changed*.
+
+## Citing the spec
+
+An answer in `spec/NN-*.md` may end with an ID such as `S07.2` (#454; for now only spec/07's
+*Match stats*). A test that asserts that answer cites it by writing the ID beside it, as a comment
+or in the test's name. `scripts/spec-ids.mjs`, run by `npm run verify`, fails on an ID given twice
+or a citation to an ID no answer has, and lists the answers no test cites. Where an answer has an
+example table, `tests/support/specExamples.ts` reads its rows for a test to run
+(`tests/convex/stats/matchStats.examples.test.ts`).
