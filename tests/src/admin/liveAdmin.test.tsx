@@ -4,7 +4,7 @@
 
 import { act, renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
 import { useLiveAdmin } from "../../../src/admin/liveAdmin";
 import { changeFailedWords } from "../../../src/words";
@@ -24,10 +24,6 @@ vi.mock("convex/react", async () =>
     },
   }),
 );
-
-afterEach(() => {
-  for (const fake of Object.values(convex)) fake.mockReset();
-});
 
 const seam = () => renderHook(() => useLiveAdmin()).result.current;
 

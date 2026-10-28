@@ -1,7 +1,7 @@
 // Pruning the feeds' run logs (#146): a success goes after 30 days and a failure after 180, but a
 // feed's newest runs and its newest success always stay, in batches, liveStatsTicks first.
 
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { PRUNE_ORDER } from "../../../convex/admin/runLogs";
 import { FEED_RUN_TABLES, FEEDS, type Feed } from "../../../convex/shared/feedSchedule";
@@ -11,10 +11,6 @@ import { recordRun, T0, type Ran } from "../../support/convex/feeds.harness";
 import { freshConvex, type TestConvex } from "../../support/convex/test.harness";
 
 const NOW = T0;
-
-afterEach(() => {
-  vi.useRealTimers();
-});
 
 /** `feed`'s newest `LATEST_RUNS` runs, a minute apart in the hour before `NOW`, each as `ran` says. */
 async function recentRuns(t: TestConvex, feed: Feed, ran: Ran = "ok") {

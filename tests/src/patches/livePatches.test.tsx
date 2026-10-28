@@ -4,7 +4,7 @@
 
 import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { patchBannerRefusals } from "../../../convex/scoring/patchNotes";
 import { useLivePatches } from "../../../src/patches/livePatches";
@@ -18,11 +18,6 @@ vi.mock("convex/react", async () =>
     mutations: { "scoring/patchNotes:dismissBanner": convex.dismiss },
   }),
 );
-
-afterEach(() => {
-  for (const fake of Object.values(convex)) fake.mockReset();
-  vi.useRealTimers();
-});
 
 const VERSION = "version-1" as Id<"siteScoring">;
 const seam = () => renderHook(() => useLivePatches()).result.current;
