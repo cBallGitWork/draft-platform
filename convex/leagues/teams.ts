@@ -15,6 +15,7 @@ import {
   teamIn,
   teamsOf,
 } from "../shared/leagueAccess";
+import { typedText } from "../shared/typedText";
 import { recordEvent } from "../mail/letters";
 import { seasonRules } from "../rules/rulesHistory";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
@@ -142,9 +143,7 @@ export const rename = mutation({
     const team = (await ctx.db.get("teams", args.teamId)) ?? refuse(refusals.noTeam);
     if (by !== team.managerEmail && !isAdmin(by)) refuse(refusals.notManager);
     await getLeague(ctx, team.leagueId);
-    const name = args.name.trim();
-    if (!name) refuse(refusals.blankName);
-    if ([...name].length > TEAM_NAME_MAX) refuse(refusals.teamNameTooLong);
+    const name = typedText(args.name, TEAM_NAME_MAX, { blank: refusals.blankName, tooLong: refusals.teamNameTooLong });
     if (name === team.name) return null;
     const teams = await teamsOf(ctx, team.leagueId);
     if (teams.some((other) => other._id !== team._id && nameKey(other.name) === nameKey(name))) {
