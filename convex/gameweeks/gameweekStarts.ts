@@ -1,5 +1,5 @@
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import { seasonStartYear } from "../football/football";
+import { seasonStartYear } from "../shared/time";
 import type { ScheduledMatch } from "./deadline";
 import { GAMEWEEKS } from "./usedGameweeks";
 
