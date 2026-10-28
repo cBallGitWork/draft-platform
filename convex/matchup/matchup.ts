@@ -248,18 +248,23 @@ class SideScorer {
   }
 
   /** On while any of his matches is; over once all are (at full time, though his points stay
-   *  provisional until the match locks); otherwise yet to play, at the next kickoff. */
+   *  provisional until the match locks), naming the last to kick off; otherwise yet to play, at
+   *  the next kickoff. */
   private async status(matches: readonly HeldMatch[]): Promise<SlotStatus> {
     if (matches.length === 0) return { kind: "noMatch" };
     const states = await Promise.all(matches.map(async (match) => ({ match, score: await this.score(match.fixture.code) })));
     const live = states.find(({ match, score }) => !isFinished(match) && (score?.state === "live" || score?.state === "halfTime"));
-    if (live !== undefined) return { kind: "playing", minute: live.score!.minutes };
-    const toCome = states.filter(({ match, score }) => !isFinished(match) && score?.state !== "fullTime");
-    if (toCome.length === 0) return { kind: "finished" };
-    const kickoffs = toCome.map(({ match }) => match.fixture.kickoff).filter((kickoff) => kickoff !== null);
-    return { kind: "yetToPlay", kickoff: kickoffs.length === 0 ? null : Math.min(...kickoffs) };
+    if (live !== undefined) return { kind: "playing", fixtureCode: live.match.fixture.code, minute: live.score!.minutes };
+    const toCome = states.filter(({ match, score }) => !isFinished(match) && score?.state !== "fullTime").map(({ match }) => match.fixture);
+    if (toCome.length === 0) return { kind: "finished", fixtureCode: byKickoff(matches.map(({ fixture }) => fixture)).at(-1)!.code };
+    const [next] = byKickoff(toCome);
+    return { kind: "yetToPlay", fixtureCode: next.code, kickoff: next.kickoff };
   }
 }
+
+/** Matches by kickoff, any with no time yet last. */
+const byKickoff = <Fixture extends { kickoff: number | null }>(fixtures: readonly Fixture[]): Fixture[] =>
+  fixtures.toSorted((one, other) => (one.kickoff === null ? 1 : 0) - (other.kickoff === null ? 1 : 0) || (one.kickoff ?? 0) - (other.kickoff ?? 0));
 
 /** His part in each of his matches he has a record in: the record once whole, whether he played,
  *  and his points there, in the order `scoreTeam` scored his matches. The match page prices its

@@ -1,12 +1,14 @@
 // The match page (#45; spec/10, The match page): one real match, live, opened from the Premier
-// League's fixtures: the score and clock, each club's team sheet with every owned man's team and
-// points, and the commentary, newest first, saying when it is delayed.
+// League's fixtures and from a player's status on the matchup: the score and clock, each club's
+// team sheet with every owned man's team and points, and the commentary, newest first, saying
+// when it is delayed.
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { HOUR_MS } from "../../../convex/shared/time";
-import { PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
+import { MATCHUP_PATH, PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
+import { statusLabels, statusWords } from "../../../src/matchup/words";
 import { matchPath } from "../../../src/premierLeague/paths";
 import type { MatchMan, MatchPage } from "../../../src/premierLeague/seam";
 import {
@@ -33,6 +35,7 @@ import {
   unusedLabel,
   versusWords,
 } from "../../../src/premierLeague/words";
+import { headToHead, slot, teamSide } from "../../support/src/matchup.harness";
 import { ARSENAL, CHELSEA, plMatch, type PremierLeagueData } from "../../support/src/premierLeague.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
 
@@ -108,6 +111,32 @@ describe("reaching it", () => {
     expect(app.premierLeague.useMatch).toHaveBeenLastCalledWith(league.leagueId, FIXTURE);
     // Under the Premier League section, whose tab stays lit.
     expect(screen.getByRole("link", { name: "Premier League" }).getAttribute("data-status")).toBe("active");
+  });
+
+  it("opens from a player's status on the matchup, at his match", async () => {
+    const app = openApp(MATCHUP_PATH, manager, {
+      premierLeague: { match: matchOf() },
+      matchup: {
+        matchup: headToHead({
+          kind: "scored",
+          team: teamSide("Team 1", [slot("Saka", { status: { kind: "playing", fixtureCode: FIXTURE, minute: 67 } })], []),
+          opponent: teamSide("Team 2", [], []),
+        }),
+      },
+    });
+    await userEvent.click(await screen.findByRole("link", { name: `${statusLabels.playing} ${statusWords.playing(67)}` }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: MATCH_TITLE })).toBeTruthy();
+    expect(app.path()).toBe(matchPath(FIXTURE));
+    expect(app.premierLeague.useMatch).toHaveBeenLastCalledWith(league.leagueId, FIXTURE);
+  });
+
+  it("a man whose club has no match has no match to open", async () => {
+    openApp(MATCHUP_PATH, manager, {
+      matchup: { matchup: headToHead({ kind: "scored", team: teamSide("Team 1", [slot("Wood", { status: { kind: "noMatch" } })], []), opponent: teamSide("Team 2", [], []) }) },
+    });
+    expect(await screen.findByText(statusLabels.noMatch)).toBeTruthy();
+    expect(screen.queryByRole("link", { name: new RegExp(statusLabels.noMatch) })).toBeNull();
   });
 
   it("a fixture before kickoff links from its v", async () => {

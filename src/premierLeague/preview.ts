@@ -52,12 +52,15 @@ const CURRENT_STATES = [
 
 const goals = (gameweek: number, index: number, side: number) => (gameweek * 3 + index * 5 + side * 7) % 4;
 
+/** The preview's code for a gameweek's match, by its place in the gameweek. */
+export const previewFixtureCode = (gameweek: number, index: number) => gameweek * 100 + index;
+
 function matchesOf(gameweek: number): GameweekMatch[] {
   // Each gameweek pairs the clubs afresh: a rotation, so no club meets itself.
   return KICKOFF_OFFSETS.map((offset, index) => {
     const home = CLUBS[index];
     const away = CLUBS[10 + ((index + gameweek) % 10)];
-    const fixtureCode = gameweek * 100 + index;
+    const fixtureCode = previewFixtureCode(gameweek, index);
     const kickoff = startOf(gameweek) + offset;
     const finished = gameweek < CURRENT;
     const current = gameweek === CURRENT ? CURRENT_STATES[index] : undefined;

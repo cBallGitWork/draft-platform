@@ -6,12 +6,15 @@ import { BYE } from "../table/teamGames";
 
 // What the matchup query sends (matchup.ts; #34): one team's head-to-head in one gameweek.
 
+// Each status but noMatch names the match it is about by FPL's fixture code, so it opens that
+// match's page (spec/10, The match page).
 const slotStatus = v.union(
   /** His match is still to come: its kickoff, null while it has no time. */
-  v.object({ kind: v.literal("yetToPlay"), kickoff: v.union(v.number(), v.null()) }),
+  v.object({ kind: v.literal("yetToPlay"), fixtureCode: v.number(), kickoff: v.union(v.number(), v.null()) }),
   /** His match is on: the minute on its clock, null until a feed has read one. */
-  v.object({ kind: v.literal("playing"), minute: v.union(v.number(), v.null()) }),
-  v.object({ kind: v.literal("finished") }),
+  v.object({ kind: v.literal("playing"), fixtureCode: v.number(), minute: v.union(v.number(), v.null()) }),
+  /** All his matches are over: the last of them. */
+  v.object({ kind: v.literal("finished"), fixtureCode: v.number() }),
   /** His club has no match in the gameweek: a blank one. */
   v.object({ kind: v.literal("noMatch") }),
 );

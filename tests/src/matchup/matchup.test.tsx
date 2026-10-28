@@ -48,7 +48,7 @@ import {
 } from "../../../src/matchup/words";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 import { homeFixture, quietHome } from "../../support/src/home.harness";
-import { headToHead, liveMatchup, slot, teamSide, type MatchupData } from "../../support/src/matchup.harness";
+import { headToHead, liveMatchup, slot, SLOT_MATCH, teamSide, type MatchupData } from "../../support/src/matchup.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
 
 const openMatchup = (matchup: MatchupData = {}, path = MATCHUP_PATH) => openApp(path, manager, { matchup });
@@ -64,23 +64,23 @@ const KICKOFF = Date.parse("2026-10-27T15:00:00Z");
 const stages = {
   beforeKickoff: headToHead({
     kind: "scored",
-    team: teamSide("Team 1", [slot("Phillips", { area: "goalkeeper", status: { kind: "yetToPlay", kickoff: KICKOFF } }), slot("Coyle", { status: { kind: "yetToPlay", kickoff: KICKOFF } })], [slot("Pandur", { area: "goalkeeper", counts: false })]),
+    team: teamSide("Team 1", [slot("Phillips", { area: "goalkeeper", status: { kind: "yetToPlay", fixtureCode: SLOT_MATCH, kickoff: KICKOFF } }), slot("Coyle", { status: { kind: "yetToPlay", fixtureCode: SLOT_MATCH, kickoff: KICKOFF } })], [slot("Pandur", { area: "goalkeeper", counts: false })]),
     opponent: teamSide("Team 2", [slot("Pickford", { area: "goalkeeper" })], []),
   }),
   live: headToHead({
     kind: "scored",
-    team: teamSide("Team 1", [slot("Phillips", { area: "goalkeeper", points: 0, status: { kind: "playing", minute: 60 } }), slot("Coyle", { points: 2, status: { kind: "playing", minute: 60 } })], [slot("Pandur", { area: "goalkeeper", points: 3, counts: false, status: { kind: "playing", minute: 60 } })], 2),
-    opponent: teamSide("Team 2", [slot("Pickford", { area: "goalkeeper", points: 5, status: { kind: "playing", minute: 60 } })], [], 5),
+    team: teamSide("Team 1", [slot("Phillips", { area: "goalkeeper", points: 0, status: { kind: "playing", fixtureCode: SLOT_MATCH, minute: 60 } }), slot("Coyle", { points: 2, status: { kind: "playing", fixtureCode: SLOT_MATCH, minute: 60 } })], [slot("Pandur", { area: "goalkeeper", points: 3, counts: false, status: { kind: "playing", fixtureCode: SLOT_MATCH, minute: 60 } })], 2),
+    opponent: teamSide("Team 2", [slot("Pickford", { area: "goalkeeper", points: 5, status: { kind: "playing", fixtureCode: SLOT_MATCH, minute: 60 } })], [], 5),
   }),
   fullTime: headToHead({
     kind: "scored",
     team: teamSide(
       "Team 1",
-      [slot("Phillips", { area: "goalkeeper", points: 0, counts: false, status: { kind: "finished" }, autoSub: { kind: "off", playerName: "Pandur" } }), slot("Coyle", { points: 6, status: { kind: "finished" } })],
-      [slot("Pandur", { area: "goalkeeper", points: 3, status: { kind: "finished" }, autoSub: { kind: "on", playerName: "Phillips" } })],
+      [slot("Phillips", { area: "goalkeeper", points: 0, counts: false, status: { kind: "finished", fixtureCode: SLOT_MATCH }, autoSub: { kind: "off", playerName: "Pandur" } }), slot("Coyle", { points: 6, status: { kind: "finished", fixtureCode: SLOT_MATCH } })],
+      [slot("Pandur", { area: "goalkeeper", points: 3, status: { kind: "finished", fixtureCode: SLOT_MATCH }, autoSub: { kind: "on", playerName: "Phillips" } })],
       9,
     ),
-    opponent: teamSide("Team 2", [slot("Pickford", { area: "goalkeeper", points: 7, status: { kind: "finished" } })], [], 7),
+    opponent: teamSide("Team 2", [slot("Pickford", { area: "goalkeeper", points: 7, status: { kind: "finished", fixtureCode: SLOT_MATCH } })], [], 7),
   }),
 };
 const final: Matchup = (() => {
@@ -212,7 +212,7 @@ describe("each side", () => {
   });
 
   it("a starter whom no one could replace says so", async () => {
-    openMatchup({ matchup: headToHead({ kind: "scored", team: teamSide("Team 1", [slot("Raya", { counts: true, status: { kind: "finished" }, autoSub: { kind: "unreplaced" } })], []), opponent: teamSide("Team 2", [], []) }) });
+    openMatchup({ matchup: headToHead({ kind: "scored", team: teamSide("Team 1", [slot("Raya", { counts: true, status: { kind: "finished", fixtureCode: SLOT_MATCH }, autoSub: { kind: "unreplaced" } })], []), opponent: teamSide("Team 2", [], []) }) });
     expect(await screen.findByText(autoSubWords.unreplaced)).toBeTruthy();
   });
 

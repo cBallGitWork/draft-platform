@@ -29,8 +29,8 @@ import { gameweekInputs, heldFixtures, leagueReads, MATCH_RECORDS_MOST, teamInGa
 // begun, as the matchup shows lineups only then.
 //
 // The men come from the match's records, which the live poller writes from kickoff (#28): the
-// sheets an hour before it, and the five team stats spec/10 names, aren't stored yet (Left for
-// later on #45).
+// sheets an hour before it, and the five team stats spec/10 names, aren't stored yet (#45 stays
+// open for them).
 
 type PlayerCode = number;
 

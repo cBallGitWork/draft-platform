@@ -32,7 +32,8 @@ import {
 
 /** One real Premier League match (spec/10, The match page), live: the score and clock, each club's
  *  team sheet with every man owned in the league showing his team and his points, and the match's
- *  commentary, newest first. Opened from the Premier League's fixtures (spec/18). */
+ *  commentary, newest first. Opened from the Premier League's fixtures (spec/18) and from a
+ *  player's status on the matchup. */
 export function MatchPage({ league, seam, fixtureCode }: { league: LeagueSummary; seam: PremierLeagueSeam; fixtureCode: number }) {
   const match = seam.useMatch(league.leagueId, fixtureCode);
   return (

@@ -114,7 +114,7 @@ flowchart TD
     CLUBS["Club pages<br/>spec/18:22<br/>after the mini beta"]
   end
   class DRAFT,CLUBS planned
-  MATCHUP -- "a player's status (spec/10, not linked yet)" --> MATCH
+  MATCHUP -- "a player's status" --> MATCH
   PL -- "a fixture's score or v" --> MATCH
   MATCH -.->|"its code isn't a number"| PL
 ```

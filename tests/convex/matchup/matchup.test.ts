@@ -42,11 +42,11 @@ const LIVE_MINUTE = 60;
 const ARSENAL = 3;
 
 /** The match's score as a feed reads it: `state`, and the minute on its clock. */
-async function scoreRead({ t }: ScoresLeague, state: "live" | "fullTime", minutes: number) {
+async function scoreRead({ t }: ScoresLeague, state: "live" | "fullTime", minutes: number, fixtureCode: number = HULL_EVERTON) {
   await t.mutation(internal.football.matchScores.upsertScores, {
     feed: "pl",
     readAt: Date.now(),
-    reads: [{ fixtureCode: HULL_EVERTON, state, homeGoals: 1, awayGoals: 2, minutes, clockLabel: null }],
+    reads: [{ fixtureCode, state, homeGoals: 1, awayGoals: 2, minutes, clockLabel: null }],
   });
 }
 
@@ -77,7 +77,7 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
   const before = await annsGame(league);
   expect(lineupOf(before.team).starters.map((slot) => slot.playerCode)).toEqual(HULL_STARTERS.map((starter) => starter.playerCode));
   expect(lineupOf(before.opponent).starters.map((slot) => slot.playerCode)).toEqual(EVERTON_STARTERS.map((starter) => starter.playerCode));
-  expect(slotOf(before.team, HULL_SCORER)).toMatchObject({ status: { kind: "yetToPlay", kickoff: KICKOFF }, points: null, counts: true });
+  expect(slotOf(before.team, HULL_SCORER)).toMatchObject({ status: { kind: "yetToPlay", fixtureCode: HULL_EVERTON, kickoff: KICKOFF }, points: null, counts: true });
   expect(before.team).toMatchObject({ points: 0, provisional: true });
 
   // An hour in, Hull's goal not yet scored: every man on with the clock's minute, the bench greyed,
@@ -86,7 +86,7 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
   await liveRecords(league, beforeTheGoal);
   await scoreRead(league, "live", LIVE_MINUTE);
   const live = await annsGame(league);
-  expect(slotOf(live.team, HULL_SCORER).status).toEqual({ kind: "playing", minute: LIVE_MINUTE });
+  expect(slotOf(live.team, HULL_SCORER).status).toEqual({ kind: "playing", fixtureCode: HULL_EVERTON, minute: LIVE_MINUTE });
   expect(live.team).toMatchObject({ points: sideTotal(beforeTheGoal, HULL_STARTERS), provisional: true });
   expect(lineupOf(live.team).bench.every((slot) => !slot.counts)).toBe(true);
   expect(slotOf(live.team, PHILLIPS)).toMatchObject({ counts: true, autoSub: null });
@@ -95,7 +95,7 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
   await fullTimeRecords(league);
   await scoreRead(league, "fullTime", 90);
   const fullTime = await annsGame(league);
-  expect(slotOf(fullTime.team, HULL_SCORER).status).toEqual({ kind: "finished" });
+  expect(slotOf(fullTime.team, HULL_SCORER).status).toEqual({ kind: "finished", fixtureCode: HULL_EVERTON });
   expect(slotOf(fullTime.team, PHILLIPS)).toMatchObject({ counts: false, autoSub: { kind: "off", playerName: await nameOf(league, HULL_KEEPER) } });
   expect(slotOf(fullTime.team, HULL_KEEPER)).toMatchObject({ counts: true, area: "goalkeeper", autoSub: { kind: "on", playerName: await nameOf(league, PHILLIPS) } });
   expect(fullTime.team).toMatchObject({ points: HULL_POINTS, provisional: true });
@@ -153,10 +153,23 @@ test("in a double gameweek a man is yet to play while his second match is to com
   await fullTimeRecords(league);
   await scoreRead(league, "fullTime", 90);
   const game = await annsGame(league);
-  expect(slotOf(game.team, HULL_SCORER).status).toEqual({ kind: "yetToPlay", kickoff: secondKickoff });
+  expect(slotOf(game.team, HULL_SCORER).status).toEqual({ kind: "yetToPlay", fixtureCode: HULL_EVERTON + 1, kickoff: secondKickoff });
   expect(slotOf(game.team, PHILLIPS)).toMatchObject({ counts: true, autoSub: null });
   // Everton play once, and are done.
-  expect(slotOf(game.opponent, EVERTON_STARTERS[0].playerCode).status).toEqual({ kind: "finished" });
+  expect(slotOf(game.opponent, EVERTON_STARTERS[0].playerCode).status).toEqual({ kind: "finished", fixtureCode: HULL_EVERTON });
+});
+
+test("in a double gameweek, once both his matches are over, his status opens the later one", async () => {
+  const league = await scoresLeague();
+  const secondKickoff = KICKOFF + 3 * DAY_MS;
+  await league.t.run((ctx) =>
+    ctx.db.insert("fixtures", { code: HULL_EVERTON + 1, gameweek: GAMEWEEK, homeClubCode: HULL, awayClubCode: ARSENAL, kickoff: secondKickoff }),
+  );
+  await fullTimeRecords(league);
+  await scoreRead(league, "fullTime", 90);
+  await scoreRead(league, "fullTime", 90, HULL_EVERTON + 1);
+  const game = await annsGame(league);
+  expect(slotOf(game.team, HULL_SCORER).status).toEqual({ kind: "finished", fixtureCode: HULL_EVERTON + 1 });
 });
 
 test("each side's total is the same as the table's for the gameweek", async () => {

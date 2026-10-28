@@ -102,7 +102,7 @@ const premierLeagueRoute = createRoute({
 });
 
 // A real match's page (#45; spec/10, The match page), for anyone in a league, opened from the
-// Premier League's fixtures. A code that isn't a number names no match, so it goes to them.
+// Premier League's fixtures and a player's status on the matchup. A code that isn't a number names no match, so it goes to them.
 const matchRoute = createRoute({
   getParentRoute: () => frameRoute,
   path: MATCH_ROUTE,

@@ -4,6 +4,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { MatchupSide, MatchupSlot } from "../../convex/matchup/matchupShape";
 import { Loading, PageSection, PanelNote, PanelTitle } from "../frame/Panel";
 import { useMinute } from "../useMinute";
+import { matchPath } from "../premierLeague/paths";
 import { matchupLink } from "./paths";
 import { Vidiprinter } from "./Vidiprinter";
 import type { Matchup, MatchupAsked, MatchupSeam } from "./seam";
@@ -221,14 +222,31 @@ function SlotRow({ slot }: { slot: MatchupSlot }) {
         )}
       </th>
       <td className={`px-2 text-right whitespace-nowrap ${status.kind === "playing" ? "text-derived" : ""}`}>
-        <span className="sr-only">{statusLabels[status.kind]} </span>
-        <span aria-hidden={status.kind === "finished" || status.kind === "noMatch" ? true : undefined}>{statusText(status)}</span>
+        {status.kind === "noMatch" ? (
+          <StatusWords status={status} />
+        ) : (
+          // His match's page (spec/10, The match page), opened from his status.
+          <Link to={matchPath(status.fixtureCode)} className="text-inherit">
+            <StatusWords status={status} />
+          </Link>
+        )}
       </td>
       <td className={`px-2 text-right tabular-nums ${counts && points !== null ? "font-bold text-figure" : "text-muted"}`}>
         {points ?? noFigureWords}
         {!counts && <span className="sr-only"> {notCountingLabel}</span>}
       </td>
     </tr>
+  );
+}
+
+/** His match's state, short, with the full words for screen readers. */
+function StatusWords({ status }: { status: MatchupSlot["status"] }) {
+  return (
+    <>
+      {/* The space between, not inside the hidden words, so a link's name keeps it. */}
+      <span className="sr-only">{statusLabels[status.kind]}</span>{" "}
+      <span aria-hidden={status.kind === "finished" || status.kind === "noMatch" ? true : undefined}>{statusText(status)}</span>
+    </>
   );
 }
 
