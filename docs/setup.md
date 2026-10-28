@@ -1,7 +1,9 @@
 # Setting up
 
-How to get the app running locally. The project's own docs are [SPEC.md](../SPEC.md),
-[ARCHITECTURE.md](../ARCHITECTURE.md) and [CLAUDE.md](../CLAUDE.md).
+**Contents:** [Start](#start) · [The live site](#the-live-site) · [Restoring saved data](#restoring-saved-data)
+
+How to get the app running locally, and how the live site is set up. The project's own docs are
+[SPEC.md](../SPEC.md), [ARCHITECTURE.md](../ARCHITECTURE.md) and [CLAUDE.md](../CLAUDE.md).
 
 ## Start
 
@@ -47,9 +49,10 @@ in (its `.env.local` names your dev deployment):
   `git status` should show nothing changed after.
 - `npx convex env set ADMIN_EMAIL` names the admin, and `npx convex env set AUTH_RESEND_KEY`
   holds Resend's API key: pipe each value in, so it stays out of your shell history. Until there
-  is a sending domain, mail comes from Resend's test sender (`onboarding@resend.dev`, set in
-  `convex/outbound/email.ts`), which reaches only the Resend account's own address, so `ADMIN_EMAIL`
-  must be that address and no one else gets a link yet.
+  is a sending domain, mail comes from Resend's test sender (`onboarding@resend.dev`, used
+  wherever the deployment has no `EMAIL_FROM`, `convex/outbound/sender.ts`), which reaches only
+  the Resend account's own address, so `ADMIN_EMAIL` must be that address and no one else gets a
+  link yet.
 
 The admin can sign in at once; anyone else is put on the allowed list first:
 `npx convex run signIn/allowedEmails:add '{"email":"someone@example.com"}'`.
@@ -78,6 +81,63 @@ The app is in `src/` and the server in `convex/`, one folder per feature in each
 `tests/`, mirroring them (`tests/convex/`, `tests/src/`, `tests/scripts/`), with the shared
 harnesses and recorded feeds in `tests/support/` and the browser smoke suite in `tests/smoke/`;
 the hooks' own checks, and the recorded add-only check's, are in `.claude/hooks/tests/`.
+
+## The live site
+
+The live site is `https://fantasydraftmanager.co.uk`, on its own production database in the same
+Convex project, with sign-in links sent from `signin@fantasydraftmanager.co.uk`
+([spec/20](../spec/20-going-live.md)).
+
+Craig's four steps, once, before the setup command:
+
+1. **Buy the domain** `fantasydraftmanager.co.uk` in Vercel (Domains, then Buy), on the account
+   the site will live in. The command puts Resend's records in Vercel's DNS, so a domain bought
+   elsewhere needs its records added there by hand instead: say so before running it.
+2. **Log in to Convex and Vercel** in a terminal in this checkout: `npx convex login` (done already
+   if `npm run setup` ran here) and `npx vercel login`. The gh CLI is signed in already (Start).
+3. **Make a Resend API key** at resend.com, under API Keys, with **Full access**: the command adds
+   the domain to Resend with it, the live site sends its emails with it, and the after-release
+   check reads its received email with it. While there, note the account's receiving address
+   from the Receiving tab (`<anything>@<id>.resend.app`): the command asks for it too.
+4. **Make the Convex production deploy key** in the Convex dashboard: the `draft-platform`
+   project, its Production deployment, then Settings, where the deploy key is generated. Vercel's
+   build uses it to put the server code live.
+
+Then, from an up-to-date `main` in the checkout `npm run setup` ran in (its `.env.local` names
+the project):
+
+```
+npm run setup:live -- --admin-email craig@example.com
+```
+
+It asks for the two keys and the receiving address when it needs them, with nothing shown as
+they're pasted, and never prints them. Without `--admin-email` it asks for the admin's address.
+Each step checks first, and prints one line: `done`, `already done`, or `failed` with why, where
+it stops. In order, it:
+
+- makes the live Convex deployment, if Convex can't reach one: it shows what Convex said and asks
+  first, since being signed out looks the same;
+- sets its five sign-in settings (`JWT_PRIVATE_KEY` and `JWKS` made as `npx @convex-dev/auth`
+  makes them, `SITE_URL`, `ADMIN_EMAIL`, `AUTH_RESEND_KEY`) and the sender, `EMAIL_FROM`;
+- deploys the server code to it (`npx convex deploy`), if it has none;
+- links this checkout to the Vercel project `draft-platform`, making it if needed, and puts the
+  deploy key in its production settings, and only there, as `CONVEX_DEPLOY_KEY`;
+- adds the domain to the Vercel project;
+- adds the domain to Resend (Ireland), puts Resend's DNS records in Vercel's DNS, and asks Resend
+  to check them, waiting up to five minutes; DNS can take longer, and then the line says
+  `not yet` and the rest still runs;
+- runs the player-positions sync once;
+- connects the Vercel project to this GitHub repository, so each merge to `main` goes live and
+  Vercel tells GitHub when it has (if Vercel's GitHub app isn't installed on the repository yet,
+  this line fails saying so: install it, then run again);
+- sets the after-release check's two GitHub secrets: `RELEASE_CHECK_EMAIL`, the receiving
+  address, which it also puts on the live site's allowed list, and `RELEASE_CHECK_RESEND_KEY`,
+  the same Resend key.
+
+It is safe to run again: a second run changes nothing and says every step is already done. What
+it reads from and sends to each service: `scripts/live-setup/`. On the live site, anyone but the
+admin is let in with `--prod`:
+`npx convex run --prod signIn/allowedEmails:add '{"email":"someone@example.com"}'`.
 
 ## Restoring saved data
 

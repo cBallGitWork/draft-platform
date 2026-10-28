@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "setup": "convex login && convex dev --once --configure existing --team craigdavidball14 --project draft-platform --dev-deployment cloud",
+    "setup:live": "node scripts/live-setup.mjs",
     "dev": "convex dev --start vite",
     "build": "vite build && node scripts/bundle-has-no-preview.mjs",
     "test": "node scripts/with-deadline.mjs 300 vitest run",
@@ -36,6 +37,7 @@
     "jsdom": "^30.1.3",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
+    "vercel": "63.1.2",
     "vite": "^8.3.4",
     "vitest": "^5.0.5"
   }
