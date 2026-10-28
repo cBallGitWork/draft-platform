@@ -14,7 +14,8 @@ import { BATCH_SIZE, FAILURE_KEPT_MS, LATEST_RUNS, SUCCESS_KEPT_MS } from "../sh
 //   The oldest rows come first, so an old success is held until a newer one is seen: a later old
 //   one, the first one kept for its age, or one among the newest `LATEST_RUNS`.
 // A batch of rows a run, oldest first by `_creationTime`, handing on to the next as
-// leagueDeletion.deleteForGood does.
+// leagueDeletion.deleteForGood does. Once the last feed is done it hands on to the sign-in asks'
+// prune (signInLinks.ts), so spec/20's daily clean-up stays one timed job.
 
 /** The order the run logs are pruned in: liveStatsTicks first, as it has by far the most rows. */
 export const PRUNE_ORDER = ["liveStats", "football", "positions", "matchStats"] as const satisfies readonly Feed[];
@@ -80,6 +81,8 @@ export const prune = internalMutation({
       await ctx.scheduler.runAfter(0, internal.admin.runLogs.prune, { feed, startedAt, after: lastRead._creationTime, heldSuccess: held ?? undefined });
     } else if (next !== undefined) {
       await ctx.scheduler.runAfter(0, internal.admin.runLogs.prune, { feed: next, startedAt });
+    } else {
+      await ctx.scheduler.runAfter(0, internal.signIn.signInLinks.pruneSignInAsks, {});
     }
     return null;
   },
