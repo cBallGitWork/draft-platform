@@ -2,6 +2,7 @@ import { useState } from "react";
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
 import { Loading, PANEL_BODY, PANEL_LIST_ROW, PanelNote, PanelTitle } from "../frame/Panel";
 import type { Changing } from "../useChange";
+import { useChoiceAmong } from "../useChoiceAmong";
 import type { AdminSeam, FoundPlayerPositions } from "./seam";
 import {
   findHint,
@@ -59,8 +60,7 @@ export function FindPlayer({ seam, change }: { seam: AdminSeam; change: Changing
 function PlayerPositions({ player, seam, change }: { player: FoundPlayerPositions; seam: AdminSeam; change: Changing }) {
   const held = new Set(player.positions.map((each) => each.position));
   const givable = POSITIONS.filter((position) => !held.has(position));
-  const [chosen, choose] = useState<Position | undefined>(undefined);
-  const position = chosen !== undefined && givable.includes(chosen) ? chosen : givable[0];
+  const [position, choose] = useChoiceAmong(givable);
   const selectId = `give-${player.code}`;
   return (
     <li className={PANEL_LIST_ROW}>

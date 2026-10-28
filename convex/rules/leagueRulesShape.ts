@@ -1,5 +1,5 @@
 import { v, type Infer, type Validator } from "convex/values";
-import { AREAS, LANES } from "../lineup/pitch";
+import { AREAS, LANES, SLOT_POSITIONS } from "../lineup/pitch";
 import { DOUBLE_GAMEWEEK_RULES } from "../scoring/scoring";
 import { ODD_TEAM_OUTS } from "../table/roundRobin";
 import { TIE_BREAKS } from "../table/standings";
@@ -11,25 +11,26 @@ import { TIE_BREAKS } from "../table/standings";
 // standings.ts and the odd team out to roundRobin.ts. leagueRulesShape.test.ts holds them equal.
 // What makes a rule sound beyond its shape (a minimum above its maximum) is leagueRulesCheck.ts's.
 
+type RequiredValidator = Validator<unknown, "required", string>;
+
+/** The same validator under each of `keys`, in their order. The one cast names the exact keys
+ *  `Object.fromEntries` loses; it narrows the type and loosens nothing. */
+function objectOf<Key extends string, Value extends RequiredValidator>(keys: readonly Key[], value: Value) {
+  return v.object(Object.fromEntries(keys.map((key) => [key, value])) as Record<Key, Value>);
+}
+
 /** The same validator for each of the pitch's six areas: a ByArea<Value>, or a Record<Area, …>. */
-function byArea<Value extends Validator<unknown, "required", string>>(value: Value) {
-  return v.object({
-    goalkeeper: value,
-    defence: value,
-    defensiveMidfield: value,
-    midfield: value,
-    attackingMidfield: value,
-    attack: value,
-  });
+function byArea<Value extends RequiredValidator>(value: Value) {
+  return objectOf(AREAS, value);
 }
 
 /** The same validator for each position a slot can be: scoringSet.ts's ByPosition<Value>. */
-function byPosition<Value extends Validator<unknown, "required", string>>(value: Value) {
-  return v.object({ GK: value, FB: value, CB: value, WB: value, CDM: value, WM: value, CM: value, W: value, CAM: value, ST: value });
+function byPosition<Value extends RequiredValidator>(value: Value) {
+  return objectOf(SLOT_POSITIONS, value);
 }
 
 /** scoringSet.ts's Priced<Value>: the same for all, by area, or by position. */
-function priced<Value extends Validator<unknown, "required", string>>(value: Value) {
+function priced<Value extends RequiredValidator>(value: Value) {
   return v.union(v.object({ all: value }), v.object({ byArea: byArea(value) }), v.object({ byPosition: byPosition(value) }));
 }
 

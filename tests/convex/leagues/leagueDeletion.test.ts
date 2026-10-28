@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { askToJoin, invite, makeLink, openLastLinkTo } from "../../support/convex/joining.harness";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { tablesKeyedToLeague } from "../../../convex/leagues/leagueDeletion";
-import { ANN, BOB, CAT, DAN, accountOf, deletes, laterBy, leagueWithPeople, moreEventsThanOneRun } from "../../support/convex/leagueDeletion.harness";
+import { ANN, BOB, CAT, DAN, aRowInEveryTable, accountOf, deletes, laterBy, leagueWithPeople, moreEventsThanOneRun, rowsKeyedTo } from "../../support/convex/leagueDeletion.harness";
 import { changesTo, mutationsGivenALeague, rowsToChange } from "../../support/convex/leagueMutations.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, eventsIn, leagueRow, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import schema from "../../../convex/schema";
@@ -184,6 +184,19 @@ describe("after the day", () => {
     await deletes(t, COMMISSIONER, leagueId);
     await t.finishAllScheduledFunctions(vi.runAllTimers);
     expect(await everythingOf(leagueId)).toEqual(GONE);
+  });
+
+  test("its rows in every table keyed to a league are deleted; another league's are untouched", async () => {
+    const other = await leagueWithPeople(t, "Another league");
+    for (const league of [leagueId, other]) await aRowInEveryTable(t, league);
+    const before = await rowsKeyedTo(t, leagueId);
+    const othersBefore = await rowsKeyedTo(t, other);
+    for (const table of tablesKeyedToLeague) expect(before[table], `${table} has a row of the league`).toBeGreaterThan(0);
+
+    await deletes(t, COMMISSIONER, leagueId);
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    expect(await rowsKeyedTo(t, leagueId)).toEqual(Object.fromEntries(tablesKeyedToLeague.map((table) => [table, 0])));
+    expect(await rowsKeyedTo(t, other)).toEqual(othersBefore);
   });
 
   test("every table keyed to a league is deleted with it", () => {

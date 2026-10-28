@@ -44,6 +44,21 @@ export DRAFT_PRIVATE_WORDS_LIST=" , "
 says "No private-word list" guard_github.py "$(gh_call create_pull_request '{"body":"clean"}')"
 unset DRAFT_PRIVATE_WORDS_LIST
 
+# a write whose branch or ref is main is denied, with a private list or without one; a feature
+# branch, a read of main, or main as the base a branch starts from goes through
+for list in "acmecorp" ""; do
+  export DRAFT_PRIVATE_WORDS_LIST="$list"
+  check deny guard_github.py "$(gh_call push_files '{"branch":"main","files":[{"path":"a.md","content":"x"}]}')"
+  check deny guard_github.py "$(gh_call create_or_update_file '{"branch":"main","path":"a.md","content":"x"}')"
+  check deny guard_github.py "$(gh_call delete_file '{"branch":"refs/heads/main","path":"a.md"}')"
+  check deny guard_github.py "$(gh_call update_ref '{"ref":"refs/heads/main","sha":"1"}')"
+  check allow guard_github.py "$(gh_call push_files '{"branch":"chore/x","files":[{"path":"a.md","content":"x"}]}')"
+  check allow guard_github.py "$(gh_call create_branch '{"branch":"chore/x","from_branch":"main"}')"
+  check allow guard_github.py "$(gh_call get_file_contents '{"path":"a.md","ref":"main"}')"
+  check allow guard_github.py "$(gh_call push_files '{"branch":["main"]}')"  # not a name, so not main
+done
+unset DRAFT_PRIVATE_WORDS_LIST
+
 # a payload it can't read is denied, never let through unchecked
 check deny guard_github.py 'not json'
 check deny guard_github.py '[]'

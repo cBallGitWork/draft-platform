@@ -9,6 +9,7 @@ import {
   POSITIONS_SYNC_RUN,
   RESEND_VERIFIED,
 } from "../../../scripts/live-setup/live.mjs";
+import { setUpLive } from "../../../scripts/live-setup/steps.mjs";
 
 export const RESEND_KEY = "re_FakeResendKey_0123456789abcdef";
 export const CHECK_EMAIL = "release-check@abc123def.resend.app";
@@ -154,5 +155,14 @@ export function fakeWorld({ checksBeforeVerified = 0 } = {}) {
       },
     },
   };
+  return world;
+}
+
+/** A world the command has set up in full, with what that run printed, asked and changed
+ *  cleared, so a test can break one part and see what a re-run does to it alone. */
+export async function setUpWorld() {
+  const world = fakeWorld();
+  if (!(await setUpLive(world.tools))) throw new Error(`the setup didn't finish: ${world.printed.at(-1)}`);
+  world.printed.length = world.asked.length = world.changes.length = 0;
   return world;
 }
