@@ -13,7 +13,9 @@ import {
   setSentToday,
   signInDeployment,
 } from "../../support/convex/signIn.harness";
-import { ASKS_PER_HOUR } from "../../../convex/signIn/signInLinks";
+import { ASKS_PER_HOUR, SIGN_IN_ASKS_KEPT_MS } from "../../../convex/signIn/signInLinks";
+import { EMAIL_MAX } from "../../../convex/signIn/allowedEmails";
+import { BATCH_SIZE } from "../../../convex/shared/syncRuns";
 import { silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 
@@ -64,6 +66,26 @@ describe("asking for a link", () => {
 
     expect(sent).toEqual([]);
     expect(await accountsMade()).toEqual(NO_ACCOUNTS);
+  });
+
+  test("an email off the list is stored as an ask, so the hourly limit counts it", async () => {
+    fakeResend();
+
+    await ask(t, UNLISTED);
+
+    expect(await asksStored(UNLISTED)).toMatchObject([{ email: UNLISTED, listed: false }]);
+  });
+
+  test.each([
+    ["isn't an address", "not an email"],
+    ["is longer than an address can be", `${"a".repeat(EMAIL_MAX)}@example.com`],
+  ])("something that %s gets the same reply, and nothing is stored or sent", async (_, typed) => {
+    const sent = fakeResend();
+
+    expect(await ask(t, typed)).toBe("checkYourEmail");
+
+    expect(sent).toEqual([]);
+    expect(await t.run((ctx) => ctx.db.query("signInAsks").collect())).toEqual([]);
   });
 
   test("the admin's email gets a link without being put on the list", async () => {
@@ -249,5 +271,36 @@ describe("the allowed list", () => {
 
   test("something that isn't an email address is refused, not stored", async () => {
     await expect(t.mutation(internal.signIn.allowedEmails.add, { email: "craig" })).rejects.toThrow("isn't an email address");
+  });
+});
+
+describe("clearing old asks", () => {
+  /** An ask stored straight into the table, `ageMs` before now. */
+  const storeAsk = (ageMs: number) =>
+    t.run((ctx) => ctx.db.insert("signInAsks", { email: UNLISTED, askedAt: Date.now() - ageMs, listed: false }));
+
+  async function asksLeft() {
+    return t.run(async (ctx) => (await ctx.db.query("signInAsks").collect()).map((asked) => Date.now() - asked.askedAt));
+  }
+
+  test("an ask older than a week goes, in as many batches as it takes; a younger one stays", async () => {
+    for (let index = 0; index <= BATCH_SIZE; index++) await storeAsk(SIGN_IN_ASKS_KEPT_MS + 1 + index);
+    await storeAsk(SIGN_IN_ASKS_KEPT_MS);
+    await storeAsk(HOUR_MS);
+
+    await t.mutation(internal.signIn.signInLinks.pruneSignInAsks, {});
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+
+    expect((await asksLeft()).sort((a, b) => a - b)).toEqual([HOUR_MS, SIGN_IN_ASKS_KEPT_MS]);
+  });
+
+  test("the daily run-log prune clears them too, once its own rows are done", async () => {
+    await storeAsk(SIGN_IN_ASKS_KEPT_MS + 1);
+    await storeAsk(HOUR_MS);
+
+    await t.mutation(internal.admin.runLogs.prune, {});
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+
+    expect(await asksLeft()).toEqual([HOUR_MS]);
   });
 });
