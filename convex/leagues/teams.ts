@@ -7,12 +7,12 @@ import {
   callerEmail,
   getLeague,
   isAdmin,
+  managerOf,
   namedEmail,
   refuse,
   refusals,
   runnerOf,
   teamIn,
-  teamOf,
   teamsOf,
 } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
@@ -124,10 +124,7 @@ export const leave = mutation({
   args: { leagueId: v.id("leagues") },
   returns: v.null(),
   handler: async (ctx, { leagueId }) => {
-    const email = await callerEmail(ctx);
-    await getLeague(ctx, leagueId);
-    const team = await teamOf(ctx, leagueId, email);
-    if (!team) refuse(refusals.runsNoTeam);
+    const { email, team } = await managerOf(ctx, leagueId);
     await ctx.db.patch("teams", team._id, { managerEmail: undefined });
     await cancelLiveInvites(ctx, leagueId, email);
     await recordEvent(ctx, leagueId, email, { kind: "managerLeft", email, teamId: team._id, teamName: team.name });

@@ -4,14 +4,13 @@ import type { Session } from "../auth";
 // Who may do what in a league, as the screens judge it to offer a way in. The server judges again
 // on every change (convex/shared/leagueAccess.ts).
 
-/** Whether this person runs the league, as the server's `runnerOf` judges it: its commissioner,
- *  its co-commissioner or the admin. */
-export const runs = (league: LeagueSummary, isAdmin: boolean) =>
-  isAdmin || league.roles.includes("commissioner") || league.roles.includes("co-commissioner");
+/** Whether this person runs the league: its commissioner, its co-commissioner or the admin, as
+ *  the server sent it (powersIn). */
+export const runs = (league: LeagueSummary) => league.powers.runs;
 
-/** Whether this person may delete the league, as the server's `deleterOf` judges it: its
- *  commissioner or the admin. */
-export const deletes = (league: LeagueSummary, isAdmin: boolean) => isAdmin || league.roles.includes("commissioner");
+/** Whether this person may delete the league: its commissioner or the admin, as the server sent
+ *  it (powersIn). */
+export const deletes = (league: LeagueSummary) => league.powers.names;
 
 /** The league with this id, if the person has a part in it (or is the admin) and it isn't being
  *  deleted: a league being deleted is frozen and hidden (spec/13, Deleting), so none of its pages
@@ -25,7 +24,7 @@ export function leagueIn(session: Session, leagueId: string): LeagueSummary | un
 /** The league with this id, as `leagueIn` finds it, if the person runs it. */
 export function leagueRunBy(session: Session, leagueId: string): LeagueSummary | undefined {
   const league = leagueIn(session, leagueId);
-  return league && session.signedIn && runs(league, session.isAdmin) ? league : undefined;
+  return league && runs(league) ? league : undefined;
 }
 
 /** The league the app is in, or undefined when signed out or no longer among their leagues. */

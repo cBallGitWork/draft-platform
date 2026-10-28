@@ -4,7 +4,7 @@ import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { seasonRules } from "../rules/rulesHistory";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
-import { callerEmail, getLeague, refuse, refusals, teamOf } from "../shared/leagueAccess";
+import { managerOf } from "../shared/leagueAccess";
 import { standingsOf } from "./leagueTable";
 import { LEAGUE_AVERAGE } from "./roundRobin";
 import { teamsInGameweek } from "./standings";
@@ -52,9 +52,7 @@ export const ofMyTeam = query({
   args: { leagueId: v.id("leagues") },
   returns: v.union(teamFixtures, v.null()),
   handler: async (ctx, { leagueId }) => {
-    const email = await callerEmail(ctx);
-    const league = await getLeague(ctx, leagueId);
-    const team = (await teamOf(ctx, leagueId, email)) ?? refuse(refusals.runsNoTeam);
+    const { league, team } = await managerOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     if (season === null) return null;
     // As the table reads it: the format is the latest rules', the draw each gameweek's own.
