@@ -28,7 +28,7 @@ import { listOf, shownStat } from "./playersOrder";
 export const LISTED_PLAYERS_MOST = 1200;
 
 /** The most players a league can own: every team's squad full. */
-const OWNED_IN_LEAGUE_MOST = MOST_TEAMS * MOST_IN_SQUAD;
+export const OWNED_IN_LEAGUE_MOST = MOST_TEAMS * MOST_IN_SQUAD;
 
 /** Which players by who holds them in this league: all, the unowned (free agents), those on
  *  waivers, or those on a team. */
