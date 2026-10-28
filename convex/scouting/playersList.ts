@@ -17,8 +17,8 @@ import { listOf, shownStat } from "./playersOrder";
 // Scouting's players list (spec/19, The players list; #373): every Premier League player now, for
 // anyone in the league, filtered and sorted here on the server so the screen never holds a cut
 // list. Each player says who owns him in this league. Season points under the site's scoring are
-// null ("—") until #29 scores matches: a player's points depend on the slot he starts in
-// (scoring.ts), and no lineups are kept yet. Waivers aren't built, so no player is on waivers.
+// null ("—") for now: a player's points depend on the slot he starts in (scoring.ts), and how the
+// list adds up a season of them isn't built. Waivers aren't built, so no player is on waivers.
 // Any stat of the catalogue can be shown beside them as a season total and sorted by (spec/19,
 // "sortable by any stat"), read from the totals kept as records are written (seasonStats.ts).
 
@@ -59,7 +59,7 @@ const listedPlayer = v.object({
   positions: v.array(position),
   /** The team in this league that owns him, or null for a free agent. */
   ownerTeamName: v.union(v.string(), v.null()),
-  /** His points this season under the site's scoring, or null ("—") until matches are scored (#29). */
+  /** His points this season under the site's scoring, or null ("—") until the list adds them up. */
   seasonPoints: v.union(v.number(), v.null()),
   /** His season total of the shown stat, 0 if he hasn't played; null with no stat shown. */
   stat: v.union(v.number(), v.null()),

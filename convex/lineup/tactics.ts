@@ -14,7 +14,7 @@ import { heldLineupShape, lineupInGameweek, nextOpenGameweek, ownTeam } from "./
 // My team's Tactics tab (#14; spec/05, The pitch): what the pitch is set from. The gameweek is the
 // one a save now is from (lineups.ts's `save`), so the screen edits the lineup that save replaces,
 // under that gameweek's area limits and presets, and counts down to its league deadline (the
-// recorded one once passed, #150). Roles, stars and squad numbers aren't built (#10, #11, #13).
+// recorded one once passed, #150). Stars, which show the role a player suits, aren't built (#11).
 
 /** One player in the squad, as the pitch shows him and judges where he may stand. */
 const squadMember = v.object({

@@ -186,9 +186,9 @@ How #28 reads a match while it is played (`convex/stats/liveStatsSync.ts`, `conv
   calls full time, the match goes through the full-time path above; it stops being polled once
   complete, or four hours after kickoff.
 - `changed` on each tick's row (`liveStatsTicks`) and each sync's (`matchStatsSyncs`) names the
-  men whose records moved. The site's scoring set is stored (#120, #354), but no lineup is yet (#8)
-  and nothing recomputes points from them, so none are; once something does, it recomputes them
-  for those men.
+  men whose records moved. No points are recomputed from it: the table works each team's points
+  out on read from the records, the stored lineups (`convex/lineup/lineups.ts`) and the site's
+  scoring set (`convex/table/gameweekScores.ts`), so a record written moves it on its own.
 - Seen live (23 Oct 2026, Ipswich v Nott'm Forest): a match in play's `status` is "L", then "C"
   at full time. The records filled in during play: the 22 starters' minutes moved each minute,
   and both goals, the assist and Diop's yellow card reached the men's records within a few

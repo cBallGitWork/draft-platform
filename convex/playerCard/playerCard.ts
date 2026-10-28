@@ -18,8 +18,9 @@ import { roleName } from "../lineup/roles";
 
 // A player's card (spec/12, The player card; #381), for anyone in the league: who he is and who
 // owns him here, FPL's news on him, this season's matches priced under the site's scoring, and his
-// club's next fixtures. No lineup is kept until #29, so every match is priced at his best position
-// (cardPoints.ts); last season's matches aren't held, so the card has no totals for it yet.
+// club's next fixtures. A match his team started him in is priced at the slot and role he started
+// in, any other at his best position (cardPoints.ts); last season's matches aren't held, so the
+// card has no totals for it yet.
 
 /** How many of his club's next matches the card shows: "the next few" (spec/12). Claude's choice,
  *  not yet Craig's. */
