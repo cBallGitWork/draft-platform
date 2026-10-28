@@ -11,7 +11,7 @@ import {
   HULL_KEEPER,
   HULL_SCORER,
   HULL_STARTERS,
-  KICKOFF,
+  LEAGUE_KICKOFF,
   PHILLIPS,
   scoresLeague,
   holdTypoRule,
@@ -50,7 +50,7 @@ const manOf = (men: readonly MatchMan[], playerCode: number) => men.find((man) =
 test("before any record, the match shows its clubs and kickoff, no men and no lines", async () => {
   const league = await matchLeague();
   const page = await matchAs(league, ANN);
-  expect(page).toMatchObject({ fixtureCode: HULL_EVERTON, kickoff: KICKOFF, score: null, men: [], pointsProblem: null, teamStats: null });
+  expect(page).toMatchObject({ fixtureCode: HULL_EVERTON, kickoff: LEAGUE_KICKOFF, score: null, men: [], pointsProblem: null, teamStats: null });
   expect(page!.commentary).toEqual({ kind: "read", lines: [], delayed: false });
   expect([page!.home.shortName, page!.away.shortName]).toEqual(["HUL", "EVE"]);
 });
@@ -158,7 +158,7 @@ test("the commentary is the match's lines newest first, the goal priced for its 
     ctx.db.insert("matchCommentary", {
       fixtureCode: HULL_EVERTON,
       lines: [line(2, "64' GOAL Scorer", 64, "goal", [HULL_SCORER]), line(1, "KO HUL v EVE", 0, "start")],
-      delayed: { reason: "the stream is over 10 minutes behind the clock", since: KICKOFF },
+      delayed: { reason: "the stream is over 10 minutes behind the clock", since: LEAGUE_KICKOFF },
     }),
   );
   const page = (await matchAs(league, ANN))!;
