@@ -13,6 +13,7 @@ import { matchStatsSyncFields, syncTrigger, type matchSyncOutcome } from "../sch
 import { writeScores } from "../football/matchScores";
 import { plScoreRead, readEach, type ScoreReads } from "../football/scoreReads";
 import { commentaryContext, delayCommentary, syncCommentary } from "../football/matchCommentary";
+import { syncTeamStats } from "../football/matchTeamStats";
 
 // Issue #27: every due match's stats from both feeds, one record per named man, upserted with
 // `matchStats.upsertMatch`. No cron runs it yet (ARCHITECTURE.md); from the CLI:
@@ -88,7 +89,10 @@ export async function syncDue(ctx: ActionCtx, due: DueMatch[], readAt: number, b
       } catch (error: unknown) {
         matches.push({ fixtureCode, ok: false, error: logFailure(`match ${fixtureCode} failed`, error) });
       }
-      if (commentary !== null) await syncCommentary(ctx, fixtureCode, reads.listed.get(fixtureCode), commentary, readAt);
+      const listed = reads.listed.get(fixtureCode);
+      if (commentary !== null) await syncCommentary(ctx, fixtureCode, listed, commentary, readAt);
+      // Its five team stats (#45) while it is live, and at full time, apart from its points.
+      if (beforeFullTime === "live" || listed?.status === PL_FULL_TIME) await syncTeamStats(ctx, fixtureCode, listed);
     }
   }
   return { matches, waiting, scores: await writeDueScores(ctx, readAt, scores) };

@@ -28,10 +28,15 @@ import {
   noMatchWords,
   noMenWords,
   notCountingLabel,
+  noTeamStatsWords,
   pointsProblemWords,
+  possessionWords,
   scoreWords,
   sheetLabel,
+  STAT_COLUMN_LABEL,
   SUBSTITUTES_TITLE,
+  teamStatRows,
+  teamStatsLabel,
   unusedLabel,
   versusWords,
 } from "../../../src/premierLeague/words";
@@ -72,6 +77,7 @@ const matchOf = (more: Partial<MatchPage> = {}): MatchPage => ({
   score: { state: "live", homeGoals: 2, awayGoals: 1, minutes: 67, clockLabel: "67'12" },
   men: MEN,
   pointsProblem: null,
+  teamStats: null,
   commentary: {
     kind: "read",
     lines: [
@@ -220,6 +226,44 @@ describe("the team sheets", () => {
   it("when the league's points can't be worked out, says why in the alert strip", async () => {
     openMatch({ match: matchOf({ pointsProblem: "a rule names a stat that doesn't exist" }) });
     expect((await screen.findByText(pointsProblemWords("a rule names a stat that doesn't exist"))).className).toContain("alert-strip");
+  });
+});
+
+describe("the team stats", () => {
+  const stats = {
+    home: { shots: 10, shotsOnTarget: 2, possession: 40.4, corners: 3, yellowCards: 2, redCards: 2 },
+    away: { shots: 21, shotsOnTarget: 5, possession: 59.6, corners: 9, yellowCards: 3, redCards: 0 },
+  };
+  const rows = async () => {
+    const table = await screen.findByRole("table", { name: teamStatsLabel(ARSENAL.shortName, CHELSEA.shortName) });
+    return within(table)
+      .getAllByRole("row")
+      .map((row) => [...row.children].map((cell) => cell.textContent));
+  };
+
+  it("the five, home's left of each and away's right, possession to the whole percent and cards as yellow and red", async () => {
+    openMatch({ match: matchOf({ teamStats: stats }) });
+    expect(await rows()).toEqual([
+      [ARSENAL.shortName, STAT_COLUMN_LABEL, CHELSEA.shortName],
+      ["10", teamStatRows.shots, "21"],
+      ["2", teamStatRows.shotsOnTarget, "5"],
+      [possessionWords(40.4), teamStatRows.possession, possessionWords(59.6)],
+      ["3", teamStatRows.corners, "9"],
+      ["2", teamStatRows.yellowCards, "3"],
+      ["2", teamStatRows.redCards, "0"],
+    ]);
+    expect([possessionWords(40.4), possessionWords(59.6)]).toEqual(["40%", "60%"]);
+  });
+
+  it("early on, before Opta sends possession, shows a dash for it", async () => {
+    const nothingYet = { shots: 0, shotsOnTarget: 0, possession: null, corners: 0, yellowCards: 0, redCards: 0 };
+    openMatch({ match: matchOf({ teamStats: { home: nothingYet, away: nothingYet } }) });
+    expect((await rows())[3]).toEqual([noFigureWords, teamStatRows.possession, noFigureWords]);
+  });
+
+  it("before any are read, says they come once it kicks off", async () => {
+    openMatch({ match: matchOf() });
+    expect(await screen.findByText(noTeamStatsWords)).toBeTruthy();
   });
 });
 
