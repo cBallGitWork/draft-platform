@@ -6,7 +6,7 @@ import { logFailure } from "../shared/errors";
 import { readFplPayloads } from "../football/fpl";
 import { fplStatLines, readFplLive, type FplStatLine } from "../football/fplLive";
 import { matchRecords } from "./matchRecords";
-import type { DueMatch } from "./matchStats";
+import { byGameweek, type DueMatch } from "../shared/dueMatches";
 import { matchSlots, plStatLines } from "../football/plMatch";
 import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlPlayerStats, type RawPlFixture } from "../football/premierLeague";
 import { matchStatsSyncFields, syncTrigger, type matchSyncOutcome } from "../schema";
@@ -152,11 +152,4 @@ async function syncMatch(
     ? await ctx.runMutation(internal.stats.matchStats.upsertMatch, { fixtureCode, readAt, records })
     : await ctx.runMutation(internal.stats.liveStats.upsertLive, { fixtureCode, minute: clocks.get(fixtureCode) ?? null, records });
   return { fixtureCode, ok: true, ...written, players: records.length, unmatched };
-}
-
-/** The matches by gameweek, each gameweek's in the order given. */
-export function byGameweek(due: DueMatch[]): Map<number, number[]> {
-  const codes = new Map<number, number[]>();
-  for (const { fixtureCode, gameweek } of due) codes.set(gameweek, [...(codes.get(gameweek) ?? []), fixtureCode]);
-  return codes;
 }
