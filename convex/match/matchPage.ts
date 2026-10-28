@@ -26,7 +26,7 @@ import { gameweekInputs, heldFixtures, leagueReads, MATCH_RECORDS_MOST, teamInGa
 // men as the team sheets named them, starters and substitutes, each man owned in the league with
 // his team and his live points, and the match's commentary, newest first, its goals, assists, cards
 // and thresholds priced for the league's men, and "Commentary delayed" while the stream falls
-// behind. A man's points are his slot's in his team's lineup, worked out by teamGameweek.ts as the
+// behind. A man's points are his slot's in the lineup that holds him, worked out by teamGameweek.ts as the
 // matchup and the table work them, so the three never disagree; only once the league's gameweek has
 // begun, as the matchup shows lineups only then.
 //
@@ -53,7 +53,8 @@ const matchMan = v.object({
   played: v.union(v.boolean(), v.null()),
   /** The league's team that owns him, null for a free agent. */
   ownerTeamName: v.union(v.string(), v.null()),
-  /** His points in this match from his slot in his team's lineup; null ("—") for a man in no
+  /** His points in this match from his slot in the lineup that holds him, which once the gameweek
+   *  has begun is his team's at the deadline, not always his owner's now; null ("—") for a man in no
    *  lineup, before the gameweek begins, or while his record hasn't arrived. */
   points: v.union(v.number(), v.null()),
   /** Whether those points count: false for a bench man who didn't come on, as the matchup greys. */
@@ -99,7 +100,7 @@ export const ofMatch = query({
     );
     const named = records.length > 0 ? records : await sheetMenOf(ctx, fixtureCode);
     const owners = await ownersOf(ctx, leagueId, named);
-    const priced = await pricedOrProblem(ctx, league, fixture, owners);
+    const priced = await pricedOrProblem(ctx, league, fixture, named);
     const held = await scoreOf(ctx, fixtureCode);
     const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
     return {
@@ -153,30 +154,34 @@ interface Priced {
 const unpriced = (problem: string | null): Priced => ({ slots: new Map(), players: new Map(), set: null, problem });
 
 /** The match priced, or why it can't be: a set holding a rule no longer sound (#287), say. */
-async function pricedOrProblem(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtures">, owners: Map<PlayerCode, Doc<"teams">>): Promise<Priced> {
+async function pricedOrProblem(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtures">, named: readonly NamedMan[]): Promise<Priced> {
   try {
-    return await priced(ctx, league, fixture, owners);
+    return await priced(ctx, league, fixture, named);
   } catch (error) {
     return unpriced(logFailure(`League ${league._id} (${league.name}) can't price match ${fixture.code}`, error));
   }
 }
 
-async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtures">, owners: Map<PlayerCode, Doc<"teams">>): Promise<Priced> {
+/** Every team in the league is priced, not only the men's owners now: a begun gameweek's lineup is
+ *  read against the squad at its deadline (lineups.ts), so a man moved or released since still
+ *  scores in his old team's lineup, and his points are his slot's in whichever lineup holds him. */
+async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtures">, named: readonly NamedMan[]): Promise<Priced> {
   const { gameweek } = fixture;
   if (gameweek === null || !(await begunGameweeks(ctx, league)).includes(gameweek)) return unpriced(null);
   const season = await seasonRules(ctx, league._id);
   // A league made before rules were held has no scoring (#25).
   if (season === null) return unpriced(null);
   const reads = await leagueReads(ctx, league, season);
-  const teamIds = [...new Set([...owners.values()].map((team) => team._id))];
+  const teamIds = (await teamsOf(ctx, league._id)).map((team) => team._id);
+  const inThisMatch = new Set(named.map(({ playerCode }) => playerCode));
   const inputs = await gameweekInputs(ctx, reads, gameweek, await heldFixtures(ctx, gameweek), teamIds);
   const result: Priced = { slots: new Map(), players: new Map(), set: inputs.set, problem: null };
   for (const teamId of teamIds) {
     const scored = await teamInGameweek(reads, inputs, teamId);
     if (scored === null) continue;
     for (const slot of [...scored.team.starters, ...scored.team.bench]) {
-      // Only the men in this match, whom alone `owners` holds, and each in his own team's lineup.
-      if (owners.get(slot.playerCode)?._id !== teamId) continue;
+      // Only the men the match names. One team owned a man at the deadline, so one lineup holds him.
+      if (!inThisMatch.has(slot.playerCode)) continue;
       const his = scored.matchesOf.get(slot.playerCode) ?? [];
       const index = his.findIndex((match) => match.fixture.code === fixture.code);
       if (index === -1) continue;
