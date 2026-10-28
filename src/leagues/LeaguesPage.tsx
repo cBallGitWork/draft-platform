@@ -84,7 +84,7 @@ export function LeaguesPage({
             {!isAdmin && <p className="text-muted">{invitedHereWords}</p>}
           </>
         ) : (
-          <LeagueTable leagues={leagues} isAdmin={isAdmin} actions={actions} />
+          <LeagueTable leagues={leagues} actions={actions} />
         )}
         {isAdmin && (
           <span className="flex flex-wrap gap-2">
@@ -107,7 +107,7 @@ function EndedInviteLine({ useEndedInvite }: { useEndedInvite: JoiningSeam["useE
   return ended ? <p>{endedInviteWords(ended)}</p> : null;
 }
 
-function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSummary[]; isAdmin: boolean; actions: DeletionActions }) {
+function LeagueTable({ leagues, actions }: { leagues: readonly LeagueSummary[]; actions: DeletionActions }) {
   return (
     <table className="w-full border-collapse">
       <thead className="bg-head text-ground">
@@ -125,7 +125,7 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
               <span className="block text-lead">{league.name}</span>
               <span className="block font-normal text-muted wrap-anywhere">{commissionerLine(league.commissionerEmail)}</span>
               {!league.deletion &&
-                (runs(league, isAdmin) ? runnerLinks : managerLinks)(league.leagueId).map(({ to, title }) => (
+                (runs(league) ? runnerLinks : managerLinks)(league.leagueId).map(({ to, title }) => (
                   <Link key={to} to={to} className={leagueRowLinkClasses}>
                     {title}
                   </Link>
@@ -146,7 +146,7 @@ function LeagueTable({ leagues, isAdmin, actions }: { leagues: readonly LeagueSu
               </td>
             </tr>
           )}
-          <LeagueDeletionRow league={league} canDelete={deletes(league, isAdmin)} actions={actions} />
+          <LeagueDeletionRow league={league} canDelete={deletes(league)} actions={actions} />
         </tbody>
       ))}
     </table>

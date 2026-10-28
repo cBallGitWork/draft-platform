@@ -10,7 +10,7 @@ import { POSITIONS, type Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
 import { inTenths } from "../scoring/scoringSet";
 import { siteScoringByGameweek } from "../scoring/siteScoring";
-import { callerEmail, getLeague, refuse, refusals, teamOf } from "../shared/leagueAccess";
+import { managerOf } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { isWhole } from "../stats/matchRecords";
 import { begunGameweeks } from "../table/gameweekScores";
@@ -81,9 +81,7 @@ export const ofMyTeam = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
   returns: teamSquad,
   handler: async (ctx, { leagueId, now }) => {
-    const email = await callerEmail(ctx);
-    const league = await getLeague(ctx, leagueId);
-    const team = (await teamOf(ctx, leagueId, email)) ?? refuse(refusals.runsNoTeam);
+    const { league, team } = await managerOf(ctx, leagueId);
     const how = await howPositionsCount(ctx);
     const clubs = clubsByCode(ctx);
     const lastGameweek = (await begunGameweeks(ctx, league)).at(-1) ?? null;
