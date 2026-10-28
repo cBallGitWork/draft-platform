@@ -34,7 +34,41 @@ test("each stored part is its module's input type", () => {
   expectTypeOf<LeagueRules["gamesPerGameweek"]>().toEqualTypeOf<DrawRules["gamesPerGameweek"] | undefined>();
 });
 
-test("the first rules' presets are the eleven every league starts with", () => {
+/** Each of the pitch's six areas, by hand: the stored shape lists them all, no more and no fewer. */
+type ByAreaByHand<Value> = {
+  goalkeeper: Value;
+  defence: Value;
+  defensiveMidfield: Value;
+  midfield: Value;
+  attackingMidfield: Value;
+  attack: Value;
+};
+
+/** Each position a slot can be, by hand. */
+type ByPositionByHand<Value> = {
+  GK: Value;
+  FB: Value;
+  CB: Value;
+  WB: Value;
+  CDM: Value;
+  WM: Value;
+  CM: Value;
+  W: Value;
+  CAM: Value;
+  ST: Value;
+};
+
+type PricedByHand<Value> = { all: Value } | { byArea: ByAreaByHand<Value> } | { byPosition: ByPositionByHand<Value> };
+
+test("the stored by-area and by-position shapes key exactly the six areas and ten slot positions", () => {
+  expectTypeOf<LeagueRules["areaLimits"]>().toEqualTypeOf<ByAreaByHand<{ minimum: number; maximum: number }>>();
+  expectTypeOf<LeagueRules["squad"]["minimumByArea"]>().toEqualTypeOf<ByAreaByHand<number> | null>();
+  type PerAction = Extract<StoredScoringSet["rules"][number], { shape: "perAction" }>;
+  expectTypeOf<PerAction["values"]>().toEqualTypeOf<PricedByHand<number>>();
+  expectTypeOf<PerAction["minMinutes"]>().toEqualTypeOf<PricedByHand<number> | undefined>();
+});
+
+test("the first rules' presets are the twenty-one every league starts with", () => {
   expect(FIRST_RULES.presets).toEqual(DEFAULT_PRESETS);
 });
 

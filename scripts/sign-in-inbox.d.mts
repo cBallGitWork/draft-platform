@@ -1,5 +1,4 @@
 // Types for sign-in-inbox.mjs, so tests/live/signIn.live.spec.ts typechecks its import.
-export const RESEND_API_URL: string;
 export const RECEIVED_PATH: string;
 export const RECENT_LIMIT: number;
 export const WAIT_MS: number;
