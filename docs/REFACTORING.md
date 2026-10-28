@@ -91,7 +91,8 @@ A pick goes to `/grill`, which ends in issues; nothing is built from a candidate
 ## The words
 
 The shared vocabulary for talking about the code's shape, from John Ousterhout's *A Philosophy of
-Software Design* by way of Matt Pocock (Oct 2026). `/deepen` reads them from here.
+Software Design* by way of Matt Pocock (Oct 2026). `/deepen` reads them from here by this
+heading's exact text, so renaming it means changing the skill's `sed` line too.
 
 - **Module:** a unit of the code with one job: scoring a match, the draft's pick order, a screen
   with its parts.
