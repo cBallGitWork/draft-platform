@@ -78,3 +78,23 @@ The app is in `src/` and the server in `convex/`, one folder per feature in each
 `tests/`, mirroring them (`tests/convex/`, `tests/src/`, `tests/scripts/`), with the shared
 harnesses and recorded feeds in `tests/support/` and the browser smoke suite in `tests/smoke/`;
 the hooks' own checks, and the recorded add-only check's, are in `.claude/hooks/tests/`.
+
+## Restoring saved data
+
+A release that changes saved data's shape backs it up first (`scripts/release.mjs`): its Vercel
+build log says `Backup taken: snapshot <timestamp>`, and Convex keeps it on the production
+deployment's **Backup & Restore** page, two at most on the free plan, each for 7 days. If the
+backup fails the release stops, nothing goes live, and the log says why: with two already kept,
+delete the older there and redeploy from Vercel.
+
+To undo such a release with its data:
+
+1. **Backup Now** on that page first: restoring wipes the deployment's data, including whatever
+   managers saved since the release.
+2. Restore the release's backup, the one named in its build log, from its row's menu, **Restore**.
+   Or download it and run `npx convex import --prod --replace <file>.zip`.
+3. Revert the release's merge. Its own release backs up again first, since the shape changes back.
+
+Convex refuses a schema the saved data doesn't fit, so the order follows the step it undoes: undo a
+widening (data saved since may not fit the old schema) by restoring, then reverting, as above;
+undo a narrowing (the backup holds what the new schema dropped) by reverting, then restoring.
