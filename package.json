@@ -2,6 +2,9 @@
   "name": "draft-platform",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "setup": "convex login && convex dev --once --configure existing --team craigdavidball14 --project draft-platform --dev-deployment cloud",
     "setup:live": "node scripts/live-setup.mjs",

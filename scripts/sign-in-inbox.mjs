@@ -4,8 +4,8 @@
 // here for it: the site has no test-only way in. The address is one Resend receives for the
 // account, so no mailbox is needed. Nothing here prints the key or the link.
 
-/** Resend's API (convex/outbound/email.ts sends through it too). */
-export const RESEND_API_URL = "https://api.resend.com";
+import { RESEND_API_URL } from "../convex/outbound/resend.ts";
+
 /** Resend's received emails: listed without bodies, then one fetched by id with its text. */
 export const RECEIVED_PATH = "/emails/receiving";
 /** How many of the newest received emails each look reads: the check's is among the last few. */

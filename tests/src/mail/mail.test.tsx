@@ -12,7 +12,7 @@ import { mainMenuLabel } from "../../../src/frame/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { commissioned, league, manager, managerIn, newcomer, openApp } from "../../support/src/shell.harness";
-import { MAIL_TITLE, WRITE_TITLE, loadingWords, noLettersWords, onlyLatestWords, sendToWords, sentWords, writeLabels } from "../../../src/mail/words";
+import { MAIL_TITLE, WRITE_TITLE, loadingWords, unreadFigure, noLettersWords, onlyLatestWords, sendToWords, sentWords, writeLabels } from "../../../src/mail/words";
 
 // Noon UTC, so a letter's day is the same in London, where vitest.config.ts pins every test's zone.
 const letter = (number: number, read: boolean, from: string | null = null): LetterSummary => ({
@@ -124,7 +124,8 @@ describe("someone in no league, as a manager removed from their last one is (spe
 
     expect(await screen.findByRole("heading", { level: 1, name: "Mail" })).toBeTruthy();
     expect(app.path()).toBe(MAIL_PATH);
-    expect(screen.queryByRole("navigation", { name: mainMenuLabel })).toBeNull();
+    const main = screen.getByRole("navigation", { name: mainMenuLabel });
+    expect(within(main).getAllByRole("link").map((tab) => tab.textContent)).toEqual([LEAGUES_TITLE, `${MAIL_TITLE}${unreadFigure(twoUnread.unreadMail)}`]);
     await userEvent.click(letterButton("Letter 3"));
     expect(shown("The text of letter 3.")).toBe(true);
     expect(app.mail.open).toHaveBeenCalledWith("letter-3");

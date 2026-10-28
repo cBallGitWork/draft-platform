@@ -6,6 +6,7 @@ import { Loading, Notice, PageSection, PANEL_BODY, PANEL_LIST_ROW, PanelNote, Pa
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { playerCardPath } from "../playerCard/paths";
 import { useChange, type Changing } from "../useChange";
+import { useChoiceAmong } from "../useChoiceAmong";
 import type { FoundPlayer, SquadsSeam, TeamSquad } from "./seam";
 import {
   assignLabel,
@@ -112,8 +113,7 @@ function FoundRow({
   change: Changing;
 }) {
   const others = squads.filter((squad) => squad.teamName !== player.teamName);
-  const [chosen, choose] = useState<string>("");
-  const teamId = (others.some((squad) => squad.teamId === chosen) ? chosen : others[0]?.teamId) as Id<"teams"> | undefined;
+  const [teamId, choose] = useChoiceAmong(others.map((squad) => squad.teamId));
   const free = player.teamName === null;
   function place() {
     if (teamId === undefined) return;
@@ -133,7 +133,7 @@ function FoundRow({
           <label htmlFor={selectId} className="sr-only">
             {teamChoiceLabel(player.name)}
           </label>
-          <select id={selectId} value={teamId} onChange={(event) => choose(event.target.value)} className="text-box">
+          <select id={selectId} value={teamId} onChange={(event) => choose(event.target.value as Id<"teams">)} className="text-box">
             {others.map((squad) => (
               <option key={squad.teamId} value={squad.teamId}>
                 {squad.teamName}

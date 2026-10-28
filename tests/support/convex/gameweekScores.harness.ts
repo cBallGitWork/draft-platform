@@ -28,7 +28,7 @@ export const [ANN, BOB, CAT] = MANAGERS;
 export const KICKOFF = Date.parse("2026-10-27T15:00:00Z");
 export const FULL_TIME_READ = KICKOFF + 2 * HOUR_MS;
 /** The league's deadline for gameweek 6: the first rules', before Hull v Everton's kickoff. */
-const DEADLINE = KICKOFF - FIRST_RULES.deadline.minutesBeforeFirstKickoff * MINUTE_MS;
+export const DEADLINE = KICKOFF - FIRST_RULES.deadline.minutesBeforeFirstKickoff * MINUTE_MS;
 
 /** Who stands where. Hull's unused substitute keeper starts in goal, so their keeper, who played
  *  the 90 minutes, comes on for him once the match is over. */
