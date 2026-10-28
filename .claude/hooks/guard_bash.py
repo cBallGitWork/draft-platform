@@ -7,7 +7,8 @@ to sh -c, eval, $(…), a heredoc, here-string or pipe into a shell (or a group 
 -exec or ssh included, whatever its redirections (commands.py; where.py lists what it can't see),
 each in the folder it runs in (the shell's cwd, any cd before it, its -C: where.py), so a worktree
 is judged on its own branch, not the project's. Also denies publishing a word on Craig's private list (private_words.py),
-and a pull request body that breaks the template's rules or a title far too long (pr_body.py);
+a pull request body that breaks the template's rules or a title far too long (pr_body.py), and
+opening a pull request while the drift pass is long overdue (drift_block.py);
 a title only somewhat long, or publishing where there is no private list to check, gets a note,
 not a denial.
 Where it can't be sure what runs or where, it refuses and says how to run the command plainly.
@@ -24,6 +25,7 @@ import re
 import sys
 
 from commands import XARGS, Unbalanced, Unreadable, UnreadableStdin, commands, runs_unknown, short_flags
+from drift_block import drift_block_problem
 from main_writes import MAIN, MAIN_REFS, gh_api_problem
 from pr_body import pr_body_problem, pr_title_note
 from private_words import list_missing_note, private_word_problem
@@ -166,7 +168,8 @@ def decide(cmd, cwd):
         return UNREADABLE
     except UnreadableStdin:
         return UNREADABLE_STDIN
-    problem = private_word_problem(cmd, cmds, cwd) or pr_body_problem(cmds, cwd) or gh_api_problem(cmds)
+    problem = (private_word_problem(cmd, cmds, cwd) or pr_body_problem(cmds, cwd) or gh_api_problem(cmds)
+               or drift_block_problem(cmds, cwd))
     if problem:
         return problem
     switched, switched_to_main = False, False

@@ -77,6 +77,15 @@ Then check the description's claims against what you found.
 
     Over it is a finding naming the split: pull requests that each work alone and merge in order.
     A guide, not a gate: a larger change that can't be cut is CRAIG'S CALL, with the reason.
+13. **Same answer everywhere.** A diff can be right on its own and still disagree with the rest
+    of the app. For every value a manager sees that the diff works out (a man's points and their
+    rounding, an override, the begun or next gameweek, the league average, who owned a man at a
+    deadline, the table's order, a word like "Bench"), grep the whole repo for the place that
+    already works it out. A second way of getting the same answer is a REGRESSION even when the
+    two agree today; name both file:lines and which one should be the single home. Each of these
+    passed review and was found later by an audit: the Squad tab adding points by hand without
+    the overrides (#536), the match page pricing only current owners (#531), the fixtures screens
+    picking the next gameweek by a different rule from the server (#528).
 
 Do not invent rules. Where the repo's docs are silent, say so and mark it CRAIG'S CALL. Each
 CRAIG'S CALL goes in the pull request template's '## Left for later' section, listed with '#n' or
@@ -90,9 +99,12 @@ First the block for Craig, plain English, at most three findings, worst first:
     **Verdict:** fine to merge / look at these first
     - <what it means for a manager or the repo> — <what to do>
     **What I ran:** <the commands>
-    *Reviewer: pr-reviewer (<model>), <date>, <base>..<head>*
+    *Reviewer: pr-reviewer (<model>), <date>, <base>..<head>, round <n>: <k> to fix, <m> FINE*
 
-"Nothing found" is a normal answer: say so, and say what you ran.
+"Nothing found" is a normal answer: say so, and say what you ran. The signature's counts are
+how often review finds something: `<k> to fix` counts every verdict but FINE. A later round
+replaces the block for Craig but never round 1's: the author keeps it in the PR, inside
+<details>, so what round 1 caught stays on record.
 
 Then the detail for the author: one row per check that applied,
 `check | file:line | what the diff does | verdict | evidence`. Verdicts: REGRESSION, RULE BROKEN,

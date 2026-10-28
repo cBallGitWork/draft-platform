@@ -4,6 +4,8 @@
 . "$(dirname "$0")/helpers.sh"
 
 git -C "$tmp" init -q -b chore/x
+git -C "$tmp" "${as_tester[@]}" commit -q --allow-empty -m x  # a main for drift_block.py to count, far from blocked
+git -C "$tmp" update-ref refs/remotes/origin/main HEAD
 deny_cmds=(
   'git add -A' 'git add --all' 'git add .' 'git add -u' 'git add -- .' 'git add -N .'
   'git add *' 'git add "."' 'git add ./' 'git add -Av' 'git add -fA' 'git add -A;' '(git add -A)'

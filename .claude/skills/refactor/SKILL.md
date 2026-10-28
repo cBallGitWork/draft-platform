@@ -23,6 +23,13 @@ file the task already touches. In scoring, the draft or saved data, a fix that c
 function's arguments or result (handing it the league's rules, say) is reported, never made
 here: it needs its own pull request (`docs/REFACTORING.md`, *What is never a refactor*).
 
+## When it may be skipped
+
+Under 30 changed lines of non-test code, counted as pr-reviewer counts them (its check 12), the
+checks box stays unticked and says so: `- [ ] /refactor: not run — 12 non-test lines`. At 30 or
+more it runs. pr-reviewer finding nothing to tidy is never the reason: the two look for
+different things.
+
 ## The checklist, twice
 
 1. **Improve:** is this the clearest way to say it?
@@ -45,6 +52,11 @@ here: it needs its own pull request (`docs/REFACTORING.md`, *What is never a ref
    rules are constants; a league's rules are data, never a constant (in scoring, reported: see
    above); the feeds' endpoints sit behind the football layer's one seam (`ARCHITECTURE.md`).
    Setup a test repeats goes in a shared helper, not the test body.
+
+The second pass is not a re-read. It starts by running point 2's check on every test the branch
+adds or changes: break the code the test protects (delete the fix, flip the condition), run the
+test, and put the code back. A test that still passes pins the wrong thing (#508's test compared
+the tab with itself). Then the six points again.
 
 Report every finding from each pass with its file and line, including the ones you chose not to
 act on. A pass that finds nothing is a valid result; never invent changes to look busy. A green

@@ -18,14 +18,14 @@ an email sent)? And the blast radius: which screen, league or job it can break. 
 - [ ] the tests at this feature's seam pass, and were run
 - [ ] shot at 390 and 1440, and looked at, if anything visible changed
 - [ ] `npm run build` and `npm run smoke` run, if a screen or the router changed
-- [ ] `/refactor` run on the branch (one run; it makes its two passes itself); a drift pass is due when the session-start note says `drift pass due` (`.claude/hooks/drift_due.py`)
+- [ ] `/refactor` run on the branch (one run; it makes its two passes itself), or not run under 30 non-test lines (`/refactor` says how to count); a drift pass is due when the session-start note says `drift pass due` (`.claude/hooks/drift_due.py`), and no PR but a fix/ opens at 20 (`.claude/hooks/drift_block.py`)
 - [ ] pr-reviewer run on the branch; its verdict is below
 - [ ] docs updated in this branch, not a follow-up
 - [ ] staged by named path
 
 ## Fresh-eyes review
 
-<!-- Paste the last round's block for Craig. Put earlier rounds and every 'detail for the author' table inside <details><summary>Review detail</summary>…</details>. -->
+<!-- Paste the last round's block for Craig. Round 1's block always stays, with earlier rounds and every 'detail for the author' table, inside <details><summary>Review detail</summary>…</details>. -->
 
 Commits after the review: none / <sha>..HEAD, second round pasted below
 

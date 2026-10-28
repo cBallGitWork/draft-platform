@@ -49,7 +49,10 @@ back, names drift, docs desync. The drift pass is a scheduled step back.
 
 **When**, whichever comes first:
 - 10 merged pull requests since the last drift pass (the session-start hook
-  `.claude/hooks/drift_due.py` runs *Record*'s count and says `drift pass due` when it is);
+  `.claude/hooks/drift_due.py` runs *Record*'s count and says `drift pass due` when it is). The
+  note alone was passed over (72 merges after #461, 28 Oct 2026), so at 20 the Bash guard
+  refuses `gh pr create` for anything but the drift pass or a fix/ branch
+  (`.claude/hooks/drift_block.py`);
 - before the mini beta, and before the draft goes live;
 - a file passes 300 lines (the line-ceiling hook will say when, `ARCHITECTURE.md`).
 
