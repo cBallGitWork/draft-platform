@@ -104,6 +104,7 @@ flowchart TD
   ERR -.->|"Sign out, when the league frame itself threw, then signed out"| SIGNIN
   TABLE -- "a fixture's score" --> MATCHUP
   HOME -- "a head-to-head's v" --> MATCHUP
+  TFX -- "a game's result or v" --> MATCHUP
   MATCHUP -- "◄ ► (another gameweek's)" --> MATCHUP
   SCOUTING & SQ -- "a player's name" --> CARD
   CARD -- "Back (to Scouting, opened from a link)" --> SCOUTING
