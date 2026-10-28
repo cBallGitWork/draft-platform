@@ -93,3 +93,20 @@ export const unusedLabel = "unused substitute";
 
 export const COMMENTARY_TITLE = "Commentary";
 export const noLinesWords = "No lines yet: they come in as the match is played.";
+
+export const TEAM_STATS_TITLE = "Team stats";
+export const teamStatsLabel = (home: string, away: string) => `${home} v ${away}: team stats`;
+export const noTeamStatsWords = "The team stats show here once the match kicks off.";
+/** The five spec/10 names, in its order, the cards as yellow and red. */
+export const teamStatRows = {
+  shots: "Shots",
+  shotsOnTarget: "Shots on target",
+  possession: "Possession",
+  corners: "Corners",
+  yellowCards: "Yellow cards",
+  redCards: "Red cards",
+} as const;
+/** Read out over the stats' own column, between the two clubs'. */
+export const STAT_COLUMN_LABEL = "Stat";
+/** A side's possession, to the whole percent: Opta's 49.4 is "49%". */
+export const possessionWords = (share: number) => `${Math.round(share)}%`;

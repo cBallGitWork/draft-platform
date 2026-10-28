@@ -125,9 +125,10 @@ export interface RawPlCommentary {
 }
 
 /** `/stats/match/{id}`: each side's Opta totals (`M`), keyed by the Premier League's team id.
- *  Before kickoff there is no `data`. Opta leaves noughts out, as it does per player. */
+ *  Before kickoff there is no `data`. Opta leaves noughts out, as it does per player. `entity` is
+ *  the match as a fixture read gives it, its `teams` home first. */
 export interface RawPlTeamStats {
-  entity: { id: number };
+  entity: Pick<RawPlFixture, "id" | "teams">;
   data?: Record<string, { M: RawPlMetric[] }>;
 }
 

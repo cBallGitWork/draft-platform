@@ -3022,6 +3022,137 @@
       }
     },
     {
+      "tableName": "matchTeamStats",
+      "indexes": [
+        {
+          "indexDescriptor": "by_fixtureCode",
+          "fields": [
+            "fixtureCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "fixtureCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "home": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "shots": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "shotsOnTarget": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "possession": {
+                  "fieldType": {
+                    "type": "union",
+                    "value": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "optional": false
+                },
+                "corners": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "yellowCards": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "redCards": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "away": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "shots": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "shotsOnTarget": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "possession": {
+                  "fieldType": {
+                    "type": "union",
+                    "value": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "optional": false
+                },
+                "corners": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "yellowCards": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "redCards": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "feedFailureEmails",
       "indexes": [
         {

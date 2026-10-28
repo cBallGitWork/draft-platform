@@ -1,7 +1,7 @@
 // The match page in the preview (src/preview.ts): Ipswich Town 1–1 Nottingham Forest, the match
 // recorded live on 23 Oct 2026 (tests/support/recorded/live.payloads.ts), at full time. Its team
-// sheets and commentary are the recording's, written as the live tick writes them; the positions,
-// who owns whom and the points are made up. Every fixture opens it.
+// sheets, team stats and commentary are the recording's, written as the live tick writes them; the
+// positions, who owns whom and the points are made up. Every fixture opens it.
 
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
 import { previewTeams } from "../table/preview";
@@ -184,6 +184,11 @@ export const previewMatch: MatchPage = {
   score: { state: "fullTime", homeGoals: 1, awayGoals: 1, minutes: 90, clockLabel: null },
   men: MEN,
   pointsProblem: null,
+  // The recording's final read, as football/plTeamStats.ts maps it.
+  teamStats: {
+    home: { shots: 7, shotsOnTarget: 3, possession: 49.4, corners: 0, yellowCards: 1, redCards: 0 },
+    away: { shots: 17, shotsOnTarget: 5, possession: 50.6, corners: 5, yellowCards: 1, redCards: 0 },
+  },
   commentary: {
     kind: "read",
     lines: LINES.map(([sourceId, text, points]) => ({ key: `${RECORDED_MATCH}:${sourceId}`, text, points: points ?? null })),

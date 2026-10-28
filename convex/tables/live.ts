@@ -67,3 +67,26 @@ export const thresholdStepTables = {
     minute: v.union(v.number(), v.null()),
   }).index("by_fixtureCode", ["fixtureCode"]),
 };
+
+// Each match's five team stats (#45, spec/10, The match page): one row a match, replaced by each
+// read that changes them, and kept after full time as last read (football/matchTeamStats.ts).
+
+/** One side's five, as `football/plTeamStats.ts` maps them from Opta. */
+export const sideTeamStats = v.object({
+  shots: v.number(),
+  shotsOnTarget: v.number(),
+  /** A share out of 100, to Opta's decimal place (49.4); null while Opta sends none, as in a
+   *  match's first minutes. */
+  possession: v.union(v.number(), v.null()),
+  corners: v.number(),
+  yellowCards: v.number(),
+  redCards: v.number(),
+});
+
+export const teamStatsTables = {
+  matchTeamStats: defineTable({
+    fixtureCode: v.number(),
+    home: sideTeamStats,
+    away: sideTeamStats,
+  }).index("by_fixtureCode", ["fixtureCode"]),
+};
