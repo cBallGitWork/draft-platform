@@ -4,6 +4,10 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 (16 Oct 2026), `/grill scoring options` (21 Oct 2026) and `/grill scoring the site owns`
 (25 Oct 2026).
 
+**Contents:** [Who owns it](#who-owns-it) · [The catalogue](#the-catalogue) · [How a rule scores](#how-a-rule-scores) ·
+[Own stats](#own-stats) · [Changes and corrections](#changes-and-corrections) · [The first scoring set](#the-first-scoring-set) ·
+[The rules editor](#the-rules-editor) · [On screen](#on-screen)
+
 ## Who owns it
 
 - The site owns the scoring set: the categories and their values, points limits, minutes, whole
