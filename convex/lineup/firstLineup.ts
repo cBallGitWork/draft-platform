@@ -6,7 +6,7 @@ import { playsCell, type Cell } from "./pitch";
 import type { PlayerPositions } from "./lineup";
 
 /** The formation spec/05 gives every first lineup, whatever presets the league has. */
-export const FIRST_FORMATION = "4-4-2";
+const FIRST_FORMATION = "4-4-2";
 
 const FIRST_CELLS = DEFAULT_PRESETS.find((preset) => preset.name === FIRST_FORMATION)!.cells;
 

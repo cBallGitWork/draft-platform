@@ -32,6 +32,8 @@ const SQUAD = [...STARTERS, ...FOUR_FOUR_TWO.bench];
 const FREE_AGENT = 999;
 /** Bob's player. */
 const BOBS = 998;
+/** A keeper in the Premier League, held only by the test that adds him. */
+const SECOND_KEEPER = 997;
 const BENCH_POSITION: Position = "CM";
 /** Each test player is named for his code. */
 const nameOf = (code: number) => `Player ${code}`;
@@ -313,6 +315,7 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
     for (const playerCode of SQUAD) await by.assign(playerCode);
     return by;
   };
+  const lineupOf = (gameweek: number) => t.run((ctx) => lineupInGameweek(ctx, leagueId, annsTeam, gameweek));
   const annsRows = async () => (await lineupRows()).filter((row) => row.teamId === annsTeam);
   const passNextDeadline = async () => {
     vi.advanceTimersByTime(KICKS_OFF_IN - FPL_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS);
@@ -329,12 +332,14 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
     const by = await buildAnnsSquad();
     const [keeper, ...outfield] = FOUR_FOUR_TWO.starters;
     // A second keeper joins: the bench is the only place for him while the first plays.
-    await t.run((ctx) => ctx.db.insert("players", { code: 777, name: nameOf(777), fullName: nameOf(777), clubCode: 1 }));
-    await t.run((ctx) => ctx.db.insert("playerPositions", { code: 777, starts: [], approved: [], set: ["GK"], removed: [] }));
-    await by.assign(777);
-    expect((await (await as(ANN)).mine(NEXT)).bench).toEqual([...FOUR_FOUR_TWO.bench, 777]);
+    await t.run(async (ctx) => {
+      await ctx.db.insert("players", { code: SECOND_KEEPER, name: nameOf(SECOND_KEEPER), fullName: nameOf(SECOND_KEEPER), clubCode: 1 });
+      await ctx.db.insert("playerPositions", { code: SECOND_KEEPER, starts: [], approved: [], set: ["GK"], removed: [] });
+    });
+    await by.assign(SECOND_KEEPER);
+    expect((await (await as(ANN)).mine(NEXT)).bench).toEqual([...FOUR_FOUR_TWO.bench, SECOND_KEEPER]);
     await by.release(keeper.playerCode);
-    expect(await (await as(ANN)).mine(NEXT)).toEqual(saved({ starters: [{ ...keeper, playerCode: 777 }, ...outfield], bench: FOUR_FOUR_TWO.bench }, NEXT));
+    expect(await (await as(ANN)).mine(NEXT)).toEqual(saved({ starters: [{ ...keeper, playerCode: SECOND_KEEPER }, ...outfield], bench: FOUR_FOUR_TWO.bench }, NEXT));
   });
 
   test("once the manager saves, it is theirs: a newcomer goes to the end of the bench and nothing is picked again", async () => {
@@ -360,7 +365,6 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
     expect(await lineupOf(NEXT)).toEqual(saved({ starters: [], bench: SQUAD }, null));
   });
 
-  const lineupOf = (gameweek: number) => t.run((ctx) => lineupInGameweek(ctx, leagueId, annsTeam, gameweek));
 });
 
 describe("who may save and read", () => {

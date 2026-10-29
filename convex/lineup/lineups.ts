@@ -29,7 +29,7 @@ import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords"
 // A team always has a lineup (spec/05, spec/07; #637): "you don't save to create, you save to
 // edit". Until its manager saves one, its row is its first lineup (firstLineup.ts), marked so and
 // picked again from the squad each time the squad changes, so a squad built one player at a time
-// ends on the whole 4-4-2. Once the manager saves, it is his, and the squad changes it only as
+// ends on the whole 4-4-2. Once the manager saves, it is theirs, and the squad changes it only as
 // `reconciled` says.
 
 /** A lineup as a manager's browser sends it: lineup.ts's Lineup, its cells still unchecked. */
@@ -55,6 +55,9 @@ export const heldLineupShape = v.object({
   vacated: v.array(placementShape),
 });
 export type HeldLineup = Infer<typeof heldLineupShape>;
+
+/** A lineup no squad change has touched. */
+const NO_CHANGES = { leftSquad: [], joinedBench: [], vacated: [] };
 
 /** The row in force in the gameweek: the latest from it or before. One row a gameweek at most
  *  (`save` replaces a second), so the index's last match is it. */
@@ -100,9 +103,6 @@ export async function lineupsInGameweek(
   }
   return lineups;
 }
-
-/** A lineup no squad change has touched. */
-const NO_CHANGES = { leftSquad: [], joinedBench: [], vacated: [] };
 
 /** Each player's positions now (spec/06), for picking a first lineup. */
 async function positionsOf(ctx: QueryCtx, playerCodes: readonly number[]): Promise<PlayerPositions> {

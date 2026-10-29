@@ -88,8 +88,7 @@ async function heldRows(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
 }
 
 /** The team's scoring in each gameweek the league has begun, read once a gameweek; null for a
- *  gameweek it hasn't. Null for a league made before rules
- *  were held, which has no scoring (#25). A set holding a rule no longer sound throws, as the
+ *  gameweek it hasn't. Null for a league made before rules were held, which has no scoring (#25). A set holding a rule no longer sound throws, as the
  *  card's best-position pricing always has (#287). */
 async function teamGameweeks(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"teams">, heldRowsOf: (code: number) => Promise<HeldRows>) {
   const season = await seasonRules(ctx, league._id);
