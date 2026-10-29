@@ -118,6 +118,25 @@ test("a site set holding a rule on a stat that doesn't exist leaves the gameweek
   expect(logged).toHaveBeenCalledWith(expect.stringContaining(`can't score gameweek ${GAMEWEEK}`));
 });
 
+test("a gameweek left unscored sends each fixture with its teams and no points, the league's average's side too", async () => {
+  const league = await scoresLeague({ catToo: true });
+  await fullTimeRecords(league);
+  await holdTypoRule(league);
+  silenceConsoleError();
+
+  const read = (await readTable(league))!;
+  expect(read.unscored).toEqual([{ gameweek: GAMEWEEK, reason: expect.stringContaining(`"${TYPO_STAT}"`) }]);
+  expect(read.gameweeks.find((each) => each.gameweek === GAMEWEEK)).toEqual({
+    gameweek: GAMEWEEK,
+    deadline: expect.any(Number),
+    fixtures: [
+      { teamId: league.annsTeam, team: "Team 1", opponent: "Team 2", points: null },
+      { teamId: league.catsTeam, team: "Team 3", opponent: null, points: null },
+    ],
+    byes: [],
+  });
+});
+
 test("the team left over plays the league's average, every team's score counted once in it", async () => {
   const league = await scoresLeague({ catToo: true });
   await fullTimeRecords(league);

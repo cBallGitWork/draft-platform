@@ -177,3 +177,18 @@ test("a league made before rules were held has no fixtures or table to draw", as
   });
   expect(await read()).toBeNull();
 });
+
+test("before any gameweek begins, each fixture has its teams and no points, and nothing is scored or unscored", async () => {
+  const [annTeam, bobTeam, catTeam] = await addManagers(t, leagueId, [ANN, BOB, CAT]);
+  const league = (await read())!;
+  const idOf = new Map([
+    ["Team 1", annTeam],
+    ["Team 2", bobTeam],
+    ["Team 3", catTeam],
+  ]);
+  const [first] = league.gameweeks;
+  expect(first.fixtures).toEqual(first.fixtures.map(({ team, opponent }) => ({ teamId: idOf.get(team), team, opponent, points: null })));
+  expect(first.fixtures.flatMap(({ team, opponent }) => [team, opponent]).toSorted()).toEqual(["Team 1", "Team 2", "Team 3", null]);
+  expect(league.results).toEqual([]);
+  expect(league.unscored).toEqual([]);
+});

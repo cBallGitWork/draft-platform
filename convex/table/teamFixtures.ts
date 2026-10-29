@@ -7,8 +7,8 @@ import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { managerOf } from "../shared/leagueAccess";
 import { standingsOf } from "./leagueTable";
 import { LEAGUE_AVERAGE } from "./roundRobin";
-import { teamsInGameweek } from "./standings";
-import { BYE, gameScore, gamesOf } from "./teamGames";
+import { teamFixturesFrom } from "./sentTables";
+import { BYE } from "./teamGames";
 
 // My team's Fixtures tab (#365, #436; spec/12, My team's tabs: "the team's head-to-head fixtures
 // and results for the season"): the caller's team's head-to-head games, from the same schedule and
@@ -58,24 +58,7 @@ export const ofMyTeam = query({
     // As the table reads it: the format is the latest rules', the draw each gameweek's own.
     const { rules, schedule, results, unscored, named } = await standingsOf(ctx, league, season);
     const deadlines = await leagueDeadlines(ctx, leagueId);
-    const games = gamesOf(schedule, team._id);
-    // Each game is one of the schedule's, so its gameweek is there.
-    const drawnIn = new Map(schedule.map((drawn) => [drawn.gameweek, drawn]));
-    return {
-      teamId: team._id,
-      teamName: team.name,
-      format: rules.format,
-      games: games.map(({ gameweek, against }) => {
-        const scored = results.get(gameweek);
-        const opponent = against.kind === "team" ? against.team : against.kind;
-        return {
-          gameweek,
-          deadline: deadlines.get(gameweek) ?? null,
-          against: against.kind === "team" ? { kind: "team" as const, teamName: named(against.team) } : against,
-          score: scored === undefined || opponent === BYE ? null : gameScore(teamsInGameweek(drawnIn.get(gameweek)!), scored, gameweek, team._id, opponent),
-        };
-      }),
-      unscored: unscored.filter(({ gameweek }) => games.some((game) => game.gameweek === gameweek)),
-    };
+    const deadlineOf = (gameweek: number) => deadlines.get(gameweek) ?? null;
+    return teamFixturesFrom({ team: { id: team._id, name: team.name }, format: rules.format, schedule, results, unscored, deadlineOf, named });
   },
 });
