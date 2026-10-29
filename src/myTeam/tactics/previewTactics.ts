@@ -3,12 +3,12 @@
 // server's own check (lineup.ts) and said in its words, so a refusal shows as it would live.
 
 import { useSyncExternalStore } from "react";
-import { lineupProblems } from "../../convex/lineup/lineup";
-import { problemWords } from "../../convex/lineup/lineupWords";
-import type { Cell } from "../../convex/lineup/pitch";
-import type { Position } from "../../convex/positions/positionTables";
-import { FIRST_RULES } from "../../convex/rules/firstRules";
-import { DAY_MS, HOUR_MS } from "../../convex/shared/time";
+import { lineupProblems } from "../../../convex/lineup/lineup";
+import { problemWords } from "../../../convex/lineup/lineupWords";
+import type { Cell } from "../../../convex/lineup/pitch";
+import type { Position } from "../../../convex/positions/positionTables";
+import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import type { DraftLineup } from "./lineupDraft";
 import type { Tactics, TacticsSeam } from "./tacticsSeam";
 

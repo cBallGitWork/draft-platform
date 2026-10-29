@@ -6,7 +6,7 @@ import type { Change } from "../shared/refusal";
 import type { TeamSquad } from "../../convex/squads/teamSquad";
 import type { TeamTransactions } from "../../convex/squads/teamTransactions";
 import type { TeamFixtures } from "../../convex/table/teamFixtures";
-import type { TacticsSeam } from "./tacticsSeam";
+import type { TacticsSeam } from "./tactics/tacticsSeam";
 
 export type { TeamFixtures, TeamSquad, TeamTransactions };
 

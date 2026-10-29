@@ -1,9 +1,9 @@
 // The seam for My team's Tactics tab (#14): what it reads and asks. My team's seam holds it
-// (seam.ts). Convex fills it in live (liveTactics.ts); the preview and the tests hand the screen
+// (../seam.ts). Convex fills it in live (liveTactics.ts); the preview and the tests hand the screen
 // their own.
 
-import type { Id } from "../../convex/_generated/dataModel";
-import type { OpenTactics, Tactics } from "../../convex/lineup/tactics";
+import type { Id } from "../../../convex/_generated/dataModel";
+import type { OpenTactics, Tactics } from "../../../convex/lineup/tactics";
 import type { DraftLineup } from "./lineupDraft";
 
 export type { OpenTactics, Tactics };

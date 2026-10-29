@@ -2,8 +2,8 @@
 // bench, and when two lineups stand the same.
 
 import { describe, expect, it } from "vitest";
-import type { Cell } from "../../../convex/lineup/pitch";
-import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, shownLineup, withRole } from "../../../src/myTeam/lineupDraft";
+import type { Cell } from "../../../../convex/lineup/pitch";
+import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, shownLineup, withRole } from "../../../../src/myTeam/tactics/lineupDraft";
 
 const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
 const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;

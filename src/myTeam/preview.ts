@@ -7,7 +7,7 @@ import { adminByline } from "../../convex/mail/letterWords";
 import { DAY_MS, HOUR_MS } from "../../convex/shared/time";
 import { teamFixturesOf } from "../table/drawnTable";
 import { previewScored, previewTeams } from "../table/preview";
-import { previewTactics } from "./previewTactics";
+import { previewTactics } from "./tactics/previewTactics";
 import type { MyTeamSeam, TeamSquad, TeamTransactions } from "./seam";
 
 const [previewTeam, otherTeam] = previewTeams;
