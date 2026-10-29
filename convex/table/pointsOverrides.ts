@@ -13,7 +13,7 @@ import { statusOf } from "../stats/matchStats";
 import { rescoreGameweek } from "./finalScores";
 import { begunGameweeks } from "./gameweekScores";
 import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "./overrideLimits";
-import { gameweekInputs, heldFixtures, leagueReads, playsIn, teamInGameweek, type LeagueReads } from "./teamGameweek";
+import { gameweekInputs, heldFixtures, leagueReads, playsIn, pointsInMatch, teamInGameweek, type LeagueReads } from "./teamGameweek";
 
 // A commissioner overrides one player's points for one match, with a reason (spec/14, Changes and
 // corrections; #32). The override is a row teamGameweek.ts reads with the match's records, so the
@@ -121,9 +121,8 @@ async function workedOut(
     const scored = await teamInGameweek(reads, inputs, teamId);
     // A team that never saved a lineup scores 0 (gameweekScores.ts), before and after alike.
     totals.set(teamId, scored?.team.total ?? 0);
-    const slot = scored && [...scored.team.starters, ...scored.team.bench].find((each) => each.playerCode === playerCode);
-    const index = slot ? scored.matchesOf.get(playerCode)!.findIndex((match) => match.fixture.code === fixtureCode) : -1;
-    if (slot && index !== -1) playerPoints = slot.matches[index].total;
+    const inMatch = scored && pointsInMatch(scored, playerCode, fixtureCode);
+    if (inMatch) playerPoints = inMatch.points;
   }
   return { totals, playerPoints };
 }

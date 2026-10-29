@@ -1,5 +1,16 @@
 import { expect, test } from "vitest";
-import { AREAS, LANES, playsCell, positionOfSlot, SLOT_POSITIONS, type Area } from "../../../convex/lineup/pitch";
+import {
+  ALL_CELLS,
+  AREAS,
+  cellKey,
+  isOnPitch,
+  LANES,
+  playsCell,
+  positionOfSlot,
+  SLOT_POSITIONS,
+  type Area,
+  type Cell,
+} from "../../../convex/lineup/pitch";
 import { POSITIONS, type Position } from "../../../convex/positions/positionTables";
 
 type WholeAreaPosition = Exclude<Position, "WB">;
@@ -59,4 +70,23 @@ test.each([
 test("every slot position is a position label, and SS is none of them", () => {
   expect(SLOT_POSITIONS.every((position) => POSITIONS.includes(position))).toBe(true);
   expect(SLOT_POSITIONS).not.toContain("SS");
+});
+
+test("the pitch's cells are its six areas by its five lanes, back to front and left to right", () => {
+  expect(ALL_CELLS).toHaveLength(30);
+  expect(ALL_CELLS[0]).toEqual({ area: "goalkeeper", lane: "left" });
+  expect(ALL_CELLS[1]).toEqual({ area: "goalkeeper", lane: "leftCentre" });
+  expect(ALL_CELLS[5]).toEqual({ area: "defence", lane: "left" });
+  expect(ALL_CELLS.at(-1)).toEqual({ area: "attack", lane: "right" });
+  expect(new Set(ALL_CELLS.map(cellKey)).size).toBe(30);
+});
+
+test("a cell's key is its area and lane, so a message naming it reads the same as before", () => {
+  expect(cellKey({ area: "defensiveMidfield", lane: "rightCentre" })).toBe("defensiveMidfield/rightCentre");
+});
+
+test("a cell is on the pitch only when both its area and its lane are", () => {
+  expect(isOnPitch({ area: "midfield", lane: "centre" })).toBe(true);
+  expect(isOnPitch({ area: "wingBack", lane: "centre" } as unknown as Cell)).toBe(false);
+  expect(isOnPitch({ area: "midfield", lane: "middle" } as unknown as Cell)).toBe(false);
 });

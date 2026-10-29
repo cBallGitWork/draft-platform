@@ -21,7 +21,7 @@ import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { begunGameweeks } from "../table/gameweekScores";
-import { gameweekInputs, heldFixtures, leagueReads, MATCH_RECORDS_MOST, teamInGameweek } from "../table/teamGameweek";
+import { gameweekInputs, heldFixtures, leagueReads, MATCH_RECORDS_MOST, pointsInMatch, teamInGameweek } from "../table/teamGameweek";
 
 // One real Premier League match (#45; spec/10, The match page): its score and clock, both clubs'
 // men as the team sheets named them, starters and substitutes, each man owned in the league with
@@ -180,12 +180,11 @@ async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtu
     for (const slot of [...scored.team.starters, ...scored.team.bench]) {
       // Only the men the match names. One team owned a man at the deadline, so one lineup holds him.
       if (!inThisMatch.has(slot.playerCode)) continue;
-      const his = scored.matchesOf.get(slot.playerCode) ?? [];
-      const index = his.findIndex((match) => match.fixture.code === fixture.code);
-      if (index === -1) continue;
-      result.slots.set(slot.playerCode, { points: slot.matches[index].total, counts: slot.counts });
+      const inMatch = pointsInMatch(scored, slot.playerCode, fixture.code);
+      if (inMatch === null) continue;
+      result.slots.set(slot.playerCode, { points: inMatch.points, counts: slot.counts });
       const { name } = await heldPlayer(ctx, fixture.code, slot.playerCode);
-      result.players.set(slot.playerCode, { name, cell: slot.cell, inMatch: inMatchOf(slot, his) });
+      result.players.set(slot.playerCode, { name, cell: slot.cell, inMatch: inMatchOf(slot, scored.matchesOf.get(slot.playerCode) ?? []) });
     }
   }
   return result;

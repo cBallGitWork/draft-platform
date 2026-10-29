@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { gameweekPlay, type PlayerMatch } from "../../../convex/lineup/autoSubs";
+import { gameweekPlay, type MatchPlayed } from "../../../convex/lineup/autoSubs";
 import { filledLineup, openLimits, presetNamed, withPositions } from "../../support/convex/lineup.harness";
 import {
   KEEPER,
@@ -234,7 +234,7 @@ describe("a double gameweek", () => {
 
   test("is subbed only once both his matches end with him on 0 minutes", () => {
     const { lineup, positions } = withBench(["ST"]);
-    const after = (matches: PlayerMatch[]) =>
+    const after = (matches: MatchPlayed[]) =>
       subbed(lineup, positions, plays(lineup, [], [[STRIKER, gameweekPlay(matches)]])).substitutions;
 
     expect(after([finished(0), toCome])).toEqual([]);
