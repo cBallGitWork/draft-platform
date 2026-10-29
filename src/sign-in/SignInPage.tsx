@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from "react";
-import { PANEL_BODY, Panel, Problem, TOP_BAR, TOP_BAR_ROW } from "../frame/Panel";
+import { PANEL_BODY, Panel, Problem, Status, TOP_BAR, TOP_BAR_ROW } from "../frame/Panel";
 import { PRODUCT_NAME } from "../../convex/shared/product";
 import { linkProblemWords, signInWords, type LinkProblem } from "./words";
 
 const EMAIL_ID = "sign-in-email";
+const EMAIL_HINT_ID = "sign-in-email-hint";
 
 /** All a logged-out visitor sees (spec/12): the name, "Invite only", and an email box for the link.
  *  Opened from a link that didn't sign them in, it says so first (spec/02); `intro` says why
@@ -49,17 +50,17 @@ export function SignInPage({
               autoComplete="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
+              aria-describedby={EMAIL_HINT_ID}
               className="text-box"
             />
-            <p className="text-muted">{signInWords.hint}</p>
+            <p id={EMAIL_HINT_ID} className="text-muted">
+              {signInWords.hint}
+            </p>
             <button type="submit" disabled={sending} className="action self-start">
               {signInWords.send}
             </button>
           </form>
-          {/* Not a Notice: it stays in the page while empty, so the live region announces the outcome. */}
-          <p role="status" className={outcome ? "alert-strip" : undefined}>
-            {outcome}
-          </p>
+          <Status words={outcome} className="alert-strip" />
         </Panel>
       </main>
     </>

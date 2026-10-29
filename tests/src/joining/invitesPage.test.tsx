@@ -8,6 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { joinPath } from "../../../convex/joining/joiningShared";
 import { DAY_MS } from "../../../convex/shared/time";
 import { commissioner, league, managerIn, openApp } from "../../support/src/shell.harness";
+import { descriptionOf } from "../../support/src/describedBy";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { invitesPath } from "../../../src/joining/paths";
 import type { InvitesPageData } from "../../../src/joining/seam";
@@ -16,9 +17,11 @@ import {
   emailInvitesWords,
   expiredWords,
   forTeamWords,
+  inviteHint,
   inviteLinkWords,
   INVITES_TITLE,
   joinedWords,
+  linkHint,
   loadingWords,
   noTeamWords,
   notYoursWords,
@@ -94,6 +97,11 @@ describe("the invites page", () => {
 });
 
 describe("inviting by email", () => {
+  it("the email box is described by its hint, for screen readers", async () => {
+    openPage();
+    expect(descriptionOf(await screen.findByRole("textbox", { name: emailInvitesWords.emailLabel }))).toBe(inviteHint);
+  });
+
   it("invites the email to a new team, or to the vacated team chosen", async () => {
     const app = openPage();
     await userEvent.type(await screen.findByRole("textbox", { name: emailInvitesWords.emailLabel }), "fay@example.com");
@@ -129,6 +137,7 @@ describe("the invite link", () => {
     const app = openPage();
     const link = (await screen.findByRole("textbox", { name: inviteLinkWords.label })) as HTMLInputElement;
     expect(link.value).toBe(new URL(joinPath("the-token"), window.location.origin).href);
+    expect(descriptionOf(link)).toBe(linkHint);
 
     await userEvent.click(screen.getByRole("button", { name: inviteLinkWords.replace }));
     await userEvent.click(screen.getByRole("button", { name: inviteLinkWords.switchOff }));

@@ -37,6 +37,7 @@ import {
 } from "./words";
 
 const FIND_NAME_ID = "find-name";
+const FIND_HINT_ID = "find-hint";
 
 /** A league's squads (spec/15, Assigning players), for its commissioners and the admin: find a
  *  player and put him on a team, move him or release him; each team's squad and the league's
@@ -77,8 +78,17 @@ function FindPlayer({ league, seam, squads, change }: { league: LeagueSummary; s
         <label htmlFor={FIND_NAME_ID} className="font-semibold">
           {findLabel}
         </label>
-        <input id={FIND_NAME_ID} type="search" value={text} onChange={(event) => setText(event.target.value)} className="text-box" />
-        <p className="text-muted">{findHint}</p>
+        <input
+          id={FIND_NAME_ID}
+          type="search"
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          aria-describedby={FIND_HINT_ID}
+          className="text-box"
+        />
+        <p id={FIND_HINT_ID} className="text-muted">
+          {findHint}
+        </p>
       </div>
       {text.trim() !== "" &&
         (found === undefined ? (

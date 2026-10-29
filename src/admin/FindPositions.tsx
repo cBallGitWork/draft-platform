@@ -23,6 +23,7 @@ import {
 } from "./words";
 
 const FIND_NAME_ID = "admin-find-name";
+const FIND_HINT_ID = "admin-find-hint";
 
 // Correcting any player's positions (spec/06): find him, then remove a position or set one, SS among them.
 
@@ -35,8 +36,17 @@ export function FindPlayer({ seam, change }: { seam: AdminSeam; change: Changing
         <label htmlFor={FIND_NAME_ID} className="font-semibold">
           {findLabel}
         </label>
-        <input id={FIND_NAME_ID} type="search" value={text} onChange={(event) => setText(event.target.value)} className="text-box" />
-        <p className="text-muted">{findHint}</p>
+        <input
+          id={FIND_NAME_ID}
+          type="search"
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          aria-describedby={FIND_HINT_ID}
+          className="text-box"
+        />
+        <p id={FIND_HINT_ID} className="text-muted">
+          {findHint}
+        </p>
       </div>
       {text.trim() !== "" &&
         (found === undefined ? (

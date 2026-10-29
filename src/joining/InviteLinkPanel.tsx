@@ -5,6 +5,7 @@ import type { InvitesPageData, JoiningSeam } from "./seam";
 import { inviteLinkWords, linkHint } from "./words";
 
 const LINK_ID = "invite-link";
+const LINK_HINT_ID = "invite-link-hint";
 
 /** spec/13, Joining: the league's one invite link, to share; switching it off or replacing it
  *  stops the old one working. */
@@ -33,9 +34,12 @@ export function InviteLinkPanel({ page, joining }: { page: InvitesPageData; join
               readOnly
               value={new URL(joinPath(page.linkToken), window.location.origin).href}
               onFocus={(event) => event.target.select()}
+              aria-describedby={LINK_HINT_ID}
               className="text-box"
             />
-            <p className="text-muted">{linkHint}</p>
+            <p id={LINK_HINT_ID} className="text-muted">
+              {linkHint}
+            </p>
             <span className="flex flex-wrap gap-2">
               <button type="button" disabled={busy} onClick={makeLink} className="secondary-action">
                 {inviteLinkWords.replace}

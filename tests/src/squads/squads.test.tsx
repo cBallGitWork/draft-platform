@@ -11,8 +11,10 @@ import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, 
 import { squadsPath } from "../../../src/squads/paths";
 import type { SquadsData } from "../../support/src/squads.harness";
 import { teamSquad } from "../../support/src/squads.harness";
+import { descriptionOf } from "../../support/src/describedBy";
 import {
   assignLabel,
+  findHint,
   findLabel,
   findTitle,
   foundListLabel,
@@ -94,6 +96,11 @@ describe("each team's squad", () => {
 });
 
 describe("finding a player", () => {
+  it("the search box is described by its hint, for screen readers", async () => {
+    openSquads();
+    expect(descriptionOf(await screen.findByRole("searchbox", { name: findLabel }))).toBe(findHint);
+  });
+
   it("puts a free agent on the team chosen", async () => {
     const app = openSquads();
     await search("Isak");
