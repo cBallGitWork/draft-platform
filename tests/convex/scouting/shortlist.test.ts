@@ -5,6 +5,7 @@ import { shortlistedReleasedLetter } from "../../../convex/mail/letterWords";
 import { SHORTLIST_MOST, shortlistRefusals } from "../../../convex/scouting/shortlist";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ARSENAL, CHELSEA, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The shortlist (#374, spec/19 The shortlist): a manager's own list of players for the season, per
@@ -12,8 +13,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // when he is released (spec/16).
 
 const [ANN, BOB, CAT] = MANAGERS;
-const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
-const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
 const SAKA = { code: 1001, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code };
 const PALMER = { code: 1002, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code };
 const GONE = { code: 2001, name: "Gone", fullName: "Long Gone", clubCode: ARSENAL.code };
@@ -28,7 +27,7 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t, 4);
   teams = await addManagers(t, leagueId, [ANN, BOB, CAT]);
   await t.run(async (ctx) => {
-    for (const club of [ARSENAL, CHELSEA]) await ctx.db.insert("clubs", club);
+    await insertClubs(ctx, [ARSENAL, CHELSEA]);
     for (const player of [SAKA, PALMER]) await ctx.db.insert("players", player);
     await ctx.db.insert("players", { ...GONE, droppedAt: Date.now() });
   });
