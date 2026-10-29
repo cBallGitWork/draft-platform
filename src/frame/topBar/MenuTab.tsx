@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { unreadFigure, unreadTabLabel } from "../mail/words";
-import { mainMenuLabel } from "./words";
+import { unreadFigure, unreadTabLabel } from "../../mail/words";
+import { mainMenuLabel } from "../words";
 
 // On a phone the menu takes its own row under the name and Sign out (and Continue, in a league).
 const mainMenuClasses = "order-last flex w-full flex-wrap border-t border-plate-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-r";
