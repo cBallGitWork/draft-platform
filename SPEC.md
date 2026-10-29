@@ -48,6 +48,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 18 | [Premier League](spec/18-premier-league.md) | fixtures and results built, a gameweek at a time with live scores, each opening its match page (#49, #45); the table beside them, worked out from the held results, live and marked provisional while a match is being played (#50) | a goal in a live match moves the Premier League table at once, marked provisional |
 | 19 | [Scouting](spec/19-scouting.md) | the players list, in the menu in place of Players, filtered by who holds a player, his position and his club, sorted by name, club or season points, any catalogue stat shown as a season total and sorted by, and any two ticked compared side by side, built (#373); season points read "—" because Scouting doesn't fill them yet (#525), and role fit waits on stars and scouts (#11, #375); the shortlist, built (#374): a manager adds a player from his card and takes him off there or on Scouting, and Mail tells him when one is released; not yet a letter when one clears waivers (spec/08) or feeding the draft queue (spec/04); scouts after the mini beta | a scout's report is ready 24 hours after he is sent, and no other team can tell who was scouted |
 | 20 | [Going live](spec/20-going-live.md) | the release (#517), the backup before a change to saved data's shape (#518), the after-release sign-in check (#517) and the setup command (#519) built; going live waits on Craig's setup run in docs/setup.md (#511, #512, #514) | a merge to `main` is live on `fantasydraftmanager.co.uk` with its server code, and the check after it signs in there |
+| 21 | [Player news](spec/21-player-news.md) | after the mini beta | an article about one player gives one note on his card, dated and linked to it, naming nothing of our game |
 
 ## Second release
 
@@ -92,6 +93,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - **A matchup's saved totals when its detail can't be worked out**: the totals the table shows,
   with the player-by-player detail marked unavailable, in place of "can't be scored" (Craig,
   29 Oct 2026; spec/07).
+- **Player news**: a note on every player, from his matches and from real news (spec/21).
 - **Preview sites** for unmerged changes (spec/20).
 - **A staging site**, if real leagues arrive (spec/20).
 
@@ -123,6 +125,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   (spec/19).
 - Showing other teams who a manager scouts (spec/19).
 - A league home each manager rearranges: we design it (spec/12).
+- A page of a player's older news notes: his card shows his three latest (spec/21).
 
 ## Glossary
 
@@ -180,4 +183,5 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | club captain | the real club's captain, shown as a hint | captain (for the real one) |
 | set-piece list | a manager's order of up to three players for one duty: penalties, free kicks or corners | |
 | set-piece taker | the player holding a duty in a match: the first on its list who plays | |
+| note | one item in a player's News: a match note or real news, dated and linked to its source (spec/21) | blurb, snippet |
 | squad number | the number a manager gives a player, shown on his shirt ("shirt number" means the same) | |
