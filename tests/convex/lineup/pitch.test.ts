@@ -2,15 +2,18 @@ import { expect, test } from "vitest";
 import {
   ALL_CELLS,
   AREAS,
+  byPitchOrder,
   cellKey,
   isOnPitch,
   LANES,
   playsCell,
   positionOfSlot,
+  sameCell,
   SLOT_POSITIONS,
   type Area,
   type Cell,
 } from "../../../convex/lineup/pitch";
+import type { Placement } from "../../../convex/lineup/lineup";
 import { POSITIONS, type Position } from "../../../convex/positions/positionTables";
 
 type WholeAreaPosition = Exclude<Position, "WB">;
@@ -89,4 +92,16 @@ test("a cell is on the pitch only when both its area and its lane are", () => {
   expect(isOnPitch({ area: "midfield", lane: "centre" })).toBe(true);
   expect(isOnPitch({ area: "wingBack", lane: "centre" } as unknown as Cell)).toBe(false);
   expect(isOnPitch({ area: "midfield", lane: "middle" } as unknown as Cell)).toBe(false);
+});
+
+test("two cells are the same only when both their area and their lane are, and a placement compares too", () => {
+  expect(sameCell({ area: "midfield", lane: "centre" }, { area: "midfield", lane: "centre" })).toBe(true);
+  expect(sameCell({ area: "midfield", lane: "centre" }, { area: "attack", lane: "centre" })).toBe(false);
+  expect(sameCell({ area: "midfield", lane: "centre" }, { area: "midfield", lane: "left" })).toBe(false);
+  const placement: Placement = { playerCode: 7, area: "midfield", lane: "centre" };
+  expect(sameCell(placement, { area: "midfield", lane: "centre" })).toBe(true);
+});
+
+test("the pitch's order sorts the cells back to front, then left to right, as ALL_CELLS lists them", () => {
+  expect(ALL_CELLS.toReversed().sort(byPitchOrder)).toEqual(ALL_CELLS);
 });

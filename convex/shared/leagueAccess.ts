@@ -149,8 +149,9 @@ export function namerOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
 export async function memberOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
   const email = await callerEmail(ctx);
   const league = await getLeague(ctx, leagueId);
-  if (!powersIn(league, email).runs && !(await teamOf(ctx, leagueId, email))) refuse(refusals.notInLeague);
-  return { email, league };
+  const team = await teamOf(ctx, leagueId, email);
+  if (!powersIn(league, email).runs && !team) refuse(refusals.notInLeague);
+  return { email, league, team };
 }
 
 /** The caller, the league and the caller's own team in it; otherwise the refusal, in this order:

@@ -9,7 +9,7 @@ import { v, type Infer, type Value } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalAction, internalMutation, internalQuery, type ActionCtx, type MutationCtx } from "../_generated/server";
-import { logFailure } from "../shared/errors";
+import { outcomeOf } from "../shared/errors";
 import { readFpl } from "./fpl/fpl";
 import {
   clubRecord,
@@ -49,13 +49,12 @@ export const run = internalAction({
   returns: v.null(),
   handler: async (ctx, { trigger }) => {
     const ranAt = Date.now();
-    let outcome: Infer<typeof footballSyncFields.outcome>;
-    try {
+    const outcome: Infer<typeof footballSyncFields.outcome> = await outcomeOf("football sync failed", async () => {
       // The seam: swap `readFpl` for another feed's reader that returns the same `Football`.
       // It throws on a failed fetch or a changed payload, so only a whole list reaches `syncTable`.
       const football = await readFpl();
-      outcome = {
-        ok: true,
+      return {
+        ok: true as const,
         // Clubs first, so a player or a fixture never names a club not yet held.
         clubs: await syncTable(ctx, "clubs", internal.football.footballSync.upsertClubs, football.clubs, ranAt),
         players: await syncTable(ctx, "players", internal.football.footballSync.upsertPlayers, football.players, ranAt),
@@ -63,9 +62,7 @@ export const run = internalAction({
         gameweeks: await syncTable(ctx, "gameweeks", internal.football.footballSync.upsertGameweeks, football.gameweeks, ranAt),
         scores: await writeScores(ctx, "fpl", ranAt, football.scores),
       };
-    } catch (error: unknown) {
-      outcome = { ok: false, error: logFailure("football sync failed", error) };
-    }
+    });
     await ctx.runMutation(internal.football.footballSync.record, { trigger, ranAt, outcome });
     return null;
   },
