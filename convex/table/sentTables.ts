@@ -1,6 +1,6 @@
 import type { Id } from "../_generated/dataModel";
 import type { LeagueRules } from "../rules/leagueRulesShape";
-import type { TeamGameweek } from "../gameweekScorer/gameweekScores";
+import type { TeamGameweekTotal } from "../gameweekScorer/gameweekScores";
 import type { LeagueTable } from "./leagueTable";
 import { namedFixture, roundsOf, type GameweekFixtures } from "./roundRobin";
 import { headToHeadTable, teamsInGameweek, totalPointsTable, type GameweekScores, type TableRow, type TieBreak } from "./standings";
@@ -15,7 +15,7 @@ import { BYE, gameScore, gamesOf } from "./teamGames";
 type TeamId = Id<"teams">;
 
 /** Each team's points in each gameweek scored, in gameweek order (gameweekScores.ts). */
-export type Results = ReadonlyMap<number, ReadonlyMap<TeamId, TeamGameweek>>;
+export type Results = ReadonlyMap<number, ReadonlyMap<TeamId, TeamGameweekTotal>>;
 
 /** A gameweek begun that couldn't be scored, and why. */
 type Unscored = LeagueTable["unscored"];

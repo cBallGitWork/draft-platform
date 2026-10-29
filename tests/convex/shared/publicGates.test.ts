@@ -85,7 +85,6 @@ const gates: Record<string, Gate> = {
   "auth:signOut": "open",
   "feedback/feedback:list": "admin",
   "feedback/feedback:send": "signedIn",
-  "football/matchCommentary:ofMatch": "signedIn",
   "football/matchScores:ofGameweek": "signedIn",
   "football/plGameweeks:firstKickoffs": "signedIn",
   "football/plStandings:ofSeason": "signedIn",
@@ -115,7 +114,6 @@ const gates: Record<string, Gate> = {
   "leagues/teams:leave": "manager",
   "leagues/teams:removeManager": "runner",
   "leagues/teams:rename": "teamsManager",
-  "lineup/lineups:mine": "manager",
   "lineup/lineups:save": "manager",
   "lineup/tactics:ofMyTeam": "manager",
   "mail/mail:letters": "signedInOrNothing",
@@ -224,10 +222,6 @@ beforeEach(async () => {
         caller.query(api.feedback.feedback.list, {}),
       "feedback/feedback:send": () =>
         caller.mutation(api.feedback.feedback.send, { message: "Love it" }),
-      "football/matchCommentary:ofMatch": () =>
-        caller.query(api.football.matchCommentary.ofMatch, {
-          fixtureCode: SOME_CODE,
-        }),
       "football/matchScores:ofGameweek": () =>
         caller.query(api.football.matchScores.ofGameweek, {
           gameweek: SOME_CODE,
@@ -264,11 +258,6 @@ beforeEach(async () => {
           name: "Another league",
           maxTeams: 4,
           commissionerEmail: COMMISSIONER,
-        }),
-      "lineup/lineups:mine": () =>
-        caller.query(api.lineup.lineups.mine, {
-          leagueId,
-          gameweek: SOME_CODE,
         }),
       "lineup/tactics:ofMyTeam": () =>
         caller.query(api.lineup.tactics.ofMyTeam, { leagueId, now }),

@@ -24,7 +24,7 @@ export const playedFixtureTables = {
     teamId: v.id("teams"),
     points: v.number(),
     /** True for a team that held no lineup in a gameweek begun before #637 gave every team one,
-     *  so scored 0 (gameweekScores.ts's TeamGameweek); absent otherwise. */
+     *  so scored 0 (gameweekScores.ts's TeamGameweekTotal); absent otherwise. */
     noLineup: v.optional(v.boolean()),
     /** The gameweek's matches it was scored from: a match moved in or out since reopens it. */
     fixtureCodes: v.array(v.number()),

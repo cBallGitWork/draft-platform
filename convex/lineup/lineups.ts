@@ -1,12 +1,12 @@
 import { v, type Infer } from "convex/values";
 import type { Id } from "../_generated/dataModel";
-import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
+import { mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { managerOf, refuse } from "../shared/leagueAccess";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { heldSchedule } from "../gameweeks/leagueDeadlines";
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { passedDeadlineOf, passedDeadlinesOf } from "../gameweeks/passedDeadlines";
-import { GAMEWEEKS, isGameweek, noSuchGameweek } from "../gameweeks/usedGameweeks";
+import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { squadAt, squadMovesSince, squadOf, type SquadMovesSince } from "../squads/squadPlace";
 import { playerByCode } from "../shared/players";
 import { positionsNow } from "../positions/playerPositions";
@@ -121,18 +121,6 @@ export async function lineupInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, t
 async function squadCodes(ctx: QueryCtx, teamId: Id<"teams">): Promise<number[]> {
   return (await squadOf(ctx, teamId)).map(({ playerCode }) => playerCode);
 }
-
-/** The caller's own team's lineup in the gameweek. Whether anyone else may see a team's lineup,
- *  and when, is not settled, so nobody else can yet. */
-export const mine = query({
-  args: { leagueId: v.id("leagues"), gameweek: v.number() },
-  returns: heldLineupShape,
-  handler: async (ctx, { leagueId, gameweek }) => {
-    const { team } = await managerOf(ctx, leagueId);
-    if (!isGameweek(gameweek)) refuse(noSuchGameweek(gameweek));
-    return await lineupInGameweek(ctx, leagueId, team._id, gameweek);
-  },
-});
 
 /** The first gameweek whose league deadline, under the rule in force in it, hasn't passed: the one
  *  a save now is from. */
