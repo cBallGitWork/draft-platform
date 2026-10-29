@@ -22,7 +22,8 @@ export const provisionalWords = "Live: points are provisional until every match 
 export const unscoredWords = (gameweek: number, reason: string) =>
   `${gameweekWords(gameweek)} can't be scored, so it counts for nothing in the table: ${reason}.`;
 
-/** The teams on 0 in a gameweek for never saving a lineup: what such a team fields isn't settled. */
+/** The teams on 0 in a gameweek stored before #637 for never having saved a lineup: every team
+ *  has had one since (spec/07), but a stored total stands as it was. */
 export const noLineupWords = (teamNames: readonly string[]) =>
   `${andList.format(teamNames)} never saved a lineup, so ${teamNames.length === 1 ? "it scores" : "they score"} 0.`;
 

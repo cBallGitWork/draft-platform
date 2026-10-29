@@ -29,7 +29,6 @@ import {
   noGamesWords,
   noGameWords,
   noCommentaryWords,
-  noLineupWords,
   noRulesWords,
   notBegunWords,
   notCountingLabel,
@@ -162,8 +161,6 @@ function SidePanel({ side }: { side: MatchupSide }) {
     <Panel title={name}>
       {side.kind === "leagueAverage" ? (
         <PanelNote>{averageWords}</PanelNote>
-      ) : side.lineup === null ? (
-        <PanelNote>{noLineupWords(name)}</PanelNote>
       ) : (
         <table aria-label={lineupLabel(name)} className="w-full border-collapse">
           <ColumnHeads columns={columns} classOf={(column) => (column === "player" ? "px-2 text-left" : "px-2 text-right")} />

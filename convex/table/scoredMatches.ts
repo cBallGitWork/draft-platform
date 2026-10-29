@@ -88,7 +88,7 @@ async function heldRows(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
 }
 
 /** The team's scoring in each gameweek the league has begun, read once a gameweek; null for a
- *  gameweek it hasn't, or while it has never saved a lineup. Null for a league made before rules
+ *  gameweek it hasn't. Null for a league made before rules
  *  were held, which has no scoring (#25). A set holding a rule no longer sound throws, as the
  *  card's best-position pricing always has (#287). */
 async function teamGameweeks(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"teams">, heldRowsOf: (code: number) => Promise<HeldRows>) {
@@ -133,7 +133,7 @@ async function teamGameweekInputs(
   const ruled = rulesIn(reads, gameweek);
   const lineups = await lineupsInGameweek(ctx, reads.leagueId, [teamId], gameweek);
   const lineup = lineups.get(teamId)!;
-  const codes = lineup.kind === "none" ? [] : [...lineup.starters.map(({ playerCode }) => playerCode), ...lineup.bench];
+  const codes = [...lineup.starters.map(({ playerCode }) => playerCode), ...lineup.bench];
   const rows = await Promise.all(codes.map(async (code) => [code, await rowsOf(code)] as const));
   const inMatch = <Row>(fixtureCode: number, held: (row: PlayerRows) => ReadonlyMap<number, Row>) =>
     new Map(rows.flatMap(([code, row]) => (held(row).has(fixtureCode) ? [[code, held(row).get(fixtureCode)!] as const] : [])));

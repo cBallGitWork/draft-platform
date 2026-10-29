@@ -67,8 +67,7 @@ const as = async (email: string) => {
     mine: (gameweek: number) => person.query(api.lineup.lineups.mine, { leagueId, gameweek }),
   };
 };
-const saved = (lineup: Lineup, fromGameweek: number) => ({
-  kind: "saved",
+const saved = (lineup: Lineup, fromGameweek: number | null) => ({
   fromGameweek,
   starters: lineup.starters,
   bench: lineup.bench,
@@ -87,7 +86,8 @@ describe("a saved lineup", () => {
 
     expect(await ann.mine(NEXT)).toEqual(saved(FOUR_FOUR_TWO, NEXT));
     expect(await ann.mine(NEXT + 3)).toEqual(saved(FOUR_FOUR_TWO, NEXT));
-    expect(await ann.mine(NEXT - 1)).toEqual({ kind: "none" });
+    // Before it, no row is in force: the team holds the first lineup picked from its squad.
+    expect(await ann.mine(NEXT - 1)).toEqual(saved(FOUR_FOUR_TWO, null));
   });
 
   test("keeps each starter's role as given, and refuses one his slot doesn't offer (#10)", async () => {
@@ -132,8 +132,10 @@ describe("a saved lineup", () => {
   });
 });
 
-test("a team that has never saved a lineup has none: what it plays at a deadline isn't settled", async () => {
-  expect(await (await as(BOB)).mine(NEXT)).toEqual({ kind: "none" });
+test("a team that has never saved a lineup holds its first, picked from its squad (spec/05, #637)", async () => {
+  expect(await (await as(ANN)).mine(NEXT)).toEqual(saved(FOUR_FOUR_TWO, null));
+  // Bob's one player, a centre midfielder, stands in the 4-4-2's first midfield slot.
+  expect(await (await as(BOB)).mine(NEXT)).toEqual(saved({ starters: [{ playerCode: BOBS, area: "midfield", lane: "left" }], bench: [] }, null));
 });
 
 describe("read against the squad as it is now", () => {
@@ -150,7 +152,6 @@ describe("read against the squad as it is now", () => {
     });
 
     expect(await (await as(ANN)).mine(NEXT)).toEqual({
-      kind: "saved",
       fromGameweek: NEXT,
       starters: FOUR_FOUR_TWO.starters.filter(({ playerCode }) => playerCode !== goneStarter),
       bench: [...FOUR_FOUR_TWO.bench.filter((playerCode) => playerCode !== goneSub), newcomer],
@@ -164,7 +165,7 @@ describe("read against the squad as it is now", () => {
     const ann = await as(ANN);
     await ann.save(FOUR_FOUR_TWO);
     // The screen holds the lineup it opened on while the squad changes under it.
-    const opened = openingLineup({ lineup: await ann.mine(NEXT), squad: [] });
+    const opened = openingLineup({ lineup: await ann.mine(NEXT) });
     const [goneStarter] = STARTERS;
     await t.run(async (ctx) => {
       for (const row of await ctx.db.query("squadPlayers").collect()) {
@@ -175,7 +176,6 @@ describe("read against the squad as it is now", () => {
     const squadNow = [...SQUAD.filter((playerCode) => playerCode !== goneStarter), FREE_AGENT];
 
     const held = await ann.mine(NEXT);
-    if (held.kind !== "saved") throw new Error("Ann's lineup is saved");
     expect(shownLineup(opened, opened, squadNow)).toEqual({ starters: held.starters, bench: held.bench });
   });
 });
@@ -212,7 +212,6 @@ describe("a begun gameweek keeps the squad as it stood at its deadline (#415)", 
     expect(await lineupOf(annsTeam, NEXT)).toEqual(saved(FOUR_FOUR_TWO, NEXT));
     expect(await lineupOf(bobsTeam, NEXT)).toEqual(saved({ starters: [], bench: [BOBS] }, NEXT));
     expect(await lineupOf(annsTeam, NEXT + 1)).toEqual({
-      kind: "saved",
       fromGameweek: NEXT,
       starters: FOUR_FOUR_TWO.starters.filter(({ playerCode }) => playerCode !== released && playerCode !== moved),
       bench: [...FOUR_FOUR_TWO.bench, FREE_AGENT],
@@ -293,6 +292,75 @@ describe("a begun gameweek keeps the squad as it stood at its deadline (#415)", 
 
     await expect(lineupOf(annsTeam, NEXT)).rejects.toThrow(`more than ${SQUAD_MOVES_READ_MOST} playerReleased moves`);
   });
+});
+
+describe("a team's first lineup, stored as its squad is made (#637)", () => {
+  const commissioner = async () => {
+    const person = await actingAs(t, COMMISSIONER);
+    return {
+      assign: (playerCode: number) => person.mutation(api.squads.squads.assign, { leagueId, playerCode, teamId: annsTeam }),
+      release: (playerCode: number) => person.mutation(api.squads.squads.release, { leagueId, playerCode }),
+    };
+  };
+  /** Ann's squad built again by the commissioner, one player at a time, in SQUAD's order. */
+  const buildAnnsSquad = async () => {
+    await t.run(async (ctx) => {
+      for (const row of await ctx.db.query("squadPlayers").withIndex("by_teamId", (q) => q.eq("teamId", annsTeam)).collect()) {
+        await ctx.db.delete("squadPlayers", row._id);
+      }
+    });
+    const by = await commissioner();
+    for (const playerCode of SQUAD) await by.assign(playerCode);
+    return by;
+  };
+  const annsRows = async () => (await lineupRows()).filter((row) => row.teamId === annsTeam);
+  const passNextDeadline = async () => {
+    vi.advanceTimersByTime(KICKS_OFF_IN - FPL_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS);
+    await t.run((ctx) => recordPassedDeadlines(ctx));
+  };
+
+  test("a squad built one player at a time ends on its whole 4-4-2, one row from the next gameweek", async () => {
+    await buildAnnsSquad();
+    expect(await (await as(ANN)).mine(NEXT)).toEqual(saved(FOUR_FOUR_TWO, NEXT));
+    expect(await annsRows()).toMatchObject([{ fromGameweek: NEXT, firstLineup: true }]);
+  });
+
+  test("a starter released from it is replaced by the first on the bench who plays his slot", async () => {
+    const by = await buildAnnsSquad();
+    const [keeper, ...outfield] = FOUR_FOUR_TWO.starters;
+    // A second keeper joins: the bench is the only place for him while the first plays.
+    await t.run((ctx) => ctx.db.insert("players", { code: 777, name: nameOf(777), fullName: nameOf(777), clubCode: 1 }));
+    await t.run((ctx) => ctx.db.insert("playerPositions", { code: 777, starts: [], approved: [], set: ["GK"], removed: [] }));
+    await by.assign(777);
+    expect((await (await as(ANN)).mine(NEXT)).bench).toEqual([...FOUR_FOUR_TWO.bench, 777]);
+    await by.release(keeper.playerCode);
+    expect(await (await as(ANN)).mine(NEXT)).toEqual(saved({ starters: [{ ...keeper, playerCode: 777 }, ...outfield], bench: FOUR_FOUR_TWO.bench }, NEXT));
+  });
+
+  test("once the manager saves, it is theirs: a newcomer goes to the end of the bench and nothing is picked again", async () => {
+    const by = await buildAnnsSquad();
+    await (await as(ANN)).save(REVERSED_BENCH);
+    expect(await annsRows()).toHaveLength(1);
+    expect((await annsRows())[0].firstLineup).toBeUndefined();
+    await by.assign(FREE_AGENT);
+    expect(await (await as(ANN)).mine(NEXT)).toEqual({ ...saved(REVERSED_BENCH, NEXT), bench: [...REVERSED_BENCH.bench, FREE_AGENT], joinedBench: [FREE_AGENT] });
+  });
+
+  test("a change after the deadline picks it again only from the gameweek after: the begun one keeps what it locked", async () => {
+    const by = await buildAnnsSquad();
+    await passNextDeadline();
+    await by.assign(FREE_AGENT);
+    expect(await lineupOf(NEXT)).toEqual(saved(FOUR_FOUR_TWO, NEXT));
+    expect(await lineupOf(NEXT + 1)).toEqual(saved({ ...FOUR_FOUR_TWO, bench: [...FOUR_FOUR_TWO.bench, FREE_AGENT] }, NEXT + 1));
+    expect(await annsRows()).toMatchObject([{ fromGameweek: NEXT, firstLineup: true }, { fromGameweek: NEXT + 1, firstLineup: true }]);
+  });
+
+  test("a begun gameweek with no row in force, from before #637, keeps its squad on the bench as it was scored", async () => {
+    await passNextDeadline();
+    expect(await lineupOf(NEXT)).toEqual(saved({ starters: [], bench: SQUAD }, null));
+  });
+
+  const lineupOf = (gameweek: number) => t.run((ctx) => lineupInGameweek(ctx, leagueId, annsTeam, gameweek));
 });
 
 describe("who may save and read", () => {

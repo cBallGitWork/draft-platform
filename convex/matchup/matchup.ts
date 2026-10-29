@@ -122,7 +122,6 @@ class SideScorer {
   async team(teamId: TeamId, teamName: string): Promise<MatchupSide> {
     const scored = await this.inGameweek.slotsOf(teamId);
     const { points, provisional } = await this.inGameweek.pointsOf(teamId);
-    if (scored === null) return { kind: "team", teamId, teamName, points, provisional, lineup: null };
     const slotOf = (slotPoints: SlotPoints) => this.slot(slotPoints, scored);
     return {
       kind: "team",
@@ -136,7 +135,7 @@ class SideScorer {
 
   async opponent(against: Opponent, nameOf: (teamId: TeamId) => string): Promise<MatchupSide> {
     if (against.kind === "team") return this.team(against.team, nameOf(against.team));
-    // The average of the gameweek's teams' points, one with no lineup on 0, as the table counts it.
+    // The average of the gameweek's teams' points, as the table counts it.
     const every = await Promise.all(this.averaged.map((teamId) => this.inGameweek.pointsOf(teamId)));
     const sides = new Map(this.averaged.map((teamId, index) => [teamId, every[index]]));
     return { kind: LEAGUE_AVERAGE, ...averageScore(this.averaged, sides, this.gameweek) };
@@ -150,7 +149,6 @@ class SideScorer {
       const matches = new Map<number, HeldMatch>();
       for (const teamId of teamIds) {
         const scored = await this.inGameweek.slotsOf(teamId);
-        if (scored === null) continue;
         for (const slot of [...scored.team.starters, ...scored.team.bench]) {
           const his = scored.matchesOf.get(slot.playerCode) ?? [];
           for (const match of his) matches.set(match.fixture.code, match);

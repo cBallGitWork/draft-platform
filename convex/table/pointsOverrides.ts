@@ -118,7 +118,7 @@ async function workedOut(
   for (const teamId of teamIds) {
     const scored = await slotsOf(teamId);
     totals.set(teamId, (await pointsOf(teamId)).points);
-    const inMatch = scored && pointsInMatch(scored, playerCode, fixtureCode);
+    const inMatch = pointsInMatch(scored, playerCode, fixtureCode);
     if (inMatch) playerPoints = inMatch.points;
   }
   return { totals, playerPoints };

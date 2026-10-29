@@ -8,6 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { Cell } from "../../../convex/lineup/pitch";
 import type { Position } from "../../../convex/positions/positionTables";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
+import { firstLineup } from "../../../convex/lineup/firstLineup";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { inTenths } from "../../../convex/scoring/scoringSet";
 import type { PlayerMatchRecord } from "../../../convex/stats/matchRecords";
@@ -104,8 +105,10 @@ export interface ScoresLeague {
 }
 
 /** A league made before gameweek 6 began, Ann's and Bob's teams playing each other in it, both
- *  squads held and Ann's lineup saved; Bob's too, unless `bobSaves` is false. With `catToo`, a
- *  third team, Cat's, with no squad or lineup, plays the league's average. */
+ *  squads held and Ann's lineup saved; Bob's too, unless `bobSaves` is false, when he holds the
+ *  first lineup his squad's assignments stored (lineups.ts, #637), picked in the order each squad
+ *  is listed here, starters then bench. With `catToo`, a third team, Cat's, with no squad and so
+ *  nobody in its lineup, plays the league's average. */
 export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Promise<ScoresLeague> {
   const t = await signInDeployment();
   fakeResend();
@@ -130,7 +133,9 @@ export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Pr
         await ctx.db.insert("squadPlayers", { leagueId, teamId, playerCode: code });
       }
       const saves = teamId === annsTeam || bobSaves;
-      if (saves) await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek: GAMEWEEK, starters, bench });
+      const first = () => firstLineup([...positionOf.keys()], new Map([...positionOf].map(([code, position]) => [code, [position]])));
+      const lineup = saves ? { starters, bench } : { ...first(), firstLineup: true as const };
+      await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek: GAMEWEEK, ...lineup });
     }
     // Gameweek 6 begun, as the football sync records it (deadlineRecorder.ts, playedFixtures.ts).
     await ctx.db.insert("passedDeadlines", { leagueId, gameweek: GAMEWEEK, deadline: DEADLINE, recordedAt: DEADLINE });
@@ -178,6 +183,12 @@ export function sideTotal(records: readonly PlayerMatchRecord[], counting: reado
  *  worked out player by player (gameweekScores.test.ts), so a change in how a match scores shows. */
 export const HULL_POINTS = 26;
 export const EVERTON_POINTS = 38;
+/** Everton's fifth midfielder, listed fifth of them: the 4-4-2 has room for four. */
+export const GREALISH = 114283;
+/** Bob's points on his first lineup (#637): Everton's 4-5-1 picked as a 4-4-2 is a 4-4-1, as his
+ *  squad holds no second striker, and Grealish, the fifth midfielder, goes to the bench. Everton's
+ *  38 less Grealish's 2 (golden/hull-everton.scores.json); no auto-sub, as every starter played. */
+export const BOBS_FIRST_POINTS = 36;
 
 /** Hull's side once the match is over: their keeper in goal for Phillips. */
 export const HULL_AFTER_SUB: Starter[] = HULL_STARTERS.map((starter) =>

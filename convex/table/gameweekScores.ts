@@ -40,7 +40,8 @@ export interface TeamGameweek {
   points: number;
   /** While a record that counts hasn't arrived, or a match it counts isn't locked (spec/07). */
   provisional: boolean;
-  /** It has never saved a lineup, so it scores 0: what such a team fields isn't settled. */
+  /** True only on a final score stored before #637 for a team that had never saved a lineup, so
+   *  scored 0: every team has had a lineup since (spec/07), and a stored total stands as it was. */
   noLineup: boolean;
 }
 
@@ -135,12 +136,9 @@ export async function gameweekScorer(ctx: QueryCtx, league: Doc<"leagues">, seas
   };
 }
 
-/** A team's points from its gameweek worked out: 0 while it has never saved a lineup, what such a
- *  team fields not being settled (spec/07). The one home of that rule. */
-export function totalOf(scored: TeamInGameweek | null): TeamGameweek {
-  return scored === null
-    ? { points: 0, provisional: false, noLineup: true }
-    : { points: scored.team.total, provisional: scored.team.provisional, noLineup: false };
+/** A team's points from its gameweek worked out. */
+export function totalOf(scored: TeamInGameweek): TeamGameweek {
+  return { points: scored.team.total, provisional: scored.team.provisional, noLineup: false };
 }
 
 /** The most final rows a league holds: one for each team in each gameweek. */
@@ -169,7 +167,7 @@ async function storedFinalScores(ctx: QueryCtx, leagueId: Id<"leagues">): Promis
 function storedGameweekOf([first, ...rest]: Doc<"finalScores">[]): StoredGameweek {
   const agree = rest.every((row) => sameCodes(row.fixtureCodes, first.fixtureCodes));
   const scores = new Map<TeamId, TeamGameweek>(
-    agree ? [first, ...rest].map(({ teamId, points, noLineup }) => [teamId, { points, provisional: false, noLineup }]) : [],
+    agree ? [first, ...rest].map(({ teamId, points, noLineup }) => [teamId, { points, provisional: false, noLineup: noLineup ?? false }]) : [],
   );
   return { fixtureCodes: first.fixtureCodes, scores };
 }
@@ -179,8 +177,8 @@ function storedGameweekOf([first, ...rest]: Doc<"finalScores">[]): StoredGamewee
 export interface GameweekTeams {
   /** The site's scoring set in force in the gameweek, checked. */
   set: StoredScoringSet;
-  /** The team's gameweek slot by slot, worked out once: null while it has never saved a lineup. */
-  slotsOf: (teamId: TeamId) => Promise<TeamInGameweek | null>;
+  /** The team's gameweek slot by slot, worked out once. */
+  slotsOf: (teamId: TeamId) => Promise<TeamInGameweek>;
   /** The team's points: its saved total where one stands, else worked out from its slots. */
   pointsOf: (teamId: TeamId) => Promise<TeamGameweek>;
 }

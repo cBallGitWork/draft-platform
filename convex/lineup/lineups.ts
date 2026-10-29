@@ -1,6 +1,6 @@
 import { v, type Infer } from "convex/values";
 import type { Id } from "../_generated/dataModel";
-import { mutation, query, type QueryCtx } from "../_generated/server";
+import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { managerOf, refuse } from "../shared/leagueAccess";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { heldSchedule } from "../gameweeks/leagueDeadlines";
@@ -12,7 +12,8 @@ import { playerByCode } from "../shared/players";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { placementShape } from "../schema";
-import { lineupProblems, reconciled } from "./lineup";
+import { lineupProblems, reconciled, type PlayerPositions } from "./lineup";
+import { firstLineup } from "./firstLineup";
 import type { Area, Lane } from "./pitch";
 import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords";
 
@@ -24,6 +25,12 @@ import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords"
 // deadline: "it locks the whole lineup"; #415), by lineup.ts's `reconciled`, which the Tactics
 // screen reads an edit by too. Whether a lineup may stand is lineup.ts's; the screen,
 // auto-subs and scoring are not here.
+//
+// A team always has a lineup (spec/05, spec/07; #637): "you don't save to create, you save to
+// edit". Until its manager saves one, its row is its first lineup (firstLineup.ts), marked so and
+// picked again from the squad each time the squad changes, so a squad built one player at a time
+// ends on the whole 4-4-2. Once the manager saves, it is his, and the squad changes it only as
+// `reconciled` says.
 
 /** A lineup as a manager's browser sends it: lineup.ts's Lineup, its cells still unchecked. */
 const sentLineup = v.object({
@@ -31,24 +38,22 @@ const sentLineup = v.object({
   bench: v.array(v.number()),
 });
 
-/** A team's lineup in a gameweek: none while it has never saved one (what a team with none plays
- *  at a deadline is not settled), else the newest saved from that gameweek or before, as the squad
- *  has it (now, or at the deadline once the gameweek has begun). `leftSquad` names who dropped out
- *  of it for leaving the squad, `joinedBench` who joined the squad since and was put at the end of
- *  the bench, so a screen can say so, and `vacated` each starter who left in the slot he left
- *  empty, for auto-subs to fill. */
-export const heldLineupShape = v.union(
-  v.object({ kind: v.literal("none") }),
-  v.object({
-    kind: v.literal("saved"),
-    fromGameweek: v.number(),
-    starters: v.array(placementShape),
-    bench: v.array(v.number()),
-    leftSquad: v.array(v.number()),
-    joinedBench: v.array(v.number()),
-    vacated: v.array(placementShape),
-  }),
-);
+/** A team's lineup in a gameweek: the newest row from that gameweek or before, as the squad has it
+ *  (now, or at the deadline once the gameweek has begun). `leftSquad` names who dropped out of it
+ *  for leaving the squad, `joinedBench` who joined the squad since and was put at the end of the
+ *  bench, so a screen can say so, and `vacated` each starter who left in the slot he left empty,
+ *  for auto-subs to fill. `fromGameweek` is null for a team with no row in force: one whose players
+ *  joined before teams held a first lineup, or a league with no rules to date a row by. Before the
+ *  deadline it holds its first lineup; once begun, its squad as it stood, all on the bench, so a
+ *  gameweek scored before #637 stays as it was scored. */
+export const heldLineupShape = v.object({
+  fromGameweek: v.union(v.number(), v.null()),
+  starters: v.array(placementShape),
+  bench: v.array(v.number()),
+  leftSquad: v.array(v.number()),
+  joinedBench: v.array(v.number()),
+  vacated: v.array(placementShape),
+});
 export type HeldLineup = Infer<typeof heldLineupShape>;
 
 /** The row in force in the gameweek: the latest from it or before. One row a gameweek at most
@@ -79,20 +84,30 @@ export async function lineupsInGameweek(
   const lineups = new Map<Id<"teams">, HeldLineup>();
   for (const teamId of teamIds) {
     const row = await rowInForce(ctx, leagueId, teamId, gameweek);
-    if (row === null) {
-      lineups.set(teamId, { kind: "none" });
-      continue;
-    }
     let squad: number[];
     if (deadline === null) squad = await squadCodes(ctx, teamId);
     else {
       movesSince ??= squadMovesSince(ctx, leagueId, deadline);
       squad = await squadAt(ctx, teamId, await movesSince);
     }
+    if (row === null) {
+      const held = deadline === null ? firstLineup(squad, await positionsOf(ctx, squad)) : { starters: [], bench: squad };
+      lineups.set(teamId, { fromGameweek: null, ...held, ...NO_CHANGES });
+      continue;
+    }
     const { lineup, ...changes } = reconciled(row, squad);
-    lineups.set(teamId, { kind: "saved", fromGameweek: row.fromGameweek, ...lineup, ...changes });
+    lineups.set(teamId, { fromGameweek: row.fromGameweek, ...lineup, ...changes });
   }
   return lineups;
+}
+
+/** A lineup no squad change has touched. */
+const NO_CHANGES = { leftSquad: [], joinedBench: [], vacated: [] };
+
+/** Each player's positions now (spec/06), for picking a first lineup. */
+async function positionsOf(ctx: QueryCtx, playerCodes: readonly number[]): Promise<PlayerPositions> {
+  const how = await howPositionsCount(ctx);
+  return new Map(await Promise.all(playerCodes.map(async (playerCode) => [playerCode, await currentPositions(ctx, playerCode, how)] as const)));
 }
 
 /** One team's lineup in the gameweek, as `lineupsInGameweek` gives it. */
@@ -155,24 +170,34 @@ export const save = mutation({
     const leftOut = squad.filter((playerCode) => !named.includes(playerCode));
     if (leftOut.length > 0) refuse(lineupRefusals.leftOut(leftOut.map(nameOf)));
 
-    const how = await howPositionsCount(ctx);
-    const positions = new Map(
-      await Promise.all(lineup.starters.map(async ({ playerCode }) => [playerCode, await currentPositions(ctx, playerCode, how)] as const)),
-    );
+    const positions = await positionsOf(ctx, lineup.starters.map(({ playerCode }) => playerCode));
     const { areaLimits } = season.inGameweek(fromGameweek);
     const problems = lineupProblems(lineup, positions, { areaLimits });
     if (problems.length > 0) refuse(problems.map((problem) => problemWords(problem, nameOf)).join(" "));
 
     // lineupProblems refused any cell not on the pitch, so every starter's is one.
     const starters = lineup.starters.map((starter) => ({ ...starter, area: starter.area as Area, lane: starter.lane as Lane }));
-    const existing = await ctx.db
-      .query("lineups")
-      .withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) =>
-        q.eq("leagueId", leagueId).eq("teamId", team._id).eq("fromGameweek", fromGameweek),
-      )
-      .unique();
-    if (existing === null) await ctx.db.insert("lineups", { leagueId, teamId: team._id, fromGameweek, starters, bench: lineup.bench });
-    else await ctx.db.patch("lineups", existing._id, { starters, bench: lineup.bench });
+    const existing = await rowInForce(ctx, leagueId, team._id, fromGameweek);
+    // The manager's own from here: no squad change picks it again.
+    if (existing?.fromGameweek !== fromGameweek) await ctx.db.insert("lineups", { leagueId, teamId: team._id, fromGameweek, starters, bench: lineup.bench });
+    else await ctx.db.patch("lineups", existing._id, { starters, bench: lineup.bench, firstLineup: undefined });
     return fromGameweek;
   },
 });
+
+/** After a change to the team's squad: while its lineup is still its first, the first lineup is
+ *  picked again from the squad as it is now, from the next gameweek not yet begun, so a gameweek
+ *  begun keeps the one it locked. A lineup the manager saved is left to `reconciled`. Nothing is
+ *  written for a league with no rules, whose gameweeks can't be dated, or once the season is over. */
+export async function pickFirstLineupAgain(ctx: MutationCtx, leagueId: Id<"leagues">, teamId: Id<"teams">): Promise<void> {
+  const season = await seasonRules(ctx, leagueId);
+  if (season === null) return;
+  const fromGameweek = await nextOpenGameweek(ctx, leagueId, season, Date.now());
+  if (fromGameweek > GAMEWEEKS) return;
+  const row = await rowInForce(ctx, leagueId, teamId, fromGameweek);
+  if (row !== null && row.firstLineup !== true) return;
+  const squad = await squadCodes(ctx, teamId);
+  const picked = firstLineup(squad, await positionsOf(ctx, squad));
+  if (row?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", row._id, picked);
+  else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...picked, firstLineup: true });
+}

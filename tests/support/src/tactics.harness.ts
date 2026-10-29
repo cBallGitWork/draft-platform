@@ -8,8 +8,8 @@ import type { LineupChanges, OpenTactics, Tactics, TacticsSeam } from "../../../
 /** The gameweek the fake server sets a lineup for, unless a test says. */
 export const TACTICS_GAMEWEEK = 9;
 
-/** An open gameweek under the first rules, with this squad and lineup: an empty squad that has
- *  never saved one, and no deadline, unless a test says. */
+/** An open gameweek under the first rules, with this squad and lineup: an empty squad and its
+ *  empty first lineup, and no deadline, unless a test says. */
 export const openTactics = (change: Partial<OpenTactics> = {}): OpenTactics => ({
   kind: "open",
   gameweek: TACTICS_GAMEWEEK,
@@ -17,7 +17,7 @@ export const openTactics = (change: Partial<OpenTactics> = {}): OpenTactics => (
   areaLimits: FIRST_RULES.areaLimits,
   presets: FIRST_RULES.presets,
   squad: [],
-  lineup: { kind: "none" },
+  lineup: { fromGameweek: TACTICS_GAMEWEEK, starters: [], bench: [], leftSquad: [], joinedBench: [], vacated: [] },
   ...change,
 });
 

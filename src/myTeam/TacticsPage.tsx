@@ -174,7 +174,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     setProblem(null);
   };
 
-  const joined = tactics.lineup.kind === "saved" ? tactics.lineup.joinedBench : [];
+  const joined = tactics.lineup.joinedBench;
   return (
     <div ref={root} className="mt-2 flex flex-col gap-2">
       {/* Save sits above the pitch, so a refusal is read where it is asked for, even on a phone. */}
