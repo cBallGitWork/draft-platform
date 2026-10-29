@@ -103,6 +103,18 @@ import type * as rules_leagueSettings from "../rules/leagueSettings.js";
 import type * as rules_leagueSettingsPart from "../rules/leagueSettingsPart.js";
 import type * as rules_rulesHistory from "../rules/rulesHistory.js";
 import type * as rules_squadMaximums from "../rules/squadMaximums.js";
+import type * as schema_feeds from "../schema/feeds.js";
+import type * as schema_football from "../schema/football.js";
+import type * as schema_joining from "../schema/joining.js";
+import type * as schema_leagues from "../schema/leagues.js";
+import type * as schema_live from "../schema/live.js";
+import type * as schema_mail from "../schema/mail.js";
+import type * as schema_matchStats from "../schema/matchStats.js";
+import type * as schema_people from "../schema/people.js";
+import type * as schema_positions from "../schema/positions.js";
+import type * as schema_rules from "../schema/rules.js";
+import type * as schema_signIn from "../schema/signIn.js";
+import type * as schema_squads from "../schema/squads.js";
 import type * as scoring_categories from "../scoring/categories.js";
 import type * as scoring_firstScoring from "../scoring/firstScoring.js";
 import type * as scoring_ownStats from "../scoring/ownStats.js";
@@ -166,18 +178,6 @@ import type * as table_standings from "../table/standings.js";
 import type * as table_teamFixtures from "../table/teamFixtures.js";
 import type * as table_teamGames from "../table/teamGames.js";
 import type * as table_teamGameweek from "../table/teamGameweek.js";
-import type * as tables_feeds from "../tables/feeds.js";
-import type * as tables_football from "../tables/football.js";
-import type * as tables_joining from "../tables/joining.js";
-import type * as tables_leagues from "../tables/leagues.js";
-import type * as tables_live from "../tables/live.js";
-import type * as tables_mail from "../tables/mail.js";
-import type * as tables_matchStats from "../tables/matchStats.js";
-import type * as tables_people from "../tables/people.js";
-import type * as tables_positions from "../tables/positions.js";
-import type * as tables_rules from "../tables/rules.js";
-import type * as tables_signIn from "../tables/signIn.js";
-import type * as tables_squads from "../tables/squads.js";
 
 import type {
   ApiFromModules,
@@ -281,6 +281,18 @@ declare const fullApi: ApiFromModules<{
   "rules/leagueSettingsPart": typeof rules_leagueSettingsPart;
   "rules/rulesHistory": typeof rules_rulesHistory;
   "rules/squadMaximums": typeof rules_squadMaximums;
+  "schema/feeds": typeof schema_feeds;
+  "schema/football": typeof schema_football;
+  "schema/joining": typeof schema_joining;
+  "schema/leagues": typeof schema_leagues;
+  "schema/live": typeof schema_live;
+  "schema/mail": typeof schema_mail;
+  "schema/matchStats": typeof schema_matchStats;
+  "schema/people": typeof schema_people;
+  "schema/positions": typeof schema_positions;
+  "schema/rules": typeof schema_rules;
+  "schema/signIn": typeof schema_signIn;
+  "schema/squads": typeof schema_squads;
   "scoring/categories": typeof scoring_categories;
   "scoring/firstScoring": typeof scoring_firstScoring;
   "scoring/ownStats": typeof scoring_ownStats;
@@ -344,18 +356,6 @@ declare const fullApi: ApiFromModules<{
   "table/teamFixtures": typeof table_teamFixtures;
   "table/teamGames": typeof table_teamGames;
   "table/teamGameweek": typeof table_teamGameweek;
-  "tables/feeds": typeof tables_feeds;
-  "tables/football": typeof tables_football;
-  "tables/joining": typeof tables_joining;
-  "tables/leagues": typeof tables_leagues;
-  "tables/live": typeof tables_live;
-  "tables/mail": typeof tables_mail;
-  "tables/matchStats": typeof tables_matchStats;
-  "tables/people": typeof tables_people;
-  "tables/positions": typeof tables_positions;
-  "tables/rules": typeof tables_rules;
-  "tables/signIn": typeof tables_signIn;
-  "tables/squads": typeof tables_squads;
 }>;
 
 /**

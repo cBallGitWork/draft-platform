@@ -16,7 +16,7 @@ import { countedStats, moveSeasonTotals, type RecordChange } from "./seasonStats
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
 
 type State = Infer<typeof matchStatsState>;
-/** What writing one match's records did: upsertMatch's, and upsertLive's before full time. Stored as tables/matchStats.ts's matchSyncOutcome. */
+/** What writing one match's records did: upsertMatch's, and upsertLive's before full time. Stored as schema/matchStats.ts's matchSyncOutcome. */
 export const matchWrites = v.object({
   state: matchStatsState,
   inserted: v.number(),
