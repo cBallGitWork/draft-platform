@@ -3,7 +3,7 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../convex/mail/mail";
-import type { Change } from "../refusal";
+import type { Change } from "../shared/refusal";
 
 export type LeagueLetter = { leagueId: Id<"leagues">; subject: string; body: string };
 

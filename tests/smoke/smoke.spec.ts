@@ -5,7 +5,7 @@ import { expect, test as base, type ConsoleMessage } from "@playwright/test";
 import { ERROR_PAGE_TITLE, mainMenuLabel } from "../../src/frame/words";
 import { SIGN_IN_PATH } from "../../src/sign-in/paths";
 import { signInWords } from "../../src/sign-in/words";
-import { NO_CONVEX_URL } from "../../src/words";
+import { NO_CONVEX_URL } from "../../src/shared/words";
 import { BUILT_SCREENS } from "../support/smoke/builtScreens";
 
 /** The one error every page load logs: the app has no favicon, and the browser asks for one. */

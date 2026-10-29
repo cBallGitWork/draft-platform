@@ -6,7 +6,7 @@ import type { Area, Lane } from "../../convex/lineup/pitch";
 import { AREA_WORDS, LANE_WORDS } from "../../convex/lineup/pitchWords";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
 import { menuWords } from "../frame/words";
-import { failedWords, gameweekWords, listSeparator, whenWords } from "../words";
+import { failedWords, gameweekWords, listSeparator, whenWords } from "../shared/words";
 
 export const TACTICS_TITLE = menuWords.tactics;
 export const SQUAD_PANEL_TITLE = menuWords.squad;

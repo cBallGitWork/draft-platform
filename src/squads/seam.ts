@@ -3,7 +3,7 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { FoundPlayer, TeamSquad } from "../../convex/squads/squads";
-import type { Change } from "../refusal";
+import type { Change } from "../shared/refusal";
 
 export type { FoundPlayer, TeamSquad };
 

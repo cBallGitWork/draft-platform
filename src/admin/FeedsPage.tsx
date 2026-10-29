@@ -1,6 +1,6 @@
 import type { FeedState } from "../../convex/admin/feedState";
 import { Loading, Panel, PanelNote } from "../frame/Panel";
-import { whenWords } from "../words";
+import { whenWords } from "../shared/words";
 import { AdminHeader } from "./AdminHeader";
 import type { AdminSeam, FeedsReport } from "./seam";
 import {

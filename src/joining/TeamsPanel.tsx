@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Confirm } from "../frame/Confirm";
 import { Panel, Problem } from "../frame/Panel";
-import { useChange } from "../useChange";
+import { useChange } from "../shared/useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { teamsWords } from "./words";
 

@@ -8,10 +8,10 @@ import { FEED_NAMES } from "../../convex/shared/feedSchedule";
 import { FEEDBACK_TITLE } from "../feedback/words";
 import { LOCALE } from "../../convex/shared/moments";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
-import { versusWords, whenWords } from "../words";
+import { versusWords, whenWords } from "../shared/words";
 import { READING_SITES, siteSearchUrl } from "./paths";
 
-export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../words";
+export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../shared/words";
 
 export const ADMIN_TITLE = "Admin dashboard";
 export const loadingWords = "Loading the queue…";

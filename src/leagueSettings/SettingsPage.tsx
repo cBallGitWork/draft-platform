@@ -9,7 +9,7 @@ import { useRulesDraft } from "../rules/rulesDraft";
 import { SaveBar } from "../rules/SaveBar";
 import { TickBox } from "../rules/TickBox";
 import { NumberBox } from "../rules/NumberBox";
-import { AREA_WORDS } from "../words";
+import { AREA_WORDS } from "../shared/words";
 import type { LeagueSettingsSeam, SettingsView } from "./seam";
 import {
   areaMinimumLabel,

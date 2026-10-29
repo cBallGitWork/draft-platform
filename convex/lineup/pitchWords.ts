@@ -1,5 +1,5 @@
 // The pitch's areas and lanes in words, for the screens and for the server's refusals alike
-// (src/words.ts passes AREA_WORDS on to the screens).
+// (src/shared/words.ts passes AREA_WORDS on to the screens).
 
 import type { Area, Lane } from "./pitch";
 

@@ -36,7 +36,7 @@ import {
   sortByLabel,
   statLabel,
 } from "../../../src/scouting/words";
-import { POSITION_NAMES } from "../../../src/words";
+import { POSITION_NAMES } from "../../../src/shared/words";
 import type { ScoutingData } from "../../support/src/scouting.harness";
 import { commissioner, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 

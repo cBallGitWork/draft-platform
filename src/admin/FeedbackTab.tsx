@@ -1,7 +1,7 @@
 import { FEEDBACK_SHOWN } from "../../convex/feedback/feedbackLimits";
 import type { FeedbackSeam } from "../feedback/seam";
 import { Loading, Panel, PanelNote } from "../frame/Panel";
-import { whenWords } from "../words";
+import { whenWords } from "../shared/words";
 import { AdminHeader } from "./AdminHeader";
 import { feedbackListTitle, feedbackLoadingWords, moreFeedbackWords, noFeedbackWords } from "./words";
 

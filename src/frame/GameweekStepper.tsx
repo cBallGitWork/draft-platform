@@ -1,4 +1,4 @@
-import { gameweekWords, nextGameweekLabel, nextGlyph, previousGameweekLabel, previousGlyph } from "../words";
+import { gameweekWords, nextGameweekLabel, nextGlyph, previousGameweekLabel, previousGlyph } from "../shared/words";
 
 // CM's ◄ GW ► stepper (plate.md, Colour roles: stepper), over a list of gameweeks: the league's
 // fixtures (#33) and the Premier League's (#49) step through theirs with it.

@@ -25,11 +25,11 @@ import { livePlayerCard } from "./playerCard/livePlayerCard";
 import { liveScouting } from "./scouting/liveScouting";
 import { useLiveSquads } from "./squads/liveSquads";
 import { liveTable } from "./table/liveTable";
-import { answerOf } from "./refusal";
+import { answerOf } from "./shared/refusal";
 import { ShellApp } from "./ShellApp";
 import { SIGN_IN_PATH } from "./sign-in/paths";
 import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "./sign-in/words";
-import { NO_CONVEX_URL } from "./words";
+import { NO_CONVEX_URL } from "./shared/words";
 
 // The app signed in for real: Convex Auth's session (convex/auth.ts), the email links asked for
 // through signIn/signInLinks:ask, and a link's code redeemed when the app is opened from one.

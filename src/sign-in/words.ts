@@ -1,7 +1,7 @@
 // What sign-in says, in one place for Craig to change in the pull request (spec/02). The email
 // itself is convex/signIn/signInEmail.ts.
 
-import { failedWords } from "../words";
+import { failedWords } from "../shared/words";
 
 /** The sign-in page: the top bar's "Invite only", and the form asking for a link. */
 export const signInWords = {

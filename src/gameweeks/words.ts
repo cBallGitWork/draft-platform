@@ -3,7 +3,7 @@
 // screen as is.
 
 import { GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
-import { failedWords } from "../words";
+import { failedWords } from "../shared/words";
 
 export const GAMEWEEKS_TITLE = "Gameweeks";
 

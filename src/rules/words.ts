@@ -1,7 +1,7 @@
 // What the screens editing a league's rules say alike, in one place for Craig to change in the
 // pull request.
 
-import { gameweekWords } from "../words";
+import { gameweekWords } from "../shared/words";
 
 export { gameweekWords };
 

@@ -2,9 +2,9 @@
 
 import { LOCALE } from "../../convex/shared/moments";
 import { menuWords } from "../frame/words";
-import { gameweekWords } from "../words";
+import { gameweekWords } from "../shared/words";
 
-export { gameweekWords, scoreWords, versusWords } from "../words";
+export { gameweekWords, scoreWords, versusWords } from "../shared/words";
 
 export const TABLE_PAGE_TITLE = "Table and fixtures";
 export const TABLE_TITLE = menuWords.table;

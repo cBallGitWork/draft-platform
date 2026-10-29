@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Confirm } from "../frame/Confirm";
 import { Problem } from "../frame/Panel";
-import { useChange } from "../useChange";
+import { useChange } from "../shared/useChange";
 import type { LeaguesSeam } from "./seam";
 import { leagueColumnCount } from "./LeagueLinks";
 import { beingDeleted, confirmDelete, confirmDeleteWords, deleteLeagueWords, undoWords } from "./words";

@@ -1,10 +1,10 @@
 // What every screen says alike, in one place for Craig to change in the pull request.
 
-import type { Position } from "../convex/positions/positionTables";
-import { LOCALE } from "../convex/shared/moments";
+import type { Position } from "../../convex/positions/positionTables";
+import { LOCALE } from "../../convex/shared/moments";
 
 /** The pitch's areas, as the rules screens name them: the server's refusals name them too. */
-export { AREA_WORDS } from "../convex/lineup/pitchWords";
+export { AREA_WORDS } from "../../convex/lineup/pitchWords";
 
 /** Each position by name, for a short code's hover (positionTables.ts has the codes). */
 export const POSITION_NAMES: Record<Position, string> = {
@@ -21,7 +21,7 @@ export const POSITION_NAMES: Record<Position, string> = {
   ST: "Striker",
 };
 
-/** What a screen says when a change or a read failed for any reason but the server's refusal (src/refusal.ts):
+/** What a screen says when a change or a read failed for any reason but the server's refusal (src/shared/refusal.ts):
  *  `outcome` is what that left, such as "nothing changed". */
 export const failedWords = (outcome: string) => `Something went wrong, so ${outcome}. Check your connection and try again.`;
 /** When a change failed before the server could say why: the connection, or the server itself. */

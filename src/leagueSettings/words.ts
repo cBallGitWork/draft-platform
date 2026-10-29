@@ -6,7 +6,7 @@ import { MOST_IN_SQUAD } from "../../convex/leagues/leagueLimits";
 import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import type { Area } from "../../convex/lineup/pitch";
 import type { OddTeamOut } from "../../convex/table/roundRobin";
-import { AREA_WORDS, failedWords, gameweekWords } from "../words";
+import { AREA_WORDS, failedWords, gameweekWords } from "../shared/words";
 
 export const SETTINGS_TITLE = "League settings";
 export const loadingWords = "Loading the league settings…";

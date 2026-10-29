@@ -1,9 +1,9 @@
 // What the shortlist says, on Scouting and the player card, in one place for Craig to change in the
 // pull request.
 
-import { failedWords } from "../words";
+import { failedWords } from "../shared/words";
 
-export { freeAgentWords } from "../words";
+export { freeAgentWords } from "../shared/words";
 export { goneWords } from "../playerCard/words";
 
 export const SHORTLIST_TITLE = "Shortlist";
