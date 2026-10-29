@@ -9,6 +9,12 @@ export const LOCALE = "en-GB";
 /** The Premier League's own zone: a moment's zone while the reader's isn't known; the tests run in it too. */
 export const LONDON_ZONE = "Europe/London";
 
+/** "A", "A and B", "A, B and C": no comma before the last "and". Written out rather than through
+ *  Intl.ListFormat, so it reads the same whatever locale data a runtime holds. */
+export function andListWords(items: readonly string[]): string {
+  return items.length <= 1 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
+}
+
 const MOMENT = { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZoneName: "short" } as const;
 const formats = new Map<string, Intl.DateTimeFormat>();
 
