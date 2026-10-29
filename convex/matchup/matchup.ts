@@ -8,22 +8,10 @@ import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { memberOf, teamIn, teamOf, teamsOf } from "../shared/leagueAccess";
-import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
-import { begunGameweeks, storedScoresIn, totalOf, type TeamScores } from "../table/gameweekScores";
+import { begunGameweeks, tableGameweek, type GameweekTeams } from "../table/gameweekScores";
 import { scheduleOf } from "../table/playedFixtures";
-import {
-  gameweekInputs,
-  heldFixtures,
-  isFinished,
-  leagueReads,
-  pointsByMatch,
-  teamInGameweek,
-  type HeldMatch,
-  type LeagueReads,
-  type GameweekInputs,
-  type TeamInGameweek,
-} from "../table/teamGameweek";
+import { isFinished, leagueReads, lineupPlayer, pointsByMatch, type HeldMatch, type TeamInGameweek } from "../table/teamGameweek";
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
 import { teamsInGameweek } from "../table/standings";
 import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
@@ -36,7 +24,8 @@ import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vi
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
 // screen): both lineups slot by slot, each player's points and whether his match is yet to come,
 // on with its minute, or over, the auto-subs, the bench greyed, and the totals, provisional until
-// final. Scored by teamGameweek.ts's own functions, so the matchup and the table never disagree.
+// final. Scored by the table's own scorer (gameweekScores.ts), so the matchup and the table never
+// disagree.
 //
 // Lineups show only once the gameweek has begun, at the league's deadline: nothing is secret after
 // lock. Who may see another team's lineup before then is Craig's to settle (#392); a manager's own
@@ -65,12 +54,13 @@ export const ofTeam = query({
     const schedule = await scheduleOf(ctx, league, season);
     const games = gamesOf(schedule, team._id);
     const deadlines = await leagueDeadlines(ctx, leagueId);
-    const gameweek = asked ?? thisGameweekOf(games, (each) => deadlines.get(each) ?? null, now)?.gameweek ?? null;
+    const deadlineOf = (each: number) => deadlines.get(each) ?? null;
+    const gameweek = asked ?? thisGameweekOf(games, deadlineOf, now)?.gameweek ?? null;
     const heading = { kind: "headToHead" as const, teamId: team._id, teamName: team.name, gameweeks: [...new Set(games.map((each) => each.gameweek))] };
     if (gameweek === null) return { ...heading, gameweek, deadline: null, game: { kind: "none" as const } };
     const against = games.find((each) => each.gameweek === gameweek)?.against;
     const drawn = schedule.find((each) => each.gameweek === gameweek);
-    return { ...heading, gameweek, deadline: deadlines.get(gameweek) ?? null, game: await gameOf(ctx, league, season, team, drawn, against) };
+    return { ...heading, gameweek, deadline: deadlineOf(gameweek), game: await gameOf(ctx, league, season, team, drawn, against) };
   },
 });
 
@@ -96,11 +86,9 @@ async function gameOf(
   const opponent = against.kind === "team" ? { kind: "team" as const, teamName: nameOf(against.team) } : { kind: LEAGUE_AVERAGE as typeof LEAGUE_AVERAGE };
   if (!(await begunGameweeks(ctx, league)).includes(gameweek)) return { kind: "notBegun", opponent };
   try {
-    const reads = await leagueReads(ctx, league, season);
-    const fixtures = await heldFixtures(ctx, gameweek);
     const teamIds = teams.map((each) => each._id);
-    const inputs = await gameweekInputs(ctx, reads, gameweek, fixtures, teamIds);
-    const scorer = new SideScorer(ctx, reads, inputs, teamsInGameweek(drawn), gameweek, await storedScoresIn(ctx, league._id, gameweek, fixtures));
+    const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season), gameweek, teamIds);
+    const scorer = new SideScorer(ctx, inGameweek, teamsInGameweek(drawn), gameweek);
     const sides = against.kind === "team" ? [team._id, against.team] : [team._id];
     return {
       kind: "scored",
@@ -114,41 +102,26 @@ async function gameOf(
   }
 }
 
-/** Each side of the matchup, from teamGameweek.ts's own scoring: each slot worked out, and each
- *  total read from the gameweek's stored final scores where the table reads it from them. A stored
- *  total is final, so should the data behind a slot change after storing (a position corrected,
- *  say), the slots may no longer add up to it; and a gameweek whose slots can't be worked out is
- *  unscored here even while the table shows its stored totals. */
+/** Each side of the matchup, from the table's scorer: each slot worked out, and each total the
+ *  table's, its saved final total where the table reads one. A stored total is final, so should the
+ *  data behind a slot change after storing (a position corrected, say), the slots may no longer add
+ *  up to it; and a gameweek whose slots can't be worked out is unscored here even while the table
+ *  shows its stored totals. */
 class SideScorer {
-  /** The team's gameweek, worked out once for its side and the commentary. */
-  private readonly inGameweek = readOnce((teamId: TeamId) => teamInGameweek(this.reads, this.inputs, teamId));
-  /** A player in a lineup the football sync doesn't hold is data gone wrong, and throws. */
-  private readonly name = readOnce((playerCode: PlayerCode) =>
-    playerByCode(this.ctx, playerCode).then((player) => {
-      if (player === null) throw new Error(`player ${playerCode} is in a lineup but the football sync doesn't hold him`);
-      return player.name;
-    }),
-  );
+  private readonly name = readOnce((playerCode: PlayerCode) => lineupPlayer(this.ctx, playerCode).then((player) => player.name));
   private readonly score = readOnce((fixtureCode: number) => scoreOf(this.ctx, fixtureCode));
 
   constructor(
     private readonly ctx: QueryCtx,
-    private readonly reads: LeagueReads,
-    private readonly inputs: GameweekInputs,
+    private readonly inGameweek: GameweekTeams,
     /** The teams the league's average is over: the gameweek's own (standings.ts's teamsInGameweek). */
     private readonly averaged: readonly TeamId[],
     private readonly gameweek: number,
-    private readonly stored: TeamScores,
   ) {}
 
-  /** The team's total as the table has it: stored once final, else the one worked out. */
-  private total(teamId: TeamId, scored: TeamInGameweek | null) {
-    return this.stored.get(teamId) ?? totalOf(scored);
-  }
-
   async team(teamId: TeamId, teamName: string): Promise<MatchupSide> {
-    const scored = await this.inGameweek(teamId);
-    const { points, provisional } = this.total(teamId, scored);
+    const scored = await this.inGameweek.slotsOf(teamId);
+    const { points, provisional } = await this.inGameweek.pointsOf(teamId);
     if (scored === null) return { kind: "team", teamId, teamName, points, provisional, lineup: null };
     const slotOf = (slotPoints: SlotPoints) => this.slot(slotPoints, scored);
     return {
@@ -164,9 +137,7 @@ class SideScorer {
   async opponent(against: Opponent, nameOf: (teamId: TeamId) => string): Promise<MatchupSide> {
     if (against.kind === "team") return this.team(against.team, nameOf(against.team));
     // The average of the gameweek's teams' points, one with no lineup on 0, as the table counts it.
-    const every = await Promise.all(
-      this.averaged.map(async (teamId) => this.stored.get(teamId) ?? this.total(teamId, await this.inGameweek(teamId))),
-    );
+    const every = await Promise.all(this.averaged.map((teamId) => this.inGameweek.pointsOf(teamId)));
     const sides = new Map(this.averaged.map((teamId, index) => [teamId, every[index]]));
     return { kind: LEAGUE_AVERAGE, ...averageScore(this.averaged, sides, this.gameweek) };
   }
@@ -178,7 +149,7 @@ class SideScorer {
       const players = new Map<PlayerCode, VidiprinterPlayer>();
       const matches = new Map<number, HeldMatch>();
       for (const teamId of teamIds) {
-        const scored = await this.inGameweek(teamId);
+        const scored = await this.inGameweek.slotsOf(teamId);
         if (scored === null) continue;
         for (const slot of [...scored.team.starters, ...scored.team.bench]) {
           const his = scored.matchesOf.get(slot.playerCode) ?? [];
@@ -192,7 +163,7 @@ class SideScorer {
       const read: VidiprinterMatch[] = held.flatMap(({ fixture, row, steps }) =>
         row === null ? [] : [{ fixtureCode: fixture.code, kickoff: fixture.kickoff, lines: row.lines, steps }],
       );
-      return { kind: "read", lines: vidiprinter(read, players, this.inputs.set), delayed: held.some(({ row }) => row !== null && row.delayed !== null) };
+      return { kind: "read", lines: vidiprinter(read, players, this.inGameweek.set), delayed: held.some(({ row }) => row !== null && row.delayed !== null) };
     } catch (error) {
       return { kind: "unread", reason: logFailure(failure, error) };
     }

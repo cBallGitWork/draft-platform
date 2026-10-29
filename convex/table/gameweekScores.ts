@@ -3,15 +3,18 @@ import type { QueryCtx } from "../_generated/server";
 import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { GAMEWEEKS, isGameweekUsed } from "../gameweeks/usedGameweeks";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
+import type { StoredScoringSet } from "../rules/leagueRulesShape";
 import type { SeasonRules } from "../rules/rulesHistory";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
+import { readOnce } from "../shared/readOnce";
 import {
   gameweekInputs,
   heldFixtures,
   isMatchFinal,
   leagueReads,
   teamInGameweek,
+  type GameweekInputs,
   type LeagueReads,
   type TeamInGameweek,
 } from "./teamGameweek";
@@ -171,10 +174,56 @@ function storedGameweekOf([first, ...rest]: Doc<"finalScores">[]): StoredGamewee
   return { fixtureCodes: first.fixtureCodes, scores };
 }
 
+/** One gameweek of the league, team by team: for a screen that shows its slots (the matchup, #34)
+ *  or a change that re-scores it (an override, #32). */
+export interface GameweekTeams {
+  /** The site's scoring set in force in the gameweek, checked. */
+  set: StoredScoringSet;
+  /** The team's gameweek slot by slot, worked out once: null while it has never saved a lineup. */
+  slotsOf: (teamId: TeamId) => Promise<TeamInGameweek | null>;
+  /** The team's points: its saved total where one stands, else worked out from its slots. */
+  pointsOf: (teamId: TeamId) => Promise<TeamGameweek>;
+}
+
+/** The gameweek for the `teamIds` as the table has it: a team's saved total once final, else worked
+ *  out. For a screen of one gameweek (the matchup, #34), so the table and it agree. A team's slots
+ *  are worked out only when asked for, its points only where none is saved. */
+export async function tableGameweek(
+  ctx: QueryCtx,
+  reads: LeagueReads,
+  gameweek: number,
+  teamIds: readonly TeamId[],
+): Promise<GameweekTeams> {
+  const fixtures = await heldFixtures(ctx, gameweek);
+  const inputs = await gameweekInputs(ctx, reads, gameweek, fixtures, teamIds);
+  return teamsFrom(reads, inputs, await storedScoresIn(ctx, reads.leagueId, gameweek, fixtures));
+}
+
+/** The gameweek for the `teamIds` worked out now, any saved total set aside: for a change that
+ *  re-scores it (an override, #32), to say what it moved. */
+export async function workedOutGameweek(
+  ctx: QueryCtx,
+  reads: LeagueReads,
+  gameweek: number,
+  teamIds: readonly TeamId[],
+): Promise<GameweekTeams> {
+  const fixtures = await heldFixtures(ctx, gameweek);
+  return teamsFrom(reads, await gameweekInputs(ctx, reads, gameweek, fixtures, teamIds), new Map());
+}
+
+/** The gameweek team by team from its inputs, each team's `stored` total standing as its points. */
+function teamsFrom(reads: LeagueReads, inputs: GameweekInputs, stored: TeamScores): GameweekTeams {
+  const slotsOf = readOnce((teamId: TeamId) => teamInGameweek(reads, inputs, teamId));
+  return {
+    set: inputs.set,
+    slotsOf,
+    pointsOf: async (teamId) => stored.get(teamId) ?? totalOf(await slotsOf(teamId)),
+  };
+}
+
 /** The gameweek's stored final scores while it holds the same `fixtures` it was stored from, as
- *  the league's scorer reads them for the table; none otherwise. For a screen of one gameweek (the
- *  matchup, #34), so the table and it agree. */
-export async function storedScoresIn(
+ *  the league's scorer reads them for the table; none otherwise. */
+async function storedScoresIn(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
   gameweek: number,
@@ -207,8 +256,9 @@ async function gameweekScores(
   teamIds: readonly TeamId[],
 ): Promise<{ scores: TeamScores; final: boolean }> {
   const inputs = await gameweekInputs(ctx, reads, gameweek, fixtures, teamIds);
+  const { pointsOf } = teamsFrom(reads, inputs, new Map());
   const scores = new Map<TeamId, TeamGameweek>();
-  for (const teamId of teamIds) scores.set(teamId, totalOf(await teamInGameweek(reads, inputs, teamId)));
+  for (const teamId of teamIds) scores.set(teamId, await pointsOf(teamId));
   const { matches } = inputs;
   const final = matches.length > 0 && matches.every(isMatchFinal) && [...scores.values()].every((team) => !team.provisional);
   return { scores, final };

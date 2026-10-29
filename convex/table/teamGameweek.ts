@@ -11,17 +11,17 @@ import type { StoredScoringSet } from "../rules/leagueRulesShape";
 import { siteScoringByGameweek } from "../scoring/siteScoring";
 import { validateScoringSet } from "../scoring/scoringSet";
 import { scoreTeam, type PlayerMatch, type SlotPoints, type TeamPoints } from "../scoring/teamPoints";
-import { isWhole, MINUTES_STAT } from "../stats/matchRecords";
-import { statusOf } from "../stats/matchStats";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { gameweekFixtures } from "../shared/fixtures";
 import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
+import { isWhole, MINUTES_STAT } from "../stats/matchRecords";
+import { statusOf } from "../stats/matchStats";
 
 // One team's points in one gameweek (#29; spec/05, Auto-subs; spec/07): its lineup, auto-subs from
-// who played, then scoreTeam under the site's scoring set in force that gameweek. The table
-// (gameweekScores.ts) runs it for every team in every gameweek begun; the matchup (#34) for the
-// two sides of one head-to-head, slot by slot, so the two never disagree.
+// who played, then scoreTeam under the site's scoring set in force that gameweek. The league's
+// scorer (gameweekScores.ts) runs it for the table, every team in every gameweek begun, and for the
+// matchup (#34) and an override (#32), slot by slot, so none of them disagree.
 
 /** The most records one match holds: one for each man two team sheets name, about forty. More
  *  throws, never a silent cut. */
@@ -57,14 +57,19 @@ export async function leagueReads(ctx: QueryCtx, league: Doc<"leagues">, season:
   };
 }
 
-/** Each player's club and positions, read once however many gameweeks ask. A player the football
- *  sync doesn't hold is data gone wrong, and throws. */
+/** Each player's club and positions, read once however many gameweeks ask. */
 function playerReader(ctx: QueryCtx, how: HowPositionsCount) {
   return readOnce(async (code: PlayerCode): Promise<{ clubCode: number; positions: Position[] }> => {
-    const held = await playerByCode(ctx, code);
-    if (held === null) throw new Error(`player ${code} is in a lineup but the football sync doesn't hold him`);
+    const held = await lineupPlayer(ctx, code);
     return { clubCode: held.clubCode, positions: await currentPositions(ctx, code, how) };
   });
+}
+
+/** A player a lineup names. One the football sync doesn't hold is data gone wrong, and throws. */
+export async function lineupPlayer(ctx: QueryCtx, code: PlayerCode): Promise<Doc<"players">> {
+  const held = await playerByCode(ctx, code);
+  if (held === null) throw new Error(`player ${code} is in a lineup but the football sync doesn't hold him`);
+  return held;
 }
 
 /** What scoring the `teamIds` in one gameweek reads: the site's set in force then, checked, the
