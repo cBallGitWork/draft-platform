@@ -36,7 +36,7 @@ export const matchupLinkLabel = (team: string, opponent: string | null, gameweek
   `${team} ${versusWords} ${opponent ?? leagueAverageWords}, ${gameweekWords(gameweek)}: the matchup`;
 
 export const lineupLabel = (teamName: string) => `${teamName}'s lineup`;
-export { BENCH_TITLE } from "../myTeam/tacticsWords";
+export { BENCH_TITLE } from "../myTeam/tactics/tacticsWords";
 export const columns = {
   area: { short: "Pos", long: "Area" },
   player: { short: "Player", long: "Player" },

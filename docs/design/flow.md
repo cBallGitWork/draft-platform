@@ -148,7 +148,7 @@ Features table (feature 12), the one home for screen status.
 | Table and fixtures | `/table` | src/table/TablePage.tsx | spec/12, spec/09 | built |
 | Scouting | `/scouting` | src/scouting/ScoutingPage.tsx | spec/19 The players list, The shortlist | built |
 | League home | `/home` | src/home/HomePage.tsx | spec/12 League home | built |
-| My team (Tactics) | `/team` | src/myTeam/TacticsPage.tsx | spec/12 The frame, spec/12 My team's tabs, spec/05 | built |
+| My team (Tactics) | `/team` | src/myTeam/tactics/TacticsPage.tsx | spec/12 The frame, spec/12 My team's tabs, spec/05 | built |
 | Squad | `/team/squad` | src/myTeam/SquadPage.tsx | spec/12 My team's tabs | built |
 | Fixtures | `/team/fixtures` | src/myTeam/FixturesPage.tsx | spec/12 My team's tabs | built |
 | Transactions | `/team/transactions` | src/myTeam/TransactionsPage.tsx | spec/12 My team's tabs | built |

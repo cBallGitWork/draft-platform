@@ -16,7 +16,7 @@ import { FIRST_SUB, filledLineup, presetNamed } from "../../support/convex/lineu
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { lineupInGameweek, lineupsInGameweek } from "../../../convex/lineup/lineups";
 import { SQUAD_MOVES_READ_MOST } from "../../../convex/squads/squads";
-import { openingLineup, shownLineup } from "../../../src/myTeam/lineupDraft";
+import { openingLineup, shownLineup } from "../../../src/myTeam/tactics/lineupDraft";
 
 // Storing a lineup (#8, spec/05: "A lineup rolls over to the next gameweek if the manager doesn't
 // touch it"): a save is from the next gameweek not begun, a read takes the newest from that

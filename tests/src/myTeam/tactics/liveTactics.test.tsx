@@ -4,14 +4,14 @@
 import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { expect, test, vi } from "vitest";
-import type { Id } from "../../../convex/_generated/dataModel";
-import { liveTactics } from "../../../src/myTeam/liveTactics";
-import { saveFailedWords } from "../../../src/myTeam/tacticsWords";
-import { silenceConsoleError } from "../../support/console.setup";
+import type { Id } from "../../../../convex/_generated/dataModel";
+import { liveTactics } from "../../../../src/myTeam/tactics/liveTactics";
+import { saveFailedWords } from "../../../../src/myTeam/tactics/tacticsWords";
+import { silenceConsoleError } from "../../../support/console.setup";
 
 const convex = vi.hoisted(() => ({ ofMyTeam: vi.fn(), save: vi.fn() }));
 vi.mock("convex/react", async () =>
-  (await import("../../support/src/convexReact.harness")).fakeConvexReact({
+  (await import("../../../support/src/convexReact.harness")).fakeConvexReact({
     queries: { "lineup/tactics:ofMyTeam": convex.ofMyTeam },
     mutations: { "lineup/lineups:save": convex.save },
   }),

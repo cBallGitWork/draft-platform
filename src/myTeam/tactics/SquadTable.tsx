@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import type { DragEvent } from "react";
-import { ColumnHeads } from "../ui/ColumnHeads";
-import { playerCardPath } from "../playerCard/paths";
-import { roleIn, rolesOfSlot } from "../../convex/lineup/roles";
+import { ColumnHeads } from "../../ui/ColumnHeads";
+import { playerCardPath } from "../../playerCard/paths";
+import { roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
 import { markOf } from "./focusMarks";
 import { startersInOrder, type DraftLineup, type SquadMember, type Starter } from "./lineupDraft";
 import { startDrag, type Moving } from "./Pitch";

@@ -10,7 +10,7 @@ import { matchupSearchOf } from "../matchup/paths";
 import { FixturesPage } from "../myTeam/FixturesPage";
 import type { MyTeamSeam } from "../myTeam/seam";
 import { SquadPage } from "../myTeam/SquadPage";
-import { TacticsPage } from "../myTeam/TacticsPage";
+import { TacticsPage } from "../myTeam/tactics/TacticsPage";
 import { TransactionsPage } from "../myTeam/TransactionsPage";
 import { MatchPage } from "../premierLeague/MatchPage";
 import { MATCH_ROUTE } from "../premierLeague/paths";

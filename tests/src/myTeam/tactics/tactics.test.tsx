@@ -7,9 +7,9 @@
 import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import type { Cell } from "../../../convex/lineup/pitch";
-import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
-import { MY_TEAM_PATH } from "../../../src/frame/menu";
+import type { Cell } from "../../../../convex/lineup/pitch";
+import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../../convex/shared/time";
+import { MY_TEAM_PATH } from "../../../../src/frame/menu";
 import {
   BENCH_TITLE,
   discardWords,
@@ -34,10 +34,10 @@ import {
   tacticsNoRulesWords,
   toBenchWords,
   upLabel,
-} from "../../../src/myTeam/tacticsWords";
-import { noTeamWords } from "../../../src/myTeam/words";
-import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
-import { TACTICS_GAMEWEEK, openTactics } from "../../support/src/tactics.harness";
+} from "../../../../src/myTeam/tactics/tacticsWords";
+import { noTeamWords } from "../../../../src/myTeam/words";
+import { commissioner, league, manager, openApp } from "../../../support/src/shell.harness";
+import { TACTICS_GAMEWEEK, openTactics } from "../../../support/src/tactics.harness";
 import {
   ARRIZABALAGA,
   HAVERTZ,
@@ -56,7 +56,7 @@ import {
   squadRows,
   targets,
   type Member,
-} from "../../support/src/tacticsScreen.harness";
+} from "../../../support/src/tacticsScreen.harness";
 
 describe("reaching it", () => {
   it("is where a manager lands, titled by his team, reading his lineup for the league the app is in", async () => {

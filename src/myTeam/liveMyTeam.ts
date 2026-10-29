@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { refusalOf } from "../shared/refusal";
 import { useMinute } from "../shared/useMinute";
-import { liveTactics } from "./liveTactics";
+import { liveTactics } from "./tactics/liveTactics";
 import type { MyTeamSeam, SquadNumberChanges } from "./seam";
 import { numberFailedWords } from "./words";
 
