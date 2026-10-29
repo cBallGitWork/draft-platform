@@ -15,12 +15,6 @@ export interface MatchHeader {
   awayGoals: number;
 }
 
-/** A man's points in the match, for the full-time line. Taken as given: the caller scores them. */
-export interface PlayerPoints {
-  code: number;
-  points: number;
-}
-
 export interface WrittenLine {
   /** The feed line it was written from, so a later read can replace it. */
   sourceId: number;
@@ -46,8 +40,6 @@ export interface CommentaryInput {
   header: MatchHeader;
   /** Each man the lines name, by FPL code, as FPL shows him (`web_name`: "Saka"). */
   nameByCode: ReadonlyMap<number, string>;
-  /** The full-time line's points, in the order the line lists them. */
-  fullTimePoints: readonly PlayerPoints[];
 }
 
 /** For a man the feed names but FPL does not list (`commentaryLines` reports him as unmatched). */
@@ -146,14 +138,14 @@ function textOf(line: CommentaryLine, isKickOff: boolean, input: CommentaryInput
   return line.minute === null ? words : `${minuteOf(line.minute, line.addedMinute)} ${words}`;
 }
 
-/** "FT ARS 2–1 CHE: Saka 11, Palmer 6"; with no one to list, the score alone. */
-function fullTime({ header, nameByCode, fullTimePoints }: CommentaryInput): string {
-  const score = `FT ${header.home} ${header.homeGoals}${SCORE_DASH}${header.awayGoals} ${header.away}`;
-  return withFullTimePoints(score, fullTimePoints.map((each) => ({ name: named(each.code, nameByCode), points: each.points })));
+/** "FT ARS 2–1 CHE": the score alone. Each league scores its own way (#421), so the points are the
+ *  matchup's to add (withFullTimePoints). */
+function fullTime({ header }: CommentaryInput): string {
+  return `FT ${header.home} ${header.homeGoals}${SCORE_DASH}${header.awayGoals} ${header.away}`;
 }
 
-/** The full-time line's score with each man's points after it, in the order given: the writer's,
- *  and the matchup's, which adds its own lineups' men to the stored line (#44). */
+/** The stored full-time line's score with each man's points after it, in the order given: the
+ *  matchup adds its own lineups' men to it (#44). */
 export function withFullTimePoints(score: string, points: readonly { name: string; points: number }[]): string {
   if (points.length === 0) return score;
   return `${score}: ${points.map((each) => `${each.name} ${each.points}`).join(", ")}`;
