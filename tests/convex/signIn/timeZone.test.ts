@@ -6,7 +6,7 @@ import { LONDON_ZONE, momentIn, screenMoment } from "../../../convex/shared/mome
 import { notAZone, zoneOf } from "../../../convex/signIn/timeZone";
 import { ANN, BOB, deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
 import { COMMISSIONER, actingAs, leagueRow, type TestConvex } from "../../support/convex/leagues.harness";
-import { expectRefused } from "../../support/convex/leagueRules.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // Each person's own time zone (#442, Craig 26 Oct 2026): their browser names it each time the app

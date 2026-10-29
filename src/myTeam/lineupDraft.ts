@@ -3,7 +3,7 @@
 // is the server's (convex/lineup/lineup.ts), told when it is saved; here a player is only ever put
 // in a free cell he plays (spec/05: "a player fills only slots in the areas his positions play").
 
-import { AREAS, LANES, playsCell, type Cell } from "../../convex/lineup/pitch";
+import { AREAS, cellKey, LANES, playsCell, type Cell } from "../../convex/lineup/pitch";
 import { reconciled } from "../../convex/lineup/lineup";
 import type { Position } from "../../convex/positions/positionTables";
 import type { OpenTactics } from "../../convex/lineup/tactics";
@@ -81,7 +81,7 @@ export const startersInOrder = (draft: DraftLineup): Starter[] => draft.starters
 /** Whether two lineups stand the same: the same players in the same cells, the same bench order. */
 export function sameLineup(one: DraftLineup, other: DraftLineup): boolean {
   const key = (draft: DraftLineup) =>
-    [...startersInOrder(draft).map(({ playerCode, area, lane, role }) => `${playerCode}@${area}/${lane}:${role ?? ""}`), "bench", ...draft.bench].join(" ");
+    [...startersInOrder(draft).map(({ playerCode, area, lane, role }) => `${playerCode}@${cellKey({ area, lane })}:${role ?? ""}`), "bench", ...draft.bench].join(" ");
   return key(one) === key(other);
 }
 

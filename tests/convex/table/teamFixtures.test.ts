@@ -4,7 +4,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
-import { expectRefused, holdGameweeks, rulesRevision, rulesWith } from "../../support/convex/leagueRules.harness";
+import { holdGameweeks, rulesRevision, rulesWith } from "../../support/convex/leagueRules.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 

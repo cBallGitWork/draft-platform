@@ -3,7 +3,7 @@ import { describe, expect, test, vi } from "vitest";
 import type { StoredScoringSet } from "../../../convex/rules/leagueRulesShape";
 import { checkOwnStatsAgainstCatalogue } from "../../../convex/scoring/ownStats";
 import { siteScoringRefusals } from "../../../convex/scoring/siteScoring";
-import { expectRefused } from "../../support/convex/leagueRules.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN } from "../../support/convex/leagues.harness";
 import { TACKLES_AND_CLEARANCES } from "../../support/convex/scoring.example";
 import { draftSavedAt, EDITED, fixAs, saveDraftAs, useSiteScoringDeployment, versions } from "../../support/convex/siteScoring.harness";

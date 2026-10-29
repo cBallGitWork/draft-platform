@@ -31,7 +31,7 @@ export type Drawn = Partial<DrawRules> & {
 
 /** A team's id here is its name behind this, so its name reads back from it. */
 const ID_PREFIX = "id-";
-const idOf = (team: string) => `${ID_PREFIX}${team}` as Id<"teams">;
+export const idOf = (team: string) => `${ID_PREFIX}${team}` as Id<"teams">;
 const named = (teamId: Id<"teams">) => teamId.slice(ID_PREFIX.length);
 
 /** The draw's defaults, as the server's would be for a league with no rule changed. */

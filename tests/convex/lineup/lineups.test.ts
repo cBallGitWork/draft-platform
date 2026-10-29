@@ -8,7 +8,8 @@ import { FIRST_GAMEWEEK, GAMEWEEKS, noSuchGameweek } from "../../../convex/gamew
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import type { Position } from "../../../convex/positions/positionTables";
-import { expectRefused, holdGameweeks, KICKS_OFF_IN, rulesWith } from "../../support/convex/leagueRules.harness";
+import { holdGameweeks, KICKS_OFF_IN, rulesWith } from "../../support/convex/leagueRules.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { FIRST_SUB, filledLineup, presetNamed } from "../../support/convex/lineup.harness";
@@ -96,7 +97,7 @@ describe("a saved lineup", () => {
     await ann.save(sweeper);
     expect(await ann.mine(NEXT)).toEqual(saved(sweeper, NEXT));
     const misplaced: Lineup = { ...FOUR_FOUR_TWO, starters: [{ ...keeper, role: "poacher" }, ...rest] };
-    await expect(ann.save(misplaced)).rejects.toThrow(/doesn't offer the role/);
+    await expectRefused(ann.save(misplaced), `The centre cell in Goalkeeper doesn't offer the role "poacher" ${nameOf(keeper.playerCode)} was given.`);
   });
 
   test("saved again before the same deadline replaces the first, one row for the gameweek", async () => {

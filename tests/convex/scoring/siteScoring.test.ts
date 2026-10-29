@@ -7,7 +7,8 @@ import { SITE_SCORING_VERSIONS_MOST, siteScoringRefusals } from "../../../convex
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
-import { expectRefused, holdGameweeks, rulesRevision, HELD_FIRST_RULES, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { holdGameweeks, rulesRevision, HELD_FIRST_RULES, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";
 import { everyArea } from "../../support/convex/scoring.example";
 import {

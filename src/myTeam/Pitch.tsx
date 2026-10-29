@@ -1,5 +1,5 @@
 import type { DragEvent } from "react";
-import { AREAS, LANES, type Cell } from "../../convex/lineup/pitch";
+import { AREAS, cellKey, LANES, type Cell } from "../../convex/lineup/pitch";
 import { roleIn } from "../../convex/lineup/roles";
 import { markOf } from "./focusMarks";
 import { canStandIn, standingIn, type DraftLineup, type SquadMember } from "./lineupDraft";
@@ -61,7 +61,7 @@ export function Pitch({
             if (opensTo(cell)) moving.onPlace(cell);
           };
           return (
-            <div key={`${area}/${lane}`} onDragOver={allowDrop} onDrop={drop} className="relative flex h-pitch-row min-w-0 items-center justify-center p-1">
+            <div key={cellKey(cell)} onDragOver={allowDrop} onDrop={drop} className="relative flex h-pitch-row min-w-0 items-center justify-center p-1">
               {standing !== undefined ? (
                 <PlayerBlock player={squad.get(standing.playerCode)!} cell={cell} role={roleIn(cell, standing.role).name} moving={moving} />
               ) : picked !== null && opensTo(cell) ? (

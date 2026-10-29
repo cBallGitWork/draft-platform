@@ -8,7 +8,8 @@ import type { LeagueRules, StoredScoringSet } from "../../../convex/rules/league
 import { siteScoringInGameweek } from "../../../convex/scoring/siteScoring";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { centreOf, EXAMPLE_SET } from "../../support/convex/scoring.example";
-import { expectRefused, holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
+import { holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 import {
   actingAs,
   addManagers,

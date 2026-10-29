@@ -14,15 +14,15 @@ import { begunGameweeks } from "../table/gameweekScores";
 import { scoredMatches } from "../table/scoredMatches";
 import { squadOf } from "./squads";
 
-/** How the card labels a match his team got the points of. */
-const COUNTED: CardPoints["scoredAs"] = "slot";
-
 // My team's Squad tab (#364; spec/12, My team's tabs: "every player in the squad in one table,
 // with his position, club, next fixture, season points and last gameweek's points"). His points
 // are what his team got from him (spec/12): the matches his card shows at his slot, from the one
 // place both read them (scoredMatches.ts). A match labelled not counted, or priced at his best
 // position because no lineup of this team scored it, adds nothing, so the Squad tab never comes
 // out above the table (Craig, 29 Oct 2026, #595).
+
+/** How the card labels a match his team got the points of. */
+const COUNTED: CardPoints["scoredAs"] = "slot";
 
 const nextFixture = v.object({
   gameweek: v.union(v.number(), v.null()),
