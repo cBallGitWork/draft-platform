@@ -111,15 +111,16 @@ export interface TeamInGameweek {
   autoSubs: AutoSubs;
   /** Each player's matches in the gameweek: his club's, and any other he has a record in. */
   matchesOf: Map<PlayerCode, HeldMatch[]>;
+  /** It held no lineup in a gameweek begun before #637 gave every team one (lineups.ts), though
+   *  its squad had players, so it scores 0 and a screen can say why. */
+  noLineup: boolean;
 }
 
-/** The team's gameweek: its lineup, auto-subs from who played, then scoreTeam. Null while it has
- *  never saved a lineup, so it scores 0: what such a team fields isn't settled. */
-export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs, teamId: TeamId): Promise<TeamInGameweek | null> {
+/** The team's gameweek: its lineup, auto-subs from who played, then scoreTeam. */
+export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs, teamId: TeamId): Promise<TeamInGameweek> {
   const { set, rules, matches, lineups } = inputs;
   const held = lineups.get(teamId);
   if (held === undefined) throw new Error(`team ${teamId} isn't one of the teams this gameweek's lineups were read for`);
-  if (held.kind === "none") return null;
   const lineup = { starters: held.starters, bench: held.bench };
   const codes = [...lineup.starters.map(({ playerCode }) => playerCode), ...lineup.bench];
   const positions = new Map<PlayerCode, Position[]>();
@@ -151,7 +152,7 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
     })),
     benchCells: new Map(lineup.bench.map((code) => [code, benchCell(positions.get(code)!)])),
   });
-  return { team, autoSubs: subs, matchesOf };
+  return { team, autoSubs: subs, matchesOf, noLineup: held.noLineup };
 }
 
 /** Each of his matches with his points in it. scoreTeam scores a man's matches in the order

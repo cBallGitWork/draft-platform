@@ -25,7 +25,6 @@ export const byeWords = (teamName: string) => `${teamName} has a bye this gamewe
 export const notBegunWords = (deadline: number | null) =>
   `Both lineups show once the deadline passes${deadline === null ? "" : `, ${whenWords(deadline)}`}. Yours is on My team until then.`;
 export const unscoredWords = (reason: string) => `This matchup can't be scored, so it counts for nothing in the table: ${reason}.`;
-export const noLineupWords = (teamName: string) => `${teamName} never saved a lineup, so it scores 0.`;
 export const averageWords = "The league's average this gameweek, every team counted once.";
 
 /** Under the score: live and moving, or settled. */

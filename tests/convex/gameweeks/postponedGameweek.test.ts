@@ -46,7 +46,7 @@ beforeEach(async () => {
 /** The lineup as a browser sends it. */
 const sent = (lineup: Lineup) => ({ starters: [...lineup.starters], bench: [...lineup.bench] });
 
-test("a lineup saved now is from the gameweek after the one under way, and that one keeps none", async () => {
+test("a lineup saved now is from the gameweek after the one under way, and that one keeps none of it", async () => {
   const [annsTeam] = await addManagers(t, leagueId, [ANN]);
   await t.run(async (ctx) => {
     for (const code of SQUAD) {
@@ -59,7 +59,8 @@ test("a lineup saved now is from the gameweek after the one under way, and that 
   const ann = await actingAs(t, ANN);
 
   expect(await ann.mutation(api.lineup.lineups.save, { leagueId, lineup: sent(FOUR_FOUR_TWO) })).toBe(NEXT);
-  expect(await ann.query(api.lineup.lineups.mine, { leagueId, gameweek: UNDER_WAY })).toEqual({ kind: "none" });
+  // No row reaches it: it holds no saved lineup, only the squad's first (#637).
+  expect(await ann.query(api.lineup.lineups.mine, { leagueId, gameweek: UNDER_WAY })).toMatchObject({ fromGameweek: null });
 });
 
 test("a rule change made now takes effect from the gameweek after the one under way, which keeps its rules", async () => {

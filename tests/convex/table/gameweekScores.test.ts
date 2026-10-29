@@ -22,6 +22,7 @@ import {
   sideTotal,
   TYPO_STAT,
   type ScoresLeague,
+  BOBS_FIRST_POINTS,
 } from "../../support/convex/gameweekScores.harness";
 
 // The table's scores (#29, #28, #287): each team's lineup in a gameweek begun, auto-subs from who
@@ -95,13 +96,14 @@ test("live points move as the records arrive, provisional until the match locks,
   expect(final.bob).toMatchObject({ points: EVERTON_POINTS, provisional: false });
 });
 
-test("a team that never saved a lineup scores 0, marked so a screen can say why", async () => {
+test("a team that never saved a lineup scores its first (#637)", async () => {
   const league = await scoresLeague({ bobSaves: false });
   await fullTimeRecords(league);
   await lockMatch(league);
   const { read, bob } = await gameweek6(league);
-  expect(bob).toEqual({ teamId: league.bobsTeam, points: 0, provisional: false, noLineup: true });
-  expect(read.table[0]).toMatchObject({ teamName: "Team 1", won: 1, points: 3 });
+  expect(bob).toEqual({ teamId: league.bobsTeam, points: BOBS_FIRST_POINTS, provisional: false, noLineup: false });
+  // 36 beats Hull's 26.
+  expect(read.table[0]).toMatchObject({ teamName: "Team 2", won: 1, points: 3 });
 });
 
 test("a site set holding a rule on a stat that doesn't exist leaves the gameweek out, named with the reason, and logged (#287)", async () => {

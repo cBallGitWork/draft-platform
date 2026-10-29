@@ -30,7 +30,8 @@ import {
 const MOVED_IN = 999_001;
 const OTHER_CLUBS = [901, 902] as const;
 const finalRows = ({ t }: ScoresLeague) => t.run((ctx) => ctx.db.query("finalScores").collect());
-/** Each stored row's team and points, in team order. */
+/** Each stored row's team and points, in team order, and whether it is marked as never having
+ *  saved a lineup, which no row has been since #637. */
 const stored = async (league: ScoresLeague) =>
   (await finalRows(league)).map(({ gameweek, teamId, points, noLineup }) => ({ gameweek, teamId, points, noLineup }));
 /** Ann's points in gameweek 6 as the table reads them. */
@@ -44,13 +45,28 @@ test("once the match locks, each team's points are stored, and the table reads t
 
   expect(await storeLeague(league)).toEqual([GAMEWEEK]);
   expect(await stored(league)).toEqual([
-    { gameweek: GAMEWEEK, teamId: league.annsTeam, points: HULL_POINTS, noLineup: false },
-    { gameweek: GAMEWEEK, teamId: league.bobsTeam, points: EVERTON_POINTS, noLineup: false },
+    { gameweek: GAMEWEEK, teamId: league.annsTeam, points: HULL_POINTS, noLineup: undefined },
+    { gameweek: GAMEWEEK, teamId: league.bobsTeam, points: EVERTON_POINTS, noLineup: undefined },
   ]);
   await writeOverAnns(league);
   expect(await annsPoints(league)).toMatchObject({ points: WRITTEN_OVER, provisional: false });
   // Stored once: a second ask stores nothing more.
   expect(await storeLeague(league)).toEqual([]);
+});
+
+test("a team that held no lineup in a gameweek begun before #637 scores 0 there, stored marked so the table says why", async () => {
+  const league = await scoresLeague();
+  // Bob's squad was made before teams held a first lineup: no row is in force.
+  await league.t.run(async (ctx) => {
+    const bobs = (await ctx.db.query("lineups").collect()).find((row) => row.teamId === league.bobsTeam)!;
+    await ctx.db.delete("lineups", bobs._id);
+  });
+  await fullTimeRecords(league);
+  await lockMatch(league);
+  await storeLeague(league);
+  expect((await stored(league))[1]).toEqual({ gameweek: GAMEWEEK, teamId: league.bobsTeam, points: 0, noLineup: true });
+  const bob = (await readTable(league))!.results.find((each) => each.gameweek === GAMEWEEK)!.teams.find((team) => team.teamId === league.bobsTeam);
+  expect(bob).toMatchObject({ points: 0, provisional: false, noLineup: true });
 });
 
 test("a starter released after the deadline is in the stored score: it freezes the squad at the deadline (#415)", async () => {
@@ -102,9 +118,9 @@ test("a team added after a gameweek was stored is worked out alone and stored be
   expect(await annsPoints(league)).toMatchObject({ points: WRITTEN_OVER, provisional: false });
   expect(await storeLeague(league)).toEqual([GAMEWEEK]);
   expect(await stored(league)).toEqual([
-    { gameweek: GAMEWEEK, teamId: league.annsTeam, points: WRITTEN_OVER, noLineup: false },
-    { gameweek: GAMEWEEK, teamId: league.bobsTeam, points: EVERTON_POINTS, noLineup: false },
-    { gameweek: GAMEWEEK, teamId: catsTeam, points: 0, noLineup: true },
+    { gameweek: GAMEWEEK, teamId: league.annsTeam, points: WRITTEN_OVER, noLineup: undefined },
+    { gameweek: GAMEWEEK, teamId: league.bobsTeam, points: EVERTON_POINTS, noLineup: undefined },
+    { gameweek: GAMEWEEK, teamId: catsTeam, points: 0, noLineup: undefined },
   ]);
 });
 

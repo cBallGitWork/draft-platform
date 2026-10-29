@@ -53,8 +53,7 @@ const side = v.union(
     teamName: v.string(),
     points: v.number(),
     provisional: v.boolean(),
-    /** Null while it has never saved a lineup, so it scores 0. */
-    lineup: v.union(v.null(), v.object({ starters: v.array(slot), bench: v.array(slot) })),
+    lineup: v.object({ starters: v.array(slot), bench: v.array(slot) }),
   }),
   /** The league's average, which the odd team out plays in a league that gives it one. */
   v.object({ kind: v.literal(LEAGUE_AVERAGE), points: v.number(), provisional: v.boolean() }),

@@ -25,6 +25,8 @@ import {
   readTable,
   scoresLeague,
   type ScoresLeague,
+  BOBS_FIRST_POINTS,
+  GREALISH,
 } from "../../support/convex/gameweekScores.harness";
 
 // A player's matches as his team scored them (#577; spec/12, The player card and Squad): the card
@@ -155,15 +157,16 @@ test("the league's override of a sub's points counts on his card as in the table
   expect(cards.get(ON_IN_HIS_OWN_AREA)![0].points).toMatchObject({ scoredAs: "slot", total: OVERRIDDEN });
 });
 
-test("a team that never saved a lineup got nothing from its men, so their cards are at their best position", async () => {
+test("a team that never saved a lineup scores its men from its first (#637): its keeper in his slot, its benched fifth midfielder not counted", async () => {
   const league = await annsLeague({ bobSaves: false });
   await fullTimeRecords(league);
   const [{ playerCode: evertonKeeper }] = EVERTON_STARTERS;
   const bob = await actingAs(league.t, BOB);
-  const card = await bob.query(api.playerCard.playerCard.card, { leagueId: league.leagueId, playerCode: evertonKeeper, now: LEAGUE_FULL_TIME_READ });
+  const cardOf = (playerCode: number) => bob.query(api.playerCard.playerCard.card, { leagueId: league.leagueId, playerCode, now: LEAGUE_FULL_TIME_READ });
   const bobs = (await readTable(league))!.results.find((each) => each.gameweek === GAMEWEEK)!.teams.find((team) => team.teamId === league.bobsTeam)!;
-  expect(bobs).toMatchObject({ points: 0, noLineup: true });
-  expect(card!.matches[0].points.scoredAs).toBe("bestPosition");
+  expect(bobs).toMatchObject({ points: BOBS_FIRST_POINTS, noLineup: false });
+  expect((await cardOf(evertonKeeper))!.matches[0].points.scoredAs).toBe("slot");
+  expect((await cardOf(GREALISH))!.matches[0].points.scoredAs).toBe("notCounted");
 });
 
 // A double gameweek (spec/03, Double gameweeks; spec/12, The player card): Hull play a second match

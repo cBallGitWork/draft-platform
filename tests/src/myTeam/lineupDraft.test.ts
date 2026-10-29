@@ -47,9 +47,9 @@ describe("the same lineup", () => {
   });
 });
 
-it("for a team that has never saved one opens with the whole squad on the bench, in the order it joined", () => {
-  const squad = [7, 5, 6].map((playerCode) => ({ playerCode, name: `${playerCode}`, clubShortName: "ARS", positions: [], number: null }));
-  expect(openingLineup({ squad, lineup: { kind: "none" } })).toEqual({ starters: [], bench: [7, 5, 6] });
+it("opens on the lineup the server holds, a team's first until its manager saves one (spec/05)", () => {
+  const lineup = { fromGameweek: null, noLineup: false, starters: [KEEPER], bench: [7, 5, 6], leftSquad: [], joinedBench: [], vacated: [] };
+  expect(openingLineup({ lineup })).toEqual({ starters: [KEEPER], bench: [7, 5, 6] });
 });
 
 describe("the lineup shown", () => {

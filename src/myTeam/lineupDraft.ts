@@ -18,10 +18,9 @@ export interface DraftLineup {
   bench: readonly number[];
 }
 
-/** The lineup the screen opens on: the one held for the gameweek, or, for a team that has never
- *  saved one, the whole squad on the bench in the order it joined. */
-export function openingLineup({ lineup, squad }: Pick<OpenTactics, "lineup" | "squad">): DraftLineup {
-  if (lineup.kind === "none") return { starters: [], bench: squad.map(({ playerCode }) => playerCode) };
+/** The lineup the screen opens on: the one held for the gameweek, its first until the manager
+ *  saves one (spec/05). */
+export function openingLineup({ lineup }: Pick<OpenTactics, "lineup">): DraftLineup {
   return { starters: lineup.starters, bench: lineup.bench };
 }
 

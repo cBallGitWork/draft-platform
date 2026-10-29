@@ -20327,7 +20327,7 @@
             "fieldType": {
               "type": "boolean"
             },
-            "optional": false
+            "optional": true
           },
           "fixtureCodes": {
             "fieldType": {
@@ -20557,6 +20557,13 @@
               }
             },
             "optional": false
+          },
+          "firstLineup": {
+            "fieldType": {
+              "type": "literal",
+              "value": true
+            },
+            "optional": true
           }
         }
       }

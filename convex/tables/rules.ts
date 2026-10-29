@@ -85,8 +85,9 @@ export const playedFixtureTables = {
     gameweek: v.number(),
     teamId: v.id("teams"),
     points: v.number(),
-    /** It had never saved a lineup, so it scored 0 (gameweekScores.ts's TeamGameweek). */
-    noLineup: v.boolean(),
+    /** True for a team that held no lineup in a gameweek begun before #637 gave every team one,
+     *  so scored 0 (gameweekScores.ts's TeamGameweek); absent otherwise. */
+    noLineup: v.optional(v.boolean()),
     /** The gameweek's matches it was scored from: a match moved in or out since reopens it. */
     fixtureCodes: v.array(v.number()),
     storedAt: v.number(),
@@ -127,5 +128,8 @@ export const lineupTables = {
     starters: v.array(placementShape),
     /** Player codes, in the order auto-subs use. */
     bench: v.array(v.number()),
+    /** True while it is the team's first lineup, picked from its squad and picked again as the
+     *  squad changes (lineups.ts); absent once its manager has saved one. */
+    firstLineup: v.optional(v.literal(true)),
   }).index("by_leagueId_and_teamId_and_fromGameweek", ["leagueId", "teamId", "fromGameweek"]),
 };

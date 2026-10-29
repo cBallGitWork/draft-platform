@@ -16,6 +16,7 @@ import { areasShort } from "./areaMinimums";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { readOnce } from "../shared/readOnce";
 import { placeOf } from "./squadPlace";
+import { pickFirstLineupAgain } from "../lineup/lineups";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
 // team, one at a time, move him between teams, or release him to free agency. Each files a Mail
@@ -24,7 +25,8 @@ import { placeOf } from "./squadPlace";
 //
 // Each change to a squad files its league event in the same transaction, and nothing else writes
 // squadPlayers, so the events say what every squad was at any moment (`squadAt`, #415). A new way
-// to change a squad must file one of SQUAD_MOVES too, or join them.
+// to change a squad must file one of SQUAD_MOVES too, or join them, and pick each team's first
+// lineup again (lineups.ts `pickFirstLineupAgain`), so a team always has a lineup (#637).
 
 /** The league events that change a squad. Today a commissioner assigns, moves and releases players
  *  (#31); waiver claims and trades join them when built. */
@@ -126,6 +128,7 @@ export const assign = mutation({
     await roomOn(ctx, team);
     await ctx.db.insert("squadPlayers", { leagueId, teamId, playerCode });
     await recordEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode, playerName: player.name, teamId, teamName: team.name });
+    await pickFirstLineupAgain(ctx, leagueId, teamId);
     return null;
   },
 });
@@ -153,6 +156,8 @@ export const move = mutation({
       fromTeamId: from._id,
       fromTeamName: from.name,
     });
+    await pickFirstLineupAgain(ctx, leagueId, teamId);
+    await pickFirstLineupAgain(ctx, leagueId, from._id);
     return null;
   },
 });
@@ -169,6 +174,7 @@ export const release = mutation({
     await ctx.db.delete("squadPlayers", place._id);
     await recordEvent(ctx, leagueId, by, { kind: "playerReleased", playerCode, playerName: player.name, teamId: team._id, teamName: team.name });
     await tellShortlisters(ctx, league, player, team, by);
+    await pickFirstLineupAgain(ctx, leagueId, team._id);
     return null;
   },
 });

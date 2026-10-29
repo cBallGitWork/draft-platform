@@ -28,7 +28,6 @@ import {
   nextLabel,
   noGamesWords,
   noGameWords,
-  noLineupWords,
   noRulesWords,
   notBegunWords,
   notCountingLabel,
@@ -204,10 +203,9 @@ describe("the gameweek stepper", () => {
 });
 
 describe("each side", () => {
-  it("a side that never saved a lineup says so, and the league's average says what it is", async () => {
-    openMatchup({ matchup: headToHead({ kind: "scored", team: { ...teamSide("Team 1", [], []), lineup: null }, opponent: { kind: "leagueAverage", points: 21.3, provisional: false } }) });
-    expect(await screen.findByText(noLineupWords("Team 1"))).toBeTruthy();
-    expect(screen.getByText(averageWords)).toBeTruthy();
+  it("the league's average says what it is", async () => {
+    openMatchup({ matchup: headToHead({ kind: "scored", team: teamSide("Team 1", [], []), opponent: { kind: "leagueAverage", points: 21.3, provisional: false } }) });
+    expect(await screen.findByText(averageWords)).toBeTruthy();
     expect(screen.getByRole("region", { name: SCORE_LABEL }).textContent).toContain(`Team 1${scoreWords(0, 21.3)}${leagueAverageWords}`);
   });
 

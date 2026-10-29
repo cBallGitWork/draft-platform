@@ -55,7 +55,8 @@ describe("the lineup to set", () => {
       deadline,
       areaLimits: HELD_FIRST_RULES.areaLimits,
       presets: HELD_FIRST_RULES.presets,
-      lineup: { kind: "none" },
+      // Never saved: its first lineup, picked from the squad (spec/05, #637).
+      lineup: { fromGameweek: null, starters: FOUR_FOUR_TWO.starters, bench: FOUR_FOUR_TWO.bench },
     });
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
     expect(tactics.squad).toEqual(
@@ -67,7 +68,7 @@ describe("the lineup to set", () => {
     const ann = await actingAs(t, ANN);
     await ann.mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [...FOUR_FOUR_TWO.starters], bench: [...FOUR_FOUR_TWO.bench] } });
 
-    expect(await tacticsOf(ANN)).toMatchObject({ lineup: { kind: "saved", fromGameweek: NEXT, starters: FOUR_FOUR_TWO.starters, bench: FOUR_FOUR_TWO.bench } });
+    expect(await tacticsOf(ANN)).toMatchObject({ lineup: { fromGameweek: NEXT, starters: FOUR_FOUR_TWO.starters, bench: FOUR_FOUR_TWO.bench } });
   });
 
   test("moves on to the gameweek after once the deadline passes, counting down to that one's", async () => {
