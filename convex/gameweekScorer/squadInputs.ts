@@ -1,5 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
+import { namedCodes } from "../lineup/lineup";
 import { lineupsInGameweek } from "../lineup/lineups";
 import { statusOf } from "../stats/matchStats";
 import { rulesIn, type GameweekInputs, type LeagueReads } from "./teamGameweek";
@@ -28,7 +29,7 @@ export async function squadInputs(
   const ruled = rulesIn(reads, gameweek);
   const lineups = await lineupsInGameweek(ctx, reads.leagueId, [teamId], gameweek);
   const lineup = lineups.get(teamId)!;
-  const codes = [...lineup.starters.map(({ playerCode }) => playerCode), ...lineup.bench];
+  const codes = namedCodes(lineup);
   const rows = await Promise.all(codes.map(async (code) => [code, await rowsOf(code)] as const));
   const inMatch = <Row>(fixtureCode: number, held: (row: PlayerRows) => ReadonlyMap<number, Row>) =>
     new Map(rows.flatMap(([code, row]) => (held(row).has(fixtureCode) ? [[code, held(row).get(fixtureCode)!] as const] : [])));

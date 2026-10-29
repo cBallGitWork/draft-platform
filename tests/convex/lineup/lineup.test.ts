@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { lineupProblems, type Lineup, type Placement } from "../../../convex/lineup/lineup";
+import { lineupProblems, namedCodes, type Lineup, type Placement } from "../../../convex/lineup/lineup";
 import { FIRST_SUB, filledLineup, openLimits, presetNamed, withPositions } from "../../support/convex/lineup.harness";
 import type { Area, Lane } from "../../../convex/lineup/pitch";
 
@@ -201,4 +201,15 @@ describe("the league's area limits", () => {
       `not midfield ${limit.minimum}–${limit.maximum}`,
     );
   });
+});
+
+test("a lineup names its starters' codes in order, then the bench", () => {
+  const lineup: Lineup = {
+    starters: [
+      { playerCode: 7, area: "attack", lane: "centre" },
+      { playerCode: 3, area: "defence", lane: "left" },
+    ],
+    bench: [9, 1],
+  };
+  expect(namedCodes(lineup)).toStrictEqual([7, 3, 9, 1]);
 });

@@ -69,6 +69,14 @@ export function playerByCode(ctx: QueryCtx, code: number): Promise<Doc<"players"
     .unique();
 }
 
+/** The player with `code`. One the football sync doesn't hold is data gone wrong, and throws
+ *  `missing`, which each caller words, as some reach a manager's screen. */
+export async function heldPlayerByCode(ctx: QueryCtx, code: number, missing: string): Promise<Doc<"players">> {
+  const player = await playerByCode(ctx, code);
+  if (player === null) throw new Error(missing);
+  return player;
+}
+
 /** The players at the club now, the ones the feed has dropped left out. */
 export function currentPlayersAt(ctx: QueryCtx, clubCode: number): Promise<Doc<"players">[]> {
   return takeAllOrThrow(

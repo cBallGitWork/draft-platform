@@ -10,8 +10,7 @@ import { latestRules } from "../rules/rulesHistory";
 import { areaShape } from "../lineup/pitchShape";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { areasOf, type Area } from "../lineup/pitch";
-import { currentPositions } from "../positions/playerPositions";
-import { howPositionsCount } from "../positions/positionSettings";
+import { positionsNow } from "../positions/playerPositions";
 import { areasShort } from "./areaMinimums";
 import { readOnce } from "../shared/readOnce";
 import { ownerOf, placeOf, squadOf } from "./squadPlace";
@@ -137,7 +136,7 @@ export const squads = query({
   handler: async (ctx, { leagueId }) => {
     await memberOf(ctx, leagueId);
     const rules = await latestRules(ctx, leagueId);
-    const how = await howPositionsCount(ctx);
+    const positionsOfNow = await positionsNow(ctx);
     const shortNameOf = readOnce(async (clubCode: number) => (await clubByCode(ctx, clubCode)).shortName);
     return Promise.all(
       (await teamsOf(ctx, leagueId)).map(async (team) => {
@@ -155,7 +154,7 @@ export const squads = query({
         );
         // Positions are read only for a league with area minimums, the one limit that needs them.
         const playersAreas = rules?.squad.minimumByArea
-          ? await Promise.all(squad.map(async ({ playerCode }) => areasOf(await currentPositions(ctx, playerCode, how))))
+          ? await Promise.all(squad.map(async ({ playerCode }) => areasOf(await positionsOfNow(playerCode))))
           : [];
         players.sort((one, other) => one.name.localeCompare(other.name));
         return { teamId: team._id, teamName: team.name, players, warnings: squadWarnings(players, playersAreas, rules?.squad ?? null) };

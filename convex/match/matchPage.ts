@@ -7,8 +7,7 @@ import { heldTeamStatsOf } from "../football/matchTeamStats";
 import { scoreOf, scoreOnly } from "../football/matchScores";
 import { commentary, type MatchupCommentary } from "../matchup/matchupShape";
 import { vidiprinter, type VidiprinterPlayer } from "../matchup/vidiprinter";
-import { currentPositions } from "../positions/playerPositions";
-import { howPositionsCount } from "../positions/positionSettings";
+import { positionsNow } from "../positions/playerPositions";
 import { positionRank } from "../positions/positionTables";
 import { seasonRules } from "../rules/rulesHistory";
 import { clubRecord, position, scoreRead, sideTeamStats } from "../schema";
@@ -16,7 +15,7 @@ import type { ScoringSet } from "../scoring/scoringSet";
 import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
-import { clubByCode, clubOf, playerByCode } from "../shared/players";
+import { clubByCode, clubOf, heldPlayerByCode } from "../shared/players";
 import { ownerOf } from "../squads/squadPlace";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { begunGameweeks, workedOutGameweek } from "../gameweekScorer/gameweekScores";
@@ -189,7 +188,7 @@ async function menOf(
   owners: Map<PlayerCode, Doc<"teams">>,
   { slots }: Priced,
 ): Promise<MatchMan[]> {
-  const how = await howPositionsCount(ctx);
+  const positionsOfNow = await positionsNow(ctx);
   const men = await Promise.all(
     named.map(async ({ playerCode, started, played }) => {
       const player = await heldPlayer(ctx, fixture.code, playerCode);
@@ -197,7 +196,7 @@ async function menOf(
       return {
         playerCode,
         name: player.name,
-        position: (await currentPositions(ctx, playerCode, how))[0] ?? null,
+        position: (await positionsOfNow(playerCode))[0] ?? null,
         side: player.clubCode === fixture.homeClubCode ? ("home" as const) : player.clubCode === fixture.awayClubCode ? ("away" as const) : null,
         started,
         played,
@@ -212,10 +211,8 @@ async function menOf(
 
 /** A man the match names. A record or a sheet's man is kept only for a man FPL lists, so one the
  *  football sync doesn't hold is bad data, and throws. */
-async function heldPlayer(ctx: QueryCtx, fixtureCode: number, playerCode: PlayerCode): Promise<Doc<"players">> {
-  const player = await playerByCode(ctx, playerCode);
-  if (player === null) throw new Error(`match ${fixtureCode} names player ${playerCode}, whom the football sync doesn't hold`);
-  return player;
+function heldPlayer(ctx: QueryCtx, fixtureCode: number, playerCode: PlayerCode): Promise<Doc<"players">> {
+  return heldPlayerByCode(ctx, playerCode, `match ${fixtureCode} names player ${playerCode}, whom the football sync doesn't hold`);
 }
 
 const SIDE_ORDER = { home: 0, away: 1 } as const;

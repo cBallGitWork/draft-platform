@@ -1,13 +1,12 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { currentPositions } from "../positions/playerPositions";
-import { howPositionsCount } from "../positions/positionSettings";
+import { positionsNow } from "../positions/playerPositions";
 import { positionRank, type Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
 import { inTenths } from "../scoring/scoringSet";
 import { managerOf } from "../shared/leagueAccess";
-import { clubsByCode, playerByCode, type Clubs } from "../shared/players";
+import { clubsByCode, heldPlayerByCode, type Clubs } from "../shared/players";
 import { begunGameweeks } from "../gameweekScorer/gameweekScores";
 import { scoredMatches } from "../gameweekScorer/scoredMatches";
 import { squadOf } from "./squadPlace";
@@ -82,15 +81,14 @@ export const ofMyTeam = query({
   returns: teamSquad,
   handler: async (ctx, { leagueId, now }) => {
     const { league, team } = await managerOf(ctx, leagueId);
-    const how = await howPositionsCount(ctx);
+    const positionsOfNow = await positionsNow(ctx);
     const clubs = clubsByCode(ctx);
     const lastGameweek = (await begunGameweeks(ctx, league)).at(-1) ?? null;
     const price = await pricer(ctx, league, team._id);
     const players = await Promise.all(
       (await squadOf(ctx, team._id)).map(async ({ playerCode, number }) => {
-        const player = await playerByCode(ctx, playerCode);
-        if (player === null) throw new Error(`Player ${playerCode} is in team ${team._id}'s squad but the football sync doesn't hold him`);
-        const positions = await currentPositions(ctx, playerCode, how);
+        const player = await heldPlayerByCode(ctx, playerCode, `Player ${playerCode} is in team ${team._id}'s squad but the football sync doesn't hold him`);
+        const positions = await positionsOfNow(playerCode);
         return { player, number: number ?? null, positions, club: await clubs(player.clubCode), matches: await price(player.code, positions) };
       }),
     );

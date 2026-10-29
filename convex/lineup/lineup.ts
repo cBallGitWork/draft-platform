@@ -64,6 +64,11 @@ const isArea = (area: string): area is Area => (AREAS as readonly string[]).incl
 const isLane = (lane: string): lane is Lane => (LANES as readonly string[]).includes(lane);
 
 /** Every reason the lineup can't stand under these rules; none means it is legal. */
+/** Every player the lineup names: the starters' codes in order, then the bench. */
+export function namedCodes(lineup: { starters: readonly Pick<Placement, "playerCode">[]; bench: readonly PlayerCode[] }): PlayerCode[] {
+  return [...lineup.starters.map(({ playerCode }) => playerCode), ...lineup.bench];
+}
+
 export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules: LineupRules): LineupProblem[] {
   throwOnInvalidAreaLimits(rules);
   const problems: LineupProblem[] = [];
@@ -72,7 +77,7 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
   }
 
   const named = new Set<PlayerCode>();
-  for (const playerCode of [...lineup.starters.map((starter) => starter.playerCode), ...lineup.bench]) {
+  for (const playerCode of namedCodes(lineup)) {
     if (named.has(playerCode)) problems.push({ kind: "playerTwice", playerCode });
     named.add(playerCode);
   }
@@ -132,7 +137,7 @@ export function reconciled<Starter extends Pick<Placement, "playerCode">>(
   squadCodes: readonly PlayerCode[],
 ): Reconciled<Starter> {
   const inSquad = new Set(squadCodes);
-  const named = new Set([...lineup.starters.map(({ playerCode }) => playerCode), ...lineup.bench]);
+  const named = new Set(namedCodes(lineup));
   const joinedBench = squadCodes.filter((playerCode) => !named.has(playerCode));
   return {
     lineup: {
