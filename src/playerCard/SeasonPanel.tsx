@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { PositionCode } from "../ui/PositionCodes";
-import { ColumnHeads } from "../ui/ColumnHeads";
+import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { Panel, PanelNote } from "../ui/Panel";
 import type { PlayedMatch, PlayerCard } from "./seam";
 import { MatchName } from "./MatchName";
@@ -26,7 +26,7 @@ import {
 type Column = keyof typeof columns;
 const COLUMNS: readonly Column[] = ["gameweek", "match", "minutes", "position", "points"];
 const FIGURES: readonly Column[] = ["gameweek", "minutes", "points"];
-const cellClasses = (column: Column) => `px-2 align-middle ${FIGURES.includes(column) ? "text-right" : "text-left"}`;
+const cellClasses = (column: Column) => cellClassOf(!FIGURES.includes(column));
 
 /** This season's matches, each with its points by category under it. */
 export function Season({ card }: { card: PlayerCard }) {

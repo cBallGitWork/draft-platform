@@ -3,6 +3,7 @@ import type { QueryCtx } from "../_generated/server";
 import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { takeAllOrThrow } from "../shared/cappedRead";
+import { groupedBy } from "../shared/groupedBy";
 import type { TeamGameweek, TeamScores } from "./gameweekScores";
 
 // The league's stored final scores (finalScores.ts's rows), as the scorer (gameweekScores.ts)
@@ -28,8 +29,7 @@ export async function storedFinalScores(ctx: QueryCtx, leagueId: Id<"leagues">):
     FINAL_SCORES_MOST,
     `League ${leagueId} holds more than ${FINAL_SCORES_MOST} final scores, so some would be left out`,
   );
-  const rowsByGameweek = new Map<number, Doc<"finalScores">[]>();
-  for (const row of rows) rowsByGameweek.set(row.gameweek, [...(rowsByGameweek.get(row.gameweek) ?? []), row]);
+  const rowsByGameweek = groupedBy(rows, (row) => row.gameweek);
   return new Map([...rowsByGameweek].map(([gameweek, gameweekRows]) => [gameweek, storedGameweekOf(gameweekRows)]));
 }
 

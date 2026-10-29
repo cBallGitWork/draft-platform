@@ -2,6 +2,7 @@
 // words, and the refusals of saving one.
 
 import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
+import { andListWords } from "../shared/moments";
 import { STARTER_COUNT, type LineupProblem } from "./lineup";
 import { AREA_WORDS, LANE_WORDS } from "./pitchWords";
 
@@ -11,20 +12,15 @@ export type NameOf = (playerCode: number) => string;
 /** A player the app holds no row for, which only one who left long ago can be. */
 export const unknownPlayerWords = (playerCode: number) => `Player ${playerCode}`;
 
-/** "A", "A and B", "A, B and C". */
-export function namesWords(names: readonly string[]): string {
-  return names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
-}
-
 const isNot = (names: readonly string[]) => (names.length === 1 ? "isn't" : "aren't");
 
 /** Why a lineup can't be saved, as the manager is told it. */
 export const lineupRefusals = {
   noRules: "This league has no rules yet, so it has no deadline and no area limits to set a lineup under. It was made before leagues held their rules.",
   seasonOver: `All ${GAMEWEEKS} gameweeks have begun, so there's no gameweek left to set a lineup for.`,
-  notInSquad: (names: readonly string[]) => `${namesWords(names)} ${isNot(names)} in your squad.`,
+  notInSquad: (names: readonly string[]) => `${andListWords(names)} ${isNot(names)} in your squad.`,
   leftOut: (names: readonly string[]) =>
-    `${namesWords(names)} ${isNot(names)} in the lineup: every player in your squad starts or sits on the bench.`,
+    `${andListWords(names)} ${isNot(names)} in the lineup: every player in your squad starts or sits on the bench.`,
 };
 
 /** One of lineup.ts's problems, as the manager is told it. */
@@ -37,7 +33,7 @@ export function problemWords(problem: LineupProblem, nameOf: NameOf): string {
     case "noSuchCell":
       return `${nameOf(problem.playerCode)} is placed at "${problem.area}", "${problem.lane}", which isn't a cell on the pitch.`;
     case "cellShared":
-      return `${namesWords(problem.playerCodes.map(nameOf))} share the ${LANE_WORDS[problem.lane]} cell in ${AREA_WORDS[problem.area]}: one player a cell.`;
+      return `${andListWords(problem.playerCodes.map(nameOf))} share the ${LANE_WORDS[problem.lane]} cell in ${AREA_WORDS[problem.area]}: one player a cell.`;
     case "positionsUnknown":
       return `${nameOf(problem.playerCode)} has no positions yet, so he can't start.`;
     case "outsideHisAreas":
