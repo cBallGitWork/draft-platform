@@ -1,6 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import { rulesInGameweek } from "../../../convex/rules/rulesHistory";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { Doc } from "../../../convex/_generated/dataModel";
@@ -8,7 +7,7 @@ import { setOf, SITE_SCORING_VERSIONS_MOST, siteScoringRefusals } from "../../..
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
-import { holdGameweeks, rulesRevision, HELD_FIRST_RULES, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesInGameweek, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";
 import { everyArea } from "../../support/convex/scoring.example";
@@ -30,6 +29,7 @@ import {
   useSiteScoringDeployment,
   versions,
   viewAs,
+  holdSiteScoring,
 } from "../../support/convex/siteScoring.harness";
 
 // The site's scoring set and the rules editor's seam (spec/14, Who owns it, and Changes and
@@ -124,7 +124,7 @@ describe("a fix", () => {
     const holdVersions = (count: number) =>
       t.run(async (ctx) => {
         for (let index = 0; index < count; index += 1) {
-          await ctx.db.insert("siteScoring", { scoring: structuredClone(FIRST_SCORING), kind: "fix", season: 2026, number: index + 1, announcedAt: 0, takesEffectAt: 0 });
+          await holdSiteScoring(ctx, { scoring: structuredClone(FIRST_SCORING), kind: "fix", season: 2026, number: index + 1, at: 0 });
         }
       });
     await holdVersions(SITE_SCORING_VERSIONS_MOST);
@@ -154,7 +154,7 @@ describe("a commissioner's edit to the scoring (#354 Done)", () => {
     const withScoring = { ...TOTAL_POINTS, scoring: EDITED };
 
     await expect(
-      (await as(COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules: withScoring, revision: await rulesRevision(t, leagueId) }),
+      changeRules(t, leagueId, withScoring),
     ).rejects.toThrow(/scoring/);
     expect(await t.run((ctx) => rulesInGameweek(ctx, leagueId, 1))).toEqual(HELD_FIRST_RULES);
   });

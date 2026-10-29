@@ -3,13 +3,12 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { rulesInGameweek } from "../../../convex/rules/rulesHistory";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { siteScoringInGameweek } from "../../../convex/scoring/siteScoring";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { centreOf, EXAMPLE_SET } from "../../support/convex/scoring.example";
-import { holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
+import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesInGameweek, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import {
   actingAs,
@@ -33,8 +32,7 @@ beforeEach(async () => {
 });
 
 /** A change made from the league's latest rules, as a screen opened just now makes it. */
-const change = async (leagueId: Id<"leagues">, rules = TOTAL_POINTS, email = COMMISSIONER) =>
-  (await actingAs(t, email)).mutation(api.rules.leagueRules.change, { leagueId, rules, revision: await rulesRevision(t, leagueId) });
+const change = (leagueId: Id<"leagues">, rules = TOTAL_POINTS, email = COMMISSIONER) => changeRules(t, leagueId, rules, email);
 const latest = async (leagueId: Id<"leagues">, email = COMMISSIONER) =>
   (await actingAs(t, email)).query(api.rules.leagueRules.latest, { leagueId });
 const defaults = () => t.run(async (ctx) => (await ctx.db.query("defaultLeagueRules").unique())?.rules);

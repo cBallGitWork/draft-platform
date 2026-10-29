@@ -13,6 +13,7 @@ import { squadPoints } from "../../../convex/squads/teamSquad";
 import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { EXAMPLE_SET } from "../../support/convex/scoring.example";
+import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { ARSENAL, CHELSEA, COVENTRY, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -59,7 +60,7 @@ beforeEach(async () => {
     await insertPlayers(ctx, players);
     for (const each of players) if (each.code !== BENCHED.code) await ctx.db.insert("squadPlayers", { leagueId, teamId: annTeam, playerCode: each.code });
     for (const each of [GW1, GW2, NEXT_ARS, LATER_ARS]) await ctx.db.insert("fixtures", each);
-    await ctx.db.insert("siteScoring", { scoring: structuredClone(EXAMPLE_SET) as StoredScoringSet, kind: "fix", season: 2025, number: 1, announcedAt: 0, takesEffectAt: 0 });
+    await holdSiteScoring(ctx, { scoring: structuredClone(EXAMPLE_SET) as StoredScoringSet, kind: "fix", season: 2025, number: 1, at: 0 });
     for (const gameweek of [1, 2]) await ctx.db.insert("passedDeadlines", { leagueId, gameweek, deadline: NOW - (3 - gameweek) * WEEK_MS, recordedAt: NOW });
     await ctx.db.insert("lineups", { leagueId, teamId: annTeam, fromGameweek: 1, starters: [{ playerCode: SAKA.code, ...SAKA_SLOT }], bench: [] });
     await ctx.db.insert("lineups", { leagueId, teamId: annTeam, fromGameweek: 2, starters: [], bench: [SAKA.code] });

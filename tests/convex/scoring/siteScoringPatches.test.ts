@@ -1,14 +1,13 @@
 import { describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { rulesInGameweek } from "../../../convex/rules/rulesHistory";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { PATCH_NOTICE_DAYS, siteScoringRefusals, versionName } from "../../../convex/scoring/siteScoring";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, seasonStartYear } from "../../../convex/shared/time";
 import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
-import { holdGameweeks, rulesRevision, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { changeRules, holdGameweeks, rulesInGameweek, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";
 import { centreOf } from "../../support/convex/scoring.example";
@@ -142,7 +141,7 @@ describe("announcing a patch", () => {
     await holdGameweeks(t, { next: 9 });
     const first = await adminCreatesLeague(t, 4, "First");
     const second = await adminCreatesLeague(t, 4, "Second");
-    await (await as(COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId: second, rules: TOTAL_POINTS, revision: await rulesRevision(t, second) });
+    await changeRules(t, second, TOTAL_POINTS);
     await patch(EDITED, TODAY + NOTICE);
     const assistIn = (gameweek: number) => async (leagueId: Id<"leagues">) => {
       expect(await t.run((ctx) => rulesInGameweek(ctx, leagueId, gameweek))).not.toHaveProperty("scoring");

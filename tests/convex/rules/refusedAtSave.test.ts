@@ -6,7 +6,7 @@ import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { LEAGUE_NAME_MAX } from "../../../convex/leagues/leagueLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { rulesRevision, rulesWith, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
+import { changeRules, HELD_FIRST_RULES, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, actingAs, adminCreatesLeague, COMMISSIONER, leagueRow, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -22,8 +22,7 @@ beforeEach(async () => {
   fakeResend();
 });
 
-const change = async (leagueId: Id<"leagues">, rules: LeagueRules) =>
-  (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules, revision: await rulesRevision(t, leagueId) });
+const change = (leagueId: Id<"leagues">, rules: LeagueRules) => changeRules(t, leagueId, rules);
 const latestRules = async (leagueId: Id<"leagues">) =>
   (await (await actingAs(t, COMMISSIONER)).query(api.rules.leagueRules.latest, { leagueId }))?.rules;
 const setMaxTeams = async (leagueId: Id<"leagues">, maxTeams: number) =>

@@ -3,7 +3,8 @@
 
 import { beforeEach, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import type { Id } from "../../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../../convex/_generated/dataModel";
+import type { MutationCtx } from "../../../convex/_generated/server";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { PATCH_NOTICE_DAYS, siteScoringInGameweek } from "../../../convex/scoring/siteScoring";
@@ -71,3 +72,10 @@ export const EDITED_AGAIN: StoredScoringSet = {
 
 /** When holdGameweeks' gameweek kicks off, held from TODAY: 9 KICKS_OFF_IN later, each a week apart. */
 export const kickoffOf = (gameweek: number) => TODAY + KICKS_OFF_IN + (gameweek - 9) * WEEK_MS;
+
+/** Writes a version of the site's scoring straight in, announced and in force from `at`, and
+ *  returns its id. `scoring` is held as given: a caller that changes it later passes a copy. */
+export const holdSiteScoring = (
+  ctx: MutationCtx,
+  { scoring, kind, season, number, at }: Pick<Doc<"siteScoring">, "scoring" | "kind" | "season" | "number"> & { at: number },
+) => ctx.db.insert("siteScoring", { scoring, kind, season, number, announcedAt: at, takesEffectAt: at });

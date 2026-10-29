@@ -45,12 +45,6 @@ function rulesInForce(history: readonly RulesRow[], leagueId: Id<"leagues">, gam
   return row.rules;
 }
 
-/** The league's rules in a gameweek, for its table and the lineup's checks. Throws for a
- *  league with none, which only one made before #25 can be. */
-export async function rulesInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number): Promise<LeagueRules> {
-  return rulesInForce(await historyOf(ctx, leagueId), leagueId, gameweek);
-}
-
 /** The league's rules over the season: its latest, a waiting change's among them, and those in
  *  force in each gameweek. */
 export type SeasonRules = { latest: LeagueRules; inGameweek: (gameweek: number) => LeagueRules };

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { FIRST_THRESHOLDS } from "../../../convex/positions/positionChanges";
-import { NO_ADMIN, positionsOf, type AdminPositions, type PositionInputs, type Start } from "../../../convex/positions/positions";
+import { positionsOf, type AdminPositions, type PositionInputs, type Start } from "../../../convex/positions/positions";
 import type { Position } from "../../../convex/positions/positionTables";
 import {
   CENTRE_BACK,
@@ -14,6 +14,8 @@ import {
   times,
   type Place,
 } from "../../support/convex/positionStarts.harness";
+/** No admin approvals, label or changes. */
+const NO_ADMIN: AdminPositions = { approved: [], confirmedLabel: null, set: [], removed: [] };
 /** spec/06's window, written out rather than read from `START_WINDOW`, so changing it fails here. */
 const SPEC_WINDOW = 38;
 

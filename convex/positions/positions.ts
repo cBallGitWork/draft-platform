@@ -71,8 +71,6 @@ export interface PlayerPositions {
   unknownLabel: string | null;
 }
 
-export const NO_ADMIN: AdminPositions = { approved: [], confirmedLabel: null, set: [], removed: [] };
-
 /** The positions his newest `START_WINDOW` starts give him: each place he started at
  *  `STARTS_FOR_A_POSITION` times or more, and the formations that placed no one. */
 export function positionsFromStarts(starts: Start[]): { positions: Position[]; unknownFormations: string[] } {
