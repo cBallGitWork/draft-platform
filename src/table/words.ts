@@ -4,7 +4,7 @@ import { LOCALE } from "../../convex/shared/moments";
 import { menuWords } from "../frame/words";
 import { gameweekWords } from "../words";
 
-export { gameweekWords, versusWords } from "../words";
+export { gameweekWords, scoreWords, versusWords } from "../words";
 
 export const TABLE_PAGE_TITLE = "Table and fixtures";
 export const TABLE_TITLE = menuWords.table;
@@ -25,9 +25,6 @@ export const unscoredWords = (gameweek: number, reason: string) =>
 /** The teams on 0 in a gameweek for never saving a lineup: what such a team fields isn't settled. */
 export const noLineupWords = (teamNames: readonly string[]) =>
   `${andList.format(teamNames)} never saved a lineup, so ${teamNames.length === 1 ? "it scores" : "they score"} 0.`;
-
-/** A fixture's score: the team's, then its opponent's. */
-export const scoreWords = (team: number, opponent: number) => `${team}–${opponent}`;
 
 /** The table's columns: a short head, and what it stands for. */
 export const columns = {

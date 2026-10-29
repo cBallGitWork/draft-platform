@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from "vitest";
 import type { Cell } from "../../../convex/lineup/pitch";
-import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, withRole, withSquad } from "../../../src/myTeam/lineupDraft";
+import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, shownLineup, withRole } from "../../../src/myTeam/lineupDraft";
 
 const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
 const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;
@@ -52,8 +52,17 @@ it("for a team that has never saved one opens with the whole squad on the bench,
   expect(openingLineup({ squad, lineup: { kind: "none" } })).toEqual({ starters: [], bench: [7, 5, 6] });
 });
 
-it("against the squad now drops who left and puts who joined at the end of the bench", () => {
-  expect(withSquad(DRAFT, [1, 3, 4, 9])).toEqual({ starters: [KEEPER], bench: [3, 4, 9] });
+describe("the lineup shown", () => {
+  /** The lineup the server holds, which the screen opened on. */
+  const OPENING = { starters: [KEEPER], bench: [2, 3, 4] };
+
+  it("is the manager's edit against the squad now: who left drops out and who joined goes to the end of the bench", () => {
+    expect(shownLineup(DRAFT, OPENING, [1, 3, 4, 9])).toEqual({ starters: [KEEPER], bench: [3, 4, 9] });
+  });
+
+  it("is the held lineup while there is no edit", () => {
+    expect(shownLineup(null, OPENING, [1, 3, 4, 9])).toBe(OPENING);
+  });
 });
 
 describe("a preset picked (spec/05; Craig, 26 Oct 2026)", () => {

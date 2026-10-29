@@ -52,6 +52,11 @@ export const listSeparator = ", ";
 
 /** Between the two sides of a match or a fixture: "Hull City v Everton". */
 export const versusWords = "v";
+/** A match's or a fixture's score, the first side's then the other's: "2–1". */
+export const scoreWords = (first: number, second: number) => `${first}–${second}`;
+/** Beside what is still being played: a live match's clock before it has a minute, a score that
+ *  may still move (spec/07). */
+export const liveWords = "Live";
 
 /** The "Find a player" panel, on the admin's dashboard and the squads page alike; each says its own hint. */
 export const findTitle = "Find a player";

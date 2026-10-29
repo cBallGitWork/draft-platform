@@ -12,6 +12,7 @@ import {
   runnerOf,
   teamsOf,
 } from "../shared/leagueAccess";
+import { typedText } from "../shared/typedText";
 import { recordEvent } from "../mail/letters";
 import { FEWEST_TEAMS, LEAGUE_NAME_MAX, MOST_TEAMS } from "./leagueLimits";
 import { giveDefaultRules, refuseTooFewForGames } from "../rules/leagueRules";
@@ -42,9 +43,7 @@ export const create = mutation({
   returns: v.id("leagues"),
   handler: async (ctx, args) => {
     const by = await adminOf(ctx);
-    const name = args.name.trim();
-    if (!name) refuse(refusals.blankName);
-    if ([...name].length > LEAGUE_NAME_MAX) refuse(refusals.leagueNameTooLong);
+    const name = typedText(args.name, LEAGUE_NAME_MAX, { blank: refusals.blankName, tooLong: refusals.leagueNameTooLong });
     checkMaxTeams(args.maxTeams);
     const commissionerEmail = namedEmail(args.commissionerEmail);
 

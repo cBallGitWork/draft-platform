@@ -1,6 +1,7 @@
 import { v, type Infer } from "convex/values";
 import { mutation, query } from "../_generated/server";
-import { adminOf, callerEmail, refuse } from "../shared/leagueAccess";
+import { adminOf, callerEmail } from "../shared/leagueAccess";
+import { typedText } from "../shared/typedText";
 import { FEEDBACK_MAX, FEEDBACK_SHOWN } from "./feedbackLimits";
 
 // Feedback to the admin (#357; spec/12 The frame, spec/15 The admin): anyone signed in sends one
@@ -35,9 +36,7 @@ export const send = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const from = await callerEmail(ctx);
-    const message = args.message.trim();
-    if (!message) refuse(feedbackRefusals.blank);
-    if ([...message].length > FEEDBACK_MAX) refuse(feedbackRefusals.tooLong);
+    const message = typedText(args.message, FEEDBACK_MAX, feedbackRefusals);
     await ctx.db.insert("feedback", { from, at: Date.now(), message });
     return null;
   },

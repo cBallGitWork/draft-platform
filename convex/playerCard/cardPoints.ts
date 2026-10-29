@@ -11,8 +11,9 @@ import type { Position } from "../positions/positionTables";
 import { scoreMatch, type MatchPoints, type MatchStats } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
 
-/** How a match was priced: from his slot in a lineup, or at his best position. */
-export const scoredAs = v.union(v.literal("slot"), v.literal("bestPosition"));
+/** How a match was priced: from his slot in a lineup, at his best position, or there but not
+ *  counted, as a bench player who didn't come on (spec/12, The player card). */
+export const scoredAs = v.union(v.literal("slot"), v.literal("bestPosition"), v.literal("notCounted"));
 export type ScoredAs = Infer<typeof scoredAs>;
 
 export interface CardPoints extends MatchPoints {

@@ -33,6 +33,8 @@ function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
     // As his team started him: at the slot, its role's points in the total.
     const started = player.name === PREVIEW_ROLE_PLAYER && index === 1 && points.total !== null;
     const role = started ? { scoredAs: "slot" as const, position: "CAM" as const, total: points.total! + PREVIEW_ROLE.points, role: PREVIEW_ROLE } : {};
+    // His oldest match he sat on his team's bench and didn't come on, so the card shows how that reads.
+    const benched = player.name === PREVIEW_ROLE_PLAYER && index === RECORDS.length - 1 ? { scoredAs: "notCounted" as const } : {};
     return {
       fixtureCode: player.code * 100 + index,
       gameweek: 9 - index,
@@ -40,8 +42,10 @@ function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
       home: index % 2 === 0 ? player.club : opponentOf(player.club.code, index),
       away: index % 2 === 0 ? opponentOf(player.club.code, index) : player.club,
       minutes: record?.minutes ?? null,
-      points: { ...points, categories: points.categories.map((each) => ({ ...each, name: categoryName(each.stat) })), ...role },
+      points: { ...points, categories: points.categories.map((each) => ({ ...each, name: categoryName(each.stat) })), ...role, ...benched },
       override: player.name === PREVIEW_OVERRIDDEN && index === 1 ? PREVIEW_OVERRIDE : null,
+      // The two newest may still move: one still being played, one inside its corrections window.
+      provisional: index <= 1,
     };
   });
 }

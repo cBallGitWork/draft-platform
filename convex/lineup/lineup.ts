@@ -112,6 +112,39 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
   return problems;
 }
 
+/** A lineup read against the squad (spec/05, The deadline and Auto-subs): the server's for a saved
+ *  one (lineups.ts), and the Tactics screen's for the manager's edit, so the two never differ. */
+export interface Reconciled<Starter extends Pick<Placement, "playerCode">> {
+  lineup: { starters: Starter[]; bench: PlayerCode[] };
+  /** Who dropped out of it for leaving the squad, starters and bench alike. */
+  leftSquad: PlayerCode[];
+  /** Who joined the squad since and was put at the end of the bench. */
+  joinedBench: PlayerCode[];
+  /** The starters who left, each in the slot he left empty: the bench fills it as auto-subs fill
+   *  a starter who didn't play (autoSubs.ts). */
+  vacated: Starter[];
+}
+
+/** Who has left drops out, leaving his cell empty, and who has joined goes to the end of the bench,
+ *  in the order he joined, until the manager moves him. */
+export function reconciled<Starter extends Pick<Placement, "playerCode">>(
+  lineup: { starters: readonly Starter[]; bench: readonly PlayerCode[] },
+  squadCodes: readonly PlayerCode[],
+): Reconciled<Starter> {
+  const inSquad = new Set(squadCodes);
+  const named = new Set([...lineup.starters.map(({ playerCode }) => playerCode), ...lineup.bench]);
+  const joinedBench = squadCodes.filter((playerCode) => !named.has(playerCode));
+  return {
+    lineup: {
+      starters: lineup.starters.filter(({ playerCode }) => inSquad.has(playerCode)),
+      bench: [...lineup.bench.filter((playerCode) => inSquad.has(playerCode)), ...joinedBench],
+    },
+    leftSquad: [...named].filter((playerCode) => !inSquad.has(playerCode)),
+    joinedBench,
+    vacated: lineup.starters.filter(({ playerCode }) => !inSquad.has(playerCode)),
+  };
+}
+
 /** An invalid limit is the league's mistake, not the manager's: it is thrown, never reported as
  *  a problem with their lineup. leagueRulesCheck.ts refuses it when the league sets it (#25). */
 function throwOnInvalidAreaLimits(rules: LineupRules): void {
