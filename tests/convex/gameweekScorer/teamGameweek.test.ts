@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import type { AutoSubs } from "../../../convex/lineup/autoSubs";
 import type { SlotPoints } from "../../../convex/scoring/teamPoints";
-import { pointsByMatch, pointsInMatch, type HeldMatch, type TeamInGameweek } from "../../../convex/table/teamGameweek";
+import { pointsByMatch, pointsInMatch, type HeldMatch, type TeamInGameweek } from "../../../convex/gameweekScorer/teamGameweek";
 
 // One man's points in one match are read from a team's gameweek by pairing his matches (matchesOf)
 // with his slot's scored matches, which scoreTeam keeps in the same order.

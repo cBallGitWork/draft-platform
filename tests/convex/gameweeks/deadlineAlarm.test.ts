@@ -2,7 +2,7 @@ import { expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { MINUTE_MS } from "../../../convex/shared/time";
-import { begunGameweeks } from "../../../convex/table/gameweekScores";
+import { begunGameweeks } from "../../../convex/gameweekScorer/gameweekScores";
 import { ANN, DEADLINE, GAMEWEEK, HULL_SCORER, HULL_STARTERS, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { clockRunsTo } from "../../support/convex/test.harness";

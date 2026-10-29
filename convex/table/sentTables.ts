@@ -1,6 +1,6 @@
 import type { Id } from "../_generated/dataModel";
 import type { LeagueRules } from "../rules/leagueRulesShape";
-import type { TeamGameweek } from "./gameweekScores";
+import type { TeamGameweek } from "../gameweekScorer/gameweekScores";
 import type { LeagueTable } from "./leagueTable";
 import { namedFixture, roundsOf, type GameweekFixtures } from "./roundRobin";
 import { headToHeadTable, teamsInGameweek, totalPointsTable, type GameweekScores, type TableRow, type TieBreak } from "./standings";

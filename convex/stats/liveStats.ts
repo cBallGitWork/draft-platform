@@ -49,7 +49,7 @@ export async function liveMatches(ctx: QueryCtx, now: number): Promise<LiveMatch
 /** One match's records as read before full time, every one provisional. A match already read at
  *  full time (a status row) is `upsertMatch`'s alone, so a tick racing the sync writes nothing.
  *  `changed` names the men whose records moved. Nothing is recomputed here: the table works its
- *  points out on read (table/gameweekScores.ts), so the records written move it. The totals each
+ *  points out on read (gameweekScorer/gameweekScores.ts), so the records written move it. The totals each
  *  passing a point where a rule's points change are stored as steps with the clock's `minute` (#44). */
 export const upsertLive = internalMutation({
   args: { fixtureCode: v.number(), minute: v.union(v.number(), v.null()), records: v.array(playerMatchRecord) },

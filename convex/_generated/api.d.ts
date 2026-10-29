@@ -36,6 +36,10 @@ import type * as football_plTable from "../football/plTable.js";
 import type * as football_plTeamStats from "../football/plTeamStats.js";
 import type * as football_premierLeague from "../football/premierLeague.js";
 import type * as football_scoreReads from "../football/scoreReads.js";
+import type * as gameweekScorer_gameweekScores from "../gameweekScorer/gameweekScores.js";
+import type * as gameweekScorer_scoredMatches from "../gameweekScorer/scoredMatches.js";
+import type * as gameweekScorer_squadInputs from "../gameweekScorer/squadInputs.js";
+import type * as gameweekScorer_teamGameweek from "../gameweekScorer/teamGameweek.js";
 import type * as gameweeks_deadline from "../gameweeks/deadline.js";
 import type * as gameweeks_deadlineRecorder from "../gameweeks/deadlineRecorder.js";
 import type * as gameweeks_gameweekStarts from "../gameweeks/gameweekStarts.js";
@@ -64,7 +68,6 @@ import type * as leagues_leagues from "../leagues/leagues.js";
 import type * as leagues_myLeagues from "../leagues/myLeagues.js";
 import type * as leagues_teams from "../leagues/teams.js";
 import type * as lineup_autoSubs from "../lineup/autoSubs.js";
-import type * as lineup_draftedRoleAdjustments from "../lineup/draftedRoleAdjustments.js";
 import type * as lineup_firstLineup from "../lineup/firstLineup.js";
 import type * as lineup_firstLineupBackfill from "../lineup/firstLineupBackfill.js";
 import type * as lineup_lineup from "../lineup/lineup.js";
@@ -116,6 +119,7 @@ import type * as schema_rules from "../schema/rules.js";
 import type * as schema_signIn from "../schema/signIn.js";
 import type * as schema_squads from "../schema/squads.js";
 import type * as scoring_categories from "../scoring/categories.js";
+import type * as scoring_draftedRoleAdjustments from "../scoring/draftedRoleAdjustments.js";
 import type * as scoring_firstScoring from "../scoring/firstScoring.js";
 import type * as scoring_ownStats from "../scoring/ownStats.js";
 import type * as scoring_patchChanges from "../scoring/patchChanges.js";
@@ -165,19 +169,15 @@ import type * as stats_seasonStats from "../stats/seasonStats.js";
 import type * as stats_statTotals from "../stats/statTotals.js";
 import type * as stats_thresholdSteps from "../stats/thresholdSteps.js";
 import type * as table_finalScores from "../table/finalScores.js";
-import type * as table_gameweekScores from "../table/gameweekScores.js";
 import type * as table_leagueTable from "../table/leagueTable.js";
 import type * as table_overrideLimits from "../table/overrideLimits.js";
 import type * as table_playedFixtures from "../table/playedFixtures.js";
 import type * as table_pointsOverrides from "../table/pointsOverrides.js";
 import type * as table_roundRobin from "../table/roundRobin.js";
-import type * as table_scoredMatches from "../table/scoredMatches.js";
 import type * as table_sentTables from "../table/sentTables.js";
-import type * as table_squadInputs from "../table/squadInputs.js";
 import type * as table_standings from "../table/standings.js";
 import type * as table_teamFixtures from "../table/teamFixtures.js";
 import type * as table_teamGames from "../table/teamGames.js";
-import type * as table_teamGameweek from "../table/teamGameweek.js";
 
 import type {
   ApiFromModules,
@@ -214,6 +214,10 @@ declare const fullApi: ApiFromModules<{
   "football/plTeamStats": typeof football_plTeamStats;
   "football/premierLeague": typeof football_premierLeague;
   "football/scoreReads": typeof football_scoreReads;
+  "gameweekScorer/gameweekScores": typeof gameweekScorer_gameweekScores;
+  "gameweekScorer/scoredMatches": typeof gameweekScorer_scoredMatches;
+  "gameweekScorer/squadInputs": typeof gameweekScorer_squadInputs;
+  "gameweekScorer/teamGameweek": typeof gameweekScorer_teamGameweek;
   "gameweeks/deadline": typeof gameweeks_deadline;
   "gameweeks/deadlineRecorder": typeof gameweeks_deadlineRecorder;
   "gameweeks/gameweekStarts": typeof gameweeks_gameweekStarts;
@@ -242,7 +246,6 @@ declare const fullApi: ApiFromModules<{
   "leagues/myLeagues": typeof leagues_myLeagues;
   "leagues/teams": typeof leagues_teams;
   "lineup/autoSubs": typeof lineup_autoSubs;
-  "lineup/draftedRoleAdjustments": typeof lineup_draftedRoleAdjustments;
   "lineup/firstLineup": typeof lineup_firstLineup;
   "lineup/firstLineupBackfill": typeof lineup_firstLineupBackfill;
   "lineup/lineup": typeof lineup_lineup;
@@ -294,6 +297,7 @@ declare const fullApi: ApiFromModules<{
   "schema/signIn": typeof schema_signIn;
   "schema/squads": typeof schema_squads;
   "scoring/categories": typeof scoring_categories;
+  "scoring/draftedRoleAdjustments": typeof scoring_draftedRoleAdjustments;
   "scoring/firstScoring": typeof scoring_firstScoring;
   "scoring/ownStats": typeof scoring_ownStats;
   "scoring/patchChanges": typeof scoring_patchChanges;
@@ -343,19 +347,15 @@ declare const fullApi: ApiFromModules<{
   "stats/statTotals": typeof stats_statTotals;
   "stats/thresholdSteps": typeof stats_thresholdSteps;
   "table/finalScores": typeof table_finalScores;
-  "table/gameweekScores": typeof table_gameweekScores;
   "table/leagueTable": typeof table_leagueTable;
   "table/overrideLimits": typeof table_overrideLimits;
   "table/playedFixtures": typeof table_playedFixtures;
   "table/pointsOverrides": typeof table_pointsOverrides;
   "table/roundRobin": typeof table_roundRobin;
-  "table/scoredMatches": typeof table_scoredMatches;
   "table/sentTables": typeof table_sentTables;
-  "table/squadInputs": typeof table_squadInputs;
   "table/standings": typeof table_standings;
   "table/teamFixtures": typeof table_teamFixtures;
   "table/teamGames": typeof table_teamGames;
-  "table/teamGameweek": typeof table_teamGameweek;
 }>;
 
 /**
