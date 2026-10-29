@@ -1,4 +1,4 @@
-import { Loading, Notice, PageSection } from "../ui/Panel";
+import { Loading, Notice, PageSection, PANEL_COLUMNS } from "../ui/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { EmailInvites } from "./EmailInvites";
 import { InviteLinkPanel } from "./InviteLinkPanel";
@@ -34,7 +34,7 @@ export function InvitesPage({ leagueId, joining }: { leagueId: string; joining: 
         {waiting > 0 && <Notice>{waitingStrip(waiting)}</Notice>}
       </PageSection>
       {page && (
-        <div className="grid items-start gap-2 lg:grid-cols-2">
+        <div className={PANEL_COLUMNS}>
           <EmailInvites page={page} joining={joining} />
           <div className="flex flex-col gap-2">
             <InviteLinkPanel page={page} joining={joining} />

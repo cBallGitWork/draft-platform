@@ -3,7 +3,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { categoryName } from "../../convex/scoring/categories";
 import type { Priced } from "../../convex/scoring/scoringSet";
 import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogue";
-import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { PatchNotesLink } from "../patches/PatchBanner";
 import { useRulesDraft } from "../rules/rulesDraft";
@@ -41,7 +41,7 @@ const ADD_CATEGORY_ID = "category-to-add";
 export function ScoringPage({ league, seam }: { league: LeagueSummary; seam: ScoringSeam }) {
   const view = seam.useScoring();
   return (
-    <div className="flex max-w-6xl flex-col gap-2">
+    <div className={PAGE_STACK}>
       <PageSection title={SCORING_TITLE} aside={<PatchNotesLink />} className="bg-panel">
         <LeagueHeading name={league.name} />
       </PageSection>
