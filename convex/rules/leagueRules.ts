@@ -3,8 +3,8 @@ import type { Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import type { DeadlineRule } from "../gameweeks/deadline";
 import { FIRST_RULES } from "./firstRules";
-import { getLeague, isAdmin, memberOf, refuse, runnerOf } from "../shared/leagueAccess";
-import { recordEvent } from "../mail/letters";
+import { getLeague, memberOf, refuse, runnerOf } from "../shared/leagueAccess";
+import { bylineOf, recordEvent } from "../mail/letters";
 import { checkGamesFor, checkLeagueRules, gamesWords, UnsoundRules, whyMostGames } from "./leagueRulesCheck";
 import { roundsInARoundRobin } from "../table/roundRobin";
 import { heldRules, leagueRulesShape, type LeagueRules } from "./leagueRulesShape";
@@ -14,7 +14,6 @@ import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
 import { momentIn } from "../shared/moments";
 import { zoneOf } from "../signIn/timeZone";
-import { adminByline } from "../mail/letterWords";
 import { checkSquadMaximums, squadMaximumBandShape, squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum, type SquadMaximumBand } from "./squadMaximums";
 import { historyOf, inForce, latestRules, RULES_CHANGES_MOST, type RulesRow } from "./rulesHistory";
 import { heldSchedule } from "../gameweeks/leagueDeadlines";
@@ -68,7 +67,7 @@ async function refuseStale(ctx: QueryCtx, leagueId: Id<"leagues">, email: string
     .order("desc")
     .take(EVENTS_SEARCHED_FOR_SAVER);
   for (const { by, at, event } of events) {
-    if (event.kind === "rulesChanged") refuse(rulesRefusals.changedSince(isAdmin(by) ? adminByline : by, at, zone));
+    if (event.kind === "rulesChanged") refuse(rulesRefusals.changedSince(bylineOf(by), at, zone));
   }
   refuse(rulesRefusals.changedSince(null, latestRow?._creationTime ?? Date.now(), zone));
 }

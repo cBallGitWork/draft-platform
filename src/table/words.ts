@@ -1,6 +1,6 @@
 // What the table and fixtures screen says, in one place for Craig to change in the pull request.
 
-import { LOCALE } from "../../convex/shared/moments";
+import { andListWords } from "../../convex/shared/moments";
 import { menuWords } from "../frame/words";
 import { gameweekWords } from "../shared/words";
 
@@ -24,7 +24,7 @@ export const unscoredWords = (gameweek: number, reason: string) =>
 
 /** The teams on 0 in a gameweek begun before #637 gave every team a lineup, for holding none. */
 export const noLineupWords = (teamNames: readonly string[]) =>
-  `${andList.format(teamNames)} never saved a lineup, so ${teamNames.length === 1 ? "it scores" : "they score"} 0.`;
+  `${andListWords(teamNames)} never saved a lineup, so ${teamNames.length === 1 ? "it scores" : "they score"} 0.`;
 
 /** The table's columns: a short head, and what it stands for. */
 export const columns = {
@@ -41,9 +41,8 @@ export const columns = {
 } as const;
 
 export const leagueAverageWords = "League average";
-const andList = new Intl.ListFormat(LOCALE, { type: "conjunction" });
 /** The teams with a bye in a gameweek: one a game, so several when a league plays more than one. */
-export const byeWords = (teamNames: readonly string[]) => `${andList.format(teamNames)} ${teamNames.length === 1 ? "has" : "have"} a bye.`;
+export const byeWords = (teamNames: readonly string[]) => `${andListWords(teamNames)} ${teamNames.length === 1 ? "has" : "have"} a bye.`;
 export const fixturesListLabel = (gameweek: number) => `${gameweekWords(gameweek)}'s fixtures`;
 export const roundRobinWords = (rounds: number) =>
   `Every team meets every other once a round robin of ${rounds} rounds, and each round robin is drawn in its own order.`;

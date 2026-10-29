@@ -24,11 +24,6 @@ const LIVE_CODE = { williams: 215136, munoz: 247348, enciso: 474120 } as const;
 const LIVE_LINE = { firstGoal: 2878012, droppedFoul: 2878263 } as const;
 /** An FPL code the tests give no name. */
 const NAMELESS_CODE = 1;
-/** Made-up points for the full-time line: scoring is not this file's (the caller passes them). */
-const FULL_TIME_POINTS = [
-  { code: LIVE_CODE.williams, points: 8 },
-  { code: LIVE_CODE.enciso, points: 7 },
-];
 
 function namesOf(elements: RawBootstrap["elements"]): Map<number, string> {
   return new Map(elements.map((element) => [element.code, element.web_name]));
@@ -37,7 +32,6 @@ function namesOf(elements: RawBootstrap["elements"]): Map<number, string> {
 const liveInput: CommentaryInput = {
   header: LIVE_HEADER,
   nameByCode: namesOf(recordedLiveFplPlayers()),
-  fullTimePoints: FULL_TIME_POINTS,
 };
 
 /** One live read of Ipswich v Forest, mapped and written. */
@@ -65,10 +59,10 @@ test("the live match's full-time read writes every line, kick-off to full time, 
   );
 });
 
-test("the kick-off and full-time lines carry the clubs, the score and each man's points as given", () => {
+test("the kick-off and full-time lines carry the clubs and the score", () => {
   const texts = writtenLive("final").lines.map((line) => line.text);
 
-  expect(texts[0]).toBe("FT IPS 1–1 NFO: N.Williams 8, Enciso 7");
+  expect(texts[0]).toBe("FT IPS 1–1 NFO");
   expect(texts.slice(-2)).toEqual(["KO IPS v NFO", "Lineups out"]);
   expect(texts).toContain("46' Second half");
   expect(texts).toContain("45+3' HT");
@@ -88,8 +82,8 @@ test("before full time no full-time line is written", () => {
   expect(writtenLive("withVanished").lines.map((line) => line.text).filter((text) => text.startsWith("FT"))).toEqual([]);
 });
 
-test("with no points to list, the full-time line is the score alone", () => {
-  expect(writtenLive("final", { ...liveInput, fullTimePoints: [] }).lines[0]?.text).toBe("FT IPS 1–1 NFO");
+test("the full-time line is the score alone: the matchup adds the points", () => {
+  expect(writtenLive("final").lines[0]?.text).toBe("FT IPS 1–1 NFO");
 });
 
 test.each(FINISHED_MATCHES)("every line of recorded match %i is worded, but the second half's end", (plId) => {
@@ -97,7 +91,7 @@ test.each(FINISHED_MATCHES)("every line of recorded match %i is worded, but the 
   const stream = recordedCommentary(plId).events.content;
   const { lines } = commentaryLines(recordedSheets(plId), stream, codesByOpta(fplPlayers));
 
-  const written = writeCommentary(lines, { ...liveInput, nameByCode: namesOf(fplPlayers), fullTimePoints: [] });
+  const written = writeCommentary(lines, { ...liveInput, nameByCode: namesOf(fplPlayers) });
 
   expect(written.unworded).toEqual([]);
   expect(written.lines.map((line) => line.sourceId)).toEqual(stream.filter((line) => line.type !== FEED_TYPE.end2).map((line) => line.id));

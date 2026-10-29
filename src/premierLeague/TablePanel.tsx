@@ -1,4 +1,4 @@
-import { ColumnHeads } from "../ui/ColumnHeads";
+import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, Panel, PanelNote } from "../ui/Panel";
 import { ClubName } from "./ClubName";
 import type { PlStandings, PremierLeagueSeam } from "./seam";
@@ -12,7 +12,7 @@ const COLUMNS = Object.keys(tableColumns) as Column[];
 const DESK_ONLY: readonly Column[] = ["goalsFor", "goalsAgainst"];
 
 const cellClasses = (column: Column) =>
-  `px-2 align-middle ${column === "club" ? "text-left" : "text-right"} ${DESK_ONLY.includes(column) ? "hidden sm:table-cell" : ""}`;
+  cellClassOf(column === "club", DESK_ONLY.includes(column));
 
 /** The Premier League table (spec/18, The table), worked out from the results, live; marked
  *  provisional while a match in it is being played. */

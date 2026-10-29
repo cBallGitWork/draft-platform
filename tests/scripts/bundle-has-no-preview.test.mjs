@@ -25,9 +25,13 @@ function builtFolder(files) {
   return built;
 }
 
-/** The check on `folder`: its exit code and everything it printed. */
-function check(folder) {
-  const { status, stdout, stderr } = spawnSync(process.execPath, [CHECK, folder], { cwd: REPO, encoding: "utf8" });
+/** The check on `folder`, over `env`'s sources when given: its exit code and everything it printed. */
+function check(folder, env = {}) {
+  const { status, stdout, stderr } = spawnSync(process.execPath, [CHECK, folder], {
+    cwd: REPO,
+    encoding: "utf8",
+    env: { ...process.env, ...env },
+  });
   return { code: status, output: stdout + stderr };
 }
 
@@ -47,4 +51,11 @@ test("with no built folder, the check fails saying to build first", () => {
   const { code, output } = check(join(tmpdir(), "bundle-check-no-such-folder"));
   expect(code).toBe(1);
   expect(output).toContain("run vite build first");
+});
+
+test("a preview module not named preview.ts but with no entry in NEEDLES fails the check", () => {
+  const sources = builtFolder({ "src/team/preview.ts": "", "src/team/previewExtra.ts": "" });
+  const { code, output } = check(join(sources, "dist"), { PREVIEW_CHECK_SOURCES: join(sources, "src") });
+  expect(code).toBe(1);
+  expect(output).toContain("previewExtra.ts has no entry in NEEDLES");
 });

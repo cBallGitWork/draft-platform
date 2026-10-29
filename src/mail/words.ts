@@ -4,7 +4,7 @@
 
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mail/mailLimits";
 import { LOCALE } from "../../convex/shared/moments";
-import { failedWords } from "../shared/words";
+import { failedWords, timeOfDayWords } from "../shared/words";
 
 export const MAIL_TITLE = "Mail";
 export const noLettersWords = "No letters yet. When something happens in your league, it's reported here.";
@@ -22,10 +22,9 @@ export const unreadTabLabel = (label: string, unread: number) => `${label}, ${un
 export const letterSource = (leagueName: string, from: string | null) => (from === null ? leagueName : `${leagueName}, from ${from}`);
 
 const day = new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "short" });
-const time = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minute: "2-digit" });
 /** When a letter was filed, in the reader's own time: "20 Oct" and "09:00". */
 export const letterDay = (at: number) => day.format(at);
-export const letterTime = (at: number) => time.format(at);
+export const letterTime = timeOfDayWords;
 
 export const WRITE_TITLE = "Write to the league";
 export const writeHint = "Everyone in the league gets it in their Mail. They can't reply: there is no chat.";
