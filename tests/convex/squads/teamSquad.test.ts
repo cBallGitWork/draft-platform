@@ -5,7 +5,7 @@ import type { Cell } from "../../../convex/lineup/pitch";
 import { roleIn } from "../../../convex/lineup/roles";
 import { cardPoints } from "../../../convex/playerCard/cardPoints";
 import type { Position } from "../../../convex/positions/positionTables";
-import type { StoredScoringSet } from "../../../convex/rules/leagueRulesShape";
+import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";

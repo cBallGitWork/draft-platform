@@ -8,6 +8,9 @@
 export const POSITIONS = ["GK", "CB", "FB", "WB", "CDM", "CM", "WM", "CAM", "W", "SS", "ST"] as const;
 export type Position = (typeof POSITIONS)[number];
 
+/** Where a position falls in POSITIONS, back to front; none goes last. */
+export const positionRank = (position: Position | null) => (position === null ? POSITIONS.length : POSITIONS.indexOf(position));
+
 /** Each formation the Premier League sent for a start in 2025/26 or 2026/27 (900 team sheets of
  *  450 matches, read 20 Oct 2026), by its label, drawn as its sheet draws it: lines from the keeper
  *  up, each from the side's right to its left (docs/pl-match-stats.md). The keeper's line is left

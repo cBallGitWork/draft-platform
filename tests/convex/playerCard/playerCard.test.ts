@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { NEXT_FIXTURES_SHOWN } from "../../../convex/playerCard/playerCard";
 import type { Position } from "../../../convex/positions/positionTables";
-import type { StoredScoringSet } from "../../../convex/rules/leagueRulesShape";
+import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";

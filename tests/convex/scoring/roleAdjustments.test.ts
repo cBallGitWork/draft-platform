@@ -4,7 +4,7 @@ import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { scoringChanges } from "../../../convex/scoring/patchChanges";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { validateScoringSet, type ScoringSet } from "../../../convex/scoring/scoringSet";
-import type { StoredScoringSet } from "../../../convex/rules/leagueRulesShape";
+import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreTeam } from "../../../convex/scoring/teamPoints";
 

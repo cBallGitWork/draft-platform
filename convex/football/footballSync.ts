@@ -10,6 +10,8 @@ import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalAction, internalMutation, internalQuery, type ActionCtx, type MutationCtx } from "../_generated/server";
 import { outcomeOf } from "../shared/errors";
+import { fixtureByCode } from "../shared/fixtures";
+import { findClubByCode, playerByCode } from "../shared/players";
 import { readFpl } from "./fpl/fpl";
 import {
   clubRecord,
@@ -72,18 +74,14 @@ export const upsertClubs = internalMutation({
   args: { rows: v.array(clubRecord) },
   returns: upserted,
   handler: (ctx, { rows }): Promise<Upserted> =>
-    upsertEach(ctx, "clubs", rows, (row) =>
-      ctx.db.query("clubs").withIndex("by_code", (q) => q.eq("code", row.code)).unique(),
-    ),
+    upsertEach(ctx, "clubs", rows, (row) => findClubByCode(ctx, row.code)),
 });
 
 export const upsertPlayers = internalMutation({
   args: { rows: v.array(playerRecord) },
   returns: upserted,
   handler: (ctx, { rows }): Promise<Upserted> =>
-    upsertEach(ctx, "players", rows, (row) =>
-      ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", row.code)).unique(),
-    ),
+    upsertEach(ctx, "players", rows, (row) => playerByCode(ctx, row.code)),
 });
 
 export const upsertFixtures = internalMutation({
@@ -92,9 +90,7 @@ export const upsertFixtures = internalMutation({
   handler: async (ctx, { rows }): Promise<Upserted> => {
     // In the same transaction as the kickoffs it may move (#150, deadlineRecorder.ts).
     await recordPassedDeadlines(ctx);
-    return upsertEach(ctx, "fixtures", rows, (row) =>
-      ctx.db.query("fixtures").withIndex("by_code", (q) => q.eq("code", row.code)).unique(),
-    );
+    return upsertEach(ctx, "fixtures", rows, (row) => fixtureByCode(ctx, row.code));
   },
 });
 

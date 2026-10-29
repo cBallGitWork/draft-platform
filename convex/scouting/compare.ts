@@ -7,7 +7,7 @@ import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount, type HowPositionsCount } from "../positions/positionSettings";
 import { clubRecord, position } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
-import { clubByCode, playerByCode } from "../shared/players";
+import { clubByCode, clubOf, playerByCode } from "../shared/players";
 import { isWhole } from "../stats/matchRecords";
 import { sumStats } from "../stats/statTotals";
 import { COMPARED_PLAYERS } from "./comparedPlayers";
@@ -59,13 +59,13 @@ export const players = query({
 async function compared(ctx: QueryCtx, leagueId: Id<"leagues">, code: number, how: HowPositionsCount): Promise<ComparedPlayer> {
   const player = await playerByCode(ctx, code);
   if (player === null) throw new Error(`No player ${code} is held to compare`);
-  const { name, shortName } = await clubByCode(ctx, player.clubCode);
+  const club = await clubByCode(ctx, player.clubCode);
   const season = await seasonRecords(ctx, code);
   return {
     code,
     name: player.name,
     fullName: player.fullName,
-    club: { code: player.clubCode, name, shortName },
+    club: clubOf(club),
     positions: await currentPositions(ctx, code, how),
     ownerTeamName: await ownerIn(ctx, leagueId, code),
     seasonPoints: null,
