@@ -36,6 +36,14 @@ export const ALL_CELLS: readonly Cell[] = AREAS.flatMap((area) => cellsOf(area, 
 /** A cell as one string, for a set or a map of cells, and to name it in a message. */
 export const cellKey = ({ area, lane }: Cell): string => `${area}/${lane}`;
 
+/** Whether two cells, or two placements, name the same area and lane. */
+export const sameCell = (one: { area: string; lane: string }, other: { area: string; lane: string }): boolean =>
+  one.area === other.area && one.lane === other.lane;
+
+/** The pitch's order for a sort, ALL_CELLS's: back to front, then left to right. */
+export const byPitchOrder = (one: Cell, other: Cell): number =>
+  AREAS.indexOf(one.area) - AREAS.indexOf(other.area) || LANES.indexOf(one.lane) - LANES.indexOf(other.lane);
+
 /** Whether a cell held as data names one of the pitch's areas and one of its lanes. */
 export const isOnPitch = ({ area, lane }: Cell): boolean => AREAS.includes(area) && LANES.includes(lane);
 
@@ -92,6 +100,6 @@ export function areasOf(positions: readonly Position[]): Area[] {
  *  one still unconfirmed counts the same (spec/06, New signings). */
 export function playsCell(positions: readonly Position[], cell: Cell): boolean {
   return positions.some((position) =>
-    PLAYABLE_CELLS[position].some((playable) => playable.area === cell.area && playable.lane === cell.lane),
+    PLAYABLE_CELLS[position].some((playable) => sameCell(playable, cell)),
   );
 }
