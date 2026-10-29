@@ -1,6 +1,7 @@
 import { PRODUCT_NAME } from "../shared/product";
 import { RESEND_API_URL } from "./resend";
-import { EMAIL_FROM_SETTING, TEST_SENDER } from "./sender";
+import { EMAIL_FROM_SETTING, RESEND_KEY_SETTING } from "./deploymentSettings";
+import { TEST_SENDER } from "./sender";
 
 // The app's emails go out through Resend's API (ARCHITECTURE.md, Services).
 
@@ -15,8 +16,8 @@ function sender(): string {
 /** Sends one email, or throws saying why it wasn't sent. Every email the app sends goes through
  *  here, and counts nothing: the caller counts it first, against the day's limit (emailLimit.ts). */
 export async function sendEmail(to: string, words: { subject: string; text: string }) {
-  const apiKey = process.env.AUTH_RESEND_KEY;
-  if (!apiKey) throw new Error("AUTH_RESEND_KEY isn't set on this deployment, so no email can be sent");
+  const apiKey = process.env[RESEND_KEY_SETTING];
+  if (!apiKey) throw new Error(`${RESEND_KEY_SETTING} isn't set on this deployment, so no email can be sent`);
   const response = await fetch(RESEND_EMAILS_URL, {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
