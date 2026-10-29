@@ -5,6 +5,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, PageSection, Problem } from "../ui/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { TickBox } from "../ui/TickBox";
+import { useChange } from "../shared/useChange";
 import { useMinute } from "../shared/useMinute";
 import { gameweekWords, whenWords } from "../shared/words";
 import type { LeagueGameweeksView } from "./seam";
@@ -24,12 +25,13 @@ const cellClasses = "px-2 text-left align-middle";
  *  38 by default, until it begins. Each tick is sent as it's made; the server says why one wasn't. */
 export function GameweeksPage({ league, view }: { league: LeagueSummary; view: LeagueGameweeksView }) {
   const { gameweeks, setUsed } = view;
+  /** Which gameweek's tick is waiting on the server; useChange's own busy can't say which row. */
   const [sending, setSending] = useState<number | null>(null);
-  const [problem, setProblem] = useState<string | null>(null);
+  const { problem, run } = useChange();
 
   async function tick({ gameweek, used }: LeagueGameweek) {
     setSending(gameweek);
-    setProblem(await setUsed(gameweek, !used));
+    await run(() => setUsed(gameweek, !used));
     setSending(null);
   }
 
