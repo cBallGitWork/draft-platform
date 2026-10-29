@@ -1,8 +1,8 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query } from "../_generated/server";
-import { adminByline } from "../mail/letterWords";
-import { isAdmin, managerOf } from "../shared/leagueAccess";
+import { bylineOf } from "../mail/letters";
+import { managerOf } from "../shared/leagueAccess";
 import { isSquadMove, SQUAD_MOVES } from "./squadPlace";
 
 // My team's Transactions tab (#366; spec/12, My team's tabs: "the team's claims, drops, trades and
@@ -38,7 +38,7 @@ type Transaction = Infer<typeof transaction>;
 /** The team's transaction in a league event, if it is one. */
 function transactionOf({ at, by, event }: Doc<"leagueEvents">, teamId: Id<"teams">): Transaction | null {
   if (!isSquadMove(event)) return null;
-  const done = { at, by: isAdmin(by) ? adminByline : by, playerCode: event.playerCode, playerName: event.playerName };
+  const done = { at, by: bylineOf(by), playerCode: event.playerCode, playerName: event.playerName };
   if (event.kind === "playerMoved") {
     if (event.teamId === teamId) return { ...done, kind: "movedIn", otherTeamName: event.fromTeamName };
     if (event.fromTeamId === teamId) return { ...done, kind: "movedOut", otherTeamName: event.teamName };

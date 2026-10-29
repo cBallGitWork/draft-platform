@@ -8,7 +8,6 @@ import { HomePage } from "../home/HomePage";
 import { MatchupPage } from "../matchup/MatchupPage";
 import { matchupSearchOf } from "../matchup/paths";
 import { FixturesPage } from "../myTeam/FixturesPage";
-import type { MyTeamSeam } from "../myTeam/seam";
 import { SquadPage } from "../myTeam/SquadPage";
 import { TacticsPage } from "../myTeam/tactics/TacticsPage";
 import { TransactionsPage } from "../myTeam/TransactionsPage";
@@ -17,7 +16,7 @@ import { MATCH_ROUTE } from "../premierLeague/paths";
 import { PremierLeaguePage } from "../premierLeague/PremierLeaguePage";
 import { ScoutingPage } from "../scouting/ScoutingPage";
 import { TablePage } from "../table/TablePage";
-import { CODE_DIGITS, LANDING_PATH, frameRoute } from "./root";
+import { CODE_DIGITS, LANDING_PATH, frameRoute, type ShellContext } from "./root";
 
 // The pages under root.tsx's frameRoute, for anyone in a league, in its frame; and a placeholder for
 // each menu page not built yet. Each league page is the current league's (CurrentLeague.tsx),
@@ -32,55 +31,36 @@ const landingRoute = createRoute({
   },
 });
 
-// The league's table and fixtures (#33), for anyone in it.
-const tableRoute = createRoute({
-  getParentRoute: () => frameRoute,
-  path: TABLE_PATH,
-  component: function Table() {
-    const { session, table } = tableRoute.useRouteContext();
-    return <CurrentLeague session={session} page={(league) => <TablePage league={league} seam={table} />} />;
-  },
-});
+/** The seams of the current league's pages that take only the league and their seam. */
+type LeaguePageSeams = Pick<ShellContext, "table" | "home" | "scouting" | "myTeam">;
 
-// League home (#387), for anyone in the league.
-const homeRoute = createRoute({
-  getParentRoute: () => frameRoute,
-  path: HOME_PATH,
-  component: function Home() {
-    const { session, home } = homeRoute.useRouteContext();
-    return <CurrentLeague session={session} page={(league) => <HomePage league={league} seam={home} />} />;
-  },
-});
-
-// Scouting's players list (#373), for anyone in the league.
-const scoutingRoute = createRoute({
-  getParentRoute: () => frameRoute,
-  path: SCOUTING_PATH,
-  component: function Scouting() {
-    const { session, scouting } = scoutingRoute.useRouteContext();
-    return <CurrentLeague session={session} page={(league) => <ScoutingPage league={league} seam={scouting} />} />;
-  },
-});
-
-/** One of My team's tabs at `path`, for anyone in the league: `Tab` is given the league the app is
- *  in and the My team seam. */
-function myTeamTab(path: string, Tab: ComponentType<{ league: LeagueSummary; seam: MyTeamSeam }>) {
+/** A page of the current league's at `path`, for anyone in it: `Page` is given the league the app
+ *  is in and its seam from the context. */
+function leaguePage<Seam extends keyof LeaguePageSeams, Path extends string>(
+  path: Path,
+  seam: Seam,
+  Page: ComponentType<{ league: LeagueSummary; seam: LeaguePageSeams[Seam] }>,
+) {
   const route = createRoute({
     getParentRoute: () => frameRoute,
     path,
-    component: function MyTeamTab() {
-      const { session, myTeam } = route.useRouteContext();
-      return <CurrentLeague session={session} page={(league) => <Tab league={league} seam={myTeam} />} />;
+    component: function LeaguePage() {
+      const context = route.useRouteContext();
+      return <CurrentLeague session={context.session} page={(league) => <Page league={league} seam={context[seam]} />} />;
     },
   });
   return route;
 }
 
+const tableRoute = leaguePage(TABLE_PATH, "table", TablePage); // The league's table and fixtures (#33)
+const homeRoute = leaguePage(HOME_PATH, "home", HomePage); // League home (#387)
+const scoutingRoute = leaguePage(SCOUTING_PATH, "scouting", ScoutingPage); // Scouting's players list (#373)
+
 // My team's Tactics tab (#14), where a manager lands: his own team's lineup on the pitch.
-const myTeamTacticsRoute = myTeamTab(MY_TEAM_PATH, TacticsPage);
-const myTeamSquadRoute = myTeamTab(MY_TEAM_SQUAD_PATH, SquadPage); // #364
-const myTeamFixturesRoute = myTeamTab(MY_TEAM_FIXTURES_PATH, FixturesPage); // #365
-const myTeamTransactionsRoute = myTeamTab(MY_TEAM_TRANSACTIONS_PATH, TransactionsPage); // #366
+const myTeamTacticsRoute = leaguePage(MY_TEAM_PATH, "myTeam", TacticsPage);
+const myTeamSquadRoute = leaguePage(MY_TEAM_SQUAD_PATH, "myTeam", SquadPage); // #364
+const myTeamFixturesRoute = leaguePage(MY_TEAM_FIXTURES_PATH, "myTeam", FixturesPage); // #365
+const myTeamTransactionsRoute = leaguePage(MY_TEAM_TRANSACTIONS_PATH, "myTeam", TransactionsPage); // #366
 
 // The matchup (#34), for anyone in the league: a team's head-to-head in a gameweek, the manager's
 // own in the latest begun unless the address names another.

@@ -37,11 +37,10 @@ import {
   statLabel,
 } from "../../../src/scouting/words";
 import { POSITION_NAMES } from "../../../src/shared/words";
+import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";
 import type { ScoutingData } from "../../support/src/scouting.harness";
 import { commissioner, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 
-const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
-const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
 const player = (code: number, name: string, club: ListedPlayer["club"], positions: ListedPlayer["positions"], ownerTeamName: string | null): ListedPlayer => ({
   code,
   name,

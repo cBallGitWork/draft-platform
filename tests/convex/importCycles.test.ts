@@ -1,0 +1,144 @@
+import { expect, test } from "vitest";
+
+// No value-import cycle in convex/. A cycle works only while every use sits inside a function:
+// a module-level constant built from a file in the loop is undefined at load (#198). #637 added
+// one between lineups.ts and squads.ts and nothing noticed; this test notices the next one.
+
+const SOURCES = import.meta.glob("../../convex/**/*.ts", { query: "?raw", import: "default", eager: true }) as Record<
+  string,
+  string
+>;
+const SOURCE_PREFIX = "../../";
+const GENERATED = "convex/_generated/";
+const TS = ".ts";
+const INDEX = "/index.ts";
+
+/** #198's trio, allowed by name until it is fixed. */
+const ALLOWED_CYCLE = ["convex/scoring/ownStats.ts", "convex/scoring/scoring.ts", "convex/scoring/scoringSet.ts"];
+
+/** `import … from "x"` and `export … from "x"`, the clause kept to tell type-only ones apart. */
+const FROM_CLAUSE = /^\s*(import|export)\s+([^;=]*?)\s*from\s*["']([^"']+)["']/gm;
+/** `import "x"`, run for its effects. */
+const BARE_IMPORT = /^\s*import\s*["']([^"']+)["']/gm;
+
+function files(): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const [key, source] of Object.entries(SOURCES)) {
+    const path = key.slice(SOURCE_PREFIX.length);
+    if (!path.startsWith(GENERATED)) out.set(path, source);
+  }
+  return out;
+}
+
+/** True when the clause brings in only types. */
+function typeOnly(clause: string): boolean {
+  if (/^type\s/.test(clause)) return true;
+  const braces = clause.match(/^\{([\s\S]*)\}$/);
+  if (!braces) return false;
+  const names = braces[1].split(",").map((name) => name.trim()).filter(Boolean);
+  return names.length > 0 && names.every((name) => /^type\s/.test(name));
+}
+
+/** The folder of a path, without the trailing slash. */
+const folderOf = (path: string) => path.slice(0, path.lastIndexOf("/"));
+
+function normalise(path: string): string {
+  const parts: string[] = [];
+  for (const part of path.split("/")) {
+    if (part === "..") parts.pop();
+    else if (part !== "." && part !== "") parts.push(part);
+  }
+  return parts.join("/");
+}
+
+/** The convex file a relative specifier names: `<path>.ts` first, then `<path>/index.ts`. */
+function resolve(from: string, specifier: string, known: Map<string, string>): string | undefined {
+  if (!specifier.startsWith(".")) return undefined;
+  const base = normalise(`${folderOf(from)}/${specifier}`);
+  for (const candidate of [base.endsWith(TS) ? base : `${base}${TS}`, `${base}${INDEX}`]) {
+    if (candidate.startsWith(GENERATED)) return undefined;
+    if (known.has(candidate)) return candidate;
+  }
+  throw new Error(`${from} imports ${specifier}, which names no file under convex/`);
+}
+
+function edges(known: Map<string, string>): Map<string, string[]> {
+  const graph = new Map<string, string[]>();
+  for (const [path, source] of known) {
+    const specifiers: string[] = [];
+    for (const [, , clause, specifier] of source.matchAll(FROM_CLAUSE)) {
+      if (!typeOnly(clause)) specifiers.push(specifier);
+    }
+    for (const [, specifier] of source.matchAll(BARE_IMPORT)) specifiers.push(specifier);
+    const targets = specifiers.map((specifier) => resolve(path, specifier, known)).filter((t) => t !== undefined);
+    graph.set(path, [...new Set(targets)]);
+  }
+  return graph;
+}
+
+/** Tarjan's strongly connected components, keeping only groups of two or more files. */
+function cycles(graph: Map<string, string[]>): string[][] {
+  let next = 0;
+  const index = new Map<string, number>();
+  const low = new Map<string, number>();
+  const stack: string[] = [];
+  const onStack = new Set<string>();
+  const groups: string[][] = [];
+
+  const visit = (node: string) => {
+    index.set(node, next);
+    low.set(node, next);
+    next += 1;
+    stack.push(node);
+    onStack.add(node);
+    for (const target of graph.get(node) ?? []) {
+      if (!index.has(target)) {
+        visit(target);
+        low.set(node, Math.min(low.get(node)!, low.get(target)!));
+      } else if (onStack.has(target)) {
+        low.set(node, Math.min(low.get(node)!, index.get(target)!));
+      }
+    }
+    if (low.get(node) !== index.get(node)) return;
+    const group: string[] = [];
+    let member: string;
+    do {
+      member = stack.pop()!;
+      onStack.delete(member);
+      group.push(member);
+    } while (member !== node);
+    if (group.length > 1) groups.push(group.sort());
+  };
+
+  for (const node of graph.keys()) if (!index.has(node)) visit(node);
+  return groups;
+}
+
+test("the walk sees convex/'s files and their imports", () => {
+  const known = files();
+  const graph = edges(known);
+  expect(known.size).toBeGreaterThan(ALLOWED_CYCLE.length);
+  // schema.ts, not the schema/ folder, is what "../../schema" names from two folders down.
+  expect(resolve("convex/football/premierLeague/plTeamStats.ts", "../../schema", known)).toBe("convex/schema.ts");
+  expect(graph.get("convex/scoring/scoring.ts")).toContain("convex/scoring/scoringSet.ts");
+});
+
+test("the walk finds a cycle and skips type-only imports", () => {
+  const known = new Map([
+    ["convex/a.ts", 'import { b } from "./b";\nimport type { C } from "./c";'],
+    ["convex/b.ts", 'export { a } from "./a";'],
+    ["convex/c.ts", 'import { type A } from "./a";'],
+  ]);
+  expect(cycles(edges(known))).toEqual([["convex/a.ts", "convex/b.ts"]]);
+});
+
+test("no value-import cycle in convex/ beyond #198's trio", () => {
+  const found = cycles(edges(files()));
+  const allowedKey = ALLOWED_CYCLE.join(" ");
+  const others = found.filter((group) => group.join(" ") !== allowedKey);
+  expect(others, `import cycles: ${others.map((g) => g.join(" <-> ")).join("; ")}`).toEqual([]);
+  expect(
+    found.map((g) => g.join(" ")),
+    "#198's scoring cycle is gone: remove the allowance (ALLOWED_CYCLE)",
+  ).toContain(allowedKey);
+});

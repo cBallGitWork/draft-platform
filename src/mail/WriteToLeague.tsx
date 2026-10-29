@@ -2,6 +2,8 @@ import { useState, type FormEvent } from "react";
 import { BODY_MAX, SUBJECT_MAX } from "../../convex/mail/mailLimits";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PANEL_BODY, Panel, Problem, Status } from "../ui/Panel";
+import { useChange } from "../shared/useChange";
+import { useChoiceAmong } from "../shared/useChoiceAmong";
 import type { MailSeam } from "./seam";
 import { WRITE_TITLE, sendToWords, sentWords, writeHint, writeLabels } from "./words";
 
@@ -14,35 +16,33 @@ const HINT_ID = "letter-hint";
 /** How many lines the letter's box shows before it scrolls. */
 const LETTER_ROWS = 6;
 
-type Outcome = { sent: true; leagueName: string } | { sent: false; problem: string };
-
 /** spec/16: the commissioner's one-way letter to the whole league, from a league they run. */
 export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly LeagueSummary[]; writeToLeague: MailSeam["writeToLeague"] }) {
-  const [leagueId, setLeagueId] = useState(leagues[0].leagueId);
+  // The first league is passed as the start, so the default doesn't follow whichever comes first later.
+  const [leagueId, setLeagueId] = useChoiceAmong(
+    leagues.map((each) => each.leagueId),
+    leagues[0].leagueId,
+  );
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
-  const [sending, setSending] = useState(false);
-  const [outcome, setOutcome] = useState<Outcome | null>(null);
+  const { busy: sending, problem, run } = useChange();
+  /** The league the last letter went to; cleared by a refusal. */
+  const [sentTo, setSentTo] = useState<string | null>(null);
   const league = leagues.find((each) => each.leagueId === leagueId) ?? leagues[0];
 
   async function send(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSending(true);
-    const problem = await writeToLeague({ leagueId: league.leagueId, subject, body });
-    setSending(false);
-    if (problem !== null) {
-      setOutcome({ sent: false, problem });
-      return;
-    }
-    setOutcome({ sent: true, leagueName: league.name });
+    const made = await run(() => writeToLeague({ leagueId: league.leagueId, subject, body }));
+    setSentTo(made ? league.name : null);
+    if (!made) return;
     setSubject("");
     setBody("");
   }
 
   return (
     <Panel title={WRITE_TITLE} className="min-w-0 max-w-xl grow basis-letter-form">
-      <Problem problem={outcome?.sent === false ? outcome.problem : null} />
-      <Status words={outcome?.sent ? sentWords(outcome.leagueName) : null} className="px-3 pt-2 text-derived" />
+      <Problem problem={problem} />
+      <Status words={sentTo === null ? null : sentWords(sentTo)} className="px-3 pt-2 text-derived" />
       <form onSubmit={send} className={PANEL_BODY}>
         <p id={HINT_ID} className="text-muted">
           {writeHint}
