@@ -3,6 +3,7 @@
 // built (#10, #11): a sub's role, the slot's or his best-star one, is told by `into` for them.
 // Storing the result, scoring it and showing it are not here.
 
+import type { Position } from "../positions/positionTables";
 import {
   STARTER_COUNT,
   lineupProblems,
@@ -40,6 +41,7 @@ export function gameweekPlay(matches: readonly PlayerMatch[]): GameweekPlay {
 }
 
 export interface Substitution {
+  /** The starter who didn't play, or who left the squad and left his slot empty. */
   off: PlayerCode;
   on: PlayerCode;
   area: Area;
@@ -51,65 +53,82 @@ export interface Substitution {
 
 export interface AutoSubs {
   substitutions: Substitution[];
-  /** Starters who didn't play and whom no one could replace legally: each one's slot scores nothing. */
+  /** Starters who didn't play or left the squad, and whom no one could replace legally: each one's
+   *  slot scores nothing. */
   unfilled: PlayerCode[];
-  /** After the substitutions: each player off sits on the bench where his sub sat. No sub makes it
-   *  less legal than it started, so a legal lineup stays legal. */
+  /** After the substitutions: each player off sits on the bench where his sub sat, but one who left
+   *  the squad is in it nowhere. No sub makes it less legal than it started, so a legal lineup stays
+   *  legal. */
   lineup: Lineup;
   /** What the lineup carried in and still carries: fewer than eleven, or area limits a later rules
    *  change broke. Empty when it may stand, a starter who lost a position aside (spec/06). */
   carriedProblems: LineupProblem[];
 }
 
-/** What a saved lineup can carry into a gameweek (#392): a player who left the squad leaves his
- *  cell empty, and a later rules change isn't checked against it. Auto-subs work around both and
- *  never add a starter: they replace only one who didn't play, though a sub coming on in his own
- *  area may stand in an empty cell. Any other problem is data gone wrong, and is thrown. */
+/** What a saved lineup can carry into a gameweek (#392): fewer than eleven, and a later rules change
+ *  isn't checked against it. Auto-subs work around both and never add a starter beyond the slots
+ *  `vacated`, though a sub coming on in his own area may stand in an empty cell. Any other problem
+ *  is data gone wrong, and is thrown. */
 const CARRIED_KINDS: ReadonlySet<LineupProblem["kind"]> = new Set(["wrongStarterCount", "belowMinimum", "aboveMaximum"]);
 
-/** The substitutions for every starter who didn't play, back to front and left to right, and the
- *  lineup they leave. There is no limit on them (spec/05). */
+/** A starter who left the squad plays nowhere now: only the slot he left counts. */
+const NO_POSITIONS: readonly Position[] = [];
+
+/** The substitutions for every starter who didn't play, and every slot `vacated` by one who left the
+ *  squad (lineups.ts), back to front and left to right, and the lineup they leave. There is no limit
+ *  on them (spec/05). */
 export function autoSubs(
   lineup: Lineup,
   /** The bench's as well as the starters'. */
   positions: PlayerPositions,
   plays: ReadonlyMap<PlayerCode, GameweekPlay>,
   rules: LineupRules,
+  vacated: readonly Placement[],
 ): AutoSubs {
-  const corrupt = standingProblems(lineup, positions, rules).filter(
+  // Each who left stands in his slot again, on 0 minutes, so it is filled and the limits weighed
+  // just as if he hadn't played (spec/05, Auto-subs); he is taken out of what is handed back.
+  const departed = new Set(vacated.map(({ playerCode }) => playerCode));
+  const saved: Lineup = { starters: [...lineup.starters, ...vacated], bench: lineup.bench };
+  const weighed: PlayerPositions = new Map([...positions, ...vacated.map(({ playerCode }) => [playerCode, NO_POSITIONS] as const)]);
+  const corrupt = standingProblems(saved, weighed, rules).filter(
     (problem) => !CARRIED_KINDS.has(problem.kind) || (problem.kind === "wrongStarterCount" && problem.starterCount > STARTER_COUNT),
   );
   if (corrupt.length > 0) {
     throw new Error(`Auto-subs can't work round ${corrupt.map((problem) => problem.kind).join(", ")}`);
   }
   const playOf = (playerCode: PlayerCode): GameweekPlay => {
+    if (departed.has(playerCode)) return "didNotPlay";
     const play = plays.get(playerCode);
     if (play === undefined) throw new Error(`Auto-subs need to know whether player ${playerCode} played`);
     return play;
   };
   // Asked of everyone at once, so a gap in what the caller knows fails every time, not only on
   // the day a sub is needed.
-  for (const starter of lineup.starters) playOf(starter.playerCode);
-  for (const playerCode of lineup.bench) {
+  for (const starter of saved.starters) playOf(starter.playerCode);
+  for (const playerCode of saved.bench) {
     playOf(playerCode);
-    positionsOf(positions, playerCode);
+    positionsOf(weighed, playerCode);
   }
 
-  const absentees = lineup.starters.filter((starter) => playOf(starter.playerCode) === "didNotPlay").sort(byPitchOrder);
-  let current = lineup;
+  const absentees = saved.starters.filter((starter) => playOf(starter.playerCode) === "didNotPlay").sort(byPitchOrder);
+  let current = saved;
   const substitutions: Substitution[] = [];
   const unfilled: PlayerCode[] = [];
   for (const absentee of absentees) {
     // A sub who hasn't played yet may still: he comes on provisionally, and keeps the bench's order.
     const available = current.bench.filter((playerCode) => playOf(playerCode) !== "didNotPlay");
-    const sub = firstLegalSub(current, absentee, available, positions, rules);
+    const sub = firstLegalSub(current, absentee, available, weighed, rules);
     if (sub === undefined) unfilled.push(absentee.playerCode);
     else {
       substitutions.push(sub.substitution);
       current = sub.lineup;
     }
   }
-  return { substitutions, unfilled, lineup: current, carriedProblems: standingProblems(current, positions, rules) };
+  const stillInSquad: Lineup = {
+    starters: current.starters.filter(({ playerCode }) => !departed.has(playerCode)),
+    bench: current.bench.filter((playerCode) => !departed.has(playerCode)),
+  };
+  return { substitutions, unfilled, lineup: stillInSquad, carriedProblems: standingProblems(stillInSquad, positions, rules) };
 }
 
 /** The first on the bench who can play the slot takes it. If none can, the first who keeps the

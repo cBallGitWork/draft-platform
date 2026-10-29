@@ -139,13 +139,13 @@ describe("the lineup held", () => {
   });
 
   it("says who joined the squad since and sits at the end of the bench", async () => {
-    const lineup = { kind: "saved" as const, fromGameweek: TACTICS_GAMEWEEK, starters: STARTERS, bench: [ARRIZABALAGA.playerCode, WHITE.playerCode], leftSquad: [], joinedBench: [WHITE.playerCode] };
+    const lineup = { kind: "saved" as const, fromGameweek: TACTICS_GAMEWEEK, starters: STARTERS, bench: [ARRIZABALAGA.playerCode, WHITE.playerCode], leftSquad: [], joinedBench: [WHITE.playerCode], vacated: [] };
     openTacticsTab({ tactics: openTactics({ squad: SQUAD, lineup }) });
     expect(await screen.findByText(joinedBenchWords([WHITE.name]))).toBeTruthy();
   });
 
   it("says when the bench is empty", async () => {
-    openTacticsTab({ tactics: openTactics({ squad: [RAYA], lineup: { kind: "saved", fromGameweek: 1, starters: [STARTERS[0]], bench: [], leftSquad: [], joinedBench: [] } }) });
+    openTacticsTab({ tactics: openTactics({ squad: [RAYA], lineup: { kind: "saved", fromGameweek: 1, starters: [STARTERS[0]], bench: [], leftSquad: [], joinedBench: [], vacated: [] } }) });
     expect(await screen.findByText(emptyBenchWords)).toBeTruthy();
   });
 });

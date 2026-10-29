@@ -43,7 +43,7 @@ export function subbed(
   played: ReadonlyMap<number, GameweekPlay>,
   rules: LineupRules = openLimits(),
 ) {
-  const result = autoSubs(lineup, positions, played, rules);
+  const result = autoSubs(lineup, positions, played, rules, []);
   expect(lineupProblems(result.lineup, positions, rules)).toEqual([]);
   return result;
 }

@@ -43,7 +43,11 @@ const ANNS_STARTERS = HULL_STARTERS.map((starter) => (starter.playerCode === PLA
 const ANNS_BENCH = HULL_BENCH.filter((code) => code !== UNUSED_CENTRE_BACK);
 const ANNS_MEN = [...ANNS_STARTERS.map(({ playerCode }) => playerCode), ...ANNS_BENCH];
 
-async function annsLeague({ bobSaves = true } = {}): Promise<ScoresLeague> {
+/** Ann's midfielder in midfield's left-centre slot, who played the match. */
+const LEFT_CENTRE_MIDFIELDER = 243413;
+
+/** Ann's league; each of `departed` left her squad before the deadline, his lineup slot vacated. */
+async function annsLeague({ bobSaves = true, departed = [] as number[] } = {}): Promise<ScoresLeague> {
   const league = await scoresLeague({ bobSaves });
   await league.t.run(async (ctx) => {
     // The card names each match's clubs.
@@ -51,16 +55,18 @@ async function annsLeague({ bobSaves = true } = {}): Promise<ScoresLeague> {
     await ctx.db.insert("clubs", { code: EVERTON, name: "Everton", shortName: "EVE" });
     const lineup = (await ctx.db.query("lineups").withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) => q.eq("leagueId", league.leagueId).eq("teamId", league.annsTeam)).unique())!;
     await ctx.db.patch("lineups", lineup._id, { starters: ANNS_STARTERS, bench: ANNS_BENCH });
-    const owned = (await ctx.db.query("squadPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", league.leagueId).eq("playerCode", PLAYED_CENTRE_BACK)).unique())!;
-    await ctx.db.delete("squadPlayers", owned._id);
+    for (const playerCode of [PLAYED_CENTRE_BACK, ...departed]) {
+      const owned = (await ctx.db.query("squadPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", league.leagueId).eq("playerCode", playerCode)).unique())!;
+      await ctx.db.delete("squadPlayers", owned._id);
+    }
   });
   return league;
 }
 
-async function annsGameweek(league: ScoresLeague) {
+async function annsGameweek(league: ScoresLeague, men: readonly number[]) {
   const ann = await actingAs(league.t, ANN);
   const cards = new Map<number, PlayedMatch[]>();
-  for (const playerCode of ANNS_MEN) {
+  for (const playerCode of men) {
     const card = await ann.query(api.playerCard.playerCard.card, { leagueId: league.leagueId, playerCode, now: LEAGUE_FULL_TIME_READ });
     cards.set(playerCode, card!.matches.filter((match) => match.gameweek === GAMEWEEK));
   }
@@ -74,8 +80,8 @@ const credited = (matches: readonly PlayedMatch[]) => matches.filter((match) => 
 const sum = (points: readonly number[]) => inTenths(points.reduce((total, each) => total + each, 0));
 
 /** The seam: the card credits what the table counts, and the Squad tab adds up the card. */
-async function expectCardsAddUpToTheTable(league: ScoresLeague, provisional: boolean) {
-  const { cards, table, squad } = await annsGameweek(league);
+async function expectCardsAddUpToTheTable(league: ScoresLeague, provisional: boolean, men: readonly number[] = ANNS_MEN) {
+  const { cards, table, squad } = await annsGameweek(league, men);
   expect(sum([...cards.values()].flatMap(credited))).toBe(table.points);
   expect(table.provisional).toBe(provisional);
   for (const [playerCode, matches] of cards) {
@@ -119,6 +125,16 @@ test("once the match locks, the cards add up to the table's final total", async 
   await fullTimeRecords(league);
   await lockMatch(league);
   await expectCardsAddUpToTheTable(league, false);
+});
+
+test("a starter who left the squad: the bench fills his slot, and the cards still add up to the table (#597)", async () => {
+  const league = await annsLeague({ departed: [LEFT_CENTRE_MIDFIELDER] });
+  await fullTimeRecords(league);
+  const cards = await expectCardsAddUpToTheTable(league, true, ANNS_MEN.filter((code) => code !== LEFT_CENTRE_MIDFIELDER));
+
+  // The midfielder who stayed on the bench before now takes the departed one's slot, as an auto-sub.
+  expect(cards.get(LEFT_ON_THE_BENCH)![0].points).toMatchObject({ scoredAs: "slot", position: "CM" });
+  expect(cards.get(ON_IN_HIS_OWN_AREA)![0].points).toMatchObject({ scoredAs: "slot", position: "CM" });
 });
 
 const OVERRIDDEN = 12.5;
