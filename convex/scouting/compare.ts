@@ -2,11 +2,10 @@ import { v, type Infer } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { seasonRecords } from "../gameweekScorer/scoredMatches";
-import { currentPositions } from "../positions/playerPositions";
-import { howPositionsCount, type HowPositionsCount } from "../positions/positionSettings";
+import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import { clubRecord, position } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
-import { clubByCode, clubOf, playerByCode } from "../shared/players";
+import { clubByCode, clubOf, heldPlayerByCode } from "../shared/players";
 import { ownerOf } from "../squads/squadPlace";
 import { isWhole } from "../stats/matchRecords";
 import { sumStats } from "../stats/statTotals";
@@ -51,14 +50,13 @@ export const players = query({
     if (codes.length !== COMPARED_PLAYERS || new Set(codes).size !== COMPARED_PLAYERS) {
       throw new Error(`Compare ${COMPARED_PLAYERS} different players, not ${codes.join(", ")}`);
     }
-    const how = await howPositionsCount(ctx);
-    return Promise.all(codes.map((code) => compared(ctx, leagueId, code, how)));
+    const positionsOfNow = await positionsNow(ctx);
+    return Promise.all(codes.map((code) => compared(ctx, leagueId, code, positionsOfNow)));
   },
 });
 
-async function compared(ctx: QueryCtx, leagueId: Id<"leagues">, code: number, how: HowPositionsCount): Promise<ComparedPlayer> {
-  const player = await playerByCode(ctx, code);
-  if (player === null) throw new Error(`No player ${code} is held to compare`);
+async function compared(ctx: QueryCtx, leagueId: Id<"leagues">, code: number, positionsOfNow: PositionsNow): Promise<ComparedPlayer> {
+  const player = await heldPlayerByCode(ctx, code, `No player ${code} is held to compare`);
   const club = await clubByCode(ctx, player.clubCode);
   const season = await seasonRecords(ctx, code);
   return {
@@ -66,7 +64,7 @@ async function compared(ctx: QueryCtx, leagueId: Id<"leagues">, code: number, ho
     name: player.name,
     fullName: player.fullName,
     club: clubOf(club),
-    positions: await currentPositions(ctx, code, how),
+    positions: await positionsOfNow(code),
     ownerTeamName: (await (await ownerOf(ctx, leagueId))(code))?.name ?? null,
     seasonPoints: null,
     matches: season.length,

@@ -9,10 +9,9 @@ import { passedDeadlineOf, passedDeadlinesOf } from "../gameweeks/passedDeadline
 import { GAMEWEEKS, isGameweek, noSuchGameweek } from "../gameweeks/usedGameweeks";
 import { squadAt, squadMovesSince, squadOf, type SquadMovesSince } from "../squads/squadPlace";
 import { playerByCode } from "../shared/players";
-import { currentPositions } from "../positions/playerPositions";
-import { howPositionsCount } from "../positions/positionSettings";
+import { positionsNow } from "../positions/playerPositions";
 import { placementShape } from "../schema";
-import { lineupProblems, reconciled, type PlayerPositions } from "./lineup";
+import { lineupProblems, namedCodes, reconciled, type PlayerPositions } from "./lineup";
 import { firstLineup } from "./firstLineup";
 import type { Area, Lane } from "./pitch";
 import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords";
@@ -109,8 +108,8 @@ export async function lineupsInGameweek(
 
 /** Each player's positions now (spec/06), for picking a first lineup. */
 async function positionsOf(ctx: QueryCtx, playerCodes: readonly number[]): Promise<PlayerPositions> {
-  const how = await howPositionsCount(ctx);
-  return new Map(await Promise.all(playerCodes.map(async (playerCode) => [playerCode, await currentPositions(ctx, playerCode, how)] as const)));
+  const positionsOfNow = await positionsNow(ctx);
+  return new Map(await Promise.all(playerCodes.map(async (playerCode) => [playerCode, await positionsOfNow(playerCode)] as const)));
 }
 
 /** One team's lineup in the gameweek, as `lineupsInGameweek` gives it. */
@@ -165,7 +164,7 @@ export const save = mutation({
     if (fromGameweek > GAMEWEEKS) refuse(lineupRefusals.seasonOver);
 
     const squad = await squadCodes(ctx, team._id);
-    const named = [...lineup.starters.map(({ playerCode }) => playerCode), ...lineup.bench];
+    const named = namedCodes(lineup);
     const names = await namesOf(ctx, new Set([...squad, ...named]));
     const nameOf = (playerCode: number) => names.get(playerCode) ?? unknownPlayerWords(playerCode);
     const outsiders = [...new Set(named.filter((playerCode) => !squad.includes(playerCode)))];

@@ -3,8 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { PL_SEASON_START_YEAR } from "../football/football";
 import { MOST_IN_SQUAD, MOST_TEAMS } from "../leagues/leagueLimits";
-import { currentPositions } from "../positions/playerPositions";
-import { howPositionsCount } from "../positions/positionSettings";
+import { positionsNow } from "../positions/playerPositions";
 import { clubRecord, position } from "../schema";
 import { STAT_CATALOGUE } from "../scoring/statCatalogue";
 import { takeAllOrThrow } from "../shared/cappedRead";
@@ -88,7 +87,7 @@ export const list = query({
     const listedClubs = filters.clubCode === null ? clubs : clubs.filter((each) => each.code === filters.clubCode);
     const players = await currentPlayersOf(ctx, listedClubs);
     const ownerOf = await ownersIn(ctx, leagueId);
-    const how = await howPositionsCount(ctx);
+    const positionsOfNow = await positionsNow(ctx);
     const totals = stat === null ? new Map<number, Stats>() : await seasonTotals(ctx, PL_SEASON_START_YEAR);
     const listedClubOf = new Map(clubs.map((each) => [each.code, clubOf(each)]));
 
@@ -98,7 +97,7 @@ export const list = query({
         name: player.name,
         fullName: player.fullName,
         club: listedClubOf.get(player.clubCode)!,
-        positions: await currentPositions(ctx, player.code, how),
+        positions: await positionsOfNow(player.code),
         ownerTeamName: ownerOf.get(player.code) ?? null,
         seasonPoints: null,
         stat: shownStat(totals.get(player.code), stat),
