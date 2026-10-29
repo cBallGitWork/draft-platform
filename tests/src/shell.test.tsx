@@ -17,10 +17,10 @@ import {
 } from "../../src/frame/words";
 import { MAIL_TITLE, unreadTabLabel } from "../../src/mail/words";
 import { MATCHUP_TITLE } from "../../src/matchup/words";
-import { SIGN_IN_PATH } from "../../src/sign-in/paths";
+import { SIGN_IN_PATH } from "../../src/signIn/paths";
 import { descriptionOf } from "../support/src/describedBy";
 import { LINK_REPLY, league, manager, openApp, visitor } from "../support/src/shell.harness";
-import { linkProblemWords, signInWords } from "../../src/sign-in/words";
+import { linkProblemWords, signInWords } from "../../src/signIn/words";
 
 const threeUnreadReason = "3 unread letters";
 const threeUnread: TopBarState = { unreadMail: 3, next: { path: MAIL_PATH, reason: threeUnreadReason } };

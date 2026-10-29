@@ -1,6 +1,6 @@
 import { Outlet } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import type { AuthActions } from "../auth";
+import type { AuthActions } from "../signIn/seam";
 import { FeedbackLink } from "../feedback/FeedbackPage";
 import { MAIL_PATH } from "../frame/menu";
 import { MainMenu, MenuTab } from "../frame/MenuTab";

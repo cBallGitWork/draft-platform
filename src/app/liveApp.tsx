@@ -9,7 +9,7 @@ import { useLivePatches } from "../patches/livePatches";
 import { Loading } from "../ui/Panel";
 import { ReadFailed } from "../frame/ReadFailed";
 import { SignOut } from "../frame/SignOut";
-import type { AuthActions, Session } from "../auth";
+import type { AuthActions, Session } from "../signIn/seam";
 import { liveGameweeks } from "../gameweeks/liveGameweeks";
 import { liveHome } from "../home/liveHome";
 import { livePremierLeague } from "../premierLeague/livePremierLeague";
@@ -27,8 +27,8 @@ import { useLiveSquads } from "../squads/liveSquads";
 import { liveTable } from "../table/liveTable";
 import { answerOf } from "../shared/refusal";
 import { ShellApp } from "./ShellApp";
-import { SIGN_IN_PATH } from "../sign-in/paths";
-import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "../sign-in/words";
+import { SIGN_IN_PATH } from "../signIn/paths";
+import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "../signIn/words";
 import { NO_CONVEX_URL } from "../shared/words";
 
 // The app signed in for real: Convex Auth's session (convex/auth.ts), the email links asked for

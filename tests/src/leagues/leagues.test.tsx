@@ -8,7 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel, signOutWords } from "../../../src/frame/words";
 import { MAIL_TITLE } from "../../../src/mail/words";
-import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
+import { SIGN_IN_PATH } from "../../../src/signIn/paths";
 import { admin, adminSeeing, commissioned, league, manager, managerIn, newcomer, openApp, visitor, withNoPart } from "../../support/src/shell.harness";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
 import {
@@ -25,7 +25,7 @@ import {
   unsentLink,
   unsentLinkWords,
 } from "../../../src/leagues/words";
-import { signInWords } from "../../../src/sign-in/words";
+import { signInWords } from "../../../src/signIn/words";
 
 describe("someone signed in, in no league", () => {
   it.each(["/", MY_TEAM_PATH, SIGN_IN_PATH])("opening %s sees their leagues page, saying they're in none", async (path) => {

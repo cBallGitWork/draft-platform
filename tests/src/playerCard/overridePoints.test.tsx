@@ -23,7 +23,7 @@ import {
 import { descriptionOf } from "../../support/src/describedBy";
 import { fakePlayerCard, type PlayerCardData } from "../../support/src/playerCard.harness";
 import { adminSeeing, coCommissioned, commissioned, league, manager, managerIn, openApp } from "../../support/src/shell.harness";
-import type { Session } from "../../../src/auth";
+import type { Session } from "../../../src/signIn/seam";
 
 const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
 const COVENTRY = { code: 9, name: "Coventry", shortName: "COV" };
