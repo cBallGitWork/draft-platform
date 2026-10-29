@@ -9,6 +9,7 @@ import {
   clockWords,
   COMMENTARY_TITLE,
   fullTime,
+  goalsWords,
   inGameweekWords,
   halfTime,
   kickoffDayWords,
@@ -25,7 +26,6 @@ import {
   pointsProblemWords,
   possessionWords,
   SCORE_LABEL,
-  scoreWords,
   sheetLabel,
   STAT_COLUMN_LABEL,
   SUBSTITUTES_TITLE,
@@ -78,7 +78,7 @@ function HeldMatch({ match }: { match: Match }) {
 
 /** The clubs with the score between them, or "v" before kickoff, and where the match stands. */
 function Scoreboard({ match: { home, away, score, kickoff, gameweek } }: { match: Match }) {
-  const goals = score !== null && score.state !== "upcoming" && score.homeGoals !== null && score.awayGoals !== null ? scoreWords(score.homeGoals, score.awayGoals) : null;
+  const goals = goalsWords(score);
   return (
     <section aria-label={SCORE_LABEL} className="bg-panel shadow-bevel-panel">
       <p className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-3 px-3 pt-2 text-lead font-bold sm:text-title">

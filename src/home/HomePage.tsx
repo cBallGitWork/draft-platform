@@ -2,10 +2,10 @@ import { Link } from "@tanstack/react-router";
 import { TOP_ROWS } from "../../convex/home/glance";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { ColumnHeads } from "../frame/ColumnHeads";
+import { DateBlock } from "../frame/DateBlock";
 import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { MAIL_PATH, TABLE_PATH } from "../frame/menu";
 import { MatchupLink } from "../matchup/MatchupLink";
-import { letterDay, letterTime } from "../mail/words";
 import { useMinute } from "../useMinute";
 import type { HomeSeam, LeagueHome } from "./seam";
 import {
@@ -75,15 +75,6 @@ export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSe
         </div>
       )}
     </PageSection>
-  );
-}
-
-/** A day and time in a date block, as Mail shows a letter's. */
-function DateBlock({ at }: { at: number }) {
-  return (
-    <time dateTime={new Date(at).toISOString()} className="bg-plate px-1 text-center whitespace-nowrap">
-      {letterDay(at)} <span className="text-soft">{letterTime(at)}</span>
-    </time>
   );
 }
 
