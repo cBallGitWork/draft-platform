@@ -45,7 +45,7 @@ export function transactionWords({ kind, otherTeamName }: Pick<TeamTransactions[
   }
 }
 export const noTransactionsWords = "No transactions yet: players the commissioner assigns, moves or releases show here.";
-/** Said when the league holds more events than the tab searches (convex/squads/teamTransactions.ts). */
+/** Said when the league holds more squad moves than the tab reads (convex/squads/teamTransactions.ts). */
 export const transactionsCutWords = "Only the most recent transactions are shown: older ones aren't searched.";
 
 /** The Squad tab (#364). */
