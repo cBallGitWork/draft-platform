@@ -3,7 +3,7 @@ import type { QueryCtx } from "../_generated/server";
 import { positionOfSlot } from "../lineup/pitch";
 import { cardPoints, type CardPoints } from "../playerCard/cardPoints";
 import type { Position } from "../positions/positionTables";
-import type { StoredScoringSet } from "../rules/leagueRulesShape";
+import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { seasonRules } from "../rules/rulesHistory";
 import { siteScoringByGameweek } from "../scoring/siteScoring";
 import { takeAllOrThrow } from "../shared/cappedRead";

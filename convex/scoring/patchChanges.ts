@@ -1,6 +1,6 @@
 import { roleName } from "../lineup/roles";
 import { ALL_CELLS, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition } from "../lineup/pitch";
-import type { StoredScoringSet } from "../rules/leagueRulesShape";
+import type { StoredScoringSet } from "./scoringSetShape";
 import { categoryName } from "./categories";
 import { priceFor, type Band, type Priced, type PointsLimit } from "./scoringSet";
 import { groupedBy } from "../shared/groupedBy";
