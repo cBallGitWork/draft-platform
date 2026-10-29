@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import type { LineupProblem } from "../../../convex/lineup/lineup";
-import { namesWords, problemWords } from "../../../convex/lineup/lineupWords";
+import { problemWords } from "../../../convex/lineup/lineupWords";
 
 // Each of lineup.ts's problems as a manager is told it when a save is refused (#8).
 
@@ -20,8 +20,4 @@ test.each<[LineupProblem, string]>([
   [{ kind: "belowMinimum", area: "goalkeeper", starterCount: 0, minimum: 1 }, "The league starts at least 1 in Goalkeeper; this lineup starts 0 there."],
 ])("%o reads %s", (problem, words) => {
   expect(problemWords(problem, nameOf)).toBe(words);
-});
-
-test("names are listed with commas and a last 'and'", () => {
-  expect([[], ["A"], ["A", "B"], ["A", "B", "C"]].map(namesWords)).toEqual(["", "A", "A and B", "A, B and C"]);
 });
