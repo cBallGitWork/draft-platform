@@ -1,5 +1,5 @@
 import { v, type Infer } from "convex/values";
-import type { Doc, Id } from "../_generated/dataModel";
+import type { Id } from "../_generated/dataModel";
 import { mutation, query, type QueryCtx } from "../_generated/server";
 import { managerOf, refuse } from "../shared/leagueAccess";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
@@ -12,8 +12,8 @@ import { playerByCode } from "../shared/players";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { placementShape } from "../schema";
-import { lineupProblems } from "./lineup";
-import type { Area, Cell, Lane } from "./pitch";
+import { lineupProblems, reconciled } from "./lineup";
+import type { Area, Lane } from "./pitch";
 import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords";
 
 // Each team's lineup, stored (spec/05, The pitch; #8). A save is a row from the next gameweek
@@ -21,8 +21,8 @@ import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords"
 // before: "a lineup rolls over to the next gameweek if the manager doesn't touch it", with no cron.
 // It is read against the squad: as it is now for a gameweek not yet begun, and as it stood at the
 // deadline for one begun, so a move after the lock never reaches a locked lineup (spec/05, The
-// deadline: "it locks the whole lineup"; #415). A player who has left drops out, and one who has
-// joined sits at the end of the bench. Whether a lineup may stand is lineup.ts's; the screen,
+// deadline: "it locks the whole lineup"; #415), by lineup.ts's `reconciled`, which the Tactics
+// screen reads an edit by too. Whether a lineup may stand is lineup.ts's; the screen,
 // auto-subs and scoring are not here.
 
 /** A lineup as a manager's browser sends it: lineup.ts's Lineup, its cells still unchecked. */
@@ -35,7 +35,8 @@ const sentLineup = v.object({
  *  at a deadline is not settled), else the newest saved from that gameweek or before, as the squad
  *  has it (now, or at the deadline once the gameweek has begun). `leftSquad` names who dropped out
  *  of it for leaving the squad, `joinedBench` who joined the squad since and was put at the end of
- *  the bench, so a screen can say so. */
+ *  the bench, so a screen can say so, and `vacated` each starter who left in the slot he left
+ *  empty, for auto-subs to fill. */
 export const heldLineupShape = v.union(
   v.object({ kind: v.literal("none") }),
   v.object({
@@ -45,6 +46,7 @@ export const heldLineupShape = v.union(
     bench: v.array(v.number()),
     leftSquad: v.array(v.number()),
     joinedBench: v.array(v.number()),
+    vacated: v.array(placementShape),
   }),
 );
 export type HeldLineup = Infer<typeof heldLineupShape>;
@@ -87,26 +89,10 @@ export async function lineupsInGameweek(
       movesSince ??= squadMovesSince(ctx, leagueId, deadline);
       squad = await squadAt(ctx, teamId, await movesSince);
     }
-    lineups.set(teamId, { kind: "saved", fromGameweek: row.fromGameweek, ...reconciled(row, squad) });
+    const { lineup, ...changes } = reconciled(row, squad);
+    lineups.set(teamId, { kind: "saved", fromGameweek: row.fromGameweek, ...lineup, ...changes });
   }
   return lineups;
-}
-
-/** A team's starters by gameweek, each at his cell and role, read once a gameweek however often
- *  asked: what a player's points in that gameweek are priced at (the Squad tab, the card). */
-export function startersByGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">) {
-  const read = new Map<number, Promise<Map<number, Cell & { role?: string }>>>();
-  return (gameweek: number) => {
-    if (!read.has(gameweek)) {
-      read.set(
-        gameweek,
-        lineupInGameweek(ctx, leagueId, teamId, gameweek).then((lineup) =>
-          lineup.kind === "none" ? new Map() : new Map(lineup.starters.map(({ playerCode, area, lane, role }) => [playerCode, { area, lane, role }])),
-        ),
-      );
-    }
-    return read.get(gameweek)!;
-  };
 }
 
 /** One team's lineup in the gameweek, as `lineupsInGameweek` gives it. */
@@ -117,22 +103,6 @@ export async function lineupInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, t
 /** The squad's player codes, in the order they joined it. */
 async function squadCodes(ctx: QueryCtx, teamId: Id<"teams">): Promise<number[]> {
   return (await squadOf(ctx, teamId)).map(({ playerCode }) => playerCode);
-}
-
-/** The saved lineup against the squad: who has left drops out, leaving his cell empty, and
- *  who has joined goes to the end of the bench, in the order he joined. The bench is the smallest
- *  sound choice for a newcomer (a starter's cell would need a position check and a free cell):
- *  Claude's, not yet Craig's. */
-function reconciled(row: Doc<"lineups">, squad: readonly number[]) {
-  const inSquad = new Set(squad);
-  const named = new Set([...row.starters.map(({ playerCode }) => playerCode), ...row.bench]);
-  const joinedBench = squad.filter((playerCode) => !named.has(playerCode));
-  return {
-    starters: row.starters.filter(({ playerCode }) => inSquad.has(playerCode)),
-    bench: [...row.bench.filter((playerCode) => inSquad.has(playerCode)), ...joinedBench],
-    leftSquad: [...named].filter((playerCode) => !inSquad.has(playerCode)),
-    joinedBench,
-  };
 }
 
 /** The caller's own team's lineup in the gameweek. Whether anyone else may see a team's lineup,

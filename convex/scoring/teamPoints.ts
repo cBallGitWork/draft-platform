@@ -30,10 +30,12 @@ export interface PlayerMatch {
  *  gameweek, two in a double. Every player the lineup names must have an entry. */
 export type GameweekMatches = ReadonlyMap<PlayerCode, readonly PlayerMatch[]>;
 
-/** A bench player who came on for a starter, and the cell he plays: the starter's own, or his own
- *  area's when no one could take that slot and the formation changed (spec/05, Auto-subs). */
+/** A bench player who came on for a starter, or into a slot left empty, and the cell he plays: the
+ *  slot's own, or his own area's when no one could take that slot and the formation changed
+ *  (spec/05, Auto-subs). */
 export interface Substitution {
-  off: PlayerCode;
+  /** Null for a slot left empty by a starter who left the squad (spec/05, Auto-subs). */
+  off: PlayerCode | null;
   on: PlayerCode;
   cell: Cell;
   /** The role he plays there: the empty slot's, into it, else none given (the slot's first). */
@@ -84,7 +86,8 @@ export interface TeamPoints {
  * and their points are shown either way. A substitution naming a non-starter, a non-bench player,
  * a player twice, or a cell someone who counts already stands in throws, as does a player with no
  * entry in `matches` or a bench player with no cell: never a silent 0. Fewer than eleven starters is
- * no refusal: a stored lineup leaves a cell empty when its player leaves the squad, and it scores nothing.
+ * no refusal: a stored lineup leaves a cell empty when its player leaves the squad, and it scores
+ * nothing unless a sub comes on into it.
  */
 export function scoreTeam(input: TeamPointsInput): TeamPoints {
   const { lineup, substitutions, benchCells } = input;
@@ -150,11 +153,13 @@ function substitutionsByPlayer(lineup: Lineup, substitutions: readonly Substitut
   const subbedOn = new Map<PlayerCode, Substitution>();
   for (const substitution of substitutions) {
     const { off, on } = substitution;
-    if (!starters.has(off)) throw new Error(`player ${off} is subbed off but isn't a starter`);
+    if (off !== null) {
+      if (!starters.has(off)) throw new Error(`player ${off} is subbed off but isn't a starter`);
+      if (subbedOff.has(off)) throw new Error(`player ${off} is subbed off twice`);
+      subbedOff.add(off);
+    }
     if (!bench.has(on)) throw new Error(`player ${on} comes on but isn't on the bench`);
-    if (subbedOff.has(off)) throw new Error(`player ${off} is subbed off twice`);
     if (subbedOn.has(on)) throw new Error(`player ${on} comes on twice`);
-    subbedOff.add(off);
     subbedOn.set(on, substitution);
   }
   return { subbedOff, subbedOn };

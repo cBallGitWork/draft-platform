@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import { mutation, query, type QueryCtx } from "../_generated/server";
 import { callerEmail, refuse, runnerOf, signedInEmail } from "../shared/leagueAccess";
 import { PRODUCT_NAME } from "../shared/product";
+import { typedText } from "../shared/typedText";
 import { fileLetter, wholeLeague } from "./letters";
 import { BODY_MAX, LETTERS_SHOWN, SUBJECT_MAX } from "./mailLimits";
 
@@ -90,12 +91,8 @@ export const writeToLeague = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const { email, league } = await runnerOf(ctx, args.leagueId);
-    const subject = args.subject.trim();
-    const body = args.body.trim();
-    if (!subject) refuse(mailRefusals.blankSubject);
-    if (!body) refuse(mailRefusals.blankBody);
-    if ([...subject].length > SUBJECT_MAX) refuse(mailRefusals.subjectTooLong);
-    if ([...body].length > BODY_MAX) refuse(mailRefusals.bodyTooLong);
+    const subject = typedText(args.subject, SUBJECT_MAX, { blank: mailRefusals.blankSubject, tooLong: mailRefusals.subjectTooLong });
+    const body = typedText(args.body, BODY_MAX, { blank: mailRefusals.blankBody, tooLong: mailRefusals.bodyTooLong });
     await fileLetter(ctx, league, await wholeLeague(ctx, league), { subject, body, from: email }, email);
     await ctx.db.patch("leagues", league._id, { pinnedLetter: { at: Date.now(), from: email, subject, body } });
     return null;

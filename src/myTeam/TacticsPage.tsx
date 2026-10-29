@@ -5,7 +5,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, Notice, PageSection, Panel, PanelNote, Problem } from "../frame/Panel";
 import { useMinute } from "../useMinute";
 import { markedBy } from "./focusMarks";
-import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, withRole, withSquad, type DraftLineup } from "./lineupDraft";
+import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, shownLineup, withRole, type DraftLineup } from "./lineupDraft";
 import { Pitch, type Moving } from "./Pitch";
 import { SquadTable } from "./SquadTable";
 import type { MyTeamSeam } from "./seam";
@@ -92,7 +92,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
   const [saving, setSaving] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const changes = seam.useLineupChanges();
-  const draft = useMemo(() => (edited === null ? opening : withSquad(edited, tactics.squad.map(({ playerCode }) => playerCode))), [edited, opening, tactics.squad]);
+  const draft = useMemo(() => shownLineup(edited, opening, tactics.squad.map(({ playerCode }) => playerCode)), [edited, opening, tactics.squad]);
   const unchanged = sameLineup(draft, opening);
   const picked = pickedCode === null ? null : (squad.get(pickedCode) ?? null);
 

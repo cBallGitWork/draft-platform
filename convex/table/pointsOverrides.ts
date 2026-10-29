@@ -8,6 +8,7 @@ import { inTenths } from "../scoring/scoringSet";
 import { fixtureByCode } from "../shared/fixtures";
 import { refuse, refusals, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
+import { typedText } from "../shared/typedText";
 import { statusOf } from "../stats/matchStats";
 import { rescoreGameweek } from "./finalScores";
 import { begunGameweeks } from "./gameweekScores";
@@ -44,9 +45,7 @@ export const override = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, fixtureCode, playerCode, points, reason: typed }) => {
     const { email: by, league } = await runnerOf(ctx, leagueId);
-    const reason = typed.trim();
-    if (reason === "") refuse(overrideRefusals.blankReason);
-    if (reason.length > OVERRIDE_REASON_MAX) refuse(overrideRefusals.reasonTooLong);
+    const reason = typedText(typed, OVERRIDE_REASON_MAX, { blank: overrideRefusals.blankReason, tooLong: overrideRefusals.reasonTooLong });
     const season = (await seasonRules(ctx, leagueId)) ?? refuse(overrideRefusals.noRules);
     const fixture = await fixtureByCode(ctx, fixtureCode);
     if (fixture === null || fixture.droppedAt !== undefined || fixture.gameweek === null) refuse(overrideRefusals.noMatch);

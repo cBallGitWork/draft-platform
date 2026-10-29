@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { MatchupSide, MatchupSlot } from "../../convex/matchup/matchupShape";
+import { ColumnHeads } from "../frame/ColumnHeads";
 import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { useMinute } from "../useMinute";
 import { matchPath } from "../premierLeague/paths";
@@ -137,7 +138,7 @@ function Fixture({ teamName, opponent, score }: { teamName: string; opponent: st
   return (
     <p className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-3 px-3 py-2 text-lead font-bold sm:text-title">
       <span className="text-right">{teamName}</span>
-      {score === undefined ? <span className="text-muted">{versusWords}</span> : <span className="text-figure tabular-nums whitespace-nowrap">{score}</span>}
+      {score === undefined ? <span className="text-muted">{versusWords}</span> : <span className="text-figure whitespace-nowrap">{score}</span>}
       <span>{opponent}</span>
     </p>
   );
@@ -172,21 +173,13 @@ function SidePanel({ side }: { side: MatchupSide }) {
         <PanelNote>{noLineupWords(name)}</PanelNote>
       ) : (
         <table aria-label={lineupLabel(name)} className="w-full border-collapse">
-          <thead className="bg-head text-ground">
-            <tr>
-              {Object.entries(columns).map(([column, { short, long }]) => (
-                <th key={column} scope="col" title={long} aria-label={long} className={column === "player" ? "px-2 text-left" : "px-2 text-right"}>
-                  {short}
-                </th>
-              ))}
-            </tr>
-          </thead>
+          <ColumnHeads columns={columns} classOf={(column) => (column === "player" ? "px-2 text-left" : "px-2 text-right")} />
           <tbody>
             {side.lineup.starters.map((slot) => (
               <SlotRow key={slot.playerCode} slot={slot} />
             ))}
             <tr>
-              <th colSpan={4} scope="colgroup" className="bg-plate px-3 text-left font-bold shadow-bevel-plate">
+              <th colSpan={Object.keys(columns).length} scope="colgroup" className="bg-plate px-3 text-left font-bold shadow-bevel-plate">
                 {BENCH_TITLE}
               </th>
             </tr>
@@ -229,7 +222,7 @@ function SlotRow({ slot }: { slot: MatchupSlot }) {
           </Link>
         )}
       </td>
-      <td className={`px-2 text-right tabular-nums ${counts && points !== null ? "font-bold text-figure" : "text-muted"}`}>
+      <td className={`px-2 text-right ${counts && points !== null ? "font-bold text-figure" : "text-muted"}`}>
         {points ?? noFigureWords}
         {!counts && <span className="sr-only"> {notCountingLabel}</span>}
       </td>

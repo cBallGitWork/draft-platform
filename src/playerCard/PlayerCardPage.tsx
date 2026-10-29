@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PositionCode, PositionCodes } from "../PositionCodes";
 import { SCOUTING_PATH } from "../frame/menu";
+import { ColumnHeads } from "../frame/ColumnHeads";
 import { Loading, PANEL_BODY, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { useMinute } from "../useMinute";
 import { gameweekWords, versusWords, whenWords } from "../words";
@@ -31,6 +32,9 @@ import {
   noSuchPlayerWords,
   notArrivedWords,
   nothingEarnedWords,
+  notCountedWords,
+  liveWords,
+  provisionalWords,
   roleLineLabel,
   roleMadeOfWords,
   adjustmentWords,
@@ -144,16 +148,9 @@ function Season({ card }: { card: PlayerCard }) {
           {[...new Set(card.matches.map((match) => match.points.scoredAs))].map((scoredAs) => (
             <PanelNote key={scoredAs}>{pricedNotes[scoredAs]}</PanelNote>
           ))}
+          {card.matches.some((match) => match.provisional) && <p className="px-3 py-2 text-derived">{provisionalWords}</p>}
           <table className="w-full border-collapse">
-            <thead className="bg-head text-ground">
-              <tr>
-                {COLUMNS.map((column) => (
-                  <th key={column} scope="col" title={columns[column].long} className={cellClasses(column)}>
-                    {columns[column].short}
-                  </th>
-                ))}
-              </tr>
-            </thead>
+            <ColumnHeads columns={columns} shown={COLUMNS} classOf={cellClasses} />
             {card.matches.map((match) => (
               <MatchRows key={match.fixtureCode} match={match} />
             ))}
@@ -185,6 +182,8 @@ function MatchRows({ match }: { match: PlayedMatch }) {
   const { override } = match;
   const total = override?.points ?? match.points.total;
   const earned = categories.filter((category) => category.points !== null && category.points !== 0);
+  // A bench player who didn't come on: his points greyed, as the matchup greys them (spec/14, On screen).
+  const notCounted = match.points.scoredAs === "notCounted";
   return (
     <tbody className="border-t border-panel-rule">
       <tr>
@@ -201,9 +200,20 @@ function MatchRows({ match }: { match: PlayedMatch }) {
             {noFigureWords}
           </td>
         ) : (
-          <td className={`${cellClasses("points")} font-bold text-figure`}>{total}</td>
+          <td className={`${cellClasses("points")} ${notCounted ? "text-muted" : "font-bold text-figure"}`}>
+            {total}
+            {match.provisional && <span className="ml-1 font-normal text-derived">{liveWords}</span>}
+          </td>
         )}
       </tr>
+      {notCounted && (
+        <tr>
+          <td />
+          <td colSpan={COLUMNS.length - 1} className="px-2 pb-1 text-muted">
+            {notCountedWords}
+          </td>
+        </tr>
+      )}
       {total !== null && (
         <tr>
           {/* Under the match it breaks down, past the gameweek's column. */}

@@ -103,6 +103,8 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   gameweek's first match is then postponed, as in FPL (20 Oct 2026).
 - A gameweek begins at the league's own deadline, never FPL's: "ours, we arent fpl so stop copying
   them" (22 Oct 2026).
+- A player who joins the squad goes to the end of the bench, in the order he joined, until the
+  manager moves him (Craig, 28 Oct 2026).
 
 ## Auto-subs
 
@@ -114,6 +116,8 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   slot and its role. If none can, the first who keeps the area limits legal comes on in his own
   area, on his best-star role, and the formation changes. If no one can come on without breaking the
   limits, no one does: the slot scores nothing.
+- A starter's slot left empty because he left the squad (dropped, traded or claimed away) is
+  filled from the bench the same way, as if he hadn't played (Craig, 28 Oct 2026).
 - A goalkeeper is replaced only by a goalkeeper.
 - In a double gameweek, a starter who plays in either match is not subbed.
 - Auto-subs are always on, and there is no limit on them, ever.

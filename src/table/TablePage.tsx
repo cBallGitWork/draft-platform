@@ -1,4 +1,5 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { ColumnHeads } from "../frame/ColumnHeads";
 import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { FixturesPanel } from "./FixturesPanel";
 import type { LeagueTable, TableSeam } from "./seam";
@@ -64,21 +65,7 @@ function StandingsPanel({ leagueTable: { format, table, results, unscored } }: {
       {table.every((row) => row.played === 0) && <PanelNote>{noResultsWords}</PanelNote>}
       {provisional && <p className="px-3 py-2 text-derived">{provisionalWords}</p>}
       <table className="w-full border-collapse">
-        <thead className="bg-head text-ground">
-          <tr>
-            {shown.map((column) => (
-              <th
-                key={column}
-                scope="col"
-                title={columns[column].long}
-                aria-label={columns[column].long}
-                className={cellClasses(column)}
-              >
-                {columns[column].short}
-              </th>
-            ))}
-          </tr>
-        </thead>
+        <ColumnHeads columns={columns} shown={shown} classOf={cellClasses} />
         <tbody>
           {table.map((row, index) => (
             <tr key={row.teamId} className="border-t border-panel-rule">

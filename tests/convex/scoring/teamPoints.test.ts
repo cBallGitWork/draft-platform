@@ -127,6 +127,14 @@ describe("the bench: points shown, counted only if subbed on", () => {
     expect(scored.total).toBe(2 + 10 + 5);
   });
 
+  test("a sub into a slot left empty by a starter who left the squad counts there, off for no one (#597)", () => {
+    const withoutGelhardt: Lineup = { ...LINEUP, starters: LINEUP.starters.filter((starter) => starter.playerCode !== GELHARDT) };
+    const scored = team({ lineup: withoutGelhardt, substitutions: [{ off: null, on: BELLOUMI, cell: ATTACK }] });
+
+    expect(scored.bench[0]).toMatchObject({ playerCode: BELLOUMI, counts: true, cell: ATTACK, points: 5 });
+    expect(scored.total).toBe(2 + 10 + 5);
+  });
+
   test("a sub can come on in a different area when the formation changes, and is priced there", () => {
     const formationChanged = team({
       substitutions: [{ off: GELHARDT, on: BELLOUMI, cell: RIGHT_BACK }],

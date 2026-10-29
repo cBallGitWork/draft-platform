@@ -39,6 +39,8 @@ const REASON = "The feed gave his second goal to an Everton defender";
 const [HULL_NAME, EVERTON_NAME] = ["Hull", "Everton"];
 const MATCH_NAME = matchWords(HULL_NAME, EVERTON_NAME);
 const ANNS_AFTER = inTenths(HULL_POINTS - SCORERS_POINTS + OVERRIDDEN);
+/** One character that is two UTF-16 units. */
+const EMOJI = "\u{1F3C6}";
 /** A code no feed holds. */
 const NOBODY = 999_999;
 
@@ -185,6 +187,17 @@ test("an override of exactly the most points either way is let in", async () => 
   await overrides(league, COMMISSIONER, { points: -OVERRIDE_POINTS_MOST });
 
   expect((await league.t.run((ctx) => ctx.db.query("pointsOverrides").collect())).map((row) => row.points)).toEqual([-OVERRIDE_POINTS_MOST]);
+});
+
+test(`a reason of ${OVERRIDE_REASON_MAX} characters is let in when each is an emoji, two UTF-16 units apiece`, async () => {
+  const league = await storedLeague();
+  const reason = EMOJI.repeat(OVERRIDE_REASON_MAX);
+  await overrides(league, COMMISSIONER, { reason });
+
+  expect((await league.t.run((ctx) => ctx.db.query("pointsOverrides").collect())).map((row) => ({ points: row.points, reason: row.reason }))).toEqual([
+    { points: OVERRIDDEN, reason },
+  ]);
+  expect(await refusalOf(overrides(league, COMMISSIONER, { reason: reason + EMOJI }))).toBe(overrideRefusals.reasonTooLong);
 });
 
 test("a match still inside its corrections window can't be overridden: its own corrections still move it", async () => {
