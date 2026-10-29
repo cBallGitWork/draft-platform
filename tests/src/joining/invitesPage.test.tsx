@@ -1,12 +1,12 @@
 // A league's invites and join requests, for its runners (#73; spec/13 Joining, spec/15 Joining a
 // league): what the page shows, and what each control asks of the seam.
 
-import { cleanup, screen, within } from "@testing-library/react";
+import { act, cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { joinPath } from "../../../convex/joining/joiningShared";
-import { DAY_MS } from "../../../convex/shared/time";
+import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { commissioner, league, managerIn, openApp } from "../../support/src/shell.harness";
 import { descriptionOf } from "../../support/src/describedBy";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
@@ -76,6 +76,21 @@ describe("the invites page", () => {
     expect(within(inviteItem("cat@example.com")).getByText(expiredWords)).toBeTruthy();
     expect(within(inviteItem("dan@example.com")).getByText(joinedWords("Team 1"))).toBeTruthy();
     expect(screen.getByRole("status").textContent).toBe(waitingStrip(1));
+  });
+
+  it("an invite that lapses while the page is open shows as expired within a minute", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const expiresAt = Date.now() + HOUR_MS;
+    openPage({ ...page, invites: [{ ...inviteRow("invite-hal", "hal@example.com"), expiresAt }] });
+    expect(await screen.findByText(deliveryWords.sent(expiresAt))).toBeTruthy();
+
+    // A minute short of the hour, it's still live.
+    act(() => vi.advanceTimersByTime(HOUR_MS - MINUTE_MS));
+    expect(within(inviteItem("hal@example.com")).getByText(deliveryWords.sent(expiresAt))).toBeTruthy();
+
+    // To the hour, then a minute on: by then the page has redrawn.
+    act(() => vi.advanceTimersByTime(2 * MINUTE_MS));
+    expect(within(inviteItem("hal@example.com")).getByText(expiredWords)).toBeTruthy();
   });
 
   it("resends or cancels an invite not yet taken up; one waiting for tomorrow isn't resent", async () => {
