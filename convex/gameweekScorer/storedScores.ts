@@ -4,7 +4,7 @@ import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { groupedBy } from "../shared/groupedBy";
-import type { TeamGameweek, TeamScores } from "./gameweekScores";
+import type { TeamGameweekTotal, TeamScores } from "./gameweekScores";
 
 // The league's stored final scores (finalScores.ts's rows), as the scorer (gameweekScores.ts)
 // reads them: a gameweek's stand while it holds the matches they were stored from. Plain helpers:
@@ -36,7 +36,7 @@ export async function storedFinalScores(ctx: QueryCtx, leagueId: Id<"leagues">):
 /** One gameweek's stored rows, which are never none: scores for none when they disagree on its matches. */
 function storedGameweekOf([first, ...rest]: Doc<"finalScores">[]): StoredGameweek {
   const agree = rest.every((row) => sameCodes(row.fixtureCodes, first.fixtureCodes));
-  const scores = new Map<TeamId, TeamGameweek>(
+  const scores = new Map<TeamId, TeamGameweekTotal>(
     agree ? [first, ...rest].map(({ teamId, points, noLineup }) => [teamId, { points, provisional: false, noLineup: noLineup ?? false }]) : [],
   );
   return { fixtureCodes: first.fixtureCodes, scores };
