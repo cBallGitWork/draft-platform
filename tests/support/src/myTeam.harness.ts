@@ -1,5 +1,6 @@
 // My team's tabs' tests' fake seam (shell.harness.tsx hands it to the app).
 
+import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { MyTeamSeam, SquadNumberChanges, TeamFixtures, TeamSquad, TeamTransactions } from "../../../src/myTeam/seam";
@@ -29,11 +30,23 @@ export function fakeMyTeam({
   ...tactics
 }: MyTeamData = {}) {
   const numbers = { set: vi.fn<SquadNumberChanges["set"]>(async () => numberAnswer) };
+  // A store, so a test can change the squad under an open screen, as Convex would.
+  let heldSquad = squad;
+  const listeners = new Set<() => void>();
+  const subscribe = (listener: () => void) => {
+    listeners.add(listener);
+    return () => void listeners.delete(listener);
+  };
   return {
     ...fakeTactics(tactics, loading),
     useTeamFixtures: vi.fn<MyTeamSeam["useTeamFixtures"]>(() => (loading ? undefined : fixtures)),
     useTeamTransactions: vi.fn<MyTeamSeam["useTeamTransactions"]>(() => (loading ? undefined : transactions)),
-    useTeamSquad: vi.fn<MyTeamSeam["useTeamSquad"]>(() => (loading ? undefined : squad)),
+    useTeamSquad: vi.fn<MyTeamSeam["useTeamSquad"]>(() => useSyncExternalStore(subscribe, () => (loading ? undefined : heldSquad))),
+    /** The squad the server holds from now on (inside act). */
+    serverHoldsSquad: (next: TeamSquad) => {
+      heldSquad = next;
+      for (const listener of listeners) listener();
+    },
     useSquadNumbers: () => numbers,
   };
 }
