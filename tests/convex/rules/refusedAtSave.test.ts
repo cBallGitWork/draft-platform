@@ -5,7 +5,8 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import type { LeagueRules, StoredScoringSet } from "../../../convex/rules/leagueRulesShape";
 import { LEAGUE_NAME_MAX } from "../../../convex/leagues/leagueLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { expectRefused, rulesRevision, rulesWith, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
+import { rulesRevision, rulesWith, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, actingAs, adminCreatesLeague, COMMISSIONER, leagueRow, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 

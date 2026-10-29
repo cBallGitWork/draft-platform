@@ -17,7 +17,8 @@ import {
 } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { DAY_MS, HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { expectRefused, giveDeadlineRule, moveFplDeadline } from "../../support/convex/leagueRules.harness";
+import { giveDeadlineRule, moveFplDeadline } from "../../support/convex/leagueRules.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 import { GAMEWEEKS, isGameweekUsed } from "../../../convex/gameweeks/usedGameweeks";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 

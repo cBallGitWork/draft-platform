@@ -7,7 +7,8 @@ import { settingsRefusals } from "../../../convex/rules/leagueSettings";
 import type { LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { WEEK_MS } from "../../../convex/shared/time";
-import { expectRefused, holdGameweeks, rulesRevision, HELD_FIRST_RULES, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
+import { holdGameweeks, rulesRevision, HELD_FIRST_RULES, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 

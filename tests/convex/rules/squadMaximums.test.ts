@@ -11,7 +11,8 @@ import {
   withSquadMaximum,
   type SquadMaximumBand,
 } from "../../../convex/rules/squadMaximums";
-import { expectRefused, rulesWith } from "../../support/convex/leagueRules.harness";
+import { rulesWith } from "../../support/convex/leagueRules.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 

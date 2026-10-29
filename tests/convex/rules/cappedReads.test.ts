@@ -7,7 +7,8 @@ import { RULES_CHANGES_MOST } from "../../../convex/rules/rulesHistory";
 import { heldSchedule } from "../../../convex/gameweeks/leagueDeadlines";
 import { CURRENT_FIXTURES_MOST } from "../../../convex/shared/fixtures";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
-import { expectRefused, holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 

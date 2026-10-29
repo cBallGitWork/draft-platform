@@ -10,9 +10,6 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { DAY_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 
-// expectRefused lived here first; the files that import it from here still find it.
-export { expectRefused } from "./test.harness";
-
 /** The first rules as a league `adminCreatesLeague` makes holds them: with the starting squad
  *  maximum for its size (#316). */
 export const HELD_FIRST_RULES = withSquadMaximum(FIRST_RULES, squadMaximumFor(STARTING_SQUAD_MAXIMUMS, TEST_LEAGUE_TEAMS));

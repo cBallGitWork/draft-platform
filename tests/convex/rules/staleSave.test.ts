@@ -4,7 +4,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { EVENTS_SEARCHED_FOR_SAVER, rulesRefusals } from "../../../convex/rules/leagueRules";
 import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
 import { adminByline } from "../../../convex/mail/letterWords";
-import { expectRefused, holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
+import { holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, actingAs, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 

@@ -8,7 +8,8 @@ import { momentIn } from "../../../convex/shared/moments";
 import { PRODUCT_NAME } from "../../../convex/shared/product";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
-import { expectRefused, holdGameweeks } from "../../support/convex/leagueRules.harness";
+import { holdGameweeks } from "../../support/convex/leagueRules.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS } from "../../support/convex/leagues.harness";
 import {
   announceAs,

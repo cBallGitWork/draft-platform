@@ -5,7 +5,7 @@ import { adminByline } from "../../../convex/mail/letterWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { TRANSACTIONS_READ_OF_EACH_KIND } from "../../../convex/squads/teamTransactions";
-import { expectRefused } from "../../support/convex/leagueRules.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";

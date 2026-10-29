@@ -15,6 +15,7 @@ import { scoredMatches } from "../table/scoredMatches";
 import { scoredAs } from "./cardPoints";
 import { roleName } from "../lineup/roles";
 import { readOnce } from "../shared/readOnce";
+import { placeOf } from "../squads/squadPlace";
 
 // A player's card (spec/12, The player card; #381), for anyone in the league: who he is and who
 // owns him here, FPL's news on him, this season's matches as his team scored them (scoredMatches.ts),
@@ -122,16 +123,9 @@ export function clubsByCode(ctx: QueryCtx): Clubs {
 
 /** The team in this league that owns him, or null for a free agent. */
 export async function ownerIn(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<string | null> {
-  const owned = await ownerOf(ctx, leagueId, playerCode);
+  const owned = await placeOf(ctx, leagueId, playerCode);
   return owned === null ? null : (await ctx.db.get("teams", owned.teamId))!.name;
 }
-
-/** His row in the squad of the team that owns him in this league, or null for a free agent. */
-const ownerOf = (ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number) =>
-  ctx.db
-    .query("squadPlayers")
-    .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode))
-    .unique();
 
 const asMatch = async (fixture: Doc<"fixtures">, clubs: Clubs) => ({
   fixtureCode: fixture.code,
@@ -145,7 +139,7 @@ const asMatch = async (fixture: Doc<"fixtures">, clubs: Clubs) => ({
  *  category, newest first. */
 async function seasonMatches(ctx: QueryCtx, league: Doc<"leagues">, player: Doc<"players">, positions: readonly Position[], clubs: Clubs): Promise<PlayedMatch[]> {
   const setIn = await siteScoringByGameweek(ctx);
-  const owner = await ownerOf(ctx, league._id, player.code);
+  const owner = await placeOf(ctx, league._id, player.code);
   const scored = await (await scoredMatches(ctx, league, owner?.teamId ?? null))({ code: player.code, positions });
   const played = await Promise.all(
     scored.map(async ({ record, fixture, gameweek, points: { role, ...points }, override, provisional }) => {
