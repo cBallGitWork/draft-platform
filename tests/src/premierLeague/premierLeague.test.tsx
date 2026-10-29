@@ -133,7 +133,8 @@ describe("the stepper", () => {
 });
 
 describe("a gameweek's matches", () => {
-  const saturday = begun + DAY_MS;
+  // Noon the day after, so a match an hour later falls on the same day whenever the tests run (#598).
+  const saturday = new Date(begun + DAY_MS).setHours(12, 0, 0, 0);
 
   it("are grouped by the day they kick off, matches with no kickoff time last, under 'Date to be confirmed'", async () => {
     openSection({
