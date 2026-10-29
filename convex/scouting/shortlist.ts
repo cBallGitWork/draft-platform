@@ -8,7 +8,7 @@ import { clubRecord } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, refuse, refusals, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, playerByCode } from "../shared/players";
-import { placeOf } from "../squads/squadPlace";
+import { ownerOf } from "../squads/squadPlace";
 
 // The shortlist (spec/19, The shortlist; #374): a manager's own list of players for the season, in
 // Scouting. It is the team's, and private to it: only its manager reads or changes it, so no other
@@ -67,20 +67,19 @@ export const mine = query({
   handler: async (ctx, { leagueId }) => {
     const { team } = await memberOf(ctx, leagueId);
     if (!team) return null;
-    const teamNames = new Map((await teamsOf(ctx, leagueId)).map((each) => [each._id, each.name]));
+    const owner = await ownerOf(ctx, leagueId);
     const players = await Promise.all(
       (await shortlistOf(ctx, team._id)).map(async ({ playerCode }) => {
         const player = await playerByCode(ctx, playerCode);
         // Players are never deleted (shared/players.ts), and only a held one is ever shortlisted.
         if (player === null) throw new Error(`Shortlisted player ${playerCode} isn't held`);
         const club = await clubByCode(ctx, player.clubCode);
-        const place = await placeOf(ctx, leagueId, playerCode);
         return {
           code: player.code,
           name: player.name,
           fullName: player.fullName,
           club: clubOf(club),
-          ownerTeamName: place === null ? null : teamNames.get(place.teamId)!,
+          ownerTeamName: (await owner(playerCode))?.name ?? null,
           gone: player.droppedAt !== undefined,
         };
       }),
