@@ -42,6 +42,9 @@ export const nextGlyph = "►";
 const whenFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 /** A time in the viewer's own zone, e.g. "Sat 17 Oct, 13:00": a deadline, a feed's last run. */
 export const whenWords = (at: number) => whenFormat.format(at);
+const timeOfDayFormat = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minute: "2-digit" });
+/** The time of day alone, in the viewer's own zone: "15:00", a kickoff or when a letter was filed. */
+export const timeOfDayWords = (at: number) => timeOfDayFormat.format(at);
 
 /** A figure not there yet, such as points before a match's record has arrived. */
 export const noFigureWords = "—";
