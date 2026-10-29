@@ -7,7 +7,7 @@ import type { Doc } from "../../../convex/_generated/dataModel";
 import type { MutationCtx } from "../../../convex/_generated/server";
 import type { Position } from "../../../convex/positions/positionTables";
 
-type Club = WithoutSystemFields<Doc<"clubs">>;
+export type Club = WithoutSystemFields<Doc<"clubs">>;
 
 export const ARSENAL: Club = { code: 3, name: "Arsenal", shortName: "ARS" };
 export const CHELSEA: Club = { code: 8, name: "Chelsea", shortName: "CHE" };

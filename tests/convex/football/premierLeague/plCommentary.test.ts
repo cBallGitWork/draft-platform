@@ -16,13 +16,14 @@ import {
   recordedLiveSheets,
 } from "../../../support/recorded/live.payloads";
 import { FULL_STATS } from "../../../support/recorded/gw6.payloads";
+import { GELHARDT } from "../../../support/convex/teamPoints.harness";
 
 const codeByOpta = codesByOpta(recordedFplPlayers());
 /** FPL codes of the men the tests name. */
 const CODE = {
   belloumi: FULL_STATS.belloumi.code,
   stroud: 608227,
-  gelhardt: 462635,
+  gelhardt: GELHARDT,
   yarmoliuk: 508395,
   janelt: 204580,
 } as const;

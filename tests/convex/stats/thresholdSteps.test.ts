@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import { thresholdSteps } from "../../../convex/stats/thresholdSteps";
-import { HULL_SCORER, liveRecords, scoresLeague } from "../../support/convex/gameweekScores.harness";
+import { holdTypoRule, HULL_SCORER, liveRecords, scoresLeague } from "../../support/convex/gameweekScores.harness";
 import { HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 
@@ -52,16 +52,7 @@ test("each live read stores the steps its records show over the last, with the c
 
 test("a site set that can't be read stores no steps, logs why, and the records are still written", async () => {
   const league = await scoresLeague();
-  await league.t.run((ctx) =>
-    ctx.db.insert("siteScoring", {
-      scoring: { ...FIRST_SCORING, rules: [...FIRST_SCORING.rules, { ...FIRST_SCORING.rules[0], stat: "goals_scroed" }] },
-      kind: "fix",
-      season: 2026,
-      number: 1,
-      announcedAt: 0,
-      takesEffectAt: 0,
-    }),
-  );
+  await holdTypoRule(league);
   const logged = silenceConsoleError();
   await liveRecords(league, mergedHullEverton(), 30);
   expect(logged).toHaveBeenCalledWith(expect.stringContaining(`match ${HULL_EVERTON}'s threshold steps weren't stored`));

@@ -3,6 +3,7 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { MatchMan } from "../../../convex/match/matchPage";
 import {
   ANN,
+  annsScoredGame,
   BOB,
   EVERTON_BENCH,
   EVERTON_STARTERS,
@@ -14,11 +15,12 @@ import {
   LEAGUE_KICKOFF,
   PHILLIPS,
   scoresLeague,
+  holdHullAndEverton,
   holdTypoRule,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 import { ADMIN, actingAs } from "../../support/convex/leagues.harness";
-import { EVERTON, HULL, HULL_EVERTON, HULL_EVERTON_TEAM_STATS, mergedHullEverton } from "../../support/convex/matchStats.harness";
+import { HULL_EVERTON, HULL_EVERTON_TEAM_STATS, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 
 // The match page (#45; spec/10, The match page): Hull v Everton, Ann owning Hull's men and Bob
@@ -28,21 +30,12 @@ import { silenceConsoleError } from "../../support/convex/test.harness";
 /** The scores league, with both clubs held, as the football sync holds them. */
 async function matchLeague(): Promise<ScoresLeague> {
   const league = await scoresLeague();
-  await league.t.run(async (ctx) => {
-    await ctx.db.insert("clubs", { code: HULL, name: "Hull City", shortName: "HUL" });
-    await ctx.db.insert("clubs", { code: EVERTON, name: "Everton", shortName: "EVE" });
-  });
+  await holdHullAndEverton(league);
   return league;
 }
 
 async function matchAs(league: ScoresLeague, email: string, fixtureCode: number = HULL_EVERTON) {
   return (await actingAs(league.t, email)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, fixtureCode });
-}
-
-async function annsMatchup(league: ScoresLeague) {
-  const read = await (await actingAs(league.t, ANN)).query(api.matchup.matchup.ofTeam, { leagueId: league.leagueId, now: Date.now() });
-  if (read?.kind !== "headToHead" || read.game.kind !== "scored") throw new Error(`Ann's matchup isn't scored: ${JSON.stringify(read)}`);
-  return read.game;
 }
 
 const manOf = (men: readonly MatchMan[], playerCode: number) => men.find((man) => man.playerCode === playerCode)!;
@@ -76,7 +69,7 @@ test("at full time each club's men show, starters first, each owned man with his
   // Starters by position, the keeper first.
   expect(home[0].position).toBe("GK");
 
-  const matchup = await annsMatchup(league);
+  const matchup = await annsScoredGame(league);
   const slots = [...matchup.team.kind === "team" ? matchup.team.lineup!.starters : [], ...matchup.team.kind === "team" ? matchup.team.lineup!.bench : []];
   for (const slot of slots) {
     expect(manOf(page.men, slot.playerCode)).toMatchObject({ ownerTeamName: "Team 1", points: slot.points, counts: slot.counts });
@@ -94,7 +87,7 @@ test("a man moved to another team after the deadline shows the points his old te
   await fullTimeRecords(league);
   await (await actingAs(league.t, ADMIN)).mutation(api.squads.squads.move, { leagueId: league.leagueId, playerCode: HULL_SCORER, teamId: league.bobsTeam });
   const page = (await matchAs(league, ANN))!;
-  const matchup = await annsMatchup(league);
+  const matchup = await annsScoredGame(league);
   const slot = matchup.team.kind === "team" ? matchup.team.lineup!.starters.find((starter) => starter.playerCode === HULL_SCORER) : undefined;
   expect(slot?.points).toEqual(expect.any(Number));
   // He scores for Ann's lineup, locked at the deadline, but Bob owns him now.
@@ -162,7 +155,7 @@ test("the commentary is the match's lines newest first, the goal priced for its 
     }),
   );
   const page = (await matchAs(league, ANN))!;
-  const matchup = await annsMatchup(league);
+  const matchup = await annsScoredGame(league);
   if (matchup.commentary.kind !== "read") throw new Error("the matchup's commentary wasn't read");
   // The same lines, priced alike, as the matchup's.
   expect(page.commentary).toEqual({ kind: "read", lines: matchup.commentary.lines, delayed: true });
