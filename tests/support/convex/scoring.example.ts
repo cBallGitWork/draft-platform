@@ -71,7 +71,7 @@ export const EXAMPLE_SET: ScoringSet = {
   wholePointsOnly: false,
 };
 
-/** A league's own stat (spec/14, Own stats): tackles won + 0.5 × clearances. */
+/** One of the site's own stats (spec/14, Own stats): tackles won + 0.5 × clearances. */
 export const TACKLES_AND_CLEARANCES: OwnStat = {
   stat: "own_tackles_and_clearances",
   name: "Tackles and clearances",
