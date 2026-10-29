@@ -11,7 +11,7 @@ import { clubByCode, playerByCode } from "../shared/players";
 import { typedText } from "../shared/typedText";
 import { statusOf } from "../stats/matchStats";
 import { rescoreGameweek } from "./finalScores";
-import { begunGameweeks } from "./gameweekScores";
+import { begunGameweeks, totalOf } from "./gameweekScores";
 import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "./overrideLimits";
 import { gameweekInputs, heldFixtures, leagueReads, playsIn, pointsInMatch, teamInGameweek, type LeagueReads } from "./teamGameweek";
 
@@ -119,8 +119,8 @@ async function workedOut(
   let playerPoints: number | null = null;
   for (const teamId of teamIds) {
     const scored = await teamInGameweek(reads, inputs, teamId);
-    // A team that never saved a lineup scores 0 (gameweekScores.ts), before and after alike.
-    totals.set(teamId, scored?.team.total ?? 0);
+    // A team that never saved a lineup scores 0, before and after alike.
+    totals.set(teamId, totalOf(scored).points);
     const inMatch = scored && pointsInMatch(scored, playerCode, fixtureCode);
     if (inMatch) playerPoints = inMatch.points;
   }

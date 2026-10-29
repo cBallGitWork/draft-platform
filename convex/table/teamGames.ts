@@ -56,7 +56,14 @@ export function gameScore<Team>(
     const other = sideOf(opponent);
     return { team: own.points, opponent: other.points, provisional: own.provisional || other.provisional };
   }
-  const every = teams.map(sideOf);
-  const points = new Map(teams.map((each, index) => [each, every[index].points]));
-  return { team: own.points, opponent: averageOf(teams, points, gameweek), provisional: every.some((each) => each.provisional) };
+  const average = averageScore(teams, new Map(teams.map((each) => [each, sideOf(each)])), gameweek);
+  return { team: own.points, opponent: average.points, provisional: average.provisional };
+}
+
+/** The league's average over `teams` in a gameweek scored, `sides` holding each: their points'
+ *  average (standings.ts's `averageOf`), a team with no lineup counting as its 0 (spec/07), and
+ *  provisional while any team's is. Pure, so the preview reads it as the server does. */
+export function averageScore<Team>(teams: readonly Team[], sides: ReadonlyMap<Team, SideScore>, gameweek: number): SideScore {
+  const points = new Map([...sides].map(([team, side]) => [team, side.points]));
+  return { points: averageOf(teams, points, gameweek), provisional: [...sides.values()].some((side) => side.provisional) };
 }

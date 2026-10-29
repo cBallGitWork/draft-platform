@@ -13,6 +13,7 @@ import {
   leagueReads,
   teamInGameweek,
   type LeagueReads,
+  type TeamInGameweek,
 } from "./teamGameweek";
 
 // Each team's points in each gameweek the league has begun (#29; spec/14), each worked out by
@@ -76,9 +77,7 @@ export async function begunGameweeks(ctx: QueryCtx, league: Doc<"leagues">): Pro
     .sort((one, other) => one - other);
 }
 
-/** Every team's points in each gameweek the league has begun: read from finalScores while the
- *  gameweek holds the same matches it was stored from, else worked out. A team added since the
- *  rest were stored is worked out alone. */
+/** Every team's points in each gameweek the league has begun, each from the league's scorer. */
 export async function leagueScores(
   ctx: QueryCtx,
   league: Doc<"leagues">,
@@ -88,25 +87,57 @@ export async function leagueScores(
   const gameweeks = await begunGameweeks(ctx, league);
   const result: LeagueScores = { scores: new Map(), unscored: [], finalUnstored: [] };
   if (gameweeks.length === 0 || teamIds.length === 0) return result;
-  const stored = await storedFinalScores(ctx, league._id);
-  const reads = await leagueReads(ctx, league, season);
+  const scoredGameweek = await gameweekScorer(ctx, league, season);
   for (const gameweek of gameweeks) {
     try {
-      const fixtures = await heldFixtures(ctx, gameweek);
-      const fixtureCodes = fixtures.map((fixture) => fixture.code);
-      const held = stored.get(gameweek);
-      const storedScores = held !== undefined && sameCodes(held.fixtureCodes, fixtureCodes) ? held.scores : new Map<TeamId, TeamGameweek>();
-      const unstored = teamIds.filter((teamId) => !storedScores.has(teamId));
-      const worked = unstored.length === 0 ? null : await gameweekScores(ctx, reads, gameweek, fixtures, unstored);
-      const scores = new Map(teamIds.map((teamId) => [teamId, storedScores.get(teamId) ?? worked!.scores.get(teamId)!]));
+      const { scores, toStore } = await scoredGameweek(gameweek, teamIds);
       result.scores.set(gameweek, scores);
-      if (worked?.final) result.finalUnstored.push({ gameweek, teamIds: unstored, fixtureCodes, replace: storedScores.size === 0 });
+      if (toStore !== null) result.finalUnstored.push({ gameweek, ...toStore });
     } catch (error) {
       const reason = logFailure(`League ${league._id} (${league.name}) can't score gameweek ${gameweek}`, error);
       result.unscored.push({ gameweek, reason });
     }
   }
   return result;
+}
+
+/** One gameweek of the league scored (spec/07). */
+export interface ScoredGameweek {
+  /** Each team's points: its saved total once the gameweek is final, else worked out. */
+  scores: TeamScores;
+  /** The teams worked out here whose points are final, for finalScores to store; null with none. */
+  toStore: Omit<FinalUnstored, "gameweek"> | null;
+}
+
+/** Scores one gameweek of the league for the `teamIds`. */
+export type GameweekScorer = (gameweek: number, teamIds: readonly TeamId[]) => Promise<ScoredGameweek>;
+
+/** The league's scorer: what any gameweek's scoring reads (the site's sets, the players, the
+ *  stored final scores) is read once, however many gameweeks it scores. A gameweek's stored
+ *  scores are read while it holds the same matches they were stored from; a team without one (added
+ *  since the rest were stored, say) is worked out alone. */
+export async function gameweekScorer(ctx: QueryCtx, league: Doc<"leagues">, season: SeasonRules): Promise<GameweekScorer> {
+  const stored = await storedFinalScores(ctx, league._id);
+  const reads = await leagueReads(ctx, league, season);
+  return async (gameweek, teamIds) => {
+    const fixtures = await heldFixtures(ctx, gameweek);
+    const fixtureCodes = fixtures.map((fixture) => fixture.code);
+    const held = stored.get(gameweek);
+    const storedScores = held !== undefined && sameCodes(held.fixtureCodes, fixtureCodes) ? held.scores : new Map<TeamId, TeamGameweek>();
+    const unstored = teamIds.filter((teamId) => !storedScores.has(teamId));
+    const worked = unstored.length === 0 ? null : await gameweekScores(ctx, reads, gameweek, fixtures, unstored);
+    const scores = new Map(teamIds.map((teamId) => [teamId, storedScores.get(teamId) ?? worked!.scores.get(teamId)!]));
+    const toStore = worked?.final ? { teamIds: unstored, fixtureCodes, replace: storedScores.size === 0 } : null;
+    return { scores, toStore };
+  };
+}
+
+/** A team's points from its gameweek worked out: 0 while it has never saved a lineup, what such a
+ *  team fields not being settled (spec/07). The one home of that rule. */
+export function totalOf(scored: TeamInGameweek | null): TeamGameweek {
+  return scored === null
+    ? { points: 0, provisional: false, noLineup: true }
+    : { points: scored.team.total, provisional: scored.team.provisional, noLineup: false };
 }
 
 /** The most final rows a league holds: one for each team in each gameweek. */
@@ -141,7 +172,7 @@ function storedGameweekOf([first, ...rest]: Doc<"finalScores">[]): StoredGamewee
 }
 
 /** The gameweek's stored final scores while it holds the same `fixtures` it was stored from, as
- *  `leagueScores` reads them for the table; none otherwise. For a screen of one gameweek (the
+ *  the league's scorer reads them for the table; none otherwise. For a screen of one gameweek (the
  *  matchup, #34), so the table and it agree. */
 export async function storedScoresIn(
   ctx: QueryCtx,
@@ -177,13 +208,7 @@ async function gameweekScores(
 ): Promise<{ scores: TeamScores; final: boolean }> {
   const inputs = await gameweekInputs(ctx, reads, gameweek, fixtures, teamIds);
   const scores = new Map<TeamId, TeamGameweek>();
-  for (const teamId of teamIds) {
-    const scored = await teamInGameweek(reads, inputs, teamId);
-    scores.set(
-      teamId,
-      scored === null ? { points: 0, provisional: false, noLineup: true } : { points: scored.team.total, provisional: scored.team.provisional, noLineup: false },
-    );
-  }
+  for (const teamId of teamIds) scores.set(teamId, totalOf(await teamInGameweek(reads, inputs, teamId)));
   const { matches } = inputs;
   const final = matches.length > 0 && matches.every(isMatchFinal) && [...scores.values()].every((team) => !team.provisional);
   return { scores, final };
