@@ -12,7 +12,7 @@ import { DAY_MS } from "./shared/time";
 /** spec/02: a link works once and lasts an hour. */
 export const LINK_LIFETIME_S = 60 * 60;
 /** spec/02: signed in, a manager stays signed in on that device for 30 days. */
-export const SESSION_MS = 30 * DAY_MS;
+const SESSION_MS = 30 * DAY_MS;
 
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   providers: [Resend({ maxAge: LINK_LIFETIME_S, sendVerificationRequest: sendSignInEmail })],

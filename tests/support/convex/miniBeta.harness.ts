@@ -30,7 +30,7 @@ const FOUR = MANAGERS.slice(0, 4);
 export const [ANN, BOB, CAT, DAN] = FOUR;
 
 /** The week before gameweek 6: the league is made, its squads assigned and its lineups saved. */
-export const SETUP_MORNING = Date.parse("2026-10-05T09:00:00Z");
+const SETUP_MORNING = Date.parse("2026-10-05T09:00:00Z");
 /** The league's deadline for gameweek 6 under the first rules: before Hull v Everton, its one match. */
 export const DEADLINE = KICKOFF - FIRST_RULES.deadline.minutesBeforeFirstKickoff * MINUTE_MS;
 

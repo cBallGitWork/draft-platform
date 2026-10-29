@@ -25,7 +25,7 @@ export const FPL_BOOTSTRAP_URL = `${FPL_API_BASE}/bootstrap-static/`;
 export const FPL_FIXTURES_URL = `${FPL_API_BASE}/fixtures/`;
 export const PL_API_BASE = "https://footballapi.pulselive.com/football";
 /** The Premier League's id for its own competition. */
-export const PL_COMPETITION = 1;
+const PL_COMPETITION = 1;
 /** The year the season the two ids below name starts: 2026 for 2026/27. Each summer, the three
  *  change together (#201). */
 export const PL_SEASON_START_YEAR = 2026;
@@ -61,7 +61,7 @@ export function fplLiveUrl(gameweek: number): string {
 }
 
 /** The most fixtures one read of the list asks for: a season's 380 in one page. */
-export const PL_FIXTURES_PAGE_SIZE = 400;
+const PL_FIXTURES_PAGE_SIZE = 400;
 
 /** One gameweek's fixtures, or the season's when omitted; this season's unless another is named.
  *  It always asks for `altIds`: without it the fixtures arrive with no join to FPL, and nothing

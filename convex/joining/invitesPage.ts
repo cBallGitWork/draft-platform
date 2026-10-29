@@ -11,7 +11,7 @@ import { delivery } from "../schema";
  *  are small. */
 export const ROWS_SHOWN = 50;
 
-export const invitesPageData = v.union(
+const invitesPageData = v.union(
   v.null(),
   v.object({
     leagueId: v.id("leagues"),

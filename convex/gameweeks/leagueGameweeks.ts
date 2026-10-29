@@ -22,7 +22,7 @@ export const gameweekRefusals = {
     `The app doesn't have a kickoff time for gameweek ${gameweek} yet, so it can't tell when its deadline falls or whether it has begun. Try again once the season's matches have arrived.`,
 } as const;
 
-export const leagueGameweek = v.object({
+const leagueGameweek = v.object({
   gameweek: v.number(),
   used: v.boolean(),
   deadline: shownDeadline,

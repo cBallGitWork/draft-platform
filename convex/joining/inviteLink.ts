@@ -60,7 +60,7 @@ export const switchOff = mutation({
 
 /** What asking for a sign-in link from the invite link answers: the sign-in page's answers, or
  *  that the link no longer works. */
-export const signInToJoinReply = v.union(...signInReply.members, v.literal("linkOff"));
+const signInToJoinReply = v.union(...signInReply.members, v.literal("linkOff"));
 export type SignInToJoinReply = Infer<typeof signInToJoinReply>;
 
 /** Asks for a sign-in link that leads back to the invite link. Anyone opening a live one may

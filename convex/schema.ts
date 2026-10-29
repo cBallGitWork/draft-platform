@@ -21,7 +21,7 @@ import { lineupTables } from "./schema/lineup";
 export { feedOutcome, feedCheckTrigger, feedCheckFields } from "./schema/feeds";
 export { clubRecord, playerRecord, fixtureRecord, gameweekRecord, matchState, scoreFeed, scoreRead, scoreProblem, scoreWrites, tableWrites, syncTrigger, footballSyncFields } from "./schema/football";
 export { matchStatsState, playerMatchRecord, lateStatChange, matchSyncOutcome, matchStatsSyncFields } from "./schema/matchStats";
-export { position, startRecord, playerPositionFields, approveMode, changeThresholds, positionSettingsFields, positionsSyncFields } from "./schema/positions";
+export { position, startRecord, approveMode, changeThresholds, positionsSyncFields } from "./schema/positions";
 export { liveStatsTickFields, commentaryLine, sideTeamStats, teamSheetMan } from "./schema/live";
 export { unemailedReason, leagueDeletion, pinnedLetter, leagueEvent } from "./schema/leagues";
 export { delivery } from "./schema/joining";

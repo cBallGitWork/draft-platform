@@ -1,14 +1,12 @@
 import { defineTable } from "convex/server";
-import { v, type VLiteral } from "convex/values";
-import { type Position, POSITIONS } from "../positions/positionTables";
+import { v } from "convex/values";
+import { POSITIONS } from "../positions/positionTables";
 import { syncTrigger } from "./football";
 
 // Positions (#22). Kept apart from `players`, which the football sync rewrites every six hours, so
 // no feed read touches the admin's say. Each row is keyed on FPL's season-stable `code`.
 
-// `v.union` takes two or more members, which a mapped array cannot promise its type.
-export const positionLiterals = POSITIONS.map((position) => v.literal(position));
-export const position = v.union(...(positionLiterals as [VLiteral<Position>, VLiteral<Position>, ...VLiteral<Position>[]]));
+export const position = v.union(...POSITIONS.map((each) => v.literal(each)));
 
 /** One match a player started, where he lined up: `Start` in positions.ts. */
 export const startRecord = v.object({
@@ -19,7 +17,7 @@ export const startRecord = v.object({
   place: v.union(v.number(), v.null()),
 });
 
-export const playerPositionFields = {
+const playerPositionFields = {
   code: v.number(),
   /** The Premier League's `positionInfo` for him, his squad's or else his newest sheet's; absent
    *  until one names him. */
@@ -41,7 +39,7 @@ export const changeThresholds = v.object({ flagAfter: v.number(), removeAfter: v
 
 /** How positions from starts count, and change: a single row, absent until the admin first sets
  *  one. A threshold is absent until he tunes it (`FIRST_THRESHOLDS` in positionChanges.ts). */
-export const positionSettingsFields = { approveMode, ...changeThresholds.partial().fields };
+const positionSettingsFields = { approveMode, ...changeThresholds.partial().fields };
 
 // One row per run of positionsSync.run, so a failed read is on record, never silent.
 export const positionsSyncFields = {

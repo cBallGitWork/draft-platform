@@ -23,7 +23,7 @@ export const playerMatchRecord = v.object({
 
 /** One match's place in the window. `fullTimeAt` is when a read first found it at full time;
  *  `completeAt` when every record it needs had arrived (absent while provisional). */
-export const matchStatsStatusFields = {
+const matchStatsStatusFields = {
   fixtureCode: v.number(),
   state: matchStatsState,
   fullTimeAt: v.number(),
@@ -36,7 +36,7 @@ export const matchStatsStatusFields = {
 export const lateStatChange = v.object({ stat: v.string(), locked: v.number(), sent: v.number() });
 
 /** The platform's own settings, the admin's to change (spec/15). A league's rules are never here. */
-export const platformSettingName = v.literal("statCorrectionWindowMinutes");
+const platformSettingName = v.literal("statCorrectionWindowMinutes");
 
 /** What one sync did with one match. */
 export const matchSyncOutcome = v.union(

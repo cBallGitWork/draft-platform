@@ -24,7 +24,7 @@ export const leagueDeletion = v.object({
 
 /** One person who wasn't emailed that a league has been deleted (#320). The league is gone by
  *  then, so the row stands alone: it names the league rather than pointing at it. */
-export const unemailedDeletionFields = {
+const unemailedDeletionFields = {
   leagueName: v.string(),
   /** Who deleted it, by email. */
   by: v.string(),
@@ -39,7 +39,7 @@ export const unemailedDeletionFields = {
 /** A letter to the whole league, as league home pins it (spec/12). */
 export const pinnedLetter = v.object({ at: v.number(), from: v.string(), subject: v.string(), body: v.string() });
 
-export const leagueFields = {
+const leagueFields = {
   name: v.string(),
   /** The league's own maximum, 2 to 20 (spec/13), which its commissioner changes. */
   maxTeams: v.number(),
@@ -60,7 +60,7 @@ export const leagueFields = {
   pinnedLetter: v.optional(pinnedLetter),
 };
 
-export const teamFields = {
+const teamFields = {
   leagueId: v.id("leagues"),
   /** The order teams were made in, from 1. */
   number: v.number(),
@@ -70,7 +70,7 @@ export const teamFields = {
 };
 
 /** The league switcher (#76): the league each person used last, by email, one row each. */
-export const lastLeagueFields = { email: v.string(), leagueId: v.id("leagues") };
+const lastLeagueFields = { email: v.string(), leagueId: v.id("leagues") };
 
 /** What happened in a league, for Mail (#26) to turn into letters (spec/15, The commissioner):
  *  each says all a letter needs, as it was at the time. */
@@ -117,7 +117,7 @@ export const leagueEvent = v.union(
   }),
 );
 
-export const leagueEventFields = {
+const leagueEventFields = {
   leagueId: v.id("leagues"),
   at: v.number(),
   /** Who did it, by email. */
