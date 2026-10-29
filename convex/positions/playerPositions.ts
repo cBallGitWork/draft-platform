@@ -4,7 +4,7 @@ import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/
 import { adminOf } from "../shared/leagueAccess";
 import { currentClubs, currentPlayersAt, playersNamed } from "../shared/players";
 import { howPositionsCount, type HowPositionsCount } from "./positionSettings";
-import { positionsFromStarts, positionsOf, type PlayerPositions } from "./positions";
+import { positionsFromStarts, positionsOf, type WorkedOutPositions } from "./positions";
 import type { Position } from "./positionTables";
 import { approveMode, changeThresholds, position } from "../schema";
 
@@ -38,14 +38,14 @@ const playerPositions = v.object({
 export const ofPlayer = query({
   args: { code: v.number() },
   returns: playerPositions,
-  handler: async (ctx, { code }): Promise<PlayerPositions> => {
+  handler: async (ctx, { code }): Promise<WorkedOutPositions> => {
     await adminOf(ctx);
     return positionsFrom((await findRow(ctx, code)) ?? EMPTY_ROW, await howPositionsCount(ctx));
   },
 });
 
 /** His positions now, from his row and how positions count. */
-function positionsFrom(row: RowFields, how: HowPositionsCount): PlayerPositions {
+function positionsFrom(row: RowFields, how: HowPositionsCount): WorkedOutPositions {
   return positionsOf({
     starts: row.starts,
     plLabel: row.plLabel ?? null,

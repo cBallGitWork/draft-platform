@@ -3,7 +3,7 @@ import { ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, Notice, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { Vidiprinter } from "../matchup/Vidiprinter";
 import { PositionCode } from "../ui/PositionCodes";
-import type { MatchMan, MatchPage as Match, PremierLeagueSeam } from "./seam";
+import type { MatchMan, MatchPageData, PremierLeagueSeam } from "./seam";
 import {
   cameOnWords,
   clockWords,
@@ -55,7 +55,7 @@ export function MatchPage({ league, seam, fixtureCode }: { league: LeagueSummary
   );
 }
 
-function HeldMatch({ match }: { match: Match }) {
+function HeldMatch({ match }: { match: MatchPageData }) {
   const { home, away, men, pointsProblem, teamStats, commentary } = match;
   const moved = men.filter((man) => man.side === null);
   return (
@@ -77,7 +77,7 @@ function HeldMatch({ match }: { match: Match }) {
 }
 
 /** The clubs with the score between them, or "v" before kickoff, and where the match stands. */
-function Scoreboard({ match: { home, away, score, kickoff, gameweek } }: { match: Match }) {
+function Scoreboard({ match: { home, away, score, kickoff, gameweek } }: { match: MatchPageData }) {
   const goals = goalsWords(score);
   return (
     <section aria-label={SCORE_LABEL} className="bg-panel shadow-bevel-panel">
@@ -94,7 +94,7 @@ function Scoreboard({ match: { home, away, score, kickoff, gameweek } }: { match
   );
 }
 
-function MatchState({ score, kickoff }: Pick<Match, "score" | "kickoff">) {
+function MatchState({ score, kickoff }: Pick<MatchPageData, "score" | "kickoff">) {
   switch (score?.state) {
     case "live":
       return <span className="font-semibold text-derived">{clockWords(score.clockLabel, score.minutes)}</span>;
@@ -107,10 +107,10 @@ function MatchState({ score, kickoff }: Pick<Match, "score" | "kickoff">) {
   }
 }
 
-type SideStats = NonNullable<Match["teamStats"]>["home"];
+type SideStats = NonNullable<MatchPageData["teamStats"]>["home"];
 
 /** Each side's five, home's figure left of the stat and away's right, as a scoreboard reads. */
-function TeamStats({ home, away, stats }: { home: string; away: string; stats: Match["teamStats"] }) {
+function TeamStats({ home, away, stats }: { home: string; away: string; stats: MatchPageData["teamStats"] }) {
   return (
     <Panel title={TEAM_STATS_TITLE}>
       {stats === null ? (

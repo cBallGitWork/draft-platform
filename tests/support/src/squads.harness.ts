@@ -2,10 +2,10 @@
 
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { FoundPlayer, SquadsSeam, TeamSquad } from "../../../src/squads/seam";
+import type { FoundPlayer, SquadsSeam, SquadWithWarnings } from "../../../src/squads/seam";
 
 /** What the fake server holds: each team's squad, and who a search finds. */
-export type SquadsData = { squads?: readonly TeamSquad[]; found?: readonly FoundPlayer[]; loading?: boolean; searching?: boolean };
+export type SquadsData = { squads?: readonly SquadWithWarnings[]; found?: readonly FoundPlayer[]; loading?: boolean; searching?: boolean };
 
 /** Every change succeeds, unless a test says otherwise; a search finds `found` for any text.
  *  `loading` keeps the squads, and `searching` a search, still on their way (undefined). */
@@ -20,7 +20,7 @@ export function fakeSquads({ squads = [], found = [], loading = false, searching
 }
 
 /** A team's squad as the server sends it. */
-export const teamSquad = (teamId: string, teamName: string, players: TeamSquad["players"] = [], warnings: TeamSquad["warnings"] = []): TeamSquad => ({
+export const squadWithWarnings = (teamId: string, teamName: string, players: SquadWithWarnings["players"] = [], warnings: SquadWithWarnings["warnings"] = []): SquadWithWarnings => ({
   teamId: teamId as Id<"teams">,
   teamName,
   players,

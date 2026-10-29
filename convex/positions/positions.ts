@@ -58,7 +58,7 @@ export interface PositionInputs {
   judgedBefore: number | null;
 }
 
-export interface PlayerPositions {
+export interface WorkedOutPositions {
   positions: HeldPosition[];
   /** Positions his starts give that the admin has not approved: his queue (spec/15). */
   proposals: Position[];
@@ -91,7 +91,7 @@ export function positionsFromStarts(starts: Start[]): { positions: Position[]; u
  *  and starts over his label. His label counts only while no start-position does (spec/06: a new
  *  signing, too few starts anywhere, or starts the admin has not yet approved). A position from
  *  starts is flagged, then removed, by a run of starts elsewhere (positionChanges.ts). */
-export function positionsOf({ starts, plLabel, admin, approveMode, thresholds, judgedBefore }: PositionInputs): PlayerPositions {
+export function positionsOf({ starts, plLabel, admin, approveMode, thresholds, judgedBefore }: PositionInputs): WorkedOutPositions {
   const fromStarts = positionsFromStarts(starts);
   const kept = fromStarts.positions.filter((position) => !admin.removed.includes(position));
   const runElsewhere = new Map(kept.map((position) => [position, startsElsewhere(starts, position, judgedBefore)]));

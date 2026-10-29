@@ -96,7 +96,7 @@ export async function lineupsInGameweek(
     }
     if (row === null) {
       const begun = deadline !== null;
-      const held = begun ? { starters: [], bench: squad } : firstLineup(squad, await positionsOf(ctx, squad));
+      const held = begun ? { starters: [], bench: squad } : firstLineup(squad, await heldPositionsOf(ctx, squad));
       lineups.set(teamId, { fromGameweek: null, noLineup: begun && squad.length > 0, ...held, ...NO_CHANGES });
       continue;
     }
@@ -107,7 +107,7 @@ export async function lineupsInGameweek(
 }
 
 /** Each player's positions now (spec/06), for picking a first lineup. */
-async function positionsOf(ctx: QueryCtx, playerCodes: readonly number[]): Promise<PlayerPositions> {
+async function heldPositionsOf(ctx: QueryCtx, playerCodes: readonly number[]): Promise<PlayerPositions> {
   const positionsOfNow = await positionsNow(ctx);
   return new Map(await Promise.all(playerCodes.map(async (playerCode) => [playerCode, await positionsOfNow(playerCode)] as const)));
 }
@@ -160,7 +160,7 @@ export const save = mutation({
     const leftOut = squad.filter((playerCode) => !named.includes(playerCode));
     if (leftOut.length > 0) refuse(lineupRefusals.leftOut(leftOut.map(nameOf)));
 
-    const positions = await positionsOf(ctx, lineup.starters.map(({ playerCode }) => playerCode));
+    const positions = await heldPositionsOf(ctx, lineup.starters.map(({ playerCode }) => playerCode));
     const { areaLimits } = season.inGameweek(fromGameweek);
     const problems = lineupProblems(lineup, positions, { areaLimits });
     if (problems.length > 0) refuse(problems.map((problem) => problemWords(problem, nameOf)).join(" "));
@@ -187,7 +187,7 @@ export async function pickFirstLineupAgain(ctx: MutationCtx, leagueId: Id<"leagu
   const row = await rowInForce(ctx, leagueId, teamId, fromGameweek);
   if (row !== null && row.firstLineup !== true) return;
   const squad = await squadCodes(ctx, teamId);
-  const picked = firstLineup(squad, await positionsOf(ctx, squad));
+  const picked = firstLineup(squad, await heldPositionsOf(ctx, squad));
   if (row?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", row._id, picked);
   else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...picked, firstLineup: true });
 }
