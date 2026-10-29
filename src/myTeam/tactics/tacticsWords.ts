@@ -1,7 +1,7 @@
 // What My team's Tactics tab says (#14), in one place for Craig to change in the pull request.
 
 import { STARTER_COUNT } from "../../../convex/lineup/lineup";
-import { namesWords } from "../../../convex/lineup/lineupWords";
+import { andListWords } from "../../../convex/shared/moments";
 import type { Area, Lane } from "../../../convex/lineup/pitch";
 import { AREA_WORDS, LANE_WORDS } from "../../../convex/lineup/pitchWords";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
@@ -72,7 +72,7 @@ export const downLabel = (name: string) => `Move ${name} down the bench`;
 export const emptyBenchWords = "Nobody on the bench.";
 
 /** Who joined the squad since the lineup was saved. */
-export const joinedBenchWords = (names: readonly string[]) => `${namesWords(names)} joined your squad and sit${names.length === 1 ? "s" : ""} at the end of the bench.`;
+export const joinedBenchWords = (names: readonly string[]) => `${andListWords(names)} joined your squad and sit${names.length === 1 ? "s" : ""} at the end of the bench.`;
 
 export const saveWords = "Save lineup";
 export const discardWords = "Discard";

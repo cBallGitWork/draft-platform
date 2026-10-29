@@ -7,6 +7,10 @@
 //     (await import("../../support/src/convexReact.harness")).fakeConvexReact({ mutations: { "squads/squads:move": move } }));
 
 import { getFunctionName, type FunctionReference, type FunctionType } from "convex/server";
+import type { Id } from "../../../convex/_generated/dataModel";
+
+/** The made-up league every live-wiring test reads and writes in. */
+export const A_LEAGUE_ID = "league-1" as Id<"leagues">;
 
 type Fakes = Record<string, (...args: never[]) => unknown>;
 

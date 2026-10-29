@@ -3,9 +3,9 @@
 
 import { renderHook } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
-import type { Id } from "../../../convex/_generated/dataModel";
 import { liveHome } from "../../../src/home/liveHome";
 import { quietHome } from "../../support/src/home.harness";
+import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 
 const convex = vi.hoisted(() => ({ ofLeague: vi.fn() }));
 vi.mock("convex/react", async () =>
@@ -14,16 +14,15 @@ vi.mock("convex/react", async () =>
   }),
 );
 
-const leagueId = "league-1" as Id<"leagues">;
 const now = 1_000_000;
 
 test("it asks home/leagueHome:ofLeague with the league and the minute, and hands on what comes back", () => {
   convex.ofLeague.mockReturnValue(quietHome);
-  expect(renderHook(() => liveHome.useLeagueHome(leagueId, now)).result.current).toBe(quietHome);
-  expect(convex.ofLeague).toHaveBeenCalledWith({ leagueId, now });
+  expect(renderHook(() => liveHome.useLeagueHome(A_LEAGUE_ID, now)).result.current).toBe(quietHome);
+  expect(convex.ofLeague).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, now });
 });
 
 test("it is undefined while loading", () => {
   convex.ofLeague.mockReturnValue(undefined);
-  expect(renderHook(() => liveHome.useLeagueHome(leagueId, now)).result.current).toBeUndefined();
+  expect(renderHook(() => liveHome.useLeagueHome(A_LEAGUE_ID, now)).result.current).toBeUndefined();
 });

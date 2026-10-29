@@ -3,9 +3,9 @@
 
 import { renderHook } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
-import type { Id } from "../../../convex/_generated/dataModel";
 import { liveTable } from "../../../src/table/liveTable";
 import { leagueTableOf } from "../../../src/table/drawnTable";
+import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 
 const convex = vi.hoisted(() => ({ ofLeague: vi.fn() }));
 vi.mock("convex/react", async () =>
@@ -14,16 +14,15 @@ vi.mock("convex/react", async () =>
   }),
 );
 
-const leagueId = "league-1" as Id<"leagues">;
 
 test("it reads the league's table and fixtures from table/leagueTable:ofLeague, as they come", () => {
   const table = leagueTableOf(["Team 1", "Team 2"]);
   convex.ofLeague.mockReturnValue(table);
-  expect(renderHook(() => liveTable.useLeagueTable(leagueId)).result.current).toBe(table);
-  expect(convex.ofLeague).toHaveBeenCalledWith({ leagueId });
+  expect(renderHook(() => liveTable.useLeagueTable(A_LEAGUE_ID)).result.current).toBe(table);
+  expect(convex.ofLeague).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID });
 });
 
 test("it is undefined while loading", () => {
   convex.ofLeague.mockReturnValue(undefined);
-  expect(renderHook(() => liveTable.useLeagueTable(leagueId)).result.current).toBeUndefined();
+  expect(renderHook(() => liveTable.useLeagueTable(A_LEAGUE_ID)).result.current).toBeUndefined();
 });

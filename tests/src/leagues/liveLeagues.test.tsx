@@ -3,13 +3,13 @@
 // switching league (#76).
 
 import { renderHook } from "@testing-library/react";
-import type { Id } from "../../../convex/_generated/dataModel";
 import { ConvexError } from "convex/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
 import { useLiveLeagues } from "../../../src/leagues/liveLeagues";
 import { createFailedWords, deleteFailedWords, leaveFailedWords, switchFailedWords, undoFailedWords } from "../../../src/leagues/words";
+import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 
 const create = vi.hoisted(() => vi.fn());
 const deleteLeague = vi.hoisted(() => vi.fn());
@@ -38,8 +38,8 @@ test("a league the server makes resolves with no problem", async () => {
 });
 
 test("a league the server refuses resolves with the server's own words", async () => {
-  create.mockRejectedValue(new ConvexError("Only the admin can do that."));
-  expect(await createLeague()).toBe("Only the admin can do that.");
+  create.mockRejectedValue(new ConvexError(refusals.notAdmin));
+  expect(await createLeague()).toBe(refusals.notAdmin);
 });
 
 test("any other failure is logged and said plainly", async () => {
@@ -51,25 +51,24 @@ test("any other failure is logged and said plainly", async () => {
   expect(logged).toHaveBeenCalledWith("Creating a league failed:", failure);
 });
 
-const leagueId = "league-1" as Id<"leagues">;
 const liveActions = () => renderHook(useLiveLeagues).result.current;
 
 test.each([
-  ["deleting", () => liveActions().deleteLeague(leagueId), deleteLeague],
-  ["undoing", () => liveActions().undoDeletion(leagueId), undo],
-  ["switching to", () => liveActions().switchLeague(leagueId), switchTo],
-  ["leaving", () => liveActions().leaveLeague(leagueId), leave],
+  ["deleting", () => liveActions().deleteLeague(A_LEAGUE_ID), deleteLeague],
+  ["undoing", () => liveActions().undoDeletion(A_LEAGUE_ID), undo],
+  ["switching to", () => liveActions().switchLeague(A_LEAGUE_ID), switchTo],
+  ["leaving", () => liveActions().leaveLeague(A_LEAGUE_ID), leave],
 ])("%s a league asks the server with its id, and resolves with no problem", async (_, change, mutation) => {
   mutation.mockResolvedValue(null);
   expect(await change()).toBeNull();
-  expect(mutation).toHaveBeenCalledExactlyOnceWith({ leagueId });
+  expect(mutation).toHaveBeenCalledExactlyOnceWith({ leagueId: A_LEAGUE_ID });
 });
 
 test.each([
-  ["Deleting a league", () => liveActions().deleteLeague(leagueId), deleteLeague, deleteFailedWords],
-  ["Undoing a league's deletion", () => liveActions().undoDeletion(leagueId), undo, undoFailedWords],
-  ["Switching league", () => liveActions().switchLeague(leagueId), switchTo, switchFailedWords],
-  ["Leaving a league", () => liveActions().leaveLeague(leagueId), leave, leaveFailedWords],
+  ["Deleting a league", () => liveActions().deleteLeague(A_LEAGUE_ID), deleteLeague, deleteFailedWords],
+  ["Undoing a league's deletion", () => liveActions().undoDeletion(A_LEAGUE_ID), undo, undoFailedWords],
+  ["Switching league", () => liveActions().switchLeague(A_LEAGUE_ID), switchTo, switchFailedWords],
+  ["Leaving a league", () => liveActions().leaveLeague(A_LEAGUE_ID), leave, leaveFailedWords],
 ])("%s failing for any other reason is logged and said plainly", async (doing, change, mutation, words) => {
   const failure = new Error("offline");
   mutation.mockRejectedValue(failure);
@@ -81,10 +80,10 @@ test.each([
 
 test("a switch the server refuses resolves with the server's own words", async () => {
   switchTo.mockRejectedValue(new ConvexError(refusals.notInLeague));
-  expect(await liveActions().switchLeague(leagueId)).toBe(refusals.notInLeague);
+  expect(await liveActions().switchLeague(A_LEAGUE_ID)).toBe(refusals.notInLeague);
 });
 
 test("leaving a league the server refuses resolves with the server's own words", async () => {
   leave.mockRejectedValue(new ConvexError(refusals.runsNoTeam));
-  expect(await liveActions().leaveLeague(leagueId)).toBe(refusals.runsNoTeam);
+  expect(await liveActions().leaveLeague(A_LEAGUE_ID)).toBe(refusals.runsNoTeam);
 });

@@ -2,6 +2,7 @@
 // holds, and the changes asked of it, each answering as `refusal` says.
 
 import { vi } from "vitest";
+import { ARSENAL } from "../convex/footballRows.harness";
 import type { ShortlistChanges, ShortlistedPlayer, ShortlistSeam } from "../../../src/scouting/shortlist/shortlistSeam";
 
 /** What the fake server holds: the manager's shortlist (null for someone running no team), or
@@ -25,7 +26,7 @@ export const shortlisted = (code: number, name: string, ownerTeamName: string | 
   code,
   name,
   fullName: name,
-  club: { code: 3, name: "Arsenal", shortName: "ARS" },
+  club: ARSENAL,
   ownerTeamName,
   gone: false,
 });

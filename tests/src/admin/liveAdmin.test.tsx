@@ -9,6 +9,7 @@ import { silenceConsoleError } from "../../support/console.setup";
 import { useLiveAdmin } from "../../../src/admin/liveAdmin";
 import { changeFailedWords } from "../../../src/shared/words";
 import { MINUTE_MS } from "../../../convex/shared/time";
+import { refusals } from "../../../convex/shared/leagueAccess";
 
 const convex = vi.hoisted(() => ({ find: vi.fn(), feeds: vi.fn(), setPosition: vi.fn(), approvePlayer: vi.fn(), approveClub: vi.fn(), setChangeThresholds: vi.fn() }));
 vi.mock("convex/react", async () =>
@@ -64,8 +65,8 @@ test("new thresholds go to positions/positionSettings:setChangeThresholds", asyn
 });
 
 test("a change the server refuses resolves with the server's own words", async () => {
-  convex.approvePlayer.mockRejectedValue(new ConvexError("Only the admin can do that."));
-  expect(await seam().approvePlayer(3)).toBe("Only the admin can do that.");
+  convex.approvePlayer.mockRejectedValue(new ConvexError(refusals.notAdmin));
+  expect(await seam().approvePlayer(3)).toBe(refusals.notAdmin);
 });
 
 test("any other failure is logged and said plainly", async () => {

@@ -21,6 +21,7 @@ import {
   SHORTLIST_TITLE,
   shortlistListLabel,
 } from "../../../../src/scouting/shortlist/shortlistWords";
+import { ARSENAL } from "../../../support/convex/footballRows.harness";
 import type { ShortlistData } from "../../../support/src/shortlist.harness";
 import { shortlisted } from "../../../support/src/shortlist.harness";
 import { commissioner, league, manager, openApp } from "../../../support/src/shell.harness";
@@ -86,7 +87,7 @@ const card = (code: number, name: string, gone = false): PlayerCard => ({
   code,
   name,
   fullName: name,
-  club: { code: 3, name: "Arsenal", shortName: "ARS" },
+  club: ARSENAL,
   gone,
   positions: ["W"],
   ownerTeamName: null,

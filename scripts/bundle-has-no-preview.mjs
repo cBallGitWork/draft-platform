@@ -1,22 +1,26 @@
 #!/usr/bin/env node
 // The production bundle holds none of the preview's made-up data (#218): main.tsx loads the
 // preview modules with a dynamic import() behind import.meta.env.DEV, which `vite build` drops.
-// Fails when a file in dist/ holds a string only a preview module has. Each src/**/preview.ts
-// names one string in NEEDLES, and the check fails first if a preview module names none, its
+// Fails when a file in dist/ holds a string only a preview module has. Each preview module (a .ts
+// file named preview*.ts or *Preview.ts, so preview.ts, previewTactics.ts and matchPreview.ts
+// alike) names one string in NEEDLES, and the check fails first if a preview module names none, its
 // string is no longer in it, or another source file holds it too, so a renamed string or a new
 // preview module can't leave it blind and a shared one can't fail it for nothing.
 // Run from the repo after `vite build`: `npm run build` runs both, so CI does. An argument names
-// another built folder than dist/ (its tests do).
+// another built folder than dist/, and PREVIEW_CHECK_SOURCES (comma-separated) other source
+// folders than src and convex (its tests do both).
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
 
 const DIST = process.argv[2] ?? "dist";
-const SOURCES = ["src", "convex"];
-const PREVIEW_FILE = "preview.ts";
+const SOURCES = (process.env.PREVIEW_CHECK_SOURCES ?? "src,convex").split(",");
+/** A preview module's file name: preview.ts, previewTactics.ts, matchPreview.ts; not previewApp.tsx. */
+const PREVIEW_FILE = /^preview\w*\.ts$|Preview\.ts$/;
 
 /** A string only that preview module holds, by its path; null for one that holds no data of its
- *  own (its words are the app's, its rules row src/rules/preview.ts's, its teams the table's). */
+ *  own (its words are the app's, its rules row src/rules/preview.ts's, its teams the table's, its
+ *  players Scouting's). */
 const NEEDLES = {
   "src/app/preview.ts": "preview-pro-league",
   "src/admin/preview.ts": "Nick Woltemade",
@@ -28,12 +32,15 @@ const NEEDLES = {
   "src/matchup/preview.ts": "Mac Allister",
   "src/home/preview.ts": "Expected Toulouse",
   "src/myTeam/preview.ts": "Martinelli",
+  "src/myTeam/tactics/previewTactics.ts": "Henderson",
   "src/patches/preview.ts": "preview-patch-",
   "src/playerCard/preview.ts": "Hamstring injury - 75% chance of playing",
+  "src/premierLeague/matchPreview.ts": "41' GOAL Enciso",
   "src/premierLeague/preview.ts": "Leeds United",
   "src/rules/preview.ts": "preview-rules",
   "src/scoring/preview.ts": null,
   "src/scouting/preview.ts": "Virgil van Dijk",
+  "src/scouting/shortlist/previewShortlist.ts": null,
   "src/squads/preview.ts": "preview-team-1",
   "src/table/preview.ts": "Ctrl Alt Defeat",
 };
@@ -51,7 +58,7 @@ function filesUnder(dir) {
 }
 
 const sources = new Map(SOURCES.flatMap(filesUnder).map((path) => [path, readFileSync(path, "utf8")]));
-const previewFiles = [...sources.keys()].filter((path) => basename(path) === PREVIEW_FILE);
+const previewFiles = [...sources.keys()].filter((path) => PREVIEW_FILE.test(basename(path)));
 const unnamed = previewFiles.filter((path) => !Object.hasOwn(NEEDLES, path));
 if (unnamed.length > 0) fail(`${unnamed.join(", ")} has no entry in NEEDLES; name a string only it holds.`);
 for (const path of Object.keys(NEEDLES)) {

@@ -5,7 +5,7 @@ import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConvexError } from "convex/values";
 import { StrictMode } from "react";
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
 import { signInToJoinWords } from "../../../src/joining/words";
 import { ERROR_PAGE_TITLE, readFailedWords, signOutWords, tryAgainWords } from "../../../src/frame/words";
@@ -93,10 +93,6 @@ beforeEach(() => {
   convex.account = undefined;
   convex.unreadFails = null;
 });
-afterEach(() => {
-  window.history.replaceState(null, "", "/");
-});
-
 /** Opens the app at `address`, as main.tsx does, in React's development checks. */
 function openAt(address: string) {
   window.history.replaceState(null, "", address);

@@ -2,18 +2,17 @@
 // the form shows, the server's own rules picking this gameweek (nextGameweek.ts) and the rows
 // (glance.ts), a pinned letter and a few squad moves. Made up: nothing scores a matchup yet (#29).
 
-import type { Id } from "../../convex/_generated/dataModel";
 import { shownRows } from "../../convex/home/glance";
 import { thisGameweekOf } from "../../convex/gameweeks/nextGameweek";
 import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { drawFixtures, namedFixture } from "../../convex/table/roundRobin";
 import { formOf, headToHeadTable } from "../../convex/table/standings";
+import { previewIdOf } from "../table/preview";
 import type { HomeSeam, LeagueHome } from "./seam";
 
 const TEAMS = ["Saka Potatoes", "Kroos Control", "Lingard Franca", "Neville Wears Prada", "Team 5", "Murder on Zidane's Floor", "Dinamo Kiev Leave", "Haaland Oates", "Expected Toulouse"];
 const MINE = "Saka Potatoes";
-const previewIdOf = (team: string) => `preview-${team}` as Id<"teams">;
 const SCORED = 6;
 const firstDeadline = Date.now() - SCORED * WEEK_MS + DAY_MS;
 
