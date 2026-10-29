@@ -7,7 +7,7 @@ import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
-import { memberOf, teamIn, teamOf, teamsOf } from "../shared/leagueAccess";
+import { memberOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { readOnce } from "../shared/readOnce";
 import { begunGameweeks, tableGameweek, type GameweekTeams } from "../gameweekScorer/gameweekScores";
 import { scheduleOf } from "../table/playedFixtures";
@@ -44,11 +44,11 @@ export const ofTeam = query({
   args: { leagueId: v.id("leagues"), now: v.number(), teamId: v.optional(v.id("teams")), gameweek: v.optional(v.number()) },
   returns: v.union(matchup, v.null()),
   handler: async (ctx, { leagueId, now, teamId, gameweek: asked }) => {
-    const { email, league } = await memberOf(ctx, leagueId);
+    const { league, team: own } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     if (season === null) return null;
     if (season.latest.format === "totalPoints") return { kind: "totalPoints" as const };
-    const team = teamId === undefined ? await teamOf(ctx, leagueId, email) : await teamIn(ctx, leagueId, teamId);
+    const team = teamId === undefined ? own : await teamIn(ctx, leagueId, teamId);
     if (team === undefined) return { kind: "noTeam" as const };
 
     const schedule = await scheduleOf(ctx, league, season);
