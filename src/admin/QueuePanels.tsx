@@ -1,4 +1,4 @@
-import { PANEL_LIST_ROW, Panel, PanelNote } from "../frame/Panel";
+import { PANEL_LIST_ROW, Panel, PanelNote } from "../ui/Panel";
 import type { PanelProps } from "./panelProps";
 import {
   approveLabel,

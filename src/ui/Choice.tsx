@@ -1,5 +1,5 @@
-/** One of a few options, butted keys with the chosen one pressed in (plate.md, Controls), as the
- *  rules screens choose them. `name` groups its radio inputs. */
+/** One of a few options, butted keys with the chosen one pressed in (plate.md, Controls).
+ *  `name` groups its radio inputs. */
 export function Choice<Option extends string>({
   label,
   name,

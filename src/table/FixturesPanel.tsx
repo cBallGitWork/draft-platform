@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { nextByDeadlines } from "../../convex/gameweeks/nextGameweek";
 import { FEWEST_TO_DRAW } from "../../convex/table/roundRobin";
-import { GameweekStepper } from "../frame/GameweekStepper";
-import { Panel, PanelNote } from "../frame/Panel";
+import { GameweekStepper } from "../ui/GameweekStepper";
+import { Panel, PanelNote } from "../ui/Panel";
 import { MatchupLink } from "../matchup/MatchupLink";
 import type { LeagueTable } from "./seam";
 import {

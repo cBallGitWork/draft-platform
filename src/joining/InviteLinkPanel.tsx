@@ -1,5 +1,5 @@
 import { joinPath, noLinkWords } from "../../convex/joining/joiningShared";
-import { PANEL_BODY, Panel, Problem } from "../frame/Panel";
+import { PANEL_BODY, Panel, Problem } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { inviteLinkWords, linkHint } from "./words";

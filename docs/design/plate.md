@@ -85,8 +85,8 @@ on the desk. Figures use tabular numerals.
 ## Controls
 
 Craig chose "Wells" of three looks (22 Oct 2026), drawn as board "A · Wells" on
-<https://claude.ai/artifact/LArQQrJt8SuAZzqedPhx4u>: CM's bevel turned inward. Built once each, for the rules
-screens, in `src/rules/` (`TickBox`, `Choice`, `SaveBar`).
+<https://claude.ai/artifact/LArQQrJt8SuAZzqedPhx4u>: CM's bevel turned inward. Built once each: the general
+ones in `src/ui/` (`TickBox`, `Choice`), the rules screens' own in `src/rules/` (`SaveBar`, `NumberBox`).
 
 - **Tick box**: a real checkbox drawn as a 22px well: name plate fill, the panel bevel flipped
   (`inset 0 2px 0 #050608`, `inset 0 -2px 0 #34363c`), a 1px `#caced4` rim like a box to type in

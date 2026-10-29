@@ -1,4 +1,4 @@
-import { Loading, PageSection, PanelNote } from "../frame/Panel";
+import { Loading, PageSection, PanelNote } from "../ui/Panel";
 import type { PatchesSeam, VersionNotes } from "./seam";
 import { fromWords, KIND_WORDS, loadingWords, noVersionsWords, notesHint, nothingScoresDifferentlyWords, PATCH_NOTES_TITLE } from "./words";
 

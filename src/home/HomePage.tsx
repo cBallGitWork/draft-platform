@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { TOP_ROWS } from "../../convex/home/glance";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { ColumnHeads } from "../frame/ColumnHeads";
+import { ColumnHeads } from "../ui/ColumnHeads";
 import { DateBlock } from "../frame/DateBlock";
-import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
+import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { MAIL_PATH, TABLE_PATH } from "../frame/menu";
 import { MatchupLink } from "../matchup/MatchupLink";
 import { useMinute } from "../shared/useMinute";

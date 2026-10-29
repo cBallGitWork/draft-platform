@@ -5,7 +5,7 @@ import { FeedbackLink } from "../feedback/FeedbackPage";
 import { Continue } from "./Continue";
 import { MAIL_PATH, sectionAt, sections } from "./menu";
 import { MainMenu, MenuTab } from "./MenuTab";
-import { TOP_BAR, TOP_BAR_ROW } from "./Panel";
+import { TOP_BAR, TOP_BAR_ROW } from "../ui/Panel";
 import { ProductName } from "./ProductName";
 import { SignOut } from "./SignOut";
 import type { TopBarState } from "./topBarState";

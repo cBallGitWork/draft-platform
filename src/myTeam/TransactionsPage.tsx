@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { Loading, PageSection, PanelNote } from "../frame/Panel";
+import { Loading, PageSection, PanelNote } from "../ui/Panel";
 import { playerCardPath } from "../playerCard/paths";
 import type { MyTeamSeam, TeamTransactions } from "./seam";
 import {

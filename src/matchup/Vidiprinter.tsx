@@ -1,5 +1,5 @@
 import type { MatchupCommentary } from "../../convex/matchup/matchupShape";
-import { Panel, PanelNote, Status } from "../frame/Panel";
+import { Panel, PanelNote, Status } from "../ui/Panel";
 import { commentaryDelayedWords, unreadCommentaryWords } from "./words";
 
 /** CM's vidiprinter (spec/10): every line, newest first, each with what it is worth to the league's

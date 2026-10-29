@@ -2,8 +2,8 @@ import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { LeaguesSeam } from "../leagues/seam";
 import { useChange } from "../shared/useChange";
-import { Confirm } from "./Confirm";
-import { Problem } from "./Panel";
+import { Confirm } from "../ui/Confirm";
+import { Problem } from "../ui/Panel";
 import { leaveWords } from "./words";
 
 /** The foot of the top bar's league list (spec/13, Leaving): a manager leaves the league they're

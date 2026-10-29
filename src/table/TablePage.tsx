@@ -1,6 +1,6 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { ColumnHeads } from "../frame/ColumnHeads";
-import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
+import { ColumnHeads } from "../ui/ColumnHeads";
+import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { FixturesPanel } from "./FixturesPanel";
 import type { LeagueTable, TableSeam } from "./seam";
 import {

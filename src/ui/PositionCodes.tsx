@@ -1,5 +1,5 @@
-import type { Position } from "../convex/positions/positionTables";
-import { listSeparator, POSITION_NAMES } from "./shared/words";
+import type { Position } from "../../convex/positions/positionTables";
+import { listSeparator, POSITION_NAMES } from "../shared/words";
 
 // A player's positions as every screen writes them: short codes, each named in full on hover.
 

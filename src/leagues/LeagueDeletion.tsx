@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { Confirm } from "../frame/Confirm";
-import { Problem } from "../frame/Panel";
+import { Confirm } from "../ui/Confirm";
+import { Problem } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import type { LeaguesSeam } from "./seam";
 import { leagueColumnCount } from "./LeagueLinks";

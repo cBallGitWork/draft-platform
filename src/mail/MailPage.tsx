@@ -5,7 +5,7 @@ import { LETTERS_SHOWN } from "../../convex/mail/mailLimits";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../auth";
 import { DateBlock } from "../frame/DateBlock";
-import { Loading, PageSection, PanelNote } from "../frame/Panel";
+import { Loading, PageSection, PanelNote } from "../ui/Panel";
 import { runs } from "../leagues/roles";
 import type { MailSeam } from "./seam";
 import { WriteToLeague } from "./WriteToLeague";

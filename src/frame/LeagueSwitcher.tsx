@@ -9,7 +9,7 @@ import { LEAGUES_PATH } from "../leagues/paths";
 import { LEAGUES_TITLE, rolesWords } from "../leagues/words";
 import { useChange } from "../shared/useChange";
 import { LeaveLeague } from "./LeaveLeague";
-import { Problem } from "./Panel";
+import { Problem } from "../ui/Panel";
 import { allLeaguesWords, currentLeagueLabel } from "./words";
 
 // On a phone the league takes its own row under the name, Continue and Sign out, above the menu.

@@ -1,10 +1,10 @@
 import { useCanGoBack, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { PositionCode, PositionCodes } from "../PositionCodes";
+import { PositionCode, PositionCodes } from "../ui/PositionCodes";
 import { SCOUTING_PATH } from "../frame/menu";
-import { ColumnHeads } from "../frame/ColumnHeads";
-import { Loading, PANEL_BODY, PageSection, Panel, PanelNote } from "../frame/Panel";
+import { ColumnHeads } from "../ui/ColumnHeads";
+import { Loading, PANEL_BODY, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { useMinute } from "../shared/useMinute";
 import { gameweekWords, versusWords, whenWords } from "../shared/words";
 import type { PlayedMatch, PlayerCard, PlayerCardSeam } from "./seam";

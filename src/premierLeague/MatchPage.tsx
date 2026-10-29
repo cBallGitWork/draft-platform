@@ -1,8 +1,8 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { ColumnHeads } from "../frame/ColumnHeads";
-import { Loading, Notice, PageSection, Panel, PanelNote } from "../frame/Panel";
+import { ColumnHeads } from "../ui/ColumnHeads";
+import { Loading, Notice, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { Vidiprinter } from "../matchup/Vidiprinter";
-import { PositionCode } from "../PositionCodes";
+import { PositionCode } from "../ui/PositionCodes";
 import type { MatchMan, MatchPage as Match, PremierLeagueSeam } from "./seam";
 import {
   cameOnWords,

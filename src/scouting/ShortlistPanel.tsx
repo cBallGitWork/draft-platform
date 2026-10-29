@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
-import { Loading, Panel, PanelNote, Problem } from "../frame/Panel";
+import { Loading, Panel, PanelNote, Problem } from "../ui/Panel";
 import { playerCardPath } from "../playerCard/paths";
 import { useChange } from "../shared/useChange";
 import type { ShortlistSeam } from "./shortlistSeam";

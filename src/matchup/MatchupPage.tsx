@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { MatchupSide, MatchupSlot } from "../../convex/matchup/matchupShape";
-import { ColumnHeads } from "../frame/ColumnHeads";
-import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
+import { ColumnHeads } from "../ui/ColumnHeads";
+import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import { useMinute } from "../shared/useMinute";
 import { matchPath } from "../premierLeague/paths";
