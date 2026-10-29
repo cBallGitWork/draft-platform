@@ -91,7 +91,7 @@ export function Thresholds({ queue, seam, change }: PanelProps) {
               required
               value={field.value}
               onChange={(event) => field.set(event.target.value)}
-              className="text-box w-24"
+              className="text-box w-wide-number-box"
             />
           </span>
         ))}
