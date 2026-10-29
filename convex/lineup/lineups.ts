@@ -7,7 +7,7 @@ import { heldSchedule } from "../gameweeks/leagueDeadlines";
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { passedDeadlineOf, passedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { GAMEWEEKS, isGameweek, noSuchGameweek } from "../gameweeks/usedGameweeks";
-import { squadAt, squadMovesSince, squadOf, type SquadMovesSince } from "../squads/squads";
+import { squadAt, squadMovesSince, squadOf, type SquadMovesSince } from "../squads/squadPlace";
 import { playerByCode } from "../shared/players";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";

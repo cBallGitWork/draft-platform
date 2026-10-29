@@ -13,7 +13,6 @@ import { POSITIONS } from "../positions/positionTables";
 import { seasonRules } from "../rules/rulesHistory";
 import { clubRecord, position, scoreRead, sideTeamStats } from "../schema";
 import type { ScoringSet } from "../scoring/scoringSet";
-import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
@@ -21,7 +20,8 @@ import { clubByCode, playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { begunGameweeks, workedOutGameweek } from "../gameweekScorer/gameweekScores";
-import { inMatchOf, leagueReads, MATCH_RECORDS_MOST, pointsInMatch } from "../gameweekScorer/teamGameweek";
+import { matchRecordsOf } from "../gameweekScorer/heldMatches";
+import { inMatchOf, leagueReads, pointsInMatch } from "../gameweekScorer/teamGameweek";
 
 // One real Premier League match (#45; spec/10, The match page): its score and clock, both clubs'
 // men as the team sheets named them, starters and substitutes, each man owned in the league with
@@ -91,11 +91,7 @@ export const ofMatch = query({
     const { league } = await memberOf(ctx, leagueId);
     const fixture = await fixtureByCode(ctx, fixtureCode);
     if (fixture === null) return null;
-    const records = await takeAllOrThrow(
-      ctx.db.query("playerMatchStats").withIndex("by_fixtureCode_and_playerCode", (q) => q.eq("fixtureCode", fixtureCode)),
-      MATCH_RECORDS_MOST,
-      `Match ${fixtureCode} holds more than ${MATCH_RECORDS_MOST} records, so its men would be cut short`,
-    );
+    const records = await matchRecordsOf(ctx, fixtureCode, "its men");
     const named = records.length > 0 ? records : await sheetMenOf(ctx, fixtureCode);
     const owners = await ownersOf(ctx, leagueId, named);
     const priced = await pricedOrProblem(ctx, league, fixture, named);

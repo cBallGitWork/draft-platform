@@ -11,7 +11,7 @@ import { managerOf } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { begunGameweeks } from "../gameweekScorer/gameweekScores";
 import { scoredMatches } from "../gameweekScorer/scoredMatches";
-import { squadOf } from "./squads";
+import { squadOf } from "./squadPlace";
 
 // My team's Squad tab (#364; spec/12, My team's tabs: "every player in the squad in one table,
 // with his position, club, next fixture, season points and last gameweek's points"). His points

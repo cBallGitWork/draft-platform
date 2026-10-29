@@ -37,8 +37,10 @@ import type * as football_premierLeague_plTeamStats from "../football/premierLea
 import type * as football_premierLeague_premierLeague from "../football/premierLeague/premierLeague.js";
 import type * as football_scoreReads from "../football/scoreReads.js";
 import type * as gameweekScorer_gameweekScores from "../gameweekScorer/gameweekScores.js";
+import type * as gameweekScorer_heldMatches from "../gameweekScorer/heldMatches.js";
 import type * as gameweekScorer_scoredMatches from "../gameweekScorer/scoredMatches.js";
 import type * as gameweekScorer_squadInputs from "../gameweekScorer/squadInputs.js";
+import type * as gameweekScorer_storedScores from "../gameweekScorer/storedScores.js";
 import type * as gameweekScorer_teamGameweek from "../gameweekScorer/teamGameweek.js";
 import type * as gameweeks_deadline from "../gameweeks/deadline.js";
 import type * as gameweeks_deadlineRecorder from "../gameweeks/deadlineRecorder.js";
@@ -215,8 +217,10 @@ declare const fullApi: ApiFromModules<{
   "football/premierLeague/premierLeague": typeof football_premierLeague_premierLeague;
   "football/scoreReads": typeof football_scoreReads;
   "gameweekScorer/gameweekScores": typeof gameweekScorer_gameweekScores;
+  "gameweekScorer/heldMatches": typeof gameweekScorer_heldMatches;
   "gameweekScorer/scoredMatches": typeof gameweekScorer_scoredMatches;
   "gameweekScorer/squadInputs": typeof gameweekScorer_squadInputs;
+  "gameweekScorer/storedScores": typeof gameweekScorer_storedScores;
   "gameweekScorer/teamGameweek": typeof gameweekScorer_teamGameweek;
   "gameweeks/deadline": typeof gameweeks_deadline;
   "gameweeks/deadlineRecorder": typeof gameweeks_deadlineRecorder;
