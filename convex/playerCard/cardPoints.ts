@@ -5,7 +5,7 @@
 // card's query and its tests price alike.
 
 import { v, type Infer } from "convex/values";
-import { AREAS, LANES, playsCell, positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
+import { ALL_CELLS, playsCell, positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
 import type { Position } from "../positions/positionTables";
 import { scoreMatch, type MatchPoints, type MatchStats } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
@@ -42,14 +42,11 @@ export function cardPoints(record: MatchStats | null, set: ScoringSet, positions
 function slotsFor(positions: readonly Position[]): Cell[] {
   const seen = new Set<string>();
   const cells: Cell[] = [];
-  for (const area of AREAS) {
-    for (const lane of LANES) {
-      const cell = { area, lane };
-      const key = `${area} ${positionOfSlot(cell)}`;
-      if (!playsCell(positions, cell) || seen.has(key)) continue;
-      seen.add(key);
-      cells.push(cell);
-    }
+  for (const cell of ALL_CELLS) {
+    const key = `${cell.area} ${positionOfSlot(cell)}`;
+    if (!playsCell(positions, cell) || seen.has(key)) continue;
+    seen.add(key);
+    cells.push(cell);
   }
   const own = (cell: Cell) => (positions.includes(positionOfSlot(cell)) ? 0 : 1);
   return cells.toSorted((one, other) => own(one) - own(other));
