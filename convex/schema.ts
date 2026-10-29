@@ -10,7 +10,11 @@ import { leagueTables } from "./schema/leagues";
 import { joiningTables } from "./schema/joining";
 import { squadTables, shortlistTables } from "./schema/squads";
 import { mailTables, feedbackTables } from "./schema/mail";
-import { leagueRulesTables, playedFixtureTables, lineupTables } from "./schema/rules";
+import { leagueRulesTables, squadMaximumTables } from "./schema/rules";
+import { siteScoringTables } from "./schema/scoring";
+import { gameweekTables } from "./schema/gameweeks";
+import { playedFixtureTables } from "./schema/table";
+import { lineupTables } from "./schema/lineup";
 
 // The database, one group of tables a feature, each in its own file in convex/schema/ with the
 // shapes it is made of. Everything the features read from the schema is re-exported here.
@@ -21,7 +25,8 @@ export { position, startRecord, playerPositionFields, approveMode, changeThresho
 export { liveStatsTickFields, commentaryLine, sideTeamStats, teamSheetMan } from "./schema/live";
 export { unemailedReason, leagueDeletion, pinnedLetter, leagueEvent } from "./schema/leagues";
 export { delivery } from "./schema/joining";
-export { siteScoringKind, placementShape } from "./schema/rules";
+export { siteScoringKind } from "./schema/scoring";
+export { placementShape } from "./schema/lineup";
 
 export default defineSchema({
   ...authTables,
@@ -43,6 +48,9 @@ export default defineSchema({
   ...mailTables,
   ...feedbackTables,
   ...leagueRulesTables,
+  ...siteScoringTables,
+  ...squadMaximumTables,
+  ...gameweekTables,
   ...playedFixtureTables,
   ...lineupTables,
 });
