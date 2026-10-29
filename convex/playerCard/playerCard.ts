@@ -25,7 +25,7 @@ import { scoredAs } from "./cardPoints";
  *  not yet Craig's. */
 export const NEXT_FIXTURES_SHOWN = 5;
 
-// `v.union` takes two or more members, which a mapped array cannot promise its type (as convex/tables/positions.ts's `position`).
+// `v.union` takes two or more members, which a mapped array cannot promise its type (as convex/schema/positions.ts's `position`).
 const slotLiterals = SLOT_POSITIONS.map((each) => v.literal(each));
 const slotPosition = v.union(...(slotLiterals as [VLiteral<SlotPosition>, VLiteral<SlotPosition>, ...VLiteral<SlotPosition>[]]));
 
