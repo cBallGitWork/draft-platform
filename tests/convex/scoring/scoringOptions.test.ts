@@ -5,7 +5,7 @@ import { centreOf, everyArea, everyPosition } from "../../support/convex/scoring
 import { validateScoringSet, type ScoringRule, type ScoringSet } from "../../../convex/scoring/scoringSet";
 
 // What a rule may say beyond its values (spec/14, How a rule scores; #111): priced the same for
-// all, by area or by position; held to a points limit; paid only after so many minutes; kept in
+// all, by area or by position; held to a points limit; scored only after so many minutes; kept in
 // tenths, or in whole points only.
 
 const LEFT_BACK: Cell = { area: "defence", lane: "left" };
@@ -16,19 +16,19 @@ const setOf = (...rules: ScoringRule[]): ScoringSet => ({ rules, wholePointsOnly
 const pointsFor = (rule: ScoringRule, stats: Record<string, number>, cell: Cell) => scoreMatch({ minutes: 90, ...stats }, setOf(rule), cell).total;
 
 describe("how finely a rule is priced", () => {
-  test("by position: a full back and a centre back in one back line are paid apart", () => {
+  test("by position: a full back and a centre back in one area are scored apart", () => {
     const tackles: ScoringRule = { shape: "perAction", stat: "won_tackle", values: { byPosition: { ...everyPosition(1), FB: 2 } } };
     expect(pointsFor(tackles, { won_tackle: 3 }, LEFT_BACK)).toBe(6);
     expect(pointsFor(tackles, { won_tackle: 3 }, CENTRE_BACK)).toBe(3);
   });
 
-  test("by area: the same two are paid alike", () => {
+  test("by area: the same two are scored alike", () => {
     const tackles: ScoringRule = { shape: "perAction", stat: "won_tackle", values: { byArea: { ...everyArea(1), defence: 2 } } };
     expect(pointsFor(tackles, { won_tackle: 3 }, LEFT_BACK)).toBe(6);
     expect(pointsFor(tackles, { won_tackle: 3 }, CENTRE_BACK)).toBe(6);
   });
 
-  test("the same for all: every slot is paid alike", () => {
+  test("the same for all: every slot is scored alike", () => {
     const assists: ScoringRule = { shape: "perAction", stat: "assists", values: { all: 3 } };
     for (const cell of [LEFT_BACK, LEFT_WINGER, centreOf("goalkeeper")]) expect(pointsFor(assists, { assists: 1 }, cell)).toBe(3);
   });
@@ -44,7 +44,7 @@ describe("how finely a rule is priced", () => {
 });
 
 describe("a points limit", () => {
-  test("holds a rule to its most: 12 defensive actions at 0.5 each pay 2, not 6", () => {
+  test("holds a rule to its most: 12 defensive actions at 0.5 each earn 2, not 6", () => {
     const rule: ScoringRule = { shape: "perAction", stat: "defensive_contribution", values: { all: 0.5 }, limit: { all: { max: 2, min: null } } };
     expect(pointsFor(rule, { defensive_contribution: 12 }, CENTRE_BACK)).toBe(2);
     expect(pointsFor(rule, { defensive_contribution: 3 }, CENTRE_BACK)).toBe(1.5);
@@ -56,7 +56,7 @@ describe("a points limit", () => {
     expect(pointsFor(rule, { goals_conceded: 2 }, CENTRE_BACK)).toBe(-2);
   });
 
-  test("is priced like values: a keeper's saves capped at 3, nobody else's", () => {
+  test("is priced like values: a keeper's saves held to a points limit of 3, nobody else's", () => {
     const rule: ScoringRule = {
       shape: "perAction",
       stat: "saves",
@@ -83,11 +83,11 @@ describe("a minimum of minutes", () => {
     [59, 0],
     [60, 4],
     [90, 4],
-  ])("a clean sheet at %i minutes pays %i", (minutes, points) => {
+  ])("a clean sheet at %i minutes earns %i", (minutes, points) => {
     expect(scoreMatch({ minutes, clean_sheets: 1 }, setOf(cleanSheet), CENTRE_BACK).total).toBe(points);
   });
 
-  test("a record with no minutes in it is 0 minutes, so a rule behind a minimum pays nothing", () => {
+  test("a record with no minutes in it is 0 minutes, so a rule behind a minimum earns nothing", () => {
     expect(scoreMatch({ clean_sheets: 1 }, setOf(cleanSheet), CENTRE_BACK).total).toBe(0);
   });
 

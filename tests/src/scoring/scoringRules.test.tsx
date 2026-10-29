@@ -67,7 +67,7 @@ describe("behind the tick boxes", () => {
     expect(savedRule(app, "assists")?.limit).toEqual({ all: { max: 6, min: null } });
   });
 
-  it("makes a rule pay only after a number of minutes", async () => {
+  it("makes a rule score only after a number of minutes", async () => {
     const app = openScoring();
     await choose("Assists");
     await userEvent.click(screen.getByRole("checkbox", { name: minutesWords }));
@@ -88,7 +88,7 @@ describe("behind the tick boxes", () => {
 });
 
 describe("the kind of rule", () => {
-  it("pays per number, keeping the points, for every one to begin with", async () => {
+  it("scores per number, keeping the points, for every one to begin with", async () => {
     const app = openScoring();
     await choose("Assists");
     await userEvent.click(screen.getByRole("radio", { name: shapeWords.perCount }));
@@ -98,7 +98,7 @@ describe("the kind of rule", () => {
     expect(savedRule(app, "assists")).toEqual({ shape: "perCount", stat: "assists", values: { all: { every: 2, points: 3 } } });
   });
 
-  it("pays in bands, one added a step past the highest", async () => {
+  it("scores in bands, one added a step past the highest", async () => {
     const app = openScoring();
     await choose("Minutes");
     await userEvent.click(screen.getByRole("button", { name: addBandWords }));

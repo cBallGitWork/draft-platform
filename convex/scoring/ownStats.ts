@@ -1,5 +1,5 @@
-// A league's own stats (#112, spec/14 Own stats): what one is, the check that refuses a bad one,
-// and how one is worked out from a player's record before the league's rules score it.
+// The site's own stats (#112, spec/14 Own stats): what one is, the check that refuses a bad one,
+// and how one is worked out from a player's record before the site's scoring set scores it.
 
 import { statIn, type MatchStats } from "./scoring";
 import { requireNumber, showValue, UnsoundScoring, type ScoringSet } from "./scoringSet";
@@ -9,7 +9,7 @@ import { CATALOGUE_STATS, STAT_CATALOGUE } from "./statCatalogue";
  *  only floating point's noise goes. */
 const ACTIONS_PRECISION = 1e6;
 
-/** A stat of the league's own (spec/14, Own stats): catalogue stats added up, each with a weight,
+/** A stat of the site's own (spec/14, Own stats): catalogue stats added up, each with a weight,
  *  which can be negative: tackles + 0.5 × clearances. A rule scores it by `stat`, as any category. */
 export interface OwnStat {
   stat: string;
@@ -74,7 +74,7 @@ export function checkOwnStatsAgainstCatalogue(ownStats: readonly OwnStat[]): voi
   }
 }
 
-/** His record with the league's own stats added, each worked out from his catalogue stats (spec/14,
+/** His record with the site's own stats added, each worked out from his catalogue stats (spec/14,
  *  Own stats). Under whole points only, an own stat counts whole actions, rounded down. */
 export function withOwnStats(record: MatchStats, set: ScoringSet): MatchStats {
   if (set.ownStats === undefined || set.ownStats.length === 0) return record;

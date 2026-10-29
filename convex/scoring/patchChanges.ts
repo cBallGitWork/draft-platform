@@ -99,7 +99,7 @@ function ruleChanges(name: string, before: Rule, after: Rule): string[] {
 }
 
 /** "Tackles + 0.5 × Clearances − Shots on target". */
-function ownStatFormula(own: OwnStat): string {
+function ownStatParts(own: OwnStat): string {
   return own.parts
     .map(({ stat, weight }, index) => {
       const sign = weight < 0 ? "− " : index === 0 ? "" : "+ ";
@@ -108,7 +108,7 @@ function ownStatFormula(own: OwnStat): string {
     })
     .join(" ");
 }
-const ownStatWords = (own: OwnStat) => `${own.name} (${own.shortCode}) = ${ownStatFormula(own)}`;
+const ownStatWords = (own: OwnStat) => `${own.name} (${own.shortCode}) = ${ownStatParts(own)}`;
 
 function ownStatChanges(before: readonly OwnStat[], after: readonly OwnStat[]): string[] {
   const lines: string[] = [];

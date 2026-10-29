@@ -49,11 +49,11 @@ const RARE: [string, Area, Record<string, number>, number][] = [
   ["9 defensive contributions in defence", "defence", { defensive_contribution: 9 }, 0],
   ["10 defensive contributions in defence", "defence", { defensive_contribution: 10 }, 2],
   ["11 defensive contributions in midfield", "attackingMidfield", { defensive_contribution: 11 }, 0],
-  ["24 defensive contributions in attack, paid once", "attack", { defensive_contribution: 24 }, 2],
+  ["24 defensive contributions in attack, scored once", "attack", { defensive_contribution: 24 }, 2],
   ["10 defensive contributions in goal", "goalkeeper", { defensive_contribution: 10 }, 0],
 ];
 
-test.each(RARE)("the first scoring set pays %s in %s as FPL does", (_name, area, stat, points) => {
+test.each(RARE)("the first scoring set scores %s in %s as FPL does", (_name, area, stat, points) => {
   expect(scoreMatch({ minutes: 90, ...stat }, FIRST_SCORING, centreOf(area)).total).toBe(2 + points);
 });
 

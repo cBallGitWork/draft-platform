@@ -7,7 +7,7 @@ import { HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats
 import { silenceConsoleError } from "../../support/convex/test.harness";
 
 // The threshold lines' moments (#44; spec/10, The commentary): a live read that shows a running
-// total pass a point a rule pays stores a step with the clock then, for the matchup to price.
+// total pass a point a rule scores stores a step with the clock then, for the matchup to price.
 
 const SET = FIRST_SCORING as ScoringSet;
 
@@ -19,7 +19,7 @@ test("a total passing a band or a per-number point is a step; one rising without
   expect(thresholdSteps({ minutes: 20, saves: 3 }, { minutes: 30, saves: 4 }, SET)).toEqual([]);
 });
 
-test("a point only one slot's pricing pays is a step, for the matchup to price for whoever stands there", () => {
+test("a point only one slot's pricing scores is a step, for the matchup to price for whoever stands there", () => {
   // Goals conceded take a point off only the keeper and the defence: still a step for every man.
   expect(thresholdSteps({ goals_conceded: 1 }, { goals_conceded: 2 }, SET)).toEqual([{ stat: "goals_conceded", from: 1, to: 2 }]);
 });

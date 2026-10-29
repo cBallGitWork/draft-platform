@@ -47,7 +47,7 @@ describe("with no substitutions, the starters count", () => {
   });
 
   test("every rule shape reaches the breakdown: per count, per action, bands paying the highest and stacking", () => {
-    // The keeper: 4 saves pay 1 for each whole three, 2 conceded cost 1, 90 minutes pay the
+    // The keeper: 4 saves earn 1 for each whole three, 2 conceded cost 1, 90 minutes earn the
     // highest band's 2. Dewsbury-Hall in midfield: a goal 5, an assist 3; his 10 defensive actions
     // reach no band there (12), so try him at the back, where 10 stacks to 2.
     const [keeper, midfielder] = scored.starters.map((slot) => slot.matches[0]?.categories);
