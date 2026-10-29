@@ -4,7 +4,7 @@ import { siteScoringKind } from "../schema";
 import { callerEmail, refuse, signedInEmail } from "../shared/leagueAccess";
 import { FIRST_SCORING } from "./firstScoring";
 import { scoringChanges } from "./patchChanges";
-import { historyOf, versionName } from "./siteScoring";
+import { siteVersions, versionName } from "./siteScoring";
 
 // The patch notes and the banner (spec/14, Changes and corrections; #356): a page listing every
 // version of the site's scoring with what it changed, worked out from the stored versions
@@ -30,7 +30,7 @@ export const notes = query({
   returns: v.array(versionNotes),
   handler: async (ctx) => {
     if ((await signedInEmail(ctx)) === null) return [];
-    const history = await historyOf(ctx);
+    const history = await siteVersions(ctx);
     return history
       .map((row, index) => ({
         name: versionName(row),
@@ -56,7 +56,7 @@ export const banner = query({
   handler: async (ctx, { now }) => {
     const email = await signedInEmail(ctx);
     if (email === null) return null;
-    for (const row of await historyOf(ctx)) {
+    for (const row of await siteVersions(ctx)) {
       if (row.takesEffectAt <= now) continue;
       const dismissed = await ctx.db
         .query("patchBannerDismissals")

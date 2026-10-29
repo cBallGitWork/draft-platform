@@ -13,7 +13,7 @@ import {
   type Placement,
   type PlayerPositions,
 } from "./lineup";
-import { AREAS, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
+import { ALL_CELLS, AREAS, cellKey, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
 
 /** Players are FPL's season-stable `code`. */
 type PlayerCode = number;
@@ -27,7 +27,7 @@ const GOALKEEPER: Area = "goalkeeper";
 export type GameweekPlay = "played" | "didNotPlay" | "stillToPlay";
 
 /** One of a player's matches in the gameweek: two in a double gameweek, none in a blank one. */
-export interface PlayerMatch {
+export interface MatchPlayed {
   finished: boolean;
   minutes: number;
 }
@@ -35,12 +35,12 @@ export interface PlayerMatch {
 /** A player who plays in either match of a double gameweek played; one whose every match ended
  *  with him on 0 minutes didn't. With no match at all he didn't play, so pass none only once his
  *  club's fixtures are known; a match postponed but still passed keeps him still to play. */
-export function gameweekPlay(matches: readonly PlayerMatch[]): GameweekPlay {
+export function gameweekPlay(matches: readonly MatchPlayed[]): GameweekPlay {
   if (matches.some((match) => match.minutes > 0)) return "played";
   return matches.every((match) => match.finished) ? "didNotPlay" : "stillToPlay";
 }
 
-export interface Substitution {
+export interface AutoSub {
   /** The starter who didn't play, or who left the squad and left his slot empty. */
   off: PlayerCode;
   on: PlayerCode;
@@ -52,7 +52,7 @@ export interface Substitution {
 }
 
 export interface AutoSubs {
-  substitutions: Substitution[];
+  substitutions: AutoSub[];
   /** Starters who didn't play or left the squad, and whom no one could replace legally: each one's
    *  slot scores nothing. */
   unfilled: PlayerCode[];
@@ -112,7 +112,7 @@ export function autoSubs(
 
   const absentees = asSaved.starters.filter((starter) => playOf(starter.playerCode) === "didNotPlay").sort(byPitchOrder);
   let current = asSaved;
-  const substitutions: Substitution[] = [];
+  const substitutions: AutoSub[] = [];
   const unfilled: PlayerCode[] = [];
   for (const absentee of absentees) {
     // A sub who hasn't played yet may still: he comes on provisionally, and keeps the bench's order.
@@ -139,7 +139,7 @@ function firstLegalSub(
   available: readonly PlayerCode[],
   positions: PlayerPositions,
   rules: LineupRules,
-): { substitution: Substitution; lineup: Lineup } | undefined {
+): { substitution: AutoSub; lineup: Lineup } | undefined {
   const slot = cellOf(absentee);
   // The hard rule (spec/05): a wing back plays only the wide lanes of a midfield row, so "can play
   // the slot's area" means can stand in the slot's own cell.
@@ -167,10 +167,10 @@ function legalSubstitution(
   absentee: Placement,
   playerCode: PlayerCode,
   cell: Cell,
-  into: Substitution["into"],
+  into: AutoSub["into"],
   positions: PlayerPositions,
   rules: LineupRules,
-): { substitution: Substitution; lineup: Lineup } | undefined {
+): { substitution: AutoSub; lineup: Lineup } | undefined {
   const after: Lineup = {
     // Into the absentee's own slot he takes its role too (spec/05 Auto-subs); elsewhere he plays
     // the new slot's first, until stars choose his best.
@@ -194,12 +194,9 @@ function freeCellsNearest(lineup: Lineup, absentee: Placement): Cell[] {
     const [area, lane] = pitchOrder(cell);
     return [Math.abs(area - slotArea), Math.abs(lane - slotLane), area, lane];
   };
-  return AREAS.flatMap((area) => LANES.map((lane) => ({ area, lane })))
-    .filter((cell) => cell.area !== GOALKEEPER && !taken.has(cellKey(cell)))
+  return ALL_CELLS.filter((cell) => cell.area !== GOALKEEPER && !taken.has(cellKey(cell)))
     .sort((one, other) => compareInOrder(distance(one), distance(other)));
 }
-
-const cellKey = ({ area, lane }: Cell): string => `${area}/${lane}`;
 
 /** Back to front, then left to right. */
 const pitchOrder = ({ area, lane }: Cell): [number, number] => [AREAS.indexOf(area), LANES.indexOf(lane)];

@@ -1,7 +1,7 @@
 // What the Premier League section says, in one place for Craig to change in the pull request.
 
 import { LOCALE } from "../../convex/shared/moments";
-import { gameweekWords, liveWords, versusWords } from "../words";
+import { gameweekWords, liveWords, scoreWords, versusWords } from "../words";
 
 export { gameweekWords, liveWords, scoreWords, versusWords } from "../words";
 /** Goals for less against, signed: "+4", "-3", "0", as the league table signs its difference. */
@@ -30,6 +30,12 @@ export const clockWords = (clockLabel: string | null, minutes: number | null) =>
   if (label) return `${label}'`;
   return minutes === null ? liveWords : `${minutes}'`;
 };
+/** A match's score as the Premier League pages show it, "2–1", once it has kicked off and both
+ *  goals are read; null before kickoff or while a goal is unread, where they show "v". */
+export const goalsWords = (score: { state: string; homeGoals: number | null; awayGoals: number | null } | null) =>
+  score !== null && score.state !== "upcoming" && score.homeGoals !== null && score.awayGoals !== null
+    ? scoreWords(score.homeGoals, score.awayGoals)
+    : null;
 export const halfTime = { short: "HT", long: "Half-time" } as const;
 export const fullTime = { short: "FT", long: "Full time" } as const;
 

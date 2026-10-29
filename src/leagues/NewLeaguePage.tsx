@@ -50,7 +50,7 @@ export function NewLeaguePage({ createLeague }: { createLeague: LeaguesSeam["cre
           value={maxTeams}
           onChange={(event) => setMaxTeams(event.target.value)}
           aria-describedby={MAX_TEAMS_HINT_ID}
-          className="text-box w-24"
+          className="text-box w-wide-number-box"
         />
         <p id={MAX_TEAMS_HINT_ID} className="text-muted">
           {maxTeamsHint}

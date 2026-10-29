@@ -13,7 +13,7 @@ import { statusOf } from "../stats/matchStats";
 import { begunGameweeks } from "./gameweekScores";
 import {
   heldFixtures,
-  isLocked,
+  isMatchFinal,
   leagueReads,
   rulesIn,
   teamInGameweek,
@@ -71,7 +71,7 @@ export async function scoredMatches(ctx: QueryCtx, league: Doc<"leagues">, teamI
         if (fromTeam?.counts) return { ...held, points: fromTeam.points, override, provisional: fromTeam.provisional };
         const best = cardPoints(isWhole(held.record) ? held.record.stats : null, setIn(held.gameweek), positions, null);
         const points = { ...best, total: override?.points ?? best.total, ...(fromTeam === null ? {} : { scoredAs: "notCounted" as const }) };
-        const provisional = fromTeam?.provisional ?? (!isWhole(held.record) || !isLocked({ status: await statusOf(ctx, held.fixture.code) }));
+        const provisional = fromTeam?.provisional ?? (!isWhole(held.record) || !isMatchFinal({ status: await statusOf(ctx, held.fixture.code) }));
         return { ...held, points, override, provisional };
       }),
     );

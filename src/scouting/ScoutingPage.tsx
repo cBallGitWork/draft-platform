@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { COMPARED_PLAYERS } from "../../convex/scouting/comparedPlayers";
 import type { CatalogueStat } from "../../convex/scoring/statCatalogue";
 import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
+import { useLastLoaded } from "../useLastLoaded";
 import { ComparePanel, type PickedPlayer } from "./ComparePanel";
 import { Filters } from "./Filters";
 import { PlayersTable } from "./PlayersTable";
@@ -23,13 +24,8 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
   const [filters, setFilters] = useState(OPENING_FILTERS);
   const [sort, setSort] = useState(OPENING_SORT);
   const [stat, setStat] = useState<CatalogueStat | null>(null);
-  const loaded = seam.usePlayersList(league.leagueId, filters, sort, stat?.stat ?? null);
   // While a changed filter or sort loads, the last list stays up, so the club filter keeps its clubs.
-  const lastLoaded = useRef(loaded);
-  useEffect(() => {
-    if (loaded !== undefined) lastLoaded.current = loaded;
-  }, [loaded]);
-  const list = loaded ?? lastLoaded.current;
+  const list = useLastLoaded(seam.usePlayersList(league.leagueId, filters, sort, stat?.stat ?? null));
   const [picked, setPicked] = useState<readonly PickedPlayer[]>([]);
   const comparison = seam.useComparison(league.leagueId, picked.length === COMPARED_PLAYERS ? picked.map((each) => each.code) : null);
   // A third ticked takes the place of the first, so the comparison always holds the last two.

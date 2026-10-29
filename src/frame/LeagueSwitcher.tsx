@@ -91,12 +91,12 @@ export function LeagueSwitcher({
         <span>
           <span className="sr-only">{currentLeagueLabel}</span> {current.name}
         </span>
-        <svg aria-hidden="true" viewBox="0 0 10 6" className="h-1.5 w-2.5 fill-current">
+        <svg aria-hidden="true" viewBox="0 0 10 6" className="h-caret-height w-caret-width fill-current">
           <path d="M0 0h10L5 6z" />
         </svg>
       </button>
       {open && (
-        <div id={listId} className="absolute top-full left-0 z-10 w-full bg-panel shadow-bevel-panel lg:w-72">
+        <div id={listId} className="absolute top-full left-0 z-10 w-full bg-panel shadow-bevel-panel lg:w-league-list">
           <Problem problem={problem} />
           <ul aria-label={LEAGUES_TITLE}>
             {theirs.map((league) => (

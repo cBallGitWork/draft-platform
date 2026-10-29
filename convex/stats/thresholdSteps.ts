@@ -1,6 +1,6 @@
 import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import { AREAS, cellsOf, LANES, type Cell } from "../lineup/pitch";
+import { ALL_CELLS, type Cell } from "../lineup/pitch";
 import { withOwnStats } from "../scoring/ownStats";
 import { rulePointsIn, statIn, type MatchStats } from "../scoring/scoring";
 import { validateScoringSet, type ScoringSet } from "../scoring/scoringSet";
@@ -34,9 +34,6 @@ export interface ThresholdStep {
  *  why, while its scores still show. Claude's choice. */
 export const THRESHOLD_STEPS_MOST = 1000;
 
-/** Every cell a man can be priced at. */
-const EVERY_CELL: readonly Cell[] = AREAS.flatMap((area) => cellsOf(area, LANES));
-
 /** Minutes past any rule's minimum: whether a total passes a point is judged apart from them, and
  *  the matchup prices the step with his minutes then. */
 const ANY_MINUTES = Number.POSITIVE_INFINITY;
@@ -52,7 +49,7 @@ export function thresholdSteps(before: MatchStats, after: MatchStats, set: Scori
     const from = statIn(was, rule.stat);
     const to = statIn(now, rule.stat);
     const worth = (actions: number, cell: Cell) => rulePointsIn(rule, cell, actions, ANY_MINUTES);
-    if (to > from && EVERY_CELL.some((cell) => worth(to, cell) !== worth(from, cell))) steps.set(rule.stat, { stat: rule.stat, from, to });
+    if (to > from && ALL_CELLS.some((cell) => worth(to, cell) !== worth(from, cell))) steps.set(rule.stat, { stat: rule.stat, from, to });
   }
   return [...steps.values()];
 }

@@ -5,7 +5,7 @@
 // When positions change): the deadline, rollover and auto team must not take that outsideHisAreas
 // as illegal. It is reported alone, so a caller can set it aside; the rule is #23's to keep.
 
-import { AREAS, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
+import { AREAS, cellKey, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
 import { offersRole } from "./roles";
 import type { Position } from "../positions/positionTables";
 
@@ -86,10 +86,10 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
     if (role !== undefined && !offersRole({ area, lane }, role)) {
       problems.push({ kind: "roleNotOffered", playerCode, area, lane, role });
     }
-    const cellKey = `${area}/${lane}`;
-    const cell = standing.get(cellKey) ?? { area, lane, playerCodes: [] };
+    const key = cellKey({ area, lane });
+    const cell = standing.get(key) ?? { area, lane, playerCodes: [] };
     cell.playerCodes.push(playerCode);
-    standing.set(cellKey, cell);
+    standing.set(key, cell);
 
     const playerPositions = positions.get(playerCode);
     if (playerPositions === undefined) problems.push({ kind: "positionsUnknown", playerCode });

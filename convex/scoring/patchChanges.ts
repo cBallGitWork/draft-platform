@@ -1,5 +1,5 @@
 import { roleName } from "../lineup/roles";
-import { AREAS, LANES, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition } from "../lineup/pitch";
+import { ALL_CELLS, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition } from "../lineup/pitch";
 import type { StoredScoringSet } from "../rules/leagueRulesShape";
 import { categoryName } from "./categories";
 import { priceFor, type Band, type Priced, type PointsLimit } from "./scoringSet";
@@ -20,7 +20,7 @@ type PositionWords = ReadonlyMap<SlotPosition, string>;
 
 /** The area each slot position is played in (spec/14's table), for `priceFor`. */
 const AREA_OF: ReadonlyMap<SlotPosition, Area> = new Map(
-  AREAS.flatMap((area) => LANES.map((lane) => [positionOfSlot({ area, lane }), area] as const)),
+  ALL_CELLS.map((cell) => [positionOfSlot(cell), cell.area] as const),
 );
 
 /** An optional setting not set, such as no points limit. */
