@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { MatchupSide, MatchupSlot } from "../../convex/matchup/matchupShape";
 import { ColumnHeads } from "../frame/ColumnHeads";
 import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
+import { useLastLoaded } from "../useLastLoaded";
 import { useMinute } from "../useMinute";
 import { matchPath } from "../premierLeague/paths";
 import { matchupLink } from "./paths";
@@ -54,7 +54,9 @@ type Scored = Extract<HeadToHead["game"], { kind: "scored" }>;
  *  the totals as the score at the top, both lineups under it, live until every match is final.
  *  A manager lands on My team (spec/12); this is a tab away, and any fixture links here. */
 export function MatchupPage({ league, seam, asked }: { league: LeagueSummary; seam: MatchupSeam; asked: MatchupAsked }) {
-  const matchup = useLastWhileLoading(seam.useMatchup(league.leagueId, useMinute(), asked), `${asked.teamId}/${asked.gameweek}`);
+  // The minute is in the query's arguments, and a live matchup mustn't blank every minute; another
+  // matchup asked for loads afresh.
+  const matchup = useLastLoaded(seam.useMatchup(league.leagueId, useMinute(), asked), `${asked.teamId}/${asked.gameweek}`);
   return (
     <PageSection title={MATCHUP_TITLE} className="flex max-w-6xl flex-col gap-2">
       {matchup === undefined ? (
@@ -70,15 +72,6 @@ export function MatchupPage({ league, seam, asked }: { league: LeagueSummary; se
       )}
     </PageSection>
   );
-}
-
-/** The matchup asked for, the last one held while the next minute's loads: the minute is in the
- *  query's arguments, and a live matchup mustn't blank every minute. Another matchup asked for
- *  (`key`) loads afresh. */
-function useLastWhileLoading(matchup: Matchup | null | undefined, key: string): Matchup | null | undefined {
-  const [held, setHeld] = useState<{ key: string; matchup: Matchup | null }>();
-  if (matchup !== undefined && (held?.matchup !== matchup || held.key !== key)) setHeld({ key, matchup });
-  return matchup !== undefined ? matchup : held?.key === key ? held.matchup : undefined;
 }
 
 function HeadToHeadMatchup({ matchup }: { matchup: HeadToHead }) {
