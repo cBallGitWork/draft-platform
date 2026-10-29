@@ -1,18 +1,16 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
-import { GAMEWEEKS, isGameweekUsed } from "../gameweeks/usedGameweeks";
-import { MOST_TEAMS } from "../leagues/leagueLimits";
+import { isGameweekUsed } from "../gameweeks/usedGameweeks";
 import type { StoredScoringSet } from "../rules/leagueRulesShape";
 import type { SeasonRules } from "../rules/rulesHistory";
-import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { readOnce } from "../shared/readOnce";
+import { heldFixtures, isMatchFinal } from "./heldMatches";
 import { squadInputs, type PlayerRows } from "./squadInputs";
+import { sameCodes, storedFinalScores, storedScoresIn } from "./storedScores";
 import {
   gameweekInputs,
-  heldFixtures,
-  isMatchFinal,
   leagueReads,
   teamInGameweek,
   type GameweekInputs,
@@ -142,37 +140,6 @@ export function totalOf(scored: TeamInGameweek): TeamGameweek {
   return { points: scored.team.total, provisional: scored.team.provisional, noLineup: scored.noLineup };
 }
 
-/** The most final rows a league holds: one for each team in each gameweek. */
-export const FINAL_SCORES_MOST = GAMEWEEKS * MOST_TEAMS;
-
-/** A gameweek's stored final scores, and the matches they were scored from. */
-interface StoredGameweek {
-  fixtureCodes: number[];
-  scores: TeamScores;
-}
-
-/** Each gameweek's stored final scores. A gameweek whose rows disagree on its matches counts as
- *  holding none, to be stored again whole. */
-async function storedFinalScores(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, StoredGameweek>> {
-  const rows = await takeAllOrThrow(
-    ctx.db.query("finalScores").withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId)),
-    FINAL_SCORES_MOST,
-    `League ${leagueId} holds more than ${FINAL_SCORES_MOST} final scores, so some would be left out`,
-  );
-  const rowsByGameweek = new Map<number, Doc<"finalScores">[]>();
-  for (const row of rows) rowsByGameweek.set(row.gameweek, [...(rowsByGameweek.get(row.gameweek) ?? []), row]);
-  return new Map([...rowsByGameweek].map(([gameweek, gameweekRows]) => [gameweek, storedGameweekOf(gameweekRows)]));
-}
-
-/** One gameweek's stored rows, which are never none: scores for none when they disagree on its matches. */
-function storedGameweekOf([first, ...rest]: Doc<"finalScores">[]): StoredGameweek {
-  const agree = rest.every((row) => sameCodes(row.fixtureCodes, first.fixtureCodes));
-  const scores = new Map<TeamId, TeamGameweek>(
-    agree ? [first, ...rest].map(({ teamId, points, noLineup }) => [teamId, { points, provisional: false, noLineup: noLineup ?? false }]) : [],
-  );
-  return { fixtureCodes: first.fixtureCodes, scores };
-}
-
 /** One gameweek of the league, team by team: for a screen that shows its slots (the matchup, #34,
  *  the match page, #45, a player's card, #381) or a change that re-scores it (an override, #32). */
 export interface GameweekTeams {
@@ -231,30 +198,6 @@ function teamsFrom(reads: LeagueReads, inputs: GameweekInputs, stored: TeamScore
     slotsOf,
     pointsOf: async (teamId) => stored.get(teamId) ?? totalOf(await slotsOf(teamId)),
   };
-}
-
-/** The gameweek's stored final scores while it holds the same `fixtures` it was stored from, as
- *  the league's scorer reads them for the table; none otherwise. */
-async function storedScoresIn(
-  ctx: QueryCtx,
-  leagueId: Id<"leagues">,
-  gameweek: number,
-  fixtures: readonly Doc<"fixtures">[],
-): Promise<TeamScores> {
-  const rows = await takeAllOrThrow(
-    ctx.db.query("finalScores").withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId).eq("gameweek", gameweek)),
-    MOST_TEAMS,
-    `League ${leagueId} holds more than ${MOST_TEAMS} final scores for gameweek ${gameweek}, so some would be left out`,
-  );
-  if (rows.length === 0) return new Map();
-  const held = storedGameweekOf(rows);
-  return sameCodes(held.fixtureCodes, fixtures.map((fixture) => fixture.code)) ? held.scores : new Map();
-}
-
-/** Whether two lists hold the same match codes, in any order. */
-function sameCodes(one: readonly number[], other: readonly number[]): boolean {
-  const others = new Set(other);
-  return one.length === others.size && one.every((code) => others.has(code));
 }
 
 /** The teams' points in one gameweek, from its held fixtures, and whether they are final: the

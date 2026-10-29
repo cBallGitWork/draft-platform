@@ -3,22 +3,19 @@ import type { QueryCtx } from "../_generated/server";
 import { autoSubs, gameweekPlay, type AutoSubs, type GameweekPlay } from "../lineup/autoSubs";
 import { lineupsInGameweek, type HeldLineup } from "../lineup/lineups";
 import { ALL_CELLS, playsCell, type Cell } from "../lineup/pitch";
-import type { VidiprinterPlayer } from "../matchup/vidiprinter";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount, type HowPositionsCount } from "../positions/positionSettings";
 import type { Position } from "../positions/positionTables";
 import type { StoredScoringSet } from "../rules/leagueRulesShape";
 import type { SeasonRules } from "../rules/rulesHistory";
-import type { MatchPoints } from "../scoring/scoring";
+import type { MatchPoints, MatchStats } from "../scoring/scoring";
 import { siteScoringByGameweek } from "../scoring/siteScoring";
 import { validateScoringSet } from "../scoring/scoringSet";
 import { scoreTeam, type PlayerMatch, type SlotPoints, type TeamPoints } from "../scoring/teamPoints";
-import { takeAllOrThrow } from "../shared/cappedRead";
-import { gameweekFixtures } from "../shared/fixtures";
 import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { isWhole, MINUTES_STAT } from "../stats/matchRecords";
-import { statusOf } from "../stats/matchStats";
+import { heldMatches, isFinished, isMatchFinal, playsIn, type HeldMatch } from "./heldMatches";
 
 // One team's points in one gameweek (#29; spec/05, Auto-subs; spec/07): its lineup, auto-subs from
 // who played, then scoreTeam under the site's scoring set in force that gameweek. The league's
@@ -26,21 +23,8 @@ import { statusOf } from "../stats/matchStats";
 // slot for the matchup (#34), an override (#32), the match page (#45) and a player's card and the
 // Squad tab (#577), so none of them disagree.
 
-/** The most records one match holds: one for each man two team sheets name, about forty. More
- *  throws, never a silent cut. */
-export const MATCH_RECORDS_MOST = 80;
-
 type TeamId = Id<"teams">;
 type PlayerCode = number;
-
-/** One of the gameweek's matches as held: its state, if read at full time, its records, and the
- *  league's overrides of men's points in it (#32). */
-export interface HeldMatch {
-  fixture: Doc<"fixtures">;
-  status: Doc<"matchStatsStatus"> | null;
-  records: Map<PlayerCode, Doc<"playerMatchStats">>;
-  overrides: Map<PlayerCode, number>;
-}
 
 /** What every gameweek's scoring reads, read once for the league. */
 export interface LeagueReads {
@@ -196,10 +180,14 @@ export function pointsInMatch(scored: TeamInGameweek, playerCode: PlayerCode, fi
   return { slot: found.slot, points: found.inMatch.points.total };
 }
 
+/** A man's part in each match he has a record in, by match code: his record once whole, whether he
+ *  played, and his points there. The commentary (vidiprinter.ts) prices from it. */
+export type InMatch = ReadonlyMap<number, { stats: MatchStats | null; played: boolean; points: number | null }>;
+
 /** His part in each of his matches he has a record in, as the commentary prices it (vidiprinter.ts):
  *  the record once whole, whether he played, and his points there. The matchup and the match page
  *  both read it. */
-export function inMatchOf(slot: SlotPoints, matches: readonly HeldMatch[]): VidiprinterPlayer["inMatch"] {
+export function inMatchOf(slot: SlotPoints, matches: readonly HeldMatch[]): InMatch {
   return new Map(
     pointsByMatch(slot, matches).flatMap(({ match, points }) => {
       const record = match.records.get(slot.playerCode);
@@ -208,53 +196,6 @@ export function inMatchOf(slot: SlotPoints, matches: readonly HeldMatch[]): Vidi
     }),
   );
 }
-
-/** The gameweek's fixtures the feed still sends. */
-export function heldFixtures(ctx: QueryCtx, gameweek: number): Promise<Doc<"fixtures">[]> {
-  return gameweekFixtures(ctx, gameweek, "its points would be cut short");
-}
-
-/** The fixtures' matches, each with its state, its records and the league's overrides in it. */
-async function heldMatches(ctx: QueryCtx, leagueId: Id<"leagues">, fixtures: readonly Doc<"fixtures">[]): Promise<HeldMatch[]> {
-  return Promise.all(
-    fixtures.map(async (fixture) => {
-      const rows = await takeAllOrThrow(
-        ctx.db.query("playerMatchStats").withIndex("by_fixtureCode_and_playerCode", (q) => q.eq("fixtureCode", fixture.code)),
-        MATCH_RECORDS_MOST,
-        `Match ${fixture.code} holds more than ${MATCH_RECORDS_MOST} records, so its points would be cut short`,
-      );
-      return {
-        fixture,
-        status: await statusOf(ctx, fixture.code),
-        records: new Map(rows.map((row) => [row.playerCode, row])),
-        overrides: await overridesIn(ctx, leagueId, fixture.code),
-      };
-    }),
-  );
-}
-
-/** The most overrides a league holds in one match: one a man, as many as the records allow. More
- *  throws, never a silent cut. */
-export const MATCH_OVERRIDES_MOST = MATCH_RECORDS_MOST;
-
-/** The league's overrides of men's points in the match (#32), by player. */
-async function overridesIn(ctx: QueryCtx, leagueId: Id<"leagues">, fixtureCode: number): Promise<Map<PlayerCode, number>> {
-  const rows = await takeAllOrThrow(
-    ctx.db
-      .query("pointsOverrides")
-      .withIndex("by_leagueId_and_fixtureCode_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("fixtureCode", fixtureCode)),
-    MATCH_OVERRIDES_MOST,
-    `League ${leagueId} holds more than ${MATCH_OVERRIDES_MOST} overrides in match ${fixtureCode}, so its points would be cut short`,
-  );
-  return new Map(rows.map((row) => [row.playerCode, row.points]));
-}
-
-export const playsIn = (fixture: Doc<"fixtures">, clubCode: number) => fixture.homeClubCode === clubCode || fixture.awayClubCode === clubCode;
-
-/** A match read at full time has a state; one still live has none (liveStats.ts). */
-export const isFinished = (match: HeldMatch) => match.status !== null;
-/** Its corrections window shut: nothing changes its points after (spec/07). */
-export const isMatchFinal = (match: Pick<HeldMatch, "status">) => match.status?.state === "locked";
 
 /** What a man neither team sheet named did in a match his club has finished: nothing. */
 const NOT_NAMED: Readonly<Record<string, number>> = {};
