@@ -87,8 +87,8 @@ async function gameOf(
   if (!(await begunGameweeks(ctx, league)).includes(gameweek)) return { kind: "notBegun", opponent };
   try {
     const teamIds = teams.map((each) => each._id);
-    const scored = await tableGameweek(ctx, await leagueReads(ctx, league, season), gameweek, teamIds);
-    const scorer = new SideScorer(ctx, scored, teamsInGameweek(drawn), gameweek);
+    const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season), gameweek, teamIds);
+    const scorer = new SideScorer(ctx, inGameweek, teamsInGameweek(drawn), gameweek);
     const sides = against.kind === "team" ? [team._id, against.team] : [team._id];
     return {
       kind: "scored",
@@ -103,25 +103,25 @@ async function gameOf(
 }
 
 /** Each side of the matchup, from the table's scorer: each slot worked out, and each total the
- *  table's, its saved final total where the table reads one. A stored
- *  total is final, so should the data behind a slot change after storing (a position corrected,
- *  say), the slots may no longer add up to it; and a gameweek whose slots can't be worked out is
- *  unscored here even while the table shows its stored totals. */
+ *  table's, its saved final total where the table reads one. A stored total is final, so should the
+ *  data behind a slot change after storing (a position corrected, say), the slots may no longer add
+ *  up to it; and a gameweek whose slots can't be worked out is unscored here even while the table
+ *  shows its stored totals. */
 class SideScorer {
   private readonly name = readOnce((playerCode: PlayerCode) => lineupPlayer(this.ctx, playerCode).then((player) => player.name));
   private readonly score = readOnce((fixtureCode: number) => scoreOf(this.ctx, fixtureCode));
 
   constructor(
     private readonly ctx: QueryCtx,
-    private readonly scored: GameweekTeams,
+    private readonly inGameweek: GameweekTeams,
     /** The teams the league's average is over: the gameweek's own (standings.ts's teamsInGameweek). */
     private readonly averaged: readonly TeamId[],
     private readonly gameweek: number,
   ) {}
 
   async team(teamId: TeamId, teamName: string): Promise<MatchupSide> {
-    const scored = await this.scored.slotsOf(teamId);
-    const { points, provisional } = await this.scored.pointsOf(teamId);
+    const scored = await this.inGameweek.slotsOf(teamId);
+    const { points, provisional } = await this.inGameweek.pointsOf(teamId);
     if (scored === null) return { kind: "team", teamId, teamName, points, provisional, lineup: null };
     const slotOf = (slotPoints: SlotPoints) => this.slot(slotPoints, scored);
     return {
@@ -137,7 +137,7 @@ class SideScorer {
   async opponent(against: Opponent, nameOf: (teamId: TeamId) => string): Promise<MatchupSide> {
     if (against.kind === "team") return this.team(against.team, nameOf(against.team));
     // The average of the gameweek's teams' points, one with no lineup on 0, as the table counts it.
-    const every = await Promise.all(this.averaged.map((teamId) => this.scored.pointsOf(teamId)));
+    const every = await Promise.all(this.averaged.map((teamId) => this.inGameweek.pointsOf(teamId)));
     const sides = new Map(this.averaged.map((teamId, index) => [teamId, every[index]]));
     return { kind: LEAGUE_AVERAGE, ...averageScore(this.averaged, sides, this.gameweek) };
   }
@@ -149,7 +149,7 @@ class SideScorer {
       const players = new Map<PlayerCode, VidiprinterPlayer>();
       const matches = new Map<number, HeldMatch>();
       for (const teamId of teamIds) {
-        const scored = await this.scored.slotsOf(teamId);
+        const scored = await this.inGameweek.slotsOf(teamId);
         if (scored === null) continue;
         for (const slot of [...scored.team.starters, ...scored.team.bench]) {
           const his = scored.matchesOf.get(slot.playerCode) ?? [];
@@ -163,7 +163,7 @@ class SideScorer {
       const read: VidiprinterMatch[] = held.flatMap(({ fixture, row, steps }) =>
         row === null ? [] : [{ fixtureCode: fixture.code, kickoff: fixture.kickoff, lines: row.lines, steps }],
       );
-      return { kind: "read", lines: vidiprinter(read, players, this.scored.set), delayed: held.some(({ row }) => row !== null && row.delayed !== null) };
+      return { kind: "read", lines: vidiprinter(read, players, this.inGameweek.set), delayed: held.some(({ row }) => row !== null && row.delayed !== null) };
     } catch (error) {
       return { kind: "unread", reason: logFailure(failure, error) };
     }
