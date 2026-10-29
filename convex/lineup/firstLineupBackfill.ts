@@ -17,7 +17,7 @@ import { pickFirstLineupAgain } from "./lineups";
 
 /** The most leagues one run reads, all in one transaction: the closed beta has a handful. Past it
  *  this throws, rather than leave some teams without a lineup. */
-export const LEAGUES_BACKFILLED_MOST = 200;
+const LEAGUES_BACKFILLED_MOST = 200;
 
 /** Whether the team has any lineup row, from any gameweek. */
 async function hasLineupRow(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">): Promise<boolean> {

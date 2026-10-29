@@ -19,6 +19,7 @@ const { lineup: FOUR_FOUR_TWO, positions: STARTER_POSITIONS } = filledLineup(pre
 const SQUAD = [...FOUR_FOUR_TWO.starters.map(({ playerCode }) => playerCode), ...FOUR_FOUR_TWO.bench];
 /** Bob's one player, whose lineup he saved. */
 const BOBS = 998;
+const nameOf = (code: number) => `Player ${code}`;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -34,7 +35,7 @@ beforeEach(async () => {
   // Written as squads were before #637: players and no lineup row, but for Bob's, which he saved.
   await t.run(async (ctx) => {
     for (const code of [...SQUAD, BOBS]) {
-      await ctx.db.insert("players", { code, name: `Player ${code}`, fullName: `Player ${code}`, clubCode: 1 });
+      await ctx.db.insert("players", { code, name: nameOf(code), fullName: nameOf(code), clubCode: 1 });
       await ctx.db.insert("playerPositions", { code, starts: [], approved: [], set: [...(STARTER_POSITIONS.get(code) ?? ["CM"])], removed: [] });
     }
     for (const playerCode of SQUAD) await ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode });
