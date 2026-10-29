@@ -2,18 +2,19 @@ import { expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { MatchupSide, MatchupSlot } from "../../../convex/matchup/matchupShape";
-import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { inTenths } from "../../../convex/scoring/scoringSet";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import {
   ANN,
+  annsScoredGame,
   BOB,
   CAT,
   EVERTON_POINTS,
   EVERTON_STARTERS,
   fullTimeRecords,
   GAMEWEEK,
+  holdTypoRule,
   HULL_AFTER_SUB,
   HULL_POINTS,
   HULL_KEEPER,
@@ -25,6 +26,7 @@ import {
   PHILLIPS,
   scoresLeague,
   sideTotal,
+  TYPO_STAT,
   type ScoresLeague,
   BOBS_FIRST_POINTS,
   GREALISH,
@@ -57,13 +59,6 @@ async function matchupAs(league: ScoresLeague, email: string, args: { teamId?: I
   return (await actingAs(league.t, email)).query(api.matchup.matchup.ofTeam, { leagueId: league.leagueId, now: Date.now(), ...args });
 }
 
-/** The scored game Ann's matchup shows in gameweek 6. */
-async function annsGame(league: ScoresLeague) {
-  const read = await matchupAs(league, ANN, { gameweek: GAMEWEEK });
-  if (read?.kind !== "headToHead" || read.game.kind !== "scored") throw new Error(`Ann's matchup isn't scored: ${JSON.stringify(read)}`);
-  return read.game;
-}
-
 const lineupOf = (side: MatchupSide) => {
   if (side.kind !== "team") throw new Error("the side is the league's average");
   return side.lineup;
@@ -77,7 +72,7 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
   const league = await scoresLeague();
 
   // Past the deadline, before kickoff: both lineups show, every man yet to play, nobody on points.
-  const before = await annsGame(league);
+  const before = await annsScoredGame(league, GAMEWEEK);
   expect(lineupOf(before.team).starters.map((slot) => slot.playerCode)).toEqual(HULL_STARTERS.map((starter) => starter.playerCode));
   expect(lineupOf(before.opponent).starters.map((slot) => slot.playerCode)).toEqual(EVERTON_STARTERS.map((starter) => starter.playerCode));
   expect(slotOf(before.team, HULL_SCORER)).toMatchObject({ status: { kind: "yetToPlay", fixtureCode: HULL_EVERTON, kickoff: LEAGUE_KICKOFF }, points: null, counts: true });
@@ -88,7 +83,7 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
   const beforeTheGoal = RECORDS.map((record) => (record.playerCode === HULL_SCORER ? { ...record, stats: { ...record.stats, goals_scored: 0 } } : record));
   await liveRecords(league, beforeTheGoal);
   await scoreRead(league, "live", LIVE_MINUTE);
-  const live = await annsGame(league);
+  const live = await annsScoredGame(league, GAMEWEEK);
   expect(slotOf(live.team, HULL_SCORER).status).toEqual({ kind: "playing", fixtureCode: HULL_EVERTON, minute: LIVE_MINUTE });
   expect(live.team).toMatchObject({ points: sideTotal(beforeTheGoal, HULL_STARTERS), provisional: true });
   expect(lineupOf(live.team).bench.every((slot) => !slot.counts)).toBe(true);
@@ -97,7 +92,7 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
   // Full time: finished, Hull's keeper on for Phillips, who didn't play, and the goal counted.
   await fullTimeRecords(league);
   await scoreRead(league, "fullTime", 90);
-  const fullTime = await annsGame(league);
+  const fullTime = await annsScoredGame(league, GAMEWEEK);
   expect(slotOf(fullTime.team, HULL_SCORER).status).toEqual({ kind: "finished", fixtureCode: HULL_EVERTON });
   expect(slotOf(fullTime.team, PHILLIPS)).toMatchObject({ counts: false, autoSub: { kind: "off", playerName: await nameOf(league, HULL_KEEPER) } });
   expect(slotOf(fullTime.team, HULL_KEEPER)).toMatchObject({ counts: true, area: "goalkeeper", autoSub: { kind: "on", playerName: await nameOf(league, PHILLIPS) } });
@@ -105,7 +100,7 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
 
   // Locked: the result is final, Everton's side the winner.
   await lockMatch(league);
-  const final = await annsGame(league);
+  const final = await annsScoredGame(league, GAMEWEEK);
   expect(sideTotal(RECORDS, HULL_AFTER_SUB)).toBe(HULL_POINTS);
   expect(final.team).toMatchObject({ kind: "team", teamId: league.annsTeam, teamName: "Team 1", points: HULL_POINTS, provisional: false });
   expect(final.opponent).toMatchObject({ kind: "team", teamId: league.bobsTeam, teamName: "Team 2", points: EVERTON_POINTS, provisional: false });
@@ -123,7 +118,7 @@ test("a final gameweek's stored scores are its totals, as the table reads them, 
     await ctx.db.patch("finalScores", row._id, { points: WRITTEN_OVER });
   });
 
-  const game = await annsGame(league);
+  const game = await annsScoredGame(league, GAMEWEEK);
   const table = await (await actingAs(league.t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId: league.leagueId });
   const fixtures = table!.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures;
   expect(game.team).toMatchObject({ points: WRITTEN_OVER, provisional: false });
@@ -143,7 +138,7 @@ test("a final gameweek whose matches have changed since it was stored is worked 
     for (const row of await ctx.db.query("finalScores").collect()) await ctx.db.patch("finalScores", row._id, { points: 99 });
     await ctx.db.insert("fixtures", { code: HULL_EVERTON + 1, gameweek: GAMEWEEK, homeClubCode: ARSENAL, awayClubCode: ARSENAL + 1, kickoff: LEAGUE_KICKOFF });
   });
-  const game = await annsGame(league);
+  const game = await annsScoredGame(league, GAMEWEEK);
   expect([game.team.points, game.opponent.points]).toEqual([HULL_POINTS, EVERTON_POINTS]);
 });
 
@@ -155,7 +150,7 @@ test("in a double gameweek a man is yet to play while his second match is to com
   );
   await fullTimeRecords(league);
   await scoreRead(league, "fullTime", 90);
-  const game = await annsGame(league);
+  const game = await annsScoredGame(league, GAMEWEEK);
   expect(slotOf(game.team, HULL_SCORER).status).toEqual({ kind: "yetToPlay", fixtureCode: HULL_EVERTON + 1, kickoff: secondKickoff });
   expect(slotOf(game.team, PHILLIPS)).toMatchObject({ counts: true, autoSub: null });
   // Everton play once, and are done.
@@ -171,7 +166,7 @@ test("in a double gameweek, once both his matches are over, his status opens the
   await fullTimeRecords(league);
   await scoreRead(league, "fullTime", 90);
   await scoreRead(league, "fullTime", 90, HULL_EVERTON + 1);
-  const game = await annsGame(league);
+  const game = await annsScoredGame(league, GAMEWEEK);
   expect(slotOf(game.team, HULL_SCORER).status).toEqual({ kind: "finished", fixtureCode: HULL_EVERTON + 1 });
 });
 
@@ -180,7 +175,7 @@ test("each side's total is the same as the table's for the gameweek", async () =
   await fullTimeRecords(league);
   await lockMatch(league);
   const table = await (await actingAs(league.t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId: league.leagueId });
-  const game = await annsGame(league);
+  const game = await annsScoredGame(league, GAMEWEEK);
   expect(table!.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures[0].points).toEqual({ team: game.team.points, opponent: game.opponent.points });
 });
 
@@ -209,7 +204,7 @@ test("a side that never saved a lineup shows its first and scores from it (#637)
   const league = await scoresLeague({ bobSaves: false });
   await fullTimeRecords(league);
   await lockMatch(league);
-  const bob = (await annsGame(league)).opponent;
+  const bob = (await annsScoredGame(league, GAMEWEEK)).opponent;
   expect(bob).toMatchObject({ kind: "team", teamId: league.bobsTeam, teamName: "Team 2", points: BOBS_FIRST_POINTS, provisional: false });
   // The 4-4-1 his squad fills, Grealish first on the bench.
   expect(lineupOf(bob).starters).toHaveLength(EVERTON_STARTERS.length - 1);
@@ -236,18 +231,9 @@ test("someone who runs the league but no team, naming none, is told so; a team f
 
 test("a gameweek that can't be scored says why, and logs it", async () => {
   const league = await scoresLeague();
-  await league.t.run((ctx) =>
-    ctx.db.insert("siteScoring", {
-      scoring: { ...FIRST_SCORING, rules: [...FIRST_SCORING.rules, { ...FIRST_SCORING.rules[0], stat: "goals_scroed" }] },
-      kind: "fix",
-      season: 2026,
-      number: 1,
-      announcedAt: 0,
-      takesEffectAt: 0,
-    }),
-  );
+  await holdTypoRule(league);
   const logged = silenceConsoleError();
-  expect(await matchupAs(league, ANN, { gameweek: GAMEWEEK })).toMatchObject({ game: { kind: "unscored", reason: expect.stringContaining('"goals_scroed"') } });
+  expect(await matchupAs(league, ANN, { gameweek: GAMEWEEK })).toMatchObject({ game: { kind: "unscored", reason: expect.stringContaining(`"${TYPO_STAT}"`) } });
   expect(logged).toHaveBeenCalledWith(expect.stringContaining(`can't score Team 1's matchup in gameweek ${GAMEWEEK}`));
 });
 
@@ -282,7 +268,7 @@ test("a total-points league has no head-to-heads", async () => {
 
 test("the commentary is the match's stored lines, the goal priced for its scorer, the full-time line listing both lineups' men's points, and says when delayed", async () => {
   const league = await scoresLeague();
-  expect((await annsGame(league)).commentary).toEqual({ kind: "read", lines: [], delayed: false });
+  expect((await annsScoredGame(league, GAMEWEEK)).commentary).toEqual({ kind: "read", lines: [], delayed: false });
 
   await fullTimeRecords(league);
   const scorer = await nameOf(league, HULL_SCORER);
@@ -295,7 +281,7 @@ test("the commentary is the match's stored lines, the goal priced for its scorer
     }),
   );
 
-  const { commentary, team, opponent } = await annsGame(league);
+  const { commentary, team, opponent } = await annsScoredGame(league, GAMEWEEK);
   if (commentary.kind !== "read") throw new Error(`the commentary wasn't read: ${commentary.reason}`);
   const scorerSlot = slotOf(team, HULL_SCORER);
   expect(commentary.delayed).toBe(true);

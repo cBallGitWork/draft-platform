@@ -23,11 +23,15 @@ import { recordedCommentary, recordedTeamStats } from "../recorded/commentary.pa
 import type { syncTrigger } from "../../../convex/schema";
 import { fakeFetch, freshConvex, type TestConvex } from "./test.harness";
 import { HOUR_MS } from "../../../convex/shared/time";
+import { insertClubs, type Club } from "./footballRows.harness";
 
 export const GAMEWEEK = 6;
 /** FPL's club codes for the two sides. */
 export const HULL = 88;
 export const EVERTON = 11;
+/** Both clubs' rows, as the football sync holds them. */
+export const HULL_CITY: Club = { code: HULL, name: "Hull City", shortName: "HUL" };
+export const EVERTON_CLUB: Club = { code: EVERTON, name: "Everton", shortName: "EVE" };
 
 export const HULL_EVERTON = MATCH.hullEverton.code;
 /** Hull v Everton's kickoff, as FPL recorded it, and when the tests first read it at full time. */
@@ -70,8 +74,7 @@ export async function withHullEverton() {
       awayClubCode: EVERTON,
       kickoff: KICKOFF,
     });
-    await ctx.db.insert("clubs", { code: HULL, name: "Hull City", shortName: "HUL" });
-    await ctx.db.insert("clubs", { code: EVERTON, name: "Everton", shortName: "EVE" });
+    await insertClubs(ctx, [HULL_CITY, EVERTON_CLUB]);
   });
   return t;
 }

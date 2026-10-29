@@ -18,7 +18,7 @@ import { RESEND_EMAILS_URL } from "../../../convex/outbound/email";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { recordedFpl } from "../recorded/fpl.payloads";
-import { MATCH, type Gw6Payloads } from "../recorded/gw6.payloads";
+import { FULL_STATS, MATCH, type Gw6Payloads } from "../recorded/gw6.payloads";
 import { EVERTON_STARTERS, HULL_AFTER_SUB } from "./gameweekScores.harness";
 import { actingAs, addManagers, adminCreatesLeague, ADMIN, COMMISSIONER, MANAGERS } from "./leagues.harness";
 import { fakeFeeds, KICKOFF } from "./matchStats.harness";
@@ -52,12 +52,12 @@ export const ELEVENS: Record<string, Starter[]> = {
   [ANN]: HULL_AFTER_SUB,
   [BOB]: EVERTON_STARTERS,
   [CAT]: [
-    at(167825, "goalkeeper", "centre"), // Phillips, unused
+    at(FULL_STATS.phillips.code, "goalkeeper", "centre"), // unused
     at(496181, "defence", "leftCentre"),
     at(160817, "defence", "centre"),
     at(597462, "defence", "rightCentre"),
     at(SALIBA, "defence", "right"),
-    at(540324, "midfield", "left"), // Belloumi, on at 64 minutes
+    at(FULL_STATS.belloumi.code, "midfield", "left"), // on at 64 minutes
     at(608227, "midfield", "leftCentre"),
     at(445028, "midfield", "centre"),
     at(490094, "midfield", "rightCentre"),

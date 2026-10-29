@@ -12,14 +12,18 @@ import { FULL_STATS, hullEvertonReads, MATCH, recordedGw6, recordedPlFixture } f
 import { centreOf, EXAMPLE_SET } from "./scoring.example";
 
 const gw6 = recordedGw6();
-const fplLines = fplStatLines(gw6.fpl.live, gw6.fpl.bootstrap.elements, gw6.fpl.fixtures);
-const plLines = plStatLines(
+/** Every man's recorded line of Hull v Everton, as each feed's mapping gives it. */
+export const fplLines = fplStatLines(gw6.fpl.live, gw6.fpl.bootstrap.elements, gw6.fpl.fixtures);
+export const plLines = plStatLines(
   recordedPlFixture(MATCH.hullEverton.pl),
   hullEvertonReads(gw6),
   codesByOpta(gw6.fpl.bootstrap.elements),
 ).lines;
 
-function recordOf(lines: { playerCode: number; stats: MatchStats }[], playerCode: number): MatchStats {
+/** A man's line as a feed's mapping gives it. */
+export type RecordedLine = { playerCode: number; stats: MatchStats };
+
+export function recordOf(lines: RecordedLine[], playerCode: number): MatchStats {
   const line = lines.find((each) => each.playerCode === playerCode);
   if (line === undefined) throw new Error(`no recorded line for player ${playerCode}`);
   return line.stats;

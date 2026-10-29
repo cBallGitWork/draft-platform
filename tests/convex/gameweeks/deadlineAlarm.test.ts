@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { begunGameweeks } from "../../../convex/gameweekScorer/gameweekScores";
-import { ANN, DEADLINE, GAMEWEEK, HULL_SCORER, HULL_STARTERS, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { ANN, annsScoredGame, DEADLINE, GAMEWEEK, HULL_SCORER, HULL_STARTERS, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { clockRunsTo } from "../../support/convex/test.harness";
 
@@ -38,7 +38,7 @@ test("at the deadline, with no sync since, the gameweek has begun: the table cou
   // A minute on, the commissioner releases Hull's scorer: he still starts in the locked lineup.
   vi.setSystemTime(DEADLINE + MINUTE_MS);
   await (await actingAs(league.t, COMMISSIONER)).mutation(api.squads.squads.release, { leagueId: league.leagueId, playerCode: HULL_SCORER });
-  const read = await annsMatchup(league);
-  if (read?.kind !== "headToHead" || read.game.kind !== "scored" || read.game.team.kind !== "team") throw new Error(`Ann's matchup isn't scored: ${JSON.stringify(read)}`);
-  expect(read.game.team.lineup?.starters.map((slot) => slot.playerCode)).toEqual(HULL_STARTERS.map((starter) => starter.playerCode));
+  const { team } = await annsScoredGame(league, GAMEWEEK);
+  if (team.kind !== "team") throw new Error("Ann's side is the league's average");
+  expect(team.lineup?.starters.map((slot) => slot.playerCode)).toEqual(HULL_STARTERS.map((starter) => starter.playerCode));
 });
