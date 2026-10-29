@@ -2,9 +2,11 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Cell } from "../../../convex/lineup/pitch";
+import { roleIn } from "../../../convex/lineup/roles";
 import { cardPoints } from "../../../convex/playerCard/cardPoints";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { StoredScoringSet } from "../../../convex/rules/leagueRulesShape";
+import { scoreMatch } from "../../../convex/scoring/scoring";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { squadPoints } from "../../../convex/squads/teamSquad";
@@ -68,7 +70,8 @@ beforeEach(async () => {
 
 const read = async (email = ANN) => (await actingAs(t, email)).query(api.squads.teamSquad.ofMyTeam, { leagueId, now: NOW });
 const rowOf = async (code: number) => (await read()).players.find((each) => each.code === code)!;
-const priced = (stats: Record<string, number>, positions: Position[], slot: Cell | null) => cardPoints(stats, EXAMPLE_SET, positions, slot).total!;
+const priced = (stats: Record<string, number>, positions: Position[], slot: Cell | null) =>
+  (slot === null ? cardPoints(stats, EXAMPLE_SET, positions) : scoreMatch(stats, EXAMPLE_SET, slot, roleIn(slot, undefined).key)).total!;
 /** Saka's points as his card prices them: gameweek 1 at his slot, gameweek 2, on the bench with
  *  nobody to come on for, at his best, labelled not counted. */
 const sakaGw1 = () => priced(SAKA_GW1, ["W"], SAKA_SLOT);

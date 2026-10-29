@@ -2,20 +2,19 @@ import { v, type Infer, type VLiteral } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { SLOT_POSITIONS, type SlotPosition } from "../lineup/pitch";
-import type { Position } from "../positions/positionTables";
+import { roleName } from "../lineup/roles";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
+import type { Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
 import { categoryName } from "../scoring/categories";
-import { siteScoringByGameweek } from "../scoring/siteScoring";
 import { memberOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
+import { readOnce } from "../shared/readOnce";
+import { placeOf } from "../squads/squadPlace";
 import { MINUTES_STAT, statValue } from "../stats/matchRecords";
 import { scoredMatches } from "../table/scoredMatches";
 import { scoredAs } from "./cardPoints";
-import { roleName } from "../lineup/roles";
-import { readOnce } from "../shared/readOnce";
-import { placeOf } from "../squads/squadPlace";
 
 // A player's card (spec/12, The player card; #381), for anyone in the league: who he is and who
 // owns him here, FPL's news on him, this season's matches as his team scored them (scoredMatches.ts),
@@ -138,9 +137,9 @@ const asMatch = async (fixture: Doc<"fixtures">, clubs: Clubs) => ({
 /** This season's matches he was in, as his team in the league scored them (scoredMatches.ts), by
  *  category, newest first. */
 async function seasonMatches(ctx: QueryCtx, league: Doc<"leagues">, player: Doc<"players">, positions: readonly Position[], clubs: Clubs): Promise<PlayedMatch[]> {
-  const setIn = await siteScoringByGameweek(ctx);
   const owner = await placeOf(ctx, league._id, player.code);
-  const scored = await (await scoredMatches(ctx, league, owner?.teamId ?? null))({ code: player.code, positions });
+  const { setIn, of } = await scoredMatches(ctx, league, owner?.teamId ?? null);
+  const scored = await of({ code: player.code, positions });
   const played = await Promise.all(
     scored.map(async ({ record, fixture, gameweek, points: { role, ...points }, override, provisional }) => {
       const named = (stat: string) => categoryName(stat, setIn(gameweek).ownStats);

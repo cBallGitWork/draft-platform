@@ -11,12 +11,11 @@ import { memberOf, teamIn, teamOf, teamsOf } from "../shared/leagueAccess";
 import { readOnce } from "../shared/readOnce";
 import { begunGameweeks, tableGameweek, type GameweekTeams } from "../table/gameweekScores";
 import { scheduleOf } from "../table/playedFixtures";
-import { isFinished, leagueReads, lineupPlayer, pointsByMatch, type HeldMatch, type TeamInGameweek } from "../table/teamGameweek";
+import { inMatchOf, isFinished, leagueReads, lineupPlayer, type HeldMatch, type TeamInGameweek } from "../table/teamGameweek";
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
 import { teamsInGameweek } from "../table/standings";
 import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
-import { isWhole } from "../stats/matchRecords";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { game, matchup, type MatchupCommentary, type MatchupSide, type MatchupSlot, type SlotStatus } from "./matchupShape";
 import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vidiprinter";
@@ -209,16 +208,3 @@ class SideScorer {
 /** Matches by kickoff, any with no time yet last. */
 const byKickoff = <Fixture extends { kickoff: number | null }>(fixtures: readonly Fixture[]): Fixture[] =>
   fixtures.toSorted((one, other) => (one.kickoff === null ? 1 : 0) - (other.kickoff === null ? 1 : 0) || (one.kickoff ?? 0) - (other.kickoff ?? 0));
-
-/** His part in each of his matches he has a record in: the record once whole, whether he played,
- *  and his points there, in the order `scoreTeam` scored his matches. The match page prices its
- *  lines by it too. */
-export function inMatchOf(slot: SlotPoints, matches: readonly HeldMatch[]): VidiprinterPlayer["inMatch"] {
-  return new Map(
-    pointsByMatch(slot, matches).flatMap(({ match, points }) => {
-      const record = match.records.get(slot.playerCode);
-      if (record === undefined) return [];
-      return [[match.fixture.code, { stats: isWhole(record) ? record.stats : null, played: record.played === true, points }] as const];
-    }),
-  );
-}

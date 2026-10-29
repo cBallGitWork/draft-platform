@@ -11,6 +11,10 @@ export type PlayerMatchRecord = Infer<typeof playerMatchRecord>;
 export type StatChange = Infer<typeof lateStatChange>;
 type Stats = Record<string, number>;
 
+/** The most match records one player's read takes: 38 a season, kept season on season, so ten
+ *  seasons with room. More throws, never a silent cut. */
+export const PLAYER_RECORDS_MOST = 500;
+
 /** A stat both feeds send, under each one's name. */
 type StatInBothFeeds = { fpl: string; pl: string; kept: "fpl" | "pl" };
 

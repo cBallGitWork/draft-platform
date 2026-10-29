@@ -1,42 +1,35 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { lineupsInGameweek } from "../lineup/lineups";
 import { positionOfSlot } from "../lineup/pitch";
 import { cardPoints, type CardPoints } from "../playerCard/cardPoints";
 import type { Position } from "../positions/positionTables";
+import type { StoredScoringSet } from "../rules/leagueRulesShape";
 import { seasonRules } from "../rules/rulesHistory";
 import { siteScoringByGameweek } from "../scoring/siteScoring";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { fixtureByCode } from "../shared/fixtures";
-import { isWhole } from "../stats/matchRecords";
-import { statusOf } from "../stats/matchStats";
-import { begunGameweeks } from "./gameweekScores";
-import {
-  heldFixtures,
-  isMatchFinal,
-  leagueReads,
-  rulesIn,
-  teamInGameweek,
-  type GameweekInputs,
-  type LeagueReads,
-  type TeamInGameweek,
-} from "./teamGameweek";
 import { readOnce } from "../shared/readOnce";
+import { isWhole, PLAYER_RECORDS_MOST } from "../stats/matchRecords";
+import { statusOf } from "../stats/matchStats";
+import { begunGameweeks, squadGameweek } from "./gameweekScores";
+import type { PlayerRows } from "./squadInputs";
+import { isMatchFinal, leagueReads, slotInMatch, type TeamInGameweek } from "./teamGameweek";
 
 // A player's matches in a league as his team scored them (#577; spec/12, The player card and
 // Squad): the one place his card and the Squad tab read his points from. A gameweek the league has
-// begun whose lineup names him is read from teamInGameweek, as the table scores it: auto-subs and
-// the league's overrides in, live and provisional until final. One who counted shows his slot's
-// points, at the slot and role he started in or took over; one who didn't, a bench player who
-// stayed there, what he would score at his best position, labelled as not counted. In a league
+// begun whose lineup names him is read from the league's gameweek scorer (gameweekScores.ts's
+// squadGameweek), as the table scores it: auto-subs and the league's overrides in, live and
+// provisional until final. One who counted shows his slot's points, at the slot and role he
+// started in or took over; one who didn't, a bench player who stayed there, what he would score at
+// his best position, labelled as not counted. In a league
 // whose double gameweeks count the best match, his other match there is his slot's points, labelled
 // as not counted too, as the table left it out (scoring.ts's countedMatches). Any other match
 // is priced at his best position. A match from before he joined his team stays at his best
 // position until what his old team got from him is built (SPEC.md, Later).
 
-/** The most match records one player's read takes: 38 a season, kept season on season, so ten
- *  seasons with room. More throws, never a silent cut. */
-export const PLAYER_RECORDS_MOST = 500;
+/** The most overrides of one player a league holds: one a match at most, so never more than his
+ *  records. More throws, never a silent cut. */
+const PLAYER_OVERRIDES_MOST = PLAYER_RECORDS_MOST;
 
 /** One of his records this season, with its match and the gameweek it was played in. */
 export type SeasonRecord = { record: Doc<"playerMatchStats">; fixture: Doc<"fixtures">; gameweek: number };
@@ -45,14 +38,20 @@ export type SeasonRecord = { record: Doc<"playerMatchStats">; fixture: Doc<"fixt
 export interface ScoredMatch extends SeasonRecord {
   /** Its total is the league's override where it holds one. */
   points: CardPoints;
+  /** Whether his team got these points: his slot's, and counted there. */
+  counted: boolean;
   override: Doc<"pointsOverrides"> | null;
   /** Until the match is locked and his record whole, and, from a lineup, until every man in it
    *  is final, as auto-subs can still change. */
   provisional: boolean;
 }
 
-/** A player's season's matches, in the order his records were filed. */
-export type ScoredMatches = (player: { code: number; positions: readonly Position[] }) => Promise<ScoredMatch[]>;
+/** A player's season's matches, in the order his records were filed, with the site's scoring set
+ *  in force each gameweek, which they were priced under. */
+export interface ScoredMatches {
+  setIn: (gameweek: number) => StoredScoringSet;
+  of: (player: { code: number; positions: readonly Position[] }) => Promise<ScoredMatch[]>;
+}
 
 /** His matches as `teamId` scored them: his team in the league now, or null for a free agent. Each
  *  player's rows and each gameweek's scoring are read once, however many players are asked for. */
@@ -60,21 +59,22 @@ export async function scoredMatches(ctx: QueryCtx, league: Doc<"leagues">, teamI
   const setIn = await siteScoringByGameweek(ctx);
   const heldRowsOf = readOnce((code: number) => heldRows(ctx, league._id, code));
   const teamGameweekOf = teamId === null ? null : await teamGameweeks(ctx, league, teamId, heldRowsOf);
-  return async ({ code, positions }) => {
+  const of = async ({ code, positions }: { code: number; positions: readonly Position[] }) => {
     const { records, overrides } = await heldRowsOf(code);
     return Promise.all(
       (await seasonRecordsOf(ctx, code, records)).map(async (held) => {
         const override = overrides.get(held.fixture.code) ?? null;
         const team = teamGameweekOf === null ? null : await teamGameweekOf(held.gameweek);
         const fromTeam = team === null ? null : asScored(team, code, held.fixture.code);
-        if (fromTeam?.counts) return { ...held, points: fromTeam.points, override, provisional: fromTeam.provisional };
-        const best = cardPoints(isWhole(held.record) ? held.record.stats : null, setIn(held.gameweek), positions, null);
+        if (fromTeam?.counts) return { ...held, points: fromTeam.points, counted: fromTeam.counted, override, provisional: fromTeam.provisional };
+        const best = cardPoints(isWhole(held.record) ? held.record.stats : null, setIn(held.gameweek), positions);
         const points = { ...best, total: override?.points ?? best.total, ...(fromTeam === null ? {} : { scoredAs: "notCounted" as const }) };
         const provisional = fromTeam?.provisional ?? (!isWhole(held.record) || !isMatchFinal({ status: await statusOf(ctx, held.fixture.code) }));
-        return { ...held, points, override, provisional };
+        return { ...held, points, counted: false, override, provisional };
       }),
     );
   };
+  return { setIn, of };
 }
 
 /** His records and the league's overrides of his points, as held. */
@@ -103,65 +103,23 @@ async function teamGameweeks(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"
       overrides: new Map([...overrides].map(([fixtureCode, override]) => [fixtureCode, override.points])),
     };
   };
-  const scoredIn = readOnce((gameweek: number) =>
-    heldFixtures(ctx, gameweek)
-      .then((fixtures) => teamGameweekInputs(ctx, reads, gameweek, fixtures, teamId, rowsByMatch))
-      .then((inputs) => teamInGameweek(reads, inputs, teamId)),
-  );
+  const scoredIn = readOnce((gameweek: number) => squadGameweek(ctx, reads, gameweek, teamId, rowsByMatch).then(({ slotsOf }) => slotsOf(teamId)));
   return (gameweek: number) => (begun.has(gameweek) ? scoredIn(gameweek) : null);
 }
 
-/** A player's rows scoring reads, each by match code: his records, and the league's overrides of
- *  his points. */
-interface PlayerRows {
-  records: ReadonlyMap<number, Doc<"playerMatchStats">>;
-  overrides: ReadonlyMap<number, number>;
-}
-
-/** One team's inputs for the gameweek, each match holding only the rows of the men its lineup
- *  names. That is all teamInGameweek reads of a match, so the team scores as from gameweekInputs,
- *  from reads the size of a squad rather than of every match: what a season of a player's card or
- *  the Squad tab can afford (#577). */
-async function teamGameweekInputs(
-  ctx: QueryCtx,
-  reads: LeagueReads,
-  gameweek: number,
-  fixtures: readonly Doc<"fixtures">[],
-  teamId: Id<"teams">,
-  rowsOf: (code: number) => Promise<PlayerRows>,
-): Promise<GameweekInputs> {
-  const ruled = rulesIn(reads, gameweek);
-  const lineups = await lineupsInGameweek(ctx, reads.leagueId, [teamId], gameweek);
-  const lineup = lineups.get(teamId)!;
-  const codes = [...lineup.starters.map(({ playerCode }) => playerCode), ...lineup.bench];
-  const rows = await Promise.all(codes.map(async (code) => [code, await rowsOf(code)] as const));
-  const inMatch = <Row>(fixtureCode: number, held: (row: PlayerRows) => ReadonlyMap<number, Row>) =>
-    new Map(rows.flatMap(([code, row]) => (held(row).has(fixtureCode) ? [[code, held(row).get(fixtureCode)!] as const] : [])));
-  const matches = await Promise.all(
-    fixtures.map(async (fixture) => ({
-      fixture,
-      status: await statusOf(ctx, fixture.code),
-      records: inMatch(fixture.code, (row) => row.records),
-      overrides: inMatch(fixture.code, (row) => row.overrides),
-    })),
-  );
-  return { ...ruled, matches, lineups };
-}
-
-/** His match in the team's gameweek: whether his slot counted, the match's points at the cell he
- *  was scored in, labelled not counted where his slot's points leave it out, and whether they may
- *  still move; null when the lineup doesn't name him. */
-function asScored({ team, matchesOf }: TeamInGameweek, playerCode: number, fixtureCode: number) {
-  const slots = [...team.starters, ...team.bench];
-  const slot = slots.find((each) => each.playerCode === playerCode);
-  if (slot === undefined) return null;
-  const index = matchesOf.get(playerCode)!.findIndex((match) => match.fixture.code === fixtureCode);
+/** His match in the team's gameweek: whether his slot counted, whether his slot's points count the
+ *  match, its points at the cell he was scored in, labelled not counted where his slot's points
+ *  leave it out, and whether they may still move; null when the lineup doesn't name him. */
+function asScored(scored: TeamInGameweek, playerCode: number, fixtureCode: number) {
+  const found = slotInMatch(scored, playerCode, fixtureCode);
+  if (found === null) return null;
+  const { slot, inMatch } = found;
   // teamInGameweek takes every match he has a record in, so one missing is data gone wrong.
-  if (index === -1) throw new Error(`Player ${playerCode}'s match ${fixtureCode} isn't among his team's matches that gameweek`);
-  const scoredAs = slot.matchesCounted[index] ? "slot" : "notCounted";
-  const points: CardPoints = { scoredAs, position: positionOfSlot(slot.cell), ...slot.matches[index] };
+  if (inMatch === null) throw new Error(`Player ${playerCode}'s match ${fixtureCode} isn't among his team's matches that gameweek`);
+  const points: CardPoints = { scoredAs: inMatch.counted ? "slot" : "notCounted", position: positionOfSlot(slot.cell), ...inMatch.points };
   // A man's points are final once his matches lock (teamPoints.ts), but who counts only once every man's are.
-  return { counts: slot.counts, points, provisional: slots.some((each) => each.provisional) };
+  const { team } = scored;
+  return { counts: slot.counts, counted: inMatch.counted, points, provisional: [...team.starters, ...team.bench].some((each) => each.provisional) };
 }
 
 /** His records, every season's. */
@@ -199,8 +157,8 @@ async function seasonRecordsOf(ctx: QueryCtx, playerCode: number, records: reado
 export async function overridesOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<Map<number, Doc<"pointsOverrides">>> {
   const rows = await takeAllOrThrow(
     ctx.db.query("pointsOverrides").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode)),
-    PLAYER_RECORDS_MOST,
-    `League ${leagueId} holds more than ${PLAYER_RECORDS_MOST} overrides for player ${playerCode}, so his season would be cut short`,
+    PLAYER_OVERRIDES_MOST,
+    `League ${leagueId} holds more than ${PLAYER_OVERRIDES_MOST} overrides for player ${playerCode}, so his season would be cut short`,
   );
   return new Map(rows.map((row) => [row.fixtureCode, row]));
 }

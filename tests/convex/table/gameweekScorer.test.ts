@@ -2,8 +2,10 @@ import { expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { inTenths } from "../../../convex/scoring/scoringSet";
+import type { PlayerRows } from "../../../convex/table/squadInputs";
 import {
   gameweekScorer,
+  squadGameweek,
   tableGameweek,
   workedOutGameweek,
   type ScoredGameweek,
@@ -26,12 +28,14 @@ import {
   WRITTEN_OVER,
   type ScoresLeague,
   BOBS_FIRST_POINTS,
+  HULL_SCORER,
 } from "../../support/convex/gameweekScores.harness";
 
 // The gameweek scorer (#625; spec/07), called on a seeded league with no screen: each team's
 // points, saved once the gameweek is final and worked out until then; a team that has never saved
 // a lineup on 0; the teams worked out final, for finalScores to store; the league's average; and
-// one gameweek team by team, slot by slot, as the matchup and an override read it (#626).
+// one gameweek team by team, slot by slot, as the matchup and an override read it (#626); and one
+// team from reads the size of its squad, as a player's card and the Squad tab read it (#627).
 
 /** Gameweek 6 as the league's scorer scores it for `teamIds`. A run sends back only Convex values,
  *  so the scores cross as entries. */
@@ -153,4 +157,34 @@ test("team by team, a team that has never saved a lineup scores its first, slot 
     expect(points).toEqual({ points: BOBS_FIRST_POINTS, provisional: true, noLineup: false });
     expect(slotsTotal).toBe(BOBS_FIRST_POINTS);
   }
+});
+
+/** The points a commissioner gives Hull's scorer in Hull v Everton, over his record's. */
+const SCORER_OVERRIDDEN = 20;
+
+test("one team from its squad's rows scores slot by slot as from every match's, the league's overrides in (#577)", async () => {
+  const league = await scoresLeague();
+  await fullTimeRecords(league);
+  await league.t.run((ctx) =>
+    ctx.db.insert("pointsOverrides", { leagueId: league.leagueId, gameweek: GAMEWEEK, fixtureCode: HULL_EVERTON, playerCode: HULL_SCORER, points: SCORER_OVERRIDDEN, reason: "A goal the feed gave someone else", by: CAT, at: 0 }),
+  );
+
+  const { squad, every } = await league.t.run(async (ctx) => {
+    const held = (await ctx.db.get("leagues", league.leagueId))!;
+    const reads = await leagueReads(ctx, held, (await seasonRules(ctx, league.leagueId))!);
+    const rowsOf = async (playerCode: number): Promise<PlayerRows> => {
+      const records = await ctx.db.query("playerMatchStats").withIndex("by_playerCode", (q) => q.eq("playerCode", playerCode)).collect();
+      const overrides = await ctx.db
+        .query("pointsOverrides")
+        .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", league.leagueId).eq("playerCode", playerCode))
+        .collect();
+      return { records: new Map(records.map((row) => [row.fixtureCode, row])), overrides: new Map(overrides.map((row) => [row.fixtureCode, row.points])) };
+    };
+    const ofSquad = await squadGameweek(ctx, reads, GAMEWEEK, league.annsTeam, rowsOf);
+    const ofEvery = await workedOutGameweek(ctx, reads, GAMEWEEK, [league.annsTeam]);
+    return { squad: (await ofSquad.slotsOf(league.annsTeam)).team, every: (await ofEvery.slotsOf(league.annsTeam)).team };
+  });
+
+  expect(squad).toEqual(every);
+  expect(squad.starters.find((slot) => slot.playerCode === HULL_SCORER)?.points).toBe(SCORER_OVERRIDDEN);
 });
