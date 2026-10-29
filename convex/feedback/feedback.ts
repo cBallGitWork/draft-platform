@@ -1,6 +1,7 @@
 import { v, type Infer } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { adminOf, callerEmail } from "../shared/leagueAccess";
+import { takeShown } from "../shared/cappedRead";
 import { typedText } from "../shared/typedText";
 import { FEEDBACK_MAX, FEEDBACK_SHOWN } from "./feedbackLimits";
 
@@ -48,10 +49,10 @@ export const list = query({
   returns: feedbackList,
   handler: async (ctx) => {
     await adminOf(ctx);
-    const rows = await ctx.db.query("feedback").withIndex("by_at").order("desc").take(FEEDBACK_SHOWN + 1);
+    const { rows, more } = await takeShown(ctx.db.query("feedback").withIndex("by_at").order("desc"), FEEDBACK_SHOWN);
     return {
-      entries: rows.slice(0, FEEDBACK_SHOWN).map((row) => ({ feedbackId: row._id, from: row.from, at: row.at, message: row.message })),
-      more: rows.length > FEEDBACK_SHOWN,
+      entries: rows.map((row) => ({ feedbackId: row._id, from: row.from, at: row.at, message: row.message })),
+      more,
     };
   },
 });
