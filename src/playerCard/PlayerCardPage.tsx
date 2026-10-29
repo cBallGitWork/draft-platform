@@ -1,49 +1,35 @@
 import { useCanGoBack, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { PositionCode, PositionCodes } from "../ui/PositionCodes";
+import { PositionCodes } from "../ui/PositionCodes";
 import { SCOUTING_PATH } from "../frame/menu";
-import { ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, PANEL_BODY, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { useMinute } from "../shared/useMinute";
-import { gameweekWords, versusWords, whenWords } from "../shared/words";
-import type { PlayedMatch, PlayerCard, PlayerCardSeam } from "./seam";
+import { gameweekWords, whenWords } from "../shared/words";
+import type { PlayerCard, PlayerCardSeam } from "./seam";
+import { MatchName } from "./MatchName";
+import { Season } from "./SeasonPanel";
 import { OverridePoints } from "./OverridePoints";
 import { ShortlistAction } from "./ShortlistAction";
 import {
   backWords,
-  breakdownLabel,
   chanceWords,
   clubLabel,
-  columns,
   freeAgentWords,
   goneWords,
   LAST_SEASON_TITLE,
-  listSeparator,
   lastSeasonNotHeldWords,
   loadingWords,
   NEXT_FIXTURES_TITLE,
   newsLabel,
   noFigureWords,
   noFixturesWords,
-  noMatchesWords,
   noNewsWords,
   noPositionsWords,
   noSuchPlayerWords,
-  notArrivedWords,
-  nothingEarnedWords,
-  notCountedWords,
-  liveWords,
-  provisionalWords,
-  roleLineLabel,
-  roleMadeOfWords,
-  adjustmentWords,
-  overriddenWords,
   ownerLabel,
   PLAYER_TITLE,
   positionsLabel,
-  pricedNotes,
-  SEASON_TITLE,
 } from "./words";
 
 /** A player's card (spec/12, The player card), its own page, for anyone in the league: who he is
@@ -113,133 +99,6 @@ function Facts({ card, children }: { card: PlayerCard; children: ReactNode }) {
       {card.gone && <PanelNote edge="b">{goneWords}</PanelNote>}
       {children}
     </Panel>
-  );
-}
-
-/** "ARS v COV", each club's full name on hover. */
-function MatchName({ match }: { match: Pick<PlayedMatch, "home" | "away"> }) {
-  return (
-    <>
-      <abbr title={match.home.name} className="no-underline">
-        {match.home.shortName}
-      </abbr>{" "}
-      {versusWords}{" "}
-      <abbr title={match.away.name} className="no-underline">
-        {match.away.shortName}
-      </abbr>
-    </>
-  );
-}
-
-type Column = keyof typeof columns;
-const COLUMNS: readonly Column[] = ["gameweek", "match", "minutes", "position", "points"];
-const FIGURES: readonly Column[] = ["gameweek", "minutes", "points"];
-const cellClasses = (column: Column) => `px-2 align-middle ${FIGURES.includes(column) ? "text-right" : "text-left"}`;
-
-function Season({ card }: { card: PlayerCard }) {
-  return (
-    <Panel title={SEASON_TITLE}>
-      {card.matches.length === 0 ? (
-        <PanelNote>{noMatchesWords}</PanelNote>
-      ) : (
-        <>
-          {/* A match his team started him in is priced at his slot, any other at his best position:
-              each way the card prices says so. */}
-          {[...new Set(card.matches.map((match) => match.points.scoredAs))].map((scoredAs) => (
-            <PanelNote key={scoredAs}>{pricedNotes[scoredAs]}</PanelNote>
-          ))}
-          {card.matches.some((match) => match.provisional) && <p className="px-3 py-2 text-derived">{provisionalWords}</p>}
-          <table className="w-full border-collapse">
-            <ColumnHeads columns={columns} shown={COLUMNS} classOf={cellClasses} />
-            {card.matches.map((match) => (
-              <MatchRows key={match.fixtureCode} match={match} />
-            ))}
-          </table>
-        </>
-      )}
-    </Panel>
-  );
-}
-
-/** Under a match his team started him in, what his role did to his points (spec/05 Roles):
- *  "Attacking full-back +2", and what made it. Not shown under an override, the match's whole score. */
-function RoleLine({ role }: { role: NonNullable<PlayedMatch["points"]["role"]> }) {
-  return (
-    <tr>
-      <td />
-      <td colSpan={COLUMNS.length - 1} aria-label={roleLineLabel(role.name)} className="px-2 pb-1 text-soft">
-        {role.name} <span className="text-figure">{adjustmentWords(role.points)}</span>
-        {role.lines.length > 0 && <span className="text-muted"> ({roleMadeOfWords(role.lines)})</span>}
-      </td>
-    </tr>
-  );
-}
-
-/** One match: its row of figures, the league's override in place of its points, and under it each
- *  category he earned or lost points in, and the override's reason. */
-function MatchRows({ match }: { match: PlayedMatch }) {
-  const { position, categories } = match.points;
-  const { override } = match;
-  const total = override?.points ?? match.points.total;
-  const earned = categories.filter((category) => category.points !== null && category.points !== 0);
-  // A bench player who didn't come on: his points greyed, as the matchup greys them (spec/14, On screen).
-  const notCounted = match.points.scoredAs === "notCounted";
-  return (
-    <tbody className="border-t border-panel-rule">
-      <tr>
-        <td className={cellClasses("gameweek")}>{match.gameweek}</td>
-        <th scope="row" className={`${cellClasses("match")} font-normal`}>
-          <MatchName match={match} />
-        </th>
-        <td className={cellClasses("minutes")}>{match.minutes ?? noFigureWords}</td>
-        <td className={cellClasses("position")}>
-          {position === null ? noFigureWords : <PositionCode position={position} />}
-        </td>
-        {total === null ? (
-          <td title={notArrivedWords} className={`${cellClasses("points")} text-muted`}>
-            {noFigureWords}
-          </td>
-        ) : (
-          <td className={`${cellClasses("points")} ${notCounted ? "text-muted" : "font-bold text-figure"}`}>
-            {total}
-            {match.provisional && <span className="ml-1 font-normal text-derived">{liveWords}</span>}
-          </td>
-        )}
-      </tr>
-      {notCounted && (
-        <tr>
-          <td />
-          <td colSpan={COLUMNS.length - 1} className="px-2 pb-1 text-muted">
-            {notCountedWords}
-          </td>
-        </tr>
-      )}
-      {total !== null && (
-        <tr>
-          {/* Under the match it breaks down, past the gameweek's column. */}
-          <td />
-          <td colSpan={COLUMNS.length - 1} aria-label={breakdownLabel(match.gameweek)} className="px-2 pb-1 text-soft">
-            {earned.length === 0
-              ? nothingEarnedWords
-              : earned.map((category, index) => (
-                  <span key={category.stat}>
-                    {index > 0 && listSeparator}
-                    {category.name} <span className="text-figure">{category.points}</span>
-                  </span>
-                ))}
-          </td>
-        </tr>
-      )}
-      {total !== null && override === null && match.points.role !== undefined && <RoleLine role={match.points.role} />}
-      {override !== null && (
-        <tr>
-          <td />
-          <td colSpan={COLUMNS.length - 1} className="px-2 pb-1 text-event">
-            {overriddenWords(override.points, override.reason)}
-          </td>
-        </tr>
-      )}
-    </tbody>
   );
 }
 
