@@ -1,6 +1,9 @@
+import type { Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
+import type { clubRecord } from "../schema";
 import { takeAllOrThrow } from "./cappedRead";
+import { readOnce } from "./readOnce";
 
 // The Premier League's clubs and players as the football sync holds them (#21): the reads that
 // squads and the admin's positions both make, so each limit and the search have one home. Clubs
@@ -26,14 +29,35 @@ export function currentClubs(ctx: QueryCtx): Promise<Doc<"clubs">[]> {
   );
 }
 
-/** The club with `code`, dropped or not. A player's club is always held, so one missing throws. */
-export async function clubByCode(ctx: QueryCtx, code: number): Promise<Doc<"clubs">> {
-  const club = await ctx.db
+/** The club with `code`, dropped or not, or null while the football sync holds no such club: each
+ *  caller says what a missing one means. */
+export function findClubByCode(ctx: QueryCtx, code: number): Promise<Doc<"clubs"> | null> {
+  return ctx.db
     .query("clubs")
     .withIndex("by_code", (q) => q.eq("code", code))
     .unique();
+}
+
+/** The club with `code`, dropped or not. A player's club is always held, so one missing throws. */
+export async function clubByCode(ctx: QueryCtx, code: number): Promise<Doc<"clubs">> {
+  const club = await findClubByCode(ctx, code);
   if (club === null) throw new Error(`No club with code ${code} is held`);
   return club;
+}
+
+/** A club as a screen names it. */
+export type Club = Infer<typeof clubRecord>;
+
+/** A club's row as a screen names it. */
+export function clubOf({ code, name, shortName }: Doc<"clubs">): Club {
+  return { code, name, shortName };
+}
+
+export type Clubs = (code: number) => Promise<Club>;
+
+/** Clubs by code, each read once. */
+export function clubsByCode(ctx: QueryCtx): Clubs {
+  return readOnce((code: number) => clubByCode(ctx, code).then(clubOf));
 }
 
 /** The player with `code`, dropped or not, or null while the football sync holds no such player:

@@ -9,7 +9,7 @@ import { clubRecord, position } from "../schema";
 import { STAT_CATALOGUE } from "../scoring/statCatalogue";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
-import { currentClubs, currentPlayersAt } from "../shared/players";
+import { clubOf, currentClubs, currentPlayersAt } from "../shared/players";
 import { seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { listOf, shownStat } from "./playersOrder";
@@ -90,21 +90,21 @@ export const list = query({
     const ownerOf = await ownersIn(ctx, leagueId);
     const how = await howPositionsCount(ctx);
     const totals = stat === null ? new Map<number, Stats>() : await seasonTotals(ctx, PL_SEASON_START_YEAR);
-    const clubOf = new Map(clubs.map((each) => [each.code, { code: each.code, name: each.name, shortName: each.shortName }]));
+    const listedClubOf = new Map(clubs.map((each) => [each.code, clubOf(each)]));
 
     const rows = await Promise.all(
       players.map(async (player) => ({
         code: player.code,
         name: player.name,
         fullName: player.fullName,
-        club: clubOf.get(player.clubCode)!,
+        club: listedClubOf.get(player.clubCode)!,
         positions: await currentPositions(ctx, player.code, how),
         ownerTeamName: ownerOf.get(player.code) ?? null,
         seasonPoints: null,
         stat: shownStat(totals.get(player.code), stat),
       })),
     );
-    return { clubs: [...clubOf.values()], players: listOf(rows, filters, sort) };
+    return { clubs: [...listedClubOf.values()], players: listOf(rows, filters, sort) };
   },
 });
 

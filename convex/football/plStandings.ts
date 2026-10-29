@@ -3,8 +3,8 @@ import { query } from "../_generated/server";
 import { clubRecord, matchState } from "../schema";
 import { currentFixtures } from "../shared/fixtures";
 import { callerEmail } from "../shared/leagueAccess";
-import { currentClubs } from "../shared/players";
-import { scoreOf } from "./matchScores";
+import { clubOf, currentClubs, type Club } from "../shared/players";
+import { PLAYING_STATES, scoreOf } from "./matchScores";
 import { plTable, type PlResult } from "./plTable";
 
 // The Premier League table for the section (#50; spec/18, The table: "P W D L GF GA GD Pts, worked
@@ -15,8 +15,6 @@ import { plTable, type PlResult } from "./plTable";
 /** A match's states that count in the table, and which of them are still being played. */
 type State = Infer<typeof matchState>;
 const COUNTED_STATES: ReadonlySet<State> = new Set(["live", "halfTime", "fullTime"]);
-const PLAYING_STATES: ReadonlySet<State> = new Set(["live", "halfTime"]);
-type Club = Infer<typeof clubRecord>;
 
 const tableRow = v.object({
   club: clubRecord,
@@ -40,10 +38,10 @@ export const ofSeason = query({
     // Clubs level on everything share a position in the order given: the Premier League's own
     // practice is alphabetical (plTable.ts).
     const clubs = (await currentClubs(ctx))
-      .map(({ code, name, shortName }) => ({ code, name, shortName }))
+      .map(clubOf)
       .toSorted((one, other) => one.name.localeCompare(other.name));
     const byCode = new Map(clubs.map((club) => [club.code, club]));
-    const clubOf = (code: number, fixtureCode: number) => {
+    const currentClubOf = (code: number, fixtureCode: number) => {
       const club = byCode.get(code);
       if (club === undefined) throw new Error(`Match ${fixtureCode} names club ${code}, which isn't a current club`);
       return club;
@@ -61,7 +59,7 @@ export const ofSeason = query({
       // here is a bug, never a match to leave out.
       if (score.homeGoals === null || score.awayGoals === null) throw new Error(`Match ${code} is held at ${score.state} with no score`);
       if (PLAYING_STATES.has(score.state)) provisional = true;
-      results.push({ home: clubOf(homeClubCode, code), away: clubOf(awayClubCode, code), homeGoals: score.homeGoals, awayGoals: score.awayGoals });
+      results.push({ home: currentClubOf(homeClubCode, code), away: currentClubOf(awayClubCode, code), homeGoals: score.homeGoals, awayGoals: score.awayGoals });
     }
     const rows = plTable(clubs, results, { seasonOver: seasonOver && results.length > 0 });
     return { rows, provisional };
