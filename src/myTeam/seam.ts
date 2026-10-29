@@ -2,7 +2,7 @@
 // preview and the tests hand the screens their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import type { Change } from "../refusal";
+import type { Change } from "../shared/refusal";
 import type { TeamSquad } from "../../convex/squads/teamSquad";
 import type { TeamTransactions } from "../../convex/squads/teamTransactions";
 import type { TeamFixtures } from "../../convex/table/teamFixtures";

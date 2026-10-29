@@ -3,7 +3,7 @@ import { nextByDeadlines } from "../../convex/gameweeks/nextGameweek";
 import { ColumnHeads } from "../frame/ColumnHeads";
 import { Loading, PageSection, PanelNote } from "../frame/Panel";
 import { MatchupLink } from "../matchup/MatchupLink";
-import { useMinute } from "../useMinute";
+import { useMinute } from "../shared/useMinute";
 import type { MyTeamSeam, TeamFixtures } from "./seam";
 import {
   byeWords,

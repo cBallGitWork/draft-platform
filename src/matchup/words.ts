@@ -3,13 +3,13 @@
 import type { Area } from "../../convex/lineup/pitch";
 import { leagueAverageWords } from "../table/words";
 import { LOCALE } from "../../convex/shared/moments";
-import { gameweekWords, versusWords, whenWords } from "../words";
+import { gameweekWords, versusWords, whenWords } from "../shared/words";
 
 const kickoffFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit" });
 
-export { AREA_WORDS, gameweekWords, noFigureWords, versusWords } from "../words";
+export { AREA_WORDS, gameweekWords, noFigureWords, versusWords } from "../shared/words";
 export { leagueAverageWords, scoreWords } from "../table/words";
-export { nextGameweekLabel as nextLabel, nextGlyph, previousGameweekLabel as previousLabel, previousGlyph } from "../words";
+export { nextGameweekLabel as nextLabel, nextGlyph, previousGameweekLabel as previousLabel, previousGlyph } from "../shared/words";
 
 export const MATCHUP_TITLE = "Matchup";
 /** The totals at the top, the score of the matchup (spec/10). */

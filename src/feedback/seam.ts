@@ -2,7 +2,7 @@
 // it in live (liveFeedback.ts); the preview and the tests hand the screens their own.
 
 import type { FeedbackList } from "../../convex/feedback/feedback";
-import type { Change } from "../refusal";
+import type { Change } from "../shared/refusal";
 
 export type { FeedbackList };
 

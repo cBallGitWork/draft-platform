@@ -4,7 +4,7 @@
 
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mail/mailLimits";
 import { LOCALE } from "../../convex/shared/moments";
-import { failedWords } from "../words";
+import { failedWords } from "../shared/words";
 
 export const MAIL_TITLE = "Mail";
 export const noLettersWords = "No letters yet. When something happens in your league, it's reported here.";

@@ -12,7 +12,7 @@ import { createShellRouter, type ShellContext } from "../../../src/router";
 import { frameChildren } from "../../../src/routes/frame";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 import { gameweekWords, TABLE_PAGE_TITLE } from "../../../src/table/words";
-import { nextGameweekLabel } from "../../../src/words";
+import { nextGameweekLabel } from "../../../src/shared/words";
 import { league, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 
 const inTwo = managerIn(league, miniBeta);

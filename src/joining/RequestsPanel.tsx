@@ -1,5 +1,5 @@
 import { Panel, PanelNote, Problem } from "../frame/Panel";
-import { useChange } from "../useChange";
+import { useChange } from "../shared/useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { TeamSelect, useTeamChoice } from "./TeamChoice";
 import { noRequestsWords, requestsWords } from "./words";

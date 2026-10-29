@@ -29,7 +29,7 @@ import {
   positionsTabWords,
   seenWords,
 } from "../../../src/admin/words";
-import { whenWords } from "../../../src/words";
+import { whenWords } from "../../../src/shared/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { admin, commissioner, openApp } from "../../support/src/shell.harness";

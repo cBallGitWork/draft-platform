@@ -5,7 +5,7 @@ import { FORM_RESULTS, type Result } from "../../convex/table/standings";
 import { columns as tableColumns } from "../table/words";
 import type { LeagueHome } from "./seam";
 
-export { gameweekWords, versusWords } from "../words";
+export { gameweekWords, versusWords } from "../shared/words";
 export { leagueAverageWords, noResultsWords, TABLE_TITLE } from "../table/words";
 
 export const HOME_TITLE = "League home";

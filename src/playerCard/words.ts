@@ -1,9 +1,9 @@
 // What the player card says, in one place for Craig to change in the pull request.
 
 import type { ScoredAs } from "../../convex/playerCard/cardPoints";
-import { gameweekWords, versusWords } from "../words";
+import { gameweekWords, versusWords } from "../shared/words";
 
-export { freeAgentWords, listSeparator, noFigureWords } from "../words";
+export { freeAgentWords, listSeparator, noFigureWords } from "../shared/words";
 
 export const backWords = "Back";
 export const loadingWords = "Loading the player…";
@@ -35,7 +35,7 @@ export const pricedNotes: Record<ScoredAs, string> = {
 export const notCountedWords = "Not counted: his team's points didn't include this match.";
 /** Beside points that may still move ("Live", as on My team's fixtures): the match isn't final, or
  *  his team's auto-subs aren't (spec/12). */
-export { liveWords } from "../words";
+export { liveWords } from "../shared/words";
 export const provisionalWords = "Live: points are provisional until the match is final and his team's auto-subs are settled.";
 export const columns = {
   gameweek: { short: "GW", long: "Gameweek" },

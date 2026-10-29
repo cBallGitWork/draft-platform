@@ -2,7 +2,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { Problem } from "../frame/Panel";
 import type { ShortlistSeam } from "../scouting/shortlistSeam";
 import { addToShortlistWords, onShortlistWords, removeFromShortlistWords } from "../scouting/shortlistWords";
-import { useChange } from "../useChange";
+import { useChange } from "../shared/useChange";
 
 /** The card's shortlist action (spec/12, The player card): add him to the manager's own shortlist,
  *  or take him off it. Nothing for someone who runs no team, who has no shortlist, nor while it

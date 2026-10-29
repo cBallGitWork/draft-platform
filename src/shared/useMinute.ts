@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { MINUTE_MS } from "../convex/shared/time";
+import { MINUTE_MS } from "../../convex/shared/time";
 
 /** The start of the current minute, moving on at the next: the time a query that must judge the
  *  clock is asked at, as a query may not read it (why, in convex/admin/feeds.ts). */

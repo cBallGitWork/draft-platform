@@ -2,14 +2,14 @@ import { useAction, useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { linkOffWords } from "../../convex/joining/joiningShared";
-import { answerOf, refusalOf } from "../refusal";
+import { answerOf, refusalOf } from "../shared/refusal";
 import { askFailedWords, replyWords } from "../sign-in/words";
 import type { JoiningSeam } from "./seam";
-import { changeFailedWords } from "../words";
-import { useMinute } from "../useMinute";
+import { changeFailedWords } from "../shared/words";
+import { useMinute } from "../shared/useMinute";
 
 // The joining seam filled in by Convex. A refusal comes back as the server's own words; any other
-// failure is logged and said plainly (src/refusal.ts).
+// failure is logged and said plainly (src/shared/refusal.ts).
 
 const change = (doing: string, attempt: () => Promise<unknown>) => refusalOf(attempt, doing, changeFailedWords);
 

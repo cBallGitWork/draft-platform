@@ -5,8 +5,8 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, Notice, PANEL_BODY, PANEL_LIST_ROW, PageSection, Panel, PanelNote, Problem } from "../frame/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { playerCardPath } from "../playerCard/paths";
-import { useChange, type Changing } from "../useChange";
-import { useChoiceAmong } from "../useChoiceAmong";
+import { useChange, type Changing } from "../shared/useChange";
+import { useChoiceAmong } from "../shared/useChoiceAmong";
 import type { FoundPlayer, SquadsSeam, TeamSquad } from "./seam";
 import {
   assignLabel,

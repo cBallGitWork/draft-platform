@@ -1,5 +1,5 @@
 import type { Id } from "../../convex/_generated/dataModel";
-import { useChoiceAmong } from "../useChoiceAmong";
+import { useChoiceAmong } from "../shared/useChoiceAmong";
 import type { InvitesPageData } from "./seam";
 import { newTeamWords, noTeamWords } from "./words";
 

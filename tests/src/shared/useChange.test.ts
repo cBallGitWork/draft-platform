@@ -3,10 +3,10 @@
 
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { silenceConsoleError } from "../support/console.setup";
-import type { Change } from "../../src/refusal";
-import { useChange } from "../../src/useChange";
-import { changeFailedWords } from "../../src/words";
+import { silenceConsoleError } from "../../support/console.setup";
+import type { Change } from "../../../src/shared/refusal";
+import { useChange } from "../../../src/shared/useChange";
+import { changeFailedWords } from "../../../src/shared/words";
 
 const refusedWords = "Not yours to change";
 const serverDown = new Error("server down");

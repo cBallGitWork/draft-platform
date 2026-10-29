@@ -3,7 +3,7 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueGameweek } from "../../convex/gameweeks/leagueGameweeks";
-import type { Change } from "../refusal";
+import type { Change } from "../shared/refusal";
 
 export type LeagueGameweeksView = {
   /** The league's gameweeks, 1 to 38, or undefined while they load. */

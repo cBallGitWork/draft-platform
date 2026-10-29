@@ -9,7 +9,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { linkOffWords } from "../../../convex/joining/joiningShared";
 import { askFailedWords, replyWords } from "../../../src/sign-in/words";
 import { useLiveJoining } from "../../../src/joining/liveJoining";
-import { changeFailedWords } from "../../../src/words";
+import { changeFailedWords } from "../../../src/shared/words";
 
 const convex = vi.hoisted(() => ({ send: vi.fn(), remove: vi.fn(), make: vi.fn(), ask: vi.fn(), signInToJoin: vi.fn() }));
 vi.mock("convex/react", async () =>

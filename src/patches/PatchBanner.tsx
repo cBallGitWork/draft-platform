@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Problem } from "../frame/Panel";
-import { useChange } from "../useChange";
+import { useChange } from "../shared/useChange";
 import { PATCH_NOTES_PATH } from "./paths";
 import type { PatchesSeam } from "./seam";
 import { bannerWords, dismissWords, patchNotesLinkWords } from "./words";

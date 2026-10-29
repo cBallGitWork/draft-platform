@@ -4,7 +4,7 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { ShortlistedPlayer } from "../../convex/scouting/shortlist";
-import type { Change } from "../refusal";
+import type { Change } from "../shared/refusal";
 
 export type { ShortlistedPlayer };
 

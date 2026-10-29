@@ -5,7 +5,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ESCAPE_KEY } from "../../../src/browserEvents";
+import { ESCAPE_KEY } from "../../../src/shared/browserEvents";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { READ_FAILED_LOG } from "../../../src/frame/ReadFailed";

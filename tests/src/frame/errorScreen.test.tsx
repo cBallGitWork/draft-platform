@@ -19,7 +19,7 @@ import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { backToLeaguesWords, LEAGUES_TITLE } from "../../../src/leagues/words";
 import { scoringPath } from "../../../src/scoring/paths";
 import { squadsPath } from "../../../src/squads/paths";
-import { findLabel } from "../../../src/words";
+import { findLabel } from "../../../src/shared/words";
 import { silenceConsoleError } from "../../support/console.setup";
 import type { JoiningData } from "../../support/src/joining.harness";
 import { admin, commissioned, league, manager, managerIn, newcomer, openApp, type AppSetUp } from "../../support/src/shell.harness";

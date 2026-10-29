@@ -3,7 +3,7 @@
 // and reaches the screen as is.
 
 import { screenMoment } from "../../convex/shared/moments";
-import { failedWords } from "../words";
+import { failedWords } from "../shared/words";
 import type { VersionNotes } from "./seam";
 
 export const PATCH_NOTES_TITLE = "Patch notes";

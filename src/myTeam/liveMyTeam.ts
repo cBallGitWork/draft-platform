@@ -1,8 +1,8 @@
 import { useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
-import { refusalOf } from "../refusal";
-import { useMinute } from "../useMinute";
+import { refusalOf } from "../shared/refusal";
+import { useMinute } from "../shared/useMinute";
 import { liveTactics } from "./liveTactics";
 import type { MyTeamSeam, SquadNumberChanges } from "./seam";
 import { numberFailedWords } from "./words";

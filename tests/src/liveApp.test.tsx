@@ -13,7 +13,7 @@ import { READ_FAILED_LOG } from "../../src/frame/ReadFailed";
 import { LEAGUES_PATH } from "../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../src/leagues/words";
 import { LiveApp, takeLinkCode } from "../../src/liveApp";
-import { NO_CONVEX_URL } from "../../src/words";
+import { NO_CONVEX_URL } from "../../src/shared/words";
 import { SIGN_IN_PATH } from "../../src/sign-in/paths";
 import { askFailedWords, linkProblemWords, replyWords, signInWords, waitingWords } from "../../src/sign-in/words";
 

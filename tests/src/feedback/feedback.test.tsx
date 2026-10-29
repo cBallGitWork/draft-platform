@@ -26,7 +26,7 @@ import { TABLE_PATH } from "../../../src/frame/menu";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
-import { whenWords } from "../../../src/words";
+import { whenWords } from "../../../src/shared/words";
 import { descriptionOf } from "../../support/src/describedBy";
 import { admin, commissioner, manager, newcomer, openApp, visitor } from "../../support/src/shell.harness";
 

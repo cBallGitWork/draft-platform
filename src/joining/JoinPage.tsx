@@ -3,7 +3,7 @@ import { linkOffWords } from "../../convex/joining/joiningShared";
 import { Loading, PageSection, Problem } from "../frame/Panel";
 import { LEAGUES_PATH } from "../leagues/paths";
 import { LEAGUES_TITLE } from "../leagues/words";
-import { useChange } from "../useChange";
+import { useChange } from "../shared/useChange";
 import type { JoiningSeam } from "./seam";
 import { joinPageWords } from "./words";
 
