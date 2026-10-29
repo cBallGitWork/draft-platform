@@ -89,6 +89,7 @@ import type * as match_matchPage from "../match/matchPage.js";
 import type * as matchup_matchup from "../matchup/matchup.js";
 import type * as matchup_matchupShape from "../matchup/matchupShape.js";
 import type * as matchup_vidiprinter from "../matchup/vidiprinter.js";
+import type * as outbound_deploymentSettings from "../outbound/deploymentSettings.js";
 import type * as outbound_email from "../outbound/email.js";
 import type * as outbound_emailLimit from "../outbound/emailLimit.js";
 import type * as outbound_resend from "../outbound/resend.js";
@@ -276,6 +277,7 @@ declare const fullApi: ApiFromModules<{
   "matchup/matchup": typeof matchup_matchup;
   "matchup/matchupShape": typeof matchup_matchupShape;
   "matchup/vidiprinter": typeof matchup_vidiprinter;
+  "outbound/deploymentSettings": typeof outbound_deploymentSettings;
   "outbound/email": typeof outbound_email;
   "outbound/emailLimit": typeof outbound_emailLimit;
   "outbound/resend": typeof outbound_resend;

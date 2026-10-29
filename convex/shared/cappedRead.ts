@@ -5,3 +5,10 @@ export async function takeAllOrThrow<Row>(query: { take(n: number): Promise<Row[
   if (rows.length > most) throw new Error(tooMany);
   return rows;
 }
+
+/** The first `most` rows `query` finds, and whether it held more: the twin of takeAllOrThrow for a
+ *  list that says it was cut, never one that drops rows unsaid. */
+export async function takeShown<Row>(query: { take(n: number): Promise<Row[]> }, most: number): Promise<{ rows: Row[]; more: boolean }> {
+  const rows = await query.take(most + 1);
+  return { rows: rows.slice(0, most), more: rows.length > most };
+}
