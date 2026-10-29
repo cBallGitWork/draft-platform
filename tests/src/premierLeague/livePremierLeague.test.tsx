@@ -3,9 +3,9 @@
 
 import { renderHook } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
-import type { Id } from "../../../convex/_generated/dataModel";
 import { livePremierLeague } from "../../../src/premierLeague/livePremierLeague";
 import { ARSENAL, CHELSEA, plMatch } from "../../support/src/premierLeague.harness";
+import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 
 const convex = vi.hoisted(() => ({ firstKickoffs: vi.fn(), ofGameweek: vi.fn(), ofSeason: vi.fn(), ofMatch: vi.fn() }));
 vi.mock("convex/react", async () =>
@@ -36,9 +36,8 @@ test("it asks football/matchScores:ofGameweek with the gameweek, and hands on wh
 test("it asks match/matchPage:ofMatch with the league and the fixture code, and hands on what comes back", () => {
   const page = { fixtureCode: 7 };
   convex.ofMatch.mockReturnValue(page);
-  const leagueId = "league-1" as Id<"leagues">;
-  expect(renderHook(() => livePremierLeague.useMatch(leagueId, 7)).result.current).toBe(page);
-  expect(convex.ofMatch).toHaveBeenCalledWith({ leagueId, fixtureCode: 7 });
+  expect(renderHook(() => livePremierLeague.useMatch(A_LEAGUE_ID, 7)).result.current).toBe(page);
+  expect(convex.ofMatch).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, fixtureCode: 7 });
 });
 
 test("each is undefined while loading", () => {
@@ -47,7 +46,7 @@ test("each is undefined while loading", () => {
   expect(renderHook(() => livePremierLeague.useFirstKickoffs()).result.current).toBeUndefined();
   expect(renderHook(() => livePremierLeague.useGameweekMatches(9)).result.current).toBeUndefined();
   convex.ofMatch.mockReturnValue(undefined);
-  expect(renderHook(() => livePremierLeague.useMatch("league-1" as Id<"leagues">, 7)).result.current).toBeUndefined();
+  expect(renderHook(() => livePremierLeague.useMatch(A_LEAGUE_ID, 7)).result.current).toBeUndefined();
 });
 
 test("it asks football/plStandings:ofSeason with nothing, and hands on the table", () => {

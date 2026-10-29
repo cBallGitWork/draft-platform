@@ -46,6 +46,7 @@ import {
   switchModeWords,
   waitingTitle,
 } from "../../../src/admin/words";
+import { refusals } from "../../../convex/shared/leagueAccess";
 
 const STEUR = { code: 1, name: "Steur", fullName: "Jacob Steur", clubCode: 4, label: "Centre Central Midfielder" };
 const BARNES = { code: 2, name: "Barnes", fullName: "Harvey Barnes", clubCode: 4, proposals: ["W" as const] };
@@ -221,9 +222,9 @@ describe("correcting a player", () => {
 
   it("shows why a change was refused", async () => {
     const app = openDashboard();
-    app.admin.approvePlayer.mockResolvedValueOnce("Only the admin can do that.");
+    app.admin.approvePlayer.mockResolvedValueOnce(refusals.notAdmin);
     await userEvent.click(await screen.findByRole("button", { name: approveLabel("Barnes") }));
-    expect((await screen.findByRole("alert")).textContent).toBe("Only the admin can do that.");
+    expect((await screen.findByRole("alert")).textContent).toBe(refusals.notAdmin);
   });
 });
 

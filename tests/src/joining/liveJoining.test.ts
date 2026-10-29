@@ -10,6 +10,8 @@ import { linkOffWords } from "../../../convex/joining/joiningShared";
 import { askFailedWords, replyWords } from "../../../src/signIn/words";
 import { useLiveJoining } from "../../../src/joining/liveJoining";
 import { changeFailedWords } from "../../../src/shared/words";
+import { refusals } from "../../../convex/shared/leagueAccess";
+import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 
 const convex = vi.hoisted(() => ({ send: vi.fn(), remove: vi.fn(), make: vi.fn(), ask: vi.fn(), signInToJoin: vi.fn() }));
 vi.mock("convex/react", async () =>
@@ -30,24 +32,23 @@ vi.mock("convex/react", async () =>
 );
 
 const joining = () => renderHook(useLiveJoining).result.current;
-const leagueId = "league-1" as Id<"leagues">;
 
 test("an invite joining/invites:send makes resolves with no problem, a new team asked for with no team", async () => {
   convex.send.mockResolvedValue(null);
-  expect(await joining().invite(leagueId, "ann@example.com", null)).toBeNull();
-  expect(convex.send).toHaveBeenCalledWith({ leagueId, email: "ann@example.com", teamId: undefined });
+  expect(await joining().invite(A_LEAGUE_ID, "ann@example.com", null)).toBeNull();
+  expect(convex.send).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, email: "ann@example.com", teamId: undefined });
 });
 
 test("removing a manager asks leagues/teams:removeManager for the league and team, and resolves with no problem", async () => {
   convex.remove.mockResolvedValue(null);
   const teamId = "team-1" as Id<"teams">;
-  expect(await joining().removeManager(leagueId, teamId)).toBeNull();
-  expect(convex.remove).toHaveBeenCalledExactlyOnceWith({ leagueId, teamId });
+  expect(await joining().removeManager(A_LEAGUE_ID, teamId)).toBeNull();
+  expect(convex.remove).toHaveBeenCalledExactlyOnceWith({ leagueId: A_LEAGUE_ID, teamId });
 });
 
 test("a change the server refuses resolves with the server's own words", async () => {
-  convex.make.mockRejectedValue(new ConvexError("Only the league's commissioner, its co-commissioner or the admin can do that."));
-  expect(await joining().makeLink(leagueId)).toBe("Only the league's commissioner, its co-commissioner or the admin can do that.");
+  convex.make.mockRejectedValue(new ConvexError(refusals.notRunner));
+  expect(await joining().makeLink(A_LEAGUE_ID)).toBe(refusals.notRunner);
 });
 
 test("any other failure is logged and said plainly", async () => {

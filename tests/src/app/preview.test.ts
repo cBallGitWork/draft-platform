@@ -1,4 +1,4 @@
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import { switchableLeagues } from "../../../convex/leagues/lastLeague";
 import { leaguesToWriteFrom } from "../../../src/mail/MailPage";
 import { previewNames, previewSession } from "../../../src/app/preview";
@@ -8,10 +8,6 @@ function previewOnLoad(search: string) {
   window.history.replaceState(null, "", `/${search}`);
   return previewSession();
 }
-
-afterEach(() => {
-  window.history.replaceState(null, "", "/");
-});
 
 test("on the dev server, ?preview=manager opens the signed-in frame, in a league", () => {
   vi.stubEnv("DEV", true);

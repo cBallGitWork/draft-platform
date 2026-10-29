@@ -1,9 +1,9 @@
 // The live app with Convex Auth's real provider and Convex's real client, only the socket faked,
 // so a second redeem of a link's code by the provider itself would show (liveApp.tsx says why).
 
-import { act, cleanup, render } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import { StrictMode } from "react";
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { LiveApp, takeLinkCode } from "../../../src/app/liveApp";
 
 type Sent = { type: string; udfPath?: string; args?: unknown[] };
@@ -34,12 +34,6 @@ function fakeConvexSocket(): Sent[] {
 beforeEach(() => {
   vi.stubEnv("VITE_CONVEX_URL", "https://happy-otter-123.convex.cloud");
   window.localStorage.clear();
-});
-// cleanup() is app.setup.ts's too, but that one runs after this: the app must unmount before
-// history is reset.
-afterEach(() => {
-  cleanup();
-  window.history.replaceState(null, "", "/");
 });
 
 test("opened from a link, with Convex Auth's real provider, the code is redeemed once", async () => {

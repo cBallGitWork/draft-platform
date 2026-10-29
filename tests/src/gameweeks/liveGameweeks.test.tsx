@@ -5,10 +5,10 @@ import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
-import type { Id } from "../../../convex/_generated/dataModel";
 import { season } from "../../support/src/gameweeks.harness";
 import { liveGameweeks } from "../../../src/gameweeks/liveGameweeks";
 import { setFailedWords } from "../../../src/gameweeks/words";
+import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 
 const convex = vi.hoisted(() => ({ ofLeague: vi.fn(), setUsed: vi.fn() }));
 vi.mock("convex/react", async () =>
@@ -18,21 +18,20 @@ vi.mock("convex/react", async () =>
   }),
 );
 
-const leagueId = "league-1" as Id<"leagues">;
 const REFUSAL = "Gameweek 3 has begun, so it can't be ticked or unticked.";
-const view = () => renderHook(() => liveGameweeks.useLeagueGameweeks(leagueId)).result.current;
+const view = () => renderHook(() => liveGameweeks.useLeagueGameweeks(A_LEAGUE_ID)).result.current;
 
 test("it reads the league's gameweeks from gameweeks/leagueGameweeks:ofLeague, as they come", () => {
   const gameweeks = season();
   convex.ofLeague.mockReturnValue(gameweeks);
   expect(view().gameweeks).toBe(gameweeks);
-  expect(convex.ofLeague).toHaveBeenCalledWith({ leagueId });
+  expect(convex.ofLeague).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID });
 });
 
 test("a tick gameweeks/leagueGameweeks:setUsed makes resolves with no problem", async () => {
   convex.setUsed.mockResolvedValue(null);
   expect(await view().setUsed(17, false)).toBeNull();
-  expect(convex.setUsed).toHaveBeenCalledWith({ leagueId, gameweek: 17, used: false });
+  expect(convex.setUsed).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, gameweek: 17, used: false });
 });
 
 test("a tick the server refuses resolves with the server's own words", async () => {

@@ -32,7 +32,8 @@ Nothing in it is a test. Each kind of file:
 - **`*.setup.ts`**, the setup files `vitest.config.ts` names. `test.setup.ts` puts the real timers
   back after every test. `console.setup.ts` (convex and app) fails a test that logs with
   `console.error` without calling `silenceConsoleError()`. `app.setup.ts` (app) unmounts whatever a
-  test rendered and stubs `window.scrollTo`, which jsdom lacks and the router calls.
+  test rendered, then puts the address back to `/` (unmount first, so the app never sees the reset),
+  and stubs `window.scrollTo`, which jsdom lacks and the router calls.
   Every project also puts back stubbed globals, stubbed envs and spies before each test, and the
   app project resets every `vi.fn()` fake too (`mockReset`), so no test file resets them by hand.
 - **`*.harness.ts`** (and `.tsx`), one feature's shared setup: `convex/` for the Convex tests
