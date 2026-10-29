@@ -33,7 +33,7 @@ const scoredFixture = v.object({
   points: v.union(v.object({ team: v.number(), opponent: v.number() }), v.null()),
 });
 
-/** A team's points in a gameweek scored (gameweekScores.ts's TeamGameweek). */
+/** A team's points in a gameweek scored (gameweekScores.ts's TeamGameweekTotal). */
 const teamResult = v.object({
   teamId: v.id("teams"),
   teamName: v.string(),

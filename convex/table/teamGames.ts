@@ -28,7 +28,7 @@ export function gamesOf<Team>(schedule: readonly GameweekFixtures<Team>[], team:
 }
 
 /** A team's points in a gameweek scored, and whether they may still move (gameweekScores.ts's
- *  TeamGameweek). */
+ *  TeamGameweekTotal). */
 export type SideScore = { points: number; provisional: boolean };
 
 /** A fixture's score: each side's points, the average's for the league's average, and whether
@@ -37,7 +37,7 @@ export type GameScore = { team: number; opponent: number; provisional: boolean }
 
 /** The score of `team`'s fixture against `opponent` in a gameweek scored, the league's average over
  *  `teams`, the gameweek's own (standings.ts's `teamsInGameweek`), `scored` holding every one of
- *  them: as the table's fixtures (leagueTable.ts) and My team's Fixtures tab show it. A team
+ *  them: as the table's fixtures (sentTables.ts) and My team's Fixtures tab show it. A team
  *  missing from it is a gameweek scored short, and throws. */
 export function gameScore<Team>(
   teams: readonly Team[],

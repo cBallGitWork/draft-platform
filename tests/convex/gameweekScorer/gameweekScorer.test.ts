@@ -9,7 +9,7 @@ import {
   tableGameweek,
   workedOutGameweek,
   type ScoredGameweek,
-  type TeamGameweek,
+  type TeamGameweekTotal,
 } from "../../../convex/gameweekScorer/gameweekScores";
 import { leagueReads } from "../../../convex/gameweekScorer/teamGameweek";
 import { averageScore } from "../../../convex/table/teamGames";
@@ -114,7 +114,7 @@ async function teamByTeam(
   { t, leagueId }: ScoresLeague,
   teamId: Id<"teams">,
   asTable: boolean,
-): Promise<{ points: TeamGameweek; slotsTotal: number | null }> {
+): Promise<{ points: TeamGameweekTotal; slotsTotal: number | null }> {
   return t.run(async (ctx) => {
     const league = (await ctx.db.get("leagues", leagueId))!;
     const reads = await leagueReads(ctx, league, (await seasonRules(ctx, leagueId))!);

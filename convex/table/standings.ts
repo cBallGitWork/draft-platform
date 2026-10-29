@@ -12,7 +12,7 @@ export const TIE_BREAKS = ["pointsFor", "headToHead", "pointsAgainst"] as const;
 export type TieBreak = (typeof TIE_BREAKS)[number];
 
 /** A matchup's points: a real football table's (spec/09, 21 Oct 2026), the same in every league. */
-export const MATCH_POINTS = { win: 3, draw: 1, loss: 0 } as const;
+export const MATCHUP_POINTS = { win: 3, draw: 1, loss: 0 } as const;
 
 /** Each team's score in each gameweek scored so far: gameweek to team to points. A gameweek
  *  missing has no scores yet, and counts for nothing. */
@@ -47,16 +47,16 @@ const emptyRow = <Team>(team: Team): TableRow<Team> => ({
 });
 
 /** The points a score earns against another. */
-function matchPoints(score: number, against: number): number {
-  if (score > against) return MATCH_POINTS.win;
-  return score === against ? MATCH_POINTS.draw : MATCH_POINTS.loss;
+function matchupPoints(score: number, against: number): number {
+  if (score > against) return MATCHUP_POINTS.win;
+  return score === against ? MATCHUP_POINTS.draw : MATCHUP_POINTS.loss;
 }
 
 function addResult<Team>(row: TableRow<Team>, score: number, against: number): void {
-  const earned = matchPoints(score, against);
+  const earned = matchupPoints(score, against);
   row.played += 1;
-  if (earned === MATCH_POINTS.win) row.won += 1;
-  else if (earned === MATCH_POINTS.draw) row.drawn += 1;
+  if (earned === MATCHUP_POINTS.win) row.won += 1;
+  else if (earned === MATCHUP_POINTS.draw) row.drawn += 1;
   else row.lost += 1;
   row.points += earned;
   row.pointsFor = inTenths(row.pointsFor + score);
@@ -133,9 +133,9 @@ export const RESULTS = ["won", "drawn", "lost"] as const;
 export type Result = (typeof RESULTS)[number];
 
 function resultOf(score: number, against: number): Result {
-  const earned = matchPoints(score, against);
-  if (earned === MATCH_POINTS.win) return "won";
-  return earned === MATCH_POINTS.draw ? "drawn" : "lost";
+  const earned = matchupPoints(score, against);
+  if (earned === MATCHUP_POINTS.win) return "won";
+  return earned === MATCHUP_POINTS.draw ? "drawn" : "lost";
 }
 
 /** Each team's form in a head-to-head league: its latest FORM_RESULTS results, oldest first, over
@@ -222,8 +222,8 @@ function tieBreakKey<Team>(
       const among = meetings.filter(({ team, opponent }) => levelTeams.has(team) && levelTeams.has(opponent));
       return (row) =>
         among.reduce((sum, meeting) => {
-          if (meeting.team === row.team) return sum + matchPoints(meeting.teamScore, meeting.opponentScore);
-          if (meeting.opponent === row.team) return sum + matchPoints(meeting.opponentScore, meeting.teamScore);
+          if (meeting.team === row.team) return sum + matchupPoints(meeting.teamScore, meeting.opponentScore);
+          if (meeting.opponent === row.team) return sum + matchupPoints(meeting.opponentScore, meeting.teamScore);
           return sum;
         }, 0);
     }

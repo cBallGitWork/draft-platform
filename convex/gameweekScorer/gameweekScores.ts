@@ -35,7 +35,7 @@ import {
 type TeamId = Id<"teams">;
 
 /** A team's points in a gameweek. */
-export interface TeamGameweek {
+export interface TeamGameweekTotal {
   points: number;
   /** While a record that counts hasn't arrived, or a match it counts isn't locked (spec/07). */
   provisional: boolean;
@@ -50,7 +50,7 @@ interface Unscored {
   reason: string;
 }
 
-export type TeamScores = Map<TeamId, TeamGameweek>;
+export type TeamScores = Map<TeamId, TeamGameweekTotal>;
 
 /** Teams' final points worked out here, not read from finalScores: for it to store. */
 interface FinalUnstored {
@@ -126,7 +126,7 @@ export async function gameweekScorer(ctx: QueryCtx, league: Doc<"leagues">, seas
     const fixtures = await heldFixtures(ctx, gameweek);
     const fixtureCodes = fixtures.map((fixture) => fixture.code);
     const held = stored.get(gameweek);
-    const storedScores = held !== undefined && sameCodes(held.fixtureCodes, fixtureCodes) ? held.scores : new Map<TeamId, TeamGameweek>();
+    const storedScores = held !== undefined && sameCodes(held.fixtureCodes, fixtureCodes) ? held.scores : new Map<TeamId, TeamGameweekTotal>();
     const unstored = teamIds.filter((teamId) => !storedScores.has(teamId));
     const worked = unstored.length === 0 ? null : await gameweekScores(ctx, reads, gameweek, fixtures, unstored);
     const scores = new Map(teamIds.map((teamId) => [teamId, storedScores.get(teamId) ?? worked!.scores.get(teamId)!]));
@@ -136,7 +136,7 @@ export async function gameweekScorer(ctx: QueryCtx, league: Doc<"leagues">, seas
 }
 
 /** A team's points from its gameweek worked out. */
-export function totalOf(scored: TeamInGameweek): TeamGameweek {
+function totalOf(scored: TeamInGameweek): TeamGameweekTotal {
   return { points: scored.team.total, provisional: scored.team.provisional, noLineup: scored.noLineup };
 }
 
@@ -148,7 +148,7 @@ export interface GameweekTeams {
   /** The team's gameweek slot by slot, worked out once. */
   slotsOf: (teamId: TeamId) => Promise<TeamInGameweek>;
   /** The team's points: its saved total where one stands, else worked out from its slots. */
-  pointsOf: (teamId: TeamId) => Promise<TeamGameweek>;
+  pointsOf: (teamId: TeamId) => Promise<TeamGameweekTotal>;
 }
 
 /** The gameweek for the `teamIds` as the table has it: a team's saved total once final, else worked
@@ -212,7 +212,7 @@ async function gameweekScores(
 ): Promise<{ scores: TeamScores; final: boolean }> {
   const inputs = await gameweekInputs(ctx, reads, gameweek, fixtures, teamIds);
   const { pointsOf } = teamsFrom(reads, inputs, new Map());
-  const scores = new Map<TeamId, TeamGameweek>();
+  const scores = new Map<TeamId, TeamGameweekTotal>();
   for (const teamId of teamIds) scores.set(teamId, await pointsOf(teamId));
   const { matches } = inputs;
   const final = matches.length > 0 && matches.every(isMatchFinal) && [...scores.values()].every((team) => !team.provisional);

@@ -2,7 +2,7 @@ import { expect, test, vi } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { inTenths } from "../../../convex/scoring/scoringSet";
-import { MATCH_POINTS } from "../../../convex/table/standings";
+import { MATCHUP_POINTS } from "../../../convex/table/standings";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { EVERTON_POINTS, HULL_POINTS } from "../../support/convex/gameweekScores.harness";
@@ -128,7 +128,7 @@ test("the four-team league plays gameweek 6 end to end: live, provisional, then 
       pointsFor,
       pointsAgainst,
       difference: inTenths(pointsFor - pointsAgainst),
-      points: { won: MATCH_POINTS.win, drawn: MATCH_POINTS.draw, lost: MATCH_POINTS.loss }[result],
+      points: { won: MATCHUP_POINTS.win, drawn: MATCHUP_POINTS.draw, lost: MATCHUP_POINTS.loss }[result],
     };
   };
   const byTeam = (one: { teamId: string }, other: { teamId: string }) => one.teamId.localeCompare(other.teamId);
