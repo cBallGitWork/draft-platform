@@ -6,7 +6,7 @@
 
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
 import { previewTeams } from "../table/preview";
-import type { MatchMan, MatchPage } from "./seam";
+import type { MatchMan, MatchPageData } from "./seam";
 
 /** FPL's code for the recorded match. */
 const RECORDED_MATCH = 2645271;
@@ -176,7 +176,7 @@ const LINES: [number, string, string?][] = [
   [2877807, "Lineups out"],
 ];
 
-export const previewMatch: MatchPage = {
+export const previewMatch: MatchPageData = {
   fixtureCode: RECORDED_MATCH,
   gameweek: 8,
   kickoff: KICKOFF,
@@ -199,7 +199,7 @@ export const previewMatch: MatchPage = {
 
 /** The same match 58 minutes before kickoff, as the recording's first read found it: the sheets
  *  out, nobody yet played, no points, team stats or lines. The fixtures still to come open it. */
-export const previewMatchBeforeKickoff: MatchPage = {
+export const previewMatchBeforeKickoff: MatchPageData = {
   ...previewMatch,
   score: null,
   men: MEN.map((each) => ({ ...each, played: null, points: null, counts: true })),

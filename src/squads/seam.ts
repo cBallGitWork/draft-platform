@@ -2,14 +2,14 @@
 // live (liveSquads.ts); the preview and the tests hand the screen their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import type { FoundPlayer, TeamSquad } from "../../convex/squads/squads";
+import type { FoundPlayer, SquadWithWarnings } from "../../convex/squads/squads";
 import type { Change } from "../shared/refusal";
 
-export type { FoundPlayer, TeamSquad };
+export type { FoundPlayer, SquadWithWarnings };
 
 export type SquadsSeam = {
   /** Each team's squad and its warnings, live (a hook): undefined while they load. */
-  useSquads(leagueId: Id<"leagues">): readonly TeamSquad[] | undefined;
+  useSquads(leagueId: Id<"leagues">): readonly SquadWithWarnings[] | undefined;
   /** The players whose name matches `text`, live (a hook): undefined while they load, and none
    *  for blank text. */
   useFoundPlayers(leagueId: Id<"leagues">, text: string): readonly FoundPlayer[] | undefined;
