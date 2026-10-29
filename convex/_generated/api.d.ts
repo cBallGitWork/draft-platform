@@ -145,6 +145,7 @@ import type * as shared_dueMatches from "../shared/dueMatches.js";
 import type * as shared_errors from "../shared/errors.js";
 import type * as shared_feedSchedule from "../shared/feedSchedule.js";
 import type * as shared_fixtures from "../shared/fixtures.js";
+import type * as shared_groupedBy from "../shared/groupedBy.js";
 import type * as shared_leagueAccess from "../shared/leagueAccess.js";
 import type * as shared_moments from "../shared/moments.js";
 import type * as shared_players from "../shared/players.js";
@@ -329,6 +330,7 @@ declare const fullApi: ApiFromModules<{
   "shared/errors": typeof shared_errors;
   "shared/feedSchedule": typeof shared_feedSchedule;
   "shared/fixtures": typeof shared_fixtures;
+  "shared/groupedBy": typeof shared_groupedBy;
   "shared/leagueAccess": typeof shared_leagueAccess;
   "shared/moments": typeof shared_moments;
   "shared/players": typeof shared_players;
