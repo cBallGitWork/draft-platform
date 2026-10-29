@@ -1,4 +1,4 @@
-import type { RoleAdjustments } from "../scoring/scoringSet";
+import type { RoleAdjustments } from "./scoringSet";
 
 // Claude's first draft of each role's adjustment (spec/05 Roles; Craig, 26 Oct 2026: "Claude
 // drafts the first numbers; Craig edits them later, by patch"). Every role gives something and

@@ -5,7 +5,7 @@ import { internalMutation, type MutationCtx } from "../_generated/server";
 import { seasonRules } from "../rules/rulesHistory";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
-import { leagueScores } from "./gameweekScores";
+import { leagueScores } from "../gameweekScorer/gameweekScores";
 
 // Stores each team's points in a gameweek once they are final (#418), so the table reads them
 // rather than scoring the whole season on every read. Final means every match in the gameweek has

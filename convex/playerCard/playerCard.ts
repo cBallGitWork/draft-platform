@@ -13,7 +13,7 @@ import { clubByCode, playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { placeOf } from "../squads/squadPlace";
 import { MINUTES_STAT, statValue } from "../stats/matchRecords";
-import { scoredMatches } from "../table/scoredMatches";
+import { scoredMatches } from "../gameweekScorer/scoredMatches";
 import { scoredAs } from "./cardPoints";
 
 // A player's card (spec/12, The player card; #381), for anyone in the league: who he is and who

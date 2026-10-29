@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { DRAFTED_ROLE_ADJUSTMENTS } from "../../../convex/lineup/draftedRoleAdjustments";
+import { DRAFTED_ROLE_ADJUSTMENTS } from "../../../convex/scoring/draftedRoleAdjustments";
 import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { scoringChanges } from "../../../convex/scoring/patchChanges";
 import { scoreMatch } from "../../../convex/scoring/scoring";
