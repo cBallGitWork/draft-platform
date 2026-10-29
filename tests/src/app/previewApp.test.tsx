@@ -2,14 +2,10 @@
 // names, and nothing for any other address, so the app signs in for real.
 
 import { render, screen } from "@testing-library/react";
-import { afterEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import { mainMenuLabel } from "../../../src/frame/words";
 import { proLeague } from "../../../src/app/preview";
 import { previewApp } from "../../../src/app/previewApp";
-
-afterEach(() => {
-  window.history.replaceState(null, "", "/");
-});
 
 test("on the dev server, ?preview=manager mounts the frame on the preview's data", async () => {
   vi.stubEnv("DEV", true);

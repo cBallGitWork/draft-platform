@@ -10,8 +10,6 @@ import { backToLeaguesWords, LEAGUES_TITLE, newLeagueLabels } from "../../../src
 import { LEAGUE_NAME_MAX } from "../../../convex/leagues/leagueLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
 
-const REFUSAL = "Only the admin can do that.";
-
 /** Fills the form in as the admin would, and sends it. */
 async function fillIn({ name = "Mini beta", maxTeams = "4", commissionerEmail = "commish@example.com" } = {}) {
   await userEvent.type(await screen.findByRole("textbox", { name: newLeagueLabels.name }), name);
@@ -32,10 +30,10 @@ describe("creating a league", () => {
 
   it("says why a league wasn't made, and stays on the form with what was typed", async () => {
     const app = openApp(NEW_LEAGUE_PATH, admin);
-    app.leagues.createLeague.mockResolvedValue(REFUSAL);
+    app.leagues.createLeague.mockResolvedValue(refusals.notAdmin);
     await fillIn();
 
-    expect((await screen.findByRole("alert")).textContent).toBe(REFUSAL);
+    expect((await screen.findByRole("alert")).textContent).toBe(refusals.notAdmin);
     expect((screen.getByRole("textbox", { name: newLeagueLabels.name }) as HTMLInputElement).value).toBe("Mini beta");
     expect(app.path()).toBe(NEW_LEAGUE_PATH);
   });

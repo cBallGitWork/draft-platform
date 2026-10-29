@@ -2,13 +2,13 @@
 
 import { expect, test, vi } from "vitest";
 import { api } from "../../convex/_generated/api";
-import { fakeConvexReact } from "../support/src/convexReact.harness";
+import { A_LEAGUE_ID, fakeConvexReact } from "../support/src/convexReact.harness";
 
 test("each hook gives the fake named for its function", () => {
   const squads = vi.fn(() => "the squads");
   const move = vi.fn();
   const action = vi.fn();
-  const args = { leagueId: "league-1" };
+  const args = { leagueId: A_LEAGUE_ID };
   const convex = fakeConvexReact({ queries: { "squads/squads:squads": squads }, mutations: { "squads/squads:move": move }, actions: { "signIn/signInLinks:ask": action } });
 
   expect(convex.useQuery(api.squads.squads.squads, args)).toBe("the squads");
