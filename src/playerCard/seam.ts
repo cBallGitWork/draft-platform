@@ -4,7 +4,7 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import type { PlayedMatch, PlayerCard } from "../../convex/playerCard/playerCard";
 import type { Change } from "../shared/refusal";
-import type { ShortlistSeam } from "../scouting/shortlistSeam";
+import type { ShortlistSeam } from "../scouting/shortlist/shortlistSeam";
 
 export type { PlayedMatch, PlayerCard };
 

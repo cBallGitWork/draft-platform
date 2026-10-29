@@ -10,7 +10,7 @@ import { overrideRefusals } from "../../../convex/table/pointsOverrides";
 import { livePlayerCard } from "../../../src/playerCard/livePlayerCard";
 import type { PointsOverride } from "../../../src/playerCard/seam";
 import { overrideFailedWords } from "../../../src/playerCard/words";
-import { liveShortlist } from "../../../src/scouting/liveShortlist";
+import { liveShortlist } from "../../../src/scouting/shortlist/liveShortlist";
 import { silenceConsoleError } from "../../support/console.setup";
 
 const convex = vi.hoisted(() => ({ card: vi.fn(), override: vi.fn() }));
