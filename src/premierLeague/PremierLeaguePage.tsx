@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import { GameweekStepper } from "../ui/GameweekStepper";
-import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { Loading, PAGE_STACK, PageSection, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
 import { ClubName } from "./ClubName";
 import { openingGameweek } from "./openingGameweek";
 import { matchPath } from "./paths";
@@ -32,8 +32,8 @@ import {
 export function PremierLeaguePage({ seam }: { seam: PremierLeagueSeam }) {
   const firstKickoffs = seam.useFirstKickoffs();
   return (
-    <PageSection title={PREMIER_LEAGUE_TITLE} className="flex max-w-6xl flex-col gap-2">
-      <div className="grid items-start gap-2 lg:grid-cols-2">
+    <PageSection title={PREMIER_LEAGUE_TITLE} className={PAGE_STACK}>
+      <div className={PANEL_COLUMNS}>
         <Panel title={FIXTURES_TITLE}>
           {firstKickoffs === undefined ? (
             <Loading className="px-3 py-2">{loadingWords}</Loading>

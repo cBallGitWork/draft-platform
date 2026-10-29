@@ -1,7 +1,7 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { nextByDeadlines } from "../../convex/gameweeks/nextGameweek";
 import { ColumnHeads } from "../ui/ColumnHeads";
-import { Loading, PageSection, PanelNote } from "../ui/Panel";
+import { LiveNote, Loading, PageSection, PanelNote } from "../ui/Panel";
 import { MatchupLink } from "../matchup/MatchupLink";
 import { useMinute } from "../shared/useMinute";
 import type { MyTeamSeam, TeamFixtures } from "./seam";
@@ -55,7 +55,7 @@ function TeamFixturesBody({ league, seam }: { league: LeagueSummary; seam: MyTea
           {unscoredWords(gameweek, reason)}
         </p>
       ))}
-      {live && <p className="px-3 py-2 text-derived">{provisionalWords}</p>}
+      {live && <LiveNote>{provisionalWords}</LiveNote>}
       <GamesTable fixtures={fixtures} />
     </>
   );
