@@ -4,6 +4,9 @@ import type { CatalogueStat } from "../../convex/scoring/statCatalogue";
 import { playerCardPath } from "../playerCard/paths";
 import { TickBox } from "../ui/TickBox";
 import { PositionCodes } from "../ui/PositionCodes";
+import { cellClassOf } from "../ui/ColumnHeads";
+import { OwnerName } from "../ui/OwnerName";
+import { ClubShort } from "../premierLeague/ClubName";
 import type { PickedPlayer } from "./ComparePanel";
 import { statFigure } from "./figures";
 import type { ListedPlayer, PlayersSort, SortColumn } from "./seam";
@@ -12,7 +15,6 @@ import {
   columns,
   compareLabel,
   descendingGlyph,
-  freeAgentWords,
   noFigureWords,
   noPointsYetWords,
   noRoleFitYetWords,
@@ -30,7 +32,7 @@ const FIGURES: readonly Column[] = ["seasonPoints", "roleFit", "stat"];
 /** A column's cells: names read from the left, figures line up on the right, and a phone leaves
  *  out what it has no room for. */
 const cellClasses = (column: Column) =>
-  `px-2 align-middle ${FIGURES.includes(column) ? "text-right" : "text-left"} ${DESK_ONLY.includes(column) ? "hidden sm:table-cell" : ""}`;
+  cellClassOf(!FIGURES.includes(column), DESK_ONLY.includes(column));
 
 /** The players list itself: a head per column, sortable where it can be, and a row per player. */
 export function PlayersTable({
@@ -150,9 +152,7 @@ function PlayerCell({
     case "club":
       return (
         <td className={className}>
-          <abbr title={player.club.name} className="no-underline">
-            {player.club.shortName}
-          </abbr>
+          <ClubShort club={player.club} />
         </td>
       );
     case "positions":
@@ -162,7 +162,11 @@ function PlayerCell({
         </td>
       );
     case "owner":
-      return <td className={player.ownerTeamName === null ? `${className} text-muted` : className}>{player.ownerTeamName ?? freeAgentWords}</td>;
+      return (
+        <td className={className}>
+          <OwnerName teamName={player.ownerTeamName} />
+        </td>
+      );
     case "seasonPoints":
       return player.seasonPoints === null ? (
         <td title={noPointsYetWords} className={`${className} text-muted`}>

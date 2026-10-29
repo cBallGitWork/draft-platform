@@ -1,6 +1,14 @@
 // The head row of every data table whose columns have a short and a long word (plate.md, Colour
 // roles: the head band).
 
+/** A column's cells left off a phone, which has no room for them (#424). */
+export const DESK_ONLY_CELL = "hidden sm:table-cell";
+
+/** A data table's cell classes: words on the left, figures on the right, and the desk-only columns
+ *  hidden on a phone. A head and the cells under it share them. */
+export const cellClassOf = (left: boolean, deskOnly = false) =>
+  `px-2 align-middle ${left ? "text-left" : "text-right"}${deskOnly ? ` ${DESK_ONLY_CELL}` : ""}`;
+
 /** A column's head words: the short one is shown, the long one is its tooltip and accessible name. */
 export type ColumnWords = { short: string; long: string };
 

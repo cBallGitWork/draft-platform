@@ -2,6 +2,7 @@ import { useCanGoBack, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PositionCodes } from "../ui/PositionCodes";
+import { OwnerName } from "../ui/OwnerName";
 import { SCOUTING_PATH } from "../frame/menu";
 import { Loading, PANEL_BODY, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { useMinute } from "../shared/useMinute";
@@ -15,7 +16,6 @@ import {
   backWords,
   chanceWords,
   clubLabel,
-  freeAgentWords,
   goneWords,
   LAST_SEASON_TITLE,
   lastSeasonNotHeldWords,
@@ -85,7 +85,9 @@ function Facts({ card, children }: { card: PlayerCard; children: ReactNode }) {
         <dt className="text-soft">{positionsLabel}</dt>
         <dd>{card.positions.length === 0 ? <span className="text-muted">{noPositionsWords}</span> : <PositionCodes positions={card.positions} />}</dd>
         <dt className="text-soft">{ownerLabel}</dt>
-        <dd className={card.ownerTeamName === null ? "text-muted" : undefined}>{card.ownerTeamName ?? freeAgentWords}</dd>
+        <dd>
+          <OwnerName teamName={card.ownerTeamName} />
+        </dd>
         <dt className="text-soft">{newsLabel}</dt>
         {/* FPL's news names his chance of playing itself, so the chance stands alone only without news. */}
         {card.news !== null ? (

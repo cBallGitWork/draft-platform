@@ -1,5 +1,5 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { ColumnHeads } from "../ui/ColumnHeads";
+import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { FixturesPanel } from "./FixturesPanel";
 import type { LeagueTable, TableSeam } from "./seam";
@@ -30,7 +30,7 @@ const DESK_ONLY: readonly Column[] = ["pointsFor", "pointsAgainst"];
 /** A column's cells: names read from the left, figures line up on the right, and a phone leaves
  *  out what it has no room for. */
 const cellClasses = (column: Column) =>
-  `px-2 align-middle ${column === "team" ? "text-left" : "text-right"} ${DESK_ONLY.includes(column) ? "hidden sm:table-cell" : ""}`;
+  cellClassOf(column === "team", DESK_ONLY.includes(column));
 
 /** The league's table and fixtures (spec/12, spec/09), for anyone in it: the table beside the
  *  fixtures of one gameweek at a time. */

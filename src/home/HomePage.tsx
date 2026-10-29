@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { TOP_ROWS } from "../../convex/home/glance";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { ColumnHeads } from "../ui/ColumnHeads";
+import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { DateBlock } from "../mail/DateBlock";
 import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { MAIL_PATH, TABLE_PATH } from "../frame/menu";
@@ -51,7 +51,7 @@ const COLUMNS_OF: Record<LeagueHome["format"], readonly Column[]> = {
 const DESK_ONLY: readonly Column[] = ["won", "drawn", "lost"];
 
 const cellClasses = (column: Column) =>
-  `px-2 align-middle ${column === "team" || column === "form" ? "text-left" : "text-right"} ${DESK_ONLY.includes(column) ? "hidden sm:table-cell" : ""}`;
+  cellClassOf(column === "team" || column === "form", DESK_ONLY.includes(column));
 
 /** League home (spec/12, League home): the league's hub, laid out by us, never by its managers. The
  *  glance (this gameweek's head-to-heads, the table and each team's form), the commissioner's
