@@ -72,7 +72,7 @@ function Letter({ letter, isOpen, onToggle }: { letter: LetterSummary; isOpen: b
         aria-expanded={isOpen}
         aria-controls={bodyId}
         onClick={onToggle}
-        className={`grid min-h-tap w-full grid-cols-[auto_minmax(0,1fr)] items-start gap-2 px-3 py-1 text-left hover:bg-stepper ${letter.read ? "" : "shadow-event-edge"}`}
+        className={`grid min-h-tap w-full grid-cols-dated-row items-start gap-2 px-3 py-1 text-left hover:bg-stepper ${letter.read ? "" : "shadow-event-edge"}`}
       >
         <DateBlock at={letter.at} />
         <span className={letter.read ? "text-muted" : "font-semibold text-fact"}>

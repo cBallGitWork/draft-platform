@@ -1,5 +1,5 @@
 import type { FeedState } from "../../convex/admin/feedState";
-import { Loading, Panel, PanelNote } from "../ui/Panel";
+import { Loading, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
 import { whenWords } from "../shared/words";
 import { AdminHeader } from "./AdminHeader";
 import type { AdminSeam, FeedsReport } from "./seam";
@@ -55,7 +55,7 @@ export function FeedsPage({ seam }: { seam: AdminSeam }) {
       ) : (
         <>
           <Feeds report={report} />
-          <div className="grid items-start gap-2 lg:grid-cols-2">
+          <div className={PANEL_COLUMNS}>
             <Behind report={report} />
             <Corrections report={report} />
           </div>

@@ -129,6 +129,10 @@ export const PANEL_BODY = "flex flex-col gap-2 p-3";
 /** One row of a list in a panel: its lines stacked, ruled off from the next (#292). */
 export const PANEL_LIST_ROW = "flex flex-col gap-1 border-b border-panel-rule px-3 py-2";
 
+/** A page's panels stacked at its full width, and two panels side by side from `lg` up. */
+export const PAGE_STACK = "flex max-w-6xl flex-col gap-2";
+export const PANEL_COLUMNS = "grid items-start gap-2 lg:grid-cols-2";
+
 /** The top bar every frame opens with: its plate (plate.md, Shape) and the row its parts sit in,
  *  apart because the signed-in frame puts the row inside the bar. */
 export const TOP_BAR = "bg-bar shadow-bevel-plate";
@@ -155,4 +159,9 @@ const PANEL_NOTE_EDGES = {
 /** A muted line inside a panel, such as a hint or "none found"; `edge` says which sides it pads. */
 export function PanelNote({ edge = "y", children }: { edge?: keyof typeof PANEL_NOTE_EDGES; children: ReactNode }) {
   return <p className={`${PANEL_NOTE_EDGES[edge]} text-muted`}>{children}</p>;
+}
+
+/** The line under a scored list saying its points are live, not final yet. */
+export function LiveNote({ children }: { children: ReactNode }) {
+  return <p className="px-3 py-2 text-derived">{children}</p>;
 }

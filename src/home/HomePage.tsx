@@ -3,7 +3,7 @@ import { TOP_ROWS } from "../../convex/home/glance";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { DateBlock } from "../mail/DateBlock";
-import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { MAIL_PATH, TABLE_PATH } from "../frame/menu";
 import { MatchupLink } from "../matchup/MatchupLink";
 import { useMinute } from "../shared/useMinute";
@@ -59,13 +59,13 @@ const cellClasses = (column: Column) =>
 export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSeam }) {
   const home = seam.useLeagueHome(league.leagueId, useMinute());
   return (
-    <PageSection title={HOME_TITLE} className="flex max-w-6xl flex-col gap-2">
+    <PageSection title={HOME_TITLE} className={PAGE_STACK}>
       {home === undefined ? (
         <Loading>{loadingWords}</Loading>
       ) : home === null ? (
         <p className="text-muted">{noRulesWords}</p>
       ) : (
-        <div className="grid items-start gap-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="grid items-start gap-2 lg:grid-cols-home">
           <HeadToHeads home={home} />
           <TablePanel home={home} />
           <div className="flex flex-col gap-2">
@@ -100,7 +100,7 @@ function HeadToHeads({ home: { format, thisGameweek } }: { home: LeagueHome }) {
     <Panel title={title}>
       <ul aria-label={headToHeadsLabel(title)}>
         {thisGameweek.fixtures.map(({ teamId, team, opponent }) => (
-          <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 border-b border-panel-rule px-3 py-1 text-lead">
+          <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-sides items-center gap-2 border-b border-panel-rule px-3 py-1 text-lead">
             <span className="text-right font-semibold">{team}</span>
             <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={thisGameweek.gameweek}>
               <span>{versusWords}</span>
@@ -206,7 +206,7 @@ function SquadMoves({ moves }: { moves: LeagueHome["squadMoves"] }) {
       ) : (
         <ol>
           {moves.map((move) => (
-            <li key={`${move.at} ${move.kind} ${move.playerName}`} className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2 border-b border-panel-rule px-3 py-1">
+            <li key={`${move.at} ${move.kind} ${move.playerName}`} className="grid grid-cols-dated-row items-baseline gap-2 border-b border-panel-rule px-3 py-1">
               <DateBlock at={move.at} />
               <span>{moveWords(move)}</span>
             </li>
