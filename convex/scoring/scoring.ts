@@ -164,8 +164,9 @@ export function scoreGameweek(matches: readonly MatchPoints[], rule: DoubleGamew
   const provisional = arrived.length < matches.length;
   if (matches.length === 0) return { points: 0, provisional };
   if (arrived.length === 0) return { points: null, provisional };
+  const counting = matches.flatMap((match, index) => (counted[index] && match.total !== null ? [match.total] : []));
   // Each match's total is in tenths; their sum is put back in tenths too (spec/14).
-  return { points: inTenths(sum(matches.flatMap((match, index) => (counted[index] ? [match.total ?? 0] : [])))), provisional };
+  return { points: inTenths(sum(counting)), provisional };
 }
 
 /** Which of a player's matches in the gameweek his points include, in the order his matches came:

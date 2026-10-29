@@ -28,7 +28,7 @@ export const pricedNotes: Record<ScoredAs, string> = {
   slot: "Points from his slot in the lineup, under the site's scoring.",
   bestPosition: "Points at his best position, under the site's scoring: what he'd score where he scores most.",
   notCounted:
-    "Not counted: a match his team's points left out. On the bench and not brought on, he is priced at his best position; in a double gameweek that counts only his best match, his other match is priced at his slot.",
+    "Not counted: a match his team's points left out. One he sat on the bench for is at his best position; his other match in a double gameweek counting only his best is at his slot.",
 };
 /** Under a match his team's points didn't include (spec/12): a bench player who didn't come on, or
  *  his other match in a double gameweek that counts only his best (spec/03). */

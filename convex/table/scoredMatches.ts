@@ -168,7 +168,6 @@ function asScored({ team, matchesOf }: TeamInGameweek, playerCode: number, fixtu
   const index = matchesOf.get(playerCode)!.findIndex((match) => match.fixture.code === fixtureCode);
   // teamInGameweek takes every match he has a record in, so one missing is data gone wrong.
   if (index === -1) throw new Error(`Player ${playerCode}'s match ${fixtureCode} isn't among his team's matches that gameweek`);
-  // A match the double-gameweek rule left out of his slot's points is his slot's, labelled not counted.
   const scoredAs = slot.matchesCounted[index] ? "slot" : "notCounted";
   const points: CardPoints = { scoredAs, position: positionOfSlot(slot.cell), ...slot.matches[index] };
   // A man's points are final once his matches lock (teamPoints.ts), but who counts only once every man's are.

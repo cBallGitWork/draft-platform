@@ -4,6 +4,7 @@ import type { PlayedMatch } from "../../../convex/playerCard/playerCard";
 import type { DoubleGameweekRule } from "../../../convex/scoring/scoring";
 import { inTenths } from "../../../convex/scoring/scoringSet";
 import { HOUR_MS } from "../../../convex/shared/time";
+import { rulesRevision } from "../../support/convex/leagueRules.harness";
 import { actingAs } from "../../support/convex/leagues.harness";
 import { EVERTON, HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import {
@@ -179,10 +180,11 @@ type TwoMatches = Record<"first" | "second", Pick<PlayedMatch["points"], "scored
 async function doubleGameweek(rule: DoubleGameweekRule, second: (first: Record<string, number>) => Record<string, number>): Promise<TwoMatches> {
   const league = await annsLeague();
   const records = mergedHullEverton();
-  const scorers = records.find((record) => record.playerCode === HULL_SCORER)!;
+  const hisFirst = records.find((record) => record.playerCode === HULL_SCORER)!;
+  const rulesId = (await rulesRevision(league.t, league.leagueId))!;
   await league.t.run(async (ctx) => {
-    const held = (await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", league.leagueId)).collect()).at(-1)!;
-    await ctx.db.patch("leagueRules", held._id, { rules: { ...held.rules, doubleGameweek: rule } });
+    const held = (await ctx.db.get("leagueRules", rulesId))!;
+    await ctx.db.patch("leagueRules", rulesId, { rules: { ...held.rules, doubleGameweek: rule } });
     await ctx.db.insert("clubs", { code: SECOND_OPPONENT, name: "Arsenal", shortName: "ARS" });
     await ctx.db.insert("fixtures", { code: SECOND_MATCH, gameweek: GAMEWEEK, homeClubCode: HULL, awayClubCode: SECOND_OPPONENT, kickoff: LEAGUE_KICKOFF + HOUR_MS });
   });
@@ -190,7 +192,7 @@ async function doubleGameweek(rule: DoubleGameweekRule, second: (first: Record<s
   await league.t.mutation(internal.stats.matchStats.upsertMatch, {
     fixtureCode: SECOND_MATCH,
     readAt: LEAGUE_FULL_TIME_READ,
-    records: [{ ...scorers, fixtureCode: SECOND_MATCH, stats: second(scorers.stats) }],
+    records: [{ ...hisFirst, fixtureCode: SECOND_MATCH, stats: second(hisFirst.stats) }],
   });
   const cards = await expectCardsAddUpToTheTable(league, true);
   const shown = (fixtureCode: number) => {
