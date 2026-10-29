@@ -32,13 +32,17 @@ describe("saving", () => {
 
     await userEvent.click(blockOf(HAVERTZ, { area: "attack", lane: "centre" }));
     await userEvent.click(screen.getByRole("button", { name: putHereLabel(HAVERTZ.name, "attack", "left") }));
+    const statusesBefore = screen.getAllByRole("status");
     await userEvent.click(save());
 
     expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, {
       starters: [...STARTERS.slice(0, 3), at(HAVERTZ, { area: "attack", lane: "left" })],
       bench: [ARRIZABALAGA.playerCode, WHITE.playerCode],
     });
-    expect(await screen.findByText(savedWords(TACTICS_GAMEWEEK))).toBeTruthy();
+    const saved = await screen.findByText(savedWords(TACTICS_GAMEWEEK));
+    // The live region was in the page, empty, before the save, so the words are announced.
+    expect(saved.getAttribute("role")).toBe("status");
+    expect(statusesBefore).toContain(saved);
   });
 
   it("names the gameweek the server saved it from: the one after, if the deadline passed on the way", async () => {

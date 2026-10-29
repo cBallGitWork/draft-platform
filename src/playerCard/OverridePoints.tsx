@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "../../convex/table/overrideLimits";
-import { PANEL_BODY, Problem } from "../frame/Panel";
+import { PANEL_BODY, Problem, Status } from "../frame/Panel";
 import { useChange } from "../useChange";
 import { useChoiceAmong } from "../useChoiceAmong";
 import type { PlayerCard, PlayerCardSeam } from "./seam";
@@ -10,6 +10,8 @@ import { cancelOverrideWords, OVERRIDE_TITLE, overriddenDoneWords, overrideHint,
 const MATCH_ID = "override-match";
 const POINTS_ID = "override-points";
 const REASON_ID = "override-reason";
+/** The hint, what an override does, describes the points box. */
+const HINT_ID = "override-hint";
 /** Points are kept to a tenth (spec/14). */
 const POINTS_STEP = 0.1;
 
@@ -58,13 +60,11 @@ export function OverridePoints({ leagueId, card, seam }: { leagueId: Id<"leagues
       ) : (
         <>
           <Problem problem={change.problem} />
-          {done && (
-            <p role="status" className="px-3 pt-2 text-derived">
-              {overriddenDoneWords}
-            </p>
-          )}
+          <Status words={done ? overriddenDoneWords : null} className="px-3 pt-2 text-derived" />
           <form onSubmit={save} aria-label={OVERRIDE_TITLE} className={PANEL_BODY}>
-            <p className="text-muted">{overrideHint}</p>
+            <p id={HINT_ID} className="text-muted">
+              {overrideHint}
+            </p>
             <label htmlFor={MATCH_ID} className="font-semibold">
               {overrideLabels.match}
             </label>
@@ -87,6 +87,7 @@ export function OverridePoints({ leagueId, card, seam }: { leagueId: Id<"leagues
               max={OVERRIDE_POINTS_MOST}
               value={points}
               onChange={(event) => setPoints(event.target.value)}
+              aria-describedby={HINT_ID}
               className="text-box"
             />
             <label htmlFor={REASON_ID} className="font-semibold">

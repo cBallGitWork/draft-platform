@@ -15,6 +15,8 @@ import {
 } from "./words";
 
 const EMAIL_ID = "invite-email";
+/** The hint, how an invite works, describes the email box. */
+const HINT_ID = "invite-hint";
 
 type Invite = InvitesPageData["invites"][number];
 /** Resending or cancelling an invite, and whether a change is under way. */
@@ -62,10 +64,13 @@ export function EmailInvites({ page, joining }: { page: InvitesPageData; joining
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
+          aria-describedby={HINT_ID}
           className="text-box"
         />
         <TeamSelect id="invite-team" label={emailInvitesWords.teamLabel} choice={choice} />
-        <p className="text-muted">{inviteHint}</p>
+        <p id={HINT_ID} className="text-muted">
+          {inviteHint}
+        </p>
         <button type="submit" disabled={busy || teamId === undefined} className="action self-start">
           {emailInvitesWords.send}
         </button>

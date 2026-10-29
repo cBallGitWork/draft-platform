@@ -10,6 +10,7 @@ import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { admin, commissioner, openApp } from "../../support/src/shell.harness";
 import type { AdminData } from "../../support/src/admin.harness";
 import { EMPTY_QUEUE } from "../../support/src/admin.harness";
+import { descriptionOf } from "../../support/src/describedBy";
 import { ADMIN_PATH } from "../../../src/admin/paths";
 import { thresholdRefusals } from "../../../convex/positions/positionSettings";
 import {
@@ -19,6 +20,7 @@ import {
   clubLabel,
   confirmLabel,
   changesTitle,
+  findHint,
   findLabel,
   findTitle,
   flagAfterLabel,
@@ -189,6 +191,11 @@ describe("correcting a player", () => {
     await userEvent.type(await screen.findByRole("searchbox", { name: findLabel }), "Woltemade");
     return screen.getByRole("list", { name: foundListLabel });
   };
+
+  it("the search box is described by its hint, for screen readers", async () => {
+    openDashboard();
+    expect(descriptionOf(await screen.findByRole("searchbox", { name: findLabel }))).toBe(findHint);
+  });
 
   it("shows each position, where it came from, and whether it's confirmed", async () => {
     openDashboard();

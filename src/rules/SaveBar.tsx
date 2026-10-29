@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Notice, PanelNote, Problem } from "../frame/Panel";
+import { Notice, PanelNote, Problem, Status } from "../frame/Panel";
 import type { RulesDraft } from "./rulesDraft";
 import { appliesFromWords, discardWords, gameweekWords, loadLatestWords, overtakenWords, saveWords, unchangedWords } from "./words";
 
@@ -27,11 +27,7 @@ export function SaveBar<Part>({ draft, savedWords, children }: { draft: RulesDra
         </span>
       </div>
       {draft.unchanged && draft.savedFrom === null && <PanelNote edge="b">{unchangedWords}</PanelNote>}
-      {draft.savedFrom !== null && (
-        <p role="status" className="px-3 pb-2">
-          {savedWords(draft.savedFrom)}
-        </p>
-      )}
+      <Status words={draft.savedFrom === null ? null : savedWords(draft.savedFrom)} className="px-3 pb-2" />
       <Problem problem={draft.problem} />
       {draft.overtaken && (
         <>
