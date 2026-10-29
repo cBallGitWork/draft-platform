@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lineup } from "../../../convex/lineup/lineup";
 import { lineupRefusals } from "../../../convex/lineup/lineupWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { FIRST_GAMEWEEK, GAMEWEEKS, noSuchGameweek } from "../../../convex/gameweeks/usedGameweeks";
+import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import type { Position } from "../../../convex/positions/positionTables";
@@ -66,8 +66,14 @@ const as = async (email: string) => {
   const person = await actingAs(t, email);
   return {
     save: (lineup: Lineup) => person.mutation(api.lineup.lineups.save, { leagueId, lineup: sent(lineup) }),
-    mine: (gameweek: number) => person.query(api.lineup.lineups.mine, { leagueId, gameweek }),
+    mine: (gameweek: number) => t.run((ctx) => lineupInGameweek(ctx, leagueId, teamOf(email), gameweek)),
   };
+};
+/** The team the manager runs: only Ann and Bob run one. */
+const teamOf = (email: string): Id<"teams"> => {
+  if (email === ANN) return annsTeam;
+  if (email === BOB) return bobsTeam;
+  throw new Error(`${email} runs no team in the league`);
 };
 const saved = (lineup: Lineup, fromGameweek: number | null) => ({
   fromGameweek,
@@ -392,19 +398,13 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
 describe("who may save and read", () => {
   test("a signed-out caller is refused", async () => {
     await expectRefused(t.mutation(api.lineup.lineups.save, { leagueId, lineup: sent(FOUR_FOUR_TWO) }), refusals.signedOut);
-    await expectRefused(t.query(api.lineup.lineups.mine, { leagueId, gameweek: NEXT }), refusals.signedOut);
   });
 
   test("someone running no team in the league is refused, its commissioner included", async () => {
     for (const email of [OUTSIDER, COMMISSIONER]) {
       const person = await as(email);
       await expectRefused(person.save(FOUR_FOUR_TWO), refusals.runsNoTeam);
-      await expectRefused(person.mine(NEXT), refusals.runsNoTeam);
     }
-  });
-
-  test("a gameweek outside the season is refused", async () => {
-    await expectRefused((await as(ANN)).mine(GAMEWEEKS + 1), noSuchGameweek(GAMEWEEKS + 1));
   });
 
   test("saves only to the caller's own team", async () => {

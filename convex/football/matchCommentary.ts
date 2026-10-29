@@ -1,11 +1,10 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
-import { internalMutation, internalQuery, query, type ActionCtx, type QueryCtx } from "../_generated/server";
+import { internalMutation, internalQuery, type ActionCtx, type QueryCtx } from "../_generated/server";
 import { commentaryLine } from "../schema";
 import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
-import { callerEmail } from "../shared/leagueAccess";
 import { FEED_TYPE, writeCommentary } from "./commentary";
 import type { RawBootstrap } from "./fpl/fpl";
 import { clubByCode } from "../shared/players";
@@ -182,17 +181,5 @@ export const store = internalMutation({
     if (JSON.stringify(next.lines) === JSON.stringify(held.lines) && next.delayed?.reason === held.delayed?.reason) return null;
     await ctx.db.patch("matchCommentary", held._id, next);
     return null;
-  },
-});
-
-/** A match's commentary for anyone signed in: its lines, newest first, and whether it is delayed
- *  ("Commentary delayed"). Null before the match's first read. */
-export const ofMatch = query({
-  args: { fixtureCode: v.number() },
-  returns: v.union(v.object({ lines: v.array(commentaryLine), delayed: v.boolean() }), v.null()),
-  handler: async (ctx, { fixtureCode }) => {
-    await callerEmail(ctx);
-    const held = await heldOf(ctx, fixtureCode);
-    return held === null ? null : { lines: held.lines, delayed: held.delayed !== null };
   },
 });
