@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { ColumnHeads } from "../frame/ColumnHeads";
 import { Loading, PageSection, PanelNote, Problem } from "../frame/Panel";
 import { playerCardPath } from "../playerCard/paths";
 import { PositionCodes } from "../PositionCodes";
@@ -55,20 +56,13 @@ function SquadBody({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }
 /** The squad, each row's number his manager's to change in place (#13). */
 function SquadTable({ leagueId, squad, numbers }: { leagueId: Id<"leagues">; squad: TeamSquad; numbers: SquadNumberChanges }) {
   const change = useChange();
-  const longOf = (column: Column) => (column === "last" && squad.lastGameweek !== null ? lastGameweekLong(squad.lastGameweek) : squadColumns[column].long);
+  // The Last column's long word names the gameweek it shows, once there is one.
+  const heads = squad.lastGameweek === null ? squadColumns : { ...squadColumns, last: { ...squadColumns.last, long: lastGameweekLong(squad.lastGameweek) } };
   return (
     <>
       <Problem problem={change.problem} />
       <table aria-label={squadTableLabel(squad.teamName)} className="w-full border-collapse">
-        <thead className="bg-head text-ground">
-          <tr>
-            {COLUMNS.map((column) => (
-              <th key={column} scope="col" title={longOf(column)} aria-label={longOf(column)} className={cellClasses(column)}>
-                {squadColumns[column].short}
-              </th>
-            ))}
-          </tr>
-        </thead>
+        <ColumnHeads columns={heads} shown={COLUMNS} classOf={cellClasses} />
         <tbody>
           {squad.players.map((player) => (
             <tr key={player.code} className="border-t border-panel-rule">

@@ -36,7 +36,7 @@ export function Vidiprinter({
               {commentary.lines.map((line) => (
                 <li key={line.key} className="flex items-baseline justify-between gap-3 border-t border-panel-rule px-3">
                   <span>{line.text}</span>
-                  {line.points !== null && <span className="shrink-0 whitespace-nowrap font-bold text-figure tabular-nums">{line.points}</span>}
+                  {line.points !== null && <span className="shrink-0 whitespace-nowrap font-bold text-figure">{line.points}</span>}
                 </li>
               ))}
             </ol>

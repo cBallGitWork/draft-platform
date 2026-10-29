@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { DragEvent } from "react";
+import { ColumnHeads } from "../frame/ColumnHeads";
 import { playerCardPath } from "../playerCard/paths";
 import { roleIn, rolesOfSlot } from "../../convex/lineup/roles";
 import { markOf } from "./focusMarks";
@@ -67,15 +68,7 @@ export function SquadTable({
   );
   return (
     <table aria-label={squadTableLabel} className="w-full border-collapse">
-      <thead className="bg-head text-ground">
-        <tr>
-          {COLUMNS.map((column) => (
-            <th key={column} scope="col" title={squadColumns[column].long} aria-label={squadColumns[column].long} className="px-2 text-left">
-              {squadColumns[column].short}
-            </th>
-          ))}
-        </tr>
-      </thead>
+      <ColumnHeads columns={squadColumns} shown={COLUMNS} classOf={() => "px-2 text-left"} />
       <tbody>{startersInOrder(draft).map((starter) => row(starter.playerCode, null, starter))}</tbody>
       <tbody onDragOver={allowDrop} onDrop={drop}>
         <tr>
