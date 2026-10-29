@@ -57,7 +57,7 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
 - **The player card** is its own page, with Back, opened from any player's name anywhere (25 Oct
   2026). It holds:
   - his name, club and positions, who owns him in the league, and FPL's injury news and chance of
-    playing;
+    playing, and his three latest news notes (`spec/21`);
   - this season's matches, each broken down by category and role (`spec/14`, `spec/05`): for a
     player in a lineup, the points his team got from his slot; for anyone else, what he would score
     at his best position, labelled so. A bench player who came on as an auto-sub shows the points
