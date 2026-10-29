@@ -18,7 +18,7 @@ export const delivery = v.union(
 
 /** One emailed invite (spec/13, Joining). It is live until it expires, is cancelled, or the person
  *  signs in, which ends it with the team they joined or why they couldn't. */
-export const inviteFields = {
+const inviteFields = {
   leagueId: v.id("leagues"),
   email: v.string(),
   /** The vacated team it names; absent for a new team. */
@@ -33,10 +33,10 @@ export const inviteFields = {
 };
 
 /** A league's one live invite link, by its token: switching it off or replacing it deletes the row. */
-export const inviteLinkFields = { leagueId: v.id("leagues"), token: v.string() };
+const inviteLinkFields = { leagueId: v.id("leagues"), token: v.string() };
 
 /** One join request, made by opening the invite link (spec/15, Joining a league). */
-export const joinRequestFields = {
+const joinRequestFields = {
   leagueId: v.id("leagues"),
   email: v.string(),
   /** Absent while it waits for the commissioner. */

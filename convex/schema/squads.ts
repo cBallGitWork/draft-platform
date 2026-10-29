@@ -5,7 +5,7 @@ import { v } from "convex/values";
 // season-stable code. A player is on one team in a league at most; any other is a free agent.
 
 /** A player as a squad letter names him, and the team concerned. */
-export const playerOnTeam = { playerCode: v.number(), playerName: v.string(), teamId: v.id("teams"), teamName: v.string() };
+const playerOnTeam = { playerCode: v.number(), playerName: v.string(), teamId: v.id("teams"), teamName: v.string() };
 
 /** What assigning players files for Mail. */
 export const squadEvents = [

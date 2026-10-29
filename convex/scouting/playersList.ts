@@ -35,7 +35,7 @@ export const availability = v.union(v.literal("all"), v.literal("freeAgents"), v
 export type Availability = Infer<typeof availability>;
 
 /** What the list can be sorted by: "stat" is the shown stat's season total. */
-export const sortColumn = v.union(v.literal("name"), v.literal("club"), v.literal("seasonPoints"), v.literal("stat"));
+const sortColumn = v.union(v.literal("name"), v.literal("club"), v.literal("seasonPoints"), v.literal("stat"));
 export type SortColumn = Infer<typeof sortColumn>;
 
 const filters = v.object({

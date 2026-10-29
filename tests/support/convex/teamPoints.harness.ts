@@ -58,7 +58,7 @@ export const LINEUP: Lineup = {
   bench: [BELLOUMI, PHILLIPS],
 };
 
-export const BENCH_CELLS: ReadonlyMap<number, Cell> = new Map([
+const BENCH_CELLS: ReadonlyMap<number, Cell> = new Map([
   [BELLOUMI, MIDFIELD],
   [PHILLIPS, KEEPER],
 ]);

@@ -11,7 +11,7 @@ import type { approveMode, startRecord } from "../schema";
 /** How many of his newest starts count, last season's and this (spec/06). */
 export const START_WINDOW = 38;
 /** Starts at a position, within the window, that give it to him (spec/06). */
-export const STARTS_FOR_A_POSITION = 3;
+const STARTS_FOR_A_POSITION = 3;
 
 /** One match he started and where he lined up (`MatchSlot`, in plMatch.ts); a formation, line and
  *  place are null for a sheet that drew none. A substitute's appearance is never a start. */

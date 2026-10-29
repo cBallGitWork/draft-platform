@@ -71,7 +71,7 @@ type Game = HeadToHead["game"];
 type Scored = Extract<Game, { kind: "scored" }>;
 
 /** Commentary with no lines yet, keeping up: what a scored game holds unless a test says. */
-export const NO_COMMENTARY: MatchupCommentary = { kind: "read", lines: [], delayed: false };
+const NO_COMMENTARY: MatchupCommentary = { kind: "read", lines: [], delayed: false };
 
 /** Team 1's matchup in `gameweek`, of the gameweeks it plays, holding `game`; a scored one with no
  *  commentary unless it gives some. */

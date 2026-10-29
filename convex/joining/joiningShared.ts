@@ -14,7 +14,7 @@ export const joinPath = (token: string) => `${JOIN_PATH}/${token}`;
 
 /** An invite's sign-in link is `/invited/<inviteId>`, which names the invite for its email's
  *  wording; the app has no page there and opens where `/` does, on My team once they've joined. */
-export const INVITED_PATH = "/invited";
+const INVITED_PATH = "/invited";
 export const invitedPath = (inviteId: string) => `${INVITED_PATH}/${inviteId}`;
 
 /** The team an invite is for, when it isn't a vacated one. */

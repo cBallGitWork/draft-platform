@@ -109,7 +109,7 @@ export function bylineOf(email: string): string {
 }
 
 /** Files the letter reporting a league's event to the whole league, as it is after the event. */
-export async function fileEventLetter(ctx: MutationCtx, leagueId: Id<"leagues">, by: string, event: LeagueEvent): Promise<void> {
+async function fileEventLetter(ctx: MutationCtx, leagueId: Id<"leagues">, by: string, event: LeagueEvent): Promise<void> {
   const league = await ctx.db.get("leagues", leagueId);
   if (!league) throw new Error(`League ${leagueId} doesn't exist, so its ${event.kind} letter can't be filed`);
   const to = [...(await wholeLeague(ctx, league)), ...takenOut(event)];

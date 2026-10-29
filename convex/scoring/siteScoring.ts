@@ -67,7 +67,7 @@ export const siteScoringRefusals = {
 
 /** The version a screen loaded, carried with its change: the latest's id, or null while the site
  *  plays the first set. */
-export const siteRevisionShape = v.union(v.null(), v.id("siteScoring"));
+const siteRevisionShape = v.union(v.null(), v.id("siteScoring"));
 
 /** A version's name: its season's two years and its number, 26_27.1. */
 export function versionName({ season, number }: Pick<Doc<"siteScoring">, "season" | "number">): string {

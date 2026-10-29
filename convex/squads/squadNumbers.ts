@@ -7,8 +7,8 @@ import { placeOf } from "./squadPlace";
 // numbers on My team's Squad tab, any from 1 to 99, two of them alike if he likes. The number is
 // held on the player's squad row, so a move or a release ends it (squads.ts).
 
-export const LOWEST_NUMBER = 1;
-export const HIGHEST_NUMBER = 99;
+const LOWEST_NUMBER = 1;
+const HIGHEST_NUMBER = 99;
 
 export const squadNumberRefusals = {
   notInSquad: "That player isn't in your squad.",
