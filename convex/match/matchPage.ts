@@ -17,7 +17,7 @@ import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, playerByCode } from "../shared/players";
-import { placeOf } from "../squads/squadPlace";
+import { ownerOf } from "../squads/squadPlace";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { begunGameweeks, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { matchRecordsOf } from "../gameweekScorer/heldMatches";
@@ -120,14 +120,11 @@ async function sheetMenOf(ctx: QueryCtx, fixtureCode: number): Promise<NamedMan[
 
 /** Each man the match names who is owned in the league, by the team that owns him. */
 async function ownersOf(ctx: QueryCtx, leagueId: Id<"leagues">, named: readonly NamedMan[]): Promise<Map<PlayerCode, Doc<"teams">>> {
-  const teams = new Map((await teamsOf(ctx, leagueId)).map((team) => [team._id, team]));
+  const owner = await ownerOf(ctx, leagueId);
   const owners = new Map<PlayerCode, Doc<"teams">>();
   for (const { playerCode } of named) {
-    const owned = await placeOf(ctx, leagueId, playerCode);
-    if (owned === null) continue;
-    const team = teams.get(owned.teamId);
-    if (team === undefined) throw new Error(`player ${playerCode} is owned by team ${owned.teamId}, which isn't in league ${leagueId}`);
-    owners.set(playerCode, team);
+    const team = await owner(playerCode);
+    if (team !== null) owners.set(playerCode, team);
   }
   return owners;
 }

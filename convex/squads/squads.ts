@@ -14,7 +14,7 @@ import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { areasShort } from "./areaMinimums";
 import { readOnce } from "../shared/readOnce";
-import { placeOf, squadOf } from "./squadPlace";
+import { ownerOf, placeOf, squadOf } from "./squadPlace";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
@@ -201,15 +201,14 @@ export const findPlayers = query({
     await runnerOf(ctx, leagueId);
     if (!text.trim()) return [];
     const found = await playersNamed(ctx, text);
-    const teamNames = new Map((await teamsOf(ctx, leagueId)).map((team) => [team._id, team.name]));
+    const owner = await ownerOf(ctx, leagueId);
     return Promise.all(
       found.map(async (player) => {
-        const place = await placeOf(ctx, leagueId, player.code);
         return {
           code: player.code,
           name: player.name,
           fullName: player.fullName,
-          teamName: place === null ? null : (teamNames.get(place.teamId) ?? null),
+          teamName: (await owner(player.code))?.name ?? null,
         };
       }),
     );
