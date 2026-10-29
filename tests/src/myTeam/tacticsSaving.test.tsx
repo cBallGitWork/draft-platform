@@ -81,6 +81,12 @@ describe("saving", () => {
       expect(screen.queryByRole("alert")).toBeNull();
     });
 
+    it("stays while a player is only picked up, nothing yet changed", async () => {
+      await refusedWith(REFUSAL);
+      await userEvent.click(screen.getByRole("button", { name: moveLabel(HAVERTZ.name) }));
+      expect(screen.getByRole("alert").textContent).toBe(REFUSAL);
+    });
+
     it("clears when a preset is picked", async () => {
       await refusedWith(REFUSAL);
       await userEvent.selectOptions(screen.getByRole<HTMLSelectElement>("combobox", { name: presetLabel }), "4-4-2");
