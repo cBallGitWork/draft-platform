@@ -5,7 +5,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { actingAs } from "../../support/convex/leagues.harness";
 import { syncRun } from "../../support/convex/footballSync.harness";
-import { freshConvex, type TestConvex } from "../../support/convex/test.harness";
+import { expectRefused, freshConvex, type TestConvex } from "../../support/convex/test.harness";
 import { clubCodeOfPlTeam, recordedResults, recordedStandings } from "../../support/recorded/standings.payloads";
 
 // The Premier League table on the section (#50; spec/18, The table): worked out from the held
@@ -184,5 +184,5 @@ test("a match held as played with no score throws, never left out of the table",
 test("someone signed out is refused the table", async () => {
   const t = freshConvex();
 
-  await expect(t.query(api.football.plStandings.ofSeason, {})).rejects.toThrow(refusals.signedOut);
+  await expectRefused(t.query(api.football.plStandings.ofSeason, {}), refusals.signedOut);
 });

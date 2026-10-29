@@ -13,7 +13,7 @@ import type { RawPlCommentary, RawPlFixture } from "../../../convex/football/pre
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { actingAs } from "../../support/convex/leagues.harness";
-import { fakeFetch, freshConvex, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
+import { expectRefused, fakeFetch, freshConvex, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import {
   LIVE_COMMENTARY,
   LIVE_MATCH,
@@ -175,5 +175,5 @@ test("before its first read a match has no commentary, and it is for signed-in p
   const t = freshConvex();
 
   expect(await shown(t)).toBeNull();
-  await expect(t.query(api.football.matchCommentary.ofMatch, { fixtureCode: IPSWICH_FOREST })).rejects.toThrow(refusals.signedOut);
+  await expectRefused(t.query(api.football.matchCommentary.ofMatch, { fixtureCode: IPSWICH_FOREST }), refusals.signedOut);
 });

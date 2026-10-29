@@ -9,7 +9,7 @@ import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../
 import { giveDeadlineRule, rulesRevision } from "../../support/convex/leagueRules.harness";
 import { syncWith } from "../../support/convex/footballSync.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { clockRunsTo, silenceConsoleError } from "../../support/convex/test.harness";
+import { clockRunsTo, expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 import { recordedSeason } from "../../support/recorded/fpl.payloads";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 
@@ -124,7 +124,7 @@ describe("a deadline passing mid-sync", () => {
 
     expect((await passedRows()).find((row) => row.leagueId === leagueId && row.gameweek === GAMEWEEK)?.deadline).toBe(deadlineBefore(OPENER));
     expect(await shownDeadline(GAMEWEEK)).toBe(deadlineBefore(OPENER));
-    await expect(setUsed(GAMEWEEK, false)).rejects.toThrow(gameweekRefusals.begun(GAMEWEEK));
+    await expectRefused(setUsed(GAMEWEEK, false), gameweekRefusals.begun(GAMEWEEK));
   });
 
   test("markDropped records it before dropping the opener, and the gameweek stays begun", async () => {
@@ -141,7 +141,7 @@ describe("a deadline passing mid-sync", () => {
 
     expect((await passedRows()).find((row) => row.leagueId === leagueId && row.gameweek === GAMEWEEK)?.deadline).toBe(deadlineBefore(OPENER));
     expect(await shownDeadline(GAMEWEEK)).toBe(deadlineBefore(OPENER));
-    await expect(setUsed(GAMEWEEK, false)).rejects.toThrow(gameweekRefusals.begun(GAMEWEEK));
+    await expectRefused(setUsed(GAMEWEEK, false), gameweekRefusals.begun(GAMEWEEK));
   });
 });
 
@@ -151,7 +151,7 @@ describe("a postponed first match", () => {
     await syncWith(t, openerPostponed());
 
     expect(await shownDeadline(GAMEWEEK)).toBe(deadlineBefore(OPENER));
-    await expect(setUsed(GAMEWEEK, false)).rejects.toThrow(gameweekRefusals.begun(GAMEWEEK));
+    await expectRefused(setUsed(GAMEWEEK, false), gameweekRefusals.begun(GAMEWEEK));
     const change = await (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, {
       leagueId,
       rules: { ...FIRST_RULES, format: "totalPoints" },
@@ -213,7 +213,7 @@ describe("the alarm at the next deadline", () => {
 
     expect((await passedRows()).find((row) => row.leagueId === leagueId && row.gameweek === GAMEWEEK)?.deadline).toBe(deadlineBefore(OPENER));
     expect(await shownDeadline(GAMEWEEK)).toBe(deadlineBefore(OPENER));
-    await expect(setUsed(GAMEWEEK, false)).rejects.toThrow(gameweekRefusals.begun(GAMEWEEK));
+    await expectRefused(setUsed(GAMEWEEK, false), gameweekRefusals.begun(GAMEWEEK));
   });
 
   test("two syncs leave one alarm pending, at the soonest deadline to come", async () => {

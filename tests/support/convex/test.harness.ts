@@ -4,7 +4,8 @@
 // on these.
 
 import { convexTest, type TestConvex as TestConvexOf } from "convex-test";
-import { vi } from "vitest";
+import { ConvexError } from "convex/values";
+import { expect, vi } from "vitest";
 import schema from "../../../convex/schema";
 
 /** Every file in convex/, keyed by its path from here, as convex-test needs them: it finds
@@ -64,6 +65,18 @@ export function fakeFetch(
 /** The failure a read records when a faked feed refuses `url`. */
 export function refusedError(url: string): string {
   return `${url} answered ${REFUSED_STATUS}`;
+}
+
+/** A refusal the person is shown: a ConvexError carrying the reason. A plain Error reaches the
+ *  browser as "Server Error", its message lost, so matching the message alone would pass it.
+ *  `label` names the case in a failure, for a check run over several. */
+export async function expectRefused(attempt: Promise<unknown>, reason: string, label?: string): Promise<void> {
+  const error = await attempt.then(
+    () => null,
+    (thrown: unknown) => thrown,
+  );
+  expect(error, label).toBeInstanceOf(ConvexError);
+  expect((error as ConvexError<string>).data, label).toBe(reason);
 }
 
 // Vitest loads the setup file and this import as one module, so the flag this sets reaches the

@@ -12,7 +12,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, actingAs } from "../../support/convex/leagues.harness";
 import { asAdmin } from "../../support/convex/positionsSync.harness";
 import { CENTRE_BACK, movedToFullBack, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
-import { freshConvex, type TestConvex } from "../../support/convex/test.harness";
+import { expectRefused, freshConvex, type TestConvex } from "../../support/convex/test.harness";
 
 const BARNES = { code: 1, name: "Barnes", fullName: "Harvey Barnes", clubCode: 4 };
 const ALLEN = { code: 2, name: "Allen", fullName: "Rob Allen", clubCode: 4 };
@@ -54,7 +54,7 @@ describe("the thresholds", () => {
       [3, 6.5, thresholdRefusals.removeAfter],
       [3, 39, thresholdRefusals.pastWindow],
     ] as const) {
-      await expect(setThresholds(t, flagAfter, removeAfter), `${flagAfter}, ${removeAfter}`).rejects.toThrow(why);
+      await expectRefused(setThresholds(t, flagAfter, removeAfter), why, `${flagAfter}, ${removeAfter}`);
     }
     await setThresholds(t, 1, 38);
     expect((await queueOf(t)).thresholds).toEqual({ flagAfter: 1, removeAfter: 38 });
@@ -75,8 +75,8 @@ describe("the thresholds", () => {
     vi.stubEnv("ADMIN_EMAIL", ADMIN);
     const someone = await actingAs(t, "someone@example.com");
     const asked = { flagAfter: 2, removeAfter: 4 };
-    await expect(someone.mutation(api.positions.positionSettings.setChangeThresholds, asked)).rejects.toThrow(refusals.notAdmin);
-    await expect(t.mutation(api.positions.positionSettings.setChangeThresholds, asked)).rejects.toThrow(refusals.signedOut);
+    await expectRefused(someone.mutation(api.positions.positionSettings.setChangeThresholds, asked), refusals.notAdmin);
+    await expectRefused(t.mutation(api.positions.positionSettings.setChangeThresholds, asked), refusals.signedOut);
     expect((await queueOf(t)).thresholds).toEqual({ flagAfter: 3, removeAfter: 6 });
   });
 });

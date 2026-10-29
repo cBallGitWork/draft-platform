@@ -1,7 +1,5 @@
 // League rules' tests' shared setup (#25).
 
-import { ConvexError } from "convex/values";
-import { expect } from "vitest";
 import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { TEST_LEAGUE_TEAMS, type TestConvex } from "./leagues.harness";
@@ -11,6 +9,9 @@ import type { Area } from "../../../convex/lineup/pitch";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { DAY_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+
+// expectRefused lived here first; the files that import it from here still find it.
+export { expectRefused } from "./test.harness";
 
 /** The first rules as a league `adminCreatesLeague` makes holds them: with the starting squad
  *  maximum for its size (#316). */
@@ -79,15 +80,4 @@ export async function giveDeadlineRule(
   await t.run(async (ctx) => {
     await ctx.db.insert("leagueRules", { leagueId, fromGameweek, rules });
   });
-}
-
-/** A refusal the person is shown: a ConvexError carrying the reason. A plain Error reaches the
- *  browser as "Server Error", its message lost. */
-export async function expectRefused(attempt: Promise<unknown>, reason: string): Promise<void> {
-  const error = await attempt.then(
-    () => null,
-    (thrown: unknown) => thrown,
-  );
-  expect(error).toBeInstanceOf(ConvexError);
-  expect((error as ConvexError<string>).data).toBe(reason);
 }

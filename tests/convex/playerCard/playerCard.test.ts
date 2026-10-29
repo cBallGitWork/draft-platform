@@ -10,6 +10,7 @@ import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } 
 import { EXAMPLE_SET } from "../../support/convex/scoring.example";
 import { ARSENAL, CHELSEA, COVENTRY, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // A player's card (#381, spec/12 The player card): who he is, who owns him in the league, FPL's
 // news, this season's matches priced under the site's scoring at his best position, or at his slot
@@ -165,5 +166,5 @@ test("a code the football sync doesn't hold has no card", async () => {
 });
 
 test("someone not in the league is refused", async () => {
-  await expect(cardAs(OUTSIDER, SAKA.code)).rejects.toThrow(refusals.notInLeague);
+  await expectRefused(cardAs(OUTSIDER, SAKA.code), refusals.notInLeague);
 });
