@@ -53,7 +53,7 @@ describe("each area of the slot he starts in prices the same match its own way",
   });
 });
 
-test("a per-action rule pays for each action: two goals in midfield pay 10", () => {
+test("a per-action rule scores each action: two goals in midfield earn 10", () => {
   const { categories } = scoreMatch({ ...dewsburyHall, goals_scored: 2 }, EXAMPLE_SET, centreOf("midfield"));
   expect(categories).toContainEqual({ stat: "goals_scored", points: 10 });
 });
@@ -64,7 +64,7 @@ test.each([
   [4, 1],
   [5, 1],
   [6, 2],
-])("a per-count rule pays for each whole three: %i saves pay %i", (saves, points) => {
+])("a per-count rule scores each whole three: %i saves earn %i", (saves, points) => {
   const scored = scoreMatch({ ...tzolakis, saves }, EXAMPLE_SET, centreOf("goalkeeper"));
   expect(scored.categories).toContainEqual({ stat: "saves", points });
 });
@@ -86,7 +86,7 @@ describe("a band rule", () => {
     ["90 minutes", 3, 2, DEWSBURY_HALL],
     ["26 minutes off the bench", 1, 1, FULL_STATS.belloumi.code],
     ["an unused substitute's 0", 0, 0, FULL_STATS.phillips.code],
-  ])("for %s pays %i when it stacks, %i when it pays only the highest band", (_what, stacked, highest, playerCode) => {
+  ])("for %s earns %i when it stacks, %i when it scores only the highest band", (_what, stacked, highest, playerCode) => {
     expect(minutesPoints(minutesBands(true, MINUTES_BANDS), playerCode)).toBe(stacked);
     expect(minutesPoints(minutesBands(false, MINUTES_BANDS), playerCode)).toBe(highest);
   });
@@ -100,7 +100,7 @@ describe("a band rule", () => {
     expect(minutesPoints(minutesBands(false, [...MINUTES_BANDS].reverse()), DEWSBURY_HALL)).toBe(2);
   });
 
-  test("with no bands for his area pays nothing", () => {
+  test("with no bands for his area earns nothing", () => {
     expect(minutesPoints(minutesBands(true, []), DEWSBURY_HALL)).toBe(0);
   });
 });
@@ -157,7 +157,7 @@ test("FPL's bonus in a record scores nothing: no rule names it", () => {
 
 describe("bad data throws rather than score", () => {
   // Each way a rule itself can be bad is in scoringSet.test.ts; these are what scoreMatch adds.
-  test("a set saved before #135, with a rule on a stat no record holds, throws rather than pay 0 in it", () => {
+  test("a set saved before #135, with a rule on a stat no record holds, throws rather than score 0 in it", () => {
     const typo: ScoringSet = { rules: [{ shape: "perAction", stat: "goals_scroed", values: { all: 5 } }], wholePointsOnly: false };
     expect(() => scoreMatch(dewsburyHall, typo, centreOf("midfield"))).toThrow(
       'rule 1 of the scoring set scores "goals_scroed", which is neither a catalogue stat nor one of the set\'s own stats',
@@ -183,7 +183,7 @@ describe("bad data throws rather than score", () => {
   });
 
   test.each([
-    ["NaN minutes, which a band would pay 0", { minutes: NaN }, "his record's minutes is NaN, not a number"],
+    ["NaN minutes, which a band would score 0", { minutes: NaN }, "his record's minutes is NaN, not a number"],
     ["2 goals sent as text, which a per-action rule would coerce", { goals_scored: "2" }, 'goals_scored is "2"'],
   ])("a record with %s", (_what, stats, message) => {
     const record = { ...dewsburyHall, ...stats } as unknown as MatchStats;

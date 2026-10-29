@@ -10,7 +10,7 @@ import { centreOf, TACKLES_AND_CLEARANCES } from "../../support/convex/scoring.e
 import { validateScoringSet, type OwnStat, type ScoringSet } from "../../../convex/scoring/scoringSet";
 import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogue";
 
-// A league's own stats (#112, spec/14 Own stats): catalogue stats added up with weights, scored
+// The site's own stats (#112, spec/14 Own stats): catalogue stats added up with weights, scored
 // like any category, whole actions only under whole points only; and the placeholder catalogue.
 
 const gw6 = recordedGw6();

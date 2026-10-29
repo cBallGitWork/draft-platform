@@ -73,7 +73,7 @@ describe("the kind of rule", () => {
     expect(withShape(perCount, "bands")).toEqual({ shape: "bands", stat: "assists", stack: false, values: { all: [{ atLeast: 1, points: 3 }] } });
   });
 
-  it("bands to per action pays the highest band's points, and nothing where there are no bands", () => {
+  it("bands to per action earns the highest band's points, and nothing where there are no bands", () => {
     const perAction = withShape(DEFENSIVE, "perAction");
     expect(perAction.values).toEqual({ byArea: { goalkeeper: 0, defence: 2, defensiveMidfield: 2, midfield: 2, attackingMidfield: 2, attack: 2 } });
     expect("stack" in perAction).toBe(false);
@@ -81,7 +81,7 @@ describe("the kind of rule", () => {
     isSound(perAction);
   });
 
-  it("bands to per number pays the highest band's points for every so many as it starts at", () => {
+  it("bands to per number earns the highest band's points for every so many as it starts at", () => {
     expect(withShape(ruleFor("minutes"), "perCount").values).toEqual({ all: { every: 60, points: 2 } });
   });
 
