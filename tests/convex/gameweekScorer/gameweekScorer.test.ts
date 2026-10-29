@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { inTenths } from "../../../convex/scoring/scoringSet";
-import type { PlayerRows } from "../../../convex/table/squadInputs";
+import type { PlayerRows } from "../../../convex/gameweekScorer/squadInputs";
 import {
   gameweekScorer,
   squadGameweek,
@@ -10,8 +10,8 @@ import {
   workedOutGameweek,
   type ScoredGameweek,
   type TeamGameweek,
-} from "../../../convex/table/gameweekScores";
-import { leagueReads } from "../../../convex/table/teamGameweek";
+} from "../../../convex/gameweekScorer/gameweekScores";
+import { leagueReads } from "../../../convex/gameweekScorer/teamGameweek";
 import { averageScore } from "../../../convex/table/teamGames";
 import { addManagers } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
