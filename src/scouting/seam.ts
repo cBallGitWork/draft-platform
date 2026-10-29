@@ -4,7 +4,7 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import type { Comparison } from "../../convex/scouting/compare";
 import type { PlayersFilters, PlayersList, PlayersSort } from "../../convex/scouting/playersList";
-import type { ShortlistSeam } from "./shortlistSeam";
+import type { ShortlistSeam } from "./shortlist/shortlistSeam";
 
 export type { Comparison, PlayersFilters, PlayersList, PlayersSort };
 export type { ComparedPlayer } from "../../convex/scouting/compare";

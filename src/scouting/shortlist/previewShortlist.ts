@@ -1,8 +1,8 @@
-// The shortlist in the preview (src/app/preview.ts), over Scouting's preview players (preview.ts):
+// The shortlist in the preview (src/app/preview.ts), over Scouting's preview players (../preview.ts):
 // adding or taking off a player changes it for the session, so both screens show the change.
 
 import { useSyncExternalStore } from "react";
-import type { ListedPlayer } from "../../convex/scouting/playersList";
+import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import type { ShortlistedPlayer, ShortlistSeam } from "./shortlistSeam";
 
 /** A shortlist seam over `players`, holding those with `openingCodes` to begin with. */

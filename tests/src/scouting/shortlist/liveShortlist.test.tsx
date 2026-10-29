@@ -4,14 +4,14 @@
 import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { expect, test, vi } from "vitest";
-import type { Id } from "../../../convex/_generated/dataModel";
-import { liveShortlist } from "../../../src/scouting/liveShortlist";
-import { shortlistChangeFailedWords } from "../../../src/scouting/shortlistWords";
-import { silenceConsoleError } from "../../support/console.setup";
+import type { Id } from "../../../../convex/_generated/dataModel";
+import { liveShortlist } from "../../../../src/scouting/shortlist/liveShortlist";
+import { shortlistChangeFailedWords } from "../../../../src/scouting/shortlist/shortlistWords";
+import { silenceConsoleError } from "../../../support/console.setup";
 
 const convex = vi.hoisted(() => ({ mine: vi.fn(), add: vi.fn(), remove: vi.fn() }));
 vi.mock("convex/react", async () =>
-  (await import("../../support/src/convexReact.harness")).fakeConvexReact({
+  (await import("../../../support/src/convexReact.harness")).fakeConvexReact({
     queries: { "scouting/shortlist:mine": convex.mine },
     mutations: { "scouting/shortlist:add": convex.add, "scouting/shortlist:remove": convex.remove },
   }),

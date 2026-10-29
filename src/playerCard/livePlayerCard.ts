@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useCallback } from "react";
 import { api } from "../../convex/_generated/api";
 import { refusalOf } from "../shared/refusal";
-import { liveShortlist } from "../scouting/liveShortlist";
+import { liveShortlist } from "../scouting/shortlist/liveShortlist";
 import type { PlayerCardSeam } from "./seam";
 import { overrideFailedWords } from "./words";
 
