@@ -6,7 +6,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { EndedInvite } from "../../convex/joining/endedInvite";
 import type { InvitesPageData } from "../../convex/joining/invitesPage";
 import type { JoinPageData } from "../../convex/joining/joinRequests";
-import type { Change } from "../refusal";
+import type { Change } from "../shared/refusal";
 
 export type { EndedInvite, InvitesPageData, JoinPageData };
 

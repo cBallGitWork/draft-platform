@@ -27,7 +27,7 @@ import {
   scoreWords,
   versusWords,
 } from "../../../src/premierLeague/words";
-import { nextGameweekLabel, previousGameweekLabel } from "../../../src/words";
+import { nextGameweekLabel, previousGameweekLabel } from "../../../src/shared/words";
 import { ARSENAL, CHELSEA, FOREST, plMatch, SPURS, type PremierLeagueData } from "../../support/src/premierLeague.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 

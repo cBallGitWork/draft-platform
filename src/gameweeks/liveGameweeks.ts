@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "convex/react";
 import { useCallback } from "react";
 import { api } from "../../convex/_generated/api";
-import { refusalOf } from "../refusal";
+import { refusalOf } from "../shared/refusal";
 import type { GameweeksSeam } from "./seam";
 import { setFailedWords } from "./words";
 

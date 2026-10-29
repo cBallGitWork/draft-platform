@@ -12,7 +12,7 @@ import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, 
 import { BEGUN, season } from "../../support/src/gameweeks.harness";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { begunWords, GAMEWEEKS_TITLE, loadingWords } from "../../../src/gameweeks/words";
-import { gameweekWords, whenWords } from "../../../src/words";
+import { gameweekWords, whenWords } from "../../../src/shared/words";
 
 const PAGE = gameweeksPath(league.leagueId);
 const REFUSAL = "Gameweek 17 has begun, so it can't be ticked or unticked.";

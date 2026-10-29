@@ -1,5 +1,5 @@
 import { Loading } from "../frame/Panel";
-import { useChange } from "../useChange";
+import { useChange } from "../shared/useChange";
 import { AdminHeader } from "./AdminHeader";
 import { FindPlayer } from "./FindPositions";
 import { NewSignings, PositionChanges, Waiting } from "./QueuePanels";

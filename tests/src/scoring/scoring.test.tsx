@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import { gameweekWords } from "../../../src/words";
+import { gameweekWords } from "../../../src/shared/words";
 import {
   addCategoryWords,
   blankBoxWords,

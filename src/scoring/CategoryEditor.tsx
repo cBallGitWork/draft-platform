@@ -24,7 +24,7 @@ import {
   type Rule,
 } from "./editing";
 import { NumberBox } from "../rules/NumberBox";
-import { AREA_WORDS } from "../words";
+import { AREA_WORDS } from "../shared/words";
 import {
   addBandWords,
   bandFromWords,

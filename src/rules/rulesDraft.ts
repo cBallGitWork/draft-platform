@@ -7,7 +7,7 @@
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { sortedJson } from "../../convex/shared/sortedJson";
-import { useChange } from "../useChange";
+import { useChange } from "../shared/useChange";
 import { holdsBlank } from "./blank";
 
 /** The rules row a part was read from. */

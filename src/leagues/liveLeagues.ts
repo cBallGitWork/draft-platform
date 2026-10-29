@@ -1,7 +1,7 @@
 import { useMutation } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
-import { refusalOf } from "../refusal";
+import { refusalOf } from "../shared/refusal";
 import type { LeaguesSeam } from "./seam";
 import { createFailedWords, deleteFailedWords, leaveFailedWords, switchFailedWords, undoFailedWords } from "./words";
 

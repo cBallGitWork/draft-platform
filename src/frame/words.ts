@@ -1,6 +1,6 @@
 // What the frame says, in one place for Craig to change in the pull request.
 
-import { failedWords } from "../words";
+import { failedWords } from "../shared/words";
 
 /** A page whose data couldn't be read (ReadFailed.tsx): its title, why, in the alert strip, the
  *  same whatever failed, a refusal too (spec/12), and the button that reads again. */

@@ -9,7 +9,7 @@ import { PatchNotesLink } from "../patches/PatchBanner";
 import { useRulesDraft } from "../rules/rulesDraft";
 import { SaveBar } from "../rules/SaveBar";
 import { TickBox } from "../rules/TickBox";
-import { useChoiceAmong } from "../useChoiceAmong";
+import { useChoiceAmong } from "../shared/useChoiceAmong";
 import { CategoryEditor } from "./CategoryEditor";
 import { firstBlankRule, newRule, rulePricing, valueAt, type PerCount, type Rule, type Scoring } from "./editing";
 import type { ScoringSeam, ScoringView } from "./seam";

@@ -2,9 +2,9 @@
 // server refused a change is in convex/squads/squads.ts (`squadRefusals`), and reaches the screen as is.
 
 import type { SquadWarning } from "../../convex/squads/squads";
-import { AREA_WORDS, failedWords } from "../words";
+import { AREA_WORDS, failedWords } from "../shared/words";
 
-export { findLabel, findTitle, foundListLabel, freeAgentWords, noneFoundWords, searchingWords } from "../words";
+export { findLabel, findTitle, foundListLabel, freeAgentWords, noneFoundWords, searchingWords } from "../shared/words";
 
 export const SQUADS_TITLE = "Squads";
 export const findHint = "Put any player on any team, move him to another, or release him to free agency. Every change is in the league's Mail.";
@@ -41,5 +41,5 @@ export function warningWords(warning: SquadWarning): string {
   }
 }
 
-/** The shared `changeFailedWords` (src/words.ts), naming the squads as what didn't change. */
+/** The shared `changeFailedWords` (src/shared/words.ts), naming the squads as what didn't change. */
 export const squadChangeFailedWords = failedWords("the squads didn't change");

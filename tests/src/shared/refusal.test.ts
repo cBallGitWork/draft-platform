@@ -1,10 +1,10 @@
-// The live seams' one rule for a failed call (src/refusal.ts): the server's words for a refusal,
+// The live seams' one rule for a failed call (src/shared/refusal.ts): the server's words for a refusal,
 // a log and plain words for anything else.
 
 import { ConvexError } from "convex/values";
 import { expect, test } from "vitest";
-import { silenceConsoleError } from "../support/console.setup";
-import { answerOf, refusalOf } from "../../src/refusal";
+import { silenceConsoleError } from "../../support/console.setup";
+import { answerOf, refusalOf } from "../../../src/shared/refusal";
 
 const FAILED = "Something went wrong.";
 

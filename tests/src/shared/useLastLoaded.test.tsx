@@ -3,7 +3,7 @@
 
 import { renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { useLastLoaded } from "../../src/useLastLoaded";
+import { useLastLoaded } from "../../../src/shared/useLastLoaded";
 
 type Props = { value: string | null | undefined; key?: string };
 const render = (initialProps: Props) => renderHook(({ value, key }: Props) => useLastLoaded(value, key), { initialProps });

@@ -4,7 +4,7 @@
 
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { useChoiceAmong } from "../../src/useChoiceAmong";
+import { useChoiceAmong } from "../../../src/shared/useChoiceAmong";
 
 const render = (options: readonly string[], initial?: string) =>
   renderHook(({ offered }) => useChoiceAmong(offered, initial), { initialProps: { offered: options } });

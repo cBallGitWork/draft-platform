@@ -7,7 +7,7 @@ import type { FoundPlayerPositions, PositionsQueue } from "../../convex/position
 import type { ChangeThresholds } from "../../convex/positions/positionChanges";
 import type { ApproveMode } from "../../convex/positions/positions";
 import type { Position } from "../../convex/positions/positionTables";
-import type { Change } from "../refusal";
+import type { Change } from "../shared/refusal";
 
 export type { FeedsReport, FoundPlayerPositions, PositionsQueue };
 

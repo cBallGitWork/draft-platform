@@ -1,10 +1,10 @@
 import { useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
-import { refusalOf } from "../refusal";
+import { refusalOf } from "../shared/refusal";
 import type { AdminSeam } from "./seam";
-import { useMinute } from "../useMinute";
-import { changeFailedWords } from "../words";
+import { useMinute } from "../shared/useMinute";
+import { changeFailedWords } from "../shared/words";
 
 const useQueue: AdminSeam["useQueue"] = () => useQuery(api.positions.playerPositions.queue, {});
 

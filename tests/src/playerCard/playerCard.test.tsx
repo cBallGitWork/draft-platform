@@ -38,7 +38,7 @@ import {
 } from "../../../src/playerCard/words";
 import { addToShortlistWords } from "../../../src/scouting/shortlistWords";
 import { squadsPath } from "../../../src/squads/paths";
-import { gameweekWords, versusWords } from "../../../src/words";
+import { gameweekWords, versusWords } from "../../../src/shared/words";
 import type { PlayerCardData } from "../../support/src/playerCard.harness";
 import { commissioned, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 import { teamSquad } from "../../support/src/squads.harness";

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { LeaguesSeam } from "../leagues/seam";
-import { useChange } from "../useChange";
+import { useChange } from "../shared/useChange";
 import { Confirm } from "./Confirm";
 import { Problem } from "./Panel";
 import { leaveWords } from "./words";

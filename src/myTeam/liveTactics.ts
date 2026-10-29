@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
-import { answerOf } from "../refusal";
+import { answerOf } from "../shared/refusal";
 import type { TacticsSeam } from "./tacticsSeam";
 import { saveFailedWords } from "./tacticsWords";
 

@@ -6,7 +6,7 @@ import { DateBlock } from "../frame/DateBlock";
 import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { MAIL_PATH, TABLE_PATH } from "../frame/menu";
 import { MatchupLink } from "../matchup/MatchupLink";
-import { useMinute } from "../useMinute";
+import { useMinute } from "../shared/useMinute";
 import type { HomeSeam, LeagueHome } from "./seam";
 import {
   byeWords,

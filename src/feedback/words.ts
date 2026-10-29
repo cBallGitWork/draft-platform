@@ -2,7 +2,7 @@
 // server refused a message is in convex/feedback/feedback.ts (`feedbackRefusals`), and reaches the
 // screen as is.
 
-import { failedWords } from "../words";
+import { failedWords } from "../shared/words";
 
 /** The page the top bar's link opens, and the link, named for it; the admin's tab is too. */
 export const FEEDBACK_TITLE = "Feedback";

@@ -5,8 +5,8 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, PageSection, Problem } from "../frame/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { TickBox } from "../rules/TickBox";
-import { useMinute } from "../useMinute";
-import { gameweekWords, whenWords } from "../words";
+import { useMinute } from "../shared/useMinute";
+import { gameweekWords, whenWords } from "../shared/words";
 import type { LeagueGameweeksView } from "./seam";
 import {
   begunWords,
