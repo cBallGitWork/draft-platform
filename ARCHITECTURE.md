@@ -1,7 +1,7 @@
 # Architecture
 
 **Contents:** [Services (Craig's)](#services-craigs) · [Libraries (Claude's)](#libraries-claudes) ·
-[Data](#data) · [With the first code](#with-the-first-code)
+[Data](#data) · [Where code lives](#where-code-lives) · [With the first code](#with-the-first-code)
 
 How the product in [SPEC.md](SPEC.md) is built. Settled in the stack `/grill` (16 Oct 2026).
 
@@ -96,14 +96,16 @@ Tactics pitch are built with no package, and components, motion, forms and chart
 ## Data
 
 - The football layer (FPL and the Premier League's public APIs) is copied from epl-draft's
-  `packages/core` when needed, not shared. Clubs, players, fixtures and gameweeks sit behind one
-  seam so a paid feed can replace them for other leagues (SPEC, Later): `Football` in
-  `convex/football/football.ts`, filled by FPL's adapter `convex/football/fpl/fpl.ts` (#21) and read
-  by `convex/football/footballSync.ts`. Nothing else goes through it: match stats, live stats,
-  team sheets, commentary and positions read FPL's and the Premier League's own shapes
-  (`convex/stats/matchStatsSync.ts`, `convex/stats/liveStatsSync.ts` and
-  `convex/positions/positionsSync.ts` import from `convex/football/fpl/` and
-  `convex/football/premierLeague/` directly), so a paid feed would replace those two folders too.
+  `packages/core` when needed, not shared. Clubs, players, fixtures, gameweeks and scores sit
+  behind one seam so a paid feed can replace them for other leagues (SPEC, Later): `Football` in
+  `convex/football/football.ts`, filled only by FPL's adapter (`readFpl` and `mapFpl` in
+  `convex/football/fpl/fpl.ts`, #21) and read only by `convex/football/footballSync.ts`. Nothing
+  else goes through it. These read FPL's and the Premier League's own shapes directly, so a paid
+  feed would replace them too: the adapters in `convex/football/fpl/` and
+  `convex/football/premierLeague/`; in `convex/football/`, `feedIds.ts`, `scoreReads.ts`,
+  `commentary.ts`, `feeds.ts`, `matchTeamSheets.ts`, `matchCommentary.ts` and `matchTeamStats.ts`;
+  `convex/stats/matchStatsSync.ts`, `convex/stats/liveStatsSync.ts` and `convex/stats/matchRecords.ts`;
+  and `convex/positions/positionsSync.ts`.
 - Players are keyed on FPL's season-stable `code`, never the per-season `id`.
 - The two feeds are matched on Opta's ids (`convex/football/feedIds.ts`): a Premier League fixture's
   `altIds.opta` is `g` + FPL's fixture `code`, and a man's is FPL's `opta_code`; one that matches
@@ -182,8 +184,9 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   admin's unannounced patch is the one row in `siteScoringDraft`, and who dismissed a waiting
   patch's banner is a row a person and version in `patchBannerDismissals`, so it stays dismissed on
   every device (`convex/scoring/siteScoring.ts`).
-- Lineups (#8): a row in `lineups` for each gameweek a team saved one from
-  (`convex/lineup/lineups.ts`). A league's deadline for a gameweek is kept once it passes, in
+- Lineups (#8): a row in `lineups` for each gameweek a team's lineup was saved from, its first
+  lineup's included: that one (`firstLineup: true`) is picked again on each squad change until the
+  manager saves (`convex/lineup/lineups.ts`). A league's deadline for a gameweek is kept once it passes, in
   `passedDeadlines` (#150, `convex/gameweeks/deadlineRecorder.ts`), so it stays put if the first
   match is then postponed.
 - Leagues (#24): `leagues`, `teams` and `leagueEvents`, people known by their email, so one can be
@@ -224,6 +227,26 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   dashboard (`convex/feedback/feedback.ts`).
 - Each person's time zone, as their browser last named it, is a row in `timeZones` by email, so
   what they read tells time in it (#442, `convex/signIn/timeZone.ts`).
+
+## Where code lives
+
+The homes the folder pass set (29 Oct 2026), so new code has one place to go:
+
+- `src/shared/`: non-visual code every screen uses: the hooks, refusal handling, the common words.
+- `src/ui/`: `docs/design/plate.md`'s controls and panel parts that no feature owns. It imports only
+  `src/shared/` and convex's pure modules.
+- Code one feature owns but others import stays with its owner: `src/matchup/MatchupLink.tsx`,
+  `src/leagues/LeagueLinks.tsx`, `src/mail/DateBlock.tsx`.
+- `src/app/`: how the app starts. `src/routes/`: the routes and the router. `src/`'s top level
+  keeps only `main.tsx` and `styles.css`.
+- `convex/schema/`: the schema's tables, one file per feature, imported only by `convex/schema.ts`.
+  `convex/gameweekScorer/`: the gameweek scorer.
+- The feed adapters: `convex/football/fpl/` and `convex/football/premierLeague/`, copies of
+  epl-draft's, never shared.
+- `convex/table/` keeps its name, because the browser and the scheduler call its functions.
+- Sub-folders: past about 12 files, a job with its own files and name gets a sub-folder
+  (`src/frame/topBar/`, `src/myTeam/tactics/`, `src/scouting/shortlist/`). A folder over 12 that is
+  one job, or whose tests mirror its sources, stays flat.
 
 ## With the first code
 

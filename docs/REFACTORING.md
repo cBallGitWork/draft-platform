@@ -103,8 +103,9 @@ heading's exact text, so renaming it means changing the skill's `sed` line too.
   interface nearly as big as what it does. Deep is better: callers learn less.
 - **Seam:** where one module meets another, through its interface. Tests poke a module at its
   seam.
-- **Adapter:** a thing that plugs in at a seam. The real feeds and the recorded payloads the tests
-  replay are two adapters at the football layer's one seam.
+- **Adapter:** a thing that plugs in at a seam. FPL's adapter (`convex/football/fpl/fpl.ts`) is the
+  one at the football layer's seam, `Football`; the recorded payloads the tests replay sit
+  underneath every adapter, through the faked fetch (`tests/support/convex/test.harness.ts`).
 - **Locality:** for whoever changes a module: a change, or a bug, sits in one place, not spread
   across many.
 - **Leverage:** for whoever calls a module: how much it does per thing they must learn.
