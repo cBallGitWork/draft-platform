@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
-import { api } from "../../convex/_generated/api";
-import { refusalOf } from "../shared/refusal";
+import { api } from "../../../convex/_generated/api";
+import { refusalOf } from "../../shared/refusal";
 import type { ShortlistSeam } from "./shortlistSeam";
 import { shortlistChangeFailedWords } from "./shortlistWords";
 

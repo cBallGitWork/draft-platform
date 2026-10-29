@@ -8,7 +8,7 @@ import { ComparePanel, type PickedPlayer } from "./ComparePanel";
 import { Filters } from "./Filters";
 import { PlayersTable } from "./PlayersTable";
 import type { ListedPlayer, PlayersFilters, PlayersSort, ScoutingSeam, SortColumn } from "./seam";
-import { ShortlistPanel } from "./ShortlistPanel";
+import { ShortlistPanel } from "./shortlist/ShortlistPanel";
 import { countWords, loadingWords, noneMatchWords, noWaiversWords, PLAYERS_TITLE, SCOUTING_TITLE } from "./words";
 
 const OPENING_FILTERS: PlayersFilters = { availability: "all", position: null, clubCode: null };

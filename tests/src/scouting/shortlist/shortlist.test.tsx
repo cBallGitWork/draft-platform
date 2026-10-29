@@ -5,10 +5,10 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { shortlistRefusals } from "../../../convex/scouting/shortlist";
-import { SCOUTING_PATH } from "../../../src/frame/menu";
-import { playerCardPath } from "../../../src/playerCard/paths";
-import type { PlayerCard } from "../../../src/playerCard/seam";
+import { shortlistRefusals } from "../../../../convex/scouting/shortlist";
+import { SCOUTING_PATH } from "../../../../src/frame/menu";
+import { playerCardPath } from "../../../../src/playerCard/paths";
+import type { PlayerCard } from "../../../../src/playerCard/seam";
 import {
   addToShortlistWords,
   emptyShortlistWords,
@@ -20,10 +20,10 @@ import {
   removeNamedLabel,
   SHORTLIST_TITLE,
   shortlistListLabel,
-} from "../../../src/scouting/shortlistWords";
-import type { ShortlistData } from "../../support/src/shortlist.harness";
-import { shortlisted } from "../../support/src/shortlist.harness";
-import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
+} from "../../../../src/scouting/shortlist/shortlistWords";
+import type { ShortlistData } from "../../../support/src/shortlist.harness";
+import { shortlisted } from "../../../support/src/shortlist.harness";
+import { commissioner, league, manager, openApp } from "../../../support/src/shell.harness";
 
 const SAKA = shortlisted(1001, "Saka", "Saka Potatoes");
 const RICE = shortlisted(1002, "Rice");

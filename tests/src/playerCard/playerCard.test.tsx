@@ -2,7 +2,7 @@
 // name on Scouting and the squads page, by anyone in the league; who he is and who owns him, FPL's
 // news, this season's matches by category at his best position, last season's line (not held yet)
 // and his club's next fixtures. Of its actions only the shortlist is built (#374, its own tests in
-// tests/src/scouting/shortlist.test.tsx).
+// tests/src/scouting/shortlist/shortlist.test.tsx).
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -36,7 +36,7 @@ import {
   provisionalWords,
   SEASON_TITLE,
 } from "../../../src/playerCard/words";
-import { addToShortlistWords } from "../../../src/scouting/shortlistWords";
+import { addToShortlistWords } from "../../../src/scouting/shortlist/shortlistWords";
 import { squadsPath } from "../../../src/squads/paths";
 import { gameweekWords, versusWords } from "../../../src/shared/words";
 import type { PlayerCardData } from "../../support/src/playerCard.harness";

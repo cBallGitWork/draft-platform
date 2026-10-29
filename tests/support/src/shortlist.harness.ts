@@ -2,7 +2,7 @@
 // holds, and the changes asked of it, each answering as `refusal` says.
 
 import { vi } from "vitest";
-import type { ShortlistChanges, ShortlistedPlayer, ShortlistSeam } from "../../../src/scouting/shortlistSeam";
+import type { ShortlistChanges, ShortlistedPlayer, ShortlistSeam } from "../../../src/scouting/shortlist/shortlistSeam";
 
 /** What the fake server holds: the manager's shortlist (null for someone running no team), or
  *  nothing yet while it loads; and the server's refusal of any change, if it refuses. */
