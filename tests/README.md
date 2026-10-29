@@ -33,7 +33,8 @@ Nothing in it is a test. Each kind of file:
   Every project also puts back stubbed globals, stubbed envs and spies before each test, and the
   app project resets every `vi.fn()` fake too (`mockReset`), so no test file resets them by hand.
 - **`*.harness.ts`** (and `.tsx`), one feature's shared setup: `convex/` for the Convex tests
-  (`test.harness.ts` is their common base: a fresh Convex, a faked fetch, a refused read), `src/`
+  (`test.harness.ts` is their common base: a fresh Convex, a faked fetch, a refused read, and
+  `footballRows.harness.ts` holds the clubs, players and whole match records they insert), `src/`
   for the screens' (`shell.harness.tsx` opens the app at an address with its actions faked), and
   `scripts/` for the scripts' (`liveSetup.harness.mjs` fakes Convex, Vercel and Resend for the
   live-setup command).
