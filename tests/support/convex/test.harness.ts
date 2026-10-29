@@ -38,6 +38,10 @@ export function freshConvex(): TestConvex {
   return convexTest(schema, modules);
 }
 
+/** Writing hundreds of rows is slow in convex-test, so a test that walks a read up to its cap and
+ *  past it gets longer to run. */
+export const ROWS_TO_THE_CAP = { timeout: 30_000 };
+
 /** The clock runs on to `time` with nothing else happening, firing each scheduled function as it
  *  falls due, and those they schedule that are due by then. */
 export async function clockRunsTo(t: TestConvex, time: number): Promise<void> {

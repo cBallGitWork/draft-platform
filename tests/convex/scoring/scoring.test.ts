@@ -1,33 +1,13 @@
 import { describe, expect, test } from "vitest";
-import { codesByOpta } from "../../../convex/football/feedIds";
-import { fplStatLines } from "../../../convex/football/fpl/fplLive";
-import { plStatLines } from "../../../convex/football/premierLeague/plMatch";
-import { FULL_STATS, hullEvertonReads, MATCH, recordedGw6, recordedPlFixture } from "../../support/recorded/gw6.payloads";
+import { FULL_STATS } from "../../support/recorded/gw6.payloads";
+import { DEWSBURY_HALL, fplLines, GELHARDT, plLines, recordOf, TZOLAKIS, type RecordedLine } from "../../support/convex/teamPoints.harness";
 import { centreOf, everyArea, EXAMPLE_SET, MINUTES_BANDS } from "../../support/convex/scoring.example";
 import { scoreGameweek, scoreMatch, statIn, type DoubleGameweekRule, type MatchStats } from "../../../convex/scoring/scoring";
 import { AREAS, type Area, type Band, type ScoringSet } from "../../../convex/scoring/scoringSet";
 
-// Every record is a recorded line from Hull v Everton, gameweek 6 of 2026/27.
-const gw6 = recordedGw6();
-const { fpl } = gw6;
-const fplLines = fplStatLines(fpl.live, fpl.bootstrap.elements, fpl.fixtures);
-const plReads = hullEvertonReads(gw6);
-const hullEverton = recordedPlFixture(MATCH.hullEverton.pl);
-const plLines = plStatLines(hullEverton, plReads, codesByOpta(fpl.bootstrap.elements)).lines;
-
-type RecordedLine = { playerCode: number; stats: MatchStats };
-
-function recordOf(lines: RecordedLine[], playerCode: number): MatchStats {
-  const line = lines.find((each) => each.playerCode === playerCode);
-  if (line === undefined) throw new Error(`no recorded line for player ${playerCode}`);
-  return line.stats;
-}
-
-/** Three more men in that match, by FPL code. FPL's lines keep every stat for all 40; `FULL_STATS`
- *  names the men whose Premier League lines do. */
-const DEWSBURY_HALL = 215413; // Everton: 90 minutes, a goal, an assist, 3 FPL bonus, 10 defensive actions
-const TZOLAKIS = 473284; // Hull's keeper: 4 saves, 2 conceded
-const GELHARDT = 462635; // Hull: 64 minutes, a goal
+// Every record is a recorded line from Hull v Everton, gameweek 6 of 2026/27 (teamPoints.harness).
+// FPL's lines keep every stat for all 40 men; `FULL_STATS` names the men whose Premier League
+// lines do. Dewsbury-Hall's FPL line also holds 3 FPL bonus.
 const dewsburyHall = recordOf(fplLines, DEWSBURY_HALL);
 
 describe("each area of the slot he starts in prices the same match its own way", () => {

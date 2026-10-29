@@ -1,13 +1,10 @@
 import { expect, test } from "vitest";
 import { MATCH_RECORDS_MOST, matchRecordsOf } from "../../../convex/gameweekScorer/heldMatches";
-import { freshConvex } from "../../support/convex/test.harness";
+import { freshConvex, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 
 // matchRecordsOf: a match's records read whole up to MATCH_RECORDS_MOST, and past it a throw that
 // says what would be cut short. The scorer's message ("its points") is pinned in scoringCaps.test.ts;
 // this pins the match page's ("its men").
-
-/** Writing many rows is slow in convex-test, as in scoringCaps.test.ts. */
-const ROWS_TO_THE_CAP = { timeout: 30_000 };
 
 const FIXTURE = 700_001;
 /** Where this file's made-up player codes start. */

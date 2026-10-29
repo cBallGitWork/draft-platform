@@ -10,10 +10,12 @@ import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "../../../convex/table
 import { overrideRefusals } from "../../../convex/table/pointsOverrides";
 import {
   ANN,
+  annsScoredGame,
   BOB,
   EVERTON_POINTS,
   fullTimeRecords,
   GAMEWEEK,
+  holdHullAndEverton,
   HULL_POINTS,
   HULL_SCORER,
   HULL_STARTERS,
@@ -25,7 +27,7 @@ import {
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 import { actingAs, ADMIN, COMMISSIONER } from "../../support/convex/leagues.harness";
-import { EVERTON, HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
+import { EVERTON_CLUB, HULL_CITY, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 
 // A commissioner overrides one player's points for one match, with a reason (#32; spec/14, Changes
 // and corrections): the table, the matchup and the stored scores all take it, and the whole league
@@ -36,8 +38,7 @@ const RECORDS = mergedHullEverton();
 const SCORERS_POINTS = sideTotal(RECORDS, HULL_STARTERS.filter((starter) => starter.playerCode === HULL_SCORER));
 const OVERRIDDEN = 12.5;
 const REASON = "The feed gave his second goal to an Everton defender";
-const [HULL_NAME, EVERTON_NAME] = ["Hull", "Everton"];
-const MATCH_NAME = matchWords(HULL_NAME, EVERTON_NAME);
+const MATCH_NAME = matchWords(HULL_CITY.name, EVERTON_CLUB.name);
 const ANNS_AFTER = inTenths(HULL_POINTS - SCORERS_POINTS + OVERRIDDEN);
 /** One character that is two UTF-16 units. */
 const EMOJI = "\u{1F3C6}";
@@ -47,10 +48,7 @@ const NOBODY = 999_999;
 /** A league whose gameweek 6 is final and stored, Hull and Everton held by name. */
 async function storedLeague(): Promise<ScoresLeague> {
   const league = await scoresLeague();
-  await league.t.run(async (ctx) => {
-    await ctx.db.insert("clubs", { code: HULL, name: HULL_NAME, shortName: "HUL" });
-    await ctx.db.insert("clubs", { code: EVERTON, name: EVERTON_NAME, shortName: "EVE" });
-  });
+  await holdHullAndEverton(league);
   await fullTimeRecords(league);
   await lockMatch(league);
   await league.t.mutation(internal.table.finalScores.storeLeague, { leagueId: league.leagueId });
@@ -66,10 +64,9 @@ const tablePoints = async (league: ScoresLeague) =>
   (await readTable(league))!.results.find((each) => each.gameweek === GAMEWEEK)!.teams.map(({ teamId, points }) => ({ teamId, points }));
 const storedPoints = ({ t }: ScoresLeague) => t.run(async (ctx) => (await ctx.db.query("finalScores").collect()).map(({ teamId, points }) => ({ teamId, points })));
 /** Ann's matchup as she sees it: her total, the opponent's, and her scorer's points. */
-async function annsMatchup({ t, leagueId }: ScoresLeague) {
-  const matchup = await (await actingAs(t, ANN)).query(api.matchup.matchup.ofTeam, { leagueId, now: Date.now() });
-  if (matchup?.kind !== "headToHead" || matchup.game.kind !== "scored" || matchup.game.team.kind !== "team") throw new Error("Ann's matchup isn't scored");
-  const { team, opponent } = matchup.game;
+async function annsMatchup(league: ScoresLeague) {
+  const { team, opponent } = await annsScoredGame(league);
+  if (team.kind !== "team") throw new Error("Ann's side is the league's average");
   return { team: team.points, opponent: opponent.points, scorer: team.lineup!.starters.find((slot) => slot.playerCode === HULL_SCORER)!.points };
 }
 const scorersName = ({ t }: ScoresLeague) =>

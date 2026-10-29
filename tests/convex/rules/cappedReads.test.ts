@@ -8,7 +8,7 @@ import { heldSchedule } from "../../../convex/gameweeks/leagueDeadlines";
 import { CURRENT_FIXTURES_MOST } from "../../../convex/shared/fixtures";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { changeRules, holdGameweeks, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
-import { expectRefused } from "../../support/convex/test.harness";
+import { expectRefused, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -36,10 +36,6 @@ const holdRulesRows = (count: number) =>
       await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, rules: rulesWith({}) });
     }
   });
-
-/** Writing RULES_CHANGES_MOST rows of the whole rules is slow in convex-test, so one test walks
- *  up to the cap and past it. */
-const ROWS_TO_THE_CAP = { timeout: 30_000 };
 
 test(`a league's rules rows: a change up to ${RULES_CHANGES_MOST} is saved, one more is refused, and more held throws when read`, ROWS_TO_THE_CAP, async () => {
   await holdRulesRows(RULES_CHANGES_MOST - 1);
