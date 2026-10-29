@@ -8,8 +8,9 @@ to sh -c, eval, $(…), a heredoc, here-string or pipe into a shell (or a group 
 each in the folder it runs in (the shell's cwd, any cd before it, its -C: where.py), so a worktree
 is judged on its own branch, not the project's. Also denies publishing a word on Craig's private
 list (private_words.py), and a pull request body that breaks the template's rules or a title far
-too long (pr_body.py), and a gh pr merge once a drift pass is due, unless it is one (drift_gate.py); a title only somewhat long, or publishing where there is no private list to
-check, gets a note, not a denial.
+too long (pr_body.py), and a gh pr merge once a drift pass is due, unless it is one
+(drift_gate.py). A title only somewhat long, or publishing where there is no private list to check,
+gets a note, not a denial.
 Where it can't be sure what runs or where, it refuses and says how to run the command plainly.
 
 Reads the hook payload (JSON) on stdin; prints a deny decision, a note, or nothing.

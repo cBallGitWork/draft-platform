@@ -3,7 +3,8 @@ requests have merged since the last drift pass (drift_due.py's count, in the fol
 in), unless the pull request being merged is itself a drift pass: its title, read with gh pr view,
 starts "refactor: drift pass". The session-start note alone was missed (10 passes in 432 merges:
 the audit, 29 Oct 2026), so past the trigger it is a refusal. A count or a title it can't read is
-a denial too, never a silent pass.
+a denial too, never a silent pass. It stops the usual route only: a merge through gh api or the
+web button doesn't pass through it.
 Stdlib only, Python 3.9+.
 """
 
