@@ -5,7 +5,7 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
-import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, eventsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadRefusals } from "../../../convex/squads/squads";
@@ -222,6 +222,15 @@ describe("finding a player", () => {
     expect(await commissioner.find("Saka")).toEqual([{ code: SAKA, name: "Saka", fullName: "Bukayo Saka", teamName: "Team 1" }]);
     expect(await commissioner.find("Gone")).toEqual([]);
     expect(await commissioner.find("  ")).toEqual([]);
+  });
+
+  test("a squad row naming a team outside the league is an error, never a free agent", async () => {
+    const otherLeague = await adminCreatesLeague(t, 4, "Another league");
+    const outsider = await addManager(t, otherLeague, ANN);
+    await t.run(async (ctx) => {
+      await ctx.db.insert("squadPlayers", { leagueId, teamId: outsider, playerCode: SAKA });
+    });
+    await expect((await as(COMMISSIONER)).find("Saka")).rejects.toThrow(`player ${SAKA} is owned by team ${outsider}, which isn't in league ${leagueId}`);
   });
 
   test("those who have left never crowd out one still here", async () => {

@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query } from "../_generated/server";
 import { bylineOf } from "../mail/letters";
+import { takeShown } from "../shared/cappedRead";
 import { managerOf } from "../shared/leagueAccess";
 import { isSquadMove, SQUAD_MOVES } from "./squadPlace";
 
@@ -57,20 +58,22 @@ export const ofMyTeam = query({
     const { team } = await managerOf(ctx, leagueId);
     const ofEachKind = await Promise.all(
       SQUAD_MOVES.map((kind) =>
-        ctx.db
-          .query("leagueEvents")
-          .withIndex("by_leagueId_and_kind_and_at", (q) => q.eq("leagueId", leagueId).eq("event.kind", kind))
-          .order("desc")
-          .take(TRANSACTIONS_READ_OF_EACH_KIND + 1),
+        takeShown(
+          ctx.db
+            .query("leagueEvents")
+            .withIndex("by_leagueId_and_kind_and_at", (q) => q.eq("leagueId", leagueId).eq("event.kind", kind))
+            .order("desc"),
+          TRANSACTIONS_READ_OF_EACH_KIND,
+        ),
       ),
     );
     // Newest first, and of two filed at once the later first, as the league's own index orders them.
     const moves = ofEachKind
-      .flatMap((ofKind) => ofKind.slice(0, TRANSACTIONS_READ_OF_EACH_KIND))
+      .flatMap((ofKind) => ofKind.rows)
       .toSorted((one, other) => other.at - one.at || other._creationTime - one._creationTime);
     return {
       transactions: moves.flatMap((row) => transactionOf(row, team._id) ?? []),
-      cut: ofEachKind.some((ofKind) => ofKind.length > TRANSACTIONS_READ_OF_EACH_KIND),
+      cut: ofEachKind.some((ofKind) => ofKind.more),
     };
   },
 });

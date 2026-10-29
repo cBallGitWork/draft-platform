@@ -4,6 +4,7 @@ import type { QueryCtx } from "../_generated/server";
 import { isAdmin, leaguePowers, leagueRole, powersIn, rolesIn, seesWhileDeleted, teamsOf } from "../shared/leagueAccess";
 import { leagueDeletion } from "../schema";
 import { LEAGUES_SHOWN } from "./leagueLimits";
+import { takeShown } from "../shared/cappedRead";
 import { hasOpenedALink } from "../signIn/signInLinks";
 import { noLinkReply } from "../signIn/signInReplies";
 
@@ -47,9 +48,9 @@ export async function leaguesOf(ctx: QueryCtx, email: string): Promise<LeagueLis
   let cut = false;
   /** The first LEAGUES_SHOWN rows, noting whether there were more. */
   async function shown<Row>(rows: { take(count: number): Promise<Row[]> }): Promise<Row[]> {
-    const taken = await rows.take(LEAGUES_SHOWN + 1);
-    if (taken.length > LEAGUES_SHOWN) cut = true;
-    return taken.slice(0, LEAGUES_SHOWN);
+    const { rows: first, more } = await takeShown(rows, LEAGUES_SHOWN);
+    cut ||= more;
+    return first;
   }
   const commissioned = await shown(ctx.db.query("leagues").withIndex("by_commissionerEmail", (q) => q.eq("commissionerEmail", email)));
   const coCommissioned = await shown(ctx.db.query("leagues").withIndex("by_coCommissionerEmail", (q) => q.eq("coCommissionerEmail", email)));

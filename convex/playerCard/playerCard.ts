@@ -1,5 +1,5 @@
 import { v, type Infer, type VLiteral } from "convex/values";
-import type { Doc, Id } from "../_generated/dataModel";
+import type { Doc } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { SLOT_POSITIONS, type SlotPosition } from "../lineup/pitch";
 import { roleName } from "../lineup/roles";
@@ -10,7 +10,7 @@ import { clubRecord, position } from "../schema";
 import { categoryName } from "../scoring/categories";
 import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode, type Clubs } from "../shared/players";
-import { placeOf } from "../squads/squadPlace";
+import { ownerOf, placeOf } from "../squads/squadPlace";
 import { MINUTES_STAT, statValue } from "../stats/matchRecords";
 import { playsIn } from "../gameweekScorer/heldMatches";
 import { scoredMatches } from "../gameweekScorer/scoredMatches";
@@ -103,7 +103,7 @@ export const card = query({
       club: await clubs(player.clubCode),
       gone: player.droppedAt !== undefined,
       positions,
-      ownerTeamName: await ownerIn(ctx, leagueId, playerCode),
+      ownerTeamName: (await (await ownerOf(ctx, leagueId))(playerCode))?.name ?? null,
       news: player.news || null,
       chanceOfPlaying: player.chanceOfPlaying ?? null,
       matches: await seasonMatches(ctx, league, player, positions, clubs),
@@ -111,12 +111,6 @@ export const card = query({
     };
   },
 });
-
-/** The team in this league that owns him, or null for a free agent. */
-export async function ownerIn(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<string | null> {
-  const owned = await placeOf(ctx, leagueId, playerCode);
-  return owned === null ? null : (await ctx.db.get("teams", owned.teamId))!.name;
-}
 
 const asMatch = async (fixture: Doc<"fixtures">, clubs: Clubs) => ({
   fixtureCode: fixture.code,

@@ -2,7 +2,12 @@
 // live site's sender, and the names it gives each service (spec/20, The live site). The site's
 // address and the after-release check's secrets are the check's own (tests/live/releaseCheck.ts).
 
-import { EMAIL_FROM_SETTING } from "../../convex/outbound/sender.ts";
+import {
+  ADMIN_EMAIL_SETTING,
+  EMAIL_FROM_SETTING,
+  RESEND_KEY_SETTING,
+  SITE_URL_SETTING,
+} from "../../convex/outbound/deploymentSettings.ts";
 import { MINUTE_MS, SECOND_MS } from "../../convex/shared/time.ts";
 import { CHECK_ENV, LIVE_SITE_URL } from "../../tests/live/releaseCheck.ts";
 
@@ -22,9 +27,9 @@ export const VERCEL_PRODUCTION = "production";
 export const SETTING = {
   jwtPrivateKey: "JWT_PRIVATE_KEY",
   jwks: "JWKS",
-  siteUrl: "SITE_URL",
-  adminEmail: "ADMIN_EMAIL",
-  resendKey: "AUTH_RESEND_KEY",
+  siteUrl: SITE_URL_SETTING,
+  adminEmail: ADMIN_EMAIL_SETTING,
+  resendKey: RESEND_KEY_SETTING,
   sender: EMAIL_FROM_SETTING,
 };
 /** The setting in Vercel that lets its build deploy the server code to the live deployment. */

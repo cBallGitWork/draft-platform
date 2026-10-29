@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import { query, type QueryCtx } from "../_generated/server";
 import { statCorrectionWindowMs } from "./platformSettings";
 import { ALWAYS_OWED, failureOf, feedState, judgeFeed, type FeedRuns, type RunOutcome } from "./feedState";
+import { takeShown } from "../shared/cappedRead";
 import { fixtureByCode } from "../shared/fixtures";
 import { adminOf } from "../shared/leagueAccess";
 import { findClubByCode, playerByCode } from "../shared/players";
@@ -73,21 +74,21 @@ export const feeds = query({
       feeds.push({ feed, state, lastRunAt: runs.lastRun?.ranAt ?? null, lastSuccessAt: runs.lastSuccessAt, lastError });
     }
     const windowMs = await statCorrectionWindowMs(ctx);
-    const provisional = await ctx.db
-      .query("matchStatsStatus")
-      .withIndex("by_state_and_fullTimeAt", (q) => q.eq("state", "provisional").lt("fullTimeAt", now - windowMs))
-      .take(BEHIND_SHOWN + 1);
+    const provisional = await takeShown(
+      ctx.db.query("matchStatsStatus").withIndex("by_state_and_fullTimeAt", (q) => q.eq("state", "provisional").lt("fullTimeAt", now - windowMs)),
+      BEHIND_SHOWN,
+    );
     const behind = [];
-    for (const { fixtureCode, fullTimeAt } of provisional.slice(0, BEHIND_SHOWN)) {
+    for (const { fixtureCode, fullTimeAt } of provisional.rows) {
       behind.push({ fixtureCode, match: await matchName(ctx, fixtureCode), fullTimeAt });
     }
     const corrections = [];
-    const latestCorrections = await ctx.db.query("lateStatCorrections").order("desc").take(CORRECTIONS_SHOWN + 1);
-    for (const { fixtureCode, playerCode, seenAt, changes } of latestCorrections.slice(0, CORRECTIONS_SHOWN)) {
+    const latestCorrections = await takeShown(ctx.db.query("lateStatCorrections").order("desc"), CORRECTIONS_SHOWN);
+    for (const { fixtureCode, playerCode, seenAt, changes } of latestCorrections.rows) {
       const player = await playerByCode(ctx, playerCode);
       corrections.push({ fixtureCode, match: await matchName(ctx, fixtureCode), playerCode, player: player?.name ?? null, seenAt, changes });
     }
-    return { now, feeds, behind, moreBehind: provisional.length > BEHIND_SHOWN, moreCorrections: latestCorrections.length > CORRECTIONS_SHOWN, corrections };
+    return { now, feeds, behind, moreBehind: provisional.more, moreCorrections: latestCorrections.more, corrections };
   },
 });
 

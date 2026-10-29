@@ -13,10 +13,8 @@ import {
   noGameweeksWords,
   noLineupWords,
   roundRobinWords,
-  scoreWords,
   tooFewTeamsWords,
   totalPointsWords,
-  versusWords,
 } from "./words";
 
 type Gameweek = LeagueTable["gameweeks"][number];
@@ -68,13 +66,7 @@ function GameweekFixtures({ gameweeks, results }: { gameweeks: readonly Gameweek
         {fixtures.map(({ teamId, team, opponent, points }) => (
           <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-fixture-row items-center gap-3 border-b border-panel-rule px-3 py-1 text-lead">
             <span className="text-right font-semibold">{team}</span>
-            <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={gameweek}>
-              {points === null ? (
-                <span>{versusWords}</span>
-              ) : (
-                <span className="whitespace-nowrap font-bold text-figure">{scoreWords(points.team, points.opponent)}</span>
-              )}
-            </MatchupLink>
+            <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={gameweek} points={points} />
             {opponent === null ? <span className="text-derived">{leagueAverageWords}</span> : <span className="font-semibold">{opponent}</span>}
           </li>
         ))}
