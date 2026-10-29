@@ -155,7 +155,7 @@ async function seasonRecordsOf(ctx: QueryCtx, playerCode: number, records: reado
 
 /** The league's overrides of his points, by match: one a match at most, so never more than his
  *  records. */
-export async function overridesOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<Map<number, Doc<"pointsOverrides">>> {
+async function overridesOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<Map<number, Doc<"pointsOverrides">>> {
   const rows = await takeAllOrThrow(
     ctx.db.query("pointsOverrides").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode)),
     PLAYER_OVERRIDES_MOST,
