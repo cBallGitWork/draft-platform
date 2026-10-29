@@ -3,7 +3,7 @@
 // is the server's (convex/lineup/lineup.ts), told when it is saved; here a player is only ever put
 // in a free cell he plays (spec/05: "a player fills only slots in the areas his positions play").
 
-import { AREAS, cellKey, LANES, playsCell, type Cell } from "../../../convex/lineup/pitch";
+import { byPitchOrder, cellKey, LANES, playsCell, sameCell, type Cell } from "../../../convex/lineup/pitch";
 import { reconciled } from "../../../convex/lineup/lineup";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { OpenTactics } from "../../../convex/lineup/tactics";
@@ -31,7 +31,6 @@ export function shownLineup(edited: DraftLineup | null, opening: DraftLineup, sq
   return edited === null ? opening : reconciled(edited, squadCodes).lineup;
 }
 
-const sameCell = (one: Cell, other: Cell) => one.area === other.area && one.lane === other.lane;
 
 /** Who stands in the cell, if anyone. */
 export const standingIn = (draft: DraftLineup, cell: Cell) => draft.starters.find((starter) => sameCell(starter, cell));
@@ -74,8 +73,7 @@ export function benchedAt(draft: DraftLineup, playerCode: number, index: number)
 export const benched = (draft: DraftLineup, playerCode: number): DraftLineup => benchedAt(draft, playerCode, Infinity);
 
 /** Back to front, left to right: the order the squad lists the eleven. */
-const cellOrder = ({ area, lane }: Cell) => AREAS.indexOf(area) * LANES.length + LANES.indexOf(lane);
-export const startersInOrder = (draft: DraftLineup): Starter[] => draft.starters.toSorted((one, other) => cellOrder(one) - cellOrder(other));
+export const startersInOrder = (draft: DraftLineup): Starter[] => draft.starters.toSorted(byPitchOrder);
 
 /** Whether two lineups stand the same: the same players in the same cells, the same bench order. */
 export function sameLineup(one: DraftLineup, other: DraftLineup): boolean {

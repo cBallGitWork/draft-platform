@@ -11,3 +11,16 @@ export function logFailure(what: string, error: unknown): string {
   console.error(`${what}: ${message}`);
   return message;
 }
+
+/** A run's outcome: what `work` returns, or `{ ok: false, error }` with the failure logged under
+ *  `failureWords` when it throws. Each feed wraps its run in it before recording the run's row. */
+export async function outcomeOf<Ok extends { ok: true }>(
+  failureWords: string,
+  work: () => Promise<Ok>,
+): Promise<Ok | { ok: false; error: string }> {
+  try {
+    return await work();
+  } catch (error: unknown) {
+    return { ok: false, error: logFailure(failureWords, error) };
+  }
+}
