@@ -54,15 +54,17 @@ test("once the match locks, each team's points are stored, and the table reads t
   expect(await storeLeague(league)).toEqual([]);
 });
 
-test("a row stored before #637 for a team that had never saved a lineup is read as stored: 0, marked so the table says why", async () => {
+test("a team that held no lineup in a gameweek begun before #637 scores 0 there, stored marked so the table says why", async () => {
   const league = await scoresLeague();
+  // Bob's squad was made before teams held a first lineup: no row is in force.
+  await league.t.run(async (ctx) => {
+    const bobs = (await ctx.db.query("lineups").collect()).find((row) => row.teamId === league.bobsTeam)!;
+    await ctx.db.delete("lineups", bobs._id);
+  });
   await fullTimeRecords(league);
   await lockMatch(league);
   await storeLeague(league);
-  await league.t.run(async (ctx) => {
-    const bobs = (await ctx.db.query("finalScores").collect()).find((row) => row.teamId === league.bobsTeam)!;
-    await ctx.db.patch("finalScores", bobs._id, { points: 0, noLineup: true });
-  });
+  expect((await stored(league))[1]).toEqual({ gameweek: GAMEWEEK, teamId: league.bobsTeam, points: 0, noLineup: true });
   const bob = (await readTable(league))!.results.find((each) => each.gameweek === GAMEWEEK)!.teams.find((team) => team.teamId === league.bobsTeam);
   expect(bob).toMatchObject({ points: 0, provisional: false, noLineup: true });
 });

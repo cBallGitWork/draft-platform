@@ -73,8 +73,8 @@ function scoreIn<Team>(scores: ReadonlyMap<Team, number>, team: Team, gameweek: 
 
 /** The teams a gameweek's league average is over: each in its fixtures or on a bye, once, in that
  *  order. A gameweek begun has its fixtures as stored then (playedFixtures.ts), so a team that
- *  joined since, scored 0 there, is no part of it, while one drawn then with nobody in its lineup
- *  counts its 0. One not yet stored is drawn from today's teams, each in a fixture or on a bye, so it gives
+ *  joined since, scored 0 there, is no part of it, while one drawn then with no lineup counts its
+ *  0. One not yet stored is drawn from today's teams, each in a fixture or on a bye, so it gives
  *  every team, as the average always counted. */
 export function teamsInGameweek<Team>({ fixtures, byes }: GameweekFixtures<Team>): Team[] {
   const named = fixtures.flatMap(({ team, opponent }) => (opponent === LEAGUE_AVERAGE ? [team] : [team, opponent]));

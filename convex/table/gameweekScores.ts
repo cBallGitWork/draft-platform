@@ -40,8 +40,8 @@ export interface TeamGameweek {
   points: number;
   /** While a record that counts hasn't arrived, or a match it counts isn't locked (spec/07). */
   provisional: boolean;
-  /** True only on a final score stored before #637 for a team that had never saved a lineup, so
-   *  scored 0: every team has had a lineup since (spec/07), and a stored total stands as it was. */
+  /** It held no lineup in a gameweek begun before #637 gave every team one (spec/07), so scored
+   *  0 (teamGameweek.ts's TeamInGameweek). */
   noLineup: boolean;
 }
 
@@ -138,7 +138,7 @@ export async function gameweekScorer(ctx: QueryCtx, league: Doc<"leagues">, seas
 
 /** A team's points from its gameweek worked out. */
 export function totalOf(scored: TeamInGameweek): TeamGameweek {
-  return { points: scored.team.total, provisional: scored.team.provisional, noLineup: false };
+  return { points: scored.team.total, provisional: scored.team.provisional, noLineup: scored.noLineup };
 }
 
 /** The most final rows a league holds: one for each team in each gameweek. */

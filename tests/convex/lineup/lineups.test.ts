@@ -302,6 +302,7 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
     return {
       assign: (playerCode: number) => person.mutation(api.squads.squads.assign, { leagueId, playerCode, teamId: annsTeam }),
       release: (playerCode: number) => person.mutation(api.squads.squads.release, { leagueId, playerCode }),
+      move: (playerCode: number, teamId: Id<"teams">) => person.mutation(api.squads.squads.move, { leagueId, playerCode, teamId }),
     };
   };
   /** Ann's squad built again by the commissioner, one player at a time, in SQUAD's order. */
@@ -342,6 +343,17 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
     expect(await (await as(ANN)).mine(NEXT)).toEqual(saved({ starters: [{ ...keeper, playerCode: SECOND_KEEPER }, ...outfield], bench: FOUR_FOUR_TWO.bench }, NEXT));
   });
 
+  test("a player moved between teams is picked again in both: out of the one, into the other", async () => {
+    const by = await buildAnnsSquad();
+    const [keeper, ...outfield] = FOUR_FOUR_TWO.starters;
+    await by.move(keeper.playerCode, bobsTeam);
+    // Ann has no keeper left, so her goal stands empty; Bob's new keeper goes in his.
+    expect(await (await as(ANN)).mine(NEXT)).toEqual(saved({ starters: outfield, bench: FOUR_FOUR_TWO.bench }, NEXT));
+    expect(await (await as(BOB)).mine(NEXT)).toEqual(
+      saved({ starters: [{ ...keeper }, { playerCode: BOBS, area: "midfield", lane: "left" }], bench: [] }, NEXT),
+    );
+  });
+
   test("once the manager saves, it is theirs: a newcomer goes to the end of the bench and nothing is picked again", async () => {
     const by = await buildAnnsSquad();
     await (await as(ANN)).save(REVERSED_BENCH);
@@ -364,7 +376,6 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
     await passNextDeadline();
     expect(await lineupOf(NEXT)).toEqual(saved({ starters: [], bench: SQUAD }, null));
   });
-
 });
 
 describe("who may save and read", () => {

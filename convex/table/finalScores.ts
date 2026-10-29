@@ -82,8 +82,8 @@ async function storeFinal(ctx: MutationCtx, league: Doc<"leagues">): Promise<num
   for (const { gameweek, teamIds: worked, fixtureCodes, replace } of finalUnstored) {
     if (replace) await dropGameweek(ctx, league._id, gameweek);
     for (const teamId of worked) {
-      const { points } = scores.get(gameweek)!.get(teamId)!;
-      await ctx.db.insert("finalScores", { leagueId: league._id, gameweek, teamId, points, fixtureCodes, storedAt });
+      const { points, noLineup } = scores.get(gameweek)!.get(teamId)!;
+      await ctx.db.insert("finalScores", { leagueId: league._id, gameweek, teamId, points, ...(noLineup ? { noLineup } : {}), fixtureCodes, storedAt });
     }
   }
   return finalUnstored.map(({ gameweek }) => gameweek);

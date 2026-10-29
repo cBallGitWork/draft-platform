@@ -61,7 +61,7 @@ export function gameScore<Team>(
 }
 
 /** The league's average over `teams` in a gameweek scored, `sides` holding each: their points'
- *  average (standings.ts's `averageOf`), a team on 0 counting as its 0, and
+ *  average (standings.ts's `averageOf`), a team with no lineup counting as its 0 (spec/07), and
  *  provisional while any team's is. */
 export function averageScore<Team>(teams: readonly Team[], sides: ReadonlyMap<Team, SideScore>, gameweek: number): SideScore {
   const points = new Map([...sides].map(([team, side]) => [team, side.points]));
