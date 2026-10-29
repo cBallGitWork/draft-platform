@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import type { Id } from "../../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { adminByline } from "../../../convex/mail/letterWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
-import { EVENTS_SEARCHED } from "../../../convex/squads/teamTransactions";
+import { TRANSACTIONS_READ_OF_EACH_KIND } from "../../../convex/squads/teamTransactions";
 import { expectRefused } from "../../support/convex/leagueRules.harness";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // My team's Transactions tab (#366): the manager's team's assignments, moves and releases, newest
@@ -27,9 +28,9 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t);
   [annTeam, bobTeam] = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
-    await ctx.db.insert("clubs", { code: 3, name: "Arsenal", shortName: "ARS" });
-    await ctx.db.insert("players", { code: SAKA, name: "Saka", fullName: "Bukayo Saka", clubCode: 3 });
-    await ctx.db.insert("players", { code: RICE, name: "Rice", fullName: "Declan Rice", clubCode: 3 });
+    await insertClubs(ctx, [ARSENAL]);
+    await ctx.db.insert("players", { code: SAKA, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code });
+    await ctx.db.insert("players", { code: RICE, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code });
   });
 });
 
@@ -88,13 +89,28 @@ describe("the transactions", () => {
   });
 });
 
-test(`searches the league's latest ${EVENTS_SEARCHED} events, and says when older ones are left out`, async () => {
-  await (await squadsAs(COMMISSIONER)).assign(SAKA, annTeam);
-  expect((await read()).cut).toBe(false);
-  await t.run(async (ctx) => {
-    for (let index = 0; index < EVENTS_SEARCHED; index += 1) {
-      await ctx.db.insert("leagueEvents", { leagueId, at: Date.now() + MINUTE_MS + index, by: COMMISSIONER, event: { kind: "gameweekUsed", gameweek: 1, used: true } });
-    }
+describe("what is read", () => {
+  /** Files `count` events of `event` in the league, each newer than the last and than any before. */
+  const file = (count: number, event: Doc<"leagueEvents">["event"]) =>
+    t.run(async (ctx) => {
+      const from = Date.now() + MINUTE_MS;
+      for (let index = 0; index < count; index += 1) {
+        await ctx.db.insert("leagueEvents", { leagueId, at: from + index, by: COMMISSIONER, event });
+      }
+    });
+
+  test(`only squad moves: ${TRANSACTIONS_READ_OF_EACH_KIND}+ newer events of other kinds don't hide the team's`, async () => {
+    await (await squadsAs(COMMISSIONER)).assign(SAKA, annTeam);
+    await file(TRANSACTIONS_READ_OF_EACH_KIND + 1, { kind: "gameweekUsed", gameweek: 1, used: true });
+    expect(await read()).toEqual({ transactions: [expect.objectContaining({ kind: "assigned", playerName: "Saka" })], cut: false });
   });
-  expect(await read()).toEqual({ transactions: [], cut: true });
+
+  test(`the latest ${TRANSACTIONS_READ_OF_EACH_KIND} of each kind, and says when a kind has older ones left out`, async () => {
+    await (await squadsAs(COMMISSIONER)).assign(SAKA, annTeam);
+    const bobsRelease = { kind: "playerReleased", playerCode: RICE, playerName: "Rice", teamId: bobTeam, teamName: "Team 2" } as const;
+    await file(TRANSACTIONS_READ_OF_EACH_KIND, bobsRelease);
+    expect((await read()).cut).toBe(false);
+    await file(1, bobsRelease);
+    expect(await read()).toEqual({ transactions: [expect.objectContaining({ kind: "assigned", playerName: "Saka" })], cut: true });
+  });
 });

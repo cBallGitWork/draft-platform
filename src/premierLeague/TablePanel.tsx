@@ -1,5 +1,6 @@
 import { ColumnHeads } from "../frame/ColumnHeads";
 import { Loading, Panel, PanelNote } from "../frame/Panel";
+import { ClubName } from "./ClubName";
 import type { PlStandings, PremierLeagueSeam } from "./seam";
 import { goalDifferenceWords, loadingTableWords, noClubsWords, provisionalWords, TABLE_TITLE, tableColumns } from "./words";
 
@@ -53,10 +54,7 @@ function TableCell({ column, row }: { column: Column; row: Row }) {
     case "club":
       return (
         <th scope="row" className={`${className} font-semibold`}>
-          <span className="hidden sm:inline">{row.club.name}</span>
-          <span className="sm:hidden" title={row.club.name}>
-            {row.club.shortName}
-          </span>
+          <ClubName club={row.club} />
         </th>
       );
     case "goalDifference":

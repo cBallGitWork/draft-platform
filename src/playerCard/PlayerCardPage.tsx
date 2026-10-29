@@ -251,7 +251,7 @@ function NextFixtures({ card }: { card: PlayerCard }) {
       ) : (
         <ul className="py-1">
           {card.nextFixtures.map((fixture) => (
-            <li key={fixture.fixtureCode} className="grid grid-cols-[6rem_1fr_auto] gap-2 px-3">
+            <li key={fixture.fixtureCode} className="grid grid-cols-next-fixture gap-2 px-3">
               <span className="text-soft">{fixture.gameweek === null ? noFigureWords : gameweekWords(fixture.gameweek)}</span>
               <span>
                 <MatchName match={fixture} />

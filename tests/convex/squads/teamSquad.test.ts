@@ -12,6 +12,7 @@ import { squadPoints } from "../../../convex/squads/teamSquad";
 import { expectRefused } from "../../support/convex/leagueRules.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { EXAMPLE_SET } from "../../support/convex/scoring.example";
+import { ARSENAL, CHELSEA, COVENTRY, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // My team's Squad tab (#364): every player in the manager's squad with his positions, club, his
@@ -20,9 +21,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // EXAMPLE_SET throughout.
 
 const [ANN, BOB] = MANAGERS;
-const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
-const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
-const COVENTRY = { code: 9, name: "Coventry", shortName: "COV" };
 
 const player = (code: number, name: string, clubCode: number, positions: Position[]) => ({ code, name, fullName: `${name} in full`, clubCode, positions });
 const SAKA = player(1001, "Saka", ARSENAL.code, ["W"]);
@@ -43,15 +41,6 @@ const LATER_ARS = fixture(4, 4, COVENTRY.code, ARSENAL.code, NOW + WEEK_MS);
 /** Where Saka stood for Ann's team in gameweek 1: not his best, so the slot's points show. */
 const SAKA_SLOT: Cell = { area: "attack", lane: "right" };
 
-const record = (playerCode: number, fixtureCode: number, stats: Record<string, number>) => ({
-  playerCode,
-  fixtureCode,
-  started: true,
-  played: true,
-  arrived: { fpl: true, pl: true },
-  stats,
-  state: "complete" as const,
-});
 const SAKA_GW1 = { minutes: 90, goals_scored: 1, assists: 1 };
 const SAKA_GW2 = { minutes: 90, goals_scored: 2 };
 
@@ -64,19 +53,17 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t);
   [annTeam] = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
-    for (const club of [ARSENAL, CHELSEA, COVENTRY]) await ctx.db.insert("clubs", club);
-    for (const { positions, ...each } of [SAKA, RAYA, PALMER, BENCHED, NOBODY]) {
-      await ctx.db.insert("players", each);
-      await ctx.db.insert("playerPositions", { code: each.code, starts: [], approved: [], set: positions, removed: [] });
-      if (each.code !== BENCHED.code) await ctx.db.insert("squadPlayers", { leagueId, teamId: annTeam, playerCode: each.code });
-    }
+    await insertClubs(ctx, [ARSENAL, CHELSEA, COVENTRY]);
+    const players = [SAKA, RAYA, PALMER, BENCHED, NOBODY];
+    await insertPlayers(ctx, players);
+    for (const each of players) if (each.code !== BENCHED.code) await ctx.db.insert("squadPlayers", { leagueId, teamId: annTeam, playerCode: each.code });
     for (const each of [GW1, GW2, NEXT_ARS, LATER_ARS]) await ctx.db.insert("fixtures", each);
     await ctx.db.insert("siteScoring", { scoring: structuredClone(EXAMPLE_SET) as StoredScoringSet, kind: "fix", season: 2025, number: 1, announcedAt: 0, takesEffectAt: 0 });
     for (const gameweek of [1, 2]) await ctx.db.insert("passedDeadlines", { leagueId, gameweek, deadline: NOW - (3 - gameweek) * WEEK_MS, recordedAt: NOW });
     await ctx.db.insert("lineups", { leagueId, teamId: annTeam, fromGameweek: 1, starters: [{ playerCode: SAKA.code, ...SAKA_SLOT }], bench: [] });
     await ctx.db.insert("lineups", { leagueId, teamId: annTeam, fromGameweek: 2, starters: [], bench: [SAKA.code] });
-    await ctx.db.insert("playerMatchStats", record(SAKA.code, GW1.code, SAKA_GW1));
-    await ctx.db.insert("playerMatchStats", record(SAKA.code, GW2.code, SAKA_GW2));
+    await ctx.db.insert("playerMatchStats", completeRecord(SAKA.code, GW1.code, SAKA_GW1));
+    await ctx.db.insert("playerMatchStats", completeRecord(SAKA.code, GW2.code, SAKA_GW2));
   });
 });
 
@@ -130,7 +117,7 @@ describe("the points", () => {
 
   test("leave out a match whose whole record hasn't arrived", async () => {
     await t.run(async (ctx) => {
-      await ctx.db.insert("playerMatchStats", { ...record(PALMER.code, GW2.code, { minutes: 90, goals_scored: 1 }), arrived: { fpl: true, pl: false } });
+      await ctx.db.insert("playerMatchStats", completeRecord(PALMER.code, GW2.code, { minutes: 90, goals_scored: 1 }, { pl: false }));
     });
     expect(await rowOf(PALMER.code)).toMatchObject({ seasonPoints: null, lastGameweekPoints: null });
   });
@@ -177,7 +164,7 @@ describe("the points", () => {
 
   test("take an override of a match whose whole record hasn't arrived", async () => {
     await t.run(async (ctx) => {
-      await ctx.db.insert("playerMatchStats", { ...record(PALMER.code, GW2.code, { minutes: 90, goals_scored: 1 }), arrived: { fpl: true, pl: false } });
+      await ctx.db.insert("playerMatchStats", completeRecord(PALMER.code, GW2.code, { minutes: 90, goals_scored: 1 }, { pl: false }));
     });
     await overrides(PALMER.code, GW2, 4);
     expect(await rowOf(PALMER.code)).toMatchObject({ seasonPoints: 4, lastGameweekPoints: 4 });
