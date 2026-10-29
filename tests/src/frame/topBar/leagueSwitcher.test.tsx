@@ -4,13 +4,13 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { refusals } from "../../../convex/shared/leagueAccess";
-import { ESCAPE_KEY } from "../../../src/shared/browserEvents";
-import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import { READ_FAILED_LOG } from "../../../src/frame/ReadFailed";
-import { SIGN_IN_PATH } from "../../../src/signIn/paths";
-import { silenceConsoleError } from "../../support/console.setup";
+import { refusals } from "../../../../convex/shared/leagueAccess";
+import { ESCAPE_KEY } from "../../../../src/shared/browserEvents";
+import { LEAGUES_PATH } from "../../../../src/leagues/paths";
+import { LEAGUES_TITLE } from "../../../../src/leagues/words";
+import { READ_FAILED_LOG } from "../../../../src/frame/ReadFailed";
+import { SIGN_IN_PATH } from "../../../../src/signIn/paths";
+import { silenceConsoleError } from "../../../support/console.setup";
 import {
   adminSeeing,
   beingDeleted,
@@ -22,9 +22,9 @@ import {
   openApp,
   visitor,
   withNoPart,
-} from "../../support/src/shell.harness";
-import { MY_TEAM_PATH } from "../../../src/frame/menu";
-import { allLeaguesWords, currentLeagueLabel, ERROR_PAGE_TITLE, signOutWords } from "../../../src/frame/words";
+} from "../../../support/src/shell.harness";
+import { MY_TEAM_PATH } from "../../../../src/frame/menu";
+import { allLeaguesWords, currentLeagueLabel, ERROR_PAGE_TITLE, signOutWords } from "../../../../src/frame/words";
 
 const inTwo = managerIn(league, miniBeta);
 const inMiniBeta = { ...inTwo, currentLeagueId: miniBeta.leagueId };

@@ -56,7 +56,7 @@ const managerLinks = (leagueId: string) => [{ to: scoringPath(leagueId), title: 
  *  league; with none, a page saying so (spec/02), and what became of their newest invite if it
  *  ended without them joining (spec/13, Joining). The admin is offered "Create a league", as only
  *  the admin creates leagues in the beta. Switching between leagues is the top bar's
- *  (frame/LeagueSwitcher.tsx). */
+ *  (frame/topBar/LeagueSwitcher.tsx). */
 export function LeaguesPage({
   email,
   isAdmin,

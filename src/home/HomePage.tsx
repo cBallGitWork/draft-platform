@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { TOP_ROWS } from "../../convex/home/glance";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { ColumnHeads } from "../ui/ColumnHeads";
-import { DateBlock } from "../frame/DateBlock";
+import { DateBlock } from "../mail/DateBlock";
 import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { MAIL_PATH, TABLE_PATH } from "../frame/menu";
 import { MatchupLink } from "../matchup/MatchupLink";

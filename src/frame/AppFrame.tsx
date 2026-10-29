@@ -2,13 +2,13 @@ import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import type { AuthActions } from "../signIn/seam";
 import { FeedbackLink } from "../feedback/FeedbackPage";
-import { Continue } from "./Continue";
+import { Continue } from "./topBar/Continue";
 import { MAIL_PATH, sectionAt, sections } from "./menu";
-import { MainMenu, MenuTab } from "./MenuTab";
+import { MainMenu, MenuTab } from "./topBar/MenuTab";
 import { TOP_BAR, TOP_BAR_ROW } from "../ui/Panel";
-import { ProductName } from "./ProductName";
-import { SignOut } from "./SignOut";
-import type { TopBarState } from "./topBarState";
+import { ProductName } from "./topBar/ProductName";
+import { SignOut } from "./topBar/SignOut";
+import type { TopBarState } from "./topBar/topBarState";
 import { sectionTabsLabel } from "./words";
 
 /** A section's tabs, butted like the menu's (plate.md, Shape); the admin's dashboard's too. */

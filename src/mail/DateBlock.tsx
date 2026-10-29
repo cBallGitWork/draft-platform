@@ -1,4 +1,4 @@
-import { letterDay, letterTime } from "../mail/words";
+import { letterDay, letterTime } from "./words";
 
 /** A day and time in a date block (plate.md): a letter's in Mail, a letter's and a move's on the
  *  league's home. */

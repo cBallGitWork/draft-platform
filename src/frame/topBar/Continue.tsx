@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { NextStep } from "./topBarState";
-import { continueLabel, continueWords, nothingNeedsYouWords } from "./words";
+import { continueLabel, continueWords, nothingNeedsYouWords } from "../words";
 
 /** The top bar's button: to the next thing that needs the manager, or a plain "Nothing needs you". */
 export function Continue({ next }: { next: NextStep | null }) {
