@@ -1,8 +1,8 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { gameweekDeadline, type DeadlineRule } from "../gameweeks/deadline";
-import { gameweekStartsOf } from "../gameweeks/gameweekStarts";
+import type { DeadlineRule } from "../gameweeks/deadline";
+import { firstKickoffs, gameweekStartsOf } from "../gameweeks/gameweekStarts";
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { heldSchedule } from "../gameweeks/leagueDeadlines";
 import { siteScoringKind } from "../schema";
@@ -87,6 +87,11 @@ export function siteVersions(ctx: QueryCtx): Promise<Doc<"siteScoring">[]> {
 /** The site's scoring set in a gameweek, which every league scores that gameweek's matches by: the
  *  newest version to take effect at or before its first kickoff, the first set before any. A
  *  gameweek with no kickoff time yet plays the newest. */
+/** A version's set, or the first set when there is no version yet. */
+export function setOf(version: Doc<"siteScoring"> | undefined): StoredScoringSet {
+  return version?.scoring ?? FIRST_SCORING;
+}
+
 export async function siteScoringInGameweek(ctx: QueryCtx, gameweek: number): Promise<StoredScoringSet> {
   return (await siteScoringByGameweek(ctx))(gameweek);
 }
@@ -97,10 +102,11 @@ export async function siteScoringByGameweek(ctx: QueryCtx): Promise<(gameweek: n
   const history = await siteVersions(ctx);
   const { matches } = await heldSchedule(ctx);
   const recordedStarts = await gameweekStartsOf(ctx, matches);
+  const kickoffs = firstKickoffs(matches);
   return (gameweek) => {
-    const firstKickoff = recordedStarts.get(gameweek) ?? gameweekDeadline(gameweek, matches, AT_FIRST_KICKOFF, { recorded: null, now: 0 });
+    const firstKickoff = recordedStarts.get(gameweek) ?? kickoffs.get(gameweek) ?? null;
     const inForce = firstKickoff === null ? history.at(-1) : history.findLast((row) => row.takesEffectAt <= firstKickoff);
-    return inForce?.scoring ?? FIRST_SCORING;
+    return setOf(inForce);
   };
 }
 
@@ -148,7 +154,7 @@ async function addVersion(
   await ctx.db.insert("siteScoring", { ...version, season, number, announcedAt: Date.now() });
   const name = versionName({ season, number });
   const fromGameweek = await firstGameweekFrom(ctx, version.takesEffectAt);
-  const changes = scoringChanges(history.at(-1)?.scoring ?? FIRST_SCORING, version.scoring);
+  const changes = scoringChanges(setOf(history.at(-1)), version.scoring);
   const news = { name, kind: version.kind, takesEffectAt: version.takesEffectAt, fromGameweek, changes };
   await fileSiteLetter(ctx, (zone) => versionLetter(news, zone), by);
   return { name, fromGameweek };
@@ -178,7 +184,7 @@ export const view = query({
     const latest = history.at(-1);
     const draft = canEdit ? await ctx.db.query("siteScoringDraft").unique() : null;
     return {
-      part: latest?.scoring ?? FIRST_SCORING,
+      part: setOf(latest),
       revision: latest?._id ?? null,
       changesFrom: await firstGameweekFrom(ctx, now),
       canEdit,
@@ -225,7 +231,7 @@ export const announce = mutation({
     const history = await siteVersions(ctx);
     const latest = history.at(-1);
     if (latest !== undefined && latest._id !== draft.madeFrom) refuse(siteScoringRefusals.draftOvertaken(versionName(latest)));
-    if (sortedJson(latest?.scoring ?? FIRST_SCORING) === sortedJson(draft.scoring)) refuse(siteScoringRefusals.draftUnchanged);
+    if (sortedJson(setOf(latest)) === sortedJson(draft.scoring)) refuse(siteScoringRefusals.draftUnchanged);
     // NaN is never less than the earliest, so it would pass the check below.
     if (!Number.isFinite(takesEffectAt)) refuse(siteScoringRefusals.notAMoment);
     const earliest = Date.now() + PATCH_NOTICE_MS;
@@ -252,7 +258,7 @@ export const fix = mutation({
     checkRevision(latest, revision, zone);
     checkScoringSet(scoring);
     const now = Date.now();
-    if (sortedJson(latest?.scoring ?? FIRST_SCORING) === sortedJson(scoring)) return firstGameweekFrom(ctx, now);
+    if (sortedJson(setOf(latest)) === sortedJson(scoring)) return firstGameweekFrom(ctx, now);
     if (latest !== undefined && latest.takesEffectAt > now) refuse(siteScoringRefusals.fixWhileWaiting(versionName(latest), latest.takesEffectAt, zone));
     return (await addVersion(ctx, history, { scoring, kind: "fix", takesEffectAt: now }, admin)).fromGameweek;
   },
