@@ -13,7 +13,8 @@ import { isWhole, PLAYER_RECORDS_MOST } from "../stats/matchRecords";
 import { statusOf } from "../stats/matchStats";
 import { begunGameweeks, squadGameweek } from "./gameweekScores";
 import type { PlayerRows } from "./squadInputs";
-import { isMatchFinal, leagueReads, slotInMatch, type TeamInGameweek } from "./teamGameweek";
+import { isMatchFinal } from "./heldMatches";
+import { leagueReads, slotInMatch, type TeamInGameweek } from "./teamGameweek";
 
 // A player's matches in a league as his team scored them (#577; spec/12, The player card and
 // Squad): the one place his card and the Squad tab read his points from. A gameweek the league has

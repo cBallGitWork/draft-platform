@@ -12,6 +12,7 @@
 import type { Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { FEED_TYPE, withFullTimePoints } from "../football/commentary";
+import type { InMatch } from "../gameweekScorer/teamGameweek";
 import type { Cell } from "../lineup/pitch";
 import { rulePointsIn, scoreMatch, type MatchStats } from "../scoring/scoring";
 import { inTenths, type ScoringSet } from "../scoring/scoringSet";
@@ -38,7 +39,7 @@ export interface VidiprinterMatch {
 export interface VidiprinterPlayer {
   name: string;
   cell: Cell;
-  inMatch: ReadonlyMap<number, { stats: MatchStats | null; played: boolean; points: number | null }>;
+  inMatch: InMatch;
 }
 
 export interface VidiprinterLine {

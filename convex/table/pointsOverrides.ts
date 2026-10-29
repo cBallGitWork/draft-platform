@@ -13,7 +13,8 @@ import { statusOf } from "../stats/matchStats";
 import { rescoreGameweek } from "./finalScores";
 import { begunGameweeks, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "./overrideLimits";
-import { leagueReads, playsIn, pointsInMatch, type LeagueReads } from "../gameweekScorer/teamGameweek";
+import { playsIn } from "../gameweekScorer/heldMatches";
+import { leagueReads, pointsInMatch, type LeagueReads } from "../gameweekScorer/teamGameweek";
 
 // A commissioner overrides one player's points for one match, with a reason (spec/14, Changes and
 // corrections; #32). The override is a row teamGameweek.ts reads with the match's records, so the
