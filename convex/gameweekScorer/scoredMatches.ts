@@ -59,7 +59,7 @@ export interface ScoredMatches {
 export async function scoredMatches(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"teams"> | null): Promise<ScoredMatches> {
   const setIn = await siteScoringByGameweek(ctx);
   const heldRowsOf = readOnce((code: number) => heldRows(ctx, league._id, code));
-  const teamGameweekOf = teamId === null ? null : await teamGameweeks(ctx, league, teamId, heldRowsOf);
+  const teamGameweekOf = teamId === null ? null : await teamGameweeks(ctx, league, teamId, heldRowsOf, setIn);
   const of = async ({ code, positions }: { code: number; positions: readonly Position[] }) => {
     const { records, overrides } = await heldRowsOf(code);
     return Promise.all(
@@ -92,10 +92,10 @@ async function heldRows(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
  *  gameweek it hasn't. Null for a league made before rules were held, which has no scoring (#25).
  *  A set holding a rule no longer sound throws, as the card's best-position pricing always has
  *  (#287). */
-async function teamGameweeks(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"teams">, heldRowsOf: (code: number) => Promise<HeldRows>) {
+async function teamGameweeks(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"teams">, heldRowsOf: (code: number) => Promise<HeldRows>, setIn: ScoredMatches["setIn"]) {
   const season = await seasonRules(ctx, league._id);
   if (season === null) return null;
-  const reads = await leagueReads(ctx, league, season);
+  const reads = await leagueReads(ctx, league, season, setIn);
   const begun = new Set(await begunGameweeks(ctx, league));
   const rowsByMatch = async (code: number): Promise<PlayerRows> => {
     const { records, overrides } = await heldRowsOf(code);

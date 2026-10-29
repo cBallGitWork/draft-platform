@@ -3,8 +3,7 @@ import type { Doc } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { SLOT_POSITIONS, type SlotPosition } from "../lineup/pitch";
 import { roleName } from "../lineup/roles";
-import { currentPositions } from "../positions/playerPositions";
-import { howPositionsCount } from "../positions/positionSettings";
+import { positionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
 import { categoryName } from "../scoring/categories";
@@ -94,7 +93,7 @@ export const card = query({
     const { league } = await memberOf(ctx, leagueId);
     const player = await playerByCode(ctx, playerCode);
     if (player === null) return null;
-    const positions = await currentPositions(ctx, playerCode, await howPositionsCount(ctx));
+    const positions = await (await positionsNow(ctx))(playerCode);
     const clubs = clubsByCode(ctx);
     return {
       code: player.code,

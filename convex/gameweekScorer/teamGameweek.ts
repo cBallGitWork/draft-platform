@@ -1,10 +1,10 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { autoSubs, gameweekPlay, type AutoSubs, type GameweekPlay } from "../lineup/autoSubs";
+import { namedCodes } from "../lineup/lineup";
 import { lineupsInGameweek, type HeldLineup } from "../lineup/lineups";
 import { ALL_CELLS, playsCell, type Cell } from "../lineup/pitch";
-import { currentPositions } from "../positions/playerPositions";
-import { howPositionsCount, type HowPositionsCount } from "../positions/positionSettings";
+import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
@@ -12,7 +12,7 @@ import type { MatchPoints, MatchStats } from "../scoring/scoring";
 import { siteScoringByGameweek } from "../scoring/siteScoring";
 import { validateScoringSet } from "../scoring/scoringSet";
 import { scoreTeam, type PlayerMatch, type SlotPoints, type TeamPoints } from "../scoring/teamPoints";
-import { playerByCode } from "../shared/players";
+import { heldPlayerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { isWhole, MINUTES_STAT } from "../stats/matchRecords";
 import { heldMatches, isFinished, isMatchFinal, playsIn, type HeldMatch } from "./heldMatches";
@@ -34,29 +34,33 @@ export interface LeagueReads {
   player: (code: PlayerCode) => Promise<{ clubCode: number; positions: Position[] }>;
 }
 
-/** What scoring any of the league's gameweeks reads, read once. */
-export async function leagueReads(ctx: QueryCtx, league: Doc<"leagues">, season: SeasonRules): Promise<LeagueReads> {
+/** What scoring any of the league's gameweeks reads, read once. A caller that has read the site's
+ *  sets already (`siteScoringByGameweek`, in the same query) hands them in as `setIn`. */
+export async function leagueReads(
+  ctx: QueryCtx,
+  league: Doc<"leagues">,
+  season: SeasonRules,
+  setIn?: LeagueReads["setIn"],
+): Promise<LeagueReads> {
   return {
     leagueId: league._id,
     season,
-    setIn: await siteScoringByGameweek(ctx),
-    player: playerReader(ctx, await howPositionsCount(ctx)),
+    setIn: setIn ?? (await siteScoringByGameweek(ctx)),
+    player: playerReader(ctx, await positionsNow(ctx)),
   };
 }
 
 /** Each player's club and positions, read once however many gameweeks ask. */
-function playerReader(ctx: QueryCtx, how: HowPositionsCount) {
+function playerReader(ctx: QueryCtx, positionsOfNow: PositionsNow) {
   return readOnce(async (code: PlayerCode): Promise<{ clubCode: number; positions: Position[] }> => {
     const held = await lineupPlayer(ctx, code);
-    return { clubCode: held.clubCode, positions: await currentPositions(ctx, code, how) };
+    return { clubCode: held.clubCode, positions: await positionsOfNow(code) };
   });
 }
 
 /** A player a lineup names. One the football sync doesn't hold is data gone wrong, and throws. */
-export async function lineupPlayer(ctx: QueryCtx, code: PlayerCode): Promise<Doc<"players">> {
-  const held = await playerByCode(ctx, code);
-  if (held === null) throw new Error(`player ${code} is in a lineup but the football sync doesn't hold him`);
-  return held;
+export function lineupPlayer(ctx: QueryCtx, code: PlayerCode): Promise<Doc<"players">> {
+  return heldPlayerByCode(ctx, code, `player ${code} is in a lineup but the football sync doesn't hold him`);
 }
 
 /** What scoring the `teamIds` in one gameweek reads: the site's set in force then, checked, the
@@ -109,7 +113,7 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
   const held = lineups.get(teamId);
   if (held === undefined) throw new Error(`team ${teamId} isn't one of the teams this gameweek's lineups were read for`);
   const lineup = { starters: held.starters, bench: held.bench };
-  const codes = [...lineup.starters.map(({ playerCode }) => playerCode), ...lineup.bench];
+  const codes = namedCodes(lineup);
   const positions = new Map<PlayerCode, Position[]>();
   const playerMatches = new Map<PlayerCode, PlayerMatch[]>();
   const plays = new Map<PlayerCode, GameweekPlay>();

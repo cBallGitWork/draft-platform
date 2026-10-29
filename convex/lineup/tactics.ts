@@ -4,9 +4,8 @@ import { seasonRules } from "../rules/rulesHistory";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { GAMEWEEKS, shownDeadline } from "../gameweeks/usedGameweeks";
-import { clubByCode, playerByCode } from "../shared/players";
-import { currentPositions } from "../positions/playerPositions";
-import { howPositionsCount } from "../positions/positionSettings";
+import { clubByCode, heldPlayerByCode } from "../shared/players";
+import { positionsNow } from "../positions/playerPositions";
 import { position } from "../schema";
 import { managerOf } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squadPlace";
@@ -58,17 +57,16 @@ export const ofMyTeam = query({
     const gameweek = await nextOpenGameweek(ctx, leagueId, season, now);
     if (gameweek > GAMEWEEKS) return { kind: "seasonOver" as const };
 
-    const how = await howPositionsCount(ctx);
+    const positionsOfNow = await positionsNow(ctx);
     const squad = await Promise.all(
       (await squadOf(ctx, team._id)).map(async ({ playerCode, number }) => {
         // Players are never deleted, and a squad holds only one the football sync held (squads.ts).
-        const player = await playerByCode(ctx, playerCode);
-        if (player === null) throw new Error(`Player ${playerCode} is in team ${team._id}'s squad but isn't held`);
+        const player = await heldPlayerByCode(ctx, playerCode, `Player ${playerCode} is in team ${team._id}'s squad but isn't held`);
         return {
           playerCode,
           name: player.name,
           clubShortName: (await clubByCode(ctx, player.clubCode)).shortName,
-          positions: await currentPositions(ctx, playerCode, how),
+          positions: await positionsOfNow(playerCode),
           number: number ?? null,
         };
       }),
