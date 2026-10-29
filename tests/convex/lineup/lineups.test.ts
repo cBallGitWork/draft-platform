@@ -15,7 +15,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 import { FIRST_SUB, filledLineup, presetNamed } from "../../support/convex/lineup.harness";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { lineupInGameweek, lineupsInGameweek } from "../../../convex/lineup/lineups";
-import { SQUAD_MOVES_READ_MOST } from "../../../convex/squads/squads";
+import { SQUAD_MOVES_READ_MOST } from "../../../convex/squads/squadPlace";
 import { openingLineup, shownLineup } from "../../../src/myTeam/tactics/lineupDraft";
 
 // Storing a lineup (#8, spec/05: "A lineup rolls over to the next gameweek if the manager doesn't
