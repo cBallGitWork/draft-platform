@@ -1,14 +1,13 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { clubsByCode, type Clubs } from "../playerCard/playerCard";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
-import { POSITIONS, type Position } from "../positions/positionTables";
+import { positionRank, type Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
 import { inTenths } from "../scoring/scoringSet";
 import { managerOf } from "../shared/leagueAccess";
-import { playerByCode } from "../shared/players";
+import { clubsByCode, playerByCode, type Clubs } from "../shared/players";
 import { begunGameweeks } from "../gameweekScorer/gameweekScores";
 import { scoredMatches } from "../gameweekScorer/scoredMatches";
 import { squadOf } from "./squadPlace";
@@ -74,7 +73,7 @@ export function squadPoints(matches: readonly PricedMatch[], lastGameweek: numbe
 }
 
 /** Where a player's first position falls in POSITIONS, back to front; one with none goes last. */
-const positionOrder = ({ positions }: Pick<SquadRow, "positions">) => (positions.length === 0 ? POSITIONS.length : POSITIONS.indexOf(positions[0]));
+const positionOrder = ({ positions }: Pick<SquadRow, "positions">) => positionRank(positions[0] ?? null);
 
 /** The caller's team's squad at `now`, the screen's minute (a query may not read the clock),
  *  back to front by his first position, then by name. Refused for anyone who runs no team. */

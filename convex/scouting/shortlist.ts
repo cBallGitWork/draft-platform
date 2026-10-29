@@ -7,7 +7,7 @@ import { shortlistedReleasedLetter } from "../mail/letterWords";
 import { clubRecord } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, refuse, refusals, teamsOf } from "../shared/leagueAccess";
-import { clubByCode, playerByCode } from "../shared/players";
+import { clubByCode, clubOf, playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 
 // The shortlist (spec/19, The shortlist; #374): a manager's own list of players for the season, in
@@ -79,7 +79,7 @@ export const mine = query({
           code: player.code,
           name: player.name,
           fullName: player.fullName,
-          club: { code: club.code, name: club.name, shortName: club.shortName },
+          club: clubOf(club),
           ownerTeamName: place === null ? null : teamNames.get(place.teamId)!,
           gone: player.droppedAt !== undefined,
         };

@@ -1,12 +1,17 @@
 import { expect, test } from "vitest";
 import { codesByOpta } from "../../../convex/football/feedIds";
 import { matchSlots } from "../../../convex/football/premierLeague/plMatch";
-import { FORMATION_PLACES, labelPositions, placePosition, type Position } from "../../../convex/positions/positionTables";
+import { FORMATION_PLACES, labelPositions, placePosition, POSITIONS, positionRank, type Position } from "../../../convex/positions/positionTables";
 import { PLAYER, recordedPositions, SHEET } from "../../support/recorded/positions.payloads";
 
 test("each formation draws the lines its label counts, but for Opta's 4-5-1, drawn as a 4-3-2-1", () => {
   const drawn = Object.entries(FORMATION_PLACES).filter(([label, lines]) => lines.map((line) => line.length).join("-") !== label);
   expect(drawn.map(([label, lines]) => [label, lines.map((line) => line.length).join("-")])).toEqual([["4-5-1", "4-3-2-1"]]);
+});
+
+test("positions rank in POSITIONS' order, and none ranks last", () => {
+  expect(POSITIONS.map(positionRank)).toEqual(POSITIONS.map((_, index) => index));
+  expect(positionRank(null)).toBe(POSITIONS.length);
 });
 
 test("spec/06's two fixed rows: a 4-2-3-1's deepest two are CDM, a 4-3-3's three are CM", () => {

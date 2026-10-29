@@ -5,7 +5,7 @@ import { internalMutation, query, type ActionCtx, type MutationCtx, type QueryCt
 import { clubRecord, scoreFeed, scoreRead, type matchState, type scoreWrites } from "../schema";
 import { gameweekFixtures } from "../shared/fixtures";
 import { callerEmail } from "../shared/leagueAccess";
-import { clubByCode } from "../shared/players";
+import { clubByCode, clubOf } from "../shared/players";
 import { BATCH_SIZE } from "../shared/syncRuns";
 import type { ScoreRead, ScoreReads } from "./scoreReads";
 
@@ -21,7 +21,12 @@ type ScoreWrites = Infer<typeof scoreWrites>;
 
 /** How far on each state is; a half-time is no further on than play, so FPL, which has none, may
  *  read a Premier League half-time as live until the next tick. */
-const STATE_ORDER: Record<Infer<typeof matchState>, number> = { upcoming: 0, live: 1, halfTime: 1, fullTime: 2 };
+type State = Infer<typeof matchState>;
+
+/** The states of a match being played. */
+export const PLAYING_STATES: ReadonlySet<State> = new Set(["live", "halfTime"]);
+
+const STATE_ORDER: Record<State, number> = { upcoming: 0, live: 1, halfTime: 1, fullTime: 2 };
 
 /** One read's scores written in batches of `BATCH_SIZE`, and its problems kept for the run row. */
 export async function writeScores(ctx: ActionCtx, feed: ScoreFeed, readAt: number, { reads, problems }: ScoreReads): Promise<ScoreWrites> {
@@ -123,7 +128,3 @@ export function scoreOnly({ _id, _creationTime, fixtureCode, feed, readAt, ...sc
   return score;
 }
 
-/** A club as a screen names it. */
-export function clubOf({ code, name, shortName }: Doc<"clubs">) {
-  return { code, name, shortName };
-}
