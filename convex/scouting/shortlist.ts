@@ -2,11 +2,11 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
-import { fileLetter } from "../mail/letters";
-import { adminByline, shortlistedReleasedLetter } from "../mail/letterWords";
+import { bylineOf, fileLetter } from "../mail/letters";
+import { shortlistedReleasedLetter } from "../mail/letterWords";
 import { clubRecord } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { isAdmin, memberOf, refuse, refusals, teamOf, teamsOf } from "../shared/leagueAccess";
+import { memberOf, refuse, refusals, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 
@@ -41,8 +41,7 @@ export type ShortlistedPlayer = Infer<typeof shortlistedPlayer>;
  *  stranger is told they aren't in the league (memberOf), and only a member who runs no team (its
  *  commissioner, say) is told they run none: the refusals the shortlist has always given. */
 async function ownTeam(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"teams">> {
-  const { email } = await memberOf(ctx, leagueId);
-  return (await teamOf(ctx, leagueId, email)) ?? refuse(refusals.runsNoTeam);
+  return (await memberOf(ctx, leagueId)).team ?? refuse(refusals.runsNoTeam);
 }
 
 function shortlistOf(ctx: QueryCtx, teamId: Id<"teams">) {
@@ -66,8 +65,7 @@ export const mine = query({
   args: { leagueId: v.id("leagues") },
   returns: v.union(v.array(shortlistedPlayer), v.null()),
   handler: async (ctx, { leagueId }) => {
-    const { email } = await memberOf(ctx, leagueId);
-    const team = await teamOf(ctx, leagueId, email);
+    const { team } = await memberOf(ctx, leagueId);
     if (!team) return null;
     const teamNames = new Map((await teamsOf(ctx, leagueId)).map((each) => [each._id, each.name]));
     const players = await Promise.all(
@@ -137,6 +135,6 @@ export async function tellShortlisters(
   );
   const shortlisting = new Set(entries.map((entry) => entry.teamId));
   const to = (await teamsOf(ctx, league._id)).filter((team) => shortlisting.has(team._id)).map((team) => team.managerEmail);
-  const letter = shortlistedReleasedLetter(player.name, from.name, isAdmin(by) ? adminByline : by);
+  const letter = shortlistedReleasedLetter(player.name, from.name, bylineOf(by));
   await fileLetter(ctx, league, to.filter((email) => email !== undefined), letter, by);
 }
