@@ -24,6 +24,7 @@ import {
   fakeResend,
   signInDeployment,
 } from "../../support/convex/signIn.harness";
+import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { publicFunctions } from "../../support/convex/test.harness";
 
 // Every public query, mutation and action names who it lets in, and a signed-out caller and a
@@ -210,16 +211,7 @@ beforeEach(async () => {
   const beingDeleted = await leagueWithPeople(t, "A league being deleted");
   await deletes(t, COMMISSIONER, beingDeleted);
   // Dismissing a banner needs a version of the site's scoring.
-  const versionId = await t.run((ctx) =>
-    ctx.db.insert("siteScoring", {
-      scoring: FIRST_SCORING,
-      kind: "patch",
-      season: PL_SEASON_START_YEAR,
-      number: 1,
-      announcedAt: Date.now(),
-      takesEffectAt: Date.now(),
-    }),
-  );
+  const versionId = await t.run((ctx) => holdSiteScoring(ctx, { scoring: FIRST_SCORING, kind: "patch", season: PL_SEASON_START_YEAR, number: 1, at: Date.now() }));
 
   calls = (caller) => {
     const now = Date.now();

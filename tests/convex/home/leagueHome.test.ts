@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { TICKER_MOST, TOP_ROWS, WHOLE_TABLE_MOST } from "../../../convex/home/glance";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
-import { holdGameweeks, rulesRevision, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { changeRules, holdGameweeks, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
@@ -95,7 +95,7 @@ describe("the glance", () => {
 
   test("in total points there are no head-to-heads, and no form", async () => {
     await addManagers(t, leagueId, [ANN, BOB]);
-    await (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules: TOTAL_POINTS, revision: await rulesRevision(t, leagueId) });
+    await changeRules(t, leagueId, TOTAL_POINTS);
     // A change takes effect from the next gameweek; with none begun, that is the first.
     const home = (await read())!;
     expect(home.format).toBe("totalPoints");

@@ -17,7 +17,7 @@ import {
 } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { DAY_MS, HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { giveDeadlineRule, moveFplDeadline } from "../../support/convex/leagueRules.harness";
+import { giveDeadlineRule, moveFplDeadline, setUsed } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { GAMEWEEKS, isGameweekUsed } from "../../../convex/gameweeks/usedGameweeks";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
@@ -55,9 +55,7 @@ async function holdGameweeks(missing: number[] = []) {
   });
 }
 
-async function setUsed(email: string, gameweek: number, used: boolean) {
-  return (await actingAs(t, email)).mutation(api.gameweeks.leagueGameweeks.setUsed, { leagueId, gameweek, used });
-}
+const setUsedBy = (email: string, gameweek: number, used: boolean) => setUsed(t, leagueId, gameweek, used, email);
 
 const used = async (gameweek: number) => isGameweekUsed((await leagueRow(t, leagueId))!, gameweek);
 const unusedGameweeks = async () => (await leagueRow(t, leagueId))!.unusedGameweeks;
@@ -76,7 +74,7 @@ describe("a league's gameweeks", () => {
 
   test("unticking gameweek 17 before it begins leaves it out, and only it, and is filed for Mail", async () => {
     await holdGameweeks();
-    await setUsed(COMMISSIONER, 17, false);
+    await setUsedBy(COMMISSIONER, 17, false);
 
     expect(await used(17)).toBe(false);
     expect(await used(16)).toBe(true);
@@ -88,8 +86,8 @@ describe("a league's gameweeks", () => {
 
   test("ticking it again plays it again, and is filed", async () => {
     await holdGameweeks();
-    await setUsed(COMMISSIONER, 17, false);
-    await setUsed(COMMISSIONER, 17, true);
+    await setUsedBy(COMMISSIONER, 17, false);
+    await setUsedBy(COMMISSIONER, 17, true);
 
     expect(await used(17)).toBe(true);
     expect(await unusedGameweeks()).toEqual([]);
@@ -98,13 +96,13 @@ describe("a league's gameweeks", () => {
 
   test("a Christmas break unticked out of order is kept in order", async () => {
     await holdGameweeks();
-    for (const gameweek of [19, 17, 18]) await setUsed(COMMISSIONER, gameweek, false);
+    for (const gameweek of [19, 17, 18]) await setUsedBy(COMMISSIONER, gameweek, false);
     expect(await unusedGameweeks()).toEqual([17, 18, 19]);
   });
 
   test("asking for what the league already has changes nothing and files nothing", async () => {
     await holdGameweeks();
-    await setUsed(COMMISSIONER, 17, true);
+    await setUsedBy(COMMISSIONER, 17, true);
     expect(await unusedGameweeks()).toBeUndefined();
     expect(await gameweekEvents()).toEqual([]);
   });
@@ -112,8 +110,8 @@ describe("a league's gameweeks", () => {
   test("the co-commissioner and the admin can tick them too", async () => {
     await holdGameweeks();
     await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
-    await setUsed(CO_COMMISSIONER, 17, false);
-    await setUsed(ADMIN, 38, false);
+    await setUsedBy(CO_COMMISSIONER, 17, false);
+    await setUsedBy(ADMIN, 38, false);
     expect(await unusedGameweeks()).toEqual([17, 38]);
   });
 
@@ -121,7 +119,7 @@ describe("a league's gameweeks", () => {
     await holdGameweeks();
     const [ann] = MANAGERS;
     await addManagers(t, leagueId, [ann]);
-    await expectRefused(setUsed(ann, 17, false), refusals.notRunner);
+    await expectRefused(setUsedBy(ann, 17, false), refusals.notRunner);
     await expectRefused((await actingAs(t, ann)).query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId }), refusals.notRunner);
   });
 });
@@ -129,11 +127,11 @@ describe("a league's gameweeks", () => {
 describe("once a gameweek has begun", () => {
   test("it can't be unticked or ticked, and nothing is filed", async () => {
     await holdGameweeks();
-    await expectRefused(setUsed(COMMISSIONER, NEXT - 1, false), gameweekRefusals.begun(NEXT - 1));
+    await expectRefused(setUsedBy(COMMISSIONER, NEXT - 1, false), gameweekRefusals.begun(NEXT - 1));
 
-    await setUsed(COMMISSIONER, NEXT, false);
+    await setUsedBy(COMMISSIONER, NEXT, false);
     vi.setSystemTime(deadlineOf(NEXT));
-    await expectRefused(setUsed(COMMISSIONER, NEXT, true), gameweekRefusals.begun(NEXT));
+    await expectRefused(setUsedBy(COMMISSIONER, NEXT, true), gameweekRefusals.begun(NEXT));
     expect(await unusedGameweeks()).toEqual([NEXT]);
     expect(await gameweekEvents()).toHaveLength(1);
   });
@@ -141,9 +139,9 @@ describe("once a gameweek has begun", () => {
   test("it begins at its deadline, not before: the first rules' 90 minutes, equal to FPL's", async () => {
     await holdGameweeks();
     vi.setSystemTime(deadlineOf(NEXT) - 1);
-    await setUsed(COMMISSIONER, NEXT, false);
+    await setUsedBy(COMMISSIONER, NEXT, false);
     vi.setSystemTime(deadlineOf(NEXT));
-    await expectRefused(setUsed(COMMISSIONER, NEXT, true), gameweekRefusals.begun(NEXT));
+    await expectRefused(setUsedBy(COMMISSIONER, NEXT, true), gameweekRefusals.begun(NEXT));
   });
 });
 
@@ -157,7 +155,7 @@ describe("the league's own deadline decides, never FPL's (Craig: \"ours, we aren
 
     expect(await deadlineShown(NEXT)).toBe(kickoffOf(NEXT) - THREE_HOURS * MINUTE_MS);
     expect(Date.now()).toBeLessThan(deadlineOf(NEXT));
-    await expectRefused(setUsed(COMMISSIONER, NEXT, false), gameweekRefusals.begun(NEXT));
+    await expectRefused(setUsedBy(COMMISSIONER, NEXT, false), gameweekRefusals.begun(NEXT));
   });
 
   test("a league deadline later than FPL's: the gameweek can be changed after FPL's, until the league's", async () => {
@@ -166,9 +164,9 @@ describe("the league's own deadline decides, never FPL's (Craig: \"ours, we aren
 
     expect(await deadlineShown(NEXT)).toBe(kickoffOf(NEXT));
     vi.setSystemTime(deadlineOf(NEXT));
-    await setUsed(COMMISSIONER, NEXT, false);
+    await setUsedBy(COMMISSIONER, NEXT, false);
     vi.setSystemTime(kickoffOf(NEXT));
-    await expectRefused(setUsed(COMMISSIONER, NEXT, true), gameweekRefusals.begun(NEXT));
+    await expectRefused(setUsedBy(COMMISSIONER, NEXT, true), gameweekRefusals.begun(NEXT));
   });
 
   test("FPL's deadline moving changes nothing", async () => {
@@ -177,7 +175,7 @@ describe("the league's own deadline decides, never FPL's (Craig: \"ours, we aren
     await moveFplDeadline(t, NEXT + 1, start + DAY_MS);
 
     expect(await deadlineShown(NEXT)).toBe(deadlineOf(NEXT));
-    await setUsed(COMMISSIONER, NEXT, false);
+    await setUsedBy(COMMISSIONER, NEXT, false);
     expect(await used(NEXT)).toBe(false);
   });
 
@@ -193,12 +191,12 @@ describe("the league's own deadline decides, never FPL's (Craig: \"ours, we aren
 describe("what can't be ticked", () => {
   test.each([0, GAMEWEEKS + 1, 1.5])("gameweek %s isn't one of the season's", async (gameweek) => {
     await holdGameweeks();
-    await expectRefused(setUsed(COMMISSIONER, gameweek, false), gameweekRefusals.notAGameweek(gameweek));
+    await expectRefused(setUsedBy(COMMISSIONER, gameweek, false), gameweekRefusals.notAGameweek(gameweek));
   });
 
   test("a gameweek whose deadline the app doesn't have is refused, saying why, and shown with none", async () => {
     await holdGameweeks([30]);
-    await expectRefused(setUsed(COMMISSIONER, 30, false), gameweekRefusals.noDeadline(30));
+    await expectRefused(setUsedBy(COMMISSIONER, 30, false), gameweekRefusals.noDeadline(30));
     const shown = await (await actingAs(t, COMMISSIONER)).query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId });
     expect(shown[29]).toEqual({ gameweek: 30, used: true, deadline: null });
   });
@@ -208,7 +206,7 @@ describe("what can't be ticked", () => {
     await t.run(async (ctx) => {
       for await (const row of ctx.db.query("leagueRules")) await ctx.db.delete("leagueRules", row._id);
     });
-    await expectRefused(setUsed(COMMISSIONER, NEXT, false), gameweekRefusals.noRules);
+    await expectRefused(setUsedBy(COMMISSIONER, NEXT, false), gameweekRefusals.noRules);
     expect(await unusedGameweeks()).toBeUndefined();
   });
 });
