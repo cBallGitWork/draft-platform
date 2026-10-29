@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { DESK_ONLY_CELL } from "../ui/ColumnHeads";
 import { Loading, PageSection, PanelNote } from "../ui/Panel";
 import { playerCardPath } from "../playerCard/paths";
 import type { MyTeamSeam, TeamTransactions } from "./seam";
@@ -18,8 +19,6 @@ import {
 
 type Column = keyof typeof transactionColumns;
 const COLUMNS: readonly Column[] = ["when", "player", "move", "by"];
-/** Who did it is left off a phone, for room, as Table and Scouting leave out columns there. */
-const DESK_ONLY = "hidden sm:table-cell";
 
 /** My team's Transactions tab (spec/12, My team's tabs): the team's transactions, newest first. */
 export function TransactionsPage({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }) {
@@ -47,7 +46,7 @@ function TransactionsTable({ leagueId, teamName, transactions }: { leagueId: Id<
       <thead className="bg-head text-ground">
         <tr>
           {COLUMNS.map((column) => (
-            <th key={column} scope="col" className={`px-3 text-left ${column === "by" ? DESK_ONLY : ""}`}>
+            <th key={column} scope="col" className={`px-3 text-left ${column === "by" ? DESK_ONLY_CELL : ""}`}>
               {transactionColumns[column]}
             </th>
           ))}
@@ -63,7 +62,7 @@ function TransactionsTable({ leagueId, teamName, transactions }: { leagueId: Id<
               </Link>
             </th>
             <td className="px-3">{transactionWords(transaction)}</td>
-            <td className={`px-3 text-muted ${DESK_ONLY}`}>{transaction.by}</td>
+            <td className={`px-3 text-muted ${DESK_ONLY_CELL}`}>{transaction.by}</td>
           </tr>
         ))}
       </tbody>
