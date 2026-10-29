@@ -10,9 +10,9 @@
 //   man named for Hull v Everton and the 22 starters at Palace v Forest. Every stat is kept for the
 //   six men in `FULL_STATS`; for the rest, only where they played and for how long.
 
-import type { RawBootstrap, RawFixture } from "../../../convex/football/fpl";
-import type { RawLive } from "../../../convex/football/fplLive";
-import type { RawPlFixture, RawPlFixturePage, RawPlPlayerStats } from "../../../convex/football/premierLeague";
+import type { RawBootstrap, RawFixture } from "../../../convex/football/fpl/fpl";
+import type { RawLive } from "../../../convex/football/fpl/fplLive";
+import type { RawPlFixture, RawPlFixturePage, RawPlPlayerStats } from "../../../convex/football/premierLeague/premierLeague";
 import bootstrap from "./fpl-gw6-bootstrap.json";
 import fplFixtures from "./fpl-gw6-fixtures.json";
 import live from "./fpl-gw6-live.json";

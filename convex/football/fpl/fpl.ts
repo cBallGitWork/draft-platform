@@ -4,8 +4,8 @@
 // player's news (#381) and each match's score (#49). One change: FPL names a club by its
 // per-season id, and this hands on the club's season-stable code instead.
 
-import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, getJson, getShaped, type Football } from "./football";
-import { fplScoreRead, readEach } from "./scoreReads";
+import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, getJson, getShaped, type Football } from "../football";
+import { fplScoreRead, readEach } from "../scoreReads";
 
 // The shapes FPL's public API returns: data we do not control. Only the fields read below are typed.
 

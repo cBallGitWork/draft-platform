@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
-import { plTeamStats } from "../../../convex/football/plTeamStats";
-import { COMMENTARY_MATCH, recordedTeamStats, UPCOMING_MATCH } from "../../support/recorded/commentary.payloads";
-import { HULL_EVERTON_TEAM_STATS } from "../../support/convex/matchStats.harness";
-import { LIVE_TEAM_STATS, recordedLiveTeamStats } from "../../support/recorded/live.payloads";
+import { plTeamStats } from "../../../../convex/football/premierLeague/plTeamStats";
+import { COMMENTARY_MATCH, recordedTeamStats, UPCOMING_MATCH } from "../../../support/recorded/commentary.payloads";
+import { HULL_EVERTON_TEAM_STATS } from "../../../support/convex/matchStats.harness";
+import { LIVE_TEAM_STATS, recordedLiveTeamStats } from "../../../support/recorded/live.payloads";
 
 // spec/10's five team stats (shots, shots on target, possession, corners, cards), mapped from the
 // recorded `/stats/match/{id}` reads by Opta's names (docs/pl-commentary.md, Team stats).

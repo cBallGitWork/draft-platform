@@ -5,7 +5,7 @@
 // fixture list's entries (`readPlFixtures`) carry the same fields as this read of the one fixture.
 // The match is upcoming in fpl.payloads.ts's first recording (IPSWICH_FOREST, below).
 
-import type { RawPlFixture } from "../../../convex/football/premierLeague";
+import type { RawPlFixture } from "../../../convex/football/premierLeague/premierLeague";
 import live from "./pl-live-scores.json";
 
 /** FPL's code for Ipswich v Nott'm Forest. */

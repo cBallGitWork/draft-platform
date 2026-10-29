@@ -45,7 +45,7 @@ Supabase was the runner-up.
 Premier League's `/fixtures/{id}/textstream/EN?pageSize=200&sort=desc`; the team stats on
 `/stats/match/{id}`. Neither needs the `Origin` header the premierleague.com site sends (from
 the Mac, 20 Oct 2026). Each line's `playerIds` are the team sheets' ids, so they map to FPL's
-`code` as the sheets do (`convex/football/plCommentary.ts`). The 28 event types seen and what each line's men are:
+`code` as the sheets do (`convex/football/premierLeague/plCommentary.ts`). The 28 event types seen and what each line's men are:
 [docs/pl-commentary.md](docs/pl-commentary.md). Four finished matches and one before kickoff are
 recorded (`tests/support/recorded/commentary.payloads.ts`).
 
@@ -98,12 +98,12 @@ Tactics pitch are built with no package, and components, motion, forms and chart
 - The football layer (FPL and the Premier League's public APIs) is copied from epl-draft's
   `packages/core` when needed, not shared. Clubs, players, fixtures and gameweeks sit behind one
   seam so a paid feed can replace them for other leagues (SPEC, Later): `Football` in
-  `convex/football/football.ts`, filled by FPL's adapter `convex/football/fpl.ts` (#21) and read
+  `convex/football/football.ts`, filled by FPL's adapter `convex/football/fpl/fpl.ts` (#21) and read
   by `convex/football/footballSync.ts`. Nothing else goes through it: match stats, live stats,
   team sheets, commentary and positions read FPL's and the Premier League's own shapes
   (`convex/stats/matchStatsSync.ts`, `convex/stats/liveStatsSync.ts` and
-  `convex/positions/positionsSync.ts` import `fpl.ts`, `fplLive.ts`, `plMatch.ts` and
-  `premierLeague.ts` directly), so a paid feed would replace those modules too.
+  `convex/positions/positionsSync.ts` import from `convex/football/fpl/` and
+  `convex/football/premierLeague/` directly), so a paid feed would replace those two folders too.
 - Players are keyed on FPL's season-stable `code`, never the per-season `id`.
 - The two feeds are matched on Opta's ids (`convex/football/feedIds.ts`): a Premier League fixture's
   `altIds.opta` is `g` + FPL's fixture `code`, and a man's is FPL's `opta_code`; one that matches

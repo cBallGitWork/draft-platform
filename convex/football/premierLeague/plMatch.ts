@@ -4,7 +4,7 @@
 // sheet and sums a few stats, where this keeps the place and every stat as the feed names it.
 // Players and matches come out as FPL's codes, through the bridge in `feedIds.ts`.
 
-import { fixtureCodeIn, matchPlayers, namedMen, type UnmatchedPlayer } from "./feedIds";
+import { fixtureCodeIn, matchPlayers, namedMen, type UnmatchedPlayer } from "../feedIds";
 import type { RawPlFixture, RawPlPlayerStats, RawPlTeamList } from "./premierLeague";
 
 /** Where one man was named for one match. */

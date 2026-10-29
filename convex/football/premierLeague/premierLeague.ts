@@ -17,7 +17,7 @@ import {
   plPlayerStatsUrl,
   plSquadUrl,
   plTeamStatsUrl,
-} from "./football";
+} from "../football";
 
 // The shapes the Premier League answers: data we do not control. Only the fields read are typed.
 

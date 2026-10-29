@@ -4,7 +4,7 @@
 // rather than becoming epl-draft's fields, and players and matches come out as FPL's season-stable
 // codes, never its per-season ids.
 
-import { fplLiveUrl, getShaped, hasId } from "./football";
+import { fplLiveUrl, getShaped, hasId } from "../football";
 import type { RawBootstrap, RawFixture } from "./fpl";
 
 /** One scoring stat in one match. `points` and `points_modification` are FPL's scoring, not read. */

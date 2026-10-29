@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
-import { codesByOpta, namedMen } from "../../../convex/football/feedIds";
-import { matchSlots, plStats, type MatchSlot } from "../../../convex/football/plMatch";
-import { fplElementsWithout, FULL_STATS, MATCH, recordedGw6, recordedPlFixture } from "../../support/recorded/gw6.payloads";
+import { codesByOpta, namedMen } from "../../../../convex/football/feedIds";
+import { matchSlots, plStats, type MatchSlot } from "../../../../convex/football/premierLeague/plMatch";
+import { fplElementsWithout, FULL_STATS, MATCH, recordedGw6, recordedPlFixture } from "../../../support/recorded/gw6.payloads";
 
 const { fpl, pl } = recordedGw6();
 const hullEverton = recordedPlFixture(MATCH.hullEverton.pl);

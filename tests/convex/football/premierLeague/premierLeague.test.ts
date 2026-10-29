@@ -11,9 +11,9 @@ import {
   plPlayerStatsUrl,
   plSquadUrl,
   plTeamStatsUrl,
-} from "../../../convex/football/football";
-import { readFplBootstrap } from "../../../convex/football/fpl";
-import { readFplLive } from "../../../convex/football/fplLive";
+} from "../../../../convex/football/football";
+import { readFplBootstrap } from "../../../../convex/football/fpl/fpl";
+import { readFplLive } from "../../../../convex/football/fpl/fplLive";
 import {
   readPlCommentary,
   readPlFixture,
@@ -22,15 +22,15 @@ import {
   readPlSquad,
   readPlTeamStats,
   squadNumbers,
-} from "../../../convex/football/premierLeague";
+} from "../../../../convex/football/premierLeague/premierLeague";
 import {
   COMMENTARY_MATCH,
   recordedCommentary,
   recordedTeamStats,
   UPCOMING_MATCH,
-} from "../../support/recorded/commentary.payloads";
-import { LIVE_MATCH, recordedLiveTeamStats } from "../../support/recorded/live.payloads";
-import { fakeFetch } from "../../support/convex/test.harness";
+} from "../../../support/recorded/commentary.payloads";
+import { LIVE_MATCH, recordedLiveTeamStats } from "../../../support/recorded/live.payloads";
+import { fakeFetch } from "../../../support/convex/test.harness";
 
 /** Stubs fetch to answer each URL with its body in `bodies`, as `fakeFetch` does; records the URLs. */
 function fakeFeed(bodies: Record<string, unknown>) {
