@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import type { Cell } from "../../convex/lineup/pitch";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { Loading, Notice, PageSection, Panel, PanelNote, Problem } from "../frame/Panel";
+import { Loading, Notice, PageSection, Panel, PanelNote, Problem, Status } from "../frame/Panel";
 import { useMinute } from "../useMinute";
 import { markedBy } from "./focusMarks";
 import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, shownLineup, withRole, type DraftLineup } from "./lineupDraft";
@@ -188,11 +188,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
             {saveWords}
           </button>
         </div>
-        {savedFrom !== null && (
-          <p role="status" className="px-3 pb-2">
-            {savedWords(savedFrom)}
-          </p>
-        )}
+        <Status words={savedFrom === null ? null : savedWords(savedFrom)} className="px-3 pb-2" />
         <Problem problem={problem} />
       </div>
       {joined.length > 0 && <Notice>{joinedBenchWords(joined.map((code) => squad.get(code)!.name))}</Notice>}

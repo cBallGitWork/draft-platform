@@ -21,12 +21,13 @@ import {
 } from "../../../src/admin/words";
 import { FEEDBACK_PATH } from "../../../src/feedback/paths";
 import type { FeedbackList } from "../../../src/feedback/seam";
-import { FEEDBACK_TITLE, feedbackLinkWords, messageLabel, sendWords, sentWords } from "../../../src/feedback/words";
+import { FEEDBACK_TITLE, feedbackHint, feedbackLinkWords, messageLabel, sendWords, sentWords } from "../../../src/feedback/words";
 import { TABLE_PATH } from "../../../src/frame/menu";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
 import { whenWords } from "../../../src/words";
+import { descriptionOf } from "../../support/src/describedBy";
 import { admin, commissioner, manager, newcomer, openApp, visitor } from "../../support/src/shell.harness";
 
 const SENT_AT = Date.parse("2026-10-24T20:00:00Z");
@@ -65,11 +66,19 @@ describe("sending", () => {
   it("#357 Done: what's typed goes to the admin, the box empties and it says it was sent", async () => {
     const app = openApp(FEEDBACK_PATH, manager);
     await userEvent.type(await screen.findByRole("textbox", { name: messageLabel }), "The table looks wrong.");
+    const status = screen.getByRole("status");
+    expect(status.textContent).toBe("");
     await userEvent.click(screen.getByRole("button", { name: sendWords }));
 
     expect(app.feedback.send).toHaveBeenCalledWith("The table looks wrong.");
-    expect(await screen.findByRole("status")).toHaveProperty("textContent", sentWords);
+    await waitFor(() => expect(status.textContent).toBe(sentWords));
+    expect(screen.getByRole("status")).toBe(status);
     expect(box()).toHaveProperty("value", "");
+  });
+
+  it("the box is described by its hint, for screen readers", async () => {
+    openApp(FEEDBACK_PATH, manager);
+    expect(descriptionOf(await screen.findByRole("textbox", { name: messageLabel }))).toBe(feedbackHint);
   });
 
   it("the server's refusal is said in the alert strip, and what was typed stays", async () => {

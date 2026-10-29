@@ -103,10 +103,14 @@ describe("editing them", () => {
     const app = openSettings();
     await userEvent.click(await screen.findByRole("radio", { name: oddTeamOutWords.bye }));
     await setGames("2");
+    const status = screen.getByRole("status");
+    expect(status.textContent).toBe("");
     await save();
 
     expect(app.leagueSettings.save).toHaveBeenCalledExactlyOnceWith(league.leagueId, { ...FIRST, oddTeamOut: "bye", gamesPerGameweek: 2 }, REVISION);
-    expect((await screen.findByRole("status")).textContent).toBe(savedWords(CHANGES_FROM));
+    // The live region was in the page, empty, before the save, so the words are announced.
+    await waitFor(() => expect(status.textContent).toBe(savedWords(CHANGES_FROM)));
+    expect(screen.getByRole("status")).toBe(status);
   });
 
   it("shows why the server refused them", async () => {
@@ -162,7 +166,7 @@ describe("the squad (#341)", () => {
       minimumByArea: { goalkeeper: 0, defence: 4, defensiveMidfield: 0, midfield: 0, attackingMidfield: 0, attack: 0 },
       maxPerClub: 3,
     });
-    expect((await screen.findByRole("status")).textContent).toBe(savedWords(CHANGES_FROM));
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe(savedWords(CHANGES_FROM)));
   });
 
   it("saves the minimums and the club maximum off again, as none", async () => {
