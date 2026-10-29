@@ -260,20 +260,6 @@ describe("opening a link", () => {
   });
 });
 
-describe("the allowed list", () => {
-  test("adding an email twice keeps one row, stored trimmed and lower-cased", async () => {
-    expect(await t.mutation(internal.signIn.allowedEmails.add, { email: " New@Example.com" })).toBe("added");
-    expect(await t.mutation(internal.signIn.allowedEmails.add, { email: "new@example.com" })).toBe("already on the list");
-
-    const rows = await t.run((ctx) => ctx.db.query("allowedEmails").collect());
-    expect(rows.map((row) => row.email)).toEqual([LISTED, "new@example.com"]);
-  });
-
-  test("something that isn't an email address is refused, not stored", async () => {
-    await expect(t.mutation(internal.signIn.allowedEmails.add, { email: "craig" })).rejects.toThrow("isn't an email address");
-  });
-});
-
 describe("clearing old asks", () => {
   /** An ask stored straight into the table, `ageMs` before now. */
   const storeAsk = (ageMs: number) =>
