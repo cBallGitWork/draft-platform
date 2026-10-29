@@ -1,10 +1,11 @@
 // The commissioner's gameweeks (#74; spec/13, Gameweeks): reached from "Your leagues" by whoever
 // runs the league, a tick for each gameweek, and what it says when a tick is refused.
 
-import { screen, within } from "@testing-library/react";
+import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
@@ -88,6 +89,21 @@ describe("the gameweeks page", () => {
     expect(await isDisabled(BEGUN + 1)).toBe(false);
     await userEvent.click(await tickBox(BEGUN));
     expect(app.gameweeks.setUsed).not.toHaveBeenCalled();
+  });
+
+  it("a gameweek that begins while the page is open stops taking ticks within a minute", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    openApp(PAGE, commissioner);
+    expect(await isDisabled(BEGUN + 1)).toBe(false);
+
+    // BEGUN + 1's deadline is an hour on: a minute short of it, the tick still takes.
+    act(() => vi.advanceTimersByTime(HOUR_MS - MINUTE_MS));
+    expect(await isDisabled(BEGUN + 1)).toBe(false);
+
+    // To the deadline, then a minute on: by then the page has redrawn.
+    act(() => vi.advanceTimersByTime(2 * MINUTE_MS));
+    expect(await isDisabled(BEGUN + 1)).toBe(true);
+    expect(within(rowOf(BEGUN + 1)).getByText(begunWords)).toBeTruthy();
   });
 
   it("says why a tick was refused", async () => {

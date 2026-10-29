@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import type { Cell } from "../../convex/lineup/pitch";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { ESCAPE_KEY, KEY_DOWN } from "../browserEvents";
 import { Loading, Notice, PageSection, Panel, PanelNote, Problem, Status } from "../frame/Panel";
 import { useMinute } from "../useMinute";
 import { markedBy } from "./focusMarks";
@@ -32,7 +33,7 @@ import {
 import { noTeamWords } from "./words";
 
 /** The key that puts a picked-up player back. */
-const PUT_BACK_KEY = "Escape";
+const PUT_BACK_KEY = ESCAPE_KEY;
 const PRESET_ID = "tactics-preset";
 
 /** My team's Tactics tab (#14; spec/12, My team; spec/05): the pitch where the manager sets the
@@ -112,8 +113,8 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     const putBack = (event: KeyboardEvent) => {
       if (event.key === PUT_BACK_KEY) setPickedCode(null);
     };
-    document.addEventListener("keydown", putBack);
-    return () => document.removeEventListener("keydown", putBack);
+    document.addEventListener(KEY_DOWN, putBack);
+    return () => document.removeEventListener(KEY_DOWN, putBack);
   }, [pickedCode]);
 
   const change = (next: DraftLineup, moved: number, focus: readonly string[] = [markedBy("player", moved)]) => {
