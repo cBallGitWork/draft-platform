@@ -10,3 +10,13 @@ export function ClubName({ club }: { club: { name: string; shortName: string } }
     </>
   );
 }
+
+/** A club's three letters, its full name on hover: how a player's club or a match's sides are
+ *  written in a row. `className` comes before the abbr's own no-underline. */
+export function ClubShort({ club, className }: { club: { name: string; shortName: string }; className?: string }) {
+  return (
+    <abbr title={club.name} className={className === undefined ? "no-underline" : `${className} no-underline`}>
+      {club.shortName}
+    </abbr>
+  );
+}

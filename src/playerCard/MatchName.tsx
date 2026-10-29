@@ -1,3 +1,4 @@
+import { ClubShort } from "../premierLeague/ClubName";
 import { versusWords } from "../shared/words";
 import type { PlayedMatch } from "./seam";
 
@@ -5,13 +6,9 @@ import type { PlayedMatch } from "./seam";
 export function MatchName({ match }: { match: Pick<PlayedMatch, "home" | "away"> }) {
   return (
     <>
-      <abbr title={match.home.name} className="no-underline">
-        {match.home.shortName}
-      </abbr>{" "}
+      <ClubShort club={match.home} />{" "}
       {versusWords}{" "}
-      <abbr title={match.away.name} className="no-underline">
-        {match.away.shortName}
-      </abbr>
+      <ClubShort club={match.away} />
     </>
   );
 }
