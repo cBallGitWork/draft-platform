@@ -36,7 +36,7 @@ const GIVE_UP_MS = 4 * HOUR_MS;
 /** Between one read and the next in a poll: politeness, not a rule of the feed. */
 const PAUSE_MS = SECOND_MS;
 /** The fixture's `status` once the match is over ("U" before it, "C" after). A copy of
- *  PL_FULL_TIME in convex/football/premierLeague.ts, which plain node can't import: it imports "./football"
+ *  PL_FULL_TIME in convex/football/premierLeague/premierLeague.ts, which plain node can't import: it imports "../football"
  *  with no extension. tests/scripts/record-match.test.mjs holds the two equal. */
 const FULL_TIME = "C";
 const RECORDINGS_DIR = join(dirname(dirname(fileURLToPath(import.meta.url))), ".recordings");

@@ -2,8 +2,8 @@
 // recorded lines of Hull v Everton, gameweek 6 of 2026/27, scored under the tests' example set.
 
 import { codesByOpta } from "../../../convex/football/feedIds";
-import { fplStatLines } from "../../../convex/football/fplLive";
-import { plStatLines } from "../../../convex/football/plMatch";
+import { fplStatLines } from "../../../convex/football/fpl/fplLive";
+import { plStatLines } from "../../../convex/football/premierLeague/plMatch";
 import type { Lineup } from "../../../convex/lineup/lineup";
 import type { Cell } from "../../../convex/lineup/pitch";
 import type { MatchStats } from "../../../convex/scoring/scoring";

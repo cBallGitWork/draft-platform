@@ -15,9 +15,9 @@ import {
   plPlayerStatsUrl,
   plTeamStatsUrl,
 } from "../../../convex/football/football";
-import { fplStatLines } from "../../../convex/football/fplLive";
+import { fplStatLines } from "../../../convex/football/fpl/fplLive";
 import { matchRecords } from "../../../convex/stats/matchRecords";
-import { matchSlots, plStatLines } from "../../../convex/football/plMatch";
+import { matchSlots, plStatLines } from "../../../convex/football/premierLeague/plMatch";
 import { FULL_STATS, hullEvertonReads, MATCH, recordedGw6, type Gw6Payloads } from "../recorded/gw6.payloads";
 import { recordedCommentary, recordedTeamStats } from "../recorded/commentary.payloads";
 import type { syncTrigger } from "../../../convex/schema";
@@ -37,7 +37,7 @@ export const FULL_TIME_READ = KICKOFF + 2 * HOUR_MS;
 /** Both sides' starters, eleven a side, as Hull v Everton's sheets name them. */
 export const BOTH_ELEVENS = 22;
 
-/** Hull v Everton's five team stats at full time, as football/plTeamStats.ts maps the recording. */
+/** Hull v Everton's five team stats at full time, as football/premierLeague/plTeamStats.ts maps the recording. */
 export const HULL_EVERTON_TEAM_STATS = {
   home: { shots: 9, shotsOnTarget: 5, possession: 34.8, corners: 7, yellowCards: 2, redCards: 0 },
   away: { shots: 15, shotsOnTarget: 7, possession: 65.2, corners: 6, yellowCards: 0, redCards: 0 },

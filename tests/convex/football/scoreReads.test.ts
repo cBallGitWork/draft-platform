@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
-import { mapFpl } from "../../../convex/football/fpl";
-import type { RawPlFixture } from "../../../convex/football/premierLeague";
+import { mapFpl } from "../../../convex/football/fpl/fpl";
+import type { RawPlFixture } from "../../../convex/football/premierLeague/premierLeague";
 import { fplScoreRead, plScoreRead, readEach } from "../../../convex/football/scoreReads";
 import { FIXTURE_CODE, recordedFpl } from "../../support/recorded/fpl.payloads";
 import { FPL_RECORDED_LIVE, IPSWICH_FOREST, recordedLiveScore } from "../../support/recorded/scores.payloads";

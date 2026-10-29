@@ -9,7 +9,7 @@ import {
   readCommentary,
   type CommentaryRead,
 } from "../../../convex/football/matchCommentary";
-import type { RawPlCommentary, RawPlFixture } from "../../../convex/football/premierLeague";
+import type { RawPlCommentary, RawPlFixture } from "../../../convex/football/premierLeague/premierLeague";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { actingAs } from "../../support/convex/leagues.harness";

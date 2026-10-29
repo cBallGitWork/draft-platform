@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest";
 import { codesByOpta } from "../../../convex/football/feedIds";
-import { fplStatLines } from "../../../convex/football/fplLive";
+import { fplStatLines } from "../../../convex/football/fpl/fplLive";
 import { mergeStats } from "../../../convex/stats/matchRecords";
-import { plStatLines } from "../../../convex/football/plMatch";
+import { plStatLines } from "../../../convex/football/premierLeague/plMatch";
 import { FULL_STATS, hullEvertonReads, MATCH, recordedGw6, recordedPlFixture } from "../../support/recorded/gw6.payloads";
 import { withOwnStats } from "../../../convex/scoring/ownStats";
 import { scoreMatch, type MatchStats } from "../../../convex/scoring/scoring";

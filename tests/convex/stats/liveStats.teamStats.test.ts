@@ -1,8 +1,8 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { plTeamStatsUrl } from "../../../convex/football/football";
-import type { RawPlTeamStats } from "../../../convex/football/premierLeague";
-import { OPTA_TEAM_STAT } from "../../../convex/football/plTeamStats";
+import type { RawPlTeamStats } from "../../../convex/football/premierLeague/premierLeague";
+import { OPTA_TEAM_STAT } from "../../../convex/football/premierLeague/plTeamStats";
 import { stagedGw6, stageTime, tickAt } from "../../support/convex/liveStats.harness";
 import { fakeFeeds, FULL_TIME_READ, HULL_EVERTON, HULL_EVERTON_TEAM_STATS, syncAt, withHullEverton } from "../../support/convex/matchStats.harness";
 import { refusedError, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
@@ -12,7 +12,7 @@ import { MATCH, recordedGw6 } from "../../support/recorded/gw6.payloads";
 // The match page's five team stats (#45; spec/10, The match page): the live tick reads each live
 // match's `/stats/match/{id}` with its points, and the match stats sync once more at full time;
 // one row a match, replaced by each read. A read that fails is logged, the held five stand, and
-// the match's points carry on. The mapping itself is tests/convex/football/plTeamStats.test.ts's.
+// the match's points carry on. The mapping itself is tests/convex/football/premierLeague/plTeamStats.test.ts's.
 
 beforeEach(() => vi.useFakeTimers());
 
