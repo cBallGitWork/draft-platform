@@ -6,6 +6,9 @@ the root for a test that spans many files (`tests/src/flow.test.ts`). The Convex
 the whole product through are under `tests/convex/endToEnd/`: `miniBetaGameweek.test.ts`, from a
 league made to a gameweek's scores stored, and `matchPageReplay.test.ts`, a replayed match on its
 page from the team sheets to full time.
+`tests/convex/generatedApi.test.ts` fails when `convex/_generated/api.d.ts` leaves out a module
+Convex deploys, or lists one it doesn't: after adding, moving or deleting a file in `convex/`, run
+`npx convex codegen` with a deployment selected.
 
 ## The five roots
 
