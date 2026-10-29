@@ -201,3 +201,16 @@ export async function holdTypoRule({ t }: ScoresLeague) {
     }),
   );
 }
+
+/** A score no team made, written over a stored one to tell a stored read from a worked-out one. */
+export const WRITTEN_OVER = 99;
+
+/** The league stores its newly final gameweeks, as a match's lock asks it to. */
+export const storeLeague = ({ t, leagueId }: ScoresLeague) => t.mutation(internal.table.finalScores.storeLeague, { leagueId });
+
+/** Ann's stored row says WRITTEN_OVER. */
+export const writeOverAnns = (league: ScoresLeague) =>
+  league.t.run(async (ctx) => {
+    const row = (await ctx.db.query("finalScores").collect()).find((each) => each.teamId === league.annsTeam)!;
+    await ctx.db.patch("finalScores", row._id, { points: WRITTEN_OVER });
+  });

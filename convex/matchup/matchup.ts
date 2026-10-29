@@ -9,7 +9,8 @@ import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { memberOf, teamIn, teamOf, teamsOf } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
-import { begunGameweeks, storedScoresIn, type TeamScores } from "../table/gameweekScores";
+import { readOnce } from "../shared/readOnce";
+import { begunGameweeks, storedScoresIn, totalOf, type TeamScores } from "../table/gameweekScores";
 import { scheduleOf } from "../table/playedFixtures";
 import {
   gameweekInputs,
@@ -24,14 +25,13 @@ import {
   type TeamInGameweek,
 } from "../table/teamGameweek";
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
-import { averageOf, teamsInGameweek } from "../table/standings";
-import { BYE, gamesOf, type Against } from "../table/teamGames";
+import { teamsInGameweek } from "../table/standings";
+import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
 import { isWhole } from "../stats/matchRecords";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { game, matchup, type MatchupCommentary, type MatchupSide, type MatchupSlot, type SlotStatus } from "./matchupShape";
 import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vidiprinter";
-import { readOnce } from "../shared/readOnce";
 
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
 // screen): both lineups slot by slot, each player's points and whether his match is yet to come,
@@ -143,10 +143,7 @@ class SideScorer {
 
   /** The team's total as the table has it: stored once final, else the one worked out. */
   private total(teamId: TeamId, scored: TeamInGameweek | null) {
-    return (
-      this.stored.get(teamId) ??
-      (scored === null ? { points: 0, provisional: false } : { points: scored.team.total, provisional: scored.team.provisional })
-    );
+    return this.stored.get(teamId) ?? totalOf(scored);
   }
 
   async team(teamId: TeamId, teamName: string): Promise<MatchupSide> {
@@ -170,12 +167,8 @@ class SideScorer {
     const every = await Promise.all(
       this.averaged.map(async (teamId) => this.stored.get(teamId) ?? this.total(teamId, await this.inGameweek(teamId))),
     );
-    const points = new Map(this.averaged.map((teamId, index) => [teamId, every[index].points]));
-    return {
-      kind: LEAGUE_AVERAGE,
-      points: averageOf(this.averaged, points, this.gameweek),
-      provisional: every.some((each) => each.provisional),
-    };
+    const sides = new Map(this.averaged.map((teamId, index) => [teamId, every[index]]));
+    return { kind: LEAGUE_AVERAGE, ...averageScore(this.averaged, sides, this.gameweek) };
   }
 
   /** The commentary of every match the sides' men play in, priced for them. One that can't be read

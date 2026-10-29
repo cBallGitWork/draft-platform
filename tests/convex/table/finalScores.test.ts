@@ -15,6 +15,9 @@ import {
   lockMatch,
   readTable,
   scoresLeague,
+  storeLeague,
+  writeOverAnns,
+  WRITTEN_OVER,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 
@@ -26,10 +29,6 @@ import {
  *  squad here holds. */
 const MOVED_IN = 999_001;
 const OTHER_CLUBS = [901, 902] as const;
-/** A score no team made, written over a stored one to tell a stored read from a worked-out one. */
-const WRITTEN_OVER = 99;
-
-const storeLeague = ({ t, leagueId }: ScoresLeague) => t.mutation(internal.table.finalScores.storeLeague, { leagueId });
 const finalRows = ({ t }: ScoresLeague) => t.run((ctx) => ctx.db.query("finalScores").collect());
 /** Each stored row's team and points, in team order. */
 const stored = async (league: ScoresLeague) =>
@@ -37,12 +36,6 @@ const stored = async (league: ScoresLeague) =>
 /** Ann's points in gameweek 6 as the table reads them. */
 const annsPoints = async (league: ScoresLeague) =>
   (await readTable(league))!.results.find((each) => each.gameweek === GAMEWEEK)!.teams.find((team) => team.teamId === league.annsTeam);
-/** Ann's stored row says WRITTEN_OVER. */
-const writeOverAnns = (league: ScoresLeague) =>
-  league.t.run(async (ctx) => {
-    const row = (await ctx.db.query("finalScores").collect()).find((each) => each.teamId === league.annsTeam)!;
-    await ctx.db.patch("finalScores", row._id, { points: WRITTEN_OVER });
-  });
 
 test("once the match locks, each team's points are stored, and the table reads them from then on", async () => {
   const league = await scoresLeague();
