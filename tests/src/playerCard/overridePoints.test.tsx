@@ -9,7 +9,18 @@ import { describe, expect, it } from "vitest";
 import { OverridePoints } from "../../../src/playerCard/OverridePoints";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import type { PlayedMatch, PlayerCard } from "../../../src/playerCard/seam";
-import { cancelOverrideWords, OVERRIDE_TITLE, overriddenDoneWords, overriddenWords, overrideLabels, overrideMatchWords, overrideWords, SEASON_TITLE } from "../../../src/playerCard/words";
+import {
+  cancelOverrideWords,
+  OVERRIDE_TITLE,
+  overriddenDoneWords,
+  overriddenWords,
+  overrideHint,
+  overrideLabels,
+  overrideMatchWords,
+  overrideWords,
+  SEASON_TITLE,
+} from "../../../src/playerCard/words";
+import { descriptionOf } from "../../support/src/describedBy";
 import { fakePlayerCard, type PlayerCardData } from "../../support/src/playerCard.harness";
 import { adminSeeing, coCommissioned, commissioned, league, manager, managerIn, openApp } from "../../support/src/shell.harness";
 import type { Session } from "../../../src/auth";
@@ -98,11 +109,21 @@ describe("overriding", () => {
     await userEvent.selectOptions(form.getByLabelText(overrideLabels.match), overrideMatchWords(3, "COV", "ARS"));
     await userEvent.type(form.getByLabelText(overrideLabels.points), "12.5");
     await userEvent.type(form.getByLabelText(overrideLabels.reason), REASON);
+    const statusesBefore = screen.getAllByRole("status");
     await userEvent.click(form.getByRole("button", { name: overrideWords }));
 
     expect(app.playerCard.override).toHaveBeenCalledWith(league.leagueId, { fixtureCode: EARLIER.fixtureCode, playerCode: SAKA.code, points: 12.5, reason: REASON });
-    expect((await screen.findByText(overriddenDoneWords)).getAttribute("role")).toBe("status");
+    const done = await screen.findByText(overriddenDoneWords);
+    expect(done.getAttribute("role")).toBe("status");
+    // The live region was in the page, empty, before the save, so the words are announced.
+    expect(statusesBefore).toContain(done);
     expect((form.getByLabelText(overrideLabels.reason) as HTMLInputElement).value).toBe("");
+  });
+
+  it("describes the points box by the hint, for screen readers", async () => {
+    openCard(managerIn(commissioned));
+    await userEvent.click(await screen.findByRole("button", { name: OVERRIDE_TITLE }));
+    expect(descriptionOf(screen.getByLabelText(overrideLabels.points))).toBe(overrideHint);
   });
 
   it("says why the server refused, and keeps what was typed", async () => {

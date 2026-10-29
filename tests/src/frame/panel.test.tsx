@@ -4,7 +4,7 @@
 
 import { render, screen } from "@testing-library/react";
 import { expect, it } from "vitest";
-import { Notice, PageSection, Panel, PanelNote, Problem } from "../../../src/frame/Panel";
+import { Notice, PageSection, Panel, PanelNote, Problem, Status } from "../../../src/frame/Panel";
 
 it("names a page's section by its title, with the aside on the plate and the caller's classes kept", () => {
   render(
@@ -64,6 +64,18 @@ it("says a notice as a status in the alert strip, where a problem is an alert", 
   expect(screen.getByRole("status").className).toBe("alert-strip");
   expect(screen.getByRole("status").textContent).toBe("2 invites wait for tomorrow");
   expect(screen.getByRole("alert").textContent).toBe("Refused");
+});
+
+it("keeps a status line in the page while it has no words, with its look only once it has some", () => {
+  const { rerender } = render(<Status words={null} className="alert-strip" />);
+  const status = screen.getByRole("status");
+  expect(status.textContent).toBe("");
+  expect(status.getAttribute("class")).toBeNull();
+
+  rerender(<Status words="Saved" className="alert-strip" />);
+  expect(screen.getByRole("status")).toBe(status);
+  expect(status.textContent).toBe("Saved");
+  expect(status.className).toBe("alert-strip");
 });
 
 it.each([

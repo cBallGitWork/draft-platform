@@ -1,5 +1,5 @@
 import type { MatchupCommentary } from "../../convex/matchup/matchupShape";
-import { Panel, PanelNote } from "../frame/Panel";
+import { Panel, PanelNote, Status } from "../frame/Panel";
 import { commentaryDelayedWords, unreadCommentaryWords } from "./words";
 
 /** CM's vidiprinter (spec/10): every line, newest first, each with what it is worth to the league's
@@ -23,11 +23,7 @@ export function Vidiprinter({
         <PanelNote>{unreadCommentaryWords(commentary.reason)}</PanelNote>
       ) : (
         <>
-          {commentary.delayed && (
-            <p role="status" className="alert-strip">
-              {commentaryDelayedWords}
-            </p>
-          )}
+          <Status words={commentary.delayed ? commentaryDelayedWords : null} className="alert-strip" />
           {commentary.lines.length === 0 ? (
             <PanelNote>{noLinesWords}</PanelNote>
           ) : (
@@ -36,7 +32,7 @@ export function Vidiprinter({
               {commentary.lines.map((line) => (
                 <li key={line.key} className="flex items-baseline justify-between gap-3 border-t border-panel-rule px-3">
                   <span>{line.text}</span>
-                  {line.points !== null && <span className="shrink-0 whitespace-nowrap font-bold text-figure tabular-nums">{line.points}</span>}
+                  {line.points !== null && <span className="shrink-0 whitespace-nowrap font-bold text-figure">{line.points}</span>}
                 </li>
               ))}
             </ol>

@@ -12,7 +12,8 @@ import { mainMenuLabel } from "../../../src/frame/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { commissioned, league, manager, managerIn, newcomer, openApp } from "../../support/src/shell.harness";
-import { MAIL_TITLE, WRITE_TITLE, loadingWords, unreadFigure, noLettersWords, onlyLatestWords, sendToWords, sentWords, writeLabels } from "../../../src/mail/words";
+import { MAIL_TITLE, WRITE_TITLE, loadingWords, unreadFigure, noLettersWords, onlyLatestWords, sendToWords, sentWords, writeHint, writeLabels } from "../../../src/mail/words";
+import { descriptionOf } from "../../support/src/describedBy";
 
 // Noon UTC, so a letter's day is the same in London, where vitest.config.ts pins every test's zone.
 const letter = (number: number, read: boolean, from: string | null = null): LetterSummary => ({
@@ -155,14 +156,23 @@ describe("writing to the league", () => {
     expect(within(panel).getByRole("heading", { level: 2, name: WRITE_TITLE })).toBeTruthy();
   });
 
+  it("describes the letter's box by the hint, for screen readers", async () => {
+    openApp(MAIL_PATH, commissioner, { topBar: twoUnread, letters });
+    expect(descriptionOf(await screen.findByRole("textbox", { name: writeLabels.body }))).toBe(writeHint);
+  });
+
   it("the commissioner sends one to their league, and is told it went", async () => {
     const app = openApp(MAIL_PATH, commissioner, { topBar: twoUnread, letters });
     await userEvent.type(await screen.findByRole("textbox", { name: writeLabels.subject }), "Draft night");
     await userEvent.type(screen.getByRole("textbox", { name: writeLabels.body }), "Friday at eight.");
+    const statusesBefore = screen.getAllByRole("status");
     await userEvent.click(screen.getByRole("button", { name: `Send to ${league.name}` }));
 
     expect(app.mail.writeToLeague).toHaveBeenCalledWith({ leagueId: league.leagueId, subject: "Draft night", body: "Friday at eight." });
-    expect((await screen.findByRole("status")).textContent).toBe(sentWords(league.name));
+    const sent = await screen.findByText(sentWords(league.name));
+    expect(sent.getAttribute("role")).toBe("status");
+    // The live region was in the page, empty, before the send, so the words are announced.
+    expect(statusesBefore).toContain(sent);
     expect((screen.getByRole("textbox", { name: writeLabels.subject }) as HTMLInputElement).value).toBe("");
   });
 

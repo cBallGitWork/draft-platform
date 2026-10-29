@@ -6,12 +6,10 @@
 // team's final score.
 
 import type { Lineup } from "../lineup/lineup";
-import { AREAS, LANES, type Cell } from "../lineup/pitch";
+import { cellKey, isOnPitch, type Cell } from "../lineup/pitch";
 import { roleIn } from "../lineup/roles";
 import { inTenths, type ScoringSet } from "./scoringSet";
 import { countedMatches, scoreGameweek, scoreMatch, type DoubleGameweekRule, type MatchPoints, type MatchStats } from "./scoring";
-
-const isOnPitch = ({ area, lane }: Cell) => AREAS.includes(area) && LANES.includes(lane);
 
 /** Players are FPL's season-stable `code`. */
 type PlayerCode = number;
@@ -173,9 +171,9 @@ function substitutionsByPlayer(lineup: Lineup, substitutions: readonly Substitut
 function throwOnSharedCell(counting: readonly SlotPoints[]): void {
   const standing = new Map<string, PlayerCode>();
   for (const { playerCode, cell } of counting) {
-    const cellKey = `${cell.area}/${cell.lane}`;
-    const other = standing.get(cellKey);
-    if (other !== undefined) throw new Error(`players ${other} and ${playerCode} both count in ${cellKey}`);
-    standing.set(cellKey, playerCode);
+    const key = cellKey(cell);
+    const other = standing.get(key);
+    if (other !== undefined) throw new Error(`players ${other} and ${playerCode} both count in ${key}`);
+    standing.set(key, playerCode);
   }
 }

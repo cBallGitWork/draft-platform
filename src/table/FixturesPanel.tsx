@@ -66,13 +66,13 @@ function GameweekFixtures({ gameweeks, results }: { gameweeks: readonly Gameweek
       />
       <ul aria-label={fixturesListLabel(gameweek)}>
         {fixtures.map(({ teamId, team, opponent, points }) => (
-          <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-[minmax(0,1fr)_5rem_minmax(0,1fr)] items-center gap-3 border-b border-panel-rule px-3 py-1 text-lead">
+          <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-fixture-row items-center gap-3 border-b border-panel-rule px-3 py-1 text-lead">
             <span className="text-right font-semibold">{team}</span>
             <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={gameweek}>
               {points === null ? (
                 <span>{versusWords}</span>
               ) : (
-                <span className="whitespace-nowrap font-bold text-figure tabular-nums">{scoreWords(points.team, points.opponent)}</span>
+                <span className="whitespace-nowrap font-bold text-figure">{scoreWords(points.team, points.opponent)}</span>
               )}
             </MatchupLink>
             {opponent === null ? <span className="text-derived">{leagueAverageWords}</span> : <span className="font-semibold">{opponent}</span>}

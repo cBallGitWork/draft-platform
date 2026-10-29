@@ -18,7 +18,7 @@ import {
   type TestConvex,
 } from "../../support/convex/leagues.harness";
 import { LISTED, fakeResend, linkNotSentLine, signInDeployment } from "../../support/convex/signIn.harness";
-import { silenceConsoleError } from "../../support/convex/test.harness";
+import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 
 // Creating a league and who runs it (#24 stories 1-3 and 6; spec/13).
 
@@ -87,29 +87,19 @@ describe("creating a league", () => {
 
   test("nobody but the admin can create one", async () => {
     const manager = await actingAs(t, LISTED);
-    await expect(manager.mutation(api.leagues.leagues.create, { name: "L", maxTeams: 4, commissionerEmail: COMMISSIONER })).rejects.toThrow(
-      refusals.notAdmin,
-    );
-    await expect(t.mutation(api.leagues.leagues.create, { name: "L", maxTeams: 4, commissionerEmail: COMMISSIONER })).rejects.toThrow(
-      refusals.signedOut,
-    );
+    await expectRefused(manager.mutation(api.leagues.leagues.create, { name: "L", maxTeams: 4, commissionerEmail: COMMISSIONER }), refusals.notAdmin);
+    await expectRefused(t.mutation(api.leagues.leagues.create, { name: "L", maxTeams: 4, commissionerEmail: COMMISSIONER }), refusals.signedOut);
   });
 
   test.each(OUT_OF_RANGE)("a maximum of %s teams is refused", async (maxTeams) => {
     const admin = await actingAs(t, ADMIN);
-    await expect(admin.mutation(api.leagues.leagues.create, { name: "L", maxTeams, commissionerEmail: COMMISSIONER })).rejects.toThrow(
-      refusals.maxOutOfRange,
-    );
+    await expectRefused(admin.mutation(api.leagues.leagues.create, { name: "L", maxTeams, commissionerEmail: COMMISSIONER }), refusals.maxOutOfRange);
   });
 
   test("a blank name or a commissioner who isn't an email is refused", async () => {
     const admin = await actingAs(t, ADMIN);
-    await expect(admin.mutation(api.leagues.leagues.create, { name: "  ", maxTeams: 4, commissionerEmail: COMMISSIONER })).rejects.toThrow(
-      refusals.blankName,
-    );
-    await expect(admin.mutation(api.leagues.leagues.create, { name: "L", maxTeams: 4, commissionerEmail: "commish" })).rejects.toThrow(
-      refusals.notEmail("commish"),
-    );
+    await expectRefused(admin.mutation(api.leagues.leagues.create, { name: "  ", maxTeams: 4, commissionerEmail: COMMISSIONER }), refusals.blankName);
+    await expectRefused(admin.mutation(api.leagues.leagues.create, { name: "L", maxTeams: 4, commissionerEmail: "commish" }), refusals.notEmail("commish"));
   });
 });
 
@@ -137,7 +127,7 @@ describe("the maximum", () => {
     const commissioner = await actingAs(t, COMMISSIONER);
     await commissioner.mutation(api.leagues.teams.removeManager, { leagueId, teamId });
 
-    await expect(commissioner.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 2 })).rejects.toThrow(refusals.belowTeams(3));
+    await expectRefused(commissioner.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 2 }), refusals.belowTeams(3));
     await commissioner.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 3 });
     expect((await leagueRow(t, leagueId))?.maxTeams).toBe(3);
   });
@@ -145,12 +135,12 @@ describe("the maximum", () => {
   test("a manager can't change it", async () => {
     await addManagers(t, leagueId, [MANAGERS[0]]);
     const manager = await actingAs(t, MANAGERS[0]);
-    await expect(manager.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 6 })).rejects.toThrow(refusals.notRunner);
+    await expectRefused(manager.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 6 }), refusals.notRunner);
   });
 
   test.each(OUT_OF_RANGE)("the commissioner can't set it out of range, to %s", async (maxTeams) => {
     const commissioner = await actingAs(t, COMMISSIONER);
-    await expect(commissioner.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams })).rejects.toThrow(refusals.maxOutOfRange);
+    await expectRefused(commissioner.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams }), refusals.maxOutOfRange);
     expect((await leagueRow(t, leagueId))?.maxTeams).toBe(4);
   });
 });
@@ -226,17 +216,15 @@ describe("the co-commissioner", () => {
     await commissioner.mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
     const co = await actingAs(t, CO_COMMISSIONER);
 
-    await expect(co.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: MANAGERS[0] })).rejects.toThrow(refusals.notNamer);
-    await expect(co.mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: MANAGERS[0] })).rejects.toThrow(refusals.notNamer);
-    await expect(co.mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: null })).rejects.toThrow(refusals.notNamer);
+    await expectRefused(co.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: MANAGERS[0] }), refusals.notNamer);
+    await expectRefused(co.mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: MANAGERS[0] }), refusals.notNamer);
+    await expectRefused(co.mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: null }), refusals.notNamer);
     expect(await leagueRow(t, leagueId)).toMatchObject({ commissionerEmail: COMMISSIONER, coCommissionerEmail: CO_COMMISSIONER });
   });
 
   test("the commissioner can't also be the co-commissioner", async () => {
     const admin = await actingAs(t, ADMIN);
-    await expect(admin.mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: COMMISSIONER })).rejects.toThrow(
-      refusals.alreadyCommissioner(COMMISSIONER),
-    );
+    await expectRefused(admin.mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: COMMISSIONER }), refusals.alreadyCommissioner(COMMISSIONER));
   });
 });
 
@@ -260,19 +248,15 @@ describe("naming a new commissioner", () => {
       email: MANAGERS[0],
       replaced: COMMISSIONER,
     });
-    await expect(commissioner.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 6 })).rejects.toThrow(refusals.notRunner);
+    await expectRefused(commissioner.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 6 }), refusals.notRunner);
   });
 
   test("naming the commissioner again, or the co-commissioner, is refused", async () => {
     const commissioner = await actingAs(t, COMMISSIONER);
     await commissioner.mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
 
-    await expect(commissioner.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: COMMISSIONER })).rejects.toThrow(
-      refusals.alreadyCommissioner(COMMISSIONER),
-    );
-    await expect(commissioner.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: CO_COMMISSIONER })).rejects.toThrow(
-      refusals.alreadyCoCommissioner(CO_COMMISSIONER),
-    );
+    await expectRefused(commissioner.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: COMMISSIONER }), refusals.alreadyCommissioner(COMMISSIONER));
+    await expectRefused(commissioner.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: CO_COMMISSIONER }), refusals.alreadyCoCommissioner(CO_COMMISSIONER));
     expect((await leagueRow(t, leagueId))?.commissionerEmail).toBe(COMMISSIONER);
   });
 
@@ -293,6 +277,6 @@ describe("naming a new commissioner", () => {
   test("a manager can't name one", async () => {
     await addManagers(t, leagueId, [MANAGERS[0]]);
     const manager = await actingAs(t, MANAGERS[0]);
-    await expect(manager.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: MANAGERS[0] })).rejects.toThrow(refusals.notNamer);
+    await expectRefused(manager.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: MANAGERS[0] }), refusals.notNamer);
   });
 });

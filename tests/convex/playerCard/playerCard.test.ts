@@ -8,7 +8,9 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { EXAMPLE_SET } from "../../support/convex/scoring.example";
+import { ARSENAL, CHELSEA, COVENTRY, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // A player's card (#381, spec/12 The player card): who he is, who owns him in the league, FPL's
 // news, this season's matches priced under the site's scoring at his best position, or at his slot
@@ -16,9 +18,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 
 const [ANN, BOB] = MANAGERS;
 const OUTSIDER = "outsider@example.com";
-const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
-const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
-const COVENTRY = { code: 9, name: "Coventry", shortName: "COV" };
 
 const SAKA = {
   code: 1001,
@@ -53,16 +52,6 @@ const ARSENAL_AHEAD = Array.from({ length: NEXT_FIXTURES_SHOWN + 1 }, (_, index)
 );
 const NO_KICKOFF_YET = fixture(20, null, ARSENAL.code, COVENTRY.code, null);
 
-const record = (playerCode: number, fixtureCode: number, stats: Record<string, number>, parts: { played?: boolean | null; pl?: boolean } = {}) => ({
-  playerCode,
-  fixtureCode,
-  started: true,
-  played: parts.played === undefined ? true : parts.played,
-  arrived: { fpl: true, pl: parts.pl ?? true },
-  stats,
-  state: "complete" as const,
-});
-
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
@@ -72,24 +61,21 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t);
   teams = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
-    for (const club of [ARSENAL, CHELSEA, COVENTRY]) await ctx.db.insert("clubs", club);
-    for (const { positions, ...player } of [SAKA, MOVER]) {
-      await ctx.db.insert("players", player);
-      await ctx.db.insert("playerPositions", { code: player.code, starts: [], approved: [], set: positions, removed: [] });
-    }
+    await insertClubs(ctx, [ARSENAL, CHELSEA, COVENTRY]);
+    await insertPlayers(ctx, [SAKA, MOVER]);
     const { positions: _none, ...gone } = GONE;
     await ctx.db.insert("players", { ...gone, droppedAt: NOW });
     for (const each of [ARS_COV, CHE_ARS, LAST_SEASON, COV_CHE, ...ARSENAL_AHEAD, NO_KICKOFF_YET]) await ctx.db.insert("fixtures", each);
     await ctx.db.insert("siteScoring", { scoring: structuredClone(EXAMPLE_SET) as StoredScoringSet, kind: "fix", season: 2025, number: 1, announcedAt: 0, takesEffectAt: 0 });
     await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: SAKA.code });
     for (const each of [
-      record(SAKA.code, ARS_COV.code, { minutes: 90, goals_scored: 1, assists: 1 }),
+      completeRecord(SAKA.code, ARS_COV.code, { minutes: 90, goals_scored: 1, assists: 1 }),
       // Only FPL's part has arrived: not yet whole.
-      record(SAKA.code, CHE_ARS.code, { minutes: 90 }, { pl: false }),
-      record(SAKA.code, LAST_SEASON.code, { minutes: 90, goals_scored: 3 }),
-      record(MOVER.code, ARS_COV.code, { minutes: 90, goals_conceded: 4 }),
+      completeRecord(SAKA.code, CHE_ARS.code, { minutes: 90 }, { pl: false }),
+      completeRecord(SAKA.code, LAST_SEASON.code, { minutes: 90, goals_scored: 3 }),
+      completeRecord(MOVER.code, ARS_COV.code, { minutes: 90, goals_conceded: 4 }),
       // An unused substitute.
-      record(MOVER.code, CHE_ARS.code, {}, { played: false }),
+      completeRecord(MOVER.code, CHE_ARS.code, {}, { played: false }),
     ]) {
       await ctx.db.insert("playerMatchStats", each);
     }
@@ -180,5 +166,5 @@ test("a code the football sync doesn't hold has no card", async () => {
 });
 
 test("someone not in the league is refused", async () => {
-  await expect(cardAs(OUTSIDER, SAKA.code)).rejects.toThrow(refusals.notInLeague);
+  await expectRefused(cardAs(OUTSIDER, SAKA.code), refusals.notInLeague);
 });

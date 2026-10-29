@@ -1,6 +1,6 @@
 // The shell's routes, rendered (#19's seam): what a visitor and a signed-in manager can reach.
 
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { PRODUCT_NAME } from "../../convex/shared/product";
@@ -18,6 +18,7 @@ import {
 import { MAIL_TITLE, unreadTabLabel } from "../../src/mail/words";
 import { MATCHUP_TITLE } from "../../src/matchup/words";
 import { SIGN_IN_PATH } from "../../src/sign-in/paths";
+import { descriptionOf } from "../support/src/describedBy";
 import { LINK_REPLY, league, manager, openApp, visitor } from "../support/src/shell.harness";
 import { linkProblemWords, signInWords } from "../../src/sign-in/words";
 
@@ -55,8 +56,13 @@ describe("a logged-out visitor", () => {
     const app = openApp(SIGN_IN_PATH, visitor);
     await userEvent.type(await screen.findByRole("textbox", { name: signInWords.emailLabel }), "craig@example.com");
     await userEvent.click(screen.getByRole("button", { name: signInWords.send }));
-    expect((await screen.findByRole("status")).textContent).toBe(LINK_REPLY);
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe(LINK_REPLY));
     expect(app.auth.requestSignInLink).toHaveBeenCalledWith("craig@example.com");
+  });
+
+  it("the email box is described by its hint, for screen readers", async () => {
+    openApp(SIGN_IN_PATH, visitor);
+    expect(descriptionOf(await screen.findByRole("textbox", { name: signInWords.emailLabel }))).toBe(signInWords.hint);
   });
 
   it("opened from a used or expired link, is told it has expired, above the box to send a new one", async () => {
@@ -69,7 +75,7 @@ describe("a logged-out visitor", () => {
     openApp(`${SIGN_IN_PATH}?link=expired`, visitor);
     await userEvent.type(await screen.findByRole("textbox", { name: signInWords.emailLabel }), "craig@example.com");
     await userEvent.click(screen.getByRole("button", { name: signInWords.send }));
-    expect((await screen.findByRole("status")).textContent).toBe(LINK_REPLY);
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe(LINK_REPLY));
     expect(screen.queryByRole("alert")).toBeNull();
   });
 

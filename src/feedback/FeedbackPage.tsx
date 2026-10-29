@@ -1,13 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { FEEDBACK_MAX } from "../../convex/feedback/feedbackLimits";
-import { PANEL_BODY, PageSection, Problem } from "../frame/Panel";
+import { PANEL_BODY, PageSection, Problem, Status } from "../frame/Panel";
 import { useChange } from "../useChange";
 import { FEEDBACK_PATH } from "./paths";
 import type { FeedbackSeam } from "./seam";
 import { FEEDBACK_TITLE, feedbackHint, feedbackLinkWords, messageLabel, sendWords, sentWords } from "./words";
 
 const MESSAGE_ID = "feedback-message";
+const HINT_ID = "feedback-hint";
 
 /** How many lines the box shows before it scrolls. */
 const MESSAGE_ROWS = 8;
@@ -40,13 +41,11 @@ export function FeedbackPage({ send }: { send: FeedbackSeam["send"] }) {
   return (
     <PageSection title={FEEDBACK_TITLE} className="max-w-xl bg-panel">
       <Problem problem={problem} />
-      {sent && (
-        <p role="status" className="px-3 pt-2 text-derived">
-          {sentWords}
-        </p>
-      )}
+      <Status words={sent ? sentWords : null} className="px-3 pt-2 text-derived" />
       <form onSubmit={submit} className={PANEL_BODY}>
-        <p className="text-muted">{feedbackHint}</p>
+        <p id={HINT_ID} className="text-muted">
+          {feedbackHint}
+        </p>
         <label htmlFor={MESSAGE_ID} className="font-semibold">
           {messageLabel}
         </label>
@@ -57,6 +56,7 @@ export function FeedbackPage({ send }: { send: FeedbackSeam["send"] }) {
           rows={MESSAGE_ROWS}
           value={message}
           onChange={(event) => setMessage(event.target.value)}
+          aria-describedby={HINT_ID}
           className="text-box py-1"
         />
         <button type="submit" disabled={busy} className="action self-start">

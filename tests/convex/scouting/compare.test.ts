@@ -4,7 +4,9 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { Position } from "../../../convex/positions/positionTables";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ARSENAL, CHELSEA, SAKA, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // Two players side by side (#373, spec/19 The players list): who each is and who owns him in the
 // league, and his stats this season added up from the matches his card lists: not last season's,
@@ -13,10 +15,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // until matches are scored (#29).
 
 const [ANN, BOB] = MANAGERS;
-const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
-const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
-
-const SAKA = { code: 1001, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code, positions: ["W"] as Position[] };
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM", "W"] as Position[] };
 /** Held by the football sync, with no match yet. */
 const NEW_BOY = { code: 1005, name: "New", fullName: "New Boy", clubCode: CHELSEA.code, positions: [] as Position[] };
@@ -38,15 +36,8 @@ const LAST_SEASON = fixture(4, 30, true);
 /** Postponed with no new date. */
 const POSTPONED = fixture(5, null);
 
-const record = (playerCode: number, fixtureCode: number, stats: Record<string, number>, played: boolean | null = true, pl = true) => ({
-  playerCode,
-  fixtureCode,
-  started: played === true,
-  played,
-  arrived: { fpl: true, pl },
-  stats,
-  state: "complete" as const,
-});
+const record = (playerCode: number, fixtureCode: number, stats: Record<string, number>, played: boolean | null = true, pl = true) =>
+  completeRecord(playerCode, fixtureCode, stats, { started: played === true, played, pl });
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -57,11 +48,8 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t);
   teams = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
-    for (const club of [ARSENAL, CHELSEA]) await ctx.db.insert("clubs", club);
-    for (const { positions, ...player } of [SAKA, PALMER, NEW_BOY]) {
-      await ctx.db.insert("players", player);
-      await ctx.db.insert("playerPositions", { code: player.code, starts: [], approved: [], set: positions, removed: [] });
-    }
+    await insertClubs(ctx, [ARSENAL, CHELSEA]);
+    await insertPlayers(ctx, [SAKA, PALMER, NEW_BOY]);
     for (const each of [GW1, GW2, GW3, LAST_SEASON, POSTPONED]) await ctx.db.insert("fixtures", each);
     await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: SAKA.code });
     for (const each of [
@@ -130,5 +118,5 @@ test("a player the football sync doesn't hold is refused", async () => {
 
 test("anyone in the league may compare; someone not in it is refused", async () => {
   expect(await compareAs(BOB, [SAKA.code, PALMER.code])).toHaveLength(2);
-  await expect(compareAs(MANAGERS[3], [SAKA.code, PALMER.code])).rejects.toThrow(refusals.notInLeague);
+  await expectRefused(compareAs(MANAGERS[3], [SAKA.code, PALMER.code]), refusals.notInLeague);
 });

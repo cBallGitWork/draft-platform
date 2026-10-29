@@ -1,13 +1,14 @@
 // A league's invites and join requests, for its runners (#73; spec/13 Joining, spec/15 Joining a
 // league): what the page shows, and what each control asks of the seam.
 
-import { cleanup, screen, within } from "@testing-library/react";
+import { act, cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { joinPath } from "../../../convex/joining/joiningShared";
-import { DAY_MS } from "../../../convex/shared/time";
+import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { commissioner, league, managerIn, openApp } from "../../support/src/shell.harness";
+import { descriptionOf } from "../../support/src/describedBy";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { invitesPath } from "../../../src/joining/paths";
 import type { InvitesPageData } from "../../../src/joining/seam";
@@ -16,9 +17,11 @@ import {
   emailInvitesWords,
   expiredWords,
   forTeamWords,
+  inviteHint,
   inviteLinkWords,
   INVITES_TITLE,
   joinedWords,
+  linkHint,
   loadingWords,
   noTeamWords,
   notYoursWords,
@@ -75,6 +78,21 @@ describe("the invites page", () => {
     expect(screen.getByRole("status").textContent).toBe(waitingStrip(1));
   });
 
+  it("an invite that lapses while the page is open shows as expired within a minute", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const expiresAt = Date.now() + HOUR_MS;
+    openPage({ ...page, invites: [{ ...inviteRow("invite-hal", "hal@example.com"), expiresAt }] });
+    expect(await screen.findByText(deliveryWords.sent(expiresAt))).toBeTruthy();
+
+    // A minute short of the hour, it's still live.
+    act(() => vi.advanceTimersByTime(HOUR_MS - MINUTE_MS));
+    expect(within(inviteItem("hal@example.com")).getByText(deliveryWords.sent(expiresAt))).toBeTruthy();
+
+    // To the hour, then a minute on: by then the page has redrawn.
+    act(() => vi.advanceTimersByTime(2 * MINUTE_MS));
+    expect(within(inviteItem("hal@example.com")).getByText(expiredWords)).toBeTruthy();
+  });
+
   it("resends or cancels an invite not yet taken up; one waiting for tomorrow isn't resent", async () => {
     const app = openPage();
     await userEvent.click(await screen.findByRole("button", { name: emailInvitesWords.resendLabel("cat@example.com") }));
@@ -94,6 +112,11 @@ describe("the invites page", () => {
 });
 
 describe("inviting by email", () => {
+  it("the email box is described by its hint, for screen readers", async () => {
+    openPage();
+    expect(descriptionOf(await screen.findByRole("textbox", { name: emailInvitesWords.emailLabel }))).toBe(inviteHint);
+  });
+
   it("invites the email to a new team, or to the vacated team chosen", async () => {
     const app = openPage();
     await userEvent.type(await screen.findByRole("textbox", { name: emailInvitesWords.emailLabel }), "fay@example.com");
@@ -129,6 +152,7 @@ describe("the invite link", () => {
     const app = openPage();
     const link = (await screen.findByRole("textbox", { name: inviteLinkWords.label })) as HTMLInputElement;
     expect(link.value).toBe(new URL(joinPath("the-token"), window.location.origin).href);
+    expect(descriptionOf(link)).toBe(linkHint);
 
     await userEvent.click(screen.getByRole("button", { name: inviteLinkWords.replace }));
     await userEvent.click(screen.getByRole("button", { name: inviteLinkWords.switchOff }));

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PositionCode, PositionCodes } from "../PositionCodes";
 import { SCOUTING_PATH } from "../frame/menu";
+import { ColumnHeads } from "../frame/ColumnHeads";
 import { Loading, PANEL_BODY, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { useMinute } from "../useMinute";
 import { gameweekWords, versusWords, whenWords } from "../words";
@@ -149,15 +150,7 @@ function Season({ card }: { card: PlayerCard }) {
           ))}
           {card.matches.some((match) => match.provisional) && <p className="px-3 py-2 text-derived">{provisionalWords}</p>}
           <table className="w-full border-collapse">
-            <thead className="bg-head text-ground">
-              <tr>
-                {COLUMNS.map((column) => (
-                  <th key={column} scope="col" title={columns[column].long} className={cellClasses(column)}>
-                    {columns[column].short}
-                  </th>
-                ))}
-              </tr>
-            </thead>
+            <ColumnHeads columns={columns} shown={COLUMNS} classOf={cellClasses} />
             {card.matches.map((match) => (
               <MatchRows key={match.fixtureCode} match={match} />
             ))}
@@ -258,7 +251,7 @@ function NextFixtures({ card }: { card: PlayerCard }) {
       ) : (
         <ul className="py-1">
           {card.nextFixtures.map((fixture) => (
-            <li key={fixture.fixtureCode} className="grid grid-cols-[6rem_1fr_auto] gap-2 px-3">
+            <li key={fixture.fixtureCode} className="grid grid-cols-next-fixture gap-2 px-3">
               <span className="text-soft">{fixture.gameweek === null ? noFigureWords : gameweekWords(fixture.gameweek)}</span>
               <span>
                 <MatchName match={fixture} />

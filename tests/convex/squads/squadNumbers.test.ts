@@ -6,6 +6,7 @@ import { squadNumberRefusals } from "../../../convex/squads/squadNumbers";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
 import { expectRefused } from "../../support/convex/leagueRules.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // Squad numbers (#13, spec/05 Squad numbers; Craig, 26 Oct 2026): a manager numbers his own
@@ -25,8 +26,8 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t);
   [annsTeam, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
-    await ctx.db.insert("clubs", { code: 3, name: "Arsenal", shortName: "ARS" });
-    for (const [code, name] of [[SAKA, "Saka"], [RICE, "Rice"]] as const) await ctx.db.insert("players", { code, name, fullName: name, clubCode: 3 });
+    await insertClubs(ctx, [ARSENAL]);
+    for (const [code, name] of [[SAKA, "Saka"], [RICE, "Rice"]] as const) await ctx.db.insert("players", { code, name, fullName: name, clubCode: ARSENAL.code });
   });
   const commissioner = await actingAs(t, COMMISSIONER);
   for (const playerCode of [SAKA, RICE]) await commissioner.mutation(api.squads.squads.assign, { leagueId, playerCode, teamId: annsTeam });
@@ -80,7 +81,7 @@ describe("only his own", () => {
   });
 
   test("a free agent is no one's to number", async () => {
-    await t.run((ctx) => ctx.db.insert("players", { code: 3000, name: "Free", fullName: "Free", clubCode: 3 }));
+    await t.run((ctx) => ctx.db.insert("players", { code: 3000, name: "Free", fullName: "Free", clubCode: ARSENAL.code }));
     await expectRefused(setAs(ANN, 3000, 9), squadNumberRefusals.notInSquad);
   });
 });

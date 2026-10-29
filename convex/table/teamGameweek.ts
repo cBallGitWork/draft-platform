@@ -2,7 +2,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { autoSubs, gameweekPlay, type AutoSubs, type GameweekPlay } from "../lineup/autoSubs";
 import { lineupsInGameweek, type HeldLineup } from "../lineup/lineups";
-import { AREAS, LANES, playsCell, type Cell } from "../lineup/pitch";
+import { ALL_CELLS, playsCell, type Cell } from "../lineup/pitch";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount, type HowPositionsCount } from "../positions/positionSettings";
 import type { Position } from "../positions/positionTables";
@@ -10,12 +10,13 @@ import type { SeasonRules } from "../rules/rulesHistory";
 import type { StoredScoringSet } from "../rules/leagueRulesShape";
 import { siteScoringByGameweek } from "../scoring/siteScoring";
 import { validateScoringSet } from "../scoring/scoringSet";
-import { scoreTeam, type PlayerMatch, type TeamPoints } from "../scoring/teamPoints";
+import { scoreTeam, type PlayerMatch, type SlotPoints, type TeamPoints } from "../scoring/teamPoints";
 import { isWhole, MINUTES_STAT } from "../stats/matchRecords";
 import { statusOf } from "../stats/matchStats";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { gameweekFixtures } from "../shared/fixtures";
 import { playerByCode } from "../shared/players";
+import { readOnce } from "../shared/readOnce";
 
 // One team's points in one gameweek (#29; spec/05, Auto-subs; spec/07): its lineup, auto-subs from
 // who played, then scoreTeam under the site's scoring set in force that gameweek. The table
@@ -59,19 +60,11 @@ export async function leagueReads(ctx: QueryCtx, league: Doc<"leagues">, season:
 /** Each player's club and positions, read once however many gameweeks ask. A player the football
  *  sync doesn't hold is data gone wrong, and throws. */
 function playerReader(ctx: QueryCtx, how: HowPositionsCount) {
-  const read = new Map<PlayerCode, Promise<{ clubCode: number; positions: Position[] }>>();
-  return (code: PlayerCode) => {
-    let player = read.get(code);
-    if (player === undefined) {
-      player = (async () => {
-        const held = await playerByCode(ctx, code);
-        if (held === null) throw new Error(`player ${code} is in a lineup but the football sync doesn't hold him`);
-        return { clubCode: held.clubCode, positions: await currentPositions(ctx, code, how) };
-      })();
-      read.set(code, player);
-    }
-    return player;
-  };
+  return readOnce(async (code: PlayerCode): Promise<{ clubCode: number; positions: Position[] }> => {
+    const held = await playerByCode(ctx, code);
+    if (held === null) throw new Error(`player ${code} is in a lineup but the football sync doesn't hold him`);
+    return { clubCode: held.clubCode, positions: await currentPositions(ctx, code, how) };
+  });
 }
 
 /** What scoring the `teamIds` in one gameweek reads: the site's set in force then, checked, the
@@ -156,6 +149,27 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
   return { team, autoSubs: subs, matchesOf };
 }
 
+/** Each of his matches with his points in it. scoreTeam scores a man's matches in the order
+ *  matchesOf holds them, so this is the one place that pairs a match with its points. */
+export function pointsByMatch(slot: SlotPoints, matches: readonly HeldMatch[]): { match: HeldMatch; points: number | null }[] {
+  return matches.map((match, index) => ({ match, points: slot.matches[index].total }));
+}
+
+/** A man's slot in the team and his points in one match: null when the lineup doesn't hold him,
+ *  or the match isn't one of his. */
+export function pointsInMatch(
+  scored: TeamInGameweek,
+  playerCode: PlayerCode,
+  fixtureCode: number,
+): { slot: SlotPoints; points: number | null } | null {
+  const slot = [...scored.team.starters, ...scored.team.bench].find((each) => each.playerCode === playerCode);
+  if (slot === undefined) return null;
+  const his = scored.matchesOf.get(playerCode);
+  if (his === undefined) throw new Error(`player ${playerCode} has a slot but no matches in the gameweek`);
+  const inMatch = pointsByMatch(slot, his).find(({ match }) => match.fixture.code === fixtureCode);
+  return inMatch === undefined ? null : { slot, points: inMatch.points };
+}
+
 /** The gameweek's fixtures the feed still sends. */
 export function heldFixtures(ctx: QueryCtx, gameweek: number): Promise<Doc<"fixtures">[]> {
   return gameweekFixtures(ctx, gameweek, "its points would be cut short");
@@ -201,7 +215,7 @@ export const playsIn = (fixture: Doc<"fixtures">, clubCode: number) => fixture.h
 /** A match read at full time has a state; one still live has none (liveStats.ts). */
 export const isFinished = (match: HeldMatch) => match.status !== null;
 /** Its corrections window shut: nothing changes its points after (spec/07). */
-export const isLocked = (match: Pick<HeldMatch, "status">) => match.status?.state === "locked";
+export const isMatchFinal = (match: Pick<HeldMatch, "status">) => match.status?.state === "locked";
 
 /** What a man neither team sheet named did in a match his club has finished: nothing. */
 const NOT_NAMED: Readonly<Record<string, number>> = {};
@@ -212,7 +226,7 @@ const NOT_NAMED: Readonly<Record<string, number>> = {};
 function forPoints(match: HeldMatch, code: PlayerCode): PlayerMatch {
   const record = match.records.get(code);
   const stats = record === undefined ? (isFinished(match) ? NOT_NAMED : null) : isWhole(record) ? record.stats : null;
-  return { record: stats, final: isLocked(match), override: match.overrides.get(code) };
+  return { record: stats, final: isMatchFinal(match), override: match.overrides.get(code) };
 }
 
 /** The minutes counted for a man the sheets say played whose minutes no feed has sent yet: any
@@ -232,6 +246,5 @@ function forPlay(match: HeldMatch, code: PlayerCode) {
  *  totals, which those points never reach, and his card prices them at his best position
  *  (scoredMatches.ts). */
 function benchCell(positions: readonly Position[]): Cell {
-  const cells = AREAS.flatMap((area) => LANES.map((lane) => ({ area, lane })));
-  return cells.find((cell) => playsCell(positions, cell)) ?? cells[0];
+  return ALL_CELLS.find((cell) => playsCell(positions, cell)) ?? ALL_CELLS[0];
 }

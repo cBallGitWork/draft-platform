@@ -1,4 +1,6 @@
+import { ColumnHeads } from "../frame/ColumnHeads";
 import { Loading, Panel, PanelNote } from "../frame/Panel";
+import { ClubName } from "./ClubName";
 import type { PlStandings, PremierLeagueSeam } from "./seam";
 import { goalDifferenceWords, loadingTableWords, noClubsWords, provisionalWords, TABLE_TITLE, tableColumns } from "./words";
 
@@ -26,15 +28,7 @@ export function TablePanel({ seam }: { seam: PremierLeagueSeam }) {
         <>
           {standings.provisional && <p className="px-3 py-2 text-derived">{provisionalWords}</p>}
           <table className="w-full border-collapse">
-            <thead className="bg-head text-ground">
-              <tr>
-                {COLUMNS.map((column) => (
-                  <th key={column} scope="col" title={tableColumns[column].long} aria-label={tableColumns[column].long} className={cellClasses(column)}>
-                    {tableColumns[column].short}
-                  </th>
-                ))}
-              </tr>
-            </thead>
+            <ColumnHeads columns={tableColumns} shown={COLUMNS} classOf={cellClasses} />
             <tbody>
               {standings.rows.map((row) => (
                 <tr key={row.club.code} className="border-t border-panel-rule">
@@ -56,21 +50,18 @@ function TableCell({ column, row }: { column: Column; row: Row }) {
   const className = cellClasses(column);
   switch (column) {
     case "position":
-      return <td className={`${className} text-muted tabular-nums`}>{row.position}</td>;
+      return <td className={`${className} text-muted`}>{row.position}</td>;
     case "club":
       return (
         <th scope="row" className={`${className} font-semibold`}>
-          <span className="hidden sm:inline">{row.club.name}</span>
-          <span className="sm:hidden" title={row.club.name}>
-            {row.club.shortName}
-          </span>
+          <ClubName club={row.club} />
         </th>
       );
     case "goalDifference":
-      return <td className={`${className} tabular-nums`}>{goalDifferenceWords(row.goalDifference)}</td>;
+      return <td className={className}>{goalDifferenceWords(row.goalDifference)}</td>;
     case "points":
-      return <td className={`${className} font-bold text-figure tabular-nums`}>{row.points}</td>;
+      return <td className={`${className} font-bold text-figure`}>{row.points}</td>;
     default:
-      return <td className={`${className} tabular-nums`}>{row[column]}</td>;
+      return <td className={className}>{row[column]}</td>;
   }
 }

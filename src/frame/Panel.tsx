@@ -68,6 +68,18 @@ export function Notice({ children }: { children: ReactNode }) {
   );
 }
 
+/** A line that comes and goes, such as what came of the last save, announced to screen readers; it
+ *  shows nothing while `words` is null, and `className` is its look while there are some. Not a
+ *  Notice: the live region stays in the page while empty, because one made along with its words
+ *  may never be read out. */
+export function Status({ words, className }: { words: string | null; className: string }) {
+  return (
+    <p role="status" className={words === null ? undefined : className}>
+      {words}
+    </p>
+  );
+}
+
 /** A panel, labelled by its title plate; `aside`, such as how many are starting, sits at the plate's
  *  far end, and `className` is the caller's own, such as its share of a row. */
 export function Panel({

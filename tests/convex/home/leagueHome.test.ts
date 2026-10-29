@@ -6,6 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { expectRefused, holdGameweeks, rulesRevision, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // League home's first slice (#387; spec/12, League home): this gameweek's head-to-heads, the table
@@ -107,8 +108,8 @@ describe("the latest claims, drops and trades", () => {
   beforeEach(async () => {
     teams = await addManagers(t, leagueId, [ANN, BOB]);
     await t.run(async (ctx) => {
-      await ctx.db.insert("clubs", { code: 3, name: "Arsenal", shortName: "ARS" });
-      for (const [code, name] of [[SAKA, "Saka"], [RICE, "Rice"]] as const) await ctx.db.insert("players", { code, name, fullName: name, clubCode: 3 });
+      await insertClubs(ctx, [ARSENAL]);
+      for (const [code, name] of [[SAKA, "Saka"], [RICE, "Rice"]] as const) await ctx.db.insert("players", { code, name, fullName: name, clubCode: ARSENAL.code });
     });
   });
 

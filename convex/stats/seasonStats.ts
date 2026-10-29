@@ -6,6 +6,7 @@ import { PLAYER_RECORDS_MOST } from "../table/scoredMatches";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { isWhole, type PlayerMatchRecord } from "./matchRecords";
 import { addStats, sumStats, type Stats } from "./statTotals";
+import { readOnce } from "../shared/readOnce";
 
 // Each player's season totals (#373, the playerSeasonStats table): his match records added up, so
 // Scouting can sort every player by any stat with one small row a player, where adding up a
@@ -94,11 +95,7 @@ export const rebuild = internalMutation({
 
 /** The season of each match, each read once. */
 function matchSeasons(ctx: QueryCtx): (fixtureCode: number) => Promise<number> {
-  const read = new Map<number, Promise<number>>();
-  return (fixtureCode) => {
-    if (!read.has(fixtureCode)) read.set(fixtureCode, seasonOfMatch(ctx, fixtureCode));
-    return read.get(fixtureCode)!;
-  };
+  return readOnce((fixtureCode: number) => seasonOfMatch(ctx, fixtureCode));
 }
 
 /** One player's totals, each season's set to his records in it added up. */

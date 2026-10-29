@@ -13,7 +13,7 @@ import { statusOf } from "../stats/matchStats";
 import { begunGameweeks } from "./gameweekScores";
 import {
   heldFixtures,
-  isLocked,
+  isMatchFinal,
   leagueReads,
   rulesIn,
   teamInGameweek,
@@ -21,6 +21,7 @@ import {
   type LeagueReads,
   type TeamInGameweek,
 } from "./teamGameweek";
+import { readOnce } from "../shared/readOnce";
 
 // A player's matches in a league as his team scored them (#577; spec/12, The player card and
 // Squad): the one place his card and the Squad tab read his points from. A gameweek the league has
@@ -57,11 +58,7 @@ export type ScoredMatches = (player: { code: number; positions: readonly Positio
  *  player's rows and each gameweek's scoring are read once, however many players are asked for. */
 export async function scoredMatches(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"teams"> | null): Promise<ScoredMatches> {
   const setIn = await siteScoringByGameweek(ctx);
-  const read = new Map<number, Promise<HeldRows>>();
-  const heldRowsOf = (code: number) => {
-    if (!read.has(code)) read.set(code, heldRows(ctx, league._id, code));
-    return read.get(code)!;
-  };
+  const heldRowsOf = readOnce((code: number) => heldRows(ctx, league._id, code));
   const teamGameweekOf = teamId === null ? null : await teamGameweeks(ctx, league, teamId, heldRowsOf);
   return async ({ code, positions }) => {
     const { records, overrides } = await heldRowsOf(code);
@@ -73,7 +70,7 @@ export async function scoredMatches(ctx: QueryCtx, league: Doc<"leagues">, teamI
         if (fromTeam?.counts) return { ...held, points: fromTeam.points, override, provisional: fromTeam.provisional };
         const best = cardPoints(isWhole(held.record) ? held.record.stats : null, setIn(held.gameweek), positions, null);
         const points = { ...best, total: override?.points ?? best.total, ...(fromTeam === null ? {} : { scoredAs: "notCounted" as const }) };
-        const provisional = fromTeam?.provisional ?? (!isWhole(held.record) || !isLocked({ status: await statusOf(ctx, held.fixture.code) }));
+        const provisional = fromTeam?.provisional ?? (!isWhole(held.record) || !isMatchFinal({ status: await statusOf(ctx, held.fixture.code) }));
         return { ...held, points, override, provisional };
       }),
     );
@@ -106,19 +103,12 @@ async function teamGameweeks(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"
       overrides: new Map([...overrides].map(([fixtureCode, override]) => [fixtureCode, override.points])),
     };
   };
-  const read = new Map<number, Promise<TeamInGameweek | null>>();
-  return (gameweek: number) => {
-    if (!begun.has(gameweek)) return null;
-    if (!read.has(gameweek)) {
-      read.set(
-        gameweek,
-        heldFixtures(ctx, gameweek)
-          .then((fixtures) => teamGameweekInputs(ctx, reads, gameweek, fixtures, teamId, rowsByMatch))
-          .then((inputs) => teamInGameweek(reads, inputs, teamId)),
-      );
-    }
-    return read.get(gameweek)!;
-  };
+  const scoredIn = readOnce((gameweek: number) =>
+    heldFixtures(ctx, gameweek)
+      .then((fixtures) => teamGameweekInputs(ctx, reads, gameweek, fixtures, teamId, rowsByMatch))
+      .then((inputs) => teamInGameweek(reads, inputs, teamId)),
+  );
+  return (gameweek: number) => (begun.has(gameweek) ? scoredIn(gameweek) : null);
 }
 
 /** A player's rows scoring reads, each by match code: his records, and the league's overrides of

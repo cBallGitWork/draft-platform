@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { TOP_ROWS } from "../../convex/home/glance";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { ColumnHeads } from "../frame/ColumnHeads";
+import { DateBlock } from "../frame/DateBlock";
 import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { MAIL_PATH, TABLE_PATH } from "../frame/menu";
 import { MatchupLink } from "../matchup/MatchupLink";
-import { letterDay, letterTime } from "../mail/words";
 import { useMinute } from "../useMinute";
 import type { HomeSeam, LeagueHome } from "./seam";
 import {
@@ -77,15 +78,6 @@ export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSe
   );
 }
 
-/** A day and time in a date block, as Mail shows a letter's. */
-function DateBlock({ at }: { at: number }) {
-  return (
-    <time dateTime={new Date(at).toISOString()} className="bg-plate px-1 text-center whitespace-nowrap">
-      {letterDay(at)} <span className="text-soft">{letterTime(at)}</span>
-    </time>
-  );
-}
-
 /** A panel's way on to the page that holds all of what it shows. */
 function PanelLink({ to, children }: { to: string; children: string }) {
   return (
@@ -133,15 +125,7 @@ function TablePanel({ home: { format, table, teams } }: { home: LeagueHome }) {
     <Panel title={TABLE_TITLE}>
       {table.every((row) => row.played === 0) && <PanelNote>{noResultsWords}</PanelNote>}
       <table className="w-full border-collapse">
-        <thead className="bg-head text-ground">
-          <tr>
-            {shown.map((column) => (
-              <th key={column} scope="col" title={columns[column].long} aria-label={columns[column].long} className={cellClasses(column)}>
-                {columns[column].short}
-              </th>
-            ))}
-          </tr>
-        </thead>
+        <ColumnHeads columns={columns} shown={shown} classOf={cellClasses} />
         <tbody>
           {table.map((row) => (
             <tr key={row.teamId} aria-current={row.mine || undefined} className="border-t border-panel-rule aria-current:shadow-current-edge">

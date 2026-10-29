@@ -3,6 +3,7 @@ import { useState } from "react";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import { GameweekStepper } from "../frame/GameweekStepper";
 import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
+import { ClubName } from "./ClubName";
 import { openingGameweek } from "./openingGameweek";
 import { matchPath } from "./paths";
 import { TablePanel } from "./TablePanel";
@@ -12,6 +13,7 @@ import {
   dayWords,
   FIXTURES_TITLE,
   fullTime,
+  goalsWords,
   halfTime,
   kickoffWords,
   loadingGameweekWords,
@@ -21,7 +23,6 @@ import {
   noDateWords,
   noMatchesWords,
   PREMIER_LEAGUE_TITLE,
-  scoreWords,
   versusWords,
 } from "./words";
 
@@ -98,22 +99,23 @@ function byDay(matches: readonly GameweekMatch[]): { day: string; dayMatches: Ga
 /** A match: where it stands (its kickoff, the clock, half-time or full time), the home club, the
  *  score or "v" before kickoff as a link to its match page (spec/18), and the away club. */
 function MatchRow({ match: { fixtureCode, kickoff, home, away, score } }: { match: GameweekMatch }) {
-  const goals =
-    score !== null && score.state !== "upcoming" && score.homeGoals !== null && score.awayGoals !== null
-      ? scoreWords(score.homeGoals, score.awayGoals)
-      : null;
+  const goals = goalsWords(score);
   return (
-    <li className="grid grid-cols-[3.5rem_minmax(0,1fr)_3.5rem_minmax(0,1fr)] items-center gap-2 border-b border-panel-rule px-3 py-1 text-lead">
+    <li className="grid grid-cols-match-row items-center gap-2 border-b border-panel-rule px-3 py-1 text-lead">
       <MatchState kickoff={kickoff} score={score} />
-      <ClubName club={home} className="text-right" />
+      <span className="text-right font-semibold">
+        <ClubName club={home} />
+      </span>
       <Link
         to={matchPath(fixtureCode)}
         aria-label={matchLinkLabel(home.name, away.name, goals)}
-        className={`flex min-h-tap items-center justify-center lg:min-h-0 ${goals === null ? "text-muted" : "whitespace-nowrap font-bold text-figure tabular-nums"}`}
+        className={`flex min-h-tap items-center justify-center lg:min-h-0 ${goals === null ? "text-muted" : "whitespace-nowrap font-bold text-figure"}`}
       >
         {goals ?? versusWords}
       </Link>
-      <ClubName club={away} className="text-left" />
+      <span className="text-left font-semibold">
+        <ClubName club={away} />
+      </span>
     </li>
   );
 }
@@ -121,7 +123,7 @@ function MatchRow({ match: { fixtureCode, kickoff, home, away, score } }: { matc
 function MatchState({ kickoff, score }: Pick<GameweekMatch, "kickoff" | "score">) {
   switch (score?.state) {
     case "live":
-      return <span className="font-semibold text-derived tabular-nums">{clockWords(score.clockLabel, score.minutes)}</span>;
+      return <span className="font-semibold text-derived">{clockWords(score.clockLabel, score.minutes)}</span>;
     case "halfTime":
       return (
         <abbr title={halfTime.long} className="font-semibold text-derived no-underline">
@@ -135,19 +137,6 @@ function MatchState({ kickoff, score }: Pick<GameweekMatch, "kickoff" | "score">
         </abbr>
       );
     default:
-      return <span className="text-muted tabular-nums">{kickoff === null ? "" : kickoffWords(kickoff)}</span>;
+      return <span className="text-muted">{kickoff === null ? "" : kickoffWords(kickoff)}</span>;
   }
-}
-
-/** A club's name on the desk, its three letters on a phone, which has no room for "Nottingham
- *  Forest". */
-function ClubName({ club, className }: { club: GameweekMatch["home"]; className: string }) {
-  return (
-    <span className={`${className} font-semibold`}>
-      <span className="hidden sm:inline">{club.name}</span>
-      <span className="sm:hidden" title={club.name}>
-        {club.shortName}
-      </span>
-    </span>
-  );
 }

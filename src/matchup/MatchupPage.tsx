@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { MatchupSide, MatchupSlot } from "../../convex/matchup/matchupShape";
+import { ColumnHeads } from "../frame/ColumnHeads";
 import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
+import { useLastLoaded } from "../useLastLoaded";
 import { useMinute } from "../useMinute";
 import { matchPath } from "../premierLeague/paths";
 import { matchupLink } from "./paths";
@@ -53,7 +54,9 @@ type Scored = Extract<HeadToHead["game"], { kind: "scored" }>;
  *  the totals as the score at the top, both lineups under it, live until every match is final.
  *  A manager lands on My team (spec/12); this is a tab away, and any fixture links here. */
 export function MatchupPage({ league, seam, asked }: { league: LeagueSummary; seam: MatchupSeam; asked: MatchupAsked }) {
-  const matchup = useLastWhileLoading(seam.useMatchup(league.leagueId, useMinute(), asked), `${asked.teamId}/${asked.gameweek}`);
+  // The minute is in the query's arguments, and a live matchup mustn't blank every minute; another
+  // matchup asked for loads afresh.
+  const matchup = useLastLoaded(seam.useMatchup(league.leagueId, useMinute(), asked), `${asked.teamId}/${asked.gameweek}`);
   return (
     <PageSection title={MATCHUP_TITLE} className="flex max-w-6xl flex-col gap-2">
       {matchup === undefined ? (
@@ -69,15 +72,6 @@ export function MatchupPage({ league, seam, asked }: { league: LeagueSummary; se
       )}
     </PageSection>
   );
-}
-
-/** The matchup asked for, the last one held while the next minute's loads: the minute is in the
- *  query's arguments, and a live matchup mustn't blank every minute. Another matchup asked for
- *  (`key`) loads afresh. */
-function useLastWhileLoading(matchup: Matchup | null | undefined, key: string): Matchup | null | undefined {
-  const [held, setHeld] = useState<{ key: string; matchup: Matchup | null }>();
-  if (matchup !== undefined && (held?.matchup !== matchup || held.key !== key)) setHeld({ key, matchup });
-  return matchup !== undefined ? matchup : held?.key === key ? held.matchup : undefined;
 }
 
 function HeadToHeadMatchup({ matchup }: { matchup: HeadToHead }) {
@@ -137,7 +131,7 @@ function Fixture({ teamName, opponent, score }: { teamName: string; opponent: st
   return (
     <p className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-3 px-3 py-2 text-lead font-bold sm:text-title">
       <span className="text-right">{teamName}</span>
-      {score === undefined ? <span className="text-muted">{versusWords}</span> : <span className="text-figure tabular-nums whitespace-nowrap">{score}</span>}
+      {score === undefined ? <span className="text-muted">{versusWords}</span> : <span className="text-figure whitespace-nowrap">{score}</span>}
       <span>{opponent}</span>
     </p>
   );
@@ -172,21 +166,13 @@ function SidePanel({ side }: { side: MatchupSide }) {
         <PanelNote>{noLineupWords(name)}</PanelNote>
       ) : (
         <table aria-label={lineupLabel(name)} className="w-full border-collapse">
-          <thead className="bg-head text-ground">
-            <tr>
-              {Object.entries(columns).map(([column, { short, long }]) => (
-                <th key={column} scope="col" title={long} aria-label={long} className={column === "player" ? "px-2 text-left" : "px-2 text-right"}>
-                  {short}
-                </th>
-              ))}
-            </tr>
-          </thead>
+          <ColumnHeads columns={columns} classOf={(column) => (column === "player" ? "px-2 text-left" : "px-2 text-right")} />
           <tbody>
             {side.lineup.starters.map((slot) => (
               <SlotRow key={slot.playerCode} slot={slot} />
             ))}
             <tr>
-              <th colSpan={4} scope="colgroup" className="bg-plate px-3 text-left font-bold shadow-bevel-plate">
+              <th colSpan={Object.keys(columns).length} scope="colgroup" className="bg-plate px-3 text-left font-bold shadow-bevel-plate">
                 {BENCH_TITLE}
               </th>
             </tr>
@@ -229,7 +215,7 @@ function SlotRow({ slot }: { slot: MatchupSlot }) {
           </Link>
         )}
       </td>
-      <td className={`px-2 text-right tabular-nums ${counts && points !== null ? "font-bold text-figure" : "text-muted"}`}>
+      <td className={`px-2 text-right ${counts && points !== null ? "font-bold text-figure" : "text-muted"}`}>
         {points ?? noFigureWords}
         {!counts && <span className="sr-only"> {notCountingLabel}</span>}
       </td>

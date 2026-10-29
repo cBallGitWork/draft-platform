@@ -1,5 +1,6 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { nextByDeadlines } from "../../convex/gameweeks/nextGameweek";
+import { ColumnHeads } from "../frame/ColumnHeads";
 import { Loading, PageSection, PanelNote } from "../frame/Panel";
 import { MatchupLink } from "../matchup/MatchupLink";
 import { useMinute } from "../useMinute";
@@ -66,15 +67,7 @@ function GamesTable({ fixtures: { teamId, teamName, games } }: { fixtures: TeamF
   const next = nextByDeadlines(games, (game) => game.deadline, now)?.gameweek;
   return (
     <table aria-label={fixturesTableLabel(teamName)} className="w-full border-collapse">
-      <thead className="bg-head text-ground">
-        <tr>
-          {COLUMNS.map((column) => (
-            <th key={column} scope="col" title={fixtureColumns[column].long} aria-label={fixtureColumns[column].long} className={`px-3 ${ALIGN[column]}`}>
-              {fixtureColumns[column].short}
-            </th>
-          ))}
-        </tr>
-      </thead>
+      <ColumnHeads columns={fixtureColumns} shown={COLUMNS} classOf={(column) => `px-3 ${ALIGN[column]}`} />
       <tbody>
         {games.map((game, index) => (
           <tr
@@ -118,7 +111,7 @@ function Result({ teamId, teamName, game: { gameweek, against, score } }: { team
         <span>{versusWords}</span>
       ) : (
         <span className="whitespace-nowrap">
-          <span className="font-bold text-figure tabular-nums">{scoreWords(score.team, score.opponent)}</span>
+          <span className="font-bold text-figure">{scoreWords(score.team, score.opponent)}</span>
           {score.provisional && <span className="ml-1 text-derived">{liveWords}</span>}
         </span>
       )}

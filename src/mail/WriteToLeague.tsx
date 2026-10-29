@@ -1,13 +1,15 @@
 import { useState, type FormEvent } from "react";
 import { BODY_MAX, SUBJECT_MAX } from "../../convex/mail/mailLimits";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { PANEL_BODY, Panel, Problem } from "../frame/Panel";
+import { PANEL_BODY, Panel, Problem, Status } from "../frame/Panel";
 import type { MailSeam } from "./seam";
 import { WRITE_TITLE, sendToWords, sentWords, writeHint, writeLabels } from "./words";
 
 const LEAGUE_CHOICE_ID = "letter-league";
 const SUBJECT_ID = "letter-subject";
 const BODY_ID = "letter-body";
+/** The hint, who gets the letter, describes the letter's box. */
+const HINT_ID = "letter-hint";
 
 /** How many lines the letter's box shows before it scrolls. */
 const LETTER_ROWS = 6;
@@ -40,13 +42,11 @@ export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly Le
   return (
     <Panel title={WRITE_TITLE} className="min-w-0 max-w-xl grow basis-letter-form">
       <Problem problem={outcome?.sent === false ? outcome.problem : null} />
-      {outcome?.sent && (
-        <p role="status" className="px-3 pt-2 text-derived">
-          {sentWords(outcome.leagueName)}
-        </p>
-      )}
+      <Status words={outcome?.sent ? sentWords(outcome.leagueName) : null} className="px-3 pt-2 text-derived" />
       <form onSubmit={send} className={PANEL_BODY}>
-        <p className="text-muted">{writeHint}</p>
+        <p id={HINT_ID} className="text-muted">
+          {writeHint}
+        </p>
         {leagues.length > 1 && (
           <>
             <label htmlFor={LEAGUE_CHOICE_ID} className="font-semibold">
@@ -87,6 +87,7 @@ export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly Le
           rows={LETTER_ROWS}
           value={body}
           onChange={(event) => setBody(event.target.value)}
+          aria-describedby={HINT_ID}
           className="text-box py-1"
         />
         <button type="submit" disabled={sending} className="action self-start">

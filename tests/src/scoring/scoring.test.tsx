@@ -3,7 +3,7 @@
 // in full names with one value, everything else behind a tick box; and the whole set saved from the
 // gameweek the server gives, or the reason it wasn't.
 
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
@@ -140,7 +140,7 @@ describe("#30 Done: an edit saves, from the next gameweek", () => {
       ...FIRST_SCORING,
       rules: FIRST_SCORING.rules.map((rule) => (rule.stat === "assists" ? { ...rule, values: { all: 4 } } : rule)),
     });
-    expect((await screen.findByRole("status")).textContent).toBe(savedWords(CHANGES_FROM));
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe(savedWords(CHANGES_FROM)));
   });
 
   it.each([
