@@ -127,10 +127,10 @@ const playerCardRoute = createRoute({
     const context = playerCardRoute.useRouteContext();
     const { leagueId, playerCode } = playerCardRoute.useParams();
     const league = leagueIn(context.session, leagueId);
-    // Keyed by the player, so going from one card to another starts afresh.
-    if (!league || !context.session.signedIn) return null;
+    if (!league) return null;
     return (
       <PlayerCardPage
+        // Keyed by the player, so going from one card to another starts afresh.
         key={playerCode}
         league={league}
         runs={runs(league)}
@@ -154,38 +154,27 @@ const scoringRoute = createRoute({
   },
 });
 
-// The admin's dashboard (#87), his alone.
-const adminRoute = createRoute({
-  getParentRoute: () => leaguePagesRoute,
-  path: ADMIN_PATH,
-  beforeLoad: adminOnly,
-  component: function Admin() {
-    const admin = adminRoute.useRouteContext({ select: (context) => context.admin });
-    return <AdminPage seam={admin} />;
-  },
-});
+/** The seams of the admin's dashboard tabs. */
+type AdminSeams = Pick<ShellContext, "admin" | "feedback">;
 
-// The dashboard's feeds tab (#35), his alone too.
-const adminFeedsRoute = createRoute({
-  getParentRoute: () => leaguePagesRoute,
-  path: ADMIN_FEEDS_PATH,
-  beforeLoad: adminOnly,
-  component: function AdminFeeds() {
-    const admin = adminFeedsRoute.useRouteContext({ select: (context) => context.admin });
-    return <FeedsPage seam={admin} />;
-  },
-});
+/** A tab of the admin's dashboard at `path`, his alone: `Page` is given its seam, selected from the
+ *  context so the tab re-renders only when that seam changes. */
+function adminPage<Seam extends keyof AdminSeams, Path extends string>(path: Path, seam: Seam, Page: ComponentType<{ seam: AdminSeams[Seam] }>) {
+  const route = createRoute({
+    getParentRoute: () => leaguePagesRoute,
+    path,
+    beforeLoad: adminOnly,
+    component: function AdminTab() {
+      const selected = route.useRouteContext({ select: (context) => context[seam] });
+      return <Page seam={selected} />;
+    },
+  });
+  return route;
+}
 
-// The dashboard's Feedback tab (#357), his alone too.
-const adminFeedbackRoute = createRoute({
-  getParentRoute: () => leaguePagesRoute,
-  path: ADMIN_FEEDBACK_PATH,
-  beforeLoad: adminOnly,
-  component: function AdminFeedback() {
-    const feedback = adminFeedbackRoute.useRouteContext({ select: (context) => context.feedback });
-    return <FeedbackTab seam={feedback} />;
-  },
-});
+const adminRoute = adminPage(ADMIN_PATH, "admin", AdminPage); // The admin's dashboard (#87)
+const adminFeedsRoute = adminPage(ADMIN_FEEDS_PATH, "admin", FeedsPage); // Its feeds tab (#35)
+const adminFeedbackRoute = adminPage(ADMIN_FEEDBACK_PATH, "feedback", FeedbackTab); // Its Feedback tab (#357)
 
 // Joining a league (#73): a league's invites and join requests, for its runners, and its invite
 // link, which a signed-out visitor reaches through sign-in.
