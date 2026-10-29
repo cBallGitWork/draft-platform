@@ -89,6 +89,9 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - **Archiving a league**: deleting is for good for now (`spec/13`).
 - **A player's card across a move**: his matches before he changed teams show what his old team
   got from him; a move changes only his owner, never his history (Craig, 28 Oct 2026; spec/12).
+- **A matchup's saved totals when its detail can't be worked out**: the totals the table shows,
+  with the player-by-player detail marked unavailable, in place of "can't be scored" (Craig,
+  29 Oct 2026; spec/07).
 - **Preview sites** for unmerged changes (spec/20).
 - **A staging site**, if real leagues arrive (spec/20).
 
