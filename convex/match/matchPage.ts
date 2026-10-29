@@ -5,7 +5,6 @@ import { heldOf } from "../football/matchCommentary";
 import { heldTeamSheetsOf } from "../football/matchTeamSheets";
 import { heldTeamStatsOf } from "../football/matchTeamStats";
 import { clubOf, scoreOf, scoreOnly } from "../football/matchScores";
-import { inMatchOf } from "../matchup/matchup";
 import { commentary, type MatchupCommentary } from "../matchup/matchupShape";
 import { vidiprinter, type VidiprinterPlayer } from "../matchup/vidiprinter";
 import { currentPositions } from "../positions/playerPositions";
@@ -19,17 +18,18 @@ import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
+import { placeOf } from "../squads/squadPlace";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
-import { begunGameweeks } from "../table/gameweekScores";
-import { gameweekInputs, heldFixtures, leagueReads, MATCH_RECORDS_MOST, pointsInMatch, teamInGameweek } from "../table/teamGameweek";
+import { begunGameweeks, workedOutGameweek } from "../table/gameweekScores";
+import { inMatchOf, leagueReads, MATCH_RECORDS_MOST, pointsInMatch } from "../table/teamGameweek";
 
 // One real Premier League match (#45; spec/10, The match page): its score and clock, both clubs'
 // men as the team sheets named them, starters and substitutes, each man owned in the league with
 // his team and his live points, and the match's commentary, newest first, its goals, assists, cards
 // and thresholds priced for the league's men, and "Commentary delayed" while the stream falls
-// behind. A man's points are his slot's in the lineup that holds him, worked out by teamGameweek.ts as the
-// matchup and the table work them, so the three never disagree; only once the league's gameweek has
-// begun, as the matchup shows lineups only then.
+// behind. A man's points are his slot's in the lineup that holds him, worked out by the league's
+// gameweek scorer (gameweekScores.ts) as the matchup and the table work them, so the three never
+// disagree; only once the league's gameweek has begun, as the matchup shows lineups only then.
 //
 // The men come from the match's records, which the live poller writes from kickoff (#28); before
 // any, from the team sheets it reads in the hour before kickoff (football/matchTeamSheets.ts). The
@@ -127,10 +127,7 @@ async function ownersOf(ctx: QueryCtx, leagueId: Id<"leagues">, named: readonly 
   const teams = new Map((await teamsOf(ctx, leagueId)).map((team) => [team._id, team]));
   const owners = new Map<PlayerCode, Doc<"teams">>();
   for (const { playerCode } of named) {
-    const owned = await ctx.db
-      .query("squadPlayers")
-      .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode))
-      .unique();
+    const owned = await placeOf(ctx, leagueId, playerCode);
     if (owned === null) continue;
     const team = teams.get(owned.teamId);
     if (team === undefined) throw new Error(`player ${playerCode} is owned by team ${owned.teamId}, which isn't in league ${leagueId}`);
@@ -172,11 +169,10 @@ async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtu
   const reads = await leagueReads(ctx, league, season);
   const teamIds = (await teamsOf(ctx, league._id)).map((team) => team._id);
   const inThisMatch = new Set(named.map(({ playerCode }) => playerCode));
-  const inputs = await gameweekInputs(ctx, reads, gameweek, await heldFixtures(ctx, gameweek), teamIds);
-  const result: Priced = { slots: new Map(), players: new Map(), set: inputs.set, problem: null };
+  const { set, slotsOf } = await workedOutGameweek(ctx, reads, gameweek, teamIds);
+  const result: Priced = { slots: new Map(), players: new Map(), set, problem: null };
   for (const teamId of teamIds) {
-    const scored = await teamInGameweek(reads, inputs, teamId);
-    if (scored === null) continue;
+    const scored = await slotsOf(teamId);
     for (const slot of [...scored.team.starters, ...scored.team.bench]) {
       // Only the men the match names. One team owned a man at the deadline, so one lineup holds him.
       if (!inThisMatch.has(slot.playerCode)) continue;

@@ -1,12 +1,11 @@
-// What one of a player's matches is worth on his card (spec/12, The player card; #381): for a
-// player in a lineup, the points his team got from his slot; for anyone else, what he would score
-// at his best position, labelled so. His best position is the slot his positions let him stand in
-// (pitch.ts's playsCell) that scores the most for the match. Pure, so the card's query and its
-// tests price alike.
+// What one of a player's matches is worth on his card (spec/12, The player card; #381) when no
+// lineup scored it: what he would score at his best position, labelled so. His best position is
+// the slot his positions let him stand in (pitch.ts's playsCell) that scores the most for the
+// match. A match a lineup scored is read from the league's scorer (scoredMatches.ts). Pure, so the
+// card's query and its tests price alike.
 
 import { v, type Infer } from "convex/values";
 import { AREAS, LANES, playsCell, positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
-import { roleIn } from "../lineup/roles";
 import type { Position } from "../positions/positionTables";
 import { scoreMatch, type MatchPoints, type MatchStats } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
@@ -24,14 +23,9 @@ export interface CardPoints extends MatchPoints {
   position: SlotPosition | null;
 }
 
-/** His points for one match under `set`: `slot`'s when he stood in one, his role's adjustment
- *  included (none given: the slot's first), else his best position's, with no role. `record` is
- *  null while his whole record hasn't arrived, and every figure is then null. */
-export function cardPoints(record: MatchStats | null, set: ScoringSet, positions: readonly Position[], slot: (Cell & { role?: string }) | null): CardPoints {
-  if (slot !== null) {
-    const cell = { area: slot.area, lane: slot.lane };
-    return { scoredAs: "slot", position: positionOfSlot(cell), ...scoreMatch(record, set, cell, roleIn(cell, slot.role).key) };
-  }
+/** His points for one match under `set` at his best position, with no role. `record` is null
+ *  while his whole record hasn't arrived, and every figure is then null. */
+export function cardPoints(record: MatchStats | null, set: ScoringSet, positions: readonly Position[]): CardPoints {
   const priced = slotsFor(positions).map((cell) => ({ position: positionOfSlot(cell), ...scoreMatch(record, set, cell) }));
   let best: (typeof priced)[number] | undefined;
   for (const each of priced) {

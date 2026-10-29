@@ -28,7 +28,7 @@ const PREVIEW_ROLE = { name: "Number 10", points: 1, lines: [{ stat: "big_chance
 
 function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
   return RECORDS.map((record, index) => {
-    const { role: _none, ...points } = cardPoints(record, FIRST_SCORING, player.positions, null);
+    const { role: _none, ...points } = cardPoints(record, FIRST_SCORING, player.positions);
     // One match shows how a role's line reads (spec/05), though the first set adjusts no role.
     // As his team started him: at the slot, its role's points in the total.
     const started = player.name === PREVIEW_ROLE_PLAYER && index === 1 && points.total !== null;

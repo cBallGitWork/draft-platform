@@ -1,7 +1,6 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import type { CardPoints } from "../playerCard/cardPoints";
 import { clubsByCode, type Clubs } from "../playerCard/playerCard";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
@@ -20,9 +19,6 @@ import { squadOf } from "./squads";
 // place both read them (scoredMatches.ts). A match labelled not counted, or priced at his best
 // position because no lineup of this team scored it, adds nothing, so the Squad tab never comes
 // out above the table (Craig, 29 Oct 2026, #595).
-
-/** How the card labels a match his team got the points of. */
-const COUNTED: CardPoints["scoredAs"] = "slot";
 
 const nextFixture = v.object({
   gameweek: v.union(v.number(), v.null()),
@@ -129,7 +125,7 @@ export const ofMyTeam = query({
 async function pricer(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"teams">) {
   const scored = await scoredMatches(ctx, league, teamId);
   return async (code: number, positions: readonly Position[]): Promise<PricedMatch[]> =>
-    (await scored({ code, positions })).map(({ gameweek, points }) => ({ gameweek, points: points.total, counted: points.scoredAs === COUNTED }));
+    (await scored.of({ code, positions })).map(({ gameweek, points, counted }) => ({ gameweek, points: points.total, counted }));
 }
 
 /** Each of these clubs' next match after `now`, by club code: the matches ahead are read soonest

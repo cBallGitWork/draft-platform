@@ -2,9 +2,8 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { seasonStartYear } from "../shared/time";
-import { PLAYER_RECORDS_MOST } from "../table/scoredMatches";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { isWhole, type PlayerMatchRecord } from "./matchRecords";
+import { isWhole, PLAYER_RECORDS_MOST, type PlayerMatchRecord } from "./matchRecords";
 import { addStats, sumStats, type Stats } from "./statTotals";
 import { readOnce } from "../shared/readOnce";
 

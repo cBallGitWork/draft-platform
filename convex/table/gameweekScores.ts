@@ -8,6 +8,7 @@ import type { SeasonRules } from "../rules/rulesHistory";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { readOnce } from "../shared/readOnce";
+import { squadInputs, type PlayerRows } from "./squadInputs";
 import {
   gameweekInputs,
   heldFixtures,
@@ -172,8 +173,8 @@ function storedGameweekOf([first, ...rest]: Doc<"finalScores">[]): StoredGamewee
   return { fixtureCodes: first.fixtureCodes, scores };
 }
 
-/** One gameweek of the league, team by team: for a screen that shows its slots (the matchup, #34)
- *  or a change that re-scores it (an override, #32). */
+/** One gameweek of the league, team by team: for a screen that shows its slots (the matchup, #34,
+ *  the match page, #45, a player's card, #381) or a change that re-scores it (an override, #32). */
 export interface GameweekTeams {
   /** The site's scoring set in force in the gameweek, checked. */
   set: StoredScoringSet;
@@ -198,7 +199,7 @@ export async function tableGameweek(
 }
 
 /** The gameweek for the `teamIds` worked out now, any saved total set aside: for a change that
- *  re-scores it (an override, #32), to say what it moved. */
+ *  re-scores it (an override, #32), to say what it moved, and for the match page's men (#45). */
 export async function workedOutGameweek(
   ctx: QueryCtx,
   reads: LeagueReads,
@@ -207,6 +208,19 @@ export async function workedOutGameweek(
 ): Promise<GameweekTeams> {
   const fixtures = await heldFixtures(ctx, gameweek);
   return teamsFrom(reads, await gameweekInputs(ctx, reads, gameweek, fixtures, teamIds), new Map());
+}
+
+/** One team's gameweek worked out from reads the size of its squad (squadInputs.ts), for a
+ *  player's card and the Squad tab (#577): his rows are `rowsOf` his code. */
+export async function squadGameweek(
+  ctx: QueryCtx,
+  reads: LeagueReads,
+  gameweek: number,
+  teamId: TeamId,
+  rowsOf: (code: number) => Promise<PlayerRows>,
+): Promise<GameweekTeams> {
+  const fixtures = await heldFixtures(ctx, gameweek);
+  return teamsFrom(reads, await squadInputs(ctx, reads, gameweek, fixtures, teamId, rowsOf), new Map());
 }
 
 /** The gameweek team by team from its inputs, each team's `stored` total standing as its points. */

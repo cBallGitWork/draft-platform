@@ -3,11 +3,13 @@ import type { QueryCtx } from "../_generated/server";
 import { autoSubs, gameweekPlay, type AutoSubs, type GameweekPlay } from "../lineup/autoSubs";
 import { lineupsInGameweek, type HeldLineup } from "../lineup/lineups";
 import { ALL_CELLS, playsCell, type Cell } from "../lineup/pitch";
+import type { VidiprinterPlayer } from "../matchup/vidiprinter";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount, type HowPositionsCount } from "../positions/positionSettings";
 import type { Position } from "../positions/positionTables";
-import type { SeasonRules } from "../rules/rulesHistory";
 import type { StoredScoringSet } from "../rules/leagueRulesShape";
+import type { SeasonRules } from "../rules/rulesHistory";
+import type { MatchPoints } from "../scoring/scoring";
 import { siteScoringByGameweek } from "../scoring/siteScoring";
 import { validateScoringSet } from "../scoring/scoringSet";
 import { scoreTeam, type PlayerMatch, type SlotPoints, type TeamPoints } from "../scoring/teamPoints";
@@ -20,8 +22,9 @@ import { statusOf } from "../stats/matchStats";
 
 // One team's points in one gameweek (#29; spec/05, Auto-subs; spec/07): its lineup, auto-subs from
 // who played, then scoreTeam under the site's scoring set in force that gameweek. The league's
-// scorer (gameweekScores.ts) runs it for the table, every team in every gameweek begun, and for the
-// matchup (#34) and an override (#32), slot by slot, so none of them disagree.
+// scorer (gameweekScores.ts) runs it for the table, every team in every gameweek begun, and slot by
+// slot for the matchup (#34), an override (#32), the match page (#45) and a player's card and the
+// Squad tab (#577), so none of them disagree.
 
 /** The most records one match holds: one for each man two team sheets name, about forty. More
  *  throws, never a silent cut. */
@@ -155,25 +158,55 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
   return { team, autoSubs: subs, matchesOf, noLineup: held.noLineup };
 }
 
-/** Each of his matches with his points in it. scoreTeam scores a man's matches in the order
- *  matchesOf holds them, so this is the one place that pairs a match with its points. */
-export function pointsByMatch(slot: SlotPoints, matches: readonly HeldMatch[]): { match: HeldMatch; points: number | null }[] {
-  return matches.map((match, index) => ({ match, points: slot.matches[index].total }));
+/** One of his matches as his slot scored it: its points by category, and whether his slot's points
+ *  count it, not his other match in a double gameweek that counts only his best (scoring.ts's
+ *  countedMatches). */
+export interface ScoredInMatch {
+  match: HeldMatch;
+  points: MatchPoints;
+  counted: boolean;
 }
 
-/** A man's slot in the team and his points in one match: null when the lineup doesn't hold him,
- *  or the match isn't one of his. */
-export function pointsInMatch(
-  scored: TeamInGameweek,
-  playerCode: PlayerCode,
-  fixtureCode: number,
-): { slot: SlotPoints; points: number | null } | null {
+/** Each of his matches as his slot scored it. scoreTeam scores a man's matches in the order
+ *  matchesOf holds them, so this is the one place that pairs a match with its points. */
+function scoredByMatch(slot: SlotPoints, matches: readonly HeldMatch[]): ScoredInMatch[] {
+  return matches.map((match, index) => ({ match, points: slot.matches[index], counted: slot.matchesCounted[index] }));
+}
+
+/** Each of his matches with his points in it. */
+export function pointsByMatch(slot: SlotPoints, matches: readonly HeldMatch[]): { match: HeldMatch; points: number | null }[] {
+  return scoredByMatch(slot, matches).map(({ match, points }) => ({ match, points: points.total }));
+}
+
+/** A man's slot in the team, and one match as it scored him: null when the lineup doesn't hold
+ *  him, and `inMatch` null when the match isn't one of his. */
+export function slotInMatch(scored: TeamInGameweek, playerCode: PlayerCode, fixtureCode: number): { slot: SlotPoints; inMatch: ScoredInMatch | null } | null {
   const slot = [...scored.team.starters, ...scored.team.bench].find((each) => each.playerCode === playerCode);
   if (slot === undefined) return null;
   const his = scored.matchesOf.get(playerCode);
   if (his === undefined) throw new Error(`player ${playerCode} has a slot but no matches in the gameweek`);
-  const inMatch = pointsByMatch(slot, his).find(({ match }) => match.fixture.code === fixtureCode);
-  return inMatch === undefined ? null : { slot, points: inMatch.points };
+  return { slot, inMatch: scoredByMatch(slot, his).find(({ match }) => match.fixture.code === fixtureCode) ?? null };
+}
+
+/** A man's slot in the team and his points in one match: null when the lineup doesn't hold him,
+ *  or the match isn't one of his. */
+export function pointsInMatch(scored: TeamInGameweek, playerCode: PlayerCode, fixtureCode: number): { slot: SlotPoints; points: number | null } | null {
+  const found = slotInMatch(scored, playerCode, fixtureCode);
+  if (found === null || found.inMatch === null) return null;
+  return { slot: found.slot, points: found.inMatch.points.total };
+}
+
+/** His part in each of his matches he has a record in, as the commentary prices it (vidiprinter.ts):
+ *  the record once whole, whether he played, and his points there. The matchup and the match page
+ *  both read it. */
+export function inMatchOf(slot: SlotPoints, matches: readonly HeldMatch[]): VidiprinterPlayer["inMatch"] {
+  return new Map(
+    pointsByMatch(slot, matches).flatMap(({ match, points }) => {
+      const record = match.records.get(slot.playerCode);
+      if (record === undefined) return [];
+      return [[match.fixture.code, { stats: isWhole(record) ? record.stats : null, played: record.played === true, points }] as const];
+    }),
+  );
 }
 
 /** The gameweek's fixtures the feed still sends. */
