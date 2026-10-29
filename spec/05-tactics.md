@@ -33,6 +33,9 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - Each area's minimum and maximum are league rules. There are no defaults yet: leagues get a lot
   of freedom.
 - A lineup rolls over to the next gameweek if the manager doesn't touch it.
+- A team has a lineup from the moment it has its squad: "you don't save to create, you save to
+  edit". The first is a 4-4-2 filled in draft selection order, each slot by the first player
+  picked who plays there, and the rest on the bench in that order (Craig, 29 Oct 2026).
 
 ## Roles
 
