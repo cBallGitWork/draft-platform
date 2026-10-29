@@ -1,6 +1,6 @@
 // `npm run smoke`: the app loaded in a real browser, with no Convex deployment. Two servers:
 // `dev` is Vite's dev server, where `?preview=` sessions mount the screens; `bundle` is the
-// production build, where they must not (src/preview.ts). Each project runs the tests tagged with
+// production build, where they must not (src/app/preview.ts). Each project runs the tests tagged with
 // its name. VITE_CONVEX_URL is blanked for both, so a checkout's .env.local can't point either at
 // a real deployment.
 // The ports are this checkout's own (smokePorts in scripts/port.mjs), so worktrees can run it side

@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import flow from "../../docs/design/flow.md?raw";
-import { createShellRouter, type ShellContext } from "../../src/router";
+import { createShellRouter, type ShellContext } from "../../src/routes/router";
 
 /** Every source file in src/, as `src/...`, so the table's File column can be checked. */
 const sourceFiles = Object.keys(import.meta.glob("../../src/**/*.{ts,tsx}")).map((path) =>
@@ -97,7 +97,7 @@ describe("the screen map, docs/design/flow.md", () => {
 
   it("names files that exist", () => {
     const files = screensTable(flow).flatMap((row) => (row.file === "none" ? [] : [row.file]));
-    expect(sourceFiles).toContain("src/router.tsx");
+    expect(sourceFiles).toContain("src/routes/router.tsx");
     expect(files.filter((file) => !sourceFiles.includes(file))).toEqual([]);
   });
 

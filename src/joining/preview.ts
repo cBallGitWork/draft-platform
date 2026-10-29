@@ -1,10 +1,10 @@
-// Joining's screens without Convex, for screenshots (src/preview.ts says how): the preview
+// Joining's screens without Convex, for screenshots (src/app/preview.ts says how): the preview
 // manager's league "Mini beta", which they commission, at /leagues/preview-mini-beta/invites;
 // its invite link at /join/preview, or /join/waiting once asked, or /join/gone once switched off.
 
 import type { Id } from "../../convex/_generated/dataModel";
 import { DAY_MS } from "../../convex/shared/time";
-import { miniBeta, previewSays } from "../preview";
+import { miniBeta, previewSays } from "../app/preview";
 import { replyWords } from "../sign-in/words";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 

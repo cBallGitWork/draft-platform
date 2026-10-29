@@ -1,9 +1,9 @@
-// Player scoring in the preview (src/preview.ts): the first scoring set, which the admin edits, a
+// Player scoring in the preview (src/app/preview.ts): the first scoring set, which the admin edits, a
 // change saved now taking effect from gameweek 9, and everyone else reads.
 
 import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import type { Session } from "../auth";
-import { previewSays } from "../preview";
+import { previewSays } from "../app/preview";
 import { PREVIEW_CHANGES_FROM } from "../rules/preview";
 import type { ScoringSeam } from "./seam";
 import { unsavedOutcome } from "./words";

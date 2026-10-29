@@ -4,7 +4,7 @@
 import { act, cleanup, render } from "@testing-library/react";
 import { StrictMode } from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { LiveApp, takeLinkCode } from "../../src/liveApp";
+import { LiveApp, takeLinkCode } from "../../../src/app/liveApp";
 
 type Sent = { type: string; udfPath?: string; args?: unknown[] };
 

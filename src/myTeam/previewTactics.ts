@@ -1,4 +1,4 @@
-// The Tactics tab in the preview (src/preview.ts): a squad of real players in a 4-2-3-1 with four on
+// The Tactics tab in the preview (src/app/preview.ts): a squad of real players in a 4-2-3-1 with four on
 // the bench, under the first rules, the deadline a day and a half off. A save is judged by the
 // server's own check (lineup.ts) and said in its words, so a refusal shows as it would live.
 

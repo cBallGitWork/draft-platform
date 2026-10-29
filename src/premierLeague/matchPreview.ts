@@ -1,4 +1,4 @@
-// The match page in the preview (src/preview.ts): Ipswich Town 1–1 Nottingham Forest, the match
+// The match page in the preview (src/app/preview.ts): Ipswich Town 1–1 Nottingham Forest, the match
 // recorded live on 23 Oct 2026 (tests/support/recorded/live.payloads.ts), at full time. Its team
 // sheets, team stats and commentary are the recording's, written as the live tick writes them; the
 // positions, who owns whom and the points are made up. Every fixture opens it: one to come, as it

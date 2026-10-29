@@ -6,12 +6,12 @@
 // `import.meta.env.DEV` guard holds if something imports it anyway, so a logged-out visitor can
 // never reach the frame through it.
 
-import type { Id } from "../convex/_generated/dataModel";
-import type { LeagueSummary } from "../convex/leagues/myLeagues";
-import { HOUR_MS } from "../convex/shared/time";
-import type { AuthActions, Session } from "./auth";
-import type { LeaguesSeam } from "./leagues/seam";
-import { replyWords } from "./sign-in/words";
+import type { Id } from "../../convex/_generated/dataModel";
+import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { HOUR_MS } from "../../convex/shared/time";
+import type { AuthActions, Session } from "../auth";
+import type { LeaguesSeam } from "../leagues/seam";
+import { replyWords } from "../sign-in/words";
 
 /** What each made-up person may do in a league, as the server's powersIn would send it. */
 const managerPowers = { names: false, runs: false };

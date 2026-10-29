@@ -2,7 +2,7 @@
 
 **Contents:** [The map](#the-map) · [Screens](#screens) · [Gaps](#gaps)
 
-Every route in `src/routes/` (assembled in `src/router.tsx`) and how a person moves between them, plus the screens the spec
+Every route in `src/routes/` (assembled in `src/routes/router.tsx`) and how a person moves between them, plus the screens the spec
 names that have no route yet. Read with [plate.md](plate.md), which is the look. The spec is the
 product; this map only draws it. `tests/src/flow.test.ts` fails when a route is missing from the
 Screens table, isn't its own box in the map or has no arrow touching it, the table lists a path

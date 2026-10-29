@@ -1,11 +1,11 @@
-// The admin's dashboard in the preview (src/preview.ts): a new signing, a man whose starts wait, a
+// The admin's dashboard in the preview (src/app/preview.ts): a new signing, a man whose starts wait, a
 // position flagged and one removed, three clubs, and a search that finds one player with positions
 // from all three sources, one of them flagged. On the feeds page, FPL's sync late, match stats
 // failing, a match behind and a correction after the lock.
 
 import { FIRST_THRESHOLDS } from "../../convex/positions/positionChanges";
 import { HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
-import { previewSays } from "../preview";
+import { previewSays } from "../app/preview";
 import type { AdminSeam, FeedsReport, PositionsQueue } from "./seam";
 
 const queue: PositionsQueue = {

@@ -43,7 +43,7 @@ measured, not eyeballed. 390×844 is the phone and 1440 the desk; they fail diff
 never enough.
 
 - **A visitor** sees only the sign-in page: shoot `/`.
-- **A manager**: add `?preview=manager` (`src/preview.ts`): the signed-in frame with made-up
+- **A manager**: add `?preview=manager` (`src/app/preview.ts`): the signed-in frame with made-up
   figures, on the dev server only. Shoot the route itself, e.g. `"/team/squad?preview=manager"`.
 - **Always include `/` and `/?preview=manager`**, whatever the change touched: they are what
   every visitor and every manager opens first.

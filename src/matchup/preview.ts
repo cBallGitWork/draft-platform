@@ -1,4 +1,4 @@
-// The matchup in the preview (src/preview.ts): the preview manager's team against Kroos Control,
+// The matchup in the preview (src/app/preview.ts): the preview manager's team against Kroos Control,
 // replayed. Two made-up Premier League matches, the second kicking off half an hour into the
 // first, play out a minute every half second, so every man moves from yet to play, through his
 // minute, to finished; Saka Potatoes' keeper doesn't play and the bench keeper comes on once his

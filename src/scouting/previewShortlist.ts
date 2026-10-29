@@ -1,4 +1,4 @@
-// The shortlist in the preview (src/preview.ts), over Scouting's preview players (preview.ts):
+// The shortlist in the preview (src/app/preview.ts), over Scouting's preview players (preview.ts):
 // adding or taking off a player changes it for the session, so both screens show the change.
 
 import { useSyncExternalStore } from "react";
