@@ -2,8 +2,9 @@ import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { cellShape } from "../lineup/pitchShape";
 
-// Each team's lineup (#8, spec/05): one row for each gameweek it was saved from, which
-// lineup/lineups.ts writes and reads.
+// Each team's lineup (#8, spec/05): one row for each gameweek it was saved from, its first
+// lineup's included, which lineup/lineups.ts picks again on each squad change until the manager
+// saves; lineup/lineups.ts writes and reads them.
 
 /** A starter and the cell he stands in: lineup.ts's Placement, its cell checked. */
 export const placementShape = cellShape.extend({
