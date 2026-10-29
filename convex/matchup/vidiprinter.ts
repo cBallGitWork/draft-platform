@@ -16,7 +16,8 @@ import type { InMatch } from "../gameweekScorer/teamGameweek";
 import type { Cell } from "../lineup/pitch";
 import { rulePointsIn, scoreMatch, type MatchStats } from "../scoring/scoring";
 import { inTenths, type ScoringSet } from "../scoring/scoringSet";
-import { STAT_CATALOGUE } from "../scoring/statCatalogue";
+import { categoryName } from "../scoring/categories";
+import { CATALOGUE_STATS } from "../scoring/statCatalogue";
 import { EVENT_STATS } from "../stats/matchRecords";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../shared/time";
 import type { commentaryLine } from "../schema";
@@ -179,9 +180,10 @@ const signed = (points: number) => (points > 0 ? `+${points}` : `${points}`);
 
 /** A stat as a threshold line says it: its name, lower-cased, an own stat's from the set. */
 function statWords(stat: string, set: ScoringSet): string {
-  const name = STAT_CATALOGUE.find((entry) => entry.stat === stat)?.name ?? set.ownStats?.find((own) => own.stat === stat)?.name;
-  if (name === undefined) throw new Error(`no stat ${JSON.stringify(stat)} in the catalogue or the set's own stats`);
-  return name.toLowerCase();
+  if (!CATALOGUE_STATS.has(stat) && !set.ownStats?.some((own) => own.stat === stat)) {
+    throw new Error(`no stat ${JSON.stringify(stat)} in the catalogue or the set's own stats`);
+  }
+  return categoryName(stat, set.ownStats).toLowerCase();
 }
 
 /** About when a minute of the match fell, as a line or the clock counts it: the second half's
