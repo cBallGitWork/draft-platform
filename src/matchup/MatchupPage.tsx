@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { MatchupSide, MatchupSlot } from "../../convex/matchup/matchupShape";
 import { ColumnHeads } from "../ui/ColumnHeads";
-import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { Loading, PAGE_STACK, PageSection, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import { useMinute } from "../shared/useMinute";
 import { matchPath } from "../premierLeague/paths";
@@ -57,7 +57,7 @@ export function MatchupPage({ league, seam, asked }: { league: LeagueSummary; se
   // matchup asked for loads afresh.
   const matchup = useLastLoaded(seam.useMatchup(league.leagueId, useMinute(), asked), `${asked.teamId}/${asked.gameweek}`);
   return (
-    <PageSection title={MATCHUP_TITLE} className="flex max-w-6xl flex-col gap-2">
+    <PageSection title={MATCHUP_TITLE} className={PAGE_STACK}>
       {matchup === undefined ? (
         <Loading>{loadingWords}</Loading>
       ) : matchup === null ? (
@@ -128,7 +128,7 @@ const sideName = (side: MatchupSide) => (side.kind === "team" ? side.teamName : 
 /** Two sides, the score between them once there is one. */
 function Fixture({ teamName, opponent, score }: { teamName: string; opponent: string; score?: string }) {
   return (
-    <p className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-3 px-3 py-2 text-lead font-bold sm:text-title">
+    <p className="grid grid-cols-sides items-baseline gap-3 px-3 py-2 text-lead font-bold sm:text-title">
       <span className="text-right">{teamName}</span>
       {score === undefined ? <span className="text-muted">{versusWords}</span> : <span className="text-figure whitespace-nowrap">{score}</span>}
       <span>{opponent}</span>
@@ -146,7 +146,7 @@ function ScoredMatchup({ game: { team, opponent, commentary } }: { game: Scored 
           {provisional ? provisionalWords : finalWords}
         </p>
       </section>
-      <div className="grid items-start gap-2 lg:grid-cols-2">
+      <div className={PANEL_COLUMNS}>
         <SidePanel side={team} />
         <SidePanel side={opponent} />
         <Vidiprinter commentary={commentary} title={VIDIPRINTER_TITLE} noLinesWords={noCommentaryWords} className="lg:col-span-2" />

@@ -1,6 +1,6 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
-import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { LiveNote, Loading, PAGE_STACK, PageSection, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
 import { FixturesPanel } from "./FixturesPanel";
 import type { LeagueTable, TableSeam } from "./seam";
 import {
@@ -37,13 +37,13 @@ const cellClasses = (column: Column) =>
 export function TablePage({ league, seam }: { league: LeagueSummary; seam: TableSeam }) {
   const leagueTable = seam.useLeagueTable(league.leagueId);
   return (
-    <PageSection title={TABLE_PAGE_TITLE} className="flex max-w-6xl flex-col gap-2">
+    <PageSection title={TABLE_PAGE_TITLE} className={PAGE_STACK}>
       {leagueTable === undefined ? (
         <Loading>{loadingWords}</Loading>
       ) : leagueTable === null ? (
         <p className="text-muted">{noRulesWords}</p>
       ) : (
-        <div className="grid items-start gap-2 lg:grid-cols-2">
+        <div className={PANEL_COLUMNS}>
           <StandingsPanel leagueTable={leagueTable} />
           <FixturesPanel leagueTable={leagueTable} />
         </div>
@@ -63,7 +63,7 @@ function StandingsPanel({ leagueTable: { format, table, results, unscored } }: {
         </p>
       ))}
       {table.every((row) => row.played === 0) && <PanelNote>{noResultsWords}</PanelNote>}
-      {provisional && <p className="px-3 py-2 text-derived">{provisionalWords}</p>}
+      {provisional && <LiveNote>{provisionalWords}</LiveNote>}
       <table className="w-full border-collapse">
         <ColumnHeads columns={columns} shown={shown} classOf={cellClasses} />
         <tbody>

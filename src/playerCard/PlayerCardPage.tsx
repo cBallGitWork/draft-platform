@@ -4,7 +4,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PositionCodes } from "../ui/PositionCodes";
 import { OwnerName } from "../ui/OwnerName";
 import { SCOUTING_PATH } from "../frame/menu";
-import { Loading, PANEL_BODY, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { Loading, PAGE_STACK, PageSection, Panel, PANEL_BODY, PanelNote } from "../ui/Panel";
 import { useMinute } from "../shared/useMinute";
 import { gameweekWords, whenWords } from "../shared/words";
 import type { PlayerCard, PlayerCardSeam } from "./seam";
@@ -39,13 +39,13 @@ import {
 export function PlayerCardPage({ league, runs, playerCode, seam }: { league: LeagueSummary; runs: boolean; playerCode: number; seam: PlayerCardSeam }) {
   const card = seam.usePlayerCard(league.leagueId, playerCode, useMinute());
   return (
-    <PageSection title={card?.fullName ?? PLAYER_TITLE} aside={<Back />} className="flex max-w-6xl flex-col gap-2">
+    <PageSection title={card?.fullName ?? PLAYER_TITLE} aside={<Back />} className={PAGE_STACK}>
       {card === undefined ? (
         <Loading className="bg-panel px-3 py-2">{loadingWords}</Loading>
       ) : card === null ? (
         <p className="bg-panel px-3 py-2 text-muted">{noSuchPlayerWords}</p>
       ) : (
-        <div className="grid items-start gap-2 lg:grid-cols-[2fr_3fr]">
+        <div className="grid items-start gap-2 lg:grid-cols-card">
           <div className="flex flex-col gap-2">
             <Facts card={card}>
               <ShortlistAction leagueId={league.leagueId} playerCode={card.code} gone={card.gone} seam={seam} />
@@ -79,7 +79,7 @@ function Back() {
 function Facts({ card, children }: { card: PlayerCard; children: ReactNode }) {
   return (
     <Panel title={PLAYER_TITLE}>
-      <dl className={`${PANEL_BODY} grid grid-cols-[auto_1fr] gap-x-3`}>
+      <dl className={`${PANEL_BODY} grid grid-cols-facts gap-x-3`}>
         <dt className="text-soft">{clubLabel}</dt>
         <dd>{card.club.name}</dd>
         <dt className="text-soft">{positionsLabel}</dt>

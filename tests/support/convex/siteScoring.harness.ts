@@ -4,7 +4,7 @@
 import { beforeEach, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { StoredScoringSet } from "../../../convex/rules/leagueRulesShape";
+import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { PATCH_NOTICE_DAYS, siteScoringInGameweek } from "../../../convex/scoring/siteScoring";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";

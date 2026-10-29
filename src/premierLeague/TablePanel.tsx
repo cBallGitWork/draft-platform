@@ -1,5 +1,5 @@
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
-import { Loading, Panel, PanelNote } from "../ui/Panel";
+import { LiveNote, Loading, Panel, PanelNote } from "../ui/Panel";
 import { ClubName } from "./ClubName";
 import type { PlStandings, PremierLeagueSeam } from "./seam";
 import { goalDifferenceWords, loadingTableWords, noClubsWords, provisionalWords, TABLE_TITLE, tableColumns } from "./words";
@@ -26,7 +26,7 @@ export function TablePanel({ seam }: { seam: PremierLeagueSeam }) {
         <PanelNote>{noClubsWords}</PanelNote>
       ) : (
         <>
-          {standings.provisional && <p className="px-3 py-2 text-derived">{provisionalWords}</p>}
+          {standings.provisional && <LiveNote>{provisionalWords}</LiveNote>}
           <table className="w-full border-collapse">
             <ColumnHeads columns={tableColumns} shown={COLUMNS} classOf={cellClasses} />
             <tbody>
