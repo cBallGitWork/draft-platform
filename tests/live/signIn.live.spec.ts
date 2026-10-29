@@ -6,7 +6,7 @@ import { expect, test } from "@playwright/test";
 import { signInEmail } from "../../convex/signIn/signInEmail";
 import { receivedSignInLink } from "../../scripts/sign-in-inbox.mjs";
 import { signOutWords } from "../../src/frame/words";
-import { replyWords, signInWords } from "../../src/sign-in/words";
+import { replyWords, signInWords } from "../../src/signIn/words";
 import { checkSecrets, SKIPPED_NO_SECRETS } from "./releaseCheck";
 
 /** The sign-in email's subject: its words don't depend on the link. */

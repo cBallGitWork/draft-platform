@@ -9,7 +9,7 @@ import { ESCAPE_KEY } from "../../../src/shared/browserEvents";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { READ_FAILED_LOG } from "../../../src/frame/ReadFailed";
-import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
+import { SIGN_IN_PATH } from "../../../src/signIn/paths";
 import { silenceConsoleError } from "../../support/console.setup";
 import {
   adminSeeing,

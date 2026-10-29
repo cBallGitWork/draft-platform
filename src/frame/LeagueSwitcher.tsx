@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import type { Session } from "../auth";
+import type { Session } from "../signIn/seam";
 import { ESCAPE_KEY, KEY_DOWN, POINTER_DOWN } from "../shared/browserEvents";
 import type { LeaguesSeam } from "../leagues/seam";
 import { LEAGUES_PATH } from "../leagues/paths";

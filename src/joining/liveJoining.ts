@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { linkOffWords } from "../../convex/joining/joiningShared";
 import { answerOf, refusalOf } from "../shared/refusal";
-import { askFailedWords, replyWords } from "../sign-in/words";
+import { askFailedWords, replyWords } from "../signIn/words";
 import type { JoiningSeam } from "./seam";
 import { changeFailedWords } from "../shared/words";
 import { useMinute } from "../shared/useMinute";

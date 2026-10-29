@@ -2,7 +2,7 @@
 // change saved now taking effect from gameweek 9, and everyone else reads.
 
 import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
-import type { Session } from "../auth";
+import type { Session } from "../signIn/seam";
 import { previewSays } from "../app/preview";
 import { PREVIEW_CHANGES_FROM } from "../rules/preview";
 import type { ScoringSeam } from "./seam";

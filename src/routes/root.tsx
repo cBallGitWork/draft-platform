@@ -1,6 +1,6 @@
 import { Navigate, Outlet, createRootRouteWithContext, createRoute, redirect, type ErrorComponentProps } from "@tanstack/react-router";
 import type { AdminSeam } from "../admin/seam";
-import type { AuthActions, Session } from "../auth";
+import type { AuthActions, Session } from "../signIn/seam";
 import { AppFrame } from "../frame/AppFrame";
 import { ErrorScreen } from "../frame/ErrorScreen";
 import type { FeedbackSeam } from "../feedback/seam";
@@ -26,9 +26,9 @@ import type { PlayerCardSeam } from "../playerCard/seam";
 import type { PremierLeagueSeam } from "../premierLeague/seam";
 import type { ScoringSeam } from "../scoring/seam";
 import type { ScoutingSeam } from "../scouting/seam";
-import { SIGN_IN_PATH } from "../sign-in/paths";
-import { SignInPage } from "../sign-in/SignInPage";
-import { linkProblemWords, type LinkProblem } from "../sign-in/words";
+import { SIGN_IN_PATH } from "../signIn/paths";
+import { SignInPage } from "../signIn/SignInPage";
+import { linkProblemWords, type LinkProblem } from "../signIn/words";
 import type { SquadsSeam } from "../squads/seam";
 import type { TableSeam } from "../table/seam";
 
