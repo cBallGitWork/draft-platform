@@ -4,7 +4,7 @@ import { internalAction, type ActionCtx } from "../_generated/server";
 import { logFailure } from "../shared/errors";
 import { syncDue } from "./matchStatsSync";
 import { delayCommentary } from "../football/matchCommentary";
-import { readFplPayloads } from "../football/fpl";
+import { readFplPayloads } from "../football/fpl/fpl";
 import { syncTeamSheets } from "../football/matchTeamSheets";
 import type { liveStatsTickFields } from "../schema";
 import type { DueMatch } from "../shared/dueMatches";

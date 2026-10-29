@@ -4,12 +4,12 @@ import { internalAction, internalMutation, internalQuery, type ActionCtx } from 
 import { PL_COMP_SEASON, PL_LAST_COMP_SEASON } from "../football/football";
 import { errorMessage, logFailure } from "../shared/errors";
 import { codesByOpta, namedMen } from "../football/feedIds";
-import { readFplBootstrap } from "../football/fpl";
+import { readFplBootstrap } from "../football/fpl/fpl";
 import { heldRow } from "./playerPositions";
-import { matchSlots, requireFixtureCode, type MatchSlot } from "../football/plMatch";
+import { matchSlots, requireFixtureCode, type MatchSlot } from "../football/premierLeague/plMatch";
 import { START_WINDOW, type Start } from "./positions";
 import { labelPositions, placePosition } from "./positionTables";
-import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlSquad, type RawPlFixture, type RawPlSquadPlayer } from "../football/premierLeague";
+import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlSquad, type RawPlFixture, type RawPlSquadPlayer } from "../football/premierLeague/premierLeague";
 import { positionsSyncFields, startRecord, syncTrigger } from "../schema";
 import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";

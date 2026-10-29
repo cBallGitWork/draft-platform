@@ -1,21 +1,21 @@
 import { expect, test } from "vitest";
-import { codesByOpta } from "../../../convex/football/feedIds";
-import { commentaryLines, type CommentaryLine } from "../../../convex/football/plCommentary";
-import type { RawPlCommentaryLine } from "../../../convex/football/premierLeague";
+import { codesByOpta } from "../../../../convex/football/feedIds";
+import { commentaryLines, type CommentaryLine } from "../../../../convex/football/premierLeague/plCommentary";
+import type { RawPlCommentaryLine } from "../../../../convex/football/premierLeague/premierLeague";
 import {
   COMMENTARY_MATCH,
   FINISHED_MATCHES,
   recordedCommentary,
   recordedFplPlayers,
   recordedSheets,
-} from "../../support/recorded/commentary.payloads";
+} from "../../../support/recorded/commentary.payloads";
 import {
   LIVE_COMMENTARY,
   recordedLiveCommentary,
   recordedLiveFplPlayers,
   recordedLiveSheets,
-} from "../../support/recorded/live.payloads";
-import { FULL_STATS } from "../../support/recorded/gw6.payloads";
+} from "../../../support/recorded/live.payloads";
+import { FULL_STATS } from "../../../support/recorded/gw6.payloads";
 
 const codeByOpta = codesByOpta(recordedFplPlayers());
 /** FPL codes of the men the tests name. */

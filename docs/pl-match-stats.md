@@ -111,7 +111,7 @@ twenty team sheets (#27; `convex/football/feedIds.ts`):
 
 ## FPL's stats per match
 
-Never written down before; from gameweek 6 (`convex/football/fplLive.ts`, `tests/support/recorded/`):
+Never written down before; from gameweek 6 (`convex/football/fpl/fplLive.ts`, `tests/support/recorded/`):
 
 - **`/event/{gw}/live/`**, per player: `explain`, one block per match he had, keyed by FPL's
   per-season fixture `id` (`/fixtures/` gives its `code`). Each block lists `{identifier, value,
@@ -141,7 +141,7 @@ Never written down before; from gameweek 6 (`convex/football/fplLive.ts`, `tests
 
 For #22, from twelve of gameweek 6's team sheets: seven 4-2-3-1, four 3-4-2-1 and one 5-4-1, with
 Opta's `formation_place` read for the 44 starters of Hull v Everton and Palace v Forest
-(`tests/convex/football/plMatchSlots.test.ts` pins it).
+(`tests/convex/football/premierLeague/plMatchSlots.test.ts` pins it).
 
 - `teamLists[].formation` is `{label, players}`, `players` the starters' ids in lines: the keeper
   first, then each line up the pitch, matching the label (`1-4-2-3-1`). It draws the eleven

@@ -7,9 +7,9 @@
 // - fplPlayers: FPL's bootstrap-static of 24 Oct 2026 cut to the 40 men the sheets name, and to
 //   the fields `RawBootstrap` types.
 
-import type { RawBootstrap } from "../../../convex/football/fpl";
+import type { RawBootstrap } from "../../../convex/football/fpl/fpl";
 import { withNoNews } from "./fpl.payloads";
-import type { RawPlCommentary, RawPlFixture, RawPlTeamStats } from "../../../convex/football/premierLeague";
+import type { RawPlCommentary, RawPlFixture, RawPlTeamStats } from "../../../convex/football/premierLeague/premierLeague";
 import live from "./pl-live-match.json";
 
 /** The fixture id: commentary.payloads.ts's UPCOMING_MATCH, three days on. */

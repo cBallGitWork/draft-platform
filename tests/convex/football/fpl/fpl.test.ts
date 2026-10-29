@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
-import { mapFpl } from "../../../convex/football/fpl";
-import { CLUB_CODE, FIXTURE_CODE, PLAYER_CODE, RECORDED_COUNT, recordedFpl, type FplPayloads } from "../../support/recorded/fpl.payloads";
+import { mapFpl } from "../../../../convex/football/fpl/fpl";
+import { CLUB_CODE, FIXTURE_CODE, PLAYER_CODE, RECORDED_COUNT, recordedFpl, type FplPayloads } from "../../../support/recorded/fpl.payloads";
 
 const { bootstrap, fixtures } = recordedFpl();
 const football = mapFpl(bootstrap, fixtures);
