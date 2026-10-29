@@ -13,8 +13,8 @@ import { PL_SEASON_START_YEAR } from "../../../convex/football/football";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { SEASON_TOTALS_MOST } from "../../../convex/stats/seasonStats";
 import { CLUB_PLAYERS_MOST } from "../../../convex/shared/players";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
+import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, type TestConvex } from "../../support/convex/leagues.harness";
+import { ARSENAL, CHELSEA, GONE, SAKA, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -28,7 +28,6 @@ const BRENTFORD = { code: 94, name: "Brentford", shortName: "BRE" };
 const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CDM", "CM"] as Position[] };
 const MBEUMO = { code: 1003, name: "Mbeumo", fullName: "Bryan Mbeumo", clubCode: BRENTFORD.code, positions: ["W", "ST"] as Position[] };
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM"] as Position[] };
-const GONE = { code: 2001, name: "Gone", fullName: "Long Gone", clubCode: ARSENAL.code, positions: [] as Position[] };
 
 const ALL: PlayersFilters = { availability: "all", position: null, clubCode: null };
 const BY_NAME: PlayersSort = { by: "name", descending: false };
@@ -44,8 +43,7 @@ beforeEach(async () => {
   await t.run(async (ctx) => {
     await insertClubs(ctx, [CHELSEA, ARSENAL, BRENTFORD]);
     await insertPlayers(ctx, [SAKA, RICE, MBEUMO, PALMER]);
-    const { positions: _none, ...gone } = GONE;
-    await ctx.db.insert("players", { ...gone, droppedAt: Date.now() });
+    await insertDroppedPlayer(ctx, GONE, Date.now());
     // Saka is Ann's and Palmer Bob's.
     await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: SAKA.code });
     await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[1], playerCode: PALMER.code });
@@ -56,7 +54,6 @@ const listAs = async (email: string, filters: Partial<PlayersFilters> = {}, sort
   (await actingAs(t, email)).query(api.scouting.playersList.list, { leagueId, filters: { ...ALL, ...filters }, sort, stat });
 const namesListed = async (filters: Partial<PlayersFilters> = {}, sort: PlayersSort = BY_NAME) =>
   (await listAs(ANN, filters, sort)).players.map((player) => player.name);
-const teamName = (teamId: Id<"teams">) => t.run(async (ctx) => (await ctx.db.get("teams", teamId))!.name);
 
 test("every Premier League player now is listed, with his club, positions and owner; one who has left is not", async () => {
   const { players } = await listAs(ANN);
@@ -67,7 +64,7 @@ test("every Premier League player now is listed, with his club, positions and ow
     fullName: "Bukayo Saka",
     club: ARSENAL,
     positions: ["W"],
-    ownerTeamName: await teamName(teams[0]),
+    ownerTeamName: await teamName(t, teams[0]),
     seasonPoints: null,
     stat: null,
   });

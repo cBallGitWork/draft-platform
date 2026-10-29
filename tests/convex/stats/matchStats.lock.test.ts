@@ -2,7 +2,6 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { LATE_CORRECTION_WATCH_MS, LATE_READ_EVERY_MS, MATCHES_PER_RUN } from "../../../convex/stats/matchStats";
 import {
-  elapse,
   FULL_TIME_READ,
   GAMEWEEK,
   HULL_EVERTON,
@@ -13,7 +12,7 @@ import {
   withPlReadEmpty,
 } from "../../support/convex/matchStats.harness";
 import { FULL_STATS, recordedGw6, type Gw6Payloads } from "../../support/recorded/gw6.payloads";
-import { freshConvex, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
+import { elapse, freshConvex, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { CURRENT_FIXTURES_MOST } from "../../../convex/shared/fixtures";
 

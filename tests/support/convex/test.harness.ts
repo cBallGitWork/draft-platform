@@ -49,6 +49,12 @@ export async function clockRunsTo(t: TestConvex, time: number): Promise<void> {
   await t.finishAllScheduledFunctions(() => vi.advanceTimersByTime(0));
 }
 
+/** Lets `ms` pass, and runs every scheduled function that falls due in it. */
+export async function elapse(t: TestConvex, ms: number): Promise<void> {
+  vi.advanceTimersByTime(ms);
+  await t.finishInProgressScheduledFunctions();
+}
+
 /** What a faked feed answers a URL it refuses, unless the test names another status. */
 export const REFUSED_STATUS = 503;
 

@@ -6,33 +6,16 @@ import { mailRefusals } from "../../../convex/mail/mail";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { LONDON_ZONE } from "../../../convex/shared/moments";
-import {
-  ANN,
-  deletes,
-  leagueWithPeople,
-} from "../../support/convex/leagueDeletion.harness";
-import {
-  changesTo,
-  rowsToChange,
-} from "../../support/convex/leagueMutations.harness";
-import {
-  COMMISSIONER,
-  actingAs,
-  type TestConvex,
-} from "../../support/convex/leagues.harness";
-import {
-  fakeResend,
-  signInDeployment,
-} from "../../support/convex/signIn.harness";
+import { ANN, deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
+import { changesTo, rowsToChange } from "../../support/convex/leagueMutations.harness";
+import { COMMISSIONER, OUTSIDER, actingAs, type TestConvex } from "../../support/convex/leagues.harness";
+import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { publicFunctions } from "../../support/convex/test.harness";
 
 // Every public query, mutation and action names who it lets in, and a signed-out caller and a
 // signed-in outsider are let in or refused as that gate says (SEC-6). It pins today's gates;
 // leagueAccess.test.ts checks, besides, that the refused mutations change nothing.
-
-/** Someone signed in with no part in any league. */
-const OUTSIDER = "outsider@example.com";
 
 /** Let past the gate: answered, or refused for something other than who is asking. */
 const LET_IN = "let in";
@@ -51,10 +34,7 @@ const GATES = {
   /** Whoever manages a team in the league, for their own team. */
   manager: { signedOut: refusals.signedOut, outsider: refusals.runsNoTeam },
   /** The team's own manager, or the admin. */
-  teamsManager: {
-    signedOut: refusals.signedOut,
-    outsider: refusals.notManager,
-  },
+  teamsManager: { signedOut: refusals.signedOut, outsider: refusals.notManager },
   /** The commissioner, the co-commissioner or the admin. */
   runner: { signedOut: refusals.signedOut, outsider: refusals.notRunner },
   /** The same, but anyone else is answered with nothing rather than refused. */
@@ -71,10 +51,7 @@ type Gate = keyof typeof GATES;
 
 /** The refusals that say who is asking may not: any other refusal is past the gate. */
 const GATE_REFUSALS = new Set<string>(
-  Object.values(GATES).flatMap(({ signedOut, outsider }) => [
-    signedOut,
-    outsider,
-  ]),
+  Object.values(GATES).flatMap(({ signedOut, outsider }) => [signedOut, outsider]),
 );
 
 /** Every public function's gate, by its name as "folder/module:name". A function added later
@@ -166,8 +143,7 @@ const gates: Record<string, Gate> = {
 
 /** The public functions this sweep doesn't call, each with why. */
 const notCalled: Record<string, string> = {
-  "auth:signIn":
-    "Convex Auth's own: a sign-in link's code is what lets someone in, tested in tests/convex/signIn/",
+  "auth:signIn": "Convex Auth's own: a sign-in link's code is what lets someone in, tested in tests/convex/signIn/",
 };
 
 /** Whoever calls: someone signed in, or the deployment itself when no one is. */
@@ -190,22 +166,10 @@ beforeEach(async () => {
   const rows = await rowsToChange(t, leagueId);
 
   // Opening a letter needs one to ANN, and undoing a deletion a league being deleted.
-  await (
-    await actingAs(t, COMMISSIONER)
-  ).mutation(api.mail.mail.writeToLeague, {
-    leagueId,
-    subject: "Welcome",
-    body: "Season starts soon.",
-  });
+  await (await actingAs(t, COMMISSIONER)).mutation(api.mail.mail.writeToLeague, { leagueId, subject: "Welcome", body: "Season starts soon." });
   await t.finishAllScheduledFunctions(vi.runAllTimers);
-  const annsLetter = await t.run((ctx) =>
-    ctx.db
-      .query("letters")
-      .withIndex("by_to_and_at", (q) => q.eq("to", ANN))
-      .first(),
-  );
-  if (!annsLetter)
-    throw new Error(`writing to the league filed no letter to ${ANN}`);
+  const annsLetter = await t.run((ctx) => ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", ANN)).first());
+  if (!annsLetter) throw new Error(`writing to the league filed no letter to ${ANN}`);
   const beingDeleted = await leagueWithPeople(t, "A league being deleted");
   await deletes(t, COMMISSIONER, beingDeleted);
   // Dismissing a banner needs a version of the site's scoring.
@@ -218,135 +182,51 @@ beforeEach(async () => {
       "admin/feeds:feeds": () => caller.query(api.admin.feeds.feeds, { now }),
       "auth:isAuthenticated": () => caller.query(api.auth.isAuthenticated, {}),
       "auth:signOut": () => caller.action(api.auth.signOut, {}),
-      "feedback/feedback:list": () =>
-        caller.query(api.feedback.feedback.list, {}),
-      "feedback/feedback:send": () =>
-        caller.mutation(api.feedback.feedback.send, { message: "Love it" }),
-      "football/matchScores:ofGameweek": () =>
-        caller.query(api.football.matchScores.ofGameweek, {
-          gameweek: SOME_CODE,
-        }),
-      "football/plGameweeks:firstKickoffs": () =>
-        caller.query(api.football.plGameweeks.firstKickoffs, {}),
-      "football/plStandings:ofSeason": () =>
-        caller.query(api.football.plStandings.ofSeason, {}),
-      "gameweeks/leagueGameweeks:ofLeague": () =>
-        caller.query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId }),
-      "home/leagueHome:ofLeague": () =>
-        caller.query(api.home.leagueHome.ofLeague, { leagueId, now }),
-      "joining/endedInvite:mine": () =>
-        caller.query(api.joining.endedInvite.mine, { now }),
-      "joining/inviteLink:signInToJoin": () =>
-        caller.action(api.joining.inviteLink.signInToJoin, {
-          token: NO_SUCH_LINK,
-          email: OUTSIDER,
-        }),
-      "joining/invitesPage:page": () =>
-        caller.query(api.joining.invitesPage.page, { leagueId }),
-      "joining/joinRequests:ask": () =>
-        caller.mutation(api.joining.joinRequests.ask, { token: NO_SUCH_LINK }),
-      "joining/joinRequests:joinPage": () =>
-        caller.query(api.joining.joinRequests.joinPage, {
-          token: NO_SUCH_LINK,
-        }),
-      "leagues/leagueDeletion:undo": () =>
-        caller.mutation(api.leagues.leagueDeletion.undo, {
-          leagueId: beingDeleted,
-        }),
+      "feedback/feedback:list": () => caller.query(api.feedback.feedback.list, {}),
+      "feedback/feedback:send": () => caller.mutation(api.feedback.feedback.send, { message: "Love it" }),
+      "football/matchScores:ofGameweek": () => caller.query(api.football.matchScores.ofGameweek, { gameweek: SOME_CODE }),
+      "football/plGameweeks:firstKickoffs": () => caller.query(api.football.plGameweeks.firstKickoffs, {}),
+      "football/plStandings:ofSeason": () => caller.query(api.football.plStandings.ofSeason, {}),
+      "gameweeks/leagueGameweeks:ofLeague": () => caller.query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId }),
+      "home/leagueHome:ofLeague": () => caller.query(api.home.leagueHome.ofLeague, { leagueId, now }),
+      "joining/endedInvite:mine": () => caller.query(api.joining.endedInvite.mine, { now }),
+      "joining/inviteLink:signInToJoin": () => caller.action(api.joining.inviteLink.signInToJoin, { token: NO_SUCH_LINK, email: OUTSIDER }),
+      "joining/invitesPage:page": () => caller.query(api.joining.invitesPage.page, { leagueId }),
+      "joining/joinRequests:ask": () => caller.mutation(api.joining.joinRequests.ask, { token: NO_SUCH_LINK }),
+      "joining/joinRequests:joinPage": () => caller.query(api.joining.joinRequests.joinPage, { token: NO_SUCH_LINK }),
+      "leagues/leagueDeletion:undo": () => caller.mutation(api.leagues.leagueDeletion.undo, { leagueId: beingDeleted }),
       "leagues/leagues:create": () =>
-        caller.mutation(api.leagues.leagues.create, {
-          name: "Another league",
-          maxTeams: 4,
-          commissionerEmail: COMMISSIONER,
-        }),
-      "lineup/tactics:ofMyTeam": () =>
-        caller.query(api.lineup.tactics.ofMyTeam, { leagueId, now }),
+        caller.mutation(api.leagues.leagues.create, { name: "Another league", maxTeams: 4, commissionerEmail: COMMISSIONER }),
+      "lineup/tactics:ofMyTeam": () => caller.query(api.lineup.tactics.ofMyTeam, { leagueId, now }),
       "mail/mail:letters": () => caller.query(api.mail.mail.letters, {}),
-      "mail/mail:open": () =>
-        caller.mutation(api.mail.mail.open, { letterId: annsLetter._id }),
-      "mail/mail:unreadCount": () =>
-        caller.query(api.mail.mail.unreadCount, {}),
-      "match/matchPage:ofMatch": () =>
-        caller.query(api.match.matchPage.ofMatch, {
-          leagueId,
-          fixtureCode: SOME_CODE,
-        }),
-      "matchup/matchup:ofTeam": () =>
-        caller.query(api.matchup.matchup.ofTeam, { leagueId, now }),
-      "playerCard/playerCard:card": () =>
-        caller.query(api.playerCard.playerCard.card, {
-          leagueId,
-          playerCode: SOME_CODE,
-          now,
-        }),
-      "positions/playerPositions:approveClub": () =>
-        caller.mutation(api.positions.playerPositions.approveClub, {
-          clubCode: SOME_CODE,
-        }),
-      "positions/playerPositions:approvePlayer": () =>
-        caller.mutation(api.positions.playerPositions.approvePlayer, {
-          code: SOME_CODE,
-        }),
-      "positions/playerPositions:find": () =>
-        caller.query(api.positions.playerPositions.find, { text: SOME_TEXT }),
-      "positions/playerPositions:ofPlayer": () =>
-        caller.query(api.positions.playerPositions.ofPlayer, {
-          code: SOME_CODE,
-        }),
-      "positions/playerPositions:queue": () =>
-        caller.query(api.positions.playerPositions.queue, {}),
+      "mail/mail:open": () => caller.mutation(api.mail.mail.open, { letterId: annsLetter._id }),
+      "mail/mail:unreadCount": () => caller.query(api.mail.mail.unreadCount, {}),
+      "match/matchPage:ofMatch": () => caller.query(api.match.matchPage.ofMatch, { leagueId, fixtureCode: SOME_CODE }),
+      "matchup/matchup:ofTeam": () => caller.query(api.matchup.matchup.ofTeam, { leagueId, now }),
+      "playerCard/playerCard:card": () => caller.query(api.playerCard.playerCard.card, { leagueId, playerCode: SOME_CODE, now }),
+      "positions/playerPositions:approveClub": () => caller.mutation(api.positions.playerPositions.approveClub, { clubCode: SOME_CODE }),
+      "positions/playerPositions:approvePlayer": () => caller.mutation(api.positions.playerPositions.approvePlayer, { code: SOME_CODE }),
+      "positions/playerPositions:find": () => caller.query(api.positions.playerPositions.find, { text: SOME_TEXT }),
+      "positions/playerPositions:ofPlayer": () => caller.query(api.positions.playerPositions.ofPlayer, { code: SOME_CODE }),
+      "positions/playerPositions:queue": () => caller.query(api.positions.playerPositions.queue, {}),
       "positions/playerPositions:removePosition": () =>
-        caller.mutation(api.positions.playerPositions.removePosition, {
-          code: SOME_CODE,
-          position: SOME_POSITION,
-        }),
+        caller.mutation(api.positions.playerPositions.removePosition, { code: SOME_CODE, position: SOME_POSITION }),
       "positions/playerPositions:setPosition": () =>
-        caller.mutation(api.positions.playerPositions.setPosition, {
-          code: SOME_CODE,
-          position: SOME_POSITION,
-        }),
-      "positions/positionSettings:setApproveMode": () =>
-        caller.mutation(api.positions.positionSettings.setApproveMode, {
-          approveMode: "proposals",
-        }),
+        caller.mutation(api.positions.playerPositions.setPosition, { code: SOME_CODE, position: SOME_POSITION }),
+      "positions/positionSettings:setApproveMode": () => caller.mutation(api.positions.positionSettings.setApproveMode, { approveMode: "proposals" }),
       "positions/positionSettings:setChangeThresholds": () =>
-        caller.mutation(api.positions.positionSettings.setChangeThresholds, {
-          flagAfter: 3,
-          removeAfter: 6,
-        }),
-      "rules/leagueRules:latest": () =>
-        caller.query(api.rules.leagueRules.latest, { leagueId }),
-      "rules/leagueSettings:settings": () =>
-        caller.query(api.rules.leagueSettings.settings, { leagueId, now }),
-      "scoring/patchNotes:banner": () =>
-        caller.query(api.scoring.patchNotes.banner, { now }),
-      "scoring/patchNotes:dismissBanner": () =>
-        caller.mutation(api.scoring.patchNotes.dismissBanner, { versionId }),
-      "scoring/patchNotes:notes": () =>
-        caller.query(api.scoring.patchNotes.notes, {}),
-      "scoring/siteScoring:announce": () =>
-        caller.mutation(api.scoring.siteScoring.announce, {
-          draftSavedAt: now,
-          takesEffectAt: now,
-        }),
-      "scoring/siteScoring:fix": () =>
-        caller.mutation(api.scoring.siteScoring.fix, {
-          scoring: FIRST_SCORING,
-          revision: null,
-        }),
+        caller.mutation(api.positions.positionSettings.setChangeThresholds, { flagAfter: 3, removeAfter: 6 }),
+      "rules/leagueRules:latest": () => caller.query(api.rules.leagueRules.latest, { leagueId }),
+      "rules/leagueSettings:settings": () => caller.query(api.rules.leagueSettings.settings, { leagueId, now }),
+      "scoring/patchNotes:banner": () => caller.query(api.scoring.patchNotes.banner, { now }),
+      "scoring/patchNotes:dismissBanner": () => caller.mutation(api.scoring.patchNotes.dismissBanner, { versionId }),
+      "scoring/patchNotes:notes": () => caller.query(api.scoring.patchNotes.notes, {}),
+      "scoring/siteScoring:announce": () => caller.mutation(api.scoring.siteScoring.announce, { draftSavedAt: now, takesEffectAt: now }),
+      "scoring/siteScoring:fix": () => caller.mutation(api.scoring.siteScoring.fix, { scoring: FIRST_SCORING, revision: null }),
       "scoring/siteScoring:saveDraft": () =>
-        caller.mutation(api.scoring.siteScoring.saveDraft, {
-          scoring: FIRST_SCORING,
-          revision: null,
-          draftSavedAt: null,
-        }),
-      "scoring/siteScoring:view": () =>
-        caller.query(api.scoring.siteScoring.view, { now }),
-      "scouting/compare:players": () =>
-        caller.query(api.scouting.compare.players, {
-          leagueId,
-          codes: [SOME_CODE],
-        }),
+        caller.mutation(api.scoring.siteScoring.saveDraft, { scoring: FIRST_SCORING, revision: null, draftSavedAt: null }),
+      "scoring/siteScoring:view": () => caller.query(api.scoring.siteScoring.view, { now }),
+      "scouting/compare:players": () => caller.query(api.scouting.compare.players, { leagueId, codes: [SOME_CODE] }),
       "scouting/playersList:list": () =>
         caller.query(api.scouting.playersList.list, {
           leagueId,
@@ -354,37 +234,22 @@ beforeEach(async () => {
           sort: { by: "name", descending: false },
           stat: null,
         }),
-      "scouting/shortlist:mine": () =>
-        caller.query(api.scouting.shortlist.mine, { leagueId }),
-      "signIn/account:signedInAs": () =>
-        caller.query(api.signIn.account.signedInAs, {}),
-      "signIn/signInLinks:ask": () =>
-        caller.action(api.signIn.signInLinks.ask, { email: OUTSIDER }),
-      "signIn/timeZone:recordZone": () =>
-        caller.mutation(api.signIn.timeZone.recordZone, { zone: LONDON_ZONE }),
-      "squads/squads:findPlayers": () =>
-        caller.query(api.squads.squads.findPlayers, {
-          leagueId,
-          text: SOME_TEXT,
-        }),
-      "squads/squads:squads": () =>
-        caller.query(api.squads.squads.squads, { leagueId }),
-      "squads/teamSquad:ofMyTeam": () =>
-        caller.query(api.squads.teamSquad.ofMyTeam, { leagueId, now }),
-      "squads/teamTransactions:ofMyTeam": () =>
-        caller.query(api.squads.teamTransactions.ofMyTeam, { leagueId }),
-      "table/leagueTable:ofLeague": () =>
-        caller.query(api.table.leagueTable.ofLeague, { leagueId }),
-      "table/teamFixtures:ofMyTeam": () =>
-        caller.query(api.table.teamFixtures.ofMyTeam, { leagueId }),
+      "scouting/shortlist:mine": () => caller.query(api.scouting.shortlist.mine, { leagueId }),
+      "signIn/account:signedInAs": () => caller.query(api.signIn.account.signedInAs, {}),
+      "signIn/signInLinks:ask": () => caller.action(api.signIn.signInLinks.ask, { email: OUTSIDER }),
+      "signIn/timeZone:recordZone": () => caller.mutation(api.signIn.timeZone.recordZone, { zone: LONDON_ZONE }),
+      "squads/squads:findPlayers": () => caller.query(api.squads.squads.findPlayers, { leagueId, text: SOME_TEXT }),
+      "squads/squads:squads": () => caller.query(api.squads.squads.squads, { leagueId }),
+      "squads/teamSquad:ofMyTeam": () => caller.query(api.squads.teamSquad.ofMyTeam, { leagueId, now }),
+      "squads/teamTransactions:ofMyTeam": () => caller.query(api.squads.teamTransactions.ofMyTeam, { leagueId }),
+      "table/leagueTable:ofLeague": () => caller.query(api.table.leagueTable.ofLeague, { leagueId }),
+      "table/teamFixtures:ofMyTeam": () => caller.query(api.table.teamFixtures.ofMyTeam, { leagueId }),
     };
   };
 });
 
 const isNothing = (answer: unknown) =>
-  answer === null ||
-  answer === 0 ||
-  (Array.isArray(answer) && answer.length === 0);
+  answer === null || answer === 0 || (Array.isArray(answer) && answer.length === 0);
 
 /** What the call got: the gate's refusal, nothing, or let in. */
 async function outcomeOf(call: () => Promise<unknown>): Promise<string> {
@@ -392,9 +257,7 @@ async function outcomeOf(call: () => Promise<unknown>): Promise<string> {
     return isNothing(await call()) ? ANSWERS_NOTHING : LET_IN;
   } catch (error) {
     if (!(error instanceof ConvexError)) throw error;
-    return GATE_REFUSALS.has(error.data as string)
-      ? (error.data as string)
-      : LET_IN;
+    return GATE_REFUSALS.has(error.data as string) ? (error.data as string) : LET_IN;
   }
 }
 
@@ -403,10 +266,7 @@ const meets = (expected: string, got: string) =>
   got === expected || (expected === LET_IN && got === ANSWERS_NOTHING);
 
 /** The calls that `caller` got other than their gate says, as [name, what it got]. */
-async function offGate(
-  caller: Caller,
-  who: "signedOut" | "outsider",
-): Promise<[string, string][]> {
+async function offGate(caller: Caller, who: "signedOut" | "outsider"): Promise<[string, string][]> {
   const off: [string, string][] = [];
   for (const [name, call] of Object.entries(calls(caller))) {
     const got = await outcomeOf(call);
@@ -426,9 +286,7 @@ describe("a public function", () => {
 
   test("every one names its gate and is called: one added later fails here until it is given its row", async () => {
     const names = [...(await publicFunctions()).keys()].sort();
-    expect(Object.keys(gates).sort()).toEqual(
-      names.filter((name) => !(name in notCalled)),
-    );
+    expect(Object.keys(gates).sort()).toEqual(names.filter((name) => !(name in notCalled)));
     expect(Object.keys(calls(t)).sort()).toEqual(Object.keys(gates).sort());
   });
 });

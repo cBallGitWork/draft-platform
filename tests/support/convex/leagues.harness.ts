@@ -13,6 +13,8 @@ export type { TestConvex };
 export const COMMISSIONER = "commish@example.com";
 export const CO_COMMISSIONER = "co@example.com";
 export const MANAGERS = ["ann@example.com", "bob@example.com", "cat@example.com", "dan@example.com", "eve@example.com"];
+/** Someone signed in who has no part in any league. */
+export const OUTSIDER = "outsider@example.com";
 
 /** The name adminCreatesLeague gives a league unless told another. */
 export const LEAGUE_NAME = "Tim Hortons Pro League";
@@ -30,6 +32,9 @@ export async function actingAs(t: TestConvex, email: string) {
   // Convex Auth's token names the user and the session, as `getAuthUserId` reads it.
   return t.withIdentity({ subject: `${userId}|session` });
 }
+
+/** What the team `teamId` is called now. */
+export const teamName = (t: TestConvex, teamId: Id<"teams">) => t.run(async (ctx) => (await ctx.db.get("teams", teamId))!.name);
 
 /** How many teams a league `adminCreatesLeague` makes may hold, unless a test says. */
 export const TEST_LEAGUE_TEAMS = 4;

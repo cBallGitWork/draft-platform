@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { ANN, BOB, deletes, laterBy, leagueWithPeople, moreEventsThanOneRun } from "../../support/convex/leagueDeletion.harness";
+import { ANN, BOB, deletes, leagueWithPeople, moreEventsThanOneRun } from "../../support/convex/leagueDeletion.harness";
 import { PAUSED_LOG, notEmailedLog } from "../../../convex/leagues/deletionNotices";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, type TestConvex } from "../../support/convex/leagues.harness";
 import { EMAILS_PER_DAY } from "../../../convex/outbound/emailLimit";
 import { fakeResend, sentToday, setSentToday, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
-import { silenceConsoleError } from "../../support/convex/test.harness";
+import { elapse, silenceConsoleError } from "../../support/convex/test.harness";
 
 // The email saying a league has been deleted, sent only once it is gone for good (#320, spec/13,
 // Deleting): "just delay the deletion email until its actually gone".
@@ -28,7 +28,7 @@ const goneForGood = () => t.finishAllScheduledFunctions(vi.runAllTimers);
  *  emails counted from here are the day it goes, not the day it was deleted. */
 async function toTheMomentBeforeItGoes() {
   const deletesAt = await deletes(t, COMMISSIONER, leagueId);
-  await laterBy(t, deletesAt - 1 - Date.now());
+  await elapse(t, deletesAt - 1 - Date.now());
 }
 
 /** Each row kept for someone who wasn't told, without when it was kept. */

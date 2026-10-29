@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Position } from "../../../convex/positions/positionTables";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -70,7 +70,6 @@ beforeEach(async () => {
 });
 
 const compareAs = async (email: string, codes: number[]) => (await actingAs(t, email)).query(api.scouting.compare.players, { leagueId, codes });
-const teamName = (teamId: Id<"teams">) => t.run(async (ctx) => (await ctx.db.get("teams", teamId))!.name);
 
 test("two players side by side, in the order asked: who each is, his matches this season and his stats added up", async () => {
   expect(await compareAs(ANN, [SAKA.code, PALMER.code])).toEqual([
@@ -80,7 +79,7 @@ test("two players side by side, in the order asked: who each is, his matches thi
       fullName: "Bukayo Saka",
       club: ARSENAL,
       positions: ["W"],
-      ownerTeamName: await teamName(teams[0]),
+      ownerTeamName: await teamName(t, teams[0]),
       seasonPoints: null,
       matches: 3,
       stats: { minutes: 154, goals_scored: 3, expected_goals: 1.14, assists: 1 },

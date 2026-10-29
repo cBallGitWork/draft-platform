@@ -6,7 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, eventsIn, type TestConvex } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, insertClubs } from "../../support/convex/footballRows.harness";
+import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadRefusals } from "../../../convex/squads/squads";
 import { CURRENT_CLUBS_MOST } from "../../../convex/shared/players";
@@ -26,7 +26,6 @@ const CLUBS = [
 /** Sixty players, numbered from 1001, spread over the three clubs. */
 const PLAYER_CODES = Array.from({ length: 60 }, (_, i) => 1001 + i);
 const SAKA = 1001;
-const GONE = 2001;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -42,7 +41,7 @@ beforeEach(async () => {
       const name = code === SAKA ? "Saka" : `Player ${code}`;
       await ctx.db.insert("players", { code, name, fullName: code === SAKA ? "Bukayo Saka" : name, clubCode: CLUBS[i % 3].code });
     }
-    await ctx.db.insert("players", { code: GONE, name: "Gone", fullName: "Long Gone", clubCode: ARSENAL.code, droppedAt: Date.now() });
+    await insertDroppedPlayer(ctx, GONE, Date.now());
   });
 });
 
@@ -155,7 +154,7 @@ describe("who may", () => {
 describe("refused, saying why, and nothing changes", () => {
   test.each([
     ["a player who doesn't exist", (c: Awaited<ReturnType<typeof as>>) => c.assign(9999, teams[0]), squadRefusals.noPlayer],
-    ["a player who has left the Premier League", (c: Awaited<ReturnType<typeof as>>) => c.assign(GONE, teams[0]), squadRefusals.playerGone("Gone")],
+    ["a player who has left the Premier League", (c: Awaited<ReturnType<typeof as>>) => c.assign(GONE.code, teams[0]), squadRefusals.playerGone("Gone")],
     ["moving a free agent", (c: Awaited<ReturnType<typeof as>>) => c.move(SAKA, teams[0]), squadRefusals.freeAgent("Saka")],
     ["releasing a free agent", (c: Awaited<ReturnType<typeof as>>) => c.release(SAKA), squadRefusals.freeAgent("Saka")],
   ])("%s", async (_what, change, reason) => {

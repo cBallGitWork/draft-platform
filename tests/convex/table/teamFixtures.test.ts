@@ -6,7 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { changeRules, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // My team's Fixtures tab (#365): the caller's team's head-to-head games for the season, in
@@ -14,7 +14,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // here, so none is scored: the results are teamFixturesScores.test.ts's (#436).
 
 const [ANN, BOB, CAT, DAN] = MANAGERS;
-const STRANGER = "stranger@example.com";
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -42,7 +41,7 @@ describe("who may read it", () => {
     expect((await read(BOB))?.teamName).toBe("Team 2");
   });
 
-  test.each([COMMISSIONER, STRANGER])("%s, running no team in it, is refused", async (email) => {
+  test.each([COMMISSIONER, OUTSIDER])("%s, running no team in it, is refused", async (email) => {
     await expectRefused(read(email), refusals.runsNoTeam);
   });
 });

@@ -79,12 +79,6 @@ export async function withHullEverton() {
   return t;
 }
 
-/** Lets `ms` pass, and runs every scheduled function that falls due in it. */
-export async function elapse(t: TestConvex, ms: number) {
-  vi.advanceTimersByTime(ms);
-  await t.finishInProgressScheduledFunctions();
-}
-
 /** One sync at `time` against `payloads`, started by hand unless `trigger` says the cron, and the
  *  run row it recorded. */
 export async function syncAt(
