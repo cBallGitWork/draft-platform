@@ -9,7 +9,7 @@ import { HELD_FIRST_RULES, KICKS_OFF_IN, holdGameweeks } from "../../support/con
 import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { filledLineup, presetNamed } from "../../support/convex/lineup.harness";
+import { BENCH_POSITION, FOUR_FOUR_TWO, holdSquad, nameOf, SQUAD, STARTER_POSITIONS } from "../../support/convex/lineupSquad.harness";
 
 // What My team's Tactics tab is set from (#14): the gameweek a save now is from, its league
 // deadline, the league's area limits and presets in it, the squad with each player's positions,
@@ -17,10 +17,7 @@ import { filledLineup, presetNamed } from "../../support/convex/lineup.harness";
 
 const [ANN] = MANAGERS;
 const NEXT = 9;
-const { lineup: FOUR_FOUR_TWO, positions: STARTER_POSITIONS } = filledLineup(presetNamed("4-4-2"));
-const SQUAD = [...FOUR_FOUR_TWO.starters.map(({ playerCode }) => playerCode), ...FOUR_FOUR_TWO.bench];
 const CLUB = { code: 1, name: "Arsenal", shortName: "ARS" };
-const nameOf = (code: number) => `Player ${code}`;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -30,14 +27,9 @@ beforeEach(async () => {
   await holdGameweeks(t, { next: NEXT });
   leagueId = await adminCreatesLeague(t);
   const [annsTeam] = await addManagers(t, leagueId, [ANN]);
-  await t.run(async (ctx) => {
-    await ctx.db.insert("clubs", CLUB);
-    for (const code of SQUAD) {
-      await ctx.db.insert("players", { code, name: nameOf(code), fullName: nameOf(code), clubCode: CLUB.code });
-      await ctx.db.insert("playerPositions", { code, starts: [], approved: [], set: [...(STARTER_POSITIONS.get(code) ?? ["CM"])], removed: [] });
-      await ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode: code });
-    }
-  });
+  // The club holdSquad puts every player at.
+  await t.run((ctx) => ctx.db.insert("clubs", CLUB));
+  await holdSquad(t, leagueId, annsTeam);
 });
 
 const tacticsOf = async (email: string) => (await actingAs(t, email)).query(api.lineup.tactics.ofMyTeam, { leagueId, now: Date.now() });
@@ -60,7 +52,7 @@ describe("the lineup to set", () => {
     });
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
     expect(tactics.squad).toEqual(
-      SQUAD.map((code) => ({ playerCode: code, name: nameOf(code), clubShortName: CLUB.shortName, positions: STARTER_POSITIONS.get(code) ?? ["CM"], number: null })),
+      SQUAD.map((code) => ({ playerCode: code, name: nameOf(code), clubShortName: CLUB.shortName, positions: STARTER_POSITIONS.get(code) ?? [BENCH_POSITION], number: null })),
     );
   });
 
