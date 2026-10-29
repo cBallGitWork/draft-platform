@@ -39,12 +39,11 @@ import {
 import { addToShortlistWords } from "../../../src/scouting/shortlist/shortlistWords";
 import { squadsPath } from "../../../src/squads/paths";
 import { gameweekWords, versusWords } from "../../../src/shared/words";
+import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";
 import type { PlayerCardData } from "../../support/src/playerCard.harness";
 import { commissioned, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 import { teamSquad } from "../../support/src/squads.harness";
 
-const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
-const COVENTRY = { code: 9, name: "Coventry", shortName: "COV" };
 const category = (stat: string, name: string, points: number | null) => ({ stat, name, points });
 const PRICED: PlayedMatch = {
   fixtureCode: 1,

@@ -24,6 +24,7 @@ import {
   whenWords,
 } from "../../../src/myTeam/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
+import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";
 import type { MyTeamData } from "../../support/src/myTeam.harness";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 
@@ -36,8 +37,6 @@ const rows = () =>
     .slice(1);
 const cells = (row: HTMLTableRowElement) => Array.from(row.cells, (cell) => cell.textContent);
 
-const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
-const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
 const KICKOFF = Date.parse("2026-10-31T15:00:00Z");
 const SAKA: Row = {
   code: 1001,

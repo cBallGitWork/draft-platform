@@ -4,6 +4,7 @@
 import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
 import { usedGameweeksOf } from "../../convex/gameweeks/usedGameweeks";
 import { previewChristmasBreak } from "../app/preview";
+import type { Id } from "../../convex/_generated/dataModel";
 import type { TableSeam } from "./seam";
 import { leagueTableOf, type Drawn } from "./drawnTable";
 
@@ -11,6 +12,8 @@ const firstDeadline = Date.now() - 8 * WEEK_MS + DAY_MS;
 /** The preview league's teams, the preview manager's first, and how its season is drawn: My team's
  *  preview (src/myTeam/preview.ts) draws its fixtures alike. */
 export const previewTeams = ["Saka Potatoes", "Team 2", "Kroos Control", "Pique Blinders", "Ctrl Alt Defeat"];
+/** A preview team's made-up id, from its name: League home's and the matchup's previews use it. */
+export const previewIdOf = (team: string) => `preview-${team}` as Id<"teams">;
 export const previewSeason = {
   gameweeks: usedGameweeksOf({ unusedGameweeks: previewChristmasBreak }),
   deadlineOf: (gameweek: number) => firstDeadline + (gameweek - 1) * WEEK_MS,
