@@ -9,6 +9,7 @@ import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { squadMoves } from "../../support/convex/lineupSquad.harness";
 
 // League home's first slice (#387; spec/12, League home): this gameweek's head-to-heads, the table
 // (whole up to WHOLE_TABLE_MOST teams, else the top TOP_ROWS and the reader's row) with each team's
@@ -114,14 +115,7 @@ describe("the latest claims, drops and trades", () => {
     });
   });
 
-  const commissioner = async () => {
-    const person = await actingAs(t, COMMISSIONER);
-    return {
-      assign: (playerCode: number, teamId: Id<"teams">) => person.mutation(api.squads.squads.assign, { leagueId, playerCode, teamId }),
-      move: (playerCode: number, teamId: Id<"teams">) => person.mutation(api.squads.squads.move, { leagueId, playerCode, teamId }),
-      release: (playerCode: number) => person.mutation(api.squads.squads.release, { leagueId, playerCode }),
-    };
-  };
+  const commissioner = () => squadMoves(t, leagueId, COMMISSIONER);
 
   test("lists each squad move, newest first, with the team he left on a move, and no other event", async () => {
     const commish = await commissioner();

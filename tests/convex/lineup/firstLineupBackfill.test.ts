@@ -1,13 +1,10 @@
-import { beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, test } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
-import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
-import { MINUTE_MS } from "../../../convex/shared/time";
-import { holdGameweeks, KICKS_OFF_IN } from "../../support/convex/leagueRules.harness";
+import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
-import { filledLineup, presetNamed } from "../../support/convex/lineup.harness";
+import { FOUR_FOUR_TWO, holdSquad, passNextDeadline, SQUAD } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The #637 migration: a team whose squad was made before teams held a first lineup gets one from
@@ -15,11 +12,8 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 
 const [ANN, BOB, CAT] = MANAGERS;
 const NEXT = 9;
-const { lineup: FOUR_FOUR_TWO, positions: STARTER_POSITIONS } = filledLineup(presetNamed("4-4-2"));
-const SQUAD = [...FOUR_FOUR_TWO.starters.map(({ playerCode }) => playerCode), ...FOUR_FOUR_TWO.bench];
 /** Bob's one player, whose lineup he saved. */
 const BOBS = 998;
-const nameOf = (code: number) => `Player ${code}`;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -33,18 +27,11 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t);
   [annsTeam, bobsTeam, catsTeam] = await addManagers(t, leagueId, [ANN, BOB, CAT]);
   // Written as squads were before #637: players and no lineup row, but for Bob's, which he saved.
-  await t.run(async (ctx) => {
-    for (const code of [...SQUAD, BOBS]) {
-      await ctx.db.insert("players", { code, name: nameOf(code), fullName: nameOf(code), clubCode: 1 });
-      await ctx.db.insert("playerPositions", { code, starts: [], approved: [], set: [...(STARTER_POSITIONS.get(code) ?? ["CM"])], removed: [] });
-    }
-    for (const playerCode of SQUAD) await ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode });
-    await ctx.db.insert("squadPlayers", { leagueId, teamId: bobsTeam, playerCode: BOBS });
-    await ctx.db.insert("lineups", { leagueId, teamId: bobsTeam, fromGameweek: NEXT, starters: [], bench: [BOBS] });
-  });
+  await holdSquad(t, leagueId, annsTeam);
+  await holdSquad(t, leagueId, bobsTeam, [BOBS]);
+  await t.run((ctx) => ctx.db.insert("lineups", { leagueId, teamId: bobsTeam, fromGameweek: NEXT, starters: [], bench: [BOBS] }));
   // Gameweek NEXT begins with Ann holding no lineup.
-  vi.advanceTimersByTime(KICKS_OFF_IN - FPL_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS);
-  await t.run((ctx) => recordPassedDeadlines(ctx));
+  await passNextDeadline(t);
 });
 
 const migrate = () => t.mutation(internal.lineup.firstLineupBackfill.giveTeamsTheirFirstLineup, {});

@@ -2,10 +2,9 @@ import { beforeEach, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lineup } from "../../../convex/lineup/lineup";
-import type { Position } from "../../../convex/positions/positionTables";
 import { HELD_FIRST_RULES, holdGameweeks, rulesInGameweek, rulesRevision, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
-import { filledLineup, presetNamed } from "../../support/convex/lineup.harness";
+import { FOUR_FOUR_TWO, holdSquad } from "../../support/convex/lineupSquad.harness";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -21,10 +20,6 @@ const POSTPONED = 7;
 const UNDER_WAY = 8;
 /** holdGameweeks' next gameweek: every one before it has begun. */
 const NEXT = 9;
-const { lineup: FOUR_FOUR_TWO, positions: STARTER_POSITIONS } = filledLineup(presetNamed("4-4-2"));
-const SQUAD = [...FOUR_FOUR_TWO.starters.map(({ playerCode }) => playerCode), ...FOUR_FOUR_TWO.bench];
-const BENCH_POSITION: Position = "CM";
-const nameOf = (code: number) => `Player ${code}`;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -48,14 +43,7 @@ const sent = (lineup: Lineup) => ({ starters: [...lineup.starters], bench: [...l
 
 test("a lineup saved now is from the gameweek after the one under way, and that one keeps none of it", async () => {
   const [annsTeam] = await addManagers(t, leagueId, [ANN]);
-  await t.run(async (ctx) => {
-    for (const code of SQUAD) {
-      await ctx.db.insert("players", { code, name: nameOf(code), fullName: nameOf(code), clubCode: 1 });
-      const positions = STARTER_POSITIONS.get(code) ?? [BENCH_POSITION];
-      await ctx.db.insert("playerPositions", { code, starts: [], approved: [], set: [...positions], removed: [] });
-      await ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode: code });
-    }
-  });
+  await holdSquad(t, leagueId, annsTeam);
   const ann = await actingAs(t, ANN);
 
   expect(await ann.mutation(api.lineup.lineups.save, { leagueId, lineup: sent(FOUR_FOUR_TWO) })).toBe(NEXT);
