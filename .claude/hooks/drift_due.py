@@ -45,14 +45,20 @@ def main_ref(folder):
     raise GitFailed(f"neither {' nor '.join(MAINS)} exists in {folder}")
 
 
+def merged_since_pass(folder):
+    """(merged, last_pass): the commits on main since the last drift pass, and that pass's short
+    sha ("" where there is none yet). Raises GitFailed. guard_bash.py's merge gate counts with it."""
+    ref = main_ref(folder)
+    last_pass = git(folder, "log", "-1", "--format=%h", f"--grep={PASS_MARK}", ref)
+    if not last_pass and git(folder, "rev-parse", "--is-shallow-repository") == "true":
+        raise GitFailed(f"{folder} is a shallow clone with no drift pass in reach (git fetch --unshallow)")
+    return int(git(folder, "rev-list", "--count", f"{last_pass}..{ref}" if last_pass else ref)), last_pass
+
+
 def main():
     folder = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
     try:
-        ref = main_ref(folder)
-        last_pass = git(folder, "log", "-1", "--format=%h", f"--grep={PASS_MARK}", ref)
-        if not last_pass and git(folder, "rev-parse", "--is-shallow-repository") == "true":
-            raise GitFailed(f"{folder} is a shallow clone with no drift pass in reach (git fetch --unshallow)")
-        merged = int(git(folder, "rev-list", "--count", f"{last_pass}..{ref}" if last_pass else ref))
+        merged, last_pass = merged_since_pass(folder)
     except GitFailed as error:
         name = os.path.basename(sys.argv[0])
         print(f"{name}: {error}, so it can't say whether a drift pass is due.", file=sys.stderr)

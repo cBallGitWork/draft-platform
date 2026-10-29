@@ -89,6 +89,8 @@ skills v1.3 (Craig, 16 Oct 2026):
 - **Done**: the check that proves it, which a session can rerun.
 - **Blocked by**: name the data the ticket reads, the screen it sits on and the menu that reaches
   it, then the issue that builds each. Those issues are its blockers.
+- **Reuses**: the existing reads, parts and test fixtures the ticket builds on, and the folder
+  its code goes in (`ARCHITECTURE.md` "Where code lives").
 
 A feature bigger than one fresh session (~150k tokens) is cut into several issues, each a thin
 slice through every layer that works on its own, with the blocking order named. So is one past

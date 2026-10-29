@@ -24,7 +24,9 @@ Our league moves to it from Fantrax; the companion app lives in `cBallGitWork/ep
 - How we build, in spirit: `docs/PHILOSOPHY.md` (ship small, keep it simple, never cut tests, no silent errors). The lines below are the enforced part. Two readings of it are fixed: tidying is fine only inside files the task already touches, and anything else becomes an issue; "some breakage is acceptable" covers the look and screens, never scoring, the draft or saved league data.
 - Never commit on `main`. One branch and one PR per task, squash-merged. Branches start `feat/`, `fix/`, `refactor/`, `docs/` or `chore/` (a convention; the hook checks only `main`).
 - Stage named paths; never stage everything.
-- Both are enforced by `.claude/hooks/guard_bash.py`; `.claude/hooks/test.sh` checks every hook.
+- Both are enforced by `.claude/hooks/guard_bash.py`, which also refuses `gh pr merge` once a drift pass is due (`docs/REFACTORING.md`), unless the PR is that pass; `.claude/hooks/test.sh` checks every hook.
+- Before adding a helper, read, hook, words or test fixture, search for its home and reuse it. A new file goes where `ARCHITECTURE.md` "Where code lives" and its rules say. Builders running at the same time work in different folders.
+- Where a spec file is silent, ask Craig: never build on a guessed rule, and never offer a rule only the code holds as a grill recommendation.
 - Before a pull request opens, run the `pr-reviewer` agent on the branch and paste its verdict into the template. A merge or restack after the review that changes behaviour gets a second `pr-reviewer` round. A docs-only PR that only quotes Craig's answers may skip `pr-reviewer`, and says so in its Checks.
 - A doc over 100 lines opens with a contents list.
 - Add a rule here only after Claude gets something wrong, and add a hook rather than a rule where possible. `/retro` before clearing the chat finds those moments; `/wait-what` re-says a reply that didn't land.

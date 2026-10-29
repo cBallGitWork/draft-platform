@@ -249,6 +249,30 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   (`src/frame/topBar/`, `src/myTeam/tactics/`, `src/scouting/shortlist/`). A folder over 12 that is
   one job, or whose tests mirror its sources, stays flat.
 
+**The rules**, from how the folder pass left the code (29 Oct 2026, counts from `find src convex`):
+
+1. One name per feature, the same in `src/`, `convex/`, `tests/src/` and `tests/convex/`
+   (`playerCard`). Folders are camelCase, no hyphens; a component is `PascalCase.tsx`, anything
+   else `camelCase.ts`.
+2. A feature folder's parts carry fixed names: the screen `<Name>Page.tsx`; `seam.ts`, what the
+   screen reads and does, so tests can stand in; `live<Feature>.ts`, the Convex side of the seam;
+   `preview.ts`; `words.ts`, everything it says. The server's numbers sit in
+   `convex/<feature>/<name>Limits.ts`, which `words.ts` imports, never retypes. A sub-folder uses
+   the same names (21 `words.ts`, 18 `seam.ts`, 18 `preview.ts`); only `src/myTeam/tactics/` and
+   `src/scouting/shortlist/` break it, and issue #726 renames them.
+3. The top level holds only entry files: `src/` keeps `main.tsx` and `styles.css`; `convex/` keeps
+   `auth.config.ts`, `auth.ts`, `crons.ts`, `http.ts`, `process.d.ts` and `schema.ts`.
+4. Imports run one way: a feature, then `src/ui/`, then `src/shared/`, then convex's pure modules.
+   A feature imports another only through what that one offers others (its Link component, its
+   seam's types), never its insides. No import cycles (`tests/convex/importCycles.test.ts`).
+5. Something two features use stays with its owner; at the third, it moves to `shared/` or `ui/`.
+6. A file stops at 300 lines and is split along a seam; a folder past about 12 files gets a
+   sub-folder (above).
+7. A test mirrors its source's path; setup two test files share lives in `tests/support/convex/`
+   or `tests/support/src/`, by feature.
+8. Moving a Convex file whose functions the browser or the scheduler call keeps a thin re-export at
+   the old path (`docs/REFACTORING.md`, "Function paths").
+
 ## With the first code
 
 Craig's picks from the guide videos (16 Oct 2026; [docs/research/guide-videos.md](docs/research/guide-videos.md)),
