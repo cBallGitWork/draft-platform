@@ -56,6 +56,9 @@ Then check the description's claims against what you found.
    hook docstrings for any path, name, count or claim this diff makes false (a renamed file, a
    moved folder, a new or removed gate). Give each one a detail row with file:line. Fixing such a
    line is part of this change, not tidying.
+   - A new file sits where `ARCHITECTURE.md` "Where code lives" says; a new helper, read, hook or
+     test fixture has no older twin anywhere in the codebase, `tests/support/` included (search
+     for one); a new name clashes with no existing name and none in SPEC.md's glossary.
 9. **Plain English** in anything Craig reads.
 10. **Refactor means identical.** On a refactor/ branch or a drift pass, nothing a manager or the
     league's data sees may change. Check the diff against docs/REFACTORING.md 'What is never a

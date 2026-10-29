@@ -50,13 +50,16 @@ back, names drift, docs desync. The drift pass is a scheduled step back.
 
 **When**, whichever comes first:
 - 10 merged pull requests since the last drift pass (the session-start hook
-  `.claude/hooks/drift_due.py` runs *Record*'s count and says `drift pass due` when it is);
+  `.claude/hooks/drift_due.py` runs *Record*'s count and says `drift pass due` when it is; past
+  it, `.claude/hooks/drift_gate.py` refuses every `gh pr merge` but the drift pass's own);
 - before the mini beta, and before the draft goes live;
 - a file passes 300 lines (the line-ceiling hook will say when, `ARCHITECTURE.md`).
 
 **What:** `/refactor`'s checklist, across everything merged since the last pass (the skill diffs
 the current branch unless given a range: give it the one from the last drift pass to `main`, as
-*Record* finds it); whether each thing lives in the right place; and whether ui-verifier's
+*Record* finds it); for each new home the range adds (a helper, read, hook, words, test
+fixture), a search of the whole codebase for an older one, since a copy older than the range is
+outside its diff; whether each thing lives in the right place; and whether ui-verifier's
 colour-role bullet still matches plate.md. (`tests/src/designNever.test.ts` holds
 `.claude/rules/ui.md`'s Never list equal to plate.md's `## Never`.)
 

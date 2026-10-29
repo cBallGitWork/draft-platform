@@ -44,7 +44,9 @@ here: it needs its own pull request (`docs/REFACTORING.md`, *What is never a ref
    function body; each goes to its shared file, one home for each kind of thing. FPL's fixed
    rules are constants; a league's rules are data, never a constant (in scoring, reported: see
    above); the feeds' endpoints sit behind the football layer's one seam (`ARCHITECTURE.md`).
-   Setup a test repeats goes in a shared helper, not the test body.
+   Setup a test repeats goes in a shared helper, not the test body. For each new export or test
+   fixture, name the search run for an older home (across the codebase, `tests/support/`
+   included) and what it found.
 
 Report every finding from each pass with its file and line, including the ones you chose not to
 act on. A pass that finds nothing is a valid result; never invent changes to look busy. A green
