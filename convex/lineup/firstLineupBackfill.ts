@@ -3,7 +3,7 @@ import type { Id } from "../_generated/dataModel";
 import { internalMutation, type QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
-import { squadOf } from "../squads/squads";
+import { squadOf } from "../squads/squadPlace";
 import { pickFirstLineupAgain } from "./lineups";
 
 // The one-off migration for #637: a team whose players joined before teams held a first lineup
