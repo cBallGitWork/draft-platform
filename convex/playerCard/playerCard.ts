@@ -14,6 +14,7 @@ import { MINUTES_STAT, statValue } from "../stats/matchRecords";
 import { scoredMatches } from "../table/scoredMatches";
 import { scoredAs } from "./cardPoints";
 import { roleName } from "../lineup/roles";
+import { readOnce } from "../shared/readOnce";
 
 // A player's card (spec/12, The player card; #381), for anyone in the league: who he is and who
 // owns him here, FPL's news on him, this season's matches as his team scored them (scoredMatches.ts),
@@ -116,11 +117,7 @@ export type Clubs = (code: number) => Promise<Club>;
 
 /** Clubs by code, each read once. */
 export function clubsByCode(ctx: QueryCtx): Clubs {
-  const read = new Map<number, Promise<Club>>();
-  return (code) => {
-    if (!read.has(code)) read.set(code, clubByCode(ctx, code).then(({ code, name, shortName }) => ({ code, name, shortName })));
-    return read.get(code)!;
-  };
+  return readOnce((code: number) => clubByCode(ctx, code).then(({ code, name, shortName }) => ({ code, name, shortName })));
 }
 
 /** The team in this league that owns him, or null for a free agent. */

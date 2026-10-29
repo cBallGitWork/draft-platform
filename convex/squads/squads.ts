@@ -14,6 +14,7 @@ import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { areasShort } from "./areaMinimums";
 import { takeAllOrThrow } from "../shared/cappedRead";
+import { readOnce } from "../shared/readOnce";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
 // team, one at a time, move him between teams, or release him to free agency. Each files a Mail
@@ -202,12 +203,7 @@ export const squads = query({
     await memberOf(ctx, leagueId);
     const rules = await latestRules(ctx, leagueId);
     const how = await howPositionsCount(ctx);
-    const shortNames = new Map<number, string>();
-    const shortNameOf = async (clubCode: number) => {
-      const shortName = shortNames.get(clubCode) ?? (await clubByCode(ctx, clubCode)).shortName;
-      shortNames.set(clubCode, shortName);
-      return shortName;
-    };
+    const shortNameOf = readOnce(async (clubCode: number) => (await clubByCode(ctx, clubCode)).shortName);
     return Promise.all(
       (await teamsOf(ctx, leagueId)).map(async (team) => {
         const squad = await squadOf(ctx, team._id);
