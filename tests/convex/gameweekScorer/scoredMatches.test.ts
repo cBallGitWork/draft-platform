@@ -4,9 +4,10 @@ import type { PlayedMatch } from "../../../convex/playerCard/playerCard";
 import type { DoubleGameweekRule } from "../../../convex/scoring/scoring";
 import { inTenths } from "../../../convex/scoring/scoringSet";
 import { HOUR_MS } from "../../../convex/shared/time";
+import { BELLOUMI } from "../../support/convex/teamPoints.harness";
 import { rulesRevision } from "../../support/convex/leagueRules.harness";
 import { actingAs } from "../../support/convex/leagues.harness";
-import { EVERTON, HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
+import { HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import {
   ANN,
   BOB,
@@ -20,6 +21,7 @@ import {
   HULL_STARTERS,
   PHILLIPS,
   fullTimeRecords,
+  holdHullAndEverton,
   liveRecords,
   lockMatch,
   readTable,
@@ -43,7 +45,7 @@ const PLAYED_CENTRE_BACK = 108416;
 /** An unused Hull substitute, a centre-back, starting in the played one's cell. */
 const UNUSED_CENTRE_BACK = 496181;
 /** Hull midfielders off the bench in the match: the first comes on for Ann, the second doesn't. */
-const [ON_IN_HIS_OWN_AREA, LEFT_ON_THE_BENCH] = [540324, 608227];
+const [ON_IN_HIS_OWN_AREA, LEFT_ON_THE_BENCH] = [BELLOUMI, 608227];
 
 const ANNS_STARTERS = HULL_STARTERS.map((starter) => (starter.playerCode === PLAYED_CENTRE_BACK ? { ...starter, playerCode: UNUSED_CENTRE_BACK } : starter));
 const ANNS_BENCH = HULL_BENCH.filter((code) => code !== UNUSED_CENTRE_BACK);
@@ -55,10 +57,9 @@ const LEFT_CENTRE_MIDFIELDER = 243413;
 /** Ann's league; each of `departed` left her squad before the deadline, his lineup slot vacated. */
 async function annsLeague({ bobSaves = true, departed = [] as number[] } = {}): Promise<ScoresLeague> {
   const league = await scoresLeague({ bobSaves });
+  // The card names each match's clubs.
+  await holdHullAndEverton(league);
   await league.t.run(async (ctx) => {
-    // The card names each match's clubs.
-    await ctx.db.insert("clubs", { code: HULL, name: "Hull City", shortName: "HUL" });
-    await ctx.db.insert("clubs", { code: EVERTON, name: "Everton", shortName: "EVE" });
     const lineup = (await ctx.db.query("lineups").withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) => q.eq("leagueId", league.leagueId).eq("teamId", league.annsTeam)).unique())!;
     await ctx.db.patch("lineups", lineup._id, { starters: ANNS_STARTERS, bench: ANNS_BENCH });
     for (const playerCode of [PLAYED_CENTRE_BACK, ...departed]) {

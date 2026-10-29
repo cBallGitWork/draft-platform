@@ -125,14 +125,14 @@ const squadWarning = v.union(
 );
 export type SquadWarning = Infer<typeof squadWarning>;
 
-const teamSquad = v.object({ teamId: v.id("teams"), teamName: v.string(), players: v.array(squadPlayer), warnings: v.array(squadWarning) });
-export type TeamSquad = Infer<typeof teamSquad>;
+const squadWithWarnings = v.object({ teamId: v.id("teams"), teamName: v.string(), players: v.array(squadPlayer), warnings: v.array(squadWarning) });
+export type SquadWithWarnings = Infer<typeof squadWithWarnings>;
 
 /** Each team's squad, by name, and the league's squad limits it breaks, which warn but don't block.
  *  Anyone with a part in the league sees them. */
 export const squads = query({
   args: { leagueId: v.id("leagues") },
-  returns: v.array(teamSquad),
+  returns: v.array(squadWithWarnings),
   handler: async (ctx, { leagueId }) => {
     await memberOf(ctx, leagueId);
     const rules = await latestRules(ctx, leagueId);

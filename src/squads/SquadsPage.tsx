@@ -7,7 +7,7 @@ import { LeagueHeading } from "../leagues/LeagueLinks";
 import { playerCardPath } from "../playerCard/paths";
 import { useChange, type Changing } from "../shared/useChange";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
-import type { FoundPlayer, SquadsSeam, TeamSquad } from "./seam";
+import type { FoundPlayer, SquadsSeam, SquadWithWarnings } from "./seam";
 import {
   assignLabel,
   assignWords,
@@ -68,7 +68,7 @@ export function SquadsPage({ league, seam }: { league: LeagueSummary; seam: Squa
 }
 
 /** Search by name, then put the player found on a team, or move him to another. */
-function FindPlayer({ league, seam, squads, change }: { league: LeagueSummary; seam: SquadsSeam; squads: readonly TeamSquad[]; change: Changing }) {
+function FindPlayer({ league, seam, squads, change }: { league: LeagueSummary; seam: SquadsSeam; squads: readonly SquadWithWarnings[]; change: Changing }) {
   const [text, setText] = useState("");
   const found = seam.useFoundPlayers(league.leagueId, text);
   return (
@@ -117,7 +117,7 @@ function FoundRow({
   league: LeagueSummary;
   seam: SquadsSeam;
   player: FoundPlayer;
-  squads: readonly TeamSquad[];
+  squads: readonly SquadWithWarnings[];
   change: Changing;
 }) {
   const others = squads.filter((squad) => squad.teamName !== player.teamName);
@@ -164,7 +164,7 @@ function FoundRow({
 }
 
 /** One team's squad: its players by name, the limits it breaks, and releasing a player. */
-function Squad({ league, seam, squad, change }: { league: LeagueSummary; seam: SquadsSeam; squad: TeamSquad; change: Changing }) {
+function Squad({ league, seam, squad, change }: { league: LeagueSummary; seam: SquadsSeam; squad: SquadWithWarnings; change: Changing }) {
   return (
     <Panel title={squad.teamName}>
       <PanelNote edge="t">{playersCount(squad.players.length)}</PanelNote>

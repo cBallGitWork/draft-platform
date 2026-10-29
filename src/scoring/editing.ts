@@ -4,13 +4,12 @@
 
 import { AREAS, LANES, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition } from "../../convex/lineup/pitch";
 import type { StoredScoringSet } from "../../convex/scoring/scoringSetShape";
-import { priceFor, type Band, type Priced } from "../../convex/scoring/scoringSet";
+import { priceFor, type Band, type PointsLimit, type Priced } from "../../convex/scoring/scoringSet";
 import { holdsBlank } from "../rules/blank";
 
 export type Scoring = StoredScoringSet;
 export type Rule = Scoring["rules"][number];
 export type Shape = Rule["shape"];
-export type PointsLimit = { max: number | null; min: number | null };
 /** A per-number rule's price: `points` for every `every` he makes. */
 export type PerCount = { every: number; points: number };
 

@@ -5,7 +5,7 @@
 import { vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { Cell } from "../../../convex/lineup/pitch";
+import { positionOfSlot, type Cell } from "../../../convex/lineup/pitch";
 import type { Position } from "../../../convex/positions/positionTables";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { firstLineup } from "../../../convex/lineup/firstLineup";
@@ -16,7 +16,9 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { LEAGUE_AVERAGE } from "../../../convex/table/roundRobin";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "./leagues.harness";
-import { EVERTON, GAMEWEEK, HULL, HULL_EVERTON, elapse, mergedHullEverton } from "./matchStats.harness";
+import { EVERTON, EVERTON_CLUB, GAMEWEEK, HULL, HULL_CITY, HULL_EVERTON, elapse, mergedHullEverton } from "./matchStats.harness";
+import { insertClubs } from "./footballRows.harness";
+import { BELLOUMI, DEWSBURY_HALL, GELHARDT, PHILLIPS, TZOLAKIS } from "./teamPoints.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
 import { recordedGw6 } from "../recorded/gw6.payloads";
 
@@ -34,9 +36,9 @@ export const DEADLINE = LEAGUE_KICKOFF - FIRST_RULES.deadline.minutesBeforeFirst
 
 /** Who stands where. Hull's unused substitute keeper starts in goal, so their keeper, who played
  *  the 90 minutes, comes on for him once the match is over. */
-export const PHILLIPS = 167825; // Hull's keeper, an unused substitute
-export const HULL_KEEPER = 473284; // played 90
-export const HULL_SCORER = 462635; // Hull's midfielder, a goal at 64 minutes
+export { PHILLIPS };
+export const HULL_KEEPER = TZOLAKIS; // played 90
+export const HULL_SCORER = GELHARDT; // Hull's midfielder, a goal at 64 minutes
 const cell = (area: Cell["area"], lane: Cell["lane"]): Cell => ({ area, lane });
 /** A starter and the cell he stands in, as a stored lineup holds him. */
 type Starter = Cell & { playerCode: number };
@@ -54,7 +56,7 @@ export const HULL_STARTERS: Starter[] = [
   { playerCode: 169432, ...cell("attack", "centre") },
 ];
 /** Their keeper first, then Belloumi (on at 64, a goal), then the rest of Hull's bench. */
-export const HULL_BENCH = [HULL_KEEPER, 540324, 496181, 608227, 445028, 160817, 631000, 597462, 490094];
+export const HULL_BENCH = [HULL_KEEPER, BELLOUMI, 496181, 608227, 445028, 160817, 631000, 597462, 490094];
 
 export const EVERTON_STARTERS: Starter[] = [
   { playerCode: 111234, ...cell("goalkeeper", "centre") },
@@ -65,33 +67,19 @@ export const EVERTON_STARTERS: Starter[] = [
   { playerCode: 609873, ...cell("midfield", "left") },
   { playerCode: 232928, ...cell("midfield", "leftCentre") },
   { playerCode: 242898, ...cell("midfield", "centre") },
-  { playerCode: 215413, ...cell("midfield", "rightCentre") },
+  { playerCode: DEWSBURY_HALL, ...cell("midfield", "rightCentre") },
   { playerCode: 114283, ...cell("midfield", "right") },
   { playerCode: 586309, ...cell("attack", "centre") },
 ];
 export const EVERTON_BENCH = [502697, 496661, 244860, 629068, 229600, 550615, 513466, 512462, 128295];
 
-/** Each starter plays his cell's slot; a bench player the position FPL lists him at. */
-const SLOT_POSITION: Record<string, Position> = {
-  "goalkeeper/centre": "GK",
-  "defence/left": "FB",
-  "defence/right": "FB",
-  "defence/leftCentre": "CB",
-  "defence/centre": "CB",
-  "defence/rightCentre": "CB",
-  "midfield/left": "WM",
-  "midfield/right": "WM",
-  "midfield/leftCentre": "CM",
-  "midfield/centre": "CM",
-  "midfield/rightCentre": "CM",
-  "attack/centre": "ST",
-};
+/** Each starter plays his cell's slot (positionOfSlot); a bench player the position FPL lists him at. */
 /** Each bench player's position, by where FPL lists him: keeper, defender, midfielder, forward. */
 const playing = (position: Position, codes: number[]) => codes.map((code) => [code, position] as const);
 const BENCH_POSITION = new Map<number, Position>([
   ...playing("GK", [HULL_KEEPER, 229600]),
   ...playing("CB", [496181, 160817, 597462, 512462]),
-  ...playing("CM", [540324, 608227, 445028, 490094, 502697, 496661, 244860, 629068, 550615, 513466, 128295]),
+  ...playing("CM", [BELLOUMI, 608227, 445028, 490094, 502697, 496661, 244860, 629068, 550615, 513466, 128295]),
   ...playing("ST", [631000]),
 ]);
 
@@ -123,7 +111,7 @@ export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Pr
     ];
     for (const [teamId, clubCode, starters, bench] of squads) {
       const positionOf = new Map<number, Position>([
-        ...starters.map(({ playerCode, area, lane }) => [playerCode, SLOT_POSITION[`${area}/${lane}`]] as const),
+        ...starters.map(({ playerCode, area, lane }) => [playerCode, positionOfSlot({ area, lane })] as const),
         ...bench.map((code) => [code, BENCH_POSITION.get(code)!] as const),
       ]);
       for (const [code, position] of positionOf) {
@@ -153,7 +141,17 @@ export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Pr
   return { t, leagueId, annsTeam, bobsTeam, catsTeam };
 }
 
+/** Hull's and Everton's club rows, which scoresLeague doesn't hold, as the football sync holds them. */
+export const holdHullAndEverton = ({ t }: ScoresLeague) => t.run((ctx) => insertClubs(ctx, [HULL_CITY, EVERTON_CLUB]));
+
 export const readTable = ({ t, leagueId }: ScoresLeague) => actingAs(t, ANN).then((ann) => ann.query(api.table.leagueTable.ofLeague, { leagueId }));
+
+/** The scored game Ann's matchup shows: in `gameweek`, or the current one when none is named. */
+export async function annsScoredGame({ t, leagueId }: ScoresLeague, gameweek?: number) {
+  const read = await (await actingAs(t, ANN)).query(api.matchup.matchup.ofTeam, { leagueId, now: Date.now(), ...(gameweek === undefined ? {} : { gameweek }) });
+  if (read?.kind !== "headToHead" || read.game.kind !== "scored") throw new Error(`Ann's matchup isn't scored: ${JSON.stringify(read)}`);
+  return read.game;
+}
 
 /** The match's records as the live tick lands them, before full time. */
 export async function liveRecords({ t }: ScoresLeague, records: PlayerMatchRecord[], minute: number | null = null) {

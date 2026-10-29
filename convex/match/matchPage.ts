@@ -62,7 +62,7 @@ const matchMan = v.object({
 });
 export type MatchMan = Infer<typeof matchMan>;
 
-export const matchPage = v.object({
+export const matchPageData = v.object({
   fixtureCode: v.number(),
   gameweek: v.union(v.number(), v.null()),
   kickoff: v.union(v.number(), v.null()),
@@ -80,12 +80,12 @@ export const matchPage = v.object({
   teamStats: v.union(v.object({ home: sideTeamStats, away: sideTeamStats }), v.null()),
   commentary,
 });
-export type MatchPage = Infer<typeof matchPage>;
+export type MatchPageData = Infer<typeof matchPageData>;
 
 /** The match for anyone in the league, or null while no match with its code is held. */
 export const ofMatch = query({
   args: { leagueId: v.id("leagues"), fixtureCode: v.number() },
-  returns: v.union(matchPage, v.null()),
+  returns: v.union(matchPageData, v.null()),
   handler: async (ctx, { leagueId, fixtureCode }) => {
     const { league } = await memberOf(ctx, leagueId);
     const fixture = await fixtureByCode(ctx, fixtureCode);
