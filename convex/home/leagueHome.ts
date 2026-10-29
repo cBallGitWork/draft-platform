@@ -6,7 +6,7 @@ import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { pinnedLetter } from "../schema";
-import { isSquadMove, SQUAD_MOVES } from "../squads/squads";
+import { isSquadMove, SQUAD_MOVES } from "../squads/squadPlace";
 import { memberOf, teamOf } from "../shared/leagueAccess";
 import { namedFixture } from "../table/roundRobin";
 import { fixture, standingsOf } from "../table/leagueTable";

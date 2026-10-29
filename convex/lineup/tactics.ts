@@ -9,7 +9,7 @@ import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { position } from "../schema";
 import { managerOf } from "../shared/leagueAccess";
-import { squadOf } from "../squads/squads";
+import { squadOf } from "../squads/squadPlace";
 import { heldLineupShape, lineupInGameweek, nextOpenGameweek } from "./lineups";
 
 // My team's Tactics tab (#14; spec/05, The pitch): what the pitch is set from. The gameweek is the
