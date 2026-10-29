@@ -111,8 +111,8 @@ export interface TeamInGameweek {
   autoSubs: AutoSubs;
   /** Each player's matches in the gameweek: his club's, and any other he has a record in. */
   matchesOf: Map<PlayerCode, HeldMatch[]>;
-  /** It held no lineup in the gameweek, though its squad had players: a gameweek begun before
-   *  #637 gave every team one (lineups.ts), so it scores 0 and a screen can say why. */
+  /** It held no lineup in a gameweek begun before #637 gave every team one (lineups.ts), though
+   *  its squad had players, so it scores 0 and a screen can say why. */
   noLineup: boolean;
 }
 
@@ -152,7 +152,7 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
     })),
     benchCells: new Map(lineup.bench.map((code) => [code, benchCell(positions.get(code)!)])),
   });
-  return { team, autoSubs: subs, matchesOf, noLineup: held.fromGameweek === null && held.starters.length === 0 && held.bench.length > 0 };
+  return { team, autoSubs: subs, matchesOf, noLineup: held.noLineup };
 }
 
 /** Each of his matches with his points in it. scoreTeam scores a man's matches in the order

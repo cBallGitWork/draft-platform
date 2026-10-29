@@ -44,10 +44,12 @@ const sentLineup = v.object({
  *  bench, so a screen can say so, and `vacated` each starter who left in the slot he left empty,
  *  for auto-subs to fill. `fromGameweek` is null for a team with no row in force: one whose players
  *  joined before teams held a first lineup, or a league with no rules to date a row by. Before the
- *  deadline it holds its first lineup; once begun, its squad as it stood, all on the bench, so a
- *  gameweek scored before #637 stays as it was scored. */
+ *  deadline it holds its first lineup; once begun, its squad as it stood, all on the bench, and
+ *  `noLineup` says so, so a gameweek begun before #637 stays as it was scored and a screen can
+ *  say why. */
 export const heldLineupShape = v.object({
   fromGameweek: v.union(v.number(), v.null()),
+  noLineup: v.boolean(),
   starters: v.array(placementShape),
   bench: v.array(v.number()),
   leftSquad: v.array(v.number()),
@@ -94,12 +96,13 @@ export async function lineupsInGameweek(
       squad = await squadAt(ctx, teamId, await movesSince);
     }
     if (row === null) {
-      const held = deadline === null ? firstLineup(squad, await positionsOf(ctx, squad)) : { starters: [], bench: squad };
-      lineups.set(teamId, { fromGameweek: null, ...held, ...NO_CHANGES });
+      const begun = deadline !== null;
+      const held = begun ? { starters: [], bench: squad } : firstLineup(squad, await positionsOf(ctx, squad));
+      lineups.set(teamId, { fromGameweek: null, noLineup: begun && squad.length > 0, ...held, ...NO_CHANGES });
       continue;
     }
     const { lineup, ...changes } = reconciled(row, squad);
-    lineups.set(teamId, { fromGameweek: row.fromGameweek, ...lineup, ...changes });
+    lineups.set(teamId, { fromGameweek: row.fromGameweek, noLineup: false, ...lineup, ...changes });
   }
   return lineups;
 }

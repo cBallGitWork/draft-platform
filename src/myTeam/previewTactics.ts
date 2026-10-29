@@ -46,7 +46,7 @@ const tacticsWith = ({ starters, bench }: DraftLineup): Tactics => ({
   areaLimits: FIRST_RULES.areaLimits,
   presets: FIRST_RULES.presets,
   squad,
-  lineup: { fromGameweek: PREVIEW_GAMEWEEK, starters: [...starters], bench: [...bench], leftSquad: [], joinedBench: [], vacated: [] },
+  lineup: { fromGameweek: PREVIEW_GAMEWEEK, noLineup: false, starters: [...starters], bench: [...bench], leftSquad: [], joinedBench: [], vacated: [] },
 });
 
 // A new object only when it changes, as useSyncExternalStore needs.

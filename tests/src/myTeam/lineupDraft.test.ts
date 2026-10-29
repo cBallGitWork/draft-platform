@@ -48,7 +48,7 @@ describe("the same lineup", () => {
 });
 
 it("opens on the lineup the server holds, a team's first until its manager saves one (spec/05)", () => {
-  const lineup = { fromGameweek: null, starters: [KEEPER], bench: [7, 5, 6], leftSquad: [], joinedBench: [], vacated: [] };
+  const lineup = { fromGameweek: null, noLineup: false, starters: [KEEPER], bench: [7, 5, 6], leftSquad: [], joinedBench: [], vacated: [] };
   expect(openingLineup({ lineup })).toEqual({ starters: [KEEPER], bench: [7, 5, 6] });
 });
 

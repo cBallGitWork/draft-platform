@@ -17,7 +17,7 @@ export const openTactics = (change: Partial<OpenTactics> = {}): OpenTactics => (
   areaLimits: FIRST_RULES.areaLimits,
   presets: FIRST_RULES.presets,
   squad: [],
-  lineup: { fromGameweek: TACTICS_GAMEWEEK, starters: [], bench: [], leftSquad: [], joinedBench: [], vacated: [] },
+  lineup: { fromGameweek: TACTICS_GAMEWEEK, noLineup: false, starters: [], bench: [], leftSquad: [], joinedBench: [], vacated: [] },
   ...change,
 });
 

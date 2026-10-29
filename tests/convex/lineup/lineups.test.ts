@@ -71,6 +71,7 @@ const as = async (email: string) => {
 };
 const saved = (lineup: Lineup, fromGameweek: number | null) => ({
   fromGameweek,
+  noLineup: false,
   starters: lineup.starters,
   bench: lineup.bench,
   leftSquad: [],
@@ -155,6 +156,7 @@ describe("read against the squad as it is now", () => {
 
     expect(await (await as(ANN)).mine(NEXT)).toEqual({
       fromGameweek: NEXT,
+      noLineup: false,
       starters: FOUR_FOUR_TWO.starters.filter(({ playerCode }) => playerCode !== goneStarter),
       bench: [...FOUR_FOUR_TWO.bench.filter((playerCode) => playerCode !== goneSub), newcomer],
       leftSquad: [goneStarter, goneSub],
@@ -215,6 +217,7 @@ describe("a begun gameweek keeps the squad as it stood at its deadline (#415)", 
     expect(await lineupOf(bobsTeam, NEXT)).toEqual(saved({ starters: [], bench: [BOBS] }, NEXT));
     expect(await lineupOf(annsTeam, NEXT + 1)).toEqual({
       fromGameweek: NEXT,
+      noLineup: false,
       starters: FOUR_FOUR_TWO.starters.filter(({ playerCode }) => playerCode !== released && playerCode !== moved),
       bench: [...FOUR_FOUR_TWO.bench, FREE_AGENT],
       leftSquad: [released, moved],
@@ -372,9 +375,17 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
     expect(await annsRows()).toMatchObject([{ fromGameweek: NEXT, firstLineup: true }, { fromGameweek: NEXT + 1, firstLineup: true }]);
   });
 
-  test("a begun gameweek with no row in force, from before #637, keeps its squad on the bench as it was scored", async () => {
+  test("a squad with nobody placed yet, for want of positions, holds an empty first lineup, not one marked as none", async () => {
+    await t.run(async (ctx) => {
+      const row = await ctx.db.query("playerPositions").withIndex("by_code", (q) => q.eq("code", BOBS)).unique();
+      await ctx.db.patch("playerPositions", row!._id, { set: [] });
+    });
+    expect(await (await as(BOB)).mine(NEXT)).toEqual(saved({ starters: [], bench: [BOBS] }, null));
+  });
+
+  test("a begun gameweek with no row in force, from before #637, keeps its squad on the bench as it was scored, marked so", async () => {
     await passNextDeadline();
-    expect(await lineupOf(NEXT)).toEqual(saved({ starters: [], bench: SQUAD }, null));
+    expect(await lineupOf(NEXT)).toEqual({ ...saved({ starters: [], bench: SQUAD }, null), noLineup: true });
   });
 });
 
