@@ -11,6 +11,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 import { squadRefusals } from "../../../convex/squads/squads";
 import { CURRENT_CLUBS_MOST } from "../../../convex/shared/players";
 import { expectRefused } from "../../support/convex/test.harness";
+import { squadMoves } from "../../support/convex/lineupSquad.harness";
 
 // Assigning players (#31, spec/15 Assigning players): the commissioners and the admin put any
 // player on any team, move him, or release him; one team per player in a league; each files a
@@ -48,9 +49,7 @@ beforeEach(async () => {
 const as = async (email: string) => {
   const person = await actingAs(t, email);
   return {
-    assign: (playerCode: number, teamId: Id<"teams">) => person.mutation(api.squads.squads.assign, { leagueId, playerCode, teamId }),
-    move: (playerCode: number, teamId: Id<"teams">) => person.mutation(api.squads.squads.move, { leagueId, playerCode, teamId }),
-    release: (playerCode: number) => person.mutation(api.squads.squads.release, { leagueId, playerCode }),
+    ...(await squadMoves(t, leagueId, email)),
     squads: () => person.query(api.squads.squads.squads, { leagueId }),
     find: (text: string) => person.query(api.squads.squads.findPlayers, { leagueId, text }),
   };

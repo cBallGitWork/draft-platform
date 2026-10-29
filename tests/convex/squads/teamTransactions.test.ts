@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { adminByline } from "../../../convex/mail/letterWords";
@@ -9,6 +9,7 @@ import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { squadMoves } from "../../support/convex/lineupSquad.harness";
 
 // My team's Transactions tab (#366): the manager's team's assignments, moves and releases, newest
 // first, from the league's events, which Mail files letters from.
@@ -35,15 +36,7 @@ beforeEach(async () => {
 });
 
 /** `email` runs the league's squads: each change a minute after the last, so their order is plain. */
-const squadsAs = async (email: string) => {
-  const person = await actingAs(t, email);
-  const later = () => vi.setSystemTime(Date.now() + MINUTE_MS);
-  return {
-    assign: async (playerCode: number, teamId: Id<"teams">) => (later(), person.mutation(api.squads.squads.assign, { leagueId, playerCode, teamId })),
-    move: async (playerCode: number, teamId: Id<"teams">) => (later(), person.mutation(api.squads.squads.move, { leagueId, playerCode, teamId })),
-    release: async (playerCode: number) => (later(), person.mutation(api.squads.squads.release, { leagueId, playerCode })),
-  };
-};
+const squadsAs = (email: string) => squadMoves(t, leagueId, email, { minuteApart: true });
 const read = async (email = ANN) => (await actingAs(t, email)).query(api.squads.teamTransactions.ofMyTeam, { leagueId });
 const kindsOf = async (email = ANN) => (await read(email)).transactions.map(({ kind, playerName, otherTeamName }) => [kind, playerName, otherTeamName]);
 
