@@ -27,7 +27,6 @@ const CODE = { williams: codeOf("N.Williams"), munoz: codeOf("Muñoz"), enciso: 
 const STORED = writeCommentary(commentaryLines(recordedLiveSheets(), recordedLiveCommentary("final").events.content, codesByOpta(fplPlayers)).lines, {
   header: { home: "IPS", away: "NFO", homeGoals: 1, awayGoals: 1 },
   nameByCode: new Map(fplPlayers.map((element) => [element.code, element.web_name])),
-  fullTimePoints: [],
 }).lines;
 
 /** A whole record with these stats, ninety minutes played. */

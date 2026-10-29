@@ -111,7 +111,6 @@ export async function readCommentary(
     // Goals are null only before kickoff, when no full-time line can be written.
     header: { ...clubs, homeGoals: score.homeGoals ?? 0, awayGoals: score.awayGoals ?? 0 },
     nameByCode: context.nameByCode,
-    fullTimePoints: [],
   });
   return { lines: written.lines, delayed: joinedReasons([behind(lines, score), unworded(written.unworded)]) };
 }
