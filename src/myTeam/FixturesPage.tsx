@@ -12,16 +12,13 @@ import {
   fixturesTableLabel,
   FIXTURES_TITLE,
   leagueAverageWords,
-  liveWords,
   noFigureWords,
   noFixturesWords,
   noRulesWords,
   noTeamWords,
   provisionalWords,
-  scoreWords,
   totalPointsWords,
   unscoredWords,
-  versusWords,
   whenWords,
 } from "./words";
 
@@ -106,15 +103,6 @@ function Result({ teamId, teamName, game: { gameweek, against, score } }: { team
   if (against.kind === "bye") return null;
   const opponent = against.kind === "team" ? against.teamName : null;
   return (
-    <MatchupLink teamId={teamId} team={teamName} opponent={opponent} gameweek={gameweek}>
-      {score === null ? (
-        <span>{versusWords}</span>
-      ) : (
-        <span className="whitespace-nowrap">
-          <span className="font-bold text-figure">{scoreWords(score.team, score.opponent)}</span>
-          {score.provisional && <span className="ml-1 text-derived">{liveWords}</span>}
-        </span>
-      )}
-    </MatchupLink>
+    <MatchupLink teamId={teamId} team={teamName} opponent={opponent} gameweek={gameweek} points={score} live={score?.provisional ?? false} />
   );
 }
