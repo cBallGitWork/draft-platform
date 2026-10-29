@@ -9,10 +9,10 @@ import type { Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
 import { categoryName } from "../scoring/categories";
 import { memberOf } from "../shared/leagueAccess";
-import { clubByCode, playerByCode } from "../shared/players";
-import { readOnce } from "../shared/readOnce";
+import { clubsByCode, playerByCode, type Clubs } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { MINUTES_STAT, statValue } from "../stats/matchRecords";
+import { playsIn } from "../gameweekScorer/heldMatches";
 import { scoredMatches } from "../gameweekScorer/scoredMatches";
 import { scoredAs } from "./cardPoints";
 
@@ -112,14 +112,6 @@ export const card = query({
   },
 });
 
-type Club = Infer<typeof clubRecord>;
-export type Clubs = (code: number) => Promise<Club>;
-
-/** Clubs by code, each read once. */
-export function clubsByCode(ctx: QueryCtx): Clubs {
-  return readOnce((code: number) => clubByCode(ctx, code).then(({ code, name, shortName }) => ({ code, name, shortName })));
-}
-
 /** The team in this league that owns him, or null for a free agent. */
 export async function ownerIn(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<string | null> {
   const owned = await placeOf(ctx, leagueId, playerCode);
@@ -165,7 +157,7 @@ async function nextFixtures(ctx: QueryCtx, clubCode: number, now: number, clubs:
   const next = [];
   const ahead = ctx.db.query("fixtures").withIndex("by_droppedAt_and_kickoff", (q) => q.eq("droppedAt", undefined).gt("kickoff", now));
   for await (const fixture of ahead) {
-    if (fixture.homeClubCode !== clubCode && fixture.awayClubCode !== clubCode) continue;
+    if (!playsIn(fixture, clubCode)) continue;
     next.push(await asMatch(fixture, clubs));
     if (next.length === NEXT_FIXTURES_SHOWN) break;
   }

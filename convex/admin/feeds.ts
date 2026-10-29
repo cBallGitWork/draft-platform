@@ -4,7 +4,7 @@ import { statCorrectionWindowMs } from "./platformSettings";
 import { ALWAYS_OWED, failureOf, feedState, judgeFeed, type FeedRuns, type RunOutcome } from "./feedState";
 import { fixtureByCode } from "../shared/fixtures";
 import { adminOf } from "../shared/leagueAccess";
-import { playerByCode } from "../shared/players";
+import { findClubByCode, playerByCode } from "../shared/players";
 import { FEED_RUN_TABLES, FEED_SCHEDULES, FEEDS, feedValidator, type Feed } from "../shared/feedSchedule";
 import { liveMatches } from "../stats/liveStats";
 import { lateStatChange } from "../schema";
@@ -130,5 +130,5 @@ async function matchName(ctx: QueryCtx, fixtureCode: number): Promise<Infer<type
 }
 
 async function clubName(ctx: QueryCtx, code: number): Promise<string | null> {
-  return (await ctx.db.query("clubs").withIndex("by_code", (q) => q.eq("code", code)).unique())?.name ?? null;
+  return (await findClubByCode(ctx, code))?.name ?? null;
 }
