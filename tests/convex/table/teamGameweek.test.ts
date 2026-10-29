@@ -27,6 +27,7 @@ const slot = (playerCode: number, totals: (number | null)[], counts = true): Slo
   cell: { area: "midfield", lane: "centre" },
   counts,
   matches: totals.map((total) => ({ total, categories: [] })),
+  matchesCounted: totals.map(() => true),
   points: null,
   provisional: true,
 });

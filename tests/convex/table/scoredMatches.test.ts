@@ -83,15 +83,16 @@ async function annsGameweek(league: ScoresLeague, men: readonly number[]) {
 const credited = (matches: readonly PlayedMatch[]) => matches.filter((match) => match.points.scoredAs === "slot").map((match) => match.points.total ?? 0);
 const sum = (points: readonly number[]) => inTenths(points.reduce((total, each) => total + each, 0));
 
-/** The seam: the card credits what the table counts, and the Squad tab adds up the card. */
+/** The seam: the card credits what the table counts, and the Squad tab adds up what the card
+ *  credits: what his team got from him, never a match labelled not counted (#595). */
 async function expectCardsAddUpToTheTable(league: ScoresLeague, provisional: boolean, men: readonly number[] = ANNS_MEN) {
   const { cards, table, squad } = await annsGameweek(league, men);
   expect(sum([...cards.values()].flatMap(credited))).toBe(table.points);
   expect(table.provisional).toBe(provisional);
   for (const [playerCode, matches] of cards) {
     const row = squad.players.find((each) => each.code === playerCode)!;
-    const shown = matches.flatMap((match) => (match.points.total === null ? [] : [match.points.total]));
-    expect(row.seasonPoints, `player ${playerCode}`).toBe(shown.length === 0 ? null : sum(shown));
+    const priced = matches.some((match) => match.points.total !== null);
+    expect(row.seasonPoints, `player ${playerCode}`).toBe(priced ? sum(credited(matches)) : null);
     expect(matches.every((match) => match.provisional === provisional), `player ${playerCode}`).toBe(true);
   }
   return cards;
@@ -177,7 +178,7 @@ type TwoMatches = Record<"first" | "second", Pick<PlayedMatch["points"], "scored
 
 /** Ann's league under `rule`, both of Hull's matches at full time, the scorer's second played on
  *  the stats `second` makes of his first's; the cards checked against the table. */
-async function doubleGameweek(rule: DoubleGameweekRule, second: (first: Record<string, number>) => Record<string, number>): Promise<TwoMatches> {
+async function doubleGameweek(rule: DoubleGameweekRule, second: (first: Record<string, number>) => Record<string, number>): Promise<TwoMatches & { squad: number | null }> {
   const league = await annsLeague();
   const records = mergedHullEverton();
   const hisFirst = records.find((record) => record.playerCode === HULL_SCORER)!;
@@ -199,7 +200,9 @@ async function doubleGameweek(rule: DoubleGameweekRule, second: (first: Record<s
     const { scoredAs, total } = cards.get(HULL_SCORER)!.find((match) => match.fixtureCode === fixtureCode)!.points;
     return { scoredAs, total };
   };
-  return { first: shown(HULL_EVERTON), second: shown(SECOND_MATCH) };
+  const { squad } = await annsGameweek(league, [HULL_SCORER]);
+  const squadRow = squad.players.find((each) => each.code === HULL_SCORER)!;
+  return { first: shown(HULL_EVERTON), second: shown(SECOND_MATCH), squad: squadRow.seasonPoints };
 }
 
 /** Thirty minutes and nothing else: fewer points than his goal in the first. */
@@ -210,6 +213,13 @@ test("best match: his lower match is labelled not counted, at his slot, and the 
   expect(first.scoredAs).toBe("slot");
   expect(second.scoredAs).toBe("notCounted");
   expect(second.total!).toBeLessThan(first.total!);
+});
+
+test("best match: the Squad tab's season points are his counted match alone, not both his card shows (#595)", async () => {
+  const { first, second, squad } = await doubleGameweek("bestMatch", QUIET);
+  expect(second.total!).toBeGreaterThan(0);
+  expect(squad).toBe(first.total);
+  expect(squad).not.toBe(sum([first.total!, second.total!]));
 });
 
 test("best match: when his second match is the better, his first is the one not counted (#595)", async () => {

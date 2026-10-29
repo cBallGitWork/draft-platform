@@ -48,8 +48,8 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
 - **My team** shows the tactics pitch, the squad and Mail side by side.
 - My team's other tabs, after the Tactics tab (25 Oct 2026):
   - **Squad**: every player in the squad in one table, with his position, club, next fixture,
-    season points and last gameweek's points. His season points are the sum of what his card
-    shows, so the two always agree (Craig, 28 Oct 2026).
+    season points and last gameweek's points. His season points are what his team got from him,
+    not every match his card shows (Craig, 29 Oct 2026).
   - **Fixtures**: the team's head-to-head fixtures and results for the season. A player's Premier
     League fixtures belong on the players screen.
   - **Transactions**: the team's claims, drops, trades and commissioner assignments, newest first,
