@@ -3,15 +3,16 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { query } from "../_generated/server";
 import { adminByline } from "../mail/letterWords";
 import { isAdmin, managerOf } from "../shared/leagueAccess";
+import { isSquadMove, SQUAD_MOVES } from "./squads";
 
 // My team's Transactions tab (#366; spec/12, My team's tabs: "the team's claims, drops, trades and
 // commissioner assignments, newest first, from the same events Mail files"). Claims, drops and
 // trades come with spec/08, so for now it is the commissioner's assignments, moves and releases
 // (#31) that touch the team.
 
-/** How many of the league's latest events are searched for the team's: every kind of event is
- *  filed in one list, and a query's reads are bounded. Older ones are left out, and `cut` says so. */
-export const EVENTS_SEARCHED = 1000;
+/** How many of the league's latest squad moves of each kind are read for the team's: each kind's
+ *  read is league-wide, and a query's reads are bounded. Older ones are left out, and `cut` says so. */
+export const TRANSACTIONS_READ_OF_EACH_KIND = 1000;
 
 const transactionKind = v.union(v.literal("assigned"), v.literal("movedIn"), v.literal("movedOut"), v.literal("released"));
 
@@ -28,7 +29,7 @@ const transaction = v.object({
 
 export const teamTransactions = v.object({
   transactions: v.array(transaction),
-  /** Whether the league has events older than those searched, which may hold more of the team's. */
+  /** Whether the league has squad moves older than those read, which may hold more of the team's. */
   cut: v.boolean(),
 });
 export type TeamTransactions = Infer<typeof teamTransactions>;
@@ -36,7 +37,7 @@ type Transaction = Infer<typeof transaction>;
 
 /** The team's transaction in a league event, if it is one. */
 function transactionOf({ at, by, event }: Doc<"leagueEvents">, teamId: Id<"teams">): Transaction | null {
-  if (event.kind !== "playerAssigned" && event.kind !== "playerReleased" && event.kind !== "playerMoved") return null;
+  if (!isSquadMove(event)) return null;
   const done = { at, by: isAdmin(by) ? adminByline : by, playerCode: event.playerCode, playerName: event.playerName };
   if (event.kind === "playerMoved") {
     if (event.teamId === teamId) return { ...done, kind: "movedIn", otherTeamName: event.fromTeamName };
@@ -54,15 +55,22 @@ export const ofMyTeam = query({
   returns: teamTransactions,
   handler: async (ctx, { leagueId }) => {
     const { team } = await managerOf(ctx, leagueId);
-    const events = await ctx.db
-      .query("leagueEvents")
-      .withIndex("by_leagueId_and_at", (q) => q.eq("leagueId", leagueId))
-      .order("desc")
-      .take(EVENTS_SEARCHED + 1);
-    const searched = events.slice(0, EVENTS_SEARCHED);
+    const ofEachKind = await Promise.all(
+      SQUAD_MOVES.map((kind) =>
+        ctx.db
+          .query("leagueEvents")
+          .withIndex("by_leagueId_and_kind_and_at", (q) => q.eq("leagueId", leagueId).eq("event.kind", kind))
+          .order("desc")
+          .take(TRANSACTIONS_READ_OF_EACH_KIND + 1),
+      ),
+    );
+    // Newest first, and of two filed at once the later first, as the league's own index orders them.
+    const moves = ofEachKind
+      .flatMap((ofKind) => ofKind.slice(0, TRANSACTIONS_READ_OF_EACH_KIND))
+      .toSorted((one, other) => other.at - one.at || other._creationTime - one._creationTime);
     return {
-      transactions: searched.flatMap((row) => transactionOf(row, team._id) ?? []),
-      cut: events.length > EVENTS_SEARCHED,
+      transactions: moves.flatMap((row) => transactionOf(row, team._id) ?? []),
+      cut: ofEachKind.some((ofKind) => ofKind.length > TRANSACTIONS_READ_OF_EACH_KIND),
     };
   },
 });
