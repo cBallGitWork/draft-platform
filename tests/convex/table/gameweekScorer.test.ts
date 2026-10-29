@@ -1,5 +1,4 @@
 import { expect, test } from "vitest";
-import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { inTenths } from "../../../convex/scoring/scoringSet";
@@ -15,15 +14,15 @@ import {
   HULL_POINTS,
   lockMatch,
   scoresLeague,
+  storeLeague,
+  writeOverAnns,
+  WRITTEN_OVER,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 
 // The gameweek scorer (#625; spec/07), called on a seeded league with no screen: each team's
 // points, saved once the gameweek is final and worked out until then; a team that has never saved
 // a lineup on 0; the teams worked out final, for finalScores to store; and the league's average.
-
-/** A score no team made, written over a stored one to tell a saved total from one worked out. */
-const WRITTEN_OVER = 99;
 
 /** Gameweek 6 as the league's scorer scores it for `teamIds`. A run sends back only Convex values,
  *  so the scores cross as entries. */
@@ -36,8 +35,6 @@ async function scored({ t, leagueId }: ScoresLeague, teamIds: readonly Id<"teams
   });
   return { scores: new Map(scores), toStore };
 }
-
-const storeLeague = ({ t, leagueId }: ScoresLeague) => t.mutation(internal.table.finalScores.storeLeague, { leagueId });
 
 test("a team that has never saved a lineup scores 0, and a gameweek not yet final has nothing to store", async () => {
   const league = await scoresLeague({ bobSaves: false });
@@ -65,10 +62,7 @@ test("a final gameweek gives its saved total, even where working it out again wo
   await fullTimeRecords(league);
   await lockMatch(league);
   await storeLeague(league);
-  await league.t.run(async (ctx) => {
-    const row = (await ctx.db.query("finalScores").collect()).find((each) => each.teamId === league.annsTeam)!;
-    await ctx.db.patch("finalScores", row._id, { points: WRITTEN_OVER });
-  });
+  await writeOverAnns(league);
 
   const { scores, toStore } = await scored(league, [league.annsTeam, league.bobsTeam]);
   expect(scores.get(league.annsTeam)).toEqual({ points: WRITTEN_OVER, provisional: false, noLineup: false });
@@ -91,10 +85,12 @@ test("the league's average counts a team with no lineup as its 0, provisional wh
   const league = await scoresLeague({ catToo: true });
   await fullTimeRecords(league);
   const teams = [league.annsTeam, league.bobsTeam, league.catsTeam!];
+  // (26 + 38 + 0) / 3: Cat's team, with no lineup, on its 0.
+  const average = inTenths((HULL_POINTS + EVERTON_POINTS) / 3);
 
   const live = await scored(league, teams);
-  expect(averageScore(teams, live.scores, GAMEWEEK)).toEqual({ points: inTenths((HULL_POINTS + EVERTON_POINTS) / 3), provisional: true });
+  expect(averageScore(teams, live.scores, GAMEWEEK)).toEqual({ points: average, provisional: true });
   await lockMatch(league);
   const final = await scored(league, teams);
-  expect(averageScore(teams, final.scores, GAMEWEEK)).toEqual({ points: inTenths((HULL_POINTS + EVERTON_POINTS) / 3), provisional: false });
+  expect(averageScore(teams, final.scores, GAMEWEEK)).toEqual({ points: average, provisional: false });
 });
