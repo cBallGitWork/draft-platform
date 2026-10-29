@@ -6,21 +6,21 @@ import { EXAMPLE_SET } from "../../support/convex/scoring.example";
 // score at his best position, labelled so. Figures from EXAMPLE_SET.
 
 test("a player in no lineup is priced at the slot his positions allow that scores the most", () => {
-  // Ten defensive actions pay 2 in defensive midfield and nothing in midfield, where it takes 12.
+  // Ten defensive actions earn 2 in defensive midfield and nothing in midfield, where it takes 12.
   const points = cardPoints({ minutes: 90, defensive_contribution: 10 }, EXAMPLE_SET, ["CDM", "CM"]);
 
   expect(points).toMatchObject({ scoredAs: "bestPosition", position: "CDM", total: 4 });
 });
 
 test("a tie between slots names his own position, not another his area allows", () => {
-  // A goal and an assist pay the same anywhere in attacking midfield, at W or at CAM.
+  // A goal and an assist earn the same anywhere in attacking midfield, at W or at CAM.
   const record = { minutes: 90, goals_scored: 1, assists: 1 };
 
   expect(cardPoints(record, EXAMPLE_SET, ["CAM"])).toMatchObject({ position: "CAM", total: 11 });
   expect(cardPoints(record, EXAMPLE_SET, ["W"])).toMatchObject({ position: "W", total: 11 });
 });
 
-test("a player with two areas is priced in the one that pays more for his match", () => {
+test("a player with two areas is priced in the one that scores more for his match", () => {
   // A goal and an assist: 5 + 4 + 2 in attacking midfield, 4 + 3 + 2 up front.
   expect(cardPoints({ minutes: 90, goals_scored: 1, assists: 1 }, EXAMPLE_SET, ["W", "ST"])).toMatchObject({ position: "W", total: 11 });
 });

@@ -182,7 +182,7 @@ describe.each<[string, StoredScoringSet, string]>([
     "The scoring set can't be saved: the Saves rule in attack is worth points for every 0 actions; it must be more than 0.",
   ],
   [
-    "a rule on a stat that doesn't exist, which would pay every player 0 in it (#135)",
+    "a rule on a stat that doesn't exist, which would score every player 0 in it (#135)",
     { rules: [{ shape: "perAction", stat: "goals_scroed", values: { all: 5 } }], wholePointsOnly: false },
     `The scoring set can't be saved: rule 1 of the scoring set scores "goals_scroed", which is neither a catalogue stat nor one of the set's own stats.`,
   ],

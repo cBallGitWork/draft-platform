@@ -73,7 +73,7 @@ test.each([
   ["band values that are no list", minutes({ atLeast: 60, points: 2 }), "in goalkeeper has no list of bands"],
   ["a band that is not a band", minutes([null]), "the Minutes rule in goalkeeper, band 1, is not a band"],
   [
-    "a band with no points, in a rule that pays only the highest",
+    "a band with no points, in a rule that scores only the highest",
     minutes([{ atLeast: 1, points: 1 }, { atLeast: 60 }]),
     "the Minutes rule in goalkeeper, band 2, is worth undefined, not a number",
   ],
@@ -95,7 +95,7 @@ test.each([
   expect(() => validateScoringSet(set)).toThrow(reason);
 });
 
-describe("a rule scores a catalogue stat or one of the league's own, never a key no record holds (#135)", () => {
+describe("a rule scores a catalogue stat or one of the site's own, never a key no record holds (#135)", () => {
   const perAction = (stat: string) => ({ shape: "perAction", stat, values: { all: 1 } });
 
   test("a typo of a catalogue stat is refused, naming it", () => {
@@ -108,7 +108,7 @@ describe("a rule scores a catalogue stat or one of the league's own, never a key
     expect(() => validateScoringSet(setOf(perAction("won_tackle")))).not.toThrow();
   });
 
-  test("the key of one of the league's own stats passes", () => {
+  test("the key of one of the site's own stats passes", () => {
     const set = { ...setOf(perAction(TACKLES_AND_CLEARANCES.stat)), ownStats: [TACKLES_AND_CLEARANCES] };
     expect(() => validateScoringSet(set)).not.toThrow();
   });
