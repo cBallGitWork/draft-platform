@@ -109,7 +109,7 @@ function MatchRow({ match: { fixtureCode, kickoff, home, away, score } }: { matc
       <Link
         to={matchPath(fixtureCode)}
         aria-label={matchLinkLabel(home.name, away.name, goals)}
-        className={`flex min-h-tap items-center justify-center lg:min-h-0 ${goals === null ? "text-muted" : "whitespace-nowrap font-bold text-figure tabular-nums"}`}
+        className={`flex min-h-tap items-center justify-center lg:min-h-0 ${goals === null ? "text-muted" : "whitespace-nowrap font-bold text-figure"}`}
       >
         {goals ?? versusWords}
       </Link>
@@ -121,7 +121,7 @@ function MatchRow({ match: { fixtureCode, kickoff, home, away, score } }: { matc
 function MatchState({ kickoff, score }: Pick<GameweekMatch, "kickoff" | "score">) {
   switch (score?.state) {
     case "live":
-      return <span className="font-semibold text-derived tabular-nums">{clockWords(score.clockLabel, score.minutes)}</span>;
+      return <span className="font-semibold text-derived">{clockWords(score.clockLabel, score.minutes)}</span>;
     case "halfTime":
       return (
         <abbr title={halfTime.long} className="font-semibold text-derived no-underline">
@@ -135,7 +135,7 @@ function MatchState({ kickoff, score }: Pick<GameweekMatch, "kickoff" | "score">
         </abbr>
       );
     default:
-      return <span className="text-muted tabular-nums">{kickoff === null ? "" : kickoffWords(kickoff)}</span>;
+      return <span className="text-muted">{kickoff === null ? "" : kickoffWords(kickoff)}</span>;
   }
 }
 

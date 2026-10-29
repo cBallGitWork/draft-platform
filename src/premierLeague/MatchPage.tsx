@@ -1,4 +1,5 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { ColumnHeads } from "../frame/ColumnHeads";
 import { Loading, Notice, PageSection, Panel, PanelNote } from "../frame/Panel";
 import { Vidiprinter } from "../matchup/Vidiprinter";
 import { PositionCode } from "../PositionCodes";
@@ -82,7 +83,7 @@ function Scoreboard({ match: { home, away, score, kickoff, gameweek } }: { match
     <section aria-label={SCORE_LABEL} className="bg-panel shadow-bevel-panel">
       <p className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-3 px-3 pt-2 text-lead font-bold sm:text-title">
         <span className="text-right">{home.name}</span>
-        {goals === null ? <span className="text-muted">{versusWords}</span> : <span className="whitespace-nowrap text-figure tabular-nums">{goals}</span>}
+        {goals === null ? <span className="text-muted">{versusWords}</span> : <span className="whitespace-nowrap text-figure">{goals}</span>}
         <span>{away.name}</span>
       </p>
       <p aria-live="polite" className="px-3 pb-2 text-center">
@@ -96,7 +97,7 @@ function Scoreboard({ match: { home, away, score, kickoff, gameweek } }: { match
 function MatchState({ score, kickoff }: Pick<Match, "score" | "kickoff">) {
   switch (score?.state) {
     case "live":
-      return <span className="font-semibold text-derived tabular-nums">{clockWords(score.clockLabel, score.minutes)}</span>;
+      return <span className="font-semibold text-derived">{clockWords(score.clockLabel, score.minutes)}</span>;
     case "halfTime":
       return <span className="font-semibold text-derived">{halfTime.long}</span>;
     case "fullTime":
@@ -128,9 +129,9 @@ function TeamStats({ home, away, stats }: { home: string; away: string; stats: M
           <tbody>
             {(Object.keys(teamStatRows) as (keyof typeof teamStatRows)[]).map((stat) => (
               <tr key={stat} className="border-t border-panel-rule">
-                <td className="px-2 text-right font-bold tabular-nums">{statWords(stats.home, stat)}</td>
+                <td className="px-2 text-right font-bold">{statWords(stats.home, stat)}</td>
                 <th scope="row" className="px-2 text-center font-normal text-muted">{teamStatRows[stat]}</th>
-                <td className="px-2 text-left font-bold tabular-nums">{statWords(stats.away, stat)}</td>
+                <td className="px-2 text-left font-bold">{statWords(stats.away, stat)}</td>
               </tr>
             ))}
           </tbody>
@@ -156,15 +157,7 @@ function TeamSheet({ title, men }: { title: string; men: MatchMan[] }) {
         <PanelNote>{noMenWords}</PanelNote>
       ) : (
         <table aria-label={sheetLabel(title)} className="w-full border-collapse">
-          <thead className="bg-head text-ground">
-            <tr>
-              {Object.entries(matchColumns).map(([column, { short, long }]) => (
-                <th key={column} scope="col" title={long} aria-label={long} className={column === "player" ? "px-2 text-left" : "px-2 text-right"}>
-                  {short}
-                </th>
-              ))}
-            </tr>
-          </thead>
+          <ColumnHeads columns={matchColumns} classOf={(column) => (column === "player" ? "px-2 text-left" : "px-2 text-right")} />
           <tbody>
             {starters.map((man) => (
               <ManRow key={man.playerCode} man={man} />
@@ -199,7 +192,7 @@ function ManRow({ man: { name, position, started, played, ownerTeamName, points,
         {unused && <span className="sr-only"> {unusedLabel}</span>}
         {ownerTeamName !== null && <span className="block text-data font-normal text-muted">{ownerTeamName}</span>}
       </th>
-      <td className={`px-2 text-right tabular-nums ${counts && points !== null ? "font-bold text-figure" : "text-muted"}`}>
+      <td className={`px-2 text-right ${counts && points !== null ? "font-bold text-figure" : "text-muted"}`}>
         {ownerTeamName === null ? null : (points ?? noFigureWords)}
         {ownerTeamName !== null && !counts && <span className="sr-only"> {notCountingLabel}</span>}
       </td>
