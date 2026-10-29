@@ -5,6 +5,7 @@
 import { AREAS, LANES, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition } from "../../convex/lineup/pitch";
 import type { StoredScoringSet } from "../../convex/rules/leagueRulesShape";
 import { priceFor, type Band, type Priced } from "../../convex/scoring/scoringSet";
+import { holdsBlank } from "../rules/blank";
 
 export type Scoring = StoredScoringSet;
 export type Rule = Scoring["rules"][number];
@@ -180,11 +181,5 @@ export const newRule = (stat: string): Rule => ({ shape: "perAction", stat, valu
 /** The index of the first rule holding a box left without a number, or -1: the server would
  *  refuse it as data of the wrong shape, never with a reason the commissioner can act on. */
 export function firstBlankRule(scoring: Scoring): number {
-  return scoring.rules.findIndex((rule) => holdsNaN(rule));
-}
-
-function holdsNaN(value: unknown): boolean {
-  if (typeof value === "number") return Number.isNaN(value);
-  if (value !== null && typeof value === "object") return Object.values(value).some(holdsNaN);
-  return false;
+  return scoring.rules.findIndex((rule) => holdsBlank(rule));
 }

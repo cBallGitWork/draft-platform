@@ -212,6 +212,17 @@ describe("the squad (#341)", () => {
     expect((await screen.findByRole("alert")).textContent).toBe(refusal);
   });
 
+  it("ticking the club maximum alone is a change: Save is offered, and refuses the box left blank (#623)", async () => {
+    const app = await opened();
+    await userEvent.click(clubTick());
+
+    expect(screen.queryByText(unchangedWords)).toBeNull();
+    expect((screen.getByRole("button", { name: saveWords }) as HTMLButtonElement).disabled).toBe(false);
+    await save();
+    expect((await screen.findByRole("alert")).textContent).toBe(blankClubMaximumWords);
+    expect(app.leagueSettings.save).not.toHaveBeenCalled();
+  });
+
   it.each([
     ["the maximum", () => fill(squadMaximumLabel, ""), blankSquadMaximumWords],
     ["an area's minimum", () => fill(areaMinimumLabel("midfield"), ""), blankAreaMinimumWords("midfield")],
