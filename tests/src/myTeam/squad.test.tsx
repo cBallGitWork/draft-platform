@@ -2,7 +2,7 @@
 // in the squad in one table with his positions, club, his club's next match and his points, in the
 // server's order; the short codes named in full on hover; and why it's empty.
 
-import { screen, within } from "@testing-library/react";
+import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { MY_TEAM_PATH, MY_TEAM_SQUAD_PATH } from "../../../src/frame/menu";
@@ -129,6 +129,14 @@ describe("squad numbers (#13)", () => {
     await screen.findByRole("table");
     expect(box("Saka").value).toBe("7");
     expect(box("Palmer").value).toBe("");
+  });
+
+  it("a number changed elsewhere shows in his box at once", async () => {
+    const app = openSquad({ squad: squadOf([SAKA, PALMER]) });
+    await screen.findByRole("table");
+    act(() => app.myTeam.serverHoldsSquad(squadOf([{ ...SAKA, number: 9 }, { ...PALMER, number: 4 }])));
+    expect(box("Saka").value).toBe("9");
+    expect(box("Palmer").value).toBe("4");
   });
 
   it("a number typed is sent when the box is left, or Enter is pressed", async () => {
