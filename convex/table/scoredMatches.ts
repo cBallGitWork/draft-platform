@@ -27,7 +27,9 @@ import {
 // begun whose lineup names him is read from teamInGameweek, as the table scores it: auto-subs and
 // the league's overrides in, live and provisional until final. One who counted shows his slot's
 // points, at the slot and role he started in or took over; one who didn't, a bench player who
-// stayed there, what he would score at his best position, labelled as not counted. Any other match
+// stayed there, what he would score at his best position, labelled as not counted. In a league
+// whose double gameweeks count the best match, his other match there is his slot's points, labelled
+// as not counted too, as the table left it out (scoring.ts's countedMatches). Any other match
 // is priced at his best position. A match from before he joined his team stays at his best
 // position until what his old team got from him is built (SPEC.md, Later).
 
@@ -156,8 +158,9 @@ async function teamGameweekInputs(
   return { ...ruled, matches, lineups };
 }
 
-/** His match in the team's gameweek: whether it counted, its points at the cell he was scored in
- *  and whether they may still move; null when the lineup doesn't name him. */
+/** His match in the team's gameweek: whether his slot counted, the match's points at the cell he
+ *  was scored in, labelled not counted where his slot's points leave it out, and whether they may
+ *  still move; null when the lineup doesn't name him. */
 function asScored({ team, matchesOf }: TeamInGameweek, playerCode: number, fixtureCode: number) {
   const slots = [...team.starters, ...team.bench];
   const slot = slots.find((each) => each.playerCode === playerCode);
@@ -165,7 +168,9 @@ function asScored({ team, matchesOf }: TeamInGameweek, playerCode: number, fixtu
   const index = matchesOf.get(playerCode)!.findIndex((match) => match.fixture.code === fixtureCode);
   // teamInGameweek takes every match he has a record in, so one missing is data gone wrong.
   if (index === -1) throw new Error(`Player ${playerCode}'s match ${fixtureCode} isn't among his team's matches that gameweek`);
-  const points: CardPoints = { scoredAs: "slot", position: positionOfSlot(slot.cell), ...slot.matches[index] };
+  // A match the double-gameweek rule left out of his slot's points is his slot's, labelled not counted.
+  const scoredAs = slot.matchesCounted[index] ? "slot" : "notCounted";
+  const points: CardPoints = { scoredAs, position: positionOfSlot(slot.cell), ...slot.matches[index] };
   // A man's points are final once his matches lock (teamPoints.ts), but who counts only once every man's are.
   return { counts: slot.counts, points, provisional: slots.some((each) => each.provisional) };
 }
