@@ -7,6 +7,7 @@ import { MINUTE_MS } from "../../../convex/shared/time";
 import { TRANSACTIONS_READ_OF_EACH_KIND } from "../../../convex/squads/teamTransactions";
 import { expectRefused } from "../../support/convex/leagueRules.harness";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // My team's Transactions tab (#366): the manager's team's assignments, moves and releases, newest
@@ -27,9 +28,9 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t);
   [annTeam, bobTeam] = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
-    await ctx.db.insert("clubs", { code: 3, name: "Arsenal", shortName: "ARS" });
-    await ctx.db.insert("players", { code: SAKA, name: "Saka", fullName: "Bukayo Saka", clubCode: 3 });
-    await ctx.db.insert("players", { code: RICE, name: "Rice", fullName: "Declan Rice", clubCode: 3 });
+    await insertClubs(ctx, [ARSENAL]);
+    await ctx.db.insert("players", { code: SAKA, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code });
+    await ctx.db.insert("players", { code: RICE, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code });
   });
 });
 
