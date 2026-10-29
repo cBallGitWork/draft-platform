@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { managerOf, refusals } from "../../../convex/shared/leagueAccess";
-import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, MANAGERS, OUTSIDER, actingAs, addManager, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -43,7 +43,7 @@ describe("managerOf", () => {
   });
 
   test.each([
-    ["someone with no part in the league", "outsider@example.com"],
+    ["someone with no part in the league", OUTSIDER],
     ["its commissioner, running no team", COMMISSIONER],
     ["the admin", ADMIN],
   ])("%s is told they run no team there", async (_who, email) => {

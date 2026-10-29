@@ -6,7 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { changeRules, holdGameweeks, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadMoves } from "../../support/convex/lineupSquad.harness";
@@ -16,7 +16,6 @@ import { squadMoves } from "../../support/convex/lineupSquad.harness";
 // form, the latest squad moves from the league's events, and the commissioner's latest letter.
 
 const [ANN, BOB, CAT] = MANAGERS;
-const STRANGER = "stranger@example.com";
 const SAKA = 1001;
 const RICE = 1002;
 
@@ -39,7 +38,7 @@ describe("who may read it", () => {
   });
 
   test("anyone else is refused", async () => {
-    await expectRefused(read(STRANGER), refusals.notInLeague);
+    await expectRefused(read(OUTSIDER), refusals.notInLeague);
   });
 
   test("a league made before rules were held has none to show", async () => {

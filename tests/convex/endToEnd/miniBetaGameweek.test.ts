@@ -6,7 +6,8 @@ import { MATCHUP_POINTS } from "../../../convex/table/standings";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { EVERTON_POINTS, HULL_POINTS } from "../../support/convex/gameweekScores.harness";
-import { elapse, FULL_TIME_READ, GAMEWEEK, heldMatch, HULL_EVERTON } from "../../support/convex/matchStats.harness";
+import { FULL_TIME_READ, GAMEWEEK, heldMatch, HULL_EVERTON } from "../../support/convex/matchStats.harness";
+import { elapse } from "../../support/convex/test.harness";
 import { REPLAY_MINUTES, stagedGw6, stageTime } from "../../support/convex/liveStats.harness";
 import {
   ANN,

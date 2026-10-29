@@ -5,7 +5,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { changeRules, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, moveFplDeadline, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
@@ -15,7 +15,6 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 // its scores are gameweekScores.test.ts's.
 
 const [ANN, BOB, CAT, DAN] = MANAGERS;
-const STRANGER = "stranger@example.com";
 /** The gameweek a change made in the tests that hold a season takes effect from. */
 const CHANGE_FROM = 10;
 
@@ -38,7 +37,7 @@ describe("who may read it", () => {
   });
 
   test("anyone else is refused", async () => {
-    await expectRefused(read(STRANGER), refusals.notInLeague);
+    await expectRefused(read(OUTSIDER), refusals.notInLeague);
   });
 });
 

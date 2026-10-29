@@ -4,12 +4,12 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { askToJoin, invite, makeLink, openLastLinkTo } from "../../support/convex/joining.harness";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { tablesKeyedToLeague } from "../../../convex/leagues/leagueDeletion";
-import { ANN, BOB, CAT, DAN, aRowInEveryTable, accountOf, deletes, laterBy, leagueWithPeople, moreEventsThanOneRun, rowsKeyedTo } from "../../support/convex/leagueDeletion.harness";
+import { ANN, BOB, CAT, DAN, aRowInEveryTable, accountOf, deletes, leagueWithPeople, moreEventsThanOneRun, rowsKeyedTo } from "../../support/convex/leagueDeletion.harness";
 import { changesTo, mutationsGivenALeague, rowsToChange } from "../../support/convex/leagueMutations.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, eventsIn, leagueRow, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import schema from "../../../convex/schema";
 import { fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
-import { expectRefused } from "../../support/convex/test.harness";
+import { elapse, expectRefused } from "../../support/convex/test.harness";
 
 // Deleting a league (#75, spec/13, Deleting): who may, the day it can be undone, and gone after.
 
@@ -125,7 +125,7 @@ describe("while it can be undone", () => {
     const before = await everythingOf(leagueId);
     const deletesAt = await deletes(t, COMMISSIONER, leagueId);
     const { scheduledId } = (await leagueRow(t, leagueId))!.deletion!;
-    await laterBy(t, deletesAt - 1 - Date.now());
+    await elapse(t, deletesAt - 1 - Date.now());
     await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
     await t.finishAllScheduledFunctions(vi.runAllTimers);
 
@@ -171,7 +171,7 @@ describe("after the day", () => {
     const other = await leagueWithPeople(t, "Another league");
     const othersBefore = await everythingOf(other);
     const deletesAt = await deletes(t, COMMISSIONER, leagueId);
-    await laterBy(t, deletesAt - 1 - Date.now());
+    await elapse(t, deletesAt - 1 - Date.now());
     expect(await leagueRow(t, leagueId)).not.toBeNull();
 
     await t.finishAllScheduledFunctions(vi.runAllTimers);

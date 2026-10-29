@@ -5,7 +5,7 @@ import { shortlistedReleasedLetter } from "../../../convex/mail/letterWords";
 import { SHORTLIST_MOST, shortlistRefusals } from "../../../convex/scouting/shortlist";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, insertClubs } from "../../support/convex/footballRows.harness";
+import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -16,7 +16,6 @@ import { expectRefused } from "../../support/convex/test.harness";
 const [ANN, BOB, CAT] = MANAGERS;
 const SAKA = { code: 1001, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code };
 const PALMER = { code: 1002, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code };
-const GONE = { code: 2001, name: "Gone", fullName: "Long Gone", clubCode: ARSENAL.code };
 const NO_SUCH_PLAYER = 9999;
 
 let t: TestConvex;
@@ -30,7 +29,7 @@ beforeEach(async () => {
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     for (const player of [SAKA, PALMER]) await ctx.db.insert("players", player);
-    await ctx.db.insert("players", { ...GONE, droppedAt: Date.now() });
+    await insertDroppedPlayer(ctx, GONE, Date.now());
   });
 });
 

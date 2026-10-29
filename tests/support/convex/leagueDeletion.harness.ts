@@ -1,10 +1,10 @@
 // Deleting a league's tests' shared setup (#75).
 
-import { vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id, TableNames } from "../../../convex/_generated/dataModel";
 import { UNDO_MS, tablesKeyedToLeague } from "../../../convex/leagues/leagueDeletion";
 import { askToJoin, invite, makeLink } from "./joining.harness";
+import { elapse } from "./test.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamsIn, type TestConvex } from "./leagues.harness";
 
 export const [ANN, BOB, CAT, DAN] = MANAGERS;
@@ -22,7 +22,7 @@ export async function leagueWithPeople(t: TestConvex, name?: string): Promise<Id
 export async function deletes(t: TestConvex, email: string, leagueId: Id<"leagues">): Promise<number> {
   const deletesAt = Date.now() + UNDO_MS;
   await (await actingAs(t, email)).mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId });
-  await laterBy(t, 1);
+  await elapse(t, 1);
   return deletesAt;
 }
 
@@ -37,12 +37,6 @@ export const moreEventsThanOneRun = (t: TestConvex, leagueId: Id<"leagues">) =>
       await ctx.db.insert("leagueEvents", { leagueId, at, by: ADMIN, event: { kind: "maxTeamsChanged", from: 4, to: 5 } });
     }
   });
-
-/** The clock moves on by `ms`, and whatever was scheduled by then runs. */
-export async function laterBy(t: TestConvex, ms: number): Promise<void> {
-  vi.advanceTimersByTime(ms);
-  await t.finishInProgressScheduledFunctions();
-}
 
 /** What signIn/account:signedInAs tells the screens for `email`. */
 export const accountOf = async (t: TestConvex, email: string) =>
