@@ -11,12 +11,15 @@ import { pickFirstLineupAgain } from "./lineups";
 // team its first lineup (lineups.ts `pickFirstLineupAgain`), from the next gameweek not yet begun:
 // a gameweek begun stays as it was scored (spec/09: games played in the past are done). A team
 // with any lineup row, or with nobody in its squad, is left alone, so running it again does
-// nothing. Run it once on each deployment, before the next deadline:
+// nothing. Run it once on each deployment, before the next deadline: run after one, such a team
+// holds nobody in the gameweek just begun and scores 0 there, and gets its lineup from the next.
 //   npx convex run lineup/firstLineupBackfill:giveTeamsTheirFirstLineup
 //   npx convex run --prod lineup/firstLineupBackfill:giveTeamsTheirFirstLineup
 
-/** The most leagues one run reads, all in one transaction: the closed beta has a handful. Past it
- *  this throws, rather than leave some teams without a lineup. */
+/** The most leagues one run reads, all in one transaction: Claude's sizing for the closed beta,
+ *  which has a handful, each team reading its lineup rows, squad and positions. Well short of it
+ *  Convex's own read limit may stop the run, which then writes nothing and says so. Past it this
+ *  throws, rather than leave some teams without a lineup. */
 const LEAGUES_BACKFILLED_MOST = 200;
 
 /** Whether the team has any lineup row, from any gameweek. */
