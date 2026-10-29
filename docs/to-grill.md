@@ -69,6 +69,23 @@ a player fills only his own areas, and only a keeper plays in goal, both ways (`
 - It reopens three answers: scoring by the slot (`spec/14`), no out-of-position penalty
   (`spec/05`), the areas each position can play (`spec/06`). The site owns it (`spec/14`).
 
+**Player news, as Fantrax has**: the player card, Mail (Craig, 29 Oct 2026: "fantrax has a news
+snipped for each player that updats with player performance and news"; "they also do real news
+too"; "it will be needed at some point"). Mail files "Real-life news, once there is a source for
+it" (`spec/16`); today the card shows only FPL's injury line and chance of playing (`spec/12`).
+Fantrax licenses RotoWire, whose writers keep a note on every player. It must scale to five or six
+leagues: a note is the player's, written once and read by every league.
+- The source: a licensed feed (RotoWire, Sportradar) for a yearly fee, or a scheduled job that
+  reads public news feeds and has an AI write each note in our own words, linking its article.
+  Claude suggested the second, with the feed as a fallback behind the same news slot.
+- The match part: a note after each match from the stats we already hold ("scored and assisted
+  in the 3-1 win"), and whether it speaks in the league's own scoring.
+- Which sources, how often they are read, and which sites are off the list.
+- Guarding against a wrong note: every note links its article and says only what it says; one
+  that can't name the player for sure is dropped. Who can hide a wrong one.
+- Where it shows: the card, Mail (yours and your next opponent's, as injury doubts are), both;
+  how many notes the card keeps; what to do when two sources disagree.
+
 **A project manager tool**: for how we build, not the game (Craig, 27 Oct 2026: "a tool where
 can define what you're building add project scaffolding to mvp and audit what agents actually did
 to get you there"). It lives in this repo; the rest is open.
