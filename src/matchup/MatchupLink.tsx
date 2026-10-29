@@ -1,27 +1,40 @@
 import { Link } from "@tanstack/react-router";
-import type { ReactNode } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { matchupLink } from "./paths";
-import { matchupLinkLabel } from "./words";
+import { liveWords } from "../shared/words";
+import { matchupLinkLabel, scoreWords, versusWords } from "./words";
 
 /** A fixture's middle cell, its score or "v", as a link to the team's matchup in the gameweek: from
- *  the table's fixtures and league home's head-to-heads. A full tap target on the phone. */
+ *  the table's fixtures, league home's head-to-heads and My team's fixtures. A full tap target on the
+ *  phone. Points of null draw "v". Passing `live` (My team's fixtures) wraps the score with room for
+ *  the Live tag, shown while `live` is true; without it the score is a single span. */
 export function MatchupLink({
   teamId,
   team,
   opponent,
   gameweek,
-  children,
+  points,
+  live,
 }: {
   teamId: Id<"teams">;
   team: string;
   opponent: string | null;
   gameweek: number;
-  children: ReactNode;
+  points: { team: number; opponent: number } | null;
+  live?: boolean;
 }) {
   return (
     <Link {...matchupLink(teamId, gameweek)} aria-label={matchupLinkLabel(team, opponent, gameweek)} className="flex min-h-tap items-center justify-center lg:min-h-0">
-      {children}
+      {points === null ? (
+        <span>{versusWords}</span>
+      ) : live === undefined ? (
+        <span className="whitespace-nowrap font-bold text-figure">{scoreWords(points.team, points.opponent)}</span>
+      ) : (
+        <span className="whitespace-nowrap">
+          <span className="font-bold text-figure">{scoreWords(points.team, points.opponent)}</span>
+          {live && <span className="ml-1 text-derived">{liveWords}</span>}
+        </span>
+      )}
     </Link>
   );
 }
