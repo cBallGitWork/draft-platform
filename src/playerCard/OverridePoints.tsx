@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "../../convex/table/overrideLimits";
-import { PANEL_BODY, Problem, Status } from "../frame/Panel";
+import { PANEL_BODY, Problem, Status } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
 import type { PlayerCard, PlayerCardSeam } from "./seam";

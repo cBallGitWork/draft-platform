@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Notice, PanelNote, Problem, Status } from "../frame/Panel";
+import { Notice, PanelNote, Problem, Status } from "../ui/Panel";
 import type { RulesDraft } from "./rulesDraft";
 import { appliesFromWords, discardWords, gameweekWords, loadLatestWords, overtakenWords, saveWords, unchangedWords } from "./words";
 

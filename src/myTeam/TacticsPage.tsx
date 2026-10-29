@@ -3,7 +3,7 @@ import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import type { Cell } from "../../convex/lineup/pitch";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { ESCAPE_KEY, KEY_DOWN } from "../shared/browserEvents";
-import { Loading, Notice, PageSection, Panel, PanelNote, Problem, Status } from "../frame/Panel";
+import { Loading, Notice, PageSection, Panel, PanelNote, Problem, Status } from "../ui/Panel";
 import { useMinute } from "../shared/useMinute";
 import { markedBy } from "./focusMarks";
 import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, shownLineup, withRole, type DraftLineup } from "./lineupDraft";

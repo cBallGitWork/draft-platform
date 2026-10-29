@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leagues/leagueLimits";
-import { PageSection, PANEL_BODY, Problem } from "../frame/Panel";
+import { PageSection, PANEL_BODY, Problem } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import type { LeaguesSeam } from "./seam";
 import { BackToLeagues } from "./LeagueLinks";

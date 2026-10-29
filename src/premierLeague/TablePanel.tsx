@@ -1,5 +1,5 @@
-import { ColumnHeads } from "../frame/ColumnHeads";
-import { Loading, Panel, PanelNote } from "../frame/Panel";
+import { ColumnHeads } from "../ui/ColumnHeads";
+import { Loading, Panel, PanelNote } from "../ui/Panel";
 import { ClubName } from "./ClubName";
 import type { PlStandings, PremierLeagueSeam } from "./seam";
 import { goalDifferenceWords, loadingTableWords, noClubsWords, provisionalWords, TABLE_TITLE, tableColumns } from "./words";

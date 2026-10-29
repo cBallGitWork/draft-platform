@@ -1,10 +1,10 @@
-// The panel pieces every screen shares (src/frame/Panel.tsx): a page's section and a panel are each
+// The panel pieces every screen shares (src/ui/Panel.tsx): a page's section and a panel are each
 // named by their title plate, a notice is a status rather than an alert, and a muted panel line pads
 // the side it's asked to.
 
 import { render, screen } from "@testing-library/react";
 import { expect, it } from "vitest";
-import { Notice, PageSection, Panel, PanelNote, Problem, Status } from "../../../src/frame/Panel";
+import { Notice, PageSection, Panel, PanelNote, Problem, Status } from "../../../src/ui/Panel";
 
 it("names a page's section by its title, with the aside on the plate and the caller's classes kept", () => {
   render(

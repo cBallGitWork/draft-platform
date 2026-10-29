@@ -6,7 +6,7 @@ import { browserZone } from "../convex/shared/moments";
 import { useLiveAdmin } from "./admin/liveAdmin";
 import { useLiveFeedback } from "./feedback/liveFeedback";
 import { useLivePatches } from "./patches/livePatches";
-import { Loading } from "./frame/Panel";
+import { Loading } from "./ui/Panel";
 import { ReadFailed } from "./frame/ReadFailed";
 import { SignOut } from "./frame/SignOut";
 import type { AuthActions, Session } from "./auth";

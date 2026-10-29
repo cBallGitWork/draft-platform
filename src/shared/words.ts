@@ -32,7 +32,7 @@ export const NO_CONVEX_URL = "VITE_CONVEX_URL isn't set, so the app can't reach 
 
 /** A gameweek by name, as its tick box and the fixtures' stepper say it. */
 export const gameweekWords = (gameweek: number) => `Gameweek ${gameweek}`;
-/** The fixtures' stepper (src/frame/GameweekStepper.tsx): each arrow's label, and CM's arrows,
+/** The fixtures' stepper (src/ui/GameweekStepper.tsx): each arrow's label, and CM's arrows,
  *  decoration, as each button carries its label. */
 export const previousGameweekLabel = "Previous gameweek";
 export const nextGameweekLabel = "Next gameweek";

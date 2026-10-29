@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { ADMIN_PATH } from "../admin/paths";
 import { ADMIN_TITLE } from "../admin/words";
-import { Notice, PageSection } from "../frame/Panel";
+import { Notice, PageSection } from "../ui/Panel";
 import { gameweeksPath } from "../gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../gameweeks/words";
 import { invitesPath } from "../joining/paths";

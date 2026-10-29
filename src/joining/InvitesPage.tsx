@@ -1,4 +1,4 @@
-import { Loading, Notice, PageSection } from "../frame/Panel";
+import { Loading, Notice, PageSection } from "../ui/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { EmailInvites } from "./EmailInvites";
 import { InviteLinkPanel } from "./InviteLinkPanel";

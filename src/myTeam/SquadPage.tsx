@@ -3,10 +3,10 @@ import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { ENTER_KEY } from "../shared/browserEvents";
-import { ColumnHeads } from "../frame/ColumnHeads";
-import { Loading, PageSection, PanelNote, Problem } from "../frame/Panel";
+import { ColumnHeads } from "../ui/ColumnHeads";
+import { Loading, PageSection, PanelNote, Problem } from "../ui/Panel";
 import { playerCardPath } from "../playerCard/paths";
-import { PositionCodes } from "../PositionCodes";
+import { PositionCodes } from "../ui/PositionCodes";
 import { useChange, type Changing } from "../shared/useChange";
 import type { MyTeamSeam, SquadNumberChanges, TeamSquad } from "./seam";
 import {

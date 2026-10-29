@@ -1,5 +1,5 @@
 // League settings shares the rules screens' controls in the Wells look (plate.md, Controls;
-// src/rules/): the odd team out is a row of keys the arrow keys move, and Save says when there is
+// src/ui/, src/rules/): the odd team out is a row of keys the arrow keys move, and Save says when there is
 // nothing to save.
 
 import { screen } from "@testing-library/react";

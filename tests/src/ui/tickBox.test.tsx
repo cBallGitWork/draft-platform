@@ -1,10 +1,10 @@
-// The plate's tick box (plate.md, Controls; src/rules/TickBox): one that can't be changed doesn't
+// The plate's tick box (plate.md, Controls; src/ui/TickBox): one that can't be changed doesn't
 // answer a click, and one whose label is hidden is still named by it for screen readers.
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { TickBox } from "../../../src/rules/TickBox";
+import { TickBox } from "../../../src/ui/TickBox";
 
 const LABEL = "Gameweek 7";
 

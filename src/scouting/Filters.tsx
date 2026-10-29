@@ -1,7 +1,7 @@
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
 import { STAT_CATALOGUE, type CatalogueStat } from "../../convex/scoring/statCatalogue";
-import { PANEL_BODY } from "../frame/Panel";
-import { Choice } from "../rules/Choice";
+import { PANEL_BODY } from "../ui/Panel";
+import { Choice } from "../ui/Choice";
 import { POSITION_NAMES } from "../shared/words";
 import type { Availability, PlayersFilters, PlayersList } from "./seam";
 import {

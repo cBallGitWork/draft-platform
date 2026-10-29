@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { COMPARED_PLAYERS } from "../../convex/scouting/comparedPlayers";
 import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogue";
-import { Loading, Panel, PanelNote } from "../frame/Panel";
-import { PositionCodes } from "../PositionCodes";
+import { Loading, Panel, PanelNote } from "../ui/Panel";
+import { PositionCodes } from "../ui/PositionCodes";
 import { statFigure } from "./figures";
 import type { ComparedPlayer, Comparison } from "./seam";
 import {
