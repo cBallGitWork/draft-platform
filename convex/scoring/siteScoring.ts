@@ -84,14 +84,14 @@ export function siteVersions(ctx: QueryCtx): Promise<Doc<"siteScoring">[]> {
   );
 }
 
-/** The site's scoring set in a gameweek, which every league scores that gameweek's matches by: the
- *  newest version to take effect at or before its first kickoff, the first set before any. A
- *  gameweek with no kickoff time yet plays the newest. */
 /** A version's set, or the first set when there is no version yet. */
 export function setOf(version: Doc<"siteScoring"> | undefined): StoredScoringSet {
   return version?.scoring ?? FIRST_SCORING;
 }
 
+/** The site's scoring set in a gameweek, which every league scores that gameweek's matches by: the
+ *  newest version to take effect at or before its first kickoff, the first set before any. A
+ *  gameweek with no kickoff time yet plays the newest. */
 export async function siteScoringInGameweek(ctx: QueryCtx, gameweek: number): Promise<StoredScoringSet> {
   return (await siteScoringByGameweek(ctx))(gameweek);
 }
