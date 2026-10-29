@@ -11,9 +11,9 @@ import { clubByCode, playerByCode } from "../shared/players";
 import { typedText } from "../shared/typedText";
 import { statusOf } from "../stats/matchStats";
 import { rescoreGameweek } from "./finalScores";
-import { begunGameweeks, totalOf } from "./gameweekScores";
+import { begunGameweeks, workedOutGameweek } from "./gameweekScores";
 import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "./overrideLimits";
-import { gameweekInputs, heldFixtures, leagueReads, playsIn, pointsInMatch, teamInGameweek, type LeagueReads } from "./teamGameweek";
+import { leagueReads, playsIn, pointsInMatch, type LeagueReads } from "./teamGameweek";
 
 // A commissioner overrides one player's points for one match, with a reason (spec/14, Changes and
 // corrections; #32). The override is a row teamGameweek.ts reads with the match's records, so the
@@ -60,8 +60,7 @@ export const override = mutation({
     if (reads.setIn(gameweek).wholePointsOnly && !Number.isInteger(points)) refuse(overrideRefusals.notWhole);
 
     const teams = await teamsOf(ctx, leagueId);
-    const fixtures = await heldFixtures(ctx, gameweek);
-    const asWorkedOut = () => workedOut(ctx, reads, gameweek, fixtures, teams, playerCode, fixtureCode);
+    const asWorkedOut = () => workedOut(ctx, reads, gameweek, teams, playerCode, fixtureCode);
     const before = await asWorkedOut();
     const held = await ctx.db
       .query("pointsOverrides")
@@ -102,25 +101,23 @@ async function wasInMatch(ctx: MutationCtx, fixture: Doc<"fixtures">, player: Do
   return record !== null || playsIn(fixture, player.clubCode);
 }
 
-/** The gameweek as teamGameweek.ts works it out now: each team's total, and the player's points in
- *  the match, null while no lineup fields him. */
+/** The gameweek as the scorer works it out now, any saved total set aside: each team's total, and
+ *  the player's points in the match, null while no lineup fields him. */
 async function workedOut(
   ctx: MutationCtx,
   reads: LeagueReads,
   gameweek: number,
-  fixtures: readonly Doc<"fixtures">[],
   teams: readonly Doc<"teams">[],
   playerCode: number,
   fixtureCode: number,
 ): Promise<{ totals: Map<TeamId, number>; playerPoints: number | null }> {
   const teamIds = teams.map((team) => team._id);
-  const inputs = await gameweekInputs(ctx, reads, gameweek, fixtures, teamIds);
+  const { slotsOf, pointsOf } = await workedOutGameweek(ctx, reads, gameweek, teamIds);
   const totals = new Map<TeamId, number>();
   let playerPoints: number | null = null;
   for (const teamId of teamIds) {
-    const scored = await teamInGameweek(reads, inputs, teamId);
-    // A team that never saved a lineup scores 0, before and after alike.
-    totals.set(teamId, totalOf(scored).points);
+    const scored = await slotsOf(teamId);
+    totals.set(teamId, (await pointsOf(teamId)).points);
     const inMatch = scored && pointsInMatch(scored, playerCode, fixtureCode);
     if (inMatch) playerPoints = inMatch.points;
   }

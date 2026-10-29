@@ -2,7 +2,14 @@ import { expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { inTenths } from "../../../convex/scoring/scoringSet";
-import { gameweekScorer, type ScoredGameweek } from "../../../convex/table/gameweekScores";
+import {
+  gameweekScorer,
+  tableGameweek,
+  workedOutGameweek,
+  type ScoredGameweek,
+  type TeamGameweek,
+} from "../../../convex/table/gameweekScores";
+import { leagueReads } from "../../../convex/table/teamGameweek";
 import { averageScore } from "../../../convex/table/teamGames";
 import { addManagers } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
@@ -22,7 +29,8 @@ import {
 
 // The gameweek scorer (#625; spec/07), called on a seeded league with no screen: each team's
 // points, saved once the gameweek is final and worked out until then; a team that has never saved
-// a lineup on 0; the teams worked out final, for finalScores to store; and the league's average.
+// a lineup on 0; the teams worked out final, for finalScores to store; the league's average; and
+// one gameweek team by team, slot by slot, as the matchup and an override read it (#626).
 
 /** Gameweek 6 as the league's scorer scores it for `teamIds`. A run sends back only Convex values,
  *  so the scores cross as entries. */
@@ -93,4 +101,55 @@ test("the league's average counts a team with no lineup as its 0, provisional wh
   await lockMatch(league);
   const final = await scored(league, teams);
   expect(averageScore(teams, final.scores, GAMEWEEK)).toEqual({ points: average, provisional: false });
+});
+
+/** What one team's gameweek, team by team, gives: its points, and its slots' total, null with no
+ *  lineup. `asTable` reads it as the matchup does, else worked out now as an override does. */
+async function teamByTeam(
+  { t, leagueId }: ScoresLeague,
+  teamId: Id<"teams">,
+  asTable: boolean,
+): Promise<{ points: TeamGameweek; slotsTotal: number | null }> {
+  return t.run(async (ctx) => {
+    const league = (await ctx.db.get("leagues", leagueId))!;
+    const reads = await leagueReads(ctx, league, (await seasonRules(ctx, leagueId))!);
+    const teams = await (asTable ? tableGameweek : workedOutGameweek)(ctx, reads, GAMEWEEK, [teamId]);
+    const slots = await teams.slotsOf(teamId);
+    return { points: await teams.pointsOf(teamId), slotsTotal: slots === null ? null : slots.team.total };
+  });
+}
+
+test("as the table has it, a final gameweek's saved total stands, while its slots are still worked out", async () => {
+  const league = await scoresLeague();
+  await fullTimeRecords(league);
+  await lockMatch(league);
+  await storeLeague(league);
+  await writeOverAnns(league);
+
+  const { points, slotsTotal } = await teamByTeam(league, league.annsTeam, true);
+  expect(points).toEqual({ points: WRITTEN_OVER, provisional: false, noLineup: false });
+  expect(slotsTotal).toBe(HULL_POINTS);
+});
+
+test("worked out now, a saved total is set aside, as an override's before and after need", async () => {
+  const league = await scoresLeague();
+  await fullTimeRecords(league);
+  await lockMatch(league);
+  await storeLeague(league);
+  await writeOverAnns(league);
+
+  const { points, slotsTotal } = await teamByTeam(league, league.annsTeam, false);
+  expect(points).toEqual({ points: HULL_POINTS, provisional: false, noLineup: false });
+  expect(slotsTotal).toBe(HULL_POINTS);
+});
+
+test("team by team, a team that has never saved a lineup has no slots and scores 0", async () => {
+  const league = await scoresLeague({ bobSaves: false });
+  await fullTimeRecords(league);
+
+  for (const asTable of [true, false]) {
+    const { points, slotsTotal } = await teamByTeam(league, league.bobsTeam, asTable);
+    expect(points).toEqual({ points: 0, provisional: false, noLineup: true });
+    expect(slotsTotal).toBeNull();
+  }
 });
