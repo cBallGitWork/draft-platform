@@ -1,6 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
+import type { CardPoints } from "../playerCard/cardPoints";
 import { clubsByCode, type Clubs } from "../playerCard/playerCard";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
@@ -13,10 +14,15 @@ import { begunGameweeks } from "../table/gameweekScores";
 import { scoredMatches } from "../table/scoredMatches";
 import { squadOf } from "./squads";
 
+/** How the card labels a match his team got the points of. */
+const COUNTED: CardPoints["scoredAs"] = "slot";
+
 // My team's Squad tab (#364; spec/12, My team's tabs: "every player in the squad in one table,
 // with his position, club, next fixture, season points and last gameweek's points"). His points
-// add up what his card shows (spec/12): his matches as this team scored them, from the one place
-// both read them (scoredMatches.ts).
+// are what his team got from him (spec/12): the matches his card shows at his slot, from the one
+// place both read them (scoredMatches.ts). A match labelled not counted, or priced at his best
+// position because no lineup of this team scored it, adds nothing, so the Squad tab never comes
+// out above the table (Craig, 29 Oct 2026, #595).
 
 const nextFixture = v.object({
   gameweek: v.union(v.number(), v.null()),
@@ -38,10 +44,11 @@ const squadRow = v.object({
   number: v.union(v.number(), v.null()),
   /** His club's next match after `now`, or null while it has none with a kickoff time. */
   nextFixture: v.union(nextFixture, v.null()),
-  /** His matches this season added up, or null ("—") while none has been priced. */
+  /** What his team got from him this season, or null ("—") while none of his matches has been
+   *  priced. */
   seasonPoints: v.union(v.number(), v.null()),
-  /** His matches in the league's latest begun gameweek added up, or null ("—") while none there
-   *  has been priced. */
+  /** What his team got from him in the league's latest begun gameweek, or null ("—") while none
+   *  of his matches there has been priced. */
   lastGameweekPoints: v.union(v.number(), v.null()),
 });
 export type SquadRow = Infer<typeof squadRow>;
@@ -55,15 +62,17 @@ export const teamSquad = v.object({
 });
 export type TeamSquad = Infer<typeof teamSquad>;
 
-/** One priced match: its gameweek and points, null while his whole record hasn't arrived. */
-export type PricedMatch = { gameweek: number; points: number | null };
+/** One priced match: its gameweek, its points (null while his whole record hasn't arrived), and
+ *  whether his team got them: scored at his slot, not labelled not counted or at his best position. */
+export type PricedMatch = { gameweek: number; points: number | null; counted: boolean };
 
-/** Season and last gameweek's points from his priced matches: each the sum of those priced, kept
- *  to tenths as the table keeps them, or null while none is. */
+/** Season and last gameweek's points from his priced matches: each the sum of those his team got,
+ *  kept to tenths as the table keeps them, or null while none is priced. */
 export function squadPoints(matches: readonly PricedMatch[], lastGameweek: number | null) {
   const sum = (some: readonly PricedMatch[]) => {
-    const priced = some.flatMap(({ points }) => (points === null ? [] : [points]));
-    return priced.length === 0 ? null : inTenths(priced.reduce((total, points) => total + points, 0));
+    const priced = some.filter((match): match is PricedMatch & { points: number } => match.points !== null);
+    if (priced.length === 0) return null;
+    return inTenths(priced.reduce((total, { points, counted }) => (counted ? total + points : total), 0));
   };
   return { seasonPoints: sum(matches), lastGameweekPoints: sum(matches.filter(({ gameweek }) => gameweek === lastGameweek)) };
 }
@@ -108,7 +117,7 @@ export const ofMyTeam = query({
 });
 
 /** Prices a player's season's matches as his card does (scoredMatches.ts): each match's total,
- *  the league's override where it holds one.
+ *  the league's override where it holds one, and whether it was scored at his slot.
  *
  *  What a full squad costs: each player's records and their matches (about 25 x 2 x the gameweeks
  *  played) and his overrides in the league, and each gameweek begun, read once for the team: its
@@ -120,7 +129,7 @@ export const ofMyTeam = query({
 async function pricer(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"teams">) {
   const scored = await scoredMatches(ctx, league, teamId);
   return async (code: number, positions: readonly Position[]): Promise<PricedMatch[]> =>
-    (await scored({ code, positions })).map(({ gameweek, points }) => ({ gameweek, points: points.total }));
+    (await scored({ code, positions })).map(({ gameweek, points }) => ({ gameweek, points: points.total, counted: points.scoredAs === COUNTED }));
 }
 
 /** Each of these clubs' next match after `now`, by club code: the matches ahead are read soonest

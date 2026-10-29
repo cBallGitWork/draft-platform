@@ -159,14 +159,28 @@ export interface GameweekPoints {
 /** A player's gameweek from his matches in it, under the league's double-gameweek rule. With one
  *  match the rule changes nothing; with none he scores 0. */
 export function scoreGameweek(matches: readonly MatchPoints[], rule: DoubleGameweekRule): GameweekPoints {
-  if (!DOUBLE_GAMEWEEK_RULES.includes(rule)) {
-    throw new Error(`a double-gameweek rule of ${JSON.stringify(rule)} is neither both matches nor best match`);
-  }
+  const counted = countedMatches(matches, rule);
   const arrived = matches.flatMap((match) => (match.total === null ? [] : [match.total]));
   const provisional = arrived.length < matches.length;
   if (matches.length === 0) return { points: 0, provisional };
   if (arrived.length === 0) return { points: null, provisional };
+  const counting = matches.flatMap((match, index) => (counted[index] && match.total !== null ? [match.total] : []));
   // Each match's total is in tenths; their sum is put back in tenths too (spec/14).
-  const points = rule === "bestMatch" ? Math.max(...arrived) : inTenths(sum(arrived));
-  return { points, provisional };
+  return { points: inTenths(sum(counting)), provisional };
+}
+
+/** Which of a player's matches in the gameweek his points include, in the order his matches came:
+ *  under both matches, all; under best match, the highest-scoring, the first of them on a tie. A
+ *  match whose record hasn't arrived adds nothing yet, but is counted, as it may yet be his best.
+ *  His card reads its labels from this (scoredMatches.ts), so it never disagrees with his points. */
+export function countedMatches(matches: readonly MatchPoints[], rule: DoubleGameweekRule): boolean[] {
+  if (!DOUBLE_GAMEWEEK_RULES.includes(rule)) {
+    throw new Error(`a double-gameweek rule of ${JSON.stringify(rule)} is neither both matches nor best match`);
+  }
+  if (rule === "bothMatches") return matches.map(() => true);
+  const best = matches.reduce<number | null>((found, match, index) => {
+    if (match.total === null) return found;
+    return found === null || match.total > matches[found].total! ? index : found;
+  }, null);
+  return matches.map((match, index) => match.total === null || index === best);
 }

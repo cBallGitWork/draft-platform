@@ -12,7 +12,8 @@ import { scoreMatch, type MatchPoints, type MatchStats } from "../scoring/scorin
 import type { ScoringSet } from "../scoring/scoringSet";
 
 /** How a match was priced: from his slot in a lineup, at his best position, or there but not
- *  counted, as a bench player who didn't come on (spec/12, The player card). */
+ *  counted: a bench player who didn't come on, at his best position, or his other match in a double
+ *  gameweek that counts only his best, at his slot (spec/12, The player card). */
 export const scoredAs = v.union(v.literal("slot"), v.literal("bestPosition"), v.literal("notCounted"));
 export type ScoredAs = Infer<typeof scoredAs>;
 

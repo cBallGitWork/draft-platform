@@ -172,6 +172,17 @@ describe("a double gameweek, under the league's rule", () => {
     expect(scored.total).toBe(2 + 10 + 9);
   });
 
+  test.each([
+    ["both matches", "bothMatches", [finalMatch(GELHARDT), finalMatch(DEWSBURY_HALL)], [true, true]],
+    ["best match, the second higher", "bestMatch", [finalMatch(GELHARDT), finalMatch(DEWSBURY_HALL)], [false, true]],
+    ["best match, the first higher", "bestMatch", [finalMatch(DEWSBURY_HALL), finalMatch(GELHARDT)], [true, false]],
+    ["best match, a tie: the first", "bestMatch", [finalMatch(GELHARDT), finalMatch(GELHARDT)], [true, false]],
+    ["best match, one not arrived: it may yet be his best", "bestMatch", [finalMatch(GELHARDT), NOT_ARRIVED], [true, true]],
+  ] as const)("the matches his points include, %s (#595)", (_name, rule, matches, counted) => {
+    const scored = team({ matches: withMatches(GELHARDT, [...matches]), doubleGameweekRule: rule });
+    expect(scored.starters[2]?.matchesCounted).toEqual(counted);
+  });
+
   test.each(["bothMatches", "bestMatch"] as const)(
     "under %s, a second match not yet arrived leaves the first's points, provisional",
     (rule) => {

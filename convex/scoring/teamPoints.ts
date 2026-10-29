@@ -9,7 +9,7 @@ import type { Lineup } from "../lineup/lineup";
 import { cellKey, isOnPitch, type Cell } from "../lineup/pitch";
 import { roleIn } from "../lineup/roles";
 import { inTenths, type ScoringSet } from "./scoringSet";
-import { scoreGameweek, scoreMatch, type DoubleGameweekRule, type MatchPoints, type MatchStats } from "./scoring";
+import { countedMatches, scoreGameweek, scoreMatch, type DoubleGameweekRule, type MatchPoints, type MatchStats } from "./scoring";
 
 /** Players are FPL's season-stable `code`. */
 type PlayerCode = number;
@@ -62,6 +62,9 @@ export interface SlotPoints {
   counts: boolean;
   /** Each match's points by category, in the order his matches came. */
   matches: MatchPoints[];
+  /** Whether his points include each of `matches`, under the double-gameweek rule: under best
+   *  match, only his highest-scoring (scoring.ts's countedMatches). */
+  matchesCounted: boolean[];
   /** His gameweek under the double-gameweek rule; null ("—") while none of his records has arrived. */
   points: number | null;
   /** While any of his records hasn't arrived or any of his matches isn't final. */
@@ -134,6 +137,7 @@ function slotPoints(input: TeamPointsInput, playerCode: PlayerCode, cell: Cell, 
     cell,
     counts,
     matches,
+    matchesCounted: countedMatches(matches, input.doubleGameweekRule),
     points: gameweek.points,
     provisional,
   };
