@@ -7,7 +7,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { actingAs } from "../../support/convex/leagues.harness";
 import { syncRun, syncWith } from "../../support/convex/footballSync.harness";
-import { freshConvex, type TestConvex } from "../../support/convex/test.harness";
+import { expectRefused, freshConvex, type TestConvex } from "../../support/convex/test.harness";
 import { CLUB_CODE, FIXTURE_CODE, recordedFpl } from "../../support/recorded/fpl.payloads";
 import { FPL_RECORDED_LIVE, IPSWICH_FOREST } from "../../support/recorded/scores.payloads";
 
@@ -165,5 +165,5 @@ test("a match the feed has dropped is left out of its gameweek", async () => {
 test("someone signed out is refused a gameweek's matches", async () => {
   const t = freshConvex();
 
-  await expect(t.query(api.football.matchScores.ofGameweek, { gameweek: 7 })).rejects.toThrow(refusals.signedOut);
+  await expectRefused(t.query(api.football.matchScores.ofGameweek, { gameweek: 7 }), refusals.signedOut);
 });

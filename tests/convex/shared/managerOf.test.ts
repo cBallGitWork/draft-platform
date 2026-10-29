@@ -3,6 +3,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { managerOf, refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // managerOf: the caller's own team in a league, which My team's pages, the lineup and leaving
 // read, and the refusals in the order they come.
@@ -34,11 +35,11 @@ async function managerOfAs(email: string | null, league: Id<"leagues">) {
 
 describe("managerOf", () => {
   test("someone signed out is told to sign in, before whether the league exists", async () => {
-    await expect(managerOfAs(null, await goneLeague())).rejects.toThrow(refusals.signedOut);
+    await expectRefused(managerOfAs(null, await goneLeague()), refusals.signedOut);
   });
 
   test("a league that doesn't exist is refused, before whether the caller runs a team", async () => {
-    await expect(managerOfAs(ANN, await goneLeague())).rejects.toThrow(refusals.noLeague);
+    await expectRefused(managerOfAs(ANN, await goneLeague()), refusals.noLeague);
   });
 
   test.each([
@@ -46,7 +47,7 @@ describe("managerOf", () => {
     ["its commissioner, running no team", COMMISSIONER],
     ["the admin", ADMIN],
   ])("%s is told they run no team there", async (_who, email) => {
-    await expect(managerOfAs(email, leagueId)).rejects.toThrow(refusals.runsNoTeam);
+    await expectRefused(managerOfAs(email, leagueId), refusals.runsNoTeam);
   });
 
   test("a manager gets their email, the league and their own team", async () => {

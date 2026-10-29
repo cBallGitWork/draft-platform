@@ -8,6 +8,7 @@ import { mailRefusals } from "../../../convex/mail/mail";
 import { BODY_MAX, LETTERS_SHOWN, SUBJECT_MAX, UNREAD_COUNTED } from "../../../convex/mail/mailLimits";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { MINUTE_MS } from "../../../convex/shared/time";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // Mail (#26, spec/16): a filed letter reaches exactly the right people, unread until opened, and
 // the count matches; the commissioner writes to the whole league.
@@ -145,8 +146,8 @@ describe("unread", () => {
   test("nobody can open a letter that isn't theirs", async () => {
     await addManagers(t, leagueId, [ANN, BOB]);
     const [annsLetter] = await (await mailOf(ANN)).letters();
-    await expect((await mailOf(BOB)).open(annsLetter.letterId)).rejects.toThrow(mailRefusals.noLetter);
-    await expect(t.mutation(api.mail.mail.open, { letterId: annsLetter.letterId })).rejects.toThrow(refusals.signedOut);
+    await expectRefused((await mailOf(BOB)).open(annsLetter.letterId), mailRefusals.noLetter);
+    await expectRefused(t.mutation(api.mail.mail.open, { letterId: annsLetter.letterId }), refusals.signedOut);
   });
 
   test(`the count stops at the ${LETTERS_SHOWN} letters listed, past the ${UNREAD_COUNTED} the menu shows`, async () => {
@@ -203,7 +204,7 @@ describe("the commissioner's letter to the league", () => {
   });
 
   test("a manager can't write one", async () => {
-    await expect((await mailOf(ANN)).writeToLeague("Hello", "Hi.")).rejects.toThrow(refusals.notRunner);
+    await expectRefused((await mailOf(ANN)).writeToLeague("Hello", "Hi."), refusals.notRunner);
   });
 
   test.each([
@@ -213,7 +214,7 @@ describe("the commissioner's letter to the league", () => {
     { case: "text too long", subject: "Hello", body: "x".repeat(BODY_MAX + 1), refusal: mailRefusals.bodyTooLong },
   ])("a letter with $case is refused, and nothing is filed", async ({ subject, body, refusal }) => {
     const before = (await everyLetter()).length;
-    await expect((await mailOf(COMMISSIONER)).writeToLeague(subject, body)).rejects.toThrow(refusal);
+    await expectRefused((await mailOf(COMMISSIONER)).writeToLeague(subject, body), refusal);
     expect(await everyLetter()).toHaveLength(before);
   });
 

@@ -5,6 +5,7 @@ import { joiningRefusals } from "../../../convex/joining/joining";
 import { INVITE_LIFETIME_MS } from "../../../convex/joining/joiningShared";
 import { COMMISSIONER, MANAGERS, actingAs, adminCreatesLeague, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import { UNLISTED, ask, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // #73's Done line, end to end: "A league of four fills from two emailed invites and two approved
 // link requests; a refused request, an expired invite and a replaced link let no one in."
@@ -36,7 +37,7 @@ test("a league of four fills from two invites and two approved requests, and no 
 
   const oldToken = await makeLink(t, leagueId);
   const token = await makeLink(t, leagueId);
-  await expect((await actingAs(t, UNLISTED)).mutation(api.joining.joinRequests.ask, { token: oldToken })).rejects.toThrow(joiningRefusals.linkOff);
+  await expectRefused((await actingAs(t, UNLISTED)).mutation(api.joining.joinRequests.ask, { token: oldToken }), joiningRefusals.linkOff);
 
   for (const email of [CAT, DAN]) {
     const requestId = await askToJoin(t, leagueId, token, email);

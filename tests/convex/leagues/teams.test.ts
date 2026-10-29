@@ -18,6 +18,7 @@ import {
   type TestConvex,
 } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // A league's teams, their names and their managers (#24 stories 4, 5 and 7; spec/13).
 
@@ -56,13 +57,13 @@ describe("adding managers", () => {
 
   test("past the maximum, no team is made", async () => {
     await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
-    await expect(addManagers(t, leagueId, [EVE])).rejects.toThrow(refusals.full(4));
+    await expectRefused(addManagers(t, leagueId, [EVE]), refusals.full(4));
     expect(await teamNames()).toHaveLength(4);
   });
 
   test("one manager runs one team in a league", async () => {
     await addManagers(t, leagueId, [ANN]);
-    await expect(addManagers(t, leagueId, [ANN])).rejects.toThrow(refusals.alreadyManager(ANN));
+    await expectRefused(addManagers(t, leagueId, [ANN]), refusals.alreadyManager(ANN));
   });
 
   test("a new team skips a Team N that another team took as its name", async () => {
@@ -78,9 +79,7 @@ describe("adding managers", () => {
     await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
     const before = await teamNames();
     for (const email of [COMMISSIONER, CO_COMMISSIONER, ANN]) {
-      await expect((await actingAs(t, email)).mutation(api.leagues.teams.addManager, { leagueId, email: BOB })).rejects.toThrow(
-        refusals.notAdmin,
-      );
+      await expectRefused((await actingAs(t, email)).mutation(api.leagues.teams.addManager, { leagueId, email: BOB }), refusals.notAdmin);
     }
     expect(await teamNames()).toEqual(before);
   });
@@ -102,9 +101,7 @@ describe("renaming a team", () => {
   test(`a name of ${TEAM_NAME_MAX} characters is kept, and one longer is refused`, async () => {
     const ann = await actingAs(t, ANN);
     await ann.mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "x".repeat(TEAM_NAME_MAX) });
-    await expect(ann.mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "x".repeat(TEAM_NAME_MAX + 1) })).rejects.toThrow(
-      refusals.teamNameTooLong,
-    );
+    await expectRefused(ann.mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "x".repeat(TEAM_NAME_MAX + 1) }), refusals.teamNameTooLong);
     expect((await teamNames())[0].name).toBe("x".repeat(TEAM_NAME_MAX));
   });
 
@@ -123,7 +120,7 @@ describe("renaming a team", () => {
 
   test("a name another team in the league has is refused, whatever its capitals", async () => {
     const ann = await actingAs(t, ANN);
-    await expect(ann.mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "team 2" })).rejects.toThrow(refusals.teamNameTaken("team 2"));
+    await expectRefused(ann.mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "team 2" }), refusals.teamNameTaken("team 2"));
   });
 
   test("a name a team in another league has is fine", async () => {
@@ -136,16 +133,12 @@ describe("renaming a team", () => {
   });
 
   test("a blank name is refused", async () => {
-    await expect((await actingAs(t, ANN)).mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "   " })).rejects.toThrow(
-      refusals.blankName,
-    );
+    await expectRefused((await actingAs(t, ANN)).mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "   " }), refusals.blankName);
   });
 
   test("another manager, or the commissioner, can't rename it; the admin can", async () => {
     for (const email of [BOB, COMMISSIONER]) {
-      await expect((await actingAs(t, email)).mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "Mine" })).rejects.toThrow(
-        refusals.notManager,
-      );
+      await expectRefused((await actingAs(t, email)).mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "Mine" }), refusals.notManager);
     }
     await (await actingAs(t, ADMIN)).mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "Admin's pick" });
     expect((await teamNames())[0].name).toBe("Admin's pick");
@@ -173,9 +166,7 @@ describe("removing and leaving", () => {
       teamId: annsTeam,
       teamName: "Red Army",
     });
-    await expect((await actingAs(t, ANN)).mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "Back" })).rejects.toThrow(
-      refusals.notManager,
-    );
+    await expectRefused((await actingAs(t, ANN)).mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "Back" }), refusals.notManager);
   });
 
   test("a manager leaves: it works like a removal, and is filed", async () => {
@@ -193,20 +184,18 @@ describe("removing and leaving", () => {
   });
 
   test("someone with no team in the league can't leave it", async () => {
-    await expect((await actingAs(t, CAT)).mutation(api.leagues.teams.leave, { leagueId })).rejects.toThrow(refusals.runsNoTeam);
+    await expectRefused((await actingAs(t, CAT)).mutation(api.leagues.teams.leave, { leagueId }), refusals.runsNoTeam);
   });
 
   test("a manager can't remove another", async () => {
-    await expect((await actingAs(t, BOB)).mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam })).rejects.toThrow(
-      refusals.notRunner,
-    );
+    await expectRefused((await actingAs(t, BOB)).mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam }), refusals.notRunner);
   });
 
   test("a vacated team counts toward the maximum, and can be handed to someone new", async () => {
     const commissioner = await actingAs(t, COMMISSIONER);
     await commissioner.mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam });
     await addManagers(t, leagueId, [CAT, DAN]);
-    await expect(addManagers(t, leagueId, [EVE])).rejects.toThrow(refusals.full(4));
+    await expectRefused(addManagers(t, leagueId, [EVE]), refusals.full(4));
 
     await addManager(t, leagueId, EVE, annsTeam);
     expect((await teamNames())[0]).toEqual({ name: "Red Army", managerEmail: EVE });
@@ -224,16 +213,16 @@ describe("removing and leaving", () => {
     const [catsTeam] = await addManagers(t, otherLeague, [CAT]);
     await (await actingAs(t, CAT)).mutation(api.leagues.teams.leave, { leagueId: otherLeague });
 
-    await expect(addManager(t, leagueId, DAN, catsTeam)).rejects.toThrow(refusals.noTeam);
+    await expectRefused(addManager(t, leagueId, DAN, catsTeam), refusals.noTeam);
   });
 
   test("removing the manager of a vacated team is refused", async () => {
     const commissioner = await actingAs(t, COMMISSIONER);
     await commissioner.mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam });
-    await expect(commissioner.mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam })).rejects.toThrow(refusals.noManager);
+    await expectRefused(commissioner.mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam }), refusals.noManager);
   });
 
   test("a team that has a manager can't be handed to another", async () => {
-    await expect(addManager(t, leagueId, CAT, annsTeam)).rejects.toThrow(refusals.notVacated);
+    await expectRefused(addManager(t, leagueId, CAT, annsTeam), refusals.notVacated);
   });
 });

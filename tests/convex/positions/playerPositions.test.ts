@@ -5,7 +5,7 @@ import { ADMIN, actingAs } from "../../support/convex/leagues.harness";
 import { PL_LAST_COMP_SEASON } from "../../../convex/football/football";
 import { asAdmin, heldPositions, newcastleMen, reported, synced, syncPositionsWith } from "../../support/convex/positionsSync.harness";
 import { BRENTFORD_CODE, NEWCASTLE, PLAYER, recordedPositions, SHEET } from "../../support/recorded/positions.payloads";
-import { freshConvex, silenceConsoleError } from "../../support/convex/test.harness";
+import { expectRefused, freshConvex, silenceConsoleError } from "../../support/convex/test.harness";
 
 test("until the admin approves them, a player's starts are proposals and he plays on his label, unconfirmed", async () => {
   const t = await synced();
@@ -178,9 +178,9 @@ test("everything here is the admin's alone: anyone else signed in is refused", a
     () => someone.mutation(api.positions.playerPositions.removePosition, { code, position: "W" }),
     () => someone.mutation(api.positions.positionSettings.setApproveMode, { approveMode: "countAtOnce" }),
   ]) {
-    await expect(call()).rejects.toThrow(refusals.notAdmin);
+    await expectRefused(call(), refusals.notAdmin);
   }
-  await expect(t.query(api.positions.playerPositions.queue, {})).rejects.toThrow(refusals.signedOut);
+  await expectRefused(t.query(api.positions.playerPositions.queue, {}), refusals.signedOut);
   expect(await heldPositions(t, code)).toEqual({ W: "label?" });
 });
 

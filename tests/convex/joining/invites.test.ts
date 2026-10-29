@@ -36,6 +36,7 @@ import {
   type SentEmail,
 } from "../../support/convex/signIn.harness";
 import { DAY_MS } from "../../../convex/shared/time";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // Emailed invites (#73 stories 1 and 5; spec/13, Joining).
 
@@ -147,7 +148,7 @@ describe("how long an invite lasts", () => {
     expect(await managers()).toEqual([]);
     expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "inviteCancelled", email: ANN, teamId: null, teamName: null });
     expect(await inviteRow(inviteId)).toBeUndefined();
-    await expect((await asCommissioner(t)).mutation(api.joining.invites.resend, { inviteId })).rejects.toThrow(joiningRefusals.inviteEnded);
+    await expectRefused((await asCommissioner(t)).mutation(api.joining.invites.resend, { inviteId }), joiningRefusals.inviteEnded);
   });
 });
 
@@ -175,22 +176,22 @@ describe("who can be invited", () => {
   test("only by the league's runners", async () => {
     await addManagers(t, leagueId, [ANN]);
     const ann = await actingAs(t, ANN);
-    await expect(ann.mutation(api.joining.invites.send, { leagueId, email: BOB })).rejects.toThrow(refusals.notRunner);
+    await expectRefused(ann.mutation(api.joining.invites.send, { leagueId, email: BOB }), refusals.notRunner);
   });
 
   test("not someone who already runs a team there, nor someone with a live invite there", async () => {
     await addManagers(t, leagueId, [ANN]);
     await invite(t, leagueId, BOB);
     const commissioner = await asCommissioner(t);
-    await expect(commissioner.mutation(api.joining.invites.send, { leagueId, email: ANN })).rejects.toThrow(refusals.alreadyManager(ANN));
-    await expect(commissioner.mutation(api.joining.invites.send, { leagueId, email: BOB })).rejects.toThrow(joiningRefusals.alreadyInvited(BOB));
+    await expectRefused(commissioner.mutation(api.joining.invites.send, { leagueId, email: ANN }), refusals.alreadyManager(ANN));
+    await expectRefused(commissioner.mutation(api.joining.invites.send, { leagueId, email: BOB }), joiningRefusals.alreadyInvited(BOB));
   });
 
   test("not to a team that has a manager, nor to a new team in a full league", async () => {
     const [annsTeam] = await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
     const commissioner = await asCommissioner(t);
-    await expect(commissioner.mutation(api.joining.invites.send, { leagueId, email: EVE, teamId: annsTeam })).rejects.toThrow(refusals.notVacated);
-    await expect(commissioner.mutation(api.joining.invites.send, { leagueId, email: EVE })).rejects.toThrow(refusals.full(4));
+    await expectRefused(commissioner.mutation(api.joining.invites.send, { leagueId, email: EVE, teamId: annsTeam }), refusals.notVacated);
+    await expectRefused(commissioner.mutation(api.joining.invites.send, { leagueId, email: EVE }), refusals.full(4));
   });
 
   test("an invite refuses whoever adding them as a manager would, in the same words", async () => {
@@ -229,7 +230,7 @@ describe("past the day's emails (spec/13)", () => {
 
     expect((await inviteRow(inviteId))?.delivery).toBe("waiting");
     expect(emailsTo(sent, ANN)).toEqual([]);
-    await expect((await asCommissioner(t)).mutation(api.joining.invites.resend, { inviteId })).rejects.toThrow(joiningRefusals.inviteWaiting);
+    await expectRefused((await asCommissioner(t)).mutation(api.joining.invites.resend, { inviteId }), joiningRefusals.inviteWaiting);
 
     await t.finishAllScheduledFunctions(vi.runAllTimers);
     expect(new Date(Date.now()).toISOString()).toBe("2026-10-21T00:00:00.000Z");

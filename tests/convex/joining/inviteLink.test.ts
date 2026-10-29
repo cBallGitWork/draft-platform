@@ -7,6 +7,7 @@ import { joinPath } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, onTheList, type TestConvex } from "../../support/convex/leagues.harness";
 import { SITE_URL, UNLISTED, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // A league's invite link (#73 story 2; spec/02, spec/13 Joining): made, replaced and switched
 // off, and letting anyone who opens it sign in to ask to join.
@@ -45,7 +46,7 @@ describe("the invite link", () => {
     expect(await joinPageFor(ANN)).toBeNull();
     expect(await t.action(api.joining.inviteLink.signInToJoin, { token, email: UNLISTED })).toBe("linkOff");
     expect(await onTheList(t, UNLISTED)).toBe(false);
-    await expect((await actingAs(t, ANN)).mutation(api.joining.joinRequests.ask, { token })).rejects.toThrow(joiningRefusals.linkOff);
+    await expectRefused((await actingAs(t, ANN)).mutation(api.joining.joinRequests.ask, { token }), joiningRefusals.linkOff);
     expect((await invitesPage(t, leagueId))?.linkToken).toBeNull();
   });
 
@@ -70,7 +71,7 @@ describe("the invite link", () => {
   test("is made and switched off only by the league's runners", async () => {
     await addManagers(t, leagueId, [ANN]);
     const ann = await actingAs(t, ANN);
-    await expect(ann.mutation(api.joining.inviteLink.make, { leagueId })).rejects.toThrow(refusals.notRunner);
-    await expect(ann.mutation(api.joining.inviteLink.switchOff, { leagueId })).rejects.toThrow(refusals.notRunner);
+    await expectRefused(ann.mutation(api.joining.inviteLink.make, { leagueId }), refusals.notRunner);
+    await expectRefused(ann.mutation(api.joining.inviteLink.switchOff, { leagueId }), refusals.notRunner);
   });
 });

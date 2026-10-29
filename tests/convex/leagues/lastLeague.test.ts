@@ -6,6 +6,7 @@ import { LEAGUES_SHOWN } from "../../../convex/leagues/leagueLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, actingAs, CO_COMMISSIONER, COMMISSIONER, MANAGERS, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // The league switcher (#76, spec/13, Several leagues): which league signIn/account:signedInAs says the
 // app is in, and switching to another.
@@ -86,8 +87,8 @@ test("switching to a league they have no part in is refused, and they stay where
   const strangers = await adminCreatesLeague(t, 4, "Strangers");
   await switchTo(ANN, second);
 
-  await expect(switchTo(ANN, strangers)).rejects.toThrow(refusals.notInLeague);
-  await expect(switchTo(ADMIN, first)).rejects.toThrow(refusals.notInLeague);
+  await expectRefused(switchTo(ANN, strangers), refusals.notInLeague);
+  await expectRefused(switchTo(ADMIN, first), refusals.notInLeague);
   expect(await currentLeagueOf(ANN)).toBe(second);
 });
 
@@ -124,7 +125,7 @@ test("a league being deleted is never the one the app is in, nor one to switch t
 
   expect(await currentLeagueOf(COMMISSIONER)).toBe(second);
   expect(await currentLeagueOf(ANN)).toBe(second);
-  await expect(switchTo(COMMISSIONER, first)).rejects.toThrow(refusals.beingDeleted);
+  await expectRefused(switchTo(COMMISSIONER, first), refusals.beingDeleted);
 });
 
 test("a manager can't switch into a league someone else is deleting, and isn't told it is going", async () => {
@@ -132,7 +133,7 @@ test("a manager can't switch into a league someone else is deleting, and isn't t
   await switchTo(ANN, second);
   await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId: first });
 
-  await expect(switchTo(ANN, first)).rejects.toThrow(refusals.notInLeague);
+  await expectRefused(switchTo(ANN, first), refusals.notInLeague);
   expect(await currentLeagueOf(ANN)).toBe(second);
 });
 
@@ -141,7 +142,7 @@ test("the admin with a team in a league someone else is deleting is told it is b
   await addManagers(t, first, [ADMIN]);
   await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId: first });
 
-  await expect(switchTo(ADMIN, first)).rejects.toThrow(refusals.beingDeleted);
+  await expectRefused(switchTo(ADMIN, first), refusals.beingDeleted);
 });
 
 test("the admin with no part in a league being deleted, which he sees, is told he isn't in it", async () => {
@@ -149,7 +150,7 @@ test("the admin with no part in a league being deleted, which he sees, is told h
   await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId: first });
 
   expect((await accountOf(ADMIN)).leagues.map((league) => league.leagueId)).toContain(first);
-  await expect(switchTo(ADMIN, first)).rejects.toThrow(refusals.notInLeague);
+  await expectRefused(switchTo(ADMIN, first), refusals.notInLeague);
 });
 
 test("switching to a league that doesn't exist is refused as one they have no part in", async () => {
@@ -158,8 +159,8 @@ test("switching to a league that doesn't exist is refused as one they have no pa
   await t.run((ctx) => ctx.db.delete("leagues", gone));
   await switchTo(ANN, second);
 
-  await expect(switchTo(ANN, gone)).rejects.toThrow(refusals.notInLeague);
-  await expect(switchTo(ADMIN, gone)).rejects.toThrow(refusals.notInLeague);
+  await expectRefused(switchTo(ANN, gone), refusals.notInLeague);
+  await expectRefused(switchTo(ADMIN, gone), refusals.notInLeague);
   expect(await currentLeagueOf(ANN)).toBe(second);
 });
 
@@ -199,7 +200,7 @@ test("#488: only a league the switcher lists is one to switch to, so one past th
   expect(switchableLeagueIds).toHaveLength(LEAGUES_SHOWN);
   expect(switchableLeagueIds).not.toContain(pastTheEnd);
 
-  await expect(switchTo(COMMISSIONER, pastTheEnd)).rejects.toThrow(refusals.notInLeague);
+  await expectRefused(switchTo(COMMISSIONER, pastTheEnd), refusals.notInLeague);
   expect(await currentLeagueOf(COMMISSIONER)).toBe(currentLeagueId);
   const lastListed = switchableLeagueIds.at(-1)!;
   await switchTo(COMMISSIONER, lastListed);
