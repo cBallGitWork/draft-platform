@@ -7,7 +7,7 @@ import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { pinnedLetter } from "../schema";
 import { isSquadMove, SQUAD_MOVES } from "../squads/squadPlace";
-import { memberOf, teamOf } from "../shared/leagueAccess";
+import { memberOf } from "../shared/leagueAccess";
 import { namedFixture } from "../table/roundRobin";
 import { fixture, standingsOf } from "../table/leagueTable";
 import { formOf, RESULTS } from "../table/standings";
@@ -89,14 +89,14 @@ export const ofLeague = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
   returns: v.union(leagueHome, v.null()),
   handler: async (ctx, { leagueId, now }) => {
-    const { email, league } = await memberOf(ctx, leagueId);
+    const { league, team } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     if (season === null) return null;
     const { rules, teamIds, schedule, scores, table, named } = await standingsOf(ctx, league, season);
     const deadlines = await leagueDeadlines(ctx, leagueId);
     const current = thisGameweekOf(schedule, (gameweek) => deadlines.get(gameweek) ?? null, now);
     const form = formOf(teamIds, schedule, scores);
-    const mine = (await teamOf(ctx, leagueId, email))?._id ?? null;
+    const mine = team?._id ?? null;
     return {
       format: rules.format,
       thisGameweek: current
