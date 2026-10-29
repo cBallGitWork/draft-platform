@@ -4,12 +4,12 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { refusals } from "../../../convex/shared/leagueAccess";
-import { MY_TEAM_PATH } from "../../../src/frame/menu";
-import { currentLeagueLabel, leaveWords } from "../../../src/frame/words";
-import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import { league, manager, managerIn, miniBeta, newcomer, openApp } from "../../support/src/shell.harness";
+import { refusals } from "../../../../convex/shared/leagueAccess";
+import { MY_TEAM_PATH } from "../../../../src/frame/menu";
+import { currentLeagueLabel, leaveWords } from "../../../../src/frame/words";
+import { LEAGUES_PATH } from "../../../../src/leagues/paths";
+import { LEAGUES_TITLE } from "../../../../src/leagues/words";
+import { league, manager, managerIn, miniBeta, newcomer, openApp } from "../../../support/src/shell.harness";
 
 const openList = async () => userEvent.click(await screen.findByRole("button", { name: new RegExp(`^${currentLeagueLabel} `) }));
 const leaveOffered = () => screen.queryByRole("button", { name: leaveWords.open }) !== null;

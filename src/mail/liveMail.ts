@@ -2,7 +2,7 @@ import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { MAIL_PATH } from "../frame/menu";
-import type { TopBarState } from "../frame/topBarState";
+import type { TopBarState } from "../frame/topBar/topBarState";
 import { refusalOf } from "../shared/refusal";
 import type { MailSeam } from "./seam";
 import { sendFailedWords, unreadCount } from "./words";

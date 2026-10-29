@@ -12,7 +12,7 @@ import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { fakeAdmin } from "./admin.harness";
 import { fakeFeedback } from "./feedback.harness";
 import type { AuthActions, Session } from "../../../src/signIn/seam";
-import type { TopBarState } from "../../../src/frame/topBarState";
+import type { TopBarState } from "../../../src/frame/topBar/topBarState";
 import { fakeGameweeks } from "./gameweeks.harness";
 import { fakeJoining, type JoiningData } from "./joining.harness";
 import type { LeaguesSeam } from "../../../src/leagues/seam";

@@ -4,7 +4,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { PRODUCT_NAME } from "../../convex/shared/product";
-import type { TopBarState } from "../../src/frame/topBarState";
+import type { TopBarState } from "../../src/frame/topBar/topBarState";
 import { MAIL_PATH, MY_TEAM_PATH } from "../../src/frame/menu";
 import {
   continueLabel,

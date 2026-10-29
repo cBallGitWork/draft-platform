@@ -1,16 +1,16 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState } from "react";
-import type { Id } from "../../convex/_generated/dataModel";
-import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import type { Session } from "../signIn/seam";
-import { ESCAPE_KEY, KEY_DOWN, POINTER_DOWN } from "../shared/browserEvents";
-import type { LeaguesSeam } from "../leagues/seam";
-import { LEAGUES_PATH } from "../leagues/paths";
-import { LEAGUES_TITLE, rolesWords } from "../leagues/words";
-import { useChange } from "../shared/useChange";
+import type { Id } from "../../../convex/_generated/dataModel";
+import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
+import type { Session } from "../../signIn/seam";
+import { ESCAPE_KEY, KEY_DOWN, POINTER_DOWN } from "../../shared/browserEvents";
+import type { LeaguesSeam } from "../../leagues/seam";
+import { LEAGUES_PATH } from "../../leagues/paths";
+import { LEAGUES_TITLE, rolesWords } from "../../leagues/words";
+import { useChange } from "../../shared/useChange";
 import { LeaveLeague } from "./LeaveLeague";
-import { Problem } from "../ui/Panel";
-import { allLeaguesWords, currentLeagueLabel } from "./words";
+import { Problem } from "../../ui/Panel";
+import { allLeaguesWords, currentLeagueLabel } from "../words";
 
 // On a phone the league takes its own row under the name, Continue and Sign out, above the menu.
 const placementClasses = "order-last w-full border-t border-plate-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-l";

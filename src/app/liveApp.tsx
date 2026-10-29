@@ -8,7 +8,7 @@ import { useLiveFeedback } from "../feedback/liveFeedback";
 import { useLivePatches } from "../patches/livePatches";
 import { Loading } from "../ui/Panel";
 import { ReadFailed } from "../frame/ReadFailed";
-import { SignOut } from "../frame/SignOut";
+import { SignOut } from "../frame/topBar/SignOut";
 import type { AuthActions, Session } from "../signIn/seam";
 import { liveGameweeks } from "../gameweeks/liveGameweeks";
 import { liveHome } from "../home/liveHome";
