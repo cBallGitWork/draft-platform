@@ -20,8 +20,8 @@ import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
-import { begunGameweeks, workedOutGameweek } from "../table/gameweekScores";
-import { inMatchOf, leagueReads, MATCH_RECORDS_MOST, pointsInMatch } from "../table/teamGameweek";
+import { begunGameweeks, workedOutGameweek } from "../gameweekScorer/gameweekScores";
+import { inMatchOf, leagueReads, MATCH_RECORDS_MOST, pointsInMatch } from "../gameweekScorer/teamGameweek";
 
 // One real Premier League match (#45; spec/10, The match page): its score and clock, both clubs'
 // men as the team sheets named them, starters and substitutes, each man owned in the league with

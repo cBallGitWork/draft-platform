@@ -9,8 +9,8 @@ import { clubRecord, position } from "../schema";
 import { inTenths } from "../scoring/scoringSet";
 import { managerOf } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
-import { begunGameweeks } from "../table/gameweekScores";
-import { scoredMatches } from "../table/scoredMatches";
+import { begunGameweeks } from "../gameweekScorer/gameweekScores";
+import { scoredMatches } from "../gameweekScorer/scoredMatches";
 import { squadOf } from "./squads";
 
 // My team's Squad tab (#364; spec/12, My team's tabs: "every player in the squad in one table,
