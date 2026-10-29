@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { TRADES_PATH } from "../../src/frame/menu";
 import { createShellRouter, type ShellContext } from "../../src/routes/router";
 import { LANDING_PATH } from "../../src/routes/root";
-import { SIGN_IN_PATH } from "../../src/sign-in/paths";
+import { SIGN_IN_PATH } from "../../src/signIn/paths";
 import { BUILT_SCREENS } from "../support/smoke/builtScreens";
 
 /** Every path the router matches, read from its route tree. Building it loads nothing. */

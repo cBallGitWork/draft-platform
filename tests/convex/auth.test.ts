@@ -1,5 +1,5 @@
 import { expect, test, vi } from "vitest";
-import { replyWords } from "../../src/sign-in/words";
+import { replyWords } from "../../src/signIn/words";
 import { LINK_LIFETIME_S } from "../../convex/auth";
 import { inviteEmail } from "../../convex/joining/joiningEmails";
 import { signInEmail } from "../../convex/signIn/signInEmail";

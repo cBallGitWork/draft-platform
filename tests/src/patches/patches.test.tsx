@@ -25,7 +25,7 @@ import {
 } from "../../../src/patches/words";
 import { scoringPath } from "../../../src/scoring/paths";
 import { SCORING_TITLE } from "../../../src/scoring/words";
-import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
+import { SIGN_IN_PATH } from "../../../src/signIn/paths";
 import { league, manager, newcomer, openApp, visitor } from "../../support/src/shell.harness";
 
 const TAKES_EFFECT = Date.parse("2026-11-01T12:00:00Z");

@@ -7,7 +7,7 @@ import { expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { linkOffWords } from "../../../convex/joining/joiningShared";
-import { askFailedWords, replyWords } from "../../../src/sign-in/words";
+import { askFailedWords, replyWords } from "../../../src/signIn/words";
 import { useLiveJoining } from "../../../src/joining/liveJoining";
 import { changeFailedWords } from "../../../src/shared/words";
 

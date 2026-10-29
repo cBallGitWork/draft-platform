@@ -130,7 +130,7 @@ Features table (feature 12), the one home for screen status.
 | Screen | Path | File | Spec | Status |
 |---|---|---|---|---|
 | Landing (redirects only) | `/` | src/routes/frame.tsx | spec/12 The frame | built |
-| Sign in | `/sign-in` | src/sign-in/SignInPage.tsx | spec/02, spec/12 The frame | built |
+| Sign in | `/sign-in` | src/signIn/SignInPage.tsx | spec/02, spec/12 The frame | built |
 | Your leagues | `/leagues` | src/leagues/LeaguesPage.tsx | spec/12, spec/13 | built |
 | Create a league | `/leagues/new` | src/leagues/NewLeaguePage.tsx | spec/13 Creating a league | built |
 | Mail | `/mail` | src/mail/MailPage.tsx | spec/16 | built |
