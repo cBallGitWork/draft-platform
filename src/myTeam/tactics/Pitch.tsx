@@ -1,6 +1,6 @@
 import type { DragEvent } from "react";
-import { AREAS, cellKey, LANES, type Cell } from "../../convex/lineup/pitch";
-import { roleIn } from "../../convex/lineup/roles";
+import { AREAS, cellKey, LANES, type Cell } from "../../../convex/lineup/pitch";
+import { roleIn } from "../../../convex/lineup/roles";
 import { markOf } from "./focusMarks";
 import { canStandIn, standingIn, type DraftLineup, type SquadMember } from "./lineupDraft";
 import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel } from "./tacticsWords";

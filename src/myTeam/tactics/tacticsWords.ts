@@ -1,12 +1,12 @@
 // What My team's Tactics tab says (#14), in one place for Craig to change in the pull request.
 
-import { STARTER_COUNT } from "../../convex/lineup/lineup";
-import { namesWords } from "../../convex/lineup/lineupWords";
-import type { Area, Lane } from "../../convex/lineup/pitch";
-import { AREA_WORDS, LANE_WORDS } from "../../convex/lineup/pitchWords";
-import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
-import { menuWords } from "../frame/words";
-import { failedWords, gameweekWords, listSeparator, whenWords } from "../shared/words";
+import { STARTER_COUNT } from "../../../convex/lineup/lineup";
+import { namesWords } from "../../../convex/lineup/lineupWords";
+import type { Area, Lane } from "../../../convex/lineup/pitch";
+import { AREA_WORDS, LANE_WORDS } from "../../../convex/lineup/pitchWords";
+import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
+import { menuWords } from "../../frame/words";
+import { failedWords, gameweekWords, listSeparator, whenWords } from "../../shared/words";
 
 export const TACTICS_TITLE = menuWords.tactics;
 export const SQUAD_PANEL_TITLE = menuWords.squad;

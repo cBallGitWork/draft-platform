@@ -5,9 +5,9 @@
 import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { discardWords, moveLabel, presetLabel, putHereLabel, saveFailedWords, saveWords, savedWords, startingWords } from "../../../src/myTeam/tacticsWords";
-import { league } from "../../support/src/shell.harness";
-import { TACTICS_GAMEWEEK, openTactics } from "../../support/src/tactics.harness";
+import { discardWords, moveLabel, presetLabel, putHereLabel, saveFailedWords, saveWords, savedWords, startingWords } from "../../../../src/myTeam/tactics/tacticsWords";
+import { league } from "../../../support/src/shell.harness";
+import { TACTICS_GAMEWEEK, openTactics } from "../../../support/src/tactics.harness";
 import {
   ARRIZABALAGA,
   HAVERTZ,
@@ -23,7 +23,7 @@ import {
   pitch,
   save,
   squadRows,
-} from "../../support/src/tacticsScreen.harness";
+} from "../../../support/src/tacticsScreen.harness";
 
 const REFUSAL = "A lineup starts 11 players; this one starts 4.";
 

@@ -1,8 +1,8 @@
 // The Tactics tab's countdown to the deadline (#14): the two largest units, a minute at a time.
 
 import { expect, it } from "vitest";
-import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
-import { countdownWords } from "../../../src/myTeam/tacticsWords";
+import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../../../convex/shared/time";
+import { countdownWords } from "../../../../src/myTeam/tactics/tacticsWords";
 
 it.each([
   [DAY_MS + 17 * HOUR_MS + 5 * MINUTE_MS, "in 1d 17h"],

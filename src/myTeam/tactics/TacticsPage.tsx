@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { STARTER_COUNT } from "../../convex/lineup/lineup";
-import type { Cell } from "../../convex/lineup/pitch";
-import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { ESCAPE_KEY, KEY_DOWN } from "../shared/browserEvents";
-import { Loading, Notice, PageSection, Panel, PanelNote, Problem, Status } from "../ui/Panel";
-import { useMinute } from "../shared/useMinute";
+import { STARTER_COUNT } from "../../../convex/lineup/lineup";
+import type { Cell } from "../../../convex/lineup/pitch";
+import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
+import { ESCAPE_KEY, KEY_DOWN } from "../../shared/browserEvents";
+import { Loading, Notice, PageSection, Panel, PanelNote, Problem, Status } from "../../ui/Panel";
+import { useMinute } from "../../shared/useMinute";
 import { markedBy } from "./focusMarks";
 import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, shownLineup, withRole, type DraftLineup } from "./lineupDraft";
 import { Pitch, type Moving } from "./Pitch";
 import { SquadTable } from "./SquadTable";
-import type { MyTeamSeam } from "./seam";
+import type { MyTeamSeam } from "../seam";
 import type { OpenTactics } from "./tacticsSeam";
 import {
   countdownWords,
@@ -30,7 +30,7 @@ import {
   tacticsLoadingWords,
   tacticsNoRulesWords,
 } from "./tacticsWords";
-import { noTeamWords } from "./words";
+import { noTeamWords } from "../words";
 
 /** The key that puts a picked-up player back. */
 const PUT_BACK_KEY = ESCAPE_KEY;

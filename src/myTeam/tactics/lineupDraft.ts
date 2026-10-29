@@ -3,11 +3,11 @@
 // is the server's (convex/lineup/lineup.ts), told when it is saved; here a player is only ever put
 // in a free cell he plays (spec/05: "a player fills only slots in the areas his positions play").
 
-import { AREAS, cellKey, LANES, playsCell, type Cell } from "../../convex/lineup/pitch";
-import { reconciled } from "../../convex/lineup/lineup";
-import type { Position } from "../../convex/positions/positionTables";
-import type { OpenTactics } from "../../convex/lineup/tactics";
-import { offersRole } from "../../convex/lineup/roles";
+import { AREAS, cellKey, LANES, playsCell, type Cell } from "../../../convex/lineup/pitch";
+import { reconciled } from "../../../convex/lineup/lineup";
+import type { Position } from "../../../convex/positions/positionTables";
+import type { OpenTactics } from "../../../convex/lineup/tactics";
+import { offersRole } from "../../../convex/lineup/roles";
 
 export type SquadMember = OpenTactics["squad"][number];
 /** A starter, his cell and the role he plays there (roles.ts), none given meaning the slot's first. */
