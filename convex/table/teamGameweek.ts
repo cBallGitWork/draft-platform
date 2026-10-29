@@ -136,15 +136,17 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
     playerMatches.set(code, hisMatches.map((match) => forPoints(match, code)));
     plays.set(code, gameweekPlay(hisMatches.map((match) => forPlay(match, code))));
   }
-  const subs = autoSubs(lineup, positions, plays, { areaLimits: rules.areaLimits });
+  const subs = autoSubs(lineup, positions, plays, { areaLimits: rules.areaLimits }, held.vacated);
+  const departed = new Set(held.vacated.map(({ playerCode }) => playerCode));
   const team = scoreTeam({
     lineup,
     matches: playerMatches,
     set,
     doubleGameweekRule: rules.doubleGameweek,
-    // A sub plays the role auto-subs gave him: the empty slot's, into it (autoSubs.ts).
+    // A sub plays the role auto-subs gave him: the empty slot's, into it (autoSubs.ts). One into a
+    // slot left empty by a man who left the squad comes off for no one the lineup names.
     substitutions: subs.substitutions.map(({ off, on, area, lane }) => ({
-      off,
+      off: departed.has(off) ? null : off,
       on,
       cell: { area, lane },
       role: subs.lineup.starters.find((starter) => starter.playerCode === on)?.role,

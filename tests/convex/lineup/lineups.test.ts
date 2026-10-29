@@ -15,6 +15,7 @@ import { FIRST_SUB, filledLineup, presetNamed } from "../../support/convex/lineu
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { lineupInGameweek, lineupsInGameweek } from "../../../convex/lineup/lineups";
 import { SQUAD_MOVES_READ_MOST } from "../../../convex/squads/squads";
+import { openingLineup, shownLineup } from "../../../src/myTeam/lineupDraft";
 
 // Storing a lineup (#8, spec/05: "A lineup rolls over to the next gameweek if the manager doesn't
 // touch it"): a save is from the next gameweek not begun, a read takes the newest from that
@@ -72,6 +73,7 @@ const saved = (lineup: Lineup, fromGameweek: number) => ({
   bench: lineup.bench,
   leftSquad: [],
   joinedBench: [],
+  vacated: [],
 });
 /** The lineup with its bench reversed: another lineup of the same squad. */
 const REVERSED_BENCH: Lineup = { ...FOUR_FOUR_TWO, bench: FOUR_FOUR_TWO.bench.toReversed() };
@@ -153,7 +155,27 @@ describe("read against the squad as it is now", () => {
       bench: [...FOUR_FOUR_TWO.bench.filter((playerCode) => playerCode !== goneSub), newcomer],
       leftSquad: [goneStarter, goneSub],
       joinedBench: [newcomer],
+      vacated: FOUR_FOUR_TWO.starters.filter(({ playerCode }) => playerCode === goneStarter),
     });
+  });
+
+  test("the Tactics screen shows the lineup the server reads, by the same rule (#597)", async () => {
+    const ann = await as(ANN);
+    await ann.save(FOUR_FOUR_TWO);
+    // The screen holds the lineup it opened on while the squad changes under it.
+    const opened = openingLineup({ lineup: await ann.mine(NEXT), squad: [] });
+    const [goneStarter] = STARTERS;
+    await t.run(async (ctx) => {
+      for (const row of await ctx.db.query("squadPlayers").collect()) {
+        if (row.playerCode === goneStarter) await ctx.db.delete("squadPlayers", row._id);
+      }
+      await ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode: FREE_AGENT });
+    });
+    const squadNow = [...SQUAD.filter((playerCode) => playerCode !== goneStarter), FREE_AGENT];
+
+    const held = await ann.mine(NEXT);
+    if (held.kind !== "saved") throw new Error("Ann's lineup is saved");
+    expect(shownLineup(opened, opened, squadNow)).toEqual({ starters: held.starters, bench: held.bench });
   });
 });
 
@@ -195,6 +217,7 @@ describe("a begun gameweek keeps the squad as it stood at its deadline (#415)", 
       bench: [...FOUR_FOUR_TWO.bench, FREE_AGENT],
       leftSquad: [released, moved],
       joinedBench: [FREE_AGENT],
+      vacated: FOUR_FOUR_TWO.starters.filter(({ playerCode }) => playerCode === released || playerCode === moved),
     });
     expect(await lineupOf(bobsTeam, NEXT + 1)).toEqual({ ...saved({ starters: [], bench: [BOBS] }, NEXT), bench: [BOBS, moved], joinedBench: [moved] });
   });
