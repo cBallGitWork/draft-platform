@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalAction, type ActionCtx } from "../_generated/server";
 import { codesByOpta, fixtureCodeIn, namedMen } from "../football/feedIds";
-import { logFailure } from "../shared/errors";
+import { logFailure, outcomeOf } from "../shared/errors";
 import { readFplPayloads } from "../football/fpl/fpl";
 import { fplStatLines, readFplLive, type FplStatLine } from "../football/fpl/fplLive";
 import { matchRecords } from "./matchRecords";
@@ -39,13 +39,10 @@ export const run = internalAction({
   returns: v.null(),
   handler: async (ctx, { trigger }) => {
     const ranAt = Date.now();
-    let outcome: Outcome;
-    try {
+    const outcome: Outcome = await outcomeOf("match stats sync failed", async () => {
       const due: DueMatch[] = await ctx.runQuery(internal.stats.matchStats.due, { now: ranAt });
-      outcome = { ok: true, ...(due.length === 0 ? { matches: [], waiting: [] } : await syncDue(ctx, due, ranAt, "wait")) };
-    } catch (error: unknown) {
-      outcome = { ok: false, error: logFailure("match stats sync failed", error) };
-    }
+      return { ok: true as const, ...(due.length === 0 ? { matches: [], waiting: [] } : await syncDue(ctx, due, ranAt, "wait")) };
+    });
     await ctx.runMutation(internal.stats.matchStats.record, { trigger, ranAt, outcome });
     return null;
   },

@@ -13,7 +13,7 @@ import {
   type Placement,
   type PlayerPositions,
 } from "./lineup";
-import { ALL_CELLS, AREAS, cellKey, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
+import { ALL_CELLS, AREAS, byPitchOrder, cellKey, LANES, playsCell, sameCell, type Area, type Cell, type Lane } from "./pitch";
 
 /** Players are FPL's season-stable `code`. */
 type PlayerCode = number;
@@ -110,7 +110,7 @@ export function autoSubs(
     positionsOf(weighed, playerCode);
   }
 
-  const absentees = asSaved.starters.filter((starter) => playOf(starter.playerCode) === "didNotPlay").sort(byPitchOrder);
+  const absentees = asSaved.starters.filter((starter) => playOf(starter.playerCode) === "didNotPlay").sort((one, other) => byPitchOrder(cellOf(one), cellOf(other)));
   let current = asSaved;
   const substitutions: AutoSub[] = [];
   const unfilled: PlayerCode[] = [];
@@ -176,7 +176,7 @@ function legalSubstitution(
     // the new slot's first, until stars choose his best.
     starters: lineup.starters.map((starter) => {
       if (starter !== absentee) return starter;
-      const sameSlot = cell.area === absentee.area && cell.lane === absentee.lane;
+      const sameSlot = sameCell(cell, absentee);
       return sameSlot && absentee.role !== undefined ? { playerCode, ...cell, role: absentee.role } : { playerCode, ...cell };
     }),
     bench: lineup.bench.map((benched) => (benched === playerCode ? absentee.playerCode : benched)),
@@ -198,16 +198,13 @@ function freeCellsNearest(lineup: Lineup, absentee: Placement): Cell[] {
     .sort((one, other) => compareInOrder(distance(one), distance(other)));
 }
 
-/** Back to front, then left to right. */
+/** A cell's area and lane as indexes, back to front, then left to right: for a distance. */
 const pitchOrder = ({ area, lane }: Cell): [number, number] => [AREAS.indexOf(area), LANES.indexOf(lane)];
 
 function compareInOrder(one: number[], other: number[]): number {
   const differing = one.findIndex((value, index) => value !== other[index]);
   return differing === -1 ? 0 : one[differing] - other[differing];
 }
-
-const byPitchOrder = (one: Placement, other: Placement): number =>
-  compareInOrder(pitchOrder(cellOf(one)), pitchOrder(cellOf(other)));
 
 /** Whether `after` has a problem `before` hadn't, or any further from legal: a limit missed by more
  *  players. */

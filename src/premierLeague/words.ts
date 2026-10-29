@@ -1,7 +1,7 @@
 // What the Premier League section says, in one place for Craig to change in the pull request.
 
 import { LOCALE } from "../../convex/shared/moments";
-import { gameweekWords, liveWords, scoreWords, versusWords } from "../shared/words";
+import { gameweekWords, liveWords, scoreWords, timeOfDayWords, versusWords } from "../shared/words";
 
 export { gameweekWords, liveWords, scoreWords, versusWords } from "../shared/words";
 /** Goals for less against, signed: "+4", "-3", "0", as the league table signs its difference. */
@@ -15,11 +15,10 @@ export const noMatchesWords = (gameweek: number) => `No matches are held for ${g
 export const matchesListLabel = (gameweek: number) => `${gameweekWords(gameweek)}'s matches`;
 
 const dayFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "long", day: "numeric", month: "long" });
-const timeFormat = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minute: "2-digit" });
 /** A day's heading over its matches, in the viewer's own zone: "Saturday 17 October". */
 export const dayWords = (at: number) => dayFormat.format(at);
 /** A match's kickoff, in the viewer's own zone: "15:00". */
-export const kickoffWords = (at: number) => timeFormat.format(at);
+export const kickoffWords = timeOfDayWords;
 /** The heading over matches with no kickoff time: postponed, waiting for a new date. */
 export const noDateWords = "Date to be confirmed";
 

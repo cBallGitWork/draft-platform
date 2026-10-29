@@ -3,10 +3,11 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { Loading, Panel, PanelNote, Problem } from "../../ui/Panel";
 import { playerCardPath } from "../../playerCard/paths";
 import { useChange } from "../../shared/useChange";
+import { OwnerName } from "../../ui/OwnerName";
+import { ClubShort } from "../../premierLeague/ClubName";
 import type { ShortlistSeam } from "./shortlistSeam";
 import {
   emptyShortlistWords,
-  freeAgentWords,
   goneWords,
   loadingShortlistWords,
   removeNamedLabel,
@@ -38,13 +39,11 @@ export function ShortlistPanel({ leagueId, seam }: { leagueId: Id<"leagues">; se
                 <Link to={playerCardPath(leagueId, player.code)} title={player.fullName} className="inline-flex min-h-tap items-center font-semibold">
                   {player.name}
                 </Link>
-                <abbr title={player.club.name} className="text-muted no-underline">
-                  {player.club.shortName}
-                </abbr>
+                <ClubShort club={player.club} className="text-muted" />
                 {player.gone ? (
                   <span className="text-event">{goneWords}</span>
                 ) : (
-                  <span className={player.ownerTeamName === null ? "text-muted" : undefined}>{player.ownerTeamName ?? freeAgentWords}</span>
+                  <OwnerName teamName={player.ownerTeamName} />
                 )}
               </span>
               <button

@@ -103,12 +103,17 @@ function takenOut(event: LeagueEvent): string[] {
   }
 }
 
+/** How whoever did something is named: the admin by `adminByline`, anyone else by their email. */
+export function bylineOf(email: string): string {
+  return isAdmin(email) ? adminByline : email;
+}
+
 /** Files the letter reporting a league's event to the whole league, as it is after the event. */
 export async function fileEventLetter(ctx: MutationCtx, leagueId: Id<"leagues">, by: string, event: LeagueEvent): Promise<void> {
   const league = await ctx.db.get("leagues", leagueId);
   if (!league) throw new Error(`League ${leagueId} doesn't exist, so its ${event.kind} letter can't be filed`);
   const to = [...(await wholeLeague(ctx, league)), ...takenOut(event)];
-  const who = isAdmin(by) ? adminByline : by;
+  const who = bylineOf(by);
   await fileLetter(ctx, league, to, (zone) => eventLetter(event, who, zone), by);
 }
 
