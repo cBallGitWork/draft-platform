@@ -3,10 +3,11 @@ import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { ENTER_KEY } from "../shared/browserEvents";
-import { ColumnHeads } from "../ui/ColumnHeads";
+import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, PageSection, PanelNote, Problem } from "../ui/Panel";
 import { playerCardPath } from "../playerCard/paths";
 import { PositionCodes } from "../ui/PositionCodes";
+import { ClubShort } from "../premierLeague/ClubName";
 import { useChange, type Changing } from "../shared/useChange";
 import type { MyTeamSeam, SquadNumberChanges, TeamSquad } from "./seam";
 import {
@@ -36,7 +37,7 @@ const DESK_ONLY: readonly Column[] = ["club"];
 const FIGURES: readonly Column[] = ["last", "season"];
 
 const cellClasses = (column: Column) =>
-  `px-2 align-middle ${FIGURES.includes(column) ? "text-right" : "text-left"} ${DESK_ONLY.includes(column) ? "hidden sm:table-cell" : ""}`;
+  cellClassOf(!FIGURES.includes(column), DESK_ONLY.includes(column));
 
 /** My team's Squad tab (spec/12, My team's tabs): every player in the squad in one table. */
 export function SquadPage({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }) {
@@ -118,9 +119,7 @@ function SquadCell({
     case "club":
       return (
         <td className={className}>
-          <abbr title={player.club.name} className="no-underline">
-            {player.club.shortName}
-          </abbr>
+          <ClubShort club={player.club} />
         </td>
       );
     case "next":
