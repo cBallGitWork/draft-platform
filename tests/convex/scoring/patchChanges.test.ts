@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { StoredScoringSet } from "../../../convex/rules/leagueRulesShape";
+import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { scoringChanges } from "../../../convex/scoring/patchChanges";
 
 // What the patch notes and a version's letter say changed (spec/14, Changes and corrections;

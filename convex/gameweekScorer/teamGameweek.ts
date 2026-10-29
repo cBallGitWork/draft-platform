@@ -6,7 +6,7 @@ import { ALL_CELLS, playsCell, type Cell } from "../lineup/pitch";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount, type HowPositionsCount } from "../positions/positionSettings";
 import type { Position } from "../positions/positionTables";
-import type { StoredScoringSet } from "../rules/leagueRulesShape";
+import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
 import type { MatchPoints, MatchStats } from "../scoring/scoring";
 import { siteScoringByGameweek } from "../scoring/siteScoring";

@@ -1,6 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
-import { scoringSetShape } from "../rules/leagueRulesShape";
+import { scoringSetShape } from "../scoring/scoringSetShape";
 
 /** How a version of the site's scoring was announced: a patch with a week's notice, or a fix at
  *  once (spec/14, Changes and corrections). */

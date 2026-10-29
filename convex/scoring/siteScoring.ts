@@ -6,7 +6,7 @@ import { firstKickoffs, gameweekStartsOf } from "../gameweeks/gameweekStarts";
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { heldSchedule } from "../gameweeks/leagueDeadlines";
 import { siteScoringKind } from "../schema";
-import { scoringSetShape, type StoredScoringSet } from "../rules/leagueRulesShape";
+import { scoringSetShape, type StoredScoringSet } from "./scoringSetShape";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { adminOf, callerEmail, isAdmin, refuse } from "../shared/leagueAccess";
 import { momentIn } from "../shared/moments";

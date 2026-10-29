@@ -1,5 +1,5 @@
 import type { Area } from "../lineup/pitch";
-import type { StoredScoringSet } from "../rules/leagueRulesShape";
+import type { StoredScoringSet } from "./scoringSetShape";
 
 // The site's first scoring set (spec/14, Who owns it, and The first scoring set; #354): what every
 // league plays on until the admin first saves the site's set (siteScoring.ts), and what the

@@ -1,6 +1,6 @@
 import { v, type Infer } from "convex/values";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
-import { AREAS } from "../lineup/pitch";
+import { areaShape } from "../lineup/pitchShape";
 import { LEAGUE_AVERAGE } from "../table/roundRobin";
 import { BYE } from "../table/teamGames";
 
@@ -35,7 +35,7 @@ const slot = v.object({
   playerCode: v.number(),
   name: v.string(),
   /** The area he is priced in: his slot, the one he came on in, or his bench cell's. */
-  area: v.union(...AREAS.map((area) => v.literal(area))),
+  area: areaShape,
   /** Null ("—") while none of his records has arrived. */
   points: v.union(v.number(), v.null()),
   /** Whether his points count: false is greyed, a bench player not on or a starter subbed off. */
