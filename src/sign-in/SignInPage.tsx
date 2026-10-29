@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { PANEL_BODY, Panel, Problem, Status, TOP_BAR, TOP_BAR_ROW } from "../frame/Panel";
+import { PANEL_BODY, Panel, Problem, Status, TOP_BAR, TOP_BAR_ROW } from "../ui/Panel";
 import { PRODUCT_NAME } from "../../convex/shared/product";
 import { linkProblemWords, signInWords, type LinkProblem } from "./words";
 

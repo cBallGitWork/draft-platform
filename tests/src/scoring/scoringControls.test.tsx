@@ -1,4 +1,4 @@
-// The rules editor's controls in the Wells look (plate.md, Controls; src/rules/): each
+// The rules editor's controls in the Wells look (plate.md, Controls; src/ui/, src/rules/): each
 // tick box is a real checkbox its whole row toggles, by pointer or keyboard; the Pays keys are a
 // radio group the arrow keys move; and Save says when there is nothing to save.
 

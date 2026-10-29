@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { Loading, Notice, PANEL_BODY, PANEL_LIST_ROW, PageSection, Panel, PanelNote, Problem } from "../frame/Panel";
+import { Loading, Notice, PANEL_BODY, PANEL_LIST_ROW, PageSection, Panel, PanelNote, Problem } from "../ui/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { playerCardPath } from "../playerCard/paths";
 import { useChange, type Changing } from "../shared/useChange";

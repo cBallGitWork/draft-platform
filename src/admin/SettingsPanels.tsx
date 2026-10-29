@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { PANEL_BODY, Panel } from "../frame/Panel";
+import { PANEL_BODY, Panel } from "../ui/Panel";
 import type { PanelProps } from "./panelProps";
 import {
   approveClubWords,

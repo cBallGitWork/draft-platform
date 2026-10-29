@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { sectionTabClasses } from "../frame/AppFrame";
-import { PageSection, Problem } from "../frame/Panel";
+import { PageSection, Problem } from "../ui/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "./paths";
 import { ADMIN_TITLE, adminTabsLabel, feedbackTabWords, feedsTabWords, positionsTabWords } from "./words";

@@ -1,10 +1,10 @@
-// The head row the data tables share (src/frame/ColumnHeads.tsx): each head shows its short
+// The head row the data tables share (src/ui/ColumnHeads.tsx): each head shows its short
 // word, is named by its long one, and takes the cell classes its column is given.
 
 import { render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { expect, it } from "vitest";
-import { ColumnHeads } from "../../../src/frame/ColumnHeads";
+import { ColumnHeads } from "../../../src/ui/ColumnHeads";
 
 const columns = {
   position: { short: "Pos", long: "Position" },

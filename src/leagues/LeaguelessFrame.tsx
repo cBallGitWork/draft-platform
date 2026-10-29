@@ -4,7 +4,7 @@ import type { AuthActions } from "../auth";
 import { FeedbackLink } from "../feedback/FeedbackPage";
 import { MAIL_PATH } from "../frame/menu";
 import { MainMenu, MenuTab } from "../frame/MenuTab";
-import { TOP_BAR, TOP_BAR_ROW } from "../frame/Panel";
+import { TOP_BAR, TOP_BAR_ROW } from "../ui/Panel";
 import { ProductName } from "../frame/ProductName";
 import { SignOut } from "../frame/SignOut";
 import { MAIL_TITLE } from "../mail/words";

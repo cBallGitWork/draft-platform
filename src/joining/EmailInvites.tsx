@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { PANEL_BODY, PANEL_LIST_ROW, Panel, PanelNote, Problem } from "../frame/Panel";
+import { PANEL_BODY, PANEL_LIST_ROW, Panel, PanelNote, Problem } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import { useMinute } from "../shared/useMinute";
 import type { InvitesPageData, JoiningSeam } from "./seam";

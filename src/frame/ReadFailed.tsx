@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from "react";
-import { PageSection, Problem } from "./Panel";
+import { PageSection, Problem } from "../ui/Panel";
 import { ERROR_PAGE_TITLE, readFailedWords, tryAgainWords } from "./words";
 
 /** What the app logs a failed read as, with the error itself. */

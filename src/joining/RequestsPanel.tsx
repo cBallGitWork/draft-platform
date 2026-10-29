@@ -1,4 +1,4 @@
-import { Panel, PanelNote, Problem } from "../frame/Panel";
+import { Panel, PanelNote, Problem } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { TeamSelect, useTeamChoice } from "./TeamChoice";

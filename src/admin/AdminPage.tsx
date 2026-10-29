@@ -1,4 +1,4 @@
-import { Loading } from "../frame/Panel";
+import { Loading } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import { AdminHeader } from "./AdminHeader";
 import { FindPlayer } from "./FindPositions";

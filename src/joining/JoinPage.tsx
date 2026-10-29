@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { linkOffWords } from "../../convex/joining/joiningShared";
-import { Loading, PageSection, Problem } from "../frame/Panel";
+import { Loading, PageSection, Problem } from "../ui/Panel";
 import { LEAGUES_PATH } from "../leagues/paths";
 import { LEAGUES_TITLE } from "../leagues/words";
 import { useChange } from "../shared/useChange";

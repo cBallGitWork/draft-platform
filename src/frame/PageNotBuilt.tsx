@@ -1,4 +1,4 @@
-import { PageSection, PanelNote } from "./Panel";
+import { PageSection, PanelNote } from "../ui/Panel";
 import { notBuiltWords } from "./words";
 
 /** A page the menu reaches before its screen is built: its title plate, and a plain line saying so. */

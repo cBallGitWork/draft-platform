@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
-import { GameweekStepper } from "../frame/GameweekStepper";
-import { Loading, PageSection, Panel, PanelNote } from "../frame/Panel";
+import { GameweekStepper } from "../ui/GameweekStepper";
+import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { ClubName } from "./ClubName";
 import { openingGameweek } from "./openingGameweek";
 import { matchPath } from "./paths";

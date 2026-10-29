@@ -1,5 +1,5 @@
 import type { Id } from "../../convex/_generated/dataModel";
-import { Problem } from "../frame/Panel";
+import { Problem } from "../ui/Panel";
 import type { ShortlistSeam } from "../scouting/shortlistSeam";
 import { addToShortlistWords, onShortlistWords, removeFromShortlistWords } from "../scouting/shortlistWords";
 import { useChange } from "../shared/useChange";

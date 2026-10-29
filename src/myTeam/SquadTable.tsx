@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { DragEvent } from "react";
-import { ColumnHeads } from "../frame/ColumnHeads";
+import { ColumnHeads } from "../ui/ColumnHeads";
 import { playerCardPath } from "../playerCard/paths";
 import { roleIn, rolesOfSlot } from "../../convex/lineup/roles";
 import { markOf } from "./focusMarks";

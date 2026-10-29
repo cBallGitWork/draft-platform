@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { FEEDBACK_MAX } from "../../convex/feedback/feedbackLimits";
-import { PANEL_BODY, PageSection, Problem, Status } from "../frame/Panel";
+import { PANEL_BODY, PageSection, Problem, Status } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import { FEEDBACK_PATH } from "./paths";
 import type { FeedbackSeam } from "./seam";

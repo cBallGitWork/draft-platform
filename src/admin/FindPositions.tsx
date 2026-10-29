@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
-import { Loading, PANEL_BODY, PANEL_LIST_ROW, Panel, PanelNote } from "../frame/Panel";
+import { Loading, PANEL_BODY, PANEL_LIST_ROW, Panel, PanelNote } from "../ui/Panel";
 import type { Changing } from "../shared/useChange";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
 import type { AdminSeam, FoundPlayerPositions } from "./seam";
