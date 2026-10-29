@@ -1,5 +1,5 @@
 import type { DragEvent } from "react";
-import { AREAS, cellKey, LANES, type Cell } from "../../../convex/lineup/pitch";
+import { AREAS, cellKey, LANES, sameCell, type Cell } from "../../../convex/lineup/pitch";
 import { roleIn } from "../../../convex/lineup/roles";
 import { markOf } from "./focusMarks";
 import { canStandIn, standingIn, type DraftLineup, type SquadMember } from "./lineupDraft";
@@ -44,7 +44,7 @@ export function Pitch({
   slots: readonly Cell[];
 }) {
   const { picked } = moving;
-  const isSlot = (cell: Cell) => slots.some((slot) => slot.area === cell.area && slot.lane === cell.lane);
+  const isSlot = (cell: Cell) => slots.some((slot) => sameCell(slot, cell));
   const opensTo = (cell: Cell) => picked !== null && canStandIn(draft, picked.positions, cell);
   return (
     <div role="group" aria-label={pitchLabel} className="pitch relative grid grid-cols-5">
