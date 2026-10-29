@@ -7,7 +7,7 @@ import { RULES_CHANGES_MOST } from "../../../convex/rules/rulesHistory";
 import { heldSchedule } from "../../../convex/gameweeks/leagueDeadlines";
 import { CURRENT_FIXTURES_MOST } from "../../../convex/shared/fixtures";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
-import { holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { changeRules, holdGameweeks, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -23,8 +23,7 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t);
 });
 
-const change = async (rules = TOTAL_POINTS) =>
-  (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules, revision: await rulesRevision(t, leagueId) });
+const change = (rules = TOTAL_POINTS) => changeRules(t, leagueId, rules);
 const latest = async () => (await actingAs(t, COMMISSIONER)).query(api.rules.leagueRules.latest, { leagueId });
 const countRulesRows = async (ctx: QueryCtx) =>
   (await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()).length;

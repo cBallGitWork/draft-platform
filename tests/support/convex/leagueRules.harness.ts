@@ -2,7 +2,10 @@
 
 import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
-import { TEST_LEAGUE_TEAMS, type TestConvex } from "./leagues.harness";
+import { actingAs, COMMISSIONER, TEST_LEAGUE_TEAMS, type TestConvex } from "./leagues.harness";
+import { api } from "../../../convex/_generated/api";
+import type { QueryCtx } from "../../../convex/_generated/server";
+import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum } from "../../../convex/rules/squadMaximums";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { Area } from "../../../convex/lineup/pitch";
@@ -27,6 +30,25 @@ export function rulesWith(change: Partial<LeagueRules>): LeagueRules {
  *  for a league with none. */
 export const rulesRevision = (t: TestConvex, leagueId: Id<"leagues">) =>
   t.run(async (ctx) => (await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()).at(-1)?._id ?? null);
+
+/** Saves `rules` as the league's, by `by` (the commissioner unless a test says), from the latest
+ *  revision read just before, as a screen opened just now saves them. Returns the save's promise,
+ *  for a test to await, keep or expect refused. */
+export const changeRules = async (t: TestConvex, leagueId: Id<"leagues">, rules: LeagueRules, by = COMMISSIONER) =>
+  (await actingAs(t, by)).mutation(api.rules.leagueRules.change, { leagueId, rules, revision: await rulesRevision(t, leagueId) });
+
+/** Sets whether the league plays a gameweek, by `by` (the commissioner unless a test says).
+ *  Returns the mutation's promise. */
+export const setUsed = async (t: TestConvex, leagueId: Id<"leagues">, gameweek: number, used: boolean, by = COMMISSIONER) =>
+  (await actingAs(t, by)).mutation(api.gameweeks.leagueGameweeks.setUsed, { leagueId, gameweek, used });
+
+/** The league's rules in force in a gameweek, read as the table and the lineups read them. Throws
+ *  for a league with no rules at all. */
+export async function rulesInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number): Promise<LeagueRules> {
+  const season = await seasonRules(ctx, leagueId);
+  if (season === null) throw new Error(`League ${leagueId} has no rules`);
+  return season.inGameweek(gameweek);
+}
 
 /** The first rules, played as total points. */
 export const TOTAL_POINTS = rulesWith({ format: "totalPoints" });

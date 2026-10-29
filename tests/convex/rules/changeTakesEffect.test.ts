@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { rulesInGameweek } from "../../../convex/rules/rulesHistory";
-import { holdGameweeks, moveFplDeadline, rulesRevision, rulesWith, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
+import { changeRules, HELD_FIRST_RULES, holdGameweeks, moveFplDeadline, rulesInGameweek, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -18,8 +17,7 @@ beforeEach(async () => {
   fakeResend();
 });
 
-const change = async (leagueId: Id<"leagues">, rules = TOTAL_POINTS) =>
-  (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules, revision: await rulesRevision(t, leagueId) });
+const change = (leagueId: Id<"leagues">, rules = TOTAL_POINTS) => changeRules(t, leagueId, rules);
 const latest = async (leagueId: Id<"leagues">) => (await actingAs(t, COMMISSIONER)).query(api.rules.leagueRules.latest, { leagueId });
 const inGameweek = (leagueId: Id<"leagues">, gameweek: number) => t.run((ctx) => rulesInGameweek(ctx, leagueId, gameweek));
 /** A deadline three hours before the first kickoff, so an hour and a half earlier than FPL's. */

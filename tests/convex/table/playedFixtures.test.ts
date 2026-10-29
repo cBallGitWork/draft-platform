@@ -3,8 +3,8 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
-import { holdGameweeks, rulesRevision, rulesWith } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { changeRules, holdGameweeks, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
+import { actingAs, addManager, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // A gameweek's fixtures are stored once it begins, and read as stored ever after (#137; spec/13,
@@ -50,10 +50,8 @@ const read = () => readOf(leagueId);
 type Gameweeks = Awaited<ReturnType<typeof read>>;
 const played = (gameweeks: Gameweeks) => gameweeks.filter(({ gameweek }) => gameweek <= PLAYED);
 const toCome = (gameweeks: Gameweeks) => gameweeks.filter(({ gameweek }) => gameweek > PLAYED);
-const setUsed = async (gameweek: number, used: boolean) =>
-  (await actingAs(t, COMMISSIONER)).mutation(api.gameweeks.leagueGameweeks.setUsed, { leagueId, gameweek, used });
-const changeRules = async (change: Parameters<typeof rulesWith>[0]) =>
-  (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules: rulesWith(change), revision: await rulesRevision(t, leagueId) });
+const setUsedIn = (gameweek: number, used: boolean) => setUsed(t, leagueId, gameweek, used);
+const changeRulesTo = (change: Parameters<typeof rulesWith>[0]) => changeRules(t, leagueId, rulesWith(change));
 const upTo = (last: number) => Array.from({ length: last }, (_, index) => index + 1);
 
 describe("storing", () => {
@@ -127,10 +125,10 @@ describe("a gameweek begun with no head-to-head never gets fixtures (#282)", () 
   });
 
   test("a gameweek begun as total points has none once the league plays head-to-head", async () => {
-    await changeRules({ format: "totalPoints" });
+    await changeRulesTo({ format: "totalPoints" });
     playUpTo(PLAYED);
     await recordPassed();
-    expect(await changeRules({ format: "headToHead" })).toBe(PLAYED + 1);
+    expect(await changeRulesTo({ format: "headToHead" })).toBe(PLAYED + 1);
     expect(await firstWithFixtures(leagueId)).toBe(PLAYED + 1);
   });
 });
@@ -145,9 +143,9 @@ describe("a gameweek played keeps its fixtures", () => {
     ["unticking", false],
     ["ticking again", true],
   ])("%s a gameweek to come leaves gameweeks 1 to 5's pairings as they were", async (_, used) => {
-    if (used) await setUsed(FUTURE, false);
+    if (used) await setUsedIn(FUTURE, false);
     const before = await read();
-    await setUsed(FUTURE, used);
+    await setUsedIn(FUTURE, used);
     const after = await read();
 
     expect(played(after)).toEqual(played(before));
@@ -156,7 +154,7 @@ describe("a gameweek played keeps its fixtures", () => {
 
   test("a rule change leaves the stored gameweeks as they were, and draws those to come by it", async () => {
     const before = await read();
-    expect(await changeRules({ oddTeamOut: "bye", gamesPerGameweek: 2 })).toBe(PLAYED + 1);
+    expect(await changeRulesTo({ oddTeamOut: "bye", gamesPerGameweek: 2 })).toBe(PLAYED + 1);
     const after = await read();
 
     expect(played(after)).toEqual(played(before));
