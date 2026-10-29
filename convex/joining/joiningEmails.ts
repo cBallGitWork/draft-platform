@@ -1,5 +1,6 @@
 import { INVITE_DAYS, aNewTeamWords } from "./joiningShared";
 import { PRODUCT_NAME } from "../shared/product";
+import { SITE_URL_SETTING } from "../outbound/deploymentSettings";
 
 // Joining's emails (#73), in words for Craig to change in the pull request: an invite, which
 // carries a sign-in link, and the one telling a person their join request was approved.
@@ -34,7 +35,7 @@ export function approvedEmail({ leagueName, teamName }: { leagueName: string; te
 }
 
 function siteUrl(): string {
-  const url = process.env.SITE_URL;
-  if (!url) throw new Error("SITE_URL isn't set on this deployment, so an email can't say where the app is");
+  const url = process.env[SITE_URL_SETTING];
+  if (!url) throw new Error(`${SITE_URL_SETTING} isn't set on this deployment, so an email can't say where the app is`);
   return url;
 }

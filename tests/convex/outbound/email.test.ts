@@ -1,6 +1,7 @@
 import { expect, test, vi } from "vitest";
 import { RESEND_EMAILS_URL, sendEmail } from "../../../convex/outbound/email";
-import { EMAIL_FROM_SETTING, TEST_SENDER } from "../../../convex/outbound/sender";
+import { EMAIL_FROM_SETTING } from "../../../convex/outbound/deploymentSettings";
+import { TEST_SENDER } from "../../../convex/outbound/sender";
 import { PRODUCT_NAME } from "../../../convex/shared/product";
 
 const LIVE_SENDER = "signin@example.co.uk";
