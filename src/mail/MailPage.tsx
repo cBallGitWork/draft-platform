@@ -4,15 +4,14 @@ import type { LetterSummary } from "../../convex/mail/mail";
 import { LETTERS_SHOWN } from "../../convex/mail/mailLimits";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../auth";
+import { DateBlock } from "../frame/DateBlock";
 import { Loading, PageSection, PanelNote } from "../frame/Panel";
 import { runs } from "../leagues/roles";
 import type { MailSeam } from "./seam";
 import { WriteToLeague } from "./WriteToLeague";
 import {
   MAIL_TITLE,
-  letterDay,
   letterSource,
-  letterTime,
   loadingWords,
   noLettersWords,
   onlyLatestWords,
@@ -75,9 +74,7 @@ function Letter({ letter, isOpen, onToggle }: { letter: LetterSummary; isOpen: b
         onClick={onToggle}
         className={`grid min-h-tap w-full grid-cols-[auto_minmax(0,1fr)] items-start gap-2 px-3 py-1 text-left hover:bg-stepper ${letter.read ? "" : "shadow-event-edge"}`}
       >
-        <time dateTime={new Date(letter.at).toISOString()} className="bg-plate px-1 text-center whitespace-nowrap">
-          {letterDay(letter.at)} <span className="text-soft">{letterTime(letter.at)}</span>
-        </time>
+        <DateBlock at={letter.at} />
         <span className={letter.read ? "text-muted" : "font-semibold text-fact"}>
           {!letter.read && <span className="sr-only">{unreadWords}: </span>}
           <span className="block text-lead">{letter.subject}</span>

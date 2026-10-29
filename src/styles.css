@@ -51,6 +51,8 @@
   --flex-basis-categories: 360px;
   /* A box for one number of a rule: room for "-10.5" */
   --spacing-number-box: 72px;
+  /* A box for a bigger whole number: a league's most teams, an admin threshold */
+  --spacing-wide-number-box: 96px;
   /* A squad number's box on the Squad tab: room for "99" (#13) */
   --spacing-squad-number: 48px;
   /* A tick box's well (plate.md, Controls) */
@@ -65,6 +67,15 @@
   --spacing-shirt: 32px;
   --spacing-centre-circle: 96px;
   --spacing-penalty-box: 56px;
+  /* The league switcher: its caret, and its list of leagues on the desk */
+  --spacing-caret-width: 10px;
+  --spacing-caret-height: 6px;
+  --spacing-league-list: 288px;
+  /* A row's columns: a Premier League match (where it stands, home, the score, away), a league
+     fixture (team, the score, opponent), and the player card's next fixtures (gameweek, match, kickoff) */
+  --grid-template-columns-match-row: 3.5rem minmax(0, 1fr) 3.5rem minmax(0, 1fr);
+  --grid-template-columns-fixture-row: minmax(0, 1fr) 5rem minmax(0, 1fr);
+  --grid-template-columns-next-fixture: 6rem 1fr auto;
   --radius-circle: 50%; /* the centre circle only: everything else is square (plate.md, Shape) */
 
   --text-data: 13px;
