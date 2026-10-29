@@ -76,7 +76,7 @@ export function versionName({ season, number }: Pick<Doc<"siteScoring">, "season
 }
 
 /** Every version the site has, in the order they take effect, at most SITE_SCORING_VERSIONS_MOST. */
-export function historyOf(ctx: QueryCtx): Promise<Doc<"siteScoring">[]> {
+export function siteVersions(ctx: QueryCtx): Promise<Doc<"siteScoring">[]> {
   return takeAllOrThrow(
     ctx.db.query("siteScoring").withIndex("by_takesEffectAt"),
     SITE_SCORING_VERSIONS_MOST,
@@ -94,7 +94,7 @@ export async function siteScoringInGameweek(ctx: QueryCtx, gameweek: number): Pr
 /** `siteScoringInGameweek` for any gameweek, reading the versions and the schedule once: for a
  *  read that prices matches across many gameweeks, such as a player's card (#381). */
 export async function siteScoringByGameweek(ctx: QueryCtx): Promise<(gameweek: number) => StoredScoringSet> {
-  const history = await historyOf(ctx);
+  const history = await siteVersions(ctx);
   const { matches } = await heldSchedule(ctx);
   const recordedStarts = await gameweekStartsOf(ctx, matches);
   return (gameweek) => {
@@ -174,7 +174,7 @@ export const view = query({
   }),
   handler: async (ctx, { now }) => {
     const canEdit = isAdmin(await callerEmail(ctx));
-    const history = await historyOf(ctx);
+    const history = await siteVersions(ctx);
     const latest = history.at(-1);
     const draft = canEdit ? await ctx.db.query("siteScoringDraft").unique() : null;
     return {
@@ -197,7 +197,7 @@ export const saveDraft = mutation({
   returns: v.number(),
   handler: async (ctx, { scoring, revision, draftSavedAt }) => {
     const zone = await zoneOf(ctx, await adminOf(ctx));
-    checkRevision((await historyOf(ctx)).at(-1), revision, zone);
+    checkRevision((await siteVersions(ctx)).at(-1), revision, zone);
     const held = await ctx.db.query("siteScoringDraft").unique();
     if ((held?.savedAt ?? null) !== draftSavedAt) refuse(siteScoringRefusals.draftChangedSince(held?.savedAt ?? Date.now(), zone));
     checkScoringSet(scoring);
@@ -222,7 +222,7 @@ export const announce = mutation({
     const draft = await ctx.db.query("siteScoringDraft").unique();
     if (draft === null) refuse(siteScoringRefusals.noDraft);
     if (draft.savedAt !== draftSavedAt) refuse(siteScoringRefusals.draftChangedSince(draft.savedAt, zone));
-    const history = await historyOf(ctx);
+    const history = await siteVersions(ctx);
     const latest = history.at(-1);
     if (latest !== undefined && latest._id !== draft.madeFrom) refuse(siteScoringRefusals.draftOvertaken(versionName(latest)));
     if (sortedJson(latest?.scoring ?? FIRST_SCORING) === sortedJson(draft.scoring)) refuse(siteScoringRefusals.draftUnchanged);
@@ -247,7 +247,7 @@ export const fix = mutation({
   handler: async (ctx, { scoring, revision }) => {
     const admin = await adminOf(ctx);
     const zone = await zoneOf(ctx, admin);
-    const history = await historyOf(ctx);
+    const history = await siteVersions(ctx);
     const latest = history.at(-1);
     checkRevision(latest, revision, zone);
     checkScoringSet(scoring);

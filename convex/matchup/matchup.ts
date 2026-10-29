@@ -16,6 +16,7 @@ import {
   heldFixtures,
   isFinished,
   leagueReads,
+  pointsByMatch,
   teamInGameweek,
   type HeldMatch,
   type LeagueReads,
@@ -276,10 +277,10 @@ const byKickoff = <Fixture extends { kickoff: number | null }>(fixtures: readonl
  *  lines by it too. */
 export function inMatchOf(slot: SlotPoints, matches: readonly HeldMatch[]): VidiprinterPlayer["inMatch"] {
   return new Map(
-    matches.flatMap((match, index) => {
+    pointsByMatch(slot, matches).flatMap(({ match, points }) => {
       const record = match.records.get(slot.playerCode);
       if (record === undefined) return [];
-      return [[match.fixture.code, { stats: isWhole(record) ? record.stats : null, played: record.played === true, points: slot.matches[index].total }] as const];
+      return [[match.fixture.code, { stats: isWhole(record) ? record.stats : null, played: record.played === true, points }] as const];
     }),
   );
 }

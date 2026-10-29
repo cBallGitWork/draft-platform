@@ -9,7 +9,7 @@ import { logFailure } from "../shared/errors";
 import {
   gameweekInputs,
   heldFixtures,
-  isLocked,
+  isMatchFinal,
   leagueReads,
   teamInGameweek,
   type LeagueReads,
@@ -185,6 +185,6 @@ async function gameweekScores(
     );
   }
   const { matches } = inputs;
-  const final = matches.length > 0 && matches.every(isLocked) && [...scores.values()].every((team) => !team.provisional);
+  const final = matches.length > 0 && matches.every(isMatchFinal) && [...scores.values()].every((team) => !team.provisional);
   return { scores, final };
 }
