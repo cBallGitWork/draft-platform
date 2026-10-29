@@ -9,9 +9,9 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { HOUR_MS } from "../../convex/shared/time";
-import type { AuthActions, Session } from "../auth";
+import type { AuthActions, Session } from "../signIn/seam";
 import type { LeaguesSeam } from "../leagues/seam";
-import { replyWords } from "../sign-in/words";
+import { replyWords } from "../signIn/words";
 
 /** What each made-up person may do in a league, as the server's powersIn would send it. */
 const managerPowers = { names: false, runs: false };

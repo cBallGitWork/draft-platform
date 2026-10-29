@@ -7,7 +7,7 @@ import {
   type DeadlineReading,
   type DeadlineRule,
 } from "../../../convex/gameweeks/deadline";
-import { mapFpl } from "../../../convex/football/fpl";
+import { mapFpl } from "../../../convex/football/fpl/fpl";
 import { recordedSeason } from "../../support/recorded/fpl.payloads";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";

@@ -4,14 +4,14 @@
 // read gives one (matchScores.ts).
 
 import type { Infer } from "convex/values";
-import type { RawFixture } from "./fpl";
+import type { RawFixture } from "./fpl/fpl";
 import {
   PL_FULL_TIME,
   PL_HALF_TIME_PHASE,
   PL_IN_PLAY,
   PL_UPCOMING,
   type RawPlFixture,
-} from "./premierLeague";
+} from "./premierLeague/premierLeague";
 import type { matchState, scoreProblem, scoreRead } from "../schema";
 import { MINUTE_MS, SECOND_MS } from "../shared/time";
 

@@ -1,6 +1,6 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import type { AuthActions } from "../auth";
+import type { AuthActions } from "../signIn/seam";
 import { FeedbackLink } from "../feedback/FeedbackPage";
 import { Continue } from "./Continue";
 import { MAIL_PATH, sectionAt, sections } from "./menu";

@@ -11,7 +11,7 @@ import {
 } from "../../../convex/football/football";
 import { REFUSED_MATCH, asAdmin, heldPositions, reported, syncPositionsWith } from "../../support/convex/positionsSync.harness";
 import { MATCHES_PER_RUN } from "../../../convex/positions/positionsSync";
-import type { RawPlSquadPlayer } from "../../../convex/football/premierLeague";
+import type { RawPlSquadPlayer } from "../../../convex/football/premierLeague/premierLeague";
 import { NEWCASTLE, PLAYER, recordedPositions, SHEET, UNPLAYED_MATCH } from "../../support/recorded/positions.payloads";
 import { freshConvex, refusedError, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 

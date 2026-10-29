@@ -9,9 +9,9 @@
 // - pl-team-stats.json: `/stats/match/{id}` whole, for Brentford v Liverpool and for Ipswich v Forest;
 //   pl-team-stats-hull-everton.json likewise for Hull v Everton, recorded 28 Oct 2026 (#45).
 
-import type { RawBootstrap } from "../../../convex/football/fpl";
+import type { RawBootstrap } from "../../../convex/football/fpl/fpl";
 import { withNoNews } from "./fpl.payloads";
-import type { RawPlCommentary, RawPlFixture, RawPlTeamStats } from "../../../convex/football/premierLeague";
+import type { RawPlCommentary, RawPlFixture, RawPlTeamStats } from "../../../convex/football/premierLeague/premierLeague";
 import { MATCH, recordedPlFixture } from "./gw6.payloads";
 import streams from "./pl-commentary.json";
 import fplPlayers from "./pl-commentary-fpl-players.json";

@@ -1,8 +1,8 @@
 // The seam for sign-in (#20): what the screens know of it. Convex Auth's emailed links fill it in
-// live (liveApp.tsx); the preview (preview.ts) and the tests hand the screens their own.
+// live (app/liveApp.tsx); the preview (app/preview.ts) and the tests hand the screens their own.
 
-import type { Id } from "../convex/_generated/dataModel";
-import type { LeagueSummary } from "../convex/leagues/myLeagues";
+import type { Id } from "../../convex/_generated/dataModel";
+import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 
 /** Who is at the screen, their leagues, and the one the app is in (convex/signIn/account.ts): in a league
  *  is having a part in one, as a commissioner, co-commissioner or manager. */

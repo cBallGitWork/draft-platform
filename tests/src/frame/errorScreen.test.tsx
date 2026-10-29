@@ -7,7 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { ConvexError } from "convex/values";
 import { describe, expect, it } from "vitest";
 import { JOIN_PATH } from "../../../convex/joining/joiningShared";
-import type { Session } from "../../../src/auth";
+import type { Session } from "../../../src/signIn/seam";
 import { ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../../src/admin/paths";
 import { MAIL_PATH, MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
 import { READ_FAILED_LOG } from "../../../src/frame/ReadFailed";

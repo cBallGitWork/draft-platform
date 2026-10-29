@@ -8,9 +8,9 @@ import { playerByCode } from "../shared/players";
 import { byGameweek, dueMatch, type DueMatch } from "../shared/dueMatches";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS } from "../shared/time";
 import { codesByOpta, fixtureCodeIn } from "./feedIds";
-import type { readFplPayloads } from "./fpl";
-import { matchSlots } from "./plMatch";
-import { readPlFixture, readPlFixtures } from "./premierLeague";
+import type { readFplPayloads } from "./fpl/fpl";
+import { matchSlots } from "./premierLeague/plMatch";
+import { readPlFixture, readPlFixtures } from "./premierLeague/premierLeague";
 
 // Each match's team sheets before kickoff (#45; spec/10, The match page), read by the live tick
 // (#28) and stored one row a match. Only the sheets are read: the gameweek's list for the match's

@@ -4,7 +4,7 @@
 
 import { cleanup, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { Session } from "../../../src/auth";
+import type { Session } from "../../../src/signIn/seam";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { invitesPath } from "../../../src/joining/paths";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";

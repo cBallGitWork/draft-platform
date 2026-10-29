@@ -10,7 +10,7 @@ import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalAction, internalMutation, internalQuery, type ActionCtx, type MutationCtx } from "../_generated/server";
 import { logFailure } from "../shared/errors";
-import { readFpl } from "./fpl";
+import { readFpl } from "./fpl/fpl";
 import {
   clubRecord,
   fixtureRecord,

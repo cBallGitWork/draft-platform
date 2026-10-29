@@ -14,8 +14,8 @@ import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { LiveApp, takeLinkCode } from "../../../src/app/liveApp";
 import { NO_CONVEX_URL } from "../../../src/shared/words";
-import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
-import { askFailedWords, linkProblemWords, replyWords, signInWords, waitingWords } from "../../../src/sign-in/words";
+import { SIGN_IN_PATH } from "../../../src/signIn/paths";
+import { askFailedWords, linkProblemWords, replyWords, signInWords, waitingWords } from "../../../src/signIn/words";
 
 const convex = vi.hoisted(() => ({
   auth: { isLoading: false, isAuthenticated: false },

@@ -71,7 +71,7 @@ export const thresholdStepTables = {
 // Each match's five team stats (#45, spec/10, The match page): one row a match, replaced by each
 // read that changes them, and kept after full time as last read (football/matchTeamStats.ts).
 
-/** One side's five, as `football/plTeamStats.ts` maps them from Opta. */
+/** One side's five, as `football/premierLeague/plTeamStats.ts` maps them from Opta. */
 export const sideTeamStats = v.object({
   shots: v.number(),
   shotsOnTarget: v.number(),

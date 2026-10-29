@@ -9,7 +9,7 @@ import { vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { codesByOpta, namedMen } from "../../../convex/football/feedIds";
 import { fakeFeeds, heldMatch, KICKOFF, mergedHullEverton } from "./matchStats.harness";
-import type { RawPlFixture } from "../../../convex/football/premierLeague";
+import type { RawPlFixture } from "../../../convex/football/premierLeague/premierLeague";
 import { MATCH, recordedGw6, type Gw6Payloads } from "../recorded/gw6.payloads";
 import type { matchStatsState } from "../../../convex/schema";
 import type { TestConvex } from "./test.harness";

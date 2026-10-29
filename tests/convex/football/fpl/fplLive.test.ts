@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
-import { fplStatLines, type RawLive } from "../../../convex/football/fplLive";
-import { FULL_STATS, MATCH, recordedGw6 } from "../../support/recorded/gw6.payloads";
+import { fplStatLines, type RawLive } from "../../../../convex/football/fpl/fplLive";
+import { FULL_STATS, MATCH, recordedGw6 } from "../../../support/recorded/gw6.payloads";
 
 const { fpl } = recordedGw6();
 const { elements } = fpl.bootstrap;

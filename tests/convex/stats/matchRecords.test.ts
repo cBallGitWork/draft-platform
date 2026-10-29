@@ -3,7 +3,7 @@ import { HULL_EVERTON, mergedHullEverton, withPlReadEmpty } from "../../support/
 import { isMatchComplete, isWhole, lockTime, matchRecords, mergeStats, statChanges, statValue } from "../../../convex/stats/matchRecords";
 import { FULL_STATS, recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { HOUR_MS } from "../../../convex/shared/time";
-import { fplStatLines } from "../../../convex/football/fplLive";
+import { fplStatLines } from "../../../convex/football/fpl/fplLive";
 
 const records = mergedHullEverton();
 const recordOf = (code: number, from = records) => from.find((record) => record.playerCode === code)!;

@@ -185,7 +185,7 @@ export const previewMatch: MatchPage = {
   score: { state: "fullTime", homeGoals: 1, awayGoals: 1, minutes: 90, clockLabel: null },
   men: MEN,
   pointsProblem: null,
-  // The recording's final read, as football/plTeamStats.ts maps it.
+  // The recording's final read, as football/premierLeague/plTeamStats.ts maps it.
   teamStats: {
     home: { shots: 7, shotsOnTarget: 3, possession: 49.4, corners: 0, yellowCards: 1, redCards: 0 },
     away: { shots: 17, shotsOnTarget: 5, possession: 50.6, corners: 5, yellowCards: 1, redCards: 0 },

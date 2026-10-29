@@ -4,8 +4,8 @@ import type { Doc } from "../_generated/dataModel";
 import { internalMutation, type ActionCtx, type QueryCtx } from "../_generated/server";
 import { sideTeamStats } from "../schema";
 import { logFailure } from "../shared/errors";
-import { readPlTeamStats, type RawPlFixture } from "./premierLeague";
-import { plTeamStats, type SideTeamStats } from "./plTeamStats";
+import { readPlTeamStats, type RawPlFixture } from "./premierLeague/premierLeague";
+import { plTeamStats, type SideTeamStats } from "./premierLeague/plTeamStats";
 
 // Each match's five team stats (#45; spec/10, The match page), read with its points by the live
 // tick (#28) and once more by the match stats sync at full time, and stored one row a match. Each

@@ -5,7 +5,7 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import { DAY_MS } from "../../convex/shared/time";
 import { miniBeta, previewSays } from "../app/preview";
-import { replyWords } from "../sign-in/words";
+import { replyWords } from "../signIn/words";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 
 const now = Date.now();
