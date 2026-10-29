@@ -88,9 +88,9 @@ export function autoSubs(
   // Each who left stands in his slot again, on 0 minutes, so it is filled and the limits weighed
   // just as if he hadn't played (spec/05, Auto-subs); he is taken out of what is handed back.
   const departed = new Set(vacated.map(({ playerCode }) => playerCode));
-  const saved: Lineup = { starters: [...lineup.starters, ...vacated], bench: lineup.bench };
+  const asSaved: Lineup = { starters: [...lineup.starters, ...vacated], bench: lineup.bench };
   const weighed: PlayerPositions = new Map([...positions, ...vacated.map(({ playerCode }) => [playerCode, NO_POSITIONS] as const)]);
-  const corrupt = standingProblems(saved, weighed, rules).filter(
+  const corrupt = standingProblems(asSaved, weighed, rules).filter(
     (problem) => !CARRIED_KINDS.has(problem.kind) || (problem.kind === "wrongStarterCount" && problem.starterCount > STARTER_COUNT),
   );
   if (corrupt.length > 0) {
@@ -104,14 +104,14 @@ export function autoSubs(
   };
   // Asked of everyone at once, so a gap in what the caller knows fails every time, not only on
   // the day a sub is needed.
-  for (const starter of saved.starters) playOf(starter.playerCode);
-  for (const playerCode of saved.bench) {
+  for (const starter of asSaved.starters) playOf(starter.playerCode);
+  for (const playerCode of asSaved.bench) {
     playOf(playerCode);
     positionsOf(weighed, playerCode);
   }
 
-  const absentees = saved.starters.filter((starter) => playOf(starter.playerCode) === "didNotPlay").sort(byPitchOrder);
-  let current = saved;
+  const absentees = asSaved.starters.filter((starter) => playOf(starter.playerCode) === "didNotPlay").sort(byPitchOrder);
+  let current = asSaved;
   const substitutions: Substitution[] = [];
   const unfilled: PlayerCode[] = [];
   for (const absentee of absentees) {

@@ -97,7 +97,7 @@ describe("a slot left empty by a starter who left the squad", () => {
     expect(result.lineup.bench).toEqual([STRIKER]);
   });
 
-  test("is data gone wrong if someone still stands in it, or he is still in the lineup", () => {
+  test("is data gone wrong if someone still stands in it, or the man who left it is still in the lineup", () => {
     const { lineup, positions } = withBench(["ST"]);
     const { held, vacated } = leftSquad(lineup, STRIKER);
     // Vacated, yet the striker still stands in it; vacated by a man still on the bench.
