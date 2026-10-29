@@ -1,6 +1,6 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { ColumnHeads } from "../ui/ColumnHeads";
-import { Loading, Notice, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { Loading, Notice, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { Vidiprinter } from "../matchup/Vidiprinter";
 import { PositionCode } from "../ui/PositionCodes";
 import type { MatchMan, MatchPage as Match, PremierLeagueSeam } from "./seam";
@@ -43,7 +43,7 @@ import {
 export function MatchPage({ league, seam, fixtureCode }: { league: LeagueSummary; seam: PremierLeagueSeam; fixtureCode: number }) {
   const match = seam.useMatch(league.leagueId, fixtureCode);
   return (
-    <PageSection title={MATCH_TITLE} className="flex max-w-6xl flex-col gap-2">
+    <PageSection title={MATCH_TITLE} className={PAGE_STACK}>
       {match === undefined ? (
         <Loading>{loadingMatchWords}</Loading>
       ) : match === null ? (
@@ -81,7 +81,7 @@ function Scoreboard({ match: { home, away, score, kickoff, gameweek } }: { match
   const goals = goalsWords(score);
   return (
     <section aria-label={SCORE_LABEL} className="bg-panel shadow-bevel-panel">
-      <p className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-3 px-3 pt-2 text-lead font-bold sm:text-title">
+      <p className="grid grid-cols-sides items-baseline gap-3 px-3 pt-2 text-lead font-bold sm:text-title">
         <span className="text-right">{home.name}</span>
         {goals === null ? <span className="text-muted">{versusWords}</span> : <span className="whitespace-nowrap text-figure">{goals}</span>}
         <span>{away.name}</span>

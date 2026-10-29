@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { PositionCode } from "../ui/PositionCodes";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
-import { Panel, PanelNote } from "../ui/Panel";
+import { LiveNote, Panel, PanelNote } from "../ui/Panel";
 import type { PlayedMatch, PlayerCard } from "./seam";
 import { MatchName } from "./MatchName";
 import {
@@ -41,7 +41,7 @@ export function Season({ card }: { card: PlayerCard }) {
           {[...new Set(card.matches.map((match) => match.points.scoredAs))].map((scoredAs) => (
             <PanelNote key={scoredAs}>{pricedNotes[scoredAs]}</PanelNote>
           ))}
-          {card.matches.some((match) => match.provisional) && <p className="px-3 py-2 text-derived">{provisionalWords}</p>}
+          {card.matches.some((match) => match.provisional) && <LiveNote>{provisionalWords}</LiveNote>}
           <table className="w-full border-collapse">
             <ColumnHeads columns={columns} shown={COLUMNS} classOf={cellClasses} />
             {card.matches.map((match) => (

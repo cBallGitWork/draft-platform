@@ -1,4 +1,4 @@
-import { Loading } from "../ui/Panel";
+import { Loading, PANEL_COLUMNS } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import { AdminHeader } from "./AdminHeader";
 import { FindPlayer } from "./FindPositions";
@@ -18,7 +18,7 @@ export function AdminPage({ seam }: { seam: AdminSeam }) {
       {queue === undefined ? (
         <Loading>{loadingWords}</Loading>
       ) : (
-        <div className="grid items-start gap-2 lg:grid-cols-2">
+        <div className={PANEL_COLUMNS}>
           <div className="flex flex-col gap-2">
             <NewSignings queue={queue} seam={seam} change={change} />
             <Waiting queue={queue} seam={seam} change={change} />

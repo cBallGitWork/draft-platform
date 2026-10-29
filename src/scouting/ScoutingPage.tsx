@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { COMPARED_PLAYERS } from "../../convex/scouting/comparedPlayers";
 import type { CatalogueStat } from "../../convex/scoring/statCatalogue";
-import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import { ComparePanel, type PickedPlayer } from "./ComparePanel";
 import { Filters } from "./Filters";
@@ -40,7 +40,7 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
     else if (sort.by === "stat") setSort(OPENING_SORT);
   };
   return (
-    <PageSection title={SCOUTING_TITLE} className="flex max-w-6xl flex-col gap-2">
+    <PageSection title={SCOUTING_TITLE} className={PAGE_STACK}>
       {picked.length > 0 && <ComparePanel picked={picked} comparison={comparison} clear={() => setPicked([])} />}
       <ShortlistPanel leagueId={league.leagueId} seam={seam} />
       <Panel title={PLAYERS_TITLE}>

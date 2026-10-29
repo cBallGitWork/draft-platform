@@ -76,6 +76,13 @@
   --grid-template-columns-match-row: 3.5rem minmax(0, 1fr) 3.5rem minmax(0, 1fr);
   --grid-template-columns-fixture-row: minmax(0, 1fr) 5rem minmax(0, 1fr);
   --grid-template-columns-next-fixture: 6rem 1fr auto;
+  /* Two sides and what stands between them, a date and its line, the home page's three columns,
+     the player card's two columns, and a label beside its value */
+  --grid-template-columns-sides: minmax(0, 1fr) auto minmax(0, 1fr);
+  --grid-template-columns-dated-row: auto minmax(0, 1fr);
+  --grid-template-columns-home: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 2fr);
+  --grid-template-columns-card: 2fr 3fr;
+  --grid-template-columns-facts: auto 1fr;
   --radius-circle: 50%; /* the centre circle only: everything else is square (plate.md, Shape) */
 
   --text-data: 13px;

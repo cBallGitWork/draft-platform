@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { Loading, Notice, PANEL_BODY, PANEL_LIST_ROW, PageSection, Panel, PanelNote, Problem } from "../ui/Panel";
+import { Loading, Notice, PageSection, Panel, PANEL_BODY, PANEL_COLUMNS, PANEL_LIST_ROW, PanelNote, Problem } from "../ui/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { playerCardPath } from "../playerCard/paths";
 import { useChange, type Changing } from "../shared/useChange";
@@ -54,7 +54,7 @@ export function SquadsPage({ league, seam }: { league: LeagueSummary; seam: Squa
       {squads === undefined ? (
         <Loading>{loadingWords}</Loading>
       ) : (
-        <div className="grid items-start gap-2 lg:grid-cols-2">
+        <div className={PANEL_COLUMNS}>
           <FindPlayer league={league} seam={seam} squads={squads} change={change} />
           <div className="flex flex-col gap-2">
             {squads.map((squad) => (
