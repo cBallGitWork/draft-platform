@@ -1,6 +1,6 @@
 import { ConvexError } from "convex/values";
 import { describe, expect, test, vi } from "vitest";
-import type { StoredScoringSet } from "../../../convex/rules/leagueRulesShape";
+import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { checkOwnStatsAgainstCatalogue } from "../../../convex/scoring/ownStats";
 import { siteScoringRefusals } from "../../../convex/scoring/siteScoring";
 import { expectRefused } from "../../support/convex/test.harness";

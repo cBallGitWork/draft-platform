@@ -1,6 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
-import { cellShape } from "../rules/leagueRulesShape";
+import { cellShape } from "../lineup/pitchShape";
 
 // Each team's lineup (#8, spec/05): one row for each gameweek it was saved from, which
 // lineup/lineups.ts writes and reads.

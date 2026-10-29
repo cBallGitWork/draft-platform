@@ -2,7 +2,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { isGameweekUsed } from "../gameweeks/usedGameweeks";
-import type { StoredScoringSet } from "../rules/leagueRulesShape";
+import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { readOnce } from "../shared/readOnce";
