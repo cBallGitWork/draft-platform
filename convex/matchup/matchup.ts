@@ -31,6 +31,7 @@ import { isWhole } from "../stats/matchRecords";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { game, matchup, type MatchupCommentary, type MatchupSide, type MatchupSlot, type SlotStatus } from "./matchupShape";
 import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vidiprinter";
+import { readOnce } from "../shared/readOnce";
 
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
 // screen): both lineups slot by slot, each player's points and whether his match is yet to come,
@@ -119,9 +120,16 @@ async function gameOf(
  *  say), the slots may no longer add up to it; and a gameweek whose slots can't be worked out is
  *  unscored here even while the table shows its stored totals. */
 class SideScorer {
-  private readonly names = new Map<PlayerCode, Promise<string>>();
-  private readonly scores = new Map<number, Promise<Doc<"matchScores"> | null>>();
-  private readonly scored = new Map<TeamId, Promise<TeamInGameweek | null>>();
+  /** The team's gameweek, worked out once for its side and the commentary. */
+  private readonly inGameweek = readOnce((teamId: TeamId) => teamInGameweek(this.reads, this.inputs, teamId));
+  /** A player in a lineup the football sync doesn't hold is data gone wrong, and throws. */
+  private readonly name = readOnce((playerCode: PlayerCode) =>
+    playerByCode(this.ctx, playerCode).then((player) => {
+      if (player === null) throw new Error(`player ${playerCode} is in a lineup but the football sync doesn't hold him`);
+      return player.name;
+    }),
+  );
+  private readonly score = readOnce((fixtureCode: number) => scoreOf(this.ctx, fixtureCode));
 
   constructor(
     private readonly ctx: QueryCtx,
@@ -139,16 +147,6 @@ class SideScorer {
       this.stored.get(teamId) ??
       (scored === null ? { points: 0, provisional: false } : { points: scored.team.total, provisional: scored.team.provisional })
     );
-  }
-
-  /** The team's gameweek, worked out once for its side and the commentary. */
-  private inGameweek(teamId: TeamId): Promise<TeamInGameweek | null> {
-    let scored = this.scored.get(teamId);
-    if (scored === undefined) {
-      scored = teamInGameweek(this.reads, this.inputs, teamId);
-      this.scored.set(teamId, scored);
-    }
-    return scored;
   }
 
   async team(teamId: TeamId, teamName: string): Promise<MatchupSide> {
@@ -229,28 +227,6 @@ class SideScorer {
       status: await this.status(matchesOf.get(playerCode) ?? []),
       autoSub,
     };
-  }
-
-  /** A player in a lineup the football sync doesn't hold is data gone wrong, and throws. */
-  private name(playerCode: PlayerCode): Promise<string> {
-    let name = this.names.get(playerCode);
-    if (name === undefined) {
-      name = playerByCode(this.ctx, playerCode).then((player) => {
-        if (player === null) throw new Error(`player ${playerCode} is in a lineup but the football sync doesn't hold him`);
-        return player.name;
-      });
-      this.names.set(playerCode, name);
-    }
-    return name;
-  }
-
-  private score(fixtureCode: number) {
-    let score = this.scores.get(fixtureCode);
-    if (score === undefined) {
-      score = scoreOf(this.ctx, fixtureCode);
-      this.scores.set(fixtureCode, score);
-    }
-    return score;
   }
 
   /** On while any of his matches is; over once all are (at full time, though his points stay

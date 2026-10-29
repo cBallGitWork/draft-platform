@@ -16,6 +16,7 @@ import { statusOf } from "../stats/matchStats";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { gameweekFixtures } from "../shared/fixtures";
 import { playerByCode } from "../shared/players";
+import { readOnce } from "../shared/readOnce";
 
 // One team's points in one gameweek (#29; spec/05, Auto-subs; spec/07): its lineup, auto-subs from
 // who played, then scoreTeam under the site's scoring set in force that gameweek. The table
@@ -59,19 +60,11 @@ export async function leagueReads(ctx: QueryCtx, league: Doc<"leagues">, season:
 /** Each player's club and positions, read once however many gameweeks ask. A player the football
  *  sync doesn't hold is data gone wrong, and throws. */
 function playerReader(ctx: QueryCtx, how: HowPositionsCount) {
-  const read = new Map<PlayerCode, Promise<{ clubCode: number; positions: Position[] }>>();
-  return (code: PlayerCode) => {
-    let player = read.get(code);
-    if (player === undefined) {
-      player = (async () => {
-        const held = await playerByCode(ctx, code);
-        if (held === null) throw new Error(`player ${code} is in a lineup but the football sync doesn't hold him`);
-        return { clubCode: held.clubCode, positions: await currentPositions(ctx, code, how) };
-      })();
-      read.set(code, player);
-    }
-    return player;
-  };
+  return readOnce(async (code: PlayerCode): Promise<{ clubCode: number; positions: Position[] }> => {
+    const held = await playerByCode(ctx, code);
+    if (held === null) throw new Error(`player ${code} is in a lineup but the football sync doesn't hold him`);
+    return { clubCode: held.clubCode, positions: await currentPositions(ctx, code, how) };
+  });
 }
 
 /** What scoring the `teamIds` in one gameweek reads: the site's set in force then, checked, the
