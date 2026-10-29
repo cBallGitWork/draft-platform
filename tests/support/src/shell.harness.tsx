@@ -10,6 +10,7 @@ import type { LetterSummary } from "../../../convex/mail/mail";
 import { switchableLeagues } from "../../../convex/leagues/lastLeague";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { fakeAdmin } from "./admin.harness";
+import { A_LEAGUE_ID } from "./convexReact.harness";
 import { fakeFeedback } from "./feedback.harness";
 import type { AuthActions, Session } from "../../../src/signIn/seam";
 import type { TopBarState } from "../../../src/frame/topBar/topBarState";
@@ -44,7 +45,7 @@ const withPowers = (leagues: readonly LeagueSummary[], admin: boolean) =>
 
 /** A league as signIn/account:signedInAs sends it, for `manager`, who runs Team 1 in it. */
 export const league: LeagueSummary = {
-  leagueId: "league-1" as Id<"leagues">,
+  leagueId: A_LEAGUE_ID,
   name: "Tim Hortons Pro League",
   commissionerEmail: "commish@example.com",
   roles: ["manager"],

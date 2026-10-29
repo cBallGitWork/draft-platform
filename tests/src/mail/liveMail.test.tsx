@@ -12,6 +12,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { MAIL_PATH } from "../../../src/frame/menu";
 import { useLiveMail } from "../../../src/mail/liveMail";
 import { sendFailedWords } from "../../../src/mail/words";
+import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 
 const convex = vi.hoisted(() => ({
   signedIn: true,
@@ -52,7 +53,7 @@ const UNREAD_QUERY = getFunctionName(api.mail.mail.unreadCount);
 const live = () => renderHook(useLiveMail).result.current;
 /** The letters as Mail reads them, through the seam's hook. */
 const lettersOnMail = () => renderHook(live().mail.useLetters).result.current;
-const letter = { leagueId: "league-1" as Id<"leagues">, subject: "Hi", body: "Hello" };
+const letter = { leagueId: A_LEAGUE_ID, subject: "Hi", body: "Hello" };
 
 test("unread letters are the top bar's count, and Continue goes to Mail", () => {
   convex.unread = 3;
