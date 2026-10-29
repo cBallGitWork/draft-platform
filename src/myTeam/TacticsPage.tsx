@@ -117,10 +117,15 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     return () => document.removeEventListener(KEY_DOWN, putBack);
   }, [pickedCode]);
 
-  const change = (next: DraftLineup, moved: number, focus: readonly string[] = [markedBy("player", moved)]) => {
+  /** Any edit: the lineup the saved line or the refusal spoke of no longer stands, so both go (#622). */
+  const edit = (next: DraftLineup) => {
     setEdited(next);
     setPickedCode(null);
     setSavedFrom(null);
+    setProblem(null);
+  };
+  const change = (next: DraftLineup, moved: number, focus: readonly string[] = [markedBy("player", moved)]) => {
+    edit(next);
     setFocusOn(focus);
   };
   const moving: Moving = {
@@ -142,9 +147,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     const preset = tactics.presets.find((each) => each.name === name);
     if (preset === undefined) return;
     setShape(name);
-    setEdited(reshaped(draft, preset.cells));
-    setPickedCode(null);
-    setSavedFrom(null);
+    edit(reshaped(draft, preset.cells));
   };
   /** Up, down, or a drop on a bench row: the player at that place in the bench order. Up or Down
    *  keeps the focus on the button pressed. */
