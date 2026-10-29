@@ -215,11 +215,11 @@ describe("the squad (#341)", () => {
   it.each([
     ["the maximum", () => fill(squadMaximumLabel, ""), blankSquadMaximumWords],
     ["an area's minimum", () => fill(areaMinimumLabel("midfield"), ""), blankAreaMinimumWords("midfield")],
-    ["the club maximum, once turned on", () => userEvent.click(clubTick()), blankClubMaximumWords],
-  ])("refuses %s left without a number itself, and asks the server nothing", async (_, leaveBlank, words) => {
+    ["the club maximum, once turned on,", () => userEvent.click(clubTick()), blankClubMaximumWords],
+  ])("with %s left without a number, Save is offered, refuses it itself, and asks the server nothing (#623)", async (_, leaveBlank, words) => {
     const app = await opened();
     await leaveBlank();
-    await fill(gamesLabel, "2");
+    expect(screen.queryByText(unchangedWords)).toBeNull();
     await save();
 
     expect((await screen.findByRole("alert")).textContent).toBe(words);

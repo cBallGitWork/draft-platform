@@ -8,6 +8,7 @@ import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { sortedJson } from "../../convex/shared/sortedJson";
 import { useChange } from "../useChange";
+import { holdsBlank } from "./blank";
 
 /** The rules row a part was read from. */
 export type Revision = Id<"leagueRules">;
@@ -53,7 +54,7 @@ export function useRulesDraft<Part, Rev = Revision>(view: RulesView<Part, Rev>, 
   return {
     draft,
     changesFrom: view.changesFrom,
-    unchanged: sortedJson(draft) === sortedJson(view.part),
+    unchanged: !holdsBlank(draft) && sortedJson(draft) === sortedJson(view.part),
     overtaken: revision !== view.revision,
     savedFrom,
     busy: saving.busy,
