@@ -10,8 +10,8 @@ approve (#454).
 - Stat corrections: points stay open for a fixed window after a match, then lock. The window
   is a platform setting, not a league rule.
 - A player in a double gameweek scores per the league's rule (see [3. League rules](03-league-rules.md)).
-- A team that has never saved a lineup scores 0 for the gameweek, and counts as 0 in the league's
-  average (Craig, 29 Oct 2026).
+- A team always has a lineup, carried over week to week, as in FPL or Fantrax: there is no "no
+  lineup" state (Craig, 29 Oct 2026).
 - Once a gameweek is final, every screen shows its saved total, the one the table uses, even if a
   later data fix would work it out differently (Craig, 29 Oct 2026).
 
