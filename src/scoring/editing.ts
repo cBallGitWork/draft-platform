@@ -181,5 +181,5 @@ export const newRule = (stat: string): Rule => ({ shape: "perAction", stat, valu
 /** The index of the first rule holding a box left without a number, or -1: the server would
  *  refuse it as data of the wrong shape, never with a reason the commissioner can act on. */
 export function firstBlankRule(scoring: Scoring): number {
-  return scoring.rules.findIndex((rule) => holdsBlank(rule));
+  return scoring.rules.findIndex(holdsBlank);
 }

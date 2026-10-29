@@ -8,8 +8,9 @@ import { useRulesDraft, type RulesView } from "../../../src/rules/rulesDraft";
 type Part = { limit: number | null; nested: { points: number | null } };
 
 const SAVED: Part = { limit: null, nested: { points: null } };
-const VIEW: RulesView<Part, string> = { part: SAVED, revision: "rev", changesFrom: 3 };
-const drafted = () => renderHook(() => useRulesDraft(VIEW, () => Promise.resolve(3)));
+const CHANGES_FROM = 3;
+const VIEW: RulesView<Part, string> = { part: SAVED, revision: "rev", changesFrom: CHANGES_FROM };
+const drafted = () => renderHook(() => useRulesDraft(VIEW, () => Promise.resolve(CHANGES_FROM)));
 
 describe("whether the draft has changed", () => {
   it("is unchanged as it opens, and again once the edit is the saved part", () => {

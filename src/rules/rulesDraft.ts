@@ -54,7 +54,6 @@ export function useRulesDraft<Part, Rev = Revision>(view: RulesView<Part, Rev>, 
   return {
     draft,
     changesFrom: view.changesFrom,
-    // A blank box is a change even where the saved part holds null: JSON writes NaN as null.
     unchanged: !holdsBlank(draft) && sortedJson(draft) === sortedJson(view.part),
     overtaken: revision !== view.revision,
     savedFrom,
