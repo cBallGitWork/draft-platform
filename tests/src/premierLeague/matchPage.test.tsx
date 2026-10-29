@@ -10,7 +10,7 @@ import { HOUR_MS } from "../../../convex/shared/time";
 import { MATCHUP_PATH, PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
 import { statusLabels, statusWords } from "../../../src/matchup/words";
 import { matchPath } from "../../../src/premierLeague/paths";
-import type { MatchMan, MatchPage } from "../../../src/premierLeague/seam";
+import type { MatchMan, MatchPageData } from "../../../src/premierLeague/seam";
 import {
   cameOnWords,
   commentaryDelayedWords,
@@ -68,7 +68,7 @@ const MEN: MatchMan[] = [
   man(6, "Palmer", "away", { ownerTeamName: "Team 2", points: 7 }),
 ];
 
-const matchOf = (more: Partial<MatchPage> = {}): MatchPage => ({
+const matchOf = (more: Partial<MatchPageData> = {}): MatchPageData => ({
   fixtureCode: FIXTURE,
   gameweek: 9,
   kickoff: Date.now() - HOUR_MS,

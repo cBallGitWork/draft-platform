@@ -18,11 +18,11 @@ import {
   withStack,
   withValue,
   type PerCount,
-  type PointsLimit,
   type PriceKey,
   type Pricing,
   type Rule,
 } from "./editing";
+import type { PointsLimit } from "../../convex/scoring/scoringSet";
 import { NumberBox } from "../rules/NumberBox";
 import { AREA_WORDS } from "../shared/words";
 import {

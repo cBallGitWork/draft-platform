@@ -10,7 +10,7 @@ import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
 import { squadsPath } from "../../../src/squads/paths";
 import type { SquadsData } from "../../support/src/squads.harness";
-import { teamSquad } from "../../support/src/squads.harness";
+import { squadWithWarnings } from "../../support/src/squads.harness";
 import { descriptionOf } from "../../support/src/describedBy";
 import {
   assignLabel,
@@ -34,7 +34,7 @@ import {
 const PAGE = squadsPath(league.leagueId);
 const saka = { code: 1001, name: "Saka", clubShortName: "ARS", gone: false };
 const TWO_TEAMS: SquadsData = {
-  squads: [teamSquad("team-1", "Team 1", [saka]), teamSquad("team-2", "Team 2", [], [{ kind: "underMinimum", players: 0, minimum: 11 }])],
+  squads: [squadWithWarnings("team-1", "Team 1", [saka]), squadWithWarnings("team-2", "Team 2", [], [{ kind: "underMinimum", players: 0, minimum: 11 }])],
   found: [
     { code: 1001, name: "Saka", fullName: "Bukayo Saka", teamName: "Team 1" },
     { code: 2002, name: "Isak", fullName: "Alexander Isak", teamName: null },
@@ -72,7 +72,7 @@ describe("reaching the squads", () => {
 
 describe("each team's squad", () => {
   it("lists its players, says one who has left is not available, and warns of a limit it breaks", async () => {
-    openSquads({ squads: [teamSquad("team-1", "Team 1", [saka, { code: 5, name: "Gone", clubShortName: "BRE", gone: true }]), ...TWO_TEAMS.squads!.slice(1)] });
+    openSquads({ squads: [squadWithWarnings("team-1", "Team 1", [saka, { code: 5, name: "Gone", clubShortName: "BRE", gone: true }]), ...TWO_TEAMS.squads!.slice(1)] });
 
     const team1 = await screen.findByRole("region", { name: "Team 1" });
     expect(within(team1).getByText("2 players")).toBeTruthy();
@@ -82,7 +82,7 @@ describe("each team's squad", () => {
   });
 
   it("warns of an area short of the league's minimum, naming the area (#317)", async () => {
-    openSquads({ squads: [teamSquad("team-1", "Team 1", [saka], [{ kind: "underAreaMinimum", area: "defensiveMidfield", players: 1, minimum: 2 }])] });
+    openSquads({ squads: [squadWithWarnings("team-1", "Team 1", [saka], [{ kind: "underAreaMinimum", area: "defensiveMidfield", players: 1, minimum: 2 }])] });
 
     const team1 = await screen.findByRole("region", { name: "Team 1" });
     expect(within(team1).getByRole("status").textContent).toBe("Defensive midfield: 1 short of the league's least of 2.");

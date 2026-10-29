@@ -3,7 +3,7 @@
 import { act } from "@testing-library/react";
 import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
-import type { FirstKickoff, GameweekMatch, MatchPage, PlStandings, PremierLeagueSeam } from "../../../src/premierLeague/seam";
+import type { FirstKickoff, GameweekMatch, MatchPageData, PlStandings, PremierLeagueSeam } from "../../../src/premierLeague/seam";
 
 export { ARSENAL, CHELSEA } from "../convex/footballRows.harness";
 export const FOREST = { code: 17, name: "Nottingham Forest", shortName: "NFO" };
@@ -33,7 +33,7 @@ export type PremierLeagueData = {
   matches?: Record<number, GameweekMatch[]>;
   standings?: PlStandings;
   /** The match page's match, whichever fixture is asked for; null for none held. */
-  match?: MatchPage | null;
+  match?: MatchPageData | null;
   loading?: boolean;
 };
 

@@ -2,19 +2,19 @@
 // search that finds two men, one free.
 
 import { previewSays } from "../app/preview";
-import type { SquadsSeam, TeamSquad } from "./seam";
+import type { SquadsSeam, SquadWithWarnings } from "./seam";
 
 const player = (code: number, name: string, clubShortName: string, gone = false) => ({ code, name, clubShortName, gone });
 
-const squads: TeamSquad[] = [
+const squads: SquadWithWarnings[] = [
   {
-    teamId: "preview-team-1" as TeamSquad["teamId"],
+    teamId: "preview-team-1" as SquadWithWarnings["teamId"],
     teamName: "Team 1",
     players: [player(1, "Saka", "ARS"), player(2, "Palmer", "CHE"), player(3, "Salah", "LIV"), player(4, "Gone", "BRE", true)],
     warnings: [],
   },
   {
-    teamId: "preview-team-2" as TeamSquad["teamId"],
+    teamId: "preview-team-2" as SquadWithWarnings["teamId"],
     teamName: "Saka Potatoes",
     players: Array.from({ length: 15 }, (_, i) => player(100 + i, `Player ${i + 1}`, ["ARS", "CHE", "LIV"][i % 3])),
     warnings: [{ kind: "overMaximum", players: 15, maximum: 14 }],

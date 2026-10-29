@@ -42,7 +42,7 @@ import { gameweekWords, versusWords } from "../../../src/shared/words";
 import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";
 import type { PlayerCardData } from "../../support/src/playerCard.harness";
 import { commissioned, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
-import { teamSquad } from "../../support/src/squads.harness";
+import { squadWithWarnings } from "../../support/src/squads.harness";
 
 const category = (stat: string, name: string, points: number | null) => ({ stat, name, points });
 const PRICED: PlayedMatch = {
@@ -104,7 +104,7 @@ describe("reaching it", () => {
   it("a player's name on the squads page opens his card, and Back returns there", async () => {
     const squads = squadsPath(league.leagueId);
     const app = openApp(squads, managerIn(commissioned), {
-      squads: { squads: [teamSquad("team-1", "Team 1", [{ code: SAKA.code, name: "Saka", clubShortName: "ARS", gone: false }])] },
+      squads: { squads: [squadWithWarnings("team-1", "Team 1", [{ code: SAKA.code, name: "Saka", clubShortName: "ARS", gone: false }])] },
       playerCard: HELD,
     });
     await userEvent.click(await screen.findByRole("link", { name: "Saka" }));

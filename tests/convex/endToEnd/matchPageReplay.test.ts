@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import type { MatchPage } from "../../../convex/match/matchPage";
+import type { MatchPageData } from "../../../convex/match/matchPage";
 import { inTenths } from "../../../convex/scoring/scoringSet";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { recordedGw6 } from "../../support/recorded/gw6.payloads";
@@ -18,14 +18,14 @@ import { ANN, DEADLINE, ELEVENS, footballSyncAt, leagueWorld, liveTickAt, miniBe
 const HALF_AN_HOUR_BEFORE = KICKOFF - LINEUPS_OUT_BEFORE_KICKOFF_MS / 2;
 const FIRST_HALF = 30;
 
-async function pageAs(league: MiniBeta, email: string): Promise<MatchPage> {
+async function pageAs(league: MiniBeta, email: string): Promise<MatchPageData> {
   const page = await (await actingAs(league.t, email)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, fixtureCode: HULL_EVERTON });
   if (page === null) throw new Error("the match page found no match");
   return page;
 }
 
 /** Ann's eleven as the page has them: each with her team's name, and the points that count. */
-function annsMen(page: MatchPage, teamName: string) {
+function annsMen(page: MatchPageData, teamName: string) {
   const eleven = new Set(ELEVENS[ANN].map((man) => man.playerCode));
   const men = page.men.filter((man) => eleven.has(man.playerCode));
   expect(men).toHaveLength(eleven.size);
