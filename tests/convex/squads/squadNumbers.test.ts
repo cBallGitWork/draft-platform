@@ -12,7 +12,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // Squad numbers (#13, spec/05 Squad numbers; Craig, 26 Oct 2026): a manager numbers his own
 // players, 1 to 99, two alike if he likes, and a player who moves starts afresh.
 
-const [ANN, BOB, , , OUTSIDER] = MANAGERS;
+const [ANN, BOB, , , EVE] = MANAGERS;
 const SAKA = 1001;
 const RICE = 1002;
 
@@ -69,7 +69,7 @@ describe("a manager numbers his players", () => {
 describe("only his own", () => {
   test("another manager can't number his players, and someone with no team can't number any", async () => {
     await expectRefused(setAs(BOB, SAKA, 9), squadNumberRefusals.notInSquad);
-    await expectRefused(setAs(OUTSIDER, SAKA, 9), refusals.runsNoTeam);
+    await expectRefused(setAs(EVE, SAKA, 9), refusals.runsNoTeam);
     await expectRefused(setAs(COMMISSIONER, SAKA, 9), refusals.runsNoTeam);
     expect(await numberOf(SAKA)).toBeNull();
   });

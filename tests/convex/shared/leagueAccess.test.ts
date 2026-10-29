@@ -7,7 +7,7 @@ import schema from "../../../convex/schema";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ANN, deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
 import { changesTo, mutationsGivenALeague, rowsToChange, type Caller } from "../../support/convex/leagueMutations.harness";
-import { COMMISSIONER, actingAs, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, OUTSIDER, actingAs, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // Every public mutation given a league refuses a signed-out caller and a signed-in outsider, and
@@ -15,7 +15,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // is Craig's call.
 
 /** Someone signed in with no part in either league. */
-const OUTSIDER = "outsider@example.com";
 
 /** The public mutations given a league that the sweeps leave out, each with why it may be. None
  *  yet: one goes here only with the reason an outsider may call it. */

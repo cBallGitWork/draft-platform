@@ -21,7 +21,7 @@ import { openingLineup, shownLineup } from "../../../src/myTeam/tactics/lineupDr
 // gameweek or before, and the squad decides who is still in it: as it is now for a gameweek not
 // begun, as it stood at the deadline for one begun (#415).
 
-const [ANN, BOB, , , OUTSIDER] = MANAGERS;
+const [ANN, BOB, , , EVE] = MANAGERS;
 const NEXT = 9;
 /** A player in the Premier League on no team in the league. */
 const FREE_AGENT = 999;
@@ -180,7 +180,7 @@ describe("who may save and read", () => {
   });
 
   test("someone running no team in the league is refused, its commissioner included", async () => {
-    for (const email of [OUTSIDER, COMMISSIONER]) {
+    for (const email of [EVE, COMMISSIONER]) {
       const person = await as(email);
       await expectRefused(person.save(FOUR_FOUR_TWO), refusals.runsNoTeam);
     }

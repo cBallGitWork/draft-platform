@@ -3,7 +3,6 @@ import { internal } from "../../../convex/_generated/api";
 import { FPL_BOOTSTRAP_URL, fplLiveUrl, plPlayerStatsUrl } from "../../../convex/football/football";
 import { statValue } from "../../../convex/stats/matchRecords";
 import {
-  elapse,
   FULL_TIME_READ,
   GAMEWEEK,
   HULL_EVERTON,
@@ -17,7 +16,7 @@ import {
 } from "../../support/convex/matchStats.harness";
 import type { RawPlFixture } from "../../../convex/football/premierLeague/premierLeague";
 import { fplElementsWithout, FULL_STATS, MATCH, recordedGw6 } from "../../support/recorded/gw6.payloads";
-import { freshConvex, refusedError, silenceConsoleError } from "../../support/convex/test.harness";
+import { elapse, freshConvex, refusedError, silenceConsoleError } from "../../support/convex/test.harness";
 import { HOUR_MS } from "../../../convex/shared/time";
 
 beforeEach(() => vi.useFakeTimers());

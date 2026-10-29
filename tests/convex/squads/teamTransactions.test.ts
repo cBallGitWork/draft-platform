@@ -6,7 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { TRANSACTIONS_READ_OF_EACH_KIND } from "../../../convex/squads/teamTransactions";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadMoves } from "../../support/convex/lineupSquad.harness";
@@ -15,7 +15,6 @@ import { squadMoves } from "../../support/convex/lineupSquad.harness";
 // first, from the league's events, which Mail files letters from.
 
 const [ANN, BOB] = MANAGERS;
-const STRANGER = "stranger@example.com";
 const SAKA = 1001;
 const RICE = 1002;
 
@@ -41,7 +40,7 @@ const read = async (email = ANN) => (await actingAs(t, email)).query(api.squads.
 const kindsOf = async (email = ANN) => (await read(email)).transactions.map(({ kind, playerName, otherTeamName }) => [kind, playerName, otherTeamName]);
 
 describe("who may read it", () => {
-  test.each([COMMISSIONER, STRANGER])("%s, running no team in it, is refused", async (email) => {
+  test.each([COMMISSIONER, OUTSIDER])("%s, running no team in it, is refused", async (email) => {
     await expectRefused(read(email), refusals.runsNoTeam);
   });
 });

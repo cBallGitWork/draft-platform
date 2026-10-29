@@ -23,7 +23,7 @@ import {
   recordedLiveSheets,
   recordedLiveTeamStats,
 } from "../../support/recorded/live.payloads";
-import { fakeFetch, freshConvex, silenceConsoleError } from "../../support/convex/test.harness";
+import { elapse, fakeFetch, freshConvex, silenceConsoleError } from "../../support/convex/test.harness";
 import { MINUTE_MS } from "../../../convex/shared/time";
 
 /** Answers each feed as it answered on 17 Oct 2026, cut down; `refuse` makes URLs containing it answer 403. */
@@ -47,8 +47,7 @@ test("a check scheduled for later runs only when its time comes, and records eac
 
   const start = Date.now();
   await t.mutation(internal.football.feeds.checkLater, { minutes: 10 });
-  vi.advanceTimersByTime(9 * MINUTE_MS);
-  await t.finishInProgressScheduledFunctions();
+  await elapse(t, 9 * MINUTE_MS);
   expect(await t.query(internal.football.feeds.latest, {})).toEqual([]);
 
   vi.advanceTimersByTime(MINUTE_MS);

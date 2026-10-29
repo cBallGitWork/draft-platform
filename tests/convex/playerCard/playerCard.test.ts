@@ -6,10 +6,10 @@ import type { Position } from "../../../convex/positions/positionTables";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { MANAGERS, OUTSIDER, actingAs, teamName, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { EXAMPLE_SET } from "../../support/convex/scoring.example";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
-import { ARSENAL, CHELSEA, COVENTRY, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
+import { ARSENAL, CHELSEA, COVENTRY, GONE, completeRecord, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -18,7 +18,6 @@ import { expectRefused } from "../../support/convex/test.harness";
 // and role where his team started him, and his club's next fixtures. The site plays EXAMPLE_SET throughout.
 
 const [ANN, BOB] = MANAGERS;
-const OUTSIDER = "outsider@example.com";
 
 const SAKA = {
   code: 1001,
@@ -31,7 +30,6 @@ const SAKA = {
 };
 /** A centre-back FPL has no doubt about, who played for Arsenal in gameweek 1 and has since joined Chelsea. */
 const MOVER = { code: 1002, name: "Mover", fullName: "Moving Man", clubCode: CHELSEA.code, news: "", chanceOfPlaying: null, positions: ["CB"] as Position[] };
-const GONE = { code: 1003, name: "Gone", fullName: "Long Gone", clubCode: ARSENAL.code, positions: [] as Position[] };
 
 const NOW = Date.parse("2026-09-01T12:00:00Z");
 const fixture = (code: number, gameweek: number | null, home: number, away: number, kickoff: number | null, dropped = false) => ({
@@ -64,8 +62,7 @@ beforeEach(async () => {
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA, COVENTRY]);
     await insertPlayers(ctx, [SAKA, MOVER]);
-    const { positions: _none, ...gone } = GONE;
-    await ctx.db.insert("players", { ...gone, droppedAt: NOW });
+    await insertDroppedPlayer(ctx, GONE, NOW);
     for (const each of [ARS_COV, CHE_ARS, LAST_SEASON, COV_CHE, ...ARSENAL_AHEAD, NO_KICKOFF_YET]) await ctx.db.insert("fixtures", each);
     await holdSiteScoring(ctx, { scoring: structuredClone(EXAMPLE_SET) as StoredScoringSet, kind: "fix", season: 2025, number: 1, at: 0 });
     await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: SAKA.code });
@@ -84,7 +81,6 @@ beforeEach(async () => {
 });
 
 const cardAs = async (email: string, playerCode: number) => (await actingAs(t, email)).query(api.playerCard.playerCard.card, { leagueId, playerCode, now: NOW });
-const teamName = (teamId: Id<"teams">) => t.run(async (ctx) => (await ctx.db.get("teams", teamId))!.name);
 
 test("the card names him, his club, his positions, his owner in the league and FPL's news", async () => {
   expect(await cardAs(BOB, SAKA.code)).toMatchObject({
@@ -94,7 +90,7 @@ test("the card names him, his club, his positions, his owner in the league and F
     club: ARSENAL,
     gone: false,
     positions: ["W"],
-    ownerTeamName: await teamName(teams[0]),
+    ownerTeamName: await teamName(t, teams[0]),
     news: SAKA.news,
     chanceOfPlaying: SAKA.chanceOfPlaying,
   });

@@ -19,7 +19,7 @@ import {
   holdTypoRule,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
-import { ADMIN, actingAs } from "../../support/convex/leagues.harness";
+import { ADMIN, OUTSIDER, actingAs } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON, HULL_EVERTON_TEAM_STATS, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 
@@ -194,5 +194,5 @@ test("a set that can't be priced says why, while the men and lines still show", 
 test("a match nobody holds is null, and someone outside the league is refused", async () => {
   const league = await matchLeague();
   expect(await matchAs(league, ANN, 1)).toBeNull();
-  await expect(matchAs(league, "stranger@example.com")).rejects.toThrow();
+  await expect(matchAs(league, OUTSIDER)).rejects.toThrow();
 });
