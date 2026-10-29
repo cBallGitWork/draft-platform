@@ -6,6 +6,7 @@ import { takeAllOrThrow } from "../shared/cappedRead";
 import { isWhole, PLAYER_RECORDS_MOST, type PlayerMatchRecord } from "./matchRecords";
 import { addStats, sumStats, type Stats } from "./statTotals";
 import { readOnce } from "../shared/readOnce";
+import { groupedBy } from "../shared/groupedBy";
 
 // Each player's season totals (#373, the playerSeasonStats table): his match records added up, so
 // Scouting can sort every player by any stat with one small row a player, where adding up a
@@ -104,13 +105,10 @@ async function rebuildPlayer(ctx: MutationCtx, playerCode: number, seasonOf: (fi
     PLAYER_RECORDS_MOST,
     `More than ${PLAYER_RECORDS_MOST} match records are held for player ${playerCode}, so his totals would be cut short`,
   );
-  const bySeason = new Map<number, Stats[]>();
-  for (const record of records) {
-    const season = await seasonOf(record.fixtureCode);
-    bySeason.set(season, [...(bySeason.get(season) ?? []), countedStats(record)]);
-  }
-  for (const [season, each] of bySeason) {
-    const stats = sumStats(each);
+  const seasoned: { season: number; stats: Stats }[] = [];
+  for (const record of records) seasoned.push({ season: await seasonOf(record.fixtureCode), stats: countedStats(record) });
+  for (const [season, each] of groupedBy(seasoned, ({ season }) => season)) {
+    const stats = sumStats(each.map((one) => one.stats));
     const row = await totalsRow(ctx, season, playerCode);
     if (row !== null) await ctx.db.replace("playerSeasonStats", row._id, { season, playerCode, stats });
     else if (Object.keys(stats).length > 0) await ctx.db.insert("playerSeasonStats", { season, playerCode, stats });

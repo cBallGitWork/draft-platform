@@ -3,6 +3,7 @@ import { ALL_CELLS, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition
 import type { StoredScoringSet } from "../rules/leagueRulesShape";
 import { categoryName } from "./categories";
 import { priceFor, type Band, type Priced, type PointsLimit } from "./scoringSet";
+import { groupedBy } from "../shared/groupedBy";
 
 // What changed between two versions of the site's scoring set (spec/14, Changes and corrections:
 // the patch notes list every version's changes; #356), worked out from the stored sets, never typed
@@ -59,8 +60,8 @@ const minutesWords = (minutes: number) => `${minutes} minutes`;
 /** Positions' words grouped where alike: "5" when every position says the same, else each group,
  *  "GK: 10; FB, CB: 6". Only the positions given are named. */
 function grouped(words: ReadonlyArray<readonly [SlotPosition, string]>): string {
-  const groups = new Map<string, SlotPosition[]>();
-  for (const [position, said] of words) groups.set(said, [...(groups.get(said) ?? []), position]);
+  const alike = groupedBy(words, ([, said]) => said);
+  const groups = new Map([...alike].map(([said, each]) => [said, each.map(([position]) => position)]));
   if (groups.size === 1 && words.length === SLOT_POSITIONS.length) return [...groups.keys()][0];
   return [...groups].map(([said, positions]) => `${positions.join(", ")}: ${said}`).join("; ");
 }

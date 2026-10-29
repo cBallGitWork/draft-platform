@@ -3,7 +3,8 @@ import { api } from "../../../convex/_generated/api";
 import { rulesInGameweek } from "../../../convex/rules/rulesHistory";
 import type { StoredScoringSet } from "../../../convex/rules/leagueRulesShape";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
-import { SITE_SCORING_VERSIONS_MOST, siteScoringRefusals } from "../../../convex/scoring/siteScoring";
+import type { Doc } from "../../../convex/_generated/dataModel";
+import { setOf, SITE_SCORING_VERSIONS_MOST, siteScoringRefusals } from "../../../convex/scoring/siteScoring";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
@@ -207,4 +208,12 @@ describe.each<[string, StoredScoringSet, string]>([
 test("an own stat whose name and short code are its own is sound", async () => {
   await fixAs(ADMIN, scoringWithOwn({}));
   expect(await versions()).toBe(1);
+});
+
+describe("setOf", () => {
+  test("no version yet gives the first set; a version gives its own", () => {
+    expect(setOf(undefined)).toBe(FIRST_SCORING);
+    const scoring: StoredScoringSet = { ...FIRST_SCORING };
+    expect(setOf({ scoring } as Doc<"siteScoring">)).toBe(scoring);
+  });
 });
