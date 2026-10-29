@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import { HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_PATH, pages, SCOUTING_PATH, TABLE_PATH, TRADES_PATH } from "../../../src/frame/menu";
 import { notBuiltWords } from "../../../src/frame/words";
 import { matchPath } from "../../../src/premierLeague/paths";
-import { createShellRouter, type ShellContext } from "../../../src/router";
+import { createShellRouter, type ShellContext } from "../../../src/routes/router";
 import { frameChildren } from "../../../src/routes/frame";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 import { gameweekWords, TABLE_PAGE_TITLE } from "../../../src/table/words";

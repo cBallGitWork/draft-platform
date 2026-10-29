@@ -1,4 +1,4 @@
-// Scouting in the preview (src/preview.ts): a few players at three clubs, two of them owned, a few
+// Scouting in the preview (src/app/preview.ts): a few players at three clubs, two of them owned, a few
 // stats added up for each, filtered and sorted by the server's own rule (listOf).
 
 import type { ListedPlayer } from "../../convex/scouting/playersList";

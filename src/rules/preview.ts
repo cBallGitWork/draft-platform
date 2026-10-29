@@ -1,4 +1,4 @@
-// What the rules screens' previews (src/preview.ts) share: the rules row their part is read from,
+// What the rules screens' previews (src/app/preview.ts) share: the rules row their part is read from,
 // and the gameweek a change saved now would take effect from.
 
 import type { Revision } from "./rulesDraft";

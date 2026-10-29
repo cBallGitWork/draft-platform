@@ -1,4 +1,4 @@
-// My team's tabs in the preview (src/preview.ts): the preview manager's team in the table
+// My team's tabs in the preview (src/app/preview.ts): the preview manager's team in the table
 // preview's league, so the Fixtures tab and the table and fixtures screen show the same draw and
 // scores, a few of the commissioner's squad changes on its Transactions tab, and a squad on its
 // Squad tab.

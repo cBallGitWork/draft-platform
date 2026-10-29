@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { switchableLeagues } from "../../convex/leagues/lastLeague";
-import { leaguesToWriteFrom } from "../../src/mail/MailPage";
-import { previewNames, previewSession } from "../../src/preview";
+import { switchableLeagues } from "../../../convex/leagues/lastLeague";
+import { leaguesToWriteFrom } from "../../../src/mail/MailPage";
+import { previewNames, previewSession } from "../../../src/app/preview";
 
 /** The preview session the app reads on load, with the address bar at `search`. */
 function previewOnLoad(search: string) {

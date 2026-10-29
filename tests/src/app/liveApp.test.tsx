@@ -6,16 +6,16 @@ import userEvent from "@testing-library/user-event";
 import { ConvexError } from "convex/values";
 import { StrictMode } from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { silenceConsoleError } from "../support/console.setup";
-import { signInToJoinWords } from "../../src/joining/words";
-import { ERROR_PAGE_TITLE, readFailedWords, signOutWords, tryAgainWords } from "../../src/frame/words";
-import { READ_FAILED_LOG } from "../../src/frame/ReadFailed";
-import { LEAGUES_PATH } from "../../src/leagues/paths";
-import { LEAGUES_TITLE } from "../../src/leagues/words";
-import { LiveApp, takeLinkCode } from "../../src/liveApp";
-import { NO_CONVEX_URL } from "../../src/shared/words";
-import { SIGN_IN_PATH } from "../../src/sign-in/paths";
-import { askFailedWords, linkProblemWords, replyWords, signInWords, waitingWords } from "../../src/sign-in/words";
+import { silenceConsoleError } from "../../support/console.setup";
+import { signInToJoinWords } from "../../../src/joining/words";
+import { ERROR_PAGE_TITLE, readFailedWords, signOutWords, tryAgainWords } from "../../../src/frame/words";
+import { READ_FAILED_LOG } from "../../../src/frame/ReadFailed";
+import { LEAGUES_PATH } from "../../../src/leagues/paths";
+import { LEAGUES_TITLE } from "../../../src/leagues/words";
+import { LiveApp, takeLinkCode } from "../../../src/app/liveApp";
+import { NO_CONVEX_URL } from "../../../src/shared/words";
+import { SIGN_IN_PATH } from "../../../src/sign-in/paths";
+import { askFailedWords, linkProblemWords, replyWords, signInWords, waitingWords } from "../../../src/sign-in/words";
 
 const convex = vi.hoisted(() => ({
   auth: { isLoading: false, isAuthenticated: false },
@@ -34,7 +34,7 @@ vi.mock("convex/react", async () => {
   /** A query's fake that gives what `answer` reads, or nothing while it is skipped. */
   const unlessSkipped = (answer: () => unknown) => (args: unknown) => (args === "skip" ? undefined : answer());
   return {
-    ...(await import("../support/src/convexReact.harness")).fakeConvexReact({
+    ...(await import("../../support/src/convexReact.harness")).fakeConvexReact({
       queries: {
         "signIn/account:signedInAs": unlessSkipped(() => convex.account),
         "mail/mail:unreadCount": unlessSkipped(() => {

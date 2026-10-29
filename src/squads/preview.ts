@@ -1,7 +1,7 @@
-// The squads screen in the preview (src/preview.ts): two teams, one over the league's most, and a
+// The squads screen in the preview (src/app/preview.ts): two teams, one over the league's most, and a
 // search that finds two men, one free.
 
-import { previewSays } from "../preview";
+import { previewSays } from "../app/preview";
 import type { SquadsSeam, TeamSquad } from "./seam";
 
 const player = (code: number, name: string, clubShortName: string, gone = false) => ({ code, name, clubShortName, gone });

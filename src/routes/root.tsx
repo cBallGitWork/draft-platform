@@ -32,7 +32,7 @@ import { linkProblemWords, type LinkProblem } from "../sign-in/words";
 import type { SquadsSeam } from "../squads/seam";
 import type { TableSeam } from "../table/seam";
 
-// The routes' root (src/router.tsx assembles the tree): the context every route reads, the guards,
+// The routes' root (src/routes/router.tsx assembles the tree): the context every route reads, the guards,
 // sign-in, and the two frames the app's pages hang from, leaguePages.tsx's and frame.tsx's.
 
 // A seam is a top-level useLive* hook holding root state (mail, joining, squads, scoring, league

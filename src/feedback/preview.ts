@@ -1,9 +1,9 @@
-// Feedback in the preview (src/preview.ts): sending says it's a preview and sends nothing, and the
+// Feedback in the preview (src/app/preview.ts): sending says it's a preview and sends nothing, and the
 // admin's Feedback tab lists three made-up messages, one of them long and on several lines.
 
 import type { Id } from "../../convex/_generated/dataModel";
 import { HOUR_MS } from "../../convex/shared/time";
-import { previewSays } from "../preview";
+import { previewSays } from "../app/preview";
 import type { FeedbackList, FeedbackSeam } from "./seam";
 import { notSentWords } from "./words";
 

@@ -1,6 +1,6 @@
 import { RouterProvider, type RouterHistory } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { createShellRouter, type ShellContext } from "./router";
+import { createShellRouter, type ShellContext } from "../routes/router";
 
 /** The app's screens for a session. When the session changes (signed in, or out), the routes'
  *  guards run again, so a signed-out visitor is sent to the sign-in page from wherever they were. */

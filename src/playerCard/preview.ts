@@ -1,4 +1,4 @@
-// The player card in the preview (src/preview.ts): a card for each of Scouting's preview players,
+// The player card in the preview (src/app/preview.ts): a card for each of Scouting's preview players,
 // with three matches priced at his best position under the first scoring set by the server's own
 // rule (cardPoints), and his club's next fixtures. Saka carries FPL's news, and an override on
 // one match.

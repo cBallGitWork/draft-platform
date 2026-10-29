@@ -1,9 +1,9 @@
-// The site's scoring patches in the preview (src/preview.ts): a patch waiting a week out, whose
+// The site's scoring patches in the preview (src/app/preview.ts): a patch waiting a week out, whose
 // banner shows, and the notes of it and of a fix before it. Dismissing says it's a preview.
 
 import type { Id } from "../../convex/_generated/dataModel";
 import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
-import { previewSays } from "../preview";
+import { previewSays } from "../app/preview";
 import type { PatchesSeam, VersionNotes } from "./seam";
 
 const ANNOUNCED = Date.parse("2026-10-25T12:00:00Z");

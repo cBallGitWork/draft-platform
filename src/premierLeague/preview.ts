@@ -1,4 +1,4 @@
-// The Premier League section in the preview (src/preview.ts): twenty clubs over a made-up season,
+// The Premier League section in the preview (src/app/preview.ts): twenty clubs over a made-up season,
 // the current gameweek kicked off today, with a match at full time, one live, one at half-time and
 // the rest to come; earlier gameweeks finished, later ones to come; the table worked out from
 // them. Made-up scores.

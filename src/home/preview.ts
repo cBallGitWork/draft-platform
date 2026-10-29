@@ -1,4 +1,4 @@
-// League home in the preview (src/preview.ts): the Pro League's nine teams, six gameweeks scored so
+// League home in the preview (src/app/preview.ts): the Pro League's nine teams, six gameweeks scored so
 // the form shows, the server's own rules picking this gameweek (nextGameweek.ts) and the rows
 // (glance.ts), a pinned letter and a few squad moves. Made up: nothing scores a matchup yet (#29).
 
