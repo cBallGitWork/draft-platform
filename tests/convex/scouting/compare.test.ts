@@ -6,6 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // Two players side by side (#373, spec/19 The players list): who each is and who owns him in the
 // league, and his stats this season added up from the matches his card lists: not last season's,
@@ -117,5 +118,5 @@ test("a player the football sync doesn't hold is refused", async () => {
 
 test("anyone in the league may compare; someone not in it is refused", async () => {
   expect(await compareAs(BOB, [SAKA.code, PALMER.code])).toHaveLength(2);
-  await expect(compareAs(MANAGERS[3], [SAKA.code, PALMER.code])).rejects.toThrow(refusals.notInLeague);
+  await expectRefused(compareAs(MANAGERS[3], [SAKA.code, PALMER.code]), refusals.notInLeague);
 });

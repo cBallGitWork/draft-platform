@@ -9,6 +9,7 @@ import { changesTo, mutationsGivenALeague, rowsToChange } from "../../support/co
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, eventsIn, leagueRow, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import schema from "../../../convex/schema";
 import { fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // Deleting a league (#75, spec/13, Deleting): who may, the day it can be undone, and gone after.
 
@@ -50,7 +51,7 @@ describe("who deletes a league", () => {
     const before = await everythingOf(leagueId);
     for (const email of [CO_COMMISSIONER, ANN]) {
       const person = await actingAs(t, email);
-      await expect(person.mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId })).rejects.toThrow(refusals.notDeleter);
+      await expectRefused(person.mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId }), refusals.notDeleter);
     }
     expect(await everythingOf(leagueId)).toEqual(before);
   });
@@ -62,7 +63,7 @@ describe("while it can be undone", () => {
     await deletes(t, COMMISSIONER, leagueId);
     const before = await everythingOf(leagueId);
     const changes = changesTo({ admin: await actingAs(t, ADMIN), ann: await actingAs(t, ANN), commissioner: await actingAs(t, COMMISSIONER) }, rows);
-    for (const change of Object.values(changes)) await expect(change()).rejects.toThrow(refusals.beingDeleted);
+    for (const change of Object.values(changes)) await expectRefused(change(), refusals.beingDeleted);
     expect(await everythingOf(leagueId)).toEqual(before);
 
     // A mutation added later that is given a league, or a row in one, fails here until changesTo
@@ -79,7 +80,7 @@ describe("while it can be undone", () => {
     await deletes(t, COMMISSIONER, leagueId);
     const { teams, joining } = await everythingOf(leagueId);
 
-    await expect((await actingAs(t, DAN)).mutation(api.joining.joinRequests.ask, { token })).rejects.toThrow(refusals.beingDeleted);
+    await expectRefused((await actingAs(t, DAN)).mutation(api.joining.joinRequests.ask, { token }), refusals.beingDeleted);
     expect(await openLastLinkTo(t, sent, CAT)).not.toBeNull();
     expect(await teamsIn(t, leagueId)).toEqual(teams);
     expect((await everythingOf(leagueId)).joining).toEqual(joining);
@@ -112,7 +113,7 @@ describe("while it can be undone", () => {
   test("when the admin deletes it, its commissioner can undo it; the co-commissioner and managers can't", async () => {
     await deletes(t, ADMIN, leagueId);
     for (const email of [CO_COMMISSIONER, ANN]) {
-      await expect((await actingAs(t, email)).mutation(api.leagues.leagueDeletion.undo, { leagueId })).rejects.toThrow(refusals.notUndoer);
+      await expectRefused((await actingAs(t, email)).mutation(api.leagues.leagueDeletion.undo, { leagueId }), refusals.notUndoer);
     }
     await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
 
@@ -144,19 +145,19 @@ describe("while it can be undone", () => {
     await deletes(t, COMMISSIONER, leagueId);
     for (const email of [CO_COMMISSIONER, ANN]) {
       const person = await actingAs(t, email);
-      await expect(person.mutation(api.leagues.leagueDeletion.undo, { leagueId })).rejects.toThrow(refusals.notUndoer);
+      await expectRefused(person.mutation(api.leagues.leagueDeletion.undo, { leagueId }), refusals.notUndoer);
     }
     await (await actingAs(t, ADMIN)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
     expect((await leagueRow(t, leagueId))?.deletion).toBeUndefined();
   });
 
   test("undoing a league that isn't being deleted is refused", async () => {
-    await expect((await actingAs(t, ADMIN)).mutation(api.leagues.leagueDeletion.undo, { leagueId })).rejects.toThrow(refusals.notBeingDeleted);
+    await expectRefused((await actingAs(t, ADMIN)).mutation(api.leagues.leagueDeletion.undo, { leagueId }), refusals.notBeingDeleted);
   });
 
   test("once the day is up, it's too late to undo", async () => {
     vi.setSystemTime(await deletes(t, COMMISSIONER, leagueId));
-    await expect((await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId })).rejects.toThrow(refusals.tooLateToUndo);
+    await expectRefused((await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId }), refusals.tooLateToUndo);
   });
 });
 

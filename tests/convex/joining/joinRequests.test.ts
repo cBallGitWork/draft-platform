@@ -16,6 +16,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
 import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // Join requests and the commissioner's page of them (#73 stories 3 and 4; spec/13 Joining,
 // spec/15 Joining a league).
@@ -52,7 +53,7 @@ describe("a join request", () => {
   test("can't come from someone who already runs a team there", async () => {
     await addManagers(t, leagueId, [ANN]);
     expect((await joinPageFor(ANN))?.standing).toBe("inLeague");
-    await expect((await actingAs(t, ANN)).mutation(api.joining.joinRequests.ask, { token })).rejects.toThrow(joiningRefusals.alreadyIn);
+    await expectRefused((await actingAs(t, ANN)).mutation(api.joining.joinRequests.ask, { token }), joiningRefusals.alreadyIn);
   });
 
   test("approved to a new team makes them its manager, files it for Mail, and emails them", async () => {
@@ -95,10 +96,10 @@ describe("a join request", () => {
   test("is answered once, and only by the league's runners", async () => {
     const requestId = await askToJoin(t, leagueId, token, ANN);
     await addManagers(t, leagueId, [BOB]);
-    await expect((await actingAs(t, BOB)).mutation(api.joining.joinRequests.approve, { requestId })).rejects.toThrow(refusals.notRunner);
+    await expectRefused((await actingAs(t, BOB)).mutation(api.joining.joinRequests.approve, { requestId }), refusals.notRunner);
 
     await (await asCommissioner(t)).mutation(api.joining.joinRequests.refuseRequest, { requestId });
-    await expect((await asCommissioner(t)).mutation(api.joining.joinRequests.approve, { requestId })).rejects.toThrow(joiningRefusals.requestDecided);
+    await expectRefused((await asCommissioner(t)).mutation(api.joining.joinRequests.approve, { requestId }), joiningRefusals.requestDecided);
   });
 
   test("approved past the day's emails, its email waits for tomorrow and goes then", async () => {

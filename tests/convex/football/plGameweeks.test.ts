@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { actingAs } from "../../support/convex/leagues.harness";
-import { freshConvex, type TestConvex } from "../../support/convex/test.harness";
+import { expectRefused, freshConvex, type TestConvex } from "../../support/convex/test.harness";
 
 // Each Premier League gameweek's first kickoff (#49), which the section's fixtures open on the
 // current gameweek from.
@@ -44,5 +44,5 @@ test("with no matches held, none", async () => {
 test("someone signed out is refused them", async () => {
   const t = freshConvex();
 
-  await expect(t.query(api.football.plGameweeks.firstKickoffs, {})).rejects.toThrow(refusals.signedOut);
+  await expectRefused(t.query(api.football.plGameweeks.firstKickoffs, {}), refusals.signedOut);
 });

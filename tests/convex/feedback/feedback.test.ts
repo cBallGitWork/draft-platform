@@ -6,6 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, type TestConvex } from "../../support/convex/leagues.harness";
 import { signInDeployment } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // Feedback to the admin (#357; spec/12 The frame, spec/15 The admin): anyone signed in sends a
 // message, stored with who sent it and when; the admin alone reads the list, newest first.
@@ -47,14 +48,14 @@ describe("sending", () => {
   });
 
   test("#357 Done: a blank message is refused, and nothing is stored", async () => {
-    await expect(send(ANN, "")).rejects.toThrow(feedbackRefusals.blank);
-    await expect(send(ANN, " \n\t ")).rejects.toThrow(feedbackRefusals.blank);
+    await expectRefused(send(ANN, ""), feedbackRefusals.blank);
+    await expectRefused(send(ANN, " \n\t "), feedbackRefusals.blank);
     expect(await stored()).toEqual([]);
   });
 
   test(`up to ${FEEDBACK_MAX} characters is sent; one more is refused`, async () => {
     await send(ANN, "a".repeat(FEEDBACK_MAX));
-    await expect(send(ANN, "a".repeat(FEEDBACK_MAX + 1))).rejects.toThrow(feedbackRefusals.tooLong);
+    await expectRefused(send(ANN, "a".repeat(FEEDBACK_MAX + 1)), feedbackRefusals.tooLong);
     expect(await stored()).toHaveLength(1);
   });
 
@@ -64,7 +65,7 @@ describe("sending", () => {
   });
 
   test("someone signed out can't send", async () => {
-    await expect(t.mutation(api.feedback.feedback.send, { message: "Hello" })).rejects.toThrow(refusals.signedOut);
+    await expectRefused(t.mutation(api.feedback.feedback.send, { message: "Hello" }), refusals.signedOut);
   });
 
   test("a commissioner, and someone in no league, can send too: the link is on every signed-in frame", async () => {
@@ -80,9 +81,9 @@ describe("sending", () => {
 describe("the admin's list", () => {
   test("#357 Done: a non-admin can't read it", async () => {
     await send(ANN, "Private to the admin.");
-    await expect(list(ANN)).rejects.toThrow(refusals.notAdmin);
-    await expect(list(COMMISSIONER)).rejects.toThrow(refusals.notAdmin);
-    await expect(t.query(api.feedback.feedback.list, {})).rejects.toThrow(refusals.signedOut);
+    await expectRefused(list(ANN), refusals.notAdmin);
+    await expectRefused(list(COMMISSIONER), refusals.notAdmin);
+    await expectRefused(t.query(api.feedback.feedback.list, {}), refusals.signedOut);
   });
 
   test("newest first", async () => {

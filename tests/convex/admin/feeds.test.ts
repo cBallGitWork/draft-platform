@@ -11,7 +11,7 @@ import { ADMIN, COMMISSIONER, actingAs } from "../../support/convex/leagues.harn
 import { feedAt, feedsAt, holdMatch, holdStatus, recordRun, T0 } from "../../support/convex/feeds.harness";
 import { syncRun } from "../../support/convex/footballSync.harness";
 import { recordedFpl } from "../../support/recorded/fpl.payloads";
-import { freshConvex } from "../../support/convex/test.harness";
+import { expectRefused, freshConvex } from "../../support/convex/test.harness";
 
 const FOOTBALL_LATE_AFTER = lateAfterMs(FEED_SCHEDULES.football);
 const LIVE_LATE_AFTER = lateAfterMs(FEED_SCHEDULES.liveStats);
@@ -21,7 +21,7 @@ test("the page is the admin's alone", async () => {
   const t = freshConvex();
   vi.stubEnv("ADMIN_EMAIL", ADMIN);
   const commissioner = await actingAs(t, COMMISSIONER);
-  await expect(commissioner.query(api.admin.feeds.feeds, { now: T0 })).rejects.toThrow(refusals.notAdmin);
+  await expectRefused(commissioner.query(api.admin.feeds.feeds, { now: T0 }), refusals.notAdmin);
 });
 
 test("with no run on record, every feed is not running yet", async () => {

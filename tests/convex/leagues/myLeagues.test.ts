@@ -16,7 +16,7 @@ import {
   type TestConvex,
 } from "../../support/convex/leagues.harness";
 import { ask, fakeResend, linkCode, linkNotSentLine, openLink, signInDeployment } from "../../support/convex/signIn.harness";
-import { silenceConsoleError } from "../../support/convex/test.harness";
+import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 
 // "Your leagues" (spec/12): what signIn/account:signedInAs tells the screens of a person's leagues, and
 // #24's Done line end to end.
@@ -162,11 +162,9 @@ test("#24 Done: a league of four fills, renames, refuses a duplicate, keeps a le
   const [annsTeam, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
   await co.mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "Red Army" });
   const bob = await actingAs(t, BOB);
-  await expect(bob.mutation(api.leagues.teams.rename, { teamId: bobsTeam, name: "RED ARMY" })).rejects.toThrow(
-    refusals.teamNameTaken("RED ARMY"),
-  );
+  await expectRefused(bob.mutation(api.leagues.teams.rename, { teamId: bobsTeam, name: "RED ARMY" }), refusals.teamNameTaken("RED ARMY"));
   await bob.mutation(api.leagues.teams.leave, { leagueId });
-  await expect(co.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: ANN })).rejects.toThrow(refusals.notNamer);
+  await expectRefused(co.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: ANN }), refusals.notNamer);
 
   expect((await teamsIn(t, leagueId)).map(({ name, managerEmail }) => [name, managerEmail])).toEqual([
     ["Red Army", ANN],

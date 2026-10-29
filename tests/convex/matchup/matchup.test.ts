@@ -4,6 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { MatchupSide, MatchupSlot } from "../../../convex/matchup/matchupShape";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { inTenths } from "../../../convex/scoring/scoringSet";
+import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import {
   ANN,
@@ -28,7 +29,7 @@ import {
 } from "../../support/convex/gameweekScores.harness";
 import { actingAs, ADMIN, adminCreatesLeague } from "../../support/convex/leagues.harness";
 import { HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
-import { silenceConsoleError } from "../../support/convex/test.harness";
+import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 
 // The matchup (#34; spec/10, The matchup, as a live match): Hull v Everton replayed through one
 // head-to-head, Ann fielding Hull and Bob Everton. Each player's status follows his match, points
@@ -224,7 +225,7 @@ test("someone who runs the league but no team, naming none, is told so; a team f
   expect(await matchupAs(league, ADMIN)).toEqual({ kind: "noTeam" });
   const otherLeague = await adminCreatesLeague(league.t, undefined, "Another league");
   const otherTeam = await league.t.run((ctx) => ctx.db.insert("teams", { leagueId: otherLeague, number: 1, name: "Elsewhere", managerEmail: "x@example.com" }));
-  await expect(matchupAs(league, ANN, { teamId: otherTeam })).rejects.toThrow("That team isn't in this league.");
+  await expectRefused(matchupAs(league, ANN, { teamId: otherTeam }), refusals.noTeam);
 });
 
 test("a gameweek that can't be scored says why, and logs it", async () => {

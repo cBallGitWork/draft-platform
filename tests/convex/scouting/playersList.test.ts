@@ -16,6 +16,7 @@ import { CLUB_PLAYERS_MOST } from "../../../convex/shared/players";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // Scouting's players list (#373, spec/19 The players list): every Premier League player now, for
 // anyone in the league, filtered by who holds him, his position and his club, and sorted, on the
@@ -219,7 +220,7 @@ describe("who may read it", () => {
   });
 
   test("someone not in the league is refused", async () => {
-    await expect(listAs(MANAGERS[3])).rejects.toThrow(refusals.notInLeague);
+    await expectRefused(listAs(MANAGERS[3]), refusals.notInLeague);
   });
 });
 

@@ -120,19 +120,19 @@ describe("a league's gameweeks", () => {
     await holdGameweeks();
     const [ann] = MANAGERS;
     await addManagers(t, leagueId, [ann]);
-    await expect(setUsed(ann, 17, false)).rejects.toThrow(refusals.notRunner);
-    await expect((await actingAs(t, ann)).query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId })).rejects.toThrow(refusals.notRunner);
+    await expectRefused(setUsed(ann, 17, false), refusals.notRunner);
+    await expectRefused((await actingAs(t, ann)).query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId }), refusals.notRunner);
   });
 });
 
 describe("once a gameweek has begun", () => {
   test("it can't be unticked or ticked, and nothing is filed", async () => {
     await holdGameweeks();
-    await expect(setUsed(COMMISSIONER, NEXT - 1, false)).rejects.toThrow(gameweekRefusals.begun(NEXT - 1));
+    await expectRefused(setUsed(COMMISSIONER, NEXT - 1, false), gameweekRefusals.begun(NEXT - 1));
 
     await setUsed(COMMISSIONER, NEXT, false);
     vi.setSystemTime(deadlineOf(NEXT));
-    await expect(setUsed(COMMISSIONER, NEXT, true)).rejects.toThrow(gameweekRefusals.begun(NEXT));
+    await expectRefused(setUsed(COMMISSIONER, NEXT, true), gameweekRefusals.begun(NEXT));
     expect(await unusedGameweeks()).toEqual([NEXT]);
     expect(await gameweekEvents()).toHaveLength(1);
   });
@@ -142,7 +142,7 @@ describe("once a gameweek has begun", () => {
     vi.setSystemTime(deadlineOf(NEXT) - 1);
     await setUsed(COMMISSIONER, NEXT, false);
     vi.setSystemTime(deadlineOf(NEXT));
-    await expect(setUsed(COMMISSIONER, NEXT, true)).rejects.toThrow(gameweekRefusals.begun(NEXT));
+    await expectRefused(setUsed(COMMISSIONER, NEXT, true), gameweekRefusals.begun(NEXT));
   });
 });
 
@@ -156,7 +156,7 @@ describe("the league's own deadline decides, never FPL's (Craig: \"ours, we aren
 
     expect(await deadlineShown(NEXT)).toBe(kickoffOf(NEXT) - THREE_HOURS * MINUTE_MS);
     expect(Date.now()).toBeLessThan(deadlineOf(NEXT));
-    await expect(setUsed(COMMISSIONER, NEXT, false)).rejects.toThrow(gameweekRefusals.begun(NEXT));
+    await expectRefused(setUsed(COMMISSIONER, NEXT, false), gameweekRefusals.begun(NEXT));
   });
 
   test("a league deadline later than FPL's: the gameweek can be changed after FPL's, until the league's", async () => {
@@ -167,7 +167,7 @@ describe("the league's own deadline decides, never FPL's (Craig: \"ours, we aren
     vi.setSystemTime(deadlineOf(NEXT));
     await setUsed(COMMISSIONER, NEXT, false);
     vi.setSystemTime(kickoffOf(NEXT));
-    await expect(setUsed(COMMISSIONER, NEXT, true)).rejects.toThrow(gameweekRefusals.begun(NEXT));
+    await expectRefused(setUsed(COMMISSIONER, NEXT, true), gameweekRefusals.begun(NEXT));
   });
 
   test("FPL's deadline moving changes nothing", async () => {
@@ -192,12 +192,12 @@ describe("the league's own deadline decides, never FPL's (Craig: \"ours, we aren
 describe("what can't be ticked", () => {
   test.each([0, GAMEWEEKS + 1, 1.5])("gameweek %s isn't one of the season's", async (gameweek) => {
     await holdGameweeks();
-    await expect(setUsed(COMMISSIONER, gameweek, false)).rejects.toThrow(gameweekRefusals.notAGameweek(gameweek));
+    await expectRefused(setUsed(COMMISSIONER, gameweek, false), gameweekRefusals.notAGameweek(gameweek));
   });
 
   test("a gameweek whose deadline the app doesn't have is refused, saying why, and shown with none", async () => {
     await holdGameweeks([30]);
-    await expect(setUsed(COMMISSIONER, 30, false)).rejects.toThrow(gameweekRefusals.noDeadline(30));
+    await expectRefused(setUsed(COMMISSIONER, 30, false), gameweekRefusals.noDeadline(30));
     const shown = await (await actingAs(t, COMMISSIONER)).query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId });
     expect(shown[29]).toEqual({ gameweek: 30, used: true, deadline: null });
   });
