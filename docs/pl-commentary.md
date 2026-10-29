@@ -7,7 +7,7 @@
 What spec/10's commentary and match page would stand on (#37). Read from Craig's Mac on 20 Oct
 2026, over all twenty finished matches of gameweeks 6 and 7, of which four are recorded for the
 tests (`tests/support/recorded/commentary.payloads.ts`). The read is `readPlCommentary` and the mapping
-`commentaryLines` (`convex/football/premierLeague.ts`, `convex/football/plCommentary.ts`).
+`commentaryLines` (`convex/football/premierLeague/premierLeague.ts`, `convex/football/premierLeague/plCommentary.ts`).
 Our own short lines are written from those by `writeCommentary` (`convex/football/commentary.ts`,
 #43); the live match's, kick-off to full time, are in
 `tests/support/golden/ipswich-forest.commentary.txt`. The live tick reads each live match's stream
@@ -93,7 +93,7 @@ happen in them (a penalty saved or missed, an own goal's assist) may exist.
 FPL's `opta_code` ([pl-match-stats.md](pl-match-stats.md#matching-the-two-feeds)).
 `commentaryLines` maps each to FPL's `code`, in place: a man FPL does not list stays as null in
 that line and is reported with the unmatched, never dropped. All 122 men named in the four
-recorded matches (543 mentions) were on the sheets and matched (`tests/convex/football/plCommentary.test.ts`).
+recorded matches (543 mentions) were on the sheets and matched (`tests/convex/football/premierLeague/plCommentary.test.ts`).
 
 ## Team stats
 
@@ -117,7 +117,7 @@ spec/10's five, by Opta's names (Brentford v Liverpool):
 
 Ipswich v Forest, three days before kickoff: the commentary's `content` is empty (`numPages` 0),
 the fixture's `teamLists` is `[null, null]`, and the team stats have no `data`. All three are read
-as they are, not refused (`tests/convex/football/premierLeague.test.ts`).
+as they are, not refused (`tests/convex/football/premierLeague/premierLeague.test.ts`).
 
 ## What a live match showed
 

@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, test, vi } from "vitest";
 import { plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../../convex/football/football.ts";
-import { PL_FULL_TIME } from "../../convex/football/premierLeague.ts";
+import { PL_FULL_TIME } from "../../convex/football/premierLeague/premierLeague.ts";
 import { LIVE_WINDOW_MS } from "../../convex/stats/liveStats.ts";
 import { UPCOMING_MATCH } from "../support/recorded/commentary.payloads.ts";
 import { doneLine, fixtureStatus, phase, poll, pollReads, record, summaryLine } from "../../scripts/record-match.mjs";

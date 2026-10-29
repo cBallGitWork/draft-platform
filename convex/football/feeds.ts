@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalAction, internalMutation, internalQuery } from "../_generated/server";
 import { namedMen } from "./feedIds";
-import { fplPlayerCount } from "./fpl";
+import { fplPlayerCount } from "./fpl/fpl";
 import { logFailure } from "../shared/errors";
 import {
   arsenalSquadNumbers,
@@ -10,7 +10,7 @@ import {
   readPlCommentary,
   readPlFixture,
   readPlTeamStats,
-} from "./premierLeague";
+} from "./premierLeague/premierLeague";
 import { feedCheckFields, feedCheckTrigger, feedOutcome } from "../schema";
 import { LATEST_RUNS } from "../shared/syncRuns";
 import { MINUTE_MS } from "../shared/time";

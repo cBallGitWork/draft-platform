@@ -4,8 +4,8 @@
 // docs/pl-match-stats.md). Only FPL's season-stable codes come out, never its per-season ids. A man
 // who matches no one is reported to the caller, never dropped.
 
-import type { RawBootstrap } from "./fpl";
-import type { RawPlFixture, RawPlSquadPlayer } from "./premierLeague";
+import type { RawBootstrap } from "./fpl/fpl";
+import type { RawPlFixture, RawPlSquadPlayer } from "./premierLeague/premierLeague";
 
 /** A man a team sheet names whom FPL does not list (a new signing FPL has not added, say). */
 export interface UnmatchedPlayer {

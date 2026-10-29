@@ -7,10 +7,10 @@ import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { callerEmail } from "../shared/leagueAccess";
 import { FEED_TYPE, writeCommentary } from "./commentary";
-import type { RawBootstrap } from "./fpl";
+import type { RawBootstrap } from "./fpl/fpl";
 import { clubByCode } from "../shared/players";
-import { commentaryLines, type CommentaryLine } from "./plCommentary";
-import { readPlCommentary, readPlFixture, type RawPlFixture } from "./premierLeague";
+import { commentaryLines, type CommentaryLine } from "./premierLeague/plCommentary";
+import { readPlCommentary, readPlFixture, type RawPlFixture } from "./premierLeague/premierLeague";
 import { plScoreRead, type ScoreRead } from "./scoreReads";
 
 // Each live match's commentary, read by the live tick (#28) with its points, written by

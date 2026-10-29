@@ -3,8 +3,8 @@
 // it locks. Pure: no I/O and no clock, so the same reads always give the same records.
 
 import type { Infer } from "convex/values";
-import type { FplStatLine } from "../football/fplLive";
-import type { MatchSlot, PlStatLine } from "../football/plMatch";
+import type { FplStatLine } from "../football/fpl/fplLive";
+import type { MatchSlot, PlStatLine } from "../football/premierLeague/plMatch";
 import type { lateStatChange, playerMatchRecord } from "../schema";
 
 export type PlayerMatchRecord = Infer<typeof playerMatchRecord>;

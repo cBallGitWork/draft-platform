@@ -15,7 +15,7 @@ import {
   withHullEverton,
   withPlReadEmpty,
 } from "../../support/convex/matchStats.harness";
-import type { RawPlFixture } from "../../../convex/football/premierLeague";
+import type { RawPlFixture } from "../../../convex/football/premierLeague/premierLeague";
 import { fplElementsWithout, FULL_STATS, MATCH, recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { freshConvex, refusedError, silenceConsoleError } from "../../support/convex/test.harness";
 import { HOUR_MS } from "../../../convex/shared/time";

@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { writeCommentary } from "../../../convex/football/commentary";
 import { codesByOpta } from "../../../convex/football/feedIds";
-import { commentaryLines } from "../../../convex/football/plCommentary";
+import { commentaryLines } from "../../../convex/football/premierLeague/plCommentary";
 import type { Cell } from "../../../convex/lineup/pitch";
 import { vidiprinter, type StoredStep, type VidiprinterMatch, type VidiprinterPlayer } from "../../../convex/matchup/vidiprinter";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";

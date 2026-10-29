@@ -8,7 +8,7 @@
 // - pl-standings.json: the Premier League's `/standings?compSeasons=841&altIds=true&detail=2`, its
 //   one table's entries cut to the team's id and name, the position and the overall record.
 
-import type { RawBootstrap } from "../../../convex/football/fpl";
+import type { RawBootstrap } from "../../../convex/football/fpl/fpl";
 import { recordedFpl, type FplPayloads } from "./fpl.payloads";
 import results from "./fpl-season-results.json";
 import standings from "./pl-standings.json";

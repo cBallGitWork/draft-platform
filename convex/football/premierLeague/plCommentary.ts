@@ -3,7 +3,7 @@
 // own CM-terse lines (spec/10, The commentary) are written from these by `commentary.ts`.
 // Men are matched through the bridge in `feedIds.ts`, on the match's own team sheets.
 
-import { matchPlayers, namedMen, type UnmatchedPlayer } from "./feedIds";
+import { matchPlayers, namedMen, type UnmatchedPlayer } from "../feedIds";
 import type { RawPlCommentaryLine, RawPlFixture } from "./premierLeague";
 
 export interface CommentaryLine {

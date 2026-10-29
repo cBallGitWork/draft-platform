@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
-import type { RawBootstrap } from "../../../convex/football/fpl";
+import type { RawBootstrap } from "../../../convex/football/fpl/fpl";
 import { codesByOpta } from "../../../convex/football/feedIds";
 import { FEED_TYPE, UNLISTED_NAME, writeCommentary, type CommentaryInput, type MatchHeader } from "../../../convex/football/commentary";
-import { commentaryLines, type CommentaryLine } from "../../../convex/football/plCommentary";
+import { commentaryLines, type CommentaryLine } from "../../../convex/football/premierLeague/plCommentary";
 import {
   FINISHED_MATCHES,
   recordedCommentary,

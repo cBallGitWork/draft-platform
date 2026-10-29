@@ -3,7 +3,7 @@
 // docs/pl-commentary.md (Team stats). Pure: `matchTeamStats.ts` reads and stores them.
 
 import type { Infer } from "convex/values";
-import type { sideTeamStats } from "../schema";
+import type { sideTeamStats } from "../../schema";
 import type { RawPlTeamStats } from "./premierLeague";
 
 /** One side's five, as Opta counts them. A red shown for a second yellow is in `redCards`, and that

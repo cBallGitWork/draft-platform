@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { codesByOpta } from "../../../convex/football/feedIds";
-import { matchSlots } from "../../../convex/football/plMatch";
+import { matchSlots } from "../../../convex/football/premierLeague/plMatch";
 import { FORMATION_PLACES, labelPositions, placePosition, type Position } from "../../../convex/positions/positionTables";
 import { PLAYER, recordedPositions, SHEET } from "../../support/recorded/positions.payloads";
 

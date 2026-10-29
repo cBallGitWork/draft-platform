@@ -8,7 +8,7 @@ import {
   plFixtureUrl,
   plTeamStatsUrl,
 } from "../../../convex/football/football";
-import type { RawPlCommentary, RawPlFixture } from "../../../convex/football/premierLeague";
+import type { RawPlCommentary, RawPlFixture } from "../../../convex/football/premierLeague/premierLeague";
 import {
   COMMENTARY_MATCH,
   recordedCommentary,

@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { drawRulesOf, FIRST_RULES } from "../../../convex/rules/firstRules";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
-import { fplStatLines } from "../../../convex/football/fplLive";
+import { fplStatLines } from "../../../convex/football/fpl/fplLive";
 import bootstrap from "../../support/recorded/fpl-gw6-bootstrap.json";
 import live from "../../support/recorded/fpl-gw6-live.json";
 import { recordedGw6 } from "../../support/recorded/gw6.payloads";

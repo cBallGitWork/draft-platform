@@ -5,7 +5,7 @@
 // Championship Manager's and Football Manager's commentary is a style reference only; none of it
 // is copied.
 
-import type { CommentaryLine } from "./plCommentary";
+import type { CommentaryLine } from "./premierLeague/plCommentary";
 
 /** The match as the full-time line shows it: each club's short name ("ARS") and its goals. */
 export interface MatchHeader {
