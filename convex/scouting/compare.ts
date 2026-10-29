@@ -1,13 +1,13 @@
 import { v, type Infer } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { ownerIn } from "../playerCard/playerCard";
 import { seasonRecords } from "../gameweekScorer/scoredMatches";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount, type HowPositionsCount } from "../positions/positionSettings";
 import { clubRecord, position } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, playerByCode } from "../shared/players";
+import { ownerOf } from "../squads/squadPlace";
 import { isWhole } from "../stats/matchRecords";
 import { sumStats } from "../stats/statTotals";
 import { COMPARED_PLAYERS } from "./comparedPlayers";
@@ -67,7 +67,7 @@ async function compared(ctx: QueryCtx, leagueId: Id<"leagues">, code: number, ho
     fullName: player.fullName,
     club: clubOf(club),
     positions: await currentPositions(ctx, code, how),
-    ownerTeamName: await ownerIn(ctx, leagueId, code),
+    ownerTeamName: (await (await ownerOf(ctx, leagueId))(code))?.name ?? null,
     seasonPoints: null,
     matches: season.length,
     stats: sumStats(season.filter(({ record }) => isWhole(record)).map(({ record }) => record.stats)),

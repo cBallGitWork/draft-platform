@@ -4,6 +4,7 @@ import type { QueryCtx } from "../_generated/server";
 import type { leagueEvent } from "../schema";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { takeAllOrThrow } from "../shared/cappedRead";
+import { teamsOf } from "../shared/leagueAccess";
 
 // A player's place in a league's squads: one home for the read squads, squad numbers, the player
 // card and the shortlist each make. It also holds a team's squad now (`squadOf`) and as it stood
@@ -17,6 +18,20 @@ export function placeOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
     .query("squadPlayers")
     .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode))
     .unique();
+}
+
+/** Who owns a player in this league: the league's teams read once, then a lookup per player giving
+ *  the team that holds him, or null while he is a free agent. A squad row naming a team outside the
+ *  league throws: the squads are broken. */
+export async function ownerOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<(playerCode: number) => Promise<Doc<"teams"> | null>> {
+  const teams = new Map((await teamsOf(ctx, leagueId)).map((team) => [team._id, team]));
+  return async (playerCode) => {
+    const owned = await placeOf(ctx, leagueId, playerCode);
+    if (owned === null) return null;
+    const team = teams.get(owned.teamId);
+    if (team === undefined) throw new Error(`player ${playerCode} is owned by team ${owned.teamId}, which isn't in league ${leagueId}`);
+    return team;
+  };
 }
 
 /** The league events that change a squad. Today a commissioner assigns, moves and releases players
