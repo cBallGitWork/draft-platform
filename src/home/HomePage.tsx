@@ -32,7 +32,6 @@ import {
   partTableWords,
   resultWords,
   TABLE_TITLE,
-  versusWords,
   wholeTableLink,
   yourTeamWords,
 } from "./words";
@@ -102,9 +101,7 @@ function HeadToHeads({ home: { format, thisGameweek } }: { home: LeagueHome }) {
         {thisGameweek.fixtures.map(({ teamId, team, opponent }) => (
           <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-sides items-center gap-2 border-b border-panel-rule px-3 py-1 text-lead">
             <span className="text-right font-semibold">{team}</span>
-            <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={thisGameweek.gameweek}>
-              <span>{versusWords}</span>
-            </MatchupLink>
+            <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={thisGameweek.gameweek} points={null} />
             {opponent === null ? <span className="text-derived">{leagueAverageWords}</span> : <span className="font-semibold">{opponent}</span>}
           </li>
         ))}

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
+import { ADMIN_EMAIL_SETTING } from "../outbound/deploymentSettings";
 
 // Who may get a sign-in link in the closed beta (spec/02, spec/13#joining): the admin, and the
 // emails on the allowed list. The admin puts an email on it from the CLI, on the development
@@ -21,8 +22,8 @@ export const EMAIL_MAX = 254;
 
 /** The admin's email, set on the server (spec/13#who-runs-it), never in the code. */
 export function adminEmail(): string {
-  const email = process.env.ADMIN_EMAIL;
-  if (!email) throw new Error("ADMIN_EMAIL isn't set on this deployment: it names the admin (spec/13, Who runs it)");
+  const email = process.env[ADMIN_EMAIL_SETTING];
+  if (!email) throw new Error(`${ADMIN_EMAIL_SETTING} isn't set on this deployment: it names the admin (spec/13, Who runs it)`);
   return normaliseEmail(email);
 }
 
