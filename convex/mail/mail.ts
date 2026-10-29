@@ -18,7 +18,7 @@ export const mailRefusals = {
   bodyTooLong: `A letter is up to ${BODY_MAX} characters.`,
 } as const;
 
-export const letterSummary = v.object({
+const letterSummary = v.object({
   letterId: v.id("letters"),
   /** Where it came from: its league's name, or the product's for a letter from the site. */
   leagueName: v.string(),

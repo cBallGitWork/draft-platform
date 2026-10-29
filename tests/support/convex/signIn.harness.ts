@@ -27,7 +27,7 @@ async function makePkcs8PrivateKey(): Promise<string> {
 }
 
 /** The morning signInDeployment stops the clock at, unless a test names another. */
-export const DEPLOYMENT_MORNING = Date.parse("2026-10-20T09:00:00Z");
+const DEPLOYMENT_MORNING = Date.parse("2026-10-20T09:00:00Z");
 
 /** A deployment with the settings `npx @convex-dev/auth` and Craig put on one, LISTED on the
  *  list, and the clock stopped at `morning`. Vitest undoes it all after the test

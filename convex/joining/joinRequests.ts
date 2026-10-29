@@ -28,7 +28,7 @@ function waitingRequestOf(ctx: QueryCtx, leagueId: Id<"leagues">, email: string)
 /** What the invite link's page shows: whether the person may ask, has asked and waits, or runs a
  *  team in the league already; null once the link no longer works, or while the league is being
  *  deleted (spec/13 hides it then). */
-export const joinPageData = v.union(
+const joinPageData = v.union(
   v.null(),
   v.object({ leagueName: v.string(), standing: v.union(v.literal("mayAsk"), v.literal("waiting")) }),
   v.object({ leagueName: v.string(), standing: v.literal("inLeague"), teamName: v.string() }),

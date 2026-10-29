@@ -23,9 +23,9 @@ import { pathToFileURL } from "node:url";
 
 /** The live deployment's environment variable holding the last release's schema fingerprint. */
 export const FINGERPRINT_ENV = "LIVE_SCHEMA_FINGERPRINT";
-export const SCHEMA_PATH = "convex/schema.ts";
+const SCHEMA_PATH = "convex/schema.ts";
 export const DEPLOY_ARGS = ["deploy", "--cmd", "npm run build"];
-export const BACKUP_FILE = "backup.zip";
+const BACKUP_FILE = "backup.zip";
 /** The dashboard page where Convex keeps the backups. */
 const BACKUP_PAGE = "the production deployment's Backup & Restore page";
 const STOPPED = "Release stopped, nothing went live";

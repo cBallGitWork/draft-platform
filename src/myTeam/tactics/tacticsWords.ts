@@ -35,7 +35,7 @@ export const startingWords = (starting: number) => `${starting} of ${STARTER_COU
 
 /** The pitch, named for screen readers, and its cells. */
 export const pitchLabel = "The pitch, attack at the top";
-export const cellWords = (area: Area, lane: Lane) => `${AREA_WORDS[area]}, ${LANE_WORDS[lane]}`;
+const cellWords = (area: Area, lane: Lane) => `${AREA_WORDS[area]}, ${LANE_WORDS[lane]}`;
 export const putHereLabel = (name: string, area: Area, lane: Lane) => `Put ${name} in ${cellWords(area, lane)}`;
 export const playerOnPitchLabel = (name: string, positions: readonly string[], area: Area, lane: Lane) =>
   `${name}, ${positionsWords(positions)}, in ${cellWords(area, lane)}`;

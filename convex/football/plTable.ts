@@ -22,13 +22,13 @@
 // a practice and not a rule.
 
 /** A league match's points (Handbook C.4): the Premier League's, fixed. */
-export const PL_MATCH_POINTS = { win: 3, draw: 1, loss: 0 } as const;
+const PL_MATCH_POINTS = { win: 3, draw: 1, loss: 0 } as const;
 
 /** What parts clubs level on points, in the Handbook's order, all season (C.5, C.6). */
-export const PL_TIE_BREAKS = ["goalDifference", "goalsScored"] as const;
+const PL_TIE_BREAKS = ["goalDifference", "goalsScored"] as const;
 
 /** What parts clubs still level, after C.6, at the end of the season only (C.17.1, C.17.2). */
-export const PL_END_OF_SEASON_TIE_BREAKS = ["headToHeadPoints", "headToHeadAwayGoals"] as const;
+const PL_END_OF_SEASON_TIE_BREAKS = ["headToHeadPoints", "headToHeadAwayGoals"] as const;
 
 type TieBreak = (typeof PL_TIE_BREAKS)[number] | (typeof PL_END_OF_SEASON_TIE_BREAKS)[number];
 
