@@ -1,4 +1,4 @@
-// Mail in the preview (src/preview.ts): made-up letters in its league, some unread, so the shot
+// Mail in the preview (src/app/preview.ts): made-up letters in its league, some unread, so the shot
 // shows both, and the top bar's count and Continue from them. Opening one changes nothing, and
 // writing to the league sends nothing and says so.
 
@@ -7,7 +7,7 @@ import type { LetterSummary } from "../../convex/mail/mail";
 import { HOUR_MS } from "../../convex/shared/time";
 import { MAIL_PATH } from "../frame/menu";
 import type { TopBarState } from "../frame/topBarState";
-import { manager, previewSays, proLeague } from "../preview";
+import { manager, previewSays, proLeague } from "../app/preview";
 import type { MailSeam } from "./seam";
 import { unreadCount } from "./words";
 

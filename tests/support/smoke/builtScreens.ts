@@ -36,7 +36,7 @@ import { playerCardPath } from "../../../src/playerCard/paths";
 import { previewMatch } from "../../../src/premierLeague/matchPreview";
 import { matchPath } from "../../../src/premierLeague/paths";
 import { MATCH_TITLE, PREMIER_LEAGUE_TITLE } from "../../../src/premierLeague/words";
-import { miniBeta, proLeague } from "../../../src/preview";
+import { miniBeta, proLeague } from "../../../src/app/preview";
 import { scoringPath } from "../../../src/scoring/paths";
 import { SCORING_TITLE } from "../../../src/scoring/words";
 import { previewPlayers } from "../../../src/scouting/preview";
@@ -45,7 +45,7 @@ import { squadsPath } from "../../../src/squads/paths";
 import { SQUADS_TITLE } from "../../../src/squads/words";
 import { TABLE_PAGE_TITLE } from "../../../src/table/words";
 
-/** One built screen: the preview session that reaches it (src/preview.ts), its address, and its
+/** One built screen: the preview session that reaches it (src/app/preview.ts), its address, and its
  *  page's title. */
 export type BuiltScreen = readonly [session: string, path: string, title: string];
 

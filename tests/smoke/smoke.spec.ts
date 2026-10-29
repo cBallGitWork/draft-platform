@@ -78,7 +78,7 @@ test.describe("production bundle, no VITE_CONVEX_URL", { tag: "@bundle" }, () =>
     await expect(page.getByRole("alert")).toHaveText(NO_CONVEX_URL);
   });
 
-  // src/preview.ts's import.meta.env.DEV guard: the bundle must never hand out a preview session.
+  // src/app/preview.ts's import.meta.env.DEV guard: the bundle must never hand out a preview session.
   test("?preview=manager does not open the preview frame", async ({ page }) => {
     await page.goto("/?preview=manager");
     await expect(page.getByRole("alert")).toHaveText(NO_CONVEX_URL);

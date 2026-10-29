@@ -17,7 +17,7 @@ import { fakeGameweeks } from "./gameweeks.harness";
 import { fakeJoining, type JoiningData } from "./joining.harness";
 import type { LeaguesSeam } from "../../../src/leagues/seam";
 import type { MailSeam } from "../../../src/mail/seam";
-import { ShellApp } from "../../../src/ShellApp";
+import { ShellApp } from "../../../src/app/ShellApp";
 import { fakeLeagueSettings } from "./leagueSettings.harness";
 import { fakePatches } from "./patches.harness";
 import { fakeMatchup } from "./matchup.harness";

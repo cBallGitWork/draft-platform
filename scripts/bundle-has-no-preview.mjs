@@ -18,7 +18,7 @@ const PREVIEW_FILE = "preview.ts";
 /** A string only that preview module holds, by its path; null for one that holds no data of its
  *  own (its words are the app's, its rules row src/rules/preview.ts's, its teams the table's). */
 const NEEDLES = {
-  "src/preview.ts": "preview-pro-league",
+  "src/app/preview.ts": "preview-pro-league",
   "src/admin/preview.ts": "Nick Woltemade",
   "src/feedback/preview.ts": "preview-feedback-",
   "src/gameweeks/preview.ts": "no gameweek was changed",

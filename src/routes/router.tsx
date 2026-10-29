@@ -1,8 +1,8 @@
 import { createRouter, type RouterHistory } from "@tanstack/react-router";
-import { ErrorScreen } from "./frame/ErrorScreen";
-import { frameChildren } from "./routes/frame";
-import { leaguePagesChildren } from "./routes/leaguePages";
-import { frameRoute, leaguePagesRoute, rootRoute, signInRoute, type ShellContext } from "./routes/root";
+import { ErrorScreen } from "../frame/ErrorScreen";
+import { frameChildren } from "./frame";
+import { leaguePagesChildren } from "./leaguePages";
+import { frameRoute, leaguePagesRoute, rootRoute, signInRoute, type ShellContext } from "./root";
 
 export type { ShellContext };
 

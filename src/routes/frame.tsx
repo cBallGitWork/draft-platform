@@ -1,7 +1,7 @@
 import type { ComponentType } from "react";
 import { createRoute, redirect } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { CurrentLeague } from "../frame/CurrentLeague";
+import { CurrentLeague } from "./CurrentLeague";
 import { HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH, MY_TEAM_SQUAD_PATH, MY_TEAM_TRANSACTIONS_PATH, pages, PREMIER_LEAGUE_PATH, SCOUTING_PATH, TABLE_PATH } from "../frame/menu";
 import { PageNotBuilt } from "../frame/PageNotBuilt";
 import { HomePage } from "../home/HomePage";
@@ -20,7 +20,7 @@ import { TablePage } from "../table/TablePage";
 import { CODE_DIGITS, LANDING_PATH, frameRoute } from "./root";
 
 // The pages under root.tsx's frameRoute, for anyone in a league, in its frame; and a placeholder for
-// each menu page not built yet. Each league page is the current league's (frame/CurrentLeague.tsx),
+// each menu page not built yet. Each league page is the current league's (CurrentLeague.tsx),
 // so a switch to another league starts it afresh.
 
 // A signed-in manager lands on My team (spec/12).
