@@ -6,6 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, type TestConvex } from "../../support/convex/leagues.harness";
+import { ARSENAL, CHELSEA, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadRefusals } from "../../../convex/squads/squads";
 import { CURRENT_CLUBS_MOST } from "../../../convex/shared/players";
@@ -16,8 +17,8 @@ import { CURRENT_CLUBS_MOST } from "../../../convex/shared/players";
 
 const [ANN, BOB, CAT, DAN] = MANAGERS;
 const CLUBS = [
-  { code: 3, name: "Arsenal", shortName: "ARS" },
-  { code: 8, name: "Chelsea", shortName: "CHE" },
+  ARSENAL,
+  CHELSEA,
   { code: 14, name: "Liverpool", shortName: "LIV" },
 ];
 /** Sixty players, numbered from 1001, spread over the three clubs. */
@@ -34,12 +35,12 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t, 4);
   teams = await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
   await t.run(async (ctx) => {
-    for (const club of CLUBS) await ctx.db.insert("clubs", club);
+    await insertClubs(ctx, CLUBS);
     for (const [i, code] of PLAYER_CODES.entries()) {
       const name = code === SAKA ? "Saka" : `Player ${code}`;
       await ctx.db.insert("players", { code, name, fullName: code === SAKA ? "Bukayo Saka" : name, clubCode: CLUBS[i % 3].code });
     }
-    await ctx.db.insert("players", { code: GONE, name: "Gone", fullName: "Long Gone", clubCode: 3, droppedAt: Date.now() });
+    await ctx.db.insert("players", { code: GONE, name: "Gone", fullName: "Long Gone", clubCode: ARSENAL.code, droppedAt: Date.now() });
   });
 });
 
@@ -225,9 +226,9 @@ describe("finding a player", () => {
   test("those who have left never crowd out one still here", async () => {
     await t.run(async (ctx) => {
       for (let i = 0; i < 30; i += 1) {
-        await ctx.db.insert("players", { code: 3000 + i, name: "Smith", fullName: `Gone Smith ${i}`, clubCode: 3, droppedAt: Date.now() });
+        await ctx.db.insert("players", { code: 3000 + i, name: "Smith", fullName: `Gone Smith ${i}`, clubCode: ARSENAL.code, droppedAt: Date.now() });
       }
-      await ctx.db.insert("players", { code: 4000, name: "Smith", fullName: "Here Smith", clubCode: 3 });
+      await ctx.db.insert("players", { code: 4000, name: "Smith", fullName: "Here Smith", clubCode: ARSENAL.code });
     });
     expect((await (await as(COMMISSIONER)).find("Smith")).map((player) => player.code)).toEqual([4000]);
   });

@@ -14,6 +14,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { SEASON_TOTALS_MOST } from "../../../convex/stats/seasonStats";
 import { CLUB_PLAYERS_MOST } from "../../../convex/shared/players";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ARSENAL, CHELSEA, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // Scouting's players list (#373, spec/19 The players list): every Premier League player now, for
@@ -21,11 +22,8 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // server. Season points are "—" (null) until matches are scored (#29).
 
 const [ANN, BOB] = MANAGERS;
-const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
 const BRENTFORD = { code: 94, name: "Brentford", shortName: "BRE" };
-const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
 
-const SAKA = { code: 1001, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code, positions: ["W"] as Position[] };
 const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CDM", "CM"] as Position[] };
 const MBEUMO = { code: 1003, name: "Mbeumo", fullName: "Bryan Mbeumo", clubCode: BRENTFORD.code, positions: ["W", "ST"] as Position[] };
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM"] as Position[] };
@@ -43,11 +41,8 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t, 4);
   teams = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
-    for (const club of [CHELSEA, ARSENAL, BRENTFORD]) await ctx.db.insert("clubs", club);
-    for (const { positions, ...player } of [SAKA, RICE, MBEUMO, PALMER]) {
-      await ctx.db.insert("players", player);
-      await ctx.db.insert("playerPositions", { code: player.code, starts: [], approved: [], set: positions, removed: [] });
-    }
+    await insertClubs(ctx, [CHELSEA, ARSENAL, BRENTFORD]);
+    await insertPlayers(ctx, [SAKA, RICE, MBEUMO, PALMER]);
     const { positions: _none, ...gone } = GONE;
     await ctx.db.insert("players", { ...gone, droppedAt: Date.now() });
     // Saka is Ann's and Palmer Bob's.
