@@ -30,6 +30,15 @@ const WIDE_LANES: readonly Lane[] = ["left", "right"];
 /** The area's cells in these lanes. */
 export const cellsOf = (area: Area, lanes: readonly Lane[]): Cell[] => lanes.map((lane) => ({ area, lane }));
 
+/** Every cell of the pitch, back to front, then left to right. */
+export const ALL_CELLS: readonly Cell[] = AREAS.flatMap((area) => cellsOf(area, LANES));
+
+/** A cell as one string, for a set or a map of cells, and to name it in a message. */
+export const cellKey = ({ area, lane }: Cell): string => `${area}/${lane}`;
+
+/** Whether a cell held as data names one of the pitch's areas and one of its lanes. */
+export const isOnPitch = ({ area, lane }: Cell): boolean => AREAS.includes(area) && LANES.includes(lane);
+
 /** The usual case: anyone who plays an area fills any of its cells. */
 const wholeArea = (area: Area): Cell[] => cellsOf(area, LANES);
 
