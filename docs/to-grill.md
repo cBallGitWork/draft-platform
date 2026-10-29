@@ -73,8 +73,9 @@ a player fills only his own areas, and only a keeper plays in goal, both ways (`
 snipped for each player that updats with player performance and news"; "they also do real news
 too"; "it will be needed at some point"). Mail files "Real-life news, once there is a source for
 it" (`spec/16`); today the card shows only FPL's injury line and chance of playing (`spec/12`).
-Fantrax licenses RotoWire, whose writers keep a note on every player. It must scale to five or six
-leagues: a note is the player's, written once and read by every league.
+Fantrax seems to take its notes from RotoWire, whose writers cover every player (unconfirmed;
+RotoWire writes Fantrax-branded Premier League columns). It must scale to five or six leagues: a
+note is the player's, written once and read by every league.
 - The source: a licensed feed (RotoWire, Sportradar) for a yearly fee, or a scheduled job that
   reads public news feeds and has an AI write each note in our own words, linking its article.
   Claude suggested the second, with the feed as a fallback behind the same news slot.
