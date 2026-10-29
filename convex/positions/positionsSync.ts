@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalAction, internalMutation, internalQuery, type ActionCtx } from "../_generated/server";
 import { PL_COMP_SEASON, PL_LAST_COMP_SEASON } from "../football/football";
-import { errorMessage, logFailure } from "../shared/errors";
+import { errorMessage, outcomeOf } from "../shared/errors";
 import { codesByOpta, namedMen } from "../football/feedIds";
 import { readFplBootstrap } from "../football/fpl/fpl";
 import { heldRow } from "./playerPositions";
@@ -33,17 +33,14 @@ export const run = internalAction({
   returns: v.null(),
   handler: async (ctx, { trigger }) => {
     const ranAt = Date.now();
-    let outcome: Infer<typeof positionsSyncFields.outcome>;
-    try {
+    const outcome: Infer<typeof positionsSyncFields.outcome> = await outcomeOf("positions sync failed", async () => {
       const synced = await syncPositions(ctx);
-      outcome = { ok: true, ...synced };
       const { unknownFormations, unknownLabels, matchesRefused } = synced;
       if ([unknownFormations, unknownLabels, matchesRefused].some((found) => found.length > 0)) {
         console.error(`positions sync: ${JSON.stringify({ unknownFormations, unknownLabels, matchesRefused })}`);
       }
-    } catch (error: unknown) {
-      outcome = { ok: false, error: logFailure("positions sync failed", error) };
-    }
+      return { ok: true as const, ...synced };
+    });
     await ctx.runMutation(internal.positions.positionsSync.record, { trigger, ranAt, outcome });
     return null;
   },
