@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { query } from "../_generated/server";
 import { adminByline } from "../mail/letterWords";
 import { isAdmin, managerOf } from "../shared/leagueAccess";
-import { isSquadMove, SQUAD_MOVES } from "./squads";
+import { isSquadMove, SQUAD_MOVES } from "./squadPlace";
 
 // My team's Transactions tab (#366; spec/12, My team's tabs: "the team's claims, drops, trades and
 // commissioner assignments, newest first, from the same events Mail files"). Claims, drops and

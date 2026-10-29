@@ -1,5 +1,5 @@
 import { v, type Infer } from "convex/values";
-import type { Doc, Id } from "../_generated/dataModel";
+import type { Doc } from "../_generated/dataModel";
 import { mutation, query, type QueryCtx } from "../_generated/server";
 import { memberOf, refuse, refusals, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
@@ -8,14 +8,12 @@ import { clubByCode, playerByCode, playersNamed } from "../shared/players";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { latestRules } from "../rules/rulesHistory";
 import { areaShape, type LeagueRules } from "../rules/leagueRulesShape";
-import type { leagueEvent } from "../schema";
 import { areasOf, type Area } from "../lineup/pitch";
 import { currentPositions } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { areasShort } from "./areaMinimums";
-import { takeAllOrThrow } from "../shared/cappedRead";
 import { readOnce } from "../shared/readOnce";
-import { placeOf } from "./squadPlace";
+import { placeOf, squadOf } from "./squadPlace";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
@@ -24,17 +22,10 @@ import { pickFirstLineupAgain } from "../lineup/lineups";
 // holds him (spec/19). The league's squad limits warn, never block.
 //
 // Each change to a squad files its league event in the same transaction, and nothing else writes
-// squadPlayers, so the events say what every squad was at any moment (`squadAt`, #415). A new way
-// to change a squad must file one of SQUAD_MOVES too, or join them, and pick each team's first
-// lineup again (lineups.ts `pickFirstLineupAgain`), so a team always has a lineup (#637).
-
-/** The league events that change a squad. Today a commissioner assigns, moves and releases players
- *  (#31); waiver claims and trades join them when built. */
-export const SQUAD_MOVES = ["playerAssigned", "playerMoved", "playerReleased"] as const;
-
-/** The most squad moves of each kind `squadAt` reads after a moment: Claude's sizing, well above a
- *  season's moves in one league. Past it this throws rather than return a wrong squad. */
-export const SQUAD_MOVES_READ_MOST = 2000;
+// squadPlayers, so the events say what every squad was at any moment (squadPlace.ts `squadAt`,
+// #415). A new way to change a squad must file one of squadPlace.ts's SQUAD_MOVES too, or join
+// them, and pick each team's first lineup again (lineups.ts `pickFirstLineupAgain`), so a team
+// always has a lineup (#637).
 
 export const squadRefusals = {
   noPlayer: refusals.noPlayer,
@@ -50,62 +41,6 @@ async function heldPlayer(ctx: QueryCtx, code: number): Promise<Doc<"players">> 
   return (await playerByCode(ctx, code)) ?? refuse(squadRefusals.noPlayer);
 }
 
-/** The team's squad rows, in the order its players joined it. */
-export function squadOf(ctx: QueryCtx, teamId: Id<"teams">) {
-  return ctx.db
-    .query("squadPlayers")
-    .withIndex("by_teamId", (q) => q.eq("teamId", teamId))
-    .take(MOST_IN_SQUAD);
-}
-
-type LeagueEvent = Infer<typeof leagueEvent>;
-type SquadMove = Extract<LeagueEvent, { kind: (typeof SQUAD_MOVES)[number] }>;
-export const isSquadMove = (event: LeagueEvent): event is SquadMove => (SQUAD_MOVES as readonly string[]).includes(event.kind);
-
-/** A league's squad moves filed at `at` or after, newest first: what `squadAt` undoes. */
-export type SquadMovesSince = Doc<"leagueEvents">[];
-
-/** The league's squad moves filed at `at` or after, newest first. Read once for every team. */
-export async function squadMovesSince(ctx: QueryCtx, leagueId: Id<"leagues">, at: number): Promise<SquadMovesSince> {
-  const movesOfEachKind = await Promise.all(
-    SQUAD_MOVES.map((kind) =>
-      takeAllOrThrow(
-        ctx.db
-          .query("leagueEvents")
-          .withIndex("by_leagueId_and_kind_and_at", (q) => q.eq("leagueId", leagueId).eq("event.kind", kind).gte("at", at)),
-        SQUAD_MOVES_READ_MOST,
-        `League ${leagueId} has more than ${SQUAD_MOVES_READ_MOST} ${kind} moves since ${at}, so its squads then can't be read`,
-      ),
-    ),
-  );
-  return movesOfEachKind.flat().toSorted((one, other) => other._creationTime - one._creationTime);
-}
-
-/** The team's player codes as its squad stood before `movesSince`: today's squad with each of them
- *  undone, newest first. Those still in it keep the order they joined; those who have left since
- *  follow, in the order they left. A move that doesn't fit the squad it undoes (one who joined but
- *  isn't there, one who left but is) throws: the history is broken. */
-export async function squadAt(ctx: QueryCtx, teamId: Id<"teams">, movesSince: SquadMovesSince): Promise<number[]> {
-  let stayed = (await squadOf(ctx, teamId)).map(({ playerCode }) => playerCode);
-  let leftSince: number[] = [];
-  for (const { _id, event } of movesSince) {
-    // Only these kinds were read; any other is a bug in the read.
-    if (!isSquadMove(event)) throw new Error(`League event ${_id} is a ${event.kind}, not a squad move`);
-    const { playerCode } = event;
-    const held = stayed.includes(playerCode) || leftSince.includes(playerCode);
-    if (event.kind !== "playerReleased" && event.teamId === teamId) {
-      if (!held) throw new Error(`League event ${_id} put player ${playerCode} on team ${teamId}, but he isn't in its squad after it`);
-      stayed = stayed.filter((code) => code !== playerCode);
-      leftSince = leftSince.filter((code) => code !== playerCode);
-    }
-    const leftHere = event.kind === "playerReleased" ? event.teamId === teamId : event.kind === "playerMoved" && event.fromTeamId === teamId;
-    if (leftHere) {
-      if (held) throw new Error(`League event ${_id} took player ${playerCode} off team ${teamId}, but he is in its squad after it`);
-      leftSince = [playerCode, ...leftSince];
-    }
-  }
-  return [...stayed, ...leftSince];
-}
 
 /** Refuses a team already holding the platform's most, whatever the league's own limits say. */
 async function roomOn(ctx: QueryCtx, team: Doc<"teams">): Promise<void> {
