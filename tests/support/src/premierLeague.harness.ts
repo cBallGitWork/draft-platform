@@ -5,8 +5,7 @@ import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 import type { FirstKickoff, GameweekMatch, MatchPage, PlStandings, PremierLeagueSeam } from "../../../src/premierLeague/seam";
 
-export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
-export const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
+export { ARSENAL, CHELSEA } from "../convex/footballRows.harness";
 export const FOREST = { code: 17, name: "Nottingham Forest", shortName: "NFO" };
 export const SPURS = { code: 6, name: "Spurs", shortName: "TOT" };
 

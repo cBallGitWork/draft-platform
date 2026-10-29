@@ -6,12 +6,11 @@
 // minute N of the replay, `?minute=final` at the end, for screenshots.
 
 import { useEffect, useMemo, useState } from "react";
-import type { Id } from "../../convex/_generated/dataModel";
 import type { Area } from "../../convex/lineup/pitch";
 import type { MatchupCommentary, MatchupSide, MatchupSlot } from "../../convex/matchup/matchupShape";
 import { MINUTE_MS } from "../../convex/shared/time";
 import { previewFixtureCode } from "../premierLeague/preview";
-import { previewSeason, previewTeams } from "../table/preview";
+import { previewIdOf, previewSeason, previewTeams } from "../table/preview";
 import type { Matchup, MatchupSeam } from "./seam";
 
 /** How long a man's match runs, stoppage time in, and when the second match kicks off. */
@@ -73,7 +72,6 @@ const KROOS_CONTROL: { starters: Man[]; bench: Man[] } = {
 /** Saka Potatoes' keeper and the bench keeper who comes on for him. */
 const [UNUSED_KEEPER, BENCH_KEEPER] = ["Raya", "Pickford"];
 
-const previewIdOf = (teamName: string) => `preview-${teamName}` as Id<"teams">;
 const codeOf = (name: string) => [...name].reduce((code, letter) => code * 31 + letter.charCodeAt(0), 7);
 
 /** A man `minute` minutes into the replay. */
