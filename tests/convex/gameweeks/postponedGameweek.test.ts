@@ -6,6 +6,7 @@ import type { Position } from "../../../convex/positions/positionTables";
 import { HELD_FIRST_RULES, holdGameweeks, rulesInGameweek, rulesRevision, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { filledLineup, presetNamed } from "../../support/convex/lineup.harness";
+import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // A whole gameweek postponed behind the gameweek being played (#413): every match of gameweek 7
@@ -59,7 +60,7 @@ test("a lineup saved now is from the gameweek after the one under way, and that 
 
   expect(await ann.mutation(api.lineup.lineups.save, { leagueId, lineup: sent(FOUR_FOUR_TWO) })).toBe(NEXT);
   // No row reaches it: it holds no saved lineup, only the squad's first (#637).
-  expect(await ann.query(api.lineup.lineups.mine, { leagueId, gameweek: UNDER_WAY })).toMatchObject({ fromGameweek: null });
+  expect(await t.run((ctx) => lineupInGameweek(ctx, leagueId, annsTeam, UNDER_WAY))).toMatchObject({ fromGameweek: null });
 });
 
 test("a rule change made now takes effect from the gameweek after the one under way, which keeps its rules", async () => {

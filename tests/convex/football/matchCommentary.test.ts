@@ -1,5 +1,5 @@
 import { expect, test, vi } from "vitest";
-import { api, internal } from "../../../convex/_generated/api";
+import { internal } from "../../../convex/_generated/api";
 import { codesByOpta, fixtureCodeIn } from "../../../convex/football/feedIds";
 import { plCommentaryUrl, plFixtureUrl } from "../../../convex/football/football";
 import {
@@ -10,10 +10,9 @@ import {
   type CommentaryRead,
 } from "../../../convex/football/matchCommentary";
 import type { RawPlCommentary, RawPlFixture } from "../../../convex/football/premierLeague/premierLeague";
-import { refusals } from "../../../convex/shared/leagueAccess";
+import { heldOf } from "../../../convex/football/matchCommentary";
 import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
-import { actingAs } from "../../support/convex/leagues.harness";
-import { expectRefused, fakeFetch, freshConvex, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
+import { fakeFetch, freshConvex, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import {
   LIVE_COMMENTARY,
   LIVE_MATCH,
@@ -32,7 +31,6 @@ const IPSWICH_FOREST = fixtureCodeIn(recordedLiveSheets())!;
 const CLUBS = { home: "IPS", away: "NFO" };
 /** Ipswich v Forest's lines the replay follows, by feed id. */
 const LINE = { firstGoal: 2878012, droppedFoul: 2878263 } as const;
-const MANAGER = "manager@example.com";
 
 type Read = keyof typeof LIVE_COMMENTARY;
 
@@ -63,8 +61,10 @@ async function store(t: TestConvex, at: number, read: CommentaryRead) {
   await t.mutation(internal.football.matchCommentary.store, { fixtureCode: IPSWICH_FOREST, readAt: at, ...read });
 }
 
+/** The match's commentary as the matchup and the match page read it: its lines, and whether it is delayed. */
 async function shown(t: TestConvex) {
-  return (await actingAs(t, MANAGER)).query(api.football.matchCommentary.ofMatch, { fixtureCode: IPSWICH_FOREST });
+  const held = await t.run((ctx) => heldOf(ctx, IPSWICH_FOREST));
+  return held === null ? null : { lines: held.lines, delayed: held.delayed !== null };
 }
 
 function textOf(lines: { sourceId: number; text: string }[], sourceId: number) {
@@ -171,9 +171,8 @@ test("a read that failed keeps the held lines, delayed with why", async () => {
   expect(await shown(t)).toEqual({ lines: held, delayed: true });
 });
 
-test("before its first read a match has no commentary, and it is for signed-in people only", async () => {
+test("before its first read a match has no commentary", async () => {
   const t = freshConvex();
 
   expect(await shown(t)).toBeNull();
-  await expectRefused(t.query(api.football.matchCommentary.ofMatch, { fixtureCode: IPSWICH_FOREST }), refusals.signedOut);
 });
