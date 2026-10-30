@@ -42,6 +42,9 @@ export function freshConvex(): TestConvex {
  *  past it gets longer to run. */
 export const ROWS_TO_THE_CAP = { timeout: 30_000 };
 
+/** One character that is two UTF-16 units, for the typed-text limits, which count characters. */
+export const EMOJI = "\u{1F3C6}";
+
 /** The clock runs on to `time` with nothing else happening, firing each scheduled function as it
  *  falls due, and those they schedule that are due by then. */
 export async function clockRunsTo(t: TestConvex, time: number): Promise<void> {

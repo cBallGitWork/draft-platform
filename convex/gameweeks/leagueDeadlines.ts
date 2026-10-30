@@ -28,6 +28,11 @@ export async function leagueDeadlines(ctx: QueryCtx, leagueId: Id<"leagues">): P
   return leagueDeadlinesIn(ctx, leagueId, (await heldSchedule(ctx)).matches);
 }
 
+/** Reads one gameweek's deadline from `leagueDeadlines`'s map: null where it has none. */
+export function deadlineOf(deadlines: ReadonlyMap<number, number | null>): (gameweek: number) => number | null {
+  return (gameweek) => deadlines.get(gameweek) ?? null;
+}
+
 /** `leagueDeadlines` against matches already read (`heldSchedule`), so one read serves every
  *  league. */
 export async function leagueDeadlinesIn(
