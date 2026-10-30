@@ -3,7 +3,7 @@ import { GITHUB_REPO } from "../../../scripts/live-setup/live.mjs";
 import { DONE, FAILED } from "../../../scripts/live-setup/outcomes.mjs";
 import { RELEASE_STEPS } from "../../../scripts/live-setup/releaseSteps.mjs";
 import { setUpLive } from "../../../scripts/live-setup/steps.mjs";
-import { setUpWorld } from "../../support/scripts/liveSetup.harness.mjs";
+import { GIT_OPTIONS_WITHOUT_DISPATCH, setUpWorld } from "../../support/scripts/liveSetup.harness.mjs";
 
 const OTHER_REPO = "someone/their-fork";
 
@@ -20,11 +20,11 @@ const DISPATCH_STEP = RELEASE_STEPS.find((step) => step.title.includes("reposito
 
 test("a project that sends no repository dispatch events is set to, keeping its other git settings", async () => {
   const world = await setUpWorld();
-  world.vercel.gitProviderOptions = { createDeployments: "disabled", disableRepositoryDispatchEvents: true };
+  world.vercel.gitProviderOptions = GIT_OPTIONS_WITHOUT_DISPATCH;
   expect(await setUpLive(world.tools)).toBe(true);
   expect(world.printed).toContain(`${DISPATCH_STEP.title}: ${DONE}`);
   expect(world.changes).toEqual(["vercel git options"]);
-  expect(world.vercel.gitProviderOptions).toEqual({ createDeployments: "disabled", disableRepositoryDispatchEvents: false });
+  expect(world.vercel.gitProviderOptions).toEqual({ ...GIT_OPTIONS_WITHOUT_DISPATCH, disableRepositoryDispatchEvents: false });
 });
 
 test("a project with no git settings sends dispatch events already, and is left alone", async () => {

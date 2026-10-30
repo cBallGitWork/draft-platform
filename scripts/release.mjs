@@ -44,8 +44,8 @@ export const VERCEL_PRODUCTION = "production";
 export const DEPLOY_KEY_SETTING = "CONVEX_DEPLOY_KEY";
 const VERCEL_ENV = "VERCEL_ENV";
 
-/** Why this build mustn't release, or null when it may: only production's build deploys, and only
- *  with the deploy key. Outside Vercel there is no VERCEL_ENV, and the key alone decides. */
+/** Why this build mustn't release, or null when it may. Outside Vercel there is no VERCEL_ENV,
+ *  and the key alone decides. */
 export function refusal(env) {
   const environment = env[VERCEL_ENV];
   if (environment && environment !== VERCEL_PRODUCTION) {
