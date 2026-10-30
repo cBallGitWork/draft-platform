@@ -19,8 +19,7 @@ const withoutRootDot = (host) => host.replace(/\.$/, "");
 const QUOTED = /^"(.*)"$/s;
 
 /** A record as DNS means it: the name and a host value without case or closing dot, a TXT value
- *  without its quotes, and an MX record's priority apart from its value (Resend's `priority`;
- *  Vercel's `mxPriority`, which tools.mjs reads as `priority`). */
+ *  without its quotes, and an MX record's priority beside its value. */
 function dnsMeaning({ type, name, value, priority }) {
   const kind = type.toUpperCase();
   return {
