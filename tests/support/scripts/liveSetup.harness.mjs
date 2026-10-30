@@ -17,6 +17,8 @@ export const CHECK_EMAIL = "release-check@abc123def.resend.app";
 export const NO_DEPLOYMENT = "no production deployment";
 export const DEPLOY_KEY = "prod:fake-deployment-123|eyFakeDeployKey0123456789abcdef";
 export const ADMIN = "craig@example.com";
+/** The git settings the live Vercel project had (30 Oct 2026): no repository dispatch events. */
+export const GIT_OPTIONS_WITHOUT_DISPATCH = { createDeployments: "disabled", disableRepositoryDispatchEvents: true };
 
 /** The records Resend asks a new domain to publish (its API reference's example, for eu-west-1). */
 export const RESEND_RECORDS = [
@@ -31,7 +33,14 @@ export const RESEND_RECORDS = [
 export function fakeWorld({ checksBeforeVerified = 0 } = {}) {
   const world = {
     convex: { exists: false, settings: new Map(), deployed: false, syncs: [], allowed: [] },
-    vercel: { linked: null, env: [], domains: [], dns: [], repo: null },
+    vercel: {
+      linked: null,
+      env: [],
+      domains: [],
+      dns: [],
+      repo: null,
+      gitProviderOptions: GIT_OPTIONS_WITHOUT_DISPATCH,
+    },
     github: { secrets: new Map() },
     resend: { domains: [] },
     printed: [],
@@ -126,6 +135,11 @@ export function fakeWorld({ checksBeforeVerified = 0 } = {}) {
       connectRepo: async (url) => {
         change("vercel git connect");
         world.vercel.repo = new URL(url).pathname.slice(1);
+      },
+      gitProviderOptions: async () => ({ ...world.vercel.gitProviderOptions }),
+      setGitProviderOptions: async (options) => {
+        change("vercel git options");
+        world.vercel.gitProviderOptions = { ...options };
       },
     },
     github: {

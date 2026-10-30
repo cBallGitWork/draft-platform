@@ -19,8 +19,6 @@ export const LIVE_SENDER = `${SENDER_MAILBOX}@${LIVE_DOMAIN}`;
 
 /** The Vercel project the site is served from. */
 export const VERCEL_PROJECT = "draft-platform";
-/** Vercel's name for the live site's environment. */
-export const VERCEL_PRODUCTION = "production";
 
 /** The settings on the live Convex deployment: the five sign-in needs (docs/setup.md), and the
  *  sender. */
@@ -32,8 +30,8 @@ export const SETTING = {
   resendKey: RESEND_KEY_SETTING,
   sender: EMAIL_FROM_SETTING,
 };
-/** The setting in Vercel that lets its build deploy the server code to the live deployment. */
-export const DEPLOY_KEY_SETTING = "CONVEX_DEPLOY_KEY";
+// The release's own names (scripts/release.mjs), which the setup command puts in Vercel.
+export { DEPLOY_KEY_SETTING, VERCEL_PRODUCTION } from "../release.mjs";
 
 /** How each pasted key starts, so a key pasted into the wrong prompt is caught before it's saved. */
 export const DEPLOY_KEY_PREFIX = "prod:";

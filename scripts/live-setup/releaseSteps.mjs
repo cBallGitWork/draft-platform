@@ -20,6 +20,18 @@ export const RELEASE_STEPS = [
     },
   },
   {
+    // The after-release check starts on Vercel's `vercel.deployment.success` repository dispatch
+    // event, which Vercel doesn't send while the project's disableRepositoryDispatchEvents is on
+    // (#512: it was, so no check ran by itself).
+    title: "Vercel tells GitHub when a release is live (repository dispatch events)",
+    async run(setup) {
+      const options = await setup.tools.vercel.gitProviderOptions();
+      if (options.disableRepositoryDispatchEvents !== true) return ALREADY_DONE;
+      await setup.tools.vercel.setGitProviderOptions({ ...options, disableRepositoryDispatchEvents: false });
+      return DONE;
+    },
+  },
+  {
     title: `The after-release check's address (GitHub's ${RELEASE_CHECK_SECRET.email}, on the live site's allowed list)`,
     async run(setup) {
       const allowed = (await setup.tools.convex.allowedEmails()).some((email) => email.endsWith(RESEND_RECEIVING_SUFFIX));

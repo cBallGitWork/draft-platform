@@ -29,6 +29,13 @@ const VERCEL_TEAM_ID_PREFIX = "team_";
 const PROD = "--prod";
 /** How Vercel's API names a project's link to a GitHub repository. */
 const GITHUB_LINK_TYPE = "github";
+/** The project, in Vercel's API: read for its git settings, and changed with a PATCH. */
+const VERCEL_PROJECT_API = "/v9/projects/:project";
+const PATCH = "PATCH";
+/** The project's git settings a PATCH takes, from Vercel's API reference (read 30 Oct 2026). The
+ *  ones the project has are sent back with any change, so a PATCH can't reset one by leaving it
+ *  out. */
+const GIT_PROVIDER_OPTIONS = ["createDeployments", "disableRepositoryDispatchEvents", "requireVerifiedCommits", "gitCommitStatus"];
 /** The live site's allowed list (convex/signIn/allowedEmails.ts), read to see the check's address. */
 const ALLOWED_EMAILS_TABLE = "allowedEmails";
 /** The page of the domain's DNS records asked for: a new domain holds a handful, and Vercel's
@@ -92,13 +99,15 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
     return project;
   }
 
-  /** A GET from Vercel's API, as the signed-in CLI, for the linked project's team. */
-  async function vercelApi(path) {
+  /** A call to Vercel's API, as the signed-in CLI, for the linked project's team: a GET, or with
+   *  `method`, that method with `body` as JSON on stdin. */
+  async function vercelApi(path, { method, body } = {}) {
     const project = await requireLinkedProject();
     const teamId = project.orgId?.startsWith(VERCEL_TEAM_ID_PREFIX) ? `teamId=${project.orgId}` : "";
     const route = path.replace(":project", project.projectId);
     const query = teamId ? `${route.includes("?") ? "&" : "?"}${teamId}` : "";
-    return JSON.parse(await vercelCli(["api", `${route}${query}`]));
+    const request = method ? ["--method", method, "--input", "-"] : [];
+    return JSON.parse(await vercelCli(["api", `${route}${query}`, ...request], method && JSON.stringify(body)));
   }
 
   async function resendApi(key, method, path, body) {
@@ -172,7 +181,7 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
         vercelCli(["dns", "add", domain, name, type, value, ...(priority === undefined ? [] : [String(priority)])]),
       /** The GitHub repository ("owner/name") the project builds from, or null. */
       connectedRepo: async () => {
-        const { link } = await vercelApi("/v9/projects/:project");
+        const { link } = await vercelApi(VERCEL_PROJECT_API);
         return link?.type === GITHUB_LINK_TYPE ? `${link.org}/${link.repo}` : null;
       },
       // Vercel's GitHub app must be installed on the repository; the CLI says so if it isn't. Run
@@ -181,6 +190,12 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
       connectRepo: async (url) => {
         const project = await requireLinkedProject();
         await vercelCli(["git", "connect", url, "--yes", "--project", project.projectId, "--scope", project.orgId, "--cwd", tmpdir()]);
+      },
+      /** The project's git settings, as Vercel's API gives them ({} when it has none). */
+      gitProviderOptions: async () => (await vercelApi(VERCEL_PROJECT_API)).gitProviderOptions ?? {},
+      setGitProviderOptions: (options) => {
+        const kept = Object.fromEntries(GIT_PROVIDER_OPTIONS.filter((key) => key in options).map((key) => [key, options[key]]));
+        return vercelApi(VERCEL_PROJECT_API, { method: PATCH, body: { gitProviderOptions: kept } });
       },
     },
     github: {

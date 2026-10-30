@@ -15,7 +15,7 @@ import {
 } from "../../../scripts/live-setup/live.mjs";
 import { VERCEL_LINK_FILE, captured, realTools } from "../../../scripts/live-setup/tools.mjs";
 import { RESEND_API_URL } from "../../../convex/outbound/resend.ts";
-import { CHECK_EMAIL, RESEND_KEY } from "../../support/scripts/liveSetup.harness.mjs";
+import { CHECK_EMAIL, GIT_OPTIONS_WITHOUT_DISPATCH, RESEND_KEY } from "../../support/scripts/liveSetup.harness.mjs";
 
 const SECRET = "a-secret-value-0123456789";
 const LINKED = { projectId: "prj_123", orgId: "team_456", projectName: VERCEL_PROJECT };
@@ -146,6 +146,21 @@ test("the GitHub connection is made outside the checkout, naming the linked proj
   expect(args[args.indexOf("--scope") + 1]).toBe(LINKED.orgId);
   // The checkout's own remote can be an SSH host alias the CLI can't parse.
   expect(args[args.indexOf("--cwd") + 1]).not.toBe(checkout);
+});
+
+test("the project's git settings are read from it, and changed with a PATCH whose body goes on stdin", async () => {
+  const options = GIT_OPTIONS_WITHOUT_DISPATCH;
+  const changed = { ...options, disableRepositoryDispatchEvents: false };
+  const { tools, calls } = vercelAnswering({ id: LINKED.projectId, gitProviderOptions: options });
+  expect(await tools.vercel.gitProviderOptions()).toEqual(options);
+  // A setting a PATCH doesn't take is never sent: Vercel refuses a body with one.
+  await tools.vercel.setGitProviderOptions({ ...changed, notAPatchKey: 1 });
+  const route = `/v9/projects/${LINKED.projectId}?teamId=${LINKED.orgId}`;
+  expect(calls).toEqual([
+    { cli: "vercel", args: ["api", route], input: undefined },
+    { cli: "vercel", args: ["api", route, "--method", "PATCH", "--input", "-"], input: JSON.stringify({ gitProviderOptions: changed }) },
+  ]);
+  expect(await vercelAnswering({ id: LINKED.projectId }).tools.vercel.gitProviderOptions()).toEqual({});
 });
 
 test("an unlinked checkout's GitHub connection is refused before the CLI runs", async () => {
