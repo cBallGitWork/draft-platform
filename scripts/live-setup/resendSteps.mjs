@@ -26,7 +26,7 @@ function dnsMeaning({ type, name, value, priority }) {
     kind,
     name: relativeName(withoutRootDot(name).toLowerCase()),
     value: HOST_VALUE_TYPES.has(kind) ? withoutRootDot(value).toLowerCase() : kind === TXT ? value.replace(QUOTED, "$1") : value,
-    priority: kind === MX ? Number(priority) : null,
+    priority: kind === MX ? (priority ?? null) : null,
   };
 }
 
