@@ -61,6 +61,15 @@ test("an MX record Vercel holds at another priority is added at Resend's", async
   expect(world.vercel.dns.at(-1)).toEqual({ name: "send", type: "MX", value: "feedback-smtp.eu-west-1.amazonses.com.", mxPriority: 10 });
 });
 
+test("an MX record neither side gives a priority is already done, not re-added", async () => {
+  const world = await liveShapedWorld();
+  world.resend.domains[0].records = RESEND_LIVE_RECORDS.map(({ priority, ...record }) => record);
+  delete world.vercel.dns.find((record) => record.type === "MX").mxPriority;
+  expect(await setUpLive(world.tools)).toBe(true);
+  expect(dnsLine(world)).toBe(ALREADY_DONE);
+  expect(world.changes).toEqual([]);
+});
+
 test("a CNAME Vercel holds pointing elsewhere is added, not taken as Resend's", async () => {
   const world = await liveShapedWorld();
   world.vercel.dns.find((record) => record.type === "CNAME").value = "elsewhere.example.com.";
