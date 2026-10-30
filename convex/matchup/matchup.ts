@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { heldOf } from "../football/matchCommentary";
 import { PLAYING_STATES, scoreOf } from "../football/matchScores";
-import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
@@ -53,14 +53,13 @@ export const ofTeam = query({
 
     const schedule = await scheduleOf(ctx, league, season);
     const games = gamesOf(schedule, team._id);
-    const deadlines = await leagueDeadlines(ctx, leagueId);
-    const deadlineOf = (each: number) => deadlines.get(each) ?? null;
-    const gameweek = asked ?? thisGameweekOf(games, deadlineOf, now)?.gameweek ?? null;
+    const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
+    const gameweek = asked ?? thisGameweekOf(games, deadlineIn, now)?.gameweek ?? null;
     const heading = { kind: "headToHead" as const, teamId: team._id, teamName: team.name, gameweeks: [...new Set(games.map((each) => each.gameweek))] };
     if (gameweek === null) return { ...heading, gameweek, deadline: null, game: { kind: "none" as const } };
     const against = games.find((each) => each.gameweek === gameweek)?.against;
     const drawn = schedule.find((each) => each.gameweek === gameweek);
-    return { ...heading, gameweek, deadline: deadlineOf(gameweek), game: await gameOf(ctx, league, season, team, drawn, against) };
+    return { ...heading, gameweek, deadline: deadlineIn(gameweek), game: await gameOf(ctx, league, season, team, drawn, against) };
   },
 });
 

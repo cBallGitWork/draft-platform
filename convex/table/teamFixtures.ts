@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { seasonRules } from "../rules/rulesHistory";
-import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { managerOf } from "../shared/leagueAccess";
 import { standingsOf } from "./leagueTable";
@@ -57,8 +57,6 @@ export const ofMyTeam = query({
     if (season === null) return null;
     // As the table reads it: the format is the latest rules', the draw each gameweek's own.
     const { rules, schedule, results, unscored, named } = await standingsOf(ctx, league, season);
-    const deadlines = await leagueDeadlines(ctx, leagueId);
-    const deadlineOf = (gameweek: number) => deadlines.get(gameweek) ?? null;
-    return teamFixturesFrom({ team: { id: team._id, name: team.name }, format: rules.format, schedule, results, unscored, deadlineOf, named });
+    return teamFixturesFrom({ team: { id: team._id, name: team.name }, format: rules.format, schedule, results, unscored, deadlineOf: deadlineOf(await leagueDeadlines(ctx, leagueId)), named });
   },
 });

@@ -1,6 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { isLocked } from "../gameweeks/deadline";
+import { deadlineOf } from "../gameweeks/leagueDeadlines";
 import { GAMEWEEKS, usedGameweeksOf } from "../gameweeks/usedGameweeks";
 import { drawRulesOf } from "../rules/firstRules";
 import type { SeasonRules } from "../rules/rulesHistory";
@@ -103,8 +104,9 @@ export async function storeBegunFixtures(
 ): Promise<void> {
   if (rules === null) return;
   const stored = await storedFixturesOf(ctx, league._id);
+  const deadlineIn = deadlineOf(deadlines);
   const toStore = usedGameweeksOf(league).flatMap((gameweek) => {
-    const deadline = deadlines.get(gameweek) ?? null;
+    const deadline = deadlineIn(gameweek);
     return !stored.has(gameweek) && deadline !== null && isLocked(deadline, now) ? [{ gameweek, deadline }] : [];
   });
   // The football sync calls this for every league on each batch: most find nothing to store, and
