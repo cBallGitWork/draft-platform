@@ -17,7 +17,7 @@ import {
 import { HIDDEN, secretKeeper, signInKeys } from "../../../scripts/live-setup/secrets.mjs";
 import { ALREADY_DONE, DONE, FAILED, NOT_YET } from "../../../scripts/live-setup/outcomes.mjs";
 import { STEPS, setUpLive } from "../../../scripts/live-setup/steps.mjs";
-import { ADMIN, CHECK_EMAIL, DEPLOY_KEY, NO_DEPLOYMENT, RESEND_KEY, RESEND_RECORDS, fakeWorld, setUpWorld } from "../../support/scripts/liveSetup.harness.mjs";
+import { ADMIN, CHECK_EMAIL, DEPLOY_KEY, NO_DEPLOYMENT, RESEND_KEY, RESEND_RECORDS, asVercelHoldsIt, fakeWorld, setUpWorld } from "../../support/scripts/liveSetup.harness.mjs";
 
 const OTHER_ADMIN = "someone@example.com";
 const OTHER_VERCEL_PROJECT = "someone-elses-project";
@@ -59,9 +59,7 @@ test("a first run on nothing sets up every part of the live site (spec/20, Setti
   expect(settings.get(SETTING.sender)).toBe(LIVE_SENDER);
   expect(world.vercel.env).toEqual([{ key: DEPLOY_KEY_SETTING, target: VERCEL_PRODUCTION, value: DEPLOY_KEY }]);
   expect(world.vercel.domains).toEqual([LIVE_DOMAIN]);
-  expect(world.vercel.dns.map(({ type, name, value }) => ({ type, name, value }))).toEqual(
-    RESEND_RECORDS.map(({ type, name, value }) => ({ type, name, value })),
-  );
+  expect(world.vercel.dns).toEqual(RESEND_RECORDS.map(asVercelHoldsIt));
   expect(world.resend.domains).toMatchObject([{ name: LIVE_DOMAIN, region: RESEND_REGION, status: RESEND_VERIFIED }]);
   expect(world.convex.syncs).toHaveLength(1);
   expect(world.vercel.repo).toBe(GITHUB_REPO);

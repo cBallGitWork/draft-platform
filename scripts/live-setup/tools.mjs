@@ -175,8 +175,11 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
       addDomain: (domain, project) => vercelCli(["domains", "add", domain, project]),
       dnsRecords: async (domain) =>
         onePage(await vercelApi(`/v5/domains/${domain}/records?limit=${DNS_RECORDS_READ}`), `${domain}'s DNS records`).records.map(
-          ({ name, type, value }) => ({ name, type, value }),
+          // Vercel gives an MX record's priority apart from its value, as `mxPriority`; it is read
+          // as `priority`, the name Resend and `addDnsRecord` use.
+          ({ name, type, value, mxPriority }) => ({ name, type, value, ...(mxPriority === undefined ? {} : { priority: mxPriority }) }),
         ),
+      // `vercel dns add <domain> <name> MX <value> <priority>`: an MX record's priority goes last.
       addDnsRecord: (domain, { name, type, value, priority }) =>
         vercelCli(["dns", "add", domain, name, type, value, ...(priority === undefined ? [] : [String(priority)])]),
       /** The GitHub repository ("owner/name") the project builds from, or null. */
