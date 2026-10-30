@@ -31,7 +31,15 @@ export const RESEND_RECORDS = [
 export function fakeWorld({ checksBeforeVerified = 0 } = {}) {
   const world = {
     convex: { exists: false, settings: new Map(), deployed: false, syncs: [], allowed: [] },
-    vercel: { linked: null, env: [], domains: [], dns: [], repo: null },
+    // The git settings the live project had (30 Oct 2026): no dispatch events.
+    vercel: {
+      linked: null,
+      env: [],
+      domains: [],
+      dns: [],
+      repo: null,
+      gitProviderOptions: { createDeployments: "disabled", disableRepositoryDispatchEvents: true },
+    },
     github: { secrets: new Map() },
     resend: { domains: [] },
     printed: [],
@@ -126,6 +134,11 @@ export function fakeWorld({ checksBeforeVerified = 0 } = {}) {
       connectRepo: async (url) => {
         change("vercel git connect");
         world.vercel.repo = new URL(url).pathname.slice(1);
+      },
+      gitProviderOptions: async () => ({ ...world.vercel.gitProviderOptions }),
+      setGitProviderOptions: async (options) => {
+        change("vercel git options");
+        world.vercel.gitProviderOptions = { ...options };
       },
     },
     github: {

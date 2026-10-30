@@ -148,6 +148,20 @@ test("the GitHub connection is made outside the checkout, naming the linked proj
   expect(args[args.indexOf("--cwd") + 1]).not.toBe(checkout);
 });
 
+test("the project's git settings are read from it, and changed with a PATCH whose body goes on stdin", async () => {
+  const options = { createDeployments: "disabled", disableRepositoryDispatchEvents: true };
+  const { tools, calls } = vercelAnswering({ id: LINKED.projectId, gitProviderOptions: options });
+  expect(await tools.vercel.gitProviderOptions()).toEqual(options);
+  // A setting a PATCH doesn't take is never sent: Vercel refuses a body with one.
+  await tools.vercel.setGitProviderOptions({ ...options, disableRepositoryDispatchEvents: false, notAPatchKey: 1 });
+  const route = `/v9/projects/${LINKED.projectId}?teamId=${LINKED.orgId}`;
+  expect(calls).toEqual([
+    { cli: "vercel", args: ["api", route], input: undefined },
+    { cli: "vercel", args: ["api", route, "--method", "PATCH", "--input", "-"], input: JSON.stringify({ gitProviderOptions: { createDeployments: "disabled", disableRepositoryDispatchEvents: false } }) },
+  ]);
+  expect(await vercelAnswering({ id: LINKED.projectId }).tools.vercel.gitProviderOptions()).toEqual({});
+});
+
 test("an unlinked checkout's GitHub connection is refused before the CLI runs", async () => {
   const { tools, calls } = toolsWith();
   await expect(tools.vercel.connectRepo(`https://github.com/${GITHUB_REPO}`)).rejects.toThrow("isn't linked to a Vercel project");

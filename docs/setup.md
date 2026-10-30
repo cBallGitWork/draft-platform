@@ -130,6 +130,9 @@ it stops. In order, it:
 - connects the Vercel project to this GitHub repository, so each merge to `main` goes live and
   Vercel tells GitHub when it has (if Vercel's GitHub app isn't installed on the repository yet,
   this line fails saying so: install it, then run again);
+- turns on the project's repository dispatch events, if they're off (Vercel's
+  `gitProviderOptions.disableRepositoryDispatchEvents`), since the after-release check starts on
+  one: while they were off, no check ran by itself (#512);
 - sets the after-release check's two GitHub secrets: `RELEASE_CHECK_EMAIL`, the receiving
   address, which it also puts on the live site's allowed list, and `RELEASE_CHECK_RESEND_KEY`,
   the same Resend key.

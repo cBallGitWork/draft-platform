@@ -6,7 +6,16 @@ import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, expect, test } from "vitest";
-import { DEPLOY_ARGS, FINGERPRINT_ENV, release, schemaJson, shapeFingerprint } from "../../scripts/release.mjs";
+import {
+  DEPLOY_ARGS,
+  DEPLOY_KEY_SETTING,
+  FINGERPRINT_ENV,
+  VERCEL_PRODUCTION,
+  release,
+  schemaJson,
+  shapeFingerprint,
+} from "../../scripts/release.mjs";
+import { DEPLOY_KEY } from "../support/scripts/liveSetup.harness.mjs";
 
 const REPO = join(import.meta.dirname, "../..");
 const SCRIPT = join(REPO, "scripts/release.mjs");
@@ -123,7 +132,8 @@ test("an index or the tables' order isn't a change of shape; a dropped table or 
   expect(shapeFingerprint(withTables([{ ...first, documentType: { type: "any" } }, ...rest]))).not.toBe(before);
 });
 
-// The script as Vercel runs it, with a fake `npx` first on the PATH.
+// The script as Vercel runs it, in a production build with its deploy key, and a fake `npx` first
+// on the PATH.
 let scratch;
 afterEach(() => scratch && rmSync(scratch, { recursive: true, force: true }));
 
@@ -145,7 +155,12 @@ function runScript(liveFingerprint) {
   const result = spawnSync(process.execPath, [SCRIPT], {
     cwd: REPO,
     encoding: "utf8",
-    env: { ...process.env, PATH: `${scratch}:${process.env.PATH}` },
+    env: {
+      ...process.env,
+      PATH: `${scratch}:${process.env.PATH}`,
+      VERCEL_ENV: VERCEL_PRODUCTION,
+      [DEPLOY_KEY_SETTING]: DEPLOY_KEY,
+    },
   });
   return { status: result.status, output: result.stdout + result.stderr, calls: readFileSync(callLog, "utf8").trim().split("\n") };
 }

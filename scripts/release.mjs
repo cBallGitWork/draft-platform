@@ -13,6 +13,10 @@
 // deployment's Backup & Restore page, and downloads a copy. Vercel's build is thrown away after,
 // so the copy goes with it: the backup that lasts is the one Convex keeps. If the backup fails,
 // nothing is deployed and the release stops, saying why. docs/setup.md says how to restore.
+//
+// Before any of that, it refuses a build that isn't production's, or that has no deploy key, and
+// says why in the build log: a preview (a `vercel deploy` from the CLI, say) must never put its
+// code on the live deployment, and without the key `convex deploy` can't reach it.
 
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -34,6 +38,27 @@ const BACKUP_DIR_PREFIX = "release-backup-";
 /** What `npx convex export` prints once Convex has the snapshot (convex/dist/esm/cli/lib/convexExport.js). */
 const SNAPSHOT_TAKEN = /Created snapshot export at timestamp (\d+)/;
 const FINGERPRINT_HASH = "sha256";
+/** Vercel's name for the live site's environment, which it gives a build as VERCEL_ENV. */
+export const VERCEL_PRODUCTION = "production";
+/** The setting in Vercel that lets its build deploy the server code to the live deployment. */
+export const DEPLOY_KEY_SETTING = "CONVEX_DEPLOY_KEY";
+const VERCEL_ENV = "VERCEL_ENV";
+
+/** Why this build mustn't release, or null when it may: only production's build deploys, and only
+ *  with the deploy key. Outside Vercel there is no VERCEL_ENV, and the key alone decides. */
+export function refusal(env) {
+  const environment = env[VERCEL_ENV];
+  if (environment && environment !== VERCEL_PRODUCTION) {
+    return `${STOPPED}: this is a ${environment} build (${VERCEL_ENV}=${environment}), and only a ${VERCEL_PRODUCTION} build deploys to the live database.`;
+  }
+  if (!env[DEPLOY_KEY_SETTING]) {
+    return (
+      `${STOPPED}: ${DEPLOY_KEY_SETTING} isn't set, so this build can't reach the live deployment. ` +
+      `Vercel holds it for ${VERCEL_PRODUCTION} builds only; \`npm run setup:live\` puts it there (docs/setup.md).`
+    );
+  }
+  return null;
+}
 
 /**
  * The fingerprint of a schema's saved shape: each table's name and document type, from Convex's
@@ -136,6 +161,11 @@ export function release({ convex, fingerprint, backupPath, log = console.log }) 
 }
 
 async function main() {
+  const refused = refusal(process.env);
+  if (refused) {
+    console.log(refused);
+    return 1;
+  }
   let fingerprint = null;
   try {
     fingerprint = shapeFingerprint(await schemaJson());
