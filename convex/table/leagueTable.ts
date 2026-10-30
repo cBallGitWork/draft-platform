@@ -110,6 +110,7 @@ export const ofLeague = query({
     const season = await seasonRules(ctx, leagueId);
     if (season === null) return null;
     const { rules, teamIds, schedule, results, unscored, table, named } = await standingsOf(ctx, league, season);
-    return leagueTableFrom({ format: rules.format, teamIds, schedule, results, unscored, table, deadlineOf: deadlineOf(await leagueDeadlines(ctx, leagueId)), named });
+    const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
+    return leagueTableFrom({ format: rules.format, teamIds, schedule, results, unscored, table, deadlineOf: deadlineIn, named });
   },
 });
