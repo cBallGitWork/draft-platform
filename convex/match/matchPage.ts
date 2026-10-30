@@ -8,7 +8,6 @@ import { scoreOf, scoreOnly } from "../football/matchScores";
 import { commentary, type MatchupCommentary } from "../matchup/matchupShape";
 import { vidiprinter, type VidiprinterPlayer } from "../matchup/vidiprinter";
 import { positionsNow } from "../positions/playerPositions";
-import { positionRank } from "../positions/positionTables";
 import { seasonRules } from "../rules/rulesHistory";
 import { clubRecord, position, scoreRead, sideTeamStats } from "../schema";
 import type { ScoringSet } from "../scoring/scoringSet";
@@ -21,6 +20,7 @@ import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { begunGameweeks, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { matchRecordsOf } from "../gameweekScorer/heldMatches";
 import { inMatchOf, leagueReads, pointsInMatch } from "../gameweekScorer/teamGameweek";
+import { bySheetOrder } from "./sheetOrder";
 
 // One real Premier League match (#45; spec/10, The match page): its score and clock, both clubs'
 // men as the team sheets named them, starters and substitutes, each man owned in the league with
@@ -206,7 +206,7 @@ async function menOf(
       };
     }),
   );
-  return men.toSorted((one, other) => sideOrder(one) - sideOrder(other) || Number(other.started) - Number(one.started) || positionOrder(one) - positionOrder(other) || one.name.localeCompare(other.name));
+  return men.toSorted(bySheetOrder);
 }
 
 /** A man the match names. A record or a sheet's man is kept only for a man FPL lists, so one the
@@ -214,10 +214,6 @@ async function menOf(
 function heldPlayer(ctx: QueryCtx, fixtureCode: number, playerCode: PlayerCode): Promise<Doc<"players">> {
   return heldPlayerByCode(ctx, playerCode, `match ${fixtureCode} names player ${playerCode}, whom the football sync doesn't hold`);
 }
-
-const SIDE_ORDER = { home: 0, away: 1 } as const;
-const sideOrder = (man: MatchMan) => (man.side === null ? Object.keys(SIDE_ORDER).length : SIDE_ORDER[man.side]);
-const positionOrder = (man: MatchMan) => positionRank(man.position);
 
 /** The match's stored lines, newest first, priced for the league's lineup men once the gameweek
  *  has begun; or why they can't be read, while the rest still shows. */
