@@ -136,6 +136,24 @@ test("the project's GitHub connection reads as owner/name, and none as null", as
   expect(await toolsWith({ answer: () => project(undefined) }).tools.vercel.connectedRepo()).toBeNull();
 });
 
+test("the GitHub connection is made outside the checkout, naming the linked project and team", async () => {
+  linkCheckout();
+  const { tools, calls } = toolsWith();
+  await tools.vercel.connectRepo(`https://github.com/${GITHUB_REPO}`);
+  const { args } = calls[0];
+  expect(args.slice(0, 4)).toEqual(["git", "connect", `https://github.com/${GITHUB_REPO}`, "--yes"]);
+  expect(args[args.indexOf("--project") + 1]).toBe(LINKED.projectId);
+  expect(args[args.indexOf("--scope") + 1]).toBe(LINKED.orgId);
+  // The checkout's own remote can be an SSH host alias the CLI can't parse.
+  expect(args[args.indexOf("--cwd") + 1]).not.toBe(checkout);
+});
+
+test("an unlinked checkout's GitHub connection is refused before the CLI runs", async () => {
+  const { tools, calls } = toolsWith();
+  await expect(tools.vercel.connectRepo(`https://github.com/${GITHUB_REPO}`)).rejects.toThrow("isn't linked to a Vercel project");
+  expect(calls).toEqual([]);
+});
+
 test("GitHub's secrets are named from the repository, and set on stdin", async () => {
   const { tools, calls } = toolsWith({ answer: () => ({ code: 0, stdout: JSON.stringify([{ name: "A" }]), stderr: "" }) });
   expect(await tools.github.secretNames()).toEqual(["A"]);

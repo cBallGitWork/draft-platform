@@ -85,10 +85,16 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
     }
   }
 
-  /** A GET from Vercel's API, as the signed-in CLI, for the linked project's team. */
-  async function vercelApi(path) {
+  /** The linked project, or a refusal naming the missing link file. */
+  async function requireLinkedProject() {
     const project = await linkedProject();
     if (!project) throw new Error(`this checkout isn't linked to a Vercel project (no ${VERCEL_LINK_FILE})`);
+    return project;
+  }
+
+  /** A GET from Vercel's API, as the signed-in CLI, for the linked project's team. */
+  async function vercelApi(path) {
+    const project = await requireLinkedProject();
     const teamId = project.orgId?.startsWith(VERCEL_TEAM_ID_PREFIX) ? `teamId=${project.orgId}` : "";
     const route = path.replace(":project", project.projectId);
     const query = teamId ? `${route.includes("?") ? "&" : "?"}${teamId}` : "";
@@ -173,8 +179,7 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
       // outside the checkout: `git connect` parses the checkout's own remote even when given the
       // URL, and fails on an SSH host alias such as git@github-personal:… (30 Oct 2026).
       connectRepo: async (url) => {
-        const project = await linkedProject();
-        if (!project) throw new Error(`this checkout isn't linked to a Vercel project (no ${VERCEL_LINK_FILE})`);
+        const project = await requireLinkedProject();
         await vercelCli(["git", "connect", url, "--yes", "--project", project.projectId, "--scope", project.orgId, "--cwd", tmpdir()]);
       },
     },
