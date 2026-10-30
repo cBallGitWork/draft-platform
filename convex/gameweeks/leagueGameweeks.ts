@@ -4,7 +4,7 @@ import { isLocked } from "./deadline";
 import { refuse, runnerOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
 import { latestRules } from "../rules/rulesHistory";
-import { leagueDeadlines } from "./leagueDeadlines";
+import { deadlineOf, leagueDeadlines } from "./leagueDeadlines";
 import { isGameweek, isGameweekUsed, noSuchGameweek, SEASON_GAMEWEEKS, shownDeadline, unusedAfter } from "./usedGameweeks";
 
 // The commissioner ticks the gameweeks the league plays, all 38 by default (#74; spec/13,
@@ -36,11 +36,11 @@ export const ofLeague = query({
   returns: v.array(leagueGameweek),
   handler: async (ctx, { leagueId }) => {
     const { league } = await runnerOf(ctx, leagueId);
-    const deadlines = await leagueDeadlines(ctx, leagueId);
+    const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
     return SEASON_GAMEWEEKS.map((gameweek) => ({
       gameweek,
       used: isGameweekUsed(league, gameweek),
-      deadline: deadlines.get(gameweek) ?? null,
+      deadline: deadlineIn(gameweek),
     }));
   },
 });
@@ -53,7 +53,7 @@ export const setUsed = mutation({
     const { email, league } = await runnerOf(ctx, leagueId);
     if (!isGameweek(gameweek)) refuse(gameweekRefusals.notAGameweek(gameweek));
     if ((await latestRules(ctx, leagueId)) === null) refuse(gameweekRefusals.noRules);
-    const deadline = (await leagueDeadlines(ctx, leagueId)).get(gameweek) ?? null;
+    const deadline = deadlineOf(await leagueDeadlines(ctx, leagueId))(gameweek);
     if (deadline === null) refuse(gameweekRefusals.noDeadline(gameweek));
     if (isLocked(deadline, Date.now())) refuse(gameweekRefusals.begun(gameweek));
     if (isGameweekUsed(league, gameweek) === used) return null;

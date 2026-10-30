@@ -28,6 +28,7 @@ import {
 } from "../../support/convex/gameweekScores.harness";
 import { actingAs, ADMIN, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { EVERTON_CLUB, HULL_CITY, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
+import { EMOJI } from "../../support/convex/test.harness";
 
 // A commissioner overrides one player's points for one match, with a reason (#32; spec/14, Changes
 // and corrections): the table, the matchup and the stored scores all take it, and the whole league
@@ -40,8 +41,6 @@ const OVERRIDDEN = 12.5;
 const REASON = "The feed gave his second goal to an Everton defender";
 const MATCH_NAME = matchWords(HULL_CITY.name, EVERTON_CLUB.name);
 const ANNS_AFTER = inTenths(HULL_POINTS - SCORERS_POINTS + OVERRIDDEN);
-/** One character that is two UTF-16 units. */
-const EMOJI = "\u{1F3C6}";
 /** A code no feed holds. */
 const NOBODY = 999_999;
 

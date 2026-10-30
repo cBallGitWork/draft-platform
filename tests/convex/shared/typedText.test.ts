@@ -1,14 +1,13 @@
 import { ConvexError } from "convex/values";
 import { expect, test } from "vitest";
 import { typedText } from "../../../convex/shared/typedText";
+import { EMOJI } from "../../support/convex/test.harness";
 
 // Every typed text the server keeps (a league's or team's name, a letter, feedback, an override's
 // reason) is trimmed, refused when blank and refused when longer than its most, in characters.
 
 const MOST = 3;
 const REFUSALS = { blank: "Blank.", tooLong: "Too long." };
-/** One character that is two UTF-16 units. */
-const EMOJI = "\u{1F3C6}";
 
 const refusalOf = (typed: string) => {
   try {
