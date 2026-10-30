@@ -189,6 +189,20 @@ describe("any stat, as a season total (spec/19, sortable by any stat)", () => {
     ]);
   });
 
+  test("before the new season's first match, last season's totals are shown (#647)", async () => {
+    await t.run(async (ctx) => {
+      for (const row of await ctx.db.query("playerSeasonStats").collect()) {
+        if (row.season === THIS_SEASON) await ctx.db.delete("playerSeasonStats", row._id);
+      }
+    });
+    expect(await totalsListed("goals_scored")).toEqual([
+      ["Palmer", 22],
+      ["Mbeumo", 0],
+      ["Rice", 0],
+      ["Saka", 0],
+    ]);
+  });
+
   test("with no stat shown, no player has one", async () => {
     expect((await listAs(ANN)).players.every((player) => player.stat === null)).toBe(true);
   });
