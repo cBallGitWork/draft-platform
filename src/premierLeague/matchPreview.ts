@@ -4,7 +4,8 @@
 // positions, who owns whom and the points are made up. Every fixture opens it: one to come, as it
 // stood before kickoff.
 
-import { POSITIONS, type Position } from "../../convex/positions/positionTables";
+import { bySheetOrder } from "../../convex/match/sheetOrder";
+import type { Position } from "../../convex/positions/positionTables";
 import { previewTeams } from "../table/preview";
 import type { MatchMan, MatchPageData } from "./seam";
 
@@ -71,13 +72,8 @@ const SHEETS: MatchMan[] = [
   man(60689, "Wood", "ST", "away", false, true, 2, 0, false),
 ];
 
-/** As the server sends them: each side's starters, then its substitutes, each by position. */
-const MEN = SHEETS.toSorted(
-  (one, other) =>
-    Number(one.side === "away") - Number(other.side === "away") ||
-    Number(other.started) - Number(one.started) ||
-    POSITIONS.indexOf(one.position!) - POSITIONS.indexOf(other.position!),
-);
+/** As the server sends them, in the match page's one order. */
+const MEN = SHEETS.toSorted(bySheetOrder);
 
 /** The recording's lines at full time, newest first, with the points a few move for owned men. */
 const LINES: [number, string, string?][] = [

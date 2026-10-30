@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { MatchMan } from "../../../convex/match/matchPage";
+import { bySheetOrder } from "../../../convex/match/sheetOrder";
 import {
   ANN,
   annsScoredGame,
@@ -66,8 +67,9 @@ test("at full time each club's men show, starters first, each owned man with his
   expect(home.filter((man) => man.started).map((man) => man.playerCode).toSorted()).toEqual(hullStarters.map((record) => record.playerCode).toSorted());
   expect(home.findIndex((man) => !man.started)).toBe(hullStarters.length);
   expect(page.men.findIndex((man) => man.side === "away")).toBe(hullMen.size);
-  // Starters by position, the keeper first.
+  // Starters by position, the keeper first, in the match page's one order (the preview's too).
   expect(home[0].position).toBe("GK");
+  expect(page.men).toEqual(page.men.toSorted(bySheetOrder));
 
   const matchup = await annsScoredGame(league);
   const slots = [...matchup.team.kind === "team" ? matchup.team.lineup!.starters : [], ...matchup.team.kind === "team" ? matchup.team.lineup!.bench : []];
