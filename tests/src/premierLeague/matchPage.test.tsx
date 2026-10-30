@@ -212,6 +212,12 @@ describe("the team sheets", () => {
     expect(sheetRows(CHELSEA.name)).toEqual([["CM", "PalmerTeam 2", "7"]]);
   });
 
+  it("marks a substitute who came on in the event colour", async () => {
+    openMatch({ match: matchOf() });
+    await screen.findByRole("table", { name: sheetLabel(ARSENAL.name) });
+    expect(screen.getByText(cameOnWords).className).toContain("text-event");
+  });
+
   it("before the sheets are out, says they come about an hour before kickoff", async () => {
     openMatch({ match: matchOf({ men: [] }) });
     expect(await screen.findAllByText(noMenWords)).toHaveLength(2);
