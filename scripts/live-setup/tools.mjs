@@ -14,6 +14,7 @@
 
 import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createInterface } from "node:readline";
 import { Writable } from "node:stream";
@@ -168,8 +169,14 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
         const { link } = await vercelApi("/v9/projects/:project");
         return link?.type === GITHUB_LINK_TYPE ? `${link.org}/${link.repo}` : null;
       },
-      // Vercel's GitHub app must be installed on the repository; the CLI says so if it isn't.
-      connectRepo: (url) => vercelCli(["git", "connect", url, "--yes"]),
+      // Vercel's GitHub app must be installed on the repository; the CLI says so if it isn't. Run
+      // outside the checkout: `git connect` parses the checkout's own remote even when given the
+      // URL, and fails on an SSH host alias such as git@github-personal:… (30 Oct 2026).
+      connectRepo: async (url) => {
+        const project = await linkedProject();
+        if (!project) throw new Error(`this checkout isn't linked to a Vercel project (no ${VERCEL_LINK_FILE})`);
+        await vercelCli(["git", "connect", url, "--yes", "--project", project.projectId, "--scope", project.orgId, "--cwd", tmpdir()]);
+      },
     },
     github: {
       secretNames: async () => JSON.parse(await ghCli(["secret", "list", "--repo", GITHUB_REPO, "--json", "name"])).map(({ name }) => name),
