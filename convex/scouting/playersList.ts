@@ -1,7 +1,6 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { PL_SEASON_START_YEAR } from "../football/football";
 import { MOST_IN_SQUAD, MOST_TEAMS } from "../leagues/leagueLimits";
 import { positionsNow } from "../positions/playerPositions";
 import { clubRecord, position } from "../schema";
@@ -9,7 +8,7 @@ import { STAT_CATALOGUE } from "../scoring/statCatalogue";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubOf, currentClubs, currentPlayersAt } from "../shared/players";
-import { seasonTotals } from "../stats/seasonStats";
+import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { listOf, shownStat } from "./playersOrder";
 
@@ -19,7 +18,8 @@ import { listOf, shownStat } from "./playersOrder";
 // null ("—") for now: a player's points depend on the slot he starts in (scoring.ts), and how the
 // list adds up a season of them isn't built. Waivers aren't built, so no player is on waivers.
 // Any stat of the catalogue can be shown beside them as a season total and sorted by (spec/19,
-// "sortable by any stat"), read from the totals kept as records are written (seasonStats.ts).
+// "sortable by any stat"), read from the totals kept as records are written (seasonStats.ts), for
+// the newest season with any: last season's until the new one's first match (#647).
 
 /** The most players the list reads: the Premier League's 20 squads as FPL lists them, a few dozen
  *  a club, with room. Each costs one read of his positions row, so a full list stays far inside a
@@ -88,7 +88,8 @@ export const list = query({
     const players = await currentPlayersOf(ctx, listedClubs);
     const ownerOf = await ownersIn(ctx, leagueId);
     const positionsOfNow = await positionsNow(ctx);
-    const totals = stat === null ? new Map<number, Stats>() : await seasonTotals(ctx, PL_SEASON_START_YEAR);
+    const season = stat === null ? null : await newestSeasonWithTotals(ctx);
+    const totals = season === null ? new Map<number, Stats>() : await seasonTotals(ctx, season);
     const listedClubOf = new Map(clubs.map((each) => [each.code, clubOf(each)]));
 
     const rows = await Promise.all(
