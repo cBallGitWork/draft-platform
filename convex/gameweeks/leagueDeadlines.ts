@@ -1,6 +1,6 @@
 import type { Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { leagueDeadline, type ScheduledMatch } from "./deadline";
+import { leagueDeadline, type DeadlineOf, type LeagueDeadlines, type ScheduledMatch } from "./deadline";
 import { passedDeadlinesOf } from "./passedDeadlines";
 import { SEASON_GAMEWEEKS } from "./usedGameweeks";
 import { currentFixtures } from "../shared/fixtures";
@@ -24,12 +24,12 @@ export async function heldSchedule(ctx: QueryCtx) {
  *  (#150), else the one under the rule in force in it. When each begins, for its screens, refusals
  *  and recorder (#138, #139). Null where none of the gameweek's matches has a kickoff time held,
  *  and for every gameweek of a league made before rules were held, which has no deadline rule. */
-export async function leagueDeadlines(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, number | null>> {
+export async function leagueDeadlines(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<LeagueDeadlines> {
   return leagueDeadlinesIn(ctx, leagueId, (await heldSchedule(ctx)).matches);
 }
 
 /** Reads one gameweek's deadline from `leagueDeadlines`'s map: null where it has none. */
-export function deadlineOf(deadlines: ReadonlyMap<number, number | null>): (gameweek: number) => number | null {
+export function deadlineOf(deadlines: LeagueDeadlines): DeadlineOf {
   return (gameweek) => deadlines.get(gameweek) ?? null;
 }
 
@@ -39,7 +39,7 @@ export async function leagueDeadlinesIn(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
   matches: readonly ScheduledMatch[],
-): Promise<Map<number, number | null>> {
+): Promise<LeagueDeadlines> {
   const history = await historyOf(ctx, leagueId);
   const passed = await passedDeadlinesOf(ctx, leagueId);
   return new Map(

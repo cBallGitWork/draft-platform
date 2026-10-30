@@ -1,6 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import { isLocked } from "../gameweeks/deadline";
+import { isLocked, type LeagueDeadlines } from "../gameweeks/deadline";
 import { deadlineOf } from "../gameweeks/leagueDeadlines";
 import { GAMEWEEKS, usedGameweeksOf } from "../gameweeks/usedGameweeks";
 import { drawRulesOf } from "../rules/firstRules";
@@ -99,7 +99,7 @@ export async function storeBegunFixtures(
   ctx: MutationCtx,
   league: Doc<"leagues">,
   rules: RulesInForce | null,
-  deadlines: ReadonlyMap<number, number | null>,
+  deadlines: LeagueDeadlines,
   now: number,
 ): Promise<void> {
   if (rules === null) return;

@@ -1,4 +1,5 @@
 import type { Id } from "../_generated/dataModel";
+import type { DeadlineOf } from "../gameweeks/deadline";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import type { TeamGameweekTotal } from "../gameweekScorer/gameweekScores";
 import type { LeagueTable } from "./leagueTable";
@@ -19,9 +20,6 @@ export type Results = ReadonlyMap<number, ReadonlyMap<TeamId, TeamGameweekTotal>
 
 /** A gameweek begun that couldn't be scored, and why. */
 type Unscored = LeagueTable["unscored"];
-
-/** The league's own deadline in a gameweek, or null while none is known. */
-type DeadlineOf = (gameweek: number) => number | null;
 
 /** The points alone of each team in each gameweek scored, as the table counts them. */
 export const pointsOf = (results: Results): GameweekScores<TeamId> =>

@@ -10,7 +10,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS } from "../../support/convex/leagues.harness";
+import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER } from "../../support/convex/leagues.harness";
 import {
   announceAs,
   as,
@@ -33,7 +33,6 @@ import {
 useSiteScoringDeployment();
 
 const [ANN, BOB, CAT] = MANAGERS;
-const STRANGER = "nobody@example.com";
 
 /** Every letter filed, as [to, subject], in the order filed. */
 const everyLetter = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).map((row) => [row.to, row.subject] as const));
@@ -61,7 +60,7 @@ describe("the letter", () => {
     const filed = (await everyLetter()).slice(before);
 
     expect(filed.map(([to]) => to).sort()).toEqual([ANN, BOB, CAT, COMMISSIONER].sort());
-    expect(await lettersTo(STRANGER)).toEqual([]);
+    expect(await lettersTo(OUTSIDER)).toEqual([]);
     expect(await lettersTo(ADMIN)).toEqual([]);
   });
 
@@ -208,7 +207,7 @@ describe("the patch notes", () => {
   });
 
   test("are empty before any version, and signed out", async () => {
-    expect(await notesAs(STRANGER)).toEqual([]);
+    expect(await notesAs(OUTSIDER)).toEqual([]);
     await holdGameweeks(t, { next: 9 });
     await fixAs(ADMIN, EDITED);
 

@@ -7,7 +7,7 @@ import { recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { HULL_POINTS } from "../../support/convex/gameweekScores.harness";
 import { BOTH_ELEVENS, FULL_TIME_READ, HULL_EVERTON, KICKOFF } from "../../support/convex/matchStats.harness";
 import { REPLAY_MINUTES, stagedGw6, stageTime } from "../../support/convex/liveStats.harness";
-import { actingAs } from "../../support/convex/leagues.harness";
+import { actingAs, teamName as teamNameOf } from "../../support/convex/leagues.harness";
 import { ANN, DEADLINE, ELEVENS, footballSyncAt, leagueWorld, liveTickAt, miniBetaLeague, type MiniBeta } from "../../support/convex/miniBeta.harness";
 
 // #45's done: "A replayed match plays out on the page from its lineups to full time, the owned
@@ -36,7 +36,7 @@ function annsMen(page: MatchPageData, teamName: string) {
 test("the match page plays out from its team sheets before kickoff to full time, Ann's men carrying her team and points", async () => {
   const beforeKickoff = () => leagueWorld(recordedGw6(), { beforeKickoff: true });
   const league = await miniBetaLeague(beforeKickoff());
-  const teamName = (await league.t.run((ctx) => ctx.db.get("teams", league.teams.get(ANN)!)))!.name;
+  const teamName = await teamNameOf(league.t, league.teams.get(ANN)!);
   await footballSyncAt(league.t, DEADLINE + MINUTE_MS, beforeKickoff());
   expect((await pageAs(league, ANN)).men).toEqual([]);
 

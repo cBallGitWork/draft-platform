@@ -7,6 +7,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { drawFixtures, type DrawRules } from "../../convex/table/roundRobin";
 import { FIRST_RULES } from "../../convex/rules/firstRules";
 import type { GameweekScores, TieBreak } from "../../convex/table/standings";
+import type { DeadlineOf } from "../../convex/gameweeks/deadline";
 import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import type { TeamFixtures } from "../../convex/table/teamFixtures";
 import { leagueTableFrom, pointsOf, tableOf, teamFixturesFrom, type Results } from "../../convex/table/sentTables";
@@ -19,7 +20,7 @@ export type Drawn = Partial<DrawRules> & {
   /** The gameweeks the league plays: all 38 by default. */
   gameweeks?: readonly number[];
   /** The league's own deadline for each gameweek: none known by default. */
-  deadlineOf?: (gameweek: number) => number | null;
+  deadlineOf?: DeadlineOf;
   scores?: GameweekScores<string>;
   /** The league's tie-breaks, in its order: a new league's by default, as the server's would be. */
   tieBreaks?: readonly TieBreak[];
