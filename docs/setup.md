@@ -84,13 +84,13 @@ the hooks' own checks, and the recorded add-only check's, are in `.claude/hooks/
 
 ## The live site
 
-The live site is `https://fantasydraftmanager.co.uk`, on its own production database in the same
-Convex project, with sign-in links sent from `signin@fantasydraftmanager.co.uk`
+The live site is `https://fantasydraftmanager.net`, on its own production database in the same
+Convex project, with sign-in links sent from `signin@fantasydraftmanager.net`
 ([spec/20](../spec/20-going-live.md)).
 
 Craig's four steps, once, before the setup command:
 
-1. **Buy the domain** `fantasydraftmanager.co.uk` in Vercel (Domains, then Buy), on the account
+1. **Buy the domain** `fantasydraftmanager.net` in Vercel (Domains, then Buy), on the account
    the site will live in. The command puts Resend's records in Vercel's DNS, so a domain bought
    elsewhere needs its records added there by hand instead: say so before running it.
 2. **Log in to Convex and Vercel** in a terminal in this checkout: `npx convex login` (done already
