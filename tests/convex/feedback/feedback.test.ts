@@ -6,7 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, type TestConvex } from "../../support/convex/leagues.harness";
 import { signInDeployment } from "../../support/convex/signIn.harness";
-import { expectRefused } from "../../support/convex/test.harness";
+import { EMOJI, expectRefused } from "../../support/convex/test.harness";
 
 // Feedback to the admin (#357; spec/12 The frame, spec/15 The admin): anyone signed in sends a
 // message, stored with who sent it and when; the admin alone reads the list, newest first.
@@ -60,7 +60,7 @@ describe("sending", () => {
   });
 
   test("the limit counts characters, not UTF-16 units, so an emoji of two units is one", async () => {
-    await send(ANN, "🙂".repeat(FEEDBACK_MAX));
+    await send(ANN, EMOJI.repeat(FEEDBACK_MAX));
     expect(await stored()).toHaveLength(1);
   });
 

@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { seasonRules } from "../rules/rulesHistory";
-import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { pinnedLetter } from "../schema";
@@ -93,8 +93,7 @@ export const ofLeague = query({
     const season = await seasonRules(ctx, leagueId);
     if (season === null) return null;
     const { rules, teamIds, schedule, scores, table, named } = await standingsOf(ctx, league, season);
-    const deadlines = await leagueDeadlines(ctx, leagueId);
-    const current = thisGameweekOf(schedule, (gameweek) => deadlines.get(gameweek) ?? null, now);
+    const current = thisGameweekOf(schedule, deadlineOf(await leagueDeadlines(ctx, leagueId)), now);
     const form = formOf(teamIds, schedule, scores);
     const mine = team?._id ?? null;
     return {
