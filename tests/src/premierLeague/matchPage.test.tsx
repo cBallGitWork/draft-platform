@@ -212,7 +212,7 @@ describe("the team sheets", () => {
     expect(sheetRows(CHELSEA.name)).toEqual([["CM", "PalmerTeam 2", "7"]]);
   });
 
-  it("marks a substitute who came on in the colour for something that happened (plate.md: event)", async () => {
+  it("marks a substitute who came on in the event colour", async () => {
     openMatch({ match: matchOf() });
     await screen.findByRole("table", { name: sheetLabel(ARSENAL.name) });
     expect(screen.getByText(cameOnWords).className).toContain("text-event");
