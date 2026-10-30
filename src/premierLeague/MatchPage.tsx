@@ -188,7 +188,7 @@ function ManRow({ man: { name, position, started, played, ownerTeamName, points,
       <td className="px-2 text-right">{position === null ? noFigureWords : <PositionCode position={position} />}</td>
       <th scope="row" className={`px-2 text-left font-semibold ${unused ? "" : "text-lead"}`}>
         {name}
-        {!started && played === true && <span className="ml-2 font-normal text-derived">{cameOnWords}</span>}
+        {!started && played === true && <span className="ml-2 font-normal text-event">{cameOnWords}</span>}
         {unused && <span className="sr-only"> {unusedLabel}</span>}
         {ownerTeamName !== null && <span className="block text-data font-normal text-muted">{ownerTeamName}</span>}
       </th>
