@@ -123,7 +123,9 @@ it stops. In order, it:
 - links this checkout to the Vercel project `draft-platform`, making it if needed, and puts the
   deploy key in its production settings, and only there, as `CONVEX_DEPLOY_KEY`;
 - adds the domain to the Vercel project;
-- adds the domain to Resend (Ireland), puts Resend's DNS records in Vercel's DNS, and asks Resend
+- adds the domain to Resend (Ireland), puts Resend's DNS records in Vercel's DNS (a record counts
+  as there when DNS means it the same: closing dots and capitals aside, an MX record at the same
+  priority; one still missing after it is added fails the line, naming it), and asks Resend
   to check them, waiting up to five minutes; DNS can take longer, and then the line says
   `not yet` and the rest still runs;
 - runs the player-positions sync once;

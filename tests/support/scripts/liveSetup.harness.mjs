@@ -27,6 +27,13 @@ export const RESEND_RECORDS = [
   { record: "SPF", name: "send", type: "TXT", value: "v=spf1 include:amazonses.com ~all", ttl: "Auto", status: "not_started" },
 ];
 
+/** A record as Vercel's records API gives it back once added (read 30 Oct 2026): an MX or CNAME
+ *  value with a closing dot, and an MX record's priority apart, as `mxPriority`. */
+export function asVercelHoldsIt({ name, type, value, priority }) {
+  const host = type === "MX" || type === "CNAME";
+  return { name, type, value: host ? `${value}.` : value, ...(priority === undefined ? {} : { mxPriority: priority }) };
+}
+
 /** A world with nothing set up, the tools the command reaches it with, and what it printed,
  *  asked and changed. `checksBeforeVerified` is how many of Resend's polls answer before the DNS
  *  is seen (Infinity: never). */
@@ -126,10 +133,11 @@ export function fakeWorld({ checksBeforeVerified = 0 } = {}) {
         change(`vercel domain ${domain}`);
         world.vercel.domains.push(domain);
       },
-      dnsRecords: async () => world.vercel.dns.map(({ name, type, value }) => ({ name, type, value })),
+      dnsRecords: async () =>
+        world.vercel.dns.map(({ name, type, value, mxPriority }) => ({ name, type, value, ...(mxPriority === undefined ? {} : { priority: mxPriority }) })),
       addDnsRecord: async (_domain, record) => {
         change(`vercel dns ${record.type} ${record.name}`);
-        world.vercel.dns.push(record);
+        world.vercel.dns.push(asVercelHoldsIt(record));
       },
       connectedRepo: async () => world.vercel.repo,
       connectRepo: async (url) => {

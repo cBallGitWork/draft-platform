@@ -72,10 +72,16 @@ function vercelAnswering(answer) {
 const MORE_PAGES = { count: 20, next: 1730000000000, prev: null };
 const LAST_PAGE = { count: 3, next: null, prev: null };
 
-test("the domain's DNS records are read as one page of 100, for the linked team", async () => {
-  const records = [{ name: "send", type: "MX", value: "feedback-smtp.example.com", mxPriority: 10 }];
+test("the domain's DNS records are read as one page of 100, for the linked team, an MX record's priority kept", async () => {
+  const records = [
+    { name: "send", type: "MX", value: "feedback-smtp.example.com.", mxPriority: 10, ttl: 60 },
+    { name: "send", type: "TXT", value: "v=spf1 include:amazonses.com ~all", ttl: 60 },
+  ];
   const { tools, calls } = vercelAnswering({ records, pagination: LAST_PAGE });
-  expect(await tools.vercel.dnsRecords(LIVE_DOMAIN)).toEqual([{ name: "send", type: "MX", value: "feedback-smtp.example.com" }]);
+  expect(await tools.vercel.dnsRecords(LIVE_DOMAIN)).toEqual([
+    { name: "send", type: "MX", value: "feedback-smtp.example.com.", priority: 10 },
+    { name: "send", type: "TXT", value: "v=spf1 include:amazonses.com ~all" },
+  ]);
   expect(calls[0].args).toEqual(["api", `/v5/domains/${LIVE_DOMAIN}/records?limit=100&teamId=${LINKED.orgId}`]);
 });
 
