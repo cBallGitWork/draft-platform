@@ -120,7 +120,8 @@ export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = con
       setSetting: (name, value) => convexCli(["env", "set", PROD, name], value),
       hasFunction: async (identifier) => {
         const { functions } = JSON.parse(await convexCli(["function-spec", PROD]));
-        return functions.some((fn) => fn.identifier.replace(/\.js:/, ":") === identifier);
+        // An HTTP route is listed by method and path, with no identifier.
+        return functions.some((fn) => fn.identifier?.replace(/\.js:/, ":") === identifier);
       },
       deploy: () => convexCli(["deploy", "--yes"]),
       // Piped, `run` prints its result as JSON, and nothing when the function returns null.

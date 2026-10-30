@@ -104,7 +104,9 @@ test("a CLI's output is kept from the terminal, and a failure says what the CLI 
 });
 
 test("the live deployment's code is there when its function spec names the positions sync", async () => {
-  const spec = (identifier) => ({ code: 0, stdout: JSON.stringify({ url: "https://x", functions: [{ identifier }] }), stderr: "" });
+  // The live spec lists HTTP routes by method and path, with no identifier (30 Oct 2026).
+  const route = { functionType: "HttpAction", method: "GET", path: "/.well-known/jwks.json" };
+  const spec = (identifier) => ({ code: 0, stdout: JSON.stringify({ url: "https://x", functions: [route, { identifier }] }), stderr: "" });
   const [module, fn] = DEPLOYED_FUNCTION.split(":");
   expect(await toolsWith({ answer: () => spec(`${module}.js:${fn}`) }).tools.convex.hasFunction(DEPLOYED_FUNCTION)).toBe(true);
   expect(await toolsWith({ answer: () => spec("other.js:fn") }).tools.convex.hasFunction(DEPLOYED_FUNCTION)).toBe(false);
