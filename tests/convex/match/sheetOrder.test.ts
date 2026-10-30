@@ -1,10 +1,10 @@
 import { expect, test } from "vitest";
 import { bySheetOrder } from "../../../convex/match/sheetOrder";
-import type { Position } from "../../../convex/positions/positionTables";
+import type { MatchMan } from "../../../convex/match/matchPage";
 
 // The match page's one order (#580), which the server's match page and the preview's both sort by.
 
-const man = (name: string, side: "home" | "away" | null, started: boolean, position: Position | null) => ({ name, side, started, position });
+const man = (name: string, side: MatchMan["side"], started: boolean, position: MatchMan["position"]) => ({ name, side, started, position });
 
 test("home, then away, then any who left both; starters first; by position, none last; then by name", () => {
   const order = [

@@ -70,8 +70,7 @@ export const matchPageData = v.object({
   away: clubRecord,
   /** Null until a feed's read has given its score. */
   score: v.union(scoreRead.omit("fixtureCode"), v.null()),
-  /** Home first, then away, then any who have left both; starters before substitutes, each by
-   *  position. */
+  /** In the match page's order (sheetOrder.ts). */
   men: v.array(matchMan),
   /** Why the league's points can't be worked out, while the rest still shows; null when they can. */
   pointsProblem: v.union(v.string(), v.null()),

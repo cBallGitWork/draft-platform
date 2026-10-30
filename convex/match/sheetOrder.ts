@@ -3,10 +3,11 @@
 // last; then by name. Pure, so the server's match page and the preview's (src/premierLeague/
 // matchPreview.ts) sort with this one comparator and can't drift apart.
 
-import { positionRank, type Position } from "../positions/positionTables";
+import { positionRank } from "../positions/positionTables";
+import type { MatchMan } from "./matchPage";
 
 /** What the order reads of a man. */
-type SheetMan = { side: "home" | "away" | null; started: boolean; position: Position | null; name: string };
+type SheetMan = Pick<MatchMan, "side" | "started" | "position" | "name">;
 
 const SIDE_ORDER = { home: 0, away: 1 } as const;
 const sideRank = (side: SheetMan["side"]) => (side === null ? Object.keys(SIDE_ORDER).length : SIDE_ORDER[side]);
