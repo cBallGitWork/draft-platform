@@ -3,7 +3,7 @@
 // passes the same three settings in by these names.
 
 /** The live site. */
-export const LIVE_SITE_URL = "https://fantasydraftmanager.co.uk";
+export const LIVE_SITE_URL = "https://fantasydraftmanager.net";
 
 /** The settings the check reads: two secrets, and an optional other site to point it at, which is
  *  how it is shown to fail on a site that won't sign in. */

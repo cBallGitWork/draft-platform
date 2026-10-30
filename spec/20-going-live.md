@@ -8,8 +8,8 @@ Feature 20 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill #203 dep
 - A live database of its own, beside the development one, in the same Convex project.
 - It starts empty: the football sync fills in players and fixtures, and the league is made fresh.
   Nothing is copied from development, which holds test leagues.
-- The domain is `fantasydraftmanager.co.uk`, bought through Vercel. It is the site's address and
-  the sign-in emails' sender, `signin@fantasydraftmanager.co.uk`. Without a domain, sign-in
+- The domain is `fantasydraftmanager.net`, bought through Vercel. It is the site's address and
+  the sign-in emails' sender, `signin@fantasydraftmanager.net`. Without a domain, sign-in
   links reach only the Resend account's own inbox.
 - Craig is the admin on the live site.
 - For the beta, the live site is the shared environment: a change is done only once it is seen
