@@ -21,6 +21,12 @@ export interface DeadlineRule {
  *  all 38 gameweeks of 2026/27 in FPL's data of 20 Oct 2026. */
 export const FPL_DEADLINE_RULE: DeadlineRule = { minutesBeforeFirstKickoff: 90 };
 
+/** The league's own deadline in a gameweek, or null while none is known. */
+export type DeadlineOf = (gameweek: number) => number | null;
+
+/** The league's own deadline for each gameweek, null where none is known (leagueDeadlines.ts). */
+export type LeagueDeadlines = ReadonlyMap<number, number | null>;
+
 /** All of a match a deadline reads. */
 export type ScheduledMatch = Pick<Infer<typeof fixtureRecord>, "gameweek" | "kickoff">;
 

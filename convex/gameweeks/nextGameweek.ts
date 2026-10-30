@@ -1,5 +1,5 @@
 import type { Infer } from "convex/values";
-import { isLocked, leagueDeadline, type DeadlineRule, type ScheduledMatch } from "./deadline";
+import { isLocked, leagueDeadline, type DeadlineOf, type DeadlineRule, type ScheduledMatch } from "./deadline";
 import type { gameweekRecord } from "../schema";
 
 // Which gameweek a rule change made now takes effect from (spec/03, spec/14: "it applies from the
@@ -45,7 +45,7 @@ export function nextByDeadlines<G>(inOrder: readonly G[], deadlineOf: (gameweek:
  *  head-to-head gameweeks. */
 export function thisGameweekOf<Gameweek extends { gameweek: number }>(
   gameweeks: readonly Gameweek[],
-  deadlineOf: (gameweek: number) => number | null,
+  deadlineOf: DeadlineOf,
   now: number,
 ): Gameweek | undefined {
   return gameweeks.findLast(({ gameweek }) => isLocked(deadlineOf(gameweek), now)) ?? gameweeks[0];
