@@ -80,7 +80,7 @@ says "uncommitted changes" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
 [ -f "$tmp/wt-dirty/new.txt" ] || fail "tidy_after_merge.py: removed a worktree with uncommitted changes"
 
 # an ignored file a build doesn't make again (.env.local) keeps the worktree; build output doesn't
-printf '.env*\nnode_modules/\n' > "$repo/.gitignore"
+printf '.env*\nnode_modules/\n__pycache__/\n' > "$repo/.gitignore"
 git -C "$repo" add .gitignore && git -C "$repo" "${as_tester[@]}" commit -q -m "ignore"
 built secret && pr secret && touch "$tmp/wt-secret/.env.local"
 says "its worktree holds .env.local" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
@@ -88,6 +88,13 @@ says "its worktree holds .env.local" tidy_after_merge.py "$(bash_in "$repo" "$me
 built rebuilt && pr rebuilt && mkdir "$tmp/wt-rebuilt/node_modules" && touch "$tmp/wt-rebuilt/node_modules/x"
 says "were removed" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
 [ -d "$tmp/wt-rebuilt" ] && fail "tidy_after_merge.py: build output alone kept a worktree"
+# build output in a subfolder (the hook checks' own .claude/hooks/__pycache__/) doesn't keep it either,
+# and a .env in a subfolder still does
+built nested && pr nested && mkdir -p "$tmp/wt-nested/hooks/__pycache__" && touch "$tmp/wt-nested/hooks/__pycache__/x.pyc"
+says "were removed" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
+[ -d "$tmp/wt-nested" ] && fail "tidy_after_merge.py: nested build output kept a worktree"
+built nestedsecret && pr nestedsecret && mkdir "$tmp/wt-nestedsecret/app" && touch "$tmp/wt-nestedsecret/app/.env.local"
+says "its worktree holds app/.env.local" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
 
 # a worktree whose folder is already gone doesn't hold the branch for good
 built vanished && pr vanished && rm -rf "$tmp/wt-vanished"
