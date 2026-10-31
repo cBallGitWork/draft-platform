@@ -12,6 +12,14 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 import { clockRunsTo, expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 import { recordedSeason } from "../../support/recorded/fpl.payloads";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
+import { recordGameweekStarts } from "../../../convex/gameweeks/gameweekStarts";
+import { held } from "../../support/convex/footballSync.harness";
+
+// The start recording as it is, but a test can make it throw.
+vi.mock("../../../convex/gameweeks/gameweekStarts", async (actual) => {
+  const starts = await actual<typeof import("../../../convex/gameweeks/gameweekStarts")>();
+  return { ...starts, recordGameweekStarts: vi.fn(starts.recordGameweekStarts) };
+});
 
 // A league's deadline, once passed, stays where it fell, even if the gameweek's first match is then
 // postponed (spec/05; #150). The football sync records it before it writes kickoffs, and every read
@@ -51,6 +59,13 @@ const passedRows = () => t.run((ctx) => ctx.db.query("passedDeadlines").collect(
 const shownDeadline = async (gameweek: number) =>
   (await (await actingAs(t, COMMISSIONER)).query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId }))[gameweek - 1].deadline;
 const setUsedIn = (gameweek: number, used: boolean) => setUsed(t, leagueId, gameweek, used);
+/** Gameweek 8's opener as held, less its system fields. */
+const heldOpener = () =>
+  t.run(async (ctx) => {
+    const row = (await ctx.db.query("fixtures").collect()).find((fixture) => fixture.kickoff === OPENER)!;
+    const { _id, _creationTime, droppedAt, ...fields } = row;
+    return fields;
+  });
 
 describe("recording", () => {
   test("records each league's deadline once it has passed, under its own rule, and not before", async () => {
@@ -104,17 +119,28 @@ test("it fails closed: a league whose deadlines can't be worked out fails the sy
   expect(await shownDeadline(GAMEWEEK)).toBe(deadlineBefore(OPENER));
 });
 
+test("it fails closed: a throw while recording a gameweek's start fails the fixtures batch and the sync, and no fixture row changes", async () => {
+  const error = silenceConsoleError();
+  const BROKEN = "the gameweek starts can't be read";
+  // Once for each fixtures write below: a vi.fn's own implementation isn't put back after a test.
+  const startsThrowOnce = () => vi.mocked(recordGameweekStarts).mockRejectedValueOnce(new Error(BROKEN));
+  vi.setSystemTime(deadlineBefore(OPENER) + HOUR_MS);
+  const { fixtures } = await held(t);
+  const opener = await heldOpener();
+
+  startsThrowOnce();
+  await expect(t.mutation(internal.football.footballSync.upsertFixtures, { rows: [{ ...opener, gameweek: null, kickoff: null }] })).rejects.toThrow(BROKEN);
+  startsThrowOnce();
+  const outcome = await syncWith(t, openerPostponed());
+
+  expect(outcome).toMatchObject({ ok: false, error: expect.stringContaining(BROKEN) });
+  expect(error).toHaveBeenCalledWith(expect.stringContaining("football sync failed"));
+  expect((await held(t)).fixtures).toEqual(fixtures);
+});
+
 // The deadline can pass after the sync starts and before it writes the fixtures: each fixtures
 // mutation records first, in the same transaction as the kickoffs it moves.
 describe("a deadline passing mid-sync", () => {
-  /** Gameweek 8's opener as held, less its system fields. */
-  const heldOpener = () =>
-    t.run(async (ctx) => {
-      const row = (await ctx.db.query("fixtures").collect()).find((fixture) => fixture.kickoff === OPENER)!;
-      const { _id, _creationTime, droppedAt, ...fields } = row;
-      return fields;
-    });
-
   test("upsertFixtures records it before postponing the opener, and the gameweek stays begun", async () => {
     const opener = await heldOpener();
     vi.setSystemTime(deadlineBefore(OPENER) + MINUTE_MS);
@@ -215,6 +241,19 @@ describe("the alarm at the next deadline", () => {
     await syncWith(t, payloads);
 
     expect(await pendingAlarms()).toEqual([soonestToCome()]);
+  });
+
+  test("a kickoff moved an hour earlier cancels the alarm set for the old deadline: one is left pending, at the new one", async () => {
+    const stale = soonestToCome();
+    expect(await pendingAlarms()).toEqual([stale]);
+    const moved = recordedSeason();
+    const opener = moved.fixtures.find((fixture) => fixture.kickoff_time !== null && deadlineBefore(Date.parse(fixture.kickoff_time)) === stale)!;
+    opener.kickoff_time = new Date(Date.parse(opener.kickoff_time!) - HOUR_MS).toISOString();
+    expect(stale - HOUR_MS).toBeGreaterThan(Date.now());
+
+    await syncWith(t, moved);
+
+    expect(await pendingAlarms()).toEqual([stale - HOUR_MS]);
   });
 
   test("once no deadline is to come, no alarm is left pending", async () => {
