@@ -11,11 +11,10 @@ import { afterEach, beforeEach, expect, test } from "vitest";
 
 const SCRIPT = join(import.meta.dirname, "../../scripts/recorded-add-only.mjs");
 const RECORDED = "tests/support/recorded";
-const GOLDEN = "tests/support/golden";
-const A = `${RECORDED}/a.json`;
-const B = `${RECORDED}/b.json`;
-const SCHEMA = `${GOLDEN}/schema.json`;
-const BASE = "refs/remotes/origin/main";
+const PAYLOAD_A = `${RECORDED}/a.json`;
+const PAYLOAD_B = `${RECORDED}/b.json`;
+const GOLDEN_SCHEMA = "tests/support/golden/schema.json";
+const ORIGIN_MAIN = "refs/remotes/origin/main";
 const TESTER = ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"];
 
 let repo;
@@ -32,8 +31,25 @@ function write(path, text) {
   writeFileSync(join(repo, path), text);
 }
 
-/** A commit with `trailer` in its body, as a branch commit that re-records a file carries it. */
+/** Commits every change in the scratch repo. */
+function commitAll(message) {
+  git("add", "-A");
+  git("commit", "-q", "-m", message);
+}
+
+/** The line a branch commit carries to re-record `file` on purpose. */
+const reRecord = (file, why) => `Re-record: ${file}: ${why}`;
+
+/** An empty commit with `trailer` in its body, where git reads trailers. */
 const commitWithTrailer = (trailer) => git("commit", "-q", "--allow-empty", "-m", "why", "-m", trailer);
+
+const editPayloadA = () => write(PAYLOAD_A, '{"a":2}\n');
+
+/** a.json edited in a commit on the branch, with no trailer yet. */
+function commitEditToPayloadA() {
+  editPayloadA();
+  commitAll("edit a");
+}
 
 /** The check run in the scratch repo: how it ended and what it said on stderr. */
 function check() {
@@ -50,20 +66,19 @@ function refuses(path) {
   expect(said).toContain(`changes or deletes ${path}`);
 }
 
-// A repo of its own per test, on a branch `work` off an origin/main holding a.json, b.json and the
-// golden schema.json. Git sees no settings but these: none of the machine's, and no GIT_* variable
-// (a git hook running the tests would point git at the real checkout).
+// A repo of its own per test, on a branch off an origin/main holding a.json, b.json and the golden
+// schema.json. Git sees no settings but these: none of the machine's, and no GIT_* variable (a git
+// hook running the tests would point git at the real checkout).
 beforeEach(() => {
   repo = mkdtempSync(join(tmpdir(), "recorded-add-only-"));
   env = Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith("GIT_")));
   Object.assign(env, { HOME: repo, GIT_CONFIG_NOSYSTEM: "1" });
   git("init", "-q", "-b", "main");
-  write(A, '{"a":1}\n');
-  write(B, '{"b":1}\n');
-  write(SCHEMA, '{"v":1}\n');
-  git("add", "tests");
-  git("commit", "-q", "-m", "base");
-  git("update-ref", BASE, "HEAD");
+  write(PAYLOAD_A, '{"a":1}\n');
+  write(PAYLOAD_B, '{"b":1}\n');
+  write(GOLDEN_SCHEMA, '{"v":1}\n');
+  commitAll("base");
+  git("update-ref", ORIGIN_MAIN, "HEAD");
   git("checkout", "-q", "-b", "work");
 });
 
@@ -73,85 +88,74 @@ test("nothing changed passes", () => {
   passes();
 });
 
-test("a new file passes, before and after it's committed", () => {
+test("a new payload passes, before and after it's committed", () => {
   write(`${RECORDED}/c.json`, '{"c":1}\n');
   passes();
-  git("add", `${RECORDED}/c.json`);
-  git("commit", "-q", "-m", "add c");
+  commitAll("add c");
   passes();
 });
 
 test("a file changed outside the two folders passes", () => {
   write("other.txt", "x\n");
-  git("add", "other.txt");
-  git("commit", "-q", "-m", "other");
+  commitAll("other");
   passes();
 });
 
 test("a changed payload fails, before and after it's committed", () => {
-  write(A, '{"a":2}\n');
-  refuses(A);
-  git("add", "tests");
-  git("commit", "-q", "-m", "edit a");
-  refuses(A);
+  editPayloadA();
+  refuses(PAYLOAD_A);
+  commitAll("edit a");
+  refuses(PAYLOAD_A);
 });
 
-/** a.json changed in a commit on the branch, with no trailer yet. */
-function changeA() {
-  write(A, '{"a":2}\n');
-  git("add", "tests");
-  git("commit", "-q", "-m", "edit a");
-}
-
 test("a trailer naming another file doesn't let the change through", () => {
-  changeA();
-  commitWithTrailer("Re-record: b.json: the feed changed");
-  refuses(A);
+  commitEditToPayloadA();
+  commitWithTrailer(reRecord("b.json", "the feed changed"));
+  refuses(PAYLOAD_A);
 });
 
 test("a trailer with no reason doesn't let the change through", () => {
-  changeA();
-  commitWithTrailer("Re-record: a.json:");
-  refuses(A);
+  commitEditToPayloadA();
+  commitWithTrailer(reRecord("a.json", ""));
+  refuses(PAYLOAD_A);
 });
 
 test("Re-record in the commit's subject, not as a trailer, doesn't let the change through", () => {
-  changeA();
-  git("commit", "-q", "--allow-empty", "-m", "Re-record: a.json: in the subject, not a trailer");
-  refuses(A);
+  commitEditToPayloadA();
+  git("commit", "-q", "--allow-empty", "-m", reRecord("a.json", "in the subject, not a trailer"));
+  refuses(PAYLOAD_A);
 });
 
 test("a trailer naming the file by its name in its folder, with a reason, lets the change through", () => {
-  changeA();
-  commitWithTrailer("Re-record: a.json: FPL renamed a key");
+  commitEditToPayloadA();
+  commitWithTrailer(reRecord("a.json", "FPL renamed a key"));
   passes();
 });
 
 test("a deleted payload fails until a trailer names it by its path", () => {
-  git("rm", "-q", B);
-  git("commit", "-q", "-m", "drop b");
-  refuses(B);
-  commitWithTrailer(`Re-record: ${B}: cut down`);
+  git("rm", "-q", PAYLOAD_B);
+  commitAll("drop b");
+  refuses(PAYLOAD_B);
+  commitWithTrailer(reRecord(PAYLOAD_B, "cut down"));
   passes();
 });
 
 test("a renamed payload fails, as the old file's deletion", () => {
-  git("mv", A, `${RECORDED}/a2.json`);
-  git("commit", "-q", "-m", "rename a");
-  refuses(A);
+  git("mv", PAYLOAD_A, `${RECORDED}/a2.json`);
+  commitAll("rename a");
+  refuses(PAYLOAD_A);
 });
 
 test("an edited golden fails until a trailer names it", () => {
-  write(SCHEMA, '{"v":2}\n');
-  git("add", "tests");
-  git("commit", "-q", "-m", "edit golden");
-  refuses(SCHEMA);
-  commitWithTrailer("Re-record: schema.json: a new stat in the schema");
+  write(GOLDEN_SCHEMA, '{"v":2}\n');
+  commitAll("edit golden");
+  refuses(GOLDEN_SCHEMA);
+  commitWithTrailer(reRecord("schema.json", "a new stat in the schema"));
   passes();
 });
 
 test("with no origin/main to compare with, it fails, saying to fetch", () => {
-  git("update-ref", "-d", BASE);
+  git("update-ref", "-d", ORIGIN_MAIN);
   const { status, said } = check();
   expect(status).toBe(1);
   expect(said).toContain("Run git fetch origin");
