@@ -1,18 +1,19 @@
 // SPEC.md's Glossary has an Avoid column: the words the site never says. This reads that column and
 // fails when a words file shows one of them, naming the file and the word, so the column stays the
 // one home of the list. A words file is everything a screen or a letter says (ARCHITECTURE.md,
-// Where code lives): `src/**/words.ts` and convex's `*Words.ts`. Only the text it shows is read,
-// its strings, never its comments or names. Why: Craig (31 Oct 2026), "You keep saying 'a player
-// was paid' — UK people don't say that"; docs/research/lexicon.md has the UK words.
+// Where code lives): `src/**/words.ts` and convex's `*Words.ts`. Why: Craig (31 Oct 2026), "You
+// keep saying 'a player was paid' — UK people don't say that"; docs/research/lexicon.md has the
+// UK words.
 
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import spec from "../../SPEC.md?raw";
 
-const WORDS_FILES = {
-  ...import.meta.glob<string>("../../src/**/words.ts", { query: "?raw", import: "default", eager: true }),
-  ...import.meta.glob<string>("../../convex/**/*Words.ts", { query: "?raw", import: "default", eager: true }),
-};
+const WORDS_FILES = import.meta.glob<string>(["../../src/**/words.ts", "../../convex/**/*Words.ts"], {
+  query: "?raw",
+  import: "default",
+  eager: true,
+});
 const SOURCE_PREFIX = "../../";
 
 /** The Glossary table's cells, row by row: Term, Meaning, Avoid. */
@@ -68,7 +69,8 @@ describe("the Glossary's Avoid column", () => {
   });
 
   it("finds no avoided word in any words file", () => {
-    expect(Object.keys(WORDS_FILES).length).toBeGreaterThan(20);
+    const someOfEach = ["../../src/scoring/words.ts", "../../convex/mail/letterWords.ts"];
+    expect(Object.keys(WORDS_FILES)).toEqual(expect.arrayContaining(someOfEach));
     const found = Object.entries(WORDS_FILES).flatMap(([path, source]) =>
       avoidedIn(shownText(source), words).map((word) => `${path.replace(SOURCE_PREFIX, "")}: "${word}"`),
     );

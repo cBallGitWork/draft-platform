@@ -111,12 +111,14 @@ Swept 31 Oct 2026, whole words, any case:
 
 - **Words files** (`src/**/words.ts`, `convex/**/*Words.ts`, 27 files), the text they show: no
   paid, pays, roster, soccer or any other avoided word. "standings" appears once, in an import
-  path, never on screen. lineup 35, matchup 16, matchups 2, lineups 2: the glossary's own terms.
+  path, never on screen. Counting names too: lineup 35, matchup 16, matchups 2, lineups 2, the
+  glossary's own terms.
 - **One test's names**: `tests/src/scoring/scoringControls.test.tsx` still called the Points keys
   "the Pays keys" after the label became Points; renamed.
-- **Docs** (`docs/`, `spec/`, SPEC.md): paid 6 and pays 3, all money ("a paid feed") or the
-  glossary's own Avoid column; soccer 5 and roster 3, all quoting US sites in `docs/research/`
-  and `docs/design/references/`; standings 6, playoffs 4, watchlist 6 (references), matchday 7.
+- **Docs** (`docs/`, `spec/`, SPEC.md): paid 6 and pays 3, each money ("a paid feed"), an idiom
+  ("so losing never pays") or the glossary's own Avoid column; soccer 5 and roster 3, all quoting
+  US sites in `docs/research/` and `docs/design/references/`; standings 6, playoffs 4, watchlist
+  6 (5 in the references, 1 the Avoid column), matchday 7.
 - **The last 50 merged PR bodies**: paid 1 (#725, "a new paid service": money), tied 2 ("tied to
   it for screen readers"), lineup 46, lineups 30, matchup 74, matchups 1.
 
