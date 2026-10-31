@@ -11,6 +11,7 @@ import { moveLabel, pitchLabel, presetLabel, putHereLabel } from "../../src/myTe
 import { SIGN_IN_PATH } from "../../src/signIn/paths";
 import { signInWords } from "../../src/signIn/words";
 import { NO_CONVEX_URL } from "../../src/shared/words";
+import { tapsUnderTapSize } from "../../scripts/tap-targets.mjs";
 import { BUILT_SCREENS } from "../support/smoke/builtScreens";
 
 /** The one error every page load logs: the app has no favicon, and the browser asks for one. */
@@ -137,11 +138,30 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
     });
   }
 
+  // The tap-size check measures what a thumb taps: a control through its label, never a bare
+  // well or a hidden radio (#792, #295).
+  test("the tap-size check passes a labelled control by its label, and lists a bare small one", async ({ page }) => {
+    await page.setContent(`
+      <style>
+        :root { --spacing-tap: 44px; }
+        label { display: flex; min-height: 44px; align-items: center; }
+        .well { width: 22px; height: 22px; margin: 0; }
+        .hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+      </style>
+      <label><input type="checkbox" class="well">Compare Rice</label>
+      <label><input type="radio" class="hidden" name="bye">No one (a bye)</label>
+      <input type="checkbox" class="well" aria-label="Bare well">
+      <input type="radio" class="hidden" aria-label="Bare hidden radio">
+    `);
+    const { small } = await page.evaluate(tapsUnderTapSize);
+    expect(small).toEqual(["Bare well (22px)", "Bare hidden radio (1px)"]);
+  });
+
   test.describe("each built screen, on the phone", () => {
     test.use({ viewport: PHONE });
 
     for (const [session, path, title] of BUILT_SCREENS) {
-      test(`?preview=${session} at ${path} shows "${title}" and doesn't scroll sideways`, async ({ page }) => {
+      test(`?preview=${session} at ${path} shows "${title}", doesn't scroll sideways, and has no tap under the tap size`, async ({ page }) => {
         await page.goto(`${path}?preview=${session}`);
         await expect(page.getByRole("main").getByRole("heading", { level: 1, name: title, exact: true })).toBeVisible();
         await expect(page.getByRole("heading", { name: ERROR_PAGE_TITLE })).toHaveCount(0);
@@ -150,6 +170,8 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
           innerWidth: window.innerWidth,
         }));
         expect(scrollWidth, "the page's width, against the window's").toBeLessThanOrEqual(innerWidth);
+        const { tapSize, small } = await page.evaluate(tapsUnderTapSize);
+        expect(small, `taps under ${tapSize}px`).toEqual([]);
       });
     }
   });
