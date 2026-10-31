@@ -22,8 +22,8 @@ Convex deploys, or lists one it doesn't: after adding, moving or deleting a file
 
 `npm test` runs the three Vitest projects (`vitest.config.ts` holds their include patterns); a
 file that matches none of them never runs. `npm run verify` runs them with the install check, the
-type check, the recorded-payload check, the spec-ID check and the hook checks; CI also runs
-`npm run build` and `npm run smoke`.
+type check, the recorded-payload check, the tests-kept check, the spec-ID check and the hook
+checks; CI also runs `npm run build` and `npm run smoke`.
 
 ## What `tests/support/` holds
 
@@ -57,6 +57,15 @@ Nothing in it is a test. Each kind of file:
 `recorded/` and `golden/` are add-only: `scripts/recorded-add-only.mjs`, run by `npm run verify`,
 fails on a changed or deleted file unless a commit on the branch carries the trailer
 `Re-record: <file>: <why>`.
+
+## Never cut a test
+
+`scripts/tests-kept.mjs`, run by `npm run verify`, fails when the branch, committed or not, holds
+fewer of some test than origin/main did. It reads every `test()` and `it()` in a `*.test.*` or
+`*.spec.*` file here from the source, named by the `describe()` titles around it and its own title,
+across the whole tree: a test moved to another file, or a renamed file, passes; a renamed test, one
+moved to another `describe()`, or a deleted one fails, until a commit on the branch carries the
+trailer `Test-removed: <the test's name, as the check prints it, or the file it was in>: <why>`.
 
 ## The scoring proof
 
