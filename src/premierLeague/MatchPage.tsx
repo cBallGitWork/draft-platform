@@ -84,9 +84,9 @@ function Scoreboard({ match: { home, away, score, kickoff, gameweek } }: { match
   return (
     <section aria-label={SCORE_LABEL} className="bg-panel shadow-bevel-panel">
       <p className="grid grid-cols-sides items-baseline gap-3 px-3 pt-2 text-lead font-bold sm:text-title">
-        <span className="text-right">{home.name}</span>
+        <span className="display-face text-right">{home.name}</span>
         {goals === null ? <span className="text-muted">{versusWords}</span> : <span className="whitespace-nowrap text-figure">{goals}</span>}
-        <span>{away.name}</span>
+        <span className="display-face">{away.name}</span>
       </p>
       <p aria-live="polite" className="px-3 pb-2 text-center">
         <MatchState score={score} kickoff={kickoff} />

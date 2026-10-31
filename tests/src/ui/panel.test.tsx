@@ -39,6 +39,19 @@ it("names a panel by its title plate, a level-2 heading, keeping the panel groun
   expect(panel.textContent).toBe("SquadA row");
 });
 
+it("sets a panel's title in the second face when it names a team, with or without an aside", () => {
+  render(
+    <>
+      <Panel title="Saka Potatoes" namesTeam />
+      <Panel title="Kroos Control" namesTeam aside={<span>11 of 11</span>} />
+    </>,
+  );
+  expect(screen.getByRole("heading", { level: 2, name: "Saka Potatoes" }).className).toBe(
+    "bg-plate px-3 py-1 shadow-bevel-plate text-lead display-face",
+  );
+  expect(screen.getByRole("heading", { level: 2, name: "Kroos Control" }).className).toBe("text-lead display-face");
+});
+
 it("puts a panel's aside at the plate's far end, and gives two panels their own ids", () => {
   render(
     <>
