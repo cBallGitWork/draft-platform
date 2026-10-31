@@ -23,15 +23,15 @@ import {
   setUsedIn,
   shownDeadline,
   t,
-  THREE_HOURS,
   useDeadlineRecorderDeployment,
 } from "../../support/convex/deadlineRecorder.harness";
 
 // A league's deadline, once passed, stays where it fell, even if the gameweek's first match is then
 // postponed (spec/05; #150). The football sync records it before it writes kickoffs, and every read
-// of when a gameweek begins takes the record first. Against FPL's recorded whole season. How the
-// recorder fails closed is in deadlineRecorderFailsClosed.test.ts, its alarm at the next deadline
-// in deadlineRecorderAlarm.test.ts.
+// of when a gameweek begins takes the record first. Against FPL's recorded whole season.
+
+/** A deadline earlier than the first rules', in minutes before the first kickoff. */
+const THREE_HOURS = 180;
 
 useDeadlineRecorderDeployment();
 

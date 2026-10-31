@@ -27,9 +27,6 @@ vi.mock("../../../convex/gameweeks/gameweekStarts", async (actual) => {
   return { ...starts, recordGameweekStarts: vi.fn(starts.recordGameweekStarts) };
 });
 
-// The deadline recorder fails closed (#150): a league whose deadlines can't be worked out, or a
-// throw while recording a gameweek's start, fails the football sync before any kickoff moves.
-
 useDeadlineRecorderDeployment();
 
 test("it fails closed: a league whose deadlines can't be worked out fails the sync, logged and filed, and no kickoff moves", async () => {

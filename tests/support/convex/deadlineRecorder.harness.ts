@@ -16,12 +16,11 @@ import { fakeResend, signInDeployment } from "./signIn.harness";
 
 /** Gameweek 8 in FPL's recorded season, its matches all after the harness's clock starts. */
 export const GAMEWEEK = 8;
+/** FPL's recorded whole season, synced before each test. */
 export const payloads = recordedSeason();
 export const kickoffsOf = (gameweek: number) =>
   payloads.fixtures.flatMap((fixture) => (fixture.event === gameweek && fixture.kickoff_time !== null ? [Date.parse(fixture.kickoff_time)] : [])).toSorted((a, b) => a - b);
 export const [OPENER, SECOND] = kickoffsOf(GAMEWEEK);
-/** A deadline earlier than the first rules', in minutes before the first kickoff. */
-export const THREE_HOURS = 180;
 /** The first rules' deadline, before a kickoff. */
 export const deadlineBefore = (kickoff: number) => kickoff - FIRST_RULES.deadline.minutesBeforeFirstKickoff * MINUTE_MS;
 
