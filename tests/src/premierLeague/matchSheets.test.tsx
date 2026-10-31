@@ -1,12 +1,13 @@
 // The match page's two clubs (#45; spec/10, The match page): each club's team sheet with every
-// owned man's team and points, and the team stats side by side. The rest of the page is
-// matchPage.test.tsx's.
+// man's points and the team they're for, or "Free agent", and the team stats side by side. The
+// rest of the page is matchPage.test.tsx's.
 
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HOUR_MS } from "../../../convex/shared/time";
 import {
   cameOnWords,
+  freeAgentWords,
   MOVED_TITLE,
   noFigureWords,
   noMenWords,
@@ -35,7 +36,9 @@ function sheetRows(club: string) {
 }
 
 describe("the team sheets", () => {
-  it("each club's starters, then its substitutes, each owned man with his team and his points", async () => {
+  // "Just because they aren't a team doesn't mean they don't get points"; "Well he would be a free
+  // agent or waiver not blank" (Craig, 31 Oct 2026; #771).
+  it("each club's starters, then its substitutes, each man with his points and his team, or a free agent's greyed as counting for none", async () => {
     openMatch({ match: matchOf() });
     await screen.findByRole("table", { name: sheetLabel(ARSENAL.name) });
     expect(sheetRows(ARSENAL.name)).toEqual([
@@ -43,7 +46,7 @@ describe("the team sheets", () => {
       ["CM", "SakaTeam 2", "11"],
       ["CM", "RiceTeam 1", noFigureWords],
       [SUBSTITUTES_TITLE],
-      ["CM", `Ødegaard${cameOnWords}`, ""],
+      ["CM", `Ødegaard${cameOnWords}${freeAgentWords}`, `3 ${notCountingLabel}`],
       ["GK", `Arrizabalaga ${unusedLabel}Team 1`, `0 ${notCountingLabel}`],
     ]);
     expect(sheetRows(CHELSEA.name)).toEqual([["CM", "PalmerTeam 2", "7"]]);
@@ -65,14 +68,14 @@ describe("the team sheets", () => {
     const men = [man(1, "Raya", "home", { ...before, position: "GK", ownerTeamName: "Team 1" }), man(4, "Ødegaard", "home", { ...before, started: false })];
     openMatch({ match: matchOf({ kickoff: Date.now() + HOUR_MS, score: null, men }) });
     await screen.findByRole("table", { name: sheetLabel(ARSENAL.name) });
-    expect(sheetRows(ARSENAL.name)).toEqual([["GK", "RayaTeam 1", noFigureWords], [SUBSTITUTES_TITLE], ["CM", "Ødegaard", ""]]);
-    expect(screen.getByRole("rowheader", { name: "Ødegaard" }).closest("tr")!.className).not.toContain("text-muted");
+    expect(sheetRows(ARSENAL.name)).toEqual([["GK", "RayaTeam 1", noFigureWords], [SUBSTITUTES_TITLE], ["CM", `Ødegaard${freeAgentWords}`, `${noFigureWords} ${notCountingLabel}`]]);
+    expect(screen.getByRole("rowheader", { name: `Ødegaard${freeAgentWords}` }).closest("tr")!.className).not.toContain("text-muted");
   });
 
   it("a man who has since left both clubs has his own panel", async () => {
     openMatch({ match: matchOf({ men: [...MEN, man(7, "Isak", null)] }) });
     await screen.findByRole("table", { name: sheetLabel(MOVED_TITLE) });
-    expect(sheetRows(MOVED_TITLE)).toEqual([["CM", "Isak", ""]]);
+    expect(sheetRows(MOVED_TITLE)).toEqual([["CM", `Isak${freeAgentWords}`, `${noFigureWords} ${notCountingLabel}`]]);
   });
 
   it("when the league's points can't be worked out, says why in the alert strip", async () => {

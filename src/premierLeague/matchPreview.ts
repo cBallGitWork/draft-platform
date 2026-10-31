@@ -1,8 +1,8 @@
 // The match page in the preview (src/app/preview.ts): Ipswich Town 1–1 Nottingham Forest, the match
 // recorded live on 23 Oct 2026 (tests/support/recorded/live.payloads.ts), at full time. Its team
 // sheets, team stats and commentary are the recording's, written as the live tick writes them; the
-// positions, who owns whom and the points are made up. Every fixture opens it: one to come, as it
-// stood before kickoff.
+// positions, who owns whom and the points are made up; a free agent's count for no team. Every
+// fixture opens it: one to come, as it stood before kickoff.
 
 import { bySheetOrder } from "../../convex/match/sheetOrder";
 import type { Position } from "../../convex/positions/positionTables";
@@ -23,7 +23,7 @@ function man(
   played: boolean,
   owner: number | null,
   points: number | null,
-  counts = true,
+  counts = owner !== null,
 ): MatchMan {
   return { playerCode, name, position, side, started, played, ownerTeamName: owner === null ? null : previewTeams[owner], points, counts };
 }
@@ -31,44 +31,44 @@ function man(
 /** The sheets in the recording's order. */
 const SHEETS: MatchMan[] = [
   man(108813, "Walton", "GK", "home", true, true, 0, 2),
-  man(218543, "Palacios", "FB", "home", true, true, null, null),
-  man(455084, "Davis", "CB", "home", true, true, null, null),
-  man(216055, "Florentino", "CDM", "home", true, true, null, null),
-  man(216616, "O'Shea", "CB", "home", true, true, null, null),
-  man(481624, "Philogene", "W", "home", true, true, null, null),
-  man(531442, "Fatawu", "W", "home", true, true, null, null),
-  man(572584, "Ouattara", "CB", "home", true, true, null, null),
+  man(218543, "Palacios", "FB", "home", true, true, null, 5),
+  man(455084, "Davis", "CB", "home", true, true, null, 2),
+  man(216055, "Florentino", "CDM", "home", true, true, null, 1),
+  man(216616, "O'Shea", "CB", "home", true, true, null, 4),
+  man(481624, "Philogene", "W", "home", true, true, null, 4),
+  man(531442, "Fatawu", "W", "home", true, true, null, 4),
+  man(572584, "Ouattara", "CB", "home", true, true, null, 4),
   man(474120, "Enciso", "CAM", "home", true, true, 0, 9),
-  man(543968, "Emersonn", "ST", "home", true, true, null, null),
+  man(543968, "Emersonn", "ST", "home", true, true, null, 2),
   man(219924, "Diop", "CM", "home", true, true, 1, 1),
   man(443261, "Clarke", "W", "home", false, true, 4, 1),
-  man(431639, "Flemming", "CM", "home", false, true, null, null),
-  man(449429, "Greaves", "FB", "home", false, false, null, null),
-  man(241117, "Matusiwa", "CDM", "home", false, true, null, null),
-  man(176420, "Furlong", "CB", "home", false, false, null, null),
-  man(240514, "Scherpen", "GK", "home", false, false, null, null),
-  man(147675, "Akpom", "ST", "home", false, true, null, null),
-  man(442967, "Maeda", "W", "home", false, true, null, null),
-  man(501390, "Núñez", "ST", "home", false, false, null, null),
+  man(431639, "Flemming", "CM", "home", false, true, null, 5),
+  man(449429, "Greaves", "FB", "home", false, false, null, 0),
+  man(241117, "Matusiwa", "CDM", "home", false, true, null, 1),
+  man(176420, "Furlong", "CB", "home", false, false, null, 0),
+  man(240514, "Scherpen", "GK", "home", false, false, null, 0),
+  man(147675, "Akpom", "ST", "home", false, true, null, 3),
+  man(442967, "Maeda", "W", "home", false, true, null, 5),
+  man(501390, "Núñez", "ST", "home", false, false, null, 0),
   man(85633, "Sels", "GK", "away", true, true, 3, 2),
   man(215136, "N.Williams", "CB", "away", true, true, 2, 8),
-  man(227444, "Milenković", "CB", "away", true, true, null, null),
-  man(456512, "Ndoye", "W", "away", true, true, null, null),
-  man(204561, "Schlager", "CDM", "away", true, true, null, null),
-  man(432714, "McAtee", "CAM", "away", true, true, null, null),
+  man(227444, "Milenković", "CB", "away", true, true, null, 2),
+  man(456512, "Ndoye", "W", "away", true, true, null, 2),
+  man(204561, "Schlager", "CDM", "away", true, true, null, 3),
+  man(432714, "McAtee", "CAM", "away", true, true, null, 0),
   man(247348, "Muñoz", "FB", "away", true, true, 1, 6),
   man(463034, "Delap", "ST", "away", true, true, 2, 2),
   man(222531, "Gibbs-White", "CAM", "away", true, true, 3, 3),
-  man(575458, "Jair Cunha", "FB", "away", true, true, null, null),
+  man(575458, "Jair Cunha", "FB", "away", true, true, null, 4),
   man(575476, "Murillo", "CB", "away", true, true, 4, 1),
   man(209046, "Hudson-Odoi", "W", "away", false, true, 0, 1),
-  man(210462, "I.Sangaré", "CDM", "away", false, false, null, null),
-  man(221389, "John", "GK", "away", false, false, null, null),
-  man(568420, "Diomande", "CB", "away", false, false, null, null),
-  man(465680, "Kalimuendo", "ST", "away", false, false, null, null),
-  man(204968, "Yates", "FB", "away", false, false, null, null),
-  man(159506, "Aina", "FB", "away", false, false, null, null),
-  man(470315, "Netz", "FB", "away", false, true, null, null),
+  man(210462, "I.Sangaré", "CDM", "away", false, false, null, 0),
+  man(221389, "John", "GK", "away", false, false, null, 0),
+  man(568420, "Diomande", "CB", "away", false, false, null, 0),
+  man(465680, "Kalimuendo", "ST", "away", false, false, null, 0),
+  man(204968, "Yates", "FB", "away", false, false, null, 0),
+  man(159506, "Aina", "FB", "away", false, false, null, 0),
+  man(470315, "Netz", "FB", "away", false, true, null, 5),
   man(60689, "Wood", "ST", "away", false, true, 2, 0, false),
 ];
 
@@ -198,7 +198,7 @@ export const previewMatch: MatchPageData = {
 export const previewMatchBeforeKickoff: MatchPageData = {
   ...previewMatch,
   score: null,
-  men: MEN.map((each) => ({ ...each, played: null, points: null, counts: true })),
+  men: MEN.map((each) => ({ ...each, played: null, points: null, counts: each.ownerTeamName !== null })),
   teamStats: null,
   commentary: { kind: "read", lines: [], delayed: false },
 };

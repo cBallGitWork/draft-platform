@@ -2,6 +2,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, Notice, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { Vidiprinter } from "../matchup/Vidiprinter";
+import { OwnerName } from "../ui/OwnerName";
 import { PositionCode } from "../ui/PositionCodes";
 import type { MatchMan, MatchPageData, PremierLeagueSeam } from "./seam";
 import {
@@ -38,7 +39,7 @@ import {
 } from "./words";
 
 /** One real Premier League match (spec/10, The match page), live: the score and clock, each club's
- *  team sheet with every man owned in the league showing his team and his points, the five team
+ *  team sheet with every man's points and the team they're for, or "Free agent", the five team
  *  stats, and the match's commentary, newest first. Opened from the Premier League's fixtures (spec/18) and from a
  *  player's status on the matchup. */
 export function MatchPage({ league, seam, fixtureCode }: { league: LeagueSummary; seam: PremierLeagueSeam; fixtureCode: number }) {
@@ -180,8 +181,9 @@ function TeamSheet({ title, men }: { title: string; men: MatchMan[] }) {
   );
 }
 
-/** One man: an unused substitute greyed, one who came on marked, and for a man owned in the
- *  league, the team that owns him and his points, greyed while they don't count for it. */
+/** One man: an unused substitute greyed, one who came on marked, the team his points are for, or
+ *  "Free agent" for a man no lineup held at the deadline (once waivers are built, a man on waivers
+ *  reads so instead), and his points, greyed while they don't count: for a free agent, for no team. */
 function ManRow({ man: { name, position, started, played, ownerTeamName, points, counts } }: { man: MatchMan }) {
   const unused = !started && played === false;
   return (
@@ -191,11 +193,13 @@ function ManRow({ man: { name, position, started, played, ownerTeamName, points,
         {name}
         {!started && played === true && <span className="ml-2 font-normal text-event">{cameOnWords}</span>}
         {unused && <span className="sr-only"> {unusedLabel}</span>}
-        {ownerTeamName !== null && <span className="block text-data font-normal text-muted">{ownerTeamName}</span>}
+        <span className="block text-data font-normal text-muted">
+          <OwnerName teamName={ownerTeamName} />
+        </span>
       </th>
       <td className={`px-2 text-right ${counts && points !== null ? "font-bold text-figure" : "text-muted"}`}>
-        {ownerTeamName === null ? null : points === null ? noFigureWords : figureWords(points)}
-        {ownerTeamName !== null && !counts && <span className="sr-only"> {notCountingLabel}</span>}
+        {points === null ? noFigureWords : figureWords(points)}
+        {!counts && <span className="sr-only"> {notCountingLabel}</span>}
       </td>
     </tr>
   );

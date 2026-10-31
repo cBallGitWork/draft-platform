@@ -58,7 +58,7 @@ export async function heldMatches(ctx: QueryCtx, leagueId: Id<"leagues">, fixtur
 export const MATCH_OVERRIDES_MOST = MATCH_RECORDS_MOST;
 
 /** The league's overrides of men's points in the match (#32), by player. */
-async function overridesIn(ctx: QueryCtx, leagueId: Id<"leagues">, fixtureCode: number): Promise<Map<PlayerCode, number>> {
+export async function overridesIn(ctx: QueryCtx, leagueId: Id<"leagues">, fixtureCode: number): Promise<Map<PlayerCode, number>> {
   const rows = await takeAllOrThrow(
     ctx.db
       .query("pointsOverrides")
