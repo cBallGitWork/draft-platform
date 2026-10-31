@@ -34,6 +34,8 @@ test("Vercel skips no build itself: an ignore command once skipped production's 
 });
 
 test("only a production build with the deploy key may release", () => {
+  // Vercel's own name for the variable, an outside fact the constant must keep.
+  expect(VERCEL_ENV).toBe("VERCEL_ENV");
   expect(refusal({ [VERCEL_ENV]: VERCEL_PRODUCTION, ...KEY })).toBeNull();
   expect(refusal(KEY)).toBeNull();
   expect(refusal({ [VERCEL_ENV]: PREVIEW, ...KEY })).toContain(`this is a ${PREVIEW} build (${VERCEL_ENV}=${PREVIEW})`);
