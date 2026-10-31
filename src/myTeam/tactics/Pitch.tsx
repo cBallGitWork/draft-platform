@@ -67,10 +67,11 @@ export function Pitch({
   const { picked } = moving;
   const isSlot = (cell: Cell) => slots.some((slot) => sameCell(slot, cell));
   const opensTo = (cell: Cell) => picked !== null && canStandIn(draft, picked.positions, cell);
+  const runs = { draft, tapped: picked?.playerCode ?? null, switchedOn: runsShown };
   return (
     <div role="group" aria-label={pitchLabel} style={CELL_GRID} className="pitch relative mx-auto grid">
       <PitchLines />
-      <RoleRuns draft={draft} tapped={picked?.playerCode ?? null} switchedOn={runsShown} />
+      <RoleRuns {...runs} part="lines" />
       {ROWS_DRAWN.flatMap((area) =>
         LANES.map((lane) => {
           const cell = { area, lane };
@@ -102,6 +103,7 @@ export function Pitch({
           );
         }),
       )}
+      <RoleRuns {...runs} part="heads" />
     </div>
   );
 }

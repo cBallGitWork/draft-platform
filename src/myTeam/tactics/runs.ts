@@ -65,8 +65,10 @@ export function arrowheadOf(path: readonly PitchPoint[]): PitchPoint[] {
   ];
 }
 
-/** The attribute marking a run's drawing with its player's code, for the tests to find it. */
+/** The attributes marking a run's line and its arrowhead with its player's code, for the tests to
+ *  find them. */
 export const RUN_MARK = "data-run";
+export const RUN_HEAD_MARK = "data-run-head";
 
 /** Who sees a run (spec/05 Runs): on the desk every run while the switch shows them, on a phone
  *  only the tapped player's. The CSS utility hiding it where it doesn't show, "" where it shows on

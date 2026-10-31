@@ -98,8 +98,9 @@ name (the score).
   measurements live once, in `src/myTeam/tactics/pitchMarkings.ts`. Flat: one stripe to each of
   its six rows, which share its length equally so each line of players stands where it would; no
   gradients or photo grass. It is the Tactics tab's centrepiece (Decided).
-- **A role's run** (spec/05 Runs): a 2px dashed white line from the player's place with a solid
-  white arrowhead, drawn under the players' blocks so it never covers a name. Its shape is the
+- **A role's run** (spec/05 Runs): a 2px dashed white line from the player's place, drawn under
+  the players' blocks so it never covers a name, and a solid white arrowhead edged in the ground's
+  ink, drawn over them so a run ending at the next row's player still shows its end. Its shape is the
   role's, in metres (`convex/lineup/roles.ts`); `src/myTeam/tactics/RoleRuns.tsx` only draws it.
 
 ## Controls
