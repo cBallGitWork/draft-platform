@@ -44,6 +44,12 @@ async function matchAs(league: ScoresLeague, email: string, fixtureCode: number 
 
 const manOf = (men: readonly MatchMan[], playerCode: number) => men.find((man) => man.playerCode === playerCode)!;
 
+/** The league as before its gameweek's deadline: no gameweek recorded as begun. */
+const notYetBegun = ({ t }: ScoresLeague) =>
+  t.run(async (ctx) => {
+    for (const row of await ctx.db.query("passedDeadlines").collect()) await ctx.db.delete("passedDeadlines", row._id);
+  });
+
 /** Hull's scorer's goal, as the live tick stores its line. */
 const SCORERS_GOAL = "64' GOAL Scorer";
 const line = (sourceId: number, text: string, minute: number | null, type: string, playerCodes: number[] = []) => ({ sourceId, text, minute, addedMinute: 0, type, playerCodes });
@@ -126,9 +132,7 @@ test("a man released after the deadline names the team that had him at the deadl
 test("before the league's gameweek begins, a man moved shows the team that owns him now, as his lineup isn't locked", async () => {
   const league = await matchLeague();
   await fullTimeRecords(league);
-  await league.t.run(async (ctx) => {
-    for (const row of await ctx.db.query("passedDeadlines").collect()) await ctx.db.delete("passedDeadlines", row._id);
-  });
+  await notYetBegun(league);
   await (await actingAs(league.t, ADMIN)).mutation(api.squads.squads.move, { leagueId: league.leagueId, playerCode: HULL_SCORER, teamId: league.bobsTeam });
   expect(manOf((await matchAs(league, ANN))!.men, HULL_SCORER)).toMatchObject({ ownerTeamName: "Team 2", points: null });
 });
@@ -212,10 +216,8 @@ test("the five team stats show each side's, home and away, as the live poller la
 test("before the league's gameweek begins, the men show their owners but no points, and the lines are unpriced", async () => {
   const league = await matchLeague();
   await fullTimeRecords(league);
-  await league.t.run(async (ctx) => {
-    for (const row of await ctx.db.query("passedDeadlines").collect()) await ctx.db.delete("passedDeadlines", row._id);
-    await ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines: [scorersGoal(1)], delayed: null });
-  });
+  await notYetBegun(league);
+  await league.t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines: [scorersGoal(1)], delayed: null }));
   const page = (await matchAs(league, ANN))!;
   expect(manOf(page.men, HULL_SCORER)).toMatchObject({ ownerTeamName: "Team 1", points: null });
   expect(page.commentary).toEqual({ kind: "read", lines: [shownGoal(null)], delayed: false });

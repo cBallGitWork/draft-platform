@@ -26,8 +26,7 @@ import { bySheetOrder } from "./sheetOrder";
 
 // One real Premier League match (#45; spec/10, The match page): its score and clock, both clubs'
 // men as the team sheets named them, starters and substitutes, each man owned in the league with
-// his team and his live points (once the gameweek has begun, the team that had him at its deadline;
-// #561), and the match's commentary, newest first, its goals, assists, cards
+// his team and his live points, and the match's commentary, newest first, its goals, assists, cards
 // and thresholds priced for the league's men, and "Commentary delayed" while the stream falls
 // behind. A man's points are his slot's in the lineup that holds him, worked out by the league's
 // gameweek scorer (gameweekScores.ts) as the matchup and the table work them, so the three never
@@ -54,9 +53,8 @@ const matchMan = v.object({
   started: v.boolean(),
   /** False for an unused substitute; null while no feed has sent a substitute's minutes. */
   played: v.union(v.boolean(), v.null()),
-  /** The league's team whose points his are: once the gameweek has begun, the one whose lineup holds
-   *  him, read against its squad at the deadline, so a man moved or released since names his old
-   *  team (#561); before, the one that owns him now. Null for a man no team held then. */
+  /** The league's team his points are for: the one that had him at the deadline once the gameweek
+   *  has begun (#561), the one that owns him now before. Null for a man no team had. */
   ownerTeamName: v.union(v.string(), v.null()),
   /** His points in this match from his slot in the lineup that holds him, which once the gameweek
    *  has begun is his team's at the deadline, not always his owner's now; null ("—") for a man in no
@@ -96,9 +94,9 @@ export const ofMatch = query({
     if (fixture === null) return null;
     const records = await matchRecordsOf(ctx, fixtureCode, "its men");
     const named = records.length > 0 ? records : await sheetMenOf(ctx, fixtureCode);
-    const gameweek = await begunGameweekOf(ctx, league, fixture);
-    const owners = gameweek === null ? await ownersNowOf(ctx, leagueId, named) : await deadlineOwnersOf(ctx, leagueId, gameweek, named);
-    const priced = gameweek === null ? unpriced(null) : await pricedOrProblem(ctx, league, fixture, gameweek, named);
+    const begunGameweek = await begunGameweekOf(ctx, league, fixture);
+    const owners = begunGameweek === null ? await ownersNowOf(ctx, leagueId, named) : await deadlineOwnersOf(ctx, leagueId, begunGameweek, named);
+    const priced = begunGameweek === null ? unpriced(null) : await pricedOrProblem(ctx, league, fixture, begunGameweek, named);
     const held = await scoreOf(ctx, fixtureCode);
     const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
     return {
@@ -128,8 +126,7 @@ async function begunGameweekOf(ctx: QueryCtx, league: Doc<"leagues">, { gameweek
   return gameweek !== null && (await begunGameweeks(ctx, league)).includes(gameweek) ? gameweek : null;
 }
 
-/** Each man the match names who is owned in the league now, by the team that owns him: for a
- *  gameweek not yet begun, whose lineups aren't locked. */
+/** Each man the match names who is owned in the league now, by the team that owns him. */
 async function ownersNowOf(ctx: QueryCtx, leagueId: Id<"leagues">, named: readonly NamedMan[]): Promise<Map<PlayerCode, Doc<"teams">>> {
   const owner = await ownerOf(ctx, leagueId);
   const owners = new Map<PlayerCode, Doc<"teams">>();
@@ -140,10 +137,9 @@ async function ownersNowOf(ctx: QueryCtx, leagueId: Id<"leagues">, named: readon
   return owners;
 }
 
-/** Each man the match names who is in a team's lineup in the begun gameweek, by that team: the
- *  lineups the points are worked out from (lineups.ts), read against the squads at the deadline, so
- *  the team named beside a man's points is the one that scored them, whoever owns him now (Craig,
- *  31 Oct 2026; #561). One team owned a man at the deadline, so one lineup holds him. */
+/** Each man the match names who is in a lineup in the begun gameweek, by its team: the lineups his
+ *  points come from, read against the squads at the deadline (lineups.ts), so a man moved or
+ *  released since names his old team (Craig, 31 Oct 2026; #561). */
 async function deadlineOwnersOf(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
