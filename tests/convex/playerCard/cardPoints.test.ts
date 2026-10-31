@@ -2,13 +2,11 @@ import { expect, test } from "vitest";
 import { ALL_CELLS, cellKey, positionOfSlot, SLOT_POSITIONS } from "../../../convex/lineup/pitch";
 import { basePoints, cardPoints, cardPositions, cellAt, pointsAt } from "../../../convex/playerCard/cardPoints";
 import { scoreMatch } from "../../../convex/scoring/scoring";
-import { EXAMPLE_SET } from "../../support/convex/scoring.example";
+import { EXAMPLE_SET, GOAL_AND_ASSIST } from "../../support/convex/scoring.example";
 
 // A player's match priced with no lineup (#381): at his best position, as the Squad tab prices a
 // match no lineup counted, and at a chosen position, as his card shows his base points (spec/12).
 // Figures from EXAMPLE_SET.
-
-const GOAL_AND_ASSIST = { minutes: 90, goals_scored: 1, assists: 1 };
 
 test("a player in no lineup is priced at the slot his positions allow that scores the most", () => {
   // Ten defensive actions earn 2 in defensive midfield and nothing in midfield, where it takes 12.
@@ -19,15 +17,13 @@ test("a player in no lineup is priced at the slot his positions allow that score
 
 test("a tie between slots names his own position, not another his area allows", () => {
   // A goal and an assist earn the same anywhere in attacking midfield, at W or at CAM.
-  const record = { minutes: 90, goals_scored: 1, assists: 1 };
-
-  expect(cardPoints(record, EXAMPLE_SET, ["CAM"])).toMatchObject({ position: "CAM", total: 11 });
-  expect(cardPoints(record, EXAMPLE_SET, ["W"])).toMatchObject({ position: "W", total: 11 });
+  expect(cardPoints(GOAL_AND_ASSIST, EXAMPLE_SET, ["CAM"])).toMatchObject({ position: "CAM", total: 11 });
+  expect(cardPoints(GOAL_AND_ASSIST, EXAMPLE_SET, ["W"])).toMatchObject({ position: "W", total: 11 });
 });
 
 test("a player with two areas is priced in the one that scores more for his match", () => {
   // A goal and an assist: 5 + 4 + 2 in attacking midfield, 4 + 3 + 2 up front.
-  expect(cardPoints({ minutes: 90, goals_scored: 1, assists: 1 }, EXAMPLE_SET, ["W", "ST"])).toMatchObject({ position: "W", total: 11 });
+  expect(cardPoints(GOAL_AND_ASSIST, EXAMPLE_SET, ["W", "ST"])).toMatchObject({ position: "W", total: 11 });
 });
 
 test("each category's points come with the total, in the set's order", () => {
