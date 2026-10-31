@@ -8,9 +8,8 @@ import { failedWords } from "../shared/words";
 export const GAMEWEEKS_TITLE = "Gameweeks";
 
 export const howTickingWorks =
-  "Untick a gameweek the league won't play, such as over Christmas: it scores nothing and has no " +
-  "head-to-head, while waivers, free agency and trades carry on through it. A gameweek begins at " +
-  "its deadline, and from then on it can't be changed.";
+  "An unticked gameweek scores nothing and has no head-to-head, while waivers, free agency and " +
+  "trades carry on through it. A gameweek can't be changed from its deadline.";
 
 export const playsWords = (name: string) => ({ before: `${name} plays `, after: ` of ${GAMEWEEKS} gameweeks.` });
 

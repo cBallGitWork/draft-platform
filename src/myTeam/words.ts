@@ -8,7 +8,7 @@ export { figureWords, liveWords, noFigureWords, shortThenLongName, versusWords, 
 
 /** Said on any tab to someone who runs no team in the league, such as a commissioner who doesn't
  *  play. */
-export const noTeamWords = "You don't run a team in this league, so there's nothing to show here.";
+export const noTeamWords = "You don't run a team in this league.";
 export const noRulesWords = "This league was made before leagues had rules, so it has no fixtures to draw.";
 
 /** The Fixtures tab (#365). */
@@ -49,9 +49,9 @@ export function transactionWords({ kind, otherTeamName }: Pick<TeamTransactions[
       return "Released to free agency";
   }
 }
-export const noTransactionsWords = "No transactions yet: players the commissioner assigns, moves or releases show here.";
+export const noTransactionsWords = "No transactions yet.";
 /** Said when the league holds more squad moves than the tab reads (convex/squads/teamTransactions.ts). */
-export const transactionsCutWords = "Only the most recent transactions are shown: older ones aren't searched.";
+export const transactionsCutWords = "Only the most recent transactions are shown.";
 
 /** The Squad tab (#364). */
 export const SQUAD_TITLE = menuWords.squad;
@@ -79,7 +79,7 @@ export const noNextFixtureWords = "No match with a kickoff time yet.";
 /** A points cell with no figure: none of his matches is priced yet. */
 export const noPointsWords = "No points yet: none of his matches has been priced.";
 export { goneWords } from "../squads/words";
-export const noSquadWords = "Your squad is empty: players the commissioner assigns show here.";
+export const noSquadWords = "Your squad is empty.";
 
 /** The squad number box's name, for one player (#13). */
 export const numberLabel = (name: string) => `${name}'s squad number`;

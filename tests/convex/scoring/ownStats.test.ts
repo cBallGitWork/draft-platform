@@ -32,9 +32,9 @@ const setWith = (ownStats: OwnStat[], wholePointsOnly = false): ScoringSet => ({
 describe("#112 Done: tackles + 0.5 × clearances", () => {
   test("scores the recorded right back's match: one of each makes 1.5", () => {
     expect(coyle).toMatchObject({ won_tackle: 1, total_clearance: 1 });
-    expect(scoreMatch(coyle, setWith([TACKLES_AND_CLEARANCES]), centreOf("defence"))).toEqual({
+    expect(scoreMatch(coyle, setWith([TACKLES_AND_CLEARANCES]), centreOf("defence"))).toMatchObject({
       total: 1.5,
-      categories: [{ stat: TACKLES_AND_CLEARANCES.stat, points: 1.5 }],
+      categories: [{ stat: TACKLES_AND_CLEARANCES.stat, points: 1.5, why: { actions: 1.5 } }],
     });
   });
 
