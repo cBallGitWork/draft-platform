@@ -110,10 +110,15 @@ says "its worktree holds app/.env.local" tidy_after_merge.py "$(bash_in "$repo" 
 built busy && pr busy && mkdir "$tmp/wt-busy/sub"
 (cd "$tmp/wt-busy/sub" && exec sleep 60) & sleeper=$!
 for _ in $(seq 100); do lsof -a -p "$sleeper" -d cwd -Fn | grep -q wt-busy/sub && break; sleep 0.05; done
-lsof -a -p "$sleeper" -d cwd -Fn | grep -q wt-busy/sub || fail "tidy_after_merge.py's checks: the sleeper never worked in wt-busy/sub"
+lsof -a -p "$sleeper" -d cwd -Fn | grep -q wt-busy/sub || fail "tidy_after_merge.py: the sleeper never worked in wt-busy/sub"
 says "its worktree is in use: a running process works in it" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
 kill "$sleeper" && wait "$sleeper" 2>/dev/null
 [ -d "$tmp/wt-busy" ] || fail "tidy_after_merge.py: removed a worktree a process works in"
+# lsof exits 1 when it can't read some process (another user's, on Linux), yet lists the rest: read them
+built unreadable && pr unreadable && mkdir "$tmp/partial-lsof"
+printf '#!/bin/bash\nprintf "p1\\nfcwd\\nn%%s\\n" "%s"\nexit 1\n' "$tmp/wt-unreadable" > "$tmp/partial-lsof/lsof"
+chmod +x "$tmp/partial-lsof/lsof"
+says "a running process works in it" tidy_after_merge.py "$(bash_in "$repo" "$merge")" PATH="$tmp/partial-lsof:$PATH"
 built recent && pr recent && touch "$repo/.git/worktrees/wt-recent/index"
 says "its git state changed in the last" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
 [ -d "$tmp/wt-recent" ] || fail "tidy_after_merge.py: removed a worktree whose git state just changed"
