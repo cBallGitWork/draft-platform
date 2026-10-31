@@ -7,21 +7,35 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { namedCodes } from "../lineup/lineup";
-import { lineupsInGameweek } from "../lineup/lineups";
+import { lineupsInGameweek, type HeldLineup } from "../lineup/lineups";
 import { teamsOf } from "../shared/leagueAccess";
 import { ownerOf } from "../squads/squadPlace";
 
 type PlayerCode = number;
 
-/** Each of `playerCodes` some team holds, by that team: at the deadline of `begunGameweek`, or now
- *  while it is null. */
+/** The league's teams and their lineups in a begun gameweek, read once for the page: the owners
+ *  named here and the points its scorer works out from the same lineups (#770). */
+export interface DeadlineLineups {
+  gameweek: number;
+  teams: Doc<"teams">[];
+  lineups: ReadonlyMap<Id<"teams">, HeldLineup>;
+}
+
+/** Every team's lineup in the begun `gameweek`. */
+export async function deadlineLineupsOf(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number): Promise<DeadlineLineups> {
+  const teams = await teamsOf(ctx, leagueId);
+  return { gameweek, teams, lineups: await lineupsInGameweek(ctx, leagueId, teams.map((team) => team._id), gameweek) };
+}
+
+/** Each of `playerCodes` some team holds, by that team: in its lineup in the begun gameweek
+ *  `deadlineLineups` holds, or now while it is null. */
 export async function matchOwnersOf(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
-  begunGameweek: number | null,
+  deadlineLineups: DeadlineLineups | null,
   playerCodes: readonly PlayerCode[],
 ): Promise<Map<PlayerCode, Doc<"teams">>> {
-  return begunGameweek === null ? ownersNowOf(ctx, leagueId, playerCodes) : deadlineOwnersOf(ctx, leagueId, begunGameweek, playerCodes);
+  return deadlineLineups === null ? ownersNowOf(ctx, leagueId, playerCodes) : deadlineOwnersOf(deadlineLineups, playerCodes);
 }
 
 async function ownersNowOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCodes: readonly PlayerCode[]): Promise<Map<PlayerCode, Doc<"teams">>> {
@@ -34,14 +48,7 @@ async function ownersNowOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCodes: 
   return owners;
 }
 
-async function deadlineOwnersOf(
-  ctx: QueryCtx,
-  leagueId: Id<"leagues">,
-  gameweek: number,
-  playerCodes: readonly PlayerCode[],
-): Promise<Map<PlayerCode, Doc<"teams">>> {
-  const teams = await teamsOf(ctx, leagueId);
-  const lineups = await lineupsInGameweek(ctx, leagueId, teams.map((team) => team._id), gameweek);
+function deadlineOwnersOf({ teams, lineups }: DeadlineLineups, playerCodes: readonly PlayerCode[]): Map<PlayerCode, Doc<"teams">> {
   const inThisMatch = new Set(playerCodes);
   const owners = new Map<PlayerCode, Doc<"teams">>();
   for (const team of teams) {
