@@ -123,7 +123,7 @@ test("it fails closed: a league whose deadlines can't be worked out fails the sy
 test("it fails closed: a throw while recording a gameweek's start fails the fixtures batch and the sync, and no fixture row changes", async () => {
   const error = silenceConsoleError();
   const STARTS_FAILED = "the gameweek starts can't be read";
-  // Once for each fixtures write below: a vi.fn's own implementation isn't put back after a test.
+  // Once for each fixtures write below: an implementation set on the vi.fn would outlast this test.
   const startsThrowOnce = () => vi.mocked(recordGameweekStarts).mockRejectedValueOnce(new Error(STARTS_FAILED));
   vi.setSystemTime(deadlineBefore(OPENER) + HOUR_MS);
   const { fixtures } = await held(t);
