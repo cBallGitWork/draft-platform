@@ -27,7 +27,7 @@ export const pricedAtLabel = "Points at";
 /** Beside points that may still move ("Live", as on My team's fixtures): the match isn't final, or
  *  his team's auto-subs aren't (spec/12). */
 export { liveWords } from "../shared/words";
-export const provisionalWords = "Live: points are provisional until the match is final and his team's auto-subs are settled.";
+export { provisionalWords } from "../shared/words";
 export const columns = {
   gameweek: { short: "GW", long: "Gameweek" },
   match: { short: "Match", long: "Match" },
@@ -42,7 +42,7 @@ export const nothingEarnedWords = "No category earned him points.";
 
 /** Last season's one line (spec/12): not held yet. */
 export const LAST_SEASON_TITLE = "Last season";
-export const lastSeasonNotHeldWords = "Not held yet: the app keeps match stats from this season only, so it can't total last season under the site's scoring.";
+export const lastSeasonNotHeldWords = "Only this season is held.";
 
 /** His club's next fixtures. */
 export const NEXT_FIXTURES_TITLE = "Next fixtures";
@@ -51,7 +51,7 @@ export const noFixturesWords = "No fixtures ahead with a date.";
 /** A commissioner's override of his points in a match (#32, spec/14). */
 export const overriddenWords = (points: number, reason: string) => `Overridden to ${figureWords(points)} in this league: ${reason}`;
 export const OVERRIDE_TITLE = "Override points";
-export const overrideHint = "Sets his points for one final match in this league, in place of his record's. The whole league gets a letter saying what changed and why.";
+export const overrideHint = "The whole league gets a letter saying what changed and why.";
 export const overrideLabels = { match: "Match", points: "Points", reason: "Why" } as const;
 export const overrideMatchWords = (gameweek: number | null, home: string, away: string) =>
   `${gameweek === null ? "" : `${gameweekWords(gameweek)}: `}${home} ${versusWords} ${away}`;
