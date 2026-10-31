@@ -2,10 +2,10 @@
 // The production bundle holds none of the preview's made-up data (#218): main.tsx loads the
 // preview modules with a dynamic import() behind import.meta.env.DEV, which `vite build` drops.
 // Fails when a file in dist/ holds a string only a preview module has. Each preview module (a .ts
-// file named preview*.ts or *Preview.ts, so preview.ts and matchPreview.ts
-// alike) names one string in NEEDLES, and the check fails first if a preview module names none, its
-// string is no longer in it, or another source file holds it too, so a renamed string or a new
-// preview module can't leave it blind and a shared one can't fail it for nothing.
+// file named preview*.ts or *Preview.ts, PREVIEW_FILE below) names one string in NEEDLES, and the
+// check fails first if a preview module names none, its string is no longer in it, or another
+// source file holds it too, so a renamed string or a new preview module can't leave it blind and a
+// shared one can't fail it for nothing.
 // Run from the repo after `vite build`: `npm run build` runs both, so CI does. An argument names
 // another built folder than dist/, and PREVIEW_CHECK_SOURCES (comma-separated) other source
 // folders than src and convex (its tests do both).
