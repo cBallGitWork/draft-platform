@@ -114,7 +114,8 @@ function cycles(graph: Map<string, string[]>): string[][] {
 test("the walk sees convex/'s files and their imports", () => {
   const known = files();
   const graph = edges(known);
-  expect(known.size).toBeGreaterThan(1);
+  // values.ts is the scoring trio's leaf: it imports nothing, so the trio can't loop through it (#198).
+  expect(graph.get("convex/scoring/values.ts")).toEqual([]);
   // schema.ts, not the schema/ folder, is what "../../schema" names from two folders down.
   expect(resolve("convex/football/premierLeague/plTeamStats.ts", "../../schema", known)).toBe("convex/schema.ts");
   expect(graph.get("convex/scoring/scoring.ts")).toContain("convex/scoring/scoringSet.ts");
