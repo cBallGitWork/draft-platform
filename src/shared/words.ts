@@ -1,5 +1,6 @@
 // What every screen says alike, in one place for Craig to change in the pull request.
 
+import type { PlayingState } from "../../convex/football/matchScores";
 import type { Position } from "../../convex/positions/positionTables";
 import { LOCALE } from "../../convex/shared/moments";
 import { figureWords } from "../../convex/shared/numberWords";
@@ -73,10 +74,15 @@ export const scoreWords = (first: number, second: number) => `${figureWords(firs
 /** Beside what is still being played: a live match's clock before it has a minute, a score that
  *  may still move (spec/07). */
 export const liveWords = "Live";
-/** A live match's one clock, on the matchup and the Premier League's pages alike: the Premier
- *  League's label, with stoppage time ("45+1'"), or the newest read's whole minutes where it has
- *  none (FPL's: "46'"); "Live" before either (spec/10, The matchup, as a live match; #563). */
-export const clockWords = (clockLabel: string | null, minutes: number | null) => {
+/** A match at half-time and at full time, short as a column says it and in full. */
+export const halfTime = { short: "HT", long: "Half-time" } as const;
+export const fullTime = { short: "FT", long: "Full time" } as const;
+/** A match's one clock while it is played, on the matchup and the Premier League's pages alike:
+ *  "HT" at half-time; otherwise the Premier League's label, with stoppage time ("45+1'"), or the
+ *  newest read's whole minutes where it has none (FPL's: "46'"); "Live" before either (spec/10,
+ *  The matchup, as a live match; #563, #781). */
+export const clockWords = (state: PlayingState, clockLabel: string | null, minutes: number | null) => {
+  if (state === "halfTime") return halfTime.short;
   const label = clockLabel?.split("'")[0];
   if (label) return `${label}'`;
   return minutes === null ? liveWords : `${minutes}'`;

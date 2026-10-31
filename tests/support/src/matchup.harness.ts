@@ -1,11 +1,20 @@
 // The matchup's tests' fake seam (shell.harness.tsx hands it to the app).
 
-import { act } from "@testing-library/react";
+import { act, screen, within } from "@testing-library/react";
 import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
+import type { PlayingState } from "../../../convex/football/matchScores";
 import type { MatchupCommentary, MatchupSide, MatchupSlot } from "../../../convex/matchup/matchupShape";
 import type { Matchup, MatchupSeam } from "../../../src/matchup/seam";
+import { lineupLabel } from "../../../src/matchup/words";
+
+/** Each row of a team's lineup on screen, as its text, under the heads. */
+export const lineupRows = (teamName: string) =>
+  within(screen.getByRole("table", { name: lineupLabel(teamName) }))
+    .getAllByRole("row")
+    .slice(1)
+    .map((row) => row.textContent);
 
 /** A matchup the test moves on, as Convex's live query would: each `play` re-renders the screen. */
 export function liveMatchup(first: Matchup | undefined) {
@@ -44,10 +53,12 @@ type Slot = MatchupSlot;
 /** FPL's code for the match a made-up man plays in, unless his status names another. */
 export const SLOT_MATCH = 101;
 
-/** A man's match being played: its whole minutes and the Premier League's label, as the newest read gives them. */
-export const playing = (minute: number | null, clockLabel: string | null = null, fixtureCode = SLOT_MATCH): Slot["status"] => ({
+/** A man's match being played: its whole minutes and the Premier League's label, as the newest
+ *  read gives them, live unless `state` says half-time. */
+export const playing = (minute: number | null, clockLabel: string | null = null, fixtureCode = SLOT_MATCH, state: PlayingState = "live"): Slot["status"] => ({
   kind: "playing",
   fixtureCode,
+  state,
   minute,
   clockLabel,
 });

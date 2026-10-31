@@ -123,11 +123,11 @@ function MatchRow({ match: { fixtureCode, kickoff, home, away, score } }: { matc
 function MatchState({ kickoff, score }: Pick<GameweekMatch, "kickoff" | "score">) {
   switch (score?.state) {
     case "live":
-      return <span className="font-semibold text-derived">{clockWords(score.clockLabel, score.minutes)}</span>;
+      return <span className="font-semibold text-derived">{clockWords(score.state, score.clockLabel, score.minutes)}</span>;
     case "halfTime":
       return (
         <abbr title={halfTime.long} className="font-semibold text-derived no-underline">
-          {halfTime.short}
+          {clockWords(score.state, score.clockLabel, score.minutes)}
         </abbr>
       );
     case "fullTime":

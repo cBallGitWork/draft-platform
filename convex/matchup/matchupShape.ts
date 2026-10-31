@@ -1,4 +1,5 @@
 import { v, type Infer } from "convex/values";
+import { playingState } from "../football/matchScores";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { areaShape } from "../lineup/pitchShape";
 import { scoreRead } from "../schema";
@@ -12,8 +13,15 @@ import { BYE } from "../table/teamGames";
 const slotStatus = v.union(
   /** His match is still to come: its kickoff, null while it has no time. */
   v.object({ kind: v.literal("yetToPlay"), fixtureCode: v.number(), kickoff: v.union(v.number(), v.null()) }),
-  /** His match is on: its clock as the newest read gives it, the match page's (#563). */
-  v.object({ kind: v.literal("playing"), fixtureCode: v.number(), minute: scoreRead.fields.minutes, clockLabel: scoreRead.fields.clockLabel }),
+  /** His match is on, live or at half-time, with its clock as the newest read gives it: the match
+   *  page's (#563). */
+  v.object({
+    kind: v.literal("playing"),
+    fixtureCode: v.number(),
+    state: playingState,
+    minute: scoreRead.fields.minutes,
+    clockLabel: scoreRead.fields.clockLabel,
+  }),
   /** All his matches are over: the last of them. */
   v.object({ kind: v.literal("finished"), fixtureCode: v.number() }),
   /** His club has no match in the gameweek: a blank one. */

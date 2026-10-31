@@ -3,7 +3,7 @@
 import { LOCALE } from "../../convex/shared/moments";
 import { gameweekWords, scoreWords, STAT_WORD, timeOfDayWords, versusWords } from "../shared/words";
 
-export { clockWords, gameweekWords, liveWords, scoreWords, versusWords } from "../shared/words";
+export { clockWords, fullTime, gameweekWords, halfTime, liveWords, scoreWords, versusWords } from "../shared/words";
 /** Goals for less against, signed: "+4", "−3", "0", as the league table signs its difference. */
 export { differenceWords as goalDifferenceWords } from "../table/words";
 
@@ -28,8 +28,6 @@ export const goalsWords = (score: { state: string; homeGoals: number | null; awa
   score !== null && score.state !== "upcoming" && score.homeGoals !== null && score.awayGoals !== null
     ? scoreWords(score.homeGoals, score.awayGoals)
     : null;
-export const halfTime = { short: "HT", long: "Half-time" } as const;
-export const fullTime = { short: "FT", long: "Full time" } as const;
 
 export const TABLE_TITLE = "Table";
 export const loadingTableWords = "Loading the Premier League table…";
