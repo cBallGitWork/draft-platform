@@ -7,22 +7,26 @@ import { describe, expect, it } from "vitest";
 import { AREAS } from "../../../convex/lineup/pitch";
 import {
   areaMinimumLabel,
+  areaMinimumsHint,
   blankAreaMinimumWords,
   blankClubMaximumWords,
   blankGamesWords,
   blankSquadMaximumWords,
+  clubMaximumHint,
   clubMaximumLabel,
   clubMaximumWords,
+  gamesHint,
   gamesLabel,
   noSquadSizeWords,
   savedWords,
+  squadMaximumHint,
   squadMaximumLabel,
 } from "../../../src/leagueSettings/words";
 import { unchangedWords } from "../../../src/rules/words";
 import { REVISION } from "../../support/src/leagueSettings.harness";
 import { box, fill, FIRST_SETTINGS, openedSettings, save, savedSettings } from "../../support/src/leagueSettingsScreen.harness";
 import { CHANGES_FROM } from "../../support/src/scoring.harness";
-import { refusalBeside } from "../../support/src/describedBy";
+import { descriptionOf, refusalBeside } from "../../support/src/describedBy";
 
 const clubTick = () => screen.getByRole("checkbox", { name: clubMaximumWords }) as HTMLInputElement;
 
@@ -127,6 +131,22 @@ describe("the squad (#341)", () => {
       expect(document.activeElement).toBe(box(label));
       await fill(label, "1");
     }
+  });
+
+  it("describes each box by its hint for screen readers, after any refusal beside it (#915)", async () => {
+    await openedSettings();
+    await userEvent.click(clubTick());
+    const hinted: (readonly [label: string, hint: string])[] = [
+      [gamesLabel, gamesHint],
+      [squadMaximumLabel, squadMaximumHint],
+      ...AREAS.map((area) => [areaMinimumLabel(area), areaMinimumsHint] as const),
+      [clubMaximumLabel, clubMaximumHint],
+    ];
+    for (const [label, hint] of hinted) expect(descriptionOf(box(label))).toBe(hint);
+
+    await save();
+    await screen.findByRole("alert");
+    expect(descriptionOf(box(clubMaximumLabel))).toBe(`${blankClubMaximumWords} ${clubMaximumHint}`);
   });
 
   it("a refusal beside the club maximum goes with its box when the limit is turned off (#645)", async () => {
