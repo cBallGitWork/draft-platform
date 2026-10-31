@@ -100,6 +100,9 @@ export function SquadTable({
   );
 }
 
+/** A row's Move or Swap. */
+const ROW_ACTION = "min-h-tap font-semibold text-fact link-look lg:min-h-0";
+
 /** Up and Down: a whole tap wide on the phone, as "Up" alone is narrower (plate.md, The phone). */
 const BENCH_ORDER_BUTTON = "min-h-tap min-w-tap font-semibold text-fact link-look disabled:text-muted disabled:no-underline lg:min-h-0 lg:min-w-0";
 
@@ -180,7 +183,7 @@ function SquadRow({
             type="button"
             aria-label={swapLabel(picked.name, player.name)}
             onClick={() => moving.onSwap(player.playerCode)}
-            className="min-h-tap font-semibold text-fact link-look lg:min-h-0"
+            className={ROW_ACTION}
           >
             {swapWords}
           </button>
@@ -191,7 +194,7 @@ function SquadRow({
             aria-pressed={isPicked}
             aria-label={moveLabel(player.name)}
             onClick={() => moving.onPick(player.playerCode)}
-            className="min-h-tap font-semibold text-fact link-look lg:min-h-0"
+            className={ROW_ACTION}
           >
             {isPicked ? movingWords : moveWords}
           </button>
