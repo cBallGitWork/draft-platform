@@ -37,7 +37,6 @@ export function shownLineup(edited: DraftLineup | null, opening: DraftLineup, sq
 /** Who stands in the cell, if anyone. */
 export const standingIn = (draft: DraftLineup, cell: Cell) => draft.starters.find((starter) => sameCell(starter, cell));
 
-
 const without = (draft: DraftLineup, playerCode: number): DraftLineup => ({
   starters: draft.starters.filter((starter) => starter.playerCode !== playerCode),
   bench: draft.bench.filter((code) => code !== playerCode),
