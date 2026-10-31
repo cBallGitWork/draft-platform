@@ -36,7 +36,7 @@ export function ShortlistPanel({ leagueId, seam }: { leagueId: Id<"leagues">; se
           {players.map((player) => (
             <li key={player.code} className="flex items-center justify-between gap-2 border-t border-panel-rule px-3 py-1">
               <span className="flex flex-wrap items-baseline gap-x-2">
-                <Link to={playerCardPath(leagueId, player.code)} title={player.fullName} className="inline-flex min-h-tap items-center font-semibold">
+                <Link to={playerCardPath(leagueId, player.code)} title={player.fullName} className="tap-link font-semibold">
                   {player.name}
                 </Link>
                 <ClubShort club={player.club} className="text-muted" />
