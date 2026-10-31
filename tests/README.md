@@ -41,7 +41,8 @@ Nothing in it is a test. Each kind of file:
   `footballRows.harness.ts` holds the clubs, players and whole match records they insert), `src/`
   for the screens' (`shell.harness.tsx` opens the app at an address with its actions faked), and
   `scripts/` for the scripts' (`liveSetup.harness.mjs` fakes Convex, Vercel and Resend for the
-  live-setup command).
+  live-setup command, and `gitRepo.harness.mjs` is a scratch git repo with an origin/main for the
+  checks that compare with it).
 - **`smoke/builtScreens.ts`**, the screens the smoke run opens on the phone, which
   `tests/src/smokeScreens.test.ts` checks against every route the router has.
 - **`recorded/*.json`**, real feed payloads, recorded once and cut down. A **`*.payloads.ts`**

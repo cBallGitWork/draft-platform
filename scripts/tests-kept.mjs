@@ -105,11 +105,11 @@ export function removedTests(before, after) {
 }
 
 /** Whether a trailer value names `subject` and gives a reason after it. */
-const gives = (value, subject) => value.startsWith(`${subject}:`) && value.slice(subject.length + 1).trim() !== "";
+const namesWithReason = (value, subject) => value.startsWith(`${subject}:`) && value.slice(subject.length + 1).trim() !== "";
 
 /** The removed tests no trailer value lets through, by the test's name or a file it was in. */
 export function unexcused(removed, trailerValues) {
-  const excused = (subject) => trailerValues.some((value) => gives(value, subject));
+  const excused = (subject) => trailerValues.some((value) => namesWithReason(value, subject));
   return removed.filter(({ name, files }) => !excused(name) && !files.some(excused));
 }
 
