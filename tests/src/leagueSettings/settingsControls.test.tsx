@@ -7,14 +7,11 @@ import userEvent from "@testing-library/user-event";
 import { expect, it } from "vitest";
 import { drawRulesOf, FIRST_RULES } from "../../../convex/rules/firstRules";
 import { ODD_TEAM_OUTS } from "../../../convex/table/roundRobin";
-import { settingsPath } from "../../../src/leagueSettings/paths";
 import { oddTeamOutLabel, oddTeamOutWords } from "../../../src/leagueSettings/words";
-import { discardWords, saveWords } from "../../../src/rules/words";
-import { commissioner, league, openApp } from "../../support/src/shell.harness";
+import { discardWords } from "../../../src/rules/words";
+import { openSettings, saveButton } from "../../support/src/leagueSettingsScreen.harness";
 
-const openSettings = () => openApp(settingsPath(league.leagueId), commissioner, { leagueSettings: {} });
 const key = (name: string) => screen.getByRole("radio", { name }) as HTMLInputElement;
-const saveButton = () => screen.getByRole("button", { name: saveWords }) as HTMLButtonElement;
 
 it("opens with Save in the plain border, disabled, and no Discard", async () => {
   openSettings();

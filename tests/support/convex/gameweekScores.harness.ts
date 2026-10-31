@@ -156,12 +156,21 @@ export const holdHullAndEverton = ({ t }: ScoresLeague) => t.run((ctx) => insert
 
 export const readTable = ({ t, leagueId }: ScoresLeague) => actingAs(t, ANN).then((ann) => ann.query(api.table.leagueTable.ofLeague, { leagueId }));
 
+/** The matchup `email` reads: their own team's in the current gameweek, unless `args` names others. */
+export async function matchupAs({ t, leagueId }: ScoresLeague, email: string, args: { teamId?: Id<"teams">; gameweek?: number } = {}) {
+  return (await actingAs(t, email)).query(api.matchup.matchup.ofTeam, { leagueId, now: Date.now(), ...args });
+}
+
 /** The scored game Ann's matchup shows: in `gameweek`, or the current one when none is named. */
-export async function annsScoredGame({ t, leagueId }: ScoresLeague, gameweek?: number) {
-  const read = await (await actingAs(t, ANN)).query(api.matchup.matchup.ofTeam, { leagueId, now: Date.now(), ...(gameweek === undefined ? {} : { gameweek }) });
+export async function annsScoredGame(league: ScoresLeague, gameweek?: number) {
+  const read = await matchupAs(league, ANN, gameweek === undefined ? {} : { gameweek });
   if (read?.kind !== "headToHead" || read.game.kind !== "scored") throw new Error(`Ann's matchup isn't scored: ${JSON.stringify(read)}`);
   return read.game;
 }
+
+/** A player's name, as the football sync holds it. */
+export const nameOf = ({ t }: ScoresLeague, code: number) =>
+  t.run(async (ctx) => (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", code)).unique())!.name);
 
 /** A side's lineup on the matchup: a team's, never the league's average. */
 export const lineupOf = (side: MatchupSide) => {

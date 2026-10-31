@@ -63,12 +63,12 @@ export type LineupProblem =
 const isArea = (area: string): area is Area => (AREAS as readonly string[]).includes(area);
 const isLane = (lane: string): lane is Lane => (LANES as readonly string[]).includes(lane);
 
-/** Every reason the lineup can't stand under these rules; none means it is legal. */
 /** Every player the lineup names: the starters' codes in order, then the bench. */
 export function namedCodes(lineup: { starters: readonly Pick<Placement, "playerCode">[]; bench: readonly PlayerCode[] }): PlayerCode[] {
   return [...lineup.starters.map(({ playerCode }) => playerCode), ...lineup.bench];
 }
 
+/** Every reason the lineup can't stand under these rules; none means it is legal. */
 export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules: LineupRules): LineupProblem[] {
   throwOnInvalidAreaLimits(rules);
   const problems: LineupProblem[] = [];
