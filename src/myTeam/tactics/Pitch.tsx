@@ -1,9 +1,11 @@
 import type { CSSProperties, DragEvent } from "react";
 import { AREAS, cellKey, LANES, sameCell, type Cell } from "../../../convex/lineup/pitch";
-import { roleIn, slotLabel, SWEEPER } from "../../../convex/lineup/roles";
+import { roleIn } from "../../../convex/lineup/roles";
 import { kitOf, type Ink } from "../../../convex/football/clubColours";
 import { markOf } from "./focusMarks";
 import { PitchLines } from "./PitchLines";
+import { RoleRuns } from "./RoleRuns";
+import { drawnDeeper, SWEEPER_DEPTH_SHARE } from "./runs";
 import { PITCH_ASPECT } from "./pitchMarkings";
 import { standingIn, type DraftLineup, type Reach, type SquadMember } from "./lineupDraft";
 import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel, swapLabel } from "./words";
@@ -17,8 +19,8 @@ import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel, swapLabel
 const ROWS_DRAWN = AREAS.toReversed();
 
 /** On the row that holds the pitch, with the CSS `pitch-room`: the pitch's shape, width over
- *  length, which the CSS sizes the pitch and its panel by. */
-export const PITCH_ROOM_STYLE = { "--pitch-aspect": PITCH_ASPECT } as CSSProperties;
+ *  length, which the CSS sizes the pitch and its panel by, and how much deeper a sweeper is drawn. */
+export const PITCH_ROOM_STYLE = { "--pitch-aspect": PITCH_ASPECT, "--sweeper-depth": SWEEPER_DEPTH_SHARE } as CSSProperties;
 
 /** The CSS utility that draws a sweeper's cell a little deeper than the line (pitch.css). */
 export const SWEEPER_DEPTH = "pitch-sweeper";
@@ -54,17 +56,19 @@ export function startDrag(event: DragEvent, playerCode: number, moving: Moving) 
 }
 
 /** `slots` are the cells of the preset last picked, if any: those still empty are marked, to show
- *  where to drag (spec/05). */
+ *  where to drag (spec/05). `runsShown` is the desk's switch for the roles' runs (spec/05 Runs). */
 export function Pitch({
   draft,
   squad,
   moving,
   slots,
+  runsShown,
 }: {
   draft: DraftLineup;
   squad: ReadonlyMap<number, SquadMember>;
   moving: Moving;
   slots: readonly Cell[];
+  runsShown: boolean;
 }) {
   const { picked, reach } = moving;
   const isSlot = (cell: Cell) => slots.some((slot) => sameCell(slot, cell));
@@ -72,11 +76,12 @@ export function Pitch({
   return (
     <div role="group" aria-label={pitchLabel} style={CELL_GRID} className="pitch relative mx-auto grid">
       <PitchLines />
+      <RoleRuns draft={draft} tapped={picked?.playerCode ?? null} switchedOn={runsShown} />
       {ROWS_DRAWN.flatMap((area) =>
         LANES.map((lane) => {
           const cell = { area, lane };
           const standing = standingIn(draft, cell);
-          const depth = standing !== undefined && slotLabel(cell, standing.role) === SWEEPER ? SWEEPER_DEPTH : "";
+          const depth = standing !== undefined && drawnDeeper(cell, standing.role) ? SWEEPER_DEPTH : "";
           const allowDrop = (event: DragEvent) => {
             if (opensTo(cell)) event.preventDefault();
           };

@@ -128,7 +128,7 @@ export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Pr
         await ctx.db.insert("squadPlayers", { leagueId, teamId, playerCode: code });
       }
       const saves = teamId === annsTeam || bobSaves;
-      const first = () => firstLineup([...positionOf.keys()], new Map([...positionOf].map(([code, position]) => [code, [position]])));
+      const first = () => firstLineup([...positionOf.keys()], new Map([...positionOf].map(([code, position]) => [code, [position]])), FIRST_RULES);
       const lineup = saves ? { starters, bench } : { ...first(), firstLineup: true as const };
       await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek: GAMEWEEK, ...lineup });
     }
@@ -198,12 +198,16 @@ export function sideTotal(records: readonly PlayerMatchRecord[], counting: reado
  *  worked out player by player (gameweekScores.test.ts), so a change in how a match scores shows. */
 export const HULL_POINTS = 26;
 export const EVERTON_POINTS = 38;
-/** Everton's fifth midfielder, listed fifth of them: the 4-4-2 has room for four. */
+/** Everton's fifth midfielder, listed fifth of them: the 4-4-2 and the 5-4-1 have room for four. */
 export const GREALISH = 114283;
-/** Bob's points on his first lineup (#637): Everton's 4-5-1 picked as a 4-4-2 is a 4-4-1, as his
- *  squad holds no second striker, and Grealish, the fifth midfielder, goes to the bench. Everton's
- *  38 less Grealish's 2 (golden/hull-everton.scores.json); no auto-sub, as every starter played. */
-export const BOBS_FIRST_POINTS = 36;
+/** Everton's centre back on the bench, the fifth defender his squad holds. */
+export const EVERTON_BENCH_CENTRE_BACK = 512462;
+/** Bob's points on his first lineup (#637, #836): his squad holds no second striker, so a 4-4-2
+ *  leaves a slot empty, and the first preset it fills is the 5-4-1 (presets.ts's order). Its fifth
+ *  defender is Everton's bench centre back, and Grealish, the fifth midfielder, goes to the bench.
+ *  Everton's 38 less Grealish's 2, plus the centre back's 1 in defence
+ *  (golden/hull-everton.scores.json); no auto-sub, as every starter played. */
+export const BOBS_FIRST_POINTS = 37;
 
 /** Hull's side once the match is over: their keeper in goal for Phillips. */
 export const HULL_AFTER_SUB: Starter[] = HULL_STARTERS.map((starter) =>

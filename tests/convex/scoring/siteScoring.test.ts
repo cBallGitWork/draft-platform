@@ -8,7 +8,7 @@ import { setOf, SITE_SCORING_VERSIONS_MOST } from "../../../convex/scoring/siteV
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { GAMEWEEKS, SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
-import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesInGameweek, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { changeRules, HELD_FIRST_RULES, holdGameweeks, holdGameweeksPastTheSeason, rulesInGameweek, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";
 import { everyArea } from "../../support/convex/scoring.example";
@@ -50,14 +50,31 @@ describe("reading it", () => {
 
   test(`a gameweek's set reads only the held matches, so more than ${GAMEWEEKS} gameweeks held never stops it`, async () => {
     await holdGameweeks(t, { next: 9 });
-    // Only a row written by hand can pass FPL's 38, and the schedule's read throws past it.
-    await t.run(async (ctx) => {
-      for (const number of [GAMEWEEKS + 1, GAMEWEEKS + 2]) await ctx.db.insert("gameweeks", { number, deadline: 0 });
-    });
+    await holdGameweeksPastTheSeason(t, 2);
     await t.run((ctx) => holdSiteScoring(ctx, { scoring: EDITED, kind: "fix", season: 2026, number: 1, at: TODAY }));
 
     expect(await inGameweek(8)).toEqual(FIRST_SCORING);
     expect(await inGameweek(9)).toEqual(EDITED);
+  });
+
+  test(`with ${GAMEWEEKS + 1} gameweeks held, Player scoring, a fix and an announced patch still name the gameweek they reach (#832)`, async () => {
+    await holdGameweeks(t, { next: 9 });
+    await holdGameweeksPastTheSeason(t, 1);
+
+    expect(await viewAs(ADMIN)).toMatchObject({ changesFrom: 9 });
+    expect(await fixAs(ADMIN, EDITED)).toBe(9);
+    expect(await patch(EDITED_AGAIN, TODAY + NOTICE)).toEqual({ name: "26_27.2", fromGameweek: 10 });
+    expect(await inGameweek(9)).toEqual(EDITED);
+    expect(await inGameweek(10)).toEqual(EDITED_AGAIN);
+  });
+
+  test("the gameweek a change reaches is counted from the held matches, with no gameweek rows held (#832)", async () => {
+    await holdGameweeks(t, { next: 9 });
+    await t.run(async (ctx) => {
+      for (const row of await ctx.db.query("gameweeks").collect()) await ctx.db.delete("gameweeks", row._id);
+    });
+
+    expect(await viewAs(ADMIN)).toMatchObject({ changesFrom: 9 });
   });
 
   test("a commissioner, a co-commissioner and a manager read it, and may not change it", async () => {

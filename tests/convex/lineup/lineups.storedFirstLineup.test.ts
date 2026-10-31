@@ -137,6 +137,25 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
     expect(await (await as(BOB)).mine(NEXT)).toEqual(saved({ starters: [], bench: [BOBS] }, null));
   });
 
+  test("a pick benched for having no positions stays on the bench once he has some and the squad changes again (#836)", async () => {
+    const setBobsPositions = (set: "CM"[]) =>
+      t.run(async (ctx) => {
+        const row = await ctx.db.query("playerPositions").withIndex("by_code", (q) => q.eq("code", BOBS)).unique();
+        await ctx.db.patch("playerPositions", row!._id, { set });
+      });
+    const by = await squadMoves(t, leagueId, COMMISSIONER);
+    await setBobsPositions([]);
+    await by.release(BOBS);
+    await by.assign(BOBS, bobsTeam);
+    expect(await (await as(BOB)).mine(NEXT)).toEqual(saved({ starters: [], bench: [BOBS] }, NEXT));
+    await setBobsPositions(["CM"]);
+    // FREE_AGENT plays midfield as BOBS now does: he takes the slot BOBS was kept out of.
+    await by.assign(FREE_AGENT, bobsTeam);
+    expect(await (await as(BOB)).mine(NEXT)).toEqual(
+      saved({ starters: [{ playerCode: FREE_AGENT, area: "midfield", lane: "left" }], bench: [BOBS] }, NEXT),
+    );
+  });
+
   test("a begun gameweek with no row in force, from before #637, keeps its squad on the bench as it was scored, marked so", async () => {
     await passNextDeadline(t);
     expect(await lineupOf(NEXT)).toEqual({ ...saved({ starters: [], bench: SQUAD }, null), noLineup: true });

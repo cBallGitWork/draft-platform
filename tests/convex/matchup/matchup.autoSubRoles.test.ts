@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
+import { namedRole, roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
 import {
   annsScoredGame,
   GAMEWEEK,
@@ -32,7 +32,7 @@ test("a sub into the empty slot plays its role, and a bench player not on plays 
   await fullTimeRecords(league);
 
   const game = await annsScoredGame(league, GAMEWEEK);
-  expect(slotOf(game.team, HULL_KEEPER)).toMatchObject({ autoSub: { kind: "on" }, role: given });
+  expect(slotOf(game.team, HULL_KEEPER)).toMatchObject({ autoSub: { kind: "on" }, role: namedRole(given) });
   expect(given.key).not.toBe(first.key);
   expect(slotOf(game.team, BELLOUMI)).toMatchObject({ counts: false, role: null });
 });
@@ -47,7 +47,7 @@ test("a sub who can't play the empty slot's area comes on in his own, on his new
 
   const game = await annsScoredGame(league, GAMEWEEK);
   // Midfield's one free cell is its centre: Hull's four stand left, left-centre, right-centre, right.
-  expect(slotOf(game.team, BELLOUMI)).toMatchObject({ area: "midfield", autoSub: { kind: "on" }, role: roleIn({ area: "midfield", lane: "centre" }, undefined) });
+  expect(slotOf(game.team, BELLOUMI)).toMatchObject({ area: "midfield", autoSub: { kind: "on" }, role: namedRole(roleIn({ area: "midfield", lane: "centre" }, undefined)) });
   expect(slotOf(game.team, HULL_BENCH_STRIKER)).toMatchObject({ counts: false, role: null });
 });
 

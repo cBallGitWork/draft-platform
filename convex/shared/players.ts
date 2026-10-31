@@ -75,7 +75,9 @@ export function playerByCode(ctx: QueryCtx, code: number): Promise<Doc<"players"
 export const unheldPlayerWords = (code: number) => `Error: player ${code} isn't in the football data.`;
 
 /** The player with `code`. One the football sync doesn't hold is data gone wrong, and throws
- *  `missing`, which each caller words, as some reach a manager's screen. */
+ *  `missing`, which each caller words to say where the fault was met (the match, the shortlist).
+ *  It goes to the log, never to a manager: a failed read shows the screen's own words
+ *  (src/frame/ReadFailed.tsx). A screen that keeps such a player shows `unheldPlayerWords`. */
 export async function heldPlayerByCode(ctx: QueryCtx, code: number, missing: string): Promise<Doc<"players">> {
   const player = await playerByCode(ctx, code);
   if (player === null) throw new Error(missing);
