@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* A screen's own utilities, too long to keep here */
+@import "./myTeam/tactics/pitch.css";
 
 /* The Plate look as Tailwind's tokens: docs/design/plate.md has every value and its role.
    Tailwind's own scales are switched off (.claude/rules/ui.md). */
@@ -59,14 +61,13 @@
   --spacing-tick: 22px;
   --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */
   --spacing-tick-mark: 14px; /* the tick drawn in it */
-  /* The Tactics tab: the pitch beside the squad on the desk, each of its six rows, a player's shirt,
-     the centre circle and the penalty boxes */
-  --flex-basis-pitch: 440px;
+  /* The Tactics tab: the squad beside the pitch on the desk; the window's height the pitch leaves
+     free; the narrowest the pitch is drawn on the desk, however short the window (a phone's is
+     the screen's width, its rows checked by tests/smoke/smoke.spec.ts); a player's shirt */
   --flex-basis-squad: 320px;
-  --spacing-pitch-row: 84px;
+  --spacing-pitch-clearance: 16px;
+  --spacing-pitch-least: 360px;
   --spacing-shirt: 32px;
-  --spacing-centre-circle: 96px;
-  --spacing-penalty-box: 56px;
   /* The league switcher: its caret, and its list of leagues on the desk */
   --spacing-caret-width: 10px;
   --spacing-caret-height: 6px;
@@ -83,7 +84,6 @@
   --grid-template-columns-home: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 2fr);
   --grid-template-columns-card: 2fr 3fr;
   --grid-template-columns-facts: auto 1fr;
-  --radius-circle: 50%; /* the centre circle only: everything else is square (plate.md, Shape) */
 
   --text-data: 13px;
   --text-data--line-height: 20px;
@@ -183,16 +183,6 @@
   color: var(--color-muted);
   font-size: var(--text-lead);
   font-weight: var(--font-weight-semibold);
-}
-
-/* The pitch (plate.md, Colour roles: pitch): a stripe to each of its six rows, inside its line. */
-@utility pitch {
-  background: repeating-linear-gradient(
-    180deg,
-    var(--color-pitch) 0 var(--spacing-pitch-row),
-    var(--color-pitch-stripe) var(--spacing-pitch-row) calc(2 * var(--spacing-pitch-row))
-  );
-  border: 2px solid var(--color-pitch-line);
 }
 
 /* The secondary action (plate.md, Colour roles): Sign out. */

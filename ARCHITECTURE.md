@@ -239,7 +239,8 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
 - Code one feature owns but others import stays with its owner: `src/matchup/MatchupLink.tsx`,
   `src/leagues/LeagueLinks.tsx`, `src/mail/DateBlock.tsx`.
 - `src/app/`: how the app starts. `src/routes/`: the routes and the router. `src/`'s top level
-  keeps only `main.tsx` and `styles.css`.
+  keeps only `main.tsx` and `styles.css`. The tokens stay in `styles.css`; a screen's own long
+  utilities sit beside it and `styles.css` imports them (`src/myTeam/tactics/pitch.css`, 31 Oct 2026).
 - `convex/schema/`: the schema's tables, one file per feature, imported only by `convex/schema.ts`.
   `convex/gameweekScorer/`: the gameweek scorer.
 - The feed adapters: `convex/football/fpl/` and `convex/football/premierLeague/`, copies of

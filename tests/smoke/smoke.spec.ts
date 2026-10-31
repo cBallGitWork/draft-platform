@@ -1,8 +1,13 @@
 // The servers, and which tag runs on which: playwright.config.ts. Each test fails on any console
 // error or uncaught page error it didn't expect, so a boot crash can't pass.
 
-import { expect, test as base, type ConsoleMessage } from "@playwright/test";
+import { expect, test as base, type ConsoleMessage, type Page } from "@playwright/test";
+import { LANES } from "../../convex/lineup/pitch";
+import { DEFAULT_PRESETS } from "../../convex/lineup/presets";
+import { MY_TEAM_PATH } from "../../src/frame/menu";
 import { ERROR_PAGE_TITLE, mainMenuLabel } from "../../src/frame/words";
+import { PITCH_ASPECT } from "../../src/myTeam/tactics/pitchMarkings";
+import { moveLabel, pitchLabel, presetLabel, putHereLabel } from "../../src/myTeam/tactics/words";
 import { SIGN_IN_PATH } from "../../src/signIn/paths";
 import { signInWords } from "../../src/signIn/words";
 import { NO_CONVEX_URL } from "../../src/shared/words";
@@ -30,8 +35,51 @@ const test = base.extend<{ errors: string[] }>({
   ],
 });
 
-/** The phone, as scripts/shoot.mjs shoots it. */
+/** The phone and the desk, as scripts/shoot.mjs shoots them. */
 const PHONE = { width: 390, height: 844 };
+const DESK = { width: 1440, height: 900 };
+/** The page's and the panel's padding either side of the phone's pitch, at most. */
+const PHONE_GUTTERS = 40;
+/** The preview's bench centre-back, brought on to make a row of five. */
+const OFF_THE_BENCH = "Murillo";
+/** A sub-pixel's give, as layout rounds. */
+const GIVE = 0.5;
+
+type Box = { x: number; y: number; width: number; height: number };
+const within = (inner: Box, outer: Box) =>
+  inner.x >= outer.x - GIVE &&
+  inner.y >= outer.y - GIVE &&
+  inner.x + inner.width <= outer.x + outer.width + GIVE &&
+  inner.y + inner.height <= outer.y + outer.height + GIVE;
+const apart = (one: Box, other: Box) =>
+  one.x + one.width <= other.x + GIVE || other.x + other.width <= one.x + GIVE || one.y + one.height <= other.y + GIVE || other.y + other.height <= one.y + GIVE;
+
+/** Every player on the pitch inside his own cell, none touching another, and big enough to tap on
+ *  the phone. */
+async function expectPlayersApart(page: Page, onPhone: boolean, shape: string) {
+  const blocks = await page
+    .getByRole("group", { name: pitchLabel })
+    .locator("button[aria-pressed]")
+    .evaluateAll((buttons) =>
+      buttons.map((button) => {
+        const box = (each: Element) => {
+          const { x, y, width, height } = each.getBoundingClientRect();
+          return { x, y, width, height };
+        };
+        return { name: button.getAttribute("aria-label")!, block: box(button), cell: box(button.parentElement!) };
+      }),
+    );
+  expect(blocks.length, `${shape}: players on the pitch`).toBeGreaterThan(0);
+  // The tap size at the phone's width, read from the page as scripts/shoot.mjs does (--spacing-tap).
+  const tap = parseFloat(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--spacing-tap")));
+  for (const { name, block, cell } of blocks) {
+    expect(within(block, cell), `${shape}: ${name} inside his cell`).toBe(true);
+    if (onPhone) expect(Math.min(block.width, block.height), `${shape}: ${name} tappable`).toBeGreaterThanOrEqual(tap);
+  }
+  blocks.forEach((one, index) =>
+    blocks.slice(index + 1).forEach((other) => expect(apart(one.block, other.block), `${shape}: ${one.name} clear of ${other.name}`).toBe(true)),
+  );
+}
 
 test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
   test("?preview=manager mounts the manager's landing page", async ({ page }) => {
@@ -53,6 +101,41 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
     await expect(page.getByRole("heading", { name: signInWords.title })).toBeVisible();
     await expect(page.getByRole("button", { name: signInWords.send })).toBeVisible();
   });
+
+  // The Tactics pitch, laid out by a real browser (plate.md, Marks: the pitch; Craig, 31 Oct 2026).
+  for (const viewport of [PHONE, DESK]) {
+    test.describe(`the Tactics pitch at ${viewport.width} wide`, () => {
+      test.use({ viewport });
+
+      test("is a real pitch's shape, and its whole length fits the window", async ({ page }) => {
+        await page.goto(`${MY_TEAM_PATH}?preview=manager`);
+        const box = (await page.getByRole("group", { name: pitchLabel }).boundingBox())!;
+        expect(box.width / box.height, "width over length").toBeCloseTo(PITCH_ASPECT, 2);
+        expect(box.height, "its length, against the window's height").toBeLessThanOrEqual(viewport.height);
+        if (viewport === PHONE) expect(box.width, "the phone's pitch fills the panel").toBeGreaterThan(viewport.width - PHONE_GUTTERS);
+        else {
+          // On the desk it is the centrepiece: the window's height, but for the room it leaves.
+          const clearance = parseFloat(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--spacing-pitch-clearance")));
+          expect(box.height, "the desk's pitch is the window's height").toBeCloseTo(viewport.height - clearance, 0);
+        }
+      });
+
+      test("in every preset, each player stands inside his own cell, apart from the rest", async ({ page }) => {
+        await page.goto(`${MY_TEAM_PATH}?preview=manager`);
+        for (const { name } of DEFAULT_PRESETS) {
+          await page.getByRole("combobox", { name: presetLabel }).selectOption(name);
+          await expectPlayersApart(page, viewport === PHONE, name);
+        }
+        // Five abreast, the widest a row gets: 5-3-2's back five, the bench centre-back in its gap.
+        await page.getByRole("combobox", { name: presetLabel }).selectOption("5-3-2");
+        await page.getByRole("button", { name: moveLabel(OFF_THE_BENCH), exact: true }).click();
+        const gaps = LANES.map((lane) => page.getByRole("button", { name: putHereLabel(OFF_THE_BENCH, "defence", lane) }));
+        for (const gap of gaps) if ((await gap.count()) > 0) await gap.click();
+        await expect(page.getByRole("group", { name: pitchLabel }).getByRole("button", { name: new RegExp(`^${OFF_THE_BENCH},`) })).toHaveCount(1);
+        await expectPlayersApart(page, viewport === PHONE, "5-3-2, five at the back");
+      });
+    });
+  }
 
   test.describe("each built screen, on the phone", () => {
     test.use({ viewport: PHONE });
