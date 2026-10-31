@@ -6,6 +6,7 @@ import {
   GAMEWEEK,
   HULL_SCORER,
   lineupOf,
+  MIDFIELD_GOAL,
   readTable,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
@@ -66,6 +67,18 @@ test("a free agent's points are the league's override of them where it holds one
   );
   expect((await pointsOnCard(league, HULL_SCORER)).total).toBe(OVERRIDE);
   expect(manOf((await matchAs(league, ANN))!.men, HULL_SCORER)).toMatchObject({ ownerTeamName: null, points: OVERRIDE, counts: false });
+});
+
+// "for every player, owned or not" (spec/10, The commentary; Craig, 31 Oct 2026; #835).
+test("a free agent's goal on the match page is priced at his base points, where his card opens", async () => {
+  const league = await scorerFreeLeague();
+  const goal = { sourceId: 1, text: "64' GOAL Scorer", minute: 64, addedMinute: 0, type: "goal", playerCodes: [HULL_SCORER] };
+  await league.t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines: [goal], delayed: null }));
+  const card = await pointsOnCard(league, HULL_SCORER);
+  // His card opens at a midfield position, where the first set gives a goal 5.
+  expect(card.opening).toBe("CM");
+  const { commentary } = (await matchAs(league, ANN))!;
+  expect(commentary).toEqual({ kind: "read", lines: [{ key: `${HULL_EVERTON}:1`, text: goal.text, points: `+${MIDFIELD_GOAL}` }], delayed: false });
 });
 
 test("before the league's gameweek begins, a free agent shows no points yet, as an owned man shows none", async () => {

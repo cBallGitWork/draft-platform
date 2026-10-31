@@ -26,8 +26,8 @@ import { unownedPointsOf, type UnownedPoints } from "./unownedPoints";
 // One real Premier League match (#45; spec/10, The match page): its score and clock, both clubs'
 // men as the team sheets named them, starters and substitutes, each with his live points and, for
 // a man owned in the league, his team, and the match's commentary, newest first, its goals,
-// assists, cards and thresholds priced for the league's men, and "Commentary delayed" while the
-// stream falls behind. A man's points are his slot's in the lineup that holds him, worked out by
+// assists, cards, own goals and thresholds priced for every man in the match, owned or not, and
+// "Commentary delayed" while the stream falls behind. A man's points are his slot's in the lineup that holds him, worked out by
 // the league's gameweek scorer (gameweekScores.ts) as the matchup and the table work them, so the
 // three never disagree; only once the league's gameweek has begun, as the matchup shows lineups
 // only then. A man in no lineup shows his card's points, counted for no team (unownedPoints.ts).
@@ -103,6 +103,7 @@ export const ofMatch = query({
     const unownedPoints = await unownedPointsOf(ctx, leagueId, fixtureCode, records, owners, priced.set);
     const held = await scoreOf(ctx, fixtureCode);
     const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
+    const { men, unowned } = await menOf(ctx, fixture, named, owners, priced, unownedPoints);
     return {
       fixtureCode,
       gameweek: fixture.gameweek,
@@ -110,10 +111,10 @@ export const ofMatch = query({
       home: clubOf(await clubByCode(ctx, fixture.homeClubCode)),
       away: clubOf(await clubByCode(ctx, fixture.awayClubCode)),
       score: held === null ? null : scoreOnly(held),
-      men: await menOf(ctx, fixture, named, owners, priced, unownedPoints),
+      men,
       pointsProblem: priced.problem,
       teamStats: teamStats === null ? null : { home: teamStats.home, away: teamStats.away },
-      commentary: await commentaryOf(ctx, fixture, priced),
+      commentary: await commentaryOf(ctx, fixture, priced.set, new Map([...unowned, ...priced.players])),
     };
   },
 });
@@ -179,15 +180,16 @@ async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtu
       if (inMatch === null) continue;
       result.slots.set(slot.playerCode, { points: inMatch.points, counts: slot.counts });
       const { name } = await heldPlayer(ctx, fixture.code, slot.playerCode);
-      result.players.set(slot.playerCode, { name, cell: slot.cell, role: slot.role, inMatch: inMatchOf(slot, scored.matchesOf.get(slot.playerCode) ?? []) });
+      result.players.set(slot.playerCode, { name, cell: slot.cell, role: slot.role, inLineup: true, inMatch: inMatchOf(slot, scored.matchesOf.get(slot.playerCode) ?? []) });
     }
   }
   return result;
 }
 
-/** Each man the match names, with his club's side, his owner and his points, in the page's order.
- *  His side is by the club he is at now, as neither a record nor the sheets hold a club: a man since moved between the
- *  two shows under his new one (#502). */
+/** Each man the match names, with his club's side, his owner and his points, in the page's order;
+ *  and the men in no lineup, as the commentary prices them. His side is by the club he is at now,
+ *  as neither a record nor the sheets hold a club: a man since moved between the two shows under
+ *  his new one (#502). */
 async function menOf(
   ctx: QueryCtx,
   fixture: Doc<"fixtures">,
@@ -195,14 +197,17 @@ async function menOf(
   owners: Map<PlayerCode, Doc<"teams">>,
   { slots }: Priced,
   unownedPoints: UnownedPoints,
-): Promise<MatchMan[]> {
+): Promise<{ men: MatchMan[]; unowned: Map<PlayerCode, VidiprinterPlayer> }> {
   const positionsOfNow = await positionsNow(ctx);
+  const unowned = new Map<PlayerCode, VidiprinterPlayer>();
   const men = await Promise.all(
     named.map(async ({ playerCode, started, played }) => {
       const player = await heldPlayer(ctx, fixture.code, playerCode);
       const positions = await positionsOfNow(playerCode);
       const owned = owners.has(playerCode);
-      const slot = owned ? slots.get(playerCode) : { points: unownedPoints(playerCode, positions), counts: false };
+      const free = owned ? null : unownedPoints(playerCode, positions);
+      if (free?.lines) unowned.set(playerCode, { name: player.name, role: undefined, inLineup: false, ...free.lines });
+      const slot = free === null ? slots.get(playerCode) : { points: free.points, counts: false };
       return {
         playerCode,
         name: player.name,
@@ -216,7 +221,7 @@ async function menOf(
       };
     }),
   );
-  return men.toSorted(bySheetOrder);
+  return { men: men.toSorted(bySheetOrder), unowned };
 }
 
 /** A man the match names. A record or a sheet's man is kept only for a man FPL lists, so one the
@@ -225,9 +230,9 @@ function heldPlayer(ctx: QueryCtx, fixtureCode: number, playerCode: PlayerCode):
   return heldPlayerByCode(ctx, playerCode, `match ${fixtureCode} names player ${playerCode}, whom the football sync doesn't hold`);
 }
 
-/** The match's stored lines, newest first, priced for the league's lineup men once the gameweek
- *  has begun; or why they can't be read, while the rest still shows. */
-async function commentaryOf(ctx: QueryCtx, fixture: Doc<"fixtures">, { players, set }: Priced): Promise<MatchupCommentary> {
+/** The match's stored lines, newest first, priced for the `players` once the gameweek has begun;
+ *  or why they can't be read, while the rest still shows. */
+async function commentaryOf(ctx: QueryCtx, fixture: Doc<"fixtures">, set: ScoringSet | null, players: ReadonlyMap<PlayerCode, VidiprinterPlayer>): Promise<MatchupCommentary> {
   try {
     const row = await heldOf(ctx, fixture.code);
     if (row === null) return { kind: "read", lines: [], delayed: false };

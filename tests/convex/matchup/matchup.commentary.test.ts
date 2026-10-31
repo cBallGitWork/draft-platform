@@ -5,7 +5,10 @@ import {
   EVERTON_STARTERS,
   fullTimeRecords,
   GAMEWEEK,
+  HULL_BENCH,
+  HULL_KEEPER,
   HULL_SCORER,
+  lineupOf,
   LEAGUE_KICKOFF,
   MIDFIELD_GOAL,
   nameOf,
@@ -45,4 +48,16 @@ test("the commentary is the match's stored lines, the goal priced for its scorer
   expect(commentary.lines[0].text).toContain(`${await nameOf(league, evertonKeeper)} ${slotOf(opponent, evertonKeeper).points}`);
   // Phillips, Hull's unused keeper, didn't play, so isn't listed.
   expect(commentary.lines[0].text).not.toContain(await nameOf(league, PHILLIPS));
+});
+
+// "for every player, owned or not, bench included" (spec/10, The commentary; #835).
+test("a line naming a man on a lineup's bench is priced for him, as his greyed slot is", async () => {
+  const league = await scoresLeague();
+  await fullTimeRecords(league);
+  const benchMan = HULL_BENCH.find((code) => code !== HULL_KEEPER)!;
+  const booked = { sourceId: 1, text: "80' YELLOW Bench", minute: 80, addedMinute: 0, type: "yellow card", playerCodes: [benchMan] };
+  await league.t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines: [booked], delayed: null }));
+  const { commentary, team } = await annsScoredGame(league, GAMEWEEK);
+  expect(lineupOf(team).bench.map((slot) => slot.playerCode)).toContain(benchMan);
+  expect(commentary).toEqual({ kind: "read", lines: [{ key: `${HULL_EVERTON}:1`, text: booked.text, points: "−1" }], delayed: false });
 });
