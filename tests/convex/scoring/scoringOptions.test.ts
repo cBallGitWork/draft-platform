@@ -74,6 +74,22 @@ describe("a points limit", () => {
     );
     expect(scoreMatch({ defensive_contribution: 10, goals_scored: 1 }, set, CENTRE_BACK).total).toBe(8);
   });
+
+  // 0.1 three times is a hair over 0.3 in floating point. Points are rounded to tenths before the
+  // limit holds them (#825), so reaching the limit exactly scores it and cuts nothing.
+  test.each([
+    ["its most: three tenths held to 0.3", 0.1, { max: 0.3, min: null }, 0.3],
+    ["its least: three tenths off held to -0.3", -0.1, { max: null, min: -0.3 }, -0.3],
+  ])("reached exactly, %s, scores the limit and cuts nothing", (_what, value, limit, edge) => {
+    const rule: ScoringRule = { shape: "perAction", stat: "won_tackle", values: { all: value }, limit: { all: limit } };
+    const [category] = scoreMatch({ minutes: 90, won_tackle: 3 }, setOf(rule), CENTRE_BACK).categories;
+    expect(category).toMatchObject({ points: edge, why: { cut: null } });
+  });
+
+  test("points too large to be a number still say which rule, when the limit has no most", () => {
+    const rule: ScoringRule = { shape: "perAction", stat: "goals_scored", values: { all: 6 }, limit: { all: { max: null, min: -3 } } };
+    expect(() => pointsFor(rule, { goals_scored: 1e308 }, CENTRE_BACK)).toThrow("the goals_scored rule gives Infinity points as CB");
+  });
 });
 
 describe("a minimum of minutes", () => {
@@ -136,6 +152,8 @@ describe("a set is refused, with the reason", () => {
     ["a rule by position missing the striker", setOf(rule({ values: { byPosition: withoutStriker } }) as ScoringRule), "the Goals scored rule has no values for ST"],
     ["a value finer than a tenth", setOf(rule({ values: { all: 0.25 } }) as ScoringRule), "the Goals scored rule is worth 0.25; points are kept in tenths"],
     ["a points limit whose least is above its most", setOf(rule({ limit: { all: { max: 2, min: 3 } } }) as ScoringRule), "the Goals scored rule's points limit is worth at least 3, more than its most, 2"],
+    ["a points limit's most finer than a tenth", setOf(rule({ limit: { all: { max: 2.25, min: null } } }) as ScoringRule), "the Goals scored rule's points limit is worth at most 2.25; points are kept in tenths"],
+    ["a points limit's least finer than a tenth", setOf(rule({ limit: { all: { max: null, min: -2.25 } } }) as ScoringRule), "the Goals scored rule's points limit is worth at least -2.25; points are kept in tenths"],
     ["a points limit of text", setOf(rule({ limit: { all: { max: "2", min: null } } }) as ScoringRule), 'the Goals scored rule\'s points limit is worth at most "2", not a number'],
     ["minimum minutes below 0", setOf(rule({ minMinutes: { all: -1 } }) as ScoringRule), "the Goals scored rule's minimum minutes is -1; it can't be less than 0"],
     ["minimum minutes of text", setOf(rule({ minMinutes: { all: "60" } }) as ScoringRule), 'the Goals scored rule\'s minimum minutes is "60", not a number'],
