@@ -9,12 +9,10 @@ import { expect, test, vi } from "vitest";
 import { plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../../convex/football/football.ts";
 import { PL_FULL_TIME } from "../../convex/football/premierLeague/premierLeague.ts";
 import { LIVE_WINDOW_MS } from "../../convex/stats/liveStats.ts";
-import { UPCOMING_MATCH } from "../support/recorded/commentary.payloads.ts";
 import { doneLine, phase, pollReads, record } from "../../scripts/record-match.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
+import { IPSWICH_FOREST, KICKOFF } from "../support/scripts/recordMatch.harness.mjs";
 
-const IPSWICH_FOREST = UPCOMING_MATCH;
-const KICKOFF = Date.UTC(2026, 9, 23, 19);
 // Pinned here, not imported, so a change to the recorder's timings fails a test.
 const MINUTE = 60_000;
 const POLL = 30_000;

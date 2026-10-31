@@ -8,8 +8,8 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { ALL_CELLS } from "../../../../convex/lineup/pitch";
-import { roleIn, rolesOfSlot, slotLabel, SWEEPER, SWEEPER_CELL } from "../../../../convex/lineup/roles";
-import { placeOf, RUN_MARGIN, RUN_MARK, runPath, runShows, SWEEPER_DEPTH_SHARE } from "../../../../src/myTeam/tactics/runs";
+import { roleIn, rolesOfSlot, SWEEPER_CELL } from "../../../../convex/lineup/roles";
+import { drawnDeeper, placeOf, RUN_MARGIN, RUN_MARK, runPath, runShows, SWEEPER_DEPTH_SHARE } from "../../../../src/myTeam/tactics/runs";
 import { LANE_WIDTH, PITCH_SIZE, ROW_LENGTH } from "../../../../src/myTeam/tactics/pitchMarkings";
 import { runsWords } from "../../../../src/myTeam/tactics/words";
 import { blockOf, HAVERTZ, openedPitch, pitch, RICE, SALIBA, SAVED, STARTERS } from "../../../support/src/tacticsScreen.harness";
@@ -105,7 +105,7 @@ describe("where a run goes, in the pitch's metres", () => {
     for (const cell of ALL_CELLS) {
       for (const { key, run } of rolesOfSlot(cell)) {
         if (run === null || run.path.some(({ across }) => across !== 0)) continue;
-        const end = runPath(run, cell, slotLabel(cell, key) === SWEEPER).at(-1)!;
+        const end = runPath(run, cell, drawnDeeper(cell, key)).at(-1)!;
         const fromRowsMeeting = Math.abs(end.y - Math.round(end.y / ROW_LENGTH) * ROW_LENGTH);
         expect(fromRowsMeeting, `${key} from ${cell.area} ${cell.lane}`).toBeLessThanOrEqual(BETWEEN_ROWS);
       }
