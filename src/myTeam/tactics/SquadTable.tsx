@@ -100,8 +100,9 @@ export function SquadTable({
   );
 }
 
-/** A row's Move or Swap. */
-const ROW_ACTION = "min-h-tap font-semibold text-fact link-look lg:min-h-0";
+/** A row's Move or Swap: a whole tap wide on the phone too, as "Move" alone is narrower (plate.md,
+ *  The phone; #865). */
+const ROW_ACTION = "min-h-tap min-w-tap font-semibold text-fact link-look lg:min-h-0 lg:min-w-0";
 
 /** Up and Down: a whole tap wide on the phone, as "Up" alone is narrower (plate.md, The phone). */
 const BENCH_ORDER_BUTTON = "min-h-tap min-w-tap font-semibold text-fact link-look disabled:text-muted disabled:no-underline lg:min-h-0 lg:min-w-0";
@@ -158,7 +159,7 @@ function SquadRow({
         {player.unheld ? (
           <span className="inline-flex min-h-tap max-w-error-name items-center font-semibold text-event lg:min-h-0 lg:max-w-none">{player.name}</span>
         ) : (
-          <Link to={playerCardPath(leagueId, player.playerCode)} className="inline-flex min-h-tap items-center font-semibold lg:min-h-0">
+          <Link to={playerCardPath(leagueId, player.playerCode)} className="tap-link font-semibold lg:min-h-0 lg:min-w-0">
             {player.name}
           </Link>
         )}{" "}
