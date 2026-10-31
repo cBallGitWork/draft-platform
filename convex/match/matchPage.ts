@@ -57,11 +57,12 @@ const matchMan = v.object({
   ownerTeamName: v.union(v.string(), v.null()),
   /** His points in this match from his slot in the lineup that holds him, which once the gameweek
    *  has begun is his team's at the deadline, not always his owner's now; for a man in no lineup,
-   *  as his card prices him (cardPoints). Null ("—") before the gameweek begins, or while his
+   *  as his card opens on him (basePoints). Null ("—") before the gameweek begins, or while his
    *  record hasn't arrived. */
   points: v.union(v.number(), v.null()),
   /** Whether those points count: false for a bench man who didn't come on, as the matchup greys,
-   *  and for a man in no lineup, whose points count for no team. */
+   *  and for a man in no lineup, whose points count for no team, though the page shows his plainly
+   *  (Craig, 31 Oct 2026). */
   counts: v.boolean(),
 });
 export type MatchMan = Infer<typeof matchMan>;
