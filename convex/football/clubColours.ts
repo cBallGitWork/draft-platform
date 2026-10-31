@@ -37,7 +37,7 @@ const UNKNOWN_CLUB: Omit<ClubColours, "shortName"> = { primary: "#FFFFFF", secon
 
 /** The two inks a shirt's number and outline can take: styles.css's `--color-ground` and
  *  `--color-fact` (tests/src/myTeam/tactics/shirts.test.tsx holds them equal). */
-export const INKS = { dark: "#08090b", light: "#ffffff" } as const;
+export const INKS = { dark: "#111214", light: "#ffffff" } as const;
 export type Ink = keyof typeof INKS;
 
 /** What one player's shirt is drawn in: its colour, and the ink of its number and outline. */
