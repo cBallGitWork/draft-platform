@@ -10,9 +10,11 @@ branch here never gets, so the head is fetched from origin to check; a checkout 
 called origin keeps such a branch, and says why), and the worktree must have nothing uncommitted
 and no ignored file but throwaway output: build output, or the screenshots in .shots/ (git
 worktree remove deletes ignored files: a .env.local would go). The main checkout and the folder
-the merge ran in are never removed; another session still open in a clean worktree isn't seen,
-and loses its folder once its pull request merges. Anything kept is said, with why; so is a pull
-request gh can't read.
+the merge ran in are never removed, and nor is a worktree in use (#929): one a running builder
+holds (Claude Code locks an agent's worktree while it runs, and git worktree remove refuses a
+locked one), one any process has as its working directory, or one whose git state changed in the
+last RECENT_MINUTES (a builder that finished may be resumed; between commands no process sits in
+its folder). Anything kept is said, with why; so is a pull request gh can't read.
 
 Then it moves the main checkout to origin/main when it is detached and behind: the hooks run from
 its .claude/hooks/, so a merged hook fix waited until someone moved it by hand (31 Oct 2026: still
@@ -29,6 +31,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 
 from commands import commands
 from drift_gate import merge_args, view_args
@@ -45,9 +48,9 @@ REMOTE_MAIN = f"{REMOTE}/{MAIN}"  # where the main checkout is moved to
 # what git keeps in .git/ while a rebase, merge, cherry-pick, revert or bisect is under way (a
 # rebase or bisect leaves HEAD detached), when moving the checkout would wreck it
 UNDER_WAY = ("rebase-merge", "rebase-apply", "MERGE_HEAD", "CHERRY_PICK_HEAD", "REVERT_HEAD", "BISECT_LOG")
-# each git or gh call: nine at most per merge and four to move the main checkout, inside the 180
-# settings.json gives the hook
-RUN_TIMEOUT_SECONDS = 13
+# each git, gh or lsof call: eleven at most per merge and four to move the main checkout, inside the
+# 180 settings.json gives the hook
+RUN_TIMEOUT_SECONDS = 11
 NOT_ANCESTOR = 1  # git merge-base --is-ancestor's exit when the first commit isn't behind the second
 IGNORED = "!! "  # git status --porcelain --ignored=matching's mark for an ignored path
 # ignored paths nobody needs once the work has merged, so a worktree holding only these may go:
@@ -55,6 +58,13 @@ IGNORED = "!! "  # git status --porcelain --ignored=matching's mark for an ignor
 THROWAWAY = {
     "node_modules", "dist", "coverage", "test-results", "playwright-report", "__pycache__", ".DS_Store", ".shots",
 }
+# every process's working directory, one "n<path>" line each (lsof's +D walks the whole tree: slow)
+CWDS = ("lsof", "-a", "-d", "cwd", "-Fn")
+CWD_LINE = "n"
+# a worktree whose git state (its index, HEAD or HEAD's log) changed this recently may be a
+# builder's that finished and will be resumed, so it stays (#929)
+RECENT_MINUTES = 30
+GIT_STATE = ("index", "HEAD", os.path.join("logs", "HEAD"))
 
 
 def call(folder, *args):
@@ -123,6 +133,24 @@ def inside(path, folder):
     return folder == path or folder.startswith(path + os.sep)
 
 
+def why_in_use(path, folder):
+    """None when no process has a folder inside the worktree at path as its working directory and its
+    git state hasn't changed in the last RECENT_MINUTES, else why it stays."""
+    ok, cwds = run(folder, *CWDS)
+    if not ok:
+        return f"which processes work in it couldn't be checked ({cwds})"
+    if any(line.startswith(CWD_LINE) and inside(path, line[len(CWD_LINE):]) for line in cwds.splitlines()):
+        return "a running process works in it"
+    ok, git_dir = run(path, "git", "rev-parse", "--absolute-git-dir")
+    if not ok:
+        return f"git rev-parse failed ({git_dir})"
+    states = [os.path.join(git_dir.strip(), name) for name in GIT_STATE]
+    changed = max((os.path.getmtime(state) for state in states if os.path.exists(state)), default=0)
+    if time.time() - changed < RECENT_MINUTES * 60:
+        return f"its git state changed in the last {RECENT_MINUTES} minutes, so a builder may come back to it"
+    return None
+
+
 def would_lose(status):
     """What removing the worktree would lose, from its git status --porcelain --ignored=matching
     (which names a nested ignored folder itself, not its top): its uncommitted changes, and each
@@ -150,6 +178,9 @@ def tidy(number, branch, head, folder):
         if i == 0 or inside(path, folder):
             where = "the main checkout" if i == 0 else "the folder the merge ran in"
             return f"{kept}: it is checked out in {where} ({path}). Switch off it, then git branch -D {branch}."
+        in_use = why_in_use(path, folder)
+        if in_use:
+            return f"{kept}: its worktree is in use: {in_use} ({path})."
         ok, status = run(path, "git", "status", "--porcelain", "--ignored=matching")
         if not ok:
             return f"{kept}: git status failed ({status}) ({path})."
