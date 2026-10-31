@@ -98,6 +98,14 @@ name (the score).
   measurements live once, in `src/myTeam/tactics/pitchMarkings.ts`. Flat: one stripe to each of
   its six rows, which share its length equally so each line of players stands where it would; no
   gradients or photo grass. It is the Tactics tab's centrepiece (Decided).
+- **Where a picked-up player can go** (spec/05, Moving players): a free cell he may move to is a
+  2px dashed box in the pitch line's colour; a player he may swap with gets the same dashes round
+  his block, and in the squad table his Move reads Swap. A slot a preset asks to fill is quieter,
+  1px dotted, so it never reads as a place to tap.
+- **The sweeper** (spec/05, The pitch): his cell drawn an eighth of a row deeper than the
+  defence's line, and over the keeper's where the two meet on a phone.
+- **A lost player** (#323): a squad row whose player the football data no longer holds says so in
+  orange in place of his name, under a notice saying football data is missing.
 
 ## Controls
 
@@ -114,8 +122,11 @@ ones in `src/ui/` (`TickBox`, `Choice`), the rules screens' own in `src/rules/` 
   The others are the plate with its bevel and `#caced4` text; the chosen one is pressed in:
   ground fill, the plate bevel flipped (`inset 0 2px 0 #110a4a`, `inset 0 -2px 0 #6a5fe0`), white
   600. A radio group, so the arrow keys move it.
-- **Discard and Save**: Discard is the secondary action, there only once something changed; Save
-  is the action, and with nothing to save it is the action with nothing to do, in `#a1a5ab` text.
+- **Discard and Save**, on the rules screens: Discard is the secondary action, there only once
+  something changed; Save is the action, and with nothing to save it is the action with nothing to
+  do, in `#a1a5ab` text.
+- **Undo**, on the Tactics tab, which saves each move itself (spec/05, Moving players): the
+  secondary action, and with nothing to undo the action with nothing to do.
 - **Hover**: the action's, the secondary action's and a key's hover look shows only where a pointer
   hovers (`@media (hover: hover)`): a phone keeps a tapped button "hovered", and Save stayed grey.
   A mouse resting on Save after a click still shows its hover, `#caced4`.

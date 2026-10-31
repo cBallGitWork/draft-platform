@@ -85,6 +85,13 @@ export async function holdGameweeks(
   });
 }
 
+/** Holds `extra` current gameweek rows past FPL's 38, with no matches: only a row written by hand
+ *  can pass it, and no read of the season's schedule may stop on one (#831, #872). */
+export const holdGameweeksPastTheSeason = (t: TestConvex, extra: number) =>
+  t.run(async (ctx) => {
+    for (let number = GAMEWEEKS + 1; number <= GAMEWEEKS + extra; number += 1) await ctx.db.insert("gameweeks", { number, deadline: 0 });
+  });
+
 /** Moves FPL's deadline for a gameweek, as its feed might: feed data, so nothing a league decides
  *  may move with it (#138). */
 export async function moveFplDeadline(t: TestConvex, gameweek: number, deadline: number): Promise<void> {

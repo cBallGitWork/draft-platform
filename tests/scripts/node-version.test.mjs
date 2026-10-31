@@ -1,11 +1,11 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
+import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
 // CI picks Node from .nvmrc; Vercel ignores .nvmrc and reads package.json's engines.node. The
 // production build runs the release backup and deploy, so both must name the same major.
 
-const REPO_ROOT = join(import.meta.dirname, "../..");
 const MAJOR = /^v?(\d+)/;
 
 const majorOf = (version) => version.trim().match(MAJOR)?.[1];
