@@ -3,19 +3,19 @@ import { STREAM_BEHIND } from "../../../convex/football/matchCommentary";
 import {
   annsScoredGame,
   EVERTON_STARTERS,
-  fullTimeRecords,
   GAMEWEEK,
   HULL_BENCH,
   HULL_KEEPER,
   HULL_SCORER,
   lineupOf,
   LEAGUE_KICKOFF,
-  MIDFIELD_GOAL,
   nameOf,
   PHILLIPS,
   scoresLeague,
   slotOf,
 } from "../../support/convex/gameweekScores.harness";
+import { fullTimeRecords } from "../../support/convex/gameweekScoresMatch.harness";
+import { MIDFIELD_GOAL } from "../../support/convex/gameweekScoresFixes.harness";
 import { holdLines, storedLine } from "../../support/convex/matchPage.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 

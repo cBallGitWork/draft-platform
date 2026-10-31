@@ -1,12 +1,12 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
+import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
 // The lint step (#154) gates only while three things hold: `npm run verify` runs it, any warning
 // fails it, and the Stop hook reruns verify when its config changes. Dropping one stays green
 // everywhere else, so this file checks each.
 
-const REPO_ROOT = join(import.meta.dirname, "../..");
 const LINT_RUN = "npm run lint";
 const NO_WARNINGS = "--max-warnings 0";
 const LINT_CONFIG = "eslint.config.js";
