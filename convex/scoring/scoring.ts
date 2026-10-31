@@ -4,16 +4,9 @@
 import { MINUTES_STAT } from "../stats/matchRecords";
 import { withOwnStats } from "./ownStats";
 import { AREAS, LANES, positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
-import {
-  priceFor,
-  validateScoringSet,
-  type Area,
-  type Band,
-  type Priced,
-  type ScoringRule,
-  type ScoringSet,
-} from "./scoringSet";
-import { inTenths, showValue, statIn, type MatchStats } from "./values";
+import { priceFor, type Priced } from "./priced";
+import { validateScoringSet, type Area, type Band, type ScoringRule, type ScoringSet } from "./scoringSet";
+import { DOUBLE_GAMEWEEK_RULES, inTenths, showValue, statIn, type DoubleGameweekRule, type MatchStats } from "./values";
 
 /** One category's points, or null ("—") while his record for the match hasn't arrived. */
 export interface CategoryPoints {
@@ -129,10 +122,6 @@ function bandPoints(bands: readonly Band[], stack: boolean, actions: number): nu
 function sum(numbers: readonly number[]): number {
   return numbers.reduce((total, each) => total + each, 0);
 }
-
-/** A league's double-gameweek rule (spec/03): both matches count, or only his best match. */
-export const DOUBLE_GAMEWEEK_RULES = ["bothMatches", "bestMatch"] as const;
-export type DoubleGameweekRule = (typeof DOUBLE_GAMEWEEK_RULES)[number];
 
 /** A player's gameweek. Provisional while any of his matches' records hasn't arrived: the points
  *  are those of the matches that have, and null while none has. A match still live or inside its

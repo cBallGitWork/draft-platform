@@ -6,12 +6,12 @@ import { byArea, objectOf, type RequiredValidator } from "../lineup/pitchShape";
 // ScoringSet, so a stored set passes straight into scoring.ts. A league's rules held it until #354,
 // and rows saved before then still carry it (../rules/leagueRulesShape.ts, storedLeagueRulesShape).
 
-/** The same validator for each position a slot can be: scoringSet.ts's ByPosition<Value>. */
+/** The same validator for each position a slot can be: priced.ts's ByPosition<Value>. */
 function byPosition<Value extends RequiredValidator>(value: Value) {
   return objectOf(SLOT_POSITIONS, value);
 }
 
-/** scoringSet.ts's Priced<Value>: the same for all, by area, or by position. */
+/** priced.ts's Priced<Value>: the same for all, by area, or by position. */
 function priced<Value extends RequiredValidator>(value: Value) {
   return v.union(v.object({ all: value }), v.object({ byArea: byArea(value) }), v.object({ byPosition: byPosition(value) }));
 }

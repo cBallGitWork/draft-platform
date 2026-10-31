@@ -9,8 +9,8 @@ import type { Lineup } from "../lineup/lineup";
 import { cellKey, isOnPitch, type Cell } from "../lineup/pitch";
 import { roleIn } from "../lineup/roles";
 import type { ScoringSet } from "./scoringSet";
-import { inTenths, type MatchStats } from "./values";
-import { countedMatches, scoreGameweek, scoreMatch, type DoubleGameweekRule, type MatchPoints } from "./scoring";
+import { inTenths, type DoubleGameweekRule, type MatchStats } from "./values";
+import { countedMatches, scoreGameweek, scoreMatch, type MatchPoints } from "./scoring";
 
 /** Players are FPL's season-stable `code`. */
 type PlayerCode = number;

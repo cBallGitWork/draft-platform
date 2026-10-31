@@ -133,6 +133,7 @@ import type * as scoring_firstScoring from "../scoring/firstScoring.js";
 import type * as scoring_ownStats from "../scoring/ownStats.js";
 import type * as scoring_patchChanges from "../scoring/patchChanges.js";
 import type * as scoring_patchNotes from "../scoring/patchNotes.js";
+import type * as scoring_priced from "../scoring/priced.js";
 import type * as scoring_scoring from "../scoring/scoring.js";
 import type * as scoring_scoringSet from "../scoring/scoringSet.js";
 import type * as scoring_scoringSetShape from "../scoring/scoringSetShape.js";
@@ -323,6 +324,7 @@ declare const fullApi: ApiFromModules<{
   "scoring/ownStats": typeof scoring_ownStats;
   "scoring/patchChanges": typeof scoring_patchChanges;
   "scoring/patchNotes": typeof scoring_patchNotes;
+  "scoring/priced": typeof scoring_priced;
   "scoring/scoring": typeof scoring_scoring;
   "scoring/scoringSet": typeof scoring_scoringSet;
   "scoring/scoringSetShape": typeof scoring_scoringSetShape;

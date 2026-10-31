@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { categoryName } from "../../convex/scoring/categories";
-import type { Priced } from "../../convex/scoring/scoringSet";
+import type { Priced } from "../../convex/scoring/priced";
 import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogue";
 import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";

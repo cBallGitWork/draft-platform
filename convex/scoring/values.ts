@@ -1,6 +1,8 @@
-// The values scoring reads and checks: points in tenths, a stat from a match record, and the
-// refusal a bad value gets. It imports nothing, so scoringSet.ts, ownStats.ts and scoring.ts can
-// all lean on it without leaning on each other in a circle (#198).
+// The values scoring reads and checks: points in tenths, a stat from a match record, the refusal
+// a bad value gets, and the double-gameweek rules a league picks from. It imports nothing, so
+// scoringSet.ts, ownStats.ts and scoring.ts can all lean on it without leaning on each other in a
+// circle (#198), and a league's rules shape can name the double-gameweek rules without loading
+// the scorer (#756).
 
 /** Why a scoring set can't be saved or scored with, told apart from a bug, which is never shown
  *  as a reason. Every check in scoringSet.ts, ownStats.ts and here throws it. */
@@ -39,3 +41,7 @@ export function statIn(record: MatchStats, stat: string): number {
   requireNumber(actions, `his record's ${stat} is`);
   return actions;
 }
+
+/** A league's double-gameweek rule (spec/03): both matches count, or only his best match. */
+export const DOUBLE_GAMEWEEK_RULES = ["bothMatches", "bestMatch"] as const;
+export type DoubleGameweekRule = (typeof DOUBLE_GAMEWEEK_RULES)[number];
