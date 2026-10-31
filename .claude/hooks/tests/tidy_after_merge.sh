@@ -3,8 +3,8 @@
 # branch and its clean worktree go, also when GitHub's head is a merge commit on top of it; one with
 # extra commits, uncommitted changes, a head that can't be fetched, or checked out in the main
 # checkout or the folder the merge ran in stays, and says why; nothing else is touched. Then the
-# main checkout follows origin/main when detached and behind it, but not on a branch, nor over a
-# changed file the move would overwrite.
+# main checkout follows origin/main when detached and behind it, but not on a branch, nor on a
+# commit of its own, nor over a changed file the move would overwrite.
 . "$(dirname "$0")/helpers.sh"
 
 repo=$tmp/tidy && git init -q -b main "$repo"
@@ -174,6 +174,12 @@ says "would be overwritten" tidy_after_merge.py "$(bash_in "$home" "$merge")"
 [ "$(git -C "$home" rev-parse HEAD)" = "$before" ] || fail "tidy_after_merge.py: moved over a changed file"
 grep -q mine "$home/.gitignore" || fail "tidy_after_merge.py: lost the changed file it refused to overwrite"
 git -C "$home" checkout -q -- .gitignore
+
+# detached on a commit of its own: it stays, and says so
+git -C "$home" "${as_tester[@]}" commit -q --allow-empty -m "local work" && before=$(git -C "$home" rev-parse HEAD)
+says "it holds 1 commit(s) origin/main doesn't" tidy_after_merge.py "$(bash_in "$home" "$merge")"
+[ "$(git -C "$home" rev-parse HEAD)" = "$before" ] || fail "tidy_after_merge.py: moved a main checkout off its own commit"
+git -C "$home" checkout -q --detach HEAD~1
 
 # on a branch: it stays, whatever origin/main holds
 git -C "$home" switch -q -c local && before=$(git -C "$home" rev-parse HEAD)
