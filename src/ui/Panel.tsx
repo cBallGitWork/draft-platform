@@ -101,7 +101,7 @@ export function Panel({
   const titleId = useId();
   return (
     <section aria-labelledby={titleId} className={className ? `bg-panel ${className}` : "bg-panel"}>
-      <PanelTitle id={titleId} aside={aside} face={namesTeam ? "display-face" : "font-bold"}>
+      <PanelTitle id={titleId} aside={aside} titleClasses={namesTeam ? "display-face" : "font-bold"}>
         {title}
       </PanelTitle>
       {children}
@@ -110,17 +110,17 @@ export function Panel({
 }
 
 /** A panel's title plate (plate.md, Shape). */
-function PanelTitle({ id, aside, face, children }: { id: string; aside?: ReactNode; face: string; children: string }) {
+function PanelTitle({ id, aside, titleClasses, children }: { id: string; aside?: ReactNode; titleClasses: string; children: string }) {
   if (aside === undefined) {
     return (
-      <h2 id={id} className={`${PANEL_PLATE} text-lead ${face}`}>
+      <h2 id={id} className={`${PANEL_PLATE} text-lead ${titleClasses}`}>
         {children}
       </h2>
     );
   }
   return (
     <div className={`flex items-baseline justify-between ${PANEL_PLATE}`}>
-      <h2 id={id} className={`text-lead ${face}`}>
+      <h2 id={id} className={`text-lead ${titleClasses}`}>
         {children}
       </h2>
       {aside}

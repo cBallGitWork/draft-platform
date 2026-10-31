@@ -19,8 +19,8 @@ isn't flat (Craig, 31 Oct 2026; see Decided: Look B).
 
 | Role | Value | Used for |
 |---|---|---|
-| ground | `#111214`, under a fine grain (white at 5%) and a glow from the top, `rgb(70 96 84 / 0.22)` fading out by 70% of an ellipse 90% wide and 60% tall; at its lightest the page is `#1d2120` | the page. Drawn in CSS, never a photograph |
-| panel | `rgb(26 27 31 / 0.84)`, so `#191a1d` to `#1a1c1f` over the page; solid `#1a1b1f` where it opens over the page (the top bar's league list) | a panel's body |
+| ground | `#111214`, under a fine grain (white at 5%) and a glow from the top, `rgb(70 96 84 / 0.22)` fading out by 70% of an ellipse 90% wide and 60% tall; at its lightest, the glow's brightest point with the grain counted, the page is `#282e2d` | the page. Drawn in CSS, never a photograph |
+| panel | `rgb(26 27 31 / 0.84)`, so `#191a1d` to `#1c1e21` over the page; solid `#1a1b1f` where it opens over the page (the top bar's league list) | a panel's body |
 | bar | `#173a94` | the top bar |
 | plate | `#2a1f86` | a panel's title plate, date blocks, keys |
 | stepper | `#3529a8` | the `◄ GW9 ►` gameweek stepper; a control on the plate under the pointer, and a toggle on the bar while its list is open (the top bar's league) |
@@ -49,7 +49,7 @@ lightness from easiest to hardest, so the order survives red-green colour blindn
 hard), a five-step legend sits above the table, and rows keep a 1px ground (`#111214`) gap.
 
 The pairs meet WCAG 2.1 AA (`contrast()` in `convex/football/clubColours.ts`, 31 Oct 2026): muted on
-a panel 6.9:1 at the page's lightest, muted straight on the page 6.6:1 there, white on the plate
+a panel 6.8:1 and muted straight on the page 5.6:1, both at the page's lightest with the grain counted (the worse case; 6.4:1 on the glow alone), white on the plate
 12.8:1, role text on the plate 8.1:1, cyan on the plate 10.4:1, white on the stepper 10.3:1, the
 action's ink 18.7:1, the column head's ink 9.9:1, every difficulty ink on its fill 5.2:1 or better,
 the unread badge 8.9:1. Muted on the stepper is 4.2:1, so it is only ever a step that can't be taken

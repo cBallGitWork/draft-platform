@@ -15,7 +15,7 @@
   --font-*: initial;
   --font-weight-*: initial;
 
-  --color-ground: #111214; /* the page, under its drawn texture (--ground-texture) */
+  --color-ground: #111214; /* the page, under its drawn texture (--ground-glow, --ground-grain) */
   /* a panel's body, see-through over the page's texture (plate.md, Decided: Look B); a list that
      opens over the page, such as the top bar's leagues, is the same panel solid, so what it covers
      can't show through */
@@ -130,7 +130,7 @@
     --focus-ring: 2px solid var(--color-derived);
     --focus-ring-offset: 2px;
     /* The page's drawn texture (plate.md, Decided: Look B): a floodlit glow from the top over a fine
-       grain, drawn, never a photograph. Faint: at its lightest the page is #1d2120. */
+       grain, drawn, never a photograph. Faint: at its lightest, grain counted, the page is #282e2d. */
     --ground-glow: rgb(70 96 84 / 0.22);
     --ground-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
   }
