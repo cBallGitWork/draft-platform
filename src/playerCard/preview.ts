@@ -6,7 +6,7 @@
 import { cardPoints } from "../../convex/playerCard/cardPoints";
 import { categoryName } from "../../convex/scoring/categories";
 import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
-import type { MatchStats } from "../../convex/scoring/scoring";
+import type { MatchStats } from "../../convex/scoring/values";
 import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
 import { ARSENAL, CHELSEA, LIVERPOOL, previewPlayers, previewShortlist } from "../scouting/preview";
 import type { PlayedMatch, PlayerCard, PlayerCardSeam } from "./seam";

@@ -13,9 +13,6 @@ const GENERATED = "convex/_generated/";
 const TS = ".ts";
 const INDEX = "/index.ts";
 
-/** #198's trio, allowed by name until it is fixed. */
-const ALLOWED_CYCLE = ["convex/scoring/ownStats.ts", "convex/scoring/scoring.ts", "convex/scoring/scoringSet.ts"];
-
 /** `import … from "x"` and `export … from "x"`, the clause kept to tell type-only ones apart. */
 const FROM_CLAUSE = /^\s*(import|export)\s+([^;=]*?)\s*from\s*["']([^"']+)["']/gm;
 /** `import "x"`, run for its effects. */
@@ -117,7 +114,8 @@ function cycles(graph: Map<string, string[]>): string[][] {
 test("the walk sees convex/'s files and their imports", () => {
   const known = files();
   const graph = edges(known);
-  expect(known.size).toBeGreaterThan(ALLOWED_CYCLE.length);
+  // values.ts is the scoring trio's leaf: it imports nothing, so the trio can't loop through it (#198).
+  expect(graph.get("convex/scoring/values.ts")).toEqual([]);
   // schema.ts, not the schema/ folder, is what "../../schema" names from two folders down.
   expect(resolve("convex/football/premierLeague/plTeamStats.ts", "../../schema", known)).toBe("convex/schema.ts");
   expect(graph.get("convex/scoring/scoring.ts")).toContain("convex/scoring/scoringSet.ts");
@@ -132,13 +130,7 @@ test("the walk finds a cycle and skips type-only imports", () => {
   expect(cycles(edges(known))).toEqual([["convex/a.ts", "convex/b.ts"]]);
 });
 
-test("no value-import cycle in convex/ beyond #198's trio", () => {
+test("no value-import cycle in convex/", () => {
   const found = cycles(edges(files()));
-  const allowedKey = ALLOWED_CYCLE.join(" ");
-  const others = found.filter((group) => group.join(" ") !== allowedKey);
-  expect(others, `import cycles: ${others.map((g) => g.join(" <-> ")).join("; ")}`).toEqual([]);
-  expect(
-    found.map((g) => g.join(" ")),
-    "#198's scoring cycle is gone: remove the allowance (ALLOWED_CYCLE)",
-  ).toContain(allowedKey);
+  expect(found, `import cycles: ${found.map((g) => g.join(" <-> ")).join("; ")}`).toEqual([]);
 });

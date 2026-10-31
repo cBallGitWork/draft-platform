@@ -1,6 +1,6 @@
 // Auto-subs (spec/05, Auto-subs; #12): one pure function, run again whenever a match ends, so
-// its answer is provisional until every match of the gameweek is over, then final. Roles aren't
-// built (#10, #11): a sub's role, the slot's or his best-star one, is told by `into` for them.
+// its answer is provisional until every match of the gameweek is over, then final. Each sub's
+// role (#458, #460) follows his `into`.
 // Storing the result, scoring it and showing it are not here.
 
 import type { Position } from "../positions/positionTables";
@@ -46,8 +46,9 @@ export interface AutoSub {
   on: PlayerCode;
   area: Area;
   lane: Lane;
-  /** "theSlot": he took the empty slot and will take its role. "hisOwnArea": no one on the bench
-   *  could play the slot, so he came on elsewhere, on his best-star role, and the formation changed. */
+  /** "theSlot": he took the empty slot and its role. "hisOwnArea": no one on the bench could play
+   *  the slot, so he came on elsewhere, on his new slot's first role until stars (#11) choose his
+   *  best, and the formation changed. */
   into: "theSlot" | "hisOwnArea";
 }
 

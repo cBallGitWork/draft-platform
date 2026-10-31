@@ -1,7 +1,7 @@
 import { expect, test, vi } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreMatch } from "../../../convex/scoring/scoring";
-import { inTenths } from "../../../convex/scoring/scoringSet";
+import { inTenths } from "../../../convex/scoring/values";
 import { MATCHUP_POINTS } from "../../../convex/table/standings";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { recordedGw6 } from "../../support/recorded/gw6.payloads";

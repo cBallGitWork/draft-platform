@@ -2,7 +2,7 @@ import { expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { MatchupSide, MatchupSlot } from "../../../convex/matchup/matchupShape";
-import { inTenths } from "../../../convex/scoring/scoringSet";
+import { inTenths } from "../../../convex/scoring/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import {
