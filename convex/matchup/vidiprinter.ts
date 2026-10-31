@@ -41,8 +41,9 @@ export interface VidiprinterMatch {
 export interface VidiprinterPlayer {
   name: string;
   cell: Cell;
-  /** His slot's role, so a line's points carry its adjustment as his slot's do (spec/14). */
-  role?: string;
+  /** His slot's role, so a line's points carry its adjustment as his slot's do (spec/14). Not
+   *  optional, so a caller can't leave it out and price his lines without it. */
+  role: string | undefined;
   inMatch: InMatch;
 }
 

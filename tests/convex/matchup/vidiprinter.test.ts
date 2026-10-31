@@ -33,11 +33,11 @@ const STORED = writeCommentary(commentaryLines(recordedLiveSheets(), recordedLiv
 const played = (stats: Record<string, number>, points: number) => ({ stats: { minutes: 90, ...stats }, played: true, points });
 
 /** Williams up front, who scored; Muñoz in midfield, who made it; Murillo, booked. Enciso, who
- *  scored Forest's, is in neither lineup. */
+ *  scored Forest's, is in neither lineup. None plays a role the sets adjust. */
 const PLAYERS = new Map<number, VidiprinterPlayer>([
-  [CODE.williams, { name: "N.Williams", cell: ATTACK, inMatch: new Map([[IPSWICH_FOREST, played({ goals_scored: 1 }, 6)]]) }],
-  [CODE.munoz, { name: "Muñoz", cell: MIDFIELD, inMatch: new Map([[IPSWICH_FOREST, played({ assists: 1 }, 5)]]) }],
-  [CODE.murillo, { name: "Murillo", cell: { area: "defence", lane: "leftCentre" }, inMatch: new Map([[IPSWICH_FOREST, played({ yellow_cards: 1 }, 1)]]) }],
+  [CODE.williams, { name: "N.Williams", cell: ATTACK, role: undefined, inMatch: new Map([[IPSWICH_FOREST, played({ goals_scored: 1 }, 6)]]) }],
+  [CODE.munoz, { name: "Muñoz", cell: MIDFIELD, role: undefined, inMatch: new Map([[IPSWICH_FOREST, played({ assists: 1 }, 5)]]) }],
+  [CODE.murillo, { name: "Murillo", cell: { area: "defence", lane: "leftCentre" }, role: undefined, inMatch: new Map([[IPSWICH_FOREST, played({ yellow_cards: 1 }, 1)]]) }],
 ]);
 
 /** Williams's running totals as the live reads showed them: past 60 minutes, and to two big
