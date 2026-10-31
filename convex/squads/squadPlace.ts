@@ -42,10 +42,10 @@ export const SQUAD_MOVES = ["playerAssigned", "playerMoved", "playerReleased"] a
  *  season's moves in one league. Past it this throws rather than return a wrong squad. */
 export const SQUAD_MOVES_READ_MOST = 2000;
 
+type Filed = Pick<Doc<"leagueEvents">, "at" | "_creationTime">;
 /** The one order squad moves are read in, so every screen lists them alike (#630): newest first,
  *  and of two filed at the same instant the later filed first, as the league's own index orders
  *  them. */
-type Filed = Pick<Doc<"leagueEvents">, "at" | "_creationTime">;
 export const newestFirst = (one: Filed, other: Filed) => other.at - one.at || other._creationTime - one._creationTime;
 
 /** The team's squad rows, in the order its players joined it. */
