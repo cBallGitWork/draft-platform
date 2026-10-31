@@ -5,12 +5,13 @@ import { kitOf, type Ink } from "../../../convex/football/clubColours";
 import { markOf } from "./focusMarks";
 import { PitchLines } from "./PitchLines";
 import { PITCH_ASPECT } from "./pitchMarkings";
-import { canStandIn, standingIn, type DraftLineup, type SquadMember } from "./lineupDraft";
-import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel } from "./words";
+import { standingIn, type DraftLineup, type Reach, type SquadMember } from "./lineupDraft";
+import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel, swapLabel } from "./words";
 
 // The Tactics tab's pitch (#14; spec/05, The pitch): six areas by five lanes, attack at the top, CM
-// style. A player is moved by picking him up (a click, a tap or Enter on him) and then choosing a
-// free cell he plays, or by dragging him there; both reach the same `onPlace`.
+// style. A player is moved by picking him up (a click, a tap or Enter on him) and then choosing one
+// of the cells that light up, free or holding a player to swap with, or by dragging him there; both
+// reach the same `onPlace`.
 
 /** Top to bottom as the pitch is drawn: attack first. */
 const ROWS_DRAWN = AREAS.toReversed();
@@ -32,11 +33,16 @@ const CELL_GRID: CSSProperties = {
 /** Who is picked up and how to move him: the page holds it, as the squad beside picks up too. */
 export type Moving = {
   picked: SquadMember | null;
+  /** Where the player picked up can go, lit; null with nobody picked up. */
+  reach: Reach | null;
   /** A click, a tap or Enter: picks him up, or puts him back if he is already. */
   onPick(playerCode: number): void;
   /** A drag starting: picks him up, whoever was. */
   onGrab(playerCode: number): void;
+  /** Into the cell if it is free, swapped with its player if not. */
   onPlace(cell: Cell): void;
+  /** Swapped with the player, on the pitch or the bench. */
+  onSwap(playerCode: number): void;
   onDragEnd(): void;
 };
 
@@ -60,9 +66,9 @@ export function Pitch({
   moving: Moving;
   slots: readonly Cell[];
 }) {
-  const { picked } = moving;
+  const { picked, reach } = moving;
   const isSlot = (cell: Cell) => slots.some((slot) => sameCell(slot, cell));
-  const opensTo = (cell: Cell) => picked !== null && canStandIn(draft, picked.positions, cell);
+  const opensTo = (cell: Cell) => reach !== null && reach.cells.some((each) => sameCell(each, cell));
   return (
     <div role="group" aria-label={pitchLabel} style={CELL_GRID} className="pitch relative mx-auto grid">
       <PitchLines />
@@ -81,7 +87,7 @@ export function Pitch({
           return (
             <div key={cellKey(cell)} onDragOver={allowDrop} onDrop={drop} className={`relative flex min-h-0 min-w-0 items-center justify-center p-0.5 ${depth}`}>
               {standing !== undefined ? (
-                <PlayerBlock player={squad.get(standing.playerCode)!} cell={cell} role={roleIn(cell, standing.role).name} moving={moving} />
+                <PlayerBlock player={squad.get(standing.playerCode)!} cell={cell} role={roleIn(cell, standing.role).name} lit={opensTo(cell)} moving={moving} />
               ) : picked !== null && opensTo(cell) ? (
                 <button
                   type="button"
@@ -102,21 +108,24 @@ export function Pitch({
 }
 
 /** A player on the pitch: his shirt over his name plate, the role he plays under his name (spec/05
- *  Roles; his positions are in his name for screen readers). Picked up, the plate turns white. */
-function PlayerBlock({ player, cell, role, moving }: { player: SquadMember; cell: Cell; role: string; moving: Moving }) {
-  const isPicked = moving.picked?.playerCode === player.playerCode;
+ *  Roles; his positions are in his name for screen readers). Picked up, the plate turns white; one
+ *  the player picked up can swap with is lit, dashed like a free cell, and a tap swaps them. */
+function PlayerBlock({ player, cell, role, lit, moving }: { player: SquadMember; cell: Cell; role: string; lit: boolean; moving: Moving }) {
+  const { picked } = moving;
+  const isPicked = picked?.playerCode === player.playerCode;
   const plate = isPicked ? "bg-fact text-ground" : "bg-name-plate";
+  const swapsWith = lit && picked !== null;
   return (
     <button
       type="button"
       draggable
       {...markOf("player", player.playerCode)}
       aria-pressed={isPicked}
-      aria-label={playerOnPitchLabel(player.name, player.positions, cell.area, cell.lane)}
-      onClick={() => moving.onPick(player.playerCode)}
+      aria-label={swapsWith ? swapLabel(picked.name, player.name) : playerOnPitchLabel(player.name, player.positions, cell.area, cell.lane)}
+      onClick={() => (swapsWith ? moving.onPlace(cell) : moving.onPick(player.playerCode))}
       onDragStart={(event) => startDrag(event, player.playerCode, moving)}
       onDragEnd={moving.onDragEnd}
-      className="flex w-full min-w-0 cursor-grab flex-col items-center"
+      className={`flex w-full min-w-0 cursor-grab flex-col items-center ${swapsWith ? "outline-2 outline-dashed outline-pitch-line" : ""}`}
     >
       <Shirt number={player.number} clubCode={player.clubCode} goalkeeper={cell.area === "goalkeeper"} />
       <span className={`max-w-full truncate px-1 text-lead font-semibold ${plate}`}>{player.name}</span>
