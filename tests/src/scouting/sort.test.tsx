@@ -5,14 +5,14 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogue";
-import { sortByLabel } from "../../../src/shared/words";
 import { columns, noStatWords, statLabel } from "../../../src/scouting/words";
+import { columnHeadIn, sortLabelOf } from "../../support/src/columnHeads";
 import { HELD, lastAsk, namesShown, openScouting, PALMER, RICE, table } from "../../support/src/scoutingScreen.harness";
 
 describe("the sort asks the server", () => {
   it("a column's head sorts by it, and again the other way", async () => {
     const app = openScouting();
-    const byClub = await screen.findByRole("button", { name: sortByLabel(columns.club.long) });
+    const byClub = await screen.findByRole("button", { name: sortLabelOf(columns.club) });
     await userEvent.click(byClub);
     expect(lastAsk(app)[2]).toEqual({ by: "club", descending: false });
     expect(byClub.closest("th")!.getAttribute("aria-sort")).toBe("ascending");
@@ -25,26 +25,27 @@ describe("the sort asks the server", () => {
 
   it("by club, A to Z first", async () => {
     openScouting();
-    await userEvent.click(await screen.findByRole("button", { name: sortByLabel(columns.club.long) }));
+    await userEvent.click(await screen.findByRole("button", { name: sortLabelOf(columns.club) }));
     expect(namesShown()).toEqual(["Rice", "Saka", "Palmer"]);
   });
 
   it("by name, pressed again, Z to A", async () => {
     const app = openScouting();
-    await userEvent.click(await screen.findByRole("button", { name: sortByLabel(columns.name.long) }));
+    await userEvent.click(await screen.findByRole("button", { name: sortLabelOf(columns.name) }));
     expect(lastAsk(app)[2]).toEqual({ by: "name", descending: true });
     expect(namesShown()).toEqual(["Saka", "Rice", "Palmer"]);
   });
 
   it("by season points, the most first", async () => {
     const app = openScouting();
-    await userEvent.click(await screen.findByRole("button", { name: sortByLabel(columns.seasonPoints.long) }));
+    await userEvent.click(await screen.findByRole("button", { name: sortLabelOf(columns.seasonPoints) }));
     expect(lastAsk(app)[2]).toEqual({ by: "seasonPoints", descending: true });
   });
 });
 
 describe("any stat, as a season total", () => {
   const GOALS = STAT_CATALOGUE.find((each) => each.stat === "goals_scored")!;
+  const GOALS_HEAD = { short: GOALS.shortCode, long: GOALS.name };
   const XG = STAT_CATALOGUE.find((each) => each.stat === "expected_goals")!;
   // Saka has no goals held: he hasn't scored, so his total is 0.
   const TOTALS = { [RICE.code]: { goals_scored: 2, expected_goals: 1.234 }, [PALMER.code]: { goals_scored: 5, expected_goals: 4.5 } };
@@ -66,9 +67,9 @@ describe("any stat, as a season total", () => {
     expect(lastAsk(app).slice(2)).toEqual([{ by: "stat", descending: true }, GOALS.stat]);
     expect(namesShown()).toEqual(["Palmer", "Rice", "Saka"]);
     expect(statCells()).toEqual(["5", "2", "0"]);
-    const head = screen.getByRole("button", { name: sortByLabel(GOALS.name) });
+    const head = screen.getByRole("button", { name: sortLabelOf(GOALS_HEAD) });
     expect(head.textContent).toContain(GOALS.shortCode);
-    expect(head.closest("th")).toBe(screen.getByRole("columnheader", { name: GOALS.name }));
+    expect(head.closest("th")).toBe(columnHeadIn(table(), GOALS_HEAD));
     expect(head.closest("th")!.getAttribute("title")).toBe(GOALS.name);
     expect(head.closest("th")!.getAttribute("aria-sort")).toBe("descending");
   });
@@ -76,7 +77,7 @@ describe("any stat, as a season total", () => {
   it("its head pressed again sorts the fewest first", async () => {
     const app = openWithTotals();
     await chooseStat(GOALS.name);
-    await userEvent.click(screen.getByRole("button", { name: sortByLabel(GOALS.name) }));
+    await userEvent.click(screen.getByRole("button", { name: sortLabelOf(GOALS_HEAD) }));
     expect(lastAsk(app)[2]).toEqual({ by: "stat", descending: false });
     expect(namesShown()).toEqual(["Saka", "Rice", "Palmer"]);
   });
@@ -90,7 +91,7 @@ describe("any stat, as a season total", () => {
   it("stays shown while another column sorts the list", async () => {
     const app = openWithTotals();
     await chooseStat(GOALS.name);
-    await userEvent.click(screen.getByRole("button", { name: sortByLabel(columns.name.long) }));
+    await userEvent.click(screen.getByRole("button", { name: sortLabelOf(columns.name) }));
     expect(lastAsk(app).slice(2)).toEqual([{ by: "name", descending: false }, GOALS.stat]);
     expect(statCells()).toEqual(["5", "2", "0"]);
   });
@@ -100,6 +101,6 @@ describe("any stat, as a season total", () => {
     await chooseStat(GOALS.name);
     await chooseStat(noStatWords);
     expect(lastAsk(app).slice(2)).toEqual([{ by: "name", descending: false }, null]);
-    expect(screen.queryByRole("button", { name: sortByLabel(GOALS.name) })).toBeNull();
+    expect(screen.queryByRole("button", { name: sortLabelOf(GOALS_HEAD) })).toBeNull();
   });
 });

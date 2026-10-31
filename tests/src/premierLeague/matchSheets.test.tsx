@@ -124,7 +124,7 @@ describe("the team stats", () => {
     openMatch({ match: matchOf({ teamStats: stats }) });
     const table = await screen.findByRole("table", { name: teamStatsLabel(ARSENAL.shortName, CHELSEA.shortName) });
     expectColumnHeads(table, [{ short: ARSENAL.shortName, long: ARSENAL.name }, STAT_COLUMN, { short: CHELSEA.shortName, long: CHELSEA.name }]);
-    expectUnseenHead(table, STAT_COLUMN.long);
+    expectUnseenHead(table, STAT_COLUMN);
   });
 
   it("early on, before Opta sends possession, shows a dash for it", async () => {

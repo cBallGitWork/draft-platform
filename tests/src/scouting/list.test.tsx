@@ -26,6 +26,7 @@ import {
 } from "../../../src/scouting/words";
 import { POSITION_NAMES } from "../../../src/shared/words";
 import { ARSENAL } from "../../support/convex/footballRows.harness";
+import { columnHeadIn } from "../../support/src/columnHeads";
 import { HELD, lastAsk, namesShown, openScouting, rowOf, table } from "../../support/src/scoutingScreen.harness";
 import { commissioner, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 
@@ -91,7 +92,7 @@ describe("the list", () => {
   it("heads each column with a short code, named by its full name, which shows on hover", async () => {
     openScouting();
     await screen.findByRole("table");
-    const heads = Object.values(columns).map(({ long }) => within(table()).getByRole("columnheader", { name: long }));
+    const heads = Object.values(columns).map((words) => columnHeadIn(table(), words));
     expect(within(table()).getAllByRole("columnheader")).toEqual(heads);
     // The sorted column's head adds its arrow after the short code.
     expect(heads.map((head, at) => head.textContent!.startsWith(Object.values(columns)[at].short))).not.toContain(false);
