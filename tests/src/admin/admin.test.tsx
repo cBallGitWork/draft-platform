@@ -51,14 +51,14 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 const ARSENAL = { code: 3, name: "Arsenal" };
 const NEWCASTLE = { code: 4, name: "Newcastle" };
 const LEEDS = { code: 7, name: "Leeds" };
-const STEUR = { code: 1, name: "Steur", fullName: "Jacob Steur", clubCode: 4, label: "Centre Central Midfielder" };
-const BARNES = { code: 2, name: "Barnes", fullName: "Harvey Barnes", clubCode: 4, proposals: ["W" as const] };
+const STEUR = { code: 1, name: "Steur", fullName: "Jacob Steur", clubCode: NEWCASTLE.code, label: "Centre Central Midfielder" };
+const BARNES = { code: 2, name: "Barnes", fullName: "Harvey Barnes", clubCode: NEWCASTLE.code, proposals: ["W" as const] };
 const DATA: AdminData = {
   queue: {
     newSignings: [STEUR],
     waiting: [BARNES],
-    flagged: [{ code: 3, name: "Woltemade", fullName: "Nick Woltemade", clubCode: 4, position: "ST", startsElsewhere: 4 }],
-    removed: [{ code: 5, name: "Gordon", fullName: "Anthony Gordon", clubCode: 4, position: "W" }],
+    flagged: [{ code: 3, name: "Woltemade", fullName: "Nick Woltemade", clubCode: NEWCASTLE.code, position: "ST", startsElsewhere: 4 }],
+    removed: [{ code: 5, name: "Gordon", fullName: "Anthony Gordon", clubCode: NEWCASTLE.code, position: "W" }],
     clubs: [ARSENAL, NEWCASTLE],
     approveMode: "proposals",
     thresholds: { flagAfter: 3, removeAfter: 6 },
@@ -68,7 +68,7 @@ const DATA: AdminData = {
       code: 3,
       name: "Woltemade",
       fullName: "Nick Woltemade",
-      clubCode: 4,
+      clubCode: NEWCASTLE.code,
       positions: [
         { position: "ST", source: "starts", confirmed: true, flaggedElsewhere: 4 },
         { position: "CAM", source: "label", confirmed: false, flaggedElsewhere: null },
