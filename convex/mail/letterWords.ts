@@ -1,6 +1,7 @@
 import type { Infer } from "convex/values";
 import { aNewTeamWords } from "../joining/joiningShared";
 import { andListWords, momentIn } from "../shared/moments";
+import { figureWords } from "../shared/numberWords";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { NOTHING_SCORES_DIFFERENTLY } from "../scoring/patchChanges";
 import type { leagueEvent, siteScoringKind } from "../schema";
@@ -117,11 +118,11 @@ export const matchWords = (home: string, away: string) => `${home} v ${away}`;
  *  gave to Rice. / Lions now have 61 in gameweek 6, not 55." */
 function overriddenBody(event: Extract<LeagueEvent, { kind: "pointsOverridden" }>, who: string): string {
   const { playerName, matchName, gameweek, from, to, reason, teams } = event;
-  const change = from === null ? `now ${to}` : `${from} to ${to}`;
+  const change = from === null ? `now ${figureWords(to)}` : `${figureWords(from)} to ${figureWords(to)}`;
   const totals =
     teams.length === 0
       ? "No team's total moved: no lineup counted him."
-      : teams.map((team) => `${team.teamName} now have ${team.to} in gameweek ${gameweek}, not ${team.from}.`).join("\n");
+      : teams.map((team) => `${team.teamName} now have ${figureWords(team.to)} in gameweek ${gameweek}, not ${figureWords(team.from)}.`).join("\n");
   return `${who} overrode ${playerName}'s points in ${matchName}, gameweek ${gameweek}: ${change}. Why: ${reason}\n\n${totals}`;
 }
 

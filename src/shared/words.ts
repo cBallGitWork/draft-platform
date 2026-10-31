@@ -2,6 +2,7 @@
 
 import type { Position } from "../../convex/positions/positionTables";
 import { LOCALE } from "../../convex/shared/moments";
+import { figureWords } from "../../convex/shared/numberWords";
 
 /** The pitch's areas, as the rules screens name them: the server's refusals name them too. */
 export { AREA_WORDS } from "../../convex/lineup/pitchWords";
@@ -54,6 +55,9 @@ const timeOfDayFormat = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minut
 /** The time of day alone, in the viewer's own zone: "15:00", a kickoff or when a letter was filed. */
 export const timeOfDayWords = (at: number) => timeOfDayFormat.format(at);
 
+/** Every number a screen shows, with the one minus sign: "−3", and signed, "+4". */
+export { figureWords, signedWords } from "../../convex/shared/numberWords";
+
 /** A figure not there yet, such as points before a match's record has arrived. */
 export const noFigureWords = "—";
 /** A player no team in the league owns. */
@@ -63,8 +67,9 @@ export const listSeparator = ", ";
 
 /** Between the two sides of a match or a fixture: "Hull City v Everton". */
 export const versusWords = "v";
-/** A match's or a fixture's score, the first side's then the other's: "2–1". */
-export const scoreWords = (first: number, second: number) => `${first}–${second}`;
+/** A match's or a fixture's score, the first side's then the other's: "2–1", or a matchup's
+ *  points, which can fall below 0: "−2–5". */
+export const scoreWords = (first: number, second: number) => `${figureWords(first)}–${figureWords(second)}`;
 /** Beside what is still being played: a live match's clock before it has a minute, a score that
  *  may still move (spec/07). */
 export const liveWords = "Live";

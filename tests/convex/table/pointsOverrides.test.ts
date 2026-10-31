@@ -171,6 +171,7 @@ test("an override is refused with a reason when it can't be sound", async () => 
   expect(await refusalFor({ points: Number.POSITIVE_INFINITY })).toBe(overrideRefusals.notPoints);
   expect(await refusalFor({ points: OVERRIDE_POINTS_MOST + 1 })).toBe(overrideRefusals.outOfRange);
   expect(await refusalFor({ points: -OVERRIDE_POINTS_MOST - 1 })).toBe(overrideRefusals.outOfRange);
+  expect(overrideRefusals.outOfRange).toBe(`An override is from −${OVERRIDE_POINTS_MOST} to ${OVERRIDE_POINTS_MOST} points.`);
   // A man of a club not in the match, and named on neither sheet.
   await league.t.run((ctx) => ctx.db.insert("players", { code: NOBODY, name: "Elsewhere", fullName: "Elsewhere", clubCode: 1 }));
   expect(await refusalFor({ playerCode: NOBODY })).toBe(overrideRefusals.notInMatch("Elsewhere"));

@@ -3,7 +3,7 @@
 import { STAT_WORD } from "../shared/words";
 import type { Availability } from "./seam";
 
-export { freeAgentWords, noFigureWords } from "../shared/words";
+export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
 
 export const SCOUTING_TITLE = "Scouting";
 export const PLAYERS_TITLE = "Players";

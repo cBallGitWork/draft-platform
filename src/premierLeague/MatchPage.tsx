@@ -8,10 +8,11 @@ import {
   cameOnWords,
   clockWords,
   COMMENTARY_TITLE,
+  figureWords,
   fullTime,
   goalsWords,
-  inGameweekWords,
   halfTime,
+  inGameweekWords,
   kickoffDayWords,
   loadingMatchWords,
   MATCH_TITLE,
@@ -193,7 +194,7 @@ function ManRow({ man: { name, position, started, played, ownerTeamName, points,
         {ownerTeamName !== null && <span className="block text-data font-normal text-muted">{ownerTeamName}</span>}
       </th>
       <td className={`px-2 text-right ${counts && points !== null ? "font-bold text-figure" : "text-muted"}`}>
-        {ownerTeamName === null ? null : (points ?? noFigureWords)}
+        {ownerTeamName === null ? null : points === null ? noFigureWords : figureWords(points)}
         {ownerTeamName !== null && !counts && <span className="sr-only"> {notCountingLabel}</span>}
       </td>
     </tr>

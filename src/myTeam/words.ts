@@ -4,7 +4,7 @@ import { menuWords } from "../frame/words";
 import { failedWords } from "../shared/words";
 import type { TeamTransactions } from "./seam";
 
-export { liveWords, noFigureWords, versusWords, whenWords } from "../shared/words";
+export { figureWords, liveWords, noFigureWords, versusWords, whenWords } from "../shared/words";
 
 /** Said on any tab to someone who runs no team in the league, such as a commissioner who doesn't
  *  play. */

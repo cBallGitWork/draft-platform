@@ -11,6 +11,7 @@ import type { HomeSeam, LeagueHome } from "./seam";
 import {
   byeWords,
   columns,
+  figureWords,
   formLabel,
   fromWords,
   gameweekWords,
@@ -153,7 +154,7 @@ function TableCell({ column, row }: { column: Column; row: Row }) {
         </th>
       );
     case "points":
-      return <td className={`${className} font-bold text-figure`}>{row.points}</td>;
+      return <td className={`${className} font-bold text-figure`}>{figureWords(row.points)}</td>;
     case "form":
       return (
         <td className={className} aria-label={formLabel(row.form)}>

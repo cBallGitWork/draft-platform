@@ -8,6 +8,7 @@ import {
   adjustmentWords,
   breakdownLabel,
   columns,
+  figureWords,
   listSeparator,
   liveWords,
   noFigureWords,
@@ -83,7 +84,7 @@ function MatchRows({ match }: { match: PlayedMatch }) {
   const { position, categories } = match.points;
   const { override } = match;
   const total = override?.points ?? match.points.total;
-  const earned = categories.filter((category) => category.points !== null && category.points !== 0);
+  const earned = categories.filter((category): category is typeof category & { points: number } => category.points !== null && category.points !== 0);
   // A bench player who didn't come on: his points greyed, as the matchup greys them (spec/14, On screen).
   const notCounted = match.points.scoredAs === "notCounted";
   return (
@@ -103,7 +104,7 @@ function MatchRows({ match }: { match: PlayedMatch }) {
           </td>
         ) : (
           <td className={`${cellClasses("points")} ${notCounted ? "text-muted" : "font-bold text-figure"}`}>
-            {total}
+            {figureWords(total)}
             {match.provisional && <span className="ml-1 font-normal text-derived">{liveWords}</span>}
           </td>
         )}
@@ -118,7 +119,7 @@ function MatchRows({ match }: { match: PlayedMatch }) {
             : earned.map((category, index) => (
                 <span key={category.stat}>
                   {index > 0 && listSeparator}
-                  {category.name} <span className="text-figure">{category.points}</span>
+                  {category.name} <span className="text-figure">{figureWords(category.points)}</span>
                 </span>
               ))}
         </UnderRow>

@@ -209,6 +209,19 @@ describe("the card", () => {
     expect((await screen.findByLabelText(roleLineLabel("Inside forward"))).textContent).toBe("Inside forward +2 (Goals scored 1)");
   });
 
+  it("a match that cost him points shows the true minus in its total, breakdown and role line, never a hyphen (#564)", async () => {
+    const role = { name: "Inside forward", points: -1, lines: [{ stat: "yellow_cards", name: "Yellow cards", actions: 1, points: -1 }] };
+    const categories = [category("minutes", "Minutes", 1), category("yellow_cards", "Yellow cards", -3)];
+    const booked = { ...PRICED, points: { ...PRICED.points, scoredAs: "slot" as const, total: -3, categories, role } };
+    openCard(SAKA, { cards: [{ ...SAKA, matches: [booked] }] });
+    const season = within(await screen.findByRole("region", { name: SEASON_TITLE }));
+    const row = season.getAllByRole("rowheader", { name: `${ARSENAL.shortName} ${versusWords} ${COVENTRY.shortName}` })[0].closest("tr")!;
+
+    expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2", "90", "W", "−3"]);
+    expect(season.getByLabelText(breakdownLabel(2)).textContent).toBe("Minutes 1, Yellow cards −3");
+    expect(season.getByLabelText(roleLineLabel("Inside forward")).textContent).toBe("Inside forward −1 (Yellow cards 1)");
+  });
+
   it("says how its matches are priced, both ways when some are at his slot and some at his best position", async () => {
     const started = { ...PRICED, fixtureCode: 9, points: { ...PRICED.points, scoredAs: "slot" as const } };
     openCard(SAKA, { cards: [{ ...SAKA, matches: [started, PRICED] }] });

@@ -12,6 +12,7 @@ import { useChange, type Changing } from "../shared/useChange";
 import type { MyTeamSeam, SquadNumberChanges, TeamSquad } from "./seam";
 import {
   awayWords,
+  figureWords,
   goneWords,
   homeWords,
   lastGameweekLong,
@@ -22,10 +23,10 @@ import {
   noSquadWords,
   noTeamWords,
   numberLabel,
+  SQUAD_TITLE,
   squadColumns,
   squadLoadingWords,
   squadTableLabel,
-  SQUAD_TITLE,
   whenWords,
 } from "./words";
 
@@ -193,6 +194,6 @@ function PointsCell({ className, points }: { className: string; points: number |
       {noFigureWords}
     </td>
   ) : (
-    <td className={`${className} font-bold text-figure`}>{points}</td>
+    <td className={`${className} font-bold text-figure`}>{figureWords(points)}</td>
   );
 }

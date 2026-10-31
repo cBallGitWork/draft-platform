@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import type { RawBootstrap } from "../../../convex/football/fpl/fpl";
 import { codesByOpta } from "../../../convex/football/feedIds";
-import { FEED_TYPE, UNLISTED_NAME, writeCommentary, type CommentaryInput, type MatchHeader } from "../../../convex/football/commentary";
+import { FEED_TYPE, UNLISTED_NAME, withFullTimePoints, writeCommentary, type CommentaryInput, type MatchHeader } from "../../../convex/football/commentary";
 import { commentaryLines, type CommentaryLine } from "../../../convex/football/premierLeague/plCommentary";
 import {
   FINISHED_MATCHES,
@@ -66,6 +66,12 @@ test("the kick-off and full-time lines carry the clubs and the score", () => {
   expect(texts.slice(-2)).toEqual(["KO IPS v NFO", "Lineups out"]);
   expect(texts).toContain("46' Second half");
   expect(texts).toContain("45+3' HT");
+});
+
+test("the full-time line's points below 0 carry the true minus, never a hyphen (#564)", () => {
+  expect(withFullTimePoints("FT IPS 1–1 NFO", [{ name: "Murillo", points: -1 }, { name: "Wood", points: 6 }])).toBe(
+    "FT IPS 1–1 NFO: Murillo −1, Wood 6",
+  );
 });
 
 test("replayed, the first goal names only the scorer until a later read names the assister", () => {

@@ -7,7 +7,7 @@ import { clockWords, gameweekWords, versusWords, whenWords } from "../shared/wor
 
 const kickoffFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit" });
 
-export { AREA_WORDS, gameweekWords, noFigureWords, versusWords } from "../shared/words";
+export { AREA_WORDS, figureWords, gameweekWords, noFigureWords, versusWords } from "../shared/words";
 export { leagueAverageWords, scoreWords } from "../table/words";
 export { nextGameweekLabel as nextLabel, nextGlyph, previousGameweekLabel as previousLabel, previousGlyph } from "../shared/words";
 

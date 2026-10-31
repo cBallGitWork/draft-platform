@@ -155,6 +155,7 @@ import type * as shared_fixtures from "../shared/fixtures.js";
 import type * as shared_groupedBy from "../shared/groupedBy.js";
 import type * as shared_leagueAccess from "../shared/leagueAccess.js";
 import type * as shared_moments from "../shared/moments.js";
+import type * as shared_numberWords from "../shared/numberWords.js";
 import type * as shared_players from "../shared/players.js";
 import type * as shared_product from "../shared/product.js";
 import type * as shared_readOnce from "../shared/readOnce.js";
@@ -347,6 +348,7 @@ declare const fullApi: ApiFromModules<{
   "shared/groupedBy": typeof shared_groupedBy;
   "shared/leagueAccess": typeof shared_leagueAccess;
   "shared/moments": typeof shared_moments;
+  "shared/numberWords": typeof shared_numberWords;
   "shared/players": typeof shared_players;
   "shared/product": typeof shared_product;
   "shared/readOnce": typeof shared_readOnce;

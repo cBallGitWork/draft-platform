@@ -10,7 +10,7 @@ import { ClubShort } from "../premierLeague/ClubName";
 import type { PickedPlayer } from "./ComparePanel";
 import { statFigure } from "./figures";
 import type { ListedPlayer, PlayersSort, SortColumn } from "./seam";
-import { columns, compareLabel, noFigureWords, noPointsYetWords, noRoleFitYetWords, statLabel } from "./words";
+import { columns, compareLabel, figureWords, noFigureWords, noPointsYetWords, noRoleFitYetWords, statLabel } from "./words";
 
 /** The list's columns: the fixed ones, and "stat" for the shown stat's season total. */
 type Column = keyof typeof columns | "stat";
@@ -134,7 +134,7 @@ function PlayerCell({
           {noFigureWords}
         </td>
       ) : (
-        <td className={`${className} font-bold text-figure`}>{player.seasonPoints}</td>
+        <td className={`${className} font-bold text-figure`}>{figureWords(player.seasonPoints)}</td>
       );
     case "stat":
       return <td className={`${className} font-bold text-figure`}>{player.stat === null ? noFigureWords : statFigure(player.stat)}</td>;

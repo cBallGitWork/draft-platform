@@ -17,6 +17,7 @@ import {
   BENCH_TITLE,
   byeWords,
   columns,
+  figureWords,
   finalWords,
   gameweekWords,
   leagueAverageWords,
@@ -25,10 +26,10 @@ import {
   MATCHUP_TITLE,
   nextGlyph,
   nextLabel,
+  noCommentaryWords,
   noFigureWords,
   noGamesWords,
   noGameWords,
-  noCommentaryWords,
   noRulesWords,
   notBegunWords,
   notCountingLabel,
@@ -213,7 +214,7 @@ function SlotRow({ slot }: { slot: MatchupSlot }) {
         )}
       </td>
       <td className={`px-2 text-right ${counts && points !== null ? "font-bold text-figure" : "text-muted"}`}>
-        {points ?? noFigureWords}
+        {points === null ? noFigureWords : figureWords(points)}
         {!counts && <span className="sr-only"> {notCountingLabel}</span>}
       </td>
     </tr>

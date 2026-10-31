@@ -72,7 +72,7 @@ test("under the first set, the goal, the assist and the card show what they move
   // Only the lineups' men's lines carry points, in the match's own order.
   expect(lines.filter((line) => line.includes(" | ") || /GOAL|YELLOW/.test(line))).toEqual([
     "~60' N.Williams: 60 minutes | +1",
-    "54' YELLOW Murillo | -1",
+    "54' YELLOW Murillo | \u22121",
     "51' YELLOW Diop",
     "41' GOAL Enciso",
     "13' GOAL N.Williams, assist Muñoz | N.Williams +4, Muñoz +3",
@@ -82,7 +82,7 @@ test("under the first set, the goal, the assist and the card show what they move
 test("under another set the same lines move other points, and the big chances show a threshold line the first set has none for", () => {
   const lines = shown(OTHER_SET);
   expect(lines).toContain("13' GOAL N.Williams, assist Muñoz | N.Williams +7, Muñoz +1");
-  expect(lines).toContain("54' YELLOW Murillo | -2");
+  expect(lines).toContain("54' YELLOW Murillo | \u22122");
   expect(lines).toContain("~58' N.Williams: 2 big chance created | +1");
   expect(shown(FIRST_SCORING as ScoringSet).filter((line) => line.includes("big chance"))).toEqual([]);
 });

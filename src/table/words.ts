@@ -2,9 +2,9 @@
 
 import { andListWords } from "../../convex/shared/moments";
 import { menuWords } from "../frame/words";
-import { gameweekWords } from "../shared/words";
+import { gameweekWords, signedWords } from "../shared/words";
 
-export { gameweekWords, scoreWords, versusWords } from "../shared/words";
+export { figureWords, gameweekWords, scoreWords, versusWords } from "../shared/words";
 
 export const TABLE_PAGE_TITLE = "Table and fixtures";
 export const TABLE_TITLE = menuWords.table;
@@ -51,5 +51,5 @@ export const totalPointsWords = "The league plays total points, so it has no mat
 export const tooFewTeamsWords = "Fixtures are drawn once the league has two teams.";
 export const noGameweeksWords = "The league plays no gameweeks, so it has no fixtures.";
 
-/** Points for less against, signed: "+4.5", "-3", "0". */
-export const differenceWords = (difference: number) => (difference > 0 ? `+${difference}` : String(difference));
+/** Points for less against, signed: "+4.5", "−3", "0". */
+export const differenceWords = signedWords;

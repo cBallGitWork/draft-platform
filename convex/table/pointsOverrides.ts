@@ -8,6 +8,7 @@ import { inTenths } from "../scoring/values";
 import { fixtureByCode } from "../shared/fixtures";
 import { refuse, refusals, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
+import { figureWords } from "../shared/numberWords";
 import { typedText } from "../shared/typedText";
 import { statusOf } from "../stats/matchStats";
 import { rescoreGameweek } from "./finalScores";
@@ -35,7 +36,7 @@ export const overrideRefusals = {
   notInMatch: (name: string) => `${name} wasn't in that match.`,
   notPoints: "Points are a number, kept to a tenth.",
   notWhole: "The scoring counts whole points only.",
-  outOfRange: `An override is from -${OVERRIDE_POINTS_MOST} to ${OVERRIDE_POINTS_MOST} points.`,
+  outOfRange: `An override is from ${figureWords(-OVERRIDE_POINTS_MOST)} to ${OVERRIDE_POINTS_MOST} points.`,
   blankReason: "Say why: the whole league is told.",
   reasonTooLong: `A reason is up to ${OVERRIDE_REASON_MAX} characters.`,
 } as const;
