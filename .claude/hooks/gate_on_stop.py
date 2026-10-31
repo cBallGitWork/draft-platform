@@ -6,7 +6,8 @@ builder in .claude/worktrees/ is judged on its own worktree), else of CLAUDE_PRO
 the folder it runs in; one with no git or no package.json has no gate, so it says nothing. While
 the watched paths there have uncommitted changes, it runs `npm run verify` there (package.json's
 verify script: the install check, tests, typecheck, the recorded-payload check, the tests-kept
-check, the spec-ID check and the hook checks); on failure, it blocks the stop and hands Claude the end of the output.
+check, the spec-ID check and the hook checks); on failure, it blocks the stop and hands Claude
+the end of the output.
 Respects `stop_hook_active`, so it blocks once and never loops. If git status fails, the gate's
 program can't start or times out, an override (below) can't be read, or the payload can't be read
 (hook_payload.py), it exits 1 with one line on stderr saying what failed: Claude Code shows it,
