@@ -26,7 +26,8 @@ export const MEN: MatchMan[] = [
   man(1, "Raya", "home", { position: "GK", ownerTeamName: "Team 1", points: 2 }),
   man(2, "Saka", "home", { ownerTeamName: "Team 2", points: 11 }),
   man(3, "Rice", "home", { ownerTeamName: "Team 1", points: null }),
-  man(4, "Ødegaard", "home", { started: false, played: true }),
+  // A free agent: his points count for no team (#771).
+  man(4, "Ødegaard", "home", { started: false, played: true, points: 3, counts: false }),
   man(5, "Arrizabalaga", "home", { position: "GK", started: false, played: false, ownerTeamName: "Team 1", points: 0, counts: false }),
   man(6, "Palmer", "away", { ownerTeamName: "Team 2", points: 7 }),
 ];

@@ -21,14 +21,18 @@ import { matchRecordsOf } from "../gameweekScorer/heldMatches";
 import { inMatchOf, leagueReads, pointsInMatch } from "../gameweekScorer/teamGameweek";
 import { matchOwnersOf } from "./matchOwners";
 import { bySheetOrder } from "./sheetOrder";
+import { unownedPointsOf, type UnownedPoints } from "./unownedPoints";
 
 // One real Premier League match (#45; spec/10, The match page): its score and clock, both clubs'
-// men as the team sheets named them, starters and substitutes, each man owned in the league with
-// his team and his live points, and the match's commentary, newest first, its goals, assists, cards
-// and thresholds priced for the league's men, and "Commentary delayed" while the stream falls
-// behind. A man's points are his slot's in the lineup that holds him, worked out by the league's
+// men as the team sheets named them, starters and substitutes, each with his live points and, for
+// a man owned in the league, his team, and the match's commentary, newest first, its goals,
+// assists, cards and thresholds priced for the league's men, and "Commentary delayed" while the
+// stream falls behind. A man's points are his slot's in the lineup that holds him, worked out by the league's
 // gameweek scorer (gameweekScores.ts) as the matchup and the table work them, so the three never
 // disagree; only once the league's gameweek has begun, as the matchup shows lineups only then.
+// A man in no lineup at the deadline still shows his points, as his card prices them (cardPoints:
+// his best position, no role), counted for no team: "Just because they aren't a team doesn't mean
+// they don't get points" (Craig, 31 Oct 2026; #771).
 //
 // The men come from the match's records, which the live poller writes from kickoff (#28); before
 // any, from the team sheets it reads in the hour before kickoff (football/matchTeamSheets.ts). The
@@ -54,10 +58,12 @@ const matchMan = v.object({
   /** The league's team his points are for (matchOwners.ts); null for a man no team holds. */
   ownerTeamName: v.union(v.string(), v.null()),
   /** His points in this match from his slot in the lineup that holds him, which once the gameweek
-   *  has begun is his team's at the deadline, not always his owner's now; null ("—") for a man in no
-   *  lineup, before the gameweek begins, or while his record hasn't arrived. */
+   *  has begun is his team's at the deadline, not always his owner's now; for a man in no lineup,
+   *  as his card prices him (cardPoints). Null ("—") before the gameweek begins, or while his
+   *  record hasn't arrived. */
   points: v.union(v.number(), v.null()),
-  /** Whether those points count: false for a bench man who didn't come on, as the matchup greys. */
+  /** Whether those points count: false for a bench man who didn't come on, as the matchup greys,
+   *  and for a man in no lineup, whose points count for no team. */
   counts: v.boolean(),
 });
 export type MatchMan = Infer<typeof matchMan>;
@@ -103,7 +109,7 @@ export const ofMatch = query({
       home: clubOf(await clubByCode(ctx, fixture.homeClubCode)),
       away: clubOf(await clubByCode(ctx, fixture.awayClubCode)),
       score: held === null ? null : scoreOnly(held),
-      men: await menOf(ctx, fixture, named, owners, priced),
+      men: await menOf(ctx, fixture, named, owners, priced, await unownedPointsOf(ctx, leagueId, fixtureCode, records, owners, priced.set)),
       pointsProblem: priced.problem,
       teamStats: teamStats === null ? null : { home: teamStats.home, away: teamStats.away },
       commentary: await commentaryOf(ctx, fixture, priced),
@@ -187,16 +193,19 @@ async function menOf(
   named: readonly NamedMan[],
   owners: Map<PlayerCode, Doc<"teams">>,
   { slots }: Priced,
+  unownedPoints: UnownedPoints,
 ): Promise<MatchMan[]> {
   const positionsOfNow = await positionsNow(ctx);
   const men = await Promise.all(
     named.map(async ({ playerCode, started, played }) => {
       const player = await heldPlayer(ctx, fixture.code, playerCode);
-      const slot = slots.get(playerCode);
+      const positions = await positionsOfNow(playerCode);
+      const owned = owners.has(playerCode);
+      const slot = owned ? slots.get(playerCode) : { points: unownedPoints(playerCode, positions), counts: false };
       return {
         playerCode,
         name: player.name,
-        position: (await positionsOfNow(playerCode))[0] ?? null,
+        position: positions[0] ?? null,
         side: player.clubCode === fixture.homeClubCode ? ("home" as const) : player.clubCode === fixture.awayClubCode ? ("away" as const) : null,
         started,
         played,
