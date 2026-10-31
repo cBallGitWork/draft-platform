@@ -127,7 +127,8 @@ Avoid column.
 
 ## Against the glossary
 
-Where the UK usage above differs from a word Craig chose:
+Where the UK usage above differs from a word Craig chose. Asked on 31 Oct 2026 whether to switch
+to "head-to-head" and "line-up", he kept both: "Match up / Lineup".
 
 - **lineup**: the glossary's term; UK football and FPL write "line-up".
 - **matchup**: the glossary's term (and "match" avoided for it); UK draft copy says fixture or
