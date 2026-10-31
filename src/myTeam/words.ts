@@ -4,7 +4,7 @@ import { menuWords } from "../frame/words";
 import { failedWords } from "../shared/words";
 import type { TeamTransactions } from "./seam";
 
-export { figureWords, liveWords, noFigureWords, versusWords, whenWords } from "../shared/words";
+export { figureWords, liveWords, noFigureWords, shortThenLongName, versusWords, whenWords } from "../shared/words";
 
 /** Said on any tab to someone who runs no team in the league, such as a commissioner who doesn't
  *  play. */
@@ -71,6 +71,8 @@ export const lastGameweekLong = (gameweek: number) => `Points in gameweek ${game
 /** Where his club plays its next match, after the opponent's code. */
 export const homeWords = "(H)";
 export const awayWords = "(A)";
+/** The next match as its cell shows it: "CHE (H)". */
+export const nextFixtureShort = (opponentCode: string, home: boolean) => `${opponentCode} ${home ? homeWords : awayWords}`;
 /** The next match's hover: "Chelsea, at home, Sat 5 Sep, 15:00". */
 export const nextFixtureLong = (opponent: string, home: boolean, kickoff: string) => `${opponent}, ${home ? "at home" : "away"}, ${kickoff}`;
 export const noNextFixtureWords = "No match with a kickoff time yet.";
