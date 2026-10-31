@@ -145,7 +145,7 @@ test("a full-time line that reaches the stream a tick after full time is read an
   expect(await heldCommentary(t)).toEqual(stored);
 });
 
-test("a full-time line that never comes is waited for a while after full time, then the match is no longer read", async () => {
+test("a full-time line that never comes is read for until FULL_TIME_LINE_WAIT_MS after full time, then the match is no longer read", async () => {
   const t = await withHullEverton();
   const fullTime = stageTime(REPLAY_MINUTES + 1);
   await tickWithStream(t, fullTime, recordedGw6(), streamBeforeMatchEnds());
