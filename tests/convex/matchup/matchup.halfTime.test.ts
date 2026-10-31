@@ -2,12 +2,13 @@ import { expect, test } from "vitest";
 import { annsScoredGame, GAMEWEEK, HULL_SCORER, scoreRead, scoresLeague, slotOf } from "../../support/convex/gameweekScores.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 
-// The matchup at half-time: it sends a playing man's match as at half-time, so the matchup says
-// "HT" as the Premier League's pages do (#781), and live again once the second half starts. Ann fields Hull.
+// The matchup at half-time (#781): it sends a playing man's match with its state, so the screen
+// says "HT" as the Premier League's pages do, and live again in the second half. Ann fields Hull.
 
-/** The first half's stoppage time, two minutes in, where the clock stopped for half-time. */
+/** Where the clock stopped for half-time: two minutes into the first half's stoppage time. */
 const HALF_TIME_LABEL = "45+2'00";
 const HALF_TIME_MINUTES = 47;
+/** The second half's first minute, as FPL counts it. */
 const SECOND_HALF_MINUTE = 46;
 
 test("at half-time his match is sent as at half-time, with the clock it stopped at, then live again", async () => {
