@@ -16,7 +16,7 @@ export const newTeamWords = "A new team";
 export const noTeamWords = "The league is full, with no vacated team to hand on.";
 export const forTeamWords = (teamName: string | null) => `For ${teamName ?? aNewTeamWords}`;
 
-export const inviteHint = `They join when they sign in, with no approval. An invite lasts ${INVITE_DAYS} days.`;
+export const inviteHint = `No approval needed. An invite lasts ${INVITE_DAYS} days.`;
 
 const dayFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short" });
 /** A day, as the page shows when an invite ends or a request was made: "Tue 27 Oct". */
@@ -102,7 +102,7 @@ export const teamsWords = {
 export const noInvitesWords = "No invites yet.";
 
 /** The sign-in page, opened from an invite link while signed out. */
-export const signInToJoinWords = "Sign in with your email, and the link brings you back here to ask to join the league.";
+export const signInToJoinWords = "Sign in to ask to join.";
 
 export const joinPageWords = {
   title: "Join a league",

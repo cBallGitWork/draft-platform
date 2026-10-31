@@ -42,7 +42,7 @@ export const nothingEarnedWords = "No category earned him points.";
 
 /** Last season's one line (spec/12): not held yet. */
 export const LAST_SEASON_TITLE = "Last season";
-export const lastSeasonNotHeldWords = "Not held yet.";
+export const lastSeasonNotHeldWords = "Only this season is held.";
 
 /** His club's next fixtures. */
 export const NEXT_FIXTURES_TITLE = "Next fixtures";

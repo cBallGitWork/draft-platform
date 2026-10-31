@@ -23,6 +23,7 @@ import {
   adminWords,
   commissionerLine,
   leagueColumns,
+  invitedHereWords,
   leaguesCutWords,
   LEAGUES_TITLE,
   NEW_LEAGUE_TITLE,
@@ -81,6 +82,7 @@ export function LeaguesPage({
           <>
             <p>{notInALeagueWords(email)}</p>
             <EndedInviteLine useEndedInvite={useEndedInvite} />
+            {!isAdmin && <p className="text-muted">{invitedHereWords}</p>}
           </>
         ) : (
           <LeagueTable leagues={leagues} actions={actions} />

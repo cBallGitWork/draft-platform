@@ -17,7 +17,7 @@ export const SCORE_LABEL = "Score";
 export const loadingWords = "Loading the matchup…";
 export const noRulesWords = "This league was made before leagues had rules, so it has no matchups.";
 export const totalPointsWords = "The league plays total points, so it has no head-to-heads.";
-export const noTeamWords = "You run no team in this league, so you have no matchup. Any team's is open from the table's fixtures.";
+export const noTeamWords = "You run no team in this league.";
 export const noGamesWords = (teamName: string) => `${teamName} has no head-to-heads: fixtures are drawn once the league has two teams.`;
 export const noGameWords = (teamName: string, gameweek: number) => `${teamName} plays no head-to-head in ${gameweekWords(gameweek)}.`;
 export const byeWords = (teamName: string) => `${teamName} has a bye this gameweek.`;
@@ -25,7 +25,7 @@ export const byeWords = (teamName: string) => `${teamName} has a bye this gamewe
 export const notBegunWords = (deadline: number | null) =>
   `Lineups show at the deadline${deadline === null ? "" : `, ${whenWords(deadline)}`}.`;
 export const unscoredWords = (reason: string) => `This matchup can't be scored, so it counts for nothing in the table: ${reason}.`;
-export const averageWords = "The league's average this gameweek, every team counted once.";
+export const averageWords = "Every team counted once.";
 
 /** Under the score: live and moving, or settled. */
 export { provisionalWords } from "../shared/words";
