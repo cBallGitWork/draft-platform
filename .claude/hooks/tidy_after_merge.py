@@ -6,7 +6,8 @@ branch on merge"), but nothing deleted the copy here, so 842 branches and 70 wor
 
 It deletes only what is safe: the branch's tip must be the pull request's head or behind it (every
 commit on it went into the merge; gh pr update-branch gives the pull request a merge commit the
-branch here never gets, so the head is fetched from origin to check), and the worktree must have
+branch here never gets, so the head is fetched from origin to check; a checkout with no remote
+called origin keeps such a branch, and says why), and the worktree must have
 nothing uncommitted and no ignored file but build output (git worktree remove deletes ignored
 files: a .env.local would go). The main checkout and the folder the merge ran in are never
 removed; another session still open in a clean worktree isn't seen, and loses its folder once its
@@ -29,7 +30,10 @@ from stdin_reading import UnreadableStdin
 
 MERGED = "MERGED"
 BRANCH_REF = "refs/heads/"
-RUN_TIMEOUT_SECONDS = 13  # each git or gh call: nine at most, inside the 120 settings.json gives the hook
+REMOTE = "origin"  # where GitHub's copy of the pull request's head is fetched from
+PULL_HEAD = "pull/{number}/head"  # GitHub's ref for a pull request's head commit
+# each git or gh call: nine at most per merge, inside the 120 settings.json gives the hook
+RUN_TIMEOUT_SECONDS = 13
 NOT_ANCESTOR = 1  # git merge-base --is-ancestor's exit when the first commit isn't behind the second
 IGNORED = "!! "  # git status --porcelain --ignored's mark for an ignored path
 # ignored paths a build or test run makes again, so a worktree holding only these may go
@@ -60,7 +64,7 @@ def why_not_in_head(number, tip, head, folder):
     stays. The head is fetched first, since GitHub may have made it."""
     if tip == head:
         return None
-    ok, said = run(folder, "git", "fetch", "--quiet", "origin", f"pull/{number}/head")
+    ok, said = run(folder, "git", "fetch", "--quiet", "--no-write-fetch-head", REMOTE, PULL_HEAD.format(number=number))
     if not ok:
         return f"its tip isn't the pull request's head, and fetching that head to check failed ({said})."
     code, said = call(folder, "git", "merge-base", "--is-ancestor", tip, head)

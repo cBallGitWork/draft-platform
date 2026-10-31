@@ -55,9 +55,12 @@ git -C "$github" switch -q updated && git -C "$github" "${as_tester[@]}" merge -
 git -C "$github" push -q -f origin "HEAD:$pull_head" && updated_head=$(git -C "$github" rev-parse HEAD)
 git -C "$repo" cat-file -e "$updated_head" 2>/dev/null && fail "tidy_after_merge.py's checks: the updated head was already here"
 pr updated MERGED "$updated_head"
+refs_before=$(git -C "$repo" for-each-ref --format='%(refname)' | grep -vx refs/heads/updated)
 says "its local branch updated and any worktree it was in were removed" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
 has_branch updated && fail "tidy_after_merge.py: a branch behind its updated pull request was kept"
 [ -d "$tmp/wt-updated" ] && fail "tidy_after_merge.py: a branch behind its updated pull request kept its worktree"
+[ "$(git -C "$repo" for-each-ref --format='%(refname)')" = "$refs_before" ] || fail "tidy_after_merge.py: the fetch left refs behind"
+[ -e "$repo/.git/FETCH_HEAD" ] && fail "tidy_after_merge.py: the fetch wrote FETCH_HEAD"
 
 # a head gh names that the fetch didn't bring keeps the branch, and says so
 absent_head=0123456789abcdef0123456789abcdef01234567  # a commit no repo here holds
