@@ -109,7 +109,8 @@ says "its worktree holds app/.env.local" tidy_after_merge.py "$(bash_in "$repo" 
 # builder that finished may be resumed), and one a running builder has locked
 built busy && pr busy && mkdir "$tmp/wt-busy/sub"
 (cd "$tmp/wt-busy/sub" && exec sleep 60) & sleeper=$!
-for _ in $(seq 100); do lsof -a -p "$sleeper" -d cwd -Fn | grep -q wt-busy/sub && break; done
+for _ in $(seq 100); do lsof -a -p "$sleeper" -d cwd -Fn | grep -q wt-busy/sub && break; sleep 0.05; done
+lsof -a -p "$sleeper" -d cwd -Fn | grep -q wt-busy/sub || fail "tidy_after_merge.py's checks: the sleeper never worked in wt-busy/sub"
 says "its worktree is in use: a running process works in it" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
 kill "$sleeper" && wait "$sleeper" 2>/dev/null
 [ -d "$tmp/wt-busy" ] || fail "tidy_after_merge.py: removed a worktree a process works in"

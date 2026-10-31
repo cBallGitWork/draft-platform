@@ -14,7 +14,8 @@ the merge ran in are never removed, and nor is a worktree in use (#929): one a r
 holds (Claude Code locks an agent's worktree while it runs, and git worktree remove refuses a
 locked one), one any process has as its working directory, or one whose git state changed in the
 last RECENT_MINUTES (a builder that finished may be resumed; between commands no process sits in
-its folder). Anything kept is said, with why; so is a pull request gh can't read.
+its folder). A worktree kept is not tried again on a later merge. Anything kept is said, with why;
+so is a pull request gh can't read.
 
 Then it moves the main checkout to origin/main when it is detached and behind: the hooks run from
 its .claude/hooks/, so a merged hook fix waited until someone moved it by hand (31 Oct 2026: still
@@ -59,7 +60,7 @@ THROWAWAY = {
     "node_modules", "dist", "coverage", "test-results", "playwright-report", "__pycache__", ".DS_Store", ".shots",
 }
 # every process's working directory, one "n<path>" line each (lsof's +D walks the whole tree: slow)
-CWDS = ("lsof", "-a", "-d", "cwd", "-Fn")
+CWDS = ("lsof", "-w", "-a", "-d", "cwd", "-Fn")
 CWD_LINE = "n"
 # a worktree whose git state (its index, HEAD or HEAD's log) changed this recently may be a
 # builder's that finished and will be resumed, so it stays (#929)
@@ -136,10 +137,14 @@ def inside(path, folder):
 def why_in_use(path, folder):
     """None when no process has a folder inside the worktree at path as its working directory and its
     git state hasn't changed in the last RECENT_MINUTES, else why it stays."""
-    ok, cwds = run(folder, *CWDS)
-    if not ok:
-        return f"which processes work in it couldn't be checked ({cwds})"
-    if any(line.startswith(CWD_LINE) and inside(path, line[len(CWD_LINE):]) for line in cwds.splitlines()):
+    try:  # not run(): lsof exits 1 when some process can't be read (another user's), yet lists the rest
+        done = subprocess.run(list(CWDS), cwd=folder, capture_output=True, text=True, timeout=RUN_TIMEOUT_SECONDS)
+    except (OSError, subprocess.SubprocessError) as error:
+        return f"which processes work in it couldn't be checked ({error})"
+    if not done.stdout:
+        said = done.stderr.strip().splitlines() or [f"exit {done.returncode}"]
+        return f"which processes work in it couldn't be checked ({said[0]})"
+    if any(line.startswith(CWD_LINE) and inside(path, line[len(CWD_LINE):]) for line in done.stdout.splitlines()):
         return "a running process works in it"
     ok, git_dir = run(path, "git", "rev-parse", "--absolute-git-dir")
     if not ok:
