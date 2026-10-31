@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
 import { CHECK_ENV } from "../live/releaseCheck";
-import { DEPLOY_ARGS, DEPLOY_KEY_SETTING, VERCEL_PRODUCTION, refusal } from "../../scripts/release.mjs";
+import { DEPLOY_ARGS, DEPLOY_KEY_SETTING, VERCEL_ENV, VERCEL_PRODUCTION, refusal } from "../../scripts/release.mjs";
 import { DEPLOY_KEY } from "../support/scripts/liveSetup.harness.mjs";
 
 const REPO = join(import.meta.dirname, "../..");
@@ -34,22 +34,24 @@ test("Vercel skips no build itself: an ignore command once skipped production's 
 });
 
 test("only a production build with the deploy key may release", () => {
-  expect(refusal({ VERCEL_ENV: VERCEL_PRODUCTION, ...KEY })).toBeNull();
+  // Vercel's own name for the variable, an outside fact the constant must keep.
+  expect(VERCEL_ENV).toBe("VERCEL_ENV");
+  expect(refusal({ [VERCEL_ENV]: VERCEL_PRODUCTION, ...KEY })).toBeNull();
   expect(refusal(KEY)).toBeNull();
-  expect(refusal({ VERCEL_ENV: PREVIEW, ...KEY })).toContain(`this is a ${PREVIEW} build (VERCEL_ENV=${PREVIEW})`);
-  expect(refusal({ VERCEL_ENV: "development", ...KEY })).toContain("only a production build deploys");
-  expect(refusal({ VERCEL_ENV: VERCEL_PRODUCTION })).toContain(`${DEPLOY_KEY_SETTING} isn't set`);
-  expect(refusal({ VERCEL_ENV: VERCEL_PRODUCTION, [DEPLOY_KEY_SETTING]: "" })).toContain(`${DEPLOY_KEY_SETTING} isn't set`);
+  expect(refusal({ [VERCEL_ENV]: PREVIEW, ...KEY })).toContain(`this is a ${PREVIEW} build (${VERCEL_ENV}=${PREVIEW})`);
+  expect(refusal({ [VERCEL_ENV]: "development", ...KEY })).toContain(`only a ${VERCEL_PRODUCTION} build deploys`);
+  expect(refusal({ [VERCEL_ENV]: VERCEL_PRODUCTION })).toContain(`${DEPLOY_KEY_SETTING} isn't set`);
+  expect(refusal({ [VERCEL_ENV]: VERCEL_PRODUCTION, [DEPLOY_KEY_SETTING]: "" })).toContain(`${DEPLOY_KEY_SETTING} isn't set`);
 });
 
 test("a preview build, even one with the key, fails before it reaches Convex, saying why in the log", () => {
-  const preview = releaseIn({ VERCEL_ENV: PREVIEW, ...KEY });
+  const preview = releaseIn({ [VERCEL_ENV]: PREVIEW, ...KEY });
   expect(preview.status).toBe(1);
-  expect(preview.said).toBe(`${refusal({ VERCEL_ENV: PREVIEW })}\n`);
+  expect(preview.said).toBe(`${refusal({ [VERCEL_ENV]: PREVIEW })}\n`);
 });
 
 test("a production build with no deploy key fails, saying why in the log", () => {
-  const keyless = releaseIn({ VERCEL_ENV: VERCEL_PRODUCTION });
+  const keyless = releaseIn({ [VERCEL_ENV]: VERCEL_PRODUCTION });
   expect(keyless.status).toBe(1);
   expect(keyless.said).toContain(`${DEPLOY_KEY_SETTING} isn't set, so this build can't reach the live deployment`);
 });

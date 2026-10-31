@@ -57,6 +57,9 @@ export interface SlotPoints {
   playerCode: PlayerCode;
   /** The cell he is priced at: his slot, the one he came on in, or his bench cell. */
   cell: Cell;
+  /** The role he is priced in at `cell`: the one he was given, else the slot's first (spec/05
+   *  Roles). None at a cell off the pitch, which has no roles. */
+  role?: string;
   /** Whether his points count in the total: a starter not subbed off, or a sub who came on. A
    *  bench player who didn't is shown greyed (spec/14, On screen); so is a starter subbed off. */
   counts: boolean;
@@ -135,6 +138,7 @@ function slotPoints(input: TeamPointsInput, playerCode: PlayerCode, cell: Cell, 
   return {
     playerCode,
     cell,
+    role: playing,
     counts,
     matches,
     matchesCounted: countedMatches(matches, input.doubleGameweekRule),

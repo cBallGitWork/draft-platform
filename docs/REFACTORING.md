@@ -116,11 +116,17 @@ heading's exact text, so renaming it means changing the skill's `sed` line too.
 ## Proving nothing changed
 
 - The Vitest suite and the type check pass before and after.
-- Scoring: the whole-match golden in `tests/convex/scoring/scoring.test.ts` scores every recorded
-  line of Hull v Everton, from both feeds, in all six areas, and must match
-  `tests/support/golden/hull-everton.scores.json` before and after, and
+- Scoring: the whole-gameweek golden is the proof any refactor near scoring owes (the scorer, the
+  matchup, the table, the stored scores). `tests/convex/endToEnd/gameweekGolden.test.ts` plays
+  recorded gameweek 6 through a league of four, under the site's first scoring set, to the lock,
+  and every fielded player's points and every head-to-head result must match
+  `tests/support/golden/gameweek6.scores.json` before and after. Beside it, the whole-match golden
+  in `tests/convex/scoring/scoring.test.ts` scores every recorded line of Hull v Everton, from both
+  feeds, in all six areas, under a test-only set, and must match
+  `tests/support/golden/hull-everton.scores.json`; and
   `tests/convex/endToEnd/miniBetaGameweek.test.ts`, which checks gameweek 6's team points against
-  points worked out man by man, passes before and after.
+  points worked out man by man, passes. A refactor/ branch that changes either golden is not a
+  refactor.
 - The Convex schema is unchanged: `tests/convex/schema.contract.test.ts` passes without `-u`; a
   refactor/ branch that changes `tests/support/golden/schema.json` is not a refactor.
 - A test that still passes with the fix deleted pins the wrong thing: delete it, run it, see.
