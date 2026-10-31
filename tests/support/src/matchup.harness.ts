@@ -44,6 +44,14 @@ type Slot = MatchupSlot;
 /** FPL's code for the match a made-up man plays in, unless his status names another. */
 export const SLOT_MATCH = 101;
 
+/** A man's match being played: its whole minutes and the Premier League's label, as the newest read gives them. */
+export const playing = (minute: number | null, clockLabel: string | null = null, fixtureCode = SLOT_MATCH): Slot["status"] => ({
+  kind: "playing",
+  fixtureCode,
+  minute,
+  clockLabel,
+});
+
 /** A man in a lineup, yet to play and counting unless `rest` says. */
 export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
   playerCode: [...name].reduce((code, letter) => code * 31 + letter.charCodeAt(0), 7),

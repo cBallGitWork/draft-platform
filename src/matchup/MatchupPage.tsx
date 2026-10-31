@@ -236,7 +236,7 @@ function statusText(status: MatchupSlot["status"]): string {
     case "yetToPlay":
       return statusWords.yetToPlay(status.kickoff);
     case "playing":
-      return statusWords.playing(status.minute);
+      return statusWords.playing(status.clockLabel, status.minute);
     case "finished":
       return statusWords.finished;
     case "noMatch":

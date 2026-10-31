@@ -8,7 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { MATCHUP_PATH, PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
-import { statusLabels, statusWords } from "../../../src/matchup/words";
+import { statusLabels } from "../../../src/matchup/words";
 import { matchPath } from "../../../src/premierLeague/paths";
 import {
   commentaryDelayedWords,
@@ -26,7 +26,7 @@ import {
   versusWords,
 } from "../../../src/premierLeague/words";
 import { FIXTURE, matchOf, openMatch } from "../../support/src/matchPage.harness";
-import { headToHead, slot, teamSide } from "../../support/src/matchup.harness";
+import { headToHead, playing, slot, teamSide } from "../../support/src/matchup.harness";
 import { ARSENAL, CHELSEA, plMatch } from "../../support/src/premierLeague.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
 
@@ -57,12 +57,12 @@ describe("reaching it", () => {
       matchup: {
         matchup: headToHead({
           kind: "scored",
-          team: teamSide("Team 1", [slot("Saka", { status: { kind: "playing", fixtureCode: FIXTURE, minute: 67 } })], []),
+          team: teamSide("Team 1", [slot("Saka", { status: playing(67, "67'12", FIXTURE) })], []),
           opponent: teamSide("Team 2", [], []),
         }),
       },
     });
-    await userEvent.click(await screen.findByRole("link", { name: `${statusLabels.playing} ${statusWords.playing(67)}` }));
+    await userEvent.click(await screen.findByRole("link", { name: `${statusLabels.playing} 67'` }));
 
     expect(await screen.findByRole("heading", { level: 1, name: MATCH_TITLE })).toBeTruthy();
     expect(app.path()).toBe(matchPath(FIXTURE));
