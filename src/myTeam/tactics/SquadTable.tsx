@@ -147,7 +147,7 @@ function SquadRow({
       <td className="px-2">
         {/* One the football sync doesn't hold has no card to open: his name is the error (#323). */}
         {player.unheld ? (
-          <span className="inline-flex min-h-tap items-center font-semibold text-event lg:min-h-0">{player.name}</span>
+          <span className="inline-flex min-h-tap max-w-error-name items-center font-semibold text-event lg:min-h-0 lg:max-w-none">{player.name}</span>
         ) : (
           <Link to={playerCardPath(leagueId, player.playerCode)} className="inline-flex min-h-tap items-center font-semibold lg:min-h-0">
             {player.name}
