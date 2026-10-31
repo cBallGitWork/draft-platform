@@ -6,9 +6,11 @@
 
 repo=$tmp/tidy && git init -q -b main "$repo"
 git -C "$repo" "${as_tester[@]}" commit -q --allow-empty -m "start"
-# a stand-in gh: gh pr view prints $FAKE_PR, or fails when it is unset
+# a stand-in gh: gh pr view notes its args in $GH_ARGS, then prints $FAKE_PR, or fails when it is unset
+export GH_ARGS=$tmp/gh-args
 mkdir "$tmp/bin" && cat > "$tmp/bin/gh" <<'EOF'
 #!/bin/bash
+printf '%s\n' "$*" > "$GH_ARGS"
 [ -n "${FAKE_PR:-}" ] || { echo "no pull requests found" >&2; exit 1; }
 printf '%s\n' "$FAKE_PR"
 EOF
@@ -41,6 +43,33 @@ has_branch extra || fail "tidy_after_merge.py: removed a branch with commits the
 built dirty && pr dirty && touch "$tmp/wt-dirty/new.txt"
 says "uncommitted changes" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
 [ -f "$tmp/wt-dirty/new.txt" ] || fail "tidy_after_merge.py: removed a worktree with uncommitted changes"
+
+# an ignored file a build doesn't make again (.env.local) keeps the worktree; build output doesn't
+printf '.env*\nnode_modules/\n' > "$repo/.gitignore"
+git -C "$repo" add .gitignore && git -C "$repo" "${as_tester[@]}" commit -q -m "ignore"
+built secret && pr secret && touch "$tmp/wt-secret/.env.local"
+says "its worktree holds .env.local" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
+[ -f "$tmp/wt-secret/.env.local" ] || fail "tidy_after_merge.py: removed a worktree holding .env.local"
+built rebuilt && pr rebuilt && mkdir "$tmp/wt-rebuilt/node_modules" && touch "$tmp/wt-rebuilt/node_modules/x"
+says "were removed" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
+[ -d "$tmp/wt-rebuilt" ] && fail "tidy_after_merge.py: build output alone kept a worktree"
+
+# a worktree whose folder is already gone doesn't hold the branch for good
+built vanished && pr vanished && rm -rf "$tmp/wt-vanished"
+says "were removed" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
+has_branch vanished && fail "tidy_after_merge.py: a gone worktree kept its branch"
+
+# gh pr merge's other ways of naming the pull request reach gh pr view: --repo, a url, none
+views=(  # merge command|the gh pr view it makes
+  'gh pr merge --repo o/r 7 --squash|pr view --repo o/r 7 --json number,state,headRefName,headRefOid'
+  'gh pr merge https://github.com/o/r/pull/7|pr view https://github.com/o/r/pull/7 --json number,state,headRefName,headRefOid'
+  'gh pr merge --squash|pr view --json number,state,headRefName,headRefOid'
+)
+for row in "${views[@]}"; do
+  built "by-${#row}" && pr "by-${#row}"
+  says "were removed" tidy_after_merge.py "$(bash_in "$repo" "${row%%|*}")"
+  [ "$(cat "$GH_ARGS")" = "${row#*|}" ] || fail "tidy_after_merge.py: ${row%%|*} asked gh: $(cat "$GH_ARGS")"
+done
 
 # the folder the merge ran in stays, and so does the main checkout
 built here && pr here

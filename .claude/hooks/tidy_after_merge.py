@@ -5,9 +5,12 @@ branch on merge"), but nothing deleted the copy here, so 842 branches and 70 wor
 (30 Oct 2026).
 
 It deletes only what is safe: the branch's tip must be the pull request's head (every commit on
-it went into the merge), and the worktree must have nothing uncommitted. The main checkout and the
-folder the merge ran in are never removed. Anything kept is said, with why; so is a pull request
-gh can't read. It runs after the command, so it never blocks one. Stdlib only, Python 3.9+.
+it went into the merge), and the worktree must have nothing uncommitted and no ignored file but
+build output (git worktree remove deletes ignored files: a .env.local would go). The main checkout
+and the folder the merge ran in are never removed; another session still open in a clean worktree
+isn't seen, and loses its folder once its pull request merges. Anything kept is said, with why; so
+is a pull request gh can't read. It runs after the command, so it never blocks one.
+Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -25,7 +28,10 @@ from stdin_reading import UnreadableStdin
 
 MERGED = "MERGED"
 BRANCH_REF = "refs/heads/"
-RUN_TIMEOUT_SECONDS = 15  # each git or gh call: six at most, inside the 120 settings.json gives the hook
+RUN_TIMEOUT_SECONDS = 15  # each git or gh call: seven at most, inside the 120 settings.json gives the hook
+IGNORED = "!! "  # git status --porcelain --ignored's mark for an ignored path
+# ignored paths a build or test run makes again, so a worktree holding only these may go
+REBUILT = {"node_modules", "dist", "coverage", "test-results", "playwright-report", "__pycache__", ".DS_Store"}
 
 
 def run(folder, *args):
@@ -69,6 +75,15 @@ def inside(path, folder):
     return folder == path or folder.startswith(path + os.sep)
 
 
+def unrebuilt(status):
+    """What removing the worktree would lose, from its git status --porcelain --ignored: its
+    uncommitted changes, and each ignored path that isn't build output."""
+    lines = status.splitlines()
+    ignored = [line[len(IGNORED):] for line in lines if line.startswith(IGNORED)]
+    held = ["uncommitted changes"] if len(ignored) < len(lines) else []
+    return held + [path for path in ignored if path.rstrip("/").split("/")[0] not in REBUILT]
+
+
 def tidy(number, branch, head, folder):
     """Removes the branch and its worktree when nothing would be lost; a line saying what happened,
     or None when there is no local branch (gh's --delete-branch, or it was never here)."""
@@ -78,17 +93,19 @@ def tidy(number, branch, head, folder):
     kept = f"#{number} merged; its branch {branch} was kept"
     if tip.strip() != head:
         return f"{kept}: it holds commits the pull request doesn't."
-    trees = worktrees(folder)
-    for i, (path, checked_out) in enumerate(trees):
+    run(folder, "git", "worktree", "prune")  # a worktree whose folder is gone would hold the branch for good
+    for i, (path, checked_out) in enumerate(worktrees(folder)):
         if checked_out != branch:
             continue
         if i == 0 or inside(path, folder):
             where = "the main checkout" if i == 0 else "the folder the merge ran in"
             return f"{kept}: it is checked out in {where} ({path}). Switch off it, then git branch -D {branch}."
-        ok, changes = run(path, "git", "status", "--porcelain")
-        if not ok or changes.strip():
-            why = f"git status failed ({changes})" if not ok else "its worktree has uncommitted changes"
-            return f"{kept}: {why} ({path})."
+        ok, status = run(path, "git", "status", "--porcelain", "--ignored")
+        if not ok:
+            return f"{kept}: git status failed ({status}) ({path})."
+        held = unrebuilt(status)
+        if held:
+            return f"{kept}: its worktree holds {', '.join(held)} ({path})."
         ok, said = run(folder, "git", "worktree", "remove", path)
         if not ok:
             return f"{kept}: git worktree remove {path} failed ({said})."
