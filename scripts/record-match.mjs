@@ -82,11 +82,17 @@ export async function poll(fixtureId, pauseMs = PAUSE_MS) {
 
 /** One read, asked as `getJson` asks: `{ body }`, or, for an answer that is not OK or not JSON, the
  *  error `getJson` would give with the answer's status, content type and text (cut at
- *  SAVED_TEXT_LIMIT), which `getJson` throws away. A fetch that fails outright throws. */
+ *  SAVED_TEXT_LIMIT, with `fullLength` then saying how long it was), which `getJson` throws away.
+ *  A fetch that fails outright throws. */
 async function readAnswer(url) {
   const res = await fetch(url, { headers: { "User-Agent": USER_AGENT }, signal: AbortSignal.timeout(TIMEOUT_MS) });
   const text = await res.text();
-  const answer = { status: res.status, contentType: res.headers.get("content-type"), text: text.slice(0, SAVED_TEXT_LIMIT) };
+  const answer = {
+    status: res.status,
+    contentType: res.headers.get("content-type"),
+    text: text.slice(0, SAVED_TEXT_LIMIT),
+    ...(text.length > SAVED_TEXT_LIMIT ? { fullLength: text.length } : {}),
+  };
   if (!res.ok) return { error: `${url} answered ${res.status}`, answer };
   try {
     return { body: JSON.parse(text) };

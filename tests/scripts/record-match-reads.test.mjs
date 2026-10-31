@@ -41,7 +41,12 @@ test(`a failed answer's text is kept up to ${SAVED_TEXT_LIMIT} characters`, asyn
 
   const [commentary] = (await poll(IPSWICH_FOREST, 0)).reads;
 
-  expect(commentary.answer).toEqual({ status: 503, contentType: "text/html", text: page.slice(0, SAVED_TEXT_LIMIT) });
+  expect(commentary.answer).toEqual({
+    status: 503,
+    contentType: "text/html",
+    text: page.slice(0, SAVED_TEXT_LIMIT),
+    fullLength: SAVED_TEXT_LIMIT + 1,
+  });
 });
 
 test("an OK answer that is not JSON is saved as a failed read, with what came back", async () => {
