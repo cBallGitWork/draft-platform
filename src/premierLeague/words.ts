@@ -1,9 +1,9 @@
 // What the Premier League section says, in one place for Craig to change in the pull request.
 
 import { LOCALE } from "../../convex/shared/moments";
-import { gameweekWords, liveWords, scoreWords, timeOfDayWords, versusWords } from "../shared/words";
+import { gameweekWords, scoreWords, timeOfDayWords, versusWords } from "../shared/words";
 
-export { gameweekWords, liveWords, scoreWords, versusWords } from "../shared/words";
+export { clockWords, gameweekWords, liveWords, scoreWords, versusWords } from "../shared/words";
 /** Goals for less against, signed: "+4", "-3", "0", as the league table signs its difference. */
 export { differenceWords as goalDifferenceWords } from "../table/words";
 
@@ -22,13 +22,6 @@ export const kickoffWords = timeOfDayWords;
 /** The heading over matches with no kickoff time: postponed, waiting for a new date. */
 export const noDateWords = "Date to be confirmed";
 
-/** The match clock while it is played: the Premier League's label to the minute ("45+3'"), or
- *  FPL's minutes, which carry no stoppage time; "Live" while a read has given neither. */
-export const clockWords = (clockLabel: string | null, minutes: number | null) => {
-  const label = clockLabel?.split("'")[0];
-  if (label) return `${label}'`;
-  return minutes === null ? liveWords : `${minutes}'`;
-};
 /** A match's score as the Premier League pages show it, "2–1", once it has kicked off and both
  *  goals are read; null before kickoff or while a goal is unread, where they show "v". */
 export const goalsWords = (score: { state: string; homeGoals: number | null; awayGoals: number | null } | null) =>

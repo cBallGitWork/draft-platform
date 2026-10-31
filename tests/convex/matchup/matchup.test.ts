@@ -44,15 +44,19 @@ import { expectRefused, silenceConsoleError } from "../../support/convex/test.ha
 const RECORDS = mergedHullEverton();
 /** An hour into the match, as the clock reads then. */
 const LIVE_MINUTE = 60;
+/** A minute into the second half's stoppage time, as the Premier League labels it and counts it. */
+const STOPPAGE_LABEL = "90+1'20";
+const STOPPAGE_MINUTES = 91;
 /** A club Hull meet again in a double gameweek: FPL's code for Arsenal. */
 const ARSENAL = 3;
 
-/** The match's score as a feed reads it: `state`, and the minute on its clock. */
-async function scoreRead({ t }: ScoresLeague, state: "live" | "fullTime", minutes: number, fixtureCode: number = HULL_EVERTON) {
+/** The match's score as a feed reads it: `state`, the minute on its clock, and the Premier League's
+ *  label for it, if any. */
+async function scoreRead({ t }: ScoresLeague, state: "live" | "fullTime", minutes: number, fixtureCode: number = HULL_EVERTON, clockLabel: string | null = null) {
   await t.mutation(internal.football.matchScores.upsertScores, {
     feed: "pl",
     readAt: Date.now(),
-    reads: [{ fixtureCode, state, homeGoals: 1, awayGoals: 2, minutes, clockLabel: null }],
+    reads: [{ fixtureCode, state, homeGoals: 1, awayGoals: 2, minutes, clockLabel }],
   });
 }
 
@@ -85,10 +89,16 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
   await liveRecords(league, beforeTheGoal);
   await scoreRead(league, "live", LIVE_MINUTE);
   const live = await annsScoredGame(league, GAMEWEEK);
-  expect(slotOf(live.team, HULL_SCORER).status).toEqual({ kind: "playing", fixtureCode: HULL_EVERTON, minute: LIVE_MINUTE });
+  expect(slotOf(live.team, HULL_SCORER).status).toEqual({ kind: "playing", fixtureCode: HULL_EVERTON, minute: LIVE_MINUTE, clockLabel: null });
   expect(live.team).toMatchObject({ points: sideTotal(beforeTheGoal, HULL_STARTERS), provisional: true });
   expect(lineupOf(live.team).bench.every((slot) => !slot.counts)).toBe(true);
   expect(slotOf(live.team, PHILLIPS)).toMatchObject({ counts: true, autoSub: null });
+
+  // In stoppage time, the Premier League's own label comes with the minute, for the clock the
+  // match page shows too (#563).
+  await scoreRead(league, "live", STOPPAGE_MINUTES, HULL_EVERTON, STOPPAGE_LABEL);
+  const stoppage = await annsScoredGame(league, GAMEWEEK);
+  expect(slotOf(stoppage.team, HULL_SCORER).status).toEqual({ kind: "playing", fixtureCode: HULL_EVERTON, minute: STOPPAGE_MINUTES, clockLabel: STOPPAGE_LABEL });
 
   // Full time: finished, Hull's keeper on for Phillips, who didn't play, and the goal counted.
   await fullTimeRecords(league);

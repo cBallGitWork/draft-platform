@@ -45,9 +45,10 @@ import {
   VIDIPRINTER_TITLE,
   unscoredWords,
 } from "../../../src/matchup/words";
+import { liveWords } from "../../../src/shared/words";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 import { homeFixture, quietHome } from "../../support/src/home.harness";
-import { headToHead, liveMatchup, slot, SLOT_MATCH, teamSide, type MatchupData } from "../../support/src/matchup.harness";
+import { headToHead, liveMatchup, playing, slot, SLOT_MATCH, teamSide, type MatchupData } from "../../support/src/matchup.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
 
 const openMatchup = (matchup: MatchupData = {}, path = MATCHUP_PATH) => openApp(path, manager, { matchup });
@@ -68,8 +69,8 @@ const stages = {
   }),
   live: headToHead({
     kind: "scored",
-    team: teamSide("Team 1", [slot("Phillips", { area: "goalkeeper", points: 0, status: { kind: "playing", fixtureCode: SLOT_MATCH, minute: 60 } }), slot("Coyle", { points: 2, status: { kind: "playing", fixtureCode: SLOT_MATCH, minute: 60 } })], [slot("Pandur", { area: "goalkeeper", points: 3, counts: false, status: { kind: "playing", fixtureCode: SLOT_MATCH, minute: 60 } })], 2),
-    opponent: teamSide("Team 2", [slot("Pickford", { area: "goalkeeper", points: 5, status: { kind: "playing", fixtureCode: SLOT_MATCH, minute: 60 } })], [], 5),
+    team: teamSide("Team 1", [slot("Phillips", { area: "goalkeeper", points: 0, status: playing(60) }), slot("Coyle", { points: 2, status: playing(60) })], [slot("Pandur", { area: "goalkeeper", points: 3, counts: false, status: playing(60) })], 2),
+    opponent: teamSide("Team 2", [slot("Pickford", { area: "goalkeeper", points: 5, status: playing(60) })], [], 5),
   }),
   fullTime: headToHead({
     kind: "scored",
@@ -162,6 +163,26 @@ describe("a replayed gameweek plays out on screen", () => {
     expect(await screen.findByText(finalWords)).toBeTruthy();
     expect(screen.getByRole("region", { name: SCORE_LABEL }).textContent).toContain(`Team 1${scoreWords(9, 7)}Team 2`);
     expect(screen.queryByText(provisionalWords)).toBeNull();
+  });
+});
+
+describe("his match's clock", () => {
+  // One clock for a live match, the match page's (spec/10, The matchup, as a live match; #563).
+  it("shows stoppage time from the Premier League's label, FPL's whole minutes without one, and Live before either", async () => {
+    openMatchup({
+      matchup: headToHead({
+        kind: "scored",
+        team: teamSide("Team 1", [slot("Phillips", { area: "goalkeeper", points: 0, status: playing(46, "45+1'30") }), slot("Coyle", { points: 2, status: playing(46) })], [slot("Pandur", { area: "goalkeeper", counts: false, status: playing(null) })]),
+        opponent: teamSide("Team 2", [], []),
+      }),
+    });
+    await screen.findByRole("table", { name: lineupLabel("Team 1") });
+    expect(lineupRows("Team 1")).toEqual([
+      `${AREA_CODES.goalkeeper}Phillips${statusLabels.playing} 45+1'0`,
+      `${AREA_CODES.midfield}Coyle${statusLabels.playing} 46'2`,
+      BENCH_TITLE,
+      `${AREA_CODES.goalkeeper}Pandur${statusLabels.playing} ${liveWords}— ${notCountingLabel}`,
+    ]);
   });
 });
 
