@@ -9,6 +9,7 @@ wiring=(  # event|matcher|script, the matcher empty where the entry has none
   'PreToolUse|Bash|guard_bash.py'
   'PreToolUse|mcp__github__.*|guard_github.py'
   'PostToolUse|Write|Edit|line_ceiling.py'
+  'PostToolUse|Bash|tidy_after_merge.py'
   'Stop||gate_on_stop.py'
   'SubagentStop||gate_on_stop.py'
 )
