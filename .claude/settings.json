@@ -55,7 +55,7 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/tidy_after_merge.py",
-            "timeout": 120
+            "timeout": 180
           }
         ]
       }
