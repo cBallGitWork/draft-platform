@@ -126,10 +126,13 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   read that finds it, so a match locks up to one interval after its true hour. A run with no
   match due reads no feed; one due reads about 40 Premier League URLs per match (its sheets,
   each named man's stats, and its team stats), and a locked match is read again hourly for a day
-  to catch late corrections. Finding the due matches (`matchStats.due`) reads each of the
-  season's matches kicked off so far and its status row, every run: about 760 reads a run by
-  May, some 110,000 a day (28 Oct 2026, counted by hand from `matchStats.due`). Measure it on
-  the Convex usage page before #199 bounds it.
+  to catch late corrections. Finding the due matches (`matchStatsDue.due`, #199) reads only
+  what can still be due: this season's status rows not yet locked, those locked within the day's
+  watch, each with its match, and the matches kicked off since the oldest one not yet read at
+  full time, or a week back (`matchStatsUnseenFrom`, one row), each with its status row: some
+  50 to 100 reads a run whenever in the season, where it was about 760 by May. It grows only
+  while a match stays unread: one the feed never calls full time holds the fixtures' read at
+  its kickoff until it is. The leagues' count changes none of it.
 - Live stats (#28): a cron every minute (`liveStatsSync.tick`) reads each match from kickoff
   until it is complete, or four hours on, and its team sheets alone in the hour before kickoff
   (#45); outside those windows it reads no feed and writes no row.

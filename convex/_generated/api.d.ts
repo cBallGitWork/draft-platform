@@ -182,6 +182,7 @@ import type * as stats_liveStats from "../stats/liveStats.js";
 import type * as stats_liveStatsSync from "../stats/liveStatsSync.js";
 import type * as stats_matchRecords from "../stats/matchRecords.js";
 import type * as stats_matchStats from "../stats/matchStats.js";
+import type * as stats_matchStatsDue from "../stats/matchStatsDue.js";
 import type * as stats_matchStatsSync from "../stats/matchStatsSync.js";
 import type * as stats_seasonStats from "../stats/seasonStats.js";
 import type * as stats_statTotals from "../stats/statTotals.js";
@@ -378,6 +379,7 @@ declare const fullApi: ApiFromModules<{
   "stats/liveStatsSync": typeof stats_liveStatsSync;
   "stats/matchRecords": typeof stats_matchRecords;
   "stats/matchStats": typeof stats_matchStats;
+  "stats/matchStatsDue": typeof stats_matchStatsDue;
   "stats/matchStatsSync": typeof stats_matchStatsSync;
   "stats/seasonStats": typeof stats_seasonStats;
   "stats/statTotals": typeof stats_statTotals;

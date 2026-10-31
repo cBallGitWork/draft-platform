@@ -2078,6 +2078,13 @@
             "state",
             "fullTimeAt"
           ]
+        },
+        {
+          "indexDescriptor": "by_state_and_lockedAt",
+          "fields": [
+            "state",
+            "lockedAt"
+          ]
         }
       ],
       "stagedDbIndexes": [],
@@ -2587,6 +2594,26 @@
             "optional": false
           },
           "triedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "matchStatsUnseenFrom",
+      "indexes": [],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "kickoff": {
             "fieldType": {
               "type": "number"
             },

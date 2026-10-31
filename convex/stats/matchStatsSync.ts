@@ -42,14 +42,16 @@ export const run = internalAction({
   handler: async (ctx, { trigger }) => {
     const ranAt = Date.now();
     let teamStats: SideMatchOutcome[] = [];
+    let unseenFrom: number | undefined;
     const outcome: Outcome = await outcomeOf("match stats sync failed", async () => {
-      const due: DueMatch[] = await ctx.runQuery(internal.stats.matchStats.due, { now: ranAt });
-      if (due.length === 0) return { ok: true as const, matches: [], waiting: [] };
-      const { sides, ...read } = await syncDue(ctx, due, ranAt, "wait");
+      const due = await ctx.runQuery(internal.stats.matchStatsDue.due, { now: ranAt });
+      unseenFrom = due.unseenFrom;
+      if (due.matches.length === 0) return { ok: true as const, matches: [], waiting: [] };
+      const { sides, ...read } = await syncDue(ctx, due.matches, ranAt, "wait");
       teamStats = sides.teamStats;
       return { ok: true as const, ...read };
     });
-    await ctx.runMutation(internal.stats.matchStats.record, { trigger, ranAt, outcome });
+    await ctx.runMutation(internal.stats.matchStats.record, { trigger, ranAt, outcome, unseenFrom });
     // Only its full-time reads read team stats, and the feed owes none between matches.
     await recordSideMatches(ctx, ranAt, { teamStats }, false);
     return null;
