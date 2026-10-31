@@ -3,7 +3,7 @@
 import type { Area } from "../../convex/lineup/pitch";
 import { leagueAverageWords } from "../table/words";
 import { LOCALE } from "../../convex/shared/moments";
-import { gameweekWords, versusWords, whenWords } from "../shared/words";
+import { clockWords, gameweekWords, versusWords, whenWords } from "../shared/words";
 
 const kickoffFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit" });
 
@@ -58,7 +58,8 @@ export const AREA_CODES: Record<Area, string> = {
 export const statusWords = {
   /** His kickoff, short as the column is: "Sat 15:00". */
   yetToPlay: (kickoff: number | null) => (kickoff === null ? "To play" : kickoffFormat.format(kickoff)),
-  playing: (minute: number | null) => (minute === null ? "On" : `${minute}'`),
+  /** His match's clock, as its match page shows it: "45+1'", or "Live" before it has a minute. */
+  playing: clockWords,
   finished: "FT",
   noMatch: "No match",
 } as const;

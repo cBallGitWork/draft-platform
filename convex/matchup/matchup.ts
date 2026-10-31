@@ -197,7 +197,10 @@ class SideScorer {
     if (matches.length === 0) return { kind: "noMatch" };
     const states = await Promise.all(matches.map(async (match) => ({ match, score: await this.score(match.fixture.code) })));
     const live = states.find(({ match, score }) => !isFinished(match) && score !== null && PLAYING_STATES.has(score.state));
-    if (live !== undefined) return { kind: "playing", fixtureCode: live.match.fixture.code, minute: live.score!.minutes };
+    if (live !== undefined) {
+      const { minutes, clockLabel } = live.score!;
+      return { kind: "playing", fixtureCode: live.match.fixture.code, minute: minutes, clockLabel };
+    }
     const toCome = states.filter(({ match, score }) => !isFinished(match) && score?.state !== "fullTime").map(({ match }) => match.fixture);
     if (toCome.length === 0) return { kind: "finished", fixtureCode: byKickoff(matches.map(({ fixture }) => fixture)).at(-1)!.code };
     const [next] = byKickoff(toCome);
