@@ -35,9 +35,9 @@ const played = (stats: Record<string, number>, points: number) => ({ stats: { mi
 /** Williams up front, who scored; Muñoz in midfield, who made it; Murillo, booked. Enciso, who
  *  scored Forest's, is in neither lineup. None plays a role the sets adjust. */
 const PLAYERS = new Map<number, VidiprinterPlayer>([
-  [CODE.williams, { name: "N.Williams", cell: ATTACK, role: undefined, inMatch: new Map([[IPSWICH_FOREST, played({ goals_scored: 1 }, 6)]]) }],
-  [CODE.munoz, { name: "Muñoz", cell: MIDFIELD, role: undefined, inMatch: new Map([[IPSWICH_FOREST, played({ assists: 1 }, 5)]]) }],
-  [CODE.murillo, { name: "Murillo", cell: { area: "defence", lane: "leftCentre" }, role: undefined, inMatch: new Map([[IPSWICH_FOREST, played({ yellow_cards: 1 }, 1)]]) }],
+  [CODE.williams, { name: "N.Williams", cell: ATTACK, role: undefined, inLineup: true, inMatch: new Map([[IPSWICH_FOREST, played({ goals_scored: 1 }, 6)]]) }],
+  [CODE.munoz, { name: "Muñoz", cell: MIDFIELD, role: undefined, inLineup: true, inMatch: new Map([[IPSWICH_FOREST, played({ assists: 1 }, 5)]]) }],
+  [CODE.murillo, { name: "Murillo", cell: { area: "defence", lane: "leftCentre" }, role: undefined, inLineup: true, inMatch: new Map([[IPSWICH_FOREST, played({ yellow_cards: 1 }, 1)]]) }],
 ]);
 
 /** Williams's running totals as the live reads showed them: past 60 minutes, and to two big
@@ -159,4 +159,56 @@ test("a step the clock gave no minute for sorts at its match's kickoff, after th
   const texts = vidiprinter([{ ...MATCH, steps: [unclocked] }], PLAYERS, FIRST_SCORING as ScoringSet).map((line) => line.text);
   expect(texts.at(-1)).toBe("Lineups out");
   expect(texts.indexOf("N.Williams: 60 minutes")).toBeLessThan(texts.indexOf("Lineups out"));
+});
+
+// Every point movement, up or down, gets a line (#835; spec/10, The commentary: Craig, 31 Oct
+// 2026). Murillo, at the back for Forest, is the defender.
+
+/** A step of Murillo's, his minutes then the clock's minute. */
+const murillo = (stat: string, from: number, to: number, minute: number): StoredStep => ({ playerCode: CODE.murillo, stat, from, to, minutes: minute, minute });
+const murillosLines = (steps: StoredStep[], set = FIRST_SCORING as ScoringSet) => shown(set, [{ ...MATCH, steps }]).filter((line) => line.includes("Murillo:"));
+
+test("an own goal is priced like a card: the set's own-goal points", () => {
+  const ownGoal = { sourceId: 900, text: "77' OWN GOAL Murillo", minute: 77, addedMinute: 0, type: "own goal", playerCodes: [CODE.murillo] };
+  const players = new Map(PLAYERS);
+  players.set(CODE.murillo, { ...PLAYERS.get(CODE.murillo)!, inMatch: new Map([[IPSWICH_FOREST, played({ own_goals: 1 }, -1)]]) });
+  const line = vidiprinter([{ ...MATCH, lines: [ownGoal, ...STORED] }], players, FIRST_SCORING as ScoringSet).find((each) => each.text === ownGoal.text);
+  expect(line?.points).toBe("−2");
+});
+
+test("a defender's clean sheet shows +4 at the read that shows it and −4 when a goal ends it; goals conceded crossing 2 shows −1", () => {
+  const steps = [murillo("clean_sheets", 0, 1, 61), murillo("clean_sheets", 1, 0, 70), murillo("goals_conceded", 0, 1, 70), murillo("goals_conceded", 1, 2, 85)];
+  expect(murillosLines(steps)).toEqual(["~85' Murillo: 2 goals conceded | −1", "~70' Murillo: 0 clean sheets | −4", "~61' Murillo: 1 clean sheets | +4"]);
+});
+
+test("a clean sheet he now has the minutes for, its count already 1, shows +4", () => {
+  expect(murillosLines([murillo("clean_sheets", 1, 1, 60)])).toEqual(["~60' Murillo: 1 clean sheets | +4"]);
+});
+
+test("his minutes past 60 show a line, past 1 none: his kick-off line says he played", () => {
+  const steps: StoredStep[] = [{ ...STEPS[0], from: 0, to: 30, minutes: 30, minute: 30 }, STEPS[0]];
+  expect(shown(FIRST_SCORING as ScoringSet, [{ ...MATCH, steps }]).filter((line) => line.includes("minutes"))).toEqual(["~60' N.Williams: 60 minutes | +1"]);
+});
+
+test("a step carries his role's adjustment for its stat, as his slot's points do", () => {
+  const roles = { ...FIRST_SCORING, roleAdjustments: [{ role: "attackingFullBack", adjustments: [{ stat: "clean_sheets", points: -1 }] }] } as ScoringSet;
+  const players = new Map(PLAYERS);
+  players.set(CODE.murillo, { ...PLAYERS.get(CODE.murillo)!, role: "attackingFullBack" });
+  const line = vidiprinter([{ ...MATCH, steps: [murillo("clean_sheets", 0, 1, 61)] }], players, roles).find((each) => each.text.includes("Murillo:"));
+  expect(line?.points).toBe("+3");
+});
+
+test("a falling step and the same count sent again each show; only a step the same as the last shown is left out", () => {
+  const chance = (from: number, to: number): StoredStep => ({ ...STEPS[1], from, to });
+  const steps = [chance(1, 2), chance(2, 1), chance(1, 2), chance(1, 2)];
+  const lines = vidiprinter([{ ...MATCH, steps }], PLAYERS, OTHER_SET).filter((line) => line.text.includes("big chance"));
+  expect(lines.map((line) => line.points)).toEqual(["+1", "−1", "+1"]);
+});
+
+test("the full-time line names only the lineups' men, though a man in none has his lines priced", () => {
+  const players = new Map(PLAYERS);
+  players.set(CODE.enciso, { name: "Enciso", cell: ATTACK, role: undefined, inLineup: false, inMatch: new Map([[IPSWICH_FOREST, played({ goals_scored: 1 }, 6)]]) });
+  const lines = vidiprinter([MATCH], players, FIRST_SCORING as ScoringSet);
+  expect(lines[0].text).toBe("FT IPS 1–1 NFO: N.Williams 6, Muñoz 5, Murillo 1");
+  expect(lines.find((line) => line.text === "41' GOAL Enciso")?.points).toBe("+4");
 });

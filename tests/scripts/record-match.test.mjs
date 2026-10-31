@@ -11,6 +11,7 @@ import { PL_FULL_TIME } from "../../convex/football/premierLeague/premierLeague.
 import { LIVE_WINDOW_MS } from "../../convex/stats/liveStats.ts";
 import { UPCOMING_MATCH } from "../support/recorded/commentary.payloads.ts";
 import { doneLine, phase, pollReads, record } from "../../scripts/record-match.mjs";
+import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
 const IPSWICH_FOREST = UPCOMING_MATCH;
 const KICKOFF = Date.UTC(2026, 9, 23, 19);
@@ -143,7 +144,7 @@ test("each poll's line after the first says how the commentary changed since the
 // The recorder runs under plain node, not vitest: this proves it, and the files it imports
 // (convex/football/football.ts, convex/shared/time.ts), still load there.
 test("under plain node, the recorder loads and, given no fixture id, prints its usage and exits 2", async () => {
-  const script = join(import.meta.dirname, "../../scripts/record-match.mjs");
+  const script = join(REPO_ROOT, "scripts/record-match.mjs");
   const { code, output } = await new Promise((resolve) => {
     const child = spawn(process.execPath, [script], { stdio: ["ignore", "pipe", "pipe"] });
     let output = "";

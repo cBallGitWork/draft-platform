@@ -24,7 +24,7 @@ export function TickBox({
   children: ReactNode;
 }) {
   return (
-    <label className="group flex min-h-tap cursor-pointer items-center gap-3 text-soft has-checked:text-fact has-disabled:cursor-default">
+    <label className="group flex min-h-tap min-w-tap cursor-pointer items-center gap-3 text-soft has-checked:text-fact has-disabled:cursor-default">
       <span className="grid shrink-0 place-items-center *:col-start-1 *:row-start-1">
         <input
           type="checkbox"
