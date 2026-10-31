@@ -5,7 +5,7 @@
 
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { roleIn } from "../../../convex/lineup/roles";
+import { namedRole, roleIn } from "../../../convex/lineup/roles";
 import { MATCHUP_PATH } from "../../../src/frame/menu";
 import { AREA_CODES, autoSubWords, BENCH_TITLE, lineupLabel, notCountingLabel, statusLabels, statusWords } from "../../../src/matchup/words";
 import { headToHead, lineupRows, roleOf, slot, SLOT_MATCH, teamSide } from "../../support/src/matchup.harness";
@@ -14,8 +14,8 @@ import { manager, openApp } from "../../support/src/shell.harness";
 const FINISHED = { kind: "finished", fixtureCode: SLOT_MATCH } as const;
 /** A striker's slot, and two of its roles. */
 const STRIKER_SLOT = { area: "attack", lane: "centre" } as const;
-const POACHER = roleIn(STRIKER_SLOT, "poacher");
-const TARGET_MAN = roleIn(STRIKER_SLOT, "targetMan");
+const POACHER = namedRole(roleIn(STRIKER_SLOT, "poacher"));
+const TARGET_MAN = namedRole(roleIn(STRIKER_SLOT, "targetMan"));
 
 /** Team 1: a keeper who didn't play and the bench keeper on for him, a poacher, a midfielder, and a
  *  bench striker not on. */

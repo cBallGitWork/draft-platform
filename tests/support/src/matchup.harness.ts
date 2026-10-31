@@ -6,7 +6,7 @@ import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayingState } from "../../../convex/football/matchScores";
 import type { Area } from "../../../convex/lineup/pitch";
-import { roleIn } from "../../../convex/lineup/roles";
+import { namedRole, roleIn } from "../../../convex/lineup/roles";
 import type { MatchupCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../../convex/matchup/matchupShape";
 import type { Matchup, MatchupSeam } from "../../../src/matchup/seam";
 import { lineupLabel } from "../../../src/matchup/words";
@@ -80,7 +80,7 @@ export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
 
 /** The role a made-up starter plays unless his test gives one: his area's centre slot's first, as
  *  made-up men stand in areas, not cells. */
-export const roleOf = (area: Area) => roleIn({ area, lane: "centre" }, undefined);
+export const roleOf = (area: Area) => namedRole(roleIn({ area, lane: "centre" }, undefined));
 
 /** A team's side: its starters, each in his area's role (roleOf) unless he has one, and bench, none
  *  with a role unless he has one, its total and whether that is provisional. */
