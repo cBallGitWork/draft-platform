@@ -91,8 +91,9 @@ test("a tick that reads no match, its gameweek's reads failed, writes the side f
   await tickAt(t, stageTime(29), stagedGw6(29));
   const before = await sideOutcomes(t);
 
-  await tickAt(t, stageTime(30), stagedGw6(30), fplLiveUrl(GAMEWEEK));
+  const failed = await tickAt(t, stageTime(30), stagedGw6(30), fplLiveUrl(GAMEWEEK));
 
+  expect(failed.latest.outcome).toMatchObject({ matches: [{ fixtureCode: HULL_EVERTON, ok: false }] });
   expect(await sideOutcomes(t)).toEqual(before);
 });
 
