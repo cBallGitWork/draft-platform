@@ -12,9 +12,7 @@ import {
   CAT,
   EVERTON_POINTS,
   EVERTON_STARTERS,
-  fullTimeRecords,
   GAMEWEEK,
-  holdTypoRule,
   HULL_AFTER_SUB,
   HULL_POINTS,
   HULL_KEEPER,
@@ -22,24 +20,19 @@ import {
   HULL_STARTERS,
   LEAGUE_KICKOFF,
   lineupOf,
-  liveRecords,
-  lockMatch,
   matchupAs,
   nameOf,
   PHILLIPS,
   readTable,
-  scoreRead,
   scoresLeague,
   sideTotal,
   losePlayer,
   slotOf,
-  storeLeague,
-  TYPO_STAT,
   BOBS_FIRST_POINTS,
   GREALISH,
-  WRITTEN_OVER,
-  writeOverAnns,
 } from "../../support/convex/gameweekScores.harness";
+import { fullTimeRecords, liveRecords, lockMatch, scoreRead, storeLeague, WRITTEN_OVER, writeOverAnns } from "../../support/convex/gameweekScoresMatch.harness";
+import { holdTypoRule, TYPO_STAT } from "../../support/convex/gameweekScoresFixes.harness";
 import { ADMIN, adminCreatesLeague } from "../../support/convex/leagues.harness";
 import { HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";

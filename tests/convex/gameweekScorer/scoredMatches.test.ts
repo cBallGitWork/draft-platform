@@ -21,16 +21,14 @@ import {
   HULL_SCORER,
   HULL_STARTERS,
   PHILLIPS,
-  fullTimeRecords,
   holdHullAndEverton,
-  liveRecords,
-  lockMatch,
   readTable,
   scoresLeague,
   type ScoresLeague,
   BOBS_FIRST_POINTS,
   GREALISH,
 } from "../../support/convex/gameweekScores.harness";
+import { fullTimeRecords, liveRecords, lockMatch } from "../../support/convex/gameweekScoresMatch.harness";
 
 // A player's matches as his team scored them (#577; spec/12, Squad): the Squad tab reads them from
 // teamInGameweek, auto-subs and overrides included, so the points a team's players are credited

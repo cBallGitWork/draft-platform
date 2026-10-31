@@ -1,30 +1,24 @@
 // The table's scores' shared setup (#29): a two-team league begun in gameweek 6, Ann fielding
-// Hull and Bob Everton from the recorded Hull v Everton, and the match's records landed as the
-// live tick, the full-time read and the lock land them.
+// Hull and Bob Everton from the recorded Hull v Everton, the points each side makes, and the
+// changes to a team's lineup or squad the tests make. How the match's records land is in
+// gameweekScoresMatch.harness.ts; the site's scoring-set fixes in gameweekScoresFixes.harness.ts.
 
-import type { Infer } from "convex/values";
-import { vi } from "vitest";
-import { api, internal } from "../../../convex/_generated/api";
+import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { positionOfSlot, type Cell } from "../../../convex/lineup/pitch";
 import type { MatchupSide, MatchupSlot } from "../../../convex/matchup/matchupShape";
 import type { Position } from "../../../convex/positions/positionTables";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { firstLineup } from "../../../convex/lineup/firstLineup";
-import { roleIn } from "../../../convex/lineup/roles";
-import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { inTenths } from "../../../convex/scoring/values";
 import type { PlayerMatchRecord } from "../../../convex/stats/matchRecords";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
-import type { matchState } from "../../../convex/schema";
 import { LEAGUE_AVERAGE } from "../../../convex/table/roundRobin";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "./leagues.harness";
-import { EVERTON, EVERTON_CLUB, GAMEWEEK, HULL, HULL_CITY, HULL_EVERTON, mergedHullEverton } from "./matchStats.harness";
+import { EVERTON, EVERTON_CLUB, GAMEWEEK, HULL, HULL_CITY, HULL_EVERTON } from "./matchStats.harness";
 import { insertClubs } from "./footballRows.harness";
-import { elapse } from "./test.harness";
-import { holdSiteScoring } from "./siteScoring.harness";
 import { BELLOUMI, DEWSBURY_HALL, GELHARDT, PHILLIPS, TZOLAKIS } from "./teamPoints.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
 import { recordedGw6 } from "../recorded/gw6.payloads";
@@ -86,8 +80,8 @@ export const EVERTON_STARTERS: Starter[] = [
 ];
 export const EVERTON_BENCH = [502697, 496661, 244860, 629068, 229600, 550615, 513466, 512462, 128295];
 
-/** Each starter plays his cell's slot (positionOfSlot); a bench player the position FPL lists him at. */
-/** Each bench player's position, by where FPL lists him: keeper, defender, midfielder, forward. */
+/** Each bench player's position, by where FPL lists him: keeper, defender, midfielder, forward;
+ *  a starter plays his cell's slot (positionOfSlot). */
 const playing = (position: Position, codes: number[]) => codes.map((code) => [code, position] as const);
 const BENCH_POSITION = new Map<number, Position>([
   ...playing("GK", [HULL_KEEPER, 229600]),
@@ -191,32 +185,6 @@ export const lineupOf = (side: MatchupSide) => {
 export const slotOf = (side: MatchupSide, playerCode: number): MatchupSlot =>
   [...lineupOf(side).starters, ...lineupOf(side).bench].find((slot) => slot.playerCode === playerCode)!;
 
-/** The match's records as the live tick lands them, before full time, and what the landing did. */
-export async function liveRecords({ t }: ScoresLeague, records: PlayerMatchRecord[], minute: number | null = null) {
-  vi.setSystemTime(LEAGUE_KICKOFF + HOUR_MS);
-  return t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: HULL_EVERTON, minute, records });
-}
-
-/** The match's records as the full-time read lands them: complete, its corrections window open. */
-export async function fullTimeRecords({ t }: ScoresLeague, records: PlayerMatchRecord[] = mergedHullEverton()) {
-  vi.setSystemTime(LEAGUE_FULL_TIME_READ);
-  await t.mutation(internal.stats.matchStats.upsertMatch, { fixtureCode: HULL_EVERTON, readAt: LEAGUE_FULL_TIME_READ, records });
-}
-
-type MatchState = Infer<typeof matchState>;
-/** The match's score as the Premier League's feed reads it: `state`, the minute on its clock, and
- *  its label for it, if any. */
-export async function scoreRead({ t }: ScoresLeague, state: MatchState, minutes: number, fixtureCode: number = HULL_EVERTON, clockLabel: string | null = null) {
-  await t.mutation(internal.football.matchScores.upsertScores, {
-    feed: "pl",
-    readAt: Date.now(),
-    reads: [{ fixtureCode, state, homeGoals: 1, awayGoals: 2, minutes, clockLabel }],
-  });
-}
-
-/** The corrections window passes and the match locks. */
-export const lockMatch = ({ t }: ScoresLeague) => elapse(t, 2 * HOUR_MS);
-
 /** A side's points worked out here, player by player, from the records: those who count, each at
  *  the cell he counts in. */
 export function sideTotal(records: readonly PlayerMatchRecord[], counting: readonly Starter[]): number {
@@ -242,30 +210,6 @@ export const HULL_AFTER_SUB: Starter[] = HULL_STARTERS.map((starter) =>
   starter.playerCode === PHILLIPS ? { ...starter, playerCode: HULL_KEEPER } : starter,
 );
 
-/** A stat no record holds: a typo of goals_scored. */
-export const TYPO_STAT = "goals_scroed";
-
-/** The site's set from now on, a fix in force from the start: `scoring` in place of the first. */
-const holdFix = ({ t }: Pick<ScoresLeague, "t">, scoring: StoredScoringSet) =>
-  t.run((ctx) => holdSiteScoring(ctx, { scoring, kind: "fix", season: 2026, number: 1, at: 0 }));
-
-/** The site's set from now on holds a rule on TYPO_STAT, as a set written by hand could (#287). */
-export async function holdTypoRule(league: Pick<ScoresLeague, "t">) {
-  const [rule] = FIRST_SCORING.rules;
-  await holdFix(league, { ...FIRST_SCORING, rules: [...FIRST_SCORING.rules, { ...rule, stat: TYPO_STAT }] });
-}
-
-/** The first set's goal for HULL_SCORER, a midfielder. */
-export const MIDFIELD_GOAL = 5;
-
-/** The site's set from now on adjusts a goal by `points` in the role HULL_SCORER plays: his slot's
- *  first, since his saved lineup gives him none. */
-export async function adjustScorersRole(league: ScoresLeague, points: number) {
-  const scorer = HULL_STARTERS.find((starter) => starter.playerCode === HULL_SCORER)!;
-  const role = roleIn(scorer, undefined).key;
-  await holdFix(league, { ...FIRST_SCORING, roleAdjustments: [{ role, adjustments: [{ stat: "goals_scored", points }] }] });
-}
-
 /** Ann's saved lineup gives her starter `playerCode` the role `role`, as Tactics saves it. */
 export const giveAnnsStarterRole = ({ t, annsTeam }: ScoresLeague, playerCode: number, role: string) =>
   t.run(async (ctx) => {
@@ -283,29 +227,3 @@ export const leavesAnnsSquad = ({ t, leagueId }: ScoresLeague, playerCode: numbe
       .unique())!;
     await ctx.db.delete("squadPlayers", owned._id);
   });
-
-/** A score no team made, written over a stored one to tell a stored read from a worked-out one. */
-export const WRITTEN_OVER = 99;
-
-/** The league stores its newly final gameweeks, as a match's lock asks it to. */
-export const storeLeague = ({ t, leagueId }: ScoresLeague) => t.mutation(internal.table.finalScores.storeLeague, { leagueId });
-
-/** Ann's stored row says WRITTEN_OVER. */
-export const writeOverAnns = (league: ScoresLeague) =>
-  league.t.run(async (ctx) => {
-    const row = (await ctx.db.query("finalScores").collect()).find((each) => each.teamId === league.annsTeam)!;
-    await ctx.db.patch("finalScores", row._id, { points: WRITTEN_OVER });
-  });
-
-/** A match the football sync moves into gameweek 6 after it was stored, between two clubs no squad
- *  here holds: the table's stored scores and the stat race's shares both reopen for it. */
-export const MOVED_IN = 999_001;
-const MOVED_IN_CLUBS = [901, 902] as const;
-/** The moved-in match held in gameweek 6, as the football sync would put it there. */
-export const holdMovedIn = ({ t }: ScoresLeague) =>
-  t.run((ctx) =>
-    ctx.db.insert("fixtures", { code: MOVED_IN, gameweek: GAMEWEEK, homeClubCode: MOVED_IN_CLUBS[0], awayClubCode: MOVED_IN_CLUBS[1], kickoff: Date.now() }),
-  );
-/** The moved-in match read at full time, its window passed and locked. */
-export const lockMovedIn = ({ t }: ScoresLeague) =>
-  t.run((ctx) => ctx.db.insert("matchStatsStatus", { fixtureCode: MOVED_IN, state: "locked", fullTimeAt: Date.now(), lockedAt: Date.now(), lastReadAt: Date.now() }));

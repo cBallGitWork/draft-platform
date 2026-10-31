@@ -1,15 +1,6 @@
 import { expect, test } from "vitest";
-import {
-  annsScoredGame,
-  fullTimeRecords,
-  GAMEWEEK,
-  HULL_SCORER,
-  leavesAnnsSquad,
-  lineupOf,
-  nameOf,
-  readTable,
-  scoresLeague,
-} from "../../support/convex/gameweekScores.harness";
+import { annsScoredGame, GAMEWEEK, HULL_SCORER, leavesAnnsSquad, lineupOf, nameOf, readTable, scoresLeague } from "../../support/convex/gameweekScores.harness";
+import { fullTimeRecords } from "../../support/convex/gameweekScoresMatch.harness";
 // Belloumi, Hull's midfielder on at 64 minutes, is second on Ann's bench after Hull's keeper.
 import { BELLOUMI } from "../../support/convex/teamPoints.harness";
 

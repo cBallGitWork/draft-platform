@@ -3,7 +3,8 @@
 
 import { api } from "../../../convex/_generated/api";
 import type { MatchMan } from "../../../convex/match/matchPage";
-import { fullTimeRecords, holdHullAndEverton, HULL_SCORER, scoresLeague, type ScoresLeague } from "./gameweekScores.harness";
+import { holdHullAndEverton, HULL_SCORER, scoresLeague, type ScoresLeague } from "./gameweekScores.harness";
+import { fullTimeRecords } from "./gameweekScoresMatch.harness";
 import { actingAs } from "./leagues.harness";
 import { HULL_EVERTON } from "./matchStats.harness";
 
