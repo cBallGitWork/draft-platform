@@ -53,11 +53,9 @@ How invites, the invite link and join requests work in detail is in
 - The commissioner and the admin can both put any player on any team, one at a time (search, pick
   a team), move a player between teams, and release one to free agency.
 - The league's squad limits warn but don't block.
-- If a squad holds a player the football data no longer has, every squad still shows. His row is
-  never hidden: it carries an error message naming his code, under a notice at the top saying
-  some football data is missing. Craig, 31 Oct 2026 (#323): "b but dont hide the row, mabe an
-  error message. easier to spot/debug". My team's Squad and Tactics tabs show such a row the same
-  way.
+- A squad holding a player the football data no longer has: a notice says the data is broken, and
+  his row stays, as an error message (Craig, 31 Oct 2026, #323: "b but dont hide the row, mabe an
+  error message. easier to spot/debug").
 
 ## The mini beta
 

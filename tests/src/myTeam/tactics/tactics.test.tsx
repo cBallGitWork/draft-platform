@@ -124,6 +124,9 @@ describe("the lineup held", () => {
     openTacticsTab({ tactics: { ...SAVED, squad: SQUAD.map((each) => (each === WHITE ? unheld : each)) } });
     expect(await screen.findByText(unheldNoticeWords)).toBeTruthy();
     expect(squadRows().at(-1)).toContain(unheld.name);
+    // He has no card to open.
+    expect(screen.queryByRole("link", { name: unheld.name })).toBeNull();
+    expect(screen.getByRole("link", { name: ARRIZABALAGA.name })).toBeTruthy();
   });
 
   it("shows no notice of missing football data while every player is held", async () => {

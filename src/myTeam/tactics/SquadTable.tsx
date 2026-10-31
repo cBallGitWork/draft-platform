@@ -145,9 +145,14 @@ function SquadRow({
     >
       <td className="px-2">{positionsWords(player.positions)}</td>
       <td className="px-2">
-        <Link to={playerCardPath(leagueId, player.playerCode)} className="inline-flex min-h-tap items-center font-semibold lg:min-h-0">
-          {player.name}
-        </Link>{" "}
+        {/* One the football sync doesn't hold has no card to open: his name is the error (#323). */}
+        {player.unheld ? (
+          <span className="inline-flex min-h-tap items-center font-semibold text-event lg:min-h-0">{player.name}</span>
+        ) : (
+          <Link to={playerCardPath(leagueId, player.playerCode)} className="inline-flex min-h-tap items-center font-semibold lg:min-h-0">
+            {player.name}
+          </Link>
+        )}{" "}
         <span className="text-muted">{player.clubShortName}</span>
       </td>
       {/* The bench plays no role, so its buttons take the Role column's room too. */}
