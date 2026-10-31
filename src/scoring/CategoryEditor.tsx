@@ -130,13 +130,14 @@ const HEAD_CELL = "px-3 text-left";
 function ValuesTable({ rule, pricing, readOnly, onChange }: { rule: Rule; pricing: Pricing; readOnly: boolean; onChange: (rule: Rule) => void }) {
   const columns = columnsOf(rule, readOnly, onChange);
   const rowHead = pricing === "byPosition" ? columnWords.position : columnWords.area;
+  const forEveryone = pricing === "all";
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse max-lg:block">
-        <thead className={`bg-head text-ground ${pricing === "all" ? "max-lg:hidden" : "max-lg:block"}`}>
+        <thead className={`bg-head text-ground ${forEveryone ? "max-lg:hidden" : "max-lg:block"}`}>
           <tr className="max-lg:block">
             <th scope="col" className={`${HEAD_CELL} max-lg:block`}>
-              {pricing === "all" ? "" : rowHead}
+              {forEveryone ? "" : rowHead}
             </th>
             {columns.map((column) => (
               <th key={column.head} scope="col" className={`${HEAD_CELL} max-lg:hidden`}>
