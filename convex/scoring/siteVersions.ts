@@ -2,7 +2,7 @@ import type { Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import type { DeadlineRule } from "../gameweeks/deadline";
 import { firstKickoffs, gameweekStartsOf } from "../gameweeks/gameweekStarts";
-import { heldMatches, heldSchedule } from "../gameweeks/leagueDeadlines";
+import { heldSchedule } from "../gameweeks/leagueDeadlines";
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { FIRST_SCORING } from "./firstScoring";
@@ -64,7 +64,7 @@ export interface VersionInForce {
 /** `siteScoringByGameweek`, with the version's name beside each gameweek's set. */
 export async function siteVersionByGameweek(ctx: QueryCtx): Promise<(gameweek: number) => VersionInForce> {
   const history = await siteVersions(ctx);
-  const matches = await heldMatches(ctx);
+  const { matches } = await heldSchedule(ctx);
   const recordedStarts = await gameweekStartsOf(ctx, matches);
   const kickoffs = firstKickoffs(matches);
   return (gameweek) => {
