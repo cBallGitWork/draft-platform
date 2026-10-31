@@ -32,6 +32,8 @@ import { BELLOUMI } from "../../support/convex/teamPoints.harness";
 // came on at 64 and scored, stays on Ann's bench, his starters all having played.
 
 const RECORDS = mergedHullEverton();
+/** A record the Premier League's feed has not sent yet: not whole (isWhole, matchRecords.ts). */
+const PL_NOT_ARRIVED = { fpl: true, pl: false };
 
 /** The stats of these men's records added up, as the test works them out by hand. */
 function statsOf(records: readonly PlayerMatchRecord[], codes: readonly number[]): Stats {
@@ -158,7 +160,7 @@ test("a gameweek left provisional after the lock by a feed's gap stores nothing,
     const anns = (await ctx.db.query("teamGameweekStats").collect()).find((row) => row.teamId === league.annsTeam)!;
     await ctx.db.patch("teamGameweekStats", anns._id, { fixtureCodes: [MOVED_IN] });
     const scorer = (await ctx.db.query("playerMatchStats").collect()).find((row) => row.playerCode === HULL_SCORER)!;
-    await ctx.db.patch("playerMatchStats", scorer._id, { arrived: { fpl: true, pl: false } });
+    await ctx.db.patch("playerMatchStats", scorer._id, { arrived: PL_NOT_ARRIVED });
   });
 
   expect(await storeStats(league)).toEqual([GAMEWEEK]);
@@ -181,17 +183,18 @@ test("a team added after a gameweek was stored has its own share worked out, the
 
 // Pinned as it stands, not as it should be: what to do about it waits on Craig (#805). When he
 // decides, this test changes with the fix.
-test("a live tick's record the full-time read left out stays not whole after the lock, so neither the table nor the stat race stores the gameweek, even on a rebuild", async () => {
+test("a live tick's record the full-time read left out stays not whole after the lock, so neither the table nor the stat race stores the gameweek, even on a rebuild or a rescore", async () => {
   const league = await scoresLeague();
-  await liveRecords(league, RECORDS.map((record) => (record.playerCode === HULL_SCORER ? { ...record, arrived: { fpl: true, pl: false } } : record)));
+  await liveRecords(league, RECORDS.map((record) => (record.playerCode === HULL_SCORER ? { ...record, arrived: PL_NOT_ARRIVED } : record)));
   await fullTimeRecords(league, RECORDS.filter((record) => record.playerCode !== HULL_SCORER));
   await lockMatch(league);
-  const state = await league.t.run(async (ctx) => (await ctx.db.query("matchStatsStatus").collect()).map((row) => row.state));
-  expect(state).toEqual(["locked"]);
+  const states = await league.t.run(async (ctx) => (await ctx.db.query("matchStatsStatus").collect()).map((row) => row.state));
+  expect(states).toEqual(["locked"]);
 
   expect(await storeStats(league)).toEqual([]);
   expect(await storeLeague(league)).toEqual([]);
   await league.t.mutation(internal.stats.teamSeasonStats.rebuild, { leagueId: league.leagueId });
+  expect(await league.t.mutation(internal.table.finalScores.rescore, { leagueId: league.leagueId, gameweek: GAMEWEEK })).toBe(false);
   await league.t.finishAllScheduledFunctions(vi.runAllTimers);
   expect(await shares(league)).toEqual([]);
   expect(await totalsOf(league, league.annsTeam)).toBeUndefined();
