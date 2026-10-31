@@ -1,9 +1,9 @@
 import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
-import { STAT_CATALOGUE } from "../scoring/statCatalogue";
+import { CATALOGUE_STATS, checkCatalogueStat } from "../scoring/statCatalogue";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import type { Stats } from "../stats/statTotals";
-import { teamTotals } from "../stats/teamSeasonStats";
+import { teamTotals } from "../stats/teamSeasonTotals";
 
 // Scouting's stat race (#800, spec/19 The stat race): each of the league's teams with its season
 // total in every stat of the catalogue, counting only its starters and the bench players who came
@@ -20,14 +20,6 @@ const racingTeam = v.object({
   stat: v.number(),
 });
 export type RacingTeam = Infer<typeof racingTeam>;
-
-/** The catalogue's stats alone: a record's other figures (FPL's own bonus, say) are never shown. */
-const CATALOGUE_KEYS = new Set(STAT_CATALOGUE.map((each) => each.stat));
-
-/** Refuses a stat the catalogue doesn't hold, for any of Scouting's reads that shows one. */
-export function checkCatalogueStat(stat: string): void {
-  if (!CATALOGUE_KEYS.has(stat)) throw new Error(`No stat ${stat} is in the catalogue`);
-}
 
 /** Every team in the league, most of `stat` first (fewest with `descending` false), ties by name.
  *  Anyone not in the league is refused, as is a stat the catalogue doesn't hold. */
@@ -47,6 +39,7 @@ export const teams = query({
   },
 });
 
+/** The catalogue's stats alone: a record's other figures (FPL's own bonus, say) are never shown. */
 function catalogueOnly(stats: Stats): Stats {
-  return Object.fromEntries(Object.entries(stats).filter(([stat]) => CATALOGUE_KEYS.has(stat)));
+  return Object.fromEntries(Object.entries(stats).filter(([stat]) => CATALOGUE_STATS.has(stat)));
 }
