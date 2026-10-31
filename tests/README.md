@@ -67,6 +67,8 @@ fewer of some test than origin/main did. It reads every `test()` and `it()` in a
 across the whole tree: a test moved to another file, or a renamed file, passes; a renamed test, one
 moved to another `describe()`, or a deleted one fails, until a commit on the branch carries the
 trailer `Test-removed: <the test's name, as the check prints it, or the file it was in>: <why>`.
+It checks names only: a test whose body is emptied, or a row cut from a `test.each()` table, still
+passes.
 
 ## The scoring proof
 

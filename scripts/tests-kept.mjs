@@ -8,7 +8,8 @@
 //     Test-removed: <the test's name, as this check prints it>: <why>
 // on a commit on the branch, or one naming a file the test was in on origin/main, for every test
 // that file loses. The titles are read from the source, never run: a test made in a loop counts
-// once, by its title as the source writes it.
+// once, by its title as the source writes it. It checks names only: a test whose body is emptied,
+// or a row cut from a test.each() table, still passes.
 // Run from the repo: `node scripts/tests-kept.mjs`; `npm run verify` runs it, so CI does.
 
 import { execFileSync } from "node:child_process";
