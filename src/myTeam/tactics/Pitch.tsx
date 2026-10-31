@@ -1,6 +1,6 @@
 import type { CSSProperties, DragEvent } from "react";
 import { AREAS, cellKey, LANES, sameCell, type Cell } from "../../../convex/lineup/pitch";
-import { roleIn } from "../../../convex/lineup/roles";
+import { roleIn, slotLabel, SWEEPER } from "../../../convex/lineup/roles";
 import { kitOf, type Ink } from "../../../convex/football/clubColours";
 import { markOf } from "./focusMarks";
 import { PitchLines } from "./PitchLines";
@@ -75,7 +75,12 @@ export function Pitch({
             if (opensTo(cell)) moving.onPlace(cell);
           };
           return (
-            <div key={cellKey(cell)} onDragOver={allowDrop} onDrop={drop} className="relative flex min-h-0 min-w-0 items-center justify-center p-0.5">
+            <div
+              key={cellKey(cell)}
+              onDragOver={allowDrop}
+              onDrop={drop}
+              className={`relative flex min-h-0 min-w-0 items-center justify-center p-0.5 ${standing !== undefined && slotLabel(cell, standing.role) === SWEEPER ? "pitch-sweeper" : ""}`}
+            >
               {standing !== undefined ? (
                 <PlayerBlock player={squad.get(standing.playerCode)!} cell={cell} role={roleIn(cell, standing.role).name} moving={moving} />
               ) : picked !== null && opensTo(cell) ? (

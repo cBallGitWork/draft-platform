@@ -14,6 +14,12 @@
 @utility basis-pitch-panel {
   flex: 0 1 calc(var(--pitch-width) + var(--spacing) * 4);
 }
+/* A sweeper's cell (spec/05 The pitch): drawn a little deeper than the defence's line, toward his
+   own goal, as a wing-back is a defender drawn further forward. A quarter of a row, so he stays
+   clear of the keeper below. */
+@utility pitch-sweeper {
+  translate: 0 25%;
+}
 @utility pitch {
   width: min(100%, var(--pitch-width));
   aspect-ratio: var(--pitch-aspect);
