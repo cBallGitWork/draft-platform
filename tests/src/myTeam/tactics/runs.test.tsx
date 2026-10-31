@@ -7,7 +7,8 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { roleIn, SWEEPER_CELL } from "../../../../convex/lineup/roles";
+import { ALL_CELLS } from "../../../../convex/lineup/pitch";
+import { roleIn, rolesOfSlot, slotLabel, SWEEPER, SWEEPER_CELL } from "../../../../convex/lineup/roles";
 import { placeOf, RUN_MARGIN, RUN_MARK, runPath, runShows, SWEEPER_DEPTH_SHARE } from "../../../../src/myTeam/tactics/runs";
 import { LANE_WIDTH, PITCH_SIZE, ROW_LENGTH } from "../../../../src/myTeam/tactics/pitchMarkings";
 import { runsWords } from "../../../../src/myTeam/tactics/words";
@@ -96,5 +97,18 @@ describe("where a run goes, in the pitch's metres", () => {
   it("puts a place in the middle of its cell: the keeper's in the bottom row, the attack's in the top", () => {
     expect(placeOf({ area: "goalkeeper", lane: "centre" })).toEqual({ x: PITCH_SIZE.width / 2, y: PITCH_SIZE.length - ROW_LENGTH / 2 });
     expect(placeOf({ area: "attack", lane: "left" })).toEqual({ x: LANE_WIDTH / 2, y: ROW_LENGTH / 2 });
+  });
+
+  it("ends a straight run between two rows' players, in every cell that offers its role, so no block hides its arrowhead", () => {
+    /** How far from where two rows meet a run may end, in metres, and still show between their players. */
+    const BETWEEN_ROWS = 1;
+    for (const cell of ALL_CELLS) {
+      for (const { key, run } of rolesOfSlot(cell)) {
+        if (run === null || run.path.some(({ across }) => across !== 0)) continue;
+        const end = runPath(run, cell, slotLabel(cell, key) === SWEEPER).at(-1)!;
+        const fromRowsMeeting = Math.abs(end.y - Math.round(end.y / ROW_LENGTH) * ROW_LENGTH);
+        expect(fromRowsMeeting, `${key} from ${cell.area} ${cell.lane}`).toBeLessThanOrEqual(BETWEEN_ROWS);
+      }
+    }
   });
 });

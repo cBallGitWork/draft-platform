@@ -42,7 +42,7 @@ const rough = (...points: [forward: number, across: number][]): Run => ({
 });
 
 /** Into the box from behind the striker. */
-const SHADOW_STRIKER = role("shadowStriker", "Shadow striker", rough([22, 0]));
+const SHADOW_STRIKER = role("shadowStriker", "Shadow striker", rough([18, 8]));
 
 /** The sweeper's label. Only a slot's label, never a SlotPosition: no rule prices it, as spec/14
  *  prices a sweeper's slot as CB. */
@@ -57,23 +57,26 @@ export const SWEEPER_CELL: Cell = { area: "defence", lane: "centre" };
 
 /** spec/05's default set, made long before roles were built, for Craig to cut much later. */
 export const DEFAULT_ROLES: Record<SlotLabel, readonly Role[]> = {
-  // Each run is a rough one from FM's nearest role (spec/05 Runs), said beside it where it isn't plain.
-  GK: [role("shotStopper", "Shot-stopper"), role("sweeperKeeper", "Sweeper keeper", rough([16, 0]))],
-  FB: [role("defensiveFullBack", "Defensive full-back"), role("attackingFullBack", "Attacking full-back", rough([36, 0]))],
+  // Each run is a rough one from FM's nearest role (spec/05 Runs), said beside it where it isn't
+  // plain. A run straight up or down the pitch ends just past where the rows meet (9 m, 26.5 m
+  // from his place: a row is 17.5 m), so its arrowhead shows between two rows' players, not under one.
+  GK: [role("shotStopper", "Shot-stopper"), role("sweeperKeeper", "Sweeper keeper", rough([9, 0]))],
+  FB: [role("defensiveFullBack", "Defensive full-back"), role("attackingFullBack", "Attacking full-back", rough([26.5, 0]))],
   // A stopper steps out of the line to meet his man.
-  CB: [role("stopper", "Stopper", rough([16, 0])), role("ballPlayingDefender", "Ball-playing defender")],
+  CB: [role("stopper", "Stopper", rough([9, 0])), role("ballPlayingDefender", "Ball-playing defender")],
   // Offered in SWEEPER_CELL after the centre-back's, so a back three keeps a CB in the middle. A
-  // sweeper sweeps across behind the line; a libero steps out of it with the ball.
-  SW: [role("sweeper", "Sweeper", rough([-4, 14])), role("libero", "Libero", rough([25, 0]))],
-  WB: [role("attackingWingBack", "Attacking wing-back", rough([28, 0])), role("holdingWingBack", "Holding wing-back")],
+  // sweeper sweeps across behind the line; a libero steps out of it with the ball, from his place
+  // drawn a little deeper.
+  SW: [role("sweeper", "Sweeper", rough([-4, 14])), role("libero", "Libero", rough([28.5, 0]))],
+  WB: [role("attackingWingBack", "Attacking wing-back", rough([26.5, 0])), role("holdingWingBack", "Holding wing-back")],
   CDM: [role("anchor", "Anchor"), role("deepPlaymaker", "Deep playmaker")],
   // FM's winger, to the byline; a defensive winger tracks back.
-  WM: [role("wideMidfielder", "Winger", rough([30, 0])), role("defensiveWinger", "Defensive winger", rough([-18, 0]))],
+  WM: [role("wideMidfielder", "Winger", rough([26.5, 0])), role("defensiveWinger", "Defensive winger", rough([-9, 0]))],
   // FM's box-to-box, advanced playmaker and ball-winning midfielder.
-  CM: [role("boxToBox", "Box-to-box", rough([32, 0])), role("playmaker", "Playmaker", rough([18, 0])), role("ballWinner", "Ball-winner", rough([16, 0]))],
-  // An inside forward cuts in on the diagonal; a winger goes down the line.
-  W: [role("insideForward", "Inside forward", rough([14, 16])), role("winger", "Winger", rough([20, 0]))],
-  CAM: [role("numberTen", "Number 10", rough([16, 0])), SHADOW_STRIKER],
+  CM: [role("boxToBox", "Box-to-box", rough([30, 6])), role("playmaker", "Playmaker", rough([26.5, 0])), role("ballWinner", "Ball-winner", rough([9, 0]))],
+  // An inside forward cuts in on the diagonal; a winger goes down the line, then in to cross.
+  W: [role("insideForward", "Inside forward", rough([14, 16])), role("winger", "Winger", rough([18, 0], [20, 6]))],
+  CAM: [role("numberTen", "Number 10", rough([9, 0])), SHADOW_STRIKER],
   // A poacher runs in behind off the last man's shoulder, a pressing forward harries across the
   // back line, a false 9 drops deep; a target man holds the ball up where he stands.
   ST: [
@@ -81,7 +84,7 @@ export const DEFAULT_ROLES: Record<SlotLabel, readonly Role[]> = {
     role("targetMan", "Target man"),
     role("pressingForward", "Pressing forward", rough([4, -10], [6, 10])),
     SHADOW_STRIKER,
-    role("falseNine", "False 9", rough([-16, 0])),
+    role("falseNine", "False 9", rough([-9, 0])),
   ],
 };
 
