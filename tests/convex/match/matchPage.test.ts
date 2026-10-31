@@ -43,6 +43,13 @@ async function matchAs(league: ScoresLeague, email: string, fixtureCode: number 
 
 const manOf = (men: readonly MatchMan[], playerCode: number) => men.find((man) => man.playerCode === playerCode)!;
 
+/** Hull's scorer's goal, as the live tick stores its line. */
+const SCORERS_GOAL = "64' GOAL Scorer";
+const line = (sourceId: number, text: string, minute: number | null, type: string, playerCodes: number[] = []) => ({ sourceId, text, minute, addedMinute: 0, type, playerCodes });
+const scorersGoal = (sourceId: number) => line(sourceId, SCORERS_GOAL, 64, "goal", [HULL_SCORER]);
+/** scorersGoal(1) as the commentary shows it, worth `points`. */
+const shownGoal = (points: string | null) => ({ key: `${HULL_EVERTON}:1`, text: SCORERS_GOAL, points });
+
 test("before any record, the match shows its clubs and kickoff, no men and no lines", async () => {
   const league = await matchLeague();
   const page = await matchAs(league, ANN);
@@ -150,11 +157,10 @@ test("a man owned by no team shows no owner and no points; a man who has left bo
 test("the commentary is the match's lines newest first, the goal priced for its owner's slot, and says when delayed", async () => {
   const league = await matchLeague();
   await fullTimeRecords(league);
-  const line = (sourceId: number, text: string, minute: number | null, type: string, playerCodes: number[] = []) => ({ sourceId, text, minute, addedMinute: 0, type, playerCodes });
   await league.t.run((ctx) =>
     ctx.db.insert("matchCommentary", {
       fixtureCode: HULL_EVERTON,
-      lines: [line(2, "64' GOAL Scorer", 64, "goal", [HULL_SCORER]), line(1, "KO HUL v EVE", 0, "start")],
+      lines: [scorersGoal(2), line(1, "KO HUL v EVE", 0, "start")],
       delayed: { reason: "the stream is over 10 minutes behind the clock", since: LEAGUE_KICKOFF },
     }),
   );
@@ -171,15 +177,9 @@ test("a goal's points include his role's adjustment, on the match page and the m
   await fullTimeRecords(league);
   const ROLE_GOAL = 2;
   await adjustScorersRole(league, ROLE_GOAL);
-  await league.t.run((ctx) =>
-    ctx.db.insert("matchCommentary", {
-      fixtureCode: HULL_EVERTON,
-      lines: [{ sourceId: 1, text: "64' GOAL Scorer", minute: 64, addedMinute: 0, type: "goal", playerCodes: [HULL_SCORER] }],
-      delayed: null,
-    }),
-  );
+  await league.t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines: [scorersGoal(1)], delayed: null }));
   // His goal in midfield, and his role's on top.
-  const lines = [{ key: `${HULL_EVERTON}:1`, text: "64' GOAL Scorer", points: `+${MIDFIELD_GOAL + ROLE_GOAL}` }];
+  const lines = [shownGoal(`+${MIDFIELD_GOAL + ROLE_GOAL}`)];
   expect((await matchAs(league, ANN))!.commentary).toEqual({ kind: "read", lines, delayed: false });
   expect((await annsScoredGame(league)).commentary).toEqual({ kind: "read", lines, delayed: false });
 });
@@ -195,11 +195,11 @@ test("before the league's gameweek begins, the men show their owners but no poin
   await fullTimeRecords(league);
   await league.t.run(async (ctx) => {
     for (const row of await ctx.db.query("passedDeadlines").collect()) await ctx.db.delete("passedDeadlines", row._id);
-    await ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines: [{ sourceId: 1, text: "64' GOAL Scorer", minute: 64, addedMinute: 0, type: "goal", playerCodes: [HULL_SCORER] }], delayed: null });
+    await ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines: [scorersGoal(1)], delayed: null });
   });
   const page = (await matchAs(league, ANN))!;
   expect(manOf(page.men, HULL_SCORER)).toMatchObject({ ownerTeamName: "Team 1", points: null });
-  expect(page.commentary).toEqual({ kind: "read", lines: [{ key: `${HULL_EVERTON}:1`, text: "64' GOAL Scorer", points: null }], delayed: false });
+  expect(page.commentary).toEqual({ kind: "read", lines: [shownGoal(null)], delayed: false });
 });
 
 test("a set that can't be priced says why, while the men and lines still show", async () => {
