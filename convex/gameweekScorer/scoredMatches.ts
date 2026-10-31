@@ -17,7 +17,9 @@ import { isMatchFinal } from "./heldMatches";
 import { leagueReads, slotInMatch, type TeamInGameweek } from "./teamGameweek";
 
 // A player's matches in a league as his team scored them (#577; spec/12, The player card and
-// Squad): the one place his card and the Squad tab read his points from. A gameweek the league has
+// Squad): where the Squad tab reads his points from, and the card his role's line, the league's
+// override and whether his points may still move (the card's figures are his base points,
+// cardPoints.ts's basePoints). A gameweek the league has
 // begun whose lineup names him is read from the league's gameweek scorer (gameweekScores.ts's
 // squadGameweek), as the table scores it: auto-subs and the league's overrides in, live and
 // provisional until final. One who counted shows his slot's points, at the slot and role he
