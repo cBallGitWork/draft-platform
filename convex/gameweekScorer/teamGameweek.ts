@@ -228,7 +228,7 @@ function forPlay(match: HeldMatch, code: PlayerCode) {
 
 /** Where a bench player's greyed points are priced while he hasn't come on: the first cell he plays,
  *  back to front, or the first cell of all for a man with no position yet. The table reads only
- *  totals, which those points never reach, and his card prices them at his best position
+ *  totals, which those points never reach, and the Squad tab prices them at his best position
  *  (scoredMatches.ts). */
 function benchCell(positions: readonly Position[]): Cell {
   return ALL_CELLS.find((cell) => playsCell(positions, cell)) ?? ALL_CELLS[0];

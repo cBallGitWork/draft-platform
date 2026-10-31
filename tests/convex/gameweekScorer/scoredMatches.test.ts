@@ -1,6 +1,9 @@
 import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
-import type { PlayedMatch } from "../../../convex/playerCard/playerCard";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { scoredMatches } from "../../../convex/gameweekScorer/scoredMatches";
+import type { CardPoints } from "../../../convex/playerCard/cardPoints";
+import { positionsNow } from "../../../convex/positions/playerPositions";
 import { inTenths, type DoubleGameweekRule } from "../../../convex/scoring/values";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { BELLOUMI } from "../../support/convex/teamPoints.harness";
@@ -9,7 +12,6 @@ import { actingAs } from "../../support/convex/leagues.harness";
 import { HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import {
   ANN,
-  BOB,
   EVERTON_STARTERS,
   LEAGUE_FULL_TIME_READ,
   LEAGUE_KICKOFF,
@@ -30,9 +32,10 @@ import {
   GREALISH,
 } from "../../support/convex/gameweekScores.harness";
 
-// A player's matches as his team scored them (#577; spec/12, The player card and Squad): the card
-// and the Squad tab read them from teamInGameweek, auto-subs and overrides included, so the points
-// a team's players are credited with add up to its total in the table, live and final.
+// A player's matches as his team scored them (#577; spec/12, Squad): the Squad tab reads them from
+// teamInGameweek, auto-subs and overrides included, so the points a team's players are credited
+// with add up to its total in the table, live and final. The player card shows his base points
+// instead (Craig, 31 Oct 2026), and takes only his role's line from here.
 //
 // Ann fields Hull from the recorded Hull v Everton. Two of her starters didn't play: Phillips in
 // goal, whom Hull's keeper replaces in the slot, and an unused centre-back with no defender on her
@@ -69,24 +72,39 @@ async function annsLeague({ bobSaves = true, departed = [] as number[] } = {}): 
   return league;
 }
 
+/** One of his matches in the gameweek as his team scored it. */
+type Scored = { fixtureCode: number; points: CardPoints; provisional: boolean };
+
+/** Each of `men`'s matches in the gameweek as `teamId` scored them (scoredMatches.ts). */
+async function scoredBy(league: ScoresLeague, teamId: Id<"teams">, men: readonly number[]): Promise<Map<number, Scored[]>> {
+  const rows = await league.t.run(async (ctx) => {
+    const held = (await ctx.db.get("leagues", league.leagueId))!;
+    const positionsOf = await positionsNow(ctx);
+    const { of } = await scoredMatches(ctx, held, teamId);
+    const each = [];
+    for (const code of men) {
+      const matches = (await of({ code, positions: await positionsOf(code) })).filter((match) => match.gameweek === GAMEWEEK);
+      each.push({ code, matches: matches.map(({ fixture, points, provisional }) => ({ fixtureCode: fixture.code, points, provisional })) });
+    }
+    return each;
+  });
+  return new Map(rows.map(({ code, matches }) => [code, matches]));
+}
+
 async function annsGameweek(league: ScoresLeague, men: readonly number[]) {
   const ann = await actingAs(league.t, ANN);
-  const cards = new Map<number, PlayedMatch[]>();
-  for (const playerCode of men) {
-    const card = await ann.query(api.playerCard.playerCard.card, { leagueId: league.leagueId, playerCode, now: LEAGUE_FULL_TIME_READ });
-    cards.set(playerCode, card!.matches.filter((match) => match.gameweek === GAMEWEEK));
-  }
+  const cards = await scoredBy(league, league.annsTeam, men);
   const table = (await readTable(league))!.results.find((each) => each.gameweek === GAMEWEEK)!.teams.find((team) => team.teamId === league.annsTeam)!;
   const squad = await ann.query(api.squads.teamSquad.ofMyTeam, { leagueId: league.leagueId, now: LEAGUE_FULL_TIME_READ });
   return { cards, table, squad };
 }
 
-/** What his team was credited with from him, by his card. */
-const credited = (matches: readonly PlayedMatch[]) => matches.filter((match) => match.points.scoredAs === "slot").map((match) => match.points.total ?? 0);
+/** What his team was credited with from him. */
+const credited = (matches: readonly Scored[]) => matches.filter((match) => match.points.scoredAs === "slot").map((match) => match.points.total ?? 0);
 const sum = (points: readonly number[]) => inTenths(points.reduce((total, each) => total + each, 0));
 
-/** The seam: the card credits what the table counts, and the Squad tab adds up what the card
- *  credits: what his team got from him, never a match labelled not counted (#595). */
+/** The seam: his scored matches credit what the table counts, and the Squad tab adds up what
+ *  they credit: what his team got from him, never a match labelled not counted (#595). */
 async function expectCardsAddUpToTheTable(league: ScoresLeague, provisional: boolean, men: readonly number[] = ANNS_MEN) {
   const { cards, table, squad } = await annsGameweek(league, men);
   expect(sum([...cards.values()].flatMap(credited))).toBe(table.points);
@@ -161,12 +179,11 @@ test("a team that never saved a lineup scores its men from its first (#637): its
   const league = await annsLeague({ bobSaves: false });
   await fullTimeRecords(league);
   const [{ playerCode: evertonKeeper }] = EVERTON_STARTERS;
-  const bob = await actingAs(league.t, BOB);
-  const cardOf = (playerCode: number) => bob.query(api.playerCard.playerCard.card, { leagueId: league.leagueId, playerCode, now: LEAGUE_FULL_TIME_READ });
+  const cardOf = async (playerCode: number) => ({ matches: (await scoredBy(league, league.bobsTeam, [playerCode])).get(playerCode)! });
   const bobs = (await readTable(league))!.results.find((each) => each.gameweek === GAMEWEEK)!.teams.find((team) => team.teamId === league.bobsTeam)!;
   expect(bobs).toMatchObject({ points: BOBS_FIRST_POINTS, noLineup: false });
-  expect((await cardOf(evertonKeeper))!.matches[0].points.scoredAs).toBe("slot");
-  expect((await cardOf(GREALISH))!.matches[0].points.scoredAs).toBe("notCounted");
+  expect((await cardOf(evertonKeeper)).matches[0].points.scoredAs).toBe("slot");
+  expect((await cardOf(GREALISH)).matches[0].points.scoredAs).toBe("notCounted");
 });
 
 // A double gameweek (spec/03, Double gameweeks; spec/12, The player card): Hull play a second match
@@ -176,8 +193,8 @@ test("a team that never saved a lineup scores its men from its first (#637): its
 const SECOND_MATCH = 990001;
 const SECOND_OPPONENT = 3;
 
-/** How the scorer's two matches show on his card: Hull v Everton's, then the second's. */
-type TwoMatches = Record<"first" | "second", Pick<PlayedMatch["points"], "scoredAs" | "total">>;
+/** How his team scored the scorer's two matches: Hull v Everton's, then the second's. */
+type TwoMatches = Record<"first" | "second", Pick<CardPoints, "scoredAs" | "total">>;
 
 /** Ann's league under `rule`, both of Hull's matches at full time, the scorer's second played on
  *  the stats `second` makes of his first's; the cards checked against the table. */
