@@ -11,7 +11,9 @@ import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, 
 import { squadsPath } from "../../../src/squads/paths";
 import type { SquadsData } from "../../support/src/squads.harness";
 import { squadWithWarnings } from "../../support/src/squads.harness";
+import { UNHELD } from "../../support/convex/footballRows.harness";
 import { descriptionOf } from "../../support/src/describedBy";
+import { unheldNoticeWords, unheldPlayerWords } from "../../../src/shared/words";
 import {
   assignLabel,
   findHint,
@@ -86,6 +88,24 @@ describe("each team's squad", () => {
 
     const team1 = await screen.findByRole("region", { name: "Team 1" });
     expect(within(team1).getByRole("status").textContent).toBe("Defensive midfield: 1 short of the league's least of 2.");
+  });
+
+  it("keeps a row whose player the football sync doesn't hold, saying his code, under a notice, and every other squad (#323)", async () => {
+    openSquads({ squads: [squadWithWarnings("team-1", "Team 1", [saka], [], [UNHELD]), ...TWO_TEAMS.squads!.slice(1)] });
+
+    const team1 = await screen.findByRole("region", { name: "Team 1" });
+    expect(within(team1).getByText("2 players")).toBeTruthy();
+    expect(within(within(team1).getByRole("list")).getAllByRole("listitem").map((row) => row.textContent)).toEqual([expect.stringContaining("Saka"), unheldPlayerWords(UNHELD)]);
+    // Only Saka can be released: there's no player to release in the other row.
+    expect(within(team1).getAllByRole("button").map((button) => button.getAttribute("aria-label"))).toEqual([releaseLabel("Saka")]);
+    expect(screen.getByText(unheldNoticeWords)).toBeTruthy();
+    expect(screen.getByRole("region", { name: "Team 2" })).toBeTruthy();
+  });
+
+  it("shows no notice of missing football data while every player is held", async () => {
+    openSquads();
+    await screen.findByRole("region", { name: "Team 1" });
+    expect(screen.queryByText(unheldNoticeWords)).toBeNull();
   });
 
   it("releases a player", async () => {
