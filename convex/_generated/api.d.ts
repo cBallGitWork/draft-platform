@@ -17,6 +17,7 @@ import type * as auth from "../auth.js";
 import type * as crons from "../crons.js";
 import type * as feedback_feedback from "../feedback/feedback.js";
 import type * as feedback_feedbackLimits from "../feedback/feedbackLimits.js";
+import type * as football_clubColours from "../football/clubColours.js";
 import type * as football_commentary from "../football/commentary.js";
 import type * as football_feedIds from "../football/feedIds.js";
 import type * as football_feeds from "../football/feeds.js";
@@ -211,6 +212,7 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   "feedback/feedback": typeof feedback_feedback;
   "feedback/feedbackLimits": typeof feedback_feedbackLimits;
+  "football/clubColours": typeof football_clubColours;
   "football/commentary": typeof football_commentary;
   "football/feedIds": typeof football_feedIds;
   "football/feeds": typeof football_feeds;

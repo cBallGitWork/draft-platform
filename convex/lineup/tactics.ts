@@ -21,6 +21,8 @@ const squadMember = v.object({
   playerCode: v.number(),
   name: v.string(),
   clubShortName: v.string(),
+  /** FPL's season-stable club code, which his shirt's colours are found by (clubColours.ts). */
+  clubCode: v.number(),
   positions: v.array(position),
   /** The squad number his manager gave him, on his shirt, or null until given (#13). */
   number: v.union(v.number(), v.null()),
@@ -66,6 +68,7 @@ export const ofMyTeam = query({
           playerCode,
           name: player.name,
           clubShortName: (await clubByCode(ctx, player.clubCode)).shortName,
+          clubCode: player.clubCode,
           positions: await positionsOfNow(playerCode),
           number: number ?? null,
         };

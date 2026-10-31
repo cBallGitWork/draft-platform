@@ -15,6 +15,9 @@ import type { Tactics, TacticsSeam } from "./seam";
 const PREVIEW_GAMEWEEK = 9;
 const PREVIEW_DEADLINE = Date.now() + DAY_MS + 17 * HOUR_MS;
 
+/** The preview's clubs' FPL codes (clubColours.ts), for their shirts. */
+const CLUB_CODES: Readonly<Record<string, number>> = { ARS: 3, AVL: 7, CHE: 8, CRY: 31, EVE: 11, LIV: 14, MCI: 43, MUN: 1, NFO: 17, TOT: 6 };
+
 /** Each player: his code, name, club and positions, and his cell, or none for the bench. */
 const PLAYERS: readonly [number, string, string, Position[], Cell | null][] = [
   [1, "Pickford", "EVE", ["GK"], { area: "goalkeeper", lane: "centre" }],
@@ -35,7 +38,14 @@ const PLAYERS: readonly [number, string, string, Position[], Cell | null][] = [
 ];
 
 // Squad numbers are made up too: each player wears his code, the last one none yet (#13).
-const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({ playerCode, name, clubShortName, positions, number: playerCode === 15 ? null : playerCode }));
+const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({
+  playerCode,
+  name,
+  clubShortName,
+  clubCode: CLUB_CODES[clubShortName],
+  positions,
+  number: playerCode === 15 ? null : playerCode,
+}));
 const positionsOf = new Map(squad.map(({ playerCode, positions }) => [playerCode, positions]));
 const nameOf = (playerCode: number) => squad.find((member) => member.playerCode === playerCode)!.name;
 
