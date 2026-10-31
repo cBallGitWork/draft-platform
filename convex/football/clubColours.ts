@@ -5,35 +5,35 @@
 // darker so a white number on them reads (4.5:1). A club promoted later needs its row; until
 // then its shirt is drawn as it was before colours, white.
 
-/** A club's two colours: the shirt a fan would name first, and its trim. */
-type ClubColours = { primary: string; secondary: string };
+/** A club's FPL short name, and its two colours: the shirt a fan would name first, and its trim. */
+type ClubColours = { shortName: string; primary: string; secondary: string };
 
 /** By FPL's club `code`, as `tests/support/recorded/fpl-bootstrap-static.json` gives each. */
 export const CLUB_COLOURS: Readonly<Record<number, ClubColours>> = {
-  3: { primary: "#E50107", secondary: "#FFFFFF" }, // ARS
-  7: { primary: "#670E36", secondary: "#95BFE5" }, // AVL
-  91: { primary: "#DA291C", secondary: "#000000" }, // BOU
-  94: { primary: "#E30613", secondary: "#FFFFFF" }, // BRE
-  36: { primary: "#0057B8", secondary: "#FFFFFF" }, // BHA
-  8: { primary: "#034694", secondary: "#FFFFFF" }, // CHE
-  9: { primary: "#78D0F3", secondary: "#FFFFFF" }, // COV
-  31: { primary: "#1B458F", secondary: "#C4122E" }, // CRY
-  11: { primary: "#003399", secondary: "#FFFFFF" }, // EVE
-  54: { primary: "#FFFFFF", secondary: "#000000" }, // FUL
-  88: { primary: "#F5A12D", secondary: "#000000" }, // HUL
-  40: { primary: "#3A64A3", secondary: "#FFFFFF" }, // IPS
-  2: { primary: "#FFFFFF", secondary: "#1D428A" }, // LEE
-  14: { primary: "#C8102E", secondary: "#00B2A9" }, // LIV
-  43: { primary: "#6CABDD", secondary: "#1C2C5B" }, // MCI
-  1: { primary: "#DA291C", secondary: "#FBE122" }, // MUN
-  4: { primary: "#241F20", secondary: "#FFFFFF" }, // NEW
-  17: { primary: "#DD0000", secondary: "#FFFFFF" }, // NFO
-  6: { primary: "#FFFFFF", secondary: "#132257" }, // TOT
-  56: { primary: "#E8172B", secondary: "#FFFFFF" }, // SUN
+  3: { shortName: "ARS", primary: "#E50107", secondary: "#FFFFFF" },
+  7: { shortName: "AVL", primary: "#670E36", secondary: "#95BFE5" },
+  91: { shortName: "BOU", primary: "#DA291C", secondary: "#000000" },
+  94: { shortName: "BRE", primary: "#E30613", secondary: "#FFFFFF" },
+  36: { shortName: "BHA", primary: "#0057B8", secondary: "#FFFFFF" },
+  8: { shortName: "CHE", primary: "#034694", secondary: "#FFFFFF" },
+  9: { shortName: "COV", primary: "#78D0F3", secondary: "#FFFFFF" },
+  31: { shortName: "CRY", primary: "#1B458F", secondary: "#C4122E" },
+  11: { shortName: "EVE", primary: "#003399", secondary: "#FFFFFF" },
+  54: { shortName: "FUL", primary: "#FFFFFF", secondary: "#000000" },
+  88: { shortName: "HUL", primary: "#F5A12D", secondary: "#000000" },
+  40: { shortName: "IPS", primary: "#3A64A3", secondary: "#FFFFFF" },
+  2: { shortName: "LEE", primary: "#FFFFFF", secondary: "#1D428A" },
+  14: { shortName: "LIV", primary: "#C8102E", secondary: "#00B2A9" },
+  43: { shortName: "MCI", primary: "#6CABDD", secondary: "#1C2C5B" },
+  1: { shortName: "MUN", primary: "#DA291C", secondary: "#FBE122" },
+  4: { shortName: "NEW", primary: "#241F20", secondary: "#FFFFFF" },
+  17: { shortName: "NFO", primary: "#DD0000", secondary: "#FFFFFF" },
+  6: { shortName: "TOT", primary: "#FFFFFF", secondary: "#132257" },
+  56: { shortName: "SUN", primary: "#E8172B", secondary: "#FFFFFF" },
 };
 
 /** A club with no row: the white shirt the pitch drew before colours. */
-const UNKNOWN_CLUB: ClubColours = { primary: "#FFFFFF", secondary: "#FFFFFF" };
+const UNKNOWN_CLUB: Omit<ClubColours, "shortName"> = { primary: "#FFFFFF", secondary: "#FFFFFF" };
 
 /** The two inks a shirt's number and outline can take: styles.css's `--color-ground` and
  *  `--color-fact` (tests/src/myTeam/tactics/shirts.test.tsx holds them equal). */

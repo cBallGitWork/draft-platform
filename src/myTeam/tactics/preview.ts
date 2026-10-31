@@ -5,6 +5,7 @@
 import { useSyncExternalStore } from "react";
 import { lineupProblems } from "../../../convex/lineup/lineup";
 import { problemWords } from "../../../convex/lineup/lineupWords";
+import { CLUB_COLOURS } from "../../../convex/football/clubColours";
 import type { Cell } from "../../../convex/lineup/pitch";
 import type { Position } from "../../../convex/positions/positionTables";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
@@ -15,8 +16,8 @@ import type { Tactics, TacticsSeam } from "./seam";
 const PREVIEW_GAMEWEEK = 9;
 const PREVIEW_DEADLINE = Date.now() + DAY_MS + 17 * HOUR_MS;
 
-/** The preview's clubs' FPL codes (clubColours.ts), for their shirts. */
-const CLUB_CODES: Readonly<Record<string, number>> = { ARS: 3, AVL: 7, CHE: 8, CRY: 31, EVE: 11, LIV: 14, MCI: 43, MUN: 1, NFO: 17, TOT: 6 };
+/** A club's FPL code by its short name, for its shirt's colours. */
+const clubCodeOf = (shortName: string) => Number(Object.entries(CLUB_COLOURS).find(([, club]) => club.shortName === shortName)![0]);
 
 /** Each player: his code, name, club and positions, and his cell, or none for the bench. */
 const PLAYERS: readonly [number, string, string, Position[], Cell | null][] = [
@@ -42,7 +43,7 @@ const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({
   playerCode,
   name,
   clubShortName,
-  clubCode: CLUB_CODES[clubShortName],
+  clubCode: clubCodeOf(clubShortName),
   positions,
   number: playerCode === 15 ? null : playerCode,
 }));

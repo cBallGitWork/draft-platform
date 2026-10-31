@@ -11,8 +11,9 @@ const CLUB_CODES = Object.keys(CLUB_COLOURS).map(Number);
 const UNKNOWN_CODE = 999;
 
 describe("club colours", () => {
-  it("has a row for every club in FPL's recorded season, by its code", () => {
-    expect(bootstrap.teams.map((team) => team.code).toSorted((a, b) => a - b)).toEqual(CLUB_CODES.toSorted((a, b) => a - b));
+  it("has a row for every club in FPL's recorded season, by its code, with its short name", () => {
+    const rows = Object.fromEntries(Object.entries(CLUB_COLOURS).map(([code, { shortName }]) => [code, shortName]));
+    expect(rows).toEqual(Object.fromEntries(bootstrap.teams.map((team) => [team.code, team.short_name])));
   });
 
   it.each(CLUB_CODES.flatMap((code) => [[code, false], [code, true]] as const))("club %i's number reads on its shirt (keeper: %s)", (code, goalkeeper) => {
