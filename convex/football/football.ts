@@ -18,12 +18,12 @@ export interface Football {
   scores: ScoreReads;
 }
 
-export const FPL_API_BASE = "https://fantasy.premierleague.com/api";
+const FPL_API_BASE = "https://fantasy.premierleague.com/api";
 /** Players, clubs and gameweeks. */
 export const FPL_BOOTSTRAP_URL = `${FPL_API_BASE}/bootstrap-static/`;
 /** Every match of the season. */
 export const FPL_FIXTURES_URL = `${FPL_API_BASE}/fixtures/`;
-export const PL_API_BASE = "https://footballapi.pulselive.com/football";
+const PL_API_BASE = "https://footballapi.pulselive.com/football";
 /** The Premier League's id for its own competition. */
 const PL_COMPETITION = 1;
 /** The year the season the two ids below name starts: 2026 for 2026/27. Each summer, the three

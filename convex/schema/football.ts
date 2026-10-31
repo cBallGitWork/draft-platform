@@ -90,6 +90,9 @@ export const tableWrites = v.object({
   unmarked: v.optional(v.number()),
 });
 
+/** A run or read that failed, and why: what `outcomeOf` (convex/shared/errors.ts) gives back. */
+export const failure = v.object({ ok: v.literal(false), error: v.string() });
+
 /** Who started a sync: someone by hand, or its cron. */
 export const syncTrigger = v.union(v.literal("manual"), v.literal("cron"));
 
@@ -107,7 +110,7 @@ export const footballSyncFields = {
       /** Absent on runs before #49's scores. */
       scores: v.optional(scoreWrites),
     }),
-    v.object({ ok: v.literal(false), error: v.string() }),
+    failure,
   ),
 };
 
