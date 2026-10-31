@@ -3,7 +3,6 @@ import type { MatchupBenchSlot, MatchupSide, MatchupSlot, MatchupStarter } from 
 import { ColumnHeads } from "../ui/ColumnHeads";
 import { Panel, PanelNote } from "../ui/Panel";
 import { matchPath } from "../premierLeague/paths";
-import { formationOf } from "./formation";
 import {
   AREA_CODES,
   AREA_WORDS,
@@ -12,8 +11,6 @@ import {
   BENCH_TITLE,
   columns,
   figureWords,
-  formationLabel,
-  formationWords,
   leagueAverageWords,
   lineupLabel,
   noFigureWords,
@@ -23,8 +20,7 @@ import {
 } from "./words";
 
 // One side of a scored matchup (spec/10, The matchup, as a live match): its lineup slot by slot,
-// each starter in his role, the bench under its own plate, and its formation on the panel's plate;
-// or the league's average.
+// each starter in his role, the bench under its own plate; or the league's average.
 
 /** A side's name: its team's, or the league's average. */
 export const sideName = (side: MatchupSide) => (side.kind === "team" ? side.teamName : leagueAverageWords);
@@ -33,7 +29,7 @@ export const sideName = (side: MatchupSide) => (side.kind === "team" ? side.team
 export function SidePanel({ side }: { side: MatchupSide }) {
   const name = sideName(side);
   return (
-    <Panel title={name} namesTeam={side.kind === "team"} aside={side.kind === "team" ? <Formation counts={formationOf(side.lineup)} /> : undefined}>
+    <Panel title={name} namesTeam={side.kind === "team"}>
       {side.kind === "leagueAverage" ? (
         <PanelNote>{averageWords}</PanelNote>
       ) : (
@@ -55,18 +51,6 @@ export function SidePanel({ side }: { side: MatchupSide }) {
         </table>
       )}
     </Panel>
-  );
-}
-
-/** The side's shape now, at the plate's far end: a reading worked out, so cyan (plate.md). Nothing
- *  while no one stands outfield. */
-function Formation({ counts }: { counts: number[] }) {
-  if (counts.length === 0) return null;
-  return (
-    <p className="font-bold text-derived">
-      <span className="sr-only">{formationLabel} </span>
-      {formationWords(counts)}
-    </p>
   );
 }
 

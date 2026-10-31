@@ -1,14 +1,13 @@
-// Each side's roles and formation on the matchup (spec/10, The matchup, as a live match: "At the
-// deadline both lineups show: the starters, the bench in order, the formation and each starter's
-// role"; #799): each starter's role under his name, as the Tactics pitch shows it; a bench player's
-// only once he has come on; the formation on the side's plate, the shape on the pitch now.
+// Each man's role on the matchup (spec/10, The matchup, as a live match: "At the deadline both
+// lineups show: the starters, the bench in order, the formation and each starter's role"; #799):
+// each starter's role under his name, as the Tactics pitch shows it; a bench player's only once he
+// has come on. The formation waits on Craig (#878).
 
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { roleIn } from "../../../convex/lineup/roles";
-import type { MatchupSide } from "../../../convex/matchup/matchupShape";
 import { MATCHUP_PATH } from "../../../src/frame/menu";
-import { AREA_CODES, autoSubWords, BENCH_TITLE, formationLabel, formationWords, leagueAverageWords, lineupLabel, notCountingLabel, statusLabels, statusWords } from "../../../src/matchup/words";
+import { AREA_CODES, autoSubWords, BENCH_TITLE, lineupLabel, notCountingLabel, statusLabels, statusWords } from "../../../src/matchup/words";
 import { headToHead, lineupRows, roleOf, slot, SLOT_MATCH, teamSide } from "../../support/src/matchup.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 
@@ -32,24 +31,12 @@ const team1 = teamSide(
     { ...slot("Singh", { area: "attack", points: 1, counts: false, status: FINISHED }), role: null },
   ],
 );
-/** Team 2: a back four, a pair in midfield and a target man. */
-const team2 = teamSide("Team 2", [
-  slot("Pickford", { area: "goalkeeper" }),
-  ...["Tarkowski", "Keane", "O'Brien", "Mykolenko"].map((name) => slot(name, { area: "defence" })),
-  ...["Gana", "Garner"].map((name) => slot(name)),
-  { ...slot("Beto", { area: "attack" }), role: TARGET_MAN },
-], []);
-
-const openScored = (opponent: MatchupSide) =>
-  openApp(MATCHUP_PATH, manager, { matchup: { matchup: headToHead({ kind: "scored", team: team1, opponent }) } });
-
-/** The formation on a side's plate, as read out. */
-const formationOn = (sideName: string) =>
-  within(screen.getByRole("region", { name: sideName })).queryByText((_, element) => element?.tagName === "P" && element.textContent?.startsWith(formationLabel) === true)?.textContent ?? null;
+/** Team 2: a target man up front. */
+const team2 = teamSide("Team 2", [{ ...slot("Beto", { area: "attack" }), role: TARGET_MAN }], []);
 
 describe("each man's role", () => {
   it("shows under each starter's name and a sub's once he has come on, never a bench player's not on", async () => {
-    openScored(team2);
+    openApp(MATCHUP_PATH, manager, { matchup: { matchup: headToHead({ kind: "scored", team: team1, opponent: team2 }) } });
     await screen.findByRole("region", { name: "Team 1" });
     expect(lineupRows("Team 1")).toEqual([
       `${AREA_CODES.goalkeeper}Phillips${roleOf("goalkeeper").name}${autoSubWords.off("Pandur")}${statusLabels.finished} ${statusWords.finished}0 ${notCountingLabel}`,
@@ -60,20 +47,5 @@ describe("each man's role", () => {
       `${AREA_CODES.attack}Singh${statusLabels.finished} ${statusWords.finished}1 ${notCountingLabel}`,
     ]);
     expect(within(screen.getByRole("table", { name: lineupLabel("Team 2") })).getByText(TARGET_MAN.name)).toBeTruthy();
-  });
-});
-
-describe("each side's formation", () => {
-  it("shows on its plate, counted from its men's areas", async () => {
-    openScored(team2);
-    await screen.findByRole("region", { name: "Team 2" });
-    expect(formationOn("Team 2")).toBe(`${formationLabel} ${formationWords([4, 2, 1])}`);
-    expect(formationOn("Team 1")).toBe(`${formationLabel} ${formationWords([1, 1])}`);
-  });
-
-  it("the league's average has none", async () => {
-    openScored({ kind: "leagueAverage", points: 20, provisional: false });
-    await screen.findByRole("region", { name: leagueAverageWords });
-    expect(formationOn(leagueAverageWords)).toBeNull();
   });
 });
