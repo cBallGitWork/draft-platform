@@ -27,9 +27,10 @@ export default defineConfig({
     // node_modules/.vitest-cache and reuses it while the file's own source is unchanged. It skips a
     // file holding the text `import.meta.glob(`, but not `import.meta.glob<string>(`, so
     // tests/convex/generatedApi.test.ts kept its list of convex/ from before a module was added, and
-    // the local gate disagreed with CI, which starts with no cache (#766). Off, a run took the same
-    // time. The option: `fsModuleCache` in node_modules/vitest/dist/chunks/plugin.d.*.d.ts; the skip:
-    // generateCachePath in node_modules/vitest/dist/chunks/cli-api.*.js.
+    // the local gate disagreed with CI, which starts with no cache (#766). A full `npm test` took
+    // 24-26s with it and 25-26s without (31 Oct 2026). The option: `fsModuleCache` in
+    // node_modules/vitest/dist/chunks/plugin.d.*.d.ts; the skip: generateCachePath in
+    // node_modules/vitest/dist/chunks/cli-api.*.js.
     fsModuleCache: false,
     // Only `npm run coverage` turns it on: four totals to read (statements, branches, functions,
     // lines), never a gate, so no thresholds and they print even when a test fails

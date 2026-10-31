@@ -14,7 +14,8 @@ const VITEST = join(import.meta.dirname, "../../node_modules/vitest/vitest.mjs")
 const PROBE = "probe.test.ts";
 const PIECES = "pieces";
 const PIECE_EXTENSION = ".mjs";
-// A cold Vitest start takes about a second, and coverage about doubles that. spawnSync blocks, so
+// This file's four Vitest runs took about a second together (`npm test -- <this file>`, 31 Oct
+// 2026), and coverage about doubles that. spawnSync blocks, so
 // Vitest's own timeout can't stop a hung inner run: each is killed at its own limit, and the test's
 // timeout allows for two and the scratch folder's setup.
 const RUN_TIMEOUT_MS = 25_000;
