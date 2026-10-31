@@ -59,9 +59,9 @@ FPL's /help pages (drawn by script).
 | squad | every player you own | PL managing: "starting 11 from their 15-man squad" | use |
 | line-up | the chosen eleven and bench | PL managing: "confirm their final line-up"; Sky: "Fernandes restored to Man Utd line-up"; FFS: "Predicted Line-ups" | **use "line-up", hyphened**. DF writes "lineup" ("Your lineup and ordered bench are saved"), the US spelling |
 | starting XI, starting 11 | the starters | PL how to play: "choose a starting XI" | use |
-| bench, subs, substitutes | the players who don't start | PL managing: "the outfield substitute who you have placed FIRST on your bench" | use all three |
+| bench, subs, substitutes | the players who don't start | PL managing: "the outfield substitute who you have placed FIRST on your bench" | use all three; the glossary avoids "subs" (see [Against the glossary](#against-the-glossary)) |
 | auto-subs | the automatic substitutions | PL replay: "Normal auto-subs and vice-captain rules will apply"; DF team: "auto subs" | use "auto-subs" |
-| captain, vice-captain, armband | the doubled pick and his stand-in | PL managing: "the captain's armband passes to your vice-captain" | use |
+| captain, vice-captain, armband | the doubled pick and his stand-in | PL managing: "the captain's armband passes to your vice-captain" | use; the glossary avoids "armband" for the person |
 | skipper | the captain | PL how to play: "if the selected skipper does not play" | UK, but the glossary avoids it |
 
 ## The market
@@ -69,7 +69,7 @@ FPL's /help pages (drawn by script).
 | Term | Meaning | Source and quote | Verdict |
 |---|---|---|---|
 | transfers | squad changes | DF transfers: "Go to the `Transfers` page to change your squad" | use |
-| waivers | priority claims on a dropped player | DF transfers: "the player you drop goes to waivers" | use "waivers"; "waiver wire" is the US form |
+| waivers | priority claims on a dropped player | DF transfers: "the player you drop goes to waivers" | use "waivers"; "waiver wire" is the US form (from general usage: on none of the pages fetched) |
 | free agent | a player nobody owns | DF transfers: "**Free agent**: No one owns the player" | use |
 | trade | a swap between managers | DF transfers: "A trade must exchange the same number of players on each side" | use |
 | wildcard | FPL's free-transfers chip | PL glossary: "make as many changes to their team as they want between two Gameweek deadlines" | only for an FPL-like mechanic |
@@ -84,7 +84,7 @@ FPL's /help pages (drawn by script).
 | table, league table | the ranking | PL draft H2H: "wins three points in the league table"; BBC and Sky name the page Table | **use "table"** |
 | standings | the ranking | DF league formats: "regular league standings" | understood, US-flavoured: say table |
 | fixture | a scheduled meeting | DF league formats: "head-to-head fixtures" | use |
-| matchup | a head-to-head of two teams | on none of the PL or DF pages fetched; RotoWire (US) and Fantrax use it | US word: UK draft copy says fixture, match or head-to-head |
+| matchup | a head-to-head of two teams | on none of the pages fetched, UK or US | not UK usage on this evidence: UK draft copy says fixture, match or head-to-head |
 | match, game | a meeting | BBC: "first of eight Premier League games"; PL's menu: Matches | both UK |
 | gameweek, double gameweek, blank gameweek | a round; two fixtures in one; none | PL glossary: "A club will have a Double Gameweek if they have two fixtures in one Gameweek" | use; PL capitalises Gameweek, DF doesn't |
 | matchday | a day of matches | not checked | rare in FPL talk; gameweek |
@@ -97,9 +97,9 @@ FPL's /help pages (drawn by script).
 |---|---|---|
 | roster | RotoWire: "Roster sizes are also customizable" | **avoid** → squad |
 | soccer | RotoWire: "Fantasy Soccer 101" | **avoid** → football |
-| standings | DF, RotoWire | **avoid** → table |
+| standings | DF: "regular league standings" | **avoid** → table |
 | tie, tied (a level score) | — | **avoid** → draw, drawn |
-| waiver wire | RotoWire | **avoid** → waivers |
+| waiver wire | none of the pages fetched; general US usage | **avoid** → waivers |
 | playoffs | DF, RotoWire | **avoid** → play-offs |
 | franchise | no UK source | **avoid** → club (real) or team (fantasy) |
 | field, uniform, cleats | no UK source | **avoid** → pitch (PL glossary: "operating on the pitch"), kit, boots |
@@ -134,6 +134,8 @@ Where the UK usage above differs from a word Craig chose:
   head-to-head, and "matchup" is on no UK page fetched.
 - **subs**: avoided for the bench; FPL and the PL use "substitute" and "auto-subs" freely.
 - **skipper**: avoided; FPL's own how-to says it.
+- **armband**: avoided for the person; the PL uses it for the captaincy ("handed him the
+  armband"), which the glossary allows.
 
 ## Proposed Avoid additions
 

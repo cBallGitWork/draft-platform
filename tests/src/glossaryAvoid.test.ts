@@ -80,6 +80,9 @@ describe("the Glossary's Avoid column", () => {
   it("catches a planted word in shown text, and leaves comments, names and longer words alone", () => {
     const planted = 'export const scoredWords = (name: string) => `${name} was paid 6 points`;';
     expect(avoidedIn(shownText(planted), words)).toEqual(["paid"]);
+    for (const kind of ["'paid'", "`paid`", 'export default "paid";', "`${1} paid ${2} more`"]) {
+      expect(avoidedIn(shownText(kind), words)).toEqual(["paid"]);
+    }
     const clean = '// he is paid nothing here\nconst paidKey = "Auto-subs and the Watchlists page";';
     expect(avoidedIn(shownText(clean), words)).toEqual([]);
   });
