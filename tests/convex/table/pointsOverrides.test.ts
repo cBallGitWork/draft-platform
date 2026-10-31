@@ -1,6 +1,6 @@
 import { ConvexError } from "convex/values";
 import { expect, test } from "vitest";
-import { api, internal } from "../../../convex/_generated/api";
+import { api } from "../../../convex/_generated/api";
 import type { TableNames } from "../../../convex/_generated/dataModel";
 import { adminByline, matchWords } from "../../../convex/mail/letterWords";
 import schema from "../../../convex/schema";
@@ -20,10 +20,12 @@ import {
   HULL_SCORER,
   HULL_STARTERS,
   lockMatch,
+  nameOf,
   PHILLIPS,
   readTable,
   scoresLeague,
   sideTotal,
+  storeLeague,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 import { actingAs, ADMIN, COMMISSIONER } from "../../support/convex/leagues.harness";
@@ -50,7 +52,7 @@ async function storedLeague(): Promise<ScoresLeague> {
   await holdHullAndEverton(league);
   await fullTimeRecords(league);
   await lockMatch(league);
-  await league.t.mutation(internal.table.finalScores.storeLeague, { leagueId: league.leagueId });
+  await storeLeague(league);
   return league;
 }
 
@@ -68,8 +70,6 @@ async function annsMatchup(league: ScoresLeague) {
   if (team.kind !== "team") throw new Error("Ann's side is the league's average");
   return { team: team.points, opponent: opponent.points, scorer: team.lineup!.starters.find((slot) => slot.playerCode === HULL_SCORER)!.points };
 }
-const scorersName = ({ t }: ScoresLeague) =>
-  t.run(async (ctx) => (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", HULL_SCORER)).unique())!.name);
 const lettersOf = ({ t }: ScoresLeague) => t.run((ctx) => ctx.db.query("letters").collect());
 
 /** Every row of every table but those an override writes, without the stored scores' own ids and
@@ -109,7 +109,7 @@ test("an override changes the player's points, the team's total and the head-to-
   expect(await storedPoints(league)).toEqual(expected);
   expect(await annsMatchup(league)).toEqual({ team: ANNS_AFTER, opponent: EVERTON_POINTS, scorer: OVERRIDDEN });
 
-  const name = await scorersName(league);
+  const name = await nameOf(league, HULL_SCORER);
   const letters = (await lettersOf(league)).slice(lettersBefore);
   expect(letters.map((letter) => letter.to).toSorted()).toEqual([ANN, BOB, COMMISSIONER].toSorted());
   for (const letter of letters) {

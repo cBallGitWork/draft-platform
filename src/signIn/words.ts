@@ -8,7 +8,7 @@ export const signInWords = {
   inviteOnly: "Invite only",
   title: "Sign in",
   emailLabel: "Email",
-  hint: "We'll email you a link that signs you in. No password.",
+  hint: "No password needed.",
   send: "Send the link",
 } as const;
 

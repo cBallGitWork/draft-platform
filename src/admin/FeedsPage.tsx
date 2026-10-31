@@ -1,6 +1,6 @@
 import type { FeedState } from "../../convex/admin/feedState";
 import { ColumnHeads } from "../ui/ColumnHeads";
-import { Loading, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
+import { Loading, PAGE_STACK, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
 import { whenWords } from "../shared/words";
 import { AdminHeader } from "./AdminHeader";
 import type { AdminSeam, FeedsReport } from "./seam";
@@ -49,7 +49,7 @@ const stateClasses: Record<FeedState, string> = {
 export function FeedsPage({ seam }: { seam: AdminSeam }) {
   const report = seam.useFeeds();
   return (
-    <div className="flex max-w-5xl flex-col gap-2">
+    <div className={PAGE_STACK}>
       <AdminHeader />
       {report === undefined ? (
         <Loading>{feedsLoadingWords}</Loading>

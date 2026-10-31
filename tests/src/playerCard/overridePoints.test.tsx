@@ -33,7 +33,14 @@ const MATCH: PlayedMatch = {
   home: ARSENAL,
   away: COVENTRY,
   minutes: 90,
-  points: [{ position: "W", total: 7, categories: [{ stat: "goals_scored", name: "Goals scored", points: 5 }] }],
+  points: [
+    {
+      position: "W",
+      total: 7,
+      categories: [{ stat: "goals_scored", name: "Goals scored", points: 5, why: { actions: 1, value: { shape: "perAction", points: 5 }, pricedBy: { by: "all" }, cut: null } }],
+    },
+  ],
+  version: null,
   override: null,
   provisional: false,
 };

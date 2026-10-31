@@ -114,6 +114,15 @@ describe("the rows", () => {
     expect(columnHeadIn(screen.getByRole("table"), last).getAttribute("title")).toBe(last.long);
   });
 
+  it("name the next match by the short words it shows, then the long ones, so voice control can say what it sees (#790)", async () => {
+    openSquad({ squad: squadOf([SAKA, PALMER]) });
+    await screen.findByRole("table");
+    const [saka, palmer] = rows();
+
+    expect(within(saka).getByLabelText(`CHE ${homeWords}, ${nextFixtureLong("Chelsea", true, whenWords(KICKOFF))}`).textContent).toBe(`CHE ${homeWords}`);
+    expect(within(palmer).getByLabelText(`ARS ${awayWords}, ${nextFixtureLong("Arsenal", false, whenWords(KICKOFF))}`).textContent).toBe(`ARS ${awayWords}`);
+  });
+
   it("open a player's card from his name", async () => {
     const app = openSquad({ squad: squadOf([SAKA]) });
     await userEvent.click(await screen.findByRole("link", { name: "Saka" }));

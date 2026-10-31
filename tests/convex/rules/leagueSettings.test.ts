@@ -117,8 +117,7 @@ describe("changing them", () => {
     const table = await (await actingAs(t, COMMISSIONER)).query(api.table.leagueTable.ofLeague, { leagueId });
 
     // Four teams: three rounds of two fixtures, all three played each gameweek.
-    expect(table?.roundRobinRounds).toBe(3);
-    expect(table?.gameweeks[0].fixtures.length).toBe(table!.roundRobinRounds * FIXTURES_A_ROUND);
+    expect(table?.gameweeks[0].fixtures.length).toBe(3 * FIXTURES_A_ROUND);
   });
 
   test("more games a gameweek reach the table from the gameweek the change applies from, never the one before it (#266)", async () => {

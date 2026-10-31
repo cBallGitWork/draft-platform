@@ -23,6 +23,9 @@ const squadMember = v.object({
   name: v.string(),
   /** Null for one the football sync doesn't hold. */
   clubShortName: v.union(v.string(), v.null()),
+  /** FPL's season-stable club code, which his shirt's colours are found by (clubColours.ts); null
+   *  for one the football sync doesn't hold, who wears the shirt of a club with no colours. */
+  clubCode: v.union(v.number(), v.null()),
   /** The football sync doesn't hold him: data gone wrong, kept so it shows (#323). */
   unheld: v.boolean(),
   positions: v.array(position),
@@ -69,6 +72,7 @@ export const ofMyTeam = query({
           playerCode,
           name: player === null ? unheldPlayerWords(playerCode) : player.name,
           clubShortName: player === null ? null : (await clubByCode(ctx, player.clubCode)).shortName,
+          clubCode: player?.clubCode ?? null,
           unheld: player === null,
           // His positions are read as for any other player: the lineup's check says where he may stand.
           positions: await positionsOfNow(playerCode),

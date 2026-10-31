@@ -10,8 +10,8 @@ export const PATCH_NOTES_TITLE = "Patch notes";
 /** The banner's link, and Player scoring's, to the notes. */
 export const patchNotesLinkWords = PATCH_NOTES_TITLE;
 export const loadingWords = "Loading the patch notes…";
-export const noVersionsWords = "No patches yet: every league plays the first scoring set.";
-export const notesHint = "Every change to the scoring every league plays on, newest first. Gameweeks played before a version keep the scoring they had.";
+export const noVersionsWords = "No patches yet.";
+export const notesHint = "Gameweeks played before a version keep the scoring they had.";
 
 export const KIND_WORDS: Record<VersionNotes["kind"], string> = { patch: "Patch", fix: "Fix" };
 /** When a version is in force from, on the Premier League's clock (London), as its letter says it. */

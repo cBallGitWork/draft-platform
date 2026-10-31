@@ -7,12 +7,21 @@ import type { Position } from "../../../convex/positions/positionTables";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import type { OpenTactics } from "../../../src/myTeam/tactics/seam";
 import { pitchLabel, playerOnPitchLabel, saveWords, squadTableLabel } from "../../../src/myTeam/tactics/words";
+import { ARSENAL } from "../convex/footballRows.harness";
 import type { MyTeamData } from "./myTeam.harness";
 import { manager, openApp } from "./shell.harness";
 import { TACTICS_GAMEWEEK, openTactics } from "./tactics.harness";
 
 export type Member = OpenTactics["squad"][number];
-export const member = (playerCode: number, name: string, positions: Position[], number: number | null = null): Member => ({ playerCode, name, clubShortName: "ARS", unheld: false, positions, number });
+export const member = (playerCode: number, name: string, positions: Position[], number: number | null = null): Member => ({
+  playerCode,
+  name,
+  clubShortName: ARSENAL.shortName,
+  clubCode: ARSENAL.code,
+  unheld: false,
+  positions,
+  number,
+});
 
 export const RAYA = member(1, "Raya", ["GK"]);
 export const SALIBA = member(2, "Saliba", ["CB"]);
