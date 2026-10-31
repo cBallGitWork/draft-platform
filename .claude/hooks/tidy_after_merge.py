@@ -17,8 +17,8 @@ request gh can't read.
 Then it moves the main checkout to origin/main when it is detached and behind: the hooks run from
 its .claude/hooks/, so a merged hook fix waited until someone moved it by hand (31 Oct 2026: still
 at #767 after #777 merged). git checkout --detach keeps a changed file the move doesn't touch, and
-refuses over one it would overwrite; that refusal is said, as is a commit of its own keeping it
-there. On a branch it is left alone.
+refuses over one it would overwrite; that refusal is said, as is a commit of its own or a rebase
+or bisect under way keeping it there. On a branch it is left alone.
 
 It runs after the command, so it never blocks one. Stdlib only, Python 3.9+.
 """
@@ -42,6 +42,9 @@ BRANCH_REF = "refs/heads/"
 REMOTE = "origin"  # where GitHub's copy of the pull request's head is fetched from
 PULL_HEAD = "pull/{number}/head"  # GitHub's ref for a pull request's head commit
 REMOTE_MAIN = f"{REMOTE}/{MAIN}"  # where the main checkout is moved to
+# what git keeps in .git/ while a rebase, merge, cherry-pick, revert or bisect is under way (a
+# rebase or bisect leaves HEAD detached), when moving the checkout would wreck it
+UNDER_WAY = ("rebase-merge", "rebase-apply", "MERGE_HEAD", "CHERRY_PICK_HEAD", "REVERT_HEAD", "BISECT_LOG")
 # each git or gh call: nine at most per merge and four to move the main checkout, inside the 180
 # settings.json gives the hook
 RUN_TIMEOUT_SECONDS = 13
@@ -170,6 +173,9 @@ def follow_main(folder):
         return None
     checkout = f"The main checkout ({path})"
     stays = f"{checkout} stays off {REMOTE_MAIN}, so merged hook fixes don't take effect yet"
+    under_way = [mark for mark in UNDER_WAY if os.path.exists(os.path.join(path, ".git", mark))]
+    if under_way:
+        return f"{stays}: a git operation is under way there ({', '.join(under_way)})."
     ok, said = run(path, "git", "fetch", "--quiet", "--no-write-fetch-head", REMOTE, MAIN)
     if not ok:
         return f"{stays}: git fetch failed ({said})."

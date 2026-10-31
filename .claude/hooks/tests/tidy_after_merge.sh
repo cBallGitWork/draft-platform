@@ -3,8 +3,8 @@
 # branch and its clean worktree go, also when GitHub's head is a merge commit on top of it; one with
 # extra commits, uncommitted changes, a head that can't be fetched, or checked out in the main
 # checkout or the folder the merge ran in stays, and says why; nothing else is touched. Then the
-# main checkout follows origin/main when detached and behind it, but not on a branch, nor on a
-# commit of its own, nor over a changed file the move would overwrite.
+# main checkout follows origin/main when detached and behind it, but not on a branch, on a commit
+# of its own, mid-bisect, when origin can't be fetched, or over a changed file it would overwrite.
 . "$(dirname "$0")/helpers.sh"
 
 repo=$tmp/tidy && git init -q -b main "$repo"
@@ -181,6 +181,18 @@ git -C "$home" "${as_tester[@]}" commit -q --allow-empty -m "local work" && befo
 says "it holds 1 commit(s) origin/main doesn't" tidy_after_merge.py "$(bash_in "$home" "$merge")"
 stayed || fail "tidy_after_merge.py: moved a main checkout off its own commit"
 git -C "$home" checkout -q --detach HEAD~1
+
+# a bisect (or rebase) under way, which leaves HEAD detached: it stays, and says so
+before=$(git -C "$home" rev-parse HEAD) && touch "$home/.git/BISECT_LOG"
+says "a git operation is under way there (BISECT_LOG)" tidy_after_merge.py "$(bash_in "$home" "$merge")"
+stayed || fail "tidy_after_merge.py: moved a main checkout mid-bisect"
+rm "$home/.git/BISECT_LOG"
+
+# origin can't be reached: it stays, and says so
+git -C "$home" remote set-url origin "$tmp/no-such-origin.git"
+says "git fetch failed" tidy_after_merge.py "$(bash_in "$home" "$merge")"
+stayed || fail "tidy_after_merge.py: moved a main checkout when the fetch failed"
+git -C "$home" remote set-url origin "$upstream"
 
 # on a branch: it stays, whatever origin/main holds
 git -C "$home" switch -q -c local && before=$(git -C "$home" rev-parse HEAD)
