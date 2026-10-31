@@ -55,7 +55,8 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026), unless dated otherwise.
 - Dropping a player on another swaps them, starter for starter or bench for starter. Each lands on
   the role he has the most stars for in his new slot (Roles).
 - The lineup saves itself after each valid move. There is no Save button.
-- Undo takes back a move.
+- Undo goes back through every move since the manager opened the Tactics tab this visit. A save
+  doesn't clear it: "save doesn't mean we leave the page" (Craig, 31 Oct 2026).
 - Quick Pick fills the current shape with the best eleven by stars.
 
 ## What the pitch shows

@@ -44,6 +44,8 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 
   SS will have its own price, so a support striker can score differently (Craig, 22 Oct 2026);
   how a slot becomes SS is to grill (`spec/06`).
+- A sweeper's slot (SW, `spec/05`) is priced as CB: "for now it's just the same as CB, I'll think
+  of other points system for it" (Craig, 31 Oct 2026).
 - Three kinds of rule:
   - per action (+3 per assist);
   - per number of actions (+1 per 3 saves);
