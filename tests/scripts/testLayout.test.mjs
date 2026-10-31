@@ -2,11 +2,11 @@ import { readdirSync } from "node:fs";
 import { join, matchesGlob, relative, sep } from "node:path";
 import { expect, test } from "vitest";
 import config from "../../vitest.config.ts";
+import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
 // A test file no Vitest project's include matches never runs, and nothing says so. This walks
 // tests/ and names any such file, using the include globs vitest.config.ts itself holds.
 
-const REPO_ROOT = join(import.meta.dirname, "../..");
 const TESTS_ROOT = "tests";
 // Playwright runs tests/smoke/ (`npm run smoke`) and tests/live/ (the after-release check,
 // playwright.live.config.ts); tests/support/ holds harnesses, not tests.

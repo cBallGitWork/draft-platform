@@ -158,7 +158,7 @@ class SideScorer {
         for (const slot of [...scored.team.starters, ...scored.team.bench]) {
           const his = scored.matchesOf.get(slot.playerCode) ?? [];
           for (const match of his) matches.set(match.fixture.code, match);
-          players.set(slot.playerCode, { name: await this.name(slot.playerCode), cell: slot.cell, role: slot.role, inMatch: inMatchOf(slot, his) });
+          players.set(slot.playerCode, { name: await this.name(slot.playerCode), cell: slot.cell, role: slot.role, inLineup: true, inMatch: inMatchOf(slot, his) });
         }
       }
       const held = await Promise.all(
