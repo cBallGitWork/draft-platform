@@ -25,7 +25,7 @@ export const storedLine = (sourceId: number, text: string, minute: number | null
 export const holdLines = ({ t }: ScoresLeague, lines: ReturnType<typeof storedLine>[]) =>
   t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines, delayed: null }));
 
-export const manOf =(men: readonly MatchMan[], playerCode: number) => men.find((man) => man.playerCode === playerCode)!;
+export const manOf = (men: readonly MatchMan[], playerCode: number) => men.find((man) => man.playerCode === playerCode)!;
 
 /** The league as before its gameweek's deadline: no gameweek recorded as begun. */
 export const notYetBegun = ({ t }: ScoresLeague) =>
