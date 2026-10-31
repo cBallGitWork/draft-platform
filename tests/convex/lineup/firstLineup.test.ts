@@ -74,11 +74,14 @@ describe("each pick goes onto the 4-4-2 as it is made", () => {
     expect(firstLineup([], new Map(), RULES)).toEqual({ starters: [], bench: [] });
   });
 
-  /** A seeded draw, so a failure can be run again. */
+  /** A seeded draw, so a failure can be run again: the C library's linear congruential steps. */
+  const MULTIPLIER = 1103515245;
+  const INCREMENT = 12345;
+  const MODULUS = 2 ** 31;
   const drawn = (seed: number) => {
     let state = seed;
     return (count: number) => {
-      state = (state * 1103515245 + 12345) % 2 ** 31;
+      state = (state * MULTIPLIER + INCREMENT) % MODULUS;
       return state % count;
     };
   };

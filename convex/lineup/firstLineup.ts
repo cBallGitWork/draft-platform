@@ -35,10 +35,10 @@ export function firstLineup(
   rules: FirstLineupRules | null,
   keptOnBench: ReadonlySet<number> = new Set(),
 ): FirstLineup {
-  const fourFourTwo = placedPickByPick(FIRST_CELLS, pickOrder, positions, keptOnBench);
+  const fourFourTwo = placedInPickOrder(FIRST_CELLS, pickOrder, positions, keptOnBench, () => true);
   if (fourFourTwo.starters.length === FIRST_CELLS.length || rules === null) return fourFourTwo;
   for (const { cells } of rules.presets) {
-    const filled = filledPickByPick(cells, pickOrder, positions, keptOnBench);
+    const filled = filledInPickOrder(cells, pickOrder, positions, keptOnBench);
     if (filled !== null && lineupProblems(filled, positions, rules).length === 0) return filled;
   }
   return fourFourTwo;
@@ -66,20 +66,9 @@ export function keptOnBenchOf(held: FirstLineup, pickOrder: readonly number[], p
   );
 }
 
-/** Each pick in turn into the deepest open cell he can play, back to front then left to right, the
- *  rest on the bench in pick order. Starters are listed in the pitch's order. */
-function placedPickByPick(
-  cells: readonly Cell[],
-  pickOrder: readonly number[],
-  positions: PlayerPositions,
-  keptOnBench: ReadonlySet<number>,
-): FirstLineup {
-  return placed(cells, pickOrder, positions, keptOnBench, () => true);
-}
-
-/** As `placedPickByPick`, but a pick takes the deepest open cell that still lets the later picks
- *  fill every cell, so the shape is filled whenever the squad can fill it; null when it can't. */
-function filledPickByPick(
+/** The picks placed in turn, each into the deepest open cell that still lets the later picks fill
+ *  every cell, so the shape is filled whenever the squad can fill it; null when it can't. */
+function filledInPickOrder(
   cells: readonly Cell[],
   pickOrder: readonly number[],
   positions: PlayerPositions,
@@ -87,12 +76,15 @@ function filledPickByPick(
 ): FirstLineup | null {
   const playable = pickOrder.filter((playerCode) => !keptOnBench.has(playerCode));
   if (!canFill(cells, playable, positions)) return null;
-  return placed(cells, pickOrder, positions, keptOnBench, (open, laterPicks) => canFill(open, laterPicks.filter((code) => playable.includes(code)), positions));
+  const stillFillable = (open: readonly Cell[], laterPicks: readonly number[]) =>
+    canFill(open, laterPicks.filter((playerCode) => playable.includes(playerCode)), positions);
+  return placedInPickOrder(cells, pickOrder, positions, keptOnBench, stillFillable);
 }
 
-/** Places each pick in turn into the deepest open cell he plays that `allows`, given the cells
- *  still open after it and the picks after him. */
-function placed(
+/** Each pick in turn into the deepest open cell he plays, back to front then left to right, that
+ *  `allows` given the cells still open after it and the picks after him; the rest on the bench in
+ *  pick order. Starters are listed in the pitch's order. */
+function placedInPickOrder(
   cells: readonly Cell[],
   pickOrder: readonly number[],
   positions: PlayerPositions,
