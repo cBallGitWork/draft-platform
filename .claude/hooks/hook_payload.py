@@ -48,7 +48,6 @@ def project_dir(cwd=""):
 
 def report(error, consequence):
     """Says on stderr, in one line, why the hook running couldn't do its job (an unreadable payload,
-    or gate_on_stop.py's failed git call, gate that couldn't run or bad override); returns the exit
-    code for it."""
+    or whatever kept gate_on_stop.py's gate from running); returns the exit code for it."""
     print(f"{os.path.basename(sys.argv[0])}: {error}, so {consequence}.", file=sys.stderr)
     return 1

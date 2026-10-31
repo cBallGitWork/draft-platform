@@ -43,15 +43,15 @@ fails_loudly "gate_on_stop.py: git status --porcelain -- " gate_on_stop.py "$bro
 one_line "a failed git status"
 fails_loudly "failed in $(git -C "$broken" rev-parse --show-toplevel) (exit 128: " gate_on_stop.py "$broken_stop" DRAFT_GATE_CMD=true
 # a gate that runs past its timeout is one line saying so, never a traceback (here src/a.ts is changed in $dirty)
-slow='sleep 5' short=0.2
-fails_loudly "gate_on_stop.py: the gate ($slow) ran past its $short-second timeout in $(git -C "$dirty" rev-parse --show-toplevel), so the stop goes ahead ungated." \
+slow='sleep 5' short=0.2 dirty_top=$(git -C "$dirty" rev-parse --show-toplevel) ungated='so the stop goes ahead ungated.'
+fails_loudly "gate_on_stop.py: the gate ($slow) ran past its $short-second timeout in $dirty_top, $ungated" \
   gate_on_stop.py "$(stop_in "$dirty" Stop)" DRAFT_GATE_CMD="$slow" DRAFT_GATE_TIMEOUT=$short
 one_line "a gate past its timeout"
 # so is a gate whose program isn't there, or a DRAFT_GATE_TIMEOUT that isn't a number
-fails_loudly "gate_on_stop.py: no-such-gate couldn't start in $(git -C "$dirty" rev-parse --show-toplevel) (No such file or directory), so the stop goes ahead ungated." \
+fails_loudly "gate_on_stop.py: no-such-gate couldn't start in $dirty_top (No such file or directory), $ungated" \
   gate_on_stop.py "$(stop_in "$dirty" Stop)" DRAFT_GATE_CMD=no-such-gate
 one_line "a gate that can't start"
-fails_loudly "gate_on_stop.py: DRAFT_GATE_TIMEOUT is 'soon', not a number of seconds, so the stop goes ahead ungated." \
+fails_loudly "gate_on_stop.py: DRAFT_GATE_TIMEOUT is 'soon', not a number of seconds, $ungated" \
   gate_on_stop.py "$(stop_in "$dirty" Stop)" DRAFT_GATE_CMD=true DRAFT_GATE_TIMEOUT=soon
 one_line "a DRAFT_GATE_TIMEOUT that isn't a number"
 # a payload it can't read is said on stderr, never taken for {} (here, a dirty checkout whose gate fails)

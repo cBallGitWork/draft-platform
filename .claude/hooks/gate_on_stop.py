@@ -10,11 +10,11 @@ and the hook checks); on failure, it blocks the stop and hands Claude the end of
 Respects `stop_hook_active`, so it blocks once and never loops. If git status fails, the gate's
 program can't start or times out, DRAFT_GATE_TIMEOUT isn't a number, or the payload can't be read
 (hook_payload.py), it exits 1 with one line on stderr saying what failed: Claude Code shows it,
-but the stop goes ahead (it fails open, never quietly). A subagent's `cwd` is the folder it works in: an agent spawned with its own worktree
-has that worktree, but one that only names a worktree by absolute path has the main checkout
-(checked 20 Oct 2026 in subagent transcripts). A subagent stopping in the main checkout isn't
-gated: the session's own Stop gates it, and a builder or a reviewer there would otherwise be held
-up by changes that aren't its own.
+but the stop goes ahead (it fails open, never quietly). A subagent's `cwd` is the folder it works
+in: an agent spawned with its own worktree has that worktree, but one that only names a worktree
+by absolute path has the main checkout (checked 20 Oct 2026 in subagent transcripts). A subagent
+stopping in the main checkout isn't gated: the session's own Stop gates it, and a builder or a
+reviewer there would otherwise be held up by changes that aren't its own.
 DRAFT_GATE_CMD overrides the command and DRAFT_GATE_TIMEOUT its timeout in seconds, both for
 .claude/hooks/tests/gate_on_stop.sh.
 Stdlib only, Python 3.9+.
@@ -38,6 +38,7 @@ WATCHED = ("convex", "src", "scripts", "tests", PACKAGE, "package-lock.json", "t
 TAIL_LINES = 40
 GATE = "npm run verify"
 GATE_TIMEOUT_SECONDS = 420  # inside settings.json's hook timeout; .claude/hooks/tests/settings.sh checks the pair
+UNGATED = "the stop goes ahead ungated"  # what follows a gate that couldn't run
 
 
 def checkout_of(cwd):
@@ -112,9 +113,9 @@ def main():
         command = shlex.split(os.environ.get("DRAFT_GATE_CMD") or GATE)
         proc = subprocess.run(command, cwd=checkout, capture_output=True, text=True, timeout=gate_timeout())
     except ValueError as error:
-        return report(error, "the stop goes ahead ungated")
+        return report(error, UNGATED)
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError) as error:
-        return report(failure(error, checkout), "the stop goes ahead ungated")
+        return report(failure(error, checkout), UNGATED)
     if proc.returncode != 0:
         tail = "\n".join((proc.stdout + proc.stderr).strip().splitlines()[-TAIL_LINES:])
         reason = (
