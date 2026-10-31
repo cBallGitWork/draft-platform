@@ -5,6 +5,7 @@
 
 import { join } from "node:path";
 import { afterEach, beforeEach, expect, test } from "vitest";
+import { TRAILER_PLACE } from "../../scripts/branchCheck.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 import { scratchRepo } from "../support/scripts/gitRepo.harness.mjs";
 
@@ -31,11 +32,12 @@ const check = () => repo.run(SCRIPT);
 
 const passes = () => expect(check()).toEqual({ status: 0, said: "" });
 
-/** The check fails, naming `path` as the file it refused. */
+/** The check fails, naming `path` as the file it refused; what it said. */
 function refuses(path) {
   const { status, said } = check();
   expect(status).toBe(1);
   expect(said).toContain(`changes or deletes ${path}`);
+  return said;
 }
 
 // A repo of its own per test, on a branch off an origin/main holding a.json, b.json and the golden
@@ -91,6 +93,12 @@ test("Re-record in the commit's subject, not as a trailer, doesn't let the chang
   commitEditToPayloadA();
   repo.git("commit", "-q", "--allow-empty", "-m", reRecord("a.json", "in the subject, not a trailer"));
   refuses(PAYLOAD_A);
+});
+
+test("Re-record above a blank line, not in the last paragraph, is refused, saying where it goes", () => {
+  commitEditToPayloadA();
+  repo.commitWithTrailerAboveBlankLine(reRecord("a.json", "FPL renamed a key"));
+  expect(refuses(PAYLOAD_A)).toContain(TRAILER_PLACE);
 });
 
 test("a trailer naming the file by its name in its folder, with a reason, lets the change through", () => {
