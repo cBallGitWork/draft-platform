@@ -70,6 +70,22 @@ describe("someone signed in opening the invite link", () => {
     expect(screen.queryByRole("button", { name: joinPageWords.ask })).toBeNull();
   });
 
+  it("having asked, hears the request is waiting: the status line was in the page, empty, before asking (#631)", async () => {
+    const joining = { joinPage: { leagueName: LEAGUE, standing: "mayAsk" } as JoinPageData };
+    const app = openApp(joinPath(TOKEN), newcomer, { joining });
+    await screen.findByRole("button", { name: joinPageWords.ask });
+    const status = screen.getByRole("status");
+    expect(status.textContent).toBe("");
+
+    app.joining.askToJoin.mockImplementation(async () => {
+      joining.joinPage = { leagueName: LEAGUE, standing: "waiting" };
+      return null;
+    });
+    await userEvent.click(screen.getByRole("button", { name: joinPageWords.ask }));
+    app.becomes(newcomer);
+    expect(await screen.findByText(joinPageWords.waiting(LEAGUE))).toBe(status);
+  });
+
   it("already in the league, is told their team", async () => {
     openLink({ leagueName: LEAGUE, standing: "inLeague", teamName: "Team 3" });
     expect(await screen.findByText(joinPageWords.inLeague(LEAGUE, "Team 3"))).toBeTruthy();
