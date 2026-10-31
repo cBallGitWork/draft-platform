@@ -3,6 +3,7 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { MatchMan } from "../../../convex/match/matchPage";
 import { bySheetOrder } from "../../../convex/match/sheetOrder";
 import {
+  adjustScorersRole,
   ANN,
   annsScoredGame,
   BOB,
@@ -162,6 +163,25 @@ test("the commentary is the match's lines newest first, the goal priced for its 
   // The same lines, priced alike, as the matchup's.
   expect(page.commentary).toEqual({ kind: "read", lines: matchup.commentary.lines, delayed: true });
   expect(page.commentary.kind === "read" && page.commentary.lines[0].points).toMatch(/^\+/);
+});
+
+test("a goal's points include his role's adjustment, on the match page and the matchup alike, as his slot's do", async () => {
+  const league = await matchLeague();
+  await fullTimeRecords(league);
+  const ROLE_GOAL = 2;
+  await adjustScorersRole(league, ROLE_GOAL);
+  await league.t.run((ctx) =>
+    ctx.db.insert("matchCommentary", {
+      fixtureCode: HULL_EVERTON,
+      lines: [{ sourceId: 1, text: "64' GOAL Scorer", minute: 64, addedMinute: 0, type: "goal", playerCodes: [HULL_SCORER] }],
+      delayed: null,
+    }),
+  );
+  // The first set's goal for a man in midfield, and his role's on top.
+  const MIDFIELD_GOAL = 5;
+  const lines = [{ key: `${HULL_EVERTON}:1`, text: "64' GOAL Scorer", points: `+${MIDFIELD_GOAL + ROLE_GOAL}` }];
+  expect((await matchAs(league, ANN))!.commentary).toEqual({ kind: "read", lines, delayed: false });
+  expect((await annsScoredGame(league)).commentary).toEqual({ kind: "read", lines, delayed: false });
 });
 
 test("the five team stats show each side's, home and away, as the live poller last stored them", async () => {

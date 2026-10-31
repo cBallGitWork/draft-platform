@@ -9,6 +9,7 @@ import { positionOfSlot, type Cell } from "../../../convex/lineup/pitch";
 import type { Position } from "../../../convex/positions/positionTables";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { firstLineup } from "../../../convex/lineup/firstLineup";
+import { roleIn } from "../../../convex/lineup/roles";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { inTenths } from "../../../convex/scoring/scoringSet";
 import type { PlayerMatchRecord } from "../../../convex/stats/matchRecords";
@@ -203,6 +204,23 @@ export async function holdTypoRule({ t }: ScoresLeague) {
   await t.run((ctx) =>
     ctx.db.insert("siteScoring", {
       scoring: { ...FIRST_SCORING, rules: [...FIRST_SCORING.rules, { ...rule, stat: TYPO_STAT }] },
+      kind: "fix",
+      season: 2026,
+      number: 1,
+      announcedAt: 0,
+      takesEffectAt: 0,
+    }),
+  );
+}
+
+/** The site's set from now on adjusts a goal by `points` in the role Hull's scorer plays: his
+ *  slot's first, since his saved lineup gives him none. */
+export async function adjustScorersRole({ t }: ScoresLeague, points: number) {
+  const scorer = HULL_STARTERS.find((starter) => starter.playerCode === HULL_SCORER)!;
+  const role = roleIn(scorer, undefined).key;
+  await t.run((ctx) =>
+    ctx.db.insert("siteScoring", {
+      scoring: { ...FIRST_SCORING, roleAdjustments: [{ role, adjustments: [{ stat: "goals_scored", points }] }] },
       kind: "fix",
       season: 2026,
       number: 1,

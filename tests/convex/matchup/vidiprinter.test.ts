@@ -87,6 +87,25 @@ test("under another set the same lines move other points, and the big chances sh
   expect(shown(FIRST_SCORING as ScoringSet).filter((line) => line.includes("big chance"))).toEqual([]);
 });
 
+test("a goal shows his role's adjustment as his slot's points do: a poacher's goal 1 more, a false 9's 1 less", () => {
+  const roles: ScoringSet = {
+    ...FIRST_SCORING,
+    roleAdjustments: [
+      { role: "poacher", adjustments: [{ stat: "goals_scored", points: 1 }] },
+      { role: "falseNine", adjustments: [{ stat: "goals_scored", points: -1 }] },
+    ],
+  } as ScoringSet;
+  const goalIn = (role: string) => {
+    const players = new Map(PLAYERS);
+    players.set(CODE.williams, { ...PLAYERS.get(CODE.williams)!, role });
+    return vidiprinter([MATCH], players, roles).find((line) => line.text.startsWith("13'"))!.points;
+  };
+  expect(goalIn("poacher")).toBe("N.Williams +5, Muñoz +3");
+  expect(goalIn("falseNine")).toBe("N.Williams +3, Muñoz +3");
+  // A role the set doesn't adjust moves nothing more.
+  expect(goalIn("targetMan")).toBe("N.Williams +4, Muñoz +3");
+});
+
 test("a goal names its one man's points alone, and each further goal is priced at its own count", () => {
   const goal = (sourceId: number, minute: number) => ({ sourceId, text: `${minute}' GOAL N.Williams`, minute, addedMinute: 0, type: "goal", playerCodes: [CODE.williams] });
   const bands: ScoringSet = { ...OTHER_SET, rules: [{ shape: "bands", stat: "goals_scored", stack: false, values: { all: [{ atLeast: 1, points: 5 }, { atLeast: 2, points: 8 }] } }] };
