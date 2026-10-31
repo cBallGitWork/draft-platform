@@ -60,6 +60,15 @@ export const scoreWords = (first: number, second: number) => `${first}–${secon
 /** Beside what is still being played: a live match's clock before it has a minute, a score that
  *  may still move (spec/07). */
 export const liveWords = "Live";
+/** A live match's one clock, on the matchup and the Premier League's pages alike: the Premier
+ *  League's label to the minute, with stoppage time ("45+1'"), or the whole minutes of the newest
+ *  read where it has no label (FPL's, which carry no stoppage time: "46'"); "Live" while a read has
+ *  given neither (spec/10, The matchup, as a live match; #563). */
+export const clockWords = (clockLabel: string | null, minutes: number | null) => {
+  const label = clockLabel?.split("'")[0];
+  if (label) return `${label}'`;
+  return minutes === null ? liveWords : `${minutes}'`;
+};
 
 /** The "Find a player" panel, on the admin's dashboard and the squads page alike; each says its own hint. */
 export const findTitle = "Find a player";
