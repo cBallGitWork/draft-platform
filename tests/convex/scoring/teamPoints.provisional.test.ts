@@ -75,7 +75,7 @@ describe('a whole record not arrived is "—"; a stat left out of an arrived rec
     expect("total_scoring_att" in coyle).toBe(false);
 
     const scored = coyleTeam({ record: coyle, final: true });
-    expect(scored.starters[0]?.matches[0]?.categories).toEqual([
+    expect(scored.starters[0]?.matches[0]?.categories).toMatchObject([
       { stat: "total_scoring_att", points: 0 },
       { stat: "won_tackle", points: 1 },
     ]);
@@ -84,7 +84,7 @@ describe('a whole record not arrived is "—"; a stat left out of an arrived rec
 
   test('his whole record not arrived: "—" in both, nothing counted, provisional', () => {
     const scored = coyleTeam(NOT_ARRIVED);
-    expect(scored.starters[0]?.matches[0]?.categories).toEqual([
+    expect(scored.starters[0]?.matches[0]?.categories).toMatchObject([
       { stat: "total_scoring_att", points: null },
       { stat: "won_tackle", points: null },
     ]);

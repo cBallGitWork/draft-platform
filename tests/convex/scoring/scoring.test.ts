@@ -25,7 +25,7 @@ describe("each area of the slot he starts in prices the same match its own way",
   test.each(BY_AREA)("in %s, each category and the total", (area, points, total) => {
     const scored = scoreMatch(dewsburyHall, EXAMPLE_SET, centreOf(area));
 
-    expect(scored.categories).toEqual(EXAMPLE_SET.rules.map((rule, i) => ({ stat: rule.stat, points: points[i] })));
+    expect(scored.categories).toMatchObject(EXAMPLE_SET.rules.map((rule, i) => ({ stat: rule.stat, points: points[i] })));
     expect(scored.total).toBe(total);
   });
 
@@ -36,7 +36,7 @@ describe("each area of the slot he starts in prices the same match its own way",
 
 test("a per-action rule scores each action: two goals in midfield earn 10", () => {
   const { categories } = scoreMatch({ ...dewsburyHall, goals_scored: 2 }, EXAMPLE_SET, centreOf("midfield"));
-  expect(categories).toContainEqual({ stat: "goals_scored", points: 10 });
+  expect(categories).toContainEqual(expect.objectContaining({ stat: "goals_scored", points: 10 }));
 });
 
 const tzolakis = recordOf(fplLines, TZOLAKIS);
@@ -47,7 +47,7 @@ test.each([
   [6, 2],
 ])("a per-count rule scores each whole three: %i saves earn %i", (saves, points) => {
   const scored = scoreMatch({ ...tzolakis, saves }, EXAMPLE_SET, centreOf("goalkeeper"));
-  expect(scored.categories).toContainEqual({ stat: "saves", points });
+  expect(scored.categories).toContainEqual(expect.objectContaining({ stat: "saves", points }));
 });
 
 test("the recorded keeper's 4 saves, 2 conceded and full match score 2", () => {
@@ -107,7 +107,7 @@ describe("once his record has arrived, a stat it leaves out is 0", () => {
     const coyle = recordOf(plLines, FULL_STATS.coyle.code);
     expect("total_scoring_att" in coyle).toBe(false);
 
-    expect(scoreMatch(coyle, PL_SET, centreOf("defence"))).toEqual({
+    expect(scoreMatch(coyle, PL_SET, centreOf("defence"))).toMatchObject({
       total: 1,
       categories: [
         { stat: "total_scoring_att", points: 0 },
@@ -187,7 +187,8 @@ test("every recorded line of Hull v Everton, from both feeds, in every area, sco
       .flatMap(({ playerCode, stats }) =>
         AREAS.map((area) => {
           const { total, categories } = scoreMatch(stats, EXAMPLE_SET, centreOf(area));
-          return { feed, playerCode, area, total, categories };
+          // The golden holds each category's points; categoryWhy.test.ts checks their why reproduces them.
+          return { feed, playerCode, area, total, categories: categories.map(({ stat, points }) => ({ stat, points })) };
         }),
       );
   const rows = [...scoredBy("fpl", fplLines), ...scoredBy("pl", plLines)];

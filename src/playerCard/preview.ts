@@ -43,6 +43,8 @@ function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
       away: index % 2 === 0 ? opponentOf(player.club.code, index) : player.club,
       minutes: record?.minutes ?? null,
       points,
+      // The preview plays the first set, which has no version's name.
+      version: null,
       ...started,
       override: player.name === PREVIEW_OVERRIDDEN && index === 1 ? PREVIEW_OVERRIDE : null,
       // The two newest may still move: one still being played, one inside its corrections window.

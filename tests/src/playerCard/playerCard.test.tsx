@@ -12,7 +12,7 @@ import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { SCOUTING_PATH } from "../../../src/frame/menu";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { playerCardPath } from "../../../src/playerCard/paths";
-import type { PlayedMatch, PlayerCard } from "../../../src/playerCard/seam";
+import type { PlayerCard } from "../../../src/playerCard/seam";
 import {
   backWords,
   breakdownLabel,
@@ -34,6 +34,7 @@ import {
   PLAYER_TITLE,
   pricedAtLabel,
   provisionalWords,
+  scoredUnderWords,
   SEASON_TITLE,
 } from "../../../src/playerCard/words";
 import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
@@ -41,54 +42,9 @@ import { squadsPath } from "../../../src/squads/paths";
 import { gameweekWords, versusWords } from "../../../src/shared/words";
 import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";
 import { expectColumnHeads } from "../../support/src/columnHeads";
-import type { PlayerCardData } from "../../support/src/playerCard.harness";
+import { AT_ONE, AT_W, breakdownLines, CATEGORIES, category, HELD, perAction, RICE, SAKA, type PlayerCardData } from "../../support/src/playerCard.harness";
 import { commissioned, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 import { squadWithWarnings } from "../../support/src/squads.harness";
-
-const category = (stat: string, name: string, points: number | null) => ({ stat, name, points });
-const CATEGORIES = [category("goals_scored", "Goals scored", 5), category("assists", "Assists", 4), category("minutes", "Minutes", 2), category("yellow_cards", "Yellow cards", 0)];
-const PRICED: PlayedMatch = {
-  fixtureCode: 1,
-  gameweek: 2,
-  kickoff: Date.parse("2026-08-29T14:00:00Z"),
-  home: ARSENAL,
-  away: COVENTRY,
-  minutes: 90,
-  // At CAM, where his assist is worth one more, then at W: back to front, as pricedAt.
-  points: [
-    { position: "CAM", total: 12, categories: CATEGORIES.map((each) => (each.stat === "assists" ? { ...each, points: 5 } : each)) },
-    { position: "W", total: 11, categories: CATEGORIES },
-  ],
-  override: null,
-  provisional: false,
-};
-const NOT_ARRIVED: PlayedMatch = {
-  ...PRICED,
-  fixtureCode: 2,
-  gameweek: 3,
-  minutes: null,
-  points: PRICED.points.map((each) => ({ ...each, total: null, categories: each.categories.map((one) => ({ ...one, points: null })) })),
-};
-/** PRICED with only the winger's price, for a card priced at one position. */
-const AT_W: PlayedMatch = { ...PRICED, points: [PRICED.points[1]] };
-const SAKA: PlayerCard = {
-  code: 1001,
-  name: "Saka",
-  fullName: "Bukayo Saka",
-  club: ARSENAL,
-  gone: false,
-  positions: ["W", "CAM"],
-  pricedAt: ["CAM", "W"],
-  ownerTeamName: "Saka Potatoes",
-  news: "Hamstring injury - 75% chance of playing",
-  chanceOfPlaying: 75,
-  matches: [NOT_ARRIVED, PRICED],
-  nextFixtures: [{ fixtureCode: 9, gameweek: 10, kickoff: Date.parse("2026-11-07T15:00:00Z"), home: COVENTRY, away: ARSENAL }],
-};
-/** Saka priced at one position, so with no switch. */
-const AT_ONE: PlayerCard = { ...SAKA, pricedAt: ["W"] };
-const RICE: PlayerCard = { ...SAKA, code: 1002, name: "Rice", fullName: "Declan Rice", ownerTeamName: null, news: null, chanceOfPlaying: null, matches: [], nextFixtures: [] };
-const HELD: PlayerCardData = { cards: [SAKA, RICE] };
 
 /** His row on Scouting's list. */
 const listed = ({ code, name, fullName, club, positions, ownerTeamName }: PlayerCard): ListedPlayer => ({ code, name, fullName, club, positions, ownerTeamName, seasonPoints: null, stat: null });
@@ -189,7 +145,7 @@ describe("the card", () => {
     expectColumnHeads(seasonPanel, Object.values(columns));
     const row = season.getByRole("rowheader", { name: `${ARSENAL.shortName} ${versusWords} ${COVENTRY.shortName}` }).closest("tr")!;
     expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2", "90", "W", "11"]);
-    expect(season.getByLabelText(breakdownLabel(2)).textContent).toBe("Goals scored 5, Assists 4, Minutes 2");
+    expect(breakdownLines(season, 2)).toEqual(["Goals scored 5 (1 at 5 each)", "Assists 4 (1 at 4 each for W)", "Minutes 2 (90, 2 for 60+)", scoredUnderWords("26_27.2")]);
   });
 
   it("a player priced at one position has no switch", async () => {
@@ -207,7 +163,7 @@ describe("the card", () => {
     expect(keys.map((key) => (key as HTMLInputElement).checked)).toEqual([true, false]);
     const row = season.getAllByRole("rowheader", { name: `${ARSENAL.shortName} ${versusWords} ${COVENTRY.shortName}` })[1].closest("tr")!;
     expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2", "90", "CAM", "12"]);
-    expect(season.getByLabelText(breakdownLabel(2)).textContent).toBe("Goals scored 5, Assists 5, Minutes 2");
+    expect(breakdownLines(season, 2)).toEqual(["Goals scored 5 (1 at 5 each)", "Assists 5 (1 at 5 each for CAM)", "Minutes 2 (90, 2 for 60+)", scoredUnderWords("26_27.2")]);
   });
 
   it("choosing another position re-prices every match there", async () => {
@@ -218,7 +174,7 @@ describe("the card", () => {
     expect((season.getByRole("radio", { name: "W" }) as HTMLInputElement).checked).toBe(true);
     const row = season.getAllByRole("rowheader", { name: `${ARSENAL.shortName} ${versusWords} ${COVENTRY.shortName}` })[1].closest("tr")!;
     expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2", "90", "W", "11"]);
-    expect(season.getByLabelText(breakdownLabel(2)).textContent).toBe("Goals scored 5, Assists 4, Minutes 2");
+    expect(breakdownLines(season, 2)).toEqual(["Goals scored 5 (1 at 5 each)", "Assists 4 (1 at 4 each for W)", "Minutes 2 (90, 2 for 60+)", scoredUnderWords("26_27.2")]);
   });
 
   it("the arrow keys move the switch, as a radio group", async () => {
@@ -262,14 +218,14 @@ describe("the card", () => {
 
   it("a match that cost him points shows the true minus in its total, breakdown and role line, never a hyphen (#564)", async () => {
     const role = { name: "Inside forward", points: -1, lines: [{ stat: "yellow_cards", name: "Yellow cards", actions: 1, points: -1 }] };
-    const categories = [category("minutes", "Minutes", 1), category("yellow_cards", "Yellow cards", -3)];
+    const categories = [category("minutes", "Minutes", 1), category("yellow_cards", "Yellow cards", -3, perAction(3, -1))];
     const booked = { ...AT_W, points: [{ position: "W" as const, total: -2, categories }], role };
     openCard(AT_ONE, { cards: [{ ...AT_ONE, matches: [booked] }] });
     const season = within(await screen.findByRole("region", { name: SEASON_TITLE }));
     const row = season.getAllByRole("rowheader", { name: `${ARSENAL.shortName} ${versusWords} ${COVENTRY.shortName}` })[0].closest("tr")!;
 
     expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2", "90", "W", "−2"]);
-    expect(season.getByLabelText(breakdownLabel(2)).textContent).toBe("Minutes 1, Yellow cards −3");
+    expect(breakdownLines(season, 2).slice(0, 2)).toEqual(["Minutes 1 (1 at 1 each)", "Yellow cards −3 (3 at −1 each)"]);
     expect(season.getByLabelText(roleLineLabel("Inside forward")).textContent).toBe("Inside forward −1 (Yellow cards 1)");
   });
 

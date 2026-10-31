@@ -53,16 +53,16 @@ describe("with no substitutions, the starters count", () => {
     const [keeper, midfielder] = scored.starters.map((slot) => slot.matches[0]?.categories);
     expect(keeper).toEqual(
       expect.arrayContaining([
-        { stat: "saves", points: 1 },
-        { stat: "goals_conceded", points: -1 },
-        { stat: "minutes", points: 2 },
+        expect.objectContaining({ stat: "saves", points: 1 }),
+        expect.objectContaining({ stat: "goals_conceded", points: -1 }),
+        expect.objectContaining({ stat: "minutes", points: 2 }),
       ]),
     );
     expect(midfielder).toEqual(
       expect.arrayContaining([
-        { stat: "goals_scored", points: 5 },
-        { stat: "assists", points: 3 },
-        { stat: "defensive_contribution", points: 0 },
+        expect.objectContaining({ stat: "goals_scored", points: 5 }),
+        expect.objectContaining({ stat: "assists", points: 3 }),
+        expect.objectContaining({ stat: "defensive_contribution", points: 0 }),
       ]),
     );
     const atTheBack = team({
@@ -71,10 +71,10 @@ describe("with no substitutions, the starters count", () => {
         starters: [LINEUP.starters[0]!, { playerCode: DEWSBURY_HALL, ...RIGHT_BACK }, LINEUP.starters[2]!],
       },
     });
-    expect(atTheBack.starters[1]?.matches[0]?.categories).toContainEqual({
+    expect(atTheBack.starters[1]?.matches[0]?.categories).toContainEqual(expect.objectContaining({
       stat: "defensive_contribution",
       points: 2,
-    });
+    }));
   });
 
   test("a player is priced by the slot he starts in: Dewsbury-Hall's goal earns 5 in midfield, 4 up front", () => {
@@ -85,10 +85,10 @@ describe("with no substitutions, the starters count", () => {
       },
     });
     expect(upFront.starters[1]?.points).toBe(9);
-    expect(upFront.starters[1]?.matches[0]?.categories).toContainEqual({
+    expect(upFront.starters[1]?.matches[0]?.categories).toContainEqual(expect.objectContaining({
       stat: "goals_scored",
       points: 4,
-    });
+    }));
   });
 });
 
