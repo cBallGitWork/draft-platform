@@ -1,5 +1,5 @@
 import { v, type Infer } from "convex/values";
-import type { Doc, Id } from "../_generated/dataModel";
+import type { Doc } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { heldOf } from "../football/matchCommentary";
 import { heldTeamSheetsOf } from "../football/matchTeamSheets";
@@ -15,11 +15,11 @@ import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, heldPlayerByCode } from "../shared/players";
-import { ownerOf } from "../squads/squadPlace";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { begunGameweeks, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { matchRecordsOf } from "../gameweekScorer/heldMatches";
 import { inMatchOf, leagueReads, pointsInMatch } from "../gameweekScorer/teamGameweek";
+import { matchOwnersOf } from "./matchOwners";
 import { bySheetOrder } from "./sheetOrder";
 
 // One real Premier League match (#45; spec/10, The match page): its score and clock, both clubs'
@@ -51,7 +51,7 @@ const matchMan = v.object({
   started: v.boolean(),
   /** False for an unused substitute; null while no feed has sent a substitute's minutes. */
   played: v.union(v.boolean(), v.null()),
-  /** The league's team that owns him, null for a free agent. */
+  /** The league's team his points are for (matchOwners.ts); null for a man no team holds. */
   ownerTeamName: v.union(v.string(), v.null()),
   /** His points in this match from his slot in the lineup that holds him, which once the gameweek
    *  has begun is his team's at the deadline, not always his owner's now; null ("—") for a man in no
@@ -91,8 +91,9 @@ export const ofMatch = query({
     if (fixture === null) return null;
     const records = await matchRecordsOf(ctx, fixtureCode, "its men");
     const named = records.length > 0 ? records : await sheetMenOf(ctx, fixtureCode);
-    const owners = await ownersOf(ctx, leagueId, named);
-    const priced = await pricedOrProblem(ctx, league, fixture, named);
+    const begunGameweek = await begunGameweekOf(ctx, league, fixture);
+    const owners = await matchOwnersOf(ctx, leagueId, begunGameweek, named.map(({ playerCode }) => playerCode));
+    const priced = begunGameweek === null ? unpriced(null) : await pricedOrProblem(ctx, league, fixture, begunGameweek, named);
     const held = await scoreOf(ctx, fixtureCode);
     const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
     return {
@@ -116,15 +117,10 @@ async function sheetMenOf(ctx: QueryCtx, fixtureCode: number): Promise<NamedMan[
   return (sheets?.men ?? []).map(({ playerCode, started }) => ({ playerCode, started, played: null }));
 }
 
-/** Each man the match names who is owned in the league, by the team that owns him. */
-async function ownersOf(ctx: QueryCtx, leagueId: Id<"leagues">, named: readonly NamedMan[]): Promise<Map<PlayerCode, Doc<"teams">>> {
-  const owner = await ownerOf(ctx, leagueId);
-  const owners = new Map<PlayerCode, Doc<"teams">>();
-  for (const { playerCode } of named) {
-    const team = await owner(playerCode);
-    if (team !== null) owners.set(playerCode, team);
-  }
-  return owners;
+/** The match's gameweek once the league has begun it, as the matchup shows lineups only then; null
+ *  before, or for a match no gameweek holds. */
+async function begunGameweekOf(ctx: QueryCtx, league: Doc<"leagues">, { gameweek }: Doc<"fixtures">): Promise<number | null> {
+  return gameweek !== null && (await begunGameweeks(ctx, league)).includes(gameweek) ? gameweek : null;
 }
 
 /** What the league's lineups make of the match: each lineup man's points in it, and the men the
@@ -139,10 +135,17 @@ interface Priced {
 
 const unpriced = (problem: string | null): Priced => ({ slots: new Map(), players: new Map(), set: null, problem });
 
-/** The match priced, or why it can't be: a set holding a rule no longer sound (#287), say. */
-async function pricedOrProblem(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtures">, named: readonly NamedMan[]): Promise<Priced> {
+/** The match priced once its gameweek has begun, or why it can't be: a set holding a rule no longer
+ *  sound (#287), say. */
+async function pricedOrProblem(
+  ctx: QueryCtx,
+  league: Doc<"leagues">,
+  fixture: Doc<"fixtures">,
+  gameweek: number,
+  named: readonly NamedMan[],
+): Promise<Priced> {
   try {
-    return await priced(ctx, league, fixture, named);
+    return await priced(ctx, league, fixture, gameweek, named);
   } catch (error) {
     return unpriced(logFailure(`League ${league._id} (${league.name}) can't price match ${fixture.code}`, error));
   }
@@ -151,9 +154,7 @@ async function pricedOrProblem(ctx: QueryCtx, league: Doc<"leagues">, fixture: D
 /** Every team in the league is priced, not only the men's owners now: a begun gameweek's lineup is
  *  read against the squad at its deadline (lineups.ts), so a man moved or released since still
  *  scores in his old team's lineup, and his points are his slot's in whichever lineup holds him. */
-async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtures">, named: readonly NamedMan[]): Promise<Priced> {
-  const { gameweek } = fixture;
-  if (gameweek === null || !(await begunGameweeks(ctx, league)).includes(gameweek)) return unpriced(null);
+async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtures">, gameweek: number, named: readonly NamedMan[]): Promise<Priced> {
   const season = await seasonRules(ctx, league._id);
   // A league made before rules were held has no scoring (#25).
   if (season === null) return unpriced(null);
