@@ -48,6 +48,9 @@ import {
 } from "../../../src/admin/words";
 import { refusals } from "../../../convex/shared/leagueAccess";
 
+const ARSENAL = { code: 3, name: "Arsenal" };
+const NEWCASTLE = { code: 4, name: "Newcastle" };
+const LEEDS = { code: 7, name: "Leeds" };
 const STEUR = { code: 1, name: "Steur", fullName: "Jacob Steur", clubCode: 4, label: "Centre Central Midfielder" };
 const BARNES = { code: 2, name: "Barnes", fullName: "Harvey Barnes", clubCode: 4, proposals: ["W" as const] };
 const DATA: AdminData = {
@@ -56,10 +59,7 @@ const DATA: AdminData = {
     waiting: [BARNES],
     flagged: [{ code: 3, name: "Woltemade", fullName: "Nick Woltemade", clubCode: 4, position: "ST", startsElsewhere: 4 }],
     removed: [{ code: 5, name: "Gordon", fullName: "Anthony Gordon", clubCode: 4, position: "W" }],
-    clubs: [
-      { code: 3, name: "Arsenal" },
-      { code: 4, name: "Newcastle" },
-    ],
+    clubs: [ARSENAL, NEWCASTLE],
     approveMode: "proposals",
     thresholds: { flagAfter: 3, removeAfter: 6 },
   },
@@ -153,24 +153,24 @@ describe("position changes", () => {
 describe("settings", () => {
   it("approves the club chosen, whole", async () => {
     const app = openDashboard();
-    await userEvent.selectOptions(await screen.findByRole("combobox", { name: clubLabel }), "Newcastle");
+    await userEvent.selectOptions(await screen.findByRole("combobox", { name: clubLabel }), NEWCASTLE.name);
     await userEvent.click(screen.getByRole("button", { name: approveClubWords }));
-    expect(app.admin.approveClub).toHaveBeenCalledExactlyOnceWith(4);
+    expect(app.admin.approveClub).toHaveBeenCalledExactlyOnceWith(NEWCASTLE.code);
   });
 
   it("#649 when the club chosen leaves the list, approves the club the menu shows instead", async () => {
     const app = openDashboard();
-    await userEvent.selectOptions(await screen.findByRole("combobox", { name: clubLabel }), "Newcastle");
-    const left = { ...DATA.queue!, clubs: [{ code: 7, name: "Leeds" }, { code: 3, name: "Arsenal" }] };
-    app.admin.useQueue.mockReturnValue(left);
+    await userEvent.selectOptions(await screen.findByRole("combobox", { name: clubLabel }), NEWCASTLE.name);
+    const newcastleGone = { ...DATA.queue!, clubs: [LEEDS, ARSENAL] };
+    app.admin.useQueue.mockReturnValue(newcastleGone);
     // The fake queue isn't live, so another change on the dashboard has it read the queue again.
     await userEvent.click(screen.getByRole("button", { name: switchModeWords.countAtOnce }));
-    await waitFor(() => expect(app.admin.useQueue).toHaveLastReturnedWith(left));
+    await waitFor(() => expect(app.admin.useQueue).toHaveLastReturnedWith(newcastleGone));
 
     const menu = screen.getByRole("combobox", { name: clubLabel }) as HTMLSelectElement;
-    expect(menu.selectedOptions[0].textContent).toBe("Leeds");
+    expect(menu.selectedOptions[0].textContent).toBe(LEEDS.name);
     await userEvent.click(screen.getByRole("button", { name: approveClubWords }));
-    expect(app.admin.approveClub).toHaveBeenCalledExactlyOnceWith(7);
+    expect(app.admin.approveClub).toHaveBeenCalledExactlyOnceWith(LEEDS.code);
   });
 
   it("shows the thresholds, and saves the ones typed", async () => {
