@@ -12,7 +12,8 @@ import {
   UPCOMING_MATCH,
 } from "../support/recorded/commentary.payloads.ts";
 import { recordedLiveCommentary } from "../support/recorded/live.payloads.ts";
-import { commentaryChanges, summarise, summaryLine } from "../../scripts/record-match.mjs";
+import { summarise } from "../../scripts/record-match.mjs";
+import { commentaryChanges, summaryLine } from "../../scripts/record-match-summary.mjs";
 
 const BRENTFORD_LIVERPOOL = COMMENTARY_MATCH.brentfordLiverpool;
 const IPSWICH_FOREST = UPCOMING_MATCH;

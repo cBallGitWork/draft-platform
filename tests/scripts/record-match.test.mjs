@@ -135,6 +135,7 @@ test("each poll's line after the first says how the commentary changed since the
   const { logged } = await recordAgainst(KICKOFF + 2 * 60 * MINUTE, () => PL_FULL_TIME);
   const pollLines = logged.filter((line) => line.includes("  |  commentary"));
 
+  expect(pollLines.length).toBeGreaterThan(1);
   expect(pollLines[0]).toContain("|  commentary: none  |");
   expect(pollLines.slice(1).every((line) => line.includes("|  commentary: none, +0 -0 ~0  |"))).toBe(true);
 });

@@ -5,7 +5,8 @@ import { join } from "node:path";
 import { expect, test, vi } from "vitest";
 import { plCommentaryUrl, plFixtureUrl } from "../../convex/football/football.ts";
 import { UPCOMING_MATCH } from "../support/recorded/commentary.payloads.ts";
-import { fixtureStatus, poll, record, SAVED_TEXT_LIMIT, summaryLine } from "../../scripts/record-match.mjs";
+import { poll, record, SAVED_TEXT_LIMIT } from "../../scripts/record-match.mjs";
+import { fixtureStatus, summaryLine } from "../../scripts/record-match-summary.mjs";
 
 const IPSWICH_FOREST = UPCOMING_MATCH;
 const KICKOFF = Date.UTC(2026, 9, 23, 19);
