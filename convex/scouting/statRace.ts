@@ -24,6 +24,11 @@ export type RacingTeam = Infer<typeof racingTeam>;
 /** The catalogue's stats alone: a record's other figures (FPL's own bonus, say) are never shown. */
 const CATALOGUE_KEYS = new Set(STAT_CATALOGUE.map((each) => each.stat));
 
+/** Refuses a stat the catalogue doesn't hold, for any of Scouting's reads that shows one. */
+export function checkCatalogueStat(stat: string): void {
+  if (!CATALOGUE_KEYS.has(stat)) throw new Error(`No stat ${stat} is in the catalogue`);
+}
+
 /** Every team in the league, most of `stat` first (fewest with `descending` false), ties by name.
  *  Anyone not in the league is refused, as is a stat the catalogue doesn't hold. */
 export const teams = query({
@@ -31,7 +36,7 @@ export const teams = query({
   returns: v.array(racingTeam),
   handler: async (ctx, { leagueId, stat, descending }) => {
     await memberOf(ctx, leagueId);
-    if (!CATALOGUE_KEYS.has(stat)) throw new Error(`No stat ${stat} is in the catalogue`);
+    checkCatalogueStat(stat);
     const totals = await teamTotals(ctx, leagueId);
     const rows = (await teamsOf(ctx, leagueId)).map((team) => {
       const stats = catalogueOnly(totals.get(team._id) ?? {});

@@ -33,7 +33,7 @@ function statsOf(records: readonly PlayerMatchRecord[], codes: readonly number[]
 }
 const codesOf = (starters: readonly { playerCode: number }[]) => starters.map((starter) => starter.playerCode);
 
-const storeLeague = ({ t, leagueId }: ScoresLeague) => t.mutation(internal.stats.teamSeasonStats.storeLeague, { leagueId });
+const storeStats = ({ t, leagueId }: ScoresLeague) => t.mutation(internal.stats.teamSeasonStats.storeLeague, { leagueId });
 const totalsOf = async ({ t }: ScoresLeague, teamId: Id<"teams">) =>
   (await t.run((ctx) => ctx.db.query("teamSeasonStats").collect())).find((row) => row.teamId === teamId)?.stats;
 const shares = ({ t }: ScoresLeague) => t.run((ctx) => ctx.db.query("teamGameweekStats").collect());
@@ -51,7 +51,7 @@ test("once the gameweek is final, each team's totals are its counted players' st
   await fullTimeRecords(league);
   await lockMatch(league);
 
-  expect(await storeLeague(league)).toEqual([GAMEWEEK]);
+  expect(await storeStats(league)).toEqual([GAMEWEEK]);
   const ann = await totalsOf(league, league.annsTeam);
   expect(ann).toEqual(statsOf(RECORDS, codesOf(HULL_AFTER_SUB)));
   expect(await totalsOf(league, league.bobsTeam)).toEqual(statsOf(RECORDS, codesOf(EVERTON_STARTERS)));
@@ -67,13 +67,13 @@ test("once the gameweek is final, each team's totals are its counted players' st
 test("inside the corrections window nothing is added, and a correction made in it is what the totals hold once final", async () => {
   const league = await scoresLeague();
   await fullTimeRecords(league);
-  expect(await storeLeague(league)).toEqual([]);
+  expect(await storeStats(league)).toEqual([]);
   expect(await shares(league)).toEqual([]);
 
   const corrected = RECORDS.map((record) => (record.playerCode === HULL_SCORER ? { ...record, stats: { ...record.stats, goals_scored: 0 } } : record));
   await fullTimeRecords(league, corrected);
   await lockMatch(league);
-  await storeLeague(league);
+  await storeStats(league);
 
   expect(await totalsOf(league, league.annsTeam)).toEqual(statsOf(corrected, codesOf(HULL_AFTER_SUB)));
   expect((await totalsOf(league, league.annsTeam))!.goals_scored).toBeUndefined();
@@ -83,10 +83,10 @@ test("storing again adds nothing twice", async () => {
   const league = await scoresLeague();
   await fullTimeRecords(league);
   await lockMatch(league);
-  await storeLeague(league);
+  await storeStats(league);
   const once = await totalsOf(league, league.annsTeam);
 
-  expect(await storeLeague(league)).toEqual([]);
+  expect(await storeStats(league)).toEqual([]);
   expect(await totalsOf(league, league.annsTeam)).toEqual(once);
 });
 
@@ -103,15 +103,15 @@ test("a match moved into a stored gameweek takes its share away until the gamewe
   const league = await scoresLeague();
   await fullTimeRecords(league);
   await lockMatch(league);
-  await storeLeague(league);
+  await storeStats(league);
   await holdMovedIn(league);
 
-  expect(await storeLeague(league)).toEqual([GAMEWEEK]);
+  expect(await storeStats(league)).toEqual([GAMEWEEK]);
   expect(await totalsOf(league, league.annsTeam)).toEqual({});
   expect(await shares(league)).toEqual([]);
 
   await lockMovedIn(league);
-  expect(await storeLeague(league)).toEqual([GAMEWEEK]);
+  expect(await storeStats(league)).toEqual([GAMEWEEK]);
   expect(await totalsOf(league, league.annsTeam)).toEqual(statsOf(RECORDS, codesOf(HULL_AFTER_SUB)));
   expect((await shares(league)).map((share) => share.fixtureCodes.toSorted())).toEqual([
     [HULL_EVERTON, MOVED_IN].toSorted(),
@@ -123,13 +123,13 @@ test("a share stored from other matches is stored again, the totals moved by the
   const league = await scoresLeague();
   await fullTimeRecords(league);
   await lockMatch(league);
-  await storeLeague(league);
+  await storeStats(league);
   await league.t.run(async (ctx) => {
     const anns = (await ctx.db.query("teamGameweekStats").collect()).find((row) => row.teamId === league.annsTeam)!;
     await ctx.db.patch("teamGameweekStats", anns._id, { fixtureCodes: [MOVED_IN] });
   });
 
-  expect(await storeLeague(league)).toEqual([GAMEWEEK]);
+  expect(await storeStats(league)).toEqual([GAMEWEEK]);
   expect(await totalsOf(league, league.annsTeam)).toEqual(statsOf(RECORDS, codesOf(HULL_AFTER_SUB)));
 });
 
@@ -137,7 +137,7 @@ test("rebuild sets every total afresh from the gameweeks, whatever was held", as
   const league = await scoresLeague();
   await fullTimeRecords(league);
   await lockMatch(league);
-  await storeLeague(league);
+  await storeStats(league);
   await league.t.run(async (ctx) => {
     const anns = (await ctx.db.query("teamSeasonStats").collect()).find((row) => row.teamId === league.annsTeam)!;
     await ctx.db.patch("teamSeasonStats", anns._id, { stats: { goals_scored: 99 } });
