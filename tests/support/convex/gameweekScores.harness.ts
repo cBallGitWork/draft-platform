@@ -7,6 +7,7 @@ import { vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { positionOfSlot, type Cell } from "../../../convex/lineup/pitch";
+import type { MatchupSide, MatchupSlot } from "../../../convex/matchup/matchupShape";
 import type { Position } from "../../../convex/positions/positionTables";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { firstLineup } from "../../../convex/lineup/firstLineup";
@@ -161,6 +162,15 @@ export async function annsScoredGame({ t, leagueId }: ScoresLeague, gameweek?: n
   if (read?.kind !== "headToHead" || read.game.kind !== "scored") throw new Error(`Ann's matchup isn't scored: ${JSON.stringify(read)}`);
   return read.game;
 }
+
+/** A side's lineup on the matchup: a team's, never the league's average. */
+export const lineupOf = (side: MatchupSide) => {
+  if (side.kind !== "team" || side.lineup === null) throw new Error(`The side has no lineup: ${JSON.stringify(side)}`);
+  return side.lineup;
+};
+/** One man's slot in a side's lineup, starter or bench. */
+export const slotOf = (side: MatchupSide, playerCode: number): MatchupSlot =>
+  [...lineupOf(side).starters, ...lineupOf(side).bench].find((slot) => slot.playerCode === playerCode)!;
 
 /** The match's records as the live tick lands them, before full time. */
 export async function liveRecords({ t }: ScoresLeague, records: PlayerMatchRecord[], minute: number | null = null) {

@@ -2,7 +2,6 @@ import { expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import { STREAM_BEHIND } from "../../../convex/football/matchCommentary";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { MatchupSide, MatchupSlot } from "../../../convex/matchup/matchupShape";
 import { inTenths } from "../../../convex/scoring/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
@@ -24,6 +23,7 @@ import {
   HULL_SCORER,
   HULL_STARTERS,
   LEAGUE_KICKOFF,
+  lineupOf,
   liveRecords,
   MIDFIELD_GOAL,
   lockMatch,
@@ -31,6 +31,7 @@ import {
   scoreRead,
   scoresLeague,
   sideTotal,
+  slotOf,
   TYPO_STAT,
   type ScoresLeague,
   BOBS_FIRST_POINTS,
@@ -58,12 +59,6 @@ async function matchupAs(league: ScoresLeague, email: string, args: { teamId?: I
   return (await actingAs(league.t, email)).query(api.matchup.matchup.ofTeam, { leagueId: league.leagueId, now: Date.now(), ...args });
 }
 
-const lineupOf = (side: MatchupSide) => {
-  if (side.kind !== "team") throw new Error("the side is the league's average");
-  return side.lineup;
-};
-const slotOf = (side: MatchupSide, playerCode: number): MatchupSlot =>
-  [...lineupOf(side).starters, ...lineupOf(side).bench].find((slot) => slot.playerCode === playerCode)!;
 const nameOf = (league: ScoresLeague, code: number) =>
   league.t.run(async (ctx) => (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", code)).unique())!.name);
 
