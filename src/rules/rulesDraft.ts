@@ -40,8 +40,9 @@ export function useRulesDraft<Part, Rev = Revision>(
   const blank = useBlankBox();
   const draft = edits?.part ?? view.part;
   const revision = edits?.revision ?? view.revision;
+  const refusedBox = blank.box;
   const boxRefusal: BoxRefusal | null =
-    refusedBlank && saving.problem !== null && blank.box !== null ? { boxId: blank.box.id, words: saving.problem, gone: blank.gone } : null;
+    refusedBlank && saving.problem !== null && refusedBox !== null ? { boxId: refusedBox.id, words: saving.problem, gone: () => blank.gone(refusedBox) } : null;
 
   /** What the bar says: a refusal from the server; or one for a blank box found nowhere on screen
    *  (another category opened, say), said afresh while the draft still holds a blank. */

@@ -26,7 +26,7 @@ export const BoxRefusalContext = createContext<BoxRefusal | null>(null);
 /** After `refused`, once the screen has drawn what changed with it: `box` is the first blank box
  *  inside `area`, the one the refusal names (each screen checks its boxes in the order it shows
  *  them), found before paint so the refusal never shows in the bar first; then the cursor goes
- *  into it. Null until a refusal finds one, or once `gone`. */
+ *  into it. Null until a refusal finds one, or once that box is `gone` (a box found since stays). */
 export function useBlankBox() {
   const area = useRef<HTMLDivElement>(null);
   const [refusals, setRefusals] = useState(0);
@@ -36,5 +36,5 @@ export function useBlankBox() {
     if (refusals > 0) setFound({ box: area.current?.querySelector<HTMLElement>(BLANK_BOX) ?? null });
   }, [refusals]);
   useEffect(() => found.box?.focus(), [found]);
-  return { area, box: found.box, refused: () => setRefusals((count) => count + 1), gone: () => setFound({ box: null }) };
+  return { area, box: found.box, refused: () => setRefusals((count) => count + 1), gone: (box: HTMLElement) => setFound((now) => (now.box === box ? { box: null } : now)) };
 }
