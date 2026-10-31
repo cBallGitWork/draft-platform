@@ -46,9 +46,9 @@ export const pickPresetWords = "Pick a preset…";
 export const emptySlotLabel = (area: Area, lane: Lane) => `Empty slot: ${cellWords(area, lane)}`;
 
 /** What to do, under the pitch's plate: before a player is picked up, and while one is. */
-export const pickHintWords = "Choose a player, on the pitch or with Move in the squad, then a free cell he plays. Or drag him there.";
+export const pickHintWords = "Pick a player, then a free cell. Or drag him.";
 export const movingHintWords = (name: string, positions: readonly string[]) =>
-  `Moving ${name} (${positionsWords(positions)}): choose a free cell he plays, or the bench. Escape puts him back.`;
+  `Moving ${name} (${positionsWords(positions)}). Escape puts him back.`;
 
 /** The squad beside the pitch: the eleven, then the bench in order. */
 export const squadTableLabel = "Your squad: the eleven, then the bench in order";
@@ -76,5 +76,5 @@ export const joinedBenchWords = (names: readonly string[]) => `${andListWords(na
 
 export const saveWords = "Save lineup";
 export const discardWords = "Discard";
-export const savedWords = (gameweek: number) => `Saved. It stands from ${gameweekWords(gameweek).toLowerCase()} until you change it.`;
+export const savedWords = (gameweek: number) => `Saved. It stands from ${gameweekWords(gameweek).toLowerCase()}.`;
 export const saveFailedWords = failedWords("the lineup wasn't saved");

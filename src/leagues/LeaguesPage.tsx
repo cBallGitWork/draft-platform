@@ -22,8 +22,8 @@ import { deletes, runs } from "./roles";
 import {
   adminWords,
   commissionerLine,
-  invitedHereWords,
   leagueColumns,
+  invitedHereWords,
   leaguesCutWords,
   LEAGUES_TITLE,
   NEW_LEAGUE_TITLE,
