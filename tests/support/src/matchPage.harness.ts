@@ -9,6 +9,7 @@ import { manager, openApp } from "./shell.harness";
 
 export const FIXTURE = 2645271;
 
+/** A man, by default owned by no team, so his points count for none, as the server sends him. */
 export const man = (playerCode: number, name: string, side: MatchMan["side"], more: Partial<MatchMan> = {}): MatchMan => ({
   playerCode,
   name,
@@ -18,7 +19,7 @@ export const man = (playerCode: number, name: string, side: MatchMan["side"], mo
   played: true,
   ownerTeamName: null,
   points: null,
-  counts: true,
+  counts: (more.ownerTeamName ?? null) !== null,
   ...more,
 });
 
@@ -26,8 +27,7 @@ export const MEN: MatchMan[] = [
   man(1, "Raya", "home", { position: "GK", ownerTeamName: "Team 1", points: 2 }),
   man(2, "Saka", "home", { ownerTeamName: "Team 2", points: 11 }),
   man(3, "Rice", "home", { ownerTeamName: "Team 1", points: null }),
-  // A free agent: his points count for no team (#771).
-  man(4, "Ødegaard", "home", { started: false, played: true, points: 3, counts: false }),
+  man(4, "Ødegaard", "home", { started: false, played: true, points: 3 }),
   man(5, "Arrizabalaga", "home", { position: "GK", started: false, played: false, ownerTeamName: "Team 1", points: 0, counts: false }),
   man(6, "Palmer", "away", { ownerTeamName: "Team 2", points: 7 }),
 ];

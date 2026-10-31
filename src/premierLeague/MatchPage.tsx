@@ -39,7 +39,7 @@ import {
 } from "./words";
 
 /** One real Premier League match (spec/10, The match page), live: the score and clock, each club's
- *  team sheet with every man showing his points and the team they're for, or "Free agent", the five team
+ *  team sheet with every man's points and the team they're for, or "Free agent", the five team
  *  stats, and the match's commentary, newest first. Opened from the Premier League's fixtures (spec/18) and from a
  *  player's status on the matchup. */
 export function MatchPage({ league, seam, fixtureCode }: { league: LeagueSummary; seam: PremierLeagueSeam; fixtureCode: number }) {

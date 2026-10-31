@@ -22,8 +22,8 @@ commentary` (16 Oct 2026).
   (shots, shots on target, possession, corners, cards), and commentary for every event in it.
 - Every player shows his live points, and only one owned in the league his team: "I need to stress
   that players who don't have a team still have their scores show. Just because they aren't a team
-  doesn't mean they don't get points" (Craig, 31 Oct 2026). One no team has shows where his team
-  would: "Well he would be a free agent or waiver not blank" (Craig, 31 Oct 2026).
+  doesn't mean they don't get points" (Craig, 31 Oct 2026). A player with no team says so in place
+  of a team: "Well he would be a free agent or waiver not blank" (Craig, 31 Oct 2026).
 - A player traded or released after the deadline shows the team that had him at it: "Yes show the
   old team as for the current games he's on that team" (Craig, 31 Oct 2026).
 - From the lineups, about an hour before kickoff, to full time; kept afterwards.

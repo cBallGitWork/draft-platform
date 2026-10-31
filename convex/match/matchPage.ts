@@ -27,12 +27,10 @@ import { unownedPointsOf, type UnownedPoints } from "./unownedPoints";
 // men as the team sheets named them, starters and substitutes, each with his live points and, for
 // a man owned in the league, his team, and the match's commentary, newest first, its goals,
 // assists, cards and thresholds priced for the league's men, and "Commentary delayed" while the
-// stream falls behind. A man's points are his slot's in the lineup that holds him, worked out by the league's
-// gameweek scorer (gameweekScores.ts) as the matchup and the table work them, so the three never
-// disagree; only once the league's gameweek has begun, as the matchup shows lineups only then.
-// A man in no lineup at the deadline still shows his points, as his card prices them (cardPoints:
-// his best position, no role), counted for no team: "Just because they aren't a team doesn't mean
-// they don't get points" (Craig, 31 Oct 2026; #771).
+// stream falls behind. A man's points are his slot's in the lineup that holds him, worked out by
+// the league's gameweek scorer (gameweekScores.ts) as the matchup and the table work them, so the
+// three never disagree; only once the league's gameweek has begun, as the matchup shows lineups
+// only then. A man in no lineup shows his card's points, counted for no team (unownedPoints.ts).
 //
 // The men come from the match's records, which the live poller writes from kickoff (#28); before
 // any, from the team sheets it reads in the hour before kickoff (football/matchTeamSheets.ts). The
@@ -100,6 +98,7 @@ export const ofMatch = query({
     const begunGameweek = await begunGameweekOf(ctx, league, fixture);
     const owners = await matchOwnersOf(ctx, leagueId, begunGameweek, named.map(({ playerCode }) => playerCode));
     const priced = begunGameweek === null ? unpriced(null) : await pricedOrProblem(ctx, league, fixture, begunGameweek, named);
+    const unownedPoints = await unownedPointsOf(ctx, leagueId, fixtureCode, records, owners, priced.set);
     const held = await scoreOf(ctx, fixtureCode);
     const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
     return {
@@ -109,7 +108,7 @@ export const ofMatch = query({
       home: clubOf(await clubByCode(ctx, fixture.homeClubCode)),
       away: clubOf(await clubByCode(ctx, fixture.awayClubCode)),
       score: held === null ? null : scoreOnly(held),
-      men: await menOf(ctx, fixture, named, owners, priced, await unownedPointsOf(ctx, leagueId, fixtureCode, records, owners, priced.set)),
+      men: await menOf(ctx, fixture, named, owners, priced, unownedPoints),
       pointsProblem: priced.problem,
       teamStats: teamStats === null ? null : { home: teamStats.home, away: teamStats.away },
       commentary: await commentaryOf(ctx, fixture, priced),
