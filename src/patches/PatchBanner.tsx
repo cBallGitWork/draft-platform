@@ -26,7 +26,7 @@ export function PatchBanner({ seam }: { seam: PatchesSeam }) {
       <div role="status" className="alert-strip flex flex-wrap items-center gap-x-2 py-0">
         <p className="grow py-2 text-lead">{bannerWords(waiting.name, waiting.takesEffectAt)}</p>
         <PatchNotesLink />
-        <button type="button" disabled={busy} onClick={() => void run(() => seam.dismiss(waiting.versionId))} className="min-h-tap px-2 text-lead text-fact underline">
+        <button type="button" disabled={busy} onClick={() => void run(() => seam.dismiss(waiting.versionId))} className="min-h-tap px-2 text-lead text-fact link-look">
           {dismissWords}
         </button>
       </div>

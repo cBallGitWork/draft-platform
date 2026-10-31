@@ -32,8 +32,8 @@ export function SignInPage({
   return (
     <>
       <header className={`${TOP_BAR_ROW} ${TOP_BAR}`}>
-        <h1 className="px-4 py-1 text-title font-bold">{PRODUCT_NAME}</h1>
-        <p className="flex items-center border-l border-plate-rule px-4 text-lead font-semibold">{signInWords.inviteOnly}</p>
+        <h1 className="px-4 py-1 text-title display-face">{PRODUCT_NAME}</h1>
+        <p className="flex items-center border-l border-bar-rule px-4 text-lead font-semibold">{signInWords.inviteOnly}</p>
       </header>
       <main className="p-2">
         <Panel title={signInWords.title} className="max-w-md">
