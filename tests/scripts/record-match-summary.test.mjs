@@ -11,7 +11,9 @@ import {
   recordedTeamStats,
   UPCOMING_MATCH,
 } from "../support/recorded/commentary.payloads.ts";
-import { summarise, summaryLine } from "../../scripts/record-match.mjs";
+import { recordedLiveCommentary } from "../support/recorded/live.payloads.ts";
+import { summarise } from "../../scripts/record-match.mjs";
+import { commentaryChanges, summaryLine } from "../../scripts/record-match-summary.mjs";
 
 const BRENTFORD_LIVERPOOL = COMMENTARY_MATCH.brentfordLiverpool;
 const IPSWICH_FOREST = UPCOMING_MATCH;
@@ -93,6 +95,82 @@ test("a summary names a cut-off poll file and goes on to the next", () => {
     expect(lines[0]).toBe("19:00:00 UTC  |  status U, clock -, named -");
     expect(lines[1]).toMatch(/^2026-10-23T19-00-30\.000Z\.json UNREADABLE: .+/);
     expect(lines[2]).toBe("19:01:00 UTC  |  status U, clock -, named -");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+/** A commentary body holding `lines`, newest first, as the stream sends them. */
+const commentaryOf = (...lines) => ({ events: { content: lines } });
+const line = (id, text) => ({ id, type: "comment", text });
+
+test("commentary changes count the lines added, gone and changed between two reads", () => {
+  const before = commentaryOf(line(3, "Foul by Hutchinson."), line(2, "Corner."), line(1, "Kick off."));
+  const after = commentaryOf(line(4, "Goal!"), line(2, "Corner, conceded by Morato."), line(1, "Kick off."));
+
+  expect(commentaryChanges(before, after)).toBe("+1 -1 ~1");
+  expect(commentaryChanges(after, after)).toBe("+0 -0 ~0");
+});
+
+test("a line counts as changed when any part of it differs, not only its text", () => {
+  const before = commentaryOf({ ...line(1, "Goal!"), playerIds: [1] });
+  const after = commentaryOf({ ...line(1, "Goal!"), playerIds: [1, 2] });
+  expect(commentaryChanges(before, after)).toBe("+0 -0 ~1");
+});
+
+test("commentary changes are unknown when either read has no lines to compare", () => {
+  expect(commentaryChanges(undefined, commentaryOf())).toBeNull();
+  expect(commentaryChanges(commentaryOf(), { content: [] })).toBeNull();
+});
+
+// 49': 42 lines, two gone by full time; full time: 94, the first goal's reworded (live.payloads.ts).
+test("from the 49th minute to full time on 23 Oct, 54 lines came, 2 went and the first goal's changed", () => {
+  const added = 94 - (42 - 2);
+  expect(commentaryChanges(recordedLiveCommentary("withVanished"), recordedLiveCommentary("final"))).toBe(`+${added} -2 ~1`);
+});
+
+test("given the commentary before it, a poll's line says how the commentary changed", () => {
+  const saved = { polledAt: POLLED_AT_KICKOFF, reads: [{ kind: "commentary", body: commentaryOf(line(2, "Corner."), line(1, "Kick off.")) }] };
+  expect(summaryLine(saved, commentaryOf(line(1, "Kick off.")))).toBe("19:00:00 UTC  |  commentary: 2, newest -' comment (2), +1 -0 ~0");
+  expect(summaryLine(saved)).toBe("19:00:00 UTC  |  commentary: 2, newest -' comment (2)");
+});
+
+test("with no fixture read to say which side is home, the team stats say their order is unknown", () => {
+  const saved = { polledAt: POLLED_AT_KICKOFF, reads: [{ kind: "teamStats", body: recordedTeamStats(BRENTFORD_LIVERPOOL) }] };
+  // The feed's own order, Liverpool (10) first: the first test's numbers, sides swapped.
+  expect(summaryLine(saved)).toBe(
+    "19:00:00 UTC  |  order unknown: ids 10-130, shots 21-10, on target 5-2, possession 60-40, corners 9-3, yellows 3-2, reds 0-2",
+  );
+});
+
+test("a side the team stats hold nothing for is named, not shown as noughts alone", () => {
+  const teamStats = recordedTeamStats(BRENTFORD_LIVERPOOL);
+  delete teamStats.data["10"];
+  const fixture = { status: "L", teams: [{ team: { id: 130 } }, { team: { id: 10 } }] };
+  const saved = { polledAt: POLLED_AT_KICKOFF, reads: [{ kind: "fixture", body: fixture }, { kind: "teamStats", body: teamStats }] };
+  expect(summaryLine(saved)).toContain("|  no data for 10, shots 10-0, on target 2-0");
+});
+
+test("a summary says how the commentary changed from one poll to the next, past a poll whose read failed", () => {
+  const dir = mkdtempSync(join(tmpdir(), "record-match-summary-"));
+  const lines = [];
+  vi.spyOn(console, "log").mockImplementation((logged) => lines.push(logged));
+  const commentaryPoll = (polledAt, read) => JSON.stringify({ polledAt, reads: [{ kind: "commentary", ...read }] });
+  try {
+    writeFileSync(join(dir, "2026-10-23T19-00-00.000Z.json"), commentaryPoll(POLLED_AT_KICKOFF, { body: commentaryOf(line(1, "Kick off.")) }));
+    writeFileSync(join(dir, "2026-10-23T19-00-30.000Z.json"), commentaryPoll("2026-10-23T19:00:30.000Z", { error: "fetch failed" }));
+    writeFileSync(
+      join(dir, "2026-10-23T19-01-00.000Z.json"),
+      commentaryPoll("2026-10-23T19:01:00.000Z", { body: commentaryOf(line(2, "Corner."), line(1, "Kick-off.")) }),
+    );
+
+    summarise(dir);
+
+    expect(lines).toEqual([
+      "19:00:00 UTC  |  commentary: 1, newest -' comment (1)",
+      "19:00:30 UTC  |  commentary FAILED: fetch failed",
+      "19:01:00 UTC  |  commentary: 2, newest -' comment (2), +1 -0 ~1",
+    ]);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
