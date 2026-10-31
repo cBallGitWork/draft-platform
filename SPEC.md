@@ -143,6 +143,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | role adjustment | the points a starter's role adds or takes on top of his base points, per action (+1 a key pass, −1 a clean sheet) | role bonus, multiplier, pays, paid |
 | earns, loses | what a player does with points | pays, is paid |
 | run | where a starter's role goes as if in a real match, drawn as a dashed arrow on the pitch; it never changes points | lean |
+| chip | the coloured label under a shirt on the pitch, or at the start of a squad list row | plate, badge |
 | role card | the card that opens from a starter's role: every role for his slot, with his stars, what each scores more and less for, its description and his recent matches under it | role picker, drop-down |
 | scout | one of a team's scouts (three, a number the site sets), sent to one player; the report is ready 24 hours later | |
 | report | a scout's judgement on a player, in a few plain sentences | |
