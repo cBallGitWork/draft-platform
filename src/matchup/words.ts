@@ -76,7 +76,7 @@ export const statusLabels = {
 
 /** A side's formation, as managers say it ("4-2-3-1"), on its panel's plate; its name read out. */
 export const formationWords = (counts: readonly number[]) => counts.join("-");
-export const formationLabel = "Formation";
+export { presetLabel as formationLabel } from "../myTeam/tactics/words";
 
 /** What the auto-subs did with him (spec/05, Auto-subs). */
 export const autoSubWords = {

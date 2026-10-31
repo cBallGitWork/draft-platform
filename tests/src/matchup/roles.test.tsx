@@ -5,6 +5,7 @@
 
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { roleIn } from "../../../convex/lineup/roles";
 import type { MatchupSide } from "../../../convex/matchup/matchupShape";
 import { MATCHUP_PATH } from "../../../src/frame/menu";
 import { AREA_CODES, autoSubWords, BENCH_TITLE, formationLabel, formationWords, leagueAverageWords, lineupLabel, notCountingLabel, statusLabels, statusWords } from "../../../src/matchup/words";
@@ -12,8 +13,10 @@ import { headToHead, lineupRows, roleOf, slot, SLOT_MATCH, teamSide } from "../.
 import { manager, openApp } from "../../support/src/shell.harness";
 
 const FINISHED = { kind: "finished", fixtureCode: SLOT_MATCH } as const;
-const POACHER = { key: "poacher", name: "Poacher" };
-const TARGET_MAN = { key: "targetMan", name: "Target man" };
+/** A striker's slot, and two of its roles. */
+const STRIKER_SLOT = { area: "attack", lane: "centre" } as const;
+const POACHER = roleIn(STRIKER_SLOT, "poacher");
+const TARGET_MAN = roleIn(STRIKER_SLOT, "targetMan");
 
 /** Team 1: a keeper who didn't play and the bench keeper on for him, a poacher, a midfielder, and a
  *  bench striker not on. */
@@ -61,7 +64,7 @@ describe("each man's role", () => {
 });
 
 describe("each side's formation", () => {
-  it("shows on its plate, read from where its men stand now", async () => {
+  it("shows on its plate, counted from its men's areas", async () => {
     openScored(team2);
     await screen.findByRole("region", { name: "Team 2" });
     expect(formationOn("Team 2")).toBe(`${formationLabel} ${formationWords([4, 2, 1])}`);
