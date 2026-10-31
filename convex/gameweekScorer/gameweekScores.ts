@@ -24,7 +24,7 @@ import {
 // by minute (#28). One final (every match in it locked, so no correction changes it:
 // spec/07) is read from finalScores.ts's stored rows, so a season's worth never outgrows one read
 // (#418). Little a final gameweek reads changes after: its head-to-heads are stored
-// (playedFixtures.ts), the site's set never reaches a gameweek begun (siteScoring.ts), a locked
+// (playedFixtures.ts), the site's set never reaches a gameweek begun (siteVersions.ts), a locked
 // match's records no longer change (matchStats.ts) and its lineup is read against the squad at its
 // deadline (#415). Its matches can: the stored rows name those they were scored from, and a match
 // moved in or out by the football sync reopens the gameweek, to be worked out and stored again.
