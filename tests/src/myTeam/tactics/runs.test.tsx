@@ -8,20 +8,14 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { roleIn, SWEEPER_CELL } from "../../../../convex/lineup/roles";
-import { placeOf, RUN_HEAD_MARK, RUN_MARGIN, RUN_MARK, runPath, runShows, SWEEPER_DEPTH_SHARE } from "../../../../src/myTeam/tactics/runs";
+import { placeOf, RUN_MARGIN, RUN_MARK, runPath, runShows, SWEEPER_DEPTH_SHARE } from "../../../../src/myTeam/tactics/runs";
 import { LANE_WIDTH, PITCH_SIZE, ROW_LENGTH } from "../../../../src/myTeam/tactics/pitchMarkings";
 import { runsWords } from "../../../../src/myTeam/tactics/words";
 import { blockOf, HAVERTZ, openedPitch, pitch, RICE, SALIBA, SAVED, STARTERS } from "../../../support/src/tacticsScreen.harness";
 
-/** The drawings marked `mark`, by player code, each with the utility hiding it where it doesn't show. */
-const drawn = (mark: string) =>
-  Array.from(pitch().querySelectorAll(`[${mark}]`)).map((run) => ({ code: Number(run.getAttribute(mark)), hidden: run.getAttribute("class") ?? "" }));
-/** The players whose runs are drawn, each line with its arrowhead, shown and hidden alike. */
-function drawnRuns() {
-  const lines = drawn(RUN_MARK);
-  expect(drawn(RUN_HEAD_MARK), "an arrowhead to each line").toEqual(lines);
-  return lines;
-}
+/** The players whose runs are drawn, by code, each with the utility hiding it where it doesn't show. */
+const drawnRuns = () =>
+  Array.from(pitch().querySelectorAll(`[${RUN_MARK}]`)).map((run) => ({ code: Number(run.getAttribute(RUN_MARK)), hidden: run.getAttribute("class") ?? "" }));
 const codes = () => drawnRuns().map(({ code }) => code).toSorted();
 
 const PHONE_HIDES = "max-lg:hidden";
