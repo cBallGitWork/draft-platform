@@ -42,7 +42,8 @@ const FINGERPRINT_HASH = "sha256";
 export const VERCEL_PRODUCTION = "production";
 /** The setting in Vercel that lets its build deploy the server code to the live deployment. */
 export const DEPLOY_KEY_SETTING = "CONVEX_DEPLOY_KEY";
-const VERCEL_ENV = "VERCEL_ENV";
+/** The variable a Vercel build reads its environment from. */
+export const VERCEL_ENV = "VERCEL_ENV";
 
 /** Why this build mustn't release, or null when it may. Outside Vercel there is no VERCEL_ENV,
  *  and the key alone decides. */

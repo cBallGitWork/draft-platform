@@ -1,8 +1,9 @@
-"""Reads a hook's payload, for gate_on_stop.py and line_ceiling.py: the JSON object Claude Code
-writes on stdin. Anything else (nothing, text that isn't JSON, a JSON list or string) raises
-BadPayload saying what came, and the hook exits 1 with it on stderr: Claude Code shows that,
-where a payload read as {} would have checked nothing and said nothing. guard_bash.py reads its
-own, since it denies where these two only report. Stdlib only, Python 3.9+.
+"""Reads a hook's payload, for gate_on_stop.py, line_ceiling.py and tidy_after_merge.py: the JSON
+object Claude Code writes on stdin. Anything else (nothing, text that isn't JSON, a JSON list or
+string) raises BadPayload saying what came, and the hook exits 1 with it on stderr: Claude Code
+shows that, where a payload read as {} would have checked nothing and said nothing. guard_bash.py
+reads its own, since it denies where these only report. project_dir() is the folder every hook
+falls back to. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -39,8 +40,14 @@ def field(payload, key, kind, default):
     return value
 
 
+def project_dir(cwd=""):
+    """The folder a hook judges: cwd (the payload's, where it has one), else CLAUDE_PROJECT_DIR, else
+    the folder the hook runs in."""
+    return cwd or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+
+
 def report(error, consequence):
     """Says on stderr, in one line, why the hook running couldn't do its job (an unreadable payload,
-    or gate_on_stop.py's failed git call or timeout); returns the exit code for it."""
+    or whatever kept gate_on_stop.py's gate from running); returns the exit code for it."""
     print(f"{os.path.basename(sys.argv[0])}: {error}, so {consequence}.", file=sys.stderr)
     return 1

@@ -167,6 +167,19 @@ describe("#30 Done: an edit saves, from the next gameweek", () => {
     expect(app.scoring.save).not.toHaveBeenCalled();
   });
 
+  it("a save refused for boxes left without a number opens the first category it names, the cursor in its box (#645)", async () => {
+    openScoring();
+    await choose("Assists");
+    await retype(columnWords.points, everyoneWords, "");
+    await choose("Yellow cards");
+    await retype(columnWords.points, everyoneWords, "");
+    await save();
+
+    expect((await screen.findByRole("alert")).textContent).toBe(blankBoxWords("Assists"));
+    expect(document.activeElement).toBe(box(columnWords.points, everyoneWords));
+    expect(within(await categories()).getByRole("button", { current: true }).textContent).toMatch(/^Assists/);
+  });
+
   it("takes Infinity typed in a box for no number, refusing it itself", async () => {
     const app = openScoring();
     await choose("Assists");

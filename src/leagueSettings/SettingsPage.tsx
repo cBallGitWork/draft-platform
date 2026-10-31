@@ -7,6 +7,7 @@ import { LeagueHeading } from "../leagues/LeagueLinks";
 import { Choice } from "../ui/Choice";
 import { useRulesDraft } from "../rules/rulesDraft";
 import { SaveBar } from "../rules/SaveBar";
+import { useBlankFocus } from "../rules/blank";
 import { TickBox } from "../ui/TickBox";
 import { NumberBox } from "../rules/NumberBox";
 import { AREA_WORDS } from "../shared/words";
@@ -63,12 +64,14 @@ export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: Le
 }
 
 /** The settings, and the bar that saves them (rulesDraft.ts says how the draft follows the latest
- *  settings, and what a save over someone else's does). */
+ *  settings, and what a save over someone else's does). A save refused for a box left without a
+ *  number puts the cursor in that box. */
 function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSettingsSeam; view: SettingsView }) {
-  const rulesDraft = useRulesDraft(view, (settings, revision) => seam.save(league.leagueId, settings, revision), blankRefusal);
+  const blankFocus = useBlankFocus<HTMLDivElement>();
+  const rulesDraft = useRulesDraft(view, (settings, revision) => seam.save(league.leagueId, settings, revision), blankRefusal, blankFocus.refused);
   const { draft, edit } = rulesDraft;
   return (
-    <>
+    <div ref={blankFocus.area} className="flex flex-col gap-2">
       <Panel title={fixturesTitle}>
         <div className={PANEL_BODY}>
           <Choice
@@ -86,7 +89,7 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
       </Panel>
       <SquadPanel draft={draft} edit={edit} />
       <SaveBar draft={rulesDraft} savedWords={savedWords} />
-    </>
+    </div>
   );
 }
 
