@@ -4,7 +4,7 @@ import { query } from "../_generated/server";
 import { bylineOf } from "../mail/letters";
 import { takeShown } from "../shared/cappedRead";
 import { managerOf } from "../shared/leagueAccess";
-import { isSquadMove, SQUAD_MOVES } from "./squadPlace";
+import { isSquadMove, newestFirst, SQUAD_MOVES } from "./squadPlace";
 
 // My team's Transactions tab (#366; spec/12, My team's tabs: "the team's claims, drops, trades and
 // commissioner assignments, newest first, from the same events Mail files"). Claims, drops and
@@ -67,10 +67,7 @@ export const ofMyTeam = query({
         ),
       ),
     );
-    // Newest first, and of two filed at once the later first, as the league's own index orders them.
-    const moves = ofEachKind
-      .flatMap((ofKind) => ofKind.rows)
-      .toSorted((one, other) => other.at - one.at || other._creationTime - one._creationTime);
+    const moves = ofEachKind.flatMap((ofKind) => ofKind.rows).toSorted(newestFirst);
     return {
       transactions: moves.flatMap((row) => transactionOf(row, team._id) ?? []),
       cut: ofEachKind.some((ofKind) => ofKind.more),
