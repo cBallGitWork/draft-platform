@@ -49,13 +49,16 @@ dirty_top=$(git -C "$dirty" rev-parse --show-toplevel)
 fails_loudly "gate_on_stop.py: the gate ($slow) ran past its $short-second timeout in $dirty_top, $ungated" \
   gate_on_stop.py "$dirty_stop" DRAFT_GATE_CMD="$slow" DRAFT_GATE_TIMEOUT=$short
 one_line "a gate past its timeout"
-# so is a gate whose program isn't there, or a DRAFT_GATE_TIMEOUT that isn't a number
+# so is a gate whose program isn't there, or an override it can't read
 fails_loudly "gate_on_stop.py: no-such-gate couldn't start in $dirty_top (No such file or directory), $ungated" \
   gate_on_stop.py "$dirty_stop" DRAFT_GATE_CMD=no-such-gate
 one_line "a gate that can't start"
 fails_loudly "gate_on_stop.py: DRAFT_GATE_TIMEOUT is 'soon', not a number of seconds, $ungated" \
   gate_on_stop.py "$dirty_stop" DRAFT_GATE_CMD=true DRAFT_GATE_TIMEOUT=soon
 one_line "a DRAFT_GATE_TIMEOUT that isn't a number"
+fails_loudly "gate_on_stop.py: DRAFT_GATE_CMD is \"echo 'open\", which doesn't split into words (No closing quotation), $ungated" \
+  gate_on_stop.py "$dirty_stop" DRAFT_GATE_CMD="echo 'open"
+one_line "a DRAFT_GATE_CMD with an open quote"
 # a payload it can't read is said on stderr, never taken for {} (here, a dirty checkout whose gate fails)
 for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
   fails_loudly "${bad_payloads[i + 1]}" gate_on_stop.py "${bad_payloads[i]}" DRAFT_GATE_CMD=false

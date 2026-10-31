@@ -8,7 +8,7 @@ the watched paths there have uncommitted changes, it runs `npm run verify` there
 verify script: the install check, tests, typecheck, the recorded-payload check, the spec-ID check
 and the hook checks); on failure, it blocks the stop and hands Claude the end of the output.
 Respects `stop_hook_active`, so it blocks once and never loops. If git status fails, the gate's
-program can't start or times out, DRAFT_GATE_TIMEOUT isn't a number, or the payload can't be read
+program can't start or times out, an override (below) can't be read, or the payload can't be read
 (hook_payload.py), it exits 1 with one line on stderr saying what failed: Claude Code shows it,
 but the stop goes ahead (it fails open, never quietly). A subagent's `cwd` is the folder it works
 in: an agent spawned with its own worktree has that worktree, but one that only names a worktree
@@ -71,6 +71,16 @@ def changed(checkout):
     return bool(proc.stdout.strip())
 
 
+def gate_command():
+    """DRAFT_GATE_CMD split into words where set, else GATE's; ValueError says what it was."""
+    name = "DRAFT_GATE_CMD"
+    value = os.environ.get(name)
+    try:
+        return shlex.split(value or GATE)
+    except ValueError as error:
+        raise ValueError(f"{name} is {value!r}, which doesn't split into words ({error})") from None
+
+
 def gate_timeout():
     """DRAFT_GATE_TIMEOUT in seconds where set, else GATE_TIMEOUT_SECONDS; ValueError says what it was."""
     name = "DRAFT_GATE_TIMEOUT"
@@ -85,7 +95,7 @@ def failure(error, checkout):
     """One line for a git call that failed, a program that couldn't start or a gate that ran past its
     timeout, where Python would print a 20-line traceback."""
     if isinstance(error, OSError):
-        return f"{error.filename} couldn't start in {checkout} ({error.strerror})"
+        return f"{error.filename or 'a program'} couldn't start in {checkout} ({error.strerror})"
     command = shlex.join(error.cmd)
     if isinstance(error, subprocess.TimeoutExpired):
         return f"the gate ({command}) ran past its {error.timeout:g}-second timeout in {checkout}"
@@ -111,8 +121,7 @@ def main():
             return 0
         if not changed(checkout):
             return 0
-        command = shlex.split(os.environ.get("DRAFT_GATE_CMD") or GATE)
-        proc = subprocess.run(command, cwd=checkout, capture_output=True, text=True, timeout=gate_timeout())
+        proc = subprocess.run(gate_command(), cwd=checkout, capture_output=True, text=True, timeout=gate_timeout())
     except ValueError as error:
         return report(error, UNGATED)
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError) as error:
