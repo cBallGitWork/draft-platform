@@ -81,6 +81,12 @@ on the desk. Figures use tabular numerals.
 - **The current one of a list**: a 3px bar down its left edge in the active tab's cyan, and
   `aria-current` for screen readers (the top bar's league list).
 - **The bench**: its own "Bench" plate in the table, below the eleven.
+- **The pitch**: portrait, a real pitch's 68 m wide by 105 m long, attack at the top, its markings
+  to scale: penalty area 40.32 × 16.5 m, goal area 18.32 × 5.5 m, penalty spot 11 m out, the D
+  9.15 m from the spot, centre circle 9.15 m round, the halfway line and 1 m corner arcs. The
+  measurements live once, in `src/myTeam/tactics/pitchMarkings.ts`. Flat: one stripe to each of
+  its six rows, which share its length equally so each line of players stands where it would; no
+  gradients or photo grass. It is the Tactics tab's centrepiece (Decided).
 
 ## Controls
 
@@ -124,7 +130,11 @@ bar above the pitch; the pitch's player blocks narrow to 84px. The app needs a v
 - **Yellow is a figure only.** Continue is white, orange when the deadline is near, and the active
   tab is a cyan underline: the UX expert's call, which Craig handed them (16 Oct 2026).
 - **Fixture difficulty** is a filled cell without a digit (Craig).
-- **Pitch, squad and Mail** stay side by side; no panel is made dominant (Craig).
+- **Pitch, squad and Mail** stay side by side (Craig). The pitch is the Tactics tab's centrepiece
+  (Craig, 31 Oct 2026: "The pitch is the centrepiece of my team. More than other sites since we
+  need to visually show roles / adjust positions"): on the desk it is as big as lets its whole
+  length show in the window, the squad beside it taking the rest; on the phone it fills the
+  width, the squad under it.
 - **Blue on neutral** (Craig, 23 Oct 2026). The app was "a lot of blue on blue"; Craig likes the
   blue and wants it as the primary colour, on the top bar. Of three takes, A1 ranked first in
   review and Craig said go ahead to its refined board, "A1 refined" on

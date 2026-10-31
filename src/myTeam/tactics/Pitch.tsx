@@ -1,7 +1,9 @@
-import type { DragEvent } from "react";
+import type { CSSProperties, DragEvent } from "react";
 import { AREAS, cellKey, LANES, sameCell, type Cell } from "../../../convex/lineup/pitch";
 import { roleIn } from "../../../convex/lineup/roles";
 import { markOf } from "./focusMarks";
+import { PitchLines } from "./PitchLines";
+import { PITCH_ASPECT } from "./pitchMarkings";
 import { canStandIn, standingIn, type DraftLineup, type SquadMember } from "./lineupDraft";
 import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel } from "./words";
 
@@ -11,6 +13,17 @@ import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel } from "./
 
 /** Top to bottom as the pitch is drawn: attack first. */
 const ROWS_DRAWN = AREAS.toReversed();
+
+/** On the row that holds the pitch, with the CSS `pitch-room`: the pitch's shape, width over
+ *  length, which the CSS sizes the pitch and its panel by. */
+export const PITCH_ROOM_STYLE = { "--pitch-aspect": PITCH_ASPECT } as CSSProperties;
+
+/** The pitch's cells: each area's row an equal share of its length, so the lines stand where they
+ *  would on a real pitch, and each lane an equal share of its width. Its shape is the CSS `pitch`'s. */
+const CELL_GRID: CSSProperties = {
+  gridTemplateRows: `repeat(${ROWS_DRAWN.length}, minmax(0, 1fr))`,
+  gridTemplateColumns: `repeat(${LANES.length}, minmax(0, 1fr))`,
+};
 
 /** Who is picked up and how to move him: the page holds it, as the squad beside picks up too. */
 export type Moving = {
@@ -47,7 +60,7 @@ export function Pitch({
   const isSlot = (cell: Cell) => slots.some((slot) => sameCell(slot, cell));
   const opensTo = (cell: Cell) => picked !== null && canStandIn(draft, picked.positions, cell);
   return (
-    <div role="group" aria-label={pitchLabel} className="pitch relative grid grid-cols-5">
+    <div role="group" aria-label={pitchLabel} style={CELL_GRID} className="pitch relative mx-auto grid">
       <PitchLines />
       {ROWS_DRAWN.flatMap((area) =>
         LANES.map((lane) => {
@@ -61,7 +74,7 @@ export function Pitch({
             if (opensTo(cell)) moving.onPlace(cell);
           };
           return (
-            <div key={cellKey(cell)} onDragOver={allowDrop} onDrop={drop} className="relative flex h-pitch-row min-w-0 items-center justify-center p-1">
+            <div key={cellKey(cell)} onDragOver={allowDrop} onDrop={drop} className="relative flex min-h-0 min-w-0 items-center justify-center p-0.5">
               {standing !== undefined ? (
                 <PlayerBlock player={squad.get(standing.playerCode)!} cell={cell} role={roleIn(cell, standing.role).name} moving={moving} />
               ) : picked !== null && opensTo(cell) ? (
@@ -121,17 +134,5 @@ function Shirt({ number }: { number: number | null }) {
         </text>
       )}
     </svg>
-  );
-}
-
-/** The halfway line, the centre circle and the two penalty boxes, drawn behind the cells. */
-function PitchLines() {
-  return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-      <div className="absolute inset-x-0 top-1/2 border-t-2 border-pitch-line" />
-      <div className="absolute top-1/2 left-1/2 size-centre-circle -translate-1/2 rounded-circle border-2 border-pitch-line" />
-      <div className="absolute inset-x-1/4 top-0 h-penalty-box border-2 border-t-0 border-pitch-line" />
-      <div className="absolute inset-x-1/4 bottom-0 h-penalty-box border-2 border-b-0 border-pitch-line" />
-    </div>
   );
 }

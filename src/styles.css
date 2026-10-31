@@ -59,14 +59,13 @@
   --spacing-tick: 22px;
   --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */
   --spacing-tick-mark: 14px; /* the tick drawn in it */
-  /* The Tactics tab: the pitch beside the squad on the desk, each of its six rows, a player's shirt,
-     the centre circle and the penalty boxes */
-  --flex-basis-pitch: 440px;
+  /* The Tactics tab: the squad beside the pitch on the desk; the window's height the pitch leaves
+     free, so its whole length shows; the narrowest it is drawn while there is room, where each of
+     its six rows still holds a player's shirt, name and two lines of role; a player's shirt */
   --flex-basis-squad: 320px;
-  --spacing-pitch-row: 84px;
+  --spacing-pitch-clearance: 16px;
+  --spacing-pitch-least: 360px;
   --spacing-shirt: 32px;
-  --spacing-centre-circle: 96px;
-  --spacing-penalty-box: 56px;
   /* The league switcher: its caret, and its list of leagues on the desk */
   --spacing-caret-width: 10px;
   --spacing-caret-height: 6px;
@@ -83,7 +82,6 @@
   --grid-template-columns-home: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 2fr);
   --grid-template-columns-card: 2fr 3fr;
   --grid-template-columns-facts: auto 1fr;
-  --radius-circle: 50%; /* the centre circle only: everything else is square (plate.md, Shape) */
 
   --text-data: 13px;
   --text-data--line-height: 20px;
@@ -185,13 +183,25 @@
   font-weight: var(--font-weight-semibold);
 }
 
-/* The pitch (plate.md, Colour roles: pitch): a stripe to each of its six rows, inside its line. */
-@utility pitch {
-  background: repeating-linear-gradient(
-    180deg,
-    var(--color-pitch) 0 var(--spacing-pitch-row),
-    var(--color-pitch-stripe) var(--spacing-pitch-row) calc(2 * var(--spacing-pitch-row))
+/* The Tactics tab's pitch (plate.md, Marks: the pitch), drawn to a real pitch's shape: as wide as
+   lets its whole length show in the window, never narrower than --spacing-pitch-least while there
+   is room, never wider than the room. Its shape, --pitch-aspect, is set on the row holding it from
+   src/myTeam/tactics/pitchMarkings.ts, the one home of its measurements; its grass and markings
+   are drawn there too (PitchLines.tsx). The goal lines and touchlines are its border. */
+@utility pitch-room {
+  --pitch-width: max(
+    var(--spacing-pitch-least),
+    calc((100dvh - var(--spacing-pitch-clearance)) * var(--pitch-aspect))
   );
+}
+/* The panel holding the pitch: just wide enough for it and its padding (px-2), so the squad beside
+   takes the rest. */
+@utility basis-pitch-panel {
+  flex: 0 1 calc(var(--pitch-width) + var(--spacing) * 4);
+}
+@utility pitch {
+  width: min(100%, var(--pitch-width));
+  aspect-ratio: var(--pitch-aspect);
   border: 2px solid var(--color-pitch-line);
 }
 

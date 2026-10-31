@@ -8,7 +8,7 @@ import { useChange } from "../../shared/useChange";
 import { useMinute } from "../../shared/useMinute";
 import { markedBy } from "./focusMarks";
 import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, shownLineup, withRole, type DraftLineup } from "./lineupDraft";
-import { Pitch, type Moving } from "./Pitch";
+import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./Pitch";
 import { SquadTable } from "./SquadTable";
 import type { MyTeamSeam } from "../seam";
 import type { OpenTactics } from "./seam";
@@ -206,11 +206,13 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
         <Problem problem={problem} />
       </div>
       {joined.length > 0 && <Notice>{joinedBenchWords(joined.map((code) => squad.get(code)!.name))}</Notice>}
-      <div className="flex flex-wrap items-start gap-2">
+      {/* The pitch is the tab's centrepiece (plate.md, Decided): as big as lets its whole length
+          show in the window, the squad beside it taking the rest, or under it on a phone. */}
+      <div style={PITCH_ROOM_STYLE} className="pitch-room flex flex-wrap items-start gap-2">
         <Panel
           title={TACTICS_TITLE}
           aside={<span className={draft.starters.length === STARTER_COUNT ? "text-derived" : "text-event"}>{startingWords(draft.starters.length)}</span>}
-          className="min-w-0 grow-3 basis-pitch"
+          className="min-w-0 basis-pitch-panel"
         >
           <div className="flex items-center gap-2 px-3 pt-2">
             <label htmlFor={PRESET_ID} className="text-soft">
@@ -235,7 +237,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
             <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === shape)?.cells ?? []} />
           </div>
         </Panel>
-        <Panel title={SQUAD_PANEL_TITLE} className="min-w-0 grow-2 basis-squad">
+        <Panel title={SQUAD_PANEL_TITLE} className="min-w-0 grow basis-squad">
           <SquadTable leagueId={league.leagueId} draft={draft} squad={squad} moving={moving} onBench={toBench} onBenchAt={toBenchAt} onRole={toRole} />
         </Panel>
       </div>
