@@ -8,7 +8,7 @@ import { LeagueHeading } from "../leagues/LeagueLinks";
 import { PatchNotesLink } from "../patches/PatchBanner";
 import { useRulesDraft } from "../rules/rulesDraft";
 import { SaveBar } from "../rules/SaveBar";
-import { useBlankFocus } from "../rules/blank";
+import { BoxRefusalContext } from "../rules/blank";
 import { TickBox } from "../ui/TickBox";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
 import { CategoryEditor } from "./CategoryEditor";
@@ -54,14 +54,11 @@ export function ScoringPage({ league, seam }: { league: LeagueSummary; seam: Sco
 /** The two panes: the categories, and the one chosen; and, for the admin, the bar that saves them
  *  (rulesDraft.ts says how the draft follows the latest set, and what a save over someone else's
  *  does). For anyone else, the same panes read only, and a line saying who sets them. A save
- *  refused for a box left without a number opens the category it names, the cursor in that box. */
+ *  refused for a box left without a number opens the category it names, and says so beside the
+ *  box, the cursor in it. */
 function Editor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
   const [picked, choose] = useState(0);
-  const blankFocus = useBlankFocus<HTMLDivElement>();
-  const rulesDraft = useRulesDraft(view, seam.save, blankBoxRefusal, (refusedSet) => {
-    choose(firstBlankRule(refusedSet));
-    blankFocus.refused();
-  });
+  const rulesDraft = useRulesDraft(view, seam.save, blankBoxRefusal, (refusedSet) => choose(firstBlankRule(refusedSet)));
   const readOnly = !view.canEdit;
   const { draft, edit } = rulesDraft;
   const nameOf = (stat: string) => categoryName(stat, draft.ownStats);
@@ -79,7 +76,7 @@ function Editor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
   }
 
   return (
-    <div ref={blankFocus.area} className="flex flex-col gap-2 lg:flex-row lg:items-start">
+    <div ref={rulesDraft.area} className="flex flex-col gap-2 lg:flex-row lg:items-start">
       <Panel title={categoriesLabel} className="lg:shrink-0 lg:basis-categories">
         <ul aria-label={categoriesLabel}>
           {draft.rules.map((each, index) => (
@@ -100,7 +97,9 @@ function Editor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
       </Panel>
       <div className="flex min-w-0 grow flex-col gap-2">
         {rule && (
-          <CategoryEditor key={chosen} name={nameOf(rule.stat)} rule={rule} readOnly={readOnly} onChange={(changed) => setRule(chosen, changed)} onRemove={() => remove(chosen)} />
+          <BoxRefusalContext value={rulesDraft.boxRefusal}>
+            <CategoryEditor key={chosen} name={nameOf(rule.stat)} rule={rule} readOnly={readOnly} onChange={(changed) => setRule(chosen, changed)} onRemove={() => remove(chosen)} />
+          </BoxRefusalContext>
         )}
         {readOnly ? (
           <div className="bg-panel px-3 py-2">

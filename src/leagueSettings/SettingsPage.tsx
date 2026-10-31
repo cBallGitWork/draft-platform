@@ -7,7 +7,7 @@ import { LeagueHeading } from "../leagues/LeagueLinks";
 import { Choice } from "../ui/Choice";
 import { useRulesDraft } from "../rules/rulesDraft";
 import { SaveBar } from "../rules/SaveBar";
-import { useBlankFocus } from "../rules/blank";
+import { BoxRefusalContext } from "../rules/blank";
 import { TickBox } from "../ui/TickBox";
 import { NumberBox } from "../rules/NumberBox";
 import { AREA_WORDS } from "../shared/words";
@@ -65,30 +65,31 @@ export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: Le
 
 /** The settings, and the bar that saves them (rulesDraft.ts says how the draft follows the latest
  *  settings, and what a save over someone else's does). A save refused for a box left without a
- *  number puts the cursor in that box. */
+ *  number says so beside that box, the cursor in it. */
 function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSettingsSeam; view: SettingsView }) {
-  const blankFocus = useBlankFocus<HTMLDivElement>();
-  const rulesDraft = useRulesDraft(view, (settings, revision) => seam.save(league.leagueId, settings, revision), blankRefusal, blankFocus.refused);
+  const rulesDraft = useRulesDraft(view, (settings, revision) => seam.save(league.leagueId, settings, revision), blankRefusal);
   const { draft, edit } = rulesDraft;
   return (
-    <div ref={blankFocus.area} className="flex flex-col gap-2">
-      <Panel title={fixturesTitle}>
-        <div className={PANEL_BODY}>
-          <Choice
-            label={oddTeamOutLabel}
-            name={ODD_TEAM_OUT_CHOICE}
-            options={ODD_TEAM_OUTS}
-            words={oddTeamOutWords}
-            chosen={draft.oddTeamOut}
-            onChoose={(oddTeamOut) => edit({ ...draft, oddTeamOut })}
-          />
-          <NumberRow label={gamesLabel} value={draft.gamesPerGameweek} onChange={(gamesPerGameweek) => edit({ ...draft, gamesPerGameweek })} />
-          <p className="text-muted">{gamesHint}</p>
-          <p className="text-muted">{redrawWords}</p>
-        </div>
-      </Panel>
-      <SquadPanel draft={draft} edit={edit} />
-      <SaveBar draft={rulesDraft} savedWords={savedWords} />
+    <div ref={rulesDraft.area} className="flex flex-col gap-2">
+      <BoxRefusalContext value={rulesDraft.boxRefusal}>
+        <Panel title={fixturesTitle}>
+          <div className={PANEL_BODY}>
+            <Choice
+              label={oddTeamOutLabel}
+              name={ODD_TEAM_OUT_CHOICE}
+              options={ODD_TEAM_OUTS}
+              words={oddTeamOutWords}
+              chosen={draft.oddTeamOut}
+              onChoose={(oddTeamOut) => edit({ ...draft, oddTeamOut })}
+            />
+            <NumberRow label={gamesLabel} value={draft.gamesPerGameweek} onChange={(gamesPerGameweek) => edit({ ...draft, gamesPerGameweek })} />
+            <p className="text-muted">{gamesHint}</p>
+            <p className="text-muted">{redrawWords}</p>
+          </div>
+        </Panel>
+        <SquadPanel draft={draft} edit={edit} />
+        <SaveBar draft={rulesDraft} savedWords={savedWords} />
+      </BoxRefusalContext>
     </div>
   );
 }
