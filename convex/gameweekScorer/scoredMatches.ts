@@ -5,7 +5,7 @@ import { cardPoints, type CardPoints } from "../playerCard/cardPoints";
 import type { Position } from "../positions/positionTables";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { seasonRules } from "../rules/rulesHistory";
-import { siteScoringByGameweek } from "../scoring/siteScoring";
+import { siteScoringByGameweek } from "../scoring/siteVersions";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { fixtureByCode } from "../shared/fixtures";
 import { readOnce } from "../shared/readOnce";

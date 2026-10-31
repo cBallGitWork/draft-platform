@@ -10,8 +10,8 @@ import { draftSavedAt, EDITED, fixAs, saveDraftAs, useSiteScoringDeployment, ver
 
 // Saving the site's scoring refuses an unsound set with the reason, and only that (#354): a
 // bug in the check is the bug it is, never shown to the admin as a reason. Each case below is one
-// of scoringSet.ts's and ownStats.ts's reasons a set that passes Convex's shape check can still
-// meet; the rest, and these, are swept in scoringSet.test.ts.
+// of scoringSet.ts's, ruleChecks.ts's and ownStats.ts's reasons a set that passes Convex's shape
+// check can still meet; the rest, and these, are swept in scoringSet.test.ts.
 
 // The check as it is, but a test can make it throw what a bug would.
 vi.mock("../../../convex/scoring/ownStats", async (actual) => {
