@@ -67,9 +67,10 @@ export default defineConfig({
           // no calls, so no file resets them by hand and none inherits the test before's answers.
           mockReset: true,
           setupFiles: [...RESTORED.setupFiles, CONSOLE_SETUP, "./tests/support/app.setup.ts"],
-          // Vitest empties every CSS import, `?raw` included. Only the raw read of styles.css is let
-          // through, for the theme-color test in tests/src/product.test.ts; plain CSS imports stay empty.
-          css: { include: [/\/src\/styles\.css\?raw$/] },
+          // Vitest empties every CSS import, `?raw` included. Only the raw reads of styles.css and the
+          // controls' controls.css are let through, for the tests that check their colours
+          // (tests/src/product.test.ts, tests/src/ui/confirm.test.tsx); plain CSS imports stay empty.
+          css: { include: [/\/src\/(styles|ui\/controls)\.css\?raw$/] },
         },
       },
       { test: { name: "scripts", include: ["tests/scripts/**/*.test.mjs"], environment: "node", ...RESTORED } },
