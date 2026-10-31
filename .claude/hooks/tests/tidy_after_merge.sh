@@ -1,7 +1,8 @@
 #!/bin/bash
 # tidy_after_merge.py's checks: after gh pr merge (a stand-in gh pr view), a merged pull request's
-# branch and its clean worktree go; one with extra commits, uncommitted changes, or checked out in
-# the main checkout or the folder the merge ran in stays, and says why; nothing else is touched.
+# branch and its clean worktree go, also when GitHub's head is a merge commit on top of it; one with
+# extra commits, uncommitted changes, a head that can't be fetched, or checked out in the main
+# checkout or the folder the merge ran in stays, and says why; nothing else is touched.
 . "$(dirname "$0")/helpers.sh"
 
 repo=$tmp/tidy && git init -q -b main "$repo"
@@ -27,6 +28,10 @@ pr() { # branch [state] [head]: gh pr view's answer for it, the head its tip unl
     '{number:7,state:$s,headRefName:$b,headRefOid:$h}')
 }
 has_branch() { git -C "$repo" rev-parse --verify --quiet "refs/heads/$1" >/dev/null; }
+# a stand-in GitHub: a bare origin whose refs/pull/7/head the hook fetches when a tip isn't the head
+origin=$tmp/origin.git && git init -q --bare -b main "$origin" && git -C "$repo" remote add origin "$origin"
+git -C "$repo" push -q origin main
+on_github() { git -C "$repo" push -q -f origin "$1:refs/pull/7/head"; }  # commit: the pull request's head
 
 # merged, every commit in the pull request, worktree clean: both go
 built done && pr done
@@ -35,9 +40,27 @@ has_branch done && fail "tidy_after_merge.py: the merged branch is still there"
 [ -d "$tmp/wt-done" ] && fail "tidy_after_merge.py: the merged branch's worktree is still there"
 
 # a branch with a commit the pull request doesn't hold stays
-built extra && pr extra MERGED "$(git -C "$repo" rev-parse main)"
+built extra && pr extra MERGED "$(git -C "$repo" rev-parse main)" && on_github main
 says "holds commits the pull request doesn't" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
 has_branch extra || fail "tidy_after_merge.py: removed a branch with commits the pull request lacks"
+
+# gh pr update-branch: on GitHub, main merged into the pull request, a head the branch here is
+# behind and has never seen (made in another clone); the hook fetches it, and both go
+built updated && git -C "$repo" push -q origin updated
+git clone -q "$origin" "$tmp/github"
+git -C "$tmp/github" "${as_tester[@]}" commit -q --allow-empty -m "main moved on" && moved=$(git -C "$tmp/github" rev-parse HEAD)
+git -C "$tmp/github" switch -q updated && git -C "$tmp/github" "${as_tester[@]}" merge -q --no-ff --no-edit "$moved" && git -C "$tmp/github" push -q -f origin "HEAD:refs/pull/7/head"
+pr updated MERGED "$(git -C "$tmp/github" rev-parse HEAD)"
+git -C "$repo" cat-file -e "$(git -C "$tmp/github" rev-parse HEAD)" 2>/dev/null && fail "tidy_after_merge.py: the updated head was already here"
+says "its local branch updated and any worktree it was in were removed" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
+has_branch updated && fail "tidy_after_merge.py: a branch behind its updated pull request was kept"
+[ -d "$tmp/wt-updated" ] && fail "tidy_after_merge.py: a branch behind its updated pull request kept its worktree"
+
+# a head that can't be fetched keeps the branch, and says so
+built unfetched && pr unfetched MERGED "$(git -C "$repo" rev-parse main)"
+git -C "$origin" update-ref -d refs/pull/7/head
+says "fetching that head to check failed" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
+has_branch unfetched || fail "tidy_after_merge.py: removed a branch whose pull request head couldn't be fetched"
 
 # a worktree with uncommitted changes stays
 built dirty && pr dirty && touch "$tmp/wt-dirty/new.txt"
