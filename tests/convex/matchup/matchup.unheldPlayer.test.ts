@@ -3,17 +3,19 @@ import { api } from "../../../convex/_generated/api";
 import { unheldPlayerWords } from "../../../convex/shared/players";
 import { actingAs } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
+// Belloumi, Hull's midfielder on at 64 minutes, is second on Ann's bench after Hull's keeper.
+import { BELLOUMI } from "../../support/convex/teamPoints.harness";
 import {
   ANN,
   annsScoredGame,
   fullTimeRecords,
   GAMEWEEK,
   holdHullAndEverton,
-  HULL_BENCH,
   HULL_KEEPER,
   HULL_SCORER,
   HULL_STARTERS,
   lineupOf,
+  losePlayer,
   nameOf,
   PHILLIPS,
   readTable,
@@ -29,23 +31,13 @@ import {
 // 31 Oct 2026: "score him like he didnt play, we can always admin update later"). The table, the
 // matchup and the gameweek's totals all load, and agree.
 
-/** Belloumi, Hull's midfielder on at 64 minutes, second on Ann's bench after Hull's keeper. */
-const [, BELLOUMI] = HULL_BENCH;
-
-/** The football sync loses `code`'s player row, his match records still held. */
-const losePlayer = ({ t }: ScoresLeague, code: number) =>
-  t.run(async (ctx) => {
-    const player = (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", code)).unique())!;
-    await ctx.db.delete("players", player._id);
-  });
-
 /** Ann's total in the gameweek, as the table has it. */
 async function annsTablePoints(league: ScoresLeague) {
   const table = await readTable(league);
   return table!.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures[0].points!.team;
 }
 
-test("a starter it has lost scores 0, the first on the bench who can play his slot takes it, and the matchup and table agree", async () => {
+test("a starter the football data has lost scores 0, the first on the bench who can play his slot takes it, and the matchup and table agree", async () => {
   const league = await scoresLeague();
   const belloumisName = await nameOf(league, BELLOUMI);
   await losePlayer(league, HULL_SCORER);
@@ -81,7 +73,7 @@ test("a teammate's card, which reads his team's scoring as the Squad tab does (s
   expect(card!.matches.map(({ fixtureCode }) => fixtureCode)).toEqual([HULL_EVERTON]);
 });
 
-test("a bench player it has lost never comes on: Phillips, who didn't play, is left unreplaced, as Hull's bench holds no other keeper", async () => {
+test("a bench player the football data has lost never comes on: Phillips, who didn't play, is left unreplaced, as Hull's bench holds no other keeper", async () => {
   const league = await scoresLeague();
   await losePlayer(league, HULL_KEEPER);
   await fullTimeRecords(league);

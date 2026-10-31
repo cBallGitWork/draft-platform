@@ -37,7 +37,7 @@ export interface LeagueReads {
 
 /** A man a lineup names, as scoring reads him: his club, null for one the football sync doesn't
  *  hold, and his positions. */
-export interface LineupPlayer {
+interface LineupPlayer {
   clubCode: number | null;
   positions: Position[];
 }

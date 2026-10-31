@@ -31,6 +31,7 @@ import {
   scoreRead,
   scoresLeague,
   sideTotal,
+  losePlayer,
   slotOf,
   storeLeague,
   TYPO_STAT,
@@ -230,10 +231,7 @@ test("a gameweek that can't be scored says why, and logs it", async () => {
 
 test("a lineup player the football sync no longer holds is scored as if he didn't play, his name the error saying so (#810)", async () => {
   const league = await scoresLeague();
-  await league.t.run(async (ctx) => {
-    const player = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", HULL_SCORER)).unique();
-    await ctx.db.delete("players", player!._id);
-  });
+  await losePlayer(league, HULL_SCORER);
   // Before kickoff: he has no match, so he is subbed at once, as a man with none in a blank gameweek is.
   const game = await annsScoredGame(league, GAMEWEEK);
   expect(slotOf(game.team, HULL_SCORER)).toMatchObject({ name: unheldPlayerWords(HULL_SCORER), points: 0, counts: false, autoSub: { kind: "off" } });
