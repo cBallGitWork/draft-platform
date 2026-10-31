@@ -6,9 +6,9 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, expect, test } from "vitest";
+import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
-const REPO = join(import.meta.dirname, "../..");
-const CHECK = join(REPO, "scripts/bundle-has-no-preview.mjs");
+const CHECK = join(REPO_ROOT, "scripts/bundle-has-no-preview.mjs");
 /** squads' preview string, from the check's NEEDLES. */
 const SQUADS_NEEDLE = "preview-team-1";
 
@@ -28,7 +28,7 @@ function builtFolder(files) {
 /** The check on `folder`, over `env`'s sources when given: its exit code and everything it printed. */
 function check(folder, env = {}) {
   const { status, stdout, stderr } = spawnSync(process.execPath, [CHECK, folder], {
-    cwd: REPO,
+    cwd: REPO_ROOT,
     encoding: "utf8",
     env: { ...process.env, ...env },
   });

@@ -8,8 +8,9 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { NAME_JOIN, removedTests, testNames, unexcused } from "../../scripts/tests-kept.mjs";
 import { scratchRepo } from "../support/scripts/gitRepo.harness.mjs";
+import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
-const SCRIPT = join(import.meta.dirname, "../../scripts/tests-kept.mjs");
+const SCRIPT = join(REPO_ROOT, "scripts/tests-kept.mjs");
 
 const named = (...titles) => titles.join(NAME_JOIN);
 
