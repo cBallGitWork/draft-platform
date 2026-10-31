@@ -21,10 +21,8 @@ export const liveStatsTables = {
   liveStatsTicks: defineTable(liveStatsTickFields),
 };
 
-// The live tick's side reads, each its own feed on the feeds page (#522): the team sheets before
-// kickoff, and each match's team stats and threshold steps. They never stop a match's points, so
-// they stay off its tick row: one row per run with a match to work on, so a failure is on record
-// and emails the admin, never only a line in the logs (admin/sideRuns.ts).
+// The live tick's side reads, each its own feed (#522, admin/sideRuns.ts): one row per run with a
+// match to work on, so a failure is on record, never only a line in the logs.
 
 /** One match a side read worked on: done, or why not. */
 export const sideMatchOutcome = v.union(

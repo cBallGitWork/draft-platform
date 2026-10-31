@@ -8,7 +8,6 @@ import { HOUR_MS, MINUTE_MS } from "./time";
 /** The live tick's side reads (#522), each a feed with its own run table, as its failures are its
  *  own: they never stop a match's points (admin/sideRuns.ts). */
 export const SIDE_FEEDS = ["teamSheets", "teamStats", "thresholdSteps"] as const;
-export type SideFeed = (typeof SIDE_FEEDS)[number];
 
 /** The feeds, each a sync or tick with its own run table. */
 export const FEEDS = ["football", "positions", "matchStats", "liveStats", ...SIDE_FEEDS] as const;
