@@ -9,13 +9,13 @@ import { expect, test } from "vitest";
 import { CHECK_ENV } from "../live/releaseCheck";
 import { DEPLOY_ARGS, DEPLOY_KEY_SETTING, VERCEL_ENV, VERCEL_PRODUCTION, refusal } from "../../scripts/release.mjs";
 import { DEPLOY_KEY } from "../support/scripts/liveSetup.harness.mjs";
+import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
-const REPO = join(import.meta.dirname, "../..");
-const SCRIPT = join(REPO, "scripts/release.mjs");
+const SCRIPT = join(REPO_ROOT, "scripts/release.mjs");
 const KEY = { [DEPLOY_KEY_SETTING]: DEPLOY_KEY };
 const PREVIEW = "preview";
-const vercel = JSON.parse(readFileSync(join(REPO, "vercel.json"), "utf8"));
-const workflow = readFileSync(join(REPO, ".github/workflows/release-check.yml"), "utf8");
+const vercel = JSON.parse(readFileSync(join(REPO_ROOT, "vercel.json"), "utf8"));
+const workflow = readFileSync(join(REPO_ROOT, ".github/workflows/release-check.yml"), "utf8");
 
 /** The release script run with only `env`: how it ended and what it said. With no PATH there's no
  *  `npx` to find, so a release that got past its refusal couldn't reach a real Convex. */

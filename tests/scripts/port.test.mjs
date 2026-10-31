@@ -11,8 +11,9 @@ import {
   rangeStart,
   smokePorts,
 } from "../../scripts/port.mjs";
+import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
-const SCRIPT = join(import.meta.dirname, "../../scripts/port.mjs");
+const SCRIPT = join(REPO_ROOT, "scripts/port.mjs");
 
 test("smoke's two ports sit at this checkout's app-port offset in their own ranges", () => {
   const offset = appPort() - rangeStart(PORT_RANGES.app);
