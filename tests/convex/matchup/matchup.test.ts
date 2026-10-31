@@ -90,15 +90,15 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
   await scoreRead(league, "live", LIVE_MINUTE);
   const live = await annsScoredGame(league, GAMEWEEK);
   expect(slotOf(live.team, HULL_SCORER).status).toEqual({ kind: "playing", fixtureCode: HULL_EVERTON, minute: LIVE_MINUTE, clockLabel: null });
+  expect(live.team).toMatchObject({ points: sideTotal(beforeTheGoal, HULL_STARTERS), provisional: true });
+  expect(lineupOf(live.team).bench.every((slot) => !slot.counts)).toBe(true);
+  expect(slotOf(live.team, PHILLIPS)).toMatchObject({ counts: true, autoSub: null });
 
   // In stoppage time, the Premier League's own label comes with the minute, for the clock the
   // match page shows too (#563).
   await scoreRead(league, "live", STOPPAGE_MINUTES, HULL_EVERTON, STOPPAGE_LABEL);
   const stoppage = await annsScoredGame(league, GAMEWEEK);
   expect(slotOf(stoppage.team, HULL_SCORER).status).toEqual({ kind: "playing", fixtureCode: HULL_EVERTON, minute: STOPPAGE_MINUTES, clockLabel: STOPPAGE_LABEL });
-  expect(live.team).toMatchObject({ points: sideTotal(beforeTheGoal, HULL_STARTERS), provisional: true });
-  expect(lineupOf(live.team).bench.every((slot) => !slot.counts)).toBe(true);
-  expect(slotOf(live.team, PHILLIPS)).toMatchObject({ counts: true, autoSub: null });
 
   // Full time: finished, Hull's keeper on for Phillips, who didn't play, and the goal counted.
   await fullTimeRecords(league);
