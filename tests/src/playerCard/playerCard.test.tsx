@@ -36,7 +36,7 @@ import {
   provisionalWords,
   SEASON_TITLE,
 } from "../../../src/playerCard/words";
-import { addToShortlistWords } from "../../../src/scouting/shortlist/shortlistWords";
+import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
 import { squadsPath } from "../../../src/squads/paths";
 import { gameweekWords, versusWords } from "../../../src/shared/words";
 import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";

@@ -3,7 +3,7 @@
 
 import { useSyncExternalStore } from "react";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
-import type { ShortlistedPlayer, ShortlistSeam } from "./shortlistSeam";
+import type { ShortlistedPlayer, ShortlistSeam } from "./seam";
 
 /** A shortlist seam over `players`, holding those with `openingCodes` to begin with. */
 export function previewShortlistOf(players: readonly ListedPlayer[], openingCodes: readonly number[]): ShortlistSeam {

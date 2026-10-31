@@ -8,7 +8,7 @@ import { DAY_MS, HOUR_MS } from "../../convex/shared/time";
 import { teamFixturesOf } from "../table/drawnTable";
 import { ARSENAL, CHELSEA } from "../scouting/preview";
 import { previewScored, previewTeams } from "../table/preview";
-import { previewTactics } from "./tactics/previewTactics";
+import { previewTactics } from "./tactics/preview";
 import type { MyTeamSeam, TeamSquad, TeamTransactions } from "./seam";
 
 const [previewTeam, otherTeam] = previewTeams;
