@@ -1,3 +1,4 @@
+import { leagueOpens } from "../../convex/leagues/leagueOpens";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../signIn/seam";
 
@@ -12,13 +13,13 @@ export const runs = (league: LeagueSummary) => league.powers.runs;
  *  it (powersIn). */
 export const deletes = (league: LeagueSummary) => league.powers.names;
 
-/** The league with this id, if the person has a part in it (or is the admin) and it isn't being
- *  deleted: a league being deleted is frozen and hidden (spec/13, Deleting), so none of its pages
- *  open. */
+/** The league with this id, if the person has a part in it (or is the admin) and it opens, by the
+ *  server's rule (`leagueOpens`): a league being deleted is frozen and hidden (spec/13, Deleting).
+ *  Not the switcher's list, which leaves out the admin's leagues he has no part in. */
 export function leagueIn(session: Session, leagueId: string): LeagueSummary | undefined {
   if (!session.signedIn) return undefined;
   const league = session.leagues.find((each) => each.leagueId === leagueId);
-  return league && !league.deletion ? league : undefined;
+  return league && leagueOpens(league) ? league : undefined;
 }
 
 /** The league with this id, as `leagueIn` finds it, if the person runs it. */

@@ -37,6 +37,17 @@ export const rulesRevision = (t: TestConvex, leagueId: Id<"leagues">) =>
 export const changeRules = async (t: TestConvex, leagueId: Id<"leagues">, rules: LeagueRules, by = COMMISSIONER) =>
   (await actingAs(t, by)).mutation(api.rules.leagueRules.change, { leagueId, rules, revision: await rulesRevision(t, leagueId) });
 
+/** Rewrites the league's rules rows as rules saved before #33 and #130 made the odd team out and
+ *  games a gameweek rules: without them. */
+export const savedBeforeTheyWereRules = (t: TestConvex, leagueId: Id<"leagues">) =>
+  t.run(async (ctx) => {
+    const rows = await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect();
+    for (const row of rows) {
+      const { oddTeamOut: _odd, gamesPerGameweek: _games, ...older } = row.rules;
+      await ctx.db.patch("leagueRules", row._id, { rules: older });
+    }
+  });
+
 /** Sets whether the league plays a gameweek, by `by` (the commissioner unless a test says).
  *  Returns the mutation's promise. */
 export const setUsed = async (t: TestConvex, leagueId: Id<"leagues">, gameweek: number, used: boolean, by = COMMISSIONER) =>
@@ -73,6 +84,13 @@ export async function holdGameweeks(
     }
   });
 }
+
+/** Holds `extra` current gameweek rows past FPL's 38, with no matches: only a row written by hand
+ *  can pass it, and no read of the season's schedule may stop on one (#831, #832, #872). */
+export const holdGameweeksPastTheSeason = (t: TestConvex, extra: number) =>
+  t.run(async (ctx) => {
+    for (let number = GAMEWEEKS + 1; number <= GAMEWEEKS + extra; number += 1) await ctx.db.insert("gameweeks", { number, deadline: 0 });
+  });
 
 /** Moves FPL's deadline for a gameweek, as its feed might: feed data, so nothing a league decides
  *  may move with it (#138). */

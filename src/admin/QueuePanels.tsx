@@ -31,7 +31,7 @@ function ReadingLinks({ fullName }: { fullName: string }) {
   return (
     <span className="flex flex-wrap gap-x-4">
       {readingLinks(fullName).map((link) => (
-        <a key={link.label} href={link.href} target="_blank" rel="noreferrer" className="flex min-h-tap items-center">
+        <a key={link.label} href={link.href} target="_blank" rel="noreferrer" className="flex min-h-tap min-w-tap items-center">
           {link.label}
         </a>
       ))}

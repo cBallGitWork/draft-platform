@@ -192,14 +192,14 @@ test("anyone in the league sees another team's matchup once the gameweek has beg
   expect(read?.kind === "headToHead" && read.game.kind === "scored" && lineupOf(read.game.opponent).starters).toHaveLength(EVERTON_STARTERS.length);
 });
 
-test("a side that never saved a lineup shows its first and scores from it (#637)", async () => {
+test("a side that never saved a lineup shows its first and scores from it (#637, #836)", async () => {
   const league = await scoresLeague({ bobSaves: false });
   await fullTimeRecords(league);
   await lockMatch(league);
   const bob = (await annsScoredGame(league, GAMEWEEK)).opponent;
   expect(bob).toMatchObject({ kind: "team", teamId: league.bobsTeam, teamName: BOBS_TEAM, points: BOBS_FIRST_POINTS, provisional: false });
-  // The 4-4-1 his squad fills, Grealish first on the bench.
-  expect(lineupOf(bob).starters).toHaveLength(EVERTON_STARTERS.length - 1);
+  // The 5-4-1 his squad fills where the 4-4-2 leaves a slot empty, Grealish first on the bench.
+  expect(lineupOf(bob).starters).toHaveLength(EVERTON_STARTERS.length);
   expect(lineupOf(bob).bench[0]).toMatchObject({ playerCode: GREALISH, counts: false });
 });
 

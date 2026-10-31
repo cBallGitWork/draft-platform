@@ -24,7 +24,7 @@ export function MatchupLink({
   live?: boolean;
 }) {
   return (
-    <Link {...matchupLink(teamId, gameweek)} aria-label={matchupLinkLabel(team, opponent, gameweek)} className="flex min-h-tap items-center justify-center lg:min-h-0">
+    <Link {...matchupLink(teamId, gameweek)} aria-label={matchupLinkLabel(team, opponent, gameweek)} className="flex min-h-tap min-w-tap items-center justify-center lg:min-h-0 lg:min-w-0">
       {points === null ? (
         <span>{versusWords}</span>
       ) : live === undefined ? (
