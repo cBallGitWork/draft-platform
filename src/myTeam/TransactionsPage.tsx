@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { DESK_ONLY_CELL } from "../ui/ColumnHeads";
+import { ColumnHeads, DESK_ONLY_CELL } from "../ui/ColumnHeads";
 import { Loading, PageSection, PanelNote } from "../ui/Panel";
 import { playerCardPath } from "../playerCard/paths";
 import type { MyTeamSeam, TeamTransactions } from "./seam";
@@ -43,15 +43,7 @@ function TransactionsBody({ league, teamName, seam }: { league: LeagueSummary; t
 function TransactionsTable({ leagueId, teamName, transactions }: { leagueId: Id<"leagues">; teamName: string; transactions: TeamTransactions["transactions"] }) {
   return (
     <table aria-label={transactionsTableLabel(teamName)} className="w-full border-collapse">
-      <thead className="bg-head text-ground">
-        <tr>
-          {COLUMNS.map((column) => (
-            <th key={column} scope="col" className={`px-3 text-left ${column === "by" ? DESK_ONLY_CELL : ""}`}>
-              {transactionColumns[column]}
-            </th>
-          ))}
-        </tr>
-      </thead>
+      <ColumnHeads columns={transactionColumns} shown={COLUMNS} classOf={(column) => `px-3 text-left ${column === "by" ? DESK_ONLY_CELL : ""}`} />
       <tbody>
         {transactions.map((transaction) => (
           <tr key={`${transaction.at}-${transaction.playerCode}-${transaction.kind}`} className="border-t border-panel-rule">

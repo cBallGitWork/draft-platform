@@ -46,12 +46,6 @@ export const columns = {
  *  role stars and scouts (spec/19, Role stars). */
 export const noPointsYetWords = "No points yet: Scouting doesn't show season points yet.";
 export const noRoleFitYetWords = "No role fit yet: it waits on stars and scouts.";
-/** Beside the head of the column sorted by, which way: decoration, as the head says so to screen
- *  readers through aria-sort. */
-export const ascendingGlyph = "▲";
-export const descendingGlyph = "▼";
-/** A sortable column's head, for screen readers: what pressing it does. */
-export const sortByLabel = (column: string) => `Sort by ${column}`;
 
 /** Two players side by side (spec/19, The players list). */
 export const COMPARE_TITLE = "Compare";
@@ -61,4 +55,7 @@ export const pickOneMoreWords = (name: string) => `${name} is ticked: tick one m
 export const comparingWords = "Loading the comparison…";
 export const clearComparisonWords = "Clear";
 export const matchesWords = "Matches this season";
+/** The comparison's first column, which names each row: its head is read out, not drawn. A player's
+ *  column is headed by his name, named by his full name. */
+export const compareWhatColumn = { short: "Stat", long: "What's compared" };
 export const noStatsYetWords = "Neither has a stat this season yet.";

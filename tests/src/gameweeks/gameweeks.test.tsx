@@ -11,7 +11,8 @@ import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
 import { BEGUN, season } from "../../support/src/gameweeks.harness";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
-import { begunWords, GAMEWEEKS_TITLE, loadingWords } from "../../../src/gameweeks/words";
+import { begunWords, gameweekColumns, GAMEWEEKS_TITLE, loadingWords } from "../../../src/gameweeks/words";
+import { expectColumnHeads } from "../../support/src/columnHeads";
 import { gameweekWords, whenWords } from "../../../src/shared/words";
 
 const PAGE = gameweeksPath(league.leagueId);
@@ -62,6 +63,12 @@ describe("the gameweeks page", () => {
     expect((screen.getAllByRole("checkbox") as HTMLInputElement[]).every((box) => box.checked)).toBe(true);
     expect(playsLine()).toBe(`${league.name} plays ${GAMEWEEKS} of ${GAMEWEEKS} gameweeks.`);
     expect(within(rowOf(BEGUN + 1)).getByText(whenWords(app.gameweeks.gameweeks[BEGUN].deadline!))).toBeTruthy();
+  });
+
+  it("heads each column of every table with its short word, named by its long one", async () => {
+    openApp(PAGE, commissioner);
+    await tickBox(1);
+    for (const table of screen.getAllByRole("table")) expectColumnHeads(table, Object.values(gameweekColumns));
   });
 
   it("an unticked gameweek shows unticked, and isn't counted", async () => {

@@ -5,6 +5,7 @@ import { Loading, Panel, PanelNote } from "../ui/Panel";
 import { PositionCodes } from "../ui/PositionCodes";
 import { OwnerName } from "../ui/OwnerName";
 import { ClubShort } from "../premierLeague/ClubName";
+import { ColumnHeads } from "../ui/ColumnHeads";
 import { statFigure } from "./figures";
 import type { ComparedPlayer, Comparison } from "./seam";
 import {
@@ -12,6 +13,7 @@ import {
   columns,
   COMPARE_TITLE,
   comparingWords,
+  compareWhatColumn,
   matchesWords,
   noFigureWords,
   noPointsYetWords,
@@ -65,6 +67,9 @@ const FIXED_ROWS: readonly Row[] = [
   { label: matchesWords, cell: (player) => <span className="font-bold text-figure">{player.matches}</span> },
 ];
 
+/** The comparison's first column, whose cells name each row. */
+const WHAT = "what";
+
 function SideBySide({ comparison }: { comparison: Comparison }) {
   // Every catalogue stat either has this season, in the catalogue's order; one neither has is 0 for both.
   const stats = STAT_CATALOGUE.filter((each) => comparison.some((player) => (player.stats[each.stat] ?? 0) !== 0));
@@ -73,19 +78,18 @@ function SideBySide({ comparison }: { comparison: Comparison }) {
     title: each.shortCode,
     cell: (player) => <span className="font-bold text-figure">{statFigure(player.stats[each.stat] ?? 0)}</span>,
   }));
+  // A column per player, keyed by his code; `shown` keeps the order, as a number-like key would
+  // otherwise come before "what".
+  const playerColumns = comparison.map((player) => [String(player.code), { short: player.name, long: player.fullName }] as const);
   return (
     <>
       <table className="w-full max-w-2xl border-collapse">
-        <thead className="bg-head text-ground">
-          <tr>
-            <td className="px-2" />
-            {comparison.map((player) => (
-              <th key={player.code} scope="col" title={player.fullName} className="px-2 text-right">
-                {player.name}
-              </th>
-            ))}
-          </tr>
-        </thead>
+        <ColumnHeads
+          columns={{ [WHAT]: compareWhatColumn, ...Object.fromEntries(playerColumns) }}
+          shown={[WHAT, ...playerColumns.map(([code]) => code)]}
+          unseen={[WHAT]}
+          classOf={(column) => (column === WHAT ? "px-2" : "px-2 text-right")}
+        />
         <tbody>
           {[...FIXED_ROWS, ...statRows].map((row) => (
             <tr key={row.label} className="border-t border-panel-rule">

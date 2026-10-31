@@ -109,7 +109,8 @@ export const teamStatRows = {
   yellowCards: "Yellow cards",
   redCards: "Red cards",
 } as const;
-/** Read out over the stats' own column, between the two clubs'. */
-export const STAT_COLUMN_LABEL = "Stat";
+/** The stats' own column, between the two clubs': its head is read out, not drawn. Each club's
+ *  column is headed by its three letters, named by its full name. */
+export const STAT_COLUMN = { short: "Stat", long: "What's counted" };
 /** A side's possession, to the whole percent: Opta's 49.4 is "49%". */
 export const possessionWords = (share: number) => `${Math.round(share)}%`;

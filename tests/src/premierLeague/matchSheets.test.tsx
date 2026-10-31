@@ -15,12 +15,13 @@ import {
   pointsProblemWords,
   possessionWords,
   sheetLabel,
-  STAT_COLUMN_LABEL,
+  STAT_COLUMN,
   SUBSTITUTES_TITLE,
   teamStatRows,
   teamStatsLabel,
   unusedLabel,
 } from "../../../src/premierLeague/words";
+import { expectColumnHeads } from "../../support/src/columnHeads";
 import { man, matchOf, MEN, openMatch } from "../../support/src/matchPage.harness";
 import { ARSENAL, CHELSEA } from "../../support/src/premierLeague.harness";
 
@@ -95,7 +96,7 @@ describe("the team stats", () => {
   it("the five, home's left of each and away's right, possession to the whole percent and cards as yellow and red", async () => {
     openMatch({ match: matchOf({ teamStats: stats }) });
     expect(await rows()).toEqual([
-      [ARSENAL.shortName, STAT_COLUMN_LABEL, CHELSEA.shortName],
+      [ARSENAL.shortName, STAT_COLUMN.short, CHELSEA.shortName],
       ["10", teamStatRows.shots, "21"],
       ["2", teamStatRows.shotsOnTarget, "5"],
       [possessionWords(40.4), teamStatRows.possession, possessionWords(59.6)],
@@ -104,6 +105,13 @@ describe("the team stats", () => {
       ["2", teamStatRows.redCards, "0"],
     ]);
     expect([possessionWords(40.4), possessionWords(59.6)]).toEqual(["40%", "60%"]);
+  });
+
+  it("heads each club's column with its three letters, named by its full name, and the stat's column for screen readers only", async () => {
+    openMatch({ match: matchOf({ teamStats: stats }) });
+    const table = await screen.findByRole("table", { name: teamStatsLabel(ARSENAL.shortName, CHELSEA.shortName) });
+    expectColumnHeads(table, [{ short: ARSENAL.shortName, long: ARSENAL.name }, STAT_COLUMN, { short: CHELSEA.shortName, long: CHELSEA.name }]);
+    expect(within(table).getByRole("columnheader", { name: STAT_COLUMN.long }).firstElementChild!.className).toBe("sr-only");
   });
 
   it("early on, before Opta sends possession, shows a dash for it", async () => {

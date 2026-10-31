@@ -4,27 +4,19 @@ import type { CatalogueStat } from "../../convex/scoring/statCatalogue";
 import { playerCardPath } from "../playerCard/paths";
 import { TickBox } from "../ui/TickBox";
 import { PositionCodes } from "../ui/PositionCodes";
-import { cellClassOf } from "../ui/ColumnHeads";
+import { cellClassOf, ColumnHeads, type ColumnWords } from "../ui/ColumnHeads";
 import { OwnerName } from "../ui/OwnerName";
 import { ClubShort } from "../premierLeague/ClubName";
 import type { PickedPlayer } from "./ComparePanel";
 import { statFigure } from "./figures";
 import type { ListedPlayer, PlayersSort, SortColumn } from "./seam";
-import {
-  ascendingGlyph,
-  columns,
-  compareLabel,
-  descendingGlyph,
-  noFigureWords,
-  noPointsYetWords,
-  noRoleFitYetWords,
-  sortByLabel,
-} from "./words";
+import { columns, compareLabel, noFigureWords, noPointsYetWords, noRoleFitYetWords, statLabel } from "./words";
 
 /** The list's columns: the fixed ones, and "stat" for the shown stat's season total. */
 type Column = keyof typeof columns | "stat";
 const COLUMNS: readonly Column[] = ["compare", "name", "club", "positions", "owner", "seasonPoints", "roleFit"];
-const SORTED_BY: Partial<Record<Column, SortColumn>> = { name: "name", club: "club", seasonPoints: "seasonPoints", stat: "stat" };
+/** The columns a head press sorts by: each sorts by the column of its own name. */
+const SORTABLE: readonly SortColumn[] = ["name", "club", "seasonPoints", "stat"];
 /** Columns a phone leaves out, for room: the filters say who owns whom. */
 const DESK_ONLY: readonly Column[] = ["owner", "roleFit"];
 const FIGURES: readonly Column[] = ["seasonPoints", "roleFit", "stat"];
@@ -55,13 +47,12 @@ export function PlayersTable({
   const shown: readonly Column[] = stat === null ? COLUMNS : [...COLUMNS, "stat"];
   return (
     <table className="w-full border-collapse">
-      <thead className="bg-head text-ground">
-        <tr>
-          {shown.map((column) => (
-            <ColumnHead key={column} column={column} stat={stat} sort={sort} sortBy={sortBy} />
-          ))}
-        </tr>
-      </thead>
+      <ColumnHeads
+        columns={{ ...columns, stat: statHead(stat) }}
+        shown={shown}
+        classOf={cellClasses}
+        sort={{ by: sort.by, descending: sort.descending, sortable: SORTABLE, sortBy }}
+      />
       <tbody>
         {players.map((player) => (
           <tr key={player.code} className="border-t border-panel-rule">
@@ -82,40 +73,10 @@ export function PlayersTable({
   );
 }
 
-/** A column's head: its short code, the full name on hover (the shown stat's from the catalogue); a
- *  sortable one is a button, and the column sorted by says which way. */
-function ColumnHead({
-  column,
-  stat,
-  sort,
-  sortBy,
-}: {
-  column: Column;
-  stat: CatalogueStat | null;
-  sort: PlayersSort;
-  sortBy: (by: SortColumn) => void;
-}) {
-  const { short, long } = column === "stat" ? { short: stat!.shortCode, long: stat!.name } : columns[column];
-  const by = SORTED_BY[column];
-  const sorted = by !== undefined && by === sort.by;
-  return (
-    <th
-      scope="col"
-      title={long}
-      aria-sort={sorted ? (sort.descending ? "descending" : "ascending") : undefined}
-      className={cellClasses(column)}
-    >
-      {by === undefined ? (
-        short
-      ) : (
-        <button type="button" aria-label={sortByLabel(long)} onClick={() => sortBy(by)} className="min-h-tap font-bold">
-          {short}
-          {sorted && <span aria-hidden="true"> {sort.descending ? descendingGlyph : ascendingGlyph}</span>}
-        </button>
-      )}
-    </th>
-  );
-}
+/** The stat column's head: the shown stat's short code, named by its catalogue name. With no stat
+ *  shown the column isn't drawn, and its head is the filter's own word. */
+const statHead = (stat: CatalogueStat | null): ColumnWords =>
+  stat === null ? { short: statLabel, long: statLabel } : { short: stat.shortCode, long: stat.name };
 
 /** One cell of a player's row: his name heads it, his points are its figure. */
 function PlayerCell({

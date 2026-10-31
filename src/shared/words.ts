@@ -38,6 +38,12 @@ export const previousGameweekLabel = "Previous gameweek";
 export const nextGameweekLabel = "Next gameweek";
 export const previousGlyph = "◄";
 export const nextGlyph = "►";
+/** A sortable table's heads (src/ui/ColumnHeads.tsx): beside the column sorted by, which way, as
+ *  decoration, since the head says so to screen readers through aria-sort; and, for screen
+ *  readers, what pressing a head does. */
+export const ascendingGlyph = "▲";
+export const descendingGlyph = "▼";
+export const sortByLabel = (column: string) => `Sort by ${column}`;
 
 const whenFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 /** A time in the viewer's own zone, e.g. "Sat 17 Oct, 13:00": a deadline, a feed's last run. */
