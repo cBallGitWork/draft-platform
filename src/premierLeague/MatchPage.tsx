@@ -98,7 +98,7 @@ function Scoreboard({ match: { home, away, score, kickoff, gameweek } }: { match
 function MatchState({ score, kickoff }: Pick<MatchPageData, "score" | "kickoff">) {
   switch (score?.state) {
     case "live":
-      return <span className="font-semibold text-derived">{clockWords(score.clockLabel, score.minutes)}</span>;
+      return <span className="font-semibold text-derived">{clockWords(score.state, score.clockLabel, score.minutes)}</span>;
     case "halfTime":
       return <span className="font-semibold text-derived">{halfTime.long}</span>;
     case "fullTime":

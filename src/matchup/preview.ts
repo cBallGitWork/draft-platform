@@ -83,7 +83,7 @@ function slotAt([area, name, match, finalPoints]: Man, minute: number, onBench: 
     played < 0
       ? { kind: "yetToPlay", fixtureCode, kickoff: startedAt + match * SECOND_KICKOFF * MINUTE_MS }
       : played <= MATCH_MINUTES
-        ? { kind: "playing", fixtureCode, minute: Math.min(played, MATCH_MINUTES), clockLabel: null }
+        ? { kind: "playing", fixtureCode, state: "live", minute: Math.min(played, MATCH_MINUTES), clockLabel: null }
         : { kind: "finished", fixtureCode };
   const points = played < 0 ? null : Math.floor((finalPoints * Math.min(played, MATCH_MINUTES)) / MATCH_MINUTES);
   const autoSub = name === UNUSED_KEEPER && status.kind === "finished" ? { kind: "off" as const, playerName: BENCH_KEEPER } : null;

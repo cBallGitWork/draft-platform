@@ -23,8 +23,12 @@ type ScoreWrites = Infer<typeof scoreWrites>;
  *  read a Premier League half-time as live until the next tick. */
 type State = Infer<typeof matchState>;
 
-/** The states of a match being played. */
-export const PLAYING_STATES: ReadonlySet<State> = new Set(["live", "halfTime"]);
+/** The states of a match being played; the matchup sends which, to say "HT" (#781). */
+export const playingState = v.union(v.literal("live"), v.literal("halfTime"));
+export type PlayingState = Infer<typeof playingState>;
+const PLAYING_STATES: ReadonlySet<State> = new Set(playingState.members.map(({ value }) => value));
+/** Whether a match in `state` is being played. */
+export const isPlaying = (state: State): state is PlayingState => PLAYING_STATES.has(state);
 
 const STATE_ORDER: Record<State, number> = { upcoming: 0, live: 1, halfTime: 1, fullTime: 2 };
 

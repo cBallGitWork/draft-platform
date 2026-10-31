@@ -4,7 +4,7 @@ import { clubRecord, matchState } from "../schema";
 import { currentFixtures } from "../shared/fixtures";
 import { callerEmail } from "../shared/leagueAccess";
 import { clubOf, currentClubs, type Club } from "../shared/players";
-import { PLAYING_STATES, scoreOf } from "./matchScores";
+import { isPlaying, scoreOf } from "./matchScores";
 import { plTable, type PlResult } from "./plTable";
 
 // The Premier League table for the section (#50; spec/18, The table: "P W D L GF GA GD Pts, worked
@@ -58,7 +58,7 @@ export const ofSeason = query({
       // The score reads refuse a kicked-off match without both scores (scoreReads.ts), so one held
       // here is a bug, never a match to leave out.
       if (score.homeGoals === null || score.awayGoals === null) throw new Error(`Match ${code} is held at ${score.state} with no score`);
-      if (PLAYING_STATES.has(score.state)) provisional = true;
+      if (isPlaying(score.state)) provisional = true;
       results.push({ home: currentClubOf(homeClubCode, code), away: currentClubOf(awayClubCode, code), homeGoals: score.homeGoals, awayGoals: score.awayGoals });
     }
     const rows = plTable(clubs, results, { seasonOver: seasonOver && results.length > 0 });

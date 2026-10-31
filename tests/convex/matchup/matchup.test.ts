@@ -2,7 +2,6 @@ import { expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import { STREAM_BEHIND } from "../../../convex/football/matchCommentary";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { MatchupSide, MatchupSlot } from "../../../convex/matchup/matchupShape";
 import { inTenths } from "../../../convex/scoring/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
@@ -24,12 +23,15 @@ import {
   HULL_SCORER,
   HULL_STARTERS,
   LEAGUE_KICKOFF,
+  lineupOf,
   liveRecords,
   MIDFIELD_GOAL,
   lockMatch,
   PHILLIPS,
+  scoreRead,
   scoresLeague,
   sideTotal,
+  slotOf,
   TYPO_STAT,
   type ScoresLeague,
   BOBS_FIRST_POINTS,
@@ -53,26 +55,10 @@ const STOPPAGE_MINUTES = 91;
 /** A club Hull meet again in a double gameweek: FPL's code for Arsenal. */
 const ARSENAL = 3;
 
-/** The match's score as a feed reads it: `state`, the minute on its clock, and the Premier League's
- *  label for it, if any. */
-async function scoreRead({ t }: ScoresLeague, state: "live" | "fullTime", minutes: number, fixtureCode: number = HULL_EVERTON, clockLabel: string | null = null) {
-  await t.mutation(internal.football.matchScores.upsertScores, {
-    feed: "pl",
-    readAt: Date.now(),
-    reads: [{ fixtureCode, state, homeGoals: 1, awayGoals: 2, minutes, clockLabel }],
-  });
-}
-
 async function matchupAs(league: ScoresLeague, email: string, args: { teamId?: Id<"teams">; gameweek?: number } = {}) {
   return (await actingAs(league.t, email)).query(api.matchup.matchup.ofTeam, { leagueId: league.leagueId, now: Date.now(), ...args });
 }
 
-const lineupOf = (side: MatchupSide) => {
-  if (side.kind !== "team") throw new Error("the side is the league's average");
-  return side.lineup;
-};
-const slotOf = (side: MatchupSide, playerCode: number): MatchupSlot =>
-  [...lineupOf(side).starters, ...lineupOf(side).bench].find((slot) => slot.playerCode === playerCode)!;
 const nameOf = (league: ScoresLeague, code: number) =>
   league.t.run(async (ctx) => (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", code)).unique())!.name);
 
@@ -92,7 +78,7 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
   await liveRecords(league, beforeTheGoal);
   await scoreRead(league, "live", LIVE_MINUTE);
   const live = await annsScoredGame(league, GAMEWEEK);
-  expect(slotOf(live.team, HULL_SCORER).status).toEqual({ kind: "playing", fixtureCode: HULL_EVERTON, minute: LIVE_MINUTE, clockLabel: null });
+  expect(slotOf(live.team, HULL_SCORER).status).toEqual({ kind: "playing", fixtureCode: HULL_EVERTON, state: "live", minute: LIVE_MINUTE, clockLabel: null });
   expect(live.team).toMatchObject({ points: sideTotal(beforeTheGoal, HULL_STARTERS), provisional: true });
   expect(lineupOf(live.team).bench.every((slot) => !slot.counts)).toBe(true);
   expect(slotOf(live.team, PHILLIPS)).toMatchObject({ counts: true, autoSub: null });
@@ -101,7 +87,7 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
   // match page shows too (#563).
   await scoreRead(league, "live", STOPPAGE_MINUTES, HULL_EVERTON, STOPPAGE_LABEL);
   const stoppage = await annsScoredGame(league, GAMEWEEK);
-  expect(slotOf(stoppage.team, HULL_SCORER).status).toEqual({ kind: "playing", fixtureCode: HULL_EVERTON, minute: STOPPAGE_MINUTES, clockLabel: STOPPAGE_LABEL });
+  expect(slotOf(stoppage.team, HULL_SCORER).status).toEqual({ kind: "playing", fixtureCode: HULL_EVERTON, state: "live", minute: STOPPAGE_MINUTES, clockLabel: STOPPAGE_LABEL });
 
   // Full time: finished, Hull's keeper on for Phillips, who didn't play, and the goal counted.
   await fullTimeRecords(league);

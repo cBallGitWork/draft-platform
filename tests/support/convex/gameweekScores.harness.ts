@@ -2,10 +2,12 @@
 // Hull and Bob Everton from the recorded Hull v Everton, and the match's records landed as the
 // live tick, the full-time read and the lock land them.
 
+import type { Infer } from "convex/values";
 import { vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { positionOfSlot, type Cell } from "../../../convex/lineup/pitch";
+import type { MatchupSide, MatchupSlot } from "../../../convex/matchup/matchupShape";
 import type { Position } from "../../../convex/positions/positionTables";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { firstLineup } from "../../../convex/lineup/firstLineup";
@@ -15,6 +17,7 @@ import { scoreMatch } from "../../../convex/scoring/scoring";
 import { inTenths } from "../../../convex/scoring/values";
 import type { PlayerMatchRecord } from "../../../convex/stats/matchRecords";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import type { matchState } from "../../../convex/schema";
 import { LEAGUE_AVERAGE } from "../../../convex/table/roundRobin";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "./leagues.harness";
@@ -160,6 +163,15 @@ export async function annsScoredGame({ t, leagueId }: ScoresLeague, gameweek?: n
   return read.game;
 }
 
+/** A side's lineup on the matchup: a team's, never the league's average. */
+export const lineupOf = (side: MatchupSide) => {
+  if (side.kind !== "team" || side.lineup === null) throw new Error(`The side has no lineup: ${JSON.stringify(side)}`);
+  return side.lineup;
+};
+/** One man's slot in a side's lineup, starter or bench. */
+export const slotOf = (side: MatchupSide, playerCode: number): MatchupSlot =>
+  [...lineupOf(side).starters, ...lineupOf(side).bench].find((slot) => slot.playerCode === playerCode)!;
+
 /** The match's records as the live tick lands them, before full time. */
 export async function liveRecords({ t }: ScoresLeague, records: PlayerMatchRecord[], minute: number | null = null) {
   vi.setSystemTime(LEAGUE_KICKOFF + HOUR_MS);
@@ -170,6 +182,17 @@ export async function liveRecords({ t }: ScoresLeague, records: PlayerMatchRecor
 export async function fullTimeRecords({ t }: ScoresLeague, records: PlayerMatchRecord[] = mergedHullEverton()) {
   vi.setSystemTime(LEAGUE_FULL_TIME_READ);
   await t.mutation(internal.stats.matchStats.upsertMatch, { fixtureCode: HULL_EVERTON, readAt: LEAGUE_FULL_TIME_READ, records });
+}
+
+type MatchState = Infer<typeof matchState>;
+/** The match's score as the Premier League's feed reads it: `state`, the minute on its clock, and
+ *  its label for it, if any. */
+export async function scoreRead({ t }: ScoresLeague, state: MatchState, minutes: number, fixtureCode: number = HULL_EVERTON, clockLabel: string | null = null) {
+  await t.mutation(internal.football.matchScores.upsertScores, {
+    feed: "pl",
+    readAt: Date.now(),
+    reads: [{ fixtureCode, state, homeGoals: 1, awayGoals: 2, minutes, clockLabel }],
+  });
 }
 
 /** The corrections window passes and the match locks. */

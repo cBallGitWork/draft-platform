@@ -3,7 +3,7 @@
 import type { Area } from "../../convex/lineup/pitch";
 import { leagueAverageWords } from "../table/words";
 import { LOCALE } from "../../convex/shared/moments";
-import { clockWords, gameweekWords, versusWords, whenWords } from "../shared/words";
+import { clockWords, fullTime, gameweekWords, halfTime, versusWords, whenWords } from "../shared/words";
 
 const kickoffFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit" });
 
@@ -58,15 +58,18 @@ export const AREA_CODES: Record<Area, string> = {
 export const statusWords = {
   /** His kickoff, short as the column is: "Sat 15:00". */
   yetToPlay: (kickoff: number | null) => (kickoff === null ? "To play" : kickoffFormat.format(kickoff)),
-  /** His match's clock, as its match page shows it: "45+1'", or "Live" before it has a minute. */
+  /** His match's clock, as the Premier League's pages show it: "45+1'", "HT" at half-time, or
+   *  "Live" before it has a minute. */
   playing: clockWords,
-  finished: "FT",
+  finished: fullTime.short,
   noMatch: "No match",
 } as const;
 /** The same, in full for screen readers. */
 export const statusLabels = {
   yetToPlay: "Yet to play",
   playing: "Playing now",
+  /** His match at half-time, said in full where the column shows "HT". */
+  halfTime: halfTime.long,
   finished: "Finished",
   noMatch: "No match this gameweek",
 } as const;

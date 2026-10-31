@@ -223,11 +223,13 @@ function SlotRow({ slot }: { slot: MatchupSlot }) {
 
 /** His match's state, short, with the full words for screen readers. */
 function StatusWords({ status }: { status: MatchupSlot["status"] }) {
+  // "HT" is said in full, as "FT" is.
+  const atHalfTime = status.kind === "playing" && status.state === "halfTime";
   return (
     <>
       {/* The space between, not inside the hidden words, so a link's name keeps it. */}
-      <span className="sr-only">{statusLabels[status.kind]}</span>{" "}
-      <span aria-hidden={status.kind === "finished" || status.kind === "noMatch" ? true : undefined}>{statusText(status)}</span>
+      <span className="sr-only">{atHalfTime ? statusLabels.halfTime : statusLabels[status.kind]}</span>{" "}
+      <span aria-hidden={atHalfTime || status.kind === "finished" || status.kind === "noMatch" ? true : undefined}>{statusText(status)}</span>
     </>
   );
 }
@@ -237,7 +239,7 @@ function statusText(status: MatchupSlot["status"]): string {
     case "yetToPlay":
       return statusWords.yetToPlay(status.kickoff);
     case "playing":
-      return statusWords.playing(status.clockLabel, status.minute);
+      return statusWords.playing(status.state, status.clockLabel, status.minute);
     case "finished":
       return statusWords.finished;
     case "noMatch":

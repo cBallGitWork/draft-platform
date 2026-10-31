@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { letterTime } from "../../../src/mail/words";
 import { statusWords } from "../../../src/matchup/words";
 import { clockWords as matchClockWords, kickoffWords } from "../../../src/premierLeague/words";
-import { clockWords, liveWords, scoreWords, timeOfDayWords } from "../../../src/shared/words";
+import { clockWords, halfTime, liveWords, scoreWords, timeOfDayWords } from "../../../src/shared/words";
 
 describe("scoreWords", () => {
   it("writes a matchup's points below 0 with the true minus (#564)", () => {
@@ -29,13 +29,18 @@ describe("timeOfDayWords", () => {
 
 describe("clockWords", () => {
   it("says the Premier League's label to the minute, with stoppage time", () => {
-    expect(clockWords("45+1'30", 46)).toBe("45+1'");
-    expect(clockWords("67'12", 67)).toBe("67'");
+    expect(clockWords("live", "45+1'30", 46)).toBe("45+1'");
+    expect(clockWords("live", "67'12", 67)).toBe("67'");
   });
 
   it("says the whole minutes where the read has no label, and Live where it has neither", () => {
-    expect(clockWords(null, 46)).toBe("46'");
-    expect(clockWords(null, null)).toBe(liveWords);
+    expect(clockWords("live", null, 46)).toBe("46'");
+    expect(clockWords("live", null, null)).toBe(liveWords);
+  });
+
+  it("says HT at half-time, whatever the clock read last", () => {
+    expect(clockWords("halfTime", "45+2'00", 47)).toBe(halfTime.short);
+    expect(clockWords("halfTime", null, null)).toBe(halfTime.short);
   });
 
   it("is the one clock the matchup and the match page both say (#563)", () => {

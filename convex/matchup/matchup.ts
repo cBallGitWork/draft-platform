@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { heldOf } from "../football/matchCommentary";
-import { PLAYING_STATES, scoreOf } from "../football/matchScores";
+import { isPlaying, scoreOf } from "../football/matchScores";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
@@ -196,10 +196,10 @@ class SideScorer {
   private async status(matches: readonly HeldMatch[]): Promise<SlotStatus> {
     if (matches.length === 0) return { kind: "noMatch" };
     const states = await Promise.all(matches.map(async (match) => ({ match, score: await this.score(match.fixture.code) })));
-    const live = states.find(({ match, score }) => !isFinished(match) && score !== null && PLAYING_STATES.has(score.state));
-    if (live !== undefined) {
-      const { minutes, clockLabel } = live.score!;
-      return { kind: "playing", fixtureCode: live.match.fixture.code, minute: minutes, clockLabel };
+    for (const { match, score } of states) {
+      if (!isFinished(match) && score !== null && isPlaying(score.state)) {
+        return { kind: "playing", fixtureCode: match.fixture.code, state: score.state, minute: score.minutes, clockLabel: score.clockLabel };
+      }
     }
     const toCome = states.filter(({ match, score }) => !isFinished(match) && score?.state !== "fullTime").map(({ match }) => match.fixture);
     if (toCome.length === 0) return { kind: "finished", fixtureCode: byKickoff(matches.map(({ fixture }) => fixture)).at(-1)!.code };
