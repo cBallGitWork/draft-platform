@@ -22,7 +22,7 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   limits and the presets stand. Any player who plays centre-back can play sweeper: "we need a
   sweeper position, it's a real role, esp with classic formations" (Craig, 31 Oct 2026).
 - That centre cell offers the centre-back roles and the sweeper roles. It is a sweeper's cell,
-  coded SW and drawn deeper, only while its player is on a sweeper role, so a back three keeps a
+  labelled SW and drawn deeper, only while its player is on a sweeper role, so a back three keeps a
   plain centre-back in the middle (Craig, 31 Oct 2026).
 - Free placement: drag a player into any free cell, Championship Manager style. Or pick a preset:
   4-4-2, 4-3-3, 4-2-3-1, 4-1-4-1, 4-4-1-1, 4-3-1-2, 3-5-2, 3-4-3, 3-4-1-2, 5-3-2, 5-4-1, 4-5-1,
@@ -51,12 +51,11 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026), unless dated otherwise.
 
 - Tap a player and everywhere he can go lights up: each free cell he can take and each player
   he can swap with, with his stars there. Anything that would break the area limits stays unlit.
-  Tap a lit cell to move him, or a lit player to swap them. Dragging still works, as FPL's and
-  Draft Fantasy's two taps do.
+  Tap a lit cell to move him, or a lit player to swap them. Dragging still works.
 - Dropping a player on another swaps them, starter for starter or bench for starter. Each lands on
   the role he has the most stars for in his new slot (Roles).
-- The lineup saves itself after each valid move. There is no Save button, as on Draft Fantasy.
-- Undo takes back the moves since the last time the manager opened the Tactics tab.
+- The lineup saves itself after each valid move. There is no Save button.
+- Undo takes back a move.
 - Quick Pick fills the current shape with the best eleven by stars.
 
 ## What the pitch shows
@@ -65,18 +64,18 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
 
 - Each starter's shirt, a little bigger than today's, as on FM's, CM's, FPL's and Draft Fantasy's
   pitches.
-- Under it, a plate in his area's colour (goalkeeper, defence, midfield, attack) with his role's
+- Under it, a chip in his area's colour (goalkeeper, defence, midfield, attack) with his role's
   short code, his stars for that role, his name, and his real opponent this gameweek ("COV (H)")
   in the fixture-difficulty colour: both opponents in a double gameweek, none in a blank one.
 - A role's code is at most three letters, one per role, held with the role. The pitch shows the
   code at every width; the squad list and the role card show the full name.
-- Each slot has a position code that names the position, never its side: GK, SW, CB, FB, WB, DM,
-  CM, WM (wide midfield), AM, W (wide attacking midfield) and ST. "We don't need side specific,
-  that's the game getting in the way."
+- Each slot shows its position label, which names the position, never its side: `spec/06`'s
+  labels, plus SW for the sweeper. "We don't need side specific, that's the game getting in the
+  way."
 - The team's next head-to-head opponent shows on the Tactics tab.
 - Everything settled here is built on the desk first, then cut from the real page: "show ALL
   info first and then refactor from there... I need the context of our full pages built so we can
-  then see what's needed". Each piece is built so it can come out on its own.
+  then see what's needed".
 
 ## Runs
 
@@ -143,8 +142,7 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
   by tapping the role on the pitch or in the squad list (Craig, 31 Oct 2026).
 - The role card shows every role for his slot, each with his stars, what it scores more and less
   for, its description, and what he would have scored under it in his recent matches. Each role's
-  description is held with the role, a line or two, written by Claude as a rough first version
-  for Craig to rewrite. Explaining the game's own mechanics is wanted; only the basics any fantasy
+  description is held with the role. Explaining the game's own mechanics is wanted; only the basics any fantasy
   manager knows go unsaid: "when I say don't explain the game, I mean the absolute basic things
   like 'this is a league, round robin'; explaining game mechanics is highly encouraged" (Craig,
   31 Oct 2026).
