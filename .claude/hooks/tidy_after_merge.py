@@ -6,12 +6,12 @@ branch on merge"), but nothing deleted the copy here, so 842 branches and 70 wor
 
 It deletes only what is safe: the branch's tip must be the pull request's head or behind it (every
 commit on it went into the merge; gh pr update-branch gives the pull request a merge commit the
-branch here never gets, so the head is fetched from origin to check), and the worktree must have nothing uncommitted and no ignored file but
-build output (git worktree remove deletes ignored files: a .env.local would go). The main checkout
-and the folder the merge ran in are never removed; another session still open in a clean worktree
-isn't seen, and loses its folder once its pull request merges. Anything kept is said, with why; so
-is a pull request gh can't read. It runs after the command, so it never blocks one.
-Stdlib only, Python 3.9+.
+branch here never gets, so the head is fetched from origin to check), and the worktree must have
+nothing uncommitted and no ignored file but build output (git worktree remove deletes ignored
+files: a .env.local would go). The main checkout and the folder the merge ran in are never
+removed; another session still open in a clean worktree isn't seen, and loses its folder once its
+pull request merges. Anything kept is said, with why; so is a pull request gh can't read. It runs
+after the command, so it never blocks one. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -55,7 +55,7 @@ def run(folder, *args):
     return code == 0, out
 
 
-def lost(number, tip, head, folder):
+def why_not_in_head(number, tip, head, folder):
     """None when every commit on the branch's tip is in the pull request's head, else why the branch
     stays. The head may not be here (gh pr update-branch made it on GitHub), so it is fetched first."""
     if tip == head:
@@ -116,7 +116,7 @@ def tidy(number, branch, head, folder):
     if not ok:
         return None
     kept = f"#{number} merged; its branch {branch} was kept"
-    why = lost(number, tip.strip(), head, folder)
+    why = why_not_in_head(number, tip.strip(), head, folder)
     if why:
         return f"{kept}: {why}"
     run(folder, "git", "worktree", "prune")  # a worktree whose folder is gone would hold the branch for good
