@@ -1,6 +1,6 @@
 import type { CSSProperties, DragEvent } from "react";
 import { AREAS, cellKey, LANES, sameCell, type Cell } from "../../../convex/lineup/pitch";
-import { roleIn } from "../../../convex/lineup/roles";
+import { roleIn, slotLabel, SWEEPER } from "../../../convex/lineup/roles";
 import { kitOf, type Ink } from "../../../convex/football/clubColours";
 import { markOf } from "./focusMarks";
 import { PitchLines } from "./PitchLines";
@@ -19,6 +19,9 @@ const ROWS_DRAWN = AREAS.toReversed();
 /** On the row that holds the pitch, with the CSS `pitch-room`: the pitch's shape, width over
  *  length, which the CSS sizes the pitch and its panel by. */
 export const PITCH_ROOM_STYLE = { "--pitch-aspect": PITCH_ASPECT } as CSSProperties;
+
+/** The CSS utility that draws a sweeper's cell a little deeper than the line (pitch.css). */
+export const SWEEPER_DEPTH = "pitch-sweeper";
 
 /** The pitch's cells: each area's row an equal share of its length, so the lines stand where they
  *  would on a real pitch, and each lane an equal share of its width. Its shape is the CSS `pitch`'s. */
@@ -73,6 +76,7 @@ export function Pitch({
         LANES.map((lane) => {
           const cell = { area, lane };
           const standing = standingIn(draft, cell);
+          const depth = standing !== undefined && slotLabel(cell, standing.role) === SWEEPER ? SWEEPER_DEPTH : "";
           const allowDrop = (event: DragEvent) => {
             if (opensTo(cell)) event.preventDefault();
           };
@@ -81,7 +85,7 @@ export function Pitch({
             if (opensTo(cell)) moving.onPlace(cell);
           };
           return (
-            <div key={cellKey(cell)} onDragOver={allowDrop} onDrop={drop} className="relative flex min-h-0 min-w-0 items-center justify-center p-0.5">
+            <div key={cellKey(cell)} onDragOver={allowDrop} onDrop={drop} className={`relative flex min-h-0 min-w-0 items-center justify-center p-0.5 ${depth}`}>
               {standing !== undefined ? (
                 <PlayerBlock player={squad.get(standing.playerCode)!} cell={cell} role={roleIn(cell, standing.role).name} lit={opensTo(cell)} moving={moving} />
               ) : picked !== null && opensTo(cell) ? (
@@ -138,7 +142,7 @@ const INK_CLASSES: Record<Ink, string> = { dark: "fill-ground stroke-ground", li
 /** Our own shirt outline in his club's colours (plate.md, Marks; a keeper in its second colour),
  *  with his squad number on it once his manager gives him one (#13). The colour is only a look:
  *  his name says who he is, so screen readers skip the shirt. */
-function Shirt({ number, clubCode, goalkeeper }: { number: number | null; clubCode: number; goalkeeper: boolean }) {
+function Shirt({ number, clubCode, goalkeeper }: { number: number | null; clubCode: number | null; goalkeeper: boolean }) {
   const kit = kitOf(clubCode, goalkeeper);
   return (
     <svg viewBox="0 0 40 40" aria-hidden="true" className={`size-shirt shrink-0 ${INK_CLASSES[kit.ink]}`}>

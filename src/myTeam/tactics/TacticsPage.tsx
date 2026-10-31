@@ -6,6 +6,7 @@ import { ESCAPE_KEY, KEY_DOWN } from "../../shared/browserEvents";
 import { Loading, Notice, PageSection, Panel, PanelNote, Problem, Status } from "../../ui/Panel";
 import { useChange } from "../../shared/useChange";
 import { useMinute } from "../../shared/useMinute";
+import { unheldNoticeWords } from "../../shared/words";
 import { markedBy } from "./focusMarks";
 import { benched, benchedAt, movedTo, openingLineup, reachOf, reshaped, sameLineup, shownLineup, swapped, withRole, type DraftLineup, type MoveRules } from "./lineupDraft";
 import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./Pitch";
@@ -220,6 +221,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
         <Problem problem={problem} />
       </div>
       {joined.length > 0 && <Notice>{joinedBenchWords(joined.map((code) => squad.get(code)!.name))}</Notice>}
+      {tactics.squad.some((member) => member.unheld) && <Notice>{unheldNoticeWords}</Notice>}
       {/* The pitch is the tab's centrepiece (plate.md, Decided): as tall as the window, so
           scrolled to, its whole length shows; the squad beside it takes the rest, or goes under it on a phone. */}
       <div style={PITCH_ROOM_STYLE} className="pitch-room flex flex-wrap items-start gap-2">
