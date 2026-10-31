@@ -17,10 +17,10 @@ export const feedValidator = v.union(...FEEDS.map((feed) => v.literal(feed)));
 export const sideFeedValidator = v.union(...SIDE_FEEDS.map((feed) => v.literal(feed)));
 
 /** What the feeds page and the admin's failure email call each feed, and where its data comes
- *  from: wording for Craig to change in the pull request. */
+ *  from. The positions and side-read names are Craig's (31 Oct 2026, #522). */
 export const FEED_NAMES: Record<Feed, { name: string; source: string }> = {
   football: { name: "Clubs, players and fixtures", source: "FPL" },
-  positions: { name: "Team sheets", source: "the Premier League" },
+  positions: { name: "Positions sync", source: "the Premier League" },
   matchStats: { name: "Match stats", source: "FPL and the Premier League" },
   liveStats: { name: "Live stats", source: "FPL and the Premier League, during matches" },
   teamSheets: { name: "Team sheets before kickoff", source: "the Premier League, in the hour before each match" },
