@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import { FPL_BOOTSTRAP_URL } from "../../../convex/football/football";
+import { SYNC_FAILED_LOG } from "../../../convex/football/footballSync";
 import {
   crowdedFpl,
   held,
@@ -183,7 +184,7 @@ test("a failed fetch is recorded and logged, and nothing is written", async () =
   const outcome = await syncWith(t, recordedFpl(), FPL_BOOTSTRAP_URL);
 
   expect(outcome).toEqual({ ok: false, error: refusedError(FPL_BOOTSTRAP_URL) });
-  expect(error).toHaveBeenCalledWith(expect.stringContaining("football sync failed"));
+  expect(error).toHaveBeenCalledWith(expect.stringContaining(SYNC_FAILED_LOG));
   expect(await held(t)).toEqual({ clubs: [], players: [], fixtures: [], gameweeks: [] });
 });
 
