@@ -5,6 +5,7 @@ import { codesByOpta } from "../../../convex/football/feedIds";
 import { matchSlots } from "../../../convex/football/premierLeague/plMatch";
 import { PL_UPCOMING } from "../../../convex/football/premierLeague/premierLeague";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../../../convex/shared/time";
+import { outcomesOf } from "../../support/convex/feeds.harness";
 import { stagedGw6, stageTime, tickAt } from "../../support/convex/liveStats.harness";
 import { BOTH_ELEVENS, GAMEWEEK, HULL, HULL_EVERTON, KICKOFF, withHullEverton } from "../../support/convex/matchStats.harness";
 import { refusedError, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
@@ -71,7 +72,7 @@ test("a match the feed has dropped, or postponed out of its gameweek, has no she
   expect(await dueAt(t, SHEETS_OPEN)).toEqual([]);
 });
 
-test("a tick within the hour reads only the match's sheets and keeps both sides' men, with no tick row", async () => {
+test("a tick within the hour reads only the match's sheets and keeps both sides' men, on the sheets' row, not a tick row", async () => {
   const t = await withHullEvertonMen();
   const payloads = beforeKickoff();
 
@@ -84,7 +85,14 @@ test("a tick within the hour reads only the match's sheets and keeps both sides'
   expect(men.filter((man) => man.started)).toHaveLength(BOTH_ELEVENS);
   expect(await heldSheets(t)).toMatchObject({ fixtureCode: HULL_EVERTON, men });
   expect(latest).toBeUndefined();
+  expect(await outcomesOf(t, "teamSheets")).toEqual([{ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: true }] }]);
   expect(await t.run((ctx) => ctx.db.query("playerMatchStats").collect())).toEqual([]);
+});
+
+test("a tick with no match within the hour reads no sheets and writes no sheets' row", async () => {
+  const t = await withHullEvertonMen();
+  await tickAt(t, SHEETS_OPEN - MINUTE_MS, beforeKickoff());
+  expect(await outcomesOf(t, "teamSheets")).toEqual([]);
 });
 
 test("a change to the sheets replaces the held men; a read naming nobody leaves them", async () => {
@@ -126,7 +134,7 @@ test("a man the football sync doesn't hold yet is logged and left out, and the r
   expect((await heldSheets(t))!.men).toEqual(rest);
 });
 
-test("sheets that will not read are logged and the held men stand", async () => {
+test("sheets that will not read are logged and on the sheets' row, and the held men stand", async () => {
   const errors = silenceConsoleError();
   const t = await withHullEvertonMen();
   const payloads = beforeKickoff();
@@ -135,8 +143,29 @@ test("sheets that will not read are logged and the held men stand", async () => 
 
   await tickAt(t, SHEETS_OPEN + MINUTE_MS, payloads, url);
 
-  expect(errors).toHaveBeenCalledWith(`match ${HULL_EVERTON}'s team sheets failed: ${refusedError(url)}`);
+  const error = `match ${HULL_EVERTON}'s team sheets failed: ${refusedError(url)}`;
+  expect(errors).toHaveBeenCalledWith(error);
+  expect((await outcomesOf(t, "teamSheets")).at(-1)).toEqual({ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: false, error: refusedError(url) }] });
   expect((await heldSheets(t))!.men).toEqual(sheetMen(payloads, MATCH.hullEverton.pl));
+});
+
+test("a gameweek whose list will not read fails each of its matches on the sheets' row", async () => {
+  silenceConsoleError();
+  const t = await withHullEvertonMen();
+  const url = plFixturesUrl(GAMEWEEK);
+
+  await tickAt(t, SHEETS_OPEN, beforeKickoff(), url);
+
+  expect(await outcomesOf(t, "teamSheets")).toEqual([{ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: false, error: refusedError(url) }] }]);
+});
+
+test("a tick whose FPL read fails before any sheet is read puts that on the sheets' row", async () => {
+  silenceConsoleError();
+  const t = await withHullEvertonMen();
+
+  await tickAt(t, SHEETS_OPEN, beforeKickoff(), FPL_BOOTSTRAP_URL);
+
+  expect(await outcomesOf(t, "teamSheets")).toEqual([{ ok: false, error: refusedError(FPL_BOOTSTRAP_URL) }]);
 });
 
 test("with a match live and another within the hour, a tick reads FPL once, the live one in full and the other's sheets", async () => {

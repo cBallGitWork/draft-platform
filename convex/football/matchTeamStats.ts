@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalMutation, type ActionCtx, type QueryCtx } from "../_generated/server";
+import type { SideMatchOutcome } from "../admin/sideRuns";
 import { sideTeamStats } from "../schema";
 import { logFailure } from "../shared/errors";
 import { readPlTeamStats, type RawPlFixture } from "./premierLeague/premierLeague";
@@ -11,17 +12,18 @@ import { plTeamStats, type SideTeamStats } from "./premierLeague/plTeamStats";
 // tick (#28) and once more by the match stats sync at full time, and stored one row a match. Each
 // read replaces the held five, as Opta sends running totals; a read before kickoff, with none,
 // leaves them. A failed read is logged and the held five stand, so it stops neither the match's
-// points nor its commentary.
+// points nor its commentary; the run that read it puts it on the team stats feed's row (#522).
 
-/** One match's team stats read and stored. Never throws. `listed` is the match in the Premier
- *  League's list for its gameweek, read this run, for its id. */
-export async function syncTeamStats(ctx: ActionCtx, fixtureCode: number, listed: RawPlFixture | undefined): Promise<void> {
+/** One match's team stats read and stored, and how it went. Never throws. `listed` is the match in
+ *  the Premier League's list for its gameweek, read this run, for its id. */
+export async function syncTeamStats(ctx: ActionCtx, fixtureCode: number, listed: RawPlFixture | undefined): Promise<SideMatchOutcome> {
   try {
     if (listed === undefined) throw new Error(`the Premier League lists no match ${fixtureCode}`);
     const stats = plTeamStats(await readPlTeamStats(listed.id));
     if (stats !== null) await ctx.runMutation(internal.football.matchTeamStats.store, { fixtureCode, ...stats });
+    return { fixtureCode, ok: true };
   } catch (error: unknown) {
-    logFailure(`match ${fixtureCode}'s team stats failed`, error);
+    return { fixtureCode, ok: false, error: logFailure(`match ${fixtureCode}'s team stats failed`, error) };
   }
 }
 

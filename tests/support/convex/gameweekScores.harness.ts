@@ -181,10 +181,10 @@ export const lineupOf = (side: MatchupSide) => {
 export const slotOf = (side: MatchupSide, playerCode: number): MatchupSlot =>
   [...lineupOf(side).starters, ...lineupOf(side).bench].find((slot) => slot.playerCode === playerCode)!;
 
-/** The match's records as the live tick lands them, before full time. */
+/** The match's records as the live tick lands them, before full time, and what the landing did. */
 export async function liveRecords({ t }: ScoresLeague, records: PlayerMatchRecord[], minute: number | null = null) {
   vi.setSystemTime(LEAGUE_KICKOFF + HOUR_MS);
-  await t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: HULL_EVERTON, minute, records });
+  return t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: HULL_EVERTON, minute, records });
 }
 
 /** The match's records as the full-time read lands them: complete, its corrections window open. */
@@ -236,11 +236,11 @@ export const HULL_AFTER_SUB: Starter[] = HULL_STARTERS.map((starter) =>
 export const TYPO_STAT = "goals_scroed";
 
 /** The site's set from now on, a fix in force from the start: `scoring` in place of the first. */
-const holdFix = ({ t }: ScoresLeague, scoring: StoredScoringSet) =>
+const holdFix = ({ t }: Pick<ScoresLeague, "t">, scoring: StoredScoringSet) =>
   t.run((ctx) => holdSiteScoring(ctx, { scoring, kind: "fix", season: 2026, number: 1, at: 0 }));
 
 /** The site's set from now on holds a rule on TYPO_STAT, as a set written by hand could (#287). */
-export async function holdTypoRule(league: ScoresLeague) {
+export async function holdTypoRule(league: Pick<ScoresLeague, "t">) {
   const [rule] = FIRST_SCORING.rules;
   await holdFix(league, { ...FIRST_SCORING, rules: [...FIRST_SCORING.rules, { ...rule, stat: TYPO_STAT }] });
 }

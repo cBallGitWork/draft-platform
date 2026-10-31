@@ -2840,6 +2840,339 @@
       }
     },
     {
+      "tableName": "teamSheetsRuns",
+      "indexes": [],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "ranAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "outcome": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "object",
+                  "value": {
+                    "ok": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": true
+                      },
+                      "optional": false
+                    },
+                    "matches": {
+                      "fieldType": {
+                        "type": "array",
+                        "value": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "object",
+                              "value": {
+                                "fixtureCode": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
+                                },
+                                "ok": {
+                                  "fieldType": {
+                                    "type": "literal",
+                                    "value": true
+                                  },
+                                  "optional": false
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "value": {
+                                "fixtureCode": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
+                                },
+                                "ok": {
+                                  "fieldType": {
+                                    "type": "literal",
+                                    "value": false
+                                  },
+                                  "optional": false
+                                },
+                                "error": {
+                                  "fieldType": {
+                                    "type": "string"
+                                  },
+                                  "optional": false
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "ok": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": false
+                      },
+                      "optional": false
+                    },
+                    "error": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    }
+                  }
+                }
+              ]
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "teamStatsRuns",
+      "indexes": [],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "ranAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "outcome": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "object",
+                  "value": {
+                    "ok": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": true
+                      },
+                      "optional": false
+                    },
+                    "matches": {
+                      "fieldType": {
+                        "type": "array",
+                        "value": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "object",
+                              "value": {
+                                "fixtureCode": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
+                                },
+                                "ok": {
+                                  "fieldType": {
+                                    "type": "literal",
+                                    "value": true
+                                  },
+                                  "optional": false
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "value": {
+                                "fixtureCode": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
+                                },
+                                "ok": {
+                                  "fieldType": {
+                                    "type": "literal",
+                                    "value": false
+                                  },
+                                  "optional": false
+                                },
+                                "error": {
+                                  "fieldType": {
+                                    "type": "string"
+                                  },
+                                  "optional": false
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "ok": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": false
+                      },
+                      "optional": false
+                    },
+                    "error": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    }
+                  }
+                }
+              ]
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "thresholdStepsRuns",
+      "indexes": [],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "ranAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "outcome": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "object",
+                  "value": {
+                    "ok": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": true
+                      },
+                      "optional": false
+                    },
+                    "matches": {
+                      "fieldType": {
+                        "type": "array",
+                        "value": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "object",
+                              "value": {
+                                "fixtureCode": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
+                                },
+                                "ok": {
+                                  "fieldType": {
+                                    "type": "literal",
+                                    "value": true
+                                  },
+                                  "optional": false
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "value": {
+                                "fixtureCode": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
+                                },
+                                "ok": {
+                                  "fieldType": {
+                                    "type": "literal",
+                                    "value": false
+                                  },
+                                  "optional": false
+                                },
+                                "error": {
+                                  "fieldType": {
+                                    "type": "string"
+                                  },
+                                  "optional": false
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "ok": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": false
+                      },
+                      "optional": false
+                    },
+                    "error": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    }
+                  }
+                }
+              ]
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "matchCommentary",
       "indexes": [
         {
@@ -3257,6 +3590,18 @@
                 {
                   "type": "literal",
                   "value": "liveStats"
+                },
+                {
+                  "type": "literal",
+                  "value": "teamSheets"
+                },
+                {
+                  "type": "literal",
+                  "value": "teamStats"
+                },
+                {
+                  "type": "literal",
+                  "value": "thresholdSteps"
                 }
               ]
             },

@@ -147,6 +147,14 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   list and one read per match, its sheets, kept as one row a match in `matchTeamSheets`
   (`convex/football/matchTeamSheets.ts`); no tick row, as nothing is scored yet. The Premier
   League had them out 58 minutes before kickoff (docs/pl-commentary.md).
+  The tick's side reads, the team sheets before kickoff and each live match's team stats and
+  threshold steps, are each a feed of their own (#522; `convex/admin/sideRuns.ts`): a row a run
+  with a match to work on, in `teamSheetsRuns`, `teamStatsRuns` and `thresholdStepsRuns`, so
+  one failing is "failing" on the feeds page and emails the admin, and is never only a log line.
+  They stay off the tick's row, as they never stop a match's points. The match-stats sync's
+  full-time team stats write a `teamStatsRuns` row too. That is two more rows each live tick,
+  however many matches it reads, and one a minute in the hour before a kickoff; none grows with
+  leagues or teams, and the run logs' prune clears them as it does the tick's.
   Revisit the bootstrap read each tick when Convex usage nears the plan's limit, or when
   `liveStatsTicks` rows fail from throttling.
 - Match scores (#49): each match's state, score and clock in `matchScores`, apart from
@@ -158,7 +166,7 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   `football/matchScores:ofGameweek` reads a gameweek's matches with their scores.
 - The run logs (#146): `admin/runLogs:prune` deletes a run row 30 days after its run if it
   succeeded, and 180 days after if it failed (Craig, 22 Oct 2026). It always keeps each feed's
-  newest five rows and its newest success. It goes in batches, `liveStatsTicks` first.
+  newest five rows and its newest success. It goes in batches, the live tick's tables first.
   A cron runs it daily (spec/20). A match-stats run with no match due is still a row: the feeds
   page needs it as a success to judge lateness, and pruning keeps a 10-minute cron's runs to
   about 4,300.
