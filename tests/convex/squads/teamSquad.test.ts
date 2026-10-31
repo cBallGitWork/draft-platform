@@ -12,7 +12,7 @@ import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { squadPoints } from "../../../convex/squads/teamSquad";
 import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
-import { EXAMPLE_SET } from "../../support/convex/scoring.example";
+import { EXAMPLE_SET, GOAL_AND_ASSIST } from "../../support/convex/scoring.example";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { ARSENAL, CHELSEA, COVENTRY, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -43,7 +43,7 @@ const LATER_ARS = fixture(4, 4, COVENTRY.code, ARSENAL.code, NOW + WEEK_MS);
 /** Where Saka stood for Ann's team in gameweek 1: not his best, so the slot's points show. */
 const SAKA_SLOT: Cell = { area: "attack", lane: "right" };
 
-const SAKA_GW1 = { minutes: 90, goals_scored: 1, assists: 1 };
+const SAKA_GW1 = GOAL_AND_ASSIST;
 const SAKA_GW2 = { minutes: 90, goals_scored: 2 };
 
 let t: TestConvex;

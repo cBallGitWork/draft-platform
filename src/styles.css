@@ -1,6 +1,8 @@
 @import "tailwindcss";
 /* A screen's own utilities, too long to keep here */
 @import "./myTeam/tactics/pitch.css";
+/* The controls every screen shares, built on the tokens below */
+@import "./ui/controls.css";
 
 /* The Plate look as Tailwind's tokens: docs/design/plate.md has every value and its role.
    Tailwind's own scales are switched off (.claude/rules/ui.md). */
@@ -13,11 +15,15 @@
   --font-*: initial;
   --font-weight-*: initial;
 
-  --color-ground: #08090b;
-  --color-panel: #1c1d21;
+  --color-ground: #111214; /* the page, under its drawn texture (--ground-glow, --ground-grain) */
+  /* a panel's body, see-through over the page's texture (plate.md, Decided: Look B); a list that
+     opens over the page, such as the top bar's leagues, is the same panel solid, so what it covers
+     can't show through */
+  --color-panel: rgb(26 27 31 / 0.84);
+  --color-panel-solid: #1a1b1f;
   --color-bar: #173a94; /* the top bar */
-  --color-plate: #15317f; /* a title plate, a date block, a key */
-  --color-stepper: #1d2a98;
+  --color-plate: #2a1f86; /* a title plate, a date block, a key: indigo */
+  --color-stepper: #3529a8;
   --color-name-plate: #050608;
   --color-alert: #2a1d10; /* the alert strip */
   --color-head: #b9bcc4;
@@ -27,11 +33,14 @@
   --color-event: #ff9b3d;
   --color-muted: #a1a5ab;
   --color-soft: #caced4; /* role text, inactive tabs, the action's hover */
-  /* the 1px rules between butted tabs: on the bar or the plate, and on a panel */
-  --color-plate-rule: #001a5e;
+  /* the 1px rules between butted tabs: on the bar, on the plate, and on a panel (the bar's and the
+     plate's are also the dark foot of their bevels) */
+  --color-bar-rule: #001a5e;
+  --color-plate-rule: #110a4a;
   --color-panel-rule: var(--color-ground);
-  /* the lit top of a bevel: on the bar or the plate, and on a panel (also the line above a section's tabs) */
-  --color-plate-edge: #4a6cc8;
+  /* the lit top of a bevel: on the bar, on the plate, and on a panel (also the line above a section's tabs) */
+  --color-bar-edge: #4a6cc8;
+  --color-plate-edge: #6a5fe0;
   --color-panel-edge: #34363c;
   /* the pitch: its two stripes, and its lines */
   --color-pitch: #2f8535;
@@ -39,9 +48,12 @@
   --color-pitch-line: #e6f2e6;
 
   --font-sans: "Archivo Narrow", "Arial Narrow", sans-serif;
+  /* the second face, for page titles and team names only (the display-face utility below) */
+  --font-display: "Archivo Variable", "Archivo Narrow", sans-serif;
   --font-weight-normal: 400;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
+  --font-weight-heavy: 800;
 
   --spacing-tap: 44px; /* every target, at the phone's width (plate.md, The phone) */
   --spacing-subtab: 36px; /* a section's tabs, on the desk */
@@ -93,6 +105,7 @@
   --text-title--line-height: 32px;
 
   /* CM's 2px bevel, light above and dark below */
+  --shadow-bevel-bar: inset 0 2px 0 var(--color-bar-edge), inset 0 -2px 0 var(--color-bar-rule);
   --shadow-bevel-plate: inset 0 2px 0 var(--color-plate-edge), inset 0 -2px 0 var(--color-plate-rule);
   --shadow-bevel-panel: inset 0 2px 0 var(--color-panel-edge), inset 0 -2px 0 var(--color-name-plate);
   --shadow-bevel-action: inset 0 2px 0 var(--color-fact), inset 0 -2px 0 var(--color-head);
@@ -116,12 +129,23 @@
     /* the focus ring (plate.md, Colour roles: focus), on every control */
     --focus-ring: 2px solid var(--color-derived);
     --focus-ring-offset: 2px;
+    /* The page's drawn texture (plate.md, Decided: Look B): a floodlit glow from the top over a fine
+       grain, drawn, never a photograph. Faint: at its lightest, grain counted, the page is #282e2d. */
+    --ground-glow: rgb(70 96 84 / 0.22);
+    --ground-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
   }
   html {
     color-scheme: dark;
+    /* On the root, at least the window's height, so the texture runs the page's whole length and
+       the glow, drawn once, never repeats down a short page */
+    min-height: 100%;
+    background-color: var(--color-ground);
+    background-image:
+      radial-gradient(ellipse 90% 60% at 50% 0%, var(--ground-glow), transparent 70%),
+      var(--ground-grain);
+    background-repeat: no-repeat, repeat;
   }
   body {
-    background: var(--color-ground);
     color: var(--color-fact);
     font-family: var(--font-sans);
     font-size: var(--text-data);
@@ -132,12 +156,33 @@
     outline: var(--focus-ring);
     outline-offset: var(--focus-ring-offset);
   }
-  a {
+  /* A link, and a button drawn as one (link-look): no underline at rest (Craig, 31 Oct 2026); a 1px
+     cyan one under the pointer, only where a pointer hovers (as the action's hover), and with the
+     focus ring. A bare link in a paragraph is running text, where nothing else would tell it from
+     the words around it (WCAG 1.4.1), so it keeps its underline at rest. */
+  a,
+  .link-look {
     color: var(--color-fact);
-    text-decoration: underline 1px;
-  }
-  a:hover {
+    text-decoration: none;
+    text-decoration-thickness: 1px;
     text-decoration-color: var(--color-derived);
+    @media (hover: hover) {
+      &:hover {
+        text-decoration-line: underline;
+      }
+    }
+    &:focus-visible {
+      text-decoration-line: underline;
+    }
+  }
+  p a:not([class]) {
+    text-decoration-line: underline;
+    text-decoration-color: currentColor;
+    @media (hover: hover) {
+      &:hover {
+        text-decoration-color: var(--color-derived);
+      }
+    }
   }
   /* High-contrast mode drops every bevel (plate.md, Shape), so a border keeps each edge */
   @media (forced-colors: active) {
@@ -148,142 +193,9 @@
   }
 }
 
-/* The action (plate.md, Colour roles): Continue, and a page's one main button. */
-@utility action {
-  display: flex;
-  align-items: center;
-  min-height: var(--spacing-tap);
-  padding-inline: calc(var(--spacing) * 4);
-  background: var(--color-fact);
-  color: var(--color-ground);
-  font-size: var(--text-lead);
-  font-weight: var(--font-weight-bold);
-  text-decoration: none;
-  box-shadow: var(--shadow-bevel-action);
-  /* Only where a pointer hovers: a phone keeps a tapped button "hovered", so Save would stay grey */
-  @media (hover: hover) {
-    &:hover {
-      background: var(--color-soft);
-    }
-  }
-  &:active,
-  &:disabled {
-    background: var(--color-head);
-    box-shadow: var(--shadow-bevel-action-pressed);
-  }
-}
-
-/* Save with nothing to save (plate.md, Colour roles: the action with nothing to do). */
-@utility action-idle {
-  display: flex;
-  align-items: center;
-  min-height: var(--spacing-tap);
-  padding-inline: calc(var(--spacing) * 4);
-  border: 1px solid var(--color-muted);
-  color: var(--color-muted);
-  font-size: var(--text-lead);
-  font-weight: var(--font-weight-semibold);
-}
-
-/* The secondary action (plate.md, Colour roles): Sign out. */
-@utility secondary-action {
-  display: flex;
-  align-items: center;
-  min-height: var(--spacing-tap);
-  padding-inline: calc(var(--spacing) * 4);
-  background: var(--color-plate);
-  border: 1px solid var(--color-soft);
-  color: var(--color-fact);
-  font-size: var(--text-lead);
-  font-weight: var(--font-weight-semibold);
-  @media (hover: hover) {
-    &:hover {
-      background: var(--color-stepper);
-      border-color: var(--color-fact);
-    }
-  }
-  &:active {
-    background: var(--color-ground);
-  }
-}
-
-/* The alert strip (plate.md, Colour roles: alert, event): something that needs you. */
-@utility alert-strip {
-  background: var(--color-alert);
-  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
-  color: var(--color-event);
-  box-shadow: var(--shadow-event-edge);
-}
-
-/* A box to type in. */
-@utility text-box {
-  min-height: var(--spacing-tap);
-  border: 1px solid var(--color-soft);
-  background: var(--color-ground);
-  padding-inline: calc(var(--spacing) * 2);
-  color: var(--color-fact);
-  font-size: var(--text-lead);
-  line-height: var(--text-lead--line-height);
-}
-
-/* A box for one number of a rule: a figure (plate.md, Colour roles), so yellow. */
-@utility number-box {
-  width: var(--spacing-number-box);
-  min-height: var(--spacing-tap);
-  border: 1px solid var(--color-soft);
-  background: var(--color-ground);
-  padding-inline: calc(var(--spacing) * 2);
-  color: var(--color-figure);
-  font-size: var(--text-lead);
-  line-height: var(--text-lead--line-height);
-  &[aria-invalid="true"] {
-    border-color: var(--color-event);
-  }
-}
-
-/* A tick box (plate.md, Controls): the real checkbox drawn as a sunken well, its tick drawn over it.
-   The soft rim, as on a box to type in, is what sets it off from the panel at 3:1. */
-@utility tick-well {
-  appearance: none;
-  margin: 0;
-  width: var(--spacing-tick);
-  height: var(--spacing-tick);
-  flex-shrink: 0;
-  border: 1px solid var(--color-soft);
-  background: var(--color-name-plate);
-  box-shadow: var(--shadow-bevel-sunk);
-  cursor: pointer;
-}
-
-/* One of a row of butted keys (plate.md, Controls): the plate, and the chosen one pressed in. It is
-   the label around a hidden radio, so the radio's focus rings the key. */
-@utility key {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--spacing-tap);
-  min-width: var(--spacing-tap);
-  padding-inline: calc(var(--spacing) * 4);
-  background: var(--color-plate);
-  box-shadow: var(--shadow-bevel-plate);
-  color: var(--color-soft);
-  cursor: pointer;
-  & + & {
-    border-left: 1px solid var(--color-plate-rule);
-  }
-  @media (hover: hover) {
-    &:hover {
-      background: var(--color-stepper);
-    }
-  }
-  &:has(:checked) {
-    background: var(--color-ground);
-    box-shadow: var(--shadow-bevel-plate-pressed);
-    color: var(--color-fact);
-    font-weight: var(--font-weight-semibold);
-  }
-  &:has(:focus-visible) {
-    outline: var(--focus-ring);
-    outline-offset: var(--focus-ring-offset);
-  }
+/* The second face (plate.md, Type): a page's title and a team's name, heavy and wide. */
+@utility display-face {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: var(--font-weight-heavy);
 }

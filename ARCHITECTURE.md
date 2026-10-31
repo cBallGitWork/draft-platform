@@ -78,7 +78,7 @@ its team stats reads are kept for the tests (`tests/support/recorded/pl-live-mat
 | Sign-in | Convex Auth (`@convex-dev/auth`) magic links, with Auth.js's Resend provider (`@auth/core`, its required peer); the email is sent with one `fetch` to Resend's API, no Resend package | the backend's own; beta, so read its current docs first. The hourly and daily limits are counted in our own tables (the hour's in `convex/signIn/signInLinks.ts`, the day's in `convex/outbound/emailLimit.ts`), not `@convex-dev/rate-limiter`: a Convex mutation is one transaction, so the count can't race, and it's one component less to install |
 | Components | shadcn/ui on Base UI, added with the first component that needs Base UI's behaviour (a dialog, or a true ARIA menu with arrow-key roving focus); a disclosure list like the league switcher (`src/frame/topBar/LeagueSwitcher.tsx`) is hand-built and needs none | the code is copied into the repo, so it is ours to restyle |
 | Styling | Tailwind 4 with our own design values | the defaults are the generic AI look Craig wants to get far from |
-| Typeface | Archivo Narrow from Fontsource | plate.md's one face, served with the app: no call to Google from the sign-in page, and screenshots don't wait on a font server |
+| Typeface | Archivo Narrow from Fontsource, and Archivo's variable font with its width axis (`@fontsource-variable/archivo`, `wdth.css`) | plate.md's two faces, served with the app: no call to Google from the sign-in page, and screenshots don't wait on a font server. The variable font is one file for the heavy wide titles (weight 800, width 125), where static files would need a width the package doesn't ship |
 | Tables | hand-built `<table>`s styled with Tailwind, such as Scouting's players list (`src/scouting/PlayersTable.tsx`), sorted by the server; TanStack Table and TanStack Virtual when a table needs virtualising | a plain table takes Championship Manager density with no library to learn; TanStack's are unstyled, so they would too, and its Table v9 is newer than Claude's knowledge, so read its docs first |
 | Tactics pitch | the browser's own drag and drop (`draggable`, in `src/myTeam/tactics/Pitch.tsx` and `SquadTable.tsx`), plus a tap, click or Enter to pick a player up and another to place him, both reaching one `onPlace` | a phone and a keyboard need the tap anyway, so drag is only the desk's shortcut and needs no package; Pragmatic drag and drop if drag ever needs more than the browser gives |
 | Motion | considered, not needed yet: Motion when a screen needs animating | the live points change without it |
@@ -240,7 +240,8 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   `src/leagues/LeagueLinks.tsx`, `src/mail/DateBlock.tsx`.
 - `src/app/`: how the app starts. `src/routes/`: the routes and the router. `src/`'s top level
   keeps only `main.tsx` and `styles.css`. The tokens stay in `styles.css`; a screen's own long
-  utilities sit beside it and `styles.css` imports them (`src/myTeam/tactics/pitch.css`, 31 Oct 2026).
+  utilities sit beside it and `styles.css` imports them (`src/myTeam/tactics/pitch.css`, 31 Oct 2026),
+  as it does the controls' shared styles (`src/ui/controls.css`: the action, keys, boxes, the tick well).
 - `convex/schema/`: the schema's tables, one file per feature, imported only by `convex/schema.ts`.
   `convex/gameweekScorer/`: the gameweek scorer.
 - The feed adapters: `convex/football/fpl/` and `convex/football/premierLeague/`, copies of

@@ -13,7 +13,7 @@ import { Problem } from "../../ui/Panel";
 import { allLeaguesWords, currentLeagueLabel } from "../words";
 
 // On a phone the league takes its own row under the name, Continue and Sign out, above the menu.
-const placementClasses = "order-last w-full border-t border-plate-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-l";
+const placementClasses = "order-last w-full border-t border-bar-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-l";
 const toggleClasses =
   "flex min-h-tap w-full items-center justify-between gap-2 px-4 text-lead font-semibold hover:bg-stepper aria-expanded:bg-stepper";
 const choiceClasses =
@@ -96,7 +96,7 @@ export function LeagueSwitcher({
         </svg>
       </button>
       {open && (
-        <div id={listId} className="absolute top-full left-0 z-10 w-full bg-panel shadow-bevel-panel lg:w-league-list">
+        <div id={listId} className="absolute top-full left-0 z-10 w-full bg-panel-solid shadow-bevel-panel lg:w-league-list">
           <Problem problem={problem} />
           <ul aria-label={LEAGUES_TITLE}>
             {theirs.map((league) => (

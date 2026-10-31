@@ -5,20 +5,18 @@
 
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { playerCardPath } from "../../../src/playerCard/paths";
 import type { PlayedMatch, PlayerCard } from "../../../src/playerCard/seam";
 import { SEASON_TITLE, scoredUnderWords } from "../../../src/playerCard/words";
-import { AT_ONE, AT_W, breakdownLines, category, perAction, type Why } from "../../support/src/playerCard.harness";
-import { league, manager, openApp } from "../../support/src/shell.harness";
+import { AT_ONE, AT_W, breakdownLines, category, openCard, perAction, type Category, type Why } from "../../support/src/playerCardScreen.harness";
 
 /** The card priced at one position, holding one match with these categories and version. */
-function cardWith(categories: ReturnType<typeof category>[], version: string | null = "26_27.1"): PlayerCard {
+function cardWith(categories: Category[], version: string | null = "26_27.1"): PlayerCard {
   const match: PlayedMatch = { ...AT_W, version, points: [{ position: "CB", total: 0, categories }] };
   return { ...AT_ONE, matches: [match] };
 }
 
 async function linesOf(card: PlayerCard) {
-  openApp(playerCardPath(league.leagueId, card.code), manager, { playerCard: { cards: [card] } });
+  openCard(card, { cards: [card] });
   return breakdownLines(within(await screen.findByRole("region", { name: SEASON_TITLE })), AT_W.gameweek!);
 }
 

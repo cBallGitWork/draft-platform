@@ -79,6 +79,60 @@ to get you there"). It lives in this repo; the rest is open.
 - What auditing checks first: the spec against the tests (#454), work beyond what's been
   grilled, the hard rules, or a readable log of what each agent session did and why.
 
+**A rule balance lab**: from the ideas board (Craig, 31 Oct 2026). A backtest of a patch draft,
+"just to make sure a change is good" (Craig, 31 Oct 2026). Craig's answers so far, from `/grill`
+on 31 Oct 2026:
+- The admin's tool, run on a patch draft before it is announced (`spec/14`). Claude's small call:
+  it runs when the admin presses a button, not on every save.
+- A what-if only: it saves nothing, and locked gameweeks keep their scores.
+- On past seasons: each role's average against base scoring, flagging any outside `spec/05`'s
+  0.25 points a match, and the biggest movers among players.
+- On this season's real lineups: the head-to-heads that would have flipped and the table moves,
+  for each league. Craig: yes, "the lab backtests just to make sure a change is good".
+- Its numbers go in the patch notes.
+- Past seasons: "not much data this season, might need last"; Craig can give four seasons from
+  ai-carling-premiership.
+
+Open: where those four seasons are, and whether they hold the Premier League's own stats (tackles
+won, key passes) or only FPL's. Claude's recommendation: load what they hold and mark a category
+they lack as not tested.
+
+**Five colour and live-screen cards, from the ideas board**: Craig left the pick to Claude
+(31 Oct 2026: "Your call on cards"), and Claude moved these to "Yes, grill it". The design
+research page behind all five: https://claude.ai/artifact/UJC3f6ixFg3ZUQzBuEPiVq. Grill the
+palette first: the colour cards after it sit on whatever ground it settles.
+
+**Too much blue on blue**: calm the palette, as modern FM does (https://trello.com/c/wW5tcB5T).
+- FM26's look, folded in from its own card: dark neutral panels, colour only on small things. Is
+  that the ground, or a calmer blue?
+- What keeps colour once the panels go neutral, and how it squares with the plate
+  (`docs/design/plate.md`) and its Championship Manager homage.
+
+**Club colours everywhere** (https://trello.com/c/N5Rk4ZPP).
+- Which of these: kits on our pitch shirts, beyond the plate's outline in the club's colours
+  (`docs/design/plate.md` Marks); a two-colour club mark before every club code; scoreboards in
+  kit colours; the player card's plate in his club's colour.
+- It needs each club's two colours held: where they come from, and who keeps them right when a
+  club changes its kit.
+
+**A crest and kit for each manager's team**: narrowed from the card's "Team creator"
+(https://trello.com/c/ZnPoZdA2).
+- A few shield patterns and two colours, drawn by us, shown wherever the team name is. Does a bar
+  scarf come first?
+- Who picks them (the manager, or the commissioner too), and when. Goes with a team's own logo
+  under *Our own home stadiums*, above.
+
+**Colour that means something** (https://trello.com/c/kt83WyFm).
+- Which of these: W/D/L form squares (league home shows each team's form already, `spec/12`), a
+  colour per position line, points shaded by band.
+- Where a band's edges come from, if points are shaded by band.
+
+**Vidiprinter strip, score box, every matchup on one live screen**
+(https://trello.com/c/Ep5eR42z).
+- League home's matchday mode already has every head-to-head moving and a league-wide vidiprinter
+  (`spec/12`). What the card adds beyond it: a strip of every match's lines, not only those that
+  move a head-to-head; a score box, and where; a live screen of its own, or league home is enough.
+
 ## Suggested, not yet picked
 
 | What | Why |
@@ -120,7 +174,6 @@ be tabs on screens `spec/12` already lists rather than pages of their own.
 | Every squad on one page | For scouting rivals |
 | A new season from the last | Copy the league, its rules and its managers into next season |
 | Stat corrections | What moved after a match, and why (the window is `spec/07`'s) |
-| Category tables | The league's leaders in each scoring category, by team |
 | Waiver order and the can't-drop list, on show | Makes the waiver rules visible |
 | Who owned whom | A player's owners, gameweek by gameweek: for history and for his card |
 | Mock draft | Practice before the real one |

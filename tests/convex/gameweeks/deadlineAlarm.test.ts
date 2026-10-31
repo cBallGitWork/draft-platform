@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { begunGameweeks } from "../../../convex/gameweekScorer/gameweekScores";
-import { ANN, annsScoredGame, DEADLINE, GAMEWEEK, HULL_SCORER, HULL_STARTERS, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { ANN, annsScoredGame, DEADLINE, GAMEWEEK, HULL_SCORER, HULL_STARTERS, matchupAs, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { clockRunsTo } from "../../support/convex/test.harness";
 
@@ -24,13 +24,11 @@ async function syncedBeforeTheDeadline(): Promise<ScoresLeague> {
 }
 
 const begun = ({ t, leagueId }: ScoresLeague) => t.run(async (ctx) => begunGameweeks(ctx, (await ctx.db.get("leagues", leagueId))!));
-const annsMatchup = async ({ t, leagueId }: ScoresLeague) =>
-  (await actingAs(t, ANN)).query(api.matchup.matchup.ofTeam, { leagueId, now: Date.now(), gameweek: GAMEWEEK });
 
 test("at the deadline, with no sync since, the gameweek has begun: the table counts it, the matchup shows it, and a later move leaves the lineup as it locked", async () => {
   const league = await syncedBeforeTheDeadline();
   expect(await begun(league)).not.toContain(GAMEWEEK);
-  expect(await annsMatchup(league)).toMatchObject({ kind: "headToHead", game: { kind: "notBegun" } });
+  expect(await matchupAs(league, ANN, { gameweek: GAMEWEEK })).toMatchObject({ kind: "headToHead", game: { kind: "notBegun" } });
 
   await clockRunsTo(league.t, DEADLINE);
   expect(await begun(league)).toContain(GAMEWEEK);
