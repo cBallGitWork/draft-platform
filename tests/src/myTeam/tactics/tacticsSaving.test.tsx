@@ -1,6 +1,7 @@
 // My team's Tactics tab, saving (#14): nothing to save until something moves; the lineup saved as it
 // stands, from the gameweek the server names; its refusal in its words; Discard; and an edit kept
-// sound when the squad changes under it; a refusal that clears once the lineup it was about is changed.
+// sound when the squad changes under it; a refusal that clears once the lineup it was about is changed;
+// and an answer that lands after a move, which says nothing.
 
 import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -91,6 +92,45 @@ describe("saving", () => {
       await refusedWith(REFUSAL);
       await userEvent.selectOptions(screen.getByRole<HTMLSelectElement>("combobox", { name: presetLabel }), "4-4-2");
       expect(screen.queryByRole("alert")).toBeNull();
+    });
+  });
+
+  describe("an answer that lands after a player moves (#642)", () => {
+    /** White moved to the left of defence and saved, the server holding back its `answer`; White
+     *  then moved to the centre if `moveAfter`, and the answer let go. */
+    async function answerLands(answer: number | string, moveAfter: boolean) {
+      const app = openTacticsTab({ tactics: SAVED, saveAnswer: answer, saveHeld: true });
+      await userEvent.click(await screen.findByRole("button", { name: moveLabel(WHITE.name) }));
+      await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "left") }));
+      await userEvent.click(save());
+      expect(save().hasAttribute("disabled")).toBe(true);
+      if (moveAfter) {
+        await userEvent.click(blockOf(WHITE, { area: "defence", lane: "left" }));
+        await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "centre") }));
+      }
+      await act(async () => app.myTeam.letSaveGo());
+      // The answer has landed: the save no longer waits.
+      expect(save().hasAttribute("disabled")).toBe(false);
+    }
+
+    it("says nothing of a refusal of the lineup sent", async () => {
+      await answerLands(REFUSAL, true);
+      expect(screen.queryByRole("alert")).toBeNull();
+    });
+
+    it("says nothing of the lineup sent being saved", async () => {
+      await answerLands(TACTICS_GAMEWEEK, true);
+      expect(screen.queryByText(savedWords(TACTICS_GAMEWEEK))).toBeNull();
+    });
+
+    it("still says a refusal that lands with nothing moved", async () => {
+      await answerLands(REFUSAL, false);
+      expect(screen.getByRole("alert").textContent).toBe(REFUSAL);
+    });
+
+    it("still says a save that lands with nothing moved", async () => {
+      await answerLands(TACTICS_GAMEWEEK, false);
+      expect(screen.getByText(savedWords(TACTICS_GAMEWEEK))).toBeTruthy();
     });
   });
 
