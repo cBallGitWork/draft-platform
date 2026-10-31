@@ -42,11 +42,10 @@ describe("who may read it", () => {
 });
 
 describe("the fixtures", () => {
-  test("three teams' round robin has three rounds, every gameweek the league plays has fixtures, and the team left over plays the league's average by default", async () => {
+  test("three teams: every gameweek the league plays has fixtures, and the team left over plays the league's average by default", async () => {
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
     const league = await read();
 
-    expect(league?.roundRobinRounds).toBe(3);
     expect(league?.gameweeks).toHaveLength(GAMEWEEKS);
     const [first] = league!.gameweeks;
     expect(first.fixtures.map((fixture) => fixture.opponent === null)).toEqual([false, true]);
@@ -109,13 +108,13 @@ describe("the fixtures", () => {
 
   test("a league of one team has none", async () => {
     await addManagers(t, leagueId, [ANN]);
-    expect(await read()).toMatchObject({ roundRobinRounds: 0, gameweeks: [] });
+    expect(await read()).toMatchObject({ gameweeks: [] });
   });
 
   test("a total-points league has none", async () => {
     await addManagers(t, leagueId, [ANN, BOB]);
     await changeRulesTo({ format: "totalPoints" });
-    expect(await read()).toMatchObject({ format: "totalPoints", roundRobinRounds: 0, gameweeks: [] });
+    expect(await read()).toMatchObject({ format: "totalPoints", gameweeks: [] });
   });
 });
 

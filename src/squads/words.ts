@@ -7,11 +7,11 @@ import { AREA_WORDS, failedWords } from "../shared/words";
 export { findLabel, findTitle, foundListLabel, freeAgentWords, noneFoundWords, searchingWords } from "../shared/words";
 
 export const SQUADS_TITLE = "Squads";
-export const findHint = "Put any player on any team, move him to another, or release him to free agency. Every change is in the league's Mail.";
+export const findHint = "Every change is in the league's Mail.";
 export const loadingWords = "Loading the squads…";
 export const onTeamWords = (teamName: string) => `On ${teamName}`;
 export const emptySquadWords = "No players yet.";
-export const noTeamsWords = "No teams yet: a player can go on a team once one joins the league.";
+export const noTeamsWords = "No teams yet.";
 /** A free agent found while the league has no teams. */
 export const noTeamToPutOnWords = "No team to put him on yet.";
 /** A player found on the league's only team. */

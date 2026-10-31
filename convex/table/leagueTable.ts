@@ -67,8 +67,6 @@ const tableRow = v.object({
 
 export const leagueTable = v.object({
   format: leagueRulesShape.fields.format,
-  /** How many rounds one round robin has, every team meeting every other once; 0 with no fixtures. */
-  roundRobinRounds: v.number(),
   /** Each gameweek the league plays head-to-head, with its fixtures: none in total points, with
    *  fewer than two teams, nor one begun with no head-to-head (playedFixtures.ts). */
   gameweeks: v.array(gameweekFixtures),
@@ -109,8 +107,8 @@ export const ofLeague = query({
     const { league } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     if (season === null) return null;
-    const { rules, teamIds, schedule, results, unscored, table, named } = await standingsOf(ctx, league, season);
+    const { rules, schedule, results, unscored, table, named } = await standingsOf(ctx, league, season);
     const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
-    return leagueTableFrom({ format: rules.format, teamIds, schedule, results, unscored, table, deadlineOf: deadlineIn, named });
+    return leagueTableFrom({ format: rules.format, schedule, results, unscored, table, deadlineOf: deadlineIn, named });
   },
 });

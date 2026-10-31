@@ -13,10 +13,10 @@ export const loadingWords = "Loading the table and fixtures…";
 export const noRulesWords = "This league was made before leagues had rules, so it has no fixtures or table to draw.";
 
 /** Said while every team has played nothing: no gameweek scored since the league was made. */
-export const noResultsWords = "No results yet: every team is on 0 until the league's first gameweek is played.";
+export const noResultsWords = "No results yet.";
 
-/** Said while a live match counts: points move until every match is final (spec/07). */
-export const provisionalWords = "Live: points are provisional until every match in the gameweek is final.";
+/** Beside points a live match still moves (spec/07). */
+export { provisionalWords } from "../shared/words";
 
 /** A gameweek begun that couldn't be scored, and why (#287): it counts for nothing until it can. */
 export const unscoredWords = (gameweek: number, reason: string) =>
@@ -44,10 +44,8 @@ export const leagueAverageWords = "League average";
 /** The teams with a bye in a gameweek: one a game, so several when a league plays more than one. */
 export const byeWords = (teamNames: readonly string[]) => `${andListWords(teamNames)} ${teamNames.length === 1 ? "has" : "have"} a bye.`;
 export const fixturesListLabel = (gameweek: number) => `${gameweekWords(gameweek)}'s fixtures`;
-export const roundRobinWords = (rounds: number) =>
-  `Every team meets every other once a round robin of ${rounds} rounds, and each round robin is drawn in its own order.`;
 
-export const totalPointsWords = "The league plays total points, so it has no matchups or fixtures: the table ranks teams by their points.";
+export const totalPointsWords = "The league plays total points, so it has no fixtures.";
 export const tooFewTeamsWords = "Fixtures are drawn once the league has two teams.";
 export const noGameweeksWords = "The league plays no gameweeks, so it has no fixtures.";
 

@@ -8,11 +8,34 @@ import { priceFor, type Priced } from "./priced";
 import { validateScoringSet, type Area, type Band, type ScoringRule, type ScoringSet } from "./scoringSet";
 import { DOUBLE_GAMEWEEK_RULES, inTenths, showValue, statIn, type DoubleGameweekRule, type MatchStats } from "./values";
 
-/** One category's points, or null ("—") while his record for the match hasn't arrived. */
-export interface CategoryPoints {
-  stat: string;
-  points: number | null;
+/** One category's points, with why he earned them, or null ("—") while his record for the match
+ *  hasn't arrived (spec/14, On screen: each line of a breakdown says why). */
+export type CategoryPoints = { stat: string; points: null } | { stat: string; points: number; why: CategoryWhy };
+
+/** Why a category gave his points: how many of its stat he made, the rule's value for the slot he
+ *  was scored in and how finely the rule sets it, and what cut it, if anything. His points are
+ *  the value's for those actions, unless cut. */
+export interface CategoryWhy {
+  actions: number;
+  value: SlotValue;
+  pricedBy: PricedBy;
+  cut: Cut | null;
 }
+
+/** The rule's value at his slot: so many points an action; so many for each whole `every`; or,
+ *  for a band rule, the bands he earned (each he reached when it stacks, else his highest). */
+export type SlotValue =
+  | { shape: "perAction"; points: number }
+  | { shape: "perCount"; every: number; points: number }
+  | { shape: "bands"; earned: Band[] };
+
+/** How finely the rule sets its value (spec/14): the same for all, by his slot's area, or by its
+ *  position. */
+export type PricedBy = { by: "all" } | { by: "area"; area: Area } | { by: "position"; position: SlotPosition };
+
+/** What changed his points from the value's: he played fewer minutes than the rule needs, so it
+ *  gave nothing; or its points limit held them to its most or its least. */
+export type Cut = { by: "minutes"; atLeast: number } | { by: "max" | "min"; limit: number };
 
 /** A player's match: each rule's category in the set's order, and their total, null with them. */
 export interface MatchPoints {
@@ -54,10 +77,11 @@ export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cel
   const slot = { area: cell.area, position: positionOfSlot(cell) };
   record = withOwnStats(record, set);
   const minutes = statIn(record, MINUTES_STAT);
-  const categories = set.rules.map((rule) => ({
-    stat: rule.stat,
-    points: rulePoints(rule, slot, statIn(record, rule.stat), minutes),
-  }));
+  const categories = set.rules.map((rule) => {
+    const actions = statIn(record, rule.stat);
+    const { points, value, cut } = ruleScore(rule, slot, actions, minutes);
+    return { stat: rule.stat, points, why: { actions, value, pricedBy: pricedBy(rule.values, slot), cut } };
+  });
   const base = sum(categories.map((category) => category.points));
   const adjusted = role === undefined ? undefined : rolePoints(record, set, role);
   if (adjusted === undefined) return { total: inTenths(base), categories };
@@ -75,48 +99,74 @@ function rolePoints(record: MatchStats, set: ScoringSet, role: string): RolePoin
   return { role, points: inTenths(sum(lines.map((line) => line.points))), lines };
 }
 
-/** A rule's points for the slot: nothing below its minimum minutes, then held to its points
- *  limit. Points too large to be a number throw. */
-function rulePoints(rule: ScoringRule, slot: Slot, actions: number, minutes: number): number {
+/** A rule's points for the slot, with its value there and what cut them: nothing below its
+ *  minimum minutes, else held to its points limit. Points too large to be a number throw. */
+function ruleScore(rule: ScoringRule, slot: Slot, actions: number, minutes: number): { points: number; value: SlotValue; cut: Cut | null } {
   const price: Price = (priced) => priceFor(priced, slot.area, slot.position);
-  if (rule.minMinutes !== undefined && minutes < price(rule.minMinutes)) return 0;
-  let points = pointsByShape(rule, price, actions);
-  if (rule.limit !== undefined) {
+  const value = valueAt(rule, price, actions);
+  const uncut = inTenths(valuePoints(value, actions));
+  let points = uncut;
+  let cut: Cut | null = null;
+  const atLeast = rule.minMinutes === undefined ? undefined : price(rule.minMinutes);
+  if (atLeast !== undefined && minutes < atLeast) {
+    points = 0;
+    if (uncut !== 0) cut = { by: "minutes", atLeast };
+  } else if (rule.limit !== undefined) {
     const { max, min } = price(rule.limit);
-    if (max !== null) points = Math.min(points, max);
-    if (min !== null) points = Math.max(points, min);
+    if (max !== null && points > max) [points, cut] = [max, { by: "max", limit: max }];
+    if (min !== null && points < min) [points, cut] = [min, { by: "min", limit: min }];
   }
   if (!Number.isFinite(points)) throw new Error(`the ${rule.stat} rule gives ${points} points as ${slot.position}`);
-  return inTenths(points);
+  return { points: inTenths(points), value, cut };
 }
 
 /** One rule's points for a man priced at `cell`, with `actions` of its stat and `minutes` played:
  *  what a threshold line prices the step it shows by (#44). A bad cell is the caller's to check. */
 export function rulePointsIn(rule: ScoringRule, cell: Cell, actions: number, minutes: number): number {
-  return rulePoints(rule, { area: cell.area, position: positionOfSlot(cell) }, actions, minutes);
+  return ruleScore(rule, { area: cell.area, position: positionOfSlot(cell) }, actions, minutes).points;
 }
 
 /** A rule's setting for the slot being scored. */
 type Price = <Value>(priced: Priced<Value>) => Value;
 
-function pointsByShape(rule: ScoringRule, price: Price, actions: number): number {
+function pricedBy(values: Priced<unknown>, slot: Slot): PricedBy {
+  if ("all" in values) return { by: "all" };
+  if ("byArea" in values) return { by: "area", area: slot.area };
+  return { by: "position", position: slot.position };
+}
+
+/** The rule's value at the slot: for a band rule, the bands he earned of it. */
+function valueAt(rule: ScoringRule, price: Price, actions: number): SlotValue {
   switch (rule.shape) {
     case "perAction":
-      return actions * price(rule.values);
+      return { shape: "perAction", points: price(rule.values) };
     case "perCount": {
       const { every, points } = price(rule.values);
-      return Math.floor(actions / every) * points;
+      return { shape: "perCount", every, points };
     }
     case "bands":
-      return bandPoints(price(rule.values), rule.stack, actions);
+      return { shape: "bands", earned: earnedBands(price(rule.values), rule.stack, actions) };
   }
 }
 
-function bandPoints(bands: readonly Band[], stack: boolean, actions: number): number {
-  const reached = bands.filter((band) => actions >= band.atLeast);
-  if (stack) return sum(reached.map((band) => band.points));
+/** The points a value gives for `actions`, before any cut. */
+function valuePoints(value: SlotValue, actions: number): number {
+  switch (value.shape) {
+    case "perAction":
+      return actions * value.points;
+    case "perCount":
+      return Math.floor(actions / value.every) * value.points;
+    case "bands":
+      return sum(value.earned.map((band) => band.points));
+  }
+}
+
+/** Each band he reached when the rule stacks, else only his highest. */
+function earnedBands(bands: readonly Band[], stack: boolean, actions: number): Band[] {
+  const reached = bands.filter((band) => actions >= band.atLeast).map(({ atLeast, points }) => ({ atLeast, points }));
+  if (stack) return reached;
   const highest = reached.toSorted((one, other) => other.atLeast - one.atLeast)[0];
-  return highest?.points ?? 0;
+  return highest === undefined ? [] : [highest];
 }
 
 function sum(numbers: readonly number[]): number {

@@ -7,7 +7,7 @@ import { LOCALE } from "../../convex/shared/moments";
 import { failedWords, timeOfDayWords } from "../shared/words";
 
 export const MAIL_TITLE = "Mail";
-export const noLettersWords = "No letters yet. When something happens in your league, it's reported here.";
+export const noLettersWords = "No letters yet.";
 export const loadingWords = "Fetching your Mail…";
 export const unreadWords = "Unread";
 export const onlyLatestWords = `Only your latest ${LETTERS_SHOWN} letters are shown.`;
@@ -27,7 +27,7 @@ export const letterDay = (at: number) => day.format(at);
 export const letterTime = timeOfDayWords;
 
 export const WRITE_TITLE = "Write to the league";
-export const writeHint = "Everyone in the league gets it in their Mail. They can't reply: there is no chat.";
+export const writeHint = "No one can reply: there is no chat.";
 export const writeLabels = { league: "League", subject: "Subject", body: "Letter" } as const;
 export const sendToWords = (leagueName: string) => `Send to ${leagueName}`;
 export const sentWords = (leagueName: string) => `Sent to everyone in ${leagueName}.`;
