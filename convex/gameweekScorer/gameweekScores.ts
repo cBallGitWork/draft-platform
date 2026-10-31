@@ -166,15 +166,17 @@ export async function tableGameweek(
 }
 
 /** The gameweek for the `teamIds` worked out now, any saved total set aside: for a change that
- *  re-scores it (an override, #32), to say what it moved, and for the match page's men (#45). */
+ *  re-scores it (an override, #32), to say what it moved, and for the match page's men (#45), which
+ *  hands in the `lineups` it has read already (gameweekInputs). */
 export async function workedOutGameweek(
   ctx: QueryCtx,
   reads: LeagueReads,
   gameweek: number,
   teamIds: readonly TeamId[],
+  lineups?: GameweekInputs["lineups"],
 ): Promise<GameweekTeams> {
   const fixtures = await heldFixtures(ctx, gameweek);
-  return teamsFrom(reads, await gameweekInputs(ctx, reads, gameweek, fixtures, teamIds), new Map());
+  return teamsFrom(reads, await gameweekInputs(ctx, reads, gameweek, fixtures, teamIds, lineups), new Map());
 }
 
 /** One team's gameweek worked out from reads the size of its squad (squadInputs.ts), for a

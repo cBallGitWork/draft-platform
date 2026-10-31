@@ -13,13 +13,13 @@ import { clubRecord, position, scoreRead, sideTeamStats } from "../schema";
 import type { ScoringSet } from "../scoring/scoringSet";
 import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
-import { memberOf, teamsOf } from "../shared/leagueAccess";
+import { memberOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, heldPlayerByCode } from "../shared/players";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { begunGameweeks, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { matchRecordsOf } from "../gameweekScorer/heldMatches";
 import { inMatchOf, leagueReads, pointsInMatch } from "../gameweekScorer/teamGameweek";
-import { matchOwnersOf } from "./matchOwners";
+import { deadlineLineupsOf, matchOwnersOf, type DeadlineLineups } from "./matchOwners";
 import { bySheetOrder } from "./sheetOrder";
 import { unownedPointsOf, type UnownedPoints } from "./unownedPoints";
 
@@ -97,8 +97,9 @@ export const ofMatch = query({
     const records = await matchRecordsOf(ctx, fixtureCode, "its men");
     const named = records.length > 0 ? records : await sheetMenOf(ctx, fixtureCode);
     const begunGameweek = await begunGameweekOf(ctx, league, fixture);
-    const owners = await matchOwnersOf(ctx, leagueId, begunGameweek, named.map(({ playerCode }) => playerCode));
-    const priced = begunGameweek === null ? unpriced(null) : await pricedOrProblem(ctx, league, fixture, begunGameweek, named);
+    const deadlineLineups = begunGameweek === null ? null : await deadlineLineupsOf(ctx, leagueId, begunGameweek);
+    const owners = await matchOwnersOf(ctx, leagueId, deadlineLineups, named.map(({ playerCode }) => playerCode));
+    const priced = deadlineLineups === null ? unpriced(null) : await pricedOrProblem(ctx, league, fixture, deadlineLineups, named);
     const unownedPoints = await unownedPointsOf(ctx, leagueId, fixtureCode, records, owners, priced.set);
     const held = await scoreOf(ctx, fixtureCode);
     const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
@@ -147,11 +148,11 @@ async function pricedOrProblem(
   ctx: QueryCtx,
   league: Doc<"leagues">,
   fixture: Doc<"fixtures">,
-  gameweek: number,
+  deadlineLineups: DeadlineLineups,
   named: readonly NamedMan[],
 ): Promise<Priced> {
   try {
-    return await priced(ctx, league, fixture, gameweek, named);
+    return await priced(ctx, league, fixture, deadlineLineups, named);
   } catch (error) {
     return unpriced(logFailure(`League ${league._id} (${league.name}) can't price match ${fixture.code}`, error));
   }
@@ -160,14 +161,14 @@ async function pricedOrProblem(
 /** Every team in the league is priced, not only the men's owners now: a begun gameweek's lineup is
  *  read against the squad at its deadline (lineups.ts), so a man moved or released since still
  *  scores in his old team's lineup, and his points are his slot's in whichever lineup holds him. */
-async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtures">, gameweek: number, named: readonly NamedMan[]): Promise<Priced> {
+async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtures">, { gameweek, teams, lineups }: DeadlineLineups, named: readonly NamedMan[]): Promise<Priced> {
   const season = await seasonRules(ctx, league._id);
   // A league made before rules were held has no scoring (#25).
   if (season === null) return unpriced(null);
   const reads = await leagueReads(ctx, league, season);
-  const teamIds = (await teamsOf(ctx, league._id)).map((team) => team._id);
+  const teamIds = teams.map((team) => team._id);
   const inThisMatch = new Set(named.map(({ playerCode }) => playerCode));
-  const { set, slotsOf } = await workedOutGameweek(ctx, reads, gameweek, teamIds);
+  const { set, slotsOf } = await workedOutGameweek(ctx, reads, gameweek, teamIds, lineups);
   const result: Priced = { slots: new Map(), players: new Map(), set, problem: null };
   for (const teamId of teamIds) {
     const scored = await slotsOf(teamId);

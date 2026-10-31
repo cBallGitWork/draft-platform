@@ -71,21 +71,24 @@ export interface GameweekInputs {
   set: StoredScoringSet;
   rules: ReturnType<SeasonRules["inGameweek"]>;
   matches: HeldMatch[];
-  lineups: Map<TeamId, HeldLineup>;
+  lineups: ReadonlyMap<TeamId, HeldLineup>;
 }
 
-/** The gameweek's inputs. A set holding a rule no longer sound throws (#287). */
+/** The gameweek's inputs. A set holding a rule no longer sound throws (#287). A caller that has
+ *  read the `teamIds`' lineups in the gameweek already (`lineupsInGameweek`, in the same query)
+ *  hands them in as `lineups`, so they are read once (the match page, #770). */
 export async function gameweekInputs(
   ctx: QueryCtx,
   reads: LeagueReads,
   gameweek: number,
   fixtures: readonly Doc<"fixtures">[],
   teamIds: readonly TeamId[],
+  lineups?: GameweekInputs["lineups"],
 ): Promise<GameweekInputs> {
   return {
     ...rulesIn(reads, gameweek),
     matches: await heldMatches(ctx, reads.leagueId, fixtures),
-    lineups: await lineupsInGameweek(ctx, reads.leagueId, teamIds, gameweek),
+    lineups: lineups ?? (await lineupsInGameweek(ctx, reads.leagueId, teamIds, gameweek)),
   };
 }
 
