@@ -9,7 +9,7 @@ import type { Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
 import { categoryName } from "../scoring/categories";
 import { bandShape } from "../scoring/scoringSetShape";
-import { siteVersionByGameweek } from "../scoring/siteScoring";
+import { siteVersionByGameweek } from "../scoring/siteVersions";
 import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode, type Clubs } from "../shared/players";
 import { ownerOf, placeOf } from "../squads/squadPlace";
