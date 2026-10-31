@@ -87,7 +87,8 @@ to get you there"). It lives in this repo; the rest is open.
 - How it sits with *Category tables* under Smaller pages, below.
 
 **Rivals' benches hidden until kick-off**: from the ideas board (Craig, 31 Oct 2026).
-- Hidden until the deadline, or until each player's own kick-off.
+- Both lineups show once the deadline passes (`spec/10`). Does a rival's bench stay hidden past
+  it, until each player's own kick-off, or until the gameweek's last?
 - Bench only, or the starting XI too.
 - Whether the league chooses, as a rule, or it's the same for every league.
 
