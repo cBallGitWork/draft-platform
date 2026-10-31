@@ -8,7 +8,7 @@ import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { sortedJson } from "../../convex/shared/sortedJson";
 import { useChange } from "../shared/useChange";
-import { holdsBlank } from "./blank";
+import { holdsBlank, useBlankBox, type BoxRefusal } from "./blank";
 
 /** The rules row a part was read from. */
 export type Revision = Id<"leagueRules">;
@@ -24,18 +24,32 @@ type SavePart<Part, Rev> = (part: Part, revision: Rev) => Promise<number | strin
 /** The commissioner's draft of `view`'s part. Until they edit, it is the latest as it arrives;
  *  once they have, it keeps their edits and the row they were made from, and is `overtaken` once
  *  someone else saves. `drop` lets the edits go for the latest. `saveDraft` saves it with `save`,
- *  unless `refusal` finds a reason not to ask the server, which it tells `onRefused`. */
+ *  unless `blankRefusal` finds a box left without a number, which it tells `onRefused` (as the
+ *  screen draws what that changes, the box is found inside `area`). That refusal is `boxRefusal`,
+ *  said beside the box; any other, or one whose box isn't on screen, is `problem`, said in the bar. */
 export function useRulesDraft<Part, Rev = Revision>(
   view: RulesView<Part, Rev>,
   save: SavePart<Part, Rev>,
-  refusal: (draft: Part) => string | null = () => null,
+  blankRefusal: (draft: Part) => string | null = () => null,
   onRefused: (draft: Part) => void = () => {},
 ) {
   const [edits, setEdits] = useState<{ part: Part; revision: Rev } | null>(null);
   const [savedFrom, setSavedFrom] = useState<number | null>(null);
+  const [refusedBlank, setRefusedBlank] = useState(false);
   const saving = useChange();
+  const blank = useBlankBox();
   const draft = edits?.part ?? view.part;
   const revision = edits?.revision ?? view.revision;
+  const refusedBox = blank.box;
+  const boxRefusal: BoxRefusal | null =
+    refusedBlank && saving.problem !== null && refusedBox !== null ? { boxId: refusedBox.id, words: saving.problem, gone: () => blank.gone(refusedBox) } : null;
+
+  /** What the bar says: a refusal from the server; or one for a blank box found nowhere on screen
+   *  (another category opened, say), said afresh while the draft still holds a blank. */
+  function barProblem(): string | null {
+    if (!refusedBlank || saving.problem === null) return saving.problem;
+    return boxRefusal === null ? blankRefusal(draft) : null;
+  }
 
   function drop() {
     setEdits(null);
@@ -44,9 +58,11 @@ export function useRulesDraft<Part, Rev = Revision>(
   async function saveDraft() {
     let from: number | null = null;
     const made = await saving.run(async () => {
-      const refused = refusal(draft);
+      const refused = blankRefusal(draft);
+      setRefusedBlank(refused !== null);
       if (refused !== null) {
         onRefused(draft);
+        blank.refused();
         return refused;
       }
       const answer = await save(draft, revision);
@@ -66,7 +82,9 @@ export function useRulesDraft<Part, Rev = Revision>(
     overtaken: revision !== view.revision,
     savedFrom,
     busy: saving.busy,
-    problem: saving.problem,
+    problem: barProblem(),
+    boxRefusal,
+    area: blank.area,
     edit(part: Part) {
       setEdits({ part, revision });
       setSavedFrom(null);
