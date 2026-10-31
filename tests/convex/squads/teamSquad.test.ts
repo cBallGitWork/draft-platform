@@ -105,13 +105,19 @@ describe("the rows", () => {
     ]);
   });
 
-  // Bob's team has no lineup in a begun gameweek: one naming him there still throws, in scoring
-  // (gameweekScorer/teamGameweek.ts lineupPlayer), whose call that is.
-  test("keep one whose player the football sync doesn't hold as his code, for a team no begun gameweek's lineup names him in (#323)", async () => {
-    await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: bobTeam, playerCode: UNHELD }));
-    const { players, unheld } = await read(BOB);
-    expect(players).toEqual([]);
+  // Ann's team has played gameweeks begun, whose lineups now hold him too: scoring counts him as
+  // not playing (#810), so the rest of her squad keeps its points.
+  test("keep one whose player the football sync doesn't hold as his code, after the rest, the rest's points kept (#323)", async () => {
+    const before = await read();
+    await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: annTeam, playerCode: UNHELD }));
+    const { players, unheld } = await read();
+    expect(players).toEqual(before.players);
     expect(unheld).toEqual([UNHELD]);
+  });
+
+  test("keep one for a team with no lineup yet (#323)", async () => {
+    await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: bobTeam, playerCode: UNHELD }));
+    expect(await read(BOB)).toMatchObject({ players: [], unheld: [UNHELD] });
   });
 
   test("give his club's next match after now, home or away, or none", async () => {
