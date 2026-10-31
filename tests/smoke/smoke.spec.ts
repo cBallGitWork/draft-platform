@@ -75,8 +75,8 @@ async function expectPlayersApart(page: Page, onPhone: boolean, shape: string) {
       }),
     );
   expect(blocks.length, `${shape}: players on the pitch`).toBeGreaterThan(0);
-  // The tap size at the phone's width, read from the page as scripts/shoot.mjs does (--spacing-tap).
-  const tap = parseFloat(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--spacing-tap")));
+  // The tap size at the phone's width, read from the page by the one tap-size check.
+  const { tapSize: tap } = await page.evaluate(tapsUnderTapSize);
   for (const { name, block, cell } of blocks) {
     expect(within(block, cell), `${shape}: ${name} inside his cell`).toBe(true);
     if (onPhone) expect(Math.min(block.width, block.height), `${shape}: ${name} tappable`).toBeGreaterThanOrEqual(tap);

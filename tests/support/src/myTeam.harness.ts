@@ -24,7 +24,7 @@ export type MyTeamData = TacticsData & {
 export function fakeMyTeam({
   fixtures = { teamId: MY_TEAM_ID, teamName: "Team 1", format: "headToHead", games: [], unscored: [] },
   transactions = { transactions: [], cut: false },
-  squad = { teamName: "Team 1", lastGameweek: null, players: [] },
+  squad = { teamName: "Team 1", lastGameweek: null, players: [], unheld: [] },
   numberAnswer = null,
   loading = false,
   ...tactics

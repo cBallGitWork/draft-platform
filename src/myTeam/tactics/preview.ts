@@ -44,6 +44,7 @@ const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({
   name,
   clubShortName,
   clubCode: clubCodeOf(clubShortName),
+  unheld: false,
   positions,
   number: playerCode === 15 ? null : playerCode,
 }));
