@@ -7,6 +7,7 @@ import { LeagueHeading } from "../leagues/LeagueLinks";
 import { playerCardPath } from "../playerCard/paths";
 import { useChange, type Changing } from "../shared/useChange";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
+import { unheldNoticeWords, unheldPlayerWords } from "../shared/words";
 import type { FoundPlayer, SquadsSeam, SquadWithWarnings } from "./seam";
 import {
   assignLabel,
@@ -50,6 +51,7 @@ export function SquadsPage({ league, seam }: { league: LeagueSummary; seam: Squa
       <PageSection title={SQUADS_TITLE} className="bg-panel">
         <LeagueHeading name={league.name} />
         <Problem problem={change.problem} />
+        {squads?.some((squad) => squad.unheld.length > 0) && <Notice>{unheldNoticeWords}</Notice>}
       </PageSection>
       {squads === undefined ? (
         <Loading>{loadingWords}</Loading>
@@ -167,11 +169,11 @@ function FoundRow({
 function Squad({ league, seam, squad, change }: { league: LeagueSummary; seam: SquadsSeam; squad: SquadWithWarnings; change: Changing }) {
   return (
     <Panel title={squad.teamName}>
-      <PanelNote edge="t">{playersCount(squad.players.length)}</PanelNote>
+      <PanelNote edge="t">{playersCount(squad.players.length + squad.unheld.length)}</PanelNote>
       {squad.warnings.map((warning) => (
         <Notice key={warningWords(warning)}>{warningWords(warning)}</Notice>
       ))}
-      {squad.players.length === 0 ? (
+      {squad.players.length + squad.unheld.length === 0 ? (
         <PanelNote edge="b">{emptySquadWords}</PanelNote>
       ) : (
         <ul aria-label={squadListLabel(squad.teamName)} className="mt-2 border-t border-panel-rule">
@@ -195,6 +197,12 @@ function Squad({ league, seam, squad, change }: { league: LeagueSummary; seam: S
               >
                 {releaseWords}
               </button>
+            </li>
+          ))}
+          {/* Data gone wrong, kept so it shows (#323): there's no player to open or release. */}
+          {squad.unheld.map((code) => (
+            <li key={code} className="flex min-h-tap items-center border-b border-panel-rule px-3 py-1 text-event">
+              {unheldPlayerWords(code)}
             </li>
           ))}
         </ul>
