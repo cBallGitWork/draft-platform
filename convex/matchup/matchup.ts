@@ -31,8 +31,8 @@ import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vi
 // Lineups show only once the gameweek has begun, at the league's deadline: then both sides'
 // starters, each in his role, and the bench in order. Before it nobody sees another team's lineup,
 // the commissioner and the admin included: "they just get to view what the managers see" (Craig,
-// 31 Oct 2026; #392, #799). A manager's own is on My team. The commentary is every line of the matches either lineup's men play in, each
-// priced for them (vidiprinter.ts, #44).
+// 31 Oct 2026; #392, #799). A manager's own is on My team. The commentary is every line of the
+// matches either lineup's men play in, each priced for them (vidiprinter.ts, #44).
 
 type TeamId = Id<"teams">;
 type PlayerCode = number;
