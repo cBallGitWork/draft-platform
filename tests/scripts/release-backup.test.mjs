@@ -10,6 +10,7 @@ import {
   DEPLOY_ARGS,
   DEPLOY_KEY_SETTING,
   FINGERPRINT_ENV,
+  VERCEL_ENV,
   VERCEL_PRODUCTION,
   release,
   schemaJson,
@@ -158,7 +159,7 @@ function runScript(liveFingerprint) {
     env: {
       ...process.env,
       PATH: `${scratch}:${process.env.PATH}`,
-      VERCEL_ENV: VERCEL_PRODUCTION,
+      [VERCEL_ENV]: VERCEL_PRODUCTION,
       [DEPLOY_KEY_SETTING]: DEPLOY_KEY,
     },
   });

@@ -113,7 +113,7 @@ describe("editing them", () => {
     expect(screen.getByRole("status")).toBe(status);
   });
 
-  it("shows why the server refused them", async () => {
+  it("shows why the server refused them, the cursor left on Save (#645)", async () => {
     const app = openSettings();
     const refusal = "The head-to-head games each team plays a gameweek must be a whole number, 1 or more, not 1.5.";
     app.leagueSettings.save.mockResolvedValueOnce(refusal);
@@ -123,6 +123,7 @@ describe("editing them", () => {
 
     expect(savedSettings(app).gamesPerGameweek).toBe(1.5);
     expect((await screen.findByRole("alert")).textContent).toBe(refusal);
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: saveWords }));
   });
 
   it("refuses games a gameweek left without a number itself, and asks the server nothing", async () => {
@@ -224,6 +225,34 @@ describe("the squad (#341)", () => {
 
     expect((await screen.findByRole("alert")).textContent).toBe(words);
     expect(app.leagueSettings.save).not.toHaveBeenCalled();
+  });
+
+  it("with every box left without a number, each refused save puts the cursor in the box it names, in the order shown (#645)", async () => {
+    await opened();
+    const named: (readonly [label: string, words: string])[] = [
+      [gamesLabel, blankGamesWords],
+      [squadMaximumLabel, blankSquadMaximumWords],
+      ...AREAS.map((area) => [areaMinimumLabel(area), blankAreaMinimumWords(area)] as const),
+      [clubMaximumLabel, blankClubMaximumWords],
+    ];
+    await userEvent.click(clubTick());
+    for (const [label] of named) await fill(label, "");
+    for (const [label, words] of named) {
+      await save();
+      await waitFor(() => expect(screen.getByRole("alert").textContent).toBe(words));
+      expect(document.activeElement).toBe(box(label));
+      await fill(label, "1");
+    }
+  });
+
+  it("a save refused again puts the cursor back in the box (#645)", async () => {
+    await opened();
+    await fill(squadMaximumLabel, "");
+    await save();
+    await screen.findByRole("alert");
+    await save();
+
+    expect(document.activeElement).toBe(box(squadMaximumLabel));
   });
 
   it("says a league with no squad size limit has none, with no box for it", async () => {

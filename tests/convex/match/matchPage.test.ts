@@ -3,6 +3,7 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { MatchMan } from "../../../convex/match/matchPage";
 import { bySheetOrder } from "../../../convex/match/sheetOrder";
 import {
+  adjustScorersRole,
   ANN,
   annsScoredGame,
   BOB,
@@ -14,6 +15,7 @@ import {
   HULL_SCORER,
   HULL_STARTERS,
   LEAGUE_KICKOFF,
+  MIDFIELD_GOAL,
   PHILLIPS,
   scoresLeague,
   holdHullAndEverton,
@@ -40,6 +42,13 @@ async function matchAs(league: ScoresLeague, email: string, fixtureCode: number 
 }
 
 const manOf = (men: readonly MatchMan[], playerCode: number) => men.find((man) => man.playerCode === playerCode)!;
+
+/** Hull's scorer's goal, as the live tick stores its line. */
+const SCORERS_GOAL = "64' GOAL Scorer";
+const line = (sourceId: number, text: string, minute: number | null, type: string, playerCodes: number[] = []) => ({ sourceId, text, minute, addedMinute: 0, type, playerCodes });
+const scorersGoal = (sourceId: number) => line(sourceId, SCORERS_GOAL, 64, "goal", [HULL_SCORER]);
+/** scorersGoal(1) as the commentary shows it, worth `points`. */
+const shownGoal = (points: string | null) => ({ key: `${HULL_EVERTON}:1`, text: SCORERS_GOAL, points });
 
 test("before any record, the match shows its clubs and kickoff, no men and no lines", async () => {
   const league = await matchLeague();
@@ -148,11 +157,10 @@ test("a man owned by no team shows no owner and no points; a man who has left bo
 test("the commentary is the match's lines newest first, the goal priced for its owner's slot, and says when delayed", async () => {
   const league = await matchLeague();
   await fullTimeRecords(league);
-  const line = (sourceId: number, text: string, minute: number | null, type: string, playerCodes: number[] = []) => ({ sourceId, text, minute, addedMinute: 0, type, playerCodes });
   await league.t.run((ctx) =>
     ctx.db.insert("matchCommentary", {
       fixtureCode: HULL_EVERTON,
-      lines: [line(2, "64' GOAL Scorer", 64, "goal", [HULL_SCORER]), line(1, "KO HUL v EVE", 0, "start")],
+      lines: [scorersGoal(2), line(1, "KO HUL v EVE", 0, "start")],
       delayed: { reason: "the stream is over 10 minutes behind the clock", since: LEAGUE_KICKOFF },
     }),
   );
@@ -162,6 +170,18 @@ test("the commentary is the match's lines newest first, the goal priced for its 
   // The same lines, priced alike, as the matchup's.
   expect(page.commentary).toEqual({ kind: "read", lines: matchup.commentary.lines, delayed: true });
   expect(page.commentary.kind === "read" && page.commentary.lines[0].points).toMatch(/^\+/);
+});
+
+test("a goal's points include his role's adjustment, on the match page and the matchup alike, as his slot's do", async () => {
+  const league = await matchLeague();
+  await fullTimeRecords(league);
+  const ROLE_GOAL = 2;
+  await adjustScorersRole(league, ROLE_GOAL);
+  await league.t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines: [scorersGoal(1)], delayed: null }));
+  // His goal in midfield, and his role's on top.
+  const lines = [shownGoal(`+${MIDFIELD_GOAL + ROLE_GOAL}`)];
+  expect((await matchAs(league, ANN))!.commentary).toEqual({ kind: "read", lines, delayed: false });
+  expect((await annsScoredGame(league)).commentary).toEqual({ kind: "read", lines, delayed: false });
 });
 
 test("the five team stats show each side's, home and away, as the live poller last stored them", async () => {
@@ -175,11 +195,11 @@ test("before the league's gameweek begins, the men show their owners but no poin
   await fullTimeRecords(league);
   await league.t.run(async (ctx) => {
     for (const row of await ctx.db.query("passedDeadlines").collect()) await ctx.db.delete("passedDeadlines", row._id);
-    await ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines: [{ sourceId: 1, text: "64' GOAL Scorer", minute: 64, addedMinute: 0, type: "goal", playerCodes: [HULL_SCORER] }], delayed: null });
+    await ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines: [scorersGoal(1)], delayed: null });
   });
   const page = (await matchAs(league, ANN))!;
   expect(manOf(page.men, HULL_SCORER)).toMatchObject({ ownerTeamName: "Team 1", points: null });
-  expect(page.commentary).toEqual({ kind: "read", lines: [{ key: `${HULL_EVERTON}:1`, text: "64' GOAL Scorer", points: null }], delayed: false });
+  expect(page.commentary).toEqual({ kind: "read", lines: [shownGoal(null)], delayed: false });
 });
 
 test("a set that can't be priced says why, while the men and lines still show", async () => {

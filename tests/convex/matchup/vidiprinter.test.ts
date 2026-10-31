@@ -33,11 +33,11 @@ const STORED = writeCommentary(commentaryLines(recordedLiveSheets(), recordedLiv
 const played = (stats: Record<string, number>, points: number) => ({ stats: { minutes: 90, ...stats }, played: true, points });
 
 /** Williams up front, who scored; Muñoz in midfield, who made it; Murillo, booked. Enciso, who
- *  scored Forest's, is in neither lineup. */
+ *  scored Forest's, is in neither lineup. None plays a role the sets adjust. */
 const PLAYERS = new Map<number, VidiprinterPlayer>([
-  [CODE.williams, { name: "N.Williams", cell: ATTACK, inMatch: new Map([[IPSWICH_FOREST, played({ goals_scored: 1 }, 6)]]) }],
-  [CODE.munoz, { name: "Muñoz", cell: MIDFIELD, inMatch: new Map([[IPSWICH_FOREST, played({ assists: 1 }, 5)]]) }],
-  [CODE.murillo, { name: "Murillo", cell: { area: "defence", lane: "leftCentre" }, inMatch: new Map([[IPSWICH_FOREST, played({ yellow_cards: 1 }, 1)]]) }],
+  [CODE.williams, { name: "N.Williams", cell: ATTACK, role: undefined, inMatch: new Map([[IPSWICH_FOREST, played({ goals_scored: 1 }, 6)]]) }],
+  [CODE.munoz, { name: "Muñoz", cell: MIDFIELD, role: undefined, inMatch: new Map([[IPSWICH_FOREST, played({ assists: 1 }, 5)]]) }],
+  [CODE.murillo, { name: "Murillo", cell: { area: "defence", lane: "leftCentre" }, role: undefined, inMatch: new Map([[IPSWICH_FOREST, played({ yellow_cards: 1 }, 1)]]) }],
 ]);
 
 /** Williams's running totals as the live reads showed them: past 60 minutes, and to two big
@@ -85,6 +85,25 @@ test("under another set the same lines move other points, and the big chances sh
   expect(lines).toContain("54' YELLOW Murillo | -2");
   expect(lines).toContain("~58' N.Williams: 2 big chance created | +1");
   expect(shown(FIRST_SCORING as ScoringSet).filter((line) => line.includes("big chance"))).toEqual([]);
+});
+
+test("a goal shows his role's adjustment as his slot's points do: a poacher's goal 1 more, a false 9's 1 less", () => {
+  const roles: ScoringSet = {
+    ...FIRST_SCORING,
+    roleAdjustments: [
+      { role: "poacher", adjustments: [{ stat: "goals_scored", points: 1 }] },
+      { role: "falseNine", adjustments: [{ stat: "goals_scored", points: -1 }] },
+    ],
+  } as ScoringSet;
+  const goalIn = (role: string) => {
+    const players = new Map(PLAYERS);
+    players.set(CODE.williams, { ...PLAYERS.get(CODE.williams)!, role });
+    return vidiprinter([MATCH], players, roles).find((line) => line.text.startsWith("13'"))!.points;
+  };
+  expect(goalIn("poacher")).toBe("N.Williams +5, Muñoz +3");
+  expect(goalIn("falseNine")).toBe("N.Williams +3, Muñoz +3");
+  // A role the set doesn't adjust moves nothing more.
+  expect(goalIn("targetMan")).toBe("N.Williams +4, Muñoz +3");
 });
 
 test("a goal names its one man's points alone, and each further goal is priced at its own count", () => {
