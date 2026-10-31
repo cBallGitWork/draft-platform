@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* A screen's own utilities, too long to keep here */
+@import "./myTeam/tactics/pitch.css";
 
 /* The Plate look as Tailwind's tokens: docs/design/plate.md has every value and its role.
    Tailwind's own scales are switched off (.claude/rules/ui.md). */
@@ -60,8 +62,8 @@
   --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */
   --spacing-tick-mark: 14px; /* the tick drawn in it */
   /* The Tactics tab: the squad beside the pitch on the desk; the window's height the pitch leaves
-     free, so its whole length shows; the narrowest it is drawn while there is room, where each of
-     its six rows still holds a player's shirt, name and two lines of role; a player's shirt */
+     free; the narrowest the pitch is drawn while there is room, where each of its six rows still
+     holds a player's shirt, name and two lines of role; a player's shirt */
   --flex-basis-squad: 320px;
   --spacing-pitch-clearance: 16px;
   --spacing-pitch-least: 360px;
@@ -181,28 +183,6 @@
   color: var(--color-muted);
   font-size: var(--text-lead);
   font-weight: var(--font-weight-semibold);
-}
-
-/* The Tactics tab's pitch (plate.md, Marks: the pitch), drawn to a real pitch's shape: as wide as
-   lets its whole length show in the window, never narrower than --spacing-pitch-least while there
-   is room, never wider than the room. Its shape, --pitch-aspect, is set on the row holding it from
-   src/myTeam/tactics/pitchMarkings.ts, the one home of its measurements; its grass and markings
-   are drawn there too (PitchLines.tsx). The goal lines and touchlines are its border. */
-@utility pitch-room {
-  --pitch-width: max(
-    var(--spacing-pitch-least),
-    calc((100dvh - var(--spacing-pitch-clearance)) * var(--pitch-aspect))
-  );
-}
-/* The panel holding the pitch: just wide enough for it and its padding (px-2), so the squad beside
-   takes the rest. */
-@utility basis-pitch-panel {
-  flex: 0 1 calc(var(--pitch-width) + var(--spacing) * 4);
-}
-@utility pitch {
-  width: min(100%, var(--pitch-width));
-  aspect-ratio: var(--pitch-aspect);
-  border: 2px solid var(--color-pitch-line);
 }
 
 /* The secondary action (plate.md, Colour roles): Sign out. */
