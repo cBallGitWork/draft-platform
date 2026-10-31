@@ -53,7 +53,8 @@ async function fill(name: string, text: string) {
 }
 const setGames = (text: string) => fill(gamesLabel, text);
 const clubTick = () => screen.getByRole("checkbox", { name: clubMaximumWords }) as HTMLInputElement;
-const save = () => userEvent.click(screen.getByRole("button", { name: saveWords }));
+const saveButton = () => screen.getByRole("button", { name: saveWords }) as HTMLButtonElement;
+const save = () => userEvent.click(saveButton());
 const savedSettings = (app: App): LeagueSettings => app.leagueSettings.save.mock.calls[0][1];
 
 describe("reaching it", () => {
@@ -92,7 +93,7 @@ describe("editing them", () => {
     expect(gamesBox().value).toBe("1");
     expect(screen.getByText(gameweekWords(CHANGES_FROM))).toBeTruthy();
     expect(screen.getByText(unchangedWords)).toBeTruthy();
-    expect((screen.getByRole("button", { name: saveWords }) as HTMLButtonElement).disabled).toBe(true);
+    expect(saveButton().disabled).toBe(true);
   });
 
   it("says saving redraws the fixtures only from the gameweek it applies from (#266)", async () => {
@@ -124,10 +125,10 @@ describe("editing them", () => {
 
     expect(savedSettings(app).gamesPerGameweek).toBe(1.5);
     expect((await screen.findByRole("alert")).textContent).toBe(refusal);
-    expect(document.activeElement).toBe(screen.getByRole("button", { name: saveWords }));
+    expect(document.activeElement).toBe(saveButton());
     expect(refusalBeside(gamesBox())).toBeNull();
     // Under the save bar, after Save, as before.
-    expect(screen.getByRole("button", { name: saveWords }).compareDocumentPosition(screen.getByRole("alert")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(saveButton().compareDocumentPosition(screen.getByRole("alert")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("refuses games a gameweek left without a number itself, beside the box, and asks the server nothing (#645)", async () => {

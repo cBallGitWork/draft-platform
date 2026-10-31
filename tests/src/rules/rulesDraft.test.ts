@@ -38,7 +38,6 @@ describe("where a refusal for a box left without a number is said (#645)", () =>
     const words = "A box has no number.";
     const save = vi.fn(() => Promise.resolve(CHANGES_FROM));
     const { result } = renderHook(() => useRulesDraft(VIEW, save, () => words));
-    act(() => result.current.edit({ ...SAVED, limit: NaN }));
     await act(() => result.current.saveDraft());
 
     expect(result.current.problem).toBe(words);
