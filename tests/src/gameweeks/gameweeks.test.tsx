@@ -68,7 +68,9 @@ describe("the gameweeks page", () => {
   it("heads each column of every table with its short word, named by its long one", async () => {
     openApp(PAGE, commissioner);
     await tickBox(1);
-    for (const table of screen.getAllByRole("table")) expectColumnHeads(table, Object.values(gameweekColumns));
+    const tables = screen.getAllByRole("table");
+    expect(tables.length).toBeGreaterThan(1);
+    for (const table of tables) expectColumnHeads(table, Object.values(gameweekColumns));
   });
 
   it("an unticked gameweek shows unticked, and isn't counted", async () => {

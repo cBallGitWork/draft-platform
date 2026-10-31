@@ -16,7 +16,7 @@ export type ColumnWords = { short: string; long: string };
 
 /** How a sortable table is sorted: the column sorted by, which way, the columns a head press can
  *  sort by, and what a press does. */
-export type ColumnSort<Column extends string, Sortable extends Column> = {
+type ColumnSort<Column extends string, Sortable extends Column> = {
   by: Column;
   descending: boolean;
   sortable: readonly Sortable[];
