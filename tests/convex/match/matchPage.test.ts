@@ -25,7 +25,7 @@ import {
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 import { ADMIN, OUTSIDER, actingAs } from "../../support/convex/leagues.harness";
-import { manOf, matchAs, matchLeague, notYetBegun, scorerFreeLeague } from "../../support/convex/matchPage.harness";
+import { holdLines, manOf, matchAs, matchLeague, notYetBegun, scorerFreeLeague, storedLine } from "../../support/convex/matchPage.harness";
 import { HULL_EVERTON, HULL_EVERTON_TEAM_STATS, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 
@@ -36,10 +36,9 @@ import { expectRefused, silenceConsoleError } from "../../support/convex/test.ha
 
 /** Hull's scorer's goal, as the live tick stores its line. */
 const SCORERS_GOAL = "64' GOAL Scorer";
-const line = (sourceId: number, text: string, minute: number | null, type: string, playerCodes: number[] = []) => ({ sourceId, text, minute, addedMinute: 0, type, playerCodes });
-const scorersGoal = (sourceId: number) => line(sourceId, SCORERS_GOAL, 64, "goal", [HULL_SCORER]);
+const scorersGoal = (sourceId: number) => storedLine(sourceId, SCORERS_GOAL, 64, "goal", [HULL_SCORER]);
 /** The match's commentary as just scorersGoal(1). */
-const holdScorersGoal = ({ t }: ScoresLeague) => t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines: [scorersGoal(1)], delayed: null }));
+const holdScorersGoal = (league: ScoresLeague) => holdLines(league, [scorersGoal(1)]);
 /** scorersGoal(1) as the commentary shows it, worth `points`. */
 const shownGoal = (points: string | null) => ({ key: `${HULL_EVERTON}:1`, text: SCORERS_GOAL, points });
 
@@ -165,7 +164,7 @@ test("the commentary is the match's lines newest first, the goal priced for its 
   await league.t.run((ctx) =>
     ctx.db.insert("matchCommentary", {
       fixtureCode: HULL_EVERTON,
-      lines: [scorersGoal(2), line(1, "KO HUL v EVE", 0, "start")],
+      lines: [scorersGoal(2), storedLine(1, "KO HUL v EVE", 0, "start")],
       delayed: { reason: STREAM_BEHIND, since: LEAGUE_KICKOFF },
     }),
   );
