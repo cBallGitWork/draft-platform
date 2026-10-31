@@ -4,12 +4,16 @@
 import { expect, test as base, type ConsoleMessage, type Page } from "@playwright/test";
 import { LANES } from "../../convex/lineup/pitch";
 import { DEFAULT_PRESETS } from "../../convex/lineup/presets";
-import { MY_TEAM_PATH } from "../../src/frame/menu";
+import { ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../src/admin/paths";
+import { miniBeta } from "../../src/app/preview";
+import { MY_TEAM_PATH, SCOUTING_PATH } from "../../src/frame/menu";
+import { invitesPath } from "../../src/joining/paths";
 import { ERROR_PAGE_TITLE, mainMenuLabel } from "../../src/frame/words";
 import { PITCH_ASPECT } from "../../src/myTeam/tactics/pitchMarkings";
 import { moveLabel, pitchLabel, presetLabel, putHereLabel } from "../../src/myTeam/tactics/words";
 import { SIGN_IN_PATH } from "../../src/signIn/paths";
 import { signInWords } from "../../src/signIn/words";
+import { squadsPath } from "../../src/squads/paths";
 import { NO_CONVEX_URL } from "../../src/shared/words";
 import { BUILT_SCREENS } from "../support/smoke/builtScreens";
 
@@ -136,6 +140,28 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
       });
     });
   }
+
+  // The admin's and a commissioner's pages share the other pages' width on the desk (#296).
+  test.describe("on the desk", () => {
+    test.use({ viewport: DESK });
+    const titleWidth = async (page: Page, path: string) => {
+      await page.goto(path);
+      return (await page.getByRole("main").getByRole("heading", { level: 1 }).boundingBox())!.width;
+    };
+    const SHARING_THE_WIDTH = [
+      `${squadsPath(miniBeta.leagueId)}?preview=commissioner`,
+      `${invitesPath(miniBeta.leagueId)}?preview=commissioner`,
+      `${ADMIN_PATH}?preview=admin`,
+      `${ADMIN_FEEDS_PATH}?preview=admin`,
+      `${ADMIN_FEEDBACK_PATH}?preview=admin`,
+    ];
+    for (const path of SHARING_THE_WIDTH) {
+      test(`${path} is as wide as Scouting`, async ({ page }) => {
+        const scouting = await titleWidth(page, `${SCOUTING_PATH}?preview=manager`);
+        expect(await titleWidth(page, path)).toBeCloseTo(scouting, 0);
+      });
+    }
+  });
 
   test.describe("each built screen, on the phone", () => {
     test.use({ viewport: PHONE });
