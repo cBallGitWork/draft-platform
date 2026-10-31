@@ -47,7 +47,7 @@ const timeOfDayFormat = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minut
 /** The time of day alone, in the viewer's own zone: "15:00", a kickoff or when a letter was filed. */
 export const timeOfDayWords = (at: number) => timeOfDayFormat.format(at);
 
-/** A number as every screen shows it, with the true minus: "−3", "4.5" (#564). */
+/** Every number a screen shows, with the one minus sign: "−3", and signed, "+4". */
 export { figureWords, signedWords } from "../../convex/shared/numberWords";
 
 /** A figure not there yet, such as points before a match's record has arrived. */
