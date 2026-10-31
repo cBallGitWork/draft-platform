@@ -74,6 +74,10 @@ export const statusLabels = {
   noMatch: "No match this gameweek",
 } as const;
 
+/** A side's formation, as managers say it ("4-2-3-1"), on its panel's plate; its name read out. */
+export const formationWords = (counts: readonly number[]) => counts.join("-");
+export const formationLabel = "Formation";
+
 /** What the auto-subs did with him (spec/05, Auto-subs). */
 export const autoSubWords = {
   off: (playerName: string) => `Didn't play: ${playerName} on`,
