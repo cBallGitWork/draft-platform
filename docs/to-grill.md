@@ -97,6 +97,42 @@ Open: where those four seasons are, and whether they hold the Premier League's o
 won, key passes) or only FPL's. Claude's recommendation: load what they hold and mark a category
 they lack as not tested.
 
+**Five colour and live-screen cards, from the ideas board**: Craig left the pick to Claude
+(31 Oct 2026: "Your call on cards"), and Claude moved these to "Yes, grill it". The design
+research page behind all five: https://claude.ai/artifact/UJC3f6ixFg3ZUQzBuEPiVq. Grill the
+palette first: the colour cards after it sit on whatever ground it settles.
+
+**Too much blue on blue**: calm the palette, as modern FM does (https://trello.com/c/wW5tcB5T).
+- FM26's look, folded in from its own card: dark neutral panels, colour only on small things. Is
+  that the ground, or a calmer blue?
+- What keeps colour once the panels go neutral, and how it squares with the plate
+  (`docs/design/plate.md`) and its Championship Manager homage.
+
+**Club colours everywhere** (https://trello.com/c/N5Rk4ZPP).
+- Which of these: kits on our pitch shirts, beyond the plate's outline in the club's colours
+  (`docs/design/plate.md` Marks); a two-colour club mark before every club code; scoreboards in
+  kit colours; the player card's plate in his club's colour.
+- It needs each club's two colours held: where they come from, and who keeps them right when a
+  club changes its kit.
+
+**A crest and kit for each manager's team**: narrowed from the card's "Team creator"
+(https://trello.com/c/ZnPoZdA2).
+- A few shield patterns and two colours, drawn by us, shown wherever the team name is. Does a bar
+  scarf come first?
+- Who picks them (the manager, or the commissioner too), and when. Goes with a team's own logo
+  under *Our own home stadiums*, above.
+
+**Colour that means something** (https://trello.com/c/kt83WyFm).
+- Which of these: W/D/L form squares (league home shows each team's form already, `spec/12`), a
+  colour per position line, points shaded by band.
+- Where a band's edges come from, if points are shaded by band.
+
+**Vidiprinter strip, score box, every matchup on one live screen**
+(https://trello.com/c/Ep5eR42z).
+- League home's matchday mode already has every head-to-head moving and a league-wide vidiprinter
+  (`spec/12`). What the card adds beyond it: a strip of every match's lines, not only those that
+  move a head-to-head; a score box, and where; a live screen of its own, or league home is enough.
+
 ## Suggested, not yet picked
 
 | What | Why |

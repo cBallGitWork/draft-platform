@@ -4,11 +4,11 @@ import { unreadFigure, unreadTabLabel } from "../../mail/words";
 import { mainMenuLabel } from "../words";
 
 // On a phone the menu takes its own row under the name and Sign out (and Continue, in a league).
-const mainMenuClasses = "order-last flex w-full flex-wrap border-t border-plate-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-r";
+const mainMenuClasses = "order-last flex w-full flex-wrap border-t border-bar-rule lg:order-none lg:w-auto lg:border-t-0 lg:border-r";
 
 // Butted tabs with 1px rules between them (plate.md, Shape).
 const menuTabClasses =
-  "flex min-h-tap items-center border-l border-plate-rule px-4 text-lead font-semibold text-soft no-underline hover:text-fact " +
+  "flex min-h-tap items-center border-l border-bar-rule px-4 text-lead font-semibold text-soft no-underline hover:text-fact " +
   "data-[status=active]:text-fact data-[status=active]:shadow-tab-active";
 
 /** A tab on the top bar; Mail's carries its unread count (spec/12). */
