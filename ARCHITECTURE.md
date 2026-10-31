@@ -78,7 +78,7 @@ its team stats reads are kept for the tests (`tests/support/recorded/pl-live-mat
 | Sign-in | Convex Auth (`@convex-dev/auth`) magic links, with Auth.js's Resend provider (`@auth/core`, its required peer); the email is sent with one `fetch` to Resend's API, no Resend package | the backend's own; beta, so read its current docs first. The hourly and daily limits are counted in our own tables (the hour's in `convex/signIn/signInLinks.ts`, the day's in `convex/outbound/emailLimit.ts`), not `@convex-dev/rate-limiter`: a Convex mutation is one transaction, so the count can't race, and it's one component less to install |
 | Components | shadcn/ui on Base UI, added with the first component that needs Base UI's behaviour (a dialog, or a true ARIA menu with arrow-key roving focus); a disclosure list like the league switcher (`src/frame/topBar/LeagueSwitcher.tsx`) is hand-built and needs none | the code is copied into the repo, so it is ours to restyle |
 | Styling | Tailwind 4 with our own design values | the defaults are the generic AI look Craig wants to get far from |
-| Typeface | Archivo Narrow from Fontsource | plate.md's one face, served with the app: no call to Google from the sign-in page, and screenshots don't wait on a font server |
+| Typeface | Archivo Narrow from Fontsource, and Archivo's variable font with its width axis (`@fontsource-variable/archivo`, `wdth.css`) | plate.md's two faces, served with the app: no call to Google from the sign-in page, and screenshots don't wait on a font server. The variable font is one file for the heavy wide titles (weight 800, width 125), where static files would need a width the package doesn't ship |
 | Tables | hand-built `<table>`s styled with Tailwind, such as Scouting's players list (`src/scouting/PlayersTable.tsx`), sorted by the server; TanStack Table and TanStack Virtual when a table needs virtualising | a plain table takes Championship Manager density with no library to learn; TanStack's are unstyled, so they would too, and its Table v9 is newer than Claude's knowledge, so read its docs first |
 | Tactics pitch | the browser's own drag and drop (`draggable`, in `src/myTeam/tactics/Pitch.tsx` and `SquadTable.tsx`), plus a tap, click or Enter to pick a player up and another to place him, both reaching one `onPlace` | a phone and a keyboard need the tap anyway, so drag is only the desk's shortcut and needs no package; Pragmatic drag and drop if drag ever needs more than the browser gives |
 | Motion | considered, not needed yet: Motion when a screen needs animating | the live points change without it |
@@ -147,6 +147,14 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   list and one read per match, its sheets, kept as one row a match in `matchTeamSheets`
   (`convex/football/matchTeamSheets.ts`); no tick row, as nothing is scored yet. The Premier
   League had them out 58 minutes before kickoff (docs/pl-commentary.md).
+  The tick's side reads, the team sheets before kickoff and each live match's team stats and
+  threshold steps, are each a feed of their own (#522; `convex/admin/sideRuns.ts`): a row a run
+  with a match to work on, in `teamSheetsRuns`, `teamStatsRuns` and `thresholdStepsRuns`, so
+  one failing is "failing" on the feeds page and emails the admin, and is never only a log line.
+  They stay off the tick's row, as they never stop a match's points. The match-stats sync's
+  full-time team stats write a `teamStatsRuns` row too. That is two more rows each live tick,
+  however many matches it reads, and one a minute in the hour before a kickoff; none grows with
+  leagues or teams, and the run logs' prune clears them as it does the tick's.
   Revisit the bootstrap read each tick when Convex usage nears the plan's limit, or when
   `liveStatsTicks` rows fail from throttling.
 - Match scores (#49): each match's state, score and clock in `matchScores`, apart from
@@ -158,7 +166,7 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   `football/matchScores:ofGameweek` reads a gameweek's matches with their scores.
 - The run logs (#146): `admin/runLogs:prune` deletes a run row 30 days after its run if it
   succeeded, and 180 days after if it failed (Craig, 22 Oct 2026). It always keeps each feed's
-  newest five rows and its newest success. It goes in batches, `liveStatsTicks` first.
+  newest five rows and its newest success. It goes in batches, the live tick's tables first.
   A cron runs it daily (spec/20). A match-stats run with no match due is still a row: the feeds
   page needs it as a success to judge lateness, and pruning keeps a 10-minute cron's runs to
   about 4,300.
@@ -179,8 +187,8 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   `convex/rules/leagueRulesShape.ts`).
 - The site's scoring (#354-#356): every league plays on one scoring set, which only the admin
   changes. Each version is a row in `siteScoring`, announced as a patch or a fix, and found by
-  `takesEffectAt`, so a past gameweek keeps the set it was played under; with none, the first set
-  (`convex/scoring/firstScoring.ts`). A gameweek's first kickoff is kept once it passes, in
+  `takesEffectAt`, so a past gameweek keeps the set it was played under (`convex/scoring/siteVersions.ts`);
+  with none, the first set (`convex/scoring/firstScoring.ts`). A gameweek's first kickoff is kept once it passes, in
   `gameweekStarts` (#414), so the version it plays on can't change if that match moves. The
   admin's unannounced patch is the one row in `siteScoringDraft`, and who dismissed a waiting
   patch's banner is a row a person and version in `patchBannerDismissals`, so it stays dismissed on
@@ -244,7 +252,8 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   `src/leagues/LeagueLinks.tsx`, `src/mail/DateBlock.tsx`.
 - `src/app/`: how the app starts. `src/routes/`: the routes and the router. `src/`'s top level
   keeps only `main.tsx` and `styles.css`. The tokens stay in `styles.css`; a screen's own long
-  utilities sit beside it and `styles.css` imports them (`src/myTeam/tactics/pitch.css`, 31 Oct 2026).
+  utilities sit beside it and `styles.css` imports them (`src/myTeam/tactics/pitch.css`, 31 Oct 2026),
+  as it does the controls' shared styles (`src/ui/controls.css`: the action, keys, boxes, the tick well).
 - `convex/schema/`: the schema's tables, one file per feature, imported only by `convex/schema.ts`.
   `convex/gameweekScorer/`: the gameweek scorer.
 - The feed adapters: `convex/football/fpl/` and `convex/football/premierLeague/`, copies of

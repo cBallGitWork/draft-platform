@@ -7,7 +7,7 @@ import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MANAGERS, OUTSIDER, actingAs, teamName, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
-import { EXAMPLE_SET } from "../../support/convex/scoring.example";
+import { EXAMPLE_SET, GOAL_AND_ASSIST } from "../../support/convex/scoring.example";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { ARSENAL, CHELSEA, COVENTRY, GONE, completeRecord, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -35,7 +35,6 @@ const MOVER = { code: 1002, name: "Mover", fullName: "Moving Man", clubCode: CHE
 const FORWARD = { ...MOVER, code: 1003, name: "Forward", fullName: "Two Positions", clubCode: ARSENAL.code, positions: ["ST", "W"] as Position[] };
 /** An Arsenal second striker, a position no slot prices yet (spec/14), who scored and assisted in gameweek 1. */
 const SUPPORT = { ...MOVER, code: 1004, name: "Support", fullName: "Second Striker", clubCode: ARSENAL.code, positions: ["SS"] as Position[] };
-const GOAL_AND_ASSIST = { minutes: 90, goals_scored: 1, assists: 1 };
 
 const NOW = Date.parse("2026-09-01T12:00:00Z");
 const fixture = (code: number, gameweek: number | null, home: number, away: number, kickoff: number | null, dropped = false) => ({
@@ -118,13 +117,36 @@ test("this season's matches are newest first, at his base points, by category", 
   // As a winger in attacking midfield: goal 5, assist 4, minutes 2.
   expect(priced.points).toHaveLength(1);
   expect(priced.points[0]).toMatchObject({ position: "W", total: 11 });
+  // Each with why (spec/14, On screen): EXAMPLE_SET prices all three by area.
+  const inArea = { by: "area", area: "attackingMidfield" } as const;
   expect(priced.points[0].categories.slice(0, 3)).toEqual([
-    { stat: "goals_scored", name: "Goals scored", points: 5 },
-    { stat: "assists", name: "Assists", points: 4 },
-    { stat: "minutes", name: "Minutes", points: 2 },
+    { stat: "goals_scored", name: "Goals scored", points: 5, why: { actions: 1, value: { shape: "perAction", points: 5 }, pricedBy: inArea, cut: null } },
+    { stat: "assists", name: "Assists", points: 4, why: { actions: 1, value: { shape: "perAction", points: 4 }, pricedBy: inArea, cut: null } },
+    { stat: "minutes", name: "Minutes", points: 2, why: { actions: 90, value: { shape: "bands", earned: [{ atLeast: 60, points: 2 }] }, pricedBy: inArea, cut: null } },
   ]);
+  expect(priced.version).toBe("25_26.1");
   expect(priced.role).toBeUndefined();
   expect(unarrived).toMatchObject({ minutes: null, points: [{ position: "W", total: null }] });
+});
+
+test("each match names the version it was scored under: a later version reaches only the gameweeks after it (spec/14)", async () => {
+  // Takes effect between gameweek 1's kickoff and gameweek 2's.
+  const between = ARS_COV.kickoff! + DAY_MS;
+  await t.run((ctx) => holdSiteScoring(ctx, { scoring: structuredClone(EXAMPLE_SET) as StoredScoringSet, kind: "patch", season: 2026, number: 1, at: between }));
+  const { matches } = (await cardAs(ANN, SAKA.code))!;
+
+  expect(matches.map(({ gameweek, version }) => [gameweek, version])).toEqual([
+    [2, "26_27.1"],
+    [1, "25_26.1"],
+  ]);
+});
+
+test("before the site has any version, its matches were scored under the first set, which has no name", async () => {
+  await t.run(async (ctx) => {
+    for (const row of await ctx.db.query("siteScoring").collect()) await ctx.db.delete("siteScoring", row._id);
+  });
+  const { matches } = (await cardAs(ANN, SAKA.code))!;
+  expect(matches.map((match) => match.version)).toEqual([null, null]);
 });
 
 test("a player with two positions is priced at each, back to front, whatever order they are held in", async () => {

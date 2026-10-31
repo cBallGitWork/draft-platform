@@ -1,0 +1,169 @@
+/* The action (plate.md, Colour roles): Continue, and a page's one main button. */
+@utility action {
+  display: flex;
+  align-items: center;
+  min-height: var(--spacing-tap);
+  padding-inline: calc(var(--spacing) * 4);
+  background: var(--color-fact);
+  color: var(--color-ground);
+  font-size: var(--text-lead);
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+  box-shadow: var(--shadow-bevel-action);
+  /* Only where a pointer hovers: a phone keeps a tapped button "hovered", so Save would stay grey */
+  @media (hover: hover) {
+    &:hover {
+      background: var(--color-soft);
+    }
+  }
+  &:active,
+  &:disabled {
+    background: var(--color-head);
+    box-shadow: var(--shadow-bevel-action-pressed);
+  }
+}
+
+/* Save with nothing to save (plate.md, Colour roles: the action with nothing to do). */
+@utility action-idle {
+  display: flex;
+  align-items: center;
+  min-height: var(--spacing-tap);
+  padding-inline: calc(var(--spacing) * 4);
+  border: 1px solid var(--color-muted);
+  color: var(--color-muted);
+  font-size: var(--text-lead);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* The secondary action (plate.md, Colour roles): Sign out. */
+@utility secondary-action {
+  display: flex;
+  align-items: center;
+  min-height: var(--spacing-tap);
+  padding-inline: calc(var(--spacing) * 4);
+  background: var(--color-plate);
+  border: 1px solid var(--color-soft);
+  color: var(--color-fact);
+  font-size: var(--text-lead);
+  font-weight: var(--font-weight-semibold);
+  @media (hover: hover) {
+    &:hover {
+      background: var(--color-stepper);
+      border-color: var(--color-fact);
+    }
+  }
+  &:active {
+    background: var(--color-ground);
+  }
+}
+
+/* The danger action (plate.md, Colour roles): the yes on a confirm that deletes or removes, the
+   secondary action's shape in the alert strip's colours, so it never reads as Continue (#403). */
+@utility danger-action {
+  display: flex;
+  align-items: center;
+  min-height: var(--spacing-tap);
+  padding-inline: calc(var(--spacing) * 4);
+  background: var(--color-alert);
+  border: 1px solid var(--color-event);
+  color: var(--color-event);
+  font-size: var(--text-lead);
+  font-weight: var(--font-weight-semibold);
+  @media (hover: hover) {
+    /* Never filled orange: that is Continue near the deadline. The edge doubles and the words go white
+       (high-contrast mode drops both, as it does every hover here but the browser's own). */
+    &:enabled:hover {
+      box-shadow: inset 0 0 0 1px var(--color-event);
+      color: var(--color-fact);
+    }
+  }
+  &:active {
+    background: var(--color-ground);
+    color: var(--color-event);
+  }
+  &:disabled {
+    border-color: var(--color-muted);
+    color: var(--color-muted);
+  }
+}
+
+/* The alert strip (plate.md, Colour roles: alert, event): something that needs you. */
+@utility alert-strip {
+  background: var(--color-alert);
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  color: var(--color-event);
+  box-shadow: var(--shadow-event-edge);
+}
+
+/* A box to type in. */
+@utility text-box {
+  min-height: var(--spacing-tap);
+  border: 1px solid var(--color-soft);
+  background: var(--color-ground);
+  padding-inline: calc(var(--spacing) * 2);
+  color: var(--color-fact);
+  font-size: var(--text-lead);
+  line-height: var(--text-lead--line-height);
+}
+
+/* A box for one number of a rule: a figure (plate.md, Colour roles), so yellow. */
+@utility number-box {
+  width: var(--spacing-number-box);
+  min-height: var(--spacing-tap);
+  border: 1px solid var(--color-soft);
+  background: var(--color-ground);
+  padding-inline: calc(var(--spacing) * 2);
+  color: var(--color-figure);
+  font-size: var(--text-lead);
+  line-height: var(--text-lead--line-height);
+  &[aria-invalid="true"] {
+    border-color: var(--color-event);
+  }
+}
+
+/* A tick box (plate.md, Controls): the real checkbox drawn as a sunken well, its tick drawn over it.
+   The soft rim, as on a box to type in, is what sets it off from the panel at 3:1. */
+@utility tick-well {
+  appearance: none;
+  margin: 0;
+  width: var(--spacing-tick);
+  height: var(--spacing-tick);
+  flex-shrink: 0;
+  border: 1px solid var(--color-soft);
+  background: var(--color-name-plate);
+  box-shadow: var(--shadow-bevel-sunk);
+  cursor: pointer;
+}
+
+/* One of a row of butted keys (plate.md, Controls): the plate, and the chosen one pressed in. It is
+   the label around a hidden radio, so the radio's focus rings the key. */
+@utility key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--spacing-tap);
+  min-width: var(--spacing-tap);
+  padding-inline: calc(var(--spacing) * 4);
+  background: var(--color-plate);
+  box-shadow: var(--shadow-bevel-plate);
+  color: var(--color-soft);
+  cursor: pointer;
+  & + & {
+    border-left: 1px solid var(--color-plate-rule);
+  }
+  @media (hover: hover) {
+    &:hover {
+      background: var(--color-stepper);
+    }
+  }
+  &:has(:checked) {
+    background: var(--color-ground);
+    box-shadow: var(--shadow-bevel-plate-pressed);
+    color: var(--color-fact);
+    font-weight: var(--font-weight-semibold);
+  }
+  &:has(:focus-visible) {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+}

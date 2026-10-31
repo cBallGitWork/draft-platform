@@ -16,7 +16,8 @@ function priced<Value extends RequiredValidator>(value: Value) {
   return v.union(v.object({ all: value }), v.object({ byArea: byArea(value) }), v.object({ byPosition: byPosition(value) }));
 }
 
-const band = v.object({ atLeast: v.number(), points: v.number() });
+/** scoringSet.ts's Band. */
+export const bandShape = v.object({ atLeast: v.number(), points: v.number() });
 
 /** What any rule may carry besides its values: scoringSet.ts's RuleOptions. */
 const ruleOptions = {
@@ -35,7 +36,7 @@ export const scoringSetShape = v.object({
         values: priced(v.object({ every: v.number(), points: v.number() })),
         ...ruleOptions,
       }),
-      v.object({ shape: v.literal("bands"), stat: v.string(), stack: v.boolean(), values: priced(v.array(band)), ...ruleOptions }),
+      v.object({ shape: v.literal("bands"), stat: v.string(), stack: v.boolean(), values: priced(v.array(bandShape)), ...ruleOptions }),
     ),
   ),
   wholePointsOnly: v.boolean(),

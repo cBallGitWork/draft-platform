@@ -9,7 +9,7 @@ letters, newest first. It reports; it never advises.
 - An unread count in the menu.
 - It files: the next deadline; your results; injury doubts, yours and your next opponent's (from FPL's player news and
   chance of playing);
-  every claim, drop and trade in the league; trade offers to and from you; waiver results; every commissioner action
+  every claim, drop and trade in the league; trade offers to and from you; a trade to review, and a blocked trade (`spec/08`); waiver results; every commissioner action
   (an assignment, a rule change, a fixture edit, a team handed on, the auto team
   switched on, a manager joining, removed or leaving (`spec/13`), a score override: `spec/15`), and the admin's actions that change a score,
   a squad or who runs a team;

@@ -23,4 +23,13 @@ From `/grill trades` (25 Oct 2026).
   points with the old team.
 - A trade deadline is a league setting, off by default: no trades after a gameweek the
   commissioner picks.
-- Trades come after the mini beta, by August, with the veto (`spec/15`).
+- Trades come after the mini beta, by August, with the veto and the league vote (`spec/15`;
+  the vote, Craig, 31 Oct 2026).
+- Under a veto, the commissioner gets a Mail letter for each accepted trade, with Block in it;
+  under a vote, each other manager gets one with Against in it. A blocked trade files a letter to
+  the whole league; one that clears review files the usual trade letter (`spec/16`; 31 Oct 2026).
+- Under a veto, a trade the commissioner is in goes to the co-commissioner, or to a league vote
+  if there is none (31 Oct 2026).
+- While a team is on the auto team (`spec/09`), no offer goes to or from it, and its open offers
+  close when the auto team switches on; a trade already accepted and in review finishes it. Its
+  manager doesn't vote: "most of them" is most of the managers still playing (31 Oct 2026).

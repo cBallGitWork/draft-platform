@@ -9,6 +9,15 @@ commentary` (16 Oct 2026).
 
 - The two teams' totals are the score at the top. Each player shows his own status: yet to play,
   playing now with his minute, or finished.
+- Before the deadline a rival's lineup is hidden, and only his squad shows, as a real club's would.
+  At the deadline both lineups show: the starters, the bench in order, the formation and each
+  starter's role. The commissioner and the admin see only what managers see (Craig, 31 Oct 2026:
+  "they just get to view what the managers see").
+- Each starter on the matchup's lineups shows his slot's position label and his role's run, as on
+  the Tactics pitch (`spec/05`; Craig, 31 Oct 2026, `/grill the Tactics pitch`).
+- Tapping a player on the matchup or its pitch shows his breakdown for this match, his role's line
+  included (`spec/14`): "the opposition manager needs to see why his opponent got the points"
+  (Craig, 31 Oct 2026). It leads on to his player card, which keeps his base points (`spec/12`).
 - His minute shows stoppage time, and "Live" before there is one (Craig, 31 Oct 2026: "Yes
   stoppage time and live").
 - The matchup has commentary: a vidiprinter, newest first, of every line from every match that
@@ -18,7 +27,8 @@ commentary` (16 Oct 2026).
 
 ## The match page
 
-- One real Premier League match: the score and clock, both clubs' lineups and subs, five team stats
+- One real Premier League match: the score and clock, each club's name on its own colour with the
+  score between (Craig, 31 Oct 2026; `spec/12`, Club colours), both clubs' lineups and subs, five team stats
   (shots, shots on target, possession, corners, cards), and commentary for every event in it.
 - Every player shows his live points, and only one owned in the league his team: "I need to stress
   that players who don't have a team still have their scores show. Just because they aren't a team
@@ -36,10 +46,17 @@ commentary` (16 Oct 2026).
 - Our own short lines, CM-terse, built from the Premier League's events: "62' GOAL Saka, assist
   Ødegaard". Championship Manager's and Football Manager's commentary is a style reference only;
   none of it is copied.
-- A goal, an assist or a card shows the points it moves, for a player owned in the league.
+- A goal, an assist, a card or an own goal shows the points it moves, for every player, owned or
+  not, bench included (Craig, 31 Oct 2026: "yes the main ones"; an own goal "same as red card
+  etc").
 - A threshold line when a player's running total reaches a point where he earns more under the league's rules: "~58'
   Rice: 3 key passes, +1". The "~" because it's when the totals showed it, not when it happened.
-  Only for players owned in the league.
+  For every player, owned or not (31 Oct 2026).
+- Every point movement, up or down, gets a line (Craig, 31 Oct 2026: "any negative/positive point
+  movement"): a minutes band (for example "~60' Saka: 60 minutes, +1"), except the first, which his kick-off
+  or coming-on line already says; a clean sheet added and taken away ("same for when CS is added
+  and removed for defedners"), added once he has the minutes for it with nothing conceded, taken
+  away by the goal that ends it (31 Oct 2026); goals conceded (for example "71' Saliba: 2 conceded, −1").
 - A kick-off and a full-time line for each match with either team's players in it, on the matchup
   ("FT ARS 2–1 CHE: Saka 11, Palmer 6").
 - If the commentary stream falls behind or stops, the matchup and the match page say so

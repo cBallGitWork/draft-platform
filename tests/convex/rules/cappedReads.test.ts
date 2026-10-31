@@ -80,6 +80,24 @@ describe("the held schedule", () => {
     await expect(schedule()).rejects.toThrow(`More than ${CURRENT_FIXTURES_MOST} matches are held as current`);
   });
 
+  test(`reads the season's ${GAMEWEEKS} gameweeks, a dropped one left out, and throws past them rather than cut the schedule short`, async () => {
+    await t.run(async (ctx) => {
+      const first = await ctx.db.query("gameweeks").withIndex("by_number", (q) => q.eq("number", FIRST_GAMEWEEK)).unique();
+      await ctx.db.patch("gameweeks", first!._id, { droppedAt: DROPPED_AT });
+    });
+    const { gameweeks } = await schedule();
+    expect(gameweeks).toHaveLength(GAMEWEEKS - 1);
+    expect(gameweeks).not.toContainEqual({ number: FIRST_GAMEWEEK });
+
+    // Only a row written by hand can pass FPL's 38: the football sync keeps one a gameweek number.
+    // The dropped one doesn't count, so 38 current read; one more throws.
+    const holdGameweek = (number: number) => t.run((ctx) => ctx.db.insert("gameweeks", { number, deadline: 0 }));
+    await holdGameweek(GAMEWEEKS + 1);
+    expect((await schedule()).gameweeks).toHaveLength(GAMEWEEKS);
+    await holdGameweek(GAMEWEEKS + 2);
+    await expect(schedule()).rejects.toThrow(`More than ${GAMEWEEKS} gameweeks are held as current`);
+  });
+
   test("dropped matches past the most don't count against it", async () => {
     await holdMoreFixtures(CURRENT_FIXTURES_MOST, 1000, DROPPED_AT);
 

@@ -10,11 +10,6 @@ Craig hasn't picked says so.
 
 Each with the questions its grill starts from. The questions are Claude's.
 
-**Cutting the role set**: tactics (`spec/05` Roles; from #10's review, 26 Oct 2026).
-- A saved lineup can hold a role a later cut removes. Does it fall back to the slot's first role,
-  or is the lineup refused until the manager picks again? Today it is refused at the next save,
-  and the pitch quietly shows the slot's first.
-
 **Awards**: history, Mail.
 - Manager of the Month and Player of the Season (Team of the Week is on league home, `spec/12`).
   Where they live once Mail has filed them (see History, below).
@@ -79,6 +74,23 @@ to get you there"). It lives in this repo; the rest is open.
 - What auditing checks first: the spec against the tests (#454), work beyond what's been
   grilled, the hard rules, or a readable log of what each agent session did and why.
 
+**Two colour and live-screen cards, from the ideas board**: Craig left the pick to Claude
+(31 Oct 2026: "Your call on cards"). The design research page behind them:
+https://claude.ai/artifact/UJC3f6ixFg3ZUQzBuEPiVq. The palette, club colours and crests were
+grilled on 31 Oct 2026 (`spec/12`; crests in SPEC.md, *Later*); these two are low priority until
+the site works (Craig, 31 Oct 2026).
+
+**Colour that means something** (https://trello.com/c/kt83WyFm).
+- Which of these: W/D/L form squares (league home shows each team's form already, `spec/12`), a
+  colour per position line, points shaded by band.
+- Where a band's edges come from, if points are shaded by band.
+
+**Vidiprinter strip, score box, every matchup on one live screen**
+(https://trello.com/c/Ep5eR42z).
+- League home's matchday mode already has every head-to-head moving and a league-wide vidiprinter
+  (`spec/12`). What the card adds beyond it: a strip of every match's lines, not only those that
+  move a head-to-head; a score box, and where; a live screen of its own, or league home is enough.
+
 ## Suggested, not yet picked
 
 | What | Why |
@@ -91,11 +103,6 @@ to get you there"). It lives in this repo; the rest is open.
 | Match rating and Man of the Match | CM's Av R and MoM: a 1–10 rating from his points against his area; MoM the top scorer in each head-to-head |
 | Saved tactics | FM's: a few formations kept to switch between, say one for a double gameweek |
 | Gameweeks to come after a team joins at a split | Once begun, a gameweek's fixtures are fixed (`spec/13`). Open: how the gameweeks still to come are drawn when a team joins at a split (`convex/table/playedFixtures.ts`, `scheduleAround`); goes with the split season above |
-| The first lineup's details | A team's first lineup is a 4-4-2 in pick order (`spec/05`). Claude decided (#637): slots fill back to front, so one who plays two areas goes to the deeper; a player with no positions yet sits on the bench until the squad next changes; a first lineup may break the league's area limits until the manager saves |
-| A league's deletion email past the day's email limit | Managers are told only once a league is gone (`spec/13`). One the 100-a-day limit stops is never told: retried, or left? Craig left the old warnings as they were for the beta (22 Oct 2026) |
-| Commentary pricing scope | The matchup prices lines for men in its two lineups, bench included (#44); spec/10 says "for a player owned in the league". Open: every owned man or the two lineups; own goals priced; whether minutes bands get threshold lines ("~1' Saka: 1 minutes") |
-| Trade review letters | `spec/08`'s 24-hour veto and vote windows: does the commissioner or each voter get a letter to act on, and does a blocked or expired review file one (`spec/16`)? |
-| Trades with the auto team, and when the vote ships | `spec/09` pauses trades for a team on the auto team; `spec/08` doesn't say so. Trades come by August "with the veto": does the league vote come then too? |
 | One player on several teams | Not now; maybe later (Craig, 20 Oct 2026). A draft is normally one owner per league; some leagues do one per division. The draft, waivers, trades and "owned in the league" all assume one owner |
 
 Thought of and set aside, as they clash with what's settled: board confidence and the sack
@@ -120,7 +127,6 @@ be tabs on screens `spec/12` already lists rather than pages of their own.
 | Every squad on one page | For scouting rivals |
 | A new season from the last | Copy the league, its rules and its managers into next season |
 | Stat corrections | What moved after a match, and why (the window is `spec/07`'s) |
-| Category tables | The league's leaders in each scoring category, by team |
 | Waiver order and the can't-drop list, on show | Makes the waiver rules visible |
 | Who owned whom | A player's owners, gameweek by gameweek: for history and for his card |
 | Mock draft | Practice before the real one |

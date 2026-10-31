@@ -1,11 +1,12 @@
 import type { Doc } from "../_generated/dataModel";
+import type { SideMatchOutcome } from "../admin/sideRuns";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { ALL_CELLS, type Cell } from "../lineup/pitch";
 import { withOwnStats } from "../scoring/ownStats";
 import { rulePointsIn } from "../scoring/scoring";
 import { statIn, type MatchStats } from "../scoring/values";
 import { validateScoringSet, type ScoringSet } from "../scoring/scoringSet";
-import { siteScoringInGameweek } from "../scoring/siteScoring";
+import { siteScoringInGameweek } from "../scoring/siteVersions";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
@@ -55,21 +56,22 @@ export function thresholdSteps(before: MatchStats, after: MatchStats, set: Scori
   return [...steps.values()];
 }
 
-/** The steps a live read's `records` show over the `held` rows, stored with the clock's `minute`.
- *  Never throws: a set that can't be read is logged and stores no steps, so it never stops the
- *  records being written. Only a whole record counts, as only it is scored. */
+/** The steps a live read's `records` show over the `held` rows, stored with the clock's `minute`,
+ *  and how it went. Never throws: a set that can't be read is logged, stores no steps and is handed
+ *  back for the threshold lines feed's row (#522), so it never stops the records being written.
+ *  Only a whole record counts, as only it is scored. */
 export async function storeThresholdSteps(
   ctx: MutationCtx,
   fixtureCode: number,
   minute: number | null,
   records: readonly PlayerMatchRecord[],
   held: ReadonlyMap<PlayerCode, Doc<"playerMatchStats">>,
-): Promise<void> {
+): Promise<SideMatchOutcome> {
   let rows: Omit<Doc<"thresholdSteps">, "_id" | "_creationTime">[];
   try {
     const fixture = await fixtureByCode(ctx, fixtureCode);
     // A match not held, or with no gameweek, has no set to price by; the records' own write says so.
-    if (fixture === null || fixture.gameweek === null) return;
+    if (fixture === null || fixture.gameweek === null) return { fixtureCode, ok: true };
     const set = await siteScoringInGameweek(ctx, fixture.gameweek);
     validateScoringSet(set);
     rows = records
@@ -84,10 +86,10 @@ export async function storeThresholdSteps(
         })),
       );
   } catch (error) {
-    logFailure(`match ${fixtureCode}'s threshold steps weren't stored`, error);
-    return;
+    return { fixtureCode, ok: false, error: logFailure(`match ${fixtureCode}'s threshold steps weren't stored`, error) };
   }
   for (const row of rows) await ctx.db.insert("thresholdSteps", row);
+  return { fixtureCode, ok: true };
 }
 
 /** One match's stored steps, oldest first. */

@@ -2,11 +2,14 @@ import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { SLOT_POSITIONS } from "../lineup/pitch";
+import { areaShape } from "../lineup/pitchShape";
 import { roleName } from "../lineup/roles";
 import { positionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
 import { categoryName } from "../scoring/categories";
+import { bandShape } from "../scoring/scoringSetShape";
+import { siteVersionByGameweek } from "../scoring/siteVersions";
 import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode, type Clubs } from "../shared/players";
 import { ownerOf, placeOf } from "../squads/squadPlace";
@@ -35,6 +38,26 @@ const match = v.object({
   away: clubRecord,
 });
 
+/** scoring.ts's CategoryWhy: what a category's points are made of (spec/14, On screen). */
+const categoryWhy = v.object({
+  actions: v.number(),
+  value: v.union(
+    v.object({ shape: v.literal("perAction"), points: v.number() }),
+    v.object({ shape: v.literal("perCount"), every: v.number(), points: v.number() }),
+    v.object({ shape: v.literal("bands"), earned: v.array(bandShape) }),
+  ),
+  pricedBy: v.union(
+    v.object({ by: v.literal("all") }),
+    v.object({ by: v.literal("area"), area: areaShape }),
+    v.object({ by: v.literal("position"), position: slotPosition }),
+  ),
+  cut: v.union(
+    v.null(),
+    v.object({ by: v.literal("minutes"), atLeast: v.number() }),
+    v.object({ by: v.union(v.literal("max"), v.literal("min")), limit: v.number() }),
+  ),
+});
+
 /** His base points in a match at one position: the site's scoring set for what he did, with no
  *  role (SPEC.md, base points). */
 const pricedPoints = v.object({
@@ -43,8 +66,14 @@ const pricedPoints = v.object({
   position: v.union(slotPosition, v.null()),
   /** Null while his whole record hasn't arrived. */
   total: v.union(v.number(), v.null()),
-  /** Each of the set's categories, by full name, in its order. */
-  categories: v.array(v.object({ stat: v.string(), name: v.string(), points: v.union(v.number(), v.null()) })),
+  /** Each of the set's categories, by full name, in its order: its points and why, or null points
+   *  while his whole record hasn't arrived. */
+  categories: v.array(
+    v.union(
+      v.object({ stat: v.string(), name: v.string(), points: v.null() }),
+      v.object({ stat: v.string(), name: v.string(), points: v.number(), why: categoryWhy }),
+    ),
+  ),
 });
 
 const playedMatch = v.object({
@@ -54,6 +83,9 @@ const playedMatch = v.object({
   /** His base points at each of the card's positions, in its order; one at his best position when
    *  none of his positions has a price (spec/14: SS has none yet). */
   points: v.array(pricedPoints),
+  /** The version of the site's scoring set his points were scored under (26_27.1), null for the
+   *  first set (spec/14, On screen). */
+  version: v.union(v.string(), v.null()),
   /** His role's adjustment, when his team started him and the set adjusts that role (spec/05:
    *  "Attacking full-back: +2, two key passes"): its name, its points, each stat he made. Shown
    *  beside his base points, never in them. */
@@ -137,11 +169,13 @@ const asMatch = async (fixture: Doc<"fixtures">, clubs: Clubs) => ({
  *  Squad tab's, not the card's. */
 async function seasonMatches(ctx: QueryCtx, league: Doc<"leagues">, player: Doc<"players">, positions: readonly Position[], clubs: Clubs): Promise<PlayedMatch[]> {
   const owner = await placeOf(ctx, league._id, player.code);
-  const { setIn, of } = await scoredMatches(ctx, league, owner?.teamId ?? null);
+  const { of } = await scoredMatches(ctx, league, owner?.teamId ?? null);
+  // Read beside scoredMatches' own, for the version's name: the same versions, so the same set.
+  const versionIn = await siteVersionByGameweek(ctx);
   const scored = await of({ code: player.code, positions });
   const played = await Promise.all(
     scored.map(async ({ record, fixture, gameweek, points: { role }, override, provisional }) => {
-      const set = setIn(gameweek);
+      const { set, name: version } = versionIn(gameweek);
       const named = (stat: string) => categoryName(stat, set.ownStats);
       const points = basePoints(isWhole(record) ? record.stats : null, set, positions).map(({ position, total, categories }) => ({
         position,
@@ -156,6 +190,7 @@ async function seasonMatches(ctx: QueryCtx, league: Doc<"leagues">, player: Doc<
         ...(await asMatch(fixture, clubs)),
         minutes: statValue(record, MINUTES_STAT),
         points,
+        version,
         ...roleLine,
         override: override === null ? null : { points: override.points, reason: override.reason },
         provisional,

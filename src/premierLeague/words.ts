@@ -34,7 +34,7 @@ export const loadingTableWords = "Loading the Premier League table…";
 /** Said before the football sync has held the season's clubs. */
 export const noClubsWords = "No clubs are held yet, so there is no table to show.";
 /** Said while a match in the table is being played: its result counts as it stands (spec/18). */
-export const provisionalWords = "Live: the table is provisional until every match being played is at full time.";
+export { provisionalWords } from "../shared/words";
 
 /** The table's columns: a short head, and what it stands for. */
 export const tableColumns = {
@@ -74,7 +74,7 @@ export const SUBSTITUTES_TITLE = "Substitutes";
 export const MOVED_TITLE = "Since left both clubs";
 /** Before the sheets are out: spec/10's words for when the live tick starts reading them
  *  (LINEUPS_OUT_BEFORE_KICKOFF_MS, convex/shared/time.ts). */
-export const noMenWords = "The team sheets show here about an hour before kickoff.";
+export const noMenWords = "No team sheets yet.";
 export const matchColumns = {
   position: { short: "Pos", long: "Position" },
   player: { short: "Player", long: "Player, and the team that owns him" },
@@ -86,11 +86,11 @@ export const cameOnWords = "On";
 export const unusedLabel = "unused substitute";
 
 export const COMMENTARY_TITLE = "Commentary";
-export const noLinesWords = "No lines yet: they come in as the match is played.";
+export const noLinesWords = "No lines yet.";
 
 export const TEAM_STATS_TITLE = "Team stats";
 export const teamStatsLabel = (home: string, away: string) => `${home} ${versusWords} ${away}: team stats`;
-export const noTeamStatsWords = "The team stats show here once the match kicks off.";
+export const noTeamStatsWords = "No team stats yet.";
 /** The five spec/10 names, in its order, the cards as yellow and red. */
 export const teamStatRows = {
   shots: "Shots",
