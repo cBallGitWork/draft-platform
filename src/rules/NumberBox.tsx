@@ -11,11 +11,14 @@ function parse(text: string): number | null {
 
 const show = (value: number | null) => (value === null || Number.isNaN(value) ? "" : String(value));
 
+/** The ids given, in order, as aria-describedby takes them; none, nothing. */
+const describedBy = (ids: (string | undefined)[]) => ids.filter((id) => id !== undefined).join(" ") || undefined;
+
 const same = (one: number | null, other: number | null) => one === other || (Number.isNaN(one) && Number.isNaN(other));
 
 /** A required box hands up NaN for a blank (a box left without a number); an optional one, null
  *  (which its caller reads as "no limit"). */
-type NumberBoxProps = { label: string; value: number | null } & (
+type NumberBoxProps = { label: string; value: number | null; hintId?: string } & (
   | { optional?: false; onChange: (value: number) => void }
   | { optional: true; onChange: (value: number | null) => void }
 );
@@ -27,10 +30,11 @@ type NumberBoxProps = { label: string; value: number | null } & (
  * `optional` one. A new value from outside, such as a changed kind of rule, replaces the text.
  * A save refused for this box (BoxRefusalContext) is said under it while it still holds no number,
  * tied to it for screen readers; a parent that wraps puts it on a line of its own, after the row;
- * and the save bar says it once the box leaves the screen (#645).
+ * and the save bar says it once the box leaves the screen (#645). `hintId` names the caller's hint,
+ * which describes the box after any refusal (#915).
  */
 export function NumberBox(props: NumberBoxProps) {
-  const { label, value, optional = false } = props;
+  const { label, value, hintId, optional = false } = props;
   const [text, setText] = useState(show(value));
   const [shown, setShown] = useState(value);
   const id = useId();
@@ -69,7 +73,7 @@ export function NumberBox(props: NumberBoxProps) {
         inputMode="decimal"
         aria-label={label}
         aria-invalid={invalid || undefined}
-        aria-describedby={refusal === null ? undefined : refusalId}
+        aria-describedby={describedBy([refusal === null ? undefined : refusalId, hintId])}
         value={text}
         onChange={(event) => change(event.target.value)}
         className="number-box"
