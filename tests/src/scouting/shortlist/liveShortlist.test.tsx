@@ -5,7 +5,7 @@ import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { expect, test, vi } from "vitest";
 import { liveShortlist } from "../../../../src/scouting/shortlist/liveShortlist";
-import { shortlistChangeFailedWords } from "../../../../src/scouting/shortlist/shortlistWords";
+import { shortlistChangeFailedWords } from "../../../../src/scouting/shortlist/words";
 import { silenceConsoleError } from "../../../support/console.setup";
 import { refusals } from "../../../../convex/shared/leagueAccess";
 import { A_LEAGUE_ID } from "../../../support/src/convexReact.harness";

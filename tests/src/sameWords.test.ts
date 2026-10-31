@@ -5,7 +5,7 @@ import { expect, it } from "vitest";
 import { menuWords } from "../../src/frame/words";
 import { TABLE_TITLE as homeTableTitle, leagueAverageWords as homeLeagueAverage } from "../../src/home/words";
 import { BENCH_TITLE as matchupBench, leagueAverageWords as matchupLeagueAverage } from "../../src/matchup/words";
-import { BENCH_TITLE as tacticsBench } from "../../src/myTeam/tactics/tacticsWords";
+import { BENCH_TITLE as tacticsBench } from "../../src/myTeam/tactics/words";
 import { leagueAverageWords as myTeamLeagueAverage } from "../../src/myTeam/words";
 import { TABLE_TITLE as tableTitle, leagueAverageWords as tableLeagueAverage } from "../../src/table/words";
 

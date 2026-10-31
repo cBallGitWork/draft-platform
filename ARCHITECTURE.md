@@ -258,8 +258,8 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
    screen reads and does, so tests can stand in; `live<Feature>.ts`, the Convex side of the seam;
    `preview.ts`; `words.ts`, everything it says. The server's numbers sit in
    `convex/<feature>/<name>Limits.ts`, which `words.ts` imports, never retypes. A sub-folder uses
-   the same names (21 `words.ts`, 18 `seam.ts`, 18 `preview.ts`); only `src/myTeam/tactics/` and
-   `src/scouting/shortlist/` break it, and issue #726 renames them.
+   the same names (23 `words.ts`, 20 `seam.ts`, 20 `preview.ts` on 31 Oct 2026, the sub-folders
+   `src/myTeam/tactics/` and `src/scouting/shortlist/` among them).
 3. The top level holds only entry files: `src/` keeps `main.tsx` and `styles.css`; `convex/` keeps
    `auth.config.ts`, `auth.ts`, `crons.ts`, `http.ts`, `process.d.ts` and `schema.ts`.
 4. Imports run one way: a feature, then `src/ui/`, then `src/shared/`, then convex's pure modules.

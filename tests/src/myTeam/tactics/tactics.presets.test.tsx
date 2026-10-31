@@ -12,7 +12,7 @@ import {
   presetLabel,
   putHereLabel,
   savedWords,
-} from "../../../../src/myTeam/tactics/tacticsWords";
+} from "../../../../src/myTeam/tactics/words";
 import { league } from "../../../support/src/shell.harness";
 import { TACTICS_GAMEWEEK } from "../../../support/src/tactics.harness";
 import {

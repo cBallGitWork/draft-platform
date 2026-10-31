@@ -10,7 +10,7 @@ import type { Position } from "../../../convex/positions/positionTables";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import type { DraftLineup } from "./lineupDraft";
-import type { Tactics, TacticsSeam } from "./tacticsSeam";
+import type { Tactics, TacticsSeam } from "./seam";
 
 const PREVIEW_GAMEWEEK = 9;
 const PREVIEW_DEADLINE = Date.now() + DAY_MS + 17 * HOUR_MS;
