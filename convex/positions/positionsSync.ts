@@ -28,12 +28,15 @@ export const MATCHES_PER_RUN = 150;
 type Synced = Omit<Extract<Infer<typeof positionsSyncFields.outcome>, { ok: true }>, "ok">;
 const matchStarts = v.array(v.object({ playerCode: v.number(), start: startRecord }));
 
+/** What the log says, before the error, when a sync fails. */
+export const SYNC_FAILED_LOG = "positions sync failed";
+
 export const run = internalAction({
   args: { trigger: syncTrigger },
   returns: v.null(),
   handler: async (ctx, { trigger }) => {
     const ranAt = Date.now();
-    const outcome: Infer<typeof positionsSyncFields.outcome> = await outcomeOf("positions sync failed", async () => {
+    const outcome: Infer<typeof positionsSyncFields.outcome> = await outcomeOf(SYNC_FAILED_LOG, async () => {
       const synced = await syncPositions(ctx);
       const { unknownFormations, unknownLabels, matchesRefused } = synced;
       if ([unknownFormations, unknownLabels, matchesRefused].some((found) => found.length > 0)) {
