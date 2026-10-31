@@ -105,7 +105,7 @@ function PlayerCell({
     case "name":
       return (
         <th scope="row" title={player.fullName} className={`${className} text-lead font-semibold`}>
-          <Link to={playerCardPath(leagueId, player.code)} className="flex min-h-tap items-center">
+          <Link to={playerCardPath(leagueId, player.code)} className="flex min-h-tap min-w-tap items-center">
             {player.name}
           </Link>
         </th>

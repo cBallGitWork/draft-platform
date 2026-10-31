@@ -2,6 +2,8 @@
 // every marking is drawn from (plate.md, Marks: the pitch; Craig, 31 Oct 2026: "that pitch ratio
 // is well off"). They are the Laws of the Game's, the same for every league, so they are constants.
 
+import { AREAS, LANES } from "../../../convex/lineup/pitch";
+
 /** Across the pitch, and from goal line to goal line. */
 export const PITCH_SIZE = { width: 68, length: 105 } as const;
 /** The penalty area and the goal area: across, and out from the goal line. */
@@ -14,6 +16,11 @@ export const CIRCLE_RADIUS = 9.15;
 export const CORNER_ARC_RADIUS = 1;
 /** A spot is 0.22m across, under a pixel on a phone's pitch, so it is drawn this big to show. */
 export const SPOT_DRAWN_RADIUS = 0.4;
+
+/** A row of players' share of the length, a stripe, and a lane's of the width: the cells the
+ *  players stand in share the pitch equally (plate.md, Marks: the pitch). */
+export const ROW_LENGTH = PITCH_SIZE.length / AREAS.length;
+export const LANE_WIDTH = PITCH_SIZE.width / LANES.length;
 
 /** Width over length, for the pitch's CSS `aspect-ratio`: portrait, as it is drawn attack at the top. */
 export const PITCH_ASPECT = PITCH_SIZE.width / PITCH_SIZE.length;

@@ -33,9 +33,12 @@ from pathlib import Path
 from hook_payload import BadPayload, field, project_dir, read_payload, report
 
 PACKAGE = "package.json"  # a checkout without one has no gate
-# what `npm run verify` checks: it changes with verify's scope (a new vitest project, say)
+# what `npm run verify` checks or reads: it changes with verify's scope (a new vitest project, a test
+# reading a new file, say). vercel.json, .github and .nvmrc are read by tests/scripts/, SPEC.md and
+# spec/ by tests and the spec-ID check; tsconfig.json's include typechecks playwright.live.config.ts.
 WATCHED = ("convex", "src", "scripts", "tests", PACKAGE, "package-lock.json", "tsconfig.json", "vite.config.ts",
-           "vitest.config.ts", "playwright.config.ts", "eslint.config.js", ".claude", "index.html", "docs/design")
+           "vitest.config.ts", "playwright.config.ts", "playwright.live.config.ts", "eslint.config.js", ".claude",
+           "index.html", "docs/design", "vercel.json", ".github", ".nvmrc", "SPEC.md", "spec")
 TAIL_LINES = 40
 GATE = "npm run verify"
 GATE_TIMEOUT_SECONDS = 420  # inside settings.json's hook timeout; .claude/hooks/tests/settings.sh checks the pair
