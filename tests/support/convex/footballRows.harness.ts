@@ -33,6 +33,9 @@ export const insertPlayers = async (ctx: MutationCtx, players: readonly HeldPlay
 /** A player's row as a test writes it, before he leaves the Premier League. */
 export type PlayerRow = Omit<WithoutSystemFields<Doc<"players">>, "droppedAt">;
 
+/** A code the football sync holds no player for (#323). */
+export const UNHELD = 9999;
+
 /** A player who has left the Premier League: a players row only, no positions. */
 export const GONE: PlayerRow = { code: 2001, name: "Gone", fullName: "Long Gone", clubCode: ARSENAL.code };
 
