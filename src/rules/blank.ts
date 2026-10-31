@@ -1,6 +1,6 @@
 // A box left without a number hands up NaN (NumberBox.tsx), at any depth of a rules draft. The
 // server never holds one, so a draft with one in it is never the saved part, though JSON writes
-// NaN as null (#623); and it is refused before it is sent.
+// NaN as null (#623); and it is refused before it is sent, the cursor put in the box (#645).
 
 import { useEffect, useRef, useState } from "react";
 
