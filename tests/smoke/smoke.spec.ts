@@ -40,18 +40,19 @@ const PHONE = { width: 390, height: 844 };
 const DESK = { width: 1440, height: 900 };
 /** The page's and the panel's padding either side of the phone's pitch, at most. */
 const PHONE_GUTTERS = 40;
-/** The tap size at the phone's width (plate.md, The phone; --spacing-tap). */
-const TAP = 44;
+/** The preview's bench centre-back, brought on to make a row of five. */
+const OFF_THE_BENCH = "Murillo";
+/** A sub-pixel's give, as layout rounds. */
+const GIVE = 0.5;
 
 type Box = { x: number; y: number; width: number; height: number };
-/** A sub-pixel's give, as layout rounds. */
 const within = (inner: Box, outer: Box) =>
-  inner.x >= outer.x - 0.5 &&
-  inner.y >= outer.y - 0.5 &&
-  inner.x + inner.width <= outer.x + outer.width + 0.5 &&
-  inner.y + inner.height <= outer.y + outer.height + 0.5;
+  inner.x >= outer.x - GIVE &&
+  inner.y >= outer.y - GIVE &&
+  inner.x + inner.width <= outer.x + outer.width + GIVE &&
+  inner.y + inner.height <= outer.y + outer.height + GIVE;
 const apart = (one: Box, other: Box) =>
-  one.x + one.width <= other.x + 0.5 || other.x + other.width <= one.x + 0.5 || one.y + one.height <= other.y + 0.5 || other.y + other.height <= one.y + 0.5;
+  one.x + one.width <= other.x + GIVE || other.x + other.width <= one.x + GIVE || one.y + one.height <= other.y + GIVE || other.y + other.height <= one.y + GIVE;
 
 /** Every player on the pitch inside his own cell, none touching another, and big enough to tap on
  *  the phone. */
@@ -69,9 +70,11 @@ async function expectPlayersApart(page: Page, onPhone: boolean, shape: string) {
       }),
     );
   expect(blocks.length, `${shape}: players on the pitch`).toBeGreaterThan(0);
+  // The tap size at the phone's width, read from the page as scripts/shoot.mjs does (--spacing-tap).
+  const tap = parseFloat(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--spacing-tap")));
   for (const { name, block, cell } of blocks) {
     expect(within(block, cell), `${shape}: ${name} inside his cell`).toBe(true);
-    if (onPhone) expect(Math.min(block.width, block.height), `${shape}: ${name} tappable`).toBeGreaterThanOrEqual(TAP);
+    if (onPhone) expect(Math.min(block.width, block.height), `${shape}: ${name} tappable`).toBeGreaterThanOrEqual(tap);
   }
   blocks.forEach((one, index) =>
     blocks.slice(index + 1).forEach((other) => expect(apart(one.block, other.block), `${shape}: ${one.name} clear of ${other.name}`).toBe(true)),
@@ -118,12 +121,12 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
           await page.getByRole("combobox", { name: presetLabel }).selectOption(name);
           await expectPlayersApart(page, viewport === PHONE, name);
         }
-        // Five abreast, the widest a row gets: 5-3-2's back five, Murillo off the bench into its gap.
+        // Five abreast, the widest a row gets: 5-3-2's back five, the bench centre-back in its gap.
         await page.getByRole("combobox", { name: presetLabel }).selectOption("5-3-2");
-        await page.getByRole("button", { name: moveLabel("Murillo"), exact: true }).click();
-        const gaps = LANES.map((lane) => page.getByRole("button", { name: putHereLabel("Murillo", "defence", lane) }));
+        await page.getByRole("button", { name: moveLabel(OFF_THE_BENCH), exact: true }).click();
+        const gaps = LANES.map((lane) => page.getByRole("button", { name: putHereLabel(OFF_THE_BENCH, "defence", lane) }));
         for (const gap of gaps) if ((await gap.count()) > 0) await gap.click();
-        await expect(page.getByRole("group", { name: pitchLabel }).getByRole("button", { name: /^Murillo,/ })).toHaveCount(1);
+        await expect(page.getByRole("group", { name: pitchLabel }).getByRole("button", { name: new RegExp(`^${OFF_THE_BENCH},`) })).toHaveCount(1);
         await expectPlayersApart(page, viewport === PHONE, "5-3-2, five at the back");
       });
     });

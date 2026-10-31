@@ -206,8 +206,8 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
         <Problem problem={problem} />
       </div>
       {joined.length > 0 && <Notice>{joinedBenchWords(joined.map((code) => squad.get(code)!.name))}</Notice>}
-      {/* The pitch is the tab's centrepiece (plate.md, Decided): as big as lets its whole length
-          show in the window, the squad beside it taking the rest, or under it on a phone. */}
+      {/* The pitch is the tab's centrepiece (plate.md, Decided): as tall as the window, so
+          scrolled to, its whole length shows; the squad beside it takes the rest, or goes under it on a phone. */}
       <div style={PITCH_ROOM_STYLE} className="pitch-room flex flex-wrap items-start gap-2">
         <Panel
           title={TACTICS_TITLE}

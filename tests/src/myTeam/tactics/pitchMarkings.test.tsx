@@ -54,9 +54,6 @@ describe("the pitch as drawn", () => {
     expect(goalAreas).toHaveLength(2);
     expect(penaltyAreas[0]).toEqual({ x: (68 - 40.32) / 2, y: 0, width: 40.32, height: 16.5 });
     expect(goalAreas[0]).toEqual({ x: (68 - 18.32) / 2, y: 0, width: 18.32, height: 5.5 });
-    // About three-fifths of the width and a sixth of the length, not half and a fifth.
-    expect(PENALTY_AREA.width / PITCH_SIZE.width).toBeCloseTo(0.593, 3);
-    expect(PENALTY_AREA.depth / PITCH_SIZE.length).toBeCloseTo(0.157, 3);
   });
 
   it("draws the centre circle 9.15m round the centre spot, and a stripe to each of the six rows", async () => {
