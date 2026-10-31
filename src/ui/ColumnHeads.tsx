@@ -66,7 +66,7 @@ export function ColumnHeads<Column extends string, Sortable extends Column = Col
               ) : press === undefined ? (
                 short
               ) : (
-                <button type="button" aria-label={sortByLabel(name)} onClick={press} className="min-h-tap font-bold">
+                <button type="button" aria-label={sortByLabel(name)} onClick={press} className="min-h-tap min-w-tap font-bold [text-align:inherit]">
                   {short}
                   {sorted && <span aria-hidden="true"> {sort.descending ? descendingGlyph : ascendingGlyph}</span>}
                 </button>
