@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { mutation, type QueryCtx } from "../_generated/server";
 import { callerEmail, refuse, refusals } from "../shared/leagueAccess";
+import { leagueOpens } from "./leagueOpens";
 import { leaguesOf, type LeagueSummary } from "./myLeagues";
 
 // The league switcher (#76, spec/13, Several leagues): the app opens the league a person used
@@ -11,11 +12,11 @@ import { leaguesOf, type LeagueSummary } from "./myLeagues";
 const hasPart = (league: LeagueSummary) => league.roles.length > 0;
 
 /** The leagues a person can be in and switch between, in `leagues`' order: those they have a part
- *  in that aren't being deleted, which freezes a league even for whoever is deleting it (#75). The
- *  one rule for the league the app is in, the switcher's list, which signIn/account:signedInAs
- *  sends (#207), and the leagues `switchTo` lets them switch to (#488). */
+ *  in that open (`leagueOpens`). The one rule for the league the app is in, the switcher's list,
+ *  which signIn/account:signedInAs sends (#207), and the leagues `switchTo` lets them switch to
+ *  (#488). */
 export const switchableLeagues = (leagues: readonly LeagueSummary[]): LeagueSummary[] =>
-  leagues.filter((league) => hasPart(league) && !league.deletion);
+  leagues.filter((league) => hasPart(league) && leagueOpens(league));
 
 const rememberedRow = (ctx: QueryCtx, email: string) =>
   ctx.db
@@ -45,7 +46,7 @@ export const switchTo = mutation({
     const { leagues } = await leaguesOf(ctx, email);
     if (!switchableLeagues(leagues).some((league) => league.leagueId === leagueId)) {
       const league = leagues.find((theirs) => theirs.leagueId === leagueId);
-      refuse(league && hasPart(league) && league.deletion ? refusals.beingDeleted : refusals.notInLeague);
+      refuse(league && hasPart(league) && !leagueOpens(league) ? refusals.beingDeleted : refusals.notInLeague);
     }
 
     const remembered = await rememberedRow(ctx, email);
