@@ -1,6 +1,7 @@
 import { expect, test, vi } from "vitest";
 import { inTenths } from "../../../convex/scoring/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
+import { unheldPlayerWords } from "../../../convex/shared/players";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import {
   ANN,
@@ -30,6 +31,7 @@ import {
   scoreRead,
   scoresLeague,
   sideTotal,
+  losePlayer,
   slotOf,
   storeLeague,
   TYPO_STAT,
@@ -227,17 +229,12 @@ test("a gameweek that can't be scored says why, and logs it", async () => {
   expect(logged).toHaveBeenCalledWith(expect.stringContaining(`can't score ${ANNS_TEAM}'s matchup in gameweek ${GAMEWEEK}`));
 });
 
-test("a lineup player the football sync no longer holds leaves the matchup unscored, saying who", async () => {
+test("a lineup player the football sync no longer holds is scored as if he didn't play, his name the error saying so (#810)", async () => {
   const league = await scoresLeague();
-  await league.t.run(async (ctx) => {
-    const player = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", HULL_SCORER)).unique();
-    await ctx.db.delete("players", player!._id);
-  });
-  const logged = silenceConsoleError();
-  expect(await matchupAs(league, ANN, { gameweek: GAMEWEEK })).toMatchObject({
-    game: { kind: "unscored", reason: expect.stringContaining(`player ${HULL_SCORER} is in a lineup but the football sync doesn't hold him`) },
-  });
-  expect(logged).toHaveBeenCalled();
+  await losePlayer(league, HULL_SCORER);
+  // Before kickoff: he has no match, so he is subbed at once, as a man with none in a blank gameweek is.
+  const game = await annsScoredGame(league, GAMEWEEK);
+  expect(slotOf(game.team, HULL_SCORER)).toMatchObject({ name: unheldPlayerWords(HULL_SCORER), points: 0, counts: false, autoSub: { kind: "off" } });
 });
 
 test("a stored fixture naming a team gone from the league throws, naming it", async () => {

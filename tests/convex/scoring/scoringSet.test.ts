@@ -5,6 +5,7 @@ import { validateScoringSet } from "../../../convex/scoring/scoringSet";
 import { inTenths, UnsoundScoring } from "../../../convex/scoring/values";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import ownStatsSource from "../../../convex/scoring/ownStats.ts?raw";
+import ruleChecksSource from "../../../convex/scoring/ruleChecks.ts?raw";
 import scoringSetSource from "../../../convex/scoring/scoringSet.ts?raw";
 import valuesSource from "../../../convex/scoring/values.ts?raw";
 
@@ -141,7 +142,7 @@ describe("every reason a set is unsound is an UnsoundScoring, so saving refuses 
   const ownWith = (change: object) => own([{ ...TACKLES_AND_CLEARANCES, ...change }]);
   const T_C = TACKLES_AND_CLEARANCES.stat;
 
-  // One case for each throw in scoringSet.ts and ownStats.ts but the last, in their order.
+  // One case for each throw in scoringSet.ts, ruleChecks.ts and ownStats.ts but the last, in their order.
   const SWEEP: readonly (readonly [unknown, string])[] = [
     [{}, "a scoring set must be a list of rules"],
     [{ rules: [] }, "a scoring set must say whether its points are whole only, true or false, not undefined"],
@@ -216,7 +217,7 @@ describe("every reason a set is unsound is an UnsoundScoring, so saving refuses 
   });
 
   test("the sweep has a case for each throw, and every throw is an UnsoundScoring", () => {
-    const source = `${scoringSetSource}\n${ownStatsSource}\n${valuesSource}`;
+    const source = `${scoringSetSource}\n${ruleChecksSource}\n${ownStatsSource}\n${valuesSource}`;
     expect(source.match(/throw new (?!UnsoundScoring\()/g)).toBeNull();
     expect(source.match(/throw new UnsoundScoring\(/g)?.length).toBe(SWEEP.length + 1);
   });

@@ -1,11 +1,11 @@
 // The values scoring reads and checks: points in tenths, a stat from a match record, the refusal
 // a bad value gets, and the double-gameweek rules a league picks from. It imports nothing, so
-// scoringSet.ts, ownStats.ts and scoring.ts can all lean on it without leaning on each other in a
-// circle (#198), and a league's rules shape can name the double-gameweek rules without loading
-// the scorer (#756).
+// scoringSet.ts, ruleChecks.ts, ownStats.ts and scoring.ts can all lean on it without leaning on
+// each other in a circle (#198), and a league's rules shape can name the double-gameweek rules
+// without loading the scorer (#756).
 
 /** Why a scoring set can't be saved or scored with, told apart from a bug, which is never shown
- *  as a reason. Every check in scoringSet.ts, ownStats.ts and here throws it. */
+ *  as a reason. Every check in scoringSet.ts, ruleChecks.ts, ownStats.ts and here throws it. */
 export class UnsoundScoring extends Error {}
 
 /** A player's stats for one match, by the feeds' own keys. */

@@ -187,8 +187,8 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   `convex/rules/leagueRulesShape.ts`).
 - The site's scoring (#354-#356): every league plays on one scoring set, which only the admin
   changes. Each version is a row in `siteScoring`, announced as a patch or a fix, and found by
-  `takesEffectAt`, so a past gameweek keeps the set it was played under; with none, the first set
-  (`convex/scoring/firstScoring.ts`). A gameweek's first kickoff is kept once it passes, in
+  `takesEffectAt`, so a past gameweek keeps the set it was played under (`convex/scoring/siteVersions.ts`);
+  with none, the first set (`convex/scoring/firstScoring.ts`). A gameweek's first kickoff is kept once it passes, in
   `gameweekStarts` (#414), so the version it plays on can't change if that match moves. The
   admin's unannounced patch is the one row in `siteScoringDraft`, and who dismissed a waiting
   patch's banner is a row a person and version in `patchBannerDismissals`, so it stays dismissed on
@@ -229,6 +229,10 @@ Tactics pitch are built with no package, and components, motion, forms and chart
 - Season totals: each player's stats for a season are a row in `playerSeasonStats`, kept in step as
   each match record is written, so Scouting sorts by any stat without reading a season of records
   (`convex/stats/seasonStats.ts`).
+- The stat race (#800): each team's season stats, counting only its starters and the bench players
+  who came on, are a row in `teamSeasonStats`, the sum of its rows in `teamGameweekStats`, one a
+  team and final gameweek, kept so a gameweek reopened takes away what it added. A match's lock
+  adds in each league's newly final gameweeks, one a run (`convex/stats/teamSeasonStats.ts`).
 - The shortlist (#374): each team's own list of players for the season, a row each in
   `shortlistPlayers` by FPL's `code`, read and changed only by its manager
   (`convex/scouting/shortlist.ts`).

@@ -6,7 +6,7 @@ import { withOwnStats } from "../scoring/ownStats";
 import { rulePointsIn } from "../scoring/scoring";
 import { statIn, type MatchStats } from "../scoring/values";
 import { validateScoringSet, type ScoringSet } from "../scoring/scoringSet";
-import { siteScoringInGameweek } from "../scoring/siteScoring";
+import { siteScoringInGameweek } from "../scoring/siteVersions";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";

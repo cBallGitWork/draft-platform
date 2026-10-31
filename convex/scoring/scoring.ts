@@ -1,5 +1,5 @@
 // A player's points for one match under a scoring set (spec/14, How a rule scores; #29): the
-// site's in force that gameweek (siteScoring.ts), data the admin saves, so always an argument.
+// site's in force that gameweek (siteVersions.ts), data the admin saves, so always an argument.
 
 import { MINUTES_STAT } from "../stats/matchRecords";
 import { withOwnStats } from "./ownStats";
