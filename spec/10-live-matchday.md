@@ -25,7 +25,8 @@ commentary` (16 Oct 2026).
 
 ## The match page
 
-- One real Premier League match: the score and clock, both clubs' lineups and subs, five team stats
+- One real Premier League match: the score and clock, each club's name on its own colour with the
+  score between (Craig, 31 Oct 2026; `spec/12`, Club colours), both clubs' lineups and subs, five team stats
   (shots, shots on target, possession, corners, cards), and commentary for every event in it.
 - Every player shows his live points, and only one owned in the league his team: "I need to stress
   that players who don't have a team still have their scores show. Just because they aren't a team
@@ -43,10 +44,17 @@ commentary` (16 Oct 2026).
 - Our own short lines, CM-terse, built from the Premier League's events: "62' GOAL Saka, assist
   Ødegaard". Championship Manager's and Football Manager's commentary is a style reference only;
   none of it is copied.
-- A goal, an assist or a card shows the points it moves, for a player owned in the league.
+- A goal, an assist, a card or an own goal shows the points it moves, for every player, owned or
+  not, bench included (Craig, 31 Oct 2026: "yes the main ones"; an own goal "same as red card
+  etc").
 - A threshold line when a player's running total reaches a point where he earns more under the league's rules: "~58'
   Rice: 3 key passes, +1". The "~" because it's when the totals showed it, not when it happened.
-  Only for players owned in the league.
+  For every player, owned or not (31 Oct 2026).
+- Every point movement, up or down, gets a line (Craig, 31 Oct 2026: "any negative/positive point
+  movement"): a minutes band (for example "~60' Saka: 60 minutes, +1"), except the first, which his kick-off
+  or coming-on line already says; a clean sheet added and taken away ("same for when CS is added
+  and removed for defedners"), added once he has the minutes for it with nothing conceded, taken
+  away by the goal that ends it (31 Oct 2026); goals conceded (for example "71' Saliba: 2 conceded, −1").
 - A kick-off and a full-time line for each match with either team's players in it, on the matchup
   ("FT ARS 2–1 CHE: Saka 11, Palmer 6").
 - If the commentary stream falls behind or stops, the matchup and the match page say so

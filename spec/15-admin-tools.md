@@ -15,6 +15,11 @@ each league's **commissioner**.
 - Can remove a manager from a league. The team stays, for the commissioner to hand to someone
   new (`spec/09`).
 - Owns the site's scoring set and changes it by patch (`spec/14`, 25 Oct 2026).
+- Owns each club's colours and shirt pattern on the admin dashboard (`spec/12`), for any club at
+  any time, any colour; a file gives every club its first. A club with none waits in the dashboard's queue
+  beside clubs to approve, with no email, its shirt and mark white until set (Craig, 31 Oct 2026:
+  "soething that we could flag to the admin that a team doenst have a colour, then we can set
+  on admin"; the admin owning them leaves room for real shirt packs and away kits later).
 - Reads managers' feedback: a Feedback link in the top bar opens one text box, and what is sent
   lands in a list on the admin dashboard, with no email (25 Oct 2026).
 - A feeds page: when FPL's and the Premier League's data last arrived, and whether scoring is
