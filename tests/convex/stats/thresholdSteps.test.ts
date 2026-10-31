@@ -54,8 +54,10 @@ test("a site set that can't be read stores no steps, logs why, and the records a
   const league = await scoresLeague();
   await holdTypoRule(league);
   const logged = silenceConsoleError();
-  await liveRecords(league, mergedHullEverton(), 30);
+  const { thresholdSteps } = await liveRecords(league, mergedHullEverton(), 30);
   expect(logged).toHaveBeenCalledWith(expect.stringContaining(`match ${HULL_EVERTON}'s threshold steps weren't stored`));
+  // Handed back for the threshold lines feed's row (#522), so the feeds page and the admin hear.
+  expect(thresholdSteps).toMatchObject({ fixtureCode: HULL_EVERTON, ok: false, error: expect.any(String) });
   expect(await league.t.run((ctx) => ctx.db.query("thresholdSteps").collect())).toEqual([]);
   expect(await league.t.run((ctx) => ctx.db.query("playerMatchStats").collect())).toHaveLength(mergedHullEverton().length);
 });

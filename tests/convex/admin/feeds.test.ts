@@ -6,7 +6,7 @@ import { api } from "../../../convex/_generated/api";
 import { lateAfterMs, FEED_SCHEDULES, FEEDS } from "../../../convex/shared/feedSchedule";
 import { RUNS_READ } from "../../../convex/admin/feeds";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
+import { HOUR_MS, LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { ADMIN, COMMISSIONER, actingAs } from "../../support/convex/leagues.harness";
 import { feedAt, feedsAt, holdMatch, holdStatus, recordRun, T0 } from "../../support/convex/feeds.harness";
 import { syncRun } from "../../support/convex/footballSync.harness";
@@ -136,4 +136,43 @@ test("a match complete at full time is no longer live, so the tick owes nothing 
   await holdStatus(t, 1, T0 + 2 * HOUR_MS, "complete");
 
   expect((await feedAt(t, "liveStats", T0 + 3 * HOUR_MS)).state).toBe("fine");
+});
+
+// The live tick's side reads (#522): each its own feed, owed only while it has a match to read.
+
+test("during a match its team stats and threshold lines are late as the live tick is, and owe nothing between matches", async () => {
+  const t = freshConvex();
+  const kickoff = T0 + 24 * HOUR_MS;
+  await holdMatch(t, 1, kickoff);
+  for (const feed of ["teamStats", "thresholdSteps"] as const) {
+    await recordRun(t, feed, T0); // the last match's
+    expect((await feedAt(t, feed, kickoff - 1)).state).toBe("fine");
+    expect((await feedAt(t, feed, kickoff + LIVE_LATE_AFTER)).state).toBe("fine");
+    expect((await feedAt(t, feed, kickoff + LIVE_LATE_AFTER + 1)).state).toBe("late");
+  }
+});
+
+test("the team sheets are owed from an hour before a kickoff, and late once the tick's interval passes with no success", async () => {
+  const t = freshConvex();
+  const kickoff = T0 + 24 * HOUR_MS;
+  const sheetsOpen = kickoff - LINEUPS_OUT_BEFORE_KICKOFF_MS;
+  await recordRun(t, "teamSheets", T0);
+  await holdMatch(t, 1, kickoff);
+
+  expect((await feedAt(t, "teamSheets", sheetsOpen - 1)).state).toBe("fine");
+  expect((await feedAt(t, "teamSheets", sheetsOpen + LIVE_LATE_AFTER)).state).toBe("fine");
+  expect((await feedAt(t, "teamSheets", sheetsOpen + LIVE_LATE_AFTER + 1)).state).toBe("late");
+  await recordRun(t, "teamSheets", sheetsOpen + 10 * MINUTE_MS);
+  expect((await feedAt(t, "teamSheets", sheetsOpen + 10 * MINUTE_MS + LIVE_LATE_AFTER)).state).toBe("fine");
+  // From kickoff the match's records carry its sheets, so the sheets owe nothing more.
+  expect((await feedAt(t, "teamSheets", kickoff + LIVE_LATE_AFTER)).state).toBe("fine");
+});
+
+test("a side read's failed match fails its own feed, never the live tick's", async () => {
+  const t = freshConvex();
+  await recordRun(t, "liveStats", T0);
+  await recordRun(t, "teamStats", T0, { matchError: "PL answered 503" });
+
+  expect(await feedAt(t, "teamStats", T0)).toMatchObject({ state: "failing", lastError: { at: T0, error: "PL answered 503" } });
+  expect(await feedAt(t, "liveStats", T0)).toMatchObject({ state: "fine", lastError: null });
 });

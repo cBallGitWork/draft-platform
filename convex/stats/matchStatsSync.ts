@@ -6,6 +6,7 @@ import { logFailure, outcomeOf } from "../shared/errors";
 import { readFplPayloads } from "../football/fpl/fpl";
 import { fplStatLines, readFplLive, type FplStatLine } from "../football/fpl/fplLive";
 import { matchRecords } from "./matchRecords";
+import type { matchWrites } from "./matchStats";
 import { byGameweek, type DueMatch } from "../shared/dueMatches";
 import { matchSlots, plStatLines } from "../football/premierLeague/plMatch";
 import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlPlayerStats, type RawPlFixture } from "../football/premierLeague/premierLeague";
@@ -14,6 +15,7 @@ import { writeScores } from "../football/matchScores";
 import { plScoreRead, readEach, type ScoreReads } from "../football/scoreReads";
 import { commentaryContext, delayCommentary, syncCommentary } from "../football/matchCommentary";
 import { syncTeamStats } from "../football/matchTeamStats";
+import { recordSideMatches, type SideMatches, type SideMatchOutcome } from "../admin/sideRuns";
 
 // Issue #27: every due match's stats from both feeds, one record per named man, upserted with
 // `matchStats.upsertMatch`. `crons.ts` runs it every 10 minutes (ARCHITECTURE.md); by hand from
@@ -39,11 +41,17 @@ export const run = internalAction({
   returns: v.null(),
   handler: async (ctx, { trigger }) => {
     const ranAt = Date.now();
+    let teamStats: SideMatchOutcome[] = [];
     const outcome: Outcome = await outcomeOf("match stats sync failed", async () => {
       const due: DueMatch[] = await ctx.runQuery(internal.stats.matchStats.due, { now: ranAt });
-      return { ok: true as const, ...(due.length === 0 ? { matches: [], waiting: [] } : await syncDue(ctx, due, ranAt, "wait")) };
+      if (due.length === 0) return { ok: true as const, matches: [], waiting: [] };
+      const { sides, ...read } = await syncDue(ctx, due, ranAt, "wait");
+      teamStats = sides.teamStats;
+      return { ok: true as const, ...read };
     });
     await ctx.runMutation(internal.stats.matchStats.record, { trigger, ranAt, outcome });
+    // Only its full-time reads read team stats, and the feed owes none between matches.
+    await recordSideMatches(ctx, ranAt, { teamStats }, false);
     return null;
   },
 });
@@ -69,6 +77,7 @@ export async function syncDue(
   const matches: MatchOutcome[] = [];
   const waiting: number[] = [];
   const scores: ScoreReads = { reads: [], problems: [] };
+  const sides: SideMatches = { teamStats: [], thresholdSteps: [] };
   for (const [gameweek, codes] of byGameweek(due)) {
     let reads: GameweekReads;
     try {
@@ -87,19 +96,22 @@ export async function syncDue(
     }
     for (const fixtureCode of codes) {
       try {
-        const outcome = await syncMatch(ctx, fixtureCode, reads, readAt, beforeFullTime);
-        if (outcome === null) waiting.push(fixtureCode);
-        else matches.push(outcome);
+        const synced = await syncMatch(ctx, fixtureCode, reads, readAt, beforeFullTime);
+        if (synced === null) waiting.push(fixtureCode);
+        else {
+          matches.push(synced.outcome);
+          if (synced.thresholdSteps !== null) sides.thresholdSteps.push(synced.thresholdSteps);
+        }
       } catch (error: unknown) {
         matches.push({ fixtureCode, ok: false, error: logFailure(`match ${fixtureCode} failed`, error) });
       }
       const listed = reads.listed.get(fixtureCode);
       if (commentary !== null) await syncCommentary(ctx, fixtureCode, listed, commentary, readAt);
       // Its five team stats (#45) while it is live, and at full time, apart from its points.
-      if (beforeFullTime === "live" || listed?.status === PL_FULL_TIME) await syncTeamStats(ctx, fixtureCode, listed);
+      if (beforeFullTime === "live" || listed?.status === PL_FULL_TIME) sides.teamStats.push(await syncTeamStats(ctx, fixtureCode, listed));
     }
   }
-  return { matches, waiting, scores: await writeDueScores(ctx, readAt, scores) };
+  return { matches, waiting, scores: await writeDueScores(ctx, readAt, scores), sides };
 }
 
 /** The due matches' scores written; a failed write fails each read's score on the run row, not
@@ -125,14 +137,14 @@ function dueScores(listed: GameweekReads["listed"], codes: number[]): ScoreReads
 }
 
 /** One match: its sheets and every named man's Premier League stats, merged with FPL's and
- *  upserted; before full time, null if waiting, or written as live. */
+ *  upserted; before full time, null if waiting, or written as live, its threshold steps with it. */
 async function syncMatch(
   ctx: ActionCtx,
   fixtureCode: number,
   { gameweek, codeByOpta, fplLines, listed, clocks }: GameweekReads,
   readAt: number,
   beforeFullTime: BeforeFullTime,
-): Promise<MatchOutcome | null> {
+): Promise<{ outcome: MatchOutcome; thresholdSteps: SideMatchOutcome | null } | null> {
   const summary = listed.get(fixtureCode);
   if (summary === undefined) throw new Error(`the Premier League lists no match ${fixtureCode} in gameweek ${gameweek}`);
   if (summary.status === undefined) throw new Error(`PL fixture ${summary.id} carries no status`);
@@ -145,8 +157,15 @@ async function syncMatch(
   );
   const { lines } = plStatLines(fixture, reads, codeByOpta);
   const records = matchRecords(fixtureCode, slots, fplLines, lines);
-  const written = fullTime
-    ? await ctx.runMutation(internal.stats.matchStats.upsertMatch, { fixtureCode, readAt, records })
-    : await ctx.runMutation(internal.stats.liveStats.upsertLive, { fixtureCode, minute: clocks.get(fixtureCode) ?? null, records });
-  return { fixtureCode, ok: true, ...written, players: records.length, unmatched };
+  const matchOutcome = (written: Infer<typeof matchWrites>): MatchOutcome => ({ fixtureCode, ok: true, ...written, players: records.length, unmatched });
+  if (fullTime) {
+    const written = await ctx.runMutation(internal.stats.matchStats.upsertMatch, { fixtureCode, readAt, records });
+    return { outcome: matchOutcome(written), thresholdSteps: null };
+  }
+  const { thresholdSteps, ...written } = await ctx.runMutation(internal.stats.liveStats.upsertLive, {
+    fixtureCode,
+    minute: clocks.get(fixtureCode) ?? null,
+    records,
+  });
+  return { outcome: matchOutcome(written), thresholdSteps };
 }
