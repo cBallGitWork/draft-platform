@@ -61,7 +61,6 @@ describe("the danger action", () => {
     expect(contrast(token("event"), token("alert"))).toBeGreaterThanOrEqual(TEXT_CONTRAST);
     expect(contrast(token("fact"), token("alert"))).toBeGreaterThanOrEqual(TEXT_CONTRAST);
     expect(contrast(token("event"), token("ground"))).toBeGreaterThanOrEqual(TEXT_CONTRAST);
-    expect(contrast(token("event"), token("ground"))).toBeGreaterThanOrEqual(TEXT_CONTRAST);
     expect(contrast(token("muted"), token("alert"))).toBeGreaterThanOrEqual(TEXT_CONTRAST);
     expect(contrast(token("event"), token("panel-solid"))).toBeGreaterThanOrEqual(EDGE_CONTRAST);
   });

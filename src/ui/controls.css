@@ -70,7 +70,8 @@
   font-size: var(--text-lead);
   font-weight: var(--font-weight-semibold);
   @media (hover: hover) {
-    /* Never filled orange: that is Continue near the deadline. The edge doubles and the words go white. */
+    /* Never filled orange: that is Continue near the deadline. The edge doubles and the words go white
+       (high-contrast mode drops both, as it does every hover here but the browser's own). */
     &:enabled:hover {
       box-shadow: inset 0 0 0 1px var(--color-event);
       color: var(--color-fact);
