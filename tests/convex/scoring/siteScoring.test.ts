@@ -40,6 +40,13 @@ import {
 
 useSiteScoringDeployment();
 
+/** Holds `extra` current gameweek rows past FPL's 38, with no matches: only a row written by hand
+ *  can pass it, and the held gameweek rows' read throws past it (#831, #832). */
+const holdGameweeksPastTheSeason = (extra: number) =>
+  t.run(async (ctx) => {
+    for (let number = GAMEWEEKS + 1; number <= GAMEWEEKS + extra; number += 1) await ctx.db.insert("gameweeks", { number, deadline: 0 });
+  });
+
 describe("reading it", () => {
   test("before any version, every gameweek plays the first set, and a fix would reach the next not kicked off", async () => {
     await holdGameweeks(t, { next: 9 });
@@ -50,14 +57,22 @@ describe("reading it", () => {
 
   test(`a gameweek's set reads only the held matches, so more than ${GAMEWEEKS} gameweeks held never stops it`, async () => {
     await holdGameweeks(t, { next: 9 });
-    // Only a row written by hand can pass FPL's 38, and the schedule's read throws past it.
-    await t.run(async (ctx) => {
-      for (const number of [GAMEWEEKS + 1, GAMEWEEKS + 2]) await ctx.db.insert("gameweeks", { number, deadline: 0 });
-    });
+    await holdGameweeksPastTheSeason(2);
     await t.run((ctx) => holdSiteScoring(ctx, { scoring: EDITED, kind: "fix", season: 2026, number: 1, at: TODAY }));
 
     expect(await inGameweek(8)).toEqual(FIRST_SCORING);
     expect(await inGameweek(9)).toEqual(EDITED);
+  });
+
+  test(`with ${GAMEWEEKS + 1} gameweeks held, Player scoring, a fix and an announced patch still name the gameweek they reach (#832)`, async () => {
+    await holdGameweeks(t, { next: 9 });
+    await holdGameweeksPastTheSeason(1);
+
+    expect(await viewAs(ADMIN)).toMatchObject({ changesFrom: 9 });
+    expect(await fixAs(ADMIN, EDITED)).toBe(9);
+    expect(await patch(EDITED_AGAIN, TODAY + NOTICE)).toEqual({ name: "26_27.2", fromGameweek: 10 });
+    expect(await inGameweek(9)).toEqual(EDITED);
+    expect(await inGameweek(10)).toEqual(EDITED_AGAIN);
   });
 
   test("a commissioner, a co-commissioner and a manager read it, and may not change it", async () => {
