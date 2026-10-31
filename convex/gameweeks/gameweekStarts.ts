@@ -5,7 +5,7 @@ import { GAMEWEEKS } from "./usedGameweeks";
 
 // Each gameweek's first kickoff, once passed, kept where it fell even if that match then leaves the
 // gameweek (#414), as a passed deadline is (#150). The site's scoring version for a gameweek hangs
-// on it (siteScoring.ts). deadlineRecorder.ts records it before every write that can move a kickoff.
+// on it (siteVersions.ts). deadlineRecorder.ts records it before every write that can move a kickoff.
 // FPL numbers each season's gameweeks 1 to 38 again, so it is kept by season and read for the
 // season of the matches held.
 

@@ -1,10 +1,11 @@
-import type { Infer } from "convex/values";
+import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import type { leagueEvent } from "../schema";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
+import { playerByCode } from "../shared/players";
 
 // A player's place in a league's squads: one home for the read squads, squad numbers, the player
 // card and the shortlist each make. It also holds a team's squad now (`squadOf`) and as it stood
@@ -54,6 +55,20 @@ export function squadOf(ctx: QueryCtx, teamId: Id<"teams">) {
     .query("squadPlayers")
     .withIndex("by_teamId", (q) => q.eq("teamId", teamId))
     .take(MOST_IN_SQUAD);
+}
+
+/** The codes of a squad's players the football sync doesn't hold: data gone wrong, which a screen
+ *  shows as rows of their own after the others, never hiding them (Craig, 31 Oct 2026, #323). */
+export const unheldCodes = v.array(v.number());
+
+/** Squad rows split by whether the football sync holds each one's player: the held with their
+ *  player, in the rows' order, and the codes of the rest. */
+export async function heldOrNot(ctx: QueryCtx, rows: readonly Doc<"squadPlayers">[]) {
+  const read = await Promise.all(rows.map(async (row) => ({ row, player: await playerByCode(ctx, row.playerCode) })));
+  return {
+    held: read.flatMap(({ row, player }) => (player === null ? [] : [{ row, player }])),
+    unheld: read.flatMap(({ row, player }) => (player === null ? [row.playerCode] : [])),
+  };
 }
 
 type LeagueEvent = Infer<typeof leagueEvent>;

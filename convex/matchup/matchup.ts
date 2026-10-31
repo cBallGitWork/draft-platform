@@ -112,8 +112,7 @@ async function gameOf(
  *  up to it; and a gameweek whose slots can't be worked out is unscored here even while the table
  *  shows its stored totals. */
 class SideScorer {
-  /** His name; for one the football sync doesn't hold, the error saying so, as the squads say it
-   *  (#810, #323). */
+  /** His name; for one the football sync doesn't hold, the error saying so (#810, #323). */
   private readonly name = readOnce((playerCode: PlayerCode) => playerByCode(this.ctx, playerCode).then((player) => player?.name ?? unheldPlayerWords(playerCode)));
   private readonly score = readOnce((fixtureCode: number) => scoreOf(this.ctx, fixtureCode));
 

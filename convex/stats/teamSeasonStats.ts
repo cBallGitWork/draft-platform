@@ -111,9 +111,11 @@ async function storeNext(ctx: MutationCtx, league: Doc<"leagues">): Promise<numb
     const leagueRead = (reads ??= await leagueReads(ctx, league, season));
     const inputs = await gameweekInputs(ctx, leagueRead, gameweek, fixtures, stale);
     const scored = await Promise.all(stale.map((teamId) => teamInGameweek(leagueRead, inputs, teamId)));
-    // A record not whole after the lock (a feed's gap) leaves the team's points provisional, and
-    // the table stores none of the gameweek's scores until it arrives: nor does the stat race, and
-    // a share from other matches comes off meanwhile, as in a gameweek not final.
+    // A record not whole after the lock leaves the team's points provisional, and the table stores
+    // none of the gameweek's scores then: nor does the stat race, and a share from other matches
+    // comes off, as in a gameweek not final. A match locks only once every record its full-time
+    // read sent is whole, and none is written after (matchStats.ts), so the one way here is a
+    // live tick's record that read left out; it stays so, and the gameweek with it (#805).
     if (scored.some((each) => each.team.provisional)) {
       if (await takeAway(ctx, stale.flatMap((teamId) => shares.get(teamId) ?? []))) moved.push(gameweek);
       continue;
