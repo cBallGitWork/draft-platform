@@ -44,7 +44,8 @@ fails_loudly "gate_on_stop.py: git status --porcelain -- " gate_on_stop.py "$bro
 one_line "a failed git status"
 fails_loudly "failed in $(git -C "$broken" rev-parse --show-toplevel) (exit 128: " gate_on_stop.py "$broken_stop" DRAFT_GATE_CMD=true
 # a gate that runs past its timeout is one line saying so, never a traceback (here src/a.ts is changed in $dirty)
-slow='sleep 5' short=0.2 dirty_top=$(git -C "$dirty" rev-parse --show-toplevel) ungated='so the stop goes ahead ungated.'
+slow='sleep 5' short=0.2 ungated='so the stop goes ahead ungated.'
+dirty_top=$(git -C "$dirty" rev-parse --show-toplevel)
 fails_loudly "gate_on_stop.py: the gate ($slow) ran past its $short-second timeout in $dirty_top, $ungated" \
   gate_on_stop.py "$dirty_stop" DRAFT_GATE_CMD="$slow" DRAFT_GATE_TIMEOUT=$short
 one_line "a gate past its timeout"
