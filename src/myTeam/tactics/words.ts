@@ -45,6 +45,9 @@ export const presetLabel = "Formation";
 export const pickPresetWords = "Pick a preset…";
 export const emptySlotLabel = (area: Area, lane: Lane) => `Empty slot: ${cellWords(area, lane)}`;
 
+/** The desk's switch for the roles' runs on the pitch (spec/05 Runs). */
+export const runsWords = "Runs";
+
 /** What to do, under the pitch's plate: before a player is picked up, and while one is. */
 export const pickHintWords = "Pick a player, then a free cell. Or drag him.";
 export const movingHintWords = (name: string, positions: readonly string[]) =>
