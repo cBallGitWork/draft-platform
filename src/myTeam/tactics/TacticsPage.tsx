@@ -91,6 +91,9 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
   // The preset last picked, whose empty slots the pitch marks; none until one is.
   const [shape, setShape] = useState<string>("");
   const [savedFrom, setSavedFrom] = useState<number | null>(null);
+  // The lineup a save waiting on the server sent. An edit or Discard forgets it, so the answer that
+  // lands after one, about a lineup no longer on the pitch, says nothing (#642).
+  const sent = useRef<DraftLineup | null>(null);
   const { busy: saving, problem, run, clear } = useChange();
   const changes = seam.useLineupChanges();
   const draft = useMemo(() => shownLineup(edited, opening, tactics.squad.map(({ playerCode }) => playerCode)), [edited, opening, tactics.squad]);
@@ -122,6 +125,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     setEdited(next);
     setPickedCode(null);
     setSavedFrom(null);
+    sent.current = null;
     clear();
   };
   const change = (next: DraftLineup, moved: number, focus: readonly string[] = [markedBy("player", moved)]) => {
@@ -158,13 +162,18 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
   };
   // The gameweek is the server's: a save sent just after the deadline is from the one after.
   const save = async () => {
+    const lineup = draft;
+    sent.current = lineup;
+    const movedSince = () => sent.current !== lineup;
     let from: number | null = null;
     const made = await run(async () => {
-      const answer = await changes.save(league.leagueId, draft);
-      if (typeof answer === "string") return answer;
+      const answer = await changes.save(league.leagueId, lineup);
+      // run says a refusal itself, so one of a lineup moved since is withheld here; a save, below.
+      if (typeof answer === "string") return movedSince() ? null : answer;
       from = answer;
       return null;
     });
+    if (movedSince()) return;
     // A refusal leaves no saved line, unlike the rules' save bar; a save says its gameweek.
     setSavedFrom(made ? from : null);
     // Saved, the lineup stands as it is: the shape's slots are no longer asked for.
@@ -174,6 +183,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     setEdited(null);
     setShape("");
     setPickedCode(null);
+    sent.current = null;
     clear();
   };
 
