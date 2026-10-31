@@ -3,7 +3,6 @@ import { internal } from "../_generated/api";
 import { internalAction, internalMutation } from "../_generated/server";
 import { sendEmail } from "../outbound/email";
 import { startOfNextDay, takeTodaysEmail as takeOne } from "../outbound/emailLimit";
-import { unemailedReason } from "../schema";
 
 // The email each person with a part in a league gets once leagueDeletion.deleteForGood has removed
 // it (#320, spec/13, Deleting): "just delay the deletion email until its actually gone". Each
@@ -65,13 +64,12 @@ export const takeTodaysEmail = internalMutation({
 });
 
 /** Keeps one the email service refused. Rows with reason "paused" were kept before #837, when the
- *  day's limit dropped an email rather than waiting: none is written now. `reason` is taken only
- *  from a run started before #837 deployed, so it can finish; drop it after one release (#856). */
+ *  day's limit dropped an email rather than waiting: none is written now. */
 export const recordUnemailed = internalMutation({
-  args: { leagueName: v.string(), by: v.string(), email: v.string(), reason: v.optional(unemailedReason) },
+  args: { leagueName: v.string(), by: v.string(), email: v.string() },
   returns: v.null(),
-  handler: async (ctx, { reason = "notSent", ...row }) => {
-    await ctx.db.insert("unemailedDeletions", { ...row, reason, at: Date.now() });
+  handler: async (ctx, row) => {
+    await ctx.db.insert("unemailedDeletions", { ...row, reason: "notSent", at: Date.now() });
     return null;
   },
 });
