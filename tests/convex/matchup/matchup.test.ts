@@ -1,5 +1,6 @@
 import { expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
+import { STREAM_BEHIND } from "../../../convex/football/matchCommentary";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { MatchupSide, MatchupSlot } from "../../../convex/matchup/matchupShape";
 import { inTenths } from "../../../convex/scoring/values";
@@ -7,8 +8,10 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import {
   ANN,
+  ANNS_TEAM,
   annsScoredGame,
   BOB,
+  BOBS_TEAM,
   CAT,
   EVERTON_POINTS,
   EVERTON_STARTERS,
@@ -113,8 +116,8 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
   await lockMatch(league);
   const final = await annsScoredGame(league, GAMEWEEK);
   expect(sideTotal(RECORDS, HULL_AFTER_SUB)).toBe(HULL_POINTS);
-  expect(final.team).toMatchObject({ kind: "team", teamId: league.annsTeam, teamName: "Team 1", points: HULL_POINTS, provisional: false });
-  expect(final.opponent).toMatchObject({ kind: "team", teamId: league.bobsTeam, teamName: "Team 2", points: EVERTON_POINTS, provisional: false });
+  expect(final.team).toMatchObject({ kind: "team", teamId: league.annsTeam, teamName: ANNS_TEAM, points: HULL_POINTS, provisional: false });
+  expect(final.opponent).toMatchObject({ kind: "team", teamId: league.bobsTeam, teamName: BOBS_TEAM, points: EVERTON_POINTS, provisional: false });
 });
 
 test("a final gameweek's stored scores are its totals, as the table reads them, while its slots are still shown", async () => {
@@ -196,13 +199,13 @@ test("with no team or gameweek named, it opens on the caller's own team in the l
   const read = await matchupAs(league, BOB);
   expect(read).toMatchObject({ kind: "headToHead", teamId: league.bobsTeam, gameweek: GAMEWEEK, game: { kind: "scored" } });
   // Bob's own team is on the left.
-  expect(read?.kind === "headToHead" && read.game.kind === "scored" && read.game.team).toMatchObject({ teamName: "Team 2" });
+  expect(read?.kind === "headToHead" && read.game.kind === "scored" && read.game.team).toMatchObject({ teamName: BOBS_TEAM });
 });
 
 test("before a gameweek's deadline neither lineup shows, only who meets whom", async () => {
   const league = await scoresLeague();
   const read = await matchupAs(league, ANN, { gameweek: GAMEWEEK + 1 });
-  expect(read).toMatchObject({ kind: "headToHead", gameweek: GAMEWEEK + 1, game: { kind: "notBegun", opponent: { kind: "team", teamName: "Team 2" } } });
+  expect(read).toMatchObject({ kind: "headToHead", gameweek: GAMEWEEK + 1, game: { kind: "notBegun", opponent: { kind: "team", teamName: BOBS_TEAM } } });
 });
 
 test("anyone in the league sees another team's matchup once the gameweek has begun", async () => {
@@ -216,7 +219,7 @@ test("a side that never saved a lineup shows its first and scores from it (#637)
   await fullTimeRecords(league);
   await lockMatch(league);
   const bob = (await annsScoredGame(league, GAMEWEEK)).opponent;
-  expect(bob).toMatchObject({ kind: "team", teamId: league.bobsTeam, teamName: "Team 2", points: BOBS_FIRST_POINTS, provisional: false });
+  expect(bob).toMatchObject({ kind: "team", teamId: league.bobsTeam, teamName: BOBS_TEAM, points: BOBS_FIRST_POINTS, provisional: false });
   // The 4-4-1 his squad fills, Grealish first on the bench.
   expect(lineupOf(bob).starters).toHaveLength(EVERTON_STARTERS.length - 1);
   expect(lineupOf(bob).bench[0]).toMatchObject({ playerCode: GREALISH, counts: false });
@@ -245,7 +248,7 @@ test("a gameweek that can't be scored says why, and logs it", async () => {
   await holdTypoRule(league);
   const logged = silenceConsoleError();
   expect(await matchupAs(league, ANN, { gameweek: GAMEWEEK })).toMatchObject({ game: { kind: "unscored", reason: expect.stringContaining(`"${TYPO_STAT}"`) } });
-  expect(logged).toHaveBeenCalledWith(expect.stringContaining(`can't score Team 1's matchup in gameweek ${GAMEWEEK}`));
+  expect(logged).toHaveBeenCalledWith(expect.stringContaining(`can't score ${ANNS_TEAM}'s matchup in gameweek ${GAMEWEEK}`));
 });
 
 test("a lineup player the football sync no longer holds leaves the matchup unscored, saying who", async () => {
@@ -288,7 +291,7 @@ test("the commentary is the match's stored lines, the goal priced for its scorer
     ctx.db.insert("matchCommentary", {
       fixtureCode: HULL_EVERTON,
       lines: [line(3, "FT HUL 1–2 EVE", 1, "end 14"), line(2, `64' GOAL ${scorer}`, 64, "goal", [HULL_SCORER]), line(1, "KO HUL v EVE", 0, "start")],
-      delayed: { reason: "the stream is over 10 minutes behind the clock", since: LEAGUE_KICKOFF },
+      delayed: { reason: STREAM_BEHIND, since: LEAGUE_KICKOFF },
     }),
   );
 

@@ -11,6 +11,7 @@ import { nextGameweekLabel, previousGameweekLabel } from "../../../src/shared/wo
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
 import { menuWords } from "../../../src/frame/words";
+import { expectColumnHeads } from "../../support/src/columnHeads";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 import type { TableData } from "../../support/src/table.harness";
@@ -78,8 +79,7 @@ describe("the table", () => {
 
   it("heads a head-to-head table with played, won, drawn, lost, for, against, the difference and points", async () => {
     openTable({ leagueTable: leagueTableOf(FIVE) });
-    const heads = within(await screen.findByRole("table")).getAllByRole("columnheader");
-    expect(heads.map((head) => head.getAttribute("aria-label"))).toEqual(Object.values(columns).map((column) => column.long));
+    expectColumnHeads(await screen.findByRole("table"), Object.values(columns));
   });
 
   it("ranks by points once matchups are scored, with a signed difference, and stops saying there are no results", async () => {

@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
 import type { PlStandings } from "../../../src/premierLeague/seam";
 import { loadingTableWords, noClubsWords, provisionalWords, TABLE_TITLE, tableColumns } from "../../../src/premierLeague/words";
+import { expectColumnHeads } from "../../support/src/columnHeads";
 import { ARSENAL, CHELSEA, FOREST, SPURS, standingsRow, type PremierLeagueData } from "../../support/src/premierLeague.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 
@@ -42,9 +43,8 @@ describe("the Premier League table", () => {
 
   it("heads its columns P W D L GF GA GD Pts, each named in full for a screen reader", async () => {
     openSection({ standings });
-    const heads = within(await panel()).getAllByRole("columnheader");
-    expect(heads.map((head) => head.textContent)).toEqual(["Pos", "Club", "P", "W", "D", "L", "GF", "GA", "GD", "Pts"]);
-    expect(heads.map((head) => head.getAttribute("aria-label"))).toEqual(Object.values(tableColumns).map((column) => column.long));
+    expectColumnHeads(await panel(), Object.values(tableColumns));
+    expect(Object.values(tableColumns).map(({ short }) => short)).toEqual(["Pos", "Club", "P", "W", "D", "L", "GF", "GA", "GD", "Pts"]);
   });
 
   it("lists every club in the server's order, clubs it can't part sharing a position, the difference signed", async () => {

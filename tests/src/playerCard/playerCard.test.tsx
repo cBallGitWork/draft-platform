@@ -40,6 +40,7 @@ import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
 import { squadsPath } from "../../../src/squads/paths";
 import { gameweekWords, versusWords } from "../../../src/shared/words";
 import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";
+import { expectColumnHeads } from "../../support/src/columnHeads";
 import type { PlayerCardData } from "../../support/src/playerCard.harness";
 import { commissioned, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 import { squadWithWarnings } from "../../support/src/squads.harness";
@@ -176,10 +177,11 @@ describe("the card", () => {
 
   it("each match shows its figures at his best position, labelled so, and each category he earned points in", async () => {
     openCard();
-    const season = within(await screen.findByRole("region", { name: SEASON_TITLE }));
+    const seasonPanel = await screen.findByRole("region", { name: SEASON_TITLE });
+    const season = within(seasonPanel);
 
     expect(season.getByText(pricedNotes.bestPosition)).toBeTruthy();
-    expect(season.getAllByRole("columnheader").map((head) => head.textContent)).toEqual(Object.values(columns).map((column) => column.short));
+    expectColumnHeads(seasonPanel, Object.values(columns));
     const row = season.getAllByRole("rowheader", { name: `${ARSENAL.shortName} ${versusWords} ${COVENTRY.shortName}` })[1].closest("tr")!;
     expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2", "90", "W", "11"]);
     expect(season.getByLabelText(breakdownLabel(2)).textContent).toBe("Goals scored 5, Assists 4, Minutes 2");
