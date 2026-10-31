@@ -7,13 +7,12 @@ import { LEAGUES_RECORDED_MOST, recordPassedDeadlines } from "../../../convex/ga
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { changeRules, giveDeadlineRule, setUsed } from "../../support/convex/leagueRules.harness";
-import { syncWith } from "../../support/convex/footballSync.harness";
+import { held, syncWith } from "../../support/convex/footballSync.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { clockRunsTo, expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 import { recordedSeason } from "../../support/recorded/fpl.payloads";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { recordGameweekStarts } from "../../../convex/gameweeks/gameweekStarts";
-import { held } from "../../support/convex/footballSync.harness";
 
 // The start recording as it is, but a test can make it throw.
 vi.mock("../../../convex/gameweeks/gameweekStarts", async (actual) => {
@@ -35,6 +34,8 @@ const [OPENER, SECOND] = kickoffsOf(GAMEWEEK);
 const THREE_HOURS = 180;
 /** The first rules' deadline, before a kickoff. */
 const deadlineBefore = (kickoff: number) => kickoff - FIRST_RULES.deadline.minutesBeforeFirstKickoff * MINUTE_MS;
+/** What a failed sync logs (footballSync.ts). */
+const SYNC_FAILED_LOG = "football sync failed";
 
 /** FPL's season with gameweek 8's opener postponed, as FPL sends one: no gameweek, no kickoff. */
 function openerPostponed() {
@@ -112,7 +113,7 @@ test("it fails closed: a league whose deadlines can't be worked out fails the sy
   const outcome = await syncWith(t, openerPostponed());
 
   expect(outcome).toMatchObject({ ok: false, error: expect.stringContaining(`League ${broken} (Broken)`) });
-  expect(error).toHaveBeenCalledWith(expect.stringContaining("football sync failed"));
+  expect(error).toHaveBeenCalledWith(expect.stringContaining(SYNC_FAILED_LOG));
   const kickoffs = await t.run(async (ctx) => (await ctx.db.query("fixtures").collect()).map((fixture) => fixture.kickoff));
   expect(kickoffs).toContain(OPENER);
   expect((await passedRows()).filter((row) => row.gameweek === GAMEWEEK)).toEqual([]);
@@ -121,20 +122,20 @@ test("it fails closed: a league whose deadlines can't be worked out fails the sy
 
 test("it fails closed: a throw while recording a gameweek's start fails the fixtures batch and the sync, and no fixture row changes", async () => {
   const error = silenceConsoleError();
-  const BROKEN = "the gameweek starts can't be read";
+  const STARTS_FAILED = "the gameweek starts can't be read";
   // Once for each fixtures write below: a vi.fn's own implementation isn't put back after a test.
-  const startsThrowOnce = () => vi.mocked(recordGameweekStarts).mockRejectedValueOnce(new Error(BROKEN));
+  const startsThrowOnce = () => vi.mocked(recordGameweekStarts).mockRejectedValueOnce(new Error(STARTS_FAILED));
   vi.setSystemTime(deadlineBefore(OPENER) + HOUR_MS);
   const { fixtures } = await held(t);
   const opener = await heldOpener();
 
   startsThrowOnce();
-  await expect(t.mutation(internal.football.footballSync.upsertFixtures, { rows: [{ ...opener, gameweek: null, kickoff: null }] })).rejects.toThrow(BROKEN);
+  await expect(t.mutation(internal.football.footballSync.upsertFixtures, { rows: [{ ...opener, gameweek: null, kickoff: null }] })).rejects.toThrow(STARTS_FAILED);
   startsThrowOnce();
   const outcome = await syncWith(t, openerPostponed());
 
-  expect(outcome).toMatchObject({ ok: false, error: expect.stringContaining(BROKEN) });
-  expect(error).toHaveBeenCalledWith(expect.stringContaining("football sync failed"));
+  expect(outcome).toMatchObject({ ok: false, error: expect.stringContaining(STARTS_FAILED) });
+  expect(error).toHaveBeenCalledWith(expect.stringContaining(SYNC_FAILED_LOG));
   expect((await held(t)).fixtures).toEqual(fixtures);
 });
 
