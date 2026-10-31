@@ -145,10 +145,10 @@ describe("a replayed gameweek plays out on screen", () => {
     live.play(stages.fullTime);
     expect(await screen.findByText(scoreWords(9, 7))).toBeTruthy();
     expect(lineupRows("Team 1")).toEqual([
-      `${AREA_CODES.goalkeeper}Phillips${autoSubWords.off("Pandur")}${statusLabels.finished} FT0 ${notCountingLabel}`,
-      `${AREA_CODES.midfield}Coyle${statusLabels.finished} FT6`,
+      `${AREA_CODES.goalkeeper}Phillips${autoSubWords.off("Pandur")}${statusLabels.finished} ${statusWords.finished}0 ${notCountingLabel}`,
+      `${AREA_CODES.midfield}Coyle${statusLabels.finished} ${statusWords.finished}6`,
       BENCH_TITLE,
-      `${AREA_CODES.goalkeeper}Pandur${autoSubWords.on("Phillips")}${statusLabels.finished} FT3`,
+      `${AREA_CODES.goalkeeper}Pandur${autoSubWords.on("Phillips")}${statusLabels.finished} ${statusWords.finished}3`,
     ]);
     expect(screen.getByText(provisionalWords)).toBeTruthy();
 
