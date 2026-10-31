@@ -174,7 +174,7 @@ test("once the match has records, they are its men, not the sheets", async () =>
 });
 
 /** The points the player card gives `playerCode` in this match, and how it priced them. */
-async function cardsPoints(league: ScoresLeague, playerCode: number) {
+async function pointsOnCard(league: ScoresLeague, playerCode: number) {
   const card = await (await actingAs(league.t, ANN)).query(api.playerCard.playerCard.card, { leagueId: league.leagueId, playerCode, now: Date.now() });
   return card!.matches.find((each) => each.fixtureCode === HULL_EVERTON)!.points;
 }
@@ -202,7 +202,7 @@ async function lineupMen(league: ScoresLeague): Promise<number[]> {
 test("a free agent shows no team and the points his card gives him, counted for no team", async () => {
   const league = await scorerFreeLeague();
   const page = (await matchAs(league, ANN))!;
-  const card = await cardsPoints(league, HULL_SCORER);
+  const card = await pointsOnCard(league, HULL_SCORER);
   expect(card.scoredAs).toBe("bestPosition");
   expect(card.total).toEqual(expect.any(Number));
   expect(manOf(page.men, HULL_SCORER)).toMatchObject({ ownerTeamName: null, points: card.total, counts: false });
@@ -216,7 +216,7 @@ test("a man picked up after the deadline shows no team and the points his card g
   const game = await annsScoredGame(league);
   await (await actingAs(league.t, ADMIN)).mutation(api.squads.squads.assign, { leagueId: league.leagueId, playerCode: HULL_SCORER, teamId: league.bobsTeam });
   const page = (await matchAs(league, ANN))!;
-  const card = await cardsPoints(league, HULL_SCORER);
+  const card = await pointsOnCard(league, HULL_SCORER);
   expect(card.scoredAs).toBe("bestPosition");
   expect(card.total).toEqual(expect.any(Number));
   expect(manOf(page.men, HULL_SCORER)).toMatchObject({ ownerTeamName: null, points: card.total, counts: false });
@@ -230,7 +230,7 @@ test("a free agent's points are the league's override of them where it holds one
   await league.t.run((ctx) =>
     ctx.db.insert("pointsOverrides", { leagueId: league.leagueId, gameweek: GAMEWEEK, fixtureCode: HULL_EVERTON, playerCode: HULL_SCORER, points: OVERRIDE, reason: "", by: ADMIN, at: 0 }),
   );
-  expect((await cardsPoints(league, HULL_SCORER)).total).toBe(OVERRIDE);
+  expect((await pointsOnCard(league, HULL_SCORER)).total).toBe(OVERRIDE);
   expect(manOf((await matchAs(league, ANN))!.men, HULL_SCORER)).toMatchObject({ ownerTeamName: null, points: OVERRIDE, counts: false });
 });
 
