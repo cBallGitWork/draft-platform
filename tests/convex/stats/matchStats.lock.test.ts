@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
-import { LATE_CORRECTION_WATCH_MS, LATE_READ_EVERY_MS, MATCHES_PER_RUN } from "../../../convex/stats/matchStats";
+import { LATE_CORRECTION_WATCH_MS, LATE_READ_EVERY_MS, MATCHES_PER_RUN } from "../../../convex/stats/matchStatsDue";
 import {
   FULL_TIME_READ,
   GAMEWEEK,
@@ -117,7 +117,7 @@ test("a window changed after the lock was scheduled is read again when the lock 
 
 test("a match is due 105 minutes after kickoff, the soonest it can reach full time, and not before", async () => {
   const t = await withHullEverton();
-  const due = (now: number) => t.query(internal.stats.matchStats.due, { now });
+  const due = async (now: number) => (await t.query(internal.stats.matchStatsDue.due, { now })).matches;
 
   expect(await due(KICKOFF + 105 * MINUTE_MS - 1)).toEqual([]);
   expect(await due(KICKOFF + 105 * MINUTE_MS)).toEqual([{ fixtureCode: HULL_EVERTON, gameweek: GAMEWEEK }]);
@@ -130,12 +130,12 @@ test("a match the football sync has marked dropped is not due", async () => {
     await ctx.db.patch("fixtures", fixture._id, { droppedAt: KICKOFF });
   });
 
-  expect(await t.query(internal.stats.matchStats.due, { now: FULL_TIME_READ })).toEqual([]);
+  expect((await t.query(internal.stats.matchStatsDue.due, { now: FULL_TIME_READ })).matches).toEqual([]);
 });
 
 test("a locked match is read again now and then for late corrections, until the watch ends", async () => {
   const t = await withHullEverton();
-  const due = async (now: number) => (await t.query(internal.stats.matchStats.due, { now })).length;
+  const due = async (now: number) => (await t.query(internal.stats.matchStatsDue.due, { now })).matches.length;
   await syncAt(t, FULL_TIME_READ, recordedGw6());
   await elapse(t, HOUR_MS);
   const lockedAt = FULL_TIME_READ + HOUR_MS;
@@ -158,7 +158,7 @@ test("a run takes due matches never tried oldest first, a gameweek's worth at mo
     }
   });
 
-  const due = await t.query(internal.stats.matchStats.due, { now: FULL_TIME_READ + HOUR_MS });
+  const { matches: due } = await t.query(internal.stats.matchStatsDue.due, { now: FULL_TIME_READ + HOUR_MS });
 
   expect(due.map((match) => match.fixtureCode)).toEqual(
     Array.from({ length: MATCHES_PER_RUN }, (_, index) => count - index),
@@ -174,7 +174,7 @@ test(`past seasons' dropped matches aren't read, and more than ${CURRENT_FIXTURE
         await ctx.db.insert("fixtures", { code: firstCode + index, gameweek: GAMEWEEK, homeClubCode: 1, awayClubCode: 2, kickoff: KICKOFF, droppedAt });
       }
     });
-  const dueCount = async () => (await t.query(internal.stats.matchStats.due, { now: FULL_TIME_READ })).length;
+  const dueCount = async () => (await t.query(internal.stats.matchStatsDue.due, { now: FULL_TIME_READ })).matches.length;
 
   await holdPastMatches(CURRENT_FIXTURES_MOST, 1, KICKOFF);
   await holdPastMatches(CURRENT_FIXTURES_MOST, 10_000);
