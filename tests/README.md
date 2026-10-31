@@ -49,7 +49,8 @@ Nothing in it is a test. Each kind of file:
 - **`convex/scoring.example.ts`**, a scoring set for the tests only, never one anyone plays; the
   first real set is in `convex/scoring/firstScoring.ts`.
 - **`golden/`**, the expected output a test compares with (`toMatchFileSnapshot`):
-  `hull-everton.scores.json` (scoring), `ipswich-forest.commentary.txt` (Ipswich v Forest's
+  `gameweek6.scores.json` (a whole gameweek's scoring), `hull-everton.scores.json` (one match's
+  scoring), `ipswich-forest.commentary.txt` (Ipswich v Forest's
   written commentary, `tests/convex/football/commentary.test.ts`), `round-robin.txt` (the
   round-robin fixture draws) and `schema.json` (the saved tables).
 
@@ -59,10 +60,13 @@ fails on a changed or deleted file unless a commit on the branch carries the tra
 
 ## The scoring proof
 
-A change near scoring proves nothing moved with two tests, green before and after. The
-whole-match golden: every recorded line of Hull v Everton, from both feeds, in every area, scored
-in `tests/convex/scoring/scoring.test.ts` and matched against `golden/hull-everton.scores.json`.
-The gameweek: `tests/convex/endToEnd/miniBetaGameweek.test.ts`, gameweek 6's team points checked
+A change near scoring proves nothing moved with three tests, green before and after. The
+whole-gameweek golden, the one it owes first: recorded gameweek 6 played by a league of four to the
+lock in `tests/convex/endToEnd/gameweekGolden.test.ts`, every player's points and every
+head-to-head result matched against `golden/gameweek6.scores.json`. The whole-match golden: every
+recorded line of Hull v Everton, from both feeds, in every area, scored in
+`tests/convex/scoring/scoring.test.ts` and matched against `golden/hull-everton.scores.json`. The
+gameweek: `tests/convex/endToEnd/miniBetaGameweek.test.ts`, gameweek 6's team points checked
 against points worked out man by man. How, and the other proofs a refactor owes:
 `docs/REFACTORING.md`, *Proving nothing changed*.
 
