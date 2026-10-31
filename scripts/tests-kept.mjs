@@ -12,15 +12,14 @@
 // or a row cut from a test.each() table, still passes.
 // Run from the repo: `node scripts/tests-kept.mjs`; `npm run verify` runs it, so CI does.
 
-import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import ts from "typescript";
+import { BASE, branchCheck } from "./branchCheck.mjs";
 
 const TESTS_ROOT = "tests/";
 /** Every Vitest and Playwright test file's name (tests/README.md, The five roots). */
 const TEST_FILE = /\.(test|spec)\.(ts|tsx|mjs)$/;
-const BASE = "origin/main";
 const TRAILER = "Test-removed";
 /** Between the describe() titles and the test's own in a test's name. */
 export const NAME_JOIN = " > ";
@@ -114,26 +113,13 @@ export function unexcused(removed, trailerValues) {
   return removed.filter(({ name, files }) => !excused(name) && !files.some(excused));
 }
 
-function fail(message) {
-  console.error(`tests-kept check: ${message}`);
-  process.exit(1);
-}
-
-/** git's output; a git failure ends the check with what it said, not a stack trace. */
-function git(...args) {
-  try {
-    return execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], maxBuffer: 1 << 28 });
-  } catch (error) {
-    const said = String(error.stderr ?? "").trim() || error.message;
-    fail(`git ${args[0]} failed (${said}). Run git fetch origin, then try again.`);
-  }
-}
+const { fail, git, base: baseOf, trailerValues: trailersOf } = branchCheck("tests-kept check");
 
 const lines = (text) => text.split("\n").filter(Boolean);
 const isTestFile = (path) => path.startsWith(TESTS_ROOT) && TEST_FILE.test(path);
 
 function main() {
-  const base = git("merge-base", BASE, "HEAD").trim();
+  const base = baseOf();
   const before = lines(git("ls-tree", "-r", "--name-only", base, "--", TESTS_ROOT))
     .filter(isTestFile)
     .map((path) => [path, git("show", `${base}:${path}`)]);
@@ -141,9 +127,7 @@ function main() {
   const after = lines(git("ls-files", "--cached", "--others", "--exclude-standard", "--", TESTS_ROOT))
     .filter((path) => isTestFile(path) && existsSync(path))
     .map((path) => [path, readFileSync(path, "utf8")]);
-  const trailerValues = lines(
-    git("log", `--format=%(trailers:key=${TRAILER},valueonly,separator=%x0A)`, `${base}..HEAD`),
-  ).map((value) => value.trim());
+  const trailerValues = trailersOf(TRAILER, base).map((value) => value.trim());
   const refused = unexcused(removedTests(before, after), trailerValues);
   if (refused.length > 0) {
     const listed = refused.map(({ name, fewer, files }) =>

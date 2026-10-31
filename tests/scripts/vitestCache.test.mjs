@@ -4,13 +4,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, expect, test } from "vitest";
 import config from "../../vitest.config.ts";
+import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
 // A typed import.meta.glob must see a file added since the last run; why it didn't is beside
 // `fsModuleCache` in vitest.config.ts (#766). This runs the real Vitest twice in a scratch folder,
 // adding a file between the runs, with the repo's setting and, as a control that the probe catches
 // a stale list, with the cache on.
 
-const VITEST = join(import.meta.dirname, "../../node_modules/vitest/vitest.mjs");
+const VITEST = join(REPO_ROOT, "node_modules/vitest/vitest.mjs");
 const PROBE = "probe.test.ts";
 const PIECES = "pieces";
 const PIECE_EXTENSION = ".mjs";
