@@ -28,11 +28,16 @@ import {
 
 const REFUSAL = "A lineup starts 11 players; this one starts 4.";
 
+/** White, on the bench, moved to the left of defence, once the tab is up. */
+async function whiteToLeftOfDefence() {
+  await userEvent.click(await screen.findByRole("button", { name: moveLabel(WHITE.name) }));
+  await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "left") }));
+}
+
 /** White moved to the left of defence and saved, the server answering `answer`; its alert. */
 async function refusedWith(answer: string) {
   openTacticsTab({ tactics: SAVED, saveAnswer: answer });
-  await userEvent.click(await screen.findByRole("button", { name: moveLabel(WHITE.name) }));
-  await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "left") }));
+  await whiteToLeftOfDefence();
   await userEvent.click(save());
   return screen.findByRole("alert");
 }
@@ -59,8 +64,7 @@ describe("saving", () => {
 
   it("names the gameweek the server saved it from: the one after, if the deadline passed on the way", async () => {
     await openedPitch({ tactics: SAVED, saveAnswer: TACTICS_GAMEWEEK + 1 });
-    await userEvent.click(screen.getByRole("button", { name: moveLabel(WHITE.name) }));
-    await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "left") }));
+    await whiteToLeftOfDefence();
     await userEvent.click(save());
     expect(await screen.findByText(savedWords(TACTICS_GAMEWEEK + 1))).toBeTruthy();
   });
@@ -100,8 +104,7 @@ describe("saving", () => {
      *  then moved to the centre if `moveAfter`, and the answer let go. */
     async function answerLands(answer: number | string, moveAfter: boolean) {
       const app = openTacticsTab({ tactics: SAVED, saveAnswer: answer, saveHeld: true });
-      await userEvent.click(await screen.findByRole("button", { name: moveLabel(WHITE.name) }));
-      await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "left") }));
+      await whiteToLeftOfDefence();
       await userEvent.click(save());
       expect(save().hasAttribute("disabled")).toBe(true);
       if (moveAfter) {
@@ -136,8 +139,7 @@ describe("saving", () => {
 
   it("discards an edit, back to the lineup held", async () => {
     openTacticsTab();
-    await userEvent.click(await screen.findByRole("button", { name: moveLabel(WHITE.name) }));
-    await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "left") }));
+    await whiteToLeftOfDefence();
     await userEvent.click(screen.getByRole("button", { name: discardWords }));
 
     expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${WHITE.name},`) })).toBeNull();
@@ -149,8 +151,7 @@ describe("saving", () => {
 describe("the squad changing under an edit", () => {
   it("drops a starter who left and puts one who joined at the end of the bench", async () => {
     const app = await openedPitch();
-    await userEvent.click(screen.getByRole("button", { name: moveLabel(WHITE.name) }));
-    await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "left") }));
+    await whiteToLeftOfDefence();
 
     const SAKA = member(7, "Saka", ["W"]);
     act(() => app.myTeam.serverHolds(openTactics({ ...SAVED, squad: [...SQUAD.filter((each) => each !== WHITE), SAKA] })));

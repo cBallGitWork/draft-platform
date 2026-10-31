@@ -168,7 +168,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     let from: number | null = null;
     const made = await run(async () => {
       const answer = await changes.save(league.leagueId, lineup);
-      // Moved since: the edit cleared what was said, and a refusal of the lineup sent isn't said.
+      // run says a refusal itself, so one of a lineup moved since is withheld here; a save, below.
       if (typeof answer === "string") return movedSince() ? null : answer;
       from = answer;
       return null;
