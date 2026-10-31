@@ -11,7 +11,7 @@ import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, shownL
 import { Pitch, type Moving } from "./Pitch";
 import { SquadTable } from "./SquadTable";
 import type { MyTeamSeam } from "../seam";
-import type { OpenTactics } from "./tacticsSeam";
+import type { OpenTactics } from "./seam";
 import {
   countdownWords,
   discardWords,
@@ -30,7 +30,7 @@ import {
   TACTICS_TITLE,
   tacticsLoadingWords,
   tacticsNoRulesWords,
-} from "./tacticsWords";
+} from "./words";
 import { noTeamWords } from "../words";
 
 /** The key that puts a picked-up player back. */

@@ -2,7 +2,7 @@
 // The production bundle holds none of the preview's made-up data (#218): main.tsx loads the
 // preview modules with a dynamic import() behind import.meta.env.DEV, which `vite build` drops.
 // Fails when a file in dist/ holds a string only a preview module has. Each preview module (a .ts
-// file named preview*.ts or *Preview.ts, so preview.ts, previewTactics.ts and matchPreview.ts
+// file named preview*.ts or *Preview.ts, so preview.ts and matchPreview.ts
 // alike) names one string in NEEDLES, and the check fails first if a preview module names none, its
 // string is no longer in it, or another source file holds it too, so a renamed string or a new
 // preview module can't leave it blind and a shared one can't fail it for nothing.
@@ -15,7 +15,7 @@ import { basename, join } from "node:path";
 
 const DIST = process.argv[2] ?? "dist";
 const SOURCES = (process.env.PREVIEW_CHECK_SOURCES ?? "src,convex").split(",");
-/** A preview module's file name: preview.ts, previewTactics.ts, matchPreview.ts; not previewApp.tsx. */
+/** A preview module's file name: preview.ts, matchPreview.ts; not previewApp.tsx. */
 const PREVIEW_FILE = /^preview\w*\.ts$|Preview\.ts$/;
 
 /** A string only that preview module holds, by its path; null for one that holds no data of its
@@ -32,7 +32,7 @@ const NEEDLES = {
   "src/matchup/preview.ts": "Mac Allister",
   "src/home/preview.ts": "Expected Toulouse",
   "src/myTeam/preview.ts": "Martinelli",
-  "src/myTeam/tactics/previewTactics.ts": "Henderson",
+  "src/myTeam/tactics/preview.ts": "Henderson",
   "src/patches/preview.ts": "preview-patch-",
   "src/playerCard/preview.ts": "Hamstring injury - 75% chance of playing",
   "src/premierLeague/matchPreview.ts": "41' GOAL Enciso",
@@ -40,7 +40,7 @@ const NEEDLES = {
   "src/rules/preview.ts": "preview-rules",
   "src/scoring/preview.ts": null,
   "src/scouting/preview.ts": "Virgil van Dijk",
-  "src/scouting/shortlist/previewShortlist.ts": null,
+  "src/scouting/shortlist/preview.ts": null,
   "src/squads/preview.ts": "preview-team-1",
   "src/table/preview.ts": "Ctrl Alt Defeat",
 };
