@@ -71,18 +71,18 @@ describe("someone signed in opening the invite link", () => {
   });
 
   it("having asked, hears the request is waiting: the status line was in the page, empty, before asking (#631)", async () => {
-    const joining = { joinPage: { leagueName: LEAGUE, standing: "mayAsk" } as JoinPageData };
-    const app = openApp(joinPath(TOKEN), newcomer, { joining });
+    const served: { joinPage: JoinPageData } = { joinPage: { leagueName: LEAGUE, standing: "mayAsk" } };
+    const app = openApp(joinPath(TOKEN), newcomer, { joining: served });
     await screen.findByRole("button", { name: joinPageWords.ask });
     const status = screen.getByRole("status");
     expect(status.textContent).toBe("");
 
     app.joining.askToJoin.mockImplementation(async () => {
-      joining.joinPage = { leagueName: LEAGUE, standing: "waiting" };
+      served.joinPage = { leagueName: LEAGUE, standing: "waiting" };
       return null;
     });
     await userEvent.click(screen.getByRole("button", { name: joinPageWords.ask }));
-    app.becomes(newcomer);
+    app.becomes(newcomer); // drawn again, as the server's new answer would
     expect(await screen.findByText(joinPageWords.waiting(LEAGUE))).toBe(status);
   });
 
