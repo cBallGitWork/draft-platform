@@ -6,7 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, eventsIn, type TestConvex } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
+import { ARSENAL, CHELSEA, GONE, UNHELD, insertClubs, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadRefusals } from "../../../convex/squads/squads";
 import { CURRENT_CLUBS_MOST } from "../../../convex/shared/players";
@@ -53,6 +53,7 @@ const as = async (email: string) => {
     find: (text: string) => person.query(api.squads.squads.findPlayers, { leagueId, text }),
   };
 };
+type Commissioner = Awaited<ReturnType<typeof as>>;
 const squadCodes = async () => (await (await as(COMMISSIONER)).squads()).map((team) => team.players.map((player) => player.code));
 const lastEvent = async () => (await eventsIn(t, leagueId)).at(-1);
 
@@ -111,7 +112,6 @@ describe("a player is on one team in a league at most", () => {
 });
 
 describe("each change files one letter to the league", () => {
-  type Commissioner = Awaited<ReturnType<typeof as>>;
   test.each([
     ["assigning", async () => {}, (c: Commissioner) => c.assign(SAKA, teams[0]), { kind: "playerAssigned", teamName: "Team 1" }],
     ["moving", (c: Commissioner) => c.assign(SAKA, teams[0]), (c: Commissioner) => c.move(SAKA, teams[1]), { kind: "playerMoved", fromTeamName: "Team 1", teamName: "Team 2" }],
@@ -153,10 +153,10 @@ describe("who may", () => {
 
 describe("refused, saying why, and nothing changes", () => {
   test.each([
-    ["a player who doesn't exist", (c: Awaited<ReturnType<typeof as>>) => c.assign(9999, teams[0]), squadRefusals.noPlayer],
-    ["a player who has left the Premier League", (c: Awaited<ReturnType<typeof as>>) => c.assign(GONE.code, teams[0]), squadRefusals.playerGone("Gone")],
-    ["moving a free agent", (c: Awaited<ReturnType<typeof as>>) => c.move(SAKA, teams[0]), squadRefusals.freeAgent("Saka")],
-    ["releasing a free agent", (c: Awaited<ReturnType<typeof as>>) => c.release(SAKA), squadRefusals.freeAgent("Saka")],
+    ["a player who doesn't exist", (c: Commissioner) => c.assign(UNHELD, teams[0]), squadRefusals.noPlayer],
+    ["a player who has left the Premier League", (c: Commissioner) => c.assign(GONE.code, teams[0]), squadRefusals.playerGone("Gone")],
+    ["moving a free agent", (c: Commissioner) => c.move(SAKA, teams[0]), squadRefusals.freeAgent("Saka")],
+    ["releasing a free agent", (c: Commissioner) => c.release(SAKA), squadRefusals.freeAgent("Saka")],
   ])("%s", async (_what, change, reason) => {
     await expectRefused(change(await as(COMMISSIONER)), reason);
     expect(await squadCodes()).toEqual([[], [], [], []]);
