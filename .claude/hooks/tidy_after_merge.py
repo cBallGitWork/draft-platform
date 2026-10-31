@@ -25,12 +25,13 @@ from stdin_reading import UnreadableStdin
 
 MERGED = "MERGED"
 BRANCH_REF = "refs/heads/"
+RUN_TIMEOUT_SECONDS = 15  # each git or gh call: six at most, inside the 120 settings.json gives the hook
 
 
 def run(folder, *args):
     """(ok, output) for a command run in folder; output is stderr's first line when it fails."""
     try:
-        done = subprocess.run(list(args), cwd=folder, capture_output=True, text=True, timeout=30)
+        done = subprocess.run(list(args), cwd=folder, capture_output=True, text=True, timeout=RUN_TIMEOUT_SECONDS)
     except (OSError, subprocess.SubprocessError) as error:
         return False, str(error)
     if done.returncode == 0:
