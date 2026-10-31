@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { api } from "../../../convex/_generated/api";
+import { getFunctionName } from "convex/server";
+import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ANN, BOB, deletes, leagueWithPeople, moreEventsThanOneRun } from "../../support/convex/leagueDeletion.harness";
 import { notEmailedLog, waitingLog } from "../../../convex/leagues/deletionNotices";
@@ -115,7 +116,7 @@ describe("past the day's emails (spec/13, #837)", () => {
     expect(sent).toEqual([]);
     expect(await sentToday(t)).toBe(EMAILS_PER_DAY);
     expect(await runsToCome()).toEqual([
-      { name: "leagues/deletionNotices:send", emails: [CO_COMMISSIONER, ANN, BOB], scheduledTime: startOfNextDay(goneAt) },
+      { name: getFunctionName(internal.leagues.deletionNotices.send), emails: [CO_COMMISSIONER, ANN, BOB], scheduledTime: startOfNextDay(goneAt) },
     ]);
 
     await t.finishAllScheduledFunctions(vi.runAllTimers);
