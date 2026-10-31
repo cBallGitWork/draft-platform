@@ -69,6 +69,11 @@ export function playerByCode(ctx: QueryCtx, code: number): Promise<Doc<"players"
     .unique();
 }
 
+/** A squad's row whose player the football sync doesn't hold, in place of his name. Such a row is
+ *  data gone wrong: a screen keeps it, so the fault is easy to spot, and every other row shows
+ *  (Craig, 31 Oct 2026, #323; spec/15 Assigning players). */
+export const unheldPlayerWords = (code: number) => `Error: player ${code} isn't in the football data.`;
+
 /** The player with `code`. One the football sync doesn't hold is data gone wrong, and throws
  *  `missing`, which each caller words, as some reach a manager's screen. */
 export async function heldPlayerByCode(ctx: QueryCtx, code: number, missing: string): Promise<Doc<"players">> {
