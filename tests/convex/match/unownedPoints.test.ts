@@ -11,7 +11,7 @@ import {
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 import { ADMIN, actingAs } from "../../support/convex/leagues.harness";
-import { manOf, matchAs, notYetBegun, scorerFreeLeague } from "../../support/convex/matchPage.harness";
+import { holdLines, manOf, matchAs, notYetBegun, scorerFreeLeague, storedLine } from "../../support/convex/matchPage.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 
 // The match page's men in no lineup at the deadline (#771; spec/10, The match page): a free agent,
@@ -72,8 +72,8 @@ test("a free agent's points are the league's override of them where it holds one
 // "for every player, owned or not" (spec/10, The commentary; Craig, 31 Oct 2026; #835).
 test("a free agent's goal on the match page is priced at his base points, where his card opens", async () => {
   const league = await scorerFreeLeague();
-  const goal = { sourceId: 1, text: "64' GOAL Scorer", minute: 64, addedMinute: 0, type: "goal", playerCodes: [HULL_SCORER] };
-  await league.t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines: [goal], delayed: null }));
+  const goal = storedLine(1, "64' GOAL Scorer", 64, "goal", [HULL_SCORER]);
+  await holdLines(league, [goal]);
   const card = await pointsOnCard(league, HULL_SCORER);
   // His card opens at a midfield position, where the first set gives a goal 5.
   expect(card.opening).toBe("CM");

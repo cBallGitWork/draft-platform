@@ -22,7 +22,7 @@ type PlayerCode = number;
 /** A man's points in the match from his positions, null while they can't be priced; and where his
  *  commentary lines are priced, null while no position of his has a price and his record hasn't
  *  arrived. */
-export type UnownedPoints = (playerCode: PlayerCode, positions: readonly Position[]) => { points: number | null; lines: UnownedLines | null };
+export type UnownedPricer = (playerCode: PlayerCode, positions: readonly Position[]) => { points: number | null; lines: UnownedLines | null };
 
 /** The cell his lines are priced at, and his part in the match, as the commentary reads it. */
 export interface UnownedLines {
@@ -42,7 +42,7 @@ export async function unownedPointsOf(
   records: readonly Doc<"playerMatchStats">[],
   owners: ReadonlyMap<PlayerCode, unknown>,
   set: ScoringSet | null,
-): Promise<UnownedPoints> {
+): Promise<UnownedPricer> {
   if (set === null || records.every(({ playerCode }) => owners.has(playerCode))) return () => UNPRICED;
   const overrides = await overridesIn(ctx, leagueId, fixtureCode);
   const recordOf = new Map(records.map((record) => [record.playerCode, record]));
