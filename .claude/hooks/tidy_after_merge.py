@@ -14,12 +14,12 @@ the merge ran in are never removed; another session still open in a clean worktr
 and loses its folder once its pull request merges. Anything kept is said, with why; so is a pull
 request gh can't read.
 
-After a merge it also moves the main checkout to origin/main, since the hooks run from its
-.claude/hooks/ and it sat detached at an old main, so merged hook fixes didn't take effect (31 Oct
-2026: still at #767 after #777 merged). It moves only when detached and behind origin/main, with git
-checkout --detach, which keeps a changed file the move doesn't touch and refuses when one it does
-would be overwritten; that refusal is said, and the checkout stays, as when it holds commits main
-doesn't. On a branch it is left alone.
+Then it moves the main checkout to origin/main when it is detached and behind: the hooks run from
+its .claude/hooks/, so a merged hook fix waited until someone moved it by hand (31 Oct 2026: still
+at #767 after #777 merged). git checkout --detach keeps a changed file the move doesn't touch, and
+refuses over one it would overwrite; that refusal is said, as is a commit of its own keeping it
+there. On a branch it is left alone.
+
 It runs after the command, so it never blocks one. Stdlib only, Python 3.9+.
 """
 
