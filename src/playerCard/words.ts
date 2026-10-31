@@ -1,9 +1,9 @@
 // What the player card says, in one place for Craig to change in the pull request.
 
 import type { ScoredAs } from "../../convex/playerCard/cardPoints";
-import { gameweekWords, versusWords } from "../shared/words";
+import { figureWords, gameweekWords, signedWords, versusWords } from "../shared/words";
 
-export { freeAgentWords, listSeparator, noFigureWords } from "../shared/words";
+export { figureWords, freeAgentWords, listSeparator, noFigureWords } from "../shared/words";
 
 export const backWords = "Back";
 export const loadingWords = "Loading the player…";
@@ -58,7 +58,7 @@ export const NEXT_FIXTURES_TITLE = "Next fixtures";
 export const noFixturesWords = "No fixtures ahead with a date.";
 
 /** A commissioner's override of his points in a match (#32, spec/14). */
-export const overriddenWords = (points: number, reason: string) => `Overridden to ${points} in this league: ${reason}`;
+export const overriddenWords = (points: number, reason: string) => `Overridden to ${figureWords(points)} in this league: ${reason}`;
 export const OVERRIDE_TITLE = "Override points";
 export const overrideHint = "Sets his points for one final match in this league, in place of his record's. The whole league gets a letter saying what changed and why.";
 export const overrideLabels = { match: "Match", points: "Points", reason: "Why" } as const;
@@ -69,8 +69,8 @@ export const cancelOverrideWords = "Cancel";
 export const overriddenDoneWords = "Overridden: the league has a letter saying why.";
 export const overrideFailedWords = "The override couldn't be saved. Try again.";
 
-/** A role's adjustment, signed: "+2", "\u22121". */
-export const adjustmentWords = (points: number) => (points < 0 ? `\u2212${-points}` : `+${points}`);
+/** A role's adjustment, signed: "+2", "−1", "0". */
+export const adjustmentWords = signedWords;
 /** What made his role's adjustment, under it: "Accurate cross 2, Clean sheets 1". */
 export const roleMadeOfWords = (lines: readonly { name: string; actions: number }[]) => lines.map(({ name, actions }) => `${name} ${actions}`).join(", ");
 /** The role line's name for screen readers: "Role adjustment, Attacking full-back". */

@@ -21,6 +21,7 @@ import { inTenths, type MatchStats } from "../scoring/values";
 import { categoryName } from "../scoring/categories";
 import { CATALOGUE_STATS } from "../scoring/statCatalogue";
 import { EVENT_STATS } from "../stats/matchRecords";
+import { signedWords } from "../shared/numberWords";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../shared/time";
 import type { commentaryLine } from "../schema";
 
@@ -180,11 +181,9 @@ function thresholdLines(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode
 /** "+4" for a line naming one man; "Saka +4, Ødegaard +3" for one naming more. */
 function worth(moves: readonly { name: string; points: number }[], named: number): string | null {
   if (moves.length === 0) return null;
-  if (named === 1) return signed(moves[0].points);
-  return moves.map((move) => `${move.name} ${signed(move.points)}`).join(", ");
+  if (named === 1) return signedWords(moves[0].points);
+  return moves.map((move) => `${move.name} ${signedWords(move.points)}`).join(", ");
 }
-
-const signed = (points: number) => (points > 0 ? `+${points}` : `${points}`);
 
 /** A stat as a threshold line says it: its name, lower-cased, an own stat's from the set. */
 function statWords(stat: string, set: ScoringSet): string {

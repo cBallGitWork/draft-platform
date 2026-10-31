@@ -15,6 +15,7 @@ import {
   columns,
   compareLabel,
   descendingGlyph,
+  figureWords,
   noFigureWords,
   noPointsYetWords,
   noRoleFitYetWords,
@@ -173,7 +174,7 @@ function PlayerCell({
           {noFigureWords}
         </td>
       ) : (
-        <td className={`${className} font-bold text-figure`}>{player.seasonPoints}</td>
+        <td className={`${className} font-bold text-figure`}>{figureWords(player.seasonPoints)}</td>
       );
     case "stat":
       return <td className={`${className} font-bold text-figure`}>{player.stat === null ? noFigureWords : statFigure(player.stat)}</td>;

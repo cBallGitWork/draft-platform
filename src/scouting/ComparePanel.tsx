@@ -12,6 +12,7 @@ import {
   columns,
   COMPARE_TITLE,
   comparingWords,
+  figureWords,
   matchesWords,
   noFigureWords,
   noPointsYetWords,
@@ -59,7 +60,7 @@ const FIXED_ROWS: readonly Row[] = [
           {noFigureWords}
         </span>
       ) : (
-        <span className="font-bold text-figure">{player.seasonPoints}</span>
+        <span className="font-bold text-figure">{figureWords(player.seasonPoints)}</span>
       ),
   },
   { label: matchesWords, cell: (player) => <span className="font-bold text-figure">{player.matches}</span> },

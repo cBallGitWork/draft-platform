@@ -4,7 +4,7 @@ import { LOCALE } from "../../convex/shared/moments";
 import { gameweekWords, scoreWords, timeOfDayWords, versusWords } from "../shared/words";
 
 export { clockWords, gameweekWords, liveWords, scoreWords, versusWords } from "../shared/words";
-/** Goals for less against, signed: "+4", "-3", "0", as the league table signs its difference. */
+/** Goals for less against, signed: "+4", "−3", "0", as the league table signs its difference. */
 export { differenceWords as goalDifferenceWords } from "../table/words";
 
 export const PREMIER_LEAGUE_TITLE = "Premier League";
@@ -54,7 +54,7 @@ export const tableColumns = {
 
 // The match page (#45; spec/10, The match page), which each fixture opens.
 
-export { noFigureWords } from "../shared/words";
+export { figureWords, noFigureWords } from "../shared/words";
 export { commentaryDelayedWords, notCountingLabel, SCORE_LABEL } from "../matchup/words";
 
 /** A fixture's link to its match page, read out for the score or "v" it wraps, which it names:

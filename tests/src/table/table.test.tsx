@@ -89,7 +89,7 @@ describe("the table", () => {
     const [first, second] = (await screen.findAllByRole("row")).slice(1);
     expect(within(first).getByRole("rowheader").textContent).toBe("Bob's");
     expect(within(first).getByText("+20.5")).toBeTruthy();
-    expect(within(second).getByText("-20.5")).toBeTruthy();
+    expect(within(second).getByText("\u221220.5")).toBeTruthy();
     expect(screen.queryByText(noResultsWords)).toBeNull();
   });
 

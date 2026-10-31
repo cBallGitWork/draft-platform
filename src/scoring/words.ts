@@ -4,7 +4,7 @@
 // reaches the screen as is.
 
 import { SLOT_POSITIONS, type SlotPosition } from "../../convex/lineup/pitch";
-import { failedWords, gameweekWords, POSITION_NAMES } from "../shared/words";
+import { failedWords, figureWords, gameweekWords, POSITION_NAMES } from "../shared/words";
 import type { PerCount, Pricing, Shape } from "./editing";
 
 export const SCORING_TITLE = "Player scoring";
@@ -22,7 +22,7 @@ export const bandsWords = "Bands";
 export const perCountSummary = ({ points, every }: PerCount) => `${pointsWords(points)} per ${every}`;
 
 /** A number of points as the editor shows it outside a box: a minus sign, not a hyphen. */
-export const pointsWords = (points: number) => (points < 0 ? `−${-points}` : String(points));
+export const pointsWords = figureWords;
 
 export const addCategoryWords = "Add a category";
 export const addCategoryLabel = "Category to add";

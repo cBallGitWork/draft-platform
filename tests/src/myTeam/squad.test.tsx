@@ -92,6 +92,13 @@ describe("the rows", () => {
     ]);
   });
 
+  it("show points below 0 with the true minus, never a hyphen (#564)", async () => {
+    openSquad({ squad: squadOf([{ ...SAKA, lastGameweekPoints: -2, seasonPoints: -0.5 }]) });
+    await screen.findByRole("table");
+
+    expect(cells(rows()[0]).slice(-2)).toEqual(["−2", "−0.5"]);
+  });
+
   it("name the short codes in full on hover: positions, club, the next match and the gameweek of Last", async () => {
     openSquad({ squad: squadOf([SAKA]) });
     await screen.findByRole("table");

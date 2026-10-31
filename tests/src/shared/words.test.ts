@@ -2,7 +2,14 @@ import { describe, expect, it } from "vitest";
 import { letterTime } from "../../../src/mail/words";
 import { statusWords } from "../../../src/matchup/words";
 import { clockWords as matchClockWords, kickoffWords } from "../../../src/premierLeague/words";
-import { clockWords, liveWords, timeOfDayWords } from "../../../src/shared/words";
+import { clockWords, liveWords, scoreWords, timeOfDayWords } from "../../../src/shared/words";
+
+describe("scoreWords", () => {
+  it("writes a matchup's points below 0 with the true minus (#564)", () => {
+    expect(scoreWords(2, 1)).toBe("2–1");
+    expect(scoreWords(-2, 5.5)).toBe("−2–5.5");
+  });
+});
 
 // Moments built in the run's own zone, so the words come out the same in any zone.
 const threePm = new Date(2026, 9, 17, 15, 0).getTime();

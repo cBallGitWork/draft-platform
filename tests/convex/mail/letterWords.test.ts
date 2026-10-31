@@ -56,3 +56,25 @@ test.each(LETTERS)("the %o letter names it and who did it", (event, subject, inB
   expect(letter.body).toContain(inBody);
   if (event.kind !== "joinedByInvite") expect(letter.body).toContain(WHO);
 });
+
+test("an override letter writes points below 0 with the true minus, never a hyphen (#564)", () => {
+  const letter = eventLetter(
+    {
+      kind: "pointsOverridden",
+      playerCode: 223094,
+      playerName: "Saka",
+      fixtureCode: 1,
+      matchName: "Arsenal v Chelsea",
+      gameweek: 6,
+      from: 2,
+      to: -1,
+      reason: "a red card the feed missed",
+      teams: [{ teamName: "Lions", from: 3, to: -0.5 }],
+    },
+    WHO,
+    undefined,
+  );
+  expect(letter.body).toContain("gameweek 6: 2 to −1.");
+  expect(letter.body).toContain("Lions now have −0.5 in gameweek 6, not 3.");
+  expect(letter.body).not.toMatch(/-\d/);
+});

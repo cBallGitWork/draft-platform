@@ -5,6 +5,7 @@ import { categoryName } from "./categories";
 import { priceFor, type Priced } from "./priced";
 import type { Band, PointsLimit } from "./scoringSet";
 import { groupedBy } from "../shared/groupedBy";
+import { figureWords, MINUS_SIGN, signedWords } from "../shared/numberWords";
 
 // What changed between two versions of the site's scoring set (spec/14, Changes and corrections:
 // the patch notes list every version's changes; #356), worked out from the stored sets, never typed
@@ -33,17 +34,16 @@ function wordsByPosition<Value>(priced: Priced<Value> | undefined, words: (value
   return new Map(SLOT_POSITIONS.map((position) => [position, priced === undefined ? NONE : words(priceFor(priced, AREA_OF.get(position)!, position))]));
 }
 
-const pointsWords = (points: number) => (points < 0 ? `−${-points}` : String(points));
 const bandWords = (bands: readonly Band[]) =>
-  bands.length === 0 ? "nothing" : bands.map((band) => `${pointsWords(band.points)} at ${band.atLeast}+`).join(", ");
+  bands.length === 0 ? "nothing" : bands.map((band) => `${figureWords(band.points)} at ${band.atLeast}+`).join(", ");
 
 /** A rule's points for each position: "3", "1 per 3", "1 at 1+, 2 at 60+". */
 function valueWords(rule: Rule): PositionWords {
   switch (rule.shape) {
     case "perAction":
-      return wordsByPosition(rule.values, pointsWords);
+      return wordsByPosition(rule.values, figureWords);
     case "perCount":
-      return wordsByPosition(rule.values, ({ points, every }) => `${pointsWords(points)} per ${every}`);
+      return wordsByPosition(rule.values, ({ points, every }) => `${figureWords(points)} per ${every}`);
     case "bands":
       return wordsByPosition<readonly Band[]>(rule.values, bandWords);
   }
@@ -51,8 +51,8 @@ function valueWords(rule: Rule): PositionWords {
 
 function limitWords({ max, min }: PointsLimit): string {
   const ends = [
-    ...(max === null ? [] : [`at most ${pointsWords(max)}`]),
-    ...(min === null ? [] : [`at least ${pointsWords(min)}`]),
+    ...(max === null ? [] : [`at most ${figureWords(max)}`]),
+    ...(min === null ? [] : [`at least ${figureWords(min)}`]),
   ];
   return ends.length === 0 ? NONE : ends.join(", ");
 }
@@ -103,7 +103,7 @@ function ruleChanges(name: string, before: Rule, after: Rule): string[] {
 function ownStatParts(own: OwnStat): string {
   return own.parts
     .map(({ stat, weight }, index) => {
-      const sign = weight < 0 ? "− " : index === 0 ? "" : "+ ";
+      const sign = weight < 0 ? `${MINUS_SIGN} ` : index === 0 ? "" : "+ ";
       const size = Math.abs(weight) === 1 ? "" : `${Math.abs(weight)} × `;
       return `${sign}${size}${categoryName(stat)}`;
     })
@@ -152,9 +152,6 @@ export function scoringChanges(before: StoredScoringSet, after: StoredScoringSet
   return lines;
 }
 
-/** "+1" or "−1": an adjustment as the patch notes say it. */
-const signed = (points: number) => (points < 0 ? `\u2212${-points}` : `+${points}`);
-
 /** One line for each role whose adjustment changed, named as managers say it, each stat's points
  *  per action (spec/05 Roles): "Attacking full-back: now +1 per Accurate cross, −1 per Clean
  *  sheets", or that it no longer adjusts anything. */
@@ -162,7 +159,7 @@ function roleAdjustmentChanges(before: StoredScoringSet, after: StoredScoringSet
   const words = (set: StoredScoringSet, role: string) =>
     (set.roleAdjustments ?? [])
       .find((each) => each.role === role)
-      ?.adjustments.map(({ stat, points }) => `${signed(points)} per ${categoryName(stat, set.ownStats)}`)
+      ?.adjustments.map(({ stat, points }) => `${signedWords(points)} per ${categoryName(stat, set.ownStats)}`)
       .join(", ") ?? "";
   const roles = new Set([...(before.roleAdjustments ?? []), ...(after.roleAdjustments ?? [])].map(({ role }) => role));
   const lines: string[] = [];

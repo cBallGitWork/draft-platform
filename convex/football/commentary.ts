@@ -5,6 +5,7 @@
 // Championship Manager's and Football Manager's commentary is a style reference only; none of it
 // is copied.
 
+import { figureWords } from "../shared/numberWords";
 import type { CommentaryLine } from "./premierLeague/plCommentary";
 
 /** The match as the full-time line shows it: each club's short name ("ARS") and its goals. */
@@ -148,7 +149,7 @@ function fullTime({ header }: CommentaryInput): string {
  *  matchup adds its own lineups' men to it (#44). */
 export function withFullTimePoints(score: string, points: readonly { name: string; points: number }[]): string {
   if (points.length === 0) return score;
-  return `${score}: ${points.map((each) => `${each.name} ${each.points}`).join(", ")}`;
+  return `${score}: ${points.map((each) => `${each.name} ${figureWords(each.points)}`).join(", ")}`;
 }
 
 /** "62'", "45+2'". */

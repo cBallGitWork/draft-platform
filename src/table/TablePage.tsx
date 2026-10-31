@@ -6,6 +6,7 @@ import type { LeagueTable, TableSeam } from "./seam";
 import {
   columns,
   differenceWords,
+  figureWords,
   loadingWords,
   noResultsWords,
   noRulesWords,
@@ -95,7 +96,7 @@ function TableCell({ column, row, position }: { column: Column; row: Row; positi
     case "difference":
       return <td className={className}>{differenceWords(row.difference)}</td>;
     case "points":
-      return <td className={`${className} font-bold text-figure`}>{row.points}</td>;
+      return <td className={`${className} font-bold text-figure`}>{figureWords(row.points)}</td>;
     default:
       return <td className={className}>{row[column]}</td>;
   }
