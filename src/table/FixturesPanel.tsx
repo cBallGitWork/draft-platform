@@ -12,7 +12,6 @@ import {
   leagueAverageWords,
   noGameweeksWords,
   noLineupWords,
-  roundRobinWords,
   tooFewTeamsWords,
   totalPointsWords,
 } from "./words";
@@ -22,7 +21,7 @@ type Result = LeagueTable["results"][number];
 
 /** The league's fixtures, a gameweek at a time, or why it has none. */
 export function FixturesPanel({ leagueTable }: { leagueTable: LeagueTable }) {
-  const { format, gameweeks, roundRobinRounds, table, results } = leagueTable;
+  const { format, gameweeks, table, results } = leagueTable;
   return (
     <Panel title={FIXTURES_TITLE}>
       {format === "totalPoints" ? (
@@ -30,10 +29,7 @@ export function FixturesPanel({ leagueTable }: { leagueTable: LeagueTable }) {
       ) : gameweeks.length === 0 ? (
         <PanelNote>{table.length < FEWEST_TO_DRAW ? tooFewTeamsWords : noGameweeksWords}</PanelNote>
       ) : (
-        <>
-          <GameweekFixtures gameweeks={gameweeks} results={results} />
-          <PanelNote>{roundRobinWords(roundRobinRounds)}</PanelNote>
-        </>
+        <GameweekFixtures gameweeks={gameweeks} results={results} />
       )}
     </Panel>
   );

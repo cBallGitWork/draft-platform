@@ -98,7 +98,7 @@ export function SquadTable({
 }
 
 /** Up and Down: a whole tap wide on the phone, as "Up" alone is narrower (plate.md, The phone). */
-const BENCH_ORDER_BUTTON = "min-h-tap min-w-tap font-semibold text-fact underline disabled:text-muted disabled:no-underline lg:min-h-0 lg:min-w-0";
+const BENCH_ORDER_BUTTON = "min-h-tap min-w-tap font-semibold text-fact link-look disabled:text-muted disabled:no-underline lg:min-h-0 lg:min-w-0";
 
 /** A bench row's place in the bench order, the last place, and how to move a player to one. */
 type BenchPlace = { index: number; last: number; onBenchAt(playerCode: number, index: number, pressed?: "up" | "down"): void };
@@ -175,7 +175,7 @@ function SquadRow({
           aria-pressed={isPicked}
           aria-label={moveLabel(player.name)}
           onClick={() => moving.onPick(player.playerCode)}
-          className="min-h-tap font-semibold text-fact underline lg:min-h-0"
+          className="min-h-tap font-semibold text-fact link-look lg:min-h-0"
         >
           {isPicked ? movingWords : moveWords}
         </button>

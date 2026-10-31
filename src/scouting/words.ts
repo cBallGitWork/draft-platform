@@ -52,7 +52,7 @@ export const noRoleFitYetWords = "No role fit yet: it waits on stars and scouts.
 export const COMPARE_TITLE = "Compare";
 /** A player's tick box in the list, for screen readers. */
 export const compareLabel = (name: string) => `Compare ${name}`;
-export const pickOneMoreWords = (name: string) => `${name} is ticked: tick one more player to compare him with.`;
+export const pickOneMoreWords = (name: string) => `${name} is ticked: tick one more.`;
 export const comparingWords = "Loading the comparison…";
 export const clearComparisonWords = "Clear";
 export const matchesWords = "Matches this season";

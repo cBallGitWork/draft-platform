@@ -3,13 +3,14 @@ import { api } from "../../../convex/_generated/api";
 import { inTenths } from "../../../convex/scoring/values";
 import { actingAs } from "../../support/convex/leagues.harness";
 import {
-  ANN,
   CAT,
   EVERTON_POINTS,
   fullTimeRecords,
   GAMEWEEK,
   HULL_POINTS,
   lockMatch,
+  matchupAs,
+  readTable,
   scoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 
@@ -26,15 +27,14 @@ test("a team that joins after a gameweek began is no part of its league average,
 
   // (26 + 38 + 0) / 3 = 21.3, Cat's own 0 counted; the new team's 0 too would make it 16.
   const average = inTenths((HULL_POINTS + EVERTON_POINTS) / 3);
-  const asCat = await actingAs(league.t, CAT);
-  const matchup = await asCat.query(api.matchup.matchup.ofTeam, { leagueId: league.leagueId, now: Date.now(), gameweek: GAMEWEEK });
+  const matchup = await matchupAs(league, CAT, { gameweek: GAMEWEEK });
   expect(matchup).toMatchObject({ game: { kind: "scored", opponent: { kind: "leagueAverage", points: average, provisional: false } } });
 
-  const table = (await (await actingAs(league.t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId: league.leagueId }))!;
+  const table = (await readTable(league))!;
   const catsFixture = table.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures.find((each) => each.teamId === league.catsTeam)!;
   expect(catsFixture.points).toEqual({ team: 0, opponent: average });
   expect(table.table.find((row) => row.teamId === league.catsTeam)).toMatchObject({ played: 1, lost: 1, pointsAgainst: average });
 
-  const catsGames = (await asCat.query(api.table.teamFixtures.ofMyTeam, { leagueId: league.leagueId }))!.games;
+  const catsGames = (await (await actingAs(league.t, CAT)).query(api.table.teamFixtures.ofMyTeam, { leagueId: league.leagueId }))!.games;
   expect(catsGames.find((each) => each.gameweek === GAMEWEEK)!.score).toEqual({ team: 0, opponent: average, provisional: false });
 });

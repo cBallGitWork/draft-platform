@@ -46,10 +46,13 @@ export const nextGlyph = "►";
 export const ascendingGlyph = "▲";
 export const descendingGlyph = "▼";
 export const sortByLabel = (column: string) => `Sort by ${column}`;
-/** A column head's spoken name: the short word it shows, then its long one, "GW, Gameweek", or the
- *  word once where they're the same, so a voice-control user can say the word they see (WCAG 2.5.3,
- *  label in name; decided 31 Oct 2026, #775). */
-export const columnHeadName = ({ short, long }: { short: string; long: string }) => (short === long ? long : `${short}, ${long}`);
+/** The spoken name of anything showing short words with long ones on hover: the short words it
+ *  shows, then its long ones, "GW, Gameweek", or the words once where they're the same, so a
+ *  voice-control user can say the words they see (WCAG 2.5.3, label in name; decided 31 Oct 2026,
+ *  #775; the Squad's next match, #790). */
+export const shortThenLongName = ({ short, long }: { short: string; long: string }) => (short === long ? long : `${short}, ${long}`);
+/** A column head's spoken name (src/ui/ColumnHeads.tsx). */
+export const columnHeadName = shortThenLongName;
 /** A stat, as a column of stats or the choice of one is headed. */
 export const STAT_WORD = "Stat";
 
@@ -78,6 +81,8 @@ export const scoreWords = (first: number, second: number) => `${figureWords(firs
 /** Beside what is still being played: a live match's clock before it has a minute, a score that
  *  may still move (spec/07). */
 export const liveWords = "Live";
+/** Under points, or a table, that a live match may still move: the state, not how it works. */
+export const provisionalWords = "Provisional";
 /** A match at half-time and at full time, short as a column says it and in full. */
 export const halfTime = { short: "HT", long: "Half-time" } as const;
 export const fullTime = { short: "FT", long: "Full time" } as const;

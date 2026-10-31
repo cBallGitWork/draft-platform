@@ -17,8 +17,16 @@ import { BATCH_SIZE, FAILURE_KEPT_MS, LATEST_RUNS, SUCCESS_KEPT_MS } from "../sh
 // leagueDeletion.deleteForGood does. Once the last feed is done it hands on to the sign-in asks'
 // prune (signInLinks.ts), so spec/20's daily clean-up stays one timed job.
 
-/** The order the run logs are pruned in: liveStatsTicks first, as it has by far the most rows. */
-export const PRUNE_ORDER = ["liveStats", "football", "positions", "matchStats"] as const satisfies readonly Feed[];
+/** The order the run logs are pruned in: the live tick's first, as they have by far the most rows. */
+export const PRUNE_ORDER = [
+  "liveStats",
+  "teamStats",
+  "thresholdSteps",
+  "teamSheets",
+  "football",
+  "positions",
+  "matchStats",
+] as const satisfies readonly Feed[];
 
 type RunRow = { _id: string; _creationTime: number; ranAt: number; outcome: RunOutcome };
 

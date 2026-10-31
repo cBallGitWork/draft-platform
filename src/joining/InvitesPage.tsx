@@ -1,4 +1,4 @@
-import { Loading, Notice, PageSection, PANEL_COLUMNS } from "../ui/Panel";
+import { Loading, Notice, PAGE_STACK, PageSection, PANEL_COLUMNS } from "../ui/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { EmailInvites } from "./EmailInvites";
 import { InviteLinkPanel } from "./InviteLinkPanel";
@@ -19,7 +19,7 @@ export function InvitesPage({ leagueId, joining }: { leagueId: string; joining: 
   const waiting = page?.invites.filter(waitsForTomorrow).length ?? 0;
 
   return (
-    <div className="flex max-w-5xl flex-col gap-2">
+    <div className={PAGE_STACK}>
       <PageSection title={INVITES_TITLE} className="bg-panel">
         {page ? (
           <p className="px-3 py-2 text-lead font-semibold">{page.leagueName}</p>

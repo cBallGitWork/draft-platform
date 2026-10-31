@@ -49,6 +49,9 @@ export const DEADLINE = LEAGUE_KICKOFF - FIRST_RULES.deadline.minutesBeforeFirst
 export { PHILLIPS };
 export const HULL_KEEPER = TZOLAKIS; // played 90
 export const HULL_SCORER = GELHARDT; // Hull's midfielder, a goal at 64 minutes
+/** Hull's one starter in attack, and the one forward on their bench. */
+export const HULL_STRIKER = 169432;
+export const HULL_BENCH_STRIKER = 631000;
 const cell = (area: Cell["area"], lane: Cell["lane"]): Cell => ({ area, lane });
 /** A starter and the cell he stands in, as a stored lineup holds him. */
 type Starter = Cell & { playerCode: number };
@@ -63,10 +66,10 @@ export const HULL_STARTERS: Starter[] = [
   { playerCode: 243413, ...cell("midfield", "leftCentre") },
   { playerCode: HULL_SCORER, ...cell("midfield", "rightCentre") },
   { playerCode: 101282, ...cell("midfield", "right") },
-  { playerCode: 169432, ...cell("attack", "centre") },
+  { playerCode: HULL_STRIKER, ...cell("attack", "centre") },
 ];
 /** Their keeper first, then Belloumi (on at 64, a goal), then the rest of Hull's bench. */
-export const HULL_BENCH = [HULL_KEEPER, BELLOUMI, 496181, 608227, 445028, 160817, 631000, 597462, 490094];
+export const HULL_BENCH = [HULL_KEEPER, BELLOUMI, 496181, 608227, 445028, 160817, HULL_BENCH_STRIKER, 597462, 490094];
 
 export const EVERTON_STARTERS: Starter[] = [
   { playerCode: 111234, ...cell("goalkeeper", "centre") },
@@ -90,7 +93,7 @@ const BENCH_POSITION = new Map<number, Position>([
   ...playing("GK", [HULL_KEEPER, 229600]),
   ...playing("CB", [496181, 160817, 597462, 512462]),
   ...playing("CM", [BELLOUMI, 608227, 445028, 490094, 502697, 496661, 244860, 629068, 550615, 513466, 128295]),
-  ...playing("ST", [631000]),
+  ...playing("ST", [HULL_BENCH_STRIKER]),
 ]);
 
 export interface ScoresLeague {
@@ -172,6 +175,13 @@ export async function annsScoredGame(league: ScoresLeague, gameweek?: number) {
 export const nameOf = ({ t }: ScoresLeague, code: number) =>
   t.run(async (ctx) => (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", code)).unique())!.name);
 
+/** The football sync loses `code`'s player row (#810), any match records of his still held. */
+export const losePlayer = ({ t }: ScoresLeague, code: number) =>
+  t.run(async (ctx) => {
+    const player = (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", code)).unique())!;
+    await ctx.db.delete("players", player._id);
+  });
+
 /** A side's lineup on the matchup: a team's, never the league's average. */
 export const lineupOf = (side: MatchupSide) => {
   if (side.kind !== "team" || side.lineup === null) throw new Error(`The side has no lineup: ${JSON.stringify(side)}`);
@@ -181,10 +191,10 @@ export const lineupOf = (side: MatchupSide) => {
 export const slotOf = (side: MatchupSide, playerCode: number): MatchupSlot =>
   [...lineupOf(side).starters, ...lineupOf(side).bench].find((slot) => slot.playerCode === playerCode)!;
 
-/** The match's records as the live tick lands them, before full time. */
+/** The match's records as the live tick lands them, before full time, and what the landing did. */
 export async function liveRecords({ t }: ScoresLeague, records: PlayerMatchRecord[], minute: number | null = null) {
   vi.setSystemTime(LEAGUE_KICKOFF + HOUR_MS);
-  await t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: HULL_EVERTON, minute, records });
+  return t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: HULL_EVERTON, minute, records });
 }
 
 /** The match's records as the full-time read lands them: complete, its corrections window open. */
@@ -236,11 +246,11 @@ export const HULL_AFTER_SUB: Starter[] = HULL_STARTERS.map((starter) =>
 export const TYPO_STAT = "goals_scroed";
 
 /** The site's set from now on, a fix in force from the start: `scoring` in place of the first. */
-const holdFix = ({ t }: ScoresLeague, scoring: StoredScoringSet) =>
+const holdFix = ({ t }: Pick<ScoresLeague, "t">, scoring: StoredScoringSet) =>
   t.run((ctx) => holdSiteScoring(ctx, { scoring, kind: "fix", season: 2026, number: 1, at: 0 }));
 
 /** The site's set from now on holds a rule on TYPO_STAT, as a set written by hand could (#287). */
-export async function holdTypoRule(league: ScoresLeague) {
+export async function holdTypoRule(league: Pick<ScoresLeague, "t">) {
   const [rule] = FIRST_SCORING.rules;
   await holdFix(league, { ...FIRST_SCORING, rules: [...FIRST_SCORING.rules, { ...rule, stat: TYPO_STAT }] });
 }
@@ -255,6 +265,24 @@ export async function adjustScorersRole(league: ScoresLeague, points: number) {
   const role = roleIn(scorer, undefined).key;
   await holdFix(league, { ...FIRST_SCORING, roleAdjustments: [{ role, adjustments: [{ stat: "goals_scored", points }] }] });
 }
+
+/** Ann's saved lineup gives her starter `playerCode` the role `role`, as Tactics saves it. */
+export const giveAnnsStarterRole = ({ t, annsTeam }: ScoresLeague, playerCode: number, role: string) =>
+  t.run(async (ctx) => {
+    const lineup = (await ctx.db.query("lineups").collect()).find((each) => each.teamId === annsTeam)!;
+    const starters = lineup.starters.map((starter) => (starter.playerCode === playerCode ? { ...starter, role } : starter));
+    await ctx.db.patch("lineups", lineup._id, { starters });
+  });
+
+/** `playerCode` leaves Ann's squad after her lineup was saved, which still names him (#597). */
+export const leavesAnnsSquad = ({ t, leagueId }: ScoresLeague, playerCode: number) =>
+  t.run(async (ctx) => {
+    const owned = (await ctx.db
+      .query("squadPlayers")
+      .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode))
+      .unique())!;
+    await ctx.db.delete("squadPlayers", owned._id);
+  });
 
 /** A score no team made, written over a stored one to tell a stored read from a worked-out one. */
 export const WRITTEN_OVER = 99;

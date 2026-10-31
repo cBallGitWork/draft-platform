@@ -34,14 +34,14 @@ export function PageSection({
 function PageTitle({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
   if (aside === undefined) {
     return (
-      <h1 id={PAGE_TITLE_ID} className={`${PAGE_PLATE} text-title font-bold`}>
+      <h1 id={PAGE_TITLE_ID} className={`${PAGE_PLATE} text-title display-face`}>
         {children}
       </h1>
     );
   }
   return (
     <div className={`flex items-baseline justify-between ${PAGE_PLATE}`}>
-      <h1 id={PAGE_TITLE_ID} className="text-title font-bold">
+      <h1 id={PAGE_TITLE_ID} className="text-title display-face">
         {children}
       </h1>
       {aside}
@@ -83,22 +83,25 @@ export function Status({ words, className }: { words: string | null; className: 
 }
 
 /** A panel, labelled by its title plate; `aside`, such as how many are starting, sits at the plate's
- *  far end, and `className` is the caller's own, such as its share of a row. */
+ *  far end, `className` is the caller's own, such as its share of a row, and `namesTeam` sets a
+ *  title that is a team's name in the second face (plate.md, Type). */
 export function Panel({
   title,
   aside,
   className,
   children,
+  namesTeam = false,
 }: {
   title: string;
   aside?: ReactNode;
   className?: string;
   children?: ReactNode;
+  namesTeam?: boolean;
 }) {
   const titleId = useId();
   return (
     <section aria-labelledby={titleId} className={className ? `bg-panel ${className}` : "bg-panel"}>
-      <PanelTitle id={titleId} aside={aside}>
+      <PanelTitle id={titleId} aside={aside} titleClasses={namesTeam ? "display-face" : "font-bold"}>
         {title}
       </PanelTitle>
       {children}
@@ -107,17 +110,17 @@ export function Panel({
 }
 
 /** A panel's title plate (plate.md, Shape). */
-function PanelTitle({ id, aside, children }: { id: string; aside?: ReactNode; children: string }) {
+function PanelTitle({ id, aside, titleClasses, children }: { id: string; aside?: ReactNode; titleClasses: string; children: string }) {
   if (aside === undefined) {
     return (
-      <h2 id={id} className={`${PANEL_PLATE} text-lead font-bold`}>
+      <h2 id={id} className={`${PANEL_PLATE} text-lead ${titleClasses}`}>
         {children}
       </h2>
     );
   }
   return (
     <div className={`flex items-baseline justify-between ${PANEL_PLATE}`}>
-      <h2 id={id} className="text-lead font-bold">
+      <h2 id={id} className={`text-lead ${titleClasses}`}>
         {children}
       </h2>
       {aside}
@@ -131,13 +134,14 @@ export const PANEL_BODY = "flex flex-col gap-2 p-3";
 /** One row of a list in a panel: its lines stacked, ruled off from the next (#292). */
 export const PANEL_LIST_ROW = "flex flex-col gap-1 border-b border-panel-rule px-3 py-2";
 
-/** A page's panels stacked at its full width, and two panels side by side from `lg` up. */
+/** A page's panels stacked at the page width every multi-panel page shares (#296), and two panels
+ *  side by side from `lg` up. */
 export const PAGE_STACK = "flex max-w-6xl flex-col gap-2";
 export const PANEL_COLUMNS = "grid items-start gap-2 lg:grid-cols-2";
 
 /** The top bar every frame opens with: its plate (plate.md, Shape) and the row its parts sit in,
  *  apart because the signed-in frame puts the row inside the bar. */
-export const TOP_BAR = "bg-bar shadow-bevel-plate";
+export const TOP_BAR = "bg-bar shadow-bevel-bar";
 export const TOP_BAR_ROW = "flex flex-wrap items-stretch";
 
 /** A muted line saying something is still loading or being searched for, announced to screen

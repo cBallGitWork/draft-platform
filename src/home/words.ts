@@ -42,7 +42,7 @@ export const noFormWords = "—";
 export const wholeTableLink = "Whole table and fixtures";
 
 export const LETTER_TITLE = "From the commissioner";
-export const noLetterWords = "Nothing from the commissioner yet. Their latest letter to the league is pinned here.";
+export const noLetterWords = "Nothing from the commissioner yet.";
 export const fromWords = (from: string) => `From ${from}`;
 export const inMailLink = "Every letter, in Mail";
 

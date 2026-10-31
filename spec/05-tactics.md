@@ -121,6 +121,8 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   limits, no one does: the slot scores nothing.
 - A starter's slot left empty because he left the squad (dropped, traded or claimed away) is
   filled from the bench the same way, as if he hadn't played (Craig, 28 Oct 2026).
+- A player in the lineup whom the football data no longer holds: "score him like he didnt play,
+  we can always admin update later" (Craig, 31 Oct 2026; #810).
 - A goalkeeper is replaced only by a goalkeeper.
 - In a double gameweek, a starter who plays in either match is not subbed.
 - Auto-subs are always on, and there is no limit on them, ever.

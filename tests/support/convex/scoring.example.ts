@@ -72,6 +72,10 @@ export const EXAMPLE_SET: ScoringSet = {
   wholePointsOnly: false,
 };
 
+/** A goal and an assist in 90 minutes: under EXAMPLE_SET, 5 + 4 + 2 = 11 in attacking midfield,
+ *  4 + 3 + 2 = 9 up front. */
+export const GOAL_AND_ASSIST = { minutes: 90, goals_scored: 1, assists: 1 };
+
 /** One of the site's own stats (spec/14, Own stats): tackles won + 0.5 × clearances. */
 export const TACKLES_AND_CLEARANCES: OwnStat = {
   stat: "own_tackles_and_clearances",

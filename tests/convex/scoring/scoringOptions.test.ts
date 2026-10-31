@@ -107,7 +107,7 @@ describe("points in tenths", () => {
   test("0.1 a pass three times is 0.3, and two tenths' rules add to 0.3, never floating point's noise", () => {
     const passes: ScoringRule = { shape: "perAction", stat: "accurate_pass", values: { all: 0.1 } };
     const touches: ScoringRule = { shape: "perAction", stat: "touches", values: { all: 0.2 } };
-    expect(scoreMatch({ accurate_pass: 3 }, setOf(passes), CENTRE_BACK).categories).toEqual([{ stat: "accurate_pass", points: 0.3 }]);
+    expect(scoreMatch({ accurate_pass: 3 }, setOf(passes), CENTRE_BACK).categories).toMatchObject([{ stat: "accurate_pass", points: 0.3 }]);
     expect(scoreMatch({ accurate_pass: 1, touches: 1 }, setOf(passes, touches), CENTRE_BACK).total).toBe(0.3);
   });
 

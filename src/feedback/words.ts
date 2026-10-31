@@ -7,7 +7,7 @@ import { failedWords } from "../shared/words";
 /** The page the top bar's link opens, and the link, named for it; the admin's tab is too. */
 export const FEEDBACK_TITLE = "Feedback";
 export const feedbackLinkWords = FEEDBACK_TITLE;
-export const feedbackHint = "Tell the admin what's wrong or what you'd like. Only he reads it, on his dashboard.";
+export const feedbackHint = "Only the admin reads it.";
 export const messageLabel = "Your feedback";
 export const sendWords = "Send";
 export const sentWords = "Sent to the admin. Thank you.";
