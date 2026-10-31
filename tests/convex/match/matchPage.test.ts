@@ -54,6 +54,8 @@ const notYetBegun = ({ t }: ScoresLeague) =>
 const SCORERS_GOAL = "64' GOAL Scorer";
 const line = (sourceId: number, text: string, minute: number | null, type: string, playerCodes: number[] = []) => ({ sourceId, text, minute, addedMinute: 0, type, playerCodes });
 const scorersGoal = (sourceId: number) => line(sourceId, SCORERS_GOAL, 64, "goal", [HULL_SCORER]);
+/** The match's commentary as just scorersGoal(1). */
+const holdScorersGoal = ({ t }: ScoresLeague) => t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines: [scorersGoal(1)], delayed: null }));
 /** scorersGoal(1) as the commentary shows it, worth `points`. */
 const shownGoal = (points: string | null) => ({ key: `${HULL_EVERTON}:1`, text: SCORERS_GOAL, points });
 
@@ -104,6 +106,7 @@ test("at full time each club's men show, starters first, each owned man with his
 test("a man moved to another team after the deadline names his old team beside the points its locked lineup scores him, which don't move", async () => {
   const league = await matchLeague();
   await fullTimeRecords(league);
+  await holdScorersGoal(league);
   const before = (await matchAs(league, ANN))!;
   await (await actingAs(league.t, ADMIN)).mutation(api.squads.squads.move, { leagueId: league.leagueId, playerCode: HULL_SCORER, teamId: league.bobsTeam });
   const page = (await matchAs(league, ANN))!;
@@ -112,7 +115,8 @@ test("a man moved to another team after the deadline names his old team beside t
   expect(slot?.points).toEqual(expect.any(Number));
   // He scores for Ann's lineup, locked at the deadline, so Ann's team is named, though Bob owns him now.
   expect(manOf(page.men, HULL_SCORER)).toMatchObject({ ownerTeamName: "Team 1", points: slot!.points, counts: slot!.counts });
-  // Only the name was in question: every man's points, and the commentary's, are as before the move.
+  // Only the name was in question: every man's points, and his goal's, are as before the move.
+  expect(before.commentary).toEqual({ kind: "read", lines: [shownGoal(expect.stringMatching(/^\+/))], delayed: false });
   expect(page.men).toEqual(before.men);
   expect(page.commentary).toEqual(before.commentary);
 });
@@ -120,9 +124,11 @@ test("a man moved to another team after the deadline names his old team beside t
 test("a man released after the deadline names the team that had him at the deadline beside the points its locked lineup scores him, which don't move", async () => {
   const league = await matchLeague();
   await fullTimeRecords(league);
+  await holdScorersGoal(league);
   const before = (await matchAs(league, ANN))!;
   await (await actingAs(league.t, ADMIN)).mutation(api.squads.squads.release, { leagueId: league.leagueId, playerCode: HULL_SCORER });
   expect(manOf(before.men, HULL_SCORER).points).toEqual(expect.any(Number));
+  expect(before.commentary).toEqual({ kind: "read", lines: [shownGoal(expect.stringMatching(/^\+/))], delayed: false });
   const page = (await matchAs(league, ANN))!;
   expect(manOf(page.men, HULL_SCORER)).toMatchObject({ ownerTeamName: "Team 1" });
   expect(page.men).toEqual(before.men);
@@ -200,7 +206,7 @@ test("a goal's points include his role's adjustment, on the match page and the m
   await fullTimeRecords(league);
   const ROLE_GOAL = 2;
   await adjustScorersRole(league, ROLE_GOAL);
-  await league.t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines: [scorersGoal(1)], delayed: null }));
+  await holdScorersGoal(league);
   // His goal in midfield, and his role's on top.
   const lines = [shownGoal(`+${MIDFIELD_GOAL + ROLE_GOAL}`)];
   expect((await matchAs(league, ANN))!.commentary).toEqual({ kind: "read", lines, delayed: false });
@@ -217,7 +223,7 @@ test("before the league's gameweek begins, the men show their owners but no poin
   const league = await matchLeague();
   await fullTimeRecords(league);
   await notYetBegun(league);
-  await league.t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines: [scorersGoal(1)], delayed: null }));
+  await holdScorersGoal(league);
   const page = (await matchAs(league, ANN))!;
   expect(manOf(page.men, HULL_SCORER)).toMatchObject({ ownerTeamName: "Team 1", points: null });
   expect(page.commentary).toEqual({ kind: "read", lines: [shownGoal(null)], delayed: false });
