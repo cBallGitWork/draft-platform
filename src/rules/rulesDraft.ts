@@ -24,8 +24,13 @@ type SavePart<Part, Rev> = (part: Part, revision: Rev) => Promise<number | strin
 /** The commissioner's draft of `view`'s part. Until they edit, it is the latest as it arrives;
  *  once they have, it keeps their edits and the row they were made from, and is `overtaken` once
  *  someone else saves. `drop` lets the edits go for the latest. `saveDraft` saves it with `save`,
- *  unless `refusal` finds a reason not to ask the server. */
-export function useRulesDraft<Part, Rev = Revision>(view: RulesView<Part, Rev>, save: SavePart<Part, Rev>, refusal: (draft: Part) => string | null = () => null) {
+ *  unless `refusal` finds a reason not to ask the server, which it tells `onRefused`. */
+export function useRulesDraft<Part, Rev = Revision>(
+  view: RulesView<Part, Rev>,
+  save: SavePart<Part, Rev>,
+  refusal: (draft: Part) => string | null = () => null,
+  onRefused: (draft: Part) => void = () => {},
+) {
   const [edits, setEdits] = useState<{ part: Part; revision: Rev } | null>(null);
   const [savedFrom, setSavedFrom] = useState<number | null>(null);
   const saving = useChange();
@@ -40,7 +45,10 @@ export function useRulesDraft<Part, Rev = Revision>(view: RulesView<Part, Rev>, 
     let from: number | null = null;
     const made = await saving.run(async () => {
       const refused = refusal(draft);
-      if (refused !== null) return refused;
+      if (refused !== null) {
+        onRefused(draft);
+        return refused;
+      }
       const answer = await save(draft, revision);
       if (typeof answer === "string") return answer;
       from = answer;

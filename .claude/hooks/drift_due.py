@@ -19,6 +19,8 @@ import os
 import subprocess
 import sys
 
+from hook_payload import project_dir
+
 DUE_AFTER = 10  # docs/REFACTORING.md's "10 merged pull requests since the last drift pass"
 MAINS = ("origin/main", "main")  # the first that exists is counted
 PASS_MARK = "^refactor: drift pass"  # how a drift pass's pull request title starts
@@ -56,7 +58,7 @@ def merged_since_pass(folder):
 
 
 def main():
-    folder = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+    folder = project_dir()
     try:
         merged, last_pass = merged_since_pass(folder)
     except GitFailed as error:
