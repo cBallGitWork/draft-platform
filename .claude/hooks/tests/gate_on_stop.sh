@@ -27,7 +27,8 @@ blocks gate_on_stop.py "$(stop_in "$wt_dirty")" CLAUDE_PROJECT_DIR="$clean" DRAF
 blocks gate_on_stop.py "$(stop_in "$wt_dirty/src")" CLAUDE_PROJECT_DIR="$clean" DRAFT_GATE_CMD='test ! -e src/a.ts'
 # a subagent in the main checkout leaves it to the session's own Stop, which still gates it
 silent gate_on_stop.py "$(stop_in "$dirty")" DRAFT_GATE_CMD=false
-blocks gate_on_stop.py "$(stop_in "$dirty" Stop)" DRAFT_GATE_CMD=false
+dirty_stop=$(stop_in "$dirty" Stop)
+blocks gate_on_stop.py "$dirty_stop" DRAFT_GATE_CMD=false
 mkdir -p "$nogit/src" && touch "$nogit/package.json" "$nogit/src/a.ts"
 silent gate_on_stop.py "$(stop_in "$nogit")" DRAFT_GATE_CMD=false  # not a git checkout: no gate
 git init -q "$nopkg" && mkdir "$nopkg/src" && touch "$nopkg/src/a.ts"
@@ -45,14 +46,14 @@ fails_loudly "failed in $(git -C "$broken" rev-parse --show-toplevel) (exit 128:
 # a gate that runs past its timeout is one line saying so, never a traceback (here src/a.ts is changed in $dirty)
 slow='sleep 5' short=0.2 dirty_top=$(git -C "$dirty" rev-parse --show-toplevel) ungated='so the stop goes ahead ungated.'
 fails_loudly "gate_on_stop.py: the gate ($slow) ran past its $short-second timeout in $dirty_top, $ungated" \
-  gate_on_stop.py "$(stop_in "$dirty" Stop)" DRAFT_GATE_CMD="$slow" DRAFT_GATE_TIMEOUT=$short
+  gate_on_stop.py "$dirty_stop" DRAFT_GATE_CMD="$slow" DRAFT_GATE_TIMEOUT=$short
 one_line "a gate past its timeout"
 # so is a gate whose program isn't there, or a DRAFT_GATE_TIMEOUT that isn't a number
 fails_loudly "gate_on_stop.py: no-such-gate couldn't start in $dirty_top (No such file or directory), $ungated" \
-  gate_on_stop.py "$(stop_in "$dirty" Stop)" DRAFT_GATE_CMD=no-such-gate
+  gate_on_stop.py "$dirty_stop" DRAFT_GATE_CMD=no-such-gate
 one_line "a gate that can't start"
 fails_loudly "gate_on_stop.py: DRAFT_GATE_TIMEOUT is 'soon', not a number of seconds, $ungated" \
-  gate_on_stop.py "$(stop_in "$dirty" Stop)" DRAFT_GATE_CMD=true DRAFT_GATE_TIMEOUT=soon
+  gate_on_stop.py "$dirty_stop" DRAFT_GATE_CMD=true DRAFT_GATE_TIMEOUT=soon
 one_line "a DRAFT_GATE_TIMEOUT that isn't a number"
 # a payload it can't read is said on stderr, never taken for {} (here, a dirty checkout whose gate fails)
 for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do

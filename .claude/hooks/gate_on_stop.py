@@ -73,11 +73,12 @@ def changed(checkout):
 
 def gate_timeout():
     """DRAFT_GATE_TIMEOUT in seconds where set, else GATE_TIMEOUT_SECONDS; ValueError says what it was."""
-    value = os.environ.get("DRAFT_GATE_TIMEOUT")
+    name = "DRAFT_GATE_TIMEOUT"
+    value = os.environ.get(name)
     try:
         return float(value) if value else GATE_TIMEOUT_SECONDS
     except ValueError:
-        raise ValueError(f"DRAFT_GATE_TIMEOUT is {value!r}, not a number of seconds") from None
+        raise ValueError(f"{name} is {value!r}, not a number of seconds") from None
 
 
 def failure(error, checkout):
