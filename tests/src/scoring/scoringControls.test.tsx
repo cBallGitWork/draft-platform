@@ -1,5 +1,5 @@
 // The rules editor's controls in the Wells look (plate.md, Controls; src/ui/, src/rules/): each
-// tick box is a real checkbox its whole row toggles, by pointer or keyboard; the Pays keys are a
+// tick box is a real checkbox its whole row toggles, by pointer or keyboard; the Points keys are a
 // radio group the arrow keys move; and Save says when there is nothing to save.
 
 import { screen } from "@testing-library/react";
@@ -10,7 +10,7 @@ import { byAreaWords, columnWords, everyoneWords, shapeLabel, shapeWords, wholeP
 import { box, categories, choose, openScoring, save, savedRule, savedSet } from "../../support/src/scoringScreen.harness";
 
 const tickBox = (name: string) => screen.getByRole("checkbox", { name }) as HTMLInputElement;
-const payKey = (name: string) => screen.getByRole("radio", { name }) as HTMLInputElement;
+const pointsKey = (name: string) => screen.getByRole("radio", { name }) as HTMLInputElement;
 const saveButton = () => screen.getByRole("button", { name: saveWords }) as HTMLButtonElement;
 
 describe("a tick box", () => {
@@ -45,24 +45,24 @@ describe("a tick box", () => {
   });
 });
 
-describe("the Pays keys", () => {
-  it("are one radio group named Pays, the rule's own kind chosen", async () => {
+describe("the Points keys", () => {
+  it("are one radio group named Points, the rule's own kind chosen", async () => {
     openScoring();
     await choose("Assists");
 
     expect(screen.getByRole("radiogroup", { name: shapeLabel })).toBeTruthy();
-    expect(payKey(shapeWords.perAction).checked).toBe(true);
-    expect(payKey(shapeWords.perCount).checked).toBe(false);
-    expect(payKey(shapeWords.bands).checked).toBe(false);
+    expect(pointsKey(shapeWords.perAction).checked).toBe(true);
+    expect(pointsKey(shapeWords.perCount).checked).toBe(false);
+    expect(pointsKey(shapeWords.bands).checked).toBe(false);
   });
 
   it("move the choice with the arrow keys", async () => {
     const app = openScoring();
     await choose("Assists");
-    payKey(shapeWords.perAction).focus();
+    pointsKey(shapeWords.perAction).focus();
     await userEvent.keyboard("{ArrowRight}");
 
-    expect(payKey(shapeWords.perCount).checked).toBe(true);
+    expect(pointsKey(shapeWords.perCount).checked).toBe(true);
     expect(box(columnWords.every, everyoneWords).value).toBe("1");
     await save();
     expect(savedRule(app, "assists")?.shape).toBe("perCount");
