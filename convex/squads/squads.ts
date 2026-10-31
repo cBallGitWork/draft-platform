@@ -13,7 +13,7 @@ import { areasOf, type Area } from "../lineup/pitch";
 import { positionsNow } from "../positions/playerPositions";
 import { areasShort } from "./areaMinimums";
 import { readOnce } from "../shared/readOnce";
-import { ownerOf, placeOf, squadOf } from "./squadPlace";
+import { heldOrNot, ownerOf, placeOf, squadOf, unheldCodes } from "./squadPlace";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
@@ -125,7 +125,13 @@ const squadWarning = v.union(
 );
 export type SquadWarning = Infer<typeof squadWarning>;
 
-const squadWithWarnings = v.object({ teamId: v.id("teams"), teamName: v.string(), players: v.array(squadPlayer), warnings: v.array(squadWarning) });
+const squadWithWarnings = v.object({
+  teamId: v.id("teams"),
+  teamName: v.string(),
+  players: v.array(squadPlayer),
+  unheld: unheldCodes,
+  warnings: v.array(squadWarning),
+});
 export type SquadWithWarnings = Infer<typeof squadWithWarnings>;
 
 /** Each team's squad, by name, and the league's squad limits it breaks, which warn but don't block.
@@ -141,31 +147,32 @@ export const squads = query({
     return Promise.all(
       (await teamsOf(ctx, leagueId)).map(async (team) => {
         const squad = await squadOf(ctx, team._id);
+        const { held, unheld } = await heldOrNot(ctx, squad);
         const players = await Promise.all(
-          squad.map(async ({ playerCode }) => {
-            const player = await heldPlayer(ctx, playerCode);
-            return {
-              code: player.code,
-              name: player.name,
-              clubShortName: await shortNameOf(player.clubCode),
-              gone: player.droppedAt !== undefined,
-            };
-          }),
+          held.map(async ({ player }) => ({
+            code: player.code,
+            name: player.name,
+            clubShortName: await shortNameOf(player.clubCode),
+            gone: player.droppedAt !== undefined,
+          })),
         );
         // Positions are read only for a league with area minimums, the one limit that needs them.
         const playersAreas = rules?.squad.minimumByArea
           ? await Promise.all(squad.map(async ({ playerCode }) => areasOf(await positionsOfNow(playerCode))))
           : [];
         players.sort((one, other) => one.name.localeCompare(other.name));
-        return { teamId: team._id, teamName: team.name, players, warnings: squadWarnings(players, playersAreas, rules?.squad ?? null) };
+        const warnings = squadWarnings(squad.length, players, playersAreas, rules?.squad ?? null);
+        return { teamId: team._id, teamName: team.name, players, unheld, warnings };
       }),
     );
   },
 });
 
-/** The league's squad limits a squad breaks (spec/03, Squad make-up), given each player's areas
- *  (areaMinimums.ts says how they fill the minimums). */
+/** The league's squad limits a squad of `playerCount` players breaks (spec/03, Squad make-up),
+ *  given the clubs of those the football sync holds and each player's areas (areaMinimums.ts says
+ *  how they fill the minimums). */
 function squadWarnings(
+  playerCount: number,
   players: readonly { clubShortName: string }[],
   playersAreas: readonly (readonly Area[])[],
   squad: LeagueRules["squad"] | null,
@@ -173,8 +180,8 @@ function squadWarnings(
   if (squad === null) return [];
   const warnings: SquadWarning[] = [];
   const { size, minimumByArea, maxPerClub } = squad;
-  if (size !== null && players.length > size.maximum) warnings.push({ kind: "overMaximum", players: players.length, maximum: size.maximum });
-  if (size !== null && players.length < size.minimum) warnings.push({ kind: "underMinimum", players: players.length, minimum: size.minimum });
+  if (size !== null && playerCount > size.maximum) warnings.push({ kind: "overMaximum", players: playerCount, maximum: size.maximum });
+  if (size !== null && playerCount < size.minimum) warnings.push({ kind: "underMinimum", players: playerCount, minimum: size.minimum });
   if (maxPerClub !== null) {
     const byClub = new Map<string, number>();
     for (const { clubShortName } of players) byClub.set(clubShortName, (byClub.get(clubShortName) ?? 0) + 1);

@@ -20,9 +20,10 @@ export function fakeSquads({ squads = [], found = [], loading = false, searching
 }
 
 /** A team's squad as the server sends it. */
-export const squadWithWarnings = (teamId: string, teamName: string, players: SquadWithWarnings["players"] = [], warnings: SquadWithWarnings["warnings"] = []): SquadWithWarnings => ({
+export const squadWithWarnings = (teamId: string, teamName: string, players: SquadWithWarnings["players"] = [], warnings: SquadWithWarnings["warnings"] = [], unheld: SquadWithWarnings["unheld"] = []): SquadWithWarnings => ({
   teamId: teamId as Id<"teams">,
   teamName,
   players,
+  unheld,
   warnings,
 });
