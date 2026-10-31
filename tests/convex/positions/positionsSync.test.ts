@@ -10,14 +10,14 @@ import {
   plFixtureUrl,
 } from "../../../convex/football/football";
 import { REFUSED_MATCH, asAdmin, heldPositions, reported, syncPositionsWith } from "../../support/convex/positionsSync.harness";
-import { MATCHES_PER_RUN } from "../../../convex/positions/positionsSync";
+import { MATCHES_PER_RUN, SYNC_FAILED_LOG } from "../../../convex/positions/positionsSync";
 import type { RawPlSquadPlayer } from "../../../convex/football/premierLeague/premierLeague";
 import { NEWCASTLE, PLAYER, recordedPositions, SHEET, UNPLAYED_MATCH } from "../../support/recorded/positions.payloads";
 import { freshConvex, refusedError, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 
 /** The line a run logs when its read of url is refused. */
 function reportedFailure(url: string): string {
-  return `positions sync failed: ${refusedError(url)}`;
+  return `${SYNC_FAILED_LOG}: ${refusedError(url)}`;
 }
 
 function manIn(men: RawPlSquadPlayer[], code: number): RawPlSquadPlayer {
@@ -174,7 +174,7 @@ test("a run once the season ids are out of date fails, saying so, and files noth
   const { outcome } = await syncPositionsWith(t, recordedPositions(), undefined, PL_SEASON_IDS_STALE_FROM);
 
   expect(outcome).toEqual({ ok: false, error: PL_SEASON_IDS_STALE });
-  expect(logged).toHaveBeenCalledWith(`positions sync failed: ${PL_SEASON_IDS_STALE}`);
+  expect(logged).toHaveBeenCalledWith(`${SYNC_FAILED_LOG}: ${PL_SEASON_IDS_STALE}`);
   expect(await heldStarts(t, PLAYER.barnes)).toEqual([]);
 });
 
