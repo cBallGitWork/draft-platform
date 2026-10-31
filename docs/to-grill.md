@@ -82,12 +82,13 @@ to get you there"). It lives in this repo; the rest is open.
 **A rule balance lab**: from the ideas board (Craig, 31 Oct 2026). A backtest of a patch draft,
 "just to make sure a change is good" (Craig, 31 Oct 2026). Craig's answers so far, from `/grill`
 on 31 Oct 2026:
-- The admin's tool, run by a button on a patch draft before it is announced (`spec/14`).
+- The admin's tool, run on a patch draft before it is announced (`spec/14`). Claude's small call:
+  it runs when the admin presses a button, not on every save.
 - A what-if only: it saves nothing, and locked gameweeks keep their scores.
 - On past seasons: each role's average against base scoring, flagging any outside `spec/05`'s
   0.25 points a match, and the biggest movers among players.
 - On this season's real lineups: the head-to-heads that would have flipped and the table moves,
-  for each league.
+  for each league. Craig: yes, "the lab backtests just to make sure a change is good".
 - Its numbers go in the patch notes.
 - Past seasons: "not much data this season, might need last"; Craig can give four seasons from
   ai-carling-premiership.

@@ -23,8 +23,8 @@ players. A scout's report judges a player; Mail only reports (`spec/16`).
 ## The stat race
 
 - A teams view in Scouting's stats: each team's season total in every scoring category, ranked by
-  the one the manager picks (Craig, 31 Oct 2026: "yeah that's fine in stats").
-- It counts only what counted: a team's starters, and the subs who came on.
+  the one the manager picks to sort by (Craig, 31 Oct 2026: "yeah that's fine in stats").
+- It counts only what counted: a team's starters, and the bench players who came on.
 - Raw stats ("7 clean sheets"), not points. A table only, with no trophy.
 
 ## The shortlist

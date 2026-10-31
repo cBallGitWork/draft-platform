@@ -72,7 +72,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - **Scouting searches**: a scout sent to find a kind of player ("a CAM under 25"), not only one
   player (spec/19).
 - **Saved views** on Scouting's players list (spec/19).
-- **Another team's My team tabs**, read-only, for scouting rivals (spec/12; `docs/to-grill.md`, Every squad on one page).
+- **Another team's My team tabs**, read-only, for scouting rivals (spec/12; `docs/to-grill.md`, Every squad on one page). Before the deadline they show his squad, never his lineup (spec/10).
 - **Makeshift positions**, after the rest is built: a player outside his areas, at a penalty, so a
   good side's forward isn't parked at the back for easy clean sheets. Craig's starting point, "a 2
   area rule": his own area and the next, no further (spec/05; `docs/to-grill.md`).
