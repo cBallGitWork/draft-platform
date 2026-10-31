@@ -103,6 +103,8 @@ From `/grill club colours` (31 Oct 2026).
 - The player card's title plate stays the plate's colour; his club shows by its mark and his shirt
   (Craig left this to Claude).
 - Who keeps the colours: `spec/15`, The admin.
+- The mark's, the striped shirt's and the scoreboard's values go into `docs/design/plate.md` when
+  they are built.
 - The number leads; a verdict sits beside it only where there is a real one (role stars, fixture
   difficulty, shown as a coloured cell). (Craig left this to Claude.)
 - Not liked, so not used: no pitch view (Terminal, Kit room), a terminal look, the first broadcast

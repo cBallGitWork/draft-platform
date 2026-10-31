@@ -100,14 +100,15 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   (spec/10).
 - **A lineup graphic** at the deadline, AI-made, like the team sheets clubs post on social media
   (Craig, 31 Oct 2026; spec/10).
-- **A crest for each team**, after the beta: "i just think this is low priorituy when the site
+- **A crest for each team**: "i just think this is low priorituy when the site
   doesnt work yet" (Craig, 31 Oct 2026). His answers so far: an AI crest builder ("why dont we just
   make this an ai builder rather than a shield?"), a few words and two colours giving four crests in
   one house style, kept or remade, at most 20 makes a team a season; uploads too ("fantrax allows
   uploads"); until one is made, a drawn shield in two colours no other team in the league has; the
   commissioner can remove any; shown before the team's name in the table, league home, the matchup
   and the league list, the matchup's sides on their teams' colours; set on a Club tab of My team.
-  The image service is his pick when it comes (Recraft researched). A team's kit, nickname and
+  The image service is his pick when it comes; Claude's research found Recraft the fit (not
+  picked). A team's kit, nickname and
   fans' name come after it; its ground goes with our own home stadiums (`docs/to-grill.md`).
 - **Real shirt packs and away kits**, which the admin owning club colours leaves room for
   (spec/15, 31 Oct 2026).

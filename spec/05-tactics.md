@@ -71,7 +71,7 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - A patch changes a role's scoring but doesn't remove a role (Craig, 31 Oct 2026). If a role ever
   goes, each starter holding it moves to the role he would get dropped into that slot, when the
   change takes effect, and never has his lineup refused; the patch's letter tells each manager
-  which of his starters changed role, from what to what ("Saka: shadow striker → number 10").
+  which of his starters changed role, from what to what (for example "Saka: shadow striker → poacher").
 - The default set starts as this list, made long before roles are built: every area and lane gets
   as many roles as fit, for Craig to cut much later (21 Oct 2026):
   - goalkeeper: shot-stopper, sweeper keeper
