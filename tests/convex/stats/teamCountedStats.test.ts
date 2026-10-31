@@ -75,7 +75,10 @@ test("in a double gameweek counting his best match only, his other match's stats
 });
 
 test("a record not yet whole adds nothing", () => {
-  expect(countedTeamStats(gameweek([true, true])).goals_scored).toBe(3);
+  const notWhole = gameweek([true, true]);
+  notWhole.team.starters = notWhole.team.starters.filter((each) => each.playerCode === NOT_WHOLE);
+  notWhole.team.bench = [];
+  expect(countedTeamStats(notWhole)).toEqual({});
 });
 
 test("a counted man with no matches in the gameweek is data gone wrong, and throws", () => {

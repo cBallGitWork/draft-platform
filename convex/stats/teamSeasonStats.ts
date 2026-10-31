@@ -112,8 +112,12 @@ async function storeNext(ctx: MutationCtx, league: Doc<"leagues">): Promise<numb
     const inputs = await gameweekInputs(ctx, leagueRead, gameweek, fixtures, stale);
     const scored = await Promise.all(stale.map((teamId) => teamInGameweek(leagueRead, inputs, teamId)));
     // A record not whole after the lock (a feed's gap) leaves the team's points provisional, and
-    // the table stores none of the gameweek's scores until it arrives: nor does the stat race.
-    if (scored.some((each) => each.team.provisional)) continue;
+    // the table stores none of the gameweek's scores until it arrives: nor does the stat race, and
+    // a share from other matches comes off meanwhile, as in a gameweek not final.
+    if (scored.some((each) => each.team.provisional)) {
+      if (await takeAway(ctx, stale.flatMap((teamId) => shares.get(teamId) ?? []))) moved.push(gameweek);
+      continue;
+    }
     for (const [index, teamId] of stale.entries()) {
       await storeShare(ctx, { leagueId: league._id, gameweek, teamId, fixtureCodes, stats: countedTeamStats(scored[index]) }, shares.get(teamId));
     }

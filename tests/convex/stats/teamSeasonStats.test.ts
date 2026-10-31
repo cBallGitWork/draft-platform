@@ -4,7 +4,9 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayerMatchRecord } from "../../../convex/stats/matchRecords";
 import { sumStats, type Stats } from "../../../convex/stats/statTotals";
 import { HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
+import { addManagers } from "../../support/convex/leagues.harness";
 import {
+  CAT,
   EVERTON_STARTERS,
   fullTimeRecords,
   GAMEWEEK,
@@ -148,4 +150,34 @@ test("rebuild sets every total afresh from the gameweeks, whatever was held", as
   expect(await totalsOf(league, league.annsTeam)).toEqual(statsOf(RECORDS, codesOf(HULL_AFTER_SUB)));
   expect(await totalsOf(league, league.bobsTeam)).toEqual(statsOf(RECORDS, codesOf(EVERTON_STARTERS)));
   expect(await shares(league)).toHaveLength(2);
+});
+
+test("a gameweek left provisional after the lock by a feed's gap stores nothing, and a share from other matches comes off meanwhile", async () => {
+  const league = await scoresLeague();
+  await fullTimeRecords(league);
+  await lockMatch(league);
+  await storeStats(league);
+  await league.t.run(async (ctx) => {
+    const anns = (await ctx.db.query("teamGameweekStats").collect()).find((row) => row.teamId === league.annsTeam)!;
+    await ctx.db.patch("teamGameweekStats", anns._id, { fixtureCodes: [MOVED_IN] });
+    const scorer = (await ctx.db.query("playerMatchStats").collect()).find((row) => row.playerCode === HULL_SCORER)!;
+    await ctx.db.patch("playerMatchStats", scorer._id, { arrived: { fpl: true, pl: false } });
+  });
+
+  expect(await storeStats(league)).toEqual([GAMEWEEK]);
+  expect(await totalsOf(league, league.annsTeam)).toEqual({});
+  expect((await shares(league)).map((share) => share.teamId)).toEqual([league.bobsTeam]);
+});
+
+test("a team added after a gameweek was stored has its own share worked out, the others' left as they were", async () => {
+  const league = await scoresLeague();
+  await fullTimeRecords(league);
+  await lockMatch(league);
+  await storeStats(league);
+  const [catsTeam] = await addManagers(league.t, league.leagueId, [CAT]);
+
+  expect(await storeStats(league)).toEqual([GAMEWEEK]);
+  expect((await shares(league)).find((share) => share.teamId === catsTeam)?.stats).toEqual({});
+  expect(await totalsOf(league, catsTeam)).toBeUndefined();
+  expect(await totalsOf(league, league.annsTeam)).toEqual(statsOf(RECORDS, codesOf(HULL_AFTER_SUB)));
 });
