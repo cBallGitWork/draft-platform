@@ -21,12 +21,19 @@ export const openTactics = (change: Partial<OpenTactics> = {}): OpenTactics => (
   ...change,
 });
 
-/** What the fake server holds: the tactics, or nothing yet while they load; and what a save
- *  answers, the gameweek it saved from (the tactics' by default) or the words refusing it. */
-export type TacticsData = { tactics?: Tactics; saveAnswer?: number | string };
+/** What the fake server holds: the tactics, or nothing yet while they load; what a save
+ *  answers, the gameweek it saved from (the tactics' by default) or the words refusing it; and
+ *  whether that answer is held back until the test lets it go (`letSaveGo`), as a slow server's. */
+export type TacticsData = { tactics?: Tactics; saveAnswer?: number | string; saveHeld?: boolean };
 
-export function fakeTactics({ tactics = openTactics(), saveAnswer = TACTICS_GAMEWEEK }: TacticsData, loading: boolean) {
-  const changes = { save: vi.fn<LineupChanges["save"]>(async () => saveAnswer) };
+export function fakeTactics({ tactics = openTactics(), saveAnswer = TACTICS_GAMEWEEK, saveHeld = false }: TacticsData, loading: boolean) {
+  let letGo: (() => void) | null = null;
+  const changes = {
+    save: vi.fn<LineupChanges["save"]>(async () => {
+      if (saveHeld) await new Promise<void>((resolve) => (letGo = resolve));
+      return saveAnswer;
+    }),
+  };
   // A store, so a test can change what the server holds under an open screen, as Convex would.
   let held = tactics;
   const listeners = new Set<() => void>();
@@ -40,6 +47,12 @@ export function fakeTactics({ tactics = openTactics(), saveAnswer = TACTICS_GAME
     serverHolds: (next: Tactics) => {
       held = next;
       for (const listener of listeners) listener();
+    },
+    /** The held save's answer lands (inside act). */
+    letSaveGo: () => {
+      if (letGo === null) throw new Error("No save is waiting on the fake server.");
+      letGo();
+      letGo = null;
     },
     useLineupChanges: vi.fn<TacticsSeam["useLineupChanges"]>(() => changes),
     lineupChanges: changes,

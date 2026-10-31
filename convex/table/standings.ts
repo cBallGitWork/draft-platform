@@ -1,5 +1,5 @@
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "./roundRobin";
-import { inTenths } from "../scoring/scoringSet";
+import { inTenths } from "../scoring/values";
 
 // The league's table (#33; spec/09, spec/03). A head-to-head table is a real football table: 3
 // points for a win, 1 for a draw, none for a loss, equal scores a draw; teams level on points are

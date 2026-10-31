@@ -12,7 +12,7 @@ import { firstLineup } from "../../../convex/lineup/firstLineup";
 import { roleIn } from "../../../convex/lineup/roles";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { scoreMatch } from "../../../convex/scoring/scoring";
-import { inTenths } from "../../../convex/scoring/scoringSet";
+import { inTenths } from "../../../convex/scoring/values";
 import type { PlayerMatchRecord } from "../../../convex/stats/matchRecords";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { LEAGUE_AVERAGE } from "../../../convex/table/roundRobin";

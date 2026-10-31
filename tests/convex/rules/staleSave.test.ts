@@ -6,7 +6,7 @@ import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
 import { adminByline } from "../../../convex/mail/letterWords";
 import { holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ADMIN, actingAs, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, actingAs, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, lastEventAt, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // Two people editing a league's rules at once (Craig, 22 Oct 2026: the second save warns, never
@@ -38,16 +38,13 @@ const rulesLetters = () =>
       (letter) => letter.to === COMMISSIONER && letter.subject.startsWith("The league's rules change"),
     ),
   );
-/** When the league's last event was filed. */
-const lastEventAt = () =>
-  t.run(async (ctx) => (await ctx.db.query("leagueEvents").withIndex("by_leagueId_and_at", (q) => q.eq("leagueId", leagueId)).order("desc").first())!.at);
 
 /** The co-commissioner saves 2 games a gameweek over the rules the commissioner opened: the
  *  revision opened, and the refusal a save from it gets. */
 const coCommissionerSavesOver = async () => {
   const opened = await rulesRevision(t, leagueId);
   await changeGames(CO_COMMISSIONER, 2, opened);
-  return { opened, refusal: rulesRefusals.changedSince(CO_COMMISSIONER, await lastEventAt(), undefined) };
+  return { opened, refusal: rulesRefusals.changedSince(CO_COMMISSIONER, await lastEventAt(t, leagueId), undefined) };
 };
 
 describe("a save made from rules someone has saved over since", () => {
@@ -65,7 +62,7 @@ describe("a save made from rules someone has saved over since", () => {
     const opened = await rulesRevision(t, leagueId);
     await changeGames(ADMIN, 2, opened);
 
-    await expectRefused(changeGames(COMMISSIONER, 3, opened), rulesRefusals.changedSince(adminByline, await lastEventAt(), undefined));
+    await expectRefused(changeGames(COMMISSIONER, 3, opened), rulesRefusals.changedSince(adminByline, await lastEventAt(t, leagueId), undefined));
   });
 
   test("is refused through the whole-rules change too", async () => {
@@ -82,7 +79,7 @@ describe("a save made from rules someone has saved over since", () => {
     const { opened } = await coCommissionerSavesOver();
     const saved = (await rulesRevision(t, leagueId))!;
     const savedAt = await t.run(async (ctx) => (await ctx.db.get("leagueRules", saved))!._creationTime);
-    const after = await lastEventAt();
+    const after = await lastEventAt(t, leagueId);
     await t.run(async (ctx) => {
       for (let index = 1; index <= EVENTS_SEARCHED_FOR_SAVER; index += 1) {
         await ctx.db.insert("leagueEvents", { leagueId, at: after + index, by: COMMISSIONER, event: { kind: "inviteLinkSwitchedOff" } });

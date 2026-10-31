@@ -1,9 +1,9 @@
 // The site's own stats (#112, spec/14 Own stats): what one is, the check that refuses a bad one,
 // and how one is worked out from a player's record before the site's scoring set scores it.
 
-import { statIn, type MatchStats } from "./scoring";
-import { requireNumber, showValue, UnsoundScoring, type ScoringSet } from "./scoringSet";
+import type { ScoringSet } from "./scoringSet";
 import { CATALOGUE_STATS, STAT_CATALOGUE } from "./statCatalogue";
+import { isObject, requireNumber, showValue, statIn, UnsoundScoring, type MatchStats } from "./values";
 
 /** What an own stat is rounded to before it counts: a millionth, far finer than any weight, so
  *  only floating point's noise goes. */
@@ -31,7 +31,7 @@ export function validateOwnStats(ownStats: unknown): void {
   const names = new Set<string>();
   const codes = new Set<string>();
   ownStats.forEach((own: unknown, index) => {
-    if (!isRecord(own) || typeof own.stat !== "string" || own.stat === "") throw new UnsoundScoring(`own stat ${index + 1} has no key`);
+    if (!isObject(own) || typeof own.stat !== "string" || own.stat === "") throw new UnsoundScoring(`own stat ${index + 1} has no key`);
     const named = `the own stat ${own.stat}`;
     if (CATALOGUE_STATS.has(own.stat)) throw new UnsoundScoring(`${named} has a catalogue stat's key`);
     if (keys.has(own.stat)) throw new UnsoundScoring(`${named} is made twice`);
@@ -44,7 +44,7 @@ export function validateOwnStats(ownStats: unknown): void {
     }
     if (!Array.isArray(own.parts) || own.parts.length === 0) throw new UnsoundScoring(`${named} adds up no stats`);
     own.parts.forEach((part: unknown) => {
-      if (!isRecord(part) || typeof part.stat !== "string") throw new UnsoundScoring(`${named} has a part that names no stat`);
+      if (!isObject(part) || typeof part.stat !== "string") throw new UnsoundScoring(`${named} has a part that names no stat`);
       if (!CATALOGUE_STATS.has(part.stat)) throw new UnsoundScoring(`${named} adds ${showValue(part.stat)}, which isn't a catalogue stat`);
       requireNumber(part.weight, `${named} weighs ${part.stat} at`);
     });
@@ -86,5 +86,3 @@ export function withOwnStats(record: MatchStats, set: ScoringSet): MatchStats {
   }
   return { ...record, ...own };
 }
-
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;

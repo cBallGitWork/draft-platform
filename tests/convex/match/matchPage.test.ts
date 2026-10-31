@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { MatchMan } from "../../../convex/match/matchPage";
 import { bySheetOrder } from "../../../convex/match/sheetOrder";
+import { refusals } from "../../../convex/shared/leagueAccess";
 import {
   adjustScorersRole,
   ANN,
@@ -24,7 +25,7 @@ import {
 } from "../../support/convex/gameweekScores.harness";
 import { ADMIN, OUTSIDER, actingAs } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON, HULL_EVERTON_TEAM_STATS, mergedHullEverton } from "../../support/convex/matchStats.harness";
-import { silenceConsoleError } from "../../support/convex/test.harness";
+import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 
 // The match page (#45; spec/10, The match page): Hull v Everton, Ann owning Hull's men and Bob
 // Everton's, each with a saved lineup. The page shows the score, both clubs' men, each owned man's
@@ -216,5 +217,5 @@ test("a set that can't be priced says why, while the men and lines still show", 
 test("a match nobody holds is null, and someone outside the league is refused", async () => {
   const league = await matchLeague();
   expect(await matchAs(league, ANN, 1)).toBeNull();
-  await expect(matchAs(league, OUTSIDER)).rejects.toThrow();
+  await expectRefused(matchAs(league, OUTSIDER), refusals.notInLeague);
 });

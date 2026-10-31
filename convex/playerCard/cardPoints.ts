@@ -7,7 +7,8 @@
 import { v, type Infer } from "convex/values";
 import { ALL_CELLS, playsCell, positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
 import type { Position } from "../positions/positionTables";
-import { scoreMatch, type MatchPoints, type MatchStats } from "../scoring/scoring";
+import { scoreMatch, type MatchPoints } from "../scoring/scoring";
+import type { MatchStats } from "../scoring/values";
 import type { ScoringSet } from "../scoring/scoringSet";
 
 /** How a match was priced: from his slot in a lineup, at his best position, or there but not

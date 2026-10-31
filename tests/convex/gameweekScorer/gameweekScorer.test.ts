@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
-import { inTenths } from "../../../convex/scoring/scoringSet";
+import { inTenths } from "../../../convex/scoring/values";
 import type { PlayerRows } from "../../../convex/gameweekScorer/squadInputs";
 import {
   gameweekScorer,

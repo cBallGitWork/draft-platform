@@ -80,7 +80,7 @@ what it checks and what CI runs besides.
 The app is in `src/` and the server in `convex/`, one folder per feature in each. The tests are in
 `tests/`, mirroring them (`tests/convex/`, `tests/src/`, `tests/scripts/`), with the shared
 harnesses and recorded feeds in `tests/support/` and the browser smoke suite in `tests/smoke/`;
-the hooks' own checks, and the recorded add-only check's, are in `.claude/hooks/tests/`.
+the hooks' own checks are in `.claude/hooks/tests/`.
 
 ## The live site
 
