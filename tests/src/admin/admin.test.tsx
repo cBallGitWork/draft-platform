@@ -53,11 +53,12 @@ const NEWCASTLE = { code: 4, name: "Newcastle" };
 const LEEDS = { code: 7, name: "Leeds" };
 const STEUR = { code: 1, name: "Steur", fullName: "Jacob Steur", clubCode: NEWCASTLE.code, label: "Centre Central Midfielder" };
 const BARNES = { code: 2, name: "Barnes", fullName: "Harvey Barnes", clubCode: NEWCASTLE.code, proposals: ["W" as const] };
+const WOLTEMADE = { code: 3, name: "Woltemade", fullName: "Nick Woltemade", clubCode: NEWCASTLE.code };
 const DATA: AdminData = {
   queue: {
     newSignings: [STEUR],
     waiting: [BARNES],
-    flagged: [{ code: 3, name: "Woltemade", fullName: "Nick Woltemade", clubCode: NEWCASTLE.code, position: "ST", startsElsewhere: 4 }],
+    flagged: [{ ...WOLTEMADE, position: "ST", startsElsewhere: 4 }],
     removed: [{ code: 5, name: "Gordon", fullName: "Anthony Gordon", clubCode: NEWCASTLE.code, position: "W" }],
     clubs: [ARSENAL, NEWCASTLE],
     approveMode: "proposals",
@@ -65,10 +66,7 @@ const DATA: AdminData = {
   },
   found: [
     {
-      code: 3,
-      name: "Woltemade",
-      fullName: "Nick Woltemade",
-      clubCode: NEWCASTLE.code,
+      ...WOLTEMADE,
       positions: [
         { position: "ST", source: "starts", confirmed: true, flaggedElsewhere: 4 },
         { position: "CAM", source: "label", confirmed: false, flaggedElsewhere: null },
@@ -134,7 +132,7 @@ describe("position changes", () => {
     expect(within(changes).getByText(/flagged after 3 starts in a row elsewhere, and removed after 6/)).toBeTruthy();
 
     const flagged = within(changes).getByRole("list", { name: flaggedTitle });
-    expect(within(flagged).getByText("Nick Woltemade")).toBeTruthy();
+    expect(within(flagged).getByText(WOLTEMADE.fullName)).toBeTruthy();
     expect(within(flagged).getByText(flaggedWords("ST", 4)).className).toContain("text-event");
 
     const removed = within(changes).getByRole("list", { name: removedTitle });
@@ -204,7 +202,7 @@ describe("settings", () => {
 
 describe("correcting a player", () => {
   const findWoltemade = async () => {
-    await userEvent.type(await screen.findByRole("searchbox", { name: findLabel }), "Woltemade");
+    await userEvent.type(await screen.findByRole("searchbox", { name: findLabel }), WOLTEMADE.name);
     return screen.getByRole("list", { name: foundListLabel });
   };
 
@@ -215,7 +213,7 @@ describe("correcting a player", () => {
 
   it("shows each position, where it came from, and whether it's confirmed", async () => {
     openDashboard();
-    const positions = within(await findWoltemade()).getByRole("list", { name: positionsListLabel("Woltemade") });
+    const positions = within(await findWoltemade()).getByRole("list", { name: positionsListLabel(WOLTEMADE.name) });
     expect(within(positions).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
       "ST from his starts, flagged: 4 starts in a row elsewhereRemove",
       "CAM from his label, unconfirmedRemove",
@@ -225,14 +223,14 @@ describe("correcting a player", () => {
   it("removes a position, and sets one he hasn't got, SS among them", async () => {
     const app = openDashboard();
     const found = await findWoltemade();
-    await userEvent.click(within(found).getByRole("button", { name: removeLabel("CAM", "Woltemade") }));
-    expect(app.admin.removePosition).toHaveBeenCalledExactlyOnceWith(3, "CAM");
+    await userEvent.click(within(found).getByRole("button", { name: removeLabel("CAM", WOLTEMADE.name) }));
+    expect(app.admin.removePosition).toHaveBeenCalledExactlyOnceWith(WOLTEMADE.code, "CAM");
 
-    const give = within(found).getByRole("combobox", { name: setLabel("Woltemade") });
+    const give = within(found).getByRole("combobox", { name: setLabel(WOLTEMADE.name) });
     expect(within(give).queryByRole("option", { name: "ST" })).toBeNull();
     await userEvent.selectOptions(give, "SS");
     await userEvent.click(within(found).getByRole("button", { name: setWords }));
-    expect(app.admin.setPosition).toHaveBeenCalledExactlyOnceWith(3, "SS");
+    expect(app.admin.setPosition).toHaveBeenCalledExactlyOnceWith(WOLTEMADE.code, "SS");
   });
 
   it("shows why a change was refused", async () => {
@@ -252,7 +250,7 @@ describe("while the server answers", () => {
 
   it("says a search is under way, to screen readers too", async () => {
     openDashboard({ ...DATA, searching: true });
-    await userEvent.type(await screen.findByRole("searchbox", { name: findLabel }), "Woltemade");
+    await userEvent.type(await screen.findByRole("searchbox", { name: findLabel }), WOLTEMADE.name);
     expect(within(screen.getByRole("region", { name: findTitle })).getByRole("status").textContent).toBe(searchingWords);
   });
 });
