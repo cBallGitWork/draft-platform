@@ -175,7 +175,7 @@ test("a match his team started him in shows his base points, and his role's line
   expect(priced.role).toEqual({ name: "Inside forward", points: 2, lines: [{ stat: "goals_scored", name: "Goals scored", actions: 1, points: 2 }] });
 });
 
-test("a match he sat on his team's bench for shows his base points, with no role", async () => {
+test("a match his team named him on the bench for shows his base points, with no role line", async () => {
   const priced = await annFieldsSaka("benched");
 
   expect(priced.points).toMatchObject([{ position: "W", total: 11 }]);

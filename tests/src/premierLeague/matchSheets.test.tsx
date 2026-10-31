@@ -56,7 +56,7 @@ describe("the team sheets", () => {
   it("a free agent's points are a figure, as an owned man's, never greyed", async () => {
     openMatch({ match: matchOf() });
     const sheet = await screen.findByRole("table", { name: sheetLabel(ARSENAL.name) });
-    const row = within(sheet).getByRole("rowheader", { name: new RegExp(`^Ødegaard`) }).closest("tr")!;
+    const row = within(sheet).getByRole("rowheader", { name: /^Ødegaard/ }).closest("tr")!;
     const points = within(row).getAllByRole("cell").at(-1)!;
     expect(points.className).toContain("text-figure");
     expect(points.className).not.toContain("text-muted");
