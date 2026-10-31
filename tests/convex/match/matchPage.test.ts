@@ -179,12 +179,17 @@ async function cardsPoints(league: ScoresLeague, playerCode: number) {
   return card!.matches.find((each) => each.fixtureCode === HULL_EVERTON)!.points;
 }
 
-/** Takes `playerCode` out of every squad, so no lineup holds him at the deadline. */
-const neverOwned = ({ t }: ScoresLeague, playerCode: number) =>
-  t.run(async (ctx) => {
-    const owned = (await ctx.db.query("squadPlayers").collect()).find((row) => row.playerCode === playerCode)!;
+/** The match at full time, Hull's scorer taken out of every squad, so no lineup holds him at the
+ *  deadline: a free agent. */
+async function scorerFreeLeague(): Promise<ScoresLeague> {
+  const league = await matchLeague();
+  await fullTimeRecords(league);
+  await league.t.run(async (ctx) => {
+    const owned = (await ctx.db.query("squadPlayers").collect()).find((row) => row.playerCode === HULL_SCORER)!;
     await ctx.db.delete("squadPlayers", owned._id);
   });
+  return league;
+}
 
 /** Every man either lineup on Ann's matchup names. */
 async function lineupMen(league: ScoresLeague): Promise<number[]> {
@@ -195,9 +200,7 @@ async function lineupMen(league: ScoresLeague): Promise<number[]> {
 // "I need to stress that players who don't have a team still have their scores show. Just because
 // they aren't a team doesn't mean they don't get points" (Craig, 31 Oct 2026; #771).
 test("a free agent shows no team and the points his card gives him, counted for no team", async () => {
-  const league = await matchLeague();
-  await fullTimeRecords(league);
-  await neverOwned(league, HULL_SCORER);
+  const league = await scorerFreeLeague();
   const page = (await matchAs(league, ANN))!;
   const card = await cardsPoints(league, HULL_SCORER);
   expect(card.scoredAs).toBe("bestPosition");
@@ -208,9 +211,7 @@ test("a free agent shows no team and the points his card gives him, counted for 
 });
 
 test("a man picked up after the deadline shows no team and the points his card gives him, and every team's points stay as they were", async () => {
-  const league = await matchLeague();
-  await fullTimeRecords(league);
-  await neverOwned(league, HULL_SCORER);
+  const league = await scorerFreeLeague();
   const table = await readTable(league);
   const game = await annsScoredGame(league);
   await (await actingAs(league.t, ADMIN)).mutation(api.squads.squads.assign, { leagueId: league.leagueId, playerCode: HULL_SCORER, teamId: league.bobsTeam });
@@ -224,9 +225,7 @@ test("a man picked up after the deadline shows no team and the points his card g
 });
 
 test("a free agent's points are the league's override of them where it holds one, as on his card", async () => {
-  const league = await matchLeague();
-  await fullTimeRecords(league);
-  await neverOwned(league, HULL_SCORER);
+  const league = await scorerFreeLeague();
   const OVERRIDE = 17;
   await league.t.run((ctx) =>
     ctx.db.insert("pointsOverrides", { leagueId: league.leagueId, gameweek: GAMEWEEK, fixtureCode: HULL_EVERTON, playerCode: HULL_SCORER, points: OVERRIDE, reason: "", by: ADMIN, at: 0 }),
@@ -236,9 +235,7 @@ test("a free agent's points are the league's override of them where it holds one
 });
 
 test("before the league's gameweek begins, a free agent shows no points yet, as an owned man shows none", async () => {
-  const league = await matchLeague();
-  await fullTimeRecords(league);
-  await neverOwned(league, HULL_SCORER);
+  const league = await scorerFreeLeague();
   await notYetBegun(league);
   expect(manOf((await matchAs(league, ANN))!.men, HULL_SCORER)).toMatchObject({ ownerTeamName: null, points: null, counts: false });
 });

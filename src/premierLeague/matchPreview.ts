@@ -1,8 +1,8 @@
 // The match page in the preview (src/app/preview.ts): Ipswich Town 1–1 Nottingham Forest, the match
 // recorded live on 23 Oct 2026 (tests/support/recorded/live.payloads.ts), at full time. Its team
 // sheets, team stats and commentary are the recording's, written as the live tick writes them; the
-// positions, who owns whom and the points are made up. A free agent's points count for no team. Every fixture opens it: one to come, as it
-// stood before kickoff.
+// positions, who owns whom and the points are made up; a free agent's count for no team. Every
+// fixture opens it: one to come, as it stood before kickoff.
 
 import { bySheetOrder } from "../../convex/match/sheetOrder";
 import type { Position } from "../../convex/positions/positionTables";
