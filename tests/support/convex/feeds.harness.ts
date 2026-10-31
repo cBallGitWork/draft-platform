@@ -3,7 +3,7 @@
 
 import { api } from "../../../convex/_generated/api";
 import type { FeedsReport } from "../../../convex/admin/feeds";
-import type { Feed } from "../../../convex/shared/feedSchedule";
+import { FEED_RUN_TABLES, type Feed } from "../../../convex/shared/feedSchedule";
 import { asAdmin } from "./positionsSync.harness";
 import type { TestConvex } from "./test.harness";
 
@@ -43,10 +43,17 @@ export function recordRun(t: TestConvex, feed: Feed, ranAt: number, ran: Ran = "
       await ctx.db.insert("positionsSyncs", { trigger: "manual", ranAt, outcome: failed ?? ok });
     } else if (feed === "matchStats") {
       await ctx.db.insert("matchStatsSyncs", { trigger: "manual", ranAt, outcome: failed ?? { ok: true, matches, waiting: [] } });
-    } else {
+    } else if (feed === "liveStats") {
       await ctx.db.insert("liveStatsTicks", { ranAt, outcome: failed ?? { ok: true, matches } });
+    } else {
+      await ctx.db.insert(FEED_RUN_TABLES[feed], { ranAt, outcome: failed ?? { ok: true, matches } });
     }
   });
+}
+
+/** Each of `feed`'s run outcomes held, oldest first. */
+export function outcomesOf(t: TestConvex, feed: Feed) {
+  return t.run(async (ctx) => (await ctx.db.query(FEED_RUN_TABLES[feed]).collect()).map((row) => row.outcome));
 }
 
 /** The page's report as the admin sees it at `now`. */

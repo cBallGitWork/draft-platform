@@ -79,6 +79,24 @@ to get you there"). It lives in this repo; the rest is open.
 - What auditing checks first: the spec against the tests (#454), work beyond what's been
   grilled, the hard rules, or a readable log of what each agent session did and why.
 
+**A rule balance lab**: from the ideas board (Craig, 31 Oct 2026). A backtest of a patch draft,
+"just to make sure a change is good" (Craig, 31 Oct 2026). Craig's answers so far, from `/grill`
+on 31 Oct 2026:
+- The admin's tool, run on a patch draft before it is announced (`spec/14`). Claude's small call:
+  it runs when the admin presses a button, not on every save.
+- A what-if only: it saves nothing, and locked gameweeks keep their scores.
+- On past seasons: each role's average against base scoring, flagging any outside `spec/05`'s
+  0.25 points a match, and the biggest movers among players.
+- On this season's real lineups: the head-to-heads that would have flipped and the table moves,
+  for each league. Craig: yes, "the lab backtests just to make sure a change is good".
+- Its numbers go in the patch notes.
+- Past seasons: "not much data this season, might need last"; Craig can give four seasons from
+  ai-carling-premiership.
+
+Open: where those four seasons are, and whether they hold the Premier League's own stats (tackles
+won, key passes) or only FPL's. Claude's recommendation: load what they hold and mark a category
+they lack as not tested.
+
 **Five colour and live-screen cards, from the ideas board**: Craig left the pick to Claude
 (31 Oct 2026: "Your call on cards"), and Claude moved these to "Yes, grill it". The design
 research page behind all five: https://claude.ai/artifact/UJC3f6ixFg3ZUQzBuEPiVq. Grill the
@@ -156,7 +174,6 @@ be tabs on screens `spec/12` already lists rather than pages of their own.
 | Every squad on one page | For scouting rivals |
 | A new season from the last | Copy the league, its rules and its managers into next season |
 | Stat corrections | What moved after a match, and why (the window is `spec/07`'s) |
-| Category tables | The league's leaders in each scoring category, by team |
 | Waiver order and the can't-drop list, on show | Makes the waiver rules visible |
 | Who owned whom | A player's owners, gameweek by gameweek: for history and for his card |
 | Mock draft | Practice before the real one |

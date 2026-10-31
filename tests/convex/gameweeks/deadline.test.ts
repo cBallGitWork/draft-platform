@@ -1,10 +1,8 @@
 import { describe, expect, test } from "vitest";
 import {
   FPL_DEADLINE_RULE,
-  gameweekDeadline,
   isLocked,
   leagueDeadline,
-  type DeadlineReading,
   type DeadlineRule,
 } from "../../../convex/gameweeks/deadline";
 import { mapFpl } from "../../../convex/football/fpl/fpl";
@@ -15,8 +13,8 @@ import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 const { bootstrap, fixtures } = recordedSeason();
 const season = mapFpl(bootstrap, fixtures);
 
-/** A gameweek seen for the first time: with nothing recorded, when it is read changes nothing. */
-const NOTHING_RECORDED: DeadlineReading = { recorded: null, now: 0 };
+/** A gameweek whose deadline hasn't passed: none is recorded for it yet (#150). */
+const NOTHING_RECORDED = null;
 
 function minutesBefore(minutesBeforeFirstKickoff: number): DeadlineRule {
   return { minutesBeforeFirstKickoff };
@@ -34,7 +32,7 @@ describe("from the recorded 2026/27 season", () => {
   const deadlinesUnder = (rule: DeadlineRule) =>
     season.gameweeks.map(({ number }) => ({
       number,
-      deadline: gameweekDeadline(number, season.fixtures, rule, NOTHING_RECORDED),
+      deadline: leagueDeadline(number, season.fixtures, rule, NOTHING_RECORDED),
     }));
 
   test("FPL's rule gives FPL's own deadline for every gameweek", () => {
@@ -65,7 +63,7 @@ describe("from the recorded 2026/27 season", () => {
       doubled.filter((fixture) => fixture.gameweek === DOUBLE_GAMEWEEK && plays(clubCode, fixture)).length;
     expect([rearranged.homeClubCode, rearranged.awayClubCode].map(matchCount)).toEqual([2, 2]);
 
-    expect(gameweekDeadline(DOUBLE_GAMEWEEK, doubled, FPL_DEADLINE_RULE, NOTHING_RECORDED)).toBe(
+    expect(leagueDeadline(DOUBLE_GAMEWEEK, doubled, FPL_DEADLINE_RULE, NOTHING_RECORDED)).toBe(
       fplDeadline(DOUBLE_GAMEWEEK),
     );
   });
@@ -86,33 +84,33 @@ describe("from a gameweek's matches", () => {
   const weekend = [match(GAMEWEEK, SATURDAY_3PM), match(GAMEWEEK, FRIDAY_8PM), match(GAMEWEEK, SUNDAY_1PM)];
 
   test("the deadline is the rule's minutes before the earliest kickoff, in any order", () => {
-    expect(gameweekDeadline(GAMEWEEK, weekend, rule, NOTHING_RECORDED)).toBe(deadlineBefore(FRIDAY_8PM));
+    expect(leagueDeadline(GAMEWEEK, weekend, rule, NOTHING_RECORDED)).toBe(deadlineBefore(FRIDAY_8PM));
   });
 
   test("a rule of 0 minutes puts the deadline at the first kickoff", () => {
-    expect(gameweekDeadline(GAMEWEEK, weekend, minutesBefore(0), NOTHING_RECORDED)).toBe(FRIDAY_8PM);
+    expect(leagueDeadline(GAMEWEEK, weekend, minutesBefore(0), NOTHING_RECORDED)).toBe(FRIDAY_8PM);
   });
 
   test("matches in other gameweeks do not move it", () => {
     const withNextGameweek = [...weekend, match(NEXT_GAMEWEEK, FRIDAY_8PM - DAY_MS)];
 
-    expect(gameweekDeadline(GAMEWEEK, withNextGameweek, rule, NOTHING_RECORDED)).toBe(deadlineBefore(FRIDAY_8PM));
+    expect(leagueDeadline(GAMEWEEK, withNextGameweek, rule, NOTHING_RECORDED)).toBe(deadlineBefore(FRIDAY_8PM));
   });
 
   test("a gameweek none of whose matches has a kickoff yet has no deadline", () => {
     const unscheduled = [match(GAMEWEEK, null), match(GAMEWEEK, null)];
 
-    expect(gameweekDeadline(GAMEWEEK, unscheduled, rule, NOTHING_RECORDED)).toBeNull();
+    expect(leagueDeadline(GAMEWEEK, unscheduled, rule, NOTHING_RECORDED)).toBeNull();
   });
 
   test("a gameweek with no matches at all has no deadline", () => {
-    expect(gameweekDeadline(NEXT_GAMEWEEK, weekend, rule, NOTHING_RECORDED)).toBeNull();
+    expect(leagueDeadline(NEXT_GAMEWEEK, weekend, rule, NOTHING_RECORDED)).toBeNull();
   });
 
   test("a match with no kickoff yet is passed over for those that have one", () => {
     const withUnscheduled = [match(GAMEWEEK, null), ...weekend];
 
-    expect(gameweekDeadline(GAMEWEEK, withUnscheduled, rule, NOTHING_RECORDED)).toBe(deadlineBefore(FRIDAY_8PM));
+    expect(leagueDeadline(GAMEWEEK, withUnscheduled, rule, NOTHING_RECORDED)).toBe(deadlineBefore(FRIDAY_8PM));
   });
 
   test("the league's own deadline, the one every caller reads (#138), is the rule's with nothing recorded", () => {
@@ -130,10 +128,9 @@ describe("from a gameweek's matches", () => {
     expect(leagueDeadline(GAMEWEEK, [], rule, recorded)).toBe(recorded);
   });
 
-  describe("against the deadline recorded for it", () => {
+  describe("against the deadline recorded for it once passed", () => {
     const FRIDAY_DEADLINE = deadlineBefore(FRIDAY_8PM);
     const SATURDAY_DEADLINE = deadlineBefore(SATURDAY_3PM);
-    const readAt = (now: number): DeadlineReading => ({ recorded: FRIDAY_DEADLINE, now });
 
     const postponed = match(null, null);
     const [saturday, , sunday] = weekend;
@@ -148,9 +145,9 @@ describe("from a gameweek's matches", () => {
     ];
 
     test.each(firstMatchGone)(
-      "the first match $change before the deadline recomputes it from the matches left, unlocked at the old time",
+      "the first match $change before the deadline, nothing yet recorded, recomputes it from the matches left, unlocked at the old time",
       ({ matches, nextDeadline }) => {
-        const deadline = gameweekDeadline(GAMEWEEK, matches, rule, readAt(FRIDAY_DEADLINE - 1));
+        const deadline = leagueDeadline(GAMEWEEK, matches, rule, NOTHING_RECORDED);
 
         expect(deadline).toBe(nextDeadline);
         expect(isLocked(deadline, FRIDAY_DEADLINE)).toBe(false);
@@ -162,8 +159,8 @@ describe("from a gameweek's matches", () => {
         { ...gone, when: "at", now: FRIDAY_DEADLINE },
         { ...gone, when: "an hour after", now: FRIDAY_DEADLINE + HOUR_MS },
       ]),
-    )("the first match $change $when the deadline leaves it where it fell, still locked", ({ matches, now }) => {
-      const deadline = gameweekDeadline(GAMEWEEK, matches, rule, readAt(now));
+    )("the first match $change $when the recorded deadline leaves it where it fell, still locked", ({ matches, now }) => {
+      const deadline = leagueDeadline(GAMEWEEK, matches, rule, FRIDAY_DEADLINE);
 
       expect(deadline).toBe(FRIDAY_DEADLINE);
       expect(isLocked(deadline, now)).toBe(true);
@@ -173,21 +170,25 @@ describe("from a gameweek's matches", () => {
     const THURSDAY_DEADLINE = deadlineBefore(THURSDAY_8PM);
     const movedIn = [...weekend, match(GAMEWEEK, THURSDAY_8PM)];
 
-    test("a match rescheduled in ahead of the recorded deadline brings it forward", () => {
-      expect(gameweekDeadline(GAMEWEEK, movedIn, rule, readAt(THURSDAY_DEADLINE - 1))).toBe(THURSDAY_DEADLINE);
+    test("a match rescheduled in ahead of the deadline, nothing yet recorded, brings it forward", () => {
+      expect(leagueDeadline(GAMEWEEK, movedIn, rule, NOTHING_RECORDED)).toBe(THURSDAY_DEADLINE);
     });
 
-    test("a match rescheduled in ahead of the recorded deadline, read after its own, locks the gameweek", () => {
+    test("a match rescheduled in ahead of the deadline, read after its own before it is recorded, locks the gameweek", () => {
       const now = THURSDAY_DEADLINE + HOUR_MS;
-      const deadline = gameweekDeadline(GAMEWEEK, movedIn, rule, readAt(now));
+      const deadline = leagueDeadline(GAMEWEEK, movedIn, rule, NOTHING_RECORDED);
 
       expect(deadline).toBe(THURSDAY_DEADLINE);
       expect(isLocked(deadline, now)).toBe(true);
     });
+
+    test("a match rescheduled in ahead of a deadline already recorded leaves it where it fell", () => {
+      expect(leagueDeadline(GAMEWEEK, movedIn, rule, FRIDAY_DEADLINE)).toBe(FRIDAY_DEADLINE);
+    });
   });
 
   test.each([-1, 1.5, Number.NaN])("a rule of %s minutes is refused with the reason", (minutes) => {
-    expect(() => gameweekDeadline(GAMEWEEK, weekend, minutesBefore(minutes), NOTHING_RECORDED)).toThrow(
+    expect(() => leagueDeadline(GAMEWEEK, weekend, minutesBefore(minutes), NOTHING_RECORDED)).toThrow(
       `A deadline is a whole number of minutes, 0 or more, before the first kickoff, not ${minutes}`,
     );
   });

@@ -3,7 +3,7 @@ import type { DeadlineOf } from "../gameweeks/deadline";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import type { TeamGameweekTotal } from "../gameweekScorer/gameweekScores";
 import type { LeagueTable } from "./leagueTable";
-import { namedFixture, roundsOf, type GameweekFixtures } from "./roundRobin";
+import { namedFixture, type GameweekFixtures } from "./roundRobin";
 import { headToHeadTable, teamsInGameweek, totalPointsTable, type GameweekScores, type TableRow, type TieBreak } from "./standings";
 import type { TeamFixtures } from "./teamFixtures";
 import { BYE, gameScore, gamesOf } from "./teamGames";
@@ -40,7 +40,6 @@ export function tableOf(
  *  `ofLeague` sends them. */
 export function leagueTableFrom({
   format,
-  teamIds,
   schedule,
   results,
   unscored,
@@ -49,7 +48,6 @@ export function leagueTableFrom({
   named,
 }: {
   format: LeagueRules["format"];
-  teamIds: readonly TeamId[];
   schedule: readonly GameweekFixtures<TeamId>[];
   results: Results;
   unscored: Unscored;
@@ -59,7 +57,6 @@ export function leagueTableFrom({
 }): LeagueTable {
   return {
     format,
-    roundRobinRounds: schedule.length === 0 ? 0 : roundsOf(teamIds).length,
     gameweeks: schedule.map((drawn) => ({
       gameweek: drawn.gameweek,
       deadline: deadlineOf(drawn.gameweek),

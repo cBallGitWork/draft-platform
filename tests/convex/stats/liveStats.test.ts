@@ -5,7 +5,10 @@ import { HULL_EVERTON, heldMatch, mergedHullEverton, withHullEverton } from "../
 import { FULL_STATS, recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { centreOf, EXAMPLE_SET } from "../../support/convex/scoring.example";
-import type { TestConvex } from "../../support/convex/test.harness";
+import { silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
+import { FPL_BOOTSTRAP_URL } from "../../../convex/football/football";
+import { outcomesOf } from "../../support/convex/feeds.harness";
+import { holdTypoRule, TYPO_STAT } from "../../support/convex/gameweekScores.harness";
 
 beforeEach(() => vi.useFakeTimers());
 
@@ -63,6 +66,41 @@ test("a replayed match moves every minute, provisional, names who moved, and end
   expect(await heldRecords(t)).toEqual(recordsIn(recordedGw6(), "complete"));
   expect(await belloumiPoints(t)).toBe(5);
 }, REPLAY_TIMEOUT_MS);
+
+test("each tick with a match live writes its threshold lines' row; one at full time lists no match, as its steps are the sync's", async () => {
+  const t = await withHullEverton();
+  await tickAt(t, stageTime(30), stagedGw6(30));
+  await tickAt(t, stageTime(REPLAY_MINUTES + 1), recordedGw6());
+
+  expect(await outcomesOf(t, "thresholdSteps")).toEqual([
+    { ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: true }] },
+    { ok: true, matches: [] },
+  ]);
+});
+
+test("threshold steps a tick can't work out fail the threshold lines' feed, never the tick's", async () => {
+  silenceConsoleError();
+  const t = await withHullEverton();
+  await holdTypoRule({ t });
+
+  const { latest } = await tickAt(t, stageTime(30), stagedGw6(30));
+
+  expect(latest.outcome).toMatchObject({ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: true }] });
+  expect(await outcomesOf(t, "thresholdSteps")).toEqual([
+    { ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: false, error: expect.stringContaining(TYPO_STAT) }] },
+  ]);
+});
+
+test("a tick that reads nothing writes no side read's row, so they show late beside its failure", async () => {
+  silenceConsoleError();
+  const t = await withHullEverton();
+
+  const { latest } = await tickAt(t, stageTime(30), stagedGw6(30), FPL_BOOTSTRAP_URL);
+
+  expect(latest.outcome).toMatchObject({ ok: false });
+  expect(await outcomesOf(t, "teamStats")).toEqual([]);
+  expect(await outcomesOf(t, "thresholdSteps")).toEqual([]);
+});
 
 test("once the match is complete the next tick reads no feed and records nothing", async () => {
   const t = await withHullEverton();

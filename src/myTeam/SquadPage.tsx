@@ -11,18 +11,18 @@ import { ClubShort } from "../premierLeague/ClubName";
 import { useChange, type Changing } from "../shared/useChange";
 import type { MyTeamSeam, SquadNumberChanges, TeamSquad } from "./seam";
 import {
-  awayWords,
   figureWords,
   goneWords,
-  homeWords,
   lastGameweekLong,
   nextFixtureLong,
+  nextFixtureShort,
   noFigureWords,
   noNextFixtureWords,
   noPointsWords,
   noSquadWords,
   noTeamWords,
   numberLabel,
+  shortThenLongName,
   SQUAD_TITLE,
   squadColumns,
   squadLoadingWords,
@@ -180,10 +180,11 @@ function SquadNumberBox({ player, change, save }: { player: Row; change: Changin
 }
 
 function NextFixture({ next }: { next: NonNullable<Row["nextFixture"]> }) {
+  const short = nextFixtureShort(next.opponent.shortName, next.home);
   const long = nextFixtureLong(next.opponent.name, next.home, whenWords(next.kickoff));
   return (
-    <abbr title={long} aria-label={long} className="no-underline whitespace-nowrap">
-      {next.opponent.shortName} {next.home ? homeWords : awayWords}
+    <abbr title={long} aria-label={shortThenLongName({ short, long })} className="no-underline whitespace-nowrap">
+      {short}
     </abbr>
   );
 }

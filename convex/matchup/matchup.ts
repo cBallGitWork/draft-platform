@@ -18,8 +18,9 @@ import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
 import { teamsInGameweek } from "../table/standings";
 import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
+import { roleIn, type Role } from "../lineup/roles";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
-import { game, matchup, type MatchupCommentary, type MatchupSide, type MatchupSlot, type SlotStatus } from "./matchupShape";
+import { game, matchup, type MatchupCommentary, type MatchupBenchSlot, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
 import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vidiprinter";
 
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
@@ -28,8 +29,11 @@ import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vi
 // final. Scored by the table's own scorer (gameweekScores.ts), so the matchup and the table never
 // disagree.
 //
-// Lineups show only once the gameweek has begun, at the league's deadline: nothing is secret after
-// lock. Who may see another team's lineup before then is Craig's to settle (#392); a manager's own
+// Lineups show only once the gameweek has begun, at the league's deadline: then both sides'
+// starters, each in his role, and the bench in order, each sub who came on in his. The formation
+// isn't sent: the screen reads it from the starters' areas, since a placed lineup has no preset
+// name. Before it nobody sees another team's lineup, the commissioner and the admin included:
+// "they just get to view what the managers see" (Craig, 31 Oct 2026; #392, #799). A manager's own
 // is on My team. The commentary is every line of the matches either lineup's men play in, each
 // priced for them (vidiprinter.ts, #44).
 
@@ -124,14 +128,15 @@ class SideScorer {
   async team(teamId: TeamId, teamName: string): Promise<MatchupSide> {
     const scored = await this.inGameweek.slotsOf(teamId);
     const { points, provisional } = await this.inGameweek.pointsOf(teamId);
-    const slotOf = (slotPoints: SlotPoints) => this.slot(slotPoints, scored);
+    const starterOf = (slotPoints: SlotPoints) => this.starter(slotPoints, scored);
+    const benchOf = (slotPoints: SlotPoints) => this.benchSlot(slotPoints, scored);
     return {
       kind: "team",
       teamId,
       teamName,
       points,
       provisional,
-      lineup: { starters: await Promise.all(scored.team.starters.map(slotOf)), bench: await Promise.all(scored.team.bench.map(slotOf)) },
+      lineup: { starters: await Promise.all(scored.team.starters.map(starterOf)), bench: await Promise.all(scored.team.bench.map(benchOf)) },
     };
   }
 
@@ -167,6 +172,17 @@ class SideScorer {
     } catch (error) {
       return { kind: "unread", reason: logFailure(failure, error) };
     }
+  }
+
+  private async starter(slotPoints: SlotPoints, scored: TeamInGameweek): Promise<MatchupStarter> {
+    return { ...(await this.slot(slotPoints, scored)), role: pricedRole(slotPoints) };
+  }
+
+  /** A bench player has a role only once he has come on: until then he plays none, though the
+   *  scorer prices his greyed points at his bench cell's first. */
+  private async benchSlot(slotPoints: SlotPoints, scored: TeamInGameweek): Promise<MatchupBenchSlot> {
+    const cameOn = scored.autoSubs.substitutions.some((each) => each.on === slotPoints.playerCode);
+    return { ...(await this.slot(slotPoints, scored)), role: cameOn ? pricedRole(slotPoints) : null };
   }
 
   private async slot(slotPoints: SlotPoints, { autoSubs, matchesOf }: TeamInGameweek): Promise<MatchupSlot> {
@@ -209,6 +225,12 @@ class SideScorer {
     const [next] = byKickoff(toCome);
     return { kind: "yetToPlay", fixtureCode: next.code, kickoff: next.kickoff };
   }
+}
+
+/** The role the scorer priced him in at his cell, so the matchup and the table never disagree. */
+function pricedRole({ playerCode, cell, role }: SlotPoints): Role {
+  if (role === undefined) throw new Error(`player ${playerCode} plays at ${cell.area} ${cell.lane}, which has no roles`);
+  return roleIn(cell, role);
 }
 
 /** Matches by kickoff, any with no time yet last. */

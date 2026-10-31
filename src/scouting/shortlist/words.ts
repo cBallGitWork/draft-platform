@@ -8,7 +8,7 @@ export { goneWords } from "../../playerCard/words";
 
 export const SHORTLIST_TITLE = "Shortlist";
 export const loadingShortlistWords = "Loading your shortlist…";
-export const emptyShortlistWords = "No one on your shortlist yet. Add a player from his card.";
+export const emptyShortlistWords = "No one on your shortlist yet.";
 
 /** The shortlist's list, for screen readers. */
 export const shortlistListLabel = "Your shortlist";

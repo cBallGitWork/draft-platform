@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery, type QueryCtx } from "../_generated/server";
 import { dueMatch, type DueMatch } from "../shared/dueMatches";
 import { matchWrites, recordsOf, statusOf, writeRecords } from "./matchStats";
-import { liveStatsTickFields, playerMatchRecord } from "../schema";
+import { liveStatsTickFields, playerMatchRecord, sideMatchOutcome } from "../schema";
 import { LATEST_RUNS } from "../shared/syncRuns";
 import { HOUR_MS } from "../shared/time";
 import { emailIfFailed } from "../admin/feedFailureEmails";
@@ -53,14 +53,19 @@ export async function liveMatches(ctx: QueryCtx, now: number): Promise<LiveMatch
  *  passing a point where a rule's points change are stored as steps with the clock's `minute` (#44). */
 export const upsertLive = internalMutation({
   args: { fixtureCode: v.number(), minute: v.union(v.number(), v.null()), records: v.array(playerMatchRecord) },
-  returns: matchWrites,
+  returns: v.object({
+    ...matchWrites.fields,
+    /** How storing the steps went, for the threshold lines feed's row (#522); null when none were
+     *  looked for, the match being the sync's. */
+    thresholdSteps: v.union(sideMatchOutcome, v.null()),
+  }),
   handler: async (ctx, { fixtureCode, minute, records }) => {
     const status = await statusOf(ctx, fixtureCode);
-    if (status !== null) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections: 0 };
+    if (status !== null) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections: 0, thresholdSteps: null };
     const held = new Map((await recordsOf(ctx, fixtureCode)).map((row) => [row.playerCode, row]));
-    await storeThresholdSteps(ctx, fixtureCode, minute, records, held);
+    const thresholdSteps = await storeThresholdSteps(ctx, fixtureCode, minute, records, held);
     const state = "provisional" as const;
-    return { state, ...(await writeRecords(ctx, records, held, state)), lateCorrections: 0 };
+    return { state, ...(await writeRecords(ctx, records, held, state)), lateCorrections: 0, thresholdSteps };
   },
 });
 

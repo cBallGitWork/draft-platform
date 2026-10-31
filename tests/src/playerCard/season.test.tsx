@@ -15,12 +15,13 @@ import {
   pricedAtLabel,
   provisionalWords,
   roleLineLabel,
+  scoredUnderWords,
   SEASON_TITLE,
 } from "../../../src/playerCard/words";
 import { versusWords } from "../../../src/shared/words";
 import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";
 import { expectColumnHeads } from "../../support/src/columnHeads";
-import { AT_ONE, AT_W, CATEGORIES, category, openCard, RICE } from "../../support/src/playerCardScreen.harness";
+import { AT_ONE, AT_W, breakdownLines, CATEGORIES, category, openCard, perAction, PRICED_VERSION, RICE } from "../../support/src/playerCardScreen.harness";
 
 /** The priced match's row head, as a screen reader names it. */
 const MATCH_NAME = `${ARSENAL.shortName} ${versusWords} ${COVENTRY.shortName}`;
@@ -35,7 +36,7 @@ describe("this season", () => {
     expectColumnHeads(seasonPanel, Object.values(columns));
     const row = season.getByRole("rowheader", { name: MATCH_NAME }).closest("tr")!;
     expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2", "90", "W", "11"]);
-    expect(season.getByLabelText(breakdownLabel(2)).textContent).toBe("Goals scored 5, Assists 4, Minutes 2");
+    expect(breakdownLines(season, 2)).toEqual(["Goals scored 5 (1 at 5 each)", "Assists 4 (1 at 4 each for W)", "Minutes 2 (90, 2 for 60+)", scoredUnderWords(PRICED_VERSION)]);
   });
 
   it("a player priced at one position has no switch", async () => {
@@ -53,7 +54,7 @@ describe("this season", () => {
     expect(keys.map((key) => (key as HTMLInputElement).checked)).toEqual([true, false]);
     const row = season.getAllByRole("rowheader", { name: MATCH_NAME })[1].closest("tr")!;
     expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2", "90", "CAM", "12"]);
-    expect(season.getByLabelText(breakdownLabel(2)).textContent).toBe("Goals scored 5, Assists 5, Minutes 2");
+    expect(breakdownLines(season, 2)).toEqual(["Goals scored 5 (1 at 5 each)", "Assists 5 (1 at 5 each for CAM)", "Minutes 2 (90, 2 for 60+)", scoredUnderWords(PRICED_VERSION)]);
   });
 
   it("choosing another position re-prices every match there", async () => {
@@ -64,7 +65,7 @@ describe("this season", () => {
     expect((season.getByRole("radio", { name: "W" }) as HTMLInputElement).checked).toBe(true);
     const row = season.getAllByRole("rowheader", { name: MATCH_NAME })[1].closest("tr")!;
     expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2", "90", "W", "11"]);
-    expect(season.getByLabelText(breakdownLabel(2)).textContent).toBe("Goals scored 5, Assists 4, Minutes 2");
+    expect(breakdownLines(season, 2)).toEqual(["Goals scored 5 (1 at 5 each)", "Assists 4 (1 at 4 each for W)", "Minutes 2 (90, 2 for 60+)", scoredUnderWords(PRICED_VERSION)]);
   });
 
   it("the arrow keys move the switch, as a radio group", async () => {
@@ -108,14 +109,14 @@ describe("this season", () => {
 
   it("a match that cost him points shows the true minus in its total, breakdown and role line, never a hyphen (#564)", async () => {
     const role = { name: "Inside forward", points: -1, lines: [{ stat: "yellow_cards", name: "Yellow cards", actions: 1, points: -1 }] };
-    const categories = [category("minutes", "Minutes", 1), category("yellow_cards", "Yellow cards", -3)];
+    const categories = [category("minutes", "Minutes", 1), category("yellow_cards", "Yellow cards", -3, perAction(3, -1))];
     const booked = { ...AT_W, points: [{ position: "W" as const, total: -2, categories }], role };
     openCard(AT_ONE, { cards: [{ ...AT_ONE, matches: [booked] }] });
     const season = within(await screen.findByRole("region", { name: SEASON_TITLE }));
     const row = season.getAllByRole("rowheader", { name: MATCH_NAME })[0].closest("tr")!;
 
     expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2", "90", "W", "−2"]);
-    expect(season.getByLabelText(breakdownLabel(2)).textContent).toBe("Minutes 1, Yellow cards −3");
+    expect(breakdownLines(season, 2).slice(0, 2)).toEqual(["Minutes 1 (1 at 1 each)", "Yellow cards −3 (3 at −1 each)"]);
     expect(season.getByLabelText(roleLineLabel("Inside forward")).textContent).toBe("Inside forward −1 (Yellow cards 1)");
   });
 
