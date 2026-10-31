@@ -37,7 +37,7 @@ export function cardPoints(record: MatchStats | null, set: ScoringSet, positions
 }
 
 /** One cell for each slot these positions may stand in: a rule is priced by the slot's area and
- *  position alone (scoringSet.ts's priceFor), so cells alike in both score alike. Slots that are
+ *  position alone (priced.ts's priceFor), so cells alike in both score alike. Slots that are
  *  one of his own positions come first, so a tie names his own: a winger who would score the same
  *  at CAM is best at W. Then back to front. */
 function slotsFor(positions: readonly Position[]): Cell[] {

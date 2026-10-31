@@ -2,9 +2,10 @@
 // bad one (spec/14, How a rule scores). The set is data the admin saves, so scoring is always handed
 // it.
 
-import { AREAS, SLOT_POSITIONS, type Area, type SlotPosition } from "../lineup/pitch";
+import { AREAS, SLOT_POSITIONS, type Area } from "../lineup/pitch";
 import { categoryName } from "./categories";
 import { validateOwnStats, type OwnStat } from "./ownStats";
+import type { Priced } from "./priced";
 import { CATALOGUE_STATS } from "./statCatalogue";
 import { inTenths, isObject, requireNumber, showValue, UnsoundScoring } from "./values";
 
@@ -12,16 +13,6 @@ export type { OwnStat };
 
 // The pitch's six areas are the pitch's (../lineup/pitch.ts), so a lineup and a scoring set can't disagree.
 export { AREAS, type Area };
-
-/** A value for each of the six areas. */
-export type ByArea<Value> = Readonly<Record<Area, Value>>;
-
-/** A value for each position a slot can be (../lineup/pitch.ts, `positionOfSlot`). */
-export type ByPosition<Value> = Readonly<Record<SlotPosition, Value>>;
-
-/** How finely a rule's value is set (spec/14): the same for all, by area, or by the position of
- *  the slot he starts in. */
-export type Priced<Value> = { all: Value } | { byArea: ByArea<Value> } | { byPosition: ByPosition<Value> };
 
 /** Points for reaching a number of actions: 2 for 60 or more minutes is `{ atLeast: 60, points: 2 }`. */
 export interface Band {
@@ -89,13 +80,6 @@ export interface RoleAdjustments {
   /** A role's key (lineup/roles.ts). */
   role: string;
   adjustments: readonly { stat: string; points: number }[];
-}
-
-/** The value a priced setting gives the slot he starts in. */
-export function priceFor<Value>(priced: Priced<Value>, area: Area, position: SlotPosition): Value {
-  if ("all" in priced) return priced.all;
-  if ("byArea" in priced) return priced.byArea[area];
-  return priced.byPosition[position];
 }
 
 /**

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import type { Band, Priced } from "../../convex/scoring/scoringSet";
+import type { Priced } from "../../convex/scoring/priced";
+import type { Band } from "../../convex/scoring/scoringSet";
 import { Panel } from "../ui/Panel";
 import { Choice } from "../ui/Choice";
 import { TickBox } from "../ui/TickBox";

@@ -3,7 +3,8 @@
 // gives them.
 
 import { SLOT_POSITIONS, type Cell, type SlotPosition } from "../../../convex/lineup/pitch";
-import { AREAS, type Area, type ByArea, type ByPosition, type OwnStat, type ScoringSet } from "../../../convex/scoring/scoringSet";
+import type { ByArea, ByPosition } from "../../../convex/scoring/priced";
+import { AREAS, type Area, type OwnStat, type ScoringSet } from "../../../convex/scoring/scoringSet";
 
 /** The slot in the centre of an area: where the tests stand a player when only his area matters. */
 export const centreOf = (area: Area): Cell => ({ area, lane: "centre" });

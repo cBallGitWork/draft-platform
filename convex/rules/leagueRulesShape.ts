@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import { byArea, cellShape } from "../lineup/pitchShape";
 import { scoringSetShape } from "../scoring/scoringSetShape";
-import { DOUBLE_GAMEWEEK_RULES } from "../scoring/scoring";
+import { DOUBLE_GAMEWEEK_RULES } from "../scoring/values";
 import { ODD_TEAM_OUTS } from "../table/roundRobin";
 import { TIE_BREAKS } from "../table/standings";
 
@@ -40,7 +40,7 @@ export const leagueRulesShape = v.object({
   presets: v.array(preset),
   /** deadline.ts's DeadlineRule. */
   deadline: v.object({ minutesBeforeFirstKickoff: v.number() }),
-  /** scoring.ts's DoubleGameweekRule. */
+  /** values.ts's DoubleGameweekRule. */
   doubleGameweek: v.union(...DOUBLE_GAMEWEEK_RULES.map((name) => v.literal(name))),
   /** standings.ts's TieBreak, in the league's order. */
   tieBreaks: v.array(v.union(...TIE_BREAKS.map((name) => v.literal(name)))),

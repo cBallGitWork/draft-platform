@@ -4,7 +4,8 @@
 
 import { AREAS, LANES, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition } from "../../convex/lineup/pitch";
 import type { StoredScoringSet } from "../../convex/scoring/scoringSetShape";
-import { priceFor, type Band, type PointsLimit, type Priced } from "../../convex/scoring/scoringSet";
+import { priceFor, type Priced } from "../../convex/scoring/priced";
+import type { Band, PointsLimit } from "../../convex/scoring/scoringSet";
 import { holdsBlank } from "../rules/blank";
 
 export type Scoring = StoredScoringSet;
