@@ -2,6 +2,8 @@
 export const PORT_RANGE_START: number;
 export const PORT_RANGE_SIZE: number;
 export const BROWSER_BLOCKED_PORTS: ReadonlySet<number>;
+export const PORT_RANGES: { app: number; smokeDev: number; smokeBundle: number };
+export function rangeStart(nth: number): number;
 export function localUrl(port: number): string;
 export function portInRange(nth: number, offset: number): number;
 export function appPort(): number;

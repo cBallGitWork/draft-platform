@@ -24,26 +24,33 @@ export const localUrl = (port) => `http://localhost:${port}`;
 const checkoutOffset = () =>
   createHash("sha256").update(CHECKOUT).digest().readUInt32BE(0) % PORT_RANGE_SIZE;
 
+// Which range each server's port is in: every checkout's app port is in the first, so `npm run
+// smoke`'s two servers, in the others, are clear of all of them (the ui-verifier's among them).
+export const PORT_RANGES = { app: 0, smokeDev: 1, smokeBundle: 2 };
+
+export const rangeStart = (nth) => PORT_RANGE_START + nth * PORT_RANGE_SIZE;
+
 /**
- * The port `offset` into the `nth` range from PORT_RANGE_START, stepped up past any port a browser
- * blocks. No blocked port ends a range, so a stepped port stays in its own range (port.test.mjs).
+ * The port `offset` into the `nth` range, stepped up past any port a browser blocks. No blocked
+ * port ends a range, so a stepped port stays in its own (port.test.mjs). A step can land on another
+ * checkout's port in the same range, as two checkouts whose paths hash alike already do.
  */
 export function portInRange(nth, offset) {
-  let port = PORT_RANGE_START + nth * PORT_RANGE_SIZE + offset;
+  let port = rangeStart(nth) + offset;
   while (BROWSER_BLOCKED_PORTS.has(port)) port += 1;
   return port;
 }
 
 export function appPort() {
-  return portInRange(0, checkoutOffset());
+  return portInRange(PORT_RANGES.app, checkoutOffset());
 }
 
-// `npm run smoke`'s two servers, in the second and third ranges at the app port's offset: clear of
-// every checkout's app port (the ui-verifier's server among them), which are all in the first, and
-// of every other checkout's smoke ports unless a blocked port is stepped past onto one.
 export function smokePorts() {
   const offset = checkoutOffset();
-  return { dev: portInRange(1, offset), bundle: portInRange(2, offset) };
+  return {
+    dev: portInRange(PORT_RANGES.smokeDev, offset),
+    bundle: portInRange(PORT_RANGES.smokeBundle, offset),
+  };
 }
 
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
