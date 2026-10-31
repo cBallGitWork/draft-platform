@@ -74,17 +74,6 @@ export const rebuild = internalMutation({
   },
 });
 
-/** Each of the league's teams' season totals, by team. A team with none held has had nothing
- *  counted yet. */
-export async function teamTotals(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<TeamId, Stats>> {
-  const rows = await takeAllOrThrow(
-    ctx.db.query("teamSeasonStats").withIndex("by_leagueId_and_teamId", (q) => q.eq("leagueId", leagueId)),
-    MOST_TEAMS,
-    `League ${leagueId} holds more than ${MOST_TEAMS} teams' stat totals, so some would be left out`,
-  );
-  return new Map(rows.map((row) => [row.teamId, row.stats]));
-}
-
 /** Each begun gameweek in turn: one whose stored shares are all of today's teams from today's
  *  matches is done; one not final has any stale shares taken away; the first final one with a team
  *  to store is worked out, and the league runs again after it. */

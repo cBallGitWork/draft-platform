@@ -11,7 +11,7 @@ import { MAIL_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel } from "../../../src/frame/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import { commissioned, league, manager, managerIn, newcomer, openApp } from "../../support/src/shell.harness";
+import { adminSeeing, beingDeleted, commissioned, deleterOf, league, manager, managerIn, newcomer, openApp, withNoPart } from "../../support/src/shell.harness";
 import { MAIL_TITLE, WRITE_TITLE, loadingWords, unreadFigure, noLettersWords, onlyLatestWords, sendToWords, sentWords, writeHint, writeLabels } from "../../../src/mail/words";
 import { descriptionOf } from "../../support/src/describedBy";
 
@@ -185,6 +185,23 @@ describe("writing to the league", () => {
 
     expect((await screen.findByRole("alert")).textContent).toBe("Give the letter a subject.");
     expect((screen.getByRole("textbox", { name: writeLabels.body }) as HTMLTextAreaElement).value).toBe("Hello");
+  });
+
+  it("the admin writes from a league he has no part in, which the switcher leaves out (#562)", async () => {
+    const app = openApp(MAIL_PATH, adminSeeing(withNoPart(league)), { topBar: twoUnread, letters });
+    await userEvent.type(await screen.findByRole("textbox", { name: writeLabels.subject }), "Hi");
+    await userEvent.type(screen.getByRole("textbox", { name: writeLabels.body }), "Hello");
+    await userEvent.click(screen.getByRole("button", { name: sendToWords(league.name) }));
+    expect(app.mail.writeToLeague).toHaveBeenCalledWith({ leagueId: league.leagueId, subject: "Hi", body: "Hello" });
+  });
+
+  it.each([
+    ["the admin", adminSeeing(beingDeleted(withNoPart(league)))],
+    ["its commissioner, deleting it", deleterOf(beingDeleted(commissioned))],
+  ])("isn't offered to %s from a league being deleted", async (_, session) => {
+    openApp(MAIL_PATH, session, { topBar: twoUnread, letters });
+    await screen.findByRole("list");
+    expect(screen.queryByRole("heading", { name: WRITE_TITLE })).toBeNull();
   });
 
   it("someone running two leagues picks which one it goes to", async () => {

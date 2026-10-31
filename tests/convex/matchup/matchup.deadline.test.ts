@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
+import { namedRole, roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
 import {
   annsScoredGame,
   BOBS_TEAM,
@@ -38,14 +38,14 @@ test("once the deadline has passed each starter on both sides carries his role: 
   const game = await annsScoredGame(league, GAMEWEEK);
   expect(lineupOf(game.team).starters.map((slot) => slot.playerCode)).toEqual(HULL_STARTERS.map((starter) => starter.playerCode));
   const hull = new Map(lineupOf(game.team).starters.map((slot) => [slot.playerCode, slot.role]));
-  expect(hull.get(HULL_SCORER)).toEqual(given);
+  expect(hull.get(HULL_SCORER)).toEqual(namedRole(given));
   expect(given.key).not.toBe(first.key);
   // The rest of Hull's, and every one of Everton's, plays his slot's first.
   for (const starter of HULL_STARTERS.filter(({ playerCode }) => playerCode !== HULL_SCORER)) {
-    expect(hull.get(starter.playerCode)).toEqual(roleIn(starter, undefined));
+    expect(hull.get(starter.playerCode)).toEqual(namedRole(roleIn(starter, undefined)));
   }
   const everton = new Map(lineupOf(game.opponent).starters.map((slot) => [slot.playerCode, slot.role]));
-  for (const starter of EVERTON_STARTERS) expect(everton.get(starter.playerCode)).toEqual(roleIn(starter, undefined));
+  for (const starter of EVERTON_STARTERS) expect(everton.get(starter.playerCode)).toEqual(namedRole(roleIn(starter, undefined)));
   // Nobody has come on, so the bench plays none.
   expect(lineupOf(game.team).bench.map((slot) => slot.role)).toEqual(lineupOf(game.team).bench.map(() => null));
 });

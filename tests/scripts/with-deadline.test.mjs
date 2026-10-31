@@ -3,8 +3,9 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, expect, test } from "vitest";
+import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
-const WRAPPER = join(import.meta.dirname, "../../scripts/with-deadline.mjs");
+const WRAPPER = join(REPO_ROOT, "scripts/with-deadline.mjs");
 const DEADLINE_MESSAGE = "sh ran past the 1s deadline: likely an endless loop";
 // How often the polls below look again, and how long each waits before giving up.
 const POLL_INTERVAL_MS = 50;

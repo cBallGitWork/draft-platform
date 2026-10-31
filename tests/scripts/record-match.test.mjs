@@ -1,18 +1,18 @@
 // Running the recorder: when it polls, what each poll saves, when it stops and what it says.
-// How a saved poll sums up is tested in record-match-summary.test.mjs.
+// What one read saves, and how the recorder starts, are tested in record-match-reads.test.mjs;
+// how a saved poll sums up, in record-match-summary.test.mjs.
 import { spawn } from "node:child_process";
-import { mkdtempSync, readdirSync, rmSync } from "node:fs";
+import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, test, vi } from "vitest";
 import { plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../../convex/football/football.ts";
 import { PL_FULL_TIME } from "../../convex/football/premierLeague/premierLeague.ts";
 import { LIVE_WINDOW_MS } from "../../convex/stats/liveStats.ts";
-import { UPCOMING_MATCH } from "../support/recorded/commentary.payloads.ts";
-import { doneLine, fixtureStatus, phase, poll, pollReads, record, summaryLine } from "../../scripts/record-match.mjs";
+import { doneLine, phase, pollReads, record } from "../../scripts/record-match.mjs";
+import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
+import { IPSWICH_FOREST, KICKOFF } from "../support/scripts/recordMatch.harness.mjs";
 
-const IPSWICH_FOREST = UPCOMING_MATCH;
-const KICKOFF = Date.UTC(2026, 9, 23, 19);
 // Pinned here, not imported, so a change to the recorder's timings fails a test.
 const MINUTE = 60_000;
 const POLL = 30_000;
@@ -50,33 +50,15 @@ test("with no full time seen, the recorder gives up where the live poller's wind
   expect(phase(KICKOFF + LIVE_WINDOW_MS, KICKOFF, null)).toBe("stop");
 });
 
-test("a refused read is saved with why, and the poll goes on to the next", async () => {
-  const fixture = { id: IPSWICH_FOREST, status: "U", teamLists: [null, null] };
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async (url) => {
-      if (url === plCommentaryUrl(IPSWICH_FOREST)) return new Response("Forbidden", { status: 403 });
-      return Response.json(url === plFixtureUrl(IPSWICH_FOREST) ? fixture : { entity: { id: IPSWICH_FOREST } });
-    }),
-  );
-
-  const saved = await poll(IPSWICH_FOREST, 0);
-
-  expect(saved.reads.map((read) => read.kind)).toEqual(["commentary", "fixture", "teamStats"]);
-  expect(saved.reads[0].error).toBe(`${plCommentaryUrl(IPSWICH_FOREST)} answered 403`);
-  expect(saved.reads[1].body).toEqual(fixture);
-  expect(fixtureStatus(saved)).toBe("U");
-  expect(summaryLine(saved)).toContain(`commentary FAILED: ${plCommentaryUrl(IPSWICH_FOREST)} answered 403`);
-});
-
-/** Runs the recorder from `startAt` against a fake feed whose fixture status is `statusAt(now)`;
- *  gives the time of each read of each kind, the number of polls saved and the lines it logged. */
-async function recordAgainst(startAt, statusAt) {
+/** Runs the recorder from `startAt` against a fake feed whose fixture status is `statusAt(now)`,
+ *  into a folder already holding `earlierPolls` polls; gives the time of each read of each kind,
+ *  the number of polls in the folder at the end and the lines it logged. */
+async function recordAgainst(startAt, statusAt, earlierPolls = 0) {
   vi.useFakeTimers({ now: startAt });
   const logged = [];
   vi.spyOn(console, "log").mockImplementation((line) => logged.push(line));
   const asked = { commentary: [], fixture: [], teamStats: [] };
-  const answer = (body) => ({ ok: true, status: 200, json: async () => body });
+  const answer = (body) => Response.json(body);
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url) => {
@@ -95,6 +77,7 @@ async function recordAgainst(startAt, statusAt) {
   );
   const dir = mkdtempSync(join(tmpdir(), "record-match-"));
   try {
+    for (let index = 0; index < earlierPolls; index += 1) writeFileSync(join(dir, `earlier-${index}.json`), "{}");
     let done = false;
     const recording = record(IPSWICH_FOREST, dir).finally(() => (done = true));
     while (!done) await vi.advanceTimersByTimeAsync(MINUTE);
@@ -138,10 +121,28 @@ test("a match that never reaches full time stops being recorded four hours after
   expect(logged.at(-1)).toMatch(/; GAVE UP 4h after kickoff, full time never seen$/);
 });
 
-// Friday's recorder runs under plain node, not vitest: this proves it, and the files it imports
+test("a rerun into the same folder says how many polls it already holds, and Done counts only this run's", async () => {
+  const earlierPolls = 3;
+  const { asked, polls, logged } = await recordAgainst(KICKOFF + 2 * 60 * MINUTE, () => PL_FULL_TIME, earlierPolls);
+
+  expect(logged[0]).toMatch(new RegExp(`, which holds ${earlierPolls} polls already$`));
+  expect(polls).toBe(asked.commentary.length + earlierPolls);
+  expect(logged.at(-1)).toMatch(new RegExp(`^Done: ${asked.commentary.length} polls in `));
+});
+
+test("each poll's line after the first says how the commentary changed since the poll before", async () => {
+  const { logged } = await recordAgainst(KICKOFF + 2 * 60 * MINUTE, () => PL_FULL_TIME);
+  const pollLines = logged.filter((line) => line.includes("  |  commentary"));
+
+  expect(pollLines.length).toBeGreaterThan(1);
+  expect(pollLines[0]).toContain("|  commentary: none  |");
+  expect(pollLines.slice(1).every((line) => line.includes("|  commentary: none, +0 -0 ~0  |"))).toBe(true);
+});
+
+// The recorder runs under plain node, not vitest: this proves it, and the files it imports
 // (convex/football/football.ts, convex/shared/time.ts), still load there.
 test("under plain node, the recorder loads and, given no fixture id, prints its usage and exits 2", async () => {
-  const script = join(import.meta.dirname, "../../scripts/record-match.mjs");
+  const script = join(REPO_ROOT, "scripts/record-match.mjs");
   const { code, output } = await new Promise((resolve) => {
     const child = spawn(process.execPath, [script], { stdio: ["ignore", "pipe", "pipe"] });
     let output = "";
@@ -163,35 +164,4 @@ test("the last line says the recording stopped after full time, and when full ti
 
 test("the last line says the recording gave up when full time was never seen", () => {
   expect(doneLine(660, RECORDING_DIR, null)).toBe("Done: 660 polls in /r/128999/; GAVE UP 4h after kickoff, full time never seen");
-});
-
-/** What Node's fetch throws when the network fails: a bare "fetch failed", the reason on `cause`. */
-const networkFailure = (code) => new TypeError("fetch failed", { cause: Object.assign(new Error(`connect ${code}`), { code }) });
-
-test("a read that failed underneath is saved with its cause, and sums up with it", async () => {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async (url) => {
-      if (url === plCommentaryUrl(IPSWICH_FOREST)) throw networkFailure("ENOTFOUND");
-      return Response.json({ status: "U" });
-    }),
-  );
-
-  const saved = await poll(IPSWICH_FOREST, 0);
-
-  expect(saved.reads[0]).toMatchObject({ error: "fetch failed", cause: "ENOTFOUND" });
-  expect(saved.reads[1]).not.toHaveProperty("cause");
-  expect(summaryLine(saved)).toContain("commentary FAILED: fetch failed (ENOTFOUND)  |  status U");
-});
-
-test("when the start-up kickoff read fails, the recorder stops at once, naming the URL and the cause", async () => {
-  const fetch = vi.fn(async () => {
-    throw networkFailure("ECONNRESET");
-  });
-  vi.stubGlobal("fetch", fetch);
-
-  await expect(record(IPSWICH_FOREST, join(tmpdir(), "record-match-never-made"))).rejects.toThrow(
-    `${plFixtureUrl(IPSWICH_FOREST)}: fetch failed (ECONNRESET)`,
-  );
-  expect(fetch).toHaveBeenCalledTimes(1);
 });

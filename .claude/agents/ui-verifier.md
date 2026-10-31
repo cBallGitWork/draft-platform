@@ -53,7 +53,7 @@ never enough.
 **3. Read every PNG.** Then say, per image, what is in it, against `docs/design/plate.md`:
 
 - Overflow, clipping, a page that scrolls sideways at 390.
-- Colour roles: the top bar royal blue and the title plates indigo; the page neutral dark under its
+- Colour roles: the top bar royal blue; the title plates, date blocks and controls indigo; the page neutral dark under its
   drawn grain and top glow (never a photograph, never slate or indigo), the panels see-through over it;
   yellow only on a figure, never a button or a tab; Continue white (orange only when
   the deadline is near; outlined "Nothing needs you" with nothing to do); the yes on a confirm that
@@ -63,7 +63,8 @@ never enough.
   cyan only on a derived reading (a countdown, a preset's name), the active tab's underline, the
   current one of a list's left bar, a link's underline under the pointer or with focus (no underline
   at rest) and the focus outline; the role
-  under a pitch name in role text (`#caced4`) on its near-black name plate. plate.md's colour
+  under a pitch name in role text (`#caced4`) on its near-black name plate; a role's run 2px dashed white with a solid
+  arrowhead, under the names. plate.md's colour
   table and its Marks are the whole list.
 - Archivo Narrow for data; the heavy wide Archivo only on page titles and team names; figures in
   tabular numerals.
@@ -71,7 +72,8 @@ never enough.
 - Panels 8px apart, aligned to the top, none stretched empty.
 - Controls (plate.md, Controls): a tick box is a dark sunken well with a soft rim and a white drawn
   tick, never the browser's own; the chosen key is pressed in (dark, white 600), the others the
-  plate; Save is outlined grey with nothing to save, Discard the plate's secondary beside it.
+  plate; on the rules screens Save is outlined grey with nothing to save, Discard the plate's
+  secondary beside it; Tactics' Undo is the secondary action, outlined grey with nothing to undo.
 - The "Never" list, every item.
 
 ## Output
