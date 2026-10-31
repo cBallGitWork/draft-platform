@@ -9,28 +9,13 @@
 // change, such as a new golden schema.json, carries one. New files pass.
 // Run from the repo: `node scripts/recorded-add-only.mjs`; `npm run verify` runs it, so CI does.
 
-import { execFileSync } from "node:child_process";
+import { branchCheck } from "./branchCheck.mjs";
 
 const FOLDERS = ["tests/support/recorded/", "tests/support/golden/"];
-const BASE = "origin/main";
 const TRAILER = "Re-record";
 
-function fail(message) {
-  console.error(`add-only check: ${message}`);
-  process.exit(1);
-}
-
-/** git's output; a git failure ends the check with what it said, not a stack trace. */
-function git(...args) {
-  try {
-    return execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-  } catch (error) {
-    const said = String(error.stderr ?? "").trim() || error.message;
-    fail(`git ${args[0]} failed (${said}). Run git fetch origin, then try again.`);
-  }
-}
-
-const base = git("merge-base", BASE, "HEAD").trim();
+const { fail, git, base: baseOf, trailerValues } = branchCheck("add-only check");
+const base = baseOf();
 
 /** Each file under FOLDERS that the branch or the working tree changes or deletes. */
 const touched = git("diff", "--name-status", "--no-renames", base, "--", ...FOLDERS)
@@ -42,8 +27,7 @@ const touched = git("diff", "--name-status", "--no-renames", base, "--", ...FOLD
 
 /** The files the branch's commits say were re-recorded on purpose, with a reason. */
 const allowed = new Set(
-  git("log", `--format=%(trailers:key=${TRAILER},valueonly,separator=%x0A)`, `${base}..HEAD`)
-    .split("\n")
+  trailerValues(TRAILER, base)
     .map((value) => value.match(/^\s*(\S+?):\s*\S/)?.[1])
     .filter(Boolean),
 );

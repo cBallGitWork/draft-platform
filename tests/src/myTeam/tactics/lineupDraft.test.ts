@@ -1,9 +1,25 @@
-// The lineup being set on the Tactics tab (#14), before it is saved: moves between cells and the
-// bench, and when two lineups stand the same.
+// The lineup being set on the Tactics tab (#14): moves between cells and the bench, swaps, where a
+// player picked up can go under the area limits (#851), and when two lineups stand the same.
 
 import { describe, expect, it } from "vitest";
-import type { Cell } from "../../../../convex/lineup/pitch";
-import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, shownLineup, withRole } from "../../../../src/myTeam/tactics/lineupDraft";
+import { ALL_CELLS, AREAS, type Cell } from "../../../../convex/lineup/pitch";
+import type { Position } from "../../../../convex/positions/positionTables";
+import {
+  benched,
+  benchedAt,
+  canStandIn,
+  canSwap,
+  movedTo,
+  openingLineup,
+  placed,
+  reachOf,
+  reshaped,
+  sameLineup,
+  shownLineup,
+  swapped,
+  withRole,
+  type MoveRules,
+} from "../../../../src/myTeam/tactics/lineupDraft";
 
 const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
 const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;
@@ -104,5 +120,77 @@ describe("a role (spec/05 Roles)", () => {
     const given = withRole(DRAFT, 2, "attackingFullBack");
     expect(reshaped(given, [KEEPER, { area: "defence", lane: "left" }]).starters[1]).toEqual({ ...BACK, role: "attackingFullBack" });
     expect(reshaped(given, [KEEPER, { area: "defence", lane: "centre" }]).starters[1]).toEqual({ playerCode: 2, area: "defence", lane: "centre" });
+  });
+});
+
+describe("a swap (spec/05, Moving players; #851)", () => {
+  const MIDFIELDER = { playerCode: 5, area: "midfield", lane: "centre" } as const;
+  const WITH_ROLES = { starters: [{ ...BACK, role: "attackingFullBack" }, { ...MIDFIELDER, role: "boxToBox" }], bench: [3, 4] };
+
+  it("of two starters puts each in the other's cell, on its first role", () => {
+    expect(swapped(WITH_ROLES, 2, 5)).toEqual({
+      starters: [{ playerCode: 5, area: "defence", lane: "left" }, { playerCode: 2, area: "midfield", lane: "centre" }],
+      bench: [3, 4],
+    });
+  });
+
+  it("of a bench player and a starter puts the starter in the bench player's place in the order", () => {
+    expect(swapped(DRAFT, 4, 2)).toEqual({ starters: [KEEPER, { playerCode: 4, area: "defence", lane: "left" }], bench: [3, 2] });
+  });
+
+  it("of two bench players throws: the bench is put in order, not swapped", () => {
+    expect(() => swapped(DRAFT, 3, 4)).toThrow(/both on the bench/);
+  });
+
+  it("is what sending a player to a taken cell does; a free cell takes him in", () => {
+    expect(movedTo(DRAFT, 3, BACK)).toEqual(swapped(DRAFT, 3, 2));
+    expect(movedTo(DRAFT, 3, { area: "midfield", lane: "centre" })).toEqual(placed(DRAFT, 3, { area: "midfield", lane: "centre" }));
+  });
+});
+
+describe("where a player picked up can go (spec/05, Moving players; #851)", () => {
+  const limit = (minimum: number, maximum: number) => ({ minimum, maximum });
+  const POSITIONS: Record<number, Position[]> = { 1: ["GK"], 2: ["CB"], 3: ["GK"], 4: ["CB", "CM"] };
+  /** One keeper exactly, at most two in defence, anyone anywhere else. */
+  const RULES: MoveRules = {
+    areaLimits: { ...Object.fromEntries(AREAS.map((area) => [area, limit(0, 10)])), goalkeeper: limit(1, 1), defence: limit(0, 2) } as MoveRules["areaLimits"],
+    positionsOf: (playerCode) => POSITIONS[playerCode] ?? [],
+  };
+  const DEFENCE_FULL = { starters: [KEEPER, BACK, { playerCode: 6, area: "defence", lane: "right" } as const], bench: [3, 4] };
+
+  it("lights no free cell that breaks the area limits: no second keeper, no third in defence", () => {
+    expect(canStandIn(DRAFT, 3, { area: "goalkeeper", lane: "left" }, RULES)).toBe(false);
+    expect(canStandIn(DRAFT, 4, { area: "defence", lane: "centre" }, RULES)).toBe(true);
+    expect(canStandIn(DEFENCE_FULL, 4, { area: "defence", lane: "centre" }, RULES)).toBe(false);
+    expect(canStandIn(DEFENCE_FULL, 4, { area: "midfield", lane: "centre" }, RULES)).toBe(true);
+  });
+
+  it("lights no move that takes an area below its minimum, nor a twelfth starter", () => {
+    expect(canStandIn(DRAFT, 1, { area: "goalkeeper", lane: "left" }, RULES)).toBe(true);
+    const keeperAnywhere: MoveRules = { ...RULES, positionsOf: () => ["GK", "CB"] };
+    expect(canStandIn(DRAFT, 1, { area: "defence", lane: "centre" }, keeperAnywhere)).toBe(false);
+    const eleven = { starters: Array.from({ length: 11 }, (_, index) => ({ playerCode: 10 + index, area: "midfield", lane: "centre" }) as const), bench: [4] };
+    expect(canStandIn(eleven, 4, { area: "defence", lane: "left" }, RULES)).toBe(false);
+  });
+
+  it("lights a taken cell he may swap into, and only where both play the cell they land in", () => {
+    expect(canStandIn(DRAFT, 3, KEEPER, RULES)).toBe(true);
+    expect(canSwap(DRAFT, 3, 1, RULES)).toBe(true);
+    // A centre back can't go in goal, so the keeper can't swap with him.
+    expect(canStandIn(DRAFT, 1, BACK, RULES)).toBe(false);
+    expect(canSwap(DRAFT, 3, 4, RULES)).toBe(false);
+    expect(canStandIn(DRAFT, 2, BACK, RULES)).toBe(false);
+  });
+
+  it("is every cell and every player canStandIn and canSwap allow", () => {
+    for (const draft of [DRAFT, DEFENCE_FULL]) {
+      for (const playerCode of [1, 2, 3, 4]) {
+        expect(reachOf(draft, playerCode, RULES)).toEqual({
+          cells: ALL_CELLS.filter((cell) => canStandIn(draft, playerCode, cell, RULES)),
+          players: [...draft.starters.map((starter) => starter.playerCode), ...draft.bench].filter((other) => canSwap(draft, playerCode, other, RULES)),
+        });
+      }
+    }
+    expect(reachOf(DRAFT, 3, RULES)).toEqual({ cells: [{ area: "goalkeeper", lane: "centre" }], players: [1] });
   });
 });

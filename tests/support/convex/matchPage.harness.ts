@@ -18,6 +18,13 @@ export async function matchAs(league: ScoresLeague, email: string, fixtureCode: 
   return (await actingAs(league.t, email)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, fixtureCode });
 }
 
+/** One commentary line naming `playerCodes`, as the live tick stores it. */
+export const storedLine = (sourceId: number, text: string, minute: number | null, type: string, playerCodes: number[] = []) => ({ sourceId, text, minute, addedMinute: 0, type, playerCodes });
+
+/** Hull v Everton's commentary as just these `lines`, newest first, not delayed. */
+export const holdLines = ({ t }: ScoresLeague, lines: ReturnType<typeof storedLine>[]) =>
+  t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines, delayed: null }));
+
 export const manOf = (men: readonly MatchMan[], playerCode: number) => men.find((man) => man.playerCode === playerCode)!;
 
 /** The league as before its gameweek's deadline: no gameweek recorded as begun. */

@@ -7,7 +7,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
-import { holdGameweeks, KICKS_OFF_IN, rulesWith } from "../../support/convex/leagueRules.harness";
+import { holdGameweeks, holdGameweeksPastTheSeason, KICKS_OFF_IN, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -117,6 +117,11 @@ describe("a saved lineup", () => {
       for (const row of await ctx.db.query("gameweeks").collect()) await ctx.db.delete("gameweeks", row._id);
     });
     expect(await (await as(ANN)).save(FOUR_FOUR_TWO)).toBe(FIRST_GAMEWEEK);
+  });
+
+  test(`is saved from the next gameweek not begun with ${GAMEWEEKS + 1} gameweeks held (#872)`, async () => {
+    await holdGameweeksPastTheSeason(t, 1);
+    expect(await (await as(ANN)).save(FOUR_FOUR_TWO)).toBe(NEXT);
   });
 
   test("is refused once every gameweek has begun", async () => {

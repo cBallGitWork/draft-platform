@@ -73,7 +73,8 @@ export const scoreWrites = v.object({ received: v.number(), written: v.number(),
 
 // The schema is live: clubs, players, fixtures, gameweeks and footballSyncs hold rows written
 // before #64, so every field added since is optional, or the next push would refuse those rows.
-// Renaming a field is a migration, never an edit here.
+// Renaming a field is a migration, never an edit here: ARCHITECTURE.md's Data, "Changing a saved
+// shape", says how.
 
 /** When the feed stopped sending a held row: the `ranAt` of the first sync without it. Absent
  *  while the row is sent. The row is kept, never deleted, and unmarked when sent again, found by

@@ -68,6 +68,7 @@ import type * as leagues_deletionNotices from "../leagues/deletionNotices.js";
 import type * as leagues_lastLeague from "../leagues/lastLeague.js";
 import type * as leagues_leagueDeletion from "../leagues/leagueDeletion.js";
 import type * as leagues_leagueLimits from "../leagues/leagueLimits.js";
+import type * as leagues_leagueOpens from "../leagues/leagueOpens.js";
 import type * as leagues_leagues from "../leagues/leagues.js";
 import type * as leagues_myLeagues from "../leagues/myLeagues.js";
 import type * as leagues_teams from "../leagues/teams.js";
@@ -270,6 +271,7 @@ declare const fullApi: ApiFromModules<{
   "leagues/lastLeague": typeof leagues_lastLeague;
   "leagues/leagueDeletion": typeof leagues_leagueDeletion;
   "leagues/leagueLimits": typeof leagues_leagueLimits;
+  "leagues/leagueOpens": typeof leagues_leagueOpens;
   "leagues/leagues": typeof leagues_leagues;
   "leagues/myLeagues": typeof leagues_myLeagues;
   "leagues/teams": typeof leagues_teams;
