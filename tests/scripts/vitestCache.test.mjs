@@ -16,9 +16,10 @@ const PIECES = "pieces";
 const PIECE_EXTENSION = ".mjs";
 // A cold Vitest start takes about a second, and coverage about doubles that. spawnSync blocks, so
 // Vitest's own timeout can't stop a hung inner run: each is killed at its own limit, and the test's
-// timeout allows for two.
+// timeout allows for two and the scratch folder's setup.
 const RUN_TIMEOUT_MS = 25_000;
-const TWO_RUNS_TIMEOUT_MS = 2 * RUN_TIMEOUT_MS + 5_000;
+const SETUP_ALLOWANCE_MS = 5_000;
+const TWO_RUNS_TIMEOUT_MS = 2 * RUN_TIMEOUT_MS + SETUP_ALLOWANCE_MS;
 // What the probe prints when its glob holds the one piece and the disk holds two.
 const STALE_GLOB = "expected 1 to be 2";
 
