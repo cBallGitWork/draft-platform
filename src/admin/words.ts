@@ -91,7 +91,11 @@ export const readingLinks = (fullName: string) => [
 export const feedsLoadingWords = "Loading the feeds…";
 export const feedsTitle = "Feeds";
 export const feedsHint = "When each feed last brought data. One late or failing needs you: a feed that stops is otherwise silent.";
-export const feedColumns = { feed: "Feed", arrived: "Last arrived", state: "State" } as const;
+export const feedColumns = {
+  feed: { short: "Feed", long: "Feed, and where it comes from" },
+  arrived: { short: "Last arrived", long: "When it last brought data" },
+  state: { short: "State", long: "Whether it's on time" },
+} as const;
 /** Kept with the feeds themselves, as the admin's failure email names them too. */
 export const feedNames = FEED_NAMES;
 export const feedStateWords: Record<FeedState, string> = {

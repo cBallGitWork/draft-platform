@@ -10,6 +10,7 @@ import {
   columns,
   COMPARE_TITLE,
   compareLabel,
+  compareWhatColumn,
   comparingWords,
   freeAgentWords,
   matchesWords,
@@ -17,6 +18,7 @@ import {
   noStatsYetWords,
   pickOneMoreWords,
 } from "../../../src/scouting/words";
+import { expectColumnHeads } from "../../support/src/columnHeads";
 import type { ScoutingData } from "../../support/src/scouting.harness";
 import { HELD, openScouting, PALMER, RICE, SAKA } from "../../support/src/scoutingScreen.harness";
 import { league } from "../../support/src/shell.harness";
@@ -61,7 +63,8 @@ describe("comparing two players", () => {
     await tick("Palmer");
 
     expect(app.scouting.useComparison.mock.lastCall!).toEqual([league.leagueId, [SAKA.code, PALMER.code]]);
-    expect(within(comparisonTable()).getAllByRole("columnheader").map((head) => head.textContent)).toEqual(["Saka", "Palmer"]);
+    expectColumnHeads(comparisonTable(), [compareWhatColumn, { short: "Saka", long: SAKA.fullName }, { short: "Palmer", long: PALMER.fullName }]);
+    expect(within(comparisonTable()).getByRole("columnheader", { name: compareWhatColumn.long }).firstElementChild!.className).toBe("sr-only");
     expect(cellsOf(columns.club.long)).toEqual(["ARS", "CHE"]);
     expect(cellsOf(columns.owner.short)).toEqual(["Saka Potatoes", "Kroos Control"]);
     expect(cellsOf(columns.seasonPoints.short)).toEqual([noFigureWords, noFigureWords]);
@@ -122,6 +125,6 @@ describe("comparing two players", () => {
     await tick("Palmer");
     await userEvent.selectOptions(screen.getByRole("combobox", { name: clubLabel }), "Arsenal");
     expect(app.scouting.useComparison.mock.lastCall![1]).toEqual([SAKA.code, PALMER.code]);
-    expect(within(panel()).getAllByRole("columnheader").map((head) => head.textContent)).toEqual(["Saka", "Palmer"]);
+    expectColumnHeads(comparisonTable(), [compareWhatColumn, { short: "Saka", long: SAKA.fullName }, { short: "Palmer", long: PALMER.fullName }]);
   });
 });

@@ -28,7 +28,7 @@ import {
   possessionWords,
   SCORE_LABEL,
   sheetLabel,
-  STAT_COLUMN_LABEL,
+  STAT_COLUMN,
   SUBSTITUTES_TITLE,
   TEAM_STATS_TITLE,
   teamStatRows,
@@ -68,7 +68,7 @@ function HeldMatch({ match }: { match: MatchPageData }) {
         <TeamSheet title={away.name} men={men.filter((man) => man.side === "away")} />
         {/* Side by side under the sheets on the desk, stacked in the third column on a wide one. */}
         <div className="grid items-start gap-2 lg:col-span-2 lg:grid-cols-2 xl:col-span-1 xl:grid-cols-1">
-          <TeamStats home={home.shortName} away={away.shortName} stats={teamStats} />
+          <TeamStats home={home} away={away} stats={teamStats} />
           <Vidiprinter commentary={commentary} title={COMMENTARY_TITLE} noLinesWords={noLinesWords} />
         </div>
         {moved.length > 0 && <TeamSheet title={MOVED_TITLE} men={moved} />}
@@ -109,30 +109,30 @@ function MatchState({ score, kickoff }: Pick<MatchPageData, "score" | "kickoff">
 }
 
 type SideStats = NonNullable<MatchPageData["teamStats"]>["home"];
+type Club = MatchPageData["home"];
+/** The team stats' heads and cells: home's figures read right, toward the stat between them, which
+ *  takes half the width. */
+const TEAM_STAT_CELLS = { home: "px-2 text-right", stat: "w-1/2 px-2 text-center", away: "px-2 text-left" } as const;
 
 /** Each side's five, home's figure left of the stat and away's right, as a scoreboard reads. */
-function TeamStats({ home, away, stats }: { home: string; away: string; stats: MatchPageData["teamStats"] }) {
+function TeamStats({ home, away, stats }: { home: Club; away: Club; stats: MatchPageData["teamStats"] }) {
   return (
     <Panel title={TEAM_STATS_TITLE}>
       {stats === null ? (
         <PanelNote>{noTeamStatsWords}</PanelNote>
       ) : (
-        <table aria-label={teamStatsLabel(home, away)} className="w-full table-fixed border-collapse">
-          <thead className="bg-head text-ground">
-            <tr>
-              <th scope="col" className="px-2 text-right">{home}</th>
-              <th scope="col" className="w-1/2 px-2 text-center">
-                <span className="sr-only">{STAT_COLUMN_LABEL}</span>
-              </th>
-              <th scope="col" className="px-2 text-left">{away}</th>
-            </tr>
-          </thead>
+        <table aria-label={teamStatsLabel(home.shortName, away.shortName)} className="w-full table-fixed border-collapse">
+          <ColumnHeads
+            columns={{ home: { short: home.shortName, long: home.name }, stat: STAT_COLUMN, away: { short: away.shortName, long: away.name } }}
+            unseen={["stat"]}
+            classOf={(column) => TEAM_STAT_CELLS[column]}
+          />
           <tbody>
             {(Object.keys(teamStatRows) as (keyof typeof teamStatRows)[]).map((stat) => (
               <tr key={stat} className="border-t border-panel-rule">
-                <td className="px-2 text-right font-bold">{statWords(stats.home, stat)}</td>
-                <th scope="row" className="px-2 text-center font-normal text-muted">{teamStatRows[stat]}</th>
-                <td className="px-2 text-left font-bold">{statWords(stats.away, stat)}</td>
+                <td className={`${TEAM_STAT_CELLS.home} font-bold`}>{statWords(stats.home, stat)}</td>
+                <th scope="row" className={`${TEAM_STAT_CELLS.stat} font-normal text-muted`}>{teamStatRows[stat]}</th>
+                <td className={`${TEAM_STAT_CELLS.away} font-bold`}>{statWords(stats.away, stat)}</td>
               </tr>
             ))}
           </tbody>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { isLocked } from "../../convex/gameweeks/deadline";
 import type { LeagueGameweek } from "../../convex/gameweeks/leagueGameweeks";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, PageSection, Problem } from "../ui/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { TickBox } from "../ui/TickBox";
@@ -84,13 +85,7 @@ function GameweekTable({
   const now = Date.now();
   return (
     <table className="w-full self-start border-collapse">
-      <thead className="bg-head text-ground">
-        <tr>
-          <th scope="col" className={cellClasses}>{gameweekColumns.gameweek}</th>
-          <th scope="col" className={cellClasses}>{gameweekColumns.deadline}</th>
-          <th scope="col" className={cellClasses}>{gameweekColumns.plays}</th>
-        </tr>
-      </thead>
+      <ColumnHeads columns={gameweekColumns} classOf={() => cellClasses} />
       <tbody>
         {rows.map((row) => {
           const begun = isLocked(row.deadline, now);

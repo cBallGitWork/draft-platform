@@ -30,7 +30,12 @@ export const noFixturesWords = "No fixtures yet: they're drawn once the league h
 export const TRANSACTIONS_TITLE = menuWords.transactions;
 export const transactionsLoadingWords = "Loading your transactions…";
 export const transactionsTableLabel = (teamName: string) => `${teamName}'s transactions`;
-export const transactionColumns = { when: "When", player: "Player", move: "Move", by: "By" } as const;
+export const transactionColumns = {
+  when: { short: "When", long: "When it happened" },
+  player: { short: "Player", long: "Player" },
+  move: { short: "Move", long: "What happened to him" },
+  by: { short: "By", long: "Who made the move" },
+} as const;
 /** What a transaction did to the team, as its Move cell says it. */
 export function transactionWords({ kind, otherTeamName }: Pick<TeamTransactions["transactions"][number], "kind" | "otherTeamName">): string {
   switch (kind) {
