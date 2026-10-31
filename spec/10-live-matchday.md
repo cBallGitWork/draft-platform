@@ -19,6 +19,8 @@ commentary` (16 Oct 2026).
 - One real Premier League match: the score and clock, both clubs' lineups and subs, five team stats
   (shots, shots on target, possession, corners, cards), and commentary for every event in it.
 - Every player owned in the league shows his team and his live points.
+- A player traded or released after the deadline shows the team that had him at it: "Yes show the
+  old team as for the current games he's on that team" (Craig, 31 Oct 2026).
 - From the lineups, about an hour before kickoff, to full time; kept afterwards.
 - Opened from a player's status on the matchup, and from the Premier League's fixtures (`spec/18`).
 

@@ -94,25 +94,43 @@ test("at full time each club's men show, starters first, each owned man with his
   expect(manOf(page.men, EVERTON_STARTERS[0].playerCode)).toMatchObject({ side: "away", ownerTeamName: "Team 2" });
 });
 
-test("a man moved to another team after the deadline shows the points his old team's locked lineup scores him, as the matchup counts them", async () => {
+// "Yes show the old team as for the current games he's on that team" (Craig, 31 Oct 2026; #561).
+test("a man moved to another team after the deadline names his old team beside the points its locked lineup scores him, which don't move", async () => {
   const league = await matchLeague();
   await fullTimeRecords(league);
+  const before = (await matchAs(league, ANN))!;
   await (await actingAs(league.t, ADMIN)).mutation(api.squads.squads.move, { leagueId: league.leagueId, playerCode: HULL_SCORER, teamId: league.bobsTeam });
   const page = (await matchAs(league, ANN))!;
   const matchup = await annsScoredGame(league);
   const slot = matchup.team.kind === "team" ? matchup.team.lineup!.starters.find((starter) => starter.playerCode === HULL_SCORER) : undefined;
   expect(slot?.points).toEqual(expect.any(Number));
-  // He scores for Ann's lineup, locked at the deadline, but Bob owns him now.
-  expect(manOf(page.men, HULL_SCORER)).toMatchObject({ ownerTeamName: "Team 2", points: slot!.points, counts: slot!.counts });
+  // He scores for Ann's lineup, locked at the deadline, so Ann's team is named, though Bob owns him now.
+  expect(manOf(page.men, HULL_SCORER)).toMatchObject({ ownerTeamName: "Team 1", points: slot!.points, counts: slot!.counts });
+  // Only the name was in question: every man's points, and the commentary's, are as before the move.
+  expect(page.men).toEqual(before.men);
+  expect(page.commentary).toEqual(before.commentary);
 });
 
-test("a man released after the deadline shows no owner but still the points his old team's locked lineup scores him", async () => {
+test("a man released after the deadline names the team that had him at the deadline beside the points its locked lineup scores him, which don't move", async () => {
   const league = await matchLeague();
   await fullTimeRecords(league);
-  const before = manOf((await matchAs(league, ANN))!.men, HULL_SCORER);
+  const before = (await matchAs(league, ANN))!;
   await (await actingAs(league.t, ADMIN)).mutation(api.squads.squads.release, { leagueId: league.leagueId, playerCode: HULL_SCORER });
-  expect(before.points).toEqual(expect.any(Number));
-  expect(manOf((await matchAs(league, ANN))!.men, HULL_SCORER)).toMatchObject({ ownerTeamName: null, points: before.points, counts: before.counts });
+  expect(manOf(before.men, HULL_SCORER).points).toEqual(expect.any(Number));
+  const page = (await matchAs(league, ANN))!;
+  expect(manOf(page.men, HULL_SCORER)).toMatchObject({ ownerTeamName: "Team 1" });
+  expect(page.men).toEqual(before.men);
+  expect(page.commentary).toEqual(before.commentary);
+});
+
+test("before the league's gameweek begins, a man moved shows the team that owns him now, as his lineup isn't locked", async () => {
+  const league = await matchLeague();
+  await fullTimeRecords(league);
+  await league.t.run(async (ctx) => {
+    for (const row of await ctx.db.query("passedDeadlines").collect()) await ctx.db.delete("passedDeadlines", row._id);
+  });
+  await (await actingAs(league.t, ADMIN)).mutation(api.squads.squads.move, { leagueId: league.leagueId, playerCode: HULL_SCORER, teamId: league.bobsTeam });
+  expect(manOf((await matchAs(league, ANN))!.men, HULL_SCORER)).toMatchObject({ ownerTeamName: "Team 2", points: null });
 });
 
 test("before kickoff, the men the team sheets name show as the sheets have them, each owned man with his team, none yet played", async () => {
