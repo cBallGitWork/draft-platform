@@ -7,7 +7,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Area } from "../../convex/lineup/pitch";
-import type { MatchupCommentary, MatchupSide, MatchupSlot } from "../../convex/matchup/matchupShape";
+import { roleIn } from "../../convex/lineup/roles";
+import type { MatchupCommentary, MatchupSide, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
 import { MINUTE_MS } from "../../convex/shared/time";
 import { previewFixtureCode } from "../premierLeague/preview";
 import { previewIdOf, previewSeason, previewTeams } from "../table/preview";
@@ -90,9 +91,16 @@ function slotAt([area, name, match, finalPoints]: Man, minute: number, onBench: 
   return { playerCode: codeOf(name), name, area, points, counts: !onBench, provisional: true, status, autoSub };
 }
 
+/** A starter `minute` minutes in, in his area's centre slot's first role: the made-up men stand in
+ *  areas, not cells. */
+function starterAt(man: Man, minute: number): MatchupStarter {
+  const { key, name } = roleIn({ area: man[0], lane: "centre" }, undefined);
+  return { ...slotAt(man, minute, false), role: { key, name } };
+}
+
 /** A side `minute` minutes in: the keeper's auto-sub once his match is over, then the total. */
 function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): MatchupSide {
-  const starters = men.starters.map((man) => slotAt(man, minute, false));
+  const starters = men.starters.map((man) => starterAt(man, minute));
   const bench = men.bench.map((man) => slotAt(man, minute, true));
   const off = starters.find((slot) => slot.autoSub?.kind === "off");
   if (off !== undefined) {

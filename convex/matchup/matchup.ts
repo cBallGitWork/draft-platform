@@ -17,8 +17,9 @@ import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
 import { teamsInGameweek } from "../table/standings";
 import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
+import { roleIn } from "../lineup/roles";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
-import { game, matchup, type MatchupCommentary, type MatchupSide, type MatchupSlot, type SlotStatus } from "./matchupShape";
+import { game, matchup, type MatchupCommentary, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
 import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vidiprinter";
 
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
@@ -27,9 +28,10 @@ import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vi
 // final. Scored by the table's own scorer (gameweekScores.ts), so the matchup and the table never
 // disagree.
 //
-// Lineups show only once the gameweek has begun, at the league's deadline: nothing is secret after
-// lock. Who may see another team's lineup before then is Craig's to settle (#392); a manager's own
-// is on My team. The commentary is every line of the matches either lineup's men play in, each
+// Lineups show only once the gameweek has begun, at the league's deadline: then both sides'
+// starters, each in his role, and the bench in order. Before it nobody sees another team's lineup,
+// the commissioner and the admin included: "they just get to view what the managers see" (Craig,
+// 31 Oct 2026; #392, #799). A manager's own is on My team. The commentary is every line of the matches either lineup's men play in, each
 // priced for them (vidiprinter.ts, #44).
 
 type TeamId = Id<"teams">;
@@ -122,13 +124,14 @@ class SideScorer {
     const scored = await this.inGameweek.slotsOf(teamId);
     const { points, provisional } = await this.inGameweek.pointsOf(teamId);
     const slotOf = (slotPoints: SlotPoints) => this.slot(slotPoints, scored);
+    const starterOf = (slotPoints: SlotPoints) => this.starter(slotPoints, scored);
     return {
       kind: "team",
       teamId,
       teamName,
       points,
       provisional,
-      lineup: { starters: await Promise.all(scored.team.starters.map(slotOf)), bench: await Promise.all(scored.team.bench.map(slotOf)) },
+      lineup: { starters: await Promise.all(scored.team.starters.map(starterOf)), bench: await Promise.all(scored.team.bench.map(slotOf)) },
     };
   }
 
@@ -164,6 +167,14 @@ class SideScorer {
     } catch (error) {
       return { kind: "unread", reason: logFailure(failure, error) };
     }
+  }
+
+  /** A starter's slot and his role in it, as the scorer priced him. */
+  private async starter(slotPoints: SlotPoints, scored: TeamInGameweek): Promise<MatchupStarter> {
+    const { playerCode, cell, role } = slotPoints;
+    if (role === undefined) throw new Error(`starter ${playerCode} stands at ${cell.area} ${cell.lane}, which has no roles`);
+    const { key, name } = roleIn(cell, role);
+    return { ...(await this.slot(slotPoints, scored)), role: { key, name } };
   }
 
   private async slot(slotPoints: SlotPoints, { autoSubs, matchesOf }: TeamInGameweek): Promise<MatchupSlot> {
