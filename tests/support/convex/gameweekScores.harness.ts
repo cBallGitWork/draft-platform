@@ -28,6 +28,9 @@ import { recordedGw6 } from "../recorded/gw6.payloads";
 
 export { GAMEWEEK };
 export const [ANN, BOB, CAT] = MANAGERS;
+/** Ann's and Bob's teams, as the league names a new team (convex/leagues/teams.ts). */
+export const ANNS_TEAM = "Team 1";
+export const BOBS_TEAM = "Team 2";
 
 /** Hull v Everton's kickoff as this league replays it, not FPL's recorded KICKOFF in
  *  matchStats.harness: a week after signInDeployment's clock, so the league is made before

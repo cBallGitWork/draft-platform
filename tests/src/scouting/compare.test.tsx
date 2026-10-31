@@ -18,7 +18,7 @@ import {
   noStatsYetWords,
   pickOneMoreWords,
 } from "../../../src/scouting/words";
-import { expectColumnHeads } from "../../support/src/columnHeads";
+import { expectColumnHeads, expectUnseenHead } from "../../support/src/columnHeads";
 import type { ScoutingData } from "../../support/src/scouting.harness";
 import { HELD, openScouting, PALMER, RICE, SAKA } from "../../support/src/scoutingScreen.harness";
 import { league } from "../../support/src/shell.harness";
@@ -34,6 +34,8 @@ describe("comparing two players", () => {
   const tick = async (name: string) => userEvent.click(await screen.findByRole("checkbox", { name: compareLabel(name) }));
   const panel = () => screen.getByRole("region", { name: COMPARE_TITLE });
   const comparisonTable = () => within(panel()).getByRole("table");
+  /** The comparison's heads with Saka and then Palmer ticked, each named in full. */
+  const SAKA_AND_PALMER_HEADS = [compareWhatColumn, { short: "Saka", long: SAKA.fullName }, { short: "Palmer", long: PALMER.fullName }];
   const rowIn = (label: string) =>
     within(comparisonTable())
       .getByRole("rowheader", { name: label })
@@ -63,8 +65,8 @@ describe("comparing two players", () => {
     await tick("Palmer");
 
     expect(app.scouting.useComparison.mock.lastCall!).toEqual([league.leagueId, [SAKA.code, PALMER.code]]);
-    expectColumnHeads(comparisonTable(), [compareWhatColumn, { short: "Saka", long: SAKA.fullName }, { short: "Palmer", long: PALMER.fullName }]);
-    expect(within(comparisonTable()).getByRole("columnheader", { name: compareWhatColumn.long }).firstElementChild!.className).toBe("sr-only");
+    expectColumnHeads(comparisonTable(), SAKA_AND_PALMER_HEADS);
+    expectUnseenHead(comparisonTable(), compareWhatColumn.long);
     expect(cellsOf(columns.club.long)).toEqual(["ARS", "CHE"]);
     expect(cellsOf(columns.owner.short)).toEqual(["Saka Potatoes", "Kroos Control"]);
     expect(cellsOf(columns.seasonPoints.short)).toEqual([noFigureWords, noFigureWords]);
@@ -125,6 +127,6 @@ describe("comparing two players", () => {
     await tick("Palmer");
     await userEvent.selectOptions(screen.getByRole("combobox", { name: clubLabel }), "Arsenal");
     expect(app.scouting.useComparison.mock.lastCall![1]).toEqual([SAKA.code, PALMER.code]);
-    expectColumnHeads(comparisonTable(), [compareWhatColumn, { short: "Saka", long: SAKA.fullName }, { short: "Palmer", long: PALMER.fullName }]);
+    expectColumnHeads(comparisonTable(), SAKA_AND_PALMER_HEADS);
   });
 });

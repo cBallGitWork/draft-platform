@@ -29,6 +29,7 @@ import {
   wholeTableLink,
   yourTeamWords,
 } from "../../../src/home/words";
+import { expectColumnHeads } from "../../support/src/columnHeads";
 import { homeFixture, homeRow, quietHome, type HomeData } from "../../support/src/home.harness";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 
@@ -106,8 +107,7 @@ describe("the table", () => {
 
   it("in total points, has no record or form", async () => {
     withHome({ format: "totalPoints", thisGameweek: null });
-    const heads = within(await panel(TABLE_TITLE)).getAllByRole("columnheader").map((head) => head.getAttribute("aria-label"));
-    expect(heads).toEqual([columns.position.long, columns.team.long, columns.played.long, columns.points.long]);
+    expectColumnHeads(await panel(TABLE_TITLE), [columns.position, columns.team, columns.played, columns.points]);
   });
 
   it("cut to the top rows, says how many teams it has, and that the reader's row is added", async () => {

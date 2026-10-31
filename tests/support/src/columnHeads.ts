@@ -12,3 +12,9 @@ export function expectColumnHeads(scope: HTMLElement, columns: readonly ColumnWo
   expect(heads.map((head) => head.textContent)).toEqual(columns.map(({ short }) => short));
   expect(within(scope).getAllByRole("columnheader")).toEqual(heads);
 }
+
+/** Expects the head named `long` in `scope` to draw nothing, its words kept for screen readers
+ *  (ColumnHeads' `unseen`). */
+export function expectUnseenHead(scope: HTMLElement, long: string) {
+  expect(within(scope).getByRole("columnheader", { name: long }).firstElementChild!.className).toBe("sr-only");
+}
