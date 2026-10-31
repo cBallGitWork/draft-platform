@@ -5,10 +5,7 @@ import { MINUTES_STAT } from "../stats/matchRecords";
 import { withOwnStats } from "./ownStats";
 import { AREAS, LANES, positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
 import {
-  inTenths,
   priceFor,
-  requireNumber,
-  showValue,
   validateScoringSet,
   type Area,
   type Band,
@@ -16,9 +13,7 @@ import {
   type ScoringRule,
   type ScoringSet,
 } from "./scoringSet";
-
-/** A player's stats for one match, by the feeds' own keys. */
-export type MatchStats = Readonly<Record<string, number>>;
+import { inTenths, showValue, statIn, type MatchStats } from "./values";
 
 /** One category's points, or null ("—") while his record for the match hasn't arrived. */
 export interface CategoryPoints {
@@ -85,15 +80,6 @@ function rolePoints(record: MatchStats, set: ScoringSet, role: string): RolePoin
     .map(({ stat, points }) => ({ stat, actions: statIn(record, stat), points: inTenths(statIn(record, stat) * points) }))
     .filter(({ actions }) => actions !== 0);
   return { role, points: inTenths(sum(lines.map((line) => line.points))), lines };
-}
-
-/** Only the record's own keys count: a rule on `constructor` must not read Object's. A stat the
- *  feeds sent as anything but a number is bad data, never 0. */
-export function statIn(record: MatchStats, stat: string): number {
-  if (!Object.hasOwn(record, stat)) return 0;
-  const actions = record[stat];
-  requireNumber(actions, `his record's ${stat} is`);
-  return actions;
 }
 
 /** A rule's points for the slot: nothing below its minimum minutes, then held to its points

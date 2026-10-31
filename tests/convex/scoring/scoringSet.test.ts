@@ -1,10 +1,12 @@
 import { describe, expect, test } from "vitest";
 import { everyArea, EXAMPLE_SET, MINUTES_BANDS, TACKLES_AND_CLEARANCES } from "../../support/convex/scoring.example";
 import { checkOwnStatsAgainstCatalogue } from "../../../convex/scoring/ownStats";
-import { inTenths, UnsoundScoring, validateScoringSet } from "../../../convex/scoring/scoringSet";
+import { validateScoringSet } from "../../../convex/scoring/scoringSet";
+import { inTenths, UnsoundScoring } from "../../../convex/scoring/values";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import ownStatsSource from "../../../convex/scoring/ownStats.ts?raw";
 import scoringSetSource from "../../../convex/scoring/scoringSet.ts?raw";
+import valuesSource from "../../../convex/scoring/values.ts?raw";
 
 // What #25 refuses on save, and scoreMatch before scoring, with the reason. Unchecked, many of
 // these scored with no error: a typo underpaid a whole category, or text was read as a number.
@@ -214,7 +216,7 @@ describe("every reason a set is unsound is an UnsoundScoring, so saving refuses 
   });
 
   test("the sweep has a case for each throw, and every throw is an UnsoundScoring", () => {
-    const source = `${scoringSetSource}\n${ownStatsSource}`;
+    const source = `${scoringSetSource}\n${ownStatsSource}\n${valuesSource}`;
     expect(source.match(/throw new (?!UnsoundScoring\()/g)).toBeNull();
     expect(source.match(/throw new UnsoundScoring\(/g)?.length).toBe(SWEEP.length + 1);
   });

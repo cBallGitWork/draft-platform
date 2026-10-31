@@ -18,7 +18,8 @@ import { versionLetter } from "../mail/letterWords";
 import { FIRST_SCORING } from "./firstScoring";
 import { scoringChanges } from "./patchChanges";
 import { checkOwnStatsAgainstCatalogue } from "./ownStats";
-import { UnsoundScoring, validateScoringSet } from "./scoringSet";
+import { validateScoringSet } from "./scoringSet";
+import { UnsoundScoring } from "./values";
 
 // The site's scoring set (spec/14, Who owns it, and Changes and corrections; #354, #355): one set
 // every league plays on, which every signed-in person reads on Player scoring and only the admin

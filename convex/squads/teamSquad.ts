@@ -4,7 +4,7 @@ import { query, type QueryCtx } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
 import { positionRank, type Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
-import { inTenths } from "../scoring/scoringSet";
+import { inTenths } from "../scoring/values";
 import { managerOf } from "../shared/leagueAccess";
 import { clubsByCode, heldPlayerByCode, type Clubs } from "../shared/players";
 import { begunGameweeks } from "../gameweekScorer/gameweekScores";

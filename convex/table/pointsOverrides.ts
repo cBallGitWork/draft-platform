@@ -4,7 +4,7 @@ import { mutation, type MutationCtx } from "../_generated/server";
 import { recordEvent } from "../mail/letters";
 import { matchWords } from "../mail/letterWords";
 import { seasonRules } from "../rules/rulesHistory";
-import { inTenths } from "../scoring/scoringSet";
+import { inTenths } from "../scoring/values";
 import { fixtureByCode } from "../shared/fixtures";
 import { refuse, refusals, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, playerByCode } from "../shared/players";
