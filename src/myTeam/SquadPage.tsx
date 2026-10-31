@@ -4,11 +4,12 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { ENTER_KEY } from "../shared/browserEvents";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
-import { Loading, PageSection, PanelNote, Problem } from "../ui/Panel";
+import { Loading, Notice, PageSection, PanelNote, Problem } from "../ui/Panel";
 import { playerCardPath } from "../playerCard/paths";
 import { PositionCodes } from "../ui/PositionCodes";
 import { ClubShort } from "../premierLeague/ClubName";
 import { useChange, type Changing } from "../shared/useChange";
+import { unheldNoticeWords, unheldPlayerWords } from "../shared/words";
 import type { MyTeamSeam, SquadNumberChanges, TeamSquad } from "./seam";
 import {
   figureWords,
@@ -52,7 +53,7 @@ export function SquadPage({ league, seam }: { league: LeagueSummary; seam: MyTea
 function SquadBody({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }) {
   const squad = seam.useTeamSquad(league.leagueId);
   if (squad === undefined) return <Loading className="px-3 py-2">{squadLoadingWords}</Loading>;
-  if (squad.players.length === 0) return <PanelNote>{noSquadWords}</PanelNote>;
+  if (squad.players.length + squad.unheld.length === 0) return <PanelNote>{noSquadWords}</PanelNote>;
   return <SquadNumbersTable leagueId={league.leagueId} squad={squad} numbers={seam.useSquadNumbers()} />;
 }
 
@@ -64,6 +65,7 @@ function SquadNumbersTable({ leagueId, squad, numbers }: { leagueId: Id<"leagues
   return (
     <>
       <Problem problem={change.problem} />
+      {squad.unheld.length > 0 && <Notice>{unheldNoticeWords}</Notice>}
       <table aria-label={squadTableLabel(squad.teamName)} className="w-full border-collapse">
         <ColumnHeads columns={heads} shown={COLUMNS} classOf={cellClasses} />
         <tbody>
@@ -72,6 +74,14 @@ function SquadNumbersTable({ leagueId, squad, numbers }: { leagueId: Id<"leagues
               {COLUMNS.map((column) => (
                 <SquadCell key={column} column={column} player={player} leagueId={leagueId} numbers={numbers} change={change} />
               ))}
+            </tr>
+          ))}
+          {/* Data gone wrong, kept so it shows (#323): there's no player to fill the columns. */}
+          {squad.unheld.map((code) => (
+            <tr key={code} className="border-t border-panel-rule">
+              <th scope="row" colSpan={COLUMNS.length} className={`${cellClasses("player")} text-event`}>
+                {unheldPlayerWords(code)}
+              </th>
             </tr>
           ))}
         </tbody>
