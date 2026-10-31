@@ -49,6 +49,11 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
     site's scoring (`spec/14`);
   - the commissioner's latest letter, pinned until a newer one.
 - **My team** shows the tactics pitch, the squad and Mail side by side.
+  - The Tactics tab's squad list, beside the pitch as on FM's tactics screen: each row opens
+    with the slot's position label (`spec/06`) in its area's colour, then the role's full name, the player,
+    his stars for the role and his next fixture. Tapping the role opens the role card
+    (`spec/05`). The Squad tab stays its own tab: the season there, this gameweek here (Craig,
+    31 Oct 2026, `/grill the Tactics pitch`).
 - My team's other tabs, after the Tactics tab (25 Oct 2026):
   - **Squad**: every player in the squad in one table, with his position, club, next fixture,
     season points and last gameweek's points. His season points are what his team got from him,

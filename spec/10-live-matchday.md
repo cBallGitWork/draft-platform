@@ -13,6 +13,8 @@ commentary` (16 Oct 2026).
   At the deadline both lineups show: the starters, the bench in order, the formation and each
   starter's role. The commissioner and the admin see only what managers see (Craig, 31 Oct 2026:
   "they just get to view what the managers see").
+- Each starter on the matchup's lineups shows his slot's position label and his role's run, as on
+  the Tactics pitch (`spec/05`; Craig, 31 Oct 2026, `/grill the Tactics pitch`).
 - Tapping a player on the matchup or its pitch shows his breakdown for this match, his role's line
   included (`spec/14`): "the opposition manager needs to see why his opponent got the points"
   (Craig, 31 Oct 2026). It leads on to his player card, which keeps his base points (`spec/12`).
