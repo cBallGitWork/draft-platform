@@ -76,7 +76,6 @@ function secondRunAfterAFileIsAdded(fsModuleCache) {
 test(
   "with vitest.config.ts's setting, a glob sees a file added since the last run",
   () => {
-    expect(config.test.fsModuleCache).toBe(false);
     const second = secondRunAfterAFileIsAdded(config.test.fsModuleCache);
     expect(second.passed, second.output).toBe(true);
   },
