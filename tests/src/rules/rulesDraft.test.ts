@@ -1,8 +1,9 @@
 // The rules screens' draft (src/rules/rulesDraft.ts): a box left without a number is a change,
-// though JSON writes NaN as null, the way a part with nothing set there is saved (#623).
+// though JSON writes NaN as null, the way a part with nothing set there is saved (#623); and a
+// refusal for one is said in the bar when no box is found to say it beside (#645).
 
 import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { useRulesDraft, type RulesView } from "../../../src/rules/rulesDraft";
 
 type Part = { limit: number | null; nested: { points: number | null } };
@@ -29,5 +30,19 @@ describe("whether the draft has changed", () => {
     act(() => result.current.edit(edited));
 
     expect(result.current.unchanged).toBe(false);
+  });
+});
+
+describe("where a refusal for a box left without a number is said (#645)", () => {
+  it("in the bar, when no blank box is found to say it beside", async () => {
+    const words = "A box has no number.";
+    const save = vi.fn(() => Promise.resolve(CHANGES_FROM));
+    const { result } = renderHook(() => useRulesDraft(VIEW, save, () => words));
+    act(() => result.current.edit({ ...SAVED, limit: NaN }));
+    await act(() => result.current.saveDraft());
+
+    expect(result.current.problem).toBe(words);
+    expect(result.current.boxRefusal).toBeNull();
+    expect(save).not.toHaveBeenCalled();
   });
 });

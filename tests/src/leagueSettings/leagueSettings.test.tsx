@@ -31,10 +31,11 @@ import {
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import type { Revision } from "../../../src/rules/rulesDraft";
-import { gameweekWords, loadLatestWords, overtakenWords, saveWords, unchangedWords } from "../../../src/rules/words";
+import { discardWords, gameweekWords, loadLatestWords, overtakenWords, saveWords, unchangedWords } from "../../../src/rules/words";
 import { SCORING_TITLE } from "../../../src/scoring/words";
 import { REVISION, type LeagueSettingsData } from "../../support/src/leagueSettings.harness";
 import { CHANGES_FROM } from "../../support/src/scoring.harness";
+import { descriptionOf, refusalBeside } from "../../support/src/describedBy";
 import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
 
 const PAGE = settingsPath(league.leagueId);
@@ -113,7 +114,7 @@ describe("editing them", () => {
     expect(screen.getByRole("status")).toBe(status);
   });
 
-  it("shows why the server refused them, the cursor left on Save (#645)", async () => {
+  it("shows why the server refused them in the save bar, the cursor left on Save (#645)", async () => {
     const app = openSettings();
     const refusal = "The head-to-head games each team plays a gameweek must be a whole number, 1 or more, not 1.5.";
     app.leagueSettings.save.mockResolvedValueOnce(refusal);
@@ -124,16 +125,37 @@ describe("editing them", () => {
     expect(savedSettings(app).gamesPerGameweek).toBe(1.5);
     expect((await screen.findByRole("alert")).textContent).toBe(refusal);
     expect(document.activeElement).toBe(screen.getByRole("button", { name: saveWords }));
+    expect(refusalBeside(gamesBox())).toBeNull();
+    // Under the save bar, after Save, as before.
+    expect(screen.getByRole("button", { name: saveWords }).compareDocumentPosition(screen.getByRole("alert")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("refuses games a gameweek left without a number itself, and asks the server nothing", async () => {
+  it("refuses games a gameweek left without a number itself, beside the box, and asks the server nothing (#645)", async () => {
     const app = openSettings();
     await screen.findByRole("heading", { level: 1, name: SETTINGS_TITLE });
     await setGames("");
     await save();
 
     expect((await screen.findByRole("alert")).textContent).toBe(blankGamesWords);
+    expect(refusalBeside(gamesBox())).toBe(blankGamesWords);
     expect(app.leagueSettings.save).not.toHaveBeenCalled();
+  });
+
+  it("takes the refusal beside a box away once it holds a number, or the changes are discarded (#645)", async () => {
+    openSettings();
+    await screen.findByRole("heading", { level: 1, name: SETTINGS_TITLE });
+    await setGames("");
+    await save();
+    await screen.findByRole("alert");
+    await setGames("2");
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(descriptionOf(gamesBox())).toBe("");
+
+    await setGames("");
+    await save();
+    await screen.findByRole("alert");
+    await userEvent.click(screen.getByRole("button", { name: discardWords }));
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });
 
@@ -227,7 +249,7 @@ describe("the squad (#341)", () => {
     expect(app.leagueSettings.save).not.toHaveBeenCalled();
   });
 
-  it("with every box left without a number, each refused save puts the cursor in the box it names, in the order shown (#645)", async () => {
+  it("with every box left without a number, each refused save says so beside the box it names, the cursor in it, in the order shown (#645)", async () => {
     await opened();
     const named: (readonly [label: string, words: string])[] = [
       [gamesLabel, blankGamesWords],
@@ -240,6 +262,7 @@ describe("the squad (#341)", () => {
     for (const [label, words] of named) {
       await save();
       await waitFor(() => expect(screen.getByRole("alert").textContent).toBe(words));
+      expect(refusalBeside(box(label))).toBe(words);
       expect(document.activeElement).toBe(box(label));
       await fill(label, "1");
     }

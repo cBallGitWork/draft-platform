@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useContext, useId, useState } from "react";
+import { Problem } from "../ui/Panel";
+import { BoxRefusalContext } from "./blank";
 
 /** A box's text as a number: null when blank, NaN when it isn't a finite one ("Infinity" isn't). */
 function parse(text: string): number | null {
@@ -23,11 +25,16 @@ type NumberBoxProps = { label: string; value: number | null } & (
  * the way to "-1", and hands up what it reads: a number, NaN while the text is none, and a blank
  * as NumberBoxProps says. It is marked invalid while it holds no number, unless it is an emptied
  * `optional` one. A new value from outside, such as a changed kind of rule, replaces the text.
+ * A save refused for this box (BoxRefusalContext) is said under it while it still holds no number,
+ * tied to it for screen readers; a parent that wraps puts it on a line of its own, after the row (#645).
  */
 export function NumberBox(props: NumberBoxProps) {
   const { label, value, optional = false } = props;
   const [text, setText] = useState(show(value));
   const [shown, setShown] = useState(value);
+  const id = useId();
+  const refusalId = useId();
+  const boxRefusal = useContext(BoxRefusalContext);
   if (!same(shown, value)) {
     setShown(value);
     setText(show(value));
@@ -46,15 +53,21 @@ export function NumberBox(props: NumberBoxProps) {
   }
   const read = parse(text);
   const invalid = read === null ? !optional : Number.isNaN(read);
+  const refusal = invalid && boxRefusal?.boxId === id ? boxRefusal.words : null;
   return (
-    <input
-      type="text"
-      inputMode="decimal"
-      aria-label={label}
-      aria-invalid={invalid || undefined}
-      value={text}
-      onChange={(event) => change(event.target.value)}
-      className="number-box"
-    />
+    <>
+      <input
+        id={id}
+        type="text"
+        inputMode="decimal"
+        aria-label={label}
+        aria-invalid={invalid || undefined}
+        aria-describedby={refusal === null ? undefined : refusalId}
+        value={text}
+        onChange={(event) => change(event.target.value)}
+        className="number-box"
+      />
+      <Problem id={refusalId} problem={refusal} className="order-last basis-full" />
+    </>
   );
 }

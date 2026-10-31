@@ -12,7 +12,10 @@ import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { gameweekWords } from "../../../src/shared/words";
 import {
   addCategoryWords,
+  bandFromWords,
+  bandRowWords,
   blankBoxWords,
+  boxLabel,
   byAreaWords,
   byPositionWords,
   columnWords,
@@ -30,6 +33,7 @@ import {
 } from "../../../src/scoring/words";
 import { discardWords, saveWords, unchangedWords } from "../../../src/rules/words";
 import { ADMINS_VIEW, CHANGES_FROM } from "../../support/src/scoring.harness";
+import { refusalBeside } from "../../support/src/describedBy";
 import { box, categories, choose, openScoring, retype, save, savedSet, SCORING_PAGE } from "../../support/src/scoringScreen.harness";
 import { adminSeeing, coCommissioned, commissioner, league, managerIn, newcomer, openApp, withNoPart } from "../../support/src/shell.harness";
 
@@ -154,9 +158,10 @@ describe("#30 Done: an edit saves, from the next gameweek", () => {
     await save();
 
     expect((await screen.findByRole("alert")).textContent).toBe(refusal);
+    expect(refusalBeside(box(columnWords.points, everyoneWords))).toBeNull();
   });
 
-  it("refuses a box left without a number itself, naming the category, and asks the server nothing", async () => {
+  it("refuses a box left without a number itself, naming the category beside the box, and asks the server nothing (#645)", async () => {
     const app = openScoring();
     await choose("Assists");
     await retype(columnWords.points, everyoneWords, "");
@@ -164,7 +169,20 @@ describe("#30 Done: an edit saves, from the next gameweek", () => {
     await save();
 
     expect((await screen.findByRole("alert")).textContent).toBe(blankBoxWords("Assists"));
+    expect(refusalBeside(box(columnWords.points, everyoneWords))).toBe(blankBoxWords("Assists"));
     expect(app.scoring.save).not.toHaveBeenCalled();
+  });
+
+  it("says a refusal for a band's empty box beside that box (#645)", async () => {
+    openScoring();
+    await choose("Minutes");
+    const from = screen.getByRole("textbox", { name: boxLabel(bandFromWords, bandRowWords(everyoneWords, 2)) });
+    await userEvent.clear(from);
+    await save();
+
+    expect((await screen.findByRole("alert")).textContent).toBe(blankBoxWords("Minutes"));
+    expect(refusalBeside(from)).toBe(blankBoxWords("Minutes"));
+    expect(document.activeElement).toBe(from);
   });
 
   it("a save refused for boxes left without a number opens the first category it names, the cursor in its box (#645)", async () => {
@@ -176,6 +194,7 @@ describe("#30 Done: an edit saves, from the next gameweek", () => {
     await save();
 
     expect((await screen.findByRole("alert")).textContent).toBe(blankBoxWords("Assists"));
+    expect(refusalBeside(box(columnWords.points, everyoneWords))).toBe(blankBoxWords("Assists"));
     expect(document.activeElement).toBe(box(columnWords.points, everyoneWords));
     expect(within(await categories()).getByRole("button", { current: true }).textContent).toMatch(/^Assists/);
   });

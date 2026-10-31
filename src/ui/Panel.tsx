@@ -49,10 +49,12 @@ function PageTitle({ children, aside }: { children: ReactNode; aside?: ReactNode
   );
 }
 
-/** Why the last change was refused, in the alert strip; nothing while there's no problem. */
-export function Problem({ problem }: { problem: string | null }) {
+/** Why the last change was refused, in the alert strip; nothing while there's no problem. `id`
+ *  lets the control it is about point to it (aria-describedby), and `className` is its place in
+ *  the caller's layout. */
+export function Problem({ problem, id, className }: { problem: string | null; id?: string; className?: string }) {
   return problem ? (
-    <p role="alert" className="alert-strip">
+    <p id={id} role="alert" className={className === undefined ? "alert-strip" : `alert-strip ${className}`}>
       {problem}
     </p>
   ) : null;
