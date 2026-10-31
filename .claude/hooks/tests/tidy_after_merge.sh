@@ -16,7 +16,8 @@ printf '%s\n' "$*" > "$GH_ARGS"
 printf '%s\n' "$FAKE_PR"
 EOF
 chmod +x "$tmp/bin/gh" && export PATH="$tmp/bin:$PATH"
-merge='gh pr merge 7 --squash'
+number=7  # the pull request every check merges
+merge="gh pr merge $number --squash"
 
 built() { # branch: a branch with one commit, checked out in its own worktree at $tmp/wt-<branch>
   git -C "$repo" worktree add -q -b "$1" "$tmp/wt-$1" main
@@ -25,13 +26,13 @@ built() { # branch: a branch with one commit, checked out in its own worktree at
 pr() { # branch [state] [head]: gh pr view's answer for it, the head its tip unless given
   local head=${3:-$(git -C "$repo" rev-parse "$1")}
   export FAKE_PR=$("$jq" -nc --arg b "$1" --arg s "${2:-MERGED}" --arg h "$head" \
-    '{number:7,state:$s,headRefName:$b,headRefOid:$h}')
+    --argjson n "$number" '{number:$n,state:$s,headRefName:$b,headRefOid:$h}')
 }
 has_branch() { git -C "$repo" rev-parse --verify --quiet "refs/heads/$1" >/dev/null; }
 # a stand-in GitHub: a bare origin whose pull request ref the hook fetches when a tip isn't the head
 origin=$tmp/origin.git && git init -q --bare -b main "$origin" && git -C "$repo" remote add origin "$origin"
 git -C "$repo" push -q origin main
-pull_head=refs/pull/7/head
+pull_head=refs/pull/$number/head
 on_github() { git -C "$repo" push -q -f origin "$1:$pull_head"; }  # commit: the pull request's head
 
 # merged, every commit in the pull request, worktree clean: both go
@@ -59,7 +60,8 @@ has_branch updated && fail "tidy_after_merge.py: a branch behind its updated pul
 [ -d "$tmp/wt-updated" ] && fail "tidy_after_merge.py: a branch behind its updated pull request kept its worktree"
 
 # a head gh names that the fetch didn't bring keeps the branch, and says so
-built unknown && pr unknown MERGED 0123456789abcdef0123456789abcdef01234567
+absent_head=0123456789abcdef0123456789abcdef01234567  # a commit no repo here holds
+built unknown && pr unknown MERGED "$absent_head"
 says "git merge-base failed" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
 has_branch unknown || fail "tidy_after_merge.py: removed a branch whose pull request head isn't here"
 
