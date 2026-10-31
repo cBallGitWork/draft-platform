@@ -9,7 +9,7 @@ import { createHash } from "node:crypto";
 import { dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-export const PORT_RANGE_START = 5200;
+const PORT_RANGE_START = 5200;
 export const PORT_RANGE_SIZE = 700;
 const CHECKOUT = dirname(dirname(fileURLToPath(import.meta.url)));
 
