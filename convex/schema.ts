@@ -5,7 +5,7 @@ import { footballTables } from "./schema/football";
 import { signInTables } from "./schema/signIn";
 import { matchStatsTables } from "./schema/matchStats";
 import { positionsTables } from "./schema/positions";
-import { liveStatsTables, commentaryTables, thresholdStepTables, teamStatsTables, teamSheetTables } from "./schema/live";
+import { liveStatsTables, sideRunTables, commentaryTables, thresholdStepTables, teamStatsTables, teamSheetTables } from "./schema/live";
 import { leagueTables } from "./schema/leagues";
 import { joiningTables } from "./schema/joining";
 import { squadTables, shortlistTables } from "./schema/squads";
@@ -22,7 +22,7 @@ export { feedOutcome, feedCheckTrigger, feedCheckFields } from "./schema/feeds";
 export { clubRecord, playerRecord, fixtureRecord, gameweekRecord, matchState, scoreFeed, scoreRead, scoreProblem, scoreWrites, tableWrites, syncTrigger, footballSyncFields } from "./schema/football";
 export { matchStatsState, playerMatchRecord, lateStatChange, matchSyncOutcome, matchStatsSyncFields } from "./schema/matchStats";
 export { position, startRecord, approveMode, changeThresholds, positionsSyncFields } from "./schema/positions";
-export { liveStatsTickFields, commentaryLine, sideTeamStats, teamSheetMan } from "./schema/live";
+export { liveStatsTickFields, sideMatchOutcome, sideRunFields, commentaryLine, sideTeamStats, teamSheetMan } from "./schema/live";
 export { unemailedReason, leagueDeletion, pinnedLetter, leagueEvent } from "./schema/leagues";
 export { delivery } from "./schema/joining";
 export { siteScoringKind } from "./schema/scoring";
@@ -38,6 +38,7 @@ export default defineSchema({
   ...shortlistTables,
   ...matchStatsTables,
   ...liveStatsTables,
+  ...sideRunTables,
   ...commentaryTables,
   ...thresholdStepTables,
   ...teamStatsTables,

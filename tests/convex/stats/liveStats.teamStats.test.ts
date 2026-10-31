@@ -3,6 +3,8 @@ import { internal } from "../../../convex/_generated/api";
 import { plTeamStatsUrl } from "../../../convex/football/football";
 import type { RawPlTeamStats } from "../../../convex/football/premierLeague/premierLeague";
 import { OPTA_TEAM_STAT } from "../../../convex/football/premierLeague/plTeamStats";
+import { dayOf } from "../../../convex/outbound/emailLimit";
+import { outcomesOf } from "../../support/convex/feeds.harness";
 import { stagedGw6, stageTime, tickAt } from "../../support/convex/liveStats.harness";
 import { fakeFeeds, FULL_TIME_READ, HULL_EVERTON, HULL_EVERTON_TEAM_STATS, syncAt, withHullEverton } from "../../support/convex/matchStats.harness";
 import { refusedError, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
@@ -18,6 +20,8 @@ beforeEach(() => vi.useFakeTimers());
 
 const TEAM_STATS_URL = plTeamStatsUrl(MATCH.hullEverton.pl);
 const MINUTE = 30;
+/** The team stats feed's row (#522) for a run that read Hull v Everton's. */
+const READ_OK = { ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: true }] };
 
 async function heldTeamStats(t: TestConvex) {
   return t.run((ctx) => ctx.db.query("matchTeamStats").unique());
@@ -49,6 +53,7 @@ test("a tick stores the live match's five team stats alongside its points, home 
 
   expect(latest.outcome).toMatchObject({ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: true }] });
   expect(await heldTeamStats(t)).toMatchObject({ fixtureCode: HULL_EVERTON, ...HULL_EVERTON_TEAM_STATS });
+  expect(await outcomesOf(t, "teamStats")).toEqual([READ_OK]);
 });
 
 test("each read replaces the held five, as the totals run on", async () => {
@@ -71,7 +76,7 @@ test("a read before kickoff, with no stats in it, leaves the held five", async (
   expect(await heldTeamStats(t)).toMatchObject(HULL_EVERTON_TEAM_STATS);
 });
 
-test("team stats that will not read are logged, the held five stand, and the points and commentary carry on", async () => {
+test("team stats that will not read are logged and on the team stats' row, the held five stand, and the points and commentary carry on", async () => {
   const errors = silenceConsoleError();
   const t = await withHullEverton();
   await tickAt(t, stageTime(MINUTE), stagedGw6(MINUTE));
@@ -80,8 +85,31 @@ test("team stats that will not read are logged, the held five stand, and the poi
 
   expect(latest.outcome).toMatchObject({ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: true }] });
   expect(errors).toHaveBeenCalledWith(`match ${HULL_EVERTON}'s team stats failed: ${refusedError(TEAM_STATS_URL)}`);
+  expect((await outcomesOf(t, "teamStats")).at(-1)).toEqual({
+    ok: true,
+    matches: [{ fixtureCode: HULL_EVERTON, ok: false, error: refusedError(TEAM_STATS_URL) }],
+  });
   expect(await heldTeamStats(t)).toMatchObject(HULL_EVERTON_TEAM_STATS);
   expect(await t.run((ctx) => ctx.db.query("matchCommentary").unique())).toMatchObject({ delayed: null });
+});
+
+test("a team stats row that can't be written is logged, and the tick carries on", async () => {
+  const errors = silenceConsoleError();
+  const t = await withHullEverton();
+  // Two counts for one day: the failure email's count can't be read, so the row's mutation throws.
+  const day = dayOf(stageTime(MINUTE));
+  await t.run(async (ctx) => {
+    await ctx.db.insert("emailSends", { day, count: 0 });
+    await ctx.db.insert("emailSends", { day, count: 0 });
+  });
+
+  const { latest } = await tickAt(t, stageTime(MINUTE), stagedGw6(MINUTE), TEAM_STATS_URL);
+
+  expect(latest.outcome).toMatchObject({ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: true }] });
+  expect(errors).toHaveBeenCalledWith(expect.stringContaining("the teamStats run's row wasn't written"));
+  expect(await outcomesOf(t, "teamStats")).toEqual([]);
+  // The threshold lines' row, recorded after it, is still written.
+  expect(await outcomesOf(t, "thresholdSteps")).toHaveLength(1);
 });
 
 test("the full-time sync stores the final five, and leaves a match not yet at full time unread", async () => {
@@ -92,8 +120,11 @@ test("the full-time sync stores the final five, and leaves a match not yet at fu
   await waiting.action(internal.stats.matchStatsSync.run, { trigger: "manual" });
   expect(fetch.mock.calls.map(([url]) => url)).not.toContain(TEAM_STATS_URL);
   expect(await heldTeamStats(waiting)).toBeNull();
+  // A sync that read no team stats owes their feed no row.
+  expect(await outcomesOf(waiting, "teamStats")).toEqual([]);
 
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, recordedGw6());
   expect(await heldTeamStats(t)).toMatchObject({ fixtureCode: HULL_EVERTON, ...HULL_EVERTON_TEAM_STATS });
+  expect(await outcomesOf(t, "teamStats")).toEqual([READ_OK]);
 });

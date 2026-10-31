@@ -100,6 +100,19 @@ export async function siteScoringInGameweek(ctx: QueryCtx, gameweek: number): Pr
 /** `siteScoringInGameweek` for any gameweek, reading the versions and the schedule once: for a
  *  read that prices matches across many gameweeks, such as a player's card (#381). */
 export async function siteScoringByGameweek(ctx: QueryCtx): Promise<(gameweek: number) => StoredScoringSet> {
+  const versionIn = await siteVersionByGameweek(ctx);
+  return (gameweek) => versionIn(gameweek).set;
+}
+
+/** The scoring a gameweek was scored under: its set, and its version's name, null for the first
+ *  set (spec/14, On screen: a breakdown says the version it was scored under). */
+export interface VersionInForce {
+  set: StoredScoringSet;
+  name: string | null;
+}
+
+/** `siteScoringByGameweek`, with the version's name beside each gameweek's set. */
+export async function siteVersionByGameweek(ctx: QueryCtx): Promise<(gameweek: number) => VersionInForce> {
   const history = await siteVersions(ctx);
   const { matches } = await heldSchedule(ctx);
   const recordedStarts = await gameweekStartsOf(ctx, matches);
@@ -107,7 +120,7 @@ export async function siteScoringByGameweek(ctx: QueryCtx): Promise<(gameweek: n
   return (gameweek) => {
     const firstKickoff = recordedStarts.get(gameweek) ?? kickoffs.get(gameweek) ?? null;
     const inForce = firstKickoff === null ? history.at(-1) : history.findLast((row) => row.takesEffectAt <= firstKickoff);
-    return setOf(inForce);
+    return { set: setOf(inForce), name: inForce === undefined ? null : versionName(inForce) };
   };
 }
 
