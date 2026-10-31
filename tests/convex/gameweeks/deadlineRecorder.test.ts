@@ -13,13 +13,13 @@ import {
   deadlineBefore,
   GAMEWEEK,
   heldOpener,
+  kickoffsOf,
   leagueId,
   markOpenerDropped,
   OPENER,
   openerPostponed,
   passedRows,
   recordPassed,
-  SECOND,
   setUsedIn,
   shownDeadline,
   t,
@@ -32,6 +32,8 @@ import {
 
 /** A deadline earlier than the first rules', in minutes before the first kickoff. */
 const THREE_HOURS = 180;
+/** Gameweek 8's second kickoff, its first once the opener is postponed. */
+const [, SECOND] = kickoffsOf(GAMEWEEK);
 
 useDeadlineRecorderDeployment();
 

@@ -20,7 +20,7 @@ export const GAMEWEEK = 8;
 export const payloads = recordedSeason();
 export const kickoffsOf = (gameweek: number) =>
   payloads.fixtures.flatMap((fixture) => (fixture.event === gameweek && fixture.kickoff_time !== null ? [Date.parse(fixture.kickoff_time)] : [])).toSorted((a, b) => a - b);
-export const [OPENER, SECOND] = kickoffsOf(GAMEWEEK);
+export const [OPENER] = kickoffsOf(GAMEWEEK);
 /** The first rules' deadline, before a kickoff. */
 export const deadlineBefore = (kickoff: number) => kickoff - FIRST_RULES.deadline.minutesBeforeFirstKickoff * MINUTE_MS;
 
