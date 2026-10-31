@@ -11,8 +11,8 @@ called origin keeps such a branch, and says why), and the worktree must have not
 and no ignored file but throwaway output: build output, or the screenshots in .shots/ (git
 worktree remove deletes ignored files: a .env.local would go). The main checkout and the folder
 the merge ran in are never removed; another session still open in a clean worktree isn't seen,
-and loses its folder once its pull request merges. Anything kept is said, with why; so is a pull request gh can't read. It runs
-after the command, so it never blocks one. Stdlib only, Python 3.9+.
+and loses its folder once its pull request merges. Anything kept is said, with why; so is a pull
+request gh can't read. It runs after the command, so it never blocks one. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -36,10 +36,11 @@ PULL_HEAD = "pull/{number}/head"  # GitHub's ref for a pull request's head commi
 RUN_TIMEOUT_SECONDS = 13
 NOT_ANCESTOR = 1  # git merge-base --is-ancestor's exit when the first commit isn't behind the second
 IGNORED = "!! "  # git status --porcelain --ignored=matching's mark for an ignored path
-SHOTS = ".shots"  # scripts/shoot.mjs's screenshots, which builders and the ui-verifier take
-# ignored paths nobody needs once the work has merged (what a build or test run makes again, and
-# screenshots), so a worktree holding only these may go
-THROWAWAY = {"node_modules", "dist", "coverage", "test-results", "playwright-report", "__pycache__", ".DS_Store", SHOTS}
+# ignored paths nobody needs once the work has merged, so a worktree holding only these may go:
+# what a build or test run makes again, and .shots, the screenshots scripts/shoot.mjs takes
+THROWAWAY = {
+    "node_modules", "dist", "coverage", "test-results", "playwright-report", "__pycache__", ".DS_Store", ".shots",
+}
 
 
 def call(folder, *args):
