@@ -56,7 +56,9 @@ never enough.
 - Colour roles: the top bar royal blue and the title plates indigo; the page neutral dark under its
   drawn grain and top glow (never a photograph, never slate or indigo), the panels see-through over it;
   yellow only on a figure, never a button or a tab; Continue white (orange only when
-  the deadline is near; outlined "Nothing needs you" with nothing to do); the active tab white with
+  the deadline is near; outlined "Nothing needs you" with nothing to do); the yes on a confirm that
+  deletes or removes is the danger action, orange-edged with orange ink on a dark fill, never
+  Continue's white and never filled orange; the active tab white with
   a cyan underline; orange for what happened or needs you; muted grey never on the top bar;
   cyan only on a derived reading (a countdown, a preset's name), the active tab's underline, the
   current one of a list's left bar, a link's underline under the pointer or with focus (no underline
