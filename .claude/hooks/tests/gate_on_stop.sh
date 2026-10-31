@@ -27,7 +27,8 @@ blocks gate_on_stop.py "$(stop_in "$wt_dirty")" CLAUDE_PROJECT_DIR="$clean" DRAF
 blocks gate_on_stop.py "$(stop_in "$wt_dirty/src")" CLAUDE_PROJECT_DIR="$clean" DRAFT_GATE_CMD='test ! -e src/a.ts'
 # a subagent in the main checkout leaves it to the session's own Stop, which still gates it
 silent gate_on_stop.py "$(stop_in "$dirty")" DRAFT_GATE_CMD=false
-blocks gate_on_stop.py "$(stop_in "$dirty" Stop)" DRAFT_GATE_CMD=false
+dirty_stop=$(stop_in "$dirty" Stop)
+blocks gate_on_stop.py "$dirty_stop" DRAFT_GATE_CMD=false
 mkdir -p "$nogit/src" && touch "$nogit/package.json" "$nogit/src/a.ts"
 silent gate_on_stop.py "$(stop_in "$nogit")" DRAFT_GATE_CMD=false  # not a git checkout: no gate
 git init -q "$nopkg" && mkdir "$nopkg/src" && touch "$nopkg/src/a.ts"
@@ -43,10 +44,21 @@ fails_loudly "gate_on_stop.py: git status --porcelain -- " gate_on_stop.py "$bro
 one_line "a failed git status"
 fails_loudly "failed in $(git -C "$broken" rev-parse --show-toplevel) (exit 128: " gate_on_stop.py "$broken_stop" DRAFT_GATE_CMD=true
 # a gate that runs past its timeout is one line saying so, never a traceback (here src/a.ts is changed in $dirty)
-slow='sleep 5' short=0.2
-fails_loudly "gate_on_stop.py: the gate ($slow) ran past its $short-second timeout in $(git -C "$dirty" rev-parse --show-toplevel), so the stop goes ahead ungated." \
-  gate_on_stop.py "$(stop_in "$dirty" Stop)" DRAFT_GATE_CMD="$slow" DRAFT_GATE_TIMEOUT=$short
+slow='sleep 5' short=0.2 ungated='so the stop goes ahead ungated.'
+dirty_top=$(git -C "$dirty" rev-parse --show-toplevel)
+fails_loudly "gate_on_stop.py: the gate ($slow) ran past its $short-second timeout in $dirty_top, $ungated" \
+  gate_on_stop.py "$dirty_stop" DRAFT_GATE_CMD="$slow" DRAFT_GATE_TIMEOUT=$short
 one_line "a gate past its timeout"
+# so is a gate whose program isn't there, or an override it can't read
+fails_loudly "gate_on_stop.py: no-such-gate couldn't start in $dirty_top (No such file or directory), $ungated" \
+  gate_on_stop.py "$dirty_stop" DRAFT_GATE_CMD=no-such-gate
+one_line "a gate that can't start"
+fails_loudly "gate_on_stop.py: DRAFT_GATE_TIMEOUT is 'soon', not a number of seconds, $ungated" \
+  gate_on_stop.py "$dirty_stop" DRAFT_GATE_CMD=true DRAFT_GATE_TIMEOUT=soon
+one_line "a DRAFT_GATE_TIMEOUT that isn't a number"
+fails_loudly "gate_on_stop.py: DRAFT_GATE_CMD is \"echo 'open\", which doesn't split into words (No closing quotation), $ungated" \
+  gate_on_stop.py "$dirty_stop" DRAFT_GATE_CMD="echo 'open"
+one_line "a DRAFT_GATE_CMD with an open quote"
 # a payload it can't read is said on stderr, never taken for {} (here, a dirty checkout whose gate fails)
 for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
   fails_loudly "${bad_payloads[i + 1]}" gate_on_stop.py "${bad_payloads[i]}" DRAFT_GATE_CMD=false
@@ -55,7 +67,7 @@ fails_loudly "cwd is int where str was expected" gate_on_stop.py '{"cwd":3}' DRA
 fails_loudly "stop_hook_active is str where bool was expected" gate_on_stop.py '{"stop_hook_active":"yes"}' DRAFT_GATE_CMD=false
 fails_loudly "hook_event_name is list where str was expected" gate_on_stop.py '{"hook_event_name":[]}' DRAFT_GATE_CMD=false
 # each is watched (verify tests or reads it), so a change there alone runs the gate
-for path in scripts/a.mjs tests/a.test.ts playwright.config.ts; do
+for path in scripts/a.mjs tests/a.test.ts playwright.config.ts index.html docs/design/plate.md; do
   repo=$tmp/gate-watch-${path%%[/.]*} && gate_repo "$repo"
   silent gate_on_stop.py "$(stop_in "$repo" Stop)" DRAFT_GATE_CMD=false
   mkdir -p "$repo/$(dirname "$path")" && touch "$repo/$path"

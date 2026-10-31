@@ -20,12 +20,12 @@ Stdlib only, Python 3.9+, because it runs on whatever python3 is present.
 from __future__ import annotations
 
 import json
-import os
 import re
 import sys
 
 from commands import XARGS, Unbalanced, Unreadable, UnreadableStdin, commands, runs_unknown, short_flags
 from drift_gate import merge_problem
+from hook_payload import project_dir
 from main_writes import MAIN, MAIN_REFS, gh_api_problem
 from pr_body import pr_body_problem, pr_title_note
 from private_words import list_missing_note, private_word_problem
@@ -229,7 +229,7 @@ def main():
         payload = json.load(sys.stdin)
         if isinstance(payload, dict):
             cmd = (payload.get("tool_input") or {}).get("command") or ""
-            cwd = payload.get("cwd") or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+            cwd = project_dir(payload.get("cwd"))
             reason = decide(cmd, cwd)
             advice = None if reason else note(cmd, cwd)
         else:
