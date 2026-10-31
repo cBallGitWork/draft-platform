@@ -4,7 +4,6 @@
 import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import type { Cell } from "../../../../convex/lineup/pitch";
 import {
   BENCH_TITLE,
   downLabel,
@@ -12,7 +11,10 @@ import {
   movingHintWords,
   pickHintWords,
   putHereLabel,
+  roleLabel,
+  squadTableLabel,
   startingWords,
+  swapLabel,
   toBenchWords,
   upLabel,
 } from "../../../../src/myTeam/tactics/words";
@@ -20,16 +22,18 @@ import { league } from "../../../support/src/shell.harness";
 import {
   ARRIZABALAGA,
   HAVERTZ,
+  RAYA,
   RICE,
   SALIBA,
   STARTERS,
   WHITE,
+  at,
   blockOf,
   openTacticsTab,
   openedPitch,
   pitch,
-  save,
   squadRows,
+  swaps,
   targets,
   type Member,
 } from "../../../support/src/tacticsScreen.harness";
@@ -68,15 +72,52 @@ describe("moving a player", () => {
     expect(blockOf(SALIBA, { area: "defence", lane: "rightCentre" })).toBeTruthy();
   });
 
-  it("offers a keeper only goal's free cells, and an outfield player never goal", async () => {
+  it("lights no free cell that breaks the area limits: a second keeper only swaps with the first", async () => {
     await openedPitch();
     await userEvent.click(screen.getByRole("button", { name: moveLabel(ARRIZABALAGA.name) }));
-    // How many may stand in goal is the league's limit, told on saving (lineup.ts).
-    const freeGoalLanes: Cell["lane"][] = ["left", "leftCentre", "rightCentre", "right"];
-    expect(targets()).toEqual(freeGoalLanes.map((lane) => putHereLabel(ARRIZABALAGA.name, "goalkeeper", lane)));
+    // The first rules start one keeper, no more and no fewer.
+    expect(targets()).toEqual([]);
+    expect(swaps()).toEqual([swapLabel(ARRIZABALAGA.name, RAYA.name)]);
 
     await userEvent.click(blockOf(SALIBA, { area: "defence", lane: "leftCentre" }));
     expect(targets().some((label) => label?.includes("Goalkeeper"))).toBe(false);
+    expect(swaps()).toEqual([]);
+  });
+
+  it("swaps a bench player for a starter by a tap on the lit starter: the starter takes his place on the bench", async () => {
+    const app = await openedPitch();
+    await userEvent.click(screen.getByRole("button", { name: moveLabel(ARRIZABALAGA.name) }));
+    await userEvent.click(within(pitch()).getByRole("button", { name: swapLabel(ARRIZABALAGA.name, RAYA.name) }));
+    expect(document.activeElement).toBe(blockOf(ARRIZABALAGA, { area: "goalkeeper", lane: "centre" }));
+    expect(app.myTeam.lineupChanges.save).toHaveBeenLastCalledWith(league.leagueId, {
+      starters: [at(ARRIZABALAGA, { area: "goalkeeper", lane: "centre" }), ...STARTERS.slice(1)],
+      bench: [RAYA.playerCode, WHITE.playerCode],
+    });
+  });
+
+  it("swaps two starters, each into the other's cell on its first role, by a drop of one on the other", async () => {
+    await openedPitch();
+    await userEvent.click(screen.getByRole("button", { name: moveLabel(WHITE.name) }));
+    await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "left") }));
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: roleLabel(SALIBA.name) }), "ballPlayingDefender");
+    const dataTransfer = { setData: () => undefined, effectAllowed: "" };
+    fireEvent.dragStart(blockOf(SALIBA, { area: "defence", lane: "leftCentre" }), { dataTransfer });
+    const whitesCell = within(pitch()).getByRole("button", { name: swapLabel(SALIBA.name, WHITE.name) }).parentElement!;
+    fireEvent.dragOver(whitesCell, { dataTransfer });
+    fireEvent.drop(whitesCell, { dataTransfer });
+    expect(blockOf(SALIBA, { area: "defence", lane: "left" })).toBeTruthy();
+    expect(blockOf(WHITE, { area: "defence", lane: "leftCentre" })).toBeTruthy();
+    expect((screen.getByRole("combobox", { name: roleLabel(SALIBA.name) }) as HTMLSelectElement).value).not.toBe("ballPlayingDefender");
+  });
+
+  it("swaps a starter with a lit bench player from the squad", async () => {
+    await openedPitch();
+    await userEvent.click(blockOf(RAYA, { area: "goalkeeper", lane: "centre" }));
+    // Only the other keeper plays goal: White isn't lit.
+    expect(screen.queryByRole("button", { name: swapLabel(RAYA.name, WHITE.name) })).toBeNull();
+    const table = screen.getByRole("table", { name: squadTableLabel });
+    await userEvent.click(within(table).getByRole("button", { name: swapLabel(RAYA.name, ARRIZABALAGA.name) }));
+    expect(blockOf(ARRIZABALAGA, { area: "goalkeeper", lane: "centre" })).toBeTruthy();
   });
 
   it("works from the keyboard: Enter picks a player up, Escape puts him back", async () => {
@@ -166,10 +207,10 @@ describe("the bench order (spec/05 Auto-subs; Craig, 26 Oct 2026)", () => {
   });
 
   it("a drop on a bench row with nobody picked up changes nothing", async () => {
-    await openedPitch();
+    const app = await openedPitch();
     fireEvent.drop(down(WHITE).closest("tr")!, { dataTransfer: { setData: () => undefined, effectAllowed: "" } });
     expect(benchNames().map((row) => row.split(" ARS")[0])).toEqual(["GKArrizabalaga", "FB, WBWhite"]);
-    expect(save().hasAttribute("disabled")).toBe(true);
+    expect(app.myTeam.lineupChanges.save).not.toHaveBeenCalled();
   });
 
   it("Up and Down keep the focus on the button pressed, or its partner once it stops at an end", async () => {
@@ -190,10 +231,9 @@ describe("the bench order (spec/05 Auto-subs; Craig, 26 Oct 2026)", () => {
     expect(document.activeElement).toBe(down(ARRIZABALAGA));
   });
 
-  it("is saved as it stands", async () => {
+  it("saves itself as it stands", async () => {
     const app = await openedPitch();
     await userEvent.click(up(WHITE));
-    await userEvent.click(save());
     expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, { starters: STARTERS, bench: [WHITE.playerCode, ARRIZABALAGA.playerCode] });
   });
 });
