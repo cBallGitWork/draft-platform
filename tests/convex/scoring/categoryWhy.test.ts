@@ -14,6 +14,8 @@ import { centreOf, EXAMPLE_SET, everyArea, everyPosition } from "../../support/c
 
 const dewsburyHall = recordOf(fplLines, DEWSBURY_HALL);
 const tzolakis = recordOf(fplLines, TZOLAKIS);
+/** The site's first set, whose clean sheet needs 60 minutes. */
+const FIRST = FIRST_SCORING as ScoringSet;
 
 /** The why of one category of his match under `set` at `cell`. */
 function whyOf(record: MatchStats, set: ScoringSet, cell: Cell, stat: string): CategoryWhy {
@@ -106,7 +108,7 @@ describe("what cut his points", () => {
   });
 
   test("too few minutes for the rule: a clean sheet in 45 minutes earns nothing, and says why", () => {
-    const scored = scoreMatch({ minutes: 45, clean_sheets: 1 }, FIRST_SCORING as ScoringSet, centreOf("defence"));
+    const scored = scoreMatch({ minutes: 45, clean_sheets: 1 }, FIRST, centreOf("defence"));
     expect(scored.categories.find((each) => each.stat === "clean_sheets")).toEqual({
       stat: "clean_sheets",
       points: 0,
@@ -115,11 +117,11 @@ describe("what cut his points", () => {
   });
 
   test("too few minutes cuts nothing when the rule gave nothing anyway: no clean sheet", () => {
-    expect(whyOf({ minutes: 45, clean_sheets: 0 }, FIRST_SCORING as ScoringSet, centreOf("defence"), "clean_sheets").cut).toBeNull();
+    expect(whyOf({ minutes: 45, clean_sheets: 0 }, FIRST, centreOf("defence"), "clean_sheets").cut).toBeNull();
   });
 
   test("enough minutes, and the clean sheet counts uncut", () => {
-    expect(scoreMatch({ minutes: 60, clean_sheets: 1 }, FIRST_SCORING as ScoringSet, centreOf("defence")).categories.find((each) => each.stat === "clean_sheets")).toMatchObject({
+    expect(scoreMatch({ minutes: 60, clean_sheets: 1 }, FIRST, centreOf("defence")).categories.find((each) => each.stat === "clean_sheets")).toMatchObject({
       points: 4,
       why: { cut: null },
     });
@@ -147,7 +149,7 @@ const ONE_CELL_A_POSITION = ALL_CELLS.filter((cell, index) => ALL_CELLS.findInde
 // #797's Done: over a recorded match, every category's why reproduces its points.
 describe.each([
   ["the example set", EXAMPLE_SET],
-  ["the first scoring set", FIRST_SCORING as ScoringSet],
+  ["the first scoring set", FIRST],
 ])("every recorded line of Hull v Everton, from both feeds, at every slot position, under %s", (_name, set) => {
   const lines = [...fplLines, ...plLines];
 

@@ -3,7 +3,7 @@
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
 import { AREA_WORDS, figureWords, gameweekWords, signedWords, versusWords } from "../shared/words";
 
-export { figureWords, freeAgentWords, listSeparator, noFigureWords } from "../shared/words";
+export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
 
 export const backWords = "Back";
 export const loadingWords = "Loading the player…";

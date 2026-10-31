@@ -2,12 +2,13 @@ import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { SLOT_POSITIONS } from "../lineup/pitch";
+import { areaShape } from "../lineup/pitchShape";
 import { roleName } from "../lineup/roles";
 import { positionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
-import { areaShape } from "../lineup/pitchShape";
 import { categoryName } from "../scoring/categories";
+import { bandShape } from "../scoring/scoringSetShape";
 import { siteVersionByGameweek } from "../scoring/siteScoring";
 import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode, type Clubs } from "../shared/players";
@@ -43,7 +44,7 @@ const categoryWhy = v.object({
   value: v.union(
     v.object({ shape: v.literal("perAction"), points: v.number() }),
     v.object({ shape: v.literal("perCount"), every: v.number(), points: v.number() }),
-    v.object({ shape: v.literal("bands"), earned: v.array(v.object({ atLeast: v.number(), points: v.number() })) }),
+    v.object({ shape: v.literal("bands"), earned: v.array(bandShape) }),
   ),
   pricedBy: v.union(
     v.object({ by: v.literal("all") }),
