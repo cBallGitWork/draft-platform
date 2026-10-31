@@ -25,8 +25,8 @@ type ColumnSort<Column extends string, Sortable extends Column> = {
 };
 
 /** A data table's head row: one column head per shown column, in order, each showing its short word
- *  and named by both (columnHeadName). `shown` defaults to every column; `classOf` gives each head its cell
- *  classes, so a head lines up with the cells under it. An `unseen` column's head draws nothing,
+ *  and named by both (columnHeadName). `shown` defaults to every column; `classOf` gives each head
+ *  its cell classes, so a head lines up with the cells under it. An `unseen` column's head draws nothing,
  *  such as the stat column between two clubs. With `sort`, a sortable column's head is a button,
  *  and the column sorted by says which way. */
 export function ColumnHeads<Column extends string, Sortable extends Column = Column>({
@@ -46,8 +46,9 @@ export function ColumnHeads<Column extends string, Sortable extends Column = Col
     <thead className="bg-head text-ground">
       <tr>
         {shown.map((column) => {
-          const { short, long } = columns[column];
-          const name = columnHeadName(columns[column]);
+          const words = columns[column];
+          const { short, long } = words;
+          const name = columnHeadName(words);
           const sortable = sort?.sortable.find((each) => each === column);
           const press = sort === undefined || sortable === undefined ? undefined : () => sort.sortBy(sortable);
           const sorted = sort !== undefined && sort.by === column;

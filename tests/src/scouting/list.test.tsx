@@ -89,7 +89,7 @@ describe("the list", () => {
     expect(cells.slice(-2).map((cell) => cell.getAttribute("title"))).toEqual([noPointsYetWords, noRoleFitYetWords]);
   });
 
-  it("heads each column with a short code, named by its full name, which shows on hover", async () => {
+  it("heads each column with a short code, named by it and its full name, which shows on hover", async () => {
     openScouting();
     await screen.findByRole("table");
     const heads = Object.values(columns).map((words) => columnHeadIn(table(), words));

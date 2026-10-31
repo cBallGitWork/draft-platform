@@ -7,7 +7,7 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { ascendingGlyph, descendingGlyph } from "../../../src/shared/words";
-import { ColumnHeads } from "../../../src/ui/ColumnHeads";
+import { ColumnHeads, type ColumnWords } from "../../../src/ui/ColumnHeads";
 import { columnHeadIn, sortLabelOf } from "../../support/src/columnHeads";
 
 const columns = {
@@ -17,7 +17,7 @@ const columns = {
 };
 
 const table = (heads: ReactNode) => render(<table>{heads}</table>);
-const headOf = (words: (typeof columns)[keyof typeof columns]) => columnHeadIn(document.body, words);
+const headOf = (words: ColumnWords) => columnHeadIn(document.body, words);
 
 it("draws one column head per column in order, showing the short word, the long one on hover", () => {
   table(<ColumnHeads columns={columns} classOf={() => "px-2"} />);
