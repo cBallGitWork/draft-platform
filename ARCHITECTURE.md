@@ -187,8 +187,8 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   `convex/rules/leagueRulesShape.ts`).
 - The site's scoring (#354-#356): every league plays on one scoring set, which only the admin
   changes. Each version is a row in `siteScoring`, announced as a patch or a fix, and found by
-  `takesEffectAt`, so a past gameweek keeps the set it was played under; with none, the first set
-  (`convex/scoring/firstScoring.ts`). A gameweek's first kickoff is kept once it passes, in
+  `takesEffectAt`, so a past gameweek keeps the set it was played under (`convex/scoring/siteVersions.ts`);
+  with none, the first set (`convex/scoring/firstScoring.ts`). A gameweek's first kickoff is kept once it passes, in
   `gameweekStarts` (#414), so the version it plays on can't change if that match moves. The
   admin's unannounced patch is the one row in `siteScoringDraft`, and who dismissed a waiting
   patch's banner is a row a person and version in `patchBannerDismissals`, so it stays dismissed on
