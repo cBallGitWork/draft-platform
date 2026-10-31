@@ -91,8 +91,9 @@ palette first: the colour cards after it sit on whatever ground it settles.
   (`docs/design/plate.md`) and its Championship Manager homage.
 
 **Club colours everywhere** (https://trello.com/c/N5Rk4ZPP).
-- Which of these: kits on our pitch shirts, a two-colour club mark before every club code,
-  scoreboards in kit colours, the player card's plate in his club's colour.
+- Which of these: kits on our pitch shirts, beyond the plate's outline in the club's colours
+  (`docs/design/plate.md` Marks); a two-colour club mark before every club code; scoreboards in
+  kit colours; the player card's plate in his club's colour.
 - It needs each club's two colours held: where they come from, and who keeps them right when a
   club changes its kit.
 
@@ -104,15 +105,15 @@ palette first: the colour cards after it sit on whatever ground it settles.
   under *Our own home stadiums*, above.
 
 **Colour that means something** (https://trello.com/c/kt83WyFm).
-- Which of these: W/D/L form squares, a colour per position line, points shaded by band.
+- Which of these: W/D/L form squares (league home shows each team's form already, `spec/12`), a
+  colour per position line, points shaded by band.
 - Where a band's edges come from, if points are shaded by band.
 
 **Vidiprinter strip, score box, every matchup on one live screen**
 (https://trello.com/c/Ep5eR42z).
-- Which of the three, and on which screen: the matchup (`spec/10`), league home (`spec/12`), or a
-  new live screen.
-- The matchup's commentary is a vidiprinter already, for its two teams (`spec/10`). Is the strip
-  every matchup's lines at once, or every match's?
+- League home's matchday mode already has every head-to-head moving and a league-wide vidiprinter
+  (`spec/12`). What the card adds beyond it: a strip of every match's lines, not only those that
+  move a head-to-head; a score box, and where; a live screen of its own, or league home is enough.
 
 ## Suggested, not yet picked
 
