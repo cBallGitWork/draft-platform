@@ -144,8 +144,8 @@ describe("changing them", () => {
     await change({ ...FIRST, gamesPerGameweek: 2 }, CO_COMMISSIONER, opened);
     const events = await eventsIn(t, leagueId);
 
-    const refusal = rulesRefusals.changedSince(CO_COMMISSIONER, await lastEventAt(t, leagueId), undefined);
-    await expectRefused(change({ ...FIRST, oddTeamOut: "bye", gamesPerGameweek: 3 }, COMMISSIONER, opened), refusal);
+    const reason = rulesRefusals.changedSince(CO_COMMISSIONER, await lastEventAt(t, leagueId), undefined);
+    await expectRefused(change({ ...FIRST, oddTeamOut: "bye", gamesPerGameweek: 3 }, COMMISSIONER, opened), reason);
     expect((await inGameweek(NEXT)).gamesPerGameweek).toBe(2);
     expect(await eventsIn(t, leagueId)).toEqual(events);
   });
