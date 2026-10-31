@@ -1,6 +1,6 @@
 // A page whose reading throws, such as a query that failed (spec/12, The frame): the page says so in
-// the alert strip in plain words, never the server's, even for a refusal; logs it; offers Try
-// again, which reads again; and leads back to "Your leagues". Every screen that reads is checked.
+// the alert strip in plain words, never the server's, even for a refusal; logs it; offers Retry,
+// which reads again; and leads back to "Your leagues". Every screen that reads is checked.
 
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -11,7 +11,7 @@ import type { Session } from "../../../src/signIn/seam";
 import { ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../../src/admin/paths";
 import { MAIL_PATH, MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
 import { READ_FAILED_LOG } from "../../../src/frame/ReadFailed";
-import { ERROR_PAGE_TITLE, menuWords, readFailedWords, tryAgainWords } from "../../../src/frame/words";
+import { ERROR_PAGE_TITLE, menuWords, readFailedWords, retryWords } from "../../../src/frame/words";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { invitesPath } from "../../../src/joining/paths";
 import { settingsPath } from "../../../src/leagueSettings/paths";
@@ -63,6 +63,19 @@ it("says plainly that reading failed, logs it, and leads back to Your leagues", 
   await goBackToLeagues(app);
 });
 
+// Craig, 31 Oct 2026 (#489): no guess at the cause, such as the connection, and a Retry button;
+// the buttons sit inside the panel's padding, not on its bottom edge (a margin collapses out of it).
+it("says only that something went wrong, offers Retry, and pads its buttons inside the panel", async () => {
+  silenceConsoleError();
+  await openTableThrowing(new Error(serverWords));
+
+  expect(screen.getByRole("alert").textContent).toBe("Something went wrong");
+  const retry = screen.getByRole("button", { name: "Retry" });
+  const buttonRow = retry.parentElement!;
+  expect(buttonRow.classList.contains("p-3")).toBe(true);
+  expect(buttonRow.className).not.toMatch(/\bm[by]?-/);
+});
+
 it("says the same plain words for a refusal, never the server's, and logs it", async () => {
   const logged = silenceConsoleError();
   const refusal = new ConvexError(refusalWords);
@@ -73,25 +86,25 @@ it("says the same plain words for a refusal, never the server's, and logs it", a
   expect(logged).toHaveBeenCalledWith(READ_FAILED_LOG, refusal);
 });
 
-it("reads again on Try again, and draws the page in place of the error while the read is on its way", async () => {
+it("reads again on Retry, and draws the page in place of the error while the read is on its way", async () => {
   silenceConsoleError();
   const app = await openTableThrowing(new Error(serverWords));
   app.table.useLeagueTable.mockReset();
   app.table.useLeagueTable.mockReturnValue(undefined);
 
-  await userEvent.click(screen.getByRole("button", { name: tryAgainWords }));
+  await userEvent.click(screen.getByRole("button", { name: retryWords }));
 
   expect(app.table.useLeagueTable).toHaveBeenCalled();
   expect(screen.queryByRole("heading", { name: ERROR_PAGE_TITLE })).toBeNull();
   expect(app.path()).toBe(TABLE_PATH);
 });
 
-it("reads again on Try again, and shows the error page again if reading fails again", async () => {
+it("reads again on Retry, and shows the error page again if reading fails again", async () => {
   silenceConsoleError();
   const app = await openTableThrowing(new Error(serverWords));
   app.table.useLeagueTable.mockClear();
 
-  await userEvent.click(screen.getByRole("button", { name: tryAgainWords }));
+  await userEvent.click(screen.getByRole("button", { name: retryWords }));
 
   expect(app.table.useLeagueTable).toHaveBeenCalled();
   expect(await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE })).toBeTruthy();
@@ -156,7 +169,7 @@ describe("no screen shows a failed read as the server's words", () => {
 
     expect(await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE })).toBeTruthy();
     expect(screen.getByRole("alert").textContent).toBe(readFailedWords);
-    expect(screen.getByRole("button", { name: tryAgainWords })).toBeTruthy();
+    expect(screen.getByRole("button", { name: retryWords })).toBeTruthy();
     expect(screen.queryByText(serverWords, { exact: false })).toBeNull();
   });
 });

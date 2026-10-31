@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { Loading, Notice, PageSection, Panel, PANEL_BODY, PANEL_COLUMNS, PANEL_LIST_ROW, PanelNote, Problem } from "../ui/Panel";
+import { Loading, Notice, PAGE_STACK, PageSection, Panel, PANEL_BODY, PANEL_COLUMNS, PANEL_LIST_ROW, PanelNote, Problem } from "../ui/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { playerCardPath } from "../playerCard/paths";
 import { useChange, type Changing } from "../shared/useChange";
@@ -46,7 +46,7 @@ export function SquadsPage({ league, seam }: { league: LeagueSummary; seam: Squa
   const squads = seam.useSquads(league.leagueId);
   const change = useChange();
   return (
-    <div className="flex max-w-5xl flex-col gap-2">
+    <div className={PAGE_STACK}>
       <PageSection title={SQUADS_TITLE} className="bg-panel">
         <LeagueHeading name={league.name} />
         <Problem problem={change.problem} />

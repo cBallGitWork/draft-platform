@@ -88,7 +88,7 @@ class ShellFailed extends Component<{ children: ReactNode }, ShellFailedState> {
     if (this.state.failed === null) return this.props.children;
     const drawAfresh = () => this.setState({ failed: null });
     return (
-      <ReadFailed error={this.state.failed.error} onTryAgain={drawAfresh}>
+      <ReadFailed error={this.state.failed.error} onRetry={drawAfresh}>
         <SignOutAfresh onSignedOut={drawAfresh} />
       </ReadFailed>
     );
