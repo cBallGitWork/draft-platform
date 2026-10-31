@@ -14,10 +14,9 @@ export function holdsBlank(value: unknown): boolean {
 /** A box left without a number, as NumberBox.tsx marks it. */
 const BLANK_BOX = 'input[aria-invalid="true"]';
 
-/** Puts the cursor in the first box left without a number inside `area` once `refused` is called,
- *  after the screen has drawn whatever that call changed, so a commissioner whose save was refused
- *  for one can type the number straight away (#645). A screen's refusal names its first blank box
- *  in the order the screen shows them. */
+/** Once `refused` is called, and the screen has drawn what changed with it, puts the cursor in the
+ *  first blank box inside `area`: the one a screen's refusal names, as each checks its boxes in
+ *  the order it shows them (#645). */
 export function useBlankFocus<Area extends HTMLElement>() {
   const area = useRef<Area>(null);
   const [refusals, setRefusals] = useState(0);

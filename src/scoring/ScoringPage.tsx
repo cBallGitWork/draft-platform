@@ -58,8 +58,8 @@ export function ScoringPage({ league, seam }: { league: LeagueSummary; seam: Sco
 function Editor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
   const [picked, choose] = useState(0);
   const blankFocus = useBlankFocus<HTMLDivElement>();
-  const rulesDraft = useRulesDraft(view, seam.save, blankBoxRefusal, (refused) => {
-    choose(firstBlankRule(refused));
+  const rulesDraft = useRulesDraft(view, seam.save, blankBoxRefusal, (refusedSet) => {
+    choose(firstBlankRule(refusedSet));
     blankFocus.refused();
   });
   const readOnly = !view.canEdit;
