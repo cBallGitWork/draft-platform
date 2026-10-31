@@ -23,19 +23,19 @@ test("smoke's two ports sit at this checkout's app-port offset in their own rang
 });
 
 const OFFSETS = Array.from({ length: PORT_RANGE_SIZE }, (_, offset) => offset);
-const inRange = (port, nth) => port >= rangeStart(nth) && port < rangeStart(nth + 1);
+const inRange = (port, range) => port >= rangeStart(range) && port < rangeStart(range + 1);
 
 test("no port any checkout can be given is one a browser blocks", () => {
-  const blocked = Object.values(PORT_RANGES).flatMap((nth) =>
-    OFFSETS.map((offset) => portInRange(nth, offset)).filter((port) => BROWSER_BLOCKED_PORTS.has(port)),
+  const blocked = Object.values(PORT_RANGES).flatMap((range) =>
+    OFFSETS.map((offset) => portInRange(range, offset)).filter((port) => BROWSER_BLOCKED_PORTS.has(port)),
   );
   expect(blocked).toEqual([]);
 });
 
 // So a smoke server that steps past a blocked port never lands on any checkout's app port.
 test("stepping past a blocked port keeps every server in its own range", () => {
-  for (const nth of Object.values(PORT_RANGES)) {
-    for (const offset of OFFSETS) expect(inRange(portInRange(nth, offset), nth)).toBe(true);
+  for (const range of Object.values(PORT_RANGES)) {
+    for (const offset of OFFSETS) expect(inRange(portInRange(range, offset), range)).toBe(true);
   }
 });
 

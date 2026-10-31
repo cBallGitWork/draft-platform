@@ -28,15 +28,15 @@ const checkoutOffset = () =>
 // smoke`'s two servers, in the others, are clear of all of them (the ui-verifier's among them).
 export const PORT_RANGES = { app: 0, smokeDev: 1, smokeBundle: 2 };
 
-export const rangeStart = (nth) => PORT_RANGE_START + nth * PORT_RANGE_SIZE;
+export const rangeStart = (range) => PORT_RANGE_START + range * PORT_RANGE_SIZE;
 
 /**
- * The port `offset` into the `nth` range, stepped up past any port a browser blocks. No blocked
- * port ends a range, so a stepped port stays in its own (port.test.mjs). A step can land on another
- * checkout's port in the same range, as two checkouts whose paths hash alike already do.
+ * The port `offset` into `range` (one of PORT_RANGES), stepped up past any port a browser blocks.
+ * No blocked port ends a range, so a stepped port stays in its own (port.test.mjs). A step can land
+ * on another checkout's port in the same range, as two checkouts whose paths hash alike already do.
  */
-export function portInRange(nth, offset) {
-  let port = rangeStart(nth) + offset;
+export function portInRange(range, offset) {
+  let port = rangeStart(range) + offset;
   while (BROWSER_BLOCKED_PORTS.has(port)) port += 1;
   return port;
 }
