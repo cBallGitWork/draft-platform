@@ -173,7 +173,7 @@ describe("#30 Done: an edit saves, from the next gameweek", () => {
     expect(app.scoring.save).not.toHaveBeenCalled();
   });
 
-  it("says a refusal for a band's empty box beside that box (#645)", async () => {
+  it("says a refusal for a band's empty box beside that box, the cursor in it (#645)", async () => {
     openScoring();
     await choose("Minutes");
     const from = screen.getByRole("textbox", { name: boxLabel(bandFromWords, bandRowWords(everyoneWords, 2)) });
