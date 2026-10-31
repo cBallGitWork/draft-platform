@@ -79,6 +79,31 @@ to get you there"). It lives in this repo; the rest is open.
 - What auditing checks first: the spec against the tests (#454), work beyond what's been
   grilled, the hard rules, or a readable log of what each agent session did and why.
 
+**A season stat race beside the table**: from the ideas board's "Roto side table" (Craig, 31 Oct
+2026: "yeah that's fine in stats").
+- Which stats race: clean sheets, cards, goals, or any category the league scores.
+- Counted from a team's starters only, or every man it owned that week.
+- A side table only, or does it give anything (a trophy, an award in Mail).
+- How it sits with *Category tables* under Smaller pages, below.
+
+**Rivals' benches hidden until kick-off**: from the ideas board (Craig, 31 Oct 2026).
+- Hidden until the deadline, or until each player's own kick-off.
+- Bench only, or the starting XI too.
+- Whether the league chooses, as a rule, or it's the same for every league.
+
+**Why did he score that?**: from the ideas board's "why did my wing-back lose 2?" (Craig, 31 Oct
+2026). Any player's points for a match, explained by the exact rule and the stat line behind it.
+- Where it's asked from: a tap on the points, a question box, or both.
+- Written by the site from the scoring rows, or by AI in words, checked against those rows.
+- Whether it covers the team total too: who was subbed on, who was on the bench.
+
+**A rule balance lab**: from the ideas board (Craig, 31 Oct 2026). Try a rule or role on last
+season's matches before it's saved, and flag what it makes too strong.
+- Who uses it: the site admin, a league's commissioner, or both.
+- What it shows: head-to-heads that would flip, the table that would change, roles that would pay
+  most.
+- Where last season's matches come from: the site holds none before its first season (#457).
+
 ## Suggested, not yet picked
 
 | What | Why |
