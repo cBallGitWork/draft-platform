@@ -25,7 +25,7 @@ reason, and a change to either changes this file.
 | Money | free plans through the mini beta; Craig sets a monthly ceiling before August 2027 | |
 
 **Before building on Convex:** a short test that its servers can fetch FPL's and the Premier
-League's public APIs (only ever called from Vercel in London so far), and that a scheduled
+League's public APIs (until then only ever called from Vercel in London), and that a scheduled
 function fires with no browser open. If either fails, the backend choice goes back to Craig;
 Supabase was the runner-up.
 

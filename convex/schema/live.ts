@@ -1,6 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
-import { scoreWrites } from "./football";
+import { failure, scoreWrites } from "./football";
 import { matchSyncOutcome } from "./matchStats";
 
 // The live poller (#28): one row per tick that found a match live, so a failed one is on record.
@@ -13,7 +13,7 @@ export const liveStatsTickFields = {
       /** The live matches' scores; absent on ticks before #49's scores. */
       scores: v.optional(scoreWrites),
     }),
-    v.object({ ok: v.literal(false), error: v.string() }),
+    failure,
   ),
 };
 
@@ -34,7 +34,7 @@ export const sideRunFields = {
   ranAt: v.number(),
   outcome: v.union(
     v.object({ ok: v.literal(true), matches: v.array(sideMatchOutcome) }),
-    v.object({ ok: v.literal(false), error: v.string() }),
+    failure,
   ),
 };
 
