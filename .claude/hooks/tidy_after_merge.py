@@ -22,7 +22,7 @@ import sys
 
 from commands import commands
 from drift_gate import merge_args, view_args
-from hook_payload import BadPayload, field, read_payload, report
+from hook_payload import BadPayload, field, project_dir, read_payload, report
 from parsing import Unbalanced, Unreadable
 from stdin_reading import UnreadableStdin
 
@@ -143,7 +143,7 @@ def main():
     try:
         payload = read_payload()
         cmd = field(field(payload, "tool_input", dict, {}), "command", str, "")
-        cwd = field(payload, "cwd", str, "") or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+        cwd = project_dir(field(payload, "cwd", str, ""))
     except BadPayload as error:
         return report(error, "no merged branch was tidied")
     said = notes(cmd, cwd)

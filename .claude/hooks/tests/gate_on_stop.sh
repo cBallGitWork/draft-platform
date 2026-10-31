@@ -47,6 +47,13 @@ slow='sleep 5' short=0.2
 fails_loudly "gate_on_stop.py: the gate ($slow) ran past its $short-second timeout in $(git -C "$dirty" rev-parse --show-toplevel), so the stop goes ahead ungated." \
   gate_on_stop.py "$(stop_in "$dirty" Stop)" DRAFT_GATE_CMD="$slow" DRAFT_GATE_TIMEOUT=$short
 one_line "a gate past its timeout"
+# so is a gate whose program isn't there, or a DRAFT_GATE_TIMEOUT that isn't a number
+fails_loudly "gate_on_stop.py: no-such-gate couldn't start in $(git -C "$dirty" rev-parse --show-toplevel) (No such file or directory), so the stop goes ahead ungated." \
+  gate_on_stop.py "$(stop_in "$dirty" Stop)" DRAFT_GATE_CMD=no-such-gate
+one_line "a gate that can't start"
+fails_loudly "gate_on_stop.py: DRAFT_GATE_TIMEOUT is 'soon', not a number of seconds, so the stop goes ahead ungated." \
+  gate_on_stop.py "$(stop_in "$dirty" Stop)" DRAFT_GATE_CMD=true DRAFT_GATE_TIMEOUT=soon
+one_line "a DRAFT_GATE_TIMEOUT that isn't a number"
 # a payload it can't read is said on stderr, never taken for {} (here, a dirty checkout whose gate fails)
 for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
   fails_loudly "${bad_payloads[i + 1]}" gate_on_stop.py "${bad_payloads[i]}" DRAFT_GATE_CMD=false
@@ -55,7 +62,7 @@ fails_loudly "cwd is int where str was expected" gate_on_stop.py '{"cwd":3}' DRA
 fails_loudly "stop_hook_active is str where bool was expected" gate_on_stop.py '{"stop_hook_active":"yes"}' DRAFT_GATE_CMD=false
 fails_loudly "hook_event_name is list where str was expected" gate_on_stop.py '{"hook_event_name":[]}' DRAFT_GATE_CMD=false
 # each is watched (verify tests or reads it), so a change there alone runs the gate
-for path in scripts/a.mjs tests/a.test.ts playwright.config.ts; do
+for path in scripts/a.mjs tests/a.test.ts playwright.config.ts index.html docs/design/plate.md; do
   repo=$tmp/gate-watch-${path%%[/.]*} && gate_repo "$repo"
   silent gate_on_stop.py "$(stop_in "$repo" Stop)" DRAFT_GATE_CMD=false
   mkdir -p "$repo/$(dirname "$path")" && touch "$repo/$path"
