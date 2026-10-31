@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { leagueDeadlines } from "../../../convex/gameweeks/leagueDeadlines";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
-import { inTenths } from "../../../convex/scoring/scoringSet";
+import { inTenths } from "../../../convex/scoring/values";
 import { storeBegunFixtures } from "../../../convex/table/playedFixtures";
 import type { OddTeamOut } from "../../../convex/table/roundRobin";
 import {

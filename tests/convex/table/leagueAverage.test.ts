@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import { inTenths } from "../../../convex/scoring/scoringSet";
+import { inTenths } from "../../../convex/scoring/values";
 import { actingAs } from "../../support/convex/leagues.harness";
 import {
   ANN,

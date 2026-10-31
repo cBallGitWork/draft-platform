@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { MatchPageData } from "../../../convex/match/matchPage";
-import { inTenths } from "../../../convex/scoring/scoringSet";
+import { inTenths } from "../../../convex/scoring/values";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { HULL_POINTS } from "../../support/convex/gameweekScores.harness";
