@@ -15,11 +15,13 @@ import {
   HULL_KEEPER,
   HULL_STARTERS,
   HULL_SCORER,
+  liveRecords,
   lockMatch,
   lockMovedIn,
   MOVED_IN,
   scoresLeague,
   type ScoresLeague,
+  storeLeague,
 } from "../../support/convex/gameweekScores.harness";
 import { BELLOUMI } from "../../support/convex/teamPoints.harness";
 
@@ -175,4 +177,23 @@ test("a team added after a gameweek was stored has its own share worked out, the
   expect((await shares(league)).find((share) => share.teamId === catsTeam)?.stats).toEqual({});
   expect(await totalsOf(league, catsTeam)).toBeUndefined();
   expect(await totalsOf(league, league.annsTeam)).toEqual(statsOf(RECORDS, codesOf(HULL_AFTER_SUB)));
+});
+
+// Pinned as it stands, not as it should be: what to do about it waits on Craig (#805). When he
+// decides, this test changes with the fix.
+test("a live tick's record the full-time read left out stays not whole after the lock, so neither the table nor the stat race stores the gameweek, even on a rebuild", async () => {
+  const league = await scoresLeague();
+  await liveRecords(league, RECORDS.map((record) => (record.playerCode === HULL_SCORER ? { ...record, arrived: { fpl: true, pl: false } } : record)));
+  await fullTimeRecords(league, RECORDS.filter((record) => record.playerCode !== HULL_SCORER));
+  await lockMatch(league);
+  const state = await league.t.run(async (ctx) => (await ctx.db.query("matchStatsStatus").collect()).map((row) => row.state));
+  expect(state).toEqual(["locked"]);
+
+  expect(await storeStats(league)).toEqual([]);
+  expect(await storeLeague(league)).toEqual([]);
+  await league.t.mutation(internal.stats.teamSeasonStats.rebuild, { leagueId: league.leagueId });
+  await league.t.finishAllScheduledFunctions(vi.runAllTimers);
+  expect(await shares(league)).toEqual([]);
+  expect(await totalsOf(league, league.annsTeam)).toBeUndefined();
+  expect(await league.t.run((ctx) => ctx.db.query("finalScores").collect())).toEqual([]);
 });
