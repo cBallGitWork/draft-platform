@@ -14,7 +14,7 @@ import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { EXAMPLE_SET } from "../../support/convex/scoring.example";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
-import { ARSENAL, CHELSEA, COVENTRY, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
+import { ARSENAL, CHELSEA, COVENTRY, UNHELD, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // My team's Squad tab (#364): every player in the manager's squad with his positions, club, his
@@ -49,11 +49,12 @@ const SAKA_GW2 = { minutes: 90, goals_scored: 2 };
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 let annTeam: Id<"teams">;
+let bobTeam: Id<"teams">;
 beforeEach(async () => {
   t = await signInDeployment(MADE);
   fakeResend();
   leagueId = await adminCreatesLeague(t);
-  [annTeam] = await addManagers(t, leagueId, [ANN, BOB]);
+  [annTeam, bobTeam] = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA, COVENTRY]);
     const players = [SAKA, RAYA, PALMER, BENCHED, NOBODY];
@@ -102,6 +103,15 @@ describe("the rows", () => {
       ["Saka", ["W"], "ARS"],
       ["Nobody", [], "COV"],
     ]);
+  });
+
+  // Bob's team has no lineup in a begun gameweek: one naming him there still throws, in scoring
+  // (gameweekScorer/teamGameweek.ts lineupPlayer), whose call that is.
+  test("keep one whose player the football sync doesn't hold as his code, for a team no begun gameweek's lineup names him in (#323)", async () => {
+    await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: bobTeam, playerCode: UNHELD }));
+    const { players, unheld } = await read(BOB);
+    expect(players).toEqual([]);
+    expect(unheld).toEqual([UNHELD]);
   });
 
   test("give his club's next match after now, home or away, or none", async () => {

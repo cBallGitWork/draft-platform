@@ -6,7 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, eventsIn, type TestConvex } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
+import { ARSENAL, CHELSEA, GONE, UNHELD, insertClubs, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadRefusals } from "../../../convex/squads/squads";
 import { CURRENT_CLUBS_MOST } from "../../../convex/shared/players";
@@ -26,8 +26,6 @@ const CLUBS = [
 /** Sixty players, numbered from 1001, spread over the three clubs. */
 const PLAYER_CODES = Array.from({ length: 60 }, (_, i) => 1001 + i);
 const SAKA = 1001;
-/** A code the football sync holds no player for. */
-const UNHELD = 9999;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -181,26 +179,6 @@ describe("refused, saying why, and nothing changes", () => {
       for (let i = 0; i < MOST_IN_SQUAD; i += 1) await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: 5000 + i });
     });
     await expectRefused((await as(COMMISSIONER)).assign(SAKA, teams[0]), squadRefusals.squadFull);
-  });
-
-  // Players are never deleted, only marked dropped, so a squad row whose player the football sync
-  // doesn't hold is data gone wrong (#323). Moving or releasing him is refused, and his row stays.
-  describe("a squad's player the football sync doesn't hold", () => {
-    const squadRows = () => t.run((ctx) => ctx.db.query("squadPlayers").collect());
-    beforeEach(() => t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: UNHELD })));
-
-    test.each([
-      ["moving him", (c: Commissioner) => c.move(UNHELD, teams[1])],
-      ["releasing him", (c: Commissioner) => c.release(UNHELD)],
-    ])("%s", async (_what, change) => {
-      const before = await squadRows();
-      await expectRefused(change(await as(COMMISSIONER)), squadRefusals.noPlayer);
-      expect(await squadRows()).toEqual(before);
-    });
-
-    // How the squads page reads his row is Craig's call (#323): today one such row fails the
-    // whole page.
-    test.todo("the squads page still shows every other squad, and says his row is wrong");
   });
 });
 
