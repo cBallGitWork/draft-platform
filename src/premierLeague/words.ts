@@ -52,7 +52,7 @@ export const tableColumns = {
 
 // The match page (#45; spec/10, The match page), which each fixture opens.
 
-export { figureWords, noFigureWords } from "../shared/words";
+export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
 export { commentaryDelayedWords, notCountingLabel, SCORE_LABEL } from "../matchup/words";
 
 /** A fixture's link to its match page, read out for the score or "v" it wraps, which it names:

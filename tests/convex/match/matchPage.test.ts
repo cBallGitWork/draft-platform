@@ -1,7 +1,6 @@
 import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import { STREAM_BEHIND } from "../../../convex/football/matchCommentary";
-import type { MatchMan } from "../../../convex/match/matchPage";
 import { bySheetOrder } from "../../../convex/match/sheetOrder";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import {
@@ -21,37 +20,18 @@ import {
   LEAGUE_KICKOFF,
   MIDFIELD_GOAL,
   PHILLIPS,
-  scoresLeague,
-  holdHullAndEverton,
   holdTypoRule,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 import { ADMIN, OUTSIDER, actingAs } from "../../support/convex/leagues.harness";
+import { manOf, matchAs, matchLeague, notYetBegun, scorerFreeLeague } from "../../support/convex/matchPage.harness";
 import { HULL_EVERTON, HULL_EVERTON_TEAM_STATS, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 
 // The match page (#45; spec/10, The match page): Hull v Everton, Ann owning Hull's men and Bob
 // Everton's, each with a saved lineup. The page shows the score, both clubs' men, each owned man's
-// team and his points from his slot, as the matchup has them, and the match's commentary priced.
-
-/** The scores league, with both clubs held, as the football sync holds them. */
-async function matchLeague(): Promise<ScoresLeague> {
-  const league = await scoresLeague();
-  await holdHullAndEverton(league);
-  return league;
-}
-
-async function matchAs(league: ScoresLeague, email: string, fixtureCode: number = HULL_EVERTON) {
-  return (await actingAs(league.t, email)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, fixtureCode });
-}
-
-const manOf = (men: readonly MatchMan[], playerCode: number) => men.find((man) => man.playerCode === playerCode)!;
-
-/** The league as before its gameweek's deadline: no gameweek recorded as begun. */
-const notYetBegun = ({ t }: ScoresLeague) =>
-  t.run(async (ctx) => {
-    for (const row of await ctx.db.query("passedDeadlines").collect()) await ctx.db.delete("passedDeadlines", row._id);
-  });
+// team and his points from his slot, as the matchup has them, and the match's commentary priced. A
+// man in no lineup is unownedPoints.test.ts's.
 
 /** Hull's scorer's goal, as the live tick stores its line. */
 const SCORERS_GOAL = "64' GOAL Scorer";
@@ -169,19 +149,15 @@ test("once the match has records, they are its men, not the sheets", async () =>
   expect(manOf(page.men, PHILLIPS).started).toBe(false);
 });
 
-test("a man owned by no team shows no owner and no points; a man who has left both clubs has no side", async () => {
+test("a man who has left both clubs has no side", async () => {
   const league = await matchLeague();
   await fullTimeRecords(league);
-  const freeAgent = HULL_BENCH[1];
   const moved = HULL_BENCH[2];
   await league.t.run(async (ctx) => {
-    const owned = (await ctx.db.query("squadPlayers").collect()).find((row) => row.playerCode === freeAgent)!;
-    await ctx.db.delete("squadPlayers", owned._id);
     const player = (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", moved)).unique())!;
     await ctx.db.patch("players", player._id, { clubCode: 999 });
   });
   const page = (await matchAs(league, ANN))!;
-  expect(manOf(page.men, freeAgent)).toMatchObject({ ownerTeamName: null, points: null, counts: true });
   expect(manOf(page.men, moved).side).toBeNull();
   expect(page.men.at(-1)!.playerCode).toBe(moved);
 });
@@ -232,13 +208,13 @@ test("before the league's gameweek begins, the men show their owners but no poin
   expect(page.commentary).toEqual({ kind: "read", lines: [shownGoal(null)], delayed: false });
 });
 
-test("a set that can't be priced says why, while the men and lines still show", async () => {
-  const league = await matchLeague();
-  await fullTimeRecords(league);
+test("a set that can't be priced says why, while the men and lines still show, every man's points, a free agent's too, unknown", async () => {
+  const league = await scorerFreeLeague();
   await holdTypoRule(league);
   silenceConsoleError();
   const page = (await matchAs(league, ANN))!;
   expect(page.pointsProblem).toEqual(expect.any(String));
+  expect(manOf(page.men, HULL_SCORER)).toMatchObject({ ownerTeamName: null, counts: false });
   expect(page.men.every((man) => man.points === null)).toBe(true);
   expect(page.men).toHaveLength(HULL_STARTERS.length + HULL_BENCH.length + EVERTON_STARTERS.length + EVERTON_BENCH.length);
 });

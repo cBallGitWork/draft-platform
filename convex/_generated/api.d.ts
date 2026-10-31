@@ -88,6 +88,7 @@ import type * as mail_mailLimits from "../mail/mailLimits.js";
 import type * as match_matchOwners from "../match/matchOwners.js";
 import type * as match_matchPage from "../match/matchPage.js";
 import type * as match_sheetOrder from "../match/sheetOrder.js";
+import type * as match_unownedPoints from "../match/unownedPoints.js";
 import type * as matchup_matchup from "../matchup/matchup.js";
 import type * as matchup_matchupShape from "../matchup/matchupShape.js";
 import type * as matchup_vidiprinter from "../matchup/vidiprinter.js";
@@ -281,6 +282,7 @@ declare const fullApi: ApiFromModules<{
   "match/matchOwners": typeof match_matchOwners;
   "match/matchPage": typeof match_matchPage;
   "match/sheetOrder": typeof match_sheetOrder;
+  "match/unownedPoints": typeof match_unownedPoints;
   "matchup/matchup": typeof matchup_matchup;
   "matchup/matchupShape": typeof matchup_matchupShape;
   "matchup/vidiprinter": typeof matchup_vidiprinter;
