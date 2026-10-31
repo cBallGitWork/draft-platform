@@ -1,8 +1,8 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { UNSEEN_LOOKBACK_MS } from "../../../convex/stats/matchStatsDue";
-import { FULL_TIME_READ, GAMEWEEK, HULL_EVERTON, heldMatch, KICKOFF, syncAt, withHullEverton, withPlReadEmpty } from "../../support/convex/matchStats.harness";
-import { FULL_STATS, MATCH, recordedGw6 } from "../../support/recorded/gw6.payloads";
+import { FULL_TIME_READ, GAMEWEEK, HULL_EVERTON, heldMatch, KICKOFF, syncAt, withHullEverton, withHullEvertonLive, withPlReadEmpty } from "../../support/convex/matchStats.harness";
+import { FULL_STATS, recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { freshConvex, type TestConvex } from "../../support/convex/test.harness";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { CURRENT_FIXTURES_MOST } from "../../../convex/shared/fixtures";
@@ -49,11 +49,7 @@ test("a match that stays provisional for weeks is still read, after the fixtures
 
 test("a match the feed never calls full time is still tried weeks on, and holds the fixtures' read at its kickoff", async () => {
   const t = await withHullEverton();
-  const notOver = () => {
-    const payloads = recordedGw6();
-    payloads.pl.round.content.find((fixture) => fixture.id === MATCH.hullEverton.pl)!.status = "L";
-    return payloads;
-  };
+  const notOver = () => withHullEvertonLive(recordedGw6());
   await syncAt(t, FULL_TIME_READ, notOver());
   const run = await syncAt(t, FULL_TIME_READ + 2 * WEEK_MS, notOver());
   expect(run.outcome).toMatchObject({ ok: true, waiting: [HULL_EVERTON] });
