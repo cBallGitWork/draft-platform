@@ -105,7 +105,7 @@ name (the score).
 - **The sweeper** (spec/05, The pitch): his cell drawn an eighth of a row deeper than the
   defence's line, and over the keeper's where the two meet on a phone.
 - **A lost player** (#323): a squad row whose player the football data no longer holds says so in
-  orange in place of his name, under a notice saying the data is broken.
+  orange in place of his name, under a notice saying football data is missing.
 
 ## Controls
 
