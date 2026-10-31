@@ -31,7 +31,6 @@ export const backToLeaguesWords = "Back to your leagues";
 
 /** "Your leagues" for someone in none. */
 export const notInALeagueWords = (email: string) => `You're signed in as ${email}, and you're not in a league yet.`;
-export const invitedHereWords = "When a commissioner invites you to one, it will be here.";
 
 /** "Your leagues" as a table: its columns, and what each row says. */
 export const leagueColumns = {

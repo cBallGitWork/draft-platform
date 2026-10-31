@@ -76,5 +76,5 @@ export const joinedBenchWords = (names: readonly string[]) => `${andListWords(na
 
 export const saveWords = "Save lineup";
 export const discardWords = "Discard";
-export const savedWords = (gameweek: number) => `Saved. It stands from ${gameweekWords(gameweek).toLowerCase()} until you change it.`;
+export const savedWords = (gameweek: number) => `Saved. It stands from ${gameweekWords(gameweek).toLowerCase()}.`;
 export const saveFailedWords = failedWords("the lineup wasn't saved");

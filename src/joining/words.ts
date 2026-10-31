@@ -74,7 +74,7 @@ export const inviteLinkWords = {
   replace: "Replace the link",
   switchOff: "Switch it off",
 } as const;
-export const linkHint = "Share it, say in the group chat. Opening it only asks to join: you approve each request.";
+export const linkHint = "Opening it only asks to join: you approve each request.";
 
 /** The join requests the link made, each approved to a team or refused. */
 export const requestsWords = {

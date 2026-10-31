@@ -78,6 +78,8 @@ export const scoreWords = (first: number, second: number) => `${figureWords(firs
 /** Beside what is still being played: a live match's clock before it has a minute, a score that
  *  may still move (spec/07). */
 export const liveWords = "Live";
+/** Under points, or a table, that a live match may still move: the state, not how it works. */
+export const provisionalWords = "Provisional";
 /** A match at half-time and at full time, short as a column says it and in full. */
 export const halfTime = { short: "HT", long: "Half-time" } as const;
 export const fullTime = { short: "FT", long: "Full time" } as const;

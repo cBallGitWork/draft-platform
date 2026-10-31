@@ -16,20 +16,20 @@ export const MATCHUP_TITLE = "Matchup";
 export const SCORE_LABEL = "Score";
 export const loadingWords = "Loading the matchup…";
 export const noRulesWords = "This league was made before leagues had rules, so it has no matchups.";
-export const totalPointsWords = "The league plays total points, so it has no head-to-heads: the table ranks teams by their points.";
+export const totalPointsWords = "The league plays total points, so it has no head-to-heads.";
 export const noTeamWords = "You run no team in this league, so you have no matchup. Any team's is open from the table's fixtures.";
 export const noGamesWords = (teamName: string) => `${teamName} has no head-to-heads: fixtures are drawn once the league has two teams.`;
 export const noGameWords = (teamName: string, gameweek: number) => `${teamName} plays no head-to-head in ${gameweekWords(gameweek)}.`;
 export const byeWords = (teamName: string) => `${teamName} has a bye this gameweek.`;
 /** Before the deadline: no lineup is shown, the manager's own is on My team. */
 export const notBegunWords = (deadline: number | null) =>
-  `Both lineups show once the deadline passes${deadline === null ? "" : `, ${whenWords(deadline)}`}. Yours is on My team until then.`;
+  `Lineups show at the deadline${deadline === null ? "" : `, ${whenWords(deadline)}`}.`;
 export const unscoredWords = (reason: string) => `This matchup can't be scored, so it counts for nothing in the table: ${reason}.`;
 export const averageWords = "The league's average this gameweek, every team counted once.";
 
 /** Under the score: live and moving, or settled. */
-export const provisionalWords = "Live: provisional until every match is final.";
-export const finalWords = "Final.";
+export { provisionalWords } from "../shared/words";
+export const finalWords = "Final";
 
 /** A fixture's link to its matchup, from the table's fixtures and league home's head-to-heads. */
 export const matchupLinkLabel = (team: string, opponent: string | null, gameweek: number) =>
@@ -88,5 +88,5 @@ export const notCountingLabel = "not counting";
 export const VIDIPRINTER_TITLE = "Vidiprinter";
 /** When the stream falls behind or stops; points carry on from FPL (spec/10, The commentary). */
 export const commentaryDelayedWords = "Commentary delayed";
-export const noCommentaryWords = "No lines yet: they come in from the lineups, about an hour before each match with either team's men in it.";
+export const noCommentaryWords = "No lines yet.";
 export const unreadCommentaryWords = (reason: string) => `The commentary can't be shown: ${reason}.`;
