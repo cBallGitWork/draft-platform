@@ -67,7 +67,7 @@ const FIXED_ROWS: readonly Row[] = [
   { label: matchesWords, cell: (player) => <span className="font-bold text-figure">{player.matches}</span> },
 ];
 
-/** The comparison's first column, whose cells name each row. */
+/** The key of the column that names each row (`compareWhatColumn`). */
 const WHAT = "what";
 
 function SideBySide({ comparison }: { comparison: Comparison }) {

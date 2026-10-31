@@ -64,6 +64,7 @@ describe("comparing two players", () => {
 
     expect(app.scouting.useComparison.mock.lastCall!).toEqual([league.leagueId, [SAKA.code, PALMER.code]]);
     expectColumnHeads(comparisonTable(), [compareWhatColumn, { short: "Saka", long: SAKA.fullName }, { short: "Palmer", long: PALMER.fullName }]);
+    expect(within(comparisonTable()).getByRole("columnheader", { name: compareWhatColumn.long }).firstElementChild!.className).toBe("sr-only");
     expect(cellsOf(columns.club.long)).toEqual(["ARS", "CHE"]);
     expect(cellsOf(columns.owner.short)).toEqual(["Saka Potatoes", "Kroos Control"]);
     expect(cellsOf(columns.seasonPoints.short)).toEqual([noFigureWords, noFigureWords]);

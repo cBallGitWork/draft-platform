@@ -44,6 +44,8 @@ export const nextGlyph = "►";
 export const ascendingGlyph = "▲";
 export const descendingGlyph = "▼";
 export const sortByLabel = (column: string) => `Sort by ${column}`;
+/** A stat, as a column of stats or the choice of one is headed. */
+export const STAT_WORD = "Stat";
 
 const whenFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 /** A time in the viewer's own zone, e.g. "Sat 17 Oct, 13:00": a deadline, a feed's last run. */

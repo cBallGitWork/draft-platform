@@ -51,7 +51,7 @@ export function PlayersTable({
         columns={{ ...columns, stat: statHead(stat) }}
         shown={shown}
         classOf={cellClasses}
-        sort={{ by: sort.by, descending: sort.descending, sortable: SORTABLE, sortBy }}
+        sort={{ ...sort, sortable: SORTABLE, sortBy }}
       />
       <tbody>
         {players.map((player) => (

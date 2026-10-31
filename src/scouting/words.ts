@@ -1,5 +1,6 @@
 // What Scouting says, in one place for Craig to change in the pull request.
 
+import { STAT_WORD } from "../shared/words";
 import type { Availability } from "./seam";
 
 export { freeAgentWords, noFigureWords } from "../shared/words";
@@ -21,7 +22,7 @@ export const everyPositionWords = "Every position";
 export const clubLabel = "Club";
 export const everyClubWords = "Every club";
 /** The stat shown as a season total beside the list, and sorted by (spec/19, "sortable by any stat"). */
-export const statLabel = "Stat";
+export const statLabel = STAT_WORD;
 export const noStatWords = "None";
 
 /** How many players the filters keep. */
@@ -57,5 +58,5 @@ export const clearComparisonWords = "Clear";
 export const matchesWords = "Matches this season";
 /** The comparison's first column, which names each row: its head is read out, not drawn. A player's
  *  column is headed by his name, named by his full name. */
-export const compareWhatColumn = { short: "Stat", long: "What's compared" };
+export const compareWhatColumn = { short: statLabel, long: "What's compared" };
 export const noStatsYetWords = "Neither has a stat this season yet.";

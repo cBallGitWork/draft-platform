@@ -1,7 +1,7 @@
 // What the Premier League section says, in one place for Craig to change in the pull request.
 
 import { LOCALE } from "../../convex/shared/moments";
-import { gameweekWords, liveWords, scoreWords, timeOfDayWords, versusWords } from "../shared/words";
+import { gameweekWords, liveWords, scoreWords, STAT_WORD, timeOfDayWords, versusWords } from "../shared/words";
 
 export { gameweekWords, liveWords, scoreWords, versusWords } from "../shared/words";
 /** Goals for less against, signed: "+4", "-3", "0", as the league table signs its difference. */
@@ -111,6 +111,6 @@ export const teamStatRows = {
 } as const;
 /** The stats' own column, between the two clubs': its head is read out, not drawn. Each club's
  *  column is headed by its three letters, named by its full name. */
-export const STAT_COLUMN = { short: "Stat", long: "What's counted" };
+export const STAT_COLUMN = { short: STAT_WORD, long: "What's counted" };
 /** A side's possession, to the whole percent: Opta's 49.4 is "49%". */
 export const possessionWords = (share: number) => `${Math.round(share)}%`;
