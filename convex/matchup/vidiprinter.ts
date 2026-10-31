@@ -1,11 +1,12 @@
 // The matchup's commentary (spec/10, The matchup, as a live match; The commentary; #44): every
 // stored line of every match with either lineup's men in it, newest first across the matches, with
 // what each line is worth to the men in the two lineups. A goal, an assist or a card shows the
-// points it moves; a threshold line shows a running total reaching a point where a rule's points change ("~58'
-// Rice: 3 key passes, +1"); the full-time line lists the lineups' men who played, with their
-// points in the match. Priced by the slot and role each man is priced at in his lineup, under the site's set
-// in force in the gameweek, which never changes once the gameweek has begun (spec/14), so a past
-// matchup's lines keep the points they showed. Pure: matchup.ts reads what it needs.
+// points it moves; a threshold line shows a running total reaching a point where a rule's points
+// change ("~58' Rice: 3 key passes, +1"); the full-time line lists the lineups' men who played,
+// with their points in the match. Priced by the slot and role each man is priced at in his
+// lineup, under the site's set in force in the gameweek, which never changes once the gameweek
+// has begun (spec/14), so a past matchup's lines keep the points they showed. Pure: matchup.ts
+// reads what it needs.
 //
 // No line for an auto-sub: whether a man played is known only after his match (spec/10).
 
@@ -155,8 +156,9 @@ function fullTimePoints(fixtureCode: number, players: ReadonlyMap<PlayerCode, Vi
     .sort((one, other) => other.points - one.points || one.name.localeCompare(other.name));
 }
 
-/** Each step a lineup's man made, priced at his cell: a line where it earns him points. A step to a total no
- *  higher than one already shown (a feed's count put back and sent again) is not shown twice. */
+/** Each step a lineup's man made, priced at his cell: a line where it earns him points. A step to
+ *  a total no higher than one already shown (a feed's count put back and sent again) is not shown
+ *  twice. */
 function thresholdLines(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode, VidiprinterPlayer>, set: ScoringSet) {
   const highest = new Map<string, number>();
   return match.steps.flatMap((step, index) => {
