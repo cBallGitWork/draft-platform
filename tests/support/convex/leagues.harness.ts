@@ -81,6 +81,10 @@ export async function eventsIn(t: TestConvex, leagueId: Id<"leagues">) {
   return rows.map(({ by, event }) => ({ by, ...event }));
 }
 
+/** When the league's last event was filed: the time a refusal naming that event gives. */
+export const lastEventAt = (t: TestConvex, leagueId: Id<"leagues">) =>
+  t.run(async (ctx) => (await ctx.db.query("leagueEvents").withIndex("by_leagueId_and_at", (q) => q.eq("leagueId", leagueId)).order("desc").first())!.at);
+
 /** Whether a sign-in link may go to this email: whether it is on the allowed list. */
 export const onTheList = (t: TestConvex, email: string) =>
   t.run(async (ctx) =>

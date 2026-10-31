@@ -8,7 +8,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { HELD_FIRST_RULES, holdGameweeks, NO_AREA_MINIMUMS, rulesInGameweek, rulesRevision } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, lastEventAt, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // League settings (Craig, 22 Oct 2026): the odd team out, games a gameweek and the squad's make-up
@@ -144,8 +144,8 @@ describe("changing them", () => {
     await change({ ...FIRST, gamesPerGameweek: 2 }, CO_COMMISSIONER, opened);
     const events = await eventsIn(t, leagueId);
 
-    const refusal = change({ ...FIRST, oddTeamOut: "bye", gamesPerGameweek: 3 }, COMMISSIONER, opened);
-    await expect(refusal).rejects.toThrow(`${CO_COMMISSIONER} saved the league's rules on`);
+    const refusal = rulesRefusals.changedSince(CO_COMMISSIONER, await lastEventAt(t, leagueId), undefined);
+    await expectRefused(change({ ...FIRST, oddTeamOut: "bye", gamesPerGameweek: 3 }, COMMISSIONER, opened), refusal);
     expect((await inGameweek(NEXT)).gamesPerGameweek).toBe(2);
     expect(await eventsIn(t, leagueId)).toEqual(events);
   });
