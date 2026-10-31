@@ -4,7 +4,7 @@
 
 import { AREAS, LANES, type Cell } from "../../../convex/lineup/pitch";
 import type { Run } from "../../../convex/lineup/roles";
-import { PITCH_SIZE } from "./pitchMarkings";
+import { LANE_WIDTH, PITCH_SIZE, ROW_LENGTH } from "./pitchMarkings";
 
 /** A point on the drawn pitch, in metres from its top-left corner. */
 export interface PitchPoint {
@@ -21,8 +21,6 @@ export const SWEEPER_DEPTH_SHARE = 0.125;
  *  would otherwise run off the pitch. */
 export const RUN_MARGIN = 3;
 
-const ROW_LENGTH = PITCH_SIZE.length / AREAS.length;
-const LANE_WIDTH = PITCH_SIZE.width / LANES.length;
 const MIDDLE_LANE = (LANES.length - 1) / 2;
 
 /** The middle of a cell on the drawn pitch, a sweeper's a little deeper (`deeper`). */

@@ -9,9 +9,9 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { roleIn, SWEEPER_CELL } from "../../../../convex/lineup/roles";
 import { placeOf, RUN_MARGIN, RUN_MARK, runPath, runShows, SWEEPER_DEPTH_SHARE } from "../../../../src/myTeam/tactics/runs";
-import { PITCH_SIZE } from "../../../../src/myTeam/tactics/pitchMarkings";
+import { LANE_WIDTH, PITCH_SIZE, ROW_LENGTH } from "../../../../src/myTeam/tactics/pitchMarkings";
 import { runsWords } from "../../../../src/myTeam/tactics/words";
-import { at, blockOf, HAVERTZ, openedPitch, pitch, RAYA, RICE, SALIBA, SAVED, STARTERS } from "../../../support/src/tacticsScreen.harness";
+import { blockOf, HAVERTZ, openedPitch, pitch, RICE, SALIBA, SAVED, STARTERS } from "../../../support/src/tacticsScreen.harness";
 
 /** The players whose runs are drawn, by code, each with the utility hiding it where it doesn't show. */
 const drawnRuns = () =>
@@ -90,11 +90,11 @@ describe("where a run goes, in the pitch's metres", () => {
     const line = placeOf(SWEEPER_CELL);
     const sweeper = runPath(roleIn(SWEEPER_CELL, "sweeper").run!, SWEEPER_CELL, true)[0];
     expect(sweeper.x).toBe(line.x);
-    expect(sweeper.y - line.y).toBeCloseTo((SWEEPER_DEPTH_SHARE * PITCH_SIZE.length) / 6);
+    expect(sweeper.y - line.y).toBeCloseTo(SWEEPER_DEPTH_SHARE * ROW_LENGTH);
   });
 
-  it("a keeper's row is the bottom one, the attack's the top", () => {
-    expect(placeOf(at(RAYA, { area: "goalkeeper", lane: "centre" })).y).toBeCloseTo(PITCH_SIZE.length - PITCH_SIZE.length / 12);
-    expect(placeOf({ area: "attack", lane: "left" })).toEqual({ x: PITCH_SIZE.width / 10, y: PITCH_SIZE.length / 12 });
+  it("puts a place in the middle of its cell: the keeper's in the bottom row, the attack's in the top", () => {
+    expect(placeOf({ area: "goalkeeper", lane: "centre" })).toEqual({ x: PITCH_SIZE.width / 2, y: PITCH_SIZE.length - ROW_LENGTH / 2 });
+    expect(placeOf({ area: "attack", lane: "left" })).toEqual({ x: LANE_WIDTH / 2, y: ROW_LENGTH / 2 });
   });
 });
