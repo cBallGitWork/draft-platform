@@ -1,5 +1,5 @@
 import { v, type Infer } from "convex/values";
-import type { Doc, Id } from "../_generated/dataModel";
+import type { Doc } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { heldOf } from "../football/matchCommentary";
 import { heldTeamSheetsOf } from "../football/matchTeamSheets";
@@ -15,13 +15,11 @@ import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, heldPlayerByCode } from "../shared/players";
-import { ownerOf } from "../squads/squadPlace";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { begunGameweeks, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { matchRecordsOf } from "../gameweekScorer/heldMatches";
 import { inMatchOf, leagueReads, pointsInMatch } from "../gameweekScorer/teamGameweek";
-import { namedCodes } from "../lineup/lineup";
-import { lineupsInGameweek } from "../lineup/lineups";
+import { matchOwnersOf } from "./matchOwners";
 import { bySheetOrder } from "./sheetOrder";
 
 // One real Premier League match (#45; spec/10, The match page): its score and clock, both clubs'
@@ -53,8 +51,7 @@ const matchMan = v.object({
   started: v.boolean(),
   /** False for an unused substitute; null while no feed has sent a substitute's minutes. */
   played: v.union(v.boolean(), v.null()),
-  /** The league's team his points are for: the one that had him at the deadline once the gameweek
-   *  has begun (#561), the one that owns him now before. Null for a man no team had. */
+  /** The league's team his points are for (matchOwners.ts); null for a man no team holds. */
   ownerTeamName: v.union(v.string(), v.null()),
   /** His points in this match from his slot in the lineup that holds him, which once the gameweek
    *  has begun is his team's at the deadline, not always his owner's now; null ("—") for a man in no
@@ -95,7 +92,7 @@ export const ofMatch = query({
     const records = await matchRecordsOf(ctx, fixtureCode, "its men");
     const named = records.length > 0 ? records : await sheetMenOf(ctx, fixtureCode);
     const begunGameweek = await begunGameweekOf(ctx, league, fixture);
-    const owners = begunGameweek === null ? await ownersNowOf(ctx, leagueId, named) : await deadlineOwnersOf(ctx, leagueId, begunGameweek, named);
+    const owners = await matchOwnersOf(ctx, leagueId, begunGameweek, named.map(({ playerCode }) => playerCode));
     const priced = begunGameweek === null ? unpriced(null) : await pricedOrProblem(ctx, league, fixture, begunGameweek, named);
     const held = await scoreOf(ctx, fixtureCode);
     const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
@@ -124,38 +121,6 @@ async function sheetMenOf(ctx: QueryCtx, fixtureCode: number): Promise<NamedMan[
  *  before, or for a match no gameweek holds. */
 async function begunGameweekOf(ctx: QueryCtx, league: Doc<"leagues">, { gameweek }: Doc<"fixtures">): Promise<number | null> {
   return gameweek !== null && (await begunGameweeks(ctx, league)).includes(gameweek) ? gameweek : null;
-}
-
-/** Each man the match names who is owned in the league now, by the team that owns him. */
-async function ownersNowOf(ctx: QueryCtx, leagueId: Id<"leagues">, named: readonly NamedMan[]): Promise<Map<PlayerCode, Doc<"teams">>> {
-  const owner = await ownerOf(ctx, leagueId);
-  const owners = new Map<PlayerCode, Doc<"teams">>();
-  for (const { playerCode } of named) {
-    const team = await owner(playerCode);
-    if (team !== null) owners.set(playerCode, team);
-  }
-  return owners;
-}
-
-/** Each man the match names who is in a lineup in the begun gameweek, by its team: the lineups his
- *  points come from, read against the squads at the deadline (lineups.ts), so a man moved or
- *  released since names his old team (Craig, 31 Oct 2026; #561). */
-async function deadlineOwnersOf(
-  ctx: QueryCtx,
-  leagueId: Id<"leagues">,
-  gameweek: number,
-  named: readonly NamedMan[],
-): Promise<Map<PlayerCode, Doc<"teams">>> {
-  const teams = await teamsOf(ctx, leagueId);
-  const lineups = await lineupsInGameweek(ctx, leagueId, teams.map((team) => team._id), gameweek);
-  const inThisMatch = new Set(named.map(({ playerCode }) => playerCode));
-  const owners = new Map<PlayerCode, Doc<"teams">>();
-  for (const team of teams) {
-    for (const playerCode of namedCodes(lineups.get(team._id)!)) {
-      if (inThisMatch.has(playerCode)) owners.set(playerCode, team);
-    }
-  }
-  return owners;
 }
 
 /** What the league's lineups make of the match: each lineup man's points in it, and the men the
