@@ -1,4 +1,4 @@
-// The player card's screen tests' cards (playerCard.test.tsx, season.test.tsx), and the card opened
+// The player card's screen tests' cards (playerCard.test.tsx, season.test.tsx, breakdown.test.tsx), and the card opened
 // as a manager in the league opens it (playerCard.harness.ts is its fake seam).
 
 import { within } from "@testing-library/react";
