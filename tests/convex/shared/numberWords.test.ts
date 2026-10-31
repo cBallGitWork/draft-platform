@@ -4,7 +4,6 @@ import { figureWords, MINUS_SIGN, signedWords } from "../../../convex/shared/num
 describe("the one minus sign (#564)", () => {
   test("is the true minus, U+2212, not the hyphen", () => {
     expect(MINUS_SIGN).toBe("−");
-    expect(MINUS_SIGN).not.toBe("-");
   });
 
   test("a figure carries a minus when below 0 and no sign otherwise", () => {
