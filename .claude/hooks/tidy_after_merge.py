@@ -35,7 +35,7 @@ PULL_HEAD = "pull/{number}/head"  # GitHub's ref for a pull request's head commi
 # each git or gh call: nine at most per merge, inside the 120 settings.json gives the hook
 RUN_TIMEOUT_SECONDS = 13
 NOT_ANCESTOR = 1  # git merge-base --is-ancestor's exit when the first commit isn't behind the second
-IGNORED = "!! "  # git status --porcelain --ignored's mark for an ignored path
+IGNORED = "!! "  # git status --porcelain --ignored=matching's mark for an ignored path
 # ignored paths a build or test run makes again, so a worktree holding only these may go
 REBUILT = {"node_modules", "dist", "coverage", "test-results", "playwright-report", "__pycache__", ".DS_Store"}
 
@@ -105,9 +105,9 @@ def inside(path, folder):
 
 
 def unrebuilt(status):
-    """What removing the worktree would lose, from its git status --porcelain --ignored: its
-    uncommitted changes, and each ignored path that isn't build output, at any depth
-    (.claude/hooks/__pycache__/ is)."""
+    """What removing the worktree would lose, from its git status --porcelain --ignored=matching
+    (which names a nested ignored folder itself, not its top): its uncommitted changes, and each
+    ignored path that isn't build output, at any depth (.claude/hooks/__pycache__/ is)."""
     lines = status.splitlines()
     ignored = [line[len(IGNORED):] for line in lines if line.startswith(IGNORED)]
     held = ["uncommitted changes"] if len(ignored) < len(lines) else []
