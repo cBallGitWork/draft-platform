@@ -53,7 +53,8 @@ commentary` (16 Oct 2026).
 - Every point movement, up or down, gets a line (Craig, 31 Oct 2026: "any negative/positive point
   movement"): a minutes band (for example "~60' Saka: 60 minutes, +1"), except the first, which his kick-off
   or coming-on line already says; a clean sheet added and taken away ("same for when CS is added
-  and removed for defedners"); goals conceded (for example "71' Saliba: 2 conceded, −1").
+  and removed for defedners"), added once he has the minutes for it with nothing conceded, taken
+  away by the goal that ends it (31 Oct 2026); goals conceded (for example "71' Saliba: 2 conceded, −1").
 - A kick-off and a full-time line for each match with either team's players in it, on the matchup
   ("FT ARS 2–1 CHE: Saka 11, Palmer 6").
 - If the commentary stream falls behind or stops, the matchup and the match page say so

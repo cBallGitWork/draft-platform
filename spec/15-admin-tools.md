@@ -16,7 +16,7 @@ each league's **commissioner**.
   new (`spec/09`).
 - Owns the site's scoring set and changes it by patch (`spec/14`, 25 Oct 2026).
 - Owns each club's colours and shirt pattern on the admin dashboard (`spec/12`), for any club at
-  any time; a file gives every club its first. A club with none waits in the dashboard's queue
+  any time, any colour; a file gives every club its first. A club with none waits in the dashboard's queue
   beside clubs to approve, with no email, its shirt and mark white until set (Craig, 31 Oct 2026:
   "soething that we could flag to the admin that a team doenst have a colour, then we can set
   on admin"; the admin owning them leaves room for real shirt packs and away kits later).
