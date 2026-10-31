@@ -75,6 +75,15 @@ describe("reading it", () => {
     expect(await inGameweek(10)).toEqual(EDITED_AGAIN);
   });
 
+  test("the gameweek a change reaches is counted from the held matches, with no gameweek rows held (#832)", async () => {
+    await holdGameweeks(t, { next: 9 });
+    await t.run(async (ctx) => {
+      for (const row of await ctx.db.query("gameweeks").collect()) await ctx.db.delete("gameweeks", row._id);
+    });
+
+    expect(await viewAs(ADMIN)).toMatchObject({ changesFrom: 9 });
+  });
+
   test("a commissioner, a co-commissioner and a manager read it, and may not change it", async () => {
     const leagueId = await adminCreatesLeague(t);
     await (await as(COMMISSIONER)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
