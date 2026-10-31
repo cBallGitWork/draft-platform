@@ -15,6 +15,7 @@ and head-to-head fixtures are a different screen (`spec/12`, "table and fixtures
 ## The table
 
 - P W D L GF GA GD Pts, worked out from the results.
+- Each club's mark before its name (`spec/12`, Club colours; 31 Oct 2026).
 - Live during matches, provisional until they are final.
 
 ## After the mini beta

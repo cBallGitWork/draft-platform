@@ -3,6 +3,9 @@
 Feature 12 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill screens` (16 Oct 2026).
 The look's exact values are in [docs/design/plate.md](../docs/design/plate.md).
 
+**Contents:** [The frame](#the-frame) · [The look: Plate](#the-look-plate) · [Club colours](#club-colours) ·
+[Data in mock-ups](#data-in-mock-ups) · [Times](#times)
+
 ## The frame
 
 - Desk designed first; the phone is a second design of the same data.
@@ -83,6 +86,23 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
   join when scouts do.
 - A real pitch with shirts. The shirts are our own, drawn in club colours (not FPL's kit images),
   with the player's squad number on the shirt.
+
+## Club colours
+
+From `/grill club colours` (31 Oct 2026).
+
+- Each club's shirt has a pattern, held as data: plain or stripes now, more as a club needs one
+  ("especially considering we wil have different leagues and designs"). Newcastle, Brentford,
+  Palace, Brighton and Sunderland start striped. On a patterned shirt the number has an outline
+  in the other ink.
+- A club mark, a small square in the club's two colours, stands before a club code wherever the
+  code stands alone: Squad, Scouting, the player card, the Premier League table ("thats very CM 99
+  like"). Never inside a fixture-difficulty cell.
+- A Premier League match's scoreboard puts each club on its own colour (`spec/10`). The matchup
+  waits for managers' crests (SPEC.md, Later).
+- The player card's title plate stays the plate's colour; his club shows by its mark and his shirt
+  (Craig left this to Claude).
+- Who keeps the colours: `spec/15`, The admin.
 - The number leads; a verdict sits beside it only where there is a real one (role stars, fixture
   difficulty, shown as a coloured cell). (Craig left this to Claude.)
 - Not liked, so not used: no pitch view (Terminal, Kit room), a terminal look, the first broadcast
