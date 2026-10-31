@@ -160,8 +160,11 @@
   font-weight: var(--font-weight-bold);
   text-decoration: none;
   box-shadow: var(--shadow-bevel-action);
-  &:hover {
-    background: var(--color-soft);
+  /* Only where a pointer hovers: a phone keeps a tapped button "hovered", so Save would stay grey */
+  @media (hover: hover) {
+    &:hover {
+      background: var(--color-soft);
+    }
   }
   &:active,
   &:disabled {
@@ -203,9 +206,11 @@
   color: var(--color-fact);
   font-size: var(--text-lead);
   font-weight: var(--font-weight-semibold);
-  &:hover {
-    background: var(--color-stepper);
-    border-color: var(--color-fact);
+  @media (hover: hover) {
+    &:hover {
+      background: var(--color-stepper);
+      border-color: var(--color-fact);
+    }
   }
   &:active {
     background: var(--color-ground);
@@ -274,8 +279,10 @@
   & + & {
     border-left: 1px solid var(--color-plate-rule);
   }
-  &:hover {
-    background: var(--color-stepper);
+  @media (hover: hover) {
+    &:hover {
+      background: var(--color-stepper);
+    }
   }
   &:has(:checked) {
     background: var(--color-ground);

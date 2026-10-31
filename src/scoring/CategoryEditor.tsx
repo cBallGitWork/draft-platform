@@ -117,6 +117,10 @@ export function CategoryEditor({
 
 type Column = { head: string; cell: (key: PriceKey, row: string) => ReactNode };
 
+/** A head of the values table: the head band as every data table's (ColumnHeads.tsx), lined up
+ *  with the cells under it. */
+const HEAD_CELL = "px-3 text-left";
+
 /** The rule's values, a row for everyone or for each area or position, with a column for each
  *  part it has: its points, its points limit's two ends, and its minutes. On the phone each row
  *  is a block, its boxes wrapping under its name, each with its column's name beside it. */
@@ -126,13 +130,13 @@ function ValuesTable({ rule, pricing, readOnly, onChange }: { rule: Rule; pricin
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse max-lg:block">
-        <thead className="max-lg:hidden">
-          <tr className="bg-head text-left text-ground">
-            <th scope="col" className="px-3 py-1 font-semibold">
+        <thead className="bg-head text-ground max-lg:hidden">
+          <tr>
+            <th scope="col" className={HEAD_CELL}>
               {pricing === "all" ? "" : rowHead}
             </th>
             {columns.map((column) => (
-              <th key={column.head} scope="col" className="px-3 py-1 font-semibold">
+              <th key={column.head} scope="col" className={HEAD_CELL}>
                 {column.head}
               </th>
             ))}
@@ -147,7 +151,7 @@ function ValuesTable({ rule, pricing, readOnly, onChange }: { rule: Rule; pricin
                   <span className="flex min-h-tap items-center">{row}</span>
                 </th>
                 {columns.map((column) => (
-                  <td key={column.head} className="px-3 py-1 max-lg:flex max-lg:items-center max-lg:gap-2">
+                  <td key={column.head} className="px-3 py-1 max-lg:flex max-lg:flex-wrap max-lg:items-center max-lg:gap-2">
                     <span aria-hidden className="text-soft lg:hidden">
                       {column.head}
                     </span>
@@ -215,7 +219,7 @@ function Bands({ row, bands, readOnly, onChange }: { row: string; bands: Band[];
       {bands.map((band, index) => {
         const which = bandRowWords(row, index + 1);
         return (
-          <span key={index} className="flex items-center gap-2">
+          <span key={index} className="flex flex-wrap items-center gap-2">
             {bandFromWords}
             <NumberBox label={boxLabel(bandFromWords, which)} value={band.atLeast} onChange={(atLeast) => setBand(index, { ...band, atLeast })} />
             {bandEarnsWords}
