@@ -7,8 +7,9 @@ import { squadEvents } from "./squads";
 
 // Deleting a league (#75): how it works is in leagueDeletion.ts.
 
-/** Why one person wasn't emailed that their league has been deleted: the day's emails had all
- *  gone, or the email service didn't send it. */
+/** Why one person wasn't emailed that their league has been deleted: the email service didn't
+ *  send it, or, only in rows kept before #837, the day's emails had all gone (they wait for the
+ *  next day now, deletionNotices.ts). */
 export const unemailedReason = v.union(v.literal("paused"), v.literal("notSent"));
 
 export const leagueDeletion = v.object({
