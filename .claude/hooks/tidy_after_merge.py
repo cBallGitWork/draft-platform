@@ -7,12 +7,12 @@ branch on merge"), but nothing deleted the copy here, so 842 branches and 70 wor
 It deletes only what is safe: the branch's tip must be the pull request's head or behind it (every
 commit on it went into the merge; gh pr update-branch gives the pull request a merge commit the
 branch here never gets, so the head is fetched from origin to check; a checkout with no remote
-called origin keeps such a branch, and says why), and the worktree must have
-nothing uncommitted and no ignored file but build output (git worktree remove deletes ignored
-files: a .env.local would go). The main checkout and the folder the merge ran in are never
-removed; another session still open in a clean worktree isn't seen, and loses its folder once its
-pull request merges. Anything kept is said, with why; so is a pull request gh can't read. It runs
-after the command, so it never blocks one. Stdlib only, Python 3.9+.
+called origin keeps such a branch, and says why), and the worktree must have nothing uncommitted
+and no ignored file but throwaway output: build output, or the screenshots in .shots/ (git
+worktree remove deletes ignored files: a .env.local would go). The main checkout and the folder
+the merge ran in are never removed; another session still open in a clean worktree isn't seen,
+and loses its folder once its pull request merges. Anything kept is said, with why; so is a pull
+request gh can't read. It runs after the command, so it never blocks one. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -36,8 +36,11 @@ PULL_HEAD = "pull/{number}/head"  # GitHub's ref for a pull request's head commi
 RUN_TIMEOUT_SECONDS = 13
 NOT_ANCESTOR = 1  # git merge-base --is-ancestor's exit when the first commit isn't behind the second
 IGNORED = "!! "  # git status --porcelain --ignored=matching's mark for an ignored path
-# ignored paths a build or test run makes again, so a worktree holding only these may go
-REBUILT = {"node_modules", "dist", "coverage", "test-results", "playwright-report", "__pycache__", ".DS_Store"}
+# ignored paths nobody needs once the work has merged, so a worktree holding only these may go:
+# what a build or test run makes again, and .shots, the screenshots scripts/shoot.mjs takes
+THROWAWAY = {
+    "node_modules", "dist", "coverage", "test-results", "playwright-report", "__pycache__", ".DS_Store", ".shots",
+}
 
 
 def call(folder, *args):
@@ -104,14 +107,14 @@ def inside(path, folder):
     return folder == path or folder.startswith(path + os.sep)
 
 
-def unrebuilt(status):
+def would_lose(status):
     """What removing the worktree would lose, from its git status --porcelain --ignored=matching
     (which names a nested ignored folder itself, not its top): its uncommitted changes, and each
-    ignored path that isn't build output, at any depth (.claude/hooks/__pycache__/ is)."""
+    ignored path that isn't throwaway output, at any depth (.claude/hooks/__pycache__/ is)."""
     lines = status.splitlines()
     ignored = [line[len(IGNORED):] for line in lines if line.startswith(IGNORED)]
     held = ["uncommitted changes"] if len(ignored) < len(lines) else []
-    return held + [path for path in ignored if not REBUILT & set(path.rstrip("/").split("/"))]
+    return held + [path for path in ignored if not THROWAWAY & set(path.rstrip("/").split("/"))]
 
 
 def tidy(number, branch, head, folder):
@@ -134,7 +137,7 @@ def tidy(number, branch, head, folder):
         ok, status = run(path, "git", "status", "--porcelain", "--ignored=matching")
         if not ok:
             return f"{kept}: git status failed ({status}) ({path})."
-        held = unrebuilt(status)
+        held = would_lose(status)
         if held:
             return f"{kept}: its worktree holds {', '.join(held)} ({path})."
         ok, said = run(folder, "git", "worktree", "remove", path)
