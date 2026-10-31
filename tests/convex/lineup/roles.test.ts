@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { lineupProblems, type Lineup } from "../../../convex/lineup/lineup";
 import { problemWords } from "../../../convex/lineup/lineupWords";
 import { AREAS, LANES, positionOfSlot } from "../../../convex/lineup/pitch";
-import { DEFAULT_ROLES, roleIn, roleName, rolesOfSlot, slotLabel, SWEEPER } from "../../../convex/lineup/roles";
+import { DEFAULT_ROLES, roleIn, roleName, rolesOfSlot, slotLabel, SWEEPER, SWEEPER_CELL } from "../../../convex/lineup/roles";
 import { FIRST, STRIKER, STRIKERS_CELL, plays, subbed, withBench } from "../../support/convex/autoSubs.harness";
 import { filledLineup, openLimits, presetNamed } from "../../support/convex/lineup.harness";
 
@@ -43,7 +43,7 @@ describe("what a slot offers", () => {
 });
 
 describe("the sweeper (spec/05 The pitch; #844; Craig, 31 Oct 2026)", () => {
-  const centre = { area: "defence", lane: "centre" } as const;
+  const centre = SWEEPER_CELL;
 
   test("the defence's centre cell offers the centre-back's roles, then sweeper and libero", () => {
     expect(rolesOfSlot(centre).map(({ name }) => name)).toEqual(["Stopper", "Ball-playing defender", "Sweeper", "Libero"]);

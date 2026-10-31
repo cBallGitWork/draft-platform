@@ -19,6 +19,9 @@ const ROWS_DRAWN = AREAS.toReversed();
  *  length, which the CSS sizes the pitch and its panel by. */
 export const PITCH_ROOM_STYLE = { "--pitch-aspect": PITCH_ASPECT } as CSSProperties;
 
+/** The CSS utility that draws a sweeper's cell a little deeper than the line (pitch.css). */
+export const SWEEPER_DEPTH = "pitch-sweeper";
+
 /** The pitch's cells: each area's row an equal share of its length, so the lines stand where they
  *  would on a real pitch, and each lane an equal share of its width. Its shape is the CSS `pitch`'s. */
 const CELL_GRID: CSSProperties = {
@@ -67,6 +70,7 @@ export function Pitch({
         LANES.map((lane) => {
           const cell = { area, lane };
           const standing = standingIn(draft, cell);
+          const depth = standing !== undefined && slotLabel(cell, standing.role) === SWEEPER ? SWEEPER_DEPTH : "";
           const allowDrop = (event: DragEvent) => {
             if (opensTo(cell)) event.preventDefault();
           };
@@ -75,12 +79,7 @@ export function Pitch({
             if (opensTo(cell)) moving.onPlace(cell);
           };
           return (
-            <div
-              key={cellKey(cell)}
-              onDragOver={allowDrop}
-              onDrop={drop}
-              className={`relative flex min-h-0 min-w-0 items-center justify-center p-0.5 ${standing !== undefined && slotLabel(cell, standing.role) === SWEEPER ? "pitch-sweeper" : ""}`}
-            >
+            <div key={cellKey(cell)} onDragOver={allowDrop} onDrop={drop} className={`relative flex min-h-0 min-w-0 items-center justify-center p-0.5 ${depth}`}>
               {standing !== undefined ? (
                 <PlayerBlock player={squad.get(standing.playerCode)!} cell={cell} role={roleIn(cell, standing.role).name} moving={moving} />
               ) : picked !== null && opensTo(cell) ? (
