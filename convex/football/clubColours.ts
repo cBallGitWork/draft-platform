@@ -44,9 +44,10 @@ export type Ink = keyof typeof INKS;
 export type Kit = { shirt: string; ink: Ink };
 
 /** A player's shirt: his club's first colour, or its second for a keeper, so he stands apart from
- *  his outfield players; inked in whichever of the two inks reads better on it. */
-export function kitOf(clubCode: number, goalkeeper: boolean): Kit {
-  const colours = CLUB_COLOURS[clubCode] ?? UNKNOWN_CLUB;
+ *  his outfield players; inked in whichever of the two inks reads better on it. A player with no
+ *  club held (null, #323) wears the shirt of a club with no colours. */
+export function kitOf(clubCode: number | null, goalkeeper: boolean): Kit {
+  const colours = (clubCode === null ? undefined : CLUB_COLOURS[clubCode]) ?? UNKNOWN_CLUB;
   const shirt = goalkeeper ? colours.secondary : colours.primary;
   return { shirt, ink: contrast(shirt, INKS.dark) >= contrast(shirt, INKS.light) ? "dark" : "light" };
 }

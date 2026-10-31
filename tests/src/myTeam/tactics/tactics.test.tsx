@@ -23,6 +23,7 @@ import {
   tacticsNoRulesWords,
 } from "../../../../src/myTeam/tactics/words";
 import { noTeamWords } from "../../../../src/myTeam/words";
+import { unheldNoticeWords, unheldPlayerWords } from "../../../../src/shared/words";
 import { commissioner, league, manager, openApp } from "../../../support/src/shell.harness";
 import { TACTICS_GAMEWEEK, openTactics } from "../../../support/src/tactics.harness";
 import {
@@ -116,6 +117,21 @@ describe("the lineup held", () => {
     const lineup = { fromGameweek: TACTICS_GAMEWEEK, noLineup: false, starters: STARTERS, bench: [ARRIZABALAGA.playerCode, WHITE.playerCode], leftSquad: [], joinedBench: [WHITE.playerCode], vacated: [] };
     openTacticsTab({ tactics: openTactics({ squad: SQUAD, lineup }) });
     expect(await screen.findByText(joinedBenchWords([WHITE.name]))).toBeTruthy();
+  });
+
+  it("keeps a bench player the football sync doesn't hold, under a notice: the server words his row (#323)", async () => {
+    const unheld: Member = { ...WHITE, name: unheldPlayerWords(WHITE.playerCode), clubShortName: null, unheld: true };
+    openTacticsTab({ tactics: { ...SAVED, squad: SQUAD.map((each) => (each === WHITE ? unheld : each)) } });
+    expect(await screen.findByText(unheldNoticeWords)).toBeTruthy();
+    expect(squadRows().at(-1)).toContain(unheld.name);
+    // He has no card to open.
+    expect(screen.queryByRole("link", { name: unheld.name })).toBeNull();
+    expect(screen.getByRole("link", { name: ARRIZABALAGA.name })).toBeTruthy();
+  });
+
+  it("shows no notice of missing football data while every player is held", async () => {
+    await openedPitch();
+    expect(screen.queryByText(unheldNoticeWords)).toBeNull();
   });
 
   it("says when the bench is empty", async () => {
