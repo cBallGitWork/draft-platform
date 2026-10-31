@@ -6,26 +6,27 @@ values are Claude's, from the designer's round-2 brief and the reviewer's pass o
 <https://claude.ai/artifact/Qz9zn3FrMHgPB189UtbjoB>. Every screen is drawn from this file.
 How the screens link, and which the spec names but nobody has built: [flow.md](flow.md).
 
-**Contents:** [Colour roles](#colour-roles-blue-on-neutral) · [Type](#type) · [Shape](#shape) ·
+**Contents:** [Colour roles](#colour-roles-cm-material) · [Type](#type) · [Shape](#shape) ·
 [Marks](#marks) · [Controls](#controls) · [Never](#never) ·
 [The phone](#the-phone-to-draw-when-the-phone-design-is-grilled) · [Decided](#decided)
 
-## Colour roles (blue on neutral)
+## Colour roles (CM material)
 
-Blue is the primary colour: the top bar, title plates, date blocks and controls. The page and panels
-are near-neutral grey, stepped by lightness, so the blue and the meaning colours stand out
-(Craig, 23 Oct 2026; see Decided).
+CM's blue is the chrome: the top bar royal blue, title plates, date blocks and controls indigo. The
+page is near-neutral dark under a drawn texture, a fine grain and a faint floodlit glow from the top,
+and the panels are see-through over it, so the indigo and the meaning colours stand out and the page
+isn't flat (Craig, 31 Oct 2026; see Decided: Look B).
 
 | Role | Value | Used for |
 |---|---|---|
-| ground | `#08090b` | the page |
-| panel | `#1c1d21` | a panel's body |
+| ground | `#111214`, under a fine grain (white at 5%) and a glow from the top, `rgb(70 96 84 / 0.22)` fading out by 70% of an ellipse 90% wide and 60% tall; at its lightest the page is `#1d2120` | the page. Drawn in CSS, never a photograph |
+| panel | `rgb(26 27 31 / 0.84)`, so `#191a1d` to `#1a1c1f` over the page; solid `#1a1b1f` where it opens over the page (the top bar's league list) | a panel's body |
 | bar | `#173a94` | the top bar |
-| plate | `#15317f` | a panel's title plate, date blocks, keys |
-| stepper | `#1d2a98` | the `◄ GW9 ►` gameweek stepper; a control on the plate under the pointer, and a toggle on the plate while its list is open (the top bar's league) |
+| plate | `#2a1f86` | a panel's title plate, date blocks, keys |
+| stepper | `#3529a8` | the `◄ GW9 ►` gameweek stepper; a control on the plate under the pointer, and a toggle on the bar while its list is open (the top bar's league) |
 | name plate | `#050608` | under a player's name on the pitch, a tick box's well |
 | alert | `#2a1d10` | the alert strip, under its orange edge |
-| column head | `#b9bcc4`, ink `#08090b` | one continuous plate over a table's columns |
+| column head | `#b9bcc4`, ink `#111214` | one continuous plate over a table's columns |
 | fact | `#ffffff` | names, labels that are facts, a role |
 | figure | `#ffe600` | a number that is a figure: points, form, stars. Never a button or tab |
 | derived reading | `#6bfdfa` | something worked out: a countdown, a formation's preset name |
@@ -33,11 +34,11 @@ are near-neutral grey, stepped by lightness, so the blue and the meaning colours
 | muted / unavailable | `#a1a5ab` | secondary labels, the bench, read mail |
 | role text | `#caced4` | the role under a name on the pitch |
 | pitch | stripes `#2f8535` / `#276f2c`, lines 2px `#e6f2e6` | |
-| action | fill `#ffffff`, ink `#08090b`, bevel `#b9bcc4` | Continue; hover `#caced4`, pressed `#b9bcc4` (bevel flipped); `#ff9b3d` (hover `#ffb36b`, pressed `#e07f1f`) when the deadline is near; with nothing to do, no fill, 1px `#a1a5ab` border, "Nothing needs you" |
-| secondary action | fill `#15317f`, 1px border `#caced4`, ink `#ffffff` | hover fill `#1d2a98`, border `#ffffff`; pressed fill `#08090b` |
+| action | fill `#ffffff`, ink `#111214`, bevel `#b9bcc4` | Continue; hover `#caced4`, pressed `#b9bcc4` (bevel flipped); `#ff9b3d` (hover `#ffb36b`, pressed `#e07f1f`) when the deadline is near; with nothing to do, no fill, 1px `#a1a5ab` border, "Nothing needs you" |
+| secondary action | fill `#2a1f86`, 1px border `#caced4`, ink `#ffffff` | hover fill `#3529a8`, border `#ffffff`; pressed fill `#111214` |
 | active tab | text `#ffffff` 600, 3px underline `#6bfdfa` (2px on a sub-tab) | inactive tabs `#caced4`; never muted `#a1a5ab` on the bar (4.1:1) |
 | focus | 2px outline `#6bfdfa`, offset 2px | every control |
-| link | `#ffffff`, 1px underline; hover underline `#6bfdfa` | |
+| link | `#ffffff`, no underline at rest; a 1px `#6bfdfa` underline under the pointer (where a pointer hovers, as Controls' Hover) and with the focus ring | a link, and a button drawn as one (Move, Dismiss). A bare link inside a sentence of running text keeps a 1px `#ffffff` underline at rest, as nothing else tells it from the words around it (WCAG 1.4.1); none exists yet (Craig, 31 Oct 2026; see Decided) |
 
 **Fixture difficulty** fills the whole cell, CM style, with no digit (Craig), so colour carries it on screen by choice; the labels below carry it for
 screen readers. The fills fall in
@@ -45,25 +46,33 @@ lightness from easiest to hardest, so the order survives red-green colour blindn
 1 `#57e08a` ink `#04130a` · 2 `#93b83a` ink `#0c1a06` · 3 `#8a90a0` ink `#08090b` ·
 4 `#c9304f` ink `#ffffff` · 5 `#8c1236` ink `#ffffff`. Each cell carries `title` and `aria-label`
 ("Opponent BOU, home, difficulty 2 of 5, easy"; the words: very easy, easy, average, hard, very
-hard), a five-step legend sits above the table, and rows keep a 1px `#08090b` gap.
+hard), a five-step legend sits above the table, and rows keep a 1px ground (`#111214`) gap.
 
-The pairs the reviewer computed meet WCAG 2.1 AA (muted on panel 6.8:1, every difficulty ink on
-its fill 5.2:1 or better, the unread badge 9.49:1); check any new pair before using it. Cyan never
+The pairs meet WCAG 2.1 AA (`contrast()` in `convex/football/clubColours.ts`, 31 Oct 2026): muted on
+a panel 6.9:1 at the page's lightest, muted straight on the page 6.6:1 there, white on the plate
+12.8:1, role text on the plate 8.1:1, cyan on the plate 10.4:1, white on the stepper 10.3:1, the
+action's ink 18.7:1, the column head's ink 9.9:1, every difficulty ink on its fill 5.2:1 or better,
+the unread badge 8.9:1. Muted on the stepper is 4.2:1, so it is only ever a step that can't be taken
+(the stepper's greyed ◄ or ►, a disabled control). Check any new pair before using it. Cyan never
 sits straight on the pitch: it fails there (3.77:1 on the light stripe).
 
 ## Type
 
-Archivo Narrow 400/600/700 only. Data 13px, a player's name 15px, the page title 26px. Rows 20px
-on the desk. Figures use tabular numerals.
+Two faces. Archivo Narrow 400/600/700 for everything that is data. Archivo, heavy (800) and wide
+(width 125), for page titles and team names only: a page's title plate, the matchup's two sides
+and their panels' plates, a Premier League match's two clubs, and the product name on the sign-in
+bar. Both are served with the app (Fontsource). Data 13px, a player's name 15px, the page title
+26px. Rows 20px on the desk. Figures use tabular numerals, in Archivo Narrow even beside a team's
+name (the score).
 
 ## Shape
 
 - Radius 0 everywhere.
 - CM's bevel, 2px: `inset 0 2px 0` light, `inset 0 -2px 0` dark, on title plates and the top bar.
-  On the bar and the plate, light `#4a6cc8` and dark `#001a5e`; on a panel, light `#34363c` and dark
-  `#050608`. The line above a section's tabs is 1px `#34363c`.
-- Tabs are butted, separated by 1px rules, never gaps: `#001a5e` on the plate, `#08090b` on a
-  panel. Every tab is 44px tall; a section's tabs are 36px on the desk.
+  On the bar, light `#4a6cc8` and dark `#001a5e`; on the plate, light `#6a5fe0` and dark `#110a4a`;
+  on a panel, light `#34363c` and dark `#050608`. The line above a section's tabs is 1px `#34363c`.
+- Tabs are butted, separated by 1px rules, never gaps: `#001a5e` on the bar, `#110a4a` on the
+  plate, the ground `#111214` on a panel. Every tab is 44px tall; a section's tabs are 36px on the desk.
 - Panels sit 8px apart and align to the top (no stretched empty panels).
 - In Windows' high-contrast mode the browser drops every bevel (it removes `box-shadow`), so each
   section and the top bar get a 1px system-colour border there instead.
@@ -99,9 +108,9 @@ ones in `src/ui/` (`TickBox`, `Choice`), the rules screens' own in `src/rules/` 
   (the rim is ours: the well alone is 1.2:1 on the panel), stepper fill under the pointer, and
   a white drawn tick (stroke 2.5, square caps) when on. Its row is 44px and toggles it anywhere;
   the words are white when on, `#caced4` when off.
-- **Keys**, one of a few chosen (a rule's Points): butted 44px keys, 1px `#001a5e` rules between.
+- **Keys**, one of a few chosen (a rule's Points): butted 44px keys, 1px `#110a4a` rules between.
   The others are the plate with its bevel and `#caced4` text; the chosen one is pressed in:
-  ground fill, the plate bevel flipped (`inset 0 2px 0 #001a5e`, `inset 0 -2px 0 #4a6cc8`), white
+  ground fill, the plate bevel flipped (`inset 0 2px 0 #110a4a`, `inset 0 -2px 0 #6a5fe0`), white
   600. A radio group, so the arrow keys move it.
 - **Discard and Save**: Discard is the secondary action, there only once something changed; Save
   is the action, and with nothing to save it is the action with nothing to do, in `#a1a5ab` text.
@@ -117,6 +126,7 @@ From the designer's review, the tells that make a screen look AI-made:
 2. Pills and tinted badges; a chip, where one is needed, is square and solid.
 3. Indigo or slate grounds with lavender-grey text and a neon accent; gradient buttons.
 4. `·` strings, floating rows, ★ typed as text, the same 16px gutter around everything.
+5. Telling a manager what he already knows: how the game works (live points can change, every team meets every other), what a screen is for, or what a control does when its label says it. A state is a word or a mark ("Live", "Provisional"), never a sentence (Craig, 31 Oct 2026: "you treat users like a 2 year old").
 
 ## The phone (to draw when the phone design is grilled)
 
@@ -142,3 +152,15 @@ bar above the pitch; the pitch's player blocks narrow to a fifth of its width. T
   plates, the plates a deeper blue than the bar. Why grey: the research on
   <https://claude.ai/artifact/2FXidXSXxa1ZqmTBsqapYq> found fantasy apps and design systems keep
   surfaces neutral and spend colour on meaning. The grey stays truly neutral, never slate (Never 3).
+  Replaced in part by Look B (31 Oct 2026): the bar stayed this blue, but the plates went indigo,
+  and the flat near-black page (`#08090b`) and solid panels (`#1c1d21`) became a textured page
+  under see-through panels. The page stays neutral, never slate or indigo (Never 3).
+- **Look B, CM material** (Craig, 31 Oct 2026): of three looks on
+  <https://claude.ai/artifact/L6GHypfFTMfeZtdr7TqLft>, B, without its mown-stripe texture ("it just
+  looks like a bug"): a drawn grain and a glow from the top behind see-through panels, indigo title
+  plates, a heavy wide Archivo for titles and team names. Reopens Blue on neutral: the page is no
+  longer flat near-black. Craig, the same day: CM 99/00 is old UI, so FM is the stronger reference
+  from here on.
+- **Links aren't underlined at rest** (Craig, 31 Oct 2026: "the constant underlines for hyperlinks
+  looks terrible"): the underline shows under the pointer and with focus; only a link inside
+  running text keeps one, which WCAG 1.4.1 needs (Colour roles: link).
