@@ -70,7 +70,6 @@ test("a failed tick is recorded and logged, and the next one catches up", async 
   const errors = silenceConsoleError();
   const t = await withHullEverton();
   await tickAt(t, stageTime(29), stagedGw6(29));
-  const sidesBefore = await sideOutcomes(t);
 
   const failed = await tickAt(t, stageTime(30), stagedGw6(30), fplLiveUrl(GAMEWEEK));
   const error = refusedError(fplLiveUrl(GAMEWEEK));
@@ -81,11 +80,20 @@ test("a failed tick is recorded and logged, and the next one catches up", async 
   });
   expect(errors).toHaveBeenCalledWith(`gameweek ${GAMEWEEK}'s reads failed: ${error}`);
   expect(await heldRecords(t)).toEqual(recordsIn(stagedGw6(29), "provisional"));
-  // No match was read, so the side feeds get no fresh success: they show late beside it (#824).
-  expect(await sideOutcomes(t)).toEqual(sidesBefore);
 
   await tickAt(t, stageTime(31), stagedGw6(31));
   expect(await heldRecords(t)).toEqual(recordsIn(stagedGw6(31), "provisional"));
+});
+
+test("a tick that reads no match, its gameweek's reads failed, writes the side feeds no row, so they show late beside it", async () => {
+  silenceConsoleError();
+  const t = await withHullEverton();
+  await tickAt(t, stageTime(29), stagedGw6(29));
+  const before = await sideOutcomes(t);
+
+  await tickAt(t, stageTime(30), stagedGw6(30), fplLiveUrl(GAMEWEEK));
+
+  expect(await sideOutcomes(t)).toEqual(before);
 });
 
 test("a tick whose first read fails is recorded failed whole, and the next one catches up", async () => {
