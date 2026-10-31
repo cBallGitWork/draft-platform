@@ -1,6 +1,5 @@
-// How finely a scoring rule's value is set, and the value it gives the slot he starts in (spec/14).
-// Apart from scoringSet.ts so the rules editor in the browser can price a value without loading
-// the scoring set's checks (#756). It imports only the pitch's types.
+// A rule's priced values, apart from scoringSet.ts so the browser's rules editor can read one
+// without loading the scoring set's checks (#756). It imports only the pitch's types.
 
 import type { Area, SlotPosition } from "../lineup/pitch";
 

@@ -13,6 +13,8 @@ const BROWSER_SOURCES = import.meta.glob("../../src/**/*.ts", { query: "?raw", i
   string,
   string
 >;
+/** The scorer's files, which schema.ts and the rules editor have no need to load (#756). */
+const SCORER_FILES = ["convex/scoring/scoring.ts", "convex/scoring/scoringSet.ts", "convex/scoring/ownStats.ts"];
 const SOURCE_PREFIX = "../../";
 const GENERATED = "convex/_generated/";
 const TS = ".ts";
@@ -142,8 +144,10 @@ test("the walk sees convex/'s files and their imports", () => {
   // schema.ts, not the schema/ folder, is what "../../schema" names from two folders down.
   expect(resolve("convex/football/premierLeague/plTeamStats.ts", "../../schema", known)).toBe("convex/schema.ts");
   expect(graph.get("convex/scoring/scoring.ts")).toContain("convex/scoring/scoringSet.ts");
-  // The walk reaches the scorer's files from one that loads them, so the check at the end can fail.
-  expect(loadedBy("convex/scoring/teamPoints.ts", known)).toContain("convex/scoring/ownStats.ts");
+  // The walk reaches every one of the scorer's files from a file that loads them, so a misspelt
+  // name can't leave the check at the end passing on a file that doesn't exist.
+  const loaded = loadedBy("convex/scoring/teamPoints.ts", known);
+  expect(SCORER_FILES.filter((file) => !loaded.has(file))).toEqual([]);
 });
 
 test("the walk finds a cycle and skips type-only imports", () => {
@@ -159,9 +163,6 @@ test("no value-import cycle in convex/", () => {
   const found = cycles(edges(files()));
   expect(found, `import cycles: ${found.map((g) => g.join(" <-> ")).join("; ")}`).toEqual([]);
 });
-
-/** The scorer's files: the scoring set's checks, own stats and the scorer. */
-const SCORER_FILES = ["convex/scoring/scoring.ts", "convex/scoring/scoringSet.ts", "convex/scoring/ownStats.ts"];
 
 test("schema.ts and the rules editor load none of the scorer's files (#756)", () => {
   const known = new Map([...files(), ...files(BROWSER_SOURCES)]);
