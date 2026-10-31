@@ -38,9 +38,11 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   picked who plays there, and the rest on the bench in that order (Craig, 29 Oct 2026). Each pick
   goes onto the pitch as the team drafts (Craig, 31 Oct 2026: "its ny draft order, so when a team is
   drafting they just start filling the pitch"): into the deepest open slot he can play; with none open, onto the
-  bench in pick order; with no positions yet, onto the bench until his manager moves him. A slot
-  left empty scores nothing; it never makes the lineup illegal or switches the auto team on
-  (31 Oct 2026).
+  bench in pick order; with no positions yet, onto the bench until his manager moves him. If the
+  4-4-2 leaves a slot empty, the first lineup takes the first formation the squad fills completely
+  within the league's area limits, the presets in order and then any shape (Craig, 31 Oct 2026:
+  "or find a legal formatin with 2 defenders"). Only if none fits does a slot stay empty: it
+  scores nothing, and never makes the lineup illegal or switches the auto team on.
 
 ## Roles
 
