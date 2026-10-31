@@ -46,6 +46,8 @@ describe("a starter's role adjustment", () => {
     const matches = new Map([[1, [{ record: RECORD, final: true }]]]);
     const team = scoreTeam({ lineup, matches, set: defensiveFirst, doubleGameweekRule: "bothMatches", substitutions: [], benchCells: new Map() });
     expect(team.total).toBe(scoreMatch(RECORD, FIRST_SCORING, FULL_BACK).total! + 10);
+    // The slot says the role it was priced in, so the commentary can price his lines in it too.
+    expect(team.starters[0].role).toBe("defensiveFullBack");
   });
 });
 
@@ -112,6 +114,7 @@ describe("a role adjustment, at the edges", () => {
   test("a sub into the empty slot plays the role he's given there", () => {
     const subbed = team(undefined, [{ off: 1, on: 2, cell: FULL_BACK, role: "attackingFullBack" }]);
     expect(subbed.bench[0].matches[0].role?.role).toBe("attackingFullBack");
+    expect(subbed.bench[0].role).toBe("attackingFullBack");
   });
 });
 

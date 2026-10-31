@@ -131,6 +131,18 @@ describe("the latest claims, drops and trades", () => {
     ]);
   });
 
+  test("of two moves filed at the same instant, lists them in the order the Transactions tab does: the later filed first (#630)", async () => {
+    const commish = await commissioner();
+    await commish.assign(SAKA, teams[0]);
+    await commish.release(SAKA);
+
+    const ticker = (await read())!.squadMoves;
+    const transactions = (await (await actingAs(t, ANN)).query(api.squads.teamTransactions.ofMyTeam, { leagueId })).transactions;
+    expect(new Set(ticker.map((move) => move.at)).size).toBe(1);
+    expect(ticker.map((move) => move.kind)).toEqual(["playerReleased", "playerAssigned"]);
+    expect(transactions.map((move) => move.kind)).toEqual(["released", "assigned"]);
+  });
+
   test(`lists the latest ${TICKER_MOST} of them, of every kind`, async () => {
     const commish = await commissioner();
     for (let round = 0; round < TICKER_MOST; round += 1) {
