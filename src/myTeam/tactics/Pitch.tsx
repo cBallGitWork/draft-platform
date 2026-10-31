@@ -3,7 +3,7 @@ import { AREAS, cellKey, LANES, sameCell, type Cell } from "../../../convex/line
 import { roleIn } from "../../../convex/lineup/roles";
 import { markOf } from "./focusMarks";
 import { canStandIn, standingIn, type DraftLineup, type SquadMember } from "./lineupDraft";
-import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel } from "./tacticsWords";
+import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel } from "./words";
 
 // The Tactics tab's pitch (#14; spec/05, The pitch): six areas by five lanes, attack at the top, CM
 // style. A player is moved by picking him up (a click, a tap or Enter on him) and then choosing a

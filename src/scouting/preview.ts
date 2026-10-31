@@ -4,7 +4,7 @@
 import type { ListedPlayer } from "../../convex/scouting/playersList";
 import { listOf, shownStat } from "../../convex/scouting/playersOrder";
 import type { Stats } from "../../convex/stats/statTotals";
-import { previewShortlistOf } from "./shortlist/previewShortlist";
+import { previewShortlistOf } from "./shortlist/preview";
 import type { ScoutingSeam } from "./seam";
 
 export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };

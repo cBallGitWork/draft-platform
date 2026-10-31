@@ -5,7 +5,7 @@ import { playerCardPath } from "../../playerCard/paths";
 import { useChange } from "../../shared/useChange";
 import { OwnerName } from "../../ui/OwnerName";
 import { ClubShort } from "../../premierLeague/ClubName";
-import type { ShortlistSeam } from "./shortlistSeam";
+import type { ShortlistSeam } from "./seam";
 import {
   emptyShortlistWords,
   goneWords,
@@ -14,7 +14,7 @@ import {
   SHORTLIST_TITLE,
   shortlistListLabel,
   takeOffWords,
-} from "./shortlistWords";
+} from "./words";
 
 /** The manager's own shortlist (spec/19, The shortlist), on Scouting: each player by name, opening
  *  his card, with his club and who owns him, and a button taking him off. A player is added from
