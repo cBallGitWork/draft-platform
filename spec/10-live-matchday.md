@@ -9,6 +9,13 @@ commentary` (16 Oct 2026).
 
 - The two teams' totals are the score at the top. Each player shows his own status: yet to play,
   playing now with his minute, or finished.
+- Before the deadline a rival's lineup is hidden, and only his squad shows, as a real club's would.
+  At the deadline both lineups show: the starters, the bench in order, the formation and each
+  starter's role. The commissioner and the admin see only what managers see (Craig, 31 Oct 2026:
+  "they just get to view what the managers see").
+- Tapping a player on the matchup or its pitch shows his breakdown for this match, his role's line
+  included (`spec/14`): "the opposition manager needs to see why his opponent got the points"
+  (Craig, 31 Oct 2026). It leads on to his player card, which keeps his base points (`spec/12`).
 - His minute shows stoppage time, and "Live" before there is one (Craig, 31 Oct 2026: "Yes
   stoppage time and live").
 - The matchup has commentary: a vidiprinter, newest first, of every line from every match that
