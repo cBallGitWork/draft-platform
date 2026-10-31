@@ -14,7 +14,7 @@ import type { Revision } from "../../../src/rules/rulesDraft";
 import { discardWords, gameweekWords, loadLatestWords, overtakenWords, unchangedWords } from "../../../src/rules/words";
 import { SCORING_TITLE } from "../../../src/scoring/words";
 import { REVISION } from "../../support/src/leagueSettings.harness";
-import { box, fill, FIRST_SETTINGS, openSettings, save, saveButton, savedSettings, SETTINGS_PAGE } from "../../support/src/leagueSettingsScreen.harness";
+import { box, fill, FIRST_SETTINGS, openedSettings, openSettings, save, saveButton, savedSettings, SETTINGS_PAGE } from "../../support/src/leagueSettingsScreen.harness";
 import { CHANGES_FROM } from "../../support/src/scoring.harness";
 import { descriptionOf, refusalBeside } from "../../support/src/describedBy";
 import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
@@ -52,8 +52,7 @@ describe("reaching it", () => {
 
 describe("editing them", () => {
   it("opens on the league's settings, from which gameweek a change applies, and nothing changed yet", async () => {
-    openSettings();
-    await screen.findByRole("heading", { level: 1, name: SETTINGS_TITLE });
+    await openedSettings();
 
     expect(option("leagueAverage").checked).toBe(true);
     expect(gamesBox().value).toBe("1");
@@ -82,10 +81,9 @@ describe("editing them", () => {
   });
 
   it("shows why the server refused them in the save bar, the cursor left on Save (#645)", async () => {
-    const app = openSettings();
+    const app = await openedSettings();
     const refusal = "The head-to-head games each team plays a gameweek must be a whole number, 1 or more, not 1.5.";
     app.leagueSettings.save.mockResolvedValueOnce(refusal);
-    await screen.findByRole("heading", { level: 1, name: SETTINGS_TITLE });
     await setGames("1.5");
     await save();
 
@@ -98,8 +96,7 @@ describe("editing them", () => {
   });
 
   it("refuses games a gameweek left without a number itself, beside the box, and asks the server nothing (#645)", async () => {
-    const app = openSettings();
-    await screen.findByRole("heading", { level: 1, name: SETTINGS_TITLE });
+    const app = await openedSettings();
     await setGames("");
     await save();
 
@@ -109,8 +106,7 @@ describe("editing them", () => {
   });
 
   it("takes the refusal beside a box away once it holds a number, or the changes are discarded (#645)", async () => {
-    openSettings();
-    await screen.findByRole("heading", { level: 1, name: SETTINGS_TITLE });
+    await openedSettings();
     await setGames("");
     await save();
     await screen.findByRole("alert");
@@ -127,8 +123,7 @@ describe("editing them", () => {
 });
 
 it("keeps the edits when someone else saves, says so, and loads the latest on asking", async () => {
-  const app = openSettings();
-  await screen.findByRole("heading", { level: 1, name: SETTINGS_TITLE });
+  const app = await openedSettings();
   await setGames("2");
   const theirs: SettingsView = { part: { ...FIRST_SETTINGS, oddTeamOut: "bye", gamesPerGameweek: 3 }, revision: "rules-2" as Revision, changesFrom: CHANGES_FROM };
   app.leagueSettings.useSettings.mockReturnValue(theirs);
@@ -144,8 +139,7 @@ it("keeps the edits when someone else saves, says so, and loads the latest on as
 
 describe("while the server answers, or has nothing", () => {
   it("says the settings are loading, to screen readers too", async () => {
-    openSettings({ loading: true });
-    await screen.findByRole("heading", { level: 1, name: SETTINGS_TITLE });
+    await openedSettings({ loading: true });
     expect(screen.getByRole("status").textContent).toBe(loadingWords);
   });
 

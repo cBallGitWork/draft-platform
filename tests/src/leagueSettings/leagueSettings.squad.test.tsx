@@ -1,5 +1,5 @@
 // League settings' squad (#341): the squad's maximum, a minimum in each area and the most from one
-// club, saved from the next gameweek, or the reason they weren't, beside the box it names.
+// club, saved from the next gameweek, or the reason they weren't.
 
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
