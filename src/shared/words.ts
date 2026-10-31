@@ -5,6 +5,12 @@ import type { Position } from "../../convex/positions/positionTables";
 import { LOCALE } from "../../convex/shared/moments";
 import { figureWords } from "../../convex/shared/numberWords";
 
+/** A squad's row whose player the football sync doesn't hold, in place of his name: the Tactics
+ *  tab has it from the server, which words it. */
+export { unheldPlayerWords } from "../../convex/shared/players";
+/** Above a screen holding such a row (Craig, 31 Oct 2026, #323). */
+export const unheldNoticeWords = "Some football data is missing: a player's row says so in place of his name. Tell the admin.";
+
 /** The pitch's areas, as the rules screens name them: the server's refusals name them too. */
 export { AREA_WORDS } from "../../convex/lineup/pitchWords";
 

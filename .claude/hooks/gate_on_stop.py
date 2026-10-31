@@ -5,8 +5,9 @@ It judges the checkout the stop came from: the git top-level of the payload's `c
 builder in .claude/worktrees/ is judged on its own worktree), else of CLAUDE_PROJECT_DIR, else of
 the folder it runs in; one with no git or no package.json has no gate, so it says nothing. While
 the watched paths there have uncommitted changes, it runs `npm run verify` there (package.json's
-verify script: the install check, tests, typecheck, the recorded-payload check, the spec-ID check
-and the hook checks); on failure, it blocks the stop and hands Claude the end of the output.
+verify script: the install check, tests, typecheck, the lint step, the recorded-payload check,
+the tests-kept check, the spec-ID check and the hook checks); on failure, it blocks the stop and
+hands Claude the end of the output.
 Respects `stop_hook_active`, so it blocks once and never loops. If git status fails, the gate's
 program can't start or times out, an override (below) can't be read, or the payload can't be read
 (hook_payload.py), it exits 1 with one line on stderr saying what failed: Claude Code shows it,
@@ -34,7 +35,7 @@ from hook_payload import BadPayload, field, project_dir, read_payload, report
 PACKAGE = "package.json"  # a checkout without one has no gate
 # what `npm run verify` checks: it changes with verify's scope (a new vitest project, say)
 WATCHED = ("convex", "src", "scripts", "tests", PACKAGE, "package-lock.json", "tsconfig.json", "vite.config.ts",
-           "vitest.config.ts", "playwright.config.ts", ".claude", "index.html", "docs/design")
+           "vitest.config.ts", "playwright.config.ts", "eslint.config.js", ".claude", "index.html", "docs/design")
 TAIL_LINES = 40
 GATE = "npm run verify"
 GATE_TIMEOUT_SECONDS = 420  # inside settings.json's hook timeout; .claude/hooks/tests/settings.sh checks the pair

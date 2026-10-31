@@ -4,7 +4,7 @@ import { seasonRules } from "../rules/rulesHistory";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { GAMEWEEKS, shownDeadline } from "../gameweeks/usedGameweeks";
-import { clubByCode, heldPlayerByCode } from "../shared/players";
+import { clubByCode, playerByCode, unheldPlayerWords } from "../shared/players";
 import { positionsNow } from "../positions/playerPositions";
 import { position } from "../schema";
 import { managerOf } from "../shared/leagueAccess";
@@ -19,10 +19,15 @@ import { heldLineupShape, lineupInGameweek, nextOpenGameweek } from "./lineups";
 /** One player in the squad, as the pitch shows him and judges where he may stand. */
 const squadMember = v.object({
   playerCode: v.number(),
+  /** His name; for one the football sync doesn't hold, words saying so (#323). */
   name: v.string(),
-  clubShortName: v.string(),
-  /** FPL's season-stable club code, which his shirt's colours are found by (clubColours.ts). */
-  clubCode: v.number(),
+  /** Null for one the football sync doesn't hold. */
+  clubShortName: v.union(v.string(), v.null()),
+  /** FPL's season-stable club code, which his shirt's colours are found by (clubColours.ts); null
+   *  for one the football sync doesn't hold, who wears the shirt of a club with no colours. */
+  clubCode: v.union(v.number(), v.null()),
+  /** The football sync doesn't hold him: data gone wrong, kept so it shows (#323). */
+  unheld: v.boolean(),
   positions: v.array(position),
   /** The squad number his manager gave him, on his shirt, or null until given (#13). */
   number: v.union(v.number(), v.null()),
@@ -62,13 +67,14 @@ export const ofMyTeam = query({
     const positionsOfNow = await positionsNow(ctx);
     const squad = await Promise.all(
       (await squadOf(ctx, team._id)).map(async ({ playerCode, number }) => {
-        // Players are never deleted, and a squad holds only one the football sync held (squads.ts).
-        const player = await heldPlayerByCode(ctx, playerCode, `Player ${playerCode} is in team ${team._id}'s squad but isn't held`);
+        const player = await playerByCode(ctx, playerCode);
         return {
           playerCode,
-          name: player.name,
-          clubShortName: (await clubByCode(ctx, player.clubCode)).shortName,
-          clubCode: player.clubCode,
+          name: player === null ? unheldPlayerWords(playerCode) : player.name,
+          clubShortName: player === null ? null : (await clubByCode(ctx, player.clubCode)).shortName,
+          clubCode: player?.clubCode ?? null,
+          unheld: player === null,
+          // His positions are read as for any other player: the lineup's check says where he may stand.
           positions: await positionsOfNow(playerCode),
           number: number ?? null,
         };
