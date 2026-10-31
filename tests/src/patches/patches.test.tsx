@@ -73,6 +73,15 @@ describe("the banner", () => {
     expect(app.patches.dismiss).toHaveBeenCalledWith(WAITING.versionId);
   });
 
+  // Dismiss is a button drawn as a link (plate.md, Colour roles: link). Its underline under the
+  // pointer and with focus is CSS (src/styles.css), which jsdom doesn't apply, so only the class is
+  // checked here; the screenshots check the look.
+  it("draws Dismiss as a link", async () => {
+    openApp(TABLE_PATH, manager, { patches: { banner: WAITING } });
+    await banner();
+    expect(screen.getByRole("button", { name: dismissWords }).classList).toContain("link-look");
+  });
+
   it("a refused dismissal says why", async () => {
     const app = openApp(TABLE_PATH, manager, { patches: { banner: WAITING } });
     app.patches.dismiss.mockResolvedValue("That patch doesn't exist.");

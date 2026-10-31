@@ -1,6 +1,7 @@
 import "@fontsource/archivo-narrow/400.css";
 import "@fontsource/archivo-narrow/600.css";
 import "@fontsource/archivo-narrow/700.css";
+import "@fontsource-variable/archivo/wdth.css";
 import "./styles.css";
 
 import { StrictMode, type ReactNode } from "react";

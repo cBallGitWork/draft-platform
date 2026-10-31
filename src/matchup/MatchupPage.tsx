@@ -130,9 +130,9 @@ const sideName = (side: MatchupSide) => (side.kind === "team" ? side.teamName : 
 function Fixture({ teamName, opponent, score }: { teamName: string; opponent: string; score?: string }) {
   return (
     <p className="grid grid-cols-sides items-baseline gap-3 px-3 py-2 text-lead font-bold sm:text-title">
-      <span className="text-right">{teamName}</span>
+      <span className="display-face text-right">{teamName}</span>
       {score === undefined ? <span className="text-muted">{versusWords}</span> : <span className="text-figure whitespace-nowrap">{score}</span>}
-      <span>{opponent}</span>
+      <span className="display-face">{opponent}</span>
     </p>
   );
 }
@@ -159,7 +159,7 @@ function ScoredMatchup({ game: { team, opponent, commentary } }: { game: Scored 
 function SidePanel({ side }: { side: MatchupSide }) {
   const name = sideName(side);
   return (
-    <Panel title={name}>
+    <Panel title={name} namesTeam={side.kind === "team"}>
       {side.kind === "leagueAverage" ? (
         <PanelNote>{averageWords}</PanelNote>
       ) : (
