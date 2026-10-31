@@ -3,7 +3,6 @@ import {
   annsScoredGame,
   fullTimeRecords,
   GAMEWEEK,
-  HULL_BENCH,
   HULL_SCORER,
   leavesAnnsSquad,
   lineupOf,
@@ -11,14 +10,13 @@ import {
   readTable,
   scoresLeague,
 } from "../../support/convex/gameweekScores.harness";
+// Belloumi, Hull's midfielder on at 64 minutes, is second on Ann's bench after Hull's keeper.
+import { BELLOUMI } from "../../support/convex/teamPoints.harness";
 
 // The matchup when a starter has left the squad before the deadline (#597; spec/05, Auto-subs: his
 // slot "is filled from the bench the same way, as if he hadn't played"). Ann fields Hull; their
 // scorer, a midfielder, has left her squad, so Belloumi, the first midfielder on her bench, takes
 // his slot, and the matchup says whose slot it was.
-
-/** Belloumi, Hull's midfielder on at 64 minutes, second on Ann's bench after Hull's keeper. */
-const [, BELLOUMI] = HULL_BENCH;
 
 test("a sub into a slot left empty by a starter who left the squad shows as on for him, and the totals match the table", async () => {
   const league = await scoresLeague();

@@ -5,7 +5,6 @@ import {
   fullTimeRecords,
   GAMEWEEK,
   giveAnnsStarterRole,
-  HULL_BENCH,
   HULL_BENCH_STRIKER,
   HULL_KEEPER,
   HULL_STARTERS,
@@ -15,16 +14,14 @@ import {
   scoresLeague,
   slotOf,
 } from "../../support/convex/gameweekScores.harness";
-import { PHILLIPS } from "../../support/convex/teamPoints.harness";
+// Belloumi, Hull's midfielder, is second on Ann's bench after Hull's keeper.
+import { BELLOUMI, PHILLIPS } from "../../support/convex/teamPoints.harness";
 
 // A bench player's role on the matchup once he comes on (#799; spec/05, Auto-subs: "The first
 // player in the manager's bench order who can play the empty slot's area takes that slot and its
 // role. If none can, the first who keeps the area limits legal comes on in his own area"). The role
 // is the one the table's scorer prices him in, so the two never disagree; until stars (#11), one
 // who comes on in his own area plays his new slot's first.
-
-/** Belloumi, Hull's midfielder, second on Ann's bench after Hull's keeper. */
-const [, BELLOUMI] = HULL_BENCH;
 
 test("a sub into the empty slot plays its role, and a bench player not on plays none", async () => {
   const league = await scoresLeague();
