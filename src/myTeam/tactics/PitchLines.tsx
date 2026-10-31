@@ -28,8 +28,8 @@ const Spot = ({ x, y }: { x: number; y: number }) => <circle cx={x} cy={y} r={SP
 function End() {
   const front = penaltyArea.height;
   const arc = `M ${penaltySpot.x - arcHalfWidth} ${front} A ${CIRCLE_RADIUS} ${CIRCLE_RADIUS} 0 0 0 ${penaltySpot.x + arcHalfWidth} ${front}`;
-  const r = CORNER_ARC_RADIUS;
-  const corners = `M 0 ${r} A ${r} ${r} 0 0 0 ${r} 0 M ${width - r} 0 A ${r} ${r} 0 0 0 ${width} ${r}`;
+  const radius = CORNER_ARC_RADIUS;
+  const corners = `M 0 ${radius} A ${radius} ${radius} 0 0 0 ${radius} 0 M ${width - radius} 0 A ${radius} ${radius} 0 0 0 ${width} ${radius}`;
   return (
     <>
       <Box {...penaltyArea} />

@@ -7,7 +7,7 @@ import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MANAGERS, OUTSIDER, actingAs, teamName, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
-import { EXAMPLE_SET } from "../../support/convex/scoring.example";
+import { EXAMPLE_SET, GOAL_AND_ASSIST } from "../../support/convex/scoring.example";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { ARSENAL, CHELSEA, COVENTRY, GONE, completeRecord, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -35,7 +35,6 @@ const MOVER = { code: 1002, name: "Mover", fullName: "Moving Man", clubCode: CHE
 const FORWARD = { ...MOVER, code: 1003, name: "Forward", fullName: "Two Positions", clubCode: ARSENAL.code, positions: ["ST", "W"] as Position[] };
 /** An Arsenal second striker, a position no slot prices yet (spec/14), who scored and assisted in gameweek 1. */
 const SUPPORT = { ...MOVER, code: 1004, name: "Support", fullName: "Second Striker", clubCode: ARSENAL.code, positions: ["SS"] as Position[] };
-const GOAL_AND_ASSIST = { minutes: 90, goals_scored: 1, assists: 1 };
 
 const NOW = Date.parse("2026-09-01T12:00:00Z");
 const fixture = (code: number, gameweek: number | null, home: number, away: number, kickoff: number | null, dropped = false) => ({
