@@ -111,8 +111,13 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
         await page.goto(`${MY_TEAM_PATH}?preview=manager`);
         const box = (await page.getByRole("group", { name: pitchLabel }).boundingBox())!;
         expect(box.width / box.height, "width over length").toBeCloseTo(PITCH_ASPECT, 2);
-        expect(box.height).toBeLessThanOrEqual(viewport.height);
+        expect(box.height, "its length, against the window's height").toBeLessThanOrEqual(viewport.height);
         if (viewport === PHONE) expect(box.width, "the phone's pitch fills the panel").toBeGreaterThan(viewport.width - PHONE_GUTTERS);
+        else {
+          // On the desk it is the centrepiece: the window's height, but for the room it leaves.
+          const clearance = parseFloat(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--spacing-pitch-clearance")));
+          expect(box.height, "the desk's pitch is the window's height").toBeCloseTo(viewport.height - clearance, 0);
+        }
       });
 
       test("in every preset, each player stands inside his own cell, apart from the rest", async ({ page }) => {

@@ -62,8 +62,8 @@
   --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */
   --spacing-tick-mark: 14px; /* the tick drawn in it */
   /* The Tactics tab: the squad beside the pitch on the desk; the window's height the pitch leaves
-     free; the narrowest the pitch is drawn while there is room, where each of its six rows still
-     holds a player's shirt, name and two lines of role; a player's shirt */
+     free; the narrowest the pitch is drawn on the desk, however short the window (a phone's is
+     the screen's width, its rows checked by tests/smoke/smoke.spec.ts); a player's shirt */
   --flex-basis-squad: 320px;
   --spacing-pitch-clearance: 16px;
   --spacing-pitch-least: 360px;

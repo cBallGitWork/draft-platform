@@ -82,7 +82,7 @@ on the desk. Figures use tabular numerals.
   `aria-current` for screen readers (the top bar's league list).
 - **The bench**: its own "Bench" plate in the table, below the eleven.
 - **The pitch**: portrait, a real pitch's 68 m wide by 105 m long, attack at the top, its markings
-  to scale: penalty area 40.32 × 16.5 m, goal area 18.32 × 5.5 m, penalty spot 11 m out, the D
+  to scale: penalty area 40.32 × 16.5 m, goal area 18.32 × 5.5 m, penalty spot 11 m out (its dot drawn bigger, to show), the D
   9.15 m from the spot, centre circle 9.15 m round, the halfway line and 1 m corner arcs. The
   measurements live once, in `src/myTeam/tactics/pitchMarkings.ts`. Flat: one stripe to each of
   its six rows, which share its length equally so each line of players stands where it would; no
@@ -123,7 +123,7 @@ From the designer's review, the tells that make a screen look AI-made:
 From the reviewer, for a 390px screen: a bottom bar of five (Team, Matchup, Table, Scouting, Mail
 with its count); the deadline and Continue in a 48px bar at the top; every target 44px; the squad table
 keeps the player column fixed and drops Club, Role and Role fit; Mail collapses to an "N unread"
-bar above the pitch; the pitch's player blocks narrow to 84px. The app needs a viewport meta.
+bar above the pitch; the pitch's player blocks narrow to a fifth of its width. The app needs a viewport meta.
 
 ## Decided
 
