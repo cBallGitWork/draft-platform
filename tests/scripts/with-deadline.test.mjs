@@ -11,10 +11,11 @@ const POLL_INTERVAL_MS = 50;
 const DEATH_WAIT_MS = 2_500;
 // Generous, so a slow runner still gets there; the signal test's own timeout below allows for it.
 const PID_FILE_WAIT_MS = 10_000;
-// Time for the wrapper to close once signalled. The signal test's timeout covers the pid wait, this
-// and the death wait, so a missing pid fails with its own message, not vitest's default 5s timeout.
-const WRAPPER_CLOSE_WAIT_MS = 2_500;
-const SIGNAL_TEST_TIMEOUT_MS = PID_FILE_WAIT_MS + WRAPPER_CLOSE_WAIT_MS + DEATH_WAIT_MS;
+// Time allowed for the wrapper to close once signalled. The signal test's timeout is twice the pid
+// wait, this and the death wait (coverage about doubles test time), so a missing pid fails with its
+// own message, not vitest's default 5s timeout.
+const WRAPPER_CLOSE_ALLOWANCE_MS = 2_500;
+const SIGNAL_TEST_TIMEOUT_MS = 2 * (PID_FILE_WAIT_MS + WRAPPER_CLOSE_ALLOWANCE_MS + DEATH_WAIT_MS);
 
 let scratch;
 afterEach(() => scratch && rmSync(scratch, { recursive: true, force: true }));
