@@ -289,3 +289,16 @@ export const writeOverAnns = (league: ScoresLeague) =>
     const row = (await ctx.db.query("finalScores").collect()).find((each) => each.teamId === league.annsTeam)!;
     await ctx.db.patch("finalScores", row._id, { points: WRITTEN_OVER });
   });
+
+/** A match the football sync moves into gameweek 6 after it was stored, between two clubs no squad
+ *  here holds: the table's stored scores and the stat race's shares both reopen for it. */
+export const MOVED_IN = 999_001;
+const MOVED_IN_CLUBS = [901, 902] as const;
+/** The moved-in match held in gameweek 6, as the football sync would put it there. */
+export const holdMovedIn = ({ t }: ScoresLeague) =>
+  t.run((ctx) =>
+    ctx.db.insert("fixtures", { code: MOVED_IN, gameweek: GAMEWEEK, homeClubCode: MOVED_IN_CLUBS[0], awayClubCode: MOVED_IN_CLUBS[1], kickoff: Date.now() }),
+  );
+/** The moved-in match read at full time, its window passed and locked. */
+export const lockMovedIn = ({ t }: ScoresLeague) =>
+  t.run((ctx) => ctx.db.insert("matchStatsStatus", { fixtureCode: MOVED_IN, state: "locked", fullTimeAt: Date.now(), lockedAt: Date.now(), lastReadAt: Date.now() }));

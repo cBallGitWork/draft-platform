@@ -229,6 +229,10 @@ Tactics pitch are built with no package, and components, motion, forms and chart
 - Season totals: each player's stats for a season are a row in `playerSeasonStats`, kept in step as
   each match record is written, so Scouting sorts by any stat without reading a season of records
   (`convex/stats/seasonStats.ts`).
+- The stat race (#800): each team's season stats, counting only its starters and the bench players
+  who came on, are a row in `teamSeasonStats`, the sum of its rows in `teamGameweekStats`, one a
+  team and final gameweek, kept so a gameweek reopened takes away what it added. A match's lock
+  adds in each league's newly final gameweeks, one a run (`convex/stats/teamSeasonStats.ts`).
 - The shortlist (#374): each team's own list of players for the season, a row each in
   `shortlistPlayers` by FPL's `code`, read and changed only by its manager
   (`convex/scouting/shortlist.ts`).
