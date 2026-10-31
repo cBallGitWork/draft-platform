@@ -46,12 +46,15 @@ type Keyed = { code: number } | { number: number };
 const markedPage = v.object({ marked: v.number(), cursor: v.string(), isDone: v.boolean() });
 type MarkedPage = Infer<typeof markedPage>;
 
+/** What the log says, before the error, when a sync fails. */
+export const SYNC_FAILED_LOG = "football sync failed";
+
 export const run = internalAction({
   args: { trigger: syncTrigger },
   returns: v.null(),
   handler: async (ctx, { trigger }) => {
     const ranAt = Date.now();
-    const outcome: Infer<typeof footballSyncFields.outcome> = await outcomeOf("football sync failed", async () => {
+    const outcome: Infer<typeof footballSyncFields.outcome> = await outcomeOf(SYNC_FAILED_LOG, async () => {
       // The seam: swap `readFpl` for another feed's reader that returns the same `Football`.
       // It throws on a failed fetch or a changed payload, so only a whole list reaches `syncTable`.
       const football = await readFpl();
