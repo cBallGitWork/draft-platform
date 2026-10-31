@@ -2,8 +2,9 @@ import type { Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import type { DeadlineRule } from "../gameweeks/deadline";
 import { firstKickoffs, gameweekStartsOf } from "../gameweeks/gameweekStarts";
-import { heldSchedule, scheduledMatches } from "../gameweeks/leagueDeadlines";
+import { scheduledMatches } from "../gameweeks/leagueDeadlines";
 import { nextGameweek } from "../gameweeks/nextGameweek";
+import { SEASON_GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { FIRST_SCORING } from "./firstScoring";
 import type { StoredScoringSet } from "./scoringSetShape";
@@ -76,10 +77,12 @@ export async function siteVersionByGameweek(ctx: QueryCtx): Promise<(gameweek: n
 
 /** The first gameweek a version taking effect at `at` reaches: the first whose first kickoff is at
  *  or after it, as `siteScoringInGameweek` reads it, after the last that kicked off before it (a
- *  postponed gameweek behind one is passed over, #413). Once every held gameweek has kicked off,
- *  the one after the last (`nextGameweek`). */
+ *  postponed gameweek behind one is passed over, #413). Once all of the season's 1 to 38 have
+ *  kicked off, 39 (`nextGameweek`). It counts the season's gameweeks, never the held gameweek rows,
+ *  whose read throws past FPL's 38 (#832). */
 export async function firstGameweekFrom(ctx: QueryCtx, at: number): Promise<number> {
-  const { gameweeks, matches } = await heldSchedule(ctx);
+  const matches = await scheduledMatches(ctx);
+  const gameweeks = SEASON_GAMEWEEKS.map((number) => ({ number }));
   // nextGameweek counts a gameweek begun at its kickoff; a version taking effect then still reaches it.
   return nextGameweek(gameweeks, matches, () => AT_FIRST_KICKOFF, await gameweekStartsOf(ctx, matches), at - 1);
 }
