@@ -1,5 +1,6 @@
 // What one of a player's matches is worth, priced with no lineup. The card shows his base points at
-// each position he has (spec/12, The player card; Craig, 31 Oct 2026): pointsAt. The Squad tab,
+// each position he has (spec/12, The player card; Craig, 31 Oct 2026): basePoints, and the match
+// page the first of them for a man in no lineup (spec/10). The Squad tab,
 // through scoredMatches.ts, prices a match no lineup counted at his best position: the slot his
 // positions let him stand in (pitch.ts's playsCell) that scores the most for the match. Pure, so
 // the queries and their tests price alike.
@@ -59,6 +60,16 @@ export function cellAt(position: SlotPosition): Cell {
  *  null. */
 export function pointsAt(record: MatchStats | null, set: ScoringSet, position: SlotPosition): MatchPoints & { position: SlotPosition } {
   return { position, ...scoreMatch(record, set, cellAt(position)) };
+}
+
+/** His base points in one match at each of his card's positions (cardPositions), in its order, or,
+ *  when none of his positions has a price, once at his best position (cardPoints). The first is
+ *  where his card opens, and what the match page shows for a man in no lineup (#771), so the two
+ *  agree. Each match costs one pricing a position. */
+export function basePoints(record: MatchStats | null, set: ScoringSet, positions: readonly Position[]): (MatchPoints & { position: SlotPosition | null })[] {
+  const pricedAt = cardPositions(positions);
+  if (pricedAt.length === 0) return [cardPoints(record, set, positions)];
+  return pricedAt.map((position) => pointsAt(record, set, position));
 }
 
 /** One cell for each slot these positions may stand in: a rule is priced by the slot's area and

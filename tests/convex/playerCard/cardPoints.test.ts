@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { ALL_CELLS, cellKey, positionOfSlot, SLOT_POSITIONS } from "../../../convex/lineup/pitch";
-import { cardPoints, cardPositions, cellAt, pointsAt } from "../../../convex/playerCard/cardPoints";
+import { basePoints, cardPoints, cardPositions, cellAt, pointsAt } from "../../../convex/playerCard/cardPoints";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { EXAMPLE_SET } from "../../support/convex/scoring.example";
 
@@ -86,4 +86,18 @@ test("his base points at a position are that slot's, though another of his would
   expect(pointsAt(GOAL_AND_ASSIST, EXAMPLE_SET, "ST")).toMatchObject({ position: "ST", total: 9 });
   expect(pointsAt(GOAL_AND_ASSIST, EXAMPLE_SET, "ST")).not.toHaveProperty("role");
   expect(pointsAt(null, EXAMPLE_SET, "W")).toMatchObject({ position: "W", total: null });
+});
+
+test("his base points come at each of his card's positions in its order, the first where the card and the match page open", () => {
+  expect(basePoints(GOAL_AND_ASSIST, EXAMPLE_SET, ["ST", "W"]).map(({ position, total }) => [position, total])).toEqual([
+    ["W", 11],
+    ["ST", 9],
+  ]);
+  // A centre-back first, though his ten defensive actions earn more in defensive midfield.
+  expect(basePoints({ minutes: 90, defensive_contribution: 10 }, EXAMPLE_SET, ["CDM", "CB"])[0]).toMatchObject({ position: "CB" });
+});
+
+test("with no position a slot prices, his base points come once, at his best", () => {
+  expect(basePoints(GOAL_AND_ASSIST, EXAMPLE_SET, ["SS"])).toMatchObject([{ position: "W", total: 11 }]);
+  expect(basePoints(GOAL_AND_ASSIST, EXAMPLE_SET, [])).toMatchObject([{ position: null, total: null }]);
 });

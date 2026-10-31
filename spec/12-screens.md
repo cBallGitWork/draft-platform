@@ -62,7 +62,9 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
     player card should be showing their base points as squad/live could be showing their
     role/tactics adjustment" (Craig, 31 Oct 2026). Every match shows the site's scoring for what he
     did, with no role, whether he was owned or a free agent, started, sat on the bench, came on or
-    not. While a match is live its points are provisional until final. A player with more than one
+    not, shown plainly: "The player card is an info page just show their points and stop being
+    weird" (Craig, 31 Oct 2026). While a match is live its points are provisional until final. A
+    player with more than one
     position: "Has to be his main as that's consistent week to week", and "We need a more stable
     way for main position. Maybe we do show his points for all his main positions as a
     switch/toggle" (Craig, 31 Oct 2026). So the card has a switch with one key for each of his

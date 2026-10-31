@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { SLOT_POSITIONS, type SlotPosition } from "../lineup/pitch";
+import { SLOT_POSITIONS } from "../lineup/pitch";
 import { roleName } from "../lineup/roles";
 import { positionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
@@ -13,9 +13,7 @@ import { ownerOf, placeOf } from "../squads/squadPlace";
 import { isWhole, MINUTES_STAT, statValue } from "../stats/matchRecords";
 import { playsIn } from "../gameweekScorer/heldMatches";
 import { scoredMatches } from "../gameweekScorer/scoredMatches";
-import type { ScoringSet } from "../scoring/scoringSet";
-import type { MatchStats } from "../scoring/values";
-import { cardPoints, cardPositions, pointsAt } from "./cardPoints";
+import { basePoints, cardPositions } from "./cardPoints";
 
 // A player's card (spec/12, The player card; #381), for anyone in the league: who he is and who
 // owns him here, FPL's news on him, this season's matches at his base points, at each position he
@@ -141,12 +139,11 @@ async function seasonMatches(ctx: QueryCtx, league: Doc<"leagues">, player: Doc<
   const owner = await placeOf(ctx, league._id, player.code);
   const { setIn, of } = await scoredMatches(ctx, league, owner?.teamId ?? null);
   const scored = await of({ code: player.code, positions });
-  const pricedAt = cardPositions(positions);
   const played = await Promise.all(
     scored.map(async ({ record, fixture, gameweek, points: { role }, override, provisional }) => {
       const set = setIn(gameweek);
       const named = (stat: string) => categoryName(stat, set.ownStats);
-      const points = basePoints(isWhole(record) ? record.stats : null, set, positions, pricedAt).map(({ position, total, categories }) => ({
+      const points = basePoints(isWhole(record) ? record.stats : null, set, positions).map(({ position, total, categories }) => ({
         position,
         total,
         categories: categories.map((each) => ({ ...each, name: named(each.stat) })),
@@ -166,13 +163,6 @@ async function seasonMatches(ctx: QueryCtx, league: Doc<"leagues">, player: Doc<
     }),
   );
   return played.sort((one, other) => (other.kickoff ?? 0) - (one.kickoff ?? 0));
-}
-
-/** His base points in one match at each of `pricedAt`, or, when none of his positions has a price,
- *  once at his best position (cardPoints). Each match costs one pricing a position. */
-function basePoints(record: MatchStats | null, set: ScoringSet, positions: readonly Position[], pricedAt: readonly SlotPosition[]) {
-  if (pricedAt.length === 0) return [cardPoints(record, set, positions)];
-  return pricedAt.map((position) => pointsAt(record, set, position));
 }
 
 /** His club's next matches after `now`, soonest first. A match with no kickoff time is left out. */

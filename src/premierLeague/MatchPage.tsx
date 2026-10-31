@@ -183,9 +183,12 @@ function TeamSheet({ title, men }: { title: string; men: MatchMan[] }) {
 
 /** One man: an unused substitute greyed, one who came on marked, the team his points are for, or
  *  "Free agent" for a man no lineup held at the deadline (once waivers are built, a man on waivers
- *  reads so instead), and his points, greyed while they don't count: for a free agent, for no team. */
+ *  reads so instead), and his points, greyed while his team's lineup doesn't count them, as the
+ *  matchup greys a bench man (spec/14). A free agent's show plainly: "people don't think grey
+ *  means no teams" (Craig, 31 Oct 2026). */
 function ManRow({ man: { name, position, started, played, ownerTeamName, points, counts } }: { man: MatchMan }) {
   const unused = !started && played === false;
+  const greyed = !counts && ownerTeamName !== null;
   return (
     <tr className={`border-t border-panel-rule align-top ${unused ? "text-muted" : ""}`}>
       <td className="px-2 text-right">{position === null ? noFigureWords : <PositionCode position={position} />}</td>
@@ -197,9 +200,9 @@ function ManRow({ man: { name, position, started, played, ownerTeamName, points,
           <OwnerName teamName={ownerTeamName} />
         </span>
       </th>
-      <td className={`px-2 text-right ${counts && points !== null ? "font-bold text-figure" : "text-muted"}`}>
+      <td className={`px-2 text-right ${!greyed && points !== null ? "font-bold text-figure" : "text-muted"}`}>
         {points === null ? noFigureWords : figureWords(points)}
-        {!counts && <span className="sr-only"> {notCountingLabel}</span>}
+        {greyed && <span className="sr-only"> {notCountingLabel}</span>}
       </td>
     </tr>
   );
