@@ -3,21 +3,9 @@ import { api } from "../../../convex/_generated/api";
 import { inTenths } from "../../../convex/scoring/values";
 import { actingAs } from "../../support/convex/leagues.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
-import {
-  ANN,
-  BOB,
-  CAT,
-  EVERTON_POINTS,
-  fullTimeRecords,
-  GAMEWEEK,
-  holdTypoRule,
-  HULL_POINTS,
-  lockMatch,
-  readTable,
-  scoresLeague,
-  TYPO_STAT,
-  type ScoresLeague,
-} from "../../support/convex/gameweekScores.harness";
+import { ANN, BOB, CAT, EVERTON_POINTS, GAMEWEEK, HULL_POINTS, readTable, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { fullTimeRecords, lockMatch } from "../../support/convex/gameweekScoresMatch.harness";
+import { holdTypoRule, TYPO_STAT } from "../../support/convex/gameweekScoresFixes.harness";
 
 // My team's Fixtures tab's results (#436): each game's score is the table's own, the team's points
 // first, provisional while live; a game not yet played, or in a gameweek that couldn't be scored,

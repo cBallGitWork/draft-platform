@@ -4,7 +4,6 @@ import { STREAM_BEHIND } from "../../../convex/football/matchCommentary";
 import { bySheetOrder } from "../../../convex/match/sheetOrder";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import {
-  adjustScorersRole,
   ANN,
   ANNS_TEAM,
   annsScoredGame,
@@ -12,18 +11,16 @@ import {
   BOBS_TEAM,
   EVERTON_BENCH,
   EVERTON_STARTERS,
-  fullTimeRecords,
   HULL_BENCH,
   HULL_KEEPER,
   HULL_SCORER,
   HULL_STARTERS,
   LEAGUE_KICKOFF,
-  MIDFIELD_GOAL,
   PHILLIPS,
-  holdTypoRule,
-  scoreRead,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
+import { fullTimeRecords, scoreRead } from "../../support/convex/gameweekScoresMatch.harness";
+import { adjustScorersRole, MIDFIELD_GOAL, holdTypoRule } from "../../support/convex/gameweekScoresFixes.harness";
 import { ADMIN, OUTSIDER, actingAs } from "../../support/convex/leagues.harness";
 import { manOf, matchAs, matchLeague, notYetBegun, scorerFreeLeague } from "../../support/convex/matchPage.harness";
 import { HULL_EVERTON, HULL_EVERTON_TEAM_STATS, mergedHullEverton } from "../../support/convex/matchStats.harness";

@@ -2,7 +2,6 @@ import { expect, test } from "vitest";
 import { namedRole, roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
 import {
   annsScoredGame,
-  fullTimeRecords,
   GAMEWEEK,
   giveAnnsStarterRole,
   HULL_BENCH_STRIKER,
@@ -14,6 +13,7 @@ import {
   scoresLeague,
   slotOf,
 } from "../../support/convex/gameweekScores.harness";
+import { fullTimeRecords } from "../../support/convex/gameweekScoresMatch.harness";
 // Belloumi, Hull's midfielder, is second on Ann's bench after Hull's keeper.
 import { BELLOUMI, PHILLIPS } from "../../support/convex/teamPoints.harness";
 
