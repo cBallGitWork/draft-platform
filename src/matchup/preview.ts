@@ -94,8 +94,7 @@ function slotAt([area, name, match, finalPoints]: Man, minute: number, onBench: 
 /** A starter `minute` minutes in, in his area's centre slot's first role: the made-up men stand in
  *  areas, not cells. */
 function starterAt(man: Man, minute: number): MatchupStarter {
-  const { key, name } = roleIn({ area: man[0], lane: "centre" }, undefined);
-  return { ...slotAt(man, minute, false), role: { key, name } };
+  return { ...slotAt(man, minute, false), role: roleIn({ area: man[0], lane: "centre" }, undefined) };
 }
 
 /** A side `minute` minutes in: the keeper's auto-sub once his match is over, then the total. */

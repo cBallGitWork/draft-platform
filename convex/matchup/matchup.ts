@@ -173,8 +173,7 @@ class SideScorer {
   private async starter(slotPoints: SlotPoints, scored: TeamInGameweek): Promise<MatchupStarter> {
     const { playerCode, cell, role } = slotPoints;
     if (role === undefined) throw new Error(`starter ${playerCode} stands at ${cell.area} ${cell.lane}, which has no roles`);
-    const { key, name } = roleIn(cell, role);
-    return { ...(await this.slot(slotPoints, scored)), role: { key, name } };
+    return { ...(await this.slot(slotPoints, scored)), role: roleIn(cell, role) };
   }
 
   private async slot(slotPoints: SlotPoints, { autoSubs, matchesOf }: TeamInGameweek): Promise<MatchupSlot> {

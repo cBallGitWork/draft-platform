@@ -89,7 +89,7 @@ export const teamSide = (teamName: string, starters: (Slot & Partial<Pick<Matchu
   teamName,
   points,
   provisional,
-  lineup: { starters: starters.map((starter) => ({ role: { key: STARTER_ROLE.key, name: STARTER_ROLE.name }, ...starter })), bench },
+  lineup: { starters: starters.map((starter) => ({ role: STARTER_ROLE, ...starter })), bench },
 });
 
 type Game = HeadToHead["game"];

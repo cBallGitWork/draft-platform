@@ -38,23 +38,17 @@ test("once the deadline has passed each starter on both sides carries his role: 
   const game = await annsScoredGame(league, GAMEWEEK);
   expect(lineupOf(game.team).starters.map((slot) => slot.playerCode)).toEqual(HULL_STARTERS.map((starter) => starter.playerCode));
   const hull = new Map(lineupOf(game.team).starters.map((slot) => [slot.playerCode, slot.role]));
-  expect(hull.get(HULL_SCORER)).toEqual({ key: given.key, name: given.name });
+  expect(hull.get(HULL_SCORER)).toEqual(given);
   expect(given.key).not.toBe(first.key);
   // The rest of Hull's, and every one of Everton's, plays his slot's first.
   for (const starter of HULL_STARTERS.filter(({ playerCode }) => playerCode !== HULL_SCORER)) {
-    expect(hull.get(starter.playerCode)).toEqual(namedRole(starter, undefined));
+    expect(hull.get(starter.playerCode)).toEqual(roleIn(starter, undefined));
   }
   const everton = new Map(lineupOf(game.opponent).starters.map((slot) => [slot.playerCode, slot.role]));
-  for (const starter of EVERTON_STARTERS) expect(everton.get(starter.playerCode)).toEqual(namedRole(starter, undefined));
+  for (const starter of EVERTON_STARTERS) expect(everton.get(starter.playerCode)).toEqual(roleIn(starter, undefined));
   // The bench carries none: spec/10 names the starters' roles.
   expect(lineupOf(game.team).bench.every((slot) => !("role" in slot))).toBe(true);
 });
-
-/** The role a starter at `cell` plays, as the matchup sends it. */
-const namedRole = (cell: Parameters<typeof roleIn>[0], given: string | undefined) => {
-  const { key, name } = roleIn(cell, given);
-  return { key, name };
-};
 
 /** Ann's saved lineup gives `playerCode` the role `role`, as Tactics saves it. */
 const giveRole = ({ t, annsTeam }: ScoresLeague, playerCode: number, role: string) =>
