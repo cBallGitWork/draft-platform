@@ -9,7 +9,10 @@ import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel, signOutWords } from "../../../src/frame/words";
 import { MAIL_TITLE } from "../../../src/mail/words";
 import { SIGN_IN_PATH } from "../../../src/signIn/paths";
-import { admin, adminSeeing, commissioned, league, manager, managerIn, newcomer, openApp, visitor, withNoPart } from "../../support/src/shell.harness";
+import { admin, adminSeeing, beingDeleted, commissioned, league, manager, managerIn, newcomer, openApp, visitor, withNoPart } from "../../support/src/shell.harness";
+import { GAMEWEEKS_TITLE } from "../../../src/gameweeks/words";
+import { scoringPath } from "../../../src/scoring/paths";
+import { SCORING_TITLE } from "../../../src/scoring/words";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
 import {
   adminWords,
@@ -104,6 +107,25 @@ describe("the admin, with no part in a league", () => {
     expect(screen.getByText(unsentLink(league.commissionerEmail, unsentLinkWords.paused))).toBeTruthy();
     expect(screen.getByRole("link", { name: NEW_LEAGUE_TITLE })).toBeTruthy();
     expect(screen.queryByText(leaguesCutWords)).toBeNull();
+  });
+
+  // Not the switcher's list, which leaves out a league he has no part in (#562).
+  it("opens a league he has no part in from its row, by its runner's links", async () => {
+    const app = openApp(LEAGUES_PATH, adminSeeing(withNoPart(league)));
+    const row = await rowOf(league.name);
+    expect(within(row).getByRole("link", { name: GAMEWEEKS_TITLE })).toBeTruthy();
+    await userEvent.click(within(row).getByRole("link", { name: SCORING_TITLE }));
+    expect(app.path()).toBe(scoringPath(league.leagueId));
+  });
+
+  it("is offered no way into a league being deleted, and its pages send him back to his leagues", async () => {
+    const deleting = adminSeeing(beingDeleted(withNoPart(league)));
+    openApp(LEAGUES_PATH, deleting);
+    expect(within(await rowOf(league.name)).queryAllByRole("link")).toEqual([]);
+
+    const app = openApp(scoringPath(league.leagueId), deleting);
+    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
+    expect(app.path()).toBe(LEAGUES_PATH);
   });
 
   it("is told when there are more leagues than the list shows (#144)", async () => {
