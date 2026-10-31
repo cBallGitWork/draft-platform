@@ -96,10 +96,11 @@ export function plTeamStatsUrl(fixtureId: number): string {
   return `${PL_API_BASE}/stats/match/${fixtureId}`;
 }
 
-const USER_AGENT =
+/** Who the feeds are told is asking. Exported for scripts/record-match.mjs, which reads with it. */
+export const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0 Safari/537.36";
 // A feed that never answers would otherwise hold the action until Convex kills it.
-const TIMEOUT_MS = 15_000;
+export const TIMEOUT_MS = 15_000;
 
 /** The body as JSON; a status that is not OK throws, naming the URL and the status. */
 export async function getJson(url: string): Promise<unknown> {
