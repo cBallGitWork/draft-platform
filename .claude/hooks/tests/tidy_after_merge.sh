@@ -157,6 +157,7 @@ landed hook.py && landed .gitignore
 home=$tmp/home-checkout && git clone -q "$upstream" "$home" && git -C "$home" checkout -q --detach
 pr not-here MERGED "$(git -C "$home" rev-parse HEAD)"  # no local branch: only the main checkout is said
 at_origin() { [ "$(git -C "$home" rev-parse HEAD)" = "$(git -C "$upstream" rev-parse main)" ]; }
+stayed() { [ "$(git -C "$home" rev-parse HEAD)" = "$before" ]; }  # still at the commit noted in $before
 
 # detached and behind: it moves, and a changed file the move doesn't touch is kept
 landed hook.py && echo "mine" >> "$home/.gitignore"
@@ -171,20 +172,20 @@ silent tidy_after_merge.py "$(bash_in "$home" "$merge")"
 # a changed file the move would overwrite: git refuses, it stays, and says why
 landed .gitignore && before=$(git -C "$home" rev-parse HEAD)
 says "would be overwritten" tidy_after_merge.py "$(bash_in "$home" "$merge")"
-[ "$(git -C "$home" rev-parse HEAD)" = "$before" ] || fail "tidy_after_merge.py: moved over a changed file"
+stayed || fail "tidy_after_merge.py: moved over a changed file"
 grep -q mine "$home/.gitignore" || fail "tidy_after_merge.py: lost the changed file it refused to overwrite"
 git -C "$home" checkout -q -- .gitignore
 
 # detached on a commit of its own: it stays, and says so
 git -C "$home" "${as_tester[@]}" commit -q --allow-empty -m "local work" && before=$(git -C "$home" rev-parse HEAD)
 says "it holds 1 commit(s) origin/main doesn't" tidy_after_merge.py "$(bash_in "$home" "$merge")"
-[ "$(git -C "$home" rev-parse HEAD)" = "$before" ] || fail "tidy_after_merge.py: moved a main checkout off its own commit"
+stayed || fail "tidy_after_merge.py: moved a main checkout off its own commit"
 git -C "$home" checkout -q --detach HEAD~1
 
 # on a branch: it stays, whatever origin/main holds
 git -C "$home" switch -q -c local && before=$(git -C "$home" rev-parse HEAD)
 silent tidy_after_merge.py "$(bash_in "$home" "$merge")"
-[ "$(git -C "$home" rev-parse HEAD)" = "$before" ] || fail "tidy_after_merge.py: moved a main checkout on a branch"
+stayed || fail "tidy_after_merge.py: moved a main checkout on a branch"
 [ "$(git -C "$home" branch --show-current)" = local ] || fail "tidy_after_merge.py: switched a main checkout off its branch"
 
 # a merge run in another worktree moves the main checkout too
