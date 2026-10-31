@@ -10,11 +10,14 @@ import {
   EVERTON_STARTERS,
   fullTimeRecords,
   GAMEWEEK,
+  holdMovedIn,
   HULL_AFTER_SUB,
   HULL_KEEPER,
   HULL_STARTERS,
   HULL_SCORER,
   lockMatch,
+  lockMovedIn,
+  MOVED_IN,
   scoresLeague,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
@@ -39,14 +42,6 @@ const storeStats = ({ t, leagueId }: ScoresLeague) => t.mutation(internal.stats.
 const totalsOf = async ({ t }: ScoresLeague, teamId: Id<"teams">) =>
   (await t.run((ctx) => ctx.db.query("teamSeasonStats").collect())).find((row) => row.teamId === teamId)?.stats;
 const shares = ({ t }: ScoresLeague) => t.run((ctx) => ctx.db.query("teamGameweekStats").collect());
-
-/** A match the football sync moves into gameweek 6 after it was stored, between two clubs no squad
- *  here holds. */
-const MOVED_IN = 999_001;
-const holdMovedIn = ({ t }: ScoresLeague) =>
-  t.run((ctx) => ctx.db.insert("fixtures", { code: MOVED_IN, gameweek: GAMEWEEK, homeClubCode: 901, awayClubCode: 902, kickoff: Date.now() }));
-const lockMovedIn = ({ t }: ScoresLeague) =>
-  t.run((ctx) => ctx.db.insert("matchStatsStatus", { fixtureCode: MOVED_IN, state: "locked", fullTimeAt: Date.now(), lockedAt: Date.now(), lastReadAt: Date.now() }));
 
 test("once the gameweek is final, each team's totals are its counted players' stats added up, and a bench player who stayed on adds nothing", async () => {
   const league = await scoresLeague();
