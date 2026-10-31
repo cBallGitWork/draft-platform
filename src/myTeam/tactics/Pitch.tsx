@@ -1,6 +1,7 @@
 import type { CSSProperties, DragEvent } from "react";
 import { AREAS, cellKey, LANES, sameCell, type Cell } from "../../../convex/lineup/pitch";
 import { roleIn } from "../../../convex/lineup/roles";
+import { kitOf, type Ink } from "../../../convex/football/clubColours";
 import { markOf } from "./focusMarks";
 import { PitchLines } from "./PitchLines";
 import { PITCH_ASPECT } from "./pitchMarkings";
@@ -113,7 +114,7 @@ function PlayerBlock({ player, cell, role, moving }: { player: SquadMember; cell
       onDragEnd={moving.onDragEnd}
       className="flex w-full min-w-0 cursor-grab flex-col items-center"
     >
-      <Shirt number={player.number} />
+      <Shirt number={player.number} clubCode={player.clubCode} goalkeeper={cell.area === "goalkeeper"} />
       <span className={`max-w-full truncate px-1 text-lead font-semibold ${plate}`}>{player.name}</span>
       {/* Up to two lines, so "Defensive full-back" and "Defensive winger" stay apart on a phone. */}
       <span className={`line-clamp-2 max-w-full px-1 text-center ${isPicked ? plate : "bg-name-plate text-soft"}`}>{role}</span>
@@ -121,15 +122,21 @@ function PlayerBlock({ player, cell, role, moving }: { player: SquadMember; cell
   );
 }
 
-/** Our own shirt outline (plate.md, Marks), with his squad number on it once his manager gives
- *  him one (#13). Club colours aren't held yet. */
-function Shirt({ number }: { number: number | null }) {
+/** A shirt's number and outline, in the ink that reads on its colour: either ink stands out on both
+ *  stripes of the grass too, so a white or a dark kit keeps its edge. */
+const INK_CLASSES: Record<Ink, string> = { dark: "fill-ground stroke-ground", light: "fill-fact stroke-fact" };
+
+/** Our own shirt outline in his club's colours (plate.md, Marks; a keeper in its second colour),
+ *  with his squad number on it once his manager gives him one (#13). The colour is only a look:
+ *  his name says who he is, so screen readers skip the shirt. */
+function Shirt({ number, clubCode, goalkeeper }: { number: number | null; clubCode: number; goalkeeper: boolean }) {
+  const kit = kitOf(clubCode, goalkeeper);
   return (
-    <svg viewBox="0 0 40 40" aria-hidden="true" className="size-shirt shrink-0 fill-fact stroke-name-plate">
-      <path d="M13 4 L7 7 L2 13 L7 18 L10 16 L10 37 L30 37 L30 16 L33 18 L38 13 L33 7 L27 4 Q20 10 13 4 Z" />
+    <svg viewBox="0 0 40 40" aria-hidden="true" className={`size-shirt shrink-0 ${INK_CLASSES[kit.ink]}`}>
+      <path style={{ fill: kit.shirt }} d="M13 4 L7 7 L2 13 L7 18 L10 16 L10 37 L30 37 L30 16 L33 18 L38 13 L33 7 L27 4 Q20 10 13 4 Z" />
       {number !== null && (
         // In the shirt's own units, as the shirt is drawn 40 wide and shown smaller (size-shirt).
-        <text x="20" y="29" textAnchor="middle" fontSize="14" className="fill-ground stroke-none font-bold">
+        <text x="20" y="29" textAnchor="middle" fontSize="14" className="stroke-none font-bold">
           {number}
         </text>
       )}

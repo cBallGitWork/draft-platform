@@ -30,29 +30,17 @@ export type LeagueDeadlines = ReadonlyMap<number, number | null>;
 /** All of a match a deadline reads. */
 export type ScheduledMatch = Pick<Infer<typeof fixtureRecord>, "gameweek" | "kickoff">;
 
-/** The deadline last recorded for the gameweek (null only before one is), and the time it is read. */
-export interface DeadlineReading {
-  recorded: number | null;
-  now: number;
-}
-
 /**
- * When a gameweek locks, in epoch milliseconds. Once the recorded deadline has passed, that one.
- * Before, the rule's minutes before the earliest kickoff of the matches in it now, so a match moved
- * into or out of the gameweek moves its deadline. Null while none of its matches has a kickoff
- * time: there is no deadline yet.
+ * When a gameweek locks under the rule, in epoch milliseconds: the rule's minutes before the
+ * earliest kickoff of the matches in it now, so a match moved into or out of the gameweek moves its
+ * deadline. Null while none of its matches has a kickoff time: there is no deadline yet. A deadline
+ * already passed is the recorded one instead (`leagueDeadline`).
  */
-export function gameweekDeadline(
-  gameweek: number,
-  matches: readonly ScheduledMatch[],
-  rule: DeadlineRule,
-  { recorded, now }: DeadlineReading,
-): number | null {
+function ruleDeadline(gameweek: number, matches: readonly ScheduledMatch[], rule: DeadlineRule): number | null {
   const minutes = rule.minutesBeforeFirstKickoff;
   if (!Number.isInteger(minutes) || minutes < 0) {
     throw new Error(`A deadline is a whole number of minutes, 0 or more, before the first kickoff, not ${minutes}`);
   }
-  if (isLocked(recorded, now)) return recorded;
   const kickoffs = matches.flatMap((match) =>
     match.gameweek === gameweek && match.kickoff !== null ? [match.kickoff] : [],
   );
@@ -73,8 +61,7 @@ export function leagueDeadline(
   rule: DeadlineRule,
   recorded: number | null,
 ): number | null {
-  // Only a passed deadline is recorded, so the reading's time is never needed to judge it.
-  return recorded ?? gameweekDeadline(gameweek, matches, rule, { recorded: null, now: 0 });
+  return recorded ?? ruleDeadline(gameweek, matches, rule);
 }
 
 /** Whether a lineup change made `now` is refused: at the deadline and after it, the gameweek is

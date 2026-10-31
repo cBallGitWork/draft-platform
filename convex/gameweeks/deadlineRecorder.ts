@@ -8,7 +8,7 @@ import { isLocked } from "./deadline";
 import { recordGameweekStarts } from "./gameweekStarts";
 import { passedDeadlinesOf } from "./passedDeadlines";
 import { seasonRules } from "../rules/rulesHistory";
-import { heldSchedule, leagueDeadlinesIn } from "./leagueDeadlines";
+import { heldMatches, leagueDeadlinesIn } from "./leagueDeadlines";
 import { storeBegunFixtures } from "../table/playedFixtures";
 
 // Records each league's passed deadlines (#150), so a postponement after one can't move it
@@ -49,7 +49,7 @@ export const LEAGUES_RECORDED_MOST = 200;
 export async function recordPassedDeadlines(ctx: MutationCtx): Promise<number> {
   const now = Date.now();
   // Read once for every league: the fixtures are the season's 380, the most of any table here.
-  const { matches } = await heldSchedule(ctx);
+  const matches = await heldMatches(ctx);
   await recordGameweekStarts(ctx, matches, now);
   const leagues = await takeAllOrThrow(
     ctx.db.query("leagues"),
