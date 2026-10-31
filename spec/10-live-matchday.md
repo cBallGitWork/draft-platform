@@ -9,8 +9,8 @@ commentary` (16 Oct 2026).
 
 - The two teams' totals are the score at the top. Each player shows his own status: yet to play,
   playing now with his minute, or finished.
-- A live match's minute is one clock, the same here and on the match page: stoppage time
-  ("45+1'"), and "Live" before it has a minute (Craig, 31 Oct 2026: "Yes stoppage time and live").
+- His minute shows stoppage time, and "Live" before there is one (Craig, 31 Oct 2026: "Yes
+  stoppage time and live").
 - The matchup has commentary: a vidiprinter, newest first, of every line from every match that
   involves either team's players.
 - No line for an auto-sub: whether a player played is known only after his match.
