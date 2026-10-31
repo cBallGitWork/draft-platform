@@ -14,8 +14,9 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A player's card (#381, spec/12 The player card): who he is, who owns him in the league, FPL's
-// news, this season's matches priced under the site's scoring at his best position, or at his slot
-// and role where his team started him, and his club's next fixtures. The site plays EXAMPLE_SET throughout.
+// news, this season's matches at his base points under the site's scoring, at each position he has
+// (Craig, 31 Oct 2026), with his role's line apart where his team started him, and his club's next
+// fixtures. The site plays EXAMPLE_SET throughout.
 
 const [ANN, BOB] = MANAGERS;
 
@@ -30,6 +31,11 @@ const SAKA = {
 };
 /** A centre-back FPL has no doubt about, who played for Arsenal in gameweek 1 and has since joined Chelsea. */
 const MOVER = { code: 1002, name: "Mover", fullName: "Moving Man", clubCode: CHELSEA.code, news: "", chanceOfPlaying: null, positions: ["CB"] as Position[] };
+/** An Arsenal forward with two positions, held front first, who scored and assisted in gameweek 1. */
+const FORWARD = { ...MOVER, code: 1003, name: "Forward", fullName: "Two Positions", clubCode: ARSENAL.code, positions: ["ST", "W"] as Position[] };
+/** An Arsenal second striker, a position no slot prices yet (spec/14), who scored and assisted in gameweek 1. */
+const SUPPORT = { ...MOVER, code: 1004, name: "Support", fullName: "Second Striker", clubCode: ARSENAL.code, positions: ["SS"] as Position[] };
+const GOAL_AND_ASSIST = { minutes: 90, goals_scored: 1, assists: 1 };
 
 const NOW = Date.parse("2026-09-01T12:00:00Z");
 const fixture = (code: number, gameweek: number | null, home: number, away: number, kickoff: number | null, dropped = false) => ({
@@ -61,13 +67,15 @@ beforeEach(async () => {
   teams = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA, COVENTRY]);
-    await insertPlayers(ctx, [SAKA, MOVER]);
+    await insertPlayers(ctx, [SAKA, MOVER, FORWARD, SUPPORT]);
     await insertDroppedPlayer(ctx, GONE, NOW);
     for (const each of [ARS_COV, CHE_ARS, LAST_SEASON, COV_CHE, ...ARSENAL_AHEAD, NO_KICKOFF_YET]) await ctx.db.insert("fixtures", each);
     await holdSiteScoring(ctx, { scoring: structuredClone(EXAMPLE_SET) as StoredScoringSet, kind: "fix", season: 2025, number: 1, at: 0 });
     await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: SAKA.code });
     for (const each of [
-      completeRecord(SAKA.code, ARS_COV.code, { minutes: 90, goals_scored: 1, assists: 1 }),
+      completeRecord(SAKA.code, ARS_COV.code, GOAL_AND_ASSIST),
+      completeRecord(FORWARD.code, ARS_COV.code, GOAL_AND_ASSIST),
+      completeRecord(SUPPORT.code, ARS_COV.code, GOAL_AND_ASSIST),
       // Only FPL's part has arrived: not yet whole.
       completeRecord(SAKA.code, CHE_ARS.code, { minutes: 90 }, { pl: false }),
       completeRecord(SAKA.code, LAST_SEASON.code, { minutes: 90, goals_scored: 3 }),
@@ -100,51 +108,86 @@ test("a free agent with no news has no owner, no news and no chance of playing",
   expect(await cardAs(ANN, MOVER.code)).toMatchObject({ ownerTeamName: null, news: null, chanceOfPlaying: null });
 });
 
-test("this season's matches are newest first, priced at his best position, by category", async () => {
-  const { matches } = (await cardAs(ANN, SAKA.code))!;
+test("this season's matches are newest first, at his base points, by category", async () => {
+  const { pricedAt, matches } = (await cardAs(ANN, SAKA.code))!;
 
+  expect(pricedAt).toEqual(["W"]);
   expect(matches.map((match) => match.fixtureCode)).toEqual([CHE_ARS.code, ARS_COV.code]);
   const [unarrived, priced] = matches;
   expect(priced).toMatchObject({ gameweek: 1, kickoff: ARS_COV.kickoff, home: ARSENAL, away: COVENTRY, minutes: 90 });
   // As a winger in attacking midfield: goal 5, assist 4, minutes 2.
-  expect(priced.points).toMatchObject({ scoredAs: "bestPosition", position: "W", total: 11 });
-  expect(priced.points.categories.slice(0, 3)).toEqual([
+  expect(priced.points).toHaveLength(1);
+  expect(priced.points[0]).toMatchObject({ position: "W", total: 11 });
+  expect(priced.points[0].categories.slice(0, 3)).toEqual([
     { stat: "goals_scored", name: "Goals scored", points: 5 },
     { stat: "assists", name: "Assists", points: 4 },
     { stat: "minutes", name: "Minutes", points: 2 },
   ]);
-  expect(unarrived).toMatchObject({ minutes: null, points: { position: null, total: null } });
+  expect(priced.role).toBeUndefined();
+  expect(unarrived).toMatchObject({ minutes: null, points: [{ position: "W", total: null }] });
 });
 
-test("a match his team started him in is priced at his slot and role, with the role's line (#10)", async () => {
+test("a player with two positions is priced at each, back to front, whatever order they are held in", async () => {
+  const { pricedAt, matches } = (await cardAs(ANN, FORWARD.code))!;
+
+  expect(pricedAt).toEqual(["W", "ST"]);
+  // A goal and an assist: 5 + 4 + 2 as a winger, 4 + 3 + 2 up front.
+  expect(matches[0].points.map(({ position, total }) => [position, total])).toEqual([
+    ["W", 11],
+    ["ST", 9],
+  ]);
+});
+
+test("a second striker, whose position no slot prices yet, is priced once at his best position", async () => {
+  const { pricedAt, matches } = (await cardAs(ANN, SUPPORT.code))!;
+
+  expect(pricedAt).toEqual([]);
+  // His cells are attacking midfield's and the attack's: a winger's 11 beats a striker's 9.
+  expect(matches[0].points).toMatchObject([{ position: "W", total: 11 }]);
+});
+
+/** Gameweek 1 begun for the league, so its table scores it (#577), the set adjusting an inside
+ *  forward +2 a goal, and Ann's lineup naming Saka, in a starter's slot or on the bench. */
+async function annFieldsSaka(where: "started" | "benched") {
   await t.run(async (ctx) => {
-    // Gameweek 1 begun for the league, so its table scores it (#577).
     const madeAt = (await ctx.db.get("leagues", leagueId))!._creationTime;
     await ctx.db.insert("passedDeadlines", { leagueId, gameweek: 1, deadline: madeAt, recordedAt: madeAt });
     const row = (await ctx.db.query("siteScoring").first())!;
     const scoring = { ...row.scoring, roleAdjustments: [{ role: "insideForward", adjustments: [{ stat: "goals_scored", points: 2 }] }] };
     await ctx.db.patch("siteScoring", row._id, { scoring });
+    const slot = { playerCode: SAKA.code, area: "attackingMidfield" as const, lane: "left" as const, role: "insideForward" };
     await ctx.db.insert("lineups", {
       leagueId,
       teamId: teams[0],
       fromGameweek: 1,
-      starters: [{ playerCode: SAKA.code, area: "attackingMidfield", lane: "left", role: "insideForward" }],
-      bench: [],
+      starters: where === "started" ? [slot] : [],
+      bench: where === "benched" ? [SAKA.code] : [],
     });
   });
-  const priced = (await cardAs(ANN, SAKA.code))!.matches.find((match) => match.fixtureCode === ARS_COV.code)!;
+  return (await cardAs(ANN, SAKA.code))!.matches.find((match) => match.fixtureCode === ARS_COV.code)!;
+}
 
-  // His base 11 as a winger, and his role's +2 for the goal.
-  expect(priced.points).toMatchObject({ scoredAs: "slot", position: "W", total: 13 });
-  expect(priced.points.role).toEqual({ name: "Inside forward", points: 2, lines: [{ stat: "goals_scored", name: "Goals scored", actions: 1, points: 2 }] });
+test("a match his team started him in shows his base points, and his role's line apart from them (#10)", async () => {
+  const priced = await annFieldsSaka("started");
+
+  // His base 11 as a winger; his role's +2 for the goal on its own line, not added in.
+  expect(priced.points).toMatchObject([{ position: "W", total: 11 }]);
+  expect(priced.role).toEqual({ name: "Inside forward", points: 2, lines: [{ stat: "goals_scored", name: "Goals scored", actions: 1, points: 2 }] });
 });
 
-test("a player's matches for a club he has left still count, and an unused substitute's don't", async () => {
+test("a match his team named him on the bench for shows his base points, with no role line", async () => {
+  const priced = await annFieldsSaka("benched");
+
+  expect(priced.points).toMatchObject([{ position: "W", total: 11 }]);
+  expect(priced.role).toBeUndefined();
+});
+
+test("a free agent's matches show his base points, for a club he has left too, and an unused substitute's don't show", async () => {
   const { matches } = (await cardAs(ANN, MOVER.code))!;
 
   // For Arsenal in gameweek 1, as a centre-back: minutes 2, four conceded -2.
   expect(matches).toHaveLength(1);
-  expect(matches[0]).toMatchObject({ fixtureCode: ARS_COV.code, home: ARSENAL, points: { position: "CB", total: 0 } });
+  expect(matches[0]).toMatchObject({ fixtureCode: ARS_COV.code, home: ARSENAL, points: [{ position: "CB", total: 0 }] });
 });
 
 test("his club's next fixtures after now, soonest first, are the few the card shows", async () => {

@@ -1,9 +1,9 @@
 // The player card in the preview (src/app/preview.ts): a card for each of Scouting's preview players,
-// with three matches priced at his best position under the first scoring set by the server's own
-// rule (cardPoints), and his club's next fixtures. Saka carries FPL's news, and an override on
-// one match.
+// with three matches at his base points at each of his positions under the first scoring set by the
+// server's own rule (cardPoints), and his club's next fixtures. Saka carries FPL's news, and an
+// override on one match.
 
-import { cardPoints } from "../../convex/playerCard/cardPoints";
+import { basePoints, cardPositions } from "../../convex/playerCard/cardPoints";
 import { categoryName } from "../../convex/scoring/categories";
 import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import type { MatchStats } from "../../convex/scoring/values";
@@ -28,13 +28,13 @@ const PREVIEW_ROLE = { name: "Number 10", points: 1, lines: [{ stat: "big_chance
 
 function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
   return RECORDS.map((record, index) => {
-    const { role: _none, ...points } = cardPoints(record, FIRST_SCORING, player.positions);
+    const points = basePoints(record, FIRST_SCORING, player.positions).map(({ position, total, categories }) => ({
+      position,
+      total,
+      categories: categories.map((each) => ({ ...each, name: categoryName(each.stat) })),
+    }));
     // One match shows how a role's line reads (spec/05), though the first set adjusts no role.
-    // As his team started him: at the slot, its role's points in the total.
-    const started = player.name === PREVIEW_ROLE_PLAYER && index === 1 && points.total !== null;
-    const role = started ? { scoredAs: "slot" as const, position: "CAM" as const, total: points.total! + PREVIEW_ROLE.points, role: PREVIEW_ROLE } : {};
-    // His oldest match he sat on his team's bench and didn't come on, so the card shows how that reads.
-    const benched = player.name === PREVIEW_ROLE_PLAYER && index === RECORDS.length - 1 ? { scoredAs: "notCounted" as const } : {};
+    const started = player.name === PREVIEW_ROLE_PLAYER && index === 1 && record !== null ? { role: PREVIEW_ROLE } : {};
     return {
       fixtureCode: player.code * 100 + index,
       gameweek: 9 - index,
@@ -42,7 +42,8 @@ function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
       home: index % 2 === 0 ? player.club : opponentOf(player.club.code, index),
       away: index % 2 === 0 ? opponentOf(player.club.code, index) : player.club,
       minutes: record?.minutes ?? null,
-      points: { ...points, categories: points.categories.map((each) => ({ ...each, name: categoryName(each.stat) })), ...role, ...benched },
+      points,
+      ...started,
       override: player.name === PREVIEW_OVERRIDDEN && index === 1 ? PREVIEW_OVERRIDE : null,
       // The two newest may still move: one still being played, one inside its corrections window.
       provisional: index <= 1,
@@ -59,6 +60,7 @@ function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
     club: player.club,
     gone: false,
     positions: player.positions,
+    pricedAt: cardPositions(player.positions),
     ownerTeamName: player.ownerTeamName,
     news: injured ? "Hamstring injury - 75% chance of playing" : null,
     chanceOfPlaying: injured ? 75 : null,

@@ -57,7 +57,7 @@ export const teamSquad = v.object({
 export type TeamSquad = Infer<typeof teamSquad>;
 
 /** One priced match: its gameweek, its points (null while his whole record hasn't arrived), and
- *  whether his team got them: scored at his slot, not labelled not counted or at his best position. */
+ *  whether his team got them: scored at his slot, not left out or priced at his best position. */
 export type PricedMatch = { gameweek: number; points: number | null; counted: boolean };
 
 /** Season and last gameweek's points from his priced matches: each the sum of those his team got,
