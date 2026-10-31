@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { linkOffWords } from "../../convex/joining/joiningShared";
-import { Loading, PageSection, Problem } from "../ui/Panel";
+import { Loading, PageSection, Problem, Status } from "../ui/Panel";
 import { LEAGUES_PATH } from "../leagues/paths";
 import { LEAGUES_TITLE } from "../leagues/words";
 import { useChange } from "../shared/useChange";
@@ -12,10 +12,13 @@ import { joinPageWords } from "./words";
 export function JoinPage({ token, joining }: { token: string; joining: JoiningSeam }) {
   const page = joining.useJoinPage(token);
   const { busy, problem, run } = useChange();
+  const waiting = page?.standing === "waiting" ? joinPageWords.waiting(page.leagueName) : null;
 
   return (
     <PageSection title={page?.leagueName ?? joinPageWords.title} className="max-w-md bg-panel">
       <Problem problem={problem} />
+      {/* Outside the stacked lines below, so while empty it adds no gap; its top padding is that gap. */}
+      {page && <Status words={waiting} className="px-3 pt-2" />}
       <div className="flex flex-col gap-2 px-3 py-2">
         {page === undefined && <Loading>{joinPageWords.loading}</Loading>}
         {page === null && <p>{linkOffWords}</p>}
@@ -27,7 +30,6 @@ export function JoinPage({ token, joining }: { token: string; joining: JoiningSe
             </button>
           </>
         )}
-        {page?.standing === "waiting" && <p role="status">{joinPageWords.waiting(page.leagueName)}</p>}
         {page?.standing === "inLeague" && <p>{joinPageWords.inLeague(page.leagueName, page.teamName)}</p>}
         {page?.standing !== "mayAsk" && (
           <Link to={LEAGUES_PATH} className="flex min-h-tap items-center self-start">

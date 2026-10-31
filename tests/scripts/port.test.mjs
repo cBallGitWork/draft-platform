@@ -2,24 +2,47 @@ import { spawnSync } from "node:child_process";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { expect, test } from "vitest";
-import { PORT_RANGE_SIZE, PORT_RANGE_START, appPort, smokePorts } from "../../scripts/port.mjs";
+import {
+  BROWSER_BLOCKED_PORTS,
+  PORT_RANGES,
+  PORT_RANGE_SIZE,
+  appPort,
+  portInRange,
+  rangeStart,
+  smokePorts,
+} from "../../scripts/port.mjs";
 
 const SCRIPT = join(import.meta.dirname, "../../scripts/port.mjs");
 
-test("smoke's two ports sit one and two ranges above this checkout's app port", () => {
-  const app = appPort();
-  expect(smokePorts()).toEqual({ dev: app + PORT_RANGE_SIZE, bundle: app + 2 * PORT_RANGE_SIZE });
+test("smoke's two ports sit at this checkout's app-port offset in their own ranges", () => {
+  const offset = appPort() - rangeStart(PORT_RANGES.app);
+  expect(smokePorts()).toEqual({
+    dev: portInRange(PORT_RANGES.smokeDev, offset),
+    bundle: portInRange(PORT_RANGES.smokeBundle, offset),
+  });
 });
 
-// Every checkout's app port is in the first range, so each server keeping to its own range means
-// no checkout's smoke server can land on any checkout's app port, or on another's.
-test("the app, smoke dev and smoke bundle ports each keep to their own range", () => {
-  const rangeStart = (nth) => PORT_RANGE_START + nth * PORT_RANGE_SIZE;
-  const inRange = (port, nth) => port >= rangeStart(nth) && port < rangeStart(nth + 1);
-  const { dev, bundle } = smokePorts();
-  expect(inRange(appPort(), 0)).toBe(true);
-  expect(inRange(dev, 1)).toBe(true);
-  expect(inRange(bundle, 2)).toBe(true);
+const OFFSETS = Array.from({ length: PORT_RANGE_SIZE }, (_, offset) => offset);
+const inRange = (port, range) => port >= rangeStart(range) && port < rangeStart(range + 1);
+
+test("no port any checkout can be given is one a browser blocks", () => {
+  const blocked = Object.values(PORT_RANGES).flatMap((range) =>
+    OFFSETS.map((offset) => portInRange(range, offset)).filter((port) => BROWSER_BLOCKED_PORTS.has(port)),
+  );
+  expect(blocked).toEqual([]);
+});
+
+// So a smoke server that steps past a blocked port never lands on any checkout's app port.
+test("stepping past a blocked port keeps every server in its own range", () => {
+  for (const range of Object.values(PORT_RANGES)) {
+    for (const offset of OFFSETS) expect(inRange(portInRange(range, offset), range)).toBe(true);
+  }
+});
+
+test("a checkout whose bundle port lands on 6666 (#641) steps to 6670, past Chrome's 6665-6669", () => {
+  const SEEN_IN_641 = 6666;
+  const bundleOffset = SEEN_IN_641 - rangeStart(PORT_RANGES.smokeBundle);
+  expect(portInRange(PORT_RANGES.smokeBundle, bundleOffset)).toBe(6670);
 });
 
 test("run directly, it prints this checkout's app port", () => {

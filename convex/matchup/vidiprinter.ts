@@ -1,11 +1,12 @@
 // The matchup's commentary (spec/10, The matchup, as a live match; The commentary; #44): every
 // stored line of every match with either lineup's men in it, newest first across the matches, with
 // what each line is worth to the men in the two lineups. A goal, an assist or a card shows the
-// points it moves; a threshold line shows a running total reaching a point where a rule's points change ("~58'
-// Rice: 3 key passes, +1"); the full-time line lists the lineups' men who played, with their
-// points in the match. Priced by the slot each man is priced at in his lineup, under the site's set
-// in force in the gameweek, which never changes once the gameweek has begun (spec/14), so a past
-// matchup's lines keep the points they showed. Pure: matchup.ts reads what it needs.
+// points it moves; a threshold line shows a running total reaching a point where a rule's points
+// change ("~58' Rice: 3 key passes, +1"); the full-time line lists the lineups' men who played,
+// with their points in the match. Priced by the slot and role each man is priced at in his
+// lineup, under the site's set in force in the gameweek, which never changes once the gameweek
+// has begun (spec/14), so a past matchup's lines keep the points they showed. Pure: matchup.ts
+// reads what it needs.
 //
 // No line for an auto-sub: whether a man played is known only after his match (spec/10).
 
@@ -36,10 +37,14 @@ export interface VidiprinterMatch {
   steps: readonly StoredStep[];
 }
 
-/** One man in either lineup: his name, the cell he is priced at, and each match he has a record in. */
+/** One man in either lineup: his name, the cell and role he is priced at, and each match he has a
+ *  record in. */
 export interface VidiprinterPlayer {
   name: string;
   cell: Cell;
+  /** His slot's role, so a line's points carry its adjustment as his slot's do (spec/14). Not
+   *  optional, so a caller can't leave it out and price his lines without it. */
+  role: string | undefined;
   inMatch: InMatch;
 }
 
@@ -126,7 +131,7 @@ function priced(
     // Not one of the lineups' men, or his record not yet whole: nothing to price him by yet. The
     // line shows unpriced until a read brings it, as his slot shows "—".
     if (player === undefined || stats === null) return [];
-    const points = inTenths(totalWith(stats, stat, nth, player.cell, set) - totalWith(stats, stat, nth - 1, player.cell, set));
+    const points = inTenths(totalWith(stats, stat, nth, player, set) - totalWith(stats, stat, nth - 1, player, set));
     return points === 0 ? [] : [{ name: player.name, points }];
   });
   return { text: stored.text, points: worth(moves, codes.length) };
@@ -135,9 +140,10 @@ function priced(
 /** One man's count of one stat, as a match's lines and steps tally them. */
 const tallyKey = (playerCode: PlayerCode, stat: string) => `${playerCode}/${stat}`;
 
-/** His match's total with `stat` at `actions`, the rest of his record as it stands. */
-function totalWith(stats: MatchStats, stat: string, actions: number, cell: Cell, set: ScoringSet): number {
-  return scoreMatch({ ...stats, [stat]: actions }, set, cell).total ?? 0;
+/** His match's total with `stat` at `actions`, the rest of his record as it stands, at his cell and
+ *  in his role. */
+function totalWith(stats: MatchStats, stat: string, actions: number, { cell, role }: VidiprinterPlayer, set: ScoringSet): number {
+  return scoreMatch({ ...stats, [stat]: actions }, set, cell, role).total ?? 0;
 }
 
 /** The lineups' men who played in the match, most points first. */
@@ -150,8 +156,9 @@ function fullTimePoints(fixtureCode: number, players: ReadonlyMap<PlayerCode, Vi
     .sort((one, other) => other.points - one.points || one.name.localeCompare(other.name));
 }
 
-/** Each step a lineup's man made, priced at his cell: a line where it earns him points. A step to a total no
- *  higher than one already shown (a feed's count put back and sent again) is not shown twice. */
+/** Each step a lineup's man made, priced at his cell: a line where it earns him points. A step to
+ *  a total no higher than one already shown (a feed's count put back and sent again) is not shown
+ *  twice. */
 function thresholdLines(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode, VidiprinterPlayer>, set: ScoringSet) {
   const highest = new Map<string, number>();
   return match.steps.flatMap((step, index) => {
