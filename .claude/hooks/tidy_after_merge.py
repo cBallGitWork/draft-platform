@@ -4,13 +4,15 @@ the worktree it is checked out in. GitHub deletes the branch on its side (the re
 branch on merge"), but nothing deleted the copy here, so 842 branches and 70 worktrees piled up
 (30 Oct 2026).
 
-It deletes only what is safe: the branch's tip must be the pull request's head (every commit on
-it went into the merge), and the worktree must have nothing uncommitted and no ignored file but
-build output (git worktree remove deletes ignored files: a .env.local would go). The main checkout
-and the folder the merge ran in are never removed; another session still open in a clean worktree
-isn't seen, and loses its folder once its pull request merges. Anything kept is said, with why; so
-is a pull request gh can't read. It runs after the command, so it never blocks one.
-Stdlib only, Python 3.9+.
+It deletes only what is safe: the branch's tip must be the pull request's head or behind it (every
+commit on it went into the merge; gh pr update-branch gives the pull request a merge commit the
+branch here never gets, so the head is fetched from origin to check; a checkout with no remote
+called origin keeps such a branch, and says why), and the worktree must have
+nothing uncommitted and no ignored file but build output (git worktree remove deletes ignored
+files: a .env.local would go). The main checkout and the folder the merge ran in are never
+removed; another session still open in a clean worktree isn't seen, and loses its folder once its
+pull request merges. Anything kept is said, with why; so is a pull request gh can't read. It runs
+after the command, so it never blocks one. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -28,22 +30,49 @@ from stdin_reading import UnreadableStdin
 
 MERGED = "MERGED"
 BRANCH_REF = "refs/heads/"
-RUN_TIMEOUT_SECONDS = 15  # each git or gh call: seven at most, inside the 120 settings.json gives the hook
+REMOTE = "origin"  # where GitHub's copy of the pull request's head is fetched from
+PULL_HEAD = "pull/{number}/head"  # GitHub's ref for a pull request's head commit
+# each git or gh call: nine at most per merge, inside the 120 settings.json gives the hook
+RUN_TIMEOUT_SECONDS = 13
+NOT_ANCESTOR = 1  # git merge-base --is-ancestor's exit when the first commit isn't behind the second
 IGNORED = "!! "  # git status --porcelain --ignored's mark for an ignored path
 # ignored paths a build or test run makes again, so a worktree holding only these may go
 REBUILT = {"node_modules", "dist", "coverage", "test-results", "playwright-report", "__pycache__", ".DS_Store"}
 
 
-def run(folder, *args):
-    """(ok, output) for a command run in folder; output is stderr's first line when it fails."""
+def call(folder, *args):
+    """(exit code, output) for a command run in folder; output is stderr's first line when it fails,
+    and the code is None when the command couldn't run or ran out of time."""
     try:
         done = subprocess.run(list(args), cwd=folder, capture_output=True, text=True, timeout=RUN_TIMEOUT_SECONDS)
     except (OSError, subprocess.SubprocessError) as error:
-        return False, str(error)
+        return None, str(error)
     if done.returncode == 0:
-        return True, done.stdout
+        return 0, done.stdout
     said = done.stderr.strip().splitlines() or [f"exit {done.returncode}"]
-    return False, said[0]
+    return done.returncode, said[0]
+
+
+def run(folder, *args):
+    """(ok, output) for a command run in folder; output is stderr's first line when it fails."""
+    code, out = call(folder, *args)
+    return code == 0, out
+
+
+def why_not_in_head(number, tip, head, folder):
+    """None when every commit on the branch's tip is in the pull request's head, else why the branch
+    stays. The head is fetched first, since GitHub may have made it."""
+    if tip == head:
+        return None
+    ok, said = run(folder, "git", "fetch", "--quiet", "--no-write-fetch-head", REMOTE, PULL_HEAD.format(number=number))
+    if not ok:
+        return f"its tip isn't the pull request's head, and fetching that head to check failed ({said})."
+    code, said = call(folder, "git", "merge-base", "--is-ancestor", tip, head)
+    if code == NOT_ANCESTOR:
+        return "it holds commits the pull request doesn't."
+    if code != 0:
+        return f"git merge-base failed ({said})."
+    return None
 
 
 def pull_request(args, folder):
@@ -91,8 +120,9 @@ def tidy(number, branch, head, folder):
     if not ok:
         return None
     kept = f"#{number} merged; its branch {branch} was kept"
-    if tip.strip() != head:
-        return f"{kept}: it holds commits the pull request doesn't."
+    why = why_not_in_head(number, tip.strip(), head, folder)
+    if why:
+        return f"{kept}: {why}"
     run(folder, "git", "worktree", "prune")  # a worktree whose folder is gone would hold the branch for good
     for i, (path, checked_out) in enumerate(worktrees(folder)):
         if checked_out != branch:
