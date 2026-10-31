@@ -2,22 +2,25 @@ import type { Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { leagueDeadline, type DeadlineOf, type LeagueDeadlines, type ScheduledMatch } from "./deadline";
 import { passedDeadlinesOf } from "./passedDeadlines";
-import { GAMEWEEKS, SEASON_GAMEWEEKS } from "./usedGameweeks";
+import { FIRST_GAMEWEEK, GAMEWEEKS, SEASON_GAMEWEEKS } from "./usedGameweeks";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { currentFixtures } from "../shared/fixtures";
 import { historyOf, inForce } from "../rules/rulesHistory";
 
 // The season's schedule as held, and each league's deadlines over it under its rules in force.
 
-/** The season's gameweeks and matches as held, less those the football layer no longer sends. */
+/** The season's gameweeks and matches as held, less those the football layer no longer sends. Only
+ *  gameweeks 1 to 38 are read: a row past FPL's 38 can only be written by hand, and a lineup save
+ *  or a rules change must not stop on one (#872). */
 export async function heldSchedule(ctx: QueryCtx) {
-  // At most FPL's 38 current, whatever the seasons: the football sync keeps one row per gameweek
-  // number, a new season's updating the last's (footballSync.ts's upsertGameweeks), so more is a bug.
-  const currentGameweeks = await takeAllOrThrow(
-    ctx.db.query("gameweeks").withIndex("by_droppedAt", (q) => q.eq("droppedAt", undefined)),
+  // At most one row a gameweek number: the football sync keeps one, a new season's updating the
+  // last's (footballSync.ts's upsertGameweeks), so more is a bug.
+  const seasonRows = await takeAllOrThrow(
+    ctx.db.query("gameweeks").withIndex("by_number", (q) => q.gte("number", FIRST_GAMEWEEK).lte("number", GAMEWEEKS)),
     GAMEWEEKS,
-    `More than ${GAMEWEEKS} gameweeks are held as current, so the season's schedule would be cut short`,
+    `More than ${GAMEWEEKS} gameweek rows are held for gameweeks ${FIRST_GAMEWEEK} to ${GAMEWEEKS}, so the season's schedule would be cut short`,
   );
+  const currentGameweeks = seasonRows.filter(({ droppedAt }) => droppedAt === undefined);
   return { gameweeks: currentGameweeks.map(({ number }) => ({ number })), matches: await scheduledMatches(ctx) };
 }
 

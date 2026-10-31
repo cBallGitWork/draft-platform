@@ -8,7 +8,7 @@ import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, type TestC
 import { EMAILS_PER_DAY, startOfNextDay } from "../../../convex/outbound/emailLimit";
 import { finishWhatIsDueNow } from "../../support/convex/joining.harness";
 import { fakeResend, sentToday, setSentToday, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
-import { elapse, silenceConsoleError } from "../../support/convex/test.harness";
+import { elapse, pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
 
 // The email saying a league has been deleted, sent only once it is gone for good (#320, spec/13,
 // Deleting): "just delay the deletion email until its actually gone".
@@ -105,9 +105,7 @@ describe("past the day's emails (spec/13, #837)", () => {
 
   /** The runs still to come, with when each is due. */
   const runsToCome = async () =>
-    (await t.run((ctx) => ctx.db.system.query("_scheduled_functions").collect()))
-      .filter((job) => job.state.kind === "pending")
-      .map(({ name, args, scheduledTime }) => ({ name, emails: (args[0] as { emails: string[] }).emails, scheduledTime }));
+    (await pendingJobs(t)).map(({ name, args, scheduledTime }) => ({ name, emails: (args[0] as { emails: string[] }).emails, scheduledTime }));
 
   test("with the day's used up, none is sent; they wait for the next UTC day and go then by themselves", async () => {
     await goesWithEmailsLeft(0);

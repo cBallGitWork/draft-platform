@@ -45,7 +45,8 @@ export const leagueRulesShape = v.object({
   /** standings.ts's TieBreak, in the league's order. */
   tieBreaks: v.array(v.union(...TIE_BREAKS.map((name) => v.literal(name)))),
   /** roundRobin.ts's OddTeamOut. Absent only from rules saved before #33, which play the first
-   *  rules' (firstRules.ts, `drawRulesOf`): optional, so those rows need no migration. */
+   *  rules' (firstRules.ts, `drawRulesOf`): optional, so those rows need no migration
+   *  (ARCHITECTURE.md's Data, "Changing a saved shape"). */
   oddTeamOut: v.optional(oddTeamOutShape),
   /** roundRobin.ts's DrawRules["gamesPerGameweek"]: a whole number, 1 or more. Absent, as
    *  `oddTeamOut` is, only from rules saved before #130. */

@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { leagueOpens } from "../../convex/leagues/leagueOpens";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { ADMIN_PATH } from "../admin/paths";
 import { ADMIN_TITLE } from "../admin/words";
@@ -118,7 +119,7 @@ function LeagueTable({ leagues, actions }: { leagues: readonly LeagueSummary[]; 
             <th scope="row" className={`${cellClasses} font-semibold`}>
               <span className="block text-lead">{league.name}</span>
               <span className="block font-normal text-muted wrap-anywhere">{commissionerLine(league.commissionerEmail)}</span>
-              {!league.deletion &&
+              {leagueOpens(league) &&
                 (runs(league) ? runnerLinks : managerLinks)(league.leagueId).map(({ to, title }) => (
                   <Link key={to} to={to} className={leagueRowLinkClasses}>
                     {title}

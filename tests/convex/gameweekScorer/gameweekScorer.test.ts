@@ -19,18 +19,14 @@ import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import {
   CAT,
   EVERTON_POINTS,
-  fullTimeRecords,
   GAMEWEEK,
   HULL_POINTS,
-  lockMatch,
   scoresLeague,
-  storeLeague,
-  writeOverAnns,
-  WRITTEN_OVER,
   type ScoresLeague,
   BOBS_FIRST_POINTS,
   HULL_SCORER,
 } from "../../support/convex/gameweekScores.harness";
+import { fullTimeRecords, lockMatch, storeLeague, writeOverAnns, WRITTEN_OVER } from "../../support/convex/gameweekScoresMatch.harness";
 
 // The gameweek scorer (#625; spec/07), called on a seeded league with no screen: each team's
 // points, saved once the gameweek is final and worked out until then; a team that has never saved
