@@ -1,6 +1,6 @@
 ---
 name: verify
-description: Run the local gate before a commit or a pull request (the install check, tests, typecheck, the recorded-payload check, the spec-ID check, the hook checks) and report the count; CI also runs the build and the smoke suite. Use before any commit, before /refactor and pr-reviewer, and whenever Craig asks whether it passes. Adapted from epl-draft's verify (17 Oct 2026).
+description: Run the local gate before a commit or a pull request (the install check, tests, typecheck, the recorded-payload check, the tests-kept check, the spec-ID check, the hook checks) and report the count; CI also runs the build and the smoke suite. Use before any commit, before /refactor and pr-reviewer, and whenever Craig asks whether it passes. Adapted from epl-draft's verify (17 Oct 2026).
 ---
 
 # Verify
@@ -8,6 +8,7 @@ description: Run the local gate before a commit or a pull request (the install c
 ```bash
 npm run verify   # install check, vitest run, tsc on convex/ and on the app, then
                  # scripts/recorded-add-only.mjs (payloads, goldens add-only),
+                 # scripts/tests-kept.mjs (no test origin/main has is cut),
                  # scripts/spec-ids.mjs (spec answer IDs and tests' citations), .claude/hooks/test.sh
 npm test -- <file>   # one test file
 ```
@@ -45,6 +46,7 @@ failure.
 test       <n> passed / FAILED (<which>) / install stale (run npm ci)
 typecheck  clean / <n> errors
 recorded   add-only / FAILED (<which file>)
+tests kept none cut / FAILED (<which tests>)
 spec IDs   <n> answers, uncited: <ids or none> / FAILED (<which>)
 hooks      all checks pass / <n> FAIL
 build      passed / FAILED / not run (CI runs it)
