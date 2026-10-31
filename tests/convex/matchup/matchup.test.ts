@@ -1,5 +1,4 @@
 import { expect, test, vi } from "vitest";
-import { api } from "../../../convex/_generated/api";
 import { inTenths } from "../../../convex/scoring/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
@@ -27,6 +26,7 @@ import {
   matchupAs,
   nameOf,
   PHILLIPS,
+  readTable,
   scoreRead,
   scoresLeague,
   sideTotal,
@@ -38,7 +38,7 @@ import {
   WRITTEN_OVER,
   writeOverAnns,
 } from "../../support/convex/gameweekScores.harness";
-import { actingAs, ADMIN, adminCreatesLeague } from "../../support/convex/leagues.harness";
+import { ADMIN, adminCreatesLeague } from "../../support/convex/leagues.harness";
 import { HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 
@@ -109,7 +109,7 @@ test("a final gameweek's stored scores are its totals, as the table reads them, 
   await writeOverAnns(league);
 
   const game = await annsScoredGame(league, GAMEWEEK);
-  const table = await (await actingAs(league.t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId: league.leagueId });
+  const table = await readTable(league);
   const fixtures = table!.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures;
   expect(game.team).toMatchObject({ points: WRITTEN_OVER, provisional: false });
   expect(fixtures.find((each) => each.teamId === league.annsTeam)!.points).toEqual({ team: game.team.points, opponent: game.opponent.points });
@@ -164,7 +164,7 @@ test("each side's total is the same as the table's for the gameweek", async () =
   const league = await scoresLeague();
   await fullTimeRecords(league);
   await lockMatch(league);
-  const table = await (await actingAs(league.t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId: league.leagueId });
+  const table = await readTable(league);
   const game = await annsScoredGame(league, GAMEWEEK);
   expect(table!.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures[0].points).toEqual({ team: game.team.points, opponent: game.opponent.points });
 });
