@@ -1,6 +1,5 @@
 // What the player card says, in one place for Craig to change in the pull request.
 
-import type { ScoredAs } from "../../convex/playerCard/cardPoints";
 import { figureWords, gameweekWords, signedWords, versusWords } from "../shared/words";
 
 export { figureWords, freeAgentWords, listSeparator, noFigureWords } from "../shared/words";
@@ -23,16 +22,13 @@ export const chanceWords = (percent: number) => `${percent}% chance of playing n
 /** This season's matches. */
 export const SEASON_TITLE = "This season";
 export const noMatchesWords = "He hasn't played a match this season.";
-/** Over the matches: how they were priced. */
-export const pricedNotes: Record<ScoredAs, string> = {
-  slot: "Points from his slot in the lineup, under the site's scoring.",
-  bestPosition: "Points at his best position, under the site's scoring: what he'd score where he scores most.",
-  notCounted:
-    "Not counted: a match his team's points left out. One he sat on the bench for is priced at his best position. In a league that counts only a double gameweek's best match, his other match there is priced at his slot.",
-};
-/** Under a match his team's points didn't include (spec/12): a bench player who didn't come on, or
- *  his other match in a double gameweek that counts only his best (spec/03). */
-export const notCountedWords = "Not counted: his team's points didn't include this match.";
+/** Over the matches: what their points are (spec/12; Craig, 31 Oct 2026). */
+export const basePointsNote =
+  "His own points in each match under the site's scoring, whoever owned him and whether or not he started. Where his team started him, his role's adjustment is shown under the match, not added in.";
+/** Over the matches, when none of his positions has a price of its own yet (spec/14: SS). */
+export const bestPositionNote = "None of his positions has a price of its own yet, so each match is at the slot his positions allow that scores most.";
+/** The switch over the matches: which of his positions they are priced at. */
+export const pricedAtLabel = "Points at";
 /** Beside points that may still move ("Live", as on My team's fixtures): the match isn't final, or
  *  his team's auto-subs aren't (spec/12). */
 export { liveWords } from "../shared/words";

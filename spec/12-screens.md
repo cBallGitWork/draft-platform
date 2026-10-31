@@ -58,15 +58,18 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
   2026). It holds:
   - his name, club and positions, who owns him in the league, and FPL's injury news and chance of
     playing, and his three latest news notes (`spec/21`);
-  - this season's matches, each broken down by category and role (`spec/14`, `spec/05`): for a
-    player in a lineup, the points his team got from his slot; for anyone else, what he would score
-    at his best position, labelled so. A bench player who came on as an auto-sub shows the points
-    from the slot and role he took over, as roles' multipliers can differ each week; one who didn't
-    come on shows what he would score at his best position, labelled as not counted, since the card
-    always shows what he scored. While a match is live the card follows the table, auto-subs
-    included, provisional until final (Craig, 28 Oct 2026). In a league whose double gameweeks
-    count the best match (`spec/03`), his other match there is labelled as not counted, the same
-    way, so the Squad tab never comes out above what his team got (Craig, 28 Oct 2026);
+  - this season's matches, each broken down by category (`spec/14`), at his base points: "The
+    player card should be showing their base points as squad/live could be showing their
+    role/tactics adjustment" (Craig, 31 Oct 2026). Every match shows the site's scoring for what he
+    did, with no role, whether he was owned or a free agent, started, sat on the bench, came on or
+    not. While a match is live its points are provisional until final. A player with more than one
+    position: "Has to be his main as that's consistent week to week", and "We need a more stable
+    way for main position. Maybe we do show his points for all his main positions as a
+    switch/toggle" (Craig, 31 Oct 2026). So the card has a switch with one key for each of his
+    positions, back to front, opening on the first; choosing one prices every match at that
+    position. A player with one position has no switch. Where his team started him, what his role
+    did to his points shows on its own line under the match (`spec/05`), never added into his base
+    points;
   - one line of last season's totals, under the site's scoring as it stands (`spec/14`);
   - his role stars and the manager's latest scout report on him, where the manager can see them
     (`spec/19`), and the captain and set-piece hints `spec/17` adds after the mini beta;

@@ -1,5 +1,5 @@
 /** One of a few options, butted keys with the chosen one pressed in (plate.md, Controls).
- *  `name` groups its radio inputs. */
+ *  `name` groups its radio inputs; `words` says each option, by a table or a function. */
 export function Choice<Option extends string>({
   label,
   name,
@@ -11,7 +11,7 @@ export function Choice<Option extends string>({
   label: string;
   name: string;
   options: readonly Option[];
-  words: Record<Option, string>;
+  words: Record<Option, string> | ((option: Option) => string);
   chosen: Option;
   onChoose: (option: Option) => void;
 }) {
@@ -25,7 +25,7 @@ export function Choice<Option extends string>({
         {options.map((option) => (
           <label key={option} className="key">
             <input type="radio" name={name} className="sr-only" checked={chosen === option} onChange={() => onChoose(option)} />
-            {words[option]}
+            {typeof words === "function" ? words(option) : words[option]}
           </label>
         ))}
       </span>

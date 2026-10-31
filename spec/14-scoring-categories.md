@@ -115,7 +115,8 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 ## On screen
 
 - The player card breaks each match down by category (goals 5, assists 3, minutes 2, role +2).
-- Bench players' points show greyed on the card and the matchup, and count only if the player is
-  subbed on (`spec/05`).
+- Bench players' points show greyed on the matchup, and count only if the player is subbed on
+  (`spec/05`). The player card shows every match at his base points, the bench's included
+  (`spec/12`; Craig, 31 Oct 2026).
 - Dense tables use short codes (G goals, A assists, CS clean sheet, KP key passes, TW tackles
   won) with the full name on hover; the rules editor uses full names.

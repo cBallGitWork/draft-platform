@@ -33,7 +33,7 @@ const MATCH: PlayedMatch = {
   home: ARSENAL,
   away: COVENTRY,
   minutes: 90,
-  points: { scoredAs: "bestPosition", position: "W", total: 7, categories: [{ stat: "goals_scored", name: "Goals scored", points: 5 }] },
+  points: [{ position: "W", total: 7, categories: [{ stat: "goals_scored", name: "Goals scored", points: 5 }] }],
   override: null,
   provisional: false,
 };
@@ -45,6 +45,7 @@ const SAKA: PlayerCard = {
   club: ARSENAL,
   gone: false,
   positions: ["W"],
+  pricedAt: ["W"],
   ownerTeamName: "Saka Potatoes",
   news: null,
   chanceOfPlaying: null,
