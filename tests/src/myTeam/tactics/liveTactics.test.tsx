@@ -5,7 +5,7 @@ import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { expect, test, vi } from "vitest";
 import { liveTactics } from "../../../../src/myTeam/tactics/liveTactics";
-import { saveFailedWords } from "../../../../src/myTeam/tactics/tacticsWords";
+import { saveFailedWords } from "../../../../src/myTeam/tactics/words";
 import { silenceConsoleError } from "../../../support/console.setup";
 import { A_LEAGUE_ID } from "../../../support/src/convexReact.harness";
 

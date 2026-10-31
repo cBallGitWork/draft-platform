@@ -21,7 +21,7 @@ import {
   startingWords,
   tacticsLoadingWords,
   tacticsNoRulesWords,
-} from "../../../../src/myTeam/tactics/tacticsWords";
+} from "../../../../src/myTeam/tactics/words";
 import { noTeamWords } from "../../../../src/myTeam/words";
 import { commissioner, league, manager, openApp } from "../../../support/src/shell.harness";
 import { TACTICS_GAMEWEEK, openTactics } from "../../../support/src/tactics.harness";
