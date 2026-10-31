@@ -28,4 +28,8 @@ describe("club colours", () => {
   it("draws a club with no row in the white shirt the pitch had before colours", () => {
     expect(kitOf(UNKNOWN_CODE, false)).toEqual({ shirt: "#FFFFFF", ink: "dark" });
   });
+
+  it("draws a player with no club held, as for one the football sync doesn't hold (#323), in the same shirt", () => {
+    expect(kitOf(null, false)).toEqual(kitOf(UNKNOWN_CODE, false));
+  });
 });
