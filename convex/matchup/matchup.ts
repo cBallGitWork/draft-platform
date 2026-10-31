@@ -31,9 +31,10 @@ import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vi
 //
 // Lineups show only once the gameweek has begun, at the league's deadline: then both sides'
 // starters, each in his role, and the bench in order, each sub who came on in his. No formation is
-// sent: a placed lineup has no preset name, and how one is named waits on Craig (#878). Before it
-// nobody sees another team's lineup, the commissioner and the admin included: "they just get to
-// view what the managers see" (Craig, 31 Oct 2026; #392, #799). A manager's own is on My team. The commentary is every line of the matches either lineup's men play in, each
+// sent: a placed lineup has no preset name, and how one is named waits on Craig (#878).
+// Before it nobody sees another team's lineup, the commissioner and the admin included:
+// "they just get to view what the managers see" (Craig, 31 Oct 2026; #392, #799). A manager's own
+// is on My team. The commentary is every line of the matches either lineup's men play in, each
 // priced for them (vidiprinter.ts, #44).
 
 type TeamId = Id<"teams">;
@@ -157,7 +158,7 @@ class SideScorer {
         for (const slot of [...scored.team.starters, ...scored.team.bench]) {
           const his = scored.matchesOf.get(slot.playerCode) ?? [];
           for (const match of his) matches.set(match.fixture.code, match);
-          players.set(slot.playerCode, { name: await this.name(slot.playerCode), cell: slot.cell, role: slot.role, inMatch: inMatchOf(slot, his) });
+          players.set(slot.playerCode, { name: await this.name(slot.playerCode), cell: slot.cell, role: slot.role, inLineup: true, inMatch: inMatchOf(slot, his) });
         }
       }
       const held = await Promise.all(

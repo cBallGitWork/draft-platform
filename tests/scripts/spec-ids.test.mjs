@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
-import { join } from "node:path";
 import { expect, test } from "vitest";
 import { checkIds } from "../../scripts/spec-ids.mjs";
+import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
 // Made-up spec files and tests; the real run skips this file, so these IDs are never citations.
 const SPEC = [
@@ -31,6 +31,6 @@ test("a test or a caption mentioning an ID no answer has, or one withdrawn, fail
 });
 
 test("the repo's own spec and tests pass", () => {
-  const output = execFileSync(process.execPath, ["scripts/spec-ids.mjs"], { cwd: join(import.meta.dirname, "../.."), encoding: "utf8" });
+  const output = execFileSync(process.execPath, ["scripts/spec-ids.mjs"], { cwd: REPO_ROOT, encoding: "utf8" });
   expect(output).toMatch(/^spec IDs: \d+ answers have IDs; uncited by any test: /);
 });

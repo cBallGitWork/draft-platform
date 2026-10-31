@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { api } from "../../../convex/_generated/api";
+import { getFunctionName } from "convex/server";
+import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ANN, BOB, deletes, leagueWithPeople, moreEventsThanOneRun } from "../../support/convex/leagueDeletion.harness";
-import { PAUSED_LOG, notEmailedLog } from "../../../convex/leagues/deletionNotices";
+import { notEmailedLog, waitingLog } from "../../../convex/leagues/deletionNotices";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, type TestConvex } from "../../support/convex/leagues.harness";
-import { EMAILS_PER_DAY } from "../../../convex/outbound/emailLimit";
+import { EMAILS_PER_DAY, startOfNextDay } from "../../../convex/outbound/emailLimit";
+import { finishWhatIsDueNow } from "../../support/convex/joining.harness";
 import { fakeResend, sentToday, setSentToday, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
 import { elapse, silenceConsoleError } from "../../support/convex/test.harness";
 
@@ -91,22 +93,53 @@ describe("once it is gone for good, it emails", () => {
   });
 });
 
-describe("someone who isn't emailed", () => {
-  test("past the day's limit, isn't, and is kept with the league's name and who deleted it, and logged", async () => {
+describe("past the day's emails (spec/13, #837)", () => {
+  /** The league goes for good with `left` of the day's emails still to send, and what is due then
+   *  runs: nothing waiting for the next day does. */
+  async function goesWithEmailsLeft(left: number) {
     await toTheMomentBeforeItGoes();
-    await setSentToday(t, EMAILS_PER_DAY - 1);
-    const logged = silenceConsoleError();
-    await goneForGood();
+    await setSentToday(t, EMAILS_PER_DAY - left);
+    await elapse(t, 1);
+    await finishWhatIsDueNow(t);
+  }
 
-    expect(sent.map((email) => email.to)).toEqual([CO_COMMISSIONER]);
+  /** The runs still to come, with when each is due. */
+  const runsToCome = async () =>
+    (await t.run((ctx) => ctx.db.system.query("_scheduled_functions").collect()))
+      .filter((job) => job.state.kind === "pending")
+      .map(({ name, args, scheduledTime }) => ({ name, emails: (args[0] as { emails: string[] }).emails, scheduledTime }));
+
+  test("with the day's used up, none is sent; they wait for the next UTC day and go then by themselves", async () => {
+    await goesWithEmailsLeft(0);
+    const goneAt = Date.now();
+
+    expect(sent).toEqual([]);
     expect(await sentToday(t)).toBe(EMAILS_PER_DAY);
-    expect(await unemailedRows()).toEqual([
-      { leagueName: LEAGUE_NAME, by: COMMISSIONER, email: ANN, reason: "paused" },
-      { leagueName: LEAGUE_NAME, by: COMMISSIONER, email: BOB, reason: "paused" },
+    expect(await runsToCome()).toEqual([
+      { name: getFunctionName(internal.leagues.deletionNotices.send), emails: [CO_COMMISSIONER, ANN, BOB], scheduledTime: startOfNextDay(goneAt) },
     ]);
-    expect(logged).toHaveBeenCalledWith(notEmailedLog(ANN), PAUSED_LOG);
+
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    expect(Date.now()).toBe(startOfNextDay(goneAt));
+    expect(sent.map((email) => email.to)).toEqual([CO_COMMISSIONER, ANN, BOB]);
+    expect(await sentToday(t)).toBe(3);
+    expect(await unemailedRows()).toEqual([]);
   });
 
+  test("with one left, it goes today and the rest wait for tomorrow, logged", async () => {
+    const logged = vi.spyOn(console, "log");
+    await goesWithEmailsLeft(1);
+
+    expect(sent.map((email) => email.to)).toEqual([CO_COMMISSIONER]);
+    expect((await runsToCome()).map(({ emails }) => emails)).toEqual([[ANN, BOB]]);
+    expect(logged).toHaveBeenCalledWith(waitingLog(2));
+
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    expect(sent.map((email) => email.to)).toEqual([CO_COMMISSIONER, ANN, BOB]);
+  });
+});
+
+describe("someone the email service refuses", () => {
   test("when the email service refuses it, is kept as not sent, and the failure logged", async () => {
     await deletes(t, COMMISSIONER, leagueId);
     fakeResend(500);
