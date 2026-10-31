@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useChoiceAmong } from "../shared/useChoiceAmong";
 import { PANEL_BODY, Panel } from "../ui/Panel";
 import type { PanelProps } from "./panelProps";
 import {
@@ -20,8 +21,7 @@ const CLUB_ID = "approve-club";
 // change (spec/06, When positions change).
 
 export function ApproveClub({ queue, seam, change }: PanelProps) {
-  const [chosen, choose] = useState<number | undefined>(undefined);
-  const clubCode = chosen ?? queue.clubs[0]?.code;
+  const [clubCode, choose] = useChoiceAmong(queue.clubs.map((club) => club.code));
   return (
     <Panel title={clubTitle}>
       <div className="flex flex-wrap items-end gap-2 p-3">

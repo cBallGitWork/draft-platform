@@ -2,7 +2,7 @@
 // admin alone; the queue of new signings and starts waiting; approving a club; how starts count;
 // and correcting any player's positions.
 
-import { cleanup, screen, within } from "@testing-library/react";
+import { cleanup, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
@@ -156,6 +156,21 @@ describe("settings", () => {
     await userEvent.selectOptions(await screen.findByRole("combobox", { name: clubLabel }), "Newcastle");
     await userEvent.click(screen.getByRole("button", { name: approveClubWords }));
     expect(app.admin.approveClub).toHaveBeenCalledExactlyOnceWith(4);
+  });
+
+  it("#649 when the club chosen leaves the list, approves the club the menu shows instead", async () => {
+    const app = openDashboard();
+    await userEvent.selectOptions(await screen.findByRole("combobox", { name: clubLabel }), "Newcastle");
+    const left = { ...DATA.queue!, clubs: [{ code: 7, name: "Leeds" }, { code: 3, name: "Arsenal" }] };
+    app.admin.useQueue.mockReturnValue(left);
+    // The fake queue isn't live, so another change on the dashboard has it read the queue again.
+    await userEvent.click(screen.getByRole("button", { name: switchModeWords.countAtOnce }));
+    await waitFor(() => expect(app.admin.useQueue).toHaveLastReturnedWith(left));
+
+    const menu = screen.getByRole("combobox", { name: clubLabel }) as HTMLSelectElement;
+    expect(menu.selectedOptions[0].textContent).toBe("Leeds");
+    await userEvent.click(screen.getByRole("button", { name: approveClubWords }));
+    expect(app.admin.approveClub).toHaveBeenCalledExactlyOnceWith(7);
   });
 
   it("shows the thresholds, and saves the ones typed", async () => {
