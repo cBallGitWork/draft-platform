@@ -226,6 +226,40 @@ describe("the squad (#341)", () => {
     expect(app.leagueSettings.save).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ["games a gameweek", () => setGames(""), gamesLabel],
+    ["the maximum", () => fill(squadMaximumLabel, ""), squadMaximumLabel],
+    ["an area's minimum", () => fill(areaMinimumLabel("midfield"), ""), areaMinimumLabel("midfield")],
+    ["the club maximum, once turned on,", () => userEvent.click(clubTick()), clubMaximumLabel],
+  ])("with %s left without a number, a refused save puts the cursor in that box (#645)", async (_, leaveBlank, label) => {
+    await opened();
+    await leaveBlank();
+    await save();
+
+    await screen.findByRole("alert");
+    expect(document.activeElement).toBe(box(label));
+  });
+
+  it("with two boxes left without a number, a refused save puts the cursor in the one it names (#645)", async () => {
+    await opened();
+    await fill(areaMinimumLabel("attack"), "");
+    await fill(squadMaximumLabel, "");
+    await save();
+
+    expect((await screen.findByRole("alert")).textContent).toBe(blankSquadMaximumWords);
+    expect(document.activeElement).toBe(box(squadMaximumLabel));
+  });
+
+  it("a save refused again puts the cursor back in the box (#645)", async () => {
+    await opened();
+    await fill(squadMaximumLabel, "");
+    await save();
+    await screen.findByRole("alert");
+    await save();
+
+    expect(document.activeElement).toBe(box(squadMaximumLabel));
+  });
+
   it("says a league with no squad size limit has none, with no box for it", async () => {
     await opened({ view: { part: { ...FIRST, squadMaximum: null }, revision: REVISION, changesFrom: CHANGES_FROM } });
 

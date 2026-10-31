@@ -8,6 +8,7 @@ import { LeagueHeading } from "../leagues/LeagueLinks";
 import { PatchNotesLink } from "../patches/PatchBanner";
 import { useRulesDraft } from "../rules/rulesDraft";
 import { SaveBar } from "../rules/SaveBar";
+import { useBlankFocus } from "../rules/blank";
 import { TickBox } from "../ui/TickBox";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
 import { CategoryEditor } from "./CategoryEditor";
@@ -52,12 +53,17 @@ export function ScoringPage({ league, seam }: { league: LeagueSummary; seam: Sco
 
 /** The two panes: the categories, and the one chosen; and, for the admin, the bar that saves them
  *  (rulesDraft.ts says how the draft follows the latest set, and what a save over someone else's
- *  does). For anyone else, the same panes read only, and a line saying who sets them. */
+ *  does). For anyone else, the same panes read only, and a line saying who sets them. A save
+ *  refused for a box left without a number opens the category it names, the cursor in that box. */
 function Editor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
-  const rulesDraft = useRulesDraft(view, seam.save, blankBoxRefusal);
+  const [picked, choose] = useState(0);
+  const blankFocus = useBlankFocus<HTMLDivElement>();
+  const rulesDraft = useRulesDraft(view, seam.save, blankBoxRefusal, (refused) => {
+    choose(firstBlankRule(refused));
+    blankFocus.refused();
+  });
   const readOnly = !view.canEdit;
   const { draft, edit } = rulesDraft;
-  const [picked, choose] = useState(0);
   const nameOf = (stat: string) => categoryName(stat, draft.ownStats);
   // The last, once removing or discarding leaves fewer than the one picked.
   const chosen = Math.max(0, Math.min(picked, draft.rules.length - 1));
@@ -73,7 +79,7 @@ function Editor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
   }
 
   return (
-    <div className="flex flex-col gap-2 lg:flex-row lg:items-start">
+    <div ref={blankFocus.area} className="flex flex-col gap-2 lg:flex-row lg:items-start">
       <Panel title={categoriesLabel} className="lg:shrink-0 lg:basis-categories">
         <ul aria-label={categoriesLabel}>
           {draft.rules.map((each, index) => (
