@@ -70,9 +70,10 @@
   font-size: var(--text-lead);
   font-weight: var(--font-weight-semibold);
   @media (hover: hover) {
+    /* Never filled orange: that is Continue near the deadline. The edge doubles and the words go white. */
     &:enabled:hover {
-      background: var(--color-event);
-      color: var(--color-ground);
+      box-shadow: inset 0 0 0 1px var(--color-event);
+      color: var(--color-fact);
     }
   }
   &:active {

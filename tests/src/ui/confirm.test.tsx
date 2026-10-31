@@ -51,15 +51,16 @@ describe("the confirm", () => {
 });
 
 describe("the danger action", () => {
-  it("is edged and worded in the event orange on the alert strip's fill, and filled orange under the pointer", () => {
+  it("is edged and worded in the event orange on the alert strip's fill, and under the pointer its edge doubles and its words go white, never Continue's orange fill", () => {
     expect(dangerAction).toContain("background: var(--color-alert)");
     expect(dangerAction).toContain("border: 1px solid var(--color-event)");
-    expect(dangerAction).toMatch(/&:enabled:hover \{\s*background: var\(--color-event\);\s*color: var\(--color-ground\);/);
+    expect(dangerAction).toMatch(/&:enabled:hover \{\s*box-shadow: inset 0 0 0 1px var\(--color-event\);\s*color: var\(--color-fact\);/);
   });
 
   it("meets WCAG AA in every state: its words on its fill, its edge on a panel", () => {
     expect(contrast(token("event"), token("alert"))).toBeGreaterThanOrEqual(TEXT_CONTRAST);
-    expect(contrast(token("ground"), token("event"))).toBeGreaterThanOrEqual(TEXT_CONTRAST);
+    expect(contrast(token("fact"), token("alert"))).toBeGreaterThanOrEqual(TEXT_CONTRAST);
+    expect(contrast(token("event"), token("ground"))).toBeGreaterThanOrEqual(TEXT_CONTRAST);
     expect(contrast(token("event"), token("ground"))).toBeGreaterThanOrEqual(TEXT_CONTRAST);
     expect(contrast(token("muted"), token("alert"))).toBeGreaterThanOrEqual(TEXT_CONTRAST);
     expect(contrast(token("event"), token("panel-solid"))).toBeGreaterThanOrEqual(EDGE_CONTRAST);
