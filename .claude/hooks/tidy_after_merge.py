@@ -106,11 +106,12 @@ def inside(path, folder):
 
 def unrebuilt(status):
     """What removing the worktree would lose, from its git status --porcelain --ignored: its
-    uncommitted changes, and each ignored path that isn't build output."""
+    uncommitted changes, and each ignored path that isn't build output, at any depth
+    (.claude/hooks/__pycache__/ is)."""
     lines = status.splitlines()
     ignored = [line[len(IGNORED):] for line in lines if line.startswith(IGNORED)]
     held = ["uncommitted changes"] if len(ignored) < len(lines) else []
-    return held + [path for path in ignored if path.rstrip("/").split("/")[0] not in REBUILT]
+    return held + [path for path in ignored if not REBUILT & set(path.rstrip("/").split("/"))]
 
 
 def tidy(number, branch, head, folder):
@@ -130,7 +131,7 @@ def tidy(number, branch, head, folder):
         if i == 0 or inside(path, folder):
             where = "the main checkout" if i == 0 else "the folder the merge ran in"
             return f"{kept}: it is checked out in {where} ({path}). Switch off it, then git branch -D {branch}."
-        ok, status = run(path, "git", "status", "--porcelain", "--ignored")
+        ok, status = run(path, "git", "status", "--porcelain", "--ignored=matching")
         if not ok:
             return f"{kept}: git status failed ({status}) ({path})."
         held = unrebuilt(status)
