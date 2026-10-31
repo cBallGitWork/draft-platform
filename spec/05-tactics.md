@@ -1,11 +1,12 @@
 # 5. Tactics
 
 Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and `/grill tactics`
-(16 Oct 2026).
+(16 Oct 2026), and `/grill the Tactics pitch` (31 Oct 2026).
 
-**Contents:** [The pitch](#the-pitch) · [Roles](#roles) · [The deadline](#the-deadline) ·
-[Auto-subs](#auto-subs) · [Captain and set pieces](#captain-and-set-pieces) ·
-[Squad numbers](#squad-numbers)
+**Contents:** [The pitch](#the-pitch) · [Moving players](#moving-players) ·
+[What the pitch shows](#what-the-pitch-shows) · [Runs](#runs) · [Roles](#roles) ·
+[The deadline](#the-deadline) · [Auto-subs](#auto-subs) ·
+[Captain and set pieces](#captain-and-set-pieces) · [Squad numbers](#squad-numbers)
 
 ## The pitch
 
@@ -16,6 +17,10 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - A wing-back plays in a wide lane of the defensive midfield or midfield row. There is no
   wing-back row. He is a defender, standing further forward than a full-back would; on the pitch
   a defensive midfielder and a wing-back stand in the same row (Craig, 26 Oct 2026).
+- A sweeper plays the centre cell of the defence row, drawn a little deeper than the line, as a
+  wing-back is a defender drawn further forward. There is no sweeper row, so the six areas, their
+  limits and the presets stand. Any player who plays centre-back can play sweeper: "we need a
+  sweeper position, it's a real role, esp with classic formations" (Craig, 31 Oct 2026).
 - Free placement: drag a player into any free cell, Championship Manager style. Or pick a preset:
   4-4-2, 4-3-3, 4-2-3-1, 4-1-4-1, 4-4-1-1, 4-3-1-2, 3-5-2, 3-4-3, 3-4-1-2, 5-3-2, 5-4-1, 4-5-1,
   4-2-2-2, 4-1-2-1-2, 4-3-2-1, 4-1-3-2, 4-2-4, 3-4-2-1, 3-1-4-2, 5-2-3, 5-3-1-1, all editable as
@@ -37,6 +42,54 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   edit". The first is a 4-4-2 filled in draft selection order, each slot by the first player
   picked who plays there, and the rest on the bench in that order (Craig, 29 Oct 2026).
 
+## Moving players
+
+From `/grill the Tactics pitch` (Craig, 31 Oct 2026), unless dated otherwise.
+
+- Tap a player and everywhere he can go lights up: each free cell he can take and each player
+  he can swap with, with his stars there. Anything that would break the area limits stays unlit.
+  Tap a lit cell to move him, or a lit player to swap them. Dragging still works, as FPL's and
+  Draft Fantasy's two taps do.
+- Dropping a player on another swaps them, starter for starter or bench for starter. Each lands on
+  the role he has the most stars for in his new slot (Roles).
+- The lineup saves itself after each valid move. There is no Save button, as on Draft Fantasy.
+- Undo takes back the moves since the last time the manager opened the Tactics tab.
+- Quick Pick fills the current shape with the best eleven by stars.
+
+## What the pitch shows
+
+From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
+
+- Each starter's shirt, a little bigger than today's, as on FM's, CM's, FPL's and Draft Fantasy's
+  pitches.
+- Under it, a plate in his area's colour (goalkeeper, defence, midfield, attack) with his role's
+  short code, his stars for that role, his name, and his real opponent this gameweek ("COV (H)")
+  in the fixture-difficulty colour: both opponents in a double gameweek, none in a blank one.
+- A role's code is at most three letters, one per role, held with the role. The pitch shows the
+  code at every width; the squad list and the role card show the full name.
+- Each slot has a position code that names the position, never its side: GK, SW, CB, FB, WB, DM,
+  CM, WM (wide midfield), AM, W (wide attacking midfield) and ST. "We don't need side specific,
+  that's the game getting in the way."
+- The team's next head-to-head opponent shows on the Tactics tab.
+- Everything settled here is built on the desk first, then cut from the real page: "show ALL
+  info first and then refactor from there... I need the context of our full pages built so we can
+  then see what's needed". Each piece is built so it can come out on its own.
+
+## Runs
+
+From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
+
+- A starter's role has a run: where he goes as if it were a real match, drawn as a dashed arrow
+  from his place, as old FM drew them. An attacking full-back's runs forward; a crosser's, a
+  sweeper's and a pressing forward's each have their own line. "The arrow isn't about points."
+- A role that holds its place has no run.
+- On the desk every moving role's run shows, with a switch to hide them. On a phone only the
+  tapped player's run shows.
+- A role's run is held with the role and can change by patch with it, never drawn in the code.
+- Each role's real run needs its own research. Until then each moving role gets a rough first run
+  from FM's nearest role, marked rough, for Craig to refine.
+- The matchup's lineups show the runs too (`spec/10`).
+
 ## Roles
 
 - Every slot has a role, the goalkeeper's included, chosen from the default set's list for the
@@ -49,7 +102,7 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
                    midfield, wide                                 midfield, wide
   MIDFIELD         wide midfield   centre midfield                wide midfield
   DEF. MIDFIELD    wing-back       defensive midfield             wing-back
-  DEFENCE          full-back       centre-back                    full-back
+  DEFENCE          full-back       centre-back; sweeper (centre)  full-back
   GOALKEEPER                       goalkeeper
   ```
 
@@ -71,6 +124,8 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   - full-back: defensive, attacking
   - wing-back: attacking, holding
   - centre-back: stopper, ball-playing
+  - sweeper, the defence row's centre cell: sweeper (stays behind the line), libero (steps out
+    with the ball), added by Craig (31 Oct 2026)
   - defensive midfield: anchor, deep playmaker
   - centre midfield: box-to-box, playmaker, ball-winner
   - wide midfield: winger, defensive winger
@@ -80,9 +135,16 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - Roles stack with the second release's team instructions: a pressing forward under a high press
   earns both adjustments, and a sweeper keeper suits a high defensive line.
 - A player dropped into a slot starts on the role he has the most stars for; until stars are
-  built, on the slot's first role. The manager can change his slot and his role, on the Tactics
-  tab's squad list, which has a role column for the starters; the pitch shows each starter's role
-  under his name (26 Oct 2026).
+  built, on the slot's first role. The manager can change his slot and his role; the pitch shows
+  each starter's role under his name (26 Oct 2026). He changes the role on the role card, opened
+  by tapping the role on the pitch or in the squad list (Craig, 31 Oct 2026).
+- The role card shows every role for his slot, each with his stars, what it scores more and less
+  for, its description, and what he would have scored under it in his recent matches. Each role's
+  description is held with the role, a line or two, written by Claude as a rough first version
+  for Craig to rewrite. Explaining the game's own mechanics is wanted; only the basics any fantasy
+  manager knows go unsaid: "when I say don't explain the game, I mean the absolute basic things
+  like 'this is a league, round robin'; explaining game mechanics is highly encouraged" (Craig,
+  31 Oct 2026).
 - Being better suited to a role comes out of the scoring: a full-back makes more of an
   attacking full-back slot's role adjustment. There is no out-of-position penalty.
 - Stars: a player's rating for a role ranks him against the other players in that area, on his
