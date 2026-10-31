@@ -18,12 +18,12 @@ export async function heldSchedule(ctx: QueryCtx) {
     GAMEWEEKS,
     `More than ${GAMEWEEKS} gameweeks are held as current, so the season's schedule would be cut short`,
   );
-  return { gameweeks: currentGameweeks.map(({ number }) => ({ number })), matches: await heldMatches(ctx) };
+  return { gameweeks: currentGameweeks.map(({ number }) => ({ number })), matches: await scheduledMatches(ctx) };
 }
 
 /** The season's matches as held, less those the football layer no longer sends: all of
  *  `heldSchedule` a deadline reads. */
-export async function heldMatches(ctx: QueryCtx): Promise<ScheduledMatch[]> {
+export async function scheduledMatches(ctx: QueryCtx): Promise<ScheduledMatch[]> {
   return (await currentFixtures(ctx)).map(({ gameweek, kickoff }) => ({ gameweek, kickoff }));
 }
 
@@ -32,7 +32,7 @@ export async function heldMatches(ctx: QueryCtx): Promise<ScheduledMatch[]> {
  *  and recorder (#138, #139). Null where none of the gameweek's matches has a kickoff time held,
  *  and for every gameweek of a league made before rules were held, which has no deadline rule. */
 export async function leagueDeadlines(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<LeagueDeadlines> {
-  return leagueDeadlinesIn(ctx, leagueId, await heldMatches(ctx));
+  return leagueDeadlinesIn(ctx, leagueId, await scheduledMatches(ctx));
 }
 
 /** Reads one gameweek's deadline from `leagueDeadlines`'s map: null where it has none. */
@@ -40,7 +40,7 @@ export function deadlineOf(deadlines: LeagueDeadlines): DeadlineOf {
   return (gameweek) => deadlines.get(gameweek) ?? null;
 }
 
-/** `leagueDeadlines` against matches already read (`heldMatches`), so one read serves every
+/** `leagueDeadlines` against matches already read (`scheduledMatches`), so one read serves every
  *  league. */
 export async function leagueDeadlinesIn(
   ctx: QueryCtx,
