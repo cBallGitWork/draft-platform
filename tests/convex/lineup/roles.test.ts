@@ -115,3 +115,24 @@ describe("an auto-sub (spec/05 Auto-subs)", () => {
     expect(result.lineup.starters).toContainEqual({ playerCode: FIRST, ...STRIKERS_CELL, role: "pressingForward" });
   });
 });
+
+describe("each role's run (spec/05 Runs; #846; Craig, 31 Oct 2026)", () => {
+  const everyRole = Object.values(DEFAULT_ROLES).flat();
+
+  test("every default role holds its place or has a run, each marked rough until its own research", () => {
+    for (const { key, run } of everyRole) {
+      if (run === null) continue;
+      expect(run.rough, key).toBe(true);
+      expect(run.path.length, key).toBeGreaterThan(0);
+    }
+  });
+
+  test("the roles that hold their place have none, and the moving ones go where FM's nearest would", () => {
+    const holding = everyRole.filter(({ run }) => run === null).map(({ key }) => key);
+    expect(holding).toEqual(["shotStopper", "defensiveFullBack", "ballPlayingDefender", "holdingWingBack", "anchor", "deepPlaymaker", "targetMan"]);
+    const endOf = (key: string) => everyRole.find((each) => each.key === key)!.run!.path.at(-1)!;
+    expect(endOf("attackingFullBack").forward).toBeGreaterThan(0);
+    expect(endOf("falseNine").forward).toBeLessThan(0);
+    expect(endOf("insideForward").across).toBeGreaterThan(0);
+  });
+});

@@ -4,6 +4,7 @@ import type { Cell } from "../../../convex/lineup/pitch";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { ESCAPE_KEY, KEY_DOWN } from "../../shared/browserEvents";
 import { Loading, Notice, PageSection, Panel, PanelNote, Problem, Status } from "../../ui/Panel";
+import { TickBox } from "../../ui/TickBox";
 import { useChange } from "../../shared/useChange";
 import { useMinute } from "../../shared/useMinute";
 import { unheldNoticeWords } from "../../shared/words";
@@ -20,6 +21,7 @@ import {
   movingHintWords,
   pickPresetWords,
   presetLabel,
+  runsWords,
   noDeadlineWords,
   pickHintWords,
   savedWords,
@@ -94,6 +96,8 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
   const [pickedCode, setPickedCode] = useState<number | null>(null);
   // The preset last picked, whose empty slots the pitch marks; none until one is.
   const [shape, setShape] = useState<string>("");
+  // The desk's switch for the roles' runs, on until it is turned off (spec/05 Runs).
+  const [runsShown, setRunsShown] = useState(true);
   const [savedFrom, setSavedFrom] = useState<number | null>(null);
   // The lineup the save last sent. A save sent after it forgets it, so the answer that lands after
   // one, about a lineup no longer on the pitch, says nothing (#642).
@@ -245,12 +249,18 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
                 </option>
               ))}
             </select>
+            {/* The desk's only: a phone shows just the tapped player's run (spec/05 Runs). */}
+            <div className="ml-auto max-lg:hidden">
+              <TickBox checked={runsShown} onChange={setRunsShown}>
+                {runsWords}
+              </TickBox>
+            </div>
           </div>
           <p role="status" className="px-3 py-2 text-soft">
             {picked === null ? pickHintWords : movingHintWords(picked.name, picked.positions)}
           </p>
           <div className="px-2 pb-2">
-            <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === shape)?.cells ?? []} />
+            <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === shape)?.cells ?? []} runsShown={runsShown} />
           </div>
         </Panel>
         <Panel title={SQUAD_PANEL_TITLE} className="min-w-0 grow basis-squad">
