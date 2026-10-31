@@ -7,7 +7,7 @@ import { siteScoringRefusals } from "../../../convex/scoring/siteScoring";
 import { setOf, SITE_SCORING_VERSIONS_MOST } from "../../../convex/scoring/siteVersions";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS } from "../../../convex/shared/time";
-import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { GAMEWEEKS, SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesInGameweek, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";
@@ -46,6 +46,18 @@ describe("reading it", () => {
 
     expect(await viewAs(ADMIN)).toEqual({ part: FIRST_SCORING, revision: null, changesFrom: 9, canEdit: true, versions: [], draft: null });
     for (const gameweek of SEASON_GAMEWEEKS) expect(await inGameweek(gameweek)).toEqual(FIRST_SCORING);
+  });
+
+  test(`a gameweek's set reads only the held matches, so more than ${GAMEWEEKS} gameweeks held never stops it`, async () => {
+    await holdGameweeks(t, { next: 9 });
+    // Only a row written by hand can pass FPL's 38, and the schedule's read throws past it.
+    await t.run(async (ctx) => {
+      for (const number of [GAMEWEEKS + 1, GAMEWEEKS + 2]) await ctx.db.insert("gameweeks", { number, deadline: 0 });
+    });
+    await t.run((ctx) => holdSiteScoring(ctx, { scoring: EDITED, kind: "fix", season: 2026, number: 1, at: TODAY }));
+
+    expect(await inGameweek(8)).toEqual(FIRST_SCORING);
+    expect(await inGameweek(9)).toEqual(EDITED);
   });
 
   test("a commissioner, a co-commissioner and a manager read it, and may not change it", async () => {
