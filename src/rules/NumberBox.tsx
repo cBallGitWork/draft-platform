@@ -70,7 +70,7 @@ export function NumberBox(props: NumberBoxProps) {
         inputMode="decimal"
         aria-label={label}
         aria-invalid={invalid || undefined}
-        aria-describedby={[refusal === null ? undefined : refusalId, hintId].filter((id) => id !== undefined).join(" ") || undefined}
+        aria-describedby={[refusal === null ? undefined : refusalId, hintId].filter((describer) => describer !== undefined).join(" ") || undefined}
         value={text}
         onChange={(event) => change(event.target.value)}
         className="number-box"
