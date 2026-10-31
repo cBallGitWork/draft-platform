@@ -1,5 +1,4 @@
 import { expect, test } from "vitest";
-import { STREAM_BEHIND } from "../../../convex/football/matchCommentary";
 import {
   annsScoredGame,
   EVERTON_STARTERS,
@@ -8,7 +7,6 @@ import {
   HULL_KEEPER,
   HULL_SCORER,
   lineupOf,
-  LEAGUE_KICKOFF,
   nameOf,
   PHILLIPS,
   scoresLeague,
@@ -16,7 +14,7 @@ import {
 } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords } from "../../support/convex/gameweekScoresMatch.harness";
 import { MIDFIELD_GOAL } from "../../support/convex/gameweekScoresFixes.harness";
-import { holdLines, storedLine } from "../../support/convex/matchPage.harness";
+import { holdLines, storedLine, STREAM_BEHIND_SINCE_KICKOFF } from "../../support/convex/matchPage.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 
 // The matchup's commentary (#434; spec/10, The matchup): Hull v Everton's stored lines as Ann's
@@ -28,12 +26,10 @@ test("the commentary is the match's stored lines, the goal priced for its scorer
 
   await fullTimeRecords(league);
   const scorer = await nameOf(league, HULL_SCORER);
-  await league.t.run((ctx) =>
-    ctx.db.insert("matchCommentary", {
-      fixtureCode: HULL_EVERTON,
-      lines: [storedLine(3, "FT HUL 1–2 EVE", 1, "end 14"), storedLine(2, `64' GOAL ${scorer}`, 64, "goal", [HULL_SCORER]), storedLine(1, "KO HUL v EVE", 0, "start")],
-      delayed: { reason: STREAM_BEHIND, since: LEAGUE_KICKOFF },
-    }),
+  await holdLines(
+    league,
+    [storedLine(3, "FT HUL 1–2 EVE", 1, "end 14"), storedLine(2, `64' GOAL ${scorer}`, 64, "goal", [HULL_SCORER]), storedLine(1, "KO HUL v EVE", 0, "start")],
+    STREAM_BEHIND_SINCE_KICKOFF,
   );
 
   const { commentary, team, opponent } = await annsScoredGame(league, GAMEWEEK);

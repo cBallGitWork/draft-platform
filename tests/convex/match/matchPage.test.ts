@@ -1,6 +1,5 @@
 import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
-import { STREAM_BEHIND } from "../../../convex/football/matchCommentary";
 import { bySheetOrder } from "../../../convex/match/sheetOrder";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import {
@@ -22,7 +21,7 @@ import {
 import { fullTimeRecords, scoreRead } from "../../support/convex/gameweekScoresMatch.harness";
 import { adjustScorersRole, MIDFIELD_GOAL, holdTypoRule } from "../../support/convex/gameweekScoresFixes.harness";
 import { ADMIN, OUTSIDER, actingAs } from "../../support/convex/leagues.harness";
-import { holdLines, manOf, matchAs, matchLeague, notYetBegun, scorerFreeLeague, storedLine } from "../../support/convex/matchPage.harness";
+import { holdLines, manOf, matchAs, matchLeague, notYetBegun, scorerFreeLeague, storedLine, STREAM_BEHIND_SINCE_KICKOFF } from "../../support/convex/matchPage.harness";
 import { HULL_EVERTON, HULL_EVERTON_TEAM_STATS, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 
@@ -158,13 +157,7 @@ test("a man who has left both clubs has no side", async () => {
 test("the commentary is the match's lines newest first, the goal priced for its owner's slot, and says when delayed", async () => {
   const league = await matchLeague();
   await fullTimeRecords(league);
-  await league.t.run((ctx) =>
-    ctx.db.insert("matchCommentary", {
-      fixtureCode: HULL_EVERTON,
-      lines: [scorersGoal(2), storedLine(1, "KO HUL v EVE", 0, "start")],
-      delayed: { reason: STREAM_BEHIND, since: LEAGUE_KICKOFF },
-    }),
-  );
+  await holdLines(league, [scorersGoal(2), storedLine(1, "KO HUL v EVE", 0, "start")], STREAM_BEHIND_SINCE_KICKOFF);
   const page = (await matchAs(league, ANN))!;
   const matchup = await annsScoredGame(league);
   if (matchup.commentary.kind !== "read") throw new Error("the matchup's commentary wasn't read");
