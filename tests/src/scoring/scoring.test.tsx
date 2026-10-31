@@ -185,6 +185,18 @@ describe("#30 Done: an edit saves, from the next gameweek", () => {
     expect(document.activeElement).toBe(from);
   });
 
+  it("a refusal whose box leaves the screen, as another category opens, moves to the save bar (#645)", async () => {
+    openScoring();
+    await choose("Assists");
+    await retype(columnWords.points, everyoneWords, "");
+    await save();
+    await screen.findByRole("alert");
+    await choose("Yellow cards");
+
+    expect(screen.getByRole("alert").textContent).toBe(blankBoxWords("Assists"));
+    expect(refusalBeside(box(columnWords.points, everyoneWords))).toBeNull();
+  });
+
   it("a save refused for boxes left without a number opens the first category it names, the cursor in its box (#645)", async () => {
     openScoring();
     await choose("Assists");

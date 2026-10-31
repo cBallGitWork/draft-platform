@@ -26,7 +26,7 @@ type SavePart<Part, Rev> = (part: Part, revision: Rev) => Promise<number | strin
  *  someone else saves. `drop` lets the edits go for the latest. `saveDraft` saves it with `save`,
  *  unless `blankRefusal` finds a box left without a number, which it tells `onRefused` (as the
  *  screen draws what that changes, the box is found inside `area`). That refusal is `boxRefusal`,
- *  said beside the box; any other, or one whose box isn't found, is `problem`, said in the bar. */
+ *  said beside the box; any other, or one whose box isn't on screen, is `problem`, said in the bar. */
 export function useRulesDraft<Part, Rev = Revision>(
   view: RulesView<Part, Rev>,
   save: SavePart<Part, Rev>,
@@ -40,7 +40,15 @@ export function useRulesDraft<Part, Rev = Revision>(
   const blank = useBlankBox();
   const draft = edits?.part ?? view.part;
   const revision = edits?.revision ?? view.revision;
-  const boxRefusal: BoxRefusal | null = refusedBlank && saving.problem !== null && blank.box !== null ? { boxId: blank.box.id, words: saving.problem } : null;
+  const boxRefusal: BoxRefusal | null =
+    refusedBlank && saving.problem !== null && blank.box !== null ? { boxId: blank.box.id, words: saving.problem, gone: blank.gone } : null;
+
+  /** What the bar says: a refusal from the server; or one for a blank box found nowhere on screen
+   *  (another category opened, say), said afresh while the draft still holds a blank. */
+  function barProblem(): string | null {
+    if (!refusedBlank || saving.problem === null) return saving.problem;
+    return boxRefusal === null ? blankRefusal(draft) : null;
+  }
 
   function drop() {
     setEdits(null);
@@ -73,7 +81,7 @@ export function useRulesDraft<Part, Rev = Revision>(
     overtaken: revision !== view.revision,
     savedFrom,
     busy: saving.busy,
-    problem: boxRefusal === null ? saving.problem : null,
+    problem: barProblem(),
     boxRefusal,
     area: blank.area,
     edit(part: Part) {

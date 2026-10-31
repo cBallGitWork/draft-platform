@@ -269,6 +269,17 @@ describe("the squad (#341)", () => {
     }
   });
 
+  it("a refusal beside the club maximum goes with its box when the limit is turned off (#645)", async () => {
+    await opened();
+    await userEvent.click(clubTick());
+    await save();
+    await screen.findByRole("alert");
+    expect(refusalBeside(box(clubMaximumLabel))).toBe(blankClubMaximumWords);
+    await userEvent.click(clubTick());
+
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
   it("a save refused again puts the cursor back in the box (#645)", async () => {
     await opened();
     await fill(squadMaximumLabel, "");

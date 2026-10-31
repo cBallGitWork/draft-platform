@@ -99,6 +99,9 @@ ones in `src/ui/` (`TickBox`, `Choice`), the rules screens' own in `src/rules/` 
   600. A radio group, so the arrow keys move it.
 - **Discard and Save**: Discard is the secondary action, there only once something changed; Save
   is the action, and with nothing to save it is the action with nothing to do, in `#a1a5ab` text.
+- **Hover**: the action's, the secondary action's and a key's hover look shows only where a pointer
+  hovers (`@media (hover: hover)`): a phone keeps a tapped button "hovered", and Save stayed grey.
+  A mouse resting on Save after a click still shows its hover, `#caced4`.
 
 ## Never
 

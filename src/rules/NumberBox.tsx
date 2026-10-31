@@ -1,4 +1,4 @@
-import { useContext, useId, useState } from "react";
+import { useContext, useEffect, useId, useRef, useState } from "react";
 import { Problem } from "../ui/Panel";
 import { BoxRefusalContext } from "./blank";
 
@@ -26,7 +26,8 @@ type NumberBoxProps = { label: string; value: number | null } & (
  * as NumberBoxProps says. It is marked invalid while it holds no number, unless it is an emptied
  * `optional` one. A new value from outside, such as a changed kind of rule, replaces the text.
  * A save refused for this box (BoxRefusalContext) is said under it while it still holds no number,
- * tied to it for screen readers; a parent that wraps puts it on a line of its own, after the row (#645).
+ * tied to it for screen readers; a parent that wraps puts it on a line of its own, after the row;
+ * and the save bar says it once the box leaves the screen (#645).
  */
 export function NumberBox(props: NumberBoxProps) {
   const { label, value, optional = false } = props;
@@ -54,6 +55,12 @@ export function NumberBox(props: NumberBoxProps) {
   const read = parse(text);
   const invalid = read === null ? !optional : Number.isNaN(read);
   const refusal = invalid && boxRefusal?.boxId === id ? boxRefusal.words : null;
+  // A box leaving the screen while it says a refusal hands it back to the bar.
+  const handBack = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    handBack.current = refusal === null ? null : (boxRefusal?.gone ?? null);
+  });
+  useEffect(() => () => handBack.current?.(), []);
   return (
     <>
       <input
