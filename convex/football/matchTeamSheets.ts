@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalMutation, internalQuery, type ActionCtx, type QueryCtx } from "../_generated/server";
-import type { SideMatchOutcome, SideRunOutcome } from "../admin/sideRuns";
+import { recordSideRun, type SideMatchOutcome, type SideRunOutcome } from "../admin/sideRuns";
 import { teamSheetMan } from "../schema";
 import { logFailure } from "../shared/errors";
 import { playerByCode } from "../shared/players";
@@ -53,7 +53,7 @@ export const due = internalQuery({
  *  each man's FPL code. */
 export async function syncTeamSheets(ctx: ActionCtx, now: number, fpl: typeof readFplPayloads): Promise<void> {
   const outcome = await readTeamSheets(ctx, now, fpl);
-  if (outcome !== null) await ctx.runMutation(internal.admin.sideRuns.record, { feed: "teamSheets", ranAt: now, outcome });
+  if (outcome !== null) await recordSideRun(ctx, "teamSheets", now, outcome);
 }
 
 /** Each due match's sheets read and stored, and how each went; null while none is due. */

@@ -3,6 +3,7 @@ import { internal } from "../../../convex/_generated/api";
 import { plTeamStatsUrl } from "../../../convex/football/football";
 import type { RawPlTeamStats } from "../../../convex/football/premierLeague/premierLeague";
 import { OPTA_TEAM_STAT } from "../../../convex/football/premierLeague/plTeamStats";
+import { dayOf } from "../../../convex/outbound/emailLimit";
 import { outcomesOf } from "../../support/convex/feeds.harness";
 import { stagedGw6, stageTime, tickAt } from "../../support/convex/liveStats.harness";
 import { fakeFeeds, FULL_TIME_READ, HULL_EVERTON, HULL_EVERTON_TEAM_STATS, syncAt, withHullEverton } from "../../support/convex/matchStats.harness";
@@ -90,6 +91,25 @@ test("team stats that will not read are logged and on the team stats' row, the h
   });
   expect(await heldTeamStats(t)).toMatchObject(HULL_EVERTON_TEAM_STATS);
   expect(await t.run((ctx) => ctx.db.query("matchCommentary").unique())).toMatchObject({ delayed: null });
+});
+
+test("a team stats row that can't be written is logged, and the tick carries on", async () => {
+  const errors = silenceConsoleError();
+  const t = await withHullEverton();
+  // Two counts for one day: the failure email's count can't be read, so the row's mutation throws.
+  const day = dayOf(stageTime(MINUTE));
+  await t.run(async (ctx) => {
+    await ctx.db.insert("emailSends", { day, count: 0 });
+    await ctx.db.insert("emailSends", { day, count: 0 });
+  });
+
+  const { latest } = await tickAt(t, stageTime(MINUTE), stagedGw6(MINUTE), TEAM_STATS_URL);
+
+  expect(latest.outcome).toMatchObject({ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: true }] });
+  expect(errors).toHaveBeenCalledWith(expect.stringContaining("the teamStats run's row wasn't written"));
+  expect(await outcomesOf(t, "teamStats")).toEqual([]);
+  // The threshold lines' row, recorded after it, is still written.
+  expect(await outcomesOf(t, "thresholdSteps")).toHaveLength(1);
 });
 
 test("the full-time sync stores the final five, and leaves a match not yet at full time unread", async () => {
