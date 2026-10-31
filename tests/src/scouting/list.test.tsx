@@ -88,10 +88,13 @@ describe("the list", () => {
     expect(cells.slice(-2).map((cell) => cell.getAttribute("title"))).toEqual([noPointsYetWords, noRoleFitYetWords]);
   });
 
-  it("heads each column with a short code, the full name on hover", async () => {
+  it("heads each column with a short code, named by its full name, which shows on hover", async () => {
     openScouting();
     await screen.findByRole("table");
-    const heads = within(table()).getAllByRole("columnheader");
+    const heads = Object.values(columns).map(({ long }) => within(table()).getByRole("columnheader", { name: long }));
+    expect(within(table()).getAllByRole("columnheader")).toEqual(heads);
+    // The sorted column's head adds its arrow after the short code.
+    expect(heads.map((head, at) => head.textContent!.startsWith(Object.values(columns)[at].short))).not.toContain(false);
     expect(heads.map((head) => head.getAttribute("title"))).toEqual(Object.values(columns).map((column) => column.long));
   });
 });

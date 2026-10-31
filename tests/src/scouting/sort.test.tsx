@@ -5,7 +5,8 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogue";
-import { columns, noStatWords, sortByLabel, statLabel } from "../../../src/scouting/words";
+import { sortByLabel } from "../../../src/shared/words";
+import { columns, noStatWords, statLabel } from "../../../src/scouting/words";
 import { HELD, lastAsk, namesShown, openScouting, PALMER, RICE, table } from "../../support/src/scoutingScreen.harness";
 
 describe("the sort asks the server", () => {
@@ -67,6 +68,7 @@ describe("any stat, as a season total", () => {
     expect(statCells()).toEqual(["5", "2", "0"]);
     const head = screen.getByRole("button", { name: sortByLabel(GOALS.name) });
     expect(head.textContent).toContain(GOALS.shortCode);
+    expect(head.closest("th")).toBe(screen.getByRole("columnheader", { name: GOALS.name }));
     expect(head.closest("th")!.getAttribute("title")).toBe(GOALS.name);
     expect(head.closest("th")!.getAttribute("aria-sort")).toBe("descending");
   });

@@ -1,4 +1,5 @@
 import type { FeedState } from "../../convex/admin/feedState";
+import { ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
 import { whenWords } from "../shared/words";
 import { AdminHeader } from "./AdminHeader";
@@ -70,13 +71,7 @@ function Feeds({ report }: { report: FeedsReport }) {
     <Panel title={feedsTitle}>
       <PanelNote>{feedsHint}</PanelNote>
       <table className="w-full border-collapse">
-        <thead className="bg-head text-ground">
-          <tr>
-            <th scope="col" className={cellClasses}>{feedColumns.feed}</th>
-            <th scope="col" className={cellClasses}>{feedColumns.arrived}</th>
-            <th scope="col" className={cellClasses}>{feedColumns.state}</th>
-          </tr>
-        </thead>
+        <ColumnHeads columns={feedColumns} classOf={() => cellClasses} />
         {report.feeds.map(({ feed, state, lastSuccessAt, lastError }) => {
           const edge = NEEDS_YOU.includes(state) ? "shadow-event-edge" : "";
           return (

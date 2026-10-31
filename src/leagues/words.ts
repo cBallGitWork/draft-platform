@@ -34,7 +34,12 @@ export const notInALeagueWords = (email: string) => `You're signed in as ${email
 export const invitedHereWords = "When a commissioner invites you to one, it will be here.";
 
 /** "Your leagues" as a table: its columns, and what each row says. */
-export const leagueColumns = { league: "League", you: "You", team: "Your team", teams: "Teams" } as const;
+export const leagueColumns = {
+  league: { short: "League", long: "League" },
+  you: { short: "You", long: "What you are in the league" },
+  team: { short: "Your team", long: "The team you run" },
+  teams: { short: "Teams", long: "Teams in the league, of the most it takes" },
+} as const;
 export const commissionerLine = (email: string) => `Commissioner: ${email}`;
 export const noTeamCellWords = "None";
 /** Between a league's teams and its most, each its own figure: "6 of 8". */

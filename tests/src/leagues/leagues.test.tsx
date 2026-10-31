@@ -15,6 +15,7 @@ import {
   adminWords,
   commissionerLine,
   LEAGUES_TITLE,
+  leagueColumns,
   leaguesCutWords,
   NEW_LEAGUE_TITLE,
   newLeagueLabels,
@@ -26,6 +27,7 @@ import {
   unsentLinkWords,
 } from "../../../src/leagues/words";
 import { signInWords } from "../../../src/signIn/words";
+import { expectColumnHeads } from "../../support/src/columnHeads";
 
 describe("someone signed in, in no league", () => {
   it.each(["/", MY_TEAM_PATH, SIGN_IN_PATH])("opening %s sees their leagues page, saying they're in none", async (path) => {
@@ -134,6 +136,12 @@ describe("a manager in a league", () => {
     expect(screen.getByRole("navigation", { name: mainMenuLabel })).toBeTruthy();
     expect(screen.queryByRole("link", { name: NEW_LEAGUE_TITLE })).toBeNull();
     expect(app.path()).toBe(LEAGUES_PATH);
+  });
+
+  it("heads each column of their leagues with its short word, named by its long one", async () => {
+    openApp(LEAGUES_PATH, manager);
+    await rowOf(league.name);
+    expectColumnHeads(screen.getByRole("table"), Object.values(leagueColumns));
   });
 
   it("opening the app still lands on My team", async () => {
