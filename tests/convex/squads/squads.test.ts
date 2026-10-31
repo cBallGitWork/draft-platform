@@ -26,6 +26,8 @@ const CLUBS = [
 /** Sixty players, numbered from 1001, spread over the three clubs. */
 const PLAYER_CODES = Array.from({ length: 60 }, (_, i) => 1001 + i);
 const SAKA = 1001;
+/** A code the football sync holds no player for. */
+const UNHELD = 9999;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -53,6 +55,7 @@ const as = async (email: string) => {
     find: (text: string) => person.query(api.squads.squads.findPlayers, { leagueId, text }),
   };
 };
+type Commissioner = Awaited<ReturnType<typeof as>>;
 const squadCodes = async () => (await (await as(COMMISSIONER)).squads()).map((team) => team.players.map((player) => player.code));
 const lastEvent = async () => (await eventsIn(t, leagueId)).at(-1);
 
@@ -111,7 +114,6 @@ describe("a player is on one team in a league at most", () => {
 });
 
 describe("each change files one letter to the league", () => {
-  type Commissioner = Awaited<ReturnType<typeof as>>;
   test.each([
     ["assigning", async () => {}, (c: Commissioner) => c.assign(SAKA, teams[0]), { kind: "playerAssigned", teamName: "Team 1" }],
     ["moving", (c: Commissioner) => c.assign(SAKA, teams[0]), (c: Commissioner) => c.move(SAKA, teams[1]), { kind: "playerMoved", fromTeamName: "Team 1", teamName: "Team 2" }],
@@ -153,10 +155,10 @@ describe("who may", () => {
 
 describe("refused, saying why, and nothing changes", () => {
   test.each([
-    ["a player who doesn't exist", (c: Awaited<ReturnType<typeof as>>) => c.assign(9999, teams[0]), squadRefusals.noPlayer],
-    ["a player who has left the Premier League", (c: Awaited<ReturnType<typeof as>>) => c.assign(GONE.code, teams[0]), squadRefusals.playerGone("Gone")],
-    ["moving a free agent", (c: Awaited<ReturnType<typeof as>>) => c.move(SAKA, teams[0]), squadRefusals.freeAgent("Saka")],
-    ["releasing a free agent", (c: Awaited<ReturnType<typeof as>>) => c.release(SAKA), squadRefusals.freeAgent("Saka")],
+    ["a player who doesn't exist", (c: Commissioner) => c.assign(UNHELD, teams[0]), squadRefusals.noPlayer],
+    ["a player who has left the Premier League", (c: Commissioner) => c.assign(GONE.code, teams[0]), squadRefusals.playerGone("Gone")],
+    ["moving a free agent", (c: Commissioner) => c.move(SAKA, teams[0]), squadRefusals.freeAgent("Saka")],
+    ["releasing a free agent", (c: Commissioner) => c.release(SAKA), squadRefusals.freeAgent("Saka")],
   ])("%s", async (_what, change, reason) => {
     await expectRefused(change(await as(COMMISSIONER)), reason);
     expect(await squadCodes()).toEqual([[], [], [], []]);
@@ -179,6 +181,26 @@ describe("refused, saying why, and nothing changes", () => {
       for (let i = 0; i < MOST_IN_SQUAD; i += 1) await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: 5000 + i });
     });
     await expectRefused((await as(COMMISSIONER)).assign(SAKA, teams[0]), squadRefusals.squadFull);
+  });
+
+  // Players are never deleted, only marked dropped, so a squad row whose player the football sync
+  // doesn't hold is data gone wrong (#323). Moving or releasing him is refused, and his row stays.
+  describe("a squad's player the football sync doesn't hold", () => {
+    const squadRows = () => t.run((ctx) => ctx.db.query("squadPlayers").collect());
+    beforeEach(() => t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: UNHELD })));
+
+    test.each([
+      ["moving him", (c: Commissioner) => c.move(UNHELD, teams[1])],
+      ["releasing him", (c: Commissioner) => c.release(UNHELD)],
+    ])("%s", async (_what, change) => {
+      const before = await squadRows();
+      await expectRefused(change(await as(COMMISSIONER)), squadRefusals.noPlayer);
+      expect(await squadRows()).toEqual(before);
+    });
+
+    // How the squads page reads his row is Craig's call (#323): today one such row fails the
+    // whole page.
+    test.todo("the squads page still shows every other squad, and says his row is wrong");
   });
 });
 
