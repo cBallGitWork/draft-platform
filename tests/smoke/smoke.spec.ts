@@ -10,7 +10,9 @@ import { MY_TEAM_PATH, SCOUTING_PATH } from "../../src/frame/menu";
 import { invitesPath } from "../../src/joining/paths";
 import { ERROR_PAGE_TITLE, mainMenuLabel } from "../../src/frame/words";
 import { PITCH_ASPECT } from "../../src/myTeam/tactics/pitchMarkings";
-import { moveLabel, pitchLabel, presetLabel, putHereLabel, squadTableLabel as tacticsSquadTableLabel } from "../../src/myTeam/tactics/words";
+import { markedBy } from "../../src/myTeam/tactics/focusMarks";
+import { RUN_MARK } from "../../src/myTeam/tactics/runs";
+import { moveLabel, pitchLabel, presetLabel, putHereLabel, runsWords, squadTableLabel as tacticsSquadTableLabel } from "../../src/myTeam/tactics/words";
 import { SIGN_IN_PATH } from "../../src/signIn/paths";
 import { signInWords } from "../../src/signIn/words";
 import { squadsPath } from "../../src/squads/paths";
@@ -142,6 +144,30 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
         for (const gap of gaps) if ((await gap.count()) > 0) await gap.click();
         await expect(page.getByRole("group", { name: pitchLabel }).getByRole("button", { name: new RegExp(`^${OFF_THE_BENCH},`) })).toHaveCount(1);
         await expectPlayersApart(page, viewport === PHONE, "5-3-2, five at the back");
+      });
+
+      // The roles' runs (spec/05 Runs; #846): every one on the desk, with a switch to hide them;
+      // on a phone only the tapped player's.
+      test("shows the roles' runs as the desk or the phone should", async ({ page }) => {
+        await page.goto(`${MY_TEAM_PATH}?preview=manager`);
+        const thePitch = page.getByRole("group", { name: pitchLabel });
+        const runs = thePitch.locator(`[${RUN_MARK}]`);
+        const shownRuns = async () => (await runs.evaluateAll((all) => all.filter((run) => getComputedStyle(run).display !== "none"))).length;
+        await expect(runs.first(), "a starter whose role moves").toBeAttached();
+        const moving = await runs.count();
+        const runsSwitch = page.getByRole("checkbox", { name: runsWords });
+        if (viewport === DESK) {
+          expect(await shownRuns(), "every run on the desk").toBe(moving);
+          await runsSwitch.click();
+          expect(await shownRuns(), "none once switched off").toBe(0);
+        } else {
+          await expect(runsSwitch, "no switch on a phone").toBeHidden();
+          expect(await shownRuns(), "none until a player is tapped").toBe(0);
+          const tapped = await runs.first().getAttribute(RUN_MARK);
+          await thePitch.locator(markedBy("player", Number(tapped))).click();
+          const shown = await runs.evaluateAll((all, mark) => all.filter((run) => getComputedStyle(run).display !== "none").map((run) => run.getAttribute(mark)), RUN_MARK);
+          expect(shown, "only the tapped player's").toEqual([tapped]);
+        }
       });
     });
   }

@@ -18,7 +18,7 @@ import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
 import { teamsInGameweek } from "../table/standings";
 import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
-import { roleIn, type Role } from "../lineup/roles";
+import { namedRole, roleIn, type Role } from "../lineup/roles";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { game, matchup, type MatchupCommentary, type MatchupBenchSlot, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
 import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vidiprinter";
@@ -226,10 +226,11 @@ class SideScorer {
   }
 }
 
-/** The role the scorer priced him in at his cell, so the matchup and the table never disagree. */
-function pricedRole({ playerCode, cell, role }: SlotPoints): Role {
+/** The role the scorer priced him in at his cell, so the matchup and the table never disagree. Its
+ *  run isn't drawn on the matchup yet (spec/05 Runs), so it is sent without one. */
+function pricedRole({ playerCode, cell, role }: SlotPoints): Pick<Role, "key" | "name"> {
   if (role === undefined) throw new Error(`player ${playerCode} plays at ${cell.area} ${cell.lane}, which has no roles`);
-  return roleIn(cell, role);
+  return namedRole(roleIn(cell, role));
 }
 
 /** Matches by kickoff, any with no time yet last. */

@@ -5,6 +5,7 @@ import {
   CORNER_ARC_RADIUS,
   END_MARKINGS,
   PITCH_SIZE,
+  ROW_LENGTH,
   SPOT_DRAWN_RADIUS,
 } from "./pitchMarkings";
 
@@ -12,7 +13,6 @@ import {
 // box the pitch's own shape, so every line is to scale at any width (plate.md, Marks: the pitch).
 
 const { width, length } = PITCH_SIZE;
-const STRIPE_LENGTH = length / AREAS.length;
 const { penaltyArea, goalArea, penaltySpot, arcHalfWidth } = END_MARKINGS;
 /** Every line's look: 2px however big the pitch is drawn. */
 const LINE = { vectorEffect: "non-scaling-stroke", className: "fill-none stroke-pitch-line stroke-2" } as const;
@@ -51,7 +51,7 @@ export function PitchLines() {
     >
       {/* A stripe to each of the six rows the players stand in. */}
       {AREAS.map((area, row) => (
-        <rect key={area} x={0} y={row * STRIPE_LENGTH} width={width} height={STRIPE_LENGTH} className={row % 2 === 0 ? "fill-pitch" : "fill-pitch-stripe"} />
+        <rect key={area} x={0} y={row * ROW_LENGTH} width={width} height={ROW_LENGTH} className={row % 2 === 0 ? "fill-pitch" : "fill-pitch-stripe"} />
       ))}
       <line x1={0} y1={CENTRE_SPOT.y} x2={width} y2={CENTRE_SPOT.y} {...LINE} />
       <circle cx={CENTRE_SPOT.x} cy={CENTRE_SPOT.y} r={CIRCLE_RADIUS} {...LINE} />
