@@ -105,8 +105,9 @@ describe("the rows", () => {
     ]);
   });
 
-  // Ann's team has played gameweeks begun, whose lineups now hold him too: scoring counts him as
-  // not playing (#810), so the rest of her squad keeps its points.
+  // His row has no squad move, so he was in Ann's squad at both begun gameweeks' deadlines and
+  // joins their lineups' benches (lineups.ts). Scoring counts him as not playing (#810), so the
+  // rest of her squad keeps its points; before #812 this read threw.
   test("keep one whose player the football sync doesn't hold as his code, after the rest, the rest's points kept (#323)", async () => {
     const before = await read();
     await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: annTeam, playerCode: UNHELD }));
