@@ -8,8 +8,9 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, beforeEach, expect, test } from "vitest";
+import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
-const SCRIPT = join(import.meta.dirname, "../../scripts/recorded-add-only.mjs");
+const SCRIPT = join(REPO_ROOT, "scripts/recorded-add-only.mjs");
 const RECORDED = "tests/support/recorded";
 const PAYLOAD_A = `${RECORDED}/a.json`;
 const PAYLOAD_B = `${RECORDED}/b.json`;
