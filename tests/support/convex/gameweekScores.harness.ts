@@ -9,6 +9,8 @@ import { positionOfSlot, type Cell } from "../../../convex/lineup/pitch";
 import type { Position } from "../../../convex/positions/positionTables";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { firstLineup } from "../../../convex/lineup/firstLineup";
+import { roleIn } from "../../../convex/lineup/roles";
+import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { inTenths } from "../../../convex/scoring/scoringSet";
 import type { PlayerMatchRecord } from "../../../convex/stats/matchRecords";
@@ -19,6 +21,7 @@ import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } 
 import { EVERTON, EVERTON_CLUB, GAMEWEEK, HULL, HULL_CITY, HULL_EVERTON, mergedHullEverton } from "./matchStats.harness";
 import { insertClubs } from "./footballRows.harness";
 import { elapse } from "./test.harness";
+import { holdSiteScoring } from "./siteScoring.harness";
 import { BELLOUMI, DEWSBURY_HALL, GELHARDT, PHILLIPS, TZOLAKIS } from "./teamPoints.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
 import { recordedGw6 } from "../recorded/gw6.payloads";
@@ -197,19 +200,25 @@ export const HULL_AFTER_SUB: Starter[] = HULL_STARTERS.map((starter) =>
 /** A stat no record holds: a typo of goals_scored. */
 export const TYPO_STAT = "goals_scroed";
 
+/** The site's set from now on, a fix in force from the start: `scoring` in place of the first. */
+const holdFix = ({ t }: ScoresLeague, scoring: StoredScoringSet) =>
+  t.run((ctx) => holdSiteScoring(ctx, { scoring, kind: "fix", season: 2026, number: 1, at: 0 }));
+
 /** The site's set from now on holds a rule on TYPO_STAT, as a set written by hand could (#287). */
-export async function holdTypoRule({ t }: ScoresLeague) {
+export async function holdTypoRule(league: ScoresLeague) {
   const [rule] = FIRST_SCORING.rules;
-  await t.run((ctx) =>
-    ctx.db.insert("siteScoring", {
-      scoring: { ...FIRST_SCORING, rules: [...FIRST_SCORING.rules, { ...rule, stat: TYPO_STAT }] },
-      kind: "fix",
-      season: 2026,
-      number: 1,
-      announcedAt: 0,
-      takesEffectAt: 0,
-    }),
-  );
+  await holdFix(league, { ...FIRST_SCORING, rules: [...FIRST_SCORING.rules, { ...rule, stat: TYPO_STAT }] });
+}
+
+/** The first set's goal for HULL_SCORER, a midfielder. */
+export const MIDFIELD_GOAL = 5;
+
+/** The site's set from now on adjusts a goal by `points` in the role HULL_SCORER plays: his slot's
+ *  first, since his saved lineup gives him none. */
+export async function adjustScorersRole(league: ScoresLeague, points: number) {
+  const scorer = HULL_STARTERS.find((starter) => starter.playerCode === HULL_SCORER)!;
+  const role = roleIn(scorer, undefined).key;
+  await holdFix(league, { ...FIRST_SCORING, roleAdjustments: [{ role, adjustments: [{ stat: "goals_scored", points }] }] });
 }
 
 /** A score no team made, written over a stored one to tell a stored read from a worked-out one. */

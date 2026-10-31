@@ -22,6 +22,7 @@ import {
   HULL_STARTERS,
   LEAGUE_KICKOFF,
   liveRecords,
+  MIDFIELD_GOAL,
   lockMatch,
   PHILLIPS,
   scoresLeague,
@@ -286,8 +287,6 @@ test("the commentary is the match's stored lines, the goal priced for its scorer
   const scorerSlot = slotOf(team, HULL_SCORER);
   expect(commentary.delayed).toBe(true);
   expect(commentary.lines.map((each) => each.text).slice(1)).toEqual([`64' GOAL ${scorer}`, "KO HUL v EVE"]);
-  // The first set's goal for a man in midfield, where he stands.
-  const MIDFIELD_GOAL = 5;
   expect(commentary.lines[1].points).toBe(`+${MIDFIELD_GOAL}`);
   expect(commentary.lines[0].text).toMatch(/^FT HUL 1–2 EVE: /);
   expect(commentary.lines[0].text).toContain(`${scorer} ${scorerSlot.points}`);

@@ -2,8 +2,8 @@ import { useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../../convex/_generated/api";
 import { refusalOf } from "../../shared/refusal";
-import type { ShortlistSeam } from "./shortlistSeam";
-import { shortlistChangeFailedWords } from "./shortlistWords";
+import type { ShortlistSeam } from "./seam";
+import { shortlistChangeFailedWords } from "./words";
 
 /** The shortlist seam filled in by Convex. A refusal comes back as the server's own words
  *  (convex/scouting/shortlist.ts); any other failure is logged and said plainly. */

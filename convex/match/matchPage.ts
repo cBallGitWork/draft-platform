@@ -171,7 +171,7 @@ async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtu
       if (inMatch === null) continue;
       result.slots.set(slot.playerCode, { points: inMatch.points, counts: slot.counts });
       const { name } = await heldPlayer(ctx, fixture.code, slot.playerCode);
-      result.players.set(slot.playerCode, { name, cell: slot.cell, inMatch: inMatchOf(slot, scored.matchesOf.get(slot.playerCode) ?? []) });
+      result.players.set(slot.playerCode, { name, cell: slot.cell, role: slot.role, inMatch: inMatchOf(slot, scored.matchesOf.get(slot.playerCode) ?? []) });
     }
   }
   return result;

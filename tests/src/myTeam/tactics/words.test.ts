@@ -2,7 +2,7 @@
 
 import { expect, it } from "vitest";
 import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../../../convex/shared/time";
-import { countdownWords } from "../../../../src/myTeam/tactics/tacticsWords";
+import { countdownWords } from "../../../../src/myTeam/tactics/words";
 
 it.each([
   [DAY_MS + 17 * HOUR_MS + 5 * MINUTE_MS, "in 1d 17h"],

@@ -20,7 +20,7 @@ import {
   removeNamedLabel,
   SHORTLIST_TITLE,
   shortlistListLabel,
-} from "../../../../src/scouting/shortlist/shortlistWords";
+} from "../../../../src/scouting/shortlist/words";
 import { ARSENAL } from "../../../support/convex/footballRows.harness";
 import type { ShortlistData } from "../../../support/src/shortlist.harness";
 import { shortlisted } from "../../../support/src/shortlist.harness";

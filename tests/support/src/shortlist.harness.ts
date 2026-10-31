@@ -3,7 +3,7 @@
 
 import { vi } from "vitest";
 import { ARSENAL } from "../convex/footballRows.harness";
-import type { ShortlistChanges, ShortlistedPlayer, ShortlistSeam } from "../../../src/scouting/shortlist/shortlistSeam";
+import type { ShortlistChanges, ShortlistedPlayer, ShortlistSeam } from "../../../src/scouting/shortlist/seam";
 
 /** What the fake server holds: the manager's shortlist (null for someone running no team), or
  *  nothing yet while it loads; and the server's refusal of any change, if it refuses. */

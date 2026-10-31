@@ -21,7 +21,7 @@ import {
   toBenchWords,
   upLabel,
   upWords,
-} from "./tacticsWords";
+} from "./words";
 
 const COLUMNS = ["position", "player", "role", "move"] as const;
 
