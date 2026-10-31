@@ -8,6 +8,8 @@ import { adminOf } from "../shared/leagueAccess";
 import { findClubByCode, playerByCode } from "../shared/players";
 import { FEED_RUN_TABLES, FEED_SCHEDULES, FEEDS, feedValidator, type Feed } from "../shared/feedSchedule";
 import { liveMatches } from "../stats/liveStats";
+import { dueSheetsAt } from "../football/matchTeamSheets";
+import { LINEUPS_OUT_BEFORE_KICKOFF_MS } from "../shared/time";
 import { lateStatChange } from "../schema";
 
 // The admin's feeds page (#35; spec/15 The admin): when each feed last arrived and whether it is
@@ -92,12 +94,23 @@ export const feeds = query({
   },
 });
 
-/** From when each feed owes a success (`judgeFeed`): the live tick from the first kickoff of the
- *  matches live now, and none between matches; every other feed always. */
+/** From when each feed owes a success (`judgeFeed`): the live tick, and the team stats and
+ *  threshold lines it reads, from the first kickoff of the matches live now; the team sheets from
+ *  the first due match's hour before kickoff; none of those between matches; every other feed
+ *  always. */
 async function owedSinceAt(ctx: QueryCtx, now: number): Promise<Record<Feed, number | null>> {
-  const kickoffs = (await liveMatches(ctx, now)).map((match) => match.kickoff);
-  const liveStats = kickoffs.length === 0 ? null : Math.min(...kickoffs);
-  return { football: ALWAYS_OWED, positions: ALWAYS_OWED, matchStats: ALWAYS_OWED, liveStats };
+  const earliest = (times: number[]) => (times.length === 0 ? null : Math.min(...times));
+  const liveStats = earliest((await liveMatches(ctx, now)).map((match) => match.kickoff));
+  const teamSheets = earliest((await dueSheetsAt(ctx, now)).map((match) => match.kickoff - LINEUPS_OUT_BEFORE_KICKOFF_MS));
+  return {
+    football: ALWAYS_OWED,
+    positions: ALWAYS_OWED,
+    matchStats: ALWAYS_OWED,
+    liveStats,
+    teamSheets,
+    teamStats: liveStats,
+    thresholdSteps: liveStats,
+  };
 }
 
 type Run = { ranAt: number; outcome: RunOutcome };

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { FAILURE_EMAIL_GAP_MS, emailsNow } from "../../../convex/admin/feedFailureEmails";
 import { EMAILS_PER_DAY } from "../../../convex/outbound/emailLimit";
-import { FEED_NAMES, FEEDS, type Feed } from "../../../convex/shared/feedSchedule";
+import { FEED_NAMES, FEEDS, SIDE_FEEDS, type Feed } from "../../../convex/shared/feedSchedule";
 import { PRODUCT_NAME } from "../../../convex/shared/product";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import { ADMIN, fakeResend, sentToday, setSentToday, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
@@ -66,6 +66,7 @@ describe("a feed that fails", () => {
     await t.mutation(internal.positions.positionsSync.record, { trigger: "manual", ranAt: now, outcome: failed });
     await t.mutation(internal.stats.matchStats.record, { trigger: "manual", ranAt: now, outcome: failed });
     await t.mutation(internal.stats.liveStats.recordTick, { ranAt: now, outcome: failed });
+    for (const feed of SIDE_FEEDS) await t.mutation(internal.admin.sideRuns.record, { feed, ranAt: now, outcome: failed });
     await t.finishAllScheduledFunctions(vi.runAllTimers);
     expect(sent.map((email) => email.subject)).toEqual(FEEDS.map(subjectOf));
   });

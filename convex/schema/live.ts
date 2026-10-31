@@ -21,6 +21,29 @@ export const liveStatsTables = {
   liveStatsTicks: defineTable(liveStatsTickFields),
 };
 
+// The live tick's side reads, each its own feed (#522, admin/sideRuns.ts): one row per run with a
+// match to work on, so a failure is on record, never only a line in the logs.
+
+/** One match a side read worked on: done, or why not. */
+export const sideMatchOutcome = v.union(
+  v.object({ fixtureCode: v.number(), ok: v.literal(true) }),
+  v.object({ fixtureCode: v.number(), ok: v.literal(false), error: v.string() }),
+);
+
+export const sideRunFields = {
+  ranAt: v.number(),
+  outcome: v.union(
+    v.object({ ok: v.literal(true), matches: v.array(sideMatchOutcome) }),
+    v.object({ ok: v.literal(false), error: v.string() }),
+  ),
+};
+
+export const sideRunTables = {
+  teamSheetsRuns: defineTable(sideRunFields),
+  teamStatsRuns: defineTable(sideRunFields),
+  thresholdStepsRuns: defineTable(sideRunFields),
+};
+
 // Each match's commentary as written from the Premier League's stream (#43, spec/10): one row a
 // match, its lines replaced whole by each read, and kept after the gameweek as written
 // (football/matchCommentary.ts).
