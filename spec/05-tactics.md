@@ -21,6 +21,9 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   wing-back is a defender drawn further forward. There is no sweeper row, so the six areas, their
   limits and the presets stand. Any player who plays centre-back can play sweeper: "we need a
   sweeper position, it's a real role, esp with classic formations" (Craig, 31 Oct 2026).
+- That centre cell offers the centre-back roles and the sweeper roles. It is a sweeper's cell,
+  coded SW and drawn deeper, only while its player is on a sweeper role, so a back three keeps a
+  plain centre-back in the middle (Craig, 31 Oct 2026).
 - Free placement: drag a player into any free cell, Championship Manager style. Or pick a preset:
   4-4-2, 4-3-3, 4-2-3-1, 4-1-4-1, 4-4-1-1, 4-3-1-2, 3-5-2, 3-4-3, 3-4-1-2, 5-3-2, 5-4-1, 4-5-1,
   4-2-2-2, 4-1-2-1-2, 4-3-2-1, 4-1-3-2, 4-2-4, 3-4-2-1, 3-1-4-2, 5-2-3, 5-3-1-1, all editable as
@@ -124,8 +127,8 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
   - full-back: defensive, attacking
   - wing-back: attacking, holding
   - centre-back: stopper, ball-playing
-  - sweeper, the defence row's centre cell: sweeper (stays behind the line), libero (steps out
-    with the ball), added by Craig (31 Oct 2026)
+  - sweeper, offered in the defence row's centre cell beside the centre-back roles: sweeper
+    (stays behind the line), libero (steps out with the ball), added by Craig (31 Oct 2026)
   - defensive midfield: anchor, deep playmaker
   - centre midfield: box-to-box, playmaker, ball-winner
   - wide midfield: winger, defensive winger
