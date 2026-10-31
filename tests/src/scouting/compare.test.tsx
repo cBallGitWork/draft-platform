@@ -66,7 +66,7 @@ describe("comparing two players", () => {
 
     expect(app.scouting.useComparison.mock.lastCall!).toEqual([league.leagueId, [SAKA.code, PALMER.code]]);
     expectColumnHeads(comparisonTable(), SAKA_AND_PALMER_HEADS);
-    expectUnseenHead(comparisonTable(), compareWhatColumn.long);
+    expectUnseenHead(comparisonTable(), compareWhatColumn);
     expect(cellsOf(columns.club.long)).toEqual(["ARS", "CHE"]);
     expect(cellsOf(columns.owner.short)).toEqual(["Saka Potatoes", "Kroos Control"]);
     expect(cellsOf(columns.seasonPoints.short)).toEqual([noFigureWords, noFigureWords]);

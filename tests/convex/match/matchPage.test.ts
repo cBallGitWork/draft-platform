@@ -21,6 +21,7 @@ import {
   MIDFIELD_GOAL,
   PHILLIPS,
   holdTypoRule,
+  scoreRead,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 import { ADMIN, OUTSIDER, actingAs } from "../../support/convex/leagues.harness";
@@ -53,11 +54,7 @@ test("before any record, the match shows its clubs and kickoff, no men and no li
 test("at full time each club's men show, starters first, each owned man with his team and the points the matchup gives his slot", async () => {
   const league = await matchLeague();
   await fullTimeRecords(league);
-  await league.t.mutation(internal.football.matchScores.upsertScores, {
-    feed: "pl",
-    readAt: Date.now(),
-    reads: [{ fixtureCode: HULL_EVERTON, state: "fullTime", homeGoals: 1, awayGoals: 2, minutes: 90, clockLabel: null }],
-  });
+  await scoreRead(league, "fullTime", 90);
   const page = (await matchAs(league, BOB))!;
   expect(page.score).toEqual({ state: "fullTime", homeGoals: 1, awayGoals: 2, minutes: 90, clockLabel: null });
 

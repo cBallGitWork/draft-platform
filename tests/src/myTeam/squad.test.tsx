@@ -18,6 +18,7 @@ import {
   numberLabel,
   noSquadWords,
   noTeamWords,
+  squadColumns,
   squadLoadingWords,
   squadTableLabel,
   SQUAD_TITLE,
@@ -25,6 +26,7 @@ import {
 } from "../../../src/myTeam/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";
+import { columnHeadIn } from "../../support/src/columnHeads";
 import type { MyTeamData } from "../../support/src/myTeam.harness";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 
@@ -107,7 +109,8 @@ describe("the rows", () => {
     expect(within(row).getByTitle("Winger").textContent).toBe("W");
     expect(within(row).getByTitle("Arsenal").textContent).toBe("ARS");
     expect(within(row).getByTitle(nextFixtureLong("Chelsea", true, whenWords(KICKOFF)))).toBeTruthy();
-    expect(screen.getByRole("columnheader", { name: lastGameweekLong(9) })).toBeTruthy();
+    const last = { short: squadColumns.last.short, long: lastGameweekLong(9) };
+    expect(columnHeadIn(screen.getByRole("table"), last).getAttribute("title")).toBe(last.long);
   });
 
   it("open a player's card from his name", async () => {

@@ -12,6 +12,7 @@ import {
   type TeamGameweekTotal,
 } from "../../../convex/gameweekScorer/gameweekScores";
 import { leagueReads } from "../../../convex/gameweekScorer/teamGameweek";
+import { lineupsInGameweek } from "../../../convex/lineup/lineups";
 import { averageScore } from "../../../convex/table/teamGames";
 import { addManagers } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
@@ -187,4 +188,24 @@ test("one team from its squad's rows scores slot by slot as from every match's, 
 
   expect(squad).toEqual(every);
   expect(squad.starters.find((slot) => slot.playerCode === HULL_SCORER)?.points).toBe(SCORER_OVERRIDDEN);
+});
+
+test("worked out now from lineups handed in, a team scores from those, not a second read of its own (#770)", async () => {
+  const league = await scoresLeague();
+  await fullTimeRecords(league);
+
+  const { read, handedIn, handedEmpty } = await league.t.run(async (ctx) => {
+    const held = (await ctx.db.get("leagues", league.leagueId))!;
+    const reads = await leagueReads(ctx, held, (await seasonRules(ctx, league.leagueId))!);
+    const teamIds = [league.annsTeam];
+    const lineups = await lineupsInGameweek(ctx, league.leagueId, teamIds, GAMEWEEK);
+    const empty = new Map([[league.annsTeam, { ...lineups.get(league.annsTeam)!, starters: [], bench: [] }]]);
+    const slotsOf = async (handed?: typeof lineups) => (await (await workedOutGameweek(ctx, reads, GAMEWEEK, teamIds, handed)).slotsOf(league.annsTeam)).team;
+    return { read: await slotsOf(), handedIn: await slotsOf(lineups), handedEmpty: await slotsOf(empty) };
+  });
+
+  expect(handedIn).toEqual(read);
+  expect(read.total).toBe(HULL_POINTS);
+  // An empty lineup handed in scores nothing: the one handed in is the one scored.
+  expect(handedEmpty.total).toBe(0);
 });
