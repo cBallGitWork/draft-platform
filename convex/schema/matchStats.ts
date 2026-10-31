@@ -82,7 +82,7 @@ export const matchStatsTables = {
     .index("by_fixtureCode", ["fixtureCode"])
     // The feeds page's matches still provisional past their window (spec/15).
     .index("by_state_and_fullTimeAt", ["state", "fullTimeAt"])
-    // The locked matches still watched for a late correction (matchStats.due, #199).
+    // The locked matches still watched for a late correction (matchStatsDue.due, #199).
     .index("by_state_and_lockedAt", ["state", "lockedAt"]),
   lateStatCorrections: defineTable({
     fixtureCode: v.number(),
@@ -102,7 +102,7 @@ export const matchStatsTables = {
   ),
   /** When a run last tried each match, read or not: one that never reads steps behind the rest. */
   matchStatsTries: defineTable({ fixtureCode: v.number(), triedAt: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
-  /** One row: the kickoff from which matchStats.due reads the fixtures for matches past full time
+  /** One row: the kickoff from which matchStatsDue.due reads the fixtures for matches past full time
    *  with no status row yet (#199). Every current match kicked off before it has one; absent, the
    *  whole season is read. */
   matchStatsUnseenFrom: defineTable({ kickoff: v.number() }),

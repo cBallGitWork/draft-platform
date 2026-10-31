@@ -129,8 +129,11 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   to catch late corrections. Finding the due matches (`matchStatsDue.due`, #199) reads only
   what can still be due: this season's status rows not yet locked, those locked within the day's
   watch, each with its match, and the matches kicked off since the oldest one not yet read at
-  full time, or a week back (`matchStatsUnseenFrom`, one row), each with its status row: some
-  50 to 100 reads a run whenever in the season, where it was about 760 by May. It grows only
+  full time, or a week back (`matchStatsUnseenFrom`, one row), each with its status row, and
+  each match due's last try: about 100 reads a run on a weekend of ten matches, whenever in the
+  season (31 Oct 2026, counted by hand from `matchStatsDue.due`: some 20 status rows open or
+  watched and their 20 matches, 20 matches from the week and their 20 status rows, 20 tries),
+  where it was about 760 a run by May (28 Oct 2026, counted the same way). It grows only
   while a match stays unread: one the feed never calls full time holds the fixtures' read at
   its kickoff until it is. The leagues' count changes none of it.
 - Live stats (#28): a cron every minute (`liveStatsSync.tick`) reads each match from kickoff
