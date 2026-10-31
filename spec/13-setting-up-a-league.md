@@ -94,3 +94,5 @@ comes to exist, fills, changes and ends.
 - After 24 hours it is gone for good, not archived. Only then is each manager told, by email:
   "just delay the deletion email until its actually gone" (24 Oct 2026). An undone deletion
   tells no one.
+- Deletion emails past the email service's daily limit wait for the next day, as invites do
+  (Craig, 31 Oct 2026).

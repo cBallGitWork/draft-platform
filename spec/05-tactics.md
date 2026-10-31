@@ -43,7 +43,14 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - A lineup rolls over to the next gameweek if the manager doesn't touch it.
 - A team has a lineup from the moment it has its squad: "you don't save to create, you save to
   edit". The first is a 4-4-2 filled in draft selection order, each slot by the first player
-  picked who plays there, and the rest on the bench in that order (Craig, 29 Oct 2026).
+  picked who plays there, and the rest on the bench in that order (Craig, 29 Oct 2026). Each pick
+  goes onto the pitch as the team drafts (Craig, 31 Oct 2026: "its ny draft order, so when a team is
+  drafting they just start filling the pitch"): into the deepest open slot he can play; with none open, onto the
+  bench in pick order; with no positions yet, onto the bench until his manager moves him. If the
+  4-4-2 leaves a slot empty, the first lineup takes the first formation the squad fills completely
+  within the league's area limits, the presets in order and then any shape (Craig, 31 Oct 2026:
+  "or find a legal formatin with 2 defenders"). Only if none fits does a slot stay empty: it
+  scores nothing, and never makes the lineup illegal or switches the auto team on.
 
 ## Moving players
 
@@ -121,6 +128,10 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
   2026).
 - Roles' scoring adjustments are the site's, changed by patch (`spec/14`, 25 Oct 2026); the
   ready-made rules carry a default set.
+- A patch changes a role's scoring but doesn't remove a role (Craig, 31 Oct 2026). If a role ever
+  goes, each starter holding it moves to the role he would get dropped into that slot, when the
+  change takes effect, and never has his lineup refused; the patch's letter tells each manager
+  which of his starters changed role, from what to what (for example "Saka: shadow striker → poacher").
 - The default set starts as this list, made long before roles are built: every area and lane gets
   as many roles as fit, for Craig to cut much later (21 Oct 2026):
   - goalkeeper: shot-stopper, sweeper keeper
@@ -143,8 +154,8 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
   by tapping the role on the pitch or in the squad list (Craig, 31 Oct 2026).
 - The role card shows every role for his slot, each with his stars, what it scores more and less
   for, its description, and what he would have scored under it in his recent matches. Each role's
-  description is held with the role. Explaining the game's own mechanics is wanted; only the basics any fantasy
-  manager knows go unsaid: "when I say don't explain the game, I mean the absolute basic things
+  description is held with the role. Explaining the game's own mechanics is wanted; only the
+  basics any fantasy manager knows go unsaid: "when I say don't explain the game, I mean the absolute basic things
   like 'this is a league, round robin'; explaining game mechanics is highly encouraged" (Craig,
   31 Oct 2026).
 - Being better suited to a role comes out of the scoring: a full-back makes more of an

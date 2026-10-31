@@ -10,11 +10,6 @@ Craig hasn't picked says so.
 
 Each with the questions its grill starts from. The questions are Claude's.
 
-**Cutting the role set**: tactics (`spec/05` Roles; from #10's review, 26 Oct 2026).
-- A saved lineup can hold a role a later cut removes. Does it fall back to the slot's first role,
-  or is the lineup refused until the manager picks again? Today it is refused at the next save,
-  and the pitch quietly shows the slot's first.
-
 **Awards**: history, Mail.
 - Manager of the Month and Player of the Season (Team of the Week is on league home, `spec/12`).
   Where they live once Mail has filed them (see History, below).
@@ -79,48 +74,11 @@ to get you there"). It lives in this repo; the rest is open.
 - What auditing checks first: the spec against the tests (#454), work beyond what's been
   grilled, the hard rules, or a readable log of what each agent session did and why.
 
-**A rule balance lab**: from the ideas board (Craig, 31 Oct 2026). A backtest of a patch draft,
-"just to make sure a change is good" (Craig, 31 Oct 2026). Craig's answers so far, from `/grill`
-on 31 Oct 2026:
-- The admin's tool, run on a patch draft before it is announced (`spec/14`). Claude's small call:
-  it runs when the admin presses a button, not on every save.
-- A what-if only: it saves nothing, and locked gameweeks keep their scores.
-- On past seasons: each role's average against base scoring, flagging any outside `spec/05`'s
-  0.25 points a match, and the biggest movers among players.
-- On this season's real lineups: the head-to-heads that would have flipped and the table moves,
-  for each league. Craig: yes, "the lab backtests just to make sure a change is good".
-- Its numbers go in the patch notes.
-- Past seasons: "not much data this season, might need last"; Craig can give four seasons from
-  ai-carling-premiership.
-
-Open: where those four seasons are, and whether they hold the Premier League's own stats (tackles
-won, key passes) or only FPL's. Claude's recommendation: load what they hold and mark a category
-they lack as not tested.
-
-**Five colour and live-screen cards, from the ideas board**: Craig left the pick to Claude
-(31 Oct 2026: "Your call on cards"), and Claude moved these to "Yes, grill it". The design
-research page behind all five: https://claude.ai/artifact/UJC3f6ixFg3ZUQzBuEPiVq. Grill the
-palette first: the colour cards after it sit on whatever ground it settles.
-
-**Too much blue on blue**: calm the palette, as modern FM does (https://trello.com/c/wW5tcB5T).
-- FM26's look, folded in from its own card: dark neutral panels, colour only on small things. Is
-  that the ground, or a calmer blue?
-- What keeps colour once the panels go neutral, and how it squares with the plate
-  (`docs/design/plate.md`) and its Championship Manager homage.
-
-**Club colours everywhere** (https://trello.com/c/N5Rk4ZPP).
-- Which of these: kits on our pitch shirts, beyond the plate's outline in the club's colours
-  (`docs/design/plate.md` Marks); a two-colour club mark before every club code; scoreboards in
-  kit colours; the player card's plate in his club's colour.
-- It needs each club's two colours held: where they come from, and who keeps them right when a
-  club changes its kit.
-
-**A crest and kit for each manager's team**: narrowed from the card's "Team creator"
-(https://trello.com/c/ZnPoZdA2).
-- A few shield patterns and two colours, drawn by us, shown wherever the team name is. Does a bar
-  scarf come first?
-- Who picks them (the manager, or the commissioner too), and when. Goes with a team's own logo
-  under *Our own home stadiums*, above.
+**Two colour and live-screen cards, from the ideas board**: Craig left the pick to Claude
+(31 Oct 2026: "Your call on cards"). The design research page behind them:
+https://claude.ai/artifact/UJC3f6ixFg3ZUQzBuEPiVq. The palette, club colours and crests were
+grilled on 31 Oct 2026 (`spec/12`; crests in SPEC.md, *Later*); these two are low priority until
+the site works (Craig, 31 Oct 2026).
 
 **Colour that means something** (https://trello.com/c/kt83WyFm).
 - Which of these: W/D/L form squares (league home shows each team's form already, `spec/12`), a
@@ -145,11 +103,6 @@ palette first: the colour cards after it sit on whatever ground it settles.
 | Match rating and Man of the Match | CM's Av R and MoM: a 1–10 rating from his points against his area; MoM the top scorer in each head-to-head |
 | Saved tactics | FM's: a few formations kept to switch between, say one for a double gameweek |
 | Gameweeks to come after a team joins at a split | Once begun, a gameweek's fixtures are fixed (`spec/13`). Open: how the gameweeks still to come are drawn when a team joins at a split (`convex/table/playedFixtures.ts`, `scheduleAround`); goes with the split season above |
-| The first lineup's details | A team's first lineup is a 4-4-2 in pick order (`spec/05`). Claude decided (#637): slots fill back to front, so one who plays two areas goes to the deeper; a player with no positions yet sits on the bench until the squad next changes; a first lineup may break the league's area limits until the manager saves |
-| A league's deletion email past the day's email limit | Managers are told only once a league is gone (`spec/13`). One the 100-a-day limit stops is never told: retried, or left? Craig left the old warnings as they were for the beta (22 Oct 2026) |
-| Commentary pricing scope | The matchup prices lines for men in its two lineups, bench included (#44); spec/10 says "for a player owned in the league". Open: every owned man or the two lineups; own goals priced; whether minutes bands get threshold lines ("~1' Saka: 1 minutes") |
-| Trade review letters | `spec/08`'s 24-hour veto and vote windows: does the commissioner or each voter get a letter to act on, and does a blocked or expired review file one (`spec/16`)? |
-| Trades with the auto team, and when the vote ships | `spec/09` pauses trades for a team on the auto team; `spec/08` doesn't say so. Trades come by August "with the veto": does the league vote come then too? |
 | One player on several teams | Not now; maybe later (Craig, 20 Oct 2026). A draft is normally one owner per league; some leagues do one per division. The draft, waivers, trades and "owned in the league" all assume one owner |
 
 Thought of and set aside, as they clash with what's settled: board confidence and the sack
