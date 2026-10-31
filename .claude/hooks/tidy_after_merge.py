@@ -57,7 +57,7 @@ def run(folder, *args):
 
 def why_not_in_head(number, tip, head, folder):
     """None when every commit on the branch's tip is in the pull request's head, else why the branch
-    stays. The head may not be here (gh pr update-branch made it on GitHub), so it is fetched first."""
+    stays. The head is fetched first, since GitHub may have made it."""
     if tip == head:
         return None
     ok, said = run(folder, "git", "fetch", "--quiet", "origin", f"pull/{number}/head")
