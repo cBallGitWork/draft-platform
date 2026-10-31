@@ -120,7 +120,18 @@ test("it fails closed: a league whose deadlines can't be worked out fails the sy
   expect(await shownDeadline(GAMEWEEK)).toBe(deadlineBefore(OPENER));
 });
 
-test("it fails closed: a throw while recording a gameweek's start fails the fixtures batch and the sync, and no fixture row changes", async () => {
+/** markDropped run on the held fixtures as if the feed had sent every one but gameweek 8's opener. */
+async function markOpenerDropped() {
+  const opener = await heldOpener();
+  return t.mutation(internal.football.footballSync.markDropped, {
+    table: "fixtures",
+    sentKeys: payloads.fixtures.map((fixture) => fixture.code).filter((code) => code !== opener.code),
+    droppedAt: Date.now(),
+    paginationOpts: { cursor: null, numItems: payloads.fixtures.length },
+  });
+}
+
+test("it fails closed: a throw while recording a gameweek's start fails the fixtures batch, markDropped and the sync, and no fixture row changes", async () => {
   const error = silenceConsoleError();
   const STARTS_FAILED = "the gameweek starts can't be read";
   // Once for each fixtures write below: an implementation set on the vi.fn would outlast this test.
@@ -131,6 +142,8 @@ test("it fails closed: a throw while recording a gameweek's start fails the fixt
 
   startsThrowOnce();
   await expect(t.mutation(internal.football.footballSync.upsertFixtures, { rows: [{ ...opener, gameweek: null, kickoff: null }] })).rejects.toThrow(STARTS_FAILED);
+  startsThrowOnce();
+  await expect(markOpenerDropped()).rejects.toThrow(STARTS_FAILED);
   startsThrowOnce();
   const outcome = await syncWith(t, openerPostponed());
 
@@ -154,16 +167,9 @@ describe("a deadline passing mid-sync", () => {
   });
 
   test("markDropped records it before dropping the opener, and the gameweek stays begun", async () => {
-    const opener = await heldOpener();
-    const othersSent = payloads.fixtures.map((fixture) => fixture.code).filter((code) => code !== opener.code);
     vi.setSystemTime(deadlineBefore(OPENER) + MINUTE_MS);
 
-    await t.mutation(internal.football.footballSync.markDropped, {
-      table: "fixtures",
-      sentKeys: othersSent,
-      droppedAt: Date.now(),
-      paginationOpts: { cursor: null, numItems: payloads.fixtures.length },
-    });
+    await markOpenerDropped();
 
     expect((await passedRows()).find((row) => row.leagueId === leagueId && row.gameweek === GAMEWEEK)?.deadline).toBe(deadlineBefore(OPENER));
     expect(await shownDeadline(GAMEWEEK)).toBe(deadlineBefore(OPENER));
