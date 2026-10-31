@@ -1,12 +1,14 @@
-// The matchup's commentary (spec/10, The matchup, as a live match; The commentary; #44): every
-// stored line of every match with either lineup's men in it, newest first across the matches, with
-// what each line is worth to the men in the two lineups. A goal, an assist or a card shows the
-// points it moves; a threshold line shows a running total reaching a point where a rule's points
-// change ("~58' Rice: 3 key passes, +1"); the full-time line lists the lineups' men who played,
-// with their points in the match. Priced by the slot and role each man is priced at in his
-// lineup, under the site's set in force in the gameweek, which never changes once the gameweek
-// has begun (spec/14), so a past matchup's lines keep the points they showed. Pure: matchup.ts
-// reads what it needs.
+// The matchup's and the match page's commentary (spec/10, The matchup, as a live match; The
+// commentary; #44, #835): every stored line of every match with the men in it, newest first across
+// the matches, with what each line is worth to the men it is priced for: the two lineups' men,
+// bench included, on the matchup; every man in the match on the match page, owned or not. A goal,
+// an assist, a card or an own goal shows the points it moves; a threshold line shows any other
+// movement of his points, up or down ("~58' Rice: 3 key passes, +1", "~71' Saliba: 2 goals
+// conceded, −1"; thresholdSteps.ts); the full-time line lists the lineups' men who played, with
+// their points in the match. Priced by the slot and role each man is priced at, under the site's
+// set in force in the gameweek, which never changes once the gameweek has begun (spec/14), so a
+// past matchup's lines keep the points they showed. Pure: matchup.ts and matchPage.ts read what
+// it needs.
 //
 // No line for an auto-sub: whether a man played is known only after his match (spec/10).
 
@@ -15,12 +17,13 @@ import type { Doc } from "../_generated/dataModel";
 import { FEED_TYPE, withFullTimePoints } from "../football/commentary";
 import type { InMatch } from "../gameweekScorer/teamGameweek";
 import type { Cell } from "../lineup/pitch";
-import { rulePointsIn, scoreMatch } from "../scoring/scoring";
+import { roleAdjustmentFor, scoreMatch } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
 import { inTenths, type MatchStats } from "../scoring/values";
 import { categoryName } from "../scoring/categories";
 import { CATALOGUE_STATS } from "../scoring/statCatalogue";
 import { EVENT_STATS } from "../stats/matchRecords";
+import { stepPoints } from "../stats/thresholdSteps";
 import { signedWords } from "../shared/numberWords";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../shared/time";
 import type { commentaryLine } from "../schema";
@@ -39,14 +42,17 @@ export interface VidiprinterMatch {
   steps: readonly StoredStep[];
 }
 
-/** One man in either lineup: his name, the cell and role he is priced at, and each match he has a
- *  record in. */
+/** One man a line is priced for: his name, the cell and role he is priced at, whether a lineup
+ *  holds him, and each match he has a record in. */
 export interface VidiprinterPlayer {
   name: string;
   cell: Cell;
   /** His slot's role, so a line's points carry its adjustment as his slot's do (spec/14). Not
    *  optional, so a caller can't leave it out and price his lines without it. */
   role: string | undefined;
+  /** Whether one of the league's lineups holds him: only they are named on the full-time line. A
+   *  man in none is priced as his player card opens on him (match/unownedPoints.ts). */
+  inLineup: boolean;
   inMatch: InMatch;
 }
 
@@ -54,7 +60,7 @@ export interface VidiprinterLine {
   /** Unique across the matchup's lines. */
   key: string;
   text: string;
-  /** What it is worth to the lineups' men: "+4" where the line names one man, else "Saka +4,
+  /** What it is worth to the men it is priced for: "+4" where the line names one man, else "Saka +4,
    *  Ødegaard +3"; null when it moves none of them. */
   points: string | null;
 }
@@ -66,6 +72,7 @@ const STATS_MOVED: Readonly<Record<string, readonly string[]>> = {
   [FEED_TYPE.yellowCard]: [EVENT_STATS.yellowCards],
   [FEED_TYPE.secondYellow]: [EVENT_STATS.redCards],
   [FEED_TYPE.redCard]: [EVENT_STATS.redCards],
+  [FEED_TYPE.ownGoal]: [EVENT_STATS.ownGoals],
 };
 
 /** A half's minutes, and the break after the first, so a second-half line sorts after the first
@@ -113,7 +120,7 @@ function placedOf(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode, Vidi
 }
 
 /** A stored line with its worth: the full-time line with the lineups' men's points in the match,
- *  a goal, an assist or a card with the points it moves. */
+ *  a goal, an assist, a card or an own goal with the points it moves. */
 function priced(
   stored: StoredLine,
   fixtureCode: number,
@@ -130,7 +137,7 @@ function priced(
     counted.set(tallyKey(code, stat), nth);
     const player = players.get(code);
     const stats = player?.inMatch.get(fixtureCode)?.stats ?? null;
-    // Not one of the lineups' men, or his record not yet whole: nothing to price him by yet. The
+    // Not a man it is priced for, or his record not yet whole: nothing to price him by yet. The
     // line shows unpriced until a read brings it, as his slot shows "—".
     if (player === undefined || stats === null) return [];
     const points = inTenths(totalWith(stats, stat, nth, player, set) - totalWith(stats, stat, nth - 1, player, set));
@@ -151,27 +158,26 @@ function totalWith(stats: MatchStats, stat: string, actions: number, { cell, rol
 /** The lineups' men who played in the match, most points first. */
 function fullTimePoints(fixtureCode: number, players: ReadonlyMap<PlayerCode, VidiprinterPlayer>) {
   return [...players.values()]
-    .flatMap(({ name, inMatch }) => {
+    .flatMap(({ name, inLineup, inMatch }) => {
       const his = inMatch.get(fixtureCode);
-      return his?.played && his.points !== null ? [{ name, points: his.points }] : [];
+      return inLineup && his?.played && his.points !== null ? [{ name, points: his.points }] : [];
     })
     .sort((one, other) => other.points - one.points || one.name.localeCompare(other.name));
 }
 
-/** Each step a lineup's man made, priced at his cell: a line where it earns him points. A step to
- *  a total no higher than one already shown (a feed's count put back and sent again) is not shown
- *  twice. */
+/** Each step a man it is priced for made, priced at his cell and in his role: a line where it
+ *  moves his points, up or down. A step the same as the last shown for him and its stat (a feed's
+ *  count put back and sent again, stored before falling steps were) is not shown twice. */
 function thresholdLines(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode, VidiprinterPlayer>, set: ScoringSet) {
-  const highest = new Map<string, number>();
+  const lastShown = new Map<string, StoredStep>();
   return match.steps.flatMap((step, index) => {
     const player = players.get(step.playerCode);
     const key = tallyKey(step.playerCode, step.stat);
-    if (player === undefined || step.to <= (highest.get(key) ?? Number.NEGATIVE_INFINITY)) return [];
-    highest.set(key, step.to);
-    const rules = set.rules.filter((rule) => rule.stat === step.stat && rule.shape !== "perAction");
-    const pointsAt = (actions: number) => rules.reduce((total, rule) => total + rulePointsIn(rule, player.cell, actions, step.minutes), 0);
-    const points = inTenths(pointsAt(step.to) - pointsAt(step.from));
+    const last = lastShown.get(key);
+    if (player === undefined || (last !== undefined && last.from === step.from && last.to === step.to)) return [];
+    const points = inTenths(stepPoints(step, set, player.cell) + (step.to - step.from) * roleAdjustmentFor(set, player.role, step.stat));
     if (points === 0) return [];
+    lastShown.set(key, step);
     const when = step.minute === null ? "" : `~${step.minute}' `;
     const text = `${when}${player.name}: ${step.to} ${statWords(step.stat, set)}`;
     return [{ line: { key: `${match.fixtureCode}:step:${index}`, text, points: worth([{ name: player.name, points }], 1) }, minute: step.minute }];
