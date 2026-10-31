@@ -8,9 +8,8 @@ import { takeAllOrThrow } from "../shared/cappedRead";
 import { FIRST_SCORING } from "./firstScoring";
 import type { StoredScoringSet } from "./scoringSetShape";
 
-// The site's scoring versions as held, and which one is in force in each gameweek (spec/14,
-// Changes and corrections; siteScoring.ts changes them). A gameweek plays the newest version to
-// take effect at or before its first kickoff, the first set (firstScoring.ts) before any.
+// The site's scoring versions as held, and which one is in force in each gameweek: the rule, and
+// the changes that add a version, are siteScoring.ts's.
 
 /** The most versions the site holds: a version each gameweek of five seasons is 190. One past it is
  *  refused, and a read of more throws, never a silent cut (#214). Claude's choice, not yet
