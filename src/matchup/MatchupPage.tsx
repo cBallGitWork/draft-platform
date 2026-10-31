@@ -208,7 +208,7 @@ function SlotRow({ slot }: { slot: MatchupSlot }) {
           <StatusWords status={status} />
         ) : (
           // His match's page (spec/10, The match page), opened from his status.
-          <Link to={matchPath(status.fixtureCode)} className="inline-flex min-h-tap items-center text-inherit lg:min-h-0">
+          <Link to={matchPath(status.fixtureCode)} className="inline-flex min-h-tap min-w-tap items-center justify-end text-inherit lg:min-h-0 lg:min-w-0">
             <StatusWords status={status} />
           </Link>
         )}

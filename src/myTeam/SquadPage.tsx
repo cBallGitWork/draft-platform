@@ -121,7 +121,7 @@ function SquadCell({
     case "player":
       return (
         <th scope="row" title={player.fullName} className={`${className} text-lead font-semibold`}>
-          <Link to={playerCardPath(leagueId, player.code)} className="inline-flex min-h-tap items-center">
+          <Link to={playerCardPath(leagueId, player.code)} className="tap-link">
             {player.name}
           </Link>
           {player.gone && <span className="block text-data font-normal text-event">{goneWords}</span>}

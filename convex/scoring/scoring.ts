@@ -91,12 +91,24 @@ export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cel
 /** The role's adjustment for this record: flat points per action, on top of every rule and its
  *  points limit (spec/14). Undefined when the set doesn't adjust the role. */
 function rolePoints(record: MatchStats, set: ScoringSet, role: string): RolePoints | undefined {
-  const adjusting = set.roleAdjustments?.find((each) => each.role === role);
-  if (adjusting === undefined) return undefined;
-  const lines = adjusting.adjustments
+  const adjustments = adjustmentsOf(set, role);
+  if (adjustments === undefined) return undefined;
+  const lines = adjustments
     .map(({ stat, points }) => ({ stat, actions: statIn(record, stat), points: inTenths(statIn(record, stat) * points) }))
     .filter(({ actions }) => actions !== 0);
   return { role, points: inTenths(sum(lines.map((line) => line.points))), lines };
+}
+
+/** The set's adjustments for `role`; undefined when it adjusts none. */
+function adjustmentsOf(set: ScoringSet, role: string) {
+  return set.roleAdjustments?.find((each) => each.role === role)?.adjustments;
+}
+
+/** What `role` adds to each action of `stat` under `set`, flat, on top of every rule: 0 for no
+ *  role, or one the set doesn't adjust for it. What a threshold line adds for his role (#835). */
+export function roleAdjustmentFor(set: ScoringSet, role: string | undefined, stat: string): number {
+  if (role === undefined) return 0;
+  return adjustmentsOf(set, role)?.find((each) => each.stat === stat)?.points ?? 0;
 }
 
 /** A rule's points for the slot, with its value there and what cut them: nothing below its
@@ -121,7 +133,8 @@ function ruleScore(rule: ScoringRule, slot: Slot, actions: number, minutes: numb
 }
 
 /** One rule's points for a man priced at `cell`, with `actions` of its stat and `minutes` played:
- *  what a threshold line prices the step it shows by (#44). A bad cell is the caller's to check. */
+ *  what a threshold line prices its step by (stats/thresholdSteps.ts). A bad cell is the caller's
+ *  to check. */
 export function rulePointsIn(rule: ScoringRule, cell: Cell, actions: number, minutes: number): number {
   return ruleScore(rule, { area: cell.area, position: positionOfSlot(cell) }, actions, minutes).points;
 }
