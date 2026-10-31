@@ -28,10 +28,11 @@ const GOALS: StatInBothFeeds = { fpl: "goals_scored", pl: "goals", kept: "fpl" }
 const ASSISTS: StatInBothFeeds = { fpl: "assists", pl: "goal_assist", kept: "fpl" };
 const YELLOW_CARDS: StatInBothFeeds = { fpl: "yellow_cards", pl: "yellow_card", kept: "fpl" };
 const RED_CARDS: StatInBothFeeds = { fpl: "red_cards", pl: "red_card", kept: "fpl" }; // Opta's name, not yet seen
+const OWN_GOALS: StatInBothFeeds = { fpl: "own_goals", pl: "own_goals", kept: "pl" };
 
-/** The stats a goal, an assist or a card moves, under the names they are kept by: what the
- *  matchup's commentary prices them by (#44). */
-export const EVENT_STATS = { goals: GOALS.fpl, assists: ASSISTS.fpl, yellowCards: YELLOW_CARDS.fpl, redCards: RED_CARDS.fpl } as const;
+/** The stats a goal, an assist, a card or an own goal moves, under the names they are kept by:
+ *  what the matchup's commentary prices them by (#44, #835). */
+export const EVENT_STATS = { goals: GOALS.fpl, assists: ASSISTS.fpl, yellowCards: YELLOW_CARDS.fpl, redCards: RED_CARDS.fpl, ownGoals: OWN_GOALS.pl } as const;
 
 /** Whose count is kept where both feeds send a stat (spec/07: FPL's for goals, assists, minutes,
  *  cards, saves, clean sheets, goals conceded and penalties; the Premier League's for the rest).
@@ -48,7 +49,7 @@ const STATS_IN_BOTH_FEEDS: StatInBothFeeds[] = [
   { fpl: "goals_conceded", pl: "goals_conceded", kept: "fpl" },
   { fpl: "penalties_saved", pl: "penalty_save", kept: "fpl" }, // Opta's name, not yet seen
   { fpl: "penalties_missed", pl: "att_pen_miss", kept: "fpl" }, // Opta's name, not yet seen
-  { fpl: "own_goals", pl: "own_goals", kept: "pl" },
+  OWN_GOALS,
   { fpl: "starts", pl: "game_started", kept: "pl" },
 ];
 
