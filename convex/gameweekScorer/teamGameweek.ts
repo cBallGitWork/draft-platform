@@ -127,8 +127,8 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
   for (const code of codes) {
     const { clubCode, positions: hisPositions } = await reads.player(code);
     // One the football sync doesn't hold is data gone wrong: he scores as if he didn't play, with no
-    // match, so a starter is subbed and a bench player never comes on, and an admin's override puts
-    // it right (Craig, 31 Oct 2026, #810; spec/05 Auto-subs).
+    // match, so a starter is subbed and a bench player never comes on (Craig, 31 Oct 2026, #810;
+    // spec/05 Auto-subs). Once the sync holds him again, he scores as any other man.
     const hisMatches = clubCode === null ? [] : matches.filter((match) => match.records.has(code) || playsIn(match.fixture, clubCode));
     positions.set(code, hisPositions);
     matchesOf.set(code, hisMatches);
