@@ -21,7 +21,7 @@ import {
   teamStatsLabel,
   unusedLabel,
 } from "../../../src/premierLeague/words";
-import { expectColumnHeads } from "../../support/src/columnHeads";
+import { expectColumnHeads, expectUnseenHead } from "../../support/src/columnHeads";
 import { man, matchOf, MEN, openMatch } from "../../support/src/matchPage.harness";
 import { ARSENAL, CHELSEA } from "../../support/src/premierLeague.harness";
 
@@ -111,7 +111,7 @@ describe("the team stats", () => {
     openMatch({ match: matchOf({ teamStats: stats }) });
     const table = await screen.findByRole("table", { name: teamStatsLabel(ARSENAL.shortName, CHELSEA.shortName) });
     expectColumnHeads(table, [{ short: ARSENAL.shortName, long: ARSENAL.name }, STAT_COLUMN, { short: CHELSEA.shortName, long: CHELSEA.name }]);
-    expect(within(table).getByRole("columnheader", { name: STAT_COLUMN.long }).firstElementChild!.className).toBe("sr-only");
+    expectUnseenHead(table, STAT_COLUMN.long);
   });
 
   it("early on, before Opta sends possession, shows a dash for it", async () => {

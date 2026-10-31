@@ -25,6 +25,8 @@ type CommentaryLineRow = Infer<typeof commentaryLine>;
  *  The longest gap between timed lines in the five recorded streams (pl-commentary.json's four and
  *  Ipswich v Forest's final read) is 7.7 minutes, measured 26 Oct 2026. Claude's choice. */
 export const COMMENTARY_BEHIND_MINUTES = 10;
+/** Why a stream past `COMMENTARY_BEHIND_MINUTES` counts as behind. */
+export const STREAM_BEHIND = `the stream is over ${COMMENTARY_BEHIND_MINUTES} minutes behind the clock`;
 
 /** What every live match's commentary is read against, from FPL's bootstrap the tick already holds. */
 export interface CommentaryContext {
@@ -122,9 +124,7 @@ function behind(stream: readonly CommentaryLine[], score: ScoreRead): string | n
   const newest = stream.find((line) => line.minute !== null && line.type !== FEED_TYPE.matchEnds);
   const newestMinute = (newest?.minute ?? 0) + (newest?.addedMinute ?? 0);
   // The same words each minute it trails, so the row is not rewritten each tick.
-  return score.minutes - newestMinute > COMMENTARY_BEHIND_MINUTES
-    ? `the stream is over ${COMMENTARY_BEHIND_MINUTES} minutes behind the clock`
-    : null;
+  return score.minutes - newestMinute > COMMENTARY_BEHIND_MINUTES ? STREAM_BEHIND : null;
 }
 
 /** Each reason a commentary is delayed, as one; null with none. */

@@ -1,13 +1,16 @@
 import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
+import { STREAM_BEHIND } from "../../../convex/football/matchCommentary";
 import type { MatchMan } from "../../../convex/match/matchPage";
 import { bySheetOrder } from "../../../convex/match/sheetOrder";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import {
   adjustScorersRole,
   ANN,
+  ANNS_TEAM,
   annsScoredGame,
   BOB,
+  BOBS_TEAM,
   EVERTON_BENCH,
   EVERTON_STARTERS,
   fullTimeRecords,
@@ -41,10 +44,6 @@ async function matchLeague(): Promise<ScoresLeague> {
 async function matchAs(league: ScoresLeague, email: string, fixtureCode: number = HULL_EVERTON) {
   return (await actingAs(league.t, email)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, fixtureCode });
 }
-
-/** Ann's and Bob's teams, as the league names them. */
-const ANNS_TEAM = "Team 1";
-const BOBS_TEAM = "Team 2";
 
 const manOf = (men: readonly MatchMan[], playerCode: number) => men.find((man) => man.playerCode === playerCode)!;
 
@@ -194,7 +193,7 @@ test("the commentary is the match's lines newest first, the goal priced for its 
     ctx.db.insert("matchCommentary", {
       fixtureCode: HULL_EVERTON,
       lines: [scorersGoal(2), line(1, "KO HUL v EVE", 0, "start")],
-      delayed: { reason: "the stream is over 10 minutes behind the clock", since: LEAGUE_KICKOFF },
+      delayed: { reason: STREAM_BEHIND, since: LEAGUE_KICKOFF },
     }),
   );
   const page = (await matchAs(league, ANN))!;
