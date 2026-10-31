@@ -37,6 +37,9 @@ export const startingWords = (starting: number) => `${starting} of ${STARTER_COU
 export const pitchLabel = "The pitch, attack at the top";
 const cellWords = (area: Area, lane: Lane) => `${AREA_WORDS[area]}, ${LANE_WORDS[lane]}`;
 export const putHereLabel = (name: string, area: Area, lane: Lane) => `Put ${name} in ${cellWords(area, lane)}`;
+/** A player the one picked up can swap with, lit on the pitch and in the squad (spec/05, Moving players). */
+export const swapLabel = (name: string, other: string) => `Swap ${name} with ${other}`;
+export const swapWords = "Swap";
 export const playerOnPitchLabel = (name: string, positions: readonly string[], area: Area, lane: Lane) =>
   `${name}, ${positionsWords(positions)}, in ${cellWords(area, lane)}`;
 
@@ -45,8 +48,11 @@ export const presetLabel = "Formation";
 export const pickPresetWords = "Pick a preset…";
 export const emptySlotLabel = (area: Area, lane: Lane) => `Empty slot: ${cellWords(area, lane)}`;
 
+/** The desk's switch for the roles' runs on the pitch (spec/05 Runs). */
+export const runsWords = "Runs";
+
 /** What to do, under the pitch's plate: before a player is picked up, and while one is. */
-export const pickHintWords = "Pick a player, then a free cell. Or drag him.";
+export const pickHintWords = "Pick a player, then where he goes. Or drag him.";
 export const movingHintWords = (name: string, positions: readonly string[]) =>
   `Moving ${name} (${positionsWords(positions)}). Escape puts him back.`;
 
@@ -74,7 +80,7 @@ export const emptyBenchWords = "Nobody on the bench.";
 /** Who joined the squad since the lineup was saved. */
 export const joinedBenchWords = (names: readonly string[]) => `${andListWords(names)} joined your squad and sit${names.length === 1 ? "s" : ""} at the end of the bench.`;
 
-export const saveWords = "Save lineup";
-export const discardWords = "Discard";
+/** Back one move, through every move since the tab was opened (spec/05, Moving players). */
+export const undoWords = "Undo";
 export const savedWords = (gameweek: number) => `Saved. It stands from ${gameweekWords(gameweek).toLowerCase()}.`;
 export const saveFailedWords = failedWords("the lineup wasn't saved");

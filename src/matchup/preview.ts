@@ -7,7 +7,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Area } from "../../convex/lineup/pitch";
-import { roleIn } from "../../convex/lineup/roles";
+import { namedRole, roleIn } from "../../convex/lineup/roles";
 import type { MatchupCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
 import { MINUTE_MS } from "../../convex/shared/time";
 import { previewFixtureCode } from "../premierLeague/preview";
@@ -92,7 +92,7 @@ function slotAt([area, name, match, finalPoints]: Man, minute: number, onBench: 
 }
 
 /** The made-up men stand in areas, not cells: each plays his area's centre slot's first role. */
-const roleOf = (area: Area) => roleIn({ area, lane: "centre" }, undefined);
+const roleOf = (area: Area) => namedRole(roleIn({ area, lane: "centre" }, undefined));
 
 /** A starter `minute` minutes in, in his role. */
 function starterAt(man: Man, minute: number): MatchupStarter {

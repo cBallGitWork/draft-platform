@@ -6,7 +6,7 @@ import type { Cell } from "../../../convex/lineup/pitch";
 import type { Position } from "../../../convex/positions/positionTables";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import type { OpenTactics } from "../../../src/myTeam/tactics/seam";
-import { pitchLabel, playerOnPitchLabel, saveWords, squadTableLabel } from "../../../src/myTeam/tactics/words";
+import { pitchLabel, playerOnPitchLabel, squadTableLabel, undoWords } from "../../../src/myTeam/tactics/words";
 import { ARSENAL } from "../convex/footballRows.harness";
 import type { MyTeamData } from "./myTeam.harness";
 import { manager, openApp } from "./shell.harness";
@@ -53,7 +53,9 @@ export const squadRows = () =>
     .map((row) => row.textContent);
 export const blockOf = (player: Member, cell: Cell) => within(pitch()).getByRole("button", { name: playerOnPitchLabel(player.name, player.positions, cell.area, cell.lane) });
 export const targets = () => within(pitch()).queryAllByRole("button", { name: /^Put / }).map((target) => target.getAttribute("aria-label"));
-export const save = () => screen.getByRole("button", { name: saveWords });
+/** Every target lit on the pitch for the player picked up: the free cells and the players to swap with. */
+export const swaps = () => within(pitch()).queryAllByRole("button", { name: /^Swap / }).map((target) => target.getAttribute("aria-label"));
+export const undo = () => screen.getByRole("button", { name: undoWords }) as HTMLButtonElement;
 /** The tab opened on the lineup held, once its pitch is up. */
 export async function openedPitch(myTeam?: MyTeamData) {
   const app = openTacticsTab(myTeam);
