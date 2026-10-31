@@ -181,7 +181,7 @@ function Squad({ league, seam, squad, change }: { league: LeagueSummary; seam: S
             <li key={player.code} className="flex items-center justify-between gap-2 border-b border-panel-rule px-3 py-1">
               <span className="flex flex-col">
                 <span className="font-semibold">
-                  <Link to={playerCardPath(league.leagueId, player.code)} className="tap-link">
+                  <Link to={playerCardPath(league.leagueId, player.code)} className="inline-flex min-h-tap min-w-tap items-center">
                     {player.name}
                   </Link>{" "}
                   <span className="font-normal text-muted">{player.clubShortName}</span>
