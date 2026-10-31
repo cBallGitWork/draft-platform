@@ -241,6 +241,11 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   dashboard (`convex/feedback/feedback.ts`).
 - Each person's time zone, as their browser last named it, is a row in `timeZones` by email, so
   what they read tells time in it (#442, `convex/signIn/timeZone.ts`).
+- Changing a saved shape (#147): a shape only widens in place, a field added optional, as
+  every deployment's rows must still pass the schema on the next push. To narrow or rename one:
+  widen it, run a backfill `internalMutation` on each deployment, then narrow it. A pull request
+  may do it in one step only while no deployment holds such rows, and its Merge danger says which
+  case applies. Never delete rows or turn off schema validation to get a push through.
 
 ## Where code lives
 
