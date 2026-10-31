@@ -128,7 +128,7 @@ From the designer's review, the tells that make a screen look AI-made:
 2. Pills and tinted badges; a chip, where one is needed, is square and solid.
 3. Indigo or slate grounds with lavender-grey text and a neon accent; gradient buttons.
 4. `·` strings, floating rows, ★ typed as text, the same 16px gutter around everything.
-5. Telling a manager what he already knows: how the game works (live points can change, every team meets every other), what a screen is for, or what a control does when its label says it. A state is a word or a mark ("Live", "Provisional"), never a sentence (Craig, 31 Oct 2026: "you treat users like a 2 year old").
+5. Telling a manager what he already knows: the basics any fantasy manager knows (live points can change, every team meets every other), what a screen is for, or what a control does when its label says it. A state is a word or a mark ("Live", "Provisional"), never a sentence (Craig, 31 Oct 2026: "you treat users like a 2 year old"). Our own mechanics are another matter: a role's description, what it changes in scoring, what stars mean are wanted. "When I say don't explain the game, I mean the absolute basic things like 'this is a league, round robin'; explaining game mechanics is highly encouraged" (Craig, 31 Oct 2026).
 
 ## The phone (to draw when the phone design is grilled)
 
