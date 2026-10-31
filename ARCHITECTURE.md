@@ -130,10 +130,13 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   what can still be due: this season's status rows not yet locked, those locked within the day's
   watch, each with its match, and the matches kicked off since the oldest one not yet read at
   full time, or a week back (`matchStatsUnseenFrom`, one row), each with its status row, and
-  each match due's last try: about 100 reads a run on a weekend of ten matches, whenever in the
-  season (31 Oct 2026, counted by hand from `matchStatsDue.due`: some 20 status rows open or
-  watched and their 20 matches, 20 matches from the week and their 20 status rows, 20 tries),
-  where it was about 760 a run by May (28 Oct 2026, counted the same way). It grows only
+  each match due's last try: at most about 100 reads a run on a weekend of ten matches, whenever
+  in the season, where it was about 760 a run by May (counted 28 Oct 2026). Both are
+  counted by hand from the code, not measured; the new one on 31 Oct 2026: up to 20 status rows open or
+  watched and their 20 matches, 10 to 20 matches from the week (the read reaches a week and one
+  run back, so it holds the last weekend's matches only when they kicked off inside that) and
+  their status rows, and up to 20 tries. Measure it on the Convex usage page once the code is
+  live; until then the figure is unverified. It grows only
   while a match stays unread: one the feed never calls full time holds the fixtures' read at
   its kickoff until it is. The leagues' count changes none of it.
 - Live stats (#28): a cron every minute (`liveStatsSync.tick`) reads each match from kickoff
