@@ -12,12 +12,14 @@ import { playerCardPath } from "../../../src/playerCard/paths";
 import {
   noTeamWords,
   noTransactionsWords,
+  transactionColumns,
   transactionsCutWords,
   transactionsLoadingWords,
   transactionsTableLabel,
   TRANSACTIONS_TITLE,
   whenWords,
 } from "../../../src/myTeam/words";
+import { expectColumnHeads } from "../../support/src/columnHeads";
 import type { MyTeamData } from "../../support/src/myTeam.harness";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 
@@ -75,6 +77,11 @@ describe("the transactions", () => {
       [whenWords(AT), "Saka", "Moved out to Team 3", "commish@example.com"],
       [whenWords(AT), "Saka", "Assigned to the team", "commish@example.com"],
     ]);
+  });
+
+  it("heads each column with its short word, named by its long one", async () => {
+    openTransactions({ transactions: { transactions: [transaction("assigned")], cut: false } });
+    expectColumnHeads(await screen.findByRole("table"), Object.values(transactionColumns));
   });
 
   it("opens a player's card from his name", async () => {

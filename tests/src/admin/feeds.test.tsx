@@ -16,6 +16,7 @@ import {
   changeWords,
   correctionsTitle,
   moreCorrectionsWords,
+  feedColumns,
   feedNames,
   feedsLoadingWords,
   feedStateWords,
@@ -32,6 +33,7 @@ import {
 import { whenWords } from "../../../src/shared/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
+import { expectColumnHeads } from "../../support/src/columnHeads";
 import { admin, commissioner, openApp } from "../../support/src/shell.harness";
 
 const NOW = Date.parse("2026-10-17T12:00:00Z");
@@ -136,6 +138,13 @@ describe("the feeds", () => {
     const football = await feedRows(feedNames.football.name);
     expect(within(football).getByText(neverWords)).toBeTruthy();
     expect(within(football).getByText(feedStateWords.notRunningYet).className).toContain("text-muted");
+  });
+});
+
+describe("the feeds table", () => {
+  it("heads each column with its short word, named by its long one", async () => {
+    openFeeds();
+    expectColumnHeads(within(await screen.findByRole("region", { name: feedsTitle })).getByRole("table"), Object.values(feedColumns));
   });
 });
 

@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { ADMIN_PATH } from "../admin/paths";
 import { ADMIN_TITLE } from "../admin/words";
+import { ColumnHeads } from "../ui/ColumnHeads";
 import { Notice, PageSection } from "../ui/Panel";
 import { gameweeksPath } from "../gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../gameweeks/words";
@@ -110,14 +111,7 @@ function EndedInviteLine({ useEndedInvite }: { useEndedInvite: JoiningSeam["useE
 function LeagueTable({ leagues, actions }: { leagues: readonly LeagueSummary[]; actions: DeletionActions }) {
   return (
     <table className="w-full border-collapse">
-      <thead className="bg-head text-ground">
-        <tr>
-          <th scope="col" className={cellClasses}>{leagueColumns.league}</th>
-          <th scope="col" className={cellClasses}>{leagueColumns.you}</th>
-          <th scope="col" className={cellClasses}>{leagueColumns.team}</th>
-          <th scope="col" className={`${cellClasses} text-right`}>{leagueColumns.teams}</th>
-        </tr>
-      </thead>
+      <ColumnHeads columns={leagueColumns} classOf={(column) => (column === "teams" ? `${cellClasses} text-right` : cellClasses)} />
       {leagues.map((league) => (
         <tbody key={league.leagueId} className="border-t border-panel-rule">
           <tr>
