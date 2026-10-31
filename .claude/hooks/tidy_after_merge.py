@@ -12,7 +12,14 @@ and no ignored file but throwaway output: build output, or the screenshots in .s
 worktree remove deletes ignored files: a .env.local would go). The main checkout and the folder
 the merge ran in are never removed; another session still open in a clean worktree isn't seen,
 and loses its folder once its pull request merges. Anything kept is said, with why; so is a pull
-request gh can't read. It runs after the command, so it never blocks one. Stdlib only, Python 3.9+.
+request gh can't read.
+
+After a merge it also moves the main checkout to origin/main, since the hooks run from its
+.claude/hooks/ and it sat detached at an old main, so merged hook fixes didn't take effect (31 Oct
+2026: still at #767 after #777 merged). It moves only when detached and behind origin/main, with git
+checkout --detach, which keeps a changed file the move doesn't touch and refuses when one it does
+would be overwritten; that refusal is said, and the checkout stays. On a branch it is left alone.
+It runs after the command, so it never blocks one. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -25,6 +32,7 @@ import sys
 from commands import commands
 from drift_gate import merge_args, view_args
 from hook_payload import BadPayload, field, project_dir, read_payload, report
+from main_writes import MAIN
 from parsing import Unbalanced, Unreadable
 from stdin_reading import UnreadableStdin
 
@@ -32,7 +40,9 @@ MERGED = "MERGED"
 BRANCH_REF = "refs/heads/"
 REMOTE = "origin"  # where GitHub's copy of the pull request's head is fetched from
 PULL_HEAD = "pull/{number}/head"  # GitHub's ref for a pull request's head commit
-# each git or gh call: nine at most per merge, inside the 120 settings.json gives the hook
+REMOTE_MAIN = f"{REMOTE}/{MAIN}"  # where the main checkout is moved to
+# each git or gh call: nine at most per merge and four to move the main checkout, inside the 180
+# settings.json gives the hook
 RUN_TIMEOUT_SECONDS = 13
 NOT_ANCESTOR = 1  # git merge-base --is-ancestor's exit when the first commit isn't behind the second
 IGNORED = "!! "  # git status --porcelain --ignored=matching's mark for an ignored path
@@ -91,14 +101,16 @@ def pull_request(args, folder):
 
 
 def worktrees(folder):
-    """(path, branch) for each worktree, the main checkout first; branch is "" when detached."""
+    """(path, branch) for each worktree, the main checkout first; branch is "" when detached, and
+    None for a bare repo (it has no checkout to move)."""
     ok, out = run(folder, "git", "worktree", "list", "--porcelain")
     if not ok:
         raise ValueError(f"git worktree list failed ({out})")
     found = []
     for block in out.strip().split("\n\n"):
         lines = dict(line.partition(" ")[::2] for line in block.splitlines())
-        found.append((lines.get("worktree", ""), lines.get("branch", "").removeprefix(BRANCH_REF)))
+        branch = lines.get("branch", "" if "detached" in lines else None)
+        found.append((lines.get("worktree", ""), branch and branch.removeprefix(BRANCH_REF)))
     return found
 
 
@@ -149,8 +161,30 @@ def tidy(number, branch, head, folder):
     return f"#{number} merged; its local branch {branch} and any worktree it was in were removed."
 
 
+def follow_main(folder):
+    """Moves the main checkout to origin/main when it is detached and behind it; a line saying what
+    happened, or None when it is on a branch, already there, or holds commits main doesn't."""
+    path, branch = worktrees(folder)[0]
+    if branch != "":
+        return None
+    stays = f"The main checkout ({path}) stays behind {REMOTE_MAIN}, so merged hook fixes don't take effect yet"
+    ok, said = run(path, "git", "fetch", "--quiet", "--no-write-fetch-head", REMOTE, MAIN)
+    if not ok:
+        return f"{stays}: git fetch failed ({said})."
+    ok, counts = run(path, "git", "rev-list", "--count", "--left-right", f"HEAD...{REMOTE_MAIN}")
+    if not ok:
+        return f"{stays}: git rev-list failed ({counts})."
+    ahead, behind = (int(n) for n in counts.split())
+    if ahead or not behind:
+        return None
+    ok, said = run(path, "git", "checkout", "--quiet", "--detach", REMOTE_MAIN)
+    if not ok:
+        return f"{stays}: git checkout --detach {REMOTE_MAIN} refused ({said})."
+    return f"The main checkout ({path}) moved {behind} commit(s) on to {REMOTE_MAIN}, so merged hook fixes take effect."
+
+
 def notes(cmd, cwd):
-    lines = []
+    lines, merged_in = [], None
     try:
         cmds = commands(cmd, cwd)
     except (Unbalanced, Unreadable, UnreadableStdin):
@@ -167,9 +201,15 @@ def notes(cmd, cwd):
             if state != MERGED:
                 lines.append(f"#{number} isn't merged yet ({state}): its branch stays.")
             else:
+                merged_in = here
                 lines.append(tidy(number, branch, head, here))
         except ValueError as error:
             lines.append(f"After the merge, the branch wasn't tidied: {error}.")
+    if merged_in is not None:
+        try:
+            lines.append(follow_main(merged_in))
+        except ValueError as error:
+            lines.append(f"After the merge, the main checkout wasn't moved: {error}.")
     return [line for line in lines if line]
 
 

@@ -2,7 +2,9 @@
 # tidy_after_merge.py's checks: after gh pr merge (a stand-in gh pr view), a merged pull request's
 # branch and its clean worktree go, also when GitHub's head is a merge commit on top of it; one with
 # extra commits, uncommitted changes, a head that can't be fetched, or checked out in the main
-# checkout or the folder the merge ran in stays, and says why; nothing else is touched.
+# checkout or the folder the merge ran in stays, and says why; nothing else is touched. Then the
+# main checkout follows origin/main when detached and behind it, but not on a branch, nor over a
+# changed file the move would overwrite.
 . "$(dirname "$0")/helpers.sh"
 
 repo=$tmp/tidy && git init -q -b main "$repo"
@@ -142,3 +144,44 @@ for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
   fails_loudly "${bad_payloads[i + 1]}" tidy_after_merge.py "${bad_payloads[i]}"
 done
 fails_loudly "command is int where str was expected" tidy_after_merge.py '{"tool_input":{"command":7}}'
+
+# after a merge, the main checkout follows origin/main when it is detached and behind it: hooks run
+# from its .claude/hooks/, so a merged hook fix takes effect only once it has moved
+upstream=$tmp/upstream.git && git init -q --bare -b main "$upstream"
+pusher=$tmp/pusher && git clone -q "$upstream" "$pusher" 2>/dev/null
+landed() { # file: a commit on origin's main that writes it
+  echo "$RANDOM" > "$pusher/$1" && git -C "$pusher" add "$1"
+  git -C "$pusher" "${as_tester[@]}" commit -q -m "change $1" && git -C "$pusher" push -q origin HEAD:main
+}
+landed hook.py && landed .gitignore
+home=$tmp/home-checkout && git clone -q "$upstream" "$home" && git -C "$home" checkout -q --detach
+pr not-here MERGED "$(git -C "$home" rev-parse HEAD)"  # no local branch: only the main checkout is said
+at_origin() { [ "$(git -C "$home" rev-parse HEAD)" = "$(git -C "$upstream" rev-parse main)" ]; }
+
+# detached and behind: it moves, and a changed file the move doesn't touch is kept
+landed hook.py && echo "mine" >> "$home/.gitignore"
+says "moved 1 commit(s) on to origin/main" tidy_after_merge.py "$(bash_in "$home" "$merge")"
+at_origin || fail "tidy_after_merge.py: a detached main checkout behind origin/main didn't move"
+grep -q mine "$home/.gitignore" || fail "tidy_after_merge.py: the move lost a changed file it doesn't touch"
+git -C "$home" symbolic-ref -q HEAD && fail "tidy_after_merge.py: the moved main checkout isn't detached"
+
+# already at origin/main: nothing new to say
+silent tidy_after_merge.py "$(bash_in "$home" "$merge")"
+
+# a changed file the move would overwrite: git refuses, it stays, and says why
+landed .gitignore && before=$(git -C "$home" rev-parse HEAD)
+says "would be overwritten" tidy_after_merge.py "$(bash_in "$home" "$merge")"
+[ "$(git -C "$home" rev-parse HEAD)" = "$before" ] || fail "tidy_after_merge.py: moved over a changed file"
+grep -q mine "$home/.gitignore" || fail "tidy_after_merge.py: lost the changed file it refused to overwrite"
+git -C "$home" checkout -q -- .gitignore
+
+# on a branch: it stays, whatever origin/main holds
+git -C "$home" switch -q -c local && before=$(git -C "$home" rev-parse HEAD)
+silent tidy_after_merge.py "$(bash_in "$home" "$merge")"
+[ "$(git -C "$home" rev-parse HEAD)" = "$before" ] || fail "tidy_after_merge.py: moved a main checkout on a branch"
+[ "$(git -C "$home" branch --show-current)" = local ] || fail "tidy_after_merge.py: switched a main checkout off its branch"
+
+# a merge run in another worktree moves the main checkout too
+git -C "$home" checkout -q --detach && git -C "$home" worktree add -q --detach "$tmp/home-wt"
+says "moved 1 commit(s) on to origin/main" tidy_after_merge.py "$(bash_in "$tmp/home-wt" "$merge")"
+at_origin || fail "tidy_after_merge.py: a merge in a worktree didn't move the main checkout"
