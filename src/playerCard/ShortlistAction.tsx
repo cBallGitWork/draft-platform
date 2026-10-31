@@ -1,7 +1,7 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import { Problem } from "../ui/Panel";
-import type { ShortlistSeam } from "../scouting/shortlist/shortlistSeam";
-import { addToShortlistWords, onShortlistWords, removeFromShortlistWords } from "../scouting/shortlist/shortlistWords";
+import type { ShortlistSeam } from "../scouting/shortlist/seam";
+import { addToShortlistWords, onShortlistWords, removeFromShortlistWords } from "../scouting/shortlist/words";
 import { useChange } from "../shared/useChange";
 
 /** The card's shortlist action (spec/12, The player card): add him to the manager's own shortlist,

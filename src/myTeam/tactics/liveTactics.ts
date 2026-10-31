@@ -2,8 +2,8 @@ import { useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../../convex/_generated/api";
 import { answerOf } from "../../shared/refusal";
-import type { TacticsSeam } from "./tacticsSeam";
-import { saveFailedWords } from "./tacticsWords";
+import type { TacticsSeam } from "./seam";
+import { saveFailedWords } from "./words";
 
 /** The Tactics seam filled in by Convex. A refusal comes back as the server's own words
  *  (convex/lineup/lineupWords.ts); any other failure is logged and said plainly. */

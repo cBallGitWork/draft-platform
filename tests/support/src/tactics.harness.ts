@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
-import type { LineupChanges, OpenTactics, Tactics, TacticsSeam } from "../../../src/myTeam/tactics/tacticsSeam";
+import type { LineupChanges, OpenTactics, Tactics, TacticsSeam } from "../../../src/myTeam/tactics/seam";
 
 /** The gameweek the fake server sets a lineup for, unless a test says. */
 export const TACTICS_GAMEWEEK = 9;

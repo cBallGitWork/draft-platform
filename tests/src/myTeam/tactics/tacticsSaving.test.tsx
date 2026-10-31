@@ -5,7 +5,7 @@
 import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { discardWords, moveLabel, presetLabel, putHereLabel, saveFailedWords, saveWords, savedWords, startingWords } from "../../../../src/myTeam/tactics/tacticsWords";
+import { discardWords, moveLabel, presetLabel, putHereLabel, saveFailedWords, saveWords, savedWords, startingWords } from "../../../../src/myTeam/tactics/words";
 import { league } from "../../../support/src/shell.harness";
 import { TACTICS_GAMEWEEK, openTactics } from "../../../support/src/tactics.harness";
 import {
