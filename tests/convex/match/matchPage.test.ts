@@ -15,6 +15,7 @@ import {
   HULL_SCORER,
   HULL_STARTERS,
   LEAGUE_KICKOFF,
+  MIDFIELD_GOAL,
   PHILLIPS,
   scoresLeague,
   holdHullAndEverton,
@@ -177,8 +178,7 @@ test("a goal's points include his role's adjustment, on the match page and the m
       delayed: null,
     }),
   );
-  // The first set's goal for a man in midfield, and his role's on top.
-  const MIDFIELD_GOAL = 5;
+  // His goal in midfield, and his role's on top.
   const lines = [{ key: `${HULL_EVERTON}:1`, text: "64' GOAL Scorer", points: `+${MIDFIELD_GOAL + ROLE_GOAL}` }];
   expect((await matchAs(league, ANN))!.commentary).toEqual({ kind: "read", lines, delayed: false });
   expect((await annsScoredGame(league)).commentary).toEqual({ kind: "read", lines, delayed: false });
