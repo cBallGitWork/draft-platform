@@ -8,11 +8,12 @@ import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { memberOf, teamIn, teamsOf } from "../shared/leagueAccess";
+import { playerByCode, unheldPlayerWords } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { begunGameweeks, tableGameweek, type GameweekTeams } from "../gameweekScorer/gameweekScores";
 import { scheduleOf } from "../table/playedFixtures";
 import { isFinished, type HeldMatch } from "../gameweekScorer/heldMatches";
-import { inMatchOf, leagueReads, lineupPlayer, type TeamInGameweek } from "../gameweekScorer/teamGameweek";
+import { inMatchOf, leagueReads, type TeamInGameweek } from "../gameweekScorer/teamGameweek";
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
 import { teamsInGameweek } from "../table/standings";
 import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
@@ -111,7 +112,9 @@ async function gameOf(
  *  up to it; and a gameweek whose slots can't be worked out is unscored here even while the table
  *  shows its stored totals. */
 class SideScorer {
-  private readonly name = readOnce((playerCode: PlayerCode) => lineupPlayer(this.ctx, playerCode).then((player) => player.name));
+  /** His name; for one the football sync doesn't hold, the error saying so, as the squads say it
+   *  (#810, #323). */
+  private readonly name = readOnce((playerCode: PlayerCode) => playerByCode(this.ctx, playerCode).then((player) => player?.name ?? unheldPlayerWords(playerCode)));
   private readonly score = readOnce((fixtureCode: number) => scoreOf(this.ctx, fixtureCode));
 
   constructor(

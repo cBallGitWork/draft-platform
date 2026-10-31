@@ -76,6 +76,8 @@ export const lock = internalMutation({
     // Its gameweek may now be final in each league: stored apart, so a league that can't be scored
     // never undoes the lock (finalScores.ts, #418).
     await ctx.scheduler.runAfter(0, internal.table.finalScores.storeEveryLeague, {});
+    // And each team's season stats for the stat race (teamSeasonStats.ts, #800), the same way.
+    await ctx.scheduler.runAfter(0, internal.stats.teamSeasonStats.storeEveryLeague, {});
     return null;
   },
 });

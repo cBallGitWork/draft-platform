@@ -27,8 +27,7 @@ export const noMatchesWords = "He hasn't played a match this season.";
 export const pricedAtLabel = "Points at";
 /** Beside points that may still move ("Live", as on My team's fixtures): the match isn't final, or
  *  his team's auto-subs aren't (spec/12). */
-export { liveWords } from "../shared/words";
-export { provisionalWords } from "../shared/words";
+export { liveWords, provisionalWords } from "../shared/words";
 export const columns = {
   gameweek: { short: "GW", long: "Gameweek" },
   match: { short: "Match", long: "Match" },

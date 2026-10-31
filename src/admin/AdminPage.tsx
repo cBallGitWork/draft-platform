@@ -1,4 +1,4 @@
-import { Loading, PANEL_COLUMNS } from "../ui/Panel";
+import { Loading, PAGE_STACK, PANEL_COLUMNS } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import { AdminHeader } from "./AdminHeader";
 import { FindPlayer } from "./FindPositions";
@@ -13,7 +13,7 @@ export function AdminPage({ seam }: { seam: AdminSeam }) {
   const queue = seam.useQueue();
   const change = useChange();
   return (
-    <div className="flex max-w-5xl flex-col gap-2">
+    <div className={PAGE_STACK}>
       <AdminHeader problem={change.problem} />
       {queue === undefined ? (
         <Loading>{loadingWords}</Loading>

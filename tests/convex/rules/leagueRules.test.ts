@@ -5,7 +5,7 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
-import { siteScoringInGameweek } from "../../../convex/scoring/siteScoring";
+import { siteScoringInGameweek } from "../../../convex/scoring/siteVersions";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { centreOf, EXAMPLE_SET } from "../../support/convex/scoring.example";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesInGameweek, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";

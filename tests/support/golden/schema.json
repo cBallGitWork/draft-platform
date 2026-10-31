@@ -2570,6 +2570,124 @@
       }
     },
     {
+      "tableName": "teamGameweekStats",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_gameweek_and_teamId",
+          "fields": [
+            "leagueId",
+            "gameweek",
+            "teamId"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "gameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "fixtureCodes": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "number"
+              }
+            },
+            "optional": false
+          },
+          "stats": {
+            "fieldType": {
+              "type": "record",
+              "keys": {
+                "type": "string"
+              },
+              "values": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              }
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "teamSeasonStats",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_teamId",
+          "fields": [
+            "leagueId",
+            "teamId"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "stats": {
+            "fieldType": {
+              "type": "record",
+              "keys": {
+                "type": "string"
+              },
+              "values": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              }
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "matchStatsTries",
       "indexes": [
         {

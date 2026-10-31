@@ -1,6 +1,6 @@
 import { FEEDBACK_SHOWN } from "../../convex/feedback/feedbackLimits";
 import type { FeedbackSeam } from "../feedback/seam";
-import { Loading, Panel, PanelNote } from "../ui/Panel";
+import { Loading, PAGE_STACK, Panel, PanelNote } from "../ui/Panel";
 import { whenWords } from "../shared/words";
 import { AdminHeader } from "./AdminHeader";
 import { feedbackListTitle, feedbackLoadingWords, moreFeedbackWords, noFeedbackWords } from "./words";
@@ -10,7 +10,7 @@ import { feedbackListTitle, feedbackLoadingWords, moreFeedbackWords, noFeedbackW
 export function FeedbackTab({ seam }: { seam: FeedbackSeam }) {
   const list = seam.useFeedbackList();
   return (
-    <div className="flex max-w-5xl flex-col gap-2">
+    <div className={PAGE_STACK}>
       <AdminHeader />
       {list === undefined ? (
         <Loading>{feedbackLoadingWords}</Loading>

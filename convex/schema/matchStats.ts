@@ -100,6 +100,24 @@ export const matchStatsTables = {
     "by_season_and_playerCode",
     ["season", "playerCode"],
   ),
+  /** What each team's counted players did in a final gameweek, added up (#800, spec/19 The stat
+   *  race; teamSeasonStats.ts): its starters and the bench players who came on, as the gameweek
+   *  scorer counted them. One row a league, gameweek and team, kept so a gameweek reopened or
+   *  scored again takes away exactly what it added. `fixtureCodes` are the matches it was added
+   *  up from: a match moved in or out since makes it stale. */
+  teamGameweekStats: defineTable({
+    leagueId: v.id("leagues"),
+    gameweek: v.number(),
+    teamId: v.id("teams"),
+    fixtureCodes: v.array(v.number()),
+    stats: v.record(v.string(), v.number()),
+  }).index("by_leagueId_and_gameweek_and_teamId", ["leagueId", "gameweek", "teamId"]),
+  /** Each team's season totals, its teamGameweekStats rows added up, so Scouting ranks the
+   *  league's teams by any stat with one small row a team (#800). */
+  teamSeasonStats: defineTable({ leagueId: v.id("leagues"), teamId: v.id("teams"), stats: v.record(v.string(), v.number()) }).index(
+    "by_leagueId_and_teamId",
+    ["leagueId", "teamId"],
+  ),
   /** When a run last tried each match, read or not: one that never reads steps behind the rest. */
   matchStatsTries: defineTable({ fixtureCode: v.number(), triedAt: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
   /** One row: the kickoff from which matchStatsDue.due reads the fixtures for matches past full time
