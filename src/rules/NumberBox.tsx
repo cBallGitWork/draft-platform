@@ -11,9 +11,6 @@ function parse(text: string): number | null {
 
 const show = (value: number | null) => (value === null || Number.isNaN(value) ? "" : String(value));
 
-/** The ids given, in order, as aria-describedby takes them; none, nothing. */
-const describedBy = (ids: (string | undefined)[]) => ids.filter((id) => id !== undefined).join(" ") || undefined;
-
 const same = (one: number | null, other: number | null) => one === other || (Number.isNaN(one) && Number.isNaN(other));
 
 /** A required box hands up NaN for a blank (a box left without a number); an optional one, null
@@ -73,7 +70,7 @@ export function NumberBox(props: NumberBoxProps) {
         inputMode="decimal"
         aria-label={label}
         aria-invalid={invalid || undefined}
-        aria-describedby={describedBy([refusal === null ? undefined : refusalId, hintId])}
+        aria-describedby={[refusal === null ? undefined : refusalId, hintId].filter((id) => id !== undefined).join(" ") || undefined}
         value={text}
         onChange={(event) => change(event.target.value)}
         className="number-box"
