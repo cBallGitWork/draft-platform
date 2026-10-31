@@ -6,7 +6,7 @@ import { fplStatLines } from "../../../convex/football/fpl/fplLive";
 import { plStatLines } from "../../../convex/football/premierLeague/plMatch";
 import type { Lineup } from "../../../convex/lineup/lineup";
 import type { Cell } from "../../../convex/lineup/pitch";
-import type { MatchStats } from "../../../convex/scoring/scoring";
+import type { MatchStats } from "../../../convex/scoring/values";
 import { scoreTeam, type GameweekMatches, type PlayerMatch, type TeamPointsInput } from "../../../convex/scoring/teamPoints";
 import { FULL_STATS, hullEvertonReads, MATCH, recordedGw6, recordedPlFixture } from "../recorded/gw6.payloads";
 import { centreOf, EXAMPLE_SET } from "./scoring.example";

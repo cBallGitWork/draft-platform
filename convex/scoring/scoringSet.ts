@@ -6,12 +6,9 @@ import { AREAS, SLOT_POSITIONS, type Area, type SlotPosition } from "../lineup/p
 import { categoryName } from "./categories";
 import { validateOwnStats, type OwnStat } from "./ownStats";
 import { CATALOGUE_STATS } from "./statCatalogue";
+import { inTenths, isObject, requireNumber, showValue, UnsoundScoring } from "./values";
 
 export type { OwnStat };
-
-/** Why a scoring set can't be saved or scored with, told apart from a bug, which is never shown
- *  as a reason. Every check here and in ownStats.ts throws it. */
-export class UnsoundScoring extends Error {}
 
 // The pitch's six areas are the pitch's (../lineup/pitch.ts), so a lineup and a scoring set can't disagree.
 export { AREAS, type Area };
@@ -253,32 +250,10 @@ function requirePoints(value: unknown, what: string, wholePointsOnly: boolean): 
   if (!isInTenths(value)) throw new UnsoundScoring(`${what} ${value}; points are kept in tenths`);
 }
 
-/** Points to the nearest tenth, which is all they are kept in: floating point's own noise goes.
- *  Never -0, which JavaScript makes of 0 yellow cards at -1, or of tenths that cancel out (0.3,
- *  -0.1 and -0.2 add to just under 0), and which a saved row or a test tells apart from 0 (#422). */
-export function inTenths(points: number): number {
-  const rounded = Math.round(points * 10) / 10;
-  return rounded === 0 ? 0 : rounded;
-}
-
 /** How far a number may sit from its tenth and still be in tenths: floating point's own noise. */
 const FLOAT_NOISE = 1e-9;
 
 /** Whether a number is a whole number of tenths, allowing for floating point's own noise. */
 function isInTenths(value: number): boolean {
   return Math.abs(value - inTenths(value)) < FLOAT_NOISE;
-}
-
-/** Throws "<what> <value>, not a number" unless it is a finite number, never coerced from text. */
-export function requireNumber(value: unknown, what: string): asserts value is number {
-  if (!Number.isFinite(value)) throw new UnsoundScoring(`${what} ${showValue(value)}, not a number`);
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-/** A bad value as the reason shows it: NaN and undefined by name, text in quotes. */
-export function showValue(value: unknown): string {
-  return typeof value === "number" || value === undefined ? String(value) : JSON.stringify(value);
 }

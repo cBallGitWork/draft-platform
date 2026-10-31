@@ -2,7 +2,8 @@ import { describe, expect, test } from "vitest";
 import { FULL_STATS } from "../../support/recorded/gw6.payloads";
 import { DEWSBURY_HALL, fplLines, GELHARDT, plLines, recordOf, TZOLAKIS, type RecordedLine } from "../../support/convex/teamPoints.harness";
 import { centreOf, everyArea, EXAMPLE_SET, MINUTES_BANDS } from "../../support/convex/scoring.example";
-import { scoreGameweek, scoreMatch, statIn, type DoubleGameweekRule, type MatchStats } from "../../../convex/scoring/scoring";
+import { scoreGameweek, scoreMatch, type DoubleGameweekRule } from "../../../convex/scoring/scoring";
+import { statIn, type MatchStats } from "../../../convex/scoring/values";
 import { AREAS, type Area, type Band, type ScoringSet } from "../../../convex/scoring/scoringSet";
 
 // Every record is a recorded line from Hull v Everton, gameweek 6 of 2026/27 (teamPoints.harness).

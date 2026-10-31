@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
-import { inTenths } from "../../../convex/scoring/scoringSet";
+import { inTenths } from "../../../convex/scoring/values";
 import { mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 import {

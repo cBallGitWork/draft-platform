@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { PlayedMatch } from "../../../convex/playerCard/playerCard";
 import type { DoubleGameweekRule } from "../../../convex/scoring/scoring";
-import { inTenths } from "../../../convex/scoring/scoringSet";
+import { inTenths } from "../../../convex/scoring/values";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { BELLOUMI } from "../../support/convex/teamPoints.harness";
 import { rulesRevision } from "../../support/convex/leagueRules.harness";

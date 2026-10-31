@@ -4,7 +4,7 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { TableNames } from "../../../convex/_generated/dataModel";
 import { adminByline, matchWords } from "../../../convex/mail/letterWords";
 import schema from "../../../convex/schema";
-import { inTenths } from "../../../convex/scoring/scoringSet";
+import { inTenths } from "../../../convex/scoring/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "../../../convex/table/overrideLimits";
 import { overrideRefusals } from "../../../convex/table/pointsOverrides";
