@@ -46,6 +46,10 @@ export const nextGlyph = "►";
 export const ascendingGlyph = "▲";
 export const descendingGlyph = "▼";
 export const sortByLabel = (column: string) => `Sort by ${column}`;
+/** A column head's spoken name: the short word it shows, then its long one, "GW, Gameweek", or the
+ *  word once where they're the same, so a voice-control user can say the word they see (WCAG 2.5.3,
+ *  label in name; decided 31 Oct 2026, #775). */
+export const columnHeadName = ({ short, long }: { short: string; long: string }) => (short === long ? long : `${short}, ${long}`);
 /** A stat, as a column of stats or the choice of one is headed. */
 export const STAT_WORD = "Stat";
 
