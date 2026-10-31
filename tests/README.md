@@ -50,9 +50,9 @@ Nothing in it is a test. Each kind of file:
   first real set is in `convex/scoring/firstScoring.ts`.
 - **`golden/`**, the expected output a test compares with (`toMatchFileSnapshot`):
   `gameweek6.scores.json` (a whole gameweek's scoring), `hull-everton.scores.json` (one match's
-  scoring), `ipswich-forest.commentary.txt` (Ipswich v Forest's
-  written commentary, `tests/convex/football/commentary.test.ts`), `round-robin.txt` (the
-  round-robin fixture draws) and `schema.json` (the saved tables).
+  scoring), `ipswich-forest.commentary.txt` (Ipswich v Forest's written commentary,
+  `tests/convex/football/commentary.test.ts`), `round-robin.txt` (the round-robin fixture draws)
+  and `schema.json` (the saved tables).
 
 `recorded/` and `golden/` are add-only: `scripts/recorded-add-only.mjs`, run by `npm run verify`,
 fails on a changed or deleted file unless a commit on the branch carries the trailer
@@ -62,7 +62,7 @@ fails on a changed or deleted file unless a commit on the branch carries the tra
 
 A change near scoring proves nothing moved with three tests, green before and after. The
 whole-gameweek golden, the one it owes first: recorded gameweek 6 played by a league of four to the
-lock in `tests/convex/endToEnd/gameweekGolden.test.ts`, every player's points and every
+lock in `tests/convex/endToEnd/gameweekGolden.test.ts`, every fielded player's points and every
 head-to-head result matched against `golden/gameweek6.scores.json`. The whole-match golden: every
 recorded line of Hull v Everton, from both feeds, in every area, scored in
 `tests/convex/scoring/scoring.test.ts` and matched against `golden/hull-everton.scores.json`. The

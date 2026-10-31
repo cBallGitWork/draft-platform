@@ -118,8 +118,8 @@ heading's exact text, so renaming it means changing the skill's `sed` line too.
 - The Vitest suite and the type check pass before and after.
 - Scoring: the whole-gameweek golden is the proof any refactor near scoring owes (the scorer, the
   matchup, the table, the stored scores). `tests/convex/endToEnd/gameweekGolden.test.ts` plays
-  recorded gameweek 6 through a league of four, under the league's own scoring set, to the lock,
-  and every player's points and every head-to-head result must match
+  recorded gameweek 6 through a league of four, under the site's first scoring set, to the lock,
+  and every fielded player's points and every head-to-head result must match
   `tests/support/golden/gameweek6.scores.json` before and after. Beside it, the whole-match golden
   in `tests/convex/scoring/scoring.test.ts` scores every recorded line of Hull v Everton, from both
   feeds, in all six areas, under a test-only set, and must match
