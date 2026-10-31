@@ -1,5 +1,16 @@
 import { expect, test } from "vitest";
-import { annsScoredGame, fullTimeRecords, GAMEWEEK, HULL_BENCH, HULL_SCORER, lineupOf, nameOf, readTable, scoresLeague } from "../../support/convex/gameweekScores.harness";
+import {
+  annsScoredGame,
+  fullTimeRecords,
+  GAMEWEEK,
+  HULL_BENCH,
+  HULL_SCORER,
+  leavesAnnsSquad,
+  lineupOf,
+  nameOf,
+  readTable,
+  scoresLeague,
+} from "../../support/convex/gameweekScores.harness";
 
 // The matchup when a starter has left the squad before the deadline (#597; spec/05, Auto-subs: his
 // slot "is filled from the bench the same way, as if he hadn't played"). Ann fields Hull; their
@@ -11,13 +22,7 @@ const [, BELLOUMI] = HULL_BENCH;
 
 test("a sub into a slot left empty by a starter who left the squad shows as on for him, and the totals match the table", async () => {
   const league = await scoresLeague();
-  await league.t.run(async (ctx) => {
-    const owned = (await ctx.db
-      .query("squadPlayers")
-      .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", league.leagueId).eq("playerCode", HULL_SCORER))
-      .unique())!;
-    await ctx.db.delete("squadPlayers", owned._id);
-  });
+  await leavesAnnsSquad(league, HULL_SCORER);
   await fullTimeRecords(league);
 
   const game = await annsScoredGame(league, GAMEWEEK);

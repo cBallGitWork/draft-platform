@@ -55,10 +55,18 @@ const slot = v.object({
 });
 export type MatchupSlot = Infer<typeof slot>;
 
-/** A starter: a slot, and the role he plays in it (spec/10, The matchup, as a live match; spec/05
- *  Roles), the one he was given or the slot's first, named as the Tactics pitch names it. */
-const starter = slot.extend({ role: v.object({ key: v.string(), name: v.string() }) });
+/** The role a man plays and is priced in (spec/10, The matchup, as a live match; spec/05 Roles),
+ *  named as the Tactics pitch names it. */
+const role = v.object({ key: v.string(), name: v.string() });
+
+/** A starter: a slot, and his role: the one he was given, or the slot's first. */
+const starter = slot.extend({ role });
 export type MatchupStarter = Infer<typeof starter>;
+
+/** A bench player: a slot, and once he has come on the role he plays (spec/05 Auto-subs): the
+ *  empty slot's, or in his own area his new slot's first until stars (#11). Null until then. */
+const benchSlot = slot.extend({ role: v.union(role, v.null()) });
+export type MatchupBenchSlot = Infer<typeof benchSlot>;
 
 const side = v.union(
   v.object({
@@ -67,7 +75,7 @@ const side = v.union(
     teamName: v.string(),
     points: v.number(),
     provisional: v.boolean(),
-    lineup: v.object({ starters: v.array(starter), bench: v.array(slot) }),
+    lineup: v.object({ starters: v.array(starter), bench: v.array(benchSlot) }),
   }),
   /** The league's average, which the odd team out plays in a league that gives it one. */
   v.object({ kind: v.literal(LEAGUE_AVERAGE), points: v.number(), provisional: v.boolean() }),

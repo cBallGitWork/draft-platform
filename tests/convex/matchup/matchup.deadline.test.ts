@@ -5,11 +5,11 @@ import {
   BOBS_TEAM,
   EVERTON_STARTERS,
   GAMEWEEK,
+  giveAnnsStarterRole,
   HULL_SCORER,
   HULL_STARTERS,
   lineupOf,
   matchupAs,
-  type ScoresLeague,
   scoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 import { ADMIN, COMMISSIONER } from "../../support/convex/leagues.harness";
@@ -33,7 +33,7 @@ test("once the deadline has passed each starter on both sides carries his role: 
   const league = await scoresLeague();
   const scorer = HULL_STARTERS.find((starter) => starter.playerCode === HULL_SCORER)!;
   const [first, given] = rolesOfSlot(scorer);
-  await giveRole(league, HULL_SCORER, given.key);
+  await giveAnnsStarterRole(league, HULL_SCORER, given.key);
 
   const game = await annsScoredGame(league, GAMEWEEK);
   expect(lineupOf(game.team).starters.map((slot) => slot.playerCode)).toEqual(HULL_STARTERS.map((starter) => starter.playerCode));
@@ -46,14 +46,6 @@ test("once the deadline has passed each starter on both sides carries his role: 
   }
   const everton = new Map(lineupOf(game.opponent).starters.map((slot) => [slot.playerCode, slot.role]));
   for (const starter of EVERTON_STARTERS) expect(everton.get(starter.playerCode)).toEqual(roleIn(starter, undefined));
-  // The bench carries none: spec/10 names the starters' roles.
-  expect(lineupOf(game.team).bench.every((slot) => !("role" in slot))).toBe(true);
+  // Nobody has come on, so the bench plays none.
+  expect(lineupOf(game.team).bench.map((slot) => slot.role)).toEqual(lineupOf(game.team).bench.map(() => null));
 });
-
-/** Ann's saved lineup gives `playerCode` the role `role`, as Tactics saves it. */
-const giveRole = ({ t, annsTeam }: ScoresLeague, playerCode: number, role: string) =>
-  t.run(async (ctx) => {
-    const lineup = (await ctx.db.query("lineups").collect()).find((each) => each.teamId === annsTeam)!;
-    const starters = lineup.starters.map((starter) => (starter.playerCode === playerCode ? { ...starter, role } : starter));
-    await ctx.db.patch("lineups", lineup._id, { starters });
-  });

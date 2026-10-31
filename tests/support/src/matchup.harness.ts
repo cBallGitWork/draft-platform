@@ -6,7 +6,7 @@ import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayingState } from "../../../convex/football/matchScores";
 import { roleIn } from "../../../convex/lineup/roles";
-import type { MatchupCommentary, MatchupSide, MatchupSlot, MatchupStarter } from "../../../convex/matchup/matchupShape";
+import type { MatchupCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../../convex/matchup/matchupShape";
 import type { Matchup, MatchupSeam } from "../../../src/matchup/seam";
 import { lineupLabel } from "../../../src/matchup/words";
 
@@ -81,15 +81,21 @@ export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
  *  `slot` stands him in midfield. */
 const STARTER_ROLE = roleIn({ area: "midfield", lane: "centre" }, undefined);
 
-/** A team's side: its starters, each in STARTER_ROLE unless he has one, and bench, its total and
- *  whether that is provisional. */
-export const teamSide = (teamName: string, starters: (Slot & Partial<Pick<MatchupStarter, "role">>)[], bench: Slot[], points = 0, provisional = true): Side => ({
+/** A team's side: its starters, each in STARTER_ROLE unless he has one, and bench, none with a role
+ *  unless he has one, its total and whether that is provisional. */
+export const teamSide = (
+  teamName: string,
+  starters: (Slot & Partial<Pick<MatchupStarter, "role">>)[],
+  bench: (Slot & Partial<Pick<MatchupBenchSlot, "role">>)[],
+  points = 0,
+  provisional = true,
+): Side => ({
   kind: "team",
   teamId: `team-${teamName}` as Id<"teams">,
   teamName,
   points,
   provisional,
-  lineup: { starters: starters.map((starter) => ({ role: STARTER_ROLE, ...starter })), bench },
+  lineup: { starters: starters.map((starter) => ({ role: STARTER_ROLE, ...starter })), bench: bench.map((slot) => ({ role: null, ...slot })) },
 });
 
 type Game = HeadToHead["game"];

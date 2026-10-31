@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Area } from "../../convex/lineup/pitch";
 import { roleIn } from "../../convex/lineup/roles";
-import type { MatchupCommentary, MatchupSide, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
+import type { MatchupCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
 import { MINUTE_MS } from "../../convex/shared/time";
 import { previewFixtureCode } from "../premierLeague/preview";
 import { previewIdOf, previewSeason, previewTeams } from "../table/preview";
@@ -91,21 +91,23 @@ function slotAt([area, name, match, finalPoints]: Man, minute: number, onBench: 
   return { playerCode: codeOf(name), name, area, points, counts: !onBench, provisional: true, status, autoSub };
 }
 
-/** A starter `minute` minutes in, in his area's centre slot's first role: the made-up men stand in
- *  areas, not cells. */
+/** The made-up men stand in areas, not cells: each plays his area's centre slot's first role. */
+const roleOf = (area: Area) => roleIn({ area, lane: "centre" }, undefined);
+
+/** A starter `minute` minutes in, in his role. */
 function starterAt(man: Man, minute: number): MatchupStarter {
-  return { ...slotAt(man, minute, false), role: roleIn({ area: man[0], lane: "centre" }, undefined) };
+  return { ...slotAt(man, minute, false), role: roleOf(man[0]) };
 }
 
 /** A side `minute` minutes in: the keeper's auto-sub once his match is over, then the total. */
 function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): MatchupSide {
   const starters = men.starters.map((man) => starterAt(man, minute));
-  const bench = men.bench.map((man) => slotAt(man, minute, true));
+  const bench: MatchupBenchSlot[] = men.bench.map((man) => ({ ...slotAt(man, minute, true), role: null }));
   const off = starters.find((slot) => slot.autoSub?.kind === "off");
   if (off !== undefined) {
     off.counts = false;
     const on = bench.find((slot) => slot.name === BENCH_KEEPER)!;
-    Object.assign(on, { counts: true, autoSub: { kind: "on", playerName: off.name } });
+    Object.assign(on, { counts: true, autoSub: { kind: "on", playerName: off.name }, role: roleOf(off.area) });
   }
   const final = minute >= FINAL_MINUTE;
   const counting = [...starters, ...bench].filter((slot) => slot.counts);
