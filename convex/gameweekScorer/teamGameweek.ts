@@ -10,7 +10,7 @@ import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
 import type { MatchPoints } from "../scoring/scoring";
 import type { MatchStats } from "../scoring/values";
-import { siteScoringByGameweek } from "../scoring/siteScoring";
+import { siteScoringByGameweek } from "../scoring/siteVersions";
 import { validateScoringSet } from "../scoring/scoringSet";
 import { scoreTeam, type PlayerMatch, type SlotPoints, type TeamPoints } from "../scoring/teamPoints";
 import { playerByCode } from "../shared/players";

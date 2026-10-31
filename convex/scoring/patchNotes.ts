@@ -3,7 +3,7 @@ import { mutation, query } from "../_generated/server";
 import { siteScoringKind } from "../schema";
 import { callerEmail, refuse, signedInEmail } from "../shared/leagueAccess";
 import { scoringChanges } from "./patchChanges";
-import { setOf, siteVersions, versionName } from "./siteScoring";
+import { setOf, siteVersions, versionName } from "./siteVersions";
 
 // The patch notes and the banner (spec/14, Changes and corrections; #356): a page listing every
 // version of the site's scoring with what it changed, worked out from the stored versions

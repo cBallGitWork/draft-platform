@@ -14,7 +14,12 @@ const BROWSER_SOURCES = import.meta.glob("../../src/**/*.ts", { query: "?raw", i
   string
 >;
 /** The scorer's files, which schema.ts and the rules editor have no need to load (#756). */
-const SCORER_FILES = ["convex/scoring/scoring.ts", "convex/scoring/scoringSet.ts", "convex/scoring/ownStats.ts"];
+const SCORER_FILES = [
+  "convex/scoring/scoring.ts",
+  "convex/scoring/scoringSet.ts",
+  "convex/scoring/ruleChecks.ts",
+  "convex/scoring/ownStats.ts",
+];
 const SOURCE_PREFIX = "../../";
 const GENERATED = "convex/_generated/";
 const TS = ".ts";
