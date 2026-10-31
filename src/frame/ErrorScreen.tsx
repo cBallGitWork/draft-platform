@@ -7,7 +7,7 @@ import { ReadFailed } from "./ReadFailed";
  *  failed read, and the way back to "Your leagues". `children` are any other ways out beside it. */
 export function ErrorScreen({ error, reset, children }: ErrorComponentProps & { children?: ReactNode }) {
   return (
-    <ReadFailed error={error} onTryAgain={reset}>
+    <ReadFailed error={error} onRetry={reset}>
       <BackToLeagues />
       {children}
     </ReadFailed>

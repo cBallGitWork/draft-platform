@@ -4,13 +4,13 @@ import { query, type QueryCtx } from "../_generated/server";
 import { MOST_IN_SQUAD, MOST_TEAMS } from "../leagues/leagueLimits";
 import { positionsNow } from "../positions/playerPositions";
 import { clubRecord, position } from "../schema";
-import { STAT_CATALOGUE } from "../scoring/statCatalogue";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubOf, currentClubs, currentPlayersAt } from "../shared/players";
 import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { listOf, shownStat } from "./playersOrder";
+import { checkCatalogueStat } from "./statRace";
 
 // Scouting's players list (spec/19, The players list; #373): every Premier League player now, for
 // anyone in the league, filtered and sorted here on the server so the screen never holds a cut
@@ -81,7 +81,7 @@ export const list = query({
   returns: playersList,
   handler: async (ctx, { leagueId, filters, sort, stat }) => {
     await memberOf(ctx, leagueId);
-    if (stat !== null && !STAT_CATALOGUE.some((each) => each.stat === stat)) throw new Error(`No stat ${stat} is in the catalogue`);
+    if (stat !== null) checkCatalogueStat(stat);
     if (sort.by === "stat" && stat === null) throw new Error("The list can't be sorted by the stat with none shown");
     const clubs = (await currentClubs(ctx)).sort((one, other) => one.name.localeCompare(other.name));
     const listedClubs = filters.clubCode === null ? clubs : clubs.filter((each) => each.code === filters.clubCode);

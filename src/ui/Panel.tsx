@@ -134,7 +134,8 @@ export const PANEL_BODY = "flex flex-col gap-2 p-3";
 /** One row of a list in a panel: its lines stacked, ruled off from the next (#292). */
 export const PANEL_LIST_ROW = "flex flex-col gap-1 border-b border-panel-rule px-3 py-2";
 
-/** A page's panels stacked at its full width, and two panels side by side from `lg` up. */
+/** A page's panels stacked at the page width every multi-panel page shares (#296), and two panels
+ *  side by side from `lg` up. */
 export const PAGE_STACK = "flex max-w-6xl flex-col gap-2";
 export const PANEL_COLUMNS = "grid items-start gap-2 lg:grid-cols-2";
 
