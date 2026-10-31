@@ -149,7 +149,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
   // The tap-size check measures what a thumb taps: a control through its label, never a bare
   // well or a hidden radio (#792, #295), and by its smaller side, so a tall narrow button fails;
   // a label taps go through is no tap (#817).
-  test("the tap-size check passes a labelled control by its label, and lists a bare small one", async ({ page }) => {
+  test("the tap-size check passes a labelled control by its label, and lists a bare small one, a narrow one, and one whose label lets taps through", async ({ page }) => {
     await page.setContent(`
       <style>
         :root { --spacing-tap: 44px; }

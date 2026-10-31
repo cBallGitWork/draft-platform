@@ -66,6 +66,7 @@ export function ColumnHeads<Column extends string, Sortable extends Column = Col
               ) : press === undefined ? (
                 short
               ) : (
+                // The tap size wide, its word kept to its column's side over the figures (#817).
                 <button type="button" aria-label={sortByLabel(name)} onClick={press} className="min-h-tap min-w-tap font-bold [text-align:inherit]">
                   {short}
                   {sorted && <span aria-hidden="true"> {sort.descending ? descendingGlyph : ascendingGlyph}</span>}

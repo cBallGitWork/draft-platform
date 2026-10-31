@@ -49,7 +49,7 @@ function TransactionsTable({ leagueId, teamName, transactions }: { leagueId: Id<
           <tr key={`${transaction.at}-${transaction.playerCode}-${transaction.kind}`} className="border-t border-panel-rule">
             <td className="px-3 whitespace-nowrap">{whenWords(transaction.at)}</td>
             <th scope="row" className="px-3 text-left text-lead font-semibold">
-              <Link to={playerCardPath(leagueId, transaction.playerCode)} className="inline-flex min-h-tap min-w-tap items-center">
+              <Link to={playerCardPath(leagueId, transaction.playerCode)} className="tap-link">
                 {transaction.playerName}
               </Link>
             </th>
