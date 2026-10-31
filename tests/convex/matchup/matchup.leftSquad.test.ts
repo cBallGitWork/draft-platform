@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import { ANN, annsScoredGame, fullTimeRecords, GAMEWEEK, HULL_BENCH, HULL_SCORER, lineupOf, scoresLeague } from "../../support/convex/gameweekScores.harness";
+import { ANN, annsScoredGame, fullTimeRecords, GAMEWEEK, HULL_BENCH, HULL_SCORER, lineupOf, nameOf, scoresLeague } from "../../support/convex/gameweekScores.harness";
 import { actingAs } from "../../support/convex/leagues.harness";
 
 // The matchup when a starter has left the squad before the deadline (#597; spec/05, Auto-subs: his
@@ -25,7 +25,7 @@ test("a sub into a slot left empty by a starter who left the squad shows as on f
   const ann = await actingAs(league.t, ANN);
   const game = await annsScoredGame(league, GAMEWEEK);
   const slots = [...lineupOf(game.team).starters, ...lineupOf(game.team).bench];
-  const scorersName = await league.t.run(async (ctx) => (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", HULL_SCORER)).unique())!.name);
+  const scorersName = await nameOf(league, HULL_SCORER);
 
   expect(slots.find((slot) => slot.playerCode === BELLOUMI)).toMatchObject({ counts: true, area: "midfield", autoSub: { kind: "on", playerName: scorersName } });
   expect(slots.some((slot) => slot.playerCode === HULL_SCORER)).toBe(false);

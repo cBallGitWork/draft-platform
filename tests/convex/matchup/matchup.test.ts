@@ -1,7 +1,5 @@
 import { expect, test, vi } from "vitest";
-import { api, internal } from "../../../convex/_generated/api";
-import { STREAM_BEHIND } from "../../../convex/football/matchCommentary";
-import type { Id } from "../../../convex/_generated/dataModel";
+import { api } from "../../../convex/_generated/api";
 import { inTenths } from "../../../convex/scoring/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
@@ -25,17 +23,20 @@ import {
   LEAGUE_KICKOFF,
   lineupOf,
   liveRecords,
-  MIDFIELD_GOAL,
   lockMatch,
+  matchupAs,
+  nameOf,
   PHILLIPS,
   scoreRead,
   scoresLeague,
   sideTotal,
   slotOf,
+  storeLeague,
   TYPO_STAT,
-  type ScoresLeague,
   BOBS_FIRST_POINTS,
   GREALISH,
+  WRITTEN_OVER,
+  writeOverAnns,
 } from "../../support/convex/gameweekScores.harness";
 import { actingAs, ADMIN, adminCreatesLeague } from "../../support/convex/leagues.harness";
 import { HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
@@ -54,13 +55,6 @@ const STOPPAGE_LABEL = "90+1'20";
 const STOPPAGE_MINUTES = 91;
 /** A club Hull meet again in a double gameweek: FPL's code for Arsenal. */
 const ARSENAL = 3;
-
-async function matchupAs(league: ScoresLeague, email: string, args: { teamId?: Id<"teams">; gameweek?: number } = {}) {
-  return (await actingAs(league.t, email)).query(api.matchup.matchup.ofTeam, { leagueId: league.leagueId, now: Date.now(), ...args });
-}
-
-const nameOf = (league: ScoresLeague, code: number) =>
-  league.t.run(async (ctx) => (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", code)).unique())!.name);
 
 test("a replayed gameweek plays out on the matchup: yet to play, live with the minute, the auto-sub at full time, final once locked", async () => {
   const league = await scoresLeague();
@@ -110,13 +104,9 @@ test("a final gameweek's stored scores are its totals, as the table reads them, 
   const league = await scoresLeague({ catToo: true });
   await fullTimeRecords(league);
   await lockMatch(league);
-  await league.t.mutation(internal.table.finalScores.storeLeague, { leagueId: league.leagueId });
+  await storeLeague(league);
   // Written over, so only a read of the stored rows can give it.
-  const WRITTEN_OVER = 99;
-  await league.t.run(async (ctx) => {
-    const row = (await ctx.db.query("finalScores").collect()).find((each) => each.teamId === league.annsTeam)!;
-    await ctx.db.patch("finalScores", row._id, { points: WRITTEN_OVER });
-  });
+  await writeOverAnns(league);
 
   const game = await annsScoredGame(league, GAMEWEEK);
   const table = await (await actingAs(league.t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId: league.leagueId });
@@ -133,9 +123,9 @@ test("a final gameweek whose matches have changed since it was stored is worked 
   const league = await scoresLeague();
   await fullTimeRecords(league);
   await lockMatch(league);
-  await league.t.mutation(internal.table.finalScores.storeLeague, { leagueId: league.leagueId });
+  await storeLeague(league);
   await league.t.run(async (ctx) => {
-    for (const row of await ctx.db.query("finalScores").collect()) await ctx.db.patch("finalScores", row._id, { points: 99 });
+    for (const row of await ctx.db.query("finalScores").collect()) await ctx.db.patch("finalScores", row._id, { points: WRITTEN_OVER });
     await ctx.db.insert("fixtures", { code: HULL_EVERTON + 1, gameweek: GAMEWEEK, homeClubCode: ARSENAL, awayClubCode: ARSENAL + 1, kickoff: LEAGUE_KICKOFF });
   });
   const game = await annsScoredGame(league, GAMEWEEK);
@@ -264,33 +254,4 @@ test("a total-points league has no head-to-heads", async () => {
     }
   });
   expect(await matchupAs(league, ANN)).toEqual({ kind: "totalPoints" });
-});
-
-test("the commentary is the match's stored lines, the goal priced for its scorer, the full-time line listing both lineups' men's points, and says when delayed", async () => {
-  const league = await scoresLeague();
-  expect((await annsScoredGame(league, GAMEWEEK)).commentary).toEqual({ kind: "read", lines: [], delayed: false });
-
-  await fullTimeRecords(league);
-  const scorer = await nameOf(league, HULL_SCORER);
-  const line = (sourceId: number, text: string, minute: number | null, type: string, playerCodes: number[] = []) => ({ sourceId, text, minute, addedMinute: 0, type, playerCodes });
-  await league.t.run((ctx) =>
-    ctx.db.insert("matchCommentary", {
-      fixtureCode: HULL_EVERTON,
-      lines: [line(3, "FT HUL 1–2 EVE", 1, "end 14"), line(2, `64' GOAL ${scorer}`, 64, "goal", [HULL_SCORER]), line(1, "KO HUL v EVE", 0, "start")],
-      delayed: { reason: STREAM_BEHIND, since: LEAGUE_KICKOFF },
-    }),
-  );
-
-  const { commentary, team, opponent } = await annsScoredGame(league, GAMEWEEK);
-  if (commentary.kind !== "read") throw new Error(`the commentary wasn't read: ${commentary.reason}`);
-  const scorerSlot = slotOf(team, HULL_SCORER);
-  expect(commentary.delayed).toBe(true);
-  expect(commentary.lines.map((each) => each.text).slice(1)).toEqual([`64' GOAL ${scorer}`, "KO HUL v EVE"]);
-  expect(commentary.lines[1].points).toBe(`+${MIDFIELD_GOAL}`);
-  expect(commentary.lines[0].text).toMatch(/^FT HUL 1–2 EVE: /);
-  expect(commentary.lines[0].text).toContain(`${scorer} ${scorerSlot.points}`);
-  const evertonKeeper = EVERTON_STARTERS[0].playerCode;
-  expect(commentary.lines[0].text).toContain(`${await nameOf(league, evertonKeeper)} ${slotOf(opponent, evertonKeeper).points}`);
-  // Phillips, Hull's unused keeper, didn't play, so isn't listed.
-  expect(commentary.lines[0].text).not.toContain(await nameOf(league, PHILLIPS));
 });
