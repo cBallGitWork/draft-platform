@@ -184,7 +184,8 @@ How #28 reads a match while it is played (`convex/stats/liveStatsSync.ts`, `conv
 - Every minute from kickoff, both feeds are read for each match being played, the same reads as
   at full time, and each record is written provisional. From the first read the Premier League
   calls full time, the match goes through the full-time path above; it stops being polled once
-  complete, or four hours after kickoff.
+  complete, or four hours after kickoff. A complete match whose commentary still lacks its
+  full-time line is polled on for up to ten minutes after full time (#917).
 - `changed` on each tick's row (`liveStatsTicks`) and each sync's (`matchStatsSyncs`) names the
   men whose records moved. No points are recomputed from it: the table works each team's points
   out on read from the records, the stored lineups (`convex/lineup/lineups.ts`) and the site's
