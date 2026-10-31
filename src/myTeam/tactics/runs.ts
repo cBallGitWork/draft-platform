@@ -3,7 +3,7 @@
 // pitch's own metres (./pitchMarkings.ts), attack at the top, for ./RoleRuns.tsx to draw.
 
 import { AREAS, LANES, type Cell } from "../../../convex/lineup/pitch";
-import type { Run } from "../../../convex/lineup/roles";
+import { slotLabel, SWEEPER, type Run } from "../../../convex/lineup/roles";
 import { LANE_WIDTH, PITCH_SIZE, ROW_LENGTH } from "./pitchMarkings";
 
 /** A point on the drawn pitch, in metres from its top-left corner. */
@@ -20,6 +20,9 @@ export const SWEEPER_DEPTH_SHARE = 0.125;
  *  whole: a rough run from a slot further up than its role's usual one (a shadow striker up front)
  *  would otherwise run off the pitch. */
 export const RUN_MARGIN = 3;
+
+/** Whether a player in `cell` with `role` is drawn a little deeper than the line: a sweeper is. */
+export const drawnDeeper = (cell: Cell, role: string | undefined) => slotLabel(cell, role) === SWEEPER;
 
 const MIDDLE_LANE = (LANES.length - 1) / 2;
 

@@ -86,7 +86,7 @@ export async function holdGameweeks(
 }
 
 /** Holds `extra` current gameweek rows past FPL's 38, with no matches: only a row written by hand
- *  can pass it, and no read of the season's schedule may stop on one (#831, #872). */
+ *  can pass it, and no read of the season's schedule may stop on one (#831, #832, #872). */
 export const holdGameweeksPastTheSeason = (t: TestConvex, extra: number) =>
   t.run(async (ctx) => {
     for (let number = GAMEWEEKS + 1; number <= GAMEWEEKS + extra; number += 1) await ctx.db.insert("gameweeks", { number, deadline: 0 });
