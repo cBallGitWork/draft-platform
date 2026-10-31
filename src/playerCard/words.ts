@@ -22,11 +22,6 @@ export const chanceWords = (percent: number) => `${percent}% chance of playing n
 /** This season's matches. */
 export const SEASON_TITLE = "This season";
 export const noMatchesWords = "He hasn't played a match this season.";
-/** Over the matches: what their points are (spec/12; Craig, 31 Oct 2026). */
-export const basePointsNote =
-  "His own points in each match under the site's scoring, whoever owned him and whether or not he started. Where his team started him, his role's adjustment is shown under the match, not added in.";
-/** Over the matches, when none of his positions has a price of its own yet (spec/14: SS). */
-export const bestPositionNote = "None of his positions has a price of its own yet, so each match is at the slot his positions allow that scores most.";
 /** The switch over the matches: which of his positions they are priced at. */
 export const pricedAtLabel = "Points at";
 /** Beside points that may still move ("Live", as on My team's fixtures): the match isn't final, or

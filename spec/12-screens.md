@@ -64,10 +64,9 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
     did, with no role, whether he was owned or a free agent, started, sat on the bench, came on or
     not, shown plainly: "The player card is an info page just show their points and stop being
     weird" (Craig, 31 Oct 2026). While a match is live its points are provisional until final. A
-    player with more than one
-    position: "Has to be his main as that's consistent week to week", and "We need a more stable
-    way for main position. Maybe we do show his points for all his main positions as a
-    switch/toggle" (Craig, 31 Oct 2026). So the card has a switch with one key for each of his
+    player with more than one position: "Has to be his main as that's consistent week to week",
+    and "We need a more stable way for main position. Maybe we do show his points for all his main
+    positions as a switch/toggle" (Craig, 31 Oct 2026). So the card has a switch with one key for each of his
     positions, back to front, opening on the first; choosing one prices every match at that
     position. A player with one position has no switch. Where his team started him, what his role
     did to his points shows on its own line under the match (`spec/05`), never added into his base

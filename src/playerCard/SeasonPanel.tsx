@@ -8,8 +8,6 @@ import type { PlayedMatch, PlayerCard } from "./seam";
 import { MatchName } from "./MatchName";
 import {
   adjustmentWords,
-  basePointsNote,
-  bestPositionNote,
   breakdownLabel,
   columns,
   figureWords,
@@ -48,8 +46,6 @@ export function Season({ card }: { card: PlayerCard }) {
         <PanelNote>{noMatchesWords}</PanelNote>
       ) : (
         <>
-          <PanelNote>{basePointsNote}</PanelNote>
-          {card.pricedAt.length === 0 && <PanelNote>{bestPositionNote}</PanelNote>}
           {chosen !== undefined && card.pricedAt.length > 1 && (
             <div className={PANEL_BODY}>
               <Choice

@@ -3,7 +3,7 @@
 // server's own rule (cardPoints), and his club's next fixtures. Saka carries FPL's news, and an
 // override on one match.
 
-import { cardPositions, pointsAt } from "../../convex/playerCard/cardPoints";
+import { basePoints, cardPositions } from "../../convex/playerCard/cardPoints";
 import { categoryName } from "../../convex/scoring/categories";
 import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import type { MatchStats } from "../../convex/scoring/values";
@@ -28,10 +28,11 @@ const PREVIEW_ROLE = { name: "Number 10", points: 1, lines: [{ stat: "big_chance
 
 function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
   return RECORDS.map((record, index) => {
-    const points = cardPositions(player.positions).map((position) => {
-      const priced = pointsAt(record, FIRST_SCORING, position);
-      return { position, total: priced.total, categories: priced.categories.map((each) => ({ ...each, name: categoryName(each.stat) })) };
-    });
+    const points = basePoints(record, FIRST_SCORING, player.positions).map(({ position, total, categories }) => ({
+      position,
+      total,
+      categories: categories.map((each) => ({ ...each, name: categoryName(each.stat) })),
+    }));
     // One match shows how a role's line reads (spec/05), though the first set adjusts no role.
     const started = player.name === PREVIEW_ROLE_PLAYER && index === 1 && record !== null ? { role: PREVIEW_ROLE } : {};
     return {

@@ -1,22 +1,20 @@
 // What one of a player's matches is worth, priced with no lineup. The card shows his base points at
-// each position he has (spec/12, The player card; Craig, 31 Oct 2026): basePoints, and the match
-// page the first of them for a man in no lineup (spec/10). The Squad tab,
-// through scoredMatches.ts, prices a match no lineup counted at his best position: the slot his
-// positions let him stand in (pitch.ts's playsCell) that scores the most for the match. Pure, so
-// the queries and their tests price alike.
+// each position he has (spec/12, The player card; Craig, 31 Oct 2026), and the match page the
+// first of them for a man in no lineup (spec/10): basePoints. The Squad tab, through
+// scoredMatches.ts, prices a match no lineup counted at his best position: the slot his positions
+// let him stand in (pitch.ts's playsCell) that scores the most for the match. Pure, so the queries
+// and their tests price alike.
 
-import { v, type Infer } from "convex/values";
 import { ALL_CELLS, playsCell, positionOfSlot, SLOT_POSITIONS, type Cell, type SlotPosition } from "../lineup/pitch";
 import { positionRank, type Position } from "../positions/positionTables";
 import { scoreMatch, type MatchPoints } from "../scoring/scoring";
 import type { MatchStats } from "../scoring/values";
 import type { ScoringSet } from "../scoring/scoringSet";
 
-/** How a match was priced: from his slot in a lineup, at his best position, or there but not
- *  counted: a bench player who didn't come on, at his best position, or his other match in a double
- *  gameweek that counts only his best, at his slot (spec/12, The player card). */
-export const scoredAs = v.union(v.literal("slot"), v.literal("bestPosition"), v.literal("notCounted"));
-export type ScoredAs = Infer<typeof scoredAs>;
+/** How the Squad tab's match was priced: from his slot in a lineup, at his best position, or there
+ *  but not counted: a bench player who didn't come on, at his best position, or his other match in
+ *  a double gameweek that counts only his best, at his slot (spec/12, Squad). */
+export type ScoredAs = "slot" | "bestPosition" | "notCounted";
 
 export interface CardPoints extends MatchPoints {
   scoredAs: ScoredAs;

@@ -15,8 +15,6 @@ import { playerCardPath } from "../../../src/playerCard/paths";
 import type { PlayedMatch, PlayerCard } from "../../../src/playerCard/seam";
 import {
   backWords,
-  basePointsNote,
-  bestPositionNote,
   breakdownLabel,
   roleLineLabel,
   chanceWords,
@@ -182,12 +180,12 @@ describe("the card", () => {
     expect(await screen.findByText(goneWords)).toBeTruthy();
   });
 
-  it("each match shows his base points, said so, and each category he earned points in", async () => {
+  it("each match shows his base points plainly, with no note on how they were priced, and each category he earned points in", async () => {
     openCard(AT_ONE, { cards: [{ ...AT_ONE, matches: [AT_W] }] });
     const seasonPanel = await screen.findByRole("region", { name: SEASON_TITLE });
     const season = within(seasonPanel);
 
-    expect(season.getByText(basePointsNote)).toBeTruthy();
+    expect(seasonPanel.querySelectorAll("p")).toHaveLength(0);
     expectColumnHeads(seasonPanel, Object.values(columns));
     const row = season.getByRole("rowheader", { name: `${ARSENAL.shortName} ${versusWords} ${COVENTRY.shortName}` }).closest("tr")!;
     expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2", "90", "W", "11"]);
@@ -231,10 +229,9 @@ describe("the card", () => {
     expect((season.getByRole("radio", { name: "W" }) as HTMLInputElement).checked).toBe(true);
   });
 
-  it("a player none of whose positions has a price yet is priced once, at his best, said so", async () => {
+  it("a player none of whose positions has a price yet is priced once, at his best, with no switch", async () => {
     openCard(AT_ONE, { cards: [{ ...AT_ONE, positions: ["SS"], pricedAt: [], matches: [AT_W] }] });
     const season = within(await screen.findByRole("region", { name: SEASON_TITLE }));
-    expect(season.getByText(bestPositionNote)).toBeTruthy();
     expect(season.queryByRole("radiogroup")).toBeNull();
     const row = season.getByRole("rowheader").closest("tr")!;
     expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2", "90", "W", "11"]);
