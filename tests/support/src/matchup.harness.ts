@@ -5,7 +5,8 @@ import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayingState } from "../../../convex/football/matchScores";
-import { roleIn } from "../../../convex/lineup/roles";
+import type { Area } from "../../../convex/lineup/pitch";
+import { namedRole, roleIn } from "../../../convex/lineup/roles";
 import type { MatchupCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../../convex/matchup/matchupShape";
 import type { Matchup, MatchupSeam } from "../../../src/matchup/seam";
 import { lineupLabel } from "../../../src/matchup/words";
@@ -77,12 +78,12 @@ export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
   ...rest,
 });
 
-/** The role a made-up starter plays unless his test gives one: a centre midfielder's first, as
- *  `slot` stands him in midfield. */
-const STARTER_ROLE = roleIn({ area: "midfield", lane: "centre" }, undefined);
+/** The role a made-up starter plays unless his test gives one: his area's centre slot's first, as
+ *  made-up men stand in areas, not cells. */
+export const roleOf = (area: Area) => namedRole(roleIn({ area, lane: "centre" }, undefined));
 
-/** A team's side: its starters, each in STARTER_ROLE unless he has one, and bench, none with a role
- *  unless he has one, its total and whether that is provisional. */
+/** A team's side: its starters, each in his area's role (roleOf) unless he has one, and bench, none
+ *  with a role unless he has one, its total and whether that is provisional. */
 export const teamSide = (
   teamName: string,
   starters: (Slot & Partial<Pick<MatchupStarter, "role">>)[],
@@ -95,7 +96,7 @@ export const teamSide = (
   teamName,
   points,
   provisional,
-  lineup: { starters: starters.map((starter) => ({ role: STARTER_ROLE, ...starter })), bench: bench.map((slot) => ({ role: null, ...slot })) },
+  lineup: { starters: starters.map((starter) => ({ role: roleOf(starter.area), ...starter })), bench: bench.map((slot) => ({ role: null, ...slot })) },
 });
 
 type Game = HeadToHead["game"];
