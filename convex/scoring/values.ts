@@ -1,7 +1,6 @@
 // The values scoring reads and checks: points in tenths, a stat from a match record, and the
-// refusal a bad value gets. No imports, so scoringSet.ts, ownStats.ts and scoring.ts all lean on it
-// without leaning on each other in a circle, and schema.ts and the browser load only this for
-// inTenths (#198).
+// refusal a bad value gets. It imports nothing, so scoringSet.ts, ownStats.ts and scoring.ts can
+// all lean on it without leaning on each other in a circle (#198).
 
 /** Why a scoring set can't be saved or scored with, told apart from a bug, which is never shown
  *  as a reason. Every check in scoringSet.ts, ownStats.ts and here throws it. */
