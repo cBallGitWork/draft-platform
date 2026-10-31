@@ -13,21 +13,19 @@ import {
   annsScoredGame,
   BOB,
   EVERTON_POINTS,
-  fullTimeRecords,
   GAMEWEEK,
   holdHullAndEverton,
   HULL_POINTS,
   HULL_SCORER,
   HULL_STARTERS,
-  lockMatch,
   nameOf,
   PHILLIPS,
   readTable,
   scoresLeague,
   sideTotal,
-  storeLeague,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
+import { fullTimeRecords, lockMatch, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
 import { actingAs, ADMIN, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { EVERTON_CLUB, HULL_CITY, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { EMOJI } from "../../support/convex/test.harness";

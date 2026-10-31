@@ -1,7 +1,7 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { POSITIONS } from "../positions/positionTables";
-import { syncTrigger } from "./football";
+import { failure, syncTrigger } from "./football";
 
 // Positions (#22). Kept apart from `players`, which the football sync rewrites every six hours, so
 // no feed read touches the admin's say. Each row is keyed on FPL's season-stable `code`.
@@ -63,7 +63,7 @@ export const positionsSyncFields = {
       unknownFormations: v.array(v.string()),
       unknownLabels: v.array(v.string()),
     }),
-    v.object({ ok: v.literal(false), error: v.string() }),
+    failure,
   ),
 };
 

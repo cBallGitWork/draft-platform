@@ -17,9 +17,9 @@ import {
   shapeFingerprint,
 } from "../../scripts/release.mjs";
 import { DEPLOY_KEY } from "../support/scripts/liveSetup.harness.mjs";
+import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
-const REPO = join(import.meta.dirname, "../..");
-const SCRIPT = join(REPO, "scripts/release.mjs");
+const SCRIPT = join(REPO_ROOT, "scripts/release.mjs");
 const BACKUP_PATH = "/backups/backup.zip";
 const LIVE = "a".repeat(64);
 const CHANGED = "b".repeat(64);
@@ -110,12 +110,12 @@ test("released but the record fails: the release still passes, saying the next o
 });
 
 // The fingerprint, from the real convex/schema.ts.
-const schema = JSON.parse(await schemaJson(join(REPO, "convex/schema.ts")));
+const schema = JSON.parse(await schemaJson(join(REPO_ROOT, "convex/schema.ts")));
 const withTables = (tables) => JSON.stringify({ ...schema, tables });
 
 test("esbuild is pinned to the version Convex bundles with, so there is one copy", () => {
-  const lock = JSON.parse(readFileSync(join(REPO, "package-lock.json"), "utf8"));
-  const pkg = JSON.parse(readFileSync(join(REPO, "package.json"), "utf8"));
+  const lock = JSON.parse(readFileSync(join(REPO_ROOT, "package-lock.json"), "utf8"));
+  const pkg = JSON.parse(readFileSync(join(REPO_ROOT, "package.json"), "utf8"));
   expect(pkg.devDependencies.esbuild).toBe(lock.packages["node_modules/convex"].dependencies.esbuild);
 });
 
@@ -154,7 +154,7 @@ function runScript(liveFingerprint) {
   );
   chmodSync(npx, 0o755);
   const result = spawnSync(process.execPath, [SCRIPT], {
-    cwd: REPO,
+    cwd: REPO_ROOT,
     encoding: "utf8",
     env: {
       ...process.env,
