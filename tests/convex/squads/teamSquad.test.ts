@@ -171,6 +171,15 @@ describe("the season's stats", () => {
     expect((await rowOf(RAYA.code)).stats).toEqual(squadStats({}));
   });
 
+  test("come from his own totals row alone, so one with none counted shows no goals beside no minutes", async () => {
+    await t.run(async (ctx) => {
+      await ctx.db.insert("playerSeasonStats", { season: 2026, playerCode: SAKA.code, stats: { appearances: 2, minutes: 180, goals_scored: 3, clean_sheets: 1 } });
+    });
+    const { players } = await read();
+    for (const { stats } of players.filter(({ code }) => code !== SAKA.code)) expect(stats).toEqual(squadStats({}));
+    for (const { stats } of players) if (stats!.minutes === 0) expect(Object.values(stats!).every((value) => value === 0)).toBe(true);
+  });
+
   test("are none while no season's totals are held", async () => {
     expect((await rowOf(SAKA.code)).stats).toBeNull();
   });

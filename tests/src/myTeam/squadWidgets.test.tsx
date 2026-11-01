@@ -22,16 +22,16 @@ import {
   openPanelLabel,
   playerCardWords,
   roleLastGameweekNotSettledLabel,
-  rolePointsNotSettledLabel,
+  rolePointsNotBuiltLabel,
   setLineupWords,
-  setRoleNotSettledLabel,
+  setRoleNotBuiltLabel,
   squadCountWords,
   squadTableLabel,
   squadViewWords,
-  startedNotSettledLabel,
+  startedNotBuiltLabel,
   statusNotSettledLabel,
 
-  viewNotSettledLabel,
+  viewNotBuiltLabel,
   YOUR_ELEVEN_TITLE,
 } from "../../../src/myTeam/squad/words";
 import { league } from "../../support/src/shell.harness";
@@ -75,9 +75,9 @@ describe("the table's plate", () => {
 
     await userEvent.click(screen.getByRole("radio", { name: squadViewWords.schedule }));
     expect(screen.queryByRole("table")).toBeNull();
-    expect(screen.getByRole("img", { name: viewNotSettledLabel("schedule") })).toBeTruthy();
+    expect(screen.getByRole("img", { name: viewNotBuiltLabel("schedule") })).toBeTruthy();
     await userEvent.click(screen.getByRole("radio", { name: squadViewWords.rules }));
-    expect(screen.getByRole("img", { name: viewNotSettledLabel("rules") })).toBeTruthy();
+    expect(screen.getByRole("img", { name: viewNotBuiltLabel("rules") })).toBeTruthy();
     await userEvent.click(screen.getByRole("radio", { name: squadViewWords.stats }));
     expect(screen.getByRole("table")).toBeTruthy();
   });
@@ -129,7 +129,7 @@ describe("his season panel", () => {
     await openPanel("Saka");
     const panel = panelOf("Saka");
 
-    for (const label of [startedNotSettledLabel, rolePointsNotSettledLabel, bestRoleNotRatedLabel, roleLastGameweekNotSettledLabel, setRoleNotSettledLabel, statusNotSettledLabel]) {
+    for (const label of [startedNotBuiltLabel, rolePointsNotBuiltLabel, bestRoleNotRatedLabel, roleLastGameweekNotSettledLabel, setRoleNotBuiltLabel, statusNotSettledLabel]) {
       expect(within(panel).getByRole("img", { name: label })).toBeTruthy();
     }
     // FPL's news is held, so it shows beside the chip that waits.

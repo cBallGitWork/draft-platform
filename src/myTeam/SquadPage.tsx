@@ -21,7 +21,7 @@ import {
   squadViewLabel,
   squadViews,
   squadViewWords,
-  viewNotSettledLabel,
+  viewNotBuiltLabel,
   type SquadView,
 } from "./squad/words";
 
@@ -83,7 +83,8 @@ function SquadBody({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }
 }
 
 /** The table's panel: its plate holds the title, the view picker and how full the squad is. Only
- *  the Stats view is built; what Schedule and Rules show is a question for Craig. */
+ *  the Stats view is built; Schedule (his next 6 fixtures) and Rules (the squad against the
+ *  league's limits) are answered (README) but not built. */
 function SquadPanel({ squad, tactics, selected, onSelect }: { squad: TeamSquad; tactics: Tactics | undefined; selected: number | null; onSelect(code: number): void }) {
   const [view, setView] = useState<SquadView>("stats");
   const titleId = useId();
@@ -113,7 +114,7 @@ function SquadPanel({ squad, tactics, selected, onSelect }: { squad: TeamSquad; 
         />
       ) : (
         <div className="p-2">
-          <Placeholder label={viewNotSettledLabel(view)} className="h-40 w-full" />
+          <Placeholder label={viewNotBuiltLabel(view)} className="h-40 w-full" />
         </div>
       )}
     </section>

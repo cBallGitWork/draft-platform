@@ -26,10 +26,10 @@ import {
   panelRows,
   playerCardWords,
   roleLastGameweekNotSettledLabel,
-  rolePointsNotSettledLabel,
+  rolePointsNotBuiltLabel,
   seasonWords,
-  setRoleNotSettledLabel,
-  startedNotSettledLabel,
+  setRoleNotBuiltLabel,
+  startedNotBuiltLabel,
   startingInWords,
   statusNotSettledLabel,
   THIS_SEASON,
@@ -95,10 +95,10 @@ export function PlayerPanel({
           </span>
         </Fact>
         <Fact term={panelRows.started}>
-          <Placeholder label={startedNotSettledLabel} className={ROW_PLACEHOLDER} />
+          <Placeholder label={startedNotBuiltLabel} className={ROW_PLACEHOLDER} />
         </Fact>
         <Fact term={panelRows.rolePoints}>
-          <Placeholder label={rolePointsNotSettledLabel} className={ROW_PLACEHOLDER} />
+          <Placeholder label={rolePointsNotBuiltLabel} className={ROW_PLACEHOLDER} />
         </Fact>
         <Fact term={panelRows.plays}>
           <PositionList positions={player.positions} />
@@ -115,8 +115,8 @@ export function PlayerPanel({
         <GameweekPlace tactics={tactics} code={player.code} />
       </dl>
       <div className="flex items-center justify-between gap-2 px-3 pb-2">
-        {/* Where Set his role goes isn't settled: a question for Craig (the README). */}
-        <Placeholder label={setRoleNotSettledLabel} className="h-tap w-28" />
+        {/* Set his role opens Tactics with him selected (the README), once Tactics can from the address. */}
+        <Placeholder label={setRoleNotBuiltLabel} className="h-tap w-28" />
         <Link to={playerCardPath(leagueId, player.code)} className="flex min-h-tap items-center font-semibold">
           {playerCardWords} <span aria-hidden="true">&nbsp;{nextGlyph}</span>
         </Link>

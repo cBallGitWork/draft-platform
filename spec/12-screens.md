@@ -61,7 +61,13 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
 - My team's other tabs, after the Tactics tab (25 Oct 2026):
   - **Squad**: every player in the squad in one table, with his position, club, next fixture,
     season points and last gameweek's points. His season points are what his team got from him,
-    not every match his card shows (Craig, 29 Oct 2026).
+    not every match his card shows (Craig, 29 Oct 2026). Craig's "ok" to Claude's suggestions for
+    its approved picture (1 Nov 2026):
+    - Started, in his season panel: games he started for your team.
+    - Role points, in his season panel: the points his roles added or took away this season.
+    - Set his role, in his season panel: opens Tactics with him selected.
+    - The Schedule view: his next 6 fixtures.
+    - The Rules view: your squad against the league's limits.
   - **Fixtures**: the team's head-to-head fixtures and results for the season. A player's Premier
     League fixtures belong on the players screen.
   - **Transactions**: the team's claims, drops, trades and commissioner assignments, newest first,

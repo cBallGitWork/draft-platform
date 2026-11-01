@@ -24,8 +24,8 @@ export function squadCountWords(players: number, maximum: number | null): string
   if (maximum === null) return `${players} players`;
   return players === maximum ? `${players} of ${maximum}, the league's maximum` : `${players} of ${maximum}`;
 }
-/** A view whose columns aren't settled yet (a question for Craig): its placeholder's name. */
-export const viewNotSettledLabel = (view: SquadView) => `${squadViewWords[view]}: what this view shows isn't settled yet`;
+/** A view answered but not built yet: its placeholder's name. */
+export const viewNotBuiltLabel = (view: SquadView) => `${squadViewWords[view]}: not built yet`;
 
 export const squadTableLabel = (teamName: string) => `${teamName}'s squad`;
 export const squadColumns = {
@@ -90,11 +90,11 @@ export const seasonWords = "Season";
 export const lastWords = "Last";
 export const formLabel = (gameweeks: number) => `Points in the league's last ${gameweeks} gameweeks, oldest first`;
 /** The panel's placeholders: each says what will show there. */
-export const startedNotSettledLabel = "Started: what it counts isn't settled yet";
-export const rolePointsNotSettledLabel = "Role points: what they count aren't settled yet";
+export const startedNotBuiltLabel = "Started: not counted yet";
+export const rolePointsNotBuiltLabel = "Role points: not counted yet";
 export const bestRoleNotRatedLabel = "Best role: not rated yet";
 export const roleLastGameweekNotSettledLabel = "Role last gameweek: what it counts isn't settled yet";
-export const setRoleNotSettledLabel = "Set his role: where it goes isn't settled yet";
+export const setRoleNotBuiltLabel = "Set his role: waits for Tactics to open with him selected";
 export const playerCardWords = "Player card";
 /** Where he stands in the gameweek being set: "Starting, W right"; "Bench, S3". */
 export const gameweekRowWords = (gameweek: number) => `GW${gameweek}`;

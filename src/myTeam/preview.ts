@@ -34,6 +34,8 @@ const FIRST_KICKOFF = Date.now() + 2 * DAY_MS;
 const nextMatches = (seed: number) =>
   [0, 1, 2].map((week) => ({ gameweek: 9 + week, kickoff: FIRST_KICKOFF + week * WEEK_MS, opponent: CLUBS[(seed * 3 + week) % CLUBS.length], home: (seed + week) % 2 === 0 }));
 
+const NOTHING_COUNTED = { appearances: 0, minutes: 0, goals: 0, assists: 0, cleanSheets: 0, saves: 0, yellowCards: 0, redCards: 0 };
+
 /** A made-up season for each of the Tactics tab's players, worked out from his code so a reload
  *  shows the same; the last one has played nothing yet, and two carry FPL news. */
 const squad: TeamSquad = {
@@ -56,9 +58,10 @@ const squad: TeamSquad = {
       seasonPoints: unplayed ? null : 20 + ((code * 17) % 60),
       lastGameweekPoints: unplayed ? null : (code * 7) % 14,
       form: unplayed ? [null, null, null, null, null] : [0, 1, 2, 3, 4].map((week) => (code * 5 + week * 3) % 13),
-      stats: {
-        appearances: unplayed ? 0 : 5 + (code % 4),
-        minutes: unplayed ? 0 : 400 + ((code * 37) % 320),
+      // One who hasn't played has nothing counted, as his totals row would hold (seasonStats.ts).
+      stats: unplayed ? NOTHING_COUNTED : {
+        appearances: 5 + (code % 4),
+        minutes: 400 + ((code * 37) % 320),
         goals: keeper ? 0 : (code * 3) % 8,
         assists: keeper ? 0 : (code * 2) % 5,
         cleanSheets: (code * 5) % 4,
