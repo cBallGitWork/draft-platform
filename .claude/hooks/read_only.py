@@ -9,7 +9,9 @@ An agent is read-only when Claude Code says it is (READ_ONLY_BUILT_INS) or when 
 reference, "Common input fields": agent_type is "Present when the session uses --agent or the
 hook fires inside a subagent", and agent_id is the "Unique identifier for the subagent". A payload
 with an agent_id but no agent_type gets a note, since the check would then pass everything by.
-A folder in another repository (a scratch repo built to try a hook) is its own.
+A folder in another repository (a scratch repo built to try a hook) is its own. What is refused
+is a deny-list of the git commands known to move a checkout or change its files, so it is
+incomplete by design: a command it doesn't name goes through.
 Stdlib only, Python 3.9+.
 """
 
@@ -29,7 +31,7 @@ FRONTMATTER = "---"
 CHANGES_CHECKOUT = {
     "checkout", "switch", "restore", "reset", "merge", "rebase", "pull", "commit", "stash",
     "cherry-pick", "revert", "am", "apply", "clean", "rm", "mv", "add", "bisect", "read-tree",
-    "update-ref",
+    "update-ref", "checkout-index", "update-index",
 }
 STASH_READS = {"list", "show"}  # git stash list, git stash show
 # git branch's options that move, delete, copy or rename a branch, as long and as short letters

@@ -29,7 +29,7 @@ changes=(
   'git symbolic-ref -d HEAD' 'git branch -f feat/builder origin/main' 'git branch --force x main'
   'git branch -D feat/builder' 'git branch -m feat/builder y' 'git config alias.co checkout'
   'git config --add alias.co "checkout -q"' 'git -c alias.co=checkout co origin/main'
-  'git -c Alias.co=checkout co main'
+  'git -c Alias.co=checkout co main' 'git checkout-index -f -a' 'git update-index --assume-unchanged a.ts'
   'git -C "$X" checkout main'  # a folder the guard can't place
 )
 reads=(
