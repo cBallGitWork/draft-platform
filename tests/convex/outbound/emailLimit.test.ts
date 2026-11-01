@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { getFunctionName } from "convex/server";
 import { internal } from "../../../convex/_generated/api";
 import { waitForTomorrow } from "../../../convex/outbound/emailLimit";
+import { COMMISSIONER, LEAGUE_NAME, MANAGERS } from "../../support/convex/leagues.harness";
 import { freshConvex, pendingJobs, type TestConvex } from "../../support/convex/test.harness";
 
 // The step every send that finds none of today's emails left shares (#888): invites, approved join
@@ -10,7 +11,7 @@ import { freshConvex, pendingJobs, type TestConvex } from "../../support/convex/
 /** Any function the scheduler may run, with its arguments: deletion notices' send, as one of the
  *  three that wait. */
 const WAITING = internal.leagues.deletionNotices.send;
-const WAITING_ARGS = { leagueName: "Sunday League", by: "ann@example.com", emails: ["bob@example.com"] };
+const WAITING_ARGS = { leagueName: LEAGUE_NAME, by: COMMISSIONER, emails: MANAGERS };
 
 const AFTERNOON = Date.parse("2026-10-20T15:30:00Z");
 const MIDNIGHT = Date.parse("2026-10-20T00:00:00Z");
