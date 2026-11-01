@@ -33,9 +33,7 @@ import { UNSURE } from "./starsShape";
 // works out only its own players.
 //
 // One bad record or player never stops the rest: a match with no kickoff held is left out of his
-// matches, and a player whose rating throws keeps the row he had; each is logged. A lock whose
-// records can't be read is logged too, naming the repair, REFRESH_COMMAND:
-// npx convex run stars/starsRefresh:refreshAll '{"cursor":null}'
+// matches, and a player whose rating throws keeps the row he had; each is logged.
 //
 // Cost: a lock reads every record of its 40-odd players, prices each one's counted matches (at most
 // STARS_WINDOW) under his 2 to 24 roles, then reads every row to rank: about 700 small rows.
@@ -47,9 +45,6 @@ import { UNSURE } from "./starsShape";
 // transaction). A season-sized page and lock run in the tests (starsRefresh.season.test.ts);
 // Convex's real time limit on them is unmeasured on a deployment.
 
-/** How a lock whose records can't be read is put right: every player's stars worked out again. */
-export const REFRESH_COMMAND = `npx convex run stars/starsRefresh:refreshAll '{"cursor":null}'`;
-
 /** After a match locks: its players' rows worked out again, then everyone ranked again. With no row
  *  held yet, every player's instead. */
 export const refreshMatch = internalMutation({
@@ -60,13 +55,7 @@ export const refreshMatch = internalMutation({
       await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.refreshAll, { cursor: null });
       return null;
     }
-    let records: Doc<"playerMatchStats">[];
-    try {
-      records = await matchRecordsOf(ctx, fixtureCode, "its players' stars");
-    } catch (error) {
-      logFailure(`match ${fixtureCode}'s players' stars weren't worked out again; run ${REFRESH_COMMAND}`, error);
-      return null;
-    }
+    const records = await matchRecordsOf(ctx, fixtureCode, "its players' stars");
     await refreshPlayers(
       ctx,
       records.map((record) => record.playerCode),
