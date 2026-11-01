@@ -159,7 +159,7 @@ function SquadRow({
         {player.unheld ? (
           <span className="inline-flex min-h-tap max-w-error-name items-center font-semibold text-event lg:min-h-0 lg:max-w-none">{player.name}</span>
         ) : (
-          <Link to={playerCardPath(leagueId, player.playerCode)} className="tap-link font-semibold lg:min-h-0 lg:min-w-0">
+          <Link to={playerCardPath(leagueId, player.playerCode)} className="inline-flex min-h-tap min-w-tap items-center font-semibold lg:min-h-0 lg:min-w-0">
             {player.name}
           </Link>
         )}{" "}
