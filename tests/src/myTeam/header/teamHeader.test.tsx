@@ -36,7 +36,7 @@ describe("My team's header band", () => {
     expect(new URLSearchParams(link.getAttribute("href")!.split("?")[1]).get("team")).toBe(idOf(ME));
 
     expect(within(meter(gameweekShort(TACTICS_GAMEWEEK - 1)) as HTMLElement).getByText(/^Won 54–/)).toBeTruthy();
-    expect(within(meter(formHead) as HTMLElement).getByRole("img").getAttribute("aria-label")).toBe(formLabel(["W", "W", "W", "W", "W"]));
+    expect(within(meter(formHead) as HTMLElement).getByRole("img").getAttribute("aria-label")).toBe(formLabel(["won", "won", "won", "won", "won"]));
     expect(meter(tableHead).textContent).toBe(`${placeWords(1)}, ${pointsShort(TABLE.table[0].points)}`);
   });
 

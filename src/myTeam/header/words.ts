@@ -5,7 +5,8 @@ import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { LOCALE } from "../../../convex/shared/moments";
 import { figureWords, gameweekWords, scoreWords } from "../../shared/words";
 import { byeWords, leagueAverageWords } from "../words";
-import { resultOf, type Result, type TeamGame } from "./teamStanding";
+import { resultOf, type Result } from "../../../convex/table/standings";
+import type { TeamGame } from "./teamStanding";
 
 export { liveWords, noFigureWords, versusWords, whenWords } from "../words";
 
@@ -32,20 +33,19 @@ export function countdownWords(left: number): string {
 /** On the hover of the no-deadline dash: why there is none. */
 export const noDeadlineWords = (gameweek: number) => `${gameweekWords(gameweek)} has no deadline yet: none of its matches has a kickoff time.`;
 
-/** A result, said in full and as its form chip. */
-export const RESULT_WORDS: Record<Result, string> = { W: "Won", L: "Lost", D: "Drew" };
-/** Form, for screen readers: "Form: won, won, lost, oldest first". */
-export const formLabel = (form: readonly Result[]) =>
-  form.length === 0 ? `${formHead}: no results yet` : `${formHead}, oldest first: ${form.map((result) => RESULT_WORDS[result].toLowerCase()).join(", ")}`;
+/** Form's chips and label, as League home says them. */
+export { formLabel, resultWords } from "../../home/words";
+/** The last game's result, as a line says it. */
+const LAST_RESULT_WORDS: Record<Result, string> = { won: "Won", drawn: "Drew", lost: "Lost" };
 
-/** Who a game is against, as the band and the GW opponent widget name it. */
+/** Who a game is against, as the band names it. */
 export const againstWords = (against: TeamGame["against"]) =>
   against.kind === "team" ? against.team : against.kind === "bye" ? byeWords : leagueAverageWords;
 
 /** The last game: "Won 54–41 v Rovers XI", or its score alone while live. */
 export const lastGameWords = ({ against, score }: TeamGame & { score: NonNullable<TeamGame["score"]> }) => {
   const line = `${scoreWords(score.team, score.opponent)} v ${againstWords(against)}`;
-  return score.provisional ? line : `${RESULT_WORDS[resultOf(score)]} ${line}`;
+  return score.provisional ? line : `${LAST_RESULT_WORDS[resultOf(score.team, score.opponent)]} ${line}`;
 };
 
 const ordinals = new Intl.PluralRules(LOCALE, { type: "ordinal" });
