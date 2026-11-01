@@ -12,7 +12,8 @@ import { playerByCode } from "../shared/players";
 import { positionsNow } from "../positions/playerPositions";
 import { placementShape } from "../schema";
 import { lineupProblems, namedCodes, reconciled, type PlayerPositions } from "./lineup";
-import { firstLineup, keptOnBenchOf } from "./firstLineup";
+import { firstLineup, keptOnBenchOf, withDroppedRoles, type FirstLineupRules } from "./firstLineup";
+import { starsOfPlayers } from "../stars/playerStars";
 import type { Area, Lane } from "./pitch";
 import { roleIn } from "./roles";
 import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords";
@@ -100,7 +101,7 @@ export async function lineupsInGameweek(
     }
     if (row === null) {
       const begun = deadline !== null;
-      const held = begun ? { starters: [], bench: squad } : firstLineup(squad, await heldPositionsOf(ctx, squad), await rulesInGameweek());
+      const held = begun ? { starters: [], bench: squad } : await firstLineupOf(ctx, squad, await rulesInGameweek());
       lineups.set(teamId, { fromGameweek: null, noLineup: begun && squad.length > 0, ...held, ...NO_CHANGES });
       continue;
     }
@@ -108,6 +109,13 @@ export async function lineupsInGameweek(
     lineups.set(teamId, { fromGameweek: row.fromGameweek, noLineup: false, ...lineup, ...changes });
   }
   return lineups;
+}
+
+/** The squad's first lineup, picked afresh (firstLineup.ts), each starter on his best-star role:
+ *  unstored, so display only. */
+async function firstLineupOf(ctx: QueryCtx, squad: readonly number[], rules: FirstLineupRules | null) {
+  const stars = await starsOfPlayers(ctx, squad);
+  return withDroppedRoles(firstLineup(squad, await heldPositionsOf(ctx, squad), rules), (playerCode) => stars.get(playerCode)!);
 }
 
 /** Each player's positions now (spec/06), for picking a first lineup. */
@@ -199,7 +207,8 @@ export async function pickFirstLineupAgain(ctx: MutationCtx, leagueId: Id<"leagu
   const squad = await squadCodes(ctx, teamId);
   const positions = await heldPositionsOf(ctx, squad);
   const keptOnBench = row === null ? new Set<number>() : keptOnBenchOf(row, squad, positions);
-  const picked = firstLineup(squad, positions, season.inGameweek(fromGameweek), keptOnBench);
+  const stars = await starsOfPlayers(ctx, squad);
+  const picked = withDroppedRoles(firstLineup(squad, positions, season.inGameweek(fromGameweek), keptOnBench), (playerCode) => stars.get(playerCode)!, row?.starters);
   if (row?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", row._id, picked);
   else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...picked, firstLineup: true });
 }
