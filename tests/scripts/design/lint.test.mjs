@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { afterAll, expect, test } from "vitest";
 import { DEFAULT_ROLES } from "../../../convex/lineup/roles.ts";
 import { POSITIONS as POSITION_LABELS } from "../../../convex/positions/positionTables.ts";
-import { initialsOf, lintPage, roleInitials } from "../../../scripts/design/lint.mjs";
+import { initialsOf, lintPage, roleCatalogue, roleInitials } from "../../../scripts/design/lint.mjs";
 import { REPO_ROOT } from "../../support/scripts/repoRoot.mjs";
 
 // The design lint (plate.md, Never and Decided): role initials, a key or legend, a `·` string.
@@ -40,6 +40,12 @@ test("the role catalogue's initials hold the ones Craig struck out, and no posit
 test("SS is spec/06's support striker label, so a board may show it though it is Shadow striker's initials", () => {
   expect(INITIALS.has("SS")).toBe(false);
   expect(lintPage(page("<td>SS</td><td>Bergkamp</td>"), INITIALS)).toEqual([]);
+});
+
+test("the real catalogue reads both modules: a slot label and SS both come back as chips", async () => {
+  const { roleNames, positions } = await roleCatalogue();
+  expect(positions).toEqual(expect.arrayContaining(["CAM", "SW", "SS"]));
+  expect(roleInitials(roleNames, positions).has("SS")).toBe(false);
 });
 
 test("role initials in drawn text fail, naming the role in full; a position chip passes", () => {
