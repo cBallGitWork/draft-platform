@@ -1,7 +1,7 @@
 # The after-release check (spec/20, Every release): after each production deployment, opens the
-# live site and signs in for real (tests/live/signIn.live.spec.ts). A failure turns the run red, and
-# GitHub emails Craig. Until the live site exists its two secrets aren't set, and it skips, saying so.
-#
+# live site and signs in for real (tests/live/signIn.live.spec.ts). A failure, the hour's sign-in link
+# limit included (#908), turns the run red, and GitHub emails Craig.
+# Until the live site exists its two secrets aren't set, and it skips, saying so.
 # Secrets (repository settings, Secrets and variables, Actions):
 #   RELEASE_CHECK_EMAIL       an address Resend receives for the account (<anything>@<id>.resend.app),
 #                             put on the live site's allowed list
