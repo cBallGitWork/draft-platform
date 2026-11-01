@@ -9,7 +9,8 @@ each in the folder it runs in (the shell's cwd, any cd before it, its -C: where.
 is judged on its own branch, not the project's. Also denies publishing a word on Craig's private
 list (private_words.py), and a pull request body that breaks the template's rules or a title far
 too long (pr_body.py), and a gh pr merge once a drift pass is due, unless it is one
-(drift_gate.py). A title only somewhat long, or publishing where there is no private list to check,
+(drift_gate.py), and, for a read-only agent such as pr-reviewer, any git command that changes a
+checkout of this repo (read_only.py). A title only somewhat long, or publishing where there is no private list to check,
 gets a note, not a denial.
 Where it can't be sure what runs or where, it refuses and says how to run the command plainly.
 
@@ -29,6 +30,7 @@ from hook_payload import project_dir
 from main_writes import MAIN, MAIN_REFS, gh_api_problem
 from pr_body import pr_body_problem, pr_title_note
 from private_words import list_missing_note, private_word_problem
+from read_only import read_only_problem
 from where import current_branch, git_call, git_dir, options, previous_branch, runners
 
 COMMIT_VALUE_SHORT = set("mFCct")  # in `-am msg` everything after m is the value
@@ -158,8 +160,8 @@ def deletes_only(args):
     return bool(refs) and deleting and not names & {"HEAD", "@"}
 
 
-def decide(cmd, cwd):
-    """A deny reason, or None to allow; cwd is where the shell starts."""
+def decide(cmd, cwd, agent_type=None):
+    """A deny reason, or None to allow; cwd is where the shell starts, agent_type the subagent's."""
     try:
         cmds = commands(cmd, cwd)
     except Unbalanced:
@@ -169,7 +171,7 @@ def decide(cmd, cwd):
     except UnreadableStdin:
         return UNREADABLE_STDIN
     problem = private_word_problem(cmd, cmds, cwd) or pr_body_problem(cmds, cwd) or gh_api_problem(cmds)
-    problem = problem or merge_problem(cmds)
+    problem = problem or merge_problem(cmds) or read_only_problem(cmds, cwd, agent_type)
     if problem:
         return problem
     switched, switched_to_main = False, False
@@ -230,7 +232,7 @@ def main():
         if isinstance(payload, dict):
             cmd = (payload.get("tool_input") or {}).get("command") or ""
             cwd = project_dir(payload.get("cwd"))
-            reason = decide(cmd, cwd)
+            reason = decide(cmd, cwd, payload.get("agent_type"))
             advice = None if reason else note(cmd, cwd)
         else:
             reason = (f"The Bash guard couldn't read the hook payload (a JSON {type(payload).__name__}, "
