@@ -1,6 +1,7 @@
 import type { Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "./cappedRead";
+import { seasonStartYear } from "./time";
 
 // The Premier League's matches as the football sync holds them (#21). Like clubs and players
 // (players.ts), a match is never deleted, only marked dropped when the feed stops sending it, so
@@ -21,6 +22,17 @@ export function fixtureByCode(ctx: QueryCtx, code: number): Promise<Doc<"fixture
     .query("fixtures")
     .withIndex("by_code", (q) => q.eq("code", code))
     .unique();
+}
+
+/** The season the matches the feed still sends are for: the one the latest kickoff falls in, as
+ *  gameweekStarts.ts counts it, read from that one match. Null while none has a kickoff time. */
+export async function heldSeason(ctx: QueryCtx): Promise<number | null> {
+  const latest = await ctx.db
+    .query("fixtures")
+    .withIndex("by_droppedAt_and_kickoff", (q) => q.eq("droppedAt", undefined))
+    .order("desc")
+    .first();
+  return latest === null || latest.kickoff === null ? null : seasonStartYear(latest.kickoff);
 }
 
 /** The gameweek's matches the feed still sends, in no set order. Past GAMEWEEK_MATCHES_MOST it

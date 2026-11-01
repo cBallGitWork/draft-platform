@@ -70,6 +70,13 @@ export function basePoints(record: MatchStats | null, set: ScoringSet, positions
   return pricedAt.map((position) => pointsAt(record, set, position));
 }
 
+/** The one position basePoints prices him at where his card opens: the first of cardPositions, or,
+ *  with none of his positions priced (only SS has no price), his first, at his best for it, as
+ *  basePoints(record, set, [it]) gives. Null with no position, where every match is null. */
+export function cardOpensAt(positions: readonly Position[]): Position | null {
+  return cardPositions(positions)[0] ?? positions[0] ?? null;
+}
+
 /** One cell for each slot these positions may stand in: a rule is priced by the slot's area and
  *  position alone (priced.ts's priceFor), so cells alike in both score alike. Slots that are
  *  one of his own positions come first, so a tie names his own: a winger who would score the same

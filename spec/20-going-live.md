@@ -30,7 +30,8 @@ Feature 20 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill #203 dep
   `npx convex deploy --cmd 'npm run build'` (Craig, 22 Oct 2026). Merges already wait for green
   checks.
 - After each release, an automatic check opens the live site and signs in. If it fails, the run
-  goes red and GitHub emails Craig.
+  goes red and GitHub emails Craig. It goes red too when the hour's sign-in link limit stops it
+  (Craig, 1 Nov 2026: "sure"; #908).
 - No preview sites for unmerged changes, for now.
 
 ## Rolling back

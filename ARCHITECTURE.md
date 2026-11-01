@@ -235,6 +235,14 @@ Tactics pitch are built with no package, and components, motion, forms and chart
 - Season totals: each player's stats for a season are a row in `playerSeasonStats`, kept in step as
   each match record is written, so Scouting sorts by any stat without reading a season of records
   (`convex/stats/seasonStats.ts`).
+- Season points (#525): each player's base points this season, summed at every position, are a row
+  in `playerSeasonPoints`, set afresh from his records just after a record write changes what one
+  counts or a played match leaves the feed or moves gameweek, so Scouting lists every player's
+  without pricing a season of records; it picks his main position and puts the league's overrides
+  in on each read (`convex/stats/seasonPoints.ts`). A deployment whose season totals show a played
+  match but no row starts the rebuild by itself at the next football sync or record write
+  (`convex/stats/seasonPointsQueue.ts`); a match move never stops the sync
+  (`convex/stats/seasonPointsMoves.ts`).
 - The stat race (#800): each team's season stats, counting only its starters and the bench players
   who came on, are a row in `teamSeasonStats`, the sum of its rows in `teamGameweekStats`, one a
   team and final gameweek, kept so a gameweek reopened takes away what it added. A match's lock

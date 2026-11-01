@@ -13,6 +13,10 @@ commentary` (16 Oct 2026).
   At the deadline both lineups show: the starters, the bench in order, the formation and each
   starter's role. The commissioner and the admin see only what managers see (Craig, 31 Oct 2026:
   "they just get to view what the managers see").
+- A side's formation is named by its preset until the manager edits it: "preset until its edited,
+  then we name it (as a amanger might make a custom one )" (Craig, 1 Nov 2026; #878).
+- In a league with two games a gameweek, each game's link opens its own matchup (Craig, 1 Nov
+  2026: "yes"; #913).
 - Each starter on the matchup's lineups shows his slot's position label and his role's run, as on
   the Tactics pitch (`spec/05`; Craig, 31 Oct 2026, `/grill the Tactics pitch`).
 - Tapping a player on the matchup or its pitch shows his breakdown for this match, his role's line
@@ -60,4 +64,5 @@ commentary` (16 Oct 2026).
 - A kick-off and a full-time line for each match with either team's players in it, on the matchup
   ("FT ARS 2–1 CHE: Saka 11, Palmer 6").
 - If the commentary stream falls behind or stops, the matchup and the match page say so
-  ("Commentary delayed"); points carry on from FPL.
+  ("Commentary delayed"); points carry on from FPL. It is behind once its newest line trails the
+  match clock by over 10 minutes (Craig, 1 Nov 2026: "10 mins"; #905).

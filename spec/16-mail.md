@@ -16,5 +16,7 @@ letters, newest first. It reports; it never advises.
   draft-day letters (on the clock, pick made); a scout's report being in, the league's weekly recap
   being up (`spec/12`), and a shortlisted player dropped or clearing waivers (`spec/19`); and every
   patch to the site's scoring, to every manager (`spec/14`, 25 Oct 2026).
+- A cancelled invite files no letter of its own: the removal or leaving already files one (Craig,
+  1 Nov 2026: "no"; #914).
 - Real-life news: a letter for each real-news note about a player in your squad (`spec/21`).
 - The commissioner can send a one-way letter to the whole league. There is still no chat.

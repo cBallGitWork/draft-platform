@@ -6,12 +6,16 @@ The league's rules are data. A commissioner edits them on **League settings**, t
 build the league, starting with the odd team out and the games a gameweek (Craig, 22 Oct 2026).
 Players' points by position, on **Player scoring** (once called Scoring), are the site's, not the
 league's: the admin changes them by patch, and every manager can read them (`spec/14`, 25 Oct 2026).
+What the two screens say alike, they word alike (Craig, 1 Nov 2026: "Word them alike"; #351).
+
+A league's rules can change many times a season: the most changes a league can hold is set much
+higher than 200 (Craig, 1 Nov 2026: "limit much higher"; #894).
 
 Among them:
 
 - Format: head-to-head, or total points.
-- Playoffs: how many teams, how many legs.
-- Standings tie-breaks.
+- Play-offs: how many teams, how many legs.
+- Table tie-breaks.
 - How many head-to-head games each team plays a gameweek: one, or more (`spec/09`), never more
   than the league's maximum of teams gives a team different opponents for; more is refused when
   saved, naming the most, and so is lowering the maximum below what the games need (22 Oct 2026).
@@ -31,7 +35,7 @@ Among them:
 - Each area's minimum and maximum on the pitch, and the formation presets.
 - Double gameweeks: both matches count (the default), or best match.
 - Waivers: when they run, set by the league; can be more than once a week. The waiver order:
-  reverse standings, or rotating (reset weekly).
+  reverse table order, or rotating (reset weekly).
 - The draft clock (see [4. The draft](04-the-draft.md)).
 - Roles (see [5. Tactics](05-tactics.md)); their scoring adjustments are the site's (`spec/14`).
 - Trade review: none, a commissioner veto, or a league vote (see [8. Between gameweeks](08-between-gameweeks.md)).

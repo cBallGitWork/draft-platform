@@ -98,6 +98,15 @@ export const matchStatsTables = {
     "by_season_and_playerCode",
     ["season", "playerCode"],
   ),
+  /** Each player's base points this season (#525, seasonPoints.ts), so Scouting lists every
+   *  player's season points without pricing a season of records: one row a player and season,
+   *  set afresh from his records whenever one is written. `points` holds the season's sum at each
+   *  position (positionTables.ts's POSITIONS), as basePoints prices him there, so a change to his
+   *  positions needs no re-pricing. `season` as playerSeasonStats'. */
+  playerSeasonPoints: defineTable({ season: v.number(), playerCode: v.number(), points: v.record(v.string(), v.number()) }).index(
+    "by_season_and_playerCode",
+    ["season", "playerCode"],
+  ),
   /** What each team's counted players did in a final gameweek, added up (#800, spec/19 The stat
    *  race; teamSeasonStats.ts): its starters and the bench players who came on, as the gameweek
    *  scorer counted them. One row a league, gameweek and team, kept so a gameweek reopened or
