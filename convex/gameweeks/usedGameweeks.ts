@@ -17,8 +17,8 @@ export const GAMEWEEKS = 38;
 export const shownDeadline = v.union(v.number(), v.null());
 
 /** FPL's deadline for each of gameweeks 1 to 38 the app holds, by gameweek: feed data, which never
- *  decides when a league's gameweek begins (#138). It reads dropped rows too; leagueDeadlines.ts's
- *  `heldSchedule` skips them, and whether these should too is Craig's call. */
+ *  decides when a league's gameweek begins (#138). It reads dropped rows too, as
+ *  leagueDeadlines.ts's `heldSchedule` does: a gameweek FPL stops sending stays (#202). */
 export async function fplDeadlines(ctx: QueryCtx): Promise<Map<number, number>> {
   const rows = await ctx.db
     .query("gameweeks")
