@@ -29,5 +29,5 @@ export const presetsPlaceholder = "Your saved presets show here once saving them
 export const savePresetPlaceholder = "Save preset…: saves the formation and roles in use now, once saving presets is built";
 export const classicsPlaceholder = "Classic sides, each a formation and all eleven roles, show here once Craig writes their text";
 export const modernPlaceholder = "Modern sides show here once they are chosen";
-export const unlocksPlaceholder = "The team tactic this formation unlocks shows here once team tactics are specced";
-export const costsPlaceholder = "What this formation costs shows here once team tactics are specced";
+export const unlocksPlaceholder = "The team instructions this formation offers show here once they are built";
+export const costsPlaceholder = "What this formation costs shows here once team instructions are built";
