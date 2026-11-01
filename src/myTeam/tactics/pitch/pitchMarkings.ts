@@ -2,7 +2,7 @@
 // every marking is drawn from (plate.md, Marks: the pitch; Craig, 31 Oct 2026: "that pitch ratio
 // is well off"). They are the Laws of the Game's, the same for every league, so they are constants.
 
-import { AREAS, LANES } from "../../../convex/lineup/pitch";
+import { AREAS, LANES } from "../../../../convex/lineup/pitch";
 
 /** Across the pitch, and from goal line to goal line. */
 export const PITCH_SIZE = { width: 68, length: 105 } as const;

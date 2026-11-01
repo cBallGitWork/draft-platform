@@ -2,8 +2,8 @@
 // (convex/lineup/roles.ts), in metres from the player's place; this turns it into points on the
 // pitch's own metres (./pitchMarkings.ts), attack at the top, for ./RoleRuns.tsx to draw.
 
-import { AREAS, LANES, type Cell } from "../../../convex/lineup/pitch";
-import { slotLabel, SWEEPER, type Run } from "../../../convex/lineup/roles";
+import { AREAS, LANES, type Cell } from "../../../../convex/lineup/pitch";
+import { slotLabel, SWEEPER, type Run } from "../../../../convex/lineup/roles";
 import { LANE_WIDTH, PITCH_SIZE, ROW_LENGTH } from "./pitchMarkings";
 
 /** A point on the drawn pitch, in metres from its top-left corner. */

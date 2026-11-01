@@ -5,7 +5,7 @@ import { playerCardPath } from "../../playerCard/paths";
 import { roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
 import { markOf } from "./focusMarks";
 import { startersInOrder, type DraftLineup, type SquadMember, type Starter } from "./lineupDraft";
-import { startDrag, type Moving } from "./Pitch";
+import { startDrag, type Moving } from "./pitch/Pitch";
 import {
   BENCH_TITLE,
   downLabel,
@@ -100,11 +100,12 @@ export function SquadTable({
   );
 }
 
-/** A row's Move or Swap. */
-const ROW_ACTION = "min-h-tap font-semibold text-fact link-look lg:min-h-0";
+/** A row's Move or Swap: a whole tap both ways on the phone, as "Move" or "Up" alone is narrower
+ *  (plate.md, The phone; #865). */
+const ROW_ACTION = "min-h-tap min-w-tap font-semibold text-fact link-look lg:min-h-0 lg:min-w-0";
 
-/** Up and Down: a whole tap wide on the phone, as "Up" alone is narrower (plate.md, The phone). */
-const BENCH_ORDER_BUTTON = "min-h-tap min-w-tap font-semibold text-fact link-look disabled:text-muted disabled:no-underline lg:min-h-0 lg:min-w-0";
+/** Up and Down: a row's action that greys at either end of the bench. */
+const BENCH_ORDER_BUTTON = `${ROW_ACTION} disabled:text-muted disabled:no-underline`;
 
 /** A bench row's place in the bench order, the last place, and how to move a player to one. */
 type BenchPlace = { index: number; last: number; onBenchAt(playerCode: number, index: number, pressed?: "up" | "down"): void };
@@ -158,7 +159,7 @@ function SquadRow({
         {player.unheld ? (
           <span className="inline-flex min-h-tap max-w-error-name items-center font-semibold text-event lg:min-h-0 lg:max-w-none">{player.name}</span>
         ) : (
-          <Link to={playerCardPath(leagueId, player.playerCode)} className="inline-flex min-h-tap items-center font-semibold lg:min-h-0">
+          <Link to={playerCardPath(leagueId, player.playerCode)} className="inline-flex min-h-tap min-w-tap items-center font-semibold lg:min-h-0 lg:min-w-0">
             {player.name}
           </Link>
         )}{" "}

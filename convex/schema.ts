@@ -23,7 +23,7 @@ export { clubRecord, playerRecord, fixtureRecord, gameweekRecord, matchState, sc
 export { matchStatsState, playerMatchRecord, lateStatChange, matchSyncOutcome, matchStatsSyncFields } from "./schema/matchStats";
 export { position, startRecord, approveMode, changeThresholds, positionsSyncFields } from "./schema/positions";
 export { liveStatsTickFields, sideMatchOutcome, sideRunFields, commentaryLine, sideTeamStats, teamSheetMan } from "./schema/live";
-export { unemailedReason, leagueDeletion, pinnedLetter, leagueEvent } from "./schema/leagues";
+export { leagueDeletion, pinnedLetter, leagueEvent } from "./schema/leagues";
 export { delivery } from "./schema/joining";
 export { siteScoringKind } from "./schema/scoring";
 export { placementShape } from "./schema/lineup";

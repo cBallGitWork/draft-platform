@@ -36,7 +36,7 @@ export const CLUB_COLOURS: Readonly<Record<number, ClubColours>> = {
 const UNKNOWN_CLUB: Omit<ClubColours, "shortName"> = { primary: "#FFFFFF", secondary: "#FFFFFF" };
 
 /** The two inks a shirt's number and outline can take: styles.css's `--color-ground` and
- *  `--color-fact` (tests/src/myTeam/tactics/shirts.test.tsx holds them equal). */
+ *  `--color-fact` (tests/src/myTeam/tactics/pitch/shirts.test.tsx holds them equal). */
 export const INKS = { dark: "#111214", light: "#ffffff" } as const;
 export type Ink = keyof typeof INKS;
 

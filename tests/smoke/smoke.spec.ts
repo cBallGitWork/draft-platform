@@ -9,10 +9,10 @@ import { miniBeta } from "../../src/app/preview";
 import { MY_TEAM_PATH, SCOUTING_PATH } from "../../src/frame/menu";
 import { invitesPath } from "../../src/joining/paths";
 import { ERROR_PAGE_TITLE, mainMenuLabel } from "../../src/frame/words";
-import { PITCH_ASPECT } from "../../src/myTeam/tactics/pitchMarkings";
+import { PITCH_ASPECT } from "../../src/myTeam/tactics/pitch/pitchMarkings";
 import { markedBy } from "../../src/myTeam/tactics/focusMarks";
-import { RUN_MARK } from "../../src/myTeam/tactics/runs";
-import { moveLabel, pitchLabel, presetLabel, putHereLabel, runsWords, squadTableLabel as tacticsSquadTableLabel } from "../../src/myTeam/tactics/words";
+import { RUN_MARK } from "../../src/myTeam/tactics/pitch/runs";
+import { moveLabel, pitchLabel, presetLabel, putHereLabel, runsWords } from "../../src/myTeam/tactics/words";
 import { SIGN_IN_PATH } from "../../src/signIn/paths";
 import { signInWords } from "../../src/signIn/words";
 import { squadsPath } from "../../src/squads/paths";
@@ -49,10 +49,6 @@ const DESK = { width: 1440, height: 900 };
 const PHONE_GUTTERS = 40;
 /** The preview's bench centre-back, brought on to make a row of five. */
 const OFF_THE_BENCH = "Murillo";
-/** The one screen whose taps are still narrower than the tap size, and the issue that widens them:
- *  the Tactics squad table's name links and Move buttons, left while other builders worked in
- *  src/myTeam/tactics/ (#817). Its phone test fails once they're fixed, so this comes out then. */
-const TAPS_STILL_NARROW = { path: MY_TEAM_PATH, table: tacticsSquadTableLabel, issue: "#865" };
 /** A sub-pixel's give, as layout rounds. */
 const GIVE = 0.5;
 
@@ -232,16 +228,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
         }));
         expect(scrollWidth, "the page's width, against the window's").toBeLessThanOrEqual(innerWidth);
         const { tapSize, small } = await page.evaluate(tapsUnderTapSize);
-        if (path === TAPS_STILL_NARROW.path) {
-          // Only the squad table's taps may be narrow, named as the check names them.
-          const tableTaps = await page
-            .getByRole("table", { name: TAPS_STILL_NARROW.table })
-            .locator("a, button")
-            .evaluateAll((taps) => taps.map((tap) => tap.getAttribute("aria-label") ?? tap.textContent?.trim()));
-          expect(small, `${TAPS_STILL_NARROW.issue} fixed? Take TAPS_STILL_NARROW out`).not.toEqual([]);
-          const outside = small.filter((tap) => !tableTaps.includes(tap.replace(/ \(\d+px\)$/, "")));
-          expect(outside, `taps under ${tapSize}px outside the squad table`).toEqual([]);
-        } else expect(small, `taps under ${tapSize}px`).toEqual([]);
+        expect(small, `taps under ${tapSize}px`).toEqual([]);
       });
     }
   });

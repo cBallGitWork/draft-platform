@@ -1,5 +1,5 @@
-import { roleIn } from "../../../convex/lineup/roles";
-import type { DraftLineup } from "./lineupDraft";
+import { roleIn } from "../../../../convex/lineup/roles";
+import type { DraftLineup } from "../lineupDraft";
 import { PITCH_SIZE } from "./pitchMarkings";
 import { arrowheadOf, drawnDeeper, RUN_MARK, runPath, runShows, type PitchPoint } from "./runs";
 
