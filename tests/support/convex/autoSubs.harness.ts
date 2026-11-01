@@ -3,7 +3,7 @@
 // midfield four, 10 and 11 the strikers. The bench runs from 101, as long as each test needs.
 
 import { expect } from "vitest";
-import { autoSubs, type GameweekPlay } from "../../../convex/lineup/autoSubs";
+import { autoSubs, type DeadlineRatings, type GameweekPlay } from "../../../convex/lineup/autoSubs";
 import { lineupProblems, type Lineup, type LineupRules, type PlayerPositions } from "../../../convex/lineup/lineup";
 import type { Position } from "../../../convex/positions/positionTables";
 import { FIRST_SUB, filledLineup, openLimits, presetNamed, withPositions } from "./lineup.harness";
@@ -42,8 +42,9 @@ export function subbed(
   positions: PlayerPositions,
   played: ReadonlyMap<number, GameweekPlay>,
   rules: LineupRules = openLimits(),
+  ratingsOf?: DeadlineRatings,
 ) {
-  const result = autoSubs(lineup, positions, played, rules, []);
+  const result = autoSubs(lineup, positions, played, rules, [], ratingsOf);
   expect(lineupProblems(result.lineup, positions, rules)).toEqual([]);
   return result;
 }

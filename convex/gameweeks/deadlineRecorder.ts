@@ -72,6 +72,9 @@ export async function recordPassedDeadlines(ctx: MutationCtx): Promise<number> {
       }
       if (passed.has(gameweek)) continue;
       await ctx.db.insert("passedDeadlines", { leagueId: league._id, gameweek, deadline, recordedAt: now });
+      // Its teams' benches kept with their stars, which pick an auto-sub's role (#11), in a
+      // transaction of their own, so a failure there never holds a kickoff back.
+      await ctx.scheduler.runAfter(0, internal.stars.deadlineStars.storeLeague, { leagueId: league._id, gameweek });
       recorded += 1;
     }
     // Once a gameweek has begun, its fixtures are stored, so nothing after can redraw them (#137).

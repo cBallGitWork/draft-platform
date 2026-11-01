@@ -213,6 +213,10 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
   slot and its role. If none can, the first who keeps the area limits legal comes on in his own
   area, on his best-star role, and the formation changes. If no one can come on without breaking the
   limits, no one does: the slot scores nothing.
+- His best-star role is the one he had the most stars for when the lineup locked at the
+  gameweek's deadline, so scoring the gameweek again never moves it: Saka at 4 stars as an inside
+  forward at Saturday's deadline still comes on as an inside forward after Monday's match makes
+  him a 4.5-star winger (Craig, 1 Nov 2026).
 - A starter's slot left empty because he left the squad (dropped, traded or claimed away) is
   filled from the bench the same way, as if he hadn't played (Craig, 28 Oct 2026).
 - A player in the lineup whom the football data no longer holds: "score him like he didnt play,
