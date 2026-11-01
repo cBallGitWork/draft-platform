@@ -26,7 +26,7 @@ export interface DraftLineup {
  *  Roles). */
 export type RatingsOf = (playerCode: number) => readonly RoleStars[];
 
-/** No stars known: everyone dropped starts on the slot's first role. */
+/** No stars: for the checks below, which ask only whether a move may stand, never which role he plays. */
 const NO_STARS: RatingsOf = () => [];
 
 /** A player dropped into `cell`, on the role he has the most stars for there (spec/05 Roles). */
@@ -56,7 +56,7 @@ const without = (draft: DraftLineup, playerCode: number): DraftLineup => ({
 
 /** The player moved into a free cell, from another cell or off the bench. A taken cell throws: the
  *  screen offers only free ones. */
-export function placed(draft: DraftLineup, playerCode: number, cell: Cell, ratingsOf: RatingsOf = NO_STARS): DraftLineup {
+export function placed(draft: DraftLineup, playerCode: number, cell: Cell, ratingsOf: RatingsOf): DraftLineup {
   const standing = standingIn(draft, cell);
   if (standing !== undefined && standing.playerCode !== playerCode) {
     throw new Error(`The ${cell.area} ${cell.lane} cell is taken by player ${standing.playerCode}`);
@@ -72,7 +72,7 @@ const starts = (draft: DraftLineup, playerCode: number) => draft.starters.some((
  *  a bench player for a starter, the starter taking his place in the bench order. Each lands on the
  *  role he has the most stars for in his new slot. Two on the bench throws: the bench is put in
  *  order, not swapped. */
-export function swapped(draft: DraftLineup, one: number, other: number, ratingsOf: RatingsOf = NO_STARS): DraftLineup {
+export function swapped(draft: DraftLineup, one: number, other: number, ratingsOf: RatingsOf): DraftLineup {
   if (!starts(draft, one) && !starts(draft, other)) throw new Error(`Players ${one} and ${other} are both on the bench: a swap takes a starter`);
   const swap = (playerCode: number) => (playerCode === one ? other : playerCode === other ? one : playerCode);
   return {
@@ -84,7 +84,7 @@ export function swapped(draft: DraftLineup, one: number, other: number, ratingsO
 }
 
 /** The player sent to the cell: into it if it is free, swapped with whoever stands in it if not. */
-export function movedTo(draft: DraftLineup, playerCode: number, cell: Cell, ratingsOf: RatingsOf = NO_STARS): DraftLineup {
+export function movedTo(draft: DraftLineup, playerCode: number, cell: Cell, ratingsOf: RatingsOf): DraftLineup {
   const standing = standingIn(draft, cell);
   return standing === undefined || standing.playerCode === playerCode
     ? placed(draft, playerCode, cell, ratingsOf)
@@ -114,7 +114,7 @@ function keepsLimits(before: DraftLineup, after: DraftLineup, rules: LineupRules
  *  cell held as it was, so it never moves an area's count against its limits. */
 export function canSwap(draft: DraftLineup, one: number, other: number, { positionsOf }: Pick<MoveRules, "positionsOf">): boolean {
   if (one === other || (!starts(draft, one) && !starts(draft, other))) return false;
-  const landed = swapped(draft, one, other).starters.filter(({ playerCode }) => playerCode === one || playerCode === other);
+  const landed = swapped(draft, one, other, NO_STARS).starters.filter(({ playerCode }) => playerCode === one || playerCode === other);
   return landed.every((starter) => playsCell(positionsOf(starter.playerCode), starter));
 }
 
@@ -123,7 +123,7 @@ export function canSwap(draft: DraftLineup, one: number, other: number, { positi
 export function canStandIn(draft: DraftLineup, playerCode: number, cell: Cell, rules: MoveRules): boolean {
   const standing = standingIn(draft, cell);
   if (standing !== undefined) return canSwap(draft, playerCode, standing.playerCode, rules);
-  return playsCell(rules.positionsOf(playerCode), cell) && keepsLimits(draft, placed(draft, playerCode, cell), rules);
+  return playsCell(rules.positionsOf(playerCode), cell) && keepsLimits(draft, placed(draft, playerCode, cell, NO_STARS), rules);
 }
 
 /** Everywhere a picked-up player can go, which lights up (spec/05, Moving players): each cell he
@@ -171,7 +171,7 @@ export function sameLineup(one: DraftLineup, other: DraftLineup): boolean {
  *  anyone left over goes to the front of the bench, in that order. Cells left empty are the
  *  shape's slots still to fill. One whose new slot doesn't offer his role starts on his best-star
  *  role there (Craig, 1 Nov 2026). */
-export function reshaped(draft: DraftLineup, cells: readonly Cell[], ratingsOf: RatingsOf = NO_STARS): DraftLineup {
+export function reshaped(draft: DraftLineup, cells: readonly Cell[], ratingsOf: RatingsOf): DraftLineup {
   const free = [...cells];
   const starters: Starter[] = [];
   const leftOver: number[] = [];

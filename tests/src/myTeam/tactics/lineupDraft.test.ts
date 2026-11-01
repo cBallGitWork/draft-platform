@@ -26,17 +26,19 @@ import type { RoleStars } from "../../../../convex/stars/starsShape";
 const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
 const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;
 const DRAFT = { starters: [KEEPER, BACK], bench: [3, 4] };
+/** No stars: everyone dropped starts on the slot's first role. */
+const NO_STARS: RatingsOf = () => [];
 
 describe("a move", () => {
   it("off the bench into a free cell makes him a starter", () => {
-    expect(placed(DRAFT, 3, { area: "midfield", lane: "centre" })).toEqual({
+    expect(placed(DRAFT, 3, { area: "midfield", lane: "centre" }, NO_STARS)).toEqual({
       starters: [KEEPER, BACK, { playerCode: 3, area: "midfield", lane: "centre" }],
       bench: [4],
     });
   });
 
   it("into a cell another player stands in throws: the screen offers only free ones", () => {
-    expect(() => placed(DRAFT, 3, { area: "defence", lane: "left" })).toThrow(/taken by player 2/);
+    expect(() => placed(DRAFT, 3, { area: "defence", lane: "left" }, NO_STARS)).toThrow(/taken by player 2/);
   });
 
   it("to the bench puts him at its end", () => {
@@ -89,7 +91,7 @@ describe("a preset picked (spec/05; Craig, 26 Oct 2026)", () => {
 
   it("moves each starter to a free cell of the shape in his own area, the nearest lane first", () => {
     const draft = { starters: [KEEPER, { playerCode: 2, area: "defence", lane: "centre" } as const], bench: [3] };
-    expect(reshaped(draft, FOUR_BACK)).toEqual({
+    expect(reshaped(draft, FOUR_BACK, NO_STARS)).toEqual({
       starters: [KEEPER, { playerCode: 2, area: "defence", lane: "leftCentre" }],
       bench: [3],
     });
@@ -100,12 +102,12 @@ describe("a preset picked (spec/05; Craig, 26 Oct 2026)", () => {
       starters: [KEEPER, { playerCode: 5, area: "attack", lane: "centre" } as const, { playerCode: 6, area: "midfield", lane: "left" } as const],
       bench: [3],
     };
-    expect(reshaped(draft, FOUR_BACK)).toEqual({ starters: [KEEPER], bench: [6, 5, 3] });
+    expect(reshaped(draft, FOUR_BACK, NO_STARS)).toEqual({ starters: [KEEPER], bench: [6, 5, 3] });
   });
 
   it("two starters in an area take its cells in turn, never the same one", () => {
     const draft = { starters: [{ playerCode: 2, area: "defence", lane: "left" } as const, { playerCode: 7, area: "defence", lane: "leftCentre" } as const], bench: [] };
-    const result = reshaped(draft, [cell("defence", "left"), cell("defence", "right")]);
+    const result = reshaped(draft, [cell("defence", "left"), cell("defence", "right")], NO_STARS);
     expect(result.starters).toEqual([{ playerCode: 2, area: "defence", lane: "left" }, { playerCode: 7, area: "defence", lane: "right" }]);
   });
 });
@@ -115,13 +117,13 @@ describe("a role (spec/05 Roles)", () => {
     const given = withRole(DRAFT, 2, "attackingFullBack");
     expect(given.starters[1]).toEqual({ ...BACK, role: "attackingFullBack" });
     expect(sameLineup(given, DRAFT)).toBe(false);
-    expect(placed(given, 2, { area: "defence", lane: "centre" }).starters.at(-1)).toEqual({ playerCode: 2, area: "defence", lane: "centre" });
+    expect(placed(given, 2, { area: "defence", lane: "centre" }, NO_STARS).starters.at(-1)).toEqual({ playerCode: 2, area: "defence", lane: "centre" });
   });
 
   it("kept by a preset that puts him in a slot offering it, dropped where it isn't offered", () => {
     const given = withRole(DRAFT, 2, "attackingFullBack");
-    expect(reshaped(given, [KEEPER, { area: "defence", lane: "left" }]).starters[1]).toEqual({ ...BACK, role: "attackingFullBack" });
-    expect(reshaped(given, [KEEPER, { area: "defence", lane: "centre" }]).starters[1]).toEqual({ playerCode: 2, area: "defence", lane: "centre" });
+    expect(reshaped(given, [KEEPER, { area: "defence", lane: "left" }], NO_STARS).starters[1]).toEqual({ ...BACK, role: "attackingFullBack" });
+    expect(reshaped(given, [KEEPER, { area: "defence", lane: "centre" }], NO_STARS).starters[1]).toEqual({ playerCode: 2, area: "defence", lane: "centre" });
   });
 });
 
@@ -164,23 +166,23 @@ describe("a swap (spec/05, Moving players; #851)", () => {
   const WITH_ROLES = { starters: [{ ...BACK, role: "attackingFullBack" }, { ...MIDFIELDER, role: "boxToBox" }], bench: [3, 4] };
 
   it("of two starters puts each in the other's cell, on its first role", () => {
-    expect(swapped(WITH_ROLES, 2, 5)).toEqual({
+    expect(swapped(WITH_ROLES, 2, 5, NO_STARS)).toEqual({
       starters: [{ playerCode: 5, area: "defence", lane: "left" }, { playerCode: 2, area: "midfield", lane: "centre" }],
       bench: [3, 4],
     });
   });
 
   it("of a bench player and a starter puts the starter in the bench player's place in the order", () => {
-    expect(swapped(DRAFT, 4, 2)).toEqual({ starters: [KEEPER, { playerCode: 4, area: "defence", lane: "left" }], bench: [3, 2] });
+    expect(swapped(DRAFT, 4, 2, NO_STARS)).toEqual({ starters: [KEEPER, { playerCode: 4, area: "defence", lane: "left" }], bench: [3, 2] });
   });
 
   it("of two bench players throws: the bench is put in order, not swapped", () => {
-    expect(() => swapped(DRAFT, 3, 4)).toThrow(/both on the bench/);
+    expect(() => swapped(DRAFT, 3, 4, NO_STARS)).toThrow(/both on the bench/);
   });
 
   it("is what sending a player to a taken cell does; a free cell takes him in", () => {
-    expect(movedTo(DRAFT, 3, BACK)).toEqual(swapped(DRAFT, 3, 2));
-    expect(movedTo(DRAFT, 3, { area: "midfield", lane: "centre" })).toEqual(placed(DRAFT, 3, { area: "midfield", lane: "centre" }));
+    expect(movedTo(DRAFT, 3, BACK, NO_STARS)).toEqual(swapped(DRAFT, 3, 2, NO_STARS));
+    expect(movedTo(DRAFT, 3, { area: "midfield", lane: "centre" }, NO_STARS)).toEqual(placed(DRAFT, 3, { area: "midfield", lane: "centre" }, NO_STARS));
   });
 });
 

@@ -111,7 +111,8 @@ export async function lineupsInGameweek(
   return lineups;
 }
 
-/** The squad's first lineup, picked afresh (firstLineup.ts), each starter on his best-star role. */
+/** The squad's first lineup, picked afresh (firstLineup.ts), each starter on his best-star role:
+ *  unstored, so display only. */
 async function firstLineupOf(ctx: QueryCtx, squad: readonly number[], rules: FirstLineupRules | null) {
   const stars = await starsOfPlayers(ctx, squad);
   return withDroppedRoles(firstLineup(squad, await heldPositionsOf(ctx, squad), rules), (playerCode) => stars.get(playerCode)!);
