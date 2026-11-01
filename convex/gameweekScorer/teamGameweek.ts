@@ -4,6 +4,7 @@ import { autoSubs, gameweekPlay, type AutoSubs, type GameweekPlay } from "../lin
 import { namedCodes } from "../lineup/lineup";
 import { lineupsInGameweek, type HeldLineup } from "../lineup/lineups";
 import { ALL_CELLS, playsCell, type Cell } from "../lineup/pitch";
+import { presetNameOf } from "../lineup/presets";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
@@ -111,6 +112,11 @@ export interface TeamInGameweek {
   /** It held no lineup in a gameweek begun before #637 gave every team one (lineups.ts), though
    *  its squad had players, so it scores 0 and a screen can say why. */
   noLineup: boolean;
+  /** The preset its lineup stands in, named as the league's presets in force in the gameweek name
+   *  it; null once its manager has edited the shape off every preset (presets.ts `presetNameOf`).
+   *  Read from the lineup as it locked, a slot left empty by a man gone from the squad included:
+   *  auto-subs aren't an edit. */
+  formation: string | null;
 }
 
 /** The team's gameweek: its lineup, auto-subs from who played, then scoreTeam. */
@@ -152,7 +158,8 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
     })),
     benchCells: new Map(lineup.bench.map((code) => [code, benchCell(positions.get(code)!)])),
   });
-  return { team, autoSubs: subs, matchesOf, noLineup: held.noLineup };
+  const formation = presetNameOf([...held.starters, ...held.vacated], rules.presets);
+  return { team, autoSubs: subs, matchesOf, noLineup: held.noLineup, formation };
 }
 
 /** One of his matches as his slot scored it: its points by category, and whether his slot's points

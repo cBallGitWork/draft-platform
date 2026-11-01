@@ -119,6 +119,7 @@ function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): Ma
     points: counting.reduce((total, slot) => total + (slot.points ?? 0), 0),
     provisional: !final,
     lineup: { starters, bench },
+    formation: null,
   };
 }
 
