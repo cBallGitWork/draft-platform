@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { STARS_READ_MOST, starsReadRefusals } from "../../../convex/stars/playerStars";
-import { NO_DATA, UNSURE } from "../../../convex/stars/starsShape";
+import { NO_DATA, UNSURE, type Stars } from "../../../convex/stars/starsShape";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -13,7 +13,7 @@ import { NEWCOMER, SCORER, STEADY, UNUSED, holdStarsPlayers, refreshEveryone } f
 
 const [ANN] = MANAGERS;
 const STRIKER_ROLES = DEFAULT_ROLES.ST.map((role) => role.key);
-const everyStrikerRole = (stars: number | typeof UNSURE | typeof NO_DATA) => STRIKER_ROLES.map((role) => ({ area: "attack", role, stars }));
+const everyStrikerRole = (stars: Stars) => STRIKER_ROLES.map((role) => ({ area: "attack", role, stars }));
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;

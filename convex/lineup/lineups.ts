@@ -207,7 +207,6 @@ export async function pickFirstLineupAgain(ctx: MutationCtx, leagueId: Id<"leagu
   const positions = await heldPositionsOf(ctx, squad);
   const keptOnBench = row === null ? new Set<number>() : keptOnBenchOf(row, squad, positions);
   const stars = await starsOfPlayers(ctx, squad);
-  // A starter still where he stood keeps his role; a pick placed anew starts on his best-star role.
   const picked = withDroppedRoles(firstLineup(squad, positions, season.inGameweek(fromGameweek), keptOnBench), (playerCode) => stars.get(playerCode)!, row?.starters);
   if (row?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", row._id, picked);
   else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...picked, firstLineup: true });

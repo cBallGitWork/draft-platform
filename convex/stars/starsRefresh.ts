@@ -22,8 +22,8 @@ import { UNSURE } from "./starsShape";
 // player's are, a page at a time. The first lock with no row held yet does every player, so a
 // deployment fills the table by itself.
 //
-// Cost: a lock reads its 40-odd players' records (up to STARS_WINDOW counted each, all he has
-// read), prices each under his 2 to 15 roles, then reads every row to rank: about 700 small rows.
+// Cost: a lock reads every record of its 40-odd players, prices each one's counted matches (at most
+// STARS_WINDOW) under his 2 to 15 roles, then reads every row to rank: about 700 small rows.
 // Every player's refresh reads every current player's records: about 700 × 38 at a season's end, in
 // STARS_PAGE pages. Both grow with players, roles a player is rated for and matches (capped at
 // STARS_WINDOW), never with teams or leagues: stars are the site's, not a league's.
@@ -96,7 +96,11 @@ export const rank = internalMutation({
     }
     const pools = new Map<string, number[]>();
     for (const row of kept.filter((each) => each.matches >= LEAST_MATCHES_RATED)) {
-      for (const { area, role, perMatch } of row.ratings) pools.set(poolKey(area, role), [...(pools.get(poolKey(area, role)) ?? []), perMatch]);
+      for (const { area, role, perMatch } of row.ratings) {
+        const pool = pools.get(poolKey(area, role)) ?? [];
+        pool.push(perMatch);
+        pools.set(poolKey(area, role), pool);
+      }
     }
     for (const row of kept) {
       const ratings = row.ratings.map((rating) => ({ ...rating, stars: starsFor(row.matches, rating.perMatch, pools.get(poolKey(rating.area, rating.role)) ?? []) }));

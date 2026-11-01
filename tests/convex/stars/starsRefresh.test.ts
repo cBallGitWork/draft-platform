@@ -149,7 +149,7 @@ test(`a refresh of everyone goes a page of ${STARS_PAGE} players at a time`, asy
   expect(await pendingJobs(t)).toHaveLength(0);
 });
 
-test("a player with matches but no position holds no row, and a refresh drops one he held", async () => {
+test("a player who loses every position drops his row on the next refresh", async () => {
   const t = await rated();
   await t.run(async (ctx) => {
     const row = (await ctx.db.query("playerPositions").withIndex("by_code", (q) => q.eq("code", STEADY.code)).unique())!;

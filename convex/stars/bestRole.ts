@@ -26,3 +26,9 @@ export function droppedRole(cell: Cell, ratings: readonly RoleStars[]): string |
   const best = bestRoleIn(cell, ratings);
   return best === rolesOfSlot(cell)[0] ? undefined : best.key;
 }
+
+/** The starter he is, dropped into this slot: its cell, and the role droppedRole saves, if any. */
+export function droppedStarter(playerCode: number, { area, lane }: Cell, ratings: readonly RoleStars[]): Cell & { playerCode: number; role?: string } {
+  const role = droppedRole({ area, lane }, ratings);
+  return { playerCode, area, lane, ...(role !== undefined && { role }) };
+}

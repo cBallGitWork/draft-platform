@@ -19,12 +19,12 @@ export const CAMEO = striker(1104, "Cameo"); // ten minutes off the bench: 1
 export const NEWCOMER = striker(1105, "Newcomer"); // two matches only: "?"
 export const UNUSED = striker(1106, "Unused"); // on the bench, never on: "—"
 export const STOPPER: HeldPlayer = { code: 1107, name: "Stopper", fullName: "Stopper", clubCode: ARSENAL.code, positions: ["CB"] };
-export const STARS_PLAYERS = [SCORER, STEADY, BLANK, CAMEO, NEWCOMER, UNUSED, STOPPER];
+const STARS_PLAYERS = [SCORER, STEADY, BLANK, CAMEO, NEWCOMER, UNUSED, STOPPER];
 
 /** Each held match: its code, and its kickoff an hour apart, the oldest first. */
 const FIRST_KICKOFF = Date.parse("2026-09-12T14:00:00Z");
 export const MATCHES = [501, 502, 503];
-export const kickoffOf = (index: number) => FIRST_KICKOFF + index * HOUR_MS;
+const kickoffOf = (index: number) => FIRST_KICKOFF + index * HOUR_MS;
 
 /** A held match between the two clubs, kicked off `index` hours after the first. */
 export const insertMatch = (ctx: MutationCtx, code: number, index: number) =>

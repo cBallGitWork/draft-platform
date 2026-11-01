@@ -4,7 +4,7 @@
 import { DEFAULT_PRESETS, type Preset } from "./presets";
 import { byPitchOrder, cellKey, playsCell, sameCell, type Cell } from "./pitch";
 import { lineupProblems, type LineupRules, type PlayerPositions } from "./lineup";
-import { droppedRole } from "../stars/bestRole";
+import { droppedStarter } from "../stars/bestRole";
 import type { RoleStars } from "../stars/starsShape";
 
 /** The formation spec/05 gives every first lineup, whatever presets the league has. */
@@ -54,10 +54,9 @@ export function firstLineup(
  *  onto the pitch is a drop): one still in the cell `held` has him in keeps the role he had there;
  *  anyone placed anew starts on his best-star role (stars/bestRole.ts). */
 export function withDroppedRoles(picked: FirstLineup, ratingsOf: (playerCode: number) => readonly RoleStars[], held: readonly FirstStarter[] = []): FirstLineup {
-  const starters = picked.starters.map(({ playerCode, area, lane }) => {
-    const before = held.find((each) => each.playerCode === playerCode && sameCell(each, { area, lane }));
-    const role = before === undefined ? droppedRole({ area, lane }, ratingsOf(playerCode)) : before.role;
-    return { playerCode, area, lane, ...(role !== undefined && { role }) };
+  const starters = picked.starters.map((starter) => {
+    const before = held.find((each) => each.playerCode === starter.playerCode && sameCell(each, starter));
+    return before ?? droppedStarter(starter.playerCode, starter, ratingsOf(starter.playerCode));
   });
   return { starters, bench: picked.bench };
 }

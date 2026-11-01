@@ -10,7 +10,7 @@ import { namedCodes, reconciled, STARTER_COUNT, type LineupRules } from "../../.
 import type { Position } from "../../../convex/positions/positionTables";
 import type { OpenTactics } from "../../../convex/lineup/tactics";
 import { offersRole, roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
-import { droppedRole } from "../../../convex/stars/bestRole";
+import { droppedStarter } from "../../../convex/stars/bestRole";
 import type { RoleStars } from "../../../convex/stars/starsShape";
 
 export type SquadMember = OpenTactics["squad"][number];
@@ -30,10 +30,7 @@ export type RatingsOf = (playerCode: number) => readonly RoleStars[];
 const NO_STARS: RatingsOf = () => [];
 
 /** A player dropped into `cell`, on the role he has the most stars for there (spec/05 Roles). */
-const droppedInto = (playerCode: number, cell: Cell, ratingsOf: RatingsOf): Starter => {
-  const role = droppedRole(cell, ratingsOf(playerCode));
-  return { playerCode, area: cell.area, lane: cell.lane, ...(role !== undefined && { role }) };
-};
+const droppedInto = (playerCode: number, cell: Cell, ratingsOf: RatingsOf): Starter => droppedStarter(playerCode, cell, ratingsOf(playerCode));
 
 /** The lineup the screen opens on: the one held for the gameweek, its first until the manager
  *  saves one (spec/05). */
