@@ -8,7 +8,7 @@ import { adminCreatesLeague, COMMISSIONER } from "../../support/convex/leagues.h
 import { changeRules, giveDeadlineRule } from "../../support/convex/leagueRules.harness";
 import { syncWith } from "../../support/convex/footballSync.harness";
 import { fakeResend } from "../../support/convex/signIn.harness";
-import { expectRefused } from "../../support/convex/test.harness";
+import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
 import {
   deadlineBefore,
   GAMEWEEK,
@@ -56,6 +56,13 @@ describe("recording", () => {
       { leagueId: other, deadline: OPENER - THREE_HOURS * MINUTE_MS },
       { leagueId, deadline: deadlineBefore(OPENER) },
     ]);
+  });
+
+  test("asks for each league's benches to be kept with their stars once its deadline is recorded (#11)", async () => {
+    vi.setSystemTime(deadlineBefore(OPENER));
+    await recordPassed();
+
+    expect((await pendingJobs(t, internal.stars.deadlineStars.storeLeague)).map((job) => job.args[0])).toContainEqual({ leagueId, gameweek: GAMEWEEK });
   });
 
   test("recording twice is harmless: the second records nothing and changes nothing", async () => {

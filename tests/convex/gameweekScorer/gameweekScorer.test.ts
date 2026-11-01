@@ -2,10 +2,8 @@ import { expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { inTenths } from "../../../convex/scoring/values";
-import type { PlayerRows } from "../../../convex/gameweekScorer/squadInputs";
 import {
   gameweekScorer,
-  squadGameweek,
   tableGameweek,
   workedOutGameweek,
   type ScoredGameweek,
@@ -17,6 +15,7 @@ import { averageScore } from "../../../convex/table/teamGames";
 import { addManagers } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import {
+  annsSquadAndEvery,
   CAT,
   EVERTON_POINTS,
   GAMEWEEK,
@@ -166,21 +165,7 @@ test("one team from its squad's rows scores slot by slot as from every match's, 
     ctx.db.insert("pointsOverrides", { leagueId: league.leagueId, gameweek: GAMEWEEK, fixtureCode: HULL_EVERTON, playerCode: HULL_SCORER, points: SCORER_OVERRIDDEN, reason: "A goal the feed gave someone else", by: CAT, at: 0 }),
   );
 
-  const { squad, every } = await league.t.run(async (ctx) => {
-    const held = (await ctx.db.get("leagues", league.leagueId))!;
-    const reads = await leagueReads(ctx, held, (await seasonRules(ctx, league.leagueId))!);
-    const rowsOf = async (playerCode: number): Promise<PlayerRows> => {
-      const records = await ctx.db.query("playerMatchStats").withIndex("by_playerCode", (q) => q.eq("playerCode", playerCode)).collect();
-      const overrides = await ctx.db
-        .query("pointsOverrides")
-        .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", league.leagueId).eq("playerCode", playerCode))
-        .collect();
-      return { records: new Map(records.map((row) => [row.fixtureCode, row])), overrides: new Map(overrides.map((row) => [row.fixtureCode, row.points])) };
-    };
-    const ofSquad = await squadGameweek(ctx, reads, GAMEWEEK, league.annsTeam, rowsOf);
-    const ofEvery = await workedOutGameweek(ctx, reads, GAMEWEEK, [league.annsTeam]);
-    return { squad: (await ofSquad.slotsOf(league.annsTeam)).team, every: (await ofEvery.slotsOf(league.annsTeam)).team };
-  });
+  const { squad, every } = await annsSquadAndEvery(league);
 
   expect(squad).toEqual(every);
   expect(squad.starters.find((slot) => slot.playerCode === HULL_SCORER)?.points).toBe(SCORER_OVERRIDDEN);

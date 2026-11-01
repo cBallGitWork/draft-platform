@@ -104,7 +104,6 @@ export const upWords = "Up";
 export const downWords = "Down";
 export const upLabel = (name: string) => `Move ${name} up the bench`;
 export const downLabel = (name: string) => `Move ${name} down the bench`;
-export const playerCardWords = "Player card";
 export const playerCardLabel = (name: string) => `${name}'s player card`;
 
 /** The left column's widget under the pitch, and the right column's. */
