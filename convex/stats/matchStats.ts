@@ -201,12 +201,11 @@ export async function writeRecords(
     }
     if (differs || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state });
   }
-  // Before any totals move, as their rows would hide a deployment whose older records have none:
-  // its rebuild sets every total and then re-prices every season (seasonRebuilds.ts).
-  if (!(await rebuildTotalsIfNoneKept(ctx))) {
-    await moveSeasonTotals(ctx, moved);
-    await repriceChanged(ctx, records, held);
-  }
+  // Before any totals move, as their rows would hide a deployment whose older records have none.
+  // Its rebuild sets every total afresh and then re-prices every season, so nobody is re-priced here.
+  const rebuilding = records.length > 0 && (await rebuildTotalsIfNoneKept(ctx, records[0].fixtureCode));
+  await moveSeasonTotals(ctx, moved);
+  if (!rebuilding) await repriceChanged(ctx, records, held);
   return { inserted, updated: changed.length - inserted, changed };
 }
 
