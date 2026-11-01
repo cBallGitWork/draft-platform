@@ -15,6 +15,8 @@ players. A scout's report judges a player; Mail only reports (`spec/16`).
 
 - Every Premier League player, filtered to free agents, on waivers or owned, by position and by
   club, sortable by any stat, with season points under the site's scoring (`spec/14`).
+- Its stat box offers the site set's own stats as well as the feeds' (Craig, 1 Nov 2026: "sure";
+  #910).
 - Before the new season's first match, Scouting's season totals are last season's (Craig, 30 Oct
   2026: "ok you do it", to the recommendation on #647).
 - Two players side by side, to compare.
