@@ -148,7 +148,7 @@ async function recordLeague(
 async function skipBrokenLeague(ctx: MutationCtx, league: Doc<"leagues">, error: unknown, now: number): Promise<void> {
   const skipped = `League ${league._id} (${league.name}) ${LEAGUE_SKIPPED}`;
   const reason = logFailure(skipped, error);
-  await emailIfFailed(ctx, "football", { ranAt: now, outcome: { ok: false, error: `${skipped}: ${reason}` } });
+  await emailIfFailed(ctx, "skippedLeague", { ranAt: now, outcome: { ok: false, error: `${skipped}: ${reason}` } });
 }
 
 /** The alarm `recordPassedDeadlines` sets for the soonest deadline to come: it records again, and
