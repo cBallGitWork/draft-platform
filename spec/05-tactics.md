@@ -35,6 +35,9 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   positions play, and only a player with none goes to the bench (Craig, 1 Nov 2026, after a
   4-4-2 turned 4-2-3-1 benched its midfield: "it just put players on the bench, left half the
   team out").
+- Everyone takes a slot in his own area before anyone moves across, and of two areas as near, a
+  player moving across takes the deeper (Craig, 1 Nov 2026). A plain CM or WM still goes to the
+  bench in a 4-2-3-1, which has no midfield row.
 - Any player who plays in an area can fill any slot in it: the game should not get in the way of
   managers. A centre-back can fill a full-back's cell.
 - For now that is the hard rule: a player fills only slots in the areas his positions play (Craig,
