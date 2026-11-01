@@ -40,7 +40,7 @@ describe("My team's header band", () => {
     expect(meter(tableHead).textContent).toBe(`${placeWords(1)}, ${pointsShort(TABLE.table[0].points)}`);
   });
 
-  it("shows the deadline alone before the table loads, and no opponent or form in total points", async () => {
+  it("in total points, shows the deadline and the last gameweek's points, with no opponent or form", async () => {
     openTacticsTab({ tactics: { ...SAVED, deadline: Date.now() + 1000 * 60 * 60 }, leagueTable: leagueTableOf(TEAMS, { scores, format: "totalPoints" }) });
     expect(await screen.findByText(deadlineHead(TACTICS_GAMEWEEK))).toBeTruthy();
     expect(screen.queryByText(formHead)).toBeNull();

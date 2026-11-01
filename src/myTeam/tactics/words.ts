@@ -14,7 +14,7 @@ export const tacticsLoadingWords = "Loading your lineup…";
 export const tacticsNoRulesWords = "This league was made before leagues had rules, so it has no deadline or area limits to set a lineup under.";
 export const seasonOverWords = "Every gameweek has begun, so there's no lineup left to set this season.";
 
-export const positionsWords = (positions: readonly string[]) => positions.join(listSeparator);
+const positionsWords = (positions: readonly string[]) => positions.join(listSeparator);
 
 /** The pitch's panel: its plate names the formation the eleven stand in, where it is a preset. */
 export const pitchTitle = (formation: string | null) => (formation === null ? "Pitch" : `Pitch ${formation}`);

@@ -294,6 +294,6 @@ describe("the selected player's panel (the approved Tactics picture)", () => {
   it("has no Move column in the table: what can be done to a player is in his panel", async () => {
     await openedPitch();
     expect(within(screen.getByRole("table", { name: squadTableLabel })).queryByRole("button", { name: moveLabel(WHITE.name) })).toBeNull();
-    expect(squadRows()).not.toContain(expect.stringContaining("Move"));
+    expect(squadRows().some((row) => row.includes("Move"))).toBe(false);
   });
 });

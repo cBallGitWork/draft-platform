@@ -7,7 +7,7 @@ import { figureWords, gameweekWords, scoreWords } from "../../shared/words";
 import { byeWords, leagueAverageWords } from "../words";
 import { resultOf, type Result, type TeamGame } from "./teamStanding";
 
-export { byeWords, leagueAverageWords, liveWords, noFigureWords, versusWords, whenWords } from "../words";
+export { liveWords, noFigureWords, versusWords, whenWords } from "../words";
 
 /** A gameweek, short, as a head says it: "GW9". */
 export const gameweekShort = (gameweek: number) => `GW${gameweek}`;

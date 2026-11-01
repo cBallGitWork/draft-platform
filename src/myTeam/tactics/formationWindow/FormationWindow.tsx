@@ -1,10 +1,11 @@
-import { useId, useState, type CSSProperties, type ReactNode } from "react";
-import { AREAS, LANES, positionOfSlot, sameCell, type Cell } from "../../../../convex/lineup/pitch";
+import { useId, useState, type ReactNode } from "react";
+import { LANES, positionOfSlot, sameCell, type Cell } from "../../../../convex/lineup/pitch";
 import { roleIn, rolesOfSlot, slotLabel } from "../../../../convex/lineup/roles";
 import { closeGlyph } from "../../../shared/words";
 import { Placeholder } from "../../../ui/Placeholder";
 import { chipFillOf, PositionChip } from "../../../ui/PositionChip";
 import { reshaped, standingIn, type DraftLineup, type MoveRules, type RatingsOf } from "../lineupDraft";
+import { CELL_GRID, ROWS_DRAWN } from "../pitch/Pitch";
 import { backGroups, type Shape } from "./formationGroups";
 import {
   applyWords,
@@ -46,13 +47,7 @@ import {
  *  and the modern sides. */
 type GroupKey = "presets" | number | "classics" | "modern";
 
-/** The pitch's rows top to bottom, attack first, and its cells, as a formation's thumbnail and
- *  preview draw them. */
-const ROWS_DRAWN = AREAS.toReversed();
-const CELL_GRID: CSSProperties = {
-  gridTemplateRows: `repeat(${ROWS_DRAWN.length}, minmax(0, 1fr))`,
-  gridTemplateColumns: `repeat(${LANES.length}, minmax(0, 1fr))`,
-};
+/** Each cell of the pitch as it is drawn, attack first, for a formation's thumbnail and preview. */
 const cellsDrawn = (each: (cell: Cell) => ReactNode) => ROWS_DRAWN.flatMap((area) => LANES.map((lane) => each({ area, lane })));
 
 export function FormationWindow({
@@ -79,10 +74,11 @@ export function FormationWindow({
   const [picked, setPicked] = useState<string | null>(inUse ?? opening?.shapes[0]?.name ?? null);
   const shapes = groups.find(({ back }) => back === group)?.shapes ?? [];
   const shape = presets.find(({ name }) => name === picked) ?? null;
+  /** A group opened; a back line's first formation picked, unless the one picked is in it. */
   const open = (key: GroupKey) => {
     setGroup(key);
-    const first = groups.find(({ back }) => back === key)?.shapes[0];
-    if (first !== undefined && !groups.find(({ back }) => back === key)!.shapes.some(({ name }) => name === picked)) setPicked(first.name);
+    const grouped = groups.find(({ back }) => back === key)?.shapes ?? [];
+    if (grouped.length > 0 && !grouped.some(({ name }) => name === picked)) setPicked(grouped[0].name);
   };
   return (
     <section aria-labelledby={titleId} className="bg-panel">

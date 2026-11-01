@@ -16,7 +16,7 @@ import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel, swapLabel
 // reach the same `onPlace`.
 
 /** Top to bottom as the pitch is drawn: attack first. */
-const ROWS_DRAWN = AREAS.toReversed();
+export const ROWS_DRAWN = AREAS.toReversed();
 
 /** On the row that holds the pitch, with the CSS `pitch-room`: the pitch's shape, width over
  *  length, which the CSS sizes the pitch and its panel by, and how much deeper a sweeper is drawn. */
@@ -26,8 +26,9 @@ export const PITCH_ROOM_STYLE = { "--pitch-aspect": PITCH_ASPECT, "--sweeper-dep
 export const SWEEPER_DEPTH = "pitch-sweeper";
 
 /** The pitch's cells: each area's row an equal share of its length, so the lines stand where they
- *  would on a real pitch, and each lane an equal share of its width. Its shape is the CSS `pitch`'s. */
-const CELL_GRID: CSSProperties = {
+ *  would on a real pitch, and each lane an equal share of its width. Its shape is the CSS `pitch`'s;
+ *  the formation window's thumbnails and preview draw on it too. */
+export const CELL_GRID: CSSProperties = {
   gridTemplateRows: `repeat(${ROWS_DRAWN.length}, minmax(0, 1fr))`,
   gridTemplateColumns: `repeat(${LANES.length}, minmax(0, 1fr))`,
 };

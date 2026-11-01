@@ -45,6 +45,10 @@ import {
 const FIXTURES_AHEAD = 3;
 const GAMEWEEKS_BACK = 5;
 
+/** Move, Up and Down: the secondary action, desk-sized; Up or Down greys at either end of the bench. */
+const PANEL_ACTION = "secondary-action lg:min-h-0 lg:py-1";
+const BENCH_ORDER_ACTION = `${PANEL_ACTION} disabled:border-muted disabled:text-muted`;
+
 /** Where he stands: his starter's slot, or his place on the bench and how long it is. */
 type PanelPlace = NonNullable<ReturnType<typeof placeOf>>;
 
@@ -152,7 +156,7 @@ export function PlayerPanel({
           aria-pressed={isPicked}
           aria-label={moveLabel(player.name)}
           onClick={() => moving.onPick(player.playerCode)}
-          className="secondary-action lg:min-h-0 lg:py-1"
+          className={PANEL_ACTION}
         >
           {isPicked ? movingWords : moveWords}
         </button>
@@ -164,7 +168,7 @@ export function PlayerPanel({
               {...markOf("bench-up", player.playerCode)}
               disabled={place.benchIndex === 0}
               onClick={() => onBenchAt(player.playerCode, place.benchIndex - 1, "up")}
-              className="secondary-action disabled:border-muted disabled:text-muted lg:min-h-0 lg:py-1"
+              className={BENCH_ORDER_ACTION}
             >
               {upWords}
             </button>
@@ -174,7 +178,7 @@ export function PlayerPanel({
               {...markOf("bench-down", player.playerCode)}
               disabled={place.benchIndex === place.benchLast}
               onClick={() => onBenchAt(player.playerCode, place.benchIndex + 1, "down")}
-              className="secondary-action disabled:border-muted disabled:text-muted lg:min-h-0 lg:py-1"
+              className={BENCH_ORDER_ACTION}
             >
               {downWords}
             </button>
