@@ -44,8 +44,7 @@ git init -q -b main "$repo" && git -C "$repo" add docs src && git -C "$repo" "${
 git -C "$repo" update-ref refs/remotes/origin/main HEAD
 
 # the bodies: the whole template signed by pr-reviewer, then ui-verifier's block three ways
-sed 's/^Closes #.*/Closes #12/' "$hooks/../../.github/pull_request_template.md" |
-  awk '{ print } /^## Fresh-eyes review/ { print "*Reviewer: pr-reviewer (opus), 2026-11-01, abc..def*" }' > "$repo/pr.md"
+template_body | signed > "$repo/pr.md"
 verifier="*Verifier: ui-verifier (sonnet), 2026-11-01, abc..def*"
 filled() { # name lines...: pr.md with these lines under its Approved vs built heading
   local name=$1; shift
@@ -133,7 +132,6 @@ for c in 'gh pr edit 5 --add-label bug' 'gh pr list --label craig-approved' 'gh 
   'gh pr edit 5 --title craig-approved'; do
   check allow guard_bash.py "$(bash_in "$repo" "$c")"
 done
-gh_call() { "$jq" -nc --arg t "mcp__github__$1" --argjson i "$2" '{tool_name:$t,tool_input:$i}'; }  # tool input-json
 export DRAFT_PRIVATE_WORDS_LIST=acmecorp
 check deny guard_github.py "$(gh_call issue_write '{"method":"update","issue_number":5,"labels":["craig-approved"]}')"
 check deny guard_github.py "$(gh_call add_labels '{"issue_number":5,"labels":"craig-approved"}')"

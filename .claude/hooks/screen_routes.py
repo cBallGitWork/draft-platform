@@ -15,8 +15,8 @@ import glob
 import os
 import re
 
-from tidy_branch import REMOTE, run
 from main_writes import MAIN
+from tidy_branch import REMOTE, run
 
 APPROVED = os.path.join("docs", "design", "approved")
 ROUTE_LINE = re.compile(r"^Route:\s*`([^`]+)`", re.M)
@@ -117,19 +117,19 @@ def files_rendering(route, folder, constants=None):
     """The files under src/ (repo paths) that render this route; ValueError if none can be found."""
     constants = path_constants(folder) if constants is None else constants
     names = [name for name, value in constants.items() if value == route]
+    keys = [re.escape(n) for n in names] + [re.escape(f'"{route}"')]
     pages = []
     for path in glob.glob(os.path.join(folder, ROUTES, "*.tsx")):
         imported, _ = _imports(path)
         for statement in STATEMENT.split(IMPORT_STATEMENT.sub("", _read(path))):
-            keys = [re.escape(n) for n in names] + [re.escape(f'"{route}"')]
             if any(re.search(form.format(key), statement) for form in DEFINES for key in keys):
                 pages += [file for name, file in imported.items() if re.search(WORD.format(name), statement)]
     page_files = _closure(pages, folder)
     if not page_files:
         raise ValueError(f"the guard can't trace which files under src/ render {route} (its Route: line in "
                          f"{APPROVED}/): no route in {ROUTES}/ hands it a page")
-    globals_ = [p for p in _imports(os.path.join(folder, ENTRY))[1] if p.endswith(".css")]
-    return page_files | _closure(globals_, folder)
+    stylesheets = [p for p in _imports(os.path.join(folder, ENTRY))[1] if p.endswith(".css")]
+    return page_files | _closure(stylesheets, folder)
 
 
 def changed_files(folder):

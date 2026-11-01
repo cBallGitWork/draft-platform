@@ -4,8 +4,6 @@
 # can come from DRAFT_PRIVATE_WORDS_LIST, as a cloud environment holds it.
 . "$(dirname "$0")/helpers.sh"
 
-gh_call() { "$jq" -nc --arg t "mcp__github__$1" --argjson i "$2" '{tool_name:$t,tool_input:$i}'; }  # tool input-json
-
 # the list as a cloud environment holds it: a made-up word, so this file names nothing real
 export DRAFT_PRIVATE_WORDS_LIST="acmecorp, othercorp"
 check deny guard_github.py "$(gh_call create_pull_request '{"title":"x","body":"for Acmecorp"}')"
