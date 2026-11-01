@@ -3,9 +3,11 @@ request that changes a screen with an approved picture shows approved and built,
 numbered; "with any, it waits for Craig's yes". pr_body.py makes such a body carry ui-verifier's
 "Approved vs built" section; this refuses gh pr merge while that section numbers a difference,
 unless the pull request has the label CRAIG_APPROVED, which only Craig adds: a gh command or GitHub
-tool call of Claude's that adds it is refused too. A body or labels it can't read is a denial,
-never a silent pass. Like drift_gate.py it stops the usual route only: a merge through gh api or
-the web button doesn't pass through it. Stdlib only, Python 3.9+.
+tool call of Claude's that adds it is refused too (in any case: GitHub's label names ignore it). A
+body or labels it can't read is a denial, never a silent pass. Like drift_gate.py it stops the
+usual route only: a merge through gh api or the web button, a label named by a shell variable, and
+a body edited after it opened (gh pr edit, which pr_body.py doesn't screen-check) get past it.
+Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -28,11 +30,11 @@ ONLY_CRAIG = (f"Only Craig adds the {CRAIG_APPROVED} label: it is his yes to a s
 
 
 def _labels_added(args):
-    """The labels these gh pr/issue create or edit args add."""
+    """The labels these gh pr/issue create or edit args add, in lower case."""
     out, i = [], 0
     while i < len(args):
         found, i = options(args, i, LABEL_VALUE_OPTS)
-        out += [name.strip() for opt, value in found if opt in LABEL_OPTS for name in value.split(",")]
+        out += [name.strip() for opt, value in found if opt in LABEL_OPTS for name in value.lower().split(",")]
         i += 1
     return out
 
@@ -44,7 +46,7 @@ def label_problem(cmds):
         i = runs_at(words, "gh")
         if i is None:
             continue
-        if words[i + 1 : i + 2] == ["api"] and any(CRAIG_APPROVED in word for word in words[i + 2 :]):
+        if words[i + 1 : i + 2] == ["api"] and any(CRAIG_APPROVED in word.lower() for word in words[i + 2 :]):
             return ONLY_CRAIG
         if tuple(words[i + 1 : i + 3]) in LABELLING and CRAIG_APPROVED in _labels_added(words[i + 3 :]):
             return ONLY_CRAIG
@@ -56,7 +58,7 @@ def mcp_label_problem(tool_input):
     labels = tool_input.get("labels") if isinstance(tool_input, dict) else None
     if isinstance(labels, str):
         labels = [labels]
-    if isinstance(labels, list) and any(isinstance(label, str) and label.strip() == CRAIG_APPROVED
+    if isinstance(labels, list) and any(isinstance(label, str) and label.strip().lower() == CRAIG_APPROVED
                                         for label in labels):
         return ONLY_CRAIG
     return None
@@ -72,7 +74,7 @@ def approval_problem(cmds):
         try:
             pr = pr_view(args, here, ["body", "labels"])
             listed = differences(pr["body"] or "")
-            labels = {label.get("name") for label in pr["labels"] or []}
+            labels = {(label.get("name") or "").lower() for label in pr["labels"] or []}
         except (ValueError, TypeError, AttributeError) as error:
             return (f"Can't read this pull request's body and labels, to see whether it waits for Craig's "
                     f"yes to a screen's differences from its approved picture: {error}.")

@@ -2,8 +2,9 @@
 """PreToolUse guard for the GitHub tools (mcp__github__*), which a cloud session publishes through
 in place of gh, so guard_bash.py never sees them: denies a call naming a word on Craig's private
 list (private_words.py) in any text it sends, a write whose branch or ref is main
-(main_writes.py), and one that puts Craig's craig-approved label on a pull request (approval_gate.py). Every tool is checked but the reads (READS), which publish nothing, so a write
-tool added or renamed is checked rather than missed. With no list to check against, a write gets a
+(main_writes.py), and one that puts Craig's craig-approved label on a pull request
+(approval_gate.py). Every tool is checked but the reads (READS), which publish nothing, so a
+write tool added or renamed is checked rather than missed. With no list to check against, a write gets a
 note, never a denial, as guard_bash.py gives. A payload it can't read is denied: allowing it would
 check nothing. Stdlib only, Python 3.9+.
 """

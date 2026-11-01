@@ -115,6 +115,7 @@ def _closure(starts, folder):
 
 def files_rendering(route, folder, constants=None):
     """The files under src/ (repo paths) that render this route; ValueError if none can be found."""
+    folder = os.path.abspath(folder)  # imports resolve to normalised paths, compared with it
     constants = path_constants(folder) if constants is None else constants
     names = [name for name, value in constants.items() if value == route]
     keys = [re.escape(n) for n in names] + [re.escape(f'"{route}"')]
@@ -136,7 +137,7 @@ def changed_files(folder):
     """The files this branch changes against origin/main; ValueError if git can't say."""
     ok, said = run(folder, "git", "diff", "--name-only", f"{REMOTE}/{MAIN}...HEAD")
     if not ok:
-        raise ValueError(f"git diff against {REMOTE}/{MAIN} failed ({said})")
+        raise ValueError(f"git diff against {REMOTE}/{MAIN} failed ({said}); git fetch {REMOTE} {MAIN}, then retry")
     return set(said.split())
 
 

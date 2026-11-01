@@ -124,7 +124,8 @@ says "Can't read this pull request's body and labels" guard_bash.py "$(bash_in "
 # only Craig adds the label
 for c in 'gh pr edit 5 --add-label craig-approved' 'gh pr edit 5 --add-label bug,craig-approved' \
   'gh pr create --title x --body-file pr.md --label craig-approved' 'gh issue edit 5 -l craig-approved' \
-  'gh api repos/o/r/issues/5/labels -f "labels[]=craig-approved"' 'git status && gh pr edit 5 --add-label=craig-approved'; do
+  'gh api repos/o/r/issues/5/labels -f "labels[]=craig-approved"' 'git status && gh pr edit 5 --add-label=craig-approved' \
+  'gh pr edit 5 --add-label Craig-Approved' 'gh api repos/o/r/issues/5/labels -f "labels[]=CRAIG-APPROVED"'; do
   check deny guard_bash.py "$(bash_in "$repo" "$c")"
 done
 says "Only Craig adds the craig-approved label" guard_bash.py "$(bash_in "$repo" 'gh pr edit 5 --add-label craig-approved')"
@@ -135,4 +136,20 @@ done
 export DRAFT_PRIVATE_WORDS_LIST=acmecorp
 check deny guard_github.py "$(gh_call issue_write '{"method":"update","issue_number":5,"labels":["craig-approved"]}')"
 check deny guard_github.py "$(gh_call add_labels '{"issue_number":5,"labels":"craig-approved"}')"
+check deny guard_github.py "$(gh_call issue_write '{"method":"update","issue_number":5,"labels":["Craig-Approved"]}')"
 check allow guard_github.py "$(gh_call issue_write '{"method":"update","issue_number":5,"labels":["bug"]}')"
+
+# this repo's own routes trace to their pages and the stylesheets, so a rename in src/routes/ that
+# loses a page fails here rather than letting its changes pass as no screen
+traced() { # route: the files that render it in this repo, one a line
+  (cd "$hooks" && python3 -c 'import sys, screen_routes as s; print("\n".join(sorted(s.files_rendering(sys.argv[1], sys.argv[2]))))' \
+    "$1" "$hooks/../..")
+}
+for row in '/team|src/myTeam/tactics/TacticsPage.tsx' '/team/squad|src/myTeam/SquadPage.tsx'; do
+  route=${row%%|*} page=${row#*|}
+  found=$(traced "$route")
+  for file in "$page" src/styles.css src/ui/controls.css; do
+    printf '%s\n' "$found" | grep -qx "$file" || fail "screen_routes.py: $route doesn't trace to $file"
+  done
+done
+if traced /team | grep -qx src/myTeam/SquadPage.tsx; then fail "screen_routes.py: /team traces to the Squad tab's page"; fi
