@@ -3,7 +3,7 @@ import { internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 import { internalAction, internalMutation, mutation, query, type QueryCtx } from "../_generated/server";
 import { sendEmail } from "../outbound/email";
-import { startOfNextDay, takeTodaysEmail } from "../outbound/emailLimit";
+import { takeTodaysEmail, waitForTomorrow } from "../outbound/emailLimit";
 import { linkWithToken } from "./inviteLink";
 import { joiningRefusals } from "./joining";
 import { approvedEmail } from "./joiningEmails";
@@ -134,7 +134,7 @@ export const takeEmailFor = internalMutation({
     if (!request || !league) return null;
     if (await takeTodaysEmail(ctx)) return { email: request.email, leagueName: league.name };
     await ctx.db.patch("joinRequests", args.requestId, { approvedEmail: "waiting" });
-    await ctx.scheduler.runAt(startOfNextDay(Date.now()), internal.joining.joinRequests.sendApprovedEmail, args);
+    await waitForTomorrow(ctx.scheduler, internal.joining.joinRequests.sendApprovedEmail, args);
     return null;
   },
 });
