@@ -17,7 +17,7 @@ import {
   closePanelLabel,
   figureWords,
   formLabel,
-  gameweekRowLong,
+  gameweekWords,
   gameweekRowWords,
   lastWords,
   nextGlyph,
@@ -149,7 +149,7 @@ function GameweekPlace({ tactics, code }: { tactics: Tactics | undefined; code: 
   return (
     <>
       <dt className="text-soft">
-        <abbr title={gameweekRowLong(tactics.gameweek)} className="no-underline">
+        <abbr title={gameweekWords(tactics.gameweek)} className="no-underline">
           {gameweekRowWords(tactics.gameweek)}
         </abbr>
       </dt>

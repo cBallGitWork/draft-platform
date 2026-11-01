@@ -4,9 +4,9 @@
 import { LANE_WORDS } from "../../../convex/lineup/pitchWords";
 import type { Lane } from "../../../convex/lineup/pitch";
 import { menuWords } from "../../frame/words";
-import { failedWords, gameweekWords } from "../../shared/words";
+import { failedWords } from "../../shared/words";
 
-export { figureWords, noFigureWords, shortThenLongName, whenWords, nextGlyph } from "../../shared/words";
+export { figureWords, gameweekWords, noFigureWords, shortThenLongName, whenWords, nextGlyph } from "../../shared/words";
 export { goneWords } from "../../squads/words";
 export { noTeamWords } from "../words";
 
@@ -95,11 +95,9 @@ export const rolePointsNotSettledLabel = "Role points: what they count aren't se
 export const bestRoleNotRatedLabel = "Best role: not rated yet";
 export const roleLastGameweekNotSettledLabel = "Role last gameweek: what it counts isn't settled yet";
 export const setRoleNotSettledLabel = "Set his role: where it goes isn't settled yet";
-export const setRoleWords = "Set his role";
 export const playerCardWords = "Player card";
 /** Where he stands in the gameweek being set: "Starting, W right"; "Bench, S3". */
 export const gameweekRowWords = (gameweek: number) => `GW${gameweek}`;
-export const gameweekRowLong = gameweekWords;
 export const startingInWords = (slot: string, lane: Lane) => `Starting, ${slot} ${LANE_WORDS[lane]}`;
 export const benchPlaceWords = (place: number) => `Bench, ${benchShort(place)}`;
 /** A bench place's short name, first sub S1. */
