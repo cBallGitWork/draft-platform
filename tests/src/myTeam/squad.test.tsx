@@ -10,6 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { MY_TEAM_PATH, MY_TEAM_SQUAD_PATH } from "../../../src/frame/menu";
 import { sectionTabsLabel } from "../../../src/frame/words";
+import { meterListLabel } from "../../../src/myTeam/header/words";
 import {
   awayWords,
   difficultyNotRatedWords,
@@ -44,7 +45,9 @@ describe("reaching it", () => {
     const app = openApp(MY_TEAM_PATH, manager);
     await userEvent.click(within(await screen.findByRole("navigation", { name: sectionTabsLabel })).getByRole("link", { name: SQUAD_TITLE }));
 
-    expect(await screen.findByRole("heading", { level: 1, name: SQUAD_TITLE })).toBeTruthy();
+    // Under My team's header band, whose plate names the team.
+    expect(await screen.findByRole("heading", { level: 1, name: league.teamName! })).toBeTruthy();
+    expect(screen.getByRole("group", { name: meterListLabel })).toBeTruthy();
     expect(app.path()).toBe(MY_TEAM_SQUAD_PATH);
     expect(app.myTeam.useTeamSquad).toHaveBeenCalledWith(league.leagueId);
   });

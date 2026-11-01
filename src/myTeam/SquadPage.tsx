@@ -6,6 +6,7 @@ import { Choice } from "../ui/Choice";
 import { Loading, Notice, PageSection, PanelNote } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
 import type { MyTeamSeam, TeamSquad } from "./seam";
+import { TeamPage } from "./header/TeamHeader";
 import type { Tactics } from "./tactics/seam";
 import { MailWidget } from "./squad/MailWidget";
 import { PlayerPanel } from "./squad/PlayerPanel";
@@ -29,18 +30,19 @@ import {
  *  (docs/design/approved/team-squad): every player in the squad in one table, by position group with
  *  the eleven first in each, beside a right-hand column of widgets: his season panel once a row is
  *  tapped, Your eleven, and Mail and news, which moves under the table while a panel is open.
- *  The page's header stays as it was: the shared My team header follows the Tactics tab's rebuild. */
+ *  All of it under My team's header band (header/TeamHeader.tsx), as the Tactics tab is. */
 export function SquadPage({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }) {
+  if (league.teamName === null) {
+    return (
+      <PageSection title={SQUAD_TITLE} className="bg-panel">
+        <PanelNote>{noTeamWords}</PanelNote>
+      </PageSection>
+    );
+  }
   return (
-    <PageSection title={SQUAD_TITLE}>
-      {league.teamName === null ? (
-        <div className="bg-panel">
-          <PanelNote>{noTeamWords}</PanelNote>
-        </div>
-      ) : (
-        <SquadBody league={league} seam={seam} />
-      )}
-    </PageSection>
+    <TeamPage league={league} teamName={league.teamName} seam={seam}>
+      <SquadBody league={league} seam={seam} />
+    </TeamPage>
   );
 }
 
