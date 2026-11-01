@@ -35,7 +35,7 @@ the product until a grill settles it.
 
 ## 2. References
 
-`docs/design/references/` (FM26, CM, FPL, FPL Draft, Sleeper; its README says what each shot
+`docs/design/references/` (FM26, FM27 per screen, CM, FPL, FPL Draft, Sleeper; its README says what each shot
 shows), plus what Fantrax and FPL do on the same screen. Background only: FM's organisation, never
 its colours or a copy of its screens ("dont obviously rip off FM but they do things right", Craig,
 1 Nov 2026). Note the one or two ideas the board borrows; they go in the README later.
@@ -77,6 +77,10 @@ catalogue, `convex/lineup/roles.ts`), a key or legend, or a `·` string.
 Read every PNG with the Read tool. A picture you did not open is not evidence. Fix what the lint or
 the picture shows, and render again.
 
+Stop after three render rounds in a row that change nothing the lint or the picture shows: say
+what is still wrong, what each round tried, and hand it to Craig (or the caller) instead of a
+fourth round.
+
 ## 5. The review panel
 
 Four reviewers, run in parallel in one message, each a read-only agent on sonnet:
@@ -111,6 +115,8 @@ On his yes, a `docs/` branch and PR adds `docs/design/approved/<screen>/` (the r
 `team-squad` for `/team/squad`):
 
 - `1440.png`, the shot of the approved board;
+- the approved board's `<Name>.dc.html`, as published on the canvas, next to its PNGs, so the
+  picture can be redrawn from its source if the canvas changes;
 - `README.md` as `docs/design/approved/README.md` sets out: the `Route:` line, Craig's words
   approving it and the date, the FM idea it borrows, interaction notes one line per control, each
   placeholder with its data's issue, and the canvas link;
@@ -118,3 +124,9 @@ On his yes, a `docs/` branch and PR adds `docs/design/approved/<screen>/` (the r
 
 The PR quotes Craig's yes and the panel's findings (the template's Checks). A docs-only PR that
 only quotes Craig's answers may skip `pr-reviewer`, and says so.
+
+When a value in `src/styles.css` or `docs/design/plate.md` changed, re-sync the design system
+artifact, <https://claude.ai/artifact/KnbhQ7oEyXakwqFsEbGk8e>: `read` it (Artifact tool), compare
+its `project/tokens.json` with `src/styles.css` and plate.md on main, change every value that
+differs, and publish to its `url`.
+styles.css and plate.md stay the source; the artifact is a copy for Claude Design.

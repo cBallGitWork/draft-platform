@@ -7,6 +7,9 @@ values are Claude's, from the designer's round-2 brief and the reviewer's pass o
 <https://claude.ai/artifact/HjawmrL2GPJ3bJzT1m3Cap>; the old reference mock-up, R3·1, is history
 ([decisions.md](decisions.md)).
 How the screens link, and which the spec names but nobody has built: [flow.md](flow.md).
+The design system artifact, <https://claude.ai/artifact/KnbhQ7oEyXakwqFsEbGk8e>, copies these
+values and `src/styles.css` for Claude Design; this file and styles.css are the source, and the
+`/design` skill re-syncs it when either changes (`.claude/skills/design/SKILL.md`, step 7).
 Where a screen has an approved picture, the picture settles its
 layout (what sits where, the columns, the rows) and this file its values (colours, type, spacing);
 where the two disagree, ask Craig.
