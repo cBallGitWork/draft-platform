@@ -10,7 +10,7 @@ import { roundsInARoundRobin } from "../table/roundRobin";
 import { heldRules, leagueRulesShape, type LeagueRules } from "./leagueRulesShape";
 import { sortedJson } from "../shared/sortedJson";
 import { nextGameweek } from "../gameweeks/nextGameweek";
-import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
+import { fixedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
 import { momentIn } from "../shared/moments";
 import { zoneOf } from "../signIn/timeZone";
@@ -169,7 +169,7 @@ async function takesEffectFrom(
   now: number,
 ): Promise<number> {
   const { gameweeks, matches } = await heldSchedule(ctx);
-  const passed = await passedDeadlinesOf(ctx, leagueId);
+  const passed = await fixedDeadlinesOf(ctx, leagueId);
   const nextUnder = (deadlineFor: (gameweek: number) => DeadlineRule) => nextGameweek(gameweeks, matches, deadlineFor, passed, now);
   return Math.max(
     nextUnder((gameweek) => (inForce(history, gameweek)?.rules ?? rules).deadline),

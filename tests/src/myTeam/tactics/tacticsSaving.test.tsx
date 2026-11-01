@@ -7,7 +7,7 @@
 import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { moveLabel, presetLabel, putHereLabel, saveFailedWords, savedWords, startingWords } from "../../../../src/myTeam/tactics/words";
+import { putHereLabel, saveFailedWords, savedWords, startingWords } from "../../../../src/myTeam/tactics/words";
 import { league } from "../../../support/src/shell.harness";
 import { TACTICS_GAMEWEEK, openTactics } from "../../../support/src/tactics.harness";
 import {
@@ -22,9 +22,11 @@ import {
   blockOf,
   member,
   openTacticsTab,
+  benchOrder,
   openedPitch,
+  pickFormation,
+  pickUp,
   pitch,
-  squadRows,
   undo,
 } from "../../../support/src/tacticsScreen.harness";
 
@@ -32,7 +34,7 @@ const REFUSAL = "A lineup starts 11 players; this one starts 5.";
 
 /** White, on the bench, moved to the left of defence, once the tab is up. */
 async function whiteToLeftOfDefence() {
-  await userEvent.click(await screen.findByRole("button", { name: moveLabel(WHITE.name) }));
+  await pickUp(WHITE);
   await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "left") }));
 }
 
@@ -50,7 +52,7 @@ describe("saving", () => {
     expect(screen.queryByRole("button", { name: /^Save/ })).toBeNull();
     const statusesBefore = screen.getAllByRole("status");
 
-    await userEvent.click(blockOf(HAVERTZ, { area: "attack", lane: "centre" }));
+    await pickUp(HAVERTZ);
     await userEvent.click(screen.getByRole("button", { name: putHereLabel(HAVERTZ.name, "attack", "left") }));
 
     expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, {
@@ -82,21 +84,21 @@ describe("saving", () => {
     it("clears when a player moves and the move saves", async () => {
       const { app } = await refusedWith(REFUSAL);
       app.myTeam.lineupChanges.save.mockResolvedValueOnce(TACTICS_GAMEWEEK);
-      await userEvent.click(blockOf(WHITE, { area: "defence", lane: "left" }));
+      await pickUp(WHITE);
       await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "centre") }));
       expect(screen.queryByRole("alert")).toBeNull();
     });
 
     it("stays while a player is only picked up, nothing yet changed", async () => {
       await refusedWith(REFUSAL);
-      await userEvent.click(screen.getByRole("button", { name: moveLabel(HAVERTZ.name) }));
+      await pickUp(HAVERTZ);
       expect(screen.getByRole("alert").textContent).toBe(REFUSAL);
     });
 
     it("clears when a preset is picked and saves", async () => {
       const { app } = await refusedWith(REFUSAL);
       app.myTeam.lineupChanges.save.mockResolvedValueOnce(TACTICS_GAMEWEEK);
-      await userEvent.selectOptions(screen.getByRole<HTMLSelectElement>("combobox", { name: presetLabel }), "4-4-2");
+      await pickFormation("4-4-2");
       expect(screen.queryByRole("alert")).toBeNull();
     });
   });
@@ -110,7 +112,7 @@ describe("saving", () => {
       if (moveAfter) {
         // The later move's own save answers at once, so only the first is still waiting.
         app.myTeam.lineupChanges.save.mockResolvedValueOnce(TACTICS_GAMEWEEK + 1);
-        await userEvent.click(blockOf(WHITE, { area: "defence", lane: "left" }));
+        await pickUp(WHITE);
         await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "centre") }));
       }
       await act(async () => app.myTeam.letSaveGo());
@@ -148,9 +150,9 @@ describe("Undo (spec/05, Moving players)", () => {
     const app = await openedPitch();
     await whiteToLeftOfDefence();
     await screen.findByText(savedWords(TACTICS_GAMEWEEK));
-    await userEvent.click(blockOf(SALIBA, { area: "defence", lane: "leftCentre" }));
+    await pickUp(SALIBA);
     await userEvent.click(screen.getByRole("button", { name: putHereLabel(SALIBA.name, "defence", "centre") }));
-    await userEvent.click(blockOf(HAVERTZ, { area: "attack", lane: "centre" }));
+    await pickUp(HAVERTZ);
     await userEvent.click(screen.getByRole("button", { name: putHereLabel(HAVERTZ.name, "attack", "left") }));
     const { calls } = app.myTeam.lineupChanges.save.mock;
     expect(calls).toHaveLength(3);
@@ -179,6 +181,6 @@ describe("the squad changing under an edit", () => {
 
     expect(await screen.findByText(startingWords(STARTERS.length))).toBeTruthy();
     expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${WHITE.name},`) })).toBeNull();
-    expect(squadRows().at(-1)).toBe("WSaka ARSMove Up Down");
+    expect(benchOrder()).toEqual([ARRIZABALAGA.name, SAKA.name]);
   });
 });

@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query, type QueryCtx } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
+import { EVERY_LEAGUE } from "../positions/positionSettings";
 import { memberOf, refuse } from "../shared/leagueAccess";
 import { ratedRoles } from "./stars";
 import { NO_DATA, roleStarsShape, type RoleStars } from "./starsShape";
@@ -31,7 +32,7 @@ export function starsRow(ctx: QueryCtx, playerCode: number) {
 /** Each player's stars, by his code: his stored ratings, or, with no row (no counted match yet, or
  *  a row not yet worked out), "—" for every role in every area his positions play now. */
 export async function starsOfPlayers(ctx: QueryCtx, playerCodes: readonly number[]): Promise<Map<number, RoleStars[]>> {
-  const positionsOf = await positionsNow(ctx);
+  const positionsOf = await positionsNow(ctx, EVERY_LEAGUE);
   const stars = new Map<number, RoleStars[]>();
   for (const playerCode of new Set(playerCodes)) {
     const row = await starsRow(ctx, playerCode);

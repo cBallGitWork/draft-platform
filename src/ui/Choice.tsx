@@ -7,18 +7,23 @@ export function Choice<Option extends string>({
   words,
   chosen,
   onChoose,
+  labelShown = true,
 }: {
   label: string;
   name: string;
   options: readonly Option[];
   words: Record<Option, string> | ((option: Option) => string);
-  chosen: Option;
+  /** Null where none of them is, such as a formation the eleven stand in that is no preset. */
+  chosen: Option | null;
   onChoose: (option: Option) => void;
+  /** False where what sits beside the keys already says it, such as a panel's title (the Squad
+   *  tab's views): the label is then for screen readers only. */
+  labelShown?: boolean;
 }) {
   const labelId = `${name}-label`;
   return (
     <div role="radiogroup" aria-labelledby={labelId} className="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <span id={labelId} className="text-soft">
+      <span id={labelId} className={labelShown ? "text-soft" : "sr-only"}>
         {label}
       </span>
       <span className="flex flex-wrap">

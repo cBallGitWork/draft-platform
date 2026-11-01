@@ -10,6 +10,8 @@ import re
 from where import options, runs_at
 
 MAIN = "main"
+REMOTE = "origin"  # GitHub's copy of the repo
+REMOTE_MAIN = f"{REMOTE}/{MAIN}"  # GitHub's main, as fresh as the last fetch
 MAIN_REFS = {MAIN, "refs/heads/" + MAIN}
 TO_MAIN = "That writes to main. Changes reach main only through a squash-merged PR."
 

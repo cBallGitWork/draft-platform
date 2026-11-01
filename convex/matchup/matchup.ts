@@ -30,8 +30,9 @@ import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vi
 // disagree.
 //
 // Lineups show only once the gameweek has begun, at the league's deadline: then both sides'
-// starters, each in his role, and the bench in order, each sub who came on in his. No formation is
-// sent: a placed lineup has no preset name, and how one is named waits on Craig (#878).
+// starters, each in his role, the bench in order, each sub who came on in his, and the formation:
+// the preset the lineup stands in, until its manager edits it off one (spec/10; #878), when it is
+// null, as what such a shape is called waits on Craig.
 // Before it nobody sees another team's lineup, the commissioner and the admin included:
 // "they just get to view what the managers see" (Craig, 31 Oct 2026; #392, #799). A manager's own
 // is on My team. The commentary is every line of the matches either lineup's men play in, each
@@ -136,6 +137,7 @@ class SideScorer {
       points,
       provisional,
       lineup: { starters: await Promise.all(scored.team.starters.map(starterOf)), bench: await Promise.all(scored.team.bench.map(benchOf)) },
+      formation: scored.formation,
     };
   }
 

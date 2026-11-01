@@ -26,25 +26,27 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - That centre cell offers the centre-back roles and the sweeper roles. It is a sweeper's cell,
   labelled SW and drawn deeper, only while its player is on a sweeper role, so a back three keeps a
   plain centre-back in the middle (Craig, 31 Oct 2026).
-- A formation is always one of the league's presets or classics (Craig, 1 Nov 2026). A player
-  can be dragged along his own row. Dragged into another row, the formation becomes the preset
-  whose shape it now matches, and a move that matches none isn't allowed.
-- The presets: 4-4-2, 4-3-3, 4-2-3-1, 4-1-4-1, 4-4-1-1, 4-3-1-2, 3-5-2, 3-4-3, 3-4-1-2, 5-3-2,
-  5-4-1, 4-5-1, 4-2-2-2, 4-1-2-1-2, 4-3-2-1, 4-1-3-2, 4-2-4, 3-4-2-1, 3-1-4-2, 5-2-3, 5-3-1-1, all
-  editable as league rules. The ten after 4-5-1 Craig added (28 Oct 2026): "no basics like
-  4-5-1". Then, from Craig on 1 Nov 2026 ("formation presets that include sweeper/liberio too",
-  "also formations with 2 at the back"): 5-3-2 with a sweeper, 3-5-2 with a libero, 2-3-5 and
-  2-3-2-3.
+- Presets only: the shape always comes from a preset or a classic, and no player moves into an
+  empty cell. "we dont allow users to move the individual pieces around, we have lots of
+  formations already"; "i think i just dont like hacing 2 cbs and fb for exampel"; "to me, presets
+  just sort all this out" (Craig, 1 Nov 2026). Free placement, Championship Manager style, is
+  dropped. The presets: 4-4-2, 4-3-3, 4-2-3-1, 4-1-4-1, 4-4-1-1, 4-3-1-2, 3-5-2, 3-4-3, 3-4-1-2,
+  5-3-2, 5-4-1, 4-5-1, 4-2-2-2, 4-1-2-1-2, 4-3-2-1, 4-1-3-2, 4-2-4, 3-4-2-1, 3-1-4-2, 5-2-3,
+  5-3-1-1, 3-6-1, all editable as league rules. Ten of them Craig added (28 Oct 2026): "no basics
+  like 4-5-1"; 3-6-1 he added (1 Nov 2026: "also add 3-6-1"). Then, from Craig on 1 Nov 2026
+  ("formation presets that include sweeper/liberio too", "also formations with 2 at the back"):
+  5-3-2 with a sweeper, 3-5-2 with a libero, 2-3-5 and 2-3-2-3.
 - Classics are famous sides' formations, each a league rule like a preset, which the ready-made
   rules carry. A classic sets its shape, every slot's role and its team instructions, which
   Claude drafts and Craig edits (Craig, 1 Nov 2026). They include Keegan's Newcastle
   ("both wide mids whip in crossers, strikers going for hearders, cb and both cms attack"),
   Barcelona's tiki-taka and Hungary in the 50s.
-- A manager can change a classic's shape, roles or instructions. Once he does, it becomes custom
-  (Craig, 1 Nov 2026: "when a change is made it becomes custom, and it can be saved").
+- A manager can change a classic's roles or instructions, never its shape. Once he does, it
+  becomes custom (Craig, 1 Nov 2026: "when a change is made it becomes custom, and it can be
+  saved"; then "only preset formations ,but we can still save the strategy").
 - Picking a preset reshapes the pitch and keeps the players: each starter moves to a slot of the
   new shape in his own area, if one is free, and anyone left over goes to the front of the bench.
-  The shape's empty slots show where to drag (Craig, 26 Oct 2026; #14).
+  (Craig, 26 Oct 2026; #14).
 - A starter with no free slot in his own area moves to the nearest free slot in any area his
   positions play, and only a player with none goes to the bench (Craig, 1 Nov 2026, after a
   4-4-2 turned 4-2-3-1 benched its midfield: "it just put players on the bench, left half the
@@ -81,9 +83,9 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 
 From `/grill the Tactics pitch` (Craig, 31 Oct 2026), unless dated otherwise.
 
-- Tap a player and everywhere he can go lights up: each free cell he can take and each player
-  he can swap with, with his stars there. Anything that would break the area limits stays unlit.
-  Tap a lit cell to move him, or a lit player to swap them. Dragging still works.
+- Tap a player and each player he can swap with lights up, with his stars there. Anything that
+  would break the area limits stays unlit. Tap a lit player to swap them, or drag him onto one.
+  There are no empty cells to move into: presets only (Craig, 1 Nov 2026).
 - Dropping a player on another swaps them, starter for starter or bench for starter. Each lands on
   the role he has the most stars for in his new slot (Roles).
 - The lineup saves itself after each valid move. A line by the deadline countdown says when it
@@ -136,9 +138,6 @@ From Craig, 1 Nov 2026, brought into the mini beta from the second release.
   description held with it, and Craig edits them; they are league rules like the presets.
 - A manager picks one attacking and one defensive instruction at a time. Picking a new formation
   preselects one of each from its list, and he can change either.
-- A drag that changes the formation keeps both instructions if the new formation offers them. One
-  it doesn't offer becomes the new formation's first, and a line says which changed (Craig, 1 Nov
-  2026, on his worry: "if you have a preset format, then move a player the team tactics changes").
 - Each instruction adjusts scoring like a role, for the whole team: a two-at-the-back shape's can
   make goals conceded cost more. The values come from backtesting; until then an instruction is
   picked and shown and changes no points ("we will score it with backtesting anyways").

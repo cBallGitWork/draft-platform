@@ -5,7 +5,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { adminByline } from "../../../convex/mail/letterWords";
 import { mailRefusals } from "../../../convex/mail/mail";
-import { BODY_MAX, LETTERS_SHOWN, SUBJECT_MAX, UNREAD_COUNTED } from "../../../convex/mail/mailLimits";
+import { BODY_MAX, LATEST_LETTERS, LETTERS_SHOWN, SUBJECT_MAX, UNREAD_COUNTED } from "../../../convex/mail/mailLimits";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -176,6 +176,23 @@ describe("unread", () => {
   test("signed out, there is no Mail", async () => {
     expect(await t.query(api.mail.mail.letters, {})).toEqual([]);
     expect(await t.query(api.mail.mail.unreadCount, {})).toBe(0);
+    expect(await t.query(api.mail.mail.latest, {})).toBeNull();
+  });
+
+  test(`a screen's Mail widget reads the newest ${LATEST_LETTERS} letters, as Mail lists them, and Mail's unread count`, async () => {
+    await addManagers(t, leagueId, [ANN]);
+    const commissioner = await mailOf(COMMISSIONER);
+    for (let letter = 0; letter < LATEST_LETTERS + 2; letter += 1) {
+      vi.advanceTimersByTime(MINUTE_MS);
+      await commissioner.writeToLeague(`Letter ${letter}`, "Hello");
+    }
+    const ann = await mailOf(ANN);
+    const [newest] = await ann.letters();
+    await ann.open(newest.letterId);
+
+    const latest = (await (await actingAs(t, ANN)).query(api.mail.mail.latest, {}))!;
+    expect(latest.letters).toEqual((await ann.letters()).slice(0, LATEST_LETTERS));
+    expect(latest.unread).toBe(await ann.unread());
   });
 });
 

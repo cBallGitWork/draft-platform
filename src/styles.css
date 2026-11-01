@@ -46,6 +46,14 @@
   --color-pitch: #2f8535;
   --color-pitch-stripe: #276f2c;
   --color-pitch-line: #e6f2e6;
+  /* a position chip in its area's colour (plate.md, Marks: position chips), from the approved
+     Tactics picture (docs/design/approved/team/), each with the ink that reads on it */
+  --color-area-goalkeeper: #e3cf98;
+  --color-area-defence: #2f6bd8;
+  --color-area-defensive-midfield: #4e6b45;
+  --color-area-midfield: #41c3ae;
+  --color-area-attacking-midfield: #9a3db8;
+  --color-area-attack: #f28c8c;
 
   --font-sans: "Archivo Narrow", "Arial Narrow", sans-serif;
   /* the second face, for page titles and team names only (the display-face utility below) */
@@ -57,6 +65,9 @@
 
   --spacing-tap: 44px; /* every target, at the phone's width (plate.md, The phone) */
   --spacing-subtab: 36px; /* a section's tabs, on the desk */
+  /* A table's row on the desk (plate.md, Type): h-row. Only a screen rebuilt to its approved picture
+     draws it; the other built tables keep their 20px rows until theirs is rebuilt. */
+  --spacing-row: 28px;
 
   /* The width each of Mail's two panels grows from; with less room than both, the form wraps under */
   --flex-basis-letters: 480px;
@@ -67,19 +78,27 @@
   --spacing-number-box: 72px;
   /* A box for a bigger whole number: a league's most teams, an admin threshold */
   --spacing-wide-number-box: 96px;
-  /* A squad number's box on the Squad tab: room for "99" (#13) */
-  --spacing-squad-number: 48px;
+  /* A squad number's box in the Squad tab's season panel: room for "99" and its list's arrow (#13) */
+  --spacing-squad-number: 72px;
+  /* The Squad tab on the desk (its approved picture): the table grows from its basis, and the
+     right-hand column of widgets beside it from its own; with less room than both, the widgets
+     wrap under the table */
+  --flex-basis-squad-table: 640px;
+  --flex-basis-widgets: 300px;
   /* A tick box's well (plate.md, Controls) */
   --spacing-tick: 22px;
   --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */
   --spacing-tick-mark: 14px; /* the tick drawn in it */
-  /* The Tactics tab: the squad beside the pitch on the desk; the window's height the pitch leaves
-     free; the narrowest the pitch is drawn on the desk, however short the window (a phone's is
-     the screen's width, its rows checked by tests/smoke/smoke.spec.ts); a player's shirt */
+  /* The Tactics tab: the squad beside the pitch on the desk; the pitch's width on the desk, the
+     approved Tactics picture's 340px and the room a player's block needs, so each stays in his
+     cell (a phone's is the screen's width; both checked by tests/smoke/smoke.spec.ts); a shirt */
   --flex-basis-squad: 320px;
-  --spacing-pitch-clearance: 16px;
-  --spacing-pitch-least: 360px;
+  --spacing-pitch-desk: 360px;
   --spacing-shirt: 32px;
+  /* a position chip's least width, so GK and CDM line up down the Tactics Selection table */
+  --spacing-chip: 30px;
+  /* a form chip's least width: one letter, W, L or D (plate.md, Marks: form) */
+  --spacing-chip-tight: 18px;
   /* The widest a lost player's error words run in the Tactics squad list on a phone, wrapping
      after, so they leave the Role column its room (#323) */
   --spacing-error-name: 104px;
@@ -102,6 +121,9 @@
   --grid-template-columns-home: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 2fr);
   --grid-template-columns-card: 2fr 3fr;
   --grid-template-columns-facts: auto 1fr;
+  /* The formation window's groups, its tiles and the picked one's preview (the approved formation
+     window) */
+  --grid-template-columns-formation-window: 12.5rem minmax(0, 1fr) 32.5rem;
 
   --text-data: 13px;
   --text-data--line-height: 20px;

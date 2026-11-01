@@ -4,8 +4,9 @@ import type { Doc } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { matchRecordsOf } from "../gameweekScorer/heldMatches";
 import { positionsNow } from "../positions/playerPositions";
+import { EVERY_LEAGUE } from "../positions/positionSettings";
 import { siteScoringAt } from "../scoring/siteVersions";
-import { takeAllOrThrow } from "../shared/cappedRead";
+import { LEAGUES_STORED_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { playerByCode } from "../shared/players";
@@ -13,7 +14,6 @@ import { readOnce } from "../shared/readOnce";
 import { sortedJson } from "../shared/sortedJson";
 import { PLAYERS_PAGE, SEASON_PLAYERS_MOST } from "../stats/matchRecords";
 import { playerRecords } from "../stats/seasonRecords";
-import { LEAGUES_STORED_MOST } from "../table/finalScores";
 import { starsRow } from "./playerStars";
 import { countedMatches, LEAST_MATCHES_RATED, perMatchUnder, ratedRoles, starsFor, type RatedRecord } from "./stars";
 import { UNSURE } from "./starsShape";
@@ -180,7 +180,7 @@ function starsKeeper(ctx: QueryCtx): (playerCode: number) => Promise<boolean> {
  *  him, holds no row. */
 async function refreshPlayers(ctx: MutationCtx, playerCodes: readonly number[]): Promise<void> {
   const set = await siteScoringAt(ctx, Date.now());
-  const positionsOf = await positionsNow(ctx);
+  const positionsOf = await positionsNow(ctx, EVERY_LEAGUE);
   const keepsStars = starsKeeper(ctx);
   const kickoffOf = readOnce(async (fixtureCode: number) => {
     const kickoff = (await fixtureByCode(ctx, fixtureCode))?.kickoff ?? null;

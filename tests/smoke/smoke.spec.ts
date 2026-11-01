@@ -12,7 +12,8 @@ import { ERROR_PAGE_TITLE, mainMenuLabel } from "../../src/frame/words";
 import { PITCH_ASPECT } from "../../src/myTeam/tactics/pitch/pitchMarkings";
 import { markedBy } from "../../src/myTeam/tactics/focusMarks";
 import { RUN_MARK } from "../../src/myTeam/tactics/pitch/runs";
-import { moveLabel, pitchLabel, presetLabel, putHereLabel, runsWords } from "../../src/myTeam/tactics/words";
+import { allFormationsWords, moveLabel, pitchLabel, putHereLabel, runsWords, squadTableLabel } from "../../src/myTeam/tactics/words";
+import { applyWords } from "../../src/myTeam/tactics/formationWindow/words";
 import { SIGN_IN_PATH } from "../../src/signIn/paths";
 import { signInWords } from "../../src/signIn/words";
 import { squadsPath } from "../../src/squads/paths";
@@ -88,6 +89,20 @@ async function expectPlayersApart(page: Page, onPhone: boolean, shape: string) {
   );
 }
 
+/** A formation picked from the formation window (the approved formation window), through its
+ *  back-line groups. */
+async function pickFormation(page: Page, name: string) {
+  await page.getByRole("button", { name: allFormationsWords }).click();
+  for (const group of await page.getByRole("button", { name: /^Back \d/ }).all()) {
+    await group.click();
+    const tile = page.getByRole("radio", { name, exact: true }).and(page.locator("button"));
+    if ((await tile.count()) === 0) continue;
+    await tile.click();
+    return page.getByRole("button", { name: applyWords }).click();
+  }
+  throw new Error(`No formation called ${name}`);
+}
+
 test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
   test("?preview=manager mounts the manager's landing page", async ({ page }) => {
     await page.goto("/?preview=manager");
@@ -121,20 +136,22 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
         expect(box.height, "its length, against the window's height").toBeLessThanOrEqual(viewport.height);
         if (viewport === PHONE) expect(box.width, "the phone's pitch fills the panel").toBeGreaterThan(viewport.width - PHONE_GUTTERS);
         else {
-          // On the desk it is the centrepiece: the window's height, but for the room it leaves.
-          const clearance = parseFloat(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--spacing-pitch-clearance")));
-          expect(box.height, "the desk's pitch is the window's height").toBeCloseTo(viewport.height - clearance, 0);
+          // On the desk it stands beside the Selection table at its own width (the approved picture).
+          const width = parseFloat(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--spacing-pitch-desk")));
+          expect(box.width, "the desk's pitch width").toBeCloseTo(width, 0);
         }
       });
 
       test("in every preset, each player stands inside his own cell, apart from the rest", async ({ page }) => {
         await page.goto(`${MY_TEAM_PATH}?preview=manager`);
         for (const { name } of DEFAULT_PRESETS) {
-          await page.getByRole("combobox", { name: presetLabel }).selectOption(name);
+          await pickFormation(page, name);
           await expectPlayersApart(page, viewport === PHONE, name);
         }
-        // Five abreast, the widest a row gets: 5-3-2's back five, the bench centre-back in its gap.
-        await page.getByRole("combobox", { name: presetLabel }).selectOption("5-3-2");
+        // Five abreast, the widest a row gets: 5-3-2's back five, the bench centre-back in its gap,
+        // picked up from his panel.
+        await pickFormation(page, "5-3-2");
+        await page.getByRole("table", { name: squadTableLabel }).getByRole("button", { name: OFF_THE_BENCH, exact: true }).click();
         await page.getByRole("button", { name: moveLabel(OFF_THE_BENCH), exact: true }).click();
         const gaps = LANES.map((lane) => page.getByRole("button", { name: putHereLabel(OFF_THE_BENCH, "defence", lane) }));
         for (const gap of gaps) if ((await gap.count()) > 0) await gap.click();

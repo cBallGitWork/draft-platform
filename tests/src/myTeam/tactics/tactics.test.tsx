@@ -13,15 +13,16 @@ import {
   BENCH_TITLE,
   emptyBenchWords,
   joinedBenchWords,
-  locksWords,
-  noDeadlineWords,
   pitchLabel,
+  playerCardLabel,
   seasonOverWords,
   squadTableLabel,
   startingWords,
   tacticsLoadingWords,
   tacticsNoRulesWords,
 } from "../../../../src/myTeam/tactics/words";
+import { deadlineHead, noDeadlineWords } from "../../../../src/myTeam/header/words";
+import { whenWords } from "../../../../src/shared/words";
 import { noTeamWords } from "../../../../src/myTeam/words";
 import { unheldNoticeWords, unheldPlayerWords } from "../../../../src/shared/words";
 import { commissioner, league, manager, openApp } from "../../../support/src/shell.harness";
@@ -35,6 +36,7 @@ import {
   STARTERS,
   WHITE,
   blockOf,
+  openPanel,
   openTacticsTab,
   openedPitch,
   squadRows,
@@ -88,13 +90,15 @@ describe("the deadline", () => {
     const minute = Date.now() - (Date.now() % MINUTE_MS);
     const deadline = minute + DAY_MS + 17 * HOUR_MS;
     openTacticsTab({ tactics: { ...SAVED, deadline } });
-    expect(await screen.findByText(locksWords(TACTICS_GAMEWEEK, deadline), { exact: false })).toBeTruthy();
+    // In My team's header band (src/myTeam/header/TeamHeader.tsx).
+    expect(await screen.findByText(deadlineHead(TACTICS_GAMEWEEK))).toBeTruthy();
+    expect(screen.getByText(whenWords(deadline), { exact: false })).toBeTruthy();
     expect(screen.getByText("in 1d 17h")).toBeTruthy();
   });
 
   it("says a gameweek with no kickoff time held has no deadline yet", async () => {
     openTacticsTab({ tactics: { ...SAVED, deadline: null } });
-    expect(await screen.findByText(noDeadlineWords(TACTICS_GAMEWEEK))).toBeTruthy();
+    expect(await screen.findByTitle(noDeadlineWords(TACTICS_GAMEWEEK))).toBeTruthy();
   });
 });
 
@@ -119,11 +123,13 @@ describe("the lineup held", () => {
     openTacticsTab();
     await screen.findByRole("table", { name: squadTableLabel });
     expect(squadRows()).toEqual([
-      "GKRaya ARSShot-stopperSweeper keeperMove",
-      "CBSaliba ARSStopperBall-playing defenderMove",
-      "CDM, CMRice ARSBox-to-boxPlaymakerBall-winnerMove",
-      "STHavertz ARSPoacherTarget manPressing forwardShadow strikerFalse 9Move",
-      BENCH_TITLE, "GKArrizabalaga ARSMove Up Down", "FB, WBWhite ARSMove Up Down"]);
+      // Each starter's slot chip, then name, club, next fixture (none held here, so empty), and role picker.
+      "GKRayaARSShot-stopperSweeper keeper",
+      "CBSalibaARSStopperBall-playing defender",
+      "CMRiceARSBox-to-boxPlaymakerBall-winner",
+      "STHavertzARSPoacherTarget manPressing forwardShadow strikerFalse 9",
+      // Each bench player's place and main position, and his best role there.
+      BENCH_TITLE, "S1GKArrizabalagaARSShot-stopper", "S2FBWhiteARSDefensive full-back"]);
   });
 
   it("says who joined the squad since and sits at the end of the bench", async () => {
@@ -138,8 +144,10 @@ describe("the lineup held", () => {
     expect(await screen.findByText(unheldNoticeWords)).toBeTruthy();
     expect(squadRows().at(-1)).toContain(unheld.name);
     // He has no card to open.
-    expect(screen.queryByRole("link", { name: unheld.name })).toBeNull();
-    expect(screen.getByRole("link", { name: ARRIZABALAGA.name })).toBeTruthy();
+    await openPanel(unheld);
+    expect(screen.queryByRole("link", { name: playerCardLabel(unheld.name) })).toBeNull();
+    await openPanel(ARRIZABALAGA);
+    expect(screen.getByRole("link", { name: playerCardLabel(ARRIZABALAGA.name) })).toBeTruthy();
   });
 
   it("shows no notice of missing football data while every player is held", async () => {

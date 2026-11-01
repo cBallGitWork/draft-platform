@@ -5,12 +5,12 @@
 // play") and a move that keeps the league's area limits (spec/05, Moving players: "Anything that
 // would break the area limits stays unlit").
 
-import { ALL_CELLS, AREAS, byPitchOrder, cellKey, LANES, playsCell, sameCell, type Cell } from "../../../convex/lineup/pitch";
+import { ALL_CELLS, AREAS, byPitchOrder, cellKey, LANES, playsCell, positionOfSlot, sameCell, type Cell } from "../../../convex/lineup/pitch";
 import { namedCodes, reconciled, STARTER_COUNT, type LineupRules } from "../../../convex/lineup/lineup";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { OpenTactics } from "../../../convex/lineup/tactics";
 import { offersRole, roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
-import { droppedStarter } from "../../../convex/stars/bestRole";
+import { bestRoleIn, droppedStarter } from "../../../convex/stars/bestRole";
 import type { RoleStars } from "../../../convex/stars/starsShape";
 
 export type SquadMember = OpenTactics["squad"][number];
@@ -207,4 +207,32 @@ export function reshaped(draft: DraftLineup, cells: readonly Cell[], { positions
     else moveInto(starter, cell);
   }
   return { starters, bench: [...leftOver, ...draft.bench] };
+}
+
+/** The league's preset whose shape the eleven stand in now, cell for cell, if any: its key is the
+ *  one pressed in the Formation keys, and its name heads the pitch. */
+export function presetInUse<Shape extends { name: string; cells: readonly Cell[] }>(draft: DraftLineup, presets: readonly Shape[]): Shape | undefined {
+  const standing = new Set(draft.starters.map(cellKey));
+  return presets.find(({ cells }) => cells.length === standing.size && cells.every((cell) => standing.has(cellKey(cell))));
+}
+
+/** The slot a position stands for, the first cell of the pitch whose slot it is: a bench player's
+ *  best role is read there. A support striker (SS) has no slot of his own (pitch.ts). */
+const cellOfPosition = (position: Position): Cell | undefined => ALL_CELLS.find((cell) => positionOfSlot(cell) === position);
+
+/** A bench player's best role (the Selection table's Best role): the one he has the most stars for
+ *  in the slot of his first position that has one, his main position's (spec/12; spec/05 Roles).
+ *  Undefined for a player with no position that has a slot. */
+export function benchBestRole({ positions, stars }: Pick<SquadMember, "positions" | "stars">) {
+  const cell = positions.map(cellOfPosition).find((each) => each !== undefined);
+  return cell === undefined ? undefined : { cell, role: bestRoleIn(cell, stars) };
+}
+
+/** Where a player stands in the lineup, for his panel: his slot, or his place on the bench and how
+ *  long it is; null for one in neither (gone from the squad since he was tapped). */
+export function placeOf(draft: DraftLineup, playerCode: number): { starter: Starter } | { benchIndex: number; benchLast: number } | null {
+  const starter = draft.starters.find((each) => each.playerCode === playerCode);
+  if (starter !== undefined) return { starter };
+  const benchIndex = draft.bench.indexOf(playerCode);
+  return benchIndex === -1 ? null : { benchIndex, benchLast: draft.bench.length - 1 };
 }

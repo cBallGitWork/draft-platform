@@ -132,7 +132,8 @@ export const FORM_RESULTS = 5;
 export const RESULTS = ["won", "drawn", "lost"] as const;
 export type Result = (typeof RESULTS)[number];
 
-function resultOf(score: number, against: number): Result {
+/** A matchup's result for the team that scored `score` against `against`: by the points it earns. */
+export function resultOf(score: number, against: number): Result {
   const earned = matchupPoints(score, against);
   if (earned === MATCHUP_POINTS.win) return "won";
   return earned === MATCHUP_POINTS.draw ? "drawn" : "lost";

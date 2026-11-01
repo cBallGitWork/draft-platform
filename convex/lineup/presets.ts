@@ -2,7 +2,7 @@
 // its own rules, which it can edit (spec/03), so this is only the set it is given: nothing checks
 // a lineup against it. A league's copy is held with its rules (#25, leagueRules.ts).
 
-import { cellsOf, LANES, type Area, type Cell, type Lane } from "./pitch";
+import { cellsOf, LANES, sameCell, type Area, type Cell, type Lane } from "./pitch";
 
 export interface Preset {
   /** As managers say it, such as "4-2-3-1". */
@@ -67,3 +67,12 @@ export const DEFAULT_PRESETS: readonly Preset[] = [
   preset("5-2-3", BACK_FIVE, CENTRAL_PAIR, FRONT_THREE),
   preset("5-3-1-1", BACK_FIVE, CENTRAL_THREE, NUMBER_TEN, LONE_STRIKER),
 ];
+
+/** The name of the preset a side stands in: the first of `presets` whose cells are exactly these,
+ *  in any order; null for a shape none of them is, one its manager has edited off a preset
+ *  (spec/10: "preset until its edited, then we name it"; #878). `presets` are the league's in force
+ *  then (spec/03), never this file's. */
+export function presetNameOf(cells: readonly Cell[], presets: readonly Preset[]): string | null {
+  const preset = presets.find((each) => each.cells.length === cells.length && each.cells.every((cell) => cells.some((other) => sameCell(cell, other))));
+  return preset?.name ?? null;
+}

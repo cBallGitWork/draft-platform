@@ -46,14 +46,15 @@ export function gameweekFixtures(ctx: QueryCtx, gameweek: number, why: string): 
 }
 
 /** The matches the feed still sends, dropped ones left out, in kickoff order (those with no
- *  kickoff time first); only those kicked off by `kickedOffBy`, when given. */
-export function currentFixtures(ctx: QueryCtx, kickedOffBy?: number): Promise<Doc<"fixtures">[]> {
+ *  kickoff time first); only those kicked off by `kickedOffBy`, when given, and from
+ *  `kickedOffFrom` on, when given (which leaves out those with no kickoff time). */
+export function currentFixtures(ctx: QueryCtx, kickedOffBy?: number, kickedOffFrom?: number): Promise<Doc<"fixtures">[]> {
   return takeAllOrThrow(
-    ctx.db
-      .query("fixtures")
-      .withIndex("by_droppedAt_and_kickoff", (q) =>
-        kickedOffBy === undefined ? q.eq("droppedAt", undefined) : q.eq("droppedAt", undefined).lte("kickoff", kickedOffBy),
-      ),
+    ctx.db.query("fixtures").withIndex("by_droppedAt_and_kickoff", (q) => {
+      const current = q.eq("droppedAt", undefined);
+      const from = kickedOffFrom === undefined ? current : current.gte("kickoff", kickedOffFrom);
+      return kickedOffBy === undefined ? from : from.lte("kickoff", kickedOffBy);
+    }),
     CURRENT_FIXTURES_MOST,
     `More than ${CURRENT_FIXTURES_MOST} matches are held as current, so they would be cut short`,
   );

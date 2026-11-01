@@ -9,8 +9,10 @@ import { heldRules, type LeagueRules } from "./leagueRulesShape";
 /** The most rules rows a league holds: one per change saved, and a save made again before the same
  *  deadline is a row too, so five every gameweek of a season; rows are kept across seasons. A change
  *  past it is refused, and a read of more throws, never a silent cut, as the rules in force are the
- *  newest row (#214). Claude's choice, not yet Craig's. */
-export const RULES_CHANGES_MOST = 200;
+ *  newest row (#214). Craig asked for "much higher" than the first 200 (1 Nov 2026; #894); 1,000 is
+ *  Claude's number: five seasons at five a gameweek, and every rules read is still one league's rows,
+ *  so its cost grows with that league's changes, not with teams. */
+export const RULES_CHANGES_MOST = 1_000;
 
 /** A rules row with its rules as `heldRules` reads them. */
 export type RulesRow = Omit<Doc<"leagueRules">, "rules"> & { rules: LeagueRules };
