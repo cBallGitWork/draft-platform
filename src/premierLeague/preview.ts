@@ -4,6 +4,7 @@
 // them. Made-up scores.
 
 import { plTable } from "../../convex/football/plTable";
+import { COMPETITION_TIE_BREAKS } from "../../convex/football/tieBreaks";
 import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { previewMatch, previewMatchBeforeKickoff } from "./matchPreview";
@@ -98,7 +99,11 @@ const upcoming = new Map(
     ),
   ),
 );
-const standings = { rows: plTable(CLUBS, results, { seasonOver: false }), provisional: true };
+const unplayed = [...matches.values()].flat().filter(({ score }) => score?.state === "upcoming");
+const standings = {
+  rows: plTable(CLUBS, results, { competition: COMPETITION_TIE_BREAKS.premierLeague, seasonOver: false, unplayed }),
+  provisional: true,
+};
 
 export const previewPremierLeague: PremierLeagueSeam = {
   useFirstKickoffs: () => firstKickoffs,
