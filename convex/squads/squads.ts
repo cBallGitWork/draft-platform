@@ -142,7 +142,7 @@ export const squads = query({
   handler: async (ctx, { leagueId }) => {
     await memberOf(ctx, leagueId);
     const rules = await latestRules(ctx, leagueId);
-    const positionsOfNow = await positionsNow(ctx);
+    const positionsOfNow = await positionsNow(ctx, leagueId);
     const shortNameOf = readOnce(async (clubCode: number) => (await clubByCode(ctx, clubCode)).shortName);
     return Promise.all(
       (await teamsOf(ctx, leagueId)).map(async (team) => {

@@ -11,7 +11,8 @@ Craig hasn't picked says so.
 Each with the questions its grill starts from. The questions are Claude's.
 
 **Awards**: history, Mail.
-- Manager of the Month and Player of the Season (Team of the Week is on league home, `spec/12`).
+- Manager of the Month and Player of the Season. Team of the Week is off league home: "ditch team
+  of the week" (Craig, 1 Nov 2026; `spec/12`).
   Where they live once Mail has filed them (see History, below).
 
 **Our own home stadiums**: the pitch view, the matchup.
@@ -150,11 +151,81 @@ description, and the Guide would too.
 - Craig's own words for each: the classics' text is sample until he rewrites it (`spec/05`, The
   pitch), and the modern sides are still to list.
 
+**Where the support striker sits**: `spec/06` has SS, and "Where SS sits is to grill: just behind
+the forward, or as a forward (Craig: "maybe its forward?")". On the formation window Craig added
+"maybe am becomes a ss (like a the 4-4-1-1)" (1 Nov 2026).
+- Does the slot behind the striker in a 4-4-1-1 (and the other classics with one) always read SS,
+  not CAM? "no not always, different roles" (Craig, 1 Nov 2026): it depends on the role played
+  there, so what decides the label is still open.
+- Does SS stay in both attacking midfield and attack (`spec/06`, Areas each position can play)?
+
 **Saved alternative looks**: "gantry is intriguing, save that for now" (Craig, 1 Nov 2026). The
 gantry look, drawn while the Tactics pictures were made, waits until Craig goes back over the look
 once the pages' structure is designed (`docs/design/approved/README.md`: "once we design all the
 apges as in the code/structure im happy to then go back and look at designs again").
 - Which screens it would suit, when the look pass comes.
+
+**League home's panels, from its approved picture**: Craig approved the main Home board, and the
+other states' boards "as the plan for later" (1 Nov 2026: "yes to all";
+`docs/design/approved/home/`). He took FM as the model: "fm and its widgets as inspo". The picture
+places these; none says yet what it holds or does, and each is a placeholder until its grill.
+
+**Home's tabs, Overview | News | Calendar**.
+- What News holds beyond Overview's News panel: every claim, drop, trade and the commissioner's
+  letters, or more.
+- What Calendar holds: the league's gameweeks and deadlines, the draft, breaks (Break weeks,
+  below) and waivers' runs (Run the league, below).
+
+**The deadline strip**: the row of boxes under Home's tabs (GW9 locks, Your lineup, Claims close,
+Table).
+- Which boxes, and whether they change with the season's state (the pictures change them).
+- What "Your lineup" says (the picture: "Saka doubtful"), and whether a box opens anything.
+- Claims close needs waivers (`spec/08`), not built yet.
+
+**Mail's Needs you tab on Home**: the Mail panel splits Needs you (3) | All.
+- Which letters need a manager: a lineup to set, a trade offer, a claim's result. Is it the same
+  list Continue walks through (`spec/12`, The frame)?
+- Whether Mail itself gets the tab too.
+
+**The Premier League on Home**: "does home need some of the live footie too?" (Craig, 1 Nov 2026).
+The picture lists this gameweek's matches with your players and your opponent's in each.
+- Every match, or only those with your or your opponent's players.
+- Live scores in matchday mode (the locked picture's Premier League today), or only kickoff times.
+- What it adds beyond the Vidiprinter card's live screen (above).
+
+**Your squad news on Home**: the picture lists your players who are injured, suspended, doubtful or
+a booking from a ban.
+- Which FPL statuses it reads, as Status chips' data and Who's doubtful, on Tactics (above) ask.
+- Only your squad, or your starters first.
+
+**Run the league**: a to-do list for the commissioner and co-commissioner on Home. Craig said "ok"
+to the lineup count as a number only (1 Nov 2026): "Teams with no lineup yet 3", never whose, as
+neither sees a lineup before the deadline (`spec/10`).
+- What else is on the list: join requests, waivers to run, the draft order, next season.
+- The commissioner's tools move here off Your leagues' rows, where they are built today
+  (Gameweeks, Invites and join requests, Squads, League settings, deleting); the approved Your
+  leagues picture has none on its rows (`docs/design/approved/leagues/`). Player scoring, on every
+  manager's row today, leaves them too: where does it go?
+- Whether Fantrax's Commissioner fixes (Smaller pages, below) join it.
+
+**Home through the season**: the boards for each state, drawn as the plan for later, each grilled
+when its feature is built (`docs/design/approved/home/`).
+- Pre-season and the draft: the draft's countdown, your queue and pick, the empty table (`spec/04`).
+- A new joiner: who took over a team, and the page while a join request waits (`spec/13`, Joining).
+- The season over: the champions and the final table; the season's end book and honours board
+  are in SPEC.md, *Later*; next season goes with *Carrying a league into next season*.
+- The Monday after: the gameweek final, its result and the recap (#387).
+- When each state starts and ends.
+
+**Break weeks**: "when its international break, we lock everything and give the league a break"
+(Craig, 1 Nov 2026; https://trello.com/c/YD6AFJW2).
+- Claims, waivers and trades lock too: settled in `spec/13`, Gameweeks (Craig, 1 Nov 2026: "yes").
+- Every international break, or the commissioner's pick, as gameweeks are ticked now.
+- What Home and Mail say during one (the break picture).
+
+**A league's name on Your leagues opens its League home**: the approved Your leagues picture
+(Craig, 1 Nov 2026: "yes to all").
+- Does it switch the current league too (`spec/13`, Several leagues)?
 
 ## Suggested, not yet picked
 
@@ -193,7 +264,7 @@ be tabs on screens `spec/12` already lists rather than pages of their own.
 | Every squad on one page | For scouting rivals |
 | A new season from the last | Copy the league, its rules and its managers into next season |
 | Stat corrections | What moved after a match, and why (the window is `spec/07`'s) |
-| Waiver order and the can't-drop list, on show | Makes the waiver rules visible |
+| Waiver order and the can't-drop list, on show | Makes the waiver rules visible. Waiver priority "can be in its section, or a sub header" (Craig, 1 Nov 2026), so not on Home's deadline strip |
 | Who owned whom | A player's owners, gameweek by gameweek: for history and for his card |
 | Mock draft | Practice before the real one |
 | Commissioner fixes | Block one team from trading or claiming; adjust the standings |

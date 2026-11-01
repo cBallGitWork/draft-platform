@@ -3,7 +3,7 @@ import type { Doc } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { adminOf } from "../shared/leagueAccess";
 import { currentClubs, currentPlayersAt, playersNamed } from "../shared/players";
-import { howPositionsCount, type HowPositionsCount } from "./positionSettings";
+import { EVERY_LEAGUE, howPositionsCount, type HowPositionsCount, type PositionsFor } from "./positionSettings";
 import { positionsFromStarts, positionsOf, type WorkedOutPositions } from "./positions";
 import type { Position } from "./positionTables";
 import { approveMode, changeThresholds, position } from "../schema";
@@ -40,7 +40,7 @@ export const ofPlayer = query({
   returns: playerPositions,
   handler: async (ctx, { code }): Promise<WorkedOutPositions> => {
     await adminOf(ctx);
-    return positionsFrom((await findRow(ctx, code)) ?? EMPTY_ROW, await howPositionsCount(ctx));
+    return positionsFrom((await findRow(ctx, code)) ?? EMPTY_ROW, await howPositionsCount(ctx, EVERY_LEAGUE));
   },
 });
 
@@ -128,7 +128,7 @@ export const queue = query({
   returns: positionsQueue,
   handler: async (ctx) => {
     await adminOf(ctx);
-    const how = await howPositionsCount(ctx);
+    const how = await howPositionsCount(ctx, EVERY_LEAGUE);
     const newSignings = [];
     const waiting = [];
     const flagged = [];
@@ -177,7 +177,7 @@ export const find = query({
   handler: async (ctx, { text }) => {
     await adminOf(ctx);
     if (!text.trim()) return [];
-    const how = await howPositionsCount(ctx);
+    const how = await howPositionsCount(ctx, EVERY_LEAGUE);
     const found = await playersNamed(ctx, text);
     return Promise.all(
       found.map(async (player) => ({
@@ -194,10 +194,11 @@ export const find = query({
 /** A player's positions now, by his code. */
 export type PositionsNow = (code: number) => Promise<Position[]>;
 
-/** Each player's positions now, for anyone's screen (a squad's area minimums, #317): none for a
- *  player no feed has named yet. How positions count is read once, here. */
-export async function positionsNow(ctx: QueryCtx): Promise<PositionsNow> {
-  const how = await howPositionsCount(ctx);
+/** Each player's positions now, as the league's own deadlines have them (#895; EVERY_LEAGUE for
+ *  what no one league owns), for anyone's screen (a squad's area minimums, #317): none for a player
+ *  no feed has named yet. How positions count is read once, here. */
+export async function positionsNow(ctx: QueryCtx, positionsFor: PositionsFor): Promise<PositionsNow> {
+  const how = await howPositionsCount(ctx, positionsFor);
   return (code) => currentPositions(ctx, code, how);
 }
 

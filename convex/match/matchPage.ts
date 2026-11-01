@@ -1,5 +1,5 @@
 import { v, type Infer } from "convex/values";
-import type { Doc } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { heldOf } from "../football/matchCommentary";
 import { heldTeamSheetsOf } from "../football/matchTeamSheets";
@@ -104,7 +104,7 @@ export const ofMatch = query({
     const unownedPoints = await unownedPointsOf(ctx, leagueId, fixtureCode, records, owners, priced.set);
     const held = await scoreOf(ctx, fixtureCode);
     const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
-    const { men, unowned } = await menOf(ctx, fixture, named, owners, priced, unownedPoints);
+    const { men, unowned } = await menOf(ctx, leagueId, fixture, named, owners, priced, unownedPoints);
     return {
       fixtureCode,
       gameweek: fixture.gameweek,
@@ -193,13 +193,14 @@ async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtu
  *  his new one (#502). */
 async function menOf(
   ctx: QueryCtx,
+  leagueId: Id<"leagues">,
   fixture: Doc<"fixtures">,
   named: readonly NamedMan[],
   owners: Map<PlayerCode, Doc<"teams">>,
   { slots }: Priced,
   unownedPoints: UnownedPricer,
 ): Promise<{ men: MatchMan[]; unowned: Map<PlayerCode, VidiprinterPlayer> }> {
-  const positionsOfNow = await positionsNow(ctx);
+  const positionsOfNow = await positionsNow(ctx, leagueId);
   const unowned = new Map<PlayerCode, VidiprinterPlayer>();
   const men = await Promise.all(
     named.map(async ({ playerCode, started, played }) => {

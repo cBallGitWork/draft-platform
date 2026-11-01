@@ -67,7 +67,7 @@ export const ofMyTeam = query({
     if (next.kind !== "open") return { kind: next.kind };
     const { season, gameweek } = next;
 
-    const positionsOfNow = await positionsNow(ctx);
+    const positionsOfNow = await positionsNow(ctx, leagueId);
     const members = await squadOf(ctx, team._id);
     const starsOf = await starsOfPlayers(
       ctx,

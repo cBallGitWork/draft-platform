@@ -79,11 +79,16 @@ longer counts, nor is it proposed.
 - A start that gives no position (a sheet that drew none, a formation the table doesn't know)
   neither adds to a run nor ends it. One start back at a position ends its run, and a removed one
   counts again while his window still holds 3 starts there.
-- Only between gameweeks: the starts judged are those before the last FPL deadline the newest
-  positions sync ran after (`judgedBefore` in `positionSettings.ts`), so a sync within a gameweek
-  moves nothing; the sync's time stands in for the clock, which a query can't read. Before any
-  sync, or the season's first deadline, every start is judged. Gaining a position is not held
-  back this way.
+- Only between gameweeks: the starts judged are those before the last of the league's own
+  deadlines the newest positions sync ran after (`judgedBefore` in `positionSettings.ts`), never
+  FPL's (#895), so a sync within a gameweek moves nothing; the sync's time stands in for the
+  clock, which a query can't read. Before any sync, or the league's first deadline, every start
+  is judged. Gaining a position is not held back this way.
+- So a player's positions can differ between leagues until each has passed its deadline. Nothing
+  more is saved: each read works the cut-off out from the league's deadlines (`positionsNow(ctx,
+  leagueId)`), costing one read of its rules and passed deadlines a query, whatever its team count.
+  What no one league owns (the admin's queue, each player's stars) uses `EVERY_LEAGUE`: the latest
+  deadline any league has passed, reading every league's (5-6 for ~80 teams).
 - Nothing is refused for it: losing a position never makes a squad illegal (spec/06).
 
 ## Held, and read
