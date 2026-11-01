@@ -7,7 +7,7 @@ import { adminByline } from "../../convex/mail/letterWords";
 import { DAY_MS, HOUR_MS } from "../../convex/shared/time";
 import { teamFixturesOf } from "../table/drawnTable";
 import { ARSENAL, CHELSEA } from "../scouting/preview";
-import { previewScored, previewTeams } from "../table/preview";
+import { previewScored, previewTable, previewTeams } from "../table/preview";
 import { previewTactics } from "./tactics/preview";
 import type { MyTeamSeam, TeamSquad, TeamTransactions } from "./seam";
 
@@ -57,4 +57,4 @@ const squad: TeamSquad = {
 /** The preview holds no server: a number changed there is taken, and goes when the page reloads. */
 const previewNumbers = { set: async () => null };
 
-export const previewMyTeam: MyTeamSeam = { ...previewTactics, useTeamFixtures: () => fixtures, useTeamTransactions: () => transactions, useTeamSquad: () => squad, useSquadNumbers: () => previewNumbers };
+export const previewMyTeam: MyTeamSeam = { ...previewTactics, ...previewTable, useTeamFixtures: () => fixtures, useTeamTransactions: () => transactions, useTeamSquad: () => squad, useSquadNumbers: () => previewNumbers };

@@ -80,6 +80,8 @@
   --spacing-pitch-clearance: 16px;
   --spacing-pitch-least: 360px;
   --spacing-shirt: 32px;
+  /* a form chip's least width: one letter, W, L or D (plate.md, Marks: form) */
+  --spacing-chip-tight: 18px;
   /* The widest a lost player's error words run in the Tactics squad list on a phone, wrapping
      after, so they leave the Role column its room (#323) */
   --spacing-error-name: 104px;
