@@ -1,7 +1,8 @@
 # 5. Tactics
 
 Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and `/grill tactics`
-(16 Oct 2026), and `/grill the Tactics pitch` (31 Oct 2026).
+(16 Oct 2026), `/grill the Tactics pitch` (31 Oct 2026), and his answers on the Tactics pictures
+(1 Nov 2026).
 
 **Contents:** [The pitch](#the-pitch) · [Moving players](#moving-players) ·
 [What the pitch shows](#what-the-pitch-shows) · [Runs](#runs) · [Roles](#roles) ·
@@ -38,6 +39,12 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - Everyone takes a slot in his own area before anyone moves across, and of two areas as near, a
   player moving across takes the deeper (Craig, 1 Nov 2026). A plain CM or WM still goes to the
   bench in a 4-2-3-1, which has no midfield row.
+- A manager can save his own presets: "no home away silly but saved presets good. They include
+  formation and roles. Players change too much to save" (Craig, 1 Nov 2026). A saved preset holds
+  the formation and each slot's role, never players.
+- The formation window keeps classic sides as ready-made formation-plus-roles, and the modern ones
+  too: "4 yes and re write" (Craig, 1 Nov 2026, asked whether to keep the classic and modern
+  formations). Their text is sample until Craig rewrites it.
 - Any player who plays in an area can fill any slot in it: the game should not get in the way of
   managers. A centre-back can fill a full-back's cell.
 - For now that is the hard rule: a player fills only slots in the areas his positions play (Craig,
@@ -216,6 +223,7 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
 
 - A starter whose match ends with him on 0 minutes is replaced straight away, provisional like
   live points, final when the gameweek ends.
+- Every squad player not in the eleven is on the bench; there are no reserves: "ditch reserves. Just make bench bigger for bigger squads" (Craig, 1 Nov 2026).
 - The manager sets the bench order with up and down on each bench player, or by dragging him
   along the bench (Craig, 26 Oct 2026; #14).
 - The first player in the manager's bench order who can play the empty slot's area takes that
