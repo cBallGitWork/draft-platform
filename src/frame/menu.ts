@@ -7,7 +7,7 @@
 import { MAIL_TITLE } from "../mail/words";
 import { menuWords } from "./words";
 
-export type Page = { label: string; path: string };
+type Page = { label: string; path: string };
 export type Section = Page & { tabs: readonly Page[] };
 
 export const HOME_PATH = "/home";

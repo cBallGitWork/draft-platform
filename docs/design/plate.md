@@ -98,6 +98,9 @@ name (the score).
   measurements live once, in `src/myTeam/tactics/pitchMarkings.ts`. Flat: one stripe to each of
   its six rows, which share its length equally so each line of players stands where it would; no
   gradients or photo grass. It is the Tactics tab's centrepiece (Decided).
+- **A role's run** (spec/05 Runs): a 2px dashed white line from the player's place with a solid
+  white arrowhead, drawn under the players' blocks so it never covers a name. Its shape is the
+  role's, in metres (`convex/lineup/roles.ts`); `src/myTeam/tactics/RoleRuns.tsx` only draws it.
 - **Where a picked-up player can go** (spec/05, Moving players): a free cell he may move to is a
   2px dashed box in the pitch line's colour; a player he may swap with gets the same dashes round
   his block, and in the squad table his Move reads Swap. A slot a preset asks to fill is quieter,

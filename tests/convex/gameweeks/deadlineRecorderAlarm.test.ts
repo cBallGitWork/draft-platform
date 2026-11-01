@@ -1,10 +1,9 @@
-import { getFunctionName } from "convex/server";
 import { describe, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { gameweekRefusals } from "../../../convex/gameweeks/leagueGameweeks";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { syncWith } from "../../support/convex/footballSync.harness";
-import { clockRunsTo, expectRefused } from "../../support/convex/test.harness";
+import { clockRunsTo, expectRefused, pendingJobs } from "../../support/convex/test.harness";
 import { recordedSeason } from "../../support/recorded/fpl.payloads";
 import {
   deadlineBefore,
@@ -27,14 +26,9 @@ useDeadlineRecorderDeployment();
 // the soonest deadline to come, so the gameweek is recorded as begun when it passes, not at the
 // next sync.
 describe("the alarm at the next deadline", () => {
-  const ALARM = getFunctionName(internal.gameweeks.deadlineRecorder.recordDueDeadlines);
   /** The alarms pending, each at its time. */
-  const pendingAlarms = () =>
-    t.run(async (ctx) =>
-      (await ctx.db.system.query("_scheduled_functions").collect())
-        .filter((job) => job.state.kind === "pending" && job.name === ALARM)
-        .map((job) => job.scheduledTime),
-    );
+  const pendingAlarms = async () =>
+    (await pendingJobs(t, internal.gameweeks.deadlineRecorder.recordDueDeadlines)).map((job) => job.scheduledTime);
   /** The first rules' soonest deadline still to come, from each gameweek's first kickoff. */
   const soonestToCome = () =>
     Math.min(

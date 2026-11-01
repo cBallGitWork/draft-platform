@@ -3,7 +3,7 @@ import { STARTER_COUNT } from "../../../convex/lineup/lineup";
 import type { Cell } from "../../../convex/lineup/pitch";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { ESCAPE_KEY, KEY_DOWN } from "../../shared/browserEvents";
-import { Loading, Notice, PageSection, Panel, PanelNote, Problem, Status } from "../../ui/Panel";
+import { Loading, Notice, PageSection, Panel, PanelNote } from "../../ui/Panel";
 import { useChange } from "../../shared/useChange";
 import { useMinute } from "../../shared/useMinute";
 import { unheldNoticeWords } from "../../shared/words";
@@ -11,6 +11,7 @@ import { markedBy } from "./focusMarks";
 import { benched, benchedAt, movedTo, openingLineup, reachOf, reshaped, sameLineup, shownLineup, swapped, withRole, type DraftLineup, type MoveRules } from "./lineupDraft";
 import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./Pitch";
 import { SquadTable } from "./SquadTable";
+import { PresetPicker, RunsSwitch, UndoBar } from "./TacticsControls";
 import type { MyTeamSeam } from "../seam";
 import type { OpenTactics } from "./seam";
 import {
@@ -18,24 +19,19 @@ import {
   joinedBenchWords,
   locksWords,
   movingHintWords,
-  pickPresetWords,
-  presetLabel,
   noDeadlineWords,
   pickHintWords,
-  savedWords,
   seasonOverWords,
   SQUAD_PANEL_TITLE,
   startingWords,
   TACTICS_TITLE,
   tacticsLoadingWords,
   tacticsNoRulesWords,
-  undoWords,
 } from "./words";
 import { noTeamWords } from "../words";
 
 /** The key that puts a picked-up player back. */
 const PUT_BACK_KEY = ESCAPE_KEY;
-const PRESET_ID = "tactics-preset";
 
 /** My team's Tactics tab (#14; spec/12, My team; spec/05): the pitch where the manager sets the
  *  lineup for the next gameweek not begun and each starter's role, the squad beside it with the
@@ -94,6 +90,8 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
   const [pickedCode, setPickedCode] = useState<number | null>(null);
   // The preset last picked, whose empty slots the pitch marks; none until one is.
   const [shape, setShape] = useState<string>("");
+  // The desk's switch for the roles' runs, on until it is turned off (spec/05 Runs).
+  const [runsShown, setRunsShown] = useState(true);
   const [savedFrom, setSavedFrom] = useState<number | null>(null);
   // The lineup the save last sent. A save sent after it forgets it, so the answer that lands after
   // one, about a lineup no longer on the pitch, says nothing (#642).
@@ -210,16 +208,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
   const joined = tactics.lineup.joinedBench;
   return (
     <div ref={root} className="mt-2 flex flex-col gap-2">
-      {/* Undo sits above the pitch, so a refusal is read where the move was made, even on a phone. */}
-      <div className="bg-panel">
-        <div className="flex flex-wrap justify-end gap-2 px-3 py-2">
-          <button type="button" disabled={undoable.length === 0} onClick={undo} className={undoable.length === 0 ? "action-idle" : "secondary-action"}>
-            {undoWords}
-          </button>
-        </div>
-        <Status words={savedFrom === null ? null : savedWords(savedFrom)} className="px-3 pb-2" />
-        <Problem problem={problem} />
-      </div>
+      <UndoBar canUndo={undoable.length > 0} onUndo={undo} savedFrom={savedFrom} problem={problem} />
       {joined.length > 0 && <Notice>{joinedBenchWords(joined.map((code) => squad.get(code)!.name))}</Notice>}
       {tactics.squad.some((member) => member.unheld) && <Notice>{unheldNoticeWords}</Notice>}
       {/* The pitch is the tab's centrepiece (plate.md, Decided): as tall as the window, so
@@ -231,26 +220,14 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
           className="min-w-0 basis-pitch-panel"
         >
           <div className="flex items-center gap-2 px-3 pt-2">
-            <label htmlFor={PRESET_ID} className="text-soft">
-              {presetLabel}
-            </label>
-            {/* Always back on "Pick a preset", so the same one can be picked again after moves. */}
-            <select id={PRESET_ID} value="" onChange={(event) => pickPreset(event.target.value)} className="text-box">
-              <option value="" disabled>
-                {pickPresetWords}
-              </option>
-              {tactics.presets.map(({ name }) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
+            <PresetPicker presets={tactics.presets} onPick={pickPreset} />
+            <RunsSwitch shown={runsShown} onChange={setRunsShown} />
           </div>
           <p role="status" className="px-3 py-2 text-soft">
             {picked === null ? pickHintWords : movingHintWords(picked.name, picked.positions)}
           </p>
           <div className="px-2 pb-2">
-            <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === shape)?.cells ?? []} />
+            <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === shape)?.cells ?? []} runsShown={runsShown} />
           </div>
         </Panel>
         <Panel title={SQUAD_PANEL_TITLE} className="min-w-0 grow basis-squad">

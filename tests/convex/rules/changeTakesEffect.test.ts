@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { changeRules, HELD_FIRST_RULES, holdGameweeks, moveFplDeadline, rulesInGameweek, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { changeRules, HELD_FIRST_RULES, holdGameweeks, holdGameweeksPastTheSeason, moveFplDeadline, rulesInGameweek, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -78,4 +79,14 @@ test("League settings says a change waits for gameweek 10 once one already waits
 
   const editor = await (await actingAs(t, COMMISSIONER)).query(api.rules.leagueSettings.settings, { leagueId, now: Date.now() });
   expect(editor?.changesFrom).toBe(10);
+});
+
+test(`with ${GAMEWEEKS + 1} gameweeks held, League settings and a change still name the next gameweek not begun (#872)`, async () => {
+  await holdGameweeks(t, { next: 9 });
+  await holdGameweeksPastTheSeason(t, 1);
+  const leagueId = await adminCreatesLeague(t);
+
+  const editor = await (await actingAs(t, COMMISSIONER)).query(api.rules.leagueSettings.settings, { leagueId, now: Date.now() });
+  expect(editor?.changesFrom).toBe(9);
+  expect(await change(leagueId)).toBe(9);
 });

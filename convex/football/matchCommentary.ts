@@ -11,6 +11,7 @@ import { clubByCode } from "../shared/players";
 import { commentaryLines, type CommentaryLine } from "./premierLeague/plCommentary";
 import { readPlCommentary, readPlFixture, type RawPlFixture } from "./premierLeague/premierLeague";
 import { plScoreRead, type ScoreRead } from "./scoreReads";
+import { MINUTE_MS } from "../shared/time";
 
 // Each live match's commentary, read by the live tick (#28) with its points, written by
 // `commentary.ts` and stored one row a match (#43, spec/10, The commentary). Each read replaces the
@@ -27,6 +28,11 @@ type CommentaryLineRow = Infer<typeof commentaryLine>;
 export const COMMENTARY_BEHIND_MINUTES = 10;
 /** Why a stream past `COMMENTARY_BEHIND_MINUTES` counts as behind. */
 export const STREAM_BEHIND = `the stream is over ${COMMENTARY_BEHIND_MINUTES} minutes behind the clock`;
+
+/** How long after full time a match is still read for its full-time line, if the stream has not
+ *  sent "Match ends" yet (#917): the stream may trail the match by `COMMENTARY_BEHIND_MINUTES`, so
+ *  the same allowance. Past it the match is no longer read, with or without the line. */
+export const FULL_TIME_LINE_WAIT_MS = COMMENTARY_BEHIND_MINUTES * MINUTE_MS;
 
 /** What every live match's commentary is read against, from FPL's bootstrap the tick already holds. */
 export interface CommentaryContext {
@@ -150,6 +156,13 @@ export function heldOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"matchCo
     .query("matchCommentary")
     .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
     .unique();
+}
+
+/** Whether the match's commentary, as the live tick read it, still lacks its full-time line,
+ *  written from "Match ends". False for a match the tick never read, which has no commentary held. */
+export async function fullTimeLineMissing(ctx: QueryCtx, fixtureCode: number): Promise<boolean> {
+  const held = await heldOf(ctx, fixtureCode);
+  return held !== null && !held.lines.some((line) => line.type === FEED_TYPE.matchEnds);
 }
 
 /** What an empty stream delays the commentary with, while lines are held: a feed that drops every

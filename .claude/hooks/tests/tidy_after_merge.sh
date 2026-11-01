@@ -1,8 +1,9 @@
 #!/bin/bash
 # tidy_after_merge.py's checks: after gh pr merge (a stand-in gh pr view), a merged pull request's
 # branch and its clean worktree go, also when GitHub's head is a merge commit on top of it; one with
-# extra commits, uncommitted changes, a head that can't be fetched, or checked out in the main
-# checkout or the folder the merge ran in stays, and says why; nothing else is touched. Then the
+# extra commits, uncommitted changes, a head that can't be fetched, a worktree in use (a process
+# working in it, git state changed lately, locked), or checked out in the main checkout or the
+# folder the merge ran in stays, and says why; nothing else is touched. Then the
 # main checkout follows origin/main when detached and behind it, but not on a branch, on a commit
 # of its own, mid-bisect, when origin can't be fetched, or over a changed file it would overwrite.
 . "$(dirname "$0")/helpers.sh"
@@ -21,9 +22,12 @@ chmod +x "$tmp/bin/gh" && export PATH="$tmp/bin:$PATH"
 number=7  # the pull request every check merges
 merge="gh pr merge $number --squash"
 
-built() { # branch: a branch with one commit, checked out in its own worktree at $tmp/wt-<branch>
+built() { # branch: a branch with one commit, checked out in its own worktree at $tmp/wt-<branch>,
+  # its git state last changed long ago, so no builder is taken to be coming back to it
   git -C "$repo" worktree add -q -b "$1" "$tmp/wt-$1" main
   git -C "$tmp/wt-$1" "${as_tester[@]}" commit -q --allow-empty -m "work on $1"
+  local state=$repo/.git/worktrees/wt-$1
+  touch -t 202001010000 "$state/index" "$state/HEAD" "$state/logs/HEAD"
 }
 pr() { # branch [state] [head]: gh pr view's answer for it, the head its tip unless given
   local head=${3:-$(git -C "$repo" rev-parse "$1")}
@@ -100,6 +104,28 @@ says "were removed" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
 [ -d "$tmp/wt-nested" ] && fail "tidy_after_merge.py: nested build output kept a worktree"
 built nestedsecret && pr nestedsecret && mkdir "$tmp/wt-nestedsecret/app" && touch "$tmp/wt-nestedsecret/app/.env.local"
 says "its worktree holds app/.env.local" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
+
+# a worktree in use stays (#929): one a process works in, one whose git state changed lately (a
+# builder that finished may be resumed), and one a running builder has locked
+built busy && pr busy && mkdir "$tmp/wt-busy/sub"
+(cd "$tmp/wt-busy/sub" && exec sleep 60) & sleeper=$!
+for _ in $(seq 100); do lsof -a -p "$sleeper" -d cwd -Fn | grep -q wt-busy/sub && break; sleep 0.05; done
+lsof -a -p "$sleeper" -d cwd -Fn | grep -q wt-busy/sub || fail "tidy_after_merge.py: the sleeper never worked in wt-busy/sub"
+says "its worktree is in use: a running process works in it" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
+kill "$sleeper" && wait "$sleeper" 2>/dev/null
+[ -d "$tmp/wt-busy" ] || fail "tidy_after_merge.py: removed a worktree a process works in"
+# lsof exits 1 when it can't read some process (another user's, on Linux), yet lists the rest: read them
+built unreadable && pr unreadable && mkdir "$tmp/partial-lsof"
+printf '#!/bin/bash\nprintf "p1\\nfcwd\\nn%%s\\n" "%s"\nexit 1\n' "$tmp/wt-unreadable" > "$tmp/partial-lsof/lsof"
+chmod +x "$tmp/partial-lsof/lsof"
+says "a running process works in it" tidy_after_merge.py "$(bash_in "$repo" "$merge")" PATH="$tmp/partial-lsof:$PATH"
+built recent && pr recent && touch "$repo/.git/worktrees/wt-recent/index"
+says "its git state changed in the last" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
+[ -d "$tmp/wt-recent" ] || fail "tidy_after_merge.py: removed a worktree whose git state just changed"
+built locked && pr locked && git -C "$repo" worktree lock --reason "claude agent" "$tmp/wt-locked"
+says "cannot remove a locked working tree" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
+[ -d "$tmp/wt-locked" ] || fail "tidy_after_merge.py: removed a locked worktree"
+git -C "$repo" worktree unlock "$tmp/wt-locked"
 
 # a worktree whose folder is already gone doesn't hold the branch for good
 built vanished && pr vanished && rm -rf "$tmp/wt-vanished"
