@@ -106,6 +106,13 @@ liverpools team, and it goes red and white"; then "put on to do list").
   back.
 - Premier League clubs' colours come from the admin's club colours (`spec/15`).
 
+**Who's doubtful, on Tactics**: "obv we need that for tactics too" (Craig, 1 Nov 2026, on
+Continue taking a manager to Tactics before the deadline so he can adjust his lineup).
+- What marks a doubtful or out player: FPL's chance of playing (held per player), its reason
+  ("Back injury - Unknown return date"), a blank gameweek, or all three.
+- Where it shows: the pitch's starters, the bench, the squad list, or all of them.
+- Whether its levels (75%, 50%, 25%, out) each look different, and what a phone shows.
+
 ## Suggested, not yet picked
 
 | What | Why |
