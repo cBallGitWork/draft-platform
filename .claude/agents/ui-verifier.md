@@ -79,6 +79,10 @@ Differences in the made-up figures themselves don't count. No difference is a fi
   tabular numerals.
 - Radius 0; the 2px bevel on the top bar and each title plate; tabs butted with 1px rules.
 - Panels 8px apart, aligned to the top, none stretched empty.
+- Rows: a table's rows are 28px on the desk and 44px on the phone wherever a row is tapped, but only
+  on a screen rebuilt to its approved picture; the other built tables still draw 20px and pass.
+- A placeholder (data not held yet) is a 1px muted (`#a1a5ab`) outline in the real cell's place
+  and size, never a made-up figure and never a dropped column.
 - Controls (plate.md, Controls): a tick box is a dark sunken well with a soft rim and a white drawn
   tick, never the browser's own; the chosen key is pressed in (dark, white 600), the others the
   plate; on the rules screens Save is outlined grey with nothing to save, Discard the plate's
