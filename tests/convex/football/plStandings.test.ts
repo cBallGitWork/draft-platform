@@ -150,9 +150,31 @@ const levelSeason: Held[] = [
   { code: 6, home: 3, away: 2, score: [0, 1] },
 ];
 
-test("in the season, clubs level after goals share a position; head to head doesn't part them", async () => {
+// Rewritten for #899: this test pinned head-to-head at the end of the season only, a rule spec/18
+// no longer has. Head-to-head now applies all season, once both meetings are played.
+test("in the season, with both their meetings played, head-to-head parts clubs level after goals", async () => {
   const t = freshConvex();
   await holdSeason(t, [...levelSeason, { code: 7, home: 1, away: 3, score: null }]);
+
+  const [first, second] = await lines(t);
+  expect([first.slice(0, 2), second.slice(0, 2)]).toEqual([
+    [1, 2],
+    [2, 1],
+  ]);
+});
+
+// Arsenal and Burnley drew at Burnley and both beat Chelsea 2-0: level on 4 points, 3 scored and 1
+// conceded. Arsenal's away goal would part them, were their meeting at Arsenal played.
+const oneMeetingPlayed: Held[] = [
+  { code: 1, home: 2, away: 1, score: [1, 1] },
+  { code: 2, home: 1, away: 3, score: [2, 0] },
+  { code: 3, home: 2, away: 3, score: [2, 0] },
+];
+const ARSENAL_V_BURNLEY = 4;
+
+test("with one of their meetings still to come, head-to-head is skipped and clubs level after goals share a position", async () => {
+  const t = freshConvex();
+  await holdSeason(t, [...oneMeetingPlayed, { code: ARSENAL_V_BURNLEY, home: 1, away: 2, score: null }]);
 
   const [first, second] = await lines(t);
   expect([first.slice(0, 2), second.slice(0, 2)]).toEqual([
@@ -161,7 +183,22 @@ test("in the season, clubs level after goals share a position; head to head does
   ]);
 });
 
-test("once every match is at full time, head-to-head parts the clubs level after goals (Handbook C.17)", async () => {
+test("a meeting being played counts in head-to-head as it stands, provisionally", async () => {
+  const t = freshConvex();
+  await holdSeason(t, [...oneMeetingPlayed, { code: ARSENAL_V_BURNLEY, home: 1, away: 2, score: null }]);
+  await read(t, HOUR_MS, { state: "live", homeGoals: 0, awayGoals: 0, minutes: 30, clockLabel: "30'00" }, ARSENAL_V_BURNLEY);
+
+  // Level on 5 points, 3 scored, 1 conceded, and 2 points each between them: Arsenal's goal at
+  // Burnley parts them (C.17.2).
+  const [first, second] = await lines(t);
+  expect([first.slice(0, 2), second.slice(0, 2)]).toEqual([
+    [1, 1],
+    [2, 2],
+  ]);
+  expect((await table(t)).provisional).toBe(true);
+});
+
+test("at the end of the season, head-to-head parts the clubs level after goals (Handbook C.17)", async () => {
   const t = freshConvex();
   await holdSeason(t, levelSeason);
 
