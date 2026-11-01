@@ -6,6 +6,7 @@ import { DAY_MS } from "../../../convex/shared/time";
 import { namedRole, roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
 import {
   annsScoredGame,
+  annsSquadAndEvery,
   GAMEWEEK,
   giveAnnsStarterRole,
   HULL_BENCH_STRIKER,
@@ -106,4 +107,22 @@ test("a sub coming on in his own area plays his best-star role at the deadline: 
   const final = slotOf((await annsScoredGame(league, GAMEWEEK)).team, BELLOUMI);
 
   expect(final).toMatchObject({ role: { key: "playmaker" }, points: provisional.points, provisional: false });
+});
+
+test("a player's card and the Squad tab, reading one team, give a sub the same kept-star role as the league's scorer", async () => {
+  const league = await scoresLeague();
+  const { t, leagueId, annsTeam } = league;
+  // At the deadline he was a 4-star ball-winner: not midfield's centre's first role, so a read that
+  // missed the kept stars would put him on another.
+  expect(roleIn({ area: "midfield", lane: "centre" }, undefined)).not.toBe("ballWinner");
+  await t.run((ctx) =>
+    ctx.db.insert("deadlineStars", { leagueId, gameweek: GAMEWEEK, teamId: annsTeam, bench: [{ playerCode: BELLOUMI, stars: [{ area: "midfield", role: "ballWinner", stars: 4 }] }] }),
+  );
+  await belloumiOnInMidfield(league);
+  await fullTimeRecords(league);
+
+  const { squad, every } = await annsSquadAndEvery(league);
+
+  expect([...squad.starters, ...squad.bench].find((slot) => slot.playerCode === BELLOUMI)).toMatchObject({ role: "ballWinner" });
+  expect(squad).toEqual(every);
 });

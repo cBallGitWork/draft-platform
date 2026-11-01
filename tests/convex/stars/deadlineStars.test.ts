@@ -7,7 +7,7 @@ import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { FOUR_FOUR_TWO, holdSquad, passNextDeadline } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { pendingJobs } from "../../support/convex/test.harness";
+import { pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
 
 // Stars kept at the deadline (#11, deadlineStars.ts; spec/05 Auto-subs, Craig, 1 Nov 2026): each
 // team's bench as it stood when the lineup locked, with the stars that pick an auto-sub's role.
@@ -62,6 +62,23 @@ test("kept once: stars changed after the deadline don't reach a second keeping",
     await ctx.db.patch("playerRoleStars", row._id, { ratings: [{ ...RATED, stars: 1, perMatch: 1 }] });
   });
 
+  await t.mutation(internal.stars.deadlineStars.storeLeague, { leagueId, gameweek: NEXT });
+
+  expect((await kept()).get(annsTeam)!.get(FIRST_ON)).toEqual([RATED]);
+});
+
+test("a keeping that fails is logged, keeps none, and the next try keeps the bench", async () => {
+  const consoleError = silenceConsoleError();
+  await passNextDeadline(t);
+  // A second stored row for one bench player: reading his stars throws, as any bad row would.
+  const twin = await t.run((ctx) => ctx.db.insert("playerRoleStars", { playerCode: FIRST_ON, matches: 3, ratings: [] }));
+
+  await t.mutation(internal.stars.deadlineStars.storeLeague, { leagueId, gameweek: NEXT });
+
+  expect((await kept()).size).toBe(0);
+  expect(consoleError).toHaveBeenCalledWith(expect.stringContaining(`stars at gameweek ${NEXT}'s deadline weren't kept`));
+
+  await t.run((ctx) => ctx.db.delete("playerRoleStars", twin));
   await t.mutation(internal.stars.deadlineStars.storeLeague, { leagueId, gameweek: NEXT });
 
   expect((await kept()).get(annsTeam)!.get(FIRST_ON)).toEqual([RATED]);
