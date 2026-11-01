@@ -29,7 +29,8 @@ beforeEach(async () => {
 });
 
 const isDue = async (email: string) => (await actingAs(t, email)).query(api.lineup.lineupDue.isDue, { leagueId, now: Date.now() });
-const opensTactics = async (email: string) => (await actingAs(t, email)).mutation(api.lineup.lineupDue.openedTactics, { leagueId });
+/** `email` opens the Tactics tab, showing `gameweek` (the next, unless a test says). */
+const opensTactics = async (email: string, gameweek = NEXT) => (await actingAs(t, email)).mutation(api.lineup.lineupDue.openedTactics, { leagueId, gameweek });
 /** The next gameweek's league deadline, as holdGameweeks sets its kickoff, under the first rules. */
 const nextDeadline = () => Date.now() + KICKS_OFF_IN - FPL_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS;
 const clockTo = (time: number) => vi.advanceTimersByTime(time - Date.now());
@@ -93,6 +94,20 @@ describe("opening Tactics", () => {
   test("keeps the gameweek a save now is from on his team", async () => {
     await opensTactics(ANN);
     expect(await openedIn()).toBe(NEXT);
+  });
+
+  test("a tab showing a gameweek whose deadline has since passed keeps nothing, and refuses nothing", async () => {
+    const deadline = nextDeadline();
+    clockTo(deadline);
+    await opensTactics(ANN, NEXT);
+    expect(await openedIn()).toBeNull();
+    clockTo(deadline + WEEK_MS - LINEUP_DUE_BEFORE_DEADLINE_MS);
+    expect(await isDue(ANN)).toBe(true);
+  });
+
+  test("keeps no gameweek but the next open one", async () => {
+    await opensTactics(ANN, NEXT + 1);
+    expect(await openedIn()).toBeNull();
   });
 
   test("is refused for someone running no team in the league, and keeps nothing", async () => {

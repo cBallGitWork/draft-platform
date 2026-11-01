@@ -22,13 +22,20 @@ export const liveTactics: TacticsSeam = {
   },
   useTacticsOpened: (leagueId, gameweek) => {
     const opened = useMutation(api.lineup.lineupDue.openedTactics);
-    // Once a visit, for the league: a tab left open past a deadline hasn't been opened in the next
-    // gameweek ("until he opens Tactics that gameweek", spec/12).
-    const toldFor = useRef<Id<"leagues"> | null>(null);
+    // Once a visit, for the league, and only of the gameweek it began in: a tab left open past a
+    // deadline hasn't been opened in the next ("until he opens Tactics that gameweek", spec/12). A
+    // failed tell is tried again, of that same gameweek, the next time the effect runs.
+    const visit = useRef<{ leagueId: Id<"leagues">; gameweek: number; told: boolean } | null>(null);
     useEffect(() => {
-      if (gameweek === null || toldFor.current === leagueId) return;
-      toldFor.current = leagueId;
-      opened({ leagueId }).catch((error: unknown) => console.error("Telling the server Tactics was opened failed:", error));
+      if (gameweek === null) return;
+      if (visit.current?.leagueId !== leagueId) visit.current = { leagueId, gameweek, told: false };
+      const shown = visit.current;
+      if (shown.told) return;
+      shown.told = true;
+      opened({ leagueId, gameweek: shown.gameweek }).catch((error: unknown) => {
+        shown.told = false;
+        console.error("Telling the server Tactics was opened failed:", error);
+      });
     }, [opened, leagueId, gameweek]);
   },
 };

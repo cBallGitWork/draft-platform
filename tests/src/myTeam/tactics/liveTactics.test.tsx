@@ -54,13 +54,14 @@ test("opening the tab tells lineup/lineupDue:openedTactics once it shows a gamew
   rerender({ gameweek: 9 });
   rerender({ gameweek: 9 });
   expect(convex.openedTactics).toHaveBeenCalledOnce();
-  expect(convex.openedTactics).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID });
+  expect(convex.openedTactics).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, gameweek: 9 });
 });
 
 test("a deadline passing while the tab stays open tells nothing: only the gameweek the visit began in is opened", () => {
   const { rerender } = renderHook(({ gameweek }) => liveTactics.useTacticsOpened(A_LEAGUE_ID, gameweek), { initialProps: { gameweek: 9 } });
   rerender({ gameweek: 10 });
   expect(convex.openedTactics).toHaveBeenCalledOnce();
+  expect(convex.openedTactics).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, gameweek: 9 });
 });
 
 test("opening the tab again, a new visit, tells it again", () => {
@@ -75,4 +76,14 @@ test("telling the server the tab is open, when it fails, is logged", async () =>
   const logged = silenceConsoleError();
   renderHook(() => liveTactics.useTacticsOpened(A_LEAGUE_ID, 9));
   await vi.waitFor(() => expect(logged).toHaveBeenCalledWith("Telling the server Tactics was opened failed:", failure));
+});
+
+test("a failed tell is tried again on the tab's next change, still of the gameweek the visit began in", async () => {
+  convex.openedTactics.mockRejectedValueOnce(new Error("offline"));
+  const logged = silenceConsoleError();
+  const { rerender } = renderHook(({ gameweek }) => liveTactics.useTacticsOpened(A_LEAGUE_ID, gameweek), { initialProps: { gameweek: 9 } });
+  await vi.waitFor(() => expect(logged).toHaveBeenCalledOnce());
+  rerender({ gameweek: 10 });
+  expect(convex.openedTactics).toHaveBeenCalledTimes(2);
+  expect(convex.openedTactics).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, gameweek: 9 });
 });

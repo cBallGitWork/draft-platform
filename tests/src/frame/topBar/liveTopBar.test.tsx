@@ -84,3 +84,30 @@ test("a minute passing asks again at the new minute without re-rendering the she
   expect(convex.isDue).toHaveBeenCalledOnce();
   expect(shell.renders).toBe(rendersBefore);
 });
+
+test("switching league, Continue doesn't carry the last league's lineup over before the new one answers", () => {
+  const OTHER_LEAGUE_ID = "league-2" as Id<"leagues">;
+  let next: TopBarState["next"] = null;
+  function Shell({ leagueId }: { leagueId: Id<"leagues"> }) {
+    const { topBar, watch } = useLiveTopBar(0, leagueId);
+    next = topBar.next;
+    return <>{watch}</>;
+  }
+  convex.isDue.mockReturnValue(true);
+  const { rerender } = render(<Shell leagueId={A_LEAGUE_ID} />);
+  expect(next).toEqual(TO_TACTICS);
+  convex.isDue.mockReturnValue(undefined);
+  rerender(<Shell leagueId={OTHER_LEAGUE_ID} />);
+  expect(next).toBeNull();
+});
+
+test("while the new minute's answer loads, Continue stays where the last answer sent it", () => {
+  vi.useFakeTimers();
+  convex.isDue.mockReturnValue(true);
+  const shell = liveShell(0);
+  const rendersBefore = shell.renders;
+  convex.isDue.mockReturnValueOnce(undefined);
+  act(() => vi.advanceTimersByTime(MINUTE_MS));
+  expect(shell.topBar).toEqual({ unreadMail: 0, next: TO_TACTICS });
+  expect(shell.renders).toBe(rendersBefore);
+});

@@ -36,18 +36,19 @@ export const isDue = query({
   },
 });
 
-/** The caller opened his own team's Tactics tab: Continue stops leading him there for the gameweek
- *  a save now is from. Refused for anyone who runs no team in the league; nothing is written for a
- *  league with no rules, once the season is over, or when it is already kept. */
+/** The caller opened his own team's Tactics tab showing `gameweek`: Continue stops leading him there
+ *  for it. Kept only while it is still the gameweek a save now is from, so a tab opened seconds
+ *  before a deadline never counts for the next; otherwise, as for a league with no rules or when it
+ *  is already kept, nothing is written and nothing refused. Refused for anyone who runs no team in
+ *  the league. */
 export const openedTactics = mutation({
-  args: { leagueId: v.id("leagues") },
+  args: { leagueId: v.id("leagues"), gameweek: v.number() },
   returns: v.null(),
-  handler: async (ctx, { leagueId }) => {
+  handler: async (ctx, { leagueId, gameweek }) => {
     const { team } = await managerOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
-    if (season === null) return null;
-    const gameweek = await nextOpenGameweek(ctx, leagueId, season, Date.now());
-    if (gameweek > GAMEWEEKS || team.tacticsOpenedInGameweek === gameweek) return null;
+    if (season === null || team.tacticsOpenedInGameweek === gameweek) return null;
+    if ((await nextOpenGameweek(ctx, leagueId, season, Date.now())) !== gameweek) return null;
     await ctx.db.patch("teams", team._id, { tacticsOpenedInGameweek: gameweek });
     return null;
   },
