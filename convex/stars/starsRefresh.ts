@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
-import { internalMutation, type MutationCtx } from "../_generated/server";
+import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { matchRecordsOf } from "../gameweekScorer/heldMatches";
 import { positionsNow } from "../positions/playerPositions";
 import { siteScoringAt } from "../scoring/siteVersions";
@@ -12,6 +12,7 @@ import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { sortedJson } from "../shared/sortedJson";
 import { PLAYER_RECORDS_MOST } from "../stats/matchRecords";
+import { LEAGUES_STORED_MOST } from "../table/finalScores";
 import { starsRow } from "./playerStars";
 import { countedMatches, LEAST_MATCHES_RATED, perMatchUnder, ratedRoles, starsFor, type RatedRecord } from "./stars";
 import { UNSURE } from "./starsShape";
@@ -60,13 +61,14 @@ export const refreshMatch = internalMutation({
       ctx,
       records.map((record) => record.playerCode),
     );
-    await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.rank, { dropGone: false });
+    await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.rank, {});
     return null;
   },
 });
 
-/** Every current player's row worked out again, a page from `cursor` (null for the first) a run,
- *  then everyone ranked, the rows of players gone from the league dropped. */
+/** Every current player's row worked out again, a page from `cursor` (null for the first) a run;
+ *  after the last, the rows of players gone from the Premier League, kept while a squad holds him
+ *  and dropped once none does; then everyone ranked. */
 export const refreshAll = internalMutation({
   args: { cursor: v.union(v.string(), v.null()) },
   returns: v.null(),
@@ -79,28 +81,20 @@ export const refreshAll = internalMutation({
       ctx,
       page.page.map((player) => player.code),
     );
-    if (page.isDone) await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.rank, { dropGone: true });
-    else await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.refreshAll, { cursor: page.continueCursor });
+    if (page.isDone) {
+      await refreshPlayers(ctx, await goneWithStars(ctx));
+      await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.rank, {});
+    } else await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.refreshAll, { cursor: page.continueCursor });
     return null;
   },
 });
 
-/** Every role in every area ranked, and each row's stars written where they changed. With
- *  `dropGone`, the rows of players the football sync has dropped, or no longer holds, go first. */
+/** Every role in every area ranked, and each row's stars written where they changed. */
 export const rank = internalMutation({
-  args: { dropGone: v.boolean() },
+  args: {},
   returns: v.null(),
-  handler: async (ctx, { dropGone }) => {
-    const rows = await takeAllOrThrow(
-      ctx.db.query("playerRoleStars"),
-      STARRED_PLAYERS_MOST,
-      `More than ${STARRED_PLAYERS_MOST} players hold stars, so some would go unranked`,
-    );
-    const kept: Doc<"playerRoleStars">[] = [];
-    for (const row of rows) {
-      if (dropGone && (await isGone(ctx, row.playerCode))) await ctx.db.delete("playerRoleStars", row._id);
-      else kept.push(row);
-    }
+  handler: async (ctx) => {
+    const kept = await starsRows(ctx);
     // Early in a season the pools are small: last season's matches are to fill them once recorded
     // (Craig, 1 Nov 2026: "use past data"; #842). Until then a pool is whoever has played.
     const pools = new Map<string, number[]>();
@@ -121,15 +115,48 @@ export const rank = internalMutation({
 
 const poolKey = (area: string, role: string) => `${area}/${role}`;
 
+/** Every row held, at most STARRED_PLAYERS_MOST. */
+function starsRows(ctx: QueryCtx): Promise<Doc<"playerRoleStars">[]> {
+  return takeAllOrThrow(ctx.db.query("playerRoleStars"), STARRED_PLAYERS_MOST, `More than ${STARRED_PLAYERS_MOST} players hold stars, so some would go unranked`);
+}
+
 /** Whether the football sync has dropped him, or holds no such player. */
-async function isGone(ctx: MutationCtx, playerCode: number): Promise<boolean> {
+async function isGone(ctx: QueryCtx, playerCode: number): Promise<boolean> {
   const player = await playerByCode(ctx, playerCode);
   return player === null || player.droppedAt !== undefined;
 }
 
+/** The players holding stars whom the football sync has dropped, or no longer holds: a refresh of
+ *  every current player never reaches them. */
+async function goneWithStars(ctx: QueryCtx): Promise<number[]> {
+  const gone: number[] = [];
+  for (const row of await starsRows(ctx)) if (await isGone(ctx, row.playerCode)) gone.push(row.playerCode);
+  return gone;
+}
+
+/** Whether a squad in any league holds him. */
+async function isOnASquad(ctx: QueryCtx, playerCode: number): Promise<boolean> {
+  const leagues = await takeAllOrThrow(ctx.db.query("leagues"), LEAGUES_STORED_MOST, `More than ${LEAGUES_STORED_MOST} leagues are held, so a squad holding him could be missed`);
+  for (const league of leagues) {
+    const held = await ctx.db
+      .query("squadPlayers")
+      .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", league._id).eq("playerCode", playerCode))
+      .first();
+    if (held !== null) return true;
+  }
+  return false;
+}
+
+/** Whether he keeps stars: anyone the football sync holds as current, and anyone gone from the
+ *  Premier League whom a squad still holds, so his manager still sees them. */
+async function keepsStars(ctx: QueryCtx, playerCode: number): Promise<boolean> {
+  return !(await isGone(ctx, playerCode)) || (await isOnASquad(ctx, playerCode));
+}
+
 /** Each player's row set afresh from his records and positions now, under today's scoring: his
  *  points per match under each role he is rated for, his stars kept until the ranking moves them.
- *  One with no counted match, or no position, holds no row. */
+ *  One with no counted match, no position, or gone from the Premier League with no squad holding
+ *  him, holds no row. */
 async function refreshPlayers(ctx: MutationCtx, playerCodes: readonly number[]): Promise<void> {
   const set = await siteScoringAt(ctx, Date.now());
   const positionsOf = await positionsNow(ctx);
@@ -153,7 +180,7 @@ async function refreshPlayers(ctx: MutationCtx, playerCodes: readonly number[]):
         if (kickoff !== null) dated.push({ ...record, kickoff });
       }
       const matches = countedMatches(dated);
-      const roles = ratedRoles(await positionsOf(playerCode));
+      const roles = (await keepsStars(ctx, playerCode)) ? ratedRoles(await positionsOf(playerCode)) : [];
       const heldStars = (area: string, role: string) => row?.ratings.find((each) => each.area === area && each.role === role)?.stars ?? UNSURE;
       fields =
         matches.length === 0 || roles.length === 0

@@ -97,7 +97,7 @@ test("a later lock works out its own players again and ranks everyone: Blank's f
   expect(await asOne(t, STEADY.code)).toBe(2.5);
 });
 
-test("a player who has left the league drops out on the next refresh of everyone", async () => {
+test("a player who has left the Premier League, on no squad, drops out on the next refresh of everyone", async () => {
   const t = await rated();
   await t.run(async (ctx) => {
     const cameo = (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", CAMEO.code)).unique())!;
