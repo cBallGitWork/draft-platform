@@ -25,7 +25,7 @@ reason, and a change to either changes this file.
 | Money | free plans through the mini beta; Craig sets a monthly ceiling before August 2027 | |
 
 **Before building on Convex:** a short test that its servers can fetch FPL's and the Premier
-League's public APIs (only ever called from Vercel in London so far), and that a scheduled
+League's public APIs (until then only ever called from Vercel in London), and that a scheduled
 function fires with no browser open. If either fails, the backend choice goes back to Craig;
 Supabase was the runner-up.
 
@@ -233,7 +233,8 @@ Tactics pitch are built with no package, and components, motion, forms and chart
 - The stat race (#800): each team's season stats, counting only its starters and the bench players
   who came on, are a row in `teamSeasonStats`, the sum of its rows in `teamGameweekStats`, one a
   team and final gameweek, kept so a gameweek reopened takes away what it added. A match's lock
-  adds in each league's newly final gameweeks, one a run (`convex/stats/teamSeasonStats.ts`).
+  adds in each league's newly final gameweeks, one a run (`convex/stats/teamSeasonStats.ts`); the
+  race reads them through `convex/stats/teamSeasonTotals.ts`.
 - The shortlist (#374): each team's own list of players for the season, a row each in
   `shortlistPlayers` by FPL's `code`, read and changed only by its manager
   (`convex/scouting/shortlist.ts`).

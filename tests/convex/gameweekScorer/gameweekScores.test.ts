@@ -8,22 +8,19 @@ import {
   ANN,
   EVERTON_POINTS,
   EVERTON_STARTERS,
-  fullTimeRecords,
   GAMEWEEK,
-  holdTypoRule,
   HULL_AFTER_SUB,
   HULL_POINTS,
   HULL_SCORER,
   HULL_STARTERS,
-  liveRecords,
-  lockMatch,
   readTable,
   scoresLeague,
   sideTotal,
-  TYPO_STAT,
   type ScoresLeague,
   BOBS_FIRST_POINTS,
 } from "../../support/convex/gameweekScores.harness";
+import { fullTimeRecords, liveRecords, lockMatch } from "../../support/convex/gameweekScoresMatch.harness";
+import { holdTypoRule, TYPO_STAT } from "../../support/convex/gameweekScoresFixes.harness";
 
 // The table's scores (#29, #28, #287): each team's lineup in a gameweek begun, auto-subs from who
 // played, then its points under the site's scoring set, into the head-to-head table; live points

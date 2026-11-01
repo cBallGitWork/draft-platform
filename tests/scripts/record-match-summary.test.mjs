@@ -9,15 +9,14 @@ import {
   recordedCommentary,
   recordedSheets,
   recordedTeamStats,
-  UPCOMING_MATCH,
 } from "../support/recorded/commentary.payloads.ts";
 import { recordedLiveCommentary } from "../support/recorded/live.payloads.ts";
 import { summarise } from "../../scripts/record-match.mjs";
 import { commentaryChanges, summaryLine } from "../../scripts/record-match-summary.mjs";
+import { IPSWICH_FOREST, KICKOFF } from "../support/scripts/recordMatch.harness.mjs";
 
 const BRENTFORD_LIVERPOOL = COMMENTARY_MATCH.brentfordLiverpool;
-const IPSWICH_FOREST = UPCOMING_MATCH;
-const POLLED_AT_KICKOFF = new Date(Date.UTC(2026, 9, 23, 19)).toISOString();
+const POLLED_AT_KICKOFF = new Date(KICKOFF).toISOString();
 
 test("a finished match's poll sums up as its newest line, its sheets and the five team stats, home first", () => {
   const fixture = { ...recordedSheets(BRENTFORD_LIVERPOOL), status: "C", clock: { label: "90+7'00" }, teams: [{ team: { id: 130 } }, { team: { id: 10 } }] };
