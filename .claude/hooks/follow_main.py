@@ -14,6 +14,8 @@ from main_writes import MAIN
 from tidy_branch import REMOTE, run, worktrees
 
 REMOTE_MAIN = f"{REMOTE}/{MAIN}"  # where the main checkout is moved to
+# the most calls follow_main() makes: worktree list, fetch, rev-list, checkout
+MAIN_MOVE_CALLS = 4
 # what git keeps in .git/ while a rebase, merge, cherry-pick, revert or bisect is under way (a
 # rebase or bisect leaves HEAD detached), when moving the checkout would wreck it
 UNDER_WAY = ("rebase-merge", "rebase-apply", "MERGE_HEAD", "CHERRY_PICK_HEAD", "REVERT_HEAD", "BISECT_LOG")

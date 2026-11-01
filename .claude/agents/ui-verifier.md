@@ -62,7 +62,8 @@ never enough.
   a cyan underline; orange for what happened or needs you; muted grey never on the top bar;
   cyan only on a derived reading (a countdown, a preset's name), the active tab's underline, the
   current one of a list's left bar, a link's underline under the pointer or with focus (no underline
-  at rest) and the focus outline; the role
+  at rest, except a bare link inside running text, which keeps a 1px white one; none yet) and the
+  focus outline; the role
   under a pitch name in role text (`#caced4`) on its near-black name plate; a role's run 2px dashed white with a solid
   arrowhead, under the names. plate.md's colour
   table and its Marks are the whole list.
