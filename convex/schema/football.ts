@@ -94,6 +94,9 @@ export const tableWrites = v.object({
 /** A run or read that failed, and why: what `outcomeOf` (convex/shared/errors.ts) gives back. */
 export const failure = v.object({ ok: v.literal(false), error: v.string() });
 
+/** A match a run or read failed on, and why. */
+export const matchFailure = v.object({ fixtureCode: v.number(), ...failure.fields });
+
 /** Who started a sync: someone by hand, or its cron. */
 export const syncTrigger = v.union(v.literal("manual"), v.literal("cron"));
 

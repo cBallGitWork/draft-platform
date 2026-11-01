@@ -1,6 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
-import { failure, scoreWrites } from "./football";
+import { failure, matchFailure, scoreWrites } from "./football";
 import { matchSyncOutcome } from "./matchStats";
 
 // The live poller (#28): one row per tick that found a match live, so a failed one is on record.
@@ -27,7 +27,7 @@ export const liveStatsTables = {
 /** One match a side read worked on: done, or why not. */
 export const sideMatchOutcome = v.union(
   v.object({ fixtureCode: v.number(), ok: v.literal(true) }),
-  v.object({ fixtureCode: v.number(), ok: v.literal(false), error: v.string() }),
+  matchFailure,
 );
 
 export const sideRunFields = {
