@@ -52,9 +52,6 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - Everyone takes a slot in his own area before anyone moves across, and of two areas as near, a
   player moving across takes the deeper (Craig, 1 Nov 2026). A plain CM or WM still goes to the
   bench in a 4-2-3-1, which has no midfield row.
-- A manager can save his own presets: "no home away silly but saved presets good. They include
-  formation and roles. Players change too much to save" (Craig, 1 Nov 2026). A saved preset holds
-  the formation and each slot's role, never players.
 - The formation window keeps classic sides as ready-made formation-plus-roles, and the modern ones
   too: "4 yes and re write" (Craig, 1 Nov 2026, asked whether to keep the classic and modern
   formations). Their text is sample until Craig rewrites it.
@@ -139,6 +136,9 @@ From Craig, 1 Nov 2026, brought into the mini beta from the second release.
   description held with it, and Craig edits them; they are league rules like the presets.
 - A manager picks one attacking and one defensive instruction at a time. Picking a new formation
   preselects one of each from its list, and he can change either.
+- A drag that changes the formation keeps both instructions if the new formation offers them. One
+  it doesn't offer becomes the new formation's first, and a line says which changed (Craig, 1 Nov
+  2026, on his worry: "if you have a preset format, then move a player the team tactics changes").
 - Each instruction adjusts scoring like a role, for the whole team: a two-at-the-back shape's can
   make goals conceded cost more. The values come from backtesting; until then an instruction is
   picked and shown and changes no points ("we will score it with backtesting anyways").
@@ -150,9 +150,10 @@ From Craig, 1 Nov 2026.
 - A plan is a formation, every slot's role and both team instructions, saved by name with the
   Tactics tab's Save plan button: "a saved plan is the formation and tactics". A custom
   formation can be saved as one.
-- A saved lineup is a plan that keeps its players too, saved with Save lineup.
+- A plan never holds players: "Players change too much to save" (Craig, 1 Nov 2026).
 - A manager keeps up to 5. Loading a plan reshapes the pitch keeping the players, as picking a
-  preset does.
+  preset does. A move after loading changes only this week's lineup; the plan changes only when
+  he saves it again (Craig, 1 Nov 2026).
 
 ## Roles
 
@@ -203,6 +204,7 @@ From Craig, 1 Nov 2026.
   - attacking midfield, wide: inside forward, winger, inverted winger, wide target man
   - attack: poacher, target man, pressing forward, shadow striker, false 9, advanced forward,
     complete forward, deep-lying forward
+  - free role, in any attacking midfield or attack slot, one per team (Craig, 1 Nov 2026)
 
   Craig widened the list on 1 Nov 2026: "also expand the roles for each position too". The
   attacking centre-back is for Keegan's Newcastle.
