@@ -6,7 +6,6 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { contrast } from "../../../../convex/football/clubColours";
-import { DAY_MS } from "../../../../convex/shared/time";
 import { FORMATION_KEYS, keyedPresets } from "../../../../src/myTeam/tactics/TacticsControls";
 import { backGroups } from "../../../../src/myTeam/tactics/formationWindow/formationGroups";
 import { previewLabel } from "../../../../src/myTeam/tactics/formationWindow/words";
@@ -14,40 +13,28 @@ import { benchBestRole, placeOf, presetInUse } from "../../../../src/myTeam/tact
 import {
   allFormationsWords,
   BEST_ROLE_HEAD,
-  nextPlaceholder,
   pitchTitle,
   presetLabel,
   roleFitPlaceholder,
   squadTableLabel,
 } from "../../../../src/myTeam/tactics/words";
-import { nextFixtureLong, whenWords } from "../../../../src/myTeam/words";
-import type { TeamSquad } from "../../../../src/myTeam/seam";
+import { nextFixtureShort, statusNotSettledLabel } from "../../../../src/myTeam/squad/words";
+import { SAKA, squadOf } from "../../../support/src/squadTab.harness";
 import { FIRST_RULES } from "../../../../convex/rules/firstRules";
 import { colorToken } from "../../../support/src/colorTokens";
 import { openTactics } from "../../../support/src/tactics.harness";
 import { ARRIZABALAGA, HAVERTZ, RAYA, SAVED, SQUAD, STARTERS, WHITE, member, openedPitch, rowOf, type Member } from "../../../support/src/tacticsScreen.harness";
 
-const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
-const KICKOFF = Date.now() + 2 * DAY_MS;
-const seasonRow = (player: Member, seasonPoints: number | null, last: number | null) => ({
-  code: player.playerCode,
-  name: player.name,
-  fullName: player.name,
-  positions: player.positions,
-  club: { code: 3, name: "Arsenal", shortName: "ARS" },
-  gone: false,
-  number: null,
-  nextFixture: { gameweek: 9, kickoff: KICKOFF, opponent: CHELSEA, home: false },
-  seasonPoints,
-  lastGameweekPoints: last,
-});
-const TEAM_SQUAD: TeamSquad = { teamName: "Team 1", lastGameweek: 8, unheld: [], players: [seasonRow(RAYA, 41, 6), seasonRow(WHITE, 12, null)] };
+/** The Squad tab's read for Raya and White: his next match and points (squadTab.harness.ts's rows). */
+const seasonRow = (player: Member, seasonPoints: number | null, last: number | null) => ({ ...SAKA, code: player.playerCode, name: player.name, positions: player.positions, seasonPoints, lastGameweekPoints: last });
+const TEAM_SQUAD = squadOf([seasonRow(RAYA, 41, 6), { ...seasonRow(WHITE, 12, null), chanceOfPlaying: 75 }]);
 
 describe("the Selection table", () => {
-  it("gives each player his next fixture, outlined until its difficulty colour comes, and his season's and last gameweek's points", async () => {
+  it("gives each player his next fixture, outlined until its difficulty colour comes, his season's and last gameweek's points, and a status chip only where FPL has news", async () => {
     await openedPitch({ tactics: SAVED, squad: TEAM_SQUAD });
-    const raya = within(rowOf(RAYA));
-    expect(raya.getByRole("img", { name: nextPlaceholder(nextFixtureLong(CHELSEA.name, false, whenWords(KICKOFF))) }).textContent).toBe("CHE (A)");
+    expect(within(rowOf(RAYA)).getByText(nextFixtureShort(SAKA.nextFixtures[0].opponent.shortName, true)).className).toContain("border-muted");
+    expect(within(rowOf(RAYA)).queryByRole("img", { name: statusNotSettledLabel })).toBeNull();
+    expect(within(rowOf(WHITE)).getByRole("img", { name: statusNotSettledLabel })).toBeTruthy();
     expect(rowOf(RAYA).textContent).toMatch(/416$/);
     expect(rowOf(WHITE).textContent).toMatch(/12—$/);
   });

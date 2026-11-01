@@ -10,13 +10,14 @@ import { figureWords, noFigureWords } from "../../words";
 import { markOf } from "../focusMarks";
 import { benchBestRole, placeOf, type SquadMember } from "../lineupDraft";
 import type { Moving } from "../pitch/Pitch";
-import { NextCell, type SeasonOf } from "../SquadTable";
+import type { SeasonOf } from "../SquadTable";
+import { NextMatches } from "../../squad/SquadTable";
+import { statusNotSettledLabel } from "../../squad/words";
 import {
   benchWhereWords,
   closePanelLabel,
   downLabel,
   downWords,
-  laterFixturePlaceholder,
   lastFiveHead,
   lastFivePlaceholder,
   lastShort,
@@ -35,14 +36,12 @@ import {
   rolesHead,
   seasonShort,
   startingWhereWords,
-  statusPlaceholder,
   teamTacticLinePlaceholder,
   upLabel,
   upWords,
 } from "../words";
 
-/** How many of his fixtures ahead, and of his gameweeks in the role, the panel shows. */
-const FIXTURES_AHEAD = 3;
+/** How many of his gameweeks in the role the panel shows. */
 const GAMEWEEKS_BACK = 5;
 
 /** Move, Up and Down: the secondary action, desk-sized; Up or Down greys at either end of the bench. */
@@ -94,9 +93,12 @@ export function PlayerPanel({
           <span aria-hidden="true">{closeGlyph}</span>
         </button>
       </div>
-      <p className="px-3 py-2">
-        <Placeholder label={statusPlaceholder(player.name)} className="h-5 w-full" />
-      </p>
+      {/* As on the Squad tab: only a player FPL holds news on has a status, until its data is settled. */}
+      {row?.chanceOfPlaying != null && (
+        <p className="px-3 py-2">
+          <Placeholder label={statusNotSettledLabel} className="h-5 w-full" />
+        </p>
+      )}
       {label !== null && slot !== null && (
         <>
           <div className="flex justify-between bg-head px-3 font-semibold text-ground">
@@ -128,12 +130,7 @@ export function PlayerPanel({
           ))}
         </dd>
         <dt className="text-muted">{nextThreeHead}</dt>
-        <dd className="grid grid-cols-3 gap-1">
-          <NextCell season={row ?? null} />
-          {Array.from({ length: FIXTURES_AHEAD - 1 }, (_, index) => (
-            <Placeholder key={index} label={laterFixturePlaceholder} className="h-5" />
-          ))}
-        </dd>
+        <dd>{row !== undefined && <NextMatches matches={row.nextFixtures} />}</dd>
         <dt className="text-muted">{lastFiveHead}</dt>
         <dd className="grid grid-cols-5 gap-1">
           {Array.from({ length: GAMEWEEKS_BACK }, (_, index) => (

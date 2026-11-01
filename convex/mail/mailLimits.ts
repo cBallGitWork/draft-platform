@@ -8,3 +8,5 @@ export const BODY_MAX = 2000;
 export const UNREAD_COUNTED = 99;
 /** The most letters the Mail screen lists, newest first. */
 export const LETTERS_SHOWN = 100;
+/** The most letters a screen's Mail widget shows, newest first (My team's Squad tab). */
+export const LATEST_LETTERS = 3;

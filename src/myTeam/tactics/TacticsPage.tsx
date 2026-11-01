@@ -223,7 +223,7 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
         >
           <SquadTable draft={draft} squad={squad} season={season} moving={moving} onBench={toBench} onBenchAt={toBenchAt} onRole={toRole} />
         </Panel>
-        <div className="flex w-full flex-col gap-2 lg:w-widget-column">
+        <div className="flex min-w-0 grow basis-widgets flex-col gap-2 lg:grow-0">
           {selected !== undefined && selectedPlace !== null && (
             <PlayerPanel
               leagueId={league.leagueId}

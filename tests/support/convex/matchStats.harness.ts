@@ -125,6 +125,15 @@ export function withPlReadEmpty(payloads: Gw6Payloads, plPlayerId: number): Gw6P
   return withPlRead(payloads, plPlayerId, {});
 }
 
+/** The Premier League's status for a match being played: not `PL_FULL_TIME`. */
+const PL_LIVE = "L";
+
+/** `payloads` with the Premier League's list calling Hull v Everton still being played. */
+export function withHullEvertonLive(payloads: Gw6Payloads): Gw6Payloads {
+  payloads.pl.round.content.find((fixture) => fixture.id === MATCH.hullEverton.pl)!.status = PL_LIVE;
+  return payloads;
+}
+
 /** `payloads` with one man's Premier League read holding only `stats`. */
 export function withPlRead(payloads: Gw6Payloads, plPlayerId: number, stats: Record<string, number>): Gw6Payloads {
   hullEvertonRead(payloads, plPlayerId).stats = Object.entries(stats).map(([name, value]) => ({ name, value }));

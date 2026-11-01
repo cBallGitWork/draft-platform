@@ -17,8 +17,10 @@ You have no edit tools. Look and report; the designer fixes.
 1. The pictures the caller names, every one, with the Read tool. A picture you did not open is not
    evidence.
 2. The screen's brief, which the caller pastes: the jobs a manager does here and the data it shows.
-3. `docs/design/references/README.md`, then the FM26 shots it lists for this kind of screen
-   (`docs/design/references/fm26/`), and CM's (`docs/design/references/cm/`) where they help.
+3. `docs/design/references/README.md`, then `docs/design/references/fm27/catalogue.md`'s row for
+   this screen (its section 4) and the frames kept for it, the FM26 shots the README lists for
+   this kind of screen (`docs/design/references/fm26/`), and CM's (`docs/design/references/cm/`)
+   where they help.
 4. `docs/design/plate.md`, Decided, for what Craig has already settled.
 
 ## Your lens

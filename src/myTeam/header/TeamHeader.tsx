@@ -32,7 +32,7 @@ import {
 // once its data has loaded, and only where the league has it: no opponent or form in total points.
 // While the table loads its readings wait; a league with no rules has none, and the tab under the
 // band says why (the Tactics tab: "made before leagues had rules").
-// The Tactics tab wraps its page in it, and the Squad tab is to.
+// The Tactics and Squad tabs both wrap their page in it.
 
 /** A tab's page under My team's header band: `children` is the tab's own. */
 export function TeamPage({ league, teamName, seam, children }: { league: LeagueSummary; teamName: string; seam: MyTeamSeam; children?: ReactNode }) {

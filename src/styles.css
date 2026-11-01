@@ -65,6 +65,9 @@
 
   --spacing-tap: 44px; /* every target, at the phone's width (plate.md, The phone) */
   --spacing-subtab: 36px; /* a section's tabs, on the desk */
+  /* A table's row on the desk (plate.md, Type): h-row. Only a screen rebuilt to its approved picture
+     draws it; the other built tables keep their 20px rows until theirs is rebuilt. */
+  --spacing-row: 28px;
 
   /* The width each of Mail's two panels grows from; with less room than both, the form wraps under */
   --flex-basis-letters: 480px;
@@ -75,8 +78,13 @@
   --spacing-number-box: 72px;
   /* A box for a bigger whole number: a league's most teams, an admin threshold */
   --spacing-wide-number-box: 96px;
-  /* A squad number's box on the Squad tab: room for "99" (#13) */
-  --spacing-squad-number: 48px;
+  /* A squad number's box in the Squad tab's season panel: room for "99" and its list's arrow (#13) */
+  --spacing-squad-number: 72px;
+  /* The Squad tab on the desk (its approved picture): the table grows from its basis, and the
+     right-hand column of widgets beside it from its own; with less room than both, the widgets
+     wrap under the table */
+  --flex-basis-squad-table: 640px;
+  --flex-basis-widgets: 300px;
   /* A tick box's well (plate.md, Controls) */
   --spacing-tick: 22px;
   --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */
@@ -87,11 +95,9 @@
   --flex-basis-squad: 320px;
   --spacing-pitch-desk: 360px;
   --spacing-shirt: 32px;
-  /* The Tactics tab's right-hand column of widgets on the desk (plate.md, Tables and panels), and a
-     position chip's least width, so GK and CDM line up down the Selection table */
-  --spacing-widget-column: 288px;
+  /* a position chip's least width, so GK and CDM line up down the Tactics Selection table */
   --spacing-chip: 30px;
-  /* a form chip's least width: one letter, W, L or D */
+  /* a form chip's least width: one letter, W, L or D (plate.md, Marks: form) */
   --spacing-chip-tight: 18px;
   /* The widest a lost player's error words run in the Tactics squad list on a phone, wrapping
      after, so they leave the Role column its room (#323) */

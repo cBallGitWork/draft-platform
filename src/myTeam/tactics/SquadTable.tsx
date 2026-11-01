@@ -4,7 +4,9 @@ import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
 import { Placeholder } from "../../ui/Placeholder";
 import { PositionChip } from "../../ui/PositionChip";
 import type { SquadRow } from "../../../convex/squads/teamSquad";
-import { figureWords, nextFixtureLong, nextFixtureShort, noFigureWords, noNextFixtureWords, noPointsWords, whenWords } from "../words";
+import { figureWords, noFigureWords } from "../words";
+import { NextMatches } from "../squad/SquadTable";
+import { noPointsWords, statusNotSettledLabel } from "../squad/words";
 import { markOf } from "./focusMarks";
 import { benchBestRole, startersInOrder, type DraftLineup, type SquadMember, type Starter } from "./lineupDraft";
 import { startDrag, type Moving } from "./pitch/Pitch";
@@ -14,12 +16,10 @@ import {
   benchPlaceLong,
   benchPlaceWords,
   emptyBenchWords,
-  nextPlaceholder,
   roleFitPlaceholder,
   roleLabel,
   squadColumns,
   squadTableLabel,
-  statusPlaceholder,
   swapLabel,
   toBenchWords,
 } from "./words";
@@ -152,7 +152,7 @@ function SelectionRow({
       onDragOver={allowDrop}
       onDrop={drop}
       aria-current={shown || undefined}
-      className="border-t border-panel-rule aria-current:bg-name-plate aria-current:shadow-current-edge lg:h-7"
+      className="border-t border-panel-rule aria-current:bg-name-plate aria-current:shadow-current-edge lg:h-row"
     >
       <td className={cellClasses("position")}>
         <PositionCell player={player} place={place} />
@@ -170,10 +170,11 @@ function SelectionRow({
         </button>
         {/* A phone leaves out the club and the status, for the role's room (plate.md, The phone). */}
         {player.clubShortName !== null && <span className="ml-1 text-muted max-sm:hidden">{player.clubShortName}</span>}
-        <Placeholder label={statusPlaceholder(player.name)} className="ml-1 size-3 align-middle max-sm:hidden" />
+        {/* As on the Squad tab: only a player FPL holds news on gets one, until its data is settled. */}
+        {season?.chanceOfPlaying != null && <Placeholder label={statusNotSettledLabel} className="ml-1 size-3 align-middle max-sm:hidden" />}
       </th>
       <td className={cellClasses("next")}>
-        <NextCell season={season} />
+        {season != null && <NextMatches matches={season.nextFixtures.slice(0, 1)} />}
       </td>
       <td className={cellClasses("roleFit")}>
         <Placeholder label={roleFitPlaceholder} className="h-3 w-16 align-middle" />
@@ -198,24 +199,6 @@ function PositionCell({ player, place }: { player: SquadMember; place: { starter
       </abbr>
       {main !== undefined && <PositionChip label={main} />}
     </span>
-  );
-}
-
-/** His next fixture, the whole cell, with an outline in place of its difficulty colour. */
-export function NextCell({ season }: { season: SquadRow | null | undefined }) {
-  if (season === undefined) return null;
-  const next = season?.nextFixture ?? null;
-  if (next === null)
-    return (
-      <span title={noNextFixtureWords} className="text-muted">
-        {noFigureWords}
-      </span>
-    );
-  const short = nextFixtureShort(next.opponent.shortName, next.home);
-  return (
-    <Placeholder label={nextPlaceholder(nextFixtureLong(next.opponent.name, next.home, whenWords(next.kickoff)))} className="w-full px-1 whitespace-nowrap">
-      {short}
-    </Placeholder>
   );
 }
 

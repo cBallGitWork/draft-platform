@@ -97,6 +97,24 @@ test("a tick that reads no match, its gameweek's reads failed, writes the side f
   expect(await sideOutcomes(t)).toEqual(before);
 });
 
+test("a tick that reads one gameweek while another's reads fail puts the failed gameweek's matches on the side feeds' rows (#883)", async () => {
+  silenceConsoleError();
+  const t = await withHullEverton();
+  const otherGameweek = GAMEWEEK + 1;
+  const otherMatch = HULL_EVERTON + 1;
+  await t.run(async (ctx) => {
+    const held = (await ctx.db.query("fixtures").unique())!;
+    await ctx.db.insert("fixtures", { code: otherMatch, gameweek: otherGameweek, homeClubCode: held.homeClubCode, awayClubCode: held.awayClubCode, kickoff: KICKOFF });
+  });
+  const failed = { fixtureCode: otherMatch, ok: false, error: refusedError(fplLiveUrl(otherGameweek)) };
+
+  await tickAt(t, stageTime(30), stagedGw6(30), fplLiveUrl(otherGameweek));
+
+  const sides = await sideOutcomes(t);
+  expect(sides.teamStats.at(-1)).toEqual({ ok: true, matches: expect.arrayContaining([failed, { fixtureCode: HULL_EVERTON, ok: true }]) });
+  expect(sides.thresholdSteps.at(-1)).toEqual({ ok: true, matches: expect.arrayContaining([failed]) });
+});
+
 test("a tick whose first read fails is recorded failed whole, and the next one catches up", async () => {
   silenceConsoleError();
   const t = await withHullEverton();

@@ -86,7 +86,7 @@ its team stats reads are kept for the tests (`tests/support/recorded/pl-live-mat
 | Charts | Recharts | what shadcn's charts use |
 | Tests | Vitest; `convex-test` with fake timers for the backend, on `@edge-runtime/vm`; Testing Library on jsdom for the app; a test that logs with `console.error` fails unless it calls `silenceConsoleError()`; Vitest's on-disk module cache is off (`fsModuleCache: false`) | the companion's runner; the draft clock can be tested without waiting; `convex-test` needs Convex's runtime mimicked; screens are tested by role and name, as a manager finds them; the cache kept a typed `import.meta.glob`'s file list from before a file was added, and a full `npm test` took about 25s with or without it (31 Oct 2026, #766) |
 | Coverage | `@vitest/coverage-v8`, at Vitest's exact version, since it names that one version as its peer, so the two are bumped together; `npm run coverage` prints four totals (statements, branches, functions, lines) counted over every file under `convex/`, `src/` and `scripts/`, where a file no test loads counts as 0%; `npm run coverage -- --coverage.reporter=text` lists each file | read, never gated: no thresholds, and neither `npm run verify` nor CI runs it, because we don't write tests for a coverage number ([docs/PHILOSOPHY.md](docs/PHILOSOPHY.md)); V8 counts natively, so no source is rewritten to count it, and it is Vitest's default (#155) |
-| Lint | ESLint with `eslint-plugin-react-hooks`, its two rules only (`rules-of-hooks`, `exhaustive-deps`, both errors), over `src/` and its tests (`eslint.config.js`), parsed by `@typescript-eslint/parser` with no type-aware rules; `npm run lint`, inside `npm run verify`, so CI runs it, and any warning fails it (#154) | a dependency list is written by hand and a missing entry shows stale data with no error, which no test or typecheck catches; this plugin is React's own and ESLint is its only host; no style rule sets, so it adds no churn. `convex/` and its tests import no React, and their harnesses' `use...Deployment()` set up Vitest hooks, so they aren't linted. `rules-of-hooks` sees `useX()` and `React.useX()` but not `seam.useX()` (a lowercase object), so a seam hook after an early return stays a review check |
+| Lint | ESLint with `eslint-plugin-react-hooks`, its two rules (`rules-of-hooks`, `exhaustive-deps`, both errors), over `src/` and its tests (`eslint.config.js`), and ESLint's own `no-restricted-syntax` failing a string in `src/` with an arbitrary Tailwind colour or px value (`[#`, `-[Npx]`), parsed by `@typescript-eslint/parser` with no type-aware rules; `npm run lint`, inside `npm run verify`, so CI runs it, and any warning fails it (#154) | a dependency list is written by hand and a missing entry shows stale data with no error, which no test or typecheck catches; this plugin is React's own and ESLint is its only host; no style rule sets, so it adds no churn; the arbitrary-value rule keeps every design value a token in `src/styles.css`, plate.md's one source. `convex/` and its tests import no React, and their harnesses' `use...Deployment()` set up Vitest hooks, so they aren't linted. `rules-of-hooks` sees `useX()` and `React.useX()` but not `seam.useX()` (a lowercase object), so a seam hook after an early return stays a review check |
 | Screenshots | Playwright, on the Mac's Chrome (`scripts/shoot.mjs` for the running app; `scripts/design/shoot-board.mjs` for a canvas board, after `scripts/design/expand.mjs`) | the `ui-verifier` agent's camera and the `/design` skill's render check, and the same tool as the Playwright MCP |
 | Smoke tests | `@playwright/test` (`npm run smoke`, `tests/smoke/`), on the Mac's Chrome locally and Chromium in CI | loads the built app in a real browser on the preview sessions, no deployment needed |
 | Going live | the Vercel CLI (`vercel`, a devDependency pinned to one version), driven by `npm run setup:live` (`scripts/live-setup/`, docs/setup.md) with the Convex CLI and one `fetch` per call to Resend's API | Craig signs in to each CLI once and the setup command does the rest, with no token of ours to keep; pinned because the command's flags were read from that version's `--help` |
@@ -127,10 +127,18 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   read that finds it, so a match locks up to one interval after its true hour. A run with no
   match due reads no feed; one due reads about 40 Premier League URLs per match (its sheets,
   each named man's stats, and its team stats), and a locked match is read again hourly for a day
-  to catch late corrections. Finding the due matches (`matchStats.due`) reads each of the
-  season's matches kicked off so far and its status row, every run: about 760 reads a run by
-  May, some 110,000 a day (28 Oct 2026, counted by hand from `matchStats.due`). Measure it on
-  the Convex usage page before #199 bounds it.
+  to catch late corrections. Finding the due matches (`matchStatsDue.due`, #199) reads only
+  what can still be due: this season's status rows not yet locked, those locked within the day's
+  watch, each with its match, and the matches kicked off since the oldest one not yet read at
+  full time, or a week back (`matchStatsUnseenFrom`, one row), each with its status row, and
+  each match due's last try: at most about 100 reads a run on a weekend of ten matches, whenever
+  in the season, where it was about 760 a run by May (counted 28 Oct 2026). Both are hand
+  counts from the code, not measurements. The new one (31 Oct 2026) adds up to 20 status rows
+  open or watched and their 20 matches, 10 to 20 matches from the week (the read reaches a week
+  and one run back, so it holds the last weekend's matches only when they kicked off inside
+  that) and their status rows, and up to 20 tries. It stays unverified until the Convex usage
+  page shows it, once the code is live. It grows only while a match stays unread: one the feed never calls full time holds the fixtures' read at
+  its kickoff until it is. The leagues' count changes none of it.
 - Live stats (#28): a cron every minute (`liveStatsSync.tick`) reads each match from kickoff
   until it is complete, or four hours on, and its team sheets alone in the hour before kickoff
   (#45); outside those windows it reads no feed and writes no row. A complete match whose

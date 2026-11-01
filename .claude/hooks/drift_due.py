@@ -20,9 +20,11 @@ import subprocess
 import sys
 
 from hook_payload import project_dir
+from main_writes import MAIN, REMOTE_MAIN
+from tidy_branch import failure_line
 
 DUE_AFTER = 10  # docs/REFACTORING.md's "10 merged pull requests since the last drift pass"
-MAINS = ("origin/main", "main")  # the first that exists is counted
+MAINS = (REMOTE_MAIN, MAIN)  # the first that exists is counted
 PASS_MARK = "^refactor: drift pass"  # how a drift pass's pull request title starts
 
 
@@ -33,8 +35,7 @@ class GitFailed(Exception):
 def git(folder, *args):
     proc = subprocess.run(["git", "-C", folder, *args], capture_output=True, text=True)
     if proc.returncode != 0:
-        said = proc.stderr.strip().splitlines() or [f"exit {proc.returncode}"]
-        raise GitFailed(f"git {' '.join(args)} failed in {folder} ({said[0]})")
+        raise GitFailed(f"git {' '.join(args)} failed in {folder} ({failure_line(proc)})")
     return proc.stdout.strip()
 
 

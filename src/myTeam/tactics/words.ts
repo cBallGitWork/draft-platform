@@ -78,8 +78,6 @@ export const emptyBenchWords = "Nobody on the bench.";
 export const toBenchWords = (name: string) => `Put ${name} on the bench`;
 /** Data not held yet, in its place (plate.md, Marks: a placeholder). */
 export const roleFitPlaceholder = "Role fit: not shown yet; it waits on stars on screen (#11) and scouts (#375)";
-export const statusPlaceholder = (name: string) => `${name}'s status: injured, doubtful, booked or suspended shows here once its data is settled`;
-export const nextPlaceholder = (fixture: string) => `${fixture}: its difficulty colour shows once where difficulty comes from is settled`;
 
 /** The selected player's panel, on top of the right-hand column (plate.md, Tables and panels). */
 export const startingWhereWords = (club: string | null, slot: string) => (club === null ? slot : `${club}, ${slot}`);
@@ -93,7 +91,6 @@ export const pointsPerActionPlaceholder = (role: string) => `${role}: what it sc
 export const teamTacticLinePlaceholder = "What the team tactic does for him shows here once team tactics are specced";
 export const playsHead = "Plays";
 export const nextThreeHead = "Next 3";
-export const laterFixturePlaceholder = "A later fixture: the next three show here once they are read";
 export const lastFiveHead = "Last 5 in role";
 export const lastFivePlaceholder = "His points in the role in one of his last five gameweeks: not held yet";
 export const pointsHead = "Points";

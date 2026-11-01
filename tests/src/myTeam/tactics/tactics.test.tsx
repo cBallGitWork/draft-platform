@@ -123,13 +123,13 @@ describe("the lineup held", () => {
     openTacticsTab();
     await screen.findByRole("table", { name: squadTableLabel });
     expect(squadRows()).toEqual([
-      // Each starter's slot chip, then name, club, next fixture (none held here), and role picker.
-      "GKRayaARS—Shot-stopperSweeper keeper",
-      "CBSalibaARS—StopperBall-playing defender",
-      "CMRiceARS—Box-to-boxPlaymakerBall-winner",
-      "STHavertzARS—PoacherTarget manPressing forwardShadow strikerFalse 9",
+      // Each starter's slot chip, then name, club, next fixture (none held here, so empty), and role picker.
+      "GKRayaARSShot-stopperSweeper keeper",
+      "CBSalibaARSStopperBall-playing defender",
+      "CMRiceARSBox-to-boxPlaymakerBall-winner",
+      "STHavertzARSPoacherTarget manPressing forwardShadow strikerFalse 9",
       // Each bench player's place and main position, and his best role there.
-      BENCH_TITLE, "S1GKArrizabalagaARS—Shot-stopper", "S2FBWhiteARS—Defensive full-back"]);
+      BENCH_TITLE, "S1GKArrizabalagaARSShot-stopper", "S2FBWhiteARSDefensive full-back"]);
   });
 
   it("says who joined the squad since and sits at the end of the bench", async () => {

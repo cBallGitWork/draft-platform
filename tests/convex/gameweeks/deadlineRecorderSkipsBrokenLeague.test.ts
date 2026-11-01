@@ -46,6 +46,17 @@ test("a league whose deadlines can't be worked out is skipped, logged and emaile
 
   const emails = await pendingJobs(t, internal.admin.feedFailureEmails.send);
   expect(emails).toHaveLength(1);
-  expect(emails[0].args[0]).toMatchObject({ feed: "football", error: expect.stringContaining(`League ${broken} (Broken) ${LEAGUE_SKIPPED}`) });
+  expect(emails[0].args[0]).toMatchObject({ feed: "skippedLeague", error: expect.stringContaining(`League ${broken} (Broken) ${LEAGUE_SKIPPED}`) });
   expect(await sentToday(t)).toBe(1);
+
+  // The skip has its own once-a-day slot, so a real football failure later that day still emails (#980).
+  await t.mutation(internal.football.footballSync.record, { trigger: "cron", ranAt: Date.now(), outcome: { ok: false, error: FEED_ERROR } });
+  const both = await pendingJobs(t, internal.admin.feedFailureEmails.send);
+  expect(both.map((job) => job.args[0])).toEqual([
+    expect.objectContaining({ feed: "skippedLeague" }),
+    expect.objectContaining({ feed: "football", error: FEED_ERROR }),
+  ]);
+  expect(await sentToday(t)).toBe(2);
 });
+
+const FEED_ERROR = "https://fantasy.premierleague.com/api/bootstrap-static/ answered 503";
