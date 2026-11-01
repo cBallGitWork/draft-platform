@@ -168,8 +168,9 @@ function SelectionRow({
         >
           {player.name}
         </button>
-        {player.clubShortName !== null && <span className="ml-1 text-muted">{player.clubShortName}</span>}
-        <Placeholder label={statusPlaceholder(player.name)} className="ml-1 size-3 align-middle" />
+        {/* A phone leaves out the club and the status, for the role's room (plate.md, The phone). */}
+        {player.clubShortName !== null && <span className="ml-1 text-muted max-sm:hidden">{player.clubShortName}</span>}
+        <Placeholder label={statusPlaceholder(player.name)} className="ml-1 size-3 align-middle max-sm:hidden" />
       </th>
       <td className={cellClasses("next")}>
         <NextCell season={season} />

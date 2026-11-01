@@ -30,7 +30,7 @@ import {
 // across the header): the team's name on the page's plate, then the next deadline and its
 // countdown, the opponent then, the last result, the form and the table place. Each reading shows
 // once its data has loaded, and only where the league has it: no opponent or form in total points.
-// The Tactics tab wraps its page in it; the Squad tab does too.
+// The Tactics tab wraps its page in it, and the Squad tab is to.
 
 /** A tab's page under My team's header band: `children` is the tab's own. */
 export function TeamPage({ league, teamName, seam, children }: { league: LeagueSummary; teamName: string; seam: MyTeamSeam; children?: ReactNode }) {

@@ -183,7 +183,7 @@ function ShapeTile({ shape, checked, inUse, onPick }: { shape: Shape; checked: b
       aria-label={shape.name}
       aria-checked={checked}
       onClick={onPick}
-      className="grid grid-cols-dated-row items-start gap-3 bg-plate p-2 text-left shadow-bevel-plate aria-checked:shadow-current-edge aria-checked:outline-2 aria-checked:outline-derived"
+      className="grid grid-cols-dated-row items-start gap-3 p-2 text-left shadow-bevel-panel aria-checked:bg-plate aria-checked:outline-2 aria-checked:outline-derived"
     >
       <span aria-hidden="true" style={CELL_GRID} className="grid h-18 w-12 border border-pitch-line bg-pitch-stripe">
         {cellsDrawn((cell) => (

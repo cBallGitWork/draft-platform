@@ -16,7 +16,7 @@ export function LineupCheck() {
   return (
     <Panel title={LINEUP_CHECK_TITLE}>
       <div className="p-3">
-        <Placeholder label={lineupCheckPlaceholder} className="h-36 w-full" />
+        <Placeholder label={lineupCheckPlaceholder} className="h-24 w-full" />
       </div>
     </Panel>
   );
@@ -28,7 +28,7 @@ export function TeamTacticWidget() {
   return (
     <Panel title={TEAM_TACTIC_TITLE}>
       <div className="p-3">
-        <Placeholder label={teamTacticPlaceholder} className="h-40 w-full" />
+        <Placeholder label={teamTacticPlaceholder} className="h-32 w-full" />
       </div>
     </Panel>
   );
