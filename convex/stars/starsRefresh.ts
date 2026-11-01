@@ -11,6 +11,7 @@ import { fixtureByCode } from "../shared/fixtures";
 import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { sortedJson } from "../shared/sortedJson";
+import { PLAYERS_PAGE, SEASON_PLAYERS_MOST } from "../stats/matchRecords";
 import { playerRecords } from "../stats/seasonRecords";
 import { LEAGUES_STORED_MOST } from "../table/finalScores";
 import { starsRow } from "./playerStars";
@@ -32,25 +33,22 @@ import { UNSURE } from "./starsShape";
 // works out only its own players.
 //
 // One bad record or player never stops the rest: a match with no kickoff held is left out of his
-// matches, and a player whose rating throws keeps the row he had; each is logged.
+// matches, and a player whose rating throws keeps the row he had; each is logged. A lock whose
+// records can't be read is logged too, naming the repair, REFRESH_COMMAND:
+// npx convex run stars/starsRefresh:refreshAll '{"cursor":null}'
 //
 // Cost: a lock reads every record of its 40-odd players, prices each one's counted matches (at most
 // STARS_WINDOW) under his 2 to 24 roles, then reads every row to rank: about 700 small rows.
 // Every player's refresh reads every current player's records: about 700 × 38 at a season's end, in
-// STARS_PAGE pages, then the players gone from the Premier League who still hold stars, STARS_PAGE
-// rows at a time. Both grow with players, roles a player is rated for and matches (capped at
-// STARS_WINDOW), and not with teams; but each gone player is looked for on every league's squads,
-// so that part grows with gone players × leagues (the leagues read once a transaction). A season-sized
-// page and lock run in the tests (starsRefresh.season.test.ts); Convex's real time limit on them is
-// unmeasured on a deployment.
+// PLAYERS_PAGE pages, then the players gone from the Premier League who still hold stars,
+// PLAYERS_PAGE rows at a time. Both grow with players, roles a player is rated for and matches
+// (capped at STARS_WINDOW), and not with teams; but each gone player is looked for on every
+// league's squads, so that part grows with gone players × leagues (the leagues read once a
+// transaction). A season-sized page and lock run in the tests (starsRefresh.season.test.ts);
+// Convex's real time limit on them is unmeasured on a deployment.
 
-/** Players worked out in one transaction of a full refresh: each reads his own records, up to a
- *  season's 38 and more across seasons, so 25 stays well inside a mutation's reads. */
-export const STARS_PAGE = 25;
-
-/** The most players holding stars: FPL lists about 800 a season, with room. More throws, never a
- *  silent cut. */
-export const STARRED_PLAYERS_MOST = 1500;
+/** How a lock whose records can't be read is put right: every player's stars worked out again. */
+export const REFRESH_COMMAND = `npx convex run stars/starsRefresh:refreshAll '{"cursor":null}'`;
 
 /** After a match locks: its players' rows worked out again, then everyone ranked again. With no row
  *  held yet, every player's instead. */
@@ -62,7 +60,13 @@ export const refreshMatch = internalMutation({
       await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.refreshAll, { cursor: null });
       return null;
     }
-    const records = await matchRecordsOf(ctx, fixtureCode, "its players' stars");
+    let records: Doc<"playerMatchStats">[];
+    try {
+      records = await matchRecordsOf(ctx, fixtureCode, "its players' stars");
+    } catch (error) {
+      logFailure(`match ${fixtureCode}'s players' stars weren't worked out again; run ${REFRESH_COMMAND}`, error);
+      return null;
+    }
     await refreshPlayers(
       ctx,
       records.map((record) => record.playerCode),
@@ -81,7 +85,7 @@ export const refreshAll = internalMutation({
     const page = await ctx.db
       .query("players")
       .withIndex("by_droppedAt", (q) => q.eq("droppedAt", undefined))
-      .paginate({ numItems: STARS_PAGE, cursor });
+      .paginate({ numItems: PLAYERS_PAGE, cursor });
     await refreshPlayers(
       ctx,
       page.page.map((player) => player.code),
@@ -93,13 +97,13 @@ export const refreshAll = internalMutation({
 });
 
 /** The rows of players gone from the Premier League, which a refresh of every current player never
- *  reaches, worked out again STARS_PAGE rows from `cursor` a run: kept while a squad holds him,
+ *  reaches, worked out again PLAYERS_PAGE rows from `cursor` a run: kept while a squad holds him,
  *  dropped once none does. After the last, everyone ranked. */
 export const refreshGone = internalMutation({
   args: { cursor: v.union(v.string(), v.null()) },
   returns: v.null(),
   handler: async (ctx, { cursor }) => {
-    const page = await ctx.db.query("playerRoleStars").withIndex("by_playerCode").paginate({ numItems: STARS_PAGE, cursor });
+    const page = await ctx.db.query("playerRoleStars").withIndex("by_playerCode").paginate({ numItems: PLAYERS_PAGE, cursor });
     const gone: number[] = [];
     for (const row of page.page) if (await isGone(ctx, row.playerCode)) gone.push(row.playerCode);
     await refreshPlayers(ctx, gone);
@@ -135,9 +139,9 @@ export const rank = internalMutation({
 
 const poolKey = (area: string, role: string) => `${area}/${role}`;
 
-/** Every row held, at most STARRED_PLAYERS_MOST. */
+/** Every row held, at most SEASON_PLAYERS_MOST. */
 function starsRows(ctx: QueryCtx): Promise<Doc<"playerRoleStars">[]> {
-  return takeAllOrThrow(ctx.db.query("playerRoleStars"), STARRED_PLAYERS_MOST, `More than ${STARRED_PLAYERS_MOST} players hold stars, so some would go unranked`);
+  return takeAllOrThrow(ctx.db.query("playerRoleStars"), SEASON_PLAYERS_MOST, `More than ${SEASON_PLAYERS_MOST} players hold stars, so some would go unranked`);
 }
 
 /** Whether the football sync has dropped him, or holds no such player. */

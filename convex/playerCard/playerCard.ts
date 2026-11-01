@@ -13,7 +13,7 @@ import { siteVersionByGameweek } from "../scoring/siteVersions";
 import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode, type Clubs } from "../shared/players";
 import { ownerOf, placeOf } from "../squads/squadPlace";
-import { isWhole, MINUTES_STAT, statValue } from "../stats/matchRecords";
+import { MINUTES_STAT, statsIfWhole, statValue } from "../stats/matchRecords";
 import { playsIn } from "../gameweekScorer/heldMatches";
 import { scoredMatches } from "../gameweekScorer/scoredMatches";
 import { basePoints, cardPositions } from "./cardPoints";
@@ -177,7 +177,7 @@ async function seasonMatches(ctx: QueryCtx, league: Doc<"leagues">, player: Doc<
     scored.map(async ({ record, fixture, gameweek, points: { role }, override, provisional }) => {
       const { set, name: version } = versionIn(gameweek);
       const named = (stat: string) => categoryName(stat, set.ownStats);
-      const points = basePoints(isWhole(record) ? record.stats : null, set, positions).map(({ position, total, categories }) => ({
+      const points = basePoints(statsIfWhole(record), set, positions).map(({ position, total, categories }) => ({
         position,
         total,
         categories: categories.map((each) => ({ ...each, name: named(each.stat) })),

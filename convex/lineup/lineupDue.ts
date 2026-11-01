@@ -3,15 +3,14 @@ import { mutation, query } from "../_generated/server";
 import { leagueOpens } from "../leagues/leagueOpens";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
-import { seasonRules } from "../rules/rulesHistory";
 import { managerOf, signedInEmail, teamOf } from "../shared/leagueAccess";
-import { nextOpenGameweek } from "./lineups";
+import { saveGameweekOf } from "./lineups";
 import { LINEUP_DUE_BEFORE_DEADLINE_MS } from "./lineupLimits";
 
 // Continue's lineup step (spec/12, The frame; #526): "From 24 hours before each gameweek's deadline
 // until the deadline, Continue takes the manager to his Tactics tab", until "he has opened the
 // Tactics tab that gameweek" (Craig, 1 Nov 2026). The gameweek is the one a save now is from
-// (lineups.ts's `nextOpenGameweek`), as the Tactics tab's is. Opening it is kept on the team's row
+// (lineups.ts's `saveGameweekOf`), as the Tactics tab's is. Opening it is kept on the team's row
 // (`tacticsOpenedInGameweek`), so his other devices know too.
 
 /** Whether Continue leads the caller to his Tactics tab in the league at `now` (the screen's minute:
@@ -27,10 +26,9 @@ export const isDue = query({
     if (email === null || league === null || !leagueOpens(league)) return false;
     const team = await teamOf(ctx, leagueId, email);
     if (team === undefined) return false;
-    const season = await seasonRules(ctx, leagueId);
-    if (season === null) return false;
-    const gameweek = await nextOpenGameweek(ctx, leagueId, season, now);
-    if (gameweek > GAMEWEEKS || team.tacticsOpenedInGameweek === gameweek) return false;
+    const next = await saveGameweekOf(ctx, leagueId, now);
+    if (next.kind !== "open" || team.tacticsOpenedInGameweek === next.gameweek) return false;
+    const { gameweek } = next;
     const deadline = deadlineOf(await leagueDeadlines(ctx, leagueId))(gameweek);
     return deadline !== null && now >= deadline - LINEUP_DUE_BEFORE_DEADLINE_MS && now < deadline;
   },
@@ -46,9 +44,9 @@ export const openedTactics = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, gameweek }) => {
     const { team } = await managerOf(ctx, leagueId);
-    const season = await seasonRules(ctx, leagueId);
-    if (season === null || gameweek > GAMEWEEKS || team.tacticsOpenedInGameweek === gameweek) return null;
-    if ((await nextOpenGameweek(ctx, leagueId, season, Date.now())) !== gameweek) return null;
+    if (gameweek > GAMEWEEKS || team.tacticsOpenedInGameweek === gameweek) return null;
+    const next = await saveGameweekOf(ctx, leagueId, Date.now());
+    if (next.kind !== "open" || next.gameweek !== gameweek) return null;
     await ctx.db.patch("teams", team._id, { tacticsOpenedInGameweek: gameweek });
     return null;
   },

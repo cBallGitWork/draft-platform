@@ -5,7 +5,7 @@ import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { inTenths } from "../../../convex/scoring/values";
 import { WEEK_MS } from "../../../convex/shared/time";
-import { REBUILD_PAGE } from "../../../convex/stats/seasonStats";
+import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import { COMMISSIONER, actingAs, adminCreatesLeague } from "../../support/convex/leagues.harness";
 import { CHELSEA } from "../../support/convex/footballRows.harness";
 import { EXAMPLE_SET } from "../../support/convex/scoring.example";
@@ -131,7 +131,7 @@ test("rebuild sets every player's row afresh, however wrong, paging through, and
   const { t } = league;
   await t.run(async (ctx) => {
     // More than a page of players with nothing priced, so the rebuild runs on to the next page.
-    for (let count = 0; count < REBUILD_PAGE; count += 1) {
+    for (let count = 0; count < PLAYERS_PAGE; count += 1) {
       await ctx.db.insert("players", { code: 60_000 + count, name: `P${count}`, fullName: `Player ${count}`, clubCode: CHELSEA.code });
     }
   });
