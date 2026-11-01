@@ -170,7 +170,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | invite | the email a commissioner sends one person, carrying their sign-in link and the team it's for | |
 | invite link | a league's one shareable link; opening it only asks to join | |
 | join request | what opening the invite link makes, for the commissioner to approve or refuse | |
-| club | a real Premier League club | team |
+| club | a real Premier League club | team, franchise |
 | club mark | the small square in a club's two colours before its code (spec/12) | badge, crest |
 | position | where a player can play in real life (CB, FB, CAM, W); no side. A slot has one too, from its area and lane (spec/14) | right back, left winger |
 | admin dashboard | the admin's one screen: the positions queue and corrections, thresholds, and the feeds page | |
@@ -187,7 +187,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | points limit | a rule's maximum or minimum points for one player in one match | cap (that is the salary cap), floor, ceiling |
 | short code | a category's abbreviation in dense tables: G, A, CS, KP, TW | |
 | lineup | a team's starters and bench for one gameweek | |
-| squad | every player a team owns | |
+| squad | every player a team owns | roster |
 | starter | a player in the lineup's eleven | |
 | bench | the lineup's players who don't start, in the order auto-subs use | subs |
 | draft league | a league on the platform, such as the Tim Hortons Pro League; on screen, "draft league" wherever the Premier League could be meant. "League" alone in the spec means one | fantasy league |
@@ -210,3 +210,9 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | set-piece taker | the player holding a duty in a match: the first on its list who plays | |
 | note | one item in a player's News: a match note or real news, dated and linked to its source (spec/21) | blurb, snippet |
 | squad number | the number a manager gives a player, shown on his shirt ("shirt number" means the same) | |
+| football | the game itself | soccer |
+| table | a league's teams, or the Premier League's clubs, ranked by points | standings |
+| waivers | the claims on a dropped player, made in the league's waiver order before he is a free agent | waiver wire |
+| play-offs | the games after the season that settle the places a league plays them for | playoffs |
+| kit | the shirts, shorts and socks a club or team wears | uniform |
+| boots | what a player wears on his feet | cleats |
