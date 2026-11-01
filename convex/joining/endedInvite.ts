@@ -1,6 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { query } from "../_generated/server";
+import { leagueOpens } from "../leagues/leagueOpens";
 import { signedInEmail } from "../shared/leagueAccess";
 import { INVITES_TO_ONE_EMAIL_READ, warnIfFull } from "./liveInvites";
 
@@ -49,7 +50,7 @@ export const mine = query({
     // invite whose league is gone is a broken database, not a league deleted a moment ago.
     const league = await ctx.db.get("leagues", newest.leagueId);
     if (!league) throw new Error(`Invite ${newest._id} is to league ${newest.leagueId}, which doesn't exist`);
-    if (league.deletion) return null;
+    if (!leagueOpens(league)) return null;
     return { leagueName: league.name, ended, reason: newest.couldNotJoin ?? null };
   },
 });

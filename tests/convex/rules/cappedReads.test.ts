@@ -6,8 +6,8 @@ import { rulesRefusals } from "../../../convex/rules/leagueRules";
 import { RULES_CHANGES_MOST } from "../../../convex/rules/rulesHistory";
 import { heldSchedule } from "../../../convex/gameweeks/leagueDeadlines";
 import { CURRENT_FIXTURES_MOST } from "../../../convex/shared/fixtures";
-import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
-import { changeRules, holdGameweeks, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { FIRST_GAMEWEEK, GAMEWEEKS, SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { changeRules, holdGameweeks, holdGameweeksPastTheSeason, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -80,22 +80,24 @@ describe("the held schedule", () => {
     await expect(schedule()).rejects.toThrow(`More than ${CURRENT_FIXTURES_MOST} matches are held as current`);
   });
 
-  test(`reads the season's ${GAMEWEEKS} gameweeks, a dropped one left out, and throws past them rather than cut the schedule short`, async () => {
+  test(`reads the season's ${GAMEWEEKS} gameweeks, a dropped one kept (#202), and throws past them rather than cut the schedule short`, async () => {
     await t.run(async (ctx) => {
       const first = await ctx.db.query("gameweeks").withIndex("by_number", (q) => q.eq("number", FIRST_GAMEWEEK)).unique();
       await ctx.db.patch("gameweeks", first!._id, { droppedAt: DROPPED_AT });
     });
     const { gameweeks } = await schedule();
-    expect(gameweeks).toHaveLength(GAMEWEEKS - 1);
-    expect(gameweeks).not.toContainEqual({ number: FIRST_GAMEWEEK });
+    expect(gameweeks).toHaveLength(GAMEWEEKS);
+    expect(gameweeks).toContainEqual({ number: FIRST_GAMEWEEK });
 
-    // Only a row written by hand can pass FPL's 38: the football sync keeps one a gameweek number.
-    // The dropped one doesn't count, so 38 current read; one more throws.
-    const holdGameweek = (number: number) => t.run((ctx) => ctx.db.insert("gameweeks", { number, deadline: 0 }));
-    await holdGameweek(GAMEWEEKS + 1);
-    expect((await schedule()).gameweeks).toHaveLength(GAMEWEEKS);
-    await holdGameweek(GAMEWEEKS + 2);
-    await expect(schedule()).rejects.toThrow(`More than ${GAMEWEEKS} gameweeks are held as current`);
+    // Only a row written by hand can pass the football sync's one a gameweek number: a second row
+    // for one of the season's gameweeks throws.
+    await t.run((ctx) => ctx.db.insert("gameweeks", { number: FIRST_GAMEWEEK + 1, deadline: 0 }));
+    await expect(schedule()).rejects.toThrow(`More than ${GAMEWEEKS} gameweek rows are held for gameweeks ${FIRST_GAMEWEEK} to ${GAMEWEEKS}`);
+  });
+
+  test(`reads none past the season's ${GAMEWEEKS} gameweeks, so a row written past them never stops it (#872)`, async () => {
+    await holdGameweeksPastTheSeason(t, 2);
+    expect((await schedule()).gameweeks).toEqual(SEASON_GAMEWEEKS.map((number) => ({ number })));
   });
 
   test("dropped matches past the most don't count against it", async () => {

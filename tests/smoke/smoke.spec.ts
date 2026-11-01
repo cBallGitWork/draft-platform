@@ -4,13 +4,20 @@
 import { expect, test as base, type ConsoleMessage, type Page } from "@playwright/test";
 import { LANES } from "../../convex/lineup/pitch";
 import { DEFAULT_PRESETS } from "../../convex/lineup/presets";
-import { MY_TEAM_PATH } from "../../src/frame/menu";
+import { ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../src/admin/paths";
+import { miniBeta } from "../../src/app/preview";
+import { MY_TEAM_PATH, SCOUTING_PATH } from "../../src/frame/menu";
+import { invitesPath } from "../../src/joining/paths";
 import { ERROR_PAGE_TITLE, mainMenuLabel } from "../../src/frame/words";
-import { PITCH_ASPECT } from "../../src/myTeam/tactics/pitchMarkings";
-import { moveLabel, pitchLabel, presetLabel, putHereLabel } from "../../src/myTeam/tactics/words";
+import { PITCH_ASPECT } from "../../src/myTeam/tactics/pitch/pitchMarkings";
+import { markedBy } from "../../src/myTeam/tactics/focusMarks";
+import { RUN_MARK } from "../../src/myTeam/tactics/pitch/runs";
+import { moveLabel, pitchLabel, presetLabel, putHereLabel, runsWords } from "../../src/myTeam/tactics/words";
 import { SIGN_IN_PATH } from "../../src/signIn/paths";
 import { signInWords } from "../../src/signIn/words";
+import { squadsPath } from "../../src/squads/paths";
 import { NO_CONVEX_URL } from "../../src/shared/words";
+import { tapsUnderTapSize } from "../../scripts/tap-targets.mjs";
 import { BUILT_SCREENS } from "../support/smoke/builtScreens";
 
 /** The one error every page load logs: the app has no favicon, and the browser asks for one. */
@@ -70,8 +77,8 @@ async function expectPlayersApart(page: Page, onPhone: boolean, shape: string) {
       }),
     );
   expect(blocks.length, `${shape}: players on the pitch`).toBeGreaterThan(0);
-  // The tap size at the phone's width, read from the page as scripts/shoot.mjs does (--spacing-tap).
-  const tap = parseFloat(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--spacing-tap")));
+  // The tap size at the phone's width, read from the page by the one tap-size check.
+  const { tapSize: tap } = await page.evaluate(tapsUnderTapSize);
   for (const { name, block, cell } of blocks) {
     expect(within(block, cell), `${shape}: ${name} inside his cell`).toBe(true);
     if (onPhone) expect(Math.min(block.width, block.height), `${shape}: ${name} tappable`).toBeGreaterThanOrEqual(tap);
@@ -134,14 +141,84 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
         await expect(page.getByRole("group", { name: pitchLabel }).getByRole("button", { name: new RegExp(`^${OFF_THE_BENCH},`) })).toHaveCount(1);
         await expectPlayersApart(page, viewport === PHONE, "5-3-2, five at the back");
       });
+
+      // The roles' runs (spec/05 Runs; #846): every one on the desk, with a switch to hide them;
+      // on a phone only the tapped player's.
+      test("shows the roles' runs as the desk or the phone should", async ({ page }) => {
+        await page.goto(`${MY_TEAM_PATH}?preview=manager`);
+        const thePitch = page.getByRole("group", { name: pitchLabel });
+        const runs = thePitch.locator(`[${RUN_MARK}]`);
+        const shownRuns = async () => (await runs.evaluateAll((all) => all.filter((run) => getComputedStyle(run).display !== "none"))).length;
+        await expect(runs.first(), "a starter whose role moves").toBeAttached();
+        const moving = await runs.count();
+        const runsSwitch = page.getByRole("checkbox", { name: runsWords });
+        if (viewport === DESK) {
+          expect(await shownRuns(), "every run on the desk").toBe(moving);
+          await runsSwitch.click();
+          expect(await shownRuns(), "none once switched off").toBe(0);
+        } else {
+          await expect(runsSwitch, "no switch on a phone").toBeHidden();
+          expect(await shownRuns(), "none until a player is tapped").toBe(0);
+          const tapped = await runs.first().getAttribute(RUN_MARK);
+          await thePitch.locator(markedBy("player", Number(tapped))).click();
+          const shown = await runs.evaluateAll((all, mark) => all.filter((run) => getComputedStyle(run).display !== "none").map((run) => run.getAttribute(mark)), RUN_MARK);
+          expect(shown, "only the tapped player's").toEqual([tapped]);
+        }
+      });
     });
   }
+
+  // The tap-size check measures what a thumb taps: a control through its label, never a bare
+  // well or a hidden radio (#792, #295), and by its smaller side, so a tall narrow button fails;
+  // a label taps go through is no tap (#817).
+  test("the tap-size check passes a labelled control by its label, and lists a bare small one, a narrow one, and one whose label lets taps through", async ({ page }) => {
+    await page.setContent(`
+      <style>
+        :root { --spacing-tap: 44px; }
+        label { display: flex; min-height: 44px; align-items: center; }
+        .well { width: 22px; height: 22px; margin: 0; }
+        .hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+        .narrow { width: 17px; height: 44px; padding: 0; }
+        .through { pointer-events: none; }
+      </style>
+      <label><input type="checkbox" class="well">Compare Rice</label>
+      <label><input type="radio" class="hidden" name="bye">No one (a bye)</label>
+      <input type="checkbox" class="well" aria-label="Bare well">
+      <input type="radio" class="hidden" aria-label="Bare hidden radio">
+      <button class="narrow" aria-label="Narrow sort"></button>
+      <label class="through"><input type="checkbox" class="well">Label taps go through</label>
+    `);
+    const { small } = await page.evaluate(tapsUnderTapSize);
+    expect(small).toEqual(["Bare well (22px)", "Bare hidden radio (1px)", "Narrow sort (17px)", "input (22px)"]);
+  });
+
+  // The admin's and a commissioner's pages share the other pages' width on the desk (#296).
+  test.describe("on the desk", () => {
+    test.use({ viewport: DESK });
+    const titleWidth = async (page: Page, path: string) => {
+      await page.goto(path);
+      return (await page.getByRole("main").getByRole("heading", { level: 1 }).boundingBox())!.width;
+    };
+    const SHARING_THE_WIDTH = [
+      `${squadsPath(miniBeta.leagueId)}?preview=commissioner`,
+      `${invitesPath(miniBeta.leagueId)}?preview=commissioner`,
+      `${ADMIN_PATH}?preview=admin`,
+      `${ADMIN_FEEDS_PATH}?preview=admin`,
+      `${ADMIN_FEEDBACK_PATH}?preview=admin`,
+    ];
+    for (const path of SHARING_THE_WIDTH) {
+      test(`${path} is as wide as Scouting`, async ({ page }) => {
+        const scouting = await titleWidth(page, `${SCOUTING_PATH}?preview=manager`);
+        expect(await titleWidth(page, path)).toBeCloseTo(scouting, 0);
+      });
+    }
+  });
 
   test.describe("each built screen, on the phone", () => {
     test.use({ viewport: PHONE });
 
     for (const [session, path, title] of BUILT_SCREENS) {
-      test(`?preview=${session} at ${path} shows "${title}" and doesn't scroll sideways`, async ({ page }) => {
+      test(`?preview=${session} at ${path} shows "${title}", doesn't scroll sideways, and has no tap under the tap size`, async ({ page }) => {
         await page.goto(`${path}?preview=${session}`);
         await expect(page.getByRole("main").getByRole("heading", { level: 1, name: title, exact: true })).toBeVisible();
         await expect(page.getByRole("heading", { name: ERROR_PAGE_TITLE })).toHaveCount(0);
@@ -150,6 +227,8 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
           innerWidth: window.innerWidth,
         }));
         expect(scrollWidth, "the page's width, against the window's").toBeLessThanOrEqual(innerWidth);
+        const { tapSize, small } = await page.evaluate(tapsUnderTapSize);
+        expect(small, `taps under ${tapSize}px`).toEqual([]);
       });
     }
   });

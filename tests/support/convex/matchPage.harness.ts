@@ -2,8 +2,11 @@
 // owning Hull's men and Bob Everton's, each with a saved lineup, and how the tests read the page.
 
 import { api } from "../../../convex/_generated/api";
+import type { Doc } from "../../../convex/_generated/dataModel";
+import { STREAM_BEHIND } from "../../../convex/football/matchCommentary";
 import type { MatchMan } from "../../../convex/match/matchPage";
-import { fullTimeRecords, holdHullAndEverton, HULL_SCORER, scoresLeague, type ScoresLeague } from "./gameweekScores.harness";
+import { holdHullAndEverton, HULL_SCORER, LEAGUE_KICKOFF, scoresLeague, type ScoresLeague } from "./gameweekScores.harness";
+import { fullTimeRecords } from "./gameweekScoresMatch.harness";
 import { actingAs } from "./leagues.harness";
 import { HULL_EVERTON } from "./matchStats.harness";
 
@@ -17,6 +20,16 @@ export async function matchLeague(): Promise<ScoresLeague> {
 export async function matchAs(league: ScoresLeague, email: string, fixtureCode: number = HULL_EVERTON) {
   return (await actingAs(league.t, email)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, fixtureCode });
 }
+
+/** One commentary line naming `playerCodes`, as the live tick stores it. */
+export const storedLine = (sourceId: number, text: string, minute: number | null, type: string, playerCodes: number[] = []) => ({ sourceId, text, minute, addedMinute: 0, type, playerCodes });
+
+/** The stream behind since kick-off: a delay the commentary tests hold. */
+export const STREAM_BEHIND_SINCE_KICKOFF = { reason: STREAM_BEHIND, since: LEAGUE_KICKOFF } as const;
+
+/** Hull v Everton's commentary as just these `lines`, newest first, not delayed unless `delayed`. */
+export const holdLines = ({ t }: ScoresLeague, lines: ReturnType<typeof storedLine>[], delayed: Doc<"matchCommentary">["delayed"] = null) =>
+  t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines, delayed }));
 
 export const manOf = (men: readonly MatchMan[], playerCode: number) => men.find((man) => man.playerCode === playerCode)!;
 

@@ -14,6 +14,15 @@
 @utility basis-pitch-panel {
   flex: 0 1 calc(var(--pitch-width) + var(--spacing) * 4);
 }
+/* A sweeper's cell (spec/05 The pitch): drawn a little deeper than the defence's line, toward his
+   own goal, as a wing-back is a defender drawn further forward. An eighth of a row, --sweeper-depth
+   (set on the row from ./runs.ts, which starts his run from there too): on a phone a player's block
+   fills his row, so any step deeper meets the keeper's, and the sweeper is drawn over it to keep
+   his role readable. */
+@utility pitch-sweeper {
+  translate: 0 calc(var(--sweeper-depth) * 100%);
+  z-index: 1;
+}
 @utility pitch {
   width: min(100%, var(--pitch-width));
   aspect-ratio: var(--pitch-aspect);

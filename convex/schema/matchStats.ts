@@ -1,6 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
-import { scoreWrites, syncTrigger } from "./football";
+import { failure, matchFailure, scoreWrites, syncTrigger } from "./football";
 
 // Match stats (#27, spec/07 "Match stats"): one record per player per match, both feeds merged,
 // keyed on FPL's player and fixture codes. Stats keep the feeds' own names (spec/14 names them
@@ -53,7 +53,7 @@ export const matchSyncOutcome = v.union(
     /** Men a team sheet names whom FPL does not list: no record, since there is no code to key it on. */
     unmatched: v.array(v.object({ plPlayerId: v.number(), name: v.string(), opta: v.union(v.string(), v.null()) })),
   }),
-  v.object({ fixtureCode: v.number(), ok: v.literal(false), error: v.string() }),
+  matchFailure,
 );
 
 // One row per run of matchStatsSync.run, so a failed read is on record, never silent.
@@ -69,7 +69,7 @@ export const matchStatsSyncFields = {
       /** The due matches' scores; absent on runs before #49's scores, and on a run with none due. */
       scores: v.optional(scoreWrites),
     }),
-    v.object({ ok: v.literal(false), error: v.string() }),
+    failure,
   ),
 };
 
@@ -99,6 +99,33 @@ export const matchStatsTables = {
   playerSeasonStats: defineTable({ season: v.number(), playerCode: v.number(), stats: v.record(v.string(), v.number()) }).index(
     "by_season_and_playerCode",
     ["season", "playerCode"],
+  ),
+  /** Each player's base points this season (#525, seasonPoints.ts), so Scouting lists every
+   *  player's season points without pricing a season of records: one row a player and season,
+   *  set afresh from his records whenever one is written. `points` holds the season's sum at each
+   *  position (positionTables.ts's POSITIONS), as basePoints prices him there, so a change to his
+   *  positions needs no re-pricing. `season` as playerSeasonStats'. */
+  playerSeasonPoints: defineTable({ season: v.number(), playerCode: v.number(), points: v.record(v.string(), v.number()) }).index(
+    "by_season_and_playerCode",
+    ["season", "playerCode"],
+  ),
+  /** What each team's counted players did in a final gameweek, added up (#800, spec/19 The stat
+   *  race; teamSeasonStats.ts): its starters and the bench players who came on, as the gameweek
+   *  scorer counted them. One row a league, gameweek and team, kept so a gameweek reopened or
+   *  scored again takes away exactly what it added. `fixtureCodes` are the matches it was added
+   *  up from: a match moved in or out since makes it stale. */
+  teamGameweekStats: defineTable({
+    leagueId: v.id("leagues"),
+    gameweek: v.number(),
+    teamId: v.id("teams"),
+    fixtureCodes: v.array(v.number()),
+    stats: v.record(v.string(), v.number()),
+  }).index("by_leagueId_and_gameweek_and_teamId", ["leagueId", "gameweek", "teamId"]),
+  /** Each team's season totals, its teamGameweekStats rows added up, so Scouting ranks the
+   *  league's teams by any stat with one small row a team (#800). */
+  teamSeasonStats: defineTable({ leagueId: v.id("leagues"), teamId: v.id("teams"), stats: v.record(v.string(), v.number()) }).index(
+    "by_leagueId_and_teamId",
+    ["leagueId", "teamId"],
   ),
   /** When a run last tried each match, read or not: one that never reads steps behind the rest. */
   matchStatsTries: defineTable({ fixtureCode: v.number(), triedAt: v.number() }).index("by_fixtureCode", ["fixtureCode"]),

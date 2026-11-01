@@ -92,7 +92,13 @@ export async function syncDue(
       scores.problems.push(...scored.problems);
     } catch (error: unknown) {
       const message = logFailure(`gameweek ${gameweek}'s reads failed`, error);
-      matches.push(...codes.map((fixtureCode) => ({ fixtureCode, ok: false as const, error: message })));
+      const failed = codes.map((fixtureCode) => ({ fixtureCode, ok: false as const, error: message }));
+      matches.push(...failed);
+      // The live tick owes each live match a side row, so its failure is on them too (#883).
+      if (beforeFullTime === "live") {
+        sides.teamStats.push(...failed);
+        sides.thresholdSteps.push(...failed);
+      }
       if (commentary !== null) await delayCommentary(ctx, codes, message, readAt);
       continue;
     }

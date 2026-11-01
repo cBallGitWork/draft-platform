@@ -5,10 +5,10 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
-import { siteScoringInGameweek } from "../../../convex/scoring/siteScoring";
+import { siteScoringInGameweek } from "../../../convex/scoring/siteVersions";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { centreOf, EXAMPLE_SET } from "../../support/convex/scoring.example";
-import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesInGameweek, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesInGameweek, rulesRevision, rulesWith, savedBeforeTheyWereRules, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import {
   actingAs,
@@ -145,6 +145,17 @@ describe("a commissioner's change", () => {
     const eventsBefore = await eventsIn(t, leagueId);
 
     expect(await change(leagueId, structuredClone(HELD_FIRST_RULES))).toBe(1);
+    expect(await eventsIn(t, leagueId)).toEqual(eventsBefore);
+  });
+
+  test("on rules saved before the odd team out and games a gameweek were rules, the first rules' values for them change nothing and file nothing (#147)", async () => {
+    const leagueId = await adminCreatesLeague(t);
+    await savedBeforeTheyWereRules(t, leagueId);
+    const latestBefore = await latest(leagueId);
+    const eventsBefore = await eventsIn(t, leagueId);
+
+    expect(await change(leagueId, structuredClone(HELD_FIRST_RULES))).toBe(1);
+    expect(await latest(leagueId)).toEqual(latestBefore);
     expect(await eventsIn(t, leagueId)).toEqual(eventsBefore);
   });
 

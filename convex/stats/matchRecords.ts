@@ -15,6 +15,15 @@ type Stats = Record<string, number>;
  *  seasons with room. More throws, never a silent cut. */
 export const PLAYER_RECORDS_MOST = 500;
 
+/** Players worked out in one transaction of a page-at-a-time run (season totals, season points,
+ *  stars): each reads his own records, up to a season's 38 and more across seasons, so 25 stays
+ *  well inside a mutation's reads. */
+export const PLAYERS_PAGE = 25;
+
+/** The most players one season's read takes (season totals, season points, stars): FPL lists about
+ *  800 a season, with room. More throws, never a silent cut. */
+export const SEASON_PLAYERS_MOST = 1500;
+
 /** A stat both feeds send, under each one's name. */
 type StatInBothFeeds = { fpl: string; pl: string; kept: "fpl" | "pl" };
 
@@ -28,10 +37,11 @@ const GOALS: StatInBothFeeds = { fpl: "goals_scored", pl: "goals", kept: "fpl" }
 const ASSISTS: StatInBothFeeds = { fpl: "assists", pl: "goal_assist", kept: "fpl" };
 const YELLOW_CARDS: StatInBothFeeds = { fpl: "yellow_cards", pl: "yellow_card", kept: "fpl" };
 const RED_CARDS: StatInBothFeeds = { fpl: "red_cards", pl: "red_card", kept: "fpl" }; // Opta's name, not yet seen
+const OWN_GOALS: StatInBothFeeds = { fpl: "own_goals", pl: "own_goals", kept: "pl" };
 
-/** The stats a goal, an assist or a card moves, under the names they are kept by: what the
- *  matchup's commentary prices them by (#44). */
-export const EVENT_STATS = { goals: GOALS.fpl, assists: ASSISTS.fpl, yellowCards: YELLOW_CARDS.fpl, redCards: RED_CARDS.fpl } as const;
+/** The stats a goal, an assist, a card or an own goal moves, under the names they are kept by:
+ *  what the matchup's commentary prices them by (#44, #835). */
+export const EVENT_STATS = { goals: GOALS.fpl, assists: ASSISTS.fpl, yellowCards: YELLOW_CARDS.fpl, redCards: RED_CARDS.fpl, ownGoals: OWN_GOALS.pl } as const;
 
 /** Whose count is kept where both feeds send a stat (spec/07: FPL's for goals, assists, minutes,
  *  cards, saves, clean sheets, goals conceded and penalties; the Premier League's for the rest).
@@ -48,7 +58,7 @@ const STATS_IN_BOTH_FEEDS: StatInBothFeeds[] = [
   { fpl: "goals_conceded", pl: "goals_conceded", kept: "fpl" },
   { fpl: "penalties_saved", pl: "penalty_save", kept: "fpl" }, // Opta's name, not yet seen
   { fpl: "penalties_missed", pl: "att_pen_miss", kept: "fpl" }, // Opta's name, not yet seen
-  { fpl: "own_goals", pl: "own_goals", kept: "pl" },
+  OWN_GOALS,
   { fpl: "starts", pl: "game_started", kept: "pl" },
 ];
 
@@ -125,6 +135,11 @@ function linesByPlayer(fixtureCode: number, lines: readonly (FplStatLine | PlSta
 /** His whole record has arrived: both feeds' parts, or enough to know he never came on. */
 export function isWhole(record: Pick<PlayerMatchRecord, "played" | "arrived">): boolean {
   return record.played === false || (record.arrived.fpl && record.arrived.pl);
+}
+
+/** His stats once his whole record has arrived (isWhole), or null until then: what scoring prices. */
+export function statsIfWhole(record: Pick<PlayerMatchRecord, "played" | "arrived" | "stats">): Stats | null {
+  return isWhole(record) ? record.stats : null;
 }
 
 /** A stat's value, or null (shown "—", spec/14) while his whole record has not arrived. Once it

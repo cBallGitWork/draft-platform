@@ -23,9 +23,11 @@ import {
   tableWrites,
 } from "../schema";
 import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
-import { recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
+import { keepDroppedDeadlines, recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { writeScores } from "./matchScores";
+import { repriceMatches } from "../stats/seasonPointsMoves";
+import { rebuildIfNoneKept } from "../stats/seasonRebuilds";
 
 // Issue #21: the real Premier League's clubs, players, fixtures and gameweeks, copied in from the
 // football layer, and each match's score (#49, matchScores.ts). crons.ts runs it on a schedule;
@@ -63,8 +65,10 @@ export const run = internalAction({
         // Clubs first, so a player or a fixture never names a club not yet held.
         clubs: await syncTable(ctx, "clubs", internal.football.footballSync.upsertClubs, football.clubs, ranAt),
         players: await syncTable(ctx, "players", internal.football.footballSync.upsertPlayers, football.players, ranAt),
-        fixtures: await syncTable(ctx, "fixtures", internal.football.footballSync.upsertFixtures, football.fixtures, ranAt),
+        // Gameweeks before fixtures, so a gameweek FPL stops sending keeps the deadline its matches
+        // give before any of them moves (#202, deadlineRecorder.ts's keepDroppedDeadlines).
         gameweeks: await syncTable(ctx, "gameweeks", internal.football.footballSync.upsertGameweeks, football.gameweeks, ranAt),
+        fixtures: await syncTable(ctx, "fixtures", internal.football.footballSync.upsertFixtures, football.fixtures, ranAt),
         scores: await writeScores(ctx, "fpl", ranAt, football.scores),
       };
     });
@@ -93,7 +97,13 @@ export const upsertFixtures = internalMutation({
   handler: async (ctx, { rows }): Promise<Upserted> => {
     // In the same transaction as the kickoffs it may move (#150, deadlineRecorder.ts).
     await recordPassedDeadlines(ctx);
-    return upsertEach(ctx, "fixtures", rows, (row) => fixtureByCode(ctx, row.code));
+    const moved: WithoutSystemFields<Doc<"fixtures">>[] = [];
+    const upserted = await upsertEach(ctx, "fixtures", rows, (row) => fixtureByCode(ctx, row.code), (held, row) => {
+      if (held.gameweek !== row.gameweek || held.droppedAt !== undefined) moved.push(row);
+    });
+    await repriceMatches(ctx, moved);
+    await rebuildIfNoneKept(ctx);
+    return upserted;
   },
 });
 
@@ -122,7 +132,11 @@ export const markDropped = internalMutation({
     const sent = new Set(sentKeys);
     const page = await unmarkedPage(ctx, table, paginationOpts);
     const dropped = page.page.filter((held) => !sent.has(keyOf(held)));
+    // A gameweek FPL stops sending keeps its last deadline (#202).
+    if (table === "gameweeks") await keepDroppedDeadlines(ctx, dropped.map(keyOf));
     await Promise.all(dropped.map((held) => ctx.db.patch(table, held._id, { droppedAt })));
+    // On the fixtures table, its page holds fixtures.
+    if (table === "fixtures") await repriceMatches(ctx, dropped as Doc<"fixtures">[]);
     return { marked: dropped.length, cursor: page.continueCursor, isDone: page.isDone };
   },
 });
@@ -203,12 +217,14 @@ async function syncTable<Row extends Keyed>(
 }
 
 /** Inserts each row new to its table and patches each that changed or was marked dropped, found
- *  by its stable key with `find`; a row already held as sent is not written. */
+ *  by its stable key with `find`, handing each patched one to `patching` first; a row already
+ *  held as sent is not written. */
 async function upsertEach<Table extends FootballTable>(
   ctx: MutationCtx,
   table: Table,
   rows: WithoutSystemFields<Doc<Table>>[],
   find: (row: WithoutSystemFields<Doc<Table>>) => Promise<Doc<Table> | null>,
+  patching?: (held: Doc<Table>, row: WithoutSystemFields<Doc<Table>>) => void,
 ): Promise<Upserted> {
   const upserted: Upserted = { inserted: 0, updated: 0, unmarked: 0 };
   await Promise.all(
@@ -223,9 +239,11 @@ async function upsertEach<Table extends FootballTable>(
       const sentAgain = held.droppedAt !== undefined;
       if (changed) upserted.updated += 1;
       if (sentAgain) upserted.unmarked += 1;
+      if (!changed && !sentAgain) return;
+      patching?.(held, row);
       // A record holds every field but `droppedAt`, so the patch rewrites the rest of the row, and
       // `droppedAt: undefined` removes the mark (Convex drops a field patched to undefined).
-      if (changed || sentAgain) await ctx.db.patch(table, held._id, sentAgain ? { ...row, droppedAt: undefined } : row);
+      await ctx.db.patch(table, held._id, sentAgain ? { ...row, droppedAt: undefined } : row);
     }),
   );
   return upserted;

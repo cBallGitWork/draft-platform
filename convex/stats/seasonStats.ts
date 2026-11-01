@@ -1,10 +1,12 @@
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
+import type { Doc } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { seasonStartYear } from "../shared/time";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { fixtureByCode } from "../shared/fixtures";
-import { isWhole, PLAYER_RECORDS_MOST, type PlayerMatchRecord } from "./matchRecords";
+import { isWhole, PLAYERS_PAGE, SEASON_PLAYERS_MOST, type PlayerMatchRecord } from "./matchRecords";
+import { playerRecords } from "./seasonRecords";
 import { addStats, sumStats, type Stats } from "./statTotals";
 import { readOnce } from "../shared/readOnce";
 import { groupedBy } from "../shared/groupedBy";
@@ -16,13 +18,6 @@ import { groupedBy } from "../shared/groupedBy";
 // (matchStats.ts) keeps them in step, taking a changed record's old stats away and adding its new
 // ones; `rebuild` adds every record up afresh, for the records written before the table existed.
 
-/** The most players with totals in one season: FPL lists about 800 a season, with room. More
- *  throws, never a silent cut. */
-export const SEASON_TOTALS_MOST = 1500;
-
-/** Players `rebuild` adds up in one run: each reads his own records, a few dozen a season. */
-export const REBUILD_PAGE = 25;
-
 /** One player's record in a match: its counted stats as held before a write (undefined for a new
  *  one) and as written. */
 export type RecordChange = { playerCode: number; fixtureCode: number; before: Stats | undefined; after: Stats };
@@ -32,8 +27,13 @@ export type RecordChange = { playerCode: number; fixtureCode: number; before: St
 async function seasonOfMatch(ctx: QueryCtx, fixtureCode: number): Promise<number> {
   const fixture = await fixtureByCode(ctx, fixtureCode);
   if (fixture === null) throw new Error(`Match ${fixtureCode} has records but isn't held`);
-  if (fixture.kickoff === null) throw new Error(`Match ${fixtureCode} has records but no kickoff`);
-  return seasonStartYear(fixture.kickoff);
+  return seasonOfFixture(fixture);
+}
+
+/** The season a held match with records falls in, by its kickoff; one with none is bad data. */
+export function seasonOfFixture({ code, kickoff }: Pick<Doc<"fixtures">, "code" | "kickoff">): number {
+  if (kickoff === null) throw new Error(`Match ${code} has records but no kickoff`);
+  return seasonStartYear(kickoff);
 }
 
 function totalsRow(ctx: QueryCtx, season: number, playerCode: number) {
@@ -69,8 +69,8 @@ export async function moveSeasonTotals(ctx: MutationCtx, changes: readonly Recor
 export async function seasonTotals(ctx: QueryCtx, season: number): Promise<Map<number, Stats>> {
   const rows = await takeAllOrThrow(
     ctx.db.query("playerSeasonStats").withIndex("by_season_and_playerCode", (q) => q.eq("season", season)),
-    SEASON_TOTALS_MOST,
-    `More than ${SEASON_TOTALS_MOST} players have totals for the ${season} season, so they would be cut short`,
+    SEASON_PLAYERS_MOST,
+    `More than ${SEASON_PLAYERS_MOST} players have totals for the ${season} season, so they would be cut short`,
   );
   return new Map(rows.map((row) => [row.playerCode, row.stats]));
 }
@@ -86,16 +86,19 @@ export async function newestSeasonWithTotals(ctx: QueryCtx): Promise<number | nu
 
 /** Sets a page of players' totals, from `cursor` (null for the first), to their records added up
  *  afresh, season by season, then runs on to the next page until every player is done. Safe to run
- *  again: it sets, never adds. Run once after deploying the table:
- *  `npx convex run stats/seasonStats:rebuild '{"cursor":null}'`. */
+ *  again: it sets, never adds. Started by itself on a deployment holding whole records but no row
+ *  (seasonRebuilds.ts), and by hand with its TOTALS_REBUILD_COMMAND. Its last page starts season
+ *  points' rebuild, as a deployment missing totals is missing points too, and a record write that
+ *  started this one re-priced nobody. */
 export const rebuild = internalMutation({
   args: { cursor: v.union(v.string(), v.null()) },
   returns: v.null(),
   handler: async (ctx, { cursor }) => {
-    const page = await ctx.db.query("players").paginate({ numItems: REBUILD_PAGE, cursor });
+    const page = await ctx.db.query("players").paginate({ numItems: PLAYERS_PAGE, cursor });
     const seasonOf = matchSeasons(ctx);
     for (const player of page.page) await rebuildPlayer(ctx, player.code, seasonOf);
     if (!page.isDone) await ctx.scheduler.runAfter(0, internal.stats.seasonStats.rebuild, { cursor: page.continueCursor });
+    else await ctx.scheduler.runAfter(0, internal.stats.seasonPoints.rebuild, { cursor: null });
     return null;
   },
 });
@@ -107,11 +110,7 @@ function matchSeasons(ctx: QueryCtx): (fixtureCode: number) => Promise<number> {
 
 /** One player's totals, each season's set to his records in it added up. */
 async function rebuildPlayer(ctx: MutationCtx, playerCode: number, seasonOf: (fixtureCode: number) => Promise<number>): Promise<void> {
-  const records = await takeAllOrThrow(
-    ctx.db.query("playerMatchStats").withIndex("by_playerCode", (q) => q.eq("playerCode", playerCode)),
-    PLAYER_RECORDS_MOST,
-    `More than ${PLAYER_RECORDS_MOST} match records are held for player ${playerCode}, so his totals would be cut short`,
-  );
+  const records = await playerRecords(ctx, playerCode, "totals");
   const seasoned: { season: number; stats: Stats }[] = [];
   for (const record of records) seasoned.push({ season: await seasonOf(record.fixtureCode), stats: countedStats(record) });
   for (const [season, each] of groupedBy(seasoned, ({ season }) => season)) {

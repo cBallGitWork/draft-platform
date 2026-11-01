@@ -5,6 +5,12 @@ import type { Position } from "../../convex/positions/positionTables";
 import { LOCALE } from "../../convex/shared/moments";
 import { figureWords } from "../../convex/shared/numberWords";
 
+/** A squad's row whose player the football sync doesn't hold, in place of his name: the Tactics
+ *  tab has it from the server, which words it. */
+export { unheldPlayerWords } from "../../convex/shared/players";
+/** Above a screen holding such a row (Craig, 31 Oct 2026, #323). */
+export const unheldNoticeWords = "Some football data is missing: a player's row says so in place of his name. Tell the admin.";
+
 /** The pitch's areas, as the rules screens name them: the server's refusals name them too. */
 export { AREA_WORDS } from "../../convex/lineup/pitchWords";
 
@@ -46,10 +52,13 @@ export const nextGlyph = "►";
 export const ascendingGlyph = "▲";
 export const descendingGlyph = "▼";
 export const sortByLabel = (column: string) => `Sort by ${column}`;
-/** A column head's spoken name: the short word it shows, then its long one, "GW, Gameweek", or the
- *  word once where they're the same, so a voice-control user can say the word they see (WCAG 2.5.3,
- *  label in name; decided 31 Oct 2026, #775). */
-export const columnHeadName = ({ short, long }: { short: string; long: string }) => (short === long ? long : `${short}, ${long}`);
+/** The spoken name of anything showing short words with long ones on hover: the short words it
+ *  shows, then its long ones, "GW, Gameweek", or the words once where they're the same, so a
+ *  voice-control user can say the words they see (WCAG 2.5.3, label in name; decided 31 Oct 2026,
+ *  #775; the Squad's next match, #790). */
+export const shortThenLongName = ({ short, long }: { short: string; long: string }) => (short === long ? long : `${short}, ${long}`);
+/** A column head's spoken name (src/ui/ColumnHeads.tsx). */
+export const columnHeadName = shortThenLongName;
 /** A stat, as a column of stats or the choice of one is headed. */
 export const STAT_WORD = "Stat";
 

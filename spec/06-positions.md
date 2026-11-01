@@ -13,8 +13,10 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   on either flank. The labels: GK, CB, FB (full back), WB (wing back), CDM, CM, WM (wide
   midfielder), CAM, W (winger), SS, ST.
 - Areas each position can play (`spec/05`): GK in goal; CB and FB in defence; WB in defence and
-  the wide lanes of defensive midfield and midfield; CDM in defensive midfield; CM and WM in
-  midfield; CAM and W in attacking midfield; SS in attacking midfield and attack; ST in attack.
+  the wide lanes of defensive midfield and midfield; CDM in defensive midfield and midfield
+  ("every CDM can play CM", Craig, 1 Nov 2026, after Wieffer and Lavia could only go in defensive
+  midfield); CM and WM in midfield; CAM and W in attacking midfield; SS in attacking midfield and
+  attack; ST in attack.
 - A player can have more than one position.
 - The same in every league. The admin corrects them; there is no per-league override.
 
@@ -59,5 +61,8 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - Positions change when a player's real-life role changes, gradually: the manager is warned first,
   then the position goes. The thresholds are admin-tunable (starting point: flagged after 3
   matches in a row elsewhere, removed after 6, only between gameweeks).
+- A position change counts from each league's own deadline, never FPL's: "stop caring about fpl
+  deadline, thats not improtant to us, we never use fpl deadline, thats their game" (Craig, 1 Nov
+  2026; #895).
 - Losing a position never makes a squad illegal. The player stays in his slot for the gameweek
   and the manager is warned.

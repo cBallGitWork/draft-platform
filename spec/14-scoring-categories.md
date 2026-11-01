@@ -5,7 +5,7 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 (25 Oct 2026).
 
 **Contents:** [Who owns it](#who-owns-it) · [The catalogue](#the-catalogue) · [How a rule scores](#how-a-rule-scores) ·
-[Own stats](#own-stats) · [Changes and corrections](#changes-and-corrections) · [The first scoring set](#the-first-scoring-set) ·
+[Own stats](#own-stats) · [Changes and corrections](#changes-and-corrections) · [The rule balance lab](#the-rule-balance-lab) · [The first scoring set](#the-first-scoring-set) ·
 [The rules editor](#the-rules-editor) · [On screen](#on-screen)
 
 ## Who owns it
@@ -44,6 +44,8 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 
   SS will have its own price, so a support striker can score differently (Craig, 22 Oct 2026);
   how a slot becomes SS is to grill (`spec/06`).
+- A sweeper's slot (SW, `spec/05`) is priced as CB: "for now it's just the same as CB, I'll think
+  of other points system for it" (Craig, 31 Oct 2026).
 - Three kinds of rule:
   - per action (+3 per assist);
   - per number of actions (+1 per 3 saves);
@@ -92,6 +94,25 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 - A commissioner can override one player's points for one match, with a reason. It re-scores that
   head-to-head and sends Mail to the whole league saying what changed and why.
 
+## The rule balance lab
+
+From `/grill rule balance lab` (31 Oct 2026): a backtest of a patch draft, "just to make sure a
+change is good".
+
+- The admin's tool, run on a patch draft before it is announced, when he presses a button (Claude's
+  call), not on every save.
+- A what-if only: it saves nothing, and locked gameweeks keep their scores.
+- On past seasons: each role's average against base scoring, flagging any outside `spec/05`'s
+  0.25 points a match, and the biggest movers among players.
+- On this season's real lineups: the head-to-heads that would have flipped and the table moves,
+  for each league ("the lab backtests just to make sure a change is good").
+- Its numbers go in the patch notes.
+- Past seasons: "not much data this season, might need last". The five seasons 2021/22 to 2025/26
+  from ai-carling-premiership, copied once into our own data by a script, keyed by each player's
+  FPL `code`. They hold FPL's stats and FotMob's, SofaScore's and Understat's, not the Premier
+  League's own, so each category takes its nearest column, and one with none is marked "not
+  tested" in the lab and the patch notes.
+
 ## The first scoring set
 
 - The mini beta runs on one first scoring set: FPL's own scoring without bonus points, for now (21
@@ -117,7 +138,8 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 - The player card breaks each match down by category (goals 5, assists 3, minutes 2, role +2).
 - Each line of a breakdown says why: the stat, the rule's value for his area or position, and any
   points limit or minutes rule that cut it; the breakdown names the version of the set the match
-  was scored under (Craig, 31 Oct 2026). The site writes it from the scoring rows, not AI. The player card's lines
+  was scored under (Craig, 31 Oct 2026). A player who lands exactly on a points limit gets a note
+  saying he reached it, though it cost him nothing (Craig, 1 Nov 2026: "yes"; #863). The site writes it from the scoring rows, not AI. The player card's lines
   are his base points; the matchup's carry his role's line too (`spec/10`).
 - Bench players' points show greyed on the matchup, and count only if the player is subbed on
   (`spec/05`). The player card shows every match at his base points, the bench's included

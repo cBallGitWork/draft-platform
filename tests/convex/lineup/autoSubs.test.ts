@@ -5,6 +5,7 @@ import {
   KEEPER,
   LEFT_BACK,
   LEFT_CENTRE_BACK,
+  LEFT_CENTRE_MIDFIELDER,
   LEFT_MIDFIELDER,
   STRIKER,
   OTHER_STRIKER,
@@ -151,11 +152,13 @@ describe("when no one on the bench can play the slot", () => {
   });
 
   test("the further back of two areas as near", () => {
-    const { lineup, positions } = withBench(["CDM", "CAM"]);
-    const result = subbed(lineup, positions, plays(lineup, [LEFT_MIDFIELDER]));
+    // Defence and attack each stand two rows from midfield, and each has a free cell one lane from
+    // his: defence's centre, attack's left and centre.
+    const { lineup, positions } = withBench(["CB", "ST"]);
+    const result = subbed(lineup, positions, plays(lineup, [LEFT_CENTRE_MIDFIELDER]));
 
     expect(result.substitutions).toEqual([
-      { off: LEFT_MIDFIELDER, on: FIRST, area: "defensiveMidfield", lane: "left", into: "hisOwnArea" },
+      { off: LEFT_CENTRE_MIDFIELDER, on: FIRST, area: "defence", lane: "centre", into: "hisOwnArea" },
     ]);
   });
 

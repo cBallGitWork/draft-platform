@@ -3,13 +3,14 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../../../convex/_generated/server";
 import { FIRST_GAMEWEEK } from "../../../convex/gameweeks/usedGameweeks";
-import { seasonRecords } from "../../../convex/gameweekScorer/scoredMatches";
+import { seasonRecords } from "../../../convex/stats/seasonRecords";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { OWNED_IN_LEAGUE_MOST, type PlayersFilters, type PlayersSort } from "../../../convex/scouting/playersList";
 import { GAMEWEEK_MATCHES_MOST } from "../../../convex/shared/fixtures";
 import { PLAYER_RECORDS_MOST } from "../../../convex/stats/matchRecords";
+import { LEAGUE_OVERRIDES_MOST } from "../../../convex/stats/seasonPoints";
 import { thresholdStepsOf, THRESHOLD_STEPS_MOST } from "../../../convex/stats/thresholdSteps";
-import { LEAGUES_STORED_MOST } from "../../../convex/table/finalScores";
+import { LEAGUES_STORED_MOST } from "../../../convex/shared/cappedRead";
 import { leagueScores } from "../../../convex/gameweekScorer/gameweekScores";
 import { heldFixtures, MATCH_OVERRIDES_MOST, MATCH_RECORDS_MOST } from "../../../convex/gameweekScorer/heldMatches";
 import { FINAL_SCORES_MOST } from "../../../convex/gameweekScorer/storedScores";
@@ -35,6 +36,10 @@ async function readsToTheCapThenThrows(cap: number, holdTo: (count: number) => P
   await holdTo(cap + 1);
   await expect(read()).rejects.toThrow(tooMany);
 }
+
+/** Scouting's players list, every player by name. */
+const everyone: PlayersFilters = { availability: "all", position: null, clubCode: null };
+const byName: PlayersSort = { by: "name", descending: false };
 
 /** A gameweek scoresLeague holds no matches in, for counting from none. */
 const EMPTY_GAMEWEEK = GAMEWEEK + 1;
@@ -179,6 +184,30 @@ test(`a player's records for his season totals: ${PLAYER_RECORDS_MOST} are added
   );
 });
 
+test(`a player's records for his season points: ${PLAYER_RECORDS_MOST} are priced, one more throws`, ROWS_TO_THE_CAP, async () => {
+  await readsToTheCapThenThrows(
+    PLAYER_RECORDS_MOST,
+    holdPhillipsRecords,
+    () => league.t.mutation(internal.stats.seasonPoints.refresh, { playerCodes: [PHILLIPS] }),
+    `More than ${PLAYER_RECORDS_MOST} match records are held for player ${PHILLIPS}, so his season would be cut short`,
+  );
+});
+
+test(`a league's overrides for Scouting's season points: ${LEAGUE_OVERRIDES_MOST} are read, one more throws`, ROWS_TO_THE_CAP, async () => {
+  const { leagueId } = league;
+  const ann = await actingAs(league.t, ANN);
+  await readsToTheCapThenThrows(
+    LEAGUE_OVERRIDES_MOST,
+    holdRows(
+      async (ctx) => (await ctx.db.query("pointsOverrides").collect()).length,
+      (ctx, index) =>
+        ctx.db.insert("pointsOverrides", { leagueId, gameweek: GAMEWEEK, fixtureCode: HULL_EVERTON, playerCode: MADE_UP_CODES + index, points: 0, reason: "", by: ANN, at: 0 }),
+    ),
+    () => ann.query(api.scouting.playersList.list, { leagueId, filters: everyone, sort: byName, stat: null }),
+    `League ${leagueId} holds more than ${LEAGUE_OVERRIDES_MOST} overrides, so season points would be cut short`,
+  );
+});
+
 test(`a league's overrides of one player for his card: ${PLAYER_RECORDS_MOST} are read, one more throws`, ROWS_TO_THE_CAP, async () => {
   const { leagueId } = league;
   await holdHullAndEverton(league);
@@ -210,8 +239,6 @@ test(`a match's threshold steps: ${THRESHOLD_STEPS_MOST} are read, one more thro
 test(`the players owned in a league for the players list: ${OWNED_IN_LEAGUE_MOST} are read, one more throws`, ROWS_TO_THE_CAP, async () => {
   const { leagueId, annsTeam } = league;
   const ann = await actingAs(league.t, ANN);
-  const everyone: PlayersFilters = { availability: "all", position: null, clubCode: null };
-  const byName: PlayersSort = { by: "name", descending: false };
   await readsToTheCapThenThrows(
     OWNED_IN_LEAGUE_MOST,
     holdRows(

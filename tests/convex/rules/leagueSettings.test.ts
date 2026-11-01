@@ -6,7 +6,7 @@ import { settingsRefusals } from "../../../convex/rules/leagueSettings";
 import type { LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { WEEK_MS } from "../../../convex/shared/time";
-import { HELD_FIRST_RULES, holdGameweeks, NO_AREA_MINIMUMS, rulesInGameweek, rulesRevision } from "../../support/convex/leagueRules.harness";
+import { HELD_FIRST_RULES, holdGameweeks, NO_AREA_MINIMUMS, rulesInGameweek, rulesRevision, savedBeforeTheyWereRules } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, lastEventAt, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -47,13 +47,6 @@ const change = async (settings: LeagueSettings, email = COMMISSIONER, revision?:
     settings,
     revision: revision === undefined ? await rulesRevision(t, leagueId) : revision,
   });
-/** The league's rules as saved before #33 and #130 made these rules: without them. */
-const savedBeforeTheyWereRules = () =>
-  t.run(async (ctx) => {
-    const [row] = await ctx.db.query("leagueRules").collect();
-    const { oddTeamOut: _odd, gamesPerGameweek: _games, ...older } = row.rules;
-    await ctx.db.patch("leagueRules", row._id, { rules: older });
-  });
 const inGameweek = (gameweek: number) => t.run((ctx) => rulesInGameweek(ctx, leagueId, gameweek));
 
 describe("reading them", () => {
@@ -62,7 +55,7 @@ describe("reading them", () => {
   });
 
   test("gives rules saved before they were rules the first rules' values", async () => {
-    await savedBeforeTheyWereRules();
+    await savedBeforeTheyWereRules(t, leagueId);
 
     expect((await read())?.part).toEqual(FIRST);
   });
@@ -85,7 +78,7 @@ describe("changing them", () => {
   });
 
   test("on rules saved before they were rules, writes only the setting changed", async () => {
-    await savedBeforeTheyWereRules();
+    await savedBeforeTheyWereRules(t, leagueId);
     await change({ ...FIRST, gamesPerGameweek: 2 });
 
     expect((await inGameweek(NEXT)).oddTeamOut).toBeUndefined();

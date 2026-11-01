@@ -42,6 +42,7 @@ const squadPlayer = (code: number, name: string, positions: TeamSquad["players"]
 const squad: TeamSquad = {
   teamName: previewTeam,
   lastGameweek: 8,
+  unheld: [],
   players: [
     squadPlayer(1, "Raya", ["GK"], ARSENAL, [41, 6]),
     squadPlayer(2, "Gabriel", ["CB"], ARSENAL, [52, 2]),

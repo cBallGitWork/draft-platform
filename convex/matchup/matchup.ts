@@ -8,16 +8,17 @@ import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { memberOf, teamIn, teamsOf } from "../shared/leagueAccess";
+import { playerByCode, unheldPlayerWords } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { begunGameweeks, tableGameweek, type GameweekTeams } from "../gameweekScorer/gameweekScores";
 import { scheduleOf } from "../table/playedFixtures";
 import { isFinished, type HeldMatch } from "../gameweekScorer/heldMatches";
-import { inMatchOf, leagueReads, lineupPlayer, type TeamInGameweek } from "../gameweekScorer/teamGameweek";
+import { inMatchOf, leagueReads, type TeamInGameweek } from "../gameweekScorer/teamGameweek";
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
 import { teamsInGameweek } from "../table/standings";
 import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
-import { roleIn, type Role } from "../lineup/roles";
+import { namedRole, roleIn, type Role } from "../lineup/roles";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { game, matchup, type MatchupCommentary, type MatchupBenchSlot, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
 import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vidiprinter";
@@ -29,9 +30,9 @@ import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vi
 // disagree.
 //
 // Lineups show only once the gameweek has begun, at the league's deadline: then both sides'
-// starters, each in his role, and the bench in order, each sub who came on in his. The formation
-// isn't sent: the screen reads it from the starters' areas, since a placed lineup has no preset
-// name. Before it nobody sees another team's lineup, the commissioner and the admin included:
+// starters, each in his role, and the bench in order, each sub who came on in his. No formation is
+// sent: a placed lineup has no preset name, and how one is named waits on Craig (#878).
+// Before it nobody sees another team's lineup, the commissioner and the admin included:
 // "they just get to view what the managers see" (Craig, 31 Oct 2026; #392, #799). A manager's own
 // is on My team. The commentary is every line of the matches either lineup's men play in, each
 // priced for them (vidiprinter.ts, #44).
@@ -111,7 +112,8 @@ async function gameOf(
  *  up to it; and a gameweek whose slots can't be worked out is unscored here even while the table
  *  shows its stored totals. */
 class SideScorer {
-  private readonly name = readOnce((playerCode: PlayerCode) => lineupPlayer(this.ctx, playerCode).then((player) => player.name));
+  /** His name; for one the football sync doesn't hold, the error saying so (#810, #323). */
+  private readonly name = readOnce((playerCode: PlayerCode) => playerByCode(this.ctx, playerCode).then((player) => player?.name ?? unheldPlayerWords(playerCode)));
   private readonly score = readOnce((fixtureCode: number) => scoreOf(this.ctx, fixtureCode));
 
   constructor(
@@ -156,7 +158,7 @@ class SideScorer {
         for (const slot of [...scored.team.starters, ...scored.team.bench]) {
           const his = scored.matchesOf.get(slot.playerCode) ?? [];
           for (const match of his) matches.set(match.fixture.code, match);
-          players.set(slot.playerCode, { name: await this.name(slot.playerCode), cell: slot.cell, role: slot.role, inMatch: inMatchOf(slot, his) });
+          players.set(slot.playerCode, { name: await this.name(slot.playerCode), cell: slot.cell, role: slot.role, inLineup: true, inMatch: inMatchOf(slot, his) });
         }
       }
       const held = await Promise.all(
@@ -224,10 +226,11 @@ class SideScorer {
   }
 }
 
-/** The role the scorer priced him in at his cell, so the matchup and the table never disagree. */
-function pricedRole({ playerCode, cell, role }: SlotPoints): Role {
+/** The role the scorer priced him in at his cell, so the matchup and the table never disagree. Its
+ *  run isn't drawn on the matchup yet (spec/05 Runs), so it is sent without one. */
+function pricedRole({ playerCode, cell, role }: SlotPoints): Pick<Role, "key" | "name"> {
   if (role === undefined) throw new Error(`player ${playerCode} plays at ${cell.area} ${cell.lane}, which has no roles`);
-  return roleIn(cell, role);
+  return namedRole(roleIn(cell, role));
 }
 
 /** Matches by kickoff, any with no time yet last. */

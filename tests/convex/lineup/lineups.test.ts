@@ -3,15 +3,16 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lineup } from "../../../convex/lineup/lineup";
 import { lineupRefusals } from "../../../convex/lineup/lineupWords";
+import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
-import { holdGameweeks, KICKS_OFF_IN, rulesWith } from "../../support/convex/leagueRules.harness";
+import { holdGameweeks, holdGameweeksPastTheSeason, KICKS_OFF_IN, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { FIRST_SUB } from "../../support/convex/lineup.harness";
+import { FIRST_SUB, REMOVED_ROLE } from "../../support/convex/lineup.harness";
 import { FOUR_FOUR_TWO, holdPlayers, holdSquad, nameOf, SQUAD, STARTERS } from "../../support/convex/lineupSquad.harness";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import { openingLineup, shownLineup } from "../../../src/myTeam/tactics/lineupDraft";
@@ -93,6 +94,15 @@ describe("a saved lineup", () => {
     await expectRefused(ann.save(misplaced), `The centre cell in Goalkeeper doesn't offer the role "poacher" ${nameOf(keeper.playerCode)} was given.`);
   });
 
+  test("saves a role removed from the set as the slot's first, never refused for it (#841)", async () => {
+    const ann = await as(ANN);
+    const [keeper, ...rest] = FOUR_FOUR_TWO.starters;
+    const removed: Lineup = { ...FOUR_FOUR_TWO, starters: [{ ...keeper, role: REMOVED_ROLE }, ...rest] };
+    await ann.save(removed);
+    const onFirst: Lineup = { ...FOUR_FOUR_TWO, starters: [{ ...keeper, role: DEFAULT_ROLES.GK[0].key }, ...rest] };
+    expect(await ann.mine(NEXT)).toEqual(saved(onFirst, NEXT));
+  });
+
   test("saved again before the same deadline replaces the first, one row for the gameweek", async () => {
     const ann = await as(ANN);
     await ann.save(FOUR_FOUR_TWO);
@@ -117,6 +127,11 @@ describe("a saved lineup", () => {
       for (const row of await ctx.db.query("gameweeks").collect()) await ctx.db.delete("gameweeks", row._id);
     });
     expect(await (await as(ANN)).save(FOUR_FOUR_TWO)).toBe(FIRST_GAMEWEEK);
+  });
+
+  test(`is saved from the next gameweek not begun with ${GAMEWEEKS + 1} gameweeks held (#872)`, async () => {
+    await holdGameweeksPastTheSeason(t, 1);
+    expect(await (await as(ANN)).save(FOUR_FOUR_TWO)).toBe(NEXT);
   });
 
   test("is refused once every gameweek has begun", async () => {

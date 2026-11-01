@@ -9,6 +9,7 @@ import { useLivePatches } from "../patches/livePatches";
 import { Loading } from "../ui/Panel";
 import { ReadFailed } from "../frame/ReadFailed";
 import { SignOut } from "../frame/topBar/SignOut";
+import { useLiveTopBar } from "../frame/topBar/liveTopBar";
 import type { AuthActions, Session } from "../signIn/seam";
 import { liveGameweeks } from "../gameweeks/liveGameweeks";
 import { liveHome } from "../home/liveHome";
@@ -88,7 +89,7 @@ class ShellFailed extends Component<{ children: ReactNode }, ShellFailedState> {
     if (this.state.failed === null) return this.props.children;
     const drawAfresh = () => this.setState({ failed: null });
     return (
-      <ReadFailed error={this.state.failed.error} onTryAgain={drawAfresh}>
+      <ReadFailed error={this.state.failed.error} onRetry={drawAfresh}>
         <SignOutAfresh onSignedOut={drawAfresh} />
       </ReadFailed>
     );
@@ -114,7 +115,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   const { signIn, signOut } = useAuthActions();
   const ask = useAction(api.signIn.signInLinks.ask);
   const leagues = useLiveLeagues();
-  const { mail, topBar } = useLiveMail();
+  const { mail, unreadMail } = useLiveMail();
   const joining = useLiveJoining();
   const admin = useLiveAdmin();
   const squads = useLiveSquads();
@@ -156,13 +157,19 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
     if (isLoading || checkingLink || (isAuthenticated && account === undefined)) return null;
     return isAuthenticated && account ? { signedIn: true, ...account } : { signedIn: false };
   }, [isLoading, checkingLink, isAuthenticated, account]);
+  const { topBar, watch: lineupDueWatch } = useLiveTopBar(unreadMail, session?.signedIn ? session.currentLeagueId : null);
 
   if (!session) {
     return (
       <Loading className="p-2">{checkingLink ? waitingWords.checkingLink : waitingWords.connecting}</Loading>
     );
   }
-  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} scouting={liveScouting} playerCard={livePlayerCard} home={liveHome} myTeam={liveMyTeam} matchup={liveMatchup} premierLeague={livePremierLeague} admin={admin} feedback={feedback} patches={patches} />;
+  return (
+    <>
+      {lineupDueWatch}
+      <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} scouting={liveScouting} playerCard={livePlayerCard} home={liveHome} myTeam={liveMyTeam} matchup={liveMatchup} premierLeague={livePremierLeague} admin={admin} feedback={feedback} patches={patches} />
+    </>
+  );
 }
 
 /** The sign-in page saying what was wrong with a link, and, for one that led to a league's invite

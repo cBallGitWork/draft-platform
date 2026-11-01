@@ -6,29 +6,29 @@ import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import {
   CAT,
   EVERTON_POINTS,
-  fullTimeRecords,
   GAMEWEEK,
-  holdTypoRule,
   HULL_POINTS,
   HULL_SCORER,
-  TYPO_STAT,
-  lockMatch,
   readTable,
   scoresLeague,
+  type ScoresLeague,
+} from "../../support/convex/gameweekScores.harness";
+import {
+  fullTimeRecords,
+  holdMovedIn,
+  lockMatch,
+  lockMovedIn,
+  MOVED_IN,
   storeLeague,
   writeOverAnns,
   WRITTEN_OVER,
-  type ScoresLeague,
-} from "../../support/convex/gameweekScores.harness";
+} from "../../support/convex/gameweekScoresMatch.harness";
+import { holdTypoRule, TYPO_STAT } from "../../support/convex/gameweekScoresFixes.harness";
 
 // Storing a gameweek's scores once final (#418): every match in it locked, each team's points are
 // stored and read from then on, so the table never scores the whole season on each read. A gameweek
 // not yet final is still worked out live; `rescore` stores one again.
 
-/** A match the football sync moves into gameweek 6 after it was stored, between two clubs no
- *  squad here holds. */
-const MOVED_IN = 999_001;
-const OTHER_CLUBS = [901, 902] as const;
 const finalRows = ({ t }: ScoresLeague) => t.run((ctx) => ctx.db.query("finalScores").collect());
 /** Each stored row's team and points, in team order, and whether it is marked as never having
  *  saved a lineup, which no row has been since #637. */
@@ -124,14 +124,6 @@ test("a team added after a gameweek was stored is worked out alone and stored be
   ]);
 });
 
-/** A match between two clubs no squad here holds, put in gameweek 6 as the football sync would. */
-const holdOtherMatch = ({ t }: ScoresLeague) =>
-  t.run((ctx) =>
-    ctx.db.insert("fixtures", { code: MOVED_IN, gameweek: GAMEWEEK, homeClubCode: OTHER_CLUBS[0], awayClubCode: OTHER_CLUBS[1], kickoff: Date.now() }),
-  );
-/** That match read at full time, its window passed and locked. */
-const lockOtherMatch = ({ t }: ScoresLeague) =>
-  t.run((ctx) => ctx.db.insert("matchStatsStatus", { fixtureCode: MOVED_IN, state: "locked", fullTimeAt: Date.now(), lockedAt: Date.now(), lastReadAt: Date.now() }));
 const storedCodes = async (league: ScoresLeague) => (await finalRows(league)).map((row) => row.fixtureCodes.toSorted());
 
 test("a match moved into a stored gameweek reopens it: worked out live, then stored afresh once that match locks", async () => {
@@ -140,13 +132,13 @@ test("a match moved into a stored gameweek reopens it: worked out live, then sto
   await lockMatch(league);
   await storeLeague(league);
   await writeOverAnns(league);
-  await holdOtherMatch(league);
+  await holdMovedIn(league);
 
   expect(await annsPoints(league)).toMatchObject({ points: HULL_POINTS });
   // Not final while the moved match hasn't locked, so nothing is stored over the old rows yet.
   expect(await storeLeague(league)).toEqual([]);
 
-  await lockOtherMatch(league);
+  await lockMovedIn(league);
   expect(await storeLeague(league)).toEqual([GAMEWEEK]);
   expect((await stored(league)).map(({ points }) => points)).toEqual([HULL_POINTS, EVERTON_POINTS]);
   expect(await storedCodes(league)).toEqual([[HULL_EVERTON, MOVED_IN].toSorted(), [HULL_EVERTON, MOVED_IN].toSorted()]);
@@ -154,8 +146,8 @@ test("a match moved into a stored gameweek reopens it: worked out live, then sto
 
 test("a match moved out of a stored gameweek reopens it, and it is stored afresh from the matches left", async () => {
   const league = await scoresLeague();
-  await holdOtherMatch(league);
-  await lockOtherMatch(league);
+  await holdMovedIn(league);
+  await lockMovedIn(league);
   await fullTimeRecords(league);
   await lockMatch(league);
   await storeLeague(league);

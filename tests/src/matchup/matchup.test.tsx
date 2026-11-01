@@ -46,7 +46,7 @@ import {
 } from "../../../src/matchup/words";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 import { homeFixture, quietHome } from "../../support/src/home.harness";
-import { headToHead, lineupRows, liveMatchup, playing, slot, SLOT_MATCH, teamSide, type MatchupData } from "../../support/src/matchup.harness";
+import { headToHead, lineupRows, liveMatchup, playing, roleOf, slot, SLOT_MATCH, teamSide, type MatchupData } from "../../support/src/matchup.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
 
 const openMatchup = (matchup: MatchupData = {}, path = MATCHUP_PATH) => openApp(path, manager, { matchup });
@@ -126,8 +126,8 @@ describe("a replayed gameweek plays out on screen", () => {
     expect(top.textContent).toContain(scoreWords(0, 0));
     expect(within(top).getByText(provisionalWords)).toBeTruthy();
     expect(lineupRows("Team 1")).toEqual([
-      `${AREA_CODES.goalkeeper}Phillips${statusLabels.yetToPlay} ${statusWords.yetToPlay(KICKOFF)}—`,
-      `${AREA_CODES.midfield}Coyle${statusLabels.yetToPlay} ${statusWords.yetToPlay(KICKOFF)}—`,
+      `${AREA_CODES.goalkeeper}Phillips${roleOf("goalkeeper").name}${statusLabels.yetToPlay} ${statusWords.yetToPlay(KICKOFF)}—`,
+      `${AREA_CODES.midfield}Coyle${roleOf("midfield").name}${statusLabels.yetToPlay} ${statusWords.yetToPlay(KICKOFF)}—`,
       BENCH_TITLE,
       `${AREA_CODES.goalkeeper}Pandur${statusLabels.yetToPlay} To play— ${notCountingLabel}`,
     ]);
@@ -136,8 +136,8 @@ describe("a replayed gameweek plays out on screen", () => {
     expect(await screen.findByText(scoreWords(2, 5))).toBeTruthy();
     // The bench keeper's points show, greyed: they don't count while Phillips stands.
     expect(lineupRows("Team 1")).toEqual([
-      `${AREA_CODES.goalkeeper}Phillips${statusLabels.playing} 60'0`,
-      `${AREA_CODES.midfield}Coyle${statusLabels.playing} 60'2`,
+      `${AREA_CODES.goalkeeper}Phillips${roleOf("goalkeeper").name}${statusLabels.playing} 60'0`,
+      `${AREA_CODES.midfield}Coyle${roleOf("midfield").name}${statusLabels.playing} 60'2`,
       BENCH_TITLE,
       `${AREA_CODES.goalkeeper}Pandur${statusLabels.playing} 60'3 ${notCountingLabel}`,
     ]);
@@ -145,8 +145,8 @@ describe("a replayed gameweek plays out on screen", () => {
     live.play(stages.fullTime);
     expect(await screen.findByText(scoreWords(9, 7))).toBeTruthy();
     expect(lineupRows("Team 1")).toEqual([
-      `${AREA_CODES.goalkeeper}Phillips${autoSubWords.off("Pandur")}${statusLabels.finished} ${statusWords.finished}0 ${notCountingLabel}`,
-      `${AREA_CODES.midfield}Coyle${statusLabels.finished} ${statusWords.finished}6`,
+      `${AREA_CODES.goalkeeper}Phillips${roleOf("goalkeeper").name}${autoSubWords.off("Pandur")}${statusLabels.finished} ${statusWords.finished}0 ${notCountingLabel}`,
+      `${AREA_CODES.midfield}Coyle${roleOf("midfield").name}${statusLabels.finished} ${statusWords.finished}6`,
       BENCH_TITLE,
       `${AREA_CODES.goalkeeper}Pandur${autoSubWords.on("Phillips")}${statusLabels.finished} ${statusWords.finished}3`,
     ]);

@@ -10,12 +10,12 @@ import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
 import type { MatchPoints } from "../scoring/scoring";
 import type { MatchStats } from "../scoring/values";
-import { siteScoringByGameweek } from "../scoring/siteScoring";
+import { siteScoringByGameweek } from "../scoring/siteVersions";
 import { validateScoringSet } from "../scoring/scoringSet";
 import { scoreTeam, type PlayerMatch, type SlotPoints, type TeamPoints } from "../scoring/teamPoints";
-import { heldPlayerByCode } from "../shared/players";
+import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
-import { isWhole, MINUTES_STAT } from "../stats/matchRecords";
+import { MINUTES_STAT, statsIfWhole } from "../stats/matchRecords";
 import { heldMatches, isFinished, isMatchFinal, playsIn, type HeldMatch } from "./heldMatches";
 
 // One team's points in one gameweek (#29; spec/05, Auto-subs; spec/07): its lineup, auto-subs from
@@ -32,7 +32,14 @@ export interface LeagueReads {
   leagueId: Id<"leagues">;
   season: SeasonRules;
   setIn: (gameweek: number) => StoredScoringSet;
-  player: (code: PlayerCode) => Promise<{ clubCode: number; positions: Position[] }>;
+  player: (code: PlayerCode) => Promise<LineupPlayer>;
+}
+
+/** A man a lineup names, as scoring reads him: his club, null for one the football sync doesn't
+ *  hold, and his positions. */
+interface LineupPlayer {
+  clubCode: number | null;
+  positions: Position[];
 }
 
 /** What scoring any of the league's gameweeks reads, read once. A caller that has read the site's
@@ -47,21 +54,16 @@ export async function leagueReads(
     leagueId: league._id,
     season,
     setIn: setIn ?? (await siteScoringByGameweek(ctx)),
-    player: playerReader(ctx, await positionsNow(ctx)),
+    player: playerReader(ctx, await positionsNow(ctx, league._id)),
   };
 }
 
 /** Each player's club and positions, read once however many gameweeks ask. */
 function playerReader(ctx: QueryCtx, positionsOfNow: PositionsNow) {
-  return readOnce(async (code: PlayerCode): Promise<{ clubCode: number; positions: Position[] }> => {
-    const held = await lineupPlayer(ctx, code);
-    return { clubCode: held.clubCode, positions: await positionsOfNow(code) };
+  return readOnce(async (code: PlayerCode): Promise<LineupPlayer> => {
+    const held = await playerByCode(ctx, code);
+    return { clubCode: held?.clubCode ?? null, positions: await positionsOfNow(code) };
   });
-}
-
-/** A player a lineup names. One the football sync doesn't hold is data gone wrong, and throws. */
-export function lineupPlayer(ctx: QueryCtx, code: PlayerCode): Promise<Doc<"players">> {
-  return heldPlayerByCode(ctx, code, `player ${code} is in a lineup but the football sync doesn't hold him`);
 }
 
 /** What scoring the `teamIds` in one gameweek reads: the site's set in force then, checked, the
@@ -124,7 +126,10 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
   const matchesOf = new Map<PlayerCode, HeldMatch[]>();
   for (const code of codes) {
     const { clubCode, positions: hisPositions } = await reads.player(code);
-    const hisMatches = matches.filter((match) => match.records.has(code) || playsIn(match.fixture, clubCode));
+    // One the football sync doesn't hold is data gone wrong: he scores as if he didn't play, with no
+    // match, so a starter is subbed and a bench player never comes on (Craig, 31 Oct 2026, #810;
+    // spec/05 Auto-subs). Once the sync holds him again, he scores as any other man.
+    const hisMatches = clubCode === null ? [] : matches.filter((match) => match.records.has(code) || playsIn(match.fixture, clubCode));
     positions.set(code, hisPositions);
     matchesOf.set(code, hisMatches);
     playerMatches.set(code, hisMatches.map((match) => forPoints(match, code)));
@@ -200,7 +205,7 @@ export function inMatchOf(slot: SlotPoints, matches: readonly HeldMatch[]): InMa
     pointsByMatch(slot, matches).flatMap(({ match, points }) => {
       const record = match.records.get(slot.playerCode);
       if (record === undefined) return [];
-      return [[match.fixture.code, { stats: isWhole(record) ? record.stats : null, played: record.played === true, points }] as const];
+      return [[match.fixture.code, { stats: statsIfWhole(record), played: record.played === true, points }] as const];
     }),
   );
 }
@@ -213,7 +218,7 @@ const NOT_NAMED: Readonly<Record<string, number>> = {};
  *  one. Final once the match is locked, its corrections window shut. */
 function forPoints(match: HeldMatch, code: PlayerCode): PlayerMatch {
   const record = match.records.get(code);
-  const stats = record === undefined ? (isFinished(match) ? NOT_NAMED : null) : isWhole(record) ? record.stats : null;
+  const stats = record === undefined ? (isFinished(match) ? NOT_NAMED : null) : statsIfWhole(record);
   return { record: stats, final: isMatchFinal(match), override: match.overrides.get(code) };
 }
 

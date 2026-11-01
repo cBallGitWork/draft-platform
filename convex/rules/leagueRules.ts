@@ -2,7 +2,7 @@ import { v, type Validator } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import type { DeadlineRule } from "../gameweeks/deadline";
-import { FIRST_RULES } from "./firstRules";
+import { drawRulesOf, FIRST_RULES } from "./firstRules";
 import { getLeague, memberOf, refuse, runnerOf } from "../shared/leagueAccess";
 import { bylineOf, recordEvent } from "../mail/letters";
 import { checkGamesFor, checkLeagueRules, gamesWords, UnsoundRules, whyMostGames } from "./leagueRulesCheck";
@@ -10,7 +10,7 @@ import { roundsInARoundRobin } from "../table/roundRobin";
 import { heldRules, leagueRulesShape, type LeagueRules } from "./leagueRulesShape";
 import { sortedJson } from "../shared/sortedJson";
 import { nextGameweek } from "../gameweeks/nextGameweek";
-import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
+import { fixedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
 import { momentIn } from "../shared/moments";
 import { zoneOf } from "../signIn/timeZone";
@@ -134,10 +134,15 @@ export function refuseTooFewForGames(rules: LeagueRules | null, maxTeams: number
   if (games !== undefined) asRefusal(() => checkGamesFor(games, maxTeams));
 }
 
-/** The parts of the rules that differ, by name: all of them, from a league that had none. */
+/** The parts of the rules that differ, by name: all of them, from a league that had none. Each
+ *  side is read as it plays (`drawRulesOf`), so rules saved before the odd team out and games a
+ *  gameweek were rules differ from the first rules' values in neither (#147). */
 function changedParts(from: LeagueRules | undefined, to: LeagueRules): (keyof LeagueRules)[] {
   const parts = Object.keys(leagueRulesShape.fields) as (keyof LeagueRules)[];
-  return parts.filter((part) => from === undefined || sortedJson(from[part]) !== sortedJson(to[part]));
+  if (from === undefined) return parts;
+  const asPlayed = (rules: LeagueRules): LeagueRules => ({ ...rules, ...drawRulesOf(rules) });
+  const [before, after] = [asPlayed(from), asPlayed(to)];
+  return parts.filter((part) => sortedJson(before[part]) !== sortedJson(after[part]));
 }
 
 /** The league's latest rules, and the gameweek they take effect from: the next gameweek's, when a
@@ -164,7 +169,7 @@ async function takesEffectFrom(
   now: number,
 ): Promise<number> {
   const { gameweeks, matches } = await heldSchedule(ctx);
-  const passed = await passedDeadlinesOf(ctx, leagueId);
+  const passed = await fixedDeadlinesOf(ctx, leagueId);
   const nextUnder = (deadlineFor: (gameweek: number) => DeadlineRule) => nextGameweek(gameweeks, matches, deadlineFor, passed, now);
   return Math.max(
     nextUnder((gameweek) => (inForce(history, gameweek)?.rules ?? rules).deadline),

@@ -59,6 +59,11 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
       .query("passedDeadlines")
       .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
       .take(ROWS_PER_RUN),
+  keptDeadlines: (ctx, leagueId) =>
+    ctx.db
+      .query("keptDeadlines")
+      .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
   playedFixtures: (ctx, leagueId) =>
     ctx.db
       .query("playedFixtures")
@@ -93,6 +98,16 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
     ctx.db
       .query("lineups")
       .withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
+  teamGameweekStats: (ctx, leagueId) =>
+    ctx.db
+      .query("teamGameweekStats")
+      .withIndex("by_leagueId_and_gameweek_and_teamId", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
+  teamSeasonStats: (ctx, leagueId) =>
+    ctx.db
+      .query("teamSeasonStats")
+      .withIndex("by_leagueId_and_teamId", (q) => q.eq("leagueId", leagueId))
       .take(ROWS_PER_RUN),
   letters: (ctx, leagueId) =>
     ctx.db

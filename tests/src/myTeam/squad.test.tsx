@@ -25,7 +25,8 @@ import {
   whenWords,
 } from "../../../src/myTeam/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
-import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";
+import { unheldNoticeWords, unheldPlayerWords } from "../../../src/shared/words";
+import { ARSENAL, CHELSEA, UNHELD } from "../../support/convex/footballRows.harness";
 import { columnHeadIn } from "../../support/src/columnHeads";
 import type { MyTeamData } from "../../support/src/myTeam.harness";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
@@ -53,7 +54,7 @@ const SAKA: Row = {
   lastGameweekPoints: 7,
 };
 const PALMER: Row = { ...SAKA, code: 1002, name: "Palmer", fullName: "Cole Palmer", number: null, positions: ["CAM"], club: CHELSEA, nextFixture: { ...SAKA.nextFixture!, opponent: ARSENAL, home: false }, seasonPoints: null, lastGameweekPoints: null };
-const squadOf = (players: Row[], lastGameweek: number | null = 9): TeamSquad => ({ teamName: "Team 1", lastGameweek, players });
+const squadOf = (players: Row[], lastGameweek: number | null = 9, unheld: number[] = []): TeamSquad => ({ teamName: "Team 1", lastGameweek, players, unheld });
 
 describe("reaching it", () => {
   it("a manager opens it from My team's Squad tab, for the league the app is in", async () => {
@@ -113,10 +114,31 @@ describe("the rows", () => {
     expect(columnHeadIn(screen.getByRole("table"), last).getAttribute("title")).toBe(last.long);
   });
 
+  it("name the next match by the short words it shows, then the long ones, so voice control can say what it sees (#790)", async () => {
+    openSquad({ squad: squadOf([SAKA, PALMER]) });
+    await screen.findByRole("table");
+    const [saka, palmer] = rows();
+
+    expect(within(saka).getByLabelText(`CHE ${homeWords}, ${nextFixtureLong("Chelsea", true, whenWords(KICKOFF))}`).textContent).toBe(`CHE ${homeWords}`);
+    expect(within(palmer).getByLabelText(`ARS ${awayWords}, ${nextFixtureLong("Arsenal", false, whenWords(KICKOFF))}`).textContent).toBe(`ARS ${awayWords}`);
+  });
+
   it("open a player's card from his name", async () => {
     const app = openSquad({ squad: squadOf([SAKA]) });
     await userEvent.click(await screen.findByRole("link", { name: "Saka" }));
     expect(app.path()).toBe(playerCardPath(league.leagueId, SAKA.code));
+  });
+
+  it("keep one whose player the football sync doesn't hold, saying his code after the rest, under a notice (#323)", async () => {
+    openSquad({ squad: squadOf([SAKA], 9, [UNHELD]) });
+    expect(await screen.findByText(unheldNoticeWords)).toBeTruthy();
+    expect(rows().map((row) => row.textContent)).toEqual([expect.stringContaining("Saka"), unheldPlayerWords(UNHELD)]);
+  });
+
+  it("show no notice of missing football data while every player is held", async () => {
+    openSquad({ squad: squadOf([SAKA]) });
+    await screen.findByRole("table", { name: squadTableLabel("Team 1") });
+    expect(screen.queryByText(unheldNoticeWords)).toBeNull();
   });
 
   it("say when a player has left the Premier League, and when his club has no next match", async () => {

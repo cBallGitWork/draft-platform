@@ -7,6 +7,7 @@ import { LATEST_RUNS } from "../shared/syncRuns";
 import { HOUR_MS } from "../shared/time";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { storeThresholdSteps } from "./thresholdSteps";
+import { FULL_TIME_LINE_WAIT_MS, fullTimeLineMissing } from "../football/matchCommentary";
 
 // Issue #28: the stored side of the live poller. `liveStatsSync.tick` asks `live` which matches
 // are being played, reads them, and hands each one before full time to `upsertLive`; from full
@@ -19,7 +20,9 @@ import { storeThresholdSteps } from "./thresholdSteps";
 export const LIVE_WINDOW_MS = 4 * HOUR_MS;
 
 /** The matches being played at `now`: kicked off within the window, and not yet complete. A match
- *  provisional after full time is still polled, so its last records land within the minute. */
+ *  provisional after full time is still polled, so its last records land within the minute; and
+ *  one complete is still polled for `FULL_TIME_LINE_WAIT_MS` after full time while the commentary
+ *  it read lacks the full-time line, as "Match ends" can reach the stream after the status flips (#917). */
 export const live = internalQuery({
   args: { now: v.number() },
   returns: v.array(dueMatch),
@@ -41,7 +44,9 @@ export async function liveMatches(ctx: QueryCtx, now: number): Promise<LiveMatch
   for await (const { code, gameweek, kickoff, droppedAt } of kickedOff) {
     if (droppedAt !== undefined || gameweek === null || kickoff === null) continue;
     const status = await statusOf(ctx, code);
-    if (status === null || status.state === "provisional") found.push({ fixtureCode: code, gameweek, kickoff });
+    const awaitingFullTimeLine =
+      status?.state === "complete" && now - status.fullTimeAt < FULL_TIME_LINE_WAIT_MS && (await fullTimeLineMissing(ctx, code));
+    if (status === null || status.state === "provisional" || awaitingFullTimeLine) found.push({ fixtureCode: code, gameweek, kickoff });
   }
   return found;
 }

@@ -105,7 +105,7 @@ function PlayerCell({
     case "name":
       return (
         <th scope="row" title={player.fullName} className={`${className} text-lead font-semibold`}>
-          <Link to={playerCardPath(leagueId, player.code)} className="flex min-h-tap items-center">
+          <Link to={playerCardPath(leagueId, player.code)} className="flex min-h-tap min-w-tap items-center">
             {player.name}
           </Link>
         </th>
@@ -139,8 +139,8 @@ function PlayerCell({
     case "stat":
       return <td className={`${className} font-bold text-figure`}>{player.stat === null ? noFigureWords : statFigure(player.stat)}</td>;
     case "roleFit":
-      // Role stars show for every player until scouts exist (spec/19, Role stars); roles are built
-      // but stars aren't (#11), so every player reads the no-role-fit words.
+      // Role stars show for every player until scouts exist (spec/19, Role stars); stars are stored
+      // (#11) but scouts aren't built (#375), so every player reads the no-role-fit words.
       return (
         <td title={noRoleFitYetWords} className={`${className} text-muted`}>
           {noFigureWords}

@@ -72,8 +72,10 @@ comes to exist, fills, changes and ends.
 - A gameweek begins at the league's own deadline, never FPL's: "ours, we arent fpl so stop
   copying them" (Craig, 22 Oct 2026).
 - After the season starts, only gameweeks that haven't begun can be ticked or unticked.
-- An unticked gameweek scores nothing and has no head-to-head; its lineups don't matter. Waivers,
-  free agency and trades carry on through it.
+- An unticked gameweek scores nothing and has no head-to-head; its lineups don't matter. Lineups,
+  waivers, free agency and trades are locked through it: "when its international break, we lock
+  everything and give the league a break" (Craig, 1 Nov 2026), and asked whether that means claims,
+  waivers and trades too: "yes".
 - The head-to-head round robin ([9. Season admin](09-season-admin.md)) is drawn over the ticked
   gameweeks only, and a change reshuffles only fixtures not yet played.
 - Once a gameweek has begun, its fixtures are fixed: neither the commissioner's edits nor a rule
@@ -94,3 +96,5 @@ comes to exist, fills, changes and ends.
 - After 24 hours it is gone for good, not archived. Only then is each manager told, by email:
   "just delay the deletion email until its actually gone" (24 Oct 2026). An undone deletion
   tells no one.
+- Deletion emails past the email service's daily limit wait for the next day, as invites do
+  (Craig, 31 Oct 2026).

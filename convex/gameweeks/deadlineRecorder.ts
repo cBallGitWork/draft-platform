@@ -2,13 +2,15 @@ import { getFunctionName } from "convex/server";
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalMutation, type MutationCtx } from "../_generated/server";
-import { errorMessage } from "../shared/errors";
+import type { Doc } from "../_generated/dataModel";
+import { emailIfFailed } from "../admin/feedFailureEmails";
+import { logFailure } from "../shared/errors";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { isLocked } from "./deadline";
+import { isLocked, type ScheduledMatch } from "./deadline";
 import { recordGameweekStarts } from "./gameweekStarts";
-import { passedDeadlinesOf } from "./passedDeadlines";
+import { fixedDeadlinesOf, passedDeadlinesOf } from "./passedDeadlines";
 import { seasonRules } from "../rules/rulesHistory";
-import { heldMatches, leagueDeadlinesIn } from "./leagueDeadlines";
+import { leagueDeadlinesIn, scheduledMatches } from "./leagueDeadlines";
 import { storeBegunFixtures } from "../table/playedFixtures";
 
 // Records each league's passed deadlines (#150), so a postponement after one can't move it
@@ -20,12 +22,17 @@ import { storeBegunFixtures } from "../table/playedFixtures";
 // gameweek's head-to-head fixtures (playedFixtures.ts, #137), and first of all, for the whole site,
 // each gameweek's first kickoff once passed (gameweekStarts.ts, #414): both as harmless to repeat.
 //
-// It fails closed: if recording or storing throws, for any league, that fixtures mutation fails
-// with it, so no kickoff moves; the sync is logged and filed in footballSyncs as failed. The feed
-// stands still for every league until it is fixed. A league whose rules can't be read (only a row
-// written by hand can be: a commissioner's change is checked) isn't skipped, because skipping it
-// would let its kickoffs move with its passed deadlines unrecorded, and that could reopen its
-// gameweek.
+// One league whose rules are broken never stops the feed for the others (spec/15, #896): a league
+// whose deadlines or rules can't be read or applied (only a row written by hand can be: a
+// commissioner's change is checked) is skipped, named in the log and emailed to the admin, and the
+// other leagues' recording commits with the mutation. Craig took the cost: while it is skipped, its
+// kickoffs can move with its passed deadlines unrecorded, which can reopen its gameweek. The email
+// goes through the football feed's failure email, so the admin hears at most once a day however
+// often the batches, pages and alarms skip it, and never past the day's email limit.
+//
+// Anything else that throws still fails closed: recording the gameweek starts, which is the whole
+// site's, or reading the leagues. That fixtures mutation fails with it, so no kickoff moves; the
+// sync is logged and filed in footballSyncs as failed.
 //
 // Recording only on the six-hourly sync would leave a gameweek unbegun for hours after its deadline
 // passed: unscored, its matchup "not begun". So each recording also sets one alarm,
@@ -43,13 +50,16 @@ import { storeBegunFixtures } from "../table/playedFixtures";
  *  recording wants splitting across transactions (#214). */
 export const LEAGUES_RECORDED_MOST = 200;
 
+/** What the log and the admin's email say after a skipped league's name, before why. */
+export const LEAGUE_SKIPPED = "was skipped by the football feed, and the other leagues carried on, as its rules can't be read or applied";
+
 /** Records each gameweek's first kickoff once passed, every league's deadlines that have passed
  *  and aren't yet recorded, and stores the fixtures of the gameweeks they began; returns how many
  *  deadlines it recorded. */
 export async function recordPassedDeadlines(ctx: MutationCtx): Promise<number> {
   const now = Date.now();
   // Read once for every league: the fixtures are the season's 380, the most of any table here.
-  const matches = await heldMatches(ctx);
+  const matches = await scheduledMatches(ctx);
   await recordGameweekStarts(ctx, matches, now);
   const leagues = await takeAllOrThrow(
     ctx.db.query("leagues"),
@@ -59,26 +69,86 @@ export async function recordPassedDeadlines(ctx: MutationCtx): Promise<number> {
   let recorded = 0;
   let soonestToCome: number | null = null;
   for (const league of leagues) {
-    const passed = await passedDeadlinesOf(ctx, league._id);
-    const deadlines = await leagueDeadlinesIn(ctx, league._id, matches).catch((error: unknown) => {
-      // Named, so the failed sync's log and run row say which league to fix.
-      throw new Error(`League ${league._id} (${league.name}): its deadlines can't be worked out: ${errorMessage(error)}`);
-    });
-    for (const [gameweek, deadline] of deadlines) {
-      if (deadline === null) continue;
-      if (!isLocked(deadline, now)) {
-        soonestToCome = Math.min(soonestToCome ?? deadline, deadline);
-        continue;
-      }
-      if (passed.has(gameweek)) continue;
-      await ctx.db.insert("passedDeadlines", { leagueId: league._id, gameweek, deadline, recordedAt: now });
-      recorded += 1;
+    try {
+      const step = await recordLeague(ctx, league, matches, now);
+      recorded += step.recorded;
+      if (step.soonestToCome !== null) soonestToCome = Math.min(soonestToCome ?? step.soonestToCome, step.soonestToCome);
+    } catch (error: unknown) {
+      await skipBrokenLeague(ctx, league, error, now);
     }
-    // Once a gameweek has begun, its fixtures are stored, so nothing after can redraw them (#137).
-    await storeBegunFixtures(ctx, league, await seasonRules(ctx, league._id), deadlines, now);
   }
   await setDeadlineAlarm(ctx, soonestToCome);
   return recorded;
+}
+
+/** Keeps each league's deadline for each of `gameweeks` as it stands now, the gameweeks FPL just
+ *  stopped sending: "Keeps its last deadline" (Craig, 1 Nov 2026; spec/05, #202). Called before
+ *  they are marked dropped and before this sync moves any match (footballSync.ts syncs gameweeks
+ *  first), so the matches still say where each deadline was. A deadline already kept, or already
+ *  passed and recorded, stays; a gameweek with no deadline yet has none to keep. A broken league is
+ *  skipped as `recordPassedDeadlines` skips it. Returns how many it kept. */
+export async function keepDroppedDeadlines(ctx: MutationCtx, gameweeks: readonly number[]): Promise<number> {
+  if (gameweeks.length === 0) return 0;
+  const now = Date.now();
+  const matches = await scheduledMatches(ctx);
+  const leagues = await takeAllOrThrow(
+    ctx.db.query("leagues"),
+    LEAGUES_RECORDED_MOST,
+    `More than ${LEAGUES_RECORDED_MOST} leagues are held, so some would lose the deadlines of gameweeks FPL stopped sending`,
+  );
+  let kept = 0;
+  for (const league of leagues) {
+    try {
+      const deadlines = await leagueDeadlinesIn(ctx, league._id, matches);
+      const fixed = await fixedDeadlinesOf(ctx, league._id);
+      for (const gameweek of gameweeks) {
+        const deadline = deadlines.get(gameweek) ?? null;
+        if (deadline === null || fixed.has(gameweek)) continue;
+        await ctx.db.insert("keptDeadlines", { leagueId: league._id, gameweek, deadline, keptAt: now });
+        kept += 1;
+      }
+    } catch (error: unknown) {
+      await skipBrokenLeague(ctx, league, error, now);
+    }
+  }
+  return kept;
+}
+
+/** One league's step: its passed deadlines recorded and its begun gameweeks' fixtures stored, with
+ *  how many it recorded and its soonest deadline still to come. Its deadlines and rules are read
+ *  before its first write, so a league whose rules can't be read is left as it was; one whose rules
+ *  break only the fixtures' draw still has the deadlines it passed recorded. */
+async function recordLeague(
+  ctx: MutationCtx,
+  league: Doc<"leagues">,
+  matches: readonly ScheduledMatch[],
+  now: number,
+): Promise<{ recorded: number; soonestToCome: number | null }> {
+  const passed = await passedDeadlinesOf(ctx, league._id);
+  const deadlines = await leagueDeadlinesIn(ctx, league._id, matches);
+  const rules = await seasonRules(ctx, league._id);
+  let recorded = 0;
+  let soonestToCome: number | null = null;
+  for (const [gameweek, deadline] of deadlines) {
+    if (deadline === null) continue;
+    if (!isLocked(deadline, now)) {
+      soonestToCome = Math.min(soonestToCome ?? deadline, deadline);
+      continue;
+    }
+    if (passed.has(gameweek)) continue;
+    await ctx.db.insert("passedDeadlines", { leagueId: league._id, gameweek, deadline, recordedAt: now });
+    recorded += 1;
+  }
+  // Once a gameweek has begun, its fixtures are stored, so nothing after can redraw them (#137).
+  await storeBegunFixtures(ctx, league, rules, deadlines, now);
+  return { recorded, soonestToCome };
+}
+
+/** A league whose step threw: named in the log, and emailed to the admin as the comment above says. */
+async function skipBrokenLeague(ctx: MutationCtx, league: Doc<"leagues">, error: unknown, now: number): Promise<void> {
+  const skipped = `League ${league._id} (${league.name}) ${LEAGUE_SKIPPED}`;
+  const reason = logFailure(skipped, error);
+  await emailIfFailed(ctx, "skippedLeague", { ranAt: now, outcome: { ok: false, error: `${skipped}: ${reason}` } });
 }
 
 /** The alarm `recordPassedDeadlines` sets for the soonest deadline to come: it records again, and

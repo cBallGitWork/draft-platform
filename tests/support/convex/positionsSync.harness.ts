@@ -5,6 +5,8 @@
 
 import { expect, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
+import type { Doc } from "../../../convex/_generated/dataModel";
+import { DAY_MS } from "../../../convex/shared/time";
 import { FPL_BOOTSTRAP_URL, plFixturesUrl, plFixtureUrl, plSquadUrl } from "../../../convex/football/football";
 import { ADMIN, actingAs } from "./leagues.harness";
 import { BRENTFORD_CODE, NEWCASTLE, PLAYER, recordedPositions, SHEET, type PositionsPayloads } from "../recorded/positions.payloads";
@@ -83,3 +85,21 @@ export async function synced(): Promise<TestConvex> {
   });
   return t;
 }
+
+/** A positions sync that read its starts, as its run records it. */
+export const SYNC_READ = {
+  ok: true as const,
+  matchesRead: 1,
+  matchesLeft: 0,
+  matchesRefused: [],
+  startsAdded: 1,
+  unmatchedPlayers: 0,
+  labelsReceived: 0,
+  labelsChanged: 0,
+  unknownFormations: [],
+  unknownLabels: [],
+};
+
+/** Records a positions sync run on `day` (days since the epoch), read unless `outcome` says otherwise. */
+export const positionsSyncRanOnDay = (t: TestConvex, day: number, outcome: Doc<"positionsSyncs">["outcome"] = SYNC_READ) =>
+  t.run((ctx) => ctx.db.insert("positionsSyncs", { trigger: "manual", ranAt: day * DAY_MS, outcome }));

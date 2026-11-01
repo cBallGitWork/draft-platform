@@ -2,19 +2,17 @@
 """PreToolUse guard for Bash: the CLAUDE.md "Working" rules, as machinery.
 
 Denies staging everything, force pushes, pushing to main, a gh api write to main (main_writes.py),
-and committing or pushing while on main. Every command the line runs is checked, those it passes
-to sh -c, eval, $(…), a heredoc, here-string or pipe into a shell (or a group around one), find
--exec or ssh included, whatever its redirections (commands.py; where.py lists what it can't see),
-each in the folder it runs in (the shell's cwd, any cd before it, its -C: where.py), so a worktree
-is judged on its own branch, not the project's. Also denies publishing a word on Craig's private
-list (private_words.py), and a pull request body that breaks the template's rules or a title far
-too long (pr_body.py), and a gh pr merge once a drift pass is due, unless it is one
-(drift_gate.py). A title only somewhat long, or publishing where there is no private list to check,
-gets a note, not a denial.
+committing or pushing while on main, publishing a word on Craig's private list (private_words.py),
+a pull request body that breaks the template's rules or a title far too long (pr_body.py), a gh pr
+merge once a drift pass is due unless it is one (drift_gate.py), and a read-only agent's git
+command that changes a checkout of this repo (read_only.py). Every command the line runs is
+checked, those it passes to sh -c, eval, $(…), a heredoc, here-string or pipe into a shell (or a
+group around one), find -exec or ssh included, whatever its redirections (commands.py; where.py
+lists what it can't see), each in the folder it runs in (the shell's cwd, any cd before it, its
+-C: where.py), so a worktree is judged on its own branch. A title only somewhat long, publishing
+with no private list to check, or a subagent's payload with no agent_type gets a note instead.
 Where it can't be sure what runs or where, it refuses and says how to run the command plainly.
-
-Reads the hook payload (JSON) on stdin; prints a deny decision, a note, or nothing.
-Stdlib only, Python 3.9+, because it runs on whatever python3 is present.
+Reads the hook payload (JSON) on stdin; prints a deny, a note, or nothing. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -29,6 +27,7 @@ from hook_payload import project_dir
 from main_writes import MAIN, MAIN_REFS, gh_api_problem
 from pr_body import pr_body_problem, pr_title_note
 from private_words import list_missing_note, private_word_problem
+from read_only import agent_type_note, read_only_problem
 from where import current_branch, git_call, git_dir, options, previous_branch, runners
 
 COMMIT_VALUE_SHORT = set("mFCct")  # in `-am msg` everything after m is the value
@@ -158,8 +157,8 @@ def deletes_only(args):
     return bool(refs) and deleting and not names & {"HEAD", "@"}
 
 
-def decide(cmd, cwd):
-    """A deny reason, or None to allow; cwd is where the shell starts."""
+def decide(cmd, cwd, agent_type=None):
+    """A deny reason, or None to allow; cwd is where the shell starts, agent_type the subagent's."""
     try:
         cmds = commands(cmd, cwd)
     except Unbalanced:
@@ -169,7 +168,7 @@ def decide(cmd, cwd):
     except UnreadableStdin:
         return UNREADABLE_STDIN
     problem = private_word_problem(cmd, cmds, cwd) or pr_body_problem(cmds, cwd) or gh_api_problem(cmds)
-    problem = problem or merge_problem(cmds)
+    problem = problem or merge_problem(cmds) or read_only_problem(cmds, cwd, agent_type)
     if problem:
         return problem
     switched, switched_to_main = False, False
@@ -212,14 +211,13 @@ def decide(cmd, cwd):
     return None
 
 
-def note(cmd, cwd):
-    """Advice that doesn't deny (no private list to check against, a long pull request title), or
-    None. Asked only when decide allows."""
+def note(cmd, cwd, payload):
+    """Each *_note's advice that doesn't deny, or None. Asked only when decide allows."""
     try:
         cmds = commands(cmd, cwd)
     except (Unbalanced, Unreadable, UnreadableStdin):
-        return None
-    notes = [n for n in (list_missing_note(cmds), pr_title_note(cmds)) if n]
+        return agent_type_note(payload)
+    notes = [n for n in (list_missing_note(cmds), pr_title_note(cmds), agent_type_note(payload)) if n]
     return "\n".join(notes) or None
 
 
@@ -230,8 +228,8 @@ def main():
         if isinstance(payload, dict):
             cmd = (payload.get("tool_input") or {}).get("command") or ""
             cwd = project_dir(payload.get("cwd"))
-            reason = decide(cmd, cwd)
-            advice = None if reason else note(cmd, cwd)
+            reason = decide(cmd, cwd, payload.get("agent_type"))
+            advice = None if reason else note(cmd, cwd, payload)
         else:
             reason = (f"The Bash guard couldn't read the hook payload (a JSON {type(payload).__name__}, "
                       "not an object), so nothing was checked.")

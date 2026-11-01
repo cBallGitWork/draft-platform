@@ -5,11 +5,11 @@ import { cardPoints, type CardPoints } from "../playerCard/cardPoints";
 import type { Position } from "../positions/positionTables";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { seasonRules } from "../rules/rulesHistory";
-import { siteScoringByGameweek } from "../scoring/siteScoring";
+import { siteScoringByGameweek } from "../scoring/siteVersions";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { fixtureByCode } from "../shared/fixtures";
 import { readOnce } from "../shared/readOnce";
-import { isWhole, PLAYER_RECORDS_MOST } from "../stats/matchRecords";
+import { isWhole, PLAYER_RECORDS_MOST, statsIfWhole } from "../stats/matchRecords";
+import { playerRecords, seasonRecordsOf, type SeasonRecord } from "../stats/seasonRecords";
 import { statusOf } from "../stats/matchStats";
 import { begunGameweeks, squadGameweek } from "./gameweekScores";
 import type { PlayerRows } from "./squadInputs";
@@ -33,9 +33,6 @@ import { leagueReads, slotInMatch, type TeamInGameweek } from "./teamGameweek";
 /** The most overrides of one player a league holds: one a match at most, so never more than his
  *  records. More throws, never a silent cut. */
 const PLAYER_OVERRIDES_MOST = PLAYER_RECORDS_MOST;
-
-/** One of his records this season, with its match and the gameweek it was played in. */
-export type SeasonRecord = { record: Doc<"playerMatchStats">; fixture: Doc<"fixtures">; gameweek: number };
 
 /** One of his matches as his team scored it. */
 export interface ScoredMatch extends SeasonRecord {
@@ -70,7 +67,7 @@ export async function scoredMatches(ctx: QueryCtx, league: Doc<"leagues">, teamI
         const team = teamGameweekOf === null ? null : await teamGameweekOf(held.gameweek);
         const fromTeam = team === null ? null : asScored(team, code, held.fixture.code);
         if (fromTeam?.counts) return { ...held, points: fromTeam.points, counted: fromTeam.counted, override, provisional: fromTeam.provisional };
-        const best = cardPoints(isWhole(held.record) ? held.record.stats : null, setIn(held.gameweek), positions);
+        const best = cardPoints(statsIfWhole(held.record), setIn(held.gameweek), positions);
         const points = { ...best, total: override?.points ?? best.total, ...(fromTeam === null ? {} : { scoredAs: "notCounted" as const }) };
         const provisional = fromTeam?.provisional ?? (!isWhole(held.record) || !isMatchFinal({ status: await statusOf(ctx, held.fixture.code) }));
         return { ...held, points, counted: false, override, provisional };
@@ -87,7 +84,7 @@ interface HeldRows {
 }
 
 async function heldRows(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<HeldRows> {
-  return { records: await recordsOf(ctx, playerCode), overrides: await overridesOf(ctx, leagueId, playerCode) };
+  return { records: await playerRecords(ctx, playerCode), overrides: await overridesOf(ctx, leagueId, playerCode) };
 }
 
 /** The team's scoring in each gameweek the league has begun, read once a gameweek; null for a
@@ -123,36 +120,6 @@ function asScored(scored: TeamInGameweek, playerCode: number, fixtureCode: numbe
   // A man's points are final once his matches lock (teamPoints.ts), but who counts only once every man's are.
   const { team } = scored;
   return { counts: slot.counts, counted: inMatch.counted, points, provisional: [...team.starters, ...team.bench].some((each) => each.provisional) };
-}
-
-/** His records, every season's. */
-function recordsOf(ctx: QueryCtx, playerCode: number): Promise<Doc<"playerMatchStats">[]> {
-  return takeAllOrThrow(
-    ctx.db.query("playerMatchStats").withIndex("by_playerCode", (q) => q.eq("playerCode", playerCode)),
-    PLAYER_RECORDS_MOST,
-    `More than ${PLAYER_RECORDS_MOST} match records are held for player ${playerCode}, so his season would be cut short`,
-  );
-}
-
-/** His records this season, for whichever club, each with its match: a match the feed still sends
- *  is this season's, and one with no gameweek is postponed with no new date, so not yet played. An
- *  unused substitute's match is left out, as one he wasn't named for is. */
-export async function seasonRecords(ctx: QueryCtx, playerCode: number): Promise<SeasonRecord[]> {
-  return seasonRecordsOf(ctx, playerCode, await recordsOf(ctx, playerCode));
-}
-
-async function seasonRecordsOf(ctx: QueryCtx, playerCode: number, records: readonly Doc<"playerMatchStats">[]): Promise<SeasonRecord[]> {
-  const withMatches = await Promise.all(
-    records
-      .filter((record) => record.played !== false)
-      .map(async (record) => {
-        const fixture = await fixtureByCode(ctx, record.fixtureCode);
-        // A record is filed only for a match the sync holds, so one missing is bad data.
-        if (fixture === null) throw new Error(`Player ${playerCode} has a record for match ${record.fixtureCode}, which isn't held`);
-        return fixture.droppedAt !== undefined || fixture.gameweek === null ? [] : [{ record, fixture, gameweek: fixture.gameweek }];
-      }),
-  );
-  return withMatches.flat();
 }
 
 /** The league's overrides of his points, by match: one a match at most, so never more than his

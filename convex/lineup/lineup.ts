@@ -6,7 +6,7 @@
 // as illegal. It is reported alone, so a caller can set it aside; the rule is #23's to keep.
 
 import { AREAS, cellKey, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
-import { offersRole } from "./roles";
+import { isRole, offersRole } from "./roles";
 import type { Position } from "../positions/positionTables";
 
 /** A football side's eleven: the product's rule, not a league's. */
@@ -21,7 +21,8 @@ export interface Placement {
   playerCode: PlayerCode;
   area: string;
   lane: string;
-  /** The role he plays there (roles.ts), or none yet: the slot's first. */
+  /** The role he plays there (roles.ts), or none yet: the slot's first, as for a role removed
+   *  from the set. */
   role?: string;
 }
 
@@ -88,7 +89,9 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
       problems.push({ kind: "noSuchCell", playerCode, area, lane });
       continue;
     }
-    if (role !== undefined && !offersRole({ area, lane }, role)) {
+    // A role no slot offers was removed from the set: he plays the slot's first and is never
+    // refused for it (spec/05 Roles; #841). One another slot offers is the manager's mistake.
+    if (role !== undefined && isRole(role) && !offersRole({ area, lane }, role)) {
       problems.push({ kind: "roleNotOffered", playerCode, area, lane, role });
     }
     const key = cellKey({ area, lane });

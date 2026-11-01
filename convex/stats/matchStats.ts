@@ -8,6 +8,8 @@ import { matchStatsState, matchStatsSyncFields, playerMatchRecord } from "../sch
 import { LATEST_RUNS } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { countedStats, moveSeasonTotals, type RecordChange } from "./seasonStats";
+import { repriceChanged } from "./seasonPointsQueue";
+import { rebuildTotalsIfNoneKept } from "./seasonRebuilds";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -76,6 +78,10 @@ export const lock = internalMutation({
     // Its gameweek may now be final in each league: stored apart, so a league that can't be scored
     // never undoes the lock (finalScores.ts, #418).
     await ctx.scheduler.runAfter(0, internal.table.finalScores.storeEveryLeague, {});
+    // And each team's season stats for the stat race (teamSeasonStats.ts, #800), the same way.
+    await ctx.scheduler.runAfter(0, internal.stats.teamSeasonStats.storeEveryLeague, {});
+    // Its players' stars, now it counts (stars/starsRefresh.ts, #11).
+    await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.refreshMatch, { fixtureCode });
     return null;
   },
 });
@@ -136,7 +142,7 @@ export function recordsOf(ctx: MutationCtx, fixtureCode: number) {
 }
 
 /** Each record as sent, in the match's state: a new man inserted, a changed one replaced whole,
- *  and his season totals moved with it. `changed` names every man inserted or updated. */
+ *  his season totals and season points moved with it. `changed` names every man inserted or updated. */
 export async function writeRecords(
   ctx: MutationCtx,
   records: PlayerMatchRecord[],
@@ -162,7 +168,11 @@ export async function writeRecords(
     }
     if (differs || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state });
   }
+  // Before any totals move, as their rows would hide a deployment whose older records have none.
+  // Its rebuild sets every total afresh and then re-prices every season, so nobody is re-priced here.
+  const rebuilding = records.length > 0 && (await rebuildTotalsIfNoneKept(ctx, records[0].fixtureCode));
   await moveSeasonTotals(ctx, moved);
+  if (!rebuilding) await repriceChanged(ctx, records, held);
   return { inserted, updated: changed.length - inserted, changed };
 }
 

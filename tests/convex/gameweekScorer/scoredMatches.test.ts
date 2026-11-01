@@ -21,16 +21,15 @@ import {
   HULL_SCORER,
   HULL_STARTERS,
   PHILLIPS,
-  fullTimeRecords,
   holdHullAndEverton,
-  liveRecords,
-  lockMatch,
   readTable,
   scoresLeague,
   type ScoresLeague,
   BOBS_FIRST_POINTS,
+  EVERTON_BENCH_CENTRE_BACK,
   GREALISH,
 } from "../../support/convex/gameweekScores.harness";
+import { fullTimeRecords, liveRecords, lockMatch } from "../../support/convex/gameweekScoresMatch.harness";
 
 // A player's matches as his team scored them (#577; spec/12, Squad): the Squad tab reads them from
 // teamInGameweek, auto-subs and overrides included, so the points a team's players are credited
@@ -79,7 +78,7 @@ type Scored = { fixtureCode: number; points: CardPoints; provisional: boolean };
 async function scoredBy(league: ScoresLeague, teamId: Id<"teams">, men: readonly number[]): Promise<Map<number, Scored[]>> {
   const rows = await league.t.run(async (ctx) => {
     const held = (await ctx.db.get("leagues", league.leagueId))!;
-    const positionsOf = await positionsNow(ctx);
+    const positionsOf = await positionsNow(ctx, league.leagueId);
     const { of } = await scoredMatches(ctx, held, teamId);
     const each = [];
     for (const code of men) {
@@ -175,7 +174,7 @@ test("the league's override of a sub's points counts on his card as in the table
   expect(cards.get(ON_IN_HIS_OWN_AREA)![0].points).toMatchObject({ scoredAs: "slot", total: OVERRIDDEN });
 });
 
-test("a team that never saved a lineup scores its men from its first (#637): its keeper in his slot, its benched fifth midfielder not counted", async () => {
+test("a team that never saved a lineup scores its men from its first (#637, #836): its keeper and fifth defender in their slots, its benched fifth midfielder not counted", async () => {
   const league = await annsLeague({ bobSaves: false });
   await fullTimeRecords(league);
   const [{ playerCode: evertonKeeper }] = EVERTON_STARTERS;
@@ -183,6 +182,7 @@ test("a team that never saved a lineup scores its men from its first (#637): its
   const bobs = (await readTable(league))!.results.find((each) => each.gameweek === GAMEWEEK)!.teams.find((team) => team.teamId === league.bobsTeam)!;
   expect(bobs).toMatchObject({ points: BOBS_FIRST_POINTS, noLineup: false });
   expect((await cardOf(evertonKeeper)).matches[0].points.scoredAs).toBe("slot");
+  expect((await cardOf(EVERTON_BENCH_CENTRE_BACK)).matches[0].points.scoredAs).toBe("slot");
   expect((await cardOf(GREALISH)).matches[0].points.scoredAs).toBe("notCounted");
 });
 

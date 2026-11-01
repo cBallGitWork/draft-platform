@@ -17,7 +17,7 @@ Our league moves to it from Fantrax; the companion app lives in `cBallGitWork/ep
 - Persist FPL's season-stable `code`, never the per-season `id`.
 - Football-layer code is copied from epl-draft's `packages/core` when it's needed, not shared.
 - The stack is in `ARCHITECTURE.md`: Craig picks services, Claude picks libraries, both with a reason.
-- Before drawing any screen, read `docs/design/plate.md`. `docs/design/references/` is background, never the product.
+- Before drawing any screen, read `docs/design/plate.md`. A screen's approved picture in `docs/design/approved/<screen>/` binds its layout: build to it, and a look call the picture doesn't settle stops for Craig. A screen with none gets one, drawn by Claude through `/design` and approved by Craig, before its layout changes. Pictures are 1440 wide; the phone's waits until Craig asks (1 Nov 2026: "focus on desktop for now, mobile can wait"). `docs/design/references/` (FM, CM) is background, never the product.
 
 ## Working
 
@@ -28,5 +28,6 @@ Our league moves to it from Fantrax; the companion app lives in `cBallGitWork/ep
 - Before adding a helper, read, hook, words or test fixture, search for its home and reuse it. A new file goes where `ARCHITECTURE.md` "Where code lives" and its rules say. Builders running at the same time work in different folders.
 - Where a spec file is silent, ask Craig: never build on a guessed rule, and never offer a rule only the code holds as a grill recommendation.
 - Before a pull request opens, run the `pr-reviewer` agent on the branch and paste its verdict into the template. A merge or restack after the review that changes behaviour gets a second `pr-reviewer` round. A docs-only PR that only quotes Craig's answers may skip `pr-reviewer`, and says so in its Checks.
+- A pull request that changes a screen with an approved picture shows approved and built side by side, every difference numbered (the `ui-verifier` agent). With none it merges like any other; with any, it waits for Craig's yes. Pictures are drawn and approved only in a session Craig is watching.
 - A doc over 100 lines opens with a contents list.
 - Add a rule here only after Claude gets something wrong, and add a hook rather than a rule where possible. `/retro` before clearing the chat finds those moments; `/wait-what` re-says a reply that didn't land.

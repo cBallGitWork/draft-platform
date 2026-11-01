@@ -33,6 +33,9 @@ const GATES = {
   member: { signedOut: refusals.signedOut, outsider: refusals.notInLeague },
   /** Whoever manages a team in the league, for their own team. */
   manager: { signedOut: refusals.signedOut, outsider: refusals.runsNoTeam },
+  /** The same, but anyone else is answered with nothing rather than refused: the top bar asks it
+   *  on every page, and a frame read that throws takes the app down. */
+  managerOrNothing: { signedOut: ANSWERS_NOTHING, outsider: ANSWERS_NOTHING },
   /** The team's own manager, or the admin. */
   teamsManager: { signedOut: refusals.signedOut, outsider: refusals.notManager },
   /** The commissioner, the co-commissioner or the admin. */
@@ -91,6 +94,8 @@ const gates: Record<string, Gate> = {
   "leagues/teams:leave": "manager",
   "leagues/teams:removeManager": "runner",
   "leagues/teams:rename": "teamsManager",
+  "lineup/lineupDue:isDue": "managerOrNothing",
+  "lineup/lineupDue:openedTactics": "manager",
   "lineup/lineups:save": "manager",
   "lineup/tactics:ofMyTeam": "manager",
   "mail/mail:letters": "signedInOrNothing",
@@ -125,6 +130,7 @@ const gates: Record<string, Gate> = {
   "scouting/shortlist:add": "member",
   "scouting/shortlist:mine": "member",
   "scouting/shortlist:remove": "member",
+  "scouting/statRace:teams": "member",
   "signIn/account:signedInAs": "signedInOrNothing",
   "signIn/signInLinks:ask": "open",
   "signIn/timeZone:recordZone": "signedIn",
@@ -136,6 +142,8 @@ const gates: Record<string, Gate> = {
   "squads/squads:squads": "member",
   "squads/teamSquad:ofMyTeam": "manager",
   "squads/teamTransactions:ofMyTeam": "manager",
+  "stars/playerStars:ofPlayer": "member",
+  "stars/playerStars:ofPlayers": "member",
   "table/leagueTable:ofLeague": "member",
   "table/pointsOverrides:override": "runner",
   "table/teamFixtures:ofMyTeam": "manager",
@@ -197,6 +205,8 @@ beforeEach(async () => {
       "leagues/leagueDeletion:undo": () => caller.mutation(api.leagues.leagueDeletion.undo, { leagueId: beingDeleted }),
       "leagues/leagues:create": () =>
         caller.mutation(api.leagues.leagues.create, { name: "Another league", maxTeams: 4, commissionerEmail: COMMISSIONER }),
+      // Its nothing is "not due", so false is read as nothing here alone.
+      "lineup/lineupDue:isDue": async () => (await caller.query(api.lineup.lineupDue.isDue, { leagueId, now })) || null,
       "lineup/tactics:ofMyTeam": () => caller.query(api.lineup.tactics.ofMyTeam, { leagueId, now }),
       "mail/mail:letters": () => caller.query(api.mail.mail.letters, {}),
       "mail/mail:open": () => caller.mutation(api.mail.mail.open, { letterId: annsLetter._id }),
@@ -235,6 +245,7 @@ beforeEach(async () => {
           stat: null,
         }),
       "scouting/shortlist:mine": () => caller.query(api.scouting.shortlist.mine, { leagueId }),
+      "scouting/statRace:teams": () => caller.query(api.scouting.statRace.teams, { leagueId, stat: "goals_scored", descending: true }),
       "signIn/account:signedInAs": () => caller.query(api.signIn.account.signedInAs, {}),
       "signIn/signInLinks:ask": () => caller.action(api.signIn.signInLinks.ask, { email: OUTSIDER }),
       "signIn/timeZone:recordZone": () => caller.mutation(api.signIn.timeZone.recordZone, { zone: LONDON_ZONE }),
@@ -242,6 +253,8 @@ beforeEach(async () => {
       "squads/squads:squads": () => caller.query(api.squads.squads.squads, { leagueId }),
       "squads/teamSquad:ofMyTeam": () => caller.query(api.squads.teamSquad.ofMyTeam, { leagueId, now }),
       "squads/teamTransactions:ofMyTeam": () => caller.query(api.squads.teamTransactions.ofMyTeam, { leagueId }),
+      "stars/playerStars:ofPlayer": () => caller.query(api.stars.playerStars.ofPlayer, { leagueId, playerCode: SOME_CODE }),
+      "stars/playerStars:ofPlayers": () => caller.query(api.stars.playerStars.ofPlayers, { leagueId, playerCodes: [SOME_CODE] }),
       "table/leagueTable:ofLeague": () => caller.query(api.table.leagueTable.ofLeague, { leagueId }),
       "table/teamFixtures:ofMyTeam": () => caller.query(api.table.teamFixtures.ofMyTeam, { leagueId }),
     };

@@ -1,7 +1,7 @@
 // Shoots one route of the running app at the phone's width and the desk's, into the checkout's
 // .shots/ (printing each shot's absolute path), and says what a picture can't: whether the page
-// scrolls sideways, and which taps are under the tap size at 390 (`--spacing-tap`, read from the
-// page; plate.md, The phone). The ui-verifier agent's camera.
+// scrolls sideways, and which taps are under the tap size at 390 (scripts/tap-targets.mjs, the
+// smoke run's check too). The ui-verifier agent's camera.
 //
 // Usage: node scripts/shoot.mjs <route> [name]
 //   node scripts/shoot.mjs / sign-in
@@ -13,9 +13,10 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 import { appPort, localUrl } from "./port.mjs";
+import { tapsUnderTapSize } from "./tap-targets.mjs";
+import { DESK, PHONE } from "./viewports.mjs";
 
-const PHONE = { width: 390, height: 844 };
-const WIDTHS = [PHONE, { width: 1440, height: 900 }];
+const WIDTHS = [PHONE, DESK];
 const SHOTS_DIR = fileURLToPath(new URL("../.shots/", import.meta.url));
 
 const [route, name = "shot"] = process.argv.slice(2);
@@ -35,19 +36,11 @@ try {
     await page.evaluate(() => document.fonts.ready);
     const path = join(SHOTS_DIR, `${name}-${viewport.width}.png`);
     await page.screenshot({ path, fullPage: true });
-    const report = await page.evaluate(() => {
-      const tapToken = getComputedStyle(document.documentElement).getPropertyValue("--spacing-tap").trim();
-      if (!/^\d+px$/.test(tapToken)) throw new Error(`--spacing-tap (src/styles.css) is "${tapToken}", not a size in px`);
-      const tapSize = parseInt(tapToken, 10);
-      const small = [...document.querySelectorAll("a, button, input, select, textarea")]
-        .map((el) => ({ el, height: Math.round(el.getBoundingClientRect().height) }))
-        .filter(({ height }) => height > 0 && height < tapSize)
-        .map(({ el, height }) => `${el.getAttribute("aria-label") ?? el.textContent?.trim()} (${height}px)`);
-      return { tapSize, landedOn: location.pathname, scrollsSideways: document.documentElement.scrollWidth > innerWidth, small };
-    });
+    const { tapSize, small } = await page.evaluate(tapsUnderTapSize);
+    const report = await page.evaluate(() => ({ landedOn: location.pathname, scrollsSideways: document.documentElement.scrollWidth > innerWidth }));
     console.log(
       `${path}: landed on ${report.landedOn}; ${report.scrollsSideways ? "SCROLLS SIDEWAYS" : "no sideways scroll"}` +
-        (viewport === PHONE ? `; taps under ${report.tapSize}px: ${report.small.join(", ") || "none"}` : ""),
+        (viewport === PHONE ? `; taps under ${tapSize}px: ${small.join(", ") || "none"}` : ""),
     );
     await page.close();
   }

@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { internalQuery, type QueryCtx } from "../_generated/server";
 import { matchStatsState } from "../schema";
-import { HOUR_MS, JULY, MINUTE_MS, seasonStartYear, WEEK_MS } from "../shared/time";
+import { DAY_MS, HOUR_MS, JULY, MINUTE_MS, seasonStartYear, WEEK_MS } from "../shared/time";
 import { CURRENT_FIXTURES_MOST, currentFixtures, fixtureByCode } from "../shared/fixtures";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { dueMatch, type DueMatch } from "../shared/dueMatches";
@@ -17,7 +17,7 @@ type State = Infer<typeof matchStatsState>;
 const EARLIEST_FULL_TIME_MS = 105 * MINUTE_MS;
 /** How long a locked match is still read, to catch a late correction for the feeds page, and how
  *  often: Claude's choice, not yet Craig's, and no late correction has been recorded to size it. */
-export const LATE_CORRECTION_WATCH_MS = 24 * HOUR_MS;
+export const LATE_CORRECTION_WATCH_MS = DAY_MS;
 export const LATE_READ_EVERY_MS = HOUR_MS;
 /** Matches per run: a gameweek's worth, so a first run behind many keeps inside an action's time. */
 export const MATCHES_PER_RUN = 10;

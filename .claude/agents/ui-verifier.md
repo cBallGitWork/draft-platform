@@ -50,26 +50,47 @@ never enough.
 - A page that reloads after a file change loses `?preview` and lands on `/sign-in`; the script's
   "landed on" says so. Shoot it again; if it lands there twice, that is the finding.
 
+**2b. A screen with an approved picture.** If a folder in `docs/design/approved/` has a README whose
+`Route:` line names a route you shot, open its `1440.png` and its README, and compare it with your
+1440 shot; where the folder has a `390.png`, compare that with your 390 shot too. Pictures are
+desktop first (Craig, 1 Nov 2026: "focus on desktop for now, mobile can wait"), so a folder
+without `390.png` is no finding: the 390 shot is still read under step 3, for sideways scroll,
+clipping and small taps. List every difference, numbered, under Structure
+(what sits where), Columns (which, in what order), Density (row height, gaps), Type, Colour and
+Missing (a placeholder or control the picture has and the build doesn't, or the other way round).
+Differences in the made-up figures themselves don't count. No difference is a finding too: say
+"matches the approved picture".
+
 **3. Read every PNG.** Then say, per image, what is in it, against `docs/design/plate.md`:
 
 - Overflow, clipping, a page that scrolls sideways at 390.
-- Colour roles: the top bar royal blue and the title plates indigo; the page neutral dark under its
+- Colour roles: the top bar royal blue; the title plates, date blocks and controls indigo; the page neutral dark under its
   drawn grain and top glow (never a photograph, never slate or indigo), the panels see-through over it;
   yellow only on a figure, never a button or a tab; Continue white (orange only when
-  the deadline is near; outlined "Nothing needs you" with nothing to do); the active tab white with
+  the deadline is near; outlined "Nothing needs you" with nothing to do); the yes on a confirm that
+  deletes or removes is the danger action, orange-edged with orange ink on a dark fill, never
+  Continue's white and never filled orange; the active tab white with
   a cyan underline; orange for what happened or needs you; muted grey never on the top bar;
   cyan only on a derived reading (a countdown, a preset's name), the active tab's underline, the
   current one of a list's left bar, a link's underline under the pointer or with focus (no underline
-  at rest) and the focus outline; the role
-  under a pitch name in role text (`#caced4`) on its near-black name plate. plate.md's colour
-  table and its Marks are the whole list.
+  at rest, except a bare link inside running text, which keeps a 1px white one; none yet) and the
+  focus outline; the role
+  under a pitch name in role text (`#caced4`) on its near-black name plate; a role's run 2px dashed white with a solid
+  arrowhead, under the names; a placeholder a 1px muted outline with nothing in it, not a stray
+  border; a player's status a chip (red cross, yellow card, red card, orange knock). plate.md's
+  colour table, its Marks and its Tables and panels are the whole list.
 - Archivo Narrow for data; the heavy wide Archivo only on page titles and team names; figures in
   tabular numerals.
 - Radius 0; the 2px bevel on the top bar and each title plate; tabs butted with 1px rules.
 - Panels 8px apart, aligned to the top, none stretched empty.
+- Rows: a table's rows are 28px on the desk and 44px on the phone wherever a row is tapped, but only
+  on a screen rebuilt to its approved picture; the other built tables still draw 20px and pass.
+- A placeholder (data not held yet) is a 1px muted (`#a1a5ab`) outline in the real cell's place
+  and size, never a made-up figure and never a dropped column.
 - Controls (plate.md, Controls): a tick box is a dark sunken well with a soft rim and a white drawn
   tick, never the browser's own; the chosen key is pressed in (dark, white 600), the others the
-  plate; Save is outlined grey with nothing to save, Discard the plate's secondary beside it.
+  plate; on the rules screens Save is outlined grey with nothing to save, Discard the plate's
+  secondary beside it; Tactics' Undo is the secondary action, outlined grey with nothing to undo.
 - The "Never" list, every item.
 
 ## Output

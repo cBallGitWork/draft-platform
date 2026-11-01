@@ -1,7 +1,8 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { HOUR_MS, seasonStartYear } from "../../../convex/shared/time";
-import { countedStats, REBUILD_PAGE } from "../../../convex/stats/seasonStats";
+import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
+import { countedStats } from "../../../convex/stats/seasonStats";
 import { addStats, sumStats } from "../../../convex/stats/statTotals";
 import { FULL_TIME_READ, GAMEWEEK, KICKOFF, heldMatch, syncAt, withBelloumiGoalRemoved, withHullEverton, withPlReadEmpty } from "../../support/convex/matchStats.harness";
 import type { TestConvex } from "../../support/convex/test.harness";
@@ -118,7 +119,7 @@ test("rebuild sets every player's totals to his records added up, however wrong 
   const right = await totalsHeld(t);
   const codes = [...right.keys()];
   // More than a page's worth, so the rebuild runs on to the next.
-  expect(codes.length).toBeGreaterThan(REBUILD_PAGE);
+  expect(codes.length).toBeGreaterThan(PLAYERS_PAGE);
   await t.run(async (ctx) => {
     // The football sync's players, so the rebuild has someone to page through; one row wrong and one gone.
     for (const code of codes) await ctx.db.insert("players", { code, name: `P${code}`, fullName: `Player ${code}`, clubCode: 1 });

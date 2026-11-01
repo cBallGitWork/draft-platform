@@ -3,24 +3,23 @@
 // edge read on the shirt and on the grass.
 
 import { describe, expect, it } from "vitest";
-import { CLUB_COLOURS, contrast, INKS } from "../../../../convex/football/clubColours";
-import stylesCss from "../../../../src/styles.css?raw";
-import { ARSENAL } from "../../../support/convex/footballRows.harness";
-import { blockOf, openedPitch, RAYA, SALIBA } from "../../../support/src/tacticsScreen.harness";
+import { CLUB_COLOURS, contrast, INKS } from "../../../../../convex/football/clubColours";
+import { ARSENAL } from "../../../../support/convex/footballRows.harness";
+import { colorToken } from "../../../../support/src/colorTokens";
+import { blockOf, openedPitch, RAYA, SALIBA } from "../../../../support/src/tacticsScreen.harness";
 
 /** WCAG 2.2 AA: a shirt's edge on the grass is a shape, 3:1. */
 const SHAPE_CONTRAST = 3;
 
-const token = (name: string) => stylesCss.match(new RegExp(`--color-${name}:\\s*(#[0-9a-fA-F]{6})\\s*;`))![1];
 const shirtOf = (block: HTMLElement) => block.querySelector("svg")!;
 
 describe("the shirts", () => {
   it("inks a number and an edge only in the page's ground and fact colours", () => {
-    expect(INKS).toEqual({ dark: token("ground"), light: token("fact") });
+    expect(INKS).toEqual({ dark: colorToken("ground"), light: colorToken("fact") });
   });
 
   it("gives every shirt an edge that stands out on both stripes of the grass", () => {
-    for (const stripe of [token("pitch"), token("pitch-stripe")]) {
+    for (const stripe of [colorToken("pitch"), colorToken("pitch-stripe")]) {
       for (const ink of Object.values(INKS)) expect(contrast(ink, stripe)).toBeGreaterThanOrEqual(SHAPE_CONTRAST);
     }
   });

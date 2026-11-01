@@ -64,7 +64,8 @@ const starter = slot.extend({ role });
 export type MatchupStarter = Infer<typeof starter>;
 
 /** A bench player: a slot, and once he has come on the role he plays (spec/05 Auto-subs): the
- *  empty slot's, or in his own area his new slot's first until stars (#11). Null until then. */
+ *  empty slot's, or in his own area his new slot's first, as stars (#11) aren't yet wired into
+ *  auto-subs. Null until then. */
 const benchSlot = slot.extend({ role: v.union(role, v.null()) });
 export type MatchupBenchSlot = Infer<typeof benchSlot>;
 

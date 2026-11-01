@@ -2570,6 +2570,173 @@
       }
     },
     {
+      "tableName": "playerSeasonPoints",
+      "indexes": [
+        {
+          "indexDescriptor": "by_season_and_playerCode",
+          "fields": [
+            "season",
+            "playerCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "season": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "playerCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "points": {
+            "fieldType": {
+              "type": "record",
+              "keys": {
+                "type": "string"
+              },
+              "values": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              }
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "teamGameweekStats",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_gameweek_and_teamId",
+          "fields": [
+            "leagueId",
+            "gameweek",
+            "teamId"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "gameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "fixtureCodes": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "number"
+              }
+            },
+            "optional": false
+          },
+          "stats": {
+            "fieldType": {
+              "type": "record",
+              "keys": {
+                "type": "string"
+              },
+              "values": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              }
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "teamSeasonStats",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_teamId",
+          "fields": [
+            "leagueId",
+            "teamId"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "stats": {
+            "fieldType": {
+              "type": "record",
+              "keys": {
+                "type": "string"
+              },
+              "values": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              }
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "matchStatsTries",
       "indexes": [
         {
@@ -3629,6 +3796,10 @@
                 {
                   "type": "literal",
                   "value": "thresholdSteps"
+                },
+                {
+                  "type": "literal",
+                  "value": "skippedLeague"
                 }
               ]
             },
@@ -3880,6 +4051,12 @@
           "managerEmail": {
             "fieldType": {
               "type": "string"
+            },
+            "optional": true
+          },
+          "tacticsOpenedInGameweek": {
+            "fieldType": {
+              "type": "number"
             },
             "optional": true
           }
@@ -20520,6 +20697,53 @@
       }
     },
     {
+      "tableName": "keptDeadlines",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_gameweek",
+          "fields": [
+            "leagueId",
+            "gameweek"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "gameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "deadline": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "keptAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "gameweekStarts",
       "indexes": [
         {
@@ -20936,6 +21160,113 @@
               "value": true
             },
             "optional": true
+          }
+        }
+      }
+    },
+    {
+      "tableName": "playerRoleStars",
+      "indexes": [
+        {
+          "indexDescriptor": "by_playerCode",
+          "fields": [
+            "playerCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "playerCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "matches": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "ratings": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "area": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "goalkeeper"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "defence"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "defensiveMidfield"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "midfield"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "attackingMidfield"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "attack"
+                        }
+                      ]
+                    },
+                    "optional": false
+                  },
+                  "role": {
+                    "fieldType": {
+                      "type": "string"
+                    },
+                    "optional": false
+                  },
+                  "stars": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "unsure"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "none"
+                        }
+                      ]
+                    },
+                    "optional": false
+                  },
+                  "perMatch": {
+                    "fieldType": {
+                      "type": "number"
+                    },
+                    "optional": false
+                  }
+                }
+              }
+            },
+            "optional": false
           }
         }
       }

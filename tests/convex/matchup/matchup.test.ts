@@ -1,6 +1,7 @@
 import { expect, test, vi } from "vitest";
 import { inTenths } from "../../../convex/scoring/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
+import { unheldPlayerWords } from "../../../convex/shared/players";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import {
   ANN,
@@ -11,9 +12,7 @@ import {
   CAT,
   EVERTON_POINTS,
   EVERTON_STARTERS,
-  fullTimeRecords,
   GAMEWEEK,
-  holdTypoRule,
   HULL_AFTER_SUB,
   HULL_POINTS,
   HULL_KEEPER,
@@ -21,23 +20,19 @@ import {
   HULL_STARTERS,
   LEAGUE_KICKOFF,
   lineupOf,
-  liveRecords,
-  lockMatch,
   matchupAs,
   nameOf,
   PHILLIPS,
   readTable,
-  scoreRead,
   scoresLeague,
   sideTotal,
+  losePlayer,
   slotOf,
-  storeLeague,
-  TYPO_STAT,
   BOBS_FIRST_POINTS,
   GREALISH,
-  WRITTEN_OVER,
-  writeOverAnns,
 } from "../../support/convex/gameweekScores.harness";
+import { fullTimeRecords, liveRecords, lockMatch, scoreRead, storeLeague, WRITTEN_OVER, writeOverAnns } from "../../support/convex/gameweekScoresMatch.harness";
+import { holdTypoRule, TYPO_STAT } from "../../support/convex/gameweekScoresFixes.harness";
 import { ADMIN, adminCreatesLeague } from "../../support/convex/leagues.harness";
 import { HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
@@ -190,14 +185,14 @@ test("anyone in the league sees another team's matchup once the gameweek has beg
   expect(read?.kind === "headToHead" && read.game.kind === "scored" && lineupOf(read.game.opponent).starters).toHaveLength(EVERTON_STARTERS.length);
 });
 
-test("a side that never saved a lineup shows its first and scores from it (#637)", async () => {
+test("a side that never saved a lineup shows its first and scores from it (#637, #836)", async () => {
   const league = await scoresLeague({ bobSaves: false });
   await fullTimeRecords(league);
   await lockMatch(league);
   const bob = (await annsScoredGame(league, GAMEWEEK)).opponent;
   expect(bob).toMatchObject({ kind: "team", teamId: league.bobsTeam, teamName: BOBS_TEAM, points: BOBS_FIRST_POINTS, provisional: false });
-  // The 4-4-1 his squad fills, Grealish first on the bench.
-  expect(lineupOf(bob).starters).toHaveLength(EVERTON_STARTERS.length - 1);
+  // The 5-4-1 his squad fills where the 4-4-2 leaves a slot empty, Grealish first on the bench.
+  expect(lineupOf(bob).starters).toHaveLength(EVERTON_STARTERS.length);
   expect(lineupOf(bob).bench[0]).toMatchObject({ playerCode: GREALISH, counts: false });
 });
 
@@ -227,17 +222,12 @@ test("a gameweek that can't be scored says why, and logs it", async () => {
   expect(logged).toHaveBeenCalledWith(expect.stringContaining(`can't score ${ANNS_TEAM}'s matchup in gameweek ${GAMEWEEK}`));
 });
 
-test("a lineup player the football sync no longer holds leaves the matchup unscored, saying who", async () => {
+test("a lineup player the football sync no longer holds is scored as if he didn't play, his name the error saying so (#810)", async () => {
   const league = await scoresLeague();
-  await league.t.run(async (ctx) => {
-    const player = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", HULL_SCORER)).unique();
-    await ctx.db.delete("players", player!._id);
-  });
-  const logged = silenceConsoleError();
-  expect(await matchupAs(league, ANN, { gameweek: GAMEWEEK })).toMatchObject({
-    game: { kind: "unscored", reason: expect.stringContaining(`player ${HULL_SCORER} is in a lineup but the football sync doesn't hold him`) },
-  });
-  expect(logged).toHaveBeenCalled();
+  await losePlayer(league, HULL_SCORER);
+  // Before kickoff: he has no match, so he is subbed at once, as a man with none in a blank gameweek is.
+  const game = await annsScoredGame(league, GAMEWEEK);
+  expect(slotOf(game.team, HULL_SCORER)).toMatchObject({ name: unheldPlayerWords(HULL_SCORER), points: 0, counts: false, autoSub: { kind: "off" } });
 });
 
 test("a stored fixture naming a team gone from the league throws, naming it", async () => {

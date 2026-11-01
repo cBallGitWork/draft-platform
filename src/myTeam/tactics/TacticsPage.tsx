@@ -3,27 +3,24 @@ import { STARTER_COUNT } from "../../../convex/lineup/lineup";
 import type { Cell } from "../../../convex/lineup/pitch";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { ESCAPE_KEY, KEY_DOWN } from "../../shared/browserEvents";
-import { Loading, Notice, PageSection, Panel, PanelNote, Problem, Status } from "../../ui/Panel";
+import { Loading, Notice, PageSection, Panel, PanelNote } from "../../ui/Panel";
 import { useChange } from "../../shared/useChange";
 import { useMinute } from "../../shared/useMinute";
+import { unheldNoticeWords } from "../../shared/words";
 import { markedBy } from "./focusMarks";
-import { benched, benchedAt, openingLineup, placed, reshaped, sameLineup, shownLineup, withRole, type DraftLineup } from "./lineupDraft";
-import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./Pitch";
+import { benched, benchedAt, movedTo, openingLineup, reachOf, reshaped, sameLineup, shownLineup, swapped, withRole, type DraftLineup, type MoveRules, type RatingsOf } from "./lineupDraft";
+import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./pitch/Pitch";
 import { SquadTable } from "./SquadTable";
+import { PresetPicker, RunsSwitch, UndoBar } from "./TacticsControls";
 import type { MyTeamSeam } from "../seam";
 import type { OpenTactics } from "./seam";
 import {
   countdownWords,
-  discardWords,
   joinedBenchWords,
   locksWords,
   movingHintWords,
-  pickPresetWords,
-  presetLabel,
   noDeadlineWords,
   pickHintWords,
-  saveWords,
-  savedWords,
   seasonOverWords,
   SQUAD_PANEL_TITLE,
   startingWords,
@@ -35,12 +32,13 @@ import { noTeamWords } from "../words";
 
 /** The key that puts a picked-up player back. */
 const PUT_BACK_KEY = ESCAPE_KEY;
-const PRESET_ID = "tactics-preset";
 
 /** My team's Tactics tab (#14; spec/12, My team; spec/05): the pitch where the manager sets the
  *  lineup for the next gameweek not begun and each starter's role, the squad beside it with the
- *  bench in order, and the countdown to the deadline. Stars (#11) and Mail down the side are not
- *  here yet. */
+ *  bench in order, and the countdown to the deadline. Each move saves itself, and Undo walks back
+ *  through every move since the tab was opened (spec/05, Moving players; #851). A player dropped
+ *  into a slot starts on his best-star role (#11); his stars aren't shown yet, nor is Mail down the
+ *  side. */
 export function TacticsPage({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }) {
   if (league.teamName === null) {
     return (
@@ -55,6 +53,7 @@ export function TacticsPage({ league, seam }: { league: LeagueSummary; seam: MyT
 function TacticsBody({ league, teamName, seam }: { league: LeagueSummary; teamName: string; seam: MyTeamSeam }) {
   const now = useMinute();
   const tactics = seam.useTactics(league.leagueId, now);
+  seam.useTacticsOpened(league.leagueId, tactics?.kind === "open" ? tactics.gameweek : null);
   const note = (words: string) => (
     <PageSection title={teamName} className="bg-panel">
       {tactics === undefined ? <Loading className="px-3 py-2">{words}</Loading> : <PanelNote>{words}</PanelNote>}
@@ -84,21 +83,32 @@ function Deadline({ tactics: { gameweek, deadline }, now }: { tactics: OpenTacti
 function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactics: OpenTactics; seam: MyTeamSeam }) {
   const squad = useMemo(() => new Map(tactics.squad.map((member) => [member.playerCode, member])), [tactics.squad]);
   const opening = useMemo(() => openingLineup(tactics), [tactics]);
-  // The manager's edit; it stays after a save until the held lineup catches up with it, so the
-  // pitch never shows the old one in between.
+  // The manager's last move; it stays after it is saved, so the pitch never shows the lineup held
+  // before the server catches up with it.
   const [edited, setEdited] = useState<DraftLineup | null>(null);
+  // Each lineup a move left behind, newest last, since the tab was opened: what Undo goes back to.
+  // A save doesn't clear it (spec/05: "save doesn't mean we leave the page").
+  const [undoable, setUndoable] = useState<readonly DraftLineup[]>([]);
   const [pickedCode, setPickedCode] = useState<number | null>(null);
   // The preset last picked, whose empty slots the pitch marks; none until one is.
   const [shape, setShape] = useState<string>("");
+  // The desk's switch for the roles' runs, on until it is turned off (spec/05 Runs).
+  const [runsShown, setRunsShown] = useState(true);
   const [savedFrom, setSavedFrom] = useState<number | null>(null);
-  // The lineup a save waiting on the server sent. An edit or Discard forgets it, so the answer that
-  // lands after one, about a lineup no longer on the pitch, says nothing (#642).
+  // The lineup the save last sent. A save sent after it forgets it, so the answer that lands after
+  // one, about a lineup no longer on the pitch, says nothing (#642).
   const sent = useRef<DraftLineup | null>(null);
-  const { busy: saving, problem, run, clear } = useChange();
+  const { problem, run, clear } = useChange();
   const changes = seam.useLineupChanges();
   const draft = useMemo(() => shownLineup(edited, opening, tactics.squad.map(({ playerCode }) => playerCode)), [edited, opening, tactics.squad]);
-  const unchanged = sameLineup(draft, opening);
   const picked = pickedCode === null ? null : (squad.get(pickedCode) ?? null);
+  const rules: MoveRules = useMemo(
+    () => ({ areaLimits: tactics.areaLimits, positionsOf: (playerCode: number) => squad.get(playerCode)?.positions ?? [] }),
+    [tactics.areaLimits, squad],
+  );
+  /** Each squad player's stars, which pick the role he starts on when dropped into a slot (#11). */
+  const ratingsOf: RatingsOf = (playerCode) => squad.get(playerCode)?.stars ?? [];
+  const reach = useMemo(() => (picked === null ? null : reachOf(draft, picked.playerCode, rules)), [draft, picked, rules]);
 
   // After a move, the moved player keeps the focus, wherever he now stands.
   const root = useRef<HTMLDivElement>(null);
@@ -120,24 +130,62 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     return () => document.removeEventListener(KEY_DOWN, putBack);
   }, [pickedCode]);
 
-  /** Any edit: the lineup the saved line or the refusal spoke of no longer stands, so both go (#622). */
-  const edit = (next: DraftLineup) => {
+  // The gameweek is the server's: a save sent just after the deadline is from the one after. A
+  // lineup that can't stand yet, ten starting say, is refused in the server's words and kept.
+  const save = async (lineup: DraftLineup) => {
+    sent.current = lineup;
+    const movedSince = () => sent.current !== lineup;
+    let from: number | null = null;
+    const made = await run(async () => {
+      const answer = await changes.save(league.leagueId, lineup);
+      // run says a refusal itself, so one of a lineup moved since is withheld here; a save, below.
+      if (typeof answer === "string") return movedSince() ? null : answer;
+      from = answer;
+      return null;
+    });
+    if (movedSince()) return;
+    // A refusal leaves no saved line; a save says its gameweek.
+    setSavedFrom(made ? from : null);
+    // Saved, the lineup stands as it is: the shape's slots are no longer asked for.
+    if (made) setShape("");
+  };
+  /** The lineup shown from now on, saved as it is: the saved line or refusal of the one before no
+   *  longer stands, so both go (#622). */
+  const show = (next: DraftLineup) => {
     setEdited(next);
     setPickedCode(null);
     setSavedFrom(null);
-    sent.current = null;
     clear();
+    void save(next);
+  };
+  /** Any move that changes the lineup, which Undo can take back. */
+  const edit = (next: DraftLineup) => {
+    setPickedCode(null);
+    if (sameLineup(next, draft)) return;
+    setUndoable((before) => [...before, draft]);
+    show(next);
   };
   const change = (next: DraftLineup, moved: number, focus: readonly string[] = [markedBy("player", moved)]) => {
     edit(next);
     setFocusOn(focus);
   };
+  const undo = () => {
+    const last = undoable.at(-1);
+    if (last === undefined) return;
+    setUndoable(undoable.slice(0, -1));
+    setShape("");
+    show(last);
+  };
   const moving: Moving = {
     picked,
+    reach,
     onPick: (playerCode) => setPickedCode((current) => (current === playerCode ? null : playerCode)),
     onGrab: setPickedCode,
     onPlace: (cell: Cell) => {
-      if (picked !== null) change(placed(draft, picked.playerCode, cell), picked.playerCode);
+      if (picked !== null) change(movedTo(draft, picked.playerCode, cell, ratingsOf), picked.playerCode);
+    },
+    onSwap: (playerCode) => {
+      if (picked !== null) change(swapped(draft, picked.playerCode, playerCode, ratingsOf), picked.playerCode);
     },
     onDragEnd: () => setPickedCode(null),
   };
@@ -151,7 +199,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     const preset = tactics.presets.find((each) => each.name === name);
     if (preset === undefined) return;
     setShape(name);
-    edit(reshaped(draft, preset.cells));
+    edit(reshaped(draft, preset.cells, rules, ratingsOf));
   };
   /** Up, down, or a drop on a bench row: the player at that place in the bench order. Up or Down
    *  keeps the focus on the button pressed. */
@@ -160,52 +208,13 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     const focus = pressed && [markedBy(`bench-${pressed}`, playerCode), markedBy(`bench-${other}`, playerCode), markedBy("player", playerCode)];
     change(benchedAt(draft, playerCode, index), playerCode, focus || undefined);
   };
-  // The gameweek is the server's: a save sent just after the deadline is from the one after.
-  const save = async () => {
-    const lineup = draft;
-    sent.current = lineup;
-    const movedSince = () => sent.current !== lineup;
-    let from: number | null = null;
-    const made = await run(async () => {
-      const answer = await changes.save(league.leagueId, lineup);
-      // run says a refusal itself, so one of a lineup moved since is withheld here; a save, below.
-      if (typeof answer === "string") return movedSince() ? null : answer;
-      from = answer;
-      return null;
-    });
-    if (movedSince()) return;
-    // A refusal leaves no saved line, unlike the rules' save bar; a save says its gameweek.
-    setSavedFrom(made ? from : null);
-    // Saved, the lineup stands as it is: the shape's slots are no longer asked for.
-    if (made) setShape("");
-  };
-  const discard = () => {
-    setEdited(null);
-    setShape("");
-    setPickedCode(null);
-    sent.current = null;
-    clear();
-  };
 
   const joined = tactics.lineup.joinedBench;
   return (
     <div ref={root} className="mt-2 flex flex-col gap-2">
-      {/* Save sits above the pitch, so a refusal is read where it is asked for, even on a phone. */}
-      <div className="bg-panel">
-        <div className="flex flex-wrap justify-end gap-2 px-3 py-2">
-          {!unchanged && (
-            <button type="button" onClick={discard} className="secondary-action">
-              {discardWords}
-            </button>
-          )}
-          <button type="button" disabled={unchanged || saving} onClick={() => void save()} className={unchanged ? "action-idle" : "action"}>
-            {saveWords}
-          </button>
-        </div>
-        <Status words={savedFrom === null ? null : savedWords(savedFrom)} className="px-3 pb-2" />
-        <Problem problem={problem} />
-      </div>
+      <UndoBar canUndo={undoable.length > 0} onUndo={undo} savedFrom={savedFrom} problem={problem} />
       {joined.length > 0 && <Notice>{joinedBenchWords(joined.map((code) => squad.get(code)!.name))}</Notice>}
+      {tactics.squad.some((member) => member.unheld) && <Notice>{unheldNoticeWords}</Notice>}
       {/* The pitch is the tab's centrepiece (plate.md, Decided): as tall as the window, so
           scrolled to, its whole length shows; the squad beside it takes the rest, or goes under it on a phone. */}
       <div style={PITCH_ROOM_STYLE} className="pitch-room flex flex-wrap items-start gap-2">
@@ -215,26 +224,14 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
           className="min-w-0 basis-pitch-panel"
         >
           <div className="flex items-center gap-2 px-3 pt-2">
-            <label htmlFor={PRESET_ID} className="text-soft">
-              {presetLabel}
-            </label>
-            {/* Always back on "Pick a preset", so the same one can be picked again after moves. */}
-            <select id={PRESET_ID} value="" onChange={(event) => pickPreset(event.target.value)} className="text-box">
-              <option value="" disabled>
-                {pickPresetWords}
-              </option>
-              {tactics.presets.map(({ name }) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
+            <PresetPicker presets={tactics.presets} onPick={pickPreset} />
+            <RunsSwitch shown={runsShown} onChange={setRunsShown} />
           </div>
           <p role="status" className="px-3 py-2 text-soft">
             {picked === null ? pickHintWords : movingHintWords(picked.name, picked.positions)}
           </p>
           <div className="px-2 pb-2">
-            <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === shape)?.cells ?? []} />
+            <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === shape)?.cells ?? []} runsShown={runsShown} />
           </div>
         </Panel>
         <Panel title={SQUAD_PANEL_TITLE} className="min-w-0 grow basis-squad">

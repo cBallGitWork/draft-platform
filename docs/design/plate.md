@@ -5,10 +5,14 @@ values are Claude's, from the designer's round-2 brief and the reviewer's pass o
 (16 Oct 2026). The reference mock-up is "R3·1 · Plate, chosen" (source: `docs/design/mockups/PlateOne.dc.html`) on
 <https://claude.ai/artifact/Qz9zn3FrMHgPB189UtbjoB>. Every screen is drawn from this file.
 How the screens link, and which the spec names but nobody has built: [flow.md](flow.md).
+Where a screen has an approved picture ([approved/](approved/README.md)), the picture settles its
+layout (what sits where, the columns, the rows) and this file its values (colours, type, spacing);
+where the two disagree, ask Craig.
 
 **Contents:** [Colour roles](#colour-roles-cm-material) · [Type](#type) · [Shape](#shape) ·
 [Marks](#marks) · [Controls](#controls) · [Never](#never) ·
-[The phone](#the-phone-to-draw-when-the-phone-design-is-grilled) · [Decided](#decided)
+[The phone](#the-phone-to-draw-when-the-phone-design-is-grilled) · [Decided](#decided) ·
+[Tables and panels](#tables-and-panels-craig-1-nov-2026)
 
 ## Colour roles (CM material)
 
@@ -36,6 +40,7 @@ isn't flat (Craig, 31 Oct 2026; see Decided: Look B).
 | pitch | stripes `#2f8535` / `#276f2c`, lines 2px `#e6f2e6` | |
 | action | fill `#ffffff`, ink `#111214`, bevel `#b9bcc4` | Continue; hover `#caced4`, pressed `#b9bcc4` (bevel flipped); `#ff9b3d` (hover `#ffb36b`, pressed `#e07f1f`) when the deadline is near; with nothing to do, no fill, 1px `#a1a5ab` border, "Nothing needs you" |
 | secondary action | fill `#2a1f86`, 1px border `#caced4`, ink `#ffffff` | hover fill `#3529a8`, border `#ffffff`; pressed fill `#111214` |
+| danger action | the secondary action's shape: fill `#2a1d10`, 1px border `#ff9b3d`, ink `#ff9b3d` 600 | the yes on a confirm that deletes or removes (Delete it, Remove them, Leave); hover its edge doubled and ink `#ffffff`, never filled orange (that is Continue near the deadline); pressed fill `#111214`; busy, border and ink `#a1a5ab` |
 | active tab | text `#ffffff` 600, 3px underline `#6bfdfa` (2px on a sub-tab) | inactive tabs `#caced4`; never muted `#a1a5ab` on the bar (4.1:1) |
 | focus | 2px outline `#6bfdfa`, offset 2px | every control |
 | link | `#ffffff`, no underline at rest; a 1px `#6bfdfa` underline under the pointer (where a pointer hovers, as Controls' Hover) and with the focus ring | a link, and a button drawn as one (Move, Dismiss). A bare link inside a sentence of running text keeps a 1px `#ffffff` underline at rest, as nothing else tells it from the words around it (WCAG 1.4.1); none exists yet (Craig, 31 Oct 2026; see Decided) |
@@ -46,13 +51,15 @@ lightness from easiest to hardest, so the order survives red-green colour blindn
 1 `#57e08a` ink `#04130a` · 2 `#93b83a` ink `#0c1a06` · 3 `#8a90a0` ink `#08090b` ·
 4 `#c9304f` ink `#ffffff` · 5 `#8c1236` ink `#ffffff`. Each cell carries `title` and `aria-label`
 ("Opponent BOU, home, difficulty 2 of 5, easy"; the words: very easy, easy, average, hard, very
-hard), a five-step legend sits above the table, and rows keep a 1px ground (`#111214`) gap.
+hard), with no legend (Craig, 1 Nov 2026: "remove difficulty key"), and rows keep a 1px ground
+(`#111214`) gap.
 
 The pairs meet WCAG 2.1 AA (`contrast()` in `convex/football/clubColours.ts`, 31 Oct 2026): muted on
 a panel 6.8:1 and muted straight on the page 5.6:1, both at the page's lightest with the grain counted (the worse case; 6.4:1 on the glow alone), white on the plate
 12.8:1, role text on the plate 8.1:1, cyan on the plate 10.4:1, white on the stepper 10.3:1, the
 action's ink 18.7:1, the column head's ink 9.9:1, every difficulty ink on its fill 5.2:1 or better,
-the unread badge 8.9:1. Muted on the stepper is 4.2:1, so it is only ever a step that can't be taken
+the unread badge 8.9:1, the danger action's ink 7.8:1 (8.9:1 pressed, 6.6:1
+busy, white under the pointer 16.4:1) and its orange edge on a panel 8.2:1. Muted on the stepper is 4.2:1, so it is only ever a step that can't be taken
 (the stepper's greyed ◄ or ►, a disabled control). Check any new pair before using it. Cyan never
 sits straight on the pitch: it fails there (3.77:1 on the light stripe).
 
@@ -62,7 +69,8 @@ Two faces. Archivo Narrow 400/600/700 for everything that is data. Archivo, heav
 (width 125), for page titles and team names only: a page's title plate, the matchup's two sides
 and their panels' plates, a Premier League match's two clubs, and the product name on the sign-in
 bar. Both are served with the app (Fontsource). Data 13px, a player's name 15px, the page title
-26px. Rows 20px on the desk. Figures use tabular numerals, in Archivo Narrow even beside a team's
+26px. A table's rows are 28px on the desk (the 13px data on its 20px line, 4px above and below)
+and 44px on the phone wherever a row is tapped (see Decided). Figures use tabular numerals, in Archivo Narrow even beside a team's
 name (the score).
 
 ## Shape
@@ -85,17 +93,33 @@ name (the score).
 - **Shirts**: our own outline in the club's colours, the squad number on the chest.
 - **Stars**: SVG, filled in the figure colour, empty ones as outlines in muted grey, the set
   labelled "Role fit 4 of 5".
-- **A doubt**: an orange square with a bar, on the name plate and the squad row, labelled "Doubt".
+- **A doubt**: the orange knock chip of the status chips (Tables and panels), on the name plate and
+  after the name in a row, labelled "Doubt".
 - **Unread**: a 3px orange bar down the letter's left edge, and "Unread" for screen readers.
 - **The current one of a list**: a 3px bar down its left edge in the active tab's cyan, and
   `aria-current` for screen readers (the top bar's league list).
 - **The bench**: its own "Bench" plate in the table, below the eleven.
+- **A placeholder**: a cell for data not held yet (stars, fixture difficulty) keeps its place and
+  size, drawn as a 1px muted (`#a1a5ab`) outline with nothing in it; its `title` and label say what
+  will show there ("Role fit: not rated yet"). Never a made-up figure (Craig, 1 Nov 2026:
+  "placeholders, always placeholders, dont design a page with missing info when info is to come").
 - **The pitch**: portrait, a real pitch's 68 m wide by 105 m long, attack at the top, its markings
   to scale: penalty area 40.32 × 16.5 m, goal area 18.32 × 5.5 m, penalty spot 11 m out (its dot drawn bigger, to show), the D
   9.15 m from the spot, centre circle 9.15 m round, the halfway line and 1 m corner arcs. The
-  measurements live once, in `src/myTeam/tactics/pitchMarkings.ts`. Flat: one stripe to each of
+  measurements live once, in `src/myTeam/tactics/pitch/pitchMarkings.ts`. Flat: one stripe to each of
   its six rows, which share its length equally so each line of players stands where it would; no
   gradients or photo grass. It is the Tactics tab's centrepiece (Decided).
+- **A role's run** (spec/05 Runs): a 2px dashed white line from the player's place with a solid
+  white arrowhead, drawn under the players' blocks so it never covers a name. Its shape is the
+  role's, in metres (`convex/lineup/roles.ts`); `src/myTeam/tactics/pitch/RoleRuns.tsx` only draws it.
+- **Where a picked-up player can go** (spec/05, Moving players): a free cell he may move to is a
+  2px dashed box in the pitch line's colour; a player he may swap with gets the same dashes round
+  his block. A slot a preset asks to fill is quieter,
+  1px dotted, so it never reads as a place to tap.
+- **The sweeper** (spec/05, The pitch): his cell drawn an eighth of a row deeper than the
+  defence's line, and over the keeper's where the two meet on a phone.
+- **A lost player** (#323): a squad row whose player the football data no longer holds says so in
+  orange in place of his name, under a notice saying football data is missing.
 
 ## Controls
 
@@ -112,8 +136,11 @@ ones in `src/ui/` (`TickBox`, `Choice`), the rules screens' own in `src/rules/` 
   The others are the plate with its bevel and `#caced4` text; the chosen one is pressed in:
   ground fill, the plate bevel flipped (`inset 0 2px 0 #110a4a`, `inset 0 -2px 0 #6a5fe0`), white
   600. A radio group, so the arrow keys move it.
-- **Discard and Save**: Discard is the secondary action, there only once something changed; Save
-  is the action, and with nothing to save it is the action with nothing to do, in `#a1a5ab` text.
+- **Discard and Save**, on the rules screens: Discard is the secondary action, there only once
+  something changed; Save is the action, and with nothing to save it is the action with nothing to
+  do, in `#a1a5ab` text.
+- **Undo**, on the Tactics tab, which saves each move itself (spec/05, Moving players): the
+  secondary action, and with nothing to undo the action with nothing to do.
 - **Hover**: the action's, the secondary action's and a key's hover look shows only where a pointer
   hovers (`@media (hover: hover)`): a phone keeps a tapped button "hovered", and Save stayed grey.
   A mouse resting on Save after a click still shows its hover, `#caced4`.
@@ -126,7 +153,7 @@ From the designer's review, the tells that make a screen look AI-made:
 2. Pills and tinted badges; a chip, where one is needed, is square and solid.
 3. Indigo or slate grounds with lavender-grey text and a neon accent; gradient buttons.
 4. `·` strings, floating rows, ★ typed as text, the same 16px gutter around everything.
-5. Telling a manager what he already knows: how the game works (live points can change, every team meets every other), what a screen is for, or what a control does when its label says it. A state is a word or a mark ("Live", "Provisional"), never a sentence (Craig, 31 Oct 2026: "you treat users like a 2 year old").
+5. Telling a manager what he already knows: the basics any fantasy manager knows (live points can change, every team meets every other), what a screen is for, or what a control does when its label says it. A state is a word or a mark ("Live", "Provisional"), never a sentence (Craig, 31 Oct 2026: "you treat users like a 2 year old"). Our own mechanics are another matter: a role's description, what it changes in scoring, what stars mean are wanted. "When I say don't explain the game, I mean the absolute basic things like 'this is a league, round robin'; explaining game mechanics is highly encouraged" (Craig, 31 Oct 2026).
 
 ## The phone (to draw when the phone design is grilled)
 
@@ -140,6 +167,12 @@ bar above the pitch; the pitch's player blocks narrow to a fifth of its width. T
 - **Yellow is a figure only.** Continue is white, orange when the deadline is near, and the active
   tab is a cyan underline: the UX expert's call, which Craig handed them (16 Oct 2026).
 - **Fixture difficulty** is a filled cell without a digit (Craig).
+- **The approved squad table against these rules** (Craig, 1 Nov 2026). "R3·1 · Plate, chosen"
+  draws digits in its difficulty cells, blue panel bodies and rows about 28px. The rules win on the
+  first two: no digits ("remove digits"), the page stays neutral ("ok neutral is i guess"). The
+  row height was left to a design call: 28px, Claude's, as 20px left no air around 13px figures,
+  stars and a difficulty cell. The built tables still draw 20px rows; each follows when its screen
+  is rebuilt to its approved picture.
 - **Pitch, squad and Mail** stay side by side (Craig). The pitch is the Tactics tab's centrepiece
   (Craig, 31 Oct 2026: "The pitch is the centrepiece of my team. More than other sites since we
   need to visually show roles / adjust positions"): on the desk it is as tall as the window,
@@ -164,3 +197,34 @@ bar above the pitch; the pitch's player blocks narrow to a fifth of its width. T
 - **Links aren't underlined at rest** (Craig, 31 Oct 2026: "the constant underlines for hyperlinks
   looks terrible"): the underline shows under the pointer and with focus; only a link inside
   running text keeps one, which WCAG 1.4.1 needs (Colour roles: link).
+- **Destructive confirms** (Craig, 31 Oct 2026): the yes on a confirm that deletes or removes is
+  orange-edged, never Continue's white (#403): orange is the event colour, and a delete needs you to decide. It is the danger action (Colour roles), built once
+  in `src/ui/Confirm.tsx`.
+
+### Tables and panels (Craig, 1 Nov 2026)
+
+Craig's corrections to the Tactics and Squad boards, 1 Nov 2026. They hold on every screen.
+
+- **Roles in full, never initials.** No SHS, DFB, IF or N10 anywhere: "the initials for different
+  roles......theres no standard....nobody knows what they are". A position chip (GK, CB, CDM, W,
+  ST) is fine. `scripts/design/lint.mjs` fails a board that draws a role's initials.
+- **No colour keys or legends**, for fixture difficulty, the pitch's lines or anything else:
+  "remove difficulty key, thats 'people arent stupid' / same for lines too". The colours carry it;
+  the labels for screen readers stay.
+- **No action column in a table.** "wtf is the move column". What can be done to a player (move
+  him, swap him) sits in the selected player's panel.
+- **A table's columns run Pos, then Player with his club, far left**, and his opponent beside him:
+  "names being in the middle, prob should be far left"; "position tab to left of player";
+  "opponent too far away from player".
+- **Wide or growing detail goes in the right-hand panel, never the table**: points per action, a
+  stat breakdown. "points per action row takes up so much, and that can get bigger with more
+  stats....thats what the column on the right is for".
+- **A right-hand column of titled widgets**, as FM and Fantrax do: "like fm, the use of a secondary
+  column/widget design is the play here i think". Each widget is a panel with its title plate;
+  selecting a player puts his panel at the top of the column.
+- **Status chips after the name**, CM style, square and solid (Never 2): a red cross injured, a
+  yellow card one booking from a ban, a red card suspended, an orange knock. "could you a chip
+  after the name (i like a CM like red/yellow cross/card for suspension etc)".
+- **No position group rows** (Goalkeepers, Defenders) where the position chips already group the
+  table: "the coloured chips do that work, removes clutter".
+- **A formation preset says what it does**, beside its name: "presets should describe what it does".

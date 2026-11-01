@@ -6,10 +6,10 @@ import { positionRank, type Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
 import { inTenths } from "../scoring/values";
 import { managerOf } from "../shared/leagueAccess";
-import { clubsByCode, heldPlayerByCode, type Clubs } from "../shared/players";
+import { clubsByCode, type Clubs } from "../shared/players";
 import { begunGameweeks } from "../gameweekScorer/gameweekScores";
 import { scoredMatches } from "../gameweekScorer/scoredMatches";
-import { squadOf } from "./squadPlace";
+import { heldOrNot, squadOf, unheldCodes } from "./squadPlace";
 
 // My team's Squad tab (#364; spec/12, My team's tabs: "every player in the squad in one table,
 // with his position, club, next fixture, season points and last gameweek's points"). His points
@@ -53,6 +53,7 @@ export const teamSquad = v.object({
    *  any has begun. */
   lastGameweek: v.union(v.number(), v.null()),
   players: v.array(squadRow),
+  unheld: unheldCodes,
 });
 export type TeamSquad = Infer<typeof teamSquad>;
 
@@ -81,14 +82,14 @@ export const ofMyTeam = query({
   returns: teamSquad,
   handler: async (ctx, { leagueId, now }) => {
     const { league, team } = await managerOf(ctx, leagueId);
-    const positionsOfNow = await positionsNow(ctx);
+    const positionsOfNow = await positionsNow(ctx, leagueId);
     const clubs = clubsByCode(ctx);
     const lastGameweek = (await begunGameweeks(ctx, league)).at(-1) ?? null;
     const price = await pricer(ctx, league, team._id);
+    const { held, unheld } = await heldOrNot(ctx, await squadOf(ctx, team._id));
     const players = await Promise.all(
-      (await squadOf(ctx, team._id)).map(async ({ playerCode, number }) => {
-        const player = await heldPlayerByCode(ctx, playerCode, `Player ${playerCode} is in team ${team._id}'s squad but the football sync doesn't hold him`);
-        const positions = await positionsOfNow(playerCode);
+      held.map(async ({ row: { number }, player }) => {
+        const positions = await positionsOfNow(player.code);
         return { player, number: number ?? null, positions, club: await clubs(player.clubCode), matches: await price(player.code, positions) };
       }),
     );
@@ -105,7 +106,7 @@ export const ofMyTeam = query({
       ...squadPoints(matches, lastGameweek),
     }));
     rows.sort((one, other) => positionOrder(one) - positionOrder(other) || one.name.localeCompare(other.name));
-    return { teamName: team.name, lastGameweek, players: rows };
+    return { teamName: team.name, lastGameweek, players: rows, unheld };
   },
 });
 

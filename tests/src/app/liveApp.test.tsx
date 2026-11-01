@@ -8,7 +8,7 @@ import { StrictMode } from "react";
 import { beforeEach, expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
 import { signInToJoinWords } from "../../../src/joining/words";
-import { ERROR_PAGE_TITLE, readFailedWords, signOutWords, tryAgainWords } from "../../../src/frame/words";
+import { ERROR_PAGE_TITLE, readFailedWords, retryWords, signOutWords } from "../../../src/frame/words";
 import { READ_FAILED_LOG } from "../../../src/frame/ReadFailed";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
@@ -41,7 +41,9 @@ vi.mock("convex/react", async () => {
           if (convex.unreadFails) throw convex.unreadFails;
           return 0;
         }),
-        // What the leagues page and the patch banner read: no ended invite, no patch waiting.
+        // What the top bar, the leagues page and the patch banner read: no lineup due, no ended
+        // invite, no patch waiting.
+        "lineup/lineupDue:isDue": unlessSkipped(() => false),
         "joining/endedInvite:mine": unlessSkipped(() => null),
         "scoring/patchNotes:banner": unlessSkipped(() => null),
       },
@@ -169,7 +171,7 @@ const serverDown = new Error("server down");
 test.each([
   ["a failure", serverDown],
   ["a refusal", new ConvexError(notInLeague)],
-])("a query failing above the pages, for %s, says so in plain words, logs it, and offers Try again", async (_, error) => {
+])("a query failing above the pages, for %s, says so in plain words, logs it, and offers Retry", async (_, error) => {
   convex.auth = { isLoading: false, isAuthenticated: true };
   convex.account = inNoLeague;
   convex.unreadFails = error;
@@ -179,20 +181,20 @@ test.each([
 
   expect(await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE })).toBeTruthy();
   expect(screen.getByRole("alert").textContent).toBe(readFailedWords);
-  expect(screen.getByRole("button", { name: tryAgainWords })).toBeTruthy();
+  expect(screen.getByRole("button", { name: retryWords })).toBeTruthy();
   expect(logged).toHaveBeenCalledWith(READ_FAILED_LOG, error);
 });
 
-test("Try again above the pages reads again, and shows the app once the read succeeds", async () => {
+test("Retry above the pages reads again, and shows the app once the read succeeds", async () => {
   convex.auth = { isLoading: false, isAuthenticated: true };
   convex.account = inNoLeague;
   convex.unreadFails = serverDown;
   silenceConsoleError();
 
   openAt("/");
-  const tryAgain = await screen.findByRole("button", { name: tryAgainWords });
+  const retry = await screen.findByRole("button", { name: retryWords });
   convex.unreadFails = null;
-  await userEvent.click(tryAgain);
+  await userEvent.click(retry);
 
   expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
   expect(screen.queryByRole("heading", { name: ERROR_PAGE_TITLE })).toBeNull();

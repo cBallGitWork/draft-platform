@@ -3,6 +3,9 @@
 Feature 12 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill screens` (16 Oct 2026).
 The look's exact values are in [docs/design/plate.md](../docs/design/plate.md).
 
+**Contents:** [The frame](#the-frame) · [The look: Plate](#the-look-plate) · [Club colours](#club-colours) ·
+[Data in mock-ups](#data-in-mock-ups) · [Times](#times)
+
 ## The frame
 
 - Desk designed first; the phone is a second design of the same data.
@@ -15,9 +18,15 @@ The look's exact values are in [docs/design/plate.md](../docs/design/plate.md).
 - A Feedback link in the top bar sends the admin a message (`spec/15`, 25 Oct 2026).
 - A signed-in manager lands on **My team**. Mail shows an unread count in the menu.
 - **Continue**, the top bar's button, takes the manager to the next thing that needs him: an
-  unread letter, a lineup before the deadline, a trade offer, or "nothing to do".
+  unread letter, a lineup before the deadline, a trade offer, or "nothing to do". "Well the line
+  up is so you can adjust it": from 24 hours before each gameweek's deadline until the deadline,
+  Continue takes him to his Tactics tab, whether or not anything is wrong with his lineup, until
+  he opens Tactics that gameweek. A manager with no team in the league has no lineup step (Craig,
+  1 Nov 2026).
 - Logged out, in the closed beta: a sign-in page only (the name, "invite only", an email box for
   the sign-in link). No league is visible without signing in.
+- Table stays in the top menu, though League home shows the table too (Craig, 1 Nov 2026: "yes
+  to all").
 - The screens: sign in, your leagues, league home, my team (squad and tactics pitch), matchup (live
   head-to-head; live matchday is folded in here), match (one real match, live: `spec/10`), table and
   fixtures (the draft league's), Premier League (`spec/18`), Scouting (`spec/19`: the players list,
@@ -42,10 +51,17 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
   - the league's last five claims, drops and trades;
   - a weekly recap, written by AI from facts only once every match of the gameweek is final: top
     performers, letdowns and points left on the bench; Mail says when it is up (`spec/16`);
-  - Team of the Week: the best eleven from the league's lineups, in a legal formation, under the
-    site's scoring (`spec/14`);
-  - the commissioner's latest letter, pinned until a newer one.
+  - the commissioner's latest letter, pinned until a newer one;
+  - not Team of the Week: "ditch team of the week" (Craig, 1 Nov 2026).
+
+  League home's approved picture is in `docs/design/approved/home/` (Craig, 1 Nov 2026: "yes to
+  all").
 - **My team** shows the tactics pitch, the squad and Mail side by side.
+  - The Tactics tab's squad list, beside the pitch as on FM's tactics screen: each row opens
+    with the slot's position label (`spec/06`) in its area's colour, then the role's full name, the player,
+    his stars for the role and his next fixture. Tapping the role opens the role card
+    (`spec/05`). The Squad tab stays its own tab: the season there, this gameweek here (Craig,
+    31 Oct 2026, `/grill the Tactics pitch`).
 - My team's other tabs, after the Tactics tab (25 Oct 2026):
   - **Squad**: every player in the squad in one table, with his position, club, next fixture,
     season points and last gameweek's points. His season points are what his team got from him,
@@ -83,6 +99,25 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
   join when scouts do.
 - A real pitch with shirts. The shirts are our own, drawn in club colours (not FPL's kit images),
   with the player's squad number on the shirt.
+
+## Club colours
+
+From `/grill club colours` (31 Oct 2026).
+
+- Each club's shirt has a pattern, held as data: plain or stripes now, more as a club needs one
+  ("especially considering we wil have different leagues and designs"). Newcastle, Brentford,
+  Palace, Brighton and Sunderland start striped. On a patterned shirt the number has an outline
+  in the other ink.
+- A club mark, a small square in the club's two colours, stands before a club code wherever the
+  code stands alone: Squad, Scouting, the player card, the Premier League table ("thats very CM 99
+  like"). Never inside a fixture-difficulty cell.
+- A Premier League match's scoreboard puts each club on its own colour (`spec/10`). The matchup
+  waits for managers' crests (SPEC.md, Later).
+- The player card's title plate stays the plate's colour; his club shows by its mark and his shirt
+  (Craig left this to Claude).
+- Who keeps the colours: `spec/15`, The admin.
+- The mark's, the striped shirt's and the scoreboard's values go into `docs/design/plate.md` when
+  they are built.
 - The number leads; a verdict sits beside it only where there is a real one (role stars, fixture
   difficulty, shown as a coloured cell). (Craig left this to Claude.)
 - Not liked, so not used: no pitch view (Terminal, Kit room), a terminal look, the first broadcast
@@ -98,4 +133,5 @@ Managers are around the world, so every time a person reads tells it in their ow
 on a screen, in Mail's letters, and in what the site writes to them. Their zone is taken from
 their browser automatically each time the app opens, so it follows a manager who travels, and
 there is nothing to set. Until a person's zone is known, a time is told in London's, with the
-zone named (Craig, 26 Oct 2026; #442).
+zone named (Craig, 26 Oct 2026; #442). Old letters too: a letter's times are told in the reader's
+zone now, not the one it was filed in (Craig, 1 Nov 2026: "users time zone"; #912).

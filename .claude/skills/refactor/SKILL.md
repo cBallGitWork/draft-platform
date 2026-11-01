@@ -54,7 +54,8 @@ pull request is not reworked over borderline duplication: say it in one line and
 
 ## Verify
 
-`/verify` (`npm run verify`: the install check, the tests, the type check, the recorded-payload
-check and the hook checks; CI also runs the build and the smoke test). A change that touches
-scoring also replays the recorded match and compares every point, as `docs/REFACTORING.md`'s
-*Proving nothing changed* says. If a step fails, fix it and rerun from the first.
+`/verify` (`npm run verify`: the install check, the tests, the type check, the lint step, the
+recorded-payload check, the tests-kept check, the spec-ID check and the hook checks; CI also runs
+the build and the smoke test). A change that touches scoring also replays the recorded match and
+compares every point, as `docs/REFACTORING.md`'s *Proving nothing changed* says. If a step fails,
+fix it and rerun from the first.

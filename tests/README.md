@@ -22,8 +22,8 @@ Convex deploys, or lists one it doesn't: after adding, moving or deleting a file
 
 `npm test` runs the three Vitest projects (`vitest.config.ts` holds their include patterns); a
 file that matches none of them never runs. `npm run verify` runs them with the install check, the
-type check, the recorded-payload check, the spec-ID check and the hook checks; CI also runs
-`npm run build` and `npm run smoke`.
+type check, the lint step, the recorded-payload check, the tests-kept check, the spec-ID check and
+the hook checks; CI also runs `npm run build` and `npm run smoke`.
 
 ## What `tests/support/` holds
 
@@ -41,7 +41,8 @@ Nothing in it is a test. Each kind of file:
   `footballRows.harness.ts` holds the clubs, players and whole match records they insert), `src/`
   for the screens' (`shell.harness.tsx` opens the app at an address with its actions faked), and
   `scripts/` for the scripts' (`liveSetup.harness.mjs` fakes Convex, Vercel and Resend for the
-  live-setup command).
+  live-setup command, and `gitRepo.harness.mjs` is a scratch git repo with an origin/main for the
+  checks that compare with it).
 - **`smoke/builtScreens.ts`**, the screens the smoke run opens on the phone, which
   `tests/src/smokeScreens.test.ts` checks against every route the router has.
 - **`recorded/*.json`**, real feed payloads, recorded once and cut down. A **`*.payloads.ts`**
@@ -56,7 +57,20 @@ Nothing in it is a test. Each kind of file:
 
 `recorded/` and `golden/` are add-only: `scripts/recorded-add-only.mjs`, run by `npm run verify`,
 fails on a changed or deleted file unless a commit on the branch carries the trailer
-`Re-record: <file>: <why>`.
+`Re-record: <file>: <why>`. A trailer goes in the commit message's last paragraph, with any other
+trailers such as Co-Authored-By and no blank line between: git reads none above a blank line.
+
+## Never cut a test
+
+`scripts/tests-kept.mjs`, run by `npm run verify`, fails when the branch, committed or not, holds
+fewer of some test than origin/main did. It reads every `test()` and `it()` in a `*.test.*` or
+`*.spec.*` file here from the source, named by the `describe()` titles around it and its own title,
+across the whole tree: a test moved to another file, or a renamed file, passes; a renamed test, one
+moved to another `describe()`, or a deleted one fails, until a commit on the branch carries the
+trailer `Test-removed: <the test's name, as the check prints it, or the file it was in>: <why>`,
+placed as `Re-record:` is above.
+It checks names only: a test whose body is emptied, or a row cut from a `test.each()` table, still
+passes.
 
 ## The scoring proof
 

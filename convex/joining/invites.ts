@@ -5,7 +5,7 @@ import { internalAction, internalMutation, internalQuery, mutation, type Mutatio
 import { admitEmail } from "../signIn/allowedEmails";
 import { INVITE_LIFETIME_MS, invitedPath } from "./joiningShared";
 import { deliveryOf, joiningRefusals } from "./joining";
-import { startOfNextDay } from "../outbound/emailLimit";
+import { waitForTomorrow } from "../outbound/emailLimit";
 import { inviteEmail } from "./joiningEmails";
 import { getLeague, namedEmail, refuse, refusals, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
@@ -122,7 +122,7 @@ export const recordDelivery = internalMutation({
     const now = Date.now();
     const delivery = deliveryOf(reply);
     await ctx.db.patch("invites", inviteId, delivery === "sent" ? { delivery, expiresAt: now + INVITE_LIFETIME_MS } : { delivery });
-    if (delivery === "waiting") await ctx.scheduler.runAt(startOfNextDay(now), internal.joining.invites.deliver, { inviteId });
+    if (delivery === "waiting") await waitForTomorrow(ctx.scheduler, internal.joining.invites.deliver, { inviteId });
     return null;
   },
 });

@@ -128,3 +128,29 @@ test("two roles of one name are told apart in patch notes by their position", ()
     "Winger (attacking midfield, wide): now +1 per Accurate cross",
   ]);
 });
+
+describe("a sweeper is priced as CB (spec/14; #844)", () => {
+  const SWEEPER_SLOT = { area: "defence", lane: "centre" } as const;
+  const BESIDE = { area: "defence", lane: "leftCentre" } as const;
+  const DEFENDER = { minutes: 90, clean_sheets: 1, goals_scored: 1, effective_clearance: 4, won_tackle: 2 };
+
+  test("with no adjustment for his role, a sweeper and a libero score as a centre-back does, in his cell or beside it", () => {
+    const asCentreBack = scoreMatch(DEFENDER, FIRST_SCORING, BESIDE);
+    for (const role of ["sweeper", "libero", "stopper", undefined]) {
+      expect(scoreMatch(DEFENDER, FIRST_SCORING, SWEEPER_SLOT, role)).toEqual(asCentreBack);
+    }
+  });
+
+  test("a team's total with a sweeper in the middle is its total with a stopper there", () => {
+    const total = (role: string) =>
+      scoreTeam({
+        lineup: { starters: [{ playerCode: 1, ...SWEEPER_SLOT, role }], bench: [] },
+        matches: new Map([[1, [{ record: DEFENDER, final: true }]]]),
+        set: FIRST_SCORING,
+        doubleGameweekRule: "bothMatches",
+        substitutions: [],
+        benchCells: new Map(),
+      }).total;
+    expect(total("sweeper")).toBe(total("stopper"));
+  });
+});

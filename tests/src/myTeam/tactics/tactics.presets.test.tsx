@@ -6,7 +6,6 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import {
   BENCH_TITLE,
-  discardWords,
   emptySlotLabel,
   roleLabel,
   presetLabel,
@@ -27,8 +26,8 @@ import {
   blockOf,
   openedPitch,
   pitch,
-  save,
   squadRows,
+  undo,
   type Member,
 } from "../../../support/src/tacticsScreen.harness";
 
@@ -57,31 +56,30 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
     expect(blockOf(SALIBA, { area: "defence", lane: "leftCentre" })).toBeTruthy();
   });
 
-  it("marks the shape's empty slots, to show where to drag", async () => {
-    await openedPitch();
+  it("marks the shape's empty slots, to show where to drag, while the lineup can't stand and isn't saved", async () => {
+    await openedPitch({ tactics: SAVED, saveAnswer: "A lineup starts 11 players; this one starts 4." });
     await userEvent.selectOptions(picker(), "4-4-2");
     const slots = within(pitch()).getAllByRole("img", { name: /^Empty slot/ }).map((slot) => slot.getAttribute("aria-label"));
     expect(slots).toHaveLength(11 - STARTERS.length);
     expect(slots).toContain(emptySlotLabel("defence", "left"));
   });
 
-  it("sends a starter the shape has no room for to the front of the bench", async () => {
+  it("moves a starter the shape has no room for in his area to the nearest area he plays, not the bench (Craig, 1 Nov 2026)", async () => {
     await openedPitch();
-    // A 4-2-3-1 has no one in midfield, where Rice stands.
+    // A 4-2-3-1 has no one in midfield, where Rice stands: he drops into its holding pair.
     await userEvent.selectOptions(picker(), "4-2-3-1");
-    expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${RICE.name},`) })).toBeNull();
-    expect(squadRows()[squadRows().indexOf(BENCH_TITLE) + 1]).toBe("CDM, CMRice ARSMove Up Down");
+    expect(blockOf(RICE, { area: "defensiveMidfield", lane: "leftCentre" })).toBeTruthy();
+    expect(squadRows()[squadRows().indexOf(BENCH_TITLE) + 1]).not.toContain(RICE.name);
   });
 
-  it("is saved as it stands, and Discard puts the shape away too", async () => {
+  it("saves itself as it stands, and Undo puts the shape away too", async () => {
     const app = await openedPitch();
     await userEvent.selectOptions(picker(), "4-4-2");
-    await userEvent.click(save());
     expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, expect.objectContaining({ bench: [ARRIZABALAGA.playerCode, WHITE.playerCode] }));
     await screen.findByText(savedWords(TACTICS_GAMEWEEK));
     expect(within(pitch()).queryAllByRole("img", { name: /^Empty slot/ })).toEqual([]);
     await userEvent.selectOptions(picker(), "5-4-1");
-    await userEvent.click(screen.getByRole("button", { name: discardWords }));
+    await userEvent.click(undo());
     expect(within(pitch()).queryAllByRole("img", { name: /^Empty slot/ })).toEqual([]);
   });
 });
@@ -104,10 +102,9 @@ describe("roles (spec/05 Roles; #10; Craig, 26 Oct 2026)", () => {
     expect(document.activeElement).toBe(picker(SALIBA));
   });
 
-  it("is saved with the lineup", async () => {
+  it("saves itself with the lineup", async () => {
     const app = await openedPitch();
     await userEvent.selectOptions(picker(SALIBA), "ballPlayingDefender");
-    await userEvent.click(save());
     const [, sent] = app.myTeam.lineupChanges.save.mock.lastCall!;
     expect(sent.starters.find((starter) => starter.playerCode === SALIBA.playerCode)).toEqual({ playerCode: SALIBA.playerCode, ...SALIBAS_CELL, role: "ballPlayingDefender" });
   });

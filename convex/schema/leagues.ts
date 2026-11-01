@@ -7,8 +7,9 @@ import { squadEvents } from "./squads";
 
 // Deleting a league (#75): how it works is in leagueDeletion.ts.
 
-/** Why one person wasn't emailed that their league has been deleted: the day's emails had all
- *  gone, or the email service didn't send it. */
+/** Why one person wasn't emailed that their league has been deleted: the email service didn't
+ *  send it, or, only in rows kept before #837, the day's emails had all gone (they wait for the
+ *  next day now, deletionNotices.ts). */
 export const unemailedReason = v.union(v.literal("paused"), v.literal("notSent"));
 
 export const leagueDeletion = v.object({
@@ -67,6 +68,9 @@ const teamFields = {
   name: v.string(),
   /** Absent while the team is vacated: a manager who leaves or is removed leaves it behind. */
   managerEmail: v.optional(v.string()),
+  /** The last gameweek its manager opened the Tactics tab in, so Continue stops leading him there
+   *  for that gameweek (spec/12; lineup/lineupDue.ts). Absent until he first opens it. */
+  tacticsOpenedInGameweek: v.optional(v.number()),
 };
 
 /** The league switcher (#76): the league each person used last, by email, one row each. */

@@ -18,6 +18,8 @@ export const DRAFTED_ROLE_ADJUSTMENTS: readonly RoleAdjustments[] = [
   adjust("attackingFullBack", ["accurate_cross", 1], ["clean_sheets", -1]),
   adjust("stopper", ["effective_clearance", 0.5], ["accurate_long_balls", -0.5]),
   adjust("ballPlayingDefender", ["accurate_long_balls", 0.5], ["effective_clearance", -0.5]),
+  adjust("sweeper", ["clearances_blocks_interceptions", 0.5], ["aerial_won", -0.5]),
+  adjust("libero", ["big_chance_created", 1], ["clean_sheets", -1]),
   adjust("attackingWingBack", ["accurate_cross", 1], ["clean_sheets", -1]),
   adjust("holdingWingBack", ["won_tackle", 0.5], ["accurate_cross", -0.5]),
   adjust("anchor", ["won_tackle", 0.5], ["total_scoring_att", -0.5]),

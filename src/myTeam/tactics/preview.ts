@@ -44,8 +44,11 @@ const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({
   name,
   clubShortName,
   clubCode: clubCodeOf(clubShortName),
+  unheld: false,
   positions,
   number: playerCode === 15 ? null : playerCode,
+  // No stars in the preview: each player dropped starts on the slot's first role.
+  stars: [],
 }));
 const positionsOf = new Map(squad.map(({ playerCode, positions }) => [playerCode, positions]));
 const nameOf = (playerCode: number) => squad.find((member) => member.playerCode === playerCode)!.name;
@@ -84,4 +87,5 @@ const changes = {
 export const previewTactics: TacticsSeam = {
   useTactics: () => useSyncExternalStore(subscribe, () => tactics),
   useLineupChanges: () => changes,
+  useTacticsOpened: () => {},
 };

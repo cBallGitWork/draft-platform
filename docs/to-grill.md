@@ -10,13 +10,9 @@ Craig hasn't picked says so.
 
 Each with the questions its grill starts from. The questions are Claude's.
 
-**Cutting the role set**: tactics (`spec/05` Roles; from #10's review, 26 Oct 2026).
-- A saved lineup can hold a role a later cut removes. Does it fall back to the slot's first role,
-  or is the lineup refused until the manager picks again? Today it is refused at the next save,
-  and the pitch quietly shows the slot's first.
-
 **Awards**: history, Mail.
-- Manager of the Month and Player of the Season (Team of the Week is on league home, `spec/12`).
+- Manager of the Month and Player of the Season. Team of the Week is off league home: "ditch team
+  of the week" (Craig, 1 Nov 2026; `spec/12`).
   Where they live once Mail has filed them (see History, below).
 
 **Our own home stadiums**: the pitch view, the matchup.
@@ -29,6 +25,12 @@ Each with the questions its grill starts from. The questions are Claude's.
   home team's ground?
 - A team's own logo: nothing covers one. Uploading it means storing files, a stack question for
   `ARCHITECTURE.md`.
+
+**Status chips' data**: the squad table, the player card (`docs/design/plate.md`, Tables and panels).
+- Craig wants CM's chips after a name (1 Nov 2026: "i like a CM like red/yellow cross/card for
+  suspension etc"). Which FPL statuses each chip reads: injured, suspended, a knock.
+- "One booking from a ban" needs the competition's yellow-card thresholds, held per competition as
+  data, and a count of each player's bookings. Wanted now, or after the beta?
 
 **Premier League club pages**: `spec/18`, *After the mini beta*.
 
@@ -79,48 +81,11 @@ to get you there"). It lives in this repo; the rest is open.
 - What auditing checks first: the spec against the tests (#454), work beyond what's been
   grilled, the hard rules, or a readable log of what each agent session did and why.
 
-**A rule balance lab**: from the ideas board (Craig, 31 Oct 2026). A backtest of a patch draft,
-"just to make sure a change is good" (Craig, 31 Oct 2026). Craig's answers so far, from `/grill`
-on 31 Oct 2026:
-- The admin's tool, run on a patch draft before it is announced (`spec/14`). Claude's small call:
-  it runs when the admin presses a button, not on every save.
-- A what-if only: it saves nothing, and locked gameweeks keep their scores.
-- On past seasons: each role's average against base scoring, flagging any outside `spec/05`'s
-  0.25 points a match, and the biggest movers among players.
-- On this season's real lineups: the head-to-heads that would have flipped and the table moves,
-  for each league. Craig: yes, "the lab backtests just to make sure a change is good".
-- Its numbers go in the patch notes.
-- Past seasons: "not much data this season, might need last"; Craig can give four seasons from
-  ai-carling-premiership.
-
-Open: where those four seasons are, and whether they hold the Premier League's own stats (tackles
-won, key passes) or only FPL's. Claude's recommendation: load what they hold and mark a category
-they lack as not tested.
-
-**Five colour and live-screen cards, from the ideas board**: Craig left the pick to Claude
-(31 Oct 2026: "Your call on cards"), and Claude moved these to "Yes, grill it". The design
-research page behind all five: https://claude.ai/artifact/UJC3f6ixFg3ZUQzBuEPiVq. Grill the
-palette first: the colour cards after it sit on whatever ground it settles.
-
-**Too much blue on blue**: calm the palette, as modern FM does (https://trello.com/c/wW5tcB5T).
-- FM26's look, folded in from its own card: dark neutral panels, colour only on small things. Is
-  that the ground, or a calmer blue?
-- What keeps colour once the panels go neutral, and how it squares with the plate
-  (`docs/design/plate.md`) and its Championship Manager homage.
-
-**Club colours everywhere** (https://trello.com/c/N5Rk4ZPP).
-- Which of these: kits on our pitch shirts, beyond the plate's outline in the club's colours
-  (`docs/design/plate.md` Marks); a two-colour club mark before every club code; scoreboards in
-  kit colours; the player card's plate in his club's colour.
-- It needs each club's two colours held: where they come from, and who keeps them right when a
-  club changes its kit.
-
-**A crest and kit for each manager's team**: narrowed from the card's "Team creator"
-(https://trello.com/c/ZnPoZdA2).
-- A few shield patterns and two colours, drawn by us, shown wherever the team name is. Does a bar
-  scarf come first?
-- Who picks them (the manager, or the commissioner too), and when. Goes with a team's own logo
-  under *Our own home stadiums*, above.
+**Two colour and live-screen cards, from the ideas board**: Craig left the pick to Claude
+(31 Oct 2026: "Your call on cards"). The design research page behind them:
+https://claude.ai/artifact/UJC3f6ixFg3ZUQzBuEPiVq. The palette, club colours and crests were
+grilled on 31 Oct 2026 (`spec/12`; crests in SPEC.md, *Later*); these two are low priority until
+the site works (Craig, 31 Oct 2026).
 
 **Colour that means something** (https://trello.com/c/kt83WyFm).
 - Which of these: W/D/L form squares (league home shows each team's form already, `spec/12`), a
@@ -133,23 +98,148 @@ palette first: the colour cards after it sit on whatever ground it settles.
   (`spec/12`). What the card adds beyond it: a strip of every match's lines, not only those that
   move a head-to-head; a score box, and where; a live screen of its own, or league home is enough.
 
+**Team colours on the page** (Craig, 1 Nov 2026: "i notice on fm that they plates change colour
+depeding on team… go on my draft team and ive got primary colour of purple, or go to see
+liverpools team, and it goes red and white"; then "put on to do list").
+- Which surfaces take a team's colours: the page's team header and a stripe only, or the title
+  plates too. Today `spec/12` says the player card's title plate stays the plate's colour, and
+  plate.md's contrast figures are all measured on indigo.
+- The meaning colours (yellow figures, cyan readings, orange events, the difficulty fills) never
+  sit on a team colour? Text on one is white or black by contrast, falling back to indigo below
+  4.5:1?
+- A matchup shows two teams: a split header, and what happens when their colours are close.
+- Managers' own team colours: who picks them (the manager, the commissioner), when (with crests,
+  SPEC.md *Later*), and stored on the team. Once managers have picked, it can't simply be taken
+  back.
+- Premier League clubs' colours come from the admin's club colours (`spec/15`).
+
+**Overriding any player's or team's score, in any gameweek**: "should be for indovoduals players
+or a team score in any gameweek, fantrax has this, i can override any player score or any team
+score from any week," (Craig, 1 Nov 2026; #903). Today `spec/14` has one player's points for one
+match, overridden by the commissioner.
+- Who can override a team's score: the admin, the commissioner, the co-commissioner.
+- A team's override: its gameweek total, or one head-to-head's score; does it move the table, and
+  does a later re-score or stat correction leave it standing?
+- "Any week": a gameweek already final included, against a final gameweek's saved total
+  (`spec/07`) and patches never touching a played gameweek (`spec/14`)?
+- A player's override in a match that hasn't locked yet: allowed, or only once it locks (as built,
+  #439)? Overriding him twice replaces the first; is there an undo?
+- A player the football data has lost (#812): can he still be overridden?
+- Where the form lives: the player card only (as built), or the matchup and the team too.
+- Fantrax's Commissioner fixes (Smaller pages, below) may be part of this.
+
+**Who's doubtful, on Tactics**: "obv we need that for tactics too" (Craig, 1 Nov 2026, on
+Continue taking a manager to Tactics before the deadline so he can adjust his lineup).
+- What marks a doubtful or out player: FPL's chance of playing (held per player), its reason
+  ("Back injury - Unknown return date"), a blank gameweek, or all three.
+- Where it shows: the pitch's starters, the bench, the squad list, or all of them.
+- Whether its levels (75%, 50%, 25%, out) each look different, and what a phone shows.
+
+**Team tactic per formation**: "each formation unlocks a team tactic too/penalty (so if you
+somehow 2 at the back, clean sheet points change etc) / 4-3-3 allows front 3 pressing" (Craig,
+1 Nov 2026). SPEC.md's second release has team instructions; the approved Tactics picture holds
+their places as placeholders (`docs/design/approved/team/`).
+- Which team tactic each formation unlocks, and which penalty each shape carries.
+- How big the penalties are, against roles' 0.25 points a match (`spec/05`, Roles).
+- One team tactic at a time, or several.
+- Whether it waits for the second release, with team instructions.
+
+**Formation descriptions**: the formation window shows each formation's and each classic side's
+description, and the Guide would too.
+- Where a formation's description lives: held with the formation, shown in the formation window
+  and the Guide.
+- Craig's own words for each: the classics' text is sample until he rewrites it (`spec/05`, The
+  pitch), and the modern sides are still to list.
+
+**Where the support striker sits**: `spec/06` has SS, and "Where SS sits is to grill: just behind
+the forward, or as a forward (Craig: "maybe its forward?")". On the formation window Craig added
+"maybe am becomes a ss (like a the 4-4-1-1)" (1 Nov 2026).
+- Does the slot behind the striker in a 4-4-1-1 (and the other classics with one) always read SS,
+  not CAM? "no not always, different roles" (Craig, 1 Nov 2026): it depends on the role played
+  there, so what decides the label is still open.
+- Does SS stay in both attacking midfield and attack (`spec/06`, Areas each position can play)?
+
+**Saved alternative looks**: "gantry is intriguing, save that for now" (Craig, 1 Nov 2026). The
+gantry look, drawn while the Tactics pictures were made, waits until Craig goes back over the look
+once the pages' structure is designed (`docs/design/approved/README.md`: "once we design all the
+apges as in the code/structure im happy to then go back and look at designs again").
+- Which screens it would suit, when the look pass comes.
+
+**League home's panels, from its approved picture**: Craig approved the main Home board, and the
+other states' boards "as the plan for later" (1 Nov 2026: "yes to all";
+`docs/design/approved/home/`). He took FM as the model: "fm and its widgets as inspo". The picture
+places these; none says yet what it holds or does, and each is a placeholder until its grill.
+
+**Home's tabs, Overview | News | Calendar**.
+- What News holds beyond Overview's News panel: every claim, drop, trade and the commissioner's
+  letters, or more.
+- What Calendar holds: the league's gameweeks and deadlines, the draft, breaks (Break weeks,
+  below) and waivers' runs (Run the league, below).
+
+**The deadline strip**: the row of boxes under Home's tabs (GW9 locks, Your lineup, Claims close,
+Table).
+- Which boxes, and whether they change with the season's state (the pictures change them).
+- What "Your lineup" says (the picture: "Saka doubtful"), and whether a box opens anything.
+- Claims close needs waivers (`spec/08`), not built yet.
+
+**Mail's Needs you tab on Home**: the Mail panel splits Needs you (3) | All.
+- Which letters need a manager: a lineup to set, a trade offer, a claim's result. Is it the same
+  list Continue walks through (`spec/12`, The frame)?
+- Whether Mail itself gets the tab too.
+
+**The Premier League on Home**: "does home need some of the live footie too?" (Craig, 1 Nov 2026).
+The picture lists this gameweek's matches with your players and your opponent's in each.
+- Every match, or only those with your or your opponent's players.
+- Live scores in matchday mode (the locked picture's Premier League today), or only kickoff times.
+- What it adds beyond the Vidiprinter card's live screen (above).
+
+**Your squad news on Home**: the picture lists your players who are injured, suspended, doubtful or
+a booking from a ban.
+- Which FPL statuses it reads, as Status chips' data and Who's doubtful, on Tactics (above) ask.
+- Only your squad, or your starters first.
+
+**Run the league**: a to-do list for the commissioner and co-commissioner on Home. Craig said "ok"
+to the lineup count as a number only (1 Nov 2026): "Teams with no lineup yet 3", never whose, as
+neither sees a lineup before the deadline (`spec/10`).
+- What else is on the list: join requests, waivers to run, the draft order, next season.
+- The commissioner's tools move here off Your leagues' rows, where they are built today
+  (Gameweeks, Invites and join requests, Squads, League settings, deleting); the approved Your
+  leagues picture has none on its rows (`docs/design/approved/leagues/`). Player scoring, on every
+  manager's row today, leaves them too: where does it go?
+- Whether Fantrax's Commissioner fixes (Smaller pages, below) join it.
+
+**Home through the season**: the boards for each state, drawn as the plan for later, each grilled
+when its feature is built (`docs/design/approved/home/`).
+- Pre-season and the draft: the draft's countdown, your queue and pick, the empty table (`spec/04`).
+- A new joiner: who took over a team, and the page while a join request waits (`spec/13`, Joining).
+- The season over: the champions and the final table; the season's end book and honours board
+  are in SPEC.md, *Later*; next season goes with *Carrying a league into next season*.
+- The Monday after: the gameweek final, its result and the recap (#387).
+- When each state starts and ends.
+
+**Break weeks**: "when its international break, we lock everything and give the league a break"
+(Craig, 1 Nov 2026; https://trello.com/c/YD6AFJW2).
+- Claims, waivers and trades lock too: settled in `spec/13`, Gameweeks (Craig, 1 Nov 2026: "yes").
+- Every international break, or the commissioner's pick, as gameweeks are ticked now.
+- What Home and Mail say during one (the break picture).
+
+**A league's name on Your leagues opens its League home**: the approved Your leagues picture
+(Craig, 1 Nov 2026: "yes to all").
+- Does it switch the current league too (`spec/13`, Several leagues)?
+
 ## Suggested, not yet picked
 
 | What | Why |
 |---|---|
 | History | Past seasons, champions, league records; where awards live after Mail files them |
 | The manager's profile | A record across every league on the platform |
+| Where fixture difficulty comes from | The screens show it (plate.md, Fixture difficulty) but nothing holds it. FPL's fixtures feed carries a difficulty per side (`team_h_difficulty`, `team_a_difficulty` in `tests/support/recorded/fpl-fixtures.json`), which no table stores today; using it, or our own measure, is Craig's call, as FPL is a feed, never the rulebook. Until then its cells are placeholders |
 | What each category counts | Every manager can read the scoring on Player scoring (`spec/14`); a glossary there of what each category counts |
 | Your account | Display name, email preferences, your leagues; leaving a league; deleting the account |
 | Going on holiday | CM's holiday: the manager switches the auto team on himself until a gameweek he names (`spec/09` lets him switch it on; the end date is the new part) |
 | Match rating and Man of the Match | CM's Av R and MoM: a 1–10 rating from his points against his area; MoM the top scorer in each head-to-head |
-| Saved tactics | FM's: a few formations kept to switch between, say one for a double gameweek |
+| Stars and a dropped player's role, the gaps (`spec/05` Roles) | Found in review of stars part 2 (#11, 1 Nov 2026). (1) spec/05 still says "until stars are built, on the slot's first role"; stars are now built. (2) When the first lineup is picked again as the squad changes, a player still in the same cell keeps the role he had, and isn't re-picked by stars. That is Claude's reading, not an answer. (3) A player with stars for one of the slot's roles and "?" for another starts on the rated one, also unstated |
 | Gameweeks to come after a team joins at a split | Once begun, a gameweek's fixtures are fixed (`spec/13`). Open: how the gameweeks still to come are drawn when a team joins at a split (`convex/table/playedFixtures.ts`, `scheduleAround`); goes with the split season above |
-| The first lineup's details | A team's first lineup is a 4-4-2 in pick order (`spec/05`). Claude decided (#637): slots fill back to front, so one who plays two areas goes to the deeper; a player with no positions yet sits on the bench until the squad next changes; a first lineup may break the league's area limits until the manager saves |
-| A league's deletion email past the day's email limit | Managers are told only once a league is gone (`spec/13`). One the 100-a-day limit stops is never told: retried, or left? Craig left the old warnings as they were for the beta (22 Oct 2026) |
-| Commentary pricing scope | The matchup prices lines for men in its two lineups, bench included (#44); spec/10 says "for a player owned in the league". Open: every owned man or the two lineups; own goals priced; whether minutes bands get threshold lines ("~1' Saka: 1 minutes") |
-| Trade review letters | `spec/08`'s 24-hour veto and vote windows: does the commissioner or each voter get a letter to act on, and does a blocked or expired review file one (`spec/16`)? |
-| Trades with the auto team, and when the vote ships | `spec/09` pauses trades for a team on the auto team; `spec/08` doesn't say so. Trades come by August "with the veto": does the league vote come then too? |
 | One player on several teams | Not now; maybe later (Craig, 20 Oct 2026). A draft is normally one owner per league; some leagues do one per division. The draft, waivers, trades and "owned in the league" all assume one owner |
 
 Thought of and set aside, as they clash with what's settled: board confidence and the sack
@@ -174,7 +264,7 @@ be tabs on screens `spec/12` already lists rather than pages of their own.
 | Every squad on one page | For scouting rivals |
 | A new season from the last | Copy the league, its rules and its managers into next season |
 | Stat corrections | What moved after a match, and why (the window is `spec/07`'s) |
-| Waiver order and the can't-drop list, on show | Makes the waiver rules visible |
+| Waiver order and the can't-drop list, on show | Makes the waiver rules visible. Waiver priority "can be in its section, or a sub header" (Craig, 1 Nov 2026), so not on Home's deadline strip |
 | Who owned whom | A player's owners, gameweek by gameweek: for history and for his card |
 | Mock draft | Practice before the real one |
 | Commissioner fixes | Block one team from trading or claiming; adjust the standings |

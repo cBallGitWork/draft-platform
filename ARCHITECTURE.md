@@ -19,13 +19,13 @@ reason, and a change to either changes this file.
 | Releases | a merge to `main` is a Vercel production build, whose build command (`vercel.json`) is `node scripts/release.mjs`, which runs `npx convex deploy --cmd 'npm run build'`: the server code goes live on the live Convex deployment, then the site is built against it (Craig, 22 Oct 2026). Before deploying, it backs up saved data if the release changes its shape (spec/20, Rolling back): it fingerprints `convex/schema.ts`'s tables and document types (bundled with esbuild, pinned to the version `convex` uses so there is one copy, and read through Convex's own serialised schema), and compares that with the fingerprint the last release left on the live deployment as the `LIVE_SCHEMA_FINGERPRINT` environment variable. A difference, no record yet, or a schema it can't read means `npx convex export` first, which has Convex keep a snapshot on the deployment's Backup & Restore page; if that fails, nothing deploys and the build says why. The same shape deploys with no backup. How to restore: [docs/setup.md](docs/setup.md#restoring-saved-data). Nothing else deploys: `git.deploymentEnabled` turns off every branch but `main`, and `scripts/release.mjs` refuses, before anything else and saying why in the build log, a build whose `VERCEL_ENV` is set and isn't `production`, or one without `CONVEX_DEPLOY_KEY` (Vercel holds it for production only), so a preview, from git or the CLI, can never deploy Convex. vercel.json has no `ignoreCommand`: `[ "$VERCEL_ENV" != production ]` there cancelled every production build after #731, Vercel saying "The deployment was canceled because the Ignored Build Step command is configured to skip this build." (30 Oct 2026, #512) | one step ships site and server together, and reverting the merge undoes both; no preview sites for now (spec/20); the backup is automatic because the free plan allows it: "Periodic backups require a Convex Pro plan", but "On the Free/Starter plan, up to two backups can stored per deployment at a time", each "accessible for up to 7 days" (docs.convex.dev/database/backup-restore, 28 Oct 2026), and Convex keeps it, since a Vercel build's files are thrown away; Convex documents no way to read a deployment's schema back, so the release records its own |
 | The after-release check | `.github/workflows/release-check.yml`, on Vercel's `vercel.deployment.success` dispatch for production (which Vercel sends only while the project's `gitProviderOptions.disableRepositoryDispatchEvents` is off: it was on, so no check ran by itself; `npm run setup:live` turns it off, #512), and by hand, where `site` points it elsewhere: `tests/live/signIn.live.spec.ts` (`playwright.live.config.ts`) opens the live site in Playwright's container image, asks for a sign-in link for its own address, reads the email back through Resend's receiving API (`scripts/sign-in-inbox.mjs`), opens the link and sees Sign out; a failure turns the run red. Its two secrets: `RELEASE_CHECK_EMAIL`, an address Resend receives for the account (`<anything>@<id>.resend.app`, so no mailbox or MX record), put on the live site's allowed list; and `RELEASE_CHECK_RESEND_KEY`, a full-access Resend key, the only kind that reads received emails. While either is missing it skips and says so | it signs in exactly as a manager does, so the live site has no test-only way in; each run spends two of Resend's 3,000 a month, the link sent and then received (Resend's pricing page: "each received email counts towards your transactional emails quota", 28 Oct 2026), and one sent of its 100 a day; the address is a secret, since anyone who knew it could spend the day's emails asking for links; past the hour's three links for its address (a run of releases) it skips, saying so, rather than go red, until Craig decides |
 | Timed work | Convex scheduled functions and crons | Vercel Hobby cron runs once a day and GitHub Actions cron can't hold a minute, so every timer lives with the data |
-| The gate in CI | GitHub Actions on `ubuntu-latest`: `.github/workflows/verify.yml` runs `npm run verify` and then `npm run build`, and after them a `smoke` job runs `npm run smoke`, on every pull request to main and every push to main (Craig, 20 Oct 2026); the verify job checks out full history, so verify's add-only check on recorded payloads and goldens can compare with origin/main (22 Oct 2026); the smoke job runs in Playwright's own container image (`mcr.microsoft.com/playwright`), tagged with the Playwright version the verify job reads from `package-lock.json`, so Chromium and its OS packages come baked in: installing them on the runner failed about one run in four when apt couldn't fetch a package (exit 100), and a download once hung until the job's cancel (#281, #372) | two pull requests that pass alone can break main together (#69 and #77); Linux is the cheapest runner, and the hook checks need only bash, Python, git and jq; no secrets, since no test in it touches a deployment: the only secrets in GitHub are the after-release check's (below), and only its workflow reads them |
+| The gate in CI | GitHub Actions on `ubuntu-latest`: `.github/workflows/verify.yml` runs `npm run verify` and then `npm run build`, and after them a `smoke` job runs `npm run smoke`, on every pull request to main and every push to main (Craig, 20 Oct 2026); the verify job checks out full history, so verify's add-only check on recorded payloads and goldens can compare with origin/main (22 Oct 2026), as its tests-kept check does (`scripts/tests-kept.mjs`, #156); the smoke job runs in Playwright's own container image (`mcr.microsoft.com/playwright`), tagged with the Playwright version the verify job reads from `package-lock.json`, so Chromium and its OS packages come baked in: installing them on the runner failed about one run in four when apt couldn't fetch a package (exit 100), and a download once hung until the job's cancel (#281, #372) | two pull requests that pass alone can break main together (#69 and #77); Linux is the cheapest runner, and the hook checks need only bash, Python, git and jq; no secrets, since no test in it touches a deployment: the only secrets in GitHub are the after-release check's (below), and only its workflow reads them |
 | Email | Resend | free: 3,000 a month, **100 a day**, which is why a live draft sends no "on the clock" email |
 | AI | Anthropic's API, Claude Haiku 5.5, with a $10 monthly spending cap in Anthropic's console (Craig, 29 Oct 2026); first used by player news (spec/21) | the cheapest big lab's price, $0.10 in and $0.50 out per million tokens (Anthropic's model table, as of 6 Oct 2026), from a model able to name the right player from an article; a note is the player's, so the bill follows players, not leagues |
 | Money | free plans through the mini beta; Craig sets a monthly ceiling before August 2027 | |
 
 **Before building on Convex:** a short test that its servers can fetch FPL's and the Premier
-League's public APIs (only ever called from Vercel in London so far), and that a scheduled
+League's public APIs (until then only ever called from Vercel in London), and that a scheduled
 function fires with no browser open. If either fails, the backend choice goes back to Craig;
 Supabase was the runner-up.
 
@@ -80,18 +80,19 @@ its team stats reads are kept for the tests (`tests/support/recorded/pl-live-mat
 | Styling | Tailwind 4 with our own design values | the defaults are the generic AI look Craig wants to get far from |
 | Typeface | Archivo Narrow from Fontsource, and Archivo's variable font with its width axis (`@fontsource-variable/archivo`, `wdth.css`) | plate.md's two faces, served with the app: no call to Google from the sign-in page, and screenshots don't wait on a font server. The variable font is one file for the heavy wide titles (weight 800, width 125), where static files would need a width the package doesn't ship |
 | Tables | hand-built `<table>`s styled with Tailwind, such as Scouting's players list (`src/scouting/PlayersTable.tsx`), sorted by the server; TanStack Table and TanStack Virtual when a table needs virtualising | a plain table takes Championship Manager density with no library to learn; TanStack's are unstyled, so they would too, and its Table v9 is newer than Claude's knowledge, so read its docs first |
-| Tactics pitch | the browser's own drag and drop (`draggable`, in `src/myTeam/tactics/Pitch.tsx` and `SquadTable.tsx`), plus a tap, click or Enter to pick a player up and another to place him, both reaching one `onPlace` | a phone and a keyboard need the tap anyway, so drag is only the desk's shortcut and needs no package; Pragmatic drag and drop if drag ever needs more than the browser gives |
+| Tactics pitch | the browser's own drag and drop (`draggable`, in `src/myTeam/tactics/pitch/Pitch.tsx` and `src/myTeam/tactics/SquadTable.tsx`), plus a tap, click or Enter to pick a player up and another to place him, both reaching one `onPlace` | a phone and a keyboard need the tap anyway, so drag is only the desk's shortcut and needs no package; Pragmatic drag and drop if drag ever needs more than the browser gives |
 | Motion | considered, not needed yet: Motion when a screen needs animating | the live points change without it |
 | Forms | React Hook Form with Zod, when a form needs them | the league-rules forms are large. The scoring editor (#30) didn't: its form is the scoring set itself, edited as data (`src/scoring/editing.ts`) and checked by the server's `validateScoringSet`, which a Zod schema would only repeat |
 | Charts | Recharts | what shadcn's charts use |
 | Tests | Vitest; `convex-test` with fake timers for the backend, on `@edge-runtime/vm`; Testing Library on jsdom for the app; a test that logs with `console.error` fails unless it calls `silenceConsoleError()`; Vitest's on-disk module cache is off (`fsModuleCache: false`) | the companion's runner; the draft clock can be tested without waiting; `convex-test` needs Convex's runtime mimicked; screens are tested by role and name, as a manager finds them; the cache kept a typed `import.meta.glob`'s file list from before a file was added, and a full `npm test` took about 25s with or without it (31 Oct 2026, #766) |
 | Coverage | `@vitest/coverage-v8`, at Vitest's exact version, since it names that one version as its peer, so the two are bumped together; `npm run coverage` prints four totals (statements, branches, functions, lines) counted over every file under `convex/`, `src/` and `scripts/`, where a file no test loads counts as 0%; `npm run coverage -- --coverage.reporter=text` lists each file | read, never gated: no thresholds, and neither `npm run verify` nor CI runs it, because we don't write tests for a coverage number ([docs/PHILOSOPHY.md](docs/PHILOSOPHY.md)); V8 counts natively, so no source is rewritten to count it, and it is Vitest's default (#155) |
-| Screenshots | Playwright, on the Mac's Chrome (`scripts/shoot.mjs`) | the `ui-verifier` agent's camera, and the same tool as the Playwright MCP |
+| Lint | ESLint with `eslint-plugin-react-hooks`, its two rules only (`rules-of-hooks`, `exhaustive-deps`, both errors), over `src/` and its tests (`eslint.config.js`), parsed by `@typescript-eslint/parser` with no type-aware rules; `npm run lint`, inside `npm run verify`, so CI runs it, and any warning fails it (#154) | a dependency list is written by hand and a missing entry shows stale data with no error, which no test or typecheck catches; this plugin is React's own and ESLint is its only host; no style rule sets, so it adds no churn. `convex/` and its tests import no React, and their harnesses' `use...Deployment()` set up Vitest hooks, so they aren't linted. `rules-of-hooks` sees `useX()` and `React.useX()` but not `seam.useX()` (a lowercase object), so a seam hook after an early return stays a review check |
+| Screenshots | Playwright, on the Mac's Chrome (`scripts/shoot.mjs` for the running app; `scripts/design/shoot-board.mjs` for a canvas board, after `scripts/design/expand.mjs`) | the `ui-verifier` agent's camera and the `/design` skill's render check, and the same tool as the Playwright MCP |
 | Smoke tests | `@playwright/test` (`npm run smoke`, `tests/smoke/`), on the Mac's Chrome locally and Chromium in CI | loads the built app in a real browser on the preview sessions, no deployment needed |
 | Going live | the Vercel CLI (`vercel`, a devDependency pinned to one version), driven by `npm run setup:live` (`scripts/live-setup/`, docs/setup.md) with the Convex CLI and one `fetch` per call to Resend's API | Craig signs in to each CLI once and the setup command does the rest, with no token of ours to keep; pinned because the command's flags were read from that version's `--help` |
 
 Each is installed with the first feature that needs it; for now package.json has the app, sign-in,
-styling, typeface, test, coverage, screenshot, smoke-test and going-live rows. Tables and the
+styling, typeface, test, coverage, lint, screenshot, smoke-test and going-live rows. Tables and the
 Tactics pitch are built with no package, and components, motion, forms and charts are the plan.
 
 ## Data
@@ -138,7 +139,10 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   its kickoff until it is. The leagues' count changes none of it.
 - Live stats (#28): a cron every minute (`liveStatsSync.tick`) reads each match from kickoff
   until it is complete, or four hours on, and its team sheets alone in the hour before kickoff
-  (#45); outside those windows it reads no feed and writes no row.
+  (#45); outside those windows it reads no feed and writes no row. A complete match whose
+  commentary still lacks its full-time line is read on, whole, for up to `FULL_TIME_LINE_WAIT_MS`
+  after full time (the stream's lag allowance, `COMMENTARY_BEHIND_MINUTES`), as "Match ends" can
+  reach the stream after the status flips (#917).
   A cron, not a function rescheduling itself, because Convex runs a scheduled action at most
   once: a chain would end, unseen, at the first tick that failed before scheduling the next, and
   need re-arming whenever a kickoff moved. Convex runs one tick at a time, skipping one due while
@@ -193,8 +197,8 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   `convex/rules/leagueRulesShape.ts`).
 - The site's scoring (#354-#356): every league plays on one scoring set, which only the admin
   changes. Each version is a row in `siteScoring`, announced as a patch or a fix, and found by
-  `takesEffectAt`, so a past gameweek keeps the set it was played under; with none, the first set
-  (`convex/scoring/firstScoring.ts`). A gameweek's first kickoff is kept once it passes, in
+  `takesEffectAt`, so a past gameweek keeps the set it was played under (`convex/scoring/siteVersions.ts`);
+  with none, the first set (`convex/scoring/firstScoring.ts`). A gameweek's first kickoff is kept once it passes, in
   `gameweekStarts` (#414), so the version it plays on can't change if that match moves. The
   admin's unannounced patch is the one row in `siteScoringDraft`, and who dismissed a waiting
   patch's banner is a row a person and version in `patchBannerDismissals`, so it stays dismissed on
@@ -203,7 +207,9 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   lineup's included: that one (`firstLineup: true`) is picked again on each squad change until the
   manager saves (`convex/lineup/lineups.ts`). A league's deadline for a gameweek is kept once it passes, in
   `passedDeadlines` (#150, `convex/gameweeks/deadlineRecorder.ts`), so it stays put if the first
-  match is then postponed.
+  match is then postponed. The gameweek a manager last opened Tactics in is `tacticsOpenedInGameweek`
+  on his team's row, so Continue stops leading him there on every device (#526,
+  `convex/lineup/lineupDue.ts`); a new manager of a vacated team starts without it.
 - Leagues (#24): `leagues`, `teams` and `leagueEvents`, people known by their email, so one can be
   named before they have an account; joining's rows are `invites`, `inviteLinks` and
   `joinRequests` (#73).
@@ -235,6 +241,25 @@ Tactics pitch are built with no package, and components, motion, forms and chart
 - Season totals: each player's stats for a season are a row in `playerSeasonStats`, kept in step as
   each match record is written, so Scouting sorts by any stat without reading a season of records
   (`convex/stats/seasonStats.ts`).
+- Stars (#11): each player's points per match under each role he is rated for, and his stars for
+  each, are a row in `playerRoleStars`, one a player with a counted match, so no read prices every
+  player under every role. A match's lock sets its players' rows afresh and ranks everyone again;
+  a version of the site's scoring taking effect does every player's. A player gone from the
+  Premier League keeps his row while a squad in any league holds him
+  (`convex/stars/starsRefresh.ts`).
+- Season points (#525): each player's base points this season, summed at every position, are a row
+  in `playerSeasonPoints`, set afresh from his records just after a record write changes what one
+  counts or a played match leaves the feed or moves gameweek, so Scouting lists every player's
+  without pricing a season of records; it picks his main position and puts the league's overrides
+  in on each read (`convex/stats/seasonPoints.ts`). A deployment whose season totals show a played
+  match but no row starts the rebuild by itself at the next football sync or record write
+  (`convex/stats/seasonPointsQueue.ts`); a match move never stops the sync
+  (`convex/stats/seasonPointsMoves.ts`).
+- The stat race (#800): each team's season stats, counting only its starters and the bench players
+  who came on, are a row in `teamSeasonStats`, the sum of its rows in `teamGameweekStats`, one a
+  team and final gameweek, kept so a gameweek reopened takes away what it added. A match's lock
+  adds in each league's newly final gameweeks, one a run (`convex/stats/teamSeasonStats.ts`); the
+  race reads them through `convex/stats/teamSeasonTotals.ts`.
 - The shortlist (#374): each team's own list of players for the season, a row each in
   `shortlistPlayers` by FPL's `code`, read and changed only by its manager
   (`convex/scouting/shortlist.ts`).
@@ -242,6 +267,11 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   dashboard (`convex/feedback/feedback.ts`).
 - Each person's time zone, as their browser last named it, is a row in `timeZones` by email, so
   what they read tells time in it (#442, `convex/signIn/timeZone.ts`).
+- Changing a saved shape (#147): a shape only widens in place, a field added optional, as
+  every deployment's rows must still pass the schema on the next push. To narrow or rename one:
+  widen it, run a backfill `internalMutation` on each deployment, then narrow it. A pull request
+  may do it in one step only while no deployment holds such rows, and its Merge danger says which
+  case applies. Never delete rows or turn off schema validation to get a push through.
 
 ## Where code lives
 
@@ -254,16 +284,19 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   `src/leagues/LeagueLinks.tsx`, `src/mail/DateBlock.tsx`.
 - `src/app/`: how the app starts. `src/routes/`: the routes and the router. `src/`'s top level
   keeps only `main.tsx` and `styles.css`. The tokens stay in `styles.css`; a screen's own long
-  utilities sit beside it and `styles.css` imports them (`src/myTeam/tactics/pitch.css`, 31 Oct 2026),
+  utilities sit beside it and `styles.css` imports them (`src/myTeam/tactics/pitch/pitch.css`, 31 Oct 2026),
   as it does the controls' shared styles (`src/ui/controls.css`: the action, keys, boxes, the tick well).
 - `convex/schema/`: the schema's tables, one file per feature, imported only by `convex/schema.ts`.
+  `convex/stars/`: stars, which role suits a player (#11): the rating, its stored rows and their
+  refresh, the reads, and the role a player dropped into a slot starts on.
   `convex/gameweekScorer/`: the gameweek scorer.
 - The feed adapters: `convex/football/fpl/` and `convex/football/premierLeague/`, copies of
   epl-draft's, never shared.
 - `convex/table/` keeps its name, because the browser and the scheduler call its functions.
 - Sub-folders: past about 12 files, a job with its own files and name gets a sub-folder
-  (`src/frame/topBar/`, `src/myTeam/tactics/`, `src/scouting/shortlist/`). A folder over 12 that is
-  one job, or whose tests mirror its sources, stays flat.
+  (`src/frame/topBar/`, `src/myTeam/tactics/`, `src/scouting/shortlist/`, and the Tactics pitch's
+  drawing in `src/myTeam/tactics/pitch/`, 1 Nov 2026). A folder over 12 that is one job, or whose
+  tests mirror its sources, stays flat.
 
 **The rules**, from how the folder pass left the code (29 Oct 2026, counts from `find src convex`):
 

@@ -15,12 +15,20 @@ each league's **commissioner**.
 - Can remove a manager from a league. The team stays, for the commissioner to hand to someone
   new (`spec/09`).
 - Owns the site's scoring set and changes it by patch (`spec/14`, 25 Oct 2026).
+- Owns each club's colours and shirt pattern on the admin dashboard (`spec/12`), for any club at
+  any time, any colour; a file gives every club its first. A club with none waits in the dashboard's queue
+  beside clubs to approve, with no email, its shirt and mark white until set (Craig, 31 Oct 2026:
+  "soething that we could flag to the admin that a team doenst have a colour, then we can set
+  on admin"; the admin owning them leaves room for real shirt packs and away kits later).
 - Reads managers' feedback: a Feedback link in the top bar opens one text box, and what is sent
   lands in a list on the admin dashboard, with no email (25 Oct 2026).
 - A feeds page: when FPL's and the Premier League's data last arrived, and whether scoring is
   behind. A feed that stops silently is the failure to catch. A feed or sync that fails also
   emails the admin, at most once a day for each feed (24 Oct 2026). The page also shows a stat
   correction that arrives after a match's points have locked ([7](07-scoring.md#match-stats)).
+- One league whose rules are broken never stops the football feed for the other leagues: it is
+  skipped, named in the log and emailed to the admin, and the others carry on (Craig, 1 Nov 2026:
+  "no", to whether one league's broken rules should stop the feed for every league; #896).
 - His actions are logged where only he sees them. One files a Mail letter in a league when it
   changes a score, a squad or who runs a team there; a position correction doesn't, since managers
   already get its warning (`spec/06`). (Craig left this to Claude.)
@@ -53,6 +61,9 @@ How invites, the invite link and join requests work in detail is in
 - The commissioner and the admin can both put any player on any team, one at a time (search, pick
   a team), move a player between teams, and release one to free agency.
 - The league's squad limits warn but don't block.
+- A squad holding a player the football data no longer has: a notice says the data is broken, and
+  his row stays, as an error message (Craig, 31 Oct 2026, #323: "b but dont hide the row, mabe an
+  error message. easier to spot/debug").
 
 ## The mini beta
 
