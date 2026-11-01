@@ -14,6 +14,7 @@ import json
 import subprocess
 
 from drift_due import DUE_AFTER, PASS_MARK, GitFailed, merged_since_pass
+from tidy_branch import failure_line
 from where import runs_at
 
 MERGE_CALL = ["pr", "merge"]
@@ -58,8 +59,7 @@ def pr_view(args, folder, fields):
     except OSError as error:
         raise ValueError(f"gh couldn't run ({error})") from error
     if proc.returncode != 0:
-        said = proc.stderr.strip().splitlines() or [f"exit {proc.returncode}"]
-        raise ValueError(f"gh pr view failed ({said[0]})")
+        raise ValueError(f"gh pr view failed ({failure_line(proc)})")
     try:
         found = json.loads(proc.stdout)
         missing = [field for field in fields if field not in found]

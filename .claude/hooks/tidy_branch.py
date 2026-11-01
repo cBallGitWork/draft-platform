@@ -19,8 +19,9 @@ import os
 import subprocess
 import time
 
+from main_writes import REMOTE
+
 BRANCH_REF = "refs/heads/"
-REMOTE = "origin"  # where GitHub's copy of the pull request's head is fetched from
 PULL_HEAD = "pull/{number}/head"  # GitHub's ref for a pull request's head commit
 # each git, gh or lsof call's limit: the hook's time is counted in these (tidy_after_merge.py)
 RUN_TIMEOUT_SECONDS = 11
@@ -44,6 +45,12 @@ GIT_STATE = ("index", "HEAD", os.path.join("logs", "HEAD"))
 LOCKED = "locked"  # git worktree list --porcelain's line for a locked worktree
 
 
+def failure_line(done):
+    """A failed command's first stderr line, or its exit code when it said nothing."""
+    said = done.stderr.strip().splitlines() or [f"exit {done.returncode}"]
+    return said[0]
+
+
 def call(folder, *args):
     """(exit code, output) for a command run in folder; output is stderr's first line when it fails,
     and the code is None when the command couldn't run or ran out of time."""
@@ -53,8 +60,7 @@ def call(folder, *args):
         return None, str(error)
     if done.returncode == 0:
         return 0, done.stdout
-    said = done.stderr.strip().splitlines() or [f"exit {done.returncode}"]
-    return done.returncode, said[0]
+    return done.returncode, failure_line(done)
 
 
 def run(folder, *args):
@@ -106,8 +112,7 @@ def why_in_use(path, folder):
     except (OSError, subprocess.SubprocessError) as error:
         return f"which processes work in it couldn't be checked ({error})"
     if not done.stdout:
-        said = done.stderr.strip().splitlines() or [f"exit {done.returncode}"]
-        return f"which processes work in it couldn't be checked ({said[0]})"
+        return f"which processes work in it couldn't be checked ({failure_line(done)})"
     if any(line.startswith(CWD_LINE) and inside(path, line[len(CWD_LINE):]) for line in done.stdout.splitlines()):
         return "a running process works in it"
     ok, git_dir = run(path, "git", "rev-parse", "--absolute-git-dir")

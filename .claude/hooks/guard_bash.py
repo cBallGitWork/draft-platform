@@ -27,14 +27,14 @@ from approval_gate import approval_problem, label_problem
 from commands import XARGS, Unbalanced, Unreadable, UnreadableStdin, commands, runs_unknown, short_flags
 from drift_gate import merge_problem
 from hook_payload import project_dir
-from main_writes import MAIN, MAIN_REFS, gh_api_problem
+from main_writes import MAIN, MAIN_REFS, REMOTE_MAIN, gh_api_problem
 from pr_body import pr_body_problem, pr_title_note
 from private_words import list_missing_note, private_word_problem
 from read_only import agent_type_note, read_only_problem
 from where import current_branch, git_call, git_dir, options, previous_branch, runners
 
 COMMIT_VALUE_SHORT = set("mFCct")  # in `-am msg` everything after m is the value
-MAIN_NAMES = {MAIN, "origin/" + MAIN}  # git switch main, git checkout origin/main
+MAIN_NAMES = {MAIN, REMOTE_MAIN}  # git switch main, git checkout origin/main
 CREATES_BRANCH = {"-c", "-C", "-b", "-B", "--create", "--force-create", "--orphan"}
 ATTACHED_CREATE = re.compile(r"^-[a-zA-Z]*?([cCbB])(.*)$")  # -cmain, -qb main
 PREVIOUS = re.compile(r"^(-|@\{-(\d+)\})$")  # git switch -, git checkout @{-2}

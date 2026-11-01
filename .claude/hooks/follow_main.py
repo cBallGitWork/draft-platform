@@ -12,10 +12,9 @@ from __future__ import annotations
 import os
 import subprocess
 
-from main_writes import MAIN
-from tidy_branch import REMOTE, RUN_TIMEOUT_SECONDS, run, worktrees
+from main_writes import MAIN, REMOTE, REMOTE_MAIN
+from tidy_branch import RUN_TIMEOUT_SECONDS, failure_line, run, worktrees
 
-REMOTE_MAIN = f"{REMOTE}/{MAIN}"  # where the main checkout is moved to
 NOT_MOVED = "MAIN CHECKOUT NOT MOVED:"  # starts each line saying it stays behind
 BLOCKING_FILE = "\t"  # git checkout's refusal lists each file in its way on a line of its own, tab first
 # the most calls follow_main() makes: worktree list, fetch, rev-list, checkout
@@ -57,6 +56,5 @@ def follow_main(folder):
         if blocking:
             return (f"{stays}: git refused to move it over changed file(s) there: {', '.join(blocking)}. "
                     f"Commit, move or undo them, then run git -C {path} checkout --detach {REMOTE_MAIN}.")
-        said = done.stderr.strip().splitlines() or [f"exit {done.returncode}"]
-        return f"{stays}: {' '.join(move)} failed ({said[0]})."
+        return f"{stays}: {' '.join(move)} failed ({failure_line(done)})."
     return f"{checkout} moved {behind} commit(s) on to {REMOTE_MAIN}, so merged hook fixes take effect."

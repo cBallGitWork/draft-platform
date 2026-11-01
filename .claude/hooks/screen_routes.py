@@ -15,8 +15,8 @@ import glob
 import os
 import re
 
-from main_writes import MAIN
-from tidy_branch import REMOTE, run
+from main_writes import MAIN, REMOTE, REMOTE_MAIN
+from tidy_branch import run
 
 APPROVED = os.path.join("docs", "design", "approved")
 ROUTE_LINE = re.compile(r"^Route:\s*`([^`]+)`", re.M)
@@ -135,9 +135,9 @@ def files_rendering(route, folder, constants=None):
 
 def changed_files(folder):
     """The files this branch changes against origin/main; ValueError if git can't say."""
-    ok, said = run(folder, "git", "diff", "--name-only", f"{REMOTE}/{MAIN}...HEAD")
+    ok, said = run(folder, "git", "diff", "--name-only", f"{REMOTE_MAIN}...HEAD")
     if not ok:
-        raise ValueError(f"git diff against {REMOTE}/{MAIN} failed ({said}); git fetch {REMOTE} {MAIN}, then retry")
+        raise ValueError(f"git diff against {REMOTE_MAIN} failed ({said}); git fetch {REMOTE} {MAIN}, then retry")
     return set(said.split())
 
 
