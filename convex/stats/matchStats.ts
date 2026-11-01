@@ -6,7 +6,7 @@ import { isMatchComplete, isWhole, lockTime, statChanges, type PlayerMatchRecord
 import { statCorrectionWindowMs } from "../admin/platformSettings";
 import { matchStatsState, matchStatsSyncFields, playerMatchRecord } from "../schema";
 import { LATEST_RUNS } from "../shared/syncRuns";
-import { HOUR_MS, MINUTE_MS } from "../shared/time";
+import { DAY_MS, HOUR_MS, MINUTE_MS } from "../shared/time";
 import { currentFixtures } from "../shared/fixtures";
 import { dueMatch, type DueMatch } from "../shared/dueMatches";
 import { emailIfFailed } from "../admin/feedFailureEmails";
@@ -31,7 +31,7 @@ export const matchWrites = v.object({
 const EARLIEST_FULL_TIME_MS = 105 * MINUTE_MS;
 /** How long a locked match is still read, to catch a late correction for the feeds page, and how
  *  often: Claude's choice, not yet Craig's, and no late correction has been recorded to size it. */
-export const LATE_CORRECTION_WATCH_MS = 24 * HOUR_MS;
+export const LATE_CORRECTION_WATCH_MS = DAY_MS;
 export const LATE_READ_EVERY_MS = HOUR_MS;
 /** Matches per run: a gameweek's worth, so a first run behind many keeps inside an action's time. */
 export const MATCHES_PER_RUN = 10;
