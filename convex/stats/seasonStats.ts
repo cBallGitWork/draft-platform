@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
+import type { Doc } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { seasonStartYear } from "../shared/time";
 import { takeAllOrThrow } from "../shared/cappedRead";
@@ -32,8 +33,13 @@ export type RecordChange = { playerCode: number; fixtureCode: number; before: St
 async function seasonOfMatch(ctx: QueryCtx, fixtureCode: number): Promise<number> {
   const fixture = await fixtureByCode(ctx, fixtureCode);
   if (fixture === null) throw new Error(`Match ${fixtureCode} has records but isn't held`);
-  if (fixture.kickoff === null) throw new Error(`Match ${fixtureCode} has records but no kickoff`);
-  return seasonStartYear(fixture.kickoff);
+  return seasonOfFixture(fixture);
+}
+
+/** The season a held match with records falls in, by its kickoff; one with none is bad data. */
+export function seasonOfFixture({ code, kickoff }: Pick<Doc<"fixtures">, "code" | "kickoff">): number {
+  if (kickoff === null) throw new Error(`Match ${code} has records but no kickoff`);
+  return seasonStartYear(kickoff);
 }
 
 function totalsRow(ctx: QueryCtx, season: number, playerCode: number) {

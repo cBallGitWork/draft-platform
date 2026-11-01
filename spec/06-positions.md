@@ -59,5 +59,8 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - Positions change when a player's real-life role changes, gradually: the manager is warned first,
   then the position goes. The thresholds are admin-tunable (starting point: flagged after 3
   matches in a row elsewhere, removed after 6, only between gameweeks).
+- A position change counts from each league's own deadline, never FPL's: "stop caring about fpl
+  deadline, thats not improtant to us, we never use fpl deadline, thats their game" (Craig, 1 Nov
+  2026; #895).
 - Losing a position never makes a squad illegal. The player stays in his slot for the gameweek
   and the manager is warned.

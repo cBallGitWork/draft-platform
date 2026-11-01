@@ -48,8 +48,9 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   drafting they just start filling the pitch"): into the deepest open slot he can play; with none open, onto the
   bench in pick order; with no positions yet, onto the bench until his manager moves him. If the
   4-4-2 leaves a slot empty, the first lineup takes the first formation the squad fills completely
-  within the league's area limits, the presets in order and then any shape (Craig, 31 Oct 2026:
-  "or find a legal formatin with 2 defenders"). Only if none fits does a slot stay empty: it
+  within the league's area limits, from the league's presets in order (Craig, 31 Oct 2026:
+  "or find a legal formatin with 2 defenders"; then, 1 Nov 2026, on which shapes: "just the first
+  that works from our preset list"; #866). Only if none fits does a slot stay empty: it
   scores nothing, and never makes the lineup illegal or switches the auto team on.
 
 ## Moving players
@@ -197,7 +198,8 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
   included. Nothing locks player by player. Its time is a league rule; the default is FPL's own,
   90 minutes before the gameweek's first kickoff (every 2026/27 gameweek so far, checked against
   FPL's live data on 16 Oct 2026). Once passed, a deadline stays where it fell, even if the
-  gameweek's first match is then postponed, as in FPL (20 Oct 2026).
+  gameweek's first match is then postponed, as in FPL (20 Oct 2026). A gameweek FPL stops sending
+  keeps its last deadline (Craig, 1 Nov 2026: "Keeps its last deadline"; #202).
 - A gameweek begins at the league's own deadline, never FPL's: "ours, we arent fpl so stop copying
   them" (22 Oct 2026).
 - A player who joins the squad goes to the end of the bench, in the order he joined, until the
@@ -217,6 +219,8 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
   filled from the bench the same way, as if he hadn't played (Craig, 28 Oct 2026).
 - A player in the lineup whom the football data no longer holds: "score him like he didnt play,
   we can always admin update later" (Craig, 31 Oct 2026; #810).
+- An abandoned match counts as never played: "abndoned match is essentailly null like it didnt
+  happen, so a player in an absondeoned match would get auto subbed" (Craig, 1 Nov 2026; #904).
 - A goalkeeper is replaced only by a goalkeeper.
 - In a double gameweek, a starter who plays in either match is not subbed.
 - Auto-subs are always on, and there is no limit on them, ever.

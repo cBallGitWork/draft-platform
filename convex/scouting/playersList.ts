@@ -7,6 +7,7 @@ import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubOf, currentClubs, currentPlayersAt } from "../shared/players";
+import { seasonPointsIn } from "../stats/seasonPoints";
 import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { listOf, shownStat } from "./playersOrder";
@@ -14,9 +15,9 @@ import { checkCatalogueStat } from "../scoring/statCatalogue";
 
 // Scouting's players list (spec/19, The players list; #373): every Premier League player now, for
 // anyone in the league, filtered and sorted here on the server so the screen never holds a cut
-// list. Each player says who owns him in this league. Season points under the site's scoring are
-// null ("—") for now: a player's points depend on the slot he starts in (scoring.ts), and how the
-// list adds up a season of them isn't built. Waivers aren't built, so no player is on waivers.
+// list. Each player says who owns him in this league, and his season points under the site's
+// scoring: his card's total in the league, at his main position (seasonPoints.ts, #525). Waivers
+// aren't built, so no player is on waivers.
 // Any stat of the catalogue can be shown beside them as a season total and sorted by (spec/19,
 // "sortable by any stat"), read from the totals kept as records are written (seasonStats.ts), for
 // the newest season with any: last season's until the new one's first match (#647).
@@ -58,7 +59,8 @@ const listedPlayer = v.object({
   positions: v.array(position),
   /** The team in this league that owns him, or null for a free agent. */
   ownerTeamName: v.union(v.string(), v.null()),
-  /** His points this season under the site's scoring, or null ("—") until the list adds them up. */
+  /** His points this season under the site's scoring, as his card adds them up in this league
+   *  (seasonPoints.ts), or null ("—") while none of his matches is priced. */
   seasonPoints: v.union(v.number(), v.null()),
   /** His season total of the shown stat, 0 if he hasn't played; null with no stat shown. */
   stat: v.union(v.number(), v.null()),
@@ -88,21 +90,25 @@ export const list = query({
     const players = await currentPlayersOf(ctx, listedClubs);
     const ownerOf = await ownersIn(ctx, leagueId);
     const positionsOfNow = await positionsNow(ctx);
+    const seasonPointsOf = await seasonPointsIn(ctx, leagueId);
     const season = stat === null ? null : await newestSeasonWithTotals(ctx);
     const totals = season === null ? new Map<number, Stats>() : await seasonTotals(ctx, season);
     const listedClubOf = new Map(clubs.map((each) => [each.code, clubOf(each)]));
 
     const rows = await Promise.all(
-      players.map(async (player) => ({
-        code: player.code,
-        name: player.name,
-        fullName: player.fullName,
-        club: listedClubOf.get(player.clubCode)!,
-        positions: await positionsOfNow(player.code),
-        ownerTeamName: ownerOf.get(player.code) ?? null,
-        seasonPoints: null,
-        stat: shownStat(totals.get(player.code), stat),
-      })),
+      players.map(async (player) => {
+        const positions = await positionsOfNow(player.code);
+        return {
+          code: player.code,
+          name: player.name,
+          fullName: player.fullName,
+          club: listedClubOf.get(player.clubCode)!,
+          positions,
+          ownerTeamName: ownerOf.get(player.code) ?? null,
+          seasonPoints: seasonPointsOf(player.code, positions),
+          stat: shownStat(totals.get(player.code), stat),
+        };
+      }),
     );
     return { clubs: [...listedClubOf.values()], players: listOf(rows, filters, sort) };
   },

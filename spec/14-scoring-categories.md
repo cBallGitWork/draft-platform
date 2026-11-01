@@ -138,7 +138,8 @@ change is good".
 - The player card breaks each match down by category (goals 5, assists 3, minutes 2, role +2).
 - Each line of a breakdown says why: the stat, the rule's value for his area or position, and any
   points limit or minutes rule that cut it; the breakdown names the version of the set the match
-  was scored under (Craig, 31 Oct 2026). The site writes it from the scoring rows, not AI. The player card's lines
+  was scored under (Craig, 31 Oct 2026). A player who lands exactly on a points limit gets a note
+  saying he reached it, though it cost him nothing (Craig, 1 Nov 2026: "yes"; #863). The site writes it from the scoring rows, not AI. The player card's lines
   are his base points; the matchup's carry his role's line too (`spec/10`).
 - Bench players' points show greyed on the matchup, and count only if the player is subbed on
   (`spec/05`). The player card shows every match at his base points, the bench's included

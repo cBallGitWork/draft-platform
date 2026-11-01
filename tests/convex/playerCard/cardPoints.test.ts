@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { ALL_CELLS, cellKey, positionOfSlot, SLOT_POSITIONS } from "../../../convex/lineup/pitch";
-import { basePoints, cardPoints, cardPositions, cellAt, pointsAt } from "../../../convex/playerCard/cardPoints";
+import { basePoints, cardOpensAt, cardPoints, cardPositions, cellAt, pointsAt } from "../../../convex/playerCard/cardPoints";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { EXAMPLE_SET, GOAL_AND_ASSIST } from "../../support/convex/scoring.example";
 
@@ -96,4 +96,15 @@ test("his base points come at each of his card's positions in its order, the fir
 test("with no position a slot prices, his base points come once, at his best", () => {
   expect(basePoints(GOAL_AND_ASSIST, EXAMPLE_SET, ["SS"])).toMatchObject([{ position: "W", total: 11 }]);
   expect(basePoints(GOAL_AND_ASSIST, EXAMPLE_SET, [])).toMatchObject([{ position: null, total: null }]);
+});
+
+test("the one position his card opens on prices each match as the card's first figure does (#525)", () => {
+  const stats = { minutes: 90, defensive_contribution: 10, goals_scored: 1 };
+  for (const positions of [["ST", "W"], ["CDM", "CB"], ["SS"], ["SS", "CAM"]] as const) {
+    const opensAt = cardOpensAt(positions)!;
+    expect(basePoints(stats, EXAMPLE_SET, [opensAt])[0]).toEqual(basePoints(stats, EXAMPLE_SET, positions)[0]);
+  }
+  expect(cardOpensAt(["CM", "CB"])).toBe("CB");
+  expect(cardOpensAt(["SS"])).toBe("SS");
+  expect(cardOpensAt([])).toBeNull();
 });
