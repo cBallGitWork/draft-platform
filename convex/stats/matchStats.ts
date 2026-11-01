@@ -12,6 +12,7 @@ import { dueMatch, type DueMatch } from "../shared/dueMatches";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { countedStats, moveSeasonTotals, type RecordChange } from "./seasonStats";
 import { repriceChanged } from "./seasonPointsQueue";
+import { rebuildTotalsIfNoneKept } from "./seasonRebuilds";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -200,8 +201,11 @@ export async function writeRecords(
     }
     if (differs || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state });
   }
+  // Before any totals move, as their rows would hide a deployment whose older records have none.
+  // Its rebuild sets every total afresh and then re-prices every season, so nobody is re-priced here.
+  const rebuilding = records.length > 0 && (await rebuildTotalsIfNoneKept(ctx, records[0].fixtureCode));
   await moveSeasonTotals(ctx, moved);
-  await repriceChanged(ctx, records, held);
+  if (!rebuilding) await repriceChanged(ctx, records, held);
   return { inserted, updated: changed.length - inserted, changed };
 }
 

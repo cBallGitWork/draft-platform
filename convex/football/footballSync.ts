@@ -27,7 +27,7 @@ import { recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { writeScores } from "./matchScores";
 import { repriceMatches } from "../stats/seasonPointsMoves";
-import { rebuildIfNoneKept } from "../stats/seasonPointsQueue";
+import { rebuildIfNoneKept } from "../stats/seasonRebuilds";
 
 // Issue #21: the real Premier League's clubs, players, fixtures and gameweeks, copied in from the
 // football layer, and each match's score (#49, matchScores.ts). crons.ts runs it on a schedule;

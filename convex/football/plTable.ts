@@ -1,43 +1,37 @@
 // The Premier League table, worked out from the results (#50; spec/18, "The table": "P W D L GF GA
 // GD Pts, worked out from the results"). The Premier League's rules are fixed, so they are
-// constants here (CLAUDE.md), not a league's data. Pure: no I/O. Where the finished results come
-// from, and the live, provisional table, are later slices of #50.
+// constants here (CLAUDE.md), not a league's data. Pure: no I/O.
 //
-// The order is the Premier League Handbook's, Section C (2024/25 wording, as the Premier League
-// quoted it on 4 Dec 2024, premierleague.com/news/4183163; checked 25 Oct 2026):
-//   C.4  the most points first;
-//   C.5  level on points: "the Club with the higher or highest Goal Difference";
-//   C.6  still level: "the Club having scored the most goals in League Matches";
-//   C.7  still level: "they shall be deemed to occupy the same position in the League Table".
-// At the end of the season only, C.17 parts clubs still level after C.6 when the title,
-// relegation or a European place turns on it:
-//   C.17.1  "the total points scored by the relevant Clubs" in the league matches between them;
-//   C.17.2  "the Club scoring the higher number of goals whilst the Visiting Club in Head-to-Head
-//           Matches";
-//   C.17.3  "a play-off on a neutral ground", set by the Board.
-// What results alone can't settle: whether a tie touches a European place (that turns on who wins
-// the cups), so at the end of the season C.17.1 and C.17.2 part every tie; and a C.17.3 play-off,
-// which isn't a league match, so clubs level after C.17.2 share a position. Clubs sharing a
-// position stay in the order the caller lists them: the Premier League lists them alphabetically,
-// a practice and not a rule.
+// Clubs level on points are split by the competition's own tie-break order, which the caller
+// passes from its data (tieBreaks.ts), so the table holds no competition's order (#899). The
+// head-to-head steps apply when the competition's timing says (the Premier League's: once the
+// season is over), and only while every match between the clubs level at that step is played.
+// Clubs level after the last step share a position, in the order the caller lists them: the Premier League lists them alphabetically, a practice and not a rule.
+
+import { HEAD_TO_HEAD_TIE_BREAKS, type CompetitionTieBreak, type CompetitionTieBreaking } from "./tieBreaks";
 
 /** A league match's points (Handbook C.4): the Premier League's, fixed. */
 const PL_MATCH_POINTS = { win: 3, draw: 1, loss: 0 } as const;
 
-/** What parts clubs level on points, in the Handbook's order, all season (C.5, C.6). */
-const PL_TIE_BREAKS = ["goalDifference", "goalsScored"] as const;
+/** A league match: its home club and its away club. */
+export type PlMatch<Club> = { home: Club; away: Club };
 
-/** What parts clubs still level, after C.6, at the end of the season only (C.17.1, C.17.2). */
-const PL_END_OF_SEASON_TIE_BREAKS = ["headToHeadPoints", "headToHeadAwayGoals"] as const;
+/** A finished league match, or one being played as it stands: the home club's goals and the away
+ *  club's. */
+export type PlResult<Club> = PlMatch<Club> & { homeGoals: number; awayGoals: number };
 
-type TieBreak = (typeof PL_TIE_BREAKS)[number] | (typeof PL_END_OF_SEASON_TIE_BREAKS)[number];
-
-/** A finished league match: the home club's goals and the away club's. */
-export type PlResult<Club> = { home: Club; away: Club; homeGoals: number; awayGoals: number };
+/** What splits a tie: the competition's tie-breaking (tieBreaks.ts), whether the season is over,
+ *  and the matches with no result, still to come or never played, which hold back the
+ *  head-to-head steps. */
+export type PlTieBreaking<Club> = {
+  competition: CompetitionTieBreaking;
+  seasonOver: boolean;
+  unplayed: readonly PlMatch<Club>[];
+};
 
 export type PlTableRow<Club> = {
   club: Club;
-  /** 1 at the top; clubs the Handbook can't part share one, and the next club's skips past them
+  /** 1 at the top; clubs the order can't split share one, and the next club's skips past them
    *  (1, 2, 2, 4). */
   position: number;
   played: number;
@@ -52,20 +46,19 @@ export type PlTableRow<Club> = {
 
 type Row<Club> = Omit<PlTableRow<Club>, "position">;
 
-/** The table: every club in `clubs`, a club with no results on nothing. `seasonOver` brings in
- *  the head-to-head steps (C.17), which apply only once every match is played. A club listed
- *  twice, a result naming a club not in `clubs`, a club playing itself, or goals that aren't a
- *  whole number from 0 throws: each is the caller's bug. */
+/** The table: every club in `clubs`, a club with no results on nothing. A club listed twice, a
+ *  match naming a club not in `clubs`, a club playing itself, or goals that aren't a whole number
+ *  from 0 throws: each is the caller's bug. */
 export function plTable<Club>(
   clubs: readonly Club[],
   results: readonly PlResult<Club>[],
-  { seasonOver }: { seasonOver: boolean },
+  { competition, seasonOver, unplayed }: PlTieBreaking<Club>,
 ): PlTableRow<Club>[] {
   const rows = new Map(clubs.map((club) => [club, emptyRow(club)]));
   if (rows.size !== clubs.length) throw new Error(`A club is listed twice in ${clubs.map(String).join(", ")}`);
   const rowOf = (club: Club) => {
     const row = rows.get(club);
-    if (row === undefined) throw new Error(`A result names ${String(club)}, which isn't one of the clubs`);
+    if (row === undefined) throw new Error(`A match names ${String(club)}, which isn't one of the clubs`);
     return row;
   };
   for (const result of results) {
@@ -73,9 +66,17 @@ export function plTable<Club>(
     addResult(rowOf(result.home), result.homeGoals, result.awayGoals);
     addResult(rowOf(result.away), result.awayGoals, result.homeGoals);
   }
-  const tieBreaks = seasonOver ? [...PL_TIE_BREAKS, ...PL_END_OF_SEASON_TIE_BREAKS] : PL_TIE_BREAKS;
+  for (const match of unplayed) {
+    throwIfPlayingItself(match);
+    rowOf(match.home);
+    rowOf(match.away);
+  }
   const levelGroups = groupedBy([...rows.values()], (row) => row.points).flatMap((level) =>
-    brokenTies(level, tieBreaks, results),
+    brokenTies(level, competition.order, {
+      results,
+      unplayed,
+      headToHeadDue: competition.headToHead === "allSeason" || seasonOver,
+    }),
   );
   let position = 1;
   return levelGroups.flatMap((group) => {
@@ -85,8 +86,13 @@ export function plTable<Club>(
   });
 }
 
-function throwIfUncountable<Club>({ home, away, homeGoals, awayGoals }: PlResult<Club>): void {
-  if (home === away) throw new Error(`A result has ${String(home)} playing itself`);
+function throwIfPlayingItself<Club>({ home, away }: PlMatch<Club>): void {
+  if (home === away) throw new Error(`A match has ${String(home)} playing itself`);
+}
+
+function throwIfUncountable<Club>(result: PlResult<Club>): void {
+  throwIfPlayingItself(result);
+  const { home, away, homeGoals, awayGoals } = result;
   for (const goals of [homeGoals, awayGoals]) {
     if (!Number.isInteger(goals) || goals < 0) {
       throw new Error(`${String(home)} v ${String(away)} has ${goals} goals, not a whole number from 0`);
@@ -134,24 +140,26 @@ function groupedBy<R>(rows: readonly R[], key: (row: R) => number): R[][] {
   return [...groups.entries()].toSorted(([one], [other]) => other - one).map(([, group]) => group);
 }
 
+type Matches<Club> = { results: readonly PlResult<Club>[]; unplayed: readonly PlMatch<Club>[]; headToHeadDue: boolean };
+
 /** Clubs level on points, split by the first tie-break, those still level by the next, and so on:
- *  each group returned is level on everything applied. */
-function brokenTies<Club>(
-  level: Row<Club>[],
-  tieBreaks: readonly TieBreak[],
-  results: readonly PlResult<Club>[],
-): Row<Club>[][] {
+ *  each group returned is level on everything applied. A head-to-head step not yet due, or with a
+ *  match between the clubs level unplayed, is skipped, and the next step applies. */
+function brokenTies<Club>(level: Row<Club>[], tieBreaks: readonly CompetitionTieBreak[], matches: Matches<Club>): Row<Club>[][] {
   const [first, ...rest] = tieBreaks;
   if (level.length < 2 || first === undefined) return [level];
-  return groupedBy(level, tieBreakKey(first, level, results)).flatMap((stillLevel) =>
-    brokenTies(stillLevel, rest, results),
+  if (HEAD_TO_HEAD_TIE_BREAKS.has(first) && (!matches.headToHeadDue || between(level, matches.unplayed).length > 0)) {
+    return brokenTies(level, rest, matches);
+  }
+  return groupedBy(level, tieBreakKey(first, level, matches.results)).flatMap((stillLevel) =>
+    brokenTies(stillLevel, rest, matches),
   );
 }
 
 /** What a tie-break ranks by, higher first. The head-to-head steps count only the matches between
  *  the clubs level at that step, however many there are (C.17.1 counts "the relevant Clubs"). */
 function tieBreakKey<Club>(
-  tieBreak: TieBreak,
+  tieBreak: CompetitionTieBreak,
   level: readonly Row<Club>[],
   results: readonly PlResult<Club>[],
 ): (row: Row<Club>) => number {
@@ -161,22 +169,23 @@ function tieBreakKey<Club>(
     case "goalsScored":
       return (row) => row.goalsFor;
     case "headToHeadPoints": {
-      const between = resultsBetween(level, results);
+      const among = between(level, results);
       return (row) =>
-        between.reduce((sum, { home, away, homeGoals, awayGoals }) => {
+        among.reduce((sum, { home, away, homeGoals, awayGoals }) => {
           if (home === row.club) return sum + matchPoints(homeGoals, awayGoals);
           if (away === row.club) return sum + matchPoints(awayGoals, homeGoals);
           return sum;
         }, 0);
     }
     case "headToHeadAwayGoals": {
-      const between = resultsBetween(level, results);
-      return (row) => between.reduce((sum, { away, awayGoals }) => (away === row.club ? sum + awayGoals : sum), 0);
+      const among = between(level, results);
+      return (row) => among.reduce((sum, { away, awayGoals }) => (away === row.club ? sum + awayGoals : sum), 0);
     }
   }
 }
 
-function resultsBetween<Club>(level: readonly Row<Club>[], results: readonly PlResult<Club>[]): PlResult<Club>[] {
+/** The matches between the clubs level. */
+function between<Club, M extends PlMatch<Club>>(level: readonly Row<Club>[], matches: readonly M[]): M[] {
   const levelClubs = new Set(level.map((row) => row.club));
-  return results.filter(({ home, away }) => levelClubs.has(home) && levelClubs.has(away));
+  return matches.filter(({ home, away }) => levelClubs.has(home) && levelClubs.has(away));
 }

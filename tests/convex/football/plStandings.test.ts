@@ -171,6 +171,23 @@ test("once every match is at full time, head-to-head parts the clubs level after
   expect(third.slice(0, 2)).toEqual([3, 3]);
 });
 
+test("at the end of the season, a match never played between two other clubs leaves head-to-head splitting a tied pair", async () => {
+  const t = freshConvex();
+  await t.run(async (ctx) => {
+    await ctx.db.insert("clubs", { code: 4, name: "Derby", shortName: "DER" });
+  });
+  // Chelsea v Derby, in an early gameweek, never played; every other match, Derby's last, at full time.
+  await holdSeason(t, [...levelSeason, { code: 7, home: 3, away: 4, score: null }, { code: 8, home: 4, away: 2, score: [0, 0] }, { code: 9, home: 1, away: 4, score: [0, 0] }]);
+  await t.run(async (ctx) => {
+    const neverPlayed = await ctx.db.query("fixtures").filter((q) => q.eq(q.field("code"), 7)).unique();
+    await ctx.db.patch(neverPlayed!._id, { gameweek: 1 });
+  });
+
+  const [first, second] = await lines(t);
+  expect(first.slice(0, 2)).toEqual([1, 2]);
+  expect(second.slice(0, 2)).toEqual([2, 1]);
+});
+
 test("a match held as played with no score throws, never left out of the table", async () => {
   const t = freshConvex();
   await holdSeason(t, [{ code: 1, home: 3, away: 1, score: null }]);

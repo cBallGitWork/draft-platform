@@ -45,6 +45,13 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - Picking a preset reshapes the pitch and keeps the players: each starter moves to a slot of the
   new shape in his own area, if one is free, and anyone left over goes to the front of the bench.
   The shape's empty slots show where to drag (Craig, 26 Oct 2026; #14).
+- A starter with no free slot in his own area moves to the nearest free slot in any area his
+  positions play, and only a player with none goes to the bench (Craig, 1 Nov 2026, after a
+  4-4-2 turned 4-2-3-1 benched its midfield: "it just put players on the bench, left half the
+  team out").
+- Everyone takes a slot in his own area before anyone moves across, and of two areas as near, a
+  player moving across takes the deeper (Craig, 1 Nov 2026). A plain CM or WM still goes to the
+  bench in a 4-2-3-1, which has no midfield row.
 - A manager can save his own presets: "no home away silly but saved presets good. They include
   formation and roles. Players change too much to save" (Craig, 1 Nov 2026). A saved preset holds
   the formation and each slot's role, never players.

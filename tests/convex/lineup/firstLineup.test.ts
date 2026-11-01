@@ -141,9 +141,11 @@ describe("a squad that leaves a 4-4-2 slot empty takes the first preset it fills
 
   test("a preset outside the league's area limits is passed over: with none left, the 4-4-2 keeps its gaps", () => {
     const { order, positions } = BACK_THREE_SQUAD;
-    const oneHoldingMan: FirstLineupRules = { ...openLimits({ defensiveMidfield: { minimum: 0, maximum: 1 } }), presets: DEFAULT_PRESETS };
-    expect(firstLineup(order, positions, oneHoldingMan)).toEqual(firstLineup(order, positions, NO_FALLBACK));
-    expect(firstLineup(order, positions, oneHoldingMan).starters).toHaveLength(9);
+    // Only three centre backs: every preset the squad fills has a back three.
+    const aBackFour: FirstLineupRules = { ...openLimits({ defence: { minimum: 4, maximum: 5 } }), presets: DEFAULT_PRESETS };
+    expect(firstLineup(order, positions, aBackFour)).toEqual(firstLineup(order, positions, NO_FALLBACK));
+    // The 4-4-2's one gap is in its back four: its midfield takes the holding men.
+    expect(firstLineup(order, positions, aBackFour).starters).toHaveLength(10);
   });
 
   test("a league with no rules yet has only the 4-4-2", () => {

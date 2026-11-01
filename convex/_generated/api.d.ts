@@ -38,6 +38,7 @@ import type * as football_premierLeague_plMatch from "../football/premierLeague/
 import type * as football_premierLeague_plTeamStats from "../football/premierLeague/plTeamStats.js";
 import type * as football_premierLeague_premierLeague from "../football/premierLeague/premierLeague.js";
 import type * as football_scoreReads from "../football/scoreReads.js";
+import type * as football_tieBreaks from "../football/tieBreaks.js";
 import type * as gameweekScorer_gameweekScores from "../gameweekScorer/gameweekScores.js";
 import type * as gameweekScorer_heldMatches from "../gameweekScorer/heldMatches.js";
 import type * as gameweekScorer_scoredMatches from "../gameweekScorer/scoredMatches.js";
@@ -198,6 +199,7 @@ import type * as stats_matchStatsSync from "../stats/matchStatsSync.js";
 import type * as stats_seasonPoints from "../stats/seasonPoints.js";
 import type * as stats_seasonPointsMoves from "../stats/seasonPointsMoves.js";
 import type * as stats_seasonPointsQueue from "../stats/seasonPointsQueue.js";
+import type * as stats_seasonRebuilds from "../stats/seasonRebuilds.js";
 import type * as stats_seasonRecords from "../stats/seasonRecords.js";
 import type * as stats_seasonStats from "../stats/seasonStats.js";
 import type * as stats_statTotals from "../stats/statTotals.js";
@@ -253,6 +255,7 @@ declare const fullApi: ApiFromModules<{
   "football/premierLeague/plTeamStats": typeof football_premierLeague_plTeamStats;
   "football/premierLeague/premierLeague": typeof football_premierLeague_premierLeague;
   "football/scoreReads": typeof football_scoreReads;
+  "football/tieBreaks": typeof football_tieBreaks;
   "gameweekScorer/gameweekScores": typeof gameweekScorer_gameweekScores;
   "gameweekScorer/heldMatches": typeof gameweekScorer_heldMatches;
   "gameweekScorer/scoredMatches": typeof gameweekScorer_scoredMatches;
@@ -413,6 +416,7 @@ declare const fullApi: ApiFromModules<{
   "stats/seasonPoints": typeof stats_seasonPoints;
   "stats/seasonPointsMoves": typeof stats_seasonPointsMoves;
   "stats/seasonPointsQueue": typeof stats_seasonPointsQueue;
+  "stats/seasonRebuilds": typeof stats_seasonRebuilds;
   "stats/seasonRecords": typeof stats_seasonRecords;
   "stats/seasonStats": typeof stats_seasonStats;
   "stats/statTotals": typeof stats_statTotals;

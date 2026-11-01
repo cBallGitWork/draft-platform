@@ -199,7 +199,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     const preset = tactics.presets.find((each) => each.name === name);
     if (preset === undefined) return;
     setShape(name);
-    edit(reshaped(draft, preset.cells, ratingsOf));
+    edit(reshaped(draft, preset.cells, rules, ratingsOf));
   };
   /** Up, down, or a drop on a bench row: the player at that place in the bench order. Up or Down
    *  keeps the focus on the button pressed. */
