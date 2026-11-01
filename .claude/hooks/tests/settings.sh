@@ -1,6 +1,6 @@
 #!/bin/bash
 # settings.json's checks: each hook is wired to the event and matcher it guards, and its script is
-# there and executable, the Stop gates' timeouts sit over gate_on_stop.py's own, and package.json's
+# there and executable, tidy_after_merge.py counts the time settings.json gives it, the Stop gates' timeouts sit over gate_on_stop.py's own, and package.json's
 # test deadline under that. A hook that isn't wired never runs, and nothing else would say so.
 . "$(dirname "$0")/helpers.sh"
 
@@ -82,3 +82,9 @@ late=$((gate_timeout - VERIFY_AFTER_TESTS + 1))
 problems=$(late_deadline "$tmp/late-deadline.json")
 [ "$problems" = "package.json: the ${late}s test deadline leaves under ${VERIFY_AFTER_TESTS}s of gate_on_stop.py's ${gate_timeout}s" ] ||
   fail "settings.sh: a package.json with a ${late}s test deadline gave: ${problems:-nothing}"
+
+# tidy_after_merge.py's sweep stops by the time settings.json gives it, so the two must agree
+tidy_seconds=$(sed -n 's/^HOOK_SECONDS = \([0-9][0-9]*\).*/\1/p' "$hooks/tidy_after_merge.py")
+tidy_timeout=$("$jq" '[.hooks.PostToolUse[]?.hooks[]? | select(.command | endswith("/tidy_after_merge.py")) | .timeout][0]' "$settings")
+[ -n "$tidy_seconds" ] && [ "$tidy_seconds" = "$tidy_timeout" ] ||
+  fail "settings.sh: tidy_after_merge.py's HOOK_SECONDS (${tidy_seconds:-none}) isn't settings.json's timeout for it ($tidy_timeout)"

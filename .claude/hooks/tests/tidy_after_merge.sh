@@ -3,17 +3,25 @@
 # branch and its clean worktree go, also when GitHub's head is a merge commit on top of it; one with
 # extra commits, uncommitted changes, a head that can't be fetched, a worktree in use (a process
 # working in it, git state changed lately, locked), or checked out in the main checkout or the
-# folder the merge ran in stays, and says why; nothing else is touched. Then the
+# folder the merge ran in stays, and says why; nothing else is touched. Earlier leftovers whose pull
+# requests merged go on a later merge, while the hook's time lasts. Then the
 # main checkout follows origin/main when detached and behind it, but not on a branch, on a commit
 # of its own, mid-bisect, when origin can't be fetched, or over a changed file it would overwrite.
 . "$(dirname "$0")/helpers.sh"
 
 repo=$tmp/tidy && git init -q -b main "$repo"
 git -C "$repo" "${as_tester[@]}" commit -q --allow-empty -m "start"
-# a stand-in gh: gh pr view notes its args in $GH_ARGS, then prints $FAKE_PR, or fails when it is unset
+# a stand-in gh: gh pr list waits $GH_LIST_SLEEP seconds, then prints $FAKE_MERGED (none when it is
+# unset), or fails when $GH_LIST_FAILS is set; gh pr view notes its args in $GH_ARGS, then prints
+# $FAKE_PR, or fails when it is unset
 export GH_ARGS=$tmp/gh-args
 mkdir "$tmp/bin" && cat > "$tmp/bin/gh" <<'EOF'
 #!/bin/bash
+if [ "$2" = list ]; then
+  sleep "${GH_LIST_SLEEP:-0}"
+  [ -z "${GH_LIST_FAILS:-}" ] || { echo "HTTP 502" >&2; exit 1; }
+  printf '%s\n' "${FAKE_MERGED:-[]}" && exit 0
+fi
 printf '%s\n' "$*" > "$GH_ARGS"
 [ -n "${FAKE_PR:-}" ] || { echo "no pull requests found" >&2; exit 1; }
 printf '%s\n' "$FAKE_PR"
@@ -126,6 +134,41 @@ built locked && pr locked && git -C "$repo" worktree lock --reason "claude agent
 says "cannot remove a locked working tree" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
 [ -d "$tmp/wt-locked" ] || fail "tidy_after_merge.py: removed a locked worktree"
 git -C "$repo" worktree unlock "$tmp/wt-locked"
+
+# earlier leftovers (#933): a worktree kept as in use goes on a later merge once nothing uses it, a
+# locked one is passed over without a word, and the branch just merged, kept, is said once
+built earlier && pr earlier && touch "$repo/.git/worktrees/wt-earlier/index"
+says "its git state changed in the last" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
+touch -t 202001010000 "$repo/.git/worktrees/wt-earlier/index"
+built held && git -C "$repo" worktree lock --reason "claude agent" "$tmp/wt-held"
+built later && pr later && touch "$repo/.git/worktrees/wt-later/index"
+merged_pr() { "$jq" -c --arg b "$1" --arg h "$(git -C "$repo" rev-parse "$1")" --argjson n "$2" \
+  '. + [{number:$n,headRefName:$b,headRefOid:$h}]'; }  # branch number: adds it to a gh pr list answer
+export FAKE_MERGED=$(echo '[]' | merged_pr later "$number" | merged_pr earlier 5 | merged_pr held 4)
+out=$(printf '%s' "$(bash_in "$repo" "$merge")" | "$hooks/tidy_after_merge.py")
+printf '%s' "$out" | grep -qF "#5 merged; its local branch earlier and any worktree it was in were removed" ||
+  fail "tidy_after_merge.py: an earlier leftover wasn't tidied: $out"
+[ -d "$tmp/wt-earlier" ] && fail "tidy_after_merge.py: an earlier leftover's worktree is still there"
+[ -d "$tmp/wt-held" ] && has_branch held || fail "tidy_after_merge.py: removed a locked leftover"
+printf '%s' "$out" | grep -q "held" && fail "tidy_after_merge.py: spoke of a locked leftover: $out"
+[ "$(printf '%s' "$out" | grep -o "branch later" | wc -l)" -eq 1 ] || fail "tidy_after_merge.py: said the merged branch twice: $out"
+git -C "$repo" worktree unlock "$tmp/wt-held"
+# a gh pr list that fails is said
+built listed && pr listed
+says "Earlier merged branches weren't tidied: gh pr list failed (HTTP 502)" tidy_after_merge.py "$(bash_in "$repo" "$merge")" GH_LIST_FAILS=1
+# out of time: it doesn't look, or it leaves the leftovers it can't finish for a later merge
+sweep_by() { # seconds: sweep's lines with a deadline that far off, each call taking at most 0.1s
+  (cd "$repo" && python3 -B -c 'import sys, time; sys.path.insert(0, sys.argv[1]); import tidy_after_merge as t
+t.RUN_TIMEOUT_SECONDS = 0.1; print(" ".join(t.sweep(".", set(), time.monotonic() + float(sys.argv[2]))))' "$hooks" "$1")
+}
+out=$(sweep_by 0)
+[ "$out" = "Earlier merged branches weren't tidied: the hook's time ran short before it could look." ] ||
+  fail "tidy_after_merge.py: a sweep with no time left gave: $out"
+out=$(GH_LIST_SLEEP=2 sweep_by 1.5)  # time to call gh pr list, none left once it answers
+[ "$out" = "2 earlier merged branch(es) wait for a later merge: the hook's time ran short." ] ||
+  fail "tidy_after_merge.py: a sweep out of time gave: $out"
+has_branch held || fail "tidy_after_merge.py: a sweep out of time still tidied"
+unset FAKE_MERGED
 
 # a worktree whose folder is already gone doesn't hold the branch for good
 built vanished && pr vanished && rm -rf "$tmp/wt-vanished"
