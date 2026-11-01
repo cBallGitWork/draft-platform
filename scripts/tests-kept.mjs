@@ -15,7 +15,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import ts from "typescript";
-import { BASE, branchCheck } from "./branchCheck.mjs";
+import { BASE, branchCheck, TRAILER_PLACE } from "./branchCheck.mjs";
 
 const TESTS_ROOT = "tests/";
 /** Every Vitest and Playwright test file's name (tests/README.md, The five roots). */
@@ -137,7 +137,7 @@ function main() {
       `this branch removes ${refused.length === 1 ? "a test" : `${refused.length} tests`} ${BASE} has:\n` +
         `${listed.join("\n")}\n` +
         `Put it back, or, if it goes on purpose, add a trailer to a commit on this branch: ` +
-        `"${TRAILER}: <the test's name above, or its file>: <why>".`,
+        `"${TRAILER}: <the test's name above, or its file>: <why>", ${TRAILER_PLACE}.`,
     );
   }
 }

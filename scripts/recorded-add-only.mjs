@@ -9,7 +9,7 @@
 // change, such as a new golden schema.json, carries one. New files pass.
 // Run from the repo: `node scripts/recorded-add-only.mjs`; `npm run verify` runs it, so CI does.
 
-import { branchCheck } from "./branchCheck.mjs";
+import { branchCheck, TRAILER_PLACE } from "./branchCheck.mjs";
 
 const FOLDERS = ["tests/support/recorded/", "tests/support/golden/"];
 const TRAILER = "Re-record";
@@ -39,6 +39,6 @@ if (refused.length) {
   fail(
     `${FOLDERS.join(" and ")} are add-only, but this branch changes or deletes ${refused.join(", ")}. ` +
       `Add a new file beside the old one, or, if the old one was wrong, add a trailer to a commit on ` +
-      `this branch: "${TRAILER}: <file>: <why>".`,
+      `this branch: "${TRAILER}: <file>: <why>", ${TRAILER_PLACE}.`,
   );
 }
