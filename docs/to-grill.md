@@ -134,15 +134,6 @@ Continue taking a manager to Tactics before the deadline so he can adjust his li
 - Where it shows: the pitch's starters, the bench, the squad list, or all of them.
 - Whether its levels (75%, 50%, 25%, out) each look different, and what a phone shows.
 
-**Team tactic per formation**: "each formation unlocks a team tactic too/penalty (so if you
-somehow 2 at the back, clean sheet points change etc) / 4-3-3 allows front 3 pressing" (Craig,
-1 Nov 2026). SPEC.md's second release has team instructions; the approved Tactics picture holds
-their places as placeholders (`docs/design/approved/team/`).
-- Which team tactic each formation unlocks, and which penalty each shape carries.
-- How big the penalties are, against roles' 0.25 points a match (`spec/05`, Roles).
-- One team tactic at a time, or several.
-- Whether it waits for the second release, with team instructions.
-
 **Formation descriptions**: the formation window shows each formation's and each classic side's
 description, and the Guide would too.
 - Where a formation's description lives: held with the formation, shown in the formation window

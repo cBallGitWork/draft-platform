@@ -34,10 +34,10 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   editable as league rules. The ten after 4-5-1 Craig added (28 Oct 2026): "no basics like
   4-5-1". Then, from Craig on 1 Nov 2026 ("formation presets that include sweeper/liberio too",
   "also formations with 2 at the back"): 5-3-2 with a sweeper, 3-5-2 with a libero, 2-3-5 and
-  2-3-2-3. A shape is offered only where the league's area limits allow it.
+  2-3-2-3.
 - Classics are famous sides' formations, each a league rule like a preset, which the ready-made
   rules carry. A classic sets its shape, every slot's role and its team instructions, which
-  Claude drafts and Craig edits (Craig, 1 Nov 2026). The first three are Keegan's Newcastle
+  Claude drafts and Craig edits (Craig, 1 Nov 2026). They include Keegan's Newcastle
   ("both wide mids whip in crossers, strikers going for hearders, cb and both cms attack"),
   Barcelona's tiki-taka and Hungary in the 50s.
 - A manager can change a classic's shape, roles or instructions. Once he does, it becomes custom
@@ -126,8 +126,9 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
 
 From Craig, 1 Nov 2026, brought into the mini beta from the second release.
 
-- Every preset and classic has its own team instructions, several attacking and several
-  defensive, as "some wont make sense" for every shape. Claude drafts them, each with a
+- Every preset and classic has its own team instructions, at least three, attacking and
+  defensive: "id say at least 3", "attack and defe, will need multiple per formation", as not
+  every one suits every shape. Claude drafts them, each with a
   description held with it, and Craig edits them; they are league rules like the presets.
 - A manager picks one attacking and one defensive instruction at a time. Picking a new formation
   preselects one of each from its list, and he can change either.
