@@ -4,13 +4,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, expect, test } from "vitest";
 import { DEFAULT_ROLES } from "../../../convex/lineup/roles.ts";
-import { initialsOf, lintPage, roleInitials } from "../../../scripts/design/lint.mjs";
+import { POSITIONS as POSITION_LABELS } from "../../../convex/positions/positionTables.ts";
+import { initialsOf, lintPage, roleCatalogue, roleInitials } from "../../../scripts/design/lint.mjs";
 import { REPO_ROOT } from "../../support/scripts/repoRoot.mjs";
 
 // The design lint (plate.md, Never and Decided): role initials, a key or legend, a `·` string.
 
 const ROLE_NAMES = Object.values(DEFAULT_ROLES).flatMap((roles) => roles.map(({ name }) => name));
-const POSITIONS = Object.keys(DEFAULT_ROLES);
+const POSITIONS = [...new Set([...Object.keys(DEFAULT_ROLES), ...POSITION_LABELS])];
 const INITIALS = roleInitials(ROLE_NAMES, POSITIONS);
 
 const page = (body) => `<!doctype html><html><head><title>A · B</title><style>.key{}</style></head><body>${body}</body></html>`;
@@ -34,6 +35,17 @@ test("a role's initials are each word's first letter, a number kept whole, and t
 test("the role catalogue's initials hold the ones Craig struck out, and no position chip", () => {
   for (const each of ["SHS", "DFB", "IF", "N10", "F9", "BW"]) expect(INITIALS.has(each)).toBe(true);
   for (const position of POSITIONS) expect(INITIALS.has(position)).toBe(false);
+});
+
+test("SS is spec/06's support striker label, so a board may show it though it is Shadow striker's initials", () => {
+  expect(INITIALS.has("SS")).toBe(false);
+  expect(lintPage(page("<td>SS</td><td>Bergkamp</td>"), INITIALS)).toEqual([]);
+});
+
+test("the real catalogue reads both modules: a slot label and SS both come back as chips", async () => {
+  const { roleNames, positions } = await roleCatalogue();
+  expect(positions).toEqual(expect.arrayContaining(["CAM", "SW", "SS"]));
+  expect(roleInitials(roleNames, positions).has("SS")).toBe(false);
 });
 
 test("role initials in drawn text fail, naming the role in full; a position chip passes", () => {
