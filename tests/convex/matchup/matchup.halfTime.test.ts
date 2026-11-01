@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
-import { annsScoredGame, GAMEWEEK, HULL_SCORER, scoreRead, scoresLeague, slotOf } from "../../support/convex/gameweekScores.harness";
+import { annsScoredGame, GAMEWEEK, HULL_SCORER, scoresLeague, slotOf } from "../../support/convex/gameweekScores.harness";
+import { scoreRead } from "../../support/convex/gameweekScoresMatch.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 
 // The matchup at half-time (#781): it sends a playing man's match with its state, so the screen

@@ -1,6 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
-import { scoreWrites, syncTrigger } from "./football";
+import { failure, matchFailure, scoreWrites, syncTrigger } from "./football";
 
 // Match stats (#27, spec/07 "Match stats"): one record per player per match, both feeds merged,
 // keyed on FPL's player and fixture codes. Stats keep the feeds' own names (spec/14 names them
@@ -53,7 +53,7 @@ export const matchSyncOutcome = v.union(
     /** Men a team sheet names whom FPL does not list: no record, since there is no code to key it on. */
     unmatched: v.array(v.object({ plPlayerId: v.number(), name: v.string(), opta: v.union(v.string(), v.null()) })),
   }),
-  v.object({ fixtureCode: v.number(), ok: v.literal(false), error: v.string() }),
+  matchFailure,
 );
 
 // One row per run of matchStatsSync.run, so a failed read is on record, never silent.
@@ -69,7 +69,7 @@ export const matchStatsSyncFields = {
       /** The due matches' scores; absent on runs before #49's scores, and on a run with none due. */
       scores: v.optional(scoreWrites),
     }),
-    v.object({ ok: v.literal(false), error: v.string() }),
+    failure,
   ),
 };
 

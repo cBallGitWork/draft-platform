@@ -4,6 +4,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { adminEmail, isEmailAddress, normaliseEmail } from "../signIn/allowedEmails";
 import { FEWEST_TEAMS, LEAGUE_NAME_MAX, MOST_TEAMS, TEAM_NAME_MAX } from "../leagues/leagueLimits";
+import { leagueOpens } from "../leagues/leagueOpens";
 
 // Who may do what in a league (spec/13, Who runs it), checked on the server for every change.
 // The admin may do anything anywhere; the commissioner runs one league; the co-commissioner has
@@ -73,7 +74,7 @@ export async function callerEmail(ctx: QueryCtx): Promise<string> {
  *  frozen, so every change to it starts here (spec/13, Deleting). */
 export async function getLeague(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"leagues">> {
   const league = (await ctx.db.get("leagues", leagueId)) ?? refuse(refusals.noLeague);
-  if (league.deletion) refuse(refusals.beingDeleted);
+  if (!leagueOpens(league)) refuse(refusals.beingDeleted);
   return league;
 }
 

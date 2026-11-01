@@ -83,6 +83,9 @@
   /* The widest a lost player's error words run in the Tactics squad list on a phone, wrapping
      after, so they leave the Role column its room (#323) */
   --spacing-error-name: 104px;
+  /* A rule's values on a phone: the column's name beside each box, so the boxes line up down a
+     row (room for "After minutes") (#271) */
+  --spacing-value-label: 88px;
   /* The league switcher: its caret, and its list of leagues on the desk */
   --spacing-caret-width: 10px;
   --spacing-caret-height: 6px;

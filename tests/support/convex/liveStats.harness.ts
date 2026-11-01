@@ -1,8 +1,9 @@
 // The live poller's tests' shared setup: Hull v Everton, recorded finished, replayed as if live.
-// No live match has been recorded yet, so each stage is cut from the finished one: a man's every
-// stat grows with his share of his minutes on the pitch, and his goals, assists and yellow cards
-// land at the minutes the fixture's events give them. The last stage is the recording itself, at
-// full time. Friday's recording (#37, fixture 128999) is to replace it: docs/pl-match-stats.md.
+// Each stage is cut from the finished one: a man's every stat grows with his share of his minutes
+// on the pitch, and his goals, assists and yellow cards land at the minutes the fixture's events
+// give them. The last stage is the recording itself, at full time. The live recording of 23 Oct
+// 2026 (fixture 128999) can't replace it: it read the commentary, the fixture and the team stats,
+// not each man's stats (docs/pl-match-stats.md says what a later recording would need).
 
 import type { Infer } from "convex/values";
 import { vi } from "vitest";

@@ -40,6 +40,11 @@ import {
 } from "./words";
 
 const AREA_MINIMUMS_ID = "area-minimums";
+/** Each hint's id, which its boxes are described by (#915). */
+const GAMES_HINT_ID = "settings-games-hint";
+const SQUAD_MAXIMUM_HINT_ID = "settings-squad-maximum-hint";
+const AREA_MINIMUMS_HINT_ID = "settings-area-minimums-hint";
+const CLUB_MAXIMUM_HINT_ID = "settings-club-maximum-hint";
 const ODD_TEAM_OUT_CHOICE = "odd-team-out";
 
 /** League settings (Craig, 22 Oct 2026), for a league's commissioners and the admin: the rules
@@ -82,8 +87,10 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
               chosen={draft.oddTeamOut}
               onChoose={(oddTeamOut) => edit({ ...draft, oddTeamOut })}
             />
-            <NumberRow label={gamesLabel} value={draft.gamesPerGameweek} onChange={(gamesPerGameweek) => edit({ ...draft, gamesPerGameweek })} />
-            <p className="text-muted">{gamesHint}</p>
+            <NumberRow label={gamesLabel} hintId={GAMES_HINT_ID} value={draft.gamesPerGameweek} onChange={(gamesPerGameweek) => edit({ ...draft, gamesPerGameweek })} />
+            <p id={GAMES_HINT_ID} className="text-muted">
+              {gamesHint}
+            </p>
             <p className="text-muted">{redrawWords}</p>
           </div>
         </Panel>
@@ -104,8 +111,10 @@ function SquadPanel({ draft, edit }: { draft: LeagueSettings; edit: (settings: L
           <p>{noSquadSizeWords}</p>
         ) : (
           <>
-            <NumberRow label={squadMaximumLabel} value={draft.squadMaximum} onChange={(squadMaximum) => edit({ ...draft, squadMaximum })} />
-            <p className="text-muted">{squadMaximumHint}</p>
+            <NumberRow label={squadMaximumLabel} hintId={SQUAD_MAXIMUM_HINT_ID} value={draft.squadMaximum} onChange={(squadMaximum) => edit({ ...draft, squadMaximum })} />
+            <p id={SQUAD_MAXIMUM_HINT_ID} className="text-muted">
+              {squadMaximumHint}
+            </p>
           </>
         )}
         <div role="group" aria-labelledby={AREA_MINIMUMS_ID} className="flex flex-col gap-1">
@@ -118,20 +127,25 @@ function SquadPanel({ draft, edit }: { draft: LeagueSettings; edit: (settings: L
                 key={area}
                 label={areaMinimumLabel(area)}
                 shown={AREA_WORDS[area]}
+                hintId={AREA_MINIMUMS_HINT_ID}
                 value={draft.minimumByArea?.[area] ?? NO_MINIMUM}
                 onChange={(minimum) => edit({ ...draft, minimumByArea: withMinimum(draft.minimumByArea, area, minimum) })}
               />
             ))}
           </div>
-          <p className="text-muted">{areaMinimumsHint}</p>
+          <p id={AREA_MINIMUMS_HINT_ID} className="text-muted">
+            {areaMinimumsHint}
+          </p>
         </div>
         <TickBox checked={draft.maxPerClub !== null} onChange={(on) => edit({ ...draft, maxPerClub: on ? NaN : null })}>
           {clubMaximumWords}
         </TickBox>
         {draft.maxPerClub !== null && (
           <>
-            <NumberRow label={clubMaximumLabel} value={draft.maxPerClub} onChange={(maxPerClub) => edit({ ...draft, maxPerClub })} />
-            <p className="text-muted">{clubMaximumHint}</p>
+            <NumberRow label={clubMaximumLabel} hintId={CLUB_MAXIMUM_HINT_ID} value={draft.maxPerClub} onChange={(maxPerClub) => edit({ ...draft, maxPerClub })} />
+            <p id={CLUB_MAXIMUM_HINT_ID} className="text-muted">
+              {clubMaximumHint}
+            </p>
           </>
         )}
       </div>
@@ -140,15 +154,15 @@ function SquadPanel({ draft, edit }: { draft: LeagueSettings; edit: (settings: L
 }
 
 /** A number's box beside its words (`shown`, its label unless given), named by `label` for screen
- *  readers. A box emptied hands up NaN: a setting left without a number, which `blankRefusal`
- *  stops before the server sees it. */
-function NumberRow({ label, shown = label, value, onChange }: { label: string; shown?: string; value: number; onChange: (value: number) => void }) {
+ *  readers and described by the hint `hintId` names. A box emptied hands up NaN: a setting left
+ *  without a number, which `blankRefusal` stops before the server sees it. */
+function NumberRow({ label, shown = label, hintId, value, onChange }: { label: string; shown?: string; hintId: string; value: number; onChange: (value: number) => void }) {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
       <span aria-hidden className="text-soft">
         {shown}
       </span>
-      <NumberBox label={label} value={value} onChange={onChange} />
+      <NumberBox label={label} hintId={hintId} value={value} onChange={onChange} />
     </div>
   );
 }
