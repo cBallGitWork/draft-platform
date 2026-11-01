@@ -86,8 +86,10 @@ export async function newestSeasonWithTotals(ctx: QueryCtx): Promise<number | nu
 
 /** Sets a page of players' totals, from `cursor` (null for the first), to their records added up
  *  afresh, season by season, then runs on to the next page until every player is done. Safe to run
- *  again: it sets, never adds. Run once after deploying the table:
- *  `npx convex run stats/seasonStats:rebuild '{"cursor":null}'`. */
+ *  again: it sets, never adds. Started by itself on a deployment holding whole records but no row
+ *  (seasonRebuilds.ts), and by hand with its TOTALS_REBUILD_COMMAND. Its last page starts season
+ *  points' rebuild, as a deployment missing totals is missing points too, and a record write that
+ *  started this one re-priced nobody. */
 export const rebuild = internalMutation({
   args: { cursor: v.union(v.string(), v.null()) },
   returns: v.null(),
@@ -96,6 +98,7 @@ export const rebuild = internalMutation({
     const seasonOf = matchSeasons(ctx);
     for (const player of page.page) await rebuildPlayer(ctx, player.code, seasonOf);
     if (!page.isDone) await ctx.scheduler.runAfter(0, internal.stats.seasonStats.rebuild, { cursor: page.continueCursor });
+    else await ctx.scheduler.runAfter(0, internal.stats.seasonPoints.rebuild, { cursor: null });
     return null;
   },
 });
