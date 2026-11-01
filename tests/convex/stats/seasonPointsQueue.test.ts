@@ -1,13 +1,17 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
+import { MATCH_RECORDS_MOST } from "../../../convex/gameweekScorer/heldMatches";
 import { inTenths } from "../../../convex/scoring/values";
-import { changesSeasonPoints } from "../../../convex/stats/seasonPointsQueue";
+import { REBUILD_PAGE } from "../../../convex/stats/seasonStats";
+import { changesSeasonPoints, queueRefresh } from "../../../convex/stats/seasonPointsQueue";
 import { completeRecord } from "../../support/convex/footballRows.harness";
+import { pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
 import {
   GW1,
   GW2,
   GW3,
   KICKOFF,
+  LAST_SEASON,
   SAKA,
   SAKA_GW1,
   SAKA_GW2,
@@ -107,8 +111,10 @@ describe("kept as matches move", () => {
 });
 
 describe("started by itself on a deployment with records but no rows", () => {
-  test("the next football sync starts the rebuild", async () => {
+  test("the next football sync starts the rebuild, once the season's totals show someone played", async () => {
     expect(await rowsKept()).toBe(0);
+    await league.t.mutation(internal.stats.seasonStats.rebuild, { cursor: null });
+    await runQueued();
 
     await league.t.mutation(internal.football.footballSync.upsertFixtures, { rows: [] });
     await runQueued();
@@ -133,5 +139,71 @@ describe("started by itself on a deployment with records but no rows", () => {
     await runQueued();
 
     expect(await league.t.run(async (ctx) => (await ctx.db.query("playerSeasonPoints").first())!.points)).toEqual({ W: 99 });
+  });
+});
+
+test("a live-only deployment, its records all waiting on a feed, starts no rebuild however often it writes", async () => {
+  const { t } = league;
+  await t.run(async (ctx) => {
+    for (const row of await ctx.db.query("playerMatchStats").collect()) await ctx.db.delete("playerMatchStats", row._id);
+  });
+
+  for (const goals of [1, 2, 3]) {
+    await t.mutation(internal.stats.liveStats.upsertLive, {
+      fixtureCode: GW3.code,
+      minute: null,
+      records: [{ ...sakaGw3, arrived: { fpl: true, pl: false }, stats: { minutes: 90, goals_scored: goals } }],
+    });
+    await t.mutation(internal.football.footballSync.upsertFixtures, { rows: [] });
+  }
+
+  expect(await pendingJobs(t, internal.stats.seasonPoints.rebuild)).toHaveLength(0);
+  expect(await pendingJobs(t, internal.stats.seasonPoints.refresh)).toHaveLength(0);
+});
+
+test("a re-pricing of more players than a job takes is queued as several jobs", async () => {
+  const { t } = league;
+  await refresh(league);
+  const codes = Array.from({ length: REBUILD_PAGE + 1 }, (_, index) => 70_000 + index);
+
+  await t.run((ctx) => queueRefresh(ctx, codes));
+
+  const jobs = await pendingJobs(t, internal.stats.seasonPoints.refresh);
+  expect(jobs.map((job) => (job.args[0] as { playerCodes: number[] }).playerCodes)).toEqual([codes.slice(0, REBUILD_PAGE), codes.slice(REBUILD_PAGE)]);
+});
+
+describe("a match move never stops the sync", () => {
+  beforeEach(() => refresh(league));
+
+  test(`a match holding more than ${MATCH_RECORDS_MOST} records is logged and left; the sync still commits`, async () => {
+    const { t } = league;
+    const logged = silenceConsoleError();
+    await t.run(async (ctx) => {
+      for (let index = 0; index <= MATCH_RECORDS_MOST; index += 1) await ctx.db.insert("playerMatchStats", record(80_000 + index, GW2.code, { minutes: 1 }));
+    });
+
+    await t.mutation(internal.football.footballSync.upsertFixtures, { rows: [{ ...GW2, gameweek: null }] });
+
+    expect(await t.run(async (ctx) => (await ctx.db.query("fixtures").withIndex("by_code", (q) => q.eq("code", GW2.code)).unique())!.gameweek)).toBeNull();
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`match ${GW2.code}'s players' season points weren't re-priced`));
+    expect(await pendingJobs(t, internal.stats.seasonPoints.refresh)).toHaveLength(0);
+  });
+
+  test("dropping last season's matches at the rollover re-prices nobody", async () => {
+    const { t } = league;
+    const { droppedAt: _dropped, ...lastSeasonHeld } = LAST_SEASON;
+    await t.run(async (ctx) => {
+      const held = (await ctx.db.query("fixtures").withIndex("by_code", (q) => q.eq("code", LAST_SEASON.code)).unique())!;
+      await ctx.db.replace("fixtures", held._id, lastSeasonHeld);
+    });
+
+    await t.mutation(internal.football.footballSync.markDropped, {
+      table: "fixtures",
+      sentKeys: [GW1.code, GW2.code, GW3.code],
+      droppedAt: KICKOFF,
+      paginationOpts: { cursor: null, numItems: 10 },
+    });
+
+    expect(await pendingJobs(t, internal.stats.seasonPoints.refresh)).toHaveLength(0);
   });
 });

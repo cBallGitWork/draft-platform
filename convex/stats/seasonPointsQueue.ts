@@ -2,6 +2,7 @@ import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { statChanges, type PlayerMatchRecord } from "./matchRecords";
+import { heldSeason } from "../shared/fixtures";
 import { countedStats, REBUILD_PAGE } from "./seasonStats";
 
 // When season points are re-priced (#525, seasonPoints.ts): just after a record write changes what
@@ -35,12 +36,21 @@ export async function queueRefresh(ctx: MutationCtx, playerCodes: Iterable<numbe
   }
 }
 
-/** Starts the rebuild when records are held but no row is kept: a deployment with records from
- *  before the rows were (#525), so Scouting never waits on someone to run it. Checked on each
- *  football sync and each queued re-pricing; true when it started it. Two reads. */
+/** Starts the rebuild when, for the season of the matches held, some player has played a whole
+ *  match (his season totals hold a row, seasonStats.ts) but none has a points row: a deployment
+ *  with records from before the rows were kept (#525), so Scouting never waits on someone to run
+ *  it. Records still waiting on a feed, or only unused substitutes', start nothing, as the rebuild
+ *  would write no row and be started again. Checked on each football sync and each queued
+ *  re-pricing; true when it started it. Three reads. */
 export async function rebuildIfNoneKept(ctx: MutationCtx): Promise<boolean> {
-  if ((await ctx.db.query("playerSeasonPoints").first()) !== null) return false;
-  if ((await ctx.db.query("playerMatchStats").first()) === null) return false;
+  const season = await heldSeason(ctx);
+  if (season === null) return false;
+  const inSeason = (table: "playerSeasonPoints" | "playerSeasonStats") =>
+    ctx.db
+      .query(table)
+      .withIndex("by_season_and_playerCode", (q) => q.eq("season", season))
+      .first();
+  if ((await inSeason("playerSeasonPoints")) !== null || (await inSeason("playerSeasonStats")) === null) return false;
   await ctx.scheduler.runAfter(0, internal.stats.seasonPoints.rebuild, { cursor: null });
   return true;
 }

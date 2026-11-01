@@ -26,8 +26,8 @@ import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
 import { recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { writeScores } from "./matchScores";
-import { matchRecordsOf } from "../gameweekScorer/heldMatches";
-import { queueRefresh, rebuildIfNoneKept } from "../stats/seasonPointsQueue";
+import { repriceMatches } from "../stats/seasonPointsMoves";
+import { rebuildIfNoneKept } from "../stats/seasonPointsQueue";
 
 // Issue #21: the real Premier League's clubs, players, fixtures and gameweeks, copied in from the
 // football layer, and each match's score (#49, matchScores.ts). crons.ts runs it on a schedule;
@@ -95,9 +95,9 @@ export const upsertFixtures = internalMutation({
   handler: async (ctx, { rows }): Promise<Upserted> => {
     // In the same transaction as the kickoffs it may move (#150, deadlineRecorder.ts).
     await recordPassedDeadlines(ctx);
-    const moved: number[] = [];
+    const moved: WithoutSystemFields<Doc<"fixtures">>[] = [];
     const upserted = await upsertEach(ctx, "fixtures", rows, (row) => fixtureByCode(ctx, row.code), (held, row) => {
-      if (held.gameweek !== row.gameweek || held.droppedAt !== undefined) moved.push(row.code);
+      if (held.gameweek !== row.gameweek || held.droppedAt !== undefined) moved.push(row);
     });
     await repriceMatches(ctx, moved);
     await rebuildIfNoneKept(ctx);
@@ -131,7 +131,8 @@ export const markDropped = internalMutation({
     const page = await unmarkedPage(ctx, table, paginationOpts);
     const dropped = page.page.filter((held) => !sent.has(keyOf(held)));
     await Promise.all(dropped.map((held) => ctx.db.patch(table, held._id, { droppedAt })));
-    if (table === "fixtures") await repriceMatches(ctx, dropped.map(keyOf));
+    // On the fixtures table, its page holds fixtures.
+    if (table === "fixtures") await repriceMatches(ctx, dropped as Doc<"fixtures">[]);
     return { marked: dropped.length, cursor: page.continueCursor, isDone: page.isDone };
   },
 });
@@ -242,13 +243,6 @@ async function upsertEach<Table extends FootballTable>(
     }),
   );
   return upserted;
-}
-
-/** Re-prices the season points of everyone with a record in these matches: a played match that
- *  left the feed, came back or moved gameweek changes what his card lists (#525). */
-async function repriceMatches(ctx: MutationCtx, fixtureCodes: readonly number[]): Promise<void> {
-  const records = await Promise.all(fixtureCodes.map((code) => matchRecordsOf(ctx, code, "its players' season points")));
-  await queueRefresh(ctx, records.flat().map(({ playerCode }) => playerCode));
 }
 
 /** Every field the feed sent equals the held one. The records are flat, so `===` compares them;
