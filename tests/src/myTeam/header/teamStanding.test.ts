@@ -2,7 +2,8 @@
 // My team's header band and the Tactics tab's GW opponent widget read it.
 
 import { describe, expect, it } from "vitest";
-import { FORM_LENGTH, gameIn, gamesOfTeam, resultOf, standingOf } from "../../../../src/myTeam/header/teamStanding";
+import { FORM_RESULTS } from "../../../../convex/table/standings";
+import { gameIn, gamesOfTeam, standingOf } from "../../../../src/myTeam/header/teamStanding";
 import { idOf, leagueTableOf } from "../../../../src/table/drawnTable";
 
 const TEAMS = ["Ana", "Ben", "Cal", "Dee"];
@@ -44,15 +45,15 @@ describe("where a team stands", () => {
     expect(ana.place).toBe(1);
     expect(ana.points).toBe(table.table[0].points);
     expect(ana.last?.gameweek).toBe(6);
-    expect(ana.form).toEqual(Array(FORM_LENGTH).fill("W"));
+    expect(ana.form).toEqual(Array(FORM_RESULTS).fill("won"));
     expect(standingOf(table, "Dee")!.place).toBe(4);
-    expect(standingOf(table, "Dee")!.form).toEqual(Array(FORM_LENGTH).fill("L"));
+    expect(standingOf(table, "Dee")!.form).toEqual(Array(FORM_RESULTS).fill("lost"));
   });
 
-  it("leaves a live game out of its form, but not out of its last game", () => {
+  it("counts a live game in its form, as League home does, and marks its last game live", () => {
     const table = leagueTableOf(TEAMS, { gameweeks: GAMEWEEKS, scores, provisional: ["Ana"] });
     const ana = standingOf(table, "Ana")!;
-    expect(ana.form).toEqual([]);
+    expect(ana.form).toEqual(Array(FORM_RESULTS).fill("won"));
     expect(ana.last?.score?.provisional).toBe(true);
   });
 
@@ -66,9 +67,5 @@ describe("where a team stands", () => {
 
   it("is none for a team the table doesn't hold", () => {
     expect(standingOf(leagueTableOf(TEAMS), "Eve")).toBeNull();
-  });
-
-  it("calls a game won, lost or drawn by its points", () => {
-    expect([resultOf({ team: 2, opponent: 1 }), resultOf({ team: 1, opponent: 2 }), resultOf({ team: 1, opponent: 1 })]).toEqual(["W", "L", "D"]);
   });
 });

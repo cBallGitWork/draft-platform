@@ -30,6 +30,8 @@ import {
 // across the header): the team's name on the page's plate, then the next deadline and its
 // countdown, the opponent then, the last result, the form and the table place. Each reading shows
 // once its data has loaded, and only where the league has it: no opponent or form in total points.
+// While the table loads its readings wait; a league with no rules has none, and the tab under the
+// band says why (the Tactics tab: "made before leagues had rules").
 // The Tactics tab wraps its page in it, and the Squad tab is to.
 
 /** A tab's page under My team's header band: `children` is the tab's own. */
@@ -102,8 +104,8 @@ function TeamMeters({ league, teamName, seam }: { league: LeagueSummary; teamNam
 }
 
 /** The opponent in the gameweek, as a link to the team's matchup, in the second face (plate.md,
- *  Type); a bye has none. The band's and the Tactics tab's GW opponent widget's. */
-export function OpponentLink({ game, teamId }: { game: TeamGame; teamId: Standing["teamId"] }) {
+ *  Type); a bye has none. */
+function OpponentLink({ game, teamId }: { game: TeamGame; teamId: Standing["teamId"] }) {
   const name = againstWords(game.against);
   if (game.against.kind === "bye") return <span className="text-muted">{name}</span>;
   return (
