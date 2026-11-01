@@ -50,6 +50,8 @@ export const previousGlyph = "◄";
 export const nextGlyph = "►";
 /** A panel's or a window's cross, decoration, as its button carries its label. */
 export const closeGlyph = "✕";
+/** The link from a player's panel to his card (Squad and Tactics). */
+export const playerCardWords = "Player card";
 /** A sortable table's heads (src/ui/ColumnHeads.tsx): beside the column sorted by, which way, as
  *  decoration, since the head says so to screen readers through aria-sort; and, for screen
  *  readers, what pressing a head does. */

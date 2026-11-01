@@ -12,4 +12,14 @@ export const starsTables = {
     matches: v.number(),
     ratings: v.array(roleStarsShape.extend({ perMatch: v.number() })),
   }).index("by_playerCode", ["playerCode"]),
+  /** Each bench player's stars as they stood at a league's deadline for a gameweek (Craig, 1 Nov
+   *  2026; stars/deadlineStars.ts): what picks the role of an auto-sub who comes on in his own area,
+   *  so scoring the gameweek again never moves it. One row a league, gameweek and team; only his
+   *  ratings with stars, since "?" and "—" pick nothing. */
+  deadlineStars: defineTable({
+    leagueId: v.id("leagues"),
+    gameweek: v.number(),
+    teamId: v.id("teams"),
+    bench: v.array(v.object({ playerCode: v.number(), stars: v.array(roleStarsShape) })),
+  }).index("by_leagueId_and_gameweek_and_teamId", ["leagueId", "gameweek", "teamId"]),
 };

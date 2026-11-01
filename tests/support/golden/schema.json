@@ -21270,6 +21270,134 @@
           }
         }
       }
+    },
+    {
+      "tableName": "deadlineStars",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_gameweek_and_teamId",
+          "fields": [
+            "leagueId",
+            "gameweek",
+            "teamId"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "gameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "bench": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "playerCode": {
+                    "fieldType": {
+                      "type": "number"
+                    },
+                    "optional": false
+                  },
+                  "stars": {
+                    "fieldType": {
+                      "type": "array",
+                      "value": {
+                        "type": "object",
+                        "value": {
+                          "area": {
+                            "fieldType": {
+                              "type": "union",
+                              "value": [
+                                {
+                                  "type": "literal",
+                                  "value": "goalkeeper"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "defence"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "defensiveMidfield"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "midfield"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "attackingMidfield"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "attack"
+                                }
+                              ]
+                            },
+                            "optional": false
+                          },
+                          "role": {
+                            "fieldType": {
+                              "type": "string"
+                            },
+                            "optional": false
+                          },
+                          "stars": {
+                            "fieldType": {
+                              "type": "union",
+                              "value": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "unsure"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "none"
+                                }
+                              ]
+                            },
+                            "optional": false
+                          }
+                        }
+                      }
+                    },
+                    "optional": false
+                  }
+                }
+              }
+            },
+            "optional": false
+          }
+        }
+      }
     }
   ],
   "schemaValidation": true
