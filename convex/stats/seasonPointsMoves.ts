@@ -7,13 +7,11 @@ import { logFailure } from "../shared/errors";
 import { heldSeason } from "../shared/fixtures";
 import { seasonStartYear } from "../shared/time";
 import { queueRefresh } from "./seasonPointsQueue";
+import { POINTS_REBUILD_COMMAND } from "./seasonRebuilds";
 
 // Season points when a played match moves (#525): the football sync hands over each match it
 // marks dropped, sends again or moves gameweek, as his card's matches change with it. The sync
 // only queues a job a match, so its own mutation reads no records and never fails for this.
-
-/** How a match whose records can't be read is put right. */
-export const REBUILD_COMMAND = `npx convex run stats/seasonPoints:rebuild '{"cursor":null}'`;
 
 /** Queues a re-pricing job for each of these matches of the season held, as refresh sets no other
  *  season's row: so a rollover dropping last season's matches queues nothing. */
@@ -36,7 +34,7 @@ export const repriceMatch = internalMutation({
     try {
       records = await matchRecordsOf(ctx, fixtureCode, "its players' season points");
     } catch (error) {
-      logFailure(`match ${fixtureCode}'s players' season points weren't re-priced; run ${REBUILD_COMMAND}`, error);
+      logFailure(`match ${fixtureCode}'s players' season points weren't re-priced; run ${POINTS_REBUILD_COMMAND}`, error);
       return null;
     }
     await queueRefresh(ctx, records.map(({ playerCode }) => playerCode));
