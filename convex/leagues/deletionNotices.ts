@@ -33,7 +33,7 @@ export const send = internalAction({
   handler: async (ctx, { leagueName, by, emails }) => {
     const email = deletionEmail(leagueName, by);
     for (const [index, to] of emails.entries()) {
-      if (!(await ctx.runMutation(internal.leagues.deletionNotices.takeEmailForNotice, {}))) {
+      if (!(await ctx.runMutation(internal.leagues.deletionNotices.takeTodaysEmail, {}))) {
         const waiting = emails.slice(index);
         console.log(waitingLog(waiting.length));
         await waitForTomorrow(ctx.scheduler, internal.leagues.deletionNotices.send, { leagueName, by, emails: waiting });
@@ -57,15 +57,11 @@ async function sent(to: string, email: ReturnType<typeof deletionEmail>): Promis
 }
 
 /** Counts one of today's emails, or says none is left (emailLimit.ts): an action's way in. */
-export const takeEmailForNotice = internalMutation({
+export const takeTodaysEmail = internalMutation({
   args: {},
   returns: v.boolean(),
   handler: (ctx) => takeOne(ctx),
 });
-
-/** takeEmailForNotice's old path, kept for a `send` already running when the rename was pushed
- *  (docs/REFACTORING.md, Function paths); it goes in #941 once that push has been live a release. */
-export const takeTodaysEmail = takeEmailForNotice;
 
 /** Keeps one the email service refused. Rows with reason "paused" were kept before #837, when the
  *  day's limit dropped an email rather than waiting: none is written now. */
