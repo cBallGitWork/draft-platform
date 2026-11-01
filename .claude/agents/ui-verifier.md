@@ -110,3 +110,21 @@ route               | width | what is in the image                              
 
 Never round UNVERIFIED up to LOOKS RIGHT. Close with the regressions first, then what still needs
 Craig's eye: anything plate.md doesn't settle.
+
+Last, the block the author pastes into the pull request, always, ending in your signature line. For
+each screen with an approved picture (step 2b), its route and either "matches the approved picture"
+or every difference, numbered; with none shot, say so:
+
+```
+## Approved vs built
+/team: matches the approved picture
+/team/squad:
+1. Density: rows drawn 20px; the picture's are 28px
+2. Columns: Form missing after Pts
+*Verifier: ui-verifier (<model>), <date>, <base>..<head>*
+```
+
+`gh pr create` is refused on a branch that changes a screen with an approved picture unless the
+body holds this block and that signature line, and `gh pr merge` waits for Craig's `craig-approved`
+label while any difference is numbered (`.claude/hooks/pr_body.py`, `approval_gate.py`). Number
+only differences: a numbered line anywhere in the block counts as one.

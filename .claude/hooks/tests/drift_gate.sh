@@ -9,9 +9,11 @@ commits() { # n [message]: n empty commits on main
   local i
   for ((i = 0; i < $1; i++)); do git -C "$repo" "${as_tester[@]}" commit -q --allow-empty -m "${2:-fix: x}"; done
 }
-# a stand-in gh: gh pr view prints $FAKE_TITLE as JSON, or fails when it is unset
+# a stand-in gh: gh pr view prints $FAKE_TITLE as JSON, or fails when it is unset; asked for the
+# body and labels (approval_gate.py), it gives a body with no differences listed
 mkdir "$tmp/bin" && cat > "$tmp/bin/gh" <<'EOF'
 #!/bin/bash
+[ "${*: -1}" = body,labels ] && { echo '{"body":"","labels":[]}'; exit 0; }
 [ -n "${FAKE_TITLE:-}" ] || { echo "no pull requests found" >&2; exit 1; }
 printf '{"title":"%s"}\n' "$FAKE_TITLE"
 EOF

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """PreToolUse guard for the GitHub tools (mcp__github__*), which a cloud session publishes through
 in place of gh, so guard_bash.py never sees them: denies a call naming a word on Craig's private
-list (private_words.py) in any text it sends, and a write whose branch or ref is main
-(main_writes.py). Every tool is checked but the reads (READS), which publish nothing, so a write
+list (private_words.py) in any text it sends, a write whose branch or ref is main
+(main_writes.py), and one that puts Craig's craig-approved label on a pull request (approval_gate.py). Every tool is checked but the reads (READS), which publish nothing, so a write
 tool added or renamed is checked rather than missed. With no list to check against, a write gets a
 note, never a denial, as guard_bash.py gives. A payload it can't read is denied: allowing it would
 check nothing. Stdlib only, Python 3.9+.
@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import sys
 
+from approval_gate import mcp_label_problem
 from main_writes import mcp_problem
 from private_words import NO_LIST, has_list, text_problem
 
@@ -46,9 +47,9 @@ def decide(payload):
     if not writes(tool):
         return None, None
     tool_input = payload.get("tool_input") or {}
-    to_main = mcp_problem(tool_input)
-    if to_main:
-        return to_main, None
+    refused = mcp_problem(tool_input) or mcp_label_problem(tool_input)
+    if refused:
+        return refused, None
     if not has_list():
         return None, NO_LIST
     return text_problem(strings(tool_input)), None
