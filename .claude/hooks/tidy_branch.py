@@ -1,6 +1,9 @@
 """The rules tidy_after_merge.py removes a merged pull request's local branch and its worktree by.
 
-It deletes only what is safe: the branch's tip must be the pull request's head or behind it (every
+It deletes only what is safe: the branch must hold a commit origin/main doesn't (#955: one made at
+origin/main with no commits yet, such as a builder's under a merged pull request's name, is a new
+branch, not the merged one; every pull request here is squash-merged, so a merged branch's own
+commits are never on main), its tip must be the pull request's head or behind it (every
 commit on it went into the merge; gh pr update-branch gives the pull request a merge commit the
 branch here never gets, so the head is fetched from origin to check; a checkout with no remote
 called origin keeps such a branch, and says why), and the worktree must have nothing uncommitted
@@ -19,14 +22,18 @@ import os
 import subprocess
 import time
 
+from main_writes import MAIN
+
 BRANCH_REF = "refs/heads/"
 REMOTE = "origin"  # where GitHub's copy of the pull request's head is fetched from
+# where follow_main.py moves the main checkout to; a branch whose tip is on it has no commits of its own
+REMOTE_MAIN = f"{REMOTE}/{MAIN}"
 PULL_HEAD = "pull/{number}/head"  # GitHub's ref for a pull request's head commit
 # each git, gh or lsof call's limit: the hook's time is counted in these (tidy_after_merge.py)
 RUN_TIMEOUT_SECONDS = 11
-# the most calls tidy() makes: rev-parse, fetch, merge-base, worktree prune, worktree list, lsof,
-# rev-parse, status, worktree remove, branch -D
-TIDY_CALLS = 10
+# the most calls tidy() makes: rev-parse, merge-base, fetch, merge-base, worktree prune, worktree
+# list, lsof, rev-parse, status, worktree remove, branch -D
+TIDY_CALLS = 11
 NOT_ANCESTOR = 1  # git merge-base --is-ancestor's exit when the first commit isn't behind the second
 IGNORED = "!! "  # git status --porcelain --ignored=matching's mark for an ignored path
 # ignored paths nobody needs once the work has merged, so a worktree holding only these may go:
@@ -61,6 +68,16 @@ def run(folder, *args):
     """(ok, output) for a command run in folder; output is stderr's first line when it fails."""
     code, out = call(folder, *args)
     return code == 0, out
+
+
+def why_not_its_own(tip, folder):
+    """None when the branch's tip holds a commit REMOTE_MAIN doesn't, else why the branch stays."""
+    code, said = call(folder, "git", "merge-base", "--is-ancestor", tip, REMOTE_MAIN)
+    if code == 0:
+        return f"it has no commits of its own (its tip is on {REMOTE_MAIN}): a new branch, not the merged one."
+    if code != NOT_ANCESTOR:
+        return f"whether it has commits of its own couldn't be checked: git merge-base failed ({said})."
+    return None
 
 
 def why_not_in_head(number, tip, head, folder):
@@ -138,7 +155,8 @@ def tidy(number, branch, head, folder):
     if not ok:
         return None
     kept = f"#{number} merged; its branch {branch} was kept"
-    why = why_not_in_head(number, tip.strip(), head, folder)
+    tip = tip.strip()
+    why = why_not_its_own(tip, folder) or why_not_in_head(number, tip, head, folder)
     if why:
         return f"{kept}: {why}"
     run(folder, "git", "worktree", "prune")  # a worktree whose folder is gone would hold the branch for good

@@ -11,9 +11,7 @@ from __future__ import annotations
 import os
 
 from main_writes import MAIN
-from tidy_branch import REMOTE, run, worktrees
-
-REMOTE_MAIN = f"{REMOTE}/{MAIN}"  # where the main checkout is moved to
+from tidy_branch import REMOTE, REMOTE_MAIN, run, worktrees
 # the most calls follow_main() makes: worktree list, fetch, rev-list, checkout
 MAIN_MOVE_CALLS = 4
 # what git keeps in .git/ while a rebase, merge, cherry-pick, revert or bisect is under way (a

@@ -3,33 +3,14 @@
 # branch and its clean worktree go, also when GitHub's head is a merge commit on top of it; one with
 # extra commits, uncommitted changes, a head that can't be fetched, a worktree in use (a process
 # working in it, git state changed lately, locked), or checked out in the main checkout or the
-# folder the merge ran in stays, and says why; nothing else is touched. Earlier leftovers whose pull
-# requests merged go on a later merge, while the hook's time lasts. Then the
-# main checkout follows origin/main when detached and behind it, but not on a branch, on a commit
-# of its own, mid-bisect, when origin can't be fetched, or over a changed file it would overwrite;
-# a builder's worktree on its branch stays on it.
+# folder the merge ran in stays, and says why, as does a branch with no commits of its own (#955);
+# nothing else is touched. Earlier leftovers whose pull requests merged go on a later merge, while
+# the hook's time lasts. Where the main checkout moves after a merge is follow_main.sh's.
 . "$(dirname "$0")/helpers.sh"
+. "$(dirname "$0")/merge_gh.sh"
 
 repo=$tmp/tidy && git init -q -b main "$repo"
 git -C "$repo" "${as_tester[@]}" commit -q --allow-empty -m "start"
-# a stand-in gh: gh pr list waits $GH_LIST_SLEEP seconds, then prints $FAKE_MERGED (none when it is
-# unset), or fails when $GH_LIST_FAILS is set; gh pr view notes its args in $GH_ARGS, then prints
-# $FAKE_PR, or fails when it is unset
-export GH_ARGS=$tmp/gh-args
-mkdir "$tmp/bin" && cat > "$tmp/bin/gh" <<'EOF'
-#!/bin/bash
-if [ "$2" = list ]; then
-  sleep "${GH_LIST_SLEEP:-0}"
-  [ -z "${GH_LIST_FAILS:-}" ] || { echo "HTTP 502" >&2; exit 1; }
-  printf '%s\n' "${FAKE_MERGED:-[]}" && exit 0
-fi
-printf '%s\n' "$*" > "$GH_ARGS"
-[ -n "${FAKE_PR:-}" ] || { echo "no pull requests found" >&2; exit 1; }
-printf '%s\n' "$FAKE_PR"
-EOF
-chmod +x "$tmp/bin/gh" && export PATH="$tmp/bin:$PATH"
-number=7  # the pull request every check merges
-merge="gh pr merge $number --squash"
 
 long_ago=202001010000  # a touch -t time no builder could come back from
 built() { # branch: a branch with one commit, checked out in its own worktree at $tmp/wt-<branch>,
@@ -38,11 +19,6 @@ built() { # branch: a branch with one commit, checked out in its own worktree at
   git -C "$tmp/wt-$1" "${as_tester[@]}" commit -q --allow-empty -m "work on $1"
   local state=$repo/.git/worktrees/wt-$1
   touch -t "$long_ago" "$state/index" "$state/HEAD" "$state/logs/HEAD"
-}
-pr() { # branch [state] [head]: gh pr view's answer for it, the head its tip unless given
-  local head=${3:-$(git -C "$repo" rev-parse "$1")}
-  export FAKE_PR=$("$jq" -nc --arg b "$1" --arg s "${2:-MERGED}" --arg h "$head" \
-    --argjson n "$number" '{number:$n,state:$s,headRefName:$b,headRefOid:$h}')
 }
 has_branch() { git -C "$repo" rev-parse --verify --quiet "refs/heads/$1" >/dev/null; }
 # a stand-in GitHub: a bare origin whose pull request ref the hook fetches when a tip isn't the head
@@ -56,6 +32,37 @@ built done && pr done
 says "its local branch done and any worktree it was in were removed" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
 has_branch done && fail "tidy_after_merge.py: the merged branch is still there"
 [ -d "$tmp/wt-done" ] && fail "tidy_after_merge.py: the merged branch's worktree is still there"
+
+# a branch made at origin/main with no commits yet, idle past the in-use window, stays (#955): one
+# under a merged pull request's name, its tip behind that head, is a new branch, on that pull
+# request's own merge and on a later merge's sweep, while a merged leftover beside it still goes;
+# the Agent tool's own worktree-agent-* branch, no pull request's, is never touched
+fresh() { # branch: made at origin/main in its own worktree at $tmp/wt-<branch>, its git state long ago
+  git -C "$repo" worktree add -q -b "$1" "$tmp/wt-$1" origin/main
+  local state=$repo/.git/worktrees/wt-$1
+  touch -t "$long_ago" "$state/index" "$state/HEAD" "$state/logs/HEAD"
+}
+reused_head=$(git -C "$repo" "${as_tester[@]}" commit-tree -p origin/main -m "the earlier pull request" "origin/main^{tree}")
+fresh reused && pr reused MERGED "$reused_head" && on_github "$reused_head"
+says "its branch reused was kept: it has no commits of its own (its tip is on origin/main)" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
+[ -d "$tmp/wt-reused" ] && has_branch reused || fail "tidy_after_merge.py: removed a fresh branch under a merged pull request's name"
+fresh worktree-agent-a1 && built leftover && pr leftover
+export FAKE_MERGED=$("$jq" -nc --arg h "$reused_head" --arg l "$(git -C "$repo" rev-parse leftover)" --argjson n "$number" \
+  '[{number:$n,headRefName:"leftover",headRefOid:$l},{number:5,headRefName:"reused",headRefOid:$h}]')
+out=$(printf '%s' "$(bash_in "$repo" "$merge")" | "$hooks/tidy_after_merge.py")
+printf '%s' "$out" | grep -qF "its local branch leftover and any worktree it was in were removed" ||
+  fail "tidy_after_merge.py: a merged branch beside a fresh one wasn't tidied: $out"
+[ -d "$tmp/wt-leftover" ] && fail "tidy_after_merge.py: a merged branch's worktree beside a fresh one is still there"
+printf '%s' "$out" | grep -qF "#5 merged; its branch reused was kept: it has no commits of its own" ||
+  fail "tidy_after_merge.py: the sweep didn't say why it kept a fresh branch: $out"
+[ -d "$tmp/wt-reused" ] && has_branch reused || fail "tidy_after_merge.py: the sweep removed a fresh branch"
+[ -d "$tmp/wt-worktree-agent-a1" ] && has_branch worktree-agent-a1 || fail "tidy_after_merge.py: removed an agent's fresh branch"
+unset FAKE_MERGED
+# no origin/main to check against keeps the branch, and says so
+git -C "$repo" update-ref -d refs/remotes/origin/main && built unchecked && pr unchecked
+says "whether it has commits of its own couldn't be checked: git merge-base failed" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
+has_branch unchecked || fail "tidy_after_merge.py: removed a branch it couldn't check against origin/main"
+git -C "$repo" fetch -q --no-write-fetch-head origin
 
 # a branch with a commit the pull request doesn't hold stays
 built extra && pr extra MERGED "$(git -C "$repo" rev-parse main)" && on_github main
@@ -164,7 +171,7 @@ sweep_by() { # seconds: sweep's lines with a deadline that far off, each call co
   (cd "$repo" && python3 -B -c 'import sys, time; sys.path.insert(0, sys.argv[1]); import tidy_after_merge as t
 t.RUN_TIMEOUT_SECONDS = 0.1; print(" ".join(t.sweep(".", set(), time.monotonic() + float(sys.argv[2]))))' "$hooks" "$1")
 }
-for seconds in 0 1.15; do  # none left, or time for 11 calls when its two lists and a leftover take 12
+for seconds in 0 1.25; do  # none left, or time for 12 calls when its two lists and a leftover take 13
   out=$(sweep_by "$seconds")
   [ "$out" = "Earlier merged branches weren't tidied: the hook's time ran short before it could look." ] ||
     fail "tidy_after_merge.py: a sweep with ${seconds}s left gave: $out"
@@ -224,72 +231,3 @@ for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
   fails_loudly "${bad_payloads[i + 1]}" tidy_after_merge.py "${bad_payloads[i]}"
 done
 fails_loudly "command is int where str was expected" tidy_after_merge.py '{"tool_input":{"command":7}}'
-
-# after a merge, the main checkout follows origin/main when it is detached and behind it: hooks run
-# from its .claude/hooks/, so a merged hook fix takes effect only once it has moved
-upstream=$tmp/upstream.git && git init -q --bare -b main "$upstream"
-pusher=$tmp/pusher && git clone -q "$upstream" "$pusher" 2>/dev/null
-landed() { # file: a commit on origin's main that writes it
-  echo "$RANDOM" > "$pusher/$1" && git -C "$pusher" add "$1"
-  git -C "$pusher" "${as_tester[@]}" commit -q -m "change $1" && git -C "$pusher" push -q origin HEAD:main
-}
-landed hook.py && landed .gitignore
-home=$tmp/home-checkout && git clone -q "$upstream" "$home" && git -C "$home" checkout -q --detach
-pr not-here MERGED "$(git -C "$home" rev-parse HEAD)"  # no local branch: only the main checkout is said
-at_origin() { [ "$(git -C "$home" rev-parse HEAD)" = "$(git -C "$upstream" rev-parse main)" ]; }
-stayed() { [ "$(git -C "$home" rev-parse HEAD)" = "$before" ]; }  # still at the commit noted in $before
-
-# detached and behind: it moves, and a changed file the move doesn't touch is kept
-landed hook.py && echo "mine" >> "$home/.gitignore"
-says "moved 1 commit(s) on to origin/main" tidy_after_merge.py "$(bash_in "$home" "$merge")"
-at_origin || fail "tidy_after_merge.py: a detached main checkout behind origin/main didn't move"
-grep -q mine "$home/.gitignore" || fail "tidy_after_merge.py: the move lost a changed file it doesn't touch"
-git -C "$home" symbolic-ref -q HEAD && fail "tidy_after_merge.py: the moved main checkout isn't detached"
-
-# already at origin/main: nothing new to say
-silent tidy_after_merge.py "$(bash_in "$home" "$merge")"
-
-# a changed file the move would overwrite: git refuses, it stays, and says why
-landed .gitignore && before=$(git -C "$home" rev-parse HEAD)
-says "would be overwritten" tidy_after_merge.py "$(bash_in "$home" "$merge")"
-stayed || fail "tidy_after_merge.py: moved over a changed file"
-grep -q mine "$home/.gitignore" || fail "tidy_after_merge.py: lost the changed file it refused to overwrite"
-git -C "$home" checkout -q -- .gitignore
-
-# detached on a commit of its own: it stays, and says so
-git -C "$home" "${as_tester[@]}" commit -q --allow-empty -m "local work" && before=$(git -C "$home" rev-parse HEAD)
-says "it holds 1 commit(s) origin/main doesn't" tidy_after_merge.py "$(bash_in "$home" "$merge")"
-stayed || fail "tidy_after_merge.py: moved a main checkout off its own commit"
-git -C "$home" checkout -q --detach HEAD~1
-
-# a bisect (or rebase) under way, which leaves HEAD detached: it stays, and says so
-before=$(git -C "$home" rev-parse HEAD) && touch "$home/.git/BISECT_LOG"
-says "a git operation is under way there (BISECT_LOG)" tidy_after_merge.py "$(bash_in "$home" "$merge")"
-stayed || fail "tidy_after_merge.py: moved a main checkout mid-bisect"
-rm "$home/.git/BISECT_LOG"
-
-# origin can't be reached: it stays, and says so
-git -C "$home" remote set-url origin "$tmp/no-such-origin.git"
-says "git fetch failed" tidy_after_merge.py "$(bash_in "$home" "$merge")"
-stayed || fail "tidy_after_merge.py: moved a main checkout when the fetch failed"
-git -C "$home" remote set-url origin "$upstream"
-
-# on a branch: it stays, whatever origin/main holds
-git -C "$home" switch -q -c local && before=$(git -C "$home" rev-parse HEAD)
-silent tidy_after_merge.py "$(bash_in "$home" "$merge")"
-stayed || fail "tidy_after_merge.py: moved a main checkout on a branch"
-[ "$(git -C "$home" branch --show-current)" = local ] || fail "tidy_after_merge.py: switched a main checkout off its branch"
-
-# a merge run in another worktree moves the main checkout too
-git -C "$home" checkout -q --detach && git -C "$home" worktree add -q --detach "$tmp/home-wt"
-says "moved 1 commit(s) on to origin/main" tidy_after_merge.py "$(bash_in "$tmp/home-wt" "$merge")"
-at_origin || fail "tidy_after_merge.py: a merge in a worktree didn't move the main checkout"
-
-# a builder's worktree mid-task stays on its branch while the merge moves the main checkout (#938:
-# what detached one was its reviewer's git checkout of origin/main, which guard_bash.py refuses)
-git -C "$home" worktree add -q -b feat/builder "$tmp/home-builder"
-git -C "$tmp/home-builder" "${as_tester[@]}" commit -q --allow-empty -m "the builder's first commit" && landed hook.py
-says "moved 1 commit(s) on to origin/main" tidy_after_merge.py "$(bash_in "$home" "$merge")"
-at_origin || fail "tidy_after_merge.py: a merge beside a builder's worktree didn't move the main checkout"
-[ "$(git -C "$tmp/home-builder" branch --show-current)" = feat/builder ] ||
-  fail "tidy_after_merge.py: a merge moved a builder's worktree off its branch"
