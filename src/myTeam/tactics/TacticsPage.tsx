@@ -52,6 +52,7 @@ export function TacticsPage({ league, seam }: { league: LeagueSummary; seam: MyT
 function TacticsBody({ league, teamName, seam }: { league: LeagueSummary; teamName: string; seam: MyTeamSeam }) {
   const now = useMinute();
   const tactics = seam.useTactics(league.leagueId, now);
+  seam.useTacticsOpened(league.leagueId, tactics?.kind === "open" ? tactics.gameweek : null);
   const note = (words: string) => (
     <PageSection title={teamName} className="bg-panel">
       {tactics === undefined ? <Loading className="px-3 py-2">{words}</Loading> : <PanelNote>{words}</PanelNote>}
