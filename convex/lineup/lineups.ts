@@ -5,7 +5,7 @@ import { managerOf, refuse } from "../shared/leagueAccess";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { heldSchedule } from "../gameweeks/leagueDeadlines";
 import { nextGameweek } from "../gameweeks/nextGameweek";
-import { passedDeadlineOf, passedDeadlinesOf } from "../gameweeks/passedDeadlines";
+import { fixedDeadlinesOf, passedDeadlineOf } from "../gameweeks/passedDeadlines";
 import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { squadAt, squadMovesSince, squadOf, type SquadMovesSince } from "../squads/squadPlace";
 import { playerByCode } from "../shared/players";
@@ -138,7 +138,7 @@ async function squadCodes(ctx: QueryCtx, teamId: Id<"teams">): Promise<number[]>
  *  a save now is from. */
 export async function nextOpenGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, season: SeasonRules, now: number): Promise<number> {
   const { gameweeks, matches } = await heldSchedule(ctx);
-  return nextGameweek(gameweeks, matches, (gameweek) => season.inGameweek(gameweek).deadline, await passedDeadlinesOf(ctx, leagueId), now);
+  return nextGameweek(gameweeks, matches, (gameweek) => season.inGameweek(gameweek).deadline, await fixedDeadlinesOf(ctx, leagueId), now);
 }
 
 /** The gameweek a save now goes to, or why there is none: a league made before rules were held

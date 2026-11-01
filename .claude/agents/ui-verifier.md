@@ -77,8 +77,8 @@ Differences in the made-up figures themselves don't count. No difference is a fi
   focus outline; the role
   under a pitch name in role text (`#caced4`) on its near-black name plate; a role's run 2px dashed white with a solid
   arrowhead, under the names; a placeholder a 1px muted outline with nothing in it, not a stray
-  border. plate.md's colour
-  table and its Marks are the whole list.
+  border; a player's status a chip (red cross, yellow card, red card, orange knock). plate.md's
+  colour table, its Marks and its Tables and panels are the whole list.
 - Archivo Narrow for data; the heavy wide Archivo only on page titles and team names; figures in
   tabular numerals.
 - Radius 0; the 2px bevel on the top bar and each title plate; tabs butted with 1px rules.

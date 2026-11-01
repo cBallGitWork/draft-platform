@@ -22,3 +22,14 @@ export async function passedDeadlineOf(ctx: QueryCtx, leagueId: Id<"leagues">, g
     .unique();
   return row?.deadline ?? null;
 }
+
+/** The league's deadlines that stay where they are whatever the matches now say, by gameweek: each
+ *  passed one (#150), else the one kept when FPL stopped sending its gameweek (#202). Not which
+ *  gameweeks have begun: that is `passedDeadlinesOf`. */
+export async function fixedDeadlinesOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, number>> {
+  const kept = await ctx.db
+    .query("keptDeadlines")
+    .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
+    .take(GAMEWEEKS);
+  return new Map([...kept.map((row): [number, number] => [row.gameweek, row.deadline]), ...(await passedDeadlinesOf(ctx, leagueId))]);
+}

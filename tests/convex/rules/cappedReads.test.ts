@@ -80,14 +80,14 @@ describe("the held schedule", () => {
     await expect(schedule()).rejects.toThrow(`More than ${CURRENT_FIXTURES_MOST} matches are held as current`);
   });
 
-  test(`reads the season's ${GAMEWEEKS} gameweeks, a dropped one left out, and throws past them rather than cut the schedule short`, async () => {
+  test(`reads the season's ${GAMEWEEKS} gameweeks, a dropped one kept (#202), and throws past them rather than cut the schedule short`, async () => {
     await t.run(async (ctx) => {
       const first = await ctx.db.query("gameweeks").withIndex("by_number", (q) => q.eq("number", FIRST_GAMEWEEK)).unique();
       await ctx.db.patch("gameweeks", first!._id, { droppedAt: DROPPED_AT });
     });
     const { gameweeks } = await schedule();
-    expect(gameweeks).toHaveLength(GAMEWEEKS - 1);
-    expect(gameweeks).not.toContainEqual({ number: FIRST_GAMEWEEK });
+    expect(gameweeks).toHaveLength(GAMEWEEKS);
+    expect(gameweeks).toContainEqual({ number: FIRST_GAMEWEEK });
 
     // Only a row written by hand can pass the football sync's one a gameweek number: a second row
     // for one of the season's gameweeks throws.
