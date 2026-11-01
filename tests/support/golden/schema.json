@@ -20666,6 +20666,53 @@
       }
     },
     {
+      "tableName": "keptDeadlines",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_gameweek",
+          "fields": [
+            "leagueId",
+            "gameweek"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "gameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "deadline": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "keptAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "gameweekStarts",
       "indexes": [
         {
