@@ -12,6 +12,12 @@ Route: `/team`, the Tactics tab, checked on `/team?preview=manager`.
 - `1440-formations-presets.png`: the same window on Your presets, with 4-3-3 press picked and
   previewed, and the Save preset… tile (Formation card A8, presets).
 
+Both formation pictures were taken again from the latest Formation card A8 on 1 Nov 2026, after
+Craig asked that the 4-4-1-1's slot behind the striker read SS, the support striker (`spec/06`):
+"maybe am becomes a ss (like a the 4-4-1-1)". Neither picture previews a 4-4-1-1 (the Arsenal
+Invincibles tile's thumbnail has no labels), so they look as before, and the build takes that
+slot's label from `spec/06`, not from the pictures.
+
 ## Approved
 
 1 Nov 2026, Craig:
