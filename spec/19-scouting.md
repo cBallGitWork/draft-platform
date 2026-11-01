@@ -17,6 +17,12 @@ players. A scout's report judges a player; Mail only reports (`spec/16`).
   club, sortable by any stat, with season points under the site's scoring (`spec/14`).
 - Before the new season's first match, Scouting's season totals are last season's (Craig, 30 Oct
   2026: "ok you do it", to the recommendation on #647).
+- A player's season points are at his main position, as his player card opens on: "Has to be his
+  main as that's consistent week to week" (Craig, 1 Nov 2026).
+- They take in the league's overrides: Scouting shows the same total his player card does in that
+  league (Craig, 1 Nov 2026).
+- Last season's, shown before the new season's first match, are priced under the site's scoring as
+  it stands now (Craig, 1 Nov 2026).
 - Two players side by side, to compare.
 - By the mini beta.
 

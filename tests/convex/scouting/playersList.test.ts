@@ -20,7 +20,8 @@ import { expectRefused } from "../../support/convex/test.harness";
 
 // Scouting's players list (#373, spec/19 The players list): every Premier League player now, for
 // anyone in the league, filtered by who holds him, his position and his club, and sorted, on the
-// server. Season points are "—" (null) until matches are scored (#29).
+// server. Season points are "—" (null) here, with no match priced; what they add up to is
+// tests/convex/stats/seasonPoints.test.ts's.
 
 const [ANN, BOB] = MANAGERS;
 const BRENTFORD = { code: 94, name: "Brentford", shortName: "BRE" };
@@ -75,7 +76,7 @@ test("the club filter's clubs are every club now, by name", async () => {
   expect((await listAs(ANN)).clubs).toEqual([ARSENAL, BRENTFORD, CHELSEA]);
 });
 
-test("season points are null, shown as '—', until matches are scored (#29)", async () => {
+test("season points are null, shown as '—', while none of a player's matches is priced", async () => {
   expect((await listAs(ANN)).players.every((player) => player.seasonPoints === null)).toBe(true);
 });
 

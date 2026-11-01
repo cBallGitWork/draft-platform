@@ -11,8 +11,8 @@ import { expectRefused } from "../../support/convex/test.harness";
 // Two players side by side (#373, spec/19 The players list): who each is and who owns him in the
 // league, and his stats this season added up from the matches his card lists: not last season's,
 // not a match he sat out unused, not one postponed with no new date, and a match's stats only once
-// both feeds' parts are in. Season points are "—" (null)
-// until matches are scored (#29).
+// both feeds' parts are in. Season points are "—" (null) here, with none priced; that they match
+// the list's is tests/convex/stats/seasonPoints.test.ts's.
 
 const [ANN, BOB] = MANAGERS;
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM", "W"] as Position[] };

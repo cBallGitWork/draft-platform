@@ -170,8 +170,13 @@ export function recordsOf(ctx: MutationCtx, fixtureCode: number) {
     .collect();
 }
 
+/** A changed record re-prices his season points only once what it counts changes: a live
+ *  record moving before it is whole leaves them be. The pricing runs on its own, just after, so a
+ *  scoring set that can't be read never stops the records being written. */
+const changesPoints = ({ before, after }: RecordChange) => statChanges(before ?? {}, after).length > 0;
+
 /** Each record as sent, in the match's state: a new man inserted, a changed one replaced whole,
- *  and his season totals moved with it. `changed` names every man inserted or updated. */
+ *  and his season totals and season points moved with it. `changed` names every man inserted or updated. */
 export async function writeRecords(
   ctx: MutationCtx,
   records: PlayerMatchRecord[],
@@ -198,6 +203,8 @@ export async function writeRecords(
     if (differs || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state });
   }
   await moveSeasonTotals(ctx, moved);
+  const repriced = moved.filter(changesPoints).map(({ playerCode }) => playerCode);
+  if (repriced.length > 0) await ctx.scheduler.runAfter(0, internal.stats.seasonPoints.refresh, { playerCodes: repriced });
   return { inserted, updated: changed.length - inserted, changed };
 }
 
