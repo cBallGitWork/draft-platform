@@ -14,6 +14,7 @@ import { placementShape } from "../schema";
 import { lineupProblems, namedCodes, reconciled, type PlayerPositions } from "./lineup";
 import { firstLineup, keptOnBenchOf } from "./firstLineup";
 import type { Area, Lane } from "./pitch";
+import { roleIn } from "./roles";
 import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords";
 
 // Each team's lineup, stored (spec/05, The pitch; #8). A save is a row from the next gameweek
@@ -168,8 +169,12 @@ export const save = mutation({
     const problems = lineupProblems(lineup, positions, { areaLimits });
     if (problems.length > 0) refuse(problems.map((problem) => problemWords(problem, nameOf)).join(" "));
 
-    // lineupProblems refused any cell not on the pitch, so every starter's is one.
-    const starters = lineup.starters.map((starter) => ({ ...starter, area: starter.area as Area, lane: starter.lane as Lane }));
+    // lineupProblems refused any cell not on the pitch, so every starter's is one, and any role
+    // another slot offers; a role removed from the set is saved as the one he plays (#841).
+    const starters = lineup.starters.map(({ role, ...starter }) => {
+      const cell = { area: starter.area as Area, lane: starter.lane as Lane };
+      return { ...starter, ...cell, ...(role === undefined ? {} : { role: roleIn(cell, role).key }) };
+    });
     const existing = await rowInForce(ctx, leagueId, team._id, fromGameweek);
     // The manager's own from here: no squad change picks it again.
     if (existing?.fromGameweek !== fromGameweek) await ctx.db.insert("lineups", { leagueId, teamId: team._id, fromGameweek, starters, bench: lineup.bench });

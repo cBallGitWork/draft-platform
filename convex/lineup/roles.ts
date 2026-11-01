@@ -98,6 +98,15 @@ export const rolesOfSlot = (cell: Cell): readonly Role[] =>
  *  name. */
 export const namedRole = ({ key, name }: Role): Pick<Role, "key" | "name"> => ({ key, name });
 
+/** Every key a slot offers. */
+const ROLE_KEYS: ReadonlySet<string> = new Set(Object.values(DEFAULT_ROLES).flatMap((roles) => roles.map(({ key }) => key)));
+
+/** Whether any slot offers the role with this key: false for one the default set no longer holds,
+ *  which a starter saved on it plays as `roleIn` says (spec/05 Roles; #841). A partial cut, a key
+ *  gone from one position but offered by another, isn't caught here but by roles.test.ts's pinned
+ *  keys, so it can't land without the migration. */
+export const isRole = (key: string): boolean => ROLE_KEYS.has(key);
+
 /** Whether this slot offers the role with this key. */
 export const offersRole = (cell: Cell, key: string): boolean => rolesOfSlot(cell).some((role) => role.key === key);
 
