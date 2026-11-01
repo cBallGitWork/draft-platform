@@ -70,11 +70,13 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
   });
 
   it("marks the shape's empty slots, to show where to drag, while the lineup can't stand and isn't saved", async () => {
-    await openedPitch({ tactics: SAVED, saveAnswer: "A lineup starts 11 players; this one starts 4." });
+    await openedPitch({ tactics: SAVED, saveAnswer: "A lineup starts 11 players; this one starts 5." });
     await pickFormation("4-4-2");
     const slots = within(pitch()).getAllByRole("img", { name: /^Empty slot/ }).map((slot) => slot.getAttribute("aria-label"));
-    expect(slots).toHaveLength(11 - STARTERS.length);
-    expect(slots).toContain(emptySlotLabel("defence", "left"));
+    // White, off the bench, fills its left back (Craig, 1 Nov 2026; #1025); the rest stay empty.
+    expect(slots).toHaveLength(11 - STARTERS.length - 1);
+    expect(slots).toContain(emptySlotLabel("defence", "right"));
+    expect(blockOf(WHITE, { area: "defence", lane: "left" })).toBeTruthy();
   });
 
   it("moves a starter the shape has no room for in his area to the nearest area he plays, not the bench (Craig, 1 Nov 2026)", async () => {
@@ -88,7 +90,7 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
   it("saves itself as it stands, and Undo puts the shape away too", async () => {
     const app = await openedPitch();
     await pickFormation("4-4-2");
-    expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, expect.objectContaining({ bench: [ARRIZABALAGA.playerCode, WHITE.playerCode] }));
+    expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, expect.objectContaining({ bench: [ARRIZABALAGA.playerCode] }));
     await screen.findByText(savedWords(TACTICS_GAMEWEEK));
     expect(within(pitch()).queryAllByRole("img", { name: /^Empty slot/ })).toEqual([]);
     await pickFormation("5-4-1");

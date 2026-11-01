@@ -63,9 +63,10 @@ const PLAYABLE_CELLS: Record<Position, readonly Cell[]> = {
   // A holding midfielder also plays the midfield row: "every CDM can play CM" (Craig, 1 Nov 2026).
   CDM: [...wholeArea("defensiveMidfield"), ...wholeArea("midfield")],
   CM: wholeArea("midfield"),
-  WM: wholeArea("midfield"),
+  // The two wide midfield rows share their wide men: "yes" (Craig, 1 Nov 2026; #1025).
+  WM: [...wholeArea("midfield"), ...cellsOf("attackingMidfield", WIDE_LANES)],
   CAM: wholeArea("attackingMidfield"),
-  W: wholeArea("attackingMidfield"),
+  W: [...cellsOf("midfield", WIDE_LANES), ...wholeArea("attackingMidfield")],
   SS: [...wholeArea("attackingMidfield"), ...wholeArea("attack")],
   ST: wholeArea("attack"),
 };

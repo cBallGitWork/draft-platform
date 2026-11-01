@@ -29,6 +29,7 @@ import {
   losePlayer,
   slotOf,
   BOBS_FIRST_POINTS,
+  EVERTON_BENCH_CENTRE_BACK,
   GREALISH,
 } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, liveRecords, lockMatch, scoreRead, storeLeague, WRITTEN_OVER, writeOverAnns } from "../../support/convex/gameweekScoresMatch.harness";
@@ -191,9 +192,10 @@ test("a side that never saved a lineup shows its first and scores from it (#637,
   await lockMatch(league);
   const bob = (await annsScoredGame(league, GAMEWEEK)).opponent;
   expect(bob).toMatchObject({ kind: "team", teamId: league.bobsTeam, teamName: BOBS_TEAM, points: BOBS_FIRST_POINTS, provisional: false });
-  // The 5-4-1 his squad fills where the 4-4-2 leaves a slot empty, Grealish first on the bench.
+  // The 4-3-3 his squad fills where the 4-4-2 leaves a slot empty, its bench centre back still there.
   expect(lineupOf(bob).starters).toHaveLength(EVERTON_STARTERS.length);
-  expect(lineupOf(bob).bench[0]).toMatchObject({ playerCode: GREALISH, counts: false });
+  expect(lineupOf(bob).starters.map(({ playerCode }) => playerCode)).toContain(GREALISH);
+  expect(lineupOf(bob).bench.find(({ playerCode }) => playerCode === EVERTON_BENCH_CENTRE_BACK)).toMatchObject({ counts: false });
 });
 
 test("the team left over meets the league's average, every team counted once in it", async () => {

@@ -43,6 +43,9 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - Everyone takes a slot in his own area before anyone moves across, and of two areas as near, a
   player moving across takes the deeper (Craig, 1 Nov 2026). A plain CM or WM still goes to the
   bench in a 4-2-3-1, which has no midfield row.
+- Then the bench fills the new shape's empty slots: each bench player, in bench order, takes a
+  free slot he plays ("yes", Craig, 1 Nov 2026, #1025, asked whether the bench fills the empty
+  slots it plays, in bench order).
 - A manager can save his own presets: "no home away silly but saved presets good. They include
   formation and roles. Players change too much to save" (Craig, 1 Nov 2026). A saved preset holds
   the formation and each slot's role, never players.

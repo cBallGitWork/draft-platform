@@ -148,6 +148,25 @@ describe("a preset picked (spec/05; Craig, 26 Oct 2026)", () => {
   });
 });
 
+describe("a preset picked fills its empty slots from the bench (Craig, 1 Nov 2026; #1025)", () => {
+  const cell = (area: Cell["area"], lane: Cell["lane"]) => ({ area, lane });
+
+  it("takes bench players who play an empty slot, in bench order, and leaves the rest on the bench", () => {
+    const draft = { starters: [KEEPER], bench: [3, 5, 2, 7] };
+    const shape = [KEEPER, cell("defence", "left"), cell("attack", "centre")];
+    expect(reshaped(draft, shape, PLAYS, NO_STARS)).toEqual({
+      starters: [KEEPER, { playerCode: 5, area: "attack", lane: "centre" }, { playerCode: 2, area: "defence", lane: "left" }],
+      bench: [3, 7],
+    });
+  });
+
+  it("puts a winger benched by a 4-4-2 back in its wide midfield", () => {
+    const winger = { positionsOf: () => ["W"] as Position[] };
+    const draft = { starters: [{ playerCode: 11, area: "attackingMidfield", lane: "left" } as const], bench: [] };
+    expect(reshaped(draft, [cell("midfield", "left")], winger, NO_STARS).starters).toEqual([{ playerCode: 11, area: "midfield", lane: "left" }]);
+  });
+});
+
 describe("a role (spec/05 Roles)", () => {
   it("given, is the starter's until he moves; the same lineup with another role isn't the same", () => {
     const given = withRole(DRAFT, 2, "attackingFullBack");
