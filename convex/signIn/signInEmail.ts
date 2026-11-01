@@ -3,14 +3,19 @@ import type { ActionCtx } from "../_generated/server";
 import { sendEmail } from "../outbound/email";
 import { inviteIdIn } from "../joining/joiningShared";
 import { PRODUCT_NAME } from "../shared/product";
+import { momentIn } from "../shared/moments";
 
 // The sign-in email. Convex Auth calls `sendSignInEmail` once it has made the link, which only an
 // ask lets it do (signInLinks.ts).
 
-/** Wording for Craig to change in the pull request (spec/02). */
-export function signInEmail(url: string) {
+/** How every sign-in email's subject starts: the release check finds its email by it. */
+export const SIGN_IN_SUBJECT_START = `Your link to sign in to ${PRODUCT_NAME}`;
+
+/** Wording for Craig to change in the pull request (spec/02). The subject ends with when it was
+ *  sent, so Gmail never folds a new link into the conversation of an earlier one. */
+export function signInEmail(url: string, sentAt = Date.now()) {
   return {
-    subject: `Your link to sign in to ${PRODUCT_NAME}`,
+    subject: `${SIGN_IN_SUBJECT_START}, ${momentIn(sentAt, undefined)}`,
     text: [
       `Here is your link to sign in to ${PRODUCT_NAME}:`,
       "",
