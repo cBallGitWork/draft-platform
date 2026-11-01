@@ -112,7 +112,7 @@ liverpools team, and it goes red and white"; then "put on to do list").
 |---|---|
 | History | Past seasons, champions, league records; where awards live after Mail files them |
 | The manager's profile | A record across every league on the platform |
-| Where fixture difficulty comes from | The screens show it (plate.md, Fixture difficulty) but nothing holds it. FPL's fixtures feed carries a difficulty per side, not stored today; using it, or our own measure, is Craig's call, as FPL is a feed, never the rulebook. Until then its cells are placeholders |
+| Where fixture difficulty comes from | The screens show it (plate.md, Fixture difficulty) but nothing holds it. FPL's fixtures feed carries a difficulty per side (`team_h_difficulty`, `team_a_difficulty` in `tests/support/recorded/fpl-fixtures.json`), which no table stores today; using it, or our own measure, is Craig's call, as FPL is a feed, never the rulebook. Until then its cells are placeholders |
 | What each category counts | Every manager can read the scoring on Player scoring (`spec/14`); a glossary there of what each category counts |
 | Your account | Display name, email preferences, your leagues; leaving a league; deleting the account |
 | Going on holiday | CM's holiday: the manager switches the auto team on himself until a gameweek he names (`spec/09` lets him switch it on; the end date is the new part) |

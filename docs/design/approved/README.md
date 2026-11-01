@@ -18,6 +18,7 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 
 - `390.png` and `1440.png`: the approved picture at the phone's width and the desk's.
 - `README.md`:
+  - `Route:` the route it shows, with the preview it's checked on (`/team?preview=manager`);
   - the date and Craig's words approving it;
   - the Football Manager idea it borrows: its organisation, never its colours;
   - interaction notes, one line per control: what can be tapped and what happens;

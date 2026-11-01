@@ -168,7 +168,8 @@ bar above the pitch; the pitch's player blocks narrow to a fifth of its width. T
   draws digits in its difficulty cells, blue panel bodies and rows about 28px. The rules win on the
   first two: no digits ("remove digits"), the page stays neutral ("ok neutral is i guess"). The
   row height was left to a design call: 28px, Claude's, as 20px left no air around 13px figures,
-  stars and a difficulty cell; FM27's tables run 26 to 33px.
+  stars and a difficulty cell. The built tables still draw 20px rows; each follows when its screen
+  is rebuilt to its approved picture.
 - **Pitch, squad and Mail** stay side by side (Craig). The pitch is the Tactics tab's centrepiece
   (Craig, 31 Oct 2026: "The pitch is the centrepiece of my team. More than other sites since we
   need to visually show roles / adjust positions"): on the desk it is as tall as the window,
