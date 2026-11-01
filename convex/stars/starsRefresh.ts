@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
-import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
+import { internalMutation, type MutationCtx } from "../_generated/server";
 import { matchRecordsOf } from "../gameweekScorer/heldMatches";
 import { positionsNow } from "../positions/playerPositions";
 import { siteScoringAt } from "../scoring/siteVersions";
@@ -9,6 +9,7 @@ import { takeAllOrThrow } from "../shared/cappedRead";
 import { fixtureByCode } from "../shared/fixtures";
 import { readOnce } from "../shared/readOnce";
 import { PLAYER_RECORDS_MOST } from "../stats/matchRecords";
+import { starsRow } from "./playerStars";
 import { countedMatches, LEAST_MATCHES_RATED, perMatchUnder, ratedRoles, starsFor } from "./stars";
 import { UNSURE } from "./starsShape";
 
@@ -106,14 +107,6 @@ export const rank = internalMutation({
 });
 
 const poolKey = (area: string, role: string) => `${area}/${role}`;
-
-/** His stored row, if any. */
-export function starsRow(ctx: QueryCtx, playerCode: number) {
-  return ctx.db
-    .query("playerRoleStars")
-    .withIndex("by_playerCode", (q) => q.eq("playerCode", playerCode))
-    .unique();
-}
 
 /** Each player's row set afresh from his records and positions now, under today's scoring: his
  *  points per match under each role he is rated for, his stars kept until the ranking moves them.

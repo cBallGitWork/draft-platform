@@ -9,7 +9,9 @@ import { ALL_CELLS, AREAS, byPitchOrder, cellKey, LANES, playsCell, sameCell, ty
 import { namedCodes, reconciled, STARTER_COUNT, type LineupRules } from "../../../convex/lineup/lineup";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { OpenTactics } from "../../../convex/lineup/tactics";
-import { offersRole } from "../../../convex/lineup/roles";
+import { offersRole, roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
+import { droppedRole } from "../../../convex/stars/bestRole";
+import type { RoleStars } from "../../../convex/stars/starsShape";
 
 export type SquadMember = OpenTactics["squad"][number];
 /** A starter, his cell and the role he plays there (roles.ts), none given meaning the slot's first. */
@@ -19,6 +21,19 @@ export interface DraftLineup {
   starters: readonly Starter[];
   bench: readonly number[];
 }
+
+/** Each squad player's stars, which pick the role he starts on when dropped into a slot (spec/05
+ *  Roles). */
+export type RatingsOf = (playerCode: number) => readonly RoleStars[];
+
+/** No stars known: everyone dropped starts on the slot's first role. */
+const NO_STARS: RatingsOf = () => [];
+
+/** A player dropped into `cell`, on the role he has the most stars for there (spec/05 Roles). */
+const droppedInto = (playerCode: number, cell: Cell, ratingsOf: RatingsOf): Starter => {
+  const role = droppedRole(cell, ratingsOf(playerCode));
+  return { playerCode, area: cell.area, lane: cell.lane, ...(role !== undefined && { role }) };
+};
 
 /** The lineup the screen opens on: the one held for the gameweek, its first until the manager
  *  saves one (spec/05). */
@@ -44,37 +59,39 @@ const without = (draft: DraftLineup, playerCode: number): DraftLineup => ({
 
 /** The player moved into a free cell, from another cell or off the bench. A taken cell throws: the
  *  screen offers only free ones. */
-export function placed(draft: DraftLineup, playerCode: number, cell: Cell): DraftLineup {
+export function placed(draft: DraftLineup, playerCode: number, cell: Cell, ratingsOf: RatingsOf = NO_STARS): DraftLineup {
   const standing = standingIn(draft, cell);
   if (standing !== undefined && standing.playerCode !== playerCode) {
     throw new Error(`The ${cell.area} ${cell.lane} cell is taken by player ${standing.playerCode}`);
   }
   const rest = without(draft, playerCode);
-  // A new slot offers its own roles: he starts on its first (spec/05).
-  return { starters: [...rest.starters, { playerCode, ...cell }], bench: rest.bench };
+  // A new slot offers its own roles: he starts on his best-star one (spec/05).
+  return { starters: [...rest.starters, droppedInto(playerCode, cell, ratingsOf)], bench: rest.bench };
 }
 
 const starts = (draft: DraftLineup, playerCode: number) => draft.starters.some((starter) => starter.playerCode === playerCode);
 
 /** Two players swapped (spec/05, Moving players): starter for starter, each in the other's cell, or
- *  a bench player for a starter, the starter taking his place in the bench order. Each lands on his
- *  new slot's first role: the one he has the most stars for once stars exist (#11). Two on the
- *  bench throws: the bench is put in order, not swapped. */
-export function swapped(draft: DraftLineup, one: number, other: number): DraftLineup {
+ *  a bench player for a starter, the starter taking his place in the bench order. Each lands on the
+ *  role he has the most stars for in his new slot. Two on the bench throws: the bench is put in
+ *  order, not swapped. */
+export function swapped(draft: DraftLineup, one: number, other: number, ratingsOf: RatingsOf = NO_STARS): DraftLineup {
   if (!starts(draft, one) && !starts(draft, other)) throw new Error(`Players ${one} and ${other} are both on the bench: a swap takes a starter`);
   const swap = (playerCode: number) => (playerCode === one ? other : playerCode === other ? one : playerCode);
   return {
     starters: draft.starters.map((starter) =>
-      swap(starter.playerCode) === starter.playerCode ? starter : { playerCode: swap(starter.playerCode), area: starter.area, lane: starter.lane },
+      swap(starter.playerCode) === starter.playerCode ? starter : droppedInto(swap(starter.playerCode), starter, ratingsOf),
     ),
     bench: draft.bench.map(swap),
   };
 }
 
 /** The player sent to the cell: into it if it is free, swapped with whoever stands in it if not. */
-export function movedTo(draft: DraftLineup, playerCode: number, cell: Cell): DraftLineup {
+export function movedTo(draft: DraftLineup, playerCode: number, cell: Cell, ratingsOf: RatingsOf = NO_STARS): DraftLineup {
   const standing = standingIn(draft, cell);
-  return standing === undefined || standing.playerCode === playerCode ? placed(draft, playerCode, cell) : swapped(draft, playerCode, standing.playerCode);
+  return standing === undefined || standing.playerCode === playerCode
+    ? placed(draft, playerCode, cell, ratingsOf)
+    : swapped(draft, playerCode, standing.playerCode, ratingsOf);
 }
 
 /** What a move is judged by: each squad player's positions, and the league's area limits. */
@@ -155,8 +172,9 @@ export function sameLineup(one: DraftLineup, other: DraftLineup): boolean {
 /** The lineup reshaped to a preset's cells (spec/05; Craig, 26 Oct 2026): each starter, back to
  *  front, moves to a free cell of the shape in his own area, the nearest lane to his own first;
  *  anyone left over goes to the front of the bench, in that order. Cells left empty are the
- *  shape's slots still to fill. */
-export function reshaped(draft: DraftLineup, cells: readonly Cell[]): DraftLineup {
+ *  shape's slots still to fill. One whose new slot doesn't offer his role starts on his best-star
+ *  role there (Craig, 1 Nov 2026). */
+export function reshaped(draft: DraftLineup, cells: readonly Cell[], ratingsOf: RatingsOf = NO_STARS): DraftLineup {
   const free = [...cells];
   const starters: Starter[] = [];
   const leftOver: number[] = [];
@@ -170,9 +188,13 @@ export function reshaped(draft: DraftLineup, cells: readonly Cell[]): DraftLineu
       continue;
     }
     free.splice(free.indexOf(nearest), 1);
-    // He keeps his role where the new slot offers it too.
-    const kept = starter.role !== undefined && offersRole(nearest, starter.role);
-    starters.push({ playerCode: starter.playerCode, area: nearest.area, lane: nearest.lane, ...(kept && { role: starter.role }) });
+    // He keeps the role he plays where the new slot offers it too, given or his old slot's first.
+    const playing = roleIn(starter, starter.role).key;
+    if (!offersRole(nearest, playing)) starters.push(droppedInto(starter.playerCode, nearest, ratingsOf));
+    else {
+      const role = starter.role ?? (playing === rolesOfSlot(nearest)[0].key ? undefined : playing);
+      starters.push({ playerCode: starter.playerCode, area: nearest.area, lane: nearest.lane, ...(role !== undefined && { role }) });
+    }
   }
   return { starters, bench: [...leftOver, ...draft.bench] };
 }

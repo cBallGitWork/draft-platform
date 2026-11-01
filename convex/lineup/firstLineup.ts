@@ -2,17 +2,23 @@
 // don't save to create, you save to edit". Pure functions; lineups.ts stores what they pick.
 
 import { DEFAULT_PRESETS, type Preset } from "./presets";
-import { byPitchOrder, cellKey, playsCell, type Cell } from "./pitch";
+import { byPitchOrder, cellKey, playsCell, sameCell, type Cell } from "./pitch";
 import { lineupProblems, type LineupRules, type PlayerPositions } from "./lineup";
+import { droppedRole } from "../stars/bestRole";
+import type { RoleStars } from "../stars/starsShape";
 
 /** The formation spec/05 gives every first lineup, whatever presets the league has. */
 const FIRST_FORMATION = "4-4-2";
 
 const FIRST_CELLS = DEFAULT_PRESETS.find((preset) => preset.name === FIRST_FORMATION)!.cells;
 
+/** A starter as a stored row holds him: his cell, and the role he was given, none meaning the
+ *  slot's first. */
+type FirstStarter = Cell & { playerCode: number; role?: string };
+
 /** A lineup.ts Lineup whose every cell is on the pitch, as a stored row holds it. */
 export interface FirstLineup {
-  starters: (Cell & { playerCode: number })[];
+  starters: FirstStarter[];
   bench: number[];
 }
 
@@ -42,6 +48,18 @@ export function firstLineup(
     if (filled !== null && lineupProblems(filled, positions, rules).length === 0) return filled;
   }
   return fourFourTwo;
+}
+
+/** Each starter on the role he was dropped in on (spec/05 Roles; Craig, 1 Nov 2026: each pick going
+ *  onto the pitch is a drop): one still in the cell `held` has him in keeps the role he had there;
+ *  anyone placed anew starts on his best-star role (stars/bestRole.ts). */
+export function withDroppedRoles(picked: FirstLineup, ratingsOf: (playerCode: number) => readonly RoleStars[], held: readonly FirstStarter[] = []): FirstLineup {
+  const starters = picked.starters.map(({ playerCode, area, lane }) => {
+    const before = held.find((each) => each.playerCode === playerCode && sameCell(each, { area, lane }));
+    const role = before === undefined ? droppedRole({ area, lane }, ratingsOf(playerCode)) : before.role;
+    return { playerCode, area, lane, ...(role !== undefined && { role }) };
+  });
+  return { starters, bench: picked.bench };
 }
 
 /** Who stays on the bench when the first lineup is picked again: each benched player who, with his

@@ -3,7 +3,6 @@ import { query, type QueryCtx } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
 import { memberOf, refuse } from "../shared/leagueAccess";
 import { ratedRoles } from "./stars";
-import { starsRow } from "./starsRefresh";
 import { NO_DATA, roleStarsShape, type RoleStars } from "./starsShape";
 
 // Players' stars as screens read them (#11; spec/05 Roles), from the stored rows starsRefresh.ts
@@ -20,6 +19,14 @@ export const starsReadRefusals = {
 };
 
 const playerStarsShape = v.object({ playerCode: v.number(), stars: v.array(roleStarsShape) });
+
+/** His stored row (starsRefresh.ts keeps it), if any. */
+export function starsRow(ctx: QueryCtx, playerCode: number) {
+  return ctx.db
+    .query("playerRoleStars")
+    .withIndex("by_playerCode", (q) => q.eq("playerCode", playerCode))
+    .unique();
+}
 
 /** Each player's stars, by his code: his stored ratings, or, with no row (no counted match yet, or
  *  a row not yet worked out), "—" for every role in every area his positions play now. */
