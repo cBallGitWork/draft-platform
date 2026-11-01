@@ -50,10 +50,12 @@ export const ofSeason = query({
     const results: PlResult<Club>[] = [];
     const unplayed: PlMatch<Club>[] = [];
     let provisional = false;
+    let seasonOver = true;
     const fixtures = await currentFixtures(ctx);
     const scores = await Promise.all(fixtures.map(({ code }) => scoreOf(ctx, code)));
     for (const [index, { code, homeClubCode, awayClubCode }] of fixtures.entries()) {
       const score = scores[index];
+      if (score?.state !== "fullTime") seasonOver = false;
       const match = { home: currentClubOf(homeClubCode, code), away: currentClubOf(awayClubCode, code) };
       if (score === null || !COUNTED_STATES.has(score.state)) {
         unplayed.push(match);
@@ -65,7 +67,7 @@ export const ofSeason = query({
       if (isPlaying(score.state)) provisional = true;
       results.push({ ...match, homeGoals: score.homeGoals, awayGoals: score.awayGoals });
     }
-    const rows = plTable(clubs, results, { tieBreaks: COMPETITION_TIE_BREAKS.premierLeague, unplayed });
+    const rows = plTable(clubs, results, { competition: COMPETITION_TIE_BREAKS.premierLeague, seasonOver: seasonOver && results.length > 0, unplayed });
     return { rows, provisional };
   },
 });

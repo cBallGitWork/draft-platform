@@ -4,11 +4,11 @@
 //
 // Clubs level on points are split by the competition's own tie-break order, which the caller
 // passes from its data (tieBreaks.ts), so the table holds no competition's order (#899). The
-// head-to-head steps apply all season, live too, while every match between the clubs level at
-// that step is played. Clubs level after the last step share a position, in the order the caller
+// head-to-head steps apply when the competition's timing says (the Premier League's: once the
+// season is over), and only while every match between the clubs level at that step is played. Clubs level after the last step share a position, in the order the caller
 // lists them: the Premier League lists them alphabetically, a practice and not a rule.
 
-import { HEAD_TO_HEAD_TIE_BREAKS, type CompetitionTieBreak } from "./tieBreaks";
+import { HEAD_TO_HEAD_TIE_BREAKS, type CompetitionTieBreak, type CompetitionTieBreaking } from "./tieBreaks";
 
 /** A league match's points (Handbook C.4): the Premier League's, fixed. */
 const PL_MATCH_POINTS = { win: 3, draw: 1, loss: 0 } as const;
@@ -20,9 +20,14 @@ export type PlMatch<Club> = { home: Club; away: Club };
  *  club's. */
 export type PlResult<Club> = PlMatch<Club> & { homeGoals: number; awayGoals: number };
 
-/** What splits a tie: the competition's order (tieBreaks.ts), and the matches with no result,
- *  still to come or never played, which hold back the head-to-head steps. */
-export type PlTieBreaking<Club> = { tieBreaks: readonly CompetitionTieBreak[]; unplayed: readonly PlMatch<Club>[] };
+/** What splits a tie: the competition's tie-breaking (tieBreaks.ts), whether the season is over,
+ *  and the matches with no result, still to come or never played, which hold back the
+ *  head-to-head steps. */
+export type PlTieBreaking<Club> = {
+  competition: CompetitionTieBreaking;
+  seasonOver: boolean;
+  unplayed: readonly PlMatch<Club>[];
+};
 
 export type PlTableRow<Club> = {
   club: Club;
@@ -47,7 +52,7 @@ type Row<Club> = Omit<PlTableRow<Club>, "position">;
 export function plTable<Club>(
   clubs: readonly Club[],
   results: readonly PlResult<Club>[],
-  { tieBreaks, unplayed }: PlTieBreaking<Club>,
+  { competition, seasonOver, unplayed }: PlTieBreaking<Club>,
 ): PlTableRow<Club>[] {
   const rows = new Map(clubs.map((club) => [club, emptyRow(club)]));
   if (rows.size !== clubs.length) throw new Error(`A club is listed twice in ${clubs.map(String).join(", ")}`);
@@ -67,7 +72,11 @@ export function plTable<Club>(
     rowOf(match.away);
   }
   const levelGroups = groupedBy([...rows.values()], (row) => row.points).flatMap((level) =>
-    brokenTies(level, tieBreaks, { results, unplayed }),
+    brokenTies(level, competition.order, {
+      results,
+      unplayed,
+      headToHeadDue: competition.headToHead === "allSeason" || seasonOver,
+    }),
   );
   let position = 1;
   return levelGroups.flatMap((group) => {
@@ -131,15 +140,15 @@ function groupedBy<R>(rows: readonly R[], key: (row: R) => number): R[][] {
   return [...groups.entries()].toSorted(([one], [other]) => other - one).map(([, group]) => group);
 }
 
-type Matches<Club> = { results: readonly PlResult<Club>[]; unplayed: readonly PlMatch<Club>[] };
+type Matches<Club> = { results: readonly PlResult<Club>[]; unplayed: readonly PlMatch<Club>[]; headToHeadDue: boolean };
 
 /** Clubs level on points, split by the first tie-break, those still level by the next, and so on:
- *  each group returned is level on everything applied. A head-to-head step with a match between
- *  the clubs level unplayed is skipped, and the next step applies. */
+ *  each group returned is level on everything applied. A head-to-head step not yet due, or with a
+ *  match between the clubs level unplayed, is skipped, and the next step applies. */
 function brokenTies<Club>(level: Row<Club>[], tieBreaks: readonly CompetitionTieBreak[], matches: Matches<Club>): Row<Club>[][] {
   const [first, ...rest] = tieBreaks;
   if (level.length < 2 || first === undefined) return [level];
-  if (HEAD_TO_HEAD_TIE_BREAKS.has(first) && between(level, matches.unplayed).length > 0) {
+  if (HEAD_TO_HEAD_TIE_BREAKS.has(first) && (!matches.headToHeadDue || between(level, matches.unplayed).length > 0)) {
     return brokenTies(level, rest, matches);
   }
   return groupedBy(level, tieBreakKey(first, level, matches.results)).flatMap((stillLevel) =>

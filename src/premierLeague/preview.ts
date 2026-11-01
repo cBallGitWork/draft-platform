@@ -101,7 +101,7 @@ const upcoming = new Map(
 );
 const unplayed = [...matches.values()].flat().filter(({ score }) => score?.state === "upcoming");
 const standings = {
-  rows: plTable(CLUBS, results, { tieBreaks: COMPETITION_TIE_BREAKS.premierLeague, unplayed }),
+  rows: plTable(CLUBS, results, { competition: COMPETITION_TIE_BREAKS.premierLeague, seasonOver: false, unplayed }),
   provisional: true,
 };
 

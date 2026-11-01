@@ -17,6 +17,12 @@ export type CompetitionTieBreak = "goalDifference" | "goalsScored" | "headToHead
  *  skipped and they stay level"). */
 export const HEAD_TO_HEAD_TIE_BREAKS: ReadonlySet<CompetitionTieBreak> = new Set(["headToHeadPoints", "headToHeadAwayGoals"]);
 
+/** When a competition's head-to-head steps apply: all season, or once every match is played. */
+export type HeadToHeadTiming = "allSeason" | "seasonOver";
+
+/** A competition's tie-breaking: its order, and when its head-to-head steps apply. */
+export type CompetitionTieBreaking = { order: readonly CompetitionTieBreak[]; headToHead: HeadToHeadTiming };
+
 /** Each competition's order, applied after points. Clubs level after the last share a position.
  *
  *  The Premier League's is its Handbook, Section C (2024/25 wording, as the Premier League quoted
@@ -32,5 +38,9 @@ export const HEAD_TO_HEAD_TIE_BREAKS: ReadonlySet<CompetitionTieBreak> = new Set
  *            results, and clubs level after C.17.2 share a position (C.7: "they shall be deemed to
  *            occupy the same position in the League Table"). */
 export const COMPETITION_TIE_BREAKS = {
-  premierLeague: ["goalDifference", "goalsScored", "headToHeadPoints", "headToHeadAwayGoals"],
-} as const satisfies Record<string, readonly CompetitionTieBreak[]>;
+  premierLeague: {
+    order: ["goalDifference", "goalsScored", "headToHeadPoints", "headToHeadAwayGoals"],
+    // C.17 is the end of the season's: "Follow the real PL rule" (Craig, 1 Nov 2026; #899).
+    headToHead: "seasonOver",
+  },
+} as const satisfies Record<string, CompetitionTieBreaking>;
