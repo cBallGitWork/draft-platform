@@ -2,8 +2,8 @@ import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { PLAYERS_PAGE, statChanges, type PlayerMatchRecord } from "./matchRecords";
-import { heldSeason } from "../shared/fixtures";
 import { countedStats } from "./seasonStats";
+import { rebuildPointsIfNoneKept } from "./seasonRebuilds";
 
 // When season points are re-priced (#525, seasonPoints.ts): just after a record write changes what
 // a player counts, or a played match leaves the feed or moves gameweek (footballSync.ts). Each runs
@@ -27,30 +27,12 @@ export function repriceChanged(ctx: MutationCtx, records: readonly PlayerMatchRe
 }
 
 /** Queues these players' re-pricing, PLAYERS_PAGE a job so each stays well inside a mutation's
- *  reads; or, while no row is kept though records are, the whole rebuild instead. */
+ *  reads; or, while no row is kept though records are, the whole rebuild instead
+ *  (seasonRebuilds.ts). */
 export async function queueRefresh(ctx: MutationCtx, playerCodes: Iterable<number>): Promise<void> {
   const codes = [...new Set(playerCodes)];
-  if (codes.length === 0 || (await rebuildIfNoneKept(ctx))) return;
+  if (codes.length === 0 || (await rebuildPointsIfNoneKept(ctx))) return;
   for (let start = 0; start < codes.length; start += PLAYERS_PAGE) {
     await ctx.scheduler.runAfter(0, internal.stats.seasonPoints.refresh, { playerCodes: codes.slice(start, start + PLAYERS_PAGE) });
   }
-}
-
-/** Starts the rebuild when, for the season of the matches held, some player has played a whole
- *  match (his season totals hold a row, seasonStats.ts) but none has a points row: a deployment
- *  with records from before the rows were kept (#525), so Scouting never waits on someone to run
- *  it. Records still waiting on a feed, or only unused substitutes', start nothing, as the rebuild
- *  would write no row and be started again. Checked on each football sync and each queued
- *  re-pricing; true when it started it. Three reads. */
-export async function rebuildIfNoneKept(ctx: MutationCtx): Promise<boolean> {
-  const season = await heldSeason(ctx);
-  if (season === null) return false;
-  const inSeason = (table: "playerSeasonPoints" | "playerSeasonStats") =>
-    ctx.db
-      .query(table)
-      .withIndex("by_season_and_playerCode", (q) => q.eq("season", season))
-      .first();
-  if ((await inSeason("playerSeasonPoints")) !== null || (await inSeason("playerSeasonStats")) === null) return false;
-  await ctx.scheduler.runAfter(0, internal.stats.seasonPoints.rebuild, { cursor: null });
-  return true;
 }
