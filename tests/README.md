@@ -57,7 +57,8 @@ Nothing in it is a test. Each kind of file:
 
 `recorded/` and `golden/` are add-only: `scripts/recorded-add-only.mjs`, run by `npm run verify`,
 fails on a changed or deleted file unless a commit on the branch carries the trailer
-`Re-record: <file>: <why>`.
+`Re-record: <file>: <why>`. A trailer goes in the commit message's last paragraph, with any other
+trailers such as Co-Authored-By and no blank line between: git reads none above a blank line.
 
 ## Never cut a test
 
@@ -66,7 +67,8 @@ fewer of some test than origin/main did. It reads every `test()` and `it()` in a
 `*.spec.*` file here from the source, named by the `describe()` titles around it and its own title,
 across the whole tree: a test moved to another file, or a renamed file, passes; a renamed test, one
 moved to another `describe()`, or a deleted one fails, until a commit on the branch carries the
-trailer `Test-removed: <the test's name, as the check prints it, or the file it was in>: <why>`.
+trailer `Test-removed: <the test's name, as the check prints it, or the file it was in>: <why>`,
+placed as `Re-record:` is above.
 It checks names only: a test whose body is emptied, or a row cut from a `test.each()` table, still
 passes.
 
