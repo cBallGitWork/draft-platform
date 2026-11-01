@@ -31,6 +31,10 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - Picking a preset reshapes the pitch and keeps the players: each starter moves to a slot of the
   new shape in his own area, if one is free, and anyone left over goes to the front of the bench.
   The shape's empty slots show where to drag (Craig, 26 Oct 2026; #14).
+- A starter with no free slot in his own area moves to the nearest free slot in any area his
+  positions play, and only a player with none goes to the bench (Craig, 1 Nov 2026, after a
+  4-4-2 turned 4-2-3-1 benched its midfield: "it just put players on the bench, left half the
+  team out").
 - Any player who plays in an area can fill any slot in it: the game should not get in the way of
   managers. A centre-back can fill a full-back's cell.
 - For now that is the hard rule: a player fills only slots in the areas his positions play (Craig,

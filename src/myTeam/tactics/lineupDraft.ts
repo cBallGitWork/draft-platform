@@ -166,32 +166,45 @@ export function sameLineup(one: DraftLineup, other: DraftLineup): boolean {
   return key(one) === key(other);
 }
 
-/** The lineup reshaped to a preset's cells (spec/05; Craig, 26 Oct 2026): each starter, back to
- *  front, moves to a free cell of the shape in his own area, the nearest lane to his own first;
- *  anyone left over goes to the front of the bench, in that order. Cells left empty are the
- *  shape's slots still to fill. One whose new slot doesn't offer his role starts on his best-star
- *  role there (Craig, 1 Nov 2026). */
-export function reshaped(draft: DraftLineup, cells: readonly Cell[], ratingsOf: RatingsOf): DraftLineup {
+/** The lineup reshaped to a preset's cells (spec/05; Craig, 26 Oct and 1 Nov 2026): each starter,
+ *  back to front, moves to a free cell of the shape he plays in his own area, the nearest lane to
+ *  his own first. Anyone the shape has no room for there then takes the free cell he plays in the
+ *  nearest area, the deeper on a tie; anyone left over goes to the front of the bench, in that
+ *  order. Cells left empty are the shape's slots still to fill. One whose new slot doesn't offer
+ *  his role starts on his best-star role there (Craig, 1 Nov 2026). */
+export function reshaped(draft: DraftLineup, cells: readonly Cell[], { positionsOf }: Pick<MoveRules, "positionsOf">, ratingsOf: RatingsOf): DraftLineup {
   const free = [...cells];
   const starters: Starter[] = [];
-  const leftOver: number[] = [];
-  for (const starter of startersInOrder(draft)) {
-    const distance = (cell: Cell) => Math.abs(LANES.indexOf(cell.lane) - LANES.indexOf(starter.lane));
-    const nearest = free
-      .filter((cell) => cell.area === starter.area)
-      .toSorted((one, other) => distance(one) - distance(other) || LANES.indexOf(one.lane) - LANES.indexOf(other.lane))[0];
-    if (nearest === undefined) {
-      leftOver.push(starter.playerCode);
-      continue;
-    }
-    free.splice(free.indexOf(nearest), 1);
+  const nearestFree = (starter: Starter, inHisArea: boolean) => {
+    const rows = (cell: Cell) => AREAS.indexOf(cell.area) - AREAS.indexOf(starter.area);
+    const lanes = (cell: Cell) => Math.abs(LANES.indexOf(cell.lane) - LANES.indexOf(starter.lane));
+    return free
+      .filter((cell) => (!inHisArea || cell.area === starter.area) && playsCell(positionsOf(starter.playerCode), cell))
+      .toSorted((one, other) =>
+        Math.abs(rows(one)) - Math.abs(rows(other)) || rows(one) - rows(other) || lanes(one) - lanes(other) || LANES.indexOf(one.lane) - LANES.indexOf(other.lane))[0];
+  };
+  const moveInto = (starter: Starter, cell: Cell) => {
+    free.splice(free.indexOf(cell), 1);
     // He keeps the role he plays where the new slot offers it too, given or his old slot's first.
     const playing = roleIn(starter, starter.role).key;
-    if (!offersRole(nearest, playing)) starters.push(droppedInto(starter.playerCode, nearest, ratingsOf));
+    if (!offersRole(cell, playing)) starters.push(droppedInto(starter.playerCode, cell, ratingsOf));
     else {
-      const role = starter.role ?? (playing === rolesOfSlot(nearest)[0].key ? undefined : playing);
-      starters.push({ playerCode: starter.playerCode, area: nearest.area, lane: nearest.lane, ...(role !== undefined && { role }) });
+      const role = starter.role ?? (playing === rolesOfSlot(cell)[0].key ? undefined : playing);
+      starters.push({ playerCode: starter.playerCode, area: cell.area, lane: cell.lane, ...(role !== undefined && { role }) });
     }
+  };
+  // His own area first for everyone, so no one moved across takes a cell its own player needed.
+  const unplaced: Starter[] = [];
+  for (const starter of startersInOrder(draft)) {
+    const cell = nearestFree(starter, true);
+    if (cell === undefined) unplaced.push(starter);
+    else moveInto(starter, cell);
+  }
+  const leftOver: number[] = [];
+  for (const starter of unplaced) {
+    const cell = nearestFree(starter, false);
+    if (cell === undefined) leftOver.push(starter.playerCode);
+    else moveInto(starter, cell);
   }
   return { starters, bench: [...leftOver, ...draft.bench] };
 }
