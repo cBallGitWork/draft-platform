@@ -49,7 +49,26 @@ silent() { # hook payload [env...]: the hook exits 0 and prints nothing
   if [ "$code" -ne 0 ] || [ -n "$out" ]; then fail "$hook: expected silence, got $code: $out: $payload $*"; fi
 }
 stand_in_gh() { # the stand-in's bash script on stdin: it runs as gh, first on PATH, for the gh calls a hook makes
-  mkdir -p "$tmp/bin" && { echo '#!/bin/bash'; cat; } > "$tmp/bin/gh" && chmod +x "$tmp/bin/gh" && export PATH="$tmp/bin:$PATH"
+  mkdir -p "$tmp/bin" && { echo '#!/bin/bash'; stand_in_api; cat; } > "$tmp/bin/gh" && chmod +x "$tmp/bin/gh" && export PATH="$tmp/bin:$PATH"
+}
+stand_in_api() { # every stand-in's answer to gh api's reads of a pull request (checks_gate.py): green and
+  # up to date with main unless a FAKE_ variable says otherwise; FAKE_API_FAIL names a path part that fails
+  cat <<'EOF'
+if [ "$1" = api ]; then
+  case "$2" in *"${FAKE_API_FAIL:-//}"*) echo "HTTP 404: Not Found" >&2; exit 1;; esac
+  runs=${FAKE_CHECK_RUNS:-'[{"name":"verify","status":"completed","conclusion":"success"}]'}
+  open_prs=${FAKE_OPEN_PRS:-'[{"number":5}]'}
+  case "$2" in
+    *check-runs*) echo "{\"check_runs\":$runs}";;
+    */status) echo "{\"statuses\":${FAKE_STATUSES:-[]}}";;
+    */compare/*) echo "{\"behind_by\":${FAKE_BEHIND:-0}}";;
+    *"pulls?"*) echo "$open_prs";;
+    */pulls/*) echo '{"head":{"sha":"abc"},"base":{"ref":"main"}}';;
+    *) echo "stand-in gh: no answer for $2" >&2; exit 1;;
+  esac
+  exit 0
+fi
+EOF
 }
 bash_cmd() { "$jq" -nc --arg c "$1" '{tool_name:"Bash",tool_input:{command:$c}}'; }
 bash_in() { "$jq" -nc --arg c "$2" --arg d "$1" '{tool_name:"Bash",tool_input:{command:$c},cwd:$d}'; }  # dir command
