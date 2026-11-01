@@ -249,9 +249,11 @@ git -C "$home" symbolic-ref -q HEAD && fail "tidy_after_merge.py: the moved main
 # already at origin/main: nothing new to say
 silent tidy_after_merge.py "$(bash_in "$home" "$merge")"
 
-# a changed file the move would overwrite: git refuses, it stays, and says why
+# a changed file the move would overwrite: git refuses, it stays, and says so loudly, to Craig too,
+# naming the file in the way
 landed .gitignore && before=$(git -C "$home" rev-parse HEAD)
-says "would be overwritten" tidy_after_merge.py "$(bash_in "$home" "$merge")"
+says "\"systemMessage\": \"MAIN CHECKOUT NOT MOVED: The main checkout (" tidy_after_merge.py "$(bash_in "$home" "$merge")"
+says "git refused to move it over changed file(s) there: .gitignore." tidy_after_merge.py "$(bash_in "$home" "$merge")"
 stayed || fail "tidy_after_merge.py: moved over a changed file"
 grep -q mine "$home/.gitignore" || fail "tidy_after_merge.py: lost the changed file it refused to overwrite"
 git -C "$home" checkout -q -- .gitignore

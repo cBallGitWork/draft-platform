@@ -7,6 +7,7 @@
 
 wiring=(  # event|matcher|script, the matcher empty where the entry has none
   'SessionStart||drift_due.py'
+  'SessionStart||setup_current.py'
   'PreToolUse|Bash|guard_bash.py'
   'PreToolUse|mcp__github__.*|guard_github.py'
   'PostToolUse|Write|Edit|line_ceiling.py'
