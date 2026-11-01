@@ -40,7 +40,7 @@ HOOK_SECONDS = 180
 # how many merged pull requests, newest first, the sweep matches worktrees against: some three
 # nights of merges at the overnight pace (64 in a night, 22 Oct 2026); gh lists 200 in about a second
 MERGED_LOOKBACK = 200
-EARLIER = "Earlier merged branches weren't tidied"
+NOT_SWEPT = "Earlier merged branches weren't tidied"
 
 
 def pull_request(args, folder):
@@ -80,8 +80,8 @@ def sweep(folder, done, deadline):
     """Tidies each unlocked worktree, other than the main checkout and the folder the merge ran in,
     whose branch a merged pull request had and isn't in done (tidied already), while time is left
     before the deadline; the lines saying what happened."""
-    if not has_time(1 + TIDY_CALLS, deadline):
-        return [f"{EARLIER}: the hook's time ran short before it could look."]
+    if not has_time(1 + TIDY_CALLS, deadline):  # gh pr list, then one leftover
+        return [f"{NOT_SWEPT}: the hook's time ran short before it could look."]
     try:
         merged = merged_heads(folder)
         leftovers = [
@@ -89,7 +89,7 @@ def sweep(folder, done, deadline):
             if i and branch in merged and branch not in done and not locked and not inside(path, folder)
         ]
     except ValueError as error:
-        return [f"{EARLIER}: {error}."]
+        return [f"{NOT_SWEPT}: {error}."]
     lines = []
     for n, branch in enumerate(leftovers):
         if not has_time(TIDY_CALLS, deadline):

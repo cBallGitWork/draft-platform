@@ -30,12 +30,13 @@ chmod +x "$tmp/bin/gh" && export PATH="$tmp/bin:$PATH"
 number=7  # the pull request every check merges
 merge="gh pr merge $number --squash"
 
+long_ago=202001010000  # a touch -t time no builder could come back from
 built() { # branch: a branch with one commit, checked out in its own worktree at $tmp/wt-<branch>,
   # its git state last changed long ago, so no builder is taken to be coming back to it
   git -C "$repo" worktree add -q -b "$1" "$tmp/wt-$1" main
   git -C "$tmp/wt-$1" "${as_tester[@]}" commit -q --allow-empty -m "work on $1"
   local state=$repo/.git/worktrees/wt-$1
-  touch -t 202001010000 "$state/index" "$state/HEAD" "$state/logs/HEAD"
+  touch -t "$long_ago" "$state/index" "$state/HEAD" "$state/logs/HEAD"
 }
 pr() { # branch [state] [head]: gh pr view's answer for it, the head its tip unless given
   local head=${3:-$(git -C "$repo" rev-parse "$1")}
@@ -139,7 +140,7 @@ git -C "$repo" worktree unlock "$tmp/wt-locked"
 # locked one is passed over without a word, and the branch just merged, kept, is said once
 built earlier && pr earlier && touch "$repo/.git/worktrees/wt-earlier/index"
 says "its git state changed in the last" tidy_after_merge.py "$(bash_in "$repo" "$merge")"
-touch -t 202001010000 "$repo/.git/worktrees/wt-earlier/index"
+touch -t "$long_ago" "$repo/.git/worktrees/wt-earlier/index"
 built held && git -C "$repo" worktree lock --reason "claude agent" "$tmp/wt-held"
 built later && pr later && touch "$repo/.git/worktrees/wt-later/index"
 merged_pr() { "$jq" -c --arg b "$1" --arg h "$(git -C "$repo" rev-parse "$1")" --argjson n "$2" \
