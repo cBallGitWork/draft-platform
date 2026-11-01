@@ -8,7 +8,7 @@ import { centreOf, EXAMPLE_SET } from "../../support/convex/scoring.example";
 import { silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import { FPL_BOOTSTRAP_URL } from "../../../convex/football/football";
 import { outcomesOf } from "../../support/convex/feeds.harness";
-import { holdTypoRule, TYPO_STAT } from "../../support/convex/gameweekScores.harness";
+import { holdTypoRule, TYPO_STAT } from "../../support/convex/gameweekScoresFixes.harness";
 
 beforeEach(() => vi.useFakeTimers());
 

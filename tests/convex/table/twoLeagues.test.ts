@@ -4,16 +4,8 @@ import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { inTenths } from "../../../convex/scoring/values";
 import { storeBegunFixtures } from "../../../convex/table/playedFixtures";
 import type { OddTeamOut } from "../../../convex/table/roundRobin";
-import {
-  EVERTON_POINTS,
-  fullTimeRecords,
-  GAMEWEEK,
-  HULL_POINTS,
-  lockMatch,
-  readTable,
-  scoresLeague,
-  type ScoresLeague,
-} from "../../support/convex/gameweekScores.harness";
+import { EVERTON_POINTS, GAMEWEEK, HULL_POINTS, readTable, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { fullTimeRecords, lockMatch } from "../../support/convex/gameweekScoresMatch.harness";
 
 // SPEC.md row 3's check (League rules): the same week's table differs under two leagues' League
 // settings, and every league scores it by the site's set. Two leagues of three teams play the

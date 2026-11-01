@@ -10,7 +10,7 @@ import { clubOf, currentClubs, currentPlayersAt } from "../shared/players";
 import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { listOf, shownStat } from "./playersOrder";
-import { checkCatalogueStat } from "./statRace";
+import { checkCatalogueStat } from "../scoring/statCatalogue";
 
 // Scouting's players list (spec/19, The players list; #373): every Premier League player now, for
 // anyone in the league, filtered and sorted here on the server so the screen never holds a cut

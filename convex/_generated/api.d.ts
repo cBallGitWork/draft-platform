@@ -191,6 +191,7 @@ import type * as stats_seasonStats from "../stats/seasonStats.js";
 import type * as stats_statTotals from "../stats/statTotals.js";
 import type * as stats_teamCountedStats from "../stats/teamCountedStats.js";
 import type * as stats_teamSeasonStats from "../stats/teamSeasonStats.js";
+import type * as stats_teamSeasonTotals from "../stats/teamSeasonTotals.js";
 import type * as stats_thresholdSteps from "../stats/thresholdSteps.js";
 import type * as table_finalScores from "../table/finalScores.js";
 import type * as table_leagueTable from "../table/leagueTable.js";
@@ -393,6 +394,7 @@ declare const fullApi: ApiFromModules<{
   "stats/statTotals": typeof stats_statTotals;
   "stats/teamCountedStats": typeof stats_teamCountedStats;
   "stats/teamSeasonStats": typeof stats_teamSeasonStats;
+  "stats/teamSeasonTotals": typeof stats_teamSeasonTotals;
   "stats/thresholdSteps": typeof stats_thresholdSteps;
   "table/finalScores": typeof table_finalScores;
   "table/leagueTable": typeof table_leagueTable;

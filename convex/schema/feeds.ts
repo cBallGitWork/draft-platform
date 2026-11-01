@@ -1,11 +1,12 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { feedValidator } from "../shared/feedSchedule";
+import { failure } from "./football";
 
 /** What one read of a feed found: a count of what came back, or why it failed. */
 export const feedOutcome = v.union(
   v.object({ ok: v.literal(true), count: v.number() }),
-  v.object({ ok: v.literal(false), error: v.string() }),
+  failure,
 );
 
 export const feedCheckTrigger = v.union(v.literal("manual"), v.literal("timer"));
