@@ -6,7 +6,7 @@ import type { Lane } from "../../../convex/lineup/pitch";
 import { menuWords } from "../../frame/words";
 import { failedWords } from "../../shared/words";
 
-export { figureWords, gameweekWords, noFigureWords, shortThenLongName, whenWords, nextGlyph } from "../../shared/words";
+export { figureWords, gameweekWords, noFigureWords, shortThenLongName, whenWords, nextGlyph, closeGlyph, playerCardWords } from "../../shared/words";
 export { goneWords } from "../../squads/words";
 export { noTeamWords } from "../words";
 
@@ -72,7 +72,6 @@ export const statusNotSettledLabel = "Status chip: which one isn't settled yet";
 
 /** His season panel (the README's interaction notes). */
 export const closePanelLabel = (name: string) => `Close ${name}'s season`;
-export const closeGlyph = "✕";
 export const panelPlateWords = (club: string, number: number | null) => (number === null ? club : `${club}, No ${number}`);
 export const THIS_SEASON = "This season";
 export const panelRows = {
@@ -95,7 +94,6 @@ export const rolePointsNotBuiltLabel = "Role points: not counted yet";
 export const bestRoleNotRatedLabel = "Best role: not rated yet";
 export const roleLastGameweekNotSettledLabel = "Role last gameweek: what it counts isn't settled yet";
 export const setRoleNotBuiltLabel = "Set his role: waits for Tactics to open with him selected";
-export const playerCardWords = "Player card";
 /** Where he stands in the gameweek being set: "Starting, W right"; "Bench, S3". */
 export const gameweekRowWords = (gameweek: number) => `GW${gameweek}`;
 export const startingInWords = (slot: string, lane: Lane) => `Starting, ${slot} ${LANE_WORDS[lane]}`;
