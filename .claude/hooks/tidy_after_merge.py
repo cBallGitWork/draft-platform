@@ -4,7 +4,8 @@ the worktree it is checked out in. GitHub deletes the branch on its side (the re
 branch on merge"), but nothing deleted the copy here, so 842 branches and 70 worktrees piled up
 (30 Oct 2026). What is safe to remove, and what stays, is tidy_branch.py's.
 
-Then it moves the main checkout to origin/main when it is detached and behind (follow_main.py).
+Then it moves the main checkout to origin/main when it is detached and behind (follow_main.py); a
+line saying it stayed behind is shown to Craig too, not only to Claude.
 
 Last, it sweeps earlier leftovers (#933): a worktree kept as in use (#929) stays after its builder
 finishes, so each merge also looks, in one gh pr list, for worktrees whose branch belongs to one
@@ -24,7 +25,7 @@ import time
 
 from commands import commands
 from drift_gate import merge_args, view_args
-from follow_main import MAIN_MOVE_CALLS, follow_main
+from follow_main import MAIN_MOVE_CALLS, NOT_MOVED, follow_main
 from hook_payload import BadPayload, field, project_dir, read_payload, report
 from parsing import Unbalanced, Unreadable
 from stdin_reading import UnreadableStdin
@@ -145,7 +146,11 @@ def main():
         return report(error, "no merged branch was tidied")
     said = notes(cmd, cwd, STARTED + HOOK_SECONDS)
     if said:
-        print(json.dumps({"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": " ".join(said)}}))
+        out = {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": " ".join(said)}}
+        loud = [line for line in said if line.startswith(NOT_MOVED)]
+        if loud:  # systemMessage shows it to Craig as well
+            out["systemMessage"] = " ".join(loud)
+        print(json.dumps(out))
     return 0
 
 
