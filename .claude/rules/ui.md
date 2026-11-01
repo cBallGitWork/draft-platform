@@ -16,6 +16,24 @@ palette, radii, shadows and type scale are switched off there, so a stock utilit
 
 After any change a manager can see, run the `ui-verifier` agent: it shoots 390 and 1440 and looks.
 
+## Approved pictures
+
+A screen's approved picture binds its layout (`CLAUDE.md`, Decided; the index is
+`docs/design/approved/README.md`).
+
+- Before changing a screen, open its folder in `docs/design/approved/`: read its README, then open
+  `390.png` and `1440.png` with the Read tool. Build to their columns, column order, row heights and
+  what sits where; plate.md and `src/styles.css` give the values.
+- No folder for the screen: a fix keeps its layout as it is. A new layout waits for an approved
+  picture.
+- The README's interaction notes say what can be tapped and what happens. A control they don't
+  name is a question for Craig, never an invented drop-down or button.
+- Data not held yet shows as its placeholder, in its real place and size (plate.md, Marks), never
+  dropped and never a made-up figure (Craig, 1 Nov 2026: "placeholders, always placeholders").
+- Football Manager is the reference for organisation (what sits where, panels, density, how pages
+  link), never its colours or a copy of its screens (Craig, 1 Nov 2026: "dont obviously rip off FM
+  but they do things right").
+
 Where tests go, and what `tests/support/` holds (harnesses, setup files, goldens):
 `tests/README.md`.
 

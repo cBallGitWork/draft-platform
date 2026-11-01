@@ -5,6 +5,9 @@ values are Claude's, from the designer's round-2 brief and the reviewer's pass o
 (16 Oct 2026). The reference mock-up is "R3·1 · Plate, chosen" (source: `docs/design/mockups/PlateOne.dc.html`) on
 <https://claude.ai/artifact/Qz9zn3FrMHgPB189UtbjoB>. Every screen is drawn from this file.
 How the screens link, and which the spec names but nobody has built: [flow.md](flow.md).
+Where a screen has an approved picture ([approved/](approved/README.md)), the picture settles its
+layout (what sits where, the columns, the rows) and this file its values (colours, type, spacing);
+where the two disagree, ask Craig.
 
 **Contents:** [Colour roles](#colour-roles-cm-material) · [Type](#type) · [Shape](#shape) ·
 [Marks](#marks) · [Controls](#controls) · [Never](#never) ·
@@ -64,7 +67,8 @@ Two faces. Archivo Narrow 400/600/700 for everything that is data. Archivo, heav
 (width 125), for page titles and team names only: a page's title plate, the matchup's two sides
 and their panels' plates, a Premier League match's two clubs, and the product name on the sign-in
 bar. Both are served with the app (Fontsource). Data 13px, a player's name 15px, the page title
-26px. Rows 20px on the desk. Figures use tabular numerals, in Archivo Narrow even beside a team's
+26px. A table's rows are 28px on the desk (the 13px data on its 20px line, 4px above and below)
+and 44px on the phone wherever a row is tapped (see Decided). Figures use tabular numerals, in Archivo Narrow even beside a team's
 name (the score).
 
 ## Shape
@@ -92,6 +96,10 @@ name (the score).
 - **The current one of a list**: a 3px bar down its left edge in the active tab's cyan, and
   `aria-current` for screen readers (the top bar's league list).
 - **The bench**: its own "Bench" plate in the table, below the eleven.
+- **A placeholder**: a cell for data not held yet (stars, fixture difficulty) keeps its place and
+  size, drawn as a 1px muted (`#a1a5ab`) outline with nothing in it; its `title` and label say what
+  will show there ("Role fit: not rated yet"). Never a made-up figure (Craig, 1 Nov 2026:
+  "placeholders, always placeholders, dont design a page with missing info when info is to come").
 - **The pitch**: portrait, a real pitch's 68 m wide by 105 m long, attack at the top, its markings
   to scale: penalty area 40.32 × 16.5 m, goal area 18.32 × 5.5 m, penalty spot 11 m out (its dot drawn bigger, to show), the D
   9.15 m from the spot, centre circle 9.15 m round, the halfway line and 1 m corner arcs. The
@@ -156,6 +164,11 @@ bar above the pitch; the pitch's player blocks narrow to a fifth of its width. T
 - **Yellow is a figure only.** Continue is white, orange when the deadline is near, and the active
   tab is a cyan underline: the UX expert's call, which Craig handed them (16 Oct 2026).
 - **Fixture difficulty** is a filled cell without a digit (Craig).
+- **The approved squad table against these rules** (Craig, 1 Nov 2026). "R3·1 · Plate, chosen"
+  draws digits in its difficulty cells, blue panel bodies and rows about 28px. The rules win on the
+  first two: no digits ("remove digits"), the page stays neutral ("ok neutral is i guess"). The
+  row height was left to a design call: 28px, Claude's, as 20px left no air around 13px figures,
+  stars and a difficulty cell; FM27's tables run 26 to 33px.
 - **Pitch, squad and Mail** stay side by side (Craig). The pitch is the Tactics tab's centrepiece
   (Craig, 31 Oct 2026: "The pitch is the centrepiece of my team. More than other sites since we
   need to visually show roles / adjust positions"): on the desk it is as tall as the window,

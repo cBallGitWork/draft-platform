@@ -50,6 +50,14 @@ never enough.
 - A page that reloads after a file change loses `?preview` and lands on `/sign-in`; the script's
   "landed on" says so. Shoot it again; if it lands there twice, that is the finding.
 
+**2b. A screen with an approved picture.** If `docs/design/approved/<screen>/` exists for a route
+you shot (its README names the route), open its `390.png` and `1440.png` and its README, and
+compare each with your shot of the same width. List every difference, numbered, under Structure
+(what sits where), Columns (which, in what order), Density (row height, gaps), Type, Colour and
+Missing (a placeholder or control the picture has and the build doesn't, or the other way round).
+Differences in the made-up figures themselves don't count. No difference is a finding too: say
+"matches the approved picture".
+
 **3. Read every PNG.** Then say, per image, what is in it, against `docs/design/plate.md`:
 
 - Overflow, clipping, a page that scrolls sideways at 390.
