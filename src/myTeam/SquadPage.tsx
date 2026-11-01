@@ -1,210 +1,121 @@
-import { Link } from "@tanstack/react-router";
-import { useState } from "react";
-import type { Id } from "../../convex/_generated/dataModel";
+import { useId, useMemo, useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { ENTER_KEY } from "../shared/browserEvents";
-import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
-import { Loading, Notice, PageSection, PanelNote, Problem } from "../ui/Panel";
-import { playerCardPath } from "../playerCard/paths";
-import { PositionCodes } from "../ui/PositionCodes";
-import { ClubShort } from "../premierLeague/ClubName";
-import { useChange, type Changing } from "../shared/useChange";
-import { unheldNoticeWords, unheldPlayerWords } from "../shared/words";
-import type { MyTeamSeam, SquadNumberChanges, TeamSquad } from "./seam";
+import { unheldNoticeWords } from "../shared/words";
+import { useMinute } from "../shared/useMinute";
+import { Choice } from "../ui/Choice";
+import { Loading, Notice, PageSection, PanelNote } from "../ui/Panel";
+import { Placeholder } from "../ui/Placeholder";
+import type { MyTeamSeam, TeamSquad } from "./seam";
+import type { Tactics } from "./tactics/seam";
+import { MailWidget } from "./squad/MailWidget";
+import { PlayerPanel } from "./squad/PlayerPanel";
+import { squadOrder } from "./squad/squadOrder";
+import { SquadTable } from "./squad/SquadTable";
+import { YourEleven } from "./squad/YourEleven";
 import {
-  figureWords,
-  goneWords,
-  lastGameweekLong,
-  nextFixtureLong,
-  nextFixtureShort,
-  noFigureWords,
-  noNextFixtureWords,
-  noPointsWords,
   noSquadWords,
   noTeamWords,
-  numberLabel,
-  shortThenLongName,
   SQUAD_TITLE,
-  squadColumns,
+  squadCountWords,
   squadLoadingWords,
-  squadTableLabel,
-  whenWords,
-} from "./words";
+  squadViewLabel,
+  squadViews,
+  squadViewWords,
+  viewNotSettledLabel,
+  type SquadView,
+} from "./squad/words";
 
-type Row = TeamSquad["players"][number];
-type Column = keyof typeof squadColumns;
-const COLUMNS: readonly Column[] = ["number", "positions", "player", "club", "next", "last", "season"];
-/** A phone leaves out the club, for room (plate.md, The phone: the squad table drops Club). */
-const DESK_ONLY: readonly Column[] = ["club"];
-const FIGURES: readonly Column[] = ["last", "season"];
-
-const cellClasses = (column: Column) =>
-  cellClassOf(!FIGURES.includes(column), DESK_ONLY.includes(column));
-
-/** My team's Squad tab (spec/12, My team's tabs): every player in the squad in one table. */
+/** My team's Squad tab (#364; spec/12, My team's tabs), built to its approved picture
+ *  (docs/design/approved/team-squad): every player in the squad in one table, by position group with
+ *  the eleven first in each, beside a right-hand column of widgets: his season panel once a row is
+ *  tapped, Your eleven, and Mail and news, which moves under the table while a panel is open.
+ *  The page's header stays as it was: the shared My team header follows the Tactics tab's rebuild. */
 export function SquadPage({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }) {
   return (
-    <PageSection title={SQUAD_TITLE} className="max-w-4xl bg-panel">
-      {league.teamName === null ? <PanelNote>{noTeamWords}</PanelNote> : <SquadBody league={league} seam={seam} />}
+    <PageSection title={SQUAD_TITLE}>
+      {league.teamName === null ? (
+        <div className="bg-panel">
+          <PanelNote>{noTeamWords}</PanelNote>
+        </div>
+      ) : (
+        <SquadBody league={league} seam={seam} />
+      )}
     </PageSection>
   );
 }
 
 function SquadBody({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }) {
   const squad = seam.useTeamSquad(league.leagueId);
-  if (squad === undefined) return <Loading className="px-3 py-2">{squadLoadingWords}</Loading>;
-  if (squad.players.length + squad.unheld.length === 0) return <PanelNote>{noSquadWords}</PanelNote>;
-  return <SquadNumbersTable leagueId={league.leagueId} squad={squad} numbers={seam.useSquadNumbers()} />;
+  const tactics = seam.useTactics(league.leagueId, useMinute());
+  const mail = seam.useLatestMail();
+  const numbers = seam.useSquadNumbers();
+  const [selected, setSelected] = useState<number | null>(null);
+  if (squad === undefined) {
+    return (
+      <div className="bg-panel">
+        <Loading className="px-3 py-2">{squadLoadingWords}</Loading>
+      </div>
+    );
+  }
+  if (squad.players.length + squad.unheld.length === 0) {
+    return (
+      <div className="bg-panel">
+        <PanelNote>{noSquadWords}</PanelNote>
+      </div>
+    );
+  }
+  // A player who left the squad since his row was tapped takes his panel with him.
+  const picked = squad.players.find((player) => player.code === selected) ?? null;
+  const mailWidget = <MailWidget mail={mail} />;
+  return (
+    <div className="mt-2 flex flex-wrap items-start gap-2">
+      <div className="flex min-w-0 grow-3 basis-squad-table flex-col gap-2">
+        <SquadPanel squad={squad} tactics={tactics} selected={picked?.code ?? null} onSelect={setSelected} />
+        {picked !== null && mailWidget}
+      </div>
+      <div className="flex min-w-0 grow basis-widgets flex-col gap-2">
+        {picked !== null && <PlayerPanel key={picked.code} leagueId={league.leagueId} player={picked} tactics={tactics} numbers={numbers} onClose={() => setSelected(null)} />}
+        <YourEleven tactics={tactics} players={new Map(squad.players.map((player) => [player.code, player]))} />
+        {picked === null && mailWidget}
+      </div>
+    </div>
+  );
 }
 
-/** The squad, each row's number his manager's to change in place (#13). */
-function SquadNumbersTable({ leagueId, squad, numbers }: { leagueId: Id<"leagues">; squad: TeamSquad; numbers: SquadNumberChanges }) {
-  const change = useChange();
-  // The Last column's long word names the gameweek it shows, once there is one.
-  const heads = squad.lastGameweek === null ? squadColumns : { ...squadColumns, last: { ...squadColumns.last, long: lastGameweekLong(squad.lastGameweek) } };
+/** The table's panel: its plate holds the title, the view picker and how full the squad is. Only
+ *  the Stats view is built; what Schedule and Rules show is a question for Craig. */
+function SquadPanel({ squad, tactics, selected, onSelect }: { squad: TeamSquad; tactics: Tactics | undefined; selected: number | null; onSelect(code: number): void }) {
+  const [view, setView] = useState<SquadView>("stats");
+  const titleId = useId();
+  const starting = useMemo(() => (tactics?.kind === "open" ? new Set(tactics.lineup.starters.map(({ playerCode }) => playerCode)) : null), [tactics]);
+  const rows = useMemo(() => squadOrder(squad.players, starting ?? new Set()), [squad.players, starting]);
   return (
-    <>
-      <Problem problem={change.problem} />
+    <section aria-labelledby={titleId} className="bg-panel">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 bg-plate pl-3 shadow-bevel-plate">
+        <span className="flex flex-wrap items-center gap-3">
+          <h2 id={titleId} className="text-lead font-bold">
+            {SQUAD_TITLE}
+          </h2>
+          <Choice label={squadViewLabel} labelShown={false} name="squad-view" options={squadViews} words={squadViewWords} chosen={view} onChoose={setView} />
+        </span>
+        <span className="pr-3 text-soft">{squadCountWords(squad.players.length + squad.unheld.length, squad.squadMaximum)}</span>
+      </div>
       {squad.unheld.length > 0 && <Notice>{unheldNoticeWords}</Notice>}
-      <table aria-label={squadTableLabel(squad.teamName)} className="w-full border-collapse">
-        <ColumnHeads columns={heads} shown={COLUMNS} classOf={cellClasses} />
-        <tbody>
-          {squad.players.map((player) => (
-            <tr key={player.code} className="border-t border-panel-rule">
-              {COLUMNS.map((column) => (
-                <SquadCell key={column} column={column} player={player} leagueId={leagueId} numbers={numbers} change={change} />
-              ))}
-            </tr>
-          ))}
-          {/* Data gone wrong, kept so it shows (#323): there's no player to fill the columns. */}
-          {squad.unheld.map((code) => (
-            <tr key={code} className="border-t border-panel-rule">
-              <th scope="row" colSpan={COLUMNS.length} className={`${cellClasses("player")} text-event`}>
-                {unheldPlayerWords(code)}
-              </th>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </>
-  );
-}
-
-/** One cell of a player's row: his name heads it, his points are its figures. */
-function SquadCell({
-  column,
-  player,
-  leagueId,
-  numbers,
-  change,
-}: {
-  column: Column;
-  player: Row;
-  leagueId: Id<"leagues">;
-  numbers: SquadNumberChanges;
-  change: Changing;
-}) {
-  const className = cellClasses(column);
-  switch (column) {
-    case "number":
-      return (
-        <td className={className}>
-          <SquadNumberBox player={player} change={change} save={(number) => numbers.set(leagueId, player.code, number)} />
-        </td>
-      );
-    case "positions":
-      return (
-        <td className={className}>
-          <PositionCodes positions={player.positions} />
-        </td>
-      );
-    case "player":
-      return (
-        <th scope="row" title={player.fullName} className={`${className} text-lead font-semibold`}>
-          <Link to={playerCardPath(leagueId, player.code)} className="inline-flex min-h-tap min-w-tap items-center">
-            {player.name}
-          </Link>
-          {player.gone && <span className="block text-data font-normal text-event">{goneWords}</span>}
-        </th>
-      );
-    case "club":
-      return (
-        <td className={className}>
-          <ClubShort club={player.club} />
-        </td>
-      );
-    case "next":
-      return <td className={className}>{player.nextFixture === null ? <span title={noNextFixtureWords} className="text-muted">{noFigureWords}</span> : <NextFixture next={player.nextFixture} />}</td>;
-    case "last":
-      return <PointsCell className={className} points={player.lastGameweekPoints} />;
-    case "season":
-      return <PointsCell className={className} points={player.seasonPoints} />;
-  }
-}
-
-/** His number, changed in place: it is sent when the box is left or Enter is pressed, and goes
- *  back to the one held if refused. An empty box takes his number away. What isn't a number from
- *  1 to 99 is sent as typed, and the server's refusal says why (squadNumbers.ts). */
-function SquadNumberBox({ player, change, save }: { player: Row; change: Changing; save: (number: number | null) => ReturnType<SquadNumberChanges["set"]> }) {
-  const held = player.number === null ? "" : String(player.number);
-  const [typed, setTyped] = useState(held);
-  // A number changed on another screen shows here at once: the box keeps the last one held and
-  // takes the new one while it renders, as rules/NumberBox.tsx does.
-  const [lastHeld, setLastHeld] = useState(held);
-  if (lastHeld !== held) {
-    setLastHeld(held);
-    setTyped(held);
-  }
-  // Only this box waits while its number is sent, so a click into the next one isn't lost.
-  const [sending, setSending] = useState(false);
-  const send = async () => {
-    const trimmed = typed.trim();
-    if (trimmed === held) {
-      change.clear();
-      return;
-    }
-    const number = trimmed === "" ? null : Number(trimmed);
-    setSending(true);
-    const made = await change.run(() => save(number));
-    setSending(false);
-    // Made, the box shows what was sent ("07" as the 7 it was taken as, an emptied box empty);
-    // refused, the one held comes back (it hasn't changed, so the sync above won't bring it).
-    if (made) setTyped(number === null ? "" : String(number));
-    else setTyped(held);
-  };
-  return (
-    <input
-      type="text"
-      inputMode="numeric"
-      aria-label={numberLabel(player.name)}
-      value={typed}
-      disabled={sending}
-      onChange={(event) => setTyped(event.target.value)}
-      onBlur={() => void send()}
-      onKeyDown={(event) => {
-        if (event.key === ENTER_KEY) event.currentTarget.blur();
-      }}
-      className="text-box w-squad-number lg:min-h-0"
-    />
-  );
-}
-
-function NextFixture({ next }: { next: NonNullable<Row["nextFixture"]> }) {
-  const short = nextFixtureShort(next.opponent.shortName, next.home);
-  const long = nextFixtureLong(next.opponent.name, next.home, whenWords(next.kickoff));
-  return (
-    <abbr title={long} aria-label={shortThenLongName({ short, long })} className="no-underline whitespace-nowrap">
-      {short}
-    </abbr>
-  );
-}
-
-function PointsCell({ className, points }: { className: string; points: number | null }) {
-  return points === null ? (
-    <td title={noPointsWords} className={`${className} text-muted`}>
-      {noFigureWords}
-    </td>
-  ) : (
-    <td className={`${className} font-bold text-figure`}>{figureWords(points)}</td>
+      {view === "stats" ? (
+        <SquadTable
+          teamName={squad.teamName}
+          rows={rows}
+          unheld={squad.unheld}
+          lastGameweek={squad.lastGameweek}
+          starting={starting}
+          selected={selected}
+          onSelect={onSelect}
+        />
+      ) : (
+        <div className="p-2">
+          <Placeholder label={viewNotSettledLabel(view)} className="h-40 w-full" />
+        </div>
+      )}
+    </section>
   );
 }

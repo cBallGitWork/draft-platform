@@ -27,7 +27,7 @@ export const SWEEPER_DEPTH = "pitch-sweeper";
 
 /** The pitch's cells: each area's row an equal share of its length, so the lines stand where they
  *  would on a real pitch, and each lane an equal share of its width. Its shape is the CSS `pitch`'s. */
-const CELL_GRID: CSSProperties = {
+export const CELL_GRID: CSSProperties = {
   gridTemplateRows: `repeat(${ROWS_DRAWN.length}, minmax(0, 1fr))`,
   gridTemplateColumns: `repeat(${LANES.length}, minmax(0, 1fr))`,
 };
@@ -147,7 +147,7 @@ const INK_CLASSES: Record<Ink, string> = { dark: "fill-ground stroke-ground", li
 /** Our own shirt outline in his club's colours (plate.md, Marks; a keeper in its second colour),
  *  with his squad number on it once his manager gives him one (#13). The colour is only a look:
  *  his name says who he is, so screen readers skip the shirt. */
-function Shirt({ number, clubCode, goalkeeper }: { number: number | null; clubCode: number | null; goalkeeper: boolean }) {
+export function Shirt({ number, clubCode, goalkeeper }: { number: number | null; clubCode: number | null; goalkeeper: boolean }) {
   const kit = kitOf(clubCode, goalkeeper);
   return (
     <svg viewBox="0 0 40 40" aria-hidden="true" className={`size-shirt shrink-0 ${INK_CLASSES[kit.ink]}`}>

@@ -9,7 +9,8 @@ import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
-import { squadPoints } from "../../../convex/squads/teamSquad";
+import { squadStats } from "../../../convex/squads/teamSquad";
+import { latestRules } from "../../../convex/rules/rulesHistory";
 import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { EXAMPLE_SET, GOAL_AND_ASSIST } from "../../support/convex/scoring.example";
@@ -122,9 +123,63 @@ describe("the rows", () => {
   });
 
   test("give his club's next match after now, home or away, or none", async () => {
-    expect((await rowOf(SAKA.code)).nextFixture).toEqual({ gameweek: 3, kickoff: NEXT_ARS.kickoff, opponent: CHELSEA, home: true });
-    expect((await rowOf(PALMER.code)).nextFixture).toEqual({ gameweek: 3, kickoff: NEXT_ARS.kickoff, opponent: ARSENAL, home: false });
-    expect((await rowOf(NOBODY.code)).nextFixture).toEqual({ gameweek: 4, kickoff: LATER_ARS.kickoff, opponent: ARSENAL, home: true });
+    expect((await rowOf(SAKA.code)).nextFixtures[0]).toEqual({ gameweek: 3, kickoff: NEXT_ARS.kickoff, opponent: CHELSEA, home: true });
+    expect((await rowOf(PALMER.code)).nextFixtures[0]).toEqual({ gameweek: 3, kickoff: NEXT_ARS.kickoff, opponent: ARSENAL, home: false });
+    expect((await rowOf(NOBODY.code)).nextFixtures[0]).toEqual({ gameweek: 4, kickoff: LATER_ARS.kickoff, opponent: ARSENAL, home: true });
+    await t.run(async (ctx) => {
+      for (const row of await ctx.db.query("fixtures").collect()) await ctx.db.patch("fixtures", row._id, { kickoff: NOW - DAY_MS });
+    });
+    expect((await rowOf(SAKA.code)).nextFixtures).toEqual([]);
+  });
+
+  test("give up to his club's next three matches, soonest first, reading on past those of clubs already full", async () => {
+    await t.run(async (ctx) => {
+      for (const [index, gameweek] of [5, 6].entries()) await ctx.db.insert("fixtures", fixture(10 + index, gameweek, ARSENAL.code, COVENTRY.code, NOW + (2 + index) * WEEK_MS));
+    });
+    expect((await rowOf(SAKA.code)).nextFixtures.map(({ gameweek, opponent }) => [gameweek, opponent.shortName])).toEqual([
+      [3, "CHE"],
+      [4, "COV"],
+      [5, "COV"],
+    ]);
+    // Coventry's third comes after Arsenal have their three.
+    expect((await rowOf(NOBODY.code)).nextFixtures.map(({ gameweek }) => gameweek)).toEqual([4, 5, 6]);
+    expect((await rowOf(PALMER.code)).nextFixtures.map(({ gameweek }) => gameweek)).toEqual([3]);
+  });
+
+  test("give FPL's news on him and its chance he plays, or none", async () => {
+    await t.run(async (ctx) => {
+      const row = (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", SAKA.code)).unique())!;
+      await ctx.db.patch("players", row._id, { news: "Knock - 75% chance of playing", chanceOfPlaying: 75 });
+    });
+    expect(await rowOf(SAKA.code)).toMatchObject({ news: "Knock - 75% chance of playing", chanceOfPlaying: 75 });
+    expect(await rowOf(RAYA.code)).toMatchObject({ news: null, chanceOfPlaying: null });
+  });
+
+  test("give the most players the league's rules let a squad hold", async () => {
+    const rules = await t.run((ctx) => latestRules(ctx, leagueId));
+    expect(rules?.squad.size?.maximum).toEqual(expect.any(Number));
+    expect((await read()).squadMaximum).toBe(rules?.squad.size?.maximum);
+  });
+});
+
+describe("the season's stats", () => {
+  test("are his totals in the newest season held, the rest 0, as Scouting reads them", async () => {
+    await t.run(async (ctx) => {
+      await ctx.db.insert("playerSeasonStats", { season: 2026, playerCode: SAKA.code, stats: { appearances: 2, minutes: 180, goals_scored: 3, assists: 1, yellow_cards: 1, tackles: 4 } });
+    });
+    expect((await rowOf(SAKA.code)).stats).toEqual({ appearances: 2, minutes: 180, goals: 3, assists: 1, cleanSheets: 0, saves: 0, yellowCards: 1, redCards: 0 });
+    expect((await rowOf(RAYA.code)).stats).toEqual(squadStats({}));
+  });
+
+  test("are none while no season's totals are held", async () => {
+    expect((await rowOf(SAKA.code)).stats).toBeNull();
+  });
+});
+
+describe("the form", () => {
+  test("is his points in each of the league's begun gameweeks, oldest first, '—' where none is priced", async () => {
+    expect((await rowOf(SAKA.code)).form).toEqual([sakaGw1(), 0]);
+    expect((await rowOf(RAYA.code)).form).toEqual([null, null]);
   });
 });
 
@@ -155,34 +210,6 @@ describe("the points", () => {
 
   test("are '—' for a player with no match priced", async () => {
     expect(await rowOf(RAYA.code)).toMatchObject({ seasonPoints: null, lastGameweekPoints: null });
-  });
-
-  test("add up only the matches priced, and a gameweek he didn't play is '—'", () => {
-    const matches = [
-      { gameweek: 1, points: 4, counted: true },
-      { gameweek: 2, points: null, counted: true },
-      { gameweek: 2, points: 3, counted: true },
-    ];
-    expect(squadPoints(matches, 2)).toEqual({ seasonPoints: 7, lastGameweekPoints: 3 });
-    expect(squadPoints(matches, 3)).toEqual({ seasonPoints: 7, lastGameweekPoints: null });
-    expect(squadPoints([], null)).toEqual({ seasonPoints: null, lastGameweekPoints: null });
-  });
-
-  test("leave out a match his team didn't count, so a gameweek of only those is 0, not '—' (#595)", () => {
-    const matches = [
-      { gameweek: 1, points: 4, counted: true },
-      { gameweek: 2, points: 6, counted: false },
-    ];
-    expect(squadPoints(matches, 2)).toEqual({ seasonPoints: 4, lastGameweekPoints: 0 });
-  });
-
-  test("keep to tenths, as the table does: 0.1 and 0.2 make 0.3", () => {
-    const matches = [
-      { gameweek: 2, points: 0.1, counted: true },
-      { gameweek: 2, points: 0.2, counted: true },
-    ];
-    expect(0.1 + 0.2).not.toBe(0.3);
-    expect(squadPoints(matches, 2)).toEqual({ seasonPoints: 0.3, lastGameweekPoints: 0.3 });
   });
 
   test("take the league's override of his points in a match in place of what his record scores", async () => {

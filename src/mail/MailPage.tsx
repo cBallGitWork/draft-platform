@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../convex/mail/mail";
 import { LETTERS_SHOWN } from "../../convex/mail/mailLimits";
@@ -28,21 +28,37 @@ export function leaguesToWriteFrom(session: Session): readonly LeagueSummary[] {
 }
 
 /** Mail (spec/16): the person's letters, newest first, each opened in place, which marks it read;
- *  and, for whoever runs a league, a letter to the whole league. */
-export function MailPage({ mail, unread, writableLeagues }: { mail: MailSeam; unread: number; writableLeagues: readonly LeagueSummary[] }) {
+ *  and, for whoever runs a league, a letter to the whole league. `opened` is a letter the address
+ *  names, open from the start (a screen's Mail widget links to it). */
+export function MailPage({
+  mail,
+  unread,
+  writableLeagues,
+  opened,
+}: {
+  mail: MailSeam;
+  unread: number;
+  writableLeagues: readonly LeagueSummary[];
+  opened?: Id<"letters">;
+}) {
   return (
     <div className="flex flex-wrap items-start gap-2">
       <PageSection title={MAIL_TITLE} aside={<span>{unreadCount(unread)}</span>} className="min-w-0 max-w-3xl grow-2 basis-letters bg-panel">
-        <Letters mail={mail} />
+        <Letters mail={mail} opened={opened ?? null} />
       </PageSection>
       {writableLeagues.length > 0 && <WriteToLeague leagues={writableLeagues} writeToLeague={mail.writeToLeague} />}
     </div>
   );
 }
 
-function Letters({ mail }: { mail: MailSeam }) {
-  const [openId, setOpenId] = useState<Id<"letters"> | null>(null);
+function Letters({ mail, opened }: { mail: MailSeam; opened: Id<"letters"> | null }) {
+  const [openId, setOpenId] = useState<Id<"letters"> | null>(opened);
   const letters = mail.useLetters();
+  // The letter the address opened is marked read once the letters arrive, as a tap on it would be.
+  const unreadOpened = letters?.some((letter) => letter.letterId === opened && !letter.read) ?? false;
+  useEffect(() => {
+    if (unreadOpened && opened !== null) void mail.open(opened);
+  }, [unreadOpened, opened, mail]);
   if (letters === undefined) return <Loading className="px-3 py-2">{loadingWords}</Loading>;
   if (letters.length === 0) return <PanelNote>{noLettersWords}</PanelNote>;
 

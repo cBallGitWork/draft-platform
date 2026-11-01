@@ -1,7 +1,6 @@
 // What My team's tabs say, in one place for Craig to change in the pull request.
 
 import { menuWords } from "../frame/words";
-import { failedWords } from "../shared/words";
 import type { TeamTransactions } from "./seam";
 
 export { figureWords, liveWords, noFigureWords, shortThenLongName, versusWords, whenWords } from "../shared/words";
@@ -52,35 +51,3 @@ export function transactionWords({ kind, otherTeamName }: Pick<TeamTransactions[
 export const noTransactionsWords = "No transactions yet.";
 /** Said when the league holds more squad moves than the tab reads (convex/squads/teamTransactions.ts). */
 export const transactionsCutWords = "Only the most recent transactions are shown.";
-
-/** The Squad tab (#364). */
-export const SQUAD_TITLE = menuWords.squad;
-export const squadLoadingWords = "Loading your squad…";
-export const squadTableLabel = (teamName: string) => `${teamName}'s squad`;
-export const squadColumns = {
-  number: { short: "No.", long: "Squad number" },
-  positions: { short: "Pos", long: "Positions" },
-  player: { short: "Player", long: "Player" },
-  club: { short: "Club", long: "Club" },
-  next: { short: "Next", long: "His club's next match" },
-  last: { short: "Last", long: "Points last gameweek" },
-  season: { short: "Season", long: "Points this season" },
-} as const;
-/** The Last column's hover, naming the gameweek. */
-export const lastGameweekLong = (gameweek: number) => `Points in gameweek ${gameweek}`;
-/** Where his club plays its next match, after the opponent's code. */
-export const homeWords = "(H)";
-export const awayWords = "(A)";
-/** The next match as its cell shows it: "CHE (H)". */
-export const nextFixtureShort = (opponentCode: string, home: boolean) => `${opponentCode} ${home ? homeWords : awayWords}`;
-/** The next match's hover: "Chelsea, at home, Sat 5 Sep, 15:00". */
-export const nextFixtureLong = (opponent: string, home: boolean, kickoff: string) => `${opponent}, ${home ? "at home" : "away"}, ${kickoff}`;
-export const noNextFixtureWords = "No match with a kickoff time yet.";
-/** A points cell with no figure: none of his matches is priced yet. */
-export const noPointsWords = "No points yet: none of his matches has been priced.";
-export { goneWords } from "../squads/words";
-export const noSquadWords = "Your squad is empty.";
-
-/** The squad number box's name, for one player (#13). */
-export const numberLabel = (name: string) => `${name}'s squad number`;
-export const numberFailedWords = failedWords("the squad number wasn't changed");
