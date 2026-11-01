@@ -1,13 +1,13 @@
 /* The Tactics tab's pitch (plate.md, Marks: the pitch), imported by src/styles.css, whose tokens it
-   uses: as wide as makes it the window's height, never narrower than --spacing-pitch-least while
-   there is room, never wider than the room. Its shape, --pitch-aspect, is set on the row holding it
-   from ./pitchMarkings.ts; ./PitchLines.tsx draws its grass and markings. Its border is the goal
-   lines and touchlines. */
+   uses: on the desk the approved Tactics picture's width, --spacing-pitch-desk, beside the
+   Selection table; on a phone the room's whole width. Its shape, --pitch-aspect, is set on the row
+   holding it from ./pitchMarkings.ts; ./PitchLines.tsx draws its grass and markings. Its border is
+   the goal lines and touchlines. */
 @utility pitch-room {
-  --pitch-width: max(
-    var(--spacing-pitch-least),
-    calc((100dvh - var(--spacing-pitch-clearance)) * var(--pitch-aspect))
-  );
+  --pitch-width: 100%;
+  @media (width >= 64rem) {
+    --pitch-width: var(--spacing-pitch-desk);
+  }
 }
 /* The panel holding the pitch: just wide enough for it and its padding (px-2), so the squad beside
    takes the rest. */

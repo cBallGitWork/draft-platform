@@ -40,8 +40,9 @@ export function freshConvex(): TestConvex {
 }
 
 /** Writing hundreds of rows is slow in convex-test, so a test that walks a read up to its cap and
- *  past it gets longer to run. */
-export const ROWS_TO_THE_CAP = { timeout: 30_000 };
+ *  past it gets longer to run. The rules cap's 1,000 rows (#894) take 10s on a laptop and over 30s
+ *  on CI's runner, so the margin is wide; it stays under npm test's whole-run deadline. */
+export const ROWS_TO_THE_CAP = { timeout: 120_000 };
 
 /** One character that is two UTF-16 units, for the typed-text limits, which count characters. */
 export const EMOJI = "\u{1F3C6}";

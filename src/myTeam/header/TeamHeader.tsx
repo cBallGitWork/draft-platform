@@ -104,8 +104,8 @@ function TeamMeters({ league, teamName, seam }: { league: LeagueSummary; teamNam
 }
 
 /** The opponent in the gameweek, as a link to the team's matchup, in the second face (plate.md,
- *  Type); a bye has none. */
-function OpponentLink({ game, teamId }: { game: TeamGame; teamId: Standing["teamId"] }) {
+ *  Type); a bye has none. The band's and the Tactics tab's GW opponent widget's. */
+export function OpponentLink({ game, teamId }: { game: TeamGame; teamId: Standing["teamId"] }) {
   const name = againstWords(game.against);
   if (game.against.kind === "bye") return <span className="text-muted">{name}</span>;
   return (
