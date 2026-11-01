@@ -3,10 +3,10 @@
 // edge read on the shirt and on the grass.
 
 import { describe, expect, it } from "vitest";
-import { CLUB_COLOURS, contrast, INKS } from "../../../../convex/football/clubColours";
-import { ARSENAL } from "../../../support/convex/footballRows.harness";
-import { colorToken } from "../../../support/src/colorTokens";
-import { blockOf, openedPitch, RAYA, SALIBA } from "../../../support/src/tacticsScreen.harness";
+import { CLUB_COLOURS, contrast, INKS } from "../../../../../convex/football/clubColours";
+import { ARSENAL } from "../../../../support/convex/footballRows.harness";
+import { colorToken } from "../../../../support/src/colorTokens";
+import { blockOf, openedPitch, RAYA, SALIBA } from "../../../../support/src/tacticsScreen.harness";
 
 /** WCAG 2.2 AA: a shirt's edge on the grass is a shape, 3:1. */
 const SHAPE_CONTRAST = 3;

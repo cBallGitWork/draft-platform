@@ -1,4 +1,4 @@
-import { AREAS } from "../../../convex/lineup/pitch";
+import { AREAS } from "../../../../convex/lineup/pitch";
 import {
   CENTRE_SPOT,
   CIRCLE_RADIUS,

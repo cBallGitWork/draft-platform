@@ -9,7 +9,7 @@ import { useMinute } from "../../shared/useMinute";
 import { unheldNoticeWords } from "../../shared/words";
 import { markedBy } from "./focusMarks";
 import { benched, benchedAt, movedTo, openingLineup, reachOf, reshaped, sameLineup, shownLineup, swapped, withRole, type DraftLineup, type MoveRules } from "./lineupDraft";
-import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./Pitch";
+import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./pitch/Pitch";
 import { SquadTable } from "./SquadTable";
 import { PresetPicker, RunsSwitch, UndoBar } from "./TacticsControls";
 import type { MyTeamSeam } from "../seam";

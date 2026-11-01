@@ -2,9 +2,9 @@
 // is drawn a little deeper than the line only while its player is on a sweeper's role.
 
 import { describe, expect, it } from "vitest";
-import { SWEEPER_CELL } from "../../../../convex/lineup/roles";
-import { SWEEPER_DEPTH } from "../../../../src/myTeam/tactics/Pitch";
-import { at, blockOf, openedPitch, RAYA, SALIBA, SAVED } from "../../../support/src/tacticsScreen.harness";
+import { SWEEPER_CELL } from "../../../../../convex/lineup/roles";
+import { SWEEPER_DEPTH } from "../../../../../src/myTeam/tactics/pitch/Pitch";
+import { at, blockOf, openedPitch, RAYA, SALIBA, SAVED } from "../../../../support/src/tacticsScreen.harness";
 
 /** Saliba alone in the defence's centre cell, on this role. */
 const withSaliba = (role: string | undefined) => ({

@@ -11,8 +11,8 @@ import {
   PENALTY_SPOT_DISTANCE,
   PITCH_ASPECT,
   PITCH_SIZE,
-} from "../../../../src/myTeam/tactics/pitchMarkings";
-import { openedPitch, pitch } from "../../../support/src/tacticsScreen.harness";
+} from "../../../../../src/myTeam/tactics/pitch/pitchMarkings";
+import { openedPitch, pitch } from "../../../../support/src/tacticsScreen.harness";
 
 /** The drawing behind the cells: its box is the pitch in metres. */
 const drawing = () => pitch().querySelector("svg")!;

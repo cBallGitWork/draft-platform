@@ -1,6 +1,6 @@
 @import "tailwindcss";
 /* A screen's own utilities, too long to keep here */
-@import "./myTeam/tactics/pitch.css";
+@import "./myTeam/tactics/pitch/pitch.css";
 /* The controls every screen shares, built on the tokens below */
 @import "./ui/controls.css";
 
