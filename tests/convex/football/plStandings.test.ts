@@ -198,7 +198,7 @@ test("a meeting being played counts in head-to-head as it stands, provisionally"
   expect((await table(t)).provisional).toBe(true);
 });
 
-test("at the end of the season, head-to-head parts the clubs level after goals (Handbook C.17)", async () => {
+test("once every match is at full time, head-to-head parts the clubs level after goals (Handbook C.17)", async () => {
   const t = freshConvex();
   await holdSeason(t, levelSeason);
 

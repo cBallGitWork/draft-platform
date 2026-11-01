@@ -4,20 +4,18 @@
 // added later (SPEC.md, Later: Other leagues) is one more entry here; the table (plTable.ts) applies
 // whichever order it is given and needs no change.
 
-/** Every tie-break a table can apply, higher first in each:
+/** Every tie-break a real competition's table can apply, higher first in each (a draft league's
+ *  own table has its own, `convex/table/standings.ts`):
  *  - `goalDifference`: goals scored less goals conceded, in every match;
  *  - `goalsScored`: goals scored, in every match;
  *  - `headToHeadPoints`: points from the matches between the clubs still level;
- *  - `headToHeadAwayGoals`: goals scored as the away club in those matches.
- *  The head-to-head ones are skipped, the clubs staying level on them, while any match between
- *  those clubs is unplayed (spec/18: "if one of their matches is never played, head-to-head is
+ *  - `headToHeadAwayGoals`: goals scored as the away club in those matches. */
+export type CompetitionTieBreak = "goalDifference" | "goalsScored" | "headToHeadPoints" | "headToHeadAwayGoals";
+
+/** The head-to-head tie-breaks, skipped, the clubs staying level on them, while any match between
+ *  the clubs level is unplayed (spec/18: "if one of their matches is never played, head-to-head is
  *  skipped and they stay level"). */
-export const TIE_BREAKS = ["goalDifference", "goalsScored", "headToHeadPoints", "headToHeadAwayGoals"] as const;
-
-export type TieBreak = (typeof TIE_BREAKS)[number];
-
-/** The head-to-head tie-breaks: those that count only the matches between the clubs level. */
-export const HEAD_TO_HEAD_TIE_BREAKS: ReadonlySet<TieBreak> = new Set(["headToHeadPoints", "headToHeadAwayGoals"]);
+export const HEAD_TO_HEAD_TIE_BREAKS: ReadonlySet<CompetitionTieBreak> = new Set(["headToHeadPoints", "headToHeadAwayGoals"]);
 
 /** Each competition's order, applied after points. Clubs level after the last share a position.
  *
@@ -35,4 +33,4 @@ export const HEAD_TO_HEAD_TIE_BREAKS: ReadonlySet<TieBreak> = new Set(["headToHe
  *            occupy the same position in the League Table"). */
 export const COMPETITION_TIE_BREAKS = {
   premierLeague: ["goalDifference", "goalsScored", "headToHeadPoints", "headToHeadAwayGoals"],
-} as const satisfies Record<string, readonly TieBreak[]>;
+} as const satisfies Record<string, readonly CompetitionTieBreak[]>;

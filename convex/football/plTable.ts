@@ -4,13 +4,11 @@
 //
 // Clubs level on points are split by the competition's own tie-break order, which the caller
 // passes from its data (tieBreaks.ts), so the table holds no competition's order (#899). The
-// head-to-head steps apply all season, live too, but only while every match between the clubs
-// level at that step is played: with one unplayed, still to come or never played, they stay level
-// on them (spec/18: "if one of their matches is never played, head-to-head is skipped and they stay
-// level"). Clubs level after the last step share a position, in the order the caller lists them:
-// the Premier League lists them alphabetically, a practice and not a rule.
+// head-to-head steps apply all season, live too, while every match between the clubs level at
+// that step is played. Clubs level after the last step share a position, in the order the caller
+// lists them: the Premier League lists them alphabetically, a practice and not a rule.
 
-import { HEAD_TO_HEAD_TIE_BREAKS, type TieBreak } from "./tieBreaks";
+import { HEAD_TO_HEAD_TIE_BREAKS, type CompetitionTieBreak } from "./tieBreaks";
 
 /** A league match's points (Handbook C.4): the Premier League's, fixed. */
 const PL_MATCH_POINTS = { win: 3, draw: 1, loss: 0 } as const;
@@ -24,7 +22,7 @@ export type PlResult<Club> = PlMatch<Club> & { homeGoals: number; awayGoals: num
 
 /** What splits a tie: the competition's order (tieBreaks.ts), and the matches with no result,
  *  still to come or never played, which hold back the head-to-head steps. */
-export type PlTieBreaking<Club> = { tieBreaks: readonly TieBreak[]; unplayed: readonly PlMatch<Club>[] };
+export type PlTieBreaking<Club> = { tieBreaks: readonly CompetitionTieBreak[]; unplayed: readonly PlMatch<Club>[] };
 
 export type PlTableRow<Club> = {
   club: Club;
@@ -138,7 +136,7 @@ type Matches<Club> = { results: readonly PlResult<Club>[]; unplayed: readonly Pl
 /** Clubs level on points, split by the first tie-break, those still level by the next, and so on:
  *  each group returned is level on everything applied. A head-to-head step with a match between
  *  the clubs level unplayed is skipped, and the next step applies. */
-function brokenTies<Club>(level: Row<Club>[], tieBreaks: readonly TieBreak[], matches: Matches<Club>): Row<Club>[][] {
+function brokenTies<Club>(level: Row<Club>[], tieBreaks: readonly CompetitionTieBreak[], matches: Matches<Club>): Row<Club>[][] {
   const [first, ...rest] = tieBreaks;
   if (level.length < 2 || first === undefined) return [level];
   if (HEAD_TO_HEAD_TIE_BREAKS.has(first) && between(level, matches.unplayed).length > 0) {
@@ -152,7 +150,7 @@ function brokenTies<Club>(level: Row<Club>[], tieBreaks: readonly TieBreak[], ma
 /** What a tie-break ranks by, higher first. The head-to-head steps count only the matches between
  *  the clubs level at that step, however many there are (C.17.1 counts "the relevant Clubs"). */
 function tieBreakKey<Club>(
-  tieBreak: TieBreak,
+  tieBreak: CompetitionTieBreak,
   level: readonly Row<Club>[],
   results: readonly PlResult<Club>[],
 ): (row: Row<Club>) => number {

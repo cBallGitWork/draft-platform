@@ -38,6 +38,7 @@ import type * as football_premierLeague_plMatch from "../football/premierLeague/
 import type * as football_premierLeague_plTeamStats from "../football/premierLeague/plTeamStats.js";
 import type * as football_premierLeague_premierLeague from "../football/premierLeague/premierLeague.js";
 import type * as football_scoreReads from "../football/scoreReads.js";
+import type * as football_tieBreaks from "../football/tieBreaks.js";
 import type * as gameweekScorer_gameweekScores from "../gameweekScorer/gameweekScores.js";
 import type * as gameweekScorer_heldMatches from "../gameweekScorer/heldMatches.js";
 import type * as gameweekScorer_scoredMatches from "../gameweekScorer/scoredMatches.js";
@@ -253,6 +254,7 @@ declare const fullApi: ApiFromModules<{
   "football/premierLeague/plTeamStats": typeof football_premierLeague_plTeamStats;
   "football/premierLeague/premierLeague": typeof football_premierLeague_premierLeague;
   "football/scoreReads": typeof football_scoreReads;
+  "football/tieBreaks": typeof football_tieBreaks;
   "gameweekScorer/gameweekScores": typeof gameweekScorer_gameweekScores;
   "gameweekScorer/heldMatches": typeof gameweekScorer_heldMatches;
   "gameweekScorer/scoredMatches": typeof gameweekScorer_scoredMatches;

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { plTable, type PlMatch, type PlResult, type PlTableRow } from "../../../convex/football/plTable";
-import { COMPETITION_TIE_BREAKS, type TieBreak } from "../../../convex/football/tieBreaks";
+import { COMPETITION_TIE_BREAKS, type CompetitionTieBreak } from "../../../convex/football/tieBreaks";
 
 // The Premier League table (#50; spec/18): P W D L GF GA GD Pts from the results, every club in it,
 // and clubs level on points split by the competition's own order, held as data (#899). The
@@ -120,7 +120,7 @@ describe("the Premier League table", () => {
     // Arsenal, Bournemouth and Derby on 3 points. By goal difference Arsenal (+3), Derby (+1),
     // Bournemouth (0); by head-to-head points first, Bournemouth and Derby (3 each, from beating
     // Arsenal and Bournemouth) ahead of Arsenal (0), then goal difference between those two.
-    const otherCompetition: readonly TieBreak[] = ["headToHeadPoints", "goalDifference"];
+    const otherCompetition: readonly CompetitionTieBreak[] = ["headToHeadPoints", "goalDifference"];
     const results = [result(ARS, 0, 1, BOU), result(ARS, 4, 0, CHE), result(DER, 1, 0, BOU)];
     const clubs = [ARS, BOU, CHE, DER];
 
@@ -129,7 +129,7 @@ describe("the Premier League table", () => {
   });
 
   test("a head-to-head step skipped for a match unplayed, the competition's next step still applies", () => {
-    const headToHeadFirst: readonly TieBreak[] = ["headToHeadPoints", "goalDifference"];
+    const headToHeadFirst: readonly CompetitionTieBreak[] = ["headToHeadPoints", "goalDifference"];
     const table = plTable([BOU, ARS, CHE], [result(ARS, 2, 0, CHE), result(BOU, 1, 0, CHE)], {
       tieBreaks: headToHeadFirst,
       unplayed: [{ home: ARS, away: BOU }],
