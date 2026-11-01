@@ -64,12 +64,12 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
     expect(slots).toContain(emptySlotLabel("defence", "left"));
   });
 
-  it("sends a starter the shape has no room for to the front of the bench", async () => {
+  it("moves a starter the shape has no room for in his area to the nearest area he plays, not the bench (Craig, 1 Nov 2026)", async () => {
     await openedPitch();
-    // A 4-2-3-1 has no one in midfield, where Rice stands.
+    // A 4-2-3-1 has no one in midfield, where Rice stands: he drops into its holding pair.
     await userEvent.selectOptions(picker(), "4-2-3-1");
-    expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${RICE.name},`) })).toBeNull();
-    expect(squadRows()[squadRows().indexOf(BENCH_TITLE) + 1]).toBe("CDM, CMRice ARSMove Up Down");
+    expect(blockOf(RICE, { area: "defensiveMidfield", lane: "leftCentre" })).toBeTruthy();
+    expect(squadRows()[squadRows().indexOf(BENCH_TITLE) + 1]).not.toContain(RICE.name);
   });
 
   it("saves itself as it stands, and Undo puts the shape away too", async () => {
