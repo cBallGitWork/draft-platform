@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../../convex/mail/mail";
 import { MAIL_PATH, MY_TEAM_PATH } from "../../../src/frame/menu";
-import { MAIL_TITLE } from "../../../src/mail/words";
+import { MAIL_TITLE, unreadCount } from "../../../src/mail/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import {
   allMailWords,
@@ -30,7 +30,7 @@ import {
   squadViewWords,
   startedNotSettledLabel,
   statusNotSettledLabel,
-  unreadAsideWords,
+
   viewNotSettledLabel,
   YOUR_ELEVEN_TITLE,
 } from "../../../src/myTeam/squad/words";
@@ -96,6 +96,9 @@ describe("his season panel", () => {
     expect(screen.getByRole("button", { name: openPanelLabel("Saka") }).closest("tr")!.getAttribute("aria-current")).toBe("true");
     const column = panelOf("Saka").parentElement!;
     expect(column.firstElementChild).toBe(panelOf("Saka"));
+    // Your eleven outlines him on the pitch.
+    const onPitch = within(screen.getByRole("list", { name: elevenPitchLabel })).getByRole("listitem", { name: elevenPlayerLabel("Saka", "42") });
+    expect(onPitch.getAttribute("aria-current")).toBe("true");
 
     await openPanel("Palmer");
     expect(screen.queryByRole("region", { name: "Saka" })).toBeNull();
@@ -132,6 +135,14 @@ describe("his season panel", () => {
     // FPL's news is held, so it shows beside the chip that waits.
     expect(within(panel).getByText("Knock - 75% chance of playing")).toBeTruthy();
     expect(within(panel).queryByRole("button", { name: /role/i })).toBeNull();
+  });
+
+  it("shows FPL's news without a chip when FPL holds no doubt, as his row does", async () => {
+    openSquad({ squad: squadOf([{ ...SAKA, news: "Joined on loan" }]) });
+    await screen.findByRole("table");
+    await openPanel("Saka");
+    expect(within(panelOf("Saka")).getByText("Joined on loan")).toBeTruthy();
+    expect(screen.queryByRole("img", { name: statusNotSettledLabel })).toBeNull();
   });
 
   it("opens his player card", async () => {
@@ -186,7 +197,7 @@ describe("Mail and news", () => {
   it("lists the newest letters, unread ones marked, with Mail's unread count", async () => {
     openSquad({ squad: squadOf([SAKA]), mail });
     const widget = await screen.findByRole("region", { name: MAIL_WIDGET_TITLE });
-    expect(within(widget).getByText(unreadAsideWords(4))).toBeTruthy();
+    expect(within(widget).getByText(unreadCount(4))).toBeTruthy();
     const links = within(within(widget).getByRole("list")).getAllByRole("link");
     expect(links.map((link) => link.textContent)).toEqual([expect.stringContaining("Unread: Letter 3"), expect.not.stringContaining("Unread")]);
   });

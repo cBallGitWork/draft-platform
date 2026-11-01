@@ -34,8 +34,9 @@ export function formationOf({ lineup: { starters }, presets }: Pick<OpenTactics,
   return preset?.name ?? null;
 }
 
-/** `players` are the squad's rows by code, for each one's season points. */
-export function YourEleven({ tactics, players }: { tactics: Tactics | undefined; players: ReadonlyMap<number, Row> }) {
+/** `players` are the squad's rows by code, for each one's season points; `selected` is the player
+ *  whose panel is open, outlined on the pitch. */
+export function YourEleven({ tactics, players, selected }: { tactics: Tactics | undefined; players: ReadonlyMap<number, Row>; selected: number | null }) {
   const open = tactics?.kind === "open" ? tactics : null;
   const formation = open === null ? null : formationOf(open);
   return (
@@ -44,7 +45,7 @@ export function YourEleven({ tactics, players }: { tactics: Tactics | undefined;
         <PanelNote>{noLineupWords}</PanelNote>
       ) : (
         <div className="flex flex-col gap-2 p-2">
-          <ElevenPitch tactics={open} players={players} />
+          <ElevenPitch tactics={open} players={players} selected={selected} />
           <ElevenBench tactics={open} players={players} />
         </div>
       )}
@@ -57,7 +58,7 @@ export function YourEleven({ tactics, players }: { tactics: Tactics | undefined;
   );
 }
 
-function ElevenPitch({ tactics, players }: { tactics: OpenTactics; players: ReadonlyMap<number, Row> }) {
+function ElevenPitch({ tactics, players, selected }: { tactics: OpenTactics; players: ReadonlyMap<number, Row>; selected: number | null }) {
   const members = new Map(tactics.squad.map((member) => [member.playerCode, member]));
   return (
     <div style={{ aspectRatio: PITCH_ASPECT }} className="relative w-full border-2 border-pitch-line">
@@ -71,7 +72,10 @@ function ElevenPitch({ tactics, players }: { tactics: OpenTactics; players: Read
           if (starter === undefined || member === undefined) return <li key={cellKey(cell)} aria-hidden="true" />;
           const points = pointsOf(players, starter.playerCode);
           return (
-            <li key={cellKey(cell)} aria-label={elevenPlayerLabel(member.name, points)} className="relative flex min-w-0 flex-col items-center justify-center">
+            <li key={cellKey(cell)} aria-label={elevenPlayerLabel(member.name, points)}
+              aria-current={selected === starter.playerCode || undefined}
+              className="relative flex min-w-0 flex-col items-center justify-center aria-current:outline-2 aria-current:outline-fact"
+            >
               <Shirt number={member.number} clubCode={member.clubCode} goalkeeper={area === "goalkeeper"} />
               <span aria-hidden="true" className="flex max-w-full flex-col items-center bg-name-plate px-1">
                 <span className="max-w-full truncate font-semibold">{member.name}</span>

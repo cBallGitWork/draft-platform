@@ -73,9 +73,9 @@ function SquadBody({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }
         <SquadPanel squad={squad} tactics={tactics} selected={picked?.code ?? null} onSelect={setSelected} />
         {picked !== null && mailWidget}
       </div>
-      <div className="flex min-w-0 grow basis-widgets flex-col gap-2">
+      <div className="flex min-w-0 grow basis-widgets flex-col gap-2 lg:grow-0">
         {picked !== null && <PlayerPanel key={picked.code} leagueId={league.leagueId} player={picked} tactics={tactics} numbers={numbers} onClose={() => setSelected(null)} />}
-        <YourEleven tactics={tactics} players={new Map(squad.players.map((player) => [player.code, player]))} />
+        <YourEleven tactics={tactics} players={new Map(squad.players.map((player) => [player.code, player]))} selected={picked?.code ?? null} />
         {picked === null && mailWidget}
       </div>
     </div>

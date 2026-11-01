@@ -126,7 +126,7 @@ function SquadCell({ column, player, starts, isSelected, onSelect }: { column: C
               event.stopPropagation();
               onSelect(player.code);
             }}
-            className={`inline-flex min-h-tap items-center text-lead font-semibold lg:min-h-0 ${starts ? "text-fact" : "text-muted"}`}
+            className={`inline-flex min-h-tap min-w-tap items-center text-lead font-semibold lg:min-h-0 lg:min-w-0 ${starts ? "text-fact" : "text-muted"}`}
           >
             {player.name}
             {!starts && <span className="sr-only">, {benchWords}</span>}

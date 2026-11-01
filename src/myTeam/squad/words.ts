@@ -118,7 +118,6 @@ export const setLineupWords = "Set lineup";
 
 /** The Mail widget: the newest letters, each opened in Mail. */
 export const MAIL_WIDGET_TITLE = "Mail and news";
-export const unreadAsideWords = (unread: number) => `${unread} unread`;
 export const allMailWords = "All mail";
 export const noMailWords = "No mail yet.";
 export const mailLoadingWords = "Loading your mail…";

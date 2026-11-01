@@ -2,10 +2,10 @@ import { Link } from "@tanstack/react-router";
 import type { LetterSummary } from "../../../convex/mail/mail";
 import { MAIL_PATH } from "../../frame/menu";
 import { letterLink } from "../../mail/paths";
-import { letterDay, unreadWords } from "../../mail/words";
+import { letterDay, unreadCount, unreadWords } from "../../mail/words";
 import { Loading, Panel, PanelNote } from "../../ui/Panel";
 import type { LatestMail } from "./seam";
-import { allMailWords, MAIL_WIDGET_TITLE, mailLoadingWords, nextGlyph, noMailWords, unreadAsideWords } from "./words";
+import { allMailWords, MAIL_WIDGET_TITLE, mailLoadingWords, nextGlyph, noMailWords } from "./words";
 
 // The Squad tab's Mail and news (its approved picture): the newest letters, unread ones with
 // Mail's orange edge (plate.md, Marks: Unread); a letter opens it in Mail, and All mail opens Mail.
@@ -13,7 +13,7 @@ import { allMailWords, MAIL_WIDGET_TITLE, mailLoadingWords, nextGlyph, noMailWor
 /** `mail` is undefined while it loads, and null for someone signed out, who has none. */
 export function MailWidget({ mail }: { mail: LatestMail | null | undefined }) {
   return (
-    <Panel title={MAIL_WIDGET_TITLE} aside={mail ? <span>{unreadAsideWords(mail.unread)}</span> : undefined}>
+    <Panel title={MAIL_WIDGET_TITLE} aside={mail ? <span>{unreadCount(mail.unread)}</span> : undefined}>
       {mail === undefined ? (
         <Loading className="px-3 py-2">{mailLoadingWords}</Loading>
       ) : mail === null || mail.letters.length === 0 ? (

@@ -68,10 +68,11 @@ export function PlayerPanel({
         </span>
       }
     >
-      {player.news !== null && (
+      {/* His doubt line: the chip where FPL holds a doubt, as his row has it, and FPL's news. */}
+      {(player.chanceOfPlaying !== null || player.news !== null) && (
         <p className="flex items-center gap-2 px-3 py-1">
-          <Placeholder label={statusNotSettledLabel} className="h-5 w-10 shrink-0" />
-          <span>{player.news}</span>
+          {player.chanceOfPlaying !== null && <Placeholder label={statusNotSettledLabel} className="h-5 w-10 shrink-0" />}
+          {player.news !== null && <span>{player.news}</span>}
         </p>
       )}
       <h3 className="bg-head px-3 font-bold text-ground">{THIS_SEASON}</h3>
