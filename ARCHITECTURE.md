@@ -135,7 +135,8 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   until it is complete, or four hours on, and its team sheets alone in the hour before kickoff
   (#45); outside those windows it reads no feed and writes no row. A complete match whose
   commentary still lacks its full-time line is read on, whole, for up to `FULL_TIME_LINE_WAIT_MS`
-  after full time (the stream's lag allowance, `COMMENTARY_BEHIND_MINUTES`), as "Match ends" can reach the stream after the status flips (#917).
+  after full time (the stream's lag allowance, `COMMENTARY_BEHIND_MINUTES`), as "Match ends" can
+  reach the stream after the status flips (#917).
   A cron, not a function rescheduling itself, because Convex runs a scheduled action at most
   once: a chain would end, unseen, at the first tick that failed before scheduling the next, and
   need re-arming whenever a kickoff moved. Convex runs one tick at a time, skipping one due while

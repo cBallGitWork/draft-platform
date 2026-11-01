@@ -24,7 +24,7 @@ import time
 
 from commands import commands
 from drift_gate import merge_args, view_args
-from follow_main import follow_main
+from follow_main import MAIN_MOVE_CALLS, follow_main
 from hook_payload import BadPayload, field, project_dir, read_payload, report
 from parsing import Unbalanced, Unreadable
 from stdin_reading import UnreadableStdin
@@ -32,9 +32,10 @@ from tidy_branch import RUN_TIMEOUT_SECONDS, TIDY_CALLS, inside, run, tidy, work
 
 STARTED = time.monotonic()  # the hook's time runs from here
 MERGED = "MERGED"
-# the hook's timeout in settings.json. Before the sweep, each merge takes at most 1 + TIDY_CALLS
-# calls and the main checkout's move four, each up to RUN_TIMEOUT_SECONDS (165 s for one merge), so
-# the sweep looks only while it has time left for its two lists and one leftover, and starts a
+# the most calls one merge makes before the sweep: gh pr view, tidy(), then follow_main()
+MERGE_CALLS = 1 + TIDY_CALLS + MAIN_MOVE_CALLS
+# the hook's timeout in settings.json, over MERGE_CALLS * RUN_TIMEOUT_SECONDS (settings.sh checks),
+# so the sweep looks only while it has time left for its two lists and one leftover, and starts a
 # leftover only while its worst case fits
 HOOK_SECONDS = 180
 # how many merged pull requests, newest first, the sweep matches worktrees against: some three
