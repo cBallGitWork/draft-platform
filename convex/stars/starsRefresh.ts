@@ -27,14 +27,20 @@ import { UNSURE } from "./starsShape";
 // deployment fills the table by itself. A row is written only when it changes, so a screen reading
 // stars isn't sent them again for nothing.
 //
+// A player gone from the Premier League keeps his stars while a squad in any league holds him. One
+// whom no squad holds stays in the pools until the next refresh of everyone drops his row: a lock
+// works out only its own players.
+//
 // One bad record or player never stops the rest: a match with no kickoff held is left out of his
 // matches, and a player whose rating throws keeps the row he had; each is logged.
 //
 // Cost: a lock reads every record of its 40-odd players, prices each one's counted matches (at most
 // STARS_WINDOW) under his 2 to 24 roles, then reads every row to rank: about 700 small rows.
 // Every player's refresh reads every current player's records: about 700 × 38 at a season's end, in
-// STARS_PAGE pages. Both grow with players, roles a player is rated for and matches (capped at
-// STARS_WINDOW), never with teams or leagues: stars are the site's, not a league's. A season-sized
+// STARS_PAGE pages, then the players gone from the Premier League who still hold stars, STARS_PAGE
+// rows at a time. Both grow with players, roles a player is rated for and matches (capped at
+// STARS_WINDOW), and not with teams; but each gone player is looked for on every league's squads,
+// so that part grows with gone players × leagues (the leagues read once a transaction). A season-sized
 // page and lock run in the tests (starsRefresh.season.test.ts); Convex's real time limit on them is
 // unmeasured on a deployment.
 
@@ -67,8 +73,7 @@ export const refreshMatch = internalMutation({
 });
 
 /** Every current player's row worked out again, a page from `cursor` (null for the first) a run;
- *  after the last, the rows of players gone from the Premier League, kept while a squad holds him
- *  and dropped once none does; then everyone ranked. */
+ *  after the last, the gone players' (refreshGone), then everyone ranked. */
 export const refreshAll = internalMutation({
   args: { cursor: v.union(v.string(), v.null()) },
   returns: v.null(),
@@ -81,10 +86,25 @@ export const refreshAll = internalMutation({
       ctx,
       page.page.map((player) => player.code),
     );
-    if (page.isDone) {
-      await refreshPlayers(ctx, await goneWithStars(ctx));
-      await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.rank, {});
-    } else await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.refreshAll, { cursor: page.continueCursor });
+    if (page.isDone) await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.refreshGone, { cursor: null });
+    else await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.refreshAll, { cursor: page.continueCursor });
+    return null;
+  },
+});
+
+/** The rows of players gone from the Premier League, which a refresh of every current player never
+ *  reaches, worked out again STARS_PAGE rows from `cursor` a run: kept while a squad holds him,
+ *  dropped once none does. After the last, everyone ranked. */
+export const refreshGone = internalMutation({
+  args: { cursor: v.union(v.string(), v.null()) },
+  returns: v.null(),
+  handler: async (ctx, { cursor }) => {
+    const page = await ctx.db.query("playerRoleStars").withIndex("by_playerCode").paginate({ numItems: STARS_PAGE, cursor });
+    const gone: number[] = [];
+    for (const row of page.page) if (await isGone(ctx, row.playerCode)) gone.push(row.playerCode);
+    await refreshPlayers(ctx, gone);
+    if (page.isDone) await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.rank, {});
+    else await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.refreshGone, { cursor: page.continueCursor });
     return null;
   },
 });
@@ -126,17 +146,8 @@ async function isGone(ctx: QueryCtx, playerCode: number): Promise<boolean> {
   return player === null || player.droppedAt !== undefined;
 }
 
-/** The players holding stars whom the football sync has dropped, or no longer holds: a refresh of
- *  every current player never reaches them. */
-async function goneWithStars(ctx: QueryCtx): Promise<number[]> {
-  const gone: number[] = [];
-  for (const row of await starsRows(ctx)) if (await isGone(ctx, row.playerCode)) gone.push(row.playerCode);
-  return gone;
-}
-
-/** Whether a squad in any league holds him. */
-async function isOnASquad(ctx: QueryCtx, playerCode: number): Promise<boolean> {
-  const leagues = await takeAllOrThrow(ctx.db.query("leagues"), LEAGUES_STORED_MOST, `More than ${LEAGUES_STORED_MOST} leagues are held, so a squad holding him could be missed`);
+/** Whether a squad in any of `leagues` holds him. */
+async function isOnASquad(ctx: QueryCtx, leagues: readonly Doc<"leagues">[], playerCode: number): Promise<boolean> {
   for (const league of leagues) {
     const held = await ctx.db
       .query("squadPlayers")
@@ -148,9 +159,15 @@ async function isOnASquad(ctx: QueryCtx, playerCode: number): Promise<boolean> {
 }
 
 /** Whether he keeps stars: anyone the football sync holds as current, and anyone gone from the
- *  Premier League whom a squad still holds, so his manager still sees them. */
-async function keepsStars(ctx: QueryCtx, playerCode: number): Promise<boolean> {
-  return !(await isGone(ctx, playerCode)) || (await isOnASquad(ctx, playerCode));
+ *  Premier League whom a squad still holds, so his manager still sees them. The leagues are read
+ *  once, and only if a gone player is asked about. */
+function starsKeeper(ctx: QueryCtx): (playerCode: number) => Promise<boolean> {
+  let leagues: Promise<Doc<"leagues">[]> | undefined;
+  return async (playerCode) => {
+    if (!(await isGone(ctx, playerCode))) return true;
+    leagues ??= takeAllOrThrow(ctx.db.query("leagues"), LEAGUES_STORED_MOST, `More than ${LEAGUES_STORED_MOST} leagues are held, so a squad holding a player could be missed`);
+    return isOnASquad(ctx, await leagues, playerCode);
+  };
 }
 
 /** Each player's row set afresh from his records and positions now, under today's scoring: his
@@ -160,6 +177,7 @@ async function keepsStars(ctx: QueryCtx, playerCode: number): Promise<boolean> {
 async function refreshPlayers(ctx: MutationCtx, playerCodes: readonly number[]): Promise<void> {
   const set = await siteScoringAt(ctx, Date.now());
   const positionsOf = await positionsNow(ctx);
+  const keepsStars = starsKeeper(ctx);
   const kickoffOf = readOnce(async (fixtureCode: number) => {
     const kickoff = (await fixtureByCode(ctx, fixtureCode))?.kickoff ?? null;
     if (kickoff === null) logFailure(`Stars leave out match ${fixtureCode}`, "it has records but no kickoff held");
@@ -180,7 +198,7 @@ async function refreshPlayers(ctx: MutationCtx, playerCodes: readonly number[]):
         if (kickoff !== null) dated.push({ ...record, kickoff });
       }
       const matches = countedMatches(dated);
-      const roles = (await keepsStars(ctx, playerCode)) ? ratedRoles(await positionsOf(playerCode)) : [];
+      const roles = (await keepsStars(playerCode)) ? ratedRoles(await positionsOf(playerCode)) : [];
       const heldStars = (area: string, role: string) => row?.ratings.find((each) => each.area === area && each.role === role)?.stars ?? UNSURE;
       fields =
         matches.length === 0 || roles.length === 0
