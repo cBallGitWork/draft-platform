@@ -179,6 +179,7 @@ import type * as signIn_allowedEmails from "../signIn/allowedEmails.js";
 import type * as signIn_signInEmail from "../signIn/signInEmail.js";
 import type * as signIn_signInLinks from "../signIn/signInLinks.js";
 import type * as signIn_signInReplies from "../signIn/signInReplies.js";
+import type * as signIn_testAccount from "../signIn/testAccount.js";
 import type * as signIn_timeZone from "../signIn/timeZone.js";
 import type * as squads_areaMinimums from "../squads/areaMinimums.js";
 import type * as squads_squadNumberRange from "../squads/squadNumberRange.js";
@@ -399,6 +400,7 @@ declare const fullApi: ApiFromModules<{
   "signIn/signInEmail": typeof signIn_signInEmail;
   "signIn/signInLinks": typeof signIn_signInLinks;
   "signIn/signInReplies": typeof signIn_signInReplies;
+  "signIn/testAccount": typeof signIn_testAccount;
   "signIn/timeZone": typeof signIn_timeZone;
   "squads/areaMinimums": typeof squads_areaMinimums;
   "squads/squadNumberRange": typeof squads_squadNumberRange;
