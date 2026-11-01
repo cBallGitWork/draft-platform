@@ -163,8 +163,8 @@ export const refresh = internalMutation({
 
 /** Sets a page of players' rows, from `cursor` (null for the first), afresh from their records,
  *  then runs on to the next page until every player is done. Safe to run again: it sets, never
- *  adds. Started by itself on a deployment holding records but no row (seasonPointsQueue.ts's
- *  rebuildIfNoneKept), and by hand with seasonPointsMoves.ts's REBUILD_COMMAND. */
+ *  adds. Started by itself on a deployment holding records but no row, and after a season totals
+ *  rebuild (seasonRebuilds.ts), and by hand with its POINTS_REBUILD_COMMAND. */
 export const rebuild = internalMutation({
   args: { cursor: v.union(v.string(), v.null()) },
   returns: v.null(),

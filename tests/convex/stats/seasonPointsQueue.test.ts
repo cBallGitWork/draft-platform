@@ -3,7 +3,7 @@ import { internal } from "../../../convex/_generated/api";
 import { MATCH_RECORDS_MOST } from "../../../convex/gameweekScorer/heldMatches";
 import { inTenths } from "../../../convex/scoring/values";
 import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
-import { REBUILD_COMMAND } from "../../../convex/stats/seasonPointsMoves";
+import { POINTS_REBUILD_COMMAND } from "../../../convex/stats/seasonRebuilds";
 import { changesSeasonPoints, queueRefresh } from "../../../convex/stats/seasonPointsQueue";
 import { completeRecord } from "../../support/convex/footballRows.harness";
 import { pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
@@ -189,7 +189,7 @@ describe("a match move never stops the sync", () => {
 
     await runQueued();
 
-    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`match ${GW2.code}'s players' season points weren't re-priced; run ${REBUILD_COMMAND}`));
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`match ${GW2.code}'s players' season points weren't re-priced; run ${POINTS_REBUILD_COMMAND}`));
     // Nobody was re-priced, so the match left still counts until a rebuild.
     expect(await sakaPoints()).toBe(inTenths(at(SAKA_GW1, "W") + at(SAKA_GW2, "W")));
   });
