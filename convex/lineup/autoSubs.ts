@@ -47,8 +47,8 @@ export interface AutoSub {
   area: Area;
   lane: Lane;
   /** "theSlot": he took the empty slot and its role. "hisOwnArea": no one on the bench could play
-   *  the slot, so he came on elsewhere, on his new slot's first role until stars (#11) choose his
-   *  best, and the formation changed. */
+   *  the slot, so he came on elsewhere, on his new slot's first role, and the formation changed.
+   *  Stars (#11) are kept but not yet wired in here to choose his best-star role. */
   into: "theSlot" | "hisOwnArea";
 }
 
@@ -174,7 +174,7 @@ function legalSubstitution(
 ): { substitution: AutoSub; lineup: Lineup } | undefined {
   const after: Lineup = {
     // Into the absentee's own slot he takes its role too (spec/05 Auto-subs); elsewhere he plays
-    // the new slot's first, until stars choose his best.
+    // the new slot's first: stars don't choose his best here yet (#11).
     starters: lineup.starters.map((starter) => {
       if (starter !== absentee) return starter;
       const sameSlot = sameCell(cell, absentee);

@@ -169,6 +169,25 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
   far; last season's join once recorded (26 Oct 2026). Stars are a hint; they never change his
   points. Once scouts exist, a manager sees them for their own squad and for players they have
   scouted; until then, for every player (`spec/19`).
+- How stars are worked out (Craig, 1 Nov 2026):
+  - A match counts once its stats are final, if he got on the pitch: cameos count, an unused
+    substitute's doesn't.
+  - He is ranked on his points per match played.
+  - The players he is ranked against are everyone who can play that area with at least 3 counted
+    matches; "?" and "—" players are left out.
+  - Early in a season, while few have played, the pool fills from last season's matches: "use past
+    data".
+  - He has one rating per role per area, so a shadow striker at number 10 and up front are rated
+    apart, and he is rated for every role in every area his positions play.
+  - His matches are priced under today's scoring, so a patch re-rates everyone when it takes
+    effect.
+  - Half a star is the lowest. The first cut points: five stars for the top 5%, then 4.5 from the
+    85th percentile, 4 from the 75th, 3.5 from the 65th, 3 from the 55th, 2.5 from the 45th, 2 from
+    the 35th, 1.5 from the 25th, 1 from the 15th, and half a star below that.
+  - Where two roles tie for his most stars, or he shows "?" or "—", he starts on the slot's first role.
+  - Every placement is a drop into a slot: dragging or swapping him, the first lineup and each
+    draft pick going onto the pitch, a preset moving him to a slot that doesn't offer his role,
+    and an auto-sub coming on in his own area.
 - The player card shows what his role did to his points ("Attacking full-back: +2, two key
   passes").
 - Your tactics change only your own players' points, never your opponent's.

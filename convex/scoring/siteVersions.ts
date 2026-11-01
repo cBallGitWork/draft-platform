@@ -41,6 +41,13 @@ export function setOf(version: Doc<"siteScoring"> | undefined): StoredScoringSet
   return version?.scoring ?? FIRST_SCORING;
 }
 
+/** The site's scoring set in force at `at`: the newest version to take effect by then, the first
+ *  set before any. What stars price every match under, whichever gameweek it was (Craig, 1 Nov
+ *  2026: today's scoring, so a patch re-rates everyone). */
+export async function siteScoringAt(ctx: QueryCtx, at: number): Promise<StoredScoringSet> {
+  return setOf((await siteVersions(ctx)).findLast((row) => row.takesEffectAt <= at));
+}
+
 /** The site's scoring set in a gameweek, which every league scores that gameweek's matches by: the
  *  newest version to take effect at or before its first kickoff, the first set before any. A
  *  gameweek with no kickoff time yet plays the newest. */
