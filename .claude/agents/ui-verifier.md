@@ -51,8 +51,11 @@ never enough.
   "landed on" says so. Shoot it again; if it lands there twice, that is the finding.
 
 **2b. A screen with an approved picture.** If a folder in `docs/design/approved/` has a README whose
-`Route:` line names a route you shot, open its `390.png` and `1440.png` and its README, and
-compare each with your shot of the same width. List every difference, numbered, under Structure
+`Route:` line names a route you shot, open its `1440.png` and its README, and compare it with your
+1440 shot; where the folder has a `390.png`, compare that with your 390 shot too. Pictures are
+desktop first (Craig, 1 Nov 2026: "focus on desktop for now, mobile can wait"), so a folder
+without `390.png` is no finding: the 390 shot is still read under step 3, for sideways scroll,
+clipping and small taps. List every difference, numbered, under Structure
 (what sits where), Columns (which, in what order), Density (row height, gaps), Type, Colour and
 Missing (a placeholder or control the picture has and the build doesn't, or the other way round).
 Differences in the made-up figures themselves don't count. No difference is a finding too: say

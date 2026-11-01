@@ -17,7 +17,7 @@ Our league moves to it from Fantrax; the companion app lives in `cBallGitWork/ep
 - Persist FPL's season-stable `code`, never the per-season `id`.
 - Football-layer code is copied from epl-draft's `packages/core` when it's needed, not shared.
 - The stack is in `ARCHITECTURE.md`: Craig picks services, Claude picks libraries, both with a reason.
-- Before drawing any screen, read `docs/design/plate.md`. A screen's approved picture in `docs/design/approved/<screen>/` binds its layout: build to it, and a look call the picture doesn't settle stops for Craig. A screen with none gets one, drawn by Claude and approved by Craig, before its layout changes. `docs/design/references/` (FM, CM) is background, never the product.
+- Before drawing any screen, read `docs/design/plate.md`. A screen's approved picture in `docs/design/approved/<screen>/` binds its layout: build to it, and a look call the picture doesn't settle stops for Craig. A screen with none gets one, drawn by Claude through `/design` and approved by Craig, before its layout changes. Pictures are 1440 wide; the phone's waits until Craig asks (1 Nov 2026: "focus on desktop for now, mobile can wait"). `docs/design/references/` (FM, CM) is background, never the product.
 
 ## Working
 

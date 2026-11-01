@@ -14,9 +14,9 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 import { appPort, localUrl } from "./port.mjs";
 import { tapsUnderTapSize } from "./tap-targets.mjs";
+import { DESK, PHONE } from "./viewports.mjs";
 
-const PHONE = { width: 390, height: 844 };
-const WIDTHS = [PHONE, { width: 1440, height: 900 }];
+const WIDTHS = [PHONE, DESK];
 const SHOTS_DIR = fileURLToPath(new URL("../.shots/", import.meta.url));
 
 const [route, name = "shot"] = process.argv.slice(2);

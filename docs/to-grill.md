@@ -25,6 +25,12 @@ Each with the questions its grill starts from. The questions are Claude's.
 - A team's own logo: nothing covers one. Uploading it means storing files, a stack question for
   `ARCHITECTURE.md`.
 
+**Status chips' data**: the squad table, the player card (`docs/design/plate.md`, Tables and panels).
+- Craig wants CM's chips after a name (1 Nov 2026: "i like a CM like red/yellow cross/card for
+  suspension etc"). Which FPL statuses each chip reads: injured, suspended, a knock.
+- "One booking from a ban" needs the competition's yellow-card thresholds, held per competition as
+  data, and a count of each player's bookings. Wanted now, or after the beta?
+
 **Premier League club pages**: `spec/18`, *After the mini beta*.
 
 **Cups and a plate**: after the beta (SPEC, *Later*; Craig, 20 Oct 2026). The plate here is a

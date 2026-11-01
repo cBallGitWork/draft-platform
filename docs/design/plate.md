@@ -197,3 +197,31 @@ bar above the pitch; the pitch's player blocks narrow to a fifth of its width. T
 - **Destructive confirms** (Craig, 31 Oct 2026): the yes on a confirm that deletes or removes is
   orange-edged, never Continue's white (#403): orange is the event colour, and a delete needs you to decide. It is the danger action (Colour roles), built once
   in `src/ui/Confirm.tsx`.
+
+### Tables and panels (Craig, 1 Nov 2026)
+
+Craig's corrections to the Tactics and Squad boards, 1 Nov 2026. They hold on every screen.
+
+- **Roles in full, never initials.** No SHS, DFB, IF or N10 anywhere: "the initials for different
+  roles......theres no standard....nobody knows what they are". A position chip (GK, CB, CDM, W,
+  ST) is fine. `scripts/design/lint.mjs` fails a board that draws a role's initials.
+- **No colour keys or legends**, for fixture difficulty, the pitch's lines or anything else:
+  "remove difficulty key, thats 'people arent stupid' / same for lines too". The colours carry it;
+  the labels for screen readers stay.
+- **No action column in a table.** "wtf is the move column". What can be done to a player (move
+  him, swap him) sits in the selected player's panel.
+- **A table's columns run Pos, then Player with his club, far left**, and his opponent beside him:
+  "names being in the middle, prob should be far left"; "position tab to left of player";
+  "opponent too far away from player".
+- **Wide or growing detail goes in the right-hand panel, never the table**: points per action, a
+  stat breakdown. "points per action row takes up so much, and that can get bigger with more
+  stats....thats what the column on the right is for".
+- **A right-hand column of titled widgets**, as FM and Fantrax do: "like fm, the use of a secondary
+  column/widget design is the play here i think". Each widget is a panel with its title plate;
+  selecting a player puts his panel at the top of the column.
+- **Status chips after the name**, CM style, square and solid (Never 2): a red cross injured, a
+  yellow card one booking from a ban, a red card suspended, an orange knock. "could you a chip
+  after the name (i like a CM like red/yellow cross/card for suspension etc)".
+- **No position group rows** (Goalkeepers, Defenders) where the position chips already group the
+  table: "the coloured chips do that work, removes clutter".
+- **A formation preset says what it does**, beside its name: "presets should describe what it does".
