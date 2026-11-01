@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 import type { MyTeamSeam, SquadNumberChanges, TeamFixtures, TeamSquad, TeamTransactions } from "../../../src/myTeam/seam";
 import { idOf } from "../../../src/table/drawnTable";
+import type { LeagueTable } from "../../../src/table/seam";
 import { fakeTactics, type TacticsData } from "./tactics.harness";
 import type { LatestMail } from "../../../src/myTeam/squad/seam";
 
@@ -17,6 +18,8 @@ export type MyTeamData = TacticsData & {
   fixtures?: TeamFixtures | null;
   transactions?: TeamTransactions;
   squad?: TeamSquad;
+  /** The league's table and fixtures, which the header band reads; null for a league with no rules. */
+  leagueTable?: LeagueTable | null;
   /** What setting a squad number answers: null once made, or the words why not. */
   numberAnswer?: string | null;
   /** The newest letters for the Squad tab's Mail widget, and the unread count. */
@@ -30,6 +33,7 @@ export function fakeMyTeam({
   squad = { teamName: "Team 1", lastGameweek: null, players: [], unheld: [], squadMaximum: null },
   numberAnswer = null,
   mail = { letters: [], unread: 0 },
+  leagueTable = null,
   loading = false,
   ...tactics
 }: MyTeamData = {}) {
@@ -53,5 +57,6 @@ export function fakeMyTeam({
     },
     useSquadNumbers: () => numbers,
     useLatestMail: vi.fn<MyTeamSeam["useLatestMail"]>(() => (loading ? undefined : mail)),
+    useLeagueTable: vi.fn<MyTeamSeam["useLeagueTable"]>(() => (loading ? undefined : leagueTable)),
   };
 }

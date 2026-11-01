@@ -4,6 +4,7 @@ import type { Cell } from "../../../convex/lineup/pitch";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { ESCAPE_KEY, KEY_DOWN } from "../../shared/browserEvents";
 import { Loading, Notice, PageSection, Panel, PanelNote } from "../../ui/Panel";
+import { TeamPage } from "../header/TeamHeader";
 import { useChange } from "../../shared/useChange";
 import { useMinute } from "../../shared/useMinute";
 import { unheldNoticeWords } from "../../shared/words";
@@ -15,11 +16,8 @@ import { PresetPicker, RunsSwitch, UndoBar } from "./TacticsControls";
 import type { MyTeamSeam } from "../seam";
 import type { OpenTactics } from "./seam";
 import {
-  countdownWords,
   joinedBenchWords,
-  locksWords,
   movingHintWords,
-  noDeadlineWords,
   pickHintWords,
   seasonOverWords,
   SQUAD_PANEL_TITLE,
@@ -55,28 +53,18 @@ function TacticsBody({ league, teamName, seam }: { league: LeagueSummary; teamNa
   const tactics = seam.useTactics(league.leagueId, now);
   seam.useTacticsOpened(league.leagueId, tactics?.kind === "open" ? tactics.gameweek : null);
   const note = (words: string) => (
-    <PageSection title={teamName} className="bg-panel">
-      {tactics === undefined ? <Loading className="px-3 py-2">{words}</Loading> : <PanelNote>{words}</PanelNote>}
-    </PageSection>
+    <TeamPage league={league} teamName={teamName} seam={seam}>
+      <div className="bg-panel">{tactics === undefined ? <Loading className="px-3 py-2">{words}</Loading> : <PanelNote>{words}</PanelNote>}</div>
+    </TeamPage>
   );
   if (tactics === undefined) return note(tacticsLoadingWords);
   if (tactics.kind === "noRules") return note(tacticsNoRulesWords);
   if (tactics.kind === "seasonOver") return note(seasonOverWords);
   return (
-    <PageSection title={teamName} aside={<Deadline tactics={tactics} now={now} />}>
+    <TeamPage league={league} teamName={teamName} seam={seam}>
       {/* Keyed by the gameweek, so a deadline passing mid-edit starts the next one afresh. */}
       <LineupEditor key={tactics.gameweek} league={league} tactics={tactics} seam={seam} />
-    </PageSection>
-  );
-}
-
-/** When the lineup locks, and the countdown to it (plate.md: a countdown is a derived reading). */
-function Deadline({ tactics: { gameweek, deadline }, now }: { tactics: OpenTactics; now: number }) {
-  if (deadline === null) return <span className="text-soft">{noDeadlineWords(gameweek)}</span>;
-  return (
-    <span className="text-right">
-      {locksWords(gameweek, deadline)} <span className="font-semibold text-derived">{countdownWords(deadline - now)}</span>
-    </span>
+    </TeamPage>
   );
 }
 

@@ -12,3 +12,7 @@ export async function takeShown<Row>(query: { take(n: number): Promise<Row[]> },
   const rows = await query.take(most + 1);
   return { rows: rows.slice(0, most), more: rows.length > most };
 }
+
+/** The most leagues one read across every league takes (a lock storing scores, a positions
+ *  cut-off); past it this throws. The closed beta has a handful. */
+export const LEAGUES_STORED_MOST = 200;

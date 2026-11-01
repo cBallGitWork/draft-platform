@@ -1,5 +1,10 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { positionsNow } from "../../../convex/positions/playerPositions";
+import { DAY_MS } from "../../../convex/shared/time";
+import { positionsSyncRanOnDay } from "../../support/convex/positionsSync.harness";
+import { CENTRE_BACK, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
 import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { inTenths } from "../../../convex/scoring/values";
 import { mergedHullEverton } from "../../support/convex/matchStats.harness";
@@ -18,6 +23,7 @@ import {
   sideTotal,
   type ScoresLeague,
   BOBS_FIRST_POINTS,
+  DEADLINE,
 } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, liveRecords, lockMatch } from "../../support/convex/gameweekScoresMatch.harness";
 import { holdTypoRule, TYPO_STAT } from "../../support/convex/gameweekScoresFixes.harness";
@@ -188,4 +194,32 @@ test("a starter released after the deadline still scores for his team in that ga
 
   const { ann } = await gameweek6(league);
   expect(ann).toMatchObject({ points: HULL_POINTS, provisional: false });
+});
+
+test("another league passing its later deadline with a position change leaves this league's scored gameweek as it was (#895)", async () => {
+  const league = await scoresLeague();
+  const centreBack = HULL_STARTERS.find(({ area, lane }) => area === "defence" && lane === "centre")!.playerCode;
+  const dayAfterDeadline = Math.ceil(DEADLINE / DAY_MS);
+  // Six starts at centre back long ago, then six at right back after this league's deadline.
+  const starts = [...played(...times(CENTRE_BACK, 6)), ...startsFrom(dayAfterDeadline, ...times(RIGHT_BACK, 6))];
+  const other = await league.t.run(async (ctx) => {
+    const row = (await ctx.db.query("playerPositions").withIndex("by_code", (q) => q.eq("code", centreBack)).unique())!;
+    await ctx.db.patch("playerPositions", row._id, { starts, approved: ["CB"], set: [] });
+    const otherId = await ctx.db.insert("leagues", { name: "Other", maxTeams: 4, commissionerEmail: COMMISSIONER });
+    await ctx.db.insert("passedDeadlines", { leagueId: otherId, gameweek: GAMEWEEK - 1, deadline: 7 * DAY_MS, recordedAt: 7 * DAY_MS });
+    return otherId;
+  });
+  const positionsIn = (leagueId: Id<"leagues">) => league.t.run(async (ctx) => (await positionsNow(ctx, leagueId))(centreBack));
+  await positionsSyncRanOnDay(league.t, dayAfterDeadline + 7);
+  await fullTimeRecords(league);
+  const before = await gameweek6(league);
+  expect(await positionsIn(other)).toContain("CB");
+
+  const otherDeadline = (dayAfterDeadline + 8) * DAY_MS;
+  await league.t.run((ctx) => ctx.db.insert("passedDeadlines", { leagueId: other, gameweek: GAMEWEEK, deadline: otherDeadline, recordedAt: otherDeadline }));
+  await positionsSyncRanOnDay(league.t, dayAfterDeadline + 9);
+
+  expect(await positionsIn(other)).not.toContain("CB");
+  expect(await positionsIn(league.leagueId)).toContain("CB");
+  expect(await gameweek6(league)).toEqual(before);
 });

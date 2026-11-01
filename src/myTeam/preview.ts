@@ -9,7 +9,7 @@ import { LATEST_LETTERS } from "../../convex/mail/mailLimits";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { previewMail, previewTopBar } from "../mail/preview";
 import { teamFixturesOf } from "../table/drawnTable";
-import { previewScored, previewTeams } from "../table/preview";
+import { previewScored, previewTable, previewTeams } from "../table/preview";
 import { previewSquad, previewTactics } from "./tactics/preview";
 import type { MyTeamSeam, TeamSquad, TeamTransactions } from "./seam";
 
@@ -81,6 +81,7 @@ const latestMail = { letters: previewMail.useLetters()!.slice(0, LATEST_LETTERS)
 
 export const previewMyTeam: MyTeamSeam = {
   ...previewTactics,
+  ...previewTable,
   useTeamFixtures: () => fixtures,
   useTeamTransactions: () => transactions,
   useTeamSquad: () => squad,

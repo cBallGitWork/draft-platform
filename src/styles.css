@@ -57,6 +57,9 @@
 
   --spacing-tap: 44px; /* every target, at the phone's width (plate.md, The phone) */
   --spacing-subtab: 36px; /* a section's tabs, on the desk */
+  /* A table's row on the desk (plate.md, Type): h-row. Only a screen rebuilt to its approved picture
+     draws it; the other built tables keep their 20px rows until theirs is rebuilt. */
+  --spacing-row: 28px;
 
   /* The width each of Mail's two panels grows from; with less room than both, the form wraps under */
   --flex-basis-letters: 480px;
@@ -85,6 +88,8 @@
   --spacing-pitch-clearance: 16px;
   --spacing-pitch-least: 360px;
   --spacing-shirt: 32px;
+  /* a form chip's least width: one letter, W, L or D (plate.md, Marks: form) */
+  --spacing-chip-tight: 18px;
   /* The widest a lost player's error words run in the Tactics squad list on a phone, wrapping
      after, so they leave the Role column its room (#323) */
   --spacing-error-name: 104px;

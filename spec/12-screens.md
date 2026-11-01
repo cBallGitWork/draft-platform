@@ -25,6 +25,8 @@ The look's exact values are in [docs/design/plate.md](../docs/design/plate.md).
   1 Nov 2026).
 - Logged out, in the closed beta: a sign-in page only (the name, "invite only", an email box for
   the sign-in link). No league is visible without signing in.
+- Table stays in the top menu, though League home shows the table too (Craig, 1 Nov 2026: "yes
+  to all").
 - The screens: sign in, your leagues, league home, my team (squad and tactics pitch), matchup (live
   head-to-head; live matchday is folded in here), match (one real match, live: `spec/10`), table and
   fixtures (the draft league's), Premier League (`spec/18`), Scouting (`spec/19`: the players list,
@@ -49,9 +51,11 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
   - the league's last five claims, drops and trades;
   - a weekly recap, written by AI from facts only once every match of the gameweek is final: top
     performers, letdowns and points left on the bench; Mail says when it is up (`spec/16`);
-  - Team of the Week: the best eleven from the league's lineups, in a legal formation, under the
-    site's scoring (`spec/14`);
-  - the commissioner's latest letter, pinned until a newer one.
+  - the commissioner's latest letter, pinned until a newer one;
+  - not Team of the Week: "ditch team of the week" (Craig, 1 Nov 2026).
+
+  League home's approved picture is in `docs/design/approved/home/` (Craig, 1 Nov 2026: "yes to
+  all").
 - **My team** shows the tactics pitch, the squad and Mail side by side.
   - The Tactics tab's squad list, beside the pitch as on FM's tactics screen: each row opens
     with the slot's position label (`spec/06`) in its area's colour, then the role's full name, the player,

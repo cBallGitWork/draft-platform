@@ -56,5 +56,5 @@ async function tickLive(ctx: ActionCtx, ranAt: number, fpl: typeof readFplPayloa
     await delayCommentary(ctx, live.map(({ fixtureCode }) => fixtureCode), outcome.error, ranAt);
   }
   await ctx.runMutation(internal.stats.liveStats.recordTick, { ranAt, outcome });
-  if (sides !== null) await recordSideMatches(ctx, ranAt, sides, anyMatchRead);
+  if (sides !== null && anyMatchRead) await recordSideMatches(ctx, ranAt, sides, true);
 }

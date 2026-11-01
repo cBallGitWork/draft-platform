@@ -8,6 +8,7 @@ import type { TeamTransactions } from "../../convex/squads/teamTransactions";
 import type { TeamFixtures } from "../../convex/table/teamFixtures";
 import type { TacticsSeam } from "./tactics/seam";
 import type { SquadSeam } from "./squad/seam";
+import type { TableSeam } from "../table/seam";
 
 export type { TeamFixtures, TeamSquad, TeamTransactions };
 
@@ -16,7 +17,8 @@ export type SquadNumberChanges = {
   set(leagueId: Id<"leagues">, playerCode: number, number: number | null): Change;
 };
 
-export type MyTeamSeam = TacticsSeam & SquadSeam & {
+/** The league's table and fixtures (the table's own seam) give the header band its readings. */
+export type MyTeamSeam = TacticsSeam & TableSeam & SquadSeam & {
   /** The manager's team's games for the season, live (a hook): undefined while they load, null
    *  for a league made before rules were held. */
   useTeamFixtures(leagueId: Id<"leagues">): TeamFixtures | null | undefined;

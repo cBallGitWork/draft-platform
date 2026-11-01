@@ -5,10 +5,10 @@ are **background, never the product.** A screen in here is not a feature request
 The product is whatever `SPEC.md` says, and this folder only helps put a look
 into words ("denser, like CM's squad list", "cards like FM's portal").
 
-**Contents:** [`fm26/`: Football Manager 26 (released Nov 2025)](#fm26-football-manager-26-released-nov-2025) · [`cm/`: classic Championship Manager](#cm-classic-championship-manager) · [Patterns across them](#patterns-across-them) · [`fpl/`: Fantasy Premier League (classic game)](#fpl-fantasy-premier-league-classic-game) · [`fpl-draft/`: FPL Draft (draft.premierleague.com)](#fpl-draft-fpl-draft-draftpremierleaguecom) · [`sleeper/`: Sleeper (NFL-first; also runs EPL "Sleeper FC" leagues)](#sleeper-sleeper-nfl-first-also-runs-epl-sleeper-fc-leagues) · [What FPL does for a fantasy game](#what-fpl-does-for-a-fantasy-game) · [What Sleeper does differently](#what-sleeper-does-differently)
+**Contents:** [`fm26/`: Football Manager 26 (released Nov 2025)](#fm26-football-manager-26-released-nov-2025) · [`fm27/`: Football Manager 27, per screen](#fm27-football-manager-27-per-screen) · [`cm/`: classic Championship Manager](#cm-classic-championship-manager) · [Patterns across them](#patterns-across-them) · [`fpl/`: Fantasy Premier League (classic game)](#fpl-fantasy-premier-league-classic-game) · [`fpl-draft/`: FPL Draft (draft.premierleague.com)](#fpl-draft-fpl-draft-draftpremierleaguecom) · [`sleeper/`: Sleeper (NFL-first; also runs EPL "Sleeper FC" leagues)](#sleeper-sleeper-nfl-first-also-runs-epl-sleeper-fc-leagues) · [What FPL does for a fantasy game](#what-fpl-does-for-a-fantasy-game) · [What Sleeper does differently](#what-sleeper-does-differently)
 
 The look we've decided on is *modern, with Championship Manager as a homage*. So
-there are two sets for the look: modern Football Manager (`fm26/`) and classic
+there are two sets for the look: modern Football Manager (`fm26/`, and `fm27/` per screen) and classic
 Championship Manager (`cm/`). Three more sets show how fantasy games present
 themselves: official Fantasy Premier League (`fpl/`), FPL Draft (`fpl-draft/`), and
 Sleeper (`sleeper/`), a mobile-first draft app that also runs Premier League leagues.
@@ -55,6 +55,23 @@ The fmshots PNGs (some 2560 or 3840 wide) were converted to JPEG and scaled to
 | `13-match-overview.jpg` | [Steam](https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3551340/005a1c1b6b3c19132f2b00fc28c0665f1b1c38c8/ss_005a1c1b6b3c19132f2b00fc28c0665f1b1c38c8.1920x1080.jpg) | Match Day overview (2D) | Panels: both formations with live ratings under each shirt, Match Stats as **paired bars** (shots, xG, possession), events, a 2D pitch with numbered discs, and latest scores. At the bottom, a blue commentary ribbon and a strip of 11 position + condition + rating chips. The scoreboard uses club colours. |
 | `14-match-lineup-graphic.jpg` | [Steam](https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3551340/52aaa51b9b4519b05dd11234135091638e193ae7/ss_52aaa51b9b4519b05dd11234135091638e193ae7.1920x1080.jpg) | Pre-match line-up broadcast graphic | This is TV-style, not manager UI: a black panel with a multicolour tournament border, all-caps heavy names, and **cyan shirt numbers**. Substitutes are a numbered list. A clear descendant of CM's numbered lists. |
 | `15-match-table-graphic.jpg` | [Steam](https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3551340/fa75547d1aa686774c07f54e45b159ff9b752b2e/ss_fa75547d1aa686774c07f54e45b159ff9b752b2e.1920x1080.jpg) | Group table broadcast graphic | A four-row table set very large, with cyan column heads (`P W D L GD PTS`) and points in **inverted white boxes**. It shows how a table can be the hero of a screen rather than a dense grid. |
+
+---
+
+## `fm27/`: Football Manager 27, per screen
+
+`fm27/catalogue.md` lists every screen in one public video guide, Work The Space's "How to Play
+Football Manager 2027" (YouTube), with FM27's menu tree, the frame every page shares, a table
+mapping each of our screens to its FM27 frames, and the traits that make FM screens read well.
+Catalogued 1 Nov 2026. Each screen starts from its FM equivalent's organisation, never its colours.
+
+Only the frames a screen with an approved picture cites are kept, as 960-wide JPEG stills from
+the video; the rest are described in the catalogue, and a screen's frames are added when it gets
+its approved picture.
+
+| Our screen (approved picture) | Kept frames |
+|---|---|
+| My team, Tactics (`../approved/team/`) | `17-tactics-overview-filled.jpg`, `18-tactics-role-card-advanced-playmaker.jpg`, `19-tactics-role-card-wing-back.jpg`, `21-tactics-instructions-role-picker.jpg`, `24-tactics-effectiveness-dropdown.jpg`, `81-match-team-selection.jpg` |
 
 ---
 

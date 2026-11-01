@@ -4,9 +4,8 @@ import { STARTER_COUNT } from "../../../convex/lineup/lineup";
 import { andListWords } from "../../../convex/shared/moments";
 import type { Area, Lane } from "../../../convex/lineup/pitch";
 import { AREA_WORDS, LANE_WORDS } from "../../../convex/lineup/pitchWords";
-import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { menuWords } from "../../frame/words";
-import { failedWords, gameweekWords, listSeparator, whenWords } from "../../shared/words";
+import { failedWords, gameweekWords, listSeparator } from "../../shared/words";
 
 export const TACTICS_TITLE = menuWords.tactics;
 export const SQUAD_PANEL_TITLE = menuWords.squad;
@@ -15,20 +14,6 @@ export const BENCH_TITLE = "Bench";
 export const tacticsLoadingWords = "Loading your lineup…";
 export const tacticsNoRulesWords = "This league was made before leagues had rules, so it has no deadline or area limits to set a lineup under.";
 export const seasonOverWords = "Every gameweek has begun, so there's no lineup left to set this season.";
-
-/** The deadline the lineup locks at, and how long is left. */
-export const locksWords = (gameweek: number, deadline: number) => `${gameweekWords(gameweek)} locks ${whenWords(deadline)}`;
-export const noDeadlineWords = (gameweek: number) => `${gameweekWords(gameweek)} has no deadline yet: none of its matches has a kickoff time.`;
-/** "in 1d 17h", "in 5h 12m", "in 12m": the two largest units, counted down a minute at a time. */
-export function countdownWords(left: number): string {
-  if (left < MINUTE_MS) return "in under a minute";
-  const days = Math.floor(left / DAY_MS);
-  const hours = Math.floor((left % DAY_MS) / HOUR_MS);
-  const minutes = Math.floor((left % HOUR_MS) / MINUTE_MS);
-  if (days > 0) return `in ${days}d ${hours}h`;
-  if (hours > 0) return `in ${hours}h ${minutes}m`;
-  return `in ${minutes}m`;
-}
 
 export const positionsWords = (positions: readonly string[]) => positions.join(listSeparator);
 export const startingWords = (starting: number) => `${starting} of ${STARTER_COUNT} starting`;
