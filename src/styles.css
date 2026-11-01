@@ -46,6 +46,14 @@
   --color-pitch: #2f8535;
   --color-pitch-stripe: #276f2c;
   --color-pitch-line: #e6f2e6;
+  /* a position chip in its area's colour (plate.md, Marks: position chips), from the approved
+     Tactics picture (docs/design/approved/team/), each with the ink that reads on it */
+  --color-area-goalkeeper: #e3cf98;
+  --color-area-defence: #2f6bd8;
+  --color-area-defensive-midfield: #4e6b45;
+  --color-area-midfield: #41c3ae;
+  --color-area-attacking-midfield: #9a3db8;
+  --color-area-attack: #f28c8c;
 
   --font-sans: "Archivo Narrow", "Arial Narrow", sans-serif;
   /* the second face, for page titles and team names only (the display-face utility below) */
@@ -73,14 +81,17 @@
   --spacing-tick: 22px;
   --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */
   --spacing-tick-mark: 14px; /* the tick drawn in it */
-  /* The Tactics tab: the squad beside the pitch on the desk; the window's height the pitch leaves
-     free; the narrowest the pitch is drawn on the desk, however short the window (a phone's is
-     the screen's width, its rows checked by tests/smoke/smoke.spec.ts); a player's shirt */
+  /* The Tactics tab: the squad beside the pitch on the desk; the pitch's width on the desk, the
+     approved Tactics picture's 340px and the room a player's block needs, so each stays in his
+     cell (a phone's is the screen's width; both checked by tests/smoke/smoke.spec.ts); a shirt */
   --flex-basis-squad: 320px;
-  --spacing-pitch-clearance: 16px;
-  --spacing-pitch-least: 360px;
+  --spacing-pitch-desk: 360px;
   --spacing-shirt: 32px;
-  /* a form chip's least width: one letter, W, L or D (plate.md, Marks: form) */
+  /* The Tactics tab's right-hand column of widgets on the desk (plate.md, Tables and panels), and a
+     position chip's least width, so GK and CDM line up down the Selection table */
+  --spacing-widget-column: 288px;
+  --spacing-chip: 30px;
+  /* a form chip's least width: one letter, W, L or D */
   --spacing-chip-tight: 18px;
   /* The widest a lost player's error words run in the Tactics squad list on a phone, wrapping
      after, so they leave the Role column its room (#323) */
@@ -104,6 +115,9 @@
   --grid-template-columns-home: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 2fr);
   --grid-template-columns-card: 2fr 3fr;
   --grid-template-columns-facts: auto 1fr;
+  /* The formation window's groups, its tiles and the picked one's preview (the approved formation
+     window) */
+  --grid-template-columns-formation-window: 12.5rem minmax(0, 1fr) 32.5rem;
 
   --text-data: 13px;
   --text-data--line-height: 20px;

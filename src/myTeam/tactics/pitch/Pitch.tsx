@@ -16,7 +16,7 @@ import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel, swapLabel
 // reach the same `onPlace`.
 
 /** Top to bottom as the pitch is drawn: attack first. */
-const ROWS_DRAWN = AREAS.toReversed();
+export const ROWS_DRAWN = AREAS.toReversed();
 
 /** On the row that holds the pitch, with the CSS `pitch-room`: the pitch's shape, width over
  *  length, which the CSS sizes the pitch and its panel by, and how much deeper a sweeper is drawn. */
@@ -26,8 +26,9 @@ export const PITCH_ROOM_STYLE = { "--pitch-aspect": PITCH_ASPECT, "--sweeper-dep
 export const SWEEPER_DEPTH = "pitch-sweeper";
 
 /** The pitch's cells: each area's row an equal share of its length, so the lines stand where they
- *  would on a real pitch, and each lane an equal share of its width. Its shape is the CSS `pitch`'s. */
-const CELL_GRID: CSSProperties = {
+ *  would on a real pitch, and each lane an equal share of its width. Its shape is the CSS `pitch`'s;
+ *  the formation window's thumbnails and preview draw on it too. */
+export const CELL_GRID: CSSProperties = {
   gridTemplateRows: `repeat(${ROWS_DRAWN.length}, minmax(0, 1fr))`,
   gridTemplateColumns: `repeat(${LANES.length}, minmax(0, 1fr))`,
 };
@@ -37,7 +38,11 @@ export type Moving = {
   picked: SquadMember | null;
   /** Where the player picked up can go, lit; null with nobody picked up. */
   reach: Reach | null;
-  /** A click, a tap or Enter: picks him up, or puts him back if he is already. */
+  /** The player whose panel is open, tapped on the pitch or in a row; null with none. */
+  selected: number | null;
+  /** A click, a tap or Enter on a player: opens his panel, or closes it if it is open. */
+  onSelect(playerCode: number): void;
+  /** Move, in his panel: picks him up, or puts him back if he is already. */
   onPick(playerCode: number): void;
   /** A drag starting: picks him up, whoever was. */
   onGrab(playerCode: number): void;
@@ -76,7 +81,7 @@ export function Pitch({
   return (
     <div role="group" aria-label={pitchLabel} style={CELL_GRID} className="pitch relative mx-auto grid">
       <PitchLines />
-      <RoleRuns draft={draft} tapped={picked?.playerCode ?? null} switchedOn={runsShown} />
+      <RoleRuns draft={draft} tapped={picked?.playerCode ?? moving.selected} switchedOn={runsShown} />
       {ROWS_DRAWN.flatMap((area) =>
         LANES.map((lane) => {
           const cell = { area, lane };
@@ -113,11 +118,13 @@ export function Pitch({
 }
 
 /** A player on the pitch: his shirt over his name plate, the role he plays under his name (spec/05
- *  Roles; his positions are in his name for screen readers). Picked up, the plate turns white; one
- *  the player picked up can swap with is lit, dashed like a free cell, and a tap swaps them. */
+ *  Roles; his positions are in his name for screen readers). A tap opens his panel, and his block
+ *  is ringed while it is open; picked up, the plate turns white; one the player picked up can swap
+ *  with is lit, dashed like a free cell, and a tap swaps them. */
 function PlayerBlock({ player, cell, role, lit, moving }: { player: SquadMember; cell: Cell; role: string; lit: boolean; moving: Moving }) {
   const { picked } = moving;
   const isPicked = picked?.playerCode === player.playerCode;
+  const isSelected = moving.selected === player.playerCode;
   const plate = isPicked ? "bg-fact text-ground" : "bg-name-plate";
   const swapsWith = lit && picked !== null;
   return (
@@ -125,12 +132,12 @@ function PlayerBlock({ player, cell, role, lit, moving }: { player: SquadMember;
       type="button"
       draggable
       {...markOf("player", player.playerCode)}
-      aria-pressed={isPicked}
+      aria-pressed={isSelected}
       aria-label={swapsWith ? swapLabel(picked.name, player.name) : playerOnPitchLabel(player.name, player.positions, cell.area, cell.lane)}
-      onClick={() => (swapsWith ? moving.onPlace(cell) : moving.onPick(player.playerCode))}
+      onClick={() => (swapsWith ? moving.onPlace(cell) : moving.onSelect(player.playerCode))}
       onDragStart={(event) => startDrag(event, player.playerCode, moving)}
       onDragEnd={moving.onDragEnd}
-      className={`flex w-full min-w-0 cursor-grab flex-col items-center ${swapsWith ? "outline-2 outline-dashed outline-pitch-line" : ""}`}
+      className={`flex w-full min-w-0 cursor-grab flex-col items-center ${swapsWith ? "outline-2 outline-dashed outline-pitch-line" : isSelected ? "outline-2 outline-pitch-line" : ""}`}
     >
       <Shirt number={player.number} clubCode={player.clubCode} goalkeeper={cell.area === "goalkeeper"} />
       <span className={`max-w-full truncate px-1 text-lead font-semibold ${plate}`}>{player.name}</span>

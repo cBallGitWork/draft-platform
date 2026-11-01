@@ -1,10 +1,11 @@
 // My team's header band (src/myTeam/header/TeamHeader.tsx; the approved Tactics picture): the
 // team's name, the deadline and its countdown, the opponent then, the last result, the form and the
-// table place, from the league's table and fixtures.
+// table place, from the league's table and fixtures; and the Tactics tab's GW opponent widget.
 
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { formLabel, deadlineHead, meterListLabel, formHead, gameweekShort, placeWords, pointsShort, tableHead, versusWords } from "../../../../src/myTeam/header/words";
+import { opponentTitle } from "../../../../src/myTeam/tactics/words";
 import { MATCHUP_PATH } from "../../../../src/frame/menu";
 import { idOf, leagueTableOf } from "../../../../src/table/drawnTable";
 import { league } from "../../../support/src/shell.harness";
@@ -45,5 +46,21 @@ describe("My team's header band", () => {
     expect(screen.queryByText(formHead)).toBeNull();
     expect(screen.queryByText(versusWords)).toBeNull();
     expect(meter(gameweekShort(TACTICS_GAMEWEEK - 1)).textContent).toBe(pointsShort(54));
+  });
+});
+
+describe("the Tactics tab's GW opponent widget", () => {
+  it("names the opponent as a link to the matchup, with his place, points and form", async () => {
+    openTacticsTab({ tactics: SAVED, leagueTable: TABLE });
+    const widget = await screen.findByRole("region", { name: opponentTitle(TACTICS_GAMEWEEK) });
+    expect(within(widget).getByRole("link").getAttribute("href")).toContain(MATCHUP_PATH);
+    expect(within(widget).getByText(tableHead)).toBeTruthy();
+    expect(within(widget).getByText(formHead)).toBeTruthy();
+  });
+
+  it("isn't there in total points, where there is no opponent", async () => {
+    openTacticsTab({ tactics: SAVED, leagueTable: leagueTableOf(TEAMS, { scores, format: "totalPoints" }) });
+    await screen.findByRole("heading", { level: 1, name: ME });
+    expect(screen.queryByRole("region", { name: opponentTitle(TACTICS_GAMEWEEK) })).toBeNull();
   });
 });

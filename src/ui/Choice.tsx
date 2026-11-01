@@ -12,7 +12,8 @@ export function Choice<Option extends string>({
   name: string;
   options: readonly Option[];
   words: Record<Option, string> | ((option: Option) => string);
-  chosen: Option;
+  /** Null where none of them is, such as a formation the eleven stand in that is no preset. */
+  chosen: Option | null;
   onChoose: (option: Option) => void;
 }) {
   const labelId = `${name}-label`;

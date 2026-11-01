@@ -99,6 +99,12 @@ name (the score).
 - **The current one of a list**: a 3px bar down its left edge in the active tab's cyan, and
   `aria-current` for screen readers (the top bar's league list).
 - **The bench**: its own "Bench" plate in the table, below the eleven.
+- **Position chips**: a square solid chip with the position's code, in its area's colour, from
+  the approved Tactics picture (`approved/team/`): goalkeeper `#e3cf98` ink `#111214`, defence
+  `#2f6bd8` ink `#ffffff`, defensive midfield `#4e6b45` ink `#ffffff`, midfield `#41c3ae` ink
+  `#111214`, attacking midfield `#9a3db8` ink `#ffffff`, attack `#f28c8c` ink `#111214` (12.2,
+  5.0, 6.0, 8.6, 5.6 and 7.9:1). A sweeper's SW and a wing-back's WB take the defence's, a support
+  striker's SS the attacking midfield's. Built once, `src/ui/PositionChip.tsx`.
 - **Form**: a team's last five results, W, L or D, each a square chip in the figure colour with
   the ground's ink (14.8:1), oldest first. Built once, `src/myTeam/header/FormChips.tsx`.
 - **A placeholder**: a cell for data not held yet (stars, fixture difficulty) keeps its place and
