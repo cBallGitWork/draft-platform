@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { api } from "../../../convex/_generated/api";
+import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreMatch } from "../../../convex/scoring/scoring";
@@ -9,7 +9,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, seasonStartYear } from "../../../convex/shared/time";
 import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { changeRules, holdGameweeks, rulesInGameweek, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
-import { expectRefused } from "../../support/convex/test.harness";
+import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
 import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";
 import { centreOf } from "../../support/convex/scoring.example";
 import {
@@ -120,6 +120,14 @@ describe("announcing a patch", () => {
       revision: await siteRevision(),
       versions: [{ name: "26_27.1", kind: "patch", takesEffectAt: deadline }],
     });
+  });
+
+  test("rates every player's stars again the moment it takes effect, as stars price under today's scoring (#11)", async () => {
+    await patch(EDITED, TODAY + NOTICE);
+
+    expect((await pendingJobs(t, internal.stars.starsRefresh.refreshAll)).map((job) => [job.scheduledTime, job.args[0]])).toEqual([
+      [TODAY + NOTICE, { cursor: null, startedAt: null }],
+    ]);
   });
 
   test("a deadline at a gameweek's first kickoff reaches that gameweek", async () => {
