@@ -2,9 +2,12 @@ import { describe, expect, test } from "vitest";
 import { lineupProblems, type Lineup } from "../../../convex/lineup/lineup";
 import { problemWords } from "../../../convex/lineup/lineupWords";
 import { AREAS, LANES, positionOfSlot } from "../../../convex/lineup/pitch";
-import { DEFAULT_ROLES, roleIn, roleName, rolesOfSlot, slotLabel, SWEEPER, SWEEPER_CELL } from "../../../convex/lineup/roles";
+import { DEFAULT_ROLES, isRole, roleIn, roleName, rolesOfSlot, slotLabel, SWEEPER, SWEEPER_CELL } from "../../../convex/lineup/roles";
+import { DRAFTED_ROLE_ADJUSTMENTS } from "../../../convex/scoring/draftedRoleAdjustments";
+import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
+import { scoreTeam } from "../../../convex/scoring/teamPoints";
 import { FIRST, STRIKER, STRIKERS_CELL, plays, subbed, withBench } from "../../support/convex/autoSubs.harness";
-import { filledLineup, openLimits, presetNamed } from "../../support/convex/lineup.harness";
+import { filledLineup, openLimits, presetNamed, REMOVED_ROLE } from "../../support/convex/lineup.harness";
 
 // Roles (#10, spec/05 Roles; Craig, 26 Oct 2026): a slot offers the default set's list for the
 // position it stands for, a starter plays the one he was given or the slot's first, and a sub
@@ -104,6 +107,52 @@ describe("a lineup refused for a role its slot doesn't offer", () => {
     const problems = lineupProblems(withRole("poacher"), positions, openLimits());
     expect(problems).toEqual([{ kind: "roleNotOffered", playerCode: leftBack.playerCode, area: "defence", lane: "left", role: "poacher" }]);
     expect(problemWords(problems[0], (code) => `Player ${code}`)).toContain("doesn't offer the role");
+  });
+});
+
+describe("a role removed from the set (spec/05 Roles; #841; Craig, 31 Oct 2026)", () => {
+  const { lineup, positions } = filledLineup(presetNamed("4-4-2"));
+  const leftBack = lineup.starters[1];
+  const cell = { area: "defence", lane: "left" } as const;
+  const onRole = (role: string): Lineup => ({
+    ...lineup,
+    starters: lineup.starters.map((starter, index) => (index === 1 ? { ...starter, role } : starter)),
+  });
+
+  test("is no slot's, so the lineup holding it stands, never refused", () => {
+    expect(leftBack).toMatchObject(cell);
+    expect(isRole(REMOVED_ROLE)).toBe(false);
+    expect(lineupProblems(onRole(REMOVED_ROLE), positions, openLimits())).toEqual([]);
+  });
+
+  test("is played as the slot's first, on the pitch as in scoring", () => {
+    const first = rolesOfSlot(cell)[0];
+    expect(roleIn(cell, REMOVED_ROLE)).toBe(first);
+    expect(slotLabel(cell, REMOVED_ROLE)).toBe(slotLabel(cell, first.key));
+    const scored = (role: string) =>
+      scoreTeam({
+        lineup: { starters: [{ ...leftBack, role }], bench: [] },
+        matches: new Map([[leftBack.playerCode, [{ record: { minutes: 90, accurate_cross: 2, clean_sheets: 1 }, final: true }]]]),
+        set: { ...FIRST_SCORING, roleAdjustments: DRAFTED_ROLE_ADJUSTMENTS },
+        doubleGameweekRule: "bothMatches",
+        substitutions: [],
+        benchCells: new Map(),
+      });
+    expect(scored(REMOVED_ROLE)).toEqual(scored(first.key));
+    expect(scored(REMOVED_ROLE).starters[0].role).toBe(first.key);
+  });
+
+  // Every key ever shipped: a saved lineup may hold any of them, so none goes without the
+  // migration and its letters spec/05 says a cut brings. A new role's key is added here.
+  const SHIPPED_ROLE_KEYS = [
+    "shotStopper", "sweeperKeeper", "defensiveFullBack", "attackingFullBack", "stopper", "ballPlayingDefender", "sweeper", "libero",
+    "attackingWingBack", "holdingWingBack", "anchor", "deepPlaymaker", "wideMidfielder", "defensiveWinger", "boxToBox", "playmaker",
+    "ballWinner", "insideForward", "winger", "numberTen", "shadowStriker", "poacher", "targetMan", "pressingForward", "falseNine",
+  ];
+
+  test("every key ever shipped is still in the set, and every key in it is pinned here", () => {
+    const held = new Set(Object.values(DEFAULT_ROLES).flatMap((roles) => roles.map(({ key }) => key)));
+    expect(held).toEqual(new Set(SHIPPED_ROLE_KEYS));
   });
 });
 
