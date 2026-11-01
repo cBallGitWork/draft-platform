@@ -14,3 +14,10 @@ export const RESEND_KEY_SETTING = "AUTH_RESEND_KEY";
 
 /** The sender's address: the live site's is set by `npm run setup:live` (docs/setup.md). */
 export const EMAIL_FROM_SETTING = "EMAIL_FROM";
+
+/** The one test account's email (spec/02, One test account signs in with a secret). With it or its
+ *  secret unset, the test account's way in is off. */
+export const TEST_ACCOUNT_EMAIL_SETTING = "TEST_ACCOUNT_EMAIL";
+
+/** The test account's secret. Every sign-in reads it afresh, so changing it ends the old one at once. */
+export const TEST_ACCOUNT_SECRET_SETTING = "TEST_ACCOUNT_SECRET";

@@ -3,11 +3,13 @@ import { convexAuth } from "@convex-dev/auth/server";
 import { joinByInvites } from "./joining/invites";
 import { sendSignInEmail } from "./signIn/signInEmail";
 import { claimAsk } from "./signIn/signInLinks";
+import { testAccount } from "./signIn/testAccount";
 import { DAY_MS } from "./shared/time";
 
 // Convex Auth (ARCHITECTURE.md, Libraries): emailed sign-in links, no passwords (spec/02). The
 // sign-in page asks through signIn/signInLinks:ask, never `signIn` with an email; the browser redeems a
 // link's code with `signIn`, and refreshes and ends its session with `signIn` and `signOut`.
+// The one test account signs in with a secret instead, and no page offers it (signIn/testAccount.ts).
 
 /** spec/02: a link works once and lasts an hour. */
 export const LINK_LIFETIME_S = 60 * 60;
@@ -15,7 +17,7 @@ export const LINK_LIFETIME_S = 60 * 60;
 const SESSION_MS = 30 * DAY_MS;
 
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
-  providers: [Resend({ maxAge: LINK_LIFETIME_S, sendVerificationRequest: sendSignInEmail })],
+  providers: [Resend({ maxAge: LINK_LIFETIME_S, sendVerificationRequest: sendSignInEmail }), testAccount],
   session: { totalDurationMs: SESSION_MS, inactiveDurationMs: SESSION_MS },
   callbacks: {
     // Runs inside the mutation that makes a link ("email"), before the link is saved and before
