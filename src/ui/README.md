@@ -21,6 +21,7 @@ names the [plate.md](../../docs/design/plate.md) section it draws; the values ar
 - `GameweekStepper.tsx`: CM's `◄ GW ►` stepper (Colour roles: stepper).
 - `OwnerName.tsx`: a player's owner, or a muted "Free agent" (Colour roles: fact, muted).
 - `PositionCodes.tsx`: position chips, each named in full on hover (Tables and panels: Roles in full).
+- `Placeholder.tsx`: data not held yet, a 1px muted outline in its place and size, its hover saying what will show (Marks: A placeholder).
 
 ## Utilities in controls.css
 
