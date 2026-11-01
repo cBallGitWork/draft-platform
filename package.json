@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit -p convex && tsc --noEmit -p .",
     "lint": "eslint --max-warnings 0 .",
     "smoke": "playwright test",
+    "test-account": "node --env-file-if-exists=.env.local node_modules/@playwright/test/cli.js test -c playwright.live.config.ts testAccount",
     "coverage": "node scripts/with-deadline.mjs 600 vitest run --coverage --testTimeout=30000",
     "verify": "npm ls --depth=0 >/dev/null 2>&1 || { echo 'node_modules is behind package-lock.json: run npm ci'; exit 1; } && npm test && npm run typecheck && npm run lint && node scripts/recorded-add-only.mjs && node scripts/tests-kept.mjs && node scripts/spec-ids.mjs && .claude/hooks/test.sh"
   },

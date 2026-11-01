@@ -16,4 +16,9 @@ Feature 2 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - A used or expired link opens the sign-in page saying the link has expired, to send a new one.
 - Signed in but in no league: a page saying so. The admin sees "Create a league" there instead;
   in the beta only the admin creates leagues (anyone can, later, when signups open).
+- One test account signs in with a secret instead of a link, so Claude can test the live site:
+  "take that email for the site, and you log in with it, make our own rule for it" (Craig, 1 Nov
+  2026). It is a dummy account, not Craig's admin email, managing the second team in Alpha: "theres
+  two teams in that league with teams, the only ones, create a dummy for it and use it". The secret
+  works for that one account only; any other email still needs a link.
 - The page and email wording is Claude's, written plainly; Craig changes it in the pull request.

@@ -144,6 +144,15 @@ it reads from and sends to each service: `scripts/live-setup/`. On the live site
 admin is let in with `--prod`:
 `npx convex run --prod signIn/allowedEmails:add '{"email":"someone@example.com"}'`.
 
+The test account (spec/02) signs in with a secret, so Claude can drive the live site. Set
+`TEST_ACCOUNT_EMAIL` and `TEST_ACCOUNT_SECRET` (long and random: `openssl rand -hex 32`) on the
+live deployment (the path is off while
+either is unset; a new secret ends the old one at once), then make it manager of Alpha's
+second team, once (running it again changes nothing):
+`npx convex run --prod signIn/testAccount:setUp '{"leagueName":"Alpha","teamNumber":2}'`.
+Put the same two, and `TEST_ACCOUNT_CONVEX_URL` (the live deployment's address), in `.env.local`;
+`npm run test-account` signs in and saves the session to `.auth/test-account.json` (gitignored).
+
 ## Restoring saved data
 
 A release that changes saved data's shape backs it up first (`scripts/release.mjs`): its Vercel
