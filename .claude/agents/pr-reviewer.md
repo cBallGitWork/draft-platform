@@ -24,8 +24,9 @@ empty diff is never 'Nothing found'.
 You run in the author's own checkout, so never move it: a `git checkout origin/main` there to
 search the range's end left the author's branch detached, and its next commit landed off the
 branch (#938). Read another commit where it is: `git grep -n <pattern> origin/main`,
-`git show origin/main:<path>`, `git ls-tree -r --name-only origin/main`. The Bash guard refuses
-any git command of yours that changes the checkout.
+`git show origin/main:<path>`, `git ls-tree -r --name-only origin/main`; for its files on disk,
+`git worktree add --detach <scratch dir> origin/main`, then `git worktree remove <scratch dir>`.
+The Bash guard refuses any git command of yours that changes the checkout.
 
 A second round starts only when there are commits since round 1. It names
 `<round-1-head>..HEAD` in **What I ran**, reviews those commits first, and checks them against
