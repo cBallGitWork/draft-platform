@@ -20,7 +20,6 @@ import { leagueScores } from "../gameweekScorer/gameweekScores";
 // `rescore` is that path: it drops a gameweek's stored scores and stores them again from the
 // records; an override calls `rescoreGameweek` itself, in its own transaction.
 
-
 /** Asks every league to store its newly final gameweeks, each in its own transaction. */
 export const storeEveryLeague = internalMutation({
   args: {},

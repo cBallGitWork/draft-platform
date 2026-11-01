@@ -3,7 +3,6 @@
 
 import { describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import type { Doc } from "../../../convex/_generated/dataModel";
 import { EVERY_LEAGUE, SYNCS_SEARCHED_MOST, thresholdRefusals, type PositionsFor } from "../../../convex/positions/positionSettings";
 import { positionsNow } from "../../../convex/positions/playerPositions";
 import type { Start } from "../../../convex/positions/positions";
@@ -11,7 +10,7 @@ import { DAY_MS } from "../../../convex/shared/time";
 import type { Position } from "../../../convex/positions/positionTables";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
-import { asAdmin } from "../../support/convex/positionsSync.harness";
+import { asAdmin, positionsSyncRanOnDay } from "../../support/convex/positionsSync.harness";
 import { CENTRE_BACK, movedToFullBack, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
 import { expectRefused, freshConvex, type TestConvex } from "../../support/convex/test.harness";
 
@@ -138,21 +137,6 @@ describe("only between gameweeks", () => {
     });
   /** A league whose own deadlines fall on days 10 and 20. */
   const gameweeksAtDays10And20 = (t: TestConvex) => leagueWithDeadlines(t, 10, 20);
-  const READ = {
-    ok: true as const,
-    matchesRead: 1,
-    matchesLeft: 0,
-    matchesRefused: [],
-    startsAdded: 1,
-    unmatchedPlayers: 0,
-    labelsReceived: 0,
-    labelsChanged: 0,
-    unknownFormations: [],
-    unknownLabels: [],
-  };
-  const positionsSyncRanOnDay = (t: TestConvex, day: number, outcome: Doc<"positionsSyncs">["outcome"] = READ) =>
-    t.run((ctx) => ctx.db.insert("positionsSyncs", { trigger: "manual", ranAt: day * DAY_MS, outcome }));
-
   /** Five at centre back to day 5, four at full back to day 9, then two more on days 11 and 12. */
   const acrossTheDeadline = () => [...played(...times(CENTRE_BACK, 5), ...times(RIGHT_BACK, 4)), ...startsFrom(11, ...times(RIGHT_BACK, 2))];
 

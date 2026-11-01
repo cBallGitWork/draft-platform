@@ -56,7 +56,19 @@ export type HowPositionsCount = Pick<PositionInputs, "approveMode" | "thresholds
 export type PositionsFor = Id<"leagues"> | typeof EVERY_LEAGUE;
 export const EVERY_LEAGUE = "every league";
 
-export async function howPositionsCount(ctx: QueryCtx, positionsFor: PositionsFor): Promise<HowPositionsCount> {
+/** Each request's answers, so a query asking for many teams or players works the cut-off out once
+ *  per league, not once per call: a request's ctx lives only as long as it does. */
+const answeredIn = new WeakMap<QueryCtx, Map<PositionsFor, Promise<HowPositionsCount>>>();
+
+export function howPositionsCount(ctx: QueryCtx, positionsFor: PositionsFor): Promise<HowPositionsCount> {
+  let answers = answeredIn.get(ctx);
+  if (answers === undefined) answeredIn.set(ctx, (answers = new Map()));
+  let answer = answers.get(positionsFor);
+  if (answer === undefined) answers.set(positionsFor, (answer = workedOut(ctx, positionsFor)));
+  return answer;
+}
+
+async function workedOut(ctx: QueryCtx, positionsFor: PositionsFor): Promise<HowPositionsCount> {
   const settings = await settingsRow(ctx);
   return {
     approveMode: settings?.approveMode ?? FIRST_APPROVE_MODE,
