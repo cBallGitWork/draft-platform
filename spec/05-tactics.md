@@ -25,14 +25,17 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - That centre cell offers the centre-back roles and the sweeper roles. It is a sweeper's cell,
   labelled SW and drawn deeper, only while its player is on a sweeper role, so a back three keeps a
   plain centre-back in the middle (Craig, 31 Oct 2026).
-- Free placement: drag a player into any free cell, Championship Manager style. Or pick a preset:
-  4-4-2, 4-3-3, 4-2-3-1, 4-1-4-1, 4-4-1-1, 4-3-1-2, 3-5-2, 3-4-3, 3-4-1-2, 5-3-2, 5-4-1, 4-5-1,
+- Presets only: the shape always comes from a preset, and no player moves into an empty cell.
+  "we dont allow users to move the individual pieces around, we have lots of formations already";
+  "i think i just dont like hacing 2 cbs and fb for exampel"; "to me, presets just sort all
+  this out" (Craig, 1 Nov 2026). Free placement, Championship Manager style, is dropped. The
+  presets: 4-4-2, 4-3-3, 4-2-3-1, 4-1-4-1, 4-4-1-1, 4-3-1-2, 3-5-2, 3-4-3, 3-4-1-2, 5-3-2, 5-4-1, 4-5-1,
   4-2-2-2, 4-1-2-1-2, 4-3-2-1, 4-1-3-2, 4-2-4, 3-4-2-1, 3-1-4-2, 5-2-3, 5-3-1-1, 3-6-1, all editable
   as league rules. Ten of them Craig added (28 Oct 2026): "no basics like 4-5-1"; 3-6-1 he added
-  (1 Nov 2026: "also add 3-6-1"), keeping free placement: "i want people to create formations".
+  (1 Nov 2026: "also add 3-6-1").
 - Picking a preset reshapes the pitch and keeps the players: each starter moves to a slot of the
   new shape in his own area, if one is free, and anyone left over goes to the front of the bench.
-  The shape's empty slots show where to drag (Craig, 26 Oct 2026; #14).
+  (Craig, 26 Oct 2026; #14).
 - A starter with no free slot in his own area moves to the nearest free slot in any area his
   positions play, and only a player with none goes to the bench (Craig, 1 Nov 2026, after a
   4-4-2 turned 4-2-3-1 benched its midfield: "it just put players on the bench, left half the
@@ -72,9 +75,9 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 
 From `/grill the Tactics pitch` (Craig, 31 Oct 2026), unless dated otherwise.
 
-- Tap a player and everywhere he can go lights up: each free cell he can take and each player
-  he can swap with, with his stars there. Anything that would break the area limits stays unlit.
-  Tap a lit cell to move him, or a lit player to swap them. Dragging still works.
+- Tap a player and each player he can swap with lights up, with his stars there. Anything that
+  would break the area limits stays unlit. Tap a lit player to swap them, or drag him onto one.
+  There are no empty cells to move into: presets only (Craig, 1 Nov 2026).
 - Dropping a player on another swaps them, starter for starter or bench for starter. Each lands on
   the role he has the most stars for in his new slot (Roles).
 - The lineup saves itself after each valid move. There is no Save button.
