@@ -42,5 +42,5 @@ export async function squadInputs(
       overrides: inMatch(fixture.code, (row) => row.overrides),
     })),
   );
-  return { ...ruled, matches, lineups, deadlineStars: await deadlineStarsIn(ctx, reads.leagueId, gameweek) };
+  return { ...ruled, matches, lineups, deadlineStars: await deadlineStarsIn(ctx, reads.leagueId, gameweek, teamId) };
 }

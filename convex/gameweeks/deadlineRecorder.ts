@@ -81,6 +81,8 @@ export async function recordPassedDeadlines(ctx: MutationCtx): Promise<number> {
     await storeBegunFixtures(ctx, league, await seasonRules(ctx, league._id), deadlines, now);
   }
   await setDeadlineAlarm(ctx, soonestToCome);
+  // A keeping of stars that failed is asked for again (deadlineStars.ts, #11).
+  await ctx.scheduler.runAfter(0, internal.stars.deadlineStars.keepMissing, {});
   return recorded;
 }
 

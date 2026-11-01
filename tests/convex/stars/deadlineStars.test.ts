@@ -70,3 +70,37 @@ test("kept once: stars changed after the deadline don't reach a second keeping",
 test("a gameweek with nothing kept, one locked before this was built, holds no stars", async () => {
   expect((await kept()).size).toBe(0);
 });
+
+test("a keeping that never happened is asked for again by the next recording, for the latest begun gameweek", async () => {
+  await passNextDeadline(t);
+  await t.mutation(internal.stars.deadlineStars.keepMissing, {});
+
+  expect((await pendingJobs(t, internal.stars.deadlineStars.storeLeague)).map((job) => job.args[0])).toContainEqual({ leagueId, gameweek: NEXT });
+  expect(await pendingJobs(t, internal.stars.deadlineStars.keepMissing)).not.toHaveLength(0);
+});
+
+/** How many keepings of gameweek NEXT are waiting. */
+const askedForNext = async () => (await pendingJobs(t, internal.stars.deadlineStars.storeLeague)).filter((job) => job.args[0].gameweek === NEXT).length;
+
+test("not asked for again once kept", async () => {
+  await passNextDeadline(t);
+  const before = await askedForNext();
+  await t.run((ctx) => ctx.db.insert("deadlineStars", { leagueId, gameweek: NEXT, teamId: annsTeam, bench: [] }));
+
+  await t.mutation(internal.stars.deadlineStars.keepMissing, {});
+
+  expect(await askedForNext()).toBe(before);
+});
+
+test("not asked for again once one of the gameweek's matches has locked, after which stars may have moved", async () => {
+  await passNextDeadline(t);
+  const before = await askedForNext();
+  await t.run(async (ctx) => {
+    const [fixture] = await ctx.db.query("fixtures").withIndex("by_gameweek_and_droppedAt", (q) => q.eq("gameweek", NEXT)).collect();
+    await ctx.db.insert("matchStatsStatus", { fixtureCode: fixture.code, state: "locked", fullTimeAt: Date.now(), lastReadAt: Date.now(), lockedAt: Date.now() });
+  });
+
+  await t.mutation(internal.stars.deadlineStars.keepMissing, {});
+
+  expect(await askedForNext()).toBe(before);
+});
