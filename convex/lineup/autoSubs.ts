@@ -13,7 +13,9 @@ import {
   type Placement,
   type PlayerPositions,
 } from "./lineup";
-import { ALL_CELLS, AREAS, byPitchOrder, cellKey, LANES, playsCell, sameCell, type Area, type Cell, type Lane } from "./pitch";
+import { ALL_CELLS, AREAS, byPitchOrder, cellKey, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
+import { droppedStarter } from "../stars/bestRole";
+import type { RoleStars } from "../stars/starsShape";
 
 /** Players are FPL's season-stable `code`. */
 type PlayerCode = number;
@@ -47,8 +49,8 @@ export interface AutoSub {
   area: Area;
   lane: Lane;
   /** "theSlot": he took the empty slot and its role. "hisOwnArea": no one on the bench could play
-   *  the slot, so he came on elsewhere, on his new slot's first role, and the formation changed.
-   *  Stars (#11) are kept but not yet wired in here to choose his best-star role. */
+   *  the slot, so he came on elsewhere, on the role he had the most stars for there at the
+   *  deadline, and the formation changed. */
   into: "theSlot" | "hisOwnArea";
 }
 
@@ -75,6 +77,12 @@ const CARRIED_KINDS: ReadonlySet<LineupProblem["kind"]> = new Set(["wrongStarter
 /** A starter who left the squad plays nowhere now: only the slot he left counts. */
 const NO_POSITIONS: readonly Position[] = [];
 
+/** Each bench player's stars as they stood at the gameweek's deadline (stars/deadlineStars.ts):
+ *  none for a gameweek with no copy kept, whose subs play the slot's first role. */
+export type DeadlineRatings = (playerCode: PlayerCode) => readonly RoleStars[];
+
+const NO_DEADLINE_STARS: DeadlineRatings = () => [];
+
 /** The substitutions for every starter who didn't play, and every slot `vacated` by one who left the
  *  squad (lineups.ts), back to front and left to right, and the lineup they leave. There is no limit
  *  on them (spec/05). */
@@ -85,6 +93,7 @@ export function autoSubs(
   plays: ReadonlyMap<PlayerCode, GameweekPlay>,
   rules: LineupRules,
   vacated: readonly Placement[],
+  ratingsOf: DeadlineRatings = NO_DEADLINE_STARS,
 ): AutoSubs {
   // Each who left stands in his slot again, on 0 minutes, so it is filled and the limits weighed
   // just as if he hadn't played (spec/05, Auto-subs); he is taken out of what is handed back.
@@ -118,7 +127,7 @@ export function autoSubs(
   for (const absentee of absentees) {
     // A sub who hasn't played yet may still: he comes on provisionally, and keeps the bench's order.
     const available = current.bench.filter((playerCode) => playOf(playerCode) !== "didNotPlay");
-    const sub = firstLegalSub(current, absentee, available, weighed, rules);
+    const sub = firstLegalSub(current, absentee, available, weighed, rules, ratingsOf);
     if (sub === undefined) unfilled.push(absentee.playerCode);
     else {
       substitutions.push(sub.substitution);
@@ -140,13 +149,14 @@ function firstLegalSub(
   available: readonly PlayerCode[],
   positions: PlayerPositions,
   rules: LineupRules,
+  ratingsOf: DeadlineRatings,
 ): { substitution: AutoSub; lineup: Lineup } | undefined {
   const slot = cellOf(absentee);
   // The hard rule (spec/05): a wing back plays only the wide lanes of a midfield row, so "can play
   // the slot's area" means can stand in the slot's own cell.
   for (const playerCode of available) {
     if (!playsCell(positionsOf(positions, playerCode), slot)) continue;
-    const tried = legalSubstitution(lineup, absentee, playerCode, slot, "theSlot", positions, rules);
+    const tried = legalSubstitution(lineup, absentee, { playerCode, ...slot, ...(absentee.role !== undefined && { role: absentee.role }) }, "theSlot", positions, rules);
     if (tried) return tried;
   }
   if (slot.area === GOALKEEPER) return undefined;
@@ -155,35 +165,30 @@ function firstLegalSub(
   for (const playerCode of available) {
     const playerPositions = positionsOf(positions, playerCode);
     for (const cell of freeCells.filter((free) => playsCell(playerPositions, free))) {
-      const tried = legalSubstitution(lineup, absentee, playerCode, cell, "hisOwnArea", positions, rules);
+      const tried = legalSubstitution(lineup, absentee, droppedStarter(playerCode, cell, ratingsOf(playerCode)), "hisOwnArea", positions, rules);
       if (tried) return tried;
     }
   }
   return undefined;
 }
 
-/** The substitution, if it leaves the lineup no less legal than it was. */
+/** The substitution of `sub` for the absentee, if it leaves the lineup no less legal than it was.
+ *  `sub` is where he comes on and his role: into the absentee's own slot he takes its role too
+ *  (spec/05 Auto-subs); elsewhere, his best-star one there at the deadline. */
 function legalSubstitution(
   lineup: Lineup,
   absentee: Placement,
-  playerCode: PlayerCode,
-  cell: Cell,
+  sub: Cell & { playerCode: PlayerCode; role?: string },
   into: AutoSub["into"],
   positions: PlayerPositions,
   rules: LineupRules,
 ): { substitution: AutoSub; lineup: Lineup } | undefined {
   const after: Lineup = {
-    // Into the absentee's own slot he takes its role too (spec/05 Auto-subs); elsewhere he plays
-    // the new slot's first: stars don't choose his best here yet (#11).
-    starters: lineup.starters.map((starter) => {
-      if (starter !== absentee) return starter;
-      const sameSlot = sameCell(cell, absentee);
-      return sameSlot && absentee.role !== undefined ? { playerCode, ...cell, role: absentee.role } : { playerCode, ...cell };
-    }),
-    bench: lineup.bench.map((benched) => (benched === playerCode ? absentee.playerCode : benched)),
+    starters: lineup.starters.map((starter) => (starter === absentee ? sub : starter)),
+    bench: lineup.bench.map((benched) => (benched === sub.playerCode ? absentee.playerCode : benched)),
   };
   if (isWorse(standingProblems(after, positions, rules), standingProblems(lineup, positions, rules))) return undefined;
-  return { substitution: { off: absentee.playerCode, on: playerCode, ...cell, into }, lineup: after };
+  return { substitution: { off: absentee.playerCode, on: sub.playerCode, area: sub.area, lane: sub.lane, into }, lineup: after };
 }
 
 /** Every outfield cell no other starter stands in, nearest the absentee's first: the fewest areas away,

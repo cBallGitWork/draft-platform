@@ -18,6 +18,8 @@ import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { MINUTES_STAT, statsIfWhole } from "../stats/matchRecords";
 import { heldMatches, isFinished, isMatchFinal, playsIn, type HeldMatch } from "./heldMatches";
+import { deadlineStarsIn } from "../stars/deadlineStars";
+import type { RoleStars } from "../stars/starsShape";
 
 // One team's points in one gameweek (#29; spec/05, Auto-subs; spec/07): its lineup, auto-subs from
 // who played, then scoreTeam under the site's scoring set in force that gameweek. The league's
@@ -75,6 +77,8 @@ export interface GameweekInputs {
   rules: ReturnType<SeasonRules["inGameweek"]>;
   matches: HeldMatch[];
   lineups: ReadonlyMap<TeamId, HeldLineup>;
+  /** Each team's bench players' stars kept at the deadline, which pick an auto-sub's role. */
+  deadlineStars: ReadonlyMap<TeamId, ReadonlyMap<PlayerCode, RoleStars[]>>;
 }
 
 /** The gameweek's inputs. A set holding a rule no longer sound throws (#287). A caller that has
@@ -92,6 +96,7 @@ export async function gameweekInputs(
     ...rulesIn(reads, gameweek),
     matches: await heldMatches(ctx, reads.leagueId, fixtures),
     lineups: lineups ?? (await lineupsInGameweek(ctx, reads.leagueId, teamIds, gameweek)),
+    deadlineStars: await deadlineStarsIn(ctx, reads.leagueId, gameweek),
   };
 }
 
@@ -141,7 +146,8 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
     playerMatches.set(code, hisMatches.map((match) => forPoints(match, code)));
     plays.set(code, gameweekPlay(hisMatches.map((match) => forPlay(match, code))));
   }
-  const subs = autoSubs(lineup, positions, plays, { areaLimits: rules.areaLimits }, held.vacated);
+  const keptStars = inputs.deadlineStars.get(teamId);
+  const subs = autoSubs(lineup, positions, plays, { areaLimits: rules.areaLimits }, held.vacated, (code) => keptStars?.get(code) ?? []);
   const departed = new Set(held.vacated.map(({ playerCode }) => playerCode));
   const team = scoreTeam({
     lineup,

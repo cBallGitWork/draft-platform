@@ -290,7 +290,8 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   as it does the controls' shared styles (`src/ui/controls.css`: the action, keys, boxes, the tick well).
 - `convex/schema/`: the schema's tables, one file per feature, imported only by `convex/schema.ts`.
   `convex/stars/`: stars, which role suits a player (#11): the rating, its stored rows and their
-  refresh, the reads, and the role a player dropped into a slot starts on.
+  refresh, the reads, the role a player dropped into a slot starts on, and each
+  deadline's kept copy that picks an auto-sub's role.
   `convex/gameweekScorer/`: the gameweek scorer.
 - The feed adapters: `convex/football/fpl/` and `convex/football/premierLeague/`, copies of
   epl-draft's, never shared.
